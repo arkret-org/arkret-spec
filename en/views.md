@@ -17,6 +17,14 @@ Contrix New must remain human-friendly, so the protocol must support natural pro
 - memory review queues
 - agent run views
 
+All of these presentation modes must come from the same substrate:
+
+```txt
+Space + Actor + Entity + Relation + Event
+```
+
+Views observe and organize this collaboration graph. They do not define a separate truth source.
+
 ## 2. Design Principles
 
 ### 2.1 Views Are Not the Truth of Objects
@@ -25,14 +33,14 @@ Views do not carry the canonical truth of underlying objects.
 
 ### 2.2 The Same Object May Appear in Multiple Views
 
-An item may appear in:
+A task Entity may appear in:
 
 - a Kanban board
 - a list
 - a calendar
 - a thread anchor
 
-A message may appear in:
+A message Entity may appear in:
 
 - a chat timeline
 - a topic thread
@@ -54,19 +62,20 @@ Suggested fields:
 {
   "id": "cx:view:01JS0VW000000000000000000",
   "kind": "view",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "owner": "did:web:acme.example.com",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "view_kind": "kanban",
+  "view_type": "kanban",
   "name": "Release Flow",
   "visibility": "shared",
   "query": {
-    "board_id": "cx:board:01JS0BD000000000000000000",
-    "archived": false
+    "entity_types": ["task", "issue"],
+    "filter": [
+      { "field": "archived", "op": "neq", "value": true }
+    ]
   },
-  "group_by": "status",
+  "group_by": "fields.status",
   "order_by": [
-    "rank"
+    { "field": "fields.rank", "direction": "asc" }
   ],
   "visible_fields": [
     "title",
@@ -77,7 +86,7 @@ Suggested fields:
 }
 ```
 
-## 4. Standard `view_kind` Values
+## 4. Standard `view_type` Values
 
 ### 4.1 Work-object Views
 
@@ -87,6 +96,11 @@ Suggested fields:
 - `calendar`
 - `timeline`
 - `graph`
+- `tree`
+- `gantt`
+- `matrix`
+- `document`
+- `dashboard`
 
 ### 4.2 Conversation Views
 
@@ -110,10 +124,11 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "kind": "item",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "status_in": ["todo", "in_progress"],
-  "archived": false
+  "entity_types": ["task", "issue"],
+  "filter": [
+    { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] },
+    { "field": "archived", "op": "eq", "value": false }
+  ]
 }
 ```
 
@@ -121,9 +136,14 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "kind": "message",
-  "channel_id": "cx:channel:01JS1000000000000000000000",
-  "redacted": false
+  "entity_types": ["message"],
+  "filter": [
+    { "field": "fields.redacted", "op": "eq", "value": false }
+  ],
+  "relation": {
+    "type": "belongs_to",
+    "to_entity_id": "cx:entity:01JS1000000000000000000000"
+  }
 }
 ```
 
@@ -131,9 +151,10 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "kind": "topic",
-  "anchor_ref": "cx:item:01JS0IT000000000000000000",
-  "status": "open"
+  "entity_types": ["topic"],
+  "filter": [
+    { "field": "fields.status", "op": "eq", "value": "open" }
+  ]
 }
 ```
 
@@ -141,9 +162,24 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "kind": "notification",
-  "delivery_state": "unread",
-  "actor": "did:web:alice.example.com"
+  "entity_types": ["message", "task", "invite", "run", "memory"],
+  "filter": [
+    { "field": "derived.notification_state", "op": "eq", "value": "unread" },
+    { "field": "derived.recipient", "op": "eq", "value": "did:web:alice.example.com" }
+  ]
+}
+```
+
+### 5.5 Dependency Graph Query Example
+
+```json
+{
+  "entity_types": ["task"],
+  "relation": {
+    "type": "depends_on",
+    "direction": "outgoing",
+    "depth": 4
+  }
 }
 ```
 
@@ -179,16 +215,17 @@ The first version should support:
 
 These define the shared minimum display contract. Clients may locally enhance the display as long as authorization is respected.
 
-## 7. Unified Presentation Rules for Board / Chat / Topic
+## 7. Standard Projection Rules
 
-### 7.1 Board
+### 7.1 Kanban
 
-The canonical input for board views should be:
+The canonical input for Kanban views should be:
 
-- `item`
-- `collection`
-- `board`
-- `view`
+- `entity_type = "board"`
+- `entity_type = "collection"`
+- `entity_type = "task"` or another work object type
+- `relation_type = "contains"` / `belongs_to`
+- `view_type = "kanban"`
 
 rather than some UI-private array-of-columns structure.
 
@@ -199,25 +236,34 @@ The canonical input for chat views should be:
 - `channel`
 - `topic`
 - `message`
+- `belongs_to` / `replies_to` / `mentions` Relations
 
 ### 7.3 Topic
 
 The canonical input for thread/topic views should be:
 
 - `topic`
-- `anchor_ref`
 - `message`
+- `attached_to` / `belongs_to` / `replies_to` Relations
+
+### 7.4 Graph
+
+Graph views should use Entity types plus one or more Relation types, directions, and expansion depths.
+
+### 7.5 Tree
+
+Tree views should use `contains` or `belongs_to` Relations with a root Entity and expansion depth.
 
 ## 8. Human-friendliness Requirements
 
 Implementations SHOULD guarantee at least:
 
 1. a default title and summary for each core object
-2. item projections that work naturally as cards or rows
-3. message projections that work naturally as bubbles or timeline rows
-4. topic projections that work naturally as forum-thread rows
-5. memory projections that work naturally as review rows or graph nodes
-6. run projections that work naturally as timeline rows or activity blocks
+2. task Entity projections that work naturally as cards or rows
+3. message Entity projections that work naturally as bubbles or timeline rows
+4. topic Entity projections that work naturally as forum-thread rows
+5. memory Entity projections that work naturally as review rows or graph nodes
+6. run Entity projections that work naturally as timeline rows or activity blocks
 7. notification projections that work naturally as inbox rows or badge sources
 
 ## 9. Shared / Private / System

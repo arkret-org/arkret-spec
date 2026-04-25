@@ -12,7 +12,7 @@ Contrix New 虽然不是 chat-first 协议，但必须正式支持：
 - 撤回
 - reaction
 
-并且这些能力要能和 board、item、run、memory 打通，而不是另起一套孤立系统。
+并且这些能力要能和 board、task、run、memory 等 Entity 打通，而不是另起一套孤立系统。
 
 ## 2. 设计原则
 
@@ -21,11 +21,11 @@ Contrix New 虽然不是 chat-first 协议，但必须正式支持：
 会话不是一个独立宇宙。  
 会话对象必须能链接到：
 
-- workspace
-- board
-- item
-- run
-- memory
+- space
+- board Entity
+- task Entity
+- run Entity
+- memory Entity
 
 ### 2.2 会话不应重新成为协议根
 
@@ -33,8 +33,8 @@ Contrix 不回到 room/message-first 模型。
 
 正确做法是：
 
-- 把会话作为正式对象层
-- 但仍让 workspace/object graph/repo ops 保持为协议根
+- 把会话作为标准 Entity 类型
+- 但仍让 `Space + Actor + Entity + Relation + Event + View` 保持为协议根
 
 ### 2.3 durable note 与 timeline message 分开
 
@@ -45,17 +45,17 @@ Contrix 不回到 room/message-first 模型。
 
 ## 3. 会话对象集合
 
-当前草案建议引入：
+当前草案建议标准化以下 `entity_type`：
 
 - `channel`
 - `topic`
 - `message`
 
-并定义 `reaction` 为 message 上的标准派生状态。
+并定义 `reaction` 为 message Entity 上的标准派生状态。
 
 ## 4. Channel
 
-Channel 是长期会话空间。
+Channel 是长期会话空间，对应 `entity_type = "channel"`。
 
 适合：
 
@@ -69,14 +69,20 @@ Channel 是长期会话空间。
 ```json
 {
   "id": "cx:channel:01JS1000000000000000000000",
-  "kind": "channel",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "release-chat",
-  "description": "General release coordination chat",
-  "channel_kind": "chat",
-  "visibility": "workspace",
-  "default_topic_mode": "inline",
-  "archived": false
+  "kind": "entity",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "entity_type": "channel",
+  "title": "release-chat",
+  "content": {
+    "format": "text",
+    "text": "General release coordination chat"
+  },
+  "fields": {
+    "channel_kind": "chat",
+    "visibility": "space",
+    "default_topic_mode": "inline",
+    "archived": false
+  }
 }
 ```
 
@@ -89,75 +95,70 @@ Channel 是长期会话空间。
 
 ## 5. Topic
 
-Topic 是会话线程或主题对象。
+Topic 是会话线程或主题对象，对应 `entity_type = "topic"`。
 
 它可以：
 
-- 隶属于某个 channel
-- 或直接锚定到某个 object
+- 通过 `belongs_to` Relation 隶属于某个 channel
+- 通过 `attached_to` Relation 直接锚定到某个 Entity
 
 建议字段：
 
 ```json
 {
   "id": "cx:topic:01JS1000000000000000000001",
-  "kind": "topic",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "channel_id": "cx:channel:01JS1000000000000000000000",
-  "anchor_ref": "cx:item:01JS0IT000000000000000000",
-  "topic_kind": "thread",
+  "kind": "entity",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "entity_type": "topic",
   "title": "Legal review follow-up",
-  "status": "open",
+  "fields": {
+    "topic_kind": "thread",
+    "status": "open"
+  },
   "created_by": "did:web:alice.example.com"
 }
 ```
 
-`anchor_ref` 可以指向：
+topic 与 channel、anchor object 的关系使用 Relation 表达：
 
-- `workspace`
-- `board`
-- `item`
-- `run`
-- `memory`
+- `topic --belongs_to--> channel`
+- `topic --attached_to--> board/task/run/memory/document`
 
 这意味着：
 
-- 一个 item 可以有一个默认 topic
-- 一个 run 也可以有自己的执行话题
+- 一个 task Entity 可以有一个默认 topic
+- 一个 run Entity 也可以有自己的执行话题
 
 ## 6. Message
 
-Message 是时间线中的原子消息对象。
+Message 是时间线中的原子消息对象，对应 `entity_type = "message"`。
 
 建议字段：
 
 ```json
 {
   "id": "cx:message:01JS1000000000000000000002",
-  "kind": "message",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "channel_id": "cx:channel:01JS1000000000000000000000",
-  "topic_id": "cx:topic:01JS1000000000000000000001",
-  "sender": "did:web:alice.example.com",
-  "reply_to_ref": null,
-  "body": {
+  "kind": "entity",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "entity_type": "message",
+  "created_by": "did:web:alice.example.com",
+  "content": {
     "format": "markdown",
     "text": "@bob 请确认这个 item 的 legal 风险。"
   },
-  "mentions": [
-    {
-      "kind": "principal",
-      "ref": "did:web:bob.example.com"
-    },
-    {
-      "kind": "object",
-      "ref": "cx:item:01JS0IT000000000000000000"
-    }
-  ],
-  "revision_root": "cx:message:01JS1000000000000000000002",
-  "visible_state": "active"
+  "fields": {
+    "revision_root": "cx:message:01JS1000000000000000000002",
+    "visible_state": "active"
+  }
 }
 ```
+
+message 与 topic/channel/reply/mention 的关系使用 Relation 表达：
+
+- `message --belongs_to--> topic`
+- `message --belongs_to--> channel`
+- `message --replies_to--> message`
+- `message --mentions--> actor_profile/task/document`
 
 ## 7. `@mention` 设计
 
@@ -175,13 +176,14 @@ UI 可以允许用户输入：
 
 协议层 SHOULD 存：
 
-- `mentions[].kind = principal | object`
-- `mentions[].ref = DID | stable object ID`
+- `mentions` Relation
+- `from_entity_id = message`
+- `to_entity_id = actor_profile` 或 stable Entity ID
 
 这样可以保证：
 
 - Handle 迁移不破坏历史 mention
-- object 改名不破坏历史 mention
+- Entity 改名不破坏历史 mention
 
 ### 7.3 Mention 通知
 
@@ -189,7 +191,7 @@ mention 通知应是派生结果，而不是 message 真相的一部分。
 
 也就是说：
 
-- message 保存 mention 引用
+- message 保存正文，`mentions` Relation 保存结构化引用
 - inbox/notification 由 index 或 relay 派生
 
 ## 8. 编辑、撤回、Reaction
@@ -232,7 +234,7 @@ reaction 建议通过独立 op 表达：
 - `comment` 更适合对象审阅、审批说明、审计性注释
 - `message` 更适合连续聊天、thread 对话、频道时间线
 
-如果一个 item 既要有审阅说明，又要有轻量对话：
+如果一个 task Entity 既要有审阅说明，又要有轻量对话：
 
 - 审阅意见写 `comment`
 - 即时讨论写 `topic/message`
@@ -261,8 +263,8 @@ reaction 建议通过独立 op 表达：
 
 推荐同步：
 
-- board/item 当前态
-- 当前打开 item 的默认 topic 摘要
+- board/task 当前态
+- 当前打开 task 的默认 topic 摘要
 - 最近评论和最近消息摘要
 
 ## 11. 冲突与收敛
@@ -312,12 +314,12 @@ message 创建是 append-only。
 
 当前草案建议固定：
 
-- `channel/topic/message` 为正式会话对象
-- `@mention` 使用结构化 DID/object ref
+- `channel/topic/message` 为标准 Entity 类型，不是协议根
+- `@mention` 使用结构化 DID/entity ref，并落成 Relation
 - 编辑采用 revision chain
 - 撤回采用 redaction/tombstone
 - reaction 用 OR-Set 收敛
-- board/chat/topic 共享同一同步协议，只是 profile 不同
+- board/chat/topic/tree/graph 共享同一同步协议，只是 profile 和 View 不同
 
 ## 14. 后续待细化
 

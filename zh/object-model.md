@@ -8,461 +8,585 @@ Contrix New 的对象模型必须同时支持：
 - 多组织协作
 - 看板工作流
 - 聊天与话题讨论
+- 树形任务拆解与复杂依赖图
 - AI agent 执行轨迹
 - AI agent 长期记忆
 
-因此协议必须围绕 **工作对象图** 来设计，而不是围绕“房间事件”或“列和卡片”这样的单一 UI 模式。
+因此协议必须围绕 **协作图 + 事件日志 + 视图投影** 来设计，而不是围绕“房间事件”“列和卡片”或“消息时间线”这样的单一 UI 模式。
+
+本协议的核心抽象固定为：
+
+```txt
+Space
+Actor
+Entity
+Relation
+Event
+View
+```
+
+一句话定义：
+
+> 在一个 Space 中，Actor 通过 Event 改变 Entity 与 Relation 组成的协作图；View 将这张图投影为聊天、看板、表格、日历、树、图谱、甘特图、审阅队列或其他界面。
 
 ## 2. 设计原则
 
 ### 2.1 稳定 ID 与显示名称分离
 
-对象引用 MUST 使用稳定 ID，不得使用：
+协议引用 MUST 使用稳定 ID，不得使用：
 
 - 标题
 - 显示名称
 - Handle
 - URL 路径
 
-### 2.2 对象属于 workspace，而不是属于某个 UI
+### 2.2 Entity 属于 Space，而不是属于某个 UI
 
-同一个对象可以同时进入多个 view，也可以同时被人类和 agent 使用。
+同一个 Entity 可以同时进入多个 View，也可以同时被人类和 agent 使用。
 
-### 2.3 当前态来自 reducer，而不是中心库覆盖
+任务卡片、聊天消息、文档、评论、运行记录、记忆、决策、文件元数据都只是不同 `entity_type` 的 Entity。
 
-对象当前态是从授权操作集合归约得到的，而不是靠单一中心数据库静默覆盖。
+### 2.3 Relation 是一等对象
 
-### 2.4 看板与聊天共用同一对象图
+对象之间的关系不能全部藏进 Entity 字段。
 
-看板、thread、chat、forum 都应该是同一对象图的标准投影，而不是两套互不兼容的数据模型。
+依赖、阻塞、包含、回复、引用、派生、分配、提及、订阅都 SHOULD 表达为 Relation。
+
+### 2.4 Event 是事实记录
+
+Event 表示“发生了什么”，不应被静默覆盖。
+
+当前态可以由 reducer 归约得到，也可以由 index/appview 物化缓存；但 canonical history MUST 来自授权 Event / operation 集合。
+
+### 2.5 View 只是投影
+
+看板、聊天、表格、日历、树、图谱、甘特图、inbox 都是 View。
+
+View 不拥有底层数据。View 只定义：
+
+- 查询范围
+- 关系展开规则
+- 分组、排序与布局
+- 可见字段
+- 交互建议
+
+### 2.6 Schema 约束抽象
+
+协议允许开放 Entity 类型，但不允许无约束 JSON 失控。
+
+Space SHOULD 注册 EntitySchema 与 RelationSchema，用于约束字段、关系、权限动作和默认视图。
 
 ## 3. ID 规范
 
 初版建议对象 ID 使用带前缀的稳定字符串，随机部分建议使用 ULID。
 
-示例：
+核心 ID：
 
-- `cx:ws:<ulid>`
-- `cx:board:<ulid>`
-- `cx:col:<ulid>`
-- `cx:item:<ulid>`
-- `cx:comment:<ulid>`
+- `cx:space:<ulid>`
+- `cx:actor:<ulid>`
+- `cx:entity:<ulid>`
 - `cx:rel:<ulid>`
-- `cx:blob:<ulid>`
-- `cx:channel:<ulid>`
-- `cx:topic:<ulid>`
-- `cx:message:<ulid>`
+- `cx:event:<ulid>`
 - `cx:view:<ulid>`
-- `cx:run:<ulid>`
-- `cx:mem:<ulid>`
 - `cx:schema:<ulid>`
 - `cx:policy:<ulid>`
 - `cx:invite:<ulid>`
 - `cx:read:<ulid>`
 
-## 4. 通用对象元数据
+语义对象 MAY 使用更具体前缀作为兼容别名，但协议层 SHOULD 归一为 `entity_id`：
 
-所有对象 SHOULD 共享以下基础字段：
+- `cx:task:<ulid>` 等价于 `entity_type = "task"`
+- `cx:message:<ulid>` 等价于 `entity_type = "message"`
+- `cx:doc:<ulid>` 等价于 `entity_type = "document"`
+- `cx:run:<ulid>` 等价于 `entity_type = "run"`
+- `cx:mem:<ulid>` 等价于 `entity_type = "memory"`
+
+## 4. 核心对象集合
+
+协议核心对象集合固定为：
+
+- `space`
+- `actor`
+- `entity`
+- `relation`
+- `event`
+- `view`
+- `schema`
+- `policy`
+- `invite`
+- `read_marker`
+
+其中：
+
+- `space` 是复制、权限、schema 与 policy 边界
+- `actor` 是行动主体，可以是 user、agent、system、integration、team
+- `entity` 是所有可协作对象的统一载体
+- `relation` 是 Entity 之间的语义链接
+- `event` 是协作事实和审计根
+- `view` 是展示投影
+- `schema` 是字段、关系和动作约束
+- `policy` 是保留、可见性、加密与 moderation 默认策略
+- `invite` 是加入 Space 的显式引导对象
+- `read_marker` 是 actor-private 但可同步的已读状态
+
+以下概念不再是协议根对象，而是标准 Entity 类型或 View 类型：
+
+- board
+- collection
+- item
+- channel
+- topic
+- message
+- comment
+- attachment
+- run
+- memory
+- notification
+
+## 5. 通用 Envelope
+
+所有 canonical object SHOULD 共享以下基础字段：
 
 ```json
 {
-  "id": "cx:item:01JS0000000000000000000000",
-  "kind": "item",
-  "workspace_id": "cx:ws:01JS0000000000000000000000",
+  "id": "cx:entity:01JS0000000000000000000000",
+  "kind": "entity",
+  "space_id": "cx:space:01JS0000000000000000000000",
   "created_at": "2026-04-22T08:00:00Z",
   "created_by": "did:web:alice.example.com",
   "updated_at": "2026-04-22T08:05:00Z",
   "updated_by": "did:web:agent.example.com",
+  "visibility": "space",
   "archived": false,
   "tombstoned": false,
+  "schema_ref": "cx:schema:01JS0SC000000000000000000",
   "version": 7
 }
 ```
 
-## 5. 核心对象集合
+## 6. Space
 
-当前草案的首批核心对象为：
-
-- workspace
-- board
-- collection
-- item
-- comment
-- relation
-- attachment
-- channel
-- topic
-- message
-- view
-- run
-- memory
-- schema
-- policy
-- invite
-- read_marker
-
-其中：
-
-- `item` 是主要工作对象
-- `comment` 是对象级 durable note
-- `channel/topic/message` 是会话对象
-- `view` 是投影
-- `run` 是执行轨迹
-- `memory` 是长期知识沉淀
-- `schema` 是字段与对象类型约束
-- `policy` 是保留、可见性、加密与 moderation 默认策略
-- `invite` 是加入 workspace 的显式引导对象
-- `read_marker` 是 actor 私有但可同步的已读状态
-
-## 6. Workspace
-
-Workspace 是复制与权限边界。
-
-它定义：
-
-- 默认复制范围
-- 默认权限范围
-- 默认 relay/index/blob
-- 默认 schema/policy
-
-示例：
-
-```json
-{
-  "id": "cx:ws:01JS0WS000000000000000000",
-  "kind": "workspace",
-  "owner": "did:web:acme.example.com",
-  "name": "Acme Delivery Workspace",
-  "description": "Cross-org product delivery and agent automation workspace",
-  "visibility": "private",
-  "default_policy_ref": "cx:policy:01JS...",
-  "default_schema_ref": "cx:schema:01JS..."
-}
-```
-
-## 7. Board
-
-Board 是共享工作上下文，不是协议最顶层对象。
-
-它适合表达：
-
-- 产品项目
-- 交付流
-- Incident 响应板
-- agent review queue
-
-示例：
-
-```json
-{
-  "id": "cx:board:01JS0BD000000000000000000",
-  "kind": "board",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "Release Readiness",
-  "description": "Shared launch board for human and agent coordination",
-  "status_field": "status",
-  "rank_field": "rank",
-  "default_view_id": "cx:view:01JS0VW000000000000000000",
-  "default_channel_id": "cx:channel:01JS1000000000000000000000",
-  "field_schema_ref": "cx:schema:01JS0SC000000000000000000"
-}
-```
-
-## 8. Collection
-
-Collection 是通用分组对象，不等于 Kanban 专属列。
+Space 是协作、复制、权限、schema 与 policy 边界。
 
 它可以表达：
 
-- lane
-- list group
-- folder
-- query segment
+- 组织空间
+- 项目空间
+- 客户协作空间
+- 团队空间
+- 频道空间
+- agent 工作空间
 
 示例：
 
 ```json
 {
-  "id": "cx:col:01JS0CL000000000000000000",
-  "kind": "collection",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "name": "Needs Review",
-  "collection_kind": "lane",
-  "rank": "m",
-  "state_token": "needs_review"
+  "id": "cx:space:01JS0SP000000000000000000",
+  "kind": "space",
+  "space_type": "project",
+  "owner": "did:web:acme.example.com",
+  "name": "Acme Delivery Space",
+  "description": "Cross-org product delivery and agent automation space",
+  "visibility": "private",
+  "parent_space_id": null,
+  "default_policy_ref": "cx:policy:01JS0PL000000000000000000",
+  "default_schema_refs": [
+    "cx:schema:01JS0SC000000000000000000"
+  ],
+  "default_view_id": "cx:view:01JS0VW000000000000000000"
 }
 ```
 
-## 9. Item
+## 7. Actor
 
-Item 是协议中最重要的业务对象。
-
-### 9.1 语义
-
-它代表“可协作处理的工作单元”，而不是单纯的 UI 卡片。
-
-### 9.2 建议字段
+Actor 是行动主体，不一定是人。
 
 ```json
 {
-  "id": "cx:item:01JS0IT000000000000000000",
-  "kind": "item",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "container_id": "cx:col:01JS0CL000000000000000000",
-  "item_type": "task",
-  "title": "Finalize onboarding copy review",
-  "body": "Coordinate product, design, legal, and agent-generated suggestions.",
-  "status": "in_progress",
-  "rank": "mV",
-  "priority": "high",
-  "assignees": [
-    "did:web:bob.example.com",
-    "did:web:agent.copy.example.com"
-  ],
-  "discussion_topic_id": "cx:topic:01JS1000000000000000000001",
-  "labels": [
-    "launch",
-    "copy"
-  ],
-  "due_at": "2026-04-28T00:00:00Z",
-  "visibility": "workspace"
+  "id": "did:web:agent.copy.example.com",
+  "kind": "actor",
+  "actor_type": "agent",
+  "display_name": "Copy Review Agent",
+  "status": "active",
+  "profile_entity_id": "cx:entity:01JS0AE000000000000000000"
 }
 ```
 
-### 9.3 `item_type`
+`actor_type` 初版建议：
 
-初版建议至少支持：
+- `user`
+- `agent`
+- `system`
+- `integration`
+- `team`
 
+Actor 的身份根仍然由 [identity.md](./identity.md) 定义。协议中的主体引用 MUST 使用 DID 或稳定 actor ID。
+
+当 Actor 需要进入协作图时，SHOULD 为它创建一个 `entity_type = "actor_profile"` 的 Entity 镜像。这样 `assigned_to`、`mentions`、`contains` 等 Relation 可以始终指向 Entity，避免 Relation 同时支持多种目标类型。
+
+## 8. Entity
+
+Entity 是协议中最重要的协作对象。
+
+它代表任何可被创建、讨论、关联、修改、追踪、授权和投影的东西。
+
+示例：
+
+```json
+{
+  "id": "cx:entity:01JS0EN000000000000000000",
+  "kind": "entity",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "entity_type": "task",
+  "schema_version": 1,
+  "title": "Finalize onboarding copy review",
+  "content": {
+    "format": "markdown",
+    "text": "Coordinate product, design, legal, and agent-generated suggestions."
+  },
+  "fields": {
+    "status": "in_progress",
+    "rank": "mV",
+    "priority": "high",
+    "due_at": "2026-04-28T00:00:00Z",
+    "labels": ["launch", "copy"]
+  },
+  "created_by": "did:web:alice.example.com",
+  "created_at": "2026-04-22T08:00:00Z",
+  "updated_by": "did:web:agent.copy.example.com",
+  "updated_at": "2026-04-22T08:05:00Z"
+}
+```
+
+### 8.1 标准 Entity 类型
+
+初版建议标准化以下 `entity_type`：
+
+- `space_profile`
+- `actor_profile`
 - `task`
 - `issue`
 - `goal`
 - `request`
 - `decision`
 - `note`
+- `document`
+- `comment`
+- `message`
+- `channel`
+- `topic`
+- `board`
+- `collection`
+- `attachment`
+- `run`
+- `memory`
+- `schema`
+- `policy`
+- `invite`
+- `read_marker`
 
-## 10. Comment
+这些类型是语义层，不是新的协议根。
 
-Comment 是对象上的 durable 说明对象，不应只被视为 message 的别名。
+### 8.2 字段边界
 
-它适合：
+Entity 字段 SHOULD 用于对象自身属性，例如：
 
-- 审批意见
-- 变更说明
-- 审计性注释
-- review note
+- 标题
+- 正文
+- 状态
+- 优先级
+- 时间
+- 排序 token
+- 业务标签
+- schema 约束的自定义字段
+
+Entity 字段 SHOULD NOT 用于表达复杂跨对象关系。跨对象关系 SHOULD 使用 Relation。
+
+例如：
+
+- 任务属于某个看板：Relation `belongs_to`
+- 消息属于某个频道：Relation `belongs_to`
+- 消息回复另一条消息：Relation `replies_to`
+- 任务依赖另一任务：Relation `depends_on`
+- 文档引用某个决策：Relation `references`
+
+## 9. Relation
+
+Relation 表达 Entity 之间的语义链接。
 
 示例：
-
-```json
-{
-  "id": "cx:comment:01JS0CM000000000000000000",
-  "kind": "comment",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "target_ref": "cx:item:01JS0IT000000000000000000",
-  "thread_root_ref": "cx:comment:01JS0CM000000000000000000",
-  "reply_to_ref": null,
-  "body": "Agent proposed three alternative copy variants. Human review pending."
-}
-```
-
-## 11. Relation
-
-Relation 表达对象之间的语义链接。
-
-建议字段：
 
 ```json
 {
   "id": "cx:rel:01JS0RL000000000000000000",
   "kind": "relation",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "from_ref": "cx:item:01JS0IT000000000000000000",
-  "to_ref": "cx:mem:01JS0ME000000000000000000",
-  "relation_type": "derived_from",
-  "directed": true
-}
-```
-
-## 12. Attachment
-
-Attachment 分为元数据对象和 blob 内容。
-
-示例：
-
-```json
-{
-  "id": "cx:blob:01JS0AT000000000000000000",
-  "kind": "attachment",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "target_ref": "cx:item:01JS0IT000000000000000000",
-  "blob_cid": "bafy...",
-  "name": "review-notes.pdf",
-  "mime_type": "application/pdf",
-  "size": 129034,
-  "sha256": "base64url..."
-}
-```
-
-## 13. Channel
-
-Channel 是长期会话空间。
-
-它适合：
-
-- 团队聊天
-- board 讨论区
-- agent 广播流
-- 公告流
-
-示例：
-
-```json
-{
-  "id": "cx:channel:01JS1000000000000000000000",
-  "kind": "channel",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "release-chat",
-  "description": "General release coordination chat",
-  "channel_kind": "chat",
-  "visibility": "workspace",
-  "default_topic_mode": "inline"
-}
-```
-
-## 14. Topic
-
-Topic 是线程或话题对象。
-
-它可以：
-
-- 属于某个 channel
-- 或直接锚定到某个协作对象
-
-示例：
-
-```json
-{
-  "id": "cx:topic:01JS1000000000000000000001",
-  "kind": "topic",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "channel_id": "cx:channel:01JS1000000000000000000000",
-  "anchor_ref": "cx:item:01JS0IT000000000000000000",
-  "topic_kind": "thread",
-  "title": "Legal review follow-up",
-  "status": "open"
-}
-```
-
-## 15. Message
-
-Message 是 channel 或 topic 时间线里的原子消息。
-
-示例：
-
-```json
-{
-  "id": "cx:message:01JS1000000000000000000002",
-  "kind": "message",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "channel_id": "cx:channel:01JS1000000000000000000000",
-  "topic_id": "cx:topic:01JS1000000000000000000001",
-  "sender": "did:web:alice.example.com",
-  "reply_to_ref": null,
-  "body": {
-    "format": "markdown",
-    "text": "@bob 请确认这个 item 的 legal 风险。"
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "relation_type": "depends_on",
+  "from_entity_id": "cx:entity:01JS0TASK0000000000000000",
+  "to_entity_id": "cx:entity:01JS0TASK0000000000000001",
+  "directed": true,
+  "fields": {
+    "strength": "hard"
   },
-  "mentions": [
-    {
-      "kind": "principal",
-      "ref": "did:web:bob.example.com"
-    },
-    {
-      "kind": "object",
-      "ref": "cx:item:01JS0IT000000000000000000"
+  "created_by": "did:web:alice.example.com",
+  "created_at": "2026-04-22T08:10:00Z"
+}
+```
+
+### 9.1 标准 Relation 类型
+
+初版建议标准化：
+
+- `contains`
+- `belongs_to`
+- `replies_to`
+- `references`
+- `depends_on`
+- `blocks`
+- `duplicates`
+- `relates_to`
+- `assigned_to`
+- `mentions`
+- `derived_from`
+- `subscribes`
+- `supersedes`
+- `attached_to`
+
+### 9.2 Relation 与反向语义
+
+Relation 的 canonical 方向由 `from_entity_id -> to_entity_id` 定义。
+
+反向语义 SHOULD 由查询层或 schema 派生，不建议额外写入一条重复反向 Relation，除非业务语义确实不同。
+
+例如：
+
+- `A depends_on B` 的反向显示可以是 `B blocks A`
+- 但 canonical 可以只存 `depends_on`
+
+## 10. Event
+
+Event 是协作事实记录。
+
+```json
+{
+  "id": "cx:event:01JS0EV000000000000000000",
+  "kind": "event",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "actor_id": "did:web:alice.example.com",
+  "event_type": "entity.updated",
+  "target": {
+    "kind": "entity",
+    "id": "cx:entity:01JS0EN000000000000000000"
+  },
+  "payload": {
+    "changes": {
+      "fields.status": {
+        "old": "todo",
+        "new": "in_progress"
+      }
     }
-  ],
-  "revision_root": "cx:message:01JS1000000000000000000002",
-  "visible_state": "active"
+  },
+  "occurred_at": "2026-04-22T08:20:00Z",
+  "recorded_at": "2026-04-22T08:20:01Z",
+  "transaction_id": "cx:txn:01JS0TX000000000000000000",
+  "correlation_id": null,
+  "causation_id": null
 }
 ```
 
-协议层的 `mentions` 必须使用 DID 或 stable object ref，而不是只存裸文本 `@xxx`。
+### 10.1 标准 Event 类型
 
-## 16. View
+底层事件 SHOULD 优先使用通用类型：
 
-View 是独立对象，但它的详细行为见 [views.md](./views.md)。
+- `space.created`
+- `space.updated`
+- `actor.joined`
+- `actor.left`
+- `entity.created`
+- `entity.updated`
+- `entity.deleted`
+- `entity.restored`
+- `relation.created`
+- `relation.updated`
+- `relation.deleted`
+- `view.created`
+- `view.updated`
+- `view.deleted`
+- `schema.updated`
+- `policy.updated`
 
-它定义：
+业务事件 MAY 作为语义糖：
 
-- 查询范围
-- 分组逻辑
-- 排序规则
-- 展示字段
-- 布局建议
+- `message.sent`
+- `message.revised`
+- `message.redacted`
+- `task.assigned`
+- `task.status_changed`
+- `dependency.added`
+- `file.attached`
+- `memory.confirmed`
+- `run.started`
+- `run.finished`
 
-View 是投影，不是真相。
+业务事件必须能还原为底层 `entity.*` 或 `relation.*` 事件。
 
-## 17. Run
+### 10.2 Command 与 Event
 
-Run 是 agent 或自动化执行轨迹对象。
+客户端 SHOULD 提交 Command，服务端或本地 reducer 验证后生成 Event。
+
+```json
+{
+  "id": "cx:cmd:01JS0CM000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "actor_id": "did:web:alice.example.com",
+  "command_type": "entity.create",
+  "payload": {
+    "entity_type": "task",
+    "title": "Design collaboration protocol",
+    "fields": {
+      "status": "todo",
+      "priority": "high"
+    }
+  },
+  "idempotency_key": "client-generated-key",
+  "requested_at": "2026-04-22T08:00:00Z"
+}
+```
+
+处理模型：
+
+```txt
+Command -> Validate -> Event -> Reduce Current State -> Notify Views
+```
+
+## 11. View
+
+View 是独立对象，详细行为见 [views.md](./views.md)。
+
+它定义如何把 Entity + Relation + Event 投影为人类或 agent 可用的界面。
 
 示例：
 
 ```json
 {
-  "id": "cx:run:01JS0RN000000000000000000",
-  "kind": "run",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "agent_id": "did:web:agent.copy.example.com",
-  "triggered_by": "did:web:alice.example.com",
-  "goal_ref": "cx:item:01JS0IT000000000000000000",
-  "status": "running",
-  "input_refs": [
-    "cx:item:01JS0IT000000000000000000"
+  "id": "cx:view:01JS0VW000000000000000000",
+  "kind": "view",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "view_type": "kanban",
+  "name": "Release Flow",
+  "visibility": "shared",
+  "query": {
+    "entity_types": ["task", "issue"],
+    "filter": [
+      { "field": "fields.archived", "op": "neq", "value": true }
+    ]
+  },
+  "group_by": "fields.status",
+  "order_by": [
+    { "field": "fields.rank", "direction": "asc" }
   ],
-  "output_refs": [],
-  "summary": null
+  "visible_fields": [
+    "title",
+    "fields.priority",
+    "fields.due_at",
+    "fields.labels"
+  ]
 }
 ```
 
-## 18. Memory
+标准 `view_type` 包括：
 
-Memory 是长期知识对象，不等于 comment，也不等于向量块。
+- `chat`
+- `kanban`
+- `table`
+- `list`
+- `calendar`
+- `gantt`
+- `graph`
+- `tree`
+- `timeline`
+- `feed`
+- `document`
+- `matrix`
+- `dashboard`
+- `inbox`
+- `review_queue`
 
-示例：
+## 12. 标准语义类型建模
+
+本节说明旧草案中的 board、item、message 等概念如何落到统一模型。
+
+### 12.1 Board / Collection / Card
+
+看板不是协议根。看板由 Entity、Relation 和 View 表达：
+
+- board: `entity_type = "board"`
+- collection/lane: `entity_type = "collection"`
+- card/task: `entity_type = "task"` 或其他工作对象类型
+- board 包含 collection: `board --contains--> collection`
+- collection 包含 task: `collection --contains--> task`
+- kanban 展示: `view_type = "kanban"`
+
+### 12.2 Chat / Channel / Topic / Message
+
+聊天不是协议根。聊天由 Entity、Relation 和 View 表达：
+
+- channel: `entity_type = "channel"`
+- topic/thread: `entity_type = "topic"`
+- message: `entity_type = "message"`
+- topic 属于 channel: `topic --belongs_to--> channel`
+- message 属于 topic 或 channel: `message --belongs_to--> topic`
+- message 回复 message: `message --replies_to--> message`
+- chat 展示: `view_type = "chat"` 或 `view_type = "thread"`
+
+消息正文 SHOULD 存在 Entity 的 `content` 中；mention MUST 同时落为结构化 Relation：
 
 ```json
 {
-  "id": "cx:mem:01JS0ME000000000000000000",
-  "kind": "memory",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "subject_ref": "cx:item:01JS0IT000000000000000000",
-  "memory_kind": "decision",
-  "title": "Copy variants require legal approval before publishing",
-  "body": "Team decided that all onboarding copy touching billing must be reviewed by legal.",
-  "source_refs": [
-    "cx:comment:01JS0CM000000000000000000",
-    "cx:message:01JS1000000000000000000002",
-    "cx:run:01JS0RN000000000000000000"
-  ],
-  "confidence": 0.92,
-  "status": "confirmed"
+  "relation_type": "mentions",
+  "from_entity_id": "cx:entity:message_1",
+  "to_entity_id": "cx:entity:actor_profile_bob"
 }
 ```
 
-## 19. Schema 与自定义字段
+### 12.3 Task Dependency Graph
+
+复杂依赖图不需要特殊对象：
+
+- task: `entity_type = "task"`
+- dependency: `relation_type = "depends_on"`
+- blocker: 可由 `depends_on` 反向显示，或用 `blocks` 作为显式业务 Relation
+- graph 展示: `view_type = "graph"`
+- tree 展示: `view_type = "tree"`，使用 `contains` 或 `belongs_to`
+
+### 12.4 Document / Comment
+
+文档与评论也是 Entity：
+
+- document: `entity_type = "document"`
+- comment: `entity_type = "comment"`
+- comment 锚定目标: `comment --attached_to--> target`
+- comment 回复 comment: `comment --replies_to--> comment`
+
+`comment` 定位为 durable review/note，不等同于实时聊天消息。
+
+### 12.5 Run / Memory
+
+AI agent 相关对象仍是一等 Entity：
+
+- run: `entity_type = "run"`
+- memory: `entity_type = "memory"`
+- run 输入: `run --references--> source`
+- run 输出: `run --derived_from--> source` 或 `output --derived_from--> run`
+- memory 来源: `memory --derived_from--> message/comment/run/document`
+
+Memory 不等于 embedding chunk。向量索引属于派生层。
+
+## 13. Schema
 
 Contrix 必须支持自定义字段，但不建议允许完全无约束 JSON 扩展。
 
-建议引入：
-
-- `cx:schema:<id>`
-
-由 workspace 或 board 引用。
+Schema SHOULD 定义 Entity 类型、字段类型、允许关系、默认视图和动作语义。
 
 示例：
 
@@ -470,25 +594,31 @@ Contrix 必须支持自定义字段，但不建议允许完全无约束 JSON 扩
 {
   "id": "cx:schema:01JS0SC000000000000000000",
   "kind": "schema",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "default-item-schema",
-  "applies_to": [
-    "item"
-  ],
-  "version": 3,
-  "fields": [
-    {
-      "name": "priority",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "schema_type": "entity",
+  "entity_type": "task",
+  "version": 1,
+  "fields": {
+    "status": {
+      "type": "enum",
+      "required": true,
+      "options": ["todo", "in_progress", "done"]
+    },
+    "priority": {
       "type": "enum",
       "required": false,
       "options": ["low", "medium", "high"]
     },
-    {
-      "name": "due_at",
+    "due_at": {
       "type": "datetime",
       "required": false
     }
-  ]
+  },
+  "allowed_relations": {
+    "outgoing": ["depends_on", "blocks", "belongs_to", "references", "assigned_to"],
+    "incoming": ["contains", "blocks", "references", "attached_to"]
+  },
+  "default_views": ["kanban", "table", "graph"]
 }
 ```
 
@@ -501,22 +631,14 @@ Contrix 必须支持自定义字段，但不建议允许完全无约束 JSON 扩
 - `datetime`
 - `enum`
 - `multi_enum`
-- `principal_ref`
-- `object_ref`
+- `actor_ref`
+- `entity_ref`
 - `url`
+- `json`
 
-Schema SHOULD 显式声明：
+## 14. Policy
 
-- `applies_to`
-- `version`
-- `fields`
-- `migration_notes`
-
-这样 reducer、view 与导入导出逻辑在 schema 升级时才可解释。
-
-## 20. Policy
-
-协议中已经引用 `policy`，因此它必须是正式对象，而不是实现私货。
+Policy 是正式对象，而不是实现私货。
 
 示例：
 
@@ -524,20 +646,21 @@ Schema SHOULD 显式声明：
 {
   "id": "cx:policy:01JS0PL000000000000000000",
   "kind": "policy",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "workspace-default-policy",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "name": "space-default-policy",
   "retention": {
-    "messages_days": 3650,
-    "candidate_memories_days": 90
+    "message_days": 3650,
+    "event_log_days": 3650,
+    "candidate_memory_days": 90
   },
-  "default_visibility": "workspace",
+  "default_visibility": "space",
   "redaction_mode": "tombstone",
-  "encryption_profile": "workspace-envelope-v1",
+  "encryption_profile": "space-envelope-v1",
   "allow_external_relays": true
 }
 ```
 
-`policy` SHOULD 至少覆盖：
+Policy SHOULD 至少覆盖：
 
 - retention
 - default visibility
@@ -545,17 +668,17 @@ Schema SHOULD 显式声明：
 - encryption profile
 - relay / blob / export defaults
 
-## 21. Invite
+## 15. Invite
 
-去中心化协作里，“别人如何加入 workspace”不能只靠产品私有链接。
+去中心化协作里，“别人如何加入 Space”不能只靠产品私有链接。
 
-Contrix 应支持显式 `invite` 对象：
+Contrix 应支持显式 `invite` 对象。它可以是专门对象，也可以落为 `entity_type = "invite"`。
 
 ```json
 {
   "id": "cx:invite:01JS0IV000000000000000000",
   "kind": "invite",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "issuer": "did:web:acme.example.com",
   "subject_did": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
   "subject_handle": "alice.example.com",
@@ -568,63 +691,37 @@ Contrix 应支持显式 `invite` 对象：
 }
 ```
 
-`invite` 的语义应是：
+`invite` 本身不等于 capability grant。接受 invite 后，相关 grant 才进入生效集合。
 
-- 它是加入引导对象
-- 它本身不等于 capability grant
-- 接受 invite 后，相关 grant 才进入生效集合
+## 16. Read Marker 与 Notification
 
-## 22. Read Marker
-
-人类友好的协作系统必须有 durable 的已读状态，否则 inbox / thread / chat 都无法稳定收敛。
-
-建议引入 actor-private 的 `read_marker`：
+`read_marker` 是 actor-private 的 durable state：
 
 ```json
 {
   "id": "cx:read:01JS0RD000000000000000000",
   "kind": "read_marker",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "owner": "did:web:alice.example.com",
-  "scope_kind": "channel",
-  "scope_ref": "cx:channel:01JS1000000000000000000000",
-  "last_seen_message_ref": "cx:message:01JS1000000000000000000002",
+  "scope_kind": "view",
+  "scope_ref": "cx:view:01JS0VW000000000000000000",
+  "last_seen_event_id": "cx:event:01JS0EV000000000000000000",
   "last_seen_hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
   "updated_at": "2026-04-22T08:40:00Z"
 }
 ```
 
-`read_marker` SHOULD：
+通知不应成为 canonical truth object。
 
-- 默认只对 owner 可见
-- 可按 channel / topic / inbox / view 设 scope
-- 作为 durable state 在多设备间同步
+`notification` SHOULD 是由 Event、Entity 与 Relation 派生的 inbox projection，例如：
 
-## 23. Notification
+- `mentions`
+- `assigned_to`
+- `invite`
+- `run.failed`
+- `memory.review_requested`
 
-通知对人类界面是必需的，但不应成为协议真相源对象。
-
-因此初版建议：
-
-- `notification` 是派生 inbox 对象
-- 它由 message mention、assignment、invite、run failure、memory review 等事件派生
-- 它可以被 index 或 relay 物化，但 canonical truth 仍是底层 source object 与 op
-
-示例：
-
-```json
-{
-  "id": "cx:notif:01JS0NF000000000000000000",
-  "actor": "did:web:alice.example.com",
-  "notification_kind": "mention",
-  "source_ref": "cx:message:01JS1000000000000000000002",
-  "target_ref": "cx:topic:01JS1000000000000000000001",
-  "delivery_state": "unread",
-  "created_at": "2026-04-22T08:31:05Z"
-}
-```
-
-## 24. 派生数据
+## 17. 派生数据
 
 以下内容不应作为 canonical truth object 保存：
 
@@ -634,34 +731,32 @@ Contrix 应支持显式 `invite` 对象：
 - 临时排序缓存
 - LLM 上下文窗口
 - typing/presence 瞬时状态
+- notification materialization
 
 这些都属于派生层或临时信号层。
 
-## 25. 初版设计决定
+## 18. 初版设计决定
 
-当前草案建议固定：
+当前草案固定：
 
-- 所有对象显式归属 workspace
-- `item` 是主业务对象
-- `channel/topic/message` 是正式会话对象
-- `comment` 是 durable 对象级说明
-- `view` 是投影定义
-- `run` 是执行轨迹对象
-- `memory` 是长期知识对象
-- `schema/policy` 是正式对象
-- `invite` 是显式加入引导
-- `read_marker` 是 durable actor-private state
-- `notification` 是派生对象，不是 canonical truth
+- 协议根抽象为 `Space + Actor + Entity + Relation + Event + View`
+- `Entity` 是协作对象，不属于任何特定 View
+- `Relation` 是一等公民，不藏在 Entity 字段里
+- `Event` 是事实记录和审计根
+- `View` 是投影，不拥有核心数据
+- `Command` 表达意图，`Event` 表达事实
+- `Schema` 约束 Entity 与 Relation，避免抽象退化成混乱 JSON
+- board、chat、task、message、run、memory 都是语义层，而不是协议根
 
-## 26. 后续待细化
+## 19. 后续待细化
 
 下一轮仍需明确：
 
-- schema object 正式格式
-- policy object 的正式 schema
-- invite / join / leave 状态机
+- EntitySchema / RelationSchema 正式 JSON Schema
+- Event envelope 与签名格式
+- Command request/response schema
+- ViewQuery 正式 schema
 - read marker 与 notification 的正式查询面
-- checklist 标准结构
 - message 富文本 block 结构
-- topic/channel 的历史可见性规则
+- Space 历史可见性规则
 - memory supersession / invalidation 语义

@@ -234,10 +234,10 @@ relay 至少应提供以下语义：
 GET /xrpc/cx.relay.describe
 ```
 
-### 5.2 workspace firehose 订阅
+### 5.2 Space firehose 订阅
 
 ```text
-GET /xrpc/cx.relay.subscribe?workspace_id=<id>&cursor=<cursor>
+GET /xrpc/cx.relay.subscribe?space_id=<id>&cursor=<cursor>
 ```
 
 实现可用：
@@ -251,13 +251,13 @@ GET /xrpc/cx.relay.subscribe?workspace_id=<id>&cursor=<cursor>
 ### 5.3 增量回补
 
 ```text
-GET /xrpc/cx.relay.backfill?workspace_id=<id>&cursor=<cursor>&limit=<n>
+GET /xrpc/cx.relay.backfill?space_id=<id>&cursor=<cursor>&limit=<n>
 ```
 
 ### 5.4 snapshot 入口
 
 ```text
-GET /xrpc/cx.relay.getSnapshotHead?workspace_id=<id>
+GET /xrpc/cx.relay.getSnapshotHead?space_id=<id>
 ```
 
 用于拿到当前推荐 snapshot manifest。
@@ -272,10 +272,10 @@ index 至少应提供以下语义：
 GET /xrpc/cx.index.describe
 ```
 
-### 6.2 获取对象当前态
+### 6.2 获取 Entity 当前态
 
 ```text
-GET /xrpc/cx.index.getObject?ref=<stable-ref>
+GET /xrpc/cx.index.getEntity?entity_id=<id>
 ```
 
 ### 6.3 结构化查询
@@ -286,7 +286,8 @@ POST /xrpc/cx.index.query
 
 其请求体 SHOULD 接受：
 
-- `kind`
+- `entity_types`
+- `relation`
 - 过滤条件
 - 排序
 - cursor
@@ -345,11 +346,11 @@ blob 校验 MUST 基于内容哈希，而不是单一 URL。
 至少建议提供：
 
 ```text
-GET /xrpc/cx.authz.getEffectiveGrants?workspace_id=<id>&subject=<did>
+GET /xrpc/cx.authz.getEffectiveGrants?space_id=<id>&subject=<did>
 ```
 
 ```text
-GET /xrpc/cx.authz.getInvites?workspace_id=<id>&subject=<did-or-handle>
+GET /xrpc/cx.authz.getInvites?space_id=<id>&subject=<did-or-handle>
 ```
 
 ```text
@@ -362,15 +363,15 @@ POST /xrpc/cx.authz.check
 - relay 分发前快速过滤
 - client 发送前本地 UX 提示
 
-## 9. Workspace Bootstrap Flow
+## 9. Space Bootstrap Flow
 
 初版推荐的首次加入流程：
 
-1. 用户输入 handle、DID 或 workspace link
+1. 用户输入 handle、DID 或 Space link
 2. 客户端解析 DID，并完成 handle 双向校验
 3. 从 DID Document 发现 identity registry / repo / relay / index / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
-5. 获取 workspace metadata 与 snapshot head
+5. 获取 Space metadata 与 snapshot head
 6. 下载 snapshot manifest 与 chunk
 7. 从 frontier 之后拉取 backfill / firehose 增量
 8. 本地执行 reducer

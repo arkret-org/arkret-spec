@@ -18,9 +18,9 @@ Question:
 
 Decision:
 
-- Contrix is **object-first + workspace-first**.
-- Chat, topic, and Kanban are standard projections on the same object graph.
-- The protocol root is not a room and not a message. It is `workspace + object graph + repo ops`.
+- Contrix is **space-first + entity-graph-first + event-first**.
+- Chat, topic, Kanban, tree, graph, and Gantt are standard projections on the same collaboration graph.
+- The protocol root is not a room, message, task, or board. It is `Space + Actor + Entity + Relation + Event + View`.
 
 ### 2.2 If the System Should Render as a Board, What Is the Canonical Data Shape?
 
@@ -32,10 +32,10 @@ Question:
 Decision:
 
 - The board substrate is not "column arrays + card arrays".
-- The substrate is `board + collection + item + field schema + view`.
-- `item` is the canonical work object.
-- `collection` is a generalized container that can project as a lane, list group, or query segment.
-- Kanban is just one standard `view_kind`.
+- The substrate is `Entity + Relation + View`.
+- `board`, `collection`, and `task/card` are standard `entity_type` values.
+- board contains collection, and collection contains task/card, through `contains` Relations.
+- Kanban is just one standard `view_type`.
 
 ### 2.3 If the Protocol Should Support Chat or Topic Mode, How Should That Work?
 
@@ -46,9 +46,9 @@ Question:
 
 Decision:
 
-- The protocol introduces `channel + topic + message` as formal conversation objects.
+- The protocol defines `channel/topic/message` as standard `entity_type` values, not new protocol roots.
 - `channel` is a long-lived conversation space.
-- `topic` is a thread/topic that may anchor to `workspace / board / item / run / memory`.
+- `topic` is a thread/topic that may anchor through Relations to `space / board / task / run / memory`.
 - `message` is a timeline message.
 - `comment` remains, but it is positioned as a durable object-local review/note, not the generic chat timeline primitive.
 
@@ -61,9 +61,9 @@ Question:
 
 Decision:
 
-- An item may have its own default `topic`.
-- A board may have one or more `channel`s and `topic`s.
-- A `topic` may anchor to `item / run / memory / board`.
+- A task Entity may have its own default `topic`.
+- A board Entity may have one or more `channel`s and `topic`s.
+- A `topic` may anchor to `task / run / memory / board`.
 - Humans should be able to inspect an item in a board and jump directly into the same item's thread/chat.
 
 ### 2.5 Should `@user` Be Supported?
@@ -77,9 +77,9 @@ Decision:
 
 - The protocol supports `@user` and `@object`.
 - The UI may accept `@handle` or `@title`.
-- The canonical protocol representation MUST store structured `mentions`.
+- The canonical protocol representation MUST store structured `mentions` Relations.
 - Principal mentions always reference DIDs.
-- Object mentions always reference stable object IDs.
+- Object mentions always reference stable Entity IDs.
 - Handle migration does not change historical mention targets.
 
 ### 2.6 Should Message Editing Be Supported?
@@ -118,9 +118,9 @@ Decision:
 
 - No. One protocol, multiple sync profiles.
 - Actors write to their own repos first.
-- Relays aggregate authorized workspace operations.
+- Relays aggregate authorized Space operations.
 - Indexes materialize current state and queries.
-- Board mode, chat mode, and topic mode differ in filters and projections, not protocol identity.
+- Board, chat, topic, tree, and graph modes differ in filters and projections, not protocol identity.
 
 ### 2.9 How Is History Backfilled?
 
@@ -188,11 +188,11 @@ Decision:
 
 Taken together, the protocol adopts the following overall plan:
 
-1. Fix the root model as `workspace + object graph + repo ops`.
-2. Model boards as `board + collection + item + view`.
-3. Model conversation as `channel + topic + message`.
+1. Fix the root model as `Space + Actor + Entity + Relation + Event + View`.
+2. Model boards as standard Entity types `board/collection/task` plus `contains/belongs_to` Relations and a Kanban View.
+3. Model conversation as standard Entity types `channel/topic/message` plus `belongs_to/replies_to/mentions` Relations and Chat/Thread Views.
 4. Keep `comment` for durable object-level notes, while `message` handles timeline conversation.
-5. Standardize `@mention` as structured DID/object references.
+5. Standardize `@mention` as structured DID/entity references and `mentions` Relations.
 6. Use revision chains for editing and redaction/tombstones for recalls.
 7. Reuse the same repo-first + relay + index sync model across board/chat/topic modes.
 8. Resolve conflicts through fixed reducer rules rather than client-specific heuristics.
@@ -203,7 +203,7 @@ Taken together, the protocol adopts the following overall plan:
 Based on this question inventory, the rest of the spec must explicitly cover:
 
 - [object-model.md](./object-model.md)  
-  Formal `channel/topic/message` objects and the shared graph with boards/items.
+  The `Space/Actor/Entity/Relation/Event/View` root model and the semantic mapping for board/chat/task/message/run/memory.
 - [conversation-model.md](./conversation-model.md)  
   Mention/edit/redaction/reaction semantics.
 - [operations-sync.md](./operations-sync.md)  

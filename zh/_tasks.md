@@ -9,7 +9,7 @@
 - [x] 增加 `conversation-model.md`  
   明确 board/chat/topic/mention/edit/recall/reaction 的交互层模型。
 - [x] 重写 `object-model.md`  
-  把 `channel/topic/message` 纳入一等对象模型。
+  固定 `Space/Actor/Entity/Relation/Event/View` 为协议核心抽象。
 - [x] 重写 `operations-sync.md`  
   明确 board/chat/topic 的同步 profile、redaction 语义和冲突收敛。
 - [x] 重写 `capabilities.md`  
@@ -26,12 +26,12 @@
 ## 当前轮验收标准
 
 - [x] 协议问题清单被明确列出
-- [x] 看板数据模型被明确为 `board + collection + item + view`
-- [x] 聊天/话题模型被明确为 `channel + topic + message`
-- [x] `@mention` 被明确为结构化 DID/object ref
+- [x] 看板数据模型被明确为标准 Entity 类型 + Relation + View
+- [x] 聊天/话题模型被明确为 `channel/topic/message` Entity + Relation
+- [x] `@mention` 被明确为结构化 DID/entity ref 和 `mentions` Relation
 - [x] 撤回被明确为 redaction/tombstone，而不是隐式物理删除
 - [x] board/chat/topic 的同步与冲突规则被写回规范
-- [x] 最小服务接口与 workspace bootstrap 被写回规范
+- [x] 最小服务接口与 Space bootstrap 被写回规范
 - [x] `schema/policy/invite/read_marker/notification` 被正式定义
 - [x] 幂等提交与授权时序规则被写回规范
 

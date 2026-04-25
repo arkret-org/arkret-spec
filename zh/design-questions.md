@@ -19,9 +19,9 @@
 
 决策：
 
-- Contrix 采用 **object-first + workspace-first**。
-- chat、topic、kanban 都是同一对象图上的标准投影。
-- 协议根对象不是房间，也不是消息，而是 `workspace + object graph + repo ops`。
+- Contrix 采用 **space-first + entity-graph-first + event-first**。
+- chat、topic、kanban、tree、graph、gantt 都是同一协作图上的标准投影。
+- 协议根对象不是房间、消息、任务或看板，而是 `Space + Actor + Entity + Relation + Event + View`。
 
 ### 2.2 如果要展示成看板，底层数据应该怎么设计？
 
@@ -33,10 +33,10 @@
 决策：
 
 - 看板底层不是“列数组 + 卡片数组”。
-- 底层应是 `board + collection + item + field schema + view`。
-- `item` 是 canonical work object。
-- `collection` 是泛化容器，可以投影为 lane、list group、query segment。
-- Kanban 只是 `view_kind = kanban` 的一种标准投影。
+- 底层应是 `Entity + Relation + View`。
+- `board`、`collection`、`task/card` 都是标准 `entity_type`。
+- board 包含 collection、collection 包含 task/card，使用 `contains` Relation。
+- Kanban 只是 `view_type = "kanban"` 的一种标准投影。
 
 ### 2.3 如果要支持聊天模式或话题模式，应该怎么设计？
 
@@ -47,11 +47,12 @@
 
 决策：
 
-- 协议引入 `channel + topic + message` 作为正式会话对象。
+- 协议将 `channel/topic/message` 定义为标准 `entity_type`，而不是新的协议根。
 - `channel` 表示长期会话空间。
-- `topic` 表示线程或话题，可挂在 `workspace / board / item / run / memory` 上。
+- `topic` 表示线程或话题，可通过 Relation 挂在 `space / board / task / run / memory` 上。
 - `message` 表示时间线消息。
-- `comment` 仍然保留，但定位为对象上的 durable review/note，而不是通用聊天时间线。
+- `comment` 仍然保留为标准 Entity 类型，但定位为对象上的 durable review/note，而不是通用聊天时间线。
+- 归属、回复、引用、提及必须落成结构化 Relation。
 
 ### 2.4 看板和聊天如何打通？
 
@@ -62,10 +63,10 @@
 
 决策：
 
-- item 可以有自己的默认 `topic`。
-- board 可以有一个或多个 `channel` 和 `topic`。
-- 一个 `topic` 可以锚定到 `item / run / memory / board`。
-- 人类可以在 board 里看 item，同时点进同一个 item 的 thread/chat。
+- task Entity 可以通过 Relation 关联自己的默认 `topic`。
+- board 可以通过 Relation 关联一个或多个 `channel` 和 `topic`。
+- 一个 `topic` 可以锚定到 `task / run / memory / board / document`。
+- 人类可以在 kanban view 里看 task，同时点进同一个 task 的 thread/chat view。
 
 ### 2.5 支持 `@user` 吗？
 
@@ -78,9 +79,9 @@
 
 - 支持 `@user`，也支持 `@object`。
 - UI 可以使用 `@handle` 或 `@title` 输入。
-- 协议层 canonical 存储必须落为结构化 `mentions` 引用。
+- 协议层 canonical 存储必须落为结构化 `mentions` Relation。
 - principal mention 一律引用 DID。
-- object mention 一律引用 stable object ID。
+- object mention 一律引用 stable entity ID。
 - 即使 handle 后续迁移，历史 mention 仍指向原 DID。
 
 ### 2.6 支持消息编辑吗？
@@ -119,9 +120,9 @@
 
 - 一套协议，多种同步 profile。
 - actor 先写自己的 repo。
-- relay 聚合 workspace 范围授权操作。
+- relay 聚合 Space 范围授权操作。
 - index 物化当前态和查询。
-- board 模式、chat 模式、topic 模式只是订阅过滤和投影方式不同。
+- board、chat、topic、tree、graph 模式只是订阅过滤和投影方式不同。
 
 ### 2.9 历史如何回补？
 
@@ -189,11 +190,11 @@
 
 综合以上问题，当前协议采用如下整体方案：
 
-1. 根模型固定为 `workspace + object graph + repo ops`。
-2. 看板采用 `board + collection + item + view`。
-3. 聊天/话题采用 `channel + topic + message`。
+1. 根模型固定为 `Space + Actor + Entity + Relation + Event + View`。
+2. 看板采用标准 Entity 类型 `board/collection/task` + `contains/belongs_to` Relation + `kanban` View。
+3. 聊天/话题采用标准 Entity 类型 `channel/topic/message` + `belongs_to/replies_to/mentions` Relation + `chat/thread` View。
 4. `comment` 继续保留为对象级 durable 说明；`message` 负责时间线会话。
-5. `@mention` 统一采用结构化 DID/object ref。
+5. `@mention` 统一采用结构化 DID/entity ref，并落成 `mentions` Relation。
 6. 编辑采用 revision chain；撤回采用 redaction/tombstone。
 7. 同步统一走 repo-first + relay + index，只是 profile 不同。
 8. 冲突统一由 reducer 固定规则解决，而不是让客户端自由发挥。
@@ -204,7 +205,7 @@
 基于这份问题清单，后续文档应当明确覆盖：
 
 - [object-model.md](./object-model.md)  
-  补 `channel/topic/message` 与 board/chat 的统一对象图。
+  固定 `Space/Actor/Entity/Relation/Event/View`，并定义 board/chat/task/message/run/memory 的语义层映射。
 - [conversation-model.md](./conversation-model.md)  
   补 mention/edit/redaction/reaction 的交互层定义。
 - [operations-sync.md](./operations-sync.md)  
@@ -219,7 +220,7 @@
 Contrix 最合理的方向不是在“看板协议”和“聊天协议”之间二选一。  
 最合理的方向是：
 
-- 用统一对象图表达工作与沟通
+- 用统一 Entity/Relation/Event 图表达工作与沟通
 - 用统一同步模型分发它们
 - 用统一权限模型控制它们
 - 用多种视图把它们展示给人和 agent

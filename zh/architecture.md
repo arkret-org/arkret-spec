@@ -34,7 +34,7 @@ Relay 负责把多个 principal repo 中与某个 workspace 相关的授权操�
 
 它承担：
 
-- workspace 范围传播
+- Space 范围传播
 - cursor/firehose 订阅
 - 快速 fanout
 - 初级权限过滤

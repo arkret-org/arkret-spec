@@ -9,7 +9,7 @@
 - [x] Add `conversation-model.md`  
   Define the interaction model for board/chat/topic/mention/edit/recall/reaction.
 - [x] Rewrite `object-model.md`  
-  Promote `channel/topic/message` to first-class objects.
+  Fix `Space/Actor/Entity/Relation/Event/View` as the core protocol abstraction.
 - [x] Rewrite `operations-sync.md`  
   Define board/chat/topic sync profiles, redaction semantics, and conflict convergence.
 - [x] Rewrite `capabilities.md`  
@@ -26,12 +26,12 @@
 ## Current-round Acceptance Criteria
 
 - [x] The protocol question inventory is explicit
-- [x] The board data model is explicit as `board + collection + item + view`
-- [x] The chat/topic model is explicit as `channel + topic + message`
-- [x] `@mention` is defined as structured DID/object references
+- [x] The board data model is explicit as standard Entity types + Relations + View
+- [x] The chat/topic model is explicit as `channel/topic/message` Entities + Relations
+- [x] `@mention` is defined as structured DID/entity references and `mentions` Relations
 - [x] Recall is defined as redaction/tombstone rather than implicit physical deletion
 - [x] Board/chat/topic sync and conflict rules are written back into the spec
-- [x] The minimum service surface and workspace bootstrap are written into the spec
+- [x] The minimum service surface and Space bootstrap are written into the spec
 - [x] `schema/policy/invite/read_marker/notification` are formally defined
 - [x] Idempotent submission and authorization-time rules are written into the spec
 

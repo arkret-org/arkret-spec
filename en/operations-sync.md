@@ -86,7 +86,7 @@ Every op MUST have a common envelope.
 ```json
 {
   "op_id": "cx:op:01JS0OP000000000000000000",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "actor": "did:web:alice.example.com",
   "type": "cx.item.update",
   "target_ref": "cx:item:01JS0IT000000000000000000",
@@ -219,7 +219,7 @@ Any repo, relay, or index receiving an op should validate at least:
 1. the signature is valid
 2. the actor DID resolves
 3. the key was valid at the operation time
-4. `workspace_id` matches the target workspace
+4. `space_id` matches the target Space
 5. the capability was effective at the operation time
 6. causal dependencies do not violate basic constraints
 
@@ -229,7 +229,7 @@ Snapshots are acceleration layers, not truth sources.
 
 ```json
 {
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "snapshot_id": "cx:snap:01JS0SN000000000000000000",
   "covers_frontier": [
     "cx:op:01JS0OP000000000000000000",
@@ -485,7 +485,7 @@ ACLs are not the same thing as ciphertext protection, and decentralized relays s
 
 The first version should therefore distinguish:
 
-- routable metadata: `workspace_id`, `target_ref`, `type`, `causal`
+- routable metadata: `space_id`, `target_ref`, `type`, `causal`
 - optionally encrypted fields: message bodies, attachment contents, sensitive memory bodies
 
 Implementations MAY encrypt content using the envelope format named by `policy.encryption_profile`.  

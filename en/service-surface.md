@@ -237,7 +237,7 @@ GET /xrpc/cx.relay.describe
 ### 5.2 Workspace Firehose Subscription
 
 ```text
-GET /xrpc/cx.relay.subscribe?workspace_id=<id>&cursor=<cursor>
+GET /xrpc/cx.relay.subscribe?space_id=<id>&cursor=<cursor>
 ```
 
 Implementations may use:
@@ -251,13 +251,13 @@ but they must provide stable cursor semantics.
 ### 5.3 Incremental Backfill
 
 ```text
-GET /xrpc/cx.relay.backfill?workspace_id=<id>&cursor=<cursor>&limit=<n>
+GET /xrpc/cx.relay.backfill?space_id=<id>&cursor=<cursor>&limit=<n>
 ```
 
 ### 5.4 Snapshot Head
 
 ```text
-GET /xrpc/cx.relay.getSnapshotHead?workspace_id=<id>
+GET /xrpc/cx.relay.getSnapshotHead?space_id=<id>
 ```
 
 Used to fetch the currently recommended snapshot manifest.
@@ -345,11 +345,11 @@ Even though grant / revoke / invite are themselves objects or ops, the service l
 At minimum, the following are recommended:
 
 ```text
-GET /xrpc/cx.authz.getEffectiveGrants?workspace_id=<id>&subject=<did>
+GET /xrpc/cx.authz.getEffectiveGrants?space_id=<id>&subject=<did>
 ```
 
 ```text
-GET /xrpc/cx.authz.getInvites?workspace_id=<id>&subject=<did-or-handle>
+GET /xrpc/cx.authz.getInvites?space_id=<id>&subject=<did-or-handle>
 ```
 
 ```text
@@ -362,7 +362,7 @@ The `check` surface is useful for:
 - fast filtering before relay distribution
 - local UX warnings before a client sends a write
 
-## 9. Workspace Bootstrap Flow
+## 9. Space Bootstrap Flow
 
 The recommended first-time join flow is:
 

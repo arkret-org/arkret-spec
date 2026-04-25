@@ -11,6 +11,7 @@ Contrix New 是面向协作对象的分布式发布、传播、查询与收敛�
 - 当前态快速恢复
 - 看板模式同步
 - 聊天/话题模式同步
+- 树/图谱/依赖图同步
 - 离线写入
 - 最终一致收敛
 
@@ -31,7 +32,7 @@ Repo 是某个 principal 的发布源。
 
 ### 2.2 Relay
 
-Relay 是 workspace 传播层。
+Relay 是 Space 传播层。
 
 ### 2.3 Index
 
@@ -47,12 +48,12 @@ Contrix New 采用 repo-first 模型：
 
 1. actor 先写自己的 repo
 2. repo 发布 commit
-3. relay 聚合 workspace 相关授权 op
+3. relay 聚合 Space 相关授权 op
 4. index 归约为当前态
 
 这套模型同时适用于：
 
-- board/item 更新
+- board/task 更新
 - topic/message 流
 - run/memory 沉淀
 
@@ -86,10 +87,10 @@ Contrix New 采用 repo-first 模型：
 ```json
 {
   "op_id": "cx:op:01JS0OP000000000000000000",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "actor": "did:web:alice.example.com",
-  "type": "cx.item.update",
-  "target_ref": "cx:item:01JS0IT000000000000000000",
+  "type": "cx.entity.update",
+  "target_ref": "cx:entity:01JS0EN000000000000000000",
   "causal": {
     "deps": [
       "cx:op:01JS0OO000000000000000000"
@@ -119,35 +120,37 @@ Contrix New 采用 repo-first 模型：
 
 ## 7. 操作类型
 
-### 7.1 Workspace / Schema / Policy
+### 7.1 Space / Schema / Policy
 
-- `cx.workspace.create`
-- `cx.workspace.update`
+- `cx.space.create`
+- `cx.space.update`
 - `cx.schema.define`
 - `cx.schema.update`
 - `cx.policy.set`
 
-### 7.2 Board / Collection / View
+### 7.2 Entity / Relation / View
 
-- `cx.board.create`
-- `cx.board.update`
-- `cx.collection.create`
-- `cx.collection.update`
-- `cx.collection.move`
+- `cx.entity.create`
+- `cx.entity.update`
+- `cx.entity.delete`
+- `cx.entity.restore`
+- `cx.relation.create`
+- `cx.relation.update`
+- `cx.relation.delete`
 - `cx.view.create`
 - `cx.view.update`
 
-### 7.3 Item / Comment / Relation / Attachment
+### 7.3 标准语义操作
 
-- `cx.item.create`
-- `cx.item.update`
-- `cx.item.move`
-- `cx.item.reorder`
+以下操作是语义糖，MUST 能还原为 `entity.*` 或 `relation.*`：
+
+- `cx.task.create`
+- `cx.task.update`
+- `cx.task.move`
+- `cx.task.reorder`
 - `cx.comment.create`
 - `cx.comment.update`
 - `cx.comment.redact`
-- `cx.relation.create`
-- `cx.relation.delete`
 - `cx.attachment.add`
 - `cx.attachment.remove`
 
@@ -219,7 +222,7 @@ Contrix New 采用 repo-first 模型：
 1. 签名有效
 2. actor DID 可解析
 3. key 在操作时点有效
-4. workspace_id 与 target workspace 一致
+4. `space_id` 与 target Space 一致
 5. capability 在操作时点有效
 6. causal 依赖不违反基本约束
 
@@ -229,7 +232,7 @@ Snapshot 是加速层，不是真相源。
 
 ```json
 {
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "snapshot_id": "cx:snap:01JS0SN000000000000000000",
   "covers_frontier": [
     "cx:op:01JS0OP000000000000000000",
@@ -269,9 +272,9 @@ Snapshot 是加速层，不是真相源。
 
 用于 actor 历史恢复与审计重放。
 
-### 11.2 Workspace Sync
+### 11.2 Space Sync
 
-用于 workspace 级当前态与增量同步。
+用于 Space 级当前态与增量同步。
 
 ### 11.3 Firehose Subscription
 
@@ -289,15 +292,15 @@ Snapshot 是加速层，不是真相源。
 - 拉取有效 grant 集
 - 判断某个 op 在当前 frontier 下是否可写
 
-## 12. Board / Chat / Topic 同步 Profile
+## 12. View 同步 Profile
 
 ### 12.1 Board 模式
 
 默认同步：
 
-- board/item/collection 当前态
-- 当前打开 item 的 comment 摘要
-- 当前打开 item 的默认 topic 摘要
+- board/collection/task Entity 当前态
+- 当前打开 task 的 comment 摘要
+- 当前打开 task 的默认 topic 摘要
 
 ### 12.2 Chat 模式
 
@@ -317,11 +320,20 @@ Snapshot 是加速层，不是真相源。
 - 最近 N 条 messages
 - 反向 backfill cursor
 
-## 13. 首次加入工作区
+### 12.4 Graph / Tree 模式
+
+默认同步：
+
+- root Entity 当前态
+- 查询范围内的 Entity 当前态
+- 相关 Relation 集合
+- 最近影响这些 Entity/Relation 的 Event 摘要
+
+## 13. 首次加入 Space
 
 推荐流程：
 
-1. 获取 workspace metadata
+1. 获取 Space metadata
 2. 获取与自己相关的 invite / grant 视图
 3. 拉取最近 snapshot manifest
 4. 下载 snapshot chunk
@@ -337,13 +349,12 @@ Snapshot 是加速层，不是真相源。
 
 初版至少支持以下过滤维度：
 
-- workspace
-- board
-- channel
-- topic
-- object kind
+- space
+- view
+- entity_type
+- relation_type
 - target refs
-- watched items
+- watched entities
 - watched runs
 - changed since cursor
 
@@ -485,7 +496,7 @@ ACL 不等于密文保护，去中心化 relay 也不应被迫看懂所有正文
 
 因此初版建议区分：
 
-- 可路由元数据：`workspace_id`、`target_ref`、`type`、`causal`
+- 可路由元数据：`space_id`、`target_ref`、`type`、`causal`
 - 可选密文字段：正文、附件内容、敏感 memory body
 
 实现 MAY 使用 `policy.encryption_profile` 指定的 envelope 格式对内容加密。  
@@ -516,7 +527,7 @@ Blob 不应强制与元数据同流同步。
 - repo commit 是 actor 发布单元
 - op 是共享状态归约单元
 - board/chat/topic 共享同一同步协议
-- invite / grant / snapshot 组成 workspace bootstrap 主流程
+- invite / grant / snapshot 组成 Space bootstrap 主流程
 - commit/op 重试必须幂等
 - 授权有效性由同一 reducer 顺序收敛
 - 密文负载可以被不解密的 relay / index 转发

@@ -36,7 +36,7 @@ Example:
 ```json
 {
   "grant_id": "cx:grant:01JS0GR000000000000000000",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
   "resource": {

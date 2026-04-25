@@ -8,14 +8,14 @@ The old `contrix-spec` still largely inherited a Matrix-like "rooms + events + m
 The new Contrix explicitly shifts to:
 
 - **DID principals** as the identity root
-- **workspace/object graphs** as the data root
+- **Space / Entity / Relation collaboration graphs** as the data root
 - **append-only repos + ops** as the audit root
 - **capabilities** as the authorization root
 - **views/projections** as the human presentation root
-- **memory + runs** as the AI-agent collaboration and memory root
-- **channel/topic/message** as the standard conversation interaction root
+- **Events** as the collaboration fact root
+- **memory/run/message/task** as standard Entity types
 
-Its goal is not to wrap a chat protocol in a Kanban shell. Its goal is to define one protocol that can support boards, chat/topic flows, and agent memory together.
+Its goal is not to wrap a chat protocol in a Kanban shell. Its goal is to define one protocol that can project into boards, chat/topic flows, tables, calendars, trees, graphs, Gantt views, and agent memory.
 
 ## 2. Design Goals
 
@@ -24,11 +24,11 @@ The first phase of Contrix New focuses on:
 1. Stable identity  
    All principals use DIDs as stable identifiers, while handles remain portable human-readable entry points.
 2. Object-centric collaboration  
-   The protocol directly models workspaces, boards, items, topics, messages, views, memories, and runs.
+   The protocol root is Space, Actor, Entity, Relation, Event, and View; boards, tasks, messages, memories, and runs are standard Entity types.
 3. Decentralized synchronization  
    The source of truth is signed operations and repo commits, not a single central database.
 4. Multiple interaction modes  
-   The same protocol supports Kanban, list, table, chat, thread, forum, graph, and similar modes.
+   The same protocol supports Kanban, list, table, calendar, Gantt, chat, thread, forum, tree, graph, and similar modes.
 5. Human-friendly presentation  
    Data must naturally project into boards, timelines, topic streams, message streams, and review queues.
 6. AI-friendly participation  
@@ -58,7 +58,7 @@ This directory is organized into ten main documents:
 3. [identity.md](./identity.md)  
    Defines DIDs, handles, service discovery, device and agent delegation, recovery, and migration.
 4. [object-model.md](./object-model.md)  
-   Defines workspaces, boards, items, channels, topics, messages, memories, runs, and related objects.
+   Defines Space, Actor, Entity, Relation, Event, View, and standard semantic mappings for board/task/message/memory/run.
 5. [conversation-model.md](./conversation-model.md)  
    Defines the unified model for chat / topic / thread / mention / edit / recall / reaction.
 6. [operations-sync.md](./operations-sync.md)  
@@ -70,7 +70,7 @@ This directory is organized into ten main documents:
 9. [agent-memory.md](./agent-memory.md)  
    Defines how Contrix can act as long-term memory and collaboration substrate for AI agents.
 10. [service-surface.md](./service-surface.md)  
-   Defines the minimum repo / relay / index / blob / authz service surface and workspace bootstrap flow.
+   Defines the minimum repo / relay / index / blob / authz service surface and Space bootstrap flow.
 
 The current task list and next backlog live in [_tasks.md](./_tasks.md).
 
@@ -92,23 +92,23 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 ### 5.2 Data
 
 - each principal owns its own repo
-- shared state is reduced from the set of authorized operations
-- `workspace` is the replication and authorization boundary
-- `item` is the main business object, not a UI card
-- `board` is work context, while `view` is projection
-- `channel/topic/message` are conversation objects, not the protocol root
-- `memory` is a persistent knowledge object, not an embedding chunk
-- `run` is an execution-trace object for agents or automations
+- shared state is reduced from the authorized Event / operation set
+- `space` is the replication, authorization, schema, and policy boundary
+- `entity` is the unified carrier for collaboration objects
+- `relation` is first-class and represents containment, dependency, replies, references, assignments, mentions, and similar links
+- `event` is the collaboration fact and audit root
+- `view` is a projection and does not own core data
+- `board/task/channel/topic/message/memory/run` are standard Entity types, not protocol roots
 - `schema/policy` are formal objects rather than unresolved references
 - `invite/read_marker/notification` complete the join/read/attention path for human collaboration
 
 ### 5.3 Boards and Conversation
 
-- boards are projected from `board + collection + item + view`
-- chat is projected from `channel + topic + message`
-- topic mode is projected from `topic + message`
-- the same `item`, `run`, or `memory` may have a default discussion topic
-- `@user` and `@object` may be authored as text in the UI, but must be stored as structured references in the protocol
+- boards are projected from standard Entity types, Relations, and a Kanban View
+- chat is projected from standard `channel/topic/message` Entities, Relations, and a Chat View
+- topic mode is projected from `topic/message` Entities and `belongs_to/replies_to` Relations
+- the same `task`, `run`, or `memory` may have a default discussion topic through Relations
+- `@user` and `@object` may be authored as text in the UI, but must be stored as structured Entity/Actor references and `mentions` Relations
 
 ### 5.4 Sync
 
@@ -117,7 +117,7 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - relays are the distribution/subscription layer, not the sole truth source
 - indexes/appviews are the query/materialization layer, not the sole truth source
 - the service layer requires a minimum interoperable identity-registry / repo / relay / index / blob / authz surface
-- board/chat/topic are sync profiles, not separate protocols
+- board/chat/topic/tree/graph are sync profiles and View projections, not separate protocols
 - commit/op submission must be idempotent by design
 - authorization validity must converge under the same reducer ordering
 - recall converges through redaction semantics, not guaranteed global erasure
@@ -169,7 +169,7 @@ This round moves the protocol from a directional sketch to a "question inventory
 - edit / recall / redaction semantics
 - board/chat/topic sync profiles
 - conflict-resolution rules per object type
-- a minimum service surface and workspace bootstrap
+- a minimum service surface and Space bootstrap
 - missing objects such as `schema/policy/invite/read_marker/notification`
 - idempotent submission, authorization timing, and encrypted-payload forwarding semantics
 

@@ -7,7 +7,7 @@ Contrix New 的权限模型采用 capability 思路，而不是只依赖成员�
 这样做的原因是：
 
 - 跨组织协作很常见
-- board、chat、topic、memory 的动作集不同
+- board、chat、topic、memory 等 Entity/View 的动作集不同
 - agent 必须被精细授权
 - 授权变化必须可审计
 
@@ -21,8 +21,8 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 
 不要依赖以下隐式假设：
 
-- 进入 workspace 就拥有全部能力
-- 能编辑 item 就一定能撤回别人的消息
+- 进入 Space 就拥有全部能力
+- 能编辑 task Entity 就一定能撤回别人的消息
 - channel owner 天然拥有全量管理权
 
 ### 2.3 权限判定基于当时有效的 capability 集
@@ -36,13 +36,13 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 ```json
 {
   "grant_id": "cx:grant:01JS0GR000000000000000000",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
   "resource": {
-    "kind": "board",
+    "kind": "entity",
     "refs": [
-      "cx:board:01JS0BD000000000000000000"
+      "cx:entity:01JS0BD000000000000000000"
     ]
   },
   "actions": [
@@ -68,14 +68,16 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 
 初版建议支持以下 `kind`：
 
-- `workspace`
-- `board`
-- `collection`
-- `item`
-- `comment`
-- `channel`
-- `topic`
-- `message`
+- `space`
+- `entity`
+- `relation`
+- `event`
+- `actor`
+- `view`
+- `schema`
+- `policy`
+- `entity_type:<type>`
+- `relation_type:<type>`
 - `view`
 - `run`
 - `memory`

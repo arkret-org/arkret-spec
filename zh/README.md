@@ -8,14 +8,14 @@
 新的 Contrix 则明确转向：
 
 - 以 **DID principal** 为身份根
-- 以 **workspace/object graph** 为数据根
+- 以 **Space / Entity / Relation 协作图** 为数据根
 - 以 **append-only repo + ops** 为审计根
 - 以 **capability** 为权限根
 - 以 **views/projections** 为人类展示根
-- 以 **memory + run** 为 AI agent 协作与记忆根
-- 以 **channel/topic/message** 为标准会话交互根
+- 以 **Event** 为协作事实根
+- 以 **memory/run/message/task** 等标准 Entity 类型承载业务语义
 
-它的目标不是“把聊天协议包装成看板”，而是直接定义一个既能做看板，也能做聊天/话题，还能做 agent 记忆的统一协作协议。
+它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、聊天/话题、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
 
 ## 2. 设计目标
 
@@ -24,11 +24,11 @@ Contrix New 第一阶段聚焦以下目标：
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
 2. 面向对象协作  
-   协议直接表达 workspace、board、item、topic、message、view、memory、run 等协作对象。
+   协议根抽象固定为 Space、Actor、Entity、Relation、Event、View；board、task、message、memory、run 等是标准 Entity 类型。
 3. 去中心化同步  
    真相基底是签名操作和 repo commit，而不是单一中心数据库。
 4. 多交互模式  
-   同一协议同时支持 kanban、list、table、chat、thread、forum、graph 等模式。
+   同一协议同时支持 kanban、list、table、calendar、gantt、chat、thread、forum、tree、graph 等模式。
 5. 人类友好  
    数据必须天然能投影成看板、时间线、话题流、消息流、审阅队列。
 6. AI 友好  
@@ -58,7 +58,7 @@ Contrix New 第一阶段聚焦以下目标：
 3. [identity.md](./identity.md)  
    定义 DID、Handle、服务发现、设备与 agent 委托、恢复与迁移。
 4. [object-model.md](./object-model.md)  
-   定义 workspace、board、item、channel、topic、message、memory、run 等核心对象。
+   定义 Space、Actor、Entity、Relation、Event、View 等核心协议对象，以及 board/task/message/memory/run 等标准语义类型。
 5. [conversation-model.md](./conversation-model.md)  
    定义 chat / topic / thread / mention / edit / recall / reaction 的统一交互模型。
 6. [operations-sync.md](./operations-sync.md)  
@@ -70,7 +70,7 @@ Contrix New 第一阶段聚焦以下目标：
 9. [agent-memory.md](./agent-memory.md)  
    定义如何把 Contrix 当作 AI agent 的长期记忆与协作外脑。
 10. [service-surface.md](./service-surface.md)  
-   定义最小 repo / relay / index / blob / authz 服务面，以及 workspace bootstrap。
+   定义最小 repo / relay / index / blob / authz 服务面，以及 Space bootstrap。
 
 当前轮的任务清单与后续 backlog 记录在 [_tasks.md](./_tasks.md)。
 
@@ -92,23 +92,23 @@ Contrix New 第一阶段聚焦以下目标：
 ### 5.2 数据
 
 - 每个 principal 拥有自己的 repo
-- 所有共享状态来自 **授权操作集合的归约结果**
-- `workspace` 是复制与权限边界
-- `item` 是主业务对象，不等于 UI card
-- `board` 是工作上下文，`view` 是投影
-- `channel/topic/message` 是会话对象，不是协议根
-- `memory` 是持久知识对象，不等于 embedding chunk
-- `run` 是 agent 或自动化执行轨迹对象
+- 所有共享状态来自 **授权 Event / operation 集合的归约结果**
+- `space` 是复制、权限、schema 与 policy 边界
+- `entity` 是所有协作对象的统一载体
+- `relation` 是一等对象，用于表达包含、依赖、回复、引用、分配、提及等关系
+- `event` 是协作事实和审计根
+- `view` 是投影，不拥有核心数据
+- `board/task/message/channel/topic/memory/run` 是标准 Entity 类型，不是协议根
 - `schema/policy` 是正式对象，不再只是引用占位符
-- `invite/read_marker/notification` 补齐人类协作的加入、已读、提醒链路
+- `invite/read_marker/notification` 补齐人类协作的加入、已读、提醒链路；notification 是派生投影，不是 canonical truth
 
 ### 5.3 看板与会话
 
-- 看板是 `item + collection + board + view` 的投影
-- 聊天是 `channel + topic + message` 的投影
-- 话题模式是 `topic + message` 的投影
-- 同一个 `item`、`run`、`memory` 都可以挂接默认讨论话题
-- `@user`、`@object` 在 UI 层可写成文本，在协议层必须落成结构化引用
+- 看板是 `Entity + Relation + View` 的投影，常用语义类型为 `board/collection/task`
+- 聊天是 `Entity + Relation + View` 的投影，常用语义类型为 `channel/topic/message`
+- 话题模式是 `topic/message` Entity 与 `belongs_to/replies_to` Relation 的投影
+- 同一个 `task`、`run`、`memory` 都可以通过 Relation 挂接默认讨论话题
+- `@user`、`@object` 在 UI 层可写成文本，在协议层必须落成结构化 Entity/Actor 引用与 `mentions` Relation
 
 ### 5.4 同步
 
@@ -117,7 +117,7 @@ Contrix New 第一阶段聚焦以下目标：
 - relay 是传播与订阅层，不是唯一真相源
 - index/appview 是查询与物化层，不是唯一真相源
 - 服务面要求最小可互操作 identity registry / repo / relay / index / blob / authz 接口
-- board/chat/topic 只是不同同步配置，不是不同协议
+- board/chat/topic/tree/graph 只是不同同步配置和 View 投影，不是不同协议
 - commit/op 提交必须天然幂等
 - 授权有效性也必须由同一 reducer 顺序收敛
 - 撤回通过 redaction 收敛，不等于保证全球物理删除
@@ -164,12 +164,13 @@ Contrix New 第一阶段聚焦以下目标：
 本轮将协议从“方向性草图”推进到“问题清单 + 统一交互模型 + 自洽框架”，重点补齐：
 
 - 关键设计问题清单
-- board/chat/topic 的统一抽象
+- `Space/Actor/Entity/Relation/Event/View` 的统一抽象
+- board/chat/topic/tree/graph 的统一投影方式
 - `@mention` 的结构化语义
 - edit / recall / redaction 语义
 - board/chat/topic 的同步模式
 - 对不同对象类型的冲突收敛规则
-- 最小服务接口与 workspace bootstrap
+- 最小服务接口与 Space bootstrap
 - `schema/policy/invite/read_marker/notification` 缺失对象
 - 幂等提交、授权时序与密文转发语义
 
@@ -191,7 +192,7 @@ Contrix New 第一阶段聚焦以下目标：
 Contrix New 要解决的是：
 
 - 去中心化协作对象
-- 看板与聊天/话题的统一数据模型
+- 看板、聊天/话题、树、图谱与任务依赖的统一数据模型
 - 稳定身份和授权
 - AI agent 可写入、可检索、可审计的长期记忆
 

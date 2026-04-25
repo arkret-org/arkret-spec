@@ -69,7 +69,7 @@ Suggested fields:
 {
   "id": "cx:channel:01JS1000000000000000000000",
   "kind": "channel",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "name": "release-chat",
   "description": "General release coordination chat",
   "channel_kind": "chat",
@@ -101,7 +101,7 @@ Suggested fields:
 {
   "id": "cx:topic:01JS1000000000000000000001",
   "kind": "topic",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "channel_id": "cx:channel:01JS1000000000000000000000",
   "anchor_ref": "cx:item:01JS0IT000000000000000000",
   "topic_kind": "thread",
@@ -134,7 +134,7 @@ Suggested fields:
 {
   "id": "cx:message:01JS1000000000000000000002",
   "kind": "message",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "channel_id": "cx:channel:01JS1000000000000000000000",
   "topic_id": "cx:topic:01JS1000000000000000000001",
   "sender": "did:web:alice.example.com",
@@ -175,7 +175,7 @@ But the protocol must not store plain text only.
 The canonical protocol representation SHOULD store:
 
 - `mentions[].kind = principal | object`
-- `mentions[].ref = DID | stable object ID`
+- `mentions` Relations pointing to DID-backed actor profile Entities or stable Entity IDs
 
 This guarantees:
 
@@ -311,7 +311,7 @@ They may be:
 The current draft recommends fixing:
 
 - `channel/topic/message` as formal conversation objects
-- `@mention` as structured DID/object references
+- `@mention` as structured DID/entity references and `mentions` Relations
 - edits as revision chains
 - recalls as redaction/tombstone semantics
 - reactions converging through OR-Set rules

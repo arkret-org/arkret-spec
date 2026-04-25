@@ -2,666 +2,400 @@
 
 ## 1. Goal
 
-The Contrix New object model must simultaneously support:
+The Contrix New object model must support human collaboration, cross-organization work, boards, chat, topic threads, trees, dependency graphs, AI-agent runs, and long-term agent memory.
 
-- human team collaboration
-- cross-organization collaboration
-- board-oriented workflows
-- chat and topic discussion
-- AI-agent execution traces
-- AI-agent long-term memory
+The protocol therefore centers on a **collaboration graph + event log + view projections**, not on rooms, columns/cards, or message timelines as the root abstraction.
 
-The protocol therefore has to revolve around a **work object graph**, not a room-event model or a single UI pattern such as columns-and-cards.
+The core protocol abstractions are:
+
+```txt
+Space
+Actor
+Entity
+Relation
+Event
+View
+```
+
+In one sentence:
+
+> In a Space, Actors produce Events that change a graph of Entities and Relations; Views project that graph into chat, boards, tables, calendars, trees, graphs, Gantt charts, review queues, and other interfaces.
 
 ## 2. Design Principles
 
 ### 2.1 Stable IDs Are Separate from Display Names
 
-Object references MUST use stable IDs rather than:
+Protocol references MUST use stable IDs rather than titles, display names, handles, or URL paths.
 
-- titles
-- display names
-- handles
-- URL paths
+### 2.2 Entities Belong to Spaces, Not UIs
 
-### 2.2 Objects Belong to Workspaces, Not UIs
+The same Entity may appear in multiple Views and may be used by both humans and agents.
 
-The same object may appear in multiple views and may be used by both humans and agents.
+Tasks, messages, documents, comments, runs, memories, decisions, and file metadata are all Entities with different `entity_type` values.
 
-### 2.3 Current State Comes from Reduction, Not Central Overwrite
+### 2.3 Relations Are First-class
 
-Current state is reduced from the set of authorized operations rather than silently overwritten by a single central database.
+Cross-object structure MUST NOT be hidden entirely inside Entity fields.
 
-### 2.4 Boards and Chat Share the Same Object Graph
+Dependencies, containment, replies, references, derivation, assignment, mentions, and subscriptions SHOULD be represented as Relations.
 
-Boards, threads, chat, and forums should all be standard projections of the same object graph rather than separate incompatible data models.
+### 2.4 Events Are Facts
+
+Events describe what happened. They should not be silently overwritten.
+
+Current state may be reduced from authorized Events/operations and may be materialized by indexes or appviews, but canonical history MUST come from the authorized event/operation set.
+
+### 2.5 Views Are Projections
+
+Boards, chat, tables, calendars, trees, graphs, Gantt charts, and inboxes are Views.
+
+Views do not own data. A View defines query scope, relation expansion, grouping, sorting, layout, visible fields, and interaction hints.
+
+### 2.6 Schemas Constrain the Abstraction
+
+The protocol allows open Entity types, but not uncontrolled JSON sprawl.
+
+Spaces SHOULD register EntitySchema and RelationSchema records to constrain fields, relations, actions, and default views.
 
 ## 3. ID Scheme
 
-The draft recommends stable prefixed IDs with ULID-like random suffixes.
+The initial draft recommends prefixed stable IDs with ULID-like suffixes:
 
-Examples:
-
-- `cx:ws:<ulid>`
-- `cx:board:<ulid>`
-- `cx:col:<ulid>`
-- `cx:item:<ulid>`
-- `cx:comment:<ulid>`
+- `cx:space:<ulid>`
+- `cx:actor:<ulid>`
+- `cx:entity:<ulid>`
 - `cx:rel:<ulid>`
-- `cx:blob:<ulid>`
-- `cx:channel:<ulid>`
-- `cx:topic:<ulid>`
-- `cx:message:<ulid>`
+- `cx:event:<ulid>`
 - `cx:view:<ulid>`
-- `cx:run:<ulid>`
-- `cx:mem:<ulid>`
 - `cx:schema:<ulid>`
 - `cx:policy:<ulid>`
 - `cx:invite:<ulid>`
 - `cx:read:<ulid>`
 
-## 4. Shared Object Metadata
+Semantic prefixes MAY exist as compatibility aliases, but the protocol layer SHOULD normalize them to Entity IDs:
 
-All objects SHOULD share the following base fields:
+- `cx:task:<ulid>` means `entity_type = "task"`
+- `cx:message:<ulid>` means `entity_type = "message"`
+- `cx:doc:<ulid>` means `entity_type = "document"`
+- `cx:run:<ulid>` means `entity_type = "run"`
+- `cx:mem:<ulid>` means `entity_type = "memory"`
+
+## 4. Core Object Set
+
+The protocol core object set is:
+
+- `space`
+- `actor`
+- `entity`
+- `relation`
+- `event`
+- `view`
+- `schema`
+- `policy`
+- `invite`
+- `read_marker`
+
+The following are no longer protocol roots. They are standard Entity or View types:
+
+- board
+- collection
+- item/task
+- channel
+- topic
+- message
+- comment
+- attachment
+- run
+- memory
+- notification
+
+## 5. Shared Envelope
+
+Canonical objects SHOULD share these base fields:
 
 ```json
 {
-  "id": "cx:item:01JS0000000000000000000000",
-  "kind": "item",
-  "workspace_id": "cx:ws:01JS0000000000000000000000",
+  "id": "cx:entity:01JS0000000000000000000000",
+  "kind": "entity",
+  "space_id": "cx:space:01JS0000000000000000000000",
   "created_at": "2026-04-22T08:00:00Z",
   "created_by": "did:web:alice.example.com",
   "updated_at": "2026-04-22T08:05:00Z",
   "updated_by": "did:web:agent.example.com",
+  "visibility": "space",
   "archived": false,
   "tombstoned": false,
+  "schema_ref": "cx:schema:01JS0SC000000000000000000",
   "version": 7
 }
 ```
 
-## 5. Core Object Set
+## 6. Space
 
-The initial core object set is:
-
-- workspace
-- board
-- collection
-- item
-- comment
-- relation
-- attachment
-- channel
-- topic
-- message
-- view
-- run
-- memory
-- schema
-- policy
-- invite
-- read_marker
-
-Where:
-
-- `item` is the main work object
-- `comment` is a durable object-level note
-- `channel/topic/message` are conversation objects
-- `view` is a projection
-- `run` is an execution trace
-- `memory` is a long-term knowledge object
-- `schema` defines field and object-type constraints
-- `policy` defines retention, visibility, encryption, and moderation defaults
-- `invite` is the explicit workspace-join bootstrap object
-- `read_marker` is actor-private but syncable read state
-
-## 6. Workspace
-
-Workspace is the replication and authorization boundary.
-
-It defines:
-
-- default replication scope
-- default authorization scope
-- default relay/index/blob services
-- default schema/policy
-
-Example:
+Space is the collaboration, replication, authorization, schema, and policy boundary.
 
 ```json
 {
-  "id": "cx:ws:01JS0WS000000000000000000",
-  "kind": "workspace",
+  "id": "cx:space:01JS0SP000000000000000000",
+  "kind": "space",
+  "space_type": "project",
   "owner": "did:web:acme.example.com",
-  "name": "Acme Delivery Workspace",
-  "description": "Cross-org product delivery and agent automation workspace",
+  "name": "Acme Delivery Space",
   "visibility": "private",
-  "default_policy_ref": "cx:policy:01JS...",
-  "default_schema_ref": "cx:schema:01JS..."
+  "parent_space_id": null,
+  "default_policy_ref": "cx:policy:01JS0PL000000000000000000",
+  "default_schema_refs": ["cx:schema:01JS0SC000000000000000000"],
+  "default_view_id": "cx:view:01JS0VW000000000000000000"
 }
 ```
 
-## 7. Board
+## 7. Actor
 
-Board is shared work context, not the protocol's top-level root object.
+Actor is the subject that performs actions. It may be a user, agent, system, integration, or team.
 
-It can represent:
+Actor identity is defined by [identity.md](./identity.md). Actor references in protocol data MUST use DIDs or stable actor IDs.
 
-- product projects
-- delivery flows
-- incident response boards
-- agent review queues
+When an Actor needs to appear inside the collaboration graph, implementations SHOULD create an `entity_type = "actor_profile"` Entity mirror. Relations such as `assigned_to`, `mentions`, and `contains` can then consistently point to Entities.
 
-Example:
+## 8. Entity
 
-```json
-{
-  "id": "cx:board:01JS0BD000000000000000000",
-  "kind": "board",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "Release Readiness",
-  "description": "Shared launch board for human and agent coordination",
-  "status_field": "status",
-  "rank_field": "rank",
-  "default_view_id": "cx:view:01JS0VW000000000000000000",
-  "default_channel_id": "cx:channel:01JS1000000000000000000000",
-  "field_schema_ref": "cx:schema:01JS0SC000000000000000000"
-}
-```
-
-## 8. Collection
-
-Collection is a generic grouping object rather than a Kanban-only column.
-
-It may represent:
-
-- a lane
-- a list group
-- a folder
-- a query segment
-
-Example:
+Entity is the primary collaboration object. It represents anything that can be created, discussed, related, changed, tracked, authorized, or projected.
 
 ```json
 {
-  "id": "cx:col:01JS0CL000000000000000000",
-  "kind": "collection",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "name": "Needs Review",
-  "collection_kind": "lane",
-  "rank": "m",
-  "state_token": "needs_review"
-}
-```
-
-## 9. Item
-
-Item is the most important business object in the protocol.
-
-### 9.1 Semantics
-
-It represents a collaborative unit of work, not merely a UI card.
-
-### 9.2 Suggested Fields
-
-```json
-{
-  "id": "cx:item:01JS0IT000000000000000000",
-  "kind": "item",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "container_id": "cx:col:01JS0CL000000000000000000",
-  "item_type": "task",
+  "id": "cx:entity:01JS0EN000000000000000000",
+  "kind": "entity",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "entity_type": "task",
+  "schema_version": 1,
   "title": "Finalize onboarding copy review",
-  "body": "Coordinate product, design, legal, and agent-generated suggestions.",
-  "status": "in_progress",
-  "rank": "mV",
-  "priority": "high",
-  "assignees": [
-    "did:web:bob.example.com",
-    "did:web:agent.copy.example.com"
-  ],
-  "discussion_topic_id": "cx:topic:01JS1000000000000000000001",
-  "labels": [
-    "launch",
-    "copy"
-  ],
-  "due_at": "2026-04-28T00:00:00Z",
-  "visibility": "workspace"
+  "content": {
+    "format": "markdown",
+    "text": "Coordinate product, design, legal, and agent-generated suggestions."
+  },
+  "fields": {
+    "status": "in_progress",
+    "rank": "mV",
+    "priority": "high",
+    "due_at": "2026-04-28T00:00:00Z",
+    "labels": ["launch", "copy"]
+  },
+  "created_by": "did:web:alice.example.com",
+  "created_at": "2026-04-22T08:00:00Z",
+  "updated_by": "did:web:agent.copy.example.com",
+  "updated_at": "2026-04-22T08:05:00Z"
 }
 ```
 
-### 9.3 `item_type`
+Initial standard `entity_type` values include:
 
-The first version should support at least:
-
+- `space_profile`
+- `actor_profile`
 - `task`
 - `issue`
 - `goal`
 - `request`
 - `decision`
 - `note`
+- `document`
+- `comment`
+- `message`
+- `channel`
+- `topic`
+- `board`
+- `collection`
+- `attachment`
+- `run`
+- `memory`
+- `schema`
+- `policy`
+- `invite`
+- `read_marker`
 
-## 10. Comment
+Entity fields SHOULD describe intrinsic object properties. Cross-object semantics SHOULD use Relations.
 
-Comment is an object-level durable explanation object and should not simply be treated as a synonym for `message`.
+## 9. Relation
 
-It is suitable for:
-
-- review notes
-- change explanations
-- audit-facing annotations
-- approval remarks
-
-Example:
-
-```json
-{
-  "id": "cx:comment:01JS0CM000000000000000000",
-  "kind": "comment",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "target_ref": "cx:item:01JS0IT000000000000000000",
-  "thread_root_ref": "cx:comment:01JS0CM000000000000000000",
-  "reply_to_ref": null,
-  "body": "Agent proposed three alternative copy variants. Human review pending."
-}
-```
-
-## 11. Relation
-
-Relation expresses semantic links between objects.
-
-Suggested fields:
+Relation represents a semantic link between two Entities.
 
 ```json
 {
   "id": "cx:rel:01JS0RL000000000000000000",
   "kind": "relation",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "from_ref": "cx:item:01JS0IT000000000000000000",
-  "to_ref": "cx:mem:01JS0ME000000000000000000",
-  "relation_type": "derived_from",
-  "directed": true
-}
-```
-
-## 12. Attachment
-
-Attachment is split into metadata and blob content.
-
-Example:
-
-```json
-{
-  "id": "cx:blob:01JS0AT000000000000000000",
-  "kind": "attachment",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "target_ref": "cx:item:01JS0IT000000000000000000",
-  "blob_cid": "bafy...",
-  "name": "review-notes.pdf",
-  "mime_type": "application/pdf",
-  "size": 129034,
-  "sha256": "base64url..."
-}
-```
-
-## 13. Channel
-
-Channel is a long-lived conversation space.
-
-It is suitable for:
-
-- team chat
-- board discussion areas
-- agent broadcast streams
-- announcement streams
-
-Example:
-
-```json
-{
-  "id": "cx:channel:01JS1000000000000000000000",
-  "kind": "channel",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "release-chat",
-  "description": "General release coordination chat",
-  "channel_kind": "chat",
-  "visibility": "workspace",
-  "default_topic_mode": "inline"
-}
-```
-
-## 14. Topic
-
-Topic is a thread or discussion object.
-
-It may:
-
-- belong to a channel
-- or anchor directly to another collaboration object
-
-Example:
-
-```json
-{
-  "id": "cx:topic:01JS1000000000000000000001",
-  "kind": "topic",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "channel_id": "cx:channel:01JS1000000000000000000000",
-  "anchor_ref": "cx:item:01JS0IT000000000000000000",
-  "topic_kind": "thread",
-  "title": "Legal review follow-up",
-  "status": "open"
-}
-```
-
-## 15. Message
-
-Message is the atomic timeline object inside a channel or topic.
-
-Example:
-
-```json
-{
-  "id": "cx:message:01JS1000000000000000000002",
-  "kind": "message",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "channel_id": "cx:channel:01JS1000000000000000000000",
-  "topic_id": "cx:topic:01JS1000000000000000000001",
-  "sender": "did:web:alice.example.com",
-  "reply_to_ref": null,
-  "body": {
-    "format": "markdown",
-    "text": "@bob please confirm the legal risk for this item."
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "relation_type": "depends_on",
+  "from_entity_id": "cx:entity:01JS0TASK0000000000000000",
+  "to_entity_id": "cx:entity:01JS0TASK0000000000000001",
+  "directed": true,
+  "fields": {
+    "strength": "hard"
   },
-  "mentions": [
-    {
-      "kind": "principal",
-      "ref": "did:web:bob.example.com"
-    },
-    {
-      "kind": "object",
-      "ref": "cx:item:01JS0IT000000000000000000"
-    }
-  ],
-  "revision_root": "cx:message:01JS1000000000000000000002",
-  "visible_state": "active"
+  "created_by": "did:web:alice.example.com",
+  "created_at": "2026-04-22T08:10:00Z"
 }
 ```
 
-Protocol-level `mentions` must use DIDs or stable object refs rather than storing only raw textual `@xxx` strings.
+Initial standard `relation_type` values:
 
-## 16. View
+- `contains`
+- `belongs_to`
+- `replies_to`
+- `references`
+- `depends_on`
+- `blocks`
+- `duplicates`
+- `relates_to`
+- `assigned_to`
+- `mentions`
+- `derived_from`
+- `subscribes`
+- `supersedes`
+- `attached_to`
 
-View is an independent object, though its detailed behavior is defined in [views.md](./views.md).
+## 10. Event
 
-It defines:
-
-- query scope
-- grouping logic
-- ordering rules
-- visible fields
-- layout hints
-
-View is a projection, not the truth.
-
-## 17. Run
-
-Run is an execution-trace object for agents and automations.
-
-Example:
-
-```json
-{
-  "id": "cx:run:01JS0RN000000000000000000",
-  "kind": "run",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "agent_id": "did:web:agent.copy.example.com",
-  "triggered_by": "did:web:alice.example.com",
-  "goal_ref": "cx:item:01JS0IT000000000000000000",
-  "status": "running",
-  "input_refs": [
-    "cx:item:01JS0IT000000000000000000"
-  ],
-  "output_refs": [],
-  "summary": null
-}
-```
-
-## 18. Memory
-
-Memory is a long-term knowledge object. It is neither a comment nor a vector chunk.
-
-Example:
+Event is the collaboration fact and audit record.
 
 ```json
 {
-  "id": "cx:mem:01JS0ME000000000000000000",
-  "kind": "memory",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "subject_ref": "cx:item:01JS0IT000000000000000000",
-  "memory_kind": "decision",
-  "title": "Copy variants require legal approval before publishing",
-  "body": "Team decided that all onboarding copy touching billing must be reviewed by legal.",
-  "source_refs": [
-    "cx:comment:01JS0CM000000000000000000",
-    "cx:message:01JS1000000000000000000002",
-    "cx:run:01JS0RN000000000000000000"
-  ],
-  "confidence": 0.92,
-  "status": "confirmed"
-}
-```
-
-## 19. Schemas and Custom Fields
-
-Contrix must support custom fields, but it should not allow unconstrained JSON sprawl.
-
-Suggested schema object:
-
-- `cx:schema:<id>`
-
-Referenced by a workspace or board.
-
-Example:
-
-```json
-{
-  "id": "cx:schema:01JS0SC000000000000000000",
-  "kind": "schema",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "default-item-schema",
-  "applies_to": [
-    "item"
-  ],
-  "version": 3,
-  "fields": [
-    {
-      "name": "priority",
-      "type": "enum",
-      "required": false,
-      "options": ["low", "medium", "high"]
-    },
-    {
-      "name": "due_at",
-      "type": "datetime",
-      "required": false
-    }
-  ]
-}
-```
-
-Suggested field types:
-
-- `text`
-- `number`
-- `bool`
-- `date`
-- `datetime`
-- `enum`
-- `multi_enum`
-- `principal_ref`
-- `object_ref`
-- `url`
-
-Schemas SHOULD explicitly declare:
-
-- `applies_to`
-- `version`
-- `fields`
-- `migration_notes`
-
-That keeps reducers, views, and import/export flows interpretable across schema upgrades.
-
-## 20. Policy
-
-The protocol already references `policy`, so it must be a formal object rather than an implementation-private assumption.
-
-Example:
-
-```json
-{
-  "id": "cx:policy:01JS0PL000000000000000000",
-  "kind": "policy",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "name": "workspace-default-policy",
-  "retention": {
-    "messages_days": 3650,
-    "candidate_memories_days": 90
+  "id": "cx:event:01JS0EV000000000000000000",
+  "kind": "event",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "actor_id": "did:web:alice.example.com",
+  "event_type": "entity.updated",
+  "target": {
+    "kind": "entity",
+    "id": "cx:entity:01JS0EN000000000000000000"
   },
-  "default_visibility": "workspace",
-  "redaction_mode": "tombstone",
-  "encryption_profile": "workspace-envelope-v1",
-  "allow_external_relays": true
+  "payload": {
+    "changes": {
+      "fields.status": {
+        "old": "todo",
+        "new": "in_progress"
+      }
+    }
+  },
+  "occurred_at": "2026-04-22T08:20:00Z",
+  "recorded_at": "2026-04-22T08:20:01Z",
+  "transaction_id": "cx:txn:01JS0TX000000000000000000"
 }
 ```
 
-`policy` SHOULD cover at least:
+Low-level Events SHOULD use generic forms such as `entity.created`, `entity.updated`, `relation.created`, `relation.deleted`, `view.created`, and `view.updated`.
 
-- retention
-- default visibility
-- redaction display
-- encryption profile
-- relay / blob / export defaults
+Business events such as `message.sent`, `task.assigned`, or `dependency.added` MAY exist as semantic sugar, but they MUST be reducible to `entity.*` or `relation.*`.
 
-## 21. Invite
+## 11. Command and Event
 
-In a decentralized collaboration protocol, "how another principal joins a workspace" cannot be left to product-private invite links.
+Clients SHOULD submit Commands. The receiver validates the Command, emits Events, reduces current state, and notifies Views.
 
-Contrix should support an explicit `invite` object:
-
-```json
-{
-  "id": "cx:invite:01JS0IV000000000000000000",
-  "kind": "invite",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "issuer": "did:web:acme.example.com",
-  "subject_did": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-  "subject_handle": "alice.example.com",
-  "proposed_role": "contributor",
-  "proposed_grant_refs": [
-    "cx:grant:01JS0GR000000000000000000"
-  ],
-  "expires_at": "2026-05-01T00:00:00Z",
-  "status": "pending"
-}
+```txt
+Command -> Validate -> Event -> Reduce Current State -> Notify Views
 ```
 
-The semantics of `invite` are:
+## 12. View
 
-- it is a join-bootstrap object
-- it is not itself a capability grant
-- after the invite is accepted, the related grants enter the effective set
+View is a projection object. See [views.md](./views.md).
 
-## 22. Read Marker
+Standard `view_type` values include:
 
-A human-friendly collaboration system needs durable read state; otherwise inbox, thread, and chat views cannot converge reliably.
+- `chat`
+- `kanban`
+- `table`
+- `list`
+- `calendar`
+- `gantt`
+- `graph`
+- `tree`
+- `timeline`
+- `feed`
+- `document`
+- `matrix`
+- `dashboard`
+- `inbox`
+- `review_queue`
 
-The draft therefore recommends actor-private `read_marker` objects:
+## 13. Standard Semantic Mapping
 
-```json
-{
-  "id": "cx:read:01JS0RD000000000000000000",
-  "kind": "read_marker",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
-  "owner": "did:web:alice.example.com",
-  "scope_kind": "channel",
-  "scope_ref": "cx:channel:01JS1000000000000000000000",
-  "last_seen_message_ref": "cx:message:01JS1000000000000000000002",
-  "last_seen_hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
-  "updated_at": "2026-04-22T08:40:00Z"
-}
-```
+### 13.1 Board / Collection / Card
 
-`read_marker` SHOULD:
+Boards are represented as:
 
-- be visible only to its owner by default
-- support scopes such as channel / topic / inbox / view
-- sync as durable state across multiple devices
+- board: `entity_type = "board"`
+- collection/lane: `entity_type = "collection"`
+- card/task: `entity_type = "task"` or another work object type
+- board contains collection: `board --contains--> collection`
+- collection contains task: `collection --contains--> task`
+- Kanban display: `view_type = "kanban"`
 
-## 23. Notification
+### 13.2 Chat / Channel / Topic / Message
 
-Notifications are required for human-facing UX, but they should not become canonical truth objects.
+Chat is represented as:
 
-The initial recommendation is therefore:
+- channel: `entity_type = "channel"`
+- topic/thread: `entity_type = "topic"`
+- message: `entity_type = "message"`
+- topic belongs to channel: `topic --belongs_to--> channel`
+- message belongs to topic or channel: `message --belongs_to--> topic`
+- message replies to message: `message --replies_to--> message`
+- chat display: `view_type = "chat"` or `view_type = "thread"`
 
-- `notification` is a derived inbox object
-- it is derived from mentions, assignments, invites, run failures, memory review events, and similar signals
-- it may be materialized by an index or relay, while canonical truth remains the underlying source object and op
+Mentions MUST also be represented as structured `mentions` Relations.
 
-Example:
+### 13.3 Dependency Graphs and Trees
 
-```json
-{
-  "id": "cx:notif:01JS0NF000000000000000000",
-  "actor": "did:web:alice.example.com",
-  "notification_kind": "mention",
-  "source_ref": "cx:message:01JS1000000000000000000002",
-  "target_ref": "cx:topic:01JS1000000000000000000001",
-  "delivery_state": "unread",
-  "created_at": "2026-04-22T08:31:05Z"
-}
-```
+Dependency graphs use task Entities plus `depends_on` Relations.
 
-## 24. Derived Data
+Trees use `contains` or `belongs_to` Relations with a `tree` View.
 
-The following should not be treated as canonical truth objects:
+### 13.4 Run / Memory
+
+AI-agent objects are Entities:
+
+- run: `entity_type = "run"`
+- memory: `entity_type = "memory"`
+- run input: `run --references--> source`
+- memory source: `memory --derived_from--> message/comment/run/document`
+
+Memory is not an embedding chunk. Vector indexes are derived data.
+
+## 14. Schema
+
+Schemas SHOULD define Entity types, field types, allowed Relations, default Views, and action semantics.
+
+## 15. Policy
+
+Policy is a formal object. It SHOULD cover retention, default visibility, redaction display, encryption profile, relay/blob defaults, and export defaults.
+
+## 16. Invite, Read Marker, and Notification
+
+Invite is the explicit bootstrap object for joining a Space. It is not itself a capability grant.
+
+Read marker is actor-private durable state.
+
+Notification SHOULD be a derived inbox projection from Events, Entities, and Relations, not canonical truth.
+
+## 17. Derived Data
+
+The following SHOULD NOT be canonical truth objects:
 
 - embedding vectors
-- inverted search indexes
-- local UI layout caches
-- temporary sorting caches
+- search indexes
+- local UI layout cache
+- temporary ordering cache
 - LLM context windows
-- typing/presence transient state
+- typing/presence signals
+- notification materialization
 
-These belong to derived or ephemeral layers.
+## 18. Initial Decisions
 
-## 25. Initial Design Decisions
+The draft fixes:
 
-The current draft recommends fixing:
-
-- all objects explicitly belong to a workspace
-- `item` is the main business object
-- `channel/topic/message` are formal conversation objects
-- `comment` is a durable object-local explanation object
-- `view` is a projection definition
-- `run` is an execution-trace object
-- `memory` is a long-term knowledge object
-- `schema/policy` are formal objects
-- `invite` is explicit join bootstrap
-- `read_marker` is durable actor-private state
-- `notification` is derived, not canonical truth
-
-## 26. Further Work
-
-The next round still needs:
-
-- a formal schema-object format
-- a formal schema for policy objects
-- an invite / join / leave state machine
-- a formal query surface for read markers and notifications
-- a standard checklist structure
-- a rich-text block structure for messages
-- history visibility rules for topics/channels
-- memory supersession/invalidation semantics
+- the protocol root as `Space + Actor + Entity + Relation + Event + View`
+- Entity as the collaboration object
+- Relation as a first-class object
+- Event as the fact and audit root
+- View as projection
+- Command as intent and Event as fact
+- Schema as the guardrail against unstructured JSON sprawl
+- board, chat, task, message, run, and memory as semantic-layer concepts rather than protocol roots

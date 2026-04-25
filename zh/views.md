@@ -17,6 +17,14 @@ Contrix New 必须对人类友好，因此协议必须允许对象自然投影�
 - 记忆审阅队列
 - agent 运行轨迹
 
+这些展示模式都必须从同一套底层结构产生：
+
+```txt
+Space + Actor + Entity + Relation + Event
+```
+
+View 的职责是观察和组织这张协作图，而不是定义新的数据真相。
+
 ## 2. 设计原则
 
 ### 2.1 View 不是对象真相
@@ -25,18 +33,20 @@ view 不承载底层对象的唯一真相状态。
 
 ### 2.2 同一对象可以进入多个 view
 
-一个 item 可以同时出现在：
+一个 task Entity 可以同时出现在：
 
 - kanban
 - list
 - calendar
 - thread anchor
 
-一个 message 可以同时出现在：
+一个 message Entity 可以同时出现在：
 
 - chat timeline
 - topic thread
 - activity feed
+
+同一个 Entity 还可以通过不同 Relation 同时参与树、图谱、甘特图和 inbox。
 
 ### 2.3 Shared / Private / System 并存
 
@@ -54,30 +64,36 @@ view 不承载底层对象的唯一真相状态。
 {
   "id": "cx:view:01JS0VW000000000000000000",
   "kind": "view",
-  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "space_id": "cx:space:01JS0SP000000000000000000",
   "owner": "did:web:acme.example.com",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "view_kind": "kanban",
+  "view_type": "kanban",
   "name": "Release Flow",
   "visibility": "shared",
   "query": {
-    "board_id": "cx:board:01JS0BD000000000000000000",
-    "archived": false
+    "entity_types": ["task", "issue"],
+    "filter": [
+      { "field": "archived", "op": "neq", "value": true }
+    ],
+    "relation": {
+      "type": "contains",
+      "from_entity_id": "cx:entity:01JS0BD000000000000000000",
+      "depth": 2
+    }
   },
-  "group_by": "status",
+  "group_by": "fields.status",
   "order_by": [
-    "rank"
+    { "field": "fields.rank", "direction": "asc" }
   ],
   "visible_fields": [
     "title",
-    "assignees",
-    "due_at",
-    "labels"
+    "fields.priority",
+    "fields.due_at",
+    "fields.labels"
   ]
 }
 ```
 
-## 4. 标准 `view_kind`
+## 4. 标准 `view_type`
 
 ### 4.1 工作对象视图
 
@@ -87,6 +103,11 @@ view 不承载底层对象的唯一真相状态。
 - `calendar`
 - `timeline`
 - `graph`
+- `tree`
+- `gantt`
+- `matrix`
+- `document`
+- `dashboard`
 
 ### 4.2 会话视图
 
@@ -106,14 +127,40 @@ view 不承载底层对象的唯一真相状态。
 
 View 应通过结构化 query 表达对象范围。
 
+建议通用查询形状：
+
+```json
+{
+  "entity_types": ["task"],
+  "filter": [
+    { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] }
+  ],
+  "relation": {
+    "type": "depends_on",
+    "direction": "outgoing",
+    "depth": 2
+  },
+  "sort": [
+    { "field": "updated_at", "direction": "desc" }
+  ],
+  "limit": 100
+}
+```
+
 ### 5.1 看板查询示例
 
 ```json
 {
-  "kind": "item",
-  "board_id": "cx:board:01JS0BD000000000000000000",
-  "status_in": ["todo", "in_progress"],
-  "archived": false
+  "entity_types": ["task", "issue"],
+  "filter": [
+    { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] },
+    { "field": "archived", "op": "eq", "value": false }
+  ],
+  "relation": {
+    "type": "contains",
+    "from_entity_id": "cx:entity:01JS0BD000000000000000000",
+    "depth": 2
+  }
 }
 ```
 
@@ -121,9 +168,15 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "kind": "message",
-  "channel_id": "cx:channel:01JS1000000000000000000000",
-  "redacted": false
+  "entity_types": ["message"],
+  "filter": [
+    { "field": "fields.redacted", "op": "eq", "value": false }
+  ],
+  "relation": {
+    "type": "belongs_to",
+    "to_entity_id": "cx:entity:01JS1000000000000000000000",
+    "direction": "outgoing"
+  }
 }
 ```
 
@@ -131,9 +184,15 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "kind": "topic",
-  "anchor_ref": "cx:item:01JS0IT000000000000000000",
-  "status": "open"
+  "entity_types": ["topic"],
+  "filter": [
+    { "field": "fields.status", "op": "eq", "value": "open" }
+  ],
+  "relation": {
+    "type": "attached_to",
+    "to_entity_id": "cx:entity:01JS0TASK0000000000000000",
+    "direction": "outgoing"
+  }
 }
 ```
 
@@ -141,9 +200,37 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "kind": "notification",
-  "delivery_state": "unread",
-  "actor": "did:web:alice.example.com"
+  "entity_types": ["message", "task", "invite", "run", "memory"],
+  "filter": [
+    { "field": "derived.notification_state", "op": "eq", "value": "unread" },
+    { "field": "derived.recipient", "op": "eq", "value": "did:web:alice.example.com" }
+  ]
+}
+```
+
+### 5.5 依赖图查询示例
+
+```json
+{
+  "entity_types": ["task"],
+  "relation": {
+    "type": "depends_on",
+    "direction": "outgoing",
+    "depth": 4
+  }
+}
+```
+
+### 5.6 树形查询示例
+
+```json
+{
+  "entity_types": ["task", "document", "collection"],
+  "relation": {
+    "type": "contains",
+    "direction": "outgoing",
+    "depth": 8
+  }
 }
 ```
 
@@ -179,16 +266,17 @@ View 应通过结构化 query 表达对象范围。
 
 共享最小展示约定，客户端可在不违反权限的前提下做本地增强。
 
-## 7. Board / Chat / Topic 的统一展示原则
+## 7. 标准投影原则
 
-### 7.1 Board
+### 7.1 Kanban
 
-Board 视图的 canonical 输入应是：
+Kanban 视图的 canonical 输入应是：
 
-- `item`
-- `collection`
-- `board`
-- `view`
+- `entity_type = "board"`
+- `entity_type = "collection"`
+- `entity_type = "task"` 或其他工作对象
+- `relation_type = "contains"` / `belongs_to`
+- `view_type = "kanban"`
 
 而不是某种 UI 私有列数组。
 
@@ -196,28 +284,47 @@ Board 视图的 canonical 输入应是：
 
 Chat 视图的 canonical 输入应是：
 
-- `channel`
-- `topic`
-- `message`
+- `entity_type = "channel"`
+- `entity_type = "topic"`
+- `entity_type = "message"`
+- `relation_type = "belongs_to"` / `replies_to` / `mentions`
 
 ### 7.3 Topic
 
 Thread/topic 视图的 canonical 输入应是：
 
-- `topic`
-- `anchor_ref`
-- `message`
+- `entity_type = "topic"`
+- `entity_type = "message"`
+- `relation_type = "attached_to"` / `belongs_to` / `replies_to`
+
+### 7.4 Graph
+
+Graph 视图的 canonical 输入应是：
+
+- 任意 `entity_type`
+- 一个或多个 `relation_type`
+- 展开方向与深度
+
+例如任务依赖图使用 `depends_on`，知识图谱使用 `references` / `derived_from`。
+
+### 7.5 Tree
+
+Tree 视图的 canonical 输入应是：
+
+- 任意可分层 Entity
+- `contains` 或 `belongs_to` Relation
+- root Entity 与展开深度
 
 ## 8. 人类友好性要求
 
 实现 SHOULD 至少保证：
 
 1. 每个核心对象都有默认标题与摘要
-2. item 能自然投影为 card 或 row
-3. message 能自然投影为 timeline bubble 或 row
-4. topic 能自然投影为 forum thread row
-5. memory 能自然投影为 review row 或 graph node
-6. run 能自然投影为 timeline row 或 activity block
+2. task Entity 能自然投影为 card 或 row
+3. message Entity 能自然投影为 timeline bubble 或 row
+4. topic Entity 能自然投影为 forum thread row
+5. memory Entity 能自然投影为 review row 或 graph node
+6. run Entity 能自然投影为 timeline row 或 activity block
 7. notification 能自然投影为 inbox row 或 badge source
 
 ## 9. Shared / Private / System
@@ -264,7 +371,7 @@ Thread/topic 视图的 canonical 输入应是：
 
 - View 是独立对象
 - Query 先采用结构化 JSON
-- 标准化 `kanban/chat/forum/thread/inbox/notifications` 等 view_kind
+- 标准化 `kanban/chat/forum/thread/inbox/notifications/tree/graph/gantt` 等 view_type
 - 看板与聊天是标准投影，不是协议根
 - Shared / private / system 并存
 

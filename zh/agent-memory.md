@@ -248,7 +248,7 @@ memory 应支持：
 
 Agent memory 往往比普通任务更敏感，因此实现 SHOULD 支持：
 
-- workspace 范围隔离
+- Space 范围隔离
 - object 范围隔离
 - memory 类型限制
 - 对 candidate memory 的更严格读权限
