@@ -6,6 +6,7 @@
 
 因此 Contrix 初版需要定义：
 
+- identity registry 如何收发 DID 操作与 receipt
 - repo 如何收发 commit / op
 - relay 如何做 workspace firehose 与 backfill
 - index 如何做查询与 inbox / notification 物化
@@ -21,7 +22,7 @@
 
 DID Document SHOULD 只负责：
 
-- 声明 repo / relay / index / blob / capability 服务入口
+- 声明 identity registry / repo / relay / index / blob / capability 服务入口
 - 声明服务 DID 或服务 endpoint
 
 它不应直接塞入：
@@ -89,6 +90,84 @@ GET /xrpc/cx.server.describe
   "max_body_bytes": 1048576
 }
 ```
+
+### 3.1 Identity Registry Surface
+
+identity registry 至少应提供以下语义：
+
+#### 3.1.1 描述 registry
+
+```text
+GET /xrpc/cx.id.describe
+```
+
+返回：
+
+- `service_did`
+- `registry_mode = writer | witness | replica`
+- 支持的 receipt 类型
+- 当前软件版本与兼容 profile
+
+#### 3.1.2 获取当前 DID Document
+
+```text
+GET /xrpc/cx.id.getDocument?did=<did>
+```
+
+返回 SHOULD 包含：
+
+- 当前 materialized DID Document
+- 当前 `head_event_hash`
+- 当前 `seq`
+- 可选 witness receipts
+
+#### 3.1.3 获取 DID 日志
+
+```text
+GET /xrpc/cx.id.getLog?did=<did>&cursor=<cursor>&limit=<n>
+```
+
+用于：
+
+- 审计
+- 重建 DID Document
+- 验证 `key_log` 与 registry head 一致
+
+#### 3.1.4 提交 DID 更新
+
+```text
+POST /xrpc/cx.id.submitDidOp
+```
+
+请求体 SHOULD 包含：
+
+- `did`
+- `seq`
+- `prev_event_hash`
+- `patch`
+- `proofs`
+
+要求：
+
+- 相同 `did + seq` + 相同内容的重复提交 MUST 幂等成功
+- 相同 `did + seq` 但内容不同 MUST 拒绝
+- registry MUST 验证从 `inception_key` 出发的授权链
+
+#### 3.1.5 获取 receipt / witness 证明
+
+```text
+GET /xrpc/cx.id.getReceipts?did=<did>&head=<event-hash>
+```
+
+#### 3.1.6 写入确认建议
+
+初版建议：
+
+- writer 客户端同时向多个 registry / witness 提交 `did_op`
+- 至少拿到 `k-of-n` receipt 才视为提交成功
+- 读取时可附带 `expected_head` 或 `min_seq`
+
+这让 DID 写入仍然是普通网络请求，而不是全网区块共识。
 
 ## 4. Repo Surface
 
@@ -289,7 +368,7 @@ POST /xrpc/cx.authz.check
 
 1. 用户输入 handle、DID 或 workspace link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 DID Document 发现 repo / relay / index / blob / authz 服务
+3. 从 DID Document 发现 identity registry / repo / relay / index / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 workspace metadata 与 snapshot head
 6. 下载 snapshot manifest 与 chunk
@@ -312,6 +391,18 @@ POST /xrpc/cx.authz.check
 - 是否需要回退到 repo 重放
 - 某个 index 是否只是暂时落后，而不是数据冲突
 
+对于 identity registry，同样 SHOULD 公开：
+
+- DID 当前 head
+- `seq`
+- receipt 集合摘要
+
+客户端可据此判断某个 registry 是：
+
+- 最新 head
+- 落后副本
+- 还是可能发生了分叉或作恶
+
 ## 11. 传输安全与密文
 
 服务面 SHOULD 区分：
@@ -328,9 +419,10 @@ POST /xrpc/cx.authz.check
 
 当前草案建议固定：
 
-- 定义最小 repo / relay / index / blob / authz 服务面
+- 定义最小 identity registry / repo / relay / index / blob / authz 服务面
 - `xrpc` 风格路径只是建议，语义等价最重要
 - 写接口必须幂等
+- DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill
 - 服务必须公开 reducer / schema / feature profile
 
@@ -343,3 +435,4 @@ POST /xrpc/cx.authz.check
 - firehose 帧格式
 - 错误码与重试语义
 - auth token 或签名请求格式
+- identity receipt / witness proof schema

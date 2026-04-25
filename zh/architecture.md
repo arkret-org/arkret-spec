@@ -13,7 +13,7 @@ Contrix New 的顶层架构要同时满足四件事：
 
 ## 2. 总体模型
 
-Contrix New 采用 **principal repo + workspace relay + query index** 的分层模型。
+Contrix New 采用 **principal repo + identity registry + workspace relay + query index** 的分层模型。
 
 ### 2.1 Principal Repo
 
@@ -94,6 +94,8 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 - Handle 解析
 - 服务发现
 - key rotation / recovery
+- DID 日志写入与复制
+- registry / witness / replica 协调
 
 ### 3.2 Write Plane
 
@@ -164,6 +166,7 @@ Contrix 不要求所有角色分离部署。
 
 同一个部署可同时承载：
 
+- identity registry
 - repo
 - relay
 - index
@@ -284,6 +287,7 @@ Contrix New 不打算做“两套系统”：
 当前草案建议固定以下方向：
 
 - principal repo 是 actor 发布基线
+- identity registry / witness 是 DID 文档的解析与写入层
 - workspace relay 是传播层
 - index/appview 是物化查询层
 - blob 是独立内容层

@@ -6,6 +6,7 @@ If the spec has only object models, sync principles, and capabilities but no min
 
 Contrix therefore needs an initial definition for:
 
+- how identity registries accept DID operations and receipts
 - how repos publish and serve commits / ops
 - how relays expose workspace firehoses and backfill
 - how indexes serve queries and materialize inbox / notifications
@@ -21,7 +22,7 @@ Implementations do not have to use HTTP or XRPC specifically, but they MUST prov
 
 DID Documents SHOULD be used to:
 
-- declare repo / relay / index / blob / capability endpoints
+- declare identity-registry / repo / relay / index / blob / capability endpoints
 - declare service DIDs or service endpoints
 
 They should not directly carry:
@@ -89,6 +90,84 @@ Example:
   "max_body_bytes": 1048576
 }
 ```
+
+### 3.1 Identity Registry Surface
+
+Identity registries should expose at least the following semantics:
+
+#### 3.1.1 Describe the Registry
+
+```text
+GET /xrpc/cx.id.describe
+```
+
+It should return:
+
+- `service_did`
+- `registry_mode = writer | witness | replica`
+- supported receipt types
+- current software version and compatibility profile
+
+#### 3.1.2 Fetch the Current DID Document
+
+```text
+GET /xrpc/cx.id.getDocument?did=<did>
+```
+
+The response SHOULD contain:
+
+- the current materialized DID Document
+- the current `head_event_hash`
+- the current `seq`
+- optional witness receipts
+
+#### 3.1.3 Fetch the DID Log
+
+```text
+GET /xrpc/cx.id.getLog?did=<did>&cursor=<cursor>&limit=<n>
+```
+
+Used for:
+
+- audit
+- reconstructing the DID Document
+- checking that `key_log` matches the registry head
+
+#### 3.1.4 Submit a DID Update
+
+```text
+POST /xrpc/cx.id.submitDidOp
+```
+
+The request body SHOULD contain:
+
+- `did`
+- `seq`
+- `prev_event_hash`
+- `patch`
+- `proofs`
+
+Requirements:
+
+- replaying the same `did + seq` with identical content MUST be idempotently accepted
+- reusing the same `did + seq` with different content MUST be rejected
+- the registry MUST validate the authorization chain back to `inception_key`
+
+#### 3.1.5 Fetch Receipt / Witness Proofs
+
+```text
+GET /xrpc/cx.id.getReceipts?did=<did>&head=<event-hash>
+```
+
+#### 3.1.6 Recommended Write Confirmation
+
+The initial recommendation is:
+
+- writer clients submit the `did_op` to multiple registries / witnesses
+- at least `k-of-n` receipts are required before the update is considered committed
+- reads may attach `expected_head` or `min_seq`
+
+That keeps DID writes in the world of ordinary network requests rather than global block consensus.
 
 ## 4. Repo Surface
 
@@ -289,7 +368,7 @@ The recommended first-time join flow is:
 
 1. the user enters a handle, DID, or workspace link
 2. the client resolves the DID and completes handle bidirectional verification
-3. the client discovers repo / relay / index / blob / authz services from the DID Document
+3. the client discovers identity registry / repo / relay / index / blob / authz services from the DID Document
 4. the client fetches invite / grant views relevant to the principal
 5. the client fetches workspace metadata and the snapshot head
 6. the client downloads the snapshot manifest and chunks
@@ -312,6 +391,18 @@ Clients MAY compare these values to decide:
 - whether they need to fall back to repo replay
 - whether an index is merely behind versus actually inconsistent
 
+For identity registries, services SHOULD also expose:
+
+- the current DID head
+- `seq`
+- a receipt-set summary
+
+Clients may use those values to decide whether a registry is:
+
+- serving the freshest head
+- merely a lagging replica
+- or potentially forked / malicious
+
 ## 11. Transport Security and Ciphertext
 
 The service surface SHOULD distinguish:
@@ -328,9 +419,10 @@ If a payload is already encrypted under `policy.encryption_profile`, then:
 
 The current draft recommends fixing:
 
-- a minimum repo / relay / index / blob / authz service surface
+- a minimum identity-registry / repo / relay / index / blob / authz service surface
 - XRPC-style paths as a recommendation rather than a hard requirement
 - idempotent write interfaces
+- DID writes confirmed by multi-registry / witness receipts rather than blockchains
 - bootstrap covering invite / grant / snapshot / backfill
 - services publishing reducer / schema / feature profiles
 
@@ -343,3 +435,4 @@ The next round still needs:
 - firehose frame format
 - error codes and retry semantics
 - auth-token or signed-request formats
+- identity receipt / witness proof schemas

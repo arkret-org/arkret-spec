@@ -81,8 +81,11 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - `principal_id = DID URI`
 - handles are strictly separated from DIDs
 - the default DID method is `did:uuid`
-- `did:uuid` is based on a custom UUID v8: 44-bit millisecond timestamp + 4-bit hash algorithm id + 74-bit anchor-key hash fragment
+- `did:uuid` is based on a custom UUID v8: 44-bit millisecond timestamp + 4-bit hash algorithm id + 74-bit inception-key hash fragment
 - DID hash filling and validation MUST use big-endian ordering
+- ordinary key rotation MUST NOT change the DID
+- current control keys are inherited from `inception_key` through `key_log` and do not need to directly equal the DID fragment
+- DID documents are stored and replicated through multiple identity registry / witness / replica nodes rather than one central directory
 - handle resolution follows an atprotocol-inspired bidirectional model, adapted for collaboration and multi-service discovery
 - version one SHOULD support `did:web` for org/service interoperability
 
@@ -113,13 +116,13 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - operation logs are the audit truth source
 - relays are the distribution/subscription layer, not the sole truth source
 - indexes/appviews are the query/materialization layer, not the sole truth source
-- the service layer requires a minimum interoperable repo / relay / index / blob / authz surface
+- the service layer requires a minimum interoperable identity-registry / repo / relay / index / blob / authz surface
 - board/chat/topic are sync profiles, not separate protocols
 - commit/op submission must be idempotent by design
 - authorization validity must converge under the same reducer ordering
 - recall converges through redaction semantics, not guaranteed global erasure
 - relays / indexes may forward encrypted payloads without decrypting them
-- when the identity anchor key changes, the DID must change too, and the old/new identities are linked through `supersedes/superseded_by`
+- the DID fragment anchors `inception_key`; ordinary key rotation keeps the same DID, while exceptional identity reboot is reserved for unrecoverable cases
 
 ### 5.5 Authorization
 

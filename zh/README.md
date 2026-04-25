@@ -81,8 +81,11 @@ Contrix New 第一阶段聚焦以下目标：
 - `principal_id = DID URI`
 - Handle 与 DID 分离
 - 默认 DID 方法为 `did:uuid`
-- `did:uuid` 基于自定义 UUID v8：44 位毫秒时间戳 + 4 位哈希算法标识 + 74 位锚定公钥哈希片段
+- `did:uuid` 基于自定义 UUID v8：44 位毫秒时间戳 + 4 位哈希算法标识 + 74 位初始锚点公钥哈希片段
 - DID 哈希填充与验证 MUST 使用大端序
+- 普通密钥轮换 MUST NOT 改变 DID
+- 当前控制密钥通过 `key_log` 从 `inception_key` 继承，不要求始终与 DID 哈希直接匹配
+- DID 文档由多 `identity registry / witness / replica` 节点保存与复制，而不是单中心目录
 - 解析模式参考 atprotocol 的 handle 双向验证，但更偏向协作与多服务发现
 - 初版 SHOULD 支持 `did:web` 作为组织/服务互操作方法
 
@@ -113,13 +116,13 @@ Contrix New 第一阶段聚焦以下目标：
 - operation log 是审计真相源
 - relay 是传播与订阅层，不是唯一真相源
 - index/appview 是查询与物化层，不是唯一真相源
-- 服务面要求最小可互操作 repo / relay / index / blob / authz 接口
+- 服务面要求最小可互操作 identity registry / repo / relay / index / blob / authz 接口
 - board/chat/topic 只是不同同步配置，不是不同协议
 - commit/op 提交必须天然幂等
 - 授权有效性也必须由同一 reducer 顺序收敛
 - 撤回通过 redaction 收敛，不等于保证全球物理删除
 - relay / index 可以转发不解密的密文 payload
-- 身份锚定公钥变化时 DID 必须变化，并通过 `supersedes/superseded_by` 建立继承链
+- DID 里的哈希锚定 `inception_key`；普通密钥轮换不换 DID，只有不可恢复时才考虑例外性身份重建
 
 ### 5.5 权限
 

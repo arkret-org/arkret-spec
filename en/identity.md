@@ -2,15 +2,15 @@
 
 ## 1. Goal
 
-Contrix New uses **DIDs as the stable identity root** and follows an atprotocol-inspired pattern of "handle entry point + DID root anchor + document-based service discovery", while defining its own DID generation and succession rules.
+Contrix New uses **DIDs as the stable identity root** and follows an atprotocol-inspired pattern of "handle entry point + DID root anchor + document-based service discovery", while defining its own DID generation, key-rotation, and recovery rules.
 
 The identity layer must solve:
 
 - stable identification for humans, organizations, agents, and services
-- binding identity anchor keys to service endpoints
+- separating the DID's "birth anchor" from later control keys
 - handle migration without breaking historical references
-- device delegation, agent delegation, key recovery, and identity succession
-- generating a new DID when the identity anchor public key changes, and linking old and new identities through documents
+- device delegation, agent delegation, key recovery, and key rotation
+- keeping the DID stable across ordinary key loss, compromise, and rotation whenever recovery remains possible
 
 ## 2. Core Principles
 
@@ -40,6 +40,7 @@ Handles are mutable and migratable, so:
 
 After resolving a DID, a Contrix client SHOULD discover:
 
+- identity-registry endpoints
 - repo endpoints
 - relay endpoints
 - index endpoints
@@ -48,6 +49,21 @@ After resolving a DID, a Contrix client SHOULD discover:
 - notification endpoints
 
 from the DID document.
+
+### 2.4 DIDs Should Persist While Keys Rotate
+
+The core `did:uuid` position in Contrix is:
+
+- ordinary key rotation MUST NOT change the DID
+- the hash embedded in the DID anchors the **inception key**, not necessarily the currently active control key
+- the legitimacy of the current control key depends on a verifiable historical authorization chain, not on direct equality with the hash embedded in the DID
+
+In other words, Contrix uses:
+
+- **initial match**
+- **process authorization**
+
+as its identity-validation model.
 
 ## 3. Native Contrix DID Method
 
@@ -82,20 +98,21 @@ Example:
 did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992
 ```
 
-## 3.3 DID vs Anchor Public Key
+## 3.3 DID vs Inception Public Key
 
 A Contrix DID is not a random identifier.  
 It MUST be jointly determined by:
 
 1. the generation timestamp
 2. the hash algorithm identifier
-3. a hash fragment of the identity anchor public key
+3. a hash fragment of the **inception public key**
 
 This means:
 
-- you cannot manufacture a "new identity" by changing only the timestamp while keeping the same hash-algorithm identifier and key-hash fragment
-- if the identity anchor public key changes, the DID must also change
-- if only a certificate is reissued while the anchor public key stays the same, the DID MUST NOT change
+- you cannot manufacture a "new identity" by changing only the timestamp while keeping the same hash-algorithm identifier and inception-key hash fragment
+- the 74-bit DID fragment records the identity's birth-time anchor
+- later control keys may change as long as the change process has a complete authorization chain
+- a new DID MAY be created only when there is no valid recovery path and the operator intentionally reboots the identity
 
 ## 4. UUID v8 Bit Layout
 
@@ -106,9 +123,9 @@ The default Contrix DID suffix uses a 128-bit UUID v8 with the following custom 
 - first 44 bits: Unix millisecond timestamp
 - next 4 bits: Hash Algorithm ID
 - next 4 bits: Version, fixed to `0x8`
-- next 12 bits: beginning of the public-key hash fragment
+- next 12 bits: beginning of the inception-key hash fragment
 - next 2 bits: Variant, fixed to `0b10`
-- final 62 bits: continuation of the public-key hash fragment
+- final 62 bits: continuation of the inception-key hash fragment
 
 In other words:
 
@@ -158,29 +175,41 @@ The initial registry is:
 - `0x5 .. 0xE`: reserved for future specs
 - `0xF`: experimental/private use
 
-## 5.2 Identity Anchor Public Key
+## 5.2 Inception Public Key
 
-Every `did:uuid` DID Document MUST designate exactly one **identity anchor public key**.
+Every `did:uuid` DID Document MUST designate exactly one immutable **inception public key**.
 
 Suggested field name:
 
-- `anchor_key`
+- `inception_key`
 
 Its value should point to one key id in `verificationMethod`.
 
 That key is used for:
 
 - generating the DID suffix
-- acting as the root anchor for identity succession validation
+- acting as the permanent historical anchor of the identity
+- providing the trust starting point for later control-key chains
+
+For compatibility with earlier drafts, implementations MAY temporarily accept:
+
+- `anchor_key`
+
+as a transitional alias for `inception_key`, but the normative field name should be `inception_key`.
 
 ## 5.3 Hash Input Rule
 
-The public-key hash fragment inside the DID MUST be derived from the **canonical byte representation of the identity anchor public key**, not from the full certificate bytes.
+The public-key hash fragment inside the DID MUST be derived from the **canonical byte representation of the inception public key**, not from:
 
-This is important because:
+- the current control key
+- the full certificate bytes
+- recovery keys
 
+This matters because:
+
+- the DID needs a stable birth-time fingerprint
 - certificate metadata changes must not create meaningless DID churn
-- only anchor public-key changes should cause DID changes
+- later key rotation must not break historical identity references
 
 Suggested canonical encodings:
 
@@ -193,7 +222,7 @@ Suggested canonical encodings:
 The initial recommendation is:
 
 - `Hash Algorithm ID = 0x1`
-- use `SHA-256(anchor_key_bytes)`
+- use `SHA-256(inception_key_bytes)`
 - take the first 74 bits of the digest
 
 Then fill those bits in big-endian order into the UUID:
@@ -213,13 +242,16 @@ When generating a new `did:uuid` DID:
 
 - the timestamp MUST reflect the Unix millisecond generation time and be truncated to 44 bits
 - the Hash Algorithm ID MUST match the actual hash function in use
-- the 74-bit hash fragment MUST come from the anchor key's canonical byte representation
+- the 74-bit hash fragment MUST come from the inception key's canonical byte representation
 
 The following MUST be rejected as invalid:
 
-- changing only the timestamp while keeping the same Hash Algorithm ID and 74-bit key-hash fragment
+- changing only the timestamp while keeping the same Hash Algorithm ID and 74-bit inception-key fragment
 - using a Hash Algorithm ID that does not match the actual hash function in use
 - using little-endian bit packing
+
+Ordinary key rotation MUST NOT mint a new DID.  
+A new DID MAY be minted only when the identity is unrecoverable and intentionally rebooted.
 
 ## 6. DID Document Model
 
@@ -229,16 +261,18 @@ A Contrix DID Document should include at least:
 
 - `id`
 - `alsoKnownAs`
-- `anchor_key`
+- `inception_key`
 - `verificationMethod`
 - `authentication`
 - `assertionMethod`
 - `service`
+- `key_log`
 
 ## 6.2 Suggested Service Types
 
 The initial service types are:
 
+- `ContrixIdentityRegistry`
 - `ContrixRepo`
 - `ContrixRelay`
 - `ContrixIndex`
@@ -246,60 +280,233 @@ The initial service types are:
 - `ContrixCapabilities`
 - `ContrixNotifications`
 
-## 6.3 Identity-succession Fields
+### 6.2.1 Who Stores the Identity Document
 
-To support a new DID after an anchor-key change, the spec defines two fields:
+Contrix does not require DID documents to be written directly to a blockchain.  
+The initial recommendation is:
+
+- **the principal keeps signed local copies of identity state**
+- **an open network of `ContrixIdentityRegistry` nodes stores resolvable online copies**
+- **any third party may run read replicas / audit replicas**
+
+That means:
+
+- the principal's own repo SHOULD retain identity-related operations and checkpoints for audit and recovery
+- the publicly resolvable current DID document SHOULD be hosted by multiple `ContrixIdentityRegistry` nodes
+- clients MAY read from registries, replicas, local caches, or exported checkpoints, but MUST re-verify the signature chain
+
+This splits storage responsibility into three layers:
+
+1. the actor keeps raw signed state
+2. registries provide online resolution and write entry points
+3. replicas provide high-availability reads and external auditability
+
+### 6.2.2 How Arbitrary Writes Are Prevented
+
+No blockchain does not mean anybody can mutate identity state.
+
+Contrix protects DID-document updates using:
+
+- the DID self-certifying anchor: the DID must verify back to `inception_key`
+- an append-only identity log: `key_log` is not rewriteable
+- proof of current authority: updates must be authorized by the control-key set valid at that time, or by the recovery policy
+- ordering constraints: each DID update SHOULD carry `prev_event_hash` and monotonic `seq`
+- multi-replica validation: registries and replicas must independently validate events
+
+Each identity update is recommended to be packaged as a `did_op`:
+
+```json
+{
+  "did": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "seq": 12,
+  "prev_event_hash": "bafy...",
+  "patch": {
+    "add_authentication": [
+      "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-4"
+    ]
+  },
+  "proofs": [
+    {
+      "verificationMethod": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3",
+      "jws": "..."
+    }
+  ]
+}
+```
+
+Registries MUST reject:
+
+- updates with invalid signatures
+- updates whose `seq` goes backward, or reuses the same `seq` with different content
+- updates whose `prev_event_hash` does not match the current head
+- updates whose authority chain cannot be derived from `inception_key`
+
+Therefore a single malicious registry may:
+
+- deny service
+- delay service
+- lie about stale state
+
+but it cannot make an **invalid update** become valid for correct clients.
+
+### 6.2.3 How Fast Writes and Reads Work Without a Blockchain
+
+Contrix does not chase "one global consensus chain for the whole network".  
+Instead it requires:
+
+- **an ordered append-only log per DID**
+- **fast replication of that log across multiple registries / replicas**
+
+Its performance model is therefore closer to:
+
+- directory services
+- transparency logs
+- witness quorums
+
+than to blockchains.
+
+Recommended behavior:
+
+- writes use normal HTTPS / XRPC requests
+- a writer submits the update to `n` registry / witness nodes
+- once the writer receives at least `k-of-n` valid receipts, the DID update is considered committed
+- reads may come from any registry, read replica, local cache, or CDN
+
+This has three benefits:
+
+- write latency is closer to a normal replicated database than to block production time
+- reads can be localized, cached, and CDN-served
+- the network does not need one global total order across all DIDs
+
+If a client needs strong read-after-write, a simple rule is:
+
+- first query a registry that already returned a receipt
+- or attach an expected `min_seq` / `expected_head` to the read
+
+### 6.2.4 Suggested Roles for Registry, Witness, and Replica
+
+To avoid sliding into a single-directory pattern, Contrix SHOULD distinguish:
+
+- `registry writer`
+- `witness`
+- `read replica`
+
+Where:
+
+- a `registry writer` accepts DID updates and performs primary validation and distribution
+- a `witness` may not serve general reads, but issues receipts for a given head
+- a `read replica` focuses on read availability, caching, and auditability, and may not participate in write confirmation
+
+The safest initial direction is:
+
+- write confirmation requires receipts from multiple independent operators
+- read resolution scales horizontally through read replicas
+
+That is more decentralized than a "single primary directory + passive mirrors" pattern.
+
+## 6.3 Current Control Keys and `key_log`
+
+Contrix SHOULD split DID-document information into:
+
+1. **anchor information that does not change across rotation**
+2. **current control information that may change across rotation**
+
+Where:
+
+- `inception_key` is the immutable anchor
+- `authentication` / `assertionMethod` describe the currently effective control-key set
+- `key_log` is an append-only key-event log proving how the current control keys were reached from the inception key
+
+That means:
+
+- the current control keys do not need to directly equal the DID fragment
+- but they MUST be traceable back to `inception_key` through `key_log`
+
+## 6.4 `key_log` Event Model
+
+The first version recommends these event types:
+
+- `inception`
+- `rotate`
+- `recover`
+- `deactivate`
+
+Suggested fields:
+
+```json
+{
+  "event_id": "cx:keyevt:01JS0KE000000000000000000",
+  "seq": 2,
+  "type": "rotate",
+  "performed_at": "2026-04-25T08:00:00Z",
+  "prev_keys": [
+    "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1"
+  ],
+  "next_keys": [
+    "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-2"
+  ],
+  "authorized_by": [
+    "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1"
+  ],
+  "reason": "routine_rotation",
+  "proof": {
+    "type": "JCSDetachedJWS",
+    "verificationMethod": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1",
+    "jws": "..."
+  }
+}
+```
+
+Rules:
+
+- `seq` MUST increase monotonically
+- old events MUST NOT be rewritten
+- each `rotate` / `recover` event MUST be authorized by the control-key set valid at that time, or by the recovery policy
+- a `deactivate` event means the DID no longer accepts new control writes
+
+## 6.5 Recovery Model
+
+To handle "the current private key is lost but the DID should remain the same", Contrix SHOULD support recovery mechanisms.
+
+Suggested fields:
+
+- `recovery_keys`
+- or `recovery_policy`
+
+Recovery semantics:
+
+- if the current control key is lost but recovery keys remain available, the DID MUST stay unchanged
+- the new control key is installed through `key_log.type = recover`
+- that `recover` event must be verifiable under the recovery policy
+
+If neither the current control key nor any valid recovery path exists, the DID SHOULD be treated as:
+
+- `unrecoverable`
+- or `deactivated`
+
+## 6.6 Exceptional Identity Reboot
+
+The normal `did:uuid` rule is:
+
+- **change keys, not DID**
+
+But a new DID MAY be created in exceptional cases:
+
+- the old DID is unrecoverable
+- the operator explicitly abandons the old DID and reboots identity
+- a product or social layer wants to declare that the new identity succeeds the old one
+
+Only in this **identity reboot** case should the spec use:
 
 - `superseded_by`
 - `supersedes`
 
-Their meaning is:
+They should not be used for routine key rotation.
 
-- `superseded_by`: stored in the old DID document, meaning this identity has been replaced by a new DID
-- `supersedes`: stored in the new DID document, meaning this identity originates from the previous DID
+If an old DID document can still be legitimately updated and sets `superseded_by`, that old document SHOULD enter a locked state.  
+But for unrecoverable DIDs, clients MUST not assume that a bidirectional link will always be available.
 
-### 6.3.1 Why Not `transfer`
-
-The spec does not use `transfer` as the formal field name because that sounds like ownership transfer.
-
-The real semantics here are:
-
-- migration after compromise
-- recovery after key leakage
-- a new DID caused by anchor-key rotation
-
-`superseded_by / supersedes` is therefore more precise.
-
-## 6.4 Lock Rule
-
-Once a DID document sets `superseded_by`, the document enters the **locked** state.
-
-In the locked state:
-
-- no fields may change afterward
-- the handle may not change
-- service endpoints may not change
-- `verificationMethod` may not change
-- no extension fields may change
-
-Implementations SHOULD serve logically identical document contents once locked.  
-At the protocol level, the document is frozen.
-
-## 6.5 Valid Old/New DID Relation
-
-When a new DID document claims `supersedes = <old_did>`, the following SHOULD hold:
-
-1. the new DID uses a different anchor key
-2. the new DID therefore carries a different 74-bit key-hash fragment
-3. the new DID timestamp is not earlier than the old one
-4. the old DID document should eventually set `superseded_by = <new_did>`
-
-In other words:
-
-- the new DID must not be just the old DID plus a new timestamp
-- the new DID must embody a new anchor-key identity
-
-## 6.6 DID Document Example
+## 6.7 DID Document Example
 
 ```json
 {
@@ -307,27 +514,78 @@ In other words:
   "alsoKnownAs": [
     "contrix://alice.example.com"
   ],
-  "anchor_key": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#anchor-1",
-  "supersedes": "did:uuid:0196fd30-70ab-8121-8b12-8f0d7c882110",
+  "inception_key": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1",
   "verificationMethod": [
     {
-      "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#anchor-1",
+      "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1",
       "type": "Multikey",
       "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
       "publicKeyMultibase": "z6Mki..."
     },
     {
-      "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1",
+      "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3",
       "type": "Multikey",
       "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
       "publicKeyMultibase": "z6Mks..."
+    },
+    {
+      "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#recovery-1",
+      "type": "Multikey",
+      "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+      "publicKeyMultibase": "z6Mkr..."
     }
   ],
   "authentication": [
-    "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1"
+    "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3"
   ],
   "assertionMethod": [
-    "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1"
+    "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3"
+  ],
+  "recovery_keys": [
+    "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#recovery-1"
+  ],
+  "key_log": [
+    {
+      "event_id": "cx:keyevt:01JS0KE000000000000000000",
+      "seq": 0,
+      "type": "inception",
+      "performed_at": "2026-04-25T08:00:00Z",
+      "next_keys": [
+        "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1"
+      ]
+    },
+    {
+      "event_id": "cx:keyevt:01JS0KF000000000000000000",
+      "seq": 1,
+      "type": "rotate",
+      "performed_at": "2026-05-01T09:00:00Z",
+      "prev_keys": [
+        "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1"
+      ],
+      "next_keys": [
+        "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-2"
+      ],
+      "authorized_by": [
+        "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1"
+      ],
+      "reason": "routine_rotation"
+    },
+    {
+      "event_id": "cx:keyevt:01JS0KG000000000000000000",
+      "seq": 2,
+      "type": "recover",
+      "performed_at": "2026-05-10T11:00:00Z",
+      "prev_keys": [
+        "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-2"
+      ],
+      "next_keys": [
+        "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3"
+      ],
+      "authorized_by": [
+        "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#recovery-1"
+      ],
+      "reason": "key_loss"
+    }
   ],
   "service": [
     {
@@ -341,20 +599,6 @@ In other words:
       "serviceEndpoint": "https://relay.example.net/cx"
     }
   ]
-}
-```
-
-Frozen old-document example:
-
-```json
-{
-  "id": "did:uuid:0196fd30-70ab-8121-8b12-8f0d7c882110",
-  "alsoKnownAs": [
-    "contrix://alice.example.com"
-  ],
-  "anchor_key": "did:uuid:0196fd30-70ab-8121-8b12-8f0d7c882110#anchor-1",
-  "superseded_by": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-  "locked": true
 }
 ```
 
@@ -465,35 +709,37 @@ Example:
 }
 ```
 
-## 9. Key Model
+## 9. Key and Recovery Model
 
 A principal identity is not the same thing as one device or one process.
 
 The initial model distinguishes:
 
-- identity anchor key
+- inception key
 - principal signing key
 - device key
 - delegated agent key
+- recovery key
 - ephemeral execution key
 
-### 9.1 Identity Anchor Key
+### 9.1 Inception Key
 
 Used for:
 
 - generating `did:uuid`
-- anchoring identity succession
-- proving the old/new DID relationship
+- acting as the permanent anchor of identity history
+- providing the start of the `key_log`
 
-If this key changes, the DID must change as well.
+The public half of this key MUST remain permanently verifiable.  
+It MAY cease to be used as an active control key.
 
 ### 9.2 Principal Signing Key
 
 Used for:
 
 - publishing formal identity documents
+- executing ordinary control-key rotation
 - issuing high-authority capabilities
-- delegating to devices or agents
 
 ### 9.3 Device Key
 
@@ -512,7 +758,17 @@ Used for:
 
 It MUST carry scope and expiry.
 
-### 9.5 Ephemeral Execution Key
+### 9.5 Recovery Key
+
+Used for:
+
+- recovering from current-control-key loss
+- forced switching after severe compromise
+- authorizing `key_log.type = recover`
+
+Recovery keys SHOULD be stored separately from day-to-day control keys.
+
+### 9.6 Ephemeral Execution Key
 
 Used for:
 
@@ -540,10 +796,18 @@ Any Contrix node accepting writes should validate at least:
 2. the DID document resolves successfully
 3. the UUID v8 bit layout of `did:uuid` is valid
 4. the embedded Hash Algorithm ID is known and supported
-5. re-hashing the document's `anchor_key` with the hash function selected by that Hash Algorithm ID reproduces the leading 74-bit DID fragment
-6. if the document has `superseded_by`, it is locked and must not continue mutating
-7. if the document has `supersedes`, the new DID must not be a timestamp-only variation of the old DID
-8. if a device/agent/execution key is used, the delegation chain is complete
+5. re-hashing the document's `inception_key` with the hash function selected by that Hash Algorithm ID reproduces the leading 74-bit DID fragment
+6. the `key_log` is append-only, `seq` is monotonic, and old events were not rewritten
+7. the current control keys in `authentication` / `assertionMethod` can be derived from `inception_key` through valid `key_log` events
+8. each `rotate` / `recover` event was authorized by the control-key set valid at that time, or by the recovery policy
+9. if a `deactivate` event exists, later control writes MUST be rejected
+10. if a device/agent/execution key is used, the delegation chain is complete
+11. if DID state came from a registry / replica, its `head_event_hash` and receipt-set summary are not self-contradictory
+
+Important note:
+
+- the DID fragment is required to match the `inception_key`
+- it is not required to directly match the currently active control key
 
 ## 12. Initial Design Decisions
 
@@ -551,11 +815,12 @@ The current draft recommends fixing:
 
 - `did:uuid` as the default DID method
 - `did:uuid` based on a custom UUID v8
-- a UUID layout containing a 44-bit millisecond timestamp, 4-bit Hash Algorithm ID, and 74-bit anchor-key hash fragment
+- a UUID layout containing a 44-bit millisecond timestamp, 4-bit Hash Algorithm ID, and a 74-bit **inception-key** hash fragment
 - big-endian hash filling and validation as mandatory
-- `superseded_by` on old identities
-- `supersedes` on new identities
-- locking old documents once `superseded_by` is set
+- ordinary key rotation MUST NOT change the DID
+- current control keys may differ from the DID fragment, but must be provably derivable from `inception_key` through `key_log`
+- `key_log` as the standard proof chain for rotation and recovery
+- `superseded_by / supersedes` reserved for exceptional identity reboot after unrecoverable loss, not routine rotation
 - an atprotocol-like handle model with `alsoKnownAs + primary_handle`
 
 ## 13. Further Work
@@ -563,6 +828,7 @@ The current draft recommends fixing:
 The next round still needs:
 
 - the wire-level resolution/distribution protocol for `did:uuid`
-- a formal schema for `anchor_key` and document signature chains
-- a formal reciprocal-validation flow for `supersedes/superseded_by`
+- a formal schema for `key_log` events and proof envelopes
+- a formal `recovery_policy` grammar
+- log compression / checkpoint rules for larger deployments
 - a formal Handle ABNF

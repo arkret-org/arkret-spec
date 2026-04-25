@@ -13,7 +13,7 @@ This requires the protocol to separate identity, writes, distribution, queries, 
 
 ## 2. Overall Model
 
-Contrix New uses a **principal repo + workspace relay + query index** architecture.
+Contrix New uses a **principal repo + identity registry + workspace relay + query index** architecture.
 
 ### 2.1 Principal Repo
 
@@ -94,6 +94,8 @@ Responsible for:
 - handle resolution
 - service discovery
 - key rotation and recovery
+- DID-log writes and replication
+- registry / witness / replica coordination
 
 ### 3.2 Write Plane
 
@@ -164,6 +166,7 @@ Contrix does not require all roles to be separately deployed.
 
 One deployment may host:
 
+- identity registry
 - repo
 - relay
 - index
@@ -284,6 +287,7 @@ Instead, the protocol should guarantee:
 The current draft recommends fixing the following directions:
 
 - principal repos are the actor publication baseline
+- identity registries / witnesses are the DID-document resolution and write layer
 - workspace relays are the distribution layer
 - indexes/appviews are the materialized query layer
 - blobs are a separate content layer
