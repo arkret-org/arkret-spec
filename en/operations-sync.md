@@ -119,10 +119,16 @@ The draft uses:
 
 ## 7. Operation Families
 
-### 7.1 Workspace / Board / Collection / View
+### 7.1 Workspace / Schema / Policy
 
 - `cx.workspace.create`
 - `cx.workspace.update`
+- `cx.schema.define`
+- `cx.schema.update`
+- `cx.policy.set`
+
+### 7.2 Board / Collection / View
+
 - `cx.board.create`
 - `cx.board.update`
 - `cx.collection.create`
@@ -131,7 +137,7 @@ The draft uses:
 - `cx.view.create`
 - `cx.view.update`
 
-### 7.2 Item / Comment / Relation / Attachment
+### 7.3 Item / Comment / Relation / Attachment
 
 - `cx.item.create`
 - `cx.item.update`
@@ -145,7 +151,7 @@ The draft uses:
 - `cx.attachment.add`
 - `cx.attachment.remove`
 
-### 7.3 Channel / Topic / Message
+### 7.4 Channel / Topic / Message
 
 - `cx.channel.create`
 - `cx.channel.update`
@@ -160,7 +166,7 @@ The draft uses:
 - `cx.message.react`
 - `cx.message.unreact`
 
-### 7.4 Run / Memory
+### 7.5 Run / Memory
 
 - `cx.run.create`
 - `cx.run.update`
@@ -172,13 +178,20 @@ The draft uses:
 - `cx.memory.invalidate`
 - `cx.memory.supersede`
 
-### 7.5 Capability
+### 7.6 Invite / Read State
+
+- `cx.invite.create`
+- `cx.invite.cancel`
+- `cx.invite.accept`
+- `cx.read.mark`
+
+### 7.7 Capability
 
 - `cx.capability.grant`
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-### 7.6 Private and Ephemeral State
+### 7.8 Private and Ephemeral State
 
 The following are not recommended as durable shared ops:
 
@@ -238,6 +251,18 @@ Snapshots are acceleration layers, not truth sources.
 }
 ```
 
+Implementations SHOULD let the snapshot manifest additionally carry:
+
+- `schema_profile_refs`
+- `chunk_digests`
+- `generator_signature`
+
+That allows clients to verify before trusting a snapshot:
+
+- which frontier it covers
+- which reducer and schema profile produced it
+- whether chunk contents were tampered with
+
 ## 11. Sync Surfaces
 
 ### 11.1 Repo Sync
@@ -255,6 +280,14 @@ For real-time event distribution.
 ### 11.4 Query Surface
 
 For views, search, memory retrieval, and thread queries.
+
+### 11.5 Authz / Invite Surface
+
+For:
+
+- fetching invites
+- fetching effective grant sets
+- checking whether an op is writable at the current frontier
 
 ## 12. Board / Chat / Topic Sync Profiles
 
@@ -289,11 +322,14 @@ Default sync:
 Recommended flow:
 
 1. fetch workspace metadata
-2. fetch the latest snapshot manifest
-3. download snapshot chunks
-4. fetch op increments after the snapshot frontier
-5. run the reducer locally
-6. enter cursor-based incremental subscription
+2. fetch invite / grant views relevant to the current principal
+3. fetch the latest snapshot manifest
+4. download snapshot chunks
+5. fetch op increments after the snapshot frontier
+6. run the reducer locally
+7. enter cursor-based incremental subscription
+
+If the client starts with a handle rather than a DID, it MUST first complete handle-to-DID resolution and bidirectional verification before step 1.
 
 ## 14. Selective Sync
 
@@ -311,7 +347,24 @@ The first version should support at least:
 - watched runs
 - changes since cursor
 
-## 15. Conflicts and Convergence
+## 15. Idempotency, Deduplication, and Replay
+
+In decentralized sync, duplicate submission and duplicate delivery are normal, not exceptional.
+
+Therefore:
+
+- `commit_id` and `op_id` MUST be globally stable
+- the exact same `commit_id` / `op_id` payload MAY be accepted multiple times
+- if the same ID is reused with different content, nodes MUST reject it and record a conflict
+- relays and indexes SHOULD deduplicate by `op_id` rather than counting deliveries
+
+This prevents:
+
+- client retries from causing duplicate writes
+- multi-relay loops from causing duplicate fanout
+- indexes from overcounting because of repeated delivery
+
+## 16. Conflicts and Convergence
 
 ### 15.1 No Global Consensus
 
@@ -334,7 +387,7 @@ When two ops have no explicit causal ordering, compare in this order:
 3. `actor_seq`
 4. `op_id`
 
-## 16. Field-level Merge and Object-level Convergence
+## 17. Field-level Merge and Object-level Convergence
 
 ### 16.1 Scalar Fields
 
@@ -380,7 +433,7 @@ These should be handled via move/reorder semantics.
 
 Reactions converge using `(message_id, actor, reaction_key)` as the OR-Set key.
 
-## 17. Ordering Model
+## 18. Ordering Model
 
 Drag-and-drop ordering should use:
 
@@ -393,7 +446,7 @@ Message timeline display order should use:
 
 - `hlc + actor + actor_seq + op_id`
 
-## 18. Tombstones, Redaction, and Restore
+## 19. Tombstones, Redaction, and Restore
 
 ### 18.1 Object Deletion
 
@@ -413,7 +466,32 @@ Required semantics:
 
 Receivers SHOULD keep dangling redactions and apply them once the target message arrives.
 
-## 19. Blob Sync
+## 20. Authorization-time Convergence
+
+Authorization cannot rely only on wall-clock time; otherwise revocations, late ops, and offline writes become inconsistent.
+
+The initial recommendation is:
+
+- grant / delegate / revoke are themselves ops
+- whether a business op is valid is decided by the effective authorization set under the same reducer ordering
+- if a write is ordered after the relevant revoke, it MUST be treated as invalid
+- if ordering cannot be established, implementations SHOULD fail closed
+
+That means authorization semantics must follow the same causal and ordering rules as the rest of the protocol.
+
+## 21. Visibility and Encrypted Payloads
+
+ACLs are not the same thing as ciphertext protection, and decentralized relays should not be forced to understand every body they forward.
+
+The first version should therefore distinguish:
+
+- routable metadata: `workspace_id`, `target_ref`, `type`, `causal`
+- optionally encrypted fields: message bodies, attachment contents, sensitive memory bodies
+
+Implementations MAY encrypt content using the envelope format named by `policy.encryption_profile`.  
+Even when a relay or index cannot decrypt the payload, it SHOULD still be able to forward it, deduplicate it, and preserve causal structure.
+
+## 22. Blob Sync
 
 Blob content should not be forced into the same stream as metadata.
 
@@ -423,7 +501,7 @@ Recommended behavior:
 - fetch content on demand
 - validate by content hash
 
-## 20. Local Storage Guidance
+## 23. Local Storage Guidance
 
 Clients SHOULD maintain three local layers:
 
@@ -431,22 +509,28 @@ Clients SHOULD maintain three local layers:
 - reduced snapshots
 - materialized indexes
 
-## 21. Initial Design Decisions
+## 24. Initial Design Decisions
 
 The current draft recommends fixing:
 
 - repo commits as actor publication units
 - ops as shared-state reduction units
 - one sync protocol across board/chat/topic modes
+- invite / grant / snapshot as the main workspace-bootstrap flow
+- commit/op retries as idempotent by design
+- authorization validity converging under the same reducer ordering
+- encrypted payloads being forwardable through non-decrypting relays and indexes
 - recalls as redaction/tombstone semantics
 - convergence through fixed reducer rules
 
-## 22. Further Work
+## 25. Further Work
 
 The next round still needs:
 
 - cursor encoding
 - HLC text format
 - snapshot chunk schemas
+- formal schemas for snapshot signatures and chunk digests
+- an encrypted-payload envelope schema
 - a standard sync surface for read markers
 - wire-level relay/index interfaces

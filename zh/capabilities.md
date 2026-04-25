@@ -79,6 +79,10 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 - `view`
 - `run`
 - `memory`
+- `schema`
+- `policy`
+- `invite`
+- `read_marker`
 
 ## 5. 动作集合
 
@@ -133,12 +137,20 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 - `manage_schema`
 - `manage_capabilities`
 - `manage_policy`
+- `manage_invites`
 
 ### 5.6 服务动作
 
 - `relay_ops`
 - `index_workspace`
 - `store_blobs`
+
+### 5.7 人类界面与个人状态动作
+
+- `write_read_markers`
+- `read_notifications`
+- `ack_notifications`
+- `accept_invite`
 
 ## 6. Constraints
 
@@ -151,6 +163,9 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 - `item_type_allow`
 - `memory_kind_allow`
 - `allowed_channel_refs`
+- `visibility_allow`
+- `blob_max_bytes`
+- `encryption_required`
 - `message_edit_window`
 - `max_delegation_depth`
 - `rate_limit`
@@ -184,7 +199,19 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 - 再授权不得扩大原始资源范围和动作范围
 - 委托链 MUST 可验证
 
-## 9. Revocation
+## 9. 有效权限集合
+
+Contrix v1 采用 **allow-grant + explicit revoke** 模型。
+
+也就是说：
+
+- 协议层没有通用 `deny` grant
+- 有效权限集合是“所有当前有效 grant 的并集”
+- revoke 通过显式 op 把 grant 从有效集合移出
+
+部署层 MAY 叠加本地 deny policy，但那不属于协议级互操作语义。
+
+## 10. Revocation
 
 撤销必须是显式操作，而不是删除 grant 记录。
 
@@ -200,7 +227,23 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 }
 ```
 
-## 10. Role 只是 bundle
+## 11. Invite、通知与已读状态
+
+这些人类友好能力必须进入权限模型，而不是留给产品私有后门：
+
+- 创建 / 取消 invite 需要 `manage_invites`
+- 接受发给自己的 invite 需要 `accept_invite`
+- 写入自己的 `read_marker` 需要 `write_read_markers`
+- 读取 notification 需要 `read_notifications`
+- `ack_notifications` 只应影响自己的派生 inbox 状态
+
+其中：
+
+- `invite` 不等于 grant
+- `notification` 是派生对象，但其可见性仍受底层 source object ACL 约束
+- `read_marker` 默认是 owner-private state
+
+## 12. Role 只是 bundle
 
 产品层可以提供：
 
@@ -213,7 +256,7 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 
 但这些 role 在协议层只是 capability bundle，不是主语义。
 
-## 11. 读权限与可发现性
+## 13. 读权限与可发现性
 
 读权限不只是“能不能 fetch 内容”，还包括：
 
@@ -229,7 +272,7 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 - `read_content`
 - `read_history`
 
-## 12. 会话场景下的权限建议
+## 14. 会话场景下的权限建议
 
 初版建议最少区分：
 
@@ -242,7 +285,7 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 
 这能避免把“撤回别人的消息”错误地和“能发消息”混成一种权限。
 
-## 13. 决策执行位置
+## 15. 决策执行位置
 
 权限检查不应只在客户端发生。
 
@@ -254,7 +297,7 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 - index 返回查询前
 - blob store 下发内容前
 
-## 14. 最小权限判定算法
+## 16. 最小权限判定算法
 
 给定一个操作，节点至少应：
 
@@ -267,19 +310,29 @@ grant 的 `issuer` 与 `subject` SHOULD 使用 DID。
 7. 判断 constraints 是否满足
 8. 应用 revoke 和 superseding 规则
 
-## 15. 初版设计决定
+若多个 grant 同时命中，建议：
+
+- 先按 resource selector 取覆盖目标的 grant
+- 再做 action 并集
+- 再用 constraints 取交集或更严格约束
+- 最后应用 revoke、过期、delegation depth 等裁剪规则
+
+## 17. 初版设计决定
 
 当前草案建议固定：
 
 - 权限采用 capability 模型
 - 看板、会话、memory、run 都使用统一 grant 体系
 - `edit_own_message` 与 `redact_any_message` 分开
+- invite / notification / read marker 进入统一 capability 体系
+- 协议级语义采用 allow-grant + explicit revoke
 - agent 使用窄权限、短时效、可审计授权
 
-## 16. 后续待细化
+## 18. 后续待细化
 
 下一轮仍需明确：
 
 - resource selector 正式语法
 - constraint schema
+- grant 合并与最严格约束规则的正式算法
 - moderation policy 与 capability 的配合方式

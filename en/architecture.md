@@ -138,6 +138,24 @@ Responsible for:
 - semantic memory
 - memory promotion, supersession, and forgetting
 
+### 3.7 Confidentiality Plane
+
+Responsible for:
+
+- distinguishing visibility from encrypted payloads
+- content-encryption envelopes
+- key distribution and rotation
+- allowing relays to forward opaque payloads without decrypting them
+
+### 3.8 Portability Plane
+
+Responsible for:
+
+- export / import
+- snapshot + op replay
+- service replacement
+- migration across multiple repos / relays / indexes
+
 ## 4. Deployment Topologies
 
 Contrix does not require all roles to be separately deployed.
@@ -272,6 +290,7 @@ The current draft recommends fixing the following directions:
 - capabilities form an explicit authorization layer
 - runs and memories are first-class protocol objects
 - the same data model serves both human UIs and agent memory
+- confidentiality and portability are explicit protocol planes rather than deployment afterthoughts
 
 ## 9. Further Work
 
@@ -282,3 +301,5 @@ The next round still needs to define:
 - the index query surface
 - capability cache consistency strategy
 - interoperability requirements with multiple relays and indexes
+- encrypted-envelope and key-distribution interfaces
+- consistency boundaries for export / import

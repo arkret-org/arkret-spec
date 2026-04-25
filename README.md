@@ -19,6 +19,7 @@ contrix-spec-new/
     capabilities.md
     views.md
     agent-memory.md
+    service-surface.md
   en/
     README.md
     _tasks.md
@@ -31,6 +32,7 @@ contrix-spec-new/
     capabilities.md
     views.md
     agent-memory.md
+    service-surface.md
 ```
 
 Both folders are intended to stay structurally aligned.

@@ -55,6 +55,10 @@ Contrix New 的对象模型必须同时支持：
 - `cx:view:<ulid>`
 - `cx:run:<ulid>`
 - `cx:mem:<ulid>`
+- `cx:schema:<ulid>`
+- `cx:policy:<ulid>`
+- `cx:invite:<ulid>`
+- `cx:read:<ulid>`
 
 ## 4. 通用对象元数据
 
@@ -92,6 +96,10 @@ Contrix New 的对象模型必须同时支持：
 - view
 - run
 - memory
+- schema
+- policy
+- invite
+- read_marker
 
 其中：
 
@@ -101,6 +109,10 @@ Contrix New 的对象模型必须同时支持：
 - `view` 是投影
 - `run` 是执行轨迹
 - `memory` 是长期知识沉淀
+- `schema` 是字段与对象类型约束
+- `policy` 是保留、可见性、加密与 moderation 默认策略
+- `invite` 是加入 workspace 的显式引导对象
+- `read_marker` 是 actor 私有但可同步的已读状态
 
 ## 6. Workspace
 
@@ -452,6 +464,34 @@ Contrix 必须支持自定义字段，但不建议允许完全无约束 JSON 扩
 
 由 workspace 或 board 引用。
 
+示例：
+
+```json
+{
+  "id": "cx:schema:01JS0SC000000000000000000",
+  "kind": "schema",
+  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "name": "default-item-schema",
+  "applies_to": [
+    "item"
+  ],
+  "version": 3,
+  "fields": [
+    {
+      "name": "priority",
+      "type": "enum",
+      "required": false,
+      "options": ["low", "medium", "high"]
+    },
+    {
+      "name": "due_at",
+      "type": "datetime",
+      "required": false
+    }
+  ]
+}
+```
+
 建议字段类型：
 
 - `text`
@@ -465,7 +505,126 @@ Contrix 必须支持自定义字段，但不建议允许完全无约束 JSON 扩
 - `object_ref`
 - `url`
 
-## 20. 派生数据
+Schema SHOULD 显式声明：
+
+- `applies_to`
+- `version`
+- `fields`
+- `migration_notes`
+
+这样 reducer、view 与导入导出逻辑在 schema 升级时才可解释。
+
+## 20. Policy
+
+协议中已经引用 `policy`，因此它必须是正式对象，而不是实现私货。
+
+示例：
+
+```json
+{
+  "id": "cx:policy:01JS0PL000000000000000000",
+  "kind": "policy",
+  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "name": "workspace-default-policy",
+  "retention": {
+    "messages_days": 3650,
+    "candidate_memories_days": 90
+  },
+  "default_visibility": "workspace",
+  "redaction_mode": "tombstone",
+  "encryption_profile": "workspace-envelope-v1",
+  "allow_external_relays": true
+}
+```
+
+`policy` SHOULD 至少覆盖：
+
+- retention
+- default visibility
+- redaction display
+- encryption profile
+- relay / blob / export defaults
+
+## 21. Invite
+
+去中心化协作里，“别人如何加入 workspace”不能只靠产品私有链接。
+
+Contrix 应支持显式 `invite` 对象：
+
+```json
+{
+  "id": "cx:invite:01JS0IV000000000000000000",
+  "kind": "invite",
+  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "issuer": "did:web:acme.example.com",
+  "subject_did": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject_handle": "alice.example.com",
+  "proposed_role": "contributor",
+  "proposed_grant_refs": [
+    "cx:grant:01JS0GR000000000000000000"
+  ],
+  "expires_at": "2026-05-01T00:00:00Z",
+  "status": "pending"
+}
+```
+
+`invite` 的语义应是：
+
+- 它是加入引导对象
+- 它本身不等于 capability grant
+- 接受 invite 后，相关 grant 才进入生效集合
+
+## 22. Read Marker
+
+人类友好的协作系统必须有 durable 的已读状态，否则 inbox / thread / chat 都无法稳定收敛。
+
+建议引入 actor-private 的 `read_marker`：
+
+```json
+{
+  "id": "cx:read:01JS0RD000000000000000000",
+  "kind": "read_marker",
+  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "owner": "did:web:alice.example.com",
+  "scope_kind": "channel",
+  "scope_ref": "cx:channel:01JS1000000000000000000000",
+  "last_seen_message_ref": "cx:message:01JS1000000000000000000002",
+  "last_seen_hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
+  "updated_at": "2026-04-22T08:40:00Z"
+}
+```
+
+`read_marker` SHOULD：
+
+- 默认只对 owner 可见
+- 可按 channel / topic / inbox / view 设 scope
+- 作为 durable state 在多设备间同步
+
+## 23. Notification
+
+通知对人类界面是必需的，但不应成为协议真相源对象。
+
+因此初版建议：
+
+- `notification` 是派生 inbox 对象
+- 它由 message mention、assignment、invite、run failure、memory review 等事件派生
+- 它可以被 index 或 relay 物化，但 canonical truth 仍是底层 source object 与 op
+
+示例：
+
+```json
+{
+  "id": "cx:notif:01JS0NF000000000000000000",
+  "actor": "did:web:alice.example.com",
+  "notification_kind": "mention",
+  "source_ref": "cx:message:01JS1000000000000000000002",
+  "target_ref": "cx:topic:01JS1000000000000000000001",
+  "delivery_state": "unread",
+  "created_at": "2026-04-22T08:31:05Z"
+}
+```
+
+## 24. 派生数据
 
 以下内容不应作为 canonical truth object 保存：
 
@@ -478,7 +637,7 @@ Contrix 必须支持自定义字段，但不建议允许完全无约束 JSON 扩
 
 这些都属于派生层或临时信号层。
 
-## 21. 初版设计决定
+## 25. 初版设计决定
 
 当前草案建议固定：
 
@@ -489,12 +648,19 @@ Contrix 必须支持自定义字段，但不建议允许完全无约束 JSON 扩
 - `view` 是投影定义
 - `run` 是执行轨迹对象
 - `memory` 是长期知识对象
+- `schema/policy` 是正式对象
+- `invite` 是显式加入引导
+- `read_marker` 是 durable actor-private state
+- `notification` 是派生对象，不是 canonical truth
 
-## 22. 后续待细化
+## 26. 后续待细化
 
 下一轮仍需明确：
 
 - schema object 正式格式
+- policy object 的正式 schema
+- invite / join / leave 状态机
+- read marker 与 notification 的正式查询面
 - checklist 标准结构
 - message 富文本 block 结构
 - topic/channel 的历史可见性规则

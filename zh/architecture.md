@@ -138,6 +138,24 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 - semantic memory
 - memory promotion / supersession / forgetting
 
+### 3.7 Confidentiality Plane
+
+负责：
+
+- 可见性与密文负载区分
+- 内容加密 envelope
+- key distribution / rotation
+- 让 relay 在不解密正文时也能继续转发
+
+### 3.8 Portability Plane
+
+负责：
+
+- export / import
+- snapshot + op replay
+- service replacement
+- 多 repo / 多 relay / 多 index 迁移
+
 ## 4. 部署拓扑
 
 Contrix 不要求所有角色分离部署。
@@ -272,6 +290,7 @@ Contrix New 不打算做“两套系统”：
 - capability 是独立决策层
 - run 与 memory 是一等协议对象
 - 同一数据既服务人类 UI，也服务 agent 记忆
+- confidentiality 与 portability 也是明确协议平面，而不是部署细节
 
 ## 9. 后续待细化
 
@@ -282,3 +301,5 @@ Contrix New 不打算做“两套系统”：
 - index query surface
 - capability cache 的一致性策略
 - 多 relay / 多 index 并存时的互操作要求
+- 加密 envelope 与 key 分发接口
+- export/import 的一致性边界

@@ -79,6 +79,10 @@ The first version should support the following `kind` values:
 - `view`
 - `run`
 - `memory`
+- `schema`
+- `policy`
+- `invite`
+- `read_marker`
 
 ## 5. Action Set
 
@@ -133,12 +137,20 @@ The first version should support the following `kind` values:
 - `manage_schema`
 - `manage_capabilities`
 - `manage_policy`
+- `manage_invites`
 
 ### 5.6 Service Actions
 
 - `relay_ops`
 - `index_workspace`
 - `store_blobs`
+
+### 5.7 Human-facing and Personal-state Actions
+
+- `write_read_markers`
+- `read_notifications`
+- `ack_notifications`
+- `accept_invite`
 
 ## 6. Constraints
 
@@ -151,6 +163,9 @@ The first version recommends support for:
 - `item_type_allow`
 - `memory_kind_allow`
 - `allowed_channel_refs`
+- `visibility_allow`
+- `blob_max_bytes`
+- `encryption_required`
 - `message_edit_window`
 - `max_delegation_depth`
 - `rate_limit`
@@ -184,7 +199,19 @@ If it is greater than zero:
 - the re-grant must not expand the original scope
 - the delegation chain MUST be verifiable
 
-## 9. Revocation
+## 9. Effective Permission Set
+
+Contrix v1 uses an **allow-grant + explicit revoke** model.
+
+That means:
+
+- there is no generic protocol-level `deny` grant
+- the effective permission set is the union of all currently valid grants
+- revoke ops explicitly remove grants from that effective set
+
+Deployments MAY layer local deny policies on top, but those are outside wire-level interoperability semantics.
+
+## 10. Revocation
 
 Revocation must be explicit rather than deleting grant records.
 
@@ -200,7 +227,23 @@ Example:
 }
 ```
 
-## 10. Roles Are Only Bundles
+## 11. Invites, Notifications, and Read State
+
+These human-facing capabilities must be part of the authorization model rather than product-private backdoors:
+
+- creating or canceling invites requires `manage_invites`
+- accepting an invite addressed to oneself requires `accept_invite`
+- writing one's own `read_marker` requires `write_read_markers`
+- reading notifications requires `read_notifications`
+- `ack_notifications` should affect only the caller's derived inbox state
+
+Where:
+
+- `invite` is not the same thing as a grant
+- `notification` is a derived object, but its visibility is still constrained by the ACLs of the underlying source object
+- `read_marker` is owner-private by default
+
+## 12. Roles Are Only Bundles
 
 Product layers may define:
 
@@ -213,7 +256,7 @@ Product layers may define:
 
 But these are only convenience bundles of capabilities, not primary protocol semantics.
 
-## 11. Read Access and Discoverability
+## 13. Read Access and Discoverability
 
 Read authorization is not just "can content be fetched?" It also includes:
 
@@ -229,7 +272,7 @@ The first version should at least distinguish:
 - `read_content`
 - `read_history`
 
-## 12. Authorization Guidance for Conversation
+## 14. Authorization Guidance for Conversation
 
 The first version should minimally distinguish:
 
@@ -242,7 +285,7 @@ The first version should minimally distinguish:
 
 This prevents "can recall other people's messages" from being accidentally bundled into "can send messages".
 
-## 13. Where Decisions Are Enforced
+## 15. Where Decisions Are Enforced
 
 Authorization checks should not happen only on clients.
 
@@ -254,7 +297,7 @@ They should happen at least in:
 - index query serving
 - blob content serving
 
-## 14. Minimal Authorization Algorithm
+## 16. Minimal Authorization Algorithm
 
 Given an operation, a node should at least:
 
@@ -267,19 +310,29 @@ Given an operation, a node should at least:
 7. check whether the constraints are satisfied
 8. apply revocation and superseding rules
 
-## 15. Initial Design Decisions
+When multiple grants match, the recommended behavior is:
+
+- first select grants whose resource selectors cover the target
+- then union their allowed actions
+- then intersect or tighten constraints to the strictest effective shape
+- finally apply revocation, expiry, and delegation-depth trimming
+
+## 17. Initial Design Decisions
 
 The current draft recommends fixing:
 
 - capability-based authorization
 - one grant system across boards, conversation, runs, and memories
 - `edit_own_message` distinct from `redact_any_message`
+- invites / notifications / read markers inside the same capability model
+- allow-grant + explicit revoke as the protocol-level semantic
 - narrow, time-bounded, auditable grants for agents
 
-## 16. Further Work
+## 18. Further Work
 
 The next round still needs:
 
 - a formal resource-selector grammar
 - a formal constraint schema
+- a formal algorithm for grant merging and strictest-constraint reduction
 - a moderation-policy integration story

@@ -83,14 +83,15 @@ did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992
 ## 3.3 DID 与锚定公钥的关系
 
 Contrix DID 不是随机号。  
-它 MUST 由以下两部分共同决定：
+它 MUST 由以下三部分共同决定：
 
 1. 生成时间戳
-2. 身份锚定公钥的哈希片段
+2. 哈希算法标识
+3. 身份锚定公钥的哈希片段
 
 这意味着：
 
-- 不能只改变时间戳而保持公钥哈希片段不变来制造一个“新身份”
+- 不能只改变时间戳而保持哈希算法标识和公钥哈希片段不变来制造一个“新身份”
 - 如果身份锚定公钥改变，则 DID 也必须改变
 - 如果只是重新签发证书，但锚定公钥未变，则 DID MUST NOT 改变
 
@@ -100,30 +101,32 @@ Contrix 默认 DID 的 `<uuid-v8>` 使用 128 位 UUID v8，自定义位布局�
 
 ### 4.1 位段定义
 
-- 前 48 位：Unix 毫秒时间戳
+- 前 44 位：Unix 毫秒时间戳
+- 接下来的 4 位：Hash Algorithm ID
 - 接下来的 4 位：Version，固定为 `0x8`
-- 接下来的 4 位：Algorithm ID
-- 接下来的 8 位：公钥哈希起始片段
+- 接下来的 12 位：公钥哈希起始片段
 - 接下来的 2 位：Variant，固定为 `0b10`
 - 最后的 62 位：公钥哈希后续片段
 
 换言之：
 
-- 时间戳占 48 位
-- 算法标识占 4 位
-- 公钥哈希总共占 70 位
+- 时间戳占 44 位
+- 哈希算法标识占 4 位
+- 除去 UUID 标准要求的 Version 与 Variant 位后，其余可用位全部用于承载公钥哈希
+- 公钥哈希总共占 74 位
 
 ## 4.2 大端序要求
 
-在处理整个 128 位 UUID 时，Contrix MUST 使用 **大端序** 进行位填充与比对。
+在处理整个 128 位 UUID 时，Contrix MUST 使用 **大端序** 进行位填充、解析与比对。
 
 这条规则是强制性的。  
 否则不同语言在把 128 位 UUID 与字节数组互转时，可能出现顺序不一致，导致 DID 生成或验证失败。
 
 具体要求：
 
-- 时间戳按 48 位大端序写入高位
-- Algorithm ID 与哈希位段也按从高位到低位的顺序连续填充
+- 时间戳按 44 位大端序写入最高位
+- Hash Algorithm ID 紧跟时间戳写入
+- 公钥哈希位段按从高位到低位顺序连续填充
 - Version 和 Variant 位必须被明确跳过，不能被哈希填充覆盖
 
 ## 4.3 位编号
@@ -132,24 +135,25 @@ Contrix 默认 DID 的 `<uuid-v8>` 使用 128 位 UUID v8，自定义位布局�
 
 位映射如下：
 
-- `bit 0 .. bit 47`：Unix 毫秒时间戳
+- `bit 0 .. bit 43`：Unix 毫秒时间戳
+- `bit 44 .. bit 47`：Hash Algorithm ID
 - `bit 48 .. bit 51`：Version = `1000`
-- `bit 52 .. bit 55`：Algorithm ID
-- `bit 56 .. bit 63`：公钥哈希 `hash[0..7]`
+- `bit 52 .. bit 63`：公钥哈希 `hash[0..11]`
 - `bit 64 .. bit 65`：Variant = `10`
-- `bit 66 .. bit 127`：公钥哈希 `hash[8..69]`
+- `bit 66 .. bit 127`：公钥哈希 `hash[12..73]`
 
-## 5. Algorithm ID 与哈希输入
+## 5. Hash Algorithm ID 与哈希输入
 
-## 5.1 初版 Algorithm ID 注册表
+## 5.1 初版 Hash Algorithm ID 注册表
 
 初版建议定义如下：
 
 - `0x0`：保留
-- `0x1`：Ed25519
-- `0x2`：secp256k1
-- `0x3`：P-256
-- `0x4 .. 0xE`：保留给后续规范
+- `0x1`：SHA-256
+- `0x2`：SHA-512/256
+- `0x3`：SHA3-256
+- `0x4`：BLAKE3-256
+- `0x5 .. 0xE`：保留给后续规范
 - `0xF`：实验/私有实现
 
 ## 5.2 身份锚定公钥
@@ -186,12 +190,13 @@ Contrix DID 里的哈希片段 MUST 来源于 **身份锚定公钥的 canonical 
 
 初版建议：
 
+- `Hash Algorithm ID = 0x1`
 - 使用 `SHA-256(anchor_key_bytes)`
-- 从结果中按位截取前 70 位
+- 从结果中按位截取前 74 位
 
 然后按大端序写入 UUID 的两个哈希位段：
 
-- 先写入 `bit 56 .. bit 63`
+- 先写入 `bit 52 .. bit 63`
 - 再跳过 Variant
 - 再写入 `bit 66 .. bit 127`
 
@@ -204,14 +209,14 @@ Contrix DID 里的哈希片段 MUST 来源于 **身份锚定公钥的 canonical 
 
 生成新的 `did:uuid` DID 时：
 
-- 时间戳 MUST 反映生成时的 Unix 毫秒时间
-- Algorithm ID MUST 与锚定公钥算法匹配
-- 70 位哈希片段 MUST 来自该锚定公钥
+- 时间戳 MUST 反映生成时的 Unix 毫秒时间，并被截断到 44 位
+- Hash Algorithm ID MUST 与实际采用的哈希函数匹配
+- 74 位哈希片段 MUST 来自该锚定公钥的 canonical 字节表示
 
 以下情况 MUST 被视为无效：
 
-- 只改变时间戳，不改变 Algorithm ID 与 70 位公钥哈希片段
-- Algorithm ID 与实际锚定公钥算法不一致
+- 只改变时间戳，不改变 Hash Algorithm ID 与 74 位公钥哈希片段
+- Hash Algorithm ID 与实际采用的哈希函数不一致
 - 使用小端方式填充导致位序错误
 
 ## 6. DID Document 模型
@@ -282,7 +287,7 @@ locked 状态下：
 当一个新 DID 文档声称 `supersedes = <old_did>` 时，以下条件 SHOULD 成立：
 
 1. 新 DID 的锚定公钥与旧 DID 不同
-2. 新 DID 的 70 位公钥哈希片段与旧 DID 不同
+2. 新 DID 的 74 位公钥哈希片段与旧 DID 不同
 3. 新 DID 的时间戳不早于旧 DID
 4. 旧 DID 文档最终应设置 `superseded_by = <new_did>`
 
@@ -531,8 +536,8 @@ GET /.well-known/contrix-identity.json
 1. actor 是合法 DID
 2. DID 文档可成功解析
 3. `did:uuid` 的 UUID v8 位布局合法
-4. Algorithm ID 与 `anchor_key` 算法一致
-5. 文档中的 `anchor_key` 重新哈希后，70 位片段与 DID 中的一致
+4. DID 中嵌入的 Hash Algorithm ID 是已知且受支持的
+5. 按该 Hash Algorithm ID 指定的哈希函数，对文档中的 `anchor_key` 重新哈希后，得到的前 74 位片段与 DID 中的一致
 6. 若文档有 `superseded_by`，则该文档已锁死，不允许再有新变化
 7. 若文档有 `supersedes`，则新 DID 不得只是旧 DID 的时间戳变化版本
 8. 若通过 device / agent / execution key 进行签名，则委托链完整
@@ -543,7 +548,7 @@ GET /.well-known/contrix-identity.json
 
 - 默认 DID 方法为 `did:uuid`
 - `did:uuid` 基于自定义 UUID v8
-- UUID 中包含 48 位毫秒时间戳、4 位 Algorithm ID、70 位锚定公钥哈希片段
+- UUID 中包含 44 位毫秒时间戳、4 位 Hash Algorithm ID、74 位锚定公钥哈希片段
 - 哈希填充与验证 MUST 使用大端序
 - 旧身份文档使用 `superseded_by`
 - 新身份文档使用 `supersedes`

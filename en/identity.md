@@ -88,11 +88,12 @@ A Contrix DID is not a random identifier.
 It MUST be jointly determined by:
 
 1. the generation timestamp
-2. a hash fragment of the identity anchor public key
+2. the hash algorithm identifier
+3. a hash fragment of the identity anchor public key
 
 This means:
 
-- you cannot manufacture a "new identity" by changing only the timestamp while keeping the same key hash fragment
+- you cannot manufacture a "new identity" by changing only the timestamp while keeping the same hash-algorithm identifier and key-hash fragment
 - if the identity anchor public key changes, the DID must also change
 - if only a certificate is reissued while the anchor public key stays the same, the DID MUST NOT change
 
@@ -102,30 +103,32 @@ The default Contrix DID suffix uses a 128-bit UUID v8 with the following custom 
 
 ### 4.1 Bit Segments
 
-- first 48 bits: Unix millisecond timestamp
+- first 44 bits: Unix millisecond timestamp
+- next 4 bits: Hash Algorithm ID
 - next 4 bits: Version, fixed to `0x8`
-- next 4 bits: Algorithm ID
-- next 8 bits: beginning of the public-key hash fragment
+- next 12 bits: beginning of the public-key hash fragment
 - next 2 bits: Variant, fixed to `0b10`
 - final 62 bits: continuation of the public-key hash fragment
 
 In other words:
 
-- timestamp uses 48 bits
-- algorithm identifier uses 4 bits
-- public-key hash uses 70 bits total
+- the timestamp uses 44 bits
+- the hash-algorithm identifier uses 4 bits
+- all remaining non-standard UUID bits are used for the public-key hash
+- the public-key hash uses 74 bits total
 
 ## 4.2 Endianness Requirement
 
-Contrix MUST use **big-endian** bit filling and comparison when handling the full 128-bit UUID value.
+Contrix MUST use **big-endian** bit filling, parsing, and comparison when handling the full 128-bit UUID value.
 
 This is mandatory.  
 Without this rule, different languages may serialize/parse the 128-bit value differently, which would break interoperability and verification.
 
 Concrete requirements:
 
-- the timestamp is written into the high 48 bits in big-endian order
-- Algorithm ID and hash bits are filled from high to low bit positions
+- the timestamp is written into the top 44 bits in big-endian order
+- the Hash Algorithm ID is written immediately after the timestamp
+- public-key hash bits are filled from high to low bit positions
 - Version and Variant bits must be explicitly skipped and must never be overwritten by hash filling
 
 ## 4.3 Bit Indexing
@@ -134,24 +137,25 @@ It is recommended to number the UUID bits from `bit 0 .. bit 127`, high to low.
 
 The mapping is:
 
-- `bit 0 .. bit 47`: Unix millisecond timestamp
+- `bit 0 .. bit 43`: Unix millisecond timestamp
+- `bit 44 .. bit 47`: Hash Algorithm ID
 - `bit 48 .. bit 51`: Version = `1000`
-- `bit 52 .. bit 55`: Algorithm ID
-- `bit 56 .. bit 63`: public-key hash `hash[0..7]`
+- `bit 52 .. bit 63`: public-key hash `hash[0..11]`
 - `bit 64 .. bit 65`: Variant = `10`
-- `bit 66 .. bit 127`: public-key hash `hash[8..69]`
+- `bit 66 .. bit 127`: public-key hash `hash[12..73]`
 
-## 5. Algorithm ID and Hash Input
+## 5. Hash Algorithm ID and Hash Input
 
-## 5.1 Initial Algorithm ID Registry
+## 5.1 Initial Hash Algorithm ID Registry
 
 The initial registry is:
 
 - `0x0`: reserved
-- `0x1`: Ed25519
-- `0x2`: secp256k1
-- `0x3`: P-256
-- `0x4 .. 0xE`: reserved for future specs
+- `0x1`: SHA-256
+- `0x2`: SHA-512/256
+- `0x3`: SHA3-256
+- `0x4`: BLAKE3-256
+- `0x5 .. 0xE`: reserved for future specs
 - `0xF`: experimental/private use
 
 ## 5.2 Identity Anchor Public Key
@@ -188,12 +192,13 @@ Suggested canonical encodings:
 
 The initial recommendation is:
 
+- `Hash Algorithm ID = 0x1`
 - use `SHA-256(anchor_key_bytes)`
-- take the first 70 bits of the digest
+- take the first 74 bits of the digest
 
 Then fill those bits in big-endian order into the UUID:
 
-- first `bit 56 .. bit 63`
+- first `bit 52 .. bit 63`
 - then skip Variant
 - then `bit 66 .. bit 127`
 
@@ -206,14 +211,14 @@ Implementations MUST avoid overwriting:
 
 When generating a new `did:uuid` DID:
 
-- the timestamp MUST reflect the Unix millisecond generation time
-- Algorithm ID MUST match the anchor-key algorithm
-- the 70-bit hash fragment MUST come from that anchor key
+- the timestamp MUST reflect the Unix millisecond generation time and be truncated to 44 bits
+- the Hash Algorithm ID MUST match the actual hash function in use
+- the 74-bit hash fragment MUST come from the anchor key's canonical byte representation
 
 The following MUST be rejected as invalid:
 
-- changing only the timestamp while keeping the same Algorithm ID and 70-bit key-hash fragment
-- using an Algorithm ID that does not match the actual anchor-key type
+- changing only the timestamp while keeping the same Hash Algorithm ID and 74-bit key-hash fragment
+- using a Hash Algorithm ID that does not match the actual hash function in use
 - using little-endian bit packing
 
 ## 6. DID Document Model
@@ -285,7 +290,7 @@ At the protocol level, the document is frozen.
 When a new DID document claims `supersedes = <old_did>`, the following SHOULD hold:
 
 1. the new DID uses a different anchor key
-2. the new DID therefore carries a different 70-bit key-hash fragment
+2. the new DID therefore carries a different 74-bit key-hash fragment
 3. the new DID timestamp is not earlier than the old one
 4. the old DID document should eventually set `superseded_by = <new_did>`
 
@@ -534,8 +539,8 @@ Any Contrix node accepting writes should validate at least:
 1. the actor is a valid DID
 2. the DID document resolves successfully
 3. the UUID v8 bit layout of `did:uuid` is valid
-4. the Algorithm ID matches the `anchor_key` algorithm
-5. re-hashing the document's `anchor_key` reproduces the 70-bit DID fragment
+4. the embedded Hash Algorithm ID is known and supported
+5. re-hashing the document's `anchor_key` with the hash function selected by that Hash Algorithm ID reproduces the leading 74-bit DID fragment
 6. if the document has `superseded_by`, it is locked and must not continue mutating
 7. if the document has `supersedes`, the new DID must not be a timestamp-only variation of the old DID
 8. if a device/agent/execution key is used, the delegation chain is complete
@@ -546,7 +551,7 @@ The current draft recommends fixing:
 
 - `did:uuid` as the default DID method
 - `did:uuid` based on a custom UUID v8
-- a UUID layout containing a 48-bit millisecond timestamp, 4-bit Algorithm ID, and 70-bit anchor-key hash fragment
+- a UUID layout containing a 44-bit millisecond timestamp, 4-bit Hash Algorithm ID, and 74-bit anchor-key hash fragment
 - big-endian hash filling and validation as mandatory
 - `superseded_by` on old identities
 - `supersedes` on new identities

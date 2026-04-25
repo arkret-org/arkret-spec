@@ -95,6 +95,7 @@ view 不承载底层对象的唯一真相状态。
 - `thread`
 - `activity`
 - `inbox`
+- `notifications`
 
 ### 4.3 审阅与 agent 视图
 
@@ -133,6 +134,16 @@ View 应通过结构化 query 表达对象范围。
   "kind": "topic",
   "anchor_ref": "cx:item:01JS0IT000000000000000000",
   "status": "open"
+}
+```
+
+### 5.4 通知查询示例
+
+```json
+{
+  "kind": "notification",
+  "delivery_state": "unread",
+  "actor": "did:web:alice.example.com"
 }
 ```
 
@@ -207,6 +218,7 @@ Thread/topic 视图的 canonical 输入应是：
 4. topic 能自然投影为 forum thread row
 5. memory 能自然投影为 review row 或 graph node
 6. run 能自然投影为 timeline row 或 activity block
+7. notification 能自然投影为 inbox row 或 badge source
 
 ## 9. Shared / Private / System
 
@@ -227,6 +239,8 @@ Thread/topic 视图的 canonical 输入应是：
 - Candidate Memories
 - Failed Agent Runs
 - Mentioned Messages
+- Notifications
+- Unread Topics
 
 ## 10. 视图权限
 
@@ -250,7 +264,7 @@ Thread/topic 视图的 canonical 输入应是：
 
 - View 是独立对象
 - Query 先采用结构化 JSON
-- 标准化 `kanban/chat/forum/thread/inbox` 等 view_kind
+- 标准化 `kanban/chat/forum/thread/inbox/notifications` 等 view_kind
 - 看板与聊天是标准投影，不是协议根
 - Shared / private / system 并存
 

@@ -55,6 +55,10 @@ Examples:
 - `cx:view:<ulid>`
 - `cx:run:<ulid>`
 - `cx:mem:<ulid>`
+- `cx:schema:<ulid>`
+- `cx:policy:<ulid>`
+- `cx:invite:<ulid>`
+- `cx:read:<ulid>`
 
 ## 4. Shared Object Metadata
 
@@ -92,6 +96,10 @@ The initial core object set is:
 - view
 - run
 - memory
+- schema
+- policy
+- invite
+- read_marker
 
 Where:
 
@@ -101,6 +109,10 @@ Where:
 - `view` is a projection
 - `run` is an execution trace
 - `memory` is a long-term knowledge object
+- `schema` defines field and object-type constraints
+- `policy` defines retention, visibility, encryption, and moderation defaults
+- `invite` is the explicit workspace-join bootstrap object
+- `read_marker` is actor-private but syncable read state
 
 ## 6. Workspace
 
@@ -452,6 +464,34 @@ Suggested schema object:
 
 Referenced by a workspace or board.
 
+Example:
+
+```json
+{
+  "id": "cx:schema:01JS0SC000000000000000000",
+  "kind": "schema",
+  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "name": "default-item-schema",
+  "applies_to": [
+    "item"
+  ],
+  "version": 3,
+  "fields": [
+    {
+      "name": "priority",
+      "type": "enum",
+      "required": false,
+      "options": ["low", "medium", "high"]
+    },
+    {
+      "name": "due_at",
+      "type": "datetime",
+      "required": false
+    }
+  ]
+}
+```
+
 Suggested field types:
 
 - `text`
@@ -465,7 +505,126 @@ Suggested field types:
 - `object_ref`
 - `url`
 
-## 20. Derived Data
+Schemas SHOULD explicitly declare:
+
+- `applies_to`
+- `version`
+- `fields`
+- `migration_notes`
+
+That keeps reducers, views, and import/export flows interpretable across schema upgrades.
+
+## 20. Policy
+
+The protocol already references `policy`, so it must be a formal object rather than an implementation-private assumption.
+
+Example:
+
+```json
+{
+  "id": "cx:policy:01JS0PL000000000000000000",
+  "kind": "policy",
+  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "name": "workspace-default-policy",
+  "retention": {
+    "messages_days": 3650,
+    "candidate_memories_days": 90
+  },
+  "default_visibility": "workspace",
+  "redaction_mode": "tombstone",
+  "encryption_profile": "workspace-envelope-v1",
+  "allow_external_relays": true
+}
+```
+
+`policy` SHOULD cover at least:
+
+- retention
+- default visibility
+- redaction display
+- encryption profile
+- relay / blob / export defaults
+
+## 21. Invite
+
+In a decentralized collaboration protocol, "how another principal joins a workspace" cannot be left to product-private invite links.
+
+Contrix should support an explicit `invite` object:
+
+```json
+{
+  "id": "cx:invite:01JS0IV000000000000000000",
+  "kind": "invite",
+  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "issuer": "did:web:acme.example.com",
+  "subject_did": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject_handle": "alice.example.com",
+  "proposed_role": "contributor",
+  "proposed_grant_refs": [
+    "cx:grant:01JS0GR000000000000000000"
+  ],
+  "expires_at": "2026-05-01T00:00:00Z",
+  "status": "pending"
+}
+```
+
+The semantics of `invite` are:
+
+- it is a join-bootstrap object
+- it is not itself a capability grant
+- after the invite is accepted, the related grants enter the effective set
+
+## 22. Read Marker
+
+A human-friendly collaboration system needs durable read state; otherwise inbox, thread, and chat views cannot converge reliably.
+
+The draft therefore recommends actor-private `read_marker` objects:
+
+```json
+{
+  "id": "cx:read:01JS0RD000000000000000000",
+  "kind": "read_marker",
+  "workspace_id": "cx:ws:01JS0WS000000000000000000",
+  "owner": "did:web:alice.example.com",
+  "scope_kind": "channel",
+  "scope_ref": "cx:channel:01JS1000000000000000000000",
+  "last_seen_message_ref": "cx:message:01JS1000000000000000000002",
+  "last_seen_hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
+  "updated_at": "2026-04-22T08:40:00Z"
+}
+```
+
+`read_marker` SHOULD:
+
+- be visible only to its owner by default
+- support scopes such as channel / topic / inbox / view
+- sync as durable state across multiple devices
+
+## 23. Notification
+
+Notifications are required for human-facing UX, but they should not become canonical truth objects.
+
+The initial recommendation is therefore:
+
+- `notification` is a derived inbox object
+- it is derived from mentions, assignments, invites, run failures, memory review events, and similar signals
+- it may be materialized by an index or relay, while canonical truth remains the underlying source object and op
+
+Example:
+
+```json
+{
+  "id": "cx:notif:01JS0NF000000000000000000",
+  "actor": "did:web:alice.example.com",
+  "notification_kind": "mention",
+  "source_ref": "cx:message:01JS1000000000000000000002",
+  "target_ref": "cx:topic:01JS1000000000000000000001",
+  "delivery_state": "unread",
+  "created_at": "2026-04-22T08:31:05Z"
+}
+```
+
+## 24. Derived Data
 
 The following should not be treated as canonical truth objects:
 
@@ -478,7 +637,7 @@ The following should not be treated as canonical truth objects:
 
 These belong to derived or ephemeral layers.
 
-## 21. Initial Design Decisions
+## 25. Initial Design Decisions
 
 The current draft recommends fixing:
 
@@ -489,12 +648,19 @@ The current draft recommends fixing:
 - `view` is a projection definition
 - `run` is an execution-trace object
 - `memory` is a long-term knowledge object
+- `schema/policy` are formal objects
+- `invite` is explicit join bootstrap
+- `read_marker` is durable actor-private state
+- `notification` is derived, not canonical truth
 
-## 22. Further Work
+## 26. Further Work
 
 The next round still needs:
 
 - a formal schema-object format
+- a formal schema for policy objects
+- an invite / join / leave state machine
+- a formal query surface for read markers and notifications
 - a standard checklist structure
 - a rich-text block structure for messages
 - history visibility rules for topics/channels

@@ -119,10 +119,16 @@ Contrix New 采用 repo-first 模型：
 
 ## 7. 操作类型
 
-### 7.1 Workspace / Board / Collection / View
+### 7.1 Workspace / Schema / Policy
 
 - `cx.workspace.create`
 - `cx.workspace.update`
+- `cx.schema.define`
+- `cx.schema.update`
+- `cx.policy.set`
+
+### 7.2 Board / Collection / View
+
 - `cx.board.create`
 - `cx.board.update`
 - `cx.collection.create`
@@ -131,7 +137,7 @@ Contrix New 采用 repo-first 模型：
 - `cx.view.create`
 - `cx.view.update`
 
-### 7.2 Item / Comment / Relation / Attachment
+### 7.3 Item / Comment / Relation / Attachment
 
 - `cx.item.create`
 - `cx.item.update`
@@ -145,7 +151,7 @@ Contrix New 采用 repo-first 模型：
 - `cx.attachment.add`
 - `cx.attachment.remove`
 
-### 7.3 Channel / Topic / Message
+### 7.4 Channel / Topic / Message
 
 - `cx.channel.create`
 - `cx.channel.update`
@@ -160,7 +166,7 @@ Contrix New 采用 repo-first 模型：
 - `cx.message.react`
 - `cx.message.unreact`
 
-### 7.4 Run / Memory
+### 7.5 Run / Memory
 
 - `cx.run.create`
 - `cx.run.update`
@@ -172,13 +178,20 @@ Contrix New 采用 repo-first 模型：
 - `cx.memory.invalidate`
 - `cx.memory.supersede`
 
-### 7.5 Capability
+### 7.6 Invite / Read State
+
+- `cx.invite.create`
+- `cx.invite.cancel`
+- `cx.invite.accept`
+- `cx.read.mark`
+
+### 7.7 Capability
 
 - `cx.capability.grant`
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-### 7.6 私有与临时状态
+### 7.8 私有与临时状态
 
 以下状态不建议作为 durable shared op：
 
@@ -238,6 +251,18 @@ Snapshot 是加速层，不是真相源。
 }
 ```
 
+实现 SHOULD 让 snapshot manifest 额外包含：
+
+- `schema_profile_refs`
+- `chunk_digests`
+- `generator_signature`
+
+这样客户端在采用 snapshot 前，就能验证：
+
+- 它覆盖了哪个 frontier
+- 它使用了哪个 reducer 与 schema profile
+- chunk 内容是否被篡改
+
 ## 11. 同步面
 
 ### 11.1 Repo Sync
@@ -255,6 +280,14 @@ Snapshot 是加速层，不是真相源。
 ### 11.4 Query Surface
 
 用于 view、搜索、memory 检索与 thread 查询。
+
+### 11.5 Authz / Invite Surface
+
+用于：
+
+- 拉取 invite
+- 拉取有效 grant 集
+- 判断某个 op 在当前 frontier 下是否可写
 
 ## 12. Board / Chat / Topic 同步 Profile
 
@@ -289,11 +322,14 @@ Snapshot 是加速层，不是真相源。
 推荐流程：
 
 1. 获取 workspace metadata
-2. 拉取最近 snapshot manifest
-3. 下载 snapshot chunk
-4. 从 snapshot frontier 之后拉取增量 op
-5. 本地执行 reducer
-6. 进入 cursor 增量订阅
+2. 获取与自己相关的 invite / grant 视图
+3. 拉取最近 snapshot manifest
+4. 下载 snapshot chunk
+5. 从 snapshot frontier 之后拉取增量 op
+6. 本地执行 reducer
+7. 进入 cursor 增量订阅
+
+若客户端没有现成 DID，但只有 handle，则在步骤 1 之前 MUST 先完成 handle -> DID 解析与双向校验。
 
 ## 14. 选择性同步
 
@@ -311,7 +347,24 @@ Snapshot 是加速层，不是真相源。
 - watched runs
 - changed since cursor
 
-## 15. 冲突与收敛
+## 15. 幂等、去重与重放
+
+在去中心化同步里，重复提交与重复投递是常态，不是异常。
+
+因此：
+
+- `commit_id` 与 `op_id` MUST 全局稳定
+- 同一个 `commit_id` / `op_id` 的完全相同内容 MAY 被重复接收
+- 若同一个 ID 对应不同内容，节点 MUST 拒绝并记为冲突
+- relay 与 index SHOULD 以 `op_id` 去重，而不是按到达次数计数
+
+这能避免：
+
+- 客户端重试导致重复写入
+- 多 relay 回流造成重复 fanout
+- index 因重复投递而产生错误统计
+
+## 16. 冲突与收敛
 
 ### 15.1 不追求全局共识
 
@@ -334,7 +387,7 @@ Contrix 初版不引入全网共识链。
 3. `actor_seq`
 4. `op_id`
 
-## 16. 字段级 merge 与对象级收敛
+## 17. 字段级 merge 与对象级收敛
 
 ### 16.1 标量字段
 
@@ -380,7 +433,7 @@ Contrix 初版不引入全网共识链。
 
 reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
-## 17. 排序模型
+## 18. 排序模型
 
 拖拽排序建议采用：
 
@@ -393,7 +446,7 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
 - `hlc + actor + actor_seq + op_id`
 
-## 18. Tombstone、Redaction 与恢复
+## 19. Tombstone、Redaction 与恢复
 
 ### 18.1 对象删除
 
@@ -413,7 +466,32 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
 接收方 SHOULD 保留 dangling redaction，并在目标消息到达后应用。
 
-## 19. Blob 同步
+## 20. 授权时序收敛
+
+授权不能只看墙上时钟，否则 revoke、迟到 op、离线写入都会失真。
+
+初版建议：
+
+- grant / delegate / revoke 本身也是 op
+- 某个业务 op 是否有效，由同一 reducer 顺序下的有效授权集合决定
+- 若某个写入在 reducer 顺序上已经晚于相关 revoke，则 MUST 视为无效
+- 若顺序无法确定，实现 SHOULD fail closed
+
+这意味着授权语义也必须服从同一套因果与排序规则，而不是旁路逻辑。
+
+## 21. 可见性与密文负载
+
+ACL 不等于密文保护，去中心化 relay 也不应被迫看懂所有正文。
+
+因此初版建议区分：
+
+- 可路由元数据：`workspace_id`、`target_ref`、`type`、`causal`
+- 可选密文字段：正文、附件内容、敏感 memory body
+
+实现 MAY 使用 `policy.encryption_profile` 指定的 envelope 格式对内容加密。  
+即使 relay 或 index 无法解密，也 SHOULD 能转发、去重与保留因果结构。
+
+## 22. Blob 同步
 
 Blob 不应强制与元数据同流同步。
 
@@ -423,7 +501,7 @@ Blob 不应强制与元数据同流同步。
 - 内容按需加载
 - 通过 hash 校验完整性
 
-## 20. 本地存储建议
+## 23. 本地存储建议
 
 客户端 SHOULD 维护三层本地数据：
 
@@ -431,22 +509,28 @@ Blob 不应强制与元数据同流同步。
 - reduced snapshots
 - materialized indexes
 
-## 21. 初版设计决定
+## 24. 初版设计决定
 
 当前草案建议固定：
 
 - repo commit 是 actor 发布单元
 - op 是共享状态归约单元
 - board/chat/topic 共享同一同步协议
+- invite / grant / snapshot 组成 workspace bootstrap 主流程
+- commit/op 重试必须幂等
+- 授权有效性由同一 reducer 顺序收敛
+- 密文负载可以被不解密的 relay / index 转发
 - 撤回采用 redaction/tombstone 语义
 - 冲突通过固定 reducer 规则收敛
 
-## 22. 后续待细化
+## 25. 后续待细化
 
 下一轮仍需补充：
 
 - cursor 编码
 - HLC 文本格式
 - snapshot chunk schema
+- snapshot signature 与 chunk digest 的正式 schema
+- encrypted payload envelope schema
 - read marker 的标准同步面
 - relay / index 线级接口

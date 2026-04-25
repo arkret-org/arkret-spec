@@ -16,6 +16,12 @@
   Bring message, topic, channel, recall, and moderation actions into the capability model.
 - [x] Rewrite `views.md`  
   Ensure the protocol naturally projects into kanban/chat/forum/thread/inbox and similar interfaces.
+- [x] Add `service-surface.md`  
+  Define the minimum repo / relay / index / blob / authz service surface and bootstrap flow.
+- [x] Fill in `schema / policy / invite / read_marker / notification`  
+  Write previously referenced-but-undefined objects back into the protocol.
+- [x] Fill in sync and authorization details  
+  Define idempotent submission, authorization-time convergence, encrypted forwarding, and invite/read-state permissions.
 
 ## Current-round Acceptance Criteria
 
@@ -25,12 +31,16 @@
 - [x] `@mention` is defined as structured DID/object references
 - [x] Recall is defined as redaction/tombstone rather than implicit physical deletion
 - [x] Board/chat/topic sync and conflict rules are written back into the spec
+- [x] The minimum service surface and workspace bootstrap are written into the spec
+- [x] `schema/policy/invite/read_marker/notification` are formally defined
+- [x] Idempotent submission and authorization-time rules are written into the spec
 
 ## Next-round Backlog
 
-- [ ] Define formal HTTP or XRPC interfaces for repo / relay / index / blob
 - [ ] Define a formal query JSON schema
 - [ ] Define a formal grant-constraint schema
 - [ ] Define cursor / HLC / rank / commit-hash encodings
 - [ ] Define snapshot manifest and chunk schemas
-- [ ] Define formal schemas for read markers / inbox / notifications
+- [ ] Define formal request/response schemas for each service endpoint
+- [ ] Define snapshot-signature / chunk-digest / encrypted-envelope schemas
+- [ ] Define formal schemas and query surfaces for read markers / inbox / notifications

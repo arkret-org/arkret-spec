@@ -49,7 +49,7 @@ The following are explicitly out of scope for the first version:
 
 ## 4. Spec Map
 
-This directory is organized into nine main documents:
+This directory is organized into ten main documents:
 
 1. [design-questions.md](./design-questions.md)  
    Lists the protocol questions first, then records the chosen decisions.
@@ -69,6 +69,8 @@ This directory is organized into nine main documents:
    Defines boards, lists, tables, chat, thread, forum, graph, and review-oriented projections.
 9. [agent-memory.md](./agent-memory.md)  
    Defines how Contrix can act as long-term memory and collaboration substrate for AI agents.
+10. [service-surface.md](./service-surface.md)  
+   Defines the minimum repo / relay / index / blob / authz service surface and workspace bootstrap flow.
 
 The current task list and next backlog live in [_tasks.md](./_tasks.md).
 
@@ -79,7 +81,7 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - `principal_id = DID URI`
 - handles are strictly separated from DIDs
 - the default DID method is `did:uuid`
-- `did:uuid` is based on a custom UUID v8: 48-bit millisecond timestamp + 4-bit algorithm id + 70-bit anchor-key hash fragment
+- `did:uuid` is based on a custom UUID v8: 44-bit millisecond timestamp + 4-bit hash algorithm id + 74-bit anchor-key hash fragment
 - DID hash filling and validation MUST use big-endian ordering
 - handle resolution follows an atprotocol-inspired bidirectional model, adapted for collaboration and multi-service discovery
 - version one SHOULD support `did:web` for org/service interoperability
@@ -94,6 +96,8 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - `channel/topic/message` are conversation objects, not the protocol root
 - `memory` is a persistent knowledge object, not an embedding chunk
 - `run` is an execution-trace object for agents or automations
+- `schema/policy` are formal objects rather than unresolved references
+- `invite/read_marker/notification` complete the join/read/attention path for human collaboration
 
 ### 5.3 Boards and Conversation
 
@@ -109,8 +113,12 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - operation logs are the audit truth source
 - relays are the distribution/subscription layer, not the sole truth source
 - indexes/appviews are the query/materialization layer, not the sole truth source
+- the service layer requires a minimum interoperable repo / relay / index / blob / authz surface
 - board/chat/topic are sync profiles, not separate protocols
+- commit/op submission must be idempotent by design
+- authorization validity must converge under the same reducer ordering
 - recall converges through redaction semantics, not guaranteed global erasure
+- relays / indexes may forward encrypted payloads without decrypting them
 - when the identity anchor key changes, the DID must change too, and the old/new identities are linked through `supersedes/superseded_by`
 
 ### 5.5 Authorization
@@ -158,19 +166,22 @@ This round moves the protocol from a directional sketch to a "question inventory
 - edit / recall / redaction semantics
 - board/chat/topic sync profiles
 - conflict-resolution rules per object type
+- a minimum service surface and workspace bootstrap
+- missing objects such as `schema/policy/invite/read_marker/notification`
+- idempotent submission, authorization timing, and encrypted-payload forwarding semantics
 
 ## 9. Next Priorities
 
 Once this framework stabilizes, the next priorities should be:
 
 1. Wire protocols  
-   HTTP or XRPC-style interfaces for repo, relay, index, and blob services.
+   Formal request/response schemas for each service endpoint.
 2. Formal schemas  
    Query JSON schema, grant constraint schema, and snapshot chunk schema.
 3. Encodings  
    Cursor, HLC, rank, commit hash, and signature envelope encodings.
 4. Interoperability  
-   Minimal compatibility profiles, test vectors, and conformance guidance.
+   Minimal compatibility profiles, test vectors, conformance guidance, and encrypted envelopes.
 
 ## 10. One-sentence Summary
 
