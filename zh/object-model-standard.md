@@ -11,6 +11,15 @@
 
 `board` 表示可视化工作台。
 
+看板列有两种标准来源：
+
+- 字段分组列：列来自 task 的 `fields.status` 等字段枚举值。
+- Collection 列：列来自 `entity_type="collection"` 的 Entity，并通过 `contains` Relation 挂到 board。
+
+看板不会自动显示 Space 中所有对象。只有被 Kanban View 的 `query` 选中、通过权限裁剪、并符合该 View card 规则的 Entity 才显示为卡片。其他 Entity / Relation / Event 仍可作为底层数据、关系输入或审计输入存在。
+
+具体投影规则见 `views.md` 的 Kanban 章节。
+
 常见关系：
 
 - `contains` -> `task`

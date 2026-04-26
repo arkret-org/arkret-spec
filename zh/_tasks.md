@@ -139,3 +139,12 @@
 - [x] 增加 `data-structures.md`，定义 Space、Actor Profile、Entity、Relation、Event、View、Policy、Capability、Invite、Read Marker、Notification、Commit、Operation、Blob、Encrypted Payload、Client Sync Response 的字段级结构
 - [x] 为核心字段补充必填性、JSON 类型、枚举、条件必填、ID/hash/timestamp/cursor 约束和安全说明
 - [x] 更新 `schema-registry.md`、`object-model-core.md`、`object-model-standard.md`、`conformance-profiles.md`、`spec-map.md` 与 README，使字段级结构成为后续 JSON Schema 生成依据
+
+## Kanban 投影规则
+
+- [x] 在 `views.md` 补齐 Kanban UI 到 canonical 数据的映射：board、view、column、card、containment、rank、visible fields
+- [x] 定义字段分组列模型：列来自 `fields.status` 等字段枚举，拖拽生成 `cx.entity.update`
+- [x] 定义 Collection 列模型：列是 `collection` Entity，卡片位置来自 `contains` Relation，拖拽生成 `cx.relation.move`
+- [x] 在 `data-structures.md` 增加 `KanbanConfig` 字段定义
+- [x] 更新 `query-schema.md`，补齐 Relation Query 的 `source_*` / `target_*` 字段以支持 board/column/card 查询
+- [x] 明确 Kanban View 不显示 Space 全量数据，只显示 `View.query` + 权限裁剪 + `column_model` 后符合 card 规则的对象

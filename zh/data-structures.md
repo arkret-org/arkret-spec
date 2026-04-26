@@ -204,9 +204,32 @@ Schema id: `cx.schema.view.v1`
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
+| `kanban` | no | `KanbanConfig` | `view_type="kanban"` 时 SHOULD 设置。 | 看板投影配置。 |
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+`KanbanConfig` 字段：
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `column_model` | yes | `enum(field_value, collection)` |  | 列来源模型。 |
+| `group_by` | conditional | `string` | `field_value` 模型必填，dot path。 | 分组字段，例如 `fields.status`。 |
+| `columns` | conditional | `array<object>` | `field_value` 模型 SHOULD 设置。 | 字段值列定义。 |
+| `board_entity_id` | conditional | `id:entity` | `collection` 模型必填。 | 看板 Entity。 |
+| `column_relation_type` | no | `string` | 默认 `contains`。 | board 到 column 的关系类型。 |
+| `card_relation_type` | no | `string` | 默认 `contains` 或 `belongs_to`。 | column/board 到 card 的关系类型。 |
+| `card_order_by` | yes | `array<SortSpec>` | SHOULD 使用 `fields.rank` 或 Relation `fields.rank`。 | 卡片排序。 |
+| `uncategorized_policy` | no | `enum(show, hide, reject)` | 默认 `show`。 | 未分类卡片处理。 |
+
+`columns` item 字段：
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `key` | yes | `string` | 必须匹配 `group_by` 字段值。 | 列 key。 |
+| `title` | yes | `string` | 1..128 chars。 | 列标题。 |
+| `rank` | no | `string` | Fractional rank。 | 列顺序。 |
+| `wip_limit` | no | `integer` | >= 0。 | WIP 限制。 |
 
 ## 11. Policy
 

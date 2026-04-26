@@ -295,6 +295,231 @@ Kanban 视图的 canonical 输入应是：
 
 而不是某种 UI 私有列数组。
 
+#### 7.1.1 看板投影模型
+
+看板 UI 中的元素 MUST 映射到协议对象，而不是只存在于客户端本地状态：
+
+| UI 概念 | Canonical 数据 | 说明 |
+| --- | --- | --- |
+| 看板 | `Entity{entity_type="board"}` | 看板本身是一个 Entity，可被引用、授权、讨论和审计。 |
+| 视图配置 | `View{view_type="kanban"}` | 定义查询范围、列来源、排序和展示字段。 |
+| 列 | `fields.<group_by>` 的枚举值，或 `Entity{entity_type="collection"}` | 简单工作流用字段分组；复杂工作流用 collection 实体。 |
+| 卡片 | `Entity{entity_type="task"}` 或 `issue` / 自定义工作对象 | 卡片不是单独 UI 数据，而是业务 Entity。 |
+| 卡片属于看板 | `Relation{relation_type="contains"}` 或 `belongs_to` | 表示 board/collection 与 task 的包含关系。 |
+| 卡片列位置 | `fields.status`，或 task 到 collection 的 Relation | 取决于列模型。 |
+| 列内顺序 | `fields.rank` 或 Relation `fields.rank` | 推荐 Fractional Indexing string。 |
+| 卡片展示字段 | View `visible_fields` | 只决定显示，不提升权限。 |
+
+Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以下顺序确定可见内容：
+
+1. 先执行 `View.query`，得到该 View 的候选对象集合。
+2. 再按 actor 的 Space membership、capability、history visibility、field authorization 裁剪不可见对象和字段。
+3. 再按 `kanban.column_model` 计算列和卡片位置。
+4. 最后按 `visible_fields` 与客户端展示规则渲染卡片。
+
+因此，Space 中的其他数据仍然是协议数据，但不一定属于当前看板：
+
+- 不满足 `View.query` 的 Entity MUST NOT 出现在该看板中。
+- 满足查询但类型不是 View 允许的 card type 的对象 SHOULD 作为投影输入处理，不直接显示为卡片。
+- Relation、Event、Capability、Policy、Audit 等对象通常作为投影、授权或审计输入，不作为普通 Kanban 卡片显示。
+- `message`、`topic`、`document`、`run`、`memory` 等 Entity 只有在 View 明确把它们列入 `query.entity_types` 并定义 card 显示规则时，才 MAY 作为卡片显示。
+- 无权读取的对象或字段 MUST 被裁剪；实现 MUST NOT 用空列、计数或错误信息泄露不可见对象是否存在。
+
+#### 7.1.2 字段分组列模型
+
+简单看板 SHOULD 使用字段分组列模型。此时列不是 durable Entity，而是某个字段的合法取值。
+
+示例 Board Entity：
+
+```json
+{
+  "id": "cx:entity:01board",
+  "type": "entity",
+  "space_id": "cx:space:01space",
+  "entity_type": "board",
+  "title": "Product Launch",
+  "fields": {
+    "workflow_field": "fields.status",
+    "workflow_values": ["todo", "in_progress", "review", "done"]
+  }
+}
+```
+
+示例 Kanban View：
+
+```json
+{
+  "id": "cx:view:01view",
+  "type": "view",
+  "space_id": "cx:space:01space",
+  "view_type": "kanban",
+  "title": "Launch Flow",
+  "query": {
+    "space_ids": ["cx:space:01space"],
+    "entity_types": ["task"],
+    "filters": [
+      { "field": "fields.archived", "op": "neq", "value": true }
+    ],
+    "relation": {
+      "relation_type": "belongs_to",
+      "direction": "out",
+      "target_entity_id": "cx:entity:01board"
+    },
+    "sort": [
+      { "field": "fields.rank", "direction": "asc", "nulls": "last" }
+    ]
+  },
+  "kanban": {
+    "column_model": "field_value",
+    "group_by": "fields.status",
+    "columns": [
+      { "key": "todo", "title": "Todo" },
+      { "key": "in_progress", "title": "In Progress" },
+      { "key": "review", "title": "Review" },
+      { "key": "done", "title": "Done" }
+    ],
+    "card_order_by": [
+      { "field": "fields.rank", "direction": "asc", "nulls": "last" }
+    ]
+  },
+  "visible_fields": [
+    "title",
+    "fields.priority",
+    "fields.due_at",
+    "fields.labels"
+  ]
+}
+```
+
+示例 Task Entity：
+
+```json
+{
+  "id": "cx:entity:01task",
+  "type": "entity",
+  "space_id": "cx:space:01space",
+  "entity_type": "task",
+  "title": "Finalize release notes",
+  "fields": {
+    "status": "review",
+    "rank": "mV",
+    "priority": "high"
+  }
+}
+```
+
+字段分组列模型的投影规则：
+
+1. 先执行 `View.query` 得到候选卡片集合。
+2. 对每个卡片读取 `group_by` 指向的字段，例如 `fields.status`。
+3. 字段值匹配 `kanban.columns[*].key` 的卡片进入对应列。
+4. 字段缺失或值未知时，客户端 SHOULD 放入系统列 `__uncategorized`，或按 View policy 隐藏。
+5. 列内按 `card_order_by` 排序；若排序字段缺失，使用 `nulls` 规则和 timeline tie breaker。
+
+在该模型中，把卡片从 `todo` 拖到 `review` MUST 产生对 task 的更新事件，例如：
+
+```json
+{
+  "type": "cx.entity.update",
+  "content": {
+    "entity_id": "cx:entity:01task",
+    "patch": {
+      "fields.status": "review",
+      "fields.rank": "mV"
+    }
+  }
+}
+```
+
+#### 7.1.3 Collection 列模型
+
+复杂看板 SHOULD 使用 Collection 列模型。此时每一列都是 `Entity{entity_type="collection"}`，适合需要列级权限、列 WIP 限制、列说明、列归档、跨看板复用或列讨论的场景。
+
+示例列 Entity：
+
+```json
+{
+  "id": "cx:entity:01col_review",
+  "type": "entity",
+  "space_id": "cx:space:01space",
+  "entity_type": "collection",
+  "title": "Review",
+  "fields": {
+    "collection_kind": "kanban_column",
+    "wip_limit": 5,
+    "rank": "h0"
+  }
+}
+```
+
+Board 包含列：
+
+```json
+{
+  "id": "cx:relation:01board_col",
+  "type": "relation",
+  "space_id": "cx:space:01space",
+  "relation_type": "contains",
+  "from_entity_id": "cx:entity:01board",
+  "to_entity_id": "cx:entity:01col_review",
+  "fields": {
+    "rank": "h0"
+  }
+}
+```
+
+列包含卡片：
+
+```json
+{
+  "id": "cx:relation:01col_task",
+  "type": "relation",
+  "space_id": "cx:space:01space",
+  "relation_type": "contains",
+  "from_entity_id": "cx:entity:01col_review",
+  "to_entity_id": "cx:entity:01task",
+  "fields": {
+    "rank": "mV"
+  }
+}
+```
+
+Collection 列模型的投影规则：
+
+1. 从 board 出发查询 `contains` 到 `collection` 的 Relation，得到列集合。
+2. 列按 board->collection Relation 的 `fields.rank` 排序；缺失时按 collection `fields.rank` 和 ID tie breaker。
+3. 对每个 collection 查询 `contains` 到 task/issue 的 Relation，得到该列卡片。
+4. 卡片按 collection->card Relation 的 `fields.rank` 排序。
+5. 同一张卡片若被多个 active column 包含，reducer MUST 按 Space version 的冲突规则保留一个有效位置，或将其标记为 conflict 交给客户端解决。
+
+在该模型中，把卡片从列 A 拖到列 B SHOULD 产生 relation move 语义，而不是只改 `fields.status`：
+
+```json
+{
+  "type": "cx.relation.move",
+  "content": {
+    "entity_id": "cx:entity:01task",
+    "from_container_id": "cx:entity:01col_todo",
+    "to_container_id": "cx:entity:01col_review",
+    "rank": "mV"
+  }
+}
+```
+
+`cx.relation.move` 的 reducer 语义等价于：删除旧 active containment edge，并创建或更新新 containment edge。实现 MUST 保持该操作幂等。
+
+#### 7.1.4 两种列模型的选择
+
+| 场景 | 推荐模型 | 原因 |
+| --- | --- | --- |
+| 普通任务状态流转 | 字段分组列模型 | 数据更简单，跨 list/table/calendar 投影自然。 |
+| 需要列级权限或 WIP limit | Collection 列模型 | 列本身需要成为可授权对象。 |
+| 一张卡片可能进入多个分组视角 | 字段分组列模型 + 多 View | 避免重复 containment。 |
+| 列有讨论、归档、负责人、自动化规则 | Collection 列模型 | 列需要 Entity 能力。 |
+| 从 Trello/Jira 等桥接导入 | Collection 列模型 MAY 更合适 | 外部列通常有自己的 ID 和配置。 |
+
+两种模型 MAY 共存，但同一个 Kanban View MUST 明确 `kanban.column_model`。客户端 MUST NOT 同时用 `fields.status` 和 collection containment 推导同一张卡片的主列，除非 View 显式声明冲突解决规则。
+
 ### 7.2 Chat
 
 Chat 视图的 canonical 输入应是：

@@ -97,6 +97,20 @@
 - `in`: 指向当前 Entity。
 - `both`: 双向查询。
 
+Relation Query 字段：
+
+- `relation_type`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`。
+- `direction`: REQUIRED，`out` / `in` / `both`。
+- `source_entity_id`: OPTIONAL，限制 relation 起点 Entity。
+- `source_actor_id`: OPTIONAL，限制 relation 起点 Actor。
+- `source_space_id`: OPTIONAL，限制 relation 起点 Space。
+- `target_entity_id`: OPTIONAL，限制 relation 终点 Entity。
+- `target_actor_id`: OPTIONAL，限制 relation 终点 Actor。
+- `target_space_id`: OPTIONAL，限制 relation 终点 Space。
+- `depth`: OPTIONAL，关系展开深度；跨 Space 规则见 `views.md` Lazy Link。
+
+`source_*` 与 `target_*` 每侧最多指定一个。Index MUST reject 含糊或互相矛盾的 Relation Query。
+
 ## 6. Sort
 
 ```json
