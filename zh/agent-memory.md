@@ -123,16 +123,20 @@ Contrix 建议把 agent 记忆拆成四层。
 - 向量索引可以存在
 - 但只能是 `memory` 的派生检索层
 
-## 5. Memory 生命周期
+## 5. Memory 生命周期与后置审核队列
+
+如果强制要求所有 Agent 提取的 Memory 都必须由人类手动确认，系统极易陷入扩展性灾难（审批积压或全量盲批）。因此，协议采用**基于置信度的混合流转策略**与**后置审核队列 (After-Commit Audit Queue)**。
 
 建议的标准流程如下：
 
 1. agent 或 human 产生 run / comment / item 更新
-2. 某个 agent 或 rule engine 从事件中提取候选知识
-3. 生成 `memory(status=candidate)`
-4. 人类或高权限 agent 进行确认
-5. 变为 `memory(status=confirmed)`
-6. 如事实变化，再通过 `invalidate` 或 `supersede` 更新
+2. 某个 agent 或 rule engine 从事件中提取候选知识，评估其置信度 (Confidence)，并生成初始 Memory
+3. 节点基于 Policy 评估该 Memory 的流转：
+   - 若置信度低于特定阈值或属于高风险知识域，进入 `memory(status=candidate)`，阻塞等待显式确认。
+   - 若置信度高且提取自受信任链路，自动流转为 `memory(status=confirmed)`，立即在系统中生效并可被检索。
+4. **后置审核**：自动生效的 `confirmed` Memory 会被投递到人类管理者的“审阅队列 (Audit Queue / Review View)”。人类可以如同查阅“未读通知”般进行流览。
+5. 若人类在审阅中发现知识偏误，可通过发出 `invalidate` 或 `supersede` 操作直接予以否决或更正。
+6. 若事实随着时间推移自然变化，也可由后续的新 `run` 通过 `supersede` 产生版本更迭。
 
 ## 6. Memory 状态
 
@@ -221,15 +225,16 @@ Contrix 把 memory 当成“人类可审阅对象”，因此 SHOULD 至少支�
 - 按 `valid_from / valid_until`
 - 按 relation graph 扩展检索
 
-## 11. 检索增强
+## 11. 检索增强与向量库定位
 
 Embedding、reranking、全文索引都可以作为增强层。
 
-但实现应遵循：
+但在分布式协议中，实现应遵循：
 
 - 派生索引可重建
 - 派生索引不作为唯一真相
 - 派生索引必须服从相同 ACL
+- **异步物化 (Async Materialization)**：向量数据库 (Vector Store) 在架构中应被视为一种“受信任的 Index 节点”。它通过订阅协议层中处于 `confirmed` 状态的 Op 增量，在本地异步计算 Embedding，从而对外提供高效的高维空间相似度检索。这种架构确保了即使更换向量库技术栈，基于 `memory` Entity 的知识真相源依然稳固。
 
 ## 12. 忘记与保留
 

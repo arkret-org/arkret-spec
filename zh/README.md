@@ -88,6 +88,7 @@ Contrix New 第一阶段聚焦以下目标：
 - DID 文档由多 `identity registry / witness / replica` 节点保存与复制，而不是单中心目录
 - 解析模式参考 atprotocol 的 handle 双向验证，但更偏向协作与多服务发现
 - 初版 SHOULD 支持 `did:web` 作为组织/服务互操作方法
+- 对 `did:plc`、`did:web` 等外部 DID，采用 `method adapter + normalized principal view + sidecar` 兼容层；保留原始文档与历史，不强行改写成 `did:uuid`
 
 ### 5.2 数据
 
@@ -129,6 +130,12 @@ Contrix New 第一阶段聚焦以下目标：
 - 权限采用 capability 模型
 - delegation 必须显式、可验证、可撤销
 - agent 必须使用窄权限、短时效、可审计授权
+- agent、未成年人、托管账号等 accountable Actor 必须能追溯 responsible / guardian / controller
+- accountability 不等于 capability，权限仍必须由 grant 显式授予
+- 高风险动作支持 approval constraint 与 proposal 模式
+- 权限主体使用 DID 或 condition selector，handle 不作为权限主键
+- 组织成员、角色、handle 绑定等动态条件由可验证 claim / attestation 表达
+- DID Document 不作为跨组织身份画像；公开 persona DID 可以声明 handle，pairwise/private DID 默认不公开 handle，并通过最小披露 VC / presentation 证明属性
 - 消息发送、编辑、撤回、频道管理、话题管理都应有独立动作语义
 
 ## 6. 与旧 contrix-spec 的关系

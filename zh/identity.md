@@ -181,7 +181,7 @@ Contrix 默认 DID 的 `<uuid-v8>` 使用 128 位 UUID v8，自定义位布局�
 
 - `inception_key`
 
-它的值应指向 `verificationMethod` 中的某个 key id。
+它的值应指向 `verification_method` 中的某个 key id。
 
 该初始锚点公钥用于：
 
@@ -258,13 +258,28 @@ Contrix DID 里的哈希片段 MUST 来源于 **初始锚点公钥的 canonical 
 Contrix DID Document 至少应包含：
 
 - `id`
-- `alsoKnownAs`
 - `inception_key`
-- `verificationMethod`
+- `verification_method`
 - `authentication`
-- `assertionMethod`
+- `assertion_method`
 - `service`
 - `key_log`
+
+面向公开 persona 的 DID Document MAY 包含 `also_known_as`。  
+面向某个 verifier、组织、设备或双边关系的 pairwise DID Document SHOULD NOT 包含公开 handle、邮箱、组织用户名或可关联的历史别名。
+
+Contrix canonical JSON 字段名 MUST 使用小写字母与下划线连接。  
+当与 W3C DID Core 原生 JSON / JSON-LD 互操作时，adapter MUST 保留 raw 文档原样，并在 normalized principal view 中映射字段名：
+
+| DID Core raw field | Contrix canonical field |
+| --- | --- |
+| `alsoKnownAs` | `also_known_as` |
+| `verificationMethod` | `verification_method` |
+| `assertionMethod` | `assertion_method` |
+| `publicKeyMultibase` | `public_key_multibase` |
+| `serviceEndpoint` | `service_endpoint` |
+
+同理，W3C Verifiable Credentials 的 raw 字段在 Contrix canonical representation 中也 MUST 映射为 snake_case，例如 `credentialSubject -> credential_subject`、`validFrom -> valid_from`、`validUntil -> valid_until`、`credentialStatus -> credential_status`。Raw 标准文档可以作为外部证据保留，但协议内部对象、索引、policy input 和 normalized view MUST 使用 snake_case 字段。
 
 ## 6.2 建议的 service type
 
@@ -325,7 +340,7 @@ Contrix 对 DID 文档更新的保护依赖：
   },
   "proofs": [
     {
-      "verificationMethod": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3",
+      "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3",
       "jws": "..."
     }
   ]
@@ -411,7 +426,7 @@ Contrix SHOULD 把 DID Document 拆成两类信息：
 其中：
 
 - `inception_key` 是不可变锚点
-- `authentication` / `assertionMethod` 表示当前有效控制密钥集合
+- `authentication` / `assertion_method` 表示当前有效控制密钥集合
 - `key_log` 是 append-only 的密钥事件日志，用于证明“当前控制密钥是如何从初始锚点合法演化而来”
 
 这意味着：
@@ -448,7 +463,7 @@ Contrix SHOULD 把 DID Document 拆成两类信息：
   "reason": "routine_rotation",
   "proof": {
     "type": "JCSDetachedJWS",
-    "verificationMethod": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1",
+    "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1",
     "jws": "..."
   }
 }
@@ -508,34 +523,34 @@ Contrix SHOULD 把 DID Document 拆成两类信息：
 ```json
 {
   "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-  "alsoKnownAs": [
+  "also_known_as": [
     "contrix://alice.example.com"
   ],
   "inception_key": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1",
-  "verificationMethod": [
+  "verification_method": [
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1",
       "type": "Multikey",
       "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-      "publicKeyMultibase": "z6Mki..."
+      "public_key_multibase": "z6Mki..."
     },
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3",
       "type": "Multikey",
       "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-      "publicKeyMultibase": "z6Mks..."
+      "public_key_multibase": "z6Mks..."
     },
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#recovery-1",
       "type": "Multikey",
       "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-      "publicKeyMultibase": "z6Mkr..."
+      "public_key_multibase": "z6Mkr..."
     }
   ],
   "authentication": [
     "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3"
   ],
-  "assertionMethod": [
+  "assertion_method": [
     "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3"
   ],
   "recovery_keys": [
@@ -588,16 +603,202 @@ Contrix SHOULD 把 DID Document 拆成两类信息：
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#repo",
       "type": "ContrixRepo",
-      "serviceEndpoint": "https://alice.example.com/cx/repo"
+      "service_endpoint": "https://alice.example.com/cx/repo"
     },
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#relay",
       "type": "ContrixRelay",
-      "serviceEndpoint": "https://relay.example.net/cx"
+      "service_endpoint": "https://relay.example.net/cx"
     }
   ]
 }
 ```
+
+## 6.8 外部 DID 方法兼容原则
+
+Contrix 不应要求所有 DID 方法都原生长得像 `did:uuid`。  
+如果要支持 `did:plc`、`did:web` 或未来其他 DID 方法，规范 SHOULD 采用三层模型：
+
+1. **method-specific resolution**
+2. **normalized principal view**
+3. **Contrix-specific capability binding**
+
+也就是说：
+
+- 先按该 DID 方法自己的规则解析 raw DID Document 与历史
+- 再把结果映射成 Contrix 统一可消费的标准结构
+- 最后再决定它是否足够承载 Contrix 的写入、恢复、服务发现与权限模型
+
+### 6.8.1 不要改写外部 DID 文档
+
+对于外部 DID 方法，Contrix SHOULD：
+
+- 保留 raw DID Document 原样
+- 保留 raw 历史证明或解析证据
+- 在本地或缓存层构造 **normalized principal view**
+
+Contrix MUST NOT：
+
+- 把外部 DID 文档重写成伪 `did:uuid` 文档
+- 假装外部 DID 原生支持它其实没有的字段
+- 直接丢弃 method-specific 证明细节
+
+所以这一层不是“替换原文档”，而是“在原文档之上做标准化投影”。
+
+### 6.8.2 Normalized Principal View
+
+建议定义一个内部标准结构：
+
+```json
+{
+  "did": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "did_method": "did:plc",
+  "support_profile": "compatible",
+  "raw_document_hash": "bafy...",
+  "raw_history_ref": "https://plc.directory/did:plc:ewvi7nxzyoun6zhxrhs64oiz/log",
+  "claimed_aliases": [
+    "at://alice.example.com"
+  ],
+  "current_control_keys": [
+    {
+      "id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz#atproto",
+      "type": "Multikey",
+      "public_key_multibase": "zQ3sh..."
+    }
+  ],
+  "service_bindings": [
+    {
+      "service_type": "AtprotoPersonalDataServer",
+      "service_endpoint": "https://pds.example.com"
+    }
+  ],
+  "contrix_bindings": [],
+  "evidence": {
+    "resolver": "did:plc-adapter",
+    "resolved_at": "2026-04-26T08:00:00Z"
+  }
+}
+```
+
+它不是 DID method 的新标准，只是 Contrix 的统一消费层。
+
+### 6.8.3 为什么需要 Normalized View
+
+因为不同 DID 方法的文档格式、历史模型、恢复模型都可能不同：
+
+- `did:uuid` 有 `inception_key + key_log`
+- `did:plc` 有它自己的操作日志与目录解析逻辑
+- `did:web` 可能只有当前文档，没有强历史链
+
+如果不做这一层，Contrix 上层模块就会：
+
+- 为每个 DID 方法单独写解析分支
+- 把业务逻辑污染到身份解析层
+- 很难给 capability、service discovery、审计统一输入
+
+因此最合理的方式不是“字段一对一映射完就结束”，而是：
+
+- **保留原始文档**
+- **输出统一标准视图**
+- **在统一视图上做 Contrix 业务判断**
+
+## 6.9 Method Adapter
+
+每种受支持 DID 方法 SHOULD 有自己的 `method adapter`。
+
+adapter 负责：
+
+- 解析 raw DID Document
+- 解析 method-specific 历史 / proof
+- 校验 method-specific 约束
+- 生成 normalized principal view
+- 给出该方法在 Contrix 中的 `support_profile`
+
+建议的最小 adapter 输出：
+
+- `did`
+- `did_method`
+- `claimed_aliases`
+- `current_control_keys`
+- `service_bindings`
+- `history_strength`
+- `recovery_strength`
+- `contrix_support_profile`
+- `evidence`
+
+### 6.9.1 `support_profile`
+
+Contrix SHOULD 至少区分：
+
+- `native`
+- `compatible`
+- `limited`
+
+语义建议如下：
+
+- `native`：原生支持 Contrix 的锚点、历史、恢复、服务绑定语义
+- `compatible`：能稳定解析 DID、当前控制权和部分历史，但需要 adapter 做映射
+- `limited`：能解析身份与当前文档，但历史、恢复或服务能力不足，只适合弱互操作
+
+### 6.9.2 `did:plc` 的定位
+
+当前最合理的定位是：
+
+- `did:plc` 在 Contrix 中属于 `compatible`
+
+原因：
+
+- 它有稳定 DID
+- 它有自己的历史与解析体系
+- 但它的文档结构与服务语义并不是按 Contrix 原生设计
+
+因此对 `did:plc`，Contrix 应做的是：
+
+- 解析 raw PLC 文档和历史
+- 映射成 normalized principal view
+- 再决定哪些 Contrix 功能可用
+
+而不是要求 `did:plc` 直接长成 `did:uuid`。
+
+## 6.10 服务绑定的映射规则
+
+身份文档解析成功，不代表其中所有 service entry 都自动等价于 Contrix 服务。
+
+Contrix MUST 区分：
+
+- **identity-level service bindings**
+- **Contrix-native service bindings**
+- **external ecosystem bindings**
+
+例如对 `did:plc`：
+
+- `AtprotoPersonalDataServer` 是 atproto 生态服务
+- 它不能自动等价为 `ContrixRepo`
+- 除非 adapter 或额外 sidecar 文档明确声明该 endpoint 同时提供 Contrix 服务
+
+这条规则很重要。  
+否则会把“能解析 identity”误解成“已经发现了 Contrix 的业务服务入口”。
+
+## 6.11 Contrix Identity Sidecar
+
+当外部 DID 方法本身不包含足够的 Contrix 服务信息时，Contrix SHOULD 允许一个 sidecar 文档。
+
+建议入口：
+
+- DID Document 的自定义 service entry
+- 或 `/.well-known/contrix-identity.json`
+
+sidecar 负责补充：
+
+- Contrix repo / relay / index / blob / authz endpoint
+- Contrix 支持 profile
+- 可选的 capability bootstrap 信息
+
+规则：
+
+- sidecar 不能推翻 raw DID 的主体与控制权
+- sidecar 只能在已验证 DID 主体的前提下补充 Contrix 专用信息
+- sidecar 自身也 SHOULD 由当前有效控制密钥签名
 
 ## 7. Handle 设计
 
@@ -622,14 +823,16 @@ Contrix 在 handle 模型上大致借鉴 atprotocol：
 
 建议使用：
 
-- `alsoKnownAs: ["contrix://alice.example.com"]`
+- `also_known_as: ["contrix://alice.example.com"]`
 
 其中：
 
 - `contrix://<handle>` 是 handle 的 canonical URI 形式
 
 一个 DID 文档 SHOULD 至少有一个主 handle。  
-如需保留历史别名，可以在 `alsoKnownAs` 中保留多个 handle URI。
+这条规则只适用于公开 persona DID。  
+Pairwise DID、临时 DID、设备 DID、agent 执行 DID 和隐私敏感关系 DID SHOULD NOT 强制绑定公开 handle。
+如需保留历史别名，可以在 `also_known_as` 中保留多个 handle URI。
 
 ## 7.4 Identity Profile 中的显示字段
 
@@ -666,11 +869,188 @@ Well-known 示例：
 
 ## 7.6 双向验证
 
-Handle 解析成功后，客户端 MUST 继续验证 DID 文档中的 `alsoKnownAs` 是否包含：
+Handle 解析成功后，客户端 MUST 继续验证 DID 文档中的 `also_known_as` 是否包含：
 
 - `contrix://<handle>`
 
 若未完成双向验证，客户端 MUST 不把该 handle 当作可信绑定。
+
+## 7.7 Handle 不得作为权限主键
+
+Handle 是人类可读入口，不是授权主体。
+
+协议层 MUST NOT 把以下内容直接作为 grant subject 或 Event actor：
+
+- handle
+- 邮箱
+- 域名用户名
+- 组织命名空间字符串，例如 `alice:google.com`
+
+正确做法是：
+
+```txt
+grant subject = DID
+authorization condition = verified claim / attestation
+```
+
+例如，`alice.google.com` 可以作为 Google 组织命名空间内的 handle，但它只能作为 `verified_handle` 或 `org_membership` claim 的字段。
+
+权限判断 MUST 基于：
+
+- claim issuer 是否可信
+- claim subject 是否匹配当前 Actor DID
+- claim 是否在有效期内
+- claim 是否未被撤销
+- claim 内容是否满足 grant constraint
+
+节点 MUST NOT 仅通过字符串后缀判断组织权限。例如，`alice.google.com`、`alice:google.com` 或 `alice@google.com` 本身都不能证明该 Actor 仍属于 Google。
+
+当 handle 绑定无法验证、过期或被撤销时，依赖该绑定 claim 的权限自然失效；历史 Event 仍然保留原 DID 作为 actor，因此不会因为 handle 被回收而改变历史责任主体。
+
+## 7.8 隐私保护型 Handle 与 Claim 证明
+
+Contrix MUST 把“身份解析”和“属性证明”分开。
+
+DID Document 只用于表达可验证控制材料、服务发现入口和 Contrix 必需的最小路由信息。它 MUST NOT 被用作主体的公开属性集合。尤其是，面向公开或半公开解析的 DID Document MUST NOT 直接列出以下信息，除非主体明确希望这些信息被关联：
+
+- 邮箱，例如 `alice@google.com`
+- 跨组织 handle，例如 `alice:google.com`、`alice:facebook.com`
+- 其他生态的账号名、profile URL 或登录名
+- 可把多个 persona 关联起来的相同 verification method、相同专用 service endpoint、相同 endpoint 用户名
+
+如果主体需要向某个 verifier 证明自己控制某个 handle 或满足某个组织属性，Contrix MUST 使用可验证 claim / attestation，而不是把所有 handle 写入 DID Document。
+
+### 7.8.1 标准依据
+
+本设计与以下 W3C 文档保持一致：
+
+- DID Core 的隐私章节明确要求：公开 DID Document 不应包含个人数据；含用户名的 service endpoint URL 可能泄露个人信息；DID controller 可以用每个关系唯一的 pairwise DID 降低关联风险；相同 verification method 或专用 endpoint 出现在多个 DID Document 中会破坏 pairwise DID 的反关联效果。参见 [DID Core 10.1-10.6](https://www.w3.org/TR/did-1.0/#privacy-considerations)。
+- VC Data Model v2.0 明确定义 selective disclosure 和 unlinkable disclosure，并说明零知识证明机制可让 holder 证明自己持有包含某值的 VC，而不披露实际值；也明确要求 securing mechanism 不应泄露能让 verifier 跨多个 presentation 关联 holder 的信息。参见 [VC Data Model 5.7](https://www.w3.org/TR/vc-data-model-2.0/#zero-knowledge-proofs) 与 [8.9](https://www.w3.org/TR/vc-data-model-2.0/#the-principle-of-data-minimization)。
+- Data Integrity BBS Cryptosuites v1.0 明确给出 `bbs-2023` base proof、derived proof、selectivePointers、anonymous holder binding、credential-bound pseudonym 等机制，并说明 BBS 签名直接提供 selective disclosure 与 unlinkable proofs。参见 [VC DI BBS](https://www.w3.org/TR/vc-di-bbs/)。
+
+### 7.8.2 推荐协议方案
+
+对 `alice@google.com` 与 `alice@facebook.com` 这类跨组织 handle，Contrix 推荐以下方案：
+
+1. Alice 为 Google 关系使用一个 Google 专用 DID，例如 `did:uuid:g_pairwise...`。
+2. Alice 为 Facebook 关系使用另一个 Facebook 专用 DID，例如 `did:uuid:f_pairwise...`。
+3. 两个 DID MUST NOT 复用相同的 verification method、专用 service endpoint、endpoint 用户名、`also_known_as` 或公开 profile URL。
+4. Google 或其受信 issuer 给 `did:uuid:g_pairwise...` 签发 `ContrixHandleCredential` 或 `ContrixOrgMembershipCredential`。
+5. Facebook 或其受信 issuer 给 `did:uuid:f_pairwise...` 签发独立 credential。
+6. 当 Alice 面向 Google verifier 证明身份时，wallet 只生成包含 Google 相关 claim 的 verifiable presentation。
+7. Google verifier MUST NOT 要求 Alice 披露 Facebook credential、Facebook DID、跨域 subject identifier 或不必要的其他 handle。
+
+如果 verifier 只需要知道“该主体拥有 Google 组织内有效账号”，presentation SHOULD 披露抽象 claim，例如：
+
+```json
+{
+  "type": ["VerifiableCredential", "ContrixOrgMembershipCredential"],
+  "issuer": "did:web:google.example",
+  "credential_subject": {
+    "id": "did:uuid:g_pairwise...",
+    "org": "did:web:google.example",
+    "member": true,
+    "handle_verified": true
+  },
+  "valid_from": "2026-04-26T00:00:00Z",
+  "valid_until": "2026-07-26T00:00:00Z",
+  "credential_status": {
+    "type": "PrivacyPreservingStatusList"
+  }
+}
+```
+
+如果 verifier 确实需要显示 Google handle，presentation MAY 披露：
+
+```json
+{
+  "credential_subject": {
+    "id": "did:uuid:g_pairwise...",
+    "handle": "alice@google.com",
+    "handle_verified": true
+  }
+}
+```
+
+但该 disclosure MUST 绑定到单一 verifier challenge/domain，并且 MUST NOT 自动披露任何其他组织 handle。
+
+### 7.8.3 Presentation Request
+
+Verifier 请求 claim 时 MUST 使用最小披露请求，不得请求“所有 alias”或“所有账号”。
+
+建议请求结构：
+
+```json
+{
+  "type": "ContrixPresentationRequest",
+  "audience": "did:web:google.example",
+  "domain": "google.example",
+  "challenge": "cx_chal_01J...",
+  "accepted_issuers": [
+    "did:web:google.example",
+    "did:web:trusted-hr.example"
+  ],
+  "required_claims": [
+    {
+      "type": "ContrixOrgMembershipCredential",
+      "constraints": {
+        "org": "did:web:google.example",
+        "member": true
+      },
+      "disclosure": "abstract"
+    }
+  ],
+  "forbidden_claims": [
+    "other_handles",
+    "external_accounts",
+    "global_subject_identifier"
+  ]
+}
+```
+
+Wallet MUST show the holder exactly which claims will be disclosed.  
+Wallet SHOULD reject or warn on requests that ask for unrelated handles, global subject identifiers, credential ids, or unnecessary demographic attributes.
+
+### 7.8.4 Proof Mechanisms
+
+Contrix SHOULD support at least two proof profiles:
+
+- `sd-jwt-vc`：适合广泛 JOSE 互操作和 claim 级选择性披露。
+- `vc-di-bbs-2023`：在需要不可链接 derived proof 或不可跨 presentation 关联行为的高隐私 profile 中 REQUIRED。
+
+使用 `vc-di-bbs-2023` 时：
+
+- issuer 创建 base proof，并且只交给 holder
+- holder 只使用被选择的 claim pointers 创建 derived proof
+- verifier 根据 issuer public key 与 verifier challenge 验证 derived proof
+- verifier MUST NOT 收到未披露 claim、base proof 或无关 credential identifiers
+
+实现 profile MUST 固定用于互操作的 cryptosuite 精确版本和测试向量。由于不同实现对 BBS 的支持仍在演进，Contrix 部署 MAY 先用 `sd-jwt-vc` 获得更广泛兼容性；但除非所选 proof mechanism 实际提供不可链接性，否则 MUST NOT 宣称 presentation 不可链接。
+
+### 7.8.5 Revocation 与状态查询
+
+Credential status check MUST 被设计为避免 verifier 驱动的关联追踪。
+
+Contrix 实现 SHOULD 使用隐私保护型 status list、缓存状态材料或 verifier-independent revocation proof。实现 SHOULD NOT 要求 verifier 在每次 presentation 时把唯一 credential id、subject DID 或 handle 提交给中心化 status endpoint。
+
+### 7.8.6 授权语义
+
+Capability policy MAY 依赖 verified claims，但 grant subject 仍然必须是 DID。
+
+正确：
+
+```txt
+grant subject = did:uuid:g_pairwise...
+condition = has valid ContrixOrgMembershipCredential where org = did:web:google.example
+```
+
+错误：
+
+```txt
+grant subject = alice@google.com
+```
+
+如果 holder 后续为另一个组织出示不同 pairwise DID，除非 holder 显式提供 linking proof，否则 verifier MUST 将其视为独立隐私上下文。
 
 ## 8. Identity Profile
 
@@ -693,6 +1073,7 @@ GET /.well-known/contrix-identity.json
   "previous_handles": [
     "alice-old.example.com"
   ],
+  "claims_endpoint": "https://alice.example.com/cx/claims",
   "repo_endpoint": "https://alice.example.com/cx/repo",
   "relay_endpoints": [
     "https://relay.example.net/cx"
@@ -705,6 +1086,12 @@ GET /.well-known/contrix-identity.json
   "updated_at": "2026-04-25T08:00:00Z"
 }
 ```
+
+## 8.1 Claim Discovery
+
+Identity Profile MAY 暴露 `claims_endpoint`，用于发现该 DID 持有或公开声明的 claim。
+
+但 claim 是否可用于授权，取决于 resource Space / Policy 是否信任该 claim 的 issuer，而不是 subject 自己声称。
 
 ## 9. 密钥与恢复模型
 
@@ -773,9 +1160,74 @@ GET /.well-known/contrix-identity.json
 - 某次自动化任务
 - 某个短时容器或沙箱执行实例
 
-## 10. 设备与 agent 委托
+## 10. Accountable Actor
 
-设备和 agent 委托至少需要表达：
+Contrix 区分 **身份主体**、**责任主体** 和 **授权主体**。
+
+有些 Actor 有自己的 DID，也可以直接签名，但仍需要一个可追溯的责任方或监护方。典型场景包括：
+
+- AI agent
+- 服务机器人
+- CI / automation
+- 未成年人账号
+- 受保护主体账号
+- 企业托管账号
+- 第三方集成账号
+
+因此协议层 SHOULD 支持 `accountability` 元数据，而不是只为 agent 特判 owner。
+
+建议最小结构：
+
+```json
+{
+  "actor_id": "did:web:agent.copy.example.com",
+  "actor_type": "agent",
+  "accountability": {
+    "mode": "accountable",
+    "responsible_actor_id": "did:web:alice.example.com",
+    "controller_actor_ids": [
+      "did:web:alice.example.com"
+    ],
+    "guardian_actor_ids": [],
+    "operator_actor_ids": [
+      "did:web:agents.vendor.example.com"
+    ],
+    "not_before": "2026-04-22T00:00:00Z",
+    "expires_at": null,
+    "revocation_ref": "cx:rel:01JS0RV000000000000000000"
+  }
+}
+```
+
+字段语义：
+
+- `responsible_actor_id`：对该 Actor 行为承担最终责任的个人、组织或团队
+- `controller_actor_ids`：可以配置、暂停、停用、授权该 Actor 的主体
+- `guardian_actor_ids`：对未成年人或受保护主体拥有监护/同意职责的主体
+- `operator_actor_ids`：实际托管、运行或提供基础设施的主体
+- `revocation_ref`：撤销或变更责任关系的可验证引用
+
+协议层 MUST NOT 把 accountability 关系自动解释为 capability。
+
+也就是说：
+
+- agent 有 owner，不代表 agent 自动继承 owner 权限
+- 未成年人有 guardian，不代表 guardian 自动拥有其全部私有内容读取权
+- operator 托管 agent，不代表 operator 可以代表 agent 执行业务写入
+
+这些权限仍必须通过 capability grant 显式表达。
+
+Accountability 关系的作用是：
+
+- 责任追溯
+- 紧急停用或控制
+- 高风险操作审批
+- 合规和监护约束
+- 审计展示
+
+## 11. 设备、agent 与受托 Actor 委托
+
+设备、agent、自动化账号和受托 Actor 委托至少需要表达：
 
 - `issuer`
 - `subject_key`
@@ -784,8 +1236,10 @@ GET /.well-known/contrix-identity.json
 - `not_before`
 - `expires_at`
 - `revocation_ref`
+- `accountability_ref`，若该主体不是完全自负责主体
+- `approval_policy_ref`，若某些动作需要 controller / guardian / responsible actor 同意
 
-## 11. 验证规则
+## 12. 验证规则
 
 任何接收写入的 Contrix 节点，至少应校验：
 
@@ -795,18 +1249,24 @@ GET /.well-known/contrix-identity.json
 4. DID 中嵌入的 Hash Algorithm ID 是已知且受支持的
 5. 按该 Hash Algorithm ID 指定的哈希函数，对文档中的 `inception_key` 重新哈希后，得到的前 74 位片段与 DID 中的一致
 6. `key_log` 是 append-only、`seq` 单调、旧事件未被重写
-7. 当前 `authentication` / `assertionMethod` 中的控制密钥，能够通过有效的 `key_log` 从 `inception_key` 推导出来
+7. 当前 `authentication` / `assertion_method` 中的控制密钥，能够通过有效的 `key_log` 从 `inception_key` 推导出来
 8. 每个 `rotate` / `recover` 事件都由当时有效的控制密钥集合或恢复策略授权
 9. 若存在 `deactivate` 事件，则后续新的控制写入 MUST 被拒绝
 10. 若通过 device / agent / execution key 进行签名，则委托链完整
 11. 若 DID 状态来自 registry / replica，则其 `head_event_hash` 与 receipt 集合摘要没有自相矛盾
+12. 若 Actor 声明为 accountable / guarded / operated，则其 accountability 关系在操作时点有效
+13. 若操作需要 guardian / controller / responsible actor approval，则 approval 证据完整且未过期
+14. 若操作依赖 handle、组织成员、邮箱控制权或其他属性，则必须验证对应 claim / presentation，而不是直接信任 DID Document 中的字符串
+15. 若 presentation 声称使用选择性披露或不可链接证明，则必须验证 proof profile、issuer key、challenge、domain、audience、status 与 disclosed claim set
+16. 若 DID 被标记为 pairwise/private context，则客户端 MUST NOT 要求其公开 `also_known_as`，也 MUST NOT 把它和其他 DID 自动合并为同一主体
 
 注意：
 
 - DID 中的哈希片段只要求与 `inception_key` 一致
 - 它不要求与“当前活跃控制密钥”直接一致
+- DID Document 不应被当作跨组织身份画像；跨组织属性应通过最小披露 presentation 按需证明
 
-## 12. 初版设计决定
+## 13. 初版设计决定
 
 当前草案建议固定：
 
@@ -818,14 +1278,23 @@ GET /.well-known/contrix-identity.json
 - 当前控制密钥可以与 DID 中的哈希片段不直接匹配，但必须能通过 `key_log` 从 `inception_key` 被验证出来
 - `key_log` 是密钥轮换与恢复的标准证明链
 - `superseded_by / supersedes` 只用于不可恢复后的例外性身份重建，不用于日常轮换
-- handle 模型参考 atprotocol，使用 `alsoKnownAs + primary_handle`
+- handle 模型参考 atprotocol，使用 `also_known_as + primary_handle`
+- 公开 persona DID MAY 使用 `also_known_as` 绑定 handle；pairwise/private DID SHOULD NOT 强制公开 handle
+- handle、组织成员、邮箱控制权等动态属性必须通过 VC / attestation / presentation 表达
+- 高隐私场景 SHOULD 使用选择性披露；需要不可链接 presentation 时，必须使用实际支持不可链接证明的 proof profile，例如 `vc-di-bbs-2023`
+- accountable Actor 是通用模型，不只用于 agent，也用于未成年人、托管账号和自动化主体
+- accountability 不等于 capability；权限仍必须由 grant 显式授予
 
-## 13. 后续待细化
+## 14. 后续待细化
 
 下一轮仍需补充：
 
 - `did:uuid` 解析与分发的线级协议
 - `key_log` 事件与 proof envelope 的正式 schema
 - `recovery_policy` 的正式语法
+- `accountability` 与 guardian/controller/operator 关系的正式 schema
+- approval proof envelope 的正式 schema
+- `ContrixPresentationRequest`、`ContrixOrgMembershipCredential`、`ContrixHandleCredential` 与隐私保护 status list 的正式 schema
+- `sd-jwt-vc` 与 `vc-di-bbs-2023` proof profile 的 conformance test vectors
 - 大型实现中的日志压缩 / checkpoint 规则
 - Handle ABNF

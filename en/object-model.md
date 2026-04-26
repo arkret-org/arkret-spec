@@ -153,6 +153,50 @@ Space is the collaboration, replication, authorization, schema, and policy bound
 
 Actor is the subject that performs actions. It may be a user, agent, system, integration, or team.
 
+Some Actors have their own direct identity but should not be treated as fully self-accountable. Examples include AI agents, service bots, automation accounts, minors, protected users, delegated-operation accounts, and organization-managed integration accounts.
+
+The protocol SHOULD use one accountability model for all of them:
+
+```json
+{
+  "id": "did:web:agent.copy.example.com",
+  "kind": "actor",
+  "actor_type": "agent",
+  "display_name": "Copy Review Agent",
+  "status": "active",
+  "accountability": {
+    "mode": "accountable",
+    "responsible_actor_id": "did:web:alice.example.com",
+    "controller_actor_ids": [
+      "did:web:alice.example.com"
+    ],
+    "guardian_actor_ids": [],
+    "operator_actor_ids": [
+      "did:web:agents.vendor.example.com"
+    ],
+    "accountability_policy_ref": "cx:policy:01JS0AP000000000000000000"
+  },
+  "profile_entity_id": "cx:entity:01JS0AE000000000000000000"
+}
+```
+
+Field semantics:
+
+- `responsible_actor_id`: the person, organization, or team ultimately accountable for the Actor
+- `controller_actor_ids`: Actors that may configure, suspend, deactivate, or authorize the Actor
+- `guardian_actor_ids`: Actors with guardian/consent responsibility for minors or protected Actors
+- `operator_actor_ids`: Actors that host or operate the Actor's infrastructure
+- `accountability_policy_ref`: the applicable accountability, approval, logging, and restriction policy
+
+Accountability is not authorization. Responsible Actors, guardians, controllers, and operators do not automatically grant their capabilities to the subject Actor.
+
+```txt
+identity answers who acted
+accountability answers who is responsible
+grant answers why the action was allowed
+run answers under which execution context it happened
+```
+
 Actor identity is defined by [identity.md](./identity.md). Actor references in protocol data MUST use DIDs or stable actor IDs.
 
 When an Actor needs to appear inside the collaboration graph, implementations SHOULD create an `entity_type = "actor_profile"` Entity mirror. Relations such as `assigned_to`, `mentions`, and `contains` can then consistently point to Entities.
@@ -207,6 +251,7 @@ Initial standard `entity_type` values include:
 - `attachment`
 - `run`
 - `memory`
+- `claim`
 - `schema`
 - `policy`
 - `invite`
@@ -275,6 +320,19 @@ Event is the collaboration fact and audit record.
       }
     }
   },
+  "authorization": {
+    "grant_id": "cx:grant:01JS0GR000000000000000000",
+    "issuer": "did:web:alice.example.com",
+    "subject": "did:web:agent.copy.example.com",
+    "delegation_chain": [
+      "cx:grant:01JS0GR000000000000000000"
+    ],
+    "claim_ids": [
+      "cx:claim:01JS0CLM00000000000000000"
+    ],
+    "approval_event_ids": []
+  },
+  "run_id": "cx:entity:01JS0RN000000000000000000",
   "occurred_at": "2026-04-22T08:20:00Z",
   "recorded_at": "2026-04-22T08:20:01Z",
   "transaction_id": "cx:txn:01JS0TX000000000000000000"
@@ -284,6 +342,16 @@ Event is the collaboration fact and audit record.
 Low-level Events SHOULD use generic forms such as `entity.created`, `entity.updated`, `relation.created`, `relation.deleted`, `view.created`, and `view.updated`.
 
 Business events such as `message.sent`, `task.assigned`, or `dependency.added` MAY exist as semantic sugar, but they MUST be reducible to `entity.*` or `relation.*`.
+
+Events produced by accountable Actors SHOULD record authorization and accountability evidence:
+
+- `authorization.grant_id`
+- `authorization.delegation_chain`
+- `authorization.claim_ids`
+- `authorization.approval_event_ids`
+- `run_id` or an equivalent execution context
+
+This allows audit systems to answer who signed the action, who authorized it, who is accountable, and which run or execution context caused it.
 
 ## 11. Command and Event
 

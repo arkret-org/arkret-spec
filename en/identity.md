@@ -183,7 +183,7 @@ Suggested field name:
 
 - `inception_key`
 
-Its value should point to one key id in `verificationMethod`.
+Its value should point to one key id in `verification_method`.
 
 That key is used for:
 
@@ -260,13 +260,28 @@ A new DID MAY be minted only when the identity is unrecoverable and intentionall
 A Contrix DID Document should include at least:
 
 - `id`
-- `alsoKnownAs`
 - `inception_key`
-- `verificationMethod`
+- `verification_method`
 - `authentication`
-- `assertionMethod`
+- `assertion_method`
 - `service`
 - `key_log`
+
+A public-persona DID Document MAY include `also_known_as`.  
+A pairwise DID Document for a specific verifier, organization, device, or bilateral relationship SHOULD NOT contain public handles, email addresses, organization usernames, or linkable historical aliases.
+
+Contrix canonical JSON field names MUST use lowercase words joined with underscores.  
+When interoperating with W3C DID Core native JSON / JSON-LD, adapters MUST preserve the raw document as-is and map field names into the normalized principal view:
+
+| DID Core raw field | Contrix canonical field |
+| --- | --- |
+| `alsoKnownAs` | `also_known_as` |
+| `verificationMethod` | `verification_method` |
+| `assertionMethod` | `assertion_method` |
+| `publicKeyMultibase` | `public_key_multibase` |
+| `serviceEndpoint` | `service_endpoint` |
+
+The same rule applies to W3C Verifiable Credentials raw fields in Contrix canonical representation: `credentialSubject -> credential_subject`, `validFrom -> valid_from`, `validUntil -> valid_until`, and `credentialStatus -> credential_status`. Raw standards documents can be preserved as external evidence, but internal protocol objects, indexes, policy inputs, and normalized views MUST use snake_case fields.
 
 ## 6.2 Suggested Service Types
 
@@ -327,7 +342,7 @@ Each identity update is recommended to be packaged as a `did_op`:
   },
   "proofs": [
     {
-      "verificationMethod": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3",
+      "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3",
       "jws": "..."
     }
   ]
@@ -414,7 +429,7 @@ Contrix SHOULD split DID-document information into:
 Where:
 
 - `inception_key` is the immutable anchor
-- `authentication` / `assertionMethod` describe the currently effective control-key set
+- `authentication` / `assertion_method` describe the currently effective control-key set
 - `key_log` is an append-only key-event log proving how the current control keys were reached from the inception key
 
 That means:
@@ -451,7 +466,7 @@ Suggested fields:
   "reason": "routine_rotation",
   "proof": {
     "type": "JCSDetachedJWS",
-    "verificationMethod": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1",
+    "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1",
     "jws": "..."
   }
 }
@@ -511,34 +526,34 @@ But for unrecoverable DIDs, clients MUST not assume that a bidirectional link wi
 ```json
 {
   "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-  "alsoKnownAs": [
+  "also_known_as": [
     "contrix://alice.example.com"
   ],
   "inception_key": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1",
-  "verificationMethod": [
+  "verification_method": [
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#inception-1",
       "type": "Multikey",
       "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-      "publicKeyMultibase": "z6Mki..."
+      "public_key_multibase": "z6Mki..."
     },
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3",
       "type": "Multikey",
       "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-      "publicKeyMultibase": "z6Mks..."
+      "public_key_multibase": "z6Mks..."
     },
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#recovery-1",
       "type": "Multikey",
       "controller": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-      "publicKeyMultibase": "z6Mkr..."
+      "public_key_multibase": "z6Mkr..."
     }
   ],
   "authentication": [
     "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3"
   ],
-  "assertionMethod": [
+  "assertion_method": [
     "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-3"
   ],
   "recovery_keys": [
@@ -591,16 +606,202 @@ But for unrecoverable DIDs, clients MUST not assume that a bidirectional link wi
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#repo",
       "type": "ContrixRepo",
-      "serviceEndpoint": "https://alice.example.com/cx/repo"
+      "service_endpoint": "https://alice.example.com/cx/repo"
     },
     {
       "id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#relay",
       "type": "ContrixRelay",
-      "serviceEndpoint": "https://relay.example.net/cx"
+      "service_endpoint": "https://relay.example.net/cx"
     }
   ]
 }
 ```
+
+## 6.8 External DID Method Compatibility
+
+Contrix should not require every DID method to look natively like `did:uuid`.  
+If Contrix wants to support `did:plc`, `did:web`, or future DID methods, it SHOULD use a three-layer model:
+
+1. **method-specific resolution**
+2. **normalized principal view**
+3. **Contrix-specific capability binding**
+
+That means:
+
+- first resolve the raw DID document and history according to that DID method's own rules
+- then map the result into one normalized structure that Contrix can consume uniformly
+- finally decide whether that identity is sufficient for Contrix writes, recovery, service discovery, and authorization
+
+### 6.8.1 Do Not Rewrite Foreign DID Documents
+
+For external DID methods, Contrix SHOULD:
+
+- preserve the raw DID document as-is
+- preserve the raw history proof or resolution evidence
+- construct a **normalized principal view** in local/cache space
+
+Contrix MUST NOT:
+
+- rewrite a foreign DID document into a fake `did:uuid` document
+- pretend a foreign DID natively supports fields it does not actually define
+- discard method-specific proof details
+
+So this layer is not "replace the original document". It is "build a standardized projection on top of the original document".
+
+### 6.8.2 Normalized Principal View
+
+Contrix should define one internal normalized structure:
+
+```json
+{
+  "did": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "did_method": "did:plc",
+  "support_profile": "compatible",
+  "raw_document_hash": "bafy...",
+  "raw_history_ref": "https://plc.directory/did:plc:ewvi7nxzyoun6zhxrhs64oiz/log",
+  "claimed_aliases": [
+    "at://alice.example.com"
+  ],
+  "current_control_keys": [
+    {
+      "id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz#atproto",
+      "type": "Multikey",
+      "public_key_multibase": "zQ3sh..."
+    }
+  ],
+  "service_bindings": [
+    {
+      "service_type": "AtprotoPersonalDataServer",
+      "service_endpoint": "https://pds.example.com"
+    }
+  ],
+  "contrix_bindings": [],
+  "evidence": {
+    "resolver": "did:plc-adapter",
+    "resolved_at": "2026-04-26T08:00:00Z"
+  }
+}
+```
+
+This is not a new DID-method standard. It is Contrix's internal consumption layer.
+
+### 6.8.3 Why a Normalized View Is Needed
+
+Different DID methods may have very different document formats, history models, and recovery models:
+
+- `did:uuid` has `inception_key + key_log`
+- `did:plc` has its own operation log and directory resolution logic
+- `did:web` may only expose the current document without a strong history chain
+
+Without this layer, upper Contrix modules would:
+
+- add custom parsing branches for every DID method
+- leak business logic into identity resolution
+- lose a clean common input for capabilities, service discovery, and audit
+
+So the right design is not "finish after a one-to-one field mapping". It is:
+
+- **preserve the raw document**
+- **emit one normalized standard view**
+- **make Contrix business decisions on top of that normalized view**
+
+## 6.9 Method Adapter
+
+Each supported DID method SHOULD have its own `method adapter`.
+
+The adapter is responsible for:
+
+- parsing the raw DID document
+- parsing method-specific history / proof material
+- validating method-specific constraints
+- generating the normalized principal view
+- reporting the method's `support_profile` inside Contrix
+
+Suggested minimum adapter output:
+
+- `did`
+- `did_method`
+- `claimed_aliases`
+- `current_control_keys`
+- `service_bindings`
+- `history_strength`
+- `recovery_strength`
+- `contrix_support_profile`
+- `evidence`
+
+### 6.9.1 `support_profile`
+
+Contrix SHOULD at least distinguish:
+
+- `native`
+- `compatible`
+- `limited`
+
+Suggested meaning:
+
+- `native`: natively supports Contrix anchor, history, recovery, and service-binding semantics
+- `compatible`: can stably resolve DID, current control authority, and part of the history, but requires adapter mapping
+- `limited`: can resolve identity and the current document, but lacks enough history, recovery, or service semantics for stronger interoperability
+
+### 6.9.2 Positioning of `did:plc`
+
+The most reasonable current position is:
+
+- `did:plc` is `compatible` inside Contrix
+
+Why:
+
+- it has a stable DID
+- it has its own history and resolution system
+- but its document shape and service semantics are not designed as native Contrix primitives
+
+So for `did:plc`, Contrix should:
+
+- resolve the raw PLC document and history
+- map them into the normalized principal view
+- then decide which Contrix features are available
+
+It should not require `did:plc` to directly look like `did:uuid`.
+
+## 6.10 Service-Binding Mapping Rules
+
+Successfully resolving an identity document does not mean every service entry inside it automatically becomes a Contrix service.
+
+Contrix MUST distinguish:
+
+- **identity-level service bindings**
+- **Contrix-native service bindings**
+- **external ecosystem bindings**
+
+For example, with `did:plc`:
+
+- `AtprotoPersonalDataServer` is an atproto ecosystem service
+- it is not automatically equivalent to `ContrixRepo`
+- it only becomes a Contrix service binding if an adapter or sidecar explicitly declares that the endpoint also speaks the Contrix interface
+
+This rule matters.  
+Otherwise the system would confuse "identity can be resolved" with "Contrix service discovery is already complete".
+
+## 6.11 Contrix Identity Sidecar
+
+When a foreign DID method does not contain enough Contrix-specific service information, Contrix SHOULD allow a sidecar document.
+
+Suggested entry points:
+
+- a custom service entry inside the DID document
+- or `/.well-known/contrix-identity.json`
+
+The sidecar can provide:
+
+- Contrix repo / relay / index / blob / authz endpoints
+- Contrix support profile information
+- optional capability bootstrap information
+
+Rules:
+
+- the sidecar must not override the raw DID subject or control semantics
+- the sidecar may only add Contrix-specific information after the DID subject has already been validated
+- the sidecar itself SHOULD be signed by the currently valid control key
 
 ## 7. Handle Design
 
@@ -625,14 +826,16 @@ The first version recommends DNS-like hostnames:
 
 Suggested form:
 
-- `alsoKnownAs: ["contrix://alice.example.com"]`
+- `also_known_as: ["contrix://alice.example.com"]`
 
 Where:
 
 - `contrix://<handle>` is the canonical handle URI form
 
 A DID document SHOULD have at least one primary handle.  
-If historical aliases need to be retained, `alsoKnownAs` may contain multiple handle URIs.
+This rule applies only to public-persona DIDs.  
+Pairwise DIDs, temporary DIDs, device DIDs, agent execution DIDs, and privacy-sensitive relationship DIDs SHOULD NOT be forced to bind a public handle.
+If historical aliases need to be retained, `also_known_as` may contain multiple handle URIs.
 
 ## 7.4 Display Fields in the Identity Profile
 
@@ -669,11 +872,188 @@ Well-known example:
 
 ## 7.6 Bidirectional Verification
 
-After resolving a handle, the client MUST verify that the DID document's `alsoKnownAs` contains:
+After resolving a handle, the client MUST verify that the DID document's `also_known_as` contains:
 
 - `contrix://<handle>`
 
 If this bidirectional verification fails, the handle MUST not be treated as a trusted binding.
+
+## 7.7 Handles Must Not Be Authorization Primary Keys
+
+Handles are human-readable entry points, not authorization subjects.
+
+The protocol layer MUST NOT use the following directly as grant subjects or Event actors:
+
+- handles
+- emails
+- domain usernames
+- organization namespace strings, such as `alice:google.com`
+
+The correct model is:
+
+```txt
+grant subject = DID
+authorization condition = verified claim / attestation
+```
+
+For example, `alice.google.com` may be a handle in the Google organization namespace, but it can only be a field inside a `verified_handle` or `org_membership` claim.
+
+Authorization MUST check:
+
+- whether the claim issuer is trusted
+- whether the claim subject matches the current Actor DID
+- whether the claim is within its validity window
+- whether the claim has not been revoked
+- whether the claim contents satisfy the grant constraint
+
+Nodes MUST NOT infer organization access from string suffixes alone. `alice.google.com`, `alice:google.com`, or `alice@google.com` do not by themselves prove that the Actor still belongs to Google.
+
+If a handle binding cannot be verified, expires, or is revoked, permissions depending on that binding claim naturally stop applying. Historical Events still keep the original DID as actor, so handle reuse cannot change historical accountability.
+
+## 7.8 Privacy-Preserving Handles and Claim Proofs
+
+Contrix MUST keep identity resolution separate from attribute proof.
+
+A DID Document is only for verifiable control material, service discovery entry points, and the minimum routing data required by Contrix. It MUST NOT be used as a public attribute bundle for the subject. In particular, publicly or semi-publicly resolvable DID Documents MUST NOT directly list the following unless the subject intentionally wants them to be linked:
+
+- email addresses, such as `alice@google.com`
+- cross-organization handles, such as `alice:google.com` or `alice:facebook.com`
+- account names, profile URLs, or login names from other ecosystems
+- reused verification methods, dedicated service endpoints, or endpoint usernames that link multiple personas
+
+When a subject needs to prove control of a handle or an organization attribute to a verifier, Contrix MUST use verifiable claims / attestations instead of placing every handle in the DID Document.
+
+### 7.8.1 Standards Basis
+
+This design aligns with the following W3C documents:
+
+- DID Core's privacy section states that public DID Documents should avoid personal data; service endpoint URLs containing usernames can leak personal information; DID controllers can reduce correlation risk by using a pairwise DID for each relationship; and reusing the same verification method or dedicated endpoint across DID Documents weakens pairwise unlinkability. See [DID Core 10.1-10.6](https://www.w3.org/TR/did-1.0/#privacy-considerations).
+- VC Data Model v2.0 defines selective disclosure and unlinkable disclosure, explains that zero-knowledge proof mechanisms can let a holder prove possession of a VC containing a value without disclosing the value, and requires securing mechanisms not to leak information that enables verifier correlation across presentations. See [VC Data Model 5.7](https://www.w3.org/TR/vc-data-model-2.0/#zero-knowledge-proofs) and [8.9](https://www.w3.org/TR/vc-data-model-2.0/#the-principle-of-data-minimization).
+- Data Integrity BBS Cryptosuites v1.0 defines `bbs-2023` base proofs, derived proofs, selective pointers, anonymous holder binding, and credential-bound pseudonyms, and states that BBS signatures directly provide selective disclosure and unlinkable proofs. See [VC DI BBS](https://www.w3.org/TR/vc-di-bbs/).
+
+### 7.8.2 Recommended Protocol Pattern
+
+For cross-organization handles such as `alice@google.com` and `alice@facebook.com`, Contrix recommends this pattern:
+
+1. Alice uses a Google-specific DID for the Google relationship, for example `did:uuid:g_pairwise...`.
+2. Alice uses a separate Facebook-specific DID for the Facebook relationship, for example `did:uuid:f_pairwise...`.
+3. The two DIDs MUST NOT reuse the same verification method, dedicated service endpoint, endpoint username, `also_known_as`, or public profile URL.
+4. Google, or a trusted issuer, issues a `ContrixHandleCredential` or `ContrixOrgMembershipCredential` to `did:uuid:g_pairwise...`.
+5. Facebook, or a trusted issuer, issues a separate credential to `did:uuid:f_pairwise...`.
+6. When Alice proves identity to a Google verifier, the wallet only generates a verifiable presentation containing Google-related claims.
+7. A Google verifier MUST NOT require Alice to disclose a Facebook credential, Facebook DID, cross-domain subject identifier, or any other unnecessary handle.
+
+If the verifier only needs to know that the subject has a valid account in the Google organization, the presentation SHOULD disclose an abstract claim:
+
+```json
+{
+  "type": ["VerifiableCredential", "ContrixOrgMembershipCredential"],
+  "issuer": "did:web:google.example",
+  "credential_subject": {
+    "id": "did:uuid:g_pairwise...",
+    "org": "did:web:google.example",
+    "member": true,
+    "handle_verified": true
+  },
+  "valid_from": "2026-04-26T00:00:00Z",
+  "valid_until": "2026-07-26T00:00:00Z",
+  "credential_status": {
+    "type": "PrivacyPreservingStatusList"
+  }
+}
+```
+
+If the verifier truly needs to display the Google handle, the presentation MAY disclose:
+
+```json
+{
+  "credential_subject": {
+    "id": "did:uuid:g_pairwise...",
+    "handle": "alice@google.com",
+    "handle_verified": true
+  }
+}
+```
+
+That disclosure MUST be bound to a single verifier challenge/domain and MUST NOT automatically disclose any other organization handle.
+
+### 7.8.3 Presentation Request
+
+Verifier requests MUST use minimum-disclosure requests and MUST NOT request "all aliases" or "all accounts".
+
+Suggested request shape:
+
+```json
+{
+  "type": "ContrixPresentationRequest",
+  "audience": "did:web:google.example",
+  "domain": "google.example",
+  "challenge": "cx_chal_01J...",
+  "accepted_issuers": [
+    "did:web:google.example",
+    "did:web:trusted-hr.example"
+  ],
+  "required_claims": [
+    {
+      "type": "ContrixOrgMembershipCredential",
+      "constraints": {
+        "org": "did:web:google.example",
+        "member": true
+      },
+      "disclosure": "abstract"
+    }
+  ],
+  "forbidden_claims": [
+    "other_handles",
+    "external_accounts",
+    "global_subject_identifier"
+  ]
+}
+```
+
+Wallets MUST show the holder exactly which claims will be disclosed.  
+Wallets SHOULD reject or warn on requests for unrelated handles, global subject identifiers, credential ids, or unnecessary demographic attributes.
+
+### 7.8.4 Proof Mechanisms
+
+Contrix SHOULD support at least two proof profiles:
+
+- `sd-jwt-vc`: suitable for broad JOSE interoperability and claim-level selective disclosure.
+- `vc-di-bbs-2023`: REQUIRED for high-privacy profiles that need unlinkable derived proofs or non-correlatable presentation behavior.
+
+When `vc-di-bbs-2023` is used:
+
+- the issuer creates a base proof and gives it only to the holder
+- the holder creates a derived proof using only the selected claim pointers
+- the verifier validates the derived proof against the issuer public key and verifier challenge
+- the verifier MUST NOT receive undisclosed claims, the base proof, or unrelated credential identifiers
+
+The implementation profile MUST pin the exact cryptosuite version and test vectors used for interoperability. Because BBS support is still evolving across implementations, Contrix deployments MAY start with `sd-jwt-vc` for broad compatibility, but MUST NOT claim unlinkability unless the selected proof mechanism actually provides it.
+
+### 7.8.5 Revocation and Status Checks
+
+Credential status checks MUST be designed to avoid verifier-driven correlation.
+
+Contrix implementations SHOULD use privacy-preserving status lists, cached status material, or verifier-independent revocation proofs. They SHOULD NOT require the verifier to submit a unique credential id, subject DID, or handle to a centralized status endpoint during every presentation.
+
+### 7.8.6 Authorization Semantics
+
+Capability policy MAY depend on verified claims, but the grant subject remains a DID.
+
+Correct:
+
+```txt
+grant subject = did:uuid:g_pairwise...
+condition = has valid ContrixOrgMembershipCredential where org = did:web:google.example
+```
+
+Incorrect:
+
+```txt
+grant subject = alice@google.com
+```
+
+If the holder later presents a different pairwise DID for a different organization, the verifier MUST treat it as a separate privacy context unless the holder explicitly supplies a linking proof.
 
 ## 8. Identity Profile
 
@@ -696,6 +1076,7 @@ Example:
   "previous_handles": [
     "alice-old.example.com"
   ],
+  "claims_endpoint": "https://alice.example.com/cx/claims",
   "repo_endpoint": "https://alice.example.com/cx/repo",
   "relay_endpoints": [
     "https://relay.example.net/cx"
@@ -708,6 +1089,12 @@ Example:
   "updated_at": "2026-04-25T08:00:00Z"
 }
 ```
+
+## 8.1 Claim Discovery
+
+Identity Profile MAY expose `claims_endpoint` for discovering claims held or publicly presented by this DID.
+
+Whether a claim can be used for authorization depends on whether the resource Space / Policy trusts the claim issuer, not on the subject presenting it.
 
 ## 9. Key and Recovery Model
 
@@ -776,9 +1163,68 @@ Used for:
 - a single automation task
 - a short-lived container or sandbox execution
 
-## 10. Device and Agent Delegation
+## 10. Accountable Actor
 
-Device and agent delegations should express at least:
+Contrix distinguishes the **identity subject**, the **accountable subject**, and the **authorization subject**.
+
+Some Actors have their own DID and can sign directly, but still need a traceable responsible or guardian party. Examples include:
+
+- AI agents
+- service bots
+- CI / automation
+- minors
+- protected-user accounts
+- enterprise-managed accounts
+- third-party integration accounts
+
+The protocol SHOULD support `accountability` metadata instead of special-casing agent ownership.
+
+Suggested minimal shape:
+
+```json
+{
+  "actor_id": "did:web:agent.copy.example.com",
+  "actor_type": "agent",
+  "accountability": {
+    "mode": "accountable",
+    "responsible_actor_id": "did:web:alice.example.com",
+    "controller_actor_ids": [
+      "did:web:alice.example.com"
+    ],
+    "guardian_actor_ids": [],
+    "operator_actor_ids": [
+      "did:web:agents.vendor.example.com"
+    ],
+    "not_before": "2026-04-22T00:00:00Z",
+    "expires_at": null,
+    "revocation_ref": "cx:rel:01JS0RV000000000000000000"
+  }
+}
+```
+
+Field semantics:
+
+- `responsible_actor_id`: the person, organization, or team ultimately accountable for the Actor's behavior
+- `controller_actor_ids`: Actors that can configure, suspend, deactivate, or authorize the Actor
+- `guardian_actor_ids`: Actors with guardian/consent responsibility for minors or protected Actors
+- `operator_actor_ids`: Actors that host, run, or provide infrastructure for the Actor
+- `revocation_ref`: verifiable reference for revocation or accountability changes
+
+Protocol nodes MUST NOT interpret accountability as capability.
+
+That means:
+
+- an agent having an owner does not automatically inherit the owner's permissions
+- a minor having a guardian does not automatically give the guardian full access to the minor's private content
+- an operator hosting an agent does not automatically act on behalf of that agent
+
+Those permissions must still be expressed through explicit capability grants.
+
+Accountability is used for traceability, emergency control, high-risk approval, compliance/guardian constraints, and audit display.
+
+## 11. Device, Agent, and Delegated Actor Delegation
+
+Device, agent, automation-account, and delegated-Actor delegations should express at least:
 
 - `issuer`
 - `subject_key`
@@ -787,8 +1233,10 @@ Device and agent delegations should express at least:
 - `not_before`
 - `expires_at`
 - `revocation_ref`
+- `accountability_ref`, if the subject is not fully self-accountable
+- `approval_policy_ref`, if some actions require controller / guardian / responsible-actor approval
 
-## 11. Validation Rules
+## 12. Validation Rules
 
 Any Contrix node accepting writes should validate at least:
 
@@ -798,18 +1246,24 @@ Any Contrix node accepting writes should validate at least:
 4. the embedded Hash Algorithm ID is known and supported
 5. re-hashing the document's `inception_key` with the hash function selected by that Hash Algorithm ID reproduces the leading 74-bit DID fragment
 6. the `key_log` is append-only, `seq` is monotonic, and old events were not rewritten
-7. the current control keys in `authentication` / `assertionMethod` can be derived from `inception_key` through valid `key_log` events
+7. the current control keys in `authentication` / `assertion_method` can be derived from `inception_key` through valid `key_log` events
 8. each `rotate` / `recover` event was authorized by the control-key set valid at that time, or by the recovery policy
 9. if a `deactivate` event exists, later control writes MUST be rejected
 10. if a device/agent/execution key is used, the delegation chain is complete
 11. if DID state came from a registry / replica, its `head_event_hash` and receipt-set summary are not self-contradictory
+12. if the Actor is declared accountable / guarded / operated, its accountability relation is valid at operation time
+13. if the action requires guardian / controller / responsible-actor approval, the approval evidence is complete and unexpired
+14. if an action depends on a handle, organization membership, email control, or another attribute, the corresponding claim / presentation must be verified instead of trusting strings in the DID Document directly
+15. if a presentation claims selective disclosure or unlinkable proof behavior, the proof profile, issuer key, challenge, domain, audience, status, and disclosed claim set must be verified
+16. if a DID is marked as a pairwise/private context, clients MUST NOT require it to publish `also_known_as` and MUST NOT automatically merge it with other DIDs as the same subject
 
 Important note:
 
 - the DID fragment is required to match the `inception_key`
 - it is not required to directly match the currently active control key
+- DID Documents should not be treated as cross-organization identity profiles; cross-organization attributes should be proven through minimum-disclosure presentations as needed
 
-## 12. Initial Design Decisions
+## 13. Initial Design Decisions
 
 The current draft recommends fixing:
 
@@ -821,14 +1275,23 @@ The current draft recommends fixing:
 - current control keys may differ from the DID fragment, but must be provably derivable from `inception_key` through `key_log`
 - `key_log` as the standard proof chain for rotation and recovery
 - `superseded_by / supersedes` reserved for exceptional identity reboot after unrecoverable loss, not routine rotation
-- an atprotocol-like handle model with `alsoKnownAs + primary_handle`
+- an atprotocol-like handle model with `also_known_as + primary_handle`
+- public-persona DIDs MAY use `also_known_as` for handle binding; pairwise/private DIDs SHOULD NOT be forced to publish handles
+- dynamic attributes such as handles, organization membership, and email control must be expressed through VCs / attestations / presentations
+- high-privacy scenarios SHOULD use selective disclosure; unlinkable presentation claims require a proof profile that actually supports unlinkability, such as `vc-di-bbs-2023`
+- Accountable Actor as a general model, not only for agents, also for minors, managed accounts, and automation subjects
+- accountability is not capability; permissions must still be explicitly granted
 
-## 13. Further Work
+## 14. Further Work
 
 The next round still needs:
 
 - the wire-level resolution/distribution protocol for `did:uuid`
 - a formal schema for `key_log` events and proof envelopes
 - a formal `recovery_policy` grammar
+- a formal schema for `accountability` and guardian/controller/operator relations
+- a formal approval proof envelope schema
+- formal schemas for `ContrixPresentationRequest`, `ContrixOrgMembershipCredential`, `ContrixHandleCredential`, and privacy-preserving status lists
+- conformance test vectors for the `sd-jwt-vc` and `vc-di-bbs-2023` proof profiles
 - log compression / checkpoint rules for larger deployments
 - a formal Handle ABNF

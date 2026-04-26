@@ -17,6 +17,10 @@ This is necessary because:
 
 Grant `issuer` and `subject` SHOULD use DIDs.
 
+Human-readable identifiers such as handles, emails, or domain usernames MUST NOT be used as authorization subject primary keys.
+
+The protocol allows conditional authorization, but conditions must reduce to verifiable claims / attestations rather than raw string matching.
+
 ### 2.2 Authorization Must Be Explicit
 
 Avoid assumptions such as:
@@ -28,6 +32,25 @@ Avoid assumptions such as:
 ### 2.3 Authorization Decisions Depend on the Effective Capability Set
 
 Whether an operation is valid should be decided by the effective grant set at that time.
+
+### 2.4 DID Is the Subject, Claim Is the Condition
+
+The authorization model has three layers:
+
+```txt
+Identity: DID
+Human-readable binding: Handle
+Authorization condition: Claim / Attestation
+```
+
+That means:
+
+- DID answers who the Actor is
+- Handle helps humans discover and display the Actor
+- Claim / Attestation answers whether the Actor currently satisfies an authorization condition
+
+For example, `alice.google.com` or `alice:google.com` may be a handle inside an organization namespace, but it cannot be a grant subject. Organization access should be represented through an `org_membership` claim issued by Google.
+
 
 ## 3. Grant Object
 
@@ -63,6 +86,53 @@ Example:
   }
 }
 ```
+
+### 3.1 Conditional Grants
+
+A grant `subject` may be a concrete DID or a condition selector.
+
+Concrete DID grant:
+
+```json
+{
+  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "constraints": {
+    "requires_claims": [
+      {
+        "claim_type": "org_membership",
+        "issuer": "did:web:google.com",
+        "organization": "did:web:google.com",
+        "status": "active"
+      }
+    ]
+  }
+}
+```
+
+Conditional grant:
+
+```json
+{
+  "subject": {
+    "kind": "condition",
+    "requires_claims": [
+      {
+        "claim_type": "org_membership",
+        "issuer": "did:web:google.com",
+        "organization": "did:web:google.com",
+        "status": "active"
+      }
+    ]
+  }
+}
+```
+
+The difference:
+
+- concrete DID grant: grants one Actor, but requires that Actor to still satisfy conditions at operation time
+- conditional grant: grants all Actors satisfying the condition
+
+Conditional grants MUST specify the claim issuer, claim type, effective status, and resource scope. Nodes MUST NOT rely only on handle suffixes, email domains, or display names.
 
 ## 4. Resource Selector
 
@@ -170,25 +240,183 @@ The first version recommends support for:
 - `max_delegation_depth`
 - `rate_limit`
 - `approval_required`
+- `approval_mode`
+- `approval_actor_refs`
+- `approval_relation`
+- `accountability_required`
+- `guardian_approval_required`
+- `controller_approval_required`
+- `requires_claims`
+- `trusted_claim_issuers`
+- `claim_refresh_required`
+- `claim_max_age`
 
-## 7. Safe Authorization for Agents
+## 7. Claim / Attestation
+
+Claim / Attestation is a verifiable statement from an issuer about a subject.
+
+It represents conditions such as organization membership, organization role, guardian relationship, device trust, protected-actor status, MFA level, and risk level.
+
+Suggested minimal shape:
+
+```json
+{
+  "claim_id": "cx:claim:01JS0CLM00000000000000000",
+  "issuer": "did:web:google.com",
+  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "claim_type": "org_membership",
+  "claims": {
+    "organization": "did:web:google.com",
+    "status": "active",
+    "roles": ["employee", "engineer"],
+    "handle": "alice.google.com"
+  },
+  "not_before": "2026-04-01T00:00:00Z",
+  "expires_at": "2026-05-01T00:00:00Z",
+  "revocation_ref": "cx:event:01JS0RVK0000000000000000",
+  "proof": {
+    "type": "DataIntegrityProof",
+    "verification_method": "did:web:google.com#key-1",
+    "signature": "base64url..."
+  }
+}
+```
+
+Initial claim types:
+
+- `verified_handle`
+- `verified_email_domain`
+- `org_membership`
+- `org_role`
+- `employment_status`
+- `guardian_relationship`
+- `protected_actor_status`
+- `agent_controller`
+- `device_trust`
+- `mfa_level`
+- `risk_level`
+- `certification`
+
+Claim verification requires at least:
+
+1. the `issuer` is trusted by the current Space / Policy
+2. the `subject` matches the current actor DID, or matches the verified relationship semantics
+3. the proof signature is valid
+4. the current time is within `not_before` and `expires_at`
+5. the claim has not been revoked
+6. the claim content satisfies the grant's `requires_claims`
+
+### 7.1 Handle Binding Claim
+
+Handle may appear as a claim field, but not as an authorization primary key.
+
+Example:
+
+```json
+{
+  "claim_type": "verified_handle",
+  "issuer": "did:web:google.com",
+  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "claims": {
+    "handle": "alice.google.com",
+    "namespace": "google.com",
+    "status": "active"
+  }
+}
+```
+
+When that handle can no longer be verified, expires, or is revoked by the organization, permissions depending on that claim naturally stop applying.
+
+Historical Events still keep the original DID as `actor_id`, so handle reuse cannot rewrite responsibility.
+
+## 8. Accountable Actor Grants
+
+Capability must support Actors that have direct identity but require a responsible party, guardian, controller, or operator.
+
+These Actors include:
+
+- AI agents
+- service bots
+- automation accounts
+- minors
+- protected-user accounts
+- enterprise-managed accounts
+- third-party integration accounts
+
+Core rules:
+
+- accountability is not capability
+- owner / guardian / controller does not automatically pass permissions to the subject
+- the subject must still match an explicit grant to act
+- high-risk actions MAY require responsible / guardian / controller approval
+- Events SHOULD record grant, delegation chain, approval evidence, and run context
+
+### 8.1 Approval Constraint
+
+When a grant carries an approval constraint, the subject cannot directly make the target action effective.
+
+```json
+{
+  "constraints": {
+    "approval_required": true,
+    "approval_mode": "before_commit",
+    "approval_actor_refs": [
+      "did:web:alice.example.com"
+    ],
+    "approval_relation": "controller"
+  }
+}
+```
+
+Initial `approval_mode` values:
+
+- `before_commit`: approval occurs before the target Event enters the effective set
+- `proposal_then_approve`: the subject may only create a proposal; approval later causes the target Event
+- `after_commit_review`: execution may proceed, but it must enter an audit/review queue
+
+Initial `approval_relation` values:
+
+- `responsible`
+- `controller`
+- `guardian`
+- `space_admin`
+- `custom`
+
+If policy requires guardian approval for a minor or protected Actor, nodes MUST validate the corresponding approval evidence.
+
+### 8.2 Proposal Mode
+
+High-risk actions should use proposal mode:
+
+```txt
+actor -> proposal.created
+guardian/controller -> proposal.approved
+system/human -> entity.updated
+```
+
+This lets an agent or restricted Actor express intent without directly mutating high-risk state.
+
+## 9. Safe Authorization for Agents
 
 When granting to agents, implementations SHOULD default to:
 
-- explicit workspace / board / channel scope only
+- explicit Space / Entity / View scope only
 - only the required actions
 - time-bounded grants
 - restricted object kinds
 - restricted writable fields and memory kinds
+- required controller / responsible-actor approval where needed
 
 High-risk patterns include:
 
-- long-lived full-workspace admin grants
+- long-lived full-Space admin grants
 - agents inheriting complete human-owner authority
 - grants without expiry
 - execution without run audit trails
+- no recorded responsible / controller / operator
+- high-risk actions without approval
 
-## 8. Delegation
+## 10. Delegation
 
 Delegation means a subject may re-grant part of its authority to another subject.
 
@@ -199,7 +427,7 @@ If it is greater than zero:
 - the re-grant must not expand the original scope
 - the delegation chain MUST be verifiable
 
-## 9. Effective Permission Set
+## 11. Effective Permission Set
 
 Contrix v1 uses an **allow-grant + explicit revoke** model.
 
@@ -211,7 +439,7 @@ That means:
 
 Deployments MAY layer local deny policies on top, but those are outside wire-level interoperability semantics.
 
-## 10. Revocation
+## 12. Revocation
 
 Revocation must be explicit rather than deleting grant records.
 
@@ -227,7 +455,7 @@ Example:
 }
 ```
 
-## 11. Invites, Notifications, and Read State
+## 13. Invites, Notifications, and Read State
 
 These human-facing capabilities must be part of the authorization model rather than product-private backdoors:
 
@@ -243,7 +471,7 @@ Where:
 - `notification` is a derived object, but its visibility is still constrained by the ACLs of the underlying source object
 - `read_marker` is owner-private by default
 
-## 12. Roles Are Only Bundles
+## 14. Roles Are Only Bundles
 
 Product layers may define:
 
@@ -256,7 +484,7 @@ Product layers may define:
 
 But these are only convenience bundles of capabilities, not primary protocol semantics.
 
-## 13. Read Access and Discoverability
+## 15. Read Access and Discoverability
 
 Read authorization is not just "can content be fetched?" It also includes:
 
@@ -272,7 +500,7 @@ The first version should at least distinguish:
 - `read_content`
 - `read_history`
 
-## 14. Authorization Guidance for Conversation
+## 16. Authorization Guidance for Conversation
 
 The first version should minimally distinguish:
 
@@ -285,7 +513,7 @@ The first version should minimally distinguish:
 
 This prevents "can recall other people's messages" from being accidentally bundled into "can send messages".
 
-## 15. Where Decisions Are Enforced
+## 17. Where Decisions Are Enforced
 
 Authorization checks should not happen only on clients.
 
@@ -297,7 +525,7 @@ They should happen at least in:
 - index query serving
 - blob content serving
 
-## 16. Minimal Authorization Algorithm
+## 18. Minimal Authorization Algorithm
 
 Given an operation, a node should at least:
 
@@ -308,16 +536,20 @@ Given an operation, a node should at least:
 5. check whether the selector covers the target
 6. check whether the action matches
 7. check whether the constraints are satisfied
-8. apply revocation and superseding rules
+8. if the grant or constraint requires claims, fetch and validate the claims / attestations
+9. check that claim issuers are trusted
+10. check that claims are effective, unexpired, and not revoked
+11. if approval is required, validate responsible / guardian / controller approval evidence
+12. apply revocation and superseding rules
 
 When multiple grants match, the recommended behavior is:
 
 - first select grants whose resource selectors cover the target
 - then union their allowed actions
 - then intersect or tighten constraints to the strictest effective shape
-- finally apply revocation, expiry, and delegation-depth trimming
+- finally apply revocation, expiry, delegation-depth, claim, and approval trimming
 
-## 17. Initial Design Decisions
+## 19. Initial Design Decisions
 
 The current draft recommends fixing:
 
@@ -327,8 +559,15 @@ The current draft recommends fixing:
 - invites / notifications / read markers inside the same capability model
 - allow-grant + explicit revoke as the protocol-level semantic
 - narrow, time-bounded, auditable grants for agents
+- Accountable Actor as a general grant subject covering agents, minors, managed accounts, and automation subjects
+- owner / guardian / controller does not imply automatic permission inheritance
+- high-risk actions support approval constraints and proposal mode
+- grant subjects use DIDs or condition selectors, not handles as authorization primary keys
+- handles may appear as claim fields, but authorization checks must use verifiable claims / attestations
+- organization access is represented through claims such as `org_membership` and `org_role`
+- claim expiry or revocation naturally disables permissions depending on that claim
 
-## 18. Further Work
+## 20. Further Work
 
 The next round still needs:
 
@@ -336,3 +575,8 @@ The next round still needs:
 - a formal constraint schema
 - a formal algorithm for grant merging and strictest-constraint reduction
 - a moderation-policy integration story
+- approval proof and proposal state machine
+- default policy profiles for Accountable Actors
+- formal claim / attestation envelope schema
+- formal condition selector syntax
+- trusted claim issuer registry and claim revocation query surface

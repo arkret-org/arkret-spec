@@ -88,6 +88,7 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - DID documents are stored and replicated through multiple identity registry / witness / replica nodes rather than one central directory
 - handle resolution follows an atprotocol-inspired bidirectional model, adapted for collaboration and multi-service discovery
 - version one SHOULD support `did:web` for org/service interoperability
+- external DID methods such as `did:plc` and `did:web` use a `method adapter + normalized principal view + sidecar` compatibility layer; raw documents and history are preserved instead of being rewritten into fake `did:uuid` documents
 
 ### 5.2 Data
 
@@ -129,6 +130,12 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - authorization uses a capability model
 - delegation must be explicit, verifiable, and revocable
 - agents must operate under narrow, time-bounded, auditable grants
+- accountable Actors such as agents, minors, and managed accounts must trace to responsible / guardian / controller parties
+- accountability is not capability; permissions must still be explicitly granted
+- high-risk actions support approval constraints and proposal mode
+- authorization subjects use DIDs or condition selectors; handles are not authorization primary keys
+- dynamic conditions such as organization membership, roles, and handle bindings are expressed through verifiable claims / attestations
+- DID Documents are not cross-organization identity profiles; public-persona DIDs may declare handles, while pairwise/private DIDs do not publish handles by default and prove attributes through minimum-disclosure VCs / presentations
 - sending messages, editing, recalling, and moderating are distinct actions
 
 ## 6. Relation to the Legacy `contrix-spec`

@@ -208,6 +208,16 @@ Actor 是行动主体，不一定是人。
   "actor_type": "agent",
   "display_name": "Copy Review Agent",
   "status": "active",
+  "accountability": {
+    "mode": "accountable",
+    "responsible_actor_id": "did:web:alice.example.com",
+    "controller_actor_ids": [
+      "did:web:alice.example.com"
+    ],
+    "operator_actor_ids": [
+      "did:web:agents.vendor.example.com"
+    ]
+  },
   "profile_entity_id": "cx:entity:01JS0AE000000000000000000"
 }
 ```
@@ -221,6 +231,60 @@ Actor 是行动主体，不一定是人。
 - `team`
 
 Actor 的身份根仍然由 [identity.md](./identity.md) 定义。协议中的主体引用 MUST 使用 DID 或稳定 actor ID。
+
+### 7.1 Accountable Actor
+
+有些 Actor 拥有直接身份，但不应被视为完全自负责主体。
+
+典型例子包括：
+
+- AI agent
+- 服务机器人
+- 自动化账号
+- 未成年人账号
+- 受托代操作账号
+- 由组织托管的集成账号
+
+协议层 SHOULD 用统一的 accountability 模型表达“谁行动”和“谁负责”：
+
+```json
+{
+  "accountability": {
+    "mode": "accountable",
+    "responsible_actor_id": "did:web:alice.example.com",
+    "controller_actor_ids": [
+      "did:web:alice.example.com"
+    ],
+    "guardian_actor_ids": [],
+    "operator_actor_ids": [
+      "did:web:agents.vendor.example.com"
+    ],
+    "accountability_policy_ref": "cx:policy:01JS0AP000000000000000000"
+  }
+}
+```
+
+字段语义：
+
+- `responsible_actor_id`：最终责任主体，可以是个人、组织或团队
+- `controller_actor_ids`：可以配置、暂停、停用或授权该 Actor 的主体
+- `guardian_actor_ids`：对未成年人或受保护主体承担监护/同意职责的主体
+- `operator_actor_ids`：实际托管或运行该 Actor 的服务方
+- `accountability_policy_ref`：适用的责任、审批、记录与限制策略
+
+`actor_type = "agent"` 的 Actor SHOULD 声明 `responsible_actor_id` 或等价组织责任主体。  
+被标记为未成年人、受保护主体或托管主体的 Actor SHOULD 声明 `guardian_actor_ids` 或 `responsible_actor_id`。
+
+责任归属不等于操作权限。`responsible_actor_id` 或 `guardian_actor_ids` 不会自动让该 Actor 继承他们的全部 capability。
+
+换言之：
+
+```txt
+identity answers who acted
+accountability answers who is responsible
+grant answers why the action was allowed
+run answers under which execution context it happened
+```
 
 当 Actor 需要进入协作图时，SHOULD 为它创建一个 `entity_type = "actor_profile"` 的 Entity 镜像。这样 `assigned_to`、`mentions`、`contains` 等 Relation 可以始终指向 Entity，避免 Relation 同时支持多种目标类型。
 
@@ -280,6 +344,7 @@ Entity 是协议中最重要的协作对象。
 - `attachment`
 - `run`
 - `memory`
+- `claim`
 - `schema`
 - `policy`
 - `invite`
@@ -386,6 +451,19 @@ Event 是协作事实记录。
       }
     }
   },
+  "authorization": {
+    "grant_id": "cx:grant:01JS0GR000000000000000000",
+    "issuer": "did:web:alice.example.com",
+    "subject": "did:web:agent.copy.example.com",
+    "delegation_chain": [
+      "cx:grant:01JS0GR000000000000000000"
+    ],
+    "claim_ids": [
+      "cx:claim:01JS0CLM00000000000000000"
+    ],
+    "approval_event_ids": []
+  },
+  "run_id": "cx:entity:01JS0RN000000000000000000",
   "occurred_at": "2026-04-22T08:20:00Z",
   "recorded_at": "2026-04-22T08:20:01Z",
   "transaction_id": "cx:txn:01JS0TX000000000000000000",
@@ -430,7 +508,30 @@ Event 是协作事实记录。
 
 业务事件必须能还原为底层 `entity.*` 或 `relation.*` 事件。
 
-### 10.2 Command 与 Event
+### 10.2 Event 授权与责任链
+
+由 accountable Actor 产生的 Event SHOULD 记录授权来源。
+
+`authorization` 至少用于回答：
+
+- 该操作依据哪个 grant 被允许
+- grant 的 issuer 是谁
+- subject 是否就是实际 actor
+- 是否存在 delegation chain
+- 是否满足 required claims
+- 是否经过 guardian / controller / responsible actor approval
+
+Agent、未成年人账号、托管账号或自动化账号执行高影响操作时，Event SHOULD 关联：
+
+- `authorization.grant_id`
+- `authorization.delegation_chain`
+- `authorization.claim_ids`
+- `authorization.approval_event_ids`
+- `run_id` 或等价执行上下文
+
+这样审计系统可以同时追踪“谁签名执行”“谁授权”“谁负责”“哪次运行导致”。
+
+### 10.3 Command 与 Event
 
 客户端 SHOULD 提交 Command，服务端或本地 reducer 验证后生成 Event。
 
@@ -635,6 +736,14 @@ Schema SHOULD 定义 Entity 类型、字段类型、允许关系、默认视图�
 - `entity_ref`
 - `url`
 - `json`
+
+### 13.1 演进与向后兼容 (Schema Evolution)
+
+去中心化协作网络中，参与者的软件版本和本地 Schema 版本很可能不一致。Schema 设计必须支持向下兼容：
+
+1. **优雅降级 (Graceful Fallback)**：当旧客户端同步到一个带有未知 `entity_type`，或包含 Schema 升级后新增的未知字段的 Entity 时，MUST NOT 抛出解析异常丢弃该对象。
+2. **盲存机制 (Blind Storage)**：客户端与 Index 节点 SHOULD 将所有无法识别的字段及对象视为不透明数据 (Opaque Data) 进行完整保存和转发，且不破坏其原有的因果关联和签名，确保全网最终一致性不被截断。
+3. **UI 回退展示**：在界面层，对于无法应用特定 View 渲染的未知 Entity，客户端 SHOULD 将其降级展示为“通用实体卡片 (Generic Entity Card)”，并可选择性提示用户“请升级客户端版本以获得最佳协作体验”。
 
 ## 14. Policy
 

@@ -400,7 +400,7 @@ Contrix 初版不引入全网共识链。
 
 ## 17. 字段级 merge 与对象级收敛
 
-### 16.1 标量字段
+### 17.1 标量字段
 
 例如：
 
@@ -413,7 +413,7 @@ Contrix 初版不引入全网共识链。
 
 - LWW by causal order
 
-### 16.2 集合字段
+### 17.2 集合字段
 
 例如：
 
@@ -425,22 +425,33 @@ Contrix 初版不引入全网共识链。
 
 - OR-Set
 
-### 16.3 排序字段
+### 17.3 树图结构与循环依赖处理
+
+对象在 `collection` 或 `board` 间的转移通过 Relation 的增删或 `move` 操作实现。在离线并发操作中，极易产生循环包含 (Cycle) 或孤儿数据 (Orphaned items)。
+
+建议收敛规则：
+- **防循环 (Cycle Prevention)**：当发生并行移动导致图结构出现循环时（如 A 包含 B，同时 B 包含 A），Reducer 将基于 `hlc + actor_seq` 排序，较晚发生的移动操作将被判定无效并被退回，或者强制平铺到根容器。
+- **防孤儿 (Orphan Resolution)**：当一个对象被移入的父节点被并行删除时，该对象将自动回落到 Space 的默认 Inbox 容器或其原始容器中。
+
+### 17.4 排序字段与重平衡
 
 例如：
 
 - `rank`
 - `container_id`
 
-应通过 move/reorder 语义处理。
+应通过 move/reorder 语义处理。`rank` 推荐使用 Fractional Indexing string。
 
-### 16.4 Message
+**重平衡 (Rebalance) 机制**：
+当高频拖拽导致 Fractional Indexing 字符串长度膨胀或精度耗尽时，具备 `manage_board` 或对应管理权限的 Actor MAY 提交一条特殊的 `cx.relation.rebalance` 操作。该操作将在其所属分支上截断现有的长尾 rank，为容器内所有对象重新分配短且等距的 rank 字符串，以消除碎片和性能隐患。
+
+### 17.5 Message
 
 - `message.create` 是 append-only
 - `message.revise` 形成 revision chain
 - 默认视图显示最新可见 revision
 
-### 16.5 Reaction
+### 17.6 Reaction
 
 reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
@@ -490,17 +501,25 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
 这意味着授权语义也必须服从同一套因果与排序规则，而不是旁路逻辑。
 
-## 21. 可见性与密文负载
+## 21. 可见性、密文负载与 E2EE 索引
 
-ACL 不等于密文保护，去中心化 relay 也不应被迫看懂所有正文。
+ACL 不等于密文保护，去中心化 relay 也不应被迫看懂所有正文。为解决端到端加密与视图检索的矛盾，协议采用“明暗双轨策略”。
 
-因此初版建议区分：
+### 21.1 字段可见性分级
 
-- 可路由元数据：`space_id`、`target_ref`、`type`、`causal`
-- 可选密文字段：正文、附件内容、敏感 memory body
+- **可路由元数据 (Routing Metadata)**：`space_id`、`target_ref`、`type`、`causal`。此类数据必须明文，用于 Relay 路由与因果排序。
+- **明文业务元数据 (Cleartext Indexable Metadata)**：`status`、`labels`、`priority`、`due_at` 等轻量级业务流转字段。此类字段 SHOULD 保持明文，供 Index 层查询与生成各类无密钥依赖的统计视图。
+- **不透明加密负载 (Opaque Encrypted Payload)**：`content`、`body`、附件内容、敏感 `memory` 细节。此类字段 MUST 被加密。实现 MAY 使用 `policy.encryption_profile` 指定的 envelope 格式加密。即使 relay 或 index 无法解密，也 SHOULD 能转发、去重与保留因果结构。
 
-实现 MAY 使用 `policy.encryption_profile` 指定的 envelope 格式对内容加密。  
-即使 relay 或 index 无法解密，也 SHOULD 能转发、去重与保留因果结构。
+### 21.2 动态群组加密
+
+对于 `channel` 和 `board` 等高频进出的协作空间，建议采用 MLS (Message Layer Security) 协议作为基础架构，而非双棘轮协议 (Double Ratchet)，以高效处理成员进出的前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)。
+
+### 21.3 密文上的检索索引
+
+由于去中心化网络中不受信节点无法解密数据，如需实现全局密文检索功能，客户端 SHOULD 选择以下方案之一：
+1. 依赖本地存储解密后维护的客户端全文索引（倒排索引）。
+2. 在受控网络内，指定一个支持可信执行环境 (TEE) 或受组织高度信任的 Index 节点代理密文检索功能。
 
 ## 22. Blob 同步
 

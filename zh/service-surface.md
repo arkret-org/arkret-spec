@@ -416,7 +416,19 @@ POST /xrpc/cx.authz.check
 - repo / relay / index MAY 不解密正文
 - 但仍 SHOULD 保留 hash、cursor、causal 与目标引用
 
-## 12. 初版设计决定
+## 12. 防滥用与配额机制 (Anti-Spam & Quota)
+
+在去中心化网络中，计算、存储与带宽都是稀缺资源。协议要求所有提供写入或传播服务的节点实现必须具备防御恶意滥用的能力：
+
+### 12.1 存储责任与 Blob Quota
+- **成本归属**：Space 的整体数据大小、历史 Op 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Space 的 `owner` 或负责托管的 `responsible_actor_id`。
+- **拒绝写入**：当 Blob 服务或 Index 服务评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Op 或大文件 Blob。
+
+### 12.2 写频率控制 (Rate Limiting)
+- Relay 和 Repo 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。
+- 对于来自未验证或低信誉 DID 的恶意刷写（例如短时间内进行海量无效的 `message.create` 或反复触发高并发图重组），节点有权暂时熔断该 DID 的请求。
+
+## 13. 初版设计决定
 
 当前草案建议固定：
 
@@ -426,8 +438,9 @@ POST /xrpc/cx.authz.check
 - DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill
 - 服务必须公开 reducer / schema / feature profile
+- 明确 Space Owner 的资源记账责任与防滥用熔断标准
 
-## 13. 后续待细化
+## 14. 后续待细化
 
 下一轮仍需继续补：
 
