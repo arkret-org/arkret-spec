@@ -57,6 +57,7 @@ contrix-spec-new/
     glossary.md
     space-hierarchy.md
     agent-protocol-interop.md
+    transport-bindings.md
   en/
     README.md
     _tasks.md
@@ -107,6 +108,7 @@ contrix-spec-new/
     glossary.md
     space-hierarchy.md
     agent-protocol-interop.md
+    transport-bindings.md
 ```
 
 The Chinese specification is currently the leading detailed draft. The English folder is structurally aligned and will continue to be expanded toward full translation.

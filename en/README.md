@@ -100,6 +100,7 @@ Main document groups:
 - [glossary.md](./glossary.md)
 - [space-hierarchy.md](./space-hierarchy.md)
 - [agent-protocol-interop.md](./agent-protocol-interop.md)
+- [transport-bindings.md](./transport-bindings.md)
 
 The current task list and next backlog live in [_tasks.md](./_tasks.md).
 

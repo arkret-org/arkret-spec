@@ -168,6 +168,11 @@
 | Typing | 输入中 | 短暂的正在输入指示。 |
 | Ephemeral Event | 临时事件 | 不进入长期 repo 审计图的短期事件，例如 typing、presence、WebRTC ICE candidate。 |
 | Durable Event | 持久事件 | 进入 repo / reducer / audit 的长期事件。 |
+| STUN | NAT 探测服务 | WebRTC 用于发现公网反射地址的服务。 |
+| TURN | 中继媒体服务 | WebRTC 无法直连或要求隐藏 IP 时使用的媒体中继服务，凭证必须短期有效。 |
+| ICE | 连接候选协商 | WebRTC 用于选择 P2P、STUN 或 TURN 路径的连接协商机制。 |
+| SFU | 选择性转发单元 | 多方会议中转发媒体流的服务，通常不应解密 E2EE 媒体。 |
+| MCU | 混流单元 | 多方会议中混合音视频的服务，通常会接触明文媒体，必须由 policy 显式允许。 |
 
 ## 11. API、编码与一致性
 
@@ -184,6 +189,7 @@
 | Sync Token | 同步令牌 | 客户端增量同步的 opaque resume token。 |
 | State After | 后置状态 | sync timeline 应用完毕后的状态 delta，供客户端正确渲染当前 UI。 |
 | Feature Discovery | 能力发现 | 客户端查询服务支持的 version、profile、endpoint、限制和扩展。 |
+| Transport Binding | 传输绑定 | 将 Contrix canonical operation 映射到 HTTP/JSON、gRPC、WebSocket、SSE、message queue、libp2p 或 IPC 的规则。 |
 | Conformance Profile | 一致性画像 | 定义某类实现必须支持的能力集合和测试范围。 |
 | Test Vector | 测试向量 | 跨实现验证 canonicalization、hash、签名、reducer、state resolution 等行为的固定输入输出。 |
 

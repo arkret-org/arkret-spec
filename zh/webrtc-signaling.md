@@ -1,142 +1,480 @@
-# WebRTC Signaling Draft
+# WebRTC Calls and Meetings
 
 ## 1. 目标
 
-实时音视频通话 (VoIP/Video Call) 是现代协作协议的必备能力。与持久化的业务数据不同，通话信令具有高频、短暂、对延迟极度敏感的特征。
+Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Space Repo；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
 
-本规范定义了如何利用 Contrix 的 **Ephemeral Channel** 来传输 WebRTC 信令，实现端到端的音视频通话。
+本文件定义：
+
+- 一对一 WebRTC P2P 通话
+- 多方会议的 Mesh / SFU / MCU 模式
+- TURN / STUN / ICE server 动态发现
+- 会议 membership、权限、E2EE、push、recording 和审计边界
+- 信令事件、会议状态事件和服务发现
 
 ## 2. 设计原则
 
-### 2.1 信令是 Ephemeral 的
-通话信令（Offer, Answer, ICE Candidates）本身不需要永久记录在 Space Repo 的因果图中。它们 MUST 通过 Relay 的 Ephemeral Channel 发送。
-通话的“历史记录”（例如“Alice 呼叫了 Bob，通话时长 5 分钟”）MAY 作为普通的 Durable Event 写入 Repo，但这与信令协商过程解耦。
+### 2.1 信令是 Ephemeral
 
-### 2.2 信令必须加密
-为了防止中间人窃听通话双方的 IP 地址或注入恶意 SDP，所有的 WebRTC 信令 MUST 被端到端加密（使用该 Space 或 DM 的 MLS 组密钥）。
+Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令 SHOULD 通过 Relay 的 Ephemeral Channel 或等价 streaming transport 发送。
 
-### 2.3 支持 1对1 与多方通话
-- 1对1 呼叫：标准 WebRTC P2P 协商。
-- 多方呼叫 (Group Call)：建议采用类似 Matrix 的 Focus/SFU 架构，信令统一发给 SFU Bot，或网状 P2P 协商（仅限小规模群组）。
+通话摘要、会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Space Repo。
 
-## 3. 信令事件流
+### 2.2 信令必须认证和加密
 
-一次标准的 1对1 呼叫涉及以下事件类型：
+WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
-1. `cx.call.invite` (Offer)
-2. `cx.call.candidates` (ICE)
-3. `cx.call.answer` (Answer)
-4. `cx.call.reject` (拒绝)
-5. `cx.call.hangup` (挂断)
+- 绑定 Space id、call id、device id、actor id。
+- 由发送设备签名，或封装在已认证的 encrypted ephemeral channel。
+- 对同一 Space / DM 的授权成员端到端加密。
+- 防重放，至少包含 timestamp、sequence 或 frame id。
 
-所有的信令事件都被包裹在统一的 Ephemeral Envelope 中，通过 Relay 广播给目标 Actor 的在线设备。
+### 2.3 媒体路径不等于信任路径
 
-## 4. 信令负载格式
+媒体可能经过 TURN、SFU 或 MCU。它们可以转发包或混流，但不得因此获得 Space 权限。媒体服务 MUST 有 service DID，并由 Space policy 显式允许。
 
-### 4.1 呼叫邀请 `cx.call.invite`
+## 3. 通话模型
 
-发起方向接收方发送包含 SDP Offer 的邀请：
+| 模式 | 适用 | 说明 |
+| --- | --- | --- |
+| `p2p` | 1 对 1 或极小规模 | 双方直接 WebRTC 连接，必要时经 TURN relay。 |
+| `mesh` | 3-4 人小会 | 每个客户端与其他客户端建连接，复杂度高，不建议默认。 |
+| `sfu` | 多方会议默认 | Selective Forwarding Unit 转发 RTP，不解密 E2EE 内容。 |
+| `mcu` | PSTN / 录制 / 低端设备 | Mixing Control Unit 混流，通常会接触明文或解密后媒体，必须强提示和审计。 |
+
+默认多人会议 SHOULD 使用 SFU。
+
+## 4. Call Entity
+
+会议或通话 SHOULD 用标准 Entity 表示：
 
 ```json
 {
-  "type": "cx.call.invite",
-  "call_id": "call-12345-abcde",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "party_id": "device-alice-1",
-  "lifetime_ms": 60000,
+  "type": "entity",
+  "entity_type": "call",
+  "space_id": "cx:space:...",
+  "title": "Design review",
+  "fields": {
+    "call_id": "cx:call:01J...",
+    "mode": "sfu",
+    "state": "ringing",
+    "started_at": null,
+    "ended_at": null,
+    "recording_policy": "disabled"
+  }
+}
+```
+
+`state`：
+
+- `scheduled`
+- `ringing`
+- `connecting`
+- `active`
+- `ended`
+- `missed`
+- `failed`
+- `cancelled`
+
+## 5. 权限模型
+
+标准 actions：
+
+- `call.start`
+- `call.join`
+- `call.invite`
+- `call.moderate`
+- `call.screen_share`
+- `call.record`
+- `call.transcribe`
+- `call.end_for_all`
+- `call.configure_media_service`
+
+默认规则：
+
+- Space 成员不自动拥有 `call.record`。
+- `call.screen_share` SHOULD 独立授权。
+- `call.configure_media_service` 只应授予管理员或受信服务。
+- 被 ban / suspended 的 actor MUST NOT 加入 call。
+- 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
+
+## 6. ICE Server Discovery
+
+客户端通过 Space policy、service discovery 或 media service 获取 ICE servers。
+
+### 6.1 Space Media Service
+
+```json
+{
+  "type": "cx.space.media_service",
+  "state_key": "default",
+  "content": {
+    "service_id": "did:web:media.example.com",
+    "modes": ["turn", "sfu"],
+    "ice_config_endpoint": "https://media.example.com/contrix/v1/ice-config",
+    "sfu_endpoint": "https://sfu.example.com/contrix/v1",
+    "allowed_call_modes": ["p2p", "sfu"],
+    "recording_supported": false
+  }
+}
+```
+
+修改该 state event 需要 `call.configure_media_service` 或 `space.policy.manage` capability。
+
+### 6.2 ICE Config Endpoint
+
+默认 HTTP binding：
+
+```http
+POST /contrix/v1/ice-config
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "space_id": "cx:space:...",
+  "call_id": "cx:call:01J...",
+  "actor_id": "did:uuid:...",
+  "device_id": "dev_a",
+  "mode": "p2p"
+}
+```
+
+Response:
+
+```json
+{
+  "ttl_seconds": 600,
+  "ice_servers": [
+    {
+      "urls": ["stun:stun.example.com:3478"]
+    },
+    {
+      "urls": ["turns:turn.example.com:5349?transport=tcp"],
+      "username": "1699999999:did_uuid_alice",
+      "credential": "base64url...",
+      "credential_type": "password"
+    }
+  ],
+  "policy": {
+    "force_relay": false,
+    "allow_udp": true,
+    "allow_tcp": true,
+    "allow_ipv6": true
+  },
+  "signature": {
+    "kid": "did:web:media.example.com#key-1",
+    "sig": "base64url..."
+  }
+}
+```
+
+要求：
+
+- TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential。
+- ICE config response MUST 由 media service 签名，或通过已认证 TLS + service DID 绑定返回。
+- 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
+- 高隐私 Space MAY 设置 `force_relay=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
+
+## 7. Signaling Envelope
+
+所有 call signaling frame 使用统一 envelope：
+
+```json
+{
+  "type": "cx.call.signal",
+  "call_id": "cx:call:01J...",
+  "space_id": "cx:space:...",
+  "sender": "did:uuid:alice",
+  "sender_device": "dev_a",
+  "seq": 12,
+  "sent_at": "2026-04-26T00:00:00Z",
+  "payload": {
+    "kind": "invite",
+    "data": {}
+  },
+  "proof": {}
+}
+```
+
+`payload.kind`：
+
+- `invite`
+- `answer`
+- `candidate`
+- `reject`
+- `hangup`
+- `renegotiate`
+- `mute_state`
+- `media_state`
+- `speaking`
+- `focus_join`
+- `focus_leave`
+- `error`
+
+## 8. 一对一通话
+
+Invite payload:
+
+```json
+{
+  "kind": "invite",
+  "data": {
+    "lifetime_ms": 60000,
+    "mode": "p2p",
+    "offer": {
+      "type": "offer",
+      "sdp": "v=0\r\n..."
+    },
+    "media": {
+      "audio": true,
+      "video": true,
+      "screen": false
+    }
+  }
+}
+```
+
+Answer payload:
+
+```json
+{
+  "kind": "answer",
+  "data": {
+    "answer": {
+      "type": "answer",
+      "sdp": "v=0\r\n..."
+    },
+    "accepted_media": {
+      "audio": true,
+      "video": true
+    }
+  }
+}
+```
+
+Candidate payload:
+
+```json
+{
+  "kind": "candidate",
+  "data": {
+    "candidates": [
+      {
+        "candidate": "candidate:...",
+        "sdp_mid": "0",
+        "sdp_m_line_index": 0
+      }
+    ]
+  }
+}
+```
+
+字段名在 Contrix envelope 中使用 snake_case；浏览器原生 `sdpMid` / `sdpMLineIndex` MUST 映射为 `sdp_mid` / `sdp_m_line_index`。
+
+## 9. 多设备冲突处理
+
+同一 actor 的多个设备 MAY 同时收到 invite。
+
+规则：
+
+- 首个 accepted answer 赢得 call leg。
+- 其他设备收到同 actor 的 accepted answer 后 MUST 停止响铃。
+- 发起端收到同 actor 多个 answer 时，只接受第一个通过签名和 device validity 验证的 answer。
+- 被拒绝或超时的设备 SHOULD 发送 `reject`，reason 为 `answered_elsewhere` 或 `timeout`。
+
+## 10. SFU 会议
+
+### 10.1 SFU Service
+
+SFU MUST 有 service DID，并通过 `cx.space.media_service` 或 feature discovery 声明。
+
+SFU join request:
+
+```json
+{
+  "call_id": "cx:call:01J...",
+  "space_id": "cx:space:...",
+  "actor_id": "did:uuid:alice",
+  "device_id": "dev_a",
+  "capability_refs": ["cx:grant:..."],
+  "desired_media": {
+    "audio": true,
+    "video": true,
+    "screen": false
+  }
+}
+```
+
+SFU response:
+
+```json
+{
+  "participant_id": "part_01",
+  "transport": "webrtc",
   "offer": {
     "type": "offer",
-    "sdp": "v=0\r\no=- 25678 753849 IN IP4 127.0.0.1\r\n..."
+    "sdp": "v=0\r\n..."
   },
-  "capabilities": {
-    "dtmf": true,
-    "video": true
+  "sfu_signature": {
+    "kid": "did:web:sfu.example#key-1",
+    "sig": "base64url..."
   }
 }
 ```
 
-| 字段 | 必需 | 说明 |
-|------|------|------|
-| `call_id` | MUST | 通话的全局唯一标识符 |
-| `space_id` | MUST | 呼叫发生的 Space 上下文 |
-| `party_id` | MUST | 发起方当前设备的唯一标识（避免多端冲突） |
-| `lifetime_ms` | SHOULD | 邀请的有效期，超时客户端应视为未接通 |
-| `offer` | MUST | WebRTC RTCSessionDescriptionInit 对象 |
+### 10.2 SFU 权限
 
-### 4.2 呼叫应答 `cx.call.answer`
+SFU MUST verify:
 
-接收方同意接听，并回复 SDP Answer：
+- Space media service policy allows this SFU。
+- actor has `call.join`。
+- actor/device is not revoked。
+- call state accepts new participants。
+- media request does not exceed grants, e.g. screen share requires `call.screen_share`。
+
+客户端 MUST verify SFU service DID 和 response signature。
+
+### 10.3 E2EE with SFU
+
+SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实现端到端媒体加密。SFU 可转发 RTP 包和处理转发层 metadata，但不应获得明文媒体。
+
+若 SFU 或 MCU 会解密媒体，客户端 MUST 显示明确安全边界，并且 Space policy MUST 允许 `media_service_decrypts=true`。
+
+## 11. 会议状态事件
+
+会议状态可作为 durable event 记录：
 
 ```json
 {
-  "type": "cx.call.answer",
-  "call_id": "call-12345-abcde",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "party_id": "device-bob-2",
-  "answer": {
-    "type": "answer",
-    "sdp": "v=0\r\no=- 98765 43210 IN IP4 127.0.0.1\r\n..."
+  "type": "cx.call.state",
+  "space_id": "cx:space:...",
+  "content": {
+    "call_id": "cx:call:01J...",
+    "state": "active",
+    "mode": "sfu",
+    "participants": [
+      {
+        "actor_id": "did:uuid:alice",
+        "device_id": "dev_a",
+        "joined_at": "2026-04-26T00:00:00Z",
+        "media": {"audio": true, "video": true, "screen": false}
+      }
+    ]
   }
 }
 ```
 
-### 4.3 交换候选者 `cx.call.candidates`
+高频 speaking/mute/video 状态 SHOULD 走 ephemeral channel；会议开始、结束、参与者加入/离开 MAY 采样或摘要写入 durable state。
 
-Trickle ICE 机制下的候选者交换，可以在 Invite 之后持续发送：
+## 12. 屏幕共享
+
+屏幕共享是一种独立 media source：
 
 ```json
 {
-  "type": "cx.call.candidates",
-  "call_id": "call-12345-abcde",
-  "party_id": "device-alice-1",
-  "candidates": [
-    {
-      "candidate": "candidate:842163049 1 udp 1677729535 1.2.3.4 54321 typ srflx",
-      "sdpMid": "video",
-      "sdpMLineIndex": 1
+  "kind": "media_state",
+  "data": {
+    "screen": {
+      "enabled": true,
+      "source_id": "screen_01",
+      "with_audio": false
     }
-  ]
+  }
 }
 ```
 
-### 4.4 拒绝呼叫 `cx.call.reject`
+规则：
+
+- 需要 `call.screen_share` capability。
+- 客户端 MUST 在本地展示正在共享状态。
+- 会议主持人 MAY 使用 `call.moderate` 请求停止某人的 screen share。
+
+## 13. 录制与转写
+
+录制和转写默认关闭，必须由 Space policy 和 call capability 显式允许。
+
+启动录制：
 
 ```json
 {
-  "type": "cx.call.reject",
-  "call_id": "call-12345-abcde",
-  "party_id": "device-bob-2",
-  "reason": "busy" // busy, ignored, declined
+  "type": "cx.call.recording.start",
+  "space_id": "cx:space:...",
+  "content": {
+    "call_id": "cx:call:01J...",
+    "recording_agent": "did:web:recorder.example",
+    "mode": "audio_video",
+    "visible_notice": true
+  }
 }
 ```
 
-### 4.5 挂断呼叫 `cx.call.hangup`
+要求：
+
+- 需要 `call.record`。
+- 客户端 MUST 对所有参会者显示录制中。
+- 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
+- 录制结果 MUST 通过 `cx.call.recording.result` 引用 blob hash、duration、media type、retention policy。
+- 转写需要 `call.transcribe`，转写文本应作为 Entity 或 Artifact，并遵守同一 Space policy。
+
+## 14. 推送集成
+
+`cx.call.signal` 中 `kind=invite` SHOULD 触发 VoIP push。
+
+脱敏 push payload:
 
 ```json
 {
-  "type": "cx.call.hangup",
-  "call_id": "call-12345-abcde",
-  "party_id": "device-alice-1",
-  "reason": "user_hangup" // user_hangup, ICE_failed, timeout
+  "type": "call_invite",
+  "space_id": "cx:space:...",
+  "call_id": "cx:call:01J...",
+  "sender": "did:uuid:alice",
+  "voip": true,
+  "expires_at": "2026-04-26T00:01:00Z"
 }
 ```
 
-## 5. 多设备冲突处理
+Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会议标题，除非 Space policy 明确允许。
 
-由于用户的账号可能登录在多个设备上，当 Alice 呼叫 Bob 时，Bob 的所有设备都会收到 `cx.call.invite` 并响铃。
+## 15. 安全与隐私
 
-1. **唯一应答**：如果 Bob 在设备 B1 上点击了接听，B1 发出 `cx.call.answer`。
-2. **响铃取消**：Bob 的设备 B2 收到信令通道广播的 B1 `cx.call.answer` 后，知道该通话已被本人的其他设备接管，应立即停止响铃。
-3. **忽略冗余**：Alice 收到 B1 的 Answer 后建立连接。如果由于网络延迟又收到了 B2 的 Answer，Alice 的客户端 SHOULD 拒绝 B2 的协商。
+实现 MUST：
 
-## 6. 与推送的集成
+- 验证所有 signaling sender 的 membership 和 device validity。
+- 防止 replay、sequence rollback 和 stale invite。
+- 对 TURN credential 使用短期凭证。
+- 对高隐私 Space 支持 `force_relay`。
+- 不把 SDP / ICE candidate 写入 durable public event。
+- 对 SFU/MCU/recording service 使用 service DID 和 policy allowlist。
+- 在 E2EE 降级、MCU 混流、录制、外部 PSTN bridge 时显示明确提示。
 
-为了在移动端实现类似系统电话的唤醒（如 iOS CallKit / Android ConnectionService），`cx.call.invite` 事件 MUST 触发具有最高优先级的**VoIP Push Notification**。
+实现 SHOULD：
 
-Relay 节点在匹配推送规则时，应识别 `cx.call.invite` 并向推送网关发送带有 `voip: true` 标记的脱敏 payload。
+- 支持 IP 泄露最小化 profile。
+- 支持 bandwidth / resolution policy。
+- 对会议服务做 region / data residency 限制。
+- 对呼叫滥用做 rate limit 和 block。
 
-## 7. 后续待细化
+## 16. 错误码
 
-- 基于 SFU (Selective Forwarding Unit) 的大规模群呼信令路由
-- 屏幕共享 (Screen Sharing) 的 SDP 标识符规范
-- TURN/STUN 服务器在 Space 级别的动态发现机制
+| code | 含义 |
+| --- | --- |
+| `call_not_found` | call id 不存在或不可见。 |
+| `call_expired` | invite 或 call 已过期。 |
+| `call_already_answered` | 其他设备已经接听。 |
+| `media_permission_denied` | 缺少 video/audio/screen/record 权限。 |
+| `ice_config_denied` | 无权获取 ICE 配置。 |
+| `turn_credential_expired` | TURN credential 已过期。 |
+| `sfu_not_allowed` | Space policy 不允许该 SFU。 |
+| `e2ee_required` | Space 要求 E2EE，但当前媒体路径不满足。 |
+| `recording_denied` | 录制未授权或 policy 禁止。 |
+
+## 17. 与 Matrix Call 的关系
+
+Contrix 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Space、capability、device trust、policy server 和 transport binding 模型。
+
+Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `cx.call.signal`，但 durable meeting state、recording artifact 和 Space policy 必须遵守 Contrix 规则。
+

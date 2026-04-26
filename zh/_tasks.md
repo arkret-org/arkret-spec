@@ -82,3 +82,20 @@
 - [x] 定义 `cx.agent.endpoint`、`cx.agent.protocol_session.start/status/result` 与 adapter registry
 - [x] 定义 discovery、capability、policy、E2EE 数据外发、artifact 安全检查、audit mode、failure mapping
 - [x] 更新 README、glossary 与英文占位文件
+
+## Transport Binding 解耦
+
+- [x] 增加 `transport-bindings.md`，明确 Contrix 协议核心不强绑定 REST API
+- [x] 将 HTTP/JSON REST 定义为默认互操作 binding，而不是唯一合法接口形态
+- [x] 定义 canonical operation names 与 HTTP、gRPC、WebSocket/SSE、message queue、P2P/libp2p 的映射要求
+- [x] 更新 `api-conventions.md`、`service-api-schema.md`、`service-surface.md` 中过强的 REST 表述
+- [x] 更新 README、glossary 与英文占位文件
+
+## WebRTC 通话与会议
+
+- [x] 扩展 `webrtc-signaling.md`，从基础信令草案升级为通话/会议规范
+- [x] 定义 P2P、Mesh、SFU、MCU 模式和默认多人会议 SFU 推荐
+- [x] 定义 `cx.space.media_service` 与 ICE config endpoint，用于 TURN/STUN 动态发现
+- [x] 定义短期 TURN credential、`force_relay`、IP 泄露最小化和 media service DID 验证
+- [x] 定义 `cx.call.signal` envelope、call entity、meeting state、screen share、recording/transcription
+- [x] 明确 VoIP push 脱敏 payload、E2EE/SFrame/SFU 边界、MCU/录制强提示和 policy 约束

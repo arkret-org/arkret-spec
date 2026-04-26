@@ -1,11 +1,13 @@
-# API 通用约定
+# HTTP/JSON Binding 通用约定
 
 ## 1. 目标
 
-本文定义 Contrix HTTP API 的通用线级约定。  
-各服务面可以扩展自己的 endpoint，但 MUST 遵守本文的基础规则，除非对应文档明确说明例外。
+本文定义 Contrix 默认 HTTP/JSON binding 的线级约定。  
+Contrix 协议核心不强绑定 REST API；核心操作、消息 envelope 与 transport binding 的关系见 `transport-bindings.md`。
 
-本文适用于：
+各服务面可以扩展自己的 HTTP endpoint，但 MUST 遵守本文的基础规则，除非对应文档明确说明例外。非 HTTP binding（例如 gRPC、WebSocket、SSE、libp2p、message queue）MUST 提供语义等价的认证、授权、幂等、分页、错误和流控语义。
+
+本文作为默认 HTTP binding 适用于：
 
 - identity registry
 - repo
@@ -16,7 +18,7 @@
 - push gateway
 - federation endpoint
 
-## 2. 传输与编码
+## 2. HTTP 传输与编码
 
 ### 2.1 HTTPS
 

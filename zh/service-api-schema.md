@@ -2,7 +2,9 @@
 
 ## 1. 目标
 
-本文给出 Contrix 核心服务的正式 request / response 形状。通用错误、分页、幂等规则见 `api-conventions.md`。
+本文给出 Contrix 核心服务的正式 request / response 形状和默认 HTTP/JSON binding 示例。通用错误、分页、幂等规则见 `api-conventions.md`；非 REST transport 的映射规则见 `transport-bindings.md`。
+
+本文件中的 `POST /api/...`、`GET /api/...` 路径不是协议核心唯一形态。实现可以把同一 canonical operation 映射为 gRPC method、WebSocket frame、message queue topic 或本地 IPC 调用。
 
 ## 2. Identity
 

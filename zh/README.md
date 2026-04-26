@@ -80,7 +80,7 @@ Contrix New 第一阶段聚焦以下目标：
 14. [service-surface.md](./service-surface.md)  
     定义最小 repo / relay / index / blob / authz 服务面，以及 Space bootstrap。
 15. [api-conventions.md](./api-conventions.md)  
-    定义 HTTP、JSON、错误响应、幂等、分页、CORS、rate limit 与 feature discovery 的通用 API 约定。
+    定义默认 HTTP/JSON binding 的错误响应、幂等、分页、CORS、rate limit 与 feature discovery 约定。
 16. [conformance-profiles.md](./conformance-profiles.md)  
     定义 minimal client、full client、repo、relay、index、identity registry、blob、E2EE、enterprise、agent runtime 等实现 profile。
 17. [query-schema.md](./query-schema.md)  
@@ -118,7 +118,7 @@ Contrix New 第一阶段聚焦以下目标：
 33. [profiles-presence.md](./profiles-presence.md)  
     定义 Actor Profile 标准字段、在线状态广播、Typing 指示器与用户目录搜索。
 34. [webrtc-signaling.md](./webrtc-signaling.md)  
-    定义基于 Ephemeral Channel 的端到端加密音视频通话信令 (VoIP)。
+    定义 WebRTC 音视频通话与会议，包括 P2P、SFU/MCU、TURN/STUN/ICE 发现、屏幕共享、录制转写、VoIP push 与 E2EE 边界。
 35. [read-receipts.md](./read-receipts.md)  
     定义公开的 Read Receipt (已读回执) 与私有的 Read Marker (未读游标)。
 36. [applet-integration.md](./applet-integration.md)  
@@ -145,6 +145,8 @@ Contrix New 第一阶段聚焦以下目标：
     定义 Space 父子层级、双向确认、显式继承、层级查询、循环处理，以及权限/成员/历史/加密默认不级联的规则。
 47. [agent-protocol-interop.md](./agent-protocol-interop.md)  
     定义 AI agent 在 Contrix 任务中升级/切换到 A2A、ACP legacy 或其他外部 agent protocol 的发现、授权、执行、状态回流和审计规则。
+48. [transport-bindings.md](./transport-bindings.md)  
+    定义协议核心与 HTTP/REST、gRPC、WebSocket、SSE、message queue、libp2p 等 transport binding 的关系，明确 REST 只是默认互操作 binding。
 
 ## 5. 核心设计决定
 
@@ -216,7 +218,7 @@ Contrix New 第一阶段聚焦以下目标：
 
 可以继承的经验：
 
-- JSON/HTTP 友好性
+- JSON/HTTP 友好性，但不把 REST 作为协议核心唯一绑定
 - 签名与审计思路
 - 去中心化服务发现
 - 附件、同步、索引分层
@@ -260,7 +262,7 @@ Contrix New 第一阶段聚焦以下目标：
 1. 测试向量  
    为 canonical JSON、event hash、signature、state resolution、redaction、sync token 编写跨实现测试向量。
 2. OpenAPI 合并  
-   将 `service-api-schema.md`、`sync-v2.md`、`device-crypto-verification.md`、`policy-server.md` 的 endpoint 落成统一 OpenAPI。
+   将 `service-api-schema.md`、`sync-v2.md`、`device-crypto-verification.md`、`policy-server.md` 的默认 HTTP binding 落成统一 OpenAPI，同时保留 canonical operation 到其他 transport 的映射。
 3. Conformance suite  
    为 repo、relay、index、E2EE client、Applet、policy server 定义自动化互操作测试。
 4. Space version v2 候选  

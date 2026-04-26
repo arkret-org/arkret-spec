@@ -14,7 +14,7 @@
 - invite / grant 如何参与首次加入工作区
 
 本文给出一个 **最小可互操作服务面** 草案。  
-默认调用风格采用 RESTful HTTP，但实现也可以兼容 gRPC、GraphQL 等其他风格，只要提供语义等价的接口即可。
+默认调用风格采用 HTTP/JSON binding，但协议核心不强绑定 REST API。实现也可以兼容 gRPC、GraphQL、WebSocket、SSE、message queue、libp2p 或本地 IPC，只要提供语义等价的操作、认证、授权、幂等、分页、错误和流控语义即可。详细规则见 `transport-bindings.md`。
 
 ## 2. 基本原则
 
@@ -479,16 +479,18 @@ POST /api/v1/authz/check
 当前草案建议固定：
 
 - 定义最小 identity registry / repo / relay / index / blob / authz 服务面
-- RESTful 风格路径是默认推荐，但语义等价最重要，可兼容其他调用风格
+- HTTP/JSON 路径是默认推荐 binding，但语义等价最重要，可兼容其他调用风格
 - 写接口必须幂等
 - DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill
 - 服务必须公开 reducer / schema / feature profile
 - 明确 Space Owner 的资源记账责任与防滥用熔断标准
 
-## 14. 核心 API 契约与 Schema (REST API)
+## 14. 核心 API 契约与 Schema (HTTP/JSON Binding)
 
-为了保障客户端与去中心化节点的互操作性，定义以下核心 RESTful 端点。请求采用 Content-Type `application/json`。调用需在 HTTP Header 中附带 `Authorization: Bearer <JWS_Token>` 或使用 HTTP 签名认证。
+为了保障客户端与去中心化节点的互操作性，定义以下默认 HTTP/JSON binding 端点。请求采用 Content-Type `application/json`。调用需在 HTTP Header 中附带 `Authorization: Bearer <JWS_Token>` 或使用 HTTP 签名认证。
+
+其他 transport binding MUST 映射到相同 canonical operation 和 request/response 语义。
 
 ### 14.1 Repo API: 提交操作
 **`POST /api/v1/repo/submit-op`**
