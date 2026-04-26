@@ -379,7 +379,7 @@ Contrix 不追求“全网全局共识链”，只追求：
 
 建议：
 
-- 写入走普通 HTTPS / XRPC 请求
+- 写入走普通 HTTPS / REST 请求
 - writer 同时提交给 `n` 个 registry / witness 节点
 - 当获得至少 `k-of-n` 个有效 receipt 后，视为该 DID 更新已提交
 - 读取可以来自任意 registry、read replica、本地 cache 或 CDN

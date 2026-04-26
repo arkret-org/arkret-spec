@@ -14,7 +14,7 @@
 - invite / grant 如何参与首次加入工作区
 
 本文给出一个 **最小可互操作服务面** 草案。  
-实现可以不是 HTTP，也可以不是 XRPC，但必须提供语义等价的接口。
+默认调用风格采用 RESTful HTTP，但实现也可以兼容 gRPC、GraphQL 等其他风格，只要提供语义等价的接口即可。
 
 ## 2. 基本原则
 
@@ -66,7 +66,7 @@ DID Document SHOULD 只负责：
 建议所有服务都提供：
 
 ```text
-GET /xrpc/cx.server.describe
+GET /api/v1/server/describe
 ```
 
 示例：
@@ -98,7 +98,7 @@ identity registry 至少应提供以下语义：
 #### 3.1.1 描述 registry
 
 ```text
-GET /xrpc/cx.id.describe
+GET /api/v1/identity/describe
 ```
 
 返回：
@@ -111,7 +111,7 @@ GET /xrpc/cx.id.describe
 #### 3.1.2 获取当前 DID Document
 
 ```text
-GET /xrpc/cx.id.getDocument?did=<did>
+GET /api/v1/identity/document?did=<did>
 ```
 
 返回 SHOULD 包含：
@@ -124,7 +124,7 @@ GET /xrpc/cx.id.getDocument?did=<did>
 #### 3.1.3 获取 DID 日志
 
 ```text
-GET /xrpc/cx.id.getLog?did=<did>&cursor=<cursor>&limit=<n>
+GET /api/v1/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 ```
 
 用于：
@@ -136,7 +136,7 @@ GET /xrpc/cx.id.getLog?did=<did>&cursor=<cursor>&limit=<n>
 #### 3.1.4 提交 DID 更新
 
 ```text
-POST /xrpc/cx.id.submitDidOp
+POST /api/v1/identity/submit-did-op
 ```
 
 请求体 SHOULD 包含：
@@ -156,7 +156,7 @@ POST /xrpc/cx.id.submitDidOp
 #### 3.1.5 获取 receipt / witness 证明
 
 ```text
-GET /xrpc/cx.id.getReceipts?did=<did>&head=<event-hash>
+GET /api/v1/identity/receipts?did=<did>&head=<event-hash>
 ```
 
 #### 3.1.6 写入确认建议
@@ -176,7 +176,7 @@ repo 至少应提供以下语义：
 ### 4.1 描述 repo
 
 ```text
-GET /xrpc/cx.repo.describe
+GET /api/v1/repo/describe
 ```
 
 返回：
@@ -189,7 +189,7 @@ GET /xrpc/cx.repo.describe
 ### 4.2 列出 commit
 
 ```text
-GET /xrpc/cx.repo.listCommits?cursor=<cursor>&limit=<n>
+GET /api/v1/repo/commits?cursor=<cursor>&limit=<n>
 ```
 
 用于：
@@ -201,13 +201,13 @@ GET /xrpc/cx.repo.listCommits?cursor=<cursor>&limit=<n>
 ### 4.3 获取单个 commit
 
 ```text
-GET /xrpc/cx.repo.getCommit?commit_id=<id>
+GET /api/v1/repo/commit?commit_id=<id>
 ```
 
 ### 4.4 批量获取 op
 
 ```text
-POST /xrpc/cx.repo.getOps
+POST /api/v1/repo/ops
 ```
 
 请求体可携带一组 `op_id`。
@@ -215,7 +215,7 @@ POST /xrpc/cx.repo.getOps
 ### 4.5 提交 commit
 
 ```text
-POST /xrpc/cx.repo.submitCommit
+POST /api/v1/repo/submit-commit
 ```
 
 要求：
@@ -231,13 +231,13 @@ relay 至少应提供以下语义：
 ### 5.1 描述 relay
 
 ```text
-GET /xrpc/cx.relay.describe
+GET /api/v1/relay/describe
 ```
 
 ### 5.2 Space firehose 订阅
 
 ```text
-GET /xrpc/cx.relay.subscribe?space_id=<id>&cursor=<cursor>
+GET /api/v1/relay/subscribe?space_id=<id>&cursor=<cursor>
 ```
 
 实现可用：
@@ -251,13 +251,13 @@ GET /xrpc/cx.relay.subscribe?space_id=<id>&cursor=<cursor>
 ### 5.3 增量回补
 
 ```text
-GET /xrpc/cx.relay.backfill?space_id=<id>&cursor=<cursor>&limit=<n>
+GET /api/v1/relay/backfill?space_id=<id>&cursor=<cursor>&limit=<n>
 ```
 
 ### 5.4 snapshot 入口
 
 ```text
-GET /xrpc/cx.relay.getSnapshotHead?space_id=<id>
+GET /api/v1/relay/snapshot-head?space_id=<id>
 ```
 
 用于拿到当前推荐 snapshot manifest。
@@ -269,19 +269,19 @@ index 至少应提供以下语义：
 ### 6.1 描述 index
 
 ```text
-GET /xrpc/cx.index.describe
+GET /api/v1/index/describe
 ```
 
 ### 6.2 获取 Entity 当前态
 
 ```text
-GET /xrpc/cx.index.getEntity?entity_id=<id>
+GET /api/v1/index/entity?entity_id=<id>
 ```
 
 ### 6.3 结构化查询
 
 ```text
-POST /xrpc/cx.index.query
+POST /api/v1/index/query
 ```
 
 其请求头 SHOULD 支持 `X-Contrix-Wait-For: <sync_token>`。
@@ -298,17 +298,17 @@ POST /xrpc/cx.index.query
 ### 6.4 thread / topic 查询
 
 ```text
-GET /xrpc/cx.index.getThread?topic_id=<id>&cursor=<cursor>
+GET /api/v1/index/thread?topic_id=<id>&cursor=<cursor>
 ```
 
 ### 6.5 inbox / notification 查询
 
 ```text
-GET /xrpc/cx.index.getNotifications?cursor=<cursor>&state=unread
+GET /api/v1/index/notifications?cursor=<cursor>&state=unread
 ```
 
 ```text
-GET /xrpc/cx.index.getInbox?scope=<scope>&cursor=<cursor>
+GET /api/v1/index/inbox?scope=<scope>&cursor=<cursor>
 ```
 
 ## 7. Blob Surface
@@ -318,7 +318,7 @@ blob 服务至少应提供：
 ### 7.1 上传 blob
 
 ```text
-POST /xrpc/cx.blob.upload
+POST /api/v1/blob/upload
 ```
 
 返回：
@@ -330,13 +330,13 @@ POST /xrpc/cx.blob.upload
 ### 7.2 查询 blob 头信息
 
 ```text
-HEAD /xrpc/cx.blob.get?blob_cid=<cid>
+HEAD /api/v1/blob/get?blob_cid=<cid>
 ```
 
 ### 7.3 下载 blob
 
 ```text
-GET /xrpc/cx.blob.get?blob_cid=<cid>
+GET /api/v1/blob/get?blob_cid=<cid>
 ```
 
 blob 校验 MUST 基于内容哈希，而不是单一 URL。
@@ -348,15 +348,15 @@ blob 校验 MUST 基于内容哈希，而不是单一 URL。
 至少建议提供：
 
 ```text
-GET /xrpc/cx.authz.getEffectiveGrants?space_id=<id>&subject=<did>
+GET /api/v1/authz/effective-grants?space_id=<id>&subject=<did>
 ```
 
 ```text
-GET /xrpc/cx.authz.getInvites?space_id=<id>&subject=<did-or-handle>
+GET /api/v1/authz/invites?space_id=<id>&subject=<did-or-handle>
 ```
 
 ```text
-POST /xrpc/cx.authz.check
+POST /api/v1/authz/check
 ```
 
 `check` 接口适合：
@@ -435,19 +435,19 @@ POST /xrpc/cx.authz.check
 当前草案建议固定：
 
 - 定义最小 identity registry / repo / relay / index / blob / authz 服务面
-- `xrpc` 风格路径只是建议，语义等价最重要
+- RESTful 风格路径是默认推荐，但语义等价最重要，可兼容其他调用风格
 - 写接口必须幂等
 - DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill
 - 服务必须公开 reducer / schema / feature profile
 - 明确 Space Owner 的资源记账责任与防滥用熔断标准
 
-## 14. 核心 API 契约与 Schema (XRPC)
+## 14. 核心 API 契约与 Schema (REST API)
 
-为了保障客户端与去中心化节点的互操作性，定义以下核心 XRPC 端点。所有请求均走 HTTP POST，并采用 Content-Type `application/json`。调用需在 HTTP Header 中附带 `Authorization: Bearer <JWS_Token>` 或使用 HTTP 签名认证。
+为了保障客户端与去中心化节点的互操作性，定义以下核心 RESTful 端点。请求采用 Content-Type `application/json`。调用需在 HTTP Header 中附带 `Authorization: Bearer <JWS_Token>` 或使用 HTTP 签名认证。
 
 ### 14.1 Repo API: 提交操作
-**`POST /xrpc/com.contrix.repo.submitOp`**
+**`POST /api/v1/repo/submit-op`**
 - **描述**：客户端向 Repo 提交经过签名的 Event Envelope。
 - **请求 (Request)**：
   ```json
@@ -467,7 +467,7 @@ POST /xrpc/cx.authz.check
   *注：若 CAS (`expected_state_hash`) 校验失败，返回 409 Conflict。*
 
 ### 14.2 Repo API: 同步增量
-**`POST /xrpc/com.contrix.repo.sync`**
+**`POST /api/v1/repo/sync`**
 - **描述**：基于 cursor 从 Repo 拉取缺失的 operations。
 - **请求 (Request)**：
   ```json
@@ -487,7 +487,7 @@ POST /xrpc/cx.authz.check
   ```
 
 ### 14.3 Identity API: 解析 DID
-**`POST /xrpc/com.contrix.identity.resolve`**
+**`POST /api/v1/identity/resolve`**
 - **描述**：根据 DID 查询当前的公钥、Service Endpoints 及其合法演化证明。
 - **请求 (Request)**：
   ```json
@@ -511,7 +511,7 @@ POST /xrpc/cx.authz.check
   ```
 
 ### 14.4 Relay API: 实时流订阅
-**`GET /xrpc/com.contrix.relay.firehose?space_id=cx:space:01JS0KP...`**
+**`GET /api/v1/relay/firehose?space_id=cx:space:01JS0KP...`**
 - **描述**：通过 WebSocket 或 Server-Sent Events (SSE) 建立实时监听。
 - **Frame Format (每帧)**：
   ```json
@@ -524,7 +524,7 @@ POST /xrpc/cx.authz.check
 
 ## 15. 标准错误响应 (Error Response Schema)
 
-所有 XRPC 端点在遇到错误时 MUST 返回统一格式的 JSON 错误体，以便客户端 SDK 做统一的重试与 UI 展示：
+所有 API 端点在遇到错误时 MUST 返回统一格式的 JSON 错误体，以便客户端 SDK 做统一的重试与 UI 展示：
 
 ```json
 {
@@ -556,7 +556,7 @@ POST /xrpc/cx.authz.check
 ## 16. Blob API
 
 ### 16.1 上传接口
-**`POST /xrpc/com.contrix.blob.upload`**
+**`POST /api/v1/blob/upload`**
 - **Content-Type**: `application/octet-stream` 或 `multipart/form-data`
 - **描述**：客户端上传二进制文件，服务端计算内容哈希后返回地址。
 - **响应 (Response)**：
