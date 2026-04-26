@@ -1,18 +1,15 @@
 # Gap Analysis
 
-This document tracks the remaining gaps between the legacy `contrix-spec` and Contrix New.
+This document tracks implementation gaps that remain before Contrix New can be treated as a stable interoperable protocol.
 
-Contrix New intentionally does not inherit the Matrix-style room/homeserver root model. The parts worth carrying forward are implementation-level details: API schemas, event schemas, canonical encoding, device/key management, media handling, federation transactions, moderation flows, Applet bridges, and conformance profiles.
+It only describes the current protocol's implementation gaps. The Chinese draft is currently the leading source for detailed wording.
 
 Priority gaps:
 
-- P0: request/response schemas for identity, repo, relay, index, blob, and authz.
-- P0: standard object/event schema registry.
-- P0: canonical JSON, IDs, hashes, signatures, cursors, HLC, and rank encoding.
-- P0: conformance profiles and test vectors.
-- P1: media/blob metadata, thumbnails, authenticated media, encrypted attachments.
-- P1: federation wire transactions, cross-domain joins, backfill authorization, fork detection.
-- P1: Applet registration, namespace, transaction, query, and protocol metadata schemas.
-- P1: directory/search, moderation, private account state, read markers, notifications.
-
-The Chinese draft is currently the leading source for detailed wording.
+- P0: conformance test vectors for canonical JSON, event hashes, signatures, state resolution, redaction, capability checks, sync cursors, and Applet transactions.
+- P0/P1: default HTTP binding OpenAPI plus equivalent mappings for gRPC, WebSocket/SSE, message queues, and P2P transports.
+- P0: machine-verifiable schema registry for standard `cx.*` object and event types.
+- P1: federation hardening, including service DID authentication, replay protection, cross-domain join, backfill, fork detection, and quarantine.
+- P1: directory/search/preview behavior with authorization filtering and minimum disclosure.
+- P1: moderation, abuse handling, appeals, server ACLs, and policy-list subscription schemas.
+- P1: production deployment profiles for personal nodes, enterprise nodes, relays, E2EE clients, Applet bridges, media/SFU services, policy servers, and agent runtimes.

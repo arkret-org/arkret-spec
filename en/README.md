@@ -2,10 +2,7 @@
 
 ## 1. Positioning
 
-`contrix-spec-new` is a **new decentralized collaboration protocol** draft. It is not a light revision of the old `contrix-spec`.
-
-The old `contrix-spec` still largely inherited a Matrix-like "rooms + events + messages" worldview.  
-The new Contrix explicitly shifts to:
+`contrix-spec-new` is a **new decentralized collaboration protocol** draft. Contrix New uses:
 
 - **DID principals** as the identity root
 - **Space / Entity / Relation collaboration graphs** as the data root
@@ -168,18 +165,16 @@ The current task list and next backlog live in [_tasks.md](./_tasks.md).
 - DID Documents are not cross-organization identity profiles; public-persona DIDs may declare handles, while pairwise/private DIDs do not publish handles by default and prove attributes through minimum-disclosure VCs / presentations
 - sending messages, editing, recalling, and moderating are distinct actions
 
-## 6. Relation to the Legacy `contrix-spec`
+## 6. Engineering Principles
 
-The old specification remains useful as a reference, but the new specification does **not** aim for data-model compatibility by default.
+Implementations should preserve:
 
-Useful inheritance:
-
-- JSON/HTTP friendliness
+- JSON/HTTP friendliness without making REST the only protocol binding
 - signing and audit discipline
 - decentralized service discovery
 - layered thinking around attachments, sync, and indexing
 
-Assumptions that should be dropped or weakened:
+The protocol does not assume:
 
 - room-first abstractions
 - messages/events carrying every business object

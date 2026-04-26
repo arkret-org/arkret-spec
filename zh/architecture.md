@@ -199,20 +199,9 @@ Contrix 不要求所有角色分离部署。
 - workspace relay 聚合到协作空间
 - index 生成 human review queue
 
-## 5. 旧协议与新协议的核心差异
+## 5. 核心架构取向
 
-### 5.1 旧模型
-
-旧 `contrix-spec` 基本延续的是：
-
-- room-first
-- event-first
-- homeserver-first
-- communication-first
-
-### 5.2 新模型
-
-新 `contrix-spec-new` 明确改成：
+Contrix New 固定以下架构取向：
 
 - workspace-first
 - object-first

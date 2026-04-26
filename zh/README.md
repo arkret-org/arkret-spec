@@ -2,10 +2,7 @@
 
 ## 1. 项目定位
 
-`contrix-spec-new` 是 **全新的去中心化协作协议** 草案，不是旧 `contrix-spec` 的小修小补版本。
-
-旧 `contrix-spec` 本质上仍然沿用了 Matrix 式的“房间 + 事件 + 消息”中心抽象；  
-新的 Contrix 则明确转向：
+`contrix-spec-new` 是 **全新的去中心化协作协议** 草案。Contrix New 明确采用：
 
 - 以 **DID principal** 为身份根
 - 以 **Space / Entity / Relation 协作图** 为数据根
@@ -52,11 +49,11 @@ Contrix New 第一阶段聚焦以下目标：
 当前目录的文档按四十七个部分组织：
 
 1. [gap-analysis.md](./gap-analysis.md)  
-   对比旧 `contrix-spec`，列出当前新协议仍缺少的 API、schema、编码、联邦、媒体、设备、实现 profile 等能力。
+   列出当前协议进入稳定可落地阶段前仍需补齐的 schema、编码、联邦、媒体、设备、conformance 等能力。
 2. [design-questions.md](./design-questions.md)  
    先把关键协议问题列出，再给出统一决策和收敛方案。
 3. [architecture.md](./architecture.md)  
-   定义协议的角色划分、拓扑、信任边界，以及与旧协议的核心分歧。
+   定义协议的角色划分、拓扑、信任边界和核心架构平面。
 4. [identity-did.md](./identity-did.md)  
    定义核心 DID 方法、UUID v8 生成、DID Document 解析与 Key Log。
 5. [identity-handles.md](./identity-handles.md)  
@@ -212,18 +209,16 @@ Contrix New 第一阶段聚焦以下目标：
 - DID Document 不作为跨组织身份画像；公开 persona DID 可以声明 handle，pairwise/private DID 默认不公开 handle，并通过最小披露 VC / presentation 证明属性
 - 消息发送、编辑、撤回、频道管理、话题管理都应有独立动作语义
 
-## 6. 与旧 contrix-spec 的关系
+## 6. 工程原则
 
-旧规范可作为经验参考，但新规范默认 **不追求数据模型兼容**。
-
-可以继承的经验：
+协议实现应遵循以下工程原则：
 
 - JSON/HTTP 友好性，但不把 REST 作为协议核心唯一绑定
 - 签名与审计思路
 - 去中心化服务发现
 - 附件、同步、索引分层
 
-应该抛弃或弱化的旧假设：
+协议不采用以下产品或架构假设：
 
 - room-first 抽象
 - “消息事件”统一承载所有业务对象

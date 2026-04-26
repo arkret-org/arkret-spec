@@ -198,20 +198,9 @@ In agent-heavy environments, a common pattern is:
 - a workspace relay aggregates them into the collaboration space
 - an index materializes human review queues
 
-## 5. Core Difference from the Legacy Protocol
+## 5. Core Architecture Direction
 
-### 5.1 Legacy Model
-
-The legacy `contrix-spec` was still essentially:
-
-- room-first
-- event-first
-- homeserver-first
-- communication-first
-
-### 5.2 New Model
-
-The new `contrix-spec-new` explicitly becomes:
+Contrix New is explicitly:
 
 - workspace-first
 - object-first
