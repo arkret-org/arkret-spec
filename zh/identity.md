@@ -476,6 +476,13 @@ Contrix SHOULD 把 DID Document 拆成两类信息：
 - 每个 `rotate` / `recover` 事件 MUST 由当时有效的控制密钥集合或恢复策略授权
 - `deactivate` 事件表示该 DID 不再接受新的控制写入
 
+**分叉裁决与优先权 (Fork Resolution)**：
+在多个独立 Registry 的去中心化网络中，可能发生黑客盗用活跃私钥广播 `rotate`（或 `deactivate`），而合法用户同时使用冷备私钥广播 `recover` 的竞态攻击。这会导致系统内产生合法签名且 `seq` 相同但哈希不同的分叉事件。
+为此，所有节点 MUST 遵守如下强制事件优先级仲裁规则：
+1. 对于同一 `seq` 的并发更新，`recover` 事件的合法优先级绝对高于 `rotate` 和 `deactivate`。
+2. 诚实节点遇到冲突时，无条件接受并广播 `recover` 事件，抛弃低优先级的更新。
+3. 若优先级相同，则按照 `event_hash` 字典序进行最终的确定性收敛。
+
 ## 6.5 恢复模型
 
 为处理“当前私钥丢失但 DID 仍需保留”的场景，Contrix SHOULD 支持恢复机制。

@@ -160,39 +160,20 @@ message 与 topic/channel/reply/mention 的关系使用 Relation 表达：
 - `message --replies_to--> message`
 - `message --mentions--> actor_profile/task/document`
 
-## 7. `@mention` 设计
+## 7. `@mention` 与引用的派生设计
 
-### 7.1 UI 与协议层分离
+### 7.1 避免正文与引用的“脑裂 (Split-Brain)”
 
-UI 可以允许用户输入：
+如果协议强制要求客户端在正文保留 `@alice` 文本的同时，还必须手动发送一个对应的 `relation.create (mentions)` Op，这极易导致状态分裂。若用户反复编辑 (Revise) 文本修改 Mention 对象，客户端的 Bug 或网络丢包会使得文本内容和底层的 `mentions` Relation 产生严重的不一致。
 
-- `@alice.example.com`
-- `@bob`
-- `@某个 item 标题`
+### 7.2 基于 AST 的隐式派生原则
 
-但协议层不能只存裸文本。
+为解决此问题，协议要求：
+- `message` 的 `content` 字段 MUST 使用结构化的 AST (如 Prosemirror JSON) 或是带有明确特殊标记的 Markdown (如 `[Alice](did:uuid:...)`)。
+- 客户端在提交或编辑消息时，**不需要也不应该**手动提交额外的 `mentions` Relation Op。
+- **派生真相 (Derived Truth)**：当 Index 节点或 Reducer 解析这条 Message 时，它通过解析内容 AST 中的 DID 节点，**自动在内存和索引层面派生出**对于目标主体的 Mention 关系和 Inbox 通知。
 
-### 7.2 Canonical 存储
-
-协议层 SHOULD 存：
-
-- `mentions` Relation
-- `from_entity_id = message`
-- `to_entity_id = actor_profile` 或 stable Entity ID
-
-这样可以保证：
-
-- Handle 迁移不破坏历史 mention
-- Entity 改名不破坏历史 mention
-
-### 7.3 Mention 通知
-
-mention 通知应是派生结果，而不是 message 真相的一部分。
-
-也就是说：
-
-- message 保存正文，`mentions` Relation 保存结构化引用
-- inbox/notification 由 index 或 relay 派生
+这种“单一数据源 (Single Source of Truth)”确保了即使发生任何编辑，通知状态都能和正文保持 100% 的绝对一致。
 
 ## 8. 编辑、撤回、Reaction
 
@@ -297,18 +278,18 @@ message 创建是 append-only。
 接收方 SHOULD 保留 dangling redaction。  
 待原消息到达后再应用它。
 
-## 12. 私有与临时信号
+## 12. 临时信号与 Ephemeral State
 
-以下状态不建议作为 durable shared object：
+以下高频变动的交互状态会引发极其严重的写放大，MUST NOT 作为持久化的 Durable Shared Object 写入密码学 Repo 链中：
 
-- typing
+- `read_marker` (已读回执)
+- `typing` (正在输入状态)
 - 当前输入草稿
-- 临时 presence
+- 临时在线状态 (Presence)
 
-它们可以：
-
-- 作为 relay 上的 ephemeral signal
-- 或作为 actor-private state
+它们 SHOULD：
+- 作为 Relay 上的 Ephemeral Signal（通过旁路 WebSocket 短时广播）。
+- 由各端本地在内存或缓存中记录，不强求全局长久一致性。
 
 ## 13. 初版设计决定
 

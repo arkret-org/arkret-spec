@@ -222,7 +222,7 @@ POST /xrpc/cx.repo.submitCommit
 
 - 同一个 `commit_id` 重复提交相同字节内容 MUST 幂等成功
 - 同一个 `commit_id` 若内容不同 MUST 拒绝
-- repo SHOULD 返回新的 head 与已接受 op 列表
+- repo SHOULD 返回新的 head、已接受 op 列表，以及一组 **因果同步令牌 (Causal Sync Tokens, e.g., `[commit_hash, hlc]`)**，供客户端后续进行强一致性查询时使用。
 
 ## 5. Relay Surface
 
@@ -284,6 +284,7 @@ GET /xrpc/cx.index.getEntity?entity_id=<id>
 POST /xrpc/cx.index.query
 ```
 
+其请求头 SHOULD 支持 `X-Contrix-Wait-For: <sync_token>`。
 其请求体 SHOULD 接受：
 
 - `entity_types`
@@ -292,6 +293,7 @@ POST /xrpc/cx.index.query
 - 排序
 - cursor
 - limit
+- `sync_token`: 可选。如果提供，Index 节点在响应前 MUST 阻塞等待本地物化进度到达或超过该 token 指示的因果前沿 (如特定的 `commit_hash`)，以保障“读己之所写”体验。超时则返回 408 或 504。
 
 ### 6.4 thread / topic 查询
 

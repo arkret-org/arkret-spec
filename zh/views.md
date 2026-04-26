@@ -234,6 +234,21 @@ View 应通过结构化 query 表达对象范围。
 }
 ```
 
+### 5.7 跨域深度查询与惰性链接 (Lazy Link)
+
+去中心化网络中，`Space` 构成了严格的权限边界。协议明确禁止 Index 节点在执行带有 `depth` 的深度查询时自动跨越 Space 边界追踪数据，以防止未授权的数据泄露与性能级联。
+
+**截断与回退规则**：
+当 Index 在图谱展开过程中遇到指向外部 Space 的 `target_ref` 时，MUST 立即中止该分支的展开。Index 应向查询方返回一个不含底层属性的 **惰性链接 (Lazy Link)**，结构如下：
+```json
+{
+  "id": "cx:entity:external_01",
+  "kind": "lazy_link",
+  "space_id": "cx:space:target_space_02"
+}
+```
+跨域图谱的完整拼接由 **客户端 (Client)** 负责。如果客户端确定当前 Actor 拥有 `cx:space:target_space_02` 的访问权限，则可主动向该目标 Space 对应的 Index 节点发起二次图查询并自行在 UI 层拼接。
+
 ## 6. 分组、排序、显示
 
 ### 6.1 `group_by`

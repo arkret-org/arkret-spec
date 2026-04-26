@@ -804,21 +804,11 @@ Contrix 应支持显式 `invite` 对象。它可以是专门对象，也可以�
 
 ## 16. Read Marker 与 Notification
 
-`read_marker` 是 actor-private 的 durable state：
-
-```json
-{
-  "id": "cx:read:01JS0RD000000000000000000",
-  "kind": "read_marker",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "owner": "did:web:alice.example.com",
-  "scope_kind": "view",
-  "scope_ref": "cx:view:01JS0VW000000000000000000",
-  "last_seen_event_id": "cx:event:01JS0EV000000000000000000",
-  "last_seen_hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
-  "updated_at": "2026-04-22T08:40:00Z"
-}
-```
+`read_marker` 是 actor-private 的 **Ephemeral State (短时状态)**。
+由于在百人以上活跃频道中，已读回执会导致极其严重的写放大 (Write-Amplification)，协议明确规定：
+- `read_marker` 不应作为 Durable Object 通过密码学签名写入 Repo 的 Op Log。
+- 客户端应通过 Relay 提供的 Ephemeral Channel (如 WebSocket) 旁路广播自己的阅读进度。
+- Index 和本地数据库在内存或轻量 KV 中缓存这些进度，但不将其纳入系统的严格因果图与哈希审计链中。
 
 通知不应成为 canonical truth object。
 
