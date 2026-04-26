@@ -204,7 +204,7 @@
 
 基于这份问题清单，后续文档应当明确覆盖：
 
-- [object-model.md](./object-model.md)  
+- [object-model-core.md](./object-model-core.md) 与 [object-model-standard.md](./object-model-standard.md)  
   固定 `Space/Actor/Entity/Relation/Event/View`，并定义 board/chat/task/message/run/memory 的语义层映射。
 - [conversation-model.md](./conversation-model.md)  
   补 mention/edit/redaction/reaction 的交互层定义。

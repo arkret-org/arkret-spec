@@ -1,0 +1,360 @@
+# Key Management Draft
+
+## 1. 目标
+
+身份层定义“谁是主体”，加密层定义“如何保护内容”，但真正能让系统安全运行的是密钥管理。
+
+本文定义 Contrix 的密钥生命周期：
+
+- inception key
+- principal signing key
+- recovery key
+- device key
+- session key
+- agent key
+- MLS KeyPackage
+- backup / restore key
+
+## 2. 基本原则
+
+### 2.1 主体不等于设备
+
+一个 DID principal MAY 拥有多个设备。  
+设备可以签名、同步和解密，但设备不是协议层主身份。
+
+协议层主体仍然是 DID。设备权力来自：
+
+- DID Document 当前控制密钥
+- `key_log`
+- device authorization event
+- capability grant
+- recovery policy
+
+### 2.2 长期密钥与日常密钥分离
+
+实现 MUST 区分：
+
+- 长期身份锚点
+- 日常签名密钥
+- 设备密钥
+- 会话密钥
+- 加密群组密钥
+- 恢复密钥
+
+长期密钥 SHOULD 尽量少在线使用。  
+日常操作 SHOULD 由设备密钥或短期 session key 执行。
+
+### 2.3 所有授权都必须可撤销
+
+设备、agent、session 和企业网关颁发的权限 MUST 有明确失效条件：
+
+- `expires_at`
+- `revocation_ref`
+- `scope`
+- `audience`
+- `not_before`
+
+无限期、无 scope 的委托只允许用于极少数离线恢复场景，并且 SHOULD 有多签或门限保护。
+
+## 3. 密钥类型
+
+### 3.1 Inception Key
+
+`inception_key` 用于生成 `did:uuid` 并作为身份历史根。
+
+要求：
+
+- 公钥 MUST 永久可验证
+- 私钥 SHOULD 在 DID 创建后离线保存或销毁
+- 普通操作 MUST NOT 依赖 inception private key 在线存在
+
+### 3.2 Principal Signing Key
+
+principal signing key 用于：
+
+- DID 文档更新
+- 高权限 capability 签发
+- device authorization
+- recovery policy 更新
+
+它 MAY 轮换。轮换 MUST 进入 `key_log`。
+
+### 3.3 Recovery Key
+
+recovery key 用于当前控制密钥丢失或泄露后的恢复。
+
+要求：
+
+- SHOULD 与日常设备隔离
+- SHOULD 支持多份或门限方案
+- MUST 只能执行 recovery policy 允许的操作
+- recovery event MUST 写入 `key_log`
+
+### 3.4 Device Key
+
+每台设备 SHOULD 本地生成独立 device key。
+
+device key 用于：
+
+- 日常 op 签名
+- repo sync 认证
+- device-to-device pairing
+- MLS KeyPackage 身份绑定
+
+device key MUST 通过 device authorization event 或 capability grant 绑定到 principal DID。
+
+### 3.5 Session Key
+
+session key 是短期在线密钥，常用于 Web、SSO、临时容器或远程执行环境。
+
+要求：
+
+- MUST 有短失效时间
+- MUST 绑定 audience / origin / service
+- SHOULD 绑定 device id 或 browser instance
+- MUST NOT 被用于恢复 DID 或签发长期 grant
+
+### 3.6 Agent Key
+
+agent key 用于 AI agent、bot、CI 或 automation。
+
+要求：
+
+- MUST 有明确 scope
+- MUST 有 `expires_at` 或 revocation check
+- MUST 绑定 accountable actor
+- SHOULD 使用 proposal / approval 约束执行高风险动作
+
+### 3.7 MLS KeyPackage Key
+
+MLS KeyPackage key 用于加入加密 Space。
+
+要求：
+
+- MUST 绑定到 Actor DID 和 device id
+- MUST 由有效 device key 或 principal signing key 签名
+- MUST 有发布时间与过期时间
+- SHOULD 单次或短期使用
+- 被撤销设备的 KeyPackage MUST 不再用于新加密
+
+## 4. Device Record
+
+建议 device record 是 actor repo 中的标准 Entity 或 identity sidecar 中的 signed state。
+
+示例：
+
+```json
+{
+  "id": "cx:device:01JS0KE000000000000000000",
+  "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "device_label": "Alice MacBook Pro",
+  "device_public_key": "z6Mks...",
+  "device_key_type": "Multikey",
+  "created_at": "2026-04-26T00:00:00Z",
+  "authorized_by": "cx:device:01JS0KD000000000000000000",
+  "authorization_ref": "cx:event:01JS0KF000000000000000000",
+  "status": "active",
+  "last_seen_at": "2026-04-26T08:00:00Z",
+  "revocation_ref": null
+}
+```
+
+## 5. 设备授权流程
+
+### 5.1 新设备加入
+
+推荐流程：
+
+1. 新设备本地生成 device key。
+2. 新设备展示 pairing code / QR，其中包含 device public key、challenge、过期时间。
+3. 已授权设备扫描并验证 challenge。
+4. 已授权设备签发 `device.authorized` event。
+5. repo / identity registry 接受并传播该 event。
+6. 新设备开始同步 repo、Space membership 和必要的 MLS Welcome。
+
+`device.authorized` 示例：
+
+```json
+{
+  "type": "device.authorized",
+  "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "device_id": "cx:device:01JS0KE000000000000000000",
+  "device_public_key": "z6Mks...",
+  "scopes": [
+    "repo.read",
+    "repo.write",
+    "space.sync",
+    "mls.key_package.publish"
+  ],
+  "not_before": "2026-04-26T00:00:00Z",
+  "expires_at": null,
+  "authorized_by": "cx:device:01JS0KD000000000000000000",
+  "proof": {
+    "type": "detached_jws",
+    "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#device-old",
+    "jws": "..."
+  }
+}
+```
+
+### 5.2 设备吊销
+
+设备丢失、出售、被恶意控制或员工离职时，MUST 发布 `device.revoked`。
+
+吊销后：
+
+- repo MUST 拒绝该设备的新签名写入
+- authz MUST 视相关 session grant 失效
+- 加密 Space SHOULD 通过 MLS Remove 推进 epoch
+- Index SHOULD 标记旧设备产生的未确认 op 为高风险
+
+## 6. Session Grant
+
+Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。
+
+示例：
+
+```json
+{
+  "type": "session.grant",
+  "issuer": "did:web:auth-gateway.example.com",
+  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "session_public_key": "z6Mss...",
+  "audience": "https://app.example.com",
+  "scopes": [
+    "repo.write",
+    "space.read",
+    "space.write"
+  ],
+  "not_before": "2026-04-26T00:00:00Z",
+  "expires_at": "2026-04-27T00:00:00Z",
+  "revocation_ref": "cx:revocation-list:enterprise-session"
+}
+```
+
+规则：
+
+- session grant MUST be signed by trusted issuer
+- session key MUST NOT outlive grant
+- session grant SHOULD be audience-bound
+- session grant SHOULD be non-exportable in WebCrypto / platform keystore where available
+
+## 7. 密钥备份
+
+### 7.1 备份内容
+
+备份 MAY 包含：
+
+- recovery key share
+- device state
+- encrypted private repo cache
+- MLS group state
+- pending Welcome
+- private account state
+
+备份 MUST NOT 以明文保存私钥。
+
+### 7.2 Backup Envelope
+
+建议格式：
+
+```json
+{
+  "type": "key_backup",
+  "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "backup_id": "cx:backup:01JS0KE000000000000000000",
+  "created_at": "2026-04-26T00:00:00Z",
+  "kdf": {
+    "name": "argon2id",
+    "params": {
+      "memory_kib": 65536,
+      "iterations": 3,
+      "parallelism": 1
+    },
+    "salt": "base64url..."
+  },
+  "aead": {
+    "name": "xchacha20_poly1305",
+    "nonce": "base64url..."
+  },
+  "ciphertext": "base64url...",
+  "commitment": "sha256:..."
+}
+```
+
+实现 SHOULD 使用现代 KDF，例如 Argon2id。  
+如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 SHOULD 在 profile 中声明降级。
+
+### 7.3 恢复流程
+
+恢复流程：
+
+1. 新设备生成 device key。
+2. 用户输入 passphrase 或收集 recovery shares。
+3. 客户端解密 backup envelope。
+4. 客户端验证 backup commitment。
+5. 客户端用 recovery policy 发布 `recover` 或 `device.authorized`。
+6. 若涉及 E2EE Space，客户端拉取 MLS state 并处理 epoch 缺口。
+
+## 8. 社交恢复与门限恢复
+
+高价值账号 SHOULD 支持门限恢复。
+
+建议字段：
+
+```json
+{
+  "type": "recovery_policy",
+  "threshold": 3,
+  "shares": [
+    {
+      "holder": "did:web:alice-friend.example",
+      "share_id": "s1",
+      "transport": "sealed_box"
+    }
+  ],
+  "not_before": "2026-04-26T00:00:00Z",
+  "expires_at": null
+}
+```
+
+恢复 share holder 只能帮助恢复控制权，不自动获得读取内容或代表主体操作的 capability。
+
+## 9. 泄露响应
+
+当怀疑密钥泄露时，客户端 SHOULD：
+
+1. 立即发布 device revocation 或 key rotation。
+2. 停止接受旧设备/session 的新写入。
+3. 对 E2EE Space 触发 MLS Remove / Update。
+4. 标记泄露窗口内的高风险 op。
+5. 提醒用户检查未知设备、session 和 agent grant。
+
+如果 principal signing key 泄露但 recovery key 安全，MUST 通过 recovery policy 重建当前控制密钥。  
+如果 recovery key 也泄露，SHOULD deactive 旧 DID 并执行身份重建。
+
+## 10. 实现要求
+
+实现 MUST：
+
+- 使用系统安全存储保存私钥
+- 对可导出密钥做用户确认
+- 对恢复操作做高风险 UI
+- 对设备列表显示最近活动和授权来源
+- 对吊销操作做不可抵赖记录
+
+实现 SHOULD：
+
+- 支持硬件安全模块或平台 keystore
+- 支持 biometric unlock 但不把 biometric 当作 cryptographic secret
+- 支持 passkey / WebAuthn 作为本地解锁与网关认证材料
+- 支持企业设备管理和远程吊销
+
+## 11. 待细化
+
+- device record JSON Schema
+- `device.authorized` / `device.revoked` event schema
+- session grant schema
+- backup envelope test vector
+- MLS KeyPackage binding schema
+- recovery policy grammar

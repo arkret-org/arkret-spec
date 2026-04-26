@@ -97,7 +97,7 @@ POST /api/v1/moderation/report
 
 ### 5.2 用户封禁
 
-管理员通过 `cx.membership.ban` 操作封禁用户（详见 `object-model.md` 15.1 成员状态机）。封禁后：
+管理员通过 `cx.membership.ban` 操作封禁用户（详见 `object-model-core.md` 的成员与 policy 语义）。封禁后：
 - 被封禁用户无法重新加入该 Space
 - 其未来的 Op 提交将被 Relay 拒绝
 - 是否隐藏其历史内容由 Space Policy 决定

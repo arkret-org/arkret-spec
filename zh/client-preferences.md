@@ -1,0 +1,105 @@
+# Client Preferences & Account Data Draft
+
+## 1. 目标
+
+在 Contrix 网络中，绝大部分数据是跨节点共享的协作对象（Space, Task, Message）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
+
+本规范定义了这些**客户端偏好与账户数据 (Account Data)** 的存储、同步与标准 Schema。
+
+## 2. 存储模型
+
+### 2.1 存储在私有的 Account Repo
+
+由于 Contrix 采用“每个 Actor 都有自己的 Repo”作为信任根，所有的账户私有数据 MUST 作为 Op 提交到该 Actor 的**个人私有 Repo (Account Repo)** 中。
+
+这个 Repo 只有用户本人的受信任设备有权限读写。Relay 节点仅负责存储加密或不透明的二进制块，并不解析其中的明文。
+
+### 2.2 数据寻址
+
+所有的偏好数据以 Key-Value 字典的形式组织。每次修改是对某个 Key 的全量覆盖（使用 `cx.account_data.set` 操作）。
+
+```json
+{
+  "type": "cx.account_data.set",
+  "key": "cx.client.theme",
+  "body": {
+    "mode": "dark",
+    "accent_color": "#FF5733"
+  }
+}
+```
+
+## 3. 标准账户数据类型
+
+为了保证不同客户端间的互操作性，本规范定义了以下标准 Key 命名空间：
+
+### 3.1 空间标签与分类 (Space Tags)
+
+用户可以给加入的 Space 打上私有标签（例如“收藏”、“低优先级”、“公司项目”）。
+
+**Key:** `cx.tags.space.<space_id>`
+
+```json
+{
+  "tags": {
+    "cx.favorite": { "order": 0.5 },
+    "cx.low_priority": {},
+    "org.example.work": {}
+  }
+}
+```
+
+客户端 SHOULD 根据这些标签将 Space 在 UI 上分组或排序。`order` 是一种用于自定义排序的浮点数指示器。
+
+### 3.2 勿扰与通知设置 (Notification Settings)
+
+控制各个 Space 或全局的通知覆盖行为（详见 `push-notifications.md`）。
+
+**Key:** `cx.push_rules` 和 `cx.dnd_schedule`
+
+### 3.3 自定义 Emoji 与 Sticker (Custom Emojis)
+
+用户个人收藏的表情包或贴纸集。
+
+**Key:** `cx.collections.stickers`
+
+```json
+{
+  "images": {
+    "party_parrot": {
+      "blob_ref": "cx:blob:sha256:abcd...",
+      "mimetype": "image/gif"
+    }
+  }
+}
+```
+
+### 3.4 客户端 UI 偏好 (UI State)
+
+用于保存用户的视图偏好，以便在新设备登录时恢复熟悉的界面。
+
+**Key:** `cx.client.ui_state`
+
+```json
+{
+  "sidebar_collapsed": false,
+  "recent_spaces": ["cx:space:1", "cx:space:2"],
+  "language": "zh-CN"
+}
+```
+
+## 4. 与 Index 节点的交互
+
+虽然 Account Repo 对外不公开，但用户的私有 Index 节点（运行在受控环境中，或可信端侧节点）会拉取并解密这些数据，并合并到查询结果中。
+
+例如：当调用 `GET /api/v1/index/spaces` 查询加入的 Space 列表时，私有 Index 会将 `cx.tags.space.*` 数据 Join 进去，客户端可以直接得到带私有标签的 Space 列表。
+
+## 5. 安全与隐私
+
+- 涉及用户敏感信息的 Account Data（例如访问第三方服务的私钥、密码管理器的 Vault），MUST 另外进行客户端加密（Client-Side Encryption），使用类似 Matrix 4S (Secret Storage) 的机制，通过单独的 Recovery Key 保护。
+- 普通的 UI 偏好和标签可以直接由用户的 Device Key 签名写入 Account Repo。
+
+## 6. 后续待细化
+
+- 4S (Secure Secret Storage) 与 Key Backup (密钥云端备份) 的具体存储格式
+- 跨端排序算法的一致性 (Lexicographical vs Float)

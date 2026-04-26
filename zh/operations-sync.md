@@ -403,7 +403,30 @@ Contrix 初版不引入全网共识链。
 
 最终收敛到相同当前态。
 
-### 15.2 确定性状态收敛与 Tie-breaking (平局破除)
+### 15.2 脑裂与 DAG 分支合并
+
+在去中心化网络中，离线编辑或网络分区（脑裂）是常态。当网络恢复时，不同的分支需要进行合并。Contrix 采用基于有向无环图 (DAG) 的拓扑排序结合混合逻辑时钟 (HLC) 来实现绝对确定性的状态收敛。
+
+```mermaid
+graph TD
+    A[Op A: HLC=10, Title='Doc'] --> B[Op B: HLC=11, Title='Doc v1']
+    A --> C[Op C: HLC=12, Title='Doc (Draft)']
+    B --> D[Op D: Merge B & C]
+    C --> D
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#bfb,stroke:#333,stroke-width:2px
+    style D fill:#fbb,stroke:#333,stroke-width:4px
+```
+
+**合并过程说明：**
+1. Alice 离线提交了 Op B。Bob 在线提交了 Op C。
+2. 由于两人都没有看到对方的 Op，B 和 C 的 `prev_ops` 都指向 A。
+3. 网络恢复后，Bob 的客户端拉取到 B，发现此时 DAG 存在两个 Head (B 和 C)。
+4. Bob 的客户端自动生成一条 Dummy Op D（或者在下一次业务提交时包含多个 `prev_ops`），将 B 和 C 设为前驱，完成拓扑合并。
+
+### 15.3 确定性状态收敛与 Tie-breaking (平局破除)
 
 借鉴成熟的分布式状态解析算法（如 Matrix State Resolution v2 的 Kahn's 拓扑排序），当网络中出现并发的分叉操作（无明确的 `prev_ids` 覆盖关系）时，所有节点 MUST 采用绝对确定的排序来打破平局 (Tie-breaking)，保障全网视图强一致。
 

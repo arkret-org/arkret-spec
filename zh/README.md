@@ -49,42 +49,102 @@ Contrix New 第一阶段聚焦以下目标：
 
 ## 4. 规范地图
 
-当前目录的文档按十五个部分组织：
+当前目录的文档按四十七个部分组织：
 
-1. [design-questions.md](./design-questions.md)  
+1. [gap-analysis.md](./gap-analysis.md)  
+   对比旧 `contrix-spec`，列出当前新协议仍缺少的 API、schema、编码、联邦、媒体、设备、实现 profile 等能力。
+2. [design-questions.md](./design-questions.md)  
    先把关键协议问题列出，再给出统一决策和收敛方案。
-2. [architecture.md](./architecture.md)  
+3. [architecture.md](./architecture.md)  
    定义协议的角色划分、拓扑、信任边界，以及与旧协议的核心分歧。
-3. [identity.md](./identity.md)  
-   定义 DID、Handle、服务发现、设备与 agent 委托、恢复与迁移。
-4. [object-model.md](./object-model.md)  
-   定义 Space、Actor、Entity、Relation、Event、View 等核心协议对象，以及 board/task/message/memory/run 等标准语义类型。
-5. [conversation-model.md](./conversation-model.md)  
+4. [identity-did.md](./identity-did.md)  
+   定义核心 DID 方法、UUID v8 生成、DID Document 解析与 Key Log。
+5. [identity-handles.md](./identity-handles.md)  
+   定义 Handle 解析、双向绑定与可验证凭证 Claim 证明。
+6. [key-management.md](./key-management.md)  
+   定义密钥与恢复模型、Accountable Actor 及受托代理。
+7. [object-model-core.md](./object-model-core.md)  
+   定义 Space、Actor、Entity、Relation、Event、View 等基础核心协议对象。
+8. [object-model-standard.md](./object-model-standard.md)  
+   定义 board/task/message/memory/run 等标准语义业务类型。
+9. [conversation-model.md](./conversation-model.md)  
    定义 chat / topic / thread / mention / edit / recall / reaction 的统一交互模型。
-6. [operations-sync.md](./operations-sync.md)  
+10. [operations-sync.md](./operations-sync.md)  
    定义 repo commit、operation envelope、relay/index、snapshot、选择性同步、冲突收敛。
-7. [capabilities.md](./capabilities.md)  
-   定义 capability grant、delegation、revocation，以及消息/话题/看板相关动作权限。
-8. [views.md](./views.md)  
-   定义看板、列表、表格、聊天、线程、论坛、图谱、审阅队列等标准投影。
-9. [agent-memory.md](./agent-memory.md)  
-   定义如何把 Contrix 当作 AI agent 的长期记忆与协作外脑。
-10. [service-surface.md](./service-surface.md)  
+11. [capabilities.md](./capabilities.md)  
+    定义 capability grant、delegation、revocation，以及消息/话题/看板相关动作权限。
+12. [views.md](./views.md)  
+    定义看板、列表、表格、聊天、线程、论坛、图谱、审阅队列等标准投影。
+13. [agent-memory.md](./agent-memory.md)  
+    定义如何把 Contrix 当作 AI agent 的长期记忆与协作外脑。
+14. [service-surface.md](./service-surface.md)  
     定义最小 repo / relay / index / blob / authz 服务面，以及 Space bootstrap。
-11. [encryption-and-audit.md](./encryption-and-audit.md)  
+15. [api-conventions.md](./api-conventions.md)  
+    定义 HTTP、JSON、错误响应、幂等、分页、CORS、rate limit 与 feature discovery 的通用 API 约定。
+16. [conformance-profiles.md](./conformance-profiles.md)  
+    定义 minimal client、full client、repo、relay、index、identity registry、blob、E2EE、enterprise、agent runtime 等实现 profile。
+17. [query-schema.md](./query-schema.md)  
+    定义 Index / View / Inbox 查询语法。
+18. [grant-constraint-schema.md](./grant-constraint-schema.md)  
+    定义 capability grant constraint 正式语法。
+19. [encoding.md](./encoding.md)  
+    定义 canonical JSON、ID、hash、signature、cursor、HLC、rank 编码。
+20. [snapshot-schema.md](./snapshot-schema.md)  
+    定义 snapshot manifest、chunk、signature 与 encrypted envelope。
+21. [service-api-schema.md](./service-api-schema.md)  
+    定义 identity / repo / relay / index / blob / authz 核心 request / response。
+22. [read-notification-schema.md](./read-notification-schema.md)  
+    定义 read marker、receipt、notification、inbox 查询面。
+23. [schema-registry.md](./schema-registry.md)  
+    定义标准 object schema 与 event type 注册表。
+24. [media-and-blob.md](./media-and-blob.md)  
+    定义 blob metadata、thumbnail、authenticated download 与 encrypted attachment。
+25. [federation-wire.md](./federation-wire.md)  
+    定义 federation transaction、cross-domain join、backfill authorization 与 fork detection。
+26. [applet-schema.md](./applet-schema.md)  
+    定义 Applet registration、namespace、transaction、protocol metadata 与 bridge error schema。
+27. [encryption-and-audit.md](./encryption-and-audit.md)  
     定义基于 MLS (RFC 9420) 的端到端加密标准与可审查的透明留痕机制。
-12. [devices-and-auth.md](./devices-and-auth.md)  
+28. [devices-and-auth.md](./devices-and-auth.md)  
     定义多设备管理、认证协议、密钥备份与单点登录。
-13. [content-types.md](./content-types.md)  
-    定义结构化的富文本与媒体消息类型系统（text/image/video/audio/file/location/code/composite）。
-14. [federation.md](./federation.md)  
+29. [content-types.md](./content-types.md)  
+    定义结构化的富文本与媒体消息类型系统（含 Polls 投票与 Mixins）。
+30. [federation.md](./federation.md)  
     定义跨域联邦协议：节点间认证、Op 交换、跨域加入 Space、服务发现。
-15. [push-notifications.md](./push-notifications.md)  
+31. [push-notifications.md](./push-notifications.md)  
     定义推送规则引擎、推送网关接口与 E2EE 脱敏推送。
-16. [moderation.md](./moderation.md)  
+32. [moderation.md](./moderation.md)  
     定义内容举报、用户屏蔽、审核队列与服务器级 ACL。
-17. [profiles-presence.md](./profiles-presence.md)  
+33. [profiles-presence.md](./profiles-presence.md)  
     定义 Actor Profile 标准字段、在线状态广播、Typing 指示器与用户目录搜索。
+34. [webrtc-signaling.md](./webrtc-signaling.md)  
+    定义基于 Ephemeral Channel 的端到端加密音视频通话信令 (VoIP)。
+35. [read-receipts.md](./read-receipts.md)  
+    定义公开的 Read Receipt (已读回执) 与私有的 Read Marker (未读游标)。
+36. [applet-integration.md](./applet-integration.md)  
+    定义机器人、插件接入机制，融合 MSC3861 (OIDC) 与 MSC4326 (受托代理身份)。
+37. [third-party-invites.md](./third-party-invites.md)  
+    定义如何通过邮箱或手机号等 3PID 发起盲化邀请与认领流。
+38. [client-preferences.md](./client-preferences.md)  
+    定义用户私有的空间标签、UI 状态、自定义 Emoji 等 Account Data 存储。
+39. [matrix-compat-gap.md](./matrix-compat-gap.md)  
+    对比 `matrix-spec` 与 `matrix-spec-proposals`，列出 Contrix 必须吸收、改造或拒绝继承的协议能力。
+40. [event-auth-state-resolution.md](./event-auth-state-resolution.md)  
+    定义 Space version、事件授权、状态归约、membership、redaction、soft fail 与 Space upgrade。
+41. [device-crypto-verification.md](./device-crypto-verification.md)  
+    定义设备身份、cross-signing、to-device、验证流程、secret storage、key backup 与 Applet delegated device。
+42. [sync-v2.md](./sync-v2.md)  
+    定义客户端增量同步协议，包括 timeline、state_after、account_data、to_device、device_lists 与 E2EE 同步要求。
+43. [policy-server.md](./policy-server.md)  
+    定义策略服务声明、预检查请求、签名决策、失败模式、联邦处理与隐私边界。
+44. [account-lifecycle.md](./account-lifecycle.md)  
+    定义服务账户、DID principal、device session、注销、锁定、暂停、软登出、擦除与 session 撤销。
+45. [glossary.md](./glossary.md)  
+    集中定义协议术语，覆盖核心对象、身份授权、同步联邦、设备加密、Applet、媒体通知与账户生命周期。
+46. [space-hierarchy.md](./space-hierarchy.md)  
+    定义 Space 父子层级、双向确认、显式继承、层级查询、循环处理，以及权限/成员/历史/加密默认不级联的规则。
+47. [agent-protocol-interop.md](./agent-protocol-interop.md)  
+    定义 AI agent 在 Contrix 任务中升级/切换到 A2A、ACP legacy 或其他外部 agent protocol 的发现、授权、执行、状态回流和审计规则。
 
 ## 5. 核心设计决定
 
@@ -197,14 +257,14 @@ Contrix New 第一阶段聚焦以下目标：
 
 在当前框架稳定后，建议优先继续细化：
 
-1. 线级协议  
-   每个服务接口的正式 request/response schema。
-2. 模式定义  
-   query JSON schema、grant constraint schema、snapshot chunk schema。
-3. 编码规则  
-   cursor、HLC、rank、commit hash、签名封装格式。
-4. 互操作性  
-   最小兼容实现、测试向量、conformance profile、加密 envelope。
+1. 测试向量  
+   为 canonical JSON、event hash、signature、state resolution、redaction、sync token 编写跨实现测试向量。
+2. OpenAPI 合并  
+   将 `service-api-schema.md`、`sync-v2.md`、`device-crypto-verification.md`、`policy-server.md` 的 endpoint 落成统一 OpenAPI。
+3. Conformance suite  
+   为 repo、relay、index、E2EE client、Applet、policy server 定义自动化互操作测试。
+4. Space version v2 候选  
+   在 v1 实现反馈后冻结下一版 auth/state/redaction 变更，不在同一 Space version 中破坏兼容性。
 
 ## 10. 一句话总结
 

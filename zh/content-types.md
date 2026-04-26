@@ -201,7 +201,32 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
 }
 ```
 
-### 4.9 复合消息 `cx.content.composite`
+### 4.9 投票消息 `cx.content.poll`
+
+根据去中心化协作需求（参考 MSC3381），投票也是一种标准内容块：
+
+```json
+{
+  "type": "cx.content.poll",
+  "body": "What should we order for the party?",
+  "poll": {
+    "kind": "disclosed",
+    "max_selections": 1,
+    "question": {
+      "type": "cx.content.text",
+      "body": "What should we order for the party?"
+    },
+    "answers": [
+      { "id": "pizza", "text": { "type": "cx.content.text", "body": "Pizza 🍕" } },
+      { "id": "poutine", "text": { "type": "cx.content.text", "body": "Poutine 🍟" } }
+    ]
+  }
+}
+```
+
+响应投票时，客户端发送 `cx.content.poll.response`，包含所选 `id`。
+
+### 4.10 复合消息 `cx.content.composite`
 
 当一条消息包含多种内容（如文字说明 + 图片 + 文件附件）时使用：
 
@@ -239,7 +264,23 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
 |------|------|------|------|
 | `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组 |
 
-## 5. 引用与回复 (Reply)
+## 5. Mixin 机制 (附加属性)
+
+参考 Matrix 的 Extensible Events (MSC1767) 理念，某些修饰性状态（Mixins）可以附加到任何 `Content Block` 上，改变其渲染或处理行为，但不改变其核心类型。
+
+例如：`automated` 标志表明该消息是由 Bot 自动生成的，`spoiler` 标志表明内容包含剧透。
+
+```json
+{
+  "type": "cx.content.text",
+  "body": "Daily build succeeded.",
+  "mixins": {
+    "cx.automated": true
+  }
+}
+```
+
+## 6. 引用与回复 (Reply)
 
 ### 5.1 回复关联
 

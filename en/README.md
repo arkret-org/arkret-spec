@@ -49,28 +49,57 @@ The following are explicitly out of scope for the first version:
 
 ## 4. Spec Map
 
-This directory is organized into ten main documents:
+This directory is structurally aligned with the Chinese draft. The Chinese version currently carries the most detailed wording; the English files provide aligned headings, responsibilities, and core decisions.
 
-1. [design-questions.md](./design-questions.md)  
-   Lists the protocol questions first, then records the chosen decisions.
-2. [architecture.md](./architecture.md)  
-   Defines roles, topology, trust boundaries, and the key departure from the legacy protocol.
-3. [identity.md](./identity.md)  
-   Defines DIDs, handles, service discovery, device and agent delegation, recovery, and migration.
-4. [object-model.md](./object-model.md)  
-   Defines Space, Actor, Entity, Relation, Event, View, and standard semantic mappings for board/task/message/memory/run.
-5. [conversation-model.md](./conversation-model.md)  
-   Defines the unified model for chat / topic / thread / mention / edit / recall / reaction.
-6. [operations-sync.md](./operations-sync.md)  
-   Defines repo commits, operation envelopes, relay/index roles, snapshots, selective sync, and convergence.
-7. [capabilities.md](./capabilities.md)  
-   Defines capability grants, delegation, revocation, and conversation/board-related actions.
-8. [views.md](./views.md)  
-   Defines boards, lists, tables, chat, thread, forum, graph, and review-oriented projections.
-9. [agent-memory.md](./agent-memory.md)  
-   Defines how Contrix can act as long-term memory and collaboration substrate for AI agents.
-10. [service-surface.md](./service-surface.md)  
-   Defines the minimum repo / relay / index / blob / authz service surface and Space bootstrap flow.
+Main document groups:
+
+- [gap-analysis.md](./gap-analysis.md)
+- [design-questions.md](./design-questions.md)
+- [architecture.md](./architecture.md)
+- [identity-did.md](./identity-did.md)
+- [identity-handles.md](./identity-handles.md)
+- [key-management.md](./key-management.md)
+- [object-model-core.md](./object-model-core.md)
+- [object-model-standard.md](./object-model-standard.md)
+- [conversation-model.md](./conversation-model.md)
+- [operations-sync.md](./operations-sync.md)
+- [capabilities.md](./capabilities.md)
+- [views.md](./views.md)
+- [agent-memory.md](./agent-memory.md)
+- [service-surface.md](./service-surface.md)
+- [api-conventions.md](./api-conventions.md)
+- [conformance-profiles.md](./conformance-profiles.md)
+- [query-schema.md](./query-schema.md)
+- [grant-constraint-schema.md](./grant-constraint-schema.md)
+- [encoding.md](./encoding.md)
+- [snapshot-schema.md](./snapshot-schema.md)
+- [service-api-schema.md](./service-api-schema.md)
+- [read-notification-schema.md](./read-notification-schema.md)
+- [schema-registry.md](./schema-registry.md)
+- [media-and-blob.md](./media-and-blob.md)
+- [federation-wire.md](./federation-wire.md)
+- [applet-integration.md](./applet-integration.md)
+- [applet-schema.md](./applet-schema.md)
+- [encryption-and-audit.md](./encryption-and-audit.md)
+- [devices-and-auth.md](./devices-and-auth.md)
+- [content-types.md](./content-types.md)
+- [federation.md](./federation.md)
+- [push-notifications.md](./push-notifications.md)
+- [moderation.md](./moderation.md)
+- [profiles-presence.md](./profiles-presence.md)
+- [webrtc-signaling.md](./webrtc-signaling.md)
+- [read-receipts.md](./read-receipts.md)
+- [third-party-invites.md](./third-party-invites.md)
+- [client-preferences.md](./client-preferences.md)
+- [matrix-compat-gap.md](./matrix-compat-gap.md)
+- [event-auth-state-resolution.md](./event-auth-state-resolution.md)
+- [device-crypto-verification.md](./device-crypto-verification.md)
+- [sync-v2.md](./sync-v2.md)
+- [policy-server.md](./policy-server.md)
+- [account-lifecycle.md](./account-lifecycle.md)
+- [glossary.md](./glossary.md)
+- [space-hierarchy.md](./space-hierarchy.md)
+- [agent-protocol-interop.md](./agent-protocol-interop.md)
 
 The current task list and next backlog live in [_tasks.md](./_tasks.md).
 
@@ -184,14 +213,14 @@ This round moves the protocol from a directional sketch to a "question inventory
 
 Once this framework stabilizes, the next priorities should be:
 
-1. Wire protocols  
-   Formal request/response schemas for each service endpoint.
-2. Formal schemas  
-   Query JSON schema, grant constraint schema, and snapshot chunk schema.
-3. Encodings  
-   Cursor, HLC, rank, commit hash, and signature envelope encodings.
-4. Interoperability  
-   Minimal compatibility profiles, test vectors, conformance guidance, and encrypted envelopes.
+1. Test vectors  
+   Cross-implementation vectors for canonical JSON, event hashes, signatures, state resolution, redaction, and sync tokens.
+2. OpenAPI consolidation  
+   Merge the service, sync, device crypto, and policy-server endpoint drafts into a single OpenAPI surface.
+3. Conformance suite  
+   Automated interoperability tests for repo, relay, index, E2EE client, Applet, and policy-server profiles.
+4. Space version v2 candidates  
+   Freeze any incompatible auth/state/redaction changes into a future Space version rather than mutating v1.
 
 ## 10. One-sentence Summary
 

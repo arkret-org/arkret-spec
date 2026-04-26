@@ -10,29 +10,103 @@ contrix-spec-new/
   zh/
     README.md
     _tasks.md
+    gap-analysis.md
     design-questions.md
     architecture.md
-    identity.md
-    object-model.md
+    identity-did.md
+    identity-handles.md
+    key-management.md
+    object-model-core.md
+    object-model-standard.md
     conversation-model.md
     operations-sync.md
     capabilities.md
     views.md
     agent-memory.md
     service-surface.md
+    api-conventions.md
+    conformance-profiles.md
+    query-schema.md
+    grant-constraint-schema.md
+    encoding.md
+    snapshot-schema.md
+    service-api-schema.md
+    read-notification-schema.md
+    schema-registry.md
+    media-and-blob.md
+    federation-wire.md
+    applet-schema.md
+    encryption-and-audit.md
+    devices-and-auth.md
+    content-types.md
+    federation.md
+    push-notifications.md
+    moderation.md
+    profiles-presence.md
+    webrtc-signaling.md
+    read-receipts.md
+    applet-integration.md
+    third-party-invites.md
+    client-preferences.md
+    matrix-compat-gap.md
+    event-auth-state-resolution.md
+    device-crypto-verification.md
+    sync-v2.md
+    policy-server.md
+    account-lifecycle.md
+    glossary.md
+    space-hierarchy.md
+    agent-protocol-interop.md
   en/
     README.md
     _tasks.md
     design-questions.md
     architecture.md
-    identity.md
-    object-model.md
+    gap-analysis.md
+    identity-did.md
+    identity-handles.md
+    key-management.md
+    object-model-core.md
+    object-model-standard.md
     conversation-model.md
     operations-sync.md
     capabilities.md
     views.md
     agent-memory.md
     service-surface.md
+    api-conventions.md
+    conformance-profiles.md
+    query-schema.md
+    grant-constraint-schema.md
+    encoding.md
+    snapshot-schema.md
+    service-api-schema.md
+    read-notification-schema.md
+    schema-registry.md
+    media-and-blob.md
+    federation-wire.md
+    applet-integration.md
+    applet-schema.md
+    devices-and-auth.md
+    content-types.md
+    encryption-and-audit.md
+    federation.md
+    push-notifications.md
+    moderation.md
+    profiles-presence.md
+    webrtc-signaling.md
+    read-receipts.md
+    third-party-invites.md
+    client-preferences.md
+    matrix-compat-gap.md
+    event-auth-state-resolution.md
+    device-crypto-verification.md
+    sync-v2.md
+    policy-server.md
+    account-lifecycle.md
+    glossary.md
+    space-hierarchy.md
+    agent-protocol-interop.md
 ```
 
-Both folders are intended to stay structurally aligned.
+The Chinese specification is currently the leading detailed draft. The English folder is structurally aligned and will continue to be expanded toward full translation.

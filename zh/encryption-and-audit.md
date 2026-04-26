@@ -21,6 +21,28 @@ Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.iet
 
 ### 2.2 握手与组成员管理 (Welcome, Commit)
 MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Contrix 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Space` 与 `Repo` 模型中：
+
+```mermaid
+sequenceDiagram
+    participant Alice
+    participant Relay (Space Repo)
+    participant Bob (Index)
+
+    Alice->>Relay: GET /api/v1/keys/bob
+    Relay-->>Alice: Bob's KeyPackage
+    
+    note over Alice: Computes GroupContext & Tree
+    
+    Alice->>Relay: Submit `cx.mls.welcome` (Encrypted for Bob)
+    Alice->>Relay: Submit `cx.mls.commit` (Group state update)
+    
+    Relay->>Bob (Index): Push Notification & Sync
+    
+    Bob->>Relay: Fetch `cx.mls.welcome`
+    note over Bob: Decrypts Welcome using InitKey
+    note over Bob: Derives Group Epoch Secret
+```
+
 - **`event.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `event.mls.commit` 类型的 Event 提交至 Space Repo。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。由于其仅面向特定新成员解密，该消息可通过 Relay 的 Ephemeral Channel 发送，或通过私信 `message` 投递。
 

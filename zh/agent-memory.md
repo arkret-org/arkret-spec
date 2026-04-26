@@ -170,7 +170,7 @@ Contrix 建议把 agent 记忆拆成四层。
 
 ## 7. Memory 对象建议字段
 
-示例见 [object-model.md](./object-model.md)。
+示例见 [object-model-core.md](./object-model-core.md) 与 [object-model-standard.md](./object-model-standard.md)。
 
 初版建议重点字段为：
 

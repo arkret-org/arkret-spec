@@ -36,14 +36,14 @@ Contrix 是去中心化协议，不同组织各自运行独立的 Repo / Relay /
     {
       "id": "#contrix-relay",
       "type": "ContrixRelay",
-      "serviceEndpoint": "https://relay.acme.example.com/api/v1"
+      "service_endpoint": "https://relay.acme.example.com/api/v1"
     }
   ],
-  "verificationMethod": [
+  "verification_method": [
     {
       "id": "#server-key-1",
       "type": "Ed25519VerificationKey2020",
-      "publicKeyMultibase": "z6Mkf..."
+      "public_key_multibase": "z6Mkf..."
     }
   ]
 }
@@ -164,7 +164,7 @@ Bob 也可以主动申请加入：
 给定一个 Actor 的 DID，其他节点通过解析 DID Document 中的 `#contrix-repo` 服务端点来定位其 Repo：
 
 ```
-DID Document → service[type=ContrixRepo] → serviceEndpoint
+DID Document -> service[type=ContrixRepo] -> service_endpoint
 ```
 
 ## 7. 联邦 API 端点

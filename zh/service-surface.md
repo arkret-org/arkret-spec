@@ -497,7 +497,7 @@ POST /api/v1/authz/check
   ```json
   {
     "repo_id": "cx:space:01JS0KP...",
-    "op": { /* 完整的 Event Envelope 对象，见 object-model.md 19.1 */ }
+    "op": { /* 完整的 Event Envelope 对象，见 object-model-core.md */ }
   }
   ```
 - **响应 (Response)**：
@@ -544,9 +544,9 @@ POST /api/v1/authz/check
   {
     "did_document": {
       "id": "did:web:alice.com",
-      "verificationMethod": [ ... ],
+      "verification_method": [ ... ],
       "service": [
-        { "id": "#repo", "type": "ContrixRepo", "serviceEndpoint": "https://repo.alice.com" }
+        { "id": "#repo", "type": "ContrixRepo", "service_endpoint": "https://repo.alice.com" }
       ]
     },
     "key_log_head": "cx:keyevt:01JS...",
@@ -572,9 +572,12 @@ POST /api/v1/authz/check
 
 ```json
 {
-  "error": "CASConflict",
-  "message": "expected_state_hash mismatch: current=abc..., expected=def...",
-  "retry_after_ms": 2000
+  "ok": false,
+  "error": {
+    "code": "cas_conflict",
+    "message": "expected_state_hash mismatch: current=abc..., expected=def...",
+    "retry_after_ms": 2000
+  }
 }
 ```
 
@@ -582,20 +585,20 @@ POST /api/v1/authz/check
 
 | 错误码 | HTTP Status | 含义 |
 |--------|-------------|------|
-| `InvalidSignature` | 401 | 签名校验失败 |
-| `AuthExpired` | 401 | 认证令牌或 Grant 已过期 |
-| `CapabilityDenied` | 403 | 当前 Actor 在目标资源上无所需权限 |
-| `SpaceFrozen` | 403 | Space 处于冻结/归档状态，拒绝写入 |
-| `NotFound` | 404 | 目标 DID、Space 或 Entity 不存在 |
-| `CASConflict` | 409 | `expected_state_hash` 不匹配（并发冲突） |
-| `EpochMismatch` | 409 | MLS Epoch 版本过期，需拉取最新状态 |
-| `QuotaExceeded` | 413 | Blob 存储或 Space 数据量超出 Policy 配额 |
-| `RateLimited` | 429 | 请求频率超限，应遵守 `retry_after_ms` |
-| `UnknownDID` | 422 | 提交的 DID 无法在任何 Registry 中解析 |
-| `SchemaViolation` | 422 | Op 的 payload 不符合当前 Space 的 Schema 约束 |
-| `InternalError` | 500 | 节点内部错误 |
+| `invalid_signature` | 401 | 签名校验失败 |
+| `auth_expired` | 401 | 认证令牌或 Grant 已过期 |
+| `capability_denied` | 403 | 当前 Actor 在目标资源上无所需权限 |
+| `space_frozen` | 403 | Space 处于冻结/归档状态，拒绝写入 |
+| `not_found` | 404 | 目标 DID、Space 或 Entity 不存在 |
+| `cas_conflict` | 409 | `expected_state_hash` 不匹配（并发冲突） |
+| `epoch_mismatch` | 409 | MLS Epoch 版本过期，需拉取最新状态 |
+| `quota_exceeded` | 413 | Blob 存储或 Space 数据量超出 Policy 配额 |
+| `rate_limited` | 429 | 请求频率超限，应遵守 `retry_after_ms` |
+| `unknown_did` | 422 | 提交的 DID 无法在任何 Registry 中解析 |
+| `schema_violation` | 422 | Op 的 payload 不符合当前 Space 的 Schema 约束 |
+| `internal_error` | 500 | 节点内部错误 |
 
-客户端在收到 `429 RateLimited` 时 MUST 遵守 `retry_after_ms` 字段指定的退避间隔。在收到 `409 CASConflict` 或 `409 EpochMismatch` 时 SHOULD 拉取最新状态后使用指数退避重试。
+客户端在收到 `429 rate_limited` 时 MUST 遵守 `retry_after_ms` 字段指定的退避间隔。在收到 `409 cas_conflict` 或 `409 epoch_mismatch` 时 SHOULD 拉取最新状态后使用指数退避重试。
 
 ## 16. Blob API
 
