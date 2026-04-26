@@ -302,11 +302,35 @@ message 创建是 append-only。
 - reaction 用 OR-Set 收敛
 - board/chat/topic/tree/graph 共享同一同步协议，只是 profile 和 View 不同
 
-## 14. 后续待细化
+## 14. 历史可见性 (History Visibility)
+
+当新成员加入一个 Channel 或 Space 时，他能看到多少历史消息是一个核心隐私边界。协议通过 `history_visibility` 策略字段控制此行为。
+
+### 14.1 策略值
+
+| 策略值 | 含义 |
+|--------|------|
+| `world_readable` | 任何人可见全部历史，包括非 Space 成员 |
+| `shared` | 当前成员可见加入前的全部历史 |
+| `joined` | 仅可见该成员正式加入 (join) 时间点之后的消息 |
+| `invited` | 从被邀请 (invite) 时刻起可见 |
+
+### 14.2 默认值
+- Channel 默认为 `shared`。
+- 私密 Channel 或涉及 E2EE 的 Space 建议默认为 `joined`。
+
+### 14.3 与 E2EE 的交互
+- 当 `history_visibility` 为 `joined` 时，新成员 MUST NOT 收到加入前的 MLS Epoch 密钥。因此即使 Relay 转发了历史密文，新成员也在密码学层面无法解密。
+- 当 `history_visibility` 为 `shared` 时，邀请者的客户端 MAY 通过 MLS 的 `Welcome` 消息中附带历史 Epoch 密钥，使新成员能够回溯解密加入前的内容。
+
+### 14.4 变更规则
+- `history_visibility` 的变更本身是一个 `cx.policy.set` 操作，需要 `space.admin` 权限。
+- 变更仅影响变更后的新消息对新加入者的可见性，不追溯改变已有成员的可见范围。
+
+## 15. 后续待细化
 
 下一轮仍需补充：
 
 - 富文本 block 结构
 - 附件在 message 中的嵌入语义
-- 频道成员可见性与历史权限
 - inbox / notification 的正式 schema

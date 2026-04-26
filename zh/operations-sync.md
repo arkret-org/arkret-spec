@@ -124,6 +124,9 @@ Contrix New 采用 repo-first 模型：
 
 - `cx.space.create`
 - `cx.space.update`
+- `cx.space.archive` (归档：Space 进入只读状态，所有写入 MUST 被拒绝，历史数据可查)
+- `cx.space.freeze` (临时冻结，由具备 `space.admin` 权限的 Actor 触发，可解冻)
+- `cx.space.destroy` (标记待回收，Relay 和 Index 按 retention policy 倒计时清理)
 - `cx.schema.define`
 - `cx.schema.update`
 - `cx.policy.set`
@@ -181,14 +184,23 @@ Contrix New 采用 repo-first 模型：
 - `cx.memory.invalidate`
 - `cx.memory.supersede`
 
-### 7.6 Invite / Read State
+### 7.6 Membership
+
+- `cx.membership.join` (加入 Space)
+- `cx.membership.leave` (主动离开)
+- `cx.membership.kick` (被管理员移除)
+- `cx.membership.ban` (封禁，禁止再次加入)
+- `cx.membership.unban` (解封)
+- `cx.membership.knock` (请求加入，等待审批)
+
+### 7.7 Invite / Read State
 
 - `cx.invite.create`
 - `cx.invite.cancel`
 - `cx.invite.accept`
 - `cx.read.mark`
 
-### 7.7 Capability
+### 7.8 Capability
 
 - `cx.capability.grant`
 - `cx.capability.delegate`
@@ -254,17 +266,19 @@ Snapshot 是加速层，不是真相源。
 }
 ```
 
-实现 SHOULD 让 snapshot manifest 额外包含：
+Snapshot manifest MUST 包含以下信任链字段：
 
 - `schema_profile_refs`
-- `chunk_digests`
-- `generator_signature`
+- `chunk_digests`（每个 chunk 的 SHA-256 摘要）
+- `state_hash`（快照覆盖范围内全量状态的 Merkle Root）
+- `signed_by`（签名者 DID，应为 Space Owner 或可信 Index 节点）
+- `generator_signature`（对 `state_hash` + `chunk_digests` 的密码学签名）
 
-这样客户端在采用 snapshot 前，就能验证：
+客户端在采用 Snapshot 前 MUST 验证：
 
-- 它覆盖了哪个 frontier
-- 它使用了哪个 reducer 与 schema profile
-- chunk 内容是否被篡改
+1. `generator_signature` 的签名有效性（签名者公钥通过 DID Document 解析）
+2. 每个 chunk 的实际 SHA-256 与 `chunk_digests` 中声明的值一致
+3. 若任何校验失败，客户端 MUST 丢弃快照并回退到 Repo 进行原始历史回放
 
 ## 11. 同步面
 

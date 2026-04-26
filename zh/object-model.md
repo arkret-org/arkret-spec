@@ -744,11 +744,17 @@ Schema SHOULD 定义 Entity 类型、字段类型、允许关系、默认视图�
 
 ### 13.1 演进与向后兼容 (Schema Evolution)
 
-去中心化协作网络中，参与者的软件版本和本地 Schema 版本很可能不一致。Schema 设计必须支持向下兼容：
+去中心化协作网络中，参与者的软件版本和本地 Schema 版本很可能不一致。Schema 设计必须服从以下三条铁律：
 
-1. **优雅降级 (Graceful Fallback)**：当旧客户端同步到一个带有未知 `entity_type`，或包含 Schema 升级后新增的未知字段的 Entity 时，MUST NOT 抛出解析异常丢弃该对象。
-2. **盲存机制 (Blind Storage)**：客户端与 Index 节点 SHOULD 将所有无法识别的字段及对象视为不透明数据 (Opaque Data) 进行完整保存和转发，且不破坏其原有的因果关联和签名，确保全网最终一致性不被截断。
-3. **UI 回退展示**：在界面层，对于无法应用特定 View 渲染的未知 Entity，客户端 SHOULD 将其降级展示为“通用实体卡片 (Generic Entity Card)”，并可选择性提示用户“请升级客户端版本以获得最佳协作体验”。
+1. **仅追加字段 (Additive Only)**：新 Schema 版本 MUST 仅添加 `optional` 字段。不得将已有字段标记为 `required` 或删除字段。
+2. **未知字段保留 (Unknown Fields Preservation)**：Reducer 和客户端在处理操作时，遇到未知字段 MUST 完整保留而非丢弃，确保不同版本的客户端能够透明转发它们不认识的数据。
+3. **版本协商与正向兼容**：如果多个 Reducer 对同一 Space 采用不同 Schema 版本，Index 应按最新版本呈现，但保留原始 Op 不做破坏性转换。
+
+同时，为保证客户端的健壮性：
+
+4. **优雅降级 (Graceful Fallback)**：当旧客户端同步到一个带有未知 `entity_type`，或包含 Schema 升级后新增的未知字段的 Entity 时，MUST NOT 抛出解析异常丢弃该对象。
+5. **盲存机制 (Blind Storage)**：客户端与 Index 节点 SHOULD 将所有无法识别的字段及对象视为不透明数据 (Opaque Data) 进行完整保存和转发，且不破坏其原有的因果关联和签名。
+6. **UI 回退展示**：对于无法应用特定 View 渲染的未知 Entity，客户端 SHOULD 将其降级展示为“通用实体卡片 (Generic Entity Card)”。
 
 ## 14. Policy
 
@@ -806,6 +812,31 @@ Contrix 应支持显式 `invite` 对象。它可以是专门对象，也可以�
 ```
 
 `invite` 本身不等于 capability grant。接受 invite 后，相关 grant 才进入生效集合。
+
+## 15.1 成员状态机 (Membership State Machine)
+
+每个 Actor 在 Space 内拥有一个明确的成员状态。所有节点 MUST 对成员状态达成一致，以确保查询、权限判定与 MLS 密钥树的锡定。
+
+```
+                    invite
+    (none) ──────────► invited ──────────► joined
+      │                    │ decline            │
+      │ knock              ▼                    │ leave
+      ├────────► knocking         left ◄────────┘
+      │                                         │ ban
+      └────────────────────────── banned ◄────┘
+```
+
+| 状态 | 含义 |
+|------|------|
+| `none` | 与 Space 无关联，无任何权限 |
+| `invited` | 被邀请，可接受或拒绝 |
+| `knocking` | 主动申请加入，等待管理员审批 |
+| `joined` | 已加入，按 Grant 拥有相应操作权限 |
+| `left` | 已离开，不再接收新 Op，历史贡献保留 |
+| `banned` | 被封禁，无法重新加入，历史贡献按 Policy 处理 |
+
+**与 MLS 的交互**：成员状态变化为 `left` 或 `banned` 时，应触发对应的 `event.mls.proposal` (Remove)，将该成员从加密群组中移除。
 
 ## 16. Read Marker 与 Notification
 

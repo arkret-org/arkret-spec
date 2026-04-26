@@ -521,3 +521,59 @@ POST /xrpc/cx.authz.check
     "payload": { /* Event Envelope */ }
   }
   ```
+
+## 15. 标准错误响应 (Error Response Schema)
+
+所有 XRPC 端点在遇到错误时 MUST 返回统一格式的 JSON 错误体，以便客户端 SDK 做统一的重试与 UI 展示：
+
+```json
+{
+  "error": "CASConflict",
+  "message": "expected_state_hash mismatch: current=abc..., expected=def...",
+  "retry_after_ms": 2000
+}
+```
+
+### 15.1 标准错误码枚举
+
+| 错误码 | HTTP Status | 含义 |
+|--------|-------------|------|
+| `InvalidSignature` | 401 | 签名校验失败 |
+| `AuthExpired` | 401 | 认证令牌或 Grant 已过期 |
+| `CapabilityDenied` | 403 | 当前 Actor 在目标资源上无所需权限 |
+| `SpaceFrozen` | 403 | Space 处于冻结/归档状态，拒绝写入 |
+| `NotFound` | 404 | 目标 DID、Space 或 Entity 不存在 |
+| `CASConflict` | 409 | `expected_state_hash` 不匹配（并发冲突） |
+| `EpochMismatch` | 409 | MLS Epoch 版本过期，需拉取最新状态 |
+| `QuotaExceeded` | 413 | Blob 存储或 Space 数据量超出 Policy 配额 |
+| `RateLimited` | 429 | 请求频率超限，应遵守 `retry_after_ms` |
+| `UnknownDID` | 422 | 提交的 DID 无法在任何 Registry 中解析 |
+| `SchemaViolation` | 422 | Op 的 payload 不符合当前 Space 的 Schema 约束 |
+| `InternalError` | 500 | 节点内部错误 |
+
+客户端在收到 `429 RateLimited` 时 MUST 遵守 `retry_after_ms` 字段指定的退避间隔。在收到 `409 CASConflict` 或 `409 EpochMismatch` 时 SHOULD 拉取最新状态后使用指数退避重试。
+
+## 16. Blob API
+
+### 16.1 上传接口
+**`POST /xrpc/com.contrix.blob.upload`**
+- **Content-Type**: `application/octet-stream` 或 `multipart/form-data`
+- **描述**：客户端上传二进制文件，服务端计算内容哈希后返回地址。
+- **响应 (Response)**：
+  ```json
+  {
+    "blob_ref": "cx:blob:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size": 102450,
+    "mimetype": "image/png"
+  }
+  ```
+
+### 16.2 哈希规范
+- 算法：**SHA-256**。
+- 地址格式：`cx:blob:sha256:<hex_digest>`。
+- 校验规则：客户端在下载 Blob 后 MUST 本地计算 SHA-256 并与地址中的摘要比对，若不一致 MUST 丢弃该 Blob。
+
+### 16.3 生命周期与 GC
+- Blob 必须被至少一个 Entity 的 `attachments` 或 `content` 字段引用才被视为"活跃"。
+- Blob Store MAY 对超过 `retention_policy` 周期且无任何引用的孤儿 Blob 执行垃圾回收 (GC)。
+- Blob 删除前 SHOULD 有一个宽限期 (Grace Period)，防止上传与引用之间的网络延迟导致误删。
