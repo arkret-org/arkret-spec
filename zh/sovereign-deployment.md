@@ -155,7 +155,7 @@ The deployment MUST define a DID resolver policy:
 
 ```json
 {
-  "type": "cx.sovereign.did_policy",
+  "kind": "cx.sovereign.did_policy",
   "trust_domain": "did:web:defense.example#contrix-domain",
   "allowed_methods": ["did:uuid", "did:web"],
   "registries": [
@@ -192,8 +192,8 @@ Controlled Collaboration Space SHOULD 使用：
 
 ```json
 {
-  "type": "cx.space.create",
-  "space_version": "cx.space.v1",
+  "kind": "cx.space.create",
+  "space_version": "1",
   "content": {
     "space_kind": "controlled_collaboration",
     "created_by_principal": "did:web:defense.example",

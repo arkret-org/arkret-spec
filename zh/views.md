@@ -63,10 +63,9 @@ view 不承载底层对象的唯一真相状态。
 ```json
 {
   "id": "cx:view:01JS0VW000000000000000000",
-  "kind": "view",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "created_by": "did:web:acme.example.com",
-  "view_kind": "kanban",
+  "kind": "kanban",
   "name": "Release Flow",
   "visibility": "shared",
   "query": {
@@ -93,7 +92,7 @@ view 不承载底层对象的唯一真相状态。
 }
 ```
 
-## 4. 标准 `view_kind`
+## 4. 标准 `kind`
 
 ### 4.1 工作对象视图
 
@@ -291,7 +290,7 @@ Kanban 视图的 canonical 输入应是：
 - `entity_type = "collection"`
 - `entity_type = "task"` 或其他工作对象
 - `kind = "contains"` / `belongs_to`
-- `view_kind = "kanban"`
+- `kind = "kanban"`
 
 而不是某种 UI 私有列数组。
 
@@ -302,7 +301,7 @@ Kanban 视图的 canonical 输入应是：
 | UI 概念 | Canonical 数据 | 说明 |
 | --- | --- | --- |
 | 看板 | `Entity{entity_type="board"}` | 看板本身是一个 Entity，可被引用、授权、讨论和审计。 |
-| 视图配置 | `View{view_kind="kanban"}` | 定义查询范围、列来源、排序和展示字段。 |
+| 视图配置 | `View{kind="kanban"}` | 定义查询范围、列来源、排序和展示字段。 |
 | 列 | `fields.<group_by>` 的枚举值，或 `Entity{entity_type="collection"}` | 简单工作流用字段分组；复杂工作流用 collection 实体。 |
 | 卡片 | `Entity{entity_type="task"}` 或 `issue` / 自定义工作对象 | 卡片不是单独 UI 数据，而是业务 Entity。 |
 | 卡片属于看板 | `Relation{kind="contains"}` 或 `belongs_to` | 表示 board/collection 与 task 的包含关系。 |
@@ -350,9 +349,8 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
 ```json
 {
   "id": "cx:view:01view",
-  "kind": "view",
   "space_id": "cx:space:01space",
-  "view_kind": "kanban",
+  "kind": "kanban",
   "title": "Launch Flow",
   "query": {
     "space_ids": ["cx:space:01space"],
@@ -611,7 +609,7 @@ Tree 视图的 canonical 输入应是：
 
 - View 是独立对象
 - Query 先采用结构化 JSON
-- 标准化 `kanban/chat/forum/thread/inbox/notifications/tree/graph/gantt` 等 view_kind
+- 标准化 `kanban/chat/forum/thread/inbox/notifications/tree/graph/gantt` 等 kind
 - 看板与聊天是标准投影，不是协议根
 - Shared / private / system 并存
 

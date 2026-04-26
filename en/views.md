@@ -61,10 +61,9 @@ Suggested fields:
 ```json
 {
   "id": "cx:view:01JS0VW000000000000000000",
-  "kind": "view",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "created_by": "did:web:acme.example.com",
-  "view_kind": "kanban",
+  "kind": "kanban",
   "name": "Release Flow",
   "visibility": "shared",
   "query": {
@@ -85,7 +84,7 @@ Suggested fields:
 }
 ```
 
-## 4. Standard `view_kind` Values
+## 4. Standard `kind` Values
 
 ### 4.1 Work-object Views
 
@@ -224,7 +223,7 @@ The canonical input for Kanban views should be:
 - `entity_type = "collection"`
 - `entity_type = "task"` or another work object type
 - `kind = "contains"` / `belongs_to`
-- `view_kind = "kanban"`
+- `kind = "kanban"`
 
 rather than some UI-private array-of-columns structure.
 

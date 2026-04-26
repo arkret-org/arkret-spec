@@ -136,8 +136,8 @@ cx.vector.encoding.event_digest.v1
 
 ```json
 {
-  "type": "cx.message.create",
-  "space_version": "cx.space.v1",
+  "kind": "cx.message.create",
+  "space_version": "1",
   "space_id": "cx:space:01js0ke000000000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 1,
@@ -154,13 +154,13 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"content":{"body":"hello"},"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","prev_refs":[],"space_id":"cx:space:01js0ke000000000000000000","space_version":"cx.space.v1","type":"cx.message.create"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"content":{"body":"hello"},"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","prev_refs":[],"space_id":"cx:space:01js0ke000000000000000000","space_version":"1","kind":"cx.message.create"}
 ```
 
 期望 digest：
 
 ```text
-sha256:6c6895e0e5b486514d48008134d583e01ab1904e48fa286b3724c588ef3c60d0
+sha256:921bf7f35f54ec956b198d7465aaf517c617698ac1e8932246e4304d741215af
 ```
 
 判定规则：

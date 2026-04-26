@@ -36,7 +36,7 @@
 - 底层应是 `Entity + Relation + View`。
 - `board`、`collection`、`task/card` 都是标准 `entity_type`。
 - board 包含 collection、collection 包含 task/card，使用 `contains` Relation。
-- Kanban 只是 `view_kind = "kanban"` 的一种标准投影。
+- Kanban 只是 `kind = "kanban"` 的一种标准投影。
 
 ### 2.3 如果要支持聊天模式或话题模式，应该怎么设计？
 

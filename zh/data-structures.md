@@ -57,7 +57,7 @@ Schema id: `cx.schema.space.v1`
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
 | `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
-| `space_version` | yes | `string` | 初版为 `cx.space.v1`。 | 事件授权和状态收敛版本。 |
+| `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `space_kind` | yes | `enum(collaboration, direct, group, project, document, board, channel, social_feed, enclave)` | 自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
@@ -163,9 +163,9 @@ Event 是 reducer 输入。它不是当前态对象。
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` 或 `hash` | 派生规则见 `encoding-conformance-vectors.md`。 | 事件 ID。 |
-| `type` | yes | `string` | 标准 event type SHOULD 使用 `cx.` 前缀。 | 事件类型。 |
+| `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。 | 事件 kind。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
-| `space_version` | yes | `string` | 初版 `cx.space.v1`。 | 授权/状态版本。 |
+| `space_version` | yes | `string` | 初版 `1`。 | 授权/状态版本。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
 | `actor_seq` | yes | `integer` | 同一 actor repo 内严格单调。 | Actor repo 序列。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
@@ -173,20 +173,15 @@ Event 是 reducer 输入。它不是当前态对象。
 | `prev_refs` | yes | `array<id:event \| hash>` | 可为空。 | Actor repo 前序。 |
 | `auth_refs` | yes | `array<id:event \| hash>` | create event 可为空。 | 授权依赖。 |
 | `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
-| `content` | yes | `object` | 由 event type schema 定义。 | 事件内容。 |
+| `content` | yes | `object` | 由 event kind schema 定义。 | 事件内容。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
-
-### 8.1 兼容命名说明
-
-本草案在 event envelope 中使用 `event_id`，便于兼容已有实现；`id` 是同义建议名，`id` 与 `event_id` 不应同时出现。  
-若实现出于 `schema-registry` 自动化而采用 `id` 命名，`id` 的语义必须等价于 `event_id` 并在验证上完全一致。
 
 ## 9. Proof
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `type` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
+| `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
 | `payload_hash` | yes | `hash` | 必须绑定 canonical payload。 | 被签名 payload hash。 |
@@ -202,14 +197,14 @@ Schema id: `cx.schema.view.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:view` |  | View ID。 |
-| `kind` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
+| `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `view_kind` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue)` |  | 投影形态。 |
+| `kind` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue)` |  | 投影形态。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
-| `kanban` | no | `KanbanConfig` | `view_kind="kanban"` 时 SHOULD 设置。 | 看板投影配置。 |
+| `kanban` | no | `KanbanConfig` | `kind="kanban"` 时 SHOULD 设置。 | 看板投影配置。 |
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

@@ -231,9 +231,9 @@ Event 是 reducer 输入和审计事实。
   "event_id": "cx:event:01JS0EV000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "actor_id": "did:web:alice.example",
-  "type": "cx.entity.update",
+  "kind": "cx.entity.update",
   "created_at": "2026-04-26T00:00:00Z",
-  "space_version": "cx.space.v1",
+  "space_version": "1",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
     "cx:event:01JS0EU000000000000000000"
@@ -248,11 +248,13 @@ Event 是 reducer 输入和审计事实。
       "fields.status": "done"
     }
   },
-  "proof": {
-    "type": "detached_jws",
-    "verification_method": "did:web:alice.example#device-1",
-    "jws": "..."
-  }
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "verification_method": "did:web:alice.example#device-1",
+      "jws": "..."
+    }
+  ]
 }
 ```
 
@@ -266,9 +268,8 @@ View 示例：
 ```json
 {
   "id": "cx:view:01JS0VW000000000000000000",
-  "kind": "view",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "view_kind": "kanban",
+  "kind": "kanban",
   "query": {
     "entity_types": ["task"],
     "filters": [

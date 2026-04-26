@@ -219,7 +219,7 @@ Space SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 
 ```json
 {
-  "view_kind": "moderation_queue",
+  "kind": "moderation_queue",
   "query": {
     "entity_types": ["moderation_report"],
     "filters": [

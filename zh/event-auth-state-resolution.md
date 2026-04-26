@@ -4,7 +4,7 @@
 
 本文件定义 Contrix Space 内事件是否有效、状态如何收敛、冲突如何确定性解决、redaction 如何保留最小字段，以及 Space 版本如何升级。
 
-任何支持联邦写入、多设备写入或离线写入的实现，MUST 实现本文件的 `cx.space.v1` 规则。
+任何支持联邦写入、多设备写入或离线写入的实现，MUST 实现本文件的 `space_version=1` 规则。
 
 ## 2. Space Version
 
@@ -12,8 +12,8 @@
 
 ```json
 {
-  "type": "cx.space.create",
-  "space_version": "cx.space.v1",
+  "kind": "cx.space.create",
+  "space_version": "1",
   "content": {
     "space_kind": "collaboration",
     "initial_creators": ["did:uuid:..."],
@@ -47,7 +47,7 @@
 1. Parse canonical JSON，不接受重复 key、非规范 number、无效 UTF-8 或超过 profile 限制的对象。
 2. 验证 `event_id` 等于事件 redaction 前 canonical bytes 的 multihash 派生值。
 3. 验证 `proofs` 中 actor/device/service 签名。
-4. 验证 `space_id`、`space_version`、`type`、`created_at`、`hlc` 与 schema。
+4. 验证 `space_id`、`space_version`、`kind`、`created_at`、`hlc` 与 schema。
 5. 拉取并验证 `prev_refs` 和 `auth_refs` 指向事件的 hash。
 6. 对 `auth_refs` 运行授权算法。
 7. 对 `content` 运行类型级 schema validation。
@@ -60,7 +60,7 @@
 
 每个写事件 MUST 包含 `auth_refs`。`auth_refs` 是授权当前事件所需的最小状态事件集合，不是完整状态快照。
 
-`cx.space.v1` 的 auth refs 选择规则：
+`space_version=1` 的 auth refs 选择规则：
 
 | 当前事件类型 | 必需 auth refs |
 | --- | --- |
@@ -90,7 +90,7 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 ```json
 {
-  "type": "cx.member.state",
+  "kind": "cx.member.state",
   "state_key": "did:uuid:actor",
   "content": {
     "membership": "join",
@@ -172,7 +172,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 
 ```json
 {
-  "type": "cx.space.organization",
+  "kind": "cx.space.organization",
   "state_key": "did:web:acme.example",
   "content": {
     "organization_did": "did:web:acme.example",
@@ -223,22 +223,22 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 
 对事件 `E`，节点 MUST：
 
-1. 构造 auth state map：以 `(type, state_key)` 为 key，从 `auth_refs` 解析授权状态。
+1. 构造 auth state map：以 `(kind, state_key)` 为 key，从 `auth_refs` 解析授权状态。
 2. 验证所有 auth event 本身为 accepted，或在当前 state resolution 中被接受。
 3. 验证 sender 的当前 membership。
 4. 验证 sender 的 device 是否在事件时间有效，且未在 `created_at` 前撤销。
 5. 验证 sender 持有 action 对应 capability；capability subject MUST 匹配 DID 或满足 selector。
 6. 验证 capability constraint：时间、空间、对象、字段、速率、审批、设备、Applet 范围。
-7. 验证 event type 的专用规则。
+7. 验证 event kind 的专用规则。
 8. 验证 policy server hard deny、server ACL、ban list 与本地 quarantine list。
 
 授权计算 MUST 使用事件 `created_at` 对应的 auth state，而不是接收时间的最新状态。撤销事件只影响其 causal frontier 之后的事件。
 
 ## 8. State Events
 
-State event 是具有 `state_key` 的事件。其当前状态由 `(type, state_key)` 最新 accepted 事件决定。
+State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_key)` 最新 accepted 事件决定。
 
-以下事件类型是 `cx.space.v1` 标准 state event：
+以下事件类型是 `space_version=1` 标准 state event：
 
 - `cx.space.create`
 - `cx.space.discovery`
@@ -263,7 +263,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(type, state_k
 
 ## 9. State Resolution
 
-当多个分支对同一 `(type, state_key)` 给出不同 accepted state event 时，节点 MUST 运行 deterministic state resolution。
+当多个分支对同一 `(kind, state_key)` 给出不同 accepted state event 时，节点 MUST 运行 deterministic state resolution。
 
 ### 9.1 输入
 
@@ -278,7 +278,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(type, state_k
 
 ### 9.3 算法
 
-1. 将所有 state set 中相同 `(type, state_key)` 且 event id 相同的项放入 unconflicted state。
+1. 将所有 state set 中相同 `(kind, state_key)` 且 event id 相同的项放入 unconflicted state。
 2. 将不同 event id 的项放入 conflicted set。
 3. 计算 auth difference：所有 conflicted event 的 auth chain 差集。
 4. 对 auth difference 先排序并授权，得到 provisional auth state。
@@ -311,7 +311,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(type, state_k
 - `event_id`
 - `space_id`
 - `space_version`
-- `type`
+- `kind`
 - `state_key`
 - `sender`
 - `sender_device`
@@ -349,12 +349,12 @@ Space 升级通过 `cx.space.upgrade`：
 
 ```json
 {
-  "type": "cx.space.upgrade",
+  "kind": "cx.space.upgrade",
   "state_key": "",
   "content": {
     "from_space_id": "space:...",
     "to_space_id": "space:...",
-    "to_space_version": "cx.space.v2",
+    "to_space_version": "2",
     "migration_policy": "copy_state_and_continue",
     "replacement_ref": "event:..."
   }

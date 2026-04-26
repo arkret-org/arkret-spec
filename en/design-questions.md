@@ -35,7 +35,7 @@ Decision:
 - The substrate is `Entity + Relation + View`.
 - `board`, `collection`, and `task/card` are standard `entity_type` values.
 - board contains collection, and collection contains task/card, through `contains` Relations.
-- Kanban is just one standard `view_kind`.
+- Kanban is just one standard `kind = "kanban"`.
 
 ### 2.3 If the Protocol Should Support Chat or Topic Mode, How Should That Work?
 
