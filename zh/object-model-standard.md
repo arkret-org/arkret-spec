@@ -5,6 +5,8 @@
 本文定义 Contrix 初版标准 Entity 类型。  
 这些类型是语义层约定，不改变核心模型：所有对象仍然是 Entity，所有跨对象语义仍然使用 Relation。
 
+核心字段类型、必填性和通用约束见 `data-structures.md`。本文只定义标准 `entity_type` 的业务语义、常用字段和推荐关系。
+
 ## 2. Board
 
 `board` 表示可视化工作台。
@@ -211,7 +213,6 @@ Actor Profile 不替代 DID，也不成为权限主键。
 
 ## 15. 待细化
 
-- 每个标准 Entity 的 JSON Schema
 - 标准 Relation cardinality
 - content block registry
 - task status profile

@@ -53,6 +53,7 @@ Contrix New 第一阶段聚焦以下目标：
 1. [architecture.md](./architecture.md)：架构平面、部署拓扑和信任边界。
 2. [glossary.md](./glossary.md)：术语边界，尤其是 Principal / Actor / Organization / Space / Repo / Relay。
 3. [object-model-core.md](./object-model-core.md) 与 [object-model-standard.md](./object-model-standard.md)：核心对象和标准类型。
+   字段级定义见 [data-structures.md](./data-structures.md)。
 4. [identity-did.md](./identity-did.md)、[identity-handles.md](./identity-handles.md)、[progressive-disclosure.md](./progressive-disclosure.md)：身份、handle、隐私披露。
 5. [capabilities.md](./capabilities.md) 与 [event-auth-state-resolution.md](./event-auth-state-resolution.md)：授权、membership、state resolution。
 6. [operations-sync.md](./operations-sync.md)、[client-sync.md](./client-sync.md)、[service-surface.md](./service-surface.md)、[service-http-binding.md](./service-http-binding.md)：写入、同步、服务面和默认 HTTP binding。
@@ -166,6 +167,7 @@ Contrix New 第一阶段聚焦以下目标：
 
 - DID、handle、组织主体、服务 DID 与渐进披露。
 - Space、Entity、Relation、Event、View 和标准业务类型。
+- 核心数据结构字段级类型、必填性、枚举和约束。
 - Capability、delegation、claim 条件、policy server、moderation policy。
 - Repo-first 发布、Relay 传播、Index 查询、Directory 发现、HTTP binding。
 - MLS E2EE、设备验证、WebRTC 会议、Blob 与媒体。

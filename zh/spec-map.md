@@ -88,6 +88,7 @@
 | --- | --- |
 | `object-model-core.md` | Space、Actor、Entity、Relation、Event、View 核心对象。 |
 | `object-model-standard.md` | Task、Message、Run、Memory、Social Post 等标准类型。 |
+| `data-structures.md` | 核心对象字段级定义：必填性、类型、枚举、约束和说明。 |
 | `conversation-model.md` | Channel、Topic、Message、Thread、Mention、Reaction。 |
 | `views.md` | Board、Table、Timeline、Graph 等投影。 |
 | `content-types.md` | 富文本、媒体、投票、内容 block。 |

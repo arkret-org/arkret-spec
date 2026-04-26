@@ -18,6 +18,8 @@ Contrix 的核心数据模型不是 room，也不是 message，而是一张可�
 - `read_marker`
 - `notification`
 
+字段级结构、必填性、类型和约束见 `data-structures.md`。本文保留核心模型语义和示例，具体 JSON Schema SHOULD 从 `data-structures.md` 与 `schema-registry.md` 生成。
+
 ## 2. 基本原则
 
 ### 2.1 Space 是边界
@@ -335,7 +337,6 @@ Reducer MUST：
 
 ## 16. 待细化
 
-- 标准 object JSON Schema
 - 标准 event type 注册表
 - reducer conformance vector
 - relation cardinality 规则

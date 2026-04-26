@@ -133,3 +133,9 @@
 - [x] 增加 `encoding-conformance-vectors.md`，定义 canonical JSON、event digest、commit digest、signature binding、HLC、cursor、encrypted envelope digest 测试向量
 - [x] 明确所有 profile 必须覆盖编码基础向量，Repo / Index / Full Client / E2EE Client 额外覆盖 event digest
 - [x] 更新 `conformance-profiles.md`、`spec-map.md`、`gap-analysis.md` 与 `README.md`，把编码一致性向量纳入规范入口和后续优先级
+
+## 数据结构字段级定义
+
+- [x] 增加 `data-structures.md`，定义 Space、Actor Profile、Entity、Relation、Event、View、Policy、Capability、Invite、Read Marker、Notification、Commit、Operation、Blob、Encrypted Payload、Client Sync Response 的字段级结构
+- [x] 为核心字段补充必填性、JSON 类型、枚举、条件必填、ID/hash/timestamp/cursor 约束和安全说明
+- [x] 更新 `schema-registry.md`、`object-model-core.md`、`object-model-standard.md`、`conformance-profiles.md`、`spec-map.md` 与 README，使字段级结构成为后续 JSON Schema 生成依据

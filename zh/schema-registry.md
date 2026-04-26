@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文定义初版标准 schema registry。正式 JSON Schema 文件后续可从本注册表生成。
+本文定义初版标准 schema registry。字段级结构定义见 `data-structures.md`；正式 JSON Schema 文件 SHOULD 从 `data-structures.md` 与本注册表共同生成。
 
 ## 2. Object Schema
 
@@ -17,6 +17,13 @@
 | `cx.schema.invite.v1` | Invite |
 | `cx.schema.read_marker.v1` | Read Marker |
 | `cx.schema.notification.v1` | Notification |
+| `cx.schema.capability.v1` | Capability Grant |
+| `cx.schema.event.v1` | Event Envelope |
+| `cx.schema.commit.v1` | Repo Commit |
+| `cx.schema.op.v1` | Operation |
+| `cx.schema.blob.v1` | Blob Metadata |
+| `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
+| `cx.schema.client_sync_response.v1` | Client Sync Response |
 
 ## 3. Event Type
 

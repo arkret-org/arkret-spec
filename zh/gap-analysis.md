@@ -11,7 +11,7 @@
 | 能力主题 | 规范位置 | 当前状态 |
 | --- | --- | --- |
 | DID / Handle / 服务发现 | `identity-did.md`, `identity-handles.md`, `service-surface.md` | 已覆盖，需要持续补测试向量 |
-| Space / Entity / Relation | `object-model-core.md`, `object-model-standard.md`, `space-hierarchy.md` | 已覆盖核心模型和 Space 层级规则 |
+| Space / Entity / Relation | `object-model-core.md`, `object-model-standard.md`, `data-structures.md`, `space-hierarchy.md` | 已覆盖核心模型、字段级结构和 Space 层级规则 |
 | 消息 / 话题 / 线程 | `conversation-model.md`, `content-types.md` | 已覆盖主要语义 |
 | 事件替换 / 撤回 / reaction | `conversation-model.md`, `operations-sync.md`, `event-auth-state-resolution.md` | 已覆盖基础语义和 redaction 规则 |
 | 同步 / backfill / snapshot | `operations-sync.md`, `client-sync.md`, `snapshot-schema.md`, `sync-conformance-vectors.md`, `service-surface.md` | 已覆盖原则、schema、客户端同步面和首批一致性向量 |
@@ -58,7 +58,7 @@
 
 ### 3.3 Schema Registry 完整化
 
-需要把以下内容从文档草案落成机器可验证 schema：
+当前 `data-structures.md` 已补核心对象字段级定义，但仍需要把以下内容从文档草案落成机器可验证 JSON Schema / OpenAPI components：
 
 - `cx.space.*`
 - `cx.entity.*`

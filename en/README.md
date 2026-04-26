@@ -58,6 +58,7 @@ Main document groups:
 - [key-management.md](./key-management.md)
 - [object-model-core.md](./object-model-core.md)
 - [object-model-standard.md](./object-model-standard.md)
+- [data-structures.md](./data-structures.md)
 - [conversation-model.md](./conversation-model.md)
 - [operations-sync.md](./operations-sync.md)
 - [capabilities.md](./capabilities.md)
