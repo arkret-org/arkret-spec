@@ -389,14 +389,18 @@ Contrix 初版不引入全网共识链。
 
 最终收敛到相同当前态。
 
-### 15.2 基本排序规则
+### 15.2 确定性状态收敛与 Tie-breaking (平局破除)
 
-当两个 op 无显式因果先后关系时，按以下顺序比较：
+借鉴成熟的分布式状态解析算法（如 Matrix State Resolution v2 的 Kahn's 拓扑排序），当网络中出现并发的分叉操作（无明确的 `prev_ids` 覆盖关系）时，所有节点 MUST 采用绝对确定的排序来打破平局 (Tie-breaking)，保障全网视图强一致。
 
-1. `hlc`
-2. `actor`
-3. `actor_seq`
-4. `op_id`
+排序优先级算法 (Reverse Topological Power Ordering)：
+比较两个并发操作 $O_A$ 和 $O_B$ 时，判定 $O_A < O_B$ ($O_B$ 胜出，成为最终态) 的依据严格依序如下：
+1. **权限级别 (Power Level)**：检查生成该操作时，`actor` 在 Repo 中拥有的权限权重。权重大的操作胜出。
+2. **混合逻辑时钟 (HLC)**：若权限相等，比较 `hlc` 时间戳。时间戳大的胜出。
+3. **Actor ID 字典序**：若时间戳依然完全相等，比较发出的 `actor_id` 的纯字符串字典序。
+4. **Op Hash 字典序**：最后兜底，比较操作信封哈希 `op_id` 的字典序。
+
+这确保了整个图的拓扑排序具备绝对的唯一性。
 
 ## 17. 字段级 merge 与对象级收敛
 
@@ -411,7 +415,7 @@ Contrix 初版不引入全网共识链。
 
 建议：
 
-- LWW by causal order
+- **LWW by Deterministic Order**：基于 15.2 节定义的 Tie-breaking 排序算法实现 Last-Write-Wins。无论这些修改在网络中到达节点的顺序如何，经过排序后最终生效的永远是“最大”的那个值。
 
 ### 17.2 集合字段
 

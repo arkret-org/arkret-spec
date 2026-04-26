@@ -442,13 +442,82 @@ POST /xrpc/cx.authz.check
 - 服务必须公开 reducer / schema / feature profile
 - 明确 Space Owner 的资源记账责任与防滥用熔断标准
 
-## 14. 后续待细化
+## 14. 核心 API 契约与 Schema (XRPC)
 
-下一轮仍需继续补：
+为了保障客户端与去中心化节点的互操作性，定义以下核心 XRPC 端点。所有请求均走 HTTP POST，并采用 Content-Type `application/json`。调用需在 HTTP Header 中附带 `Authorization: Bearer <JWS_Token>` 或使用 HTTP 签名认证。
 
-- 每个接口的正式请求/响应 schema
-- cursor 编码
-- firehose 帧格式
-- 错误码与重试语义
-- auth token 或签名请求格式
-- identity receipt / witness proof schema
+### 14.1 Repo API: 提交操作
+**`POST /xrpc/com.contrix.repo.submitOp`**
+- **描述**：客户端向 Repo 提交经过签名的 Event Envelope。
+- **请求 (Request)**：
+  ```json
+  {
+    "repo_id": "cx:space:01JS0KP...",
+    "op": { /* 完整的 Event Envelope 对象，见 object-model.md 19.1 */ }
+  }
+  ```
+- **响应 (Response)**：
+  ```json
+  {
+    "status": "accepted",
+    "commit_id": "cx:op:01JS0KE...",
+    "sync_token": "token_str_for_ryw"
+  }
+  ```
+  *注：若 CAS (`expected_state_hash`) 校验失败，返回 409 Conflict。*
+
+### 14.2 Repo API: 同步增量
+**`POST /xrpc/com.contrix.repo.sync`**
+- **描述**：基于 cursor 从 Repo 拉取缺失的 operations。
+- **请求 (Request)**：
+  ```json
+  {
+    "repo_id": "cx:space:01JS0KP...",
+    "since": "cursor_string_or_op_id",
+    "limit": 500
+  }
+  ```
+- **响应 (Response)**：
+  ```json
+  {
+    "ops": [ { /* Event Envelopes */ } ],
+    "next_cursor": "new_cursor_string",
+    "has_more": true
+  }
+  ```
+
+### 14.3 Identity API: 解析 DID
+**`POST /xrpc/com.contrix.identity.resolve`**
+- **描述**：根据 DID 查询当前的公钥、Service Endpoints 及其合法演化证明。
+- **请求 (Request)**：
+  ```json
+  {
+    "did": "did:web:alice.com"
+  }
+  ```
+- **响应 (Response)**：
+  ```json
+  {
+    "did_document": {
+      "id": "did:web:alice.com",
+      "verificationMethod": [ ... ],
+      "service": [
+        { "id": "#repo", "type": "ContrixRepo", "serviceEndpoint": "https://repo.alice.com" }
+      ]
+    },
+    "key_log_head": "cx:keyevt:01JS...",
+    "seq": 5
+  }
+  ```
+
+### 14.4 Relay API: 实时流订阅
+**`GET /xrpc/com.contrix.relay.firehose?space_id=cx:space:01JS0KP...`**
+- **描述**：通过 WebSocket 或 Server-Sent Events (SSE) 建立实时监听。
+- **Frame Format (每帧)**：
+  ```json
+  {
+    "type": "event",
+    "seq": 106,
+    "payload": { /* Event Envelope */ }
+  }
+  ```

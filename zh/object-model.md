@@ -851,15 +851,73 @@ Contrix 应支持显式 `invite` 对象。它可以是专门对象，也可以�
 - `Schema` 约束 Entity 与 Relation，避免抽象退化成混乱 JSON
 - board、chat、task、message、run、memory 都是语义层，而不是协议根
 
-## 19. 后续待细化
+## 19. 核心结构定义 (JSON Schemas)
 
-下一轮仍需明确：
+为了确保各语言实现的客户端互通，在此对核心操作包与常见业务事件进行 JSON Schema 级别定义。
 
-- EntitySchema / RelationSchema 正式 JSON Schema
-- Event envelope 与签名格式
-- Command request/response schema
-- ViewQuery 正式 schema
-- read marker 与 notification 的正式查询面
-- message 富文本 block 结构
-- Space 历史可见性规则
-- memory supersession / invalidation 语义
+### 19.1 Event Envelope (事件信封)
+
+所有向 Repo 提交的改动都 MUST 包裹在如下结构中：
+
+```json
+{
+  "op_id": "cx:op:01JS0KE000000000000000000",
+  "space_id": "cx:space:01JS0KP000000000000000000",
+  "actor_id": "did:web:alice.com",
+  "seq": 105,
+  "prev_ids": [
+    "cx:op:01JS0KDPPPPPPPPPPPPPPPPPP"
+  ],
+  "event_type": "message.create",
+  "timestamp": 1714100000000,
+  "encrypted_payload": {
+    "version": 1,
+    "cipher_text": "base64_encoded_string",
+    "nonce": "base64_encoded_string",
+    "mac": "base64_encoded_string"
+  },
+  "cleartext_metadata": {
+    "target_ref": "cx:msg:01JS0MXXXXX",
+    "rank": "a0",
+    "labels": ["urgent"]
+  },
+  "signature": {
+    "type": "Ed25519Signature2018",
+    "creator": "did:web:alice.com#key-1",
+    "signatureValue": "base64..."
+  }
+}
+```
+
+* **`encrypted_payload`**: `content` / `body` 必须加密，这是 MLS 的加密输出。
+* **`cleartext_metadata`**: 允许 Relay 和 Index 节点做过滤与排序的明文字段。
+
+### 19.2 业务事件解密后 Payload
+
+在端侧解密后，`message.create` 事件的 `content` SHOULD 遵循以下 Schema：
+
+```json
+{
+  "entity_id": "cx:msg:01JS0MXXXXX",
+  "body": "Hello @bob, check this out!",
+  "formatted_body": {
+    "format": "org.matrix.custom.html",
+    "body": "Hello <a href=\"did:web:bob.com\">@bob</a>, check this out!"
+  },
+  "relates_to": {
+    "relation_type": "reply",
+    "target": "cx:msg:01JS0M_PREVIOUS",
+    "in_reply_to": {
+      "event_id": "cx:op:01JS0M_PREVIOUS_OP"
+    }
+  },
+  "attachments": [
+    {
+      "mimetype": "image/png",
+      "url": "cx:blob:sha256:abcdef...",
+      "size": 102450
+    }
+  ]
+}
+```
+该结构深度借鉴了 Matrix `m.room.message` 并将其适配到 Contrix 的对象图中。
