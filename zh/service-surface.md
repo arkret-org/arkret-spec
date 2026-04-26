@@ -311,6 +311,50 @@ GET /api/v1/index/notifications?cursor=<cursor>&state=unread
 GET /api/v1/index/inbox?scope=<scope>&cursor=<cursor>
 ```
 
+### 6.6 全文搜索
+
+```text
+POST /api/v1/index/search
+```
+
+请求体：
+
+```json
+{
+  "query": "legal review",
+  "space_ids": ["cx:space:01JS0SP000000000000000000"],
+  "entity_types": ["message", "task", "comment"],
+  "sender": "did:web:alice.example.com",
+  "time_range": {
+    "after": "2026-04-01T00:00:00Z",
+    "before": "2026-04-26T00:00:00Z"
+  },
+  "order_by": "relevance",
+  "cursor": null,
+  "limit": 20
+}
+```
+
+响应：
+
+```json
+{
+  "results": [
+    {
+      "rank": 0.95,
+      "entity": { /* Entity 当前态 */ },
+      "highlights": [
+        { "field": "content.body", "snippet": "Please complete the <em>legal review</em> by Friday." }
+      ]
+    }
+  ],
+  "next_cursor": "search_cursor_abc",
+  "total_estimate": 42
+}
+```
+
+**E2EE 场景说明**：在加密 Space 中，Index 节点无法对密文执行全文搜索。此时客户端 SHOULD 依赖本地解密后维护的客户端全文索引，或在受控网络中指定可信 TEE 节点代理搜索功能（详见 `operations-sync.md` 21.3 节）。
+
 ## 7. Blob Surface
 
 blob 服务至少应提供：

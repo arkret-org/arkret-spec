@@ -49,7 +49,7 @@ Contrix New 第一阶段聚焦以下目标：
 
 ## 4. 规范地图
 
-当前目录的文档按十个部分组织：
+当前目录的文档按十五个部分组织：
 
 1. [design-questions.md](./design-questions.md)  
    先把关键协议问题列出，再给出统一决策和收敛方案。
@@ -70,9 +70,21 @@ Contrix New 第一阶段聚焦以下目标：
 9. [agent-memory.md](./agent-memory.md)  
    定义如何把 Contrix 当作 AI agent 的长期记忆与协作外脑。
 10. [service-surface.md](./service-surface.md)  
-   定义最小 repo / relay / index / blob / authz 服务面，以及 Space bootstrap。
-
-当前轮的任务清单与后续 backlog 记录在 [_tasks.md](./_tasks.md)。
+    定义最小 repo / relay / index / blob / authz 服务面，以及 Space bootstrap。
+11. [encryption-and-audit.md](./encryption-and-audit.md)  
+    定义基于 MLS (RFC 9420) 的端到端加密标准与可审查的透明留痕机制。
+12. [devices-and-auth.md](./devices-and-auth.md)  
+    定义多设备管理、认证协议、密钥备份与单点登录。
+13. [content-types.md](./content-types.md)  
+    定义结构化的富文本与媒体消息类型系统（text/image/video/audio/file/location/code/composite）。
+14. [federation.md](./federation.md)  
+    定义跨域联邦协议：节点间认证、Op 交换、跨域加入 Space、服务发现。
+15. [push-notifications.md](./push-notifications.md)  
+    定义推送规则引擎、推送网关接口与 E2EE 脱敏推送。
+16. [moderation.md](./moderation.md)  
+    定义内容举报、用户屏蔽、审核队列与服务器级 ACL。
+17. [profiles-presence.md](./profiles-presence.md)  
+    定义 Actor Profile 标准字段、在线状态广播、Typing 指示器与用户目录搜索。
 
 ## 5. 核心设计决定
 
