@@ -98,11 +98,30 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 - **机制**：Agent 作为一个独立的物理/逻辑实体，生成自己的 `KeyPackage`，但在身份层面上挂靠在 Master 的 DID 下，作为 Master 的另一台“设备”。
 - **效果**：在 MLS 树中，发送者对同一个主体的多个叶子节点加密。Master 手机与 Agent 服务器同时收到密文副本并各自解密。
 
-## 5. 离线支持与消息延迟到达
+## 5. 组员变动与高可用容错 (Proposal & Commit)
+
+在去中心化网络中，管理员踢人（或邀请人）是一个典型的容易因网络抖动而“做到一半瘫痪”的操作。为避免单点故障导致群组密钥树锁定，Contrix 严格继承了 MLS (RFC 9420) 的 **“提案与提交分离 (Proposal & Commit)”** 架构。
+
+### 5.1 意图与生效的分离
+组员的增删改不再是一个原子动作，而是两步走：
+1. **意图上链 (Proposal)**：管理员 A 发出 `event.mls.proposal` (意图移除用户 D)。这只是一条明文路由加上密码学签名的操作意图。**注意：此时群组 Epoch 并没有推进，旧密钥依然有效，用户 D 依然在群内**。
+2. **正式生效 (Commit)**：必须有成员针对上述 Proposal 打包并发起一个 `event.mls.commit` 操作。一旦 Commit 落盘，Ratchet Tree 被重新洗牌，新密钥分发给剩余成员（不包含 D），此时 D 才被真正物理隔离。
+
+### 5.2 断网接力与挂起状态 (Takeover)
+如果管理员 A 在发出踢人 Proposal 后瞬间掉线，群组**绝对不会瘫痪**。
+- **挂起态的可用性**：在 Commit 被提交之前，群组处于“有待处理提案”的挂起状态，所有成员依然可以使用现有的 Epoch 密钥继续聊天通信。
+- **无缝接力 (Takeover)**：群组内其他具备足够权限的成员（如管理员 B 或普通成员 C）在侦测到未处理的 Proposal 后，可以主动“接手”。成员 B 的客户端会自动执行重新加密，打包移除 D 的逻辑，并广播出 `event.mls.commit`。一旦 B 的 Commit 被接受，D 成功被踢出。
+
+### 5.3 防冲突仲裁 (Concurrency Resolution)
+如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
+- 节点将根据底层 Repo 的 **Tie-breaking 规则**（优先级排序：`Power Level` -> `HLC` -> `Actor_ID 字典序`）进行无分歧的绝对仲裁。
+- 胜出者的 Commit 成为合法的下一个 Epoch。失败者的客户端发现自己的 Commit 版本过期后，会自动丢弃本地更改并拉取胜出者的状态，确保 E2EE 的强一致性。
+
+## 6. 离线支持与消息延迟到达
 - 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `event.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Relay 中的加密事件。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
 
-## 6. 待细化领域
+## 7. 待细化领域
 - 详细的 KeyPackage 格式在 DID Document 中的映射 Schema。
 - TEE 环境下 Audit Agent 代码开源验证（Remote Attestation）在 Contrix 协议中的集成校验流程。
 - 与现存 Signal/Double Ratchet 私信场景的无缝回退兼容性。

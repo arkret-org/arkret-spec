@@ -505,7 +505,8 @@ Event 是协作事实记录。
 - `memory.confirmed`
 - `run.started`
 - `run.finished`
-- `event.mls.commit` (加密群组状态变更)
+- `event.mls.commit` (加密群组状态正式推进)
+- `event.mls.proposal` (意图提案，不改变当前 Epoch 密钥)
 - `event.audit.accessed` (透明审查留痕)
 - `device.authorized` (新设备接入授权)
 - `device.revoked` (设备或公钥吊销)
@@ -920,4 +921,20 @@ Contrix 应支持显式 `invite` 对象。它可以是专门对象，也可以�
   ]
 }
 ```
+```
 该结构深度借鉴了 Matrix `m.room.message` 并将其适配到 Contrix 的对象图中。
+
+### 19.3 MLS Proposal Schema
+
+`event.mls.proposal` 是一种特殊的事件，它表达状态变更的意图但不产生新的解密密钥 Epoch。它的解密后 Payload 格式如下：
+
+```json
+{
+  "entity_id": "cx:proposal:01JS...",
+  "action": "remove",
+  "target_did": "did:web:bob.com",
+  "reason": "Violation of space policy",
+  "expires_at": 1714200000000
+}
+```
+当其他在线成员的客户端捕获到未超时的 Proposal 后，具备权限的客户端会自动接力发起 `event.mls.commit`，将 Bob 的公钥从树中移除并下发新密钥。
