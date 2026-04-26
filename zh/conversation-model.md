@@ -69,7 +69,8 @@ Channel 是长期会话空间，对应 `entity_type = "channel"`。
 ```json
 {
   "id": "cx:channel:01JS1000000000000000000000",
-  "kind": "entity",
+  "type": "entity",
+  "schema": "cx.schema.entity.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "entity_type": "channel",
   "title": "release-chat",
@@ -107,7 +108,8 @@ Topic 是会话线程或主题对象，对应 `entity_type = "topic"`。
 ```json
 {
   "id": "cx:topic:01JS1000000000000000000001",
-  "kind": "entity",
+  "type": "entity",
+  "schema": "cx.schema.entity.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "entity_type": "topic",
   "title": "Legal review follow-up",
@@ -138,7 +140,8 @@ Message 是时间线中的原子消息对象，对应 `entity_type = "message"`�
 ```json
 {
   "id": "cx:message:01JS1000000000000000000002",
-  "kind": "entity",
+  "type": "entity",
+  "schema": "cx.schema.entity.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "entity_type": "message",
   "created_by": "did:web:alice.example.com",
@@ -179,7 +182,7 @@ message 与 topic/channel/reply/mention 的关系使用 Relation 表达：
 
 ### 8.1 编辑
 
-编辑通过 `message.revise` 形成 revision chain。
+编辑通过 `cx.message.revise` 形成 revision chain。
 
 原则：
 
@@ -201,8 +204,8 @@ message 与 topic/channel/reply/mention 的关系使用 Relation 表达：
 
 reaction 建议通过独立 op 表达：
 
-- `message.react`
-- `message.unreact`
+- `cx.reaction.add`
+- `cx.reaction.remove`
 
 归约策略：
 

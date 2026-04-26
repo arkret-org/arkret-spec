@@ -76,7 +76,7 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
 
 ```json
 {
-  "type": "applet_registration",
+  "type": "cx.applet.registration",
   "applet_id": "cx:applet:slack-bridge",
   "service_did": "did:web:slack-bridge.example",
   "controller_did": "did:web:acme.example",
@@ -111,9 +111,9 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
   "requested_scopes": [
     "space.read",
     "space.write",
-    "entity.create",
-    "message.create",
-    "relation.create"
+    "cx.entity.create",
+    "cx.message.create",
+    "cx.relation.create"
   ],
   "webhook_auth": {
     "type": "http_message_signature",
@@ -191,7 +191,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 
 ```json
 {
-  "type": "capability_grant",
+  "type": "capability",
   "issuer": "did:web:acme.example",
   "subject": "did:web:slack-bridge.example#bot",
   "scope": {
@@ -199,9 +199,9 @@ Handle namespace 适用于外部用户或 location 的人类入口。
       "cx:space:01JS0SP000000000000000000"
     ],
     "actions": [
-      "entity.create",
-      "message.create",
-      "relation.create"
+      "cx.entity.create",
+      "cx.message.create",
+      "cx.relation.create"
     ]
   },
   "constraints": {
@@ -264,7 +264,7 @@ Contrix relay / index / repo 向 Applet 推送事件批次。
     {
       "event_id": "cx:event:01JS0EV000000000000000000",
       "space_id": "cx:space:01JS0SP000000000000000000",
-      "type": "message.create",
+      "type": "cx.message.create",
       "actor_id": "did:web:alice.example",
       "payload": {}
     }
@@ -407,7 +407,7 @@ Applet 写入 Contrix MUST 使用常规 repo submit 接口。
   "event_id": "cx:event:01JS0EV000000000000000000",
   "space_id": "cx:space:portal:slack:T123:C456",
   "actor_id": "did:web:slack-bridge.example#ghost-u123",
-  "type": "message.create",
+  "type": "cx.message.create",
   "applet_id": "cx:applet:slack-bridge",
   "external_ref": {
     "protocol": "slack",

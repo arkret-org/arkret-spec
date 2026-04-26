@@ -8,7 +8,7 @@ Standard query shape:
   "entity_types": [],
   "filters": [],
   "relation": null,
-  "sort": [],
+  "order_by": [],
   "projection": [],
   "cursor": null,
   "limit": 50,

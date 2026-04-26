@@ -69,7 +69,7 @@ Client MUST verify signature and `state_hash` before using snapshot.
   "epoch": 42,
   "cleartext_metadata": {
     "entity_id": "cx:entity:...",
-    "event_type": "message.create"
+    "event_type": "cx.message.create"
   },
   "ciphertext": "base64url...",
   "ciphertext_digest": "sha256:..."

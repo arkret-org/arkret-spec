@@ -246,7 +246,7 @@ But knowledge objects already in the audit chain should not silently disappear.
 
 Agent memory is often more sensitive than ordinary tasks. Implementations SHOULD support:
 
-- workspace-scoped isolation
+- space-scoped isolation
 - object-scoped isolation
 - memory-kind restrictions
 - stricter read rules for candidate memories

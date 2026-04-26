@@ -43,7 +43,7 @@ sequenceDiagram
     note over Bob: Derives Group Epoch Secret
 ```
 
-- **`event.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `event.mls.commit` 类型的 Event 提交至 Space Repo。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
+- **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Space Repo。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。由于其仅面向特定新成员解密，该消息可通过 Relay 的 Ephemeral Channel 发送，或通过私信 `message` 投递。
 
 ### 2.3 载荷加密 (Application Data)
@@ -84,7 +84,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 客户端在加入此类 Space 前，**UI 必须向人类用户明确警告**：“这是一个受审核的加密空间，内容对合规员可见，但任何审查都会被记录并在群内公示。”
 
 ### 3.2 审计节点的入群
-`did:web:compliance.acme.corp` 对应的合规客户端（Audit Agent）会作为一个合法的、只读的成员，由创建者通过正常的 `event.mls.commit` 邀请加入 MLS 群组。
+`did:web:compliance.acme.corp` 对应的合规客户端（Audit Agent）会作为一个合法的、只读的成员，由创建者通过正常的 `cx.mls.commit` 邀请加入 MLS 群组。
 这意味着：
 - Audit Agent 从密码学上获得了当前 Epoch 的解密能力。
 - 群组内所有的普通成员都可以通过检查 MLS 树，清晰地知晓 Audit Agent 的存在。
@@ -93,28 +93,28 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 获得密钥并不意味着可以随意“暗中偷看”。协议要求 Audit Agent 的实现（强烈建议依托于 TEE / SGX enclave 技术）必须执行以下硬性工作流：
 
 1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:msg:123`）。
-2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条类型为 `event.audit.accessed` 的不可撤销操作，并提交给该 Space 的 Repo：
+2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条类型为 `cx.audit.accessed` 的不可撤销操作，并提交给该 Space 的 Repo：
    ```json
    {
-     "type": "event.audit.accessed",
+     "type": "cx.audit.accessed",
      "target_ref": "cx:msg:123",
      "reason": "Internal legal compliance request #8801",
      "actor": "did:web:compliance.acme.corp"
    }
    ```
-3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或中继节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Repo 或至少一个独立验证节点的 `sync_token`（或因果确权回执），确认该 `event.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
+3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或中继节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Repo 或至少一个独立验证节点的 `sync_token`（或因果确权回执），确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地（或受控合规服务）才被允许利用持有的 MLS 密钥将对应的明文吐出给合规人员。
 
 ### 3.4 审查透明公示
-因为 `event.audit.accessed` 是一条公开写入的协作事件，所有参与者的客户端 Index 都能实时同步到该事件。
-- **用户端 UI**：客户端检测到自己发送的消息被附加了 `event.audit.accessed` 后，应在界面上（如气泡旁边）显示明显的标识（例如一个带警告色的“合规审查”眼睛图标），并允许用户点击查看审查事由与时间。
+因为 `cx.audit.accessed` 是一条公开写入的协作事件，所有参与者的客户端 Index 都能实时同步到该事件。
+- **用户端 UI**：客户端检测到自己发送的消息被附加了 `cx.audit.accessed` 后，应在界面上（如气泡旁边）显示明显的标识（例如一个带警告色的“合规审查”眼睛图标），并允许用户点击查看审查事由与时间。
 - **不可抵赖性**：合规员无法悄无声息地查看信息；一旦查看，全群组所有成员都能看到透明的访问足迹。
 
 ## 4. 受控账号的通信穿透 (Master-Agent Control)
 
 协议严格区分“场地方合规审查 (Space Audit)”与“参与方主控权穿透 (Master-Agent Control)”。
 
-当一个受控账户（如 AI Agent，拥有自己独立的 DID）加入了一个私密加密群组，其拥有者（Master）理论上拥有读取该 Agent 所有通信记录的权利。这属于**终端节点数据与密钥管理范畴**，不需要、也不应该触发前文所述的 `event.audit.accessed` 强制公开留痕机制。
+当一个受控账户（如 AI Agent，拥有自己独立的 DID）加入了一个私密加密群组，其拥有者（Master）理论上拥有读取该 Agent 所有通信记录的权利。这属于**终端节点数据与密钥管理范畴**，不需要、也不应该触发前文所述的 `cx.audit.accessed` 强制公开留痕机制。
 
 协议推荐以下三种原生方式实现 Master 对 Agent 的通信穿透：
 
@@ -138,13 +138,13 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 
 ### 5.1 意图与生效的分离
 组员的增删改不再是一个原子动作，而是两步走：
-1. **意图上链 (Proposal)**：管理员 A 发出 `event.mls.proposal` (意图移除用户 D)。这只是一条明文路由加上密码学签名的操作意图。**注意：此时群组 Epoch 并没有推进，旧密钥依然有效，用户 D 依然在群内**。
-2. **正式生效 (Commit)**：必须有成员针对上述 Proposal 打包并发起一个 `event.mls.commit` 操作。一旦 Commit 落盘，Ratchet Tree 被重新洗牌，新密钥分发给剩余成员（不包含 D），此时 D 才被真正物理隔离。
+1. **意图上链 (Proposal)**：管理员 A 发出 `cx.mls.proposal` (意图移除用户 D)。这只是一条明文路由加上密码学签名的操作意图。**注意：此时群组 Epoch 并没有推进，旧密钥依然有效，用户 D 依然在群内**。
+2. **正式生效 (Commit)**：必须有成员针对上述 Proposal 打包并发起一个 `cx.mls.commit` 操作。一旦 Commit 落盘，Ratchet Tree 被重新洗牌，新密钥分发给剩余成员（不包含 D），此时 D 才被真正物理隔离。
 
 ### 5.2 断网接力与挂起状态 (Takeover)
 如果管理员 A 在发出踢人 Proposal 后瞬间掉线，群组**绝对不会瘫痪**。
 - **挂起态的可用性**：在 Commit 被提交之前，群组处于“有待处理提案”的挂起状态，所有成员依然可以使用现有的 Epoch 密钥继续聊天通信。
-- **无缝接力 (Takeover)**：群组内其他具备足够权限的成员（如管理员 B 或普通成员 C）在侦测到未处理的 Proposal 后，可以主动“接手”。成员 B 的客户端会自动执行重新加密，打包移除 D 的逻辑，并广播出 `event.mls.commit`。一旦 B 的 Commit 被接受，D 成功被踢出。
+- **无缝接力 (Takeover)**：群组内其他具备足够权限的成员（如管理员 B 或普通成员 C）在侦测到未处理的 Proposal 后，可以主动“接手”。成员 B 的客户端会自动执行重新加密，打包移除 D 的逻辑，并广播出 `cx.mls.commit`。一旦 B 的 Commit 被接受，D 成功被踢出。
 
 ### 5.3 防冲突仲裁 (Concurrency Resolution)
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
@@ -152,7 +152,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 - 胜出者的 Commit 成为合法的下一个 Epoch。失败者的客户端发现自己的 Commit 版本过期后，会自动丢弃本地更改并拉取胜出者的状态，确保 E2EE 的强一致性。
 
 ## 6. 离线支持与消息延迟到达
-- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `event.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Relay 中的加密事件。
+- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `cx.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Relay 中的加密事件。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
 
 ## 7. 待细化领域

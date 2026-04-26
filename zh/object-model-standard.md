@@ -33,7 +33,7 @@
   "entity_type": "board",
   "title": "Product Launch",
   "fields": {
-    "default_view_type": "kanban"
+    "default_view_kind": "kanban"
   }
 }
 ```

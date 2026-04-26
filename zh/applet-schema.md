@@ -4,7 +4,7 @@
 
 ```json
 {
-  "type": "applet_registration",
+  "type": "cx.applet.registration",
   "applet_id": "cx:applet:example",
   "service_did": "did:web:applet.example",
   "controller_did": "did:web:acme.example",
@@ -117,7 +117,7 @@ Response:
 
 ```json
 {
-  "type": "applet.bridge_error",
+  "type": "cx.applet.bridge_error",
   "applet_id": "cx:applet:example",
   "external_ref": {},
   "error_code": "external_rate_limited",

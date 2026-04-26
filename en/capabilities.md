@@ -25,7 +25,7 @@ The protocol allows conditional authorization, but conditions must reduce to ver
 
 Avoid assumptions such as:
 
-- joining a workspace implies all abilities
+- joining a space implies all abilities
 - being allowed to edit items implies recalling other people's messages
 - channel owners inherently have all moderation powers
 
@@ -138,10 +138,10 @@ Conditional grants MUST specify the claim issuer, claim type, effective status, 
 
 The first version should support the following `kind` values:
 
-- `workspace`
+- `space`
 - `board`
 - `collection`
-- `item`
+- `entity`
 - `comment`
 - `channel`
 - `topic`
@@ -169,10 +169,12 @@ The first version should support the following `kind` values:
 
 ### 5.2 Board and Object Actions
 
-- `create_item`
-- `edit_item`
-- `move_item`
-- `reorder_item`
+- `create_entity`
+- `edit_entity`
+- `move_entity`
+- `reorder_entity`
+- `create_task`
+- `edit_task`
 - `assign_item`
 - `comment`
 - `manage_relations`
@@ -202,7 +204,7 @@ The first version should support the following `kind` values:
 
 ### 5.5 Administrative Actions
 
-- `manage_workspace`
+- `manage_space`
 - `manage_board`
 - `manage_schema`
 - `manage_capabilities`
@@ -212,7 +214,7 @@ The first version should support the following `kind` values:
 ### 5.6 Service Actions
 
 - `relay_ops`
-- `index_workspace`
+- `index_space`
 - `store_blobs`
 
 ### 5.7 Human-facing and Personal-state Actions
@@ -230,7 +232,7 @@ The first version recommends support for:
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `item_type_allow`
+- `entity_type_allow`
 - `memory_kind_allow`
 - `allowed_channel_refs`
 - `visibility_allow`
@@ -475,7 +477,7 @@ Where:
 
 Product layers may define:
 
-- `workspace_admin`
+- `space_admin`
 - `board_manager`
 - `contributor`
 - `observer`

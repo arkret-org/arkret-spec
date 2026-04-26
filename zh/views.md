@@ -65,17 +65,17 @@ view 不承载底层对象的唯一真相状态。
   "id": "cx:view:01JS0VW000000000000000000",
   "kind": "view",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "owner": "did:web:acme.example.com",
-  "view_type": "kanban",
+  "created_by": "did:web:acme.example.com",
+  "view_kind": "kanban",
   "name": "Release Flow",
   "visibility": "shared",
   "query": {
     "entity_types": ["task", "issue"],
-    "filter": [
+    "filters": [
       { "field": "archived", "op": "neq", "value": true }
     ],
     "relation": {
-      "type": "contains",
+      "kind": "contains",
       "from_entity_id": "cx:entity:01JS0BD000000000000000000",
       "depth": 2
     }
@@ -93,7 +93,7 @@ view 不承载底层对象的唯一真相状态。
 }
 ```
 
-## 4. 标准 `view_type`
+## 4. 标准 `view_kind`
 
 ### 4.1 工作对象视图
 
@@ -132,15 +132,15 @@ View 应通过结构化 query 表达对象范围。
 ```json
 {
   "entity_types": ["task"],
-  "filter": [
+  "filters": [
     { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] }
   ],
   "relation": {
-    "type": "depends_on",
-    "direction": "outgoing",
+    "kind": "depends_on",
+    "direction": "out",
     "depth": 2
   },
-  "sort": [
+  "order_by": [
     { "field": "updated_at", "direction": "desc" }
   ],
   "limit": 100
@@ -152,12 +152,12 @@ View 应通过结构化 query 表达对象范围。
 ```json
 {
   "entity_types": ["task", "issue"],
-  "filter": [
+  "filters": [
     { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] },
     { "field": "archived", "op": "eq", "value": false }
   ],
   "relation": {
-    "type": "contains",
+    "kind": "contains",
     "from_entity_id": "cx:entity:01JS0BD000000000000000000",
     "depth": 2
   }
@@ -169,13 +169,13 @@ View 应通过结构化 query 表达对象范围。
 ```json
 {
   "entity_types": ["message"],
-  "filter": [
+  "filters": [
     { "field": "fields.redacted", "op": "eq", "value": false }
   ],
   "relation": {
-    "type": "belongs_to",
+    "kind": "belongs_to",
     "to_entity_id": "cx:entity:01JS1000000000000000000000",
-    "direction": "outgoing"
+    "direction": "out"
   }
 }
 ```
@@ -185,13 +185,13 @@ View 应通过结构化 query 表达对象范围。
 ```json
 {
   "entity_types": ["topic"],
-  "filter": [
+  "filters": [
     { "field": "fields.status", "op": "eq", "value": "open" }
   ],
   "relation": {
-    "type": "attached_to",
+    "kind": "attached_to",
     "to_entity_id": "cx:entity:01JS0TASK0000000000000000",
-    "direction": "outgoing"
+    "direction": "out"
   }
 }
 ```
@@ -201,7 +201,7 @@ View 应通过结构化 query 表达对象范围。
 ```json
 {
   "entity_types": ["message", "task", "invite", "run", "memory"],
-  "filter": [
+  "filters": [
     { "field": "derived.notification_state", "op": "eq", "value": "unread" },
     { "field": "derived.recipient", "op": "eq", "value": "did:web:alice.example.com" }
   ]
@@ -214,8 +214,8 @@ View 应通过结构化 query 表达对象范围。
 {
   "entity_types": ["task"],
   "relation": {
-    "type": "depends_on",
-    "direction": "outgoing",
+    "kind": "depends_on",
+    "direction": "out",
     "depth": 4
   }
 }
@@ -227,8 +227,8 @@ View 应通过结构化 query 表达对象范围。
 {
   "entity_types": ["task", "document", "collection"],
   "relation": {
-    "type": "contains",
-    "direction": "outgoing",
+    "kind": "contains",
+    "direction": "out",
     "depth": 8
   }
 }
@@ -290,8 +290,8 @@ Kanban 视图的 canonical 输入应是：
 - `entity_type = "board"`
 - `entity_type = "collection"`
 - `entity_type = "task"` 或其他工作对象
-- `relation_type = "contains"` / `belongs_to`
-- `view_type = "kanban"`
+- `kind = "contains"` / `belongs_to`
+- `view_kind = "kanban"`
 
 而不是某种 UI 私有列数组。
 
@@ -302,10 +302,10 @@ Kanban 视图的 canonical 输入应是：
 | UI 概念 | Canonical 数据 | 说明 |
 | --- | --- | --- |
 | 看板 | `Entity{entity_type="board"}` | 看板本身是一个 Entity，可被引用、授权、讨论和审计。 |
-| 视图配置 | `View{view_type="kanban"}` | 定义查询范围、列来源、排序和展示字段。 |
+| 视图配置 | `View{view_kind="kanban"}` | 定义查询范围、列来源、排序和展示字段。 |
 | 列 | `fields.<group_by>` 的枚举值，或 `Entity{entity_type="collection"}` | 简单工作流用字段分组；复杂工作流用 collection 实体。 |
 | 卡片 | `Entity{entity_type="task"}` 或 `issue` / 自定义工作对象 | 卡片不是单独 UI 数据，而是业务 Entity。 |
-| 卡片属于看板 | `Relation{relation_type="contains"}` 或 `belongs_to` | 表示 board/collection 与 task 的包含关系。 |
+| 卡片属于看板 | `Relation{kind="contains"}` 或 `belongs_to` | 表示 board/collection 与 task 的包含关系。 |
 | 卡片列位置 | `fields.status`，或 task 到 collection 的 Relation | 取决于列模型。 |
 | 列内顺序 | `fields.rank` 或 Relation `fields.rank` | 推荐 Fractional Indexing string。 |
 | 卡片展示字段 | View `visible_fields` | 只决定显示，不提升权限。 |
@@ -350,9 +350,9 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
 ```json
 {
   "id": "cx:view:01view",
-  "type": "view",
+  "kind": "view",
   "space_id": "cx:space:01space",
-  "view_type": "kanban",
+  "view_kind": "kanban",
   "title": "Launch Flow",
   "query": {
     "space_ids": ["cx:space:01space"],
@@ -361,11 +361,11 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
       { "field": "fields.archived", "op": "neq", "value": true }
     ],
     "relation": {
-      "relation_type": "belongs_to",
+      "kind": "belongs_to",
       "direction": "out",
       "target_entity_id": "cx:entity:01board"
     },
-    "sort": [
+    "order_by": [
       { "field": "fields.rank", "direction": "asc", "nulls": "last" }
     ]
   },
@@ -459,7 +459,7 @@ Board 包含列：
   "id": "cx:relation:01board_col",
   "type": "relation",
   "space_id": "cx:space:01space",
-  "relation_type": "contains",
+  "kind": "contains",
   "from_entity_id": "cx:entity:01board",
   "to_entity_id": "cx:entity:01col_review",
   "fields": {
@@ -475,7 +475,7 @@ Board 包含列：
   "id": "cx:relation:01col_task",
   "type": "relation",
   "space_id": "cx:space:01space",
-  "relation_type": "contains",
+  "kind": "contains",
   "from_entity_id": "cx:entity:01col_review",
   "to_entity_id": "cx:entity:01task",
   "fields": {
@@ -527,7 +527,7 @@ Chat 视图的 canonical 输入应是：
 - `entity_type = "channel"`
 - `entity_type = "topic"`
 - `entity_type = "message"`
-- `relation_type = "belongs_to"` / `replies_to` / `mentions`
+- `kind = "belongs_to"` / `replies_to` / `mentions`
 
 ### 7.3 Topic
 
@@ -535,14 +535,14 @@ Thread/topic 视图的 canonical 输入应是：
 
 - `entity_type = "topic"`
 - `entity_type = "message"`
-- `relation_type = "attached_to"` / `belongs_to` / `replies_to`
+- `kind = "attached_to"` / `belongs_to` / `replies_to`
 
 ### 7.4 Graph
 
 Graph 视图的 canonical 输入应是：
 
 - 任意 `entity_type`
-- 一个或多个 `relation_type`
+- 一个或多个 `kind`
 - 展开方向与深度
 
 例如任务依赖图使用 `depends_on`，知识图谱使用 `references` / `derived_from`。
@@ -571,7 +571,7 @@ Tree 视图的 canonical 输入应是：
 
 ### 9.1 Shared
 
-属于 workspace，对团队可见。
+属于 space，对团队可见。
 
 ### 9.2 Private
 
@@ -611,7 +611,7 @@ Tree 视图的 canonical 输入应是：
 
 - View 是独立对象
 - Query 先采用结构化 JSON
-- 标准化 `kanban/chat/forum/thread/inbox/notifications/tree/graph/gantt` 等 view_type
+- 标准化 `kanban/chat/forum/thread/inbox/notifications/tree/graph/gantt` 等 view_kind
 - 看板与聊天是标准投影，不是协议根
 - Shared / private / system 并存
 

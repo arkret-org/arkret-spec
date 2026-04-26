@@ -153,6 +153,13 @@ Contrix New 采用 repo-first 模型：
 
 ## 7. 操作类型
 
+所有 `type` 都是可见事件类型（`event.type`）；Op 本身是 `event` 的承载信封。  
+因此以下规则必须成立：
+
+- 处理层不再引入独立的 `op_type` 命名空间；`op.type == event.type`。
+- 不应出现既无 schema 注册也未在服务端能力清单中注册的自定义 `type`。
+- 旧实现若发送未带 `cx.` 前缀的事件，必须经过兼容适配后映射为注册表 `cx.*` 名称。
+
 ### 7.1 Space / Schema / Policy
 
 - `cx.space.create`
@@ -202,8 +209,8 @@ Contrix New 采用 repo-first 模型：
 - `cx.message.create`
 - `cx.message.revise`
 - `cx.message.redact`
-- `cx.message.react`
-- `cx.message.unreact`
+- `cx.reaction.add`
+- `cx.reaction.remove`
 
 ### 7.5 Run / Memory
 
@@ -231,7 +238,7 @@ Contrix New 采用 repo-first 模型：
 - `cx.invite.create`
 - `cx.invite.cancel`
 - `cx.invite.accept`
-- `cx.read.mark`
+- `cx.read.marker`
 
 ### 7.8 Capability
 
@@ -255,8 +262,8 @@ Contrix New 采用 repo-first 模型：
 
 例如：
 
-- `cx.item.update` 只带字段变更
-- `cx.item.move` 只带目标容器和新 rank
+- `cx.entity.update` 只带字段变更
+- `cx.relation.move`（规范化 `cx.entity` reorder）只带目标容器和新 rank
 - `cx.message.revise` 只带新正文
 - `cx.message.redact` 只带目标消息与原因
 
@@ -399,7 +406,7 @@ Snapshot manifest MUST 包含以下信任链字段：
 - space
 - view
 - entity_type
-- relation_type
+- relation_kind
 - target refs
 - watched entities
 - watched runs
@@ -430,7 +437,7 @@ Contrix 初版不引入全网共识链。
 
 它要求：
 
-- 对同一 workspace
+- 对同一 space
 - 在同一有效 op 集下
 - 所有正确实现的 reducer
 
@@ -522,8 +529,8 @@ graph TD
 
 ### 17.5 Message
 
-- `message.create` 是 append-only
-- `message.revise` 形成 revision chain
+- `cx.message.create` 是 append-only
+- `cx.message.revise` 形成 revision chain
 - 默认视图显示最新可见 revision
 
 ### 17.6 Reaction
@@ -609,7 +616,7 @@ ACL 不等于密文保护，去中心化 relay 也不应被迫看懂所有正文
 
 同时，为了在满足组织合规性要求时不引入“暗网式监控后门”，本协议支持原生的**“可审查的端到端加密 (Auditable E2EE)”** 与透明留痕机制。
 
-关于 MLS 的 KeyPackage 发布、加密信封格式以及强制合规审计留痕 (`event.audit.accessed`) 的深入技术标准与交互流程，请参阅独立的协议拓展文件：
+关于 MLS 的 KeyPackage 发布、加密信封格式以及强制合规审计留痕 (`cx.audit.accessed`) 的深入技术标准与交互流程，请参阅独立的协议拓展文件：
 [加密与可审查性规范 (Encryption and Auditability)](./encryption-and-audit.md)。
 
 ### 21.3 密文上的检索索引

@@ -146,7 +146,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 - `schema`
 - `policy`
 - `entity_type:<type>`
-- `relation_type:<type>`
+- `relation_kind:<type>`
 - `view`
 - `run`
 - `memory`
@@ -170,10 +170,10 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ### 5.2 看板与对象动作
 
-- `create_item`
-- `edit_item`
-- `move_item`
-- `reorder_item`
+- `create_entity`
+- `edit_entity`
+- `move_entity`
+- `reorder_entity`
 - `assign_item`
 - `comment`
 - `manage_relations`
@@ -203,7 +203,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ### 5.5 管理动作
 
-- `manage_workspace`
+- `manage_space`
 - `manage_board`
 - `manage_schema`
 - `manage_capabilities`
@@ -213,7 +213,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 ### 5.6 服务动作
 
 - `relay_ops`
-- `index_workspace`
+- `index_space`
 - `store_blobs`
 
 ### 5.7 人类界面与个人状态动作
@@ -243,7 +243,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `item_type_allow`
+- `entity_type_allow`
 - `memory_kind_allow`
 - `allowed_channel_refs`
 - `visibility_allow`
@@ -490,7 +490,7 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 
 产品层可以提供：
 
-- `workspace_admin`
+- `space_admin`
 - `board_manager`
 - `contributor`
 - `observer`
@@ -569,7 +569,7 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 在“聊天消息收发”或“卡片状态拖拽”等高频交互场景下，每一步操作都执行上述 12 步深层推演将导致极其严重的性能瓶颈。因此，节点实现 SHOULD 引入 **Capability 快照缓存 (Authz Snapshot Bitmap)**：
 
 1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Relay 或 Index 节点针对活跃 Actor 预计算出针对特定目标（如当前 Channel 或 Board）的有效权限位图 (Permission Bitmap)。
-2. **快速命中**：对于后续提交的纯业务 Op（如 `send_message`, `react`, `edit_item`），只要 Space 内没有发生新的 `cx.capability.*` 授权操作（或相关 Claim 撤销），节点直接查询 Bitmap 缓存即可，将 O(N) 的深层权限推演降维为 O(1)。
+2. **快速命中**：对于后续提交的纯业务 Op（如 `send_message`, `react`, `edit_entity`），只要 Space 内没有发生新的 `cx.capability.*` 授权操作（或相关 Claim 撤销），节点直接查询 Bitmap 缓存即可，将 O(N) 的深层权限推演降维为 O(1)。
 3. **缓存失效与回滚**：当发生乱序操作、离线回补导致因果前沿包含新的授权变更或过期触发时，受影响的快照缓存将自动失效，并在下一次被访问时或后台任务中触发重建。
 
 ## 19. 初版设计决定

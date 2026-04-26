@@ -31,7 +31,7 @@ A repo is the publication source for one principal.
 
 ### 2.2 Relay
 
-A relay is the workspace distribution layer.
+A relay is the space distribution layer.
 
 ### 2.3 Index
 
@@ -47,12 +47,12 @@ Contrix New uses a repo-first model:
 
 1. actors write to their own repos first
 2. repos publish commits
-3. relays aggregate authorized workspace ops
+3. relays aggregate authorized space ops
 4. indexes reduce them into current state
 
 This model applies equally to:
 
-- board/item updates
+- board/entity updates
 - topic/message flows
 - run/memory persistence
 
@@ -88,8 +88,8 @@ Every op MUST have a common envelope.
   "op_id": "cx:op:01JS0OP000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "actor": "did:web:alice.example.com",
-  "type": "cx.item.update",
-  "target_ref": "cx:item:01JS0IT000000000000000000",
+  "type": "cx.entity.update",
+  "target_ref": "cx:entity:01JS0EN000000000000000000",
   "causal": {
     "deps": [
       "cx:op:01JS0OO000000000000000000"
@@ -119,10 +119,10 @@ The draft uses:
 
 ## 7. Operation Families
 
-### 7.1 Workspace / Schema / Policy
+### 7.1 Space / Schema / Policy
 
-- `cx.workspace.create`
-- `cx.workspace.update`
+- `cx.space.create`
+- `cx.space.update`
 - `cx.schema.define`
 - `cx.schema.update`
 - `cx.policy.set`
@@ -137,12 +137,13 @@ The draft uses:
 - `cx.view.create`
 - `cx.view.update`
 
-### 7.3 Item / Comment / Relation / Attachment
+### 7.3 Entity / Comment / Relation / Attachment
 
-- `cx.item.create`
-- `cx.item.update`
-- `cx.item.move`
-- `cx.item.reorder`
+- `cx.entity.create`
+- `cx.entity.update`
+- `cx.entity.delete`
+- `cx.entity.restore`
+- `cx.relation.move` (for list/order reposition)
 - `cx.comment.create`
 - `cx.comment.update`
 - `cx.comment.redact`
@@ -163,8 +164,8 @@ The draft uses:
 - `cx.message.create`
 - `cx.message.revise`
 - `cx.message.redact`
-- `cx.message.react`
-- `cx.message.unreact`
+- `cx.reaction.add`
+- `cx.reaction.remove`
 
 ### 7.5 Run / Memory
 
@@ -183,7 +184,7 @@ The draft uses:
 - `cx.invite.create`
 - `cx.invite.cancel`
 - `cx.invite.accept`
-- `cx.read.mark`
+- `cx.read.marker`
 
 ### 7.7 Capability
 
@@ -207,8 +208,8 @@ Non-create operations SHOULD carry deltas rather than full object snapshots.
 
 Examples:
 
-- `cx.item.update` carries field deltas
-- `cx.item.move` carries target container and new rank
+- `cx.entity.update` carries field deltas
+- `cx.relation.move` / `cx.entity.update` for order-sensitive repositioning
 - `cx.message.revise` carries only new content
 - `cx.message.redact` carries only the target message and reason
 
@@ -269,9 +270,9 @@ That allows clients to verify before trusting a snapshot:
 
 For actor-history recovery and audit replay.
 
-### 11.2 Workspace Sync
+### 11.2 Space Sync
 
-For workspace current-state and incremental synchronization.
+For space current-state and incremental synchronization.
 
 ### 11.3 Firehose Subscription
 
@@ -295,9 +296,9 @@ For:
 
 Default sync:
 
-- board/item/collection current state
-- comment summaries for the currently opened item
-- default-topic summaries for the currently opened item
+- board/entity/collection current state
+- comment summaries for the currently opened entity
+- default-topic summaries for the currently opened entity
 
 ### 12.2 Chat Mode
 
@@ -317,11 +318,11 @@ Default sync:
 - recent N messages
 - reverse backfill cursor
 
-## 13. First-time Workspace Join
+## 13. First-time Space Join
 
 Recommended flow:
 
-1. fetch workspace metadata
+1. fetch space metadata
 2. fetch invite / grant views relevant to the current principal
 3. fetch the latest snapshot manifest
 4. download snapshot chunks
@@ -337,13 +338,13 @@ Selective sync is a key protocol capability.
 
 The first version should support at least:
 
-- workspace
+- space
 - board
 - channel
 - topic
 - object kind
 - target refs
-- watched items
+- watched objects
 - watched runs
 - changes since cursor
 
@@ -372,7 +373,7 @@ The first version of Contrix does not introduce a global consensus chain.
 
 It requires:
 
-- for the same workspace
+- for the same space
 - over the same effective op set
 - all correct reducers
 
@@ -425,8 +426,8 @@ These should be handled via move/reorder semantics.
 
 ### 16.4 Message
 
-- `message.create` is append-only
-- `message.revise` forms a revision chain
+- `cx.message.create` is append-only
+- `cx.message.revise` forms a revision chain
 - default views show the latest visible revision
 
 ### 16.5 Reaction
@@ -516,7 +517,7 @@ The current draft recommends fixing:
 - repo commits as actor publication units
 - ops as shared-state reduction units
 - one sync protocol across board/chat/topic modes
-- invite / grant / snapshot as the main workspace-bootstrap flow
+- invite / grant / snapshot as the main space-bootstrap flow
 - commit/op retries as idempotent by design
 - authorization validity converging under the same reducer ordering
 - encrypted payloads being forwardable through non-decrypting relays and indexes

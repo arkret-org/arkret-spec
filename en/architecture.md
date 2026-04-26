@@ -13,7 +13,7 @@ This requires the protocol to separate identity, writes, distribution, queries, 
 
 ## 2. Overall Model
 
-Contrix New uses a **principal repo + identity registry + workspace relay + query index** architecture.
+Contrix New uses a **principal repo + identity registry + space relay + query index** architecture.
 
 ### 2.1 Principal Repo
 
@@ -28,13 +28,13 @@ It is responsible for:
 
 This borrows from atproto's repo idea, but Contrix repos publish **collaboration operations**, not social records for feeds.
 
-### 2.2 Workspace Relay
+### 2.2 Space Relay
 
-The relay aggregates, deduplicates, forwards, and serves authorized operations relevant to a workspace across multiple principal repos.
+The relay aggregates, deduplicates, forwards, and serves authorized operations relevant to a space across multiple principal repos.
 
 It is responsible for:
 
-- workspace-scoped distribution
+- space-scoped distribution
 - cursor/firehose subscriptions
 - fast fanout
 - preliminary authorization filtering
@@ -111,7 +111,7 @@ Responsible for:
 Responsible for:
 
 - relay firehoses
-- workspace incremental sync
+- space incremental sync
 - deduplication and cursoring
 
 ### 3.4 Query Plane
@@ -183,7 +183,7 @@ This is suitable for:
 A common pattern is:
 
 - each organization maintains its own principal repos
-- one or more shared workspace relays exist
+- one or more shared space relays exist
 - multiple query indexes serve different parties
 
 This maps well to cross-company delivery and supply-chain collaboration.
@@ -195,14 +195,14 @@ In agent-heavy environments, a common pattern is:
 - a user/org DID acts as the authority
 - an agent DID receives constrained capabilities
 - run logs are written to an agent repo
-- a workspace relay aggregates them into the collaboration space
+- a space relay aggregates them into the collaboration space
 - an index materializes human review queues
 
 ## 5. Core Architecture Direction
 
 Contrix New is explicitly:
 
-- workspace-first
+- space-first
 - object-first
 - repo-first
 - collaboration-first
@@ -224,7 +224,7 @@ A repo can prove:
 - which ops were inside a commit
 - whether sequence and signatures are valid
 
-A repo must not unilaterally define the shared current state of a workspace.
+A repo must not unilaterally define the shared current state of a space.
 
 ### 6.2 The Relay Accelerates Distribution but Must Not Rewrite History
 
@@ -277,7 +277,7 @@ The current draft recommends fixing the following directions:
 
 - principal repos are the actor publication baseline
 - identity registries / witnesses are the DID-document resolution and write layer
-- workspace relays are the distribution layer
+- space relays are the distribution layer
 - indexes/appviews are the materialized query layer
 - blobs are a separate content layer
 - capabilities form an explicit authorization layer

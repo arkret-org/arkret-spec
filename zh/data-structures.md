@@ -133,7 +133,7 @@ Schema id: `cx.schema.relation.v1`
 | `id` | yes | `id:relation` | 以 `cx:relation:` 开头。 | Relation ID。 |
 | `type` | yes | `enum(relation)` | 固定为 `relation`。 | 对象种类。 |
 | `space_id` | yes | `id:space` | Relation 所在 Space。 | 所属 Space。 |
-| `relation_type` | yes | `string` | 标准值见下方。 | 关系语义。 |
+| `relation_kind` | yes | `string` | 标准值见下方。 | 关系语义。 |
 | `from_entity_id` | conditional | `id:entity` | `from_*` 必须恰好一个。 | 起点 Entity。 |
 | `from_actor_id` | conditional | `did` | `from_*` 必须恰好一个。 | 起点 Actor。 |
 | `from_space_id` | conditional | `id:space` | `from_*` 必须恰好一个。 | 起点 Space。 |
@@ -145,7 +145,7 @@ Schema id: `cx.schema.relation.v1`
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-标准 `relation_type`：
+标准 `relation_kind`：
 
 ```text
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
@@ -177,6 +177,11 @@ Event 是 reducer 输入。它不是当前态对象。
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
+### 8.1 兼容命名说明
+
+本草案在 event envelope 中使用 `event_id`，便于兼容已有实现；`id` 是同义建议名，`id` 与 `event_id` 不应同时出现。  
+若实现出于 `schema-registry` 自动化而采用 `id` 命名，`id` 的语义必须等价于 `event_id` 并在验证上完全一致。
+
 ## 9. Proof
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
@@ -197,14 +202,14 @@ Schema id: `cx.schema.view.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:view` |  | View ID。 |
-| `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
+| `kind` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `view_type` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue)` |  | 投影类型。 |
+| `view_kind` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue)` |  | 投影形态。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
-| `kanban` | no | `KanbanConfig` | `view_type="kanban"` 时 SHOULD 设置。 | 看板投影配置。 |
+| `kanban` | no | `KanbanConfig` | `view_kind="kanban"` 时 SHOULD 设置。 | 看板投影配置。 |
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -217,8 +222,8 @@ Schema id: `cx.schema.view.v1`
 | `group_by` | conditional | `string` | `field_value` 模型必填，dot path。 | 分组字段，例如 `fields.status`。 |
 | `columns` | conditional | `array<object>` | `field_value` 模型 SHOULD 设置。 | 字段值列定义。 |
 | `board_entity_id` | conditional | `id:entity` | `collection` 模型必填。 | 看板 Entity。 |
-| `column_relation_type` | no | `string` | 默认 `contains`。 | board 到 column 的关系类型。 |
-| `card_relation_type` | no | `string` | 默认 `contains` 或 `belongs_to`。 | column/board 到 card 的关系类型。 |
+| `column_relation_kind` | no | `string` | 默认 `contains`。 | board 到 column 的关系语义。 |
+| `card_relation_kind` | no | `string` | 默认 `contains` 或 `belongs_to`。 | column/board 到 card 的关系语义。 |
 | `card_order_by` | yes | `array<SortSpec>` | SHOULD 使用 `fields.rank` 或 Relation `fields.rank`。 | 卡片排序。 |
 | `uncategorized_policy` | no | `enum(show, hide, reject)` | 默认 `show`。 | 未分类卡片处理。 |
 

@@ -12,7 +12,7 @@
   "entity_types": ["task", "message"],
   "filters": [],
   "relation": null,
-  "sort": [],
+  "order_by": [],
   "projection": [],
   "cursor": null,
   "limit": 50,
@@ -29,7 +29,7 @@
 - `entity_types`: OPTIONAL，限制 Entity type。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
-- `sort`: OPTIONAL，排序规则。
+- `order_by`: OPTIONAL，排序规则。
 - `projection`: OPTIONAL，返回字段选择。
 - `cursor`: OPTIONAL，不透明分页游标。
 - `limit`: OPTIONAL，默认 50，服务 MAY 限制最大值。
@@ -85,7 +85,7 @@
 
 ```json
 {
-  "relation_type": "assigned_to",
+  "kind": "assigned_to",
   "direction": "out",
   "target_actor_id": "did:web:alice.example"
 }
@@ -99,7 +99,7 @@
 
 Relation Query 字段：
 
-- `relation_type`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`。
+- `kind`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`。
 - `direction`: REQUIRED，`out` / `in` / `both`。
 - `source_entity_id`: OPTIONAL，限制 relation 起点 Entity。
 - `source_actor_id`: OPTIONAL，限制 relation 起点 Actor。

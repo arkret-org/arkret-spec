@@ -20,7 +20,7 @@ These capabilities must also interoperate with boards, items, runs, and memories
 
 Conversation is not a separate universe. Conversation objects must link to:
 
-- workspaces
+- spaces
 - boards
 - items
 - runs
@@ -33,7 +33,7 @@ Contrix does not go back to a room/message-first design.
 The correct approach is:
 
 - formal conversation objects
-- while keeping workspace/object-graph/repo-ops as the protocol root
+- while keeping space/object-graph/repo-ops as the protocol root
 
 ### 2.3 Separate Durable Notes from Timeline Messages
 
@@ -68,14 +68,21 @@ Suggested fields:
 ```json
 {
   "id": "cx:channel:01JS1000000000000000000000",
-  "kind": "channel",
+  "type": "entity",
+  "schema": "cx.schema.entity.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "name": "release-chat",
-  "description": "General release coordination chat",
-  "channel_kind": "chat",
-  "visibility": "workspace",
-  "default_topic_mode": "inline",
-  "archived": false
+  "entity_type": "channel",
+  "title": "release-chat",
+  "content": {
+    "format": "markdown",
+    "text": "General release coordination chat"
+  },
+  "fields": {
+    "channel_kind": "chat",
+    "visibility": "space",
+    "default_topic_mode": "inline",
+    "archived": false
+  }
 }
 ```
 
@@ -100,22 +107,26 @@ Suggested fields:
 ```json
 {
   "id": "cx:topic:01JS1000000000000000000001",
-  "kind": "topic",
+  "type": "entity",
+  "schema": "cx.schema.entity.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
+  "entity_type": "topic",
   "channel_id": "cx:channel:01JS1000000000000000000000",
-  "anchor_ref": "cx:item:01JS0IT000000000000000000",
-  "topic_kind": "thread",
+  "anchor_ref": "cx:entity:01JS0IT000000000000000000",
   "title": "Legal review follow-up",
-  "status": "open",
+  "fields": {
+    "topic_kind": "thread",
+    "status": "open"
+  },
   "created_by": "did:web:alice.example.com"
 }
 ```
 
 `anchor_ref` may point to:
 
-- `workspace`
+- `space`
 - `board`
-- `item`
+- `entity`
 - `run`
 - `memory`
 
@@ -133,28 +144,22 @@ Suggested fields:
 ```json
 {
   "id": "cx:message:01JS1000000000000000000002",
-  "kind": "message",
+  "type": "entity",
+  "schema": "cx.schema.entity.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
+  "entity_type": "message",
   "channel_id": "cx:channel:01JS1000000000000000000000",
   "topic_id": "cx:topic:01JS1000000000000000000001",
-  "sender": "did:web:alice.example.com",
-  "reply_to_ref": null,
-  "body": {
+  "created_by": "did:web:alice.example.com",
+  "content": {
     "format": "markdown",
     "text": "@bob please confirm the legal risk for this item."
   },
-  "mentions": [
-    {
-      "kind": "principal",
-      "ref": "did:web:bob.example.com"
-    },
-    {
-      "kind": "object",
-      "ref": "cx:item:01JS0IT000000000000000000"
-    }
-  ],
-  "revision_root": "cx:message:01JS1000000000000000000002",
-  "visible_state": "active"
+  "reply_to_ref": null,
+  "state": "active",
+  "fields": {
+    "revision_root": "cx:message:01JS1000000000000000000002"
+  }
 }
 ```
 
@@ -195,7 +200,7 @@ That means:
 
 ### 8.1 Edit
 
-Editing uses `message.revise` to form a revision chain.
+Editing uses `cx.message.revise` to form a revision chain.
 
 Principles:
 
@@ -217,8 +222,8 @@ Principles:
 
 Reactions should be expressed via separate ops:
 
-- `message.react`
-- `message.unreact`
+- `cx.reaction.add`
+- `cx.reaction.remove`
 
 Reduction rule:
 

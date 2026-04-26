@@ -63,17 +63,16 @@ Suggested fields:
   "id": "cx:view:01JS0VW000000000000000000",
   "kind": "view",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "owner": "did:web:acme.example.com",
-  "view_type": "kanban",
+  "created_by": "did:web:acme.example.com",
+  "view_kind": "kanban",
   "name": "Release Flow",
   "visibility": "shared",
   "query": {
     "entity_types": ["task", "issue"],
-    "filter": [
+    "filters": [
       { "field": "archived", "op": "neq", "value": true }
     ]
   },
-  "group_by": "fields.status",
   "order_by": [
     { "field": "fields.rank", "direction": "asc" }
   ],
@@ -86,7 +85,7 @@ Suggested fields:
 }
 ```
 
-## 4. Standard `view_type` Values
+## 4. Standard `view_kind` Values
 
 ### 4.1 Work-object Views
 
@@ -125,7 +124,7 @@ Views should use structured queries to define object scope.
 ```json
 {
   "entity_types": ["task", "issue"],
-  "filter": [
+  "filters": [
     { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] },
     { "field": "archived", "op": "eq", "value": false }
   ]
@@ -137,11 +136,11 @@ Views should use structured queries to define object scope.
 ```json
 {
   "entity_types": ["message"],
-  "filter": [
+  "filters": [
     { "field": "fields.redacted", "op": "eq", "value": false }
   ],
   "relation": {
-    "type": "belongs_to",
+    "kind": "belongs_to",
     "to_entity_id": "cx:entity:01JS1000000000000000000000"
   }
 }
@@ -152,7 +151,7 @@ Views should use structured queries to define object scope.
 ```json
 {
   "entity_types": ["topic"],
-  "filter": [
+  "filters": [
     { "field": "fields.status", "op": "eq", "value": "open" }
   ]
 }
@@ -163,7 +162,7 @@ Views should use structured queries to define object scope.
 ```json
 {
   "entity_types": ["message", "task", "invite", "run", "memory"],
-  "filter": [
+  "filters": [
     { "field": "derived.notification_state", "op": "eq", "value": "unread" },
     { "field": "derived.recipient", "op": "eq", "value": "did:web:alice.example.com" }
   ]
@@ -176,8 +175,8 @@ Views should use structured queries to define object scope.
 {
   "entity_types": ["task"],
   "relation": {
-    "type": "depends_on",
-    "direction": "outgoing",
+    "kind": "depends_on",
+    "direction": "out",
     "depth": 4
   }
 }
@@ -224,8 +223,8 @@ The canonical input for Kanban views should be:
 - `entity_type = "board"`
 - `entity_type = "collection"`
 - `entity_type = "task"` or another work object type
-- `relation_type = "contains"` / `belongs_to`
-- `view_type = "kanban"`
+- `kind = "contains"` / `belongs_to`
+- `view_kind = "kanban"`
 
 rather than some UI-private array-of-columns structure.
 
@@ -270,7 +269,7 @@ Implementations SHOULD guarantee at least:
 
 ### 9.1 Shared
 
-Belongs to the workspace and is visible to the team.
+Belongs to the space and is visible to the team.
 
 ### 9.2 Private
 

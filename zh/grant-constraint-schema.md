@@ -27,7 +27,7 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
 {
   "space_ids": ["cx:space:01JS0SP000000000000000000"],
   "entity_types": ["task", "message"],
-  "actions": ["entity.create", "entity.update", "message.create"]
+  "actions": ["cx.entity.create", "cx.entity.update", "cx.message.create"]
 }
 ```
 

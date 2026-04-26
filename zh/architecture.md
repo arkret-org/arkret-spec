@@ -13,7 +13,7 @@ Contrix New 的顶层架构要同时满足四件事：
 
 ## 2. 总体模型
 
-Contrix New 采用 **principal repo + identity registry + workspace relay + query index** 的分层模型。
+Contrix New 采用 **principal repo + identity registry + space relay + query index** 的分层模型。
 
 ### 2.0 Organization / Space 边界
 
@@ -52,9 +52,9 @@ Principal Repo 是逻辑上的可验证发布日志，不等同于一台服务�
 
 Repo 的权威来自 principal 对 commit / operation 的签名、DID 控制链、commit hash 链和幂等序列，而不是来自托管它的服务器。托管 Repo Service 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
-### 2.2 Workspace Relay
+### 2.2 Space Relay
 
-Relay 负责把多个 principal repo 中与某个 workspace 相关的授权操作聚合、去重、转发与订阅。
+Relay 负责把多个 principal repo 中与某个 space 相关的授权操作聚合、去重、转发与订阅。
 
 它承担：
 
@@ -144,7 +144,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 负责：
 
 - relay firehose
-- workspace 增量同步
+- space 增量同步
 - 去重与 cursor
 
 ### 3.4 Query Plane
@@ -293,7 +293,7 @@ flowchart LR
 
 - 每个组织维护自己的 principal repo
 - 每个组织或可信运营方运行自己的 relay / index / policy server
-- 一个或多个共享 workspace relay 负责跨组织 Space 的传播
+- 一个或多个共享 space relay 负责跨组织 Space 的传播
 - 多个 query index 为不同参与方提供视图
 - Space policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
 
@@ -306,7 +306,7 @@ flowchart LR
 - user/org DID 作为 authority
 - agent DID 拥有受限 capability
 - run log 写入 agent repo
-- workspace relay 聚合到协作空间
+- space relay 聚合到协作空间
 - index 生成 human review queue
 
 ### 4.4 Sovereign / High-Assurance 拓扑
@@ -332,7 +332,7 @@ Controlled Collaboration Space SHOULD：
 
 Contrix New 固定以下架构取向：
 
-- workspace-first
+- space-first
 - object-first
 - repo-first
 - collaboration-first
@@ -354,7 +354,7 @@ repo 能证明：
 - commit 内有哪些 op
 - 顺序与签名是否成立
 
-repo 不能单方面定义共享 workspace 的最终当前态。
+repo 不能单方面定义共享 space 的最终当前态。
 
 ### 6.2 Relay 可加速传播，但不应重写历史
 
@@ -414,7 +414,7 @@ Contrix New 不打算做“两套系统”：
 
 - principal repo 是 actor 发布基线
 - identity registry / witness 是 DID 文档的解析与写入层
-- workspace relay 是传播层
+- space relay 是传播层
 - index/appview 是物化查询层
 - blob 是独立内容层
 - capability 是独立决策层

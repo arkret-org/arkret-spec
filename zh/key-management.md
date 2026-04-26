@@ -168,15 +168,15 @@ MLS KeyPackage key 用于加入加密 Space。
 1. 新设备本地生成 device key。
 2. 新设备展示 pairing code / QR，其中包含 device public key、challenge、过期时间。
 3. 已授权设备扫描并验证 challenge。
-4. 已授权设备签发 `device.authorized` event。
+4. 已授权设备签发 `cx.device.authorized` event。
 5. repo / identity registry 接受并传播该 event。
 6. 新设备开始同步 repo、Space membership 和必要的 MLS Welcome。
 
-`device.authorized` 示例：
+`cx.device.authorized` 示例：
 
 ```json
 {
-  "type": "device.authorized",
+  "type": "cx.device.authorized",
   "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
   "device_id": "cx:device:01JS0KE000000000000000000",
   "device_public_key": "z6Mks...",
@@ -199,7 +199,7 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ### 5.2 设备吊销
 
-设备丢失、出售、被恶意控制或员工离职时，MUST 发布 `device.revoked`。
+设备丢失、出售、被恶意控制或员工离职时，MUST 发布 `cx.device.revoked`。
 
 吊销后：
 
@@ -210,13 +210,14 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ## 6. Session Grant
 
-Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。
+Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。  
+建议使用 `cx.session.grant` 作为标准可见事件类型；当前草案在 `schema-registry.md` 中提供兼容别名。
 
 示例：
 
 ```json
 {
-  "type": "session.grant",
+  "type": "cx.session.grant",
   "issuer": "did:web:auth-gateway.example.com",
   "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
   "session_public_key": "z6Mss...",
@@ -293,7 +294,7 @@ Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。
 2. 用户输入 passphrase 或收集 recovery shares。
 3. 客户端解密 backup envelope。
 4. 客户端验证 backup commitment。
-5. 客户端用 recovery policy 发布 `recover` 或 `device.authorized`。
+5. 客户端用 recovery policy 发布 `recover` 或 `cx.device.authorized`。
 6. 若涉及 E2EE Space，客户端拉取 MLS state 并处理 epoch 缺口。
 
 ## 8. 社交恢复与门限恢复
@@ -353,7 +354,7 @@ Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。
 ## 11. 待细化
 
 - device record JSON Schema
-- `device.authorized` / `device.revoked` event schema
+- `cx.device.authorized` / `cx.device.revoked` event schema
 - session grant schema
 - backup envelope test vector
 - MLS KeyPackage binding schema

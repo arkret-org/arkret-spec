@@ -8,10 +8,10 @@ Contrix therefore needs an initial definition for:
 
 - how identity registries accept DID operations and receipts
 - how repos publish and serve commits / ops
-- how relays expose workspace firehoses and backfill
+- how relays expose space firehoses and backfill
 - how indexes serve queries and materialize inbox / notifications
 - how blob services upload and verify content
-- how invites / grants participate in first-time workspace join
+- how invites / grants participate in first-time space join
 
 This document defines a **minimum interoperable service surface**.  
 Implementations do not have to use HTTP or XRPC specifically, but they MUST provide semantically equivalent interfaces.
@@ -28,7 +28,7 @@ DID Documents SHOULD be used to:
 They should not directly carry:
 
 - full current grant state
-- workspace current state
+- space current state
 - large inbox or notification payloads
 
 ### 2.2 No Single Service Is the Sole Truth Source
@@ -234,7 +234,7 @@ Relays should expose at least the following semantics:
 GET /xrpc/cx.relay.describe
 ```
 
-### 5.2 Workspace Firehose Subscription
+### 5.2 Space Firehose Subscription
 
 ```text
 GET /xrpc/cx.relay.subscribe?space_id=<id>&cursor=<cursor>
@@ -366,11 +366,11 @@ The `check` surface is useful for:
 
 The recommended first-time join flow is:
 
-1. the user enters a handle, DID, or workspace link
+1. the user enters a handle, DID, or space link
 2. the client resolves the DID and completes handle bidirectional verification
 3. the client discovers identity registry / repo / relay / index / blob / authz services from the DID Document
 4. the client fetches invite / grant views relevant to the principal
-5. the client fetches workspace metadata and the snapshot head
+5. the client fetches space metadata and the snapshot head
 6. the client downloads the snapshot manifest and chunks
 7. the client fetches backfill / firehose increments after the frontier
 8. the client runs the reducer locally

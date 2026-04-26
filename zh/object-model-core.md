@@ -134,7 +134,7 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
   "id": "cx:space:01JS0SP000000000000000000",
   "type": "space",
   "title": "Launch Plan",
-  "owner": "did:web:acme.example",
+  "created_by_principal": "did:web:acme.example",
   "schema_refs": [
     "cx.schema.core.v1"
   ],
@@ -209,7 +209,7 @@ Entity 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation�
   "id": "cx:relation:01JS0R0000000000000000000",
   "type": "relation",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "relation_type": "assigned_to",
+  "kind": "assigned_to",
   "from_entity_id": "cx:entity:task1",
   "to_actor_id": "did:web:alice.example",
   "created_by": "did:web:bob.example",
@@ -231,12 +231,18 @@ Event 是 reducer 输入和审计事实。
   "event_id": "cx:event:01JS0EV000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "actor_id": "did:web:alice.example",
-  "type": "entity.update",
+  "type": "cx.entity.update",
   "created_at": "2026-04-26T00:00:00Z",
-  "causal_refs": [
+  "space_version": "cx.space.v1",
+  "hlc": "01970e589d21-0004-a13f9c2e",
+  "prev_refs": [
     "cx:event:01JS0EU000000000000000000"
   ],
-  "payload": {
+  "auth_refs": [
+    "cx:space:01JS0SP000000000000000000",
+    "cx:event:01JS0MS000000000000000000"
+  ],
+  "content": {
     "entity_id": "cx:entity:task1",
     "patch": {
       "fields.status": "done"
@@ -260,16 +266,16 @@ View 示例：
 ```json
 {
   "id": "cx:view:01JS0VW000000000000000000",
-  "type": "view",
+  "kind": "view",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "view_type": "kanban",
+  "view_kind": "kanban",
   "query": {
     "entity_types": ["task"],
     "filters": [
       { "field": "fields.archived", "op": "neq", "value": true }
     ],
     "group_by": "fields.status",
-    "sort": [
+    "order_by": [
       { "field": "fields.rank", "direction": "asc" }
     ]
   },

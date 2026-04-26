@@ -23,7 +23,17 @@ cx.profile.<name>.v<major>
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 
-## 3. Minimal Client
+## 3. 通用强制要求（所有 Profile 必须遵守）
+
+以下要求不依赖具体角色，必须作为可互操作实现的基础：
+
+- 事件名必须符合 `cx.` 命名规则，且必须在 `schema-registry.md` 注册，或在 migration profile 下有明确兼容映射。
+- 事件/关系/实体/View 的 `type`、`created_at`、`space_id`、`space_version`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `auth_refs` 在 reducer 与验证逻辑中不能被跳过。
+- `space_version` 与 `auth` 约束必须执行，不得通过客户端配置豁免。
+- 兼容别名（如 `space.create`）仅允许在 migration profile 中出现，不允许作为新增标准互操作行为。
+- 实现 MUST 对 `causal` 关系、`revoked` 与 `proof` 失效状态进行一致性拒绝（fail-closed），不能“静默接受”。
+
+## 4. Minimal Client
 
 `cx.profile.minimal_client.v1` 适用于只读或轻量写入客户端。
 

@@ -8,7 +8,7 @@
 
 - identity registry 如何收发 DID 操作与 receipt
 - repo 如何收发 commit / op
-- relay 如何做 workspace firehose 与 backfill
+- relay 如何做 space firehose 与 backfill
 - index 如何做查询与 inbox / notification 物化
 - directory 如何做 Space / Organization / Actor 的授权搜索与精确解析
 - blob 如何上传与校验
@@ -29,7 +29,7 @@ DID Document SHOULD 只负责：
 它不应直接塞入：
 
 - 当前 grant 全量状态
-- 当前 workspace 当前态
+- 当前 space 当前态
 - 大量通知或 inbox 数据
 
 ### 2.2 没有任何单一服务是唯一真相源
