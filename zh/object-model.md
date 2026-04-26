@@ -507,6 +507,8 @@ Event 是协作事实记录。
 - `run.finished`
 - `event.mls.commit` (加密群组状态变更)
 - `event.audit.accessed` (透明审查留痕)
+- `device.authorized` (新设备接入授权)
+- `device.revoked` (设备或公钥吊销)
 
 业务事件必须能还原为底层 `entity.*` 或 `relation.*` 事件。
 

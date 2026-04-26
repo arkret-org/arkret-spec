@@ -535,7 +535,7 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 1. 解析 actor DID
 2. 验证签名链
 3. 查找当时有效 grant 集
-4. 展开 delegation
+4. 展开 delegation：**必须包含死循环检测 (Cycle Detection)**。推演引擎 MUST 维护一个 `visited_grant_ids` 栈，当发现当前 grant ID 已存在于栈中时，MUST 立即阻断并返回 `deny`，防止恶意构造的环形委托耗尽节点资源。
 5. 判断 resource selector 是否覆盖 target
 6. 判断 action 是否匹配
 7. 判断 constraints 是否满足

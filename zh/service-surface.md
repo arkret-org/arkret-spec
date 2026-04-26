@@ -374,7 +374,7 @@ POST /xrpc/cx.authz.check
 3. 从 DID Document 发现 identity registry / repo / relay / index / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Space metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Relay 和 Index 属于不受信节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 中包含的 `state_hash` (Merkle Root)，且该哈希 MUST 具备 `Space Owner` 或可信发行者的密码学签名。若校验失败，客户端 MUST 丢弃快照并回退到 Repo 进行原始历史回放。
 7. 从 frontier 之后拉取 backfill / firehose 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态

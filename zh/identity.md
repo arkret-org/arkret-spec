@@ -429,6 +429,8 @@ Contrix SHOULD 把 DID Document 拆成两类信息：
 - `authentication` / `assertion_method` 表示当前有效控制密钥集合
 - `key_log` 是 append-only 的密钥事件日志，用于证明“当前控制密钥是如何从初始锚点合法演化而来”
 
+**关于无密码登录、多设备协同、企业 SSO 以及密钥安全备份**等面向终端的架构级设计，请参阅扩展规范：[设备、认证与通知规范 (Devices and Auth)](./devices-and-auth.md)。
+
 这意味着：
 
 - 当前控制密钥不需要直接与 DID 中的哈希片段相等

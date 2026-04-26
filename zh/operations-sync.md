@@ -442,8 +442,9 @@ Contrix 初版不引入全网共识链。
 
 应通过 move/reorder 语义处理。`rank` 推荐使用 Fractional Indexing string。
 
-**重平衡 (Rebalance) 机制**：
+**重平衡 (Rebalance) 与并发防乱序机制**：
 当高频拖拽导致 Fractional Indexing 字符串长度膨胀或精度耗尽时，具备 `manage_board` 或对应管理权限的 Actor MAY 提交一条特殊的 `cx.relation.rebalance` 操作。该操作将在其所属分支上截断现有的长尾 rank，为容器内所有对象重新分配短且等距的 rank 字符串，以消除碎片和性能隐患。
+为防止多端并发触发重平衡导致列表排序被彻底损毁（并发乱序风暴），`rebalance` 操作 MUST 携带一个 **`expected_state_hash` (CAS 并发锁)**。节点在处理 `rebalance` 时，如果当前列表状态哈希与预期不符，MUST 拒绝该次重平衡。客户端若遭遇 CAS 失败，应自动使用指数退避 (Exponential Backoff) 策略拉取最新状态后重试。
 
 ### 17.5 Message
 
