@@ -511,9 +511,14 @@ ACL 不等于密文保护，去中心化 relay 也不应被迫看懂所有正文
 - **明文业务元数据 (Cleartext Indexable Metadata)**：`status`、`labels`、`priority`、`due_at` 等轻量级业务流转字段。此类字段 SHOULD 保持明文，供 Index 层查询与生成各类无密钥依赖的统计视图。
 - **不透明加密负载 (Opaque Encrypted Payload)**：`content`、`body`、附件内容、敏感 `memory` 细节。此类字段 MUST 被加密。实现 MAY 使用 `policy.encryption_profile` 指定的 envelope 格式加密。即使 relay 或 index 无法解密，也 SHOULD 能转发、去重与保留因果结构。
 
-### 21.2 动态群组加密
+### 21.2 端到端加密与合规审计
 
-对于 `channel` 和 `board` 等高频进出的协作空间，建议采用 MLS (Message Layer Security) 协议作为基础架构，而非双棘轮协议 (Double Ratchet)，以高效处理成员进出的前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)。
+针对 `channel` 和 `board` 等涉及多参与方的加密需求，本协议官方推荐使用基于 IETF RFC 9420 的 MLS (Message Layer Security) 协议，以替代在大型群组中性能较差的 Double Ratchet，从而高效处理前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)。
+
+同时，为了在满足组织合规性要求时不引入“暗网式监控后门”，本协议支持原生的**“可审查的端到端加密 (Auditable E2EE)”** 与透明留痕机制。
+
+关于 MLS 的 KeyPackage 发布、加密信封格式以及强制合规审计留痕 (`event.audit.accessed`) 的深入技术标准与交互流程，请参阅独立的协议拓展文件：
+[加密与可审查性规范 (Encryption and Auditability)](./encryption-and-audit.md)。
 
 ### 21.3 密文上的检索索引
 

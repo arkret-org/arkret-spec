@@ -505,6 +505,8 @@ Event 是协作事实记录。
 - `memory.confirmed`
 - `run.started`
 - `run.finished`
+- `event.mls.commit` (加密群组状态变更)
+- `event.audit.accessed` (透明审查留痕)
 
 业务事件必须能还原为底层 `entity.*` 或 `relation.*` 事件。
 
