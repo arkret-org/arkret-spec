@@ -196,6 +196,81 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 Contrix 不要求所有角色分离部署。
 
+### 4.0 通用网络拓扑图
+
+```mermaid
+flowchart LR
+    subgraph "Client Side"
+        C1["Human Client"]
+        C2["Agent Runtime"]
+        C3["Applet / Automation"]
+    end
+
+    subgraph "Identity Plane"
+        DID["DID Document"]
+        REG["Identity Registry"]
+        WIT["Witness / Replica"]
+    end
+
+    subgraph "Write Plane"
+        PR["Principal Repo"]
+        SR["Optional Space Repo"]
+    end
+
+    subgraph "Distribution Plane"
+        R1["Relay A"]
+        R2["Relay B"]
+    end
+
+    subgraph "Query / Presentation Plane"
+        IDX["Index"]
+        APPV["AppView"]
+        DIR["Directory"]
+    end
+
+    subgraph "Content / Policy Plane"
+        BLOB["Blob Store"]
+        AUTHZ["Authz Service"]
+        POL["Policy Server"]
+        PUSH["Push Gateway"]
+    end
+
+    C1 --> DID
+    C2 --> DID
+    C3 --> DID
+    DID --> REG
+    REG --> WIT
+
+    C1 --> PR
+    C2 --> PR
+    C3 --> PR
+    PR --> R1
+    PR --> R2
+    SR --> R1
+    SR --> R2
+
+    R1 --> IDX
+    R2 --> IDX
+    IDX --> APPV
+    IDX --> DIR
+
+    C1 --> APPV
+    C1 --> DIR
+    C1 --> BLOB
+
+    R1 --> AUTHZ
+    IDX --> AUTHZ
+    AUTHZ --> POL
+    APPV --> PUSH
+```
+
+要点：
+
+- DID / Registry / Witness 负责身份解析和控制链证明。
+- Principal Repo 是主体发布日志，Relay 只传播授权相关事件。
+- Index / AppView / Directory 都是派生层，不能替代签名事件和 reducer。
+- Blob、Policy、Push 是独立服务平面，可与其他角色同机部署，也可分离部署。
+
 ### 4.1 单人/小团队拓扑
 
 同一个部署可同时承载：
@@ -233,6 +308,25 @@ Contrix 不要求所有角色分离部署。
 - run log 写入 agent repo
 - workspace relay 聚合到协作空间
 - index 生成 human review queue
+
+### 4.4 Sovereign / High-Assurance 拓扑
+
+高安全组织 MAY 运行 sovereign deployment，即由组织或联盟控制 identity registry、repo、relay、index、directory、blob、policy server、media service、applet runtime 和 agent runtime。
+
+该拓扑默认关闭公共 federation 和公共 directory，只允许 allowlist service DID 与受控客户端接入。
+
+Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **Controlled Collaboration Space**，只向经过验证的外部人员或组织开放特定 Space，而不是开放整个内部网络。
+
+Controlled Collaboration Space SHOULD：
+
+- 使用 `discoverability=unlisted`、`invite_only` 或 `secret`。
+- 使用 `join_rule=restricted` 或 `knock_restricted`。
+- 通过 Organization DID、external organization DID、claim / VC、policy server 和 admin approval 验证外部主体。
+- 使用 E2EE，并只向批准设备发送 MLS Welcome。
+- 使用独立 relay / index / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
+- 对 Applet、Agent handoff、media recording、export、bulk download 默认 deny，按 capability 显式授权。
+
+详细规则见 `sovereign-deployment.md`。
 
 ## 5. 核心架构取向
 

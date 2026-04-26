@@ -220,6 +220,76 @@ MUST 支持 Full Client，并根据 policy 支持：
 
 MUST NOT 在不显示 policy 的情况下静默加入 auditable encrypted Space。
 
+## 11.5 Sovereign Deployment
+
+`cx.profile.sovereign_deployment.v1` 适用于军方、关键基础设施、金融核心、情报或其他高安全组织的自建/专属部署。
+
+MUST support:
+
+- Organization DID controlled service delegation
+- service DID allowlist
+- closed federation default
+- private directory default
+- controlled collaboration Space
+- restricted or invite-only external join
+- policy server `closed` or `quarantine` fail mode
+- E2EE default for controlled collaboration
+- MLS Welcome only to approved external devices
+- external Applet / Agent / transport allowlist
+- cross-domain event audit
+- grant / invite / membership revocation
+- MLS epoch rotation after external removal
+
+MUST NOT:
+
+- expose internal Space directory to external members
+- treat external Relay / Index as authority
+- allow public federation by default
+- allow external Applet or Agent handoff without explicit capability and policy
+
+SHOULD support:
+
+- isolated collaboration enclave
+- import/export review metadata
+- data classification labels
+- hardware-backed service keys
+- offline witness receipts
+- break-glass workflow with signed audit
+
+## 11.6 Sovereign Client
+
+`cx.profile.sovereign_client.v1` 适用于接入 sovereign deployment 的受控客户端。
+
+MUST support:
+
+- managed configuration signed by organization DID or governance service DID
+- resolver trust domain pinning
+- internal `did:uuid` resolution through approved registry / witness only
+- service DID allowlist enforcement
+- rejection of public registry / public directory for internal principals
+- device posture check
+- remote session and device revocation
+- E2EE default
+- classification and external member policy display
+- local export controls
+- audit log generation
+
+MUST NOT:
+
+- let users add arbitrary Relay / Index / Directory / Blob endpoints
+- resolve internal `did:uuid` through public registry by default
+- silently join Space with external members or auditable E2EE
+- expose private organization directory to public search
+- enable public social feed, Applet or Agent handoff unless policy allows
+
+SHOULD support:
+
+- hardware-backed device keys
+- offline resolver bundles
+- smart card / platform authenticator
+- policy-controlled copy, screenshot and bulk export restrictions
+- emergency wipe
+
 ## 12. Agent Runtime
 
 `cx.profile.agent_runtime.v1` 适用于 AI agent、bot、automation。

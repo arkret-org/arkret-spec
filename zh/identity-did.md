@@ -64,6 +64,30 @@ did:uuid:<uuid-v8>
 - MAY 支持 `did:plc`
 - MAY 支持 `did:key` 作为测试或临时主体
 
+### 3.1 DID Method and Trust Domain
+
+`did:uuid` 不是公共网络专用 DID，也不隐含任何默认公共 registry。
+
+`did:uuid` 只定义：
+
+- DID 字符串格式
+- UUID v8 位布局
+- inception key hash fragment
+- key log 验证规则
+
+`did:uuid` 的解析位置由 resolver policy、registry / witness 配置和服务发现策略决定。实现 MUST NOT 把 `did:uuid` 自动解析到某个全局公共 registry，除非本地 trust policy 明确允许。
+
+同一个 `did:uuid` 方法可以用于：
+
+- public trust domain：公共 registry / witness / directory。
+- organization trust domain：组织控制的 registry / witness。
+- sovereign trust domain：高安全组织或联盟控制的 isolated registry / witness。
+- pairwise / private trust domain：只在特定关系或钱包私有状态中解析。
+
+高安全部署 MAY 使用 `did:uuid` 作为内部 principal DID，但客户端 MUST pin resolver trust domain，并拒绝未授权 registry / witness 返回的 DID 状态。
+
+高安全部署也 MAY 使用 `did:web` 或外部 DID method 表示组织主体，尤其当组织希望利用域名、证书、内网 PKI 或现有治理系统做服务发现时。协议不得要求 sovereign deployment 放弃 `did:uuid`；也不得要求 sovereign deployment 接受公共 `did:uuid` registry。
+
 ## 4. UUID v8 位布局
 
 `did:uuid` 的 UUID v8 使用 128 位布局：

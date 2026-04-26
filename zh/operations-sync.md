@@ -229,7 +229,7 @@ Contrix New 采用 repo-first 模型：
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-### 7.8 私有与临时状态
+### 7.9 私有与临时状态
 
 以下状态不建议作为 durable shared op：
 
@@ -414,7 +414,7 @@ Snapshot manifest MUST 包含以下信任链字段：
 
 ## 16. 冲突与收敛
 
-### 15.1 不追求全局共识
+### 16.1 不追求全局共识
 
 Contrix 初版不引入全网共识链。
 
@@ -426,7 +426,7 @@ Contrix 初版不引入全网共识链。
 
 最终收敛到相同当前态。
 
-### 15.2 脑裂与 DAG 分支合并
+### 16.2 脑裂与 DAG 分支合并
 
 在去中心化网络中，离线编辑或网络分区（脑裂）是常态。当网络恢复时，不同的分支需要进行合并。Contrix 采用基于有向无环图 (DAG) 的拓扑排序结合混合逻辑时钟 (HLC) 来实现绝对确定性的状态收敛。
 
@@ -449,7 +449,7 @@ graph TD
 3. 网络恢复后，Bob 的客户端拉取到 B，发现此时 DAG 存在两个 Head (B 和 C)。
 4. Bob 的客户端自动生成一条 Dummy Op D（或者在下一次业务提交时包含多个 `prev_ops`），将 B 和 C 设为前驱，完成拓扑合并。
 
-### 15.3 确定性状态收敛与 Tie-breaking (平局破除)
+### 16.3 确定性状态收敛与 Tie-breaking (平局破除)
 
 借鉴成熟的分布式状态解析算法（如 Matrix State Resolution v2 的 Kahn's 拓扑排序），当网络中出现并发的分叉操作（无明确的 `prev_ids` 覆盖关系）时，所有节点 MUST 采用绝对确定的排序来打破平局 (Tie-breaking)，保障全网视图强一致。
 
@@ -535,11 +535,11 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
 ## 19. Tombstone、Redaction 与恢复
 
-### 18.1 对象删除
+### 19.1 对象删除
 
 对象删除 SHOULD 采用 tombstone。
 
-### 18.2 消息撤回
+### 19.2 消息撤回
 
 消息撤回应采用 redaction，而不是物理消失。
 
@@ -549,7 +549,7 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 - 不应继续在普通视图泄露正文
 - 不承诺全网物理擦除
 
-### 18.3 先收到 redaction，后收到原消息
+### 19.3 先收到 redaction，后收到原消息
 
 接收方 SHOULD 保留 dangling redaction，并在目标消息到达后应用。
 

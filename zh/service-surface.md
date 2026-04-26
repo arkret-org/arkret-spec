@@ -386,11 +386,11 @@ GET /api/v1/blob/get?blob_cid=<cid>
 
 blob 校验 MUST 基于内容哈希，而不是单一 URL。
 
-## 7.5 Directory Surface
+## 8. Directory Surface
 
 directory 是授权过滤后的发现与搜索服务面。它是派生索引，不是真相源。
 
-### 7.5.1 描述 directory
+### 8.1 描述 directory
 
 ```text
 GET /api/v1/directory/describe
@@ -403,7 +403,7 @@ GET /api/v1/directory/describe
 - 支持的资源类型：space / organization / actor / applet
 - 是否支持 restricted query proof
 
-### 7.5.2 搜索 Space
+### 8.2 搜索 Space
 
 ```text
 POST /api/v1/directory/search-spaces
@@ -421,7 +421,7 @@ POST /api/v1/directory/search-spaces
 
 Directory MUST 对每个结果应用 `cx.space.discovery`、Space policy、organization endorsement 和 requester proof 过滤。
 
-### 7.5.3 精确解析 Space
+### 8.3 精确解析 Space
 
 ```text
 POST /api/v1/directory/resolve-space
@@ -429,7 +429,7 @@ POST /api/v1/directory/resolve-space
 
 用于通过 `space_id`、alias、invite token 或 signed link 获取 stripped preview state。对 `invite_only` / `secret` Space，未授权请求 MUST 返回与不存在相同的错误形态。
 
-### 7.5.4 搜索与解析 Organization
+### 8.4 搜索与解析 Organization
 
 ```text
 POST /api/v1/directory/search-organizations
@@ -438,7 +438,7 @@ POST /api/v1/directory/resolve-organization
 
 Organization directory MUST respect organization discovery policy。公开组织 DID 可解析不表示成员列表、官方 Space 列表、服务拓扑或治理策略全文可公开。
 
-### 7.5.5 搜索 Actor / Handle
+### 8.5 搜索 Actor / Handle
 
 ```text
 POST /api/v1/directory/search-actors
@@ -447,7 +447,7 @@ POST /api/v1/directory/resolve-handle
 
 Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Space 推断出的关系。
 
-## 8. Capability / Invite Surface
+## 9. Capability / Invite Surface
 
 虽然 grant / revoke / invite 本身也是对象或 op，但服务层仍需要可查询面。
 
@@ -471,7 +471,7 @@ POST /api/v1/authz/check
 - relay 分发前快速过滤
 - client 发送前本地 UX 提示
 
-## 9. Space Bootstrap Flow
+## 10. Space Bootstrap Flow
 
 初版推荐的首次加入流程：
 
@@ -485,7 +485,7 @@ POST /api/v1/authz/check
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态
 
-## 10. 新鲜度与多服务并存
+## 11. 新鲜度与多服务并存
 
 当多个 relay / index 并存时，服务 SHOULD 公开：
 
@@ -512,7 +512,7 @@ POST /api/v1/authz/check
 - 落后副本
 - 还是可能发生了分叉或作恶
 
-## 11. 传输安全与密文
+## 12. 传输安全与密文
 
 服务面 SHOULD 区分：
 
@@ -524,19 +524,19 @@ POST /api/v1/authz/check
 - repo / relay / index MAY 不解密正文
 - 但仍 SHOULD 保留 hash、cursor、causal 与目标引用
 
-## 12. 防滥用与配额机制 (Anti-Spam & Quota)
+## 13. 防滥用与配额机制 (Anti-Spam & Quota)
 
 在去中心化网络中，计算、存储与带宽都是稀缺资源。协议要求所有提供写入或传播服务的节点实现必须具备防御恶意滥用的能力：
 
-### 12.1 存储责任与 Blob Quota
+### 13.1 存储责任与 Blob Quota
 - **成本归属**：Space 的整体数据大小、历史 Op 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Space 的 `owner` 或负责托管的 `responsible_actor_id`。
 - **拒绝写入**：当 Blob 服务或 Index 服务评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Op 或大文件 Blob。
 
-### 12.2 写频率控制 (Rate Limiting)
+### 13.2 写频率控制 (Rate Limiting)
 - Relay 和 Repo 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。
 - 对于来自未验证或低信誉 DID 的恶意刷写（例如短时间内进行海量无效的 `message.create` 或反复触发高并发图重组），节点有权暂时熔断该 DID 的请求。
 
-## 13. 初版设计决定
+## 14. 初版设计决定
 
 当前草案建议固定：
 
@@ -548,143 +548,16 @@ POST /api/v1/authz/check
 - 服务必须公开 reducer / schema / feature profile
 - 明确 Space Owner 的资源记账责任与防滥用熔断标准
 
-## 14. 核心 API 契约与 Schema (HTTP/JSON Binding)
+## 15. HTTP/JSON Binding
 
-为了保障客户端与去中心化节点的互操作性，定义以下默认 HTTP/JSON binding 端点。请求采用 Content-Type `application/json`。调用需在 HTTP Header 中附带 `Authorization: Bearer <JWS_Token>` 或使用 HTTP 签名认证。
+默认 HTTP/JSON binding 的具体路径、请求/响应形状、Blob 上传下载和标准错误码移至 `service-http-binding.md`。
 
-其他 transport binding MUST 映射到相同 canonical operation 和 request/response 语义。
+`service-surface.md` 只定义服务角色和语义面。任何 HTTP、gRPC、WebSocket、SSE、message queue、libp2p 或 IPC 实现都必须映射到本文定义的等价语义。
 
-### 14.1 Repo API: 提交操作
-**`POST /api/v1/repo/submit-op`**
-- **描述**：客户端向 Repo 提交经过签名的 Event Envelope。
-- **请求 (Request)**：
-  ```json
-  {
-    "repo_id": "cx:space:01JS0KP...",
-    "op": { /* 完整的 Event Envelope 对象，见 object-model-core.md */ }
-  }
-  ```
-- **响应 (Response)**：
-  ```json
-  {
-    "status": "accepted",
-    "commit_id": "cx:op:01JS0KE...",
-    "sync_token": "token_str_for_ryw"
-  }
-  ```
-  *注：若 CAS (`expected_state_hash`) 校验失败，返回 409 Conflict。*
+## 16. 后续待细化
 
-### 14.2 Repo API: 同步增量
-**`POST /api/v1/repo/sync`**
-- **描述**：基于 cursor 从 Repo 拉取缺失的 operations。
-- **请求 (Request)**：
-  ```json
-  {
-    "repo_id": "cx:space:01JS0KP...",
-    "since": "cursor_string_or_op_id",
-    "limit": 500
-  }
-  ```
-- **响应 (Response)**：
-  ```json
-  {
-    "ops": [ { /* Event Envelopes */ } ],
-    "next_cursor": "new_cursor_string",
-    "has_more": true
-  }
-  ```
-
-### 14.3 Identity API: 解析 DID
-**`POST /api/v1/identity/resolve`**
-- **描述**：根据 DID 查询当前的公钥、Service Endpoints 及其合法演化证明。
-- **请求 (Request)**：
-  ```json
-  {
-    "did": "did:web:alice.com"
-  }
-  ```
-- **响应 (Response)**：
-  ```json
-  {
-    "did_document": {
-      "id": "did:web:alice.com",
-      "verification_method": [ ... ],
-      "service": [
-        { "id": "#repo", "type": "ContrixRepo", "service_endpoint": "https://repo.alice.com" }
-      ]
-    },
-    "key_log_head": "cx:keyevt:01JS...",
-    "seq": 5
-  }
-  ```
-
-### 14.4 Relay API: 实时流订阅
-**`GET /api/v1/relay/firehose?space_id=cx:space:01JS0KP...`**
-- **描述**：通过 WebSocket 或 Server-Sent Events (SSE) 建立实时监听。
-- **Frame Format (每帧)**：
-  ```json
-  {
-    "type": "event",
-    "seq": 106,
-    "payload": { /* Event Envelope */ }
-  }
-  ```
-
-## 15. 标准错误响应 (Error Response Schema)
-
-所有 API 端点在遇到错误时 MUST 返回统一格式的 JSON 错误体，以便客户端 SDK 做统一的重试与 UI 展示：
-
-```json
-{
-  "ok": false,
-  "error": {
-    "code": "cas_conflict",
-    "message": "expected_state_hash mismatch: current=abc..., expected=def...",
-    "retry_after_ms": 2000
-  }
-}
-```
-
-### 15.1 标准错误码枚举
-
-| 错误码 | HTTP Status | 含义 |
-|--------|-------------|------|
-| `invalid_signature` | 401 | 签名校验失败 |
-| `auth_expired` | 401 | 认证令牌或 Grant 已过期 |
-| `capability_denied` | 403 | 当前 Actor 在目标资源上无所需权限 |
-| `space_frozen` | 403 | Space 处于冻结/归档状态，拒绝写入 |
-| `not_found` | 404 | 目标 DID、Space 或 Entity 不存在 |
-| `cas_conflict` | 409 | `expected_state_hash` 不匹配（并发冲突） |
-| `epoch_mismatch` | 409 | MLS Epoch 版本过期，需拉取最新状态 |
-| `quota_exceeded` | 413 | Blob 存储或 Space 数据量超出 Policy 配额 |
-| `rate_limited` | 429 | 请求频率超限，应遵守 `retry_after_ms` |
-| `unknown_did` | 422 | 提交的 DID 无法在任何 Registry 中解析 |
-| `schema_violation` | 422 | Op 的 payload 不符合当前 Space 的 Schema 约束 |
-| `internal_error` | 500 | 节点内部错误 |
-
-客户端在收到 `429 rate_limited` 时 MUST 遵守 `retry_after_ms` 字段指定的退避间隔。在收到 `409 cas_conflict` 或 `409 epoch_mismatch` 时 SHOULD 拉取最新状态后使用指数退避重试。
-
-## 16. Blob API
-
-### 16.1 上传接口
-**`POST /api/v1/blob/upload`**
-- **Content-Type**: `application/octet-stream` 或 `multipart/form-data`
-- **描述**：客户端上传二进制文件，服务端计算内容哈希后返回地址。
-- **响应 (Response)**：
-  ```json
-  {
-    "blob_ref": "cx:blob:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "size": 102450,
-    "mimetype": "image/png"
-  }
-  ```
-
-### 16.2 哈希规范
-- 算法：**SHA-256**。
-- 地址格式：`cx:blob:sha256:<hex_digest>`。
-- 校验规则：客户端在下载 Blob 后 MUST 本地计算 SHA-256 并与地址中的摘要比对，若不一致 MUST 丢弃该 Blob。
-
-### 16.3 生命周期与 GC
-- Blob 必须被至少一个 Entity 的 `attachments` 或 `content` 字段引用才被视为"活跃"。
-- Blob Store MAY 对超过 `retention_policy` 周期且无任何引用的孤儿 Blob 执行垃圾回收 (GC)。
-- Blob 删除前 SHOULD 有一个宽限期 (Grace Period)，防止上传与引用之间的网络延迟导致误删。
+- directory search result schema
+- authz check response schema
+- service describe conformance vector
+- relay cursor recovery test vector
+- repo sync consistency test vector
