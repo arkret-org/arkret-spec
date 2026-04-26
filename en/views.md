@@ -54,6 +54,18 @@ The first version should support:
 - `private`
 - `system`
 
+### 2.4 Unified Context Timeline
+
+One work item may require board, graph, and chat perspectives at the same time.  
+This should be supported by a context projection instead of splitting canonical meaning:
+
+- anchor on one entity (`anchor_entity_id`);
+- fetch related entities, relations, and timeline events together;
+- sort deterministically by `hlc`, with `event_id` as tie-break;
+- render as a single timeline and allow the UI to segment cards/edges/messages.
+
+Canonical truth is still `Event + Entity + Relation`. A `View` only defines read-time organization.
+
 ## 3. View Object
 
 Suggested fields:
@@ -113,6 +125,7 @@ Suggested fields:
 
 - `memory_review`
 - `agent_runs`
+- `context_timeline`
 
 ## 5. Query Model
 
@@ -180,6 +193,55 @@ Views should use structured queries to define object scope.
   }
 }
 ```
+
+### 5.6 Context Timeline Query Example
+
+Aggregate status updates, relations, messages, and reviews for one task context:
+
+```json
+{
+  "anchor_entity_id": "cx:entity:01JS0TASK000000000000000000",
+  "entity_types": ["task", "message", "topic", "memory", "relation"],
+  "filters": [
+    { "field": "fields.archived", "op": "eq", "value": false }
+  ],
+  "relation": {
+    "kind": "contains",
+    "direction": "both",
+    "source_entity_id": "cx:entity:01JS0TASK000000000000000000",
+    "depth": 3
+  },
+  "order_by": [
+    { "field": "event_hlc", "direction": "asc" }
+  ],
+  "context": {
+    "event_kinds": [
+      "cx.entity.update",
+      "cx.relation.create",
+      "cx.relation.move",
+      "cx.message.create",
+      "cx.task.assign",
+      "cx.redaction",
+      "cx.memory.create"
+    ],
+    "relation_kinds": [
+      "contains",
+      "assigned_to",
+      "depends_on",
+      "replies_to",
+      "mentions"
+    ],
+    "event_tiebreak": "event_id"
+  }
+}
+```
+
+Context timeline requirements:
+
+- `event_hlc` is the primary order key. If missing, fallback to `created_at` with `timestamp_untrusted`.
+- `event_id` MUST be used as deterministic tie-break.
+- unauthorized entities/relations MUST be filtered only; do not leak existence by error shape.
+- repeated queries under same `space_frontier` and authorization context MUST be deterministic in order and filtered set.
 
 ## 6. Grouping, Ordering, and Visibility
 

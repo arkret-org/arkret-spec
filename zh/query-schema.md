@@ -10,8 +10,14 @@
 {
   "space_ids": ["cx:space:01JS0SP000000000000000000"],
   "entity_types": ["task", "message"],
+  "anchor_entity_id": "cx:entity:01JS0TASK000000000000000000",
   "filters": [],
   "relation": null,
+  "context": {
+    "event_kinds": ["cx.entity.update", "cx.message.create", "cx.relation.create"],
+    "relation_kinds": ["contains", "assigned_to", "depends_on", "replies_to"],
+    "event_tiebreak": "event_id"
+  },
   "order_by": [],
   "projection": [],
   "cursor": null,
@@ -27,8 +33,13 @@
 
 - `space_ids`: REQUIRED，查询范围。
 - `entity_types`: OPTIONAL，限制 Entity type。
+- `anchor_entity_id`: OPTIONAL，`context_timeline` 的上下文锚点对象 ID。若设置，表示查询应围绕该对象收敛相关边界与事件。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
+- `context`: OPTIONAL，上下文时间线聚合参数，若存在用于 `context_timeline` 聚合：
+  - `event_kinds`: OPTIONAL，返回的事件 kind 列表。
+  - `relation_kinds`: OPTIONAL，关系收敛时允许的关系类型。
+  - `event_tiebreak`: OPTIONAL，事件同序比较的 tie-break 字段名，例如 `event_id`。
 - `order_by`: OPTIONAL，排序规则。
 - `projection`: OPTIONAL，返回字段选择。
 - `cursor`: OPTIONAL，不透明分页游标。

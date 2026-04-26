@@ -56,6 +56,18 @@ view 不承载底层对象的唯一真相状态。
 - `private`
 - `system`
 
+### 2.4 统一上下文投影（Context Timeline）
+
+同一件事情可能同时需要看板列、依赖图、聊天时间线。  
+这类需求不应依赖单一 view，而应使用统一上下文投影：
+
+- 以锚点对象为中心（`anchor_entity_id`）；
+- 同时抓取与锚点有关的实体、关系和事件；
+- 按统一时序排序（`hlc` 为主，`event_id` 作为稳定 tie-break）；
+- 在 UI 上按时间线展示，并允许客户端按卡片/关系/消息分段。
+
+这意味着真相仍是 `Event` + `Entity` + `Relation`，`View` 只是读时组织方式。
+
 ## 3. View 对象
 
 建议字段：
@@ -121,6 +133,7 @@ view 不承载底层对象的唯一真相状态。
 
 - `memory_review`
 - `agent_runs`
+- `context_timeline`
 
 ## 5. Query Model
 
@@ -247,6 +260,55 @@ View 应通过结构化 query 表达对象范围。
 }
 ```
 跨域图谱的完整拼接由 **客户端 (Client)** 负责。如果客户端确定当前 Actor 拥有 `cx:space:target_space_02` 的访问权限，则可主动向该目标 Space 对应的 Index 节点发起二次图查询并自行在 UI 层拼接。
+
+### 5.8 统一上下文查询示例
+
+围绕任务对象聚合其进展、关系、消息与审阅活动：
+
+```json
+{
+  "anchor_entity_id": "cx:entity:01JS0TASK000000000000000000",
+  "entity_types": ["task", "message", "topic", "memory", "relation"],
+  "filters": [
+    { "field": "fields.archived", "op": "eq", "value": false }
+  ],
+  "relation": {
+    "kind": "contains",
+    "direction": "both",
+    "source_entity_id": "cx:entity:01JS0TASK000000000000000000",
+    "depth": 3
+  },
+  "order_by": [
+    { "field": "event_hlc", "direction": "asc" }
+  ],
+  "context": {
+    "event_kinds": [
+      "cx.entity.update",
+      "cx.relation.create",
+      "cx.relation.move",
+      "cx.message.create",
+      "cx.task.assign",
+      "cx.redaction",
+      "cx.memory.create"
+    ],
+    "relation_kinds": [
+      "contains",
+      "assigned_to",
+      "depends_on",
+      "replies_to",
+      "mentions"
+    ],
+    "event_tiebreak": "event_id"
+  }
+}
+```
+
+实现要求（context_timeline）：
+
+- `event_hlc` 为上下文时间线排序主键；无 `event_hlc` 时回退 `created_at`，并打上 `timestamp_untrusted` 标记；
+- `event_id` 作为 tie-break，保证同序事件排序稳定；
+- 未授权对象/关系不得泄漏“存在与不存在”信息，只能裁剪不可见项；
+- 同一 `space_frontier` 与同一权限上下文下，重复查询结果应保持可重放一致顺序。
 
 ## 6. 分组、排序、显示
 
