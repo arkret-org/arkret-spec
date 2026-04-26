@@ -12,8 +12,11 @@
 | --- | --- | --- |
 | Contrix | 协议名称 | 面向去中心化协作对象、会话、任务、看板、知识记忆和 agent 协作的协议族。 |
 | Principal | 主体 | 协议中的稳定身份主体，通常由 DID 表示。人、组织、agent、Applet 都可以是 principal。 |
+| Organization | 组织 | 一类 principal，通常由组织 DID 表示，可签发成员资格/角色 credential、控制服务 DID、托管 Relay/Index/Applet、发布 policy 或拥有 Space。Organization 不是 Space；它是治理与身份主体。 |
+| Organization Governance | 组织治理 | Organization DID 的控制策略，包括治理密钥、阈值、多签、服务委派、恢复和所有权转移规则。 |
 | Actor | 行为者 | 在 Space 中执行动作、产生 Event、拥有 profile 和 membership 的主体视图。Actor 通常映射到 principal，但可包含 ghost actor、bot actor 或 accountable actor。 |
 | Space | 协作空间 | 复制、授权、schema、policy、membership 和 history visibility 的边界。它替代 Matrix room 作为 Contrix 的协作边界，但不是唯一数据模型。 |
+| Official Space | 官方空间 | 由 Organization DID 直接创建，或被 active `cx.space.organization` state event 背书且 `scope.official=true` 的 Space。名称、域名、Relay 托管方或成员列表不能单独证明官方性。 |
 | Space Hierarchy | 空间层级 | Space 之间的 parent/child 组织关系，用于导航、发现和受控继承；不默认级联权限、成员、历史或加密。 |
 | Entity | 实体 | 所有协作对象的统一载体，例如 task、message、topic、board、memory、run、file、profile。 |
 | Relation | 关系 | Entity / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件等语义。 |
@@ -52,6 +55,8 @@
 | Attestation | 证明/背书 | 由可信 issuer 对 Claim 签名背书。 |
 | VC | 可验证凭证 | Verifiable Credential，用于最小披露地证明属性、成员资格或 handle 绑定。 |
 | Presentation | 凭证呈示 | 主体向验证方出示一个或多个 VC 的证明，可包含选择性披露或零知识证明。 |
+| Disclosure Policy | 披露策略 | Holder 私有规则，定义可向哪些 verifier / organization 披露哪些 claim、handle 或 derived proof。 |
+| Disclosure Receipt | 披露回执 | Holder 私有审计记录，记录一次 presentation 披露了哪些字段、发给谁、使用何种 proof profile，不包含未披露字段值。 |
 | Pairwise DID | 成对 DID | 面向特定关系或组织使用的私有 DID，用于降低跨域关联风险。 |
 | Public Persona DID | 公开人格 DID | 主动公开用于发现、社交或品牌展示的 DID。 |
 | Normalized Principal View | 规范化主体视图 | 将不同 DID 方法、外部文档和 sidecar 数据映射为 Contrix 内部可验证主体视图。 |
@@ -190,6 +195,8 @@
 | State After | 后置状态 | sync timeline 应用完毕后的状态 delta，供客户端正确渲染当前 UI。 |
 | Feature Discovery | 能力发现 | 客户端查询服务支持的 version、profile、endpoint、限制和扩展。 |
 | Transport Binding | 传输绑定 | 将 Contrix canonical operation 映射到 HTTP/JSON、gRPC、WebSocket、SSE、message queue、libp2p 或 IPC 的规则。 |
+| TSP | Trust Spanning Protocol | Trust over IP 的可信消息协议，用于跨 Verifiable Identifier 建立方向性可信消息关系；在 Contrix 中是可选 transport/trust binding。 |
+| VID | Verifiable Identifier | TSP 使用的可验证标识符抽象，可映射到 Contrix principal DID、service DID、pairwise DID 或受支持的外部标识体系。 |
 | Conformance Profile | 一致性画像 | 定义某类实现必须支持的能力集合和测试范围。 |
 | Test Vector | 测试向量 | 跨实现验证 canonicalization、hash、签名、reducer、state resolution 等行为的固定输入输出。 |
 
@@ -212,6 +219,7 @@
 | --- | --- |
 | DID 与 Handle | DID 是稳定权限主体；Handle 是可迁移的人类入口。 |
 | Actor 与 Principal | Principal 是身份根；Actor 是在 Space / 协作图里的行为者视图。 |
+| Organization 与 Space | Organization 是可验证身份和治理主体；Space 是协作数据、授权和复制边界。一个组织可以拥有或托管多个 Space，一个 Space 也可以由多个组织共同治理。 |
 | Space Hierarchy 与权限继承 | 层级关系只表达组织和发现；权限、成员、历史、加密默认不继承，必须由 child Space 显式 opt-in。 |
 | Entity 与 Event | Entity 是协作对象；Event 是事实和变更记录。 |
 | Relation 与 View | Relation 是一等语义边；View 是投影定义。 |

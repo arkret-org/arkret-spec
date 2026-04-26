@@ -99,3 +99,21 @@
 - [x] 定义短期 TURN credential、`force_relay`、IP 泄露最小化和 media service DID 验证
 - [x] 定义 `cx.call.signal` envelope、call entity、meeting state、screen share、recording/transcription
 - [x] 明确 VoIP push 脱敏 payload、E2EE/SFrame/SFU 边界、MCU/录制强提示和 policy 约束
+
+## TSP 身份与传输结合
+
+- [x] 调研 Trust over IP TSP draft，确认其定位为跨 Verifiable Identifier 的可信消息层，支持 direct/routed/nested message、authenticity、optional confidentiality 和 metadata privacy
+- [x] 增加 `tsp-integration.md`，定义 TSP 在 identity registry、federation bootstrap、service-to-service、pairwise DID、agent handoff 等场景的可选使用方式
+- [x] 明确 TSP relationship 不等于 Space membership / capability，TSP confidentiality 不等于 Space E2EE
+- [x] 明确 TSP 与 MLS 的差异：TSP 是跨 VID 的方向性消息层，MLS 是群组 E2EE 状态机
+- [x] 更新 README、glossary 与英文占位文件
+
+## 渐进披露与私密身份状态
+
+- [x] 在 `identity-handles.md` 增加定向披露策略与存储规则
+- [x] 明确特定组织必须由组织 DID、service DID、trust registry/governance registry 或 Space policy trusted issuer 确定，不能只靠域名、邮箱后缀或 UI 文案
+- [x] 定义 `cx.identity.disclosure_policy` 和 `cx.identity.disclosure_receipt`
+- [x] 明确 credential/base proof/pairwise key/disclosure policy 存在 wallet 或 holder private repo，并端到端加密
+- [x] 明确 TSP 可用于 presentation request/response 的 nested/routed 私密传输，但不决定披露语义
+- [x] 增加 `progressive-disclosure.md`，补齐端到端渐进披露实现模型
+- [x] 定义 presentation request、presentation response、proof profile selection、transport fallback、failure codes 和安全要求

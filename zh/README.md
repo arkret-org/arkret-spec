@@ -144,6 +144,10 @@ Contrix New 第一阶段聚焦以下目标：
     定义 AI agent 在 Contrix 任务中升级/切换到 A2A、ACP legacy 或其他外部 agent protocol 的发现、授权、执行、状态回流和审计规则。
 48. [transport-bindings.md](./transport-bindings.md)  
     定义协议核心与 HTTP/REST、gRPC、WebSocket、SSE、message queue、libp2p 等 transport binding 的关系，明确 REST 只是默认互操作 binding。
+49. [tsp-integration.md](./tsp-integration.md)  
+    定义 Trust Spanning Protocol (TSP) 与 Contrix 身份、联邦、服务间通信、pairwise 控制消息的可选结合方式，并说明 TSP 与 MLS 的边界。
+50. [progressive-disclosure.md](./progressive-disclosure.md)  
+    定义隐私信息渐进披露的端到端实现方案，包括 presentation request、disclosure policy、proof profile、私有存储、transport fallback 和安全要求。
 
 ## 5. 核心设计决定
 

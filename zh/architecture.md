@@ -15,6 +15,21 @@ Contrix New 的顶层架构要同时满足四件事：
 
 Contrix New 采用 **principal repo + identity registry + workspace relay + query index** 的分层模型。
 
+### 2.0 Organization / Space 边界
+
+组织在 Contrix 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Space。
+
+Organization principal 可以：
+
+- 签发组织成员资格、组织角色、handle 绑定等 credential
+- 控制 Relay、Index、Policy Server、Applet、Media Service 等 service DID
+- 作为 Space owner、policy issuer、trusted issuer 或 capability issuer
+- 托管多个 Space，或与其他组织共同治理同一个 Space
+
+Space 则是协作数据边界。它定义 membership、capability scope、schema、policy、history visibility、replication 和 E2EE group。一个组织 MAY 创建或拥有多个 Space；一个 Space MAY 由多个组织共同治理；用户也 MAY 创建不属于任何组织的个人或临时 Space。
+
+因此实现 MUST NOT 以 `space_id` 代替组织身份，也 MUST NOT 仅凭用户在某 Space 内的 membership 推断其属于某组织。组织身份和成员资格应通过组织 DID 签发的 claim / VC / attestation、Space policy 中列出的 trusted issuer、或 governance registry 中的组织记录证明。
+
 ### 2.1 Principal Repo
 
 每个 principal 都有自己的 repo，用于发布自己签名的 commit 和 operation。
@@ -184,8 +199,10 @@ Contrix 不要求所有角色分离部署。
 常见模式是：
 
 - 每个组织维护自己的 principal repo
-- 一个或多个共享 workspace relay
+- 每个组织或可信运营方运行自己的 relay / index / policy server
+- 一个或多个共享 workspace relay 负责跨组织 Space 的传播
 - 多个 query index 为不同参与方提供视图
+- Space policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
 
 这种模式更接近跨企业交付与供应链协作。
 

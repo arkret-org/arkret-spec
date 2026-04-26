@@ -238,6 +238,74 @@ Contrix 不要求把 DID Document 写入区块链。
 
 恶意 registry 可以拒绝服务、延迟服务或返回旧状态，但不能让无效更新在正确客户端中变成有效身份状态。
 
+## 10.1 Organization Principal Ownership
+
+Organization principal 的“所有权”由 DID 控制状态和组织治理策略共同定义，而不是由某台服务器、某个域名注册人或某个 Space 自动决定。
+
+组织 DID Document SHOULD 声明最小治理材料：
+
+```json
+{
+  "id": "did:web:acme.example",
+  "verification_method": [
+    {
+      "id": "did:web:acme.example#governance-key-1",
+      "type": "Multikey",
+      "controller": "did:web:acme.example",
+      "public_key_multibase": "z..."
+    }
+  ],
+  "authentication": [
+    "did:web:acme.example#governance-key-1"
+  ],
+  "assertion_method": [
+    "did:web:acme.example#governance-key-1"
+  ],
+  "service": [
+    {
+      "id": "did:web:acme.example#governance",
+      "type": "ContrixGovernanceService",
+      "service_endpoint": "https://acme.example/.well-known/contrix/governance"
+    }
+  ],
+  "contrix_governance": {
+    "profile": "cx.org.governance.v1",
+    "threshold": {
+      "required": 2,
+      "eligible_methods": [
+        "did:web:acme.example#governance-key-1",
+        "did:web:acme.example#governance-key-2",
+        "did:web:acme.example#governance-key-3"
+      ]
+    },
+    "service_delegations": [
+      {
+        "service_did": "did:web:relay.acme.example",
+        "purposes": ["relay", "space_endorsement"],
+        "valid_from": "2026-04-26T00:00:00Z",
+        "valid_until": null
+      }
+    ]
+  }
+}
+```
+
+规则：
+
+- Organization principal MUST be controlled by keys or delegated services in its DID Document / key log.
+- 高风险治理动作 SHOULD 使用阈值签名、多签 approval 或 governance service attestation。
+- 组织可委派 service DID 代表其运行 Relay、Index、Policy Server、Applet 或签发低风险状态，但该委派 MUST 明确 purpose、scope 和有效期。
+- 组织 DID 的密钥轮换、恢复和停用 MUST 进入 DID key log 或外部 DID method 的等价历史。
+- 组织所有权转移 MUST 由旧控制状态授权，并生成可验证 transfer / recovery 记录；实现 MUST NOT 因域名、商标或 UI 文案变化自动认定组织所有权转移。
+
+客户端判断“谁控制该组织”时，应验证：
+
+1. Organization DID 解析结果有效。
+2. 当前控制密钥可从 inception key / method history 推导。
+3. governance policy 中的阈值或 approval 要求已满足。
+4. 若动作由 service DID 执行，该 service DID 被 organization DID 委派且 purpose 覆盖该动作。
+5. 相关 key / delegation 在事件时间未过期、未撤销。
+
 ## 11. DID Op
 
 建议 DID 更新封装：

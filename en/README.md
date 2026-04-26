@@ -98,6 +98,8 @@ Main document groups:
 - [space-hierarchy.md](./space-hierarchy.md)
 - [agent-protocol-interop.md](./agent-protocol-interop.md)
 - [transport-bindings.md](./transport-bindings.md)
+- [tsp-integration.md](./tsp-integration.md)
+- [progressive-disclosure.md](./progressive-disclosure.md)
 
 The current task list and next backlog live in [_tasks.md](./_tasks.md).
 

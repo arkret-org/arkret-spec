@@ -17,6 +17,8 @@
   "content": {
     "space_kind": "collaboration",
     "initial_creators": ["did:uuid:..."],
+    "created_by_principal": "did:uuid:...",
+    "owning_organizations": [],
     "default_join_rule": "invite",
     "history_visibility": "joined"
   }
@@ -69,6 +71,7 @@
 | `cx.space.child` | parent Space 的 `cx.space.create`、发送者 parent membership、`space.hierarchy.manage` capability、目标 child Space stripped create 或可验证引用 |
 | `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
 | `cx.space.inheritance_policy` | child Space 的 `cx.space.create`、child policy/admin capability、confirmed parent edge |
+| `cx.space.organization` | `cx.space.create`、组织 DID 当前控制状态、组织签发或撤销该声明的 capability / service binding |
 | `cx.entity.*` | actor membership、对应 create/update/delete capability、目标 entity 当前状态 |
 | `cx.relation.*` | actor membership、relation type schema、source/target 可见状态、对应 relation capability |
 | `cx.message.*` | actor membership、channel/topic 可见状态、send/edit/redact capability |
@@ -140,6 +143,66 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 E2EE Space 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。
 
+### 6.1 Organization Ownership and Endorsement
+
+组织所有权不是服务器本地配置，也不是 Space 名称、域名、图标或 UI 文案。组织所有权 MUST 由组织 principal 的可验证声明表达。
+
+`cx.space.create` MAY 包含：
+
+- `created_by_principal`：实际创建 Space 的 principal DID，可能是组织 DID、员工 DID、agent DID 或托管服务 DID。
+- `owning_organizations`：创建时已由组织 DID 背书的 organization DID 列表。该字段为空时，Space 不得被展示为任何组织的 official Space。
+
+若 Space 创建后才获得组织认可，组织 MUST 发布或共同签名 `cx.space.organization` state event：
+
+```json
+{
+  "type": "cx.space.organization",
+  "state_key": "did:web:acme.example",
+  "content": {
+    "organization_did": "did:web:acme.example",
+    "relationship": "owner",
+    "status": "active",
+    "endorsed_by": "did:web:acme.example#governance-key-1",
+    "scope": {
+      "official": true,
+      "allowed_labels": ["official", "support"],
+      "service_dids": [
+        "did:web:relay.acme.example",
+        "did:web:index.acme.example"
+      ]
+    },
+    "valid_from": "2026-04-26T00:00:00Z",
+    "valid_until": null,
+    "revocation_ref": null
+  }
+}
+```
+
+`relationship` 取值：
+
+- `owner`：组织是 Space 的所有者或共同所有者。
+- `sponsor`：组织认可该 Space，但不单独拥有全部治理权。
+- `host`：组织托管 Relay / Index / Blob / Media 等服务，但不声明内容所有权。
+- `issuer`：组织只作为 trusted issuer / policy issuer。
+
+客户端判断一个 Space 是否为某 Organization 官方创建或官方认可时，MUST 同时验证：
+
+1. Organization DID 可解析，且 DID Document / key log 在事件时间有效。
+2. `cx.space.create.created_by_principal` 是该 organization DID，或存在 active 的 `cx.space.organization` event。
+3. `cx.space.organization` 的签名 key 属于 organization DID 的当前或事件时点有效控制链，或属于 organization DID 明确绑定的 governance service DID。
+4. `relationship` 为 `owner` 或 `sponsor`，且 `scope.official=true`。
+5. 该声明未过期、未被 `status=revoked` 或后续同 `state_key` state event 覆盖。
+6. Space id、Space create event hash 和 organization DID 都被签名覆盖，防止把同一声明移植到另一个 Space。
+
+客户端 MUST NOT 因以下信号把 Space 展示为 official：
+
+- Space 名称、头像、主题或简介包含组织名。
+- `space_id`、alias、handle、域名或邮箱后缀看起来属于组织。
+- Relay / Index 由组织托管。
+- Space 中有组织成员加入。
+
+组织可通过后续 `cx.space.organization` 将 `status` 改为 `revoked`、`suspended` 或 `transferred`。撤销只影响官方背书和后续治理判断，不应自动删除历史数据；历史展示 SHOULD 保留“曾经由该组织背书，已于某时间撤销”的审计状态。
+
 ## 7. Authorization Algorithm
 
 对事件 `E`，节点 MUST：
@@ -169,6 +232,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(type, state_k
 - `cx.space.child`
 - `cx.space.parent`
 - `cx.space.inheritance_policy`
+- `cx.space.organization`
 - `cx.space.upgrade`
 - `cx.member.state`
 - `cx.capability.grant`
