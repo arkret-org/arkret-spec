@@ -15,7 +15,7 @@
 3. `object-model-core.md` 与 `object-model-standard.md`：理解协作图和标准对象。
 4. `identity-did.md`、`identity-handles.md`、`progressive-disclosure.md`：理解身份、handle 和隐私披露。
 5. `capabilities.md`、`event-auth-state-resolution.md`：理解权限和 Space 状态机。
-6. `operations-sync.md`、`sync-v2.md`、`service-surface.md`：理解写入、同步和服务面。
+6. `operations-sync.md`、`client-sync.md`、`service-surface.md`：理解写入、同步和服务面。
 7. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Social、Directory。
 
 ## 3. 核心概念边界
@@ -109,7 +109,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | `operations-sync.md` | Repo-first 发布、op、snapshot、冲突收敛。 |
-| `sync-v2.md` | 客户端增量同步、timeline、state_after、to_device。 |
+| `client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
 | `service-surface.md` | 最小服务面：identity、repo、relay、index、directory、blob、authz。 |
 | `service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `service-api-schema.md` | 核心 request / response schema。 |
@@ -156,10 +156,12 @@
 | 文档 | 内容 |
 | --- | --- |
 | `encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
+| `encoding-conformance-vectors.md` | Canonical JSON、hash、event/commit digest、signature binding、HLC、cursor 的一致性测试向量。 |
 | `schema-registry.md` | 标准 schema / event type registry。 |
 | `query-schema.md` | Index / View / Inbox 查询语法。 |
 | `snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
 | `conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
+| `sync-conformance-vectors.md` | Client Sync、pagination、snapshot、MLS epoch backfill 的一致性测试向量。 |
 | `matrix-compat-gap.md` | Matrix 能力差距和取舍。 |
 
 ## 5. 拆分原则

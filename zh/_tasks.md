@@ -53,7 +53,7 @@
 - [x] 增加 `matrix-compat-gap.md`，记录哪些 Matrix 能力需要吸收、改造或明确拒绝继承
 - [x] 增加 `event-auth-state-resolution.md`，补齐 Space version、auth refs、membership、state resolution、redaction、soft fail、upgrade 规则
 - [x] 增加 `device-crypto-verification.md`，补齐设备身份、cross-signing、to-device、verification、secret storage、key backup 与 Applet 设备代理
-- [x] 增加 `sync-v2.md`，补齐客户端 timeline/state/account_data/to_device/device_lists/ephemeral 增量同步协议
+- [x] 增加 `client-sync.md`，补齐客户端 timeline/state/account_data/to_device/device_lists/ephemeral 增量同步协议
 - [x] 增加 `policy-server.md`，补齐策略服务签名决策、缓存、失败模式、联邦和隐私边界
 - [x] 增加 `account-lifecycle.md`，补齐账户锁定、暂停、注销、软登出、擦除与 session/device 撤销
 - [x] 更新 README 规范地图与中英文目录结构
@@ -117,3 +117,19 @@
 - [x] 明确 TSP 可用于 presentation request/response 的 nested/routed 私密传输，但不决定披露语义
 - [x] 增加 `progressive-disclosure.md`，补齐端到端渐进披露实现模型
 - [x] 定义 presentation request、presentation response、proof profile selection、transport fallback、failure codes 和安全要求
+
+## Client Sync 顺序、规模化与 E2EE 收敛
+
+- [x] 将 `sync-v2.md` 重命名为 `client-sync.md`，避免草案阶段误导为存在 v1/v2 两套协议
+- [x] 明确 Client Sync 的 timeline order、tie breaker 与 state resolution 边界
+- [x] 明确 relay 到达顺序、数据库自增 ID、HTTP 接收顺序不得作为事件顺序
+- [x] 补齐大规模 Space / 大账号同步策略：initial summary、sliding window、limited timeline、lazy loading、snapshot、blob lazy、partial state
+- [x] 补齐 E2EE / MLS 同步规则：密文事件和 epoch state 可独立到达、`decryption_pending`、epoch backfill、removed member fail closed
+- [x] 增加 `sync-conformance-vectors.md`，定义排序、分页缺口、snapshot frontier、causal barrier、MLS epoch backfill、decryption recovery、removed member fail closed 测试向量
+- [x] 更新 `conformance-profiles.md`、`spec-map.md`、`gap-analysis.md` 与 `README.md`，把同步一致性向量纳入规范入口和 profile 要求
+
+## Encoding / Hash / Signature 一致性向量
+
+- [x] 增加 `encoding-conformance-vectors.md`，定义 canonical JSON、event digest、commit digest、signature binding、HLC、cursor、encrypted envelope digest 测试向量
+- [x] 明确所有 profile 必须覆盖编码基础向量，Repo / Index / Full Client / E2EE Client 额外覆盖 event digest
+- [x] 更新 `conformance-profiles.md`、`spec-map.md`、`gap-analysis.md` 与 `README.md`，把编码一致性向量纳入规范入口和后续优先级

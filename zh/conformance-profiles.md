@@ -360,12 +360,22 @@ SHOULD 支持：
 - error response tests
 - downgrade / unsupported feature tests
 
+所有 profile MUST 按 `encoding-conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、HLC 和 cursor 的基础向量。Repo、Index、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Repo Node MUST 覆盖 commit digest；E2EE Client 和 Relay Node MUST 覆盖 encrypted envelope digest。
+
 E2EE profile MUST 额外提供：
 
 - KeyPackage verification vector
 - MLS epoch transition vector
 - encrypted payload vector
 - removed member cannot decrypt vector
+
+Client Sync 相关 profile MUST/SHOULD 按 `sync-conformance-vectors.md` 执行对应向量：
+
+- Minimal Client MUST 覆盖基础排序、tie break、pagination gap、backfill order 和 token expiry recovery。
+- Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
+- E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
+- Index Node MUST 覆盖 deterministic timeline order、causal barrier 和 stale frontier reporting。
+- Relay Node SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
 
 Identity profile MUST 额外提供：
 

@@ -14,7 +14,7 @@
 | Space / Entity / Relation | `object-model-core.md`, `object-model-standard.md`, `space-hierarchy.md` | 已覆盖核心模型和 Space 层级规则 |
 | 消息 / 话题 / 线程 | `conversation-model.md`, `content-types.md` | 已覆盖主要语义 |
 | 事件替换 / 撤回 / reaction | `conversation-model.md`, `operations-sync.md`, `event-auth-state-resolution.md` | 已覆盖基础语义和 redaction 规则 |
-| 同步 / backfill / snapshot | `operations-sync.md`, `sync-v2.md`, `snapshot-schema.md`, `service-surface.md` | 已覆盖原则、schema 和客户端同步面 |
+| 同步 / backfill / snapshot | `operations-sync.md`, `client-sync.md`, `snapshot-schema.md`, `sync-conformance-vectors.md`, `service-surface.md` | 已覆盖原则、schema、客户端同步面和首批一致性向量 |
 | 权限 / capability | `capabilities.md`, `grant-constraint-schema.md` | 已覆盖，需要更多 conformance vectors |
 | E2EE / 设备 / 密钥 | `encryption-and-audit.md`, `device-crypto-verification.md`, `key-management.md` | 已覆盖主要流程 |
 | 推送 | `push-notifications.md` | 已覆盖隐私保护推送模型 |
@@ -32,12 +32,12 @@
 
 需要补：
 
-- canonical JSON 测试向量
-- event id / hash / signature 测试向量
+- canonical JSON 测试向量（首批见 `encoding-conformance-vectors.md`，仍需机器可执行 fixture）
+- event id / hash / signature 测试向量（首批见 `encoding-conformance-vectors.md`，仍需真实 crypto fixture）
 - state resolution 冲突测试向量
 - redaction preserved fields 测试向量
 - capability grant / revoke / derived grant 测试向量
-- sync token / pagination / cursor 测试向量
+- sync token / pagination / cursor 测试向量（首批见 `sync-conformance-vectors.md`，仍需机器可执行 fixture）
 - E2EE device verification / key backup / to-device 测试向量
 - Applet namespace / transaction 幂等测试向量
 - Space hierarchy / Lazy Link / inheritance 测试向量
@@ -137,7 +137,7 @@
 
 ## 4. 建议补文档顺序
 
-1. Conformance test vectors。
+1. Conformance test vectors（已开始补 `sync-conformance-vectors.md` 与 `encoding-conformance-vectors.md`，下一步应补 state resolution / redaction / capability 等机器 fixture）。
 2. 完整 OpenAPI 与非 HTTP binding 映射。
 3. 机器可验证 schema registry。
 4. Federation hardening。
@@ -159,4 +159,3 @@
 - feature profile
 
 这些完成后，Contrix New 才能从设计草案进入可互操作实现阶段。
-

@@ -30,7 +30,88 @@ Sovereign deployment 是由单一组织或联盟控制的 Contrix 服务域。�
 
 这些服务 SHOULD 使用 service DID，并由 Organization DID 或联盟治理 DID 明确委派。
 
-## 2.1 Sovereign Client
+### 2.1 网络拓扑图
+
+```mermaid
+flowchart TB
+    subgraph "Sovereign Main Domain"
+        ORG["Organization DID / Governance"]
+        REG["Private Identity Registry"]
+        WIT["Private Witness Set"]
+        REPO["Internal Repo Services"]
+        RELAY["Internal Relay"]
+        INDEX["Internal Index / AppView"]
+        DIR["Private Directory"]
+        BLOB["Private Blob Store"]
+        POL["Policy Server"]
+        MEDIA["TURN / SFU / Media Service"]
+        INTCLIENT["Managed Internal Clients"]
+    end
+
+    subgraph "Controlled Collaboration Enclave"
+        ESPACE["Controlled Collaboration Space"]
+        ERELAY["Enclave Relay"]
+        EINDEX["Enclave Index"]
+        EDIR["Enclave Directory"]
+        EBLOB["Enclave Blob Store"]
+        EPOL["Enclave Policy Server"]
+    end
+
+    subgraph "External Organization Domain"
+        EXTORG["External Organization DID"]
+        EXTCLIENT["External Managed Client"]
+        EXTREPO["External Principal Repo"]
+        EXTRELAY["External Relay"]
+    end
+
+    ORG --> REG
+    ORG --> WIT
+    ORG --> REPO
+    ORG --> RELAY
+    ORG --> INDEX
+    ORG --> DIR
+    ORG --> BLOB
+    ORG --> POL
+    ORG --> MEDIA
+
+    INTCLIENT --> REPO
+    REPO --> RELAY
+    RELAY --> INDEX
+    INDEX --> DIR
+    RELAY --> POL
+    INDEX --> POL
+
+    ORG -->|"creates / endorses"| ESPACE
+    ESPACE --> ERELAY
+    ESPACE --> EINDEX
+    ESPACE --> EDIR
+    ESPACE --> EBLOB
+    ESPACE --> EPOL
+
+    INTCLIENT -->|"approved membership"| ESPACE
+    EXTORG -->|"authority chain / VC"| EPOL
+    EXTCLIENT -->|"invite + restricted join"| ESPACE
+    EXTCLIENT --> EXTREPO
+    EXTREPO -->|"signed ops"| ERELAY
+    EXTRELAY -. "optional allowlisted federation" .-> ERELAY
+
+    ERELAY -->|"accepted events only"| EINDEX
+    EINDEX -->|"stripped preview only"| EDIR
+    EPOL -->|"allow / deny / quarantine"| ERELAY
+
+    RELAY -. "no default bridge" .- ERELAY
+    DIR -. "not exposed" .- EDIR
+```
+
+拓扑含义：
+
+- 主网络保持 closed federation，不向外部主体暴露内部 Directory、Index 或服务拓扑。
+- Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Space。
+- 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Space。
+- 外部组织可以保留自己的 Repo，但写入必须经过 enclave Relay、Policy Server 和本地授权验证。
+- 主网络与 enclave 之间没有默认桥接；资料进出必须经过 export / import review。
+
+## 2.2 Sovereign Client
 
 高安全部署不一定要求从零开发专用客户端，但 MUST 使用受管控客户端 profile。普通公共网络客户端只有在被锁定配置、审计、签名发布和策略管理后才可进入 sovereign deployment。
 

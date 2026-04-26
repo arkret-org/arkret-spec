@@ -51,7 +51,7 @@ contrix-spec-new/
     matrix-compat-gap.md
     event-auth-state-resolution.md
     device-crypto-verification.md
-    sync-v2.md
+    client-sync.md
     policy-server.md
     account-lifecycle.md
     glossary.md
@@ -104,7 +104,7 @@ contrix-spec-new/
     matrix-compat-gap.md
     event-auth-state-resolution.md
     device-crypto-verification.md
-    sync-v2.md
+    client-sync.md
     policy-server.md
     account-lifecycle.md
     glossary.md

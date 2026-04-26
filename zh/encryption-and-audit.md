@@ -52,6 +52,18 @@ sequenceDiagram
 - **明文元数据保留**：用于网络路由和索引查询的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
 - Relay 和 Index 节点可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。
 
+### 2.4 Sync 与 MLS Epoch
+
+Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密事件和 MLS epoch state MUST 作为相关但可独立到达的 stream 处理：
+
+- encrypted event 可以先进入 raw event cache 和 timeline position。
+- `cx.mls.*` state event / MLS Commit 决定客户端是否拥有对应 epoch 的解密状态。
+- 客户端缺少 epoch 时 MUST 标记 `decryption_pending`，不得静默丢弃或重排事件。
+- backfill 历史事件时，客户端 SHOULD 同步对应 epoch 区间的 MLS state，而不是逐条向成员请求密钥。
+- 被移除成员不得获取移除后 epoch 的 group secret；客户端必须 fail closed。
+
+服务端、Relay、Index 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
+
 ## 3. 可审查的端到端加密 (Auditable E2EE)
 
 在很多去中心化产品中，如果存在审查，往往是通过向客户端下发“旁路后门”或者弱化密钥机制实现的，这引起了极大的隐私恐慌。
@@ -136,7 +148,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 
 ### 5.3 防冲突仲裁 (Concurrency Resolution)
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
-- 节点将根据底层 Repo 的 **Tie-breaking 规则**（优先级排序：`Power Level` -> `HLC` -> `Actor_ID 字典序`）进行无分歧的绝对仲裁。
+- 节点将根据底层 Repo 的 **Tie-breaking 规则**（优先级排序：`Auth Weight` -> `HLC` -> `Actor_ID 字典序` -> `Event Hash`）进行无分歧的绝对仲裁。
 - 胜出者的 Commit 成为合法的下一个 Epoch。失败者的客户端发现自己的 Commit 版本过期后，会自动丢弃本地更改并拉取胜出者的状态，确保 E2EE 的强一致性。
 
 ## 6. 离线支持与消息延迟到达

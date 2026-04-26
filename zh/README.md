@@ -55,7 +55,7 @@ Contrix New 第一阶段聚焦以下目标：
 3. [object-model-core.md](./object-model-core.md) 与 [object-model-standard.md](./object-model-standard.md)：核心对象和标准类型。
 4. [identity-did.md](./identity-did.md)、[identity-handles.md](./identity-handles.md)、[progressive-disclosure.md](./progressive-disclosure.md)：身份、handle、隐私披露。
 5. [capabilities.md](./capabilities.md) 与 [event-auth-state-resolution.md](./event-auth-state-resolution.md)：授权、membership、state resolution。
-6. [operations-sync.md](./operations-sync.md)、[sync-v2.md](./sync-v2.md)、[service-surface.md](./service-surface.md)、[service-http-binding.md](./service-http-binding.md)：写入、同步、服务面和默认 HTTP binding。
+6. [operations-sync.md](./operations-sync.md)、[client-sync.md](./client-sync.md)、[service-surface.md](./service-surface.md)、[service-http-binding.md](./service-http-binding.md)：写入、同步、服务面和默认 HTTP binding。
 7. 按场景阅读扩展：Applet、Agent、WebRTC、Directory、Social、Moderation、Federation、Sovereign Deployment。
 
 当前规范按以下平面组织：
@@ -179,9 +179,9 @@ Contrix New 第一阶段聚焦以下目标：
 在当前框架稳定后，建议优先继续细化：
 
 1. 测试向量  
-   为 canonical JSON、event hash、signature、state resolution、redaction、sync token 编写跨实现测试向量。
+   已新增 [sync-conformance-vectors.md](./sync-conformance-vectors.md) 覆盖 Client Sync、pagination、snapshot、MLS epoch backfill，并新增 [encoding-conformance-vectors.md](./encoding-conformance-vectors.md) 覆盖 canonical JSON、event/commit digest、signature binding、HLC、cursor。下一步继续为 state resolution、redaction、capability 编写跨实现测试向量。
 2. OpenAPI 合并  
-   将 `service-api-schema.md`、`sync-v2.md`、`device-crypto-verification.md`、`policy-server.md` 的默认 HTTP binding 落成统一 OpenAPI，同时保留 canonical operation 到其他 transport 的映射。
+   将 `service-api-schema.md`、`client-sync.md`、`device-crypto-verification.md`、`policy-server.md` 的默认 HTTP binding 落成统一 OpenAPI，同时保留 canonical operation 到其他 transport 的映射。
 3. Conformance suite  
    为 repo、relay、index、E2EE client、Applet、policy server 定义自动化互操作测试。
 4. Space version v2 候选  

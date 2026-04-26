@@ -17,7 +17,7 @@
 | --- | --- | --- | --- |
 | room version / auth rules / state resolution | `content/rooms/v*.md`, `content/server-server-api.md` | Space 版本、事件授权、状态冲突归约规则不够形式化 | 新增 `event-auth-state-resolution.md`，作为 P0 |
 | cross-signing / to-device / key backup / verification | `end_to_end_encryption.md`, `keys.yaml`, `to_device.yaml`, MSC1756, MSC1946, MSC4312 | 多设备信任链、设备间消息、密钥备份和验证流程不够可实现 | 新增 `device-crypto-verification.md`，作为 P0 |
-| sync / account data / ephemeral / device lists | `sync.yaml`, `account_data.md`, `send_to_device.md` | 现有同步文档偏 repo 层，缺客户端稳定增量同步面 | 新增 `sync-v2.md`，作为 P0 |
+| sync / account data / ephemeral / device lists | `sync.yaml`, `account_data.md`, `send_to_device.md` | 现有同步文档偏 repo 层，缺客户端稳定增量同步面 | 新增 `client-sync.md`，作为 P0 |
 | policy server / moderation policy rooms | `policy_servers.md`, `policy_server.yaml`, MSC4284, MSC2313 | 审核策略有对象，但缺预提交策略服务签名与失败语义 | 新增 `policy-server.md`，作为 P1 |
 | appservice bridge evolution | `application-service-api.md`, MSC2659, MSC2778, MSC3905, MSC4190, MSC4326 | Applet 已补，但仍需强调设备代理、ping、命名空间和局部用户范围 | 合并到 `applet-integration.md` / `applet-schema.md` |
 | authenticated media | `authed-content-repo.yaml`, MSC3916, MSC3860 | 当前已有 blob 认证下载，需要明确与同步 token、缓存和重定向的关系 | 后续扩展 `media-and-blob.md` |
@@ -94,7 +94,7 @@ Matrix MSC4284 类 policy server 的经验是：策略服务适合做内容、�
 
 - `event-auth-state-resolution.md`：Space 版本、事件授权、状态归约、redaction 与升级。
 - `device-crypto-verification.md`：设备信任、cross-signing、to-device、验证、密钥备份。
-- `sync-v2.md`：客户端增量同步 API 与 stream 语义。
+- `client-sync.md`：客户端增量同步 API 与 stream 语义。
 - `policy-server.md`：策略服务请求、签名决策、缓存、失败语义。
 - `account-lifecycle.md`：账户锁定、暂停、注销、软登出、服务账号与 DID 身份边界。
 

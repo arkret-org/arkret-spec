@@ -141,6 +141,16 @@ Contrix New 采用 repo-first 模型：
 - `hlc` 表示近实时逻辑时间
 - `actor_seq` 表示 actor 本地单调序列
 
+事件顺序分为三层：
+
+| 顺序 | 用途 | 规则 |
+| --- | --- | --- |
+| Causal order | 授权、缺口检测、backfill | `deps` / `prev_refs` / `auth_refs` |
+| Reducer order | 状态收敛、冲突解决 | space version 指定的 deterministic reducer |
+| Timeline order | 客户端展示、分页恢复 | `causal_depth + hlc + actor_id + actor_seq + event_id` |
+
+实现 MUST NOT 把 Relay 到达顺序、数据库自增 ID 或 HTTP 接收顺序当作协议顺序。
+
 ## 7. 操作类型
 
 ### 7.1 Space / Schema / Policy
@@ -453,9 +463,9 @@ graph TD
 
 借鉴成熟的分布式状态解析算法（如 Matrix State Resolution v2 的 Kahn's 拓扑排序），当网络中出现并发的分叉操作（无明确的 `prev_ids` 覆盖关系）时，所有节点 MUST 采用绝对确定的排序来打破平局 (Tie-breaking)，保障全网视图强一致。
 
-排序优先级算法 (Reverse Topological Power Ordering)：
+排序优先级算法 (Reverse Topological Authorization Ordering)：
 比较两个并发操作 $O_A$ 和 $O_B$ 时，判定 $O_A < O_B$ ($O_B$ 胜出，成为最终态) 的依据严格依序如下：
-1. **权限级别 (Power Level)**：检查生成该操作时，`actor` 在 Repo 中拥有的权限权重。权重大的操作胜出。
+1. **授权权重 (Auth Weight)**：检查生成该操作时，`actor` 持有的 capability / role / creator-admin 权重。权重大的操作胜出。
 2. **混合逻辑时钟 (HLC)**：若权限相等，比较 `hlc` 时间戳。时间戳大的胜出。
 3. **Actor ID 字典序**：若时间戳依然完全相等，比较发出的 `actor_id` 的纯字符串字典序。
 4. **Op Hash 字典序**：最后兜底，比较操作信封哈希 `op_id` 的字典序。
@@ -475,7 +485,7 @@ graph TD
 
 建议：
 
-- **LWW by Deterministic Order**：基于 15.2 节定义的 Tie-breaking 排序算法实现 Last-Write-Wins。无论这些修改在网络中到达节点的顺序如何，经过排序后最终生效的永远是“最大”的那个值。
+- **LWW by Deterministic Order**：基于 16.3 节定义的 Tie-breaking 排序算法实现 Last-Write-Wins。无论这些修改在网络中到达节点的顺序如何，经过排序后最终生效的永远是“最大”的那个值。
 
 ### 17.2 集合字段
 
@@ -532,6 +542,23 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 消息时间线显示顺序建议采用：
 
 - `hlc + actor + actor_seq + op_id`
+
+正式 timeline order 见 `client-sync.md`。当存在明确因果依赖时，因果前序 MUST 优先于纯时间排序。
+
+## 18.1 大规模同步加速
+
+大规模 Space 的同步性能不依赖单一机制，而是多层组合：
+
+- Snapshot：用签名 snapshot 恢复当前态，避免从创世事件重放。
+- Incremental cursor：通过 opaque cursor 只拉取增量。
+- Selective sync：只同步当前视图、活跃 Space、关注对象和 mention。
+- Lazy member loading：只同步渲染和授权需要的 member state。
+- Backfill ranges：历史按区间分页拉取。
+- Blob lazy loading：附件与大对象按需拉取。
+- Local reducer cache：客户端缓存 reduced state 和 materialized view。
+- Causal barrier：查询可等待指定 sync token，保证读己之所写。
+
+这些加速层都不得成为真相源。客户端在采用 snapshot、index projection 或 relay backfill 前，仍需能追溯到 signed event / op、hash、auth refs 和 reducer profile。
 
 ## 19. Tombstone、Redaction 与恢复
 
