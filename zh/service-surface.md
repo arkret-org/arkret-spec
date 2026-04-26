@@ -10,6 +10,7 @@
 - repo 如何收发 commit / op
 - relay 如何做 workspace firehose 与 backfill
 - index 如何做查询与 inbox / notification 物化
+- directory 如何做 Space / Organization / Actor 的授权搜索与精确解析
 - blob 如何上传与校验
 - invite / grant 如何参与首次加入工作区
 
@@ -384,6 +385,67 @@ GET /api/v1/blob/get?blob_cid=<cid>
 ```
 
 blob 校验 MUST 基于内容哈希，而不是单一 URL。
+
+## 7.5 Directory Surface
+
+directory 是授权过滤后的发现与搜索服务面。它是派生索引，不是真相源。
+
+### 7.5.1 描述 directory
+
+```text
+GET /api/v1/directory/describe
+```
+
+返回：
+
+- `service_did`
+- 支持的 discovery profile
+- 支持的资源类型：space / organization / actor / applet
+- 是否支持 restricted query proof
+
+### 7.5.2 搜索 Space
+
+```text
+POST /api/v1/directory/search-spaces
+```
+
+请求 MAY 包含：
+
+- `query`
+- `organization_did`
+- `parent_space_id`
+- `requester`
+- `proofs`
+- `limit`
+- `cursor`
+
+Directory MUST 对每个结果应用 `cx.space.discovery`、Space policy、organization endorsement 和 requester proof 过滤。
+
+### 7.5.3 精确解析 Space
+
+```text
+POST /api/v1/directory/resolve-space
+```
+
+用于通过 `space_id`、alias、invite token 或 signed link 获取 stripped preview state。对 `invite_only` / `secret` Space，未授权请求 MUST 返回与不存在相同的错误形态。
+
+### 7.5.4 搜索与解析 Organization
+
+```text
+POST /api/v1/directory/search-organizations
+POST /api/v1/directory/resolve-organization
+```
+
+Organization directory MUST respect organization discovery policy。公开组织 DID 可解析不表示成员列表、官方 Space 列表、服务拓扑或治理策略全文可公开。
+
+### 7.5.5 搜索 Actor / Handle
+
+```text
+POST /api/v1/directory/search-actors
+POST /api/v1/directory/resolve-handle
+```
+
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Space 推断出的关系。
 
 ## 8. Capability / Invite Surface
 

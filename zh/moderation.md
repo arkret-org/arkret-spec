@@ -7,6 +7,7 @@
 - 用户举报不当内容
 - 忽略/屏蔽其他用户
 - Space 级别的审核策略
+- 组织级别的准入黑名单、允许列表和风险策略
 - 服务器级别的访问控制
 
 ## 2. 设计原则
@@ -22,6 +23,14 @@
 ### 2.3 举报留痕但不公开
 
 举报记录应被安全送达 Space 管理员，但不应暴露给被举报人或其他普通成员。
+
+### 2.4 黑名单不是 capability grant
+
+Contrix 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过滤器和风险策略是额外的 deny/quarantine 层：
+
+- 没有 capability 时，黑名单不能创建权限。
+- 有 capability 时，Space / Organization / Service policy MAY deny、quarantine 或 require review。
+- 个人 block 只影响个人客户端体验，不能替 Space 删除其他成员可见的事实。
 
 ## 3. 内容举报 (Report)
 
@@ -70,21 +79,54 @@ POST /api/v1/moderation/report
 
 ```json
 {
-  "ignored_users": {
-    "did:web:spammer.example.com": {
-      "ignored_at": "2026-04-26T10:00:00Z"
+  "type": "cx.account.blocklist",
+  "owner": "did:uuid:alice",
+  "entries": [
+    {
+      "target": {
+        "kind": "actor",
+        "did": "did:web:spammer.example.com"
+      },
+      "mode": "block",
+      "created_at": "2026-04-26T10:00:00Z",
+      "reason_code": "harassment",
+      "expires_at": null
     }
-  }
+  ]
 }
 ```
 
 ### 4.2 屏蔽行为
 
 客户端在渲染时：
+
 - SHOULD 隐藏被屏蔽用户的消息
 - SHOULD 不显示被屏蔽用户的 Typing 和 Presence 状态
 - SHOULD 不为被屏蔽用户的消息生成通知
+- SHOULD 默认拒绝被屏蔽用户发起的 DM、call invite、contact request 和 applet-mediated request
+- MAY 在共同 Space 中显示折叠占位符，避免破坏上下文
 - MUST NOT 从网络层面丢弃被屏蔽用户的 Op（这些 Op 对其他成员仍然有效）
+
+### 4.3 个人过滤对象
+
+个人 blocklist MAY 包含：
+
+- actor DID
+- device DID / device id
+- service DID
+- handle
+- domain
+- organization DID
+- Applet id
+- keyword / mention pattern
+
+对 handle、domain、organization DID 的屏蔽 MUST 在本地解析成可验证 DID / claim 后应用。客户端 MUST NOT 因裸字符串后缀误伤无关主体。
+
+### 4.4 隐私要求
+
+个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Relay、Space、Directory 或被屏蔽方可见的位置。
+
+跨设备同步 SHOULD 使用 Account Repo + 客户端加密。服务端只应看到不透明密文。
 
 ## 5. Space 审核工具
 
@@ -98,11 +140,80 @@ POST /api/v1/moderation/report
 ### 5.2 用户封禁
 
 管理员通过 `cx.membership.ban` 操作封禁用户（详见 `object-model-core.md` 的成员与 policy 语义）。封禁后：
+
 - 被封禁用户无法重新加入该 Space
 - 其未来的 Op 提交将被 Relay 拒绝
 - 是否隐藏其历史内容由 Space Policy 决定
 
-### 5.3 消息审核队列
+### 5.3 Space Blocklist / Filter Policy
+
+Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允许列表、内容过滤和风险处理策略。
+
+```json
+{
+  "type": "cx.space.moderation_policy",
+  "state_key": "default",
+  "content": {
+    "version": 1,
+    "targets": [
+      {
+        "target": {
+          "kind": "actor",
+          "did": "did:web:spammer.example.com"
+        },
+        "action": "deny_join",
+        "reason_code": "spam",
+        "created_by": "did:web:acme.example#mod",
+        "created_at": "2026-04-26T00:00:00Z",
+        "expires_at": null
+      },
+      {
+        "target": {
+          "kind": "domain",
+          "domain": "malicious.example"
+        },
+        "action": "quarantine_message",
+        "reason_code": "abuse_cluster"
+      }
+    ],
+    "content_filters": [
+      {
+        "filter_id": "cx:filter:spam-links",
+        "match": {
+          "kind": "url_domain",
+          "pattern_hash": "sha256:..."
+        },
+        "action": "require_review"
+      }
+    ],
+    "appeal": {
+      "enabled": true,
+      "endpoint": "cx:entity:appeal-topic"
+    }
+  }
+}
+```
+
+`action` 取值：
+
+- `deny_join`
+- `deny_invite`
+- `deny_write`
+- `quarantine_message`
+- `require_review`
+- `redact_on_accept`
+- `shadow_collapse`
+
+规则：
+
+- 修改 `cx.space.moderation_policy` MUST require `space.moderate` or `space.policy.manage` capability。
+- Space blocklist MUST be evaluated after basic signature/DID validation and before event enters user-visible reducer state。
+- `deny_join` / `deny_write` SHOULD produce a signed moderation decision or audit record。
+- `quarantine_message` MUST keep the event out of normal user-visible views until moderator approval。
+- Content filters SHOULD use hashes, labels or local classification where possible; E2EE Space MUST NOT require plaintext upload to a server-side filter。
+- Space blocklist MUST NOT silently override cryptographic history. Existing accepted events require redaction/tombstone/quarantine event to change presentation.
+
+### 5.4 消息审核队列
 
 Space SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报记录。建议使用标准 View 机制：
 
@@ -142,9 +253,79 @@ Relay 和 Index 节点可以配置服务器级别的 ACL，控制哪些域的联
 
 Server ACL 在联邦层（参见 `federation.md`）起作用。当 Relay 收到来自被 deny 的域的 `push-ops` 请求时，SHOULD 立即返回 `403 CapabilityDenied`。
 
-## 7. 后续待细化
+## 7. Organization-level Moderation
+
+Organization MAY publish organization-level moderation policy for Spaces and services it controls or endorses. This policy applies through explicit references, not by global magic.
+
+Recommended object:
+
+```json
+{
+  "type": "cx.organization.moderation_policy",
+  "organization_did": "did:web:acme.example",
+  "policy_id": "cx:org-policy:abuse-v1",
+  "scope": {
+    "space_ids": ["cx:space:01JS0SP..."],
+    "service_dids": [
+      "did:web:relay.acme.example",
+      "did:web:policy.acme.example"
+    ],
+    "applies_to_official_spaces": true
+  },
+  "rules": [
+    {
+      "target": {
+        "kind": "organization",
+        "did": "did:web:known-abuse.example"
+      },
+      "action": "deny_federation",
+      "reason_code": "abuse_network"
+    },
+    {
+      "target": {
+        "kind": "claim_selector",
+        "claim_type": "org_membership",
+        "issuer": "did:web:untrusted.example"
+      },
+      "action": "deny_restricted_join"
+    }
+  ],
+  "valid_from": "2026-04-26T00:00:00Z",
+  "valid_until": null,
+  "proof": {
+    "type": "detached_jws",
+    "verification_method": "did:web:acme.example#governance-key-1",
+    "jws": "..."
+  }
+}
+```
+
+Rules:
+
+- Organization policy is authoritative only for Spaces/services that explicitly reference it, or for official Spaces whose `cx.space.organization` endorsement states that the organization policy applies.
+- A Space MAY override organization defaults only if its policy says override is allowed.
+- Organization-level deny SHOULD be enforced by Policy Server, Relay Server ACL, Directory filtering and Space moderation policy together.
+- Organization policy MUST be signed by Organization DID or delegated governance service DID.
+- Organization policy MUST NOT reveal private user blocklists, private handles or undisclosed organization memberships.
+
+## 8. Policy Server Integration
+
+Space and Organization moderation policies SHOULD be evaluated through Policy Server for dynamic checks:
+
+- invite / join request
+- knock request
+- message create / edit
+- media upload
+- Applet transaction
+- federation transaction
+- directory listing
+- call invite
+
+Policy Server MAY return `hard_deny`, `quarantine`, `require_review` or `soft_deny`, but it MUST NOT grant capability by itself.
+
+## 9. 后续待细化
 
 - 自动化审核（基于 AI 的内容分类与标记）
 - 上诉流程（被封禁用户的申诉机制）
-- 跨 Space 的全局封禁列表（联邦级黑名单共享）
+- 跨 Space 的共享封禁列表与信任/误伤处理
 - 审核操作的不可抵赖性日志

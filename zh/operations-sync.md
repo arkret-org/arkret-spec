@@ -30,9 +30,32 @@ Contrix New 是面向协作对象的分布式发布、传播、查询与收敛�
 
 Repo 是某个 principal 的发布源。
 
+Repo 是协议逻辑对象，不必等同于服务器进程。它至少包含：
+
+- commit log：principal 签名的提交链。
+- operation / event store：commit 引用的协作操作。
+- head / cursor：当前已发布前沿。
+- proof material：签名、hash、DID key 状态引用和可选 witness receipt。
+
+Repo MAY 由客户端本地维护，也 MAY 由 Repo Service 托管，还 MAY 被多个只读副本复制。网络上的 `ContrixRepo` endpoint 是访问 Repo 的一种服务面；它不是 Repo 权威本身。接收方验证 Repo 数据时 MUST 校验 commit 签名、DID 控制链、hash 链、序列单调性和 op 幂等性。
+
+Repo 分为常见两类：
+
+- Principal Repo：人、组织、agent、Applet 等 principal 的发布日志，是 actor 写入的默认源。
+- Space Repo：可选的 Space 级聚合或治理日志，用于保存 Space bootstrap、snapshot、policy checkpoint 或共同治理记录；它不得替代各 principal 对自身写入的签名责任。
+
 ### 2.2 Relay
 
 Relay 是 Space 传播层。
+
+Relay 聚合多个 Repo 中与某个 Space 相关的 accepted / potentially accepted operation，并提供订阅、fanout、backfill、ephemeral signaling 和初级过滤。Relay 可以由组织、用户、社区、第三方服务或本地节点运行。
+
+Relay MUST NOT：
+
+- 伪造 principal 的 commit 或 operation。
+- 把自己托管的 Space 自动标记为组织 official Space。
+- 用本地数据库状态替代 Space reducer、capability 和 policy 判定。
+- 阻止客户端从源 Repo 或其他 Relay 交叉验证历史。
 
 ### 2.3 Index
 

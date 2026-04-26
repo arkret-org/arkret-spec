@@ -223,6 +223,18 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 - `ack_notifications`
 - `accept_invite`
 
+### 5.8 社交动作
+
+- `publish_post`
+- `reply_post`
+- `react_post`
+- `repost`
+- `quote_post`
+- `follow`
+- `manage_followers`
+- `manage_circle`
+- `manage_audience_policy`
+
 ## 6. Constraints
 
 初版建议支持：

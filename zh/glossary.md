@@ -18,6 +18,7 @@
 | Space | 协作空间 | 复制、授权、schema、policy、membership 和 history visibility 的边界。它替代 Matrix room 作为 Contrix 的协作边界，但不是唯一数据模型。 |
 | Official Space | 官方空间 | 由 Organization DID 直接创建，或被 active `cx.space.organization` state event 背书且 `scope.official=true` 的 Space。名称、域名、Relay 托管方或成员列表不能单独证明官方性。 |
 | Space Hierarchy | 空间层级 | Space 之间的 parent/child 组织关系，用于导航、发现和受控继承；不默认级联权限、成员、历史或加密。 |
+| Discoverability | 可发现性 | 资源是否可被目录、搜索、父 Space、组织页、精确链接或邀请发现的策略；不等于 join rule、read permission 或 history visibility。 |
 | Entity | 实体 | 所有协作对象的统一载体，例如 task、message、topic、board、memory、run、file、profile。 |
 | Relation | 关系 | Entity / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件等语义。 |
 | Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 repo、relay、index 和 reducer。 |
@@ -26,6 +27,8 @@
 | Projection | 投影 | Index 或客户端根据 View / query / reducer 从 canonical Event 集合派生出的展示或查询结果。 |
 | Schema | 模式 | 对 Entity、Relation、Event、View 或 service payload 的结构约束。 |
 | Policy | 策略 | Space 或服务级治理规则，例如加入规则、历史可见性、媒体规则、审核策略、policy server 配置。 |
+| Moderation Policy | 审核策略 | Space 或 Organization 发布的黑名单、允许列表、过滤、隔离、审核队列和上诉规则。它是 deny/quarantine 层，不创建 capability。 |
+| Personal Blocklist | 个人屏蔽列表 | Actor 私有的屏蔽与过滤规则，存储在本地或加密 Account Repo 中，只影响个人客户端体验和通知/联系请求处理。 |
 
 ## 3. 标准语义类型
 
@@ -41,6 +44,10 @@
 | Agent Protocol Session | Agent 协议会话 | Contrix 任务显式切换到 A2A、ACP legacy 或其他外部 agent protocol 执行时登记的受控会话。 |
 | Mention | 提及 | 对 Actor 或 Entity 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
 | Reaction | 反应 | 对目标 Entity/Event 的轻量语义反馈，通常通过 Relation 或标准 reaction event 表达。 |
+| Social Post | 社交发布 | 标准 Entity 类型，用于个人、组织或社区 feed 中的发布内容；可公开、受众受限或私有。 |
+| Social Feed | 社交时间线 | 个人主页、组织公告、项目动态或关注流的发布入口/投影源；本身不替代 Repo 或 Space。 |
+| Social Circle | 社交圈 | 发布者维护的受众集合，例如朋友圈、亲友圈、内部成员圈；成员列表默认私有或受限可见。 |
+| Audience Policy | 受众策略 | 定义 post/feed 的可读、可回复、可转发、可索引和受众快照规则。 |
 
 ## 4. 身份与可发现性
 
@@ -81,7 +88,8 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Repo | 仓库 | Principal 或 Space 发布 signed commit / operation 的追加式存储。Repo 是审计真相源之一。 |
+| Repo | 仓库 | Principal 或 Space 发布 signed commit / operation 的追加式可验证日志。Repo 是协议逻辑对象，不等同于服务器。 |
+| Repo Service | 仓库服务 | 通过网络 API 暴露 Repo commit / operation 读写、同步和回填能力的服务角色；它托管或复制 Repo，但其权威来自 Repo 数据的签名和 hash 链。 |
 | Commit | 提交 | Actor 侧发布单元，包含一个或多个 operation/event 引用和签名。 |
 | Operation / Op | 操作 | 对协作图的原子变更意图或事实，通常封装为 Event 或被 Event 引用。 |
 | Operation Log | 操作日志 | 追加式审计记录，用于归约、同步、回放和冲突分析。 |
@@ -114,6 +122,7 @@
 | Authz Service | 授权服务 | 预检查、解释或缓存 capability / policy 判定的服务，不应替代可验证协议规则。 |
 | Policy Server | 策略服务 | 对邀请、加入、消息、媒体、Applet、联邦等行为给出签名风险决策的服务。 |
 | Push Gateway | 推送网关 | 将脱敏通知投递到移动或桌面平台推送系统的服务。 |
+| Directory Service | 目录服务 | 对 Space、Organization、Actor、Applet 等资源提供授权过滤后的搜索、列举和精确解析的派生服务；不是真相源。 |
 
 ## 8. 联邦与互操作
 
@@ -221,12 +230,19 @@
 | Actor 与 Principal | Principal 是身份根；Actor 是在 Space / 协作图里的行为者视图。 |
 | Organization 与 Space | Organization 是可验证身份和治理主体；Space 是协作数据、授权和复制边界。一个组织可以拥有或托管多个 Space，一个 Space 也可以由多个组织共同治理。 |
 | Space Hierarchy 与权限继承 | 层级关系只表达组织和发现；权限、成员、历史、加密默认不继承，必须由 child Space 显式 opt-in。 |
+| Discoverability 与 Join Rule | Discoverability 决定能否发现资源存在；Join Rule 决定如何加入。公开可发现的 Space 仍可要求 invite、knock 或 restricted join。 |
+| Discoverability 与 History Visibility | Discoverability 不授予历史读取；公开可搜索的 Space 不等于 `world_readable`。 |
+| Follow 与 Contact/Circle | Follow 是订阅关系，通常单向；Contact 是联系人关系；Circle 是发布者私有或受限的受众集合，不能互相等同。 |
+| Public Feed 与 Circle Feed | Public Feed 面向公开索引和广播；Circle Feed 必须按 Audience Policy 授权，不能只靠 UI 隐藏。 |
 | Entity 与 Event | Entity 是协作对象；Event 是事实和变更记录。 |
 | Relation 与 View | Relation 是一等语义边；View 是投影定义。 |
 | Repo 与 Index | Repo 保存可审计事实；Index 保存派生查询结果。 |
+| Repo 与 Repo Service | Repo 是可验证日志；Repo Service 是访问或托管该日志的服务器/服务进程。 |
 | Relay 与 Authority | Relay 传播事件；授权仍由签名、capability、policy 和 reducer 验证。 |
 | Capability 与 Namespace | Capability 授权动作；Namespace 只说明 Applet 负责哪个名称范围。 |
 | Redaction 与 Erasure | Redaction 裁剪协议内容并保留审计；Erasure 是服务侧物理删除/最小化流程。 |
 | Read Receipt 与 Read Marker | Receipt 可公开或共享；Marker 默认私有，用于未读状态。 |
 | Policy Server 与 Authz | Policy server 给风险决策；authz 是本地可验证授权判定。 |
+| Moderation Policy 与 Capability | Capability 决定是否具备基础动作权限；Moderation Policy 可以 deny、quarantine 或 require review，但不能凭空授予权限。 |
+| Personal Blocklist 与 Space Ban | Personal Blocklist 是个人私有渲染/通知/联系过滤；Space Ban 是 Space 共享成员状态，会影响加入和写入。 |
 | E2EE 与 Authenticated Media | E2EE 保护内容不可被服务端解密；authenticated media 只控制下载访问。 |

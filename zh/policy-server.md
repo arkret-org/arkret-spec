@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Policy Server 是可插拔的风险判断与治理服务，用于邀请、加入、媒体、消息、Applet、跨域联邦等场景的预检查和审计。它类似 Matrix policy server / moderation policy 的思想，但在 Contrix 中不替代 capability authorization。
+Policy Server 是可插拔的风险判断与治理服务，用于邀请、加入、媒体、消息、Applet、跨域联邦、目录发现、通话邀请等场景的预检查和审计。它类似 Matrix policy server / moderation policy 的思想，但在 Contrix 中不替代 capability authorization。
 
 ## 2. Policy Server Declaration
 
@@ -16,7 +16,11 @@ Space 可通过 state event 声明策略服务：
     "server_id": "did:web:policy.example.com",
     "endpoint": "https://policy.example.com/contrix/v1/check",
     "public_keys": ["did:web:policy.example.com#key-1"],
-    "applies_to": ["join", "invite", "message", "media", "applet"],
+    "applies_to": ["join", "invite", "message", "media", "applet", "directory", "call", "federation"],
+    "policy_sources": [
+      "cx.space.moderation_policy",
+      "cx.organization.moderation_policy"
+    ],
     "fail_mode": "soft_deny",
     "cache_ttl_seconds": 300
   }
@@ -119,6 +123,8 @@ Policy server 不创建权限。事件必须先通过 capability authorization�
 - 有 capability + policy hard_deny = reject 或 quarantine。
 - 有 capability + policy unavailable = 按 fail_mode。
 
+Policy server MAY enforce Space-level and Organization-level blocklists, allowlists, rate limits, abuse reputation and content risk labels. It MUST NOT inspect personal blocklists unless the holder explicitly uses a private policy service under their control.
+
 ## 8. Federation
 
 跨域事件的 origin service MAY 附带 policy decision。接收方：
@@ -136,4 +142,3 @@ Policy server 默认不是内容接收者。实现 MUST：
 - 对媒体默认发送 hash、MIME、尺寸、扫描标签，不发送原始 bytes。
 - 对 handle、email、phone 等标识符使用 blinded token，除非用户或管理员明确授权。
 - 在 audit log 中记录向 policy server 披露了哪些字段。
-

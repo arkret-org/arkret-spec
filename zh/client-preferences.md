@@ -88,6 +88,59 @@
 }
 ```
 
+### 3.5 个人屏蔽与过滤 (Personal Blocklist)
+
+用户可以在私有 Account Repo 中保存个人 blocklist。该数据只影响用户自己的客户端、私有 Index、通知规则和联系请求处理，不改变 Space 的共享事实。
+
+**Key:** `cx.account.blocklist`
+
+```json
+{
+  "version": 1,
+  "entries": [
+    {
+      "entry_id": "cx:block:01JS0BLK000000000000000000",
+      "target": {
+        "kind": "actor",
+        "did": "did:web:spammer.example.com"
+      },
+      "mode": "block",
+      "applies_to": [
+        "messages",
+        "mentions",
+        "dm",
+        "calls",
+        "presence",
+        "notifications",
+        "directory"
+      ],
+      "reason_code": "harassment",
+      "created_at": "2026-04-26T10:00:00Z",
+      "expires_at": null
+    }
+  ]
+}
+```
+
+`target.kind` MAY be:
+
+- `actor`
+- `device`
+- `service`
+- `handle`
+- `domain`
+- `organization`
+- `applet`
+- `keyword`
+
+Rules:
+
+- Account blocklist MUST be encrypted for the holder's own devices when synchronized through untrusted services.
+- Clients SHOULD suppress notifications, contact requests, call invites and DM requests from blocked targets.
+- Clients MAY hide or collapse blocked content in shared Space views.
+- Clients MUST NOT publish the blocklist to public Space state or directory services.
+- Blocking an organization or domain MUST be evaluated through verified DID / claim bindings when possible; clients SHOULD warn when only a weak string match is available.
+
 ## 4. 与 Index 节点的交互
 
 虽然 Account Repo 对外不公开，但用户的私有 Index 节点（运行在受控环境中，或可信端侧节点）会拉取并解密这些数据，并合并到查询结果中。

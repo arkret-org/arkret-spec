@@ -43,6 +43,15 @@ Space 则是协作数据边界。它定义 membership、capability scope、schem
 
 这点借鉴 atproto 的 repo 思路，但 Contrix 的 repo 记录的是 **协作操作**，而不是面向社交 feed 的 record 集。
 
+Principal Repo 是逻辑上的可验证发布日志，不等同于一台服务器。它可以由以下形态承载：
+
+- 用户设备上的本地 append-only log。
+- 用户自托管或组织托管的 Repo Service。
+- 多个 relay / storage replica 保存的只读副本。
+- DID Document 中声明的 `ContrixRepo` service endpoint。
+
+Repo 的权威来自 principal 对 commit / operation 的签名、DID 控制链、commit hash 链和幂等序列，而不是来自托管它的服务器。托管 Repo Service 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
+
 ### 2.2 Workspace Relay
 
 Relay 负责把多个 principal repo 中与某个 workspace 相关的授权操作聚合、去重、转发与订阅。
@@ -55,6 +64,15 @@ Relay 负责把多个 principal repo 中与某个 workspace 相关的授权操�
 - 初级权限过滤
 
 Relay 不是唯一真相源，也不应拥有篡改 actor 历史的权力。
+
+Organization 与 Relay 的关系是控制/委派/托管关系，而不是身份等价关系：
+
+- Organization MAY 运行自己的 Relay，并在 Organization DID Document 中声明或委派该 Relay 的 service DID。
+- Organization MAY 在 Space policy 或 `cx.space.organization` 中把某些 Relay 标记为 official / preferred / required。
+- 多个 Organization MAY 为同一个 Space 运行多个 Relay。
+- 用户或第三方 MAY 运行非官方 Relay，只要 Space policy、Server ACL 和授权规则允许。
+
+客户端 MUST NOT 因为某 Relay 由某组织托管，就自动认定经该 Relay 传播的 Space 是该组织官方 Space。官方性仍必须由 Organization DID 对 Space 的创建或 `cx.space.organization` 背书证明。
 
 ### 2.3 Query Index / AppView
 

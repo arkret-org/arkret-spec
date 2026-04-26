@@ -166,7 +166,40 @@ Actor Profile 不替代 DID，也不成为权限主键。
 
 投票结果 SHOULD 作为 event 集合归约，而不是只更新单一计数字段。
 
-## 13. Schema Evolution
+## 13. Social Types
+
+社交能力作为标准语义扩展定义，详细规则见 `social-graph.md`。
+
+### 13.1 Social Post
+
+`social_post` 表示个人或组织发布到 feed 的内容。它可以是公开广播、组织公告或朋友圈内容。
+
+常用字段：
+
+- `author`
+- `content`
+- `attachments`
+- `audience_ref`
+- `reply_policy`
+- `reshare_policy`
+
+常见关系：
+
+- `belongs_to` -> social_feed
+- `replies_to` -> social_post
+- `reposts` -> social_post
+- `quotes` -> social_post
+- `mentions` -> actor / entity
+
+### 13.2 Social Feed
+
+`social_feed` 表示个人主页、组织公告、项目动态、公开时间线等发布入口或投影源。
+
+### 13.3 Social Circle
+
+`social_circle` 表示发布者维护的受众集合，例如朋友圈、亲友圈、内部成员圈。Circle membership 默认私有或受限可见。
+
+## 14. Schema Evolution
 
 标准类型演进 MUST 遵守：
 
@@ -176,10 +209,11 @@ Actor Profile 不替代 DID，也不成为权限主键。
 - UI 遇到未知 Entity type SHOULD 降级为 generic entity card
 - 标准类型不得阻止 Space 定义自定义 Entity type
 
-## 14. 待细化
+## 15. 待细化
 
 - 每个标准 Entity 的 JSON Schema
 - 标准 Relation cardinality
 - content block registry
 - task status profile
 - poll result reducer vector
+- social post / feed / circle schema

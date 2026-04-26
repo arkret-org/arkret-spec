@@ -19,6 +19,7 @@
     "initial_creators": ["did:uuid:..."],
     "created_by_principal": "did:uuid:...",
     "owning_organizations": [],
+    "default_discoverability": "invite_only",
     "default_join_rule": "invite",
     "history_visibility": "joined"
   }
@@ -68,6 +69,8 @@
 | `cx.capability.grant` | `cx.space.create`、grantor membership、grantor 当前 grant/role/admin capability |
 | `cx.capability.revoke` | 被撤销 grant、revoker membership、revoker revoke/admin capability |
 | `cx.policy.*` | `cx.space.create`、actor membership、policy/admin capability、上一版同 key policy |
+| `cx.space.discovery` | `cx.space.create`、actor membership、discovery/policy/admin capability、上一版 discovery state |
+| `cx.space.moderation_policy` | `cx.space.create`、actor membership、moderation/policy/admin capability、上一版 moderation policy |
 | `cx.space.child` | parent Space 的 `cx.space.create`、发送者 parent membership、`space.hierarchy.manage` capability、目标 child Space stripped create 或可验证引用 |
 | `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
 | `cx.space.inheritance_policy` | child Space 的 `cx.space.create`、child policy/admin capability、confirmed parent edge |
@@ -124,7 +127,20 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 被 ban 的 actor MUST NOT 发送除 appeal/profile-level 之外的 Space 写事件。
 
-## 6. Join Rule and History Visibility
+## 6. Discovery, Join Rule and History Visibility
+
+`cx.space.discovery` 控制 Space 是否能被目录、搜索、父 Space 或组织页发现。完整规则见 `discovery-directory.md`。
+
+`discoverability` 取值：
+
+- `public`：可被公共目录索引和搜索。
+- `listed`：可在指定目录、组织页或父 Space 中列出。
+- `restricted`：只有满足可验证条件的请求方可发现。
+- `unlisted`：不进入搜索，但可凭精确 id、alias、邀请或允许的 parent edge 解析。
+- `invite_only`：未被邀请或未持有 invite proof 的主体不得得知其存在。
+- `secret`：仅本地或端到端加密上下文中可见。
+
+`cx.space.discovery` 不授予读取、加入、写入或解密权限。节点和目录服务 MUST NOT 用 `join_rule` 或 `history_visibility` 推断 discoverability。
 
 `cx.space.join_rule`:
 
@@ -225,6 +241,8 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(type, state_k
 以下事件类型是 `cx.space.v1` 标准 state event：
 
 - `cx.space.create`
+- `cx.space.discovery`
+- `cx.space.moderation_policy`
 - `cx.space.join_rule`
 - `cx.space.history_visibility`
 - `cx.space.policy_server`
