@@ -367,20 +367,20 @@ POST /api/v1/blob/upload
 
 Returning:
 
-- `blob_cid`
+- `blob_ref`
 - `sha256`
 - `size`
 
 ### 7.2 Inspect Blob Headers
 
 ```text
-HEAD /api/v1/blob/get?blob_cid=<cid>
+HEAD /api/v1/blob/get?blob_ref=<ref>
 ```
 
 ### 7.3 Download a Blob
 
 ```text
-GET /api/v1/blob/get?blob_cid=<cid>
+GET /api/v1/blob/get?blob_ref=<ref>
 ```
 
 Blob validation MUST be content-hash based rather than URL based.

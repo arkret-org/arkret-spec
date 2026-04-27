@@ -4,7 +4,7 @@
 
 把当前草案从“说明文档”推进为“可复现的实现标准”。本套件以 profile 为测试入口，强制验证：
 
-- canonical operation 语义
+- canonical `operation_id` 语义
 - reducer 兼容性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
@@ -33,7 +33,7 @@
 每个实现必须通过以下验收：
 
 - `/api/v1` 下公开至少包含 `service/identity/repo/sync/index/blob/authz` 关键 operation。
-- operation id 与本文件 `service-api-schema.md` 映射一致。
+- `operation_id` 与 `service-api-schema.md` 映射一致。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests

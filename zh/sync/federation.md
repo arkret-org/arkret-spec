@@ -215,7 +215,74 @@ GET /api/v1/federation/space-members?space_id=<id>
 POST /api/v1/federation/verify-actor
 ```
 
-请求体包含 Actor DID 和待验证的签名，用于在没有本地 DID 缓存时请求对端帮忙校验。
+该接口用于联邦参与方在缺少本地 DID / key-log 缓存时请求对端提供验证辅助信息。它不是公开 DID oracle，也不是最终授权来源。
+
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `actor_id` | body | `did` | required | 待验证 Actor DID。 |
+| `purpose` | body | `enum(event_source,federation_join,device_binding)` | required | 验证目的；服务端 MUST 将目的纳入授权与限流策略。 |
+| `space_id` | body | `id` | optional；Space 相关目的为 required | 相关 Space ID；用于绑定 Space policy、membership 和 plaintext visibility。 |
+| `challenge` | body | `base64url string` | optional；challenge 验证为 required | 请求方生成的短期随机挑战；服务端 MUST 拒绝过期或重复 challenge。 |
+| `signed_payload_hash` | body | `sha256:<base64url-or-hex>` | optional；验证具体事件/设备绑定时为 required | 被验证 payload 的 canonical hash，MUST 与签名 transcript 绑定。 |
+| `signature` | body | `object` | required | Actor 设备键或授权签名。 |
+| `signature.kid` | body | `did-url` | required | 签名键 ID，MUST 属于 `actor_id` 的当前或可验证历史 key log。 |
+| `signature.alg` | body | `string` | optional | 签名算法；出现时 MUST 与 DID Document/key log 中的 key 类型一致。 |
+| `signature.sig` | body | `base64url string` | required | 对 canonical verification payload 的 detached signature。 |
+
+`signature.sig` 覆盖的 canonical verification payload MUST 至少绑定 `actor_id`、`purpose`、`space_id`（若存在）、`challenge`（若存在）、`signed_payload_hash`（若存在）、请求方 service DID、目标 service DID 和请求时间窗口，防止跨目的、跨 Space 或跨服务重放。
+
+请求示例（非完整 schema）：
+
+```json
+{
+  "actor_id": "did:uuid:...",
+  "purpose": "event_source",
+  "space_id": "cx:space:...",
+  "challenge": "base64url...",
+  "signed_payload_hash": "sha256:...",
+  "signature": {
+    "kid": "did:uuid:...#device-a",
+    "alg": "Ed25519",
+    "sig": "base64url..."
+  }
+}
+```
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `valid` | `boolean` | required | 是否完成签名、DID/key-log 和目的约束校验；不得表示最终授权。 |
+| `actor_id` | `did` | required | 回显被验证 Actor DID，MUST 与请求一致。 |
+| `verified_key_id` | `did-url` | `valid=true` 时 required | 实际通过校验的 key id。 |
+| `key_log_head` | `id` | optional | 服务端用于校验的 key-log head；接收方可据此刷新本地缓存。 |
+| `did_document_ref` | `sha256:<hash>` | optional | DID Document canonical hash 或等价引用。 |
+| `expires_at` | `datetime` | `valid=true` 时 required | 该辅助验证结果的最晚缓存时间；不得长于本地策略 TTL。 |
+| `warnings` | `string[]` | required | 非致命提示；无提示时为空数组。 |
+
+响应示例（非完整 schema）：
+
+```json
+{
+  "valid": true,
+  "actor_id": "did:uuid:...",
+  "verified_key_id": "did:uuid:...#device-a",
+  "key_log_head": "cx:keyevt:...",
+  "did_document_ref": "sha256:...",
+  "expires_at": "2026-04-26T00:05:00Z",
+  "warnings": []
+}
+```
+
+访问限制：
+
+- 请求 MUST 使用来源 service DID 的 HTTP Message Signature。
+- `purpose` MUST 是 `event_source`、`federation_join`、`device_binding` 或 Space policy 明确允许的等价目的。
+- 请求方 MUST 是该 Space 的参与方 Principal Server、被委托 Space Host，或拥有相关 federation / join 处理权限的服务。
+- 服务端 MUST 限流，并对不可见 actor 返回统一 `not_found` / `capability_denied` 语义，避免批量枚举 DID。
+- 响应只能作为缓存加速或诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Space policy。
 
 ## 8. 安全考量
 

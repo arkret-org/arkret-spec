@@ -409,20 +409,20 @@ POST /api/v1/blob/upload
 
 返回：
 
-- `blob_cid`
+- `blob_ref`
 - `sha256`
 - `size`
 
 ### 7.2 查询 blob 头信息
 
 ```text
-HEAD /api/v1/blob/get?blob_cid=<cid>
+HEAD /api/v1/blob/get?blob_ref=<ref>
 ```
 
 ### 7.3 下载 blob
 
 ```text
-GET /api/v1/blob/get?blob_cid=<cid>
+GET /api/v1/blob/get?blob_ref=<ref>
 ```
 
 blob 校验 MUST 基于内容哈希，而不是单一 URL。

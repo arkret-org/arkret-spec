@@ -16,7 +16,7 @@ Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
 
-该端点对应 `cx.clientSync`，用于客户端聚合增量同步。它不同于 `GET /api/v1/sync/subscribe` 的 Space operation 流订阅，也不同于 `GET /api/v1/sync/backfill` 的历史回补；三者共享 cursor 与授权规则，但 operation id 和响应语义不同。
+该端点对应 `cx.sync.client_sync`，用于客户端聚合增量同步。它不同于 `GET /api/v1/sync/subscribe` 的 Space operation 流订阅，也不同于 `GET /api/v1/sync/backfill` 的历史回补；三者共享 cursor 与授权规则，但 `operation_id` 和响应语义不同。
 
 请求：
 

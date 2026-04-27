@@ -322,8 +322,17 @@ cx.vector.sync.causal_barrier.v1
 随后查询：
 
 ```http
-GET /api/v1/query?space_id=space_a
+POST /api/v1/index/query
 X-Contrix-Wait-For: sync_after_evt_write_1
+Content-Type: application/json
+```
+
+```json
+{
+  "space_ids": ["space_a"],
+  "entity_types": ["message"],
+  "limit": 20
+}
 ```
 
 期望行为：

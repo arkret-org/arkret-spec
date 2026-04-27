@@ -31,26 +31,25 @@ Any binding MUST support:
 - stable error envelope (`code`, `message`, `retry` hints, `details`)
 - flow control and throttling signals (`retry-after`, quota, frame/body limits)
 
-## 4. Canonical Operation Names
+## 4. Canonical Operation IDs
 
-Bindings SHOULD map to canonical operation names such as:
+Bindings SHOULD map to canonical `operation_id` values. Values use `cx.<namespace>.<lower_snake_case>`, for example:
 
-- `server.describe`
-- `identity.resolve`, `identity.get_log`
-- `identity.submit_did_op`
-- `repo.submit_commit`, `repo.get_ops`
-- `sync.subscribe`, `sync.backfill`, `sync.run`
-- `federation.transaction`, `federation.push_ops`, `federation.pull_ops`
-- `index.query`, `index.space_hierarchy`
-- `directory.search`, `directory.resolve`
-- `blob.upload`, `blob.get`
-- `push.register_device`, `push.notify`
-- `authz.check`, `policy.check`
-- `moderation.report`
-- `applet.transaction`
-- `device.send_message`
-- `keys.upload`, `keys.query`, `keys.claim`
-- `agent.protocol_session.start`, `agent.protocol_session.status`
+- `cx.server.describe`
+- `cx.identity.resolve`, `cx.identity.get_log`, `cx.identity.submit_did_op`
+- `cx.repo.submit_commit`, `cx.repo.get_ops`
+- `cx.sync.subscribe`, `cx.sync.backfill`, `cx.sync.client_sync`
+- `cx.federation.transaction`, `cx.federation.push_ops`, `cx.federation.pull_ops`
+- `cx.index.query`, `cx.index.space_hierarchy`
+- `cx.directory.search`, `cx.directory.resolve`
+- `cx.blob.upload`, `cx.blob.get`
+- `cx.push.register_device`, `cx.push.notify`
+- `cx.authz.check`, `cx.policy.check`
+- `cx.moderation.report`
+- `cx.applet.transaction`
+- `cx.device_messages.put`
+- `cx.keys.upload`, `cx.keys.query`, `cx.keys.claim`
+- `cx.agent.protocol_session_start`, `cx.agent.protocol_session_status`
 
 ## 5. Non-HTTP Notes
 

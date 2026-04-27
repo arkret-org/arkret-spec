@@ -4,7 +4,7 @@
 
 Move the draft into an implementable interoperability surface by forcing repeatable behavior across:
 
-- canonical operations
+- canonical `operation_id` semantics
 - reducer convergence (especially auth/state)
 - redaction and redacted field preservation
 - capability and delegated authorization
@@ -33,7 +33,7 @@ This version does not introduce a new space version. Compatibility evolution is 
 Each implementation must verify:
 
 - required HTTP operations for identity/repo/sync/index/blob/authz
-- stable `operationId` mappings in `service-api-schema.md`
+- stable `operation_id` mappings in `service-api-schema.md`
 - transport-mapping consistency (HTTP ↔ gRPC/WebSocket/SSE/MQ) for at least selected canary vectors
 
 ### 3.2 Canonical envelope

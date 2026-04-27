@@ -39,43 +39,43 @@ HTTP/JSON REST 是默认互操作 binding，用于浏览器、普通服务端和
 - 内容协商：能声明 JSON、binary blob、encrypted envelope、event stream 格式。
 - 背压与限流：能表达 retry-after、quota、max frame/body size。
 
-## 4. Canonical Operation Names
+## 4. Canonical Operation IDs
 
-Transport binding SHOULD 映射到以下 canonical operation names：
+Transport binding SHOULD 映射到以下 canonical `operation_id`。取值使用 `cx.<namespace>.<lower_snake_case>`：
 
 | Operation | 语义 |
 | --- | --- |
-| `server.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
-| `identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
-| `identity.get_log` | 获取 DID key log。 |
-| `identity.submit_did_op` | 提交 DID 更新操作。 |
-| `repo.submit_commit` | 提交签名 commit。 |
-| `repo.get_ops` | 批量读取 operation / event。 |
-| `sync.subscribe` | 订阅 Space 增量流。 |
-| `sync.backfill` | 回填历史事件。 |
-| `sync.run` | 客户端增量同步。 |
-| `federation.transaction` | Principal Server 之间交换签名 transaction。 |
-| `federation.push_ops` | 跨域推送 Space operation。 |
-| `federation.pull_ops` | 跨域拉取缺失 operation / backfill。 |
-| `index.query` | 查询 Entity / Relation / View projection。 |
-| `index.space_hierarchy` | 查询 Space 层级。 |
-| `directory.search` | 授权搜索 Space / Organization / Actor。 |
-| `directory.resolve` | 精确解析 Space / Organization / Actor / handle。 |
-| `blob.upload` | 上传 blob。 |
-| `blob.get` | 获取 blob 或下载授权。 |
-| `push.register_device` | 注册推送设备和推送网关。 |
-| `push.notify` | 投递脱敏唤醒。 |
-| `authz.check` | 检查 capability / policy 是否允许动作。 |
-| `policy.check` | 调用 policy server 获取签名决策。 |
-| `moderation.report` | 提交内容或行为举报。 |
-| `applet.transaction` | 向 Applet 推送事件批次。 |
-| `applet.describe` | 查询 Applet profile、namespace 与限制。 |
-| `device.send_message` | 发送 to-device message。 |
-| `keys.upload` / `keys.query` / `keys.claim` | E2EE 设备密钥发布、查询与领取。 |
-| `agent.protocol_session.start` | 启动外部 agent protocol handoff。 |
-| `agent.protocol_session.status` | 回写 agent session 状态。 |
+| `cx.server.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
+| `cx.identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
+| `cx.identity.get_log` | 获取 DID key log。 |
+| `cx.identity.submit_did_op` | 提交 DID 更新操作。 |
+| `cx.repo.submit_commit` | 提交签名 commit。 |
+| `cx.repo.get_ops` | 批量读取 operation / event。 |
+| `cx.sync.subscribe` | 订阅 Space 增量流。 |
+| `cx.sync.backfill` | 回填历史事件。 |
+| `cx.sync.client_sync` | 客户端增量同步。 |
+| `cx.federation.transaction` | Principal Server 之间交换签名 transaction。 |
+| `cx.federation.push_ops` | 跨域推送 Space operation。 |
+| `cx.federation.pull_ops` | 跨域拉取缺失 operation / backfill。 |
+| `cx.index.query` | 查询 Entity / Relation / View projection。 |
+| `cx.index.space_hierarchy` | 查询 Space 层级。 |
+| `cx.directory.search` | 授权搜索 Space / Organization / Actor。 |
+| `cx.directory.resolve` | 精确解析 Space / Organization / Actor / handle。 |
+| `cx.blob.upload` | 上传 blob。 |
+| `cx.blob.get` | 获取 blob 或下载授权。 |
+| `cx.push.register_device` | 注册推送设备和推送网关。 |
+| `cx.push.notify` | 投递脱敏唤醒。 |
+| `cx.authz.check` | 检查 capability / policy 是否允许动作。 |
+| `cx.policy.check` | 调用 policy server 获取签名决策。 |
+| `cx.moderation.report` | 提交内容或行为举报。 |
+| `cx.applet.transaction` | 向 Applet 推送事件批次。 |
+| `cx.applet.describe` | 查询 Applet profile、namespace 与限制。 |
+| `cx.device_messages.put` | 发送 to-device message。 |
+| `cx.keys.upload` / `cx.keys.query` / `cx.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
+| `cx.agent.protocol_session_start` | 启动外部 agent protocol handoff。 |
+| `cx.agent.protocol_session_status` | 回写 agent session 状态。 |
 
-HTTP binding MAY 把 operation name 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
+HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 
 ## 5. HTTP/JSON Binding
 
@@ -94,7 +94,7 @@ HTTP binding 的路径 SHOULD 遵循 `service-api-schema.md`，但实现 MAY 使
 gRPC binding SHOULD：
 
 - 使用 protobuf message 表达 request / response。
-- 保留 canonical operation name。
+- 保留 canonical `operation_id`。
 - 对写操作携带 `idempotency_key`。
 - 对 streaming sync 使用 server streaming。
 - 在 metadata 中携带 authentication 和 request id。
