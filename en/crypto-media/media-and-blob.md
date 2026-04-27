@@ -16,6 +16,31 @@ Blob services must verify digest and authorization before serving protected cont
 
 ## Authenticated Download
 
+HTTP binding:
+
+```text
+GET /api/v1/blob/get?blob_ref=<ref>
+```
+
+Request fields:
+
+| Field | Location | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- | --- |
+| `blob_ref` | query | `string` | required | Content-addressed blob reference. |
+| `Authorization` | header | `bearer token` or `device proof` | required for private blobs | Caller authentication. |
+| `Range` | header | `string` | optional | Byte range request. |
+| `X-Contrix-Wait-For` | header | `token` | optional | Wait for authorization materialization to reach a sync token. |
+
+Response fields / headers:
+
+| Field | Location | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- | --- |
+| body | response | `bytes` | required for GET | Blob bytes. |
+| `Content-Length` | header | `int` | optional | Content length when visible. |
+| `Digest` | header | `string` | optional | Content digest. |
+| `Cache-Control` | header | `string` | required | Cache policy; private content must be conservative. |
+| `Content-Type` | header | `string` | optional | MIME type; must not leak invisible resources. |
+
 Protected content MUST use authenticated download by default. Public blobs MAY allow anonymous reads, but private Spaces, controlled organizations, E2EE attachments, and any media with access policy MUST require authentication.
 
 Download requests SHOULD support:

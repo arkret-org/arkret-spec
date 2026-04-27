@@ -156,7 +156,7 @@ Contrix 采用 repo-first 模型：
 
 ## 7. 操作类型
 
-所有 `type` 都是可见事件类型（`event.type`）；Op 本身是 `event` 的承载信封。  
+所有 `type` 都是可见事件类型（`event.type`）；Operation 本身是 `event` 的承载信封。
 因此以下规则必须成立：
 
 - 处理层不再引入独立的 `op_type` 命名空间；`op.type == event.type`。
@@ -452,9 +452,9 @@ Contrix 初版不引入全网共识链。
 
 ```mermaid
 graph TD
-    A[Op A: HLC=10, Title='Doc'] --> B[Op B: HLC=11, Title='Doc v1']
-    A --> C[Op C: HLC=12, Title='Doc (Draft)']
-    B --> D[Op D: Merge B & C]
+    A[Operation A: HLC=10, Title='Doc'] --> B[Operation B: HLC=11, Title='Doc v1']
+    A --> C[Operation C: HLC=12, Title='Doc (Draft)']
+    B --> D[Operation D: Merge B & C]
     C --> D
     
     style A fill:#f9f,stroke:#333,stroke-width:2px
@@ -464,10 +464,10 @@ graph TD
 ```
 
 **合并过程说明：**
-1. Alice 离线提交了 Op B。Bob 在线提交了 Op C。
-2. 由于两人都没有看到对方的 Op，B 和 C 的 `prev_ops` 都指向 A。
+1. Alice 离线提交了 Operation B。Bob 在线提交了 Operation C。
+2. 由于两人都没有看到对方的 Operation，B 和 C 的 `prev_ops` 都指向 A。
 3. 网络恢复后，Bob 的客户端拉取到 B，发现此时 DAG 存在两个 Head (B 和 C)。
-4. Bob 的客户端自动生成一条 Dummy Op D（或者在下一次业务提交时包含多个 `prev_ops`），将 B 和 C 设为前驱，完成拓扑合并。
+4. Bob 的客户端自动生成一条 Dummy Operation D（或者在下一次业务提交时包含多个 `prev_ops`），将 B 和 C 设为前驱，完成拓扑合并。
 
 ### 16.3 确定性状态收敛与 Tie-breaking (平局破除)
 
@@ -478,7 +478,7 @@ graph TD
 1. **授权权重 (Auth Weight)**：检查生成该操作时，`actor` 持有的 capability / role / creator-admin 权重。权重大的操作胜出。
 2. **混合逻辑时钟 (HLC)**：若权限相等，比较 `hlc` 时间戳。时间戳大的胜出。
 3. **Actor ID 字典序**：若时间戳依然完全相等，比较发出的 `actor_id` 的纯字符串字典序。
-4. **Op Hash 字典序**：最后兜底，比较操作信封哈希 `op_id` 的字典序。
+4. **Operation Hash 字典序**：最后兜底，比较操作信封哈希 `op_id` 的字典序。
 
 这确保了整个图的拓扑排序具备绝对的唯一性。
 

@@ -28,8 +28,8 @@ sequenceDiagram
     participant Sync Service (Space Repo)
     participant Bob (Index)
 
-    Alice->>Sync Service: GET /api/v1/keys/bob
-    Sync Service-->>Alice: Bob's KeyPackage
+    Alice->>Sync Service: POST /api/v1/keys/query
+    Sync Service-->>Alice: Bob's signed KeyPackage / device keys
     
     note over Alice: Computes GroupContext & Tree
     

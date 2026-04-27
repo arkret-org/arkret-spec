@@ -16,6 +16,8 @@ Contrix therefore needs an initial definition for:
 This document defines a **minimum interoperable service surface**.  
 Implementations do not have to use HTTP specifically, but they MUST provide semantically equivalent interfaces.
 
+This file explains service semantics by role. Field-level request / response schemas, authentication modes, access restrictions, and idempotency rules for REST endpoints are canonical in [service-http-binding.md](service-http-binding.md#24-field-level-schema-index); JSON snippets or field lists in this file are illustrative and are not complete schemas.
+
 ## 2. Core Principles
 
 ### 2.1 DID Documents Are for Discovery, Not Bulk State
@@ -217,7 +219,7 @@ Used for:
 GET /api/v1/repo/commit?commit_id=<id>
 ```
 
-### 4.4 Batch-fetch Ops
+### 4.4 Batch-fetch Operations
 
 ```text
 POST /api/v1/repo/ops

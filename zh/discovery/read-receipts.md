@@ -28,14 +28,14 @@
   "space_id": "cx:space:01JS0SP000000000000000000",
   "topic_id": "cx:topic:01JS1000000000000000000001",
   "actor": "did:web:alice.example.com",
-  "event_id": "cx:op:01JS1READ00000000000000000",
+  "event_id": "cx:event:01JS1READ00000000000000000",
   "timestamp": "2026-04-26T10:00:00Z"
 }
 ```
 
 | 字段 | 说明 |
 |------|------|
-| `event_id` | 用户已读的最新那条操作 (Op) 的 ID。由于因果性，表示该 Op 及其因果前驱均已读。 |
+| `event_id` | 用户已读的最新那条 Operation 的 ID。由于因果性，表示该 Operation 及其因果前驱均已读。 |
 
 ### 2.3 隐私控制
 
@@ -48,7 +48,7 @@ Read Marker 用于多设备同步（例如你在手机上看了消息，电脑�
 
 ### 3.1 存储位置
 
-Read Marker 作为一种持久化的个人状态，MUST 作为 Op 提交到用户的 **私人账号 Repo (Account Repo)** 中，而不是提交到发生协作的共享 Space Repo。
+Read Marker 作为一种持久化的个人状态，MUST 作为 Operation 提交到用户的 **私人账号 Repo (Account Repo)** 中，而不是提交到发生协作的共享 Space Repo。
 
 ### 3.2 格式
 
@@ -58,12 +58,12 @@ Read Marker 作为一种持久化的个人状态，MUST 作为 Op 提交到用�
   "body": {
     "space_id": "cx:space:01JS0SP000000000000000000",
     "topic_id": "cx:topic:01JS1000000000000000000001",
-    "event_id": "cx:op:01JS1READ00000000000000000"
+    "event_id": "cx:event:01JS1READ00000000000000000"
   }
 }
 ```
 
-- 该 Op 被加密存储在用户的 Account Repo 中。
+- 该 Operation 被加密存储在用户的 Account Repo 中。
 - 用户的其他设备通过同步 Account Repo 的变更，获取最新的游标位置，从而清除本地未读红点。
 
 ## 4. 未读计数 (Unread Notification Count)

@@ -54,6 +54,25 @@ Thumbnail descriptor:
 GET /api/v1/blob/get?blob_ref=<ref>
 ```
 
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `blob_ref` | query | `string` | required | 内容寻址 blob 引用。 |
+| `Authorization` | header | `bearer token` 或 `device proof` | 私有 blob required | 调用者认证。 |
+| `Range` | header | `string` | optional | Range 下载范围。 |
+| `X-Contrix-Wait-For` | header | `token` | optional | 等待授权物化到指定 sync token。 |
+
+响应字段 / header：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| body | response | `bytes` | GET required | blob 字节内容。 |
+| `Content-Length` | header | `int` | optional | 可见时返回内容长度。 |
+| `Digest` | header | `string` | optional | 内容摘要。 |
+| `Cache-Control` | header | `string` | required | 缓存策略；私有内容必须保守。 |
+| `Content-Type` | header | `string` | optional | MIME 类型；不得泄露不可见资源。 |
+
 服务 MUST check:
 
 - actor authorization

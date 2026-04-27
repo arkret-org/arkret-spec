@@ -89,7 +89,7 @@ Profile 的变更通过 `cx.profile.update` 操作提交到 Actor 的 Repo：
 
 ### 3.1 Presence 是 Ephemeral 状态
 
-在线状态属于高频变动的临时数据，MUST NOT 作为 Durable Op 写入 Repo。它通过 Sync Service 的 Ephemeral Channel 广播。
+在线状态属于高频变动的临时数据，MUST NOT 作为 Durable Operation 写入 Repo。它通过 Sync Service 的 Ephemeral Channel 广播。
 
 ### 3.2 Presence 状态值
 
@@ -166,6 +166,27 @@ Index 节点 SHOULD 提供用户搜索功能，用于 `@mention` 自动完成和
 ```
 GET /api/v1/directory/search-users?q=alice&space_id=cx:space:...&limit=10
 ```
+
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `q` | query | `string` | required | 搜索关键词。 |
+| `space_id` | query | `id` | optional | 限定共同 Space；mention autocomplete SHOULD 提供。 |
+| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `results` | `object[]` | required | 授权可发现的用户结果。 |
+| `results[].did` | `did` | required | 用户 DID。 |
+| `results[].display_name` | `string` | optional | 显示名。 |
+| `results[].avatar` | `object` | optional | 头像引用。 |
+| `results[].membership` | `string` | optional | 与 `space_id` 相关的成员状态。 |
+| `limited` | `boolean` | optional | 是否因 limit 截断。 |
+
+响应示例（非完整 schema）：
 
 ```json
 {

@@ -17,6 +17,8 @@
 本文给出一个 **最小可互操作服务面** 草案。  
 默认调用风格采用 HTTP/JSON binding，但协议核心不强绑定 REST API。实现也可以兼容 gRPC、GraphQL、WebSocket、SSE、message queue、libp2p 或本地 IPC，只要提供语义等价的操作、认证、授权、幂等、分页、错误和流控语义即可。详细规则见 `transport-bindings.md`。
 
+本文件按服务角色说明接口语义。所有 REST endpoint 的字段级请求 / 响应 schema、认证模式、访问限制和幂等规则以 [service-http-binding.md](service-http-binding.md#24-字段级-schema-索引) 为准；本文件中的 JSON 或字段列表仅用于解释服务面，不构成完整 schema。
+
 ## 2. 基本原则
 
 ### 2.1 DID Document 只做发现，不直接承载全部状态
@@ -368,7 +370,7 @@ POST /api/v1/index/search
 }
 ```
 
-响应：
+响应示例（非完整 schema）：
 
 ```json
 {
@@ -570,8 +572,8 @@ POST /api/v1/authz/check
 在去中心化网络中，计算、存储与带宽都是稀缺资源。协议要求所有提供写入或传播服务的节点实现必须具备防御恶意滥用的能力：
 
 ### 13.1 存储责任与 Blob Quota
-- **成本归属**：Space 的整体数据大小、历史 Op 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Space 的 `owner` 或负责托管的 `responsible_actor_id`。
-- **拒绝写入**：当 Blob 服务或 Index 服务评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Op 或大文件 Blob。
+- **成本归属**：Space 的整体数据大小、历史 Operation 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Space 的 `owner` 或负责托管的 `responsible_actor_id`。
+- **拒绝写入**：当 Blob 服务或 Index 服务评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Operation 或大文件 Blob。
 
 ### 13.2 写频率控制 (Rate Limiting)
 - Sync Service 和 Repo 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。

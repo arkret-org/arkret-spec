@@ -58,13 +58,29 @@ Notification 是派生 projection。
 GET /api/v1/index/notifications?state=unread&cursor=<cursor>
 ```
 
-Response:
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `state` | query | `string` | optional | 通知状态过滤，例如 `unread`。 |
+| `cursor` | query | `cursor` | optional | 分页 cursor。 |
+| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `notifications` | `object[]` | required | 当前 principal/device 可见通知。 |
+| `counts` | `object` | optional | 未读数等聚合计数。 |
+| `next_cursor` | `cursor` | optional | 下一页 cursor。 |
+
+响应示例（非完整 schema）：
 
 ```json
 {
-  "items": [],
+  "notifications": [],
   "next_cursor": null,
-  "has_more": false
+  "counts": {}
 }
 ```
 

@@ -65,7 +65,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 ### 2.3 端点契约清单
 
-类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。
+类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`op` / `ops` 仅作 wire 字段名（对应 Operation / Operation 数组）。人类可读文档应写全 Operation。
 
 | Endpoint | Request 类型 | Auth / 访问限制 | Success 类型 |
 | --- | --- | --- | --- |
@@ -181,7 +181,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.directory.search_users` | `query.q: string` | `query.space_id: id`; `query.limit: int` | `results: object[]` | mention autocomplete；受共同 Space / directory policy 限制。 |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | private handle 需要 presentation。 |
 | `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `mimetype: string`; `purpose: string`; binary/multipart body | `blob_ref: string`; `size: int`; `mimetype: string?`; `sha256: string`; `upload_receipt: object?` | upload capability、quota、media policy。 |
-| `cx.blob.head` / `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | HEAD headers 或 bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry。 |
+| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: token` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control?`, `Content-Type?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；不得通过 header 泄露不可见资源。 |
+| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control?`, `Content-Type?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；Range 不得泄露不可见资源。 |
 | `cx.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | 只能注册当前 principal/device。 |
 | `cx.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | same device/principal 或 device revocation path。 |
 | `cx.push.notify` | `notification: object` | `notification.event_id: id`; `notification.space_id: id`; `notification.sender: did`; `notification.push_hint: string`; `notification.counts: object`; `notification.devices: object[]` | `rejected: object[]` | 来自授权 Sync/Index；E2EE 必须脱敏。 |
@@ -213,7 +214,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 POST /api/v1/repo/submit-commit
 ```
 
-请求：
+请求示例（非完整 schema）：
 
 ```json
 {
@@ -227,7 +228,7 @@ POST /api/v1/repo/submit-commit
 }
 ```
 
-响应：
+响应示例（非完整 schema）：
 
 ```json
 {
@@ -247,7 +248,7 @@ Repo 的协议级写入单元是签名 commit。实现 MAY 在 SDK 或本地接�
 POST /api/v1/repo/sync
 ```
 
-请求：
+请求示例（非完整 schema）：
 
 ```json
 {
@@ -257,7 +258,7 @@ POST /api/v1/repo/sync
 }
 ```
 
-响应：
+响应示例（非完整 schema）：
 
 ```json
 {
@@ -273,7 +274,7 @@ POST /api/v1/repo/sync
 POST /api/v1/identity/resolve
 ```
 
-请求：
+请求示例（非完整 schema）：
 
 ```json
 {
@@ -281,7 +282,7 @@ POST /api/v1/identity/resolve
 }
 ```
 
-响应：
+响应示例（非完整 schema）：
 
 ```json
 {
@@ -323,7 +324,7 @@ Frame:
 }
 ```
 
-同一语义流 MAY 通过 WebSocket、SSE 或长轮询承载，但 HTTP/JSON 默认参考路径是 `/api/v1/sync/subscribe`。`/sync/stream` 只能作为具体 transport 内部帧名或兼容别名，不能作为新的 canonical operation。
+同一语义流 MAY 通过 WebSocket、SSE 或长轮询承载，但 HTTP/JSON 默认参考路径是 `/api/v1/sync/subscribe`。`/sync/stream` 仅用于具体 transport 的内部帧名，不定义为新的 canonical operation。
 
 ## 6. Directory API
 
@@ -350,7 +351,7 @@ POST /api/v1/blob/upload
 
 Content type MAY be `application/octet-stream` or `multipart/form-data`.
 
-响应：
+响应示例（非完整 schema）：
 
 ```json
 {

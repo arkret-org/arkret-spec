@@ -330,7 +330,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 4. 若动作由 service DID 执行，该 service DID 被 organization DID 委派且 purpose 覆盖该动作。
 5. 相关 key / delegation 在事件时间未过期、未撤销。
 
-## 11. DID Op
+## 11. DID Operation
 
 建议 DID 更新封装：
 

@@ -131,7 +131,18 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
-Request:
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `Authorization` | header | `bearer token` 或 `device proof` | required | 调用者认证，MUST 绑定 `actor_id` 与 `device_id`。 |
+| `space_id` | body | `id` | required | 通话所在 Space。 |
+| `call_id` | body | `id` | required | 通话 ID。 |
+| `actor_id` | body | `did` | required | 请求 ICE 配置的 Actor。 |
+| `device_id` | body | `id` | required | 请求设备。 |
+| `mode` | body | `enum(p2p,sfu,turn)` | required | 请求媒体模式。 |
+
+请求示例（非完整 schema）：
 
 ```json
 {
@@ -143,7 +154,24 @@ Request:
 }
 ```
 
-Response:
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `ttl_seconds` | `int` | required | ICE 配置有效期。 |
+| `ice_servers` | `object[]` | required | STUN/TURN server 配置数组。 |
+| `ice_servers[].urls` | `string[]` | required | STUN/TURN URL。 |
+| `ice_servers[].username` | `string` | TURN 时 required | TURN 用户名。 |
+| `ice_servers[].credential` | `string` | TURN 时 required | 短期 TURN credential。 |
+| `ice_servers[].credential_type` | `string` | optional | credential 类型，例如 `password`。 |
+| `policy` | `object` | required | 候选地址与传输策略。 |
+| `policy.force_turn` | `boolean` | required | 是否强制 TURN。 |
+| `policy.allow_udp` | `boolean` | required | 是否允许 UDP。 |
+| `policy.allow_tcp` | `boolean` | required | 是否允许 TCP。 |
+| `policy.allow_ipv6` | `boolean` | required | 是否允许 IPv6。 |
+| `signature` | `signature` | required | Media Service 对响应的签名。 |
+
+响应示例（非完整 schema）：
 
 ```json
 {
@@ -477,4 +505,3 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会�
 Contrix 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Space、capability、device trust、policy server 和 transport binding 模型。
 
 Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `cx.call.signal`，但 durable meeting state、recording artifact 和 Space policy 必须遵守 Contrix 规则。
-

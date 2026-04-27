@@ -70,6 +70,28 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `txn_id` | path | `id` | required | 发送方生成的幂等 ID；服务端 MUST 以 `(sender, txn_id)` 去重。 |
+| `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal 与发送设备。 |
+| `messages` | body | `object` | required | 收件人 principal 到 device 消息的映射。 |
+| `messages.{principal_id}` | body | `object` | required | 目标 principal DID。 |
+| `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息。 |
+| `messages.{principal_id}.{device_id}.type` | body | `string` | required | to-device 消息类型，例如 `cx.key.verification.request`。 |
+| `messages.{principal_id}.{device_id}.content` | body | `object` | required | 消息内容；私密内容 SHOULD 端到端加密。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `ok` | `boolean` | required | 请求是否被处理。 |
+| `delivered` | `object` | optional | 已入队或已投递设备摘要。 |
+| `unknown_devices` | `object` | optional | 无法识别或不可投递的设备。 |
+
+请求示例（非完整 schema）：
+
 ```json
 {
   "messages": {
@@ -89,6 +111,29 @@ Content-Type: application/json
 
 服务端 MUST 以 `(sender, txn_id)` 幂等。设备收到 sync 响应并推进 `next_batch` 后，服务端 MAY 删除已投递消息。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
+接收接口：
+
+```http
+GET /api/v1/device_messages?from=<token>&limit=<n>
+Authorization: Bearer <token>
+```
+
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前接收设备。 |
+| `from` | query | `token` | optional | 上次同步位置。 |
+| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `events` | `object[]` | required | 当前设备可见的 to-device 消息。 |
+| `next_batch` | `token` | optional | 下一次读取 token。 |
+| `limited` | `boolean` | optional | 是否因 limit 被截断。 |
+
 ## 6. One-Time and Fallback Keys
 
 设备支持非 MLS 加密或引导 MLS 时，MUST 发布 one-time / fallback prekey：
@@ -98,6 +143,34 @@ POST /api/v1/keys/upload
 POST /api/v1/keys/query
 POST /api/v1/keys/claim
 ```
+
+`POST /api/v1/keys/upload` 请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `device_id` | body | `id` | required | 当前上传设备。 |
+| `one_time_keys` | body | `object` | optional | 算法名到 one-time key 的映射。 |
+| `fallback_keys` | body | `object` | optional | 算法名到 fallback key 的映射。 |
+| `device_signature` | body | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。 |
+
+响应字段：`one_time_key_counts: object` required；`fallback_keys: object` optional。
+
+`POST /api/v1/keys/query` 请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `device_keys` | body | `object` | required | principal DID 到 device ID 列表的映射。 |
+| `timeout_ms` | body | `int` | optional | 查询等待上限。 |
+
+响应字段：`device_keys: object` required；`failures: object` optional。
+
+`POST /api/v1/keys/claim` 请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `one_time_keys` | body | `object` | required | principal DID -> device ID -> algorithm 的映射。 |
+
+响应字段：`one_time_keys: object` required；`failures: object` optional。
 
 规则：
 
@@ -220,4 +293,3 @@ Applet 如需代表 ghost actor 或桥接用户参与 E2EE，MUST 使用受限 d
 - capability MUST 限制 Space、协议、动作和有效期。
 - delegated device 不得签发新的 human device。
 - delegated device 的 to-device 权限 MUST 只覆盖其 namespace 内 actor。
-

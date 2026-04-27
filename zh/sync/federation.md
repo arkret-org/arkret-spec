@@ -5,7 +5,7 @@
 Contrix 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Space 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
 
 - 节点之间如何互相发现与认证
-- 如何安全交换签名操作 (Op) 与 Commit
+- 如何安全交换签名操作（Operation）与 Commit
 - 如何处理跨域加入 Space 的请求
 - 如何在异构网络中维持因果一致性
 
@@ -13,11 +13,11 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 ### 2.1 Repo 是信任锚点
 
-跨域协作的信任不来自"服务器管理员彼此认识"，而来自**每个 Actor 的 Repo 都是密码学可验证的**。任何节点在接收到来自外部域的 Op 时，可以独立验证签名、DID、因果链，不需要信任对方服务器。
+跨域协作的信任不来自"服务器管理员彼此认识"，而来自**每个 Actor 的 Repo 都是密码学可验证的**。任何节点在接收到来自外部域的 Operation 时，可以独立验证签名、DID、因果链，不需要信任对方服务器。
 
 ### 2.2 Principal Server 是受控同步边界，不是全局权威
 
-联邦场景中没有独立第三方分发服务器角色。Space 范围传播由参与方 Principal Server 之间的 federation transaction 完成。Principal Server 不能伪造、篡改或选择性隐藏已签名的 Op；任何参与者都可以通过直接查询源 Repo 或其他受信 Principal Server 交叉验证历史。
+联邦场景中没有独立第三方分发服务器角色。Space 范围传播由参与方 Principal Server 之间的 federation transaction 完成。Principal Server 不能伪造、篡改或选择性隐藏已签名的 Operation；任何参与者都可以通过直接查询源 Repo 或其他受信 Principal Server 交叉验证历史。
 
 ### 2.3 最终一致性优于强一致性
 
@@ -69,14 +69,16 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 - **受限联邦 (Restricted)**：仅接受来自预配置域列表的请求。适合企业内部或联盟场景。
 - **封闭 (Closed)**：不接受任何外部联邦请求。适合纯内部部署。
 
-## 4. Op 交换协议
+## 4. 操作（Operation）交换协议
 
 ### 4.1 推送模式 (Push)
 
-当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Op，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
+本文件中的 Operation 指协议中的签名操作信封，通常表现为完整 Event Envelope 或被 Commit 引用的原子变更记录。HTTP 路径与 wire 字段使用 `push-ops`、`pull-ops` 与 `ops`；这些名称在语义上均表示 Operation 集合。
 
-1. `server-alpha.com` 检测到新 Op 属于跨域 Space
-2. `server-alpha.com` 从 Space policy / membership / service delegation 中解析应接收该 Op 的对端 Principal Server，并生成接收方服务绑定快照
+当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Operation，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
+
+1. `server-alpha.com` 检测到新 Operation 属于跨域 Space
+2. `server-alpha.com` 从 Space policy / membership / service delegation 中解析应接收该 Operation 的对端 Principal Server，并生成接收方服务绑定快照
 3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
 ```
@@ -85,6 +87,24 @@ Host: server-beta.com
 Signature-Input: sig1=("@method" "@target-uri" "content-digest")
 Signature: sig1=:base64...:
 ```
+
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 绑定 `@method`、`@target-uri`、`content-digest`、来源 service DID 和目标 service DID。 |
+| `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
+| `Content-Digest` | header | `string` | required | 请求体摘要，MUST 与签名覆盖内容一致。 |
+| `origin` | body | `did` | required | 来源 service DID。 |
+| `destination` | body | `did` | required | 目标 service DID，MUST 与目标 URL、DID service endpoint 和 Space policy 委托一致。 |
+| `space_id` | body | `id` | required | Operation 所属 Space。 |
+| `service_binding_ref` | body | `object` | required | 接收方服务绑定快照。 |
+| `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Space policy hash。 |
+| `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
+| `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
+| `ops` | body | `object[]` | required | Operation 数组；每项 MUST 是完整签名 Event Envelope 或等价 Operation envelope。 |
+
+请求示例（非完整 schema）：
 
 ```json
 {
@@ -102,7 +122,15 @@ Signature: sig1=:base64...:
 }
 ```
 
-4. `server-beta.com` 独立验证每个 Op 的 Actor 签名、Space policy、服务委托、接收方服务绑定和因果链，然后决定是否接受
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `accepted` | `id[]` | required | 已接受 Operation ID。 |
+| `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。 |
+| `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Operation ID。 |
+
+4. `server-beta.com` 独立验证每个 Operation 的 Actor 签名、Space policy、服务委托、接收方服务绑定和因果链，然后决定是否接受
 
 接收方服务绑定规则：
 
@@ -114,16 +142,32 @@ Signature: sig1=:base64...:
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
-当节点发现自己的因果图中存在缺失（`deps` 引用了本地没有的 Op）时，可以主动向源 Principal Server 或源 Repo 拉取：
+当节点发现自己的因果图中存在缺失（`deps` 引用了本地没有的 Operation）时，可以主动向源 Principal Server 或源 Repo 拉取：
 
 ```
 GET /api/v1/federation/pull-ops?space_id=cx:space:...&after_cursor=...&limit=100
 Host: server-alpha.com
 ```
 
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `space_id` | query | `id` | required | 请求回补的 Space。 |
+| `after_cursor` | query | `cursor` | optional | 从该 cursor 之后拉取；缺省时由服务策略决定起点。 |
+| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `ops` | `object[]` | required | Operation 数组；每项 MUST 保持原始签名信封。 |
+| `next_cursor` | `cursor` | optional | 下一页 cursor。 |
+| `has_more` | `boolean` | required | 是否还有更多可见 Operation。 |
+
 ### 4.3 重复与幂等
 
-- 同一个 `op_id` 的 Op MAY 被多个 Principal Server 推送多次
+- 同一个 `op_id` 的 Operation MAY 被多个 Principal Server 推送多次
 - 接收方 MUST 以 `op_id` 去重
 - 内容相同的重复推送 MUST 幂等接受
 - `op_id` 相同但内容不同的推送 MUST 拒绝
@@ -134,11 +178,11 @@ Host: server-alpha.com
 
 当 Space S 的管理员邀请外部用户 Bob（Repo / Principal Server 在 `server-beta.com`）时：
 
-1. 管理员提交 `cx.invite.create` Op，`subject_did` 指向 Bob 的 DID
-2. 该 Op 通过联邦推送到达 Bob 的 Principal Server / Repo
+1. 管理员提交 `cx.invite.create` Operation，`subject_did` 指向 Bob 的 DID
+2. 该 Operation 通过联邦推送到达 Bob 的 Principal Server / Repo
 3. Bob 的客户端发现 Invite，决定接受
-4. Bob 的客户端提交 `cx.invite.accept` Op 到自己的 Repo
-5. Bob 的 Principal Server 将该 Op 推送给 Space S 的其他参与方 Principal Server
+4. Bob 的客户端提交 `cx.invite.accept` Operation 到自己的 Repo
+5. Bob 的 Principal Server 将该 Operation 推送给 Space S 的其他参与方 Principal Server
 6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
 7. 若 Space 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
 
@@ -147,7 +191,7 @@ Host: server-alpha.com
 Bob 也可以主动申请加入：
 
 1. Bob 发现 Space S 的元数据（通过公开的 Space Directory 或链接）
-2. Bob 提交 `cx.membership.knock` Op，推送给 Space S 的 shared Space Host 或管理员 Principal Server
+2. Bob 提交 `cx.membership.knock` Operation，推送给 Space S 的 shared Space Host 或管理员 Principal Server
 3. 接收方验证 knock 的签名有效后，转发给 Space 管理员
 4. 管理员审批后提交 `cx.invite.create` + Bob 提交 `cx.invite.accept`
 
@@ -191,23 +235,43 @@ DID Document -> service[type=ContrixRepo] -> service_endpoint
 
 ## 7. 联邦 API 端点
 
-### 7.1 推送 Op
+### 7.1 推送 Operation
 
 ```
 POST /api/v1/federation/push-ops
 ```
 
-### 7.2 拉取 Op
+字段定义见 4.1 节；canonical operation 为 `cx.federation.push_ops`。
+
+### 7.2 拉取 Operation
 
 ```
 GET /api/v1/federation/pull-ops?space_id=<id>&after_cursor=<cursor>&limit=<n>
 ```
+
+字段定义见 4.2 节；canonical operation 为 `cx.federation.pull_ops`。
 
 ### 7.3 查询 Space 成员
 
 ```
 GET /api/v1/federation/space-members?space_id=<id>
 ```
+
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `space_id` | query | `id` | required | 要查询成员的 Space。 |
+| `cursor` | query | `cursor` | optional | 分页 cursor。 |
+| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `members` | `object[]` | required | 成员摘要数组；内容受 requester 可见性和 Space policy 限制。 |
+| `membership_frontier` | `object` | required | 用于判断成员视图新鲜度的因果前沿。 |
+| `next_cursor` | `cursor` | optional | 下一页 cursor。 |
 
 ### 7.4 验证 Actor
 
@@ -288,7 +352,7 @@ POST /api/v1/federation/verify-actor
 
 ### 8.1 反洪泛 (Anti-Flooding)
 
-联邦端点 MUST 实施严格的速率限制。恶意节点可能通过大量推送无效 Op 来消耗对端资源。建议：
+联邦端点 MUST 实施严格的速率限制。恶意节点可能通过大量推送无效 Operation 来消耗对端资源。建议：
 - 按 `origin` DID、来源 IP hash、endpoint 和 Space id 做独立限速
 - 对来自未知域的首次请求做降级处理（先验证后全速）
 - 限制单次请求体积和批次大小，超阈值先进入 `rate_limited`
@@ -307,7 +371,7 @@ POST /api/v1/federation/verify-actor
 
 ### 8.4 元数据泄露防护
 
-在联邦推送 E2EE Space 的 Op 时，密文信封 `encrypted_payload` 对联邦中间节点同样不可见。联邦协议传输的只有明文路由元数据和不透明的密文块。
+在联邦推送 E2EE Space 的 Operation 时，密文信封 `encrypted_payload` 对联邦中间节点同样不可见。联邦协议传输的只有明文路由元数据和不透明的密文块。
 
 ### 8.5 重放与异常模式防护
 

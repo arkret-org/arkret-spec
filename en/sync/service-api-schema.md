@@ -159,9 +159,6 @@ paths:
     post:
       operationId: cx.index.query
 
-  /index/sync:
-    post:
-      operationId: cx.index.sync
   /index/thread:
     get:
       operationId: cx.index.thread
@@ -312,7 +309,7 @@ The following mapping binds each canonical operation to a transport implementati
 | `cx.sync.subscribe` | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
 | `cx.sync.backfill` / `cx.sync.get_snapshot_head` | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
 | `cx.federation.transaction` / `cx.federation.push_ops` / `cx.federation.pull_ops` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-ops`, `GET /federation/pull-ops` | gRPC Federation Service / signed MQ transaction |
-| `cx.index.query` / `cx.index.sync` / `cx.index.search` | `POST /index/*` | gRPC `IndexQuery` / SSE search stream |
+| `cx.index.query` / `cx.index.search` | `POST /index/*` | gRPC `IndexQuery` / SSE search stream |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC discovery service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
 | `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |

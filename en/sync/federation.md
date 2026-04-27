@@ -10,15 +10,33 @@ Each Principal Server, Repo, and Index node MUST have its own service DID. DID D
 
 ## Push Flow
 
-When `server-alpha.com` receives a new op for a cross-domain Space and another participant Principal Server `server-beta.com` also serves that Space:
+When `server-alpha.com` receives a new Operation for a cross-domain Space and another participant Principal Server `server-beta.com` also serves that Space:
 
-1. `server-alpha.com` detects that the op belongs to a cross-domain Space.
+1. `server-alpha.com` detects that the Operation belongs to a cross-domain Space.
 2. It resolves the peer Principal Server from Space policy, membership, and service delegation.
 3. It binds the transaction to a destination service DID and a service binding snapshot.
-4. It sends the signed op envelope to `server-beta.com`.
+4. It sends the signed Operation envelope to `server-beta.com`.
 5. `server-beta.com` verifies actor signature, Space policy, service delegation, service binding, and causality before accepting.
 
-The transaction body SHOULD include:
+In this document, Operation means the signed protocol operation envelope, usually represented as a full Event Envelope or an atomic change referenced by a Commit. HTTP paths and wire fields use `push-ops`, `pull-ops`, and `ops`; semantically they carry Operation collections.
+
+Request fields for `POST /api/v1/federation/push-ops`:
+
+| Field | Location | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- | --- |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature input; MUST bind `@method`, `@target-uri`, `content-digest`, source service DID, and destination service DID. |
+| `Signature` | header | `string` | required | HTTP Message Signature from the source service DID. |
+| `Content-Digest` | header | `string` | required | Request body digest covered by the signature. |
+| `origin` | body | `did` | required | Source service DID. |
+| `destination` | body | `did` | required | Destination service DID; MUST match target URL, DID service endpoint, and Space policy delegation. |
+| `space_id` | body | `id` | required | Space for the Operations. |
+| `service_binding_ref` | body | `object` | required | Destination service binding snapshot. |
+| `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | Space policy hash used by the sender. |
+| `service_binding_ref.membership_frontier` | body | `id[]` | required | Membership / policy causal frontier. |
+| `service_binding_ref.destination_service_type` | body | `string` | required | Destination service type, for example `principal_server`. |
+| `ops` | body | `object[]` | required | Operation array; each item MUST be a complete signed Event Envelope or equivalent Operation envelope. |
+
+Request example (not a complete schema):
 
 ```json
 {
@@ -33,6 +51,14 @@ The transaction body SHOULD include:
   "ops": []
 }
 ```
+
+Response fields:
+
+| Field | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- |
+| `accepted` | `id[]` | required | Accepted Operation ids. |
+| `rejected` | `object[]` | required | Rejected items; each item SHOULD include `id`, `reason_code`, and auditable detail. |
+| `quarantine` | `id[]` | optional | Operation ids held for asynchronous or human review. |
 
 Recipient service binding rules:
 
@@ -73,6 +99,40 @@ GET /api/v1/federation/pull-ops?space_id=<id>&after_cursor=<cursor>&limit=<n>
 GET /api/v1/federation/space-members?space_id=<id>
 POST /api/v1/federation/verify-actor
 ```
+
+`POST /api/v1/federation/push-ops` uses the request and response fields defined in Push Flow above. Canonical operation: `cx.federation.push_ops`.
+
+`GET /api/v1/federation/pull-ops` request fields:
+
+| Field | Location | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- | --- |
+| `space_id` | query | `id` | required | Space to backfill. |
+| `after_cursor` | query | `cursor` | optional | Return Operations after this cursor. |
+| `limit` | query | `int` | optional | Maximum result count; server MUST enforce a maximum. |
+
+`GET /api/v1/federation/pull-ops` response fields:
+
+| Field | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- |
+| `ops` | `object[]` | required | Operation array; each item MUST preserve the original signed envelope. |
+| `next_cursor` | `cursor` | optional | Cursor for the next page. |
+| `has_more` | `boolean` | required | Whether more visible Operations are available. |
+
+`GET /api/v1/federation/space-members` request fields:
+
+| Field | Location | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- | --- |
+| `space_id` | query | `id` | required | Space whose members are queried. |
+| `cursor` | query | `cursor` | optional | Pagination cursor. |
+| `limit` | query | `int` | optional | Maximum result count; server MUST enforce a maximum. |
+
+`GET /api/v1/federation/space-members` response fields:
+
+| Field | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- |
+| `members` | `object[]` | required | Member summaries filtered by requester visibility and Space policy. |
+| `membership_frontier` | `object` | required | Causal frontier for the membership view. |
+| `next_cursor` | `cursor` | optional | Cursor for the next page. |
 
 `verify-actor` helps a federation participant when it lacks local DID / key-log cache. It is not a public DID oracle and is not final authorization.
 

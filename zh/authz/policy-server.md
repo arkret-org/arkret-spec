@@ -38,6 +38,27 @@ Authorization: Bearer <service_token>
 Content-Type: application/json
 ```
 
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `Authorization` | header | `bearer token` 或 `service_signature` | required | Policy Server 授权凭证；MUST 绑定调用服务 DID。 |
+| `request_id` | body | `string` | required | 请求 ID，用于日志和幂等追踪。 |
+| `space_id` | body | `id` | optional | 相关 Space；Space 相关检查 SHOULD 提供。 |
+| `request_canonical_hash` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
+| `action` | body | `string` | required | 待检查动作，例如 `message.send`。 |
+| `actor` | body | `did` | required | 发起动作的 Actor DID。 |
+| `device_id` | body | `id` | optional | 发起设备。 |
+| `source` | body | `object` | required | 调用来源摘要。 |
+| `source.service_did` | body | `did` | required | 调用服务 DID。 |
+| `source.service_type` | body | `string` | required | 调用服务类型。 |
+| `source.source_ip_hash` | body | `sha256:<hash>` | optional | 来源 IP 的不可逆 hash。 |
+| `source.signed_transport` | body | `boolean` | required | 请求是否由签名 transport 保护。 |
+| `event_preview` | body | `object` | optional | 最小披露事件预览。 |
+| `auth_context` | body | `object` | optional | membership、capability、origin service 等授权上下文。 |
+
+请求示例（非完整 schema）：
+
 ```json
 {
   "request_id": "polreq_01",
@@ -71,6 +92,22 @@ Content-Type: application/json
 请求 MUST 使用最小披露。E2EE 内容不得为策略检查强制明文上传；客户端 MAY 提供本地分类标签、hash、媒体 metadata 或用户确认的 report snippet。
 
 ## 4. Decision
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `request_id` | `string` | required | 回显请求 ID。 |
+| `decision` | `enum(allow,soft_deny,hard_deny,quarantine,require_review)` | required | 策略决策。 |
+| `reason_code` | `string` | required | 稳定原因码。 |
+| `expires_at` | `datetime` | required | 决策缓存过期时间。 |
+| `next_retry_at` | `datetime` | optional | 可重试时间，仅限限流/退避场景。 |
+| `obligations` | `object[]` | optional | 调用方必须执行的附加动作。 |
+| `signature` | `signature` | required | Policy Server 对决策的签名。 |
+| `signature.kid` | `did-url` | required | 签名 key id。 |
+| `signature.sig` | `base64url string` | required | detached signature。 |
+
+响应示例（非完整 schema）：
 
 ```json
 {

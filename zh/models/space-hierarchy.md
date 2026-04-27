@@ -178,7 +178,24 @@ Hierarchy 查询：
 GET /api/v1/index/space-hierarchy?space_id=<id>&depth=2&include_unconfirmed=false
 ```
 
-响应：
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `space_id` | query | `id` | required | 根 Space。 |
+| `depth` | query | `int` | optional | 查询深度；服务端 MUST enforce 最大值。 |
+| `include_unconfirmed` | query | `boolean` | optional | 是否包含未确认 edge。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `root` 或 `root_space_id` | `object` 或 `id` | required | 根 Space 摘要或 ID。 |
+| `children` | `object[]` | required | 子 Space 摘要数组。 |
+| `edges` | `object[]` | optional | 层级边列表。 |
+| `next_cursor` | `cursor` | optional | 分页 cursor。 |
+
+响应示例（非完整 schema）：
 
 ```json
 {
@@ -251,4 +268,3 @@ Contrix 的 Space hierarchy 借鉴 Matrix `m.space.child` / `m.space.parent` 的
 - Entity / Relation 仍然承载业务对象层级，不应把所有对象拆成子 Space。
 - 权限和加密默认不继承。
 - 跨 Space 深度查询必须 Lazy Link，不能自动拼接泄露。
-

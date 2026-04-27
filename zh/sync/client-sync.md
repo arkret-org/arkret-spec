@@ -18,7 +18,24 @@ Content-Type: application/json
 
 该端点对应 `cx.sync.client_sync`，用于客户端聚合增量同步。它不同于 `GET /api/v1/sync/subscribe` 的 Space operation 流订阅，也不同于 `GET /api/v1/sync/backfill` 的历史回补；三者共享 cursor 与授权规则，但 `operation_id` 和响应语义不同。
 
-请求：
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
+| `since` | body | `token` | optional | 上次 `next_batch`；缺省表示初始同步。 |
+| `timeout_ms` | body | `int` | optional | 长轮询等待时间上限。 |
+| `set_presence` | body | `enum(online,offline,unavailable)` | optional | 同步时设置当前设备 presence。 |
+| `filter` | body | `object` | optional | 过滤条件。 |
+| `filter.spaces` | body | `id[]` | optional | 限制返回 Space。 |
+| `filter.timeline_limit` | body | `int` | optional | 每个 Space timeline 数量上限。 |
+| `filter.lazy_load_members` | body | `boolean` | optional | 是否延迟加载成员。 |
+| `filter.include_redundant_members` | body | `boolean` | optional | 是否包含冗余成员状态。 |
+| `filter.event_types` | body | `string[]` | optional | 事件类型 allow list。 |
+| `filter.not_event_types` | body | `string[]` | optional | 事件类型 deny list。 |
+| `subscriptions` | body | `object` | optional | Sliding sync 风格的 Space subscription 配置。 |
+
+请求示例（非完整 schema）：
 
 ```json
 {
@@ -46,7 +63,20 @@ Content-Type: application/json
 }
 ```
 
-响应：
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `next_batch` | `token` | required | 下次同步使用的 opaque token。 |
+| `spaces` | `object` | optional | Contrix 原生 Space 聚合同步结果。 |
+| `rooms` | `object` | optional | Matrix bridge 兼容字段；原生实现 SHOULD 使用 `spaces`。 |
+| `to_device` | `object` | optional | 当前设备 to-device 消息。 |
+| `device_lists` | `object` | optional | 设备列表变化。 |
+| `presence` | `object` | optional | presence 事件。 |
+| `account_data` | `object` | optional | actor-private account data。 |
+| `notifications` | `object` | optional | 通知增量。 |
+
+响应示例（非完整 schema）：
 
 ```json
 {

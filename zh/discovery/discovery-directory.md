@@ -178,7 +178,19 @@ POST /api/v1/directory/search-actors
 POST /api/v1/directory/resolve-handle
 ```
 
-`search-spaces` request:
+字段级定义：
+
+| operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
+| --- | --- | --- | --- | --- |
+| `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?` | `public_metadata`; 可限流。 |
+| `cx.directory.search_spaces` | 无 | `query: string`; `organization_did: did`; `parent_space_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | MUST 按 discoverability、requester proof 和 Space policy 逐项过滤；隐藏资源不得泄露存在性。 |
+| `cx.directory.resolve_space` | 至少一个：`space_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]?` | invite / restricted / secret Space 对未授权请求使用统一 `not_found`。 |
+| `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 仅返回公开或授权可发现组织。 |
+| `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Space 列表或服务拓扑。 |
+| `cx.directory.search_actors` | 无 | `query: string`; `space_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
+| `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | private handle 需要 presentation。 |
+
+`search-spaces` 请求示例（非完整 schema）：
 
 ```json
 {

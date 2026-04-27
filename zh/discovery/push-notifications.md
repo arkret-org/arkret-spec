@@ -36,6 +36,8 @@
 POST /api/v1/push/register-device
 ```
 
+请求示例（非完整 schema）：
+
 ```json
 {
   "device_id": "did:web:alice.example.com#device-phone",
@@ -54,12 +56,35 @@ POST /api/v1/push/register-device
 | `push_key` | string | MUST | 设备在推送平台上的注册令牌 |
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
 | `app_id` | string | SHOULD | 应用的包名 / Bundle ID |
+| `display_name` | string | MAY | 用户可读设备名 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `ok` | boolean | required | 注册是否被接受 |
+| `registration_id` | id | optional | 服务端分配的注册 ID |
+| `expires_at` | datetime | optional | 注册或 push token 的过期时间 |
 
 ### 3.2 注销接口
 
 ```
 POST /api/v1/push/unregister-device
 ```
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `device_id` | id | required | 要注销的设备 ID |
+| `push_key` | string | optional | 指定要注销的 push token |
+| `app_id` | string | optional | 指定应用包名 / Bundle ID |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `ok` | boolean | required | 注销是否完成；不存在的注册 MAY 幂等返回成功 |
 
 ## 4. 推送规则引擎
 
@@ -123,7 +148,7 @@ POST /api/v1/push/unregister-device
 
 | Condition Kind | 说明 |
 |---------------|------|
-| `field_match` | Op 的指定字段匹配给定 pattern（支持 glob） |
+| `field_match` | Operation 的指定字段匹配给定 pattern（支持 glob） |
 | `contains_keyword` | 消息 `body` 中包含指定关键词（仅限明文部分） |
 | `mentions_actor` | 消息中提及当前 Actor |
 | `is_direct_message` | 来自 1 对 1 私聊 Space |
@@ -149,10 +174,29 @@ Sync Service 在触发推送规则后，向推送网关发送通知：
 POST /api/v1/push/notify
 ```
 
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+|------|------|------|------|
+| `notification` | object | required | 推送通知对象。 |
+| `notification.event_id` | id | optional | 触发通知的事件或 Operation ID。 |
+| `notification.space_id` | id | optional | 相关 Space ID；不得泄露不可见 Space。 |
+| `notification.type` | string | required | 通知类型或事件类型。 |
+| `notification.sender` | did | optional | 发送者 DID；E2EE 场景可省略或脱敏。 |
+| `notification.sender_display_name` | string | optional | 可显示名称；E2EE 默认不应由服务端生成。 |
+| `notification.space_name` | string | optional | Space 显示名；只有在服务端有明文可见授权时可返回。 |
+| `notification.push_hint` | string | optional | 发送方提供的脱敏提示；不得包含正文。 |
+| `notification.counts` | object | optional | 未读数、未接来电数等计数。 |
+| `notification.devices` | object[] | required | 目标设备数组。 |
+| `notification.devices[].push_key` | string | required | 目标平台 push token。 |
+| `notification.devices[].app_id` | string | optional | 目标应用标识。 |
+
+请求示例（非完整 schema）：
+
 ```json
 {
   "notification": {
-    "event_id": "cx:op:01JS0OP000000000000000000",
+    "event_id": "cx:event:01JS0EV000000000000000000",
     "space_id": "cx:space:01JS0SP000000000000000000",
     "type": "cx.message.create",
     "sender": "did:web:bob.example.com",
@@ -181,6 +225,12 @@ POST /api/v1/push/notify
 }
 ```
 
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `rejected` | object[] | required | 已失效、无权限或无法投递的 push token 摘要。 |
+
 `rejected` 数组包含已失效的 `push_key`，Sync Service SHOULD 移除这些设备的注册。
 
 ## 6. E2EE 场景下的推送
@@ -188,11 +238,11 @@ POST /api/v1/push/notify
 ### 6.1 脱敏推送流程
 
 1. Alice 发送加密消息到 Space S
-2. Alice 的客户端在 Op 的明文元数据中附加 `push_hint: "New message from Alice"`
-3. Sync Service 收到 Op，匹配推送规则
+2. Alice 的客户端在 Operation 的明文元数据中附加 `push_hint: "New message from Alice"`
+3. Sync Service 收到 Operation，匹配推送规则
 4. Sync Service 向 Bob 的推送网关发送脱敏通知（只含 `space_id`, `type`, `push_hint`）
 5. Bob 的设备收到推送，唤醒客户端
-6. 客户端从 Sync Service 拉取加密 Op 并解密
+6. 客户端从 Sync Service 拉取加密 Operation 并解密
 7. 客户端在本地展示完整的消息内容
 
 ### 6.2 安全约束

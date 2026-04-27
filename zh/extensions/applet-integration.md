@@ -221,6 +221,19 @@ Applet 调用 Contrix 节点时使用常规 repo / sync service / index / authz 
 
 Base URL 来自 registration 的 `base_url`。
 
+字段级接口索引：
+
+| operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
+| --- | --- | --- | --- | --- |
+| `cx.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
+| `cx.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
+| `cx.applet.transaction` | `path.txn_id: id`; `source_service_did: did`; `events: object[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
+| `cx.applet.query_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
+| `cx.applet.query_space` | `path.space_id_or_alias: string` | 无 | `exists: boolean`; `space_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
+| `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob: string?`; `field_types: object`; `instances: object[]?` | instance list 可要求授权。 |
+| `cx.applet.third_party_users` | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
+| `cx.applet.third_party_locations` | `query.protocol: string`; 外部 ID query 字段 | 无 | `space_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
+
 ### 7.1 Ping
 
 ```text
@@ -254,7 +267,7 @@ PUT /api/v1/applet/transactions/{txn_id}
 
 Contrix sync service / index / repo 向 Applet 推送事件批次。
 
-请求：
+请求示例（非完整 schema）：
 
 ```json
 {
@@ -279,7 +292,7 @@ Contrix sync service / index / repo 向 Applet 推送事件批次。
 }
 ```
 
-响应：
+响应示例（非完整 schema）：
 
 ```json
 {

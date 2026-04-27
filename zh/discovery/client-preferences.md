@@ -10,7 +10,7 @@
 
 ### 2.1 存储在私有的 Account Repo
 
-由于 Contrix 采用“每个 Actor 都有自己的 Repo”作为信任根，所有的账户私有数据 MUST 作为 Op 提交到该 Actor 的**个人私有 Repo (Account Repo)** 中。
+由于 Contrix 采用“每个 Actor 都有自己的 Repo”作为信任根，所有的账户私有数据 MUST 作为 Operation 提交到该 Actor 的**个人私有 Repo (Account Repo)** 中。
 
 这个 Repo 只有用户本人的受信任设备有权限读写。Sync Service 节点仅负责存储加密或不透明的二进制块，并不解析其中的明文。
 
@@ -145,7 +145,7 @@ Rules:
 
 虽然 Account Repo 对外不公开，但用户的私有 Index 节点（运行在受控环境中，或可信端侧节点）会拉取并解密这些数据，并合并到查询结果中。
 
-例如：当调用 `GET /api/v1/index/spaces` 查询加入的 Space 列表时，私有 Index 会将 `cx.tags.space.*` 数据 Join 进去，客户端可以直接得到带私有标签的 Space 列表。
+例如：当调用 `POST /api/v1/index/query` 以 `entity_types=["space"]` 查询加入的 Space 列表时，私有 Index 会将 `cx.tags.space.*` 数据 Join 进去，客户端可以直接得到带私有标签的 Space 列表。该接口的字段级 schema 见 `cx.index.query`。
 
 ## 5. 安全与隐私
 

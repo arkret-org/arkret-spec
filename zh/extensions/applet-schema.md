@@ -45,7 +45,16 @@ Pattern grammar:
 PUT /api/v1/applet/transactions/{txn_id}
 ```
 
-Request:
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `txn_id` | path | `id` | required | 幂等 transaction ID；path 值 MUST 与 body 中 `txn_id` 一致。 |
+| `source_service_did` | body | `did` | required | 推送来源 service DID。 |
+| `events` | body | `object[]` | required | 推送给 Applet 的事件数组。 |
+| `ephemeral` | body | `object[]` | optional | 非持久临时事件数组。 |
+
+请求示例（非完整 schema）：
 
 ```json
 {
@@ -56,7 +65,15 @@ Request:
 }
 ```
 
-Response:
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `ok` | `boolean` | required | transaction 是否被处理。 |
+| `rejected` | `object[]` | optional | 被拒绝事件摘要。 |
+| `retry_after_ms` | `int` | optional | 建议重试延迟。 |
+
+响应示例：
 
 ```json
 { "ok": true }
@@ -68,7 +85,9 @@ Response:
 GET /api/v1/applet/actors/{actor_id}
 ```
 
-Response:
+响应字段：`exists: boolean` required；`actor_id: did` optional；`display_name: string` optional；`external_ref: object` optional。
+
+响应示例（非完整 schema）：
 
 ```json
 {
@@ -85,7 +104,9 @@ Response:
 GET /api/v1/applet/spaces/{space_id_or_alias}
 ```
 
-Response:
+响应字段：`exists: boolean` required；`space_id: id` optional；`title: string` optional；`external_ref: object` optional。
+
+响应示例（非完整 schema）：
 
 ```json
 {
@@ -102,7 +123,9 @@ Response:
 GET /api/v1/applet/protocols/{protocol}
 ```
 
-Response:
+响应字段：`protocol: string` required；`display_name: string` required；`icon_blob: string` optional；`field_types: object` required；`instances: object[]` optional。
+
+响应示例（非完整 schema）：
 
 ```json
 {

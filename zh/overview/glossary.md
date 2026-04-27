@@ -91,9 +91,9 @@
 | Repo | 仓库 | Principal 或 Space 发布 signed commit / operation 的追加式可验证日志。Repo 是协议逻辑对象，不等同于服务器。 |
 | Repo Service | 仓库服务 | 通过网络 API 暴露 Repo commit / operation 读写、同步和回填能力的服务角色；它托管或复制 Repo，但其权威来自 Repo 数据的签名和 hash 链。 |
 | Commit | 提交 | Actor 侧发布单元，包含一个或多个 operation/event 引用和签名。 |
-| Operation / Op | 操作 | 对协作图的原子变更意图或事实，通常封装为 Event 或被 Event 引用。 |
+| Operation | 操作 | 对协作图的原子变更意图或事实，通常封装为 Event 或被 Event 引用。其 wire 字段名为 `op` / `ops`。 |
 | Operation Log | 操作日志 | 追加式审计记录，用于归约、同步、回放和冲突分析。 |
-| Reducer | 归约器 | 将 accepted Event / Op 集合归约为当前状态和 projection 的确定性规则。 |
+| Reducer | 归约器 | 将 accepted Event / Operation 集合归约为当前状态和 projection 的确定性规则。 |
 | State Resolution | 状态解析 | 对同一 state key 的并发冲突进行确定性合并的算法。 |
 | Auth Refs | 授权引用 | 当前 Event 授权所需的最小状态事件集合。 |
 | Prev Refs | 前序引用 | 当前 Event 的因果前序引用。 |
@@ -130,7 +130,7 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Federation | 联邦 | 不同域、组织或服务节点之间交换 Event、Op、state、backfill、join/invite 的协议层。 |
+| Federation | 联邦 | 不同域、组织或服务节点之间交换 Event、Operation、state、backfill、join/invite 的协议层。 |
 | Service DID | 服务 DID | Principal Server、Index、Applet、Policy Server 等服务使用的 DID。 |
 | Federation Transaction | 联邦交易 | 跨服务批量交换 PDU/EDU 等消息的传输单元；Contrix 中对应 signed transaction envelope。 |
 | Cross-domain Join | 跨域加入 | Actor 通过一个服务加入另一个服务或组织托管的 Space。 |

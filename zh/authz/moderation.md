@@ -42,6 +42,27 @@ Contrix 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过
 POST /api/v1/moderation/report
 ```
 
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+|------|------|------|------|
+| `space_id` | id | required | 被举报对象所在 Space。 |
+| `target_ref` | id | required | 被举报 Entity / Event / Operation 引用。 |
+| `reason` | enum | required | 举报原因，取值见 3.2。 |
+| `description` | string | optional；`reason=other` 时 required | 举报说明；服务端 MAY 限制长度。 |
+| `reporter` | did | required | 举报人 DID，MUST 与认证 session / device proof 一致。 |
+| `evidence_refs` | id[] | optional | 可见证据引用。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `report_id` | id | required | 举报记录 ID。 |
+| `status` | string | required | 初始处理状态，例如 `submitted`。 |
+| `routed_to` | did[] | optional | 被路由到的审核服务或 moderator DID。 |
+
+请求示例（非完整 schema）：
+
 ```json
 {
   "space_id": "cx:space:01JS0SP000000000000000000",
@@ -105,7 +126,7 @@ POST /api/v1/moderation/report
 - SHOULD 不为被屏蔽用户的消息生成通知
 - SHOULD 默认拒绝被屏蔽用户发起的 DM、call invite、contact request 和 applet-mediated request
 - MAY 在共同 Space 中显示折叠占位符，避免破坏上下文
-- MUST NOT 从网络层面丢弃被屏蔽用户的 Op（这些 Op 对其他成员仍然有效）
+- MUST NOT 从网络层面丢弃被屏蔽用户的 Operation（这些 Operation 对其他成员仍然有效）
 
 ### 4.3 个人过滤对象
 
@@ -142,7 +163,7 @@ POST /api/v1/moderation/report
 管理员通过 `cx.membership.ban` 操作封禁用户（详见 `object-model-core.md` 的成员与 policy 语义）。封禁后：
 
 - 被封禁用户无法重新加入该 Space
-- 其未来的 Op 提交将被 Sync Service 拒绝
+- 其未来的 Operation 提交将被 Sync Service 拒绝
 - 是否隐藏其历史内容由 Space Policy 决定
 
 ### 5.3 Space Blocklist / Filter Policy

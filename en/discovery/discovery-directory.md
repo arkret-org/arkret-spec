@@ -176,7 +176,19 @@ POST /api/v1/directory/search-actors
 POST /api/v1/directory/resolve-handle
 ```
 
-`search-spaces` request:
+Field-level definitions:
+
+| operation_id | Required fields | Optional fields | Response fields | Constraints |
+| --- | --- | --- | --- | --- |
+| `cx.directory.describe` | none | none | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?` | `public_metadata`; rate-limitable. |
+| `cx.directory.search_spaces` | none | `query: string`; `organization_did: did`; `parent_space_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | Filter every result by discoverability, requester proof, and Space policy; hidden resources must not leak existence. |
+| `cx.directory.resolve_space` | one of `space_id: id`, `alias: string`, `invite_token: string`, `signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]?` | Invite / restricted / secret Spaces use uniform `not_found` for unauthorized requests. |
+| `cx.directory.search_organizations` | none | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | Only public or authorized-discoverable organizations. |
+| `cx.directory.resolve_organization` | one of `organization_did: did` or `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | Organization resolution does not disclose members, Space lists, or service topology. |
+| `cx.directory.search_actors` | none | `query: string`; `space_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | Must not reveal pairwise/private DIDs or undisclosed organization accounts. |
+| `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | Private handles require presentation. |
+
+`search-spaces` request example (not a complete schema):
 
 ```json
 {
@@ -194,7 +206,7 @@ POST /api/v1/directory/resolve-handle
 }
 ```
 
-Response:
+Response example (not a complete schema):
 
 ```json
 {
@@ -273,4 +285,3 @@ For high-privacy deployments, clients SHOULD prefer invite links or encrypted ou
 - official space verification through `cx.space.organization`
 - hidden pairwise exclusion
 - stale result rejection after discovery policy update
-

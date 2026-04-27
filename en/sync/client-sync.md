@@ -8,3 +8,27 @@ The name does not imply separate sync v1/v2 protocol generations in the current 
 
 The canonical client sync endpoint is `POST /api/v1/sync` (`cx.sync.client_sync`). It is distinct from `GET /api/v1/sync/subscribe` for Space operation stream subscription and `GET /api/v1/sync/backfill` for historical backfill.
 
+Request fields:
+
+| Field | Location | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- | --- |
+| `Authorization` | header | `bearer token` or `device proof` | required | Must bind the current principal / device. |
+| `since` | body | `token` | optional | Previous `next_batch`; omitted for initial sync. |
+| `timeout_ms` | body | `int` | optional | Long-poll wait limit. |
+| `set_presence` | body | `enum(online,offline,unavailable)` | optional | Presence update for the current device. |
+| `filter` | body | `object` | optional | Filter object. |
+| `subscriptions` | body | `object` | optional | Sliding-sync style Space subscription config. |
+
+Response fields:
+
+| Field | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- |
+| `next_batch` | `token` | required | Opaque token for the next sync call. |
+| `spaces` | `object` | optional | Native Contrix Space sync result. |
+| `rooms` | `object` | optional | Matrix bridge compatibility field; native implementations SHOULD use `spaces`. |
+| `to_device` | `object` | optional | To-device messages for the current device. |
+| `device_lists` | `object` | optional | Device-list changes. |
+| `presence` | `object` | optional | Presence events. |
+| `account_data` | `object` | optional | Actor-private account data. |
+| `notifications` | `object` | optional | Notification deltas. |
+

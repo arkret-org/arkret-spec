@@ -167,13 +167,13 @@ message 与 topic/channel/reply/mention 的关系使用 Relation 表达：
 
 ### 7.1 避免正文与引用的“脑裂 (Split-Brain)”
 
-如果协议强制要求客户端在正文保留 `@alice` 文本的同时，还必须手动发送一个对应的 `relation.create (mentions)` Op，这极易导致状态分裂。若用户反复编辑 (Revise) 文本修改 Mention 对象，客户端的 Bug 或网络丢包会使得文本内容和底层的 `mentions` Relation 产生严重的不一致。
+如果协议强制要求客户端在正文保留 `@alice` 文本的同时，还必须手动发送一个对应的 `relation.create (mentions)` Operation，这极易导致状态分裂。若用户反复编辑 (Revise) 文本修改 Mention 对象，客户端的 Bug 或网络丢包会使得文本内容和底层的 `mentions` Relation 产生严重的不一致。
 
 ### 7.2 基于 AST 的隐式派生原则
 
 为解决此问题，协议要求：
 - `message` 的 `content` 字段 MUST 使用结构化的 AST (如 Prosemirror JSON) 或是带有明确特殊标记的 Markdown (如 `[Alice](did:uuid:...)`)。
-- 客户端在提交或编辑消息时，**不需要也不应该**手动提交额外的 `mentions` Relation Op。
+- 客户端在提交或编辑消息时，**不需要也不应该**手动提交额外的 `mentions` Relation Operation。
 - **派生真相 (Derived Truth)**：当 Index 节点或 Reducer 解析这条 Message 时，它通过解析内容 AST 中的 DID 节点，**自动在内存和索引层面派生出**对于目标主体的 Mention 关系和 Inbox 通知。
 
 这种“单一数据源 (Single Source of Truth)”确保了即使发生任何编辑，通知状态都能和正文保持 100% 的绝对一致。

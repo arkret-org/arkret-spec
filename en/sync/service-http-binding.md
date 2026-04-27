@@ -65,7 +65,7 @@ Default rules:
 
 ### 2.3 Endpoint Contract Registry
 
-Type shorthand: `did` is a DID URI, `id` is a protocol object id, `cursor` / `token` is an opaque string, `signature` is `{kid, alg?, sig}`, and `proof` is a DID / HTTP message / detached JWS proof.
+Type shorthand: `did` is a DID URI, `id` is a protocol object id, `cursor` / `token` is an opaque string, `signature` is `{kid, alg?, sig}`, and `proof` is a DID / HTTP message / detached JWS proof. `op` / `ops` are wire names only (for Operation / Operation array). Human-readable documents SHOULD spell out Operation.
 
 | Endpoint | Request type | Auth / access restrictions | Success type |
 | --- | --- | --- | --- |
@@ -181,7 +181,8 @@ This section is the field-level schema index for REST endpoints. Field syntax is
 | `cx.directory.search_users` | `query.q: string` | `query.space_id: id`; `query.limit: int` | `results: object[]` | Mention autocomplete is constrained by shared Space / directory policy. |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | Private handles require presentation. |
 | `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `mimetype: string`; `purpose: string`; binary/multipart body | `blob_ref: string`; `size: int`; `mimetype: string?`; `sha256: string`; `upload_receipt: object?` | Upload capability, quota, and media policy apply. |
-| `cx.blob.head` / `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | HEAD headers or bytes; headers include `Content-Length?`, `Digest?`, `Cache-Control?` | Private blobs must verify actor/device/Space/purpose/expiry. |
+| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: token` | headers include `Content-Length?`, `Digest?`, `Cache-Control?`, `Content-Type?` | Private blobs must verify actor/device/Space/purpose/expiry; headers must not leak invisible resources. |
+| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes; headers include `Content-Length?`, `Digest?`, `Cache-Control?`, `Content-Type?` | Private blobs must verify actor/device/Space/purpose/expiry; Range must not leak invisible resources. |
 | `cx.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | Only same principal/device can register. |
 | `cx.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | Same device/principal or device-revocation path. |
 | `cx.push.notify` | `notification: object` | `notification.event_id: id`; `notification.space_id: id`; `notification.sender: did`; `notification.push_hint: string`; `notification.counts: object`; `notification.devices: object[]` | `rejected: object[]` | Only authorized Sync/Index callers; E2EE notifications MUST be minimized. |
@@ -213,7 +214,7 @@ This section is the field-level schema index for REST endpoints. Field syntax is
 POST /api/v1/repo/submit-commit
 ```
 
-Request:
+Request example (not a complete schema):
 
 ```json
 {
@@ -227,7 +228,7 @@ Request:
 }
 ```
 
-Response:
+Response example (not a complete schema):
 
 ```json
 {
@@ -247,7 +248,7 @@ The protocol-level repo write unit is a signed commit. Implementations MAY accep
 POST /api/v1/repo/sync
 ```
 
-Request:
+Request example (not a complete schema):
 
 ```json
 {
@@ -257,7 +258,7 @@ Request:
 }
 ```
 
-Response:
+Response example (not a complete schema):
 
 ```json
 {
@@ -273,7 +274,7 @@ Response:
 POST /api/v1/identity/resolve
 ```
 
-Request:
+Request example (not a complete schema):
 
 ```json
 {
@@ -281,7 +282,7 @@ Request:
 }
 ```
 
-Response:
+Response example (not a complete schema):
 
 ```json
 {
@@ -323,7 +324,7 @@ Frame:
 }
 ```
 
-The same semantic stream MAY be carried by WebSocket, SSE, or long polling, but the default HTTP/JSON reference path is `/api/v1/sync/subscribe`. `/sync/stream` may only be used as a transport frame name or compatibility alias, not as a new canonical operation.
+The same semantic stream MAY be carried by WebSocket, SSE, or long polling, but the default HTTP/JSON reference path is `/api/v1/sync/subscribe`. `/sync/stream` is used only as an internal transport frame name and is not a new canonical operation.
 
 ## 6. Directory API
 
@@ -350,7 +351,7 @@ POST /api/v1/blob/upload
 
 Content type MAY be `application/octet-stream` or `multipart/form-data`.
 
-Response:
+Response example (not a complete schema):
 
 ```json
 {
