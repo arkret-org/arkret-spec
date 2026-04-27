@@ -130,8 +130,8 @@ Contrix 的协议文档按“服务角色”定义能力；实际落地时可以
 | --- | --- | --- | --- |
 | 个人 / 小团队 | Personal / Team Server | Identity Resolver、Directory、Push Gateway、TURN / Media Relay | 个人、家庭、小项目、小团队。 |
 | 普通组织 | Organization Server、Auth / Account Server；需要统一授权和审计时增加 Admin / Policy Server | Identity Resolver、Directory、Push Gateway、TURN / Media Relay | 公司、学校、社区、普通协作组织。 |
-| 高安全组织 | Organization / Principal Server、Auth / Account Server、Identity Registry / Resolver、Policy / Authz Server、Blob / Media Server | 可选使用公共 Directory、Push Gateway 或外部互联入口 | 政企、医疗、金融、强合规组织。 |
-| 涉密 / 隔离网络 | Principal Server、Identity Registry / Resolver、Auth / Account Server、Directory Server、Policy / Authz Server、Repo / Blob Server、Sync / Federation Server、Audit / Compliance Server | 原则上不依赖公共服务；跨域协作必须经受控网关、邀请包或 trust bundle 明确解析上下文 | 军方、内网、完全隔离或强管控网络。 |
+| 高安全组织 | Organization / Principal Server、Auth / Account Server、Identity Resolution Infrastructure、Policy / Authz Server、Blob / Media Server | 可选使用公共 Directory、Push Gateway 或外部互联入口 | 政企、医疗、金融、强合规组织。 |
+| 涉密 / 隔离网络 | Principal Server、Identity Resolution Infrastructure、Auth / Account Server、Directory Server、Policy / Authz Server、Repo / Blob Server、Sync / Federation Server、Audit / Compliance Server | 原则上不依赖公共服务；跨域协作必须经受控网关、邀请包或 trust bundle 明确解析上下文 | 军方、内网、完全隔离或强管控网络。 |
 
 最小个人或小团队部署只有一个用户可见服务器：
 
@@ -147,23 +147,23 @@ Personal / Team Server
 
 它可以默认使用公共基础设施：
 
-- Identity Registry / Resolver：公共 DID / handle 解析。
+- Identity Resolver：公共 DID / handle 解析；具体可由 `did:uuid` registry / witness、`did:web` method resolver、`did:key` 本地 resolver 或 `did:keri` witness / watcher / resolver 实现。
 - Directory Server：公共 Space、Organization、Actor、Applet 发现。
 - Push Gateway：移动或桌面脱敏通知投递。
 - TURN / Media Relay：音视频中继和 NAT 穿透。
 
-Auth / Account Server 与 Identity Registry / Resolver 不要求同源部署。普通组织可以自建自己的登录入口、SSO、设备配对和 session 管理，同时继续使用公共 `did:uuid` resolver 来解析用户 DID。登录服务器负责证明“这个服务账户 / 设备当前绑定到哪个 DID”，公共 resolver 只负责返回该 DID 的控制密钥、key log 和服务委托证据；组织 Policy / Authz 再决定该 DID 是否能访问组织 Space、repo 或管理动作。
+Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部署。普通组织可以自建自己的登录入口、SSO、设备配对和 session 管理，同时继续使用公共 `did:uuid` resolver 来解析用户 DID，或使用 `did:key` 本地 resolver、`did:keri` resolver / witness / watcher。登录服务器负责证明“这个服务账户 / 设备当前绑定到哪个 DID”，identity resolver 只负责返回或验证该 DID 的控制密钥、key state、key log / KERI log 和服务委托证据；组织 Policy / Authz 再决定该 DID 是否能访问组织 Space、repo 或管理动作。
 
 `did:web` 等 method-specific DID MAY 按各自方法从域名或外部网络解析；组织私有 `did:uuid` MAY 只在组织或隔离网络的 resolver trust domain 内解析。客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID method 同为 `did:uuid` 就假设解析入口相同。
 
-普通用户不应被要求单独部署 Directory Server、Push Gateway、Identity Registry / Resolver、TURN / Media Relay、Moderation / Compliance Server 或独立 Index / AppView Server。只有当组织需要身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 时，才应把这些基础设施收回自建。
+普通用户不应被要求单独部署 Directory Server、Push Gateway、Identity Resolution Infrastructure、TURN / Media Relay、Moderation / Compliance Server 或独立 Index / AppView Server。若使用 `did:key`，identity resolution 可以完全本地完成；若使用 `did:keri`，通常需要 KERI log / witness / watcher / OOBI 基础设施，但不需要传统中心化 registry。只有当组织需要身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 时，才应把这些基础设施收回自建。
 
 高级实现仍应按以下服务角色声明能力和安全边界。多个角色可以合并在同一部署中，但必须在 service DID、`service_type`、capability、Space policy、plaintext visibility 和 endpoint 契约上保持可区分。
 
 | 服务角色 | 常见 `service_type` | 主要服务 | 是否真相源 | 明文边界 |
 | --- | --- | --- | --- | --- |
 | Principal Server | `principal_server` | principal 的受控入口；可聚合 repo、sync、federation、device message、policy、blob、index 等受托能力；产品层可呈现为 Home / Work / Team Server。 | 否；真相来自签名 Repo / Event。 | 可以接收该 principal 或 Space policy 授权范围内的非加密内容。 |
-| Identity Registry / Resolver | `identity_registry` | DID Document、DID key log、handle binding、receipt / witness、service discovery。 | 是身份控制链的可验证来源之一。 | 不应接收 Space 正文。 |
+| Identity Resolution Infrastructure | `identity_registry` 或 method-specific resolver | DID Document、DID key log、KERI event log、handle binding、receipt / witness、watcher、OOBI、service discovery。 | 是身份控制链的可验证来源之一；`did:key` 可由本地算法解析。 | 不应接收 Space 正文。 |
 | Auth / Account Server | `auth_server` 或部署私有名 | passkey、OIDC、SSO、设备配对、session grant、账户恢复与 soft logout。 | 否；只证明服务账户登录，并绑定到 DID / device。 | 不应因密码恢复获得 E2EE 明文或 DID 控制权。 |
 | Repo Server | `repo_node` | commit 提交、Operation / commit 读取、repo 增量同步、审计回放。 | 是发布日志的承载者；权威来自签名和 hash 链。 | 可保存提交中包含的明文，必须受 principal / Space policy 委托。 |
 | Sync / Federation Server | `principal_server` 或 `sync_node` | client sync、Space subscription、backfill、snapshot head、跨域 federation transaction。 | 否；只传播和回补。 | 只能把非加密私有内容发给授权 Principal Server 或 `plaintext_visible_services`。 |

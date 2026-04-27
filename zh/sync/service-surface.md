@@ -73,7 +73,7 @@ DID Document SHOULD 只负责：
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
 | Principal Server | 普通用户自建的核心入口；产品层可合并为 Personal / Team / Organization Server | `/server`, `/sync`, `/federation`, 可代理 `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
-| Identity Registry / Resolver | 普通用户默认使用公共服务；高安全或隔离网络才自建 | `/identity`, `/server` | DID document、DID log、handle binding、receipt、witness、service endpoint discovery。 |
+| Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/identity`, `/server` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
 | Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
 | Repo Server | 普通用户通常内置在 Personal / Team Server | `/repo`, `/server` | commit 提交、Operation / commit 读取、repo sync、审计回放、hash chain 校验。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
@@ -92,8 +92,8 @@ DID Document SHOULD 只负责：
 
 - `personal_node`：用户可见为一个 Personal / Team Server；内部合并 Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz，可选本地 Index；Identity Resolver、Directory、Push 和 TURN/Media 默认可用公共服务。
 - `organization_workserver`：Organization Server + Auth / Account Server；需要统一授权和审计时增加 Policy Server；Index、Blob、Directory、Push 可按规模和合规要求拆分。
-- `secure_organization`：Organization / Principal Server + Auth + Identity Registry / Resolver + Policy/Authz + Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
-- `isolated_enclave`：Principal + Identity Registry / Resolver + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
+- `secure_organization`：Organization / Principal Server + Auth + Identity Resolution Infrastructure + Policy/Authz + Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
+- `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_bridge`：Applet Server + Repo writer + Authz precheck，只在授权 namespace 和 capability 内工作。
 - `agent_runtime`：Agent Runtime + Repo writer + Memory/Index integration，所有写入仍通过 principal / agent DID 签名。
@@ -143,9 +143,11 @@ GET /api/v1/server/describe
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 
-### 3.1 Identity Registry Surface
+### 3.1 Identity Resolution Surface
 
-identity registry 至少应提供以下语义：
+Identity Resolution Surface 是 DID method resolver、registry、witness、watcher 或 method-specific verifier 的统一抽象。`did:key` 可以只由本地 resolver 实现，不需要网络 API；`did:keri` 可以由 KERI log、witness、watcher 和 OOBI discovery 实现；`did:uuid` 可以由 registry / witness / replica 实现。
+
+网络型 identity registry 至少应提供以下语义：
 
 #### 3.1.1 描述 registry
 

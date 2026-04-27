@@ -6,6 +6,8 @@ Core decisions:
 
 - Default native method: `did:uuid:<uuid-v8>`.
 - `did:uuid` embeds a timestamp, hash algorithm id, and 74-bit inception public-key hash fragment.
+- Implementations MAY support `did:keri`.
+- Implementations MAY support `did:key` for temporary, test, device, invitation, or bootstrap subjects.
 - Ordinary key rotation MUST NOT change the DID.
 - Current control keys MUST be traceable from `inception_key` through `key_log`.
 - Canonical Contrix fields use snake_case.
@@ -22,13 +24,27 @@ Raw W3C field mappings:
 | `publicKeyMultibase` | `public_key_multibase` |
 | `serviceEndpoint` | `service_endpoint` |
 
+## Identity Resolution Infrastructure
+
+Contrix abstracts identity resolution as `Identity Resolution Infrastructure`; it does not require every DID method to use the same Identity Registry model.
+
+| DID method | Requires public Identity Registry? | Required resolution / verification capability |
+| --- | --- | --- |
+| `did:key` | No. | Local method resolver expands the DID string into a DID Document. It fits temporary subjects, devices, tests, one-time invitations, or bootstrap keys, but not long-lived recoverable identity. |
+| `did:web` | No public registry. | HTTPS / DNS / domain governance, TLS / PKI, and method-specific DID Document retrieval and verification. |
+| `did:uuid` | Depends on trust policy. | Public or private registry / witness / resolver, key log, receipts, and service delegation. |
+| `did:keri` | No traditional centralized registry. | KERI event log, key state resolution, witness receipts, watchers, and OOBI discovery. |
+| `did:plc` or external methods | Depends on the method. | Preserve raw DID Documents and method-specific proofs, then map into the Contrix normalized principal view. |
+
+Using `did:key` or `did:keri` therefore does not mean identity resolution disappears. It means a public writable registry is usually unnecessary. Clients, Auth Servers, Principal Servers, and Policy / Authz still need the corresponding DID method resolver / verifier to confirm DID control state, service delegation, and key rotation history.
+
 ## Resolver, Auth Server, And Organization Authorization
 
 DID resolution, login authentication, and organization data authorization are separate responsibilities:
 
 | Layer | Responsible for | Not responsible for |
 | --- | --- | --- |
-| Identity Registry / Resolver | Resolving a DID to a DID Document, key log, service delegation, and witness evidence. | Deciding whether the user may log in to an organization or access Space / repo data. |
+| Identity Resolution Infrastructure | Resolving a DID to a DID Document, key state, key log / KERI log, service delegation, witness evidence, or method-specific proof. | Deciding whether the user may log in to an organization or access Space / repo data. |
 | Auth / Account Server | Passkeys, OIDC, SSO, device pairing, account recovery, session grants, and binding a service-account login to a DID / device. | Changing DID control, replacing DID key proof, or deciding every organization authorization rule. |
 | Organization / Policy / Authz | Deciding whether a DID, device, credential, or capability may access organization data, Spaces, repos, Applets, or admin actions. | Maintaining public DID control history. |
 
@@ -40,7 +56,7 @@ An organization MAY run its own Auth / Account Server while continuing to use th
 4. The user proves login binding through a DID control key, device key, passkey / OIDC binding proof, or required VC presentation.
 5. The Auth Server issues only a session grant / device binding. Organization Policy / Authz then decides data access from the DID, credentials, membership, invites, capabilities, and Space policy.
 
-Therefore, a public `did:uuid` resolver is public identity-control and service-discovery infrastructure; an enterprise Auth Server is that enterprise's login and session boundary. Using a public resolver does not let the resolver log in to the enterprise or access enterprise data. Allowing a `did:uuid` to log in means the organization's policy accepts that DID, its control proof, and any required credential or invite.
+Therefore, a public `did:uuid` resolver is one form of public identity-control and service-discovery infrastructure; `did:key` may resolve locally, and `did:keri` may be verified through KERI witnesses, watchers, and resolvers. An enterprise Auth Server is that enterprise's login and session boundary. Using a public resolver does not let the resolver log in to the enterprise or access enterprise data. Allowing a DID to log in means the organization's policy accepts that DID, its control proof, and any required credential or invite.
 
 For `did:web` and other method-specific DID methods, resolver selection is determined by the method rules plus local trust policy. An organization may require employees or service principals to use `did:web`, organization-private `did:uuid`, or public `did:uuid`; this is an admission policy, not a natural coupling between the Auth Server and Resolver.
 

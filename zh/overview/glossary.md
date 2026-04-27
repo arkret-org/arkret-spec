@@ -53,9 +53,9 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| DID | 去中心化标识符 | Principal 的稳定标识。Contrix 默认 DID 方法为 `did:uuid`，同时支持 `did:web` 等外部方法适配。 |
+| DID | 去中心化标识符 | Principal 的稳定标识。Contrix 默认 DID 方法为 `did:uuid`，同时支持 `did:web`、`did:keri`、`did:key` 等外部或 method-specific 适配。 |
 | DID Document | DID 文档 | DID 解析得到的控制密钥、服务端点、验证方法等文档。外部 DID 文档保留原始字段，进入 Contrix normalized view 前映射为 snake_case。 |
-| DID Method | DID 方法 | DID 的解析与更新规则，例如 `did:uuid`、`did:web`、`did:plc`。 |
+| DID Method | DID 方法 | DID 的解析与更新规则，例如 `did:uuid`、`did:web`、`did:keri`、`did:key`、`did:plc`。不同方法可能使用公共 registry、私有 registry、KERI witness / watcher、域名解析或纯本地 resolver。 |
 | DID Key Log | DID 密钥日志 | 记录 DID 控制密钥演化、轮换、恢复和见证的追加式日志。 |
 | Handle | 人类可读标识 | 例如 `alice.example.com` 或 `alice@service`。Handle 用于发现和显示，不作为权限主键。 |
 | Claim | 声明 | 对某个主体属性、绑定或资格的可验证声明，例如 handle binding、组织成员资格。 |
@@ -113,7 +113,7 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Identity Registry / Resolver | 身份注册表 / 解析器 | 保存、复制、见证并解析 DID 文档、DID key log、handle binding 的服务角色。它证明 DID 控制历史和服务委托，不决定某个 DID 是否能登录组织或访问组织数据。 |
+| Identity Resolution Infrastructure | 身份解析基础设施 | DID method resolver、registry、witness、watcher、OOBI discovery 或 method-specific verifier 的统称。它证明 DID 控制历史、key state 和服务委托，不决定某个 DID 是否能登录组织或访问组织数据。`did:key` 可以只需要本地 resolver；`did:keri` 通常需要 KERI log、witness、watcher 或 OOBI。 |
 | Witness | 见证节点 | 对 DID log、key rotation、重要状态变更进行外部见证的服务或主体。 |
 | Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 repo、sync、index、blob、push、policy 等能力；产品层可称 Home Server。 |
 | Auth / Account Server | 认证/账户服务器 | 处理 passkey、OIDC、SSO、设备配对、session grant、账户恢复和 soft logout 的服务。它证明服务账户登录并绑定到 DID / device，不直接证明 DID 控制权，也不必须与 DID resolver 同源部署。 |

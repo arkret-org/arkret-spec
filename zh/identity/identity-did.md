@@ -62,6 +62,7 @@ did:uuid:<uuid-v8>
 - MUST 支持 `did:uuid`
 - SHOULD 支持 `did:web`
 - MAY 支持 `did:plc`
+- MAY 支持 `did:keri`
 - MAY 支持 `did:key` 作为测试或临时主体
 
 ### 3.1 DID Method and Trust Domain
@@ -88,13 +89,27 @@ did:uuid:<uuid-v8>
 
 高安全部署也 MAY 使用 `did:web` 或外部 DID method 表示组织主体，尤其当组织希望利用域名、证书、内网 PKI 或现有治理系统做服务发现时。协议不得要求 sovereign deployment 放弃 `did:uuid`；也不得要求 sovereign deployment 接受公共 `did:uuid` registry。
 
-### 3.2 Resolver、Auth Server 与组织授权
+### 3.2 Identity Resolution Infrastructure
+
+Contrix 把身份解析抽象为 `Identity Resolution Infrastructure`，而不是要求所有 DID method 都部署同一种 Identity Registry。不同 DID method 的解析状态来源不同：
+
+| DID method | 是否需要公共 Identity Registry | 需要的解析 / 验证能力 |
+| --- | --- | --- |
+| `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合临时主体、设备、测试、一次性邀请或 bootstrap key，不适合作为长期可恢复身份。 |
+| `did:web` | 不需要公共 registry。 | HTTPS / DNS / 域名治理、TLS / PKI、method-specific DID Document 获取与校验。 |
+| `did:uuid` | 取决于 trust policy。 | 公共或私有 registry / witness / resolver、key log、receipt、service delegation。 |
+| `did:keri` | 不需要传统中心化 registry。 | KERI event log、key state resolution、witness receipt、watcher、OOBI discovery。 |
+| `did:plc` 或外部 DID method | 取决于 method。 | 保留 raw DID Document 与 method-specific proof，并映射到 Contrix normalized principal view。 |
+
+因此，使用 `did:key` 或 `did:keri` 不表示“不需要身份解析”。它只表示通常不需要公共可写 registry。客户端、Auth Server、Principal Server 和 Policy / Authz 仍然必须具备对应 DID method 的 resolver / verifier，才能确认 DID 控制状态、服务委托和密钥轮换历史。
+
+### 3.3 Resolver、Auth Server 与组织授权
 
 DID 解析、登录认证和组织数据授权是三个不同职责：
 
 | 层次 | 负责什么 | 不负责什么 |
 | --- | --- | --- |
-| Identity Registry / Resolver | 把 DID 解析为 DID Document、key log、service delegation 和 witness evidence。 | 不决定用户是否能登录某个组织，也不授予 Space / repo 数据访问权。 |
+| Identity Resolution Infrastructure | 把 DID 解析为 DID Document、key state、key log / KERI log、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Space / repo 数据访问权。 |
 | Auth / Account Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 DID / device。 | 不改变 DID 控制权；不替代 DID key proof；不决定所有组织授权。 |
 | Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Space、repo、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
 
@@ -108,7 +123,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 因此：
 
-- 公共 `did:uuid` resolver 是身份控制历史和服务发现的公共基础设施。
+- 公共 `did:uuid` resolver 是身份控制历史和服务发现的一种公共基础设施；`did:key` 可由本地 resolver 解析，`did:keri` 可由 KERI witness / watcher / resolver 验证。
 - 企业 Auth Server 是该企业的登录入口和 session 管理者。
 - 企业使用公共 resolver 不表示公共 resolver 可以登录企业系统或访问企业数据。
 - 企业允许某个 `did:uuid` 登录，本质是企业 policy 接受该 DID、该 DID 的控制证明以及相关 credential / invite。

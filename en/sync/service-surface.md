@@ -72,7 +72,7 @@ Common combinations follow. "Required" here means the protocol interaction needs
 | Concrete server | Standard deployment guidance | Typical REST namespaces | Main capability |
 | --- | --- | --- | --- |
 | Principal Server | Core user-hosted entry point; product layers may combine it as a Personal / Team / Organization Server | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
-| Identity Registry / Resolver | Ordinary users normally use public services; high-security or isolated networks self-host it | `/identity`, `/server` | DID Documents, DID logs, handle bindings, receipts, witnesses, service endpoint discovery. |
+| Identity Resolution Infrastructure | Ordinary users normally use public services or local method resolvers; high-security or isolated networks self-host the full infrastructure | `/identity`, `/server`, or method-specific resolver | DID Documents, DID / KERI logs, handle bindings, receipts, witnesses, watchers, OOBI, service endpoint discovery. |
 | Auth / Account Server | May be embedded for personal deployments; organizations usually separate it or connect SSO | Exposed through `auth_metadata`; login paths may be deployment-specific | Login, passkeys/OIDC/SSO, session grants, device pairing, account recovery; does not replace DID control. |
 | Repo Server | Usually embedded in the Personal / Team Server for ordinary users | `/repo`, `/server` | Commit submission, Operation / commit reads, repo sync, audit replay, hash-chain verification. |
 | Sync / Federation Server | Usually embedded in the Principal Server for ordinary users | `/sync`, `/federation`, `/server` | Client sync, subscriptions, backfill, snapshot heads, cross-domain transactions, replay and destination-binding checks. |
@@ -91,8 +91,8 @@ Recommended deployment profiles:
 
 - `personal_node`: user-visible as one Personal / Team Server; internally combines Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz, with optional local Index; Identity Resolver, Directory, Push, and TURN/Media may use public services by default.
 - `organization_workserver`: Organization Server + Auth / Account Server; add Policy Server when centralized authorization and audit are needed; Index, Blob, Directory, and Push may be split according to scale and compliance requirements.
-- `secure_organization`: Organization / Principal Server + Auth + Identity Registry / Resolver + Policy/Authz + Blob/Media; public Directory, Push, or external federation ingress are optional external connectivity points only.
-- `isolated_enclave`: Principal + Identity Registry / Resolver + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance all deployed inside the trust domain.
+- `secure_organization`: Organization / Principal Server + Auth + Identity Resolution Infrastructure + Policy/Authz + Blob/Media; public Directory, Push, or external federation ingress are optional external connectivity points only.
+- `isolated_enclave`: Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance all deployed inside the trust domain.
 - `public_federation_ingress`: restricted Principal/Federation + Policy + Moderation + Directory; plaintext is not visible by default.
 - `applet_bridge`: Applet Server + Repo writer + Authz precheck, limited to authorized namespace and capability.
 - `agent_runtime`: Agent Runtime + Repo writer + Memory/Index integration; all durable writes are signed by principal / agent DID.
@@ -142,9 +142,11 @@ Service type naming rules:
 - Conformance profiles use `cx.profile.*` ids such as `cx.profile.principal_server.v1`.
 - Implementations MUST keep these three naming layers distinct.
 
-### 3.1 Identity Registry Surface
+### 3.1 Identity Resolution Surface
 
-Identity registries should expose at least the following semantics:
+Identity Resolution Surface is the common abstraction for DID method resolvers, registries, witnesses, watchers, or method-specific verifiers. `did:key` may be implemented only by a local resolver and need no network API; `did:keri` may be implemented through KERI logs, witnesses, watchers, and OOBI discovery; `did:uuid` may be implemented through registries, witnesses, and replicas.
+
+Networked identity registries should expose at least the following semantics:
 
 #### 3.1.1 Describe the Registry
 
