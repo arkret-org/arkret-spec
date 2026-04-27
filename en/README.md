@@ -100,7 +100,6 @@ Main document groups:
 - [read-receipts.md](./discovery/read-receipts.md)
 - [third-party-invites.md](./sync/third-party-invites.md)
 - [client-preferences.md](./discovery/client-preferences.md)
-- [matrix-compat-gap.md](./extensions/matrix-compat-gap.md)
 - [event-auth-state-resolution.md](./authz/event-auth-state-resolution.md)
 - [device-crypto-verification.md](./crypto-media/device-crypto-verification.md)
 - [client-sync.md](./sync/client-sync.md)

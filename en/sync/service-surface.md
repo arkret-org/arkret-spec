@@ -87,6 +87,11 @@ Example:
   "supported_schema_profiles": [
     "cx.schema.v1"
   ],
+  "auth_metadata": {
+    "oauth_issuer": "https://auth.example.com",
+    "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
+    "did_binding_methods": ["session_grant", "did_http_signature"]
+  },
   "max_body_bytes": 1048576
 }
 ```

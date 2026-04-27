@@ -68,7 +68,6 @@ contrix-spec/
       applet-schema.md
       agent-memory.md
       agent-protocol-interop.md
-      matrix-compat-gap.md
     conformance/
       encoding.md
       encoding-conformance-vectors.md
@@ -144,7 +143,6 @@ contrix-spec/
       applet-schema.md
       agent-memory.md
       agent-protocol-interop.md
-      matrix-compat-gap.md
     conformance/
       encoding.md
       encoding-conformance-vectors.md

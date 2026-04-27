@@ -4,7 +4,7 @@
 
 本文说明 Contrix 与 Matrix 的核心设计差异。
 
-`extensions/matrix-compat-gap.md` 负责记录 Matrix / MSC 中值得借鉴或需要补齐的协议能力；本文只回答一个问题：Contrix 为什么不是 Matrix 的变体，也不是把 Matrix room / homeserver / appservice 换名重写。
+本文回答一个问题：Contrix 为什么不是 Matrix 的变体，也不是把 Matrix room / homeserver / appservice 换名重写。
 
 ## 2. 总体结论
 
@@ -144,7 +144,6 @@ Contrix 不应忽略 Matrix 的成熟度：
 
 ## 7. 相关文档
 
-- `extensions/matrix-compat-gap.md`
 - `extensions/applet-integration.md`
 - `extensions/agent-protocol-interop.md`
 - `extensions/agent-memory.md`

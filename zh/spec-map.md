@@ -169,7 +169,6 @@
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
 | `conformance/sync-conformance-vectors.md` | Client Sync、pagination、snapshot、MLS epoch backfill 的一致性测试向量。 |
-| `extensions/matrix-compat-gap.md` | Matrix 能力差距和取舍。 |
 
 ## 5. 拆分原则
 

@@ -396,3 +396,35 @@ Soft failed state event MAY 在后续上下文补齐后重新评估。Rejected e
 ```
 
 升级 MUST 保持 `space_id` 不变。升级事件必须包含兼容声明，便于未升级节点做 fail-closed。
+
+升级规则：
+
+- `cx.space.upgrade` MUST 由拥有 `space.upgrade` 或等价 admin capability 的 actor 发起。
+- `target_schema_profile`、`target_reducer_profile`、`migration_policy`、`compatibility_mode` 和 `replacement_ref` 必须被事件签名覆盖。
+- `replacement_ref` MAY 指向迁移计划、snapshot manifest 或新 profile 描述，但不能指向未签名的外部说明。
+- 未支持目标 profile 的节点 MUST 停止接受依赖新语义的写入；MAY 继续只读展示升级前的 accepted history。
+- 升级不得重写历史 event hash；任何 state 迁移都必须表现为新的 signed event、snapshot 或 reducer profile 输出。
+
+### 12.1 Tombstone / Replacement
+
+当一个 Space 被关闭、替换或迁移到新 Space 时，必须使用显式 tombstone：
+
+```json
+{
+  "kind": "cx.space.tombstone",
+  "state_key": "",
+  "content": {
+    "reason": "migrated",
+    "replacement_space": "cx:space:01NEW...",
+    "replacement_event": "cx:event:...",
+    "effective_at": "2026-04-26T00:00:00Z"
+  }
+}
+```
+
+规则：
+
+- Tombstone 只改变后续写入和默认展示，不删除历史。
+- Tombstoned Space MUST reject 新普通写入，只允许 redaction、export、legal hold、account lifecycle、migration proof 等维护类事件。
+- `replacement_space` 若存在，客户端 MUST 独立验证其 create event、owner / organization endorsement、Space policy 和历史导入证明。
+- Tombstone 不自动授予新 Space 读取旧 Space 历史的权限；历史访问仍受旧 Space 的 history visibility、capability、E2EE epoch 和 retention policy 约束。

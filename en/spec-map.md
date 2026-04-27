@@ -169,7 +169,6 @@ When learning the protocol for the first time, we recommend this sequence:
 | `conformance/conformance-suite.md` | Interoperability suite structure and vector prioritization. |
 | `conformance/conformance-profiles.md` | Implementation profiles and conformance scope. |
 | `conformance/sync-conformance-vectors.md` | Client sync, pagination, snapshot, and MLS epoch backfill vectors. |
-| `extensions/matrix-compat-gap.md` | Matrix capability/feature parity and tradeoffs. |
 
 ## 5. Split Principles
 

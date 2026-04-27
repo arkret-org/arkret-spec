@@ -4,7 +4,7 @@
 
 This document explains the core design differences between Contrix and Matrix.
 
-`extensions/matrix-compat-gap.md` tracks Matrix / MSC capabilities that Contrix should adopt, adapt, or reject. This document answers a narrower question: why Contrix is not a Matrix variant and not a rename of Matrix room / homeserver / appservice concepts.
+This document answers why Contrix is not a Matrix variant and not a rename of Matrix room / homeserver / appservice concepts.
 
 ## 2. Summary
 
@@ -87,7 +87,6 @@ Contrix should adopt stable lessons from Matrix without inheriting Matrix's room
 
 ## 7. Related Documents
 
-- `extensions/matrix-compat-gap.md`
 - `extensions/applet-integration.md`
 - `extensions/agent-protocol-interop.md`
 - `extensions/agent-memory.md`

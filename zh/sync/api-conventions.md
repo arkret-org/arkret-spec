@@ -74,6 +74,30 @@ API 调用 SHOULD 使用以下方式之一：
 
 服务端 MUST NOT 仅因 bearer token 存在就跳过 capability 检查。
 
+### 3.1 认证服务发现
+
+认证与授权服务器可以分离。服务 describe / discovery 响应 SHOULD 公布认证 metadata，但不得把 OAuth/OIDC subject 当作 Contrix principal：
+
+```json
+{
+  "auth_metadata": {
+    "oauth_issuer": "https://auth.example.com",
+    "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
+    "token_endpoint_auth_methods": ["private_key_jwt", "client_secret_basic"],
+    "supported_grant_types": ["authorization_code", "refresh_token"],
+    "did_binding_methods": ["session_grant", "did_http_signature"],
+    "required_audience": "https://server.example/api/v1"
+  }
+}
+```
+
+规则：
+
+- `sub`、email、username 或 OAuth client id MUST NOT 直接作为 `actor_id`、grant subject 或 event sender。
+- 登录成功后，客户端或认证网关 MUST 产生可验证的 session grant、device binding 或 DID proof，把 OAuth/OIDC session 绑定到 DID principal / device。
+- Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 session grant 状态。
+- 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
+
 ## 4. 标准响应 envelope
 
 成功响应 SHOULD 使用具体 endpoint 定义的 JSON 对象。  
@@ -233,6 +257,7 @@ Access-Control-Allow-Headers: Authorization, Content-Type, X-Contrix-Wait-For, X
 - `service_did`
 - `supported_features`
 - `supported_profiles`
+- `auth_metadata`
 - `max_body_bytes`
 - `rate_limit_policy_ref`
 
