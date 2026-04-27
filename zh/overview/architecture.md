@@ -152,6 +152,10 @@ Personal / Team Server
 - Push Gateway：移动或桌面脱敏通知投递。
 - TURN / Media Relay：音视频中继和 NAT 穿透。
 
+Auth / Account Server 与 Identity Registry / Resolver 不要求同源部署。普通组织可以自建自己的登录入口、SSO、设备配对和 session 管理，同时继续使用公共 `did:uuid` resolver 来解析用户 DID。登录服务器负责证明“这个服务账户 / 设备当前绑定到哪个 DID”，公共 resolver 只负责返回该 DID 的控制密钥、key log 和服务委托证据；组织 Policy / Authz 再决定该 DID 是否能访问组织 Space、repo 或管理动作。
+
+`did:web` 等 method-specific DID MAY 按各自方法从域名或外部网络解析；组织私有 `did:uuid` MAY 只在组织或隔离网络的 resolver trust domain 内解析。客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID method 同为 `did:uuid` 就假设解析入口相同。
+
 普通用户不应被要求单独部署 Directory Server、Push Gateway、Identity Registry / Resolver、TURN / Media Relay、Moderation / Compliance Server 或独立 Index / AppView Server。只有当组织需要身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 时，才应把这些基础设施收回自建。
 
 高级实现仍应按以下服务角色声明能力和安全边界。多个角色可以合并在同一部署中，但必须在 service DID、`service_type`、capability、Space policy、plaintext visibility 和 endpoint 契约上保持可区分。

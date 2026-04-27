@@ -128,6 +128,10 @@ It may use public infrastructure by default:
 - Push Gateway: blind mobile or desktop notification delivery.
 - TURN / Media Relay: media relay and NAT traversal.
 
+Auth / Account Server and Identity Registry / Resolver do not need to be deployed by the same operator. A standard organization may run its own login entry point, SSO, device pairing, and session management while continuing to use the public `did:uuid` resolver for user DIDs. The login server proves which DID a service account or device is currently bound to; the public resolver only returns that DID's control keys, key log, and service-delegation evidence; Organization Policy / Authz then decides whether the DID may access organization Spaces, repos, or admin actions.
+
+`did:web` and other method-specific DIDs MAY resolve through their own domain or external network rules; organization-private `did:uuid` MAY resolve only inside the organization's or enclave's resolver trust domain. Clients and servers must select resolvers according to local trust policy and must not assume that all `did:uuid` identifiers share the same resolver entry point.
+
 Ordinary users should not need to self-host Directory Server, Push Gateway, Identity Registry / Resolver, TURN / Media Relay, Moderation / Compliance Server, or a standalone Index / AppView Server. These infrastructure roles should be self-hosted only when an organization needs identity sovereignty, network isolation, compliance audit, independence from public networks, or controlled cross-organization federation.
 
 Advanced implementations still declare capabilities and security boundaries through the following service roles. Multiple roles may be combined in one deployment, but service DID, `service_type`, capability, Space policy, plaintext visibility, and endpoint contracts must remain distinguishable.

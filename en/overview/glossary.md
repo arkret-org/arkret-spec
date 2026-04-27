@@ -8,8 +8,9 @@ It defines the common terminology used across Contrix, including identity, core 
 
 | Term | Definition |
 | --- | --- |
+| Identity Registry / Resolver | Service role that stores, replicates, witnesses, and resolves DID Documents, DID key logs, and handle bindings. It proves DID control history and service delegation; it does not decide whether a DID may log in to an organization or access organization data. |
 | Principal Server | A service boundary controlled by a principal or explicitly delegated through DID / Space policy. It may host repo, sync, index, blob, push, and policy capabilities. Product layers may call it a Home Server. |
-| Auth / Account Server | Service handling passkeys, OIDC, SSO, device pairing, session grants, account recovery, and soft logout. It proves service-account login and binds it to DID / device; it does not directly prove DID control. |
+| Auth / Account Server | Service handling passkeys, OIDC, SSO, device pairing, session grants, account recovery, and soft logout. It proves service-account login and binds it to DID / device; it does not directly prove DID control and does not need to share an operator with the DID resolver. |
 | Repo Server | Concrete server form of `Repo Service`, providing commit submission, Operation / commit reads, repo sync, and audit replay. |
 | Sync Service | The Space incremental sync capability exposed by a Principal Server. It handles subscription, backfill, deduplication, ephemeral signaling, and controlled distribution. It is not an independent third-party server role or a truth source. |
 | Plaintext-visible Service | A service explicitly delegated by Space policy, principal DID, or organization DID to receive or store non-E2EE private bodies, attachment previews, full-text indexes, notification summaries, embeddings, or reversible derived summaries. |

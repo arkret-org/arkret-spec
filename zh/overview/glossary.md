@@ -113,10 +113,10 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Identity Registry | 身份注册表 | 保存、复制和见证 DID 文档、DID key log、handle binding 的服务角色。 |
+| Identity Registry / Resolver | 身份注册表 / 解析器 | 保存、复制、见证并解析 DID 文档、DID key log、handle binding 的服务角色。它证明 DID 控制历史和服务委托，不决定某个 DID 是否能登录组织或访问组织数据。 |
 | Witness | 见证节点 | 对 DID log、key rotation、重要状态变更进行外部见证的服务或主体。 |
 | Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 repo、sync、index、blob、push、policy 等能力；产品层可称 Home Server。 |
-| Auth / Account Server | 认证/账户服务器 | 处理 passkey、OIDC、SSO、设备配对、session grant、账户恢复和 soft logout 的服务。它证明服务账户登录并绑定到 DID / device，不直接证明 DID 控制权。 |
+| Auth / Account Server | 认证/账户服务器 | 处理 passkey、OIDC、SSO、设备配对、session grant、账户恢复和 soft logout 的服务。它证明服务账户登录并绑定到 DID / device，不直接证明 DID 控制权，也不必须与 DID resolver 同源部署。 |
 | Repo Server | 仓库服务器 | `Repo Service` 的实际服务器形态，提供 commit 提交、Operation / commit 读取、repo sync 和审计回放。 |
 | Sync Service | 同步服务 | Principal Server 上的 Space 增量同步能力，负责订阅、回补、去重、临时信令和受控分发；它不是独立第三方服务器角色，也不是真相源。 |
 | Index | 索引 | 将授权事件物化为查询结果、当前态、搜索结果和视图投影的派生层。 |

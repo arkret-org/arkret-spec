@@ -88,6 +88,34 @@ did:uuid:<uuid-v8>
 
 高安全部署也 MAY 使用 `did:web` 或外部 DID method 表示组织主体，尤其当组织希望利用域名、证书、内网 PKI 或现有治理系统做服务发现时。协议不得要求 sovereign deployment 放弃 `did:uuid`；也不得要求 sovereign deployment 接受公共 `did:uuid` registry。
 
+### 3.2 Resolver、Auth Server 与组织授权
+
+DID 解析、登录认证和组织数据授权是三个不同职责：
+
+| 层次 | 负责什么 | 不负责什么 |
+| --- | --- | --- |
+| Identity Registry / Resolver | 把 DID 解析为 DID Document、key log、service delegation 和 witness evidence。 | 不决定用户是否能登录某个组织，也不授予 Space / repo 数据访问权。 |
+| Auth / Account Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 DID / device。 | 不改变 DID 控制权；不替代 DID key proof；不决定所有组织授权。 |
+| Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Space、repo、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
+
+一个组织 MAY 自建 Auth / Account Server，同时继续使用公共 `did:uuid` 解析网络。典型流程是：
+
+1. 用户提交 `did:uuid:...`、handle、邀请链接或组织账号。
+2. 组织 Auth Server 按本地 trust policy 选择 resolver。普通部署可以默认选择公共 `did:uuid` resolver；高安全部署可以选择组织私有 resolver；`did:web` 按 DID method 从域名解析。
+3. Auth Server 或客户端解析 DID Document，校验 key log、witness evidence、service delegation 和可接受的 trust domain。
+4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
+5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Space policy 决定可访问的数据范围。
+
+因此：
+
+- 公共 `did:uuid` resolver 是身份控制历史和服务发现的公共基础设施。
+- 企业 Auth Server 是该企业的登录入口和 session 管理者。
+- 企业使用公共 resolver 不表示公共 resolver 可以登录企业系统或访问企业数据。
+- 企业允许某个 `did:uuid` 登录，本质是企业 policy 接受该 DID、该 DID 的控制证明以及相关 credential / invite。
+- 普通用户可以为了 DID 稳定性和持久性选择公共 `did:uuid` 解析网络，同时在不同组织中使用同一个 DID 或 pairwise DID 登录。
+
+对 `did:web` 或其他带 method-specific 解析规则的 DID，resolver 选择由该 DID method 和本地 trust policy 共同决定。组织可以要求员工或服务主体使用 `did:web`、组织私有 `did:uuid`，或接受公共 `did:uuid`；这是组织准入策略，不是 Auth Server 和 Resolver 的天然绑定关系。
+
 ## 4. UUID v8 位布局
 
 `did:uuid` 的 UUID v8 使用 128 位布局：
