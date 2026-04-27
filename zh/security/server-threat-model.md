@@ -69,6 +69,12 @@
 20. **推送网关与通知元数据滥用（Push/Gateway Abuse）**
     攻击者利用未鉴权的 gateway 注册、metadata 推送接口、超频或伪造事件触发隐私侧信道或 DoS。
 
+21. **URL 凭证泄露（URL Credential Leakage）**
+    将 session token、API key 或签名材料放入 query string，导致浏览器历史、代理日志、崩溃日志、复制链接或 referrer 泄露。
+
+22. **媒体侧信道探测（Media Header / Range Probe）**
+    通过 `HEAD`、`Range`、`Content-Length`、`Content-Type`、`Content-Disposition` 或 redirect 差异推断私有 blob 是否存在、大小、类型或文件名。
+
 ### 2.2 当前协议中不成立的攻击项
 
 - 回退重试链路细节（如不可控网关转发回路）
@@ -82,6 +88,7 @@
 - **分层限速与退避**：按来源、source service、space、IP hash、tenant、endpoint 限速，超过阈值退避或拒绝。
 - **幂等与重放防护**：`request_id`、`txn_id`、`operation_id` 与 canonical hash 绑定；`operation_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
+- **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
 - **多源交叉校验**：snapshot / resolver / frontier / policy decision / DID 头部状态引入二次验证。
 - **隔离与缓冲**：异常源先走 `quarantine` 与 `review` 决策，再决定 `allow`、`deny` 或 `reject`。
 - **可追溯审计**：拒绝、退避、隔离、降级必须可审计（含 hash / hash chain / 决策签名）。
@@ -94,7 +101,7 @@
 | 开放联邦滥用 | 是 | `federation`/`service-surface` 的 Federation Allow List，`server ACL`，未签名来源走 `soft_deny`/`rate_limited`。 |
 | 认证与凭证爆破 | 是 | `account-lifecycle` 与 auth 入口开启失败风控；`session/device token` 撤销与短TTL。 |
 | 写入泛滥 | 是 | `policy-server` 风险码 + `rate_limit`，`per-source` 与 `per-space` 队列保护。 |
-| 重试放大 | 是 | 窗口退避、批次阈值、失败率熔断，`retry_after_ms` 与 `temporarily_unavailable`。 |
+| 重试放大 | 是 | 窗口退避、批次阈值、失败率熔断，优先使用 `Retry-After`，并在 body 中提供 `retry_after_ms`。 |
 | 来源身份伪造 | 是 | source DID / message-signature / service signature 验签链。 |
 | 钓鱼 | 是/部分 | 需要可验证展示（service DID 与 policy 来源）与用户告警策略。 |
 | 恶意载荷 | 是 | blob/mime/hash 扫描、危险标签隔离、`quarantine` 与人工复核。 |
@@ -111,6 +118,8 @@
 | 会话凭证滥用 | 是 | `account-lifecycle` 强制撤销链路、推送网关 token 与 service token 的短期有效策略。 |
 | MLS epoch 滥用 | 是 | epoch monotonic、移除成员 fail-closed、提交顺序与 commit/proposal 校验。 |
 | 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。 |
+| URL 凭证泄露 | 是 | 禁止 query string 认证，临时下载 URL 只能使用短时效、单用途、可撤销派生 token。 |
+| 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
 
 ## 4. 协议规则完善（落地要求）
 
@@ -120,6 +129,7 @@
 - `anonymous_forwarded` 来源不直通写入；默认进入 `rate_limited` 或 `quarantine` 流程。
 - 所有统一错误语义在未认证/未授权/不可见场景保持不可区分。
 - `request_id`、`request_canonical_hash`、`txn_id` 必须参与防重放判定；不同内容不得复用同一签名或请求键。
+- 受保护 endpoint 不得接受 URL 中的认证材料；反向代理、应用日志和安全审计日志必须对敏感 query 做脱敏或拒绝记录。
 
 ### 4.2 Policy Server 侧
 
@@ -141,15 +151,21 @@
 ### 4.3 联邦与传播
 
 - `txn_id` 与 `canonical hash` 一致后才可幂等接受。
-- 连续失败率升高的来源逐层下调优先级并退避；可用 `temporarily_unavailable` 与 `retry_after_ms`。
+- 连续失败率升高的来源逐层下调优先级并退避；HTTP response 优先用 `Retry-After`，body 可附带 `retry_after_ms`。
 - fork / frontier 异常进入 `quarantine` 并执行本地再校验，不直接进入主 reducer。
 
-### 4.4 目录与发现
+### 4.4 Blob / Media
+
+- 私有 blob 下载、HEAD、Range 和 redirect 必须使用同一授权上下文。
+- 不可见 blob 应返回与不存在资源一致的失败语义，不得通过 `Content-Length`、`Content-Type`、`Content-Disposition`、`Accept-Ranges` 或 redirect URL 暴露信息。
+- 上传 MIME 与 filename 均为不可信 metadata；下载时 `Content-Disposition` 必须使用安全清理后的文件名，并对危险类型默认 `attachment`。
+
+### 4.5 目录与发现
 
 - 搜索 / 解析均先做最小可见性授权过滤后再返回结果；结果分页必须具备节流参数。
 - `invite_only` / `secret` 不得因返回差异泄露存在性；未授权请求返回统一错误形态。
 
-### 4.5 加密状态与通知
+### 4.6 加密状态与通知
 
 - `cx.mls` 提交需保留 `epoch`、`commit`、proposal 关系；移除成员不得解密后续事件。
 - 推送网关仅接收最小唤醒元数据，禁止推送明文内容。

@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真相源仍然是签名 op / commit log。
+Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真相源仍然是签名 Operation / commit log。
 
 ## 2. Snapshot Manifest
 

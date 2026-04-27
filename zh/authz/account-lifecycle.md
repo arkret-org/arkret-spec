@@ -67,7 +67,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 - 保留 device keys 和 secret storage 本地密钥，除非用户选择清除。
 - 使用 refresh、OIDC 或 re-auth 恢复。
 
-服务端返回 `M_SOFT_LOGOUT` 时 MUST 不要求客户端删除本地 E2EE 密钥。
+服务端返回 `401 soft_logged_out` 时 MUST 不要求客户端删除本地 E2EE 密钥。
 
 ## 5. Locked
 

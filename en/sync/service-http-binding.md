@@ -13,6 +13,8 @@ Contrix protocol is not hard-coupled to REST semantics. Other transport bindings
 - Authentication MAY use bearer token, HTTP Message Signature, DID proof, or a transport-native equivalent.
 - Services MUST expose `describe` / feature discovery for supported paths, profiles, and limits.
 - Error responses MUST use a stable error schema.
+- Authentication material MUST be carried in headers, HTTP Message Signatures, mTLS, or signed proof bodies. Protected endpoints MUST NOT accept query-string authentication.
+- Unknown paths, wrong methods, rate limits, temporary unavailability, and invisible resources MUST use the standard error semantics in `api-conventions.md`.
 
 ### 2.1 REST API Namespace Organization
 
@@ -60,8 +62,11 @@ Default rules:
 - Except for endpoints explicitly marked as `public_metadata`, all endpoints MUST authenticate the caller.
 - Authentication only identifies the caller; services MUST still enforce capability, Space policy, history visibility, service delegation, and revocation checks.
 - Service-to-service calls MUST use HTTP Message Signature or equivalent service DID proof bound to method, target URI, content digest, origin service DID, and destination service DID.
+- Service-to-service `origin` and `destination` MUST be service DIDs and must match DID Document service endpoints, target URL, Space policy / service delegation, and the signature transcript.
+- Protected endpoints MUST NOT accept tokens, API keys, or signature material in query strings. Short-lived download URLs may only use derived, single-purpose, revocable, short-expiry tokens.
 - Endpoints returning `not_found` MUST keep indistinguishable semantics for missing vs. existing-but-not-visible resources unless the caller has administrative visibility.
 - Bulk reads MUST enforce a maximum `limit`, and pagination cursors must be opaque tokens.
+- Routers MUST return `404 unrecognized_endpoint` for unknown paths under `/api/v1/*` and `/contrix/v1/*`, and `405 method_not_allowed` for unsupported methods on known paths, without entering business logic.
 
 ### 2.3 Endpoint Contract Registry
 
@@ -108,8 +113,8 @@ Type shorthand: `did` is a DID URI, `id` is a protocol object id, `cursor` / `to
 | `POST /api/v1/directory/search-actors` | body `{query?: string, space_id?: id, organization_did?: did, cursor?: cursor, limit?: int}` | Must not reveal pairwise/private DID or undisclosed organization accounts. | `{results[], next_cursor?}` |
 | `GET /api/v1/directory/search-users` | query `{q: string, space_id?: id, limit?: int}` | `user_session`; mention autocomplete constrained by shared Space / directory policy. | `{results[]}` |
 | `POST /api/v1/directory/resolve-handle` | body `{handle: string, expected_did?: did, proof_challenge?: string}` | Follows handle bidirectional verification; private handle requires presentation. | `{did, handle, verified: boolean, claims?}` |
-| `POST /api/v1/blob/upload` | body binary/multipart + metadata `{space_id?, sha256?, size, mimetype?, purpose?}` | `user_session`; upload capability, quota, media policy; private blob is bound to Space / actor. | `{blob_ref, size, mimetype, sha256, upload_receipt?}` |
-| `HEAD/GET /api/v1/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Contrix-Wait-For?` | Public blobs may be anonymous; private blobs verify actor/device/Space/purpose/expiry. | bytes or headers `{Content-Length, Digest, Cache-Control}` |
+| `POST /api/v1/blob/upload` | body binary/multipart + metadata `{space_id?, sha256?, size, media_type?, filename?, purpose?}`; `Content-Type` optional | `user_session`; upload capability, quota, media policy; private blob is bound to Space / actor. | `{blob_ref, size, media_type?, sha256, upload_receipt?}` |
+| `HEAD/GET /api/v1/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Contrix-Wait-For?` | Public blobs may be anonymous; private blobs verify actor/device/Space/purpose/expiry; query-string auth is not allowed. | bytes or headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
 | `POST /api/v1/push/register-device` | body `{device_id: id, push_gateway: url, push_key: string, platform?: string, app_id?: string, display_name?: string}` | `user_session` for same principal/device; push key must be encrypted or minimally disclosed at rest. | `{ok: true, registration_id?, expires_at?}` |
 | `POST /api/v1/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal or device-revocation path. | `{ok: true}` |
 | `POST /api/v1/push/notify` | body `{notification: {event_id?, space_id?, type, sender?, push_hint?, counts?, devices[]}}` | `service_signature` from authorized Sync / Index; MUST be blind/minimized for E2EE. | `{rejected[]}` |
@@ -180,9 +185,9 @@ This section is the field-level schema index for REST endpoints. Field syntax is
 | `cx.directory.search_actors` | none | `query: string`; `space_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | Must not reveal pairwise/private DIDs. |
 | `cx.directory.search_users` | `query.q: string` | `query.space_id: id`; `query.limit: int` | `results: object[]` | Mention autocomplete is constrained by shared Space / directory policy. |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | Private handles require presentation. |
-| `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `mimetype: string`; `purpose: string`; binary/multipart body | `blob_ref: string`; `size: int`; `mimetype: string?`; `sha256: string`; `upload_receipt: object?` | Upload capability, quota, and media policy apply. |
-| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: token` | headers include `Content-Length?`, `Digest?`, `Cache-Control?`, `Content-Type?` | Private blobs must verify actor/device/Space/purpose/expiry; headers must not leak invisible resources. |
-| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes; headers include `Content-Length?`, `Digest?`, `Cache-Control?`, `Content-Type?` | Private blobs must verify actor/device/Space/purpose/expiry; Range must not leak invisible resources. |
+| `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `media_type: string`; `filename: string`; `purpose: string`; binary/multipart body; `header.Content-Type: string` | `blob_ref: string`; `size: int`; `media_type: string?`; `sha256: string`; `upload_receipt: object?` | Upload capability, quota, and media policy apply; `Content-Type` defaults to `application/octet-stream`. |
+| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: token` | headers include `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | Private blobs must verify actor/device/Space/purpose/expiry; headers must not leak invisible resources. |
+| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes; headers include `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | Private blobs must verify actor/device/Space/purpose/expiry; Range and redirects must not leak invisible resources. |
 | `cx.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | Only same principal/device can register. |
 | `cx.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | Same device/principal or device-revocation path. |
 | `cx.push.notify` | `notification: object` | `notification.event_id: id`; `notification.space_id: id`; `notification.sender: did`; `notification.push_hint: string`; `notification.counts: object`; `notification.devices: object[]` | `rejected: object[]` | Only authorized Sync/Index callers; E2EE notifications MUST be minimized. |
@@ -357,7 +362,7 @@ Response example (not a complete schema):
 {
   "blob_ref": "cx:blob:sha256:e3b0...",
   "size": 102450,
-  "mimetype": "image/png"
+  "media_type": "image/png"
 }
 ```
 
@@ -387,21 +392,35 @@ Clients MUST re-check hash value against `blob_ref`.
 
 | Code | HTTP Status | Meaning |
 | --- | --- | --- |
+| `bad_json` | 400 | JSON cannot be parsed. |
+| `bad_query` | 400 | Query parameters cannot be parsed or violate schema. |
+| `missing_param` | 400 | Required parameter is missing. |
+| `invalid_param` | 400 | Parameter value is invalid. |
+| `unauthenticated` | 401 | Authentication material is missing or cannot be verified. |
 | `invalid_signature` | 401 | Signature verification failed. |
 | `auth_expired` | 401 | Authentication token or grant has expired. |
+| `soft_logged_out` | 401 | Token was softly logged out; client should re-authenticate while preserving local device keys. |
 | `capability_denied` | 403 | Caller lacks required capability. |
 | `space_frozen` | 403 | Space is frozen or archived. |
 | `not_found` | 404 | Resource missing or not visible. |
+| `unrecognized_endpoint` | 404 | Path under a protocol namespace is not declared or implemented. |
+| `method_not_allowed` | 405 | Known path does not support the HTTP method. |
 | `cas_conflict` | 409 | `expected_state_hash` mismatch. |
 | `epoch_mismatch` | 409 | MLS epoch is stale. |
+| `duplicate_conflict` | 409 | Same idempotency key maps to different canonical request body. |
+| `stale_frontier` | 409 / 503 | Local sync or auth frontier has not reached the requested point. |
 | `quota_exceeded` | 413 | Quota exceeded. |
+| `payload_too_large` | 413 | Request body or blob exceeds limits. |
 | `temporarily_unavailable` | 503 | Service is temporarily unavailable. |
 | `rate_limited` | 429 | Request rate exceeded. |
+| `timeout` | 408 / 504 | Sync frontier wait, long-poll, or upstream request timed out. |
+| `sync_token_expired` | 400 / 410 | Client sync token expired; fall back to initial sync. |
 | `unknown_did` | 422 | DID resolution failed. |
 | `schema_violation` | 422 | Payload does not match schema. |
+| `unsupported_feature` | 501 | Service does not support the requested feature. |
 | `internal_error` | 500 | Internal node error. |
 
-Clients receiving `429` or `503` MUST honor `retry_after_ms`; clients receiving `409` SHOULD retry after backing off and fetching latest state.
+Clients receiving `429` MUST prefer the `Retry-After` header and fall back to body `retry_after_ms` only when the header is absent. `503` responses with `Retry-After` must be handled the same way. Clients receiving `409` SHOULD retry after backing off and fetching latest state.
 
 ## 10. Security and Abuse Defense
 
@@ -410,4 +429,5 @@ Services SHOULD use identical failure semantics for high-risk paths:
 - Directory lookup, join probing, and public metadata endpoints SHOULD NOT return distinguishable information between `not_found` and `forbidden`.
 - Federation and policy-check edges SHOULD log source service DID and source domain hash, then apply `rate_limited` / `temporarily_unavailable` controls.
 - Requests with missing/invalid signatures SHOULD be rejected with audit trails while preserving normal service availability for authenticated principals.
+- Requests carrying authentication material in URLs SHOULD be rejected with redacted logs and must not enter normal authentication fallback.
 

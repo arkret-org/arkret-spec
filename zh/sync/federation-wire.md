@@ -6,14 +6,25 @@
 
 ## 2. Service Authentication
 
-每个 federation service MUST have DID。请求 MUST 使用 HTTP Message Signatures，并绑定：
+每个 federation service MUST 拥有自己的 service DID。请求 MUST 使用 HTTP Message Signatures，并绑定：
 
 - method
 - target URI
+- authority
 - date
 - content digest
 - source service DID
 - destination service DID
+- canonical request hash
+
+签名规则：
+
+- `origin` 与 `destination` MUST 出现在签名 transcript 中，且 MUST 与 body 字段一致。
+- `destination` MUST 是被请求服务的 service DID，不得只使用 host、SNI、IP 或 URL 作为目的地身份。
+- 有 body 的请求 MUST 携带 `Content-Digest`，接收方 MUST 在验签前或验签过程中校验 digest 与 body 一致。
+- 签名 SHOULD 带 `created` 与 `expires` 参数；过期、未来时间漂移过大或重复 nonce / request id MUST 拒绝或进入 quarantine。
+- 联邦 endpoint MUST NOT 接受 query string 中的认证材料。
+- 签名失败、目的地不匹配和请求体 hash 不一致都 MUST 使用标准 error envelope；不得返回非 JSON 框架错误。
 
 ## 3. Transaction
 
@@ -36,6 +47,7 @@ PUT /api/v1/federation/transactions/{txn_id}
 | `receipts` | body | `object[]` | optional | 与本 transaction 相关的 receipt / witness 证明。 |
 | `frontier` | body | `object` | optional | 发送方当前 causal frontier。 |
 | `created_at` | body | `datetime` | optional | 发送方创建时间；不得作为授权依据。 |
+| `request_canonical_hash` | body | `sha256:<hash>` | optional | 请求 canonical body hash；存在时 MUST 与 `Content-Digest` 和签名 transcript 一致。 |
 
 请求示例（非完整 schema）：
 
@@ -60,6 +72,14 @@ PUT /api/v1/federation/transactions/{txn_id}
 
 `origin` 与 `destination` MUST 是 service DID。接收方 MUST 验证 `destination` 与请求签名、目标 URL、DID service endpoint、Space policy 和 `service_binding_ref` 一致；不一致时 MUST 拒绝或进入 quarantine。
 
+重放与幂等规则：
+
+- 接收方 MUST 以 `(origin, destination, txn_id)` 作为 transaction 幂等键。
+- 同一幂等键 + 相同 canonical request hash MUST 返回语义等价响应。
+- 同一幂等键 + 不同 canonical request hash MUST 返回 `duplicate_conflict`。
+- 已过期签名、重复 nonce、高频失败或来源行为异常 MAY 进入 `quarantine`，但不得把隔离队列成功写入当作 Operation 已接受。
+- 单条 Operation 的接受条件仍是 Actor 签名、schema、capability、Space policy、服务委托和因果依赖全部通过；transaction 签名只证明传输来源。
+
 响应字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
@@ -68,6 +88,21 @@ PUT /api/v1/federation/transactions/{txn_id}
 | `accepted` | `id[]` | required | 已接受 operation ID。 |
 | `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和诊断信息。 |
 | `next_retry_at` | `datetime` | optional | 可重试时间；仅限限流、临时不可用或待依赖补齐场景。 |
+
+错误响应 MUST 使用 `api-conventions.md` 中的标准 error envelope。联邦 endpoint 不得使用数组包装响应，也不得用 HTTP `200` 包装失败业务结果。
+
+建议的 `reason_code`：
+
+| `reason_code` | 含义 |
+| --- | --- |
+| `invalid_signature` | service 或 Actor 签名无效。 |
+| `destination_mismatch` | `destination` 与签名、URL、DID service endpoint 或 policy binding 不一致。 |
+| `duplicate_conflict` | 相同 transaction / Operation id 对应不同内容。 |
+| `dependency_missing` | 缺少因果依赖，可通过 backfill 或 snapshot bootstrap 恢复。 |
+| `capability_denied` | Actor、service 或 Space policy 不允许。 |
+| `schema_violation` | Operation 或 transaction schema 不合法。 |
+| `temporarily_unavailable` | 依赖、frontier 或本地队列暂不可用。 |
+| `rate_limited` | 来源被限流；响应 SHOULD 携带 `Retry-After`。 |
 
 ## 4. Cross-Domain Join
 
@@ -95,9 +130,11 @@ Backfill 请求字段：
 }
 ```
 
-Remote service MUST prove it is allowed to receive the requested history. Visibility and capability rules apply to backfill.
+远端 service MUST 证明自己有权接收请求的历史范围。Backfill 必须执行 visibility 与 capability 检查。
 
-Backfill authorization MUST evaluate the requester service DID against the Space policy, membership frontier, service delegation and plaintext visibility rules. If the requested range contains non-E2EE private content, the requester MUST be a participant Principal Server or an explicitly listed `plaintext_visible_services` entry for that range.
+Backfill 授权 MUST 基于 Space policy、membership frontier、service delegation 与 plaintext visibility rules 校验 requester service DID。若请求范围包含非 E2EE 私有内容，请求方 MUST 是参与方 Principal Server，或在该范围内被显式列入 `plaintext_visible_services`。
+
+Backfill response MUST preserve the original signed Operation envelope. 服务端不得在 backfill 中重写 Actor 签名、伪造发送者、替换时间戳或把不可见明文降级为 stripped preview，除非 Space policy 明确允许该 preview 类型。
 
 ## 6. Fork Detection
 
@@ -113,6 +150,8 @@ Services SHOULD exchange frontier:
 ```
 
 If two histories contain conflicting commits with same id but different hash, service MUST quarantine and report `duplicate_conflict`。
+
+如果冲突来自同一 Actor 或同一 Repo 的不同签名 head，接收方 SHOULD 保留最小证据集：冲突 commit id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 
 ## 7. Quarantine
 

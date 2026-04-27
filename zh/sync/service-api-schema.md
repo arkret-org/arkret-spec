@@ -315,4 +315,7 @@ paths:
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - `/contrix/v1/*` 是服务本地绝对路径，不挂在 `/api/v1` 下。生成 OpenAPI 时必须为这些 path 使用 path-level `servers` 或拆成独立文档。
 - `POST /sync` 是客户端聚合增量同步；`GET /sync/subscribe` 是 Space operation 流订阅；`GET /sync/backfill` 是历史回补。三者不得互相替代，也不得新增未声明的 canonical sync endpoint。
+- 生成的 OpenAPI MUST 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
+- OpenAPI security scheme MUST NOT 定义 query string token 认证；受保护 endpoint 只能使用 header / signature / mTLS / signed proof body 等认证方式。
+- Blob / media endpoint 的 schema MUST 显式声明 `Content-Type`、`Content-Disposition`、`Range`、`Content-Range`、`Location` 和缓存头行为，避免通过 header 泄露不可见资源。
 

@@ -111,7 +111,7 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| `sync/operations-sync.md` | Repo-first 发布、op、snapshot、冲突收敛。 |
+| `sync/operations-sync.md` | Repo-first 发布、Operation、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
 | `sync/service-surface.md` | 最小服务面：principal server、identity、repo、sync、index、directory、blob、authz。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |

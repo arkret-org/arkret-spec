@@ -556,7 +556,7 @@ Transaction push 失败时：
 
 - 5xx / timeout：发送方 SHOULD 重试相同 `txn_id`
 - 4xx：发送方 SHOULD 停止重试，除非错误是 `rate_limited`
-- `rate_limited`：发送方 MUST 遵守 `retry_after_ms`
+- `rate_limited`：发送方 MUST 优先遵守 `Retry-After`，非 HTTP binding 或无 header 时再使用 `retry_after_ms`
 - `duplicate_conflict`：发送方 MUST 停止并告警
 
 Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而不是静默丢弃。

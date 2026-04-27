@@ -1,6 +1,6 @@
 # Snapshot and Encrypted Envelope Schema
 
-Snapshots accelerate bootstrap but are not the truth source. Signed ops and commits remain authoritative.
+Snapshots accelerate bootstrap but are not the truth source. Signed Operations and commits remain authoritative.
 
 Snapshot manifest includes:
 

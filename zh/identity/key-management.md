@@ -96,7 +96,7 @@ recovery key 用于当前控制密钥丢失或泄露后的恢复。
 
 device key 用于：
 
-- 日常 op 签名
+- 日常 Operation 签名
 - repo sync 认证
 - device-to-device pairing
 - MLS KeyPackage 身份绑定
@@ -206,7 +206,7 @@ MLS KeyPackage key 用于加入加密 Space。
 - repo MUST 拒绝该设备的新签名写入
 - authz MUST 视相关 session grant 失效
 - 加密 Space SHOULD 通过 MLS Remove 推进 epoch
-- Index SHOULD 标记旧设备产生的未确认 op 为高风险
+- Index SHOULD 标记旧设备产生的未确认 Operation 为高风险
 
 ## 6. Session Grant
 
@@ -364,7 +364,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 1. 立即发布 device revocation 或 key rotation。
 2. 停止接受旧设备/session 的新写入。
 3. 对 E2EE Space 触发 MLS Remove / Update。
-4. 标记泄露窗口内的高风险 op。
+4. 标记泄露窗口内的高风险 Operation。
 5. 提醒用户检查未知设备、session 和 agent grant。
 
 如果 principal signing key 泄露但 recovery key 安全，MUST 通过 recovery policy 重建当前控制密钥。  

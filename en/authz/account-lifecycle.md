@@ -14,3 +14,5 @@ Password reset or email-code recovery only restores service-account access. Unle
 
 When service-account recovery conflicts with current DID control state, the service SHOULD enter `locked` or `soft_logged_out` and require an authorized device, recovery key, threshold recovery, enterprise multi-party approval, or DID proof before rebinding.
 
+`soft_logged_out` responses use `401 soft_logged_out`; clients MUST NOT delete local E2EE device keys only because of this response.
+

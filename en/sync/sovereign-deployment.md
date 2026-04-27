@@ -92,7 +92,7 @@ flowchart TB
     EXTORG -->|"authority chain / VC"| EPOL
     EXTCLIENT -->|"invite + restricted join"| ESPACE
     EXTCLIENT --> EXTREPO
-    EXTREPO -->|"signed ops"| ESYNC
+    EXTREPO -->|"signed Operations"| ESYNC
     EXTSYNC -. "optional allowlisted federation" .-> ESYNC
 
     ESYNC -->|"accepted events only"| EINDEX

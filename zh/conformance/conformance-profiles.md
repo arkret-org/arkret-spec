@@ -175,7 +175,7 @@ SHOULD 支持：
 - local-only search coordination for encrypted Space
 - explain / debug endpoint for reducer state
 
-Index Node MUST NOT be treated as an authority unless its output can be traced to signed ops and declared reducer profile.
+Index Node MUST NOT be treated as an authority unless its output can be traced to signed Operations and declared reducer profile.
 
 ## 9. Identity Registry Node
 

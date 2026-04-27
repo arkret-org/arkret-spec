@@ -586,9 +586,14 @@ cx.vector.sync.token_expiry_recovery.v1
 
 ```json
 {
-  "errcode": "M_SYNC_TOKEN_EXPIRED",
-  "error": "sync token expired",
-  "retry_from": "initial_sync"
+  "ok": false,
+  "error": {
+    "code": "sync_token_expired",
+    "message": "sync token expired",
+    "details": {
+      "retry_from": "initial_sync"
+    }
+  }
 }
 ```
 

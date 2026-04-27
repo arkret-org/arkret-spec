@@ -25,6 +25,8 @@
 | Applet / Bridge | `applet-integration.md`, `applet-schema.md` | 已覆盖注册、命名空间和交易推送 |
 | Agent 协议互操作 | `agent-protocol-interop.md` | 已覆盖 A2A / ACP legacy 等外部 agent transport handoff |
 | Transport binding | `transport-bindings.md`, `api-conventions.md` | 已明确 HTTP/JSON 是默认 binding，不是协议核心唯一绑定 |
+| REST 安全契约 | `api-conventions.md`, `service-http-binding.md`, `service-api-schema.md` | 已覆盖未知路径/错误 method、禁止 query string 认证、`Retry-After`、CORS、统一错误 envelope |
+| 媒体与 Blob 安全 | `media-and-blob.md`, `service-http-binding.md` | 已覆盖认证下载、Range/HEAD 防泄露、Content-Type/Disposition、短期跳转 URL 和缓存边界 |
 
 ## 3. 关键缺口
 
@@ -46,13 +48,15 @@
 
 ### 3.2 OpenAPI 与非 HTTP Binding 映射
 
-当前已有默认 HTTP/JSON binding 草案，但仍需将核心 operation 同时落成：
+当前已有默认 HTTP/JSON binding 草案和 endpoint 字段级清单，但仍需将核心 operation 落成机器可执行工件：
 
 - OpenAPI for HTTP/JSON binding
 - gRPC service mapping
 - WebSocket/SSE frame schema
 - message queue envelope schema
 - libp2p / P2P message envelope
+- 统一 error envelope / security scheme / media header components
+- `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 Retry-After` 等 HTTP 行为测试
 
 优先级：**P0/P1**。
 
@@ -78,7 +82,7 @@
 
 ### 3.4 Federation Hardening
 
-需要继续细化：
+概念规则已补齐，仍需要落成测试向量和实现 profile：
 
 - service DID authentication
 - federation transaction replay protection
@@ -88,6 +92,7 @@
 - fork / equivocation detection
 - abuse handling and quarantine
 - policy server decision exchange
+- destination mismatch、canonical request hash、quarantine、snapshot-assisted backfill 的互操作测试
 
 优先级：**P1**。
 

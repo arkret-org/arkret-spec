@@ -13,6 +13,8 @@
 - 认证 MAY 使用 bearer token、HTTP Message Signature、DID proof 或 transport-specific binding。
 - 服务 MUST 通过 describe / feature discovery 暴露实际支持路径、profile 和限制。
 - 错误响应 MUST 使用统一 error schema。
+- 认证材料 MUST 放在 header、HTTP Message Signature、mTLS 或 signed proof body 中；受保护 endpoint MUST NOT 接受 query string 认证。
+- 未知路径、错误 method、限流、临时不可用和不可见资源 MUST 使用 `api-conventions.md` 中定义的标准错误语义。
 
 ### 2.1 REST API 命名空间组织
 
@@ -60,8 +62,11 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 - 除明确标记为 `public_metadata` 的 describe / discovery 外，所有 endpoint MUST 认证。
 - 认证只证明调用方身份；服务仍 MUST 执行 capability、Space policy、history visibility、service delegation 和 revocation 检查。
 - 服务间调用 MUST 使用 HTTP Message Signature 或等价 service DID proof，并绑定 method、target URI、content digest、origin service DID 和 destination service DID。
+- 服务间调用的 `origin` / `destination` 必须是 service DID，且必须与 DID Document service endpoint、目标 URL、Space policy / service delegation 和签名 transcript 一致。
+- 受保护 endpoint 不得接受 query string 中的 token、API key 或签名材料；临时下载 URL 只能使用短时效、单用途、可撤销的派生 token。
 - 返回 `not_found` 的 endpoint MUST 对“不存在”和“存在但不可见”保持一致失败语义，除非调用方已有管理权限。
 - 所有批量读取 MUST 支持 `limit` 上限，分页 cursor 必须是不透明 token。
+- 路由层 MUST 对 `/api/v1/*` 与 `/contrix/v1/*` 下的未知路径返回 `404 unrecognized_endpoint`，对已知路径的错误 method 返回 `405 method_not_allowed`，且不得进入业务逻辑。
 
 ### 2.3 端点契约清单
 
@@ -108,8 +113,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/directory/search-actors` | body `{query?: string, space_id?: id, organization_did?: did, cursor?: cursor, limit?: int}` | 不得泄露 pairwise/private DID 或未披露组织账号。 | `{results[], next_cursor?}` |
 | `GET /api/v1/directory/search-users` | query `{q: string, space_id?: id, limit?: int}` | `user_session`; 用于 mention autocomplete，必须受共同 Space / directory policy 限制。 | `{results[]}` |
 | `POST /api/v1/directory/resolve-handle` | body `{handle: string, expected_did?: did, proof_challenge?: string}` | 按 handle 双向验证规则；private handle 需 presentation。 | `{did, handle, verified: boolean, claims?}` |
-| `POST /api/v1/blob/upload` | body binary/multipart + metadata `{space_id?, sha256?, size, mimetype?, purpose?}` | `user_session`; upload capability、quota、media policy；私有 blob 绑定 Space / actor。 | `{blob_ref, size, mimetype, sha256, upload_receipt?}` |
-| `HEAD/GET /api/v1/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Contrix-Wait-For?` | 公开 blob 可匿名；私有 blob 必须验证 actor/device/Space/purpose/expiry。 | bytes 或 headers `{Content-Length, Digest, Cache-Control}` |
+| `POST /api/v1/blob/upload` | body binary/multipart + metadata `{space_id?, sha256?, size, media_type?, filename?, purpose?}`；`Content-Type` optional | `user_session`; upload capability、quota、media policy；私有 blob 绑定 Space / actor。 | `{blob_ref, size, media_type?, sha256, upload_receipt?}` |
+| `HEAD/GET /api/v1/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Contrix-Wait-For?` | 公开 blob 可匿名；私有 blob 必须验证 actor/device/Space/purpose/expiry；不得 query string 认证。 | bytes 或 headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
 | `POST /api/v1/push/register-device` | body `{device_id: id, push_gateway: url, push_key: string, platform?: string, app_id?: string, display_name?: string}` | `user_session` for same principal/device；push_key 必须被加密或最小披露存储。 | `{ok: true, registration_id?, expires_at?}` |
 | `POST /api/v1/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
 | `POST /api/v1/push/notify` | body `{notification: {event_id?, space_id?, type, sender?, push_hint?, counts?, devices[]}}` | `service_signature` from authorized Sync / Index；MUST be blind/minimized for E2EE。 | `{rejected[]}` |
@@ -180,9 +185,9 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.directory.search_actors` | 无 | `query: string`; `space_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID。 |
 | `cx.directory.search_users` | `query.q: string` | `query.space_id: id`; `query.limit: int` | `results: object[]` | mention autocomplete；受共同 Space / directory policy 限制。 |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | private handle 需要 presentation。 |
-| `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `mimetype: string`; `purpose: string`; binary/multipart body | `blob_ref: string`; `size: int`; `mimetype: string?`; `sha256: string`; `upload_receipt: object?` | upload capability、quota、media policy。 |
-| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: token` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control?`, `Content-Type?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；不得通过 header 泄露不可见资源。 |
-| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control?`, `Content-Type?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；Range 不得泄露不可见资源。 |
+| `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `media_type: string`; `filename: string`; `purpose: string`; binary/multipart body; `header.Content-Type: string` | `blob_ref: string`; `size: int`; `media_type: string?`; `sha256: string`; `upload_receipt: object?` | upload capability、quota、media policy；`Content-Type` 缺省为 `application/octet-stream`。 |
+| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: token` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；不得通过 header 泄露不可见资源。 |
+| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；Range 和 redirect 不得泄露不可见资源。 |
 | `cx.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | 只能注册当前 principal/device。 |
 | `cx.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | same device/principal 或 device revocation path。 |
 | `cx.push.notify` | `notification: object` | `notification.event_id: id`; `notification.space_id: id`; `notification.sender: did`; `notification.push_hint: string`; `notification.counts: object`; `notification.devices: object[]` | `rejected: object[]` | 来自授权 Sync/Index；E2EE 必须脱敏。 |
@@ -357,7 +362,7 @@ Content type MAY be `application/octet-stream` or `multipart/form-data`.
 {
   "blob_ref": "cx:blob:sha256:e3b0...",
   "size": 102450,
-  "mimetype": "image/png"
+  "media_type": "image/png"
 }
 ```
 
@@ -387,21 +392,35 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 
 | 错误码 | HTTP Status | 含义 |
 | --- | --- | --- |
+| `bad_json` | 400 | JSON 无法解析。 |
+| `bad_query` | 400 | Query 参数无法解析或不符合 schema。 |
+| `missing_param` | 400 | 缺少必填参数。 |
+| `invalid_param` | 400 | 参数值非法。 |
+| `unauthenticated` | 401 | 缺少或无法验证认证材料。 |
 | `invalid_signature` | 401 | 签名校验失败。 |
 | `auth_expired` | 401 | 认证令牌或 grant 已过期。 |
+| `soft_logged_out` | 401 | 令牌被软登出；客户端应重新认证但保留本地设备密钥。 |
 | `capability_denied` | 403 | 当前 actor 无所需权限。 |
 | `space_frozen` | 403 | Space 冻结或归档。 |
 | `not_found` | 404 | 目标不存在或对请求方不可见。 |
+| `unrecognized_endpoint` | 404 | 协议命名空间下的路径未声明或未实现。 |
+| `method_not_allowed` | 405 | 已知路径不支持该 HTTP method。 |
 | `cas_conflict` | 409 | `expected_state_hash` 不匹配。 |
 | `epoch_mismatch` | 409 | MLS epoch 版本过期。 |
+| `duplicate_conflict` | 409 | 相同幂等键对应不同 canonical request body。 |
+| `stale_frontier` | 409 / 503 | 服务本地同步或授权 frontier 尚未覆盖请求要求。 |
 | `quota_exceeded` | 413 | 配额超限。 |
+| `payload_too_large` | 413 | 请求体或 blob 超限。 |
 | `temporarily_unavailable` | 503 | 服务暂不可用。 |
 | `rate_limited` | 429 | 请求频率超限。 |
+| `timeout` | 408 / 504 | 等待 sync frontier、长轮询或上游请求超时。 |
+| `sync_token_expired` | 400 / 410 | 客户端同步 token 已过期，需要回退到 initial sync。 |
 | `unknown_did` | 422 | DID 无法解析。 |
 | `schema_violation` | 422 | payload 不符合 schema。 |
+| `unsupported_feature` | 501 | 服务不支持请求的 feature。 |
 | `internal_error` | 500 | 节点内部错误。 |
 
-客户端收到 `429` 或 `503` MUST 遵守 `retry_after_ms`。收到 `409` SHOULD 拉取最新状态后退避重试。
+客户端收到 `429` MUST 优先遵守 `Retry-After` header；若缺失再使用 body 中的 `retry_after_ms`。`503` 在带有 `Retry-After` 时也必须按该时间退避。收到 `409` SHOULD 拉取最新状态后退避重试。
 
 ## 10. 安全与抗滥用
 
@@ -410,4 +429,5 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 - 对目录/resolve 查询、join 探测、公开元数据接口，未授权请求不应返回可区分 `not_found` 与 `forbidden` 的信息差异。
 - 联邦入口与 policy check 入口应记录来源 service DID + 来源域名哈希，结合 `rate_limited` 与 `temporarily_unavailable` 作回压。
 - 对来源签名缺失/验证失败的入口请求，应优先走 reject + audit，不得影响已认证正常来源的可用性。
+- 对 URL 中携带认证材料的请求，应 reject + redact log，不得进入正常认证 fallback。
 

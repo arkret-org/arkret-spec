@@ -450,7 +450,7 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 
 - 协议层没有通用 `deny` grant
 - 有效权限集合是“所有当前有效 grant 的并集”
-- revoke 通过显式 op 把 grant 从有效集合移出
+- revoke 通过显式 Operation 把 grant 从有效集合移出
 
 部署层 MAY 叠加本地 deny policy，但那不属于协议级互操作语义。
 

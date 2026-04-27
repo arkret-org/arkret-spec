@@ -338,7 +338,7 @@ Reducer MUST：
 - 验证 schema
 - 验证 capability
 - 按 causal order 处理
-- 对相同 op 保持幂等
+- 对相同 Operation 保持幂等
 - 保留未知字段
 - 输出可声明的 reducer profile
 

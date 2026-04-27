@@ -202,7 +202,7 @@ message 与 topic/channel/reply/mention 的关系使用 Relation 表达：
 
 ### 8.3 Reaction
 
-reaction 建议通过独立 op 表达：
+reaction 建议通过独立 Operation 表达：
 
 - `cx.reaction.add`
 - `cx.reaction.remove`

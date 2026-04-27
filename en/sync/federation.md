@@ -8,6 +8,16 @@ Federation relies on DID service identities, signed service requests, idempotent
 
 Each Principal Server, Repo, and Index node MUST have its own service DID. DID Document `service.type` uses protocol registered names such as `ContrixPrincipalServer`; service `describe` responses use runtime `service_type` values such as `principal_server`. Federation authentication MUST verify the binding between service DID, endpoint, request signature, and declared service type.
 
+Service-to-service HTTP requests MUST use HTTP Message Signatures. The signature MUST cover `@method`, `@target-uri`, `@authority`, `content-digest` when a body is present, the request time window such as `created` / `expires`, source service DID, destination service DID, and canonical request hash.
+
+Verification rules:
+
+- Body `origin` / `destination` MUST match the service DIDs in the signature transcript.
+- `destination` MUST be the receiver service DID; reverse proxies, multi-tenant hosts, and shared ingress services cannot rely on `Host` alone.
+- Requests with bodies MUST include `Content-Digest` over the canonical request body.
+- Protected federation endpoints MUST NOT accept query-string authentication.
+- Signature failure, destination mismatch, digest mismatch, or expired request windows MUST return the standard error envelope with minimal disclosure.
+
 ## Push Flow
 
 When `server-alpha.com` receives a new Operation for a cross-domain Space and another participant Principal Server `server-beta.com` also serves that Space:
@@ -60,6 +70,8 @@ Response fields:
 | `rejected` | `object[]` | required | Rejected items; each item SHOULD include `id`, `reason_code`, and auditable detail. |
 | `quarantine` | `id[]` | optional | Operation ids held for asynchronous or human review. |
 
+Error responses MUST use the standard JSON error envelope from `api-conventions.md`. Per-Operation failures in a batch SHOULD go into `rejected[]`; whole-request authentication failure, destination mismatch, schema parse failure, or rate limiting SHOULD return the corresponding HTTP error. `rate_limited` and predictable `temporarily_unavailable` responses SHOULD include `Retry-After`.
+
 Recipient service binding rules:
 
 - An actor DID MAY declare its controlled or delegated `ContrixPrincipalServer` endpoint.
@@ -88,6 +100,24 @@ Space metadata MAY contain `sync_endpoints` for explicitly delegated shared Spac
 ```
 
 If `plaintext_visible` is true, the service DID MUST also appear in Space policy `plaintext_visible_services`. If false, the service may only receive public content, encrypted envelopes, irreversible hashes, or policy-allowed stripped previews.
+
+## Domain Bootstrap Cache
+
+DID Document service entries are the authority for federation service discovery. Domain bootstrap MAY expose:
+
+```text
+GET https://<domain>/.well-known/contrix/server
+```
+
+The response only locates candidate service endpoints; it does not authorize federation. Receivers still MUST verify service DID, DID Document, describe response, TLS name, HTTP Message Signature, Space policy / service delegation, and `destination` binding.
+
+Discovery caching rules:
+
+- Cache according to HTTP cache headers.
+- Without explicit cache time, clients MAY use a default TTL up to 24 hours.
+- Positive caches SHOULD be capped locally, with 48 hours as a recommended upper bound.
+- Negative caches must use a short TTL or exponential backoff so a temporary failure does not break cross-domain sync for too long.
+- Service delegation revocation, DID Document key-log updates, or Space policy changes must invalidate affected local cache entries by version / hash.
 
 ## Federation API Binding
 

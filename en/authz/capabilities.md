@@ -437,7 +437,7 @@ That means:
 
 - there is no generic protocol-level `deny` grant
 - the effective permission set is the union of all currently valid grants
-- revoke ops explicitly remove grants from that effective set
+- revoke Operations explicitly remove grants from that effective set
 
 Deployments MAY layer local deny policies on top, but those are outside wire-level interoperability semantics.
 

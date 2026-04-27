@@ -132,7 +132,7 @@ Question:
 
 Decision:
 
-- First recovery should prefer snapshot + op increments.
+- First recovery should prefer snapshot + Operation increments.
 - Messages/topics support cursor + backfill.
 - Board mode defaults to current state + recent relevant discussion summary.
 - Chat mode defaults to channel metadata + a recent timeline window + live increments.

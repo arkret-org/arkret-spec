@@ -74,6 +74,14 @@ API 调用 SHOULD 使用以下方式之一：
 
 服务端 MUST NOT 仅因 bearer token 存在就跳过 capability 检查。
 
+认证材料 MUST 放在 header、HTTP Message Signature、mTLS 握手或明确的 signed proof body 中。服务端 MUST NOT 接受 query string、path segment 或 fragment 中的 session token、access token、API key、签名密钥或等价认证材料。
+
+规则：
+
+- 带有 `access_token`、`session_token`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
+- 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
+- 临时下载 URL 可以把短期能力 token 放入 URL，但它 MUST 是单 blob、单用途、短时效、可撤销的派生 token，不得等同于用户 session 或长期 capability。
+
 ### 3.1 认证服务发现
 
 认证与授权服务器可以分离。服务 describe / discovery 响应 SHOULD 公布认证 metadata，但不得把 OAuth/OIDC subject 当作 Contrix principal：
@@ -140,15 +148,18 @@ API 调用 SHOULD 使用以下方式之一：
 | code | HTTP status | 含义 |
 | --- | ---: | --- |
 | `bad_json` | 400 | JSON 无法解析 |
+| `bad_query` | 400 | query 参数无法解析、重复冲突或不符合 endpoint schema |
 | `schema_violation` | 400 / 422 | 请求不符合 schema |
 | `missing_param` | 400 | 缺少必填参数 |
 | `invalid_param` | 400 | 参数值非法 |
 | `unauthenticated` | 401 | 缺少或无法验证认证材料 |
 | `auth_expired` | 401 | session / grant 已过期 |
+| `soft_logged_out` | 401 | session 被软登出；客户端应重新认证但保留本地设备密钥 |
 | `invalid_signature` | 401 | 签名不成立 |
 | `capability_denied` | 403 | capability 或 policy 不允许 |
 | `claim_required` | 403 | 缺少必要 claim / presentation |
 | `not_found` | 404 | 目标不存在或对请求方不可见 |
+| `unrecognized_endpoint` | 404 | 路径位于协议命名空间下但未被该服务实现或声明 |
 | `method_not_allowed` | 405 | HTTP method 不支持 |
 | `conflict` | 409 | 通用状态冲突 |
 | `cas_conflict` | 409 | `expected_state_hash` 不匹配 |
@@ -157,9 +168,23 @@ API 调用 SHOULD 使用以下方式之一：
 | `payload_too_large` | 413 | 请求体或 blob 超限 |
 | `quota_exceeded` | 413 / 402 | 存储、带宽或计算配额超限 |
 | `rate_limited` | 429 | 请求频率超限 |
+| `timeout` | 504 / 408 | 长轮询、等待 frontier 或上游请求超时 |
+| `stale_frontier` | 409 / 503 | 服务本地授权或同步 frontier 尚未覆盖请求要求 |
+| `sync_token_expired` | 400 / 410 | 客户端同步 token 已过期，需要回退到 initial sync 或 snapshot bootstrap |
 | `unsupported_feature` | 501 | 服务不支持该 feature |
 | `internal_error` | 500 | 服务内部错误 |
 | `temporarily_unavailable` | 503 | 服务暂不可用 |
+
+### 5.2 未知路径与错误方法
+
+对 `/api/v1/*` 与 `/contrix/v1/*` 之下的请求，服务端 MUST 使用统一错误响应，不得返回 HTML、纯文本框架错误或实现栈信息。
+
+规则：
+
+- 未声明或未实现的路径 MUST 返回 HTTP `404` 与错误码 `unrecognized_endpoint`。
+- 已知路径但 HTTP method 不受支持时 MUST 返回 HTTP `405` 与错误码 `method_not_allowed`，并 SHOULD 设置 `Allow` header。
+- 这两类请求 MUST 在路由层终止，不得进入业务逻辑、写入队列、触发昂贵解析或产生可观察副作用。
+- 客户端和联邦对端 MUST 使用 `describe.supported_operations`、OpenAPI 文档和 feature discovery 判断 endpoint 是否可用，不得根据非标准 404 body 做兼容性推断。
 
 ## 6. 幂等
 
@@ -176,7 +201,8 @@ API 调用 SHOULD 使用以下方式之一：
 
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
-- 服务端 SHOULD 记录幂等结果至少到相关 operation 被最终同步或过期。
+- 服务端 SHOULD 记录幂等键与 canonical request hash；联邦与服务间写入 MUST 将该 hash 纳入签名 transcript 或 transaction replay cache。
+- 服务端 SHOULD 记录幂等结果至少到相关 Operation 被最终同步或过期。
 
 ## 7. 分页与 cursor
 
@@ -234,7 +260,14 @@ X-Contrix-Wait-For: <sync_token>
 }
 ```
 
-HTTP response SHOULD 同时设置 `Retry-After` header。
+HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 HTTP 标准使用秒数或 HTTP date；若同时存在 `Retry-After` 与 `retry_after_ms`，客户端 MUST 优先使用 `Retry-After`。
+
+规则：
+
+- `429 rate_limited` MUST 设置 `Retry-After`。
+- `503 temporarily_unavailable` SHOULD 在可预估恢复时间时设置 `Retry-After`。
+- body 中的 `retry_after_ms` 用于非 HTTP binding 和精细诊断；其值 SHOULD 与 header 表达的时间一致。
+- 客户端和对端服务 MUST 对同一 actor / service DID / endpoint 组合执行指数退避，避免重试放大。
 
 ## 10. CORS 与浏览器客户端
 
@@ -244,11 +277,18 @@ HTTP response SHOULD 同时设置 `Retry-After` header。
 
 ```text
 Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
-Access-Control-Allow-Headers: Authorization, Content-Type, X-Contrix-Wait-For, X-Contrix-Request-Id
+Access-Control-Allow-Methods: GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS
+Access-Control-Allow-Headers: Authorization, Content-Type, Content-Digest, Digest, Idempotency-Key, X-Contrix-Wait-For, X-Contrix-Request-Id
+Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disposition, Content-Range, Location, X-Contrix-Request-Id
 ```
 
 服务端 MUST NOT 在 `OPTIONS` preflight 请求中执行写入逻辑。
+
+规则：
+
+- `Access-Control-Allow-Methods` SHOULD 反映该服务实际支持的 method 集合；支持 `HEAD` 或 `PATCH` 的服务必须把它们列入 CORS。
+- 服务端 MUST NOT 在 CORS 中允许 `CONNECT` 或 `TRACE`。
+- 浏览器可访问的私有 endpoint 不得依赖 cookie 作为唯一认证方式；推荐使用 `Authorization` header 或 device-bound proof。
 
 ## 11. 版本与 feature discovery
 
@@ -265,6 +305,17 @@ Access-Control-Allow-Headers: Authorization, Content-Type, X-Contrix-Wait-For, X
 
 客户端 MUST 根据 feature discovery 决定是否启用可选能力，不得假设所有节点都支持完整协议。
 
+### 11.1 服务发现缓存与委托
+
+服务 DID Document 中的 service endpoint 是服务身份与 endpoint 绑定的权威来源。域名级 bootstrap MAY 通过 `/.well-known/contrix/server` 或等价 signed metadata 暴露 endpoint 摘要，但接收方仍 MUST 校验：
+
+- HTTPS/TLS 名称与返回的 endpoint 一致；
+- service DID、DID Document service entry、describe 响应和 HTTP Message Signature 绑定一致；
+- Space policy 或 actor / organization service delegation 允许该服务角色；
+- metadata hash / version 未被本地策略标记为撤销或过期。
+
+服务发现结果 SHOULD 按 HTTP cache header 缓存。未提供显式缓存时间时，客户端 MAY 使用不超过 24 小时的默认 TTL；实现 SHOULD 对正缓存设置上限（建议不超过 48 小时），对失败缓存使用更短 TTL 或指数退避，避免一次临时故障长期破坏联邦。
+
 ## 12. 安全要求
 
 服务实现 MUST：
@@ -275,6 +326,9 @@ Access-Control-Allow-Headers: Authorization, Content-Type, X-Contrix-Wait-For, X
 - 防止错误信息泄露不可见资源存在性
 - 对高成本查询执行配额控制
 - 对公开 endpoint 做滥用防护
+- 拒绝 URL query / path 中的认证材料
+- 对未知路径、错误 method、不可见资源和权限失败使用一致的最小披露错误语义
+- 对下载、跳转、服务发现和联邦请求中的外部 URL 做 allowlist / policy 检查
 
 服务实现 SHOULD：
 

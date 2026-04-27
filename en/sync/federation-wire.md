@@ -14,6 +14,28 @@ Required areas:
 
 Principal Server, sync, repo, and index services MUST verify operation signatures, schema, capabilities, and source service authority.
 
+## Service Authentication
+
+Every federation service MUST have a service DID. Federation requests MUST use HTTP Message Signatures bound to:
+
+- method
+- target URI
+- authority
+- date
+- content digest
+- source service DID
+- destination service DID
+- canonical request hash
+
+Rules:
+
+- `origin` and `destination` MUST appear in the signature transcript and must match the body fields.
+- `destination` MUST be the requested service DID; host, SNI, IP address, or URL alone is not a destination identity.
+- Requests with bodies MUST carry `Content-Digest`; receivers MUST verify the digest against the body.
+- Signatures SHOULD include `created` and `expires`; expired signatures, excessive future skew, and repeated nonces / request ids MUST be rejected or quarantined.
+- Federation endpoints MUST NOT accept authentication material in query strings.
+- Signature failure, destination mismatch, and body hash mismatch MUST use the standard JSON error envelope.
+
 ## Transaction Envelope
 
 HTTP binding:
@@ -37,6 +59,7 @@ Request fields:
 | `receipts` | body | `object[]` | optional | Receipt / witness evidence related to this transaction. |
 | `frontier` | body | `object` | optional | Sender causal frontier. |
 | `created_at` | body | `datetime` | optional | Sender creation time; MUST NOT be used as authorization by itself. |
+| `request_canonical_hash` | body | `sha256:<hash>` | optional | Canonical body hash; when present it MUST match `Content-Digest` and the signature transcript. |
 
 Request example (not a complete schema):
 
@@ -59,6 +82,14 @@ Request example (not a complete schema):
 
 `origin` and `destination` MUST be service DIDs. The receiver MUST verify that `destination` matches the request signature, target URL, DID service endpoint, Space policy, and `service_binding_ref`; mismatches MUST be rejected or quarantined.
 
+Replay and idempotency rules:
+
+- Receivers MUST use `(origin, destination, txn_id)` as the transaction idempotency key.
+- Same idempotency key plus same canonical request hash MUST return a semantically equivalent response.
+- Same idempotency key plus different canonical request hash MUST return `duplicate_conflict`.
+- Expired signatures, repeated nonces, high failure rates, or anomalous source behavior MAY be quarantined, but queueing in quarantine is not operation acceptance.
+- Each Operation is accepted only after Actor signature, schema, capability, Space policy, service delegation, and causal dependencies all pass. The transaction signature proves only the transport source.
+
 Response fields:
 
 | Field | Type | Required | Meaning and constraints |
@@ -68,6 +99,29 @@ Response fields:
 | `rejected` | `object[]` | required | Rejected items; each item SHOULD include `id`, `reason_code`, and diagnostic detail. |
 | `next_retry_at` | `datetime` | optional | Retry time for rate-limited, temporarily unavailable, or dependency-missing cases. |
 
+Error responses MUST use the standard error envelope from `api-conventions.md`. Federation endpoints MUST NOT use array-wrapped responses or encode business failures inside HTTP `200`.
+
+Recommended `reason_code` values:
+
+| `reason_code` | Meaning |
+| --- | --- |
+| `invalid_signature` | Service or Actor signature is invalid. |
+| `destination_mismatch` | `destination` does not match signature, URL, DID service endpoint, or policy binding. |
+| `duplicate_conflict` | Same transaction / Operation id maps to different content. |
+| `dependency_missing` | Causal dependency is missing and may be recovered by backfill or snapshot bootstrap. |
+| `capability_denied` | Actor, service, or Space policy denies the request. |
+| `schema_violation` | Operation or transaction schema is invalid. |
+| `temporarily_unavailable` | Dependency, frontier, or local queue is temporarily unavailable. |
+| `rate_limited` | Source is rate-limited; response SHOULD include `Retry-After`. |
+
 Backfill authorization MUST evaluate the requester service DID against Space policy, membership frontier, service delegation, and plaintext visibility rules. If the requested range contains non-E2EE private content, the requester MUST be a participant Principal Server or an explicitly listed `plaintext_visible_services` entry for that range.
+
+Backfill responses MUST preserve original signed Operation envelopes. Services MUST NOT rewrite Actor signatures, forge senders, replace timestamps, or downgrade invisible plaintext into stripped previews unless Space policy explicitly allows that preview type.
+
+## Fork Evidence
+
+If two histories contain conflicting commits with the same id but different hashes, services MUST quarantine and report `duplicate_conflict`.
+
+When a conflict comes from the same Actor or Repo with different signed heads, receivers SHOULD retain a minimal evidence set: conflicting commit id, hash, signing key id, source service DID, receive time, and related frontier. Evidence must not include unauthorized plaintext payloads.
 
 

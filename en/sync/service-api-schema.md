@@ -331,5 +331,8 @@ All `operation_id` values MUST be stable across versions and treated as the conf
 - OpenAPI does **not** define protocol behavior alone; behavior remains in the canonical object, auth, and sync specs.
 - `/contrix/v1/*` is a service-local absolute path, not a child of `/api/v1`. Generated OpenAPI documents must use path-level `servers` for these paths or publish them in a separate document.
 - `POST /sync` is client aggregate incremental sync; `GET /sync/subscribe` is Space operation stream subscription; `GET /sync/backfill` is historical backfill. They MUST NOT be treated as interchangeable sync endpoints.
+- Generated OpenAPI MUST reference the common error envelope and include standard responses for `404 unrecognized_endpoint`, `405 method_not_allowed`, `429 rate_limited`, and `503 temporarily_unavailable`.
+- OpenAPI security schemes MUST NOT define query-string token authentication. Protected endpoints may only use headers, signatures, mTLS, signed proof bodies, or equivalent transport bindings.
+- Blob / media endpoint schemas MUST explicitly declare `Content-Type`, `Content-Disposition`, `Range`, `Content-Range`, `Location`, and cache header behavior so headers cannot leak invisible resources.
 
 

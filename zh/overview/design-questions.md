@@ -134,7 +134,7 @@
 
 决策：
 
-- 首次恢复优先走 snapshot + op 增量。
+- 首次恢复优先走 snapshot + Operation 增量。
 - message/topic 支持 cursor + backfill。
 - board 默认同步当前态 + 最近相关讨论摘要。
 - chat 默认同步频道元数据 + 最近窗口 + live 增量。

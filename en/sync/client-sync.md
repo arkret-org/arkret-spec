@@ -24,6 +24,8 @@ Response fields:
 | Field | Type | Required | Meaning and constraints |
 | --- | --- | --- | --- |
 | `next_batch` | `token` | required | Opaque token for the next sync call. |
+
+Over-limit requests return `rate_limited`, `payload_too_large`, or `invalid_param` with `Retry-After`, `retry_after_ms`, or `limits` details as applicable. Expired sync tokens return `sync_token_expired`; clients should fall back to initial sync or snapshot-assisted initial sync while keeping unconfirmed offline writes.
 | `spaces` | `object` | optional | Native Contrix Space sync result. |
 | `rooms` | `object` | optional | Matrix bridge compatibility field; native implementations SHOULD use `spaces`. |
 | `to_device` | `object` | optional | To-device messages for the current device. |

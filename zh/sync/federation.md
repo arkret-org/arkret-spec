@@ -60,6 +60,18 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - `@target-uri`
 - `content-digest`（针对有 body 的请求）
 - `@authority`
+- 请求时间窗口（如 `created` / `expires`）
+- 来源 service DID
+- 目标 service DID
+- canonical request hash
+
+签名验证规则：
+
+- body 中的 `origin` / `destination` MUST 与签名 transcript 中的来源 / 目标 service DID 一致。
+- `destination` MUST 是接收方 service DID；反向代理、多租户 host 或 shared ingress 不能只凭 `Host` 判断目的地。
+- 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。
+- 受保护联邦 endpoint MUST NOT 接受 query string 认证。
+- 签名失败、destination 不匹配、digest 不匹配或时间窗口失效 MUST 返回标准 error envelope，并尽量不泄露 Space、Actor 或 Operation 是否存在。
 
 ### 3.3 域信任模型
 
@@ -131,6 +143,8 @@ Signature: sig1=:base64...:
 | `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Operation ID。 |
 
 4. `server-beta.com` 独立验证每个 Operation 的 Actor 签名、Space policy、服务委托、接收方服务绑定和因果链，然后决定是否接受
+
+错误响应 MUST 使用 `api-conventions.md` 中的标准 JSON error envelope。批量请求中，单条 Operation 的拒绝 SHOULD 进入 `rejected[]`；整个请求无法认证、目的地不匹配、schema 解析失败或被限流时 SHOULD 返回对应 HTTP 错误。`rate_limited` 和可预期恢复的 `temporarily_unavailable` SHOULD 携带 `Retry-After`。
 
 接收方服务绑定规则：
 
@@ -245,6 +259,24 @@ Bob 也可以主动申请加入：
 ```
 DID Document -> service[type=ContrixRepo] -> service_endpoint
 ```
+
+### 6.3 域名级服务发现缓存
+
+DID Document 的 service entry 是联邦服务发现的权威来源。域名级 bootstrap MAY 暴露：
+
+```text
+GET https://<domain>/.well-known/contrix/server
+```
+
+该响应只用于找到候选服务 endpoint，不直接授权联邦请求。接收方仍 MUST 校验 service DID、DID Document、describe 响应、TLS 名称、HTTP Message Signature、Space policy / service delegation 和 `destination` 绑定一致。
+
+缓存规则：
+
+- 按 HTTP cache header 缓存服务发现响应。
+- 未提供显式缓存时间时 MAY 使用不超过 24 小时的默认 TTL。
+- 正缓存 SHOULD 设置本地上限（建议不超过 48 小时）。
+- 失败缓存必须短 TTL 或指数退避，避免一次临时故障长期破坏跨域同步。
+- service delegation 被撤销、DID Document key log 更新或 Space policy 变更时，本地缓存必须按版本 / hash 失效。
 
 ## 7. 联邦 API 端点
 
@@ -433,7 +465,7 @@ POST /api/v1/federation/verify-actor
 
 - 批次内必须保持 `operations` 的原始签名 Envelope 顺序与 `operation_id` 可去重性。
 - Gossip 转发不得改变单条 operation 的语义、签名或时间线排序前置假设。
-- 不得以批处理成功作为 operation 被最终可验证的充要条件；最终仍以 `operation_id`、签名、因果前沿验证判定是否可见。
+- 不得以批处理成功作为 Operation 被最终可验证的充要条件；最终仍以 `operation_id`、签名、因果前沿验证判定是否可见。
 - 每个 batch 应带可核验的批次摘要（例如请求级 hash）以便对端做重试/重放检测。
 
 ### 9.3 跨域权限委托与级联（明确边界项）

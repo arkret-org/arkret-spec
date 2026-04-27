@@ -12,7 +12,7 @@ Client Sync 是客户端稳定增量同步协议。它不替代 repo replication
 
 ```http
 POST /api/v1/sync
-Authorization: Bearer <access_token>
+Authorization: Bearer <session_token>
 Content-Type: application/json
 ```
 
@@ -259,7 +259,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - 最大通配符展开量
 - 最大等待时间
 
-超限返回 `M_LIMIT_EXCEEDED`，并在 `retry_after_ms` 或 `limits` 中说明。
+超限返回 `rate_limited`、`payload_too_large` 或 `invalid_param`，并在 `Retry-After`、`retry_after_ms` 或 `limits` 中说明。
 
 ## 10. Token Semantics
 
@@ -272,7 +272,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - stream positions
 - expiry
 
-服务端 MAY 拒绝过期 token，并返回 `M_SYNC_TOKEN_EXPIRED`。客户端应回退到 initial sync。
+服务端 MAY 拒绝过期 token，并返回 `sync_token_expired`。客户端应回退到 initial sync。
 
 ## 11. Initial Sync
 
