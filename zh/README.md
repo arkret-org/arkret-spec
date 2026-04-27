@@ -176,20 +176,7 @@ Contrix New 第一阶段聚焦以下目标：
 
 后续新增能力应优先作为 profile 或独立章节进入 [spec-map.md](./spec-map.md) 对应分组，避免继续堆进单个超大文件。
 
-## 9. 下一轮优先级
-
-在当前框架稳定后，建议优先继续细化：
-
-1. 测试向量  
-   已有 `space_version=1` 下的首批一致性向量，继续补齐 state resolution、redaction、capability、sync token、snapshot frontier、MLS key gap 的可执行向量。
-2. OpenAPI 合并  
-   将 `service-api-schema.md`、`client-sync.md`、`device-crypto-verification.md`、`policy-server.md` 的默认 HTTP binding 落成统一 OpenAPI，同时保留 canonical operation 到其他 transport 的映射。
-3. Conformance suite  
-   为 repo、relay、index、E2EE client、Applet、policy server 定义自动化互操作测试，统一放入 `conformance-suite.md`，并与 `conformance-profiles.md` 的 profile 要求绑定。
-4. 当前版本统一治理  
-   当前草案坚持 `space_version=1`。不启用第二版 space，兼容性演进通过显式 profile 约束、字段弃用策略和兼容测试向量来控制；不允许“切换 space_version=2”来规避不兼容实现。
-
-## 10. 一句话总结
+## 9. 一句话总结
 
 Contrix New 要解决的是：
 

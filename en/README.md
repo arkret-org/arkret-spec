@@ -214,20 +214,7 @@ This round moves the protocol from a directional sketch to a "question inventory
 - missing objects such as `schema/policy/invite/read_marker/notification`
 - idempotent submission, authorization timing, and encrypted-payload forwarding semantics
 
-## 9. Next Priorities
-
-Once this framework stabilizes, the next priorities should be:
-
-1. Test vectors  
-   Continue adding cross-implementation vectors for canonical JSON, event hashes, signatures, state resolution, redaction, capability, and sync tokens. All implementations in this draft are on a single active space profile (`space_version=1`) with evolution applied through profile-bound feature flags, not a space version fork.
-2. OpenAPI consolidation  
-   Merge the service, sync, device crypto, and policy-server endpoint drafts into a single OpenAPI surface.
-3. Conformance suite  
-   Expand the conformance suite into explicit automated interoperability fixtures for repo, relay, index, E2EE client, Applet, and policy-server profiles.
-4. Release-ready baseline  
-   Before public preview, require a complete test matrix and implementation profiles from `conformance-suite.md` and `conformance-profiles.md`. This draft keeps `space_version` fixed at `1`; compatibility changes are handled by explicit deprecation and profile gating, not new space versions.
-
-## 10. One-sentence Summary
+## 9. One-sentence Summary
 
 Contrix New is meant to solve:
 
