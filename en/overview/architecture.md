@@ -100,27 +100,55 @@ Agents are first-class protocol participants, not just plugins hanging off a UI.
 
 Contrix defines capabilities as service roles. Real deployments may combine multiple roles in one process, domain, or node. Combining roles does not merge their security boundaries: service DID, `service_type`, capability, Space policy, plaintext visibility, and endpoint contracts must remain distinguishable.
 
-Recommended server types:
+User-facing and operator-facing documentation should first explain what must be self-hosted at each deployment level, instead of requiring users to understand every service role.
 
-| Server type | Common `service_type` | Main services | Truth source? | Plaintext boundary |
+| Deployment level | Must self-host | Usually public or managed | Fits |
+| --- | --- | --- | --- |
+| Individual / small team | Personal / Team Server | Identity Resolver, Directory, Push Gateway, TURN / Media Relay | Individuals, families, small projects, small teams. |
+| Standard organization | Organization Server, Auth / Account Server; add Admin / Policy Server when centralized authorization and audit are needed | Identity Resolver, Directory, Push Gateway, TURN / Media Relay | Companies, schools, communities, ordinary collaboration organizations. |
+| High-security organization | Organization / Principal Server, Auth / Account Server, Identity Registry / Resolver, Policy / Authz Server, Blob / Media Server | Public Directory, Push Gateway, or external federation gateways are optional | Government, enterprise, healthcare, finance, high-compliance organizations. |
+| Classified / isolated network | Principal Server, Identity Registry / Resolver, Auth / Account Server, Directory Server, Policy / Authz Server, Repo / Blob Server, Sync / Federation Server, Audit / Compliance Server | Public services are normally not dependencies; cross-domain collaboration must use controlled gateways, invitation bundles, or trust bundles that define resolver context | Military, intranet, fully isolated, or strongly controlled networks. |
+
+The minimum individual or small-team deployment has one user-visible server:
+
+```text
+Personal / Team Server
+├─ principal endpoint
+├─ repo storage
+├─ sync / federation endpoint
+├─ local policy
+├─ blob storage
+└─ basic app view / inbox
+```
+
+It may use public infrastructure by default:
+
+- Identity Registry / Resolver: public DID / handle resolution.
+- Directory Server: public Space, Organization, Actor, and Applet discovery.
+- Push Gateway: blind mobile or desktop notification delivery.
+- TURN / Media Relay: media relay and NAT traversal.
+
+Ordinary users should not need to self-host Directory Server, Push Gateway, Identity Registry / Resolver, TURN / Media Relay, Moderation / Compliance Server, or a standalone Index / AppView Server. These infrastructure roles should be self-hosted only when an organization needs identity sovereignty, network isolation, compliance audit, independence from public networks, or controlled cross-organization federation.
+
+Advanced implementations still declare capabilities and security boundaries through the following service roles. Multiple roles may be combined in one deployment, but service DID, `service_type`, capability, Space policy, plaintext visibility, and endpoint contracts must remain distinguishable.
+
+| Service role | Common `service_type` | Main services | Truth source? | Plaintext boundary |
 | --- | --- | --- | --- | --- |
-| Principal Server | `principal_server` | Principal-controlled entry point; may aggregate repo, sync, federation, device messages, policy, blob, and index capabilities. Product layers may present it as a Home/Work Server. | No; truth comes from signed repos / events. | May receive non-encrypted content only within principal or Space-policy delegation. |
+| Principal Server | `principal_server` | Principal-controlled entry point; may aggregate repo, sync, federation, device messages, policy, blob, and index capabilities. Product layers may present it as a Home / Work / Team Server. | No; truth comes from signed repos / events. | May receive non-encrypted content only within principal or Space-policy delegation. |
 | Identity Registry / Resolver | `identity_registry` | DID Documents, DID key logs, handle bindings, receipts / witnesses, service discovery. | One verifiable source for identity control history. | Should not receive Space bodies. |
 | Auth / Account Server | `auth_server` or deployment-specific | Passkeys, OIDC, SSO, device pairing, session grants, account recovery, soft logout. | No; it proves service-account login and binds it to DID / device. | Password recovery must not grant E2EE plaintext or DID control by itself. |
 | Repo Server | `repo_node` | Commit submission, Operation / commit reads, repo incremental sync, audit replay. | Hosts the publication log; authority comes from signatures and hash chains. | May store plaintext contained in commits only under principal / Space-policy delegation. |
 | Sync / Federation Server | `principal_server` or `sync_node` | Client sync, Space subscription, backfill, snapshot heads, cross-domain federation transactions. | No; it propagates and backfills. | May forward non-encrypted private content only to authorized Principal Servers or `plaintext_visible_services`. |
-| Index / AppView Server | `index_node` / `appview_node` | Current state, query, search, inbox, notifications, view projections, embeddings/vector indexes. | No; derived layer. | Private plaintext indexing requires `plaintext_visible_services`. |
+| Index / AppView Server | `index_node` / `appview_node` | Current state, query, search, inbox, notifications, view projections, embeddings / vector indexes. | No; derived layer. | Private plaintext indexing requires `plaintext_visible_services`. |
 | Directory Server | `directory_service` | Authorized search and exact resolution for Spaces, Organizations, Actors, handles, and Applets. | No; derived discovery layer. | Returns minimum discoverable data and must not expose private topology. |
-| Blob / Media Server | `blob_node` / `media_service` | Blob upload, HEAD/GET authenticated download, thumbnails, previews, retention, media policy. | Content hash is verifiable; metadata is service-declared. | Private downloads, previews, and thumbnails require authorization. |
+| Blob / Media Server | `blob_node` / `media_service` | Blob upload, HEAD / GET authenticated download, thumbnails, previews, retention, media policy. | Content hash is verifiable; metadata is service-declared. | Private downloads, previews, and thumbnails require authorization. |
 | Device / Key Server | `device_key_service` | To-device messages, one-time keys, fallback keys, device lists, secret-backup metadata. | No; device trust comes from signature chains. | Should not be able to decrypt E2EE bodies. |
 | Authz / Policy Server | `authz_service` / `policy_server` | Capability queries, grant / invite queries, policy decisions, risk scoring, quarantine / review. | No; decisions must trace to signed policy / grants. | Policy previews use minimum disclosure unless plaintext-visible authority is explicit. |
 | Push Gateway | `push_gateway` | Push device registration, unregister, blind notification delivery, mobile push adapters. | No. | Must not receive E2EE plaintext or body summaries by default. |
 | Applet Server | `applet_service` | Bots, bridges, external SaaS, portal Spaces, ghost actors, Applet transactions. | No; writes still require capabilities and signatures. | Plaintext visibility is limited by explicit Space / principal authorization. |
-| Agent Runtime Server | `agent_runtime` | Agent runs, tool execution, memory promotion, A2A / ACP / MCP handoff. | No; outputs become protocol facts only after writing to Repo / Space. | Agent visibility is bounded by capability, device/session, and Space policy. |
-| Realtime Media Server | `media_service` / `sfu_service` / `turn_service` | WebRTC assist, ICE config, TURN/STUN, SFU/MCU, recording. | No. | SFU/TURN normally should not see plaintext; MCU/recording requires explicit authorization. |
+| Agent Runtime Server | `agent_runtime` | Agent runs, tool execution, memory promotion, A2A / ACP / MCP handoff. | No; outputs become protocol facts only after writing to Repo / Space. | Agent visibility is bounded by capability, device / session, and Space policy. |
+| Realtime Media Server | `media_service` / `sfu_service` / `turn_service` | WebRTC assist, ICE config, TURN / STUN, SFU / MCU, recording. | No. | SFU / TURN normally should not see plaintext; MCU / recording requires explicit authorization. |
 | Moderation / Compliance Server | `moderation_service` | Reports, review queues, server ACLs, policy lists, appeals, legal hold / erasure workflows. | No; results must become auditable policy / moderation events. | Receives only minimum evidence or explicitly authorized plaintext. |
-
-A minimal personal node can combine Principal Server, Repo Server, Sync/Federation, Index, Blob, Device/Key, Authz, and Push in one deployment. Organization deployments typically separate Auth, Policy, Index, Blob, Directory, Media, and Moderation for scaling, auditability, and plaintext visibility control.
 
 The protocol does not require every server type to be publicly deployed. Actual support must be declared through DID Document service entries, `GET /api/v1/server/describe`, `supported_operations`, conformance profiles, and Space policy.
 

@@ -67,21 +67,21 @@ Without that, clients cannot safely decide whether to use the service.
 
 In deployment, a "server" is a combination of one or more service surfaces; it is not automatically a protocol truth source. Implementations may merge servers, but `server/describe` must still declare `service_type`, `supported_operations`, authentication methods, limits, and profiles.
 
-Common combinations:
+Common combinations follow. "Required" here means the protocol interaction needs the capability to exist; it does not mean every user must self-host it. Individuals and small teams usually self-host only a Personal / Team Server and use public or managed infrastructure for the rest.
 
-| Concrete server | Required / optional | Typical REST namespaces | Main capability |
+| Concrete server | Standard deployment guidance | Typical REST namespaces | Main capability |
 | --- | --- | --- | --- |
-| Principal Server | Required; every principal or organization needs at least one controlled entry point | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
-| Identity Registry / Resolver | Required; may use multiple registries / witnesses | `/identity`, `/server` | DID Documents, DID logs, handle bindings, receipts, witnesses, service endpoint discovery. |
-| Auth / Account Server | Usually required for hosted services; may be embedded in self-hosting | Exposed through `auth_metadata`; login paths may be deployment-specific | Login, passkeys/OIDC/SSO, session grants, device pairing, account recovery; does not replace DID control. |
-| Repo Server | Required; local or remote | `/repo`, `/server` | Commit submission, Operation / commit reads, repo sync, audit replay, hash-chain verification. |
-| Sync / Federation Server | Required; usually part of the Principal Server | `/sync`, `/federation`, `/server` | Client sync, subscriptions, backfill, snapshot heads, cross-domain transactions, replay and destination-binding checks. |
-| Index / AppView Server | Strongly recommended; some capability may be local-client only | `/index`, `/server` | Current state, query, search, inbox, notification, View projection, embedding/vector index. |
-| Directory Server | Optional, common for public or organization deployments | `/directory`, `/server` | Authorized search and resolution for Spaces, Organizations, Actors, handles, and Applets. |
-| Blob / Media Server | Required for attachments and snapshot chunks | `/blob`, `/server` | Blob upload, authenticated download, HEAD, Range, thumbnails, previews, retention, media safety. |
-| Device / Key Server | Required for E2EE profiles | `/device_messages`, `/keys`, `/server` | To-device messages, one-time keys, fallback keys, device lists, key-backup metadata. |
-| Authz / Policy Server | Recommended as a separate service for shared Spaces and organization governance | `/authz`, `/contrix/v1/check`, `/server` | Effective grants, invite queries, capability precheck, signed policy decisions, risk / quarantine. |
-| Push Gateway | Optional for mobile/desktop notifications | `/push`, `/server` | Push device registration, unregister, blind notification delivery, APNs/FCM/vendor adapters. |
+| Principal Server | Core user-hosted entry point; product layers may combine it as a Personal / Team / Organization Server | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
+| Identity Registry / Resolver | Ordinary users normally use public services; high-security or isolated networks self-host it | `/identity`, `/server` | DID Documents, DID logs, handle bindings, receipts, witnesses, service endpoint discovery. |
+| Auth / Account Server | May be embedded for personal deployments; organizations usually separate it or connect SSO | Exposed through `auth_metadata`; login paths may be deployment-specific | Login, passkeys/OIDC/SSO, session grants, device pairing, account recovery; does not replace DID control. |
+| Repo Server | Usually embedded in the Personal / Team Server for ordinary users | `/repo`, `/server` | Commit submission, Operation / commit reads, repo sync, audit replay, hash-chain verification. |
+| Sync / Federation Server | Usually embedded in the Principal Server for ordinary users | `/sync`, `/federation`, `/server` | Client sync, subscriptions, backfill, snapshot heads, cross-domain transactions, replay and destination-binding checks. |
+| Index / AppView Server | May be local or embedded for individuals; organizations self-host it when search and app views require it | `/index`, `/server` | Current state, query, search, inbox, notification, View projection, embedding/vector index. |
+| Directory Server | Ordinary users normally use a public directory; organizations self-host it for discovery control or isolated networks | `/directory`, `/server` | Authorized search and resolution for Spaces, Organizations, Actors, handles, and Applets. |
+| Blob / Media Server | Usually embedded for individuals; may be separated for large files or high-security organizations | `/blob`, `/server` | Blob upload, authenticated download, HEAD, Range, thumbnails, previews, retention, media safety. |
+| Device / Key Server | Needed by E2EE profiles; usually embedded in the Principal Server for individuals | `/device_messages`, `/keys`, `/server` | To-device messages, one-time keys, fallback keys, device lists, key-backup metadata. |
+| Authz / Policy Server | May be embedded for individuals; recommended as a separate service for shared Spaces and organization governance | `/authz`, `/contrix/v1/check`, `/server` | Effective grants, invite queries, capability precheck, signed policy decisions, risk / quarantine. |
+| Push Gateway | Ordinary users normally use public or managed push; intranet or high-security organizations may self-host it | `/push`, `/server` | Push device registration, unregister, blind notification delivery, APNs/FCM/vendor adapters. |
 | Applet Server | Optional for integrations, bridges, and automations | `/applet`, `/server` | Applet describe, transactions, ghost actors, portal Spaces, third-party lookup. |
 | Agent Runtime Server | Optional but recommended for agent workloads | Service surfaces defined by `extensions/agent-*`, usually writing results through `/repo` | Agent execution, tool calls, run logs, memory, A2A/ACP/MCP handoff. |
 | Realtime Media Server | Optional for calls and meetings | `/contrix/v1/ice-config`, plus WebRTC signaling / TURN / SFU profiles | ICE config, TURN/STUN, SFU/MCU, recording policy, short-lived media credentials. |
@@ -89,8 +89,10 @@ Common combinations:
 
 Recommended deployment profiles:
 
-- `personal_node`: Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz, with optional local Index.
-- `organization_workserver`: Principal Server + Repo + Sync/Federation + Index + Directory + Blob + Device/Key + Authz + Push.
+- `personal_node`: user-visible as one Personal / Team Server; internally combines Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz, with optional local Index; Identity Resolver, Directory, Push, and TURN/Media may use public services by default.
+- `organization_workserver`: Organization Server + Auth / Account Server; add Policy Server when centralized authorization and audit are needed; Index, Blob, Directory, and Push may be split according to scale and compliance requirements.
+- `secure_organization`: Organization / Principal Server + Auth + Identity Registry / Resolver + Policy/Authz + Blob/Media; public Directory, Push, or external federation ingress are optional external connectivity points only.
+- `isolated_enclave`: Principal + Identity Registry / Resolver + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance all deployed inside the trust domain.
 - `public_federation_ingress`: restricted Principal/Federation + Policy + Moderation + Directory; plaintext is not visible by default.
 - `applet_bridge`: Applet Server + Repo writer + Authz precheck, limited to authorized namespace and capability.
 - `agent_runtime`: Agent Runtime + Repo writer + Memory/Index integration; all durable writes are signed by principal / agent DID.

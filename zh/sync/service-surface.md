@@ -68,21 +68,21 @@ DID Document SHOULD 只负责：
 
 实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `server/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
 
-常见组合如下：
+常见组合如下。这里的“需要”表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建 Personal / Team Server，其余基础设施可使用公共或托管服务。
 
-| 实际服务器 | 必要 / 可选 | 通常暴露的 REST namespace | 主要能力 |
+| 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
-| Principal Server | 必要；每个 principal 或组织至少需要一个受控入口 | `/server`, `/sync`, `/federation`, 可代理 `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
-| Identity Registry / Resolver | 必要；可多 registry / witness | `/identity`, `/server` | DID document、DID log、handle binding、receipt、witness、service endpoint discovery。 |
-| Auth / Account Server | 托管服务通常必要；自托管可内置 | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
-| Repo Server | 必要；可本地或远端 | `/repo`, `/server` | commit 提交、Operation / commit 读取、repo sync、审计回放、hash chain 校验。 |
-| Sync / Federation Server | 必要；通常是 Principal Server 的一部分 | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
-| Index / AppView Server | 强烈建议；可客户端本地替代部分能力 | `/index`, `/server` | 当前态、查询、搜索、inbox、notification、View projection、embedding/vector index。 |
-| Directory Server | 可选但公共/组织部署常用 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，最小披露发现。 |
-| Blob / Media Server | 附件和 snapshot chunk 场景必要 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
-| Device / Key Server | E2EE profile 必要 | `/device_messages`, `/keys`, `/server` | to-device message、one-time key、fallback key、device list、key backup metadata。 |
-| Authz / Policy Server | 共享 Space 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
-| Push Gateway | 移动/桌面通知可选 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
+| Principal Server | 普通用户自建的核心入口；产品层可合并为 Personal / Team / Organization Server | `/server`, `/sync`, `/federation`, 可代理 `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
+| Identity Registry / Resolver | 普通用户默认使用公共服务；高安全或隔离网络才自建 | `/identity`, `/server` | DID document、DID log、handle binding、receipt、witness、service endpoint discovery。 |
+| Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
+| Repo Server | 普通用户通常内置在 Personal / Team Server | `/repo`, `/server` | commit 提交、Operation / commit 读取、repo sync、审计回放、hash chain 校验。 |
+| Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
+| Index / AppView Server | 个人可本地或内置；组织按搜索和应用视图需求自建 | `/index`, `/server` | 当前态、查询、搜索、inbox、notification、View projection、embedding/vector index。 |
+| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，最小披露发现。 |
+| Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
+| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/server` | to-device message、one-time key、fallback key、device list、key backup metadata。 |
+| Authz / Policy Server | 个人可内置；共享 Space 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
+| Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Space、third-party lookup。 |
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/repo` 写回结果 | agent 执行、tool 调用、run log、memory、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
@@ -90,8 +90,10 @@ DID Document SHOULD 只负责：
 
 推荐 deployment profile：
 
-- `personal_node`：Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz，可选本地 Index。
-- `organization_workserver`：Principal Server + Repo + Sync/Federation + Index + Directory + Blob + Device/Key + Authz + Push。
+- `personal_node`：用户可见为一个 Personal / Team Server；内部合并 Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz，可选本地 Index；Identity Resolver、Directory、Push 和 TURN/Media 默认可用公共服务。
+- `organization_workserver`：Organization Server + Auth / Account Server；需要统一授权和审计时增加 Policy Server；Index、Blob、Directory、Push 可按规模和合规要求拆分。
+- `secure_organization`：Organization / Principal Server + Auth + Identity Registry / Resolver + Policy/Authz + Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
+- `isolated_enclave`：Principal + Identity Registry / Resolver + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_bridge`：Applet Server + Repo writer + Authz precheck，只在授权 namespace 和 capability 内工作。
 - `agent_runtime`：Agent Runtime + Repo writer + Memory/Index integration，所有写入仍通过 principal / agent DID 签名。
