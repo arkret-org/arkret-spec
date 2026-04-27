@@ -31,7 +31,7 @@ Contrix 不继承以下设计作为协议根：
 
 - `room_id` 不作为唯一状态容器，改为 `space_id` 与 Entity / Relation 图。
 - `m.room.power_levels` 不作为核心权限模型，改为 capability grant、policy 与 deterministic authorization。
-- homeserver 不作为用户唯一权威入口，改为 principal repo、service DID、relay、index、blob 与 authz 分层。
+- Matrix 的 homeserver 在 Contrix 中不被视为用户唯一权威入口；Contrix 用 principal repo、service DID、relay、index、blob 与 authz 分层替代。
 - Matrix event type 不直接成为 Contrix 类型空间，Contrix 使用 `cx.*` 注册表。
 - handle / user ID 不作为权限主键，权限主体必须是 DID principal、device 或受约束 selector。
 
@@ -99,4 +99,3 @@ Matrix MSC4284 类 policy server 的经验是：策略服务适合做内容、�
 - `account-lifecycle.md`：账户锁定、暂停、注销、软登出、服务账号与 DID 身份边界。
 
 这些文件是 Contrix 进入稳定实现前的 P0/P1 规范补丁。
-

@@ -17,3 +17,10 @@ Initial profiles:
 - `cx.profile.applet_bridge.v1`
 
 Conformance suites should include schema validation, signature verification, idempotency, reducer convergence, authorization, privacy regression, and unsupported-feature tests.
+
+This draft also requires state/capability/redaction fixture families:
+
+- State resolution: `state-resolution-conformance-vectors.md`
+- Redaction: `redaction-conformance-vectors.md`
+- Capability: `capability-conformance-vectors.md`
+- Core sync/encoding vectors: `sync-conformance-vectors.md`, `encoding-conformance-vectors.md`

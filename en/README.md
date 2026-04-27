@@ -67,6 +67,7 @@ Main document groups:
 - [service-surface.md](./service-surface.md)
 - [api-conventions.md](./api-conventions.md)
 - [conformance-profiles.md](./conformance-profiles.md)
+- [conformance-suite.md](./conformance-suite.md)
 - [query-schema.md](./query-schema.md)
 - [grant-constraint-schema.md](./grant-constraint-schema.md)
 - [encoding.md](./encoding.md)
@@ -76,6 +77,9 @@ Main document groups:
 - [read-notification-schema.md](./read-notification-schema.md)
 - [schema-registry.md](./schema-registry.md)
 - [media-and-blob.md](./media-and-blob.md)
+- [state-resolution-conformance-vectors.md](./state-resolution-conformance-vectors.md)
+- [redaction-conformance-vectors.md](./redaction-conformance-vectors.md)
+- [capability-conformance-vectors.md](./capability-conformance-vectors.md)
 - [federation-wire.md](./federation-wire.md)
 - [applet-integration.md](./applet-integration.md)
 - [applet-schema.md](./applet-schema.md)
@@ -183,7 +187,7 @@ The protocol does not assume:
 
 - room-first abstractions
 - messages/events carrying every business object
-- a homeserver as the only central entry point
+- a single mandatory directory or control-plane as the only entry point
 - reconstructing business state from chat history
 
 ## 7. Normative Language
@@ -215,13 +219,13 @@ This round moves the protocol from a directional sketch to a "question inventory
 Once this framework stabilizes, the next priorities should be:
 
 1. Test vectors  
-   Cross-implementation vectors for canonical JSON, event hashes, signatures, state resolution, redaction, and sync tokens.
+   Continue adding cross-implementation vectors for canonical JSON, event hashes, signatures, state resolution, redaction, capability, and sync tokens. All implementations in this draft are on a single active space profile (`space_version=1`) with evolution applied through profile-bound feature flags, not a space version fork.
 2. OpenAPI consolidation  
    Merge the service, sync, device crypto, and policy-server endpoint drafts into a single OpenAPI surface.
 3. Conformance suite  
-   Automated interoperability tests for repo, relay, index, E2EE client, Applet, and policy-server profiles.
-4. Space version v2 candidates  
-   Freeze any incompatible auth/state/redaction changes into a future Space version rather than mutating v1.
+   Expand the conformance suite into explicit automated interoperability fixtures for repo, relay, index, E2EE client, Applet, and policy-server profiles.
+4. Release-ready baseline  
+   Before public preview, require a complete test matrix and implementation profiles from `conformance-suite.md` and `conformance-profiles.md`. This draft keeps `space_version` fixed at `1`; compatibility changes are handled by explicit deprecation and profile gating, not new space versions.
 
 ## 10. One-sentence Summary
 

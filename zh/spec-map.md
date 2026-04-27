@@ -159,8 +159,12 @@
 | `encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
 | `encoding-conformance-vectors.md` | Canonical JSON、hash、event/commit digest、signature binding、HLC、cursor 的一致性测试向量。 |
 | `schema-registry.md` | 标准 schema / event type registry。 |
+| `state-resolution-conformance-vectors.md` | 并发 membership/capability/governance state resolution向量。 |
+| `redaction-conformance-vectors.md` | redaction 约束与可见性向量。 |
+| `capability-conformance-vectors.md` | delegated capability、revoke 回滚、approval 约束向量。 |
 | `query-schema.md` | Index / View / Inbox 查询语法。 |
 | `snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
+| `conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
 | `sync-conformance-vectors.md` | Client Sync、pagination、snapshot、MLS epoch backfill 的一致性测试向量。 |
 | `matrix-compat-gap.md` | Matrix 能力差距和取舍。 |

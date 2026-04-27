@@ -26,6 +26,12 @@ contrix-spec-new/
     service-surface.md
     api-conventions.md
     conformance-profiles.md
+    conformance-suite.md
+    encoding-conformance-vectors.md
+    sync-conformance-vectors.md
+    state-resolution-conformance-vectors.md
+    redaction-conformance-vectors.md
+    capability-conformance-vectors.md
     query-schema.md
     grant-constraint-schema.md
     encoding.md
@@ -79,6 +85,12 @@ contrix-spec-new/
     service-surface.md
     api-conventions.md
     conformance-profiles.md
+    conformance-suite.md
+    encoding-conformance-vectors.md
+    sync-conformance-vectors.md
+    state-resolution-conformance-vectors.md
+    redaction-conformance-vectors.md
+    capability-conformance-vectors.md
     query-schema.md
     grant-constraint-schema.md
     encoding.md

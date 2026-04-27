@@ -345,20 +345,20 @@ Soft failed state event MAY 在后续上下文补齐后重新评估。Rejected e
 
 ## 12. Space Upgrade
 
-Space 升级通过 `cx.space.upgrade`：
+在当前草案中，Space 升级通过 `cx.space.upgrade` 在同一 `space_id` 上执行，不启用新 `space_version`：
 
 ```json
 {
   "kind": "cx.space.upgrade",
   "state_key": "",
   "content": {
-    "from_space_id": "space:...",
-    "to_space_id": "space:...",
-    "to_space_version": "2",
+    "target_schema_profile": "cx.schema.v1",
+    "target_reducer_profile": "cx.reducer.v1",
     "migration_policy": "copy_state_and_continue",
+    "compatibility_mode": "legacy_ignore_unknown_fields",
     "replacement_ref": "event:..."
   }
 }
 ```
 
-升级 MUST 创建新 `space_id`。旧 Space 进入 tombstone 状态后 SHOULD 只允许 read、redaction、export 和 migration proof。客户端 SHOULD 将旧 Space 视为历史归档，并在 UI 中跳转到新 Space。
+升级 MUST 保持 `space_id` 不变。升级事件必须包含兼容声明，便于未升级节点做 fail-closed。

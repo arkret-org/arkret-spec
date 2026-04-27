@@ -148,7 +148,7 @@ Contrix New 第一阶段聚焦以下目标：
 
 - room-first 抽象
 - “消息事件”统一承载所有业务对象
-- homeserver 作为唯一中心入口
+- 不依赖单一中心目录或单点控制入口
 - UI 依赖聊天历史还原业务状态
 
 ## 7. 规范语言
@@ -181,13 +181,13 @@ Contrix New 第一阶段聚焦以下目标：
 在当前框架稳定后，建议优先继续细化：
 
 1. 测试向量  
-   已新增 [sync-conformance-vectors.md](./sync-conformance-vectors.md) 覆盖 Client Sync、pagination、snapshot、MLS epoch backfill，并新增 [encoding-conformance-vectors.md](./encoding-conformance-vectors.md) 覆盖 canonical JSON、event/commit digest、signature binding、HLC、cursor。下一步继续为 state resolution、redaction、capability 编写跨实现测试向量。
+   已有 `space_version=1` 下的首批一致性向量，继续补齐 state resolution、redaction、capability、sync token、snapshot frontier、MLS key gap 的可执行向量。
 2. OpenAPI 合并  
    将 `service-api-schema.md`、`client-sync.md`、`device-crypto-verification.md`、`policy-server.md` 的默认 HTTP binding 落成统一 OpenAPI，同时保留 canonical operation 到其他 transport 的映射。
 3. Conformance suite  
-   为 repo、relay、index、E2EE client、Applet、policy server 定义自动化互操作测试。
-4. Space version v2 候选  
-   在 v1 实现反馈后冻结下一版 auth/state/redaction 变更，不在同一 Space version 中破坏兼容性。
+   为 repo、relay、index、E2EE client、Applet、policy server 定义自动化互操作测试，统一放入 `conformance-suite.md`，并与 `conformance-profiles.md` 的 profile 要求绑定。
+4. 当前版本统一治理  
+   当前草案坚持 `space_version=1`。不启用第二版 space，兼容性演进通过显式 profile 约束、字段弃用策略和兼容测试向量来控制；不允许“切换 space_version=2”来规避不兼容实现。
 
 ## 10. 一句话总结
 

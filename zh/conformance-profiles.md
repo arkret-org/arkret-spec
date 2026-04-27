@@ -364,7 +364,10 @@ SHOULD 支持：
 - schema validation tests
 - signature verification tests
 - idempotency tests
-- reducer convergence tests
+- reducer convergence tests（含 state resolution 向量）
+- state resolution state vectors（见 `state-resolution-conformance-vectors.md`）
+- redaction vectors（见 `redaction-conformance-vectors.md`）
+- capability vectors（见 `capability-conformance-vectors.md`）
 - authorization tests
 - privacy regression tests
 - error response tests
