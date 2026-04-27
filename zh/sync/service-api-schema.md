@@ -21,8 +21,30 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
   - `protocol_version`
   - `supported_profiles`
   - `supported_features`
+  - `supported_bindings`
+  - `supported_operations`
   - `supported_reducer_profiles`
   - `supported_schema_profiles`
+
+### 2.1 操作分组
+
+统一 API schema 按 canonical operation 分组。HTTP 路径只是默认 binding：
+
+| 分组 | Canonical operation 前缀 | 默认 HTTP 命名空间 |
+| --- | --- | --- |
+| 服务发现 | `cx.describe*` | `/server/*` |
+| 身份与 registry | `cx.identity*`、`cx.resolveIdentity` | `/identity/*` |
+| Repo 与 commit | `cx.repo*`、`cx.submitCommit`、`cx.getOps` | `/repo/*` |
+| 客户端同步与 Space 同步 | `cx.clientSync`、`cx.sync*` | `/sync/*` |
+| 联邦 | `cx.federation*` | `/federation/*` |
+| 查询与投影 | `cx.index*` | `/index/*` |
+| 目录发现 | `cx.directory*` | `/directory/*` |
+| Blob / media | `cx.blob*`、`cx.uploadBlob`、`cx.getBlob` | `/blob/*` |
+| 推送 | `cx.push*` | `/push/*` |
+| 设备加密 | `cx.device*`、`cx.keys*` | `/device_messages/*`、`/keys/*` |
+| 授权与策略 | `cx.authz*`、`cx.policy*` | `/authz/*`、`/contrix/v1/check` |
+| 审核 | `cx.moderation*` | `/moderation/*` |
+| Applet | `cx.applet*` | `/applet/*` |
 
 ## 3. OpenAPI 参考快照（简化版）
 
@@ -58,6 +80,9 @@ paths:
   /identity/resolve:
     post:
       operationId: cx.resolveIdentity
+  /identity/describe:
+    get:
+      operationId: cx.describeIdentityRegistry
   /identity/document:
     get:
       operationId: cx.getIdentityDocument
@@ -67,10 +92,22 @@ paths:
   /identity/submit-did-op:
     post:
       operationId: cx.submitDidOp
+  /identity/receipts:
+    get:
+      operationId: cx.getIdentityReceipts
 
+  /repo/describe:
+    get:
+      operationId: cx.describeRepo
   /repo/submit-commit:
     post:
       operationId: cx.submitCommit
+  /repo/commits:
+    get:
+      operationId: cx.listRepoCommits
+  /repo/commit:
+    get:
+      operationId: cx.getRepoCommit
   /repo/ops:
     post:
       operationId: cx.getOps
@@ -78,6 +115,12 @@ paths:
     post:
       operationId: cx.syncRepo
 
+  /sync:
+    post:
+      operationId: cx.clientSync
+  /sync/describe:
+    get:
+      operationId: cx.describeSync
   /sync/subscribe:
     get:
       operationId: cx.subscribeSync
@@ -88,13 +131,53 @@ paths:
     get:
       operationId: cx.getSyncSnapshotHead
 
+  /federation/transactions/{txn_id}:
+    put:
+      operationId: cx.federationTransaction
+  /federation/push-ops:
+    post:
+      operationId: cx.federationPushOps
+  /federation/pull-ops:
+    get:
+      operationId: cx.federationPullOps
+  /federation/space-members:
+    get:
+      operationId: cx.federationSpaceMembers
+  /federation/verify-actor:
+    post:
+      operationId: cx.federationVerifyActor
+
+  /index/describe:
+    get:
+      operationId: cx.describeIndex
+  /index/entity:
+    get:
+      operationId: cx.indexGetEntity
   /index/query:
     post:
       operationId: cx.indexQuery
   /index/sync:
     post:
       operationId: cx.indexSync
+  /index/thread:
+    get:
+      operationId: cx.indexThread
+  /index/notifications:
+    get:
+      operationId: cx.indexNotifications
+  /index/inbox:
+    get:
+      operationId: cx.indexInbox
+  /index/search:
+    post:
+      operationId: cx.indexSearch
+  /index/space-hierarchy:
+    get:
+      operationId: cx.indexSpaceHierarchy
 
+  /directory/describe:
+    get:
+      operationId: cx.describeDirectory
   /directory/search-spaces:
     post:
       operationId: cx.directorySearchSpaces
@@ -118,8 +201,20 @@ paths:
     post:
       operationId: cx.uploadBlob
   /blob/get:
+    head:
+      operationId: cx.headBlob
     get:
       operationId: cx.getBlob
+
+  /push/register-device:
+    post:
+      operationId: cx.pushRegisterDevice
+  /push/unregister-device:
+    post:
+      operationId: cx.pushUnregisterDevice
+  /push/notify:
+    post:
+      operationId: cx.pushNotify
 
   /device_messages/{txn_id}:
     put:
@@ -140,10 +235,34 @@ paths:
   /contrix/v1/check:
     post:
       operationId: cx.policyServerCheck
-
-  /sync:
+  /moderation/report:
     post:
-      operationId: cx.clientSync
+      operationId: cx.moderationReport
+
+  /applet/ping:
+    get:
+      operationId: cx.appletPing
+  /applet/describe:
+    get:
+      operationId: cx.appletDescribe
+  /applet/transactions/{txn_id}:
+    put:
+      operationId: cx.appletTransaction
+  /applet/actors/{actor_id}:
+    get:
+      operationId: cx.appletQueryActor
+  /applet/spaces/{space_id_or_alias}:
+    get:
+      operationId: cx.appletQuerySpace
+  /applet/protocols/{protocol}:
+    get:
+      operationId: cx.appletProtocolMetadata
+  /applet/third_party/users:
+    get:
+      operationId: cx.appletThirdPartyUsers
+  /applet/third_party/locations:
+    get:
+      operationId: cx.appletThirdPartyLocations
 ```
 
 ## 4. Canonical 操作与 transport 映射
@@ -152,16 +271,23 @@ paths:
 | --- | --- | --- |
 | `cx.resolveIdentity` | `POST /identity/resolve` | gRPC `ResolveIdentity` / MQ `identity.resolve` |
 | `cx.submitDidOp` | `POST /identity/submit-did-op` | gRPC `SubmitDidOperation` / libp2p stream |
+| `cx.getIdentityDocument` / `cx.getIdentityLog` / `cx.getIdentityReceipts` | `GET /identity/document`, `GET /identity/log`, `GET /identity/receipts` | gRPC Identity Registry / witness query |
 | `cx.submitCommit` | `POST /repo/submit-commit` | gRPC `SubmitCommit` / 队列 `repo.commit` |
-| `cx.getOps` / `cx.syncRepo` | `POST /repo/ops`, `POST /repo/sync` | gRPC `GetOps` / `SyncRepo` |
+| `cx.getOps` / `cx.syncRepo` / `cx.listRepoCommits` | `POST /repo/ops`, `POST /repo/sync`, `GET /repo/commits` | gRPC `GetOps` / `SyncRepo` |
 | `cx.clientSync` | `POST /sync` | WebSocket/SSE client sync channel / `/sync?since...` |
 | `cx.subscribeSync` | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
 | `cx.backfillSync` / `cx.getSyncSnapshotHead` | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
-| `cx.indexQuery` / `cx.indexSync` | `POST /index/*` | gRPC `IndexQuery` / SSE 查询流 |
+| `cx.federationTransaction` / `cx.federationPushOps` / `cx.federationPullOps` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-ops`, `GET /federation/pull-ops` | gRPC Federation Service / signed MQ transaction |
+| `cx.indexQuery` / `cx.indexSync` / `cx.indexSearch` | `POST /index/*` | gRPC `IndexQuery` / SSE 查询流 |
 | `cx.directorySearch*` | `POST /directory/*` | gRPC Discovery Service |
+| `cx.uploadBlob` / `cx.headBlob` / `cx.getBlob` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
+| `cx.pushRegisterDevice` / `cx.pushNotify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |
 | `cx.putToDeviceMessage` | `PUT /device_messages/{txn_id}` | MQ device topic / 本地 IPC |
+| `cx.uploadKeys` / `cx.queryKeys` / `cx.claimKeys` | `POST /keys/upload`, `POST /keys/query`, `POST /keys/claim` | E2EE key service binding |
 | `cx.checkAuthorization` | `POST /authz/check` | gRPC / policy 插件回调 |
 | `cx.policyServerCheck` | `POST /contrix/v1/check` | policy 本地调用 |
+| `cx.moderationReport` | `POST /moderation/report` | Moderation queue / local compliance workflow |
+| `cx.appletTransaction` / `cx.appletQueryActor` / `cx.appletQuerySpace` | `PUT /applet/transactions/{txn_id}`, `GET /applet/actors/{actor_id}`, `GET /applet/spaces/{space_id_or_alias}` | Applet webhook / bridge adapter |
 
 ## 5. 落地要求
 

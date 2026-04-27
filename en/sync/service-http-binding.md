@@ -14,6 +14,32 @@ Contrix protocol is not hard-coupled to REST semantics. Other transport bindings
 - Services MUST expose `describe` / feature discovery for supported paths, profiles, and limits.
 - Error responses MUST use a stable error schema.
 
+### 2.1 REST API Namespace Organization
+
+The Contrix HTTP/JSON binding is organized by **service role and canonical operation**, not by fixed product buckets such as Client API, Server API, and Push API. Clients, Principal Servers, Repos, Indexes, Directories, Applets, and Push Gateways may each expose their own service surface; service discovery declares which namespaces a node actually supports.
+
+Default REST namespaces:
+
+| Namespace | Primary callers | Semantics | Spec |
+| --- | --- | --- | --- |
+| `/server/*` | clients and services | service description, feature discovery, auth metadata | `service-surface.md`, `api-conventions.md` |
+| `/identity/*` | clients, services, registries | DID document, key log, DID op, receipt | `service-surface.md`, `identity-did.md` |
+| `/repo/*` | clients, Principal Servers, repo replicas | signed commit submit, op/commit reads, repo incremental sync | `operations-sync.md`, `service-surface.md` |
+| `/sync/*` | clients, Principal Servers | client aggregate sync, Space subscription, backfill, snapshot head | `client-sync.md`, `service-surface.md` |
+| `/federation/*` | Principal Servers | cross-domain transaction, op push/pull, member query, actor verification | `federation.md`, `federation-wire.md` |
+| `/index/*` | clients and services | Entity query, structured query, search, inbox, notification, Space hierarchy | `service-surface.md`, `query-schema.md` |
+| `/directory/*` | clients and services | authorized discovery and resolution of Spaces, Organizations, Actors, and handles | `discovery-directory.md` |
+| `/blob/*` | clients and services | blob upload, HEAD, authenticated download | `media-and-blob.md` |
+| `/push/*` | clients, Sync / Index, Push Gateways | push device registration, unregister, blind wakeup delivery | `push-notifications.md` |
+| `/device_messages/*`, `/keys/*` | E2EE clients, Principal Servers | to-device, one-time key, fallback key, device-list related operations | `device-crypto-verification.md` |
+| `/authz/*`, `/contrix/v1/check` | clients, Repos, Sync, Policy Servers | capability pre-check and signed policy decisions | `capabilities.md`, `policy-server.md` |
+| `/moderation/*` | clients and moderation services | reports, review queues, or extended moderation entry points | `moderation.md` |
+| `/applet/*` | Contrix services calling Applets | applet ping / describe, transaction push, ghost actor / portal lookup | `applet-integration.md` |
+
+From a client perspective, the common API set usually includes `/server`, `/identity`, `/repo`, `/sync`, `/index`, `/directory`, `/blob`, `/push`, `/device_messages`, `/keys`, and `/authz`. The service-to-service set usually includes `/federation`, `/repo`, `/sync`, `/authz`, `/contrix/v1/check`, `/applet`, and `/push/notify`.
+
+Before adding a new top-level REST namespace, the spec MUST update `service-api-schema.md`, feature discovery, and the related conformance profile. Implementations MUST NOT use undeclared paths to bypass canonical operation, capability, idempotency, pagination, or error semantics.
+
 ## 3. Repo API
 
 ### 3.1 Submit Commit

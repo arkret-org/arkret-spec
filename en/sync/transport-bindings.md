@@ -35,14 +35,21 @@ Any binding MUST support:
 
 Bindings SHOULD map to canonical operation names such as:
 
+- `server.describe`
 - `identity.resolve`, `identity.get_log`
+- `identity.submit_did_op`
 - `repo.submit_commit`, `repo.get_ops`
 - `sync.subscribe`, `sync.backfill`, `sync.run`
+- `federation.transaction`, `federation.push_ops`, `federation.pull_ops`
 - `index.query`, `index.space_hierarchy`
+- `directory.search`, `directory.resolve`
 - `blob.upload`, `blob.get`
+- `push.register_device`, `push.notify`
 - `authz.check`, `policy.check`
+- `moderation.report`
 - `applet.transaction`
 - `device.send_message`
+- `keys.upload`, `keys.query`, `keys.claim`
 - `agent.protocol_session.start`, `agent.protocol_session.status`
 
 ## 5. Non-HTTP Notes
@@ -53,4 +60,3 @@ Bindings SHOULD map to canonical operation names such as:
 - libp2p / P2P: peer identity must bind to service or device DID; backfill and snapshot still use signed/verified canonical cursor forms.
 
 HTTP remains default, and transport selection is negotiated by feature discovery.
-

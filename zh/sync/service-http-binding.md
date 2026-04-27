@@ -14,6 +14,32 @@
 - 服务 MUST 通过 describe / feature discovery 暴露实际支持路径、profile 和限制。
 - 错误响应 MUST 使用统一 error schema。
 
+### 2.1 REST API 命名空间组织
+
+Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织，而不是按某个产品形态拆成固定的 Client API / Server API / Push API 包。客户端、Principal Server、Repo、Index、Directory、Applet、Push Gateway 等都可以暴露自己的服务面；服务发现决定某个节点实际支持哪些命名空间。
+
+默认 REST 命名空间如下：
+
+| 命名空间 | 主要调用方 | 语义 | 规范文件 |
+| --- | --- | --- | --- |
+| `/server/*` | 客户端与服务 | 服务描述、feature discovery、auth metadata。 | `service-surface.md`、`api-conventions.md` |
+| `/identity/*` | 客户端、服务、registry | DID document、key log、DID op、receipt。 | `service-surface.md`、`identity-did.md` |
+| `/repo/*` | 客户端、Principal Server、Repo replica | 签名 commit 提交、op/commit 读取、repo 增量同步。 | `operations-sync.md`、`service-surface.md` |
+| `/sync/*` | 客户端、Principal Server | 客户端聚合同步、Space 增量订阅、backfill、snapshot head。 | `client-sync.md`、`service-surface.md` |
+| `/federation/*` | Principal Server 之间 | 跨域 transaction、op 推送/拉取、成员查询、actor 验证。 | `federation.md`、`federation-wire.md` |
+| `/index/*` | 客户端、服务 | Entity 查询、结构化查询、搜索、inbox、notification、Space hierarchy。 | `service-surface.md`、`query-schema.md` |
+| `/directory/*` | 客户端、服务 | Space / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
+| `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
+| `/push/*` | 客户端、Sync / Index、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
+| `/device_messages/*`、`/keys/*` | E2EE 客户端、Principal Server | to-device、one-time key、fallback key、device list 相关操作。 | `device-crypto-verification.md` |
+| `/authz/*`、`/contrix/v1/check` | 客户端、Repo、Sync、Policy Server | capability 预检查、policy server 签名决策。 | `capabilities.md`、`policy-server.md` |
+| `/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `moderation.md` |
+| `/applet/*` | Contrix 服务调用 Applet | applet ping / describe、transaction push、ghost actor / portal 查询。 | `applet-integration.md` |
+
+客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/repo`、`/sync`、`/index`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/federation`、`/repo`、`/sync`、`/authz`、`/contrix/v1/check`、`/applet` 和 `/push/notify`。
+
+新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.md`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
+
 ## 3. Repo API
 
 ### 3.1 提交 commit

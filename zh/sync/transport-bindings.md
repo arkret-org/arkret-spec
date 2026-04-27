@@ -45,21 +45,33 @@ Transport binding SHOULD 映射到以下 canonical operation names：
 
 | Operation | 语义 |
 | --- | --- |
+| `server.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
 | `identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
 | `identity.get_log` | 获取 DID key log。 |
+| `identity.submit_did_op` | 提交 DID 更新操作。 |
 | `repo.submit_commit` | 提交签名 commit。 |
 | `repo.get_ops` | 批量读取 operation / event。 |
 | `sync.subscribe` | 订阅 Space 增量流。 |
 | `sync.backfill` | 回填历史事件。 |
 | `sync.run` | 客户端增量同步。 |
+| `federation.transaction` | Principal Server 之间交换签名 transaction。 |
+| `federation.push_ops` | 跨域推送 Space operation。 |
+| `federation.pull_ops` | 跨域拉取缺失 operation / backfill。 |
 | `index.query` | 查询 Entity / Relation / View projection。 |
 | `index.space_hierarchy` | 查询 Space 层级。 |
+| `directory.search` | 授权搜索 Space / Organization / Actor。 |
+| `directory.resolve` | 精确解析 Space / Organization / Actor / handle。 |
 | `blob.upload` | 上传 blob。 |
 | `blob.get` | 获取 blob 或下载授权。 |
+| `push.register_device` | 注册推送设备和推送网关。 |
+| `push.notify` | 投递脱敏唤醒。 |
 | `authz.check` | 检查 capability / policy 是否允许动作。 |
 | `policy.check` | 调用 policy server 获取签名决策。 |
+| `moderation.report` | 提交内容或行为举报。 |
 | `applet.transaction` | 向 Applet 推送事件批次。 |
+| `applet.describe` | 查询 Applet profile、namespace 与限制。 |
 | `device.send_message` | 发送 to-device message。 |
+| `keys.upload` / `keys.query` / `keys.claim` | E2EE 设备密钥发布、查询与领取。 |
 | `agent.protocol_session.start` | 启动外部 agent protocol handoff。 |
 | `agent.protocol_session.status` | 回写 agent session 状态。 |
 
