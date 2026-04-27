@@ -32,7 +32,7 @@
 
 每个实现必须通过以下验收：
 
-- `/api/v1` 下公开至少包含 `service/identity/repo/index/sync/blob/authz/sync` 关键 operation。
+- `/api/v1` 下公开至少包含 `service/identity/repo/sync/index/blob/authz` 关键 operation。
 - operation id 与本文件 `service-api-schema.md` 映射一致。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 

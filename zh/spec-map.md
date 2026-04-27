@@ -68,6 +68,7 @@
 | `README.md` | 项目定位、设计目标、规范入口。 |
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
 | `overview/architecture.md` | 顶层架构、部署拓扑、信任边界。 |
+| `overview/matrix-core-differences.md` | 与 Matrix 的核心区别、边界和取舍。 |
 | `overview/design-questions.md` | 早期关键设计问题与决策记录。 |
 | `overview/gap-analysis.md` | 当前实现缺口和落地优先级。 |
 | `overview/glossary.md` | 全局术语表。 |

@@ -68,6 +68,7 @@ When learning the protocol for the first time, we recommend this sequence:
 | `README.md` | Project positioning, goals, and entry points. |
 | `spec-map.md` | This document. |
 | `overview/architecture.md` | Top-level architecture, deployment topology, and trust boundaries. |
+| `overview/matrix-core-differences.md` | Core differences and tradeoffs compared with Matrix. |
 | `overview/design-questions.md` | Key open design questions and decision records. |
 | `overview/gap-analysis.md` | Current implementation gaps and priority. |
 | `overview/glossary.md` | Global terminology. |

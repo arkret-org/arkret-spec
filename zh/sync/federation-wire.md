@@ -26,6 +26,11 @@ PUT /api/v1/federation/transactions/{txn_id}
   "txn_id": "cx:txn:01JS0TX000000000000000000",
   "origin": "did:web:server.a.example",
   "destination": "did:web:server.b.example",
+  "service_binding_ref": {
+    "space_policy_hash": "sha256:...",
+    "membership_frontier": ["cx:evt:..."],
+    "destination_service_type": "principal_server"
+  },
   "events": [],
   "receipts": [],
   "frontier": {},
@@ -34,6 +39,8 @@ PUT /api/v1/federation/transactions/{txn_id}
 ```
 
 `txn_id` MUST be idempotent。
+
+`origin` 与 `destination` MUST 是 service DID。接收方 MUST 验证 `destination` 与请求签名、目标 URL、DID service endpoint、Space policy 和 `service_binding_ref` 一致；不一致时 MUST 拒绝或进入 quarantine。
 
 ## 4. Cross-Domain Join
 
@@ -60,6 +67,8 @@ Backfill request:
 ```
 
 Remote service MUST prove it is allowed to receive the requested history. Visibility and capability rules apply to backfill.
+
+Backfill authorization MUST evaluate the requester service DID against the Space policy, membership frontier, service delegation and plaintext visibility rules. If the requested range contains non-E2EE private content, the requester MUST be a participant Principal Server or an explicitly listed `plaintext_visible_services` entry for that range.
 
 ## 6. Fork Detection
 

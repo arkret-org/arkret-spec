@@ -159,6 +159,40 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 E2EE Space 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。
 
+`cx.space.plaintext_visible_services`:
+
+非 E2EE / 非内容加密的私有 Space 若允许服务端处理正文或可逆派生内容，必须显式声明可见服务：
+
+```json
+{
+  "kind": "cx.space.plaintext_visible_services",
+  "state_key": "",
+  "content": {
+    "services": [
+      {
+        "service_did": "did:web:server.acme.example",
+        "service_type": "principal_server",
+        "purposes": ["repo", "sync", "backfill"],
+        "visibility": "private_plaintext"
+      },
+      {
+        "service_did": "did:web:index.acme.example",
+        "service_type": "index_node",
+        "purposes": ["search", "notification", "preview"],
+        "visibility": "derived_plaintext"
+      }
+    ]
+  }
+}
+```
+
+规则：
+
+- `service_did` 必须可解析，并通过 DID service、组织背书或 Space policy 委托绑定到对应 `service_type`。
+- `visibility=private_plaintext` 表示可接收正文或附件预览；`visibility=derived_plaintext` 表示只可接收通知摘要、全文索引、embedding、报表等派生内容。
+- 未列入该 state event 的服务只能接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
+- 该 state event 的撤销或覆盖按普通 state resolution 生效；生效点之后不得继续向旧服务发送非加密私有内容。
+
 ### 6.1 Organization Ownership and Endorsement
 
 组织所有权不是服务器本地配置，也不是 Space 名称、域名、图标或 UI 文案。组织所有权 MUST 由组织 principal 的可验证声明表达。

@@ -16,10 +16,10 @@ Contrix protocol is not hard-coupled to REST semantics. Other transport bindings
 
 ## 3. Repo API
 
-### 3.1 Submit Operation
+### 3.1 Submit Commit
 
 ```text
-POST /api/v1/repo/submit-op
+POST /api/v1/repo/submit-commit
 ```
 
 Request:
@@ -27,7 +27,12 @@ Request:
 ```json
 {
   "repo_id": "did:uuid:alice-or-cx-space",
-  "op": {}
+  "commit": {
+    "commit_id": "cx:commit:01JS0KE...",
+    "prev": ["cx:commit:01JS0KD..."],
+    "ops": [],
+    "signature": {}
+  }
 }
 ```
 
@@ -42,6 +47,8 @@ Response:
 ```
 
 When `expected_state_hash` verification fails, return `409 cas_conflict`.
+
+The protocol-level repo write unit is a signed commit. Implementations MAY accept a single op at an SDK or local API layer, but before network propagation, sync, or audit it MUST be wrapped in a signed commit. Receivers MUST NOT treat bare ops that are not part of a commit as canonical history.
 
 ### 3.2 Incremental Sync
 
@@ -101,8 +108,18 @@ The resolver MUST return enough method-specific evidence for clients to verify c
 
 ## 5. Sync API
 
+### 5.1 Client Incremental Sync
+
 ```text
-GET /api/v1/sync/stream?space_id=<space_id>&cursor=<cursor>
+POST /api/v1/sync
+```
+
+This endpoint maps to `cx.clientSync` and is used by clients to fetch account / Space filtered incremental views. Request and response shapes are defined in `client-sync.md`.
+
+### 5.2 Space Incremental Stream Subscription
+
+```text
+GET /api/v1/sync/subscribe?space_id=<space_id>&cursor=<cursor>
 ```
 
 Frame:
@@ -115,7 +132,7 @@ Frame:
 }
 ```
 
-The same semantic stream MAY be exposed via WebSocket, SSE, or long polling.
+The same semantic stream MAY be carried by WebSocket, SSE, or long polling, but the default HTTP/JSON reference path is `/api/v1/sync/subscribe`. `/sync/stream` may only be used as a transport frame name or compatibility alias, not as a new canonical operation.
 
 ## 6. Directory API
 

@@ -14,7 +14,7 @@ Contrix therefore needs an initial definition for:
 - how invites / grants participate in first-time space join
 
 This document defines a **minimum interoperable service surface**.  
-Implementations do not have to use HTTP or XRPC specifically, but they MUST provide semantically equivalent interfaces.
+Implementations do not have to use HTTP specifically, but they MUST provide semantically equivalent interfaces.
 
 ## 2. Core Principles
 
@@ -66,7 +66,7 @@ Without that, clients cannot safely decide whether to use the service.
 Every service is recommended to provide:
 
 ```text
-GET /xrpc/cx.server.describe
+GET /api/v1/server/describe
 ```
 
 Example:
@@ -74,7 +74,7 @@ Example:
 ```json
 {
   "service_did": "did:web:alice.example.net",
-  "service_type": "ContrixPrincipalServer",
+  "service_type": "principal_server",
   "protocol_version": "0.2-draft",
   "supported_features": [
     "sync_stream",
@@ -91,6 +91,13 @@ Example:
 }
 ```
 
+Service type naming rules:
+
+- DID Document `service.type` uses protocol registered names such as `ContrixPrincipalServer`, `ContrixRepo`, and `ContrixIndex`.
+- `describe` responses use lower-case runtime `service_type` values such as `principal_server`, `repo_node`, `index_node`, `identity_registry`, `blob_node`, `directory_service`, `policy_server`, and `push_gateway`.
+- Conformance profiles use `cx.profile.*` ids such as `cx.profile.principal_server.v1`.
+- Implementations MUST keep these three naming layers distinct.
+
 ### 3.1 Identity Registry Surface
 
 Identity registries should expose at least the following semantics:
@@ -98,7 +105,7 @@ Identity registries should expose at least the following semantics:
 #### 3.1.1 Describe the Registry
 
 ```text
-GET /xrpc/cx.id.describe
+GET /api/v1/identity/describe
 ```
 
 It should return:
@@ -111,7 +118,7 @@ It should return:
 #### 3.1.2 Fetch the Current DID Document
 
 ```text
-GET /xrpc/cx.id.getDocument?did=<did>
+GET /api/v1/identity/document?did=<did>
 ```
 
 The response SHOULD contain:
@@ -124,7 +131,7 @@ The response SHOULD contain:
 #### 3.1.3 Fetch the DID Log
 
 ```text
-GET /xrpc/cx.id.getLog?did=<did>&cursor=<cursor>&limit=<n>
+GET /api/v1/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 ```
 
 Used for:
@@ -136,7 +143,7 @@ Used for:
 #### 3.1.4 Submit a DID Update
 
 ```text
-POST /xrpc/cx.id.submitDidOp
+POST /api/v1/identity/submit-did-op
 ```
 
 The request body SHOULD contain:
@@ -156,7 +163,7 @@ Requirements:
 #### 3.1.5 Fetch Receipt / Witness Proofs
 
 ```text
-GET /xrpc/cx.id.getReceipts?did=<did>&head=<event-hash>
+GET /api/v1/identity/receipts?did=<did>&head=<event-hash>
 ```
 
 #### 3.1.6 Recommended Write Confirmation
@@ -176,7 +183,7 @@ Repos should expose at least the following semantics:
 ### 4.1 Describe the Repo
 
 ```text
-GET /xrpc/cx.repo.describe
+GET /api/v1/repo/describe
 ```
 
 It should return:
@@ -189,7 +196,7 @@ It should return:
 ### 4.2 List Commits
 
 ```text
-GET /xrpc/cx.repo.listCommits?cursor=<cursor>&limit=<n>
+GET /api/v1/repo/commits?cursor=<cursor>&limit=<n>
 ```
 
 Used for:
@@ -201,13 +208,13 @@ Used for:
 ### 4.3 Get One Commit
 
 ```text
-GET /xrpc/cx.repo.getCommit?commit_id=<id>
+GET /api/v1/repo/commit?commit_id=<id>
 ```
 
 ### 4.4 Batch-fetch Ops
 
 ```text
-POST /xrpc/cx.repo.getOps
+POST /api/v1/repo/ops
 ```
 
 The request body may carry a set of `op_id` values.
@@ -215,29 +222,37 @@ The request body may carry a set of `op_id` values.
 ### 4.5 Submit a Commit
 
 ```text
-POST /xrpc/cx.repo.submitCommit
+POST /api/v1/repo/submit-commit
 ```
 
 Requirements:
 
 - re-submitting the exact same bytes for the same `commit_id` MUST be idempotently accepted
 - reusing the same `commit_id` with different bytes MUST be rejected
-- the repo SHOULD return the new head and the accepted op list
+- the repo SHOULD return the new head, the accepted op list, and causal sync tokens for read-your-writes queries
 
 ## 5. Sync Surface
 
 The sync surface is the space incremental sync capability exposed by a Principal Server. It is not an independent third-party server role. Clients should use only the current principal's controlled/delegated Principal Server, the peer principal's controlled/delegated Principal Server, or a shared Space Host explicitly listed by Space policy.
 
+This section defines three distinct operations:
+
+- `POST /api/v1/sync`: client aggregate incremental sync, defined in `client-sync.md`.
+- `GET /api/v1/sync/subscribe`: Space operation stream subscription.
+- `GET /api/v1/sync/backfill`: cursor-based historical backfill.
+
+Implementations MUST NOT collapse these into a single ambiguous stream operation. Other transports MAY use different frame names, but they must map to the canonical operations above.
+
 ### 5.1 Describe the Sync Service
 
 ```text
-GET /xrpc/cx.sync.describe
+GET /api/v1/sync/describe
 ```
 
 ### 5.2 Space Sync Stream Subscription
 
 ```text
-GET /xrpc/cx.sync.subscribe?space_id=<id>&cursor=<cursor>
+GET /api/v1/sync/subscribe?space_id=<id>&cursor=<cursor>
 ```
 
 Implementations may use:
@@ -251,13 +266,13 @@ but they must provide stable cursor semantics.
 ### 5.3 Incremental Backfill
 
 ```text
-GET /xrpc/cx.sync.backfill?space_id=<id>&cursor=<cursor>&limit=<n>
+GET /api/v1/sync/backfill?space_id=<id>&cursor=<cursor>&limit=<n>
 ```
 
 ### 5.4 Snapshot Head
 
 ```text
-GET /xrpc/cx.sync.getSnapshotHead?space_id=<id>
+GET /api/v1/sync/snapshot-head?space_id=<id>
 ```
 
 Used to fetch the currently recommended snapshot manifest.
@@ -266,9 +281,11 @@ Used to fetch the currently recommended snapshot manifest.
 
 If a Space does not use E2EE or content-layer encryption:
 
-- clients MUST NOT submit message bodies, comment bodies, plaintext attachments, or sensitive memory bodies to unauthorized third-party services
-- `sync/submit`, `sync/subscribe`, and `sync/backfill` must target a Principal Server delegated by the principal DID, Organization DID, or Space policy
+- clients MUST NOT submit message bodies, comment bodies, plaintext attachments, sensitive memory bodies, or reversible derived summaries to unauthorized third-party services
+- `repo/submit-commit`, `sync`, `sync/subscribe`, and `sync/backfill` must target a Principal Server delegated by the principal DID, Organization DID, or Space policy
+- Index, AppView, Directory, Push Gateway, Blob preview, and Policy preview services that receive body text, body summaries, attachment previews, full-text indexes, or reversible derived content MUST be declared in Space policy as `plaintext_visible_services`
 - shared Space Hosts that can see plaintext must be declared as plaintext-visible services in Space policy
+- recipient Principal Servers can see non-encrypted content delivered to their recipients; clients and Space policy MUST treat them as content visibility boundaries
 - untrusted services may receive only public content, encrypted envelopes, or opaque payloads
 
 ## 6. Index Surface
@@ -278,19 +295,19 @@ Indexes should expose at least the following semantics:
 ### 6.1 Describe the Index
 
 ```text
-GET /xrpc/cx.index.describe
+GET /api/v1/index/describe
 ```
 
 ### 6.2 Fetch Current Object State
 
 ```text
-GET /xrpc/cx.index.getObject?ref=<stable-ref>
+GET /api/v1/index/entity?entity_id=<id>
 ```
 
 ### 6.3 Structured Query
 
 ```text
-POST /xrpc/cx.index.query
+POST /api/v1/index/query
 ```
 
 The request body SHOULD accept:
@@ -304,18 +321,33 @@ The request body SHOULD accept:
 ### 6.4 Thread / Topic Query
 
 ```text
-GET /xrpc/cx.index.getThread?topic_id=<id>&cursor=<cursor>
+GET /api/v1/index/thread?topic_id=<id>&cursor=<cursor>
 ```
 
 ### 6.5 Inbox / Notification Query
 
 ```text
-GET /xrpc/cx.index.getNotifications?cursor=<cursor>&state=unread
+GET /api/v1/index/notifications?cursor=<cursor>&state=unread
 ```
 
 ```text
-GET /xrpc/cx.index.getInbox?scope=<scope>&cursor=<cursor>
+GET /api/v1/index/inbox?scope=<scope>&cursor=<cursor>
 ```
+
+### 6.6 Full-Text Search
+
+```text
+POST /api/v1/index/search
+```
+
+### 6.7 Plaintext Index Boundary
+
+Index / AppView services are derived layers, not truth sources, but they can hold highly searchable plaintext projections. Therefore:
+
+- full-text search, embeddings, notification summaries, inbox previews, and report projections for non-E2EE private Spaces may only be generated or stored by services listed in `plaintext_visible_services`
+- indexes not listed in `plaintext_visible_services` MUST receive only public content, encrypted envelopes, irreversible hashes, minimum routing metadata, or policy-allowed stripped previews
+- clients MUST verify service DID, `service_type`, supported profile, Space policy delegation, and plaintext-visible declaration before selecting an Index
+- Index output MUST NOT expand visibility; query results, notifications, search hits, and previews remain constrained by the underlying Space policy and capability rules
 
 ## 7. Blob Surface
 
@@ -324,7 +356,7 @@ Blob services should expose at least:
 ### 7.1 Upload a Blob
 
 ```text
-POST /xrpc/cx.blob.upload
+POST /api/v1/blob/upload
 ```
 
 Returning:
@@ -336,13 +368,13 @@ Returning:
 ### 7.2 Inspect Blob Headers
 
 ```text
-HEAD /xrpc/cx.blob.get?blob_cid=<cid>
+HEAD /api/v1/blob/get?blob_cid=<cid>
 ```
 
 ### 7.3 Download a Blob
 
 ```text
-GET /xrpc/cx.blob.get?blob_cid=<cid>
+GET /api/v1/blob/get?blob_cid=<cid>
 ```
 
 Blob validation MUST be content-hash based rather than URL based.
@@ -354,15 +386,15 @@ Even though grant / revoke / invite are themselves objects or ops, the service l
 At minimum, the following are recommended:
 
 ```text
-GET /xrpc/cx.authz.getEffectiveGrants?space_id=<id>&subject=<did>
+GET /api/v1/authz/effective-grants?space_id=<id>&subject=<did>
 ```
 
 ```text
-GET /xrpc/cx.authz.getInvites?space_id=<id>&subject=<did-or-handle>
+GET /api/v1/authz/invites?space_id=<id>&subject=<did-or-handle>
 ```
 
 ```text
-POST /xrpc/cx.authz.check
+POST /api/v1/authz/check
 ```
 
 The `check` surface is useful for:
@@ -429,7 +461,7 @@ If a payload is already encrypted under `policy.encryption_profile`, then:
 The current draft recommends fixing:
 
 - a minimum principal server / identity-registry / repo / sync / index / blob / authz service surface
-- XRPC-style paths as a recommendation rather than a hard requirement
+- HTTP/JSON paths as the default reference binding while preserving transport-equivalent semantics
 - idempotent write interfaces
 - DID writes confirmed by multi-registry / witness receipts rather than blockchains
 - bootstrap covering invite / grant / snapshot / backfill

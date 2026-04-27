@@ -9,6 +9,8 @@
 
 目标不是把 Matrix 的 room / homeserver / power level 模型搬进 Contrix，而是识别 Matrix 已经用多年实现经验证明必须明确的协议层能力，并把这些能力映射到 Contrix 的 DID、Space、Entity、Relation、Event、View、repo、capability 与 Applet 模型。
 
+若需要理解 Contrix 与 Matrix 的核心架构差异，先读 `../overview/matrix-core-differences.md`。本文只记录能力差距、可借鉴经验和落地补丁。
+
 ## 2. 总体结论
 
 当前 Contrix 已经覆盖身份、对象模型、基础同步、能力授权、媒体、Applet、推送、回执、VoIP、3PID 邀请等大方向；相对 Matrix 仍缺少以下落地关键层：

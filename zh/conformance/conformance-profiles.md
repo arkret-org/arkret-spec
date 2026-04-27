@@ -134,11 +134,14 @@ MUST 支持：
 
 - subscribe / sync stream
 - backfill
+- client sync (`POST /sync`)
 - cursor stability
 - duplicate suppression
 - encrypted payload forwarding
 - authorization-aware routing metadata
 - service describe
+- service binding verification for federation destinations
+- plaintext-visible service enforcement
 
 SHOULD 支持：
 
@@ -148,6 +151,7 @@ SHOULD 支持：
 - snapshot pointer distribution
 
 Principal Server MUST NOT become the canonical truth source for Space state.
+Principal Server MUST NOT forward non-E2EE private content or reversible derived plaintext to services absent from the relevant DID delegation or Space policy `plaintext_visible_services`.
 
 ## 8. Index Node
 
@@ -163,6 +167,7 @@ MUST 支持：
 - authorization filtering
 - stale frontier reporting
 - `X-Contrix-Wait-For` 或等价 sync token
+- plaintext-visible declaration and policy enforcement when indexing private plaintext
 
 SHOULD 支持：
 

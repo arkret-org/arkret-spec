@@ -73,6 +73,8 @@ Principal Server 不是身份本身，也不能替 principal 伪造 commit 或 o
 - 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Space policy 明确委托的第三方服务。
 - 如果 Space 声明了 shared Space Host，该 Host 必须是 Space policy 中显式列出的受信 Principal Server 或组织服务 DID。
 - 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Space policy 明确委托。
+- 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Space policy 中声明为 `plaintext_visible_services`。
+- 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.3 Query Index / AppView
@@ -372,6 +374,7 @@ Principal Server 不可以：
 - 伪造 actor op
 - 静默删除仍然有效的历史 op
 - 把未授权明文内容发送给未被 principal 或 Space policy 委托的第三方服务
+- 把非加密私有内容复制到未声明为 `plaintext_visible_services` 的 Index、AppView、Push、Blob preview 或 Policy preview 服务
 
 ### 6.3 Index 可解释状态，但不应替代原始审计链
 

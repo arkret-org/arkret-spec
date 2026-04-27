@@ -58,6 +58,7 @@ Principal Server / Sync Service MUST NOT：
 - 用本地数据库状态替代 Space reducer、capability 和 policy 判定。
 - 阻止客户端从源 Repo 或其他受信 Principal Server 交叉验证历史。
 - 将非加密私有正文转发给未被发送方、接收方或 Space policy 明确委托的服务。
+- 将非加密私有正文、附件预览、全文索引、通知摘要、embedding 或可逆派生摘要写入未列入 `plaintext_visible_services` 的派生服务。
 
 ### 2.3 Index
 
@@ -609,7 +610,7 @@ ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。为
 ### 21.1 字段可见性分级
 
 - **可路由元数据 (Routing Metadata)**：`space_id`、`target_ref`、`type`、`causal`。此类数据必须明文，用于 Sync Service 路由与因果排序。
-- **明文业务元数据 (Cleartext Indexable Metadata)**：`status`、`labels`、`priority`、`due_at` 等轻量级业务流转字段。此类字段 SHOULD 保持明文，供 Index 层查询与生成各类无密钥依赖的统计视图。
+- **明文业务元数据 (Cleartext Indexable Metadata)**：`status`、`labels`、`priority`、`due_at` 等轻量级业务流转字段。此类字段 MAY 保持明文，供被授权且必要的 Index 层查询与生成无密钥依赖的统计视图；若字段足以暴露私密内容或组织敏感状态，则该 Index MUST 被列入 `plaintext_visible_services`，否则应改用密文、不可逆 hash 或 stripped preview。
 - **不透明加密负载 (Opaque Encrypted Payload)**：`content`、`body`、附件内容、敏感 `memory` 细节。此类字段 MUST 被加密。实现 MAY 使用 `policy.encryption_profile` 指定的 envelope 格式加密。即使 sync service 或 index 无法解密，也 SHOULD 能转发、去重与保留因果结构。
 
 ### 21.2 端到端加密与合规审计

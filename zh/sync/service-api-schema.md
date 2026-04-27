@@ -81,6 +81,12 @@ paths:
   /sync/subscribe:
     get:
       operationId: cx.subscribeSync
+  /sync/backfill:
+    get:
+      operationId: cx.backfillSync
+  /sync/snapshot-head:
+    get:
+      operationId: cx.getSyncSnapshotHead
 
   /index/query:
     post:
@@ -146,9 +152,11 @@ paths:
 | --- | --- | --- |
 | `cx.resolveIdentity` | `POST /identity/resolve` | gRPC `ResolveIdentity` / MQ `identity.resolve` |
 | `cx.submitDidOp` | `POST /identity/submit-did-op` | gRPC `SubmitDidOperation` / libp2p stream |
-| `cx.submitCommit` / `cx.syncRepo` | `POST /repo/*` | gRPC `SubmitCommit` / 队列 `repo.commit` |
-| `cx.clientSync` | `POST /sync` | WebSocket/SSE / `/sync?since...` |
-| `cx.subscribeSync` | `GET /sync/subscribe` | WebSocket sync stream / pubsub |
+| `cx.submitCommit` | `POST /repo/submit-commit` | gRPC `SubmitCommit` / 队列 `repo.commit` |
+| `cx.getOps` / `cx.syncRepo` | `POST /repo/ops`, `POST /repo/sync` | gRPC `GetOps` / `SyncRepo` |
+| `cx.clientSync` | `POST /sync` | WebSocket/SSE client sync channel / `/sync?since...` |
+| `cx.subscribeSync` | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
+| `cx.backfillSync` / `cx.getSyncSnapshotHead` | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
 | `cx.indexQuery` / `cx.indexSync` | `POST /index/*` | gRPC `IndexQuery` / SSE 查询流 |
 | `cx.directorySearch*` | `POST /directory/*` | gRPC Discovery Service |
 | `cx.putToDeviceMessage` | `PUT /device_messages/{txn_id}` | MQ device topic / 本地 IPC |
@@ -160,3 +168,4 @@ paths:
 - 任何节点都应能发布一份可下载的 OpenAPI 文档（建议路径 `/.well-known/contrix/openapi.yaml`），并在 service DID metadata 中声明版本和 hash。
 - 实现必须保持 operation id 在演进中稳定；若请求字段名变更，必须保留兼容版本或通过 profile 明确协商。
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
+- `POST /sync` 是客户端聚合增量同步；`GET /sync/subscribe` 是 Space operation 流订阅；`GET /sync/backfill` 是历史回补。三者不得互相替代，也不得新增未声明的 canonical sync endpoint。

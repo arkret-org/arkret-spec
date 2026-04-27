@@ -12,6 +12,7 @@ contrix-spec/
     spec-map.md
     overview/
       architecture.md
+      matrix-core-differences.md
       design-questions.md
       gap-analysis.md
       glossary.md
@@ -87,6 +88,7 @@ contrix-spec/
     spec-map.md
     overview/
       architecture.md
+      matrix-core-differences.md
       design-questions.md
       gap-analysis.md
       glossary.md

@@ -53,6 +53,7 @@ Main document groups:
 - [gap-analysis.md](./overview/gap-analysis.md)
 - [design-questions.md](./overview/design-questions.md)
 - [architecture.md](./overview/architecture.md)
+- [matrix-core-differences.md](./overview/matrix-core-differences.md)
 - [identity-did.md](./identity/identity-did.md)
 - [identity-handles.md](./identity/identity-handles.md)
 - [key-management.md](./identity/key-management.md)

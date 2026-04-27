@@ -49,6 +49,8 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 }
 ```
 
+其中 DID Document 的 `service.type` 使用协议注册名（如 `ContrixPrincipalServer`），服务 describe 响应中的 `service_type` 使用运行时注册值（如 `principal_server`）。联邦鉴权 MUST 校验两者的绑定关系，不得只凭域名或 URL 接受请求。
+
 ### 3.2 请求签名
 
 节点间的 HTTP 请求 MUST 使用 [HTTP Message Signatures (RFC 9421)](https://datatracker.ietf.org/doc/html/rfc9421) 进行签名。接收方通过发送方 DID Document 中的公钥验证请求的真实性。
@@ -74,7 +76,7 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Op，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
 
 1. `server-alpha.com` 检测到新 Op 属于跨域 Space
-2. `server-alpha.com` 从 Space policy / membership / service delegation 中解析应接收该 Op 的对端 Principal Server
+2. `server-alpha.com` 从 Space policy / membership / service delegation 中解析应接收该 Op 的对端 Principal Server，并生成接收方服务绑定快照
 3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
 ```
@@ -87,14 +89,28 @@ Signature: sig1=:base64...:
 ```json
 {
   "origin": "did:web:server-alpha.com",
+  "destination": "did:web:server-beta.com",
   "space_id": "cx:space:01JS0SP000000000000000000",
+  "service_binding_ref": {
+    "space_policy_hash": "sha256:...",
+    "membership_frontier": ["cx:evt:..."],
+    "destination_service_type": "principal_server"
+  },
   "ops": [
     { /* 完整的 Event Envelope，含签名 */ }
   ]
 }
 ```
 
-4. `server-beta.com` 独立验证每个 Op 的 Actor 签名、Space policy、服务委托和因果链，然后决定是否接受
+4. `server-beta.com` 独立验证每个 Op 的 Actor 签名、Space policy、服务委托、接收方服务绑定和因果链，然后决定是否接受
+
+接收方服务绑定规则：
+
+- Actor DID 的当前 DID Document MAY 声明其受控或委托的 `ContrixPrincipalServer` endpoint。
+- Organization DID 或 Space policy MAY 为组织成员、受管设备或特定 Space 指定 Principal Server。
+- Space metadata 的 `sync_endpoints` 只表示 Space policy 明确委托的 shared Space Host 或组织 Principal Server，不自动授权任意第三方接收私有内容。
+- 联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
+- 当服务委托被撤销或成员被移除后，生效因果点之后不得继续向旧 service DID 推送非加密私有内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
@@ -139,7 +155,7 @@ Bob 也可以主动申请加入：
 
 ### 6.1 Space Host / Sync Endpoint 列表
 
-每个 Space 的 metadata MAY 包含一个 `sync_endpoints` 列表，用于列出被 Space policy 明确委托的 shared Space Host 或组织 Principal Server：
+每个 Space 的 metadata MAY 包含一个 `sync_endpoints` 列表，用于列出被 Space policy 明确委托的 shared Space Host 或组织 Principal Server。该列表不是公开分发节点列表；列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
 
 ```json
 {
@@ -148,16 +164,22 @@ Bob 也可以主动申请加入：
     {
       "did": "did:web:server-alpha.com",
       "endpoint": "https://server-alpha.com/api/v1",
-      "role": "primary"
+      "role": "primary",
+      "service_type": "principal_server",
+      "plaintext_visible": true
     },
     {
       "did": "did:web:server-beta.com",
       "endpoint": "https://server-beta.com/api/v1",
-      "role": "mirror"
+      "role": "mirror",
+      "service_type": "principal_server",
+      "plaintext_visible": false
     }
   ]
 }
 ```
+
+若 `plaintext_visible` 为 true，该 service DID 还 MUST 出现在 Space policy 的 `plaintext_visible_services` 中。若为 false，服务只能接收公开内容、密文 envelope、不可逆 hash 或 policy 允许的 stripped preview。
 
 ### 6.2 Actor Repo 发现
 

@@ -75,7 +75,7 @@ GET /api/v1/server/describe
 ```json
 {
   "service_did": "did:web:alice.example.net",
-  "service_type": "ContrixPrincipalServer",
+  "service_type": "principal_server",
   "protocol_version": "0.2-draft",
   "supported_features": [
     "sync_stream",
@@ -91,6 +91,13 @@ GET /api/v1/server/describe
   "max_body_bytes": 1048576
 }
 ```
+
+服务类型命名规则：
+
+- DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixRepo`、`ContrixIndex`。
+- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`repo_node`、`index_node`、`identity_registry`、`blob_node`、`directory_service`、`policy_server`、`push_gateway`。
+- conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
+- 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 
 ### 3.1 Identity Registry Surface
 
@@ -229,6 +236,14 @@ POST /api/v1/repo/submit-commit
 
 Sync Surface 是 Principal Server 提供的 Space 增量同步能力。它不是独立第三方服务器角色。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared Space Host。
 
+本节定义三个不同操作：
+
+- `POST /api/v1/sync`：客户端聚合增量同步，见 `client-sync.md`。
+- `GET /api/v1/sync/subscribe`：Space operation 增量流订阅。
+- `GET /api/v1/sync/backfill`：按 cursor 回补历史 operation。
+
+实现不得把这三个操作合并成语义不明的单一“stream”接口。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
+
 ### 5.1 描述 sync service
 
 ```text
@@ -267,9 +282,11 @@ GET /api/v1/sync/snapshot-head?space_id=<id>
 
 如果 Space 未启用 E2EE 或内容层加密：
 
-- 客户端 MUST NOT 将 message body、comment body、附件明文或敏感 memory 明文提交给未授权第三方服务。
-- `sync/submit`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Space policy 明确委托的 Principal Server。
+- 客户端 MUST NOT 将 message body、comment body、附件明文、敏感 memory 明文或可逆派生摘要提交给未授权第三方服务。
+- `repo/submit-commit`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Space policy 明确委托的 Principal Server。
+- Index、AppView、Directory、Push Gateway、Blob preview、Policy preview 若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Space policy 中声明为 `plaintext_visible_services`。
 - shared Space Host 若可见明文，必须在 Space policy 中作为明文可见方列出。
+- 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Space policy MUST 把这视为内容可见边界，而不是透明中继。
 - 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ## 6. Index Surface
@@ -364,6 +381,15 @@ POST /api/v1/index/search
 ```
 
 **E2EE 场景说明**：在加密 Space 中，Index 节点无法对密文执行全文搜索。此时客户端 SHOULD 依赖本地解密后维护的客户端全文索引，或在受控网络中指定可信 TEE 节点代理搜索功能（详见 `operations-sync.md` 21.3 节）。
+
+### 6.7 明文索引边界
+
+Index / AppView 是派生服务，不是真相源，但它们可能持有比 Sync Surface 更容易查询的明文投影。因此：
+
+- 非 E2EE 私有 Space 的全文搜索、embedding、通知摘要、inbox preview 和报表投影只能由 `plaintext_visible_services` 中列出的服务生成或保存。
+- 未列入 `plaintext_visible_services` 的 Index MUST 只接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
+- 客户端在选择 Index 前 MUST 校验 service DID、`service_type`、supported profile、Space policy 委托和 plaintext-visible 声明。
+- Index 输出不得扩大可见性；查询结果、通知、搜索命中和 preview 都必须受底层 Space policy 与 capability 约束。
 
 ## 7. Blob Surface
 

@@ -32,7 +32,7 @@ A repo is the publication source for one principal.
 
 ### 2.2 Principal Server / Sync Service
 
-A Principal Server is the service boundary controlled or explicitly delegated by a principal; the sync service is its space incremental sync capability. It is not an independent third-party server role and must not receive plaintext private content unless delegated by the relevant principal or Space policy.
+A Principal Server is the service boundary controlled or explicitly delegated by a principal; the sync service is its space incremental sync capability. It is not an independent third-party server role and must not receive plaintext private content unless delegated by the relevant principal or Space policy. It MUST NOT write non-encrypted private bodies, attachment previews, full-text indexes, notification summaries, embeddings, or reversible derived summaries into derived services absent from `plaintext_visible_services`.
 
 ### 2.3 Index
 
@@ -488,7 +488,8 @@ ACLs are not the same thing as ciphertext protection, and sync services should n
 The first version should therefore distinguish:
 
 - routable metadata: `space_id`, `target_ref`, `type`, `causal`
-- optionally encrypted fields: message bodies, attachment contents, sensitive memory bodies
+- cleartext indexable metadata: light workflow fields such as `status`, `labels`, `priority`, and `due_at`; if such fields expose private content or sensitive organization state, the receiving Index MUST be listed in `plaintext_visible_services`
+- opaque encrypted payload: message bodies, attachment contents, sensitive memory bodies
 
 Implementations MAY encrypt content using the envelope format named by `policy.encryption_profile`.  
 Even when a sync service or index cannot decrypt the payload, it SHOULD still be able to forward it, deduplicate it, and preserve causal structure.

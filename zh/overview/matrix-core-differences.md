@@ -1,0 +1,164 @@
+# Matrix 与 Contrix 的核心区别
+
+## 1. 目标
+
+本文说明 Contrix 与 Matrix 的核心设计差异。
+
+`extensions/matrix-compat-gap.md` 负责记录 Matrix / MSC 中值得借鉴或需要补齐的协议能力；本文只回答一个问题：Contrix 为什么不是 Matrix 的变体，也不是把 Matrix room / homeserver / appservice 换名重写。
+
+## 2. 总体结论
+
+Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
+
+Contrix 的核心抽象是 **principal repo + Space + Entity / Relation / Event / View + capability**，重点服务可审计的协作对象、任务、看板、知识、agent 运行和多视图投影。
+
+因此二者可以互联或桥接，但协议根不同。
+
+## 3. 核心差异表
+
+| 维度 | Matrix | Contrix |
+| --- | --- | --- |
+| 数据根 | Room 内事件流与 room state。 | Space 内授权 Event / op 集合，归约为 Entity、Relation、View。 |
+| 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、知识记忆、agent run、审计工作流。 |
+| 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Repo、Sync、Index、Blob、Policy 分层。 |
+| 真相源 | Room event graph 与状态解析。 | Principal 签名 repo commit / operation，加上 Space reducer；Index / AppView 都是派生层。 |
+| 身份 | Matrix user ID 绑定 homeserver 域，如 `@alice:example.org`。 | Principal 使用 DID；handle 只是可变、人类可读入口；权限主体不使用 handle。 |
+| 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 身份、repo 与服务 endpoint 分离，DID / handle / service delegation 支持迁移。 |
+| 授权模型 | Room auth rules、membership、power levels。 | Capability grant、constraint、claim、policy、deterministic authorization。 |
+| 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Space、Actor、对象范围、用户授权和 capability 细分。 |
+| AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可拥有 repo、capability、run、memory、protocol session。 |
+| 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP legacy / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
+| E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Contrix 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
+| 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影；Index / AppView 明确是派生查询层，不能成为真相源。 |
+| 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容必须只进入 principal 或 Space policy 明确委托的服务；明文可见服务用 `plaintext_visible_services` 声明。 |
+
+## 4. 对用户判断的修正
+
+### 4.1 Applet 强于 Appservice 的地方
+
+这个判断方向正确，但应更精确。
+
+Matrix Application Service 是成熟的桥接机制，适合让 homeserver 与外部系统或 bot 服务通信。它的核心是 homeserver 侧注册、namespace、transaction、query 和 ping。
+
+Contrix Applet 的差异不是简单“更强”，而是粒度不同：
+
+- Applet registration 是签名声明，可由 Space owner、Organization、registry 或 authz service 接受。
+- Applet 不因 namespace 自动获得权限；每次写入仍需 capability。
+- 同一个 Applet 可以被不同 Space 用不同 capability、不同可见性、不同对象范围启用。
+- 不同用户或组织可以在自己控制的 Space 中启用不同 Applet，但必须受 Space policy 和授权约束。
+- Applet 可作为 bot、bridge、ghost actor controller、portal Space manager、delegated agent / device 参与审计链。
+
+因此 Contrix 的优势是 **Space / principal / capability 级别的可组合授权与审计**，不是无条件允许任何用户随意给任何 Space 安装 Applet。
+
+### 4.2 AI 与 agent 支持
+
+这个判断正确。
+
+Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix 的协议根对象。Contrix 从对象模型开始就把 agent 纳入：
+
+- agent 可以是 principal、Actor、capability subject。
+- agent 输出可以落成 `run`、`memory`、`message`、`task` 等标准 Entity。
+- agent 权限必须窄范围、短时效、可撤销、可审计。
+- agent-to-agent 场景可以显式升级到 A2A / ACP legacy / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Contrix。
+- Contrix 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。
+
+### 4.3 身份系统更接近 atprotocol
+
+这个判断基本正确，但需要限定。
+
+Contrix 的身份与发布模型借鉴 atprotocol 的几个方向：
+
+- DID 是稳定身份根，handle 是可变入口。
+- handle 需要双向验证。
+- DID Document 用于服务发现和 key discovery。
+- 每个 principal 有自己的可验证 repo。
+- repo commit 是签名发布单元，服务器不能伪造 principal 写入。
+
+但 Contrix 不等同于 atprotocol：
+
+- atprotocol 主要面向公开社交 record 与 PDS；Contrix 面向多方协作 Space、授权状态、私有内容、E2EE 和企业治理。
+- Contrix 默认身份方法是 `did:uuid`，同时支持 `did:web`、外部 DID method adapter 和渐进披露。
+- Contrix 的 repo 记录协作 operation，不是社交 feed record。
+- Contrix 把 Space policy、capability、Index、Applet、Agent、MLS 都纳入同一协作协议边界。
+
+### 4.4 MLS E2EE
+
+这个判断方向正确，但不应简单写成“Matrix 落后、Contrix 更先进”。
+
+Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰富。Contrix 选择 MLS RFC 9420，是因为它更适合作为新的群组 E2EE 基础：
+
+- MLS 是 IETF 标准。
+- MLS 原生建模 group state、epoch、commit、proposal、member add/remove。
+- Contrix 可以把 MLS epoch 与 Space membership、history visibility、device authorization、auditable E2EE 直接绑定。
+- 被移除成员必须在新 epoch 上 fail closed。
+
+因此准确表述应是：Contrix 选择 **更现代、标准化、适合动态群组协作治理的 MLS 基础**，而不是沿用 Matrix 的 Olm / Megolm。
+
+## 5. 其他关键区别
+
+### 5.1 Room-first 与 object-first
+
+Matrix 可以承载很多非聊天数据，但它的协议根仍是 room event。
+
+Contrix 从一开始把 `task`、`message`、`topic`、`memory`、`run`、`board` projection、relation graph 都作为协作对象处理。聊天只是 View 之一，不是所有业务状态的唯一载体。
+
+### 5.2 Power level 与 capability
+
+Matrix power level 适合 room 内角色治理。
+
+Contrix capability 更适合细粒度协作系统：
+
+- 可以限定 Space、Entity、Relation、字段、时间、设备、速率、审批条件。
+- 可以委托给 agent、Applet、设备、组织角色或外部服务。
+- 可撤销、可审计，并与 policy server 风险决策分离。
+
+### 5.3 Homeserver 与 Principal Server
+
+Matrix homeserver 是用户与 room federation 的核心承载点。
+
+Contrix Principal Server 是受 principal 或 Space policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Repo、Sync、Index、Blob、Push、Policy，但协议仍保持分层。
+
+这也是 Contrix 去掉独立 Relay 后的核心边界：未加密私有内容不应进入不受用户、组织或 Space policy 控制的第三方服务。
+
+### 5.4 Query / Index 是一等派生层
+
+Matrix 客户端通常从 sync、state、relations 和聚合接口构建体验。
+
+Contrix 明确把 Index / AppView 作为派生层，用于搜索、通知、inbox、board、table、graph、agent memory retrieval 等。但 Index 不能成为真相源，输出必须可追溯到签名 Event / op、reducer profile 和授权状态。
+
+### 5.5 协作图比通信图更大
+
+Matrix 的强项是通信网络。
+
+Contrix 的目标是协作图：任务依赖、对象引用、结构化 mention、run、memory、agent action、审计记录、审批和视图投影都属于同一个协议图。
+
+## 6. Matrix 仍然更强的地方
+
+Contrix 不应忽略 Matrix 的成熟度：
+
+- Matrix 有更成熟的实时通信和客户端生态。
+- Matrix room federation、state resolution、E2EE 客户端实现、bridge 生态有多年生产经验。
+- Matrix 对聊天、公开房间、桥接传统 IM 网络仍是强参考。
+
+因此 Contrix 应继续吸收 Matrix 的稳定经验，尤其是 room version / auth rules / state resolution、device trust、client sync、policy server、appservice transaction、authenticated media 等，但不继承 Matrix 的抽象根。
+
+## 7. 相关文档
+
+- `extensions/matrix-compat-gap.md`
+- `extensions/applet-integration.md`
+- `extensions/agent-protocol-interop.md`
+- `extensions/agent-memory.md`
+- `identity/identity-did.md`
+- `crypto-media/encryption-and-audit.md`
+- `authz/capabilities.md`
+- `sync/service-surface.md`
+
+## 8. 外部参考
+
+- Matrix Specification: https://spec.matrix.org/latest/
+- Matrix Application Service API: https://spec.matrix.org/unstable/application-service-api/
+- Matrix E2EE guide: https://matrix.org/docs/matrix-concepts/end-to-end-encryption/
+- Matrix Megolm specification: https://spec.matrix.org/unstable/olm-megolm/megolm/
+- AT Protocol DID specification: https://atproto.com/specs/did
+- AT Protocol repository specification: https://atproto.com/specs/repository
+- MLS RFC 9420: https://www.ietf.org/rfc/rfc9420

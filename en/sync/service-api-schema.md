@@ -83,6 +83,12 @@ paths:
   /sync/subscribe:
     get:
       operationId: cx.subscribeSync
+  /sync/backfill:
+    get:
+      operationId: cx.backfillSync
+  /sync/snapshot-head:
+    get:
+      operationId: cx.getSyncSnapshotHead
 
   /index/query:
     post:
@@ -161,9 +167,11 @@ The following mapping binds each canonical operation to a transport implementati
 | --- | --- | --- |
 | cx.resolveIdentity | `POST /identity/resolve` | gRPC `ResolveIdentity` / MQ `identity.resolve` |
 | cx.submitDidOp | `POST /identity/submit-did-op` | gRPC `SubmitDidOperation` / libp2p stream |
-| cx.submitCommit / cx.syncRepo | `POST /repo/*` | gRPC `SubmitCommit` / Queue `repo.commit` |
-| cx.clientSync | `POST /sync` | `GET /sync?since...` / WebSocket stream / SSE channel |
-| cx.subscribeSync | `GET /sync/subscribe` | WebSocket frame `/sync/stream` / pubsub topic |
+| cx.submitCommit | `POST /repo/submit-commit` | gRPC `SubmitCommit` / Queue `repo.commit` |
+| cx.getOps / cx.syncRepo | `POST /repo/ops`, `POST /repo/sync` | gRPC `GetOps` / `SyncRepo` |
+| cx.clientSync | `POST /sync` | WebSocket/SSE client sync channel / `GET /sync?since...` |
+| cx.subscribeSync | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
+| cx.backfillSync / cx.getSyncSnapshotHead | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
 | cx.indexQuery / cx.indexSync | `POST /index/*` | gRPC `IndexQuery` / SSE search stream |
 | cx.directorySearch* | `POST /directory/*` | gRPC discovery service |
 | cx.putToDeviceMessage | `PUT /device_messages/{txn_id}` | MQ device-topic direct / ephemeral transport |
@@ -178,4 +186,5 @@ All operation ids MUST be stable across versions and treated as the conformance 
 - Implementations SHOULD ship an OpenAPI document generated from this section and publish it at `/.well-known/contrix/openapi.yaml` (or equivalent signed reference in DID document service metadata).
 - Tests for cross-transport interoperability should assert operation semantics are preserved even when payload transport changes.
 - OpenAPI does **not** define protocol behavior alone; behavior remains in the canonical object, auth, and sync specs.
+- `POST /sync` is client aggregate incremental sync; `GET /sync/subscribe` is Space operation stream subscription; `GET /sync/backfill` is historical backfill. They MUST NOT be treated as interchangeable sync endpoints.
 

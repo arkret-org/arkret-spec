@@ -119,6 +119,7 @@
 | Sync Service | 同步服务 | Principal Server 上的 Space 增量同步能力，负责订阅、回补、去重、临时信令和受控分发；它不是独立第三方服务器角色，也不是真相源。 |
 | Index | 索引 | 将授权事件物化为查询结果、当前态、搜索结果和视图投影的派生层。 |
 | AppView | 应用视图服务 | 面向特定产品或 UI 的 Index / projection 服务。 |
+| Plaintext-visible Service | 明文可见服务 | 被 Space policy、principal DID 或组织 DID 明确委托，允许接收或保存非 E2EE 私有正文、附件预览、全文索引、通知摘要、embedding 或可逆派生摘要的服务。 |
 | Blob Store | 大对象存储 | 存储附件、媒体、snapshot chunk 或大对象的服务，地址可多源，校验基于内容哈希。 |
 | Authz Service | 授权服务 | 预检查、解释或缓存 capability / policy 判定的服务，不应替代可验证协议规则。 |
 | Policy Server | 策略服务 | 对邀请、加入、消息、媒体、Applet、联邦等行为给出签名风险决策的服务。 |

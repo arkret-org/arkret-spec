@@ -49,6 +49,8 @@ Plaintext rule:
 - Non-E2EE or non-content-encrypted private content MUST NOT be submitted to a third-party service that is not explicitly delegated by the sender, recipient, or Space policy.
 - If a Space declares a shared Space Host, that host MUST be a trusted Principal Server or organization service DID listed by Space policy.
 - Clients MUST verify the target service before submitting plaintext content.
+- Any service that receives or stores private bodies, attachment previews, full-text indexes, notification summaries, embeddings, or reversible derived summaries MUST be declared in Space policy as `plaintext_visible_services`.
+- Recipient Principal Servers are visibility boundaries for non-encrypted content delivered to their recipients; they are not transparent forwarding layers.
 - Untrusted third-party services may receive only public content, encrypted envelopes, or opaque payloads.
 
 ### 2.3 Query Index / AppView
@@ -253,6 +255,7 @@ A Principal Server must not:
 - forge actor ops
 - silently drop still-valid historical ops
 - forward plaintext private content to services not delegated by a principal or Space policy
+- copy non-encrypted private content to Index, AppView, Push, Blob preview, or Policy preview services that are not declared in `plaintext_visible_services`
 
 ### 6.3 The Index Interprets State but Must Not Replace the Audit Chain
 

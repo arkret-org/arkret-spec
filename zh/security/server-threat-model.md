@@ -43,7 +43,7 @@
     allowlist/blacklist/secret 管理缺失，导致高敏入口被过度放开。
 
 12. **服务拓扑污染（Topology / Service Discovery Poisoning）**
-    篡改目录、`sync_endpoints`、`service_did`、官方组织/Space 背书引用，影响服务选择与传播路径。
+    篡改目录、`sync_endpoints`、`service_did`、`plaintext_visible_services`、官方组织/Space 背书引用，影响服务选择、传播路径与明文可见边界。
 
 13. **身份解析污染（DID Resolver / Registry Tampering）**
     污染 DID resolver、registry、witness 可信链或 `did:web` 域绑定，错误承认身份控制权。

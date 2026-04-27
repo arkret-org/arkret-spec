@@ -18,6 +18,10 @@ Initial profiles:
 
 Conformance suites should include schema validation, signature verification, idempotency, reducer convergence, authorization, privacy regression, and unsupported-feature tests.
 
+`cx.profile.principal_server.v1` MUST cover client sync (`POST /sync`), sync subscription, backfill, cursor stability, duplicate suppression, encrypted payload forwarding, federation destination service binding verification, and plaintext-visible service enforcement. Principal Servers MUST NOT forward non-E2EE private content or reversible derived plaintext to services absent from relevant DID delegation or Space policy `plaintext_visible_services`.
+
+`cx.profile.index_node.v1` MUST cover reducer profile declaration, query reconstruction, authorization filtering, stale frontier reporting, wait-for sync tokens, and plaintext-visible declaration / policy enforcement when indexing private plaintext.
+
 This draft also requires state/capability/redaction fixture families:
 
 - State resolution: `state-resolution-conformance-vectors.md`

@@ -16,10 +16,10 @@
 
 ## 3. Repo API
 
-### 3.1 提交操作
+### 3.1 提交 commit
 
 ```text
-POST /api/v1/repo/submit-op
+POST /api/v1/repo/submit-commit
 ```
 
 请求：
@@ -27,7 +27,12 @@ POST /api/v1/repo/submit-op
 ```json
 {
   "repo_id": "did:uuid:alice-or-cx-space",
-  "op": {}
+  "commit": {
+    "commit_id": "cx:commit:01JS0KE...",
+    "prev": ["cx:commit:01JS0KD..."],
+    "ops": [],
+    "signature": {}
+  }
 }
 ```
 
@@ -42,6 +47,8 @@ POST /api/v1/repo/submit-op
 ```
 
 若 CAS (`expected_state_hash`) 校验失败，返回 `409 cas_conflict`。
+
+Repo 的协议级写入单元是签名 commit。实现 MAY 在 SDK 或本地接口中接受单个 op，但在进入网络传播、同步或审计前 MUST 将其封装进签名 commit；接收方不得把未归属 commit 的裸 op 当作 canonical history。
 
 ### 3.2 同步增量
 
@@ -101,8 +108,18 @@ Resolver MUST return enough method-specific evidence for clients to verify contr
 
 ## 5. Sync API
 
+### 5.1 客户端增量同步
+
 ```text
-GET /api/v1/sync/stream?space_id=<space_id>&cursor=<cursor>
+POST /api/v1/sync
+```
+
+该端点对应 `cx.clientSync`，用于客户端按 account / Space filter 拉取稳定增量视图。请求与响应形状见 `client-sync.md`。
+
+### 5.2 Space 增量流订阅
+
+```text
+GET /api/v1/sync/subscribe?space_id=<space_id>&cursor=<cursor>
 ```
 
 Frame:
@@ -115,7 +132,7 @@ Frame:
 }
 ```
 
-The same semantic stream MAY be exposed through WebSocket, SSE or long polling.
+同一语义流 MAY 通过 WebSocket、SSE 或长轮询承载，但 HTTP/JSON 默认参考路径是 `/api/v1/sync/subscribe`。`/sync/stream` 只能作为具体 transport 内部帧名或兼容别名，不能作为新的 canonical operation。
 
 ## 6. Directory API
 

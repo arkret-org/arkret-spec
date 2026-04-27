@@ -240,7 +240,7 @@ Schema id: `cx.schema.policy.v1`
 | `id` | yes | `id:policy` |  | Policy ID。 |
 | `type` | yes | `enum(policy)` | 固定为 `policy`。 | 对象种类。 |
 | `space_id` | no | `id:space` | 组织级 policy 可省略。 | 适用 Space。 |
-| `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, media, applet, agent, social)` |  | 策略类型。 |
+| `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent, social)` |  | 策略类型。 |
 | `rules` | yes | `array<object>` | 每条规则必须有 `effect`。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
 | `priority` | no | `integer` | 数值大者优先。 | 策略优先级。 |
