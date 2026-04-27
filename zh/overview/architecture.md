@@ -120,6 +120,34 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 协议必须把 agent 当作一等参与者，而不是 UI 里的“插件”。
 
+### 2.7 实际落地的服务器类型
+
+Contrix 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署不得改变各角色的安全边界：service DID、`service_type`、capability、Space policy、plaintext visibility 和 endpoint 契约仍必须可区分。
+
+推荐实现把服务器类型分为以下几类：
+
+| 服务器类型 | 常见 `service_type` | 主要服务 | 是否真相源 | 明文边界 |
+| --- | --- | --- | --- | --- |
+| Principal Server | `principal_server` | principal 的受控入口；聚合 repo、sync、federation、device message、policy、blob、index 等受托能力；对客户端提供 Home/Work Server 体验。 | 否；真相来自签名 Repo / Event。 | 可以接收该 principal 或 Space policy 授权范围内的非加密内容。 |
+| Identity Registry / Resolver | `identity_registry` | DID Document、DID key log、handle binding、receipt / witness、service discovery。 | 是身份控制链的可验证来源之一。 | 不应接收 Space 正文。 |
+| Auth / Account Server | `auth_server` 或部署私有名 | passkey、OIDC、SSO、设备配对、session grant、账户恢复与 soft logout。 | 否；只证明服务账户登录，并绑定到 DID / device。 | 不应因密码恢复获得 E2EE 明文或 DID 控制权。 |
+| Repo Server | `repo_node` | commit 提交、Operation / commit 读取、repo 增量同步、审计回放。 | 是发布日志的承载者；权威来自签名和 hash 链。 | 可保存提交中包含的明文，必须受 principal / Space policy 委托。 |
+| Sync / Federation Server | `principal_server` 或 `sync_node` | client sync、Space subscription、backfill、snapshot head、跨域 federation transaction。 | 否；只传播和回补。 | 只能把非加密私有内容发给授权 Principal Server 或 `plaintext_visible_services`。 |
+| Index / AppView Server | `index_node` / `appview_node` | current state、query、search、inbox、notification、view projection、embedding/vector index。 | 否；派生层。 | 若索引私有明文，必须列入 `plaintext_visible_services`。 |
+| Directory Server | `directory_service` | Space / Organization / Actor / handle / Applet 的授权搜索与精确解析。 | 否；派生发现层。 | 只返回最小可发现信息，不应暴露私有拓扑。 |
+| Blob / Media Server | `blob_node` / `media_service` | blob upload、HEAD/GET authenticated download、thumbnail、preview、retention、media policy。 | 内容 hash 可验证；metadata 是服务声明。 | 私有 blob 下载、预览和缩略图必须按授权执行。 |
+| Device / Key Server | `device_key_service` | to-device message、one-time key、fallback key、device list、secret backup metadata。 | 否；设备信任来自签名链。 | 不应能解密 E2EE 正文。 |
+| Authz / Policy Server | `authz_service` / `policy_server` | capability 查询、grant / invite 查询、policy decision、risk score、quarantine / review。 | 否；决策必须可追溯到签名 policy / grant。 | policy preview 只能接收最小披露字段，除非显式明文授权。 |
+| Push Gateway | `push_gateway` | push device register / unregister、脱敏通知投递、移动平台适配。 | 否。 | 默认不得接收 E2EE 明文或正文摘要。 |
+| Applet Server | `applet_service` | bot、bridge、外部 SaaS、portal Space、ghost actor、Applet transaction。 | 否；写入仍需 capability 和签名。 | 只在 Space / principal 明确授权范围内可见明文。 |
+| Agent Runtime Server | `agent_runtime` | agent run、tool execution、memory promotion、A2A / ACP / MCP handoff。 | 否；输出必须写回 Repo / Space 才成为协议事实。 | agent 可见范围由 capability、device/session 和 Space policy 限定。 |
+| Realtime Media Server | `media_service` / `sfu_service` / `turn_service` | WebRTC signaling 辅助、ICE config、TURN/STUN、SFU/MCU、录制。 | 否。 | SFU/TURN 通常不应接触明文；MCU/录制必须显式授权。 |
+| Moderation / Compliance Server | `moderation_service` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 | 否；处理结果必须落成可审计 policy / moderation Event。 | 只能接收审核所需的最小证据或授权明文。 |
+
+最小个人节点可以把 Principal Server、Repo Server、Sync/Federation、Index、Blob、Device/Key、Authz 和 Push 合并为一个部署。组织节点通常会把 Auth、Policy、Index、Blob、Directory、Media、Moderation 分离，以便独立扩容、审计和控制明文可见范围。
+
+协议不要求公开部署所有服务器。某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /api/v1/server/describe`、`supported_operations`、conformance profile 和 Space policy 共同声明。
+
 ## 3. 架构平面
 
 ### 3.1 Identity Plane

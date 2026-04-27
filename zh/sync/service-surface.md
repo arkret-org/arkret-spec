@@ -64,6 +64,40 @@ DID Document SHOULD 只负责：
 
 否则客户端无法判断自己能否安全使用该服务。
 
+### 2.5 实际服务器与服务面组合
+
+实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `server/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
+
+常见组合如下：
+
+| 实际服务器 | 必要 / 可选 | 通常暴露的 REST namespace | 主要能力 |
+| --- | --- | --- | --- |
+| Principal Server | 必要；每个 principal 或组织至少需要一个受控入口 | `/server`, `/sync`, `/federation`, 可代理 `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
+| Identity Registry / Resolver | 必要；可多 registry / witness | `/identity`, `/server` | DID document、DID log、handle binding、receipt、witness、service endpoint discovery。 |
+| Auth / Account Server | 托管服务通常必要；自托管可内置 | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
+| Repo Server | 必要；可本地或远端 | `/repo`, `/server` | commit 提交、Operation / commit 读取、repo sync、审计回放、hash chain 校验。 |
+| Sync / Federation Server | 必要；通常是 Principal Server 的一部分 | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
+| Index / AppView Server | 强烈建议；可客户端本地替代部分能力 | `/index`, `/server` | 当前态、查询、搜索、inbox、notification、View projection、embedding/vector index。 |
+| Directory Server | 可选但公共/组织部署常用 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，最小披露发现。 |
+| Blob / Media Server | 附件和 snapshot chunk 场景必要 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
+| Device / Key Server | E2EE profile 必要 | `/device_messages`, `/keys`, `/server` | to-device message、one-time key、fallback key、device list、key backup metadata。 |
+| Authz / Policy Server | 共享 Space 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
+| Push Gateway | 移动/桌面通知可选 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
+| Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Space、third-party lookup。 |
+| Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/repo` 写回结果 | agent 执行、tool 调用、run log、memory、A2A/ACP/MCP handoff。 |
+| Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
+| Moderation / Compliance Server | 公共或组织部署建议独立 | `/moderation`, `/server` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 |
+
+推荐 deployment profile：
+
+- `personal_node`：Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz，可选本地 Index。
+- `organization_workserver`：Principal Server + Repo + Sync/Federation + Index + Directory + Blob + Device/Key + Authz + Push。
+- `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
+- `applet_bridge`：Applet Server + Repo writer + Authz precheck，只在授权 namespace 和 capability 内工作。
+- `agent_runtime`：Agent Runtime + Repo writer + Memory/Index integration，所有写入仍通过 principal / agent DID 签名。
+
+客户端选择服务时 MUST 先解析 DID Document 与 Space policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
+
 ## 3. 通用服务描述接口
 
 建议所有服务都提供：
@@ -103,7 +137,7 @@ GET /api/v1/server/describe
 服务类型命名规则：
 
 - DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixRepo`、`ContrixIndex`。
-- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`repo_node`、`index_node`、`identity_registry`、`blob_node`、`directory_service`、`policy_server`、`push_gateway`。
+- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`repo_node`、`sync_node`、`index_node`、`appview_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`。
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 

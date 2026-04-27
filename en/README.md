@@ -50,6 +50,8 @@ This directory is structurally aligned with the Chinese draft. The Chinese versi
 
 Main document groups:
 
+`architecture.md` now defines concrete server types, and `service-surface.md` maps those servers to service namespaces and deployment profiles.
+
 - [gap-analysis.md](./overview/gap-analysis.md)
 - [design-questions.md](./overview/design-questions.md)
 - [architecture.md](./overview/architecture.md)

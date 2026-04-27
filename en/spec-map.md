@@ -10,7 +10,7 @@ If this map conflicts with any specific document, the normative rules in that do
 
 When learning the protocol for the first time, we recommend this sequence:
 
-1. `overview/architecture.md`: understand layer responsibilities, roles, and trust boundaries.
+1. `overview/architecture.md`: understand layer responsibilities, concrete server roles, and trust boundaries.
 2. `overview/glossary.md`: clarify terms, especially Principal / Actor / Organization / Space / Principal Server / Repo.
 3. `models/object-model-core.md` and `models/object-model-standard.md`: understand the collaboration graph and standard object types.
 4. `identity/identity-did.md`, `identity/identity-handles.md`, `identity/progressive-disclosure.md`: understand identity, handle, and privacy disclosure.
@@ -67,7 +67,7 @@ When learning the protocol for the first time, we recommend this sequence:
 | --- | --- |
 | `README.md` | Project positioning, goals, and entry points. |
 | `spec-map.md` | This document. |
-| `overview/architecture.md` | Top-level architecture, deployment topology, and trust boundaries. |
+| `overview/architecture.md` | Top-level architecture, concrete server types, deployment topology, and trust boundaries. |
 | `overview/matrix-core-differences.md` | Core differences and tradeoffs compared with Matrix. |
 | `overview/design-questions.md` | Key open design questions and decision records. |
 | `overview/gap-analysis.md` | Current implementation gaps and priority. |
@@ -113,7 +113,7 @@ When learning the protocol for the first time, we recommend this sequence:
 | --- | --- |
 | `sync/operations-sync.md` | Repo-first publication, operations, snapshots, and conflict resolution. |
 | `sync/client-sync.md` | Client incremental sync, timeline, state_after, to_device behavior. |
-| `sync/service-surface.md` | Minimal service surface: principal server, identity, repo, sync, index, directory, blob, authz. |
+| `sync/service-surface.md` | Minimal service surface and concrete service composition: principal server, identity, repo, sync, index, directory, blob, authz, device/key, push, applet, agent, media, moderation. |
 | `sync/service-http-binding.md` | HTTP/JSON binding entrypoints, request/response, standard errors. |
 | `sync/service-api-schema.md` | Core request/response schema. |
 | `sync/api-conventions.md` | Error handling, pagination, idempotency, feature discovery. |

@@ -118,7 +118,7 @@ Matrix homeserver 是用户与 room federation 的核心承载点。
 
 Contrix Principal Server 是受 principal 或 Space policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Repo、Sync、Index、Blob、Push、Policy，但协议仍保持分层。
 
-这也是 Contrix 去掉独立 Relay 后的核心边界：未加密私有内容不应进入不受用户、组织或 Space policy 控制的第三方服务。
+这也是 Contrix 去掉独立第三方分发服务器后的核心边界：未加密私有内容不应进入不受用户、组织或 Space policy 控制的第三方服务。
 
 ### 5.4 Query / Index 是一等派生层
 

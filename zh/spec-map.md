@@ -10,7 +10,7 @@
 
 初次理解协议时，建议按以下顺序阅读：
 
-1. `overview/architecture.md`：先理解分层、角色和信任边界。
+1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Principal Server / Repo。
 3. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
 4. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/progressive-disclosure.md`：理解身份、handle 和隐私披露。
@@ -67,7 +67,7 @@
 | --- | --- |
 | `README.md` | 项目定位、设计目标、规范入口。 |
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
-| `overview/architecture.md` | 顶层架构、部署拓扑、信任边界。 |
+| `overview/architecture.md` | 顶层架构、实际服务器类型、部署拓扑、信任边界。 |
 | `overview/matrix-core-differences.md` | 与 Matrix 的核心区别、边界和取舍。 |
 | `overview/design-questions.md` | 早期关键设计问题与决策记录。 |
 | `overview/gap-analysis.md` | 当前实现缺口和落地优先级。 |
@@ -113,7 +113,7 @@
 | --- | --- |
 | `sync/operations-sync.md` | Repo-first 发布、Operation、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
-| `sync/service-surface.md` | 最小服务面：principal server、identity、repo、sync、index、directory、blob、authz。 |
+| `sync/service-surface.md` | 最小服务面与实际服务组合：principal server、identity、repo、sync、index、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/service-api-schema.md` | 核心 request / response schema。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |

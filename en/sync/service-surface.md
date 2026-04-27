@@ -63,6 +63,40 @@ Each service SHOULD publish:
 
 Without that, clients cannot safely decide whether to use the service.
 
+### 2.5 Concrete Servers And Service Surface Composition
+
+In deployment, a "server" is a combination of one or more service surfaces; it is not automatically a protocol truth source. Implementations may merge servers, but `server/describe` must still declare `service_type`, `supported_operations`, authentication methods, limits, and profiles.
+
+Common combinations:
+
+| Concrete server | Required / optional | Typical REST namespaces | Main capability |
+| --- | --- | --- | --- |
+| Principal Server | Required; every principal or organization needs at least one controlled entry point | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
+| Identity Registry / Resolver | Required; may use multiple registries / witnesses | `/identity`, `/server` | DID Documents, DID logs, handle bindings, receipts, witnesses, service endpoint discovery. |
+| Auth / Account Server | Usually required for hosted services; may be embedded in self-hosting | Exposed through `auth_metadata`; login paths may be deployment-specific | Login, passkeys/OIDC/SSO, session grants, device pairing, account recovery; does not replace DID control. |
+| Repo Server | Required; local or remote | `/repo`, `/server` | Commit submission, Operation / commit reads, repo sync, audit replay, hash-chain verification. |
+| Sync / Federation Server | Required; usually part of the Principal Server | `/sync`, `/federation`, `/server` | Client sync, subscriptions, backfill, snapshot heads, cross-domain transactions, replay and destination-binding checks. |
+| Index / AppView Server | Strongly recommended; some capability may be local-client only | `/index`, `/server` | Current state, query, search, inbox, notification, View projection, embedding/vector index. |
+| Directory Server | Optional, common for public or organization deployments | `/directory`, `/server` | Authorized search and resolution for Spaces, Organizations, Actors, handles, and Applets. |
+| Blob / Media Server | Required for attachments and snapshot chunks | `/blob`, `/server` | Blob upload, authenticated download, HEAD, Range, thumbnails, previews, retention, media safety. |
+| Device / Key Server | Required for E2EE profiles | `/device_messages`, `/keys`, `/server` | To-device messages, one-time keys, fallback keys, device lists, key-backup metadata. |
+| Authz / Policy Server | Recommended as a separate service for shared Spaces and organization governance | `/authz`, `/contrix/v1/check`, `/server` | Effective grants, invite queries, capability precheck, signed policy decisions, risk / quarantine. |
+| Push Gateway | Optional for mobile/desktop notifications | `/push`, `/server` | Push device registration, unregister, blind notification delivery, APNs/FCM/vendor adapters. |
+| Applet Server | Optional for integrations, bridges, and automations | `/applet`, `/server` | Applet describe, transactions, ghost actors, portal Spaces, third-party lookup. |
+| Agent Runtime Server | Optional but recommended for agent workloads | Service surfaces defined by `extensions/agent-*`, usually writing results through `/repo` | Agent execution, tool calls, run logs, memory, A2A/ACP/MCP handoff. |
+| Realtime Media Server | Optional for calls and meetings | `/contrix/v1/ice-config`, plus WebRTC signaling / TURN / SFU profiles | ICE config, TURN/STUN, SFU/MCU, recording policy, short-lived media credentials. |
+| Moderation / Compliance Server | Recommended as a separate service for public or organization deployments | `/moderation`, `/server` | Reports, review queues, server ACLs, policy lists, appeals, legal hold / erasure workflows. |
+
+Recommended deployment profiles:
+
+- `personal_node`: Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz, with optional local Index.
+- `organization_workserver`: Principal Server + Repo + Sync/Federation + Index + Directory + Blob + Device/Key + Authz + Push.
+- `public_federation_ingress`: restricted Principal/Federation + Policy + Moderation + Directory; plaintext is not visible by default.
+- `applet_bridge`: Applet Server + Repo writer + Authz precheck, limited to authorized namespace and capability.
+- `agent_runtime`: Agent Runtime + Repo writer + Memory/Index integration; all durable writes are signed by principal / agent DID.
+
+Clients MUST resolve DID Documents and Space policy first, then verify `server/describe`. Sharing a domain name does not imply shared authority or the same plaintext visibility scope.
+
 ## 3. Common Service Description Endpoint
 
 Every service is recommended to provide:
@@ -102,7 +136,7 @@ Example:
 Service type naming rules:
 
 - DID Document `service.type` uses protocol registered names such as `ContrixPrincipalServer`, `ContrixRepo`, and `ContrixIndex`.
-- `describe` responses use lower-case runtime `service_type` values such as `principal_server`, `repo_node`, `index_node`, `identity_registry`, `blob_node`, `directory_service`, `policy_server`, and `push_gateway`.
+- `describe` responses use lower-case runtime `service_type` values such as `principal_server`, `repo_node`, `sync_node`, `index_node`, `appview_node`, `identity_registry`, `auth_server`, `blob_node`, `directory_service`, `device_key_service`, `authz_service`, `policy_server`, `push_gateway`, `applet_service`, `agent_runtime`, `media_service`, `sfu_service`, `turn_service`, and `moderation_service`.
 - Conformance profiles use `cx.profile.*` ids such as `cx.profile.principal_server.v1`.
 - Implementations MUST keep these three naming layers distinct.
 

@@ -116,15 +116,22 @@
 | Identity Registry | 身份注册表 | 保存、复制和见证 DID 文档、DID key log、handle binding 的服务角色。 |
 | Witness | 见证节点 | 对 DID log、key rotation、重要状态变更进行外部见证的服务或主体。 |
 | Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 repo、sync、index、blob、push、policy 等能力；产品层可称 Home Server。 |
+| Auth / Account Server | 认证/账户服务器 | 处理 passkey、OIDC、SSO、设备配对、session grant、账户恢复和 soft logout 的服务。它证明服务账户登录并绑定到 DID / device，不直接证明 DID 控制权。 |
+| Repo Server | 仓库服务器 | `Repo Service` 的实际服务器形态，提供 commit 提交、Operation / commit 读取、repo sync 和审计回放。 |
 | Sync Service | 同步服务 | Principal Server 上的 Space 增量同步能力，负责订阅、回补、去重、临时信令和受控分发；它不是独立第三方服务器角色，也不是真相源。 |
 | Index | 索引 | 将授权事件物化为查询结果、当前态、搜索结果和视图投影的派生层。 |
 | AppView | 应用视图服务 | 面向特定产品或 UI 的 Index / projection 服务。 |
 | Plaintext-visible Service | 明文可见服务 | 被 Space policy、principal DID 或组织 DID 明确委托，允许接收或保存非 E2EE 私有正文、附件预览、全文索引、通知摘要、embedding 或可逆派生摘要的服务。 |
 | Blob Store | 大对象存储 | 存储附件、媒体、snapshot chunk 或大对象的服务，地址可多源，校验基于内容哈希。 |
+| Device / Key Server | 设备与密钥服务器 | 提供 to-device message、one-time key、fallback key、device list 和 key backup metadata 的服务；设备信任仍来自签名链。 |
 | Authz Service | 授权服务 | 预检查、解释或缓存 capability / policy 判定的服务，不应替代可验证协议规则。 |
 | Policy Server | 策略服务 | 对邀请、加入、消息、媒体、Applet、联邦等行为给出签名风险决策的服务。 |
 | Push Gateway | 推送网关 | 将脱敏通知投递到移动或桌面平台推送系统的服务。 |
 | Directory Service | 目录服务 | 对 Space、Organization、Actor、Applet 等资源提供授权过滤后的搜索、列举和精确解析的派生服务；不是真相源。 |
+| Applet Server | Applet 服务器 | 承载 Applet / bridge / bot / portal / ghost actor 逻辑的服务，写入仍需 capability、namespace 和签名。 |
+| Agent Runtime Server | Agent 运行服务器 | 执行 agent run、tool call、memory promotion 和外部 agent protocol handoff 的服务；输出写回 Repo / Space 后才成为协议事实。 |
+| Realtime Media Server | 实时媒体服务器 | 提供 ICE config、TURN/STUN、SFU/MCU、录制或会议辅助能力的服务。 |
+| Moderation / Compliance Server | 审核/合规服务器 | 提供 report、审核队列、server ACL、policy list、appeal、legal hold 和 erasure workflow 的服务。 |
 
 ## 8. 联邦与互操作
 
