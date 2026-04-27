@@ -21,6 +21,7 @@ Authentication and authorization servers may be separate. Service discovery SHOU
   "auth_metadata": {
     "oauth_issuer": "https://auth.example.com",
     "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
+    "supported_auth_methods": ["passkey", "oidc", "device_pairing", "recovery_challenge"],
     "token_endpoint_auth_methods": ["private_key_jwt", "client_secret_basic"],
     "supported_grant_types": ["authorization_code", "refresh_token"],
     "did_binding_methods": ["session_grant", "did_http_signature"],
@@ -30,6 +31,8 @@ Authentication and authorization servers may be separate. Service discovery SHOU
 ```
 
 OAuth/OIDC `sub`, email, username, or client id MUST NOT be used directly as `actor_id`, grant subject, or event sender. A login session must be bound to a DID principal / device through a verifiable session grant, device binding, or DID proof, and resource servers must verify issuer, audience, expiry, replay protection, and grant status.
+
+`supported_auth_methods` only describes service-account login or recovery entry points. It does not change DID control rules. Passwords, email codes, and OIDC sessions must be bound to a DID / device through `did_binding_methods` before they can authorize protocol writes.
 
 Standard error envelope:
 

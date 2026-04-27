@@ -83,6 +83,7 @@ API 调用 SHOULD 使用以下方式之一：
   "auth_metadata": {
     "oauth_issuer": "https://auth.example.com",
     "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
+    "supported_auth_methods": ["passkey", "oidc", "device_pairing", "recovery_challenge"],
     "token_endpoint_auth_methods": ["private_key_jwt", "client_secret_basic"],
     "supported_grant_types": ["authorization_code", "refresh_token"],
     "did_binding_methods": ["session_grant", "did_http_signature"],
@@ -96,6 +97,7 @@ API 调用 SHOULD 使用以下方式之一：
 - `sub`、email、username 或 OAuth client id MUST NOT 直接作为 `actor_id`、grant subject 或 event sender。
 - 登录成功后，客户端或认证网关 MUST 产生可验证的 session grant、device binding 或 DID proof，把 OAuth/OIDC session 绑定到 DID principal / device。
 - Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 session grant 状态。
+- `supported_auth_methods` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
 - 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
 
 ## 4. 标准响应 envelope

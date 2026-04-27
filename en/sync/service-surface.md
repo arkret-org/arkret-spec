@@ -90,6 +90,7 @@ Example:
   "auth_metadata": {
     "oauth_issuer": "https://auth.example.com",
     "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
+    "supported_auth_methods": ["passkey", "oidc", "device_pairing"],
     "did_binding_methods": ["session_grant", "did_http_signature"]
   },
   "max_body_bytes": 1048576

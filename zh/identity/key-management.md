@@ -297,6 +297,42 @@ Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。
 5. 客户端用 recovery policy 发布 `recover` 或 `cx.device.authorized`。
 6. 若涉及 E2EE Space，客户端拉取 MLS state 并处理 epoch 缺口。
 
+### 7.4 所有权证明与解密证明
+
+DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某段历史密文”：
+
+- 当前控制密钥、已授权 device key 或 recovery key 对服务端 fresh challenge 签名。
+- 新设备生成 device key 后，由当前有效设备或 recovery policy 签发 `cx.device.authorized`。
+- recovery service 在 DID Document、organization policy 或 recovery policy 中被明确声明，并签发可验证 recovery event。
+
+“能解密用某个公钥加密的数据”MAY 作为恢复流程中的一个密码学因子，但不得单独等同于账号所有权。允许的形式是：服务端生成短期随机 challenge，按当前 key-log / recovery policy 指定的 recovery public key 加密，客户端在本地解密后对 challenge transcript 签名或返回 proof。该流程 MUST 绑定：
+
+- `challenge`
+- `audience` / `origin`
+- `service_did`
+- `principal_did`
+- `key_id`
+- 过期时间
+- 防重放 nonce
+
+实现 MUST NOT 把以下情况当作独立恢复依据：
+
+- 用户能解密某条历史消息、历史 Blob、旧 MLS epoch 或旧备份。
+- 用户能提供某段历史明文。
+- 用户知道 service account 密码或邮箱验证码，但没有 DID / recovery proof。
+- 用户持有已经撤销、过期或不在当前 recovery policy 中的旧设备密钥。
+
+安全风险：
+
+- **密钥用途混淆**：内容解密密钥、MLS epoch key、backup key 和 DID 控制密钥不是同一种权力。
+- **旧密钥复活**：被移除成员或旧设备可能仍能解密旧内容，但不应重新获得账号控制权。
+- **弱口令备份被盗**：攻击者获得云端备份密文后可以离线爆破 passphrase。
+- **解密 oracle**：服务端若允许任意密文挑战，可能被滥用为私钥 oracle；challenge 必须是固定格式、短期、限速且只针对声明的 recovery key。
+- **钓鱼与中继**：攻击者可能诱导用户解密 challenge；proof 必须绑定 domain / service DID / audience，并在 UI 中展示高风险恢复意图。
+- **隐私泄露**：用历史内容证明所有权会向恢复服务暴露用户拥有或可读哪些私有内容。
+
+因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 `key_log` 中的 `recover`、`rotate`、`cx.device.authorized` 或等价 signed event。
+
 ## 8. 社交恢复与门限恢复
 
 高价值账号 SHOULD 支持门限恢复。

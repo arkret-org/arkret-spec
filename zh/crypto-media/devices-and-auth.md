@@ -8,6 +8,28 @@
 - 密钥的安全备份与恢复 (Key Backup & Recovery)
 - 隐私保护的移动端推送通知 (Privacy-Preserving Push Notifications)
 
+## 1.1 认证服务器验证什么
+
+Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根。它验证的是“某个登录会话是否可以被绑定到某个 DID principal / device”，而不是用用户名、密码、邮箱或 OIDC subject 直接定义主体所有权。
+
+实现 MAY 支持以下登录因子：
+
+- 用户名 + 密码，用于传统 service account 登录。
+- Passkey / WebAuthn，用于强认证或无密码登录。
+- OIDC / SSO，用于企业或组织管理账号。
+- 已授权设备配对，用于普通多设备加入。
+- Recovery key、门限恢复或受信恢复服务，用于全部设备丢失后的恢复。
+
+认证成功后，Auth Service MUST 产出以下至少一种可验证绑定：
+
+- `cx.session.grant`：把短期 `session_public_key` 委托给 DID principal / device。
+- `cx.device.authorized`：把新设备公钥加入当前设备集合。
+- 满足 `recovery_policy` 的 `recover` / key-log event。
+
+资源服务器验证的是 session grant、device authorization、DID proof、capability 和 Space policy，而不是“用户刚刚输入了正确密码”。密码、SSO session 和 service account id 都不能直接作为 `actor_id`、event sender 或 capability subject。
+
+服务账号密码重置只改变服务账号登录凭据；除非同时存在有效 DID 控制证明或 recovery policy 事件，否则不得自动授予 DID 控制权、不得签发长期 device grant、不得访问 E2EE 密钥备份。
+
 ## 2. 多设备配对 (Device Pairing)
 
 在 Contrix 中，用户的每个物理/逻辑设备都应该拥有本地独立生成的设备级密钥对 (Device Key)。
@@ -30,7 +52,7 @@
 企业通常强制要求使用 Okta、Google Workspace 等中心化身份提供商 (IdP) 进行认证。在不破坏去中心化端到端加密前提下，本协议引入 **Auth Gateway (认证网关)** 模式。
 
 ### 3.1 架构角色
-- **Auth Gateway**：部署在企业内网或受控云端的高安全级别服务器，硬件中（如 HSM）托管了企业员工身份的根私钥或具备最高颁发权限。
+- **Auth Gateway**：部署在企业内网或受控云端的高安全级别服务器。它通常是组织 DID 明确声明的 session grant issuer 或设备授权服务。只有在企业托管账号场景中，它才 MAY 托管员工 DID 的高权限签发材料；对普通个人 DID，网关 SHOULD 只签发短期 session grant，不应托管用户 principal signing key 或 recovery key。
 
 ### 3.2 登录时序
 1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。

@@ -16,6 +16,22 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 
 服务 account 被注销不等于 DID 消失。DID 被恢复或轮换不等于所有服务 session 继续有效。
 
+## 2.1 服务账号登录与找回
+
+服务账号 MAY 使用用户名/密码、passkey、WebAuthn、OAuth/OIDC、企业 SSO 或类似集中认证服务的登录方式。它们只证明调用方通过了某个 account service 的认证，不能直接证明 DID principal 所有权。
+
+登录成功后，account service / auth service MUST 将会话绑定到 DID principal 与设备，例如签发短期 `cx.session.grant`、登记 device binding，或要求客户端提交 DID proof。资源服务器随后验证 grant、device、capability、Space policy 和撤销状态。
+
+密码找回或邮箱验证码重置只允许恢复 service account 访问。除非同时满足 DID recovery policy，服务端 MUST NOT 因密码重置而：
+
+- 轮换 DID 控制密钥。
+- 授权新长期设备。
+- 读取或重包 E2EE secret storage。
+- 签发超过短期登录范围的 capability。
+- 撤销用户现有设备，除非 recovery policy 或风险处置策略明确要求。
+
+当 service account 恢复结果与 DID 当前控制状态不一致时，服务端 SHOULD 进入 `locked` 或 `soft_logged_out`，要求用户用已授权设备、recovery key、门限恢复、企业管理员多方审批或 DID proof 完成重新绑定。
+
 ## 3. Account States
 
 服务账户状态：
@@ -124,4 +140,3 @@ Space 内 membership 不自动变成 ban；是否移除由 Space policy 决定�
 - 提交 appeal。
 
 这些 API 必须使用高风险动作认证，例如 recent login、WebAuthn、recovery key 或管理员多方审批。
-
