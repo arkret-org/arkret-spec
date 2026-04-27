@@ -103,6 +103,7 @@
 | `event-auth-state-resolution.md` | Space version、auth refs、membership、state resolution。 |
 | `policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `moderation.md` | 举报、Space/Organization 审核策略、个人屏蔽入口。 |
+| `server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
 | `account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
 
 ### 4.5 同步、服务与联邦

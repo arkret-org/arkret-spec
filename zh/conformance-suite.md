@@ -51,7 +51,7 @@
 - `redaction-conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `capability-conformance-vectors.md`：委派、撤销回滚与审批约束向量。
 
-### 4.2 State resolution 向量（新增）
+### 4.2 State resolution 向量
 
 新增以下必测项（本 draft 的首批要求）：
 
@@ -65,7 +65,7 @@
   - `cx.space.schema` 与 `cx.space.policy_server` 的并发写入。
   - 期望输出：按优先级类 + tie-break 顺序稳定收敛。
 
-### 4.3 Redaction 向量（新增）
+### 4.3 Redaction 向量
 
 - `cx.vector.redaction.preserve_fields.v1`
   - 输入 target event + redaction event（不同时序）。
@@ -74,7 +74,7 @@
   - redaction 对已归档事件、加密事件、外部可见字段的影响。
   - 期望输出：索引与审计可见性一致，不可把 redaction 解读为物理删除。
 
-### 4.4 Capability 向量（新增）
+### 4.4 Capability 向量
 
 - `cx.vector.capability.delegate_chain.v1`
   - grant 链条（多层委派）与 selector 条件（时间、对象、速率）冲突场景。
@@ -90,11 +90,11 @@
 | --- | --- | --- |
 | Minimal/Full Client | filter、pagination、state_after、decryption_pending | snapshot frontier、causal wait |
 | Repo Node | submitCommit、opIdempotency、commitDigest 验证、signature 校验 | snapshot generation、receipt |
-| Relay Node | subscribe 续传、backfill 顺序、重复过滤、加密转发不解密 | 多上游订阅、快照指针 |
-| Index Node | query 结果可重建性、授权过滤、wait-for 前沿、stale 标记 | notification materialization |
+| Relay Node | subscribe 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游订阅、快照指针 |
+| Index Node | query 结果可重建性、授权过滤、wait-for 前沿、stale 标记、目录结果可见性一致 | notification materialization |
 | E2EE Client | epoch 回填、to-device、removed 成员 fail-closed | 本地 search 协调 |
 | Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal space 映射 |
-| Policy Server | decision 签名、replay 保护、hard_deny / quarantine 语义 | federation 再检 |
+| Policy Server | decision 签名、replay 保护、hard_deny / quarantine 语义、rate_limit / spam 风险码 | federation 再检 |
 | Identity Registry | DID log 一致性、witness receipt、method adapter | witness-only、read-replica |
 
 ## 6. 执行与发布要求

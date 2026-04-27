@@ -58,6 +58,7 @@ Contrix 第一阶段聚焦以下目标：
 5. [capabilities.md](./capabilities.md) 与 [event-auth-state-resolution.md](./event-auth-state-resolution.md)：授权、membership、state resolution。
 6. [operations-sync.md](./operations-sync.md)、[client-sync.md](./client-sync.md)、[service-surface.md](./service-surface.md)、[service-http-binding.md](./service-http-binding.md)：写入、同步、服务面和默认 HTTP binding。
 7. 按场景阅读扩展：Applet、Agent、WebRTC、Directory、Social、Moderation、Federation、Sovereign Deployment。
+8. 安全加固对照阅读：[server-threat-model.md](./server-threat-model.md)（服务端攻击模型与抗滥用规则）
 
 当前规范按以下平面组织：
 

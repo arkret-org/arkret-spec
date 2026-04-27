@@ -192,3 +192,11 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 | `internal_error` | 500 | 节点内部错误。 |
 
 客户端收到 `429` MUST 遵守 `retry_after_ms`。收到 `409` SHOULD 拉取最新状态后退避重试。
+
+## 10. 安全与抗滥用
+
+服务端 SHOULD 在高风险入口实施一致性失败语义：
+
+- 对目录/resolve 查询、join 探测、公开元数据接口，未授权请求不应返回可区分 `not_found` 与 `forbidden` 的信息差异。
+- 联邦入口与 policy check 入口应记录来源 service DID + 来源域名哈希，结合 `rate_limited` 与 `temporarily_unavailable` 作回压。
+- 对来源签名缺失/验证失败的入口请求，应优先走 reject + audit，不得影响已认证正常来源的可用性。

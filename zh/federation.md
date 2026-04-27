@@ -200,16 +200,42 @@ POST /api/v1/federation/verify-actor
 ### 8.1 反洪泛 (Anti-Flooding)
 
 联邦端点 MUST 实施严格的速率限制。恶意节点可能通过大量推送无效 Op 来消耗对端资源。建议：
-- 按 `origin` DID 做独立限速
+- 按 `origin` DID、来源 IP hash、endpoint 和 Space id 做独立限速
 - 对来自未知域的首次请求做降级处理（先验证后全速）
+- 限制单次请求体积和批次大小，超阈值先进入 `rate_limited`
 
 ### 8.2 选择性拒绝
 
 节点有权选择性拒绝来自特定域的联邦请求（参见 3.3 节的域信任模型），这不违反协议。被拒绝的域可以通过其他途径（如用户直接下载 Repo 数据）获取信息。
 
-### 8.3 元数据泄露防护
+### 8.3 元数据与身份校验
+
+联邦请求在鉴权前应执行签名与服务源一致性检查：
+
+- `origin`/`destination` service DID 必须与请求签名与 `target-uri` 一致；
+- 对签名失败、签名域缺失、`origin` 不在可接受集合的来源进入 `quarantine` 或 `hard_deny`；
+- 未通过身份校验的错误响应 MUST 不泄露可验证/不可验证来源的差异。
+
+### 8.4 元数据泄露防护
 
 在联邦推送 E2EE Space 的 Op 时，密文信封 `encrypted_payload` 对联邦中间节点同样不可见。联邦协议传输的只有明文路由元数据和不透明的密文块。
+
+### 8.5 重放与异常模式防护
+
+节点 MUST 将 `txn_id` 与请求 canonical hash 绑定后执行幂等和重放检查：
+
+- `txn_id` 相同但 hash 不同 MUST 拒绝；
+- `txn_id` 相同且 hash 相同 MAY 幂等接受；
+- 同源短时重复失败、失败率异常上升时 MUST 暂停该源并返回 `rate_limited`/`temporarily_unavailable`。
+
+### 8.6 威胁映射落地
+
+本协议在服务器端应默认支持 [server-threat-model.md](./server-threat-model.md) 中“可借鉴项”，特别是：
+
+- 开放中继阻断；
+- 攻击来源限流与排队；
+- 重放检测与 quarantine；
+- 统一回执和拒绝语义避免枚举泄漏。
 
 ## 9. 后续待细化
 

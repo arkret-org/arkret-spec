@@ -323,7 +323,21 @@ Space and Organization moderation policies SHOULD be evaluated through Policy Se
 
 Policy Server MAY return `hard_deny`, `quarantine`, `require_review` or `soft_deny`, but it MUST NOT grant capability by itself.
 
-## 9. 后续待细化
+## 9. 服务端威胁借鉴
+
+在“去中心化服务治理”场景中，服务端常见风险的抗滥用经验如下：
+
+- **入口源身份强制**：任何外部服务联邦请求都先验 `service DID`。未签名或未被 allowlist 的源服务不得参与写路径（至少转入 `soft_deny` / `quarantine`）。
+- **多级限速**：Relay / Index / Policy Server 应至少按以下维度限速：`source DID`、`source IP`（或其哈希）、`service token`、`space id`、`endpoint`。超阈值 MUST 返回 `rate_limited`。
+- **批量事件反滥用**：对短周期内的 `invite`、`join`、`message`、`media.upload` 进行突发抑制；出现异常突发可触发 `quarantine`。
+- **最小可观察性差异**：对未通过鉴权的目录/加入枚举请求，返回统一错误，不泄露对象可见性差异。
+- **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 relay/index；必要时按 `snapshot`/`preview` 再二次放行。
+- **可追溯审计**：每次风控拦截、隔离、降级决策都要记录结构化审计事件，且不得仅依赖联邦来源的本地口头说明。
+
+上述规则至少部分对应 `server-threat-model.md` 中的映射结果。  
+`policy-server.md` 与 `federation.md` 也应同步落地。
+
+## 10. 后续待细化
 
 - 自动化审核（基于 AI 的内容分类与标记）
 - 上诉流程（被封禁用户的申诉机制）
