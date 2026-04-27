@@ -82,7 +82,7 @@
 
 - service DID authentication
 - federation transaction replay protection
-- Principal Server-to-Principal Server op exchange
+- Principal Server-to-Principal Server operation exchange
 - cross-domain Space join
 - remote capability verification
 - fork / equivocation detection

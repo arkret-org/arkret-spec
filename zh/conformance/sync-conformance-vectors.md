@@ -262,7 +262,52 @@ Snapshot manifest：
 - snapshot `state_hash` 不匹配时仍接受。
 - 无法证明 `evt_4` 与 `frontier` 可连接时仍静默合并。
 
-## 7. Vector: State After Timeline Item
+## 7. Vector: 联邦 pull 时的 Snapshot Bootstrap（新增）
+
+向量名称：
+
+```text
+cx.vector.sync.snapshot_bootstrap.v1
+```
+
+联邦 pull 响应（跨域恢复场景）：
+
+```json
+{
+  "operations": [
+    "evt_4",
+    "evt_5"
+  ],
+  "snapshot_bootstrap": {
+    "snapshot_ref": "snap_a",
+    "state_hash": "sha256:state_after_evt_3",
+    "snapshot_frontier": ["evt_3"],
+    "state_signature": {
+      "issuer": "did:web:index.example",
+      "alg": "ed25519",
+      "sig": "sig_of_snapshot_assist"
+    }
+  },
+  "next_cursor": "fed_after_evt_5"
+}
+```
+
+期望行为：
+
+- 客户端在处理 `operations` 之前先验证：
+  - `snapshot_bootstrap.state_signature` 的签名；
+  - `state_hash` 与声明的 reducer profile 一致；
+  - `snapshot_frontier` 为非空且可与 `operations` 的因果源衔接。
+- 验证通过后，以 `snapshot_frontier` 为增量起点继续应用 `evt_4` / `evt_5`。
+- 验证失败时，不得直接使用 snapshot；应退回到 operation-only 回放或触发同源回源校验。
+- `snapshot_bootstrap` 缺失时，节点 MAY 使用纯回放路径，不得将失败计为同步异常。
+
+失败条件：
+
+- 验证失败仍沿用 snapshot，并改变 frontier 判定。
+- 将 `evt_4` / `evt_5` 当作无前序事件直接重放到空状态。
+
+## 8. Vector: State After Timeline Item
 
 向量名称：
 
@@ -302,7 +347,7 @@ Timeline item：
 - 客户端 MUST NOT 用当前最新 membership 状态重写历史消息当时的授权语义。
 - 搜索、导出和审计界面 SHOULD 能区分事件发生时状态与当前状态。
 
-## 8. Vector: Causal Barrier / Read Your Writes
+## 9. Vector: Causal Barrier / Read Your Writes
 
 向量名称：
 
@@ -345,7 +390,7 @@ Content-Type: application/json
 
 - 查询成功但缺少 `evt_write_1`，且没有 stale frontier 标记。
 
-## 9. Vector: MLS Epoch Backfill
+## 10. Vector: MLS Epoch Backfill
 
 向量名称：
 
@@ -398,7 +443,7 @@ cx.vector.sync.mls_epoch_backfill.v1
 - 把 `evt_enc_2` 当作损坏事件删除。
 - 请求密钥时没有验证 epoch 42 的 membership 和设备授权。
 
-## 10. Vector: Decryption Pending Recovery
+## 11. Vector: Decryption Pending Recovery
 
 向量名称：
 
@@ -440,7 +485,7 @@ cx.vector.sync.decryption_pending_recovery.v1
 - 解密恢复后把事件移动到 key arrival 时间。
 - 在验证 MLS commit 前尝试使用外部提供的 secret。
 
-## 11. Vector: Removed Member Fail Closed
+## 12. Vector: Removed Member Fail Closed
 
 向量名称：
 
@@ -480,7 +525,7 @@ cx.vector.sync.removed_member_fail_closed.v1
 
 - Bob 能通过 backfill、key backup 或旧设备同步拿到 epoch 44 secret。
 
-## 12. Vector: Backfill Preserves Order Across Pages
+## 13. Vector: Backfill Preserves Order Across Pages
 
 向量名称：
 
@@ -521,7 +566,7 @@ backfill 页：
 - 客户端 MUST 去重重复事件。
 - 客户端 MUST 保留 `evt_1` 仍缺失的 gap 标记。
 
-## 13. Vector: Token Expiry Recovery
+## 14. Vector: Token Expiry Recovery
 
 向量名称：
 
@@ -553,7 +598,7 @@ cx.vector.sync.token_expiry_recovery.v1
 - 客户端 MUST 保留本地未确认离线写入队列。
 - 客户端 MUST NOT 清空已验证 repo cache，除非 cache hash 与新 snapshot 明确冲突。
 
-## 14. 覆盖矩阵
+## 15. 覆盖矩阵
 
 | 向量 | Minimal Client | Full Client | E2EE Client | Repo Node | Principal Server | Index Node |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -561,6 +606,7 @@ cx.vector.sync.token_expiry_recovery.v1
 | `cx.vector.sync.order.tie_break.v1` | MUST | MUST | MUST | SHOULD | SHOULD | MUST |
 | `cx.vector.sync.pagination_gap.v1` | MUST | MUST | MUST | MAY | SHOULD | SHOULD |
 | `cx.vector.sync.snapshot_frontier.v1` | SHOULD | MUST | MUST | SHOULD | SHOULD | SHOULD |
+| `cx.vector.sync.snapshot_bootstrap.v1` | SHOULD | SHOULD | MUST | SHOULD | MUST | SHOULD |
 | `cx.vector.sync.state_after.v1` | SHOULD | MUST | MUST | SHOULD | MAY | MUST |
 | `cx.vector.sync.causal_barrier.v1` | MAY | SHOULD | SHOULD | MAY | MAY | MUST |
 | `cx.vector.sync.mls_epoch_backfill.v1` | N/A | MAY | MUST | MAY | SHOULD | MAY |

@@ -115,8 +115,21 @@ POST /api/v1/federation/verify-actor
 | Field | Type | Required | Meaning and constraints |
 | --- | --- | --- | --- |
 | `operations` | `object[]` | required | Operation array; each item MUST preserve the original signed envelope. |
+| `snapshot_bootstrap` | `object` | optional | Optional snapshot assist object for bootstrap fast-path. If present, receivers MUST validate its signature and frontier consistency before using it. |
 | `next_cursor` | `cursor` | optional | Cursor for the next page. |
 | `has_more` | `boolean` | required | Whether more visible Operations are available. |
+
+`snapshot_bootstrap` fields (when present):
+
+| Field | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- |
+| `snapshot_ref` | `id` | optional | Checkpoint snapshot identifier. |
+| `state_hash` | `string` | optional | State root/digest that must match the checkpointed frontier. |
+| `snapshot_frontier` | `id[]` | optional | Frontier that operations after this cursor must join against. |
+| `state_signature` | `object` | optional | Signature over `snapshot_ref`, `state_hash`, and `snapshot_frontier`. |
+| `state_signature.issuer` | `did` | optional | Issuer DID used for bootstrap trust. |
+| `state_signature.alg` | `string` | optional | Signature algorithm / key type. |
+| `state_signature.sig` | `string` | optional | Detached signature bytes. |
 
 `GET /api/v1/federation/space-members` request fields:
 
@@ -196,5 +209,52 @@ Response example (not a complete schema):
 ```
 
 Requests MUST use HTTP Message Signature from the source service DID. `purpose` MUST be `event_source`, `federation_join`, `device_binding`, or an equivalent purpose allowed by Space policy. The requester must be a participant Principal Server, delegated Space Host, or service authorized for the related federation / join flow. The response is only a cache or diagnostic hint; receivers still independently verify DID document, key log, signature transcript, capability, and Space policy before accepting events, membership changes, or device bindings.
+
+## 9. Interoperability Roadmap and Hardening
+
+The following items are not all mandatory in the first stable profile. They are organized by criticality:
+
+### 9.1 Federation-aware Snapshot Synchronization and Validation (Required for complete bootstrap correctness)
+
+When a Principal Server needs long-range recovery from another domain, snapshot-assisted bootstrap is required for operability under normal network conditions. `GET /api/v1/federation/pull-operations` MAY return `snapshot_bootstrap`:
+
+| Field | Type | Required | Meaning and constraints |
+| --- | --- | --- | --- |
+| `snapshot_ref` | `id` | optional | Snapshot id that can be used as a checkpoint. |
+| `state_hash` | `string` | optional | Snapshot state hash (commit-compatible digest). |
+| `snapshot_frontier` | `id[]` | optional | Frontier covered by the snapshot. |
+| `state_signature` | `object` | optional | Signature over the snapshot metadata; receivers MUST verify signature and frontier alignment before use. |
+
+Receiver requirements:
+
+- Verify snapshot signature and `state_hash` first.
+- Start operation replay from `snapshot_frontier`; never treat a snapshot as a trustless new genesis.
+- On snapshot verification failure, fall back to operation-only replay and move the peer into soft quarantine or rate-limited mode.
+
+### 9.2 Multi-Principal Server Gossip / Batch Sync (Performance enhancement)
+
+This is an optional optimization.
+
+- Batch transport must preserve the signed envelope for each operation and support operation-level deduplication.
+- Forwarding nodes must not rewrite envelopes or alter canonical order guarantees.
+- A batch success is not equivalent to final authorization.
+- Batch-level request hash/chunk digest SHOULD be supplied for replay/flood detection.
+
+### 9.3 Cross-domain delegation and propagation control (Required security boundary)
+
+Cross-domain delegation must remain explicit:
+
+- No implicit cross-domain delegation or rights cascade is allowed.
+- Delegation must be expressed by explicit grant/delegate operations binding target space/service/subject, scope, optional expiry, and revocation behavior.
+- Delegated authority must be auditable, bounded by depth/scope, and revocable.
+- If a delegation chain cannot be revalidated end-to-end, receivers MUST reject with authorization failure.
+
+### 9.4 Federation reputation systems (Optional ecosystem layer)
+
+Reputation can be implemented as a local anti-abuse layer only.
+
+- It MAY guide queueing, throttling, and sampling, but MUST NOT replace signature verification and Space policy authorization.
+- Reputation logic MUST not suppress valid events without explicit authorization signals.
+- Error responses under suspicion should remain explicit (`temporarily_unavailable`, `rate_limited`, `quarantine`) and retry-compatible.
 
 

@@ -87,9 +87,9 @@ Type shorthand: `did` is a DID URI, `id` is a protocol object id, `cursor` / `to
 | `GET /api/v1/sync/subscribe` | query `{space_id: id, cursor?: cursor}` | Space read + service delegation; non-E2EE private content only to principal / plaintext-visible services. | event stream frames `{type, seq, cursor?, payload}` |
 | `GET /api/v1/sync/backfill` | query `{space_id: id, cursor?: cursor, limit?: int}` | History visibility + membership frontier + E2EE epoch policy. | `{events[], prev_cursor?, next_cursor?, limited?}` |
 | `GET /api/v1/sync/snapshot-head` | query `{space_id: id}` | Space read; snapshot manifest must be signed. | `{snapshot_ref, state_hash, frontier, signature}` |
-| `PUT /api/v1/federation/transactions/{txn_id}` | path `{txn_id}` body `{origin: did, destination: did, service_binding_ref, events[], receipts?, frontier?}` | `service_signature`; destination service DID, URL, Space policy, and service binding must match. | `{ok: true, accepted[], rejected[], next_retry_at?}` |
+| `PUT /api/v1/federation/transactions/{txn_id}` | path `{txn_id}` body `{origin: did, destination: did, service_binding_ref, operations[], receipts?, frontier?}` | `service_signature`; destination service DID, URL, Space policy, and service binding must match. | `{ok: true, accepted[], rejected[], next_retry_at?}` |
 | `POST /api/v1/federation/push-operations` | body `{origin: did, destination: did, space_id: id, service_binding_ref, operations[]}` | `service_signature`; origin must be acceptable under Space federation policy; each operation is verified independently. | `{accepted[], rejected[], quarantine[]?}` |
-| `GET /api/v1/federation/pull-operations` | query `{space_id: id, after_cursor?: cursor, limit?: int}` | `service_signature`; requester must have backfill rights and plaintext-visibility eligibility. | `{operations[], next_cursor?, has_more}` |
+| `GET /api/v1/federation/pull-operations` | query `{space_id: id, after_cursor?: cursor, limit?: int}` | `service_signature`; requester must have backfill rights and plaintext-visibility eligibility. | `{operations[], snapshot_bootstrap?, next_cursor?, has_more}` |
 | `GET /api/v1/federation/space-members` | query `{space_id: id, cursor?: cursor, limit?: int}` | `service_signature`; only for participant Principal Servers or policy-allowed services. | `{members[], membership_frontier, next_cursor?}` |
 | `POST /api/v1/federation/verify-actor` | body `{actor_id: did, challenge?: string, signed_payload_hash?: string, signature: signature, purpose: string, space_id?: id}` | `service_signature`; not a public DID oracle; requester must have a federation, join, event-source, or shared-Space purpose. | `{valid: boolean, actor_id, verified_key_id?, key_log_head?, did_document_ref?, expires_at?, warnings[]}` |
 | `GET /api/v1/index/describe` | query none | `public_metadata`; private reducer/frontier details may require auth. | `{service_did, reducer_profiles[], schema_profiles[], query_features[], frontier?}` |
@@ -159,9 +159,9 @@ This section is the field-level schema index for REST endpoints. Field syntax is
 | `cx.sync.subscribe` | `query.space_id: id` | `query.cursor: cursor` | stream frame: `type: string`; `seq: int`; `cursor: cursor?`; `payload: object` | Space read + service delegation; private plaintext only inside the authorized visibility boundary. |
 | `cx.sync.backfill` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `prev_cursor: cursor?`; `next_cursor: cursor?`; `limited: boolean?` | Enforce history visibility, membership frontier, and E2EE epoch policy. |
 | `cx.sync.get_snapshot_head` | `query.space_id: id` | none | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `signature: signature` | Snapshot manifest MUST be signed. |
-| `cx.federation.transaction` | `path.txn_id: id`; `origin: did`; `destination: did`; `service_binding_ref: object`; `events: object[]` | `receipts: object[]`; `frontier: object` | `ok: boolean`; `accepted: id[]`; `rejected: object[]`; `next_retry_at: datetime?` | `service_signature`; destination DID, URL, policy, and binding must match. |
+| `cx.federation.transaction` | `path.txn_id: id`; `origin: did`; `destination: did`; `service_binding_ref: object`; `operations: object[]` | `receipts: object[]`; `frontier: object` | `ok: boolean`; `accepted: id[]`; `rejected: object[]`; `next_retry_at: datetime?` | `service_signature`; destination DID, URL, policy, and binding must match. |
 | `cx.federation.push_operations` | `origin: did`; `destination: did`; `space_id: id`; `service_binding_ref: object`; `operations: object[]` | none | `accepted: id[]`; `rejected: object[]`; `quarantine: id[]?` | Every operation is independently signature and authorization checked. |
-| `cx.federation.pull_operations` | `query.space_id: id` | `query.after_cursor: cursor`; `query.limit: int` | `operations: object[]`; `next_cursor: cursor?`; `has_more: boolean` | Requester needs backfill rights and plaintext-visibility eligibility. |
+| `cx.federation.pull_operations` | `query.space_id: id` | `query.after_cursor: cursor`; `query.limit: int` | `operations: object[]`; `snapshot_bootstrap?: object`; `next_cursor: cursor?`; `has_more: boolean` | Requester needs backfill rights and plaintext-visibility eligibility. |
 | `cx.federation.space_members` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `members: object[]`; `membership_frontier: object`; `next_cursor: cursor?` | Participant Principal Servers or policy-allowed services only. |
 | `cx.federation.verify_actor` | `actor_id: did`; `purpose: enum(event_source,federation_join,device_binding)`; `signature: signature` | `space_id: id`; `challenge: string`; `signed_payload_hash: string` | `valid: boolean`; `actor_id: did`; `verified_key_id: string?`; `key_log_head: id?`; `did_document_ref: string?`; `expires_at: datetime?`; `warnings: string[]` | Cache/diagnostic only; never replaces local DID, key-log, capability, or Space policy verification. |
 | `cx.index.describe` | none | none | `service_did: did`; `reducer_profiles: string[]`; `schema_profiles: string[]`; `query_features: string[]`; `frontier: object?` | Private reducer/frontier data may require authentication. |
@@ -395,12 +395,13 @@ Clients MUST re-check hash value against `blob_ref`.
 | `cas_conflict` | 409 | `expected_state_hash` mismatch. |
 | `epoch_mismatch` | 409 | MLS epoch is stale. |
 | `quota_exceeded` | 413 | Quota exceeded. |
+| `temporarily_unavailable` | 503 | Service is temporarily unavailable. |
 | `rate_limited` | 429 | Request rate exceeded. |
 | `unknown_did` | 422 | DID resolution failed. |
 | `schema_violation` | 422 | Payload does not match schema. |
 | `internal_error` | 500 | Internal node error. |
 
-Clients receiving `429` MUST honor `retry_after_ms`; clients receiving `409` SHOULD retry after backing off and fetching latest state.
+Clients receiving `429` or `503` MUST honor `retry_after_ms`; clients receiving `409` SHOULD retry after backing off and fetching latest state.
 
 ## 10. Security and Abuse Defense
 

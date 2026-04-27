@@ -18,7 +18,7 @@ The protocols can interoperate through bridges, but their roots are different.
 
 | Area | Matrix | Contrix |
 | --- | --- | --- |
-| Data root | Room event streams and room state. | Authorized Event / op sets in a Space, reduced into Entities, Relations, and Views. |
+| Data root | Room event streams and room state. | Authorized Event / operation sets in a Space, reduced into Entities, Relations, and Views. |
 | Main use | Instant messaging, group chat, VoIP signaling, bridges. | Collaboration objects, tasks/boards, chat/topics, knowledge memory, agent runs, audit workflows. |
 | Server model | Homeservers are central to accounts, room participation, and federation. | Principal Servers are controlled or explicitly delegated service boundaries; Repo, Sync, Index, Blob, and Policy remain layered. |
 | Truth source | Room event graph and state resolution. | Principal-signed repo commits / operations plus Space reducers; Index / AppView are derived layers. |

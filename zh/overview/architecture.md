@@ -137,8 +137,8 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 负责：
 
-- 生成 op
-- 生成 repo commit
+- 生成 operation
+- 生成 principal repo commit
 - 签名
 - 发布到 repo
 
@@ -191,7 +191,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 负责：
 
 - export / import
-- snapshot + op replay
+- snapshot + operation replay
 - service replacement
 - 多 repo / 多 Principal Server / 多 index 迁移
 
@@ -296,7 +296,7 @@ flowchart LR
 
 - 每个组织维护自己的 principal repo
 - 每个组织或可信运营方运行自己的 Principal Server / index / policy server
-- 参与方 Principal Server 通过 federation transaction 交换 Space 相关 op
+- 参与方 Principal Server 通过 federation transaction 交换 Space 相关 operation
 - 多个 query index 为不同参与方提供视图
 - Space policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
 
@@ -354,7 +354,7 @@ Contrix 固定以下架构取向：
 repo 能证明：
 
 - 哪个 principal 发布了哪些 commit
-- commit 内有哪些 op
+- commit 内有哪些 operation
 - 顺序与签名是否成立
 
 repo 不能单方面定义共享 space 的最终当前态。
@@ -371,8 +371,8 @@ Principal Server 可以：
 
 Principal Server 不可以：
 
-- 伪造 actor op
-- 静默删除仍然有效的历史 op
+- 伪造 actor operation
+- 静默删除仍然有效的历史 operation
 - 把未授权明文内容发送给未被 principal 或 Space policy 委托的第三方服务
 - 把非加密私有内容复制到未声明为 `plaintext_visible_services` 的 Index、AppView、Push、Blob preview 或 Policy preview 服务
 

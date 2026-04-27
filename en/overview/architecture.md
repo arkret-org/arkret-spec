@@ -167,7 +167,7 @@ Responsible for:
 Responsible for:
 
 - export / import
-- snapshot + op replay
+- snapshot + operation replay
 - service replacement
 - migration across multiple repos / Principal Servers / indexes
 
@@ -235,7 +235,7 @@ That means:
 A repo can prove:
 
 - which principal published which commits
-- which ops were inside a commit
+- which operations were inside a commit
 - whether sequence and signatures are valid
 
 A repo must not unilaterally define the shared current state of a space.
@@ -252,8 +252,8 @@ A Principal Server may:
 
 A Principal Server must not:
 
-- forge actor ops
-- silently drop still-valid historical ops
+- forge actor operations
+- silently drop still-valid historical operations
 - forward plaintext private content to services not delegated by a principal or Space policy
 - copy non-encrypted private content to Index, AppView, Push, Blob preview, or Policy preview services that are not declared in `plaintext_visible_services`
 

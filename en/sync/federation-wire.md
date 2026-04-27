@@ -12,7 +12,7 @@ Required areas:
 - fork detection
 - quarantine queue
 
-Principal Server, sync, repo, and index services MUST verify event signatures, schema, capabilities, and source service authority.
+Principal Server, sync, repo, and index services MUST verify operation signatures, schema, capabilities, and source service authority.
 
 ## Transaction Envelope
 
@@ -33,7 +33,7 @@ Request fields:
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | Space policy version or hash. |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | Membership / policy causal frontier. |
 | `service_binding_ref.destination_service_type` | body | `string` | required | Destination service type, for example `principal_server`. |
-| `events` | body | `object[]` | required | Signed Event Envelope array; each item is independently signature and authorization checked. |
+| `operations` | body | `object[]` | required | Signed Operation Envelope array; each item is independently signature and authorization checked. |
 | `receipts` | body | `object[]` | optional | Receipt / witness evidence related to this transaction. |
 | `frontier` | body | `object` | optional | Sender causal frontier. |
 | `created_at` | body | `datetime` | optional | Sender creation time; MUST NOT be used as authorization by itself. |
@@ -50,7 +50,7 @@ Request example (not a complete schema):
     "membership_frontier": ["cx:evt:..."],
     "destination_service_type": "principal_server"
   },
-  "events": [],
+  "operations": [],
   "receipts": [],
   "frontier": {},
   "created_at": "2026-04-26T00:00:00Z"
@@ -63,8 +63,8 @@ Response fields:
 
 | Field | Type | Required | Meaning and constraints |
 | --- | --- | --- | --- |
-| `ok` | `boolean` | required | Whether the transaction was processed; `true` does not imply every event was accepted. |
-| `accepted` | `id[]` | required | Accepted event / operation ids. |
+| `ok` | `boolean` | required | Whether the transaction was processed; `true` does not imply every operation was accepted. |
+| `accepted` | `id[]` | required | Accepted operation IDs. |
 | `rejected` | `object[]` | required | Rejected items; each item SHOULD include `id`, `reason_code`, and diagnostic detail. |
 | `next_retry_at` | `datetime` | optional | Retry time for rate-limited, temporarily unavailable, or dependency-missing cases. |
 

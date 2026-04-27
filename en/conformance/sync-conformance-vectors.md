@@ -6,3 +6,16 @@ It defines conformance vectors for Client Sync ordering, pagination gaps, snapsh
 
 The Chinese draft is currently normative for detailed examples and expected outputs.
 
+## 1. Added Federation Snapshot Bootstrap Coverage
+
+Additional vectors include a federation pull-path bootstrap assist scenario:
+
+- `cx.vector.sync.snapshot_bootstrap.v1`
+
+Expected behavior in English:
+
+- `GET /api/v1/federation/pull-operations` MAY include `snapshot_bootstrap` in response.
+- Receivers MUST validate snapshot signature and frontier before using the snapshot-assisted checkpoint.
+- If validation fails, implementation MUST fall back to operation-only replay (or equivalent recovery path) and may mark the peer degraded.
+- Operations replay must start from the advertised `snapshot_frontier`, never as an unauthenticated new genesis.
+

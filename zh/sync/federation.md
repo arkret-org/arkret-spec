@@ -162,8 +162,21 @@ Host: server-alpha.com
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `operations` | `object[]` | required | Operation 数组；每项 MUST 保持原始签名信封。 |
+| `snapshot_bootstrap` | `object` | optional | 可选的快照加速返回；如有则接收方 MUST 校验签名并验证 frontier 一致性后才可使用。 |
 | `next_cursor` | `cursor` | optional | 下一页 cursor。 |
 | `has_more` | `boolean` | required | 是否还有更多可见 Operation。 |
+
+`snapshot_bootstrap` 字段（存在时）：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `snapshot_ref` | `id` | optional | 快照标识。 |
+| `state_hash` | `string` | optional | 快照状态根，必须与快照 frontier 对应。 |
+| `snapshot_frontier` | `id[]` | optional | 需要从该 frontier 之后开始增量回放。 |
+| `state_signature` | `object` | optional | 对 `snapshot_ref`、`state_hash`、`snapshot_frontier` 的签名。 |
+| `state_signature.issuer` | `did` | optional | 用于信任锚点的签发者 DID。 |
+| `state_signature.alg` | `string` | optional | 签名算法。 |
+| `state_signature.sig` | `string` | optional | detached 签名。 |
 
 ### 4.3 重复与幂等
 
@@ -390,10 +403,53 @@ POST /api/v1/federation/verify-actor
 - 重放检测与 quarantine；
 - 统一回执和拒绝语义避免枚举泄漏。
 
-## 9. 后续待细化
+## 9. 未来实现边界与优化优先级
 
-- 联邦级 Snapshot 同步与校验
-- 多 Principal Server 之间的 Gossip / batch sync 优化
-- 跨域 Space 的权限委托与级联
-- 联邦节点的声誉系统（可选）
+这类方向并非都属于第一版互操作要求。按“安全完整性 → 可交付性 → 优化性”分层如下。
+
+### 9.1 联邦级 Snapshot 同步与校验（必须项）
+
+联邦场景下，Principal Server 之间应支持基于快照的快速恢复（snapshot-assisted bootstrap），否则首次加入或大范围缺失时会退化为全量历史回放，影响可用性。实现层面：
+
+在 `GET /api/v1/federation/pull-operations` 返回中，应在可用时提供 `snapshot_bootstrap`（可选字段）：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `snapshot_bootstrap` | `object` | optional | 可选，携带可验证的快照入口，不改变操作集合语义。 |
+| `snapshot_bootstrap.snapshot_ref` | `id` | optional | 触发本次增量前可选的 snapshot id。 |
+| `snapshot_bootstrap.state_hash` | `string` | optional | snapshot 的状态摘要。 |
+| `snapshot_bootstrap.snapshot_frontier` | `id[]` | optional | snapshot 覆盖的 frontier。 |
+| `snapshot_bootstrap.state_signature` | `object` | optional | 快照签名；接收方必须验证签名、state_hash 与 `snapshot_frontier` 一致性。 |
+
+校验规则：
+
+- 客户端在接收到 `snapshot_bootstrap` 时，先执行快照签名和 `state_hash` 校验。
+- 接受快照后，增量回放起点必须以 `snapshot_frontier` 为锚点，不得把 snapshot 当成无因果前沿的新 genesis。
+- 快照校验失败时，必须退回到纯 operation 增量回放，并将该来源记入 `quarantine` 或 `rate_limited` 分支进行观察。
+
+### 9.2 多 Principal Server 的 Gossip / 批量同步（增强项）
+
+该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：
+
+- 批次内必须保持 `operations` 的原始签名 Envelope 顺序与 `operation_id` 可去重性。
+- Gossip 转发不得改变单条 operation 的语义、签名或时间线排序前置假设。
+- 不得以批处理成功作为 operation 被最终可验证的充要条件；最终仍以 `operation_id`、签名、因果前沿验证判定是否可见。
+- 每个 batch 应带可核验的批次摘要（例如请求级 hash）以便对端做重试/重放检测。
+
+### 9.3 跨域权限委托与级联（明确边界项）
+
+方向“跨域 Space 的权限委托与级联”是必要但必须收敛到显式规则：
+
+- 默认不跨域、不中继地隐式级联。任何权限在跨域传递前都必须有明确 `grant` / `delegate` Operation 表达，并绑定目标 `space_id`、目标服务/主体、可见范围、时效和可撤销性。
+- 受权链必须可审计、可传递上限（如 depth / scope）并支持回收（revoke）。在未满足上限或超出范围时应 fail-closed。
+- 委托不得扩大被委托方可见范围；只能收窄或保持不变。`principal_server` 不能仅凭受托委托获得不在其角色定义内的明文访问。
+- 对级联场景，只允许显式 opt-in，且每一跳必须重复检查 policy 与签名。无法验明权利链的来源时必须视为 unauthorized。
+
+### 9.4 联邦节点声誉系统（可选项）
+
+声誉系统可作为 anti-abuse 组件是可选的，不得影响协议的最终一致性安全边界：
+
+- 声誉只能用于流量调度、排队优先级和临时降级，不得替代签名验证、DID 校验和 Space policy 授权判断。
+- 声誉决策不得造成可审计事件的不可达性（例如把合法请求静默降权为拒绝）。
+- 即使在高声誉策略触发下，仍应返回可区分的标准错误码（`temporarily_unavailable`、`rate_limited`、`quarantine`）供重试/恢复。
 

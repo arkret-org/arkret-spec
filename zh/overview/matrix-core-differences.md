@@ -18,7 +18,7 @@ Contrix 的核心抽象是 **principal repo + Space + Entity / Relation / Event 
 
 | 维度 | Matrix | Contrix |
 | --- | --- | --- |
-| 数据根 | Room 内事件流与 room state。 | Space 内授权 Event / op 集合，归约为 Entity、Relation、View。 |
+| 数据根 | Room 内事件流与 room state。 | Space 内授权 Event / operation 集合，归约为 Entity、Relation、View。 |
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、知识记忆、agent run、审计工作流。 |
 | 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Repo、Sync、Index、Blob、Policy 分层。 |
 | 真相源 | Room event graph 与状态解析。 | Principal 签名 repo commit / operation，加上 Space reducer；Index / AppView 都是派生层。 |
@@ -124,7 +124,7 @@ Contrix Principal Server 是受 principal 或 Space policy 控制的服务边界
 
 Matrix 客户端通常从 sync、state、relations 和聚合接口构建体验。
 
-Contrix 明确把 Index / AppView 作为派生层，用于搜索、通知、inbox、board、table、graph、agent memory retrieval 等。但 Index 不能成为真相源，输出必须可追溯到签名 Event / op、reducer profile 和授权状态。
+Contrix 明确把 Index / AppView 作为派生层，用于搜索、通知、inbox、board、table、graph、agent memory retrieval 等。但 Index 不能成为真相源，输出必须可追溯到签名 Event / operation、reducer profile 和授权状态。
 
 ### 5.5 协作图比通信图更大
 

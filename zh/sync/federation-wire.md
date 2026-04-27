@@ -32,7 +32,7 @@ PUT /api/v1/federation/transactions/{txn_id}
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | Space policy 版本或 hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `events` | body | `object[]` | required | 签名 Event Envelope 数组；每项独立验签和授权。 |
+| `operations` | body | `object[]` | required | 签名 Operation Envelope 数组；每项独立验签和授权。 |
 | `receipts` | body | `object[]` | optional | 与本 transaction 相关的 receipt / witness 证明。 |
 | `frontier` | body | `object` | optional | 发送方当前 causal frontier。 |
 | `created_at` | body | `datetime` | optional | 发送方创建时间；不得作为授权依据。 |
@@ -49,7 +49,7 @@ PUT /api/v1/federation/transactions/{txn_id}
     "membership_frontier": ["cx:evt:..."],
     "destination_service_type": "principal_server"
   },
-  "events": [],
+  "operations": [],
   "receipts": [],
   "frontier": {},
   "created_at": "2026-04-26T00:00:00Z"
@@ -64,8 +64,8 @@ PUT /api/v1/federation/transactions/{txn_id}
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `ok` | `boolean` | required | transaction 是否被处理；为 `true` 不表示所有 event 都接受。 |
-| `accepted` | `id[]` | required | 已接受 event / operation ID。 |
+| `ok` | `boolean` | required | transaction 是否被处理；为 `true` 不表示所有 operation 都接受。 |
+| `accepted` | `id[]` | required | 已接受 operation ID。 |
 | `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和诊断信息。 |
 | `next_retry_at` | `datetime` | optional | 可重试时间；仅限限流、临时不可用或待依赖补齐场景。 |
 
@@ -84,12 +84,12 @@ Join flow:
 
 Backfill 请求字段：
 
-字段定义同 `GET /api/v1/federation/pull-operations`：`space_id: id` 为 required，`from_cursor/after_cursor: cursor` 与 `limit: int` 为 optional，`requester: did` MUST 与请求签名的来源 service DID 一致。
+字段定义同 `GET /api/v1/federation/pull-operations`：`space_id: id` 为 required，`after_cursor: cursor` 与 `limit: int` 为 optional，`requester: did` MUST 与请求签名的来源 service DID 一致。
 
 ```json
 {
   "space_id": "cx:space:...",
-  "from_cursor": "cx:cursor:...",
+  "after_cursor": "cx:cursor:...",
   "limit": 100,
   "requester": "did:web:server.remote.example"
 }
