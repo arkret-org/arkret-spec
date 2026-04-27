@@ -1,6 +1,6 @@
 # Gap Analysis
 
-This document tracks implementation gaps that remain before Contrix New can be treated as a stable interoperable protocol.
+This document tracks implementation gaps that remain before Contrix can be treated as a stable interoperable protocol.
 
 It only describes the current protocol's implementation gaps. The Chinese draft is currently the leading source for detailed wording.
 

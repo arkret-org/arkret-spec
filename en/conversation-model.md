@@ -2,7 +2,7 @@
 
 ## 1. Goal
 
-Contrix New is not a chat-first protocol, but it must formally support:
+Contrix is not a chat-first protocol, but it must formally support:
 
 - channel-style chat
 - topic-style discussion

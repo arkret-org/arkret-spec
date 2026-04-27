@@ -2,7 +2,7 @@
 
 ## 1. Goal
 
-Contrix New is a distributed protocol for publishing, distributing, querying, and converging collaborative objects.
+Contrix is a distributed protocol for publishing, distributing, querying, and converging collaborative objects.
 
 The sync layer must support all of the following:
 
@@ -43,7 +43,7 @@ The blob store is responsible for attachments and large content.
 
 ## 3. Repo-first Publication Model
 
-Contrix New uses a repo-first model:
+Contrix uses a repo-first model:
 
 1. actors write to their own repos first
 2. repos publish commits

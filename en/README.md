@@ -1,8 +1,8 @@
-# Contrix New Protocol
+# Contrix Protocol
 
 ## 1. Positioning
 
-`contrix-spec-new` is a **new decentralized collaboration protocol** draft. Contrix New uses:
+`contrix-spec` is a **new decentralized collaboration protocol** draft. Contrix uses:
 
 - **DID principals** as the identity root
 - **Space / Entity / Relation collaboration graphs** as the data root
@@ -16,7 +16,7 @@ Its goal is not to wrap a chat protocol in a Kanban shell. Its goal is to define
 
 ## 2. Design Goals
 
-The first phase of Contrix New focuses on:
+The first phase of Contrix focuses on:
 
 1. Stable identity  
    All principals use DIDs as stable identifiers, while handles remain portable human-readable entry points.
@@ -216,7 +216,7 @@ This round moves the protocol from a directional sketch to a "question inventory
 
 ## 9. One-sentence Summary
 
-Contrix New is meant to solve:
+Contrix is meant to solve:
 
 - decentralized collaborative objects
 - a unified data model for boards and chat/topic interaction

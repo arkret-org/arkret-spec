@@ -1,4 +1,4 @@
-# Contrix Spec New
+# Contrix Spec
 
 - 中文版本: [zh/README.md](./zh/README.md)
 - English version: [en/README.md](./en/README.md)
@@ -6,7 +6,7 @@
 ## Structure
 
 ```text
-contrix-spec-new/
+contrix-spec/
   zh/
     README.md
     _tasks.md

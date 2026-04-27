@@ -2,7 +2,7 @@
 
 ## 1. Goal
 
-The top-level architecture of Contrix New must satisfy four things at once:
+The top-level architecture of Contrix must satisfy four things at once:
 
 - decentralized identity and publication
 - shared collaborative objects across many principals
@@ -13,7 +13,7 @@ This requires the protocol to separate identity, writes, distribution, queries, 
 
 ## 2. Overall Model
 
-Contrix New uses a **principal repo + identity registry + space relay + query index** architecture.
+Contrix uses a **principal repo + identity registry + space relay + query index** architecture.
 
 ### 2.1 Principal Repo
 
@@ -200,7 +200,7 @@ In agent-heavy environments, a common pattern is:
 
 ## 5. Core Architecture Direction
 
-Contrix New is explicitly:
+Contrix is explicitly:
 
 - space-first
 - object-first
@@ -259,7 +259,7 @@ Whether a write is allowed must be decided by the effective capability set, not 
 
 ## 7. Humans and AI Share the Same Protocol
 
-Contrix New does not want two separate systems:
+Contrix does not want two separate systems:
 
 - one for human boards
 - one for AI memory

@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix New 是面向协作对象的分布式发布、传播、查询与收敛协议。
+Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议。
 
 同步层必须同时支持：
 
@@ -67,7 +67,7 @@ Blob Store 负责附件与大对象内容。
 
 ## 3. Repo-first 发布模型
 
-Contrix New 采用 repo-first 模型：
+Contrix 采用 repo-first 模型：
 
 1. actor 先写自己的 repo
 2. repo 发布 commit

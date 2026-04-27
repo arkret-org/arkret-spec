@@ -1,8 +1,8 @@
-# Contrix New Protocol
+# Contrix Protocol
 
 ## 1. 项目定位
 
-`contrix-spec-new` 是 **全新的去中心化协作协议** 草案。Contrix New 明确采用：
+`contrix-spec` 是 **全新的去中心化协作协议** 草案。Contrix 明确采用：
 
 - 以 **DID principal** 为身份根
 - 以 **Space / Entity / Relation 协作图** 为数据根
@@ -16,7 +16,7 @@
 
 ## 2. 设计目标
 
-Contrix New 第一阶段聚焦以下目标：
+Contrix 第一阶段聚焦以下目标：
 
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
@@ -178,7 +178,7 @@ Contrix New 第一阶段聚焦以下目标：
 
 ## 9. 一句话总结
 
-Contrix New 要解决的是：
+Contrix 要解决的是：
 
 - 去中心化协作对象
 - 看板、聊天/话题、树、图谱与任务依赖的统一数据模型

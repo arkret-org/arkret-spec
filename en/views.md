@@ -2,7 +2,7 @@
 
 ## 1. Goal
 
-Contrix New must remain human-friendly, so the protocol must support natural projections into:
+Contrix must remain human-friendly, so the protocol must support natural projections into:
 
 - boards
 - lists

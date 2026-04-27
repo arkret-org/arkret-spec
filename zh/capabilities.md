@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix New 的权限模型采用 capability 思路，而不是只依赖成员关系或模糊角色。
+Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系或模糊角色。
 
 这样做的原因是：
 

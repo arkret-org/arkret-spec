@@ -2,7 +2,7 @@
 
 ## 1. Goal
 
-Contrix New is not only a collaboration protocol. It is also intended to become a long-term memory substrate for AI agents.
+Contrix is not only a collaboration protocol. It is also intended to become a long-term memory substrate for AI agents.
 
 But "memory" here does not mean:
 

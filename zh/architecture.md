@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix New 的顶层架构要同时满足四件事：
+Contrix 的顶层架构要同时满足四件事：
 
 - 去中心化身份与发布
 - 多主体协作对象共享
@@ -13,7 +13,7 @@ Contrix New 的顶层架构要同时满足四件事：
 
 ## 2. 总体模型
 
-Contrix New 采用 **principal repo + identity registry + space relay + query index** 的分层模型。
+Contrix 采用 **principal repo + identity registry + space relay + query index** 的分层模型。
 
 ### 2.0 Organization / Space 边界
 
@@ -330,7 +330,7 @@ Controlled Collaboration Space SHOULD：
 
 ## 5. 核心架构取向
 
-Contrix New 固定以下架构取向：
+Contrix 固定以下架构取向：
 
 - space-first
 - object-first
@@ -396,7 +396,7 @@ Space 构成了协作图的硬性隔离边界：
 
 ## 7. AI 与人类共用同一协议
 
-Contrix New 不打算做“两套系统”：
+Contrix 不打算做“两套系统”：
 
 - 一套给人类看板
 - 一套给 AI memory

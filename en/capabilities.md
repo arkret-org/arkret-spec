@@ -2,7 +2,7 @@
 
 ## 1. Goal
 
-Contrix New uses a capability-oriented authorization model rather than relying on membership alone or vague roles.
+Contrix uses a capability-oriented authorization model rather than relying on membership alone or vague roles.
 
 This is necessary because:
 

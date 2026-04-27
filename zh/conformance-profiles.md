@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix New 是模块化协议。为了避免“实现了 Contrix”变成不可验证的模糊声明，规范 MUST 定义可测试的实现 profile。
+Contrix 是模块化协议。为了避免“实现了 Contrix”变成不可验证的模糊声明，规范 MUST 定义可测试的实现 profile。
 
 每个实现 MUST 声明自己支持的 profile、协议版本和 feature 集合。  
 Conformance 测试 SHOULD 以 profile 为单位执行。

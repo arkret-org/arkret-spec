@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix New 虽然不是 chat-first 协议，但必须正式支持：
+Contrix 虽然不是 chat-first 协议，但必须正式支持：
 
 - 频道式聊天
 - 话题式讨论
