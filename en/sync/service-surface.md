@@ -7,7 +7,7 @@ If the spec has only object models, sync principles, and capabilities but no min
 Contrix therefore needs an initial definition for:
 
 - how identity registries accept DID operations and receipts
-- how repos publish and serve commits / ops
+- how repos publish and serve commits / operations
 - how Principal Servers expose space sync streams and backfill
 - how indexes serve queries and materialize inbox / notifications
 - how blob services upload and verify content
@@ -49,7 +49,7 @@ Network retries, offline replay, and synchronization across multiple Principal S
 Write interfaces therefore MUST support:
 
 - idempotent `commit_id`
-- idempotent `op_id`
+- idempotent `operation_id`
 - repeated submission without repeated effect
 
 ### 2.4 Services Must Publish Compatibility Profiles
@@ -151,7 +151,7 @@ Used for:
 #### 3.1.4 Submit a DID Update
 
 ```text
-POST /api/v1/identity/submit-did-op
+POST /api/v1/identity/submit-did-operation
 ```
 
 The request body SHOULD contain:
@@ -178,7 +178,7 @@ GET /api/v1/identity/receipts?did=<did>&head=<event-hash>
 
 The initial recommendation is:
 
-- writer clients submit the `did_op` to multiple registries / witnesses
+- writer clients submit the `did_operation` to multiple registries / witnesses
 - at least `k-of-n` receipts are required before the update is considered committed
 - reads may attach `expected_head` or `min_seq`
 
@@ -199,7 +199,7 @@ It should return:
 - `repo_did`
 - current head commit
 - supported signature algorithms
-- whether batch op fetch is supported
+- whether batch operation fetch is supported
 
 ### 4.2 List Commits
 
@@ -222,10 +222,10 @@ GET /api/v1/repo/commit?commit_id=<id>
 ### 4.4 Batch-fetch Operations
 
 ```text
-POST /api/v1/repo/ops
+POST /api/v1/repo/operations
 ```
 
-The request body may carry a set of `op_id` values.
+The request body may carry a set of `operation_id` values.
 
 ### 4.5 Submit a Commit
 
@@ -237,7 +237,7 @@ Requirements:
 
 - re-submitting the exact same bytes for the same `commit_id` MUST be idempotently accepted
 - reusing the same `commit_id` with different bytes MUST be rejected
-- the repo SHOULD return the new head, the accepted op list, and causal sync tokens for read-your-writes queries
+- the repo SHOULD return the new head, the accepted operation list, and causal sync tokens for read-your-writes queries
 
 ## 5. Sync Surface
 
@@ -389,7 +389,7 @@ Blob validation MUST be content-hash based rather than URL based.
 
 ## 8. Capability / Invite Surface
 
-Even though grant / revoke / invite are themselves objects or ops, the service layer still needs query surfaces.
+Even though grant / revoke / invite are themselves objects or operations, the service layer still needs query surfaces.
 
 At minimum, the following are recommended:
 
@@ -485,4 +485,5 @@ The next round still needs:
 - error codes and retry semantics
 - auth-token or signed-request formats
 - identity receipt / witness proof schemas
+
 

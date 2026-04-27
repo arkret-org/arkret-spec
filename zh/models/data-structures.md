@@ -38,7 +38,7 @@
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:*` | kind 必须匹配对象类型。 | 对象稳定 ID。 |
-| `type` | yes | `enum(space, actor_profile, entity, relation, event, view, policy, invite, read_marker, notification, capability, commit, op, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
+| `type` | yes | `enum(space, actor_profile, entity, relation, event, view, policy, invite, read_marker, notification, capability, commit, operation, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
 | `space_id` | conditional | `id:space` | Space 外对象可省略。 | 所属 Space。 |
 | `schema` | yes | `string` | SHOULD 是 `cx.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体。 |
@@ -337,23 +337,23 @@ Schema id: `cx.schema.commit.v1`
 | `author` | yes | `did` | 必须控制签名 key。 | 作者。 |
 | `author_seq` | yes | `integer` | repo 内严格单调。 | 作者序列。 |
 | `prev_commit` | no | `hash` | genesis commit 可空。 | 前一 commit hash。 |
-| `ops` | yes | `array<hash>` | 数组顺序参与 hash。 | op hash 列表。 |
+| `operations` | yes | `array<hash>` | 数组顺序参与 hash。 | operation hash 列表。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Commit proof。 |
 
 ## 17. Operation
 
-Schema id: `cx.schema.op.v1`
+Schema id: `cx.schema.operation.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `op_id` | yes | `id:op` 或 `hash` |  | Operation ID。 |
-| `type` | yes | `enum(op)` | 固定为 `op`。 | 对象种类。 |
-| `op_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref)` |  | 操作类型。 |
+| `operation_id` | yes | `id:operation` 或 `hash` |  | Operation ID。 |
+| `type` | yes | `enum(operation)` | 固定为 `operation`。 | 对象种类。 |
+| `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref)` |  | operation 类型。 |
 | `space_id` | yes | `id:space` |  | 目标 Space。 |
 | `object_id` | no | `string` | create 可由 payload 指定。 | 目标对象。 |
 | `object_type` | yes | `string` | `entity`、`relation` 等。 | 目标对象类型。 |
-| `payload` | yes | `object` | 由 op_type 决定。 | 操作内容。 |
+| `payload` | yes | `object` | 由 operation_type 决定。 | 操作内容。 |
 | `idempotency_key` | no | `string` | 重试写入 SHOULD 设置。 | 幂等键。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 

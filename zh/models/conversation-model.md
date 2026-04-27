@@ -262,7 +262,7 @@ message 创建是 append-only。
 1. `hlc`
 2. `actor`
 3. `actor_seq`
-4. `op_id`
+4. `operation_id`
 
 ### 11.2 Message 编辑
 

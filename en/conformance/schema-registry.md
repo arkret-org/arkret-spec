@@ -14,7 +14,7 @@ Initial object schemas:
 - `cx.schema.capability.v1`
 - `cx.schema.event.v1`
 - `cx.schema.commit.v1`
-- `cx.schema.op.v1`
+- `cx.schema.operation.v1`
 - `cx.schema.blob.v1`
 - `cx.schema.encrypted_payload.v1`
 - `cx.schema.client_sync_response.v1`

@@ -33,7 +33,7 @@ Contrix does not go back to a room/message-first design.
 The correct approach is:
 
 - formal conversation objects
-- while keeping space/object-graph/repo-ops as the protocol root
+- while keeping space/object-graph/repo operations as the protocol root
 
 ### 2.3 Separate Durable Notes from Timeline Messages
 
@@ -220,7 +220,7 @@ Principles:
 
 ### 8.3 Reaction
 
-Reactions should be expressed via separate ops:
+Reactions should be expressed via separate operations:
 
 - `cx.reaction.add`
 - `cx.reaction.remove`
@@ -280,7 +280,7 @@ Suggested timeline ordering:
 1. `hlc`
 2. `actor`
 3. `actor_seq`
-4. `op_id`
+4. `operation_id`
 
 ### 11.2 Message Edit
 

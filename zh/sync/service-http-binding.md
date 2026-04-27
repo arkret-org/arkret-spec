@@ -23,10 +23,10 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | 命名空间 | 主要调用方 | 语义 | 规范文件 |
 | --- | --- | --- | --- |
 | `/server/*` | 客户端与服务 | 服务描述、feature discovery、auth metadata。 | `service-surface.md`、`api-conventions.md` |
-| `/identity/*` | 客户端、服务、registry | DID document、key log、DID op、receipt。 | `service-surface.md`、`identity-did.md` |
-| `/repo/*` | 客户端、Principal Server、Repo replica | 签名 commit 提交、op/commit 读取、repo 增量同步。 | `operations-sync.md`、`service-surface.md` |
+| `/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
+| `/repo/*` | 客户端、Principal Server、Repo replica | 签名 commit 提交、operation/commit 读取、repo 增量同步。 | `operations-sync.md`、`service-surface.md` |
 | `/sync/*` | 客户端、Principal Server | 客户端聚合同步、Space 增量订阅、backfill、snapshot head。 | `client-sync.md`、`service-surface.md` |
-| `/federation/*` | Principal Server 之间 | 跨域 transaction、op 推送/拉取、成员查询、actor 验证。 | `federation.md`、`federation-wire.md` |
+| `/federation/*` | Principal Server 之间 | 跨域 transaction、operation 推送/拉取、成员查询、actor 验证。 | `federation.md`、`federation-wire.md` |
 | `/index/*` | 客户端、服务 | Entity 查询、结构化查询、搜索、inbox、notification、Space hierarchy。 | `service-surface.md`、`query-schema.md` |
 | `/directory/*` | 客户端、服务 | Space / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
@@ -50,7 +50,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 - 成功响应字段类型。
 - 认证方式：`public_metadata`、`user_session`、`device_proof`、`service_signature`、`policy_token`、`applet_signature` 等。
 - 访问限制：Space membership、history visibility、capability、service delegation、namespace、plaintext visibility、rate limit、quota。
-- 幂等键：写接口使用 `Idempotency-Key`、path 中的 `{txn_id}`、`commit_id`、`op_id` 或 canonical request hash。
+- 幂等键：写接口使用 `Idempotency-Key`、path 中的 `{txn_id}`、`commit_id`、`operation_id` 或 canonical request hash。
 - 失败时使用标准 error envelope。
 
 JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST 使用字段表说明字段名、位置、类型、是否必填、含义和约束。
@@ -65,7 +65,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 ### 2.3 端点契约清单
 
-类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`op` / `ops` 仅作 wire 字段名（对应 Operation / Operation 数组）。人类可读文档应写全 Operation。
+类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`operations` 仅作 Operation 数组的 wire 字段名。人类可读文档应写全 Operation。
 
 | Endpoint | Request 类型 | Auth / 访问限制 | Success 类型 |
 | --- | --- | --- | --- |
@@ -74,13 +74,13 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/identity/resolve` | body `{did: did, include?: string[]}` | `public_metadata`；private DID MAY require `user_session` 或 presentation proof。 | `{did_document, key_log_head?, seq?, receipts?, method_evidence?}` |
 | `GET /api/v1/identity/document` | query `{did: did, version?: string}` | 同 `identity.resolve`。 | `{did_document, head_event_hash?, seq?, receipts?}` |
 | `GET /api/v1/identity/log` | query `{did: did, cursor?: cursor, limit?: int}` | public DID 可公开；private / pairwise DID MUST require holder-approved proof。 | `{events[], next_cursor?, has_more}` |
-| `POST /api/v1/identity/submit-did-op` | body `{did: did, seq: int, prev_event_hash?: string, patch: object, proofs: proof[]}` | `device_proof` 或 recovery proof；MUST 满足 DID method / key-log 授权。 | `{status, head_event_hash, seq, receipts?}` |
+| `POST /api/v1/identity/submit-did-operation` | body `{did: did, seq: int, prev_event_hash?: string, patch: object, proofs: proof[]}` | `device_proof` 或 recovery proof；MUST 满足 DID method / key-log 授权。 | `{status, head_event_hash, seq, receipts?}` |
 | `GET /api/v1/identity/receipts` | query `{did: did, head: string}` | 同 DID 可见性；witness 可公开最小 receipt。 | `{receipts[], threshold_met?: boolean}` |
 | `GET /api/v1/repo/describe` | query `{repo_id?: did}` | `user_session` / `service_signature`；只返回请求方可访问 repo。 | `{repo_did, head_commit, supported_signatures[], limits}` |
 | `GET /api/v1/repo/commits` | query `{repo_id: did, cursor?: cursor, limit?: int}` | repo owner、authorized replica、Space policy 或 history visibility 允许。 | `{commits[], next_cursor?, has_more}` |
-| `GET /api/v1/repo/commit` | query `{repo_id?: did, commit_id: id}` | 同 repo read；不可见时返回 `not_found`。 | `{commit, ops?, proofs?}` |
-| `POST /api/v1/repo/ops` | body `{repo_id?: did, op_ids?: id[], event_ids?: id[], include_payload?: boolean}` | 同 repo read；payload 可见性按 Space policy / E2EE envelope 判断。 | `{ops[], missing[], unauthorized[]?}` |
-| `POST /api/v1/repo/sync` | body `{repo_id: did, since?: cursor, limit?: int, filters?: object}` | repo owner、authorized replica 或 delegated service。 | `{ops[], next_cursor?, has_more}` |
+| `GET /api/v1/repo/commit` | query `{repo_id?: did, commit_id: id}` | 同 repo read；不可见时返回 `not_found`。 | `{commit, operations?, proofs?}` |
+| `POST /api/v1/repo/operations` | body `{repo_id?: did, operation_ids?: id[], event_ids?: id[], include_payload?: boolean}` | 同 repo read；payload 可见性按 Space policy / E2EE envelope 判断。 | `{operations[], missing[], unauthorized[]?}` |
+| `POST /api/v1/repo/sync` | body `{repo_id: did, since?: cursor, limit?: int, filters?: object}` | repo owner、authorized replica 或 delegated service。 | `{operations[], next_cursor?, has_more}` |
 | `POST /api/v1/repo/submit-commit` | body `{repo_id: did, commit: object, expected_head?: string, idempotency_key?: string}` | commit signature + capability；repo MUST 验证 actor DID、device/session、CAS 和 Space policy。 | `{status, commit_id, head_commit?, sync_token}` |
 | `POST /api/v1/sync` | body `{since?: token, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device。 | Client Sync response `{next_batch, rooms/spaces?, to_device?, account_data?, device_lists?}` |
 | `GET /api/v1/sync/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `{service_did, supported_sync_profiles[], limits, frontier?}` |
@@ -88,8 +88,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/sync/backfill` | query `{space_id: id, cursor?: cursor, limit?: int}` | history visibility + membership frontier + E2EE epoch policy。 | `{events[], prev_cursor?, next_cursor?, limited?}` |
 | `GET /api/v1/sync/snapshot-head` | query `{space_id: id}` | Space read；snapshot manifest 必须签名。 | `{snapshot_ref, state_hash, frontier, signature}` |
 | `PUT /api/v1/federation/transactions/{txn_id}` | path `{txn_id}` body `{origin: did, destination: did, service_binding_ref, events[], receipts?, frontier?}` | `service_signature`; destination service DID、URL、Space policy 和 service binding 必须一致。 | `{ok: true, accepted[], rejected[], next_retry_at?}` |
-| `POST /api/v1/federation/push-ops` | body `{origin: did, destination: did, space_id: id, service_binding_ref, ops[]}` | `service_signature`; origin 必须可接收于该 Space federation policy；每个 op 独立验签。 | `{accepted[], rejected[], quarantine[]?}` |
-| `GET /api/v1/federation/pull-ops` | query `{space_id: id, after_cursor?: cursor, limit?: int}` | `service_signature`; requester 必须有 backfill 权限和明文可见资格。 | `{ops[], next_cursor?, has_more}` |
+| `POST /api/v1/federation/push-operations` | body `{origin: did, destination: did, space_id: id, service_binding_ref, operations[]}` | `service_signature`; origin 必须可接收于该 Space federation policy；每个 operation 独立验签。 | `{accepted[], rejected[], quarantine[]?}` |
+| `GET /api/v1/federation/pull-operations` | query `{space_id: id, after_cursor?: cursor, limit?: int}` | `service_signature`; requester 必须有 backfill 权限和明文可见资格。 | `{operations[], next_cursor?, has_more}` |
 | `GET /api/v1/federation/space-members` | query `{space_id: id, cursor?: cursor, limit?: int}` | `service_signature`; 仅对参与方 Principal Server 或 policy 允许服务开放。 | `{members[], membership_frontier, next_cursor?}` |
 | `POST /api/v1/federation/verify-actor` | body `{actor_id: did, challenge?: string, signed_payload_hash?: string, signature: signature, purpose: string, space_id?: id}` | `service_signature`; 不得作为公开 DID oracle；requester 必须有 federation、join、event-source 或 shared-Space 相关目的。 | `{valid: boolean, actor_id, verified_key_id?, key_log_head?, did_document_ref?, expires_at?, warnings[]}` |
 | `GET /api/v1/index/describe` | query none | `public_metadata`；私有 reducer/frontier 可要求认证。 | `{service_did, reducer_profiles[], schema_profiles[], query_features[], frontier?}` |
@@ -146,13 +146,13 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.identity.resolve` | `did: did - 待解析 DID` | `include: string[] - 请求附加证据，如 key_log/receipts` | `did_document: object`; `key_log_head: id?`; `seq: int?`; `receipts: object[]?`; `method_evidence: object?` | private / pairwise DID 可要求 presentation proof。 |
 | `cx.identity.get_document` | `query.did: did` | `query.version: string - 指定版本或 head` | `did_document: object`; `head_event_hash: string?`; `seq: int?`; `receipts: object[]?` | 可见性同 `cx.identity.resolve`。 |
 | `cx.identity.get_log` | `query.did: did` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `next_cursor: cursor?`; `has_more: boolean` | private / pairwise DID MUST 要求 holder-approved proof。 |
-| `cx.identity.submit_did_op` | `did: did`; `seq: int`; `patch: object`; `proofs: proof[]` | `prev_event_hash: string` | `status: enum(accepted,duplicate)`; `head_event_hash: string`; `seq: int`; `receipts: object[]?` | MUST 满足 DID method / key-log 授权；`did+seq` 幂等。 |
+| `cx.identity.submit_did_operation` | `did: did`; `seq: int`; `patch: object`; `proofs: proof[]` | `prev_event_hash: string` | `status: enum(accepted,duplicate)`; `head_event_hash: string`; `seq: int`; `receipts: object[]?` | MUST 满足 DID method / key-log 授权；`did+seq` 幂等。 |
 | `cx.identity.get_receipts` | `query.did: did`; `query.head: string` | 无 | `receipts: object[]`; `threshold_met: boolean?` | 只公开最小 witness receipt。 |
 | `cx.repo.describe` | 无 | `query.repo_id: did` | `repo_did: did`; `head_commit: id`; `supported_signatures: string[]`; `limits: object?` | 只返回请求方可访问 repo。 |
 | `cx.repo.list_commits` | `query.repo_id: did` | `query.cursor: cursor`; `query.limit: int` | `commits: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 受 repo read、history visibility 和 Space policy 限制。 |
-| `cx.repo.get_commit` | `query.commit_id: id` | `query.repo_id: did`; `query.include_ops: boolean` | `commit: object`; `ops: object[]?`; `proofs: object[]?` | 不可见时返回 `not_found`。 |
-| `cx.repo.get_ops` | 至少一个：`op_ids: id[]` 或 `event_ids: id[]` | `repo_id: did`; `include_payload: boolean` | `ops: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Space policy / E2EE envelope 判断。 |
-| `cx.repo.sync` | `repo_id: did` | `since: cursor`; `limit: int`; `filters: object` | `ops: object[]`; `next_cursor: cursor?`; `has_more: boolean` | repo owner、authorized replica 或 delegated service。 |
+| `cx.repo.get_commit` | `query.commit_id: id` | `query.repo_id: did`; `query.include_operations: boolean` | `commit: object`; `operations: object[]?`; `proofs: object[]?` | 不可见时返回 `not_found`。 |
+| `cx.repo.get_operations` | 至少一个：`operation_ids: id[]` 或 `event_ids: id[]` | `repo_id: did`; `include_payload: boolean` | `operations: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Space policy / E2EE envelope 判断。 |
+| `cx.repo.sync` | `repo_id: did` | `since: cursor`; `limit: int`; `filters: object` | `operations: object[]`; `next_cursor: cursor?`; `has_more: boolean` | repo owner、authorized replica 或 delegated service。 |
 | `cx.repo.submit_commit` | `repo_id: did`; `commit: object` | `expected_head: string`; `idempotency_key: string` | `status: enum(accepted,duplicate)`; `commit_id: id`; `head_commit: id?`; `sync_token: token` | MUST 验证 commit signature、CAS、capability 和 Space policy。 |
 | `cx.sync.client_sync` | 无 | `since: token`; `filter: object`; `set_presence: enum(online,offline,unavailable)`; `timeout_ms: int` | `next_batch: token`; `spaces: object?`; `to_device: object?`; `account_data: object?`; `device_lists: object?` | `user_session` 必须绑定 principal/device。 |
 | `cx.sync.describe` | 无 | 无 | `service_did: did`; `supported_sync_profiles: string[]`; `limits: object`; `frontier: object?` | 私有 frontier 可认证后返回。 |
@@ -160,8 +160,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.sync.backfill` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `prev_cursor: cursor?`; `next_cursor: cursor?`; `limited: boolean?` | history visibility、membership frontier、E2EE epoch policy。 |
 | `cx.sync.get_snapshot_head` | `query.space_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `signature: signature` | snapshot manifest MUST 签名。 |
 | `cx.federation.transaction` | `path.txn_id: id`; `origin: did`; `destination: did`; `service_binding_ref: object`; `events: object[]` | `receipts: object[]`; `frontier: object` | `ok: boolean`; `accepted: id[]`; `rejected: object[]`; `next_retry_at: datetime?` | `service_signature`; destination DID、URL、policy 和 binding 必须一致。 |
-| `cx.federation.push_ops` | `origin: did`; `destination: did`; `space_id: id`; `service_binding_ref: object`; `ops: object[]` | 无 | `accepted: id[]`; `rejected: object[]`; `quarantine: id[]?` | 每个 op 独立验签和授权。 |
-| `cx.federation.pull_ops` | `query.space_id: id` | `query.after_cursor: cursor`; `query.limit: int` | `ops: object[]`; `next_cursor: cursor?`; `has_more: boolean` | requester 必须有 backfill 权限和明文可见资格。 |
+| `cx.federation.push_operations` | `origin: did`; `destination: did`; `space_id: id`; `service_binding_ref: object`; `operations: object[]` | 无 | `accepted: id[]`; `rejected: object[]`; `quarantine: id[]?` | 每个 operation 独立验签和授权。 |
+| `cx.federation.pull_operations` | `query.space_id: id` | `query.after_cursor: cursor`; `query.limit: int` | `operations: object[]`; `next_cursor: cursor?`; `has_more: boolean` | requester 必须有 backfill 权限和明文可见资格。 |
 | `cx.federation.space_members` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `members: object[]`; `membership_frontier: object`; `next_cursor: cursor?` | 仅参与方 Principal Server 或 policy 允许服务。 |
 | `cx.federation.verify_actor` | `actor_id: did`; `purpose: enum(event_source,federation_join,device_binding)`; `signature: signature` | `space_id: id`; `challenge: string`; `signed_payload_hash: string` | `valid: boolean`; `actor_id: did`; `verified_key_id: string?`; `key_log_head: id?`; `did_document_ref: string?`; `expires_at: datetime?`; `warnings: string[]` | 只作缓存/诊断；不得替代本地 DID、key log、capability 和 Space policy 验证。 |
 | `cx.index.describe` | 无 | 无 | `service_did: did`; `reducer_profiles: string[]`; `schema_profiles: string[]`; `query_features: string[]`; `frontier: object?` | private reducer/frontier 可要求认证。 |
@@ -222,7 +222,7 @@ POST /api/v1/repo/submit-commit
   "commit": {
     "commit_id": "cx:commit:01JS0KE...",
     "prev": ["cx:commit:01JS0KD..."],
-    "ops": [],
+    "operations": [],
     "signature": {}
   }
 }
@@ -240,7 +240,7 @@ POST /api/v1/repo/submit-commit
 
 若 CAS (`expected_state_hash`) 校验失败，返回 `409 cas_conflict`。
 
-Repo 的协议级写入单元是签名 commit。实现 MAY 在 SDK 或本地接口中接受单个 op，但在进入网络传播、同步或审计前 MUST 将其封装进签名 commit；接收方不得把未归属 commit 的裸 op 当作 canonical history。
+Repo 的协议级写入单元是签名 commit。实现 MAY 在 SDK 或本地接口中接受单个 operation，但在进入网络传播、同步或审计前 MUST 将其封装进签名 commit；接收方不得把未归属 commit 的裸 operation 当作 canonical history。
 
 ### 3.2 同步增量
 
@@ -253,7 +253,7 @@ POST /api/v1/repo/sync
 ```json
 {
   "repo_id": "did:uuid:alice-or-cx-space",
-  "since": "cursor-or-op-id",
+  "since": "cursor-or-operation-id",
   "limit": 500
 }
 ```
@@ -262,7 +262,7 @@ POST /api/v1/repo/sync
 
 ```json
 {
-  "ops": [],
+  "operations": [],
   "next_cursor": "opaque",
   "has_more": true
 }
@@ -409,3 +409,4 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 - 对目录/resolve 查询、join 探测、公开元数据接口，未授权请求不应返回可区分 `not_found` 与 `forbidden` 的信息差异。
 - 联邦入口与 policy check 入口应记录来源 service DID + 来源域名哈希，结合 `rate_limited` 与 `temporarily_unavailable` 作回压。
 - 对来源签名缺失/验证失败的入口请求，应优先走 reject + audit，不得影响已认证正常来源的可用性。
+

@@ -255,7 +255,7 @@ Contrix 不要求把 DID Document 写入区块链。
 
 写入流程：
 
-1. controller 构造 `did_op`
+1. controller 构造 `did_operation`
 2. 同时提交给多个 registry / witness
 3. 获得 `k-of-n` receipt 后视为提交
 4. 客户端读取时仍需独立验证 key log 和 receipt
@@ -401,7 +401,7 @@ Adapter 输出 SHOULD 包含：
 ## 14. 待细化
 
 - `did:uuid` 测试向量
-- DID op JSON Schema
+- DID operation JSON Schema
 - registry receipt schema
 - normalized principal view schema
 - method adapter conformance tests

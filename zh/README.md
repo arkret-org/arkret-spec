@@ -6,7 +6,7 @@
 
 - 以 **DID principal** 为身份根
 - 以 **Space / Entity / Relation 协作图** 为数据根
-- 以 **append-only repo + ops** 为审计根
+- 以 **append-only repo + operations** 为审计根
 - 以 **capability** 为权限根
 - 以 **views/projections** 为人类展示根
 - 以 **Event** 为协作事实根
@@ -118,7 +118,7 @@ Contrix 第一阶段聚焦以下目标：
 - index/appview 是查询与物化层，不是唯一真相源
 - 服务面要求最小可互操作 principal server / identity registry / repo / sync / index / blob / authz 接口
 - board/chat/topic/tree/graph 只是不同同步配置和 View 投影，不是不同协议
-- commit/op 提交必须天然幂等
+- commit/operation 提交必须天然幂等
 - 授权有效性也必须由同一 reducer 顺序收敛
 - 撤回通过 redaction 收敛，不等于保证全球物理删除
 - sync service / index 可以转发不解密的密文 payload；未加密私有正文不得提交给未委托第三方服务

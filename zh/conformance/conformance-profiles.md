@@ -41,7 +41,7 @@ MUST 支持：
 
 - DID / handle 解析
 - service discovery
-- repo commit / op 拉取
+- repo commit / operation 拉取
 - index 查询
 - 基础 Entity / Relation / Event 解码
 - capability 检查结果处理
@@ -63,7 +63,7 @@ MUST 支持 Minimal Client 的全部能力，并额外支持：
 
 - 本地 repo cache
 - 本地 reducer
-- 离线 op 队列
+- 离线 operation 队列
 - 幂等重放
 - Space bootstrap
 - invite accept / reject
@@ -108,10 +108,10 @@ MUST NOT：
 
 MUST 支持：
 
-- submit commit / op
+- submit commit / operation
 - idempotent write
 - commit fetch
-- op fetch
+- operation fetch
 - cursor-based history
 - signature verification
 - schema validation
@@ -185,7 +185,7 @@ MUST 支持：
 
 - DID resolve
 - DID log fetch
-- DID op submit
+- DID operation submit
 - `inception_key` verification
 - `key_log` validation
 - receipt publication

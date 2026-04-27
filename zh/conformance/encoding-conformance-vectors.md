@@ -183,7 +183,7 @@ cx.vector.encoding.commit_digest.v1
 {
   "commit_id": "cx:commit:01js0ke000000000000000000",
   "prev_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-  "ops": [
+  "operations": [
     "sha256:1111111111111111111111111111111111111111111111111111111111111111"
   ],
   "author": "did:web:alice.example",
@@ -194,7 +194,7 @@ cx.vector.encoding.commit_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"author":"did:web:alice.example","commit_id":"cx:commit:01js0ke000000000000000000","created_at":"2026-04-26T00:00:00Z","ops":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"prev_commit":"sha256:0000000000000000000000000000000000000000000000000000000000000000"}
+{"author":"did:web:alice.example","commit_id":"cx:commit:01js0ke000000000000000000","created_at":"2026-04-26T00:00:00Z","operations":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"prev_commit":"sha256:0000000000000000000000000000000000000000000000000000000000000000"}
 ```
 
 期望 digest：
@@ -205,7 +205,7 @@ sha256:dcc50e440bd8e4ccdc1f616811c78a75c0c8953e7975d74aed81a6de3c1fdc0e
 
 失败条件：
 
-- `ops` 数组被排序或去重后再 hash。
+- `operations` 数组被排序或去重后再 hash。
 - proof 字段被包含进 commit digest。
 - `commit_id` 大小写被实现私自改写。
 

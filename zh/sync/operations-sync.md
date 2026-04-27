@@ -38,7 +38,7 @@ Repo 是协议逻辑对象，不必等同于服务器进程。它至少包含：
 - head / cursor：当前已发布前沿。
 - proof material：签名、hash、DID key 状态引用和可选 witness receipt。
 
-Repo MAY 由客户端本地维护，也 MAY 由 Repo Service 托管，还 MAY 被多个只读副本复制。网络上的 `ContrixRepo` endpoint 是访问 Repo 的一种服务面；它不是 Repo 权威本身。接收方验证 Repo 数据时 MUST 校验 commit 签名、DID 控制链、hash 链、序列单调性和 op 幂等性。
+Repo MAY 由客户端本地维护，也 MAY 由 Repo Service 托管，还 MAY 被多个只读副本复制。网络上的 `ContrixRepo` endpoint 是访问 Repo 的一种服务面；它不是 Repo 权威本身。接收方验证 Repo 数据时 MUST 校验 commit 签名、DID 控制链、hash 链、序列单调性和 operation 幂等性。
 
 Repo 分为常见两类：
 
@@ -74,7 +74,7 @@ Contrix 采用 repo-first 模型：
 
 1. actor 先写自己的 repo
 2. repo 发布 commit
-3. Principal Server / Sync Service 同步 Space 相关授权 op
+3. Principal Server / Sync Service 同步 Space 相关授权 operation
 4. index 归约为当前态
 
 这套模型同时适用于：
@@ -94,9 +94,9 @@ Contrix 采用 repo-first 模型：
   "prev_commit": "cx:commit:01JS0CMP000000000000000000",
   "seq": 144,
   "created_at": "2026-04-22T08:30:00Z",
-  "ops": [
-    "cx:op:01JS0OP000000000000000000",
-    "cx:op:01JS0OQ000000000000000000"
+  "operations": [
+    "cx:operation:01JS0OP000000000000000000",
+    "cx:operation:01JS0OQ000000000000000000"
   ],
   "signature": {
     "key_id": "did:web:alice.example.com#device-laptop",
@@ -108,18 +108,18 @@ Contrix 采用 repo-first 模型：
 
 ## 5. Operation Envelope
 
-每个 op MUST 具备统一 envelope。
+每个 operation MUST 具备统一 envelope。
 
 ```json
 {
-  "op_id": "cx:op:01JS0OP000000000000000000",
+  "operation_id": "cx:operation:01JS0OP000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "actor": "did:web:alice.example.com",
   "type": "cx.entity.update",
   "target_ref": "cx:entity:01JS0EN000000000000000000",
   "causal": {
     "deps": [
-      "cx:op:01JS0OO000000000000000000"
+      "cx:operation:01JS0OO000000000000000000"
     ],
     "hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
     "actor_seq": 42
@@ -159,7 +159,7 @@ Contrix 采用 repo-first 模型：
 所有 `type` 都是可见事件类型（`event.type`）；Operation 本身是 `event` 的承载信封。
 因此以下规则必须成立：
 
-- 处理层不再引入独立的 `op_type` 命名空间；`op.type == event.type`。
+- 处理层不再引入独立的 `operation_type` 命名空间；`operation.type == event.type`。
 - 不应出现既无 schema 注册也未在服务端能力清单中注册的自定义 `type`。
 - 旧实现若发送未带 `cx.` 前缀的事件，必须经过兼容适配后映射为注册表 `cx.*` 名称。
 
@@ -251,7 +251,7 @@ Contrix 采用 repo-first 模型：
 
 ### 7.9 私有与临时状态
 
-以下状态不建议作为 durable shared op：
+以下状态不建议作为 durable shared operation：
 
 - typing
 - live presence
@@ -272,7 +272,7 @@ Contrix 采用 repo-first 模型：
 
 ## 9. 验证流程
 
-任何接收 op 的 repo、sync service 或 index，至少应校验：
+任何接收 operation 的 repo、sync service 或 index，至少应校验：
 
 1. 签名有效
 2. actor DID 可解析
@@ -290,8 +290,8 @@ Snapshot 是加速层，不是真相源。
   "space_id": "cx:space:01JS0SP000000000000000000",
   "snapshot_id": "cx:snap:01JS0SN000000000000000000",
   "covers_frontier": [
-    "cx:op:01JS0OP000000000000000000",
-    "cx:op:01JS0OQ000000000000000000"
+    "cx:operation:01JS0OP000000000000000000",
+    "cx:operation:01JS0OQ000000000000000000"
   ],
   "generated_at": "2026-04-22T08:40:00Z",
   "generator": "did:web:index.example.com",
@@ -347,7 +347,7 @@ Snapshot manifest MUST 包含以下信任链字段：
 
 - 拉取 invite
 - 拉取有效 grant 集
-- 判断某个 op 在当前 frontier 下是否可写
+- 判断某个 operation 在当前 frontier 下是否可写
 
 ## 12. View 同步 Profile
 
@@ -394,7 +394,7 @@ Snapshot manifest MUST 包含以下信任链字段：
 2. 获取与自己相关的 invite / grant 视图
 3. 拉取最近 snapshot manifest
 4. 下载 snapshot chunk
-5. 从 snapshot frontier 之后拉取增量 op
+5. 从 snapshot frontier 之后拉取增量 operation
 6. 本地执行 reducer
 7. 进入 cursor 增量订阅
 
@@ -421,10 +421,10 @@ Snapshot manifest MUST 包含以下信任链字段：
 
 因此：
 
-- `commit_id` 与 `op_id` MUST 全局稳定
-- 同一个 `commit_id` / `op_id` 的完全相同内容 MAY 被重复接收
+- `commit_id` 与 `operation_id` MUST 全局稳定
+- 同一个 `commit_id` / `operation_id` 的完全相同内容 MAY 被重复接收
 - 若同一个 ID 对应不同内容，节点 MUST 拒绝并记为冲突
-- sync service 与 index SHOULD 以 `op_id` 去重，而不是按到达次数计数
+- sync service 与 index SHOULD 以 `operation_id` 去重，而不是按到达次数计数
 
 这能避免：
 
@@ -441,7 +441,7 @@ Contrix 初版不引入全网共识链。
 它要求：
 
 - 对同一 space
-- 在同一有效 op 集下
+- 在同一有效 operation 集下
 - 所有正确实现的 reducer
 
 最终收敛到相同当前态。
@@ -465,9 +465,9 @@ graph TD
 
 **合并过程说明：**
 1. Alice 离线提交了 Operation B。Bob 在线提交了 Operation C。
-2. 由于两人都没有看到对方的 Operation，B 和 C 的 `prev_ops` 都指向 A。
+2. 由于两人都没有看到对方的 Operation，B 和 C 的 `prev_operations` 都指向 A。
 3. 网络恢复后，Bob 的客户端拉取到 B，发现此时 DAG 存在两个 Head (B 和 C)。
-4. Bob 的客户端自动生成一条 Dummy Operation D（或者在下一次业务提交时包含多个 `prev_ops`），将 B 和 C 设为前驱，完成拓扑合并。
+4. Bob 的客户端自动生成一条 Dummy Operation D（或者在下一次业务提交时包含多个 `prev_operations`），将 B 和 C 设为前驱，完成拓扑合并。
 
 ### 16.3 确定性状态收敛与 Tie-breaking (平局破除)
 
@@ -478,7 +478,7 @@ graph TD
 1. **授权权重 (Auth Weight)**：检查生成该操作时，`actor` 持有的 capability / role / creator-admin 权重。权重大的操作胜出。
 2. **混合逻辑时钟 (HLC)**：若权限相等，比较 `hlc` 时间戳。时间戳大的胜出。
 3. **Actor ID 字典序**：若时间戳依然完全相等，比较发出的 `actor_id` 的纯字符串字典序。
-4. **Operation Hash 字典序**：最后兜底，比较操作信封哈希 `op_id` 的字典序。
+4. **Operation Hash 字典序**：最后兜底，比较操作信封哈希 `operation_id` 的字典序。
 
 这确保了整个图的拓扑排序具备绝对的唯一性。
 
@@ -551,7 +551,7 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
 消息时间线显示顺序建议采用：
 
-- `hlc + actor + actor_seq + op_id`
+- `hlc + actor + actor_seq + operation_id`
 
 正式 timeline order 见 `client-sync.md`。当存在明确因果依赖时，因果前序 MUST 优先于纯时间排序。
 
@@ -568,7 +568,7 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 - Local reducer cache：客户端缓存 reduced state 和 materialized view。
 - Causal barrier：查询可等待指定 sync token，保证读己之所写。
 
-这些加速层都不得成为真相源。客户端在采用 snapshot、index projection 或 sync backfill 前，仍需能追溯到 signed event / op、hash、auth refs 和 reducer profile。
+这些加速层都不得成为真相源。客户端在采用 snapshot、index projection 或 sync backfill 前，仍需能追溯到 signed event / operation、hash、auth refs 和 reducer profile。
 
 ## 19. Tombstone、Redaction 与恢复
 
@@ -592,12 +592,12 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
 ## 20. 授权时序收敛
 
-授权不能只看墙上时钟，否则 revoke、迟到 op、离线写入都会失真。
+授权不能只看墙上时钟，否则 revoke、迟到 operation、离线写入都会失真。
 
 初版建议：
 
-- grant / delegate / revoke 本身也是 op
-- 某个业务 op 是否有效，由同一 reducer 顺序下的有效授权集合决定
+- grant / delegate / revoke 本身也是 operation
+- 某个业务 operation 是否有效，由同一 reducer 顺序下的有效授权集合决定
 - 若某个写入在 reducer 顺序上已经晚于相关 revoke，则 MUST 视为无效
 - 若顺序无法确定，实现 SHOULD fail closed
 
@@ -642,7 +642,7 @@ Blob 不应强制与元数据同流同步。
 
 客户端 SHOULD 维护三层本地数据：
 
-- raw commits / raw ops
+- raw commits / raw operations
 - reduced snapshots
 - materialized indexes
 
@@ -651,10 +651,10 @@ Blob 不应强制与元数据同流同步。
 当前草案建议固定：
 
 - repo commit 是 actor 发布单元
-- op 是共享状态归约单元
+- operation 是共享状态归约单元
 - board/chat/topic 共享同一同步协议
 - invite / grant / snapshot 组成 Space bootstrap 主流程
-- commit/op 重试必须幂等
+- commit/operation 重试必须幂等
 - 授权有效性由同一 reducer 顺序收敛
 - 密文负载可以被不解密的 sync service / index 转发
 - 撤回采用 redaction/tombstone 语义
@@ -671,3 +671,4 @@ Blob 不应强制与元数据同流同步。
 - encrypted payload envelope schema
 - read marker 的标准同步面
 - sync service / index 线级接口
+

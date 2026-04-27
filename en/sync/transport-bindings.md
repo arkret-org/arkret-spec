@@ -36,10 +36,10 @@ Any binding MUST support:
 Bindings SHOULD map to canonical `operation_id` values. Values use `cx.<namespace>.<lower_snake_case>`, for example:
 
 - `cx.server.describe`
-- `cx.identity.resolve`, `cx.identity.get_log`, `cx.identity.submit_did_op`
-- `cx.repo.submit_commit`, `cx.repo.get_ops`
+- `cx.identity.resolve`, `cx.identity.get_log`, `cx.identity.submit_did_operation`
+- `cx.repo.submit_commit`, `cx.repo.get_operations`
 - `cx.sync.subscribe`, `cx.sync.backfill`, `cx.sync.client_sync`
-- `cx.federation.transaction`, `cx.federation.push_ops`, `cx.federation.pull_ops`
+- `cx.federation.transaction`, `cx.federation.push_operations`, `cx.federation.pull_operations`
 - `cx.index.query`, `cx.index.space_hierarchy`
 - `cx.directory.search`, `cx.directory.resolve`
 - `cx.blob.upload`, `cx.blob.get`
@@ -59,3 +59,4 @@ Bindings SHOULD map to canonical `operation_id` values. Values use `cx.<namespac
 - libp2p / P2P: peer identity must bind to service or device DID; backfill and snapshot still use signed/verified canonical cursor forms.
 
 HTTP remains default, and transport selection is negotiated by feature discovery.
+

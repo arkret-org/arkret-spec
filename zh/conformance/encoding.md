@@ -42,7 +42,7 @@ cx:<kind>:<ulid>
 - `relation`
 - `event`
 - `commit`
-- `op`
+- `operation`
 - `grant`
 - `view`
 - `blob`
@@ -56,7 +56,7 @@ ULID MUST 使用 Crockford Base32 大写或规范小写之一；同一 profile M
 {
   "commit_id": "cx:commit:01JS0KE000000000000000000",
   "prev_commit": "sha256:...",
-  "ops": ["sha256:..."],
+  "operations": ["sha256:..."],
   "author": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }

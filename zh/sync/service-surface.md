@@ -7,7 +7,7 @@
 因此 Contrix 初版需要定义：
 
 - identity registry 如何收发 DID 操作与 receipt
-- repo 如何收发 commit / op
+- repo 如何收发 commit / operation
 - Principal Server 如何提供 space sync stream 与 backfill
 - index 如何做查询与 inbox / notification 物化
 - directory 如何做 Space / Organization / Actor 的授权搜索与精确解析
@@ -50,7 +50,7 @@ DID Document SHOULD 只负责：
 因此写接口 MUST 支持：
 
 - `commit_id` 幂等
-- `op_id` 幂等
+- `operation_id` 幂等
 - 重复提交不重复生效
 
 ### 2.4 服务必须公布自己的兼容 profile
@@ -152,7 +152,7 @@ GET /api/v1/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 #### 3.1.4 提交 DID 更新
 
 ```text
-POST /api/v1/identity/submit-did-op
+POST /api/v1/identity/submit-did-operation
 ```
 
 请求体 SHOULD 包含：
@@ -179,7 +179,7 @@ GET /api/v1/identity/receipts?did=<did>&head=<event-hash>
 
 初版建议：
 
-- writer 客户端同时向多个 registry / witness 提交 `did_op`
+- writer 客户端同时向多个 registry / witness 提交 `did_operation`
 - 至少拿到 `k-of-n` receipt 才视为提交成功
 - 读取时可附带 `expected_head` 或 `min_seq`
 
@@ -200,7 +200,7 @@ GET /api/v1/repo/describe
 - `repo_did`
 - 当前 head commit
 - 支持的签名算法
-- 是否支持批量取 op
+- 是否支持批量取 operation
 
 ### 4.2 列出 commit
 
@@ -220,13 +220,13 @@ GET /api/v1/repo/commits?cursor=<cursor>&limit=<n>
 GET /api/v1/repo/commit?commit_id=<id>
 ```
 
-### 4.4 批量获取 op
+### 4.4 批量获取 operation
 
 ```text
-POST /api/v1/repo/ops
+POST /api/v1/repo/operations
 ```
 
-请求体可携带一组 `op_id`。
+请求体可携带一组 `operation_id`。
 
 ### 4.5 提交 commit
 
@@ -238,7 +238,7 @@ POST /api/v1/repo/submit-commit
 
 - 同一个 `commit_id` 重复提交相同字节内容 MUST 幂等成功
 - 同一个 `commit_id` 若内容不同 MUST 拒绝
-- repo SHOULD 返回新的 head、已接受 op 列表，以及一组 **因果同步令牌 (Causal Sync Tokens, e.g., `[commit_hash, hlc]`)**，供客户端后续进行强一致性查询时使用。
+- repo SHOULD 返回新的 head、已接受 operation 列表，以及一组 **因果同步令牌 (Causal Sync Tokens, e.g., `[commit_hash, hlc]`)**，供客户端后续进行强一致性查询时使用。
 
 ## 5. Sync Surface
 
@@ -492,7 +492,7 @@ Actor / handle directory MUST NOT return pairwise DID、private DID、private ha
 
 ## 9. Capability / Invite Surface
 
-虽然 grant / revoke / invite 本身也是对象或 op，但服务层仍需要可查询面。
+虽然 grant / revoke / invite 本身也是对象或 operation，但服务层仍需要可查询面。
 
 至少建议提供：
 
@@ -604,3 +604,4 @@ POST /api/v1/authz/check
 - service describe conformance vector
 - sync cursor recovery test vector
 - repo sync consistency test vector
+

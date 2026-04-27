@@ -48,15 +48,15 @@ Transport binding SHOULD 映射到以下 canonical `operation_id`。取值使用
 | `cx.server.describe` | 返回服务 DID、service type、profile、feature、binding 与限制。 |
 | `cx.identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
 | `cx.identity.get_log` | 获取 DID key log。 |
-| `cx.identity.submit_did_op` | 提交 DID 更新操作。 |
+| `cx.identity.submit_did_operation` | 提交 DID 更新操作。 |
 | `cx.repo.submit_commit` | 提交签名 commit。 |
-| `cx.repo.get_ops` | 批量读取 operation / event。 |
+| `cx.repo.get_operations` | 批量读取 operation / event。 |
 | `cx.sync.subscribe` | 订阅 Space 增量流。 |
 | `cx.sync.backfill` | 回填历史事件。 |
 | `cx.sync.client_sync` | 客户端增量同步。 |
 | `cx.federation.transaction` | Principal Server 之间交换签名 transaction。 |
-| `cx.federation.push_ops` | 跨域推送 Space operation。 |
-| `cx.federation.pull_ops` | 跨域拉取缺失 operation / backfill。 |
+| `cx.federation.push_operations` | 跨域推送 Space operation。 |
+| `cx.federation.pull_operations` | 跨域拉取缺失 operation / backfill。 |
 | `cx.index.query` | 查询 Entity / Relation / View projection。 |
 | `cx.index.space_hierarchy` | 查询 Space 层级。 |
 | `cx.directory.search` | 授权搜索 Space / Organization / Actor。 |
@@ -176,3 +176,4 @@ P2P binding MAY 用于离线、边缘或本地优先场景。要求：
 - semantic operation test
 - HTTP binding test
 - 至少一个非 HTTP binding mapping test
+

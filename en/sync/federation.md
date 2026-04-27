@@ -18,9 +18,9 @@ When `server-alpha.com` receives a new Operation for a cross-domain Space and an
 4. It sends the signed Operation envelope to `server-beta.com`.
 5. `server-beta.com` verifies actor signature, Space policy, service delegation, service binding, and causality before accepting.
 
-In this document, Operation means the signed protocol operation envelope, usually represented as a full Event Envelope or an atomic change referenced by a Commit. HTTP paths and wire fields use `push-ops`, `pull-ops`, and `ops`; semantically they carry Operation collections.
+In this document, Operation means the signed protocol operation envelope, usually represented as a full Event Envelope or an atomic change referenced by a Commit. HTTP paths and wire fields use `push-operations`, `pull-operations`, and `operations`; semantically they carry Operation collections.
 
-Request fields for `POST /api/v1/federation/push-ops`:
+Request fields for `POST /api/v1/federation/push-operations`:
 
 | Field | Location | Type | Required | Meaning and constraints |
 | --- | --- | --- | --- | --- |
@@ -34,7 +34,7 @@ Request fields for `POST /api/v1/federation/push-ops`:
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | Space policy hash used by the sender. |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | Membership / policy causal frontier. |
 | `service_binding_ref.destination_service_type` | body | `string` | required | Destination service type, for example `principal_server`. |
-| `ops` | body | `object[]` | required | Operation array; each item MUST be a complete signed Event Envelope or equivalent Operation envelope. |
+| `operations` | body | `object[]` | required | Operation array; each item MUST be a complete signed Event Envelope or equivalent Operation envelope. |
 
 Request example (not a complete schema):
 
@@ -48,7 +48,7 @@ Request example (not a complete schema):
     "membership_frontier": ["cx:evt:..."],
     "destination_service_type": "principal_server"
   },
-  "ops": []
+  "operations": []
 }
 ```
 
@@ -94,15 +94,15 @@ If `plaintext_visible` is true, the service DID MUST also appear in Space policy
 Default HTTP binding:
 
 ```text
-POST /api/v1/federation/push-ops
-GET /api/v1/federation/pull-ops?space_id=<id>&after_cursor=<cursor>&limit=<n>
+POST /api/v1/federation/push-operations
+GET /api/v1/federation/pull-operations?space_id=<id>&after_cursor=<cursor>&limit=<n>
 GET /api/v1/federation/space-members?space_id=<id>
 POST /api/v1/federation/verify-actor
 ```
 
-`POST /api/v1/federation/push-ops` uses the request and response fields defined in Push Flow above. Canonical operation: `cx.federation.push_ops`.
+`POST /api/v1/federation/push-operations` uses the request and response fields defined in Push Flow above. Canonical operation: `cx.federation.push_operations`.
 
-`GET /api/v1/federation/pull-ops` request fields:
+`GET /api/v1/federation/pull-operations` request fields:
 
 | Field | Location | Type | Required | Meaning and constraints |
 | --- | --- | --- | --- | --- |
@@ -110,11 +110,11 @@ POST /api/v1/federation/verify-actor
 | `after_cursor` | query | `cursor` | optional | Return Operations after this cursor. |
 | `limit` | query | `int` | optional | Maximum result count; server MUST enforce a maximum. |
 
-`GET /api/v1/federation/pull-ops` response fields:
+`GET /api/v1/federation/pull-operations` response fields:
 
 | Field | Type | Required | Meaning and constraints |
 | --- | --- | --- | --- |
-| `ops` | `object[]` | required | Operation array; each item MUST preserve the original signed envelope. |
+| `operations` | `object[]` | required | Operation array; each item MUST preserve the original signed envelope. |
 | `next_cursor` | `cursor` | optional | Cursor for the next page. |
 | `has_more` | `boolean` | required | Whether more visible Operations are available. |
 
@@ -196,4 +196,5 @@ Response example (not a complete schema):
 ```
 
 Requests MUST use HTTP Message Signature from the source service DID. `purpose` MUST be `event_source`, `federation_join`, `device_binding`, or an equivalent purpose allowed by Space policy. The requester must be a participant Principal Server, delegated Space Host, or service authorized for the related federation / join flow. The response is only a cache or diagnostic hint; receivers still independently verify DID document, key log, signature transcript, capability, and Space policy before accepting events, membership changes, or device bindings.
+
 

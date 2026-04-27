@@ -272,7 +272,7 @@ Principal Server 和 Index 节点可以配置服务器级别的 ACL，控制哪�
 
 ### 6.2 与联邦协议的关系
 
-Server ACL 在联邦层（参见 `federation.md`）起作用。当 Principal Server 收到来自被 deny 的域的 `push-ops` 请求时，SHOULD 立即返回 `403 CapabilityDenied`。
+Server ACL 在联邦层（参见 `federation.md`）起作用。当 Principal Server 收到来自被 deny 的域的 `push-operations` 请求时，SHOULD 立即返回 `403 CapabilityDenied`。
 
 ## 7. Organization-level Moderation
 

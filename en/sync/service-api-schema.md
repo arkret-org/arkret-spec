@@ -89,9 +89,9 @@ paths:
     get:
       operationId: cx.identity.get_log
 
-  /identity/submit-did-op:
+  /identity/submit-did-operation:
     post:
-      operationId: cx.identity.submit_did_op
+      operationId: cx.identity.submit_did_operation
   /identity/receipts:
     get:
       operationId: cx.identity.get_receipts
@@ -109,9 +109,9 @@ paths:
     get:
       operationId: cx.repo.get_commit
 
-  /repo/ops:
+  /repo/operations:
     post:
-      operationId: cx.repo.get_ops
+      operationId: cx.repo.get_operations
 
   /repo/sync:
     post:
@@ -136,12 +136,12 @@ paths:
   /federation/transactions/{txn_id}:
     put:
       operationId: cx.federation.transaction
-  /federation/push-ops:
+  /federation/push-operations:
     post:
-      operationId: cx.federation.push_ops
-  /federation/pull-ops:
+      operationId: cx.federation.push_operations
+  /federation/pull-operations:
     get:
-      operationId: cx.federation.pull_ops
+      operationId: cx.federation.pull_operations
   /federation/space-members:
     get:
       operationId: cx.federation.space_members
@@ -301,14 +301,14 @@ The following mapping binds each canonical operation to a transport implementati
 | `operation_id` | Primary Binding | Alternate Binding |
 | --- | --- | --- |
 | `cx.identity.resolve` | `POST /identity/resolve` | gRPC `ResolveIdentity` / MQ `identity.resolve` |
-| `cx.identity.submit_did_op` | `POST /identity/submit-did-op` | gRPC `SubmitDidOperation` / libp2p stream |
+| `cx.identity.submit_did_operation` | `POST /identity/submit-did-operation` | gRPC `SubmitDidOperation` / libp2p stream |
 | `cx.identity.get_document` / `cx.identity.get_log` / `cx.identity.get_receipts` | `GET /identity/document`, `GET /identity/log`, `GET /identity/receipts` | gRPC Identity Registry / witness query |
 | `cx.repo.submit_commit` | `POST /repo/submit-commit` | gRPC `SubmitCommit` / Queue `repo.commit` |
-| `cx.repo.get_ops` / `cx.repo.sync` / `cx.repo.list_commits` | `POST /repo/ops`, `POST /repo/sync`, `GET /repo/commits` | gRPC `GetOps` / `SyncRepo` |
+| `cx.repo.get_operations` / `cx.repo.sync` / `cx.repo.list_commits` | `POST /repo/operations`, `POST /repo/sync`, `GET /repo/commits` | gRPC `GetOperations` / `SyncRepo` |
 | `cx.sync.client_sync` | `POST /sync` | WebSocket/SSE client sync channel / `GET /sync?since...` |
 | `cx.sync.subscribe` | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
 | `cx.sync.backfill` / `cx.sync.get_snapshot_head` | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
-| `cx.federation.transaction` / `cx.federation.push_ops` / `cx.federation.pull_ops` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-ops`, `GET /federation/pull-ops` | gRPC Federation Service / signed MQ transaction |
+| `cx.federation.transaction` / `cx.federation.push_operations` / `cx.federation.pull_operations` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-operations`, `GET /federation/pull-operations` | gRPC Federation Service / signed MQ transaction |
 | `cx.index.query` / `cx.index.search` | `POST /index/*` | gRPC `IndexQuery` / SSE search stream |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC discovery service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
@@ -331,4 +331,5 @@ All `operation_id` values MUST be stable across versions and treated as the conf
 - OpenAPI does **not** define protocol behavior alone; behavior remains in the canonical object, auth, and sync specs.
 - `/contrix/v1/*` is a service-local absolute path, not a child of `/api/v1`. Generated OpenAPI documents must use path-level `servers` for these paths or publish them in a separate document.
 - `POST /sync` is client aggregate incremental sync; `GET /sync/subscribe` is Space operation stream subscription; `GET /sync/backfill` is historical backfill. They MUST NOT be treated as interchangeable sync endpoints.
+
 

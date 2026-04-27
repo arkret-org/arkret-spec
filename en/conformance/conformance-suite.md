@@ -39,7 +39,7 @@ Each implementation must verify:
 ### 3.2 Canonical envelope
 
 - canonical JSON generation and canonicalization errors
-- stable op/event hash under cross-service replay
+- stable operation/event hash under cross-service replay
 - deterministic handling of nonce/idempotency keys
 
 ## 4. Vector Layers
@@ -87,7 +87,7 @@ Each implementation must verify:
 | Component | MUST | SHOULD |
 | --- | --- | --- |
 | Minimal/Full Client | filters, pagination, state_after, decryption_pending | snapshot frontier, causal wait |
-| Repo Node | submitCommit, idempotent op writes, commit digest checks, signature validation | snapshot generation, receipt |
+| Repo Node | submitCommit, idempotent operation writes, commit digest checks, signature validation | snapshot generation, receipt |
 | Principal Server | sync-stream resume, backfill ordering, duplicate suppression, encrypted envelope forward | multi-upstream federation, snapshot pointers |
 | Index Node | query reconstruction, authorization filtering, wait-for frontier, stale markers | notification materialization |
 | E2EE Client | epoch recovery, to-device, removed-member fail-closed | local plaintext search coordination |

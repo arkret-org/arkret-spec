@@ -48,7 +48,7 @@ Contrix uses a repo-first model:
 
 1. actors write to their own repos first
 2. repos publish commits
-3. Principal Servers / sync services exchange authorized space ops
+3. Principal Servers / sync services exchange authorized space operations
 4. indexes reduce them into current state
 
 This model applies equally to:
@@ -68,9 +68,9 @@ The draft uses commits as the repo publication unit.
   "prev_commit": "cx:commit:01JS0CMP000000000000000000",
   "seq": 144,
   "created_at": "2026-04-22T08:30:00Z",
-  "ops": [
-    "cx:op:01JS0OP000000000000000000",
-    "cx:op:01JS0OQ000000000000000000"
+  "operations": [
+    "cx:operation:01JS0OP000000000000000000",
+    "cx:operation:01JS0OQ000000000000000000"
   ],
   "signature": {
     "key_id": "did:web:alice.example.com#device-laptop",
@@ -82,18 +82,18 @@ The draft uses commits as the repo publication unit.
 
 ## 5. Operation Envelope
 
-Every op MUST have a common envelope.
+Every operation MUST have a common envelope.
 
 ```json
 {
-  "op_id": "cx:op:01JS0OP000000000000000000",
+  "operation_id": "cx:operation:01JS0OP000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "actor": "did:web:alice.example.com",
   "type": "cx.entity.update",
   "target_ref": "cx:entity:01JS0EN000000000000000000",
   "causal": {
     "deps": [
-      "cx:op:01JS0OO000000000000000000"
+      "cx:operation:01JS0OO000000000000000000"
     ],
     "hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
     "actor_seq": 42
@@ -195,7 +195,7 @@ The draft uses:
 
 ### 7.8 Private and Ephemeral State
 
-The following are not recommended as durable shared ops:
+The following are not recommended as durable shared operations:
 
 - typing
 - live presence
@@ -216,7 +216,7 @@ Examples:
 
 ## 9. Validation Flow
 
-Any repo, sync service, or index receiving an op should validate at least:
+Any repo, sync service, or index receiving an operation should validate at least:
 
 1. the signature is valid
 2. the actor DID resolves
@@ -234,8 +234,8 @@ Snapshots are acceleration layers, not truth sources.
   "space_id": "cx:space:01JS0SP000000000000000000",
   "snapshot_id": "cx:snap:01JS0SN000000000000000000",
   "covers_frontier": [
-    "cx:op:01JS0OP000000000000000000",
-    "cx:op:01JS0OQ000000000000000000"
+    "cx:operation:01JS0OP000000000000000000",
+    "cx:operation:01JS0OQ000000000000000000"
   ],
   "generated_at": "2026-04-22T08:40:00Z",
   "generator": "did:web:index.example.com",
@@ -289,7 +289,7 @@ For:
 
 - fetching invites
 - fetching effective grant sets
-- checking whether an op is writable at the current frontier
+- checking whether an operation is writable at the current frontier
 
 ## 12. Board / Chat / Topic Sync Profiles
 
@@ -327,7 +327,7 @@ Recommended flow:
 2. fetch invite / grant views relevant to the current principal
 3. fetch the latest snapshot manifest
 4. download snapshot chunks
-5. fetch op increments after the snapshot frontier
+5. fetch operation increments after the snapshot frontier
 6. run the reducer locally
 7. enter cursor-based incremental subscription
 
@@ -355,10 +355,10 @@ In decentralized sync, duplicate submission and duplicate delivery are normal, n
 
 Therefore:
 
-- `commit_id` and `op_id` MUST be globally stable
-- the exact same `commit_id` / `op_id` payload MAY be accepted multiple times
+- `commit_id` and `operation_id` MUST be globally stable
+- the exact same `commit_id` / `operation_id` payload MAY be accepted multiple times
 - if the same ID is reused with different content, nodes MUST reject it and record a conflict
-- sync services and indexes SHOULD deduplicate by `op_id` rather than counting deliveries
+- sync services and indexes SHOULD deduplicate by `operation_id` rather than counting deliveries
 
 This prevents:
 
@@ -375,19 +375,19 @@ The first version of Contrix does not introduce a global consensus chain.
 It requires:
 
 - for the same space
-- over the same effective op set
+- over the same effective operation set
 - all correct reducers
 
 to converge to the same current state.
 
 ### 15.2 Base Ordering Rule
 
-When two ops have no explicit causal ordering, compare in this order:
+When two operations have no explicit causal ordering, compare in this order:
 
 1. `hlc`
 2. `actor`
 3. `actor_seq`
-4. `op_id`
+4. `operation_id`
 
 ## 17. Field-level Merge and Object-level Convergence
 
@@ -446,7 +446,7 @@ where `rank` is recommended to be a fractional-indexing string.
 
 Message timeline display order should use:
 
-- `hlc + actor + actor_seq + op_id`
+- `hlc + actor + actor_seq + operation_id`
 
 ## 19. Tombstones, Redaction, and Restore
 
@@ -470,12 +470,12 @@ Receivers SHOULD keep dangling redactions and apply them once the target message
 
 ## 20. Authorization-time Convergence
 
-Authorization cannot rely only on wall-clock time; otherwise revocations, late ops, and offline writes become inconsistent.
+Authorization cannot rely only on wall-clock time; otherwise revocations, late operations, and offline writes become inconsistent.
 
 The initial recommendation is:
 
-- grant / delegate / revoke are themselves ops
-- whether a business op is valid is decided by the effective authorization set under the same reducer ordering
+- grant / delegate / revoke are themselves operations
+- whether a business operation is valid is decided by the effective authorization set under the same reducer ordering
 - if a write is ordered after the relevant revoke, it MUST be treated as invalid
 - if ordering cannot be established, implementations SHOULD fail closed
 
@@ -508,7 +508,7 @@ Recommended behavior:
 
 Clients SHOULD maintain three local layers:
 
-- raw commits / raw ops
+- raw commits / raw operations
 - reduced snapshots
 - materialized indexes
 
@@ -517,10 +517,10 @@ Clients SHOULD maintain three local layers:
 The current draft recommends fixing:
 
 - repo commits as actor publication units
-- ops as shared-state reduction units
+- operations as shared-state reduction units
 - one sync protocol across board/chat/topic modes
 - invite / grant / snapshot as the main space-bootstrap flow
-- commit/op retries as idempotent by design
+- commit/operation retries as idempotent by design
 - authorization validity converging under the same reducer ordering
 - encrypted payloads being forwardable through non-decrypting sync services and indexes
 - recalls as redaction/tombstone semantics

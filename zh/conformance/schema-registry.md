@@ -20,7 +20,7 @@
 | `cx.schema.capability.v1` | Capability Grant |
 | `cx.schema.event.v1` | Event Envelope |
 | `cx.schema.commit.v1` | Repo Commit |
-| `cx.schema.op.v1` | Operation |
+| `cx.schema.operation.v1` | Operation |
 | `cx.schema.blob.v1` | Blob Metadata |
 | `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
 | `cx.schema.client_sync_response.v1` | Client Sync Response |

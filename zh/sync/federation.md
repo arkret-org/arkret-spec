@@ -73,7 +73,7 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 ### 4.1 推送模式 (Push)
 
-本文件中的 Operation 指协议中的签名操作信封，通常表现为完整 Event Envelope 或被 Commit 引用的原子变更记录。HTTP 路径与 wire 字段使用 `push-ops`、`pull-ops` 与 `ops`；这些名称在语义上均表示 Operation 集合。
+本文件中的 Operation 指协议中的签名操作信封，通常表现为完整 Event Envelope 或被 Commit 引用的原子变更记录。HTTP 路径与 wire 字段使用 `push-operations`、`pull-operations` 与 `operations`；这些名称在语义上均表示 Operation 集合。
 
 当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Operation，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
 
@@ -82,7 +82,7 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
 ```
-POST /api/v1/federation/push-ops
+POST /api/v1/federation/push-operations
 Host: server-beta.com
 Signature-Input: sig1=("@method" "@target-uri" "content-digest")
 Signature: sig1=:base64...:
@@ -102,7 +102,7 @@ Signature: sig1=:base64...:
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Space policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `ops` | body | `object[]` | required | Operation 数组；每项 MUST 是完整签名 Event Envelope 或等价 Operation envelope。 |
+| `operations` | body | `object[]` | required | Operation 数组；每项 MUST 是完整签名 Event Envelope 或等价 Operation envelope。 |
 
 请求示例（非完整 schema）：
 
@@ -116,7 +116,7 @@ Signature: sig1=:base64...:
     "membership_frontier": ["cx:evt:..."],
     "destination_service_type": "principal_server"
   },
-  "ops": [
+  "operations": [
     { /* 完整的 Event Envelope，含签名 */ }
   ]
 }
@@ -145,7 +145,7 @@ Signature: sig1=:base64...:
 当节点发现自己的因果图中存在缺失（`deps` 引用了本地没有的 Operation）时，可以主动向源 Principal Server 或源 Repo 拉取：
 
 ```
-GET /api/v1/federation/pull-ops?space_id=cx:space:...&after_cursor=...&limit=100
+GET /api/v1/federation/pull-operations?space_id=cx:space:...&after_cursor=...&limit=100
 Host: server-alpha.com
 ```
 
@@ -161,16 +161,16 @@ Host: server-alpha.com
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `ops` | `object[]` | required | Operation 数组；每项 MUST 保持原始签名信封。 |
+| `operations` | `object[]` | required | Operation 数组；每项 MUST 保持原始签名信封。 |
 | `next_cursor` | `cursor` | optional | 下一页 cursor。 |
 | `has_more` | `boolean` | required | 是否还有更多可见 Operation。 |
 
 ### 4.3 重复与幂等
 
-- 同一个 `op_id` 的 Operation MAY 被多个 Principal Server 推送多次
-- 接收方 MUST 以 `op_id` 去重
+- 同一个 `operation_id` 的 Operation MAY 被多个 Principal Server 推送多次
+- 接收方 MUST 以 `operation_id` 去重
 - 内容相同的重复推送 MUST 幂等接受
-- `op_id` 相同但内容不同的推送 MUST 拒绝
+- `operation_id` 相同但内容不同的推送 MUST 拒绝
 
 ## 5. 跨域加入 Space
 
@@ -238,18 +238,18 @@ DID Document -> service[type=ContrixRepo] -> service_endpoint
 ### 7.1 推送 Operation
 
 ```
-POST /api/v1/federation/push-ops
+POST /api/v1/federation/push-operations
 ```
 
-字段定义见 4.1 节；canonical operation 为 `cx.federation.push_ops`。
+字段定义见 4.1 节；canonical operation 为 `cx.federation.push_operations`。
 
 ### 7.2 拉取 Operation
 
 ```
-GET /api/v1/federation/pull-ops?space_id=<id>&after_cursor=<cursor>&limit=<n>
+GET /api/v1/federation/pull-operations?space_id=<id>&after_cursor=<cursor>&limit=<n>
 ```
 
-字段定义见 4.2 节；canonical operation 为 `cx.federation.pull_ops`。
+字段定义见 4.2 节；canonical operation 为 `cx.federation.pull_operations`。
 
 ### 7.3 查询 Space 成员
 
@@ -396,3 +396,4 @@ POST /api/v1/federation/verify-actor
 - 多 Principal Server 之间的 Gossip / batch sync 优化
 - 跨域 Space 的权限委托与级联
 - 联邦节点的声誉系统（可选）
+

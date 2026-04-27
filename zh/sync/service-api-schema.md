@@ -91,9 +91,9 @@ paths:
   /identity/log:
     get:
       operationId: cx.identity.get_log
-  /identity/submit-did-op:
+  /identity/submit-did-operation:
     post:
-      operationId: cx.identity.submit_did_op
+      operationId: cx.identity.submit_did_operation
   /identity/receipts:
     get:
       operationId: cx.identity.get_receipts
@@ -110,9 +110,9 @@ paths:
   /repo/commit:
     get:
       operationId: cx.repo.get_commit
-  /repo/ops:
+  /repo/operations:
     post:
-      operationId: cx.repo.get_ops
+      operationId: cx.repo.get_operations
   /repo/sync:
     post:
       operationId: cx.repo.sync
@@ -136,12 +136,12 @@ paths:
   /federation/transactions/{txn_id}:
     put:
       operationId: cx.federation.transaction
-  /federation/push-ops:
+  /federation/push-operations:
     post:
-      operationId: cx.federation.push_ops
-  /federation/pull-ops:
+      operationId: cx.federation.push_operations
+  /federation/pull-operations:
     get:
-      operationId: cx.federation.pull_ops
+      operationId: cx.federation.pull_operations
   /federation/space-members:
     get:
       operationId: cx.federation.space_members
@@ -288,14 +288,14 @@ paths:
 | `operation_id` | HTTP 参考绑定 | 其他 transport 映射 |
 | --- | --- | --- |
 | `cx.identity.resolve` | `POST /identity/resolve` | gRPC `ResolveIdentity` / MQ `identity.resolve` |
-| `cx.identity.submit_did_op` | `POST /identity/submit-did-op` | gRPC `SubmitDidOperation` / libp2p stream |
+| `cx.identity.submit_did_operation` | `POST /identity/submit-did-operation` | gRPC `SubmitDidOperation` / libp2p stream |
 | `cx.identity.get_document` / `cx.identity.get_log` / `cx.identity.get_receipts` | `GET /identity/document`, `GET /identity/log`, `GET /identity/receipts` | gRPC Identity Registry / witness query |
 | `cx.repo.submit_commit` | `POST /repo/submit-commit` | gRPC `SubmitCommit` / 队列 `repo.commit` |
-| `cx.repo.get_ops` / `cx.repo.sync` / `cx.repo.list_commits` | `POST /repo/ops`, `POST /repo/sync`, `GET /repo/commits` | gRPC `GetOps` / `SyncRepo` |
+| `cx.repo.get_operations` / `cx.repo.sync` / `cx.repo.list_commits` | `POST /repo/operations`, `POST /repo/sync`, `GET /repo/commits` | gRPC `GetOperations` / `SyncRepo` |
 | `cx.sync.client_sync` | `POST /sync` | WebSocket/SSE client sync channel / `/sync?since...` |
 | `cx.sync.subscribe` | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
 | `cx.sync.backfill` / `cx.sync.get_snapshot_head` | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
-| `cx.federation.transaction` / `cx.federation.push_ops` / `cx.federation.pull_ops` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-ops`, `GET /federation/pull-ops` | gRPC Federation Service / signed MQ transaction |
+| `cx.federation.transaction` / `cx.federation.push_operations` / `cx.federation.pull_operations` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-operations`, `GET /federation/pull-operations` | gRPC Federation Service / signed MQ transaction |
 | `cx.index.query` / `cx.index.search` | `POST /index/*` | gRPC `IndexQuery` / SSE 查询流 |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC Discovery Service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
@@ -315,3 +315,4 @@ paths:
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - `/contrix/v1/*` 是服务本地绝对路径，不挂在 `/api/v1` 下。生成 OpenAPI 时必须为这些 path 使用 path-level `servers` 或拆成独立文档。
 - `POST /sync` 是客户端聚合增量同步；`GET /sync/subscribe` 是 Space operation 流订阅；`GET /sync/backfill` 是历史回补。三者不得互相替代，也不得新增未声明的 canonical sync endpoint。
+

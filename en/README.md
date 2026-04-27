@@ -6,7 +6,7 @@
 
 - **DID principals** as the identity root
 - **Space / Entity / Relation collaboration graphs** as the data root
-- **append-only repos + ops** as the audit root
+- **append-only repos + operations** as the audit root
 - **capabilities** as the authorization root
 - **views/projections** as the human presentation root
 - **Events** as the collaboration fact root
@@ -158,7 +158,7 @@ Main document groups:
 - indexes/appviews are the query/materialization layer, not the sole truth source
 - the service layer requires a minimum interoperable principal-server / identity-registry / repo / sync / index / blob / authz surface
 - board/chat/topic/tree/graph are sync profiles and View projections, not separate protocols
-- commit/op submission must be idempotent by design
+- commit/operation submission must be idempotent by design
 - authorization validity must converge under the same reducer ordering
 - recall converges through redaction semantics, not guaranteed global erasure
 - sync services / indexes may forward encrypted payloads without decrypting them; plaintext private content must not be submitted to undelegated third-party services

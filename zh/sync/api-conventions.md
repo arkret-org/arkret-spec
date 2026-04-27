@@ -167,7 +167,7 @@ API 调用 SHOULD 使用以下方式之一：
 
 写入请求 SHOULD 携带以下之一：
 
-- `op_id`
+- `operation_id`
 - `commit_id`
 - `request_id`
 - endpoint-specific `idempotency_key`
@@ -176,7 +176,7 @@ API 调用 SHOULD 使用以下方式之一：
 
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
-- 服务端 SHOULD 记录幂等结果至少到相关 op 被最终同步或过期。
+- 服务端 SHOULD 记录幂等结果至少到相关 operation 被最终同步或过期。
 
 ## 7. 分页与 cursor
 
@@ -281,3 +281,4 @@ Access-Control-Allow-Headers: Authorization, Content-Type, X-Contrix-Wait-For, X
 - 记录可审计但不泄露明文的安全日志
 - 对管理操作要求更强认证
 - 对联邦写入执行 reputation / quarantine 策略
+

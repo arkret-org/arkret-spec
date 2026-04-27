@@ -70,3 +70,4 @@ Response fields:
 
 Backfill authorization MUST evaluate the requester service DID against Space policy, membership frontier, service delegation, and plaintext visibility rules. If the requested range contains non-E2EE private content, the requester MUST be a participant Principal Server or an explicitly listed `plaintext_visible_services` entry for that range.
 
+

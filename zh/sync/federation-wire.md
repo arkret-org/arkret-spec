@@ -84,7 +84,7 @@ Join flow:
 
 Backfill 请求字段：
 
-字段定义同 `GET /api/v1/federation/pull-ops`：`space_id: id` 为 required，`from_cursor/after_cursor: cursor` 与 `limit: int` 为 optional，`requester: did` MUST 与请求签名的来源 service DID 一致。
+字段定义同 `GET /api/v1/federation/pull-operations`：`space_id: id` 为 required，`from_cursor/after_cursor: cursor` 与 `limit: int` 为 optional，`requester: did` MUST 与请求签名的来源 service DID 一致。
 
 ```json
 {
@@ -123,3 +123,4 @@ Suspicious remote input MAY be stored in quarantine queue until:
 - capability verified
 - fork resolved
 - operator policy accepts source
+

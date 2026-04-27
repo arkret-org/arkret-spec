@@ -91,7 +91,7 @@
 | Repo | 仓库 | Principal 或 Space 发布 signed commit / operation 的追加式可验证日志。Repo 是协议逻辑对象，不等同于服务器。 |
 | Repo Service | 仓库服务 | 通过网络 API 暴露 Repo commit / operation 读写、同步和回填能力的服务角色；它托管或复制 Repo，但其权威来自 Repo 数据的签名和 hash 链。 |
 | Commit | 提交 | Actor 侧发布单元，包含一个或多个 operation/event 引用和签名。 |
-| Operation | 操作 | 对协作图的原子变更意图或事实，通常封装为 Event 或被 Event 引用。其 wire 字段名为 `op` / `ops`。 |
+| Operation | 操作 | 对协作图的原子变更意图或事实，通常封装为 Event 或被 Event 引用。其 wire 字段名为 `operation` / `operations`。 |
 | Operation Log | 操作日志 | 追加式审计记录，用于归约、同步、回放和冲突分析。 |
 | Reducer | 归约器 | 将 accepted Event / Operation 集合归约为当前状态和 projection 的确定性规则。 |
 | State Resolution | 状态解析 | 对同一 state key 的并发冲突进行确定性合并的算法。 |

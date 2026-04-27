@@ -23,10 +23,10 @@ Default REST namespaces:
 | Namespace | Primary callers | Semantics | Spec |
 | --- | --- | --- | --- |
 | `/server/*` | clients and services | service description, feature discovery, auth metadata | `service-surface.md`, `api-conventions.md` |
-| `/identity/*` | clients, services, registries | DID document, key log, DID op, receipt | `service-surface.md`, `identity-did.md` |
-| `/repo/*` | clients, Principal Servers, repo replicas | signed commit submit, op/commit reads, repo incremental sync | `operations-sync.md`, `service-surface.md` |
+| `/identity/*` | clients, services, registries | DID document, key log, DID operation, receipt | `service-surface.md`, `identity-did.md` |
+| `/repo/*` | clients, Principal Servers, repo replicas | signed commit submit, operation/commit reads, repo incremental sync | `operations-sync.md`, `service-surface.md` |
 | `/sync/*` | clients, Principal Servers | client aggregate sync, Space subscription, backfill, snapshot head | `client-sync.md`, `service-surface.md` |
-| `/federation/*` | Principal Servers | cross-domain transaction, op push/pull, member query, actor verification | `federation.md`, `federation-wire.md` |
+| `/federation/*` | Principal Servers | cross-domain transaction, operation push/pull, member query, actor verification | `federation.md`, `federation-wire.md` |
 | `/index/*` | clients and services | Entity query, structured query, search, inbox, notification, Space hierarchy | `service-surface.md`, `query-schema.md` |
 | `/directory/*` | clients and services | authorized discovery and resolution of Spaces, Organizations, Actors, and handles | `discovery-directory.md` |
 | `/blob/*` | clients and services | blob upload, HEAD, authenticated download | `media-and-blob.md` |
@@ -50,7 +50,7 @@ Every REST endpoint definition must include at least:
 - successful response field types
 - authentication mode: `public_metadata`, `user_session`, `device_proof`, `service_signature`, `policy_token`, `applet_signature`, etc.
 - access restrictions: Space membership, history visibility, capability, service delegation, namespace, plaintext visibility, rate limit, and quota
-- idempotency key: `Idempotency-Key`, path `{txn_id}`, `commit_id`, `op_id`, or canonical request hash
+- idempotency key: `Idempotency-Key`, path `{txn_id}`, `commit_id`, `operation_id`, or canonical request hash
 - standard error envelope on failure
 
 JSON examples are illustrative only and are not complete schemas. Normative endpoint definitions MUST use field tables that state field name, location, type, requiredness, meaning, and constraints.
@@ -65,7 +65,7 @@ Default rules:
 
 ### 2.3 Endpoint Contract Registry
 
-Type shorthand: `did` is a DID URI, `id` is a protocol object id, `cursor` / `token` is an opaque string, `signature` is `{kid, alg?, sig}`, and `proof` is a DID / HTTP message / detached JWS proof. `op` / `ops` are wire names only (for Operation / Operation array). Human-readable documents SHOULD spell out Operation.
+Type shorthand: `did` is a DID URI, `id` is a protocol object id, `cursor` / `token` is an opaque string, `signature` is `{kid, alg?, sig}`, and `proof` is a DID / HTTP message / detached JWS proof. `operations` is the wire name for operation arrays. Human-readable documents SHOULD spell out Operation.
 
 | Endpoint | Request type | Auth / access restrictions | Success type |
 | --- | --- | --- | --- |
@@ -74,13 +74,13 @@ Type shorthand: `did` is a DID URI, `id` is a protocol object id, `cursor` / `to
 | `POST /api/v1/identity/resolve` | body `{did: did, include?: string[]}` | `public_metadata`; private DIDs MAY require `user_session` or presentation proof. | `{did_document, key_log_head?, seq?, receipts?, method_evidence?}` |
 | `GET /api/v1/identity/document` | query `{did: did, version?: string}` | Same as `identity.resolve`. | `{did_document, head_event_hash?, seq?, receipts?}` |
 | `GET /api/v1/identity/log` | query `{did: did, cursor?: cursor, limit?: int}` | Public DIDs may be public; private / pairwise DIDs MUST require holder-approved proof. | `{events[], next_cursor?, has_more}` |
-| `POST /api/v1/identity/submit-did-op` | body `{did: did, seq: int, prev_event_hash?: string, patch: object, proofs: proof[]}` | `device_proof` or recovery proof; MUST satisfy DID method / key-log authorization. | `{status, head_event_hash, seq, receipts?}` |
+| `POST /api/v1/identity/submit-did-operation` | body `{did: did, seq: int, prev_event_hash?: string, patch: object, proofs: proof[]}` | `device_proof` or recovery proof; MUST satisfy DID method / key-log authorization. | `{status, head_event_hash, seq, receipts?}` |
 | `GET /api/v1/identity/receipts` | query `{did: did, head: string}` | Same DID visibility; witness receipts may expose only minimal evidence. | `{receipts[], threshold_met?: boolean}` |
 | `GET /api/v1/repo/describe` | query `{repo_id?: did}` | `user_session` / `service_signature`; only for repos visible to the caller. | `{repo_did, head_commit, supported_signatures[], limits}` |
 | `GET /api/v1/repo/commits` | query `{repo_id: did, cursor?: cursor, limit?: int}` | Repo owner, authorized replica, Space policy, or history visibility must allow access. | `{commits[], next_cursor?, has_more}` |
-| `GET /api/v1/repo/commit` | query `{repo_id?: did, commit_id: id}` | Same repo-read access; invisible resources return `not_found`. | `{commit, ops?, proofs?}` |
-| `POST /api/v1/repo/ops` | body `{repo_id?: did, op_ids?: id[], event_ids?: id[], include_payload?: boolean}` | Same repo-read access; payload visibility follows Space policy / E2EE envelope rules. | `{ops[], missing[], unauthorized[]?}` |
-| `POST /api/v1/repo/sync` | body `{repo_id: did, since?: cursor, limit?: int, filters?: object}` | Repo owner, authorized replica, or delegated service. | `{ops[], next_cursor?, has_more}` |
+| `GET /api/v1/repo/commit` | query `{repo_id?: did, commit_id: id}` | Same repo-read access; invisible resources return `not_found`. | `{commit, operations?, proofs?}` |
+| `POST /api/v1/repo/operations` | body `{repo_id?: did, operation_ids?: id[], event_ids?: id[], include_payload?: boolean}` | Same repo-read access; payload visibility follows Space policy / E2EE envelope rules. | `{operations[], missing[], unauthorized[]?}` |
+| `POST /api/v1/repo/sync` | body `{repo_id: did, since?: cursor, limit?: int, filters?: object}` | Repo owner, authorized replica, or delegated service. | `{operations[], next_cursor?, has_more}` |
 | `POST /api/v1/repo/submit-commit` | body `{repo_id: did, commit: object, expected_head?: string, idempotency_key?: string}` | Commit signature + capability; repo MUST verify actor DID, device/session, CAS, and Space policy. | `{status, commit_id, head_commit?, sync_token}` |
 | `POST /api/v1/sync` | body `{since?: token, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device. | Client Sync response `{next_batch, rooms/spaces?, to_device?, account_data?, device_lists?}` |
 | `GET /api/v1/sync/describe` | query none | `public_metadata` or `user_session`; private limits may require auth. | `{service_did, supported_sync_profiles[], limits, frontier?}` |
@@ -88,8 +88,8 @@ Type shorthand: `did` is a DID URI, `id` is a protocol object id, `cursor` / `to
 | `GET /api/v1/sync/backfill` | query `{space_id: id, cursor?: cursor, limit?: int}` | History visibility + membership frontier + E2EE epoch policy. | `{events[], prev_cursor?, next_cursor?, limited?}` |
 | `GET /api/v1/sync/snapshot-head` | query `{space_id: id}` | Space read; snapshot manifest must be signed. | `{snapshot_ref, state_hash, frontier, signature}` |
 | `PUT /api/v1/federation/transactions/{txn_id}` | path `{txn_id}` body `{origin: did, destination: did, service_binding_ref, events[], receipts?, frontier?}` | `service_signature`; destination service DID, URL, Space policy, and service binding must match. | `{ok: true, accepted[], rejected[], next_retry_at?}` |
-| `POST /api/v1/federation/push-ops` | body `{origin: did, destination: did, space_id: id, service_binding_ref, ops[]}` | `service_signature`; origin must be acceptable under Space federation policy; each op is verified independently. | `{accepted[], rejected[], quarantine[]?}` |
-| `GET /api/v1/federation/pull-ops` | query `{space_id: id, after_cursor?: cursor, limit?: int}` | `service_signature`; requester must have backfill rights and plaintext-visibility eligibility. | `{ops[], next_cursor?, has_more}` |
+| `POST /api/v1/federation/push-operations` | body `{origin: did, destination: did, space_id: id, service_binding_ref, operations[]}` | `service_signature`; origin must be acceptable under Space federation policy; each operation is verified independently. | `{accepted[], rejected[], quarantine[]?}` |
+| `GET /api/v1/federation/pull-operations` | query `{space_id: id, after_cursor?: cursor, limit?: int}` | `service_signature`; requester must have backfill rights and plaintext-visibility eligibility. | `{operations[], next_cursor?, has_more}` |
 | `GET /api/v1/federation/space-members` | query `{space_id: id, cursor?: cursor, limit?: int}` | `service_signature`; only for participant Principal Servers or policy-allowed services. | `{members[], membership_frontier, next_cursor?}` |
 | `POST /api/v1/federation/verify-actor` | body `{actor_id: did, challenge?: string, signed_payload_hash?: string, signature: signature, purpose: string, space_id?: id}` | `service_signature`; not a public DID oracle; requester must have a federation, join, event-source, or shared-Space purpose. | `{valid: boolean, actor_id, verified_key_id?, key_log_head?, did_document_ref?, expires_at?, warnings[]}` |
 | `GET /api/v1/index/describe` | query none | `public_metadata`; private reducer/frontier details may require auth. | `{service_did, reducer_profiles[], schema_profiles[], query_features[], frontier?}` |
@@ -146,13 +146,13 @@ This section is the field-level schema index for REST endpoints. Field syntax is
 | `cx.identity.resolve` | `did: did - DID to resolve` | `include: string[] - extra evidence such as key_log/receipts` | `did_document: object`; `key_log_head: id?`; `seq: int?`; `receipts: object[]?`; `method_evidence: object?` | Private or pairwise DIDs may require presentation proof. |
 | `cx.identity.get_document` | `query.did: did` | `query.version: string - version or head` | `did_document: object`; `head_event_hash: string?`; `seq: int?`; `receipts: object[]?` | Same visibility as `cx.identity.resolve`. |
 | `cx.identity.get_log` | `query.did: did` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `next_cursor: cursor?`; `has_more: boolean` | Private or pairwise DIDs MUST require holder-approved proof. |
-| `cx.identity.submit_did_op` | `did: did`; `seq: int`; `patch: object`; `proofs: proof[]` | `prev_event_hash: string` | `status: enum(accepted,duplicate)`; `head_event_hash: string`; `seq: int`; `receipts: object[]?` | MUST satisfy DID method / key-log authorization; idempotent by `did+seq`. |
+| `cx.identity.submit_did_operation` | `did: did`; `seq: int`; `patch: object`; `proofs: proof[]` | `prev_event_hash: string` | `status: enum(accepted,duplicate)`; `head_event_hash: string`; `seq: int`; `receipts: object[]?` | MUST satisfy DID method / key-log authorization; idempotent by `did+seq`. |
 | `cx.identity.get_receipts` | `query.did: did`; `query.head: string` | none | `receipts: object[]`; `threshold_met: boolean?` | Expose only minimal witness receipts. |
 | `cx.repo.describe` | none | `query.repo_id: did` | `repo_did: did`; `head_commit: id`; `supported_signatures: string[]`; `limits: object?` | Only repos visible to the caller. |
 | `cx.repo.list_commits` | `query.repo_id: did` | `query.cursor: cursor`; `query.limit: int` | `commits: object[]`; `next_cursor: cursor?`; `has_more: boolean` | Limited by repo-read access, history visibility, and Space policy. |
-| `cx.repo.get_commit` | `query.commit_id: id` | `query.repo_id: did`; `query.include_ops: boolean` | `commit: object`; `ops: object[]?`; `proofs: object[]?` | Invisible resources return `not_found`. |
-| `cx.repo.get_ops` | at least one of `op_ids: id[]` or `event_ids: id[]` | `repo_id: did`; `include_payload: boolean` | `ops: object[]`; `missing: id[]`; `unauthorized: id[]?` | Payload visibility follows Space policy / E2EE envelope rules. |
-| `cx.repo.sync` | `repo_id: did` | `since: cursor`; `limit: int`; `filters: object` | `ops: object[]`; `next_cursor: cursor?`; `has_more: boolean` | Repo owner, authorized replica, or delegated service only. |
+| `cx.repo.get_commit` | `query.commit_id: id` | `query.repo_id: did`; `query.include_operations: boolean` | `commit: object`; `operations: object[]?`; `proofs: object[]?` | Invisible resources return `not_found`. |
+| `cx.repo.get_operations` | at least one of `operation_ids: id[]` or `event_ids: id[]` | `repo_id: did`; `include_payload: boolean` | `operations: object[]`; `missing: id[]`; `unauthorized: id[]?` | Payload visibility follows Space policy / E2EE envelope rules. |
+| `cx.repo.sync` | `repo_id: did` | `since: cursor`; `limit: int`; `filters: object` | `operations: object[]`; `next_cursor: cursor?`; `has_more: boolean` | Repo owner, authorized replica, or delegated service only. |
 | `cx.repo.submit_commit` | `repo_id: did`; `commit: object` | `expected_head: string`; `idempotency_key: string` | `status: enum(accepted,duplicate)`; `commit_id: id`; `head_commit: id?`; `sync_token: token` | MUST verify commit signature, CAS, capability, and Space policy. |
 | `cx.sync.client_sync` | none | `since: token`; `filter: object`; `set_presence: enum(online,offline,unavailable)`; `timeout_ms: int` | `next_batch: token`; `spaces: object?`; `to_device: object?`; `account_data: object?`; `device_lists: object?` | `user_session` must bind principal/device. |
 | `cx.sync.describe` | none | none | `service_did: did`; `supported_sync_profiles: string[]`; `limits: object`; `frontier: object?` | Private frontier may require authentication. |
@@ -160,8 +160,8 @@ This section is the field-level schema index for REST endpoints. Field syntax is
 | `cx.sync.backfill` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `prev_cursor: cursor?`; `next_cursor: cursor?`; `limited: boolean?` | Enforce history visibility, membership frontier, and E2EE epoch policy. |
 | `cx.sync.get_snapshot_head` | `query.space_id: id` | none | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `signature: signature` | Snapshot manifest MUST be signed. |
 | `cx.federation.transaction` | `path.txn_id: id`; `origin: did`; `destination: did`; `service_binding_ref: object`; `events: object[]` | `receipts: object[]`; `frontier: object` | `ok: boolean`; `accepted: id[]`; `rejected: object[]`; `next_retry_at: datetime?` | `service_signature`; destination DID, URL, policy, and binding must match. |
-| `cx.federation.push_ops` | `origin: did`; `destination: did`; `space_id: id`; `service_binding_ref: object`; `ops: object[]` | none | `accepted: id[]`; `rejected: object[]`; `quarantine: id[]?` | Every op is independently signature and authorization checked. |
-| `cx.federation.pull_ops` | `query.space_id: id` | `query.after_cursor: cursor`; `query.limit: int` | `ops: object[]`; `next_cursor: cursor?`; `has_more: boolean` | Requester needs backfill rights and plaintext-visibility eligibility. |
+| `cx.federation.push_operations` | `origin: did`; `destination: did`; `space_id: id`; `service_binding_ref: object`; `operations: object[]` | none | `accepted: id[]`; `rejected: object[]`; `quarantine: id[]?` | Every operation is independently signature and authorization checked. |
+| `cx.federation.pull_operations` | `query.space_id: id` | `query.after_cursor: cursor`; `query.limit: int` | `operations: object[]`; `next_cursor: cursor?`; `has_more: boolean` | Requester needs backfill rights and plaintext-visibility eligibility. |
 | `cx.federation.space_members` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `members: object[]`; `membership_frontier: object`; `next_cursor: cursor?` | Participant Principal Servers or policy-allowed services only. |
 | `cx.federation.verify_actor` | `actor_id: did`; `purpose: enum(event_source,federation_join,device_binding)`; `signature: signature` | `space_id: id`; `challenge: string`; `signed_payload_hash: string` | `valid: boolean`; `actor_id: did`; `verified_key_id: string?`; `key_log_head: id?`; `did_document_ref: string?`; `expires_at: datetime?`; `warnings: string[]` | Cache/diagnostic only; never replaces local DID, key-log, capability, or Space policy verification. |
 | `cx.index.describe` | none | none | `service_did: did`; `reducer_profiles: string[]`; `schema_profiles: string[]`; `query_features: string[]`; `frontier: object?` | Private reducer/frontier data may require authentication. |
@@ -222,7 +222,7 @@ Request example (not a complete schema):
   "commit": {
     "commit_id": "cx:commit:01JS0KE...",
     "prev": ["cx:commit:01JS0KD..."],
-    "ops": [],
+    "operations": [],
     "signature": {}
   }
 }
@@ -240,7 +240,7 @@ Response example (not a complete schema):
 
 When `expected_state_hash` verification fails, return `409 cas_conflict`.
 
-The protocol-level repo write unit is a signed commit. Implementations MAY accept a single op at an SDK or local API layer, but before network propagation, sync, or audit it MUST be wrapped in a signed commit. Receivers MUST NOT treat bare ops that are not part of a commit as canonical history.
+The protocol-level repo write unit is a signed commit. Implementations MAY accept a single operation at an SDK or local API layer, but before network propagation, sync, or audit it MUST be wrapped in a signed commit. Receivers MUST NOT treat bare operations that are not part of a commit as canonical history.
 
 ### 3.2 Incremental Sync
 
@@ -253,7 +253,7 @@ Request example (not a complete schema):
 ```json
 {
   "repo_id": "did:uuid:alice-or-cx-space",
-  "since": "cursor-or-op-id",
+  "since": "cursor-or-operation-id",
   "limit": 500
 }
 ```
@@ -262,7 +262,7 @@ Response example (not a complete schema):
 
 ```json
 {
-  "ops": [],
+  "operations": [],
   "next_cursor": "opaque",
   "has_more": true
 }
@@ -409,3 +409,4 @@ Services SHOULD use identical failure semantics for high-risk paths:
 - Directory lookup, join probing, and public metadata endpoints SHOULD NOT return distinguishable information between `not_found` and `forbidden`.
 - Federation and policy-check edges SHOULD log source service DID and source domain hash, then apply `rate_limited` / `temporarily_unavailable` controls.
 - Requests with missing/invalid signatures SHOULD be rejected with audit trails while preserving normal service availability for authenticated principals.
+
