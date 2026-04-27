@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-去中心化协作协议面临着复杂的隐私与合规矛盾：一方面，商业数据和私密频道必须提供不可被 Relay / Index 窃听的端到端加密 (E2EE)；另一方面，在特定组织边界内，数据流又需要受到法律或合规层面的安全审查。
+去中心化协作协议面临着复杂的隐私与合规矛盾：一方面，商业数据和私密频道必须提供不可被 Sync Service / Index 窃听的端到端加密 (E2EE)；另一方面，在特定组织边界内，数据流又需要受到法律或合规层面的安全审查。
 
 本规范定义了 Contrix 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
@@ -25,32 +25,32 @@ MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Contrix 中，群组的�
 ```mermaid
 sequenceDiagram
     participant Alice
-    participant Relay (Space Repo)
+    participant Sync Service (Space Repo)
     participant Bob (Index)
 
-    Alice->>Relay: GET /api/v1/keys/bob
-    Relay-->>Alice: Bob's KeyPackage
+    Alice->>Sync Service: GET /api/v1/keys/bob
+    Sync Service-->>Alice: Bob's KeyPackage
     
     note over Alice: Computes GroupContext & Tree
     
-    Alice->>Relay: Submit `cx.mls.welcome` (Encrypted for Bob)
-    Alice->>Relay: Submit `cx.mls.commit` (Group state update)
+    Alice->>Sync Service: Submit `cx.mls.welcome` (Encrypted for Bob)
+    Alice->>Sync Service: Submit `cx.mls.commit` (Group state update)
     
-    Relay->>Bob (Index): Push Notification & Sync
+    Sync Service->>Bob (Index): Push Notification & Sync
     
-    Bob->>Relay: Fetch `cx.mls.welcome`
+    Bob->>Sync Service: Fetch `cx.mls.welcome`
     note over Bob: Decrypts Welcome using InitKey
     note over Bob: Derives Group Epoch Secret
 ```
 
 - **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Space Repo。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
-- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。由于其仅面向特定新成员解密，该消息可通过 Relay 的 Ephemeral Channel 发送，或通过私信 `message` 投递。
+- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。由于其仅面向特定新成员解密，该消息可通过 Sync Service 的 Ephemeral Channel 发送，或通过私信 `message` 投递。
 
 ### 2.3 载荷加密 (Application Data)
 日常的 `message` 或 `task` 的内容负载在写入 Repo 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
 - **可路由元数据分离**：密文信封 `encrypted_payload` 仅包裹实际的业务内容 (`body`, `content`, `attachments`)。
 - **明文元数据保留**：用于网络路由和索引查询的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
-- Relay 和 Index 节点可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。
+- Sync Service 和 Index 节点可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。
 
 ### 2.4 Sync 与 MLS Epoch
 
@@ -62,7 +62,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 - backfill 历史事件时，客户端 SHOULD 同步对应 epoch 区间的 MLS state，而不是逐条向成员请求密钥。
 - 被移除成员不得获取移除后 epoch 的 group secret；客户端必须 fail closed。
 
-服务端、Relay、Index 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
+服务端、Sync Service、Index 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
 
 ## 3. 可审查的端到端加密 (Auditable E2EE)
 
@@ -102,7 +102,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
      "actor": "did:web:compliance.acme.corp"
    }
    ```
-3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或中继节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Repo 或至少一个独立验证节点的 `sync_token`（或因果确权回执），确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
+3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Repo 或至少一个独立验证节点的 `sync_token`（或因果确权回执），确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地（或受控合规服务）才被允许利用持有的 MLS 密钥将对应的明文吐出给合规人员。
 
 ### 3.4 审查透明公示
@@ -152,7 +152,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 - 胜出者的 Commit 成为合法的下一个 Epoch。失败者的客户端发现自己的 Commit 版本过期后，会自动丢弃本地更改并拉取胜出者的状态，确保 E2EE 的强一致性。
 
 ## 6. 离线支持与消息延迟到达
-- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `cx.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Relay 中的加密事件。
+- 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `cx.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Sync Service 中的加密事件。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
 
 ## 7. 待细化领域

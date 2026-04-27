@@ -37,7 +37,7 @@ Bindings SHOULD map to canonical operation names such as:
 
 - `identity.resolve`, `identity.get_log`
 - `repo.submit_commit`, `repo.get_ops`
-- `relay.subscribe`, `relay.backfill`, `sync.run`
+- `sync.subscribe`, `sync.backfill`, `sync.run`
 - `index.query`, `index.space_hierarchy`
 - `blob.upload`, `blob.get`
 - `authz.check`, `policy.check`

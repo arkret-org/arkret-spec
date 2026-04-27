@@ -145,7 +145,7 @@ Public feed profile should use:
 - `indexing.public_search=true`
 - `reshare_policy` enabled for repost / quote if desired
 
-Public feed distribution can be materialized from Directory / Index / Relay / AppView.
+Public feed distribution can be materialized from Directory / Index / Sync Service / AppView.
 
 ## 7. Circle Feed Model
 
@@ -162,7 +162,7 @@ Circle feed SHOULD use:
 
 Visibility rules:
 
-- Subjects outside snapshots MUST NOT discover post content from directory / index / relay preview.
+- Subjects outside snapshots MUST NOT discover post content from directory / index / Sync Service preview.
 - If E2EE is used, payload SHOULD be encrypted to snapshot device set or MLS group.
 - Index services MAY index encrypted metadata only and must not expose plain text, attachments, comment, or reaction sets.
 - Comments/reactions inherit original audience and must not widen it.

@@ -27,7 +27,7 @@ Parent 侧声明：
   "state_key": "cx:space:child_01",
   "content": {
     "child_space_id": "cx:space:child_01",
-    "via": ["did:web:relay.example"],
+    "via": ["did:web:server.example"],
     "order": "mV",
     "suggested": false,
     "canonical": true
@@ -43,7 +43,7 @@ Child 侧确认：
   "state_key": "cx:space:parent_01",
   "content": {
     "parent_space_id": "cx:space:parent_01",
-    "via": ["did:web:relay.example"],
+    "via": ["did:web:server.example"],
     "canonical": true
   }
 }

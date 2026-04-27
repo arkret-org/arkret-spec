@@ -47,8 +47,8 @@ Content-Type: application/json
   "actor": "did:uuid:...",
   "device_id": "dev_a",
   "source": {
-    "service_did": "did:web:relay.example",
-    "service_type": "relay",
+    "service_did": "did:web:server.example",
+    "service_type": "principal_server",
     "source_ip_hash": "sha256:...",
     "signed_transport": true
   },
@@ -63,7 +63,7 @@ Content-Type: application/json
   "auth_context": {
     "membership": "join",
     "capability_ids": ["grant:..."],
-    "origin_service": "did:web:relay.example"
+    "origin_service": "did:web:server.example"
   }
 }
 ```
@@ -97,7 +97,7 @@ Content-Type: application/json
 - `quarantine`
 - `require_review`
 
-`hard_deny` MAY 使事件被 reject；`quarantine` MUST 使事件进入 quarantine；`soft_deny` SHOULD 阻止默认客户端提交，但 relay MAY 接收并标记 soft failed；`require_review` 生成 proposal/review flow。
+`hard_deny` MAY 使事件被 reject；`quarantine` MUST 使事件进入 quarantine；`soft_deny` SHOULD 阻止默认客户端提交，但 Sync Service MAY 接收并标记 soft failed；`require_review` 生成 proposal/review flow。
 
 `reason_code` SHOULD 至少覆盖：
 
@@ -155,9 +155,9 @@ Policy server MAY enforce Space-level and Organization-level blocklists, allowli
 
 ## 8. Antifraud Mapping from Server Abuse Practice
 
-服务端中对“开放中继”“垃圾泛滥”“地址枚举”“内容扫描”“重放放大”的常见防护可直接映射到策略服务：
+服务端中对“开放联邦入口”“垃圾泛滥”“地址枚举”“内容扫描”“重放放大”的常见防护可直接映射到策略服务：
 
-- **反开放中继**：来自未声明 `source.service_did` 的联邦请求先降级到 `rate_limited` 或 `soft_deny`，只有在策略显式 allowlist 后才恢复 normal allow。
+- **反开放联邦入口**：来自未声明 `source.service_did` 的联邦请求先降级到 `rate_limited` 或 `soft_deny`，只有在策略显式 allowlist 后才恢复 normal allow。
 - **反爆发**：策略决策返回中可携带 `rate_limit` `obligation`，要求源服务在 `next_retry_at` 之前退避。
 - **反假源**：`source.signed_transport=true` 且 service key 可校验时可放行；未签名来源只能走更严格决策分支并写入审计。
 - **反重放**：`request_id` 与 `request_canonical_hash` 一起构成 decision 缓存键；不同 payload 使用同一 `request_id` MUST 触发 `duplicate_conflict` 语义。

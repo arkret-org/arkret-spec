@@ -118,7 +118,7 @@ Decision:
 
 - No. One protocol, multiple sync profiles.
 - Actors write to their own repos first.
-- Relays aggregate authorized Space operations.
+- Principal Servers exchange authorized Space operations.
 - Indexes materialize current state and queries.
 - Board, chat, topic, tree, and graph modes differ in filters and projections, not protocol identity.
 
@@ -194,7 +194,7 @@ Taken together, the protocol adopts the following overall plan:
 4. Keep `comment` for durable object-level notes, while `message` handles timeline conversation.
 5. Standardize `@mention` as structured DID/entity references and `mentions` Relations.
 6. Use revision chains for editing and redaction/tombstones for recalls.
-7. Reuse the same repo-first + relay + index sync model across board/chat/topic modes.
+7. Reuse the same repo-first + Principal Server sync + index model across board/chat/topic modes.
 8. Resolve conflicts through fixed reducer rules rather than client-specific heuristics.
 9. Unify all permissions under capabilities rather than implicit roles.
 

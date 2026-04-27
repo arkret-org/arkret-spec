@@ -16,11 +16,11 @@
 ### 2.1 临时性与高频特征
 
 与具体的业务数据不同，已读回执变动极其频繁（用户每次滑动屏幕都会产生），并且其历史记录没有长期保留价值。
-因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Relay 的 Ephemeral Channel 广播，不写入持久化 Repo 的因果图中。
+因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Repo 的因果图中。
 
 ### 2.2 广播格式
 
-客户端在用户视线停留或明确确认后，向 Relay 发送：
+客户端在用户视线停留或明确确认后，向 Sync Service 发送：
 
 ```json
 {

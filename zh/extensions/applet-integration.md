@@ -217,7 +217,7 @@ Applet MUST NOT write into a Space unless it has an effective grant or is explic
 ## 7. Applet API
 
 Applet API 是 Contrix 节点调用 Applet 的接口。  
-Applet 调用 Contrix 节点时使用常规 repo / relay / index / authz API。
+Applet 调用 Contrix 节点时使用常规 repo / sync service / index / authz API。
 
 Base URL 来自 registration 的 `base_url`。
 
@@ -252,14 +252,14 @@ GET /api/v1/applet/describe
 PUT /api/v1/applet/transactions/{txn_id}
 ```
 
-Contrix relay / index / repo 向 Applet 推送事件批次。
+Contrix sync service / index / repo 向 Applet 推送事件批次。
 
 请求：
 
 ```json
 {
   "txn_id": "cx:txn:01JS0TX000000000000000000",
-  "source_service_did": "did:web:relay.example",
+  "source_service_did": "did:web:server.example",
   "events": [
     {
       "event_id": "cx:event:01JS0EV000000000000000000",
@@ -531,7 +531,7 @@ Applet 实现 MUST：
 
 Applet 实现 MUST NOT：
 
-- 接收全网 firehose，除非明确授权
+- 接收全网 sync stream，除非明确授权
 - 把 namespace 当作写权限
 - 静默 impersonate native user
 - 绕过 Space encryption policy

@@ -124,7 +124,7 @@ POST /api/v1/moderation/report
 
 ### 4.4 隐私要求
 
-个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Relay、Space、Directory 或被屏蔽方可见的位置。
+个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Sync Service、Space、Directory 或被屏蔽方可见的位置。
 
 跨设备同步 SHOULD 使用 Account Repo + 客户端加密。服务端只应看到不透明密文。
 
@@ -142,7 +142,7 @@ POST /api/v1/moderation/report
 管理员通过 `cx.membership.ban` 操作封禁用户（详见 `object-model-core.md` 的成员与 policy 语义）。封禁后：
 
 - 被封禁用户无法重新加入该 Space
-- 其未来的 Op 提交将被 Relay 拒绝
+- 其未来的 Op 提交将被 Sync Service 拒绝
 - 是否隐藏其历史内容由 Space Policy 决定
 
 ### 5.3 Space Blocklist / Filter Policy
@@ -233,7 +233,7 @@ Space SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 
 ### 6.1 Server ACL
 
-Relay 和 Index 节点可以配置服务器级别的 ACL，控制哪些域的联邦请求被接受或拒绝：
+Principal Server 和 Index 节点可以配置服务器级别的 ACL，控制哪些域的联邦请求被接受或拒绝：
 
 ```json
 {
@@ -251,7 +251,7 @@ Relay 和 Index 节点可以配置服务器级别的 ACL，控制哪些域的联
 
 ### 6.2 与联邦协议的关系
 
-Server ACL 在联邦层（参见 `federation.md`）起作用。当 Relay 收到来自被 deny 的域的 `push-ops` 请求时，SHOULD 立即返回 `403 CapabilityDenied`。
+Server ACL 在联邦层（参见 `federation.md`）起作用。当 Principal Server 收到来自被 deny 的域的 `push-ops` 请求时，SHOULD 立即返回 `403 CapabilityDenied`。
 
 ## 7. Organization-level Moderation
 
@@ -267,7 +267,7 @@ Recommended object:
   "scope": {
     "space_ids": ["cx:space:01JS0SP..."],
     "service_dids": [
-      "did:web:relay.acme.example",
+      "did:web:server.acme.example",
       "did:web:policy.acme.example"
     ],
     "applies_to_official_spaces": true
@@ -304,7 +304,7 @@ Rules:
 
 - Organization policy is authoritative only for Spaces/services that explicitly reference it, or for official Spaces whose `cx.space.organization` endorsement states that the organization policy applies.
 - A Space MAY override organization defaults only if its policy says override is allowed.
-- Organization-level deny SHOULD be enforced by Policy Server, Relay Server ACL, Directory filtering and Space moderation policy together.
+- Organization-level deny SHOULD be enforced by Policy Server, Principal Server ACL, Directory filtering and Space moderation policy together.
 - Organization policy MUST be signed by Organization DID or delegated governance service DID.
 - Organization policy MUST NOT reveal private user blocklists, private handles or undisclosed organization memberships.
 
@@ -328,10 +328,10 @@ Policy Server MAY return `hard_deny`, `quarantine`, `require_review` or `soft_de
 在“去中心化服务治理”场景中，服务端常见风险的抗滥用经验如下：
 
 - **入口源身份强制**：任何外部服务联邦请求都先验 `service DID`。未签名或未被 allowlist 的源服务不得参与写路径（至少转入 `soft_deny` / `quarantine`）。
-- **多级限速**：Relay / Index / Policy Server 应至少按以下维度限速：`source DID`、`source IP`（或其哈希）、`service token`、`space id`、`endpoint`。超阈值 MUST 返回 `rate_limited`。
+- **多级限速**：Sync Service / Index / Policy Server 应至少按以下维度限速：`source DID`、`source IP`（或其哈希）、`service token`、`space id`、`endpoint`。超阈值 MUST 返回 `rate_limited`。
 - **批量事件反滥用**：对短周期内的 `invite`、`join`、`message`、`media.upload` 进行突发抑制；出现异常突发可触发 `quarantine`。
 - **最小可观察性差异**：对未通过鉴权的目录/加入枚举请求，返回统一错误，不泄露对象可见性差异。
-- **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 relay/index；必要时按 `snapshot`/`preview` 再二次放行。
+- **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 Sync Service/index；必要时按 `snapshot`/`preview` 再二次放行。
 - **可追溯审计**：每次风控拦截、隔离、降级决策都要记录结构化审计事件，且不得仅依赖联邦来源的本地口头说明。
 
 上述规则至少部分对应 `server-threat-model.md` 中的映射结果。  

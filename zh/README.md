@@ -51,7 +51,7 @@ Contrix 第一阶段聚焦以下目标：
 核心阅读路径：
 
 1. [architecture.md](./overview/architecture.md)：架构平面、部署拓扑和信任边界。
-2. [glossary.md](./overview/glossary.md)：术语边界，尤其是 Principal / Actor / Organization / Space / Repo / Relay。
+2. [glossary.md](./overview/glossary.md)：术语边界，尤其是 Principal / Actor / Organization / Space / Principal Server / Repo。
 3. [object-model-core.md](./models/object-model-core.md) 与 [object-model-standard.md](./models/object-model-standard.md)：核心对象和标准类型。
    字段级定义见 [data-structures.md](./models/data-structures.md)。
 4. [identity-did.md](./identity/identity-did.md)、[identity-handles.md](./identity/identity-handles.md)、[progressive-disclosure.md](./identity/progressive-disclosure.md)：身份、handle、隐私披露。
@@ -113,14 +113,14 @@ Contrix 第一阶段聚焦以下目标：
 
 - repo commit 是 actor 侧发布单元
 - operation log 是审计真相源
-- relay 是传播与订阅层，不是唯一真相源
+- Principal Server / Sync Service 是受控同步与订阅层，不是唯一真相源
 - index/appview 是查询与物化层，不是唯一真相源
-- 服务面要求最小可互操作 identity registry / repo / relay / index / blob / authz 接口
+- 服务面要求最小可互操作 principal server / identity registry / repo / sync / index / blob / authz 接口
 - board/chat/topic/tree/graph 只是不同同步配置和 View 投影，不是不同协议
 - commit/op 提交必须天然幂等
 - 授权有效性也必须由同一 reducer 顺序收敛
 - 撤回通过 redaction 收敛，不等于保证全球物理删除
-- relay / index 可以转发不解密的密文 payload
+- sync service / index 可以转发不解密的密文 payload；未加密私有正文不得提交给未委托第三方服务
 - DID 里的哈希锚定 `inception_key`；普通密钥轮换不换 DID，只有不可恢复时才考虑例外性身份重建
 
 ### 5.5 权限
@@ -170,7 +170,7 @@ Contrix 第一阶段聚焦以下目标：
 - Space、Entity、Relation、Event、View 和标准业务类型。
 - 核心数据结构字段级类型、必填性、枚举和约束。
 - Capability、delegation、claim 条件、policy server、moderation policy。
-- Repo-first 发布、Relay 传播、Index 查询、Directory 发现、HTTP binding。
+- Repo-first 发布、Principal Server 同步、Index 查询、Directory 发现、HTTP binding。
 - MLS E2EE、设备验证、WebRTC 会议、Blob 与媒体。
 - Applet、Agent protocol interop、Social feed、Space hierarchy。
 - Sovereign deployment 与 controlled collaboration Space。

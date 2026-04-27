@@ -23,7 +23,7 @@ This document defines discovery for Space, Organization, Actor, and Applet, dire
 | `restricted` | Visible only to holders satisfying verifiable conditions such as membership, organization claim, or invited state. |
 | `unlisted` | Not included in search; MAY be resolved by exact id/alias/invite link or parent edge when policy allows. |
 | `invite_only` | Uninvited or non-proof subjects should not learn existence; responses should blur with non-existence. |
-| `secret` | Visible only in local or E2EE context; directories/relays should not expose enumerable metadata. |
+| `secret` | Visible only in local or E2EE context; directories/Principal Servers should not expose enumerable metadata. |
 
 Defaults:
 

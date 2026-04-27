@@ -11,7 +11,7 @@
 初次理解协议时，建议按以下顺序阅读：
 
 1. `overview/architecture.md`：先理解分层、角色和信任边界。
-2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Repo / Relay。
+2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Principal Server / Repo。
 3. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
 4. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/progressive-disclosure.md`：理解身份、handle 和隐私披露。
 5. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
@@ -33,11 +33,11 @@
 - Feed 是一种社交或活动时间线投影源，不替代 Space。
 - View 是投影定义，不拥有真相数据。
 
-### 3.3 Repo / Repo Service / Relay / Index
+### 3.3 Principal Server / Repo / Sync / Index
 
 - Repo 是可验证发布日志，不等同于服务器。
 - Repo Service 是访问或托管 Repo 的服务。
-- Relay 是传播层，不是真相源。
+- Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Space 同步能力。
 - Index 是查询和投影层，不是真相源。
 
 ### 3.4 Discoverability / Join Rule / History Visibility
@@ -112,7 +112,7 @@
 | --- | --- |
 | `sync/operations-sync.md` | Repo-first 发布、op、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
-| `sync/service-surface.md` | 最小服务面：identity、repo、relay、index、directory、blob、authz。 |
+| `sync/service-surface.md` | 最小服务面：principal server、identity、repo、sync、index、directory、blob、authz。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/service-api-schema.md` | 核心 request / response schema。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |

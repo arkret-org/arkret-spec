@@ -19,7 +19,7 @@ cx.profile.<name>.v<major>
 
 - `cx.profile.minimal_client.v1`
 - `cx.profile.repo_node.v1`
-- `cx.profile.relay_node.v1`
+- `cx.profile.principal_server.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 
@@ -98,7 +98,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 MUST NOT：
 
-- 把明文消息发送给 relay / index
+- 把明文消息发送给 sync service / index
 - 把解密密钥上传给不受信服务
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
 
@@ -126,13 +126,13 @@ SHOULD 支持：
 - rate limiting
 - quota accounting
 
-## 7. Relay Node
+## 7. Principal Server
 
-`cx.profile.relay_node.v1` 适用于传播和订阅节点。
+`cx.profile.principal_server.v1` 适用于用户、组织或 agent principal 控制/委托的服务入口。
 
 MUST 支持：
 
-- subscribe / firehose
+- subscribe / sync stream
 - backfill
 - cursor stability
 - duplicate suppression
@@ -142,12 +142,12 @@ MUST 支持：
 
 SHOULD 支持：
 
-- multi-upstream relay
+- multi-upstream Principal Server federation
 - quarantine queue
 - witness receipt
 - snapshot pointer distribution
 
-Relay Node MUST NOT become the canonical truth source for Space state.
+Principal Server MUST NOT become the canonical truth source for Space state.
 
 ## 8. Index Node
 
@@ -253,7 +253,7 @@ MUST support:
 MUST NOT:
 
 - expose internal Space directory to external members
-- treat external Relay / Index as authority
+- treat external Principal Server / Index as authority
 - allow public federation by default
 - allow external Applet or Agent handoff without explicit capability and policy
 
@@ -286,7 +286,7 @@ MUST support:
 
 MUST NOT:
 
-- let users add arbitrary Relay / Index / Directory / Blob endpoints
+- let users add arbitrary Principal Server / Index / Directory / Blob endpoints
 - resolve internal `did:uuid` through public registry by default
 - silently join Space with external members or auditable E2EE
 - expose private organization directory to public search
@@ -346,7 +346,7 @@ MUST NOT：
 
 - 把 namespace 命中当作写权限
 - 静默 impersonate native user
-- 在无授权时接收全网 firehose
+- 在无授权时接收全网 sync stream
 - 在未提示边界的情况下把 E2EE 内容桥接到非 E2EE 网络
 
 SHOULD 支持：
@@ -375,7 +375,7 @@ SHOULD 支持：
 
 所有 profile MUST 能按 `data-structures.md` 解码和验证其声明支持的核心对象字段。实现 MAY 保留未知字段，但 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。
 
-所有 profile MUST 按 `encoding-conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、HLC 和 cursor 的基础向量。Repo、Index、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Repo Node MUST 覆盖 commit digest；E2EE Client 和 Relay Node MUST 覆盖 encrypted envelope digest。
+所有 profile MUST 按 `encoding-conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、HLC 和 cursor 的基础向量。Repo、Index、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Repo Node MUST 覆盖 commit digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
 
 E2EE profile MUST 额外提供：
 
@@ -390,7 +390,7 @@ Client Sync 相关 profile MUST/SHOULD 按 `sync-conformance-vectors.md` 执行�
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Index Node MUST 覆盖 deterministic timeline order、causal barrier 和 stale frontier reporting。
-- Relay Node SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
+- Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
 
 Identity profile MUST 额外提供：
 
@@ -439,7 +439,7 @@ Applet Bridge profile MUST 额外提供：
 
 - `minimal_client`
 - `repo_node`
-- `relay_node`
+- `principal_server`
 - `index_node`
 - `identity_registry`
 - `blob_node`

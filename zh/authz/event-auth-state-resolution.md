@@ -54,7 +54,7 @@
 8. 对策略服务、capability constraint、rate limit 和 abuse policy 运行本地检查。
 9. 输出 `accepted`、`soft_failed`、`rejected` 或 `quarantined`。
 
-节点 MUST NOT 因为事件来自可信 relay 就跳过任何步骤。
+节点 MUST NOT 因为事件来自可信 Sync Service 就跳过任何步骤。
 
 ## 4. Auth Refs
 
@@ -183,7 +183,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
       "official": true,
       "allowed_labels": ["official", "support"],
       "service_dids": [
-        "did:web:relay.acme.example",
+        "did:web:server.acme.example",
         "did:web:index.acme.example"
       ]
     },
@@ -198,7 +198,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 
 - `owner`：组织是 Space 的所有者或共同所有者。
 - `sponsor`：组织认可该 Space，但不单独拥有全部治理权。
-- `host`：组织托管 Relay / Index / Blob / Media 等服务，但不声明内容所有权。
+- `host`：组织托管 Sync Service / Index / Blob / Media 等服务，但不声明内容所有权。
 - `issuer`：组织只作为 trusted issuer / policy issuer。
 
 客户端判断一个 Space 是否为某 Organization 官方创建或官方认可时，MUST 同时验证：
@@ -214,7 +214,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 
 - Space 名称、头像、主题或简介包含组织名。
 - `space_id`、alias、handle、域名或邮箱后缀看起来属于组织。
-- Relay / Index 由组织托管。
+- Sync Service / Index 由组织托管。
 - Space 中有组织成员加入。
 
 组织可通过后续 `cx.space.organization` 将 `status` 改为 `revoked`、`suspended` 或 `transferred`。撤销只影响官方背书和后续治理判断，不应自动删除历史数据；历史展示 SHOULD 保留“曾经由该组织背书，已于某时间撤销”的审计状态。
@@ -300,7 +300,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 8. 如果同 key 所有候选均不通过授权，回退到 base_state；若无 base，则该 key unset。
 9. 输出 conflict record，索引器 SHOULD 暴露给审计视图。
 
-该算法 MUST deterministic。任何实现不得使用本地接收顺序、数据库自增 ID 或 relay 顺序作为 tie-breaker。
+该算法 MUST deterministic。任何实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
 
 ## 10. Redaction
 

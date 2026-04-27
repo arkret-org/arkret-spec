@@ -82,7 +82,7 @@
 
 - service DID authentication
 - federation transaction replay protection
-- relay-to-relay op exchange
+- Principal Server-to-Principal Server op exchange
 - cross-domain Space join
 - remote capability verification
 - fork / equivocation detection
@@ -126,7 +126,7 @@
 - personal node
 - small team node
 - enterprise node
-- public relay
+- public federation ingress
 - E2EE client
 - Applet bridge
 - policy server

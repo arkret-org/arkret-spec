@@ -194,7 +194,7 @@ Mention notifications should be derived results rather than part of the message 
 That means:
 
 - messages store mention references
-- inbox/notification state is derived by indexes or relays
+- inbox/notification state is derived by indexes or Principal Servers
 
 ## 8. Edit, Recall, and Reaction
 
@@ -308,7 +308,7 @@ The following should not be modeled as durable shared objects:
 
 They may be:
 
-- ephemeral relay signals
+- ephemeral Sync Service signals
 - or actor-private state
 
 ## 13. Initial Design Decisions

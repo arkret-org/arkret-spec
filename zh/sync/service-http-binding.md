@@ -99,10 +99,10 @@ POST /api/v1/identity/resolve
 
 Resolver MUST return enough method-specific evidence for clients to verify control history.
 
-## 5. Relay API
+## 5. Sync API
 
 ```text
-GET /api/v1/relay/firehose?space_id=<space_id>&cursor=<cursor>
+GET /api/v1/sync/stream?space_id=<space_id>&cursor=<cursor>
 ```
 
 Frame:

@@ -166,8 +166,8 @@ sha256:921bf7f35f54ec956b198d7465aaf517c617698ac1e8932246e4304d741215af
 判定规则：
 
 - `event_id` MUST 从 redaction 前、去除 `proofs` 后的 canonical event bytes 派生。
-- 实现 MUST NOT 把 transport envelope、HTTP header、relay metadata、local receive time 放入 event digest。
-- 同一事件在不同 relay、repo replica 或 index 上 MUST 得到相同 digest。
+- 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
+- 同一事件在不同 Sync Service、repo replica 或 index 上 MUST 得到相同 digest。
 
 ## 7. Vector: Commit Digest
 
@@ -336,11 +336,11 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 
 - digest 输入 MUST 为 `canonical_json(cleartext_metadata) || ciphertext_bytes`。
 - 实现 MUST NOT hash 明文 payload。
-- 实现 MUST NOT 省略路由和解密所需的 cleartext metadata，否则 relay / index 无法安全去重和审计密文 envelope。
+- 实现 MUST NOT 省略路由和解密所需的 cleartext metadata，否则 sync service / index 无法安全去重和审计密文 envelope。
 
 ## 12. 覆盖矩阵
 
-| 向量 | Minimal Client | Full Client | E2EE Client | Repo Node | Relay Node | Index Node |
+| 向量 | Minimal Client | Full Client | E2EE Client | Repo Node | Principal Server | Index Node |
 | --- | --- | --- | --- | --- | --- | --- |
 | `cx.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST | MUST |

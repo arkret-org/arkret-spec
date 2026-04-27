@@ -19,7 +19,7 @@ A sovereign deployment is a Contrix service domain controlled by one organizatio
 - Organization DID / governance registry / witness
 - Identity Registry
 - Repo Service
-- Relay
+- Principal Server / Sync Service
 - Index / AppView
 - Directory
 - Blob Store
@@ -39,7 +39,7 @@ flowchart TB
         REG["Private Identity Registry"]
         WIT["Private Witness Set"]
         REPO["Internal Repo Services"]
-        RELAY["Internal Relay"]
+        SYNC["Internal Principal Server / Sync Service"]
         INDEX["Internal Index / AppView"]
         DIR["Private Directory"]
         BLOB["Private Blob Store"]
@@ -50,7 +50,7 @@ flowchart TB
 
     subgraph "Controlled Collaboration Enclave"
         ESPACE["Controlled Collaboration Space"]
-        ERELAY["Enclave Relay"]
+        ESYNC["Enclave Principal Server / Sync Service"]
         EINDEX["Enclave Index"]
         EDIR["Enclave Directory"]
         EBLOB["Enclave Blob Store"]
@@ -61,13 +61,13 @@ flowchart TB
         EXTORG["External Organization DID"]
         EXTCLIENT["External Managed Client"]
         EXTREPO["External Principal Repo"]
-        EXTRELAY["External Relay"]
+        EXTSYNC["External Principal Server / Sync Service"]
     end
 
     ORG --> REG
     ORG --> WIT
     ORG --> REPO
-    ORG --> RELAY
+    ORG --> SYNC
     ORG --> INDEX
     ORG --> DIR
     ORG --> BLOB
@@ -75,14 +75,14 @@ flowchart TB
     ORG --> MEDIA
 
     INTCLIENT --> REPO
-    REPO --> RELAY
-    RELAY --> INDEX
+    REPO --> SYNC
+    SYNC --> INDEX
     INDEX --> DIR
-    RELAY --> POL
+    SYNC --> POL
     INDEX --> POL
 
     ORG -->|"creates / endorses"| ESPACE
-    ESPACE --> ERELAY
+    ESPACE --> ESYNC
     ESPACE --> EINDEX
     ESPACE --> EDIR
     ESPACE --> EBLOB
@@ -92,14 +92,14 @@ flowchart TB
     EXTORG -->|"authority chain / VC"| EPOL
     EXTCLIENT -->|"invite + restricted join"| ESPACE
     EXTCLIENT --> EXTREPO
-    EXTREPO -->|"signed ops"| ERELAY
-    EXTRELAY -. "optional allowlisted federation" .-> ERELAY
+    EXTREPO -->|"signed ops"| ESYNC
+    EXTSYNC -. "optional allowlisted federation" .-> ESYNC
 
-    ERELAY -->|"accepted events only"| EINDEX
+    ESYNC -->|"accepted events only"| EINDEX
     EINDEX -->|"stripped preview only"| EDIR
-    EPOL -->|"allow / deny / quarantine"| ERELAY
+    EPOL -->|"allow / deny / quarantine"| ESYNC
 
-    RELAY -. "no default bridge" .- ERELAY
+    SYNC -. "no default bridge" .- ESYNC
     DIR -. "not exposed" .- EDIR
 ```
 
@@ -108,7 +108,7 @@ Implications:
 - Main domain keeps closed federation and does not expose internal directory/index or topology.
 - Controlled enclosure is isolated and only hosts approved Spaces.
 - External actors join enclave via DID / VC / authority chain / invite / restricted join.
-- External organizations may keep own repos, but writes must pass enclave relay, policy server, and local authorization.
+- External organizations may keep own repos, but writes must pass enclave Principal Server / Sync Service, policy server, and local authorization.
 - No default bridge between main network and enclave; material enters/leaves only through explicit export/import review.
 
 ### 2.2 Sovereign Client
@@ -122,7 +122,7 @@ Sovereign clients MUST:
 - pin organization trust anchors (organization DID, governance DID, registry DID, witness DIDs, service allowlist)
 - use organization DID resolver policy and avoid default public registry queries
 - verify service DID delegation, certificates, message signature, and feature profile
-- block unapproved relay/index/directory/blob/applet endpoints
+- block unapproved sync/index/directory/blob/applet endpoints
 - disable public federation, public search, public social feed, external applets and agent handoff by default
 - show per-space classification, E2EE status, egress policy, and export permissions
 - support remote revocation of session, device, grant, applet delegation, and cached secrets
@@ -144,7 +144,7 @@ High-assurance deployments SHOULD default to:
 - spaces default `discoverability=secret` or `invite_only`
 - spaces default `join_rule=private` or `restricted`
 - Policy Server default `closed` or `quarantine` fail mode
-- relay/index/directory accept allowlisted service DIDs only
+- sync/index/directory accept allowlisted service DIDs only
 - blob/snapshot/backup/audit stored inside organization infrastructure
 - disable external applets, A2A/ACP handoff, TSP by default; allow only by explicit Space policy
 - E2EE enabled by default, auditable E2EE enabled where policy requires and visible to members
@@ -184,7 +184,7 @@ Rules:
 - Internal `did:uuid` documents MUST come from approved registry / witness / offline bundle.
 - Public DID methods MAY be accepted for external collaborators only when policy permits and authority chain is valid.
 - Pairwise DID SHOULD be used for high-correlation risk collaboration.
-- DID document service endpoints to public relay/index/directory MUST be ignored unless allowlisted.
+- DID document service endpoints to public sync/index/directory services MUST be ignored unless allowlisted.
 
 ## 4. Controlled Collaboration Spaces
 
@@ -258,7 +258,7 @@ Recommended pattern when external organization enters:
 }
 ```
 
-External organization MAY keep its own Repo/Relay, but controlled Space SHOULD require:
+External organization MAY keep its own Repo/Principal Server, but controlled Space SHOULD require:
 
 - approved external service DID
 - federation transaction signature
@@ -276,7 +276,7 @@ Recommended pattern:
 - keep main network closed federation
 - create isolated collaboration enclave
 - invite external actors only into enclave space
-- use separate relay/index/blob/policy inside enclave
+- use separate Principal Server/index/blob/policy inside enclave
 - redact + export review + declassification required before importing into enclave
 - import review + malware scan + policy approval for egress to main network
 
@@ -347,4 +347,3 @@ If compromise is suspected:
 - cross-domain event auditing
 - external grant revocation and epoch rotation
 - enclave import/export review metadata
-

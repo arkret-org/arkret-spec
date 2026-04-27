@@ -8,7 +8,7 @@ Move the draft into an implementable interoperability surface by forcing repeata
 - reducer convergence (especially auth/state)
 - redaction and redacted field preservation
 - capability and delegated authorization
-- repo, relay, index, E2EE, applet, and policy-server interoperability
+- repo, sync, index, E2EE, applet, and policy-server interoperability
 
 This version does not introduce a new space version. Compatibility evolution is handled in `space_version=1` through explicit profile gating and deprecation policy.
 
@@ -18,7 +18,7 @@ This version does not introduce a new space version. Compatibility evolution is 
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.repo_node.v1`
-- `cx.profile.relay_node.v1`
+- `cx.profile.principal_server.v1`
 - `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
 - `cx.profile.blob_node.v1`
@@ -32,7 +32,7 @@ This version does not introduce a new space version. Compatibility evolution is 
 
 Each implementation must verify:
 
-- required HTTP operations for identity/repo/relay/index/blob/authz/sync
+- required HTTP operations for identity/repo/sync/index/blob/authz/sync
 - stable `operationId` mappings in `service-api-schema.md`
 - transport-mapping consistency (HTTP ↔ gRPC/WebSocket/SSE/MQ) for at least selected canary vectors
 
@@ -88,7 +88,7 @@ Each implementation must verify:
 | --- | --- | --- |
 | Minimal/Full Client | filters, pagination, state_after, decryption_pending | snapshot frontier, causal wait |
 | Repo Node | submitCommit, idempotent op writes, commit digest checks, signature validation | snapshot generation, receipt |
-| Relay Node | subscribe resume, backfill ordering, duplicate suppression, encrypted envelope forward | multi-upstream relay, snapshot pointers |
+| Principal Server | sync-stream resume, backfill ordering, duplicate suppression, encrypted envelope forward | multi-upstream federation, snapshot pointers |
 | Index Node | query reconstruction, authorization filtering, wait-for frontier, stale markers | notification materialization |
 | E2EE Client | epoch recovery, to-device, removed-member fail-closed | local plaintext search coordination |
 | Applet Bridge | registration signature, transaction idempotency, namespace conflicts, unauthorized write rejection | portal-space mapping |

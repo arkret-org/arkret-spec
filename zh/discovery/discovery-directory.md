@@ -23,7 +23,7 @@ Contrix 需要明确区分三件事：
 | `restricted` | 只有满足可验证条件的请求方可发现，例如组织成员、受邀者、共同 Space 成员或持有特定 claim 的主体。 |
 | `unlisted` | 不进入目录搜索；知道精确 id、alias、邀请链接或 parent edge 的主体 MAY 尝试解析。 |
 | `invite_only` | 未被邀请或未持有 invite proof 的主体不得得知其存在；查询应返回与不存在相同的错误。 |
-| `secret` | 仅本地或端到端加密上下文中可见；目录、Relay、Index 不应公开可枚举 metadata。 |
+| `secret` | 仅本地或端到端加密上下文中可见；目录、Sync Service、Index 不应公开可枚举 metadata。 |
 
 默认值：
 

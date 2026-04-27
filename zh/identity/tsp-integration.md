@@ -37,7 +37,7 @@ TSP 的 VID 可映射到 Contrix：
 | TSP Endpoint | actor device、service node、Applet、policy server、agent runtime |
 | TSP Relationship | pairwise trusted channel between two principals/services |
 | TSP Support System | identity registry、DID method adapter、witness、governance registry |
-| TSP Intermediary | relay、privacy router、store-and-forward service |
+| TSP Intermediary | Sync Service、privacy router、store-and-forward service |
 | TSP Message | signed/encrypted transport envelope carrying Contrix operation or control payload |
 
 Contrix DID method adapter SHOULD expose whether a principal or service supports TSP.
@@ -49,8 +49,8 @@ Contrix DID method adapter SHOULD expose whether a principal or service supports
 ```json
 {
   "type": "cx.service.tsp",
-  "service_id": "did:web:relay.example#tsp",
-  "service_endpoint": "https://relay.example/tsp",
+  "service_id": "did:web:server.example#tsp",
+  "service_endpoint": "https://server.example/tsp",
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [

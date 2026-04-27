@@ -12,5 +12,5 @@ Required areas:
 - fork detection
 - quarantine queue
 
-Relay and repo services MUST verify event signatures, schema, capabilities, and source service authority.
+Principal Server, sync, repo, and index services MUST verify event signatures, schema, capabilities, and source service authority.
 

@@ -304,8 +304,8 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
     },
     "service_delegations": [
       {
-        "service_did": "did:web:relay.acme.example",
-        "purposes": ["relay", "space_endorsement"],
+        "service_did": "did:web:server.acme.example",
+        "purposes": ["principal_server", "space_endorsement"],
         "valid_from": "2026-04-26T00:00:00Z",
         "valid_until": null
       }
@@ -318,7 +318,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 - Organization principal MUST be controlled by keys or delegated services in its DID Document / key log.
 - 高风险治理动作 SHOULD 使用阈值签名、多签 approval 或 governance service attestation。
-- 组织可委派 service DID 代表其运行 Relay、Index、Policy Server、Applet 或签发低风险状态，但该委派 MUST 明确 purpose、scope 和有效期。
+- 组织可委派 service DID 代表其运行 Principal Server、Index、Policy Server、Applet 或签发低风险状态，但该委派 MUST 明确 purpose、scope 和有效期。
 - 组织 DID 的密钥轮换、恢复和停用 MUST 进入 DID key log 或外部 DID method 的等价历史。
 - 组织所有权转移 MUST 由旧控制状态授权，并生成可验证 transfer / recovery 记录；实现 MUST NOT 因域名、商标或 UI 文案变化自动认定组织所有权转移。
 

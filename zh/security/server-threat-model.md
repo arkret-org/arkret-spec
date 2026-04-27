@@ -2,79 +2,79 @@
 
 ## 1. 目标
 
-本文件给出服务端可直接落地的威胁与防护。  
-不再复用与当前协议不一致的传统通道细节，所有条目均按 Contrix 的 Repo / Relay / Index / Directory / Policy Server / Identity 平面映射到协议规则。
+本文件给出服务端可直接落地的威胁与防护。
+不再复用与当前协议不一致的传统通道细节，所有条目均按 Contrix 的 Repo / Sync Service / Index / Directory / Policy Server / Identity 平面映射到协议规则。
 
 ## 2. 服务端攻击面
 
 ### 2.1 当前协议可直接防御的攻击手段
 
-1. **开放联邦滥用（Open Relay / Open Federation Abuse）**  
+1. **开放联邦入口滥用（Open Federation Abuse）**
    攻击者将未认证来源注入联邦传播路径，试图批量推送内容或索取状态资源。
 
-2. **认证与凭证滥用（Credential Abuse / Brute-force / Session Token Replay）**  
+2. **认证与凭证滥用（Credential Abuse / Brute-force / Session Token Replay）**
    对认证入口进行高频尝试，或利用泄露/重放的 session token、service token、gateway token 发起越权写入与批量操作。
 
-3. **写入泛滥（Write Flood）**  
+3. **写入泛滥（Write Flood）**
    大量 `submit-commit`、`push-ops`、`media.upload`、`call` 事务造成 CPU/IO/队列压垮。
 
-4. **放大与重试风暴（Amplification / Retry Storm）**  
+4. **放大与重试风暴（Amplification / Retry Storm）**
    利用短周期失败、重试、回执链路放大或抖动，触发队列/重试池快速增长。
 
-5. **来源身份伪造（Source Spoofing）**  
+5. **来源身份伪造（Source Spoofing）**
    伪造 `origin` / `service DID` / transport 绑定签名，绕过来源约束。
 
-6. **钓鱼与品牌仿冒（Phishing / Social Engineering）**  
+6. **钓鱼与品牌仿冒（Phishing / Social Engineering）**
    通过目录、邀请、授权提示、签名展示链条进行误导，引导用户执行高风险动作。
 
-7. **恶意附件与链接传播（Malware / Unsafe Media）**  
+7. **恶意附件与链接传播（Malware / Unsafe Media）**
    上传/分享高风险附件、链接、可疑 blob，诱导后续执行或传播。
 
-8. **目录与枚举探测（Enumeration / Membership Probe）**  
+8. **目录与枚举探测（Enumeration / Membership Probe）**
    利用返回时序、状态码差异推断隐私资源可见性、成员关系或组织结构。
 
-9. **队列与存储耗尽（Queue / Storage Exhaustion）**  
+9. **队列与存储耗尽（Queue / Storage Exhaustion）**
    借助大对象、分页滑动、深分页、历史清单拉取导致资源占用失控。
 
-10. **中间人与重放（MITM / Replay）**  
+10. **中间人与重放（MITM / Replay）**
     传输层或协议层重放、顺序篡改、跨服务幂等键重用导致重复落库或越权生效。
 
-11. **配置与权限误用（Policy Misconfiguration / Privilege Abuse）**  
+11. **配置与权限误用（Policy Misconfiguration / Privilege Abuse）**
     allowlist/blacklist/secret 管理缺失，导致高敏入口被过度放开。
 
-12. **服务拓扑污染（Topology / Service Discovery Poisoning）**  
-    篡改目录、`relay_endpoints`、`service_did`、官方组织/Space 背书引用，影响服务选择与传播路径。
+12. **服务拓扑污染（Topology / Service Discovery Poisoning）**
+    篡改目录、`sync_endpoints`、`service_did`、官方组织/Space 背书引用，影响服务选择与传播路径。
 
-13. **身份解析污染（DID Resolver / Registry Tampering）**  
+13. **身份解析污染（DID Resolver / Registry Tampering）**
     污染 DID resolver、registry、witness 可信链或 `did:web` 域绑定，错误承认身份控制权。
 
-14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**  
+14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**
     利用重复 `op_id`、同 `event_id` 不同内容、frontier 分叉制造 state resolution 分支偏序。
 
-15. **快照与快照块投毒（Snapshot / Snapshot Chunk Poisoning）**  
+15. **快照与快照块投毒（Snapshot / Snapshot Chunk Poisoning）**
     通过伪造 snapshot manifest、chunk/索引入口、签名链错误，劫持 bootstrap 或跳过一致性回放。
 
-16. **跨域边界绕过（Cross-domain/Scope Confusion）**  
+16. **跨域边界绕过（Cross-domain/Scope Confusion）**
     混淆 `space_id` / `service scope` / `destination` / `organization` 的绑定域，触发越权写入或错误可见性。
 
-17. **邀请令牌与第三方身份绑定滥用（Third-Party Invite Abuse）**  
+17. **邀请令牌与第三方身份绑定滥用（Third-Party Invite Abuse）**
     针对 `cx.invite.third_party` / `cx.invite.claim` 的 token 泄露、重放、并发认领进行滥用。
 
-18. **会话成员与设备凭证滥用（Session/Device Credential Abuse）**  
+18. **会话成员与设备凭证滥用（Session/Device Credential Abuse）**
     复用未及时撤销的 device/session/gateway token 继续提交高敏操作、join、invite 或读取。
 
-19. **加密状态回退与伪造（MLS Epoch Abuse）**  
+19. **加密状态回退与伪造（MLS Epoch Abuse）**
     通过 epoch 回退、非法 commit 顺序、已移除成员持有旧密钥继续参与解密相关流程。
 
-20. **推送网关与通知元数据滥用（Push/Gateway Abuse）**  
+20. **推送网关与通知元数据滥用（Push/Gateway Abuse）**
     攻击者利用未鉴权的 gateway 注册、metadata 推送接口、超频或伪造事件触发隐私侧信道或 DoS。
 
 ### 2.2 当前协议中不成立的攻击项
 
-- 回退重试链路细节（如不可控网关转发回路）  
+- 回退重试链路细节（如不可控网关转发回路）
   该类机制不是本协议服务面的一部分。
-- 基于主机级中继队列转发语义的网关信任模型  
-  协议仅依赖声明式服务发现与签名绑定，不使用该网关中继语义。
+- 基于主机级转发队列语义的网关信任模型
+  协议仅依赖声明式服务发现与签名绑定，不使用该类网关转发语义。
 
 ### 2.3 通用防护手段
 
@@ -116,8 +116,8 @@
 
 ### 4.1 入口与服务面
 
-- 所有服务入口区分 `authenticated`、`trusted_service`、`anonymous_relayed`。  
-- `anonymous_relayed` 来源不直通写入；默认进入 `rate_limited` 或 `quarantine` 流程。
+- 所有服务入口区分 `authenticated`、`trusted_service`、`anonymous_forwarded`。
+- `anonymous_forwarded` 来源不直通写入；默认进入 `rate_limited` 或 `quarantine` 流程。
 - 所有统一错误语义在未认证/未授权/不可见场景保持不可区分。
 - `request_id`、`request_canonical_hash`、`txn_id` 必须参与防重放判定；不同内容不得复用同一签名或请求键。
 

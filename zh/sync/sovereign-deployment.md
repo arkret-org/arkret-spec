@@ -19,7 +19,7 @@ Sovereign deployment 是由单一组织或联盟控制的 Contrix 服务域。�
 - Organization DID / governance registry / witness
 - Identity Registry
 - Repo Service
-- Relay
+- Principal Server / Sync Service
 - Index / AppView
 - Directory
 - Blob Store
@@ -39,7 +39,7 @@ flowchart TB
         REG["Private Identity Registry"]
         WIT["Private Witness Set"]
         REPO["Internal Repo Services"]
-        RELAY["Internal Relay"]
+        SYNC["Internal Principal Server / Sync Service"]
         INDEX["Internal Index / AppView"]
         DIR["Private Directory"]
         BLOB["Private Blob Store"]
@@ -50,7 +50,7 @@ flowchart TB
 
     subgraph "Controlled Collaboration Enclave"
         ESPACE["Controlled Collaboration Space"]
-        ERELAY["Enclave Relay"]
+        ESYNC["Enclave Principal Server / Sync Service"]
         EINDEX["Enclave Index"]
         EDIR["Enclave Directory"]
         EBLOB["Enclave Blob Store"]
@@ -61,13 +61,13 @@ flowchart TB
         EXTORG["External Organization DID"]
         EXTCLIENT["External Managed Client"]
         EXTREPO["External Principal Repo"]
-        EXTRELAY["External Relay"]
+        EXTSYNC["External Principal Server / Sync Service"]
     end
 
     ORG --> REG
     ORG --> WIT
     ORG --> REPO
-    ORG --> RELAY
+    ORG --> SYNC
     ORG --> INDEX
     ORG --> DIR
     ORG --> BLOB
@@ -75,14 +75,14 @@ flowchart TB
     ORG --> MEDIA
 
     INTCLIENT --> REPO
-    REPO --> RELAY
-    RELAY --> INDEX
+    REPO --> SYNC
+    SYNC --> INDEX
     INDEX --> DIR
-    RELAY --> POL
+    SYNC --> POL
     INDEX --> POL
 
     ORG -->|"creates / endorses"| ESPACE
-    ESPACE --> ERELAY
+    ESPACE --> ESYNC
     ESPACE --> EINDEX
     ESPACE --> EDIR
     ESPACE --> EBLOB
@@ -92,14 +92,14 @@ flowchart TB
     EXTORG -->|"authority chain / VC"| EPOL
     EXTCLIENT -->|"invite + restricted join"| ESPACE
     EXTCLIENT --> EXTREPO
-    EXTREPO -->|"signed ops"| ERELAY
-    EXTRELAY -. "optional allowlisted federation" .-> ERELAY
+    EXTREPO -->|"signed ops"| ESYNC
+    EXTSYNC -. "optional allowlisted federation" .-> ESYNC
 
-    ERELAY -->|"accepted events only"| EINDEX
+    ESYNC -->|"accepted events only"| EINDEX
     EINDEX -->|"stripped preview only"| EDIR
-    EPOL -->|"allow / deny / quarantine"| ERELAY
+    EPOL -->|"allow / deny / quarantine"| ESYNC
 
-    RELAY -. "no default bridge" .- ERELAY
+    SYNC -. "no default bridge" .- ESYNC
     DIR -. "not exposed" .- EDIR
 ```
 
@@ -108,7 +108,7 @@ flowchart TB
 - 主网络保持 closed federation，不向外部主体暴露内部 Directory、Index 或服务拓扑。
 - Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Space。
 - 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Space。
-- 外部组织可以保留自己的 Repo，但写入必须经过 enclave Relay、Policy Server 和本地授权验证。
+- 外部组织可以保留自己的 Repo，但写入必须经过 enclave Principal Server / Sync Service、Policy Server 和本地授权验证。
 - 主网络与 enclave 之间没有默认桥接；资料进出必须经过 export / import review。
 
 ## 2.2 Sovereign Client
@@ -120,7 +120,7 @@ Sovereign client MUST:
 - pin organization trust anchors：Organization DID、governance DID、registry DID、witness DID、service DID allowlist。
 - 使用组织配置的 DID resolver policy，不得默认查询公共 registry / public directory。
 - 验证服务 DID 委派、证书、HTTP message signature 和 feature profile。
-- 禁止用户手动添加未批准 Relay / Index / Directory / Blob / Applet endpoint。
+- 禁止用户手动添加未批准 Sync Service / Index / Directory / Blob / Applet endpoint。
 - 默认关闭公共 federation、公共搜索、公共 social feed、外部 Applet 和外部 Agent handoff。
 - 对每个 Space 显示 classification、E2EE、auditable E2EE、export、external member policy。
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。
@@ -142,7 +142,7 @@ Sovereign client SHOULD:
 - Space 默认 `discoverability=secret` 或 `invite_only`。
 - Space 默认 `join_rule=private` 或 `restricted`。
 - Policy Server 默认 `closed` 或 `quarantine` fail mode。
-- Relay / Index / Directory 只接受 allowlist service DID。
+- Sync Service / Index / Directory 只接受 allowlist service DID。
 - Blob、snapshot、backup、audit log 存储在组织控制基础设施内。
 - 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Space 明确开启。
 - E2EE 默认开启；需要合规审查时使用 auditable E2EE，且必须向成员显示。
@@ -180,7 +180,7 @@ Rules:
 - Internal `did:uuid` DID documents MUST be obtained from approved registry / witness / offline bundle.
 - Public DID methods MAY be accepted for external collaborators only when policy allows and the authority chain is verified.
 - Pairwise DID SHOULD be used for external collaboration when correlation risk matters.
-- DID Document service endpoints that point to public Relay / Index / Directory MUST be ignored unless allowlisted.
+- DID Document service endpoints that point to public Sync Service / Index / Directory MUST be ignored unless allowlisted.
 
 ## 4. Controlled Collaboration Space
 
@@ -254,7 +254,7 @@ Recommended policy:
 }
 ```
 
-外部组织 MAY operate its own Repo / Relay, but the controlled Space SHOULD require:
+外部组织 MAY operate its own Repo / Principal Server, but the controlled Space SHOULD require:
 
 - approved external service DID
 - federation transaction signature
@@ -272,7 +272,7 @@ Recommended pattern:
 - 主网络保持 closed federation。
 - 创建 isolated collaboration enclave。
 - 外部主体只被邀请到 enclave Space。
-- enclave Space 使用独立 Relay / Index / Blob / Policy Server。
+- enclave Space 使用独立 Principal Server / Index / Blob / Policy Server。
 - 从主网络复制到 enclave 的资料必须经 redaction / export review / declassification policy。
 - 从 enclave 回流主网络的资料必须经 import review / malware scan / policy approval。
 

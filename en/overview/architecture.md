@@ -13,7 +13,11 @@ This requires the protocol to separate identity, writes, distribution, queries, 
 
 ## 2. Overall Model
 
-Contrix uses a **principal repo + identity registry + space relay + query index** architecture.
+Contrix uses a **principal server + principal repo + identity registry + query index** architecture.
+
+A `Principal Server` is the service boundary controlled by a principal or explicitly delegated through DID service metadata and Space policy. Product implementations may call it a Home Server. It may host repo, sync, index, blob, push, and policy capabilities on one deployment while the protocol keeps those responsibilities separate.
+
+Contrix does not define an independent third-party distribution server as a core role. Cross-principal and cross-organization propagation is handled by sync and federation between participating Principal Servers.
 
 ### 2.1 Principal Repo
 
@@ -28,18 +32,24 @@ It is responsible for:
 
 This borrows from atproto's repo idea, but Contrix repos publish **collaboration operations**, not social records for feeds.
 
-### 2.2 Space Relay
+### 2.2 Principal Server / Home Server
 
-The relay aggregates, deduplicates, forwards, and serves authorized operations relevant to a space across multiple principal repos.
+The Principal Server hosts or proxies:
 
-It is responsible for:
+- principal repo submission, reading, and replication
+- space-scoped incremental sync, backfill, and subscriptions
+- principal-controlled index / appview
+- blob, push, policy, and device-message support
+- federation transactions with other Principal Servers
 
-- space-scoped distribution
-- cursor/firehose subscriptions
-- fast fanout
-- preliminary authorization filtering
+The Principal Server is not the identity itself and cannot forge commits or operations for a principal. Its authority comes from DID service delegation, Space policy, capabilities, and signed events.
 
-The relay is not the only truth source and should not be able to rewrite actor history.
+Plaintext rule:
+
+- Non-E2EE or non-content-encrypted private content MUST NOT be submitted to a third-party service that is not explicitly delegated by the sender, recipient, or Space policy.
+- If a Space declares a shared Space Host, that host MUST be a trusted Principal Server or organization service DID listed by Space policy.
+- Clients MUST verify the target service before submitting plaintext content.
+- Untrusted third-party services may receive only public content, encrypted envelopes, or opaque payloads.
 
 ### 2.3 Query Index / AppView
 
@@ -70,7 +80,7 @@ It is responsible for:
 
 - publishing authorization policy
 - serving grant/revoke/delegate related state
-- providing cacheable authorization inputs for repos, relays, and indexes
+- providing cacheable authorization inputs for repos, sync services, and indexes
 
 ### 2.6 Client / Agent
 
@@ -106,13 +116,14 @@ Responsible for:
 - signing
 - publishing to the repo
 
-### 3.3 Distribution Plane
+### 3.3 Sync And Federation Plane
 
 Responsible for:
 
-- relay firehoses
+- sync streams
 - space incremental sync
 - deduplication and cursoring
+- Principal Server federation transactions
 
 ### 3.4 Query Plane
 
@@ -147,7 +158,7 @@ Responsible for:
 - distinguishing visibility from encrypted payloads
 - content-encryption envelopes
 - key distribution and rotation
-- allowing relays to forward opaque payloads without decrypting them
+- allowing sync services to forward opaque payloads without decrypting them
 
 ### 3.8 Portability Plane
 
@@ -156,7 +167,7 @@ Responsible for:
 - export / import
 - snapshot + op replay
 - service replacement
-- migration across multiple repos / relays / indexes
+- migration across multiple repos / Principal Servers / indexes
 
 ## 4. Deployment Topologies
 
@@ -168,7 +179,7 @@ One deployment may host:
 
 - identity registry
 - repo
-- relay
+- sync service
 - index
 - blob
 
@@ -183,7 +194,8 @@ This is suitable for:
 A common pattern is:
 
 - each organization maintains its own principal repos
-- one or more shared space relays exist
+- each participant uses its own Principal Server or explicitly delegated organization server
+- Principal Servers exchange Space operations through federation transactions
 - multiple query indexes serve different parties
 
 This maps well to cross-company delivery and supply-chain collaboration.
@@ -195,7 +207,7 @@ In agent-heavy environments, a common pattern is:
 - a user/org DID acts as the authority
 - an agent DID receives constrained capabilities
 - run logs are written to an agent repo
-- a space relay aggregates them into the collaboration space
+- the agent Principal Server syncs run logs into the collaboration Space
 - an index materializes human review queues
 
 ## 5. Core Architecture Direction
@@ -226,19 +238,21 @@ A repo can prove:
 
 A repo must not unilaterally define the shared current state of a space.
 
-### 6.2 The Relay Accelerates Distribution but Must Not Rewrite History
+### 6.2 The Principal Server Syncs but Must Not Rewrite History
 
-A relay may:
+A Principal Server may:
 
 - cache
 - order
 - deduplicate
 - serve cursor-based subscriptions
+- exchange federation transactions with other Principal Servers
 
-A relay must not:
+A Principal Server must not:
 
 - forge actor ops
 - silently drop still-valid historical ops
+- forward plaintext private content to services not delegated by a principal or Space policy
 
 ### 6.3 The Index Interprets State but Must Not Replace the Audit Chain
 
@@ -277,7 +291,7 @@ The current draft recommends fixing the following directions:
 
 - principal repos are the actor publication baseline
 - identity registries / witnesses are the DID-document resolution and write layer
-- space relays are the distribution layer
+- Principal Servers / Sync Services are the controlled sync and federation layer
 - indexes/appviews are the materialized query layer
 - blobs are a separate content layer
 - capabilities form an explicit authorization layer
@@ -290,10 +304,10 @@ The current draft recommends fixing the following directions:
 The next round still needs to define:
 
 - the precise repo commit encoding
-- the relay firehose subscription protocol
+- the sync stream subscription protocol
 - the index query surface
 - capability cache consistency strategy
-- interoperability requirements with multiple relays and indexes
+- interoperability requirements with multiple Principal Servers and indexes
 - encrypted-envelope and key-distribution interfaces
 - consistency boundaries for export / import
 

@@ -11,7 +11,7 @@ Contrix 协议核心不强绑定 REST API；核心操作、消息 envelope 与 t
 
 - identity registry
 - repo
-- relay
+- Sync Service
 - index
 - blob
 - authz

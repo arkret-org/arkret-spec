@@ -8,7 +8,7 @@ Initial profiles:
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.repo_node.v1`
-- `cx.profile.relay_node.v1`
+- `cx.profile.principal_server.v1`
 - `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
 - `cx.profile.blob_node.v1`

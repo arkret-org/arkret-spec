@@ -80,9 +80,9 @@ paths:
     post:
       operationId: cx.syncRepo
 
-  /relay/subscribe:
+  /sync/subscribe:
     get:
-      operationId: cx.subscribeRelay
+      operationId: cx.subscribeSync
 
   /index/query:
     post:
@@ -163,7 +163,7 @@ The following mapping binds each canonical operation to a transport implementati
 | cx.submitDidOp | `POST /identity/submit-did-op` | gRPC `SubmitDidOperation` / libp2p stream |
 | cx.submitCommit / cx.syncRepo | `POST /repo/*` | gRPC `SubmitCommit` / Queue `repo.commit` |
 | cx.clientSync | `POST /sync` | `GET /sync?since...` / WebSocket stream / SSE channel |
-| cx.subscribeRelay | `GET /relay/subscribe` | WebSocket frame `/relay/firehose` / pubsub topic |
+| cx.subscribeSync | `GET /sync/subscribe` | WebSocket frame `/sync/stream` / pubsub topic |
 | cx.indexQuery / cx.indexSync | `POST /index/*` | gRPC `IndexQuery` / SSE search stream |
 | cx.directorySearch* | `POST /directory/*` | gRPC discovery service |
 | cx.putToDeviceMessage | `PUT /device_messages/{txn_id}` | MQ device-topic direct / ephemeral transport |

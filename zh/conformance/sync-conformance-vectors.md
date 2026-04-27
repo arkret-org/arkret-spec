@@ -12,7 +12,7 @@
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.repo_node.v1`
-- `cx.profile.relay_node.v1`
+- `cx.profile.principal_server.v1`
 - `cx.profile.index_node.v1`
 
 ## 2. 通用约定
@@ -52,7 +52,7 @@ actor_seq ASC,
 event_id ASC
 ```
 
-实现 MUST NOT 使用 relay 到达顺序、数据库自增 ID、HTTP 接收顺序或本地写入时间替代上述排序。
+实现 MUST NOT 使用 Sync Service 到达顺序、数据库自增 ID、HTTP 接收顺序或本地写入时间替代上述排序。
 
 ## 3. Vector: Basic Timeline Order
 
@@ -110,7 +110,7 @@ cx.vector.sync.order.basic.v1
 失败条件：
 
 - 输出 `["evt_c", "evt_a", "evt_b"]`。
-- 输出与 relay 输入数组顺序相同。
+- 输出与 Sync Service 输入数组顺序相同。
 
 ## 4. Vector: Deterministic Tie Break
 
@@ -330,7 +330,7 @@ X-Contrix-Wait-For: sync_after_evt_write_1
 
 - Index Node 支持该 profile 时 MUST 等待本地 materialized frontier 覆盖 `sync_after_evt_write_1`，或返回明确 stale / timeout 错误。
 - 实现 MUST NOT 返回看似成功但不包含该写入的陈旧结果，除非响应显式声明 stale frontier。
-- Relay Node MAY 只提供传播确权，不得伪装为 reducer 查询确权。
+- Principal Server MAY 只提供传播确权，不得伪装为 reducer 查询确权。
 
 失败条件：
 
@@ -424,7 +424,7 @@ cx.vector.sync.decryption_pending_recovery.v1
 - 客户端验证 `evt_mls_commit_55` 的签名、auth refs、membership transition 和 MLS transcript hash。
 - 验证通过后 MAY 解密 `evt_enc_pending`。
 - 解密成功后 MUST 保持原 timeline position。
-- 本地搜索索引 MAY 增量更新，但 MUST 不把 plaintext 上传给 relay / index。
+- 本地搜索索引 MAY 增量更新，但 MUST 不把 plaintext 上传给 sync service / index。
 
 失败条件：
 
@@ -465,7 +465,7 @@ cx.vector.sync.removed_member_fail_closed.v1
 - Bob 的客户端 MAY 继续保存无法解密的密文 envelope，前提是 history visibility 允许看见事件存在。
 - Bob 的客户端 MUST NOT 获得 epoch 44 secret。
 - Key backup、to-device、Welcome、external sender 任何路径都 MUST 对 Bob fail closed。
-- 服务端或 Relay 若不能判断授权，MUST 只转发密文，不得转发解密材料。
+- 服务端或 Sync Service 若不能判断授权，MUST 只转发密文，不得转发解密材料。
 
 失败条件：
 
@@ -546,7 +546,7 @@ cx.vector.sync.token_expiry_recovery.v1
 
 ## 14. 覆盖矩阵
 
-| 向量 | Minimal Client | Full Client | E2EE Client | Repo Node | Relay Node | Index Node |
+| 向量 | Minimal Client | Full Client | E2EE Client | Repo Node | Principal Server | Index Node |
 | --- | --- | --- | --- | --- | --- | --- |
 | `cx.vector.sync.order.basic.v1` | MUST | MUST | MUST | SHOULD | SHOULD | MUST |
 | `cx.vector.sync.order.tie_break.v1` | MUST | MUST | MUST | SHOULD | SHOULD | MUST |

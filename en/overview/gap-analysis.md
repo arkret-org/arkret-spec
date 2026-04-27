@@ -12,5 +12,5 @@ Priority gaps:
 - P1: federation hardening, including service DID authentication, replay protection, cross-domain join, backfill, fork detection, and quarantine.
 - P1: directory/search/preview behavior with authorization filtering and minimum disclosure.
 - P1: moderation, abuse handling, appeals, server ACLs, and policy-list subscription schemas.
-- P1: production deployment profiles for personal nodes, enterprise nodes, relays, E2EE clients, Applet bridges, media/SFU services, policy servers, and agent runtimes.
+- P1: production deployment profiles for personal nodes, enterprise nodes, Principal Servers, E2EE clients, Applet bridges, media/SFU services, policy servers, and agent runtimes.
 

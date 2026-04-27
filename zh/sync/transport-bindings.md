@@ -49,8 +49,8 @@ Transport binding SHOULD 映射到以下 canonical operation names：
 | `identity.get_log` | 获取 DID key log。 |
 | `repo.submit_commit` | 提交签名 commit。 |
 | `repo.get_ops` | 批量读取 operation / event。 |
-| `relay.subscribe` | 订阅 Space 增量流。 |
-| `relay.backfill` | 回填历史事件。 |
+| `sync.subscribe` | 订阅 Space 增量流。 |
+| `sync.backfill` | 回填历史事件。 |
 | `sync.run` | 客户端增量同步。 |
 | `index.query` | 查询 Entity / Relation / View projection。 |
 | `index.space_hierarchy` | 查询 Space 层级。 |
@@ -84,7 +84,7 @@ gRPC binding SHOULD：
 - 使用 protobuf message 表达 request / response。
 - 保留 canonical operation name。
 - 对写操作携带 `idempotency_key`。
-- 对 streaming sync / relay 使用 server streaming。
+- 对 streaming sync 使用 server streaming。
 - 在 metadata 中携带 authentication 和 request id。
 - 将 Contrix error code 映射到 gRPC status details，而不是只使用 generic status。
 
@@ -92,7 +92,7 @@ gRPC binding SHOULD：
 
 WebSocket / SSE 适合：
 
-- relay subscription
+- sync subscription
 - sync streaming
 - typing / presence / ephemeral signals
 - agent protocol session status
@@ -103,7 +103,7 @@ WebSocket / SSE 适合：
 ```json
 {
   "frame_id": "cx:frame:01J...",
-  "operation": "relay.subscribe",
+  "operation": "sync.subscribe",
   "cursor": "cx:cursor:...",
   "payload": {},
   "error": null
@@ -136,18 +136,18 @@ P2P binding MAY 用于离线、边缘或本地优先场景。要求：
 
 ```json
 {
-  "service_type": "relay",
-  "service_did": "did:web:relay.example",
+  "service_type": "principal_server",
+  "service_did": "did:web:server.example",
   "supported_bindings": [
     {
       "binding": "http_json",
-      "base_url": "https://relay.example/api/v1",
-      "operations": ["relay.subscribe", "relay.backfill"]
+      "base_url": "https://server.example/api/v1",
+      "operations": ["sync.subscribe", "sync.backfill"]
     },
     {
       "binding": "grpc",
-      "endpoint": "relay.example:443",
-      "operations": ["relay.subscribe"]
+      "endpoint": "server.example:443",
+      "operations": ["sync.subscribe"]
     }
   ]
 }
@@ -164,4 +164,3 @@ P2P binding MAY 用于离线、边缘或本地优先场景。要求：
 - semantic operation test
 - HTTP binding test
 - 至少一个非 HTTP binding mapping test
-

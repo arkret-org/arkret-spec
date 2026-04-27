@@ -16,7 +16,7 @@ Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时
 
 ### 2.1 信令是 Ephemeral
 
-Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令 SHOULD 通过 Relay 的 Ephemeral Channel 或等价 streaming transport 发送。
+Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令 SHOULD 通过 Sync Service 的 Ephemeral Channel 或等价 streaming transport 发送。
 
 通话摘要、会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Space Repo。
 
@@ -37,7 +37,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 | 模式 | 适用 | 说明 |
 | --- | --- | --- |
-| `p2p` | 1 对 1 或极小规模 | 双方直接 WebRTC 连接，必要时经 TURN relay。 |
+| `p2p` | 1 对 1 或极小规模 | 双方直接 WebRTC 连接，必要时经 TURN server。 |
 | `mesh` | 3-4 人小会 | 每个客户端与其他客户端建连接，复杂度高，不建议默认。 |
 | `sfu` | 多方会议默认 | Selective Forwarding Unit 转发 RTP，不解密 E2EE 内容。 |
 | `mcu` | PSTN / 录制 / 低端设备 | Mixing Control Unit 混流，通常会接触明文或解密后媒体，必须强提示和审计。 |
@@ -160,7 +160,7 @@ Response:
     }
   ],
   "policy": {
-    "force_relay": false,
+    "force_turn": false,
     "allow_udp": true,
     "allow_tcp": true,
     "allow_ipv6": true
@@ -177,7 +177,7 @@ Response:
 - TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential。
 - ICE config response MUST 由 media service 签名，或通过已认证 TLS + service DID 绑定返回。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
-- 高隐私 Space MAY 设置 `force_relay=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
+- 高隐私 Space MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 
 ## 7. Signaling Envelope
 
@@ -446,7 +446,7 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会�
 - 验证所有 signaling sender 的 membership 和 device validity。
 - 防止 replay、sequence rollback 和 stale invite。
 - 对 TURN credential 使用短期凭证。
-- 对高隐私 Space 支持 `force_relay`。
+- 对高隐私 Space 支持 `force_turn`。
 - 不把 SDP / ICE candidate 写入 durable public event。
 - 对 SFU/MCU/recording service 使用 service DID 和 policy allowlist。
 - 在 E2EE 降级、MCU 混流、录制、外部 PSTN bridge 时显示明确提示。

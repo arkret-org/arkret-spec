@@ -146,7 +146,7 @@ Follow 可以是单向；Contact 通常需要双向确认或至少本地确认�
 - `reshare_policy` 可允许 repost / quote
 - follow graph 可公开或半公开，取决于 holder policy
 
-公共 feed 的分发可以由 Directory / Index / Relay / AppView 派生。推荐时间线类型：
+公共 feed 的分发可以由 Directory / Index / Sync Service / AppView 派生。推荐时间线类型：
 
 - author timeline：某主体发布的公开 post
 - following timeline：我关注的人发布的 post
@@ -170,7 +170,7 @@ Follow 可以是单向；Contact 通常需要双向确认或至少本地确认�
 
 可见性规则：
 
-- 未在受众快照内的主体 MUST NOT 从 Directory / Index / Relay preview 得知 post 内容。
+- 未在受众快照内的主体 MUST NOT 从 Directory / Index / Sync Service preview 得知 post 内容。
 - 如果实现支持 E2EE，post payload SHOULD 加密给受众快照对应设备或 MLS group。
 - 服务端 Index MAY 只索引密文 metadata，不得公开正文、附件、评论或反应列表。
 - 评论和 reaction 默认继承原 post audience，不得扩大受众。

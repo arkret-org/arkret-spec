@@ -8,7 +8,7 @@
 - reducer 兼容性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
-- repo / relay / index / E2EE / applet / policy-server 关键接口
+- repo / sync service / index / E2EE / applet / policy-server 关键接口
 
 本版本不新增 `space_version`；所有兼容性演进通过 `space_version=1` 下的 profile 与字段废弃流程完成。
 
@@ -18,7 +18,7 @@
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.repo_node.v1`
-- `cx.profile.relay_node.v1`
+- `cx.profile.principal_server.v1`
 - `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
 - `cx.profile.blob_node.v1`
@@ -32,14 +32,14 @@
 
 每个实现必须通过以下验收：
 
-- `/api/v1` 下公开至少包含 `service/identity/repo/index/relay/blob/authz/sync` 关键 operation。
+- `/api/v1` 下公开至少包含 `service/identity/repo/index/sync/blob/authz/sync` 关键 operation。
 - operation id 与本文件 `service-api-schema.md` 映射一致。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests
 
 - canonical JSON 字段顺序与空值处理一致。
-- 同一请求在不同服务节点（repo / relay / index）可重放得到一致事件 hash 或查询结果边界。
+- 同一请求在不同服务节点（repo / sync service / index）可重放得到一致事件 hash 或查询结果边界。
 
 ## 4. Conformance 向量分层
 
@@ -90,7 +90,7 @@
 | --- | --- | --- |
 | Minimal/Full Client | filter、pagination、state_after、decryption_pending | snapshot frontier、causal wait |
 | Repo Node | submitCommit、opIdempotency、commitDigest 验证、signature 校验 | snapshot generation、receipt |
-| Relay Node | subscribe 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游订阅、快照指针 |
+| Principal Server | sync stream 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游 federation、快照指针 |
 | Index Node | query 结果可重建性、授权过滤、wait-for 前沿、stale 标记、目录结果可见性一致 | notification materialization |
 | E2EE Client | epoch 回填、to-device、removed 成员 fail-closed | 本地 search 协调 |
 | Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal space 映射 |

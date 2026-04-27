@@ -13,7 +13,11 @@ Contrix 的顶层架构要同时满足四件事：
 
 ## 2. 总体模型
 
-Contrix 采用 **principal repo + identity registry + space relay + query index** 的分层模型。
+Contrix 采用 **principal server + principal repo + identity registry + query index** 的分层模型。
+
+`Principal Server` 是 principal 自己控制或通过 DID / Space policy 明确委托的服务入口。产品层可以把它称为 Home Server。它可以同机承载 repo、sync、index、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。
+
+Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
 ### 2.0 Organization / Space 边界
 
@@ -22,7 +26,7 @@ Contrix 采用 **principal repo + identity registry + space relay + query index*
 Organization principal 可以：
 
 - 签发组织成员资格、组织角色、handle 绑定等 credential
-- 控制 Relay、Index、Policy Server、Applet、Media Service 等 service DID
+- 控制 Principal Server、Index、Policy Server、Applet、Media Service 等 service DID
 - 作为 Space owner、policy issuer、trusted issuer 或 capability issuer
 - 托管多个 Space，或与其他组织共同治理同一个 Space
 
@@ -47,32 +51,29 @@ Principal Repo 是逻辑上的可验证发布日志，不等同于一台服务�
 
 - 用户设备上的本地 append-only log。
 - 用户自托管或组织托管的 Repo Service。
-- 多个 relay / storage replica 保存的只读副本。
+- 多个受控 storage replica 保存的只读副本。
 - DID Document 中声明的 `ContrixRepo` service endpoint。
 
 Repo 的权威来自 principal 对 commit / operation 的签名、DID 控制链、commit hash 链和幂等序列，而不是来自托管它的服务器。托管 Repo Service 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
-### 2.2 Space Relay
+### 2.2 Principal Server / Home Server
 
-Relay 负责把多个 principal repo 中与某个 space 相关的授权操作聚合、去重、转发与订阅。
+Principal Server 是 principal 的受控服务边界。它负责承载或代理：
 
-它承担：
+- principal repo 的提交、读取与复制
+- Space 范围的增量同步、回补与订阅
+- 个人或组织受控 index / appview
+- blob、push、policy、device message 等辅助服务
+- 与其他 Principal Server 的 federation transaction
 
-- Space 范围传播
-- cursor/firehose 订阅
-- 快速 fanout
-- 初级权限过滤
+Principal Server 不是身份本身，也不能替 principal 伪造 commit 或 operation。它的权威来自 DID Document、service delegation、Space policy、capability 和签名事件。
 
-Relay 不是唯一真相源，也不应拥有篡改 actor 历史的权力。
+明文规则：
 
-Organization 与 Relay 的关系是控制/委派/托管关系，而不是身份等价关系：
-
-- Organization MAY 运行自己的 Relay，并在 Organization DID Document 中声明或委派该 Relay 的 service DID。
-- Organization MAY 在 Space policy 或 `cx.space.organization` 中把某些 Relay 标记为 official / preferred / required。
-- 多个 Organization MAY 为同一个 Space 运行多个 Relay。
-- 用户或第三方 MAY 运行非官方 Relay，只要 Space policy、Server ACL 和授权规则允许。
-
-客户端 MUST NOT 因为某 Relay 由某组织托管，就自动认定经该 Relay 传播的 Space 是该组织官方 Space。官方性仍必须由 Organization DID 对 Space 的创建或 `cx.space.organization` 背书证明。
+- 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Space policy 明确委托的第三方服务。
+- 如果 Space 声明了 shared Space Host，该 Host 必须是 Space policy 中显式列出的受信 Principal Server 或组织服务 DID。
+- 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Space policy 明确委托。
+- 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.3 Query Index / AppView
 
@@ -103,7 +104,7 @@ Capability Authority 是一个逻辑角色，不要求独立部署。
 
 - 发布授权策略
 - 响应 grant / revoke / delegate 相关查询
-- 为 repo / relay / index 提供可缓存的授权依据
+- 为 repo / sync / index 提供可缓存的授权依据
 
 ### 2.6 Client / Agent
 
@@ -143,7 +144,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 负责：
 
-- relay firehose
+- sync stream
 - space 增量同步
 - 去重与 cursor
 
@@ -181,7 +182,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 - 可见性与密文负载区分
 - 内容加密 envelope
 - key distribution / rotation
-- 让 relay 在不解密正文时也能继续转发
+- 让 Sync Service 在不解密正文时也能继续转发
 
 ### 3.8 Portability Plane
 
@@ -190,7 +191,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 - export / import
 - snapshot + op replay
 - service replacement
-- 多 repo / 多 relay / 多 index 迁移
+- 多 repo / 多 Principal Server / 多 index 迁移
 
 ## 4. 部署拓扑
 
@@ -217,9 +218,9 @@ flowchart LR
         SR["Optional Space Repo"]
     end
 
-    subgraph "Distribution Plane"
-        R1["Relay A"]
-        R2["Relay B"]
+    subgraph "Principal Server / Sync Plane"
+        PS1["Principal Server A"]
+        PS2["Principal Server B"]
     end
 
     subgraph "Query / Presentation Plane"
@@ -244,13 +245,13 @@ flowchart LR
     C1 --> PR
     C2 --> PR
     C3 --> PR
-    PR --> R1
-    PR --> R2
-    SR --> R1
-    SR --> R2
+    PR --> PS1
+    PR --> PS2
+    SR --> PS1
+    SR --> PS2
 
-    R1 --> IDX
-    R2 --> IDX
+    PS1 --> IDX
+    PS2 --> IDX
     IDX --> APPV
     IDX --> DIR
 
@@ -258,7 +259,7 @@ flowchart LR
     C1 --> DIR
     C1 --> BLOB
 
-    R1 --> AUTHZ
+    PS1 --> AUTHZ
     IDX --> AUTHZ
     AUTHZ --> POL
     APPV --> PUSH
@@ -267,7 +268,7 @@ flowchart LR
 要点：
 
 - DID / Registry / Witness 负责身份解析和控制链证明。
-- Principal Repo 是主体发布日志，Relay 只传播授权相关事件。
+- Principal Repo 是主体发布日志，Principal Server 提供受控同步、托管和联邦入口。
 - Index / AppView / Directory 都是派生层，不能替代签名事件和 reducer。
 - Blob、Policy、Push 是独立服务平面，可与其他角色同机部署，也可分离部署。
 
@@ -277,7 +278,7 @@ flowchart LR
 
 - identity registry
 - repo
-- relay
+- sync service
 - index
 - blob
 
@@ -292,8 +293,8 @@ flowchart LR
 常见模式是：
 
 - 每个组织维护自己的 principal repo
-- 每个组织或可信运营方运行自己的 relay / index / policy server
-- 一个或多个共享 space relay 负责跨组织 Space 的传播
+- 每个组织或可信运营方运行自己的 Principal Server / index / policy server
+- 参与方 Principal Server 通过 federation transaction 交换 Space 相关 op
 - 多个 query index 为不同参与方提供视图
 - Space policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
 
@@ -306,12 +307,12 @@ flowchart LR
 - user/org DID 作为 authority
 - agent DID 拥有受限 capability
 - run log 写入 agent repo
-- space relay 聚合到协作空间
+- agent 的 Principal Server 将 run log 同步到协作 Space
 - index 生成 human review queue
 
 ### 4.4 Sovereign / High-Assurance 拓扑
 
-高安全组织 MAY 运行 sovereign deployment，即由组织或联盟控制 identity registry、repo、relay、index、directory、blob、policy server、media service、applet runtime 和 agent runtime。
+高安全组织 MAY 运行 sovereign deployment，即由组织或联盟控制 identity registry、repo、sync、index、directory、blob、policy server、media service、applet runtime 和 agent runtime。
 
 该拓扑默认关闭公共 federation 和公共 directory，只允许 allowlist service DID 与受控客户端接入。
 
@@ -323,7 +324,7 @@ Controlled Collaboration Space SHOULD：
 - 使用 `join_rule=restricted` 或 `knock_restricted`。
 - 通过 Organization DID、external organization DID、claim / VC、policy server 和 admin approval 验证外部主体。
 - 使用 E2EE，并只向批准设备发送 MLS Welcome。
-- 使用独立 relay / index / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
+- 使用独立 Principal Server / index / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
 - 对 Applet、Agent handoff、media recording、export、bulk download 默认 deny，按 capability 显式授权。
 
 详细规则见 `sovereign-deployment.md`。
@@ -356,19 +357,21 @@ repo 能证明：
 
 repo 不能单方面定义共享 space 的最终当前态。
 
-### 6.2 Relay 可加速传播，但不应重写历史
+### 6.2 Principal Server 可提供同步，但不应重写历史
 
-relay 可以：
+Principal Server 可以：
 
 - 缓存
 - 排序
 - 去重
 - 按 cursor 订阅输出
+- 与其他 Principal Server 交换 federation transaction
 
-relay 不可以：
+Principal Server 不可以：
 
 - 伪造 actor op
 - 静默删除仍然有效的历史 op
+- 把未授权明文内容发送给未被 principal 或 Space policy 委托的第三方服务
 
 ### 6.3 Index 可解释状态，但不应替代原始审计链
 
@@ -414,7 +417,7 @@ Contrix 不打算做“两套系统”：
 
 - principal repo 是 actor 发布基线
 - identity registry / witness 是 DID 文档的解析与写入层
-- space relay 是传播层
+- Principal Server / Sync Service 是受控同步与联邦层
 - index/appview 是物化查询层
 - blob 是独立内容层
 - capability 是独立决策层
@@ -427,9 +430,9 @@ Contrix 不打算做“两套系统”：
 下一轮仍需继续明确：
 
 - repo commit 的精确编码
-- relay firehose 的订阅协议
+- sync stream 的订阅协议
 - index query surface
 - capability cache 的一致性策略
-- 多 relay / 多 index 并存时的互操作要求
+- 多 Principal Server / 多 index 并存时的互操作要求
 - 加密 envelope 与 key 分发接口
 - export/import 的一致性边界

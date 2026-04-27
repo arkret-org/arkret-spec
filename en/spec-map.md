@@ -11,7 +11,7 @@ If this map conflicts with any specific document, the normative rules in that do
 When learning the protocol for the first time, we recommend this sequence:
 
 1. `overview/architecture.md`: understand layer responsibilities, roles, and trust boundaries.
-2. `overview/glossary.md`: clarify terms, especially Principal / Actor / Organization / Space / Repo / Relay.
+2. `overview/glossary.md`: clarify terms, especially Principal / Actor / Organization / Space / Principal Server / Repo.
 3. `models/object-model-core.md` and `models/object-model-standard.md`: understand the collaboration graph and standard object types.
 4. `identity/identity-did.md`, `identity/identity-handles.md`, `identity/progressive-disclosure.md`: understand identity, handle, and privacy disclosure.
 5. `authz/capabilities.md` and `authz/event-auth-state-resolution.md`: understand permissions and Space state transitions.
@@ -33,11 +33,11 @@ When learning the protocol for the first time, we recommend this sequence:
 - Feed is an observable social/activity projection, not a replacement for Space.
 - View is a projection definition and does not hold truth data.
 
-### 3.3 Repo / Repo Service / Relay / Index
+### 3.3 Principal Server / Repo / Sync / Index
 
 - Repo is a verifiable append-only publication log, not a server.
 - Repo Service provides access to or hosting for repos.
-- Relay is the propagation/distribution layer, not the source of truth.
+- Principal Server is the controlled or delegated service boundary; Sync Service is its Space sync capability.
 - Index is the query/materialization layer, not the source of truth.
 
 ### 3.4 Discoverability / Join Rule / History Visibility
@@ -112,7 +112,7 @@ When learning the protocol for the first time, we recommend this sequence:
 | --- | --- |
 | `sync/operations-sync.md` | Repo-first publication, operations, snapshots, and conflict resolution. |
 | `sync/client-sync.md` | Client incremental sync, timeline, state_after, to_device behavior. |
-| `sync/service-surface.md` | Minimal service surface: identity, repo, relay, index, directory, blob, authz. |
+| `sync/service-surface.md` | Minimal service surface: principal server, identity, repo, sync, index, directory, blob, authz. |
 | `sync/service-http-binding.md` | HTTP/JSON binding entrypoints, request/response, standard errors. |
 | `sync/service-api-schema.md` | Core request/response schema. |
 | `sync/api-conventions.md` | Error handling, pagination, idempotency, feature discovery. |

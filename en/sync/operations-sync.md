@@ -21,7 +21,8 @@ The initial draft distinguishes:
 - `client`
 - `agent`
 - `repo`
-- `relay`
+- `principal_server`
+- `sync_service`
 - `index`
 - `blob store`
 
@@ -29,9 +30,9 @@ The initial draft distinguishes:
 
 A repo is the publication source for one principal.
 
-### 2.2 Relay
+### 2.2 Principal Server / Sync Service
 
-A relay is the space distribution layer.
+A Principal Server is the service boundary controlled or explicitly delegated by a principal; the sync service is its space incremental sync capability. It is not an independent third-party server role and must not receive plaintext private content unless delegated by the relevant principal or Space policy.
 
 ### 2.3 Index
 
@@ -47,7 +48,7 @@ Contrix uses a repo-first model:
 
 1. actors write to their own repos first
 2. repos publish commits
-3. relays aggregate authorized space ops
+3. Principal Servers / sync services exchange authorized space ops
 4. indexes reduce them into current state
 
 This model applies equally to:
@@ -200,7 +201,7 @@ The following are not recommended as durable shared ops:
 - live presence
 - local drafts
 
-They MAY be synchronized through relay-ephemeral channels or actor-private state.
+They MAY be synchronized through sync ephemeral channels or actor-private state.
 
 ## 8. Operation-body Principle
 
@@ -215,7 +216,7 @@ Examples:
 
 ## 9. Validation Flow
 
-Any repo, relay, or index receiving an op should validate at least:
+Any repo, sync service, or index receiving an op should validate at least:
 
 1. the signature is valid
 2. the actor DID resolves
@@ -274,7 +275,7 @@ For actor-history recovery and audit replay.
 
 For space current-state and incremental synchronization.
 
-### 11.3 Firehose Subscription
+### 11.3 Sync Stream Subscription
 
 For real-time event distribution.
 
@@ -357,12 +358,12 @@ Therefore:
 - `commit_id` and `op_id` MUST be globally stable
 - the exact same `commit_id` / `op_id` payload MAY be accepted multiple times
 - if the same ID is reused with different content, nodes MUST reject it and record a conflict
-- relays and indexes SHOULD deduplicate by `op_id` rather than counting deliveries
+- sync services and indexes SHOULD deduplicate by `op_id` rather than counting deliveries
 
 This prevents:
 
 - client retries from causing duplicate writes
-- multi-relay loops from causing duplicate fanout
+- multi-Principal-Server loops from causing duplicate fanout
 - indexes from overcounting because of repeated delivery
 
 ## 16. Conflicts and Convergence
@@ -482,7 +483,7 @@ That means authorization semantics must follow the same causal and ordering rule
 
 ## 21. Visibility and Encrypted Payloads
 
-ACLs are not the same thing as ciphertext protection, and decentralized relays should not be forced to understand every body they forward.
+ACLs are not the same thing as ciphertext protection, and sync services should not be forced to understand every body they forward.
 
 The first version should therefore distinguish:
 
@@ -490,7 +491,7 @@ The first version should therefore distinguish:
 - optionally encrypted fields: message bodies, attachment contents, sensitive memory bodies
 
 Implementations MAY encrypt content using the envelope format named by `policy.encryption_profile`.  
-Even when a relay or index cannot decrypt the payload, it SHOULD still be able to forward it, deduplicate it, and preserve causal structure.
+Even when a sync service or index cannot decrypt the payload, it SHOULD still be able to forward it, deduplicate it, and preserve causal structure.
 
 ## 22. Blob Sync
 
@@ -520,7 +521,7 @@ The current draft recommends fixing:
 - invite / grant / snapshot as the main space-bootstrap flow
 - commit/op retries as idempotent by design
 - authorization validity converging under the same reducer ordering
-- encrypted payloads being forwardable through non-decrypting relays and indexes
+- encrypted payloads being forwardable through non-decrypting sync services and indexes
 - recalls as redaction/tombstone semantics
 - convergence through fixed reducer rules
 
@@ -534,5 +535,5 @@ The next round still needs:
 - formal schemas for snapshot signatures and chunk digests
 - an encrypted-payload envelope schema
 - a standard sync surface for read markers
-- wire-level relay/index interfaces
+- wire-level sync/index interfaces
 

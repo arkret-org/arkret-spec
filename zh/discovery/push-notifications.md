@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-去中心化协作协议中，用户的客户端不可能永远在线监听 Relay 的 Firehose。当用户离线时，协议需要一套标准化的**推送通知机制**，将重要事件及时送达用户的移动设备或桌面系统。
+去中心化协作协议中，用户的客户端不可能永远在线监听 Sync Service 的 Sync Stream。当用户离线时，协议需要一套标准化的**推送通知机制**，将重要事件及时送达用户的移动设备或桌面系统。
 
 本规范定义了：
 - 推送规则引擎：用户可自定义哪些事件触发推送
@@ -11,15 +11,15 @@
 
 ## 2. 设计原则
 
-### 2.1 推送由 Relay / Index 触发，不由客户端维护
+### 2.1 推送由 Sync Service / Index 触发，不由客户端维护
 
-客户端在离线前向 Relay 注册推送设备信息。此后由 Relay 或 Index 节点在收到匹配推送规则的事件时，向推送网关 (Push Gateway) 发送通知。
+客户端在离线前向 Sync Service 注册推送设备信息。此后由 Sync Service 或 Index 节点在收到匹配推送规则的事件时，向推送网关 (Push Gateway) 发送通知。
 
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 
-在 E2EE 场景下，Relay 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
+在 E2EE 场景下，Sync Service 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
 - 推送只携带 `space_id`, `event_type`, `sender_did` 等明文元数据
-- 客户端被唤醒后自行从 Relay 拉取并解密实际内容
+- 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容
 - 发送者客户端 MAY 在明文元数据中附加一个可选的脱敏摘要 `push_hint`（例如 "New message from Alice"），但 MUST NOT 包含实际正文
 
 ### 2.3 用户完全控制推送规则
@@ -30,7 +30,7 @@
 
 ### 3.1 注册接口
 
-客户端在上线时 SHOULD 向 Relay 注册推送设备：
+客户端在上线时 SHOULD 向 Sync Service 注册推送设备：
 
 ```
 POST /api/v1/push/register-device
@@ -143,7 +143,7 @@ POST /api/v1/push/unregister-device
 
 ### 5.1 通知推送
 
-Relay 在触发推送规则后，向推送网关发送通知：
+Sync Service 在触发推送规则后，向推送网关发送通知：
 
 ```
 POST /api/v1/push/notify
@@ -181,7 +181,7 @@ POST /api/v1/push/notify
 }
 ```
 
-`rejected` 数组包含已失效的 `push_key`，Relay SHOULD 移除这些设备的注册。
+`rejected` 数组包含已失效的 `push_key`，Sync Service SHOULD 移除这些设备的注册。
 
 ## 6. E2EE 场景下的推送
 
@@ -189,15 +189,15 @@ POST /api/v1/push/notify
 
 1. Alice 发送加密消息到 Space S
 2. Alice 的客户端在 Op 的明文元数据中附加 `push_hint: "New message from Alice"`
-3. Relay 收到 Op，匹配推送规则
-4. Relay 向 Bob 的推送网关发送脱敏通知（只含 `space_id`, `type`, `push_hint`）
+3. Sync Service 收到 Op，匹配推送规则
+4. Sync Service 向 Bob 的推送网关发送脱敏通知（只含 `space_id`, `type`, `push_hint`）
 5. Bob 的设备收到推送，唤醒客户端
-6. 客户端从 Relay 拉取加密 Op 并解密
+6. 客户端从 Sync Service 拉取加密 Op 并解密
 7. 客户端在本地展示完整的消息内容
 
 ### 6.2 安全约束
 
-- Relay MUST NOT 在推送中包含 `encrypted_payload` 的任何部分
+- Sync Service MUST NOT 在推送中包含 `encrypted_payload` 的任何部分
 - `push_hint` 是发送方自愿提供的可选字段，接收方不应完全信任其内容
 - 推送网关应被视为不可信第三方，推送内容应尽量最小化
 

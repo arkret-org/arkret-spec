@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Client Sync 是客户端稳定增量同步协议。它不替代 repo replication，而是在 repo / relay / index 之上提供低延迟、可恢复、可分页、可过滤的客户端视图。
+Client Sync 是客户端稳定增量同步协议。它不替代 repo replication，而是在 repo / sync service / index 之上提供低延迟、可恢复、可分页、可过滤的客户端视图。
 
 本文定义当前草案唯一的客户端同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
 
@@ -137,7 +137,7 @@ Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权�
 1. 同一响应内的事件按 deterministic timeline order 排列。
 2. 若事件 B 直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
 3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 带有足够 `prev_refs` / `auth_refs`，客户端可 soft fail、backfill 或延迟渲染。
-4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Relay 到达顺序作为跨实现排序依据。
+4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Sync Service 到达顺序作为跨实现排序依据。
 
 默认 timeline order：
 
@@ -277,7 +277,7 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 5. 如果仍无法解密，将事件标记为 `decryption_pending`，但保留排序位置和引用关系。
 6. 当 MLS epoch 补齐后，异步重试解密并更新 materialized view。
 
-服务器和 Relay 不需要解密正文，也不得因为无法解密而改变事件顺序或过滤事件。
+服务器和 Sync Service 不需要解密正文，也不得因为无法解密而改变事件顺序或过滤事件。
 
 为降低大规模 E2EE 同步成本：
 

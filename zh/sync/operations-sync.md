@@ -22,7 +22,8 @@ Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议
 - `client`
 - `agent`
 - `repo`
-- `relay`
+- `principal_server`
+- `sync_service`
 - `index`
 - `blob store`
 
@@ -44,18 +45,19 @@ Repo 分为常见两类：
 - Principal Repo：人、组织、agent、Applet 等 principal 的发布日志，是 actor 写入的默认源。
 - Space Repo：可选的 Space 级聚合或治理日志，用于保存 Space bootstrap、snapshot、policy checkpoint 或共同治理记录；它不得替代各 principal 对自身写入的签名责任。
 
-### 2.2 Relay
+### 2.2 Principal Server / Sync Service
 
-Relay 是 Space 传播层。
+Principal Server 是 principal 控制或明确委托的服务边界；Sync Service 是该服务器上的 Space 增量同步能力。
 
-Relay 聚合多个 Repo 中与某个 Space 相关的 accepted / potentially accepted operation，并提供订阅、fanout、backfill、ephemeral signaling 和初级过滤。Relay 可以由组织、用户、社区、第三方服务或本地节点运行。
+Sync Service 聚合本服务器授权可见的 Space operation，并提供订阅、fanout、backfill、ephemeral signaling 和初级过滤。它不是独立第三方服务器，也不应由未被 principal 或 Space policy 委托的第三方接触非加密私有内容。
 
-Relay MUST NOT：
+Principal Server / Sync Service MUST NOT：
 
 - 伪造 principal 的 commit 或 operation。
 - 把自己托管的 Space 自动标记为组织 official Space。
 - 用本地数据库状态替代 Space reducer、capability 和 policy 判定。
-- 阻止客户端从源 Repo 或其他 Relay 交叉验证历史。
+- 阻止客户端从源 Repo 或其他受信 Principal Server 交叉验证历史。
+- 将非加密私有正文转发给未被发送方、接收方或 Space policy 明确委托的服务。
 
 ### 2.3 Index
 
@@ -71,7 +73,7 @@ Contrix 采用 repo-first 模型：
 
 1. actor 先写自己的 repo
 2. repo 发布 commit
-3. relay 聚合 Space 相关授权 op
+3. Principal Server / Sync Service 同步 Space 相关授权 op
 4. index 归约为当前态
 
 这套模型同时适用于：
@@ -149,7 +151,7 @@ Contrix 采用 repo-first 模型：
 | Reducer order | 状态收敛、冲突解决 | space version 指定的 deterministic reducer |
 | Timeline order | 客户端展示、分页恢复 | `causal_depth + hlc + actor_id + actor_seq + event_id` |
 
-实现 MUST NOT 把 Relay 到达顺序、数据库自增 ID 或 HTTP 接收顺序当作协议顺序。
+实现 MUST NOT 把 Sync Service 到达顺序、数据库自增 ID 或 HTTP 接收顺序当作协议顺序。
 
 ## 7. 操作类型
 
@@ -166,7 +168,7 @@ Contrix 采用 repo-first 模型：
 - `cx.space.update`
 - `cx.space.archive` (归档：Space 进入只读状态，所有写入 MUST 被拒绝，历史数据可查)
 - `cx.space.freeze` (临时冻结，由具备 `space.admin` 权限的 Actor 触发，可解冻)
-- `cx.space.destroy` (标记待回收，Relay 和 Index 按 retention policy 倒计时清理)
+- `cx.space.destroy` (标记待回收，Sync Service 和 Index 按 retention policy 倒计时清理)
 - `cx.schema.define`
 - `cx.schema.update`
 - `cx.policy.set`
@@ -254,7 +256,7 @@ Contrix 采用 repo-first 模型：
 - live presence
 - 本地草稿
 
-它们 MAY 通过 relay ephemeral channel 或 actor-private state 同步。
+它们 MAY 通过 sync ephemeral channel 或 actor-private state 同步。
 
 ## 8. 操作体原则
 
@@ -269,7 +271,7 @@ Contrix 采用 repo-first 模型：
 
 ## 9. 验证流程
 
-任何接收 op 的 repo、relay 或 index，至少应校验：
+任何接收 op 的 repo、sync service 或 index，至少应校验：
 
 1. 签名有效
 2. actor DID 可解析
@@ -330,7 +332,7 @@ Snapshot manifest MUST 包含以下信任链字段：
 
 用于 Space 级当前态与增量同步。
 
-### 11.3 Firehose Subscription
+### 11.3 Sync Stream Subscription
 
 用于实时事件传播。
 
@@ -421,12 +423,12 @@ Snapshot manifest MUST 包含以下信任链字段：
 - `commit_id` 与 `op_id` MUST 全局稳定
 - 同一个 `commit_id` / `op_id` 的完全相同内容 MAY 被重复接收
 - 若同一个 ID 对应不同内容，节点 MUST 拒绝并记为冲突
-- relay 与 index SHOULD 以 `op_id` 去重，而不是按到达次数计数
+- sync service 与 index SHOULD 以 `op_id` 去重，而不是按到达次数计数
 
 这能避免：
 
 - 客户端重试导致重复写入
-- 多 relay 回流造成重复 fanout
+- 多 Principal Server 回流造成重复 fanout
 - index 因重复投递而产生错误统计
 
 ## 16. 冲突与收敛
@@ -565,7 +567,7 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 - Local reducer cache：客户端缓存 reduced state 和 materialized view。
 - Causal barrier：查询可等待指定 sync token，保证读己之所写。
 
-这些加速层都不得成为真相源。客户端在采用 snapshot、index projection 或 relay backfill 前，仍需能追溯到 signed event / op、hash、auth refs 和 reducer profile。
+这些加速层都不得成为真相源。客户端在采用 snapshot、index projection 或 sync backfill 前，仍需能追溯到 signed event / op、hash、auth refs 和 reducer profile。
 
 ## 19. Tombstone、Redaction 与恢复
 
@@ -602,13 +604,13 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
 ## 21. 可见性、密文负载与 E2EE 索引
 
-ACL 不等于密文保护，去中心化 relay 也不应被迫看懂所有正文。为解决端到端加密与视图检索的矛盾，协议采用“明暗双轨策略”。
+ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。为解决端到端加密与视图检索的矛盾，协议采用“明暗双轨策略”。
 
 ### 21.1 字段可见性分级
 
-- **可路由元数据 (Routing Metadata)**：`space_id`、`target_ref`、`type`、`causal`。此类数据必须明文，用于 Relay 路由与因果排序。
+- **可路由元数据 (Routing Metadata)**：`space_id`、`target_ref`、`type`、`causal`。此类数据必须明文，用于 Sync Service 路由与因果排序。
 - **明文业务元数据 (Cleartext Indexable Metadata)**：`status`、`labels`、`priority`、`due_at` 等轻量级业务流转字段。此类字段 SHOULD 保持明文，供 Index 层查询与生成各类无密钥依赖的统计视图。
-- **不透明加密负载 (Opaque Encrypted Payload)**：`content`、`body`、附件内容、敏感 `memory` 细节。此类字段 MUST 被加密。实现 MAY 使用 `policy.encryption_profile` 指定的 envelope 格式加密。即使 relay 或 index 无法解密，也 SHOULD 能转发、去重与保留因果结构。
+- **不透明加密负载 (Opaque Encrypted Payload)**：`content`、`body`、附件内容、敏感 `memory` 细节。此类字段 MUST 被加密。实现 MAY 使用 `policy.encryption_profile` 指定的 envelope 格式加密。即使 sync service 或 index 无法解密，也 SHOULD 能转发、去重与保留因果结构。
 
 ### 21.2 端到端加密与合规审计
 
@@ -653,7 +655,7 @@ Blob 不应强制与元数据同流同步。
 - invite / grant / snapshot 组成 Space bootstrap 主流程
 - commit/op 重试必须幂等
 - 授权有效性由同一 reducer 顺序收敛
-- 密文负载可以被不解密的 relay / index 转发
+- 密文负载可以被不解密的 sync service / index 转发
 - 撤回采用 redaction/tombstone 语义
 - 冲突通过固定 reducer 规则收敛
 
@@ -667,4 +669,4 @@ Blob 不应强制与元数据同流同步。
 - snapshot signature 与 chunk digest 的正式 schema
 - encrypted payload envelope schema
 - read marker 的标准同步面
-- relay / index 线级接口
+- sync service / index 线级接口

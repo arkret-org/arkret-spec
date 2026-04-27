@@ -50,7 +50,7 @@ Request:
 ```json
 {
   "txn_id": "cx:txn:...",
-  "source_service_did": "did:web:relay.example",
+  "source_service_did": "did:web:server.example",
   "events": [],
   "ephemeral": []
 }

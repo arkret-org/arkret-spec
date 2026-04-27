@@ -213,7 +213,7 @@ The first version should support the following `kind` values:
 
 ### 5.6 Service Actions
 
-- `relay_ops`
+- `sync_ops`
 - `index_space`
 - `store_blobs`
 
@@ -523,7 +523,7 @@ They should happen at least in:
 
 - client-side prechecks
 - repo write acceptance
-- relay distribution
+- Sync Service distribution
 - index query serving
 - blob content serving
 

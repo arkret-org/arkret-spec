@@ -76,4 +76,4 @@ Client MUST verify signature and `state_hash` before using snapshot.
 }
 ```
 
-Relay / index MAY route by `cleartext_metadata` but MUST NOT require plaintext content.
+Sync Service / index MAY route by `cleartext_metadata` but MUST NOT require plaintext content.

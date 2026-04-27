@@ -291,7 +291,7 @@ message 创建是 append-only。
 - 临时在线状态 (Presence)
 
 它们 SHOULD：
-- 作为 Relay 上的 Ephemeral Signal（通过旁路 WebSocket 短时广播）。
+- 作为 Sync Service 上的 Ephemeral Signal（通过旁路 WebSocket 短时广播）。
 - 由各端本地在内存或缓存中记录，不强求全局长久一致性。
 
 ## 13. 初版设计决定
@@ -323,7 +323,7 @@ message 创建是 append-only。
 - 私密 Channel 或涉及 E2EE 的 Space 建议默认为 `joined`。
 
 ### 14.3 与 E2EE 的交互
-- 当 `history_visibility` 为 `joined` 时，新成员 MUST NOT 收到加入前的 MLS Epoch 密钥。因此即使 Relay 转发了历史密文，新成员也在密码学层面无法解密。
+- 当 `history_visibility` 为 `joined` 时，新成员 MUST NOT 收到加入前的 MLS Epoch 密钥。因此即使 Sync Service 转发了历史密文，新成员也在密码学层面无法解密。
 - 当 `history_visibility` 为 `shared` 时，邀请者的客户端 MAY 通过 MLS 的 `Welcome` 消息中附带历史 Epoch 密钥，使新成员能够回溯解密加入前的内容。
 
 ### 14.4 变更规则

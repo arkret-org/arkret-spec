@@ -8,7 +8,7 @@
 
 - identity registry 如何收发 DID 操作与 receipt
 - repo 如何收发 commit / op
-- relay 如何做 space firehose 与 backfill
+- Principal Server 如何提供 space sync stream 与 backfill
 - index 如何做查询与 inbox / notification 物化
 - directory 如何做 Space / Organization / Actor 的授权搜索与精确解析
 - blob 如何上传与校验
@@ -23,7 +23,7 @@
 
 DID Document SHOULD 只负责：
 
-- 声明 identity registry / repo / relay / index / blob / capability 服务入口
+- 声明 principal server、identity registry、repo、sync service、index、blob、capability 服务入口
 - 声明服务 DID 或服务 endpoint
 
 它不应直接塞入：
@@ -35,7 +35,7 @@ DID Document SHOULD 只负责：
 ### 2.2 没有任何单一服务是唯一真相源
 
 - repo 是 actor 发布真相源
-- relay 是传播层
+- sync service 是 Principal Server 上的受控同步入口
 - index 是查询物化层
 - blob 是内容层
 
@@ -43,7 +43,7 @@ DID Document SHOULD 只负责：
 
 ### 2.3 接口必须天然支持幂等重试
 
-网络重试、离线回放、多 relay 回流在去中心化系统中是常态。
+网络重试、离线回放、多 Principal Server 同步在去中心化系统中是常态。
 
 因此写接口 MUST 支持：
 
@@ -74,11 +74,11 @@ GET /api/v1/server/describe
 
 ```json
 {
-  "service_did": "did:web:relay.example.net",
-  "service_type": "ContrixRelay",
+  "service_did": "did:web:alice.example.net",
+  "service_type": "ContrixPrincipalServer",
   "protocol_version": "0.2-draft",
   "supported_features": [
-    "firehose",
+    "sync_stream",
     "snapshot",
     "notification-index"
   ],
@@ -225,20 +225,20 @@ POST /api/v1/repo/submit-commit
 - 同一个 `commit_id` 若内容不同 MUST 拒绝
 - repo SHOULD 返回新的 head、已接受 op 列表，以及一组 **因果同步令牌 (Causal Sync Tokens, e.g., `[commit_hash, hlc]`)**，供客户端后续进行强一致性查询时使用。
 
-## 5. Relay Surface
+## 5. Sync Surface
 
-relay 至少应提供以下语义：
+Sync Surface 是 Principal Server 提供的 Space 增量同步能力。它不是独立第三方服务器角色。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared Space Host。
 
-### 5.1 描述 relay
+### 5.1 描述 sync service
 
 ```text
-GET /api/v1/relay/describe
+GET /api/v1/sync/describe
 ```
 
-### 5.2 Space firehose 订阅
+### 5.2 Space sync stream 订阅
 
 ```text
-GET /api/v1/relay/subscribe?space_id=<id>&cursor=<cursor>
+GET /api/v1/sync/subscribe?space_id=<id>&cursor=<cursor>
 ```
 
 实现可用：
@@ -252,16 +252,25 @@ GET /api/v1/relay/subscribe?space_id=<id>&cursor=<cursor>
 ### 5.3 增量回补
 
 ```text
-GET /api/v1/relay/backfill?space_id=<id>&cursor=<cursor>&limit=<n>
+GET /api/v1/sync/backfill?space_id=<id>&cursor=<cursor>&limit=<n>
 ```
 
 ### 5.4 snapshot 入口
 
 ```text
-GET /api/v1/relay/snapshot-head?space_id=<id>
+GET /api/v1/sync/snapshot-head?space_id=<id>
 ```
 
 用于拿到当前推荐 snapshot manifest。
+
+### 5.5 明文与服务信任
+
+如果 Space 未启用 E2EE 或内容层加密：
+
+- 客户端 MUST NOT 将 message body、comment body、附件明文或敏感 memory 明文提交给未授权第三方服务。
+- `sync/submit`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Space policy 明确委托的 Principal Server。
+- shared Space Host 若可见明文，必须在 Space policy 中作为明文可见方列出。
+- 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ## 6. Index Surface
 
@@ -468,7 +477,7 @@ POST /api/v1/authz/check
 `check` 接口适合：
 
 - repo 接收写入前预检查
-- relay 分发前快速过滤
+- sync service 分发前快速过滤
 - client 发送前本地 UX 提示
 
 ## 10. Space Bootstrap Flow
@@ -477,17 +486,17 @@ POST /api/v1/authz/check
 
 1. 用户输入 handle、DID 或 Space link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 DID Document 发现 identity registry / repo / relay / index / blob / authz 服务
+3. 从 DID Document 和 Space policy 发现 Principal Server / identity registry / repo / sync / index / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Space metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Relay 和 Index 属于不受信节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 中包含的 `state_hash` (Merkle Root)，且该哈希 MUST 具备 `Space Owner` 或可信发行者的密码学签名。若校验失败，客户端 MUST 丢弃快照并回退到 Repo 进行原始历史回放。
-7. 从 frontier 之后拉取 backfill / firehose 增量
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 和 Index 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 中包含的 `state_hash` (Merkle Root)，且该哈希 MUST 具备 `Space Owner` 或可信发行者的密码学签名。若校验失败，客户端 MUST 丢弃快照并回退到 Repo 进行原始历史回放。
+7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态
 
 ## 11. 新鲜度与多服务并存
 
-当多个 relay / index 并存时，服务 SHOULD 公开：
+当多个 Principal Server / index 并存时，服务 SHOULD 公开：
 
 - 当前 frontier
 - snapshot frontier
@@ -521,7 +530,7 @@ POST /api/v1/authz/check
 
 如果 payload 已按 `policy.encryption_profile` 加密，则：
 
-- repo / relay / index MAY 不解密正文
+- repo / sync service / index MAY 不解密正文
 - 但仍 SHOULD 保留 hash、cursor、causal 与目标引用
 
 ## 13. 防滥用与配额机制 (Anti-Spam & Quota)
@@ -533,14 +542,14 @@ POST /api/v1/authz/check
 - **拒绝写入**：当 Blob 服务或 Index 服务评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Op 或大文件 Blob。
 
 ### 13.2 写频率控制 (Rate Limiting)
-- Relay 和 Repo 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。
+- Sync Service 和 Repo 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。
 - 对于来自未验证或低信誉 DID 的恶意刷写（例如短时间内进行海量无效的 `message.create` 或反复触发高并发图重组），节点有权暂时熔断该 DID 的请求。
 
 ## 14. 初版设计决定
 
 当前草案建议固定：
 
-- 定义最小 identity registry / repo / relay / index / blob / authz 服务面
+- 定义最小 principal server / identity registry / repo / sync / index / blob / authz 服务面
 - HTTP/JSON 路径是默认推荐 binding，但语义等价最重要，可兼容其他调用风格
 - 写接口必须幂等
 - DID 写入采用多 registry / witness receipt，而不是区块链
@@ -559,5 +568,5 @@ POST /api/v1/authz/check
 - directory search result schema
 - authz check response schema
 - service describe conformance vector
-- relay cursor recovery test vector
+- sync cursor recovery test vector
 - repo sync consistency test vector

@@ -24,8 +24,8 @@ PUT /api/v1/federation/transactions/{txn_id}
 ```json
 {
   "txn_id": "cx:txn:01JS0TX000000000000000000",
-  "origin": "did:web:relay.a.example",
-  "destination": "did:web:relay.b.example",
+  "origin": "did:web:server.a.example",
+  "destination": "did:web:server.b.example",
   "events": [],
   "receipts": [],
   "frontier": {},
@@ -55,7 +55,7 @@ Backfill request:
   "space_id": "cx:space:...",
   "from_cursor": "cx:cursor:...",
   "limit": 100,
-  "requester": "did:web:relay.remote.example"
+  "requester": "did:web:server.remote.example"
 }
 ```
 

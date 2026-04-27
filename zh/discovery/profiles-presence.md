@@ -64,7 +64,7 @@ Profile 的变更通过 `cx.profile.update` 操作提交到 Actor 的 Repo：
 ```
 
 - 仅携带发生变化的字段（delta 更新）
-- 其他参与者的客户端通过 Relay 的 Firehose 或 Actor Repo 同步获取最新 Profile
+- 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Repo 同步获取最新 Profile
 - Index 节点 SHOULD 缓存 Profile 并在查询响应中内联展示
 
 ### 2.4 Per-Space Profile 覆写
@@ -89,7 +89,7 @@ Profile 的变更通过 `cx.profile.update` 操作提交到 Actor 的 Repo：
 
 ### 3.1 Presence 是 Ephemeral 状态
 
-在线状态属于高频变动的临时数据，MUST NOT 作为 Durable Op 写入 Repo。它通过 Relay 的 Ephemeral Channel 广播。
+在线状态属于高频变动的临时数据，MUST NOT 作为 Durable Op 写入 Repo。它通过 Sync Service 的 Ephemeral Channel 广播。
 
 ### 3.2 Presence 状态值
 
@@ -102,7 +102,7 @@ Profile 的变更通过 `cx.profile.update` 操作提交到 Actor 的 Repo：
 
 ### 3.3 Presence 广播格式
 
-通过 Relay 的 Ephemeral Channel 广播：
+通过 Sync Service 的 Ephemeral Channel 广播：
 
 ```json
 {
@@ -140,7 +140,7 @@ Profile 的变更通过 `cx.profile.update` 操作提交到 Actor 的 Repo：
 
 ### 3.5 Typing 指示器
 
-正在输入状态通过 Relay 的 Ephemeral Channel 广播，格式极度轻量：
+正在输入状态通过 Sync Service 的 Ephemeral Channel 广播，格式极度轻量：
 
 ```json
 {

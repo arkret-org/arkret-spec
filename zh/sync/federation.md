@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix 是去中心化协议，不同组织各自运行独立的 Repo / Relay / Index 节点。当来自不同域的 Actor 需要在同一个 Space 中协作时，节点之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
+Contrix 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Space 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
 
 - 节点之间如何互相发现与认证
 - 如何安全交换签名操作 (Op) 与 Commit
@@ -15,9 +15,9 @@ Contrix 是去中心化协议，不同组织各自运行独立的 Repo / Relay /
 
 跨域协作的信任不来自"服务器管理员彼此认识"，而来自**每个 Actor 的 Repo 都是密码学可验证的**。任何节点在接收到来自外部域的 Op 时，可以独立验证签名、DID、因果链，不需要信任对方服务器。
 
-### 2.2 Relay 是传播加速器，不是权威
+### 2.2 Principal Server 是受控同步边界，不是全局权威
 
-联邦场景中 Relay 的角色是**尽力加速 Op 在 Space 范围内的传播**。它不能伪造、篡改或选择性隐藏已签名的 Op。任何参与者都可以通过直接查询源 Repo 来绕过不可信的 Relay。
+联邦场景中没有独立第三方分发服务器角色。Space 范围传播由参与方 Principal Server 之间的 federation transaction 完成。Principal Server 不能伪造、篡改或选择性隐藏已签名的 Op；任何参与者都可以通过直接查询源 Repo 或其他受信 Principal Server 交叉验证历史。
 
 ### 2.3 最终一致性优于强一致性
 
@@ -27,16 +27,16 @@ Contrix 是去中心化协议，不同组织各自运行独立的 Repo / Relay /
 
 ### 3.1 基于 DID 的服务器身份
 
-每个 Relay / Repo / Index 节点 MUST 拥有自己的 DID（通常是 `did:web`），并在其 DID Document 中声明 Service Endpoints：
+每个 Principal Server / Repo / Index 节点 MUST 拥有自己的 DID（通常是 `did:web`），并在其 DID Document 中声明 Service Endpoints：
 
 ```json
 {
-  "id": "did:web:relay.acme.example.com",
+  "id": "did:web:server.acme.example.com",
   "service": [
     {
-      "id": "#contrix-relay",
-      "type": "ContrixRelay",
-      "service_endpoint": "https://relay.acme.example.com/api/v1"
+      "id": "#contrix-principal-server",
+      "type": "ContrixPrincipalServer",
+      "service_endpoint": "https://server.acme.example.com/api/v1"
     }
   ],
   "verification_method": [
@@ -71,22 +71,22 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 ### 4.1 推送模式 (Push)
 
-当 Actor A（托管在 `relay-alpha.com`）向 Space S 提交了新 Op，而 Space S 的另一个 Relay `relay-beta.com` 也在服务同一个 Space 时：
+当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Op，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
 
-1. `relay-alpha.com` 检测到新 Op 属于跨域 Space
-2. `relay-alpha.com` 查询 Space 的 Relay 列表（从 Space metadata 或已知的对端 Relay 获取）
-3. `relay-alpha.com` 向 `relay-beta.com` 发送推送请求：
+1. `server-alpha.com` 检测到新 Op 属于跨域 Space
+2. `server-alpha.com` 从 Space policy / membership / service delegation 中解析应接收该 Op 的对端 Principal Server
+3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
 ```
 POST /api/v1/federation/push-ops
-Host: relay-beta.com
+Host: server-beta.com
 Signature-Input: sig1=("@method" "@target-uri" "content-digest")
 Signature: sig1=:base64...:
 ```
 
 ```json
 {
-  "origin": "did:web:relay-alpha.com",
+  "origin": "did:web:server-alpha.com",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "ops": [
     { /* 完整的 Event Envelope，含签名 */ }
@@ -94,20 +94,20 @@ Signature: sig1=:base64...:
 }
 ```
 
-4. `relay-beta.com` 独立验证每个 Op 的 Actor 签名和因果链，然后决定是否接受
+4. `server-beta.com` 独立验证每个 Op 的 Actor 签名、Space policy、服务委托和因果链，然后决定是否接受
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
-当节点发现自己的因果图中存在缺失（`deps` 引用了本地没有的 Op）时，可以主动向源 Relay 或源 Repo 拉取：
+当节点发现自己的因果图中存在缺失（`deps` 引用了本地没有的 Op）时，可以主动向源 Principal Server 或源 Repo 拉取：
 
 ```
 GET /api/v1/federation/pull-ops?space_id=cx:space:...&after_cursor=...&limit=100
-Host: relay-alpha.com
+Host: server-alpha.com
 ```
 
 ### 4.3 重复与幂等
 
-- 同一个 `op_id` 的 Op MAY 被多个 Relay 推送多次
+- 同一个 `op_id` 的 Op MAY 被多个 Principal Server 推送多次
 - 接收方 MUST 以 `op_id` 去重
 - 内容相同的重复推送 MUST 幂等接受
 - `op_id` 相同但内容不同的推送 MUST 拒绝
@@ -116,14 +116,14 @@ Host: relay-alpha.com
 
 ### 5.1 邀请流程
 
-当 Space S（主 Relay 在 `relay-alpha.com`）的管理员邀请外部用户 Bob（Repo 在 `repo-beta.com`）时：
+当 Space S 的管理员邀请外部用户 Bob（Repo / Principal Server 在 `server-beta.com`）时：
 
 1. 管理员提交 `cx.invite.create` Op，`subject_did` 指向 Bob 的 DID
-2. 该 Op 通过联邦推送到达 Bob 的 Relay/Repo
+2. 该 Op 通过联邦推送到达 Bob 的 Principal Server / Repo
 3. Bob 的客户端发现 Invite，决定接受
 4. Bob 的客户端提交 `cx.invite.accept` Op 到自己的 Repo
-5. Bob 的 Repo 将该 Op 推送给 Space S 的 Relay
-6. Space S 的 Relay 验证 Invite 有效性后，将 Bob 纳入成员列表
+5. Bob 的 Principal Server 将该 Op 推送给 Space S 的其他参与方 Principal Server
+6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
 7. 若 Space 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
 
 ### 5.2 Knock 流程
@@ -131,28 +131,28 @@ Host: relay-alpha.com
 Bob 也可以主动申请加入：
 
 1. Bob 发现 Space S 的元数据（通过公开的 Space Directory 或链接）
-2. Bob 提交 `cx.membership.knock` Op，推送给 Space S 的 Relay
-3. Relay 验证 knock 的签名有效后，转发给 Space 管理员
+2. Bob 提交 `cx.membership.knock` Op，推送给 Space S 的 shared Space Host 或管理员 Principal Server
+3. 接收方验证 knock 的签名有效后，转发给 Space 管理员
 4. 管理员审批后提交 `cx.invite.create` + Bob 提交 `cx.invite.accept`
 
 ## 6. 联邦级服务发现
 
-### 6.1 Space Relay 列表
+### 6.1 Space Host / Sync Endpoint 列表
 
-每个 Space 的 metadata SHOULD 包含一个 `relay_endpoints` 列表：
+每个 Space 的 metadata MAY 包含一个 `sync_endpoints` 列表，用于列出被 Space policy 明确委托的 shared Space Host 或组织 Principal Server：
 
 ```json
 {
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "relay_endpoints": [
+  "sync_endpoints": [
     {
-      "did": "did:web:relay-alpha.com",
-      "endpoint": "https://relay-alpha.com/api/v1",
+      "did": "did:web:server-alpha.com",
+      "endpoint": "https://server-alpha.com/api/v1",
       "role": "primary"
     },
     {
-      "did": "did:web:relay-beta.com",
-      "endpoint": "https://relay-beta.com/api/v1",
+      "did": "did:web:server-beta.com",
+      "endpoint": "https://server-beta.com/api/v1",
       "role": "mirror"
     }
   ]
@@ -232,7 +232,7 @@ POST /api/v1/federation/verify-actor
 
 本协议在服务器端应默认支持 [server-threat-model.md](../security/server-threat-model.md) 中“可借鉴项”，特别是：
 
-- 开放中继阻断；
+- 开放联邦入口阻断；
 - 攻击来源限流与排队；
 - 重放检测与 quarantine；
 - 统一回执和拒绝语义避免枚举泄漏。
@@ -240,6 +240,6 @@ POST /api/v1/federation/verify-actor
 ## 9. 后续待细化
 
 - 联邦级 Snapshot 同步与校验
-- 多 Relay 之间的 Gossip 协议优化
+- 多 Principal Server 之间的 Gossip / batch sync 优化
 - 跨域 Space 的权限委托与级联
 - 联邦节点的声誉系统（可选）

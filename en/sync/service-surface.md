@@ -8,7 +8,7 @@ Contrix therefore needs an initial definition for:
 
 - how identity registries accept DID operations and receipts
 - how repos publish and serve commits / ops
-- how relays expose space firehoses and backfill
+- how Principal Servers expose space sync streams and backfill
 - how indexes serve queries and materialize inbox / notifications
 - how blob services upload and verify content
 - how invites / grants participate in first-time space join
@@ -22,7 +22,7 @@ Implementations do not have to use HTTP or XRPC specifically, but they MUST prov
 
 DID Documents SHOULD be used to:
 
-- declare identity-registry / repo / relay / index / blob / capability endpoints
+- declare principal server, identity-registry, repo, sync service, index, blob, and capability endpoints
 - declare service DIDs or service endpoints
 
 They should not directly carry:
@@ -34,7 +34,7 @@ They should not directly carry:
 ### 2.2 No Single Service Is the Sole Truth Source
 
 - the repo is the actor publication truth source
-- the relay is the distribution layer
+- the sync service is the controlled synchronization surface of a Principal Server
 - the index is the query/materialization layer
 - the blob service is the content layer
 
@@ -42,7 +42,7 @@ Clients should be able to cross-check frontier, hashes, and reducer profiles acr
 
 ### 2.3 Interfaces Must Support Idempotent Retries
 
-Network retries, offline replay, and multi-relay loops are normal in decentralized systems.
+Network retries, offline replay, and synchronization across multiple Principal Servers are normal in decentralized systems.
 
 Write interfaces therefore MUST support:
 
@@ -73,11 +73,11 @@ Example:
 
 ```json
 {
-  "service_did": "did:web:relay.example.net",
-  "service_type": "ContrixRelay",
+  "service_did": "did:web:alice.example.net",
+  "service_type": "ContrixPrincipalServer",
   "protocol_version": "0.2-draft",
   "supported_features": [
-    "firehose",
+    "sync_stream",
     "snapshot",
     "notification-index"
   ],
@@ -224,20 +224,20 @@ Requirements:
 - reusing the same `commit_id` with different bytes MUST be rejected
 - the repo SHOULD return the new head and the accepted op list
 
-## 5. Relay Surface
+## 5. Sync Surface
 
-Relays should expose at least the following semantics:
+The sync surface is the space incremental sync capability exposed by a Principal Server. It is not an independent third-party server role. Clients should use only the current principal's controlled/delegated Principal Server, the peer principal's controlled/delegated Principal Server, or a shared Space Host explicitly listed by Space policy.
 
-### 5.1 Describe the Relay
+### 5.1 Describe the Sync Service
 
 ```text
-GET /xrpc/cx.relay.describe
+GET /xrpc/cx.sync.describe
 ```
 
-### 5.2 Space Firehose Subscription
+### 5.2 Space Sync Stream Subscription
 
 ```text
-GET /xrpc/cx.relay.subscribe?space_id=<id>&cursor=<cursor>
+GET /xrpc/cx.sync.subscribe?space_id=<id>&cursor=<cursor>
 ```
 
 Implementations may use:
@@ -251,16 +251,25 @@ but they must provide stable cursor semantics.
 ### 5.3 Incremental Backfill
 
 ```text
-GET /xrpc/cx.relay.backfill?space_id=<id>&cursor=<cursor>&limit=<n>
+GET /xrpc/cx.sync.backfill?space_id=<id>&cursor=<cursor>&limit=<n>
 ```
 
 ### 5.4 Snapshot Head
 
 ```text
-GET /xrpc/cx.relay.getSnapshotHead?space_id=<id>
+GET /xrpc/cx.sync.getSnapshotHead?space_id=<id>
 ```
 
 Used to fetch the currently recommended snapshot manifest.
+
+### 5.5 Plaintext and Service Trust
+
+If a Space does not use E2EE or content-layer encryption:
+
+- clients MUST NOT submit message bodies, comment bodies, plaintext attachments, or sensitive memory bodies to unauthorized third-party services
+- `sync/submit`, `sync/subscribe`, and `sync/backfill` must target a Principal Server delegated by the principal DID, Organization DID, or Space policy
+- shared Space Hosts that can see plaintext must be declared as plaintext-visible services in Space policy
+- untrusted services may receive only public content, encrypted envelopes, or opaque payloads
 
 ## 6. Index Surface
 
@@ -359,7 +368,7 @@ POST /xrpc/cx.authz.check
 The `check` surface is useful for:
 
 - repo-side prechecks before accepting writes
-- fast filtering before relay distribution
+- fast filtering before sync distribution
 - local UX warnings before a client sends a write
 
 ## 9. Space Bootstrap Flow
@@ -368,17 +377,17 @@ The recommended first-time join flow is:
 
 1. the user enters a handle, DID, or space link
 2. the client resolves the DID and completes handle bidirectional verification
-3. the client discovers identity registry / repo / relay / index / blob / authz services from the DID Document
+3. the client discovers Principal Server / identity registry / repo / sync / index / blob / authz services from DID Documents and Space policy
 4. the client fetches invite / grant views relevant to the principal
 5. the client fetches space metadata and the snapshot head
 6. the client downloads the snapshot manifest and chunks
-7. the client fetches backfill / firehose increments after the frontier
+7. the client fetches backfill / sync-stream increments after the frontier
 8. the client runs the reducer locally
 9. the client establishes personal state such as read markers and notification cursors
 
 ## 10. Freshness and Multi-service Coexistence
 
-When multiple relays or indexes coexist, services SHOULD expose:
+When multiple Principal Servers or indexes coexist, services SHOULD expose:
 
 - current frontier
 - snapshot frontier
@@ -412,14 +421,14 @@ The service surface SHOULD distinguish:
 
 If a payload is already encrypted under `policy.encryption_profile`, then:
 
-- repos / relays / indexes MAY be unable to decrypt the body
+- repos / sync services / indexes MAY be unable to decrypt the body
 - but they SHOULD still preserve hash, cursor, causality, and target references
 
 ## 12. Initial Design Decisions
 
 The current draft recommends fixing:
 
-- a minimum identity-registry / repo / relay / index / blob / authz service surface
+- a minimum principal server / identity-registry / repo / sync / index / blob / authz service surface
 - XRPC-style paths as a recommendation rather than a hard requirement
 - idempotent write interfaces
 - DID writes confirmed by multi-registry / witness receipts rather than blockchains
@@ -432,7 +441,7 @@ The next round still needs:
 
 - formal request/response schemas for each endpoint
 - cursor encoding
-- firehose frame format
+- sync-stream frame format
 - error codes and retry semantics
 - auth-token or signed-request formats
 - identity receipt / witness proof schemas

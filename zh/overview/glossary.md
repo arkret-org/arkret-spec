@@ -12,16 +12,16 @@
 | --- | --- | --- |
 | Contrix | 协议名称 | 面向去中心化协作对象、会话、任务、看板、知识记忆和 agent 协作的协议族。 |
 | Principal | 主体 | 协议中的稳定身份主体，通常由 DID 表示。人、组织、agent、Applet 都可以是 principal。 |
-| Organization | 组织 | 一类 principal，通常由组织 DID 表示，可签发成员资格/角色 credential、控制服务 DID、托管 Relay/Index/Applet、发布 policy 或拥有 Space。Organization 不是 Space；它是治理与身份主体。 |
+| Organization | 组织 | 一类 principal，通常由组织 DID 表示，可签发成员资格/角色 credential、控制服务 DID、托管 Principal Server / Index / Applet、发布 policy 或拥有 Space。Organization 不是 Space；它是治理与身份主体。 |
 | Organization Governance | 组织治理 | Organization DID 的控制策略，包括治理密钥、阈值、多签、服务委派、恢复和所有权转移规则。 |
 | Actor | 行为者 | 在 Space 中执行动作、产生 Event、拥有 profile 和 membership 的主体视图。Actor 通常映射到 principal，但可包含 ghost actor、bot actor 或 accountable actor。 |
 | Space | 协作空间 | 复制、授权、schema、policy、membership 和 history visibility 的边界。它替代 Matrix room 作为 Contrix 的协作边界，但不是唯一数据模型。 |
-| Official Space | 官方空间 | 由 Organization DID 直接创建，或被 active `cx.space.organization` state event 背书且 `scope.official=true` 的 Space。名称、域名、Relay 托管方或成员列表不能单独证明官方性。 |
+| Official Space | 官方空间 | 由 Organization DID 直接创建，或被 active `cx.space.organization` state event 背书且 `scope.official=true` 的 Space。名称、域名、服务器托管方或成员列表不能单独证明官方性。 |
 | Space Hierarchy | 空间层级 | Space 之间的 parent/child 组织关系，用于导航、发现和受控继承；不默认级联权限、成员、历史或加密。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、父 Space、组织页、精确链接或邀请发现的策略；不等于 join rule、read permission 或 history visibility。 |
 | Entity | 实体 | 所有协作对象的统一载体，例如 task、message、topic、board、memory、run、file、profile。 |
 | Relation | 关系 | Entity / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件等语义。 |
-| Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 repo、relay、index 和 reducer。 |
+| Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 repo、sync、index 和 reducer。 |
 | State Event | 状态事件 | 带 `state_key` 的 Event，当前状态由 `(type, state_key)` 归约得到，例如 membership、policy、schema、view definition。 |
 | View | 视图 | 对 Entity / Relation / Event 的投影定义，例如 kanban、table、calendar、chat、thread、graph、review queue。View 不拥有真相数据。 |
 | Projection | 投影 | Index 或客户端根据 View / query / reducer 从 canonical Event 集合派生出的展示或查询结果。 |
@@ -115,7 +115,8 @@
 | --- | --- | --- |
 | Identity Registry | 身份注册表 | 保存、复制和见证 DID 文档、DID key log、handle binding 的服务角色。 |
 | Witness | 见证节点 | 对 DID log、key rotation、重要状态变更进行外部见证的服务或主体。 |
-| Relay | 中继 | 聚合、去重、转发、订阅与推送 Event / Op 的传播层，不是真相源。 |
+| Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 repo、sync、index、blob、push、policy 等能力；产品层可称 Home Server。 |
+| Sync Service | 同步服务 | Principal Server 上的 Space 增量同步能力，负责订阅、回补、去重、临时信令和受控分发；它不是独立第三方服务器角色，也不是真相源。 |
 | Index | 索引 | 将授权事件物化为查询结果、当前态、搜索结果和视图投影的派生层。 |
 | AppView | 应用视图服务 | 面向特定产品或 UI 的 Index / projection 服务。 |
 | Blob Store | 大对象存储 | 存储附件、媒体、snapshot chunk 或大对象的服务，地址可多源，校验基于内容哈希。 |
@@ -129,10 +130,10 @@
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Federation | 联邦 | 不同域、组织或服务节点之间交换 Event、Op、state、backfill、join/invite 的协议层。 |
-| Service DID | 服务 DID | Relay、Index、Applet、Policy Server 等服务使用的 DID。 |
+| Service DID | 服务 DID | Principal Server、Index、Applet、Policy Server 等服务使用的 DID。 |
 | Federation Transaction | 联邦交易 | 跨服务批量交换 PDU/EDU 等消息的传输单元；Contrix 中对应 signed transaction envelope。 |
 | Cross-domain Join | 跨域加入 | Actor 通过一个服务加入另一个服务或组织托管的 Space。 |
-| Server ACL | 服务级访问控制 | 对联邦服务、域、IP、service DID 或 relay 的接入限制。 |
+| Server ACL | 服务级访问控制 | 对联邦服务、域、IP、service DID 或 Principal Server 的接入限制。 |
 | Applet | 小应用/集成服务 | 类似 Matrix appservice 的扩展机制，用于机器人、桥接、外部 SaaS 集成和自动化。 |
 | Applet Registration | Applet 注册 | 描述 Applet service DID、endpoint、namespace、protocol、认证方式和能力范围的签名声明。 |
 | Namespace | 命名空间 | Applet 声明自己负责处理的 actor、space、handle 或外部 protocol 标识范围。Namespace 不等于 capability。 |
@@ -163,7 +164,7 @@
 | MLS | Messaging Layer Security | RFC 9420 群组端到端加密协议，Contrix E2EE Space 的推荐加密基础。 |
 | MLS Epoch | MLS 轮次 | MLS group state 的版本。成员变更、密钥更新会推进 epoch。 |
 | KeyPackage | MLS 加入材料 | 设备发布的 MLS 加入包，必须绑定 DID 和 device identity。 |
-| E2EE | 端到端加密 | 服务端和 relay/index 默认无法解密内容的加密模式。 |
+| E2EE | 端到端加密 | 非授权服务器和 index 默认无法解密内容的加密模式。 |
 | HPKE | 混合公钥加密 | 用于设备间加密、secret wrapping 或引导加密会话的机制。 |
 
 ## 10. 媒体、通知与临时事件
@@ -238,7 +239,7 @@
 | Relation 与 View | Relation 是一等语义边；View 是投影定义。 |
 | Repo 与 Index | Repo 保存可审计事实；Index 保存派生查询结果。 |
 | Repo 与 Repo Service | Repo 是可验证日志；Repo Service 是访问或托管该日志的服务器/服务进程。 |
-| Relay 与 Authority | Relay 传播事件；授权仍由签名、capability、policy 和 reducer 验证。 |
+| Sync Service 与 Authority | Sync Service 只提供受控同步；授权仍由签名、capability、policy 和 reducer 验证。 |
 | Capability 与 Namespace | Capability 授权动作；Namespace 只说明 Applet 负责哪个名称范围。 |
 | Redaction 与 Erasure | Redaction 裁剪协议内容并保留审计；Erasure 是服务侧物理删除/最小化流程。 |
 | Read Receipt 与 Read Marker | Receipt 可公开或共享；Marker 默认私有，用于未读状态。 |

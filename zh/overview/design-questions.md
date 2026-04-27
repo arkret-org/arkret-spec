@@ -120,7 +120,7 @@
 
 - 一套协议，多种同步 profile。
 - actor 先写自己的 repo。
-- relay 聚合 Space 范围授权操作。
+- Principal Server / Sync Service 同步 Space 范围授权操作。
 - index 物化当前态和查询。
 - board、chat、topic、tree、graph 模式只是订阅过滤和投影方式不同。
 
@@ -196,7 +196,7 @@
 4. `comment` 继续保留为对象级 durable 说明；`message` 负责时间线会话。
 5. `@mention` 统一采用结构化 DID/entity ref，并落成 `mentions` Relation。
 6. 编辑采用 revision chain；撤回采用 redaction/tombstone。
-7. 同步统一走 repo-first + relay + index，只是 profile 不同。
+7. 同步统一走 repo-first + Principal Server sync + index，只是 profile 不同。
 8. 冲突统一由 reducer 固定规则解决，而不是让客户端自由发挥。
 9. 权限统一收敛进 capability，不再靠隐式角色猜测。
 

@@ -78,9 +78,9 @@ paths:
     post:
       operationId: cx.syncRepo
 
-  /relay/subscribe:
+  /sync/subscribe:
     get:
-      operationId: cx.subscribeRelay
+      operationId: cx.subscribeSync
 
   /index/query:
     post:
@@ -148,7 +148,7 @@ paths:
 | `cx.submitDidOp` | `POST /identity/submit-did-op` | gRPC `SubmitDidOperation` / libp2p stream |
 | `cx.submitCommit` / `cx.syncRepo` | `POST /repo/*` | gRPC `SubmitCommit` / 队列 `repo.commit` |
 | `cx.clientSync` | `POST /sync` | WebSocket/SSE / `/sync?since...` |
-| `cx.subscribeRelay` | `GET /relay/subscribe` | WebSocket firehose / pubsub |
+| `cx.subscribeSync` | `GET /sync/subscribe` | WebSocket sync stream / pubsub |
 | `cx.indexQuery` / `cx.indexSync` | `POST /index/*` | gRPC `IndexQuery` / SSE 查询流 |
 | `cx.directorySearch*` | `POST /directory/*` | gRPC Discovery Service |
 | `cx.putToDeviceMessage` | `PUT /device_messages/{txn_id}` | MQ device topic / 本地 IPC |
@@ -160,4 +160,3 @@ paths:
 - 任何节点都应能发布一份可下载的 OpenAPI 文档（建议路径 `/.well-known/contrix/openapi.yaml`），并在 service DID metadata 中声明版本和 hash。
 - 实现必须保持 operation id 在演进中稳定；若请求字段名变更，必须保留兼容版本或通过 profile 明确协商。
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
-

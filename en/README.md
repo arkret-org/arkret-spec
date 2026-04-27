@@ -154,14 +154,14 @@ Main document groups:
 
 - repo commits are the actor-side publication unit
 - operation logs are the audit truth source
-- relays are the distribution/subscription layer, not the sole truth source
+- Principal Servers / Sync Services are the controlled sync/subscription layer, not the sole truth source
 - indexes/appviews are the query/materialization layer, not the sole truth source
-- the service layer requires a minimum interoperable identity-registry / repo / relay / index / blob / authz surface
+- the service layer requires a minimum interoperable principal-server / identity-registry / repo / sync / index / blob / authz surface
 - board/chat/topic/tree/graph are sync profiles and View projections, not separate protocols
 - commit/op submission must be idempotent by design
 - authorization validity must converge under the same reducer ordering
 - recall converges through redaction semantics, not guaranteed global erasure
-- relays / indexes may forward encrypted payloads without decrypting them
+- sync services / indexes may forward encrypted payloads without decrypting them; plaintext private content must not be submitted to undelegated third-party services
 - the DID fragment anchors `inception_key`; ordinary key rotation keeps the same DID, while exceptional identity reboot is reserved for unrecoverable cases
 
 ### 5.5 Authorization
