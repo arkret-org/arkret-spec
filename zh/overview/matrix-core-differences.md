@@ -2,9 +2,7 @@
 
 ## 1. 目标
 
-本文说明 Contrix 与 Matrix 的核心设计差异。
-
-本文回答一个问题：Contrix 为什么不是 Matrix 的变体，也不是把 Matrix room / homeserver / appservice 换名重写。
+本文旨在说明 Contrix 与 Matrix 的核心设计差异，阐明 Contrix 为何不是 Matrix 的直接变体，更非对其 room / homeserver / appservice 等概念的简单换名或重写。
 
 ## 2. 总体结论
 
@@ -32,11 +30,9 @@ Contrix 的核心抽象是 **principal repo + Space + Entity / Relation / Event 
 | 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影；Index / AppView 明确是派生查询层，不能成为真相源。 |
 | 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容必须只进入 principal 或 Space policy 明确委托的服务；明文可见服务用 `plaintext_visible_services` 声明。 |
 
-## 4. 对用户判断的修正
+## 4. 核心概念对比深化
 
-### 4.1 Applet 强于 Appservice 的地方
-
-这个判断方向正确，但应更精确。
+### 4.1 Applet 与 Appservice
 
 Matrix Application Service 是成熟的桥接机制，适合让 homeserver 与外部系统或 bot 服务通信。它的核心是 homeserver 侧注册、namespace、transaction、query 和 ping。
 
@@ -52,8 +48,6 @@ Contrix Applet 的差异不是简单“更强”，而是粒度不同：
 
 ### 4.2 AI 与 agent 支持
 
-这个判断正确。
-
 Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix 的协议根对象。Contrix 从对象模型开始就把 agent 纳入：
 
 - agent 可以是 principal、Actor、capability subject。
@@ -62,9 +56,7 @@ Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix
 - agent-to-agent 场景可以显式升级到 A2A / ACP legacy / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Contrix。
 - Contrix 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。
 
-### 4.3 身份系统更接近 atprotocol
-
-这个判断基本正确，但需要限定。
+### 4.3 身份系统的演进
 
 Contrix 的身份与发布模型借鉴 atprotocol 的几个方向：
 
@@ -81,9 +73,7 @@ Contrix 的身份与发布模型借鉴 atprotocol 的几个方向：
 - Contrix 的 repo 记录协作 operation，不是社交 feed record。
 - Contrix 把 Space policy、capability、Index、Applet、Agent、MLS 都纳入同一协作协议边界。
 
-### 4.4 MLS E2EE
-
-这个判断方向正确，但不应简单写成“Matrix 落后、Contrix 更先进”。
+### 4.4 E2EE 架构选择
 
 Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰富。Contrix 选择 MLS RFC 9420，是因为它更适合作为新的群组 E2EE 基础：
 
@@ -92,7 +82,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 - Contrix 可以把 MLS epoch 与 Space membership、history visibility、device authorization、auditable E2EE 直接绑定。
 - 被移除成员必须在新 epoch 上 fail closed。
 
-因此准确表述应是：Contrix 选择 **更现代、标准化、适合动态群组协作治理的 MLS 基础**，而不是沿用 Matrix 的 Olm / Megolm。
+因此，Contrix 选择了 **更现代、标准化、适合动态群组协作治理的 MLS 基础**，而不是沿用 Matrix 的 Olm / Megolm。
 
 ## 5. 其他关键区别
 

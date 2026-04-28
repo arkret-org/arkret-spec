@@ -2,9 +2,7 @@
 
 ## 1. Goal
 
-This document explains the core design differences between Contrix and Matrix.
-
-This document answers why Contrix is not a Matrix variant and not a rename of Matrix room / homeserver / appservice concepts.
+This document aims to explain the core design differences between Contrix and Matrix, clarifying why Contrix is not a direct Matrix variant, nor a simple rename or rewrite of its room / homeserver / appservice concepts.
 
 ## 2. Summary
 
@@ -31,15 +29,13 @@ The protocols can interoperate through bridges, but their roots are different.
 | Views and query | Client experience is reconstructed from sync, state, relations, and aggregation APIs. | View is first-class; Index / AppView are explicit derived query layers and cannot be truth sources. |
 | Plaintext boundary | Depends on deployment, encryption, appservice, and bridge configuration. | Private plaintext may only enter principal- or Space-policy-delegated services; `plaintext_visible_services` declares visibility. |
 
-## 4. Notes On Common Claims
+## 4. Deep Dive on Core Concepts
 
-### 4.1 Applets Compared With Appservices
-
-The direction is right, but the precise claim is about granularity rather than absolute superiority.
+### 4.1 Applets vs Application Services
 
 Matrix Application Services are mature bridge mechanisms built around homeserver registration, namespaces, transactions, queries, and ping.
 
-Contrix Applets differ as follows:
+Contrix Applets differ in their granularity and authorization model:
 
 - Applet registration is signed and can be accepted by a Space owner, Organization, registry, or authz service.
 - Namespace does not grant permission; each write still requires capability authorization.
@@ -47,23 +43,23 @@ Contrix Applets differ as follows:
 - Different users or organizations can enable different Applets in Spaces they control, subject to Space policy.
 - Applets can act as bots, bridges, ghost actor controllers, portal Space managers, delegated agents, or delegated devices while remaining auditable.
 
-### 4.2 AI And Agent Support
+### 4.2 AI and Agent Support
 
-Contrix is more agent-native.
+In Matrix, AI can be integrated via bots, appservices, or bridges, but it is not a protocol-native entity.
 
-Matrix can host AI through bots, appservices, or bridges, but AI is not a core protocol object. Contrix treats agents as principals, Actors, and capability subjects; agent outputs can become `run`, `memory`, `message`, or `task` Entities; and agent-to-agent work can explicitly upgrade to A2A / ACP legacy / MCP bridge / private agent APIs while writing session state, status, artifacts, and results back to Contrix.
+Contrix incorporates agents deeply into its object model: it treats agents as principals, Actors, and capability subjects; agent outputs can become `run`, `memory`, `message`, or `task` Entities; and agent-to-agent work can explicitly upgrade to A2A / ACP legacy / MCP bridge / private agent APIs while writing session state, status, artifacts, and results back to Contrix.
 
-### 4.3 Identity Is Closer To atprotocol
+### 4.3 Evolution of the Identity System
 
-This is mostly correct with limits.
+Contrix adopts a DID-rooted approach to identity and verifiable repositories, similar to certain principles in atprotocol, but with fundamental differences.
 
-Contrix borrows the direction of DID-rooted identity, bidirectional handle validation, service discovery through DID Documents, and per-principal verifiable repos. It is not atprotocol: atprotocol is primarily a public social-record and PDS architecture, while Contrix targets multi-party collaboration, private Spaces, authorization state, E2EE, and enterprise governance.
+While Contrix leverages DID-rooted identity, bidirectional handle validation, service discovery through DID Documents, and per-principal verifiable repos, it focuses on enterprise environments and secure collaboration. atprotocol is primarily a public social-record and PDS architecture, whereas Contrix targets multi-party collaboration, private Spaces, deterministic authorization state, integrated E2EE, and complex enterprise governance.
 
-### 4.4 MLS E2EE
+### 4.4 E2EE Architecture Choice
 
-Contrix should not describe this as simply "more advanced than Matrix." Matrix Olm / Megolm is mature and widely deployed.
+While Matrix's Olm / Megolm ecosystem is mature, widely deployed, and highly capable, Contrix integrates the modern, IETF standard MLS (RFC 9420) as its foundation for group E2EE. 
 
-The better statement is that Contrix chooses a more modern, standardized MLS RFC 9420 foundation for group E2EE. MLS maps naturally to group state, epochs, commits, proposals, member add/remove, history visibility, device authorization, and auditable E2EE.
+MLS maps naturally to group state, epochs, commits, proposals, member add/remove, history visibility, device authorization, and auditable E2EE. This better suits dynamic governance of collaborative Spaces and enterprise objects over legacy channel-first structures.
 
 ## 5. Other Important Differences
 
