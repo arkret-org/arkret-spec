@@ -115,7 +115,7 @@
 | --- | --- | --- |
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID method resolver、registry、witness、watcher、OOBI discovery 或 method-specific verifier 的统称。它证明 DID 控制历史、key state 和服务委托，不决定某个 DID 是否能登录组织或访问组织数据。`did:key` 可以只需要本地 resolver；`did:keri` 通常需要 KERI log、witness、watcher 或 OOBI。 |
 | Witness | 见证节点 | 对 DID log、key rotation、重要状态变更进行外部见证的服务或主体。 |
-| Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 repo、sync、index、blob、push、policy 等能力；产品层可称 Home Server。 |
+| Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 repo、sync、index、blob、push、policy 等能力；`service_type` 应声明为 `principal_server`。 |
 | Auth / Account Server | 认证/账户服务器 | 处理 passkey、OIDC、SSO、设备配对、session grant、账户恢复和 soft logout 的服务。它证明服务账户登录并绑定到 DID / device，不直接证明 DID 控制权，也不必须与 DID resolver 同源部署。 |
 | Repo Server | 仓库服务器 | `Repo Service` 的实际服务器形态，提供 commit 提交、Operation / commit 读取、repo sync 和审计回放。 |
 | Sync Service | 同步服务 | Principal Server 上的 Space 增量同步能力，负责订阅、回补、去重、临时信令和受控分发；它不是独立第三方服务器角色，也不是真相源。 |

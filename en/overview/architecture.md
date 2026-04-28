@@ -15,7 +15,7 @@ This requires the protocol to separate identity, writes, distribution, queries, 
 
 Contrix uses a **principal server + principal repo + identity registry + query index** architecture.
 
-A `Principal Server` is the service boundary controlled by a principal or explicitly delegated through DID service metadata and Space policy. Product implementations may call it a Home Server. It may host repo, sync, index, blob, push, and policy capabilities on one deployment while the protocol keeps those responsibilities separate.
+A `Principal Server` is the service boundary controlled by a principal or explicitly delegated through DID service metadata and Space policy. It may host repo, sync, index, blob, push, and policy capabilities on one deployment while the protocol keeps those responsibilities separate.
 
 Contrix does not define an independent third-party distribution server as a core role. Cross-principal and cross-organization propagation is handled by sync and federation between participating Principal Servers.
 
@@ -32,7 +32,7 @@ It is responsible for:
 
 This borrows from atproto's repo idea, but Contrix repos publish **collaboration operations**, not social records for feeds.
 
-### 2.2 Principal Server / Home Server
+### 2.2 Principal Server
 
 The Principal Server hosts or proxies:
 
@@ -96,23 +96,23 @@ Contrix clients are not limited to GUI applications. They also include:
 
 Agents are first-class protocol participants, not just plugins hanging off a UI.
 
-### 2.7 Concrete Server Types
+### 2.7 Principal Server Deployment Profiles
 
 Contrix defines capabilities as service roles. Real deployments may combine multiple roles in one process, domain, or node. Combining roles does not merge their security boundaries: service DID, `service_type`, capability, Space policy, plaintext visibility, and endpoint contracts must remain distinguishable.
 
-User-facing and operator-facing documentation should first explain what must be self-hosted at each deployment level, instead of requiring users to understand every service role.
+Use **Principal Server** directly. Deployment differences are expressed by deployment profile, which service roles are embedded or split, delegation source, public-infrastructure dependency, compliance requirements, and plaintext-boundary obligations.
 
 | Deployment level | Must self-host | Usually public or managed | Fits |
 | --- | --- | --- | --- |
-| Individual / small team | Personal / Team Server | Identity Resolver, Directory, Push Gateway, TURN / Media Relay | Individuals, families, small projects, small teams. |
-| Standard organization | Organization Server, Auth / Account Server; add Admin / Policy Server when centralized authorization and audit are needed | Identity Resolver, Directory, Push Gateway, TURN / Media Relay | Companies, schools, communities, ordinary collaboration organizations. |
-| High-security organization | Organization / Principal Server, Auth / Account Server, Identity Resolution Infrastructure, Policy / Authz Server, Blob / Media Server | Public Directory, Push Gateway, or external federation gateways are optional | Government, enterprise, healthcare, finance, high-compliance organizations. |
+| Individual / small team | Principal Server | Identity Resolver, Directory, Push Gateway, TURN / Media Relay | Individuals, families, small projects, small teams. |
+| Standard organization | Organization-delegated Principal Server, Auth / Account Server; add Admin / Policy Server when centralized authorization and audit are needed | Identity Resolver, Directory, Push Gateway, TURN / Media Relay | Companies, schools, communities, ordinary collaboration organizations. |
+| High-security organization | One or more organization-delegated Principal Servers, Auth / Account Server, Identity Resolution Infrastructure, Policy / Authz Server, Blob / Media Server | Public Directory, Push Gateway, or external federation gateways are optional | Government, enterprise, healthcare, finance, high-compliance organizations. |
 | Classified / isolated network | Principal Server, Identity Resolution Infrastructure, Auth / Account Server, Directory Server, Policy / Authz Server, Repo / Blob Server, Sync / Federation Server, Audit / Compliance Server | Public services are normally not dependencies; cross-domain collaboration must use controlled gateways, invitation bundles, or trust bundles that define resolver context | Military, intranet, fully isolated, or strongly controlled networks. |
 
-The minimum individual or small-team deployment has one user-visible server:
+The minimum individual or small-team deployment has one Principal Server:
 
 ```text
-Personal / Team Server
+Principal Server
 ├─ principal endpoint
 ├─ repo storage
 ├─ sync / federation endpoint
@@ -138,7 +138,7 @@ Advanced implementations still declare capabilities and security boundaries thro
 
 | Service role | Common `service_type` | Main services | Truth source? | Plaintext boundary |
 | --- | --- | --- | --- | --- |
-| Principal Server | `principal_server` | Principal-controlled entry point; may aggregate repo, sync, federation, device messages, policy, blob, and index capabilities. Product layers may present it as a Home / Work / Team Server. | No; truth comes from signed repos / events. | May receive non-encrypted content only within principal or Space-policy delegation. |
+| Principal Server | `principal_server` | Principal-controlled entry point; may aggregate repo, sync, federation, device messages, policy, blob, and index capabilities. | No; truth comes from signed repos / events. | May receive non-encrypted content only within principal or Space-policy delegation. |
 | Identity Resolution Infrastructure | `identity_registry` or method-specific resolver | DID Documents, DID key logs, KERI event logs, handle bindings, receipts / witnesses, watchers, OOBI, service discovery. | One verifiable source for identity control history; `did:key` may resolve locally by algorithm. | Should not receive Space bodies. |
 | Auth / Account Server | `auth_server` or deployment-specific | Passkeys, OIDC, SSO, device pairing, session grants, account recovery, soft logout. | No; it proves service-account login and binds it to DID / device. | Password recovery must not grant E2EE plaintext or DID control by itself. |
 | Repo Server | `repo_node` | Commit submission, Operation / commit reads, repo incremental sync, audit replay. | Hosts the publication log; authority comes from signatures and hash chains. | May store plaintext contained in commits only under principal / Space-policy delegation. |

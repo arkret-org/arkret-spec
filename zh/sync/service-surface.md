@@ -68,14 +68,16 @@ DID Document SHOULD 只负责：
 
 实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `server/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
 
-常见组合如下。这里的“需要”表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建 Personal / Team Server，其余基础设施可使用公共或托管服务。
+协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Repo、Index、Blob、Identity Resolution 等能力表达。
+
+常见组合如下。这里的“需要”表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建一个 Principal Server，其余基础设施可使用公共或托管服务。
 
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
-| Principal Server | 普通用户自建的核心入口；产品层可合并为 Personal / Team / Organization Server | `/server`, `/sync`, `/federation`, 可代理 `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
+| Principal Server | 普通用户或组织自建的核心入口 | `/server`, `/sync`, `/federation`, 可代理 `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/identity`, `/server` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
 | Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
-| Repo Server | 普通用户通常内置在 Personal / Team Server | `/repo`, `/server` | commit 提交、Operation / commit 读取、repo sync、审计回放、hash chain 校验。 |
+| Repo Server | 普通用户通常内置在 personal profile 的 Principal Server | `/repo`, `/server` | commit 提交、Operation / commit 读取、repo sync、审计回放、hash chain 校验。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
 | Index / AppView Server | 个人可本地或内置；组织按搜索和应用视图需求自建 | `/index`, `/server` | 当前态、查询、搜索、inbox、notification、View projection、embedding/vector index。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，最小披露发现。 |
@@ -90,9 +92,9 @@ DID Document SHOULD 只负责：
 
 推荐 deployment profile：
 
-- `personal_node`：用户可见为一个 Personal / Team Server；内部合并 Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz，可选本地 Index；Identity Resolver、Directory、Push 和 TURN/Media 默认可用公共服务。
-- `organization_workserver`：Organization Server + Auth / Account Server；需要统一授权和审计时增加 Policy Server；Index、Blob、Directory、Push 可按规模和合规要求拆分。
-- `secure_organization`：Organization / Principal Server + Auth + Identity Resolution Infrastructure + Policy/Authz + Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
+- `principal_server_personal`：一个 Principal Server；内部合并 Repo + Sync/Federation + Blob + Device/Key + Authz，可选本地 Index；Identity Resolver、Directory、Push 和 TURN/Media 默认可用公共服务。
+- `principal_server_organization`：一个组织委托的 Principal Server；通常搭配 Auth / Account Server；需要统一授权和审计时增加 Policy Server；Index、Blob、Directory、Push 可按规模和合规要求拆分。
+- `principal_server_secure_organization`：一个或多个组织委托的 Principal Server，搭配 Auth / Account Server、Identity Resolution Infrastructure、Policy/Authz、Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_bridge`：Applet Server + Repo writer + Authz precheck，只在授权 namespace 和 capability 内工作。

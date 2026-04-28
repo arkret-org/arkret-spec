@@ -50,7 +50,7 @@ Contrix 第一阶段聚焦以下目标：
 
 核心阅读路径：
 
-1. [architecture.md](./overview/architecture.md)：架构平面、实际服务器类型、部署拓扑和信任边界。
+1. [architecture.md](./overview/architecture.md)：架构平面、Principal Server 部署形态、部署拓扑和信任边界。
 2. [glossary.md](./overview/glossary.md)：术语边界，尤其是 Principal / Actor / Organization / Space / Principal Server / Repo。
 3. [object-model-core.md](./models/object-model-core.md) 与 [object-model-standard.md](./models/object-model-standard.md)：核心对象和标准类型。
    字段级定义见 [data-structures.md](./models/data-structures.md)。

@@ -15,7 +15,7 @@ Contrix 的顶层架构要同时满足四件事：
 
 Contrix 采用 **principal server + principal repo + identity registry + query index** 的分层模型。
 
-`Principal Server` 是 principal 自己控制或通过 DID / Space policy 明确委托的服务入口。产品层可以把它称为 Home Server。它可以同机承载 repo、sync、index、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。
+`Principal Server` 是 principal 自己控制或通过 DID / Space policy 明确委托的服务入口。它可以同机承载 repo、sync、index、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。
 
 Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
@@ -56,7 +56,7 @@ Principal Repo 是逻辑上的可验证发布日志，不等同于一台服务�
 
 Repo 的权威来自 principal 对 commit / operation 的签名、DID 控制链、commit hash 链和幂等序列，而不是来自托管它的服务器。托管 Repo Service 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
-### 2.2 Principal Server / Home Server
+### 2.2 Principal Server
 
 Principal Server 是 principal 的受控服务边界。它负责承载或代理：
 
@@ -120,23 +120,23 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 协议必须把 agent 当作一等参与者，而不是 UI 里的“插件”。
 
-### 2.7 实际落地的服务器类型
+### 2.7 Principal Server 部署形态
 
 Contrix 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署不得改变各角色的安全边界：service DID、`service_type`、capability、Space policy、plaintext visibility 和 endpoint 契约仍必须可区分。
 
-面向用户和运维文档时，首先应按部署层级说明“必须自己搭建什么”，而不是要求用户理解所有服务角色。
+面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
 | 部署层级 | 必须自建 | 通常使用公共或托管服务 | 适合对象 |
 | --- | --- | --- | --- |
-| 个人 / 小团队 | Personal / Team Server | Identity Resolver、Directory、Push Gateway、TURN / Media Relay | 个人、家庭、小项目、小团队。 |
-| 普通组织 | Organization Server、Auth / Account Server；需要统一授权和审计时增加 Admin / Policy Server | Identity Resolver、Directory、Push Gateway、TURN / Media Relay | 公司、学校、社区、普通协作组织。 |
-| 高安全组织 | Organization / Principal Server、Auth / Account Server、Identity Resolution Infrastructure、Policy / Authz Server、Blob / Media Server | 可选使用公共 Directory、Push Gateway 或外部互联入口 | 政企、医疗、金融、强合规组织。 |
+| 个人 / 小团队 | Principal Server | Identity Resolver、Directory、Push Gateway、TURN / Media Relay | 个人、家庭、小项目、小团队。 |
+| 普通组织 | 组织委托的 Principal Server、Auth / Account Server；需要统一授权和审计时增加 Admin / Policy Server | Identity Resolver、Directory、Push Gateway、TURN / Media Relay | 公司、学校、社区、普通协作组织。 |
+| 高安全组织 | 一个或多个组织委托的 Principal Server、Auth / Account Server、Identity Resolution Infrastructure、Policy / Authz Server、Blob / Media Server | 可选使用公共 Directory、Push Gateway 或外部互联入口 | 政企、医疗、金融、强合规组织。 |
 | 涉密 / 隔离网络 | Principal Server、Identity Resolution Infrastructure、Auth / Account Server、Directory Server、Policy / Authz Server、Repo / Blob Server、Sync / Federation Server、Audit / Compliance Server | 原则上不依赖公共服务；跨域协作必须经受控网关、邀请包或 trust bundle 明确解析上下文 | 军方、内网、完全隔离或强管控网络。 |
 
-最小个人或小团队部署只有一个用户可见服务器：
+最小个人或小团队部署只有一个 Principal Server：
 
 ```text
-Personal / Team Server
+Principal Server
 ├─ principal endpoint
 ├─ repo storage
 ├─ sync / federation endpoint
@@ -162,7 +162,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 
 | 服务角色 | 常见 `service_type` | 主要服务 | 是否真相源 | 明文边界 |
 | --- | --- | --- | --- | --- |
-| Principal Server | `principal_server` | principal 的受控入口；可聚合 repo、sync、federation、device message、policy、blob、index 等受托能力；产品层可呈现为 Home / Work / Team Server。 | 否；真相来自签名 Repo / Event。 | 可以接收该 principal 或 Space policy 授权范围内的非加密内容。 |
+| Principal Server | `principal_server` | principal 的受控入口；可聚合 repo、sync、federation、device message、policy、blob、index 等受托能力。 | 否；真相来自签名 Repo / Event。 | 可以接收该 principal 或 Space policy 授权范围内的非加密内容。 |
 | Identity Resolution Infrastructure | `identity_registry` 或 method-specific resolver | DID Document、DID key log、KERI event log、handle binding、receipt / witness、watcher、OOBI、service discovery。 | 是身份控制链的可验证来源之一；`did:key` 可由本地算法解析。 | 不应接收 Space 正文。 |
 | Auth / Account Server | `auth_server` 或部署私有名 | passkey、OIDC、SSO、设备配对、session grant、账户恢复与 soft logout。 | 否；只证明服务账户登录，并绑定到 DID / device。 | 不应因密码恢复获得 E2EE 明文或 DID 控制权。 |
 | Repo Server | `repo_node` | commit 提交、Operation / commit 读取、repo 增量同步、审计回放。 | 是发布日志的承载者；权威来自签名和 hash 链。 | 可保存提交中包含的明文，必须受 principal / Space policy 委托。 |

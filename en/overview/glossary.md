@@ -9,7 +9,7 @@ It defines the common terminology used across Contrix, including identity, core 
 | Term | Definition |
 | --- | --- |
 | Identity Resolution Infrastructure | Umbrella term for DID method resolvers, registries, witnesses, watchers, OOBI discovery, or method-specific verifiers. It proves DID control history, key state, and service delegation; it does not decide whether a DID may log in to an organization or access organization data. `did:key` may need only a local resolver; `did:keri` usually needs KERI logs, witnesses, watchers, or OOBI. |
-| Principal Server | A service boundary controlled by a principal or explicitly delegated through DID / Space policy. It may host repo, sync, index, blob, push, and policy capabilities. Product layers may call it a Home Server. |
+| Principal Server | A service boundary controlled by a principal or explicitly delegated through DID / Space policy. It may host repo, sync, index, blob, push, and policy capabilities. Its `service_type` should be `principal_server`. |
 | Auth / Account Server | Service handling passkeys, OIDC, SSO, device pairing, session grants, account recovery, and soft logout. It proves service-account login and binds it to DID / device; it does not directly prove DID control and does not need to share an operator with the DID resolver. |
 | Repo Server | Concrete server form of `Repo Service`, providing commit submission, Operation / commit reads, repo sync, and audit replay. |
 | Sync Service | The Space incremental sync capability exposed by a Principal Server. It handles subscription, backfill, deduplication, ephemeral signaling, and controlled distribution. It is not an independent third-party server role or a truth source. |

@@ -67,14 +67,16 @@ Without that, clients cannot safely decide whether to use the service.
 
 In deployment, a "server" is a combination of one or more service surfaces; it is not automatically a protocol truth source. Implementations may merge servers, but `server/describe` must still declare `service_type`, `supported_operations`, authentication methods, limits, and profiles.
 
-Common combinations follow. "Required" here means the protocol interaction needs the capability to exist; it does not mean every user must self-host it. Individuals and small teams usually self-host only a Personal / Team Server and use public or managed infrastructure for the rest.
+The protocol term for the controlled entry point owned or delegated by a principal is **Principal Server**. Deployment differences are expressed by the deployment profile, supported operations, and whether Auth / Account, Policy, Repo, Index, Blob, Identity Resolution, and related capabilities are embedded or separated.
+
+Common combinations follow. "Required" here means the protocol interaction needs the capability to exist; it does not mean every user must self-host it. Individuals and small teams usually self-host only one Principal Server and use public or managed infrastructure for the rest.
 
 | Concrete server | Standard deployment guidance | Typical REST namespaces | Main capability |
 | --- | --- | --- | --- |
-| Principal Server | Core user-hosted entry point; product layers may combine it as a Personal / Team / Organization Server | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
+| Principal Server | Core user- or organization-hosted entry point | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
 | Identity Resolution Infrastructure | Ordinary users normally use public services or local method resolvers; high-security or isolated networks self-host the full infrastructure | `/identity`, `/server`, or method-specific resolver | DID Documents, DID / KERI logs, handle bindings, receipts, witnesses, watchers, OOBI, service endpoint discovery. |
 | Auth / Account Server | May be embedded for personal deployments; organizations usually separate it or connect SSO | Exposed through `auth_metadata`; login paths may be deployment-specific | Login, passkeys/OIDC/SSO, session grants, device pairing, account recovery; does not replace DID control. |
-| Repo Server | Usually embedded in the Personal / Team Server for ordinary users | `/repo`, `/server` | Commit submission, Operation / commit reads, repo sync, audit replay, hash-chain verification. |
+| Repo Server | Usually embedded in a personal-profile Principal Server for ordinary users | `/repo`, `/server` | Commit submission, Operation / commit reads, repo sync, audit replay, hash-chain verification. |
 | Sync / Federation Server | Usually embedded in the Principal Server for ordinary users | `/sync`, `/federation`, `/server` | Client sync, subscriptions, backfill, snapshot heads, cross-domain transactions, replay and destination-binding checks. |
 | Index / AppView Server | May be local or embedded for individuals; organizations self-host it when search and app views require it | `/index`, `/server` | Current state, query, search, inbox, notification, View projection, embedding/vector index. |
 | Directory Server | Ordinary users normally use a public directory; organizations self-host it for discovery control or isolated networks | `/directory`, `/server` | Authorized search and resolution for Spaces, Organizations, Actors, handles, and Applets. |
@@ -89,9 +91,9 @@ Common combinations follow. "Required" here means the protocol interaction needs
 
 Recommended deployment profiles:
 
-- `personal_node`: user-visible as one Personal / Team Server; internally combines Principal Server + Repo + Sync/Federation + Blob + Device/Key + Authz, with optional local Index; Identity Resolver, Directory, Push, and TURN/Media may use public services by default.
-- `organization_workserver`: Organization Server + Auth / Account Server; add Policy Server when centralized authorization and audit are needed; Index, Blob, Directory, and Push may be split according to scale and compliance requirements.
-- `secure_organization`: Organization / Principal Server + Auth + Identity Resolution Infrastructure + Policy/Authz + Blob/Media; public Directory, Push, or external federation ingress are optional external connectivity points only.
+- `principal_server_personal`: one Principal Server; internally combines Repo + Sync/Federation + Blob + Device/Key + Authz, with optional local Index; Identity Resolver, Directory, Push, and TURN/Media may use public services by default.
+- `principal_server_organization`: an organization-delegated Principal Server; usually paired with an Auth / Account Server; add Policy Server when centralized authorization and audit are needed; Index, Blob, Directory, and Push may be split according to scale and compliance requirements.
+- `principal_server_secure_organization`: one or more organization-delegated Principal Servers paired with Auth / Account Server, Identity Resolution Infrastructure, Policy/Authz, and Blob/Media; public Directory, Push, or external federation ingress are optional external connectivity points only.
 - `isolated_enclave`: Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance all deployed inside the trust domain.
 - `public_federation_ingress`: restricted Principal/Federation + Policy + Moderation + Directory; plaintext is not visible by default.
 - `applet_bridge`: Applet Server + Repo writer + Authz precheck, limited to authorized namespace and capability.
