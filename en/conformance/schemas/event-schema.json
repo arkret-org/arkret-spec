@@ -1,0 +1,143 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://contrix.org/schemas/v1/event-envelope",
+  "title": "Contrix v1 Event Envelope",
+  "description": "Event envelope for protocol facts in Contrix v1",
+  "type": "object",
+  "required": [
+    "event_id",
+    "kind",
+    "space_id",
+    "space_version",
+    "actor_id",
+    "actor_seq",
+    "created_at",
+    "hlc",
+    "prev_refs",
+    "auth_refs",
+    "content",
+    "proofs"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$",
+      "description": "Event unique identifier"
+    },
+    "kind": {
+      "type": "string",
+      "pattern": "^cx\\.[a-z]+\\.[a-z]+$",
+      "description": "Event kind (e.g., cx.entity.create)"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$",
+      "description": "Target Space"
+    },
+    "space_version": {
+      "type": "string",
+      "pattern": "^\\d+$",
+      "description": "Space protocol version"
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Event actor DID"
+    },
+    "actor_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Actor-local sequence number"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event creation timestamp"
+    },
+    "hlc": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{8}-[0-9a-f]{8}$",
+      "description": "Hybrid Logical Clock value"
+    },
+    "prev_refs": {
+      "type": "array",
+      "description": "Causal dependencies (actor repo)",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:(evt|event|operation):[0-9a-hjkmnp-z]{26}$"
+      },
+      "default": []
+    },
+    "auth_refs": {
+      "type": "array",
+      "description": "Authorization dependencies",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:(evt|event|grant|policy):[0-9a-hjkmnp-z]{26}$"
+      },
+      "default": []
+    },
+    "redacts": {
+      "type": "string",
+      "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$",
+      "description": "Event being redacted (for redaction events)"
+    },
+    "content": {
+      "type": "object",
+      "description": "Event payload (defined by event kind)"
+    },
+    "unsigned": {
+      "type": "object",
+      "description": "Unsigned metadata (not covered by signature)",
+      "additionalProperties": true
+    },
+    "proofs": {
+      "type": "array",
+      "description": "Event signatures",
+      "items": {
+        "$ref": "#/definitions/proof"
+      },
+      "minItems": 1
+    }
+  },
+  "definitions": {
+    "proof": {
+      "type": "object",
+      "required": ["kind", "alg", "verification_method", "payload_hash", "jws"],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "alg": {
+          "type": "string",
+          "enum": ["EdDSA", "ES256", "ES384", "ES512"]
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+#key-[0-9a-z-]+$"
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "audience": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+$"
+        }
+      }
+    }
+  }
+}

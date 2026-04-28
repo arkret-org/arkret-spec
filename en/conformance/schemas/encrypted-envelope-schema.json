@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://contrix.org/schemas/v1/encrypted-envelope",
+  "title": "Contrix v1 Encrypted Payload Envelope",
+  "description": "Encrypted content envelope for Contrix v1",
+  "type": "object",
+  "required": [
+    "scheme",
+    "version",
+    "group_id",
+    "epoch",
+    "content_type",
+    "ciphertext",
+    "authentication_tag",
+    "aad",
+    "digests"
+  ],
+  "properties": {
+    "scheme": {
+      "const": "mls-rfc9420",
+      "description": "Encryption scheme identifier"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Scheme version"
+    },
+    "group_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "MLS group ID (Base64URL without padding)"
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "MLS epoch number"
+    },
+    "content_type": {
+      "type": "string",
+      "pattern": "^[a-z]+/[a-z+.-]+$",
+      "description": "MIME type of decrypted content"
+    },
+    "ciphertext": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Encrypted payload (Base64URL without padding)"
+    },
+    "authentication_tag": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "AEAD authentication tag (Base64URL without padding)"
+    },
+    "aad": {
+      "type": "object",
+      "required": ["space_id", "event_type", "event_id", "causal_refs"],
+      "properties": {
+        "space_id": {
+          "type": "string",
+          "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        },
+        "event_type": {
+          "type": "string",
+          "pattern": "^cx\\.[a-z]+\\.[a-z]+$"
+        },
+        "event_id": {
+          "type": "string",
+          "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$"
+        },
+        "causal_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$"
+          },
+          "default": []
+        }
+      }
+    },
+    "key_ref": {
+      "type": "object",
+      "description": "Key material reference (optional)",
+      "properties": {
+        "algorithm": {
+          "const": "MLS"
+        },
+        "ratchet_tree": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "MLS ratchet tree (Base64URL)"
+        }
+      }
+    },
+    "digests": {
+      "type": "object",
+      "required": ["payload_digest", "aad_digest"],
+      "properties": {
+        "payload_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA256 of ciphertext + authentication_tag"
+        },
+        "aad_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA256 of canonical AAD"
+        }
+      }
+    }
+  }
+}

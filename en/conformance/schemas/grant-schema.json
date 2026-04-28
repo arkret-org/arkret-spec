@@ -1,0 +1,282 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://contrix.org/schemas/v1/capability-grant",
+  "title": "Contrix v1 Capability Grant",
+  "description": "Capability grant for authorization in Contrix v1",
+  "type": "object",
+  "required": ["id", "type", "issuer", "subject", "actions", "resources", "proofs"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$",
+      "description": "Grant unique identifier"
+    },
+    "type": {
+      "const": "capability",
+      "description": "Object type"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$",
+      "description": "Target Space (optional for global grants)"
+    },
+    "issuer": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Grant issuer DID"
+    },
+    "subject": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+          "description": "Granted principal DID"
+        },
+        {
+          "type": "object",
+          "description": "Conditional selector",
+          "required": ["kind", "requires_claims"],
+          "properties": {
+            "kind": {
+              "const": "condition"
+            },
+            "requires_claims": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/claim_requirement"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "actions": {
+      "type": "array",
+      "description": "Allowed actions",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z_]+$"
+      },
+      "minItems": 1
+    },
+    "resources": {
+      "type": "array",
+      "description": "Resource selectors",
+      "items": {
+        "$ref": "#/definitions/resource_selector"
+      },
+      "minItems": 1
+    },
+    "constraints": {
+      "type": "array",
+      "description": "Grant constraints",
+      "items": {
+        "$ref": "#/definitions/constraint"
+      }
+    },
+    "delegable": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this grant can be delegated"
+    },
+    "parent_grant_id": {
+      "type": "string",
+      "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$",
+      "description": "Parent grant for delegated grants"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Grant validity start"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Grant expiration"
+    },
+    "revoked_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Revoker DID"
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Revocation timestamp"
+    },
+    "proofs": {
+      "type": "array",
+      "description": "Grant signatures",
+      "items": {
+        "$ref": "#/definitions/proof"
+      },
+      "minItems": 1
+    }
+  },
+  "definitions": {
+    "resource_selector": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["space", "entity", "relation", "view", "*"]
+        },
+        "space_id": {
+          "type": "string",
+          "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        },
+        "entity_type": {
+          "type": "string"
+        },
+        "entity_id": {
+          "type": "string",
+          "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        },
+        "relation_kind": {
+          "type": "string"
+        },
+        "view_id": {
+          "type": "string",
+          "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "required": ["constraint_type", "effect"],
+      "properties": {
+        "constraint_type": {
+          "type": "string",
+          "enum": [
+            "temporal",
+            "field_access",
+            "type_restriction",
+            "scope_limitation",
+            "delegation_control",
+            "rate_limiting",
+            "approval_workflow",
+            "claim_based",
+            "accountability",
+            "encryption_requirement"
+          ]
+        },
+        "effect": {
+          "type": "string",
+          "enum": ["allow", "deny", "quarantine", "require_review"]
+        },
+        "priority": {
+          "type": "integer",
+          "default": 0
+        },
+        "not_before": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "fields_write_allow": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "fields_write_deny": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "max_delegation_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "requires_claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/claim_requirement"
+          }
+        },
+        "approval_required": {
+          "type": "boolean"
+        },
+        "approval_mode": {
+          "type": "string",
+          "enum": ["before_commit", "proposal_then_approve", "after_commit_review"]
+        },
+        "approval_actor_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+          }
+        },
+        "approval_relation": {
+          "type": "string",
+          "enum": ["responsible", "controller", "guardian", "space_admin", "custom"]
+        }
+      }
+    },
+    "claim_requirement": {
+      "type": "object",
+      "required": ["claim_type", "issuer"],
+      "properties": {
+        "claim_type": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        },
+        "organization": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        },
+        "status": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "proof": {
+      "type": "object",
+      "required": ["kind", "alg", "verification_method", "payload_hash", "jws"],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "alg": {
+          "type": "string",
+          "enum": ["EdDSA", "ES256", "ES384", "ES512"]
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "audience": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+$"
+        }
+      }
+    }
+  }
+}

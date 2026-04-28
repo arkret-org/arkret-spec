@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://contrix.org/schemas/v1/cursor",
+  "title": "Contrix v1 Sync Cursor",
+  "description": "Cursor structure for incremental synchronization in Contrix v1",
+  "type": "object",
+  "required": ["v", "t", "s", "x"],
+  "properties": {
+    "v": {
+      "type": "string",
+      "const": "1",
+      "description": "Cursor version"
+    },
+    "t": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cursor generation timestamp (RFC 3339)"
+    },
+    "s": {
+      "type": "object",
+      "description": "Space positions map",
+      "patternProperties": {
+        "^cx:space:[0-9a-hjkmnp-z]{26}$": {
+          "type": "object",
+          "description": "Per-space position",
+          "required": ["p", "o", "h"],
+          "properties": {
+            "p": {
+              "type": "array",
+              "description": "Causal frontier (event IDs)",
+              "items": {
+                "type": "string",
+                "pattern": "^cx:(evt|event|operation):[0-9a-hjkmnp-z]{26}$"
+              }
+            },
+            "o": {
+              "type": "string",
+              "description": "Timeline order HLC",
+              "pattern": "^[0-9a-f]{12}-[0-9a-f]{8}-[0-9a-f]{8}$"
+            },
+            "h": {
+              "type": "string",
+              "description": "State hash at this position",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "d": {
+      "type": "object",
+      "description": "Device positions map (optional)",
+      "patternProperties": {
+        "^.+$": {
+          "type": "string",
+          "description": "Last processed message ID",
+          "pattern": "^cx:(devmsg|device_message):[0-9a-hjkmnp-z]{26}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "x": {
+      "type": "integer",
+      "description": "Expiration timestamp (Unix milliseconds)",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "v": "1",
+      "t": "2026-04-26T00:00:00.000Z",
+      "s": {
+        "cx:space:01JS0SP000000000000000000": {
+          "p": ["cx:evt:01JS0EV000000000000000000"],
+          "o": "01970e589d21-0004-a13f9c2e",
+          "h": "sha256:abc123def4567890123456789012345678901234567890123456789012345678"
+        }
+      },
+      "d": {
+        "device-1": "cx:devmsg:01JS0DM000000000000000000"
+      },
+      "x": 1714080000000
+    }
+  ]
+}
