@@ -310,7 +310,7 @@ Raw W3C VC 字段同理：
     "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1"
   ],
   "proof": {
-    "type": "detached_jws",
+    "kind": "detached_jws",
     "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#signing-1",
     "jws": "..."
   }

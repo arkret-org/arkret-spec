@@ -24,7 +24,7 @@
   "event_id": "evt_a",
   "actor_id": "did:uuid:actor_a",
   "actor_seq": 1,
-  "hlc": "2026-01-01T00:00:00.000Z/0000",
+  "hlc": "019b76daa800-0000-a0000000",
   "causal_depth": 1,
   "prev_refs": [],
   "auth_refs": [],
@@ -70,7 +70,7 @@ cx.vector.sync.order.basic.v1
     "event_id": "evt_b",
     "actor_id": "did:uuid:b",
     "actor_seq": 1,
-    "hlc": "2026-01-01T00:00:02.000Z/0000",
+    "hlc": "019b76daafd0-0000-00000000",
     "causal_depth": 1,
     "prev_refs": [],
     "auth_refs": []
@@ -79,7 +79,7 @@ cx.vector.sync.order.basic.v1
     "event_id": "evt_a",
     "actor_id": "did:uuid:a",
     "actor_seq": 1,
-    "hlc": "2026-01-01T00:00:01.000Z/0000",
+    "hlc": "019b76daabe8-0000-00000000",
     "causal_depth": 1,
     "prev_refs": [],
     "auth_refs": []
@@ -88,7 +88,7 @@ cx.vector.sync.order.basic.v1
     "event_id": "evt_c",
     "actor_id": "did:uuid:c",
     "actor_seq": 1,
-    "hlc": "2026-01-01T00:00:00.500Z/0000",
+    "hlc": "019b76daa9f4-0000-00000000",
     "causal_depth": 2,
     "prev_refs": [],
     "auth_refs": ["evt_a"]
@@ -128,21 +128,21 @@ cx.vector.sync.order.tie_break.v1
     "event_id": "evt_z",
     "actor_id": "did:uuid:z",
     "actor_seq": 1,
-    "hlc": "2026-01-01T00:00:01.000Z/0000",
+    "hlc": "019b76daabe8-0000-00000000",
     "causal_depth": 1
   },
   {
     "event_id": "evt_a",
     "actor_id": "did:uuid:a",
     "actor_seq": 9,
-    "hlc": "2026-01-01T00:00:01.000Z/0000",
+    "hlc": "019b76daabe8-0000-00000000",
     "causal_depth": 1
   },
   {
     "event_id": "evt_a_2",
     "actor_id": "did:uuid:a",
     "actor_seq": 10,
-    "hlc": "2026-01-01T00:00:01.000Z/0000",
+    "hlc": "019b76daabe8-0000-00000000",
     "causal_depth": 1
   }
 ]

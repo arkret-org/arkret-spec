@@ -314,7 +314,7 @@ Recommended object:
   "valid_from": "2026-04-26T00:00:00Z",
   "valid_until": null,
   "proof": {
-    "type": "detached_jws",
+    "kind": "detached_jws",
     "verification_method": "did:web:acme.example#governance-key-1",
     "jws": "..."
   }

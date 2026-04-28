@@ -154,13 +154,13 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"content":{"body":"hello"},"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","prev_refs":[],"space_id":"cx:space:01js0ke000000000000000000","space_version":"1","kind":"cx.message.create"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"content":{"body":"hello"},"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","prev_refs":[],"space_id":"cx:space:01js0ke000000000000000000","space_version":"1"}
 ```
 
 期望 digest：
 
 ```text
-sha256:921bf7f35f54ec956b198d7465aaf517c617698ac1e8932246e4304d741215af
+sha256:eb874f42a73755f5e77d3815a9cefa19487d84e12459d9c53766fdd6dc43cc5a
 ```
 
 判定规则：
@@ -181,12 +181,16 @@ cx.vector.encoding.commit_digest.v1
 
 ```json
 {
+  "schema": "cx.schema.commit.v1",
   "commit_id": "cx:commit:01js0ke000000000000000000",
+  "type": "commit",
+  "repo_id": "did:web:alice.example",
+  "author": "did:web:alice.example",
+  "author_seq": 1,
   "prev_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "operations": [
     "sha256:1111111111111111111111111111111111111111111111111111111111111111"
   ],
-  "author": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -194,19 +198,20 @@ cx.vector.encoding.commit_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"author":"did:web:alice.example","commit_id":"cx:commit:01js0ke000000000000000000","created_at":"2026-04-26T00:00:00Z","operations":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"prev_commit":"sha256:0000000000000000000000000000000000000000000000000000000000000000"}
+{"author":"did:web:alice.example","author_seq":1,"commit_id":"cx:commit:01js0ke000000000000000000","created_at":"2026-04-26T00:00:00Z","operations":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"prev_commit":"sha256:0000000000000000000000000000000000000000000000000000000000000000","repo_id":"did:web:alice.example","schema":"cx.schema.commit.v1","type":"commit"}
 ```
 
 期望 digest：
 
 ```text
-sha256:dcc50e440bd8e4ccdc1f616811c78a75c0c8953e7975d74aed81a6de3c1fdc0e
+sha256:8ee2713192bc01d5a6ba7c0a6b2125e00dffff1fb6f4ee85add16c81e6d2d8f0
 ```
 
 失败条件：
 
 - `operations` 数组被排序或去重后再 hash。
 - proof 字段被包含进 commit digest。
+- `repo_id`、`author_seq`、`schema` 或 `type` 被排除在 digest 外。
 - `commit_id` 大小写被实现私自改写。
 
 ## 8. Vector: Signature Binding Payload

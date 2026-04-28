@@ -121,7 +121,7 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
   },
   "created_at": "2026-04-26T00:00:00Z",
   "proof": {
-    "type": "detached_jws",
+    "kind": "detached_jws",
     "verification_method": "did:web:acme.example#admin-key-1",
     "jws": "..."
   }
@@ -434,7 +434,7 @@ Applet 写入 Contrix MUST 使用常规 repo submit 接口。
     }
   },
   "proof": {
-    "type": "detached_jws",
+    "kind": "detached_jws",
     "verification_method": "did:web:slack-bridge.example#ghost-u123-key",
     "jws": "..."
   }

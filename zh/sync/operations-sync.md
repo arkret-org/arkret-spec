@@ -112,6 +112,8 @@ Contrix v1 repo 以 commit 为发布单元。
 
 每个 operation MUST 具备统一 envelope。
 
+Operation Envelope 是 sync / federation 写路径的签名承载信封。它不同于 `data-structures.md` 中的 canonical Operation object：Envelope 的 `type` 是事件 kind，且通过 `causal`、`target_ref`、`authz_ref` 和 `signature` 绑定写入语义；canonical Operation object 的 `type` 固定为 `"operation"`，并使用 `operation_type` 描述 create/update/delete 等对象级动作。
+
 ```json
 {
   "operation_id": "cx:operation:01JS0OP000000000000000000",
@@ -123,7 +125,7 @@ Contrix v1 repo 以 commit 为发布单元。
     "deps": [
       "cx:operation:01JS0OO000000000000000000"
     ],
-    "hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
+    "hlc": "01970e589d21-0007-a13f9c2e",
     "actor_seq": 42
   },
   "body": {},

@@ -112,7 +112,7 @@ Organization discovery policy SHOULD be represented by organization profile stat
     "did:web:directory.acme.example"
   ],
   "proof": {
-    "type": "detached_jws",
+    "kind": "detached_jws",
     "verification_method": "did:web:acme.example#governance-key-1",
     "jws": "..."
   }

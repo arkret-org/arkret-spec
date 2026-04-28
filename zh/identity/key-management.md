@@ -190,7 +190,7 @@ MLS KeyPackage key 用于加入加密 Space。
   "expires_at": null,
   "authorized_by": "cx:device:01JS0KD000000000000000000",
   "proof": {
-    "type": "detached_jws",
+    "kind": "detached_jws",
     "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#device-old",
     "jws": "..."
   }

@@ -341,9 +341,11 @@ Schema id: `cx.schema.commit.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Commit proof。 |
 
-## 17. Operation
+## 17. Canonical Operation Object
 
 Schema id: `cx.schema.operation.v1`
+
+本节定义 Repo / 本地存储可内容寻址的 canonical Operation object。它使用固定 `type="operation"` 与独立的 `operation_type`。Sync / Federation 写路径中带签名、因果和 `target_ref` 的承载信封称为 **Operation Envelope**，见 `../sync/operations-sync.md`；该信封的 `type` 是事件 kind，不使用本节的 `operation_type` 字段。实现不得把两者合并成一个含糊结构。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |

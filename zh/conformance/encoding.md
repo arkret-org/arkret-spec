@@ -54,15 +54,19 @@ ULID MUST 使用 Crockford Base32 大写或规范小写之一；同一 profile M
 
 ```json
 {
+  "schema": "cx.schema.commit.v1",
   "commit_id": "cx:commit:01JS0KE000000000000000000",
+  "type": "commit",
+  "repo_id": "did:web:alice.example",
+  "author": "did:web:alice.example",
+  "author_seq": 1,
   "prev_commit": "sha256:...",
   "operations": ["sha256:..."],
-  "author": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
-`commit_hash = sha256(canonical_json(commit_without_proof))`。
+`commit_hash = sha256(canonical_json(commit_without_proofs))`。`repo_id`、`author_seq`、`schema` 和 `type` 必须进入 hash，防止 Commit 被跨 repo 或跨序列重放。
 
 ## 6. Signature
 
@@ -70,7 +74,7 @@ ULID MUST 使用 Crockford Base32 大写或规范小写之一；同一 profile M
 
 ```json
 {
-  "type": "detached_jws",
+  "kind": "detached_jws",
   "alg": "EdDSA",
   "verification_method": "did:web:alice.example#device-1",
   "payload_hash": "sha256:...",
@@ -137,3 +141,5 @@ Cursor 内容 MAY 包含：
 ```text
 payload_digest = sha256(canonical_json(cleartext_metadata) || ciphertext_bytes)
 ```
+
+`cleartext_metadata` 至少包含 `encryption`、`epoch` 与 `content_type`；当 envelope 带 `aad` 时，`aad` MUST 进入 `cleartext_metadata` 后一起参与 digest。实现 MUST NOT 使用明文 payload 作为 `payload_digest` 输入。
