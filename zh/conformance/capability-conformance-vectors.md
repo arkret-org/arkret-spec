@@ -3,7 +3,7 @@
 ## 1. 目标
 
 本文件将 capability 的链式授权、撤销回滚与审批约束固定为跨实现向量。  
-适配对象：`identity-registry`, `repo_node`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
+适配对象：`identity-registry`, `principal_server_repo_api`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
 
 向量命名：
 

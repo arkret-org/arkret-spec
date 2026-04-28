@@ -35,14 +35,13 @@ This borrows from atproto's repo idea, but Contrix repos publish **collaboration
 A Principal Repo is a logical verifiable publication log, not a server. It may be carried by:
 
 - a local append-only log on a user device
-- a Repo Service embedded in a Principal Server
-- an independent Repo Service explicitly delegated by the principal or Space policy
+- repo storage and `/repo/*` APIs embedded in a Principal Server
 - read-only storage replicas
-- a `ContrixRepo` service endpoint declared in the DID Document
+- a Principal Server service endpoint declared in the DID Document
 
 The concrete storage shape is implementation-defined: database tables, commit / operation blobs in object storage, a filesystem append-only log, a Merkle log, a CAR-like block store, or a combination of these. The protocol requires stable access to canonical commit bytes, operation/event bytes, hashes, signatures, heads, cursors, and proof material.
 
-Repo authority comes from principal signatures over commits / operations, the DID control chain, commit hash chains, and idempotent sequence rules, not from the service that hosts it. A Repo Service can deny service, lag, or lose replicas, but it cannot forge valid writes for a principal.
+Repo authority comes from principal signatures over commits / operations, the DID control chain, commit hash chains, and idempotent sequence rules, not from the Principal Server that hosts it. A Principal Server can deny service, lag, or lose replicas, but it cannot forge valid writes for a principal.
 
 ### 2.2 Principal Server
 
@@ -153,7 +152,6 @@ Advanced implementations still declare capabilities and security boundaries thro
 | Principal Server | `principal_server` | Principal-controlled entry point; may aggregate repo, sync, federation, device messages, policy, blob, and index capabilities. | No; truth comes from signed repos / events. | May receive non-encrypted content only within principal or Space-policy delegation. |
 | Identity Resolution Infrastructure | `identity_registry` or method-specific resolver | DID Documents, DID key logs, KERI event logs, handle bindings, receipts / witnesses, watchers, OOBI, service discovery. | One verifiable source for identity control history; `did:key` may resolve locally by algorithm. | Should not receive Space bodies. |
 | Auth / Account Server | `auth_server` or deployment-specific | Passkeys, OIDC, SSO, device pairing, session grants, account recovery, soft logout. | No; it proves service-account login and binds it to DID / device. | Password recovery must not grant E2EE plaintext or DID control by itself. |
-| Repo Service | `repo_node` | Commit submission, Operation / commit reads, repo incremental sync, audit replay. Usually embedded in or proxied by a Principal Server; advanced deployments MAY delegate it separately. | Carries the publication log; authority comes from signatures and hash chains. | May store plaintext contained in commits only under principal / Space-policy delegation. |
 | Sync / Federation Server | `principal_server` or `sync_node` | Client sync, Space subscription, backfill, snapshot heads, cross-domain federation transactions. | No; it propagates and backfills. | May forward non-encrypted private content only to authorized Principal Servers or `plaintext_visible_services`. |
 | Index / AppView Server | `index_node` / `appview_node` | Current state, query, search, inbox, notifications, view projections, embeddings / vector indexes. | No; derived layer. | Private plaintext indexing requires `plaintext_visible_services`. |
 | Directory Server | `directory_service` | Authorized search and exact resolution for Spaces, Organizations, Actors, handles, and Applets. | No; derived discovery layer. | Returns minimum discoverable data and must not expose private topology. |

@@ -11,7 +11,7 @@
 - `cx.profile.minimal_client.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
-- `cx.profile.repo_node.v1`
+- `cx.profile.principal_server_repo_api.v1`
 - `cx.profile.principal_server.v1`
 - `cx.profile.index_node.v1`
 

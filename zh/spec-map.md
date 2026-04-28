@@ -36,7 +36,7 @@
 ### 3.3 Principal Server / Repo / Sync / Index
 
 - Repo 是可验证发布日志，不等同于服务器。
-- Repo Service 是访问或托管 Repo 的服务。
+- Principal Server 通过 `/repo/*` API 访问或托管 Repo。
 - Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Space 同步能力。
 - Index 是查询和投影层，不是真相源。
 

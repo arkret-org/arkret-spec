@@ -38,7 +38,7 @@ Repo 是协议逻辑对象，不必等同于服务器进程。它至少包含：
 - head / cursor：当前已发布前沿。
 - proof material：签名、hash、DID key 状态引用和可选 witness receipt。
 
-Repo MAY 由客户端本地维护，也 MAY 由 Principal Server 内置的 Repo Service 托管，还 MAY 由被明确委托的独立 Repo Service 托管，或被多个只读副本复制。网络上的 `ContrixRepo` endpoint 是访问 Repo 的一种服务面；它不是 Repo 权威本身。接收方验证 Repo 数据时 MUST 校验 commit 签名、DID 控制链、hash 链、序列单调性和 operation 幂等性。
+Repo MAY 由客户端本地维护，也 MAY 由 Principal Server 托管，或被多个只读副本复制。网络上的 `/repo/*` 是 Principal Server 访问 Repo 的 API surface；它不是 Repo 权威本身。接收方验证 Repo 数据时 MUST 校验 commit 签名、DID 控制链、hash 链、序列单调性和 operation 幂等性。
 
 Repo 的实现 MAY 使用数据库、对象存储、append-only 文件日志、Merkle log、content-addressed block store 或其他存储引擎。协议不要求某种数据库模型；协议要求的是可验证的 commit log、operation/event store、head / cursor 与 proof material。
 

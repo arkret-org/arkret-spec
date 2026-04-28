@@ -89,7 +89,6 @@
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Repo | 仓库 | Principal 或 Space 发布 signed commit / operation 的追加式可验证日志。Repo 是协议逻辑对象，不等同于服务器。 |
-| Repo Service | 仓库服务 | 通过网络 API 暴露 Repo commit / operation 读写、同步和回填能力的服务面；通常由 Principal Server 内置或代理，高级部署 MAY 单独委托。它托管或复制 Repo，但其权威来自 Repo 数据的签名和 hash 链。 |
 | Commit | 提交 | Actor 侧发布单元，包含一个或多个 operation/event 引用和签名。 |
 | Operation | 操作 | 对协作图的原子变更意图或事实，通常封装为 Event 或被 Event 引用。其 wire 字段名为 `operation` / `operations`。 |
 | Operation Log | 操作日志 | 追加式审计记录，用于归约、同步、回放和冲突分析。 |
@@ -245,7 +244,7 @@
 | Entity 与 Event | Entity 是协作对象；Event 是事实和变更记录。 |
 | Relation 与 View | Relation 是一等语义边；View 是投影定义。 |
 | Repo 与 Index | Repo 保存可审计事实；Index 保存派生查询结果。 |
-| Repo 与 Repo Service | Repo 是可验证日志；Repo Service 是访问、托管或复制该日志的服务面，通常由 Principal Server 内置或代理。 |
+| Repo 与 Principal Server | Repo 是可验证日志；Principal Server 提供 `/repo/*` API 来访问、托管或复制该日志。 |
 | Sync Service 与 Authority | Sync Service 只提供受控同步；授权仍由签名、capability、policy 和 reducer 验证。 |
 | Capability 与 Namespace | Capability 授权动作；Namespace 只说明 Applet 负责哪个名称范围。 |
 | Redaction 与 Erasure | Redaction 裁剪协议内容并保留审计；Erasure 是服务侧物理删除/最小化流程。 |

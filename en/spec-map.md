@@ -36,7 +36,7 @@ When learning the protocol for the first time, we recommend this sequence:
 ### 3.3 Principal Server / Repo / Sync / Index
 
 - Repo is a verifiable append-only publication log, not a server.
-- Repo Service provides access to or hosting for repos.
+- Principal Server provides `/repo/*` APIs for accessing or hosting repos.
 - Principal Server is the controlled or delegated service boundary; Sync Service is its Space sync capability.
 - Index is the query/materialization layer, not the source of truth.
 

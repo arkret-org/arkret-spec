@@ -18,7 +18,7 @@ cx.profile.<name>.v<major>
 示例：
 
 - `cx.profile.minimal_client.v1`
-- `cx.profile.repo_node.v1`
+- `cx.profile.principal_server_repo_api.v1`
 - `cx.profile.principal_server.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
@@ -102,9 +102,9 @@ MUST NOT：
 - 把解密密钥上传给不受信服务
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
 
-## 6. Repo Node
+## 6. Principal Server Repo API
 
-`cx.profile.repo_node.v1` 适用于 actor repo 或 Space repo 服务。
+`cx.profile.principal_server_repo_api.v1` 适用于 Principal Server 暴露的 actor repo 或 Space repo API。
 
 MUST 支持：
 
@@ -443,7 +443,7 @@ Applet Bridge profile MUST 额外提供：
 首个互操作目标 SHOULD 是：
 
 - `minimal_client`
-- `repo_node`
+- `principal_server_repo_api`
 - `principal_server`
 - `index_node`
 - `identity_registry`

@@ -26,7 +26,7 @@ Default REST namespaces:
 | --- | --- | --- | --- |
 | `/server/*` | clients and services | service description, feature discovery, auth metadata | `service-surface.md`, `api-conventions.md` |
 | `/identity/*` | clients, services, registries | DID document, key log, DID operation, receipt | `service-surface.md`, `identity-did.md` |
-| `/repo/*` | clients, Principal Servers, repo replicas | signed commit submit, operation/commit reads, repo incremental sync | `operations-sync.md`, `service-surface.md` |
+| `/repo/*` | clients, Principal Servers, read-only repo storage replicas | signed commit submit, operation/commit reads, repo incremental sync | `operations-sync.md`, `service-surface.md` |
 | `/sync/*` | clients, Principal Servers | client aggregate sync, Space subscription, backfill, snapshot head | `client-sync.md`, `service-surface.md` |
 | `/federation/*` | Principal Servers | cross-domain transaction, operation push/pull, member query, actor verification | `federation.md`, `federation-wire.md` |
 | `/index/*` | clients and services | Entity query, structured query, search, inbox, notification, Space hierarchy | `service-surface.md`, `query-schema.md` |

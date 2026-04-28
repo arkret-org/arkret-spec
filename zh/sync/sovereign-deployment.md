@@ -18,7 +18,6 @@ Sovereign deployment 是由单一组织或联盟控制的 Contrix 服务域。�
 
 - Organization DID / governance registry / witness
 - Identity Registry
-- Repo Service
 - Principal Server / Sync Service
 - Index / AppView
 - Directory
@@ -38,7 +37,7 @@ flowchart TB
         ORG["Organization DID / Governance"]
         REG["Private Identity Registry"]
         WIT["Private Witness Set"]
-        REPO["Internal Repo Services"]
+        REPO["Internal Repo Storage"]
         SYNC["Internal Principal Server / Sync Service"]
         INDEX["Internal Index / AppView"]
         DIR["Private Directory"]
@@ -66,8 +65,8 @@ flowchart TB
 
     ORG --> REG
     ORG --> WIT
-    ORG --> REPO
     ORG --> SYNC
+    SYNC --> REPO
     ORG --> INDEX
     ORG --> DIR
     ORG --> BLOB

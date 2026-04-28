@@ -26,7 +26,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | --- | --- | --- | --- |
 | `/server/*` | 客户端与服务 | 服务描述、feature discovery、auth metadata。 | `service-surface.md`、`api-conventions.md` |
 | `/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
-| `/repo/*` | 客户端、Principal Server、Repo replica | 签名 commit 提交、operation/commit 读取、repo 增量同步。 | `operations-sync.md`、`service-surface.md` |
+| `/repo/*` | 客户端、Principal Server、只读 repo storage replica | 签名 commit 提交、operation/commit 读取、repo 增量同步。 | `operations-sync.md`、`service-surface.md` |
 | `/sync/*` | 客户端、Principal Server | 客户端聚合同步、Space 增量订阅、backfill、snapshot head。 | `client-sync.md`、`service-surface.md` |
 | `/federation/*` | Principal Server 之间 | 跨域 transaction、operation 推送/拉取、成员查询、actor 验证。 | `federation.md`、`federation-wire.md` |
 | `/index/*` | 客户端、服务 | Entity 查询、结构化查询、搜索、inbox、notification、Space hierarchy。 | `service-surface.md`、`query-schema.md` |

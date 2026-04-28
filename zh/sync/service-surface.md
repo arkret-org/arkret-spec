@@ -77,7 +77,6 @@ DID Document SHOULD 只负责：
 | Principal Server | 普通用户或组织自建的核心入口 | `/server`, `/sync`, `/federation`, 可代理 `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/identity`, `/server` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
 | Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
-| Repo Service | 普通部署通常内置在 Principal Server；高级部署 MAY 由 principal DID 或 Space policy 单独委托 | `/repo`, `/server` | commit 提交、Operation / commit 读取、repo sync、审计回放、hash chain 校验。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
 | Index / AppView Server | 个人可本地或内置；组织按搜索和应用视图需求自建 | `/index`, `/server` | 当前态、查询、搜索、inbox、notification、View projection、embedding/vector index。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，最小披露发现。 |
@@ -140,8 +139,8 @@ GET /api/v1/server/describe
 
 服务类型命名规则：
 
-- DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixRepo`、`ContrixIndex`。
-- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`repo_node`、`sync_node`、`index_node`、`appview_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`。
+- DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixIndex`。
+- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`index_node`、`appview_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`。
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 
@@ -225,11 +224,11 @@ GET /api/v1/identity/receipts?did=<did>&head=<event-hash>
 
 这让 DID 写入仍然是普通网络请求，而不是全网区块共识。
 
-## 4. Repo Surface
+## 4. Repo API
 
-Repo Surface 是访问 Repo 的服务面，不是另一个必需独立部署的服务器。普通部署 SHOULD 由 Principal Server 直接暴露或代理 `/repo/*`；只有在存储规模、合规隔离、只读副本、冷热分层或组织治理需要时，才需要把 Repo Service 单独委托给另一个服务 DID。
+Repo API 是 Principal Server 提供的 Repo 访问接口，不是另一个必需独立部署的服务器。普通部署 SHOULD 由 Principal Server 直接暴露 `/repo/*`。
 
-Repo 本身是可验证发布日志。Repo Service 只是托管、复制或提供网络访问；接收方仍必须验证 commit 签名、DID 控制链、hash 链、序列单调性和 operation 幂等性。
+Repo 本身是可验证发布日志。Principal Server 只是托管、复制或提供网络访问；接收方仍必须验证 commit 签名、DID 控制链、hash 链、序列单调性和 operation 幂等性。
 
 repo 至少应提供以下语义：
 

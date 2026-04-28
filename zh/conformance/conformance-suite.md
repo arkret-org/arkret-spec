@@ -8,7 +8,7 @@
 - reducer 兼容性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
-- repo / sync service / index / E2EE / applet / policy-server 关键接口
+- Principal Server repo API / sync service / index / E2EE / applet / policy-server 关键接口
 
 本版本不新增 `space_version`；所有兼容性演进通过 `space_version=1` 下的 profile 与字段废弃流程完成。
 
@@ -17,7 +17,7 @@
 - `cx.profile.minimal_client.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
-- `cx.profile.repo_node.v1`
+- `cx.profile.principal_server_repo_api.v1`
 - `cx.profile.principal_server.v1`
 - `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
@@ -39,7 +39,7 @@
 ### 3.2 Canonical envelope tests
 
 - canonical JSON 字段顺序与空值处理一致。
-- 同一请求在不同服务节点（repo / sync service / index）可重放得到一致事件 hash 或查询结果边界。
+- 同一请求在不同服务节点（Principal Server repo API / sync service / index）可重放得到一致事件 hash 或查询结果边界。
 
 ## 4. Conformance 向量分层
 

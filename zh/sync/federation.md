@@ -257,7 +257,7 @@ Bob 也可以主动申请加入：
 给定一个 Actor 的 DID，其他节点通过解析 DID Document 中的 `#contrix-repo` 服务端点来定位其 Repo：
 
 ```
-DID Document -> service[type=ContrixRepo] -> service_endpoint
+DID Document -> service[type=ContrixPrincipalServer] -> service_endpoint
 ```
 
 ### 6.3 域名级服务发现缓存
