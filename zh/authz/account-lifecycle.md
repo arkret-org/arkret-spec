@@ -22,6 +22,8 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 
 登录成功后，account service / auth service MUST 将会话绑定到 DID principal 与设备，例如签发短期 `cx.session.grant`、登记 device binding，或要求客户端提交 DID proof。资源服务器随后验证 grant、device、capability、Space policy 和撤销状态。
 
+当 service account 已绑定到某个 `principal_id` 时，DID proof MAY 作为恢复该 service account 访问的强证据。恢复服务 SHOULD 通过一次性 challenge 验证用户当前控制该 `principal_id`，再允许重设 service account 密码、重新绑定 passkey / WebAuthn 凭据、解除 `soft_logged_out`，或签发短期 session grant。该 DID proof MUST 按 DID method 和本地 trust policy 验证 DID Document、key log / method history、当前 authentication key 或授权 device key、challenge audience、origin、过期时间和重放状态。
+
 密码找回或邮箱验证码重置只允许恢复 service account 访问。除非同时满足 DID recovery policy，服务端 MUST NOT 因密码重置而：
 
 - 轮换 DID 控制密钥。
@@ -29,6 +31,8 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 - 读取或重包 E2EE secret storage。
 - 签发超过短期登录范围的 capability。
 - 撤销用户现有设备，除非 recovery policy 或风险处置策略明确要求。
+
+同理，通过 DID proof 恢复 service account 访问，也不会反向恢复、重置或改变 DID 本身。若用户已经丢失 DID 控制密钥，则必须走 DID recovery policy；组织账号恢复流程只能恢复组织 service account，不能替代 DID recovery。
 
 当 service account 恢复结果与 DID 当前控制状态不一致时，服务端 SHOULD 进入 `locked` 或 `soft_logged_out`，要求用户用已授权设备、recovery key、门限恢复、企业管理员多方审批或 DID proof 完成重新绑定。
 

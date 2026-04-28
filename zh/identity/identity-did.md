@@ -121,6 +121,44 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
 5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Space policy 决定可访问的数据范围。
 
+#### 3.3.1 组织账号绑定的 DID Proof
+
+当用户用一个已有 DID 注册、认领或绑定组织 service account 时，Auth / Account Server MUST 验证调用方当前控制该 DID。仅提交 DID 字符串、handle、邮箱验证码、OIDC subject 或组织用户名不足以建立 DID 绑定。
+
+推荐的 DID proof 是 challenge-response：
+
+1. 用户提交待绑定的 DID。
+2. Auth Server 解析 DID Document，并按本地 trust policy 校验 method、key log、witness evidence、deactivation 状态和可接受的 trust domain。
+3. Auth Server 生成一次性 challenge。challenge MUST 绑定用途、目标服务、origin / audience、过期时间和随机 nonce。
+4. 客户端使用该 DID 当前有效的 `authentication` verification method、已授权 device key，或被有效 session / device grant 覆盖的临时 key 签名 challenge。
+5. Auth Server 验证签名、verification method 当前有效性、challenge 未过期且未使用过。
+6. 验证通过后，Auth Server MAY 创建或更新 `service_account -> principal_id` 绑定，并签发短期 `cx.session.grant` 或登记 device binding。
+
+签名 payload SHOULD 使用结构化 canonical JSON，至少包含：
+
+```json
+{
+  "type": "cx.did.proof",
+  "purpose": "account_binding",
+  "did": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "audience": "did:web:auth.acme.example",
+  "origin": "https://auth.acme.example",
+  "challenge": "base64url-random",
+  "issued_at": "2026-04-26T00:00:00Z",
+  "expires_at": "2026-04-26T00:05:00Z"
+}
+```
+
+Auth Server MUST NOT accept a DID proof if:
+
+- the DID cannot be resolved under the organization's trust policy
+- the verification method is not currently authorized for authentication or the asserted device/session path
+- the signature does not cover the exact challenge payload
+- the challenge is expired, reused, audience-mismatched, or origin-mismatched
+- the DID is deactivated or the key log / method history is invalid
+
+service account 绑定是组织本地状态。它不会把 DID 所有权转移给组织，也不会允许组织轮换、恢复或停用用户 DID，除非 DID 自身控制状态或 recovery policy 授权该动作。
+
 因此：
 
 - 公共 `did:uuid` resolver 是身份控制历史和服务发现的一种公共基础设施；`did:key` 可由本地 resolver 解析，`did:keri` 可由 KERI witness / watcher / resolver 验证。

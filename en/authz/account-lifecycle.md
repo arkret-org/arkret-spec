@@ -10,7 +10,11 @@ Service accounts MAY use username/password, passkeys, WebAuthn, OAuth/OIDC, ente
 
 After login, the account/auth service MUST bind the session to a DID principal and device, for example by issuing a short-lived `cx.session.grant`, recording a device binding, or requiring DID proof. Resource servers then verify grant, device, capability, Space policy, and revocation state.
 
+When a service account is already bound to a `principal_id`, DID proof MAY be used as strong evidence to recover access to that service account. The recovery service SHOULD verify a one-time challenge proving current control of that `principal_id` before allowing a password reset, passkey / WebAuthn rebinding, `soft_logged_out` recovery, or a short-lived session grant. The DID proof MUST verify the DID Document, key log / method history, current authentication key or authorized device key, challenge audience, origin, expiry, and replay status according to the DID method and local trust policy.
+
 Password reset or email-code recovery only restores service-account access. Unless the DID recovery policy is also satisfied, the service MUST NOT rotate DID control keys, authorize a long-lived new device, read or rewrap E2EE secret storage, issue broad capabilities, or revoke existing user devices except as required by explicit recovery policy or risk response.
+
+DID-proof-based service-account recovery likewise does not recover, reset, or change the DID itself. If the user has lost DID control keys, the user must follow the DID recovery policy; the organization account recovery flow only restores the organization service account and cannot replace DID recovery.
 
 When service-account recovery conflicts with current DID control state, the service SHOULD enter `locked` or `soft_logged_out` and require an authorized device, recovery key, threshold recovery, enterprise multi-party approval, or DID proof before rebinding.
 

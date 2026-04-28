@@ -56,6 +56,21 @@ An organization MAY run its own Auth / Account Server while continuing to use th
 4. The user proves login binding through a DID control key, device key, passkey / OIDC binding proof, or required VC presentation.
 5. The Auth Server issues only a session grant / device binding. Organization Policy / Authz then decides data access from the DID, credentials, membership, invites, capabilities, and Space policy.
 
+### DID Proof For Organization Account Binding
+
+When a user registers, claims, or binds an organization service account with an existing DID, the Auth / Account Server MUST verify that the caller currently controls that DID. Submitting only a DID string, handle, email code, OIDC subject, or organization username is not sufficient to establish the binding.
+
+The recommended DID proof is challenge-response:
+
+1. The user submits the DID to bind.
+2. The Auth Server resolves the DID Document and verifies the method, key log, witness evidence, deactivation state, and accepted trust domain according to local policy.
+3. The Auth Server creates a one-time challenge bound to purpose, target service, origin / audience, expiry, and a random nonce.
+4. The client signs the challenge with a currently valid DID `authentication` verification method, authorized device key, or temporary key covered by a valid session / device grant.
+5. The Auth Server verifies the signature, the current validity of the verification method, and that the challenge is unexpired and unused.
+6. After verification, the Auth Server MAY create or update the `service_account -> principal_id` binding and issue a short-lived `cx.session.grant` or record a device binding.
+
+The service-account binding is local organization state. It does not transfer DID ownership to the organization and does not allow the organization to rotate, recover, or deactivate the user's DID unless the DID's own control state or recovery policy authorizes that action.
+
 Therefore, a public `did:uuid` resolver is one form of public identity-control and service-discovery infrastructure; `did:key` may resolve locally, and `did:keri` may be verified through KERI witnesses, watchers, and resolvers. An enterprise Auth Server is that enterprise's login and session boundary. Using a public resolver does not let the resolver log in to the enterprise or access enterprise data. Allowing a DID to log in means the organization's policy accepts that DID, its control proof, and any required credential or invite.
 
 For `did:web` and other method-specific DID methods, resolver selection is determined by the method rules plus local trust policy. An organization may require employees or service principals to use `did:web`, organization-private `did:uuid`, or public `did:uuid`; this is an admission policy, not a natural coupling between the Auth Server and Resolver.
