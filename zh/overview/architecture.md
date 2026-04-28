@@ -50,11 +50,14 @@ Space 则是协作数据边界。它定义 membership、capability scope、schem
 Principal Repo 是逻辑上的可验证发布日志，不等同于一台服务器。它可以由以下形态承载：
 
 - 用户设备上的本地 append-only log。
-- 用户自托管或组织托管的 Repo Service。
+- Principal Server 内置的 Repo Service。
+- 被 principal 或 Space policy 明确委托的独立 Repo Service。
 - 多个受控 storage replica 保存的只读副本。
 - DID Document 中声明的 `ContrixRepo` service endpoint。
 
-Repo 的权威来自 principal 对 commit / operation 的签名、DID 控制链、commit hash 链和幂等序列，而不是来自托管它的服务器。托管 Repo Service 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
+Repo 的实际存储形态由实现决定：可以是数据库表、对象存储中的 commit / operation blob、文件系统 append-only log、Merkle log、CAR-like block store，或这些形式的组合。协议只要求它能稳定输出 canonical commit bytes、operation/event bytes、hash、签名、head、cursor 和 proof material。
+
+Repo 的权威来自 principal 对 commit / operation 的签名、DID 控制链、commit hash 链和幂等序列，而不是来自托管它的服务。Repo Service 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
 ### 2.2 Principal Server
 
@@ -165,7 +168,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 | Principal Server | `principal_server` | principal 的受控入口；可聚合 repo、sync、federation、device message、policy、blob、index 等受托能力。 | 否；真相来自签名 Repo / Event。 | 可以接收该 principal 或 Space policy 授权范围内的非加密内容。 |
 | Identity Resolution Infrastructure | `identity_registry` 或 method-specific resolver | DID Document、DID key log、KERI event log、handle binding、receipt / witness、watcher、OOBI、service discovery。 | 是身份控制链的可验证来源之一；`did:key` 可由本地算法解析。 | 不应接收 Space 正文。 |
 | Auth / Account Server | `auth_server` 或部署私有名 | passkey、OIDC、SSO、设备配对、session grant、账户恢复与 soft logout。 | 否；只证明服务账户登录，并绑定到 DID / device。 | 不应因密码恢复获得 E2EE 明文或 DID 控制权。 |
-| Repo Server | `repo_node` | commit 提交、Operation / commit 读取、repo 增量同步、审计回放。 | 是发布日志的承载者；权威来自签名和 hash 链。 | 可保存提交中包含的明文，必须受 principal / Space policy 委托。 |
+| Repo Service | `repo_node` | commit 提交、Operation / commit 读取、repo 增量同步、审计回放。通常由 Principal Server 内置或代理；高级部署 MAY 单独委托。 | 承载发布日志；权威来自签名和 hash 链。 | 可保存提交中包含的明文，必须受 principal / Space policy 委托。 |
 | Sync / Federation Server | `principal_server` 或 `sync_node` | client sync、Space subscription、backfill、snapshot head、跨域 federation transaction。 | 否；只传播和回补。 | 只能把非加密私有内容发给授权 Principal Server 或 `plaintext_visible_services`。 |
 | Index / AppView Server | `index_node` / `appview_node` | current state、query、search、inbox、notification、view projection、embedding / vector index。 | 否；派生层。 | 若索引私有明文，必须列入 `plaintext_visible_services`。 |
 | Directory Server | `directory_service` | Space / Organization / Actor / handle / Applet 的授权搜索与精确解析。 | 否；派生发现层。 | 只返回最小可发现信息，不应暴露私有拓扑。 |

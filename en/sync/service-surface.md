@@ -76,7 +76,7 @@ Common combinations follow. "Required" here means the protocol interaction needs
 | Principal Server | Core user- or organization-hosted entry point | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
 | Identity Resolution Infrastructure | Ordinary users normally use public services or local method resolvers; high-security or isolated networks self-host the full infrastructure | `/identity`, `/server`, or method-specific resolver | DID Documents, DID / KERI logs, handle bindings, receipts, witnesses, watchers, OOBI, service endpoint discovery. |
 | Auth / Account Server | May be embedded for personal deployments; organizations usually separate it or connect SSO | Exposed through `auth_metadata`; login paths may be deployment-specific | Login, passkeys/OIDC/SSO, session grants, device pairing, account recovery; does not replace DID control. |
-| Repo Server | Usually embedded in a personal-profile Principal Server for ordinary users | `/repo`, `/server` | Commit submission, Operation / commit reads, repo sync, audit replay, hash-chain verification. |
+| Repo Service | Usually embedded in a Principal Server; advanced deployments MAY delegate it separately through the principal DID or Space policy | `/repo`, `/server` | Commit submission, Operation / commit reads, repo sync, audit replay, hash-chain verification. |
 | Sync / Federation Server | Usually embedded in the Principal Server for ordinary users | `/sync`, `/federation`, `/server` | Client sync, subscriptions, backfill, snapshot heads, cross-domain transactions, replay and destination-binding checks. |
 | Index / AppView Server | May be local or embedded for individuals; organizations self-host it when search and app views require it | `/index`, `/server` | Current state, query, search, inbox, notification, View projection, embedding/vector index. |
 | Directory Server | Ordinary users normally use a public directory; organizations self-host it for discovery control or isolated networks | `/directory`, `/server` | Authorized search and resolution for Spaces, Organizations, Actors, handles, and Applets. |
@@ -225,6 +225,10 @@ The initial recommendation is:
 That keeps DID writes in the world of ordinary network requests rather than global block consensus.
 
 ## 4. Repo Surface
+
+The Repo Surface is the service surface for accessing a repo; it is not another required standalone server. Ordinary deployments SHOULD expose or proxy `/repo/*` from the Principal Server. A separately delegated Repo Service is needed only for storage scale, compliance isolation, read-only replicas, hot/cold storage separation, or organization governance.
+
+The repo itself is a verifiable publication log. The Repo Service only hosts, replicates, or provides network access; receivers still verify commit signatures, DID control chains, hash chains, monotonic sequence rules, and operation idempotency.
 
 Repos should expose at least the following semantics:
 

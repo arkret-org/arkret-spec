@@ -30,6 +30,17 @@ The initial draft distinguishes:
 
 A repo is the publication source for one principal.
 
+A repo is a protocol logical object, not necessarily a server process. It contains at least:
+
+- a commit log: the principal-signed commit chain
+- an operation / event store: collaboration operations referenced by commits
+- a head / cursor: the current published frontier
+- proof material: signatures, hashes, DID key-state references, and optional witness receipts
+
+A repo MAY be maintained locally by a client, hosted by a Repo Service embedded in a Principal Server, hosted by an explicitly delegated independent Repo Service, or replicated by read-only replicas. A network `ContrixRepo` endpoint is one service surface for accessing a repo; it is not the repo authority itself. Receivers MUST verify commit signatures, DID control chains, hash chains, monotonic sequence rules, and operation idempotency.
+
+Implementations MAY store a repo in a database, object storage, append-only files, a Merkle log, a content-addressed block store, or another storage engine. The protocol does not require a database model; it requires a verifiable commit log, operation/event store, head / cursor, and proof material.
+
 ### 2.2 Principal Server / Sync Service
 
 A Principal Server is the service boundary controlled or explicitly delegated by a principal; the sync service is its space incremental sync capability. It is not an independent third-party server role and must not receive plaintext private content unless delegated by the relevant principal or Space policy. It MUST NOT write non-encrypted private bodies, attachment previews, full-text indexes, notification summaries, embeddings, or reversible derived summaries into derived services absent from `plaintext_visible_services`.
