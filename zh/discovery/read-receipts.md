@@ -1,4 +1,4 @@
-# Read Receipts & Markers Draft
+# Read Receipts & Markers
 
 ## 1. 目标
 

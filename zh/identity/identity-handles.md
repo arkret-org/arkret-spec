@@ -1,4 +1,4 @@
-# Handle 与 Claim 证明 Draft
+# Handle 与 Claim 证明
 
 ## 1. 目标
 
@@ -420,14 +420,11 @@ Receipt MUST NOT contain undisclosed handle values or other organization identif
 7. Verifier 验证 proof、issuer、challenge、domain、audience 和 status。
 8. Wallet 写入私有 disclosure receipt。
 
-## 17. 待细化
+## 17. v1 互操作要求
 
-- Handle ABNF
-- DNS TXT record 格式
-- well-known response schema
-- credential schema
-- presentation request schema
-- disclosure policy schema
-- disclosure receipt schema
-- status list profile
-- BBS / SD-JWT VC conformance vectors
+- Handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；DNS 风格 handle 使用 IDNA 处理后再验证，显示层必须防同形混淆。
+- DNS TXT record 格式 MUST 绑定 handle、DID、service DID、created_at、expires_at 和 signature / hash commitment；过期或不匹配时不得显示 verified。
+- Well-known response schema MUST 返回 subject DID、handle、issuer、proof、validity、service binding 和 optional challenge；客户端必须做双向验证。
+- Credential schema、presentation request、disclosure policy 和 disclosure receipt 必须绑定 holder DID、verifier DID、audience、challenge、domain、disclosed fields、withheld fields 和 proof profile。
+- Status list profile MUST 支持凭证撤销和暂停。授权依赖的 credential 无法确认状态时 MUST fail closed。
+- BBS / SD-JWT VC conformance vectors MUST 覆盖选择性披露、challenge/domain 绑定、错误 issuer、过期凭证、撤销凭证和 pairwise DID unlinkability。

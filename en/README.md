@@ -2,7 +2,7 @@
 
 ## 1. Positioning
 
-`contrix-spec` is a **new decentralized collaboration protocol** draft. Contrix uses:
+`contrix-spec` is the **Contrix v1 decentralized collaboration protocol**. Contrix uses:
 
 - **DID principals** as the identity root
 - **Space / Entity / Relation collaboration graphs** as the data root
@@ -16,7 +16,7 @@ Its goal is not to wrap a chat protocol in a Kanban shell. Its goal is to define
 
 ## 2. Design Goals
 
-The first phase of Contrix focuses on:
+Contrix v1 focuses on:
 
 1. Stable identity  
    All principals use DIDs as stable identifiers, while handles remain portable human-readable entry points.
@@ -35,7 +35,7 @@ The first phase of Contrix focuses on:
 
 ## 3. Non-goals
 
-The following are explicitly out of scope for the first version:
+The following are explicitly out of scope for the base interoperability profile:
 
 - making chat messages the only data root again
 - using room state machines as the universal substrate
@@ -46,7 +46,7 @@ The following are explicitly out of scope for the first version:
 
 ## 4. Spec Map
 
-This directory is structurally aligned with the Chinese draft. The Chinese version currently carries the most detailed wording; the English files provide aligned headings, responsibilities, and core decisions.
+This directory is structurally aligned with the Chinese v1 specification. The Chinese version is the leading normative text where an English file is still abbreviated.
 
 Main document groups:
 
@@ -203,7 +203,7 @@ Normative language in this directory follows RFC 2119 style keywords:
 - `SHOULD`
 - `MAY`
 
-If a section is clearly framed as a recommendation, draft direction, or future extension, it is non-binding.
+`MUST`, `SHOULD`, and `MAY` are normative. Examples, explanatory background, migration notes, and sections explicitly marked non-normative do not change conformance requirements.
 
 ## 8. Deliverables in This Round
 

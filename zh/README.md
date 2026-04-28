@@ -2,7 +2,7 @@
 
 ## 1. 项目定位
 
-`contrix-spec` 是 **全新的去中心化协作协议** 草案。Contrix 明确采用：
+`contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。Contrix 明确采用：
 
 - 以 **DID principal** 为身份根
 - 以 **Space / Entity / Relation 协作图** 为数据根
@@ -16,7 +16,7 @@
 
 ## 2. 设计目标
 
-Contrix 第一阶段聚焦以下目标：
+Contrix v1 聚焦以下目标：
 
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
@@ -35,7 +35,7 @@ Contrix 第一阶段聚焦以下目标：
 
 ## 3. 非目标
 
-当前阶段明确不把以下内容当作首版必需项：
+Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - 让聊天消息重新变成唯一数据根
 - 房间状态机作为全协议统一底座
@@ -161,7 +161,14 @@ Contrix 第一阶段聚焦以下目标：
 - `SHOULD`
 - `MAY`
 
-若某段明显以“建议”“草案”“后续可扩展”描述，则视为非强制设计方向。
+本目录中的 `MUST`、`SHOULD`、`MAY` 均为规范性关键字。示例、说明性背景、迁移说明和明确标注为“非规范”的段落不改变强制要求。
+
+各实现声明 Contrix 兼容性时 MUST 同时声明：
+
+- 支持的 `protocol_version`，v1 使用 `1.0`。
+- 支持的 conformance profile，例如 `cx.profile.full_client.v1`。
+- 支持的 schema / reducer profile，例如 `cx.schema.core.v1` 与 `cx.reducer.v1`。
+- 未支持的可选扩展，例如 WebRTC、Applet、Agent Runtime、Sovereign Deployment。
 
 ## 8. 当前覆盖范围
 
@@ -176,7 +183,7 @@ Contrix 第一阶段聚焦以下目标：
 - Applet、Agent protocol interop、Social feed、Space hierarchy。
 - Sovereign deployment 与 controlled collaboration Space。
 
-后续新增能力应优先作为 profile 或独立章节进入 [spec-map.md](./spec-map.md) 对应分组，避免继续堆进单个超大文件。
+新增能力应优先作为 profile、扩展章节或 schema registry 条目进入 [spec-map.md](./spec-map.md) 对应分组，避免继续堆进单个超大文件。
 
 ## 9. 一句话总结
 

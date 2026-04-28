@@ -420,7 +420,7 @@ Applet Bridge profile MUST 额外提供：
 {
   "service_did": "did:web:index.example.com",
   "service_type": "ContrixIndex",
-  "protocol_version": "0.2-draft",
+  "protocol_version": "1.0",
   "supported_profiles": [
     "cx.profile.index_node.v1"
   ],

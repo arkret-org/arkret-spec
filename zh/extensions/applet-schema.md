@@ -1,4 +1,4 @@
-# Applet Schema and OpenAPI Draft
+# Applet Schema and OpenAPI
 
 ## 1. Applet Registration Schema
 

@@ -1,4 +1,4 @@
-# Federation Wire Protocol Draft
+# Federation Wire Protocol
 
 ## 1. 目标
 
@@ -162,4 +162,3 @@ Suspicious remote input MAY be stored in quarantine queue until:
 - capability verified
 - fork resolved
 - operator policy accepts source
-

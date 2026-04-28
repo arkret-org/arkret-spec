@@ -1,4 +1,4 @@
-# Encoding, IDs, Hashes, Signatures Draft
+# Encoding, IDs, Hashes, Signatures
 
 ## 1. 目标
 

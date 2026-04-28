@@ -1,8 +1,8 @@
-# Standard Event and Object Schema Registry Draft
+# Standard Event and Object Schema Registry
 
 ## 1. 目标
 
-本文定义初版标准 schema registry。字段级结构定义见 `data-structures.md`；正式 JSON Schema 文件 SHOULD 从 `data-structures.md` 与本注册表共同生成。
+本文定义 Contrix v1 标准 schema registry。字段级结构定义见 `data-structures.md`；机器可验证 JSON Schema 文件 SHOULD 从 `data-structures.md` 与本注册表共同生成。
 
 ## 2. Object Schema
 

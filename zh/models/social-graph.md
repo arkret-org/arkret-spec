@@ -1,4 +1,4 @@
-# Social Graph and Feed Draft
+# Social Graph and Feed
 
 ## 1. 目标
 

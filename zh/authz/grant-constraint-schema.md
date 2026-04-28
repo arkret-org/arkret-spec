@@ -1,4 +1,4 @@
-# Grant Constraint Schema Draft
+# Grant Constraint Schema
 
 ## 1. 目标
 

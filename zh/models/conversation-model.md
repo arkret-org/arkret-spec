@@ -1,4 +1,4 @@
-# Conversation Model Draft
+# Conversation Model
 
 ## 1. 目标
 
@@ -45,7 +45,7 @@ Contrix 不回到 room/message-first 模型。
 
 ## 3. 会话对象集合
 
-当前草案建议标准化以下 `entity_type`：
+Contrix v1 标准化以下 `entity_type`：
 
 - `channel`
 - `topic`
@@ -294,9 +294,9 @@ message 创建是 append-only。
 - 作为 Sync Service 上的 Ephemeral Signal（通过旁路 WebSocket 短时广播）。
 - 由各端本地在内存或缓存中记录，不强求全局长久一致性。
 
-## 13. 初版设计决定
+## 13. 设计决定
 
-当前草案建议固定：
+Contrix v1 固定：
 
 - `channel/topic/message` 为标准 Entity 类型，不是协议根
 - `@mention` 使用结构化 DID/entity ref，并落成 Relation
@@ -330,10 +330,8 @@ message 创建是 append-only。
 - `history_visibility` 的变更本身是一个 `cx.policy.set` 操作，需要 `space.admin` 权限。
 - 变更仅影响变更后的新消息对新加入者的可见性，不追溯改变已有成员的可见范围。
 
-## 15. 后续待细化
+## 15. 规范性引用
 
-下一轮仍需补充：
-
-- 富文本 block 结构
-- 附件在 message 中的嵌入语义
-- inbox / notification 的正式 schema
+- 富文本 block 结构见 `content-types.md`。消息正文必须使用注册 content block 或按未知 block 降级规则保留。
+- 附件在 message 中的嵌入语义见 `content-types.md` 与 `../crypto-media/media-and-blob.md`；附件安全边界由 blob auth、hash 校验、MIME 清理和 E2EE envelope 共同决定。
+- Inbox / notification schema 见 `../discovery/read-notification-schema.md`、`../discovery/push-notifications.md` 和 `../models/data-structures.md`。Notification 是派生投影，不得作为 canonical truth。

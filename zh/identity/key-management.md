@@ -1,4 +1,4 @@
-# Key Management Draft
+# Key Management
 
 ## 1. 目标
 
@@ -211,7 +211,7 @@ MLS KeyPackage key 用于加入加密 Space。
 ## 6. Session Grant
 
 Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。  
-建议使用 `cx.session.grant` 作为标准可见事件类型；当前草案在 `schema-registry.md` 中提供兼容别名。
+Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型；`schema-registry.md` 中的兼容别名仅用于迁移 profile。
 
 示例：
 
@@ -337,7 +337,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 高价值账号 SHOULD 支持门限恢复。
 
-建议字段：
+Recovery policy 字段：
 
 ```json
 {
@@ -387,11 +387,13 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 - 支持 passkey / WebAuthn 作为本地解锁与网关认证材料
 - 支持企业设备管理和远程吊销
 
-## 11. 待细化
+## 11. 一致性要求
 
-- device record JSON Schema
-- `cx.device.authorized` / `cx.device.revoked` event schema
-- session grant schema
-- backup envelope test vector
-- MLS KeyPackage binding schema
-- recovery policy grammar
+Contrix v1 对设备、会话和恢复要求如下：
+
+- Device record JSON Schema 由 `data-structures.md`、`devices-and-auth.md` 和 `device-crypto-verification.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
+- `cx.device.authorized` 与 `cx.device.revoked` MUST 进入 schema registry，并按 event auth 规则验证。撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
+- Session grant MUST 绑定 principal DID、device id、service DID / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
+- Backup envelope test vector MUST 覆盖加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定和服务端不可解密要求。
+- MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。
+- Recovery policy grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed recovery methods、approval requirement 和 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。

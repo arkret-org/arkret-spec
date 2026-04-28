@@ -1,4 +1,4 @@
-# Discovery and Directory Draft
+# Discovery and Directory
 
 ## 1. 目标
 

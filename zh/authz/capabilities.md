@@ -1,4 +1,4 @@
-# Capability Model Draft
+# Capability Model
 
 ## 1. 目标
 
@@ -135,7 +135,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ## 4. Resource Selector
 
-初版建议支持以下 `kind`：
+Contrix v1 支持以下 `kind`：
 
 - `space`
 - `entity`
@@ -237,7 +237,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ## 6. Constraints
 
-初版建议支持：
+Contrix v1 支持：
 
 - `expires_at`
 - `not_before`
@@ -295,7 +295,7 @@ Claim / Attestation 表示某个 issuer 对某个 subject 的可验证声明。
 }
 ```
 
-初版建议支持的 claim 类型：
+Contrix v1 支持的 claim 类型：
 
 - `verified_handle`
 - `verified_email_domain`
@@ -383,13 +383,13 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 }
 ```
 
-`approval_mode` 初版建议：
+`approval_mode` v1 取值：
 
 - `before_commit`：审批先发生，目标 Event 才能进入有效集合
 - `proposal_then_approve`：subject 只能创建 proposal，审批后由系统或审批人产生目标 Event
 - `after_commit_review`：允许先执行，但必须进入审计/复核队列
 
-`approval_relation` 初版建议：
+`approval_relation` v1 取值：
 
 - `responsible`
 - `controller`
@@ -517,7 +517,7 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 
 ## 16. 会话场景下的权限建议
 
-初版建议最少区分：
+Contrix v1 至少区分：
 
 - 普通发送消息
 - 编辑自己的消息
@@ -532,7 +532,7 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 
 权限检查不应只在客户端发生。
 
-建议至少在以下位置执行：
+权限检查 MUST 至少在以下位置执行：
 
 - client 预检查
 - repo 接收写入时
@@ -572,9 +572,9 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 2. **快速命中**：对于后续提交的纯业务 Operation（如 `send_message`, `react`, `edit_entity`），只要 Space 内没有发生新的 `cx.capability.*` 授权操作（或相关 Claim 撤销），节点直接查询 Bitmap 缓存即可，将 O(N) 的深层权限推演降维为 O(1)。
 3. **缓存失效与回滚**：当发生乱序操作、离线回补导致因果前沿包含新的授权变更或过期触发时，受影响的快照缓存将自动失效，并在下一次被访问时或后台任务中触发重建。
 
-## 19. 初版设计决定
+## 19. 设计决定
 
-当前草案建议固定：
+Contrix v1 固定：
 
 - 权限采用 capability 模型
 - 看板、会话、memory、run 都使用统一 grant 体系
@@ -590,16 +590,16 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 - 组织成员权限使用 `org_membership` / `org_role` 等 claim 表达
 - claim 失效、过期或撤销会让依赖它的条件化权限自然失效
 
-## 20. 后续待细化
+## 20. 规范性收敛
 
-下一轮仍需明确：
+以下授权事项在 v1 中按本节和引用文档执行，不再作为开放问题：
 
-- resource selector 正式语法
-- constraint schema
-- grant 合并与最严格约束规则的正式算法
-- moderation policy 与 capability 的配合方式
-- approval proof 与 proposal 状态机
-- accountable Actor 的默认 policy profile
-- claim / attestation envelope 正式 schema
-- condition selector 正式语法
-- trusted claim issuer registry 与 claim revocation 查询面
+- Resource selector 语法由 `grant-constraint-schema.md` 固定。selector MUST 显式声明 resource kind、id / pattern、Space scope 和是否允许子资源；默认不递归、不跨 Space。
+- Constraint schema 由 `grant-constraint-schema.md` 固定。未知 constraint 在授权判定中 MUST fail closed，除非 grant 明确标注该 constraint 为 non-critical hint。
+- 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交；过期、撤销、delegation depth、claim 失效、approval 未满足和 policy deny 均优先于 allow。
+- Moderation policy 与 capability 的关系固定为：capability 先给出基础可做，moderation / policy server 再给出 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。Moderation policy 不得凭空授予 capability。
+- Approval proof 与 proposal 状态机由本文件第 11 节、`event-auth-state-resolution.md` 和 `capability-conformance-vectors.md` 固定。高风险动作缺少 approval 时 MUST 进入 proposal / review / quarantine 路径，不得直接生效。
+- Accountable Actor 默认 policy profile：agent、未成年人、托管账号和自动化主体 MUST 声明 `responsible_party`、可撤销 controller、审计范围和最大 delegation depth；缺失时只能获得显式低风险、短时效 grant。
+- Claim / attestation envelope 使用 `data-structures.md` 的 Proof、`identity-handles.md` 的 claim / VC 规则和 `progressive-disclosure.md` 的 presentation 规则。依赖 claim 的授权 MUST 验证 issuer、audience、subject、有效期、撤销状态和最小披露范围。
+- Condition selector 只能匹配可验证 claim / attestation / VC，不能匹配未签名目录结果、客户端 UI 标签、handle 文本或服务器本地角色缓存。
+- Trusted claim issuer registry 来自 Space policy、Organization DID governance 或 explicit grant。Claim revocation 查询面 MUST 支持 fail-closed：无法确认 revocation status 且该 claim 是授权必要条件时，不得 allow。

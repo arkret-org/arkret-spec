@@ -1,4 +1,4 @@
-# Read Marker, Inbox, Notification Schema Draft
+# Read Marker, Inbox, Notification Schema
 
 ## 1. Read Marker
 

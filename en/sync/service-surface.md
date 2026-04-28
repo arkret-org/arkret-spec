@@ -114,7 +114,7 @@ Example:
 {
   "service_did": "did:web:alice.example.net",
   "service_type": "principal_server",
-  "protocol_version": "0.2-draft",
+  "protocol_version": "1.0",
   "supported_features": [
     "sync_stream",
     "snapshot",

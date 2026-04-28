@@ -1,4 +1,4 @@
-# Query JSON Schema Draft
+# Query JSON Schema
 
 ## 1. 目标
 

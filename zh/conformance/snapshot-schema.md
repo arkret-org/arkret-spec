@@ -1,4 +1,4 @@
-# Snapshot, Chunk, and Encrypted Envelope Schema Draft
+# Snapshot, Chunk, and Encrypted Envelope Schema
 
 ## 1. 目标
 

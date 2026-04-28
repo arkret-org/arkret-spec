@@ -1,4 +1,4 @@
-# Sovereign Deployment and Controlled Collaboration Draft
+# Sovereign Deployment and Controlled Collaboration
 
 ## 1. 目标
 

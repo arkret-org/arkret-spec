@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-把当前草案从“说明文档”推进为“可复现的实现标准”。本套件以 profile 为测试入口，强制验证：
+把 Contrix v1 规范转化为可复现的实现标准。本套件以 profile 为测试入口，强制验证：
 
 - canonical `operation_id` 语义
 - reducer 兼容性（特别是 auth/state 重算）
@@ -53,7 +53,7 @@
 
 ### 4.2 State resolution 向量
 
-新增以下必测项（本 draft 的首批要求）：
+v1 新增以下必测项：
 
 - `cx.vector.state_resolution.conflict_membership.v1`
   - 输入同一成员 state key 的并发冲突事件（join/invite/leave/ban）。

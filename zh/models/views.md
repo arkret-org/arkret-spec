@@ -1,4 +1,4 @@
-# View Model Draft
+# View Model
 
 ## 1. 目标
 
@@ -665,9 +665,9 @@ Tree 视图的 canonical 输入应是：
 - 被撤回消息显示 tombstone
 - graph 缺少 relation 时跳过对应边
 
-## 12. 初版设计决定
+## 12. 设计决定
 
-当前草案建议固定：
+Contrix v1 固定：
 
 - View 是独立对象
 - Query 先采用结构化 JSON
@@ -675,10 +675,8 @@ Tree 视图的 canonical 输入应是：
 - 看板与聊天是标准投影，不是协议根
 - Shared / private / system 并存
 
-## 13. 后续待细化
+## 13. 规范性引用
 
-下一轮仍需补充：
-
-- query JSON 正式 schema
-- 默认 card/chat/thread 展示约定
-- system view 生成规则
+- Query JSON schema 见 `../conformance/query-schema.md`。View query 不得表达绕过 capability 的私有 join，也不得要求客户端解析服务器私有 SQL。
+- 默认 card/chat/thread 展示约定由本文件第 7 节、`conversation-model.md` 和 `object-model-standard.md` 固定。展示字段只是 UI hint，不能扩大读取权限。
+- System view 生成规则必须由客户端或 Index 从 signed Event、read marker、notification rule 和 local account state 派生；system view 不得创建新的协议真相。

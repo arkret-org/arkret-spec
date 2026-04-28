@@ -1,4 +1,4 @@
-# Profiles And Presence Draft
+# Profiles And Presence
 
 ## 1. 目标
 
@@ -210,9 +210,9 @@ GET /api/v1/directory/search-users?q=alice&space_id=cx:space:...&limit=10
 - 可选扩展到同一组织域下的所有已知用户
 - 不应跨域搜索未授权的外部用户
 
-## 5. 后续待细化
+## 5. v1 规则
 
-- 头像的 E2EE 场景处理（公开 vs 加密头像）
-- Profile 字段的 Schema 验证（组织可以限定 custom_fields 的格式）
-- Presence 的跨域联邦传播
-- 群组 Profile（Space 的名称、图标、描述等）
+- 头像若公开可见，必须使用公开 blob 或公开缩略图；私有或 E2EE Space 的头像/图标应使用 authenticated media 或加密 blob，服务端不得因头像请求泄露 Space 存在性。
+- Profile 字段 MUST 受 schema 验证。组织可通过 Organization policy 限定 `custom_fields` 的字段名、类型、最大长度、敏感性和披露范围。
+- Presence 跨域联邦默认 opt-in，必须短 TTL、最小字段、按关系或 Space policy 授权；不得用 presence 推断 pairwise DID、私有组织成员资格或隐藏 Space 拓扑。
+- 群组 Profile 是 Space metadata 的投影；Space 名称、图标、描述、公告和可发现性必须受 Space policy、history visibility 和 directory filtering 控制。

@@ -1,4 +1,4 @@
-# Applet Integration Draft
+# Applet Integration
 
 ## 1. 目标
 
@@ -247,7 +247,7 @@ GET /api/v1/applet/ping
   "ok": true,
   "applet_id": "cx:applet:slack-bridge",
   "service_did": "did:web:slack-bridge.example",
-  "protocol_version": "0.2-draft"
+  "protocol_version": "1.0"
 }
 ```
 
@@ -576,12 +576,12 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 - duplicate external event handling
 - E2EE boundary warning metadata
 
-## 16. 待细化
+## 16. v1 互操作要求
 
-- `applet_registration` JSON Schema
-- namespace pattern grammar
-- transaction OpenAPI schema
-- protocol metadata schema
-- bridge error event schema
-- external event deduplication key rules
-- Applet UI widget sandbox
+- `applet_registration` JSON Schema 由 `applet-schema.md` 和 `schema-registry.md` 固定，必须包含 service DID、endpoint、namespace、protocol、capability refs、signing method 和 expiry。
+- Namespace pattern grammar MUST 明确 actor、space、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
+- Transaction schema MUST 包含 `txn_id`、source network、external event id、mapped actor、target Space、operation refs、idempotency key、signature 和 received_at。
+- Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
+- Bridge error event 使用 `cx.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
+- External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。
+- Applet UI widget sandbox MUST 与 Space capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Contrix session token 或未授权 repo access。

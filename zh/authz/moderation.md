@@ -1,4 +1,4 @@
-# Moderation Draft
+# Moderation
 
 ## 1. 目标
 
@@ -358,9 +358,9 @@ Policy Server MAY return `hard_deny`, `quarantine`, `require_review` or `soft_de
 上述规则至少部分对应 `server-threat-model.md` 中的映射结果。  
 `policy-server.md` 与 `federation.md` 也应同步落地。
 
-## 10. 后续待细化
+## 10. v1 流程要求
 
-- 自动化审核（基于 AI 的内容分类与标记）
-- 上诉流程（被封禁用户的申诉机制）
-- 跨 Space 的共享封禁列表与信任/误伤处理
-- 审核操作的不可抵赖性日志
+- 自动化审核只能产生 risk signal、`quarantine` 或 `require_review` 建议；除非 Space policy 明确授权，AI 分类器不得直接 hard delete、ban 或扩大可见性。
+- 上诉流程 MUST 形成可审计事件，至少包含 target、moderation action、appeal actor、reviewer、decision、reason code 和时间；上诉材料的明文可见范围必须受 policy 控制。
+- 跨 Space 共享封禁列表必须由 Organization DID、联盟治理 DID 或受信 issuer 签名，并声明 scope、reason code、evidence hash、过期时间和误伤申诉入口。默认不得把个人 blocklist 发布为共享封禁。
+- 审核操作 MUST 使用不可抵赖日志：moderator DID、device/service proof、policy version、target event hash、action、reason code 和 audit timestamp 都必须进入签名记录。

@@ -1,4 +1,4 @@
-# Client Preferences & Account Data Draft
+# Client Preferences & Account Data
 
 ## 1. 目标
 
@@ -152,7 +152,7 @@ Rules:
 - 涉及用户敏感信息的 Account Data（例如访问第三方服务的私钥、密码管理器的 Vault），MUST 另外进行客户端加密（Client-Side Encryption），使用类似 Matrix 4S (Secret Storage) 的机制，通过单独的 Recovery Key 保护。
 - 普通的 UI 偏好和标签可以直接由用户的 Device Key 签名写入 Account Repo。
 
-## 6. 后续待细化
+## 6. v1 规则
 
-- 4S (Secure Secret Storage) 与 Key Backup (密钥云端备份) 的具体存储格式
-- 跨端排序算法的一致性 (Lexicographical vs Float)
+- 4S / Secret Storage 与 Key Backup 的存储格式必须使用客户端加密 envelope，绑定 principal DID、device / recovery key、algorithm、KDF parameters、created_at、version 和 payload hash。服务端不得获得解锁材料。
+- 跨端排序字段 MUST 使用稳定 rank string 或 HLC + tie-break 组合，不得使用非确定性 float 作为唯一排序真相。客户端可在 UI 内使用 float 计算临时位置，但写回必须归一为规范 rank。

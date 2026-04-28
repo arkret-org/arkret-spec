@@ -1,4 +1,4 @@
-# DID Identity Draft
+# DID Identity
 
 ## 1. 目标
 
@@ -413,7 +413,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 ## 11. DID Operation
 
-建议 DID 更新封装：
+DID 更新 MUST 使用以下封装或语义等价的 method-specific envelope：
 
 ```json
 {
@@ -479,10 +479,12 @@ Adapter 输出 SHOULD 包含：
 9. `deactivate` 后没有新的控制写入
 10. Pairwise/private DID 不被强制公开 `also_known_as`
 
-## 14. 待细化
+## 14. 一致性要求
 
-- `did:uuid` 测试向量
-- DID operation JSON Schema
-- registry receipt schema
-- normalized principal view schema
-- method adapter conformance tests
+Contrix v1 对 DID 实现要求如下：
+
+- `did:uuid` 测试向量 MUST 覆盖 UUID v8 bit layout、44 位毫秒时间戳、4 位 hash algorithm id、74 位 inception key hash fragment、大端填充和非法 method id 拒绝。
+- DID operation JSON Schema MUST 与第 11 节 envelope、`data-structures.md` 的 Proof 和 `encoding.md` 的 canonical JSON 规则一致；同一 `did + seq` 不得出现不同 canonical bytes。
+- Registry receipt schema MUST 绑定 `did`、`seq`、`head_event_hash`、registry service DID、witness role、created_at、audience 和 signature。客户端不得把未绑定 service DID / audience 的 receipt 作为写入确认。
+- Normalized principal view MUST 保留 raw document hash、method-specific proof、current control keys、service bindings、contrix bindings 和 evidence；不得丢弃外部 DID 的原始语义。
+- Method adapter conformance tests MUST 覆盖 `did:uuid`、`did:web`、`did:key` 以及至少一个 history-bearing method。无法验证 method history 的 adapter 只能声明 limited trust profile。

@@ -244,7 +244,7 @@ sha256:5b8863e858c1964ca1901d27ce687b65d87dcef0d3535ed617de7b4763cfdaf8
 
 - proof MUST bind payload hash、actor DID、verification method 和 created_at。
 - 需要跨服务或跨域验证时，profile SHOULD 额外绑定 domain / audience。
-- 签名算法测试向量 SHOULD 在后续 crypto fixture 中补充真实 public key 和 detached JWS；本文只固定签名前 canonical binding 输入。
+- 签名算法测试向量由本文件第 13 节的 crypto fixture 要求补充真实 public key 和 detached JWS；本文固定签名前 canonical binding 输入。
 
 ## 9. Vector: HLC Order
 
@@ -352,9 +352,9 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 | `cx.vector.encoding.cursor_opaque.v1` | MUST | MUST | MUST | MAY | SHOULD | MUST |
 | `cx.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST | SHOULD |
 
-## 13. 后续 Crypto Fixture
+## 13. Crypto Fixture 要求
 
-本文不内嵌真实私钥或可复用签名样本。后续自动化 conformance suite SHOULD 增加独立 fixture：
+自动化 conformance suite MUST 增加独立 fixture：
 
 - Ed25519 public key / private test key
 - detached JWS signature
@@ -362,3 +362,5 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 - key rotation 后的 signature verification
 - redaction 前后 event digest 验证
 - malformed UTF-8 / duplicate key parser rejection
+
+测试私钥只能用于公开测试向量，不得被任何生产实现信任。生产 profile MUST 拒绝测试 DID、测试 key id 或测试 trust domain。

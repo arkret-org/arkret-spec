@@ -1,4 +1,4 @@
-# Federation Draft
+# Federation
 
 ## 1. 目标
 
@@ -484,4 +484,3 @@ POST /api/v1/federation/verify-actor
 - 声誉只能用于流量调度、排队优先级和临时降级，不得替代签名验证、DID 校验和 Space policy 授权判断。
 - 声誉决策不得造成可审计事件的不可达性（例如把合法请求静默降权为拒绝）。
 - 即使在高声誉策略触发下，仍应返回可区分的标准错误码（`temporarily_unavailable`、`rate_limited`、`quarantine`）供重试/恢复。
-

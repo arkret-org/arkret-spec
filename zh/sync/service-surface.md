@@ -1,10 +1,10 @@
-# Service Surface And Bootstrap Draft
+# Service Surface And Bootstrap
 
 ## 1. 目标
 
 如果只有对象模型、同步原则和 capability，而没有最小线级服务面，协议仍然很难真正互操作。
 
-因此 Contrix 初版需要定义：
+因此 Contrix v1 定义：
 
 - identity registry 如何收发 DID 操作与 receipt
 - repo 如何收发 commit / operation
@@ -14,7 +14,7 @@
 - blob 如何上传与校验
 - invite / grant 如何参与首次加入工作区
 
-本文给出一个 **最小可互操作服务面** 草案。  
+本文给出 **最小可互操作服务面**。
 默认调用风格采用 HTTP/JSON binding，但协议核心不强绑定 REST API。实现也可以兼容 gRPC、GraphQL、WebSocket、SSE、message queue、libp2p 或本地 IPC，只要提供语义等价的操作、认证、授权、幂等、分页、错误和流控语义即可。详细规则见 `transport-bindings.md`。
 
 本文件按服务角色说明接口语义。所有 REST endpoint 的字段级请求 / 响应 schema、认证模式、访问限制和幂等规则以 [service-http-binding.md](service-http-binding.md#24-字段级-schema-索引) 为准；本文件中的 JSON 或字段列表仅用于解释服务面，不构成完整 schema。
@@ -103,7 +103,7 @@ DID Document SHOULD 只负责：
 
 ## 3. 通用服务描述接口
 
-建议所有服务都提供：
+所有网络可发现服务 MUST 提供：
 
 ```text
 GET /api/v1/server/describe
@@ -115,7 +115,7 @@ GET /api/v1/server/describe
 {
   "service_did": "did:web:alice.example.net",
   "service_type": "principal_server",
-  "protocol_version": "0.2-draft",
+  "protocol_version": "1.0",
   "supported_features": [
     "sync_stream",
     "snapshot",
@@ -216,7 +216,7 @@ GET /api/v1/identity/receipts?did=<did>&head=<event-hash>
 
 #### 3.1.6 写入确认建议
 
-初版建议：
+Contrix v1 要求：
 
 - writer 客户端同时向多个 registry / witness 提交 `did_operation`
 - 至少拿到 `k-of-n` receipt 才视为提交成功
@@ -559,7 +559,7 @@ POST /api/v1/authz/check
 
 ## 10. Space Bootstrap Flow
 
-初版推荐的首次加入流程：
+Contrix v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Space link
 2. 客户端解析 DID，并完成 handle 双向校验
@@ -622,9 +622,9 @@ POST /api/v1/authz/check
 - Sync Service 和 Repo 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。
 - 对于来自未验证或低信誉 DID 的恶意刷写（例如短时间内进行海量无效的 `message.create` 或反复触发高并发图重组），节点有权暂时熔断该 DID 的请求。
 
-## 14. 初版设计决定
+## 14. 设计决定
 
-当前草案建议固定：
+Contrix v1 固定：
 
 - 定义最小 principal server / identity registry / repo / sync / index / blob / authz 服务面
 - HTTP/JSON 路径是默认推荐 binding，但语义等价最重要，可兼容其他调用风格
@@ -640,11 +640,13 @@ POST /api/v1/authz/check
 
 `service-surface.md` 只定义服务角色和语义面。任何 HTTP、gRPC、WebSocket、SSE、message queue、libp2p 或 IPC 实现都必须映射到本文定义的等价语义。
 
-## 16. 后续待细化
+## 16. 线级互操作要求
 
-- directory search result schema
-- authz check response schema
-- service describe conformance vector
-- sync cursor recovery test vector
-- repo sync consistency test vector
+以下事项是 v1 的落地要求，不再作为待定项处理：
+
+- Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
+- Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_valid_until`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
+- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `binding`。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。
+- Sync cursor recovery MUST 按 `sync-conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
+- Repo sync consistency MUST 按 `encoding-conformance-vectors.md` 和 `sync-conformance-vectors.md` 执行：重复 commit 幂等，冲突 commit 拒绝，operation 顺序、hash、签名和 author sequence 必须可复现验证。
 

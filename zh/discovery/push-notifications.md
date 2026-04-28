@@ -1,4 +1,4 @@
-# Push Notifications Draft
+# Push Notifications
 
 ## 1. 目标
 
@@ -272,9 +272,9 @@ POST /api/v1/push/notify
 
 在静默时段内，只有 `exceptions` 列表中的规则可以触发推送。
 
-## 8. 后续待细化
+## 8. v1 互操作要求
 
-- 推送规则的跨设备同步
-- 推送统计与 Delivery Receipt
-- 语音/视频通话推送的特殊处理
-- 推送网关的高可用与容错
+- 推送规则的跨设备同步使用私有 Account Data 或加密 Account Repo；规则变更 MUST 由 holder device 签名，未授权服务不得读取敏感关键词或联系人规则。
+- Delivery Receipt 只能表示推送网关或平台尝试投递，不等于用户已读。已读状态仍由 read marker / read receipt profile 表达。
+- 语音/视频通话推送使用 `cx.call.signal` 的 invite hint；payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会议标题，除非 Space policy 明确允许。
+- Push Gateway 高可用不得通过共享长期 device token 实现。多网关部署 MUST 使用 service DID、短期授权、token 分片或 per-gateway registration，并支持撤销。

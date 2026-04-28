@@ -1,4 +1,4 @@
-# Agent Memory Draft
+# Agent Memory
 
 ## 1. 目标
 
@@ -215,7 +215,7 @@ Contrix 把 memory 当成“人类可审阅对象”，因此 SHOULD 至少支�
 
 ## 10. Memory 查询模式
 
-初版建议至少支持以下查询维度：
+Contrix v1 至少支持以下查询维度：
 
 - 按 `subject_ref`
 - 按 `memory_kind`
@@ -259,9 +259,9 @@ Agent memory 往往比普通任务更敏感，因此实现 SHOULD 支持：
 - memory 类型限制
 - 对 candidate memory 的更严格读权限
 
-## 14. 初版设计决定
+## 14. 设计决定
 
-当前草案建议固定：
+Contrix v1 固定：
 
 - run 与 memory 是一等对象
 - episodic / semantic / task memory 共存
@@ -269,11 +269,9 @@ Agent memory 往往比普通任务更敏感，因此实现 SHOULD 支持：
 - memory 必须带来源
 - memory 必须可审阅、可失效、可替代
 
-## 15. 后续待细化
+## 15. v1 流程要求
 
-下一轮仍需补充：
-
-- memory 提取标准流程
-- candidate -> confirmed 审批状态机
-- 向量检索兼容面
-- retention / legal hold / export 语义
+- Memory 提取流程 MUST 从 signed source refs 开始，生成 candidate memory，并保留 extractor actor、run ref、input hash、policy context 和 confidence。未确认 candidate 不得作为高信任事实自动注入 agent prompt。
+- `candidate -> confirmed` MUST 经过拥有 `memory.confirm` capability 的 human、agent 或 policy-approved reviewer；拒绝、失效和替代必须写入可审计 event。
+- 向量检索是 Index 兼容面：vector store MUST 声明 service DID、plaintext visibility、source frontier、embedding model/version 和 deletion/supersession lag。查询结果不得扩大 Space capability。
+- Retention / legal hold / export 语义按 Space policy、`media-and-blob.md` 和 `service-surface.md` 的 export/import 边界执行。被 legal hold 的 memory 可阻止物理删除，但仍必须在默认视图中反映 redaction、invalidated 或 superseded 状态。

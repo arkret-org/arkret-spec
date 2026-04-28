@@ -1,4 +1,4 @@
-# Encryption and Auditability Draft
+# Encryption and Auditability
 
 ## 1. 目标
 
@@ -155,7 +155,8 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 - 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `cx.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Sync Service 中的加密事件。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
 
-## 7. 待细化领域
-- 详细的 KeyPackage 格式在 DID Document 中的映射 Schema。
-- TEE 环境下 Audit Agent 代码开源验证（Remote Attestation）在 Contrix 协议中的集成校验流程。
-- 与现存 Signal/Double Ratchet 私信场景的无缝回退兼容性。
+## 7. v1 集成要求
+
+- KeyPackage 在 DID Document 或 Device / Key Server 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
+- TEE / Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `cx.audit.accessed` 先写后解密要求。
+- Signal / Double Ratchet 私信兼容只能作为 profile-specific fallback。fallback 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和迁移边界；不得在 MLS Space 内静默降级。

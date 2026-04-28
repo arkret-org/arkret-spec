@@ -20,7 +20,7 @@
 | 推送 | `push-notifications.md` | 已覆盖隐私保护推送模型 |
 | 已读 / 未读 | `read-receipts.md`, `read-notification-schema.md` | 已覆盖 |
 | profile / presence / typing | `profiles-presence.md` | 已覆盖 |
-| 3PID 邀请 | `third-party-invites.md` | 已覆盖草案 |
+| 3PID 邀请 | `third-party-invites.md` | v1 已覆盖 |
 | WebRTC / 会议 | `webrtc-signaling.md` | 已覆盖 P2P、SFU、TURN/STUN/ICE、录制和屏幕共享 |
 | Applet / Bridge | `applet-integration.md`, `applet-schema.md` | 已覆盖注册、命名空间和交易推送 |
 | Agent 协议互操作 | `agent-protocol-interop.md` | 已覆盖 A2A / ACP legacy 等外部 agent transport handoff |
@@ -48,7 +48,7 @@
 
 ### 3.2 OpenAPI 与非 HTTP Binding 映射
 
-当前已有默认 HTTP/JSON binding 草案和 endpoint 字段级清单，但仍需将核心 operation 落成机器可执行工件：
+当前已有默认 HTTP/JSON binding 和 endpoint 字段级清单，核心 operation 需要持续生成机器可执行工件：
 
 - OpenAPI for HTTP/JSON binding
 - gRPC service mapping
@@ -62,7 +62,7 @@
 
 ### 3.3 Schema Registry 完整化
 
-当前 `data-structures.md` 已补核心对象字段级定义，但仍需要把以下内容从文档草案落成机器可验证 JSON Schema / OpenAPI components：
+当前 `data-structures.md` 已补核心对象字段级定义，以下内容应从规范文本生成机器可验证 JSON Schema / OpenAPI components：
 
 - `cx.space.*`
 - `cx.entity.*`
@@ -163,4 +163,4 @@
 - conformance suite
 - feature profile
 
-这些完成后，Contrix 才能从设计草案进入可互操作实现阶段。
+这些完成后，Contrix v1 的实现可以从文档级一致性进入自动化互操作认证。

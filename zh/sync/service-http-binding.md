@@ -1,4 +1,4 @@
-# Service HTTP/JSON Binding Draft
+# Service HTTP/JSON Binding
 
 ## 1. 目标
 
@@ -430,4 +430,3 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 - 联邦入口与 policy check 入口应记录来源 service DID + 来源域名哈希，结合 `rate_limited` 与 `temporarily_unavailable` 作回压。
 - 对来源签名缺失/验证失败的入口请求，应优先走 reject + audit，不得影响已认证正常来源的可用性。
 - 对 URL 中携带认证材料的请求，应 reject + redact log，不得进入正常认证 fallback。
-

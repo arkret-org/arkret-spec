@@ -159,4 +159,4 @@ contrix-spec/
       server-threat-model.md
 ```
 
-The Chinese specification is currently the leading detailed draft. The English folder is structurally aligned and will continue to be expanded toward full translation.
+The Chinese specification is the leading normative text for Contrix v1. The English folder is structurally aligned and mirrors the v1 concepts, profiles, and service boundaries where translation is complete.

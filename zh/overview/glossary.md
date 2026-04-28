@@ -253,3 +253,18 @@
 | Moderation Policy 与 Capability | Capability 决定是否具备基础动作权限；Moderation Policy 可以 deny、quarantine 或 require review，但不能凭空授予权限。 |
 | Personal Blocklist 与 Space Ban | Personal Blocklist 是个人私有渲染/通知/联系过滤；Space Ban 是 Space 共享成员状态，会影响加入和写入。 |
 | E2EE 与 Authenticated Media | E2EE 保护内容不可被服务端解密；authenticated media 只控制下载访问。 |
+
+## 14. 规范性边界规则
+
+以下规则用于消除实现中的概念合并和权限混淆。除非具体 profile 明确收紧，本节为 Contrix v1 的规范性边界。
+
+1. Principal 是身份根；Actor 是 Space 内行为者视图。任何授权、签名验证和责任追溯 MUST 能回到 Principal DID 或受验证的 condition selector。Actor Profile、display name、handle、头像和组织目录结果都不得成为权限主键。
+2. Organization 是治理 Principal；Space 是协作边界。组织可以拥有、托管或背书多个 Space，但 Organization DID、Space owner、Principal Server 运营方和成员列表是四个独立概念。实现 MUST NOT 仅凭域名、服务器托管方或 Space membership 推断组织归属。
+3. Entity 是当前协作对象；Event / Operation 是事实与审计输入；View / Projection 是派生展示。实现 MUST NOT 只保存当前 Entity 而丢弃可验证事件链，也 MUST NOT 把 View 的可见字段当作权限裁剪。
+4. Relation 是协议内的一等语义边；正文中的链接、mention、引用和回复若影响授权、通知、检索或审计，MUST 落成结构化 Relation 或 Event 字段。客户端正文扫描只能作为输入辅助。
+5. Repo 是可验证发布日志；Principal Server 是服务边界；Index 是派生查询层。三者可以同机部署，但 service DID、`service_type`、capability、plaintext visibility 和 conformance profile MUST 可区分。
+6. Capability 授予动作；Policy 限制、隔离或要求审查；Moderation Policy 不授予能力。任何 `allow` 结果都必须先满足 capability，再满足 policy、membership、device trust 和 schema 约束。
+7. Invite 是加入引导，不自动授予完整权限。接受邀请后，只有被引用并满足约束的 grant 才进入有效授权集合；过期、撤销或认领失败的 invite MUST fail closed。
+8. Handle、Claim、Attestation 和 VC 只能证明属性或绑定。权限判定若依赖这些属性，MUST 验证 issuer、audience、有效期、撤销状态和选择性披露范围。
+9. E2EE、authenticated media 和 plaintext-visible service 是三种不同边界。下载需要授权不代表服务端不可见内容；端到端加密也不自动允许把 metadata、缩略图、embedding 或通知摘要交给未授权服务。
+10. Redaction 是协议层内容裁剪；Erasure 是服务侧物理删除或最小化流程。实现 MUST 在 UI、审计和合规流程中区分二者，不能承诺已传播副本的全球物理删除。

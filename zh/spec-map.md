@@ -148,7 +148,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | `extensions/applet-integration.md` | Applet / bridge / bot / ghost actor / portal Space。 |
-| `extensions/applet-schema.md` | Applet schema 与 OpenAPI 草案。 |
+| `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
 | `extensions/agent-memory.md` | Agent memory、run、promotion、review。 |
 | `extensions/agent-protocol-interop.md` | A2A / ACP legacy / external agent protocol handoff。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领。 |

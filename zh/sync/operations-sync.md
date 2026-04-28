@@ -1,4 +1,4 @@
-# Operations And Sync Draft
+# Operations And Sync
 
 ## 1. 目标
 
@@ -17,7 +17,7 @@ Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议
 
 ## 2. 核心角色
 
-初版建议区分：
+Contrix v1 区分：
 
 - `client`
 - `agent`
@@ -87,7 +87,7 @@ Contrix 采用 repo-first 模型：
 
 ## 4. Repo Commit
 
-初版建议 repo 以 commit 为发布单元。
+Contrix v1 repo 以 commit 为发布单元。
 
 ```json
 {
@@ -140,7 +140,7 @@ Contrix 采用 repo-first 模型：
 
 单一时间戳不足以支撑协作收敛。
 
-初版建议：
+Contrix v1 要求：
 
 - `deps` 表示直接因果依赖
 - `hlc` 表示近实时逻辑时间
@@ -596,7 +596,7 @@ reaction 以 `(message_id, actor, reaction_key)` 为 OR-Set key 收敛。
 
 授权不能只看墙上时钟，否则 revoke、迟到 operation、离线写入都会失真。
 
-初版建议：
+Contrix v1 要求：
 
 - grant / delegate / revoke 本身也是 operation
 - 某个业务 operation 是否有效，由同一 reducer 顺序下的有效授权集合决定
@@ -648,9 +648,9 @@ Blob 不应强制与元数据同流同步。
 - reduced snapshots
 - materialized indexes
 
-## 24. 初版设计决定
+## 24. 设计决定
 
-当前草案建议固定：
+Contrix v1 固定：
 
 - repo commit 是 actor 发布单元
 - operation 是共享状态归约单元
@@ -662,15 +662,16 @@ Blob 不应强制与元数据同流同步。
 - 撤回采用 redaction/tombstone 语义
 - 冲突通过固定 reducer 规则收敛
 
-## 25. 后续待细化
+## 25. 规范性引用
 
-下一轮仍需补充：
+以下线级事项由 v1 相关文档固定，本文不再保留开放项：
 
-- cursor 编码
-- HLC 文本格式
-- snapshot chunk schema
-- snapshot signature 与 chunk digest 的正式 schema
-- encrypted payload envelope schema
-- read marker 的标准同步面
-- sync service / index 线级接口
+- Cursor 编码与 opaque 语义见 `encoding.md`、`data-structures.md` 和 `encoding-conformance-vectors.md`。
+- HLC 文本格式固定为 `<unix_ms_hex>-<logical_hex>-<node_id_hash>`，排序向量见 `encoding-conformance-vectors.md`。
+- Snapshot manifest、chunk digest、`state_hash` 和签名规则见 `snapshot-schema.md`。
+- Encrypted payload envelope schema 见 `data-structures.md`、`snapshot-schema.md`、`encryption-and-audit.md` 和 `encoding-conformance-vectors.md`。
+- Read marker 的私有状态、同步面和 notification 派生规则见 `read-notification-schema.md`、`read-receipts.md` 和 `client-preferences.md`。
+- Sync Service / Index 线级接口见 `service-surface.md`、`service-http-binding.md` 和 `query-schema.md`；transport 等价性见 `transport-bindings.md`。
+
+实现若缺少上述任一规范性依赖，MUST 在 feature discovery 中声明不支持对应 profile，不能声称完整支持 Contrix v1 同步。
 

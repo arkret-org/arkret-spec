@@ -1,4 +1,4 @@
-# Content Types Draft
+# Content Types
 
 ## 1. 目标
 
@@ -326,9 +326,9 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
 - `body` 字段在密文信封中**不保留明文副本**（防止元数据泄露）
 - 用于推送通知的脱敏摘要由发送者的客户端单独生成并附在明文元数据中（参见 `push-notifications.md`）
 
-## 8. 后续待细化
+## 8. v1 扩展规则
 
-- Emoji / Sticker 包格式
-- 投票 / 表单等交互式消息
-- URL 预览 (Link Preview) 的标准嵌入格式
-- E2EE 场景下的缩略图加密传输策略
+- Emoji / Sticker MUST 作为 `cx.content.image`、`cx.content.file` 或注册的 `cx.content.sticker` block 表达，并引用 content-addressed blob；客户端不得从未授权 URL 热加载私有表情资源。
+- 投票 / 表单等交互式消息 SHOULD 使用 `poll` Entity、Relation 和 event reducer 表达；消息中的 content block 只能作为入口或摘要，不能成为唯一计票真相源。
+- URL 预览 MUST 作为可丢弃的 rendering hint 或受控 preview blob 表达。服务端抓取私有链接前必须有用户或 Space policy 授权，预览服务若接触正文或页面内容，MUST 列入 `plaintext_visible_services`。
+- E2EE 场景下缩略图 SHOULD 由客户端生成并加密上传；服务端生成缩略图前必须被声明为 plaintext-visible service，并遵守 `media-and-blob.md` 的 MIME、缓存和授权规则。

@@ -379,7 +379,7 @@ Soft failed state event MAY 在后续上下文补齐后重新评估。Rejected e
 
 ## 12. Space Upgrade
 
-在当前草案中，Space 升级通过 `cx.space.upgrade` 在同一 `space_id` 上执行，不启用新 `space_version`：
+在 Contrix v1 中，Space 升级通过 `cx.space.upgrade` 在同一 `space_id` 上执行，不启用新 `space_version`：
 
 ```json
 {

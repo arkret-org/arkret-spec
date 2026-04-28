@@ -1,4 +1,4 @@
-# Architecture Draft
+# Architecture
 
 ## 1. 目标
 
@@ -475,9 +475,9 @@ Contrix 不打算做“两套系统”：
 - 任务、评论、关系、运行记录、记忆可以互相链接
 - 所有沉淀都能投影成可操作界面
 
-## 8. 初版架构决定
+## 8. 架构决定
 
-当前草案建议固定以下方向：
+Contrix v1 固定以下方向：
 
 - principal repo 是 actor 发布基线
 - identity registry / witness 是 DID 文档的解析与写入层
@@ -489,14 +489,14 @@ Contrix 不打算做“两套系统”：
 - 同一数据既服务人类 UI，也服务 agent 记忆
 - confidentiality 与 portability 也是明确协议平面，而不是部署细节
 
-## 9. 后续待细化
+## 9. 可落地性要求
 
-下一轮仍需继续明确：
+Contrix v1 不允许实现用单一“万能服务”隐藏协议边界。任何声称支持 `cx.profile.principal_server.v1`、`cx.profile.index_node.v1` 或 `cx.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
-- repo commit 的精确编码
-- sync stream 的订阅协议
-- index query surface
-- capability cache 的一致性策略
-- 多 Principal Server / 多 index 并存时的互操作要求
-- 加密 envelope 与 key 分发接口
-- export/import 的一致性边界
+- Repo commit 编码、event digest、commit digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `encoding-conformance-vectors.md` 执行。
+- Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`sync-conformance-vectors.md` 与 `service-surface.md` 执行。
+- Index query surface 按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；Index 结果必须能追溯到 signed Event / Operation、reducer profile 和 causal frontier。
+- Capability cache 只能作为优化。缓存命中必须绑定 causal frontier、grant / revoke / claim 状态和 policy version；上下文缺失、过期或发生分叉时 MUST fail closed 或重新执行完整 authz。
+- 多 Principal Server / 多 Index 并存时，客户端 MUST 比较 DID service delegation、Space policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
+- 加密 envelope、device / key server、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`devices-and-auth.md`、`device-crypto-verification.md` 与 `media-and-blob.md` 执行。
+- Export / import MUST 以 snapshot manifest、state hash、chunk digest、operation replay 和 policy / redaction metadata 为边界；导入端不得仅信任外部 index dump。

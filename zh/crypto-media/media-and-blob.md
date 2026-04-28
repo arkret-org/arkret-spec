@@ -1,4 +1,4 @@
-# Media and Blob Draft
+# Media and Blob
 
 ## 1. 目标
 
