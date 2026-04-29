@@ -137,6 +137,189 @@ components:
             type: object
         next_cursor:
           type: string
+    SortSpec:
+      type: object
+      required: [field, direction]
+      properties:
+        field:
+          type: string
+        direction:
+          type: string
+          enum: [asc, desc]
+        nulls:
+          type: string
+          enum: [first, last]
+    RelationQuery:
+      type: object
+      required: [kind, direction]
+      properties:
+        kind:
+          type: string
+        direction:
+          type: string
+          enum: [out, in, both]
+        source_entity_id:
+          type: string
+        source_actor_id:
+          type: string
+        source_space_id:
+          type: string
+        target_entity_id:
+          type: string
+        target_actor_id:
+          type: string
+        target_space_id:
+          type: string
+        depth:
+          type: integer
+          minimum: 0
+    QueryRequest:
+      type: object
+      properties:
+        space_ids:
+          type: array
+          items:
+            type: string
+        view_id:
+          type: string
+        projection:
+          type: string
+          enum: [raw, kanban]
+        entity_types:
+          type: array
+          items:
+            type: string
+        relation:
+          $ref: "#/components/schemas/RelationQuery"
+        filters:
+          type: array
+          items:
+            type: object
+        order_by:
+          type: array
+          items:
+            $ref: "#/components/schemas/SortSpec"
+        cursor:
+          type: string
+        limit:
+          type: integer
+          minimum: 1
+        wait_for:
+          type: string
+      allOf:
+        - if:
+            properties:
+              projection:
+                const: kanban
+            required: [projection]
+          then:
+            required: [view_id]
+    RawQueryResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+        next_cursor:
+          type: string
+        total_estimate:
+          type: integer
+        frontier:
+          type: object
+        stale:
+          type: boolean
+    KanbanProjectionResponse:
+      type: object
+      required: [view_id, columns, frontier]
+      properties:
+        view_id:
+          type: string
+        space_id:
+          type: string
+        frontier:
+          type: object
+          required: [state_hash]
+          properties:
+            state_hash:
+              type: string
+            operation_ids:
+              type: array
+              items:
+                type: string
+        columns:
+          type: array
+          items:
+            $ref: "#/components/schemas/KanbanProjectionColumn"
+        stale:
+          type: boolean
+    KanbanProjectionColumn:
+      type: object
+      required: [key, title, source, cards, limited]
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        rank:
+          type: string
+          pattern: "^[0-9A-Za-z]{1,128}$"
+        source:
+          type: object
+          required: [model]
+          properties:
+            model:
+              type: string
+              enum: [field_value, collection]
+            field:
+              type: string
+            value:
+              oneOf:
+                - type: string
+                - type: number
+                - type: boolean
+            collection_entity_id:
+              type: string
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/KanbanProjectionCard"
+        next_cursor:
+          type:
+            - string
+            - "null"
+        limited:
+          type: boolean
+        wip_state:
+          type: string
+          enum: [ok, over_limit, unknown]
+        total_estimate:
+          type: integer
+    KanbanProjectionCard:
+      type: object
+      required: [entity, position]
+      properties:
+        entity:
+          type: object
+          required: [id, entity_type]
+          properties:
+            id:
+              type: string
+            entity_type:
+              type: string
+            title:
+              type: string
+        position:
+          type: object
+          required: [container_id, rank]
+          properties:
+            container_id:
+              type: string
+            rank:
+              type: string
+              pattern: "^[0-9A-Za-z]{1,128}$"
+            relation_id:
+              type: string
   responses:
     NotFound:
       description: Not found or not visible.
@@ -363,13 +546,21 @@ paths:
   /index/query:
     post:
       operationId: cx.index.query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QueryRequest"
       responses:
         "200":
           description: Structured query result
           content:
             application/json:
               schema:
-                type: object
+                oneOf:
+                  - $ref: "#/components/schemas/RawQueryResponse"
+                  - $ref: "#/components/schemas/KanbanProjectionResponse"
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle

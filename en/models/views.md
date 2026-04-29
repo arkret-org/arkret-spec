@@ -285,10 +285,12 @@ The canonical input for Kanban views should be:
 - `entity_type = "board"`
 - `entity_type = "collection"`
 - `entity_type = "task"` or another work object type
-- `kind = "contains"` / `belongs_to`
+- Relation `relation_kind = "contains"` / `belongs_to`
 - `kind = "kanban"`
 
 rather than some UI-private array-of-columns structure.
+
+For v1 interoperability, Kanban views MUST use the machine-verifiable `kanban` config in `view.schema.json`. Field-value boards use `cx.task.move` so the group value and rank converge atomically; collection boards use `cx.relation.move` within a `scope_container_id` so one card has one active position per board scope. Index / AppView Kanban projections return derived `columns[]` with per-column cursors; hidden cards and fields must be authorization-trimmed without leaking exact hidden counts unless policy allows it.
 
 ### 7.2 Chat
 

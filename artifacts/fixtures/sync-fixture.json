@@ -8,6 +8,8 @@
     { "name": "expired_cursor", "expected": "sync_token_expired_or_snapshot_bootstrap" },
     { "name": "filter_mismatch", "expected": "invalid_param_or_describe_guidance" },
     { "name": "to_device_ack", "expected": "acked_message_not_redelivered" },
-    { "name": "snapshot_manifest_chunk_frontier", "expected": "state_hash_and_chunks_verify" }
+    { "name": "snapshot_manifest_chunk_frontier", "expected": "state_hash_and_chunks_verify" },
+    { "name": "kanban_projection_column_pagination", "expected": "per_column_cursor_does_not_claim_other_columns_complete" },
+    { "name": "kanban_projection_hidden_counts", "expected": "hidden_cards_do_not_contribute_to_exact_counts_without_policy" }
   ]
 }

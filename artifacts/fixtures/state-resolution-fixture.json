@@ -20,6 +20,21 @@
       "name": "deterministic_tie_breaker",
       "scenario": "same_hlc_same_auth_weight",
       "expected": "stable_actor_seq_then_event_id_order"
+    },
+    {
+      "name": "kanban_concurrent_card_move",
+      "scenario": "same card moved concurrently to two columns in one board scope",
+      "expected": "single_active_position_with_conflict_record"
+    },
+    {
+      "name": "kanban_atomic_task_move",
+      "scenario": "field-value kanban move updates group value and rank atomically",
+      "expected": "status_and_rank_from_same_winning_move"
+    },
+    {
+      "name": "relation_rebalance_cas_conflict",
+      "scenario": "rank rebalance submitted against stale ordered-set state hash",
+      "expected": "reject_without_partial_assignment"
     }
   ]
 }

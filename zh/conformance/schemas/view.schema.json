@@ -18,17 +18,244 @@
       ]
     },
     "title": { "type": "string" },
-    "query": { "type": "object" },
+    "query": { "$ref": "#/$defs/query" },
     "visible_fields": { "type": "array", "items": { "type": "string" } },
     "layout": { "type": "object" },
-    "kanban": { "type": "object" },
-    "sort": { "type": "array", "items": { "type": "object" } },
+    "kanban": { "$ref": "#/$defs/kanban_config" },
+    "sort": { "type": "array", "items": { "$ref": "#/$defs/sort_spec" } },
     "created_by": { "$ref": "#/$defs/did" },
     "created_at": { "$ref": "#/$defs/timestamp" }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "kanban" } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["kanban"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "kanban" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "query": {
+            "type": "object",
+            "required": ["entity_types"],
+            "properties": {
+              "entity_types": {
+                "type": "array",
+                "items": { "type": "string" },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
-    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "entity_id": { "type": "string", "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$" },
+    "cursor": { "type": "string", "pattern": "^cx:cursor:[A-Za-z0-9_-]+$" },
+    "field_path": { "type": "string", "pattern": "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$" },
+    "filter_value": true,
+    "field_filter": {
+      "type": "object",
+      "required": ["field", "op"],
+      "properties": {
+        "field": { "$ref": "#/$defs/field_path" },
+        "op": {
+          "type": "string",
+          "enum": ["eq", "neq", "in", "not_in", "lt", "lte", "gt", "gte", "contains", "exists", "prefix", "full_text"]
+        },
+        "value": { "$ref": "#/$defs/filter_value" }
+      },
+      "additionalProperties": true
+    },
+    "boolean_filter": {
+      "type": "object",
+      "properties": {
+        "and": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/filter" },
+          "minItems": 1
+        },
+        "or": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/filter" },
+          "minItems": 1
+        },
+        "not": { "$ref": "#/$defs/filter" }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "filter": {
+      "oneOf": [
+        { "$ref": "#/$defs/field_filter" },
+        { "$ref": "#/$defs/boolean_filter" }
+      ]
+    },
+    "relation_query": {
+      "type": "object",
+      "required": ["kind", "direction"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "direction": { "type": "string", "enum": ["out", "in", "both"] },
+        "source_entity_id": { "$ref": "#/$defs/entity_id" },
+        "source_actor_id": { "$ref": "#/$defs/did" },
+        "source_space_id": { "$ref": "#/$defs/space_id" },
+        "target_entity_id": { "$ref": "#/$defs/entity_id" },
+        "target_actor_id": { "$ref": "#/$defs/did" },
+        "target_space_id": { "$ref": "#/$defs/space_id" },
+        "depth": { "type": "integer", "minimum": 0, "maximum": 32 }
+      },
+      "additionalProperties": true
+    },
+    "sort_spec": {
+      "type": "object",
+      "required": ["field", "direction"],
+      "properties": {
+        "field": { "type": "string", "minLength": 1 },
+        "direction": { "type": "string", "enum": ["asc", "desc"] },
+        "nulls": { "type": "string", "enum": ["first", "last"] }
+      },
+      "additionalProperties": true
+    },
+    "query": {
+      "type": "object",
+      "properties": {
+        "space_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/space_id" },
+          "minItems": 1
+        },
+        "entity_types": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "anchor_entity_id": { "$ref": "#/$defs/entity_id" },
+        "filters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/filter" }
+        },
+        "relation": { "$ref": "#/$defs/relation_query" },
+        "context": {
+          "type": "object",
+          "properties": {
+            "event_kinds": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^cx\\.[a-z0-9_]+\\.[a-z0-9_]+$" }
+            },
+            "relation_kinds": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "event_tiebreak": { "type": "string", "enum": ["event_id", "operation_id"] }
+          },
+          "additionalProperties": true
+        },
+        "order_by": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sort_spec" }
+        },
+        "projection": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/field_path" }
+        },
+        "cursor": { "$ref": "#/$defs/cursor" },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "consistency": {
+          "type": "object",
+          "properties": {
+            "wait_for": { "type": "string", "minLength": 1 },
+            "timeout_ms": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "kanban_column": {
+      "type": "object",
+      "required": ["key", "title"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
+        "wip_limit": { "type": "integer", "minimum": 0 },
+        "wip_limit_enforcement": {
+          "type": "string",
+          "enum": ["warn", "reject", "require_review"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "kanban_config": {
+      "type": "object",
+      "required": ["column_model", "card_order_by"],
+      "properties": {
+        "column_model": { "type": "string", "enum": ["field_value", "collection"] },
+        "group_by": { "type": "string", "minLength": 1 },
+        "columns": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/kanban_column" },
+          "minItems": 1
+        },
+        "board_entity_id": { "$ref": "#/$defs/entity_id" },
+        "column_relation_kind": { "type": "string", "minLength": 1, "default": "contains" },
+        "card_relation_kind": { "type": "string", "minLength": 1 },
+        "card_order_by": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sort_spec" },
+          "minItems": 1
+        },
+        "uncategorized_policy": {
+          "type": "string",
+          "enum": ["show", "hide", "reject"],
+          "default": "show"
+        },
+        "conflict_policy": {
+          "type": "string",
+          "enum": ["reducer_winner", "expose_conflict", "reject"],
+          "default": "reducer_winner"
+        },
+        "hidden_count_policy": {
+          "type": "string",
+          "enum": ["omit", "authorized_estimate", "authorized_exact"],
+          "default": "omit"
+        },
+        "wip_limit_enforcement": {
+          "type": "string",
+          "enum": ["warn", "reject", "require_review"],
+          "default": "warn"
+        },
+        "page_size": { "type": "integer", "minimum": 1, "maximum": 500 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "column_model": { "const": "field_value" } },
+            "required": ["column_model"]
+          },
+          "then": { "required": ["group_by", "columns"] }
+        },
+        {
+          "if": {
+            "properties": { "column_model": { "const": "collection" } },
+            "required": ["column_model"]
+          },
+          "then": { "required": ["board_entity_id"] }
+        }
+      ],
+      "additionalProperties": true
+    }
   },
   "additionalProperties": true
 }

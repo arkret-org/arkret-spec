@@ -195,6 +195,7 @@ Contrix v1 要求：
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
+- `cx.relation.move` (有序 containment / membership edge 转移)
 - `cx.relation.rebalance` (有序集合的分数索引重平衡)
 - `cx.view.create`
 - `cx.view.update`
@@ -292,6 +293,104 @@ Contrix v1 要求：
 - `cx.relation.move`（规范化 `cx.entity` reorder）只带目标容器和新 rank
 - `cx.message.revise` 只带新正文
 - `cx.message.redact` 只带目标消息与原因
+
+### 8.1 看板 / 有序集合操作体
+
+看板拖拽、树节点移动和有序 collection 重排 MUST 使用可还原为 Entity / Relation 变化的标准操作体。客户端 MAY 暴露更高层的 `cx.task.move` / `cx.task.reorder`，但网络传播和 reducer 语义必须能映射到以下规则。
+
+#### 8.1.1 `cx.task.move`
+
+`cx.task.move` 用于字段分组列模型，例如 `fields.status` 驱动的 Kanban。它等价于对目标 task 的一次原子位置写入，而不是两个互相独立的 scalar update。
+
+```json
+{
+  "kind": "cx.task.move",
+  "target_ref": "cx:entity:01js0tk000000000000000000",
+  "content": {
+    "entity_id": "cx:entity:01js0tk000000000000000000",
+    "view_id": "cx:view:01js0vw000000000000000000",
+    "group_by": "fields.status",
+    "to_value": "review",
+    "rank": "mV",
+    "expected_position": {
+      "value": "todo",
+      "rank": "h0"
+    }
+  }
+}
+```
+
+Reducer MUST 将 `group_by` 指向的字段和值内排序字段视为同一个 position register。若并发 `cx.task.move` 写入同一 `(view_id, entity_id, group_by)`，按第 16.3 节 deterministic operation order 选择唯一 winner；不得把一个操作的列值和另一个操作的 rank 混合成最终位置。裸 `cx.entity.update` 仍可修改字段，但客户端用于拖拽时 SHOULD 使用 `cx.task.move`，或在 `cx.entity.update.content` 中声明等价的 `atomic_position`。
+
+#### 8.1.2 `cx.relation.move`
+
+`cx.relation.move` 用于 collection 列模型和其他有序 containment edge。它移动的是某个对象在一个 exclusive position scope 内的 active Relation。
+
+```json
+{
+  "kind": "cx.relation.move",
+  "target_ref": "cx:entity:01js0tk000000000000000000",
+  "content": {
+    "scope_container_id": "cx:entity:01js0bd000000000000000000",
+    "relation_kind": "contains",
+    "entity_id": "cx:entity:01js0tk000000000000000000",
+    "from_container_id": "cx:entity:01js0c1000000000000000000",
+    "to_container_id": "cx:entity:01js0c2000000000000000000",
+    "rank": "mV",
+    "expected_position": {
+      "container_id": "cx:entity:01js0c1000000000000000000",
+      "rank": "h0",
+      "relation_id": "cx:relation:01js0r1000000000000000000"
+    }
+  }
+}
+```
+
+字段语义：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `scope_container_id` | yes | 独占位置范围。Kanban collection 模型中 MUST 是 board Entity。 |
+| `relation_kind` | yes | 默认看板 containment 使用 `contains`，不得省略为自由推断。 |
+| `entity_id` | yes | 被移动的卡片 / 节点 / 对象。 |
+| `from_container_id` | no | 客户端看到的原容器，用于审计和冲突提示。 |
+| `to_container_id` | yes | 目标容器。 |
+| `rank` | yes | 目标容器内的新 rank。 |
+| `expected_position` | no | 客户端本地基线；除非 policy 要求 CAS，否则它不使离线 move 自动失败。 |
+
+Reducer 语义：
+
+1. 验证 actor 对 `entity_id`、`from_container_id`、`to_container_id` 和 `scope_container_id` 的 move/reorder 权限。
+2. 验证 `to_container_id` 在 `scope_container_id` 下是 active container；否则按 17.3 的孤儿规则处理。
+3. 在 reduced state 中关闭同一 `(scope_container_id, relation_kind, entity_id)` 下其他 active position edge。
+4. 创建或更新 `to_container_id -> entity_id` 的 active Relation，并把 `fields.rank` 设置为 `rank`。
+5. 对相同 Operation 保持幂等；重复接收不得创建重复 active position edge。
+
+#### 8.1.3 `cx.relation.rebalance`
+
+`cx.relation.rebalance` 只能重写同一 container 内的 rank，不得改变 membership / containment。
+
+```json
+{
+  "kind": "cx.relation.rebalance",
+  "target_ref": "cx:entity:01js0c2000000000000000000",
+  "content": {
+    "scope_container_id": "cx:entity:01js0bd000000000000000000",
+    "container_id": "cx:entity:01js0c2000000000000000000",
+    "relation_kind": "contains",
+    "expected_state_hash": "sha256:...",
+    "assignments": [
+      {
+        "entity_id": "cx:entity:01js0tk000000000000000000",
+        "relation_id": "cx:relation:01js0r2000000000000000000",
+        "rank": "h0"
+      }
+    ]
+  }
+}
+```
+
+`expected_state_hash` MUST 覆盖权限裁剪前的 canonical ordered set：`scope_container_id`、`container_id`、`relation_kind`、每个 active edge 的 `relation_id`、`to_entity_id`、`fields.rank` 和 source operation id。CAS 不匹配时，节点 MUST 返回 `cas_conflict` 或把该 operation 标记为 rejected；不得部分应用 assignments。
 
 ## 9. 验证流程
 
@@ -536,9 +635,12 @@ graph TD
 
 对象在 `collection` 或 `board` 间的转移通过 Relation 的增删或 `move` 操作实现。在离线并发操作中，极易产生循环包含 (Cycle) 或孤儿数据 (Orphaned items)。
 
-建议收敛规则：
-- **防循环 (Cycle Prevention)**：当发生并行移动导致图结构出现循环时（如 A 包含 B，同时 B 包含 A），Reducer 将基于 `hlc + actor_seq` 排序，较晚发生的移动操作将被判定无效并被退回，或者强制平铺到根容器。
-- **防孤儿 (Orphan Resolution)**：当一个对象被移入的父节点被并行删除时，该对象将自动回落到 Space 的默认 Inbox 容器或其原始容器中。
+规范收敛规则：
+
+- **Exclusive position key**：对 Kanban collection 模型，同一张卡片的唯一主位置 key 是 `(scope_container_id, relation_kind, entity_id)`。同一 key 下出现多个 active position edge 时，Reducer MUST 按第 16.3 节 deterministic operation order 选择唯一 winner，并在 `conflict_records` 中记录 losers。
+- **防循环 (Cycle Prevention)**：当并发移动导致图结构出现循环时（如 A 包含 B，同时 B 包含 A），Reducer MUST 先按 deterministic operation order 从高到低尝试保留移动；任何会形成循环的 candidate MUST 被标记为 `rejected_cycle`，不得进入最终 active graph。
+- **防孤儿 (Orphan Resolution)**：当对象被移入的目标容器在同一 frontier 中被删除、归档或失去 containment 资格时，Reducer MUST 优先保留该对象最后一个仍有效的原位置；若不存在有效原位置，则放入该 `scope_container_id` 下 schema 声明的 default inbox / uncategorized container；若也不存在，则对象保持 active 但 position 标记为 `orphaned`，并进入 `conflict_records`。
+- **冲突可见性**：`conflict_records` 是审计和调试输出。普通 View projection MAY 只显示 winner，但审计 View 和 conformance reducer MUST 能返回 losers、winner、reason 和参与 operation ids。
 
 ### 17.4 排序字段与重平衡
 
@@ -550,8 +652,14 @@ graph TD
 应通过 move/reorder 语义处理。`rank` 推荐使用 Fractional Indexing string。
 
 **重平衡 (Rebalance) 与并发防乱序机制**：
-当高频拖拽导致 Fractional Indexing 字符串长度膨胀或精度耗尽时，具备 `manage_board` 或对应管理权限的 Actor MAY 提交一条特殊的 `cx.relation.rebalance` 操作。该操作将在其所属分支上截断现有的长尾 rank，为容器内所有对象重新分配短且等距的 rank 字符串，以消除碎片和性能隐患。
+当高频拖拽导致 Fractional Indexing 字符串长度膨胀或精度耗尽时，具备 `cx.board.admin`、`cx.view.update` 或对应 collection 管理权限的 Actor MAY 提交一条特殊的 `cx.relation.rebalance` 操作。该操作将在其所属分支上截断现有的长尾 rank，为容器内所有对象重新分配短且等距的 rank 字符串，以消除碎片和性能隐患。
 为防止多端并发触发重平衡导致列表排序被彻底损毁（并发乱序风暴），`rebalance` 操作 MUST 携带一个 **`expected_state_hash` (CAS 并发锁)**。节点在处理 `rebalance` 时，如果当前列表状态哈希与预期不符，MUST 拒绝该次重平衡。客户端若遭遇 CAS 失败，应自动使用指数退避 (Exponential Backoff) 策略拉取最新状态后重试。
+
+排序收敛规则：
+
+- Rank 字段本身只决定主排序；同一 container 内 rank 相同的对象 MUST 继续按 `rank_source_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、`entity_id` 排序。
+- 如果实现无法取得 rank source 元数据，MUST 使用 `entity_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。
+- `cx.relation.rebalance` 不得改变对象相对顺序，除非该顺序在输入 state 中已经只能靠 tie-break 得出；这种情况下 assignments MUST 按 reducer 已得出的稳定顺序生成。
 
 ### 17.5 Message
 
@@ -695,4 +803,3 @@ Contrix v1 固定：
 - Sync Service / Index 线级接口见 `service-surface.md`、`service-http-binding.md` 和 `query-schema.md`；transport 等价性见 `transport-bindings.md`。
 
 实现若缺少上述任一规范性依赖，MUST 在 feature discovery 中声明不支持对应 profile，不能声称完整支持 Contrix v1 同步。
-

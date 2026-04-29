@@ -205,7 +205,7 @@ Schema id: `cx.schema.view.v1`
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
-| `kanban` | no | `KanbanConfig` | `kind="kanban"` 时 SHOULD 设置。 | 看板投影配置。 |
+| `kanban` | conditional | `KanbanConfig` | `kind="kanban"` 时 MUST 设置。 | 看板投影配置。 |
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -222,6 +222,10 @@ Schema id: `cx.schema.view.v1`
 | `card_relation_kind` | no | `string` | 默认 `contains` 或 `belongs_to`。 | column/board 到 card 的关系语义。 |
 | `card_order_by` | yes | `array<SortSpec>` | SHOULD 使用 `fields.rank` 或 Relation `fields.rank`。 | 卡片排序。 |
 | `uncategorized_policy` | no | `enum(show, hide, reject)` | 默认 `show`。 | 未分类卡片处理。 |
+| `conflict_policy` | no | `enum(reducer_winner, expose_conflict, reject)` | 默认 `reducer_winner`。 | 并发位置冲突的投影策略；reducer 仍必须可审计记录冲突。 |
+| `hidden_count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | Kanban projection 是否暴露权限裁剪后的计数。 |
+| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 默认 `warn`。 | WIP limit 超限处理。 |
+| `page_size` | no | `integer` | 1..500。 | 每列默认卡片窗口大小。 |
 
 `columns` item 字段：
 
@@ -231,6 +235,14 @@ Schema id: `cx.schema.view.v1`
 | `title` | yes | `string` | 1..128 chars。 | 列标题。 |
 | `rank` | no | `string` | Fractional rank。 | 列顺序。 |
 | `wip_limit` | no | `integer` | >= 0。 | WIP 限制。 |
+| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 覆盖 View 默认值。 | 本列 WIP 超限处理。 |
+
+KanbanConfig 约束：
+
+- `column_model="field_value"` 时，`group_by` 与 `columns` MUST 存在；`board_entity_id` MAY 存在，用于限定 View 所属 board。
+- `column_model="collection"` 时，`board_entity_id` MUST 存在；列集合来自 board 到 collection 的 Relation。
+- `card_order_by` MUST 至少包含一个稳定排序字段；推荐 `fields.rank` 或 Relation `fields.rank`。
+- 用于拖拽的 `group_by` 字段与 rank 字段 MUST 通过 `cx.task.move` 或等价 `atomic_position` 原子写入，避免并发时列值和 rank 分别由不同 operation 胜出。
 
 ## 11. Policy
 
@@ -352,12 +364,20 @@ Schema id: `cx.schema.operation.v1`
 | --- | --- | --- | --- | --- |
 | `operation_id` | yes | `id:operation` 或 `hash` |  | Operation ID。 |
 | `type` | yes | `enum(operation)` | 固定为 `operation`。 | 对象种类。 |
-| `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref)` |  | operation 类型。 |
+| `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref, move, reorder, rebalance)` |  | operation 类型。 |
+| `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.task.move`。`move/reorder/rebalance` 必填。 | 语义操作类型，用于校验 payload。 |
 | `space_id` | yes | `id:space` |  | 目标 Space。 |
 | `object_id` | no | `string` | create 可由 payload 指定。 | 目标对象。 |
 | `object_type` | yes | `string` | `entity`、`relation` 等。 | 目标对象类型。 |
 | `payload` | yes | `object` | 由 operation_type 决定。 | 操作内容。 |
 | `idempotency_key` | no | `string` | 重试写入 SHOULD 设置。 | 幂等键。 |
+
+Canonical Operation 与 Operation Envelope 的映射：
+
+- `semantic_kind="cx.task.move"` MUST 使用 `operation_type="move"`、`object_type="entity"`，并使用 `cx.task.move` payload schema。
+- `semantic_kind="cx.relation.move"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用 `cx.relation.move` payload schema。
+- `semantic_kind="cx.relation.rebalance"` MUST 使用 `operation_type="rebalance"`、`object_type="relation"`，并使用 `cx.relation.rebalance` payload schema。
+- `operation_type` 为 `move`、`reorder` 或 `rebalance` 时，`semantic_kind` MUST 存在；实现不得把有序集合操作塞进无语义的 generic `update` 来绕过 payload validation。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
 ## 18. Blob Metadata

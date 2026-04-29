@@ -323,3 +323,171 @@ cx.vector.state_resolution.schema_update.v1
 
 - 直接用 `event_seq`（本地接收顺序）进行并发决断。
 - 忽略 conflict record 的返回（审计不可复现）。
+
+## 6. Vector: Kanban 并发移动冲突
+
+向量名称：
+
+```text
+cx.vector.state_resolution.kanban_concurrent_move.v1
+```
+
+输入：
+
+```json
+{
+  "base_state": {
+    "scope_container_id": "cx:entity:01js0bd000000000000000000",
+    "relation_kind": "contains",
+    "entity_id": "cx:entity:01js0tk000000000000000000",
+    "container_id": "cx:entity:01js0c1000000000000000000",
+    "rank": "h0",
+    "relation_id": "cx:relation:01js0r1000000000000000000"
+  },
+  "candidates": [
+    {
+      "operation_id": "cx:operation:01js0mv1000000000000000000",
+      "kind": "cx.relation.move",
+      "actor_id": "did:web:alice.example",
+      "hlc": "01970e589d24-0001-11111111",
+      "auth_weight": 10,
+      "content": {
+        "scope_container_id": "cx:entity:01js0bd000000000000000000",
+        "relation_kind": "contains",
+        "entity_id": "cx:entity:01js0tk000000000000000000",
+        "from_container_id": "cx:entity:01js0c1000000000000000000",
+        "to_container_id": "cx:entity:01js0c2000000000000000000",
+        "rank": "mV"
+      }
+    },
+    {
+      "operation_id": "cx:operation:01js0mv2000000000000000000",
+      "kind": "cx.relation.move",
+      "actor_id": "did:web:bob.example",
+      "hlc": "01970e589d24-0002-22222222",
+      "auth_weight": 10,
+      "content": {
+        "scope_container_id": "cx:entity:01js0bd000000000000000000",
+        "relation_kind": "contains",
+        "entity_id": "cx:entity:01js0tk000000000000000000",
+        "from_container_id": "cx:entity:01js0c1000000000000000000",
+        "to_container_id": "cx:entity:01js0c3000000000000000000",
+        "rank": "p0"
+      }
+    }
+  ]
+}
+```
+
+期望输出：
+
+```json
+{
+  "resolved_position": {
+    "scope_container_id": "cx:entity:01js0bd000000000000000000",
+    "relation_kind": "contains",
+    "entity_id": "cx:entity:01js0tk000000000000000000",
+    "container_id": "cx:entity:01js0c3000000000000000000",
+    "rank": "p0",
+    "source_operation_id": "cx:operation:01js0mv2000000000000000000"
+  },
+  "conflict_records": [
+    {
+      "conflict_type": "exclusive_position",
+      "state_key": "cx:entity:01js0bd000000000000000000|contains|cx:entity:01js0tk000000000000000000",
+      "winner": "cx:operation:01js0mv2000000000000000000",
+      "losers": ["cx:operation:01js0mv1000000000000000000"],
+      "reason": "same auth weight; later HLC wins by deterministic operation order"
+    }
+  ]
+}
+```
+
+判定要点：
+
+- 最终 reduced state MUST 只有一个 active position edge。
+- loser 不得继续作为 active containment 出现在普通 Kanban projection 中。
+- 审计输出 MUST 保留 loser operation 和冲突原因。
+
+## 7. Vector: Kanban 字段列原子移动
+
+向量名称：
+
+```text
+cx.vector.state_resolution.kanban_atomic_task_move.v1
+```
+
+输入：
+
+```json
+{
+  "base_state": {
+    "view_id": "cx:view:01js0vw000000000000000000",
+    "entity_id": "cx:entity:01js0tk000000000000000000",
+    "group_by": "fields.status",
+    "value": "todo",
+    "rank": "h0",
+    "source_operation_id": "cx:operation:01js0base00000000000000000"
+  },
+  "candidates": [
+    {
+      "operation_id": "cx:operation:01js0tm1000000000000000000",
+      "kind": "cx.task.move",
+      "actor_id": "did:web:alice.example",
+      "hlc": "01970e589d25-0001-11111111",
+      "auth_weight": 10,
+      "content": {
+        "entity_id": "cx:entity:01js0tk000000000000000000",
+        "view_id": "cx:view:01js0vw000000000000000000",
+        "group_by": "fields.status",
+        "to_value": "review",
+        "rank": "mV"
+      }
+    },
+    {
+      "operation_id": "cx:operation:01js0tm2000000000000000000",
+      "kind": "cx.task.move",
+      "actor_id": "did:web:bob.example",
+      "hlc": "01970e589d25-0002-22222222",
+      "auth_weight": 10,
+      "content": {
+        "entity_id": "cx:entity:01js0tk000000000000000000",
+        "view_id": "cx:view:01js0vw000000000000000000",
+        "group_by": "fields.status",
+        "to_value": "done",
+        "rank": "p0"
+      }
+    }
+  ]
+}
+```
+
+期望输出：
+
+```json
+{
+  "resolved_position": {
+    "view_id": "cx:view:01js0vw000000000000000000",
+    "entity_id": "cx:entity:01js0tk000000000000000000",
+    "group_by": "fields.status",
+    "value": "done",
+    "rank": "p0",
+    "source_operation_id": "cx:operation:01js0tm2000000000000000000"
+  },
+  "conflict_records": [
+    {
+      "conflict_type": "atomic_position_register",
+      "state_key": "cx:view:01js0vw000000000000000000|cx:entity:01js0tk000000000000000000|fields.status",
+      "winner": "cx:operation:01js0tm2000000000000000000",
+      "losers": ["cx:operation:01js0tm1000000000000000000"],
+      "reason": "same auth weight; later HLC wins by deterministic operation order"
+    }
+  ]
+}
+```
+
+判定要点：
+
+- 两个并发 `cx.task.move` 写入同一 `(view_id, entity_id, group_by)` 时，`to_value` 和 `rank` MUST 来自同一个 winner。
+- 实现不得输出 `status` 来自 operation A、`rank` 来自 operation B 的混合位置。
+- 若客户端用裸 `cx.entity.update` 同时写 `fields.status` 与 `fields.rank` 且未声明 `atomic_position`，实现 MAY 按普通 scalar LWW 处理，但不得声称通过本向量。

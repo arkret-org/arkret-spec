@@ -603,7 +603,58 @@ cx.vector.sync.token_expiry_recovery.v1
 - 客户端 MUST 保留本地未确认离线写入队列。
 - 客户端 MUST NOT 清空已验证 repo cache，除非 cache hash 与新 snapshot 明确冲突。
 
-## 15. 覆盖矩阵
+## 15. Vector: Kanban Projection Column Pagination
+
+向量名称：
+
+```text
+cx.vector.sync.kanban_projection_column_pagination.v1
+```
+
+输入响应：
+
+```json
+{
+  "view_id": "cx:view:01js0vw000000000000000000",
+  "columns": [
+    {
+      "key": "todo",
+      "cards": ["task_a", "task_b"],
+      "next_cursor": "todo_after_task_b",
+      "limited": true
+    },
+    {
+      "key": "done",
+      "cards": ["task_z"],
+      "next_cursor": null,
+      "limited": false
+    }
+  ],
+  "frontier": { "state_hash": "sha256:state_after_projection" }
+}
+```
+
+期望行为：
+
+- 客户端 MUST 只把 `todo` 列标记为未完整窗口。
+- `todo_after_task_b` 只能用于继续拉取 `todo` 列，不得作为整个 View 的全局 cursor。
+- `done.limited=false` 不得让客户端推断其他列完整。
+
+## 16. Vector: Kanban Projection Hidden Counts
+
+向量名称：
+
+```text
+cx.vector.sync.kanban_projection_hidden_counts.v1
+```
+
+判定要点：
+
+- 当 View policy 未允许 `hidden_count_policy=authorized_exact` 时，Index MUST NOT 返回包含不可见卡片的精确列总数。
+- `total_estimate` 若返回，MUST 只基于权限裁剪后的可见结果，或明确标记为权限裁剪后的估计。
+- 不可见卡片不得通过空列、错误码、计数差异或 cursor 形态泄露存在性。
+
+## 17. 覆盖矩阵
 
 | 向量 | Minimal Client | Full Client | E2EE Client | Repo Node | Principal Server | Index Node |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -619,8 +670,10 @@ cx.vector.sync.token_expiry_recovery.v1
 | `cx.vector.sync.removed_member_fail_closed.v1` | N/A | MAY | MUST | SHOULD | SHOULD | SHOULD |
 | `cx.vector.sync.backfill_order.v1` | MUST | MUST | MUST | MAY | SHOULD | SHOULD |
 | `cx.vector.sync.token_expiry_recovery.v1` | MUST | MUST | MUST | MAY | MAY | SHOULD |
+| `cx.vector.sync.kanban_projection_column_pagination.v1` | SHOULD | MUST | SHOULD | N/A | MAY | MUST |
+| `cx.vector.sync.kanban_projection_hidden_counts.v1` | SHOULD | MUST | MUST | N/A | SHOULD | MUST |
 
-## 15. 实现报告要求
+## 18. 实现报告要求
 
 Conformance runner SHOULD 为每个向量输出：
 

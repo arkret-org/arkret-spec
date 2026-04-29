@@ -126,13 +126,17 @@ Cursor 内容 MAY 包含：
 
 ## 9. Rank
 
-列表排序 rank SHOULD 使用可插入的 lexicographic rank 字符串。
+列表排序 rank MUST 使用 `cx.rank.lexofractional.v1` profile，除非 Space schema 显式声明其他 rank profile。
 
 规则：
 
-- rank MUST 稳定排序
-- rank SHOULD 支持在两个 rank 之间生成新 rank
-- rank conflict 用 HLC + actor_id tie-break
+- 字符集固定为 ASCII `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`，按该字符集顺序比较。
+- Rank MUST 是 1..128 字符的字符串，且每个字符 MUST 来自上述字符集。
+- 排序 MUST 使用逐字符字典序；若一个字符串是另一个字符串的前缀，较短者排在较前。
+- `rank_between(left, right)` MUST 返回一个严格满足 `left < rank < right` 的 rank；`left` 或 `right` MAY 为空，表示容器开头或结尾的哨兵边界。
+- 标准 midpoint 算法：从左到右比较字符值；缺失的 left 字符视为 `-1`，缺失的 right 字符视为 `alphabet_length`。若 `right_value - left_value > 1`，输出当前前缀加中间字符 `floor((left_value + right_value) / 2)`；否则复制 left 当前字符并继续下一位。若 left 当前字符缺失且无间隙，复制 alphabet 第一个字符并继续。
+- 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `cx.relation.rebalance`。Reducer 不得接受超过 128 字符的 rank。
+- 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、`entity_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `entity_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。
 
 ## 10. Encrypted Envelope Digest
 

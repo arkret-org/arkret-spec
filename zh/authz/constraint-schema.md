@@ -34,6 +34,7 @@
 | `claim_based` | 声明/证明要求 | v1 |
 | `accountability` | 责任方追踪 | v1 |
 | `encryption_requirement` | 强制加密 | v1 |
+| `container_move` | 看板 / collection 移动范围 | v1 |
 
 ## 3. 时间约束
 
@@ -153,6 +154,21 @@
   "denied_view_kinds": ["graph", "admin"]
 }
 ```
+
+### 6.3 看板移动限制
+
+```json
+{
+  "constraint_type": "container_move",
+  "relation_kind_allow": ["contains"],
+  "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
+  "allowed_from_container_refs": ["cx:entity:01js0c1000000000000000000"],
+  "allowed_to_container_refs": ["cx:entity:01js0c2000000000000000000"],
+  "wip_limit_override": false
+}
+```
+
+`container_move` MUST 在授权判定中早于 operation 生效。目标列禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.relation.move` / `cx.task.move` 不得直接生效。
 
 ## 7. 委托控制
 

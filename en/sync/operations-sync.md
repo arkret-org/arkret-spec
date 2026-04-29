@@ -161,6 +161,7 @@ The draft uses:
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
+- `cx.relation.move` (ordered containment / membership edge move)
 - `cx.relation.rebalance` (score index rebalancing for ordered collections)
 - `cx.view.create`
 - `cx.view.update`
@@ -585,4 +586,3 @@ The following wire-level items are defined in v1-related documents and are not r
 - Sync Service / Index wire-level interfaces: `service-surface.md`, `service-http-binding.md`, and `query-schema.md`; transport equivalence: `transport-bindings.md`.
 
 Implementations that lack any of the above normative dependencies MUST declare non-support for the corresponding profile in feature discovery and MUST NOT claim full Contrix v1 sync support.
-

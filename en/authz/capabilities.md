@@ -205,7 +205,7 @@ The first version should support the following `kind` values:
 ### 5.5 Administrative Actions
 
 - `manage_space`
-- `manage_board`
+- `cx.board.admin`
 - `manage_schema`
 - `manage_capabilities`
 - `manage_policy`

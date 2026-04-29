@@ -40,6 +40,34 @@
         "left": "a0",
         "right": "a2",
         "expected": "a1"
+      },
+      {
+        "name": "rank_between_start",
+        "left": null,
+        "right": "U",
+        "expected": "E"
+      },
+      {
+        "name": "rank_between_end",
+        "left": "U",
+        "right": null,
+        "expected": "k"
+      },
+      {
+        "name": "rank_dense_insert_extends",
+        "left": "a0",
+        "right": "a01",
+        "expected": "a00"
+      },
+      {
+        "name": "rank_reject_invalid_character",
+        "input": "a-1",
+        "expected": "invalid_rank"
+      },
+      {
+        "name": "rank_reject_too_long",
+        "max_length": 128,
+        "expected": "invalid_rank"
       }
     ]
   }

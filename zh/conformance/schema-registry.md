@@ -57,8 +57,10 @@
 | `cx.entity.restore` | Entity restore |
 | `cx.entity.redact` | Entity redaction |
 | `cx.relation.create` | Relation create |
+| `cx.relation.update` | Relation patch |
 | `cx.relation.delete` | Relation tombstone |
 | `cx.relation.move` | Relation/containment move |
+| `cx.relation.rebalance` | Ordered relation rank rebalance |
 | `cx.message.create` | Message create |
 | `cx.message.revise` | Message edit patch（规范编辑操作，优先定义） |
 | `cx.message.redact` | Message redaction |
@@ -70,6 +72,7 @@
 | `cx.task.create` | Task create |
 | `cx.task.update` | Task patch |
 | `cx.task.move` | Task move |
+| `cx.task.reorder` | Task rank-only reorder |
 | `cx.view.create` | View create |
 | `cx.view.update` | View update |
 | `cx.view.reconcile` | View schema/definition sync |

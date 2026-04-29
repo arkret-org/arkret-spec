@@ -351,7 +351,7 @@ Kanban 视图的 canonical 输入应是：
 - `entity_type = "board"`
 - `entity_type = "collection"`
 - `entity_type = "task"` 或其他工作对象
-- `kind = "contains"` / `belongs_to`
+- Relation `relation_kind = "contains"` / `belongs_to`
 - `kind = "kanban"`
 
 而不是某种 UI 私有列数组。
@@ -366,7 +366,7 @@ Kanban 视图的 canonical 输入应是：
 | 视图配置 | `View{kind="kanban"}` | 定义查询范围、列来源、排序和展示字段。 |
 | 列 | `fields.<group_by>` 的枚举值，或 `Entity{entity_type="collection"}` | 简单工作流用字段分组；复杂工作流用 collection 实体。 |
 | 卡片 | `Entity{entity_type="task"}` 或 `issue` / 自定义工作对象 | 卡片不是单独 UI 数据，而是业务 Entity。 |
-| 卡片属于看板 | `Relation{kind="contains"}` 或 `belongs_to` | 表示 board/collection 与 task 的包含关系。 |
+| 卡片属于看板 | `Relation{relation_kind="contains"}` 或 `belongs_to` | 表示 board/collection 与 task 的包含关系。 |
 | 卡片列位置 | `fields.status`，或 task 到 collection 的 Relation | 取决于列模型。 |
 | 列内顺序 | `fields.rank` 或 Relation `fields.rank` | 推荐 Fractional Indexing string。 |
 | 卡片展示字段 | View `visible_fields` | 只决定显示，不提升权限。 |
@@ -476,17 +476,17 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
 4. 字段缺失或值未知时，客户端 SHOULD 放入系统列 `__uncategorized`，或按 View policy 隐藏。
 5. 列内按 `card_order_by` 排序；若排序字段缺失，使用 `nulls` 规则和 timeline tie breaker。
 
-在该模型中，把卡片从 `todo` 拖到 `review` MUST 产生对 task 的更新事件，例如：
+在该模型中，把卡片从 `todo` 拖到 `review` SHOULD 产生 `cx.task.move`，使列值和 rank 作为同一次原子位置写入收敛。只使用裸 `cx.entity.update` 会让并发拖拽把不同操作的 `status` 与 `rank` 混合，客户端不得用这种方式表达拖拽语义。
 
 ```json
 {
-  "type": "cx.entity.update",
+  "kind": "cx.task.move",
   "content": {
     "entity_id": "cx:entity:01task",
-    "patch": {
-      "fields.status": "review",
-      "fields.rank": "mV"
-    }
+    "view_id": "cx:view:01view",
+    "group_by": "fields.status",
+    "to_value": "review",
+    "rank": "mV"
   }
 }
 ```
@@ -519,7 +519,7 @@ Board 包含列：
   "id": "cx:relation:01board_col",
   "type": "relation",
   "space_id": "cx:space:01space",
-  "kind": "contains",
+  "relation_kind": "contains",
   "from_entity_id": "cx:entity:01board",
   "to_entity_id": "cx:entity:01col_review",
   "fields": {
@@ -535,7 +535,7 @@ Board 包含列：
   "id": "cx:relation:01col_task",
   "type": "relation",
   "space_id": "cx:space:01space",
-  "kind": "contains",
+  "relation_kind": "contains",
   "from_entity_id": "cx:entity:01col_review",
   "to_entity_id": "cx:entity:01task",
   "fields": {
@@ -556,8 +556,9 @@ Collection 列模型的投影规则：
 
 ```json
 {
-  "type": "cx.relation.move",
+  "kind": "cx.relation.move",
   "content": {
+    "relation_kind": "contains",
     "entity_id": "cx:entity:01task",
     "from_container_id": "cx:entity:01col_todo",
     "to_container_id": "cx:entity:01col_review",
@@ -566,7 +567,7 @@ Collection 列模型的投影规则：
 }
 ```
 
-`cx.relation.move` 的 reducer 语义等价于：删除旧 active containment edge，并创建或更新新 containment edge。实现 MUST 保持该操作幂等。
+`cx.relation.move` 的 reducer 语义等价于：删除旧 active containment edge，并创建或更新新 containment edge。实现 MUST 保持该操作幂等。具体 payload、并发冲突、重平衡和 CAS 规则见 `operations-sync.md`。
 
 #### 7.1.4 两种列模型的选择
 
@@ -580,6 +581,67 @@ Collection 列模型的投影规则：
 
 两种模型 MAY 共存，但同一个 Kanban View MUST 明确 `kanban.column_model`。客户端 MUST NOT 同时用 `fields.status` 和 collection containment 推导同一张卡片的主列，除非 View 显式声明冲突解决规则。
 
+#### 7.1.5 标准 Kanban Projection Response
+
+Index / AppView MAY 为 `View{kind="kanban"}` 返回已经物化的看板投影，但该响应是派生结果，不是真相源。响应 MUST 能追溯到 `frontier`、View 定义、Entity、Relation 和 reducer profile。
+
+最小响应形状：
+
+```json
+{
+  "view_id": "cx:view:01js0vw000000000000000000",
+  "space_id": "cx:space:01js0sp000000000000000000",
+  "frontier": {
+    "state_hash": "sha256:...",
+    "operation_ids": ["cx:operation:01js0qp000000000000000000"]
+  },
+  "columns": [
+    {
+      "key": "review",
+      "title": "Review",
+      "rank": "h0",
+      "source": {
+        "model": "field_value",
+        "field": "fields.status",
+        "value": "review"
+      },
+      "cards": [
+        {
+          "entity": {
+            "id": "cx:entity:01js0tk000000000000000000",
+            "entity_type": "task",
+            "title": "Finalize release notes"
+          },
+          "position": {
+            "container_id": "review",
+            "rank": "mV"
+          }
+        }
+      ],
+      "next_cursor": null,
+      "limited": false
+    }
+  ]
+}
+```
+
+Projection 规则：
+
+1. 每个 `columns[*].cards` MUST 使用该 View 的 `kanban.card_order_by` 排序。
+2. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、`entity.id`；若这些字段不可得，则使用 `entity.id` 作为最终稳定 tie-break。
+3. 大列 MAY 按列分页；每列的 `next_cursor` 只恢复该列的卡片窗口，不得暗示其他列完整。
+4. `limited=true` 表示该列结果不是完整窗口；客户端 MUST 使用该列 cursor 继续拉取，不得把缺口解释为删除或无权限。
+5. 无权读取的卡片或字段 MUST 被裁剪。除非 Space policy 明确允许泄漏聚合统计，响应 MUST NOT 返回因无权读取而被隐藏的精确数量。
+6. `total_estimate` 若存在，MUST 是权限裁剪后的估计值；不得包含不可见卡片。
+
+#### 7.1.6 WIP Limit 与列约束
+
+`wip_limit` 是列级策略输入，不只是 UI 提示。
+
+- Reducer enforcement MUST 使用权限裁剪前的 canonical active column membership 计数。`reject` 超限时，`cx.relation.move` / `cx.task.move` MUST 被拒绝；`require_review` 超限时，MUST 进入 proposal / review 路径。
+- Kanban projection MAY 返回 `wip_state`，但普通客户端可见计数 MUST 基于权限裁剪后的 visible cards，除非列 policy 明确允许列级聚合计数。
+- 当 canonical WIP 已超限但 actor 无权看到导致超限的卡片时，projection MAY 返回 `wip_state="unknown"` 或 policy 允许的 stripped warning；不得用精确差值泄漏隐藏卡片数量。
+
 ### 7.2 Chat
 
 Chat 视图的 canonical 输入应是：
@@ -587,7 +649,7 @@ Chat 视图的 canonical 输入应是：
 - `entity_type = "channel"`
 - `entity_type = "topic"`
 - `entity_type = "message"`
-- `kind = "belongs_to"` / `replies_to` / `mentions`
+- Relation `relation_kind = "belongs_to"` / `replies_to` / `mentions`
 
 ### 7.3 Topic
 
