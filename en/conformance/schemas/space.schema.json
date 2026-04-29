@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/space.schema.json",
+  "title": "Contrix Space",
+  "type": "object",
+  "required": [
+    "id",
+    "type",
+    "space_version",
+    "title",
+    "space_kind",
+    "created_by_principal",
+    "schema_refs",
+    "default_discoverability",
+    "default_join_rule",
+    "history_visibility",
+    "encryption_profile",
+    "created_at"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "type": { "const": "space" },
+    "schema": { "const": "cx.schema.space.v1" },
+    "space_version": { "type": "string", "pattern": "^\\d+$" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "summary": { "type": "string", "maxLength": 2048 },
+    "space_kind": {
+      "type": "string",
+      "enum": ["collaboration", "direct", "group", "project", "document", "board", "channel", "social_feed", "enclave"]
+    },
+    "created_by_principal": { "$ref": "#/$defs/did" },
+    "owning_organizations": { "type": "array", "items": { "$ref": "#/$defs/did" } },
+    "schema_refs": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "policy_ref": { "type": "string", "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$" },
+    "default_discoverability": {
+      "type": "string",
+      "enum": ["public", "listed", "restricted", "unlisted", "invite_only", "secret"]
+    },
+    "default_join_rule": {
+      "type": "string",
+      "enum": ["public", "invite", "knock", "restricted", "knock_restricted", "closed"]
+    },
+    "history_visibility": {
+      "type": "string",
+      "enum": ["world_readable", "shared", "invited", "joined", "restricted"]
+    },
+    "encryption_profile": { "type": "string", "enum": ["none", "mls_rfc9420", "external"] },
+    "federation_policy": { "type": "string", "enum": ["open", "restricted", "closed", "quarantine"] },
+    "retention_policy_ref": { "type": "string", "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$" },
+    "avatar_blob_ref": { "type": "string", "pattern": "^cx:blob:[0-9a-hjkmnp-z]{26}$" },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  },
+  "additionalProperties": true
+}

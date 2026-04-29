@@ -1,0 +1,30 @@
+{
+  "version": "2026-04-29",
+  "implementation_profiles": [
+    "cx.profile.minimal_client.v1",
+    "cx.profile.full_client.v1",
+    "cx.profile.e2ee_client.v1",
+    "cx.profile.enterprise_client.v1",
+    "cx.profile.principal_server_repo_api.v1",
+    "cx.profile.principal_server.v1",
+    "cx.profile.index_node.v1",
+    "cx.profile.identity_registry.v1",
+    "cx.profile.blob_node.v1",
+    "cx.profile.push_gateway.v1",
+    "cx.profile.applet_service.v1",
+    "cx.profile.agent_runtime.v1"
+  ],
+  "deployment_profiles": [
+    "cx.profile.personal_node.v1",
+    "cx.profile.small_team.v1",
+    "cx.profile.organization.v1",
+    "cx.profile.high_security_organization.v1",
+    "cx.profile.isolated_sovereign_network.v1"
+  ],
+  "federation_hardening": [
+    "service_did_authentication",
+    "cross_domain_space_join",
+    "policy_decision_exchange",
+    "quarantine_appeal_audit"
+  ]
+}

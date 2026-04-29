@@ -220,6 +220,37 @@ SHOULD 支持：
 - legal hold
 - unsafe media flag
 
+## 10.5 Push Gateway
+
+`cx.profile.push_gateway.v1` 适用于移动端或桌面通知的推送网关。
+
+MUST 支持：
+
+- `register_device`
+- `unregister_device`
+- `notify`
+- blind wakeup payload 最小化
+- service DID 或等价受信服务签名校验
+- 失效 token 回收
+- `rejected[]` 结果回传
+
+MUST NOT：
+
+- 接收或存储消息明文
+- 把 delivery receipt 当作 read receipt
+- 以长期共享 token 作为多网关高可用方案
+
+SHOULD 支持：
+
+- per-gateway registration
+- token 分片或短期授权
+- 高优先级与静音规则透传
+
+## 10.6 Applet Service / Bridge
+
+`cx.profile.applet_service.v1` 适用于桥接外部系统和运行 Applet 集成服务。  
+`cx.profile.applet_bridge.v1` 视为兼容别名，v1 工具链 SHOULD 归一到 `cx.profile.applet_service.v1`。
+
 ## 11. Enterprise Client
 
 `cx.profile.enterprise_client.v1` 适用于企业受控客户端。
@@ -305,6 +336,50 @@ SHOULD support:
 - policy-controlled copy, screenshot and bulk export restrictions
 - emergency wipe
 
+## 11.7 Deployment Profiles
+
+以下 deployment profile 用于发布与验收，不替代实现 profile：
+
+- `cx.profile.personal_node.v1`
+- `cx.profile.small_team.v1`
+- `cx.profile.organization.v1`
+- `cx.profile.high_security_organization.v1`
+- `cx.profile.isolated_sovereign_network.v1`
+
+`cx.profile.personal_node.v1` MUST cover：
+
+- principal server、repo、sync、index、blob 可以同机合并
+- 默认最小管理员面
+- 本地备份与恢复
+
+`cx.profile.small_team.v1` MUST cover：
+
+- 多用户共享 Space
+- 基础目录与推送
+- moderation queue
+- snapshot / backfill
+
+`cx.profile.organization.v1` MUST cover：
+
+- organization DID 委托
+- OIDC / account integration
+- admin account lifecycle
+- 审计导出
+
+`cx.profile.high_security_organization.v1` MUST cover：
+
+- service DID allowlist
+- auditable E2EE 或受控 plaintext-visible boundary
+- break-glass audit
+- server ACL 和 quarantine
+
+`cx.profile.isolated_sovereign_network.v1` MUST cover：
+
+- 私有 registry / witness
+- closed federation default
+- 导入导出审查
+- 外部服务与 applet allowlist
+
 ## 12. Agent Runtime
 
 `cx.profile.agent_runtime.v1` 适用于 AI agent、bot、automation。
@@ -326,9 +401,9 @@ SHOULD 支持：
 - deterministic replay metadata
 - tool call audit envelope
 
-## 13. Applet Bridge
+## 13. Applet Service / Bridge
 
-`cx.profile.applet_bridge.v1` 适用于桥接外部系统和运行 Applet 集成服务。
+`cx.profile.applet_service.v1` 适用于桥接外部系统和运行 Applet 集成服务。
 
 MUST 支持：
 
@@ -405,7 +480,7 @@ Identity profile MUST 额外提供：
 - recovery vector
 - pairwise DID unlinkability checks
 
-Applet Bridge profile MUST 额外提供：
+Applet Service / Bridge profile MUST 额外提供：
 
 - registration signature vector
 - namespace conflict vector
@@ -448,7 +523,8 @@ Applet Bridge profile MUST 额外提供：
 - `index_node`
 - `identity_registry`
 - `blob_node`
-- `applet_bridge`
+- `push_gateway`
+- `applet_service`
 
 `full_client` 和 `e2ee_client` 是产品可用性的目标 profile。  
 `enterprise_client` 和 `agent_runtime` 是高价值扩展 profile，但不应阻塞基础互操作。

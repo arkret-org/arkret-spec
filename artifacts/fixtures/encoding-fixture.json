@@ -1,0 +1,46 @@
+{
+  "suite": "encoding",
+  "cases": {
+    "canonical_json": [
+      {
+        "name": "sorted_object_keys",
+        "input": { "b": 2, "a": 1 },
+        "canonical": "{\"a\":1,\"b\":2}"
+      }
+    ],
+    "hash_digest": [
+      {
+        "name": "event_digest_shape",
+        "input_ref": "cx:event:demo",
+        "expected_pattern": "^sha256:[0-9a-f]{64}$"
+      }
+    ],
+    "proof_payload": [
+      {
+        "name": "unsigned_not_covered",
+        "covered_fields": ["event_id", "kind", "space_id", "content", "proofs"],
+        "excluded_fields": ["unsigned"]
+      }
+    ],
+    "hlc": [
+      {
+        "name": "lexicographic_order_matches_causal_order",
+        "values": ["01970e589d21-0004-a13f9c2e", "01970e589d21-0005-a13f9c2e"]
+      }
+    ],
+    "cursor": [
+      {
+        "name": "opaque_cursor_wraps_frontier",
+        "shape": { "v": "1", "x": 1714080000000 }
+      }
+    ],
+    "fractional_rank": [
+      {
+        "name": "rank_between",
+        "left": "a0",
+        "right": "a2",
+        "expected": "a1"
+      }
+    ]
+  }
+}

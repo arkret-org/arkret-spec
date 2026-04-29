@@ -1,0 +1,17 @@
+{
+  "version": "2026-04-29",
+  "operations": [
+    { "operation_id": "cx.server.describe", "http": "GET /server/describe", "grpc": "Server/Describe", "mq": "server.describe" },
+    { "operation_id": "cx.identity.resolve", "http": "POST /identity/resolve", "grpc": "Identity/Resolve", "mq": "identity.resolve" },
+    { "operation_id": "cx.repo.submit_commit", "http": "POST /repo/submit-commit", "grpc": "Repo/SubmitCommit", "mq": "repo.submit_commit" },
+    { "operation_id": "cx.sync.client_sync", "http": "POST /sync", "grpc": "Sync/ClientSync", "mq": "sync.client_sync" },
+    { "operation_id": "cx.sync.subscribe", "http": "GET /sync/subscribe", "grpc": "Sync/Subscribe", "mq": "sync.subscribe" },
+    { "operation_id": "cx.federation.transaction", "http": "PUT /federation/transactions/{txn_id}", "grpc": "Federation/Transaction", "mq": "federation.transaction" },
+    { "operation_id": "cx.index.query", "http": "POST /index/query", "grpc": "Index/Query", "mq": "index.query" },
+    { "operation_id": "cx.directory.resolve_handle", "http": "POST /directory/resolve-handle", "grpc": "Directory/ResolveHandle", "mq": "directory.resolve_handle" },
+    { "operation_id": "cx.blob.get", "http": "GET /blob/get", "grpc": "Blob/Get", "mq": "blob.get" },
+    { "operation_id": "cx.push.notify", "http": "POST /push/notify", "grpc": "Push/Notify", "mq": "push.notify" },
+    { "operation_id": "cx.authz.check", "http": "POST /authz/check", "grpc": "Authz/Check", "mq": "authz.check" },
+    { "operation_id": "cx.applet.transaction", "http": "PUT /applet/transactions/{txn_id}", "grpc": "Applet/Transaction", "mq": "applet.transaction" }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/entity.schema.json",
+  "title": "Contrix Entity",
+  "type": "object",
+  "required": ["id", "type", "space_id", "entity_type", "created_by", "created_at"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$" },
+    "type": { "const": "entity" },
+    "schema": { "const": "cx.schema.entity.v1" },
+    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "entity_type": { "type": "string" },
+    "title": { "type": "string", "maxLength": 512 },
+    "content": { "type": "object" },
+    "fields": { "type": "object" },
+    "state": { "type": "string", "enum": ["active", "archived", "deleted", "redacted"] },
+    "version": { "type": "integer", "minimum": 0 },
+    "created_by": { "$ref": "#/$defs/did" },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_by": { "$ref": "#/$defs/did" },
+    "updated_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  },
+  "additionalProperties": true
+}

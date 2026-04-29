@@ -1,0 +1,13 @@
+{
+  "suite": "sync",
+  "cases": [
+    { "name": "initial_sync", "expected": "full_visible_state_with_next_batch" },
+    { "name": "incremental_sync", "expected": "only_delta_since_cursor" },
+    { "name": "state_after", "expected": "response_carries_post_reducer_frontier" },
+    { "name": "limited_timeline_backfill", "expected": "limited_true_with_prev_batch" },
+    { "name": "expired_cursor", "expected": "sync_token_expired_or_snapshot_bootstrap" },
+    { "name": "filter_mismatch", "expected": "invalid_param_or_describe_guidance" },
+    { "name": "to_device_ack", "expected": "acked_message_not_redelivered" },
+    { "name": "snapshot_manifest_chunk_frontier", "expected": "state_hash_and_chunks_verify" }
+  ]
+}

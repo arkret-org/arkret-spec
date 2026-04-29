@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/operation.schema.json",
+  "title": "Contrix Canonical Operation",
+  "type": "object",
+  "required": ["operation_id", "type", "operation_type", "space_id", "object_type", "payload", "created_at"],
+  "properties": {
+    "operation_id": { "type": "string", "pattern": "^cx:operation:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$" },
+    "type": { "const": "operation" },
+    "schema": { "const": "cx.schema.operation.v1" },
+    "operation_type": { "type": "string", "enum": ["create", "update", "delete", "redact", "grant", "revoke", "snapshot_ref"] },
+    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "object_id": { "type": "string" },
+    "object_type": { "type": "string" },
+    "payload": { "type": "object" },
+    "idempotency_key": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  },
+  "additionalProperties": true
+}

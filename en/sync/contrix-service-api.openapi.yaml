@@ -1,0 +1,620 @@
+openapi: 3.1.0
+info:
+  title: Contrix Service API
+  version: "1.0.0"
+  summary: Canonical Contrix service surface and admin/account bindings
+servers:
+  - url: https://{host}/api/v1
+    variables:
+      host:
+        default: localhost
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    httpMessageSignature:
+      type: apiKey
+      in: header
+      name: Signature
+    mutualTls:
+      type: mutualTLS
+  headers:
+    XContrixRequestId:
+      description: Stable request identifier.
+      schema:
+        type: string
+    IdempotencyKey:
+      description: Idempotency key for write requests.
+      schema:
+        type: string
+    XContrixWaitFor:
+      description: Causal frontier token the caller is waiting on.
+      schema:
+        type: string
+    RetryAfter:
+      description: Standard retry hint.
+      schema:
+        type: string
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required:
+        - ok
+        - error
+        - request_id
+      properties:
+        ok:
+          const: false
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            retry_after_ms:
+              type:
+                - integer
+                - "null"
+            details:
+              type: object
+        request_id:
+          type: string
+    ServiceDescribe:
+      type: object
+      required:
+        - protocol_version
+        - service_type
+        - service_did
+        - supported_profiles
+        - supported_operations
+        - supported_bindings
+      properties:
+        protocol_version:
+          type: string
+        service_type:
+          type: string
+        service_did:
+          type: string
+        supported_profiles:
+          type: array
+          items:
+            type: string
+        supported_operations:
+          type: array
+          items:
+            type: string
+        supported_bindings:
+          type: array
+          items:
+            type: object
+        auth_metadata:
+          type: object
+        supported_reducer_profiles:
+          type: array
+          items:
+            type: string
+        supported_schema_profiles:
+          type: array
+          items:
+            type: string
+    IdentityResolveResponse:
+      type: object
+      properties:
+        did_document:
+          type: object
+        key_log_head:
+          type: string
+        seq:
+          type: integer
+        receipts:
+          type: array
+          items:
+            $ref: ../schemas/identity-receipt.schema.json
+    SyncResponse:
+      $ref: ../schemas/client-sync-response.schema.json
+    GrantListResponse:
+      type: object
+      properties:
+        grants:
+          type: array
+          items:
+            $ref: ../schemas/capability-grant.schema.json
+        state_hash:
+          type: string
+        evaluated_at:
+          type: string
+    ModerationQueueResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+        next_cursor:
+          type: string
+  responses:
+    NotFound:
+      description: Not found or not visible.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    MethodNotAllowed:
+      description: Method not allowed.
+      headers:
+        Allow:
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    RateLimited:
+      description: Rate limited.
+      headers:
+        Retry-After:
+          $ref: "#/components/headers/RetryAfter"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    TemporarilyUnavailable:
+      description: Temporarily unavailable.
+      headers:
+        Retry-After:
+          $ref: "#/components/headers/RetryAfter"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+paths:
+  /server/describe:
+    get:
+      operationId: cx.server.describe
+      responses:
+        "200":
+          description: Service description
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceDescribe"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/TemporarilyUnavailable"
+  /identity/resolve:
+    post:
+      operationId: cx.identity.resolve
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [did]
+              properties:
+                did:
+                  type: string
+                include:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: DID resolution result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdentityResolveResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /identity/document:
+    get:
+      operationId: cx.identity.get_document
+      responses:
+        "200":
+          description: DID document
+          content:
+            application/json:
+              schema:
+                type: object
+  /identity/log:
+    get:
+      operationId: cx.identity.get_log
+      responses:
+        "200":
+          description: DID key log
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: ../schemas/did-key-log-entry.schema.json
+                  next_cursor:
+                    type: string
+  /identity/submit-did-operation:
+    post:
+      operationId: cx.identity.submit_did_operation
+      security:
+        - bearerAuth: []
+        - httpMessageSignature: []
+      responses:
+        "200":
+          description: DID operation accepted
+          content:
+            application/json:
+              schema:
+                type: object
+  /identity/receipts:
+    get:
+      operationId: cx.identity.get_receipts
+      responses:
+        "200":
+          description: Identity receipts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receipts:
+                    type: array
+                    items:
+                      $ref: ../schemas/identity-receipt.schema.json
+  /repo/submit-commit:
+    post:
+      operationId: cx.repo.submit_commit
+      security:
+        - bearerAuth: []
+        - httpMessageSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/commit.schema.json
+      responses:
+        "200":
+          description: Commit accepted
+          headers:
+            Idempotency-Key:
+              $ref: "#/components/headers/IdempotencyKey"
+            X-Contrix-Request-Id:
+              $ref: "#/components/headers/XContrixRequestId"
+          content:
+            application/json:
+              schema:
+                type: object
+  /repo/operations:
+    post:
+      operationId: cx.repo.get_operations
+      responses:
+        "200":
+          description: Operation batch
+          content:
+            application/json:
+              schema:
+                type: object
+  /sync:
+    post:
+      operationId: cx.sync.client_sync
+      headers:
+        X-Contrix-Wait-For:
+          $ref: "#/components/headers/XContrixWaitFor"
+      responses:
+        "200":
+          description: Client sync response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncResponse"
+  /sync/subscribe:
+    get:
+      operationId: cx.sync.subscribe
+      responses:
+        "200":
+          description: Streaming sync subscription
+  /sync/backfill:
+    get:
+      operationId: cx.sync.backfill
+      responses:
+        "200":
+          description: Historical backfill
+  /sync/snapshot-head:
+    get:
+      operationId: cx.sync.get_snapshot_head
+      responses:
+        "200":
+          description: Snapshot manifest head
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/snapshot.schema.json
+  /federation/transactions/{txn_id}:
+    put:
+      operationId: cx.federation.transaction
+      security:
+        - httpMessageSignature: []
+        - mutualTls: []
+      parameters:
+        - in: path
+          name: txn_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Federation transaction result
+          content:
+            application/json:
+              schema:
+                type: object
+  /index/query:
+    post:
+      operationId: cx.index.query
+      responses:
+        "200":
+          description: Structured query result
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/resolve-handle:
+    post:
+      operationId: cx.directory.resolve_handle
+      responses:
+        "200":
+          description: Handle resolution result
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/handle-claim.schema.json
+  /blob/upload:
+    post:
+      operationId: cx.blob.upload
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Blob accepted
+          headers:
+            X-Contrix-Request-Id:
+              $ref: "#/components/headers/XContrixRequestId"
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/blob.schema.json
+  /blob/get:
+    head:
+      operationId: cx.blob.head
+      responses:
+        "200":
+          description: Blob metadata
+    get:
+      operationId: cx.blob.get
+      parameters:
+        - in: header
+          name: Range
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blob content
+          headers:
+            Content-Type:
+              schema:
+                type: string
+            Content-Disposition:
+              schema:
+                type: string
+            Content-Range:
+              schema:
+                type: string
+            Location:
+              schema:
+                type: string
+  /push/register-device:
+    post:
+      operationId: cx.push.register_device
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Device registration result
+          content:
+            application/json:
+              schema:
+                type: object
+  /push/unregister-device:
+    post:
+      operationId: cx.push.unregister_device
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Device unregistration result
+          content:
+            application/json:
+              schema:
+                type: object
+  /push/notify:
+    post:
+      operationId: cx.push.notify
+      security:
+        - httpMessageSignature: []
+      responses:
+        "200":
+          description: Blind push delivery result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rejected:
+                    type: array
+                    items:
+                      type: object
+  /authz/check:
+    post:
+      operationId: cx.authz.check
+      responses:
+        "200":
+          description: Authorization decision
+          content:
+            application/json:
+              schema:
+                type: object
+  /authz/effective-grants:
+    get:
+      operationId: cx.authz.get_effective_grants
+      responses:
+        "200":
+          description: Effective grants
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrantListResponse"
+  /device_messages/{txn_id}:
+    put:
+      operationId: cx.device_messages.put
+      parameters:
+        - in: path
+          name: txn_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: To-device write accepted
+  /keys/upload:
+    post:
+      operationId: cx.keys.upload
+      responses:
+        "200":
+          description: Key upload result
+  /keys/query:
+    post:
+      operationId: cx.keys.query
+      responses:
+        "200":
+          description: Key query result
+  /keys/claim:
+    post:
+      operationId: cx.keys.claim
+      responses:
+        "200":
+          description: One-time key claim result
+  /moderation/report:
+    post:
+      operationId: cx.moderation.report
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Moderation report created
+          content:
+            application/json:
+              schema:
+                type: object
+  /auth/account/session-grants:
+    post:
+      operationId: cx.account.issue_session_grant
+      responses:
+        "200":
+          description: Session grant issued from passkey/OIDC/device proof
+          content:
+            application/json:
+              schema:
+                type: object
+  /auth/account/device-pair:
+    post:
+      operationId: cx.account.device_pair
+      responses:
+        "200":
+          description: Device pairing accepted
+          content:
+            application/json:
+              schema:
+                type: object
+  /auth/account/oidc/callback:
+    post:
+      operationId: cx.account.oidc_callback
+      responses:
+        "200":
+          description: OIDC callback handled
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/server/status:
+    get:
+      operationId: cx.admin.get_server_status
+      security:
+        - bearerAuth: []
+        - httpMessageSignature: []
+      responses:
+        "200":
+          description: Sodmin-compatible server admin status
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/accounts/{account_id}/status:
+    post:
+      operationId: cx.admin.update_account_status
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Account lifecycle state updated
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/devices/{device_id}/revoke:
+    post:
+      operationId: cx.admin.revoke_device
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: device_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Device revoked
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/moderation/queue:
+    get:
+      operationId: cx.admin.get_moderation_queue
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Moderation queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModerationQueueResponse"

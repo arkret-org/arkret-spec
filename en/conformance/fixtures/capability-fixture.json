@@ -1,0 +1,28 @@
+{
+  "suite": "capability",
+  "cases": [
+    {
+      "name": "resource_selector_grammar",
+      "selector": { "kind": "entity", "space_id": "cx:space:01JS0SP000000000000000000", "entity_type": "task" },
+      "expected": "matches_task_entities_only"
+    },
+    {
+      "name": "constraint_fail_closed",
+      "constraint": { "constraint_type": "claim_based", "effect": "deny" },
+      "expected": "grant_not_usable_without_required_claim"
+    },
+    {
+      "name": "approval_proposal",
+      "constraint": { "constraint_type": "approval_workflow", "approval_mode": "proposal_then_approve" },
+      "expected": "proposal_without_approval_not_committed"
+    },
+    {
+      "name": "claim_revocation",
+      "expected": "grant_invalid_after_claim_revoked"
+    },
+    {
+      "name": "delegation_cycle_and_scope_narrowing",
+      "expected": "cycle_rejected_and_child_scope_must_not_widen"
+    }
+  ]
+}

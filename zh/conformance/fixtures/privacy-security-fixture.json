@@ -1,0 +1,21 @@
+{
+  "suite": "privacy_security",
+  "cases": [
+    {
+      "name": "private_blob_head_range_anti_enumeration",
+      "expected": "same_error_class_for_missing_and_hidden_blob"
+    },
+    {
+      "name": "push_blind_wakeup_payload",
+      "expected": "no_plaintext_message_body_or_member_list"
+    },
+    {
+      "name": "pairwise_did_resolve_proof",
+      "expected": "resolve_requires_holder_approved_proof"
+    },
+    {
+      "name": "encrypted_payload_forwarding_without_plaintext",
+      "expected": "service_forwards_ciphertext_only"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "suite": "federation",
+  "cases": [
+    {
+      "name": "http_message_signature_hash",
+      "expected": "canonical_request_hash_matches_signature_input"
+    },
+    {
+      "name": "origin_destination_service_did_mismatch",
+      "expected": "request_rejected_or_quarantined"
+    },
+    {
+      "name": "replay_protection",
+      "expected": "duplicate_txn_id_or_replay_key_rejected"
+    },
+    {
+      "name": "fork_quarantine",
+      "expected": "divergent_space_history_quarantined"
+    },
+    {
+      "name": "pull_authorization",
+      "expected": "unauthorized_backfill_pull_blinded"
+    }
+  ]
+}

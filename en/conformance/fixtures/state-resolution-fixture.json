@@ -1,0 +1,25 @@
+{
+  "suite": "state_resolution",
+  "cases": [
+    {
+      "name": "membership_concurrency",
+      "scenario": "member join races with ban",
+      "expected": "ban_wins_when_higher_auth_weight"
+    },
+    {
+      "name": "capability_delegate_revoke_race",
+      "scenario": "delegation and revoke share causal frontier",
+      "expected": "revoked_delegate_fails_closed"
+    },
+    {
+      "name": "schema_policy_update_race",
+      "scenario": "policy update and entity write race",
+      "expected": "write_validated_against_resolved_policy_state"
+    },
+    {
+      "name": "deterministic_tie_breaker",
+      "scenario": "same_hlc_same_auth_weight",
+      "expected": "stable_actor_seq_then_event_id_order"
+    }
+  ]
+}

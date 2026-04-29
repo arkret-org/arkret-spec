@@ -1,0 +1,24 @@
+{
+  "suite": "redaction",
+  "cases": [
+    {
+      "name": "preserved_fields",
+      "preserve": ["event_id", "created_at", "actor_id", "redacts"]
+    },
+    {
+      "name": "dangling_redaction",
+      "input": "redaction_before_target",
+      "expected": "pending_until_target_or_expiry"
+    },
+    {
+      "name": "late_target_event",
+      "input": "target_arrives_after_redaction",
+      "expected": "render_redacted_on_materialization"
+    },
+    {
+      "name": "audit_visibility",
+      "input": "redacted_content",
+      "expected": "audit_view_retains_tombstone_only"
+    }
+  ]
+}

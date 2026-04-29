@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/relation.schema.json",
+  "title": "Contrix Relation",
+  "type": "object",
+  "required": ["id", "type", "space_id", "relation_kind", "created_by", "created_at"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
+    "type": { "const": "relation" },
+    "schema": { "const": "cx.schema.relation.v1" },
+    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "relation_kind": { "type": "string" },
+    "from_entity_id": { "type": "string", "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$" },
+    "from_actor_id": { "$ref": "#/$defs/did" },
+    "from_space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "to_entity_id": { "type": "string", "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$" },
+    "to_actor_id": { "$ref": "#/$defs/did" },
+    "to_space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "fields": { "type": "object" },
+    "state": { "type": "string", "enum": ["active", "deleted", "redacted"] },
+    "created_by": { "$ref": "#/$defs/did" },
+    "created_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "oneOf": [
+    { "required": ["from_entity_id"] },
+    { "required": ["from_actor_id"] },
+    { "required": ["from_space_id"] }
+  ],
+  "allOf": [
+    {
+      "oneOf": [
+        { "required": ["to_entity_id"] },
+        { "required": ["to_actor_id"] },
+        { "required": ["to_space_id"] }
+      ]
+    }
+  ],
+  "$defs": {
+    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  },
+  "additionalProperties": true
+}

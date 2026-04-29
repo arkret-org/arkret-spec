@@ -7,9 +7,32 @@
 
 ```text
 contrix-spec/
+  artifacts/
+    README.md
+    bindings/
+      non-http-bindings.yaml
+    fixtures/
+      capability-fixture.json
+      encoding-fixture.json
+      federation-fixture.json
+      privacy-security-fixture.json
+      redaction-fixture.json
+      state-resolution-fixture.json
+      sync-fixture.json
+    openapi/
+      contrix-service-api.openapi.yaml
+    profiles/
+      conformance-profiles.json
+    registry/
+      operation-registry.json
+      schema-registry.json
+    schemas/
+      *.schema.json
   zh/
     README.md
     spec-map.md
+    guides/
+      reference-implementation-guide.md
     overview/
       architecture.md
       matrix-core-differences.md
@@ -69,8 +92,15 @@ contrix-spec/
       agent-memory.md
       agent-protocol-interop.md
     conformance/
+      README.md
+      fixtures/
+        *.json
+      schemas/
+        *.json
       encoding.md
       encoding-conformance-vectors.md
+      cursor-test-vectors.md
+      hlc-test-vectors.md
       snapshot-schema.md
       schema-registry.md
       query-schema.md
@@ -85,6 +115,8 @@ contrix-spec/
   en/
     README.md
     spec-map.md
+    guides/
+      reference-implementation-guide.md
     overview/
       architecture.md
       matrix-core-differences.md
@@ -144,8 +176,15 @@ contrix-spec/
       agent-memory.md
       agent-protocol-interop.md
     conformance/
+      README.md
+      fixtures/
+        *.json
+      schemas/
+        *.json
       encoding.md
       encoding-conformance-vectors.md
+      cursor-test-vectors.md
+      hlc-test-vectors.md
       snapshot-schema.md
       schema-registry.md
       query-schema.md
@@ -159,4 +198,4 @@ contrix-spec/
       server-threat-model.md
 ```
 
-The Chinese specification is the leading normative text for Contrix v1. The English folder is structurally aligned and mirrors the v1 concepts, profiles, and service boundaries where translation is complete.
+The Chinese specification is the leading normative text for Contrix v1. The English folder is structurally aligned and mirrors the v1 concepts, profiles, service boundaries, and machine-readable artifact layout. Canonical wire-contract outputs live in `artifacts/`, with mirrored copies under `zh/` and `en/` for local navigation.
