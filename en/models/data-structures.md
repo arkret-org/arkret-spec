@@ -17,3 +17,5 @@ Canonical Operation objects use `operation_type` plus optional `semantic_kind`. 
 
 For collection-backed Kanban views, `kanban.card_relation_kind` is required and must not be inferred from local defaults. It is the relation kind used by relation-backed card positions and by `cx.relation.move` exclusive position keys.
 
+The canonical View kind registry is the enum in `artifacts/schemas/view.schema.json`: `kanban`, `list`, `table`, `calendar`, `gantt`, `chat`, `thread`, `forum`, `tree`, `graph`, `timeline`, `review_queue`, `matrix`, `document`, `dashboard`, `activity`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `context_timeline`, and `moderation_queue`. Non-Kanban views use typed configs (`tabular`, `time_window`, `timeline`, `conversation`, `graph`, `queue`, `matrix`, `document`, `dashboard`) as required by the schema.
+

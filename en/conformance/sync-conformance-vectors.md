@@ -11,6 +11,7 @@ The Chinese draft is currently normative for detailed examples and expected outp
 Additional vectors include a federation pull-path bootstrap assist scenario:
 
 - `cx.vector.sync.snapshot_bootstrap.v1`
+- `cx.vector.sync.view_projection_profiles.v1`
 
 Expected behavior in English:
 
@@ -18,4 +19,6 @@ Expected behavior in English:
 - Receivers MUST validate snapshot signature and frontier before using the snapshot-assisted checkpoint.
 - If validation fails, implementation MUST fall back to operation-only replay (or equivalent recovery path) and may mark the peer degraded.
 - Operations replay must start from the advertised `snapshot_frontier`, never as an unauthenticated new genesis.
+
+Standard View projection profile vectors cover row, timeline, and graph responses. Implementations must validate the corresponding fixtures in `artifacts/fixtures/sync-fixture.json` against the OpenAPI response profiles.
 

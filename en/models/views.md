@@ -127,6 +127,26 @@ Suggested fields:
 - `memory_review`
 - `agent_runs`
 - `context_timeline`
+- `moderation_queue`
+
+### 4.4 Product View Profiles
+
+Each top-level `kind` maps to a machine-verifiable configuration profile. `layout` is only a UI hint and never replaces the profile config.
+
+| Profile | View kinds | Required config | Standard projection response |
+| --- | --- | --- | --- |
+| Board | `kanban` | `kanban` | `KanbanProjectionResponse` |
+| Row | `list`, `table` | `tabular` | `RowProjectionResponse` |
+| Time window | `calendar`, `gantt` | `time_window` | `RowProjectionResponse` |
+| Timeline | `timeline`, `activity`, `context_timeline` | `timeline` | `TimelineProjectionResponse` |
+| Conversation | `chat`, `thread`, `forum` | `conversation` | `TimelineProjectionResponse` |
+| Graph | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
+| Queue | `review_queue`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `moderation_queue` | `queue` | `RowProjectionResponse` |
+| Matrix | `matrix` | `matrix` | `RowProjectionResponse` |
+| Document | `document` | `document` | `RowProjectionResponse` |
+| Dashboard | `dashboard` | `dashboard` | `RowProjectionResponse` |
+
+For non-raw projections, Index / AppView MUST return `view_id`, `frontier`, and the standard response profile. Clients must not treat an arbitrary object array as a standard View projection.
 
 ## 5. Query Model
 

@@ -135,6 +135,26 @@ view 不承载底层对象的唯一真相状态。
 - `memory_review`
 - `agent_runs`
 - `context_timeline`
+- `moderation_queue`
+
+### 4.4 产品级 View Profile
+
+顶层 `kind` 必须映射到一个机器可验证的配置 profile。`layout` 只是 UI hint，不能替代以下配置：
+
+| Profile | View kinds | 必填配置 | 标准投影响应 |
+| --- | --- | --- | --- |
+| Board | `kanban` | `kanban` | `KanbanProjectionResponse` |
+| Row | `list`, `table` | `tabular` | `RowProjectionResponse` |
+| Time window | `calendar`, `gantt` | `time_window` | `RowProjectionResponse` |
+| Timeline | `timeline`, `activity`, `context_timeline` | `timeline` | `TimelineProjectionResponse` |
+| Conversation | `chat`, `thread`, `forum` | `conversation` | `TimelineProjectionResponse` |
+| Graph | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
+| Queue | `review_queue`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `moderation_queue` | `queue` | `RowProjectionResponse` |
+| Matrix | `matrix` | `matrix` | `RowProjectionResponse` |
+| Document | `document` | `document` | `RowProjectionResponse` |
+| Dashboard | `dashboard` | `dashboard` | `RowProjectionResponse` |
+
+Index / AppView 对非 raw projection MUST 返回 `view_id`、`frontier` 和对应 profile 的标准响应。客户端不得把未知对象数组解释为标准 View projection。
 
 ## 5. Query Model
 

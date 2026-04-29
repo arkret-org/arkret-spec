@@ -852,7 +852,29 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
 - 不可见卡片不得通过空列、错误码、计数差异或 cursor 形态泄露存在性。
 - 在上述输入中，返回 `total_estimate: 2` 或任何可推断隐藏卡片数量的 cursor / warning 均为失败。
 
-## 17. 覆盖矩阵
+## 17. Vector: 标准 View Projection Profiles
+
+向量名称：
+
+```text
+cx.vector.sync.view_projection_profiles.v1
+```
+
+本向量对应 `artifacts/fixtures/sync-fixture.json` 中的：
+
+- `row_projection_contract`
+- `timeline_projection_contract`
+- `graph_projection_contract`
+
+判定要点：
+
+- `projection` discriminator MUST 只匹配一个 OpenAPI response schema。
+- Row 类视图 MUST 返回 `RowProjectionResponse`，并让每个 `items[*].entity.id` 可追溯到 `cx:entity`。
+- Timeline / Chat 类视图 MUST 返回 `TimelineProjectionResponse`，并提供稳定 `sort_key`、`frontier`、redaction/tombstone 表达和 cursor grammar。
+- Graph / Tree 类视图 MUST 返回 `GraphProjectionResponse`，并提供 `nodes[]`、`edges[]`、`lazy` / `truncated` 标记和 Relation provenance。
+- 任一非 `raw` projection 缺少 `view_id` 或 `frontier` 均为失败。
+
+## 18. 覆盖矩阵
 
 | 向量 | Minimal Client | Full Client | E2EE Client | Repo Node | Principal Server | Index Node |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -870,8 +892,9 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
 | `cx.vector.sync.token_expiry_recovery.v1` | MUST | MUST | MUST | MAY | MAY | SHOULD |
 | `cx.vector.sync.kanban_projection_column_pagination.v1` | SHOULD | MUST | SHOULD | N/A | MAY | MUST |
 | `cx.vector.sync.kanban_projection_hidden_counts.v1` | SHOULD | MUST | MUST | N/A | SHOULD | MUST |
+| `cx.vector.sync.view_projection_profiles.v1` | SHOULD | MUST | MUST | N/A | SHOULD | MUST |
 
-## 18. 实现报告要求
+## 19. 实现报告要求
 
 Conformance runner SHOULD 为每个向量输出：
 

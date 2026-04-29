@@ -343,6 +343,168 @@
         "authorized_estimate and authorized_exact may return only visibility-trimmed counts unless separate aggregate policy grants hidden counts",
         "cursor shape and error behavior must not reveal hidden_entities"
       ]
+    },
+    {
+      "name": "row_projection_contract",
+      "vector": "cx.vector.sync.view_projection.row.v1",
+      "schema_refs": {
+        "request": "QueryRequest",
+        "response": "RowProjectionResponse"
+      },
+      "request": {
+        "projection": "table",
+        "view_id": "cx:view:01js0vr0000000000000000000",
+        "entity_types": ["task"],
+        "limit": 50
+      },
+      "response": {
+        "projection": "table",
+        "view_id": "cx:view:01js0vr0000000000000000000",
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "frontier": {
+          "state_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        "items": [
+          {
+            "entity": {
+              "id": "cx:entity:01js0tr0000000000000000000",
+              "entity_type": "task",
+              "title": "Row task"
+            },
+            "display": {
+              "fields.status": "open",
+              "fields.priority": "high"
+            },
+            "position": {
+              "sort_key": "priority:high|updated_at:2026-04-29T00:00:00Z"
+            },
+            "state": {
+              "selected": false
+            }
+          }
+        ],
+        "next_cursor": "cx:cursor:row_after_task_r",
+        "total_estimate": 1
+      },
+      "assertions": [
+        "projection discriminator selects RowProjectionResponse only",
+        "each item.entity.id is a cx:entity id",
+        "next_cursor matches cursor grammar",
+        "display fields remain authorization-trimmed"
+      ]
+    },
+    {
+      "name": "timeline_projection_contract",
+      "vector": "cx.vector.sync.view_projection.timeline.v1",
+      "schema_refs": {
+        "request": "QueryRequest",
+        "response": "TimelineProjectionResponse"
+      },
+      "request": {
+        "projection": "chat",
+        "view_id": "cx:view:01js0vc0000000000000000000",
+        "entity_types": ["message"],
+        "limit": 30
+      },
+      "response": {
+        "projection": "chat",
+        "view_id": "cx:view:01js0vc0000000000000000000",
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "frontier": {
+          "state_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        "entries": [
+          {
+            "id": "entry-message-1",
+            "entry_type": "message",
+            "event_id": "cx:event:01js0ev0000000000000000000",
+            "entity": {
+              "id": "cx:entity:01js0mg0000000000000000000",
+              "entity_type": "message",
+              "title": "Message"
+            },
+            "actor_id": "did:web:alice.example",
+            "created_at": "2026-04-29T00:00:00Z",
+            "sort_key": "01970e589d24-0001-11111111|cx:event:01js0ev0000000000000000000",
+            "thread_id": "cx:entity:01js0tp0000000000000000000",
+            "body": {
+              "text": "hello"
+            },
+            "redacted": false
+          }
+        ],
+        "next_cursor": "cx:cursor:timeline_after_message_1",
+        "limited": false
+      },
+      "assertions": [
+        "projection discriminator selects TimelineProjectionResponse only",
+        "entries carry stable sort_key and frontier",
+        "redacted entries must be tombstones or omitted according to view config",
+        "next_cursor matches cursor grammar"
+      ]
+    },
+    {
+      "name": "graph_projection_contract",
+      "vector": "cx.vector.sync.view_projection.graph.v1",
+      "schema_refs": {
+        "request": "QueryRequest",
+        "response": "GraphProjectionResponse"
+      },
+      "request": {
+        "projection": "graph",
+        "view_id": "cx:view:01js0vg0000000000000000000",
+        "entity_types": ["task"],
+        "relation": {
+          "kind": "depends_on",
+          "direction": "out",
+          "depth": 2
+        }
+      },
+      "response": {
+        "projection": "graph",
+        "view_id": "cx:view:01js0vg0000000000000000000",
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "frontier": {
+          "state_hash": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        "nodes": [
+          {
+            "entity": {
+              "id": "cx:entity:01js0gn0000000000000000000",
+              "entity_type": "task",
+              "title": "Graph root"
+            },
+            "depth": 0
+          },
+          {
+            "entity": {
+              "id": "cx:entity:01js0gx0000000000000000000",
+              "entity_type": "task",
+              "title": "Lazy external stub"
+            },
+            "depth": 1,
+            "lazy": true,
+            "truncated": true
+          }
+        ],
+        "edges": [
+          {
+            "relation_id": "cx:relation:01js0ge0000000000000000000",
+            "relation_kind": "depends_on",
+            "from_entity_id": "cx:entity:01js0gn0000000000000000000",
+            "to_entity_id": "cx:entity:01js0gx0000000000000000000",
+            "truncated": true
+          }
+        ],
+        "next_cursor": null,
+        "limited": false
+      },
+      "assertions": [
+        "projection discriminator selects GraphProjectionResponse only",
+        "nodes and edges use cx entity/relation identifiers",
+        "lazy/truncated nodes do not expose unauthorized target fields",
+        "frontier identifies the reduced graph snapshot"
+      ]
     }
   ]
 }

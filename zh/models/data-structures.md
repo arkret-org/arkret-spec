@@ -200,12 +200,21 @@ Schema id: `cx.schema.view.v1`
 | `id` | yes | `id:view` |  | View ID。 |
 | `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `kind` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue, matrix, document, dashboard, activity, inbox, notifications, memory_review, agent_runs, context_timeline)` |  | 投影形态。 |
+| `kind` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue, matrix, document, dashboard, activity, inbox, notifications, memory_review, agent_runs, context_timeline, moderation_queue)` |  | 投影形态。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
 | `kanban` | conditional | `KanbanConfig` | `kind="kanban"` 时 MUST 设置。 | 看板投影配置。 |
+| `tabular` | conditional | `TabularConfig` | `kind in (list, table)` 时 MUST 设置。 | 行/列表/表格展示配置。 |
+| `time_window` | conditional | `TimeWindowConfig` | `kind in (calendar, gantt)` 时 MUST 设置。 | 时间窗口配置。 |
+| `timeline` | conditional | `TimelineConfig` | `kind in (timeline, activity, context_timeline)` 时 MUST 设置。 | 时间线配置。 |
+| `conversation` | conditional | `ConversationConfig` | `kind in (chat, thread, forum)` 时 MUST 设置。 | 会话配置。 |
+| `graph` | conditional | `GraphConfig` | `kind in (graph, tree)` 时 MUST 设置。 | 图/树遍历配置。 |
+| `queue` | conditional | `QueueConfig` | `kind in (review_queue, inbox, notifications, memory_review, agent_runs, moderation_queue)` 时 MUST 设置。 | 队列配置。 |
+| `matrix` | conditional | `MatrixConfig` | `kind="matrix"` 时 MUST 设置。 | 双轴分组配置。 |
+| `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
+| `dashboard` | conditional | `DashboardConfig` | `kind="dashboard"` 时 MUST 设置。 | 仪表盘 widget 配置。 |
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

@@ -19,9 +19,18 @@
     },
     "title": { "type": "string" },
     "query": { "$ref": "#/$defs/query" },
-    "visible_fields": { "type": "array", "items": { "type": "string" } },
+    "visible_fields": { "type": "array", "items": { "$ref": "#/$defs/field_path" } },
     "layout": { "type": "object" },
     "kanban": { "$ref": "#/$defs/kanban_config" },
+    "tabular": { "$ref": "#/$defs/tabular_config" },
+    "time_window": { "$ref": "#/$defs/time_window_config" },
+    "timeline": { "$ref": "#/$defs/timeline_config" },
+    "conversation": { "$ref": "#/$defs/conversation_config" },
+    "graph": { "$ref": "#/$defs/graph_config" },
+    "queue": { "$ref": "#/$defs/queue_config" },
+    "matrix": { "$ref": "#/$defs/matrix_config" },
+    "document": { "$ref": "#/$defs/document_config" },
+    "dashboard": { "$ref": "#/$defs/dashboard_config" },
     "sort": { "type": "array", "items": { "$ref": "#/$defs/sort_spec" } },
     "created_by": { "$ref": "#/$defs/did" },
     "created_at": { "$ref": "#/$defs/timestamp" }
@@ -54,6 +63,111 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "enum": ["list", "table"] } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["tabular"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "enum": ["calendar", "gantt"] } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["time_window"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "enum": ["timeline", "activity", "context_timeline"] } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["timeline"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "enum": ["chat", "thread", "forum"] } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["conversation"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "enum": ["chat", "thread", "forum"] } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "query": {
+            "anyOf": [
+              { "required": ["anchor_entity_id"] },
+              { "required": ["relation"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "enum": ["graph", "tree"] } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["graph"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "enum": ["graph", "tree"] } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "query": { "required": ["relation"] }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "context_timeline" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "query": { "required": ["anchor_entity_id", "context"] }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": ["review_queue", "inbox", "notifications", "memory_review", "agent_runs", "moderation_queue"]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": { "required": ["queue"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "matrix" } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["matrix"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "document" } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["document"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "dashboard" } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["dashboard"] }
     }
   ],
   "$defs": {
@@ -75,6 +189,7 @@
         },
         "value": { "$ref": "#/$defs/filter_value" }
       },
+      "minProperties": 1,
       "additionalProperties": false
     },
     "boolean_filter": {
@@ -140,6 +255,7 @@
         "direction": { "type": "string", "enum": ["asc", "desc"] },
         "nulls": { "type": "string", "enum": ["first", "last"] }
       },
+      "minProperties": 1,
       "additionalProperties": false
     },
     "query": {
@@ -203,6 +319,203 @@
             "timeout_ms": { "type": "integer", "minimum": 0 }
           },
           "additionalProperties": false
+        }
+      },
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "display_column": {
+      "type": "object",
+      "required": ["field"],
+      "properties": {
+        "field": { "$ref": "#/$defs/field_path" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "format": {
+          "type": "string",
+          "enum": ["text", "number", "boolean", "date", "datetime", "duration", "actor", "entity_ref", "badge", "markdown"]
+        },
+        "width": { "type": "integer", "minimum": 1, "maximum": 2000 },
+        "hidden": { "type": "boolean", "default": false }
+      },
+      "additionalProperties": false
+    },
+    "tabular_config": {
+      "type": "object",
+      "required": ["columns"],
+      "properties": {
+        "columns": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/display_column" },
+          "minItems": 1
+        },
+        "row_order_by": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sort_spec" },
+          "minItems": 1
+        },
+        "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "selection_policy": { "type": "string", "enum": ["none", "single", "multiple"], "default": "multiple" },
+        "density": { "type": "string", "enum": ["compact", "standard", "comfortable"], "default": "standard" }
+      },
+      "additionalProperties": false
+    },
+    "time_window_config": {
+      "type": "object",
+      "required": ["start_field"],
+      "properties": {
+        "start_field": { "$ref": "#/$defs/field_path" },
+        "end_field": { "$ref": "#/$defs/field_path" },
+        "timezone": { "type": "string", "minLength": 1, "default": "UTC" },
+        "bucket": { "type": "string", "enum": ["day", "week", "month", "quarter"], "default": "week" },
+        "overlap_policy": { "type": "string", "enum": ["include_overlap", "start_within_range"], "default": "include_overlap" },
+        "dependency_relation_kinds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "timeline_config": {
+      "type": "object",
+      "required": ["time_field", "order"],
+      "properties": {
+        "time_field": { "$ref": "#/$defs/field_path" },
+        "order": { "type": "string", "enum": ["asc", "desc"] },
+        "event_kinds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^cx\\.[a-z0-9_]+\\.[a-z0-9_]+$" }
+        },
+        "relation_kinds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "redaction_policy": { "type": "string", "enum": ["tombstone", "hide"], "default": "tombstone" },
+        "tie_break": { "type": "string", "enum": ["event_id", "operation_id", "entity_id"], "default": "event_id" }
+      },
+      "additionalProperties": false
+    },
+    "conversation_config": {
+      "type": "object",
+      "required": ["message_entity_types", "message_time_field", "thread_relation_kind"],
+      "properties": {
+        "message_entity_types": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "message_time_field": { "$ref": "#/$defs/field_path" },
+        "thread_relation_kind": { "type": "string", "minLength": 1 },
+        "reply_relation_kind": { "type": "string", "minLength": 1, "default": "replies_to" },
+        "mention_relation_kind": { "type": "string", "minLength": 1, "default": "mentions" },
+        "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "redaction_policy": { "type": "string", "enum": ["tombstone", "hide"], "default": "tombstone" },
+        "read_state_policy": { "type": "string", "enum": ["none", "per_actor", "per_device"], "default": "per_actor" }
+      },
+      "additionalProperties": false
+    },
+    "graph_config": {
+      "type": "object",
+      "required": ["node_entity_types", "edge_relation_kinds", "max_depth"],
+      "properties": {
+        "node_entity_types": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "edge_relation_kinds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "direction": { "type": "string", "enum": ["out", "in", "both"], "default": "both" },
+        "max_depth": { "type": "integer", "minimum": 0, "maximum": 32 },
+        "cycle_policy": { "type": "string", "enum": ["mark", "truncate", "reject"], "default": "mark" },
+        "lazy_link_policy": { "type": "string", "enum": ["emit_stub", "omit"], "default": "emit_stub" },
+        "node_order_by": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sort_spec" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "queue_config": {
+      "type": "object",
+      "required": ["item_entity_types", "state_field", "state_values"],
+      "properties": {
+        "item_entity_types": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "state_field": { "$ref": "#/$defs/field_path" },
+        "state_values": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "assignee_field": { "$ref": "#/$defs/field_path" },
+        "priority_order_by": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sort_spec" },
+          "minItems": 1
+        },
+        "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "count_policy": { "type": "string", "enum": ["omit", "authorized_estimate", "authorized_exact"], "default": "omit" }
+      },
+      "additionalProperties": false
+    },
+    "matrix_config": {
+      "type": "object",
+      "required": ["rows_by", "columns_by"],
+      "properties": {
+        "rows_by": { "$ref": "#/$defs/field_path" },
+        "columns_by": { "$ref": "#/$defs/field_path" },
+        "cell_aggregation": { "type": "string", "enum": ["count", "sum", "min", "max", "latest"], "default": "count" },
+        "value_field": { "$ref": "#/$defs/field_path" },
+        "row_limit": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "column_limit": { "type": "integer", "minimum": 1, "maximum": 200 }
+      },
+      "additionalProperties": false
+    },
+    "document_config": {
+      "type": "object",
+      "required": ["root_entity_id", "section_relation_kind"],
+      "properties": {
+        "root_entity_id": { "$ref": "#/$defs/entity_id" },
+        "section_relation_kind": { "type": "string", "minLength": 1 },
+        "section_order_by": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sort_spec" },
+          "minItems": 1
+        },
+        "render_mode": { "type": "string", "enum": ["plain", "markdown", "rich_blocks"], "default": "rich_blocks" }
+      },
+      "additionalProperties": false
+    },
+    "dashboard_widget": {
+      "type": "object",
+      "required": ["id", "title", "projection", "query"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "projection": {
+          "type": "string",
+          "enum": ["list", "table", "calendar", "gantt", "timeline", "graph", "tree", "matrix", "review_queue", "activity", "inbox", "notifications", "memory_review", "agent_runs", "moderation_queue"]
+        },
+        "query": { "$ref": "#/$defs/query" },
+        "refresh_interval_ms": { "type": "integer", "minimum": 1000 }
+      },
+      "additionalProperties": false
+    },
+    "dashboard_config": {
+      "type": "object",
+      "required": ["widgets"],
+      "properties": {
+        "widgets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dashboard_widget" },
+          "minItems": 1
         }
       },
       "additionalProperties": false

@@ -239,7 +239,30 @@ components:
           pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
         projection:
           type: string
-          enum: [raw, kanban]
+          enum:
+            - raw
+            - kanban
+            - list
+            - table
+            - calendar
+            - gantt
+            - chat
+            - thread
+            - forum
+            - tree
+            - graph
+            - timeline
+            - review_queue
+            - matrix
+            - document
+            - dashboard
+            - activity
+            - inbox
+            - notifications
+            - memory_review
+            - agent_runs
+            - context_timeline
+            - moderation_queue
         entity_types:
           type: array
           items:
@@ -279,6 +302,34 @@ components:
             required: [projection]
           then:
             required: [view_id]
+        - if:
+            properties:
+              projection:
+                enum:
+                  - list
+                  - table
+                  - calendar
+                  - gantt
+                  - chat
+                  - thread
+                  - forum
+                  - tree
+                  - graph
+                  - timeline
+                  - review_queue
+                  - matrix
+                  - document
+                  - dashboard
+                  - activity
+                  - inbox
+                  - notifications
+                  - memory_review
+                  - agent_runs
+                  - context_timeline
+                  - moderation_queue
+            required: [projection]
+          then:
+            required: [view_id]
     StateFrontier:
       type: object
       required: [state_hash]
@@ -305,8 +356,10 @@ components:
             type: object
         next_cursor:
           type: string
+          pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
         total_estimate:
           type: integer
+          minimum: 0
         frontier:
           $ref: "#/components/schemas/StateFrontier"
         stale:
@@ -492,6 +545,194 @@ components:
         rank:
           type: string
           pattern: "^[0-9A-Za-z]{1,128}$"
+      additionalProperties: false
+    ProjectionEntity:
+      type: object
+      required: [id, entity_type]
+      properties:
+        id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        entity_type:
+          type: string
+          minLength: 1
+        title:
+          type: string
+        fields:
+          type: object
+      additionalProperties: false
+    ProjectionItem:
+      type: object
+      required: [entity]
+      properties:
+        entity:
+          $ref: "#/components/schemas/ProjectionEntity"
+        display:
+          type: object
+        position:
+          type: object
+        state:
+          type: object
+      additionalProperties: false
+    RowProjectionResponse:
+      type: object
+      required: [projection, view_id, items, frontier]
+      properties:
+        projection:
+          type: string
+          enum: [list, table, calendar, gantt, review_queue, matrix, document, dashboard, inbox, notifications, memory_review, agent_runs, moderation_queue]
+        view_id:
+          type: string
+          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        space_id:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectionItem"
+        next_cursor:
+          oneOf:
+            - type: string
+              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
+            - type: "null"
+        total_estimate:
+          type: integer
+          minimum: 0
+        stale:
+          type: boolean
+      additionalProperties: false
+    TimelineProjectionEntry:
+      type: object
+      required: [id, entry_type, sort_key]
+      properties:
+        id:
+          type: string
+          minLength: 1
+        entry_type:
+          type: string
+          enum: [event, message, activity, system, tombstone]
+        event_id:
+          type: string
+          pattern: "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$"
+        entity:
+          $ref: "#/components/schemas/ProjectionEntity"
+        actor_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          pattern: "Z$"
+        sort_key:
+          type: string
+          minLength: 1
+        thread_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        body:
+          type: object
+        redacted:
+          type: boolean
+      additionalProperties: false
+    TimelineProjectionResponse:
+      type: object
+      required: [projection, view_id, entries, frontier]
+      properties:
+        projection:
+          type: string
+          enum: [timeline, chat, thread, forum, activity, context_timeline]
+        view_id:
+          type: string
+          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        space_id:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimelineProjectionEntry"
+        next_cursor:
+          oneOf:
+            - type: string
+              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
+            - type: "null"
+        limited:
+          type: boolean
+        stale:
+          type: boolean
+      additionalProperties: false
+    GraphProjectionNode:
+      type: object
+      required: [entity, depth]
+      properties:
+        entity:
+          $ref: "#/components/schemas/ProjectionEntity"
+        depth:
+          type: integer
+          minimum: 0
+        lazy:
+          type: boolean
+        truncated:
+          type: boolean
+      additionalProperties: false
+    GraphProjectionEdge:
+      type: object
+      required: [relation_id, relation_kind, from_entity_id, to_entity_id]
+      properties:
+        relation_id:
+          type: string
+          pattern: "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+        relation_kind:
+          type: string
+          minLength: 1
+        from_entity_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        to_entity_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        rank:
+          type: string
+          pattern: "^[0-9A-Za-z]{1,128}$"
+        truncated:
+          type: boolean
+      additionalProperties: false
+    GraphProjectionResponse:
+      type: object
+      required: [projection, view_id, nodes, edges, frontier]
+      properties:
+        projection:
+          type: string
+          enum: [graph, tree]
+        view_id:
+          type: string
+          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        space_id:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphProjectionNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphProjectionEdge"
+        next_cursor:
+          oneOf:
+            - type: string
+              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
+            - type: "null"
+        limited:
+          type: boolean
+        stale:
+          type: boolean
       additionalProperties: false
   responses:
     NotFound:
@@ -734,6 +975,9 @@ paths:
                 oneOf:
                   - $ref: "#/components/schemas/RawQueryResponse"
                   - $ref: "#/components/schemas/KanbanProjectionResponse"
+                  - $ref: "#/components/schemas/RowProjectionResponse"
+                  - $ref: "#/components/schemas/TimelineProjectionResponse"
+                  - $ref: "#/components/schemas/GraphProjectionResponse"
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle
