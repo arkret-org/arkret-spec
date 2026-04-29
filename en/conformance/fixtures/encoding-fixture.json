@@ -60,6 +60,47 @@
         "expected": "a00"
       },
       {
+        "name": "rebalance_assignments_three_items",
+        "rank_profile": "cx.rank.lexofractional.v1",
+        "ordered_edges": [
+          {
+            "relation_id": "cx:relation:01js0r1000000000000000000",
+            "entity_id": "cx:entity:01js0tk1000000000000000000"
+          },
+          {
+            "relation_id": "cx:relation:01js0r2000000000000000000",
+            "entity_id": "cx:entity:01js0tk2000000000000000000"
+          },
+          {
+            "relation_id": "cx:relation:01js0r3000000000000000000",
+            "entity_id": "cx:entity:01js0tk3000000000000000000"
+          }
+        ],
+        "expected_assignments": [
+          {
+            "relation_id": "cx:relation:01js0r1000000000000000000",
+            "entity_id": "cx:entity:01js0tk1000000000000000000",
+            "rank": "F"
+          },
+          {
+            "relation_id": "cx:relation:01js0r2000000000000000000",
+            "entity_id": "cx:entity:01js0tk2000000000000000000",
+            "rank": "V"
+          },
+          {
+            "relation_id": "cx:relation:01js0r3000000000000000000",
+            "entity_id": "cx:entity:01js0tk3000000000000000000",
+            "rank": "k"
+          }
+        ]
+      },
+      {
+        "name": "rebalance_reject_partial_assignment",
+        "active_edge_count": 3,
+        "assignment_count": 2,
+        "expected": "invalid_rebalance_assignment"
+      },
+      {
         "name": "rank_reject_invalid_character",
         "input": "a-1",
         "expected": "invalid_rank"

@@ -137,42 +137,94 @@ components:
             type: object
         next_cursor:
           type: string
+    FieldFilter:
+      type: object
+      required: [field, op]
+      properties:
+        field:
+          type: string
+          pattern: "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$"
+        op:
+          type: string
+          enum: [eq, neq, in, not_in, lt, lte, gt, gte, contains, exists, prefix, full_text]
+        value: {}
+      additionalProperties: false
+    BooleanFilter:
+      type: object
+      properties:
+        and:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/QueryFilter"
+        or:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/QueryFilter"
+        not:
+          $ref: "#/components/schemas/QueryFilter"
+      minProperties: 1
+      maxProperties: 1
+      additionalProperties: false
+    QueryFilter:
+      oneOf:
+        - $ref: "#/components/schemas/FieldFilter"
+        - $ref: "#/components/schemas/BooleanFilter"
     SortSpec:
       type: object
       required: [field, direction]
       properties:
         field:
           type: string
+          minLength: 1
         direction:
           type: string
           enum: [asc, desc]
         nulls:
           type: string
           enum: [first, last]
+      additionalProperties: false
     RelationQuery:
       type: object
       required: [kind, direction]
       properties:
         kind:
           type: string
+          minLength: 1
         direction:
           type: string
           enum: [out, in, both]
         source_entity_id:
           type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
         source_actor_id:
           type: string
         source_space_id:
           type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
         target_entity_id:
           type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
         target_actor_id:
           type: string
         target_space_id:
           type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
         depth:
           type: integer
           minimum: 0
+          maximum: 32
+      allOf:
+        - not:
+            anyOf:
+              - required: [source_entity_id, source_actor_id]
+              - required: [source_entity_id, source_space_id]
+              - required: [source_actor_id, source_space_id]
+              - required: [target_entity_id, target_actor_id]
+              - required: [target_entity_id, target_space_id]
+              - required: [target_actor_id, target_space_id]
+      additionalProperties: false
     QueryRequest:
       type: object
       properties:
@@ -180,8 +232,11 @@ components:
           type: array
           items:
             type: string
+            pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+          minItems: 1
         view_id:
           type: string
+          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
         projection:
           type: string
           enum: [raw, kanban]
@@ -189,23 +244,33 @@ components:
           type: array
           items:
             type: string
+            minLength: 1
+          minItems: 1
         relation:
-          $ref: "#/components/schemas/RelationQuery"
+          oneOf:
+            - $ref: "#/components/schemas/RelationQuery"
+            - type: "null"
         filters:
           type: array
           items:
-            type: object
+            $ref: "#/components/schemas/QueryFilter"
         order_by:
           type: array
           items:
             $ref: "#/components/schemas/SortSpec"
         cursor:
-          type: string
+          oneOf:
+            - type: string
+              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
+            - type: "null"
         limit:
           type: integer
           minimum: 1
+          maximum: 1000
         wait_for:
           type: string
+          minLength: 1
+      additionalProperties: false
       allOf:
         - if:
             properties:
@@ -214,9 +279,26 @@ components:
             required: [projection]
           then:
             required: [view_id]
+    StateFrontier:
+      type: object
+      required: [state_hash]
+      properties:
+        state_hash:
+          type: string
+          pattern: "^sha256:[0-9a-f]{64}$"
+        operation_ids:
+          type: array
+          items:
+            type: string
+            pattern: "^cx:operation:[0-9a-hjkmnp-z]{26}$"
+      additionalProperties: false
     RawQueryResponse:
       type: object
+      required: [projection, results, frontier]
       properties:
+        projection:
+          type: string
+          const: raw
         results:
           type: array
           items:
@@ -226,60 +308,76 @@ components:
         total_estimate:
           type: integer
         frontier:
-          type: object
+          $ref: "#/components/schemas/StateFrontier"
         stale:
           type: boolean
+      additionalProperties: false
     KanbanProjectionResponse:
       type: object
-      required: [view_id, columns, frontier]
+      required: [projection, view_id, columns, frontier]
       properties:
+        projection:
+          type: string
+          const: kanban
         view_id:
           type: string
+          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
         space_id:
           type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
         frontier:
-          type: object
-          required: [state_hash]
-          properties:
-            state_hash:
-              type: string
-            operation_ids:
-              type: array
-              items:
-                type: string
+          $ref: "#/components/schemas/StateFrontier"
         columns:
           type: array
           items:
             $ref: "#/components/schemas/KanbanProjectionColumn"
         stale:
           type: boolean
+      additionalProperties: false
+    KanbanFieldValueColumnSource:
+      type: object
+      required: [model, field, value]
+      properties:
+        model:
+          type: string
+          const: field_value
+        field:
+          type: string
+          pattern: "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$"
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+      additionalProperties: false
+    KanbanCollectionColumnSource:
+      type: object
+      required: [model, collection_entity_id]
+      properties:
+        model:
+          type: string
+          const: collection
+        collection_entity_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+      additionalProperties: false
     KanbanProjectionColumn:
       type: object
       required: [key, title, source, cards, limited]
       properties:
         key:
           type: string
+          minLength: 1
         title:
           type: string
+          minLength: 1
         rank:
           type: string
           pattern: "^[0-9A-Za-z]{1,128}$"
         source:
-          type: object
-          required: [model]
-          properties:
-            model:
-              type: string
-              enum: [field_value, collection]
-            field:
-              type: string
-            value:
-              oneOf:
-                - type: string
-                - type: number
-                - type: boolean
-            collection_entity_id:
-              type: string
+          oneOf:
+            - $ref: "#/components/schemas/KanbanFieldValueColumnSource"
+            - $ref: "#/components/schemas/KanbanCollectionColumnSource"
         cards:
           type: array
           items:
@@ -295,6 +393,8 @@ components:
           enum: [ok, over_limit, unknown]
         total_estimate:
           type: integer
+          minimum: 0
+      additionalProperties: false
     KanbanProjectionCard:
       type: object
       required: [entity, position]
@@ -309,17 +409,24 @@ components:
               type: string
             title:
               type: string
+            fields:
+              type: object
+          additionalProperties: false
         position:
           type: object
           required: [container_id, rank]
           properties:
             container_id:
               type: string
+              minLength: 1
             rank:
               type: string
               pattern: "^[0-9A-Za-z]{1,128}$"
             relation_id:
               type: string
+              pattern: "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+          additionalProperties: false
+      additionalProperties: false
   responses:
     NotFound:
       description: Not found or not visible.

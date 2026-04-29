@@ -8,3 +8,10 @@ The Chinese draft is currently normative for field names, requiredness, types, c
 
 The current policy type registry includes `plaintext_visibility` for `cx.space.plaintext_visible_services`.
 
+Canonical Operation objects use `operation_type` plus optional `semantic_kind`. For ordered Kanban operations, `move`, `reorder`, and `rebalance` MUST declare a known `semantic_kind` and validate the corresponding payload schema:
+
+- `cx.task.move` maps to `operation_type="move"` and `object_type="entity"`.
+- `cx.relation.move` maps to `operation_type="move"` and `object_type="relation"`.
+- `cx.task.reorder` maps to `operation_type="reorder"` and `object_type="entity"`.
+- `cx.relation.rebalance` maps to `operation_type="rebalance"` and `object_type="relation"`.
+

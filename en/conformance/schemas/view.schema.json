@@ -75,7 +75,7 @@
         },
         "value": { "$ref": "#/$defs/filter_value" }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "boolean_filter": {
       "type": "object",
@@ -93,6 +93,7 @@
         "not": { "$ref": "#/$defs/filter" }
       },
       "minProperties": 1,
+      "maxProperties": 1,
       "additionalProperties": false
     },
     "filter": {
@@ -115,7 +116,21 @@
         "target_space_id": { "$ref": "#/$defs/space_id" },
         "depth": { "type": "integer", "minimum": 0, "maximum": 32 }
       },
-      "additionalProperties": true
+      "allOf": [
+        {
+          "not": {
+            "anyOf": [
+              { "required": ["source_entity_id", "source_actor_id"] },
+              { "required": ["source_entity_id", "source_space_id"] },
+              { "required": ["source_actor_id", "source_space_id"] },
+              { "required": ["target_entity_id", "target_actor_id"] },
+              { "required": ["target_entity_id", "target_space_id"] },
+              { "required": ["target_actor_id", "target_space_id"] }
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
     },
     "sort_spec": {
       "type": "object",
@@ -125,7 +140,7 @@
         "direction": { "type": "string", "enum": ["asc", "desc"] },
         "nulls": { "type": "string", "enum": ["first", "last"] }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "query": {
       "type": "object",
@@ -145,7 +160,12 @@
           "type": "array",
           "items": { "$ref": "#/$defs/filter" }
         },
-        "relation": { "$ref": "#/$defs/relation_query" },
+        "relation": {
+          "oneOf": [
+            { "$ref": "#/$defs/relation_query" },
+            { "type": "null" }
+          ]
+        },
         "context": {
           "type": "object",
           "properties": {
@@ -159,7 +179,7 @@
             },
             "event_tiebreak": { "type": "string", "enum": ["event_id", "operation_id"] }
           },
-          "additionalProperties": true
+          "additionalProperties": false
         },
         "order_by": {
           "type": "array",
@@ -169,7 +189,12 @@
           "type": "array",
           "items": { "$ref": "#/$defs/field_path" }
         },
-        "cursor": { "$ref": "#/$defs/cursor" },
+        "cursor": {
+          "oneOf": [
+            { "$ref": "#/$defs/cursor" },
+            { "type": "null" }
+          ]
+        },
         "limit": { "type": "integer", "minimum": 1, "maximum": 1000 },
         "consistency": {
           "type": "object",
@@ -177,10 +202,10 @@
             "wait_for": { "type": "string", "minLength": 1 },
             "timeout_ms": { "type": "integer", "minimum": 0 }
           },
-          "additionalProperties": true
+          "additionalProperties": false
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "kanban_column": {
       "type": "object",
@@ -195,14 +220,14 @@
           "enum": ["warn", "reject", "require_review"]
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "kanban_config": {
       "type": "object",
       "required": ["column_model", "card_order_by"],
       "properties": {
         "column_model": { "type": "string", "enum": ["field_value", "collection"] },
-        "group_by": { "type": "string", "minLength": 1 },
+        "group_by": { "$ref": "#/$defs/field_path" },
         "columns": {
           "type": "array",
           "items": { "$ref": "#/$defs/kanban_column" },
@@ -254,7 +279,7 @@
           "then": { "required": ["board_entity_id"] }
         }
       ],
-      "additionalProperties": true
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

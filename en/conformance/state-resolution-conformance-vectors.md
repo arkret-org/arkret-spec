@@ -220,4 +220,39 @@ Expected winner:
 cx:event:01js0s1b000000000000000000
 ```
 
+## 6. Vector: Kanban atomic task move
+
+Vector ID:
+
+```text
+cx.vector.state_resolution.kanban_atomic_task_move.v1
+```
+
+Two concurrent `cx.task.move` operations writing the same `(view_id, entity_id, group_by)` MUST resolve as one atomic position register. The winning operation supplies both the column value and rank; implementations MUST NOT combine `to_value` from one operation with `rank` from another.
+
+Expected behavior is captured by `artifacts/fixtures/state-resolution-fixture.json` case `kanban_atomic_task_move`.
+
+## 7. Vector: Kanban relation rebalance assignment
+
+Vector ID:
+
+```text
+cx.vector.state_resolution.kanban_relation_rebalance_assignment.v1
+```
+
+`cx.relation.rebalance` MUST rewrite ranks for all active edges in the target container using the `cx.rank.lexofractional.v1` assignment formula. For the three-edge vector, expected ranks are `F`, `V`, and `k` in the reducer's stable order. Rebalance MUST NOT add, delete, move, or reorder membership edges.
+
+Expected behavior is captured by `artifacts/fixtures/state-resolution-fixture.json` case `relation_rebalance_assignment`.
+
+## 8. Vector: Kanban relation rebalance CAS conflict
+
+Vector ID:
+
+```text
+cx.vector.state_resolution.kanban_relation_rebalance_cas_conflict.v1
+```
+
+If `expected_state_hash` does not match the untrimmed canonical ordered set hash, reducers MUST reject the entire `cx.relation.rebalance` operation and MUST NOT partially apply assignments.
+
+Expected behavior is captured by `artifacts/fixtures/state-resolution-fixture.json` case `relation_rebalance_cas_conflict`.
 

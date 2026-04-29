@@ -87,7 +87,8 @@ view 不承载底层对象的唯一真相状态。
     ],
     "relation": {
       "kind": "contains",
-      "from_entity_id": "cx:entity:01JS0BD000000000000000000",
+      "direction": "out",
+      "source_entity_id": "cx:entity:01JS0BD000000000000000000",
       "depth": 2
     }
   },
@@ -170,7 +171,8 @@ View 应通过结构化 query 表达对象范围。
   ],
   "relation": {
     "kind": "contains",
-    "from_entity_id": "cx:entity:01JS0BD000000000000000000",
+    "direction": "out",
+    "source_entity_id": "cx:entity:01JS0BD000000000000000000",
     "depth": 2
   }
 }
@@ -186,7 +188,7 @@ View 应通过结构化 query 表达对象范围。
   ],
   "relation": {
     "kind": "belongs_to",
-    "to_entity_id": "cx:entity:01JS1000000000000000000000",
+    "target_entity_id": "cx:entity:01JS1000000000000000000000",
     "direction": "out"
   }
 }
@@ -202,7 +204,7 @@ View 应通过结构化 query 表达对象范围。
   ],
   "relation": {
     "kind": "attached_to",
-    "to_entity_id": "cx:entity:01JS0TASK0000000000000000",
+    "target_entity_id": "cx:entity:01JS0TASK0000000000000000",
     "direction": "out"
   }
 }
@@ -589,6 +591,7 @@ Index / AppView MAY 为 `View{kind="kanban"}` 返回已经物化的看板投影�
 
 ```json
 {
+  "projection": "kanban",
   "view_id": "cx:view:01js0vw000000000000000000",
   "space_id": "cx:space:01js0sp000000000000000000",
   "frontier": {

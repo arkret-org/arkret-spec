@@ -154,7 +154,8 @@ Views should use structured queries to define object scope.
   ],
   "relation": {
     "kind": "belongs_to",
-    "to_entity_id": "cx:entity:01JS1000000000000000000000"
+    "direction": "out",
+    "target_entity_id": "cx:entity:01JS1000000000000000000000"
   }
 }
 ```
@@ -290,7 +291,7 @@ The canonical input for Kanban views should be:
 
 rather than some UI-private array-of-columns structure.
 
-For v1 interoperability, Kanban views MUST use the machine-verifiable `kanban` config in `view.schema.json`. Field-value boards use `cx.task.move` so the group value and rank converge atomically; collection boards use `cx.relation.move` within a `scope_container_id` so one card has one active position per board scope. Index / AppView Kanban projections return derived `columns[]` with per-column cursors; hidden cards and fields must be authorization-trimmed without leaking exact hidden counts unless policy allows it.
+For v1 interoperability, Kanban views MUST use the machine-verifiable `kanban` config in `view.schema.json`. Field-value boards use `cx.task.move` so the group value and rank converge atomically; collection boards use `cx.relation.move` within a `scope_container_id` so one card has one active position per board scope. WIP enforcement for `reject` and `require_review` MUST use the untrimmed canonical active column membership, while Index / AppView Kanban projections return authorization-trimmed `columns[]` with per-column cursors; hidden cards and fields must not leak exact hidden counts unless policy allows it.
 
 ### 7.2 Chat
 

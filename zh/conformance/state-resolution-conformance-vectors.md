@@ -491,3 +491,190 @@ cx.vector.state_resolution.kanban_atomic_task_move.v1
 - 两个并发 `cx.task.move` 写入同一 `(view_id, entity_id, group_by)` 时，`to_value` 和 `rank` MUST 来自同一个 winner。
 - 实现不得输出 `status` 来自 operation A、`rank` 来自 operation B 的混合位置。
 - 若客户端用裸 `cx.entity.update` 同时写 `fields.status` 与 `fields.rank` 且未声明 `atomic_position`，实现 MAY 按普通 scalar LWW 处理，但不得声称通过本向量。
+
+## 8. Vector: Kanban Relation Rebalance Assignment
+
+向量名称：
+
+```text
+cx.vector.state_resolution.kanban_relation_rebalance_assignment.v1
+```
+
+输入：
+
+```json
+{
+  "base_state": {
+    "scope_container_id": "cx:entity:01js0bd0000000000000000000",
+    "container_id": "cx:entity:01js0c2000000000000000000",
+    "relation_kind": "contains",
+    "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "active_edges": [
+      {
+        "relation_id": "cx:relation:01js0r1000000000000000000",
+        "entity_id": "cx:entity:01js0tk1000000000000000000",
+        "rank": "a0",
+        "rank_source_operation_id": "cx:operation:01js0aa1000000000000000000"
+      },
+      {
+        "relation_id": "cx:relation:01js0r2000000000000000000",
+        "entity_id": "cx:entity:01js0tk2000000000000000000",
+        "rank": "a00",
+        "rank_source_operation_id": "cx:operation:01js0aa2000000000000000000"
+      },
+      {
+        "relation_id": "cx:relation:01js0r3000000000000000000",
+        "entity_id": "cx:entity:01js0tk3000000000000000000",
+        "rank": "a000",
+        "rank_source_operation_id": "cx:operation:01js0aa3000000000000000000"
+      }
+    ]
+  },
+  "operation": {
+    "operation_id": "cx:operation:01js0rb1000000000000000000",
+    "kind": "cx.relation.rebalance",
+    "actor_id": "did:web:alice.example",
+    "hlc": "01970e589d26-0001-11111111",
+    "auth_weight": 10,
+    "content": {
+      "scope_container_id": "cx:entity:01js0bd0000000000000000000",
+      "container_id": "cx:entity:01js0c2000000000000000000",
+      "relation_kind": "contains",
+      "expected_state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "assignments": [
+        {
+          "relation_id": "cx:relation:01js0r1000000000000000000",
+          "entity_id": "cx:entity:01js0tk1000000000000000000",
+          "rank": "F"
+        },
+        {
+          "relation_id": "cx:relation:01js0r2000000000000000000",
+          "entity_id": "cx:entity:01js0tk2000000000000000000",
+          "rank": "V"
+        },
+        {
+          "relation_id": "cx:relation:01js0r3000000000000000000",
+          "entity_id": "cx:entity:01js0tk3000000000000000000",
+          "rank": "k"
+        }
+      ]
+    }
+  }
+}
+```
+
+期望输出：
+
+```json
+{
+  "resolved_ordered_set": [
+    {
+      "relation_id": "cx:relation:01js0r1000000000000000000",
+      "entity_id": "cx:entity:01js0tk1000000000000000000",
+      "rank": "F",
+      "rank_source_operation_id": "cx:operation:01js0rb1000000000000000000"
+    },
+    {
+      "relation_id": "cx:relation:01js0r2000000000000000000",
+      "entity_id": "cx:entity:01js0tk2000000000000000000",
+      "rank": "V",
+      "rank_source_operation_id": "cx:operation:01js0rb1000000000000000000"
+    },
+    {
+      "relation_id": "cx:relation:01js0r3000000000000000000",
+      "entity_id": "cx:entity:01js0tk3000000000000000000",
+      "rank": "k",
+      "rank_source_operation_id": "cx:operation:01js0rb1000000000000000000"
+    }
+  ],
+  "conflict_records": []
+}
+```
+
+判定要点：
+
+- Assignment rank MUST 与 `encoding.md` 的 `cx.rank.lexofractional.v1` rebalance 公式一致。
+- Rebalance 不得改变三个 active edge 的相对顺序，不得新增、删除或移动 membership。
+- assignments MUST 覆盖目标 container 的全部 active edges；遗漏任一 active edge MUST 使 operation 失败。
+
+## 9. Vector: Kanban Relation Rebalance CAS Conflict
+
+向量名称：
+
+```text
+cx.vector.state_resolution.kanban_relation_rebalance_cas_conflict.v1
+```
+
+输入：
+
+```json
+{
+  "base_state": {
+    "scope_container_id": "cx:entity:01js0bd0000000000000000000",
+    "container_id": "cx:entity:01js0c2000000000000000000",
+    "relation_kind": "contains",
+    "state_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "active_edges": [
+      {
+        "relation_id": "cx:relation:01js0r1000000000000000000",
+        "entity_id": "cx:entity:01js0tk1000000000000000000",
+        "rank": "a0"
+      },
+      {
+        "relation_id": "cx:relation:01js0r2000000000000000000",
+        "entity_id": "cx:entity:01js0tk2000000000000000000",
+        "rank": "a00"
+      }
+    ]
+  },
+  "operation": {
+    "operation_id": "cx:operation:01js0rb2000000000000000000",
+    "kind": "cx.relation.rebalance",
+    "content": {
+      "scope_container_id": "cx:entity:01js0bd0000000000000000000",
+      "container_id": "cx:entity:01js0c2000000000000000000",
+      "relation_kind": "contains",
+      "expected_state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "assignments": [
+        {
+          "relation_id": "cx:relation:01js0r1000000000000000000",
+          "entity_id": "cx:entity:01js0tk1000000000000000000",
+          "rank": "F"
+        },
+        {
+          "relation_id": "cx:relation:01js0r2000000000000000000",
+          "entity_id": "cx:entity:01js0tk2000000000000000000",
+          "rank": "V"
+        }
+      ]
+    }
+  }
+}
+```
+
+期望输出：
+
+```json
+{
+  "rejected_operation_id": "cx:operation:01js0rb2000000000000000000",
+  "reason": "cas_conflict",
+  "resolved_ordered_set": [
+    {
+      "relation_id": "cx:relation:01js0r1000000000000000000",
+      "entity_id": "cx:entity:01js0tk1000000000000000000",
+      "rank": "a0"
+    },
+    {
+      "relation_id": "cx:relation:01js0r2000000000000000000",
+      "entity_id": "cx:entity:01js0tk2000000000000000000",
+      "rank": "a00"
+    }
+  ]
+}
+```
+
+判定要点：
+
+- `expected_state_hash` 与当前 canonical ordered set hash 不一致时 MUST fail closed。
+- Reducer 不得部分应用 `assignments`。
+- projection 层不得把 CAS 失败解释为卡片删除或权限裁剪。

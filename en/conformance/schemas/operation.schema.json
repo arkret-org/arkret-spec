@@ -49,6 +49,19 @@
     },
     {
       "if": {
+        "properties": { "semantic_kind": { "const": "cx.task.reorder" } },
+        "required": ["semantic_kind"]
+      },
+      "then": {
+        "properties": {
+          "operation_type": { "const": "reorder" },
+          "object_type": { "const": "entity" },
+          "payload": { "$ref": "#/$defs/task_reorder_payload" }
+        }
+      }
+    },
+    {
+      "if": {
         "properties": { "semantic_kind": { "const": "cx.relation.rebalance" } },
         "required": ["semantic_kind"]
       },
@@ -62,11 +75,38 @@
     },
     {
       "if": {
-        "properties": { "operation_type": { "enum": ["move", "reorder", "rebalance"] } },
+        "properties": { "operation_type": { "const": "move" } },
         "required": ["operation_type"]
       },
       "then": {
-        "required": ["semantic_kind"]
+        "required": ["semantic_kind"],
+        "properties": {
+          "semantic_kind": { "enum": ["cx.task.move", "cx.relation.move"] }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "operation_type": { "const": "reorder" } },
+        "required": ["operation_type"]
+      },
+      "then": {
+        "required": ["semantic_kind"],
+        "properties": {
+          "semantic_kind": { "enum": ["cx.task.reorder"] }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "operation_type": { "const": "rebalance" } },
+        "required": ["operation_type"]
+      },
+      "then": {
+        "required": ["semantic_kind"],
+        "properties": {
+          "semantic_kind": { "enum": ["cx.relation.rebalance"] }
+        }
       }
     }
   ],
@@ -99,10 +139,29 @@
             "value": { "$ref": "#/$defs/field_value" },
             "rank": { "$ref": "#/$defs/rank" }
           },
-          "additionalProperties": true
+          "additionalProperties": false
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
+    },
+    "task_reorder_payload": {
+      "type": "object",
+      "required": ["entity_id", "view_id", "group_by", "rank"],
+      "properties": {
+        "entity_id": { "$ref": "#/$defs/entity_id" },
+        "view_id": { "$ref": "#/$defs/view_id" },
+        "group_by": { "$ref": "#/$defs/field_path" },
+        "rank": { "$ref": "#/$defs/rank" },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "value": { "$ref": "#/$defs/field_value" },
+            "rank": { "$ref": "#/$defs/rank" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     },
     "relation_move_payload": {
       "type": "object",
@@ -121,10 +180,10 @@
             "rank": { "$ref": "#/$defs/rank" },
             "relation_id": { "$ref": "#/$defs/relation_id" }
           },
-          "additionalProperties": true
+          "additionalProperties": false
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "relation_rebalance_payload": {
       "type": "object",
@@ -145,11 +204,11 @@
               "relation_id": { "$ref": "#/$defs/relation_id" },
               "rank": { "$ref": "#/$defs/rank" }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

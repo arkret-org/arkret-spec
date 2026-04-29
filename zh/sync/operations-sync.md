@@ -322,7 +322,30 @@ Contrix v1 要求：
 
 Reducer MUST 将 `group_by` 指向的字段和值内排序字段视为同一个 position register。若并发 `cx.task.move` 写入同一 `(view_id, entity_id, group_by)`，按第 16.3 节 deterministic operation order 选择唯一 winner；不得把一个操作的列值和另一个操作的 rank 混合成最终位置。裸 `cx.entity.update` 仍可修改字段，但客户端用于拖拽时 SHOULD 使用 `cx.task.move`，或在 `cx.entity.update.content` 中声明等价的 `atomic_position`。
 
-#### 8.1.2 `cx.relation.move`
+#### 8.1.2 `cx.task.reorder`
+
+`cx.task.reorder` 只改变字段分组列模型中同一列内的 rank，不改变 `group_by` 字段值。它用于同列拖拽，payload 仍必须机器可校验，避免客户端把 rank-only 操作伪装成 generic update。
+
+```json
+{
+  "kind": "cx.task.reorder",
+  "target_ref": "cx:entity:01js0tk000000000000000000",
+  "content": {
+    "entity_id": "cx:entity:01js0tk000000000000000000",
+    "view_id": "cx:view:01js0vw000000000000000000",
+    "group_by": "fields.status",
+    "rank": "mV",
+    "expected_position": {
+      "value": "review",
+      "rank": "h0"
+    }
+  }
+}
+```
+
+Reducer MUST 将 `cx.task.reorder` 归入同一 `(view_id, entity_id, group_by)` position register；若它与 `cx.task.move` 并发冲突，按同一 deterministic operation order 选择 winner。`cx.task.reorder` 不得单独改变列值，若当前列值与 `expected_position.value` 不一致，除非 policy 明确允许 non-CAS reorder，否则实现 SHOULD 返回 `cas_conflict` 或把该操作标记为 stale reorder。
+
+#### 8.1.3 `cx.relation.move`
 
 `cx.relation.move` 用于 collection 列模型和其他有序 containment edge。它移动的是某个对象在一个 exclusive position scope 内的 active Relation。
 
@@ -366,7 +389,7 @@ Reducer 语义：
 4. 创建或更新 `to_container_id -> entity_id` 的 active Relation，并把 `fields.rank` 设置为 `rank`。
 5. 对相同 Operation 保持幂等；重复接收不得创建重复 active position edge。
 
-#### 8.1.3 `cx.relation.rebalance`
+#### 8.1.4 `cx.relation.rebalance`
 
 `cx.relation.rebalance` 只能重写同一 container 内的 rank，不得改变 membership / containment。
 

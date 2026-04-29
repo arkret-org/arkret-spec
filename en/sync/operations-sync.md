@@ -256,9 +256,14 @@ Non-create operations SHOULD carry deltas rather than full object snapshots.
 Examples:
 
 - `cx.entity.update` carries field deltas
-- `cx.relation.move` / `cx.entity.update` for order-sensitive repositioning
+- `cx.task.move` carries field-value Kanban column value and rank as one atomic position write
+- `cx.task.reorder` carries rank-only reorder within a field-value Kanban column
+- `cx.relation.move` carries target container and rank for collection Kanban moves
+- `cx.relation.rebalance` carries full-container rank assignments plus `expected_state_hash`
 - `cx.message.revise` carries only new content
 - `cx.message.redact` carries only the target message and reason
+
+Ordered operations MUST NOT be encoded as generic `cx.entity.update` / `cx.relation.update` when doing so would bypass payload validation or split a column value and rank across independent reducers.
 
 ## 9. Validation Flow
 

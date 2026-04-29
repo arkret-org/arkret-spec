@@ -376,8 +376,9 @@ Canonical Operation 与 Operation Envelope 的映射：
 
 - `semantic_kind="cx.task.move"` MUST 使用 `operation_type="move"`、`object_type="entity"`，并使用 `cx.task.move` payload schema。
 - `semantic_kind="cx.relation.move"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用 `cx.relation.move` payload schema。
+- `semantic_kind="cx.task.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="entity"`，并使用 `cx.task.reorder` payload schema。
 - `semantic_kind="cx.relation.rebalance"` MUST 使用 `operation_type="rebalance"`、`object_type="relation"`，并使用 `cx.relation.rebalance` payload schema。
-- `operation_type` 为 `move`、`reorder` 或 `rebalance` 时，`semantic_kind` MUST 存在；实现不得把有序集合操作塞进无语义的 generic `update` 来绕过 payload validation。
+- `operation_type` 为 `move`、`reorder` 或 `rebalance` 时，`semantic_kind` MUST 存在且属于本 schema 声明的有序操作语义白名单；实现不得把有序集合操作塞进无语义的 generic `update`，也不得使用未知 `semantic_kind` 绕过 payload validation。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
 ## 18. Blob Metadata
