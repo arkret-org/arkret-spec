@@ -49,8 +49,11 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 - `alice@google.com`
 - `alice:google.com`
 - `google.example/users/alice`
+- `@alice:example.org`
 
 这些字符串本身不证明组织成员资格。
+
+Matrix-style identifier（如 `@alice:example.org`）MAY 作为用户可见 handle、登录名、联系人搜索项或 bridge alias。实现 MUST 保留其外部体系、localpart、domain / origin server 与大小写规范化规则；不得把它直接当作 DID、grant subject、Event actor 或未验证的组织成员证明。
 
 ## 4. Handle 绑定
 
@@ -72,6 +75,8 @@ Pairwise DID、临时 DID、设备 DID、agent 执行 DID 和隐私敏感关系 
 
 1. DNS TXT：`_contrix.<handle>`
 2. HTTPS well-known：`https://<handle>/.well-known/contrix-did`
+
+DNS / HTTPS well-known 适用于 DNS 风格 handle。对于 `@alice:example.org`、`alice@google.com` 或其他非 DNS handle，解析 MAY 通过组织 Directory、Auth / Account Server、bridge registry 或受信 issuer claim 完成，但解析结果仍然 MUST 归约到 DID 和可验证绑定证据。
 
 Well-known 示例：
 

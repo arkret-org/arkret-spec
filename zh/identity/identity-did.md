@@ -29,6 +29,14 @@ Contrix 使用 DID 作为稳定身份根。Handle、邮箱、组织用户名和�
 - memory author
 - service node actor
 
+#### 2.1.1 用户可见标识 MAY 不是 DID
+
+实现 MAY 允许用户使用 `@alice:example.org`、`alice@example.org`、组织用户名、OIDC subject、邀请链接或其他人类可读标识完成发现、登录、邀请和账号恢复。
+
+这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现接受任何持久 Event、repo commit、capability grant、federation transaction、MLS membership 或 service delegation 前，MUST 将当前会话绑定到 principal DID 与 device，并按本地 trust policy 验证该绑定。
+
+如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID，例如 `did:uuid`、`did:web` 或组织私有 DID。托管 DID 的 controller、recovery policy、trust domain 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、`repo_id`、`author`、grant `subject`、service DID 或 `verification_method` 的根。
+
 ### 2.2 DID 持久，密钥可轮换
 
 普通密钥轮换 MUST NOT 改变 DID。

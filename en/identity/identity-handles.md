@@ -9,6 +9,10 @@ grant subject = DID
 authorization condition = verified claim / attestation
 ```
 
+Matrix-style identifiers such as `@alice:example.org` MAY be accepted as user-facing handles, login names, contact search entries, or bridge aliases. Implementations MUST preserve their external system, localpart, domain / origin server, and normalization rules; they MUST NOT treat those identifiers directly as DIDs, grant subjects, Event actors, or unverified organization-membership proofs.
+
+DNS / HTTPS well-known resolution applies to DNS-style handles. Non-DNS handles such as `@alice:example.org` or `alice@google.com` MAY resolve through an organization Directory, Auth / Account Server, bridge registry, or trusted issuer claim, but the result still MUST reduce to a DID plus verifiable binding evidence.
+
 Contrix separates:
 
 - public persona handle binding through `also_known_as`

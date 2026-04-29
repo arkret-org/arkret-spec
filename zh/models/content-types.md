@@ -282,7 +282,7 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
 
 ## 6. 引用与回复 (Reply)
 
-### 5.1 回复关联
+### 6.1 回复关联
 
 回复通过 Relation 表达（`message --replies_to--> message`），但为了渲染方便，消息的 `content` 中 MAY 内嵌引用上下文：
 
@@ -299,34 +299,34 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
 }
 ```
 
-### 5.2 Fallback 规则
+### 6.2 Fallback 规则
 
 - `reply_context` 是**渲染提示 (Rendering Hint)**，不是真相源。真正的回复关系由 `replies_to` Relation 决定。
 - 若客户端在本地 Index 中已有原消息，SHOULD 优先使用本地数据渲染引用块，忽略 `reply_context.excerpt`。
 - 若客户端无法获取原消息（例如跨 Space 引用或权限限制），则使用 `reply_context.excerpt` 做降级展示。
 
-## 6. 自定义与扩展类型
+## 7. 自定义与扩展类型
 
-### 6.1 命名空间约定
+### 7.1 命名空间约定
 
 - 标准类型使用 `cx.content.*` 前缀
 - 第三方扩展使用反向域名前缀，例如 `com.acme.content.poll`
 
-### 6.2 未知类型的处理
+### 7.2 未知类型的处理
 
 客户端遇到不认识的 `type` 时：
 1. MUST NOT 丢弃该消息
 2. SHOULD 使用 `body` 字段做纯文本降级展示
 3. MAY 显示"不支持的消息类型"提示
 
-## 7. 与 E2EE 的交互
+## 8. 与 E2EE 的交互
 
 在端到端加密场景下：
 - `content` 字段的完整 JSON 对象被加密为 `encrypted_payload`
 - `body` 字段在密文信封中**不保留明文副本**（防止元数据泄露）
 - 用于推送通知的脱敏摘要由发送者的客户端单独生成并附在明文元数据中（参见 `push-notifications.md`）
 
-## 8. v1 扩展规则
+## 9. v1 扩展规则
 
 - Emoji / Sticker MUST 作为 `cx.content.image`、`cx.content.file` 或注册的 `cx.content.sticker` block 表达，并引用 content-addressed blob；客户端不得从未授权 URL 热加载私有表情资源。
 - 投票 / 表单等交互式消息 SHOULD 使用 `poll` Entity、Relation 和 event reducer 表达；消息中的 content block 只能作为入口或摘要，不能成为唯一计票真相源。

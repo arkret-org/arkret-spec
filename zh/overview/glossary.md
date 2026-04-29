@@ -75,6 +75,7 @@
 | Capability | 能力授权 | 明确授予某主体在某范围执行某动作的可验证授权。Contrix 使用 capability 替代 power level 作为核心权限模型。 |
 | Grant | 授权记录 | 表达 capability 的签名对象，包含 issuer、subject、actions、scope、constraints、expiry 等。 |
 | Delegation | 委托 | 一个主体把有限 capability 委托给另一个主体、设备、agent 或 Applet。 |
+| Derived Grant | 派生授权 | 由 Space 层级继承机制自动从父 Space grant 派生出的子 Space grant，受 `inherited_depth` 和继承策略约束。 |
 | Revocation | 撤销 | 使 grant、device、session 或 delegation 在其因果后继中失效的事件或状态。 |
 | Constraint | 约束 | capability 的使用条件，例如时间、Space、Entity、字段、设备、速率、审批、Applet namespace。 |
 | Condition Selector | 条件选择器 | 以可验证属性匹配主体的授权 subject，例如“某组织当前成员”。 |
@@ -91,8 +92,11 @@
 | Repo | 仓库 | Principal 或 Space 发布 signed commit / operation 的追加式可验证日志。Repo 是协议逻辑对象，不等同于服务器。 |
 | Commit | 提交 | Actor 侧发布单元，包含一个或多个 operation/event 引用和签名。 |
 | Operation | 操作 | 对协作图的原子变更意图或事实，通常封装为 Event 或被 Event 引用。其 wire 字段名为 `operation` / `operations`。 |
+| Operation Envelope | 操作信封 | sync / federation 写路径的签名承载信封，字段名与 Event Envelope 一致（`actor_id`、`kind`、`content`、`proofs`），通过 `causal`、`target_ref`、`authz_ref` 绑定写入语义。 |
 | Operation Log | 操作日志 | 追加式审计记录，用于归约、同步、回放和冲突分析。 |
 | Reducer | 归约器 | 将 accepted Event / Operation 集合归约为当前状态和 projection 的确定性规则。 |
+| Reducer Profile | 归约器画像 | 定义 reducer 版本和行为规范的标识符，例如 `cx.reducer.v1`。 |
+| OR-Set | 观察-移除集合 | 冲突解决中用于集合字段的 CRDT 策略，支持并发 add/remove 收敛。 |
 | State Resolution | 状态解析 | 对同一 state key 的并发冲突进行确定性合并的算法。 |
 | Auth Refs | 授权引用 | 当前 Event 授权所需的最小状态事件集合。 |
 | Prev Refs | 前序引用 | 当前 Event 的因果前序引用。 |
@@ -170,6 +174,7 @@
 | MLS | Messaging Layer Security | RFC 9420 群组端到端加密协议，Contrix E2EE Space 的推荐加密基础。 |
 | MLS Epoch | MLS 轮次 | MLS group state 的版本。成员变更、密钥更新会推进 epoch。 |
 | KeyPackage | MLS 加入材料 | 设备发布的 MLS 加入包，必须绑定 DID 和 device identity。 |
+| Space Key | 空间密钥 | MLS group 的 epoch 密钥材料，用于加密/解密 Space 内消息。通过 `cx.space_key.share` / `cx.space_key.withheld` 在设备间分发。 |
 | E2EE | 端到端加密 | 非授权服务器和 index 默认无法解密内容的加密模式。 |
 | HPKE | 混合公钥加密 | 用于设备间加密、secret wrapping 或引导加密会话的机制。 |
 
@@ -200,6 +205,9 @@
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Canonical JSON | 规范 JSON | 用于 hash 和 signature 的确定性 JSON 编码规则。 |
+| Canonical Object | 规范对象 | 持久化、可签名、可审计的协议对象（如 Entity、Relation、Event、View、Policy），区别于传输信封或投影结果。 |
+| ULID | 通用排序唯一标识符 | Universally Unique Lexicographically Sortable Identifier，Crockford Base32 编码，用于 Contrix ID 的排序部分。 |
+| 3PID | 第三方标识 | Third-party Identifier，如邮箱、手机号，用于邀请和身份关联。 |
 | Multihash | 多哈希 | 携带哈希算法标识的内容哈希编码。 |
 | Signature | 签名 | Actor、device 或 service 对 canonical payload 的密码学证明。 |
 | Detached Signature | 分离签名 | 签名与 payload 分开传输或存储的签名形式。 |

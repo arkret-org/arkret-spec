@@ -151,7 +151,8 @@ Schema id: `cx.schema.relation.v1`
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
 assigned_to, references, derived_from, attached_to, has_topic,
 has_default_view, produced, used, triggered_by, has_log,
-reposts, quotes
+reposts, quotes,
+follows, contact, circle_member, blocks_social, likes
 ```
 
 ## 8. Event Envelope
@@ -199,7 +200,7 @@ Schema id: `cx.schema.view.v1`
 | `id` | yes | `id:view` |  | View ID。 |
 | `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `kind` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue)` |  | 投影形态。 |
+| `kind` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue, matrix, document, dashboard, activity, inbox, notifications, memory_review, agent_runs, context_timeline)` |  | 投影形态。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |

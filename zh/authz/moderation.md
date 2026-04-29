@@ -14,7 +14,7 @@
 
 ### 2.1 审核权由 Space Owner 行使
 
-去中心化环境中没有"全网管理员"。内容审核的权限由 Space 的 Capability 体系决定。只有拥有 `space.moderate` 权限的 Actor 才能执行审核操作。
+去中心化环境中没有"全网管理员"。内容审核的权限由 Space 的 Capability 体系决定。只有拥有 `cx.space.moderate` 权限的 Actor 才能执行审核操作。
 
 ### 2.2 屏蔽是本地行为
 
@@ -87,8 +87,8 @@ POST /api/v1/moderation/report
 
 ### 3.3 举报的处理
 
-- 举报会生成一个 `event.moderation.report` 事件，写入 Space Repo
-- 该事件仅对拥有 `space.moderate` 权限的 Actor 可见
+- 举报会生成一个 `cx.moderation.report` 事件，写入 Space Repo
+- 该事件仅对拥有 `cx.space.moderate` 权限的 Actor 可见
 - 被举报人不会收到通知
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）
 
@@ -154,7 +154,7 @@ POST /api/v1/moderation/report
 ### 5.1 内容删除
 
 管理员可以通过 `cx.message.redact` 操作撤回任意成员的消息：
-- 需要 `space.moderate` 权限
+- 需要 `cx.space.moderate` 权限
 - 撤回会产生 tombstone，不可逆
 - 审计视图中仍可看到撤回记录
 
@@ -227,7 +227,7 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
 
 规则：
 
-- 修改 `cx.space.moderation_policy` MUST require `space.moderate` or `space.policy.manage` capability。
+- 修改 `cx.space.moderation_policy` MUST require `cx.space.moderate` or `cx.policy.manage` capability。
 - Space blocklist MUST be evaluated after basic signature/DID validation and before event enters user-visible reducer state。
 - `deny_join` / `deny_write` SHOULD produce a signed moderation decision or audit record。
 - `quarantine_message` MUST keep the event out of normal user-visible views until moderator approval。

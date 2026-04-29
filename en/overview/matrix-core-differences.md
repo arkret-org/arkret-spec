@@ -20,7 +20,7 @@ The protocols can interoperate through bridges, but their roots are different.
 | Main use | Instant messaging, group chat, VoIP signaling, bridges. | Collaboration objects, tasks/boards, chat/topics, knowledge memory, agent runs, audit workflows. |
 | Server model | Homeservers are central to accounts, room participation, and federation. | Principal Servers are controlled or explicitly delegated service boundaries; Repo, Sync, Index, Blob, and Policy remain layered. |
 | Truth source | Room event graph and state resolution. | Principal-signed repo commits / operations plus Space reducers; Index / AppView are derived layers. |
-| Identity | Matrix user IDs are tied to homeserver domains, e.g. `@alice:example.org`. | Principals use DIDs; handles are mutable human-readable entry points and are not authorization primary keys. |
+| Identity | Matrix user IDs are tied to homeserver domains, e.g. `@alice:example.org`. | Principals use DIDs as protocol primary keys; identifiers like `@alice:example.org` can be handles, login entry points, or bridge aliases, but not authorization subjects. |
 | Authorization | Room auth rules, membership, and power levels. | Capability grants, constraints, claims, policy, and deterministic authorization. |
 | Integrations | Application Services are mostly homeserver-registered namespace integrations. | Applets are signed, authorized, auditable service DIDs scoped by Space, Actor, object range, user grant, and capability. |
 | AI agents | Bots can join through users or appservices, but agents are not protocol-root objects. | Agents are first-class principals / Actors with repos, capabilities, runs, memories, and protocol sessions. |
@@ -52,6 +52,8 @@ Contrix incorporates agents deeply into its object model: it treats agents as pr
 ### 4.3 Evolution of the Identity System
 
 Contrix adopts a DID-rooted approach to identity and verifiable repositories, similar to certain principles in atprotocol, but with fundamental differences.
+
+This does not require ordinary users to see or manage DIDs directly. Clients and services MAY offer a Matrix-like `@user:domain` experience for contact search, login, organization handles, or bridge aliases; before submitting durable operations, grants, repo commits, or MLS membership, that identifier must resolve or bind to a principal DID.
 
 While Contrix leverages DID-rooted identity, bidirectional handle validation, service discovery through DID Documents, and per-principal verifiable repos, it focuses on enterprise environments and secure collaboration. atprotocol is primarily a public social-record and PDS architecture, whereas Contrix targets multi-party collaboration, private Spaces, deterministic authorization state, integrated E2EE, and complex enterprise governance.
 

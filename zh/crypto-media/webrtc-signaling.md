@@ -88,13 +88,13 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - `call.record`
 - `call.transcribe`
 - `call.end_for_all`
-- `call.configure_media_service`
+- `cx.call.configure_media_service`
 
 默认规则：
 
 - Space 成员不自动拥有 `call.record`。
 - `call.screen_share` SHOULD 独立授权。
-- `call.configure_media_service` 只应授予管理员或受信服务。
+- `cx.call.configure_media_service` 只应授予管理员或受信服务。
 - 被 ban / suspended 的 actor MUST NOT 加入 call。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 
@@ -119,7 +119,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 }
 ```
 
-修改该 state event 需要 `call.configure_media_service` 或 `space.policy.manage` capability。
+修改该 state event 需要 `cx.call.configure_media_service` 或 `cx.policy.manage` capability。
 
 ### 6.2 ICE Config Endpoint
 

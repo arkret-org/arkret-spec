@@ -54,7 +54,7 @@ This specification defines the envelope format for encrypted content in Contrix 
 | `aad.causal_refs` | array | yes | Causal dependencies |
 | `key_ref` | object | conditional | Key material reference (optional for recipients) |
 | `digests` | object | yes | Cryptographic digests |
-| `digests.payload_digest` | hash | yes | SHA256 of ciphertext+tag |
+| `digests.payload_digest` | hash | yes | SHA256 of canonical_json(cleartext_metadata) \|\| ciphertext_bytes |
 | `digests.aad_digest` | hash | yes | SHA256 of canonical AAD |
 
 ## 3. Additional Authenticated Data (AAD)
@@ -133,7 +133,8 @@ function encrypt_content(content, aad, group_context):
     aad_bytes = canonical_json(aad)
     key = derive_epoch_key(group_context)
     (ciphertext, tag) = aead_encrypt(key, plaintext, aad_bytes)
-    payload_digest = sha256(ciphertext || tag)
+    cleartext_metadata = canonical_json({encryption: scheme, epoch: epoch, content_type: content_type, aad: aad})
+    payload_digest = sha256(cleartext_metadata || ciphertext)
     aad_digest = sha256(aad_bytes)
 
     return {

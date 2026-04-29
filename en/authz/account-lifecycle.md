@@ -10,6 +10,19 @@ Service accounts MAY use username/password, passkeys, WebAuthn, OAuth/OIDC, ente
 
 After login, the account/auth service MUST bind the session to a DID principal and device, for example by issuing a short-lived `cx.session.grant`, recording a device binding, or requiring DID proof. Resource servers then verify grant, device, capability, Space policy, and revocation state.
 
+## Account-First Onboarding
+
+Implementations MAY provide an account-first experience: the user registers or logs in through `@alice:example.org`, email, phone, enterprise SSO, OIDC, or an invitation link without needing to understand or manually enter a DID.
+
+In this mode, the account/auth service MUST complete one of the following before allowing durable writes:
+
+- Bind the service account to a user-controlled principal DID and verify DID proof, device binding, or an equivalent session grant.
+- Create a supported managed DID for the service account and record the controller, recovery policy, trust domain, service-account binding, and audit evidence.
+
+A session that is not yet bound to a DID MAY perform pre-registration actions such as signup, risk checks, invite preview, email verification, or device initialization. It MUST NOT submit a Space Event, repo commit, capability grant, MLS membership, service delegation, or federation transaction as the final actor.
+
+If the user later switches to a self-controlled DID, pairwise DID, or organization-private DID, the service MAY migrate handles, service-account bindings, credentials, or future write identity according to policy. Historical Event `actor_id`, repo `author`, and grant `subject` values MUST NOT be rewritten; migrations should be represented by explicit claims, attestations, profile updates, or account binding records.
+
 When a service account is already bound to a `principal_id`, DID proof MAY be used as strong evidence to recover access to that service account. The recovery service SHOULD verify a one-time challenge proving current control of that `principal_id` before allowing a password reset, passkey / WebAuthn rebinding, `soft_logged_out` recovery, or a short-lived session grant. The DID proof MUST verify the DID Document, key log / method history, current authentication key or authorized device key, challenge audience, origin, expiry, and replay status according to the DID method and local trust policy.
 
 Password reset or email-code recovery only restores service-account access. Unless the DID recovery policy is also satisfied, the service MUST NOT rotate DID control keys, authorize a long-lived new device, read or rewrap E2EE secret storage, issue broad capabilities, or revoke existing user devices except as required by explicit recovery policy or risk response.

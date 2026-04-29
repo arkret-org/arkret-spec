@@ -18,7 +18,7 @@ Pure physical clocks suffer from clock skew, while pure logical clocks don't cor
 HLC is a tuple of (physical_time, logical_counter, node_id):
 
 - **physical_time**: 48-bit Unix timestamp in milliseconds (~8,925 years before overflow)
-- **logical_counter**: 32-bit monotonic counter (up to 4.2B events per ms)
+- **logical_counter**: 16-bit monotonic counter (up to 65,535 events per ms)
 - **node_id**: 32-bit hash of node identifier (for tiebreaking)
 
 ### 3.2 Textual Encoding
@@ -31,20 +31,20 @@ HLC values are encoded as strings with the following format:
 
 Where:
 - `physical_hex`: 12-character lowercase hexadecimal (zero-padded to 12 chars)
-- `logical_hex`: 8-character lowercase hexadecimal (zero-padded to 8 chars)
+- `logical_hex`: 4-character lowercase hexadecimal (zero-padded to 4 chars)
 - `node_hex`: 8-character lowercase hexadecimal (first 32 bits of SHA256(node_id))
 
 ### 3.3 Examples
 
 Valid HLC values:
-- `01970e589d21-00000001-a13f9c2e`
-- `000000000001-ffffffff-12345678`
-- `ffffffffffff-00000000-abcdef12`
+- `01970e589d21-0004-a13f9c2e`
+- `000000000001-ffff-12345678`
+- `ffffffffffff-0000-abcdef12`
 
 Invalid HLC values:
 - `1970e589d21-1-a13f9c2e` (not zero-padded)
-- `01970e589d21-00000001` (missing node part)
-- `xyz-00000001-a13f9c2e` (invalid hex)
+- `01970e589d21-0004` (missing node part)
+- `xyz-0004-a13f9c2e` (invalid hex)
 
 ## 4. HLC Operations
 
@@ -147,7 +147,7 @@ Sync cursors include HLC to track timeline position:
 ## 7. Validation Rules
 
 Implementations MUST:
-- Validate HLC format with regex: `^[0-9a-f]{12}-[0-9a-f]{8}-[0-9a-f]{8}$`
+- Validate HLC format with regex: `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$`
 - Reject HLC values where physical time is in the future (allow 5min skew)
 - Maintain monotonicity locally
 - Use consistent node_id calculation

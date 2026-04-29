@@ -20,7 +20,7 @@ Contrix 的核心抽象是 **principal repo + Space + Entity / Relation / Event 
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、知识记忆、agent run、审计工作流。 |
 | 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Repo、Sync、Index、Blob、Policy 分层。 |
 | 真相源 | Room event graph 与状态解析。 | Principal 签名 repo commit / operation，加上 Space reducer；Index / AppView 都是派生层。 |
-| 身份 | Matrix user ID 绑定 homeserver 域，如 `@alice:example.org`。 | Principal 使用 DID；handle 只是可变、人类可读入口；权限主体不使用 handle。 |
+| 身份 | Matrix user ID 绑定 homeserver 域，如 `@alice:example.org`。 | Principal 使用 DID 作为协议主键；`@alice:example.org` 这类标识可作为 handle、登录入口或 bridge alias，但不能作为权限主体。 |
 | 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 身份、repo 与服务 endpoint 分离，DID / handle / service delegation 支持迁移。 |
 | 授权模型 | Room auth rules、membership、power levels。 | Capability grant、constraint、claim、policy、deterministic authorization。 |
 | 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Space、Actor、对象范围、用户授权和 capability 细分。 |
@@ -65,6 +65,8 @@ Contrix 的身份与发布模型借鉴 atprotocol 的几个方向：
 - DID Document 用于服务发现和 key discovery。
 - 每个 principal 有自己的可验证 repo。
 - repo commit 是签名发布单元，服务器不能伪造 principal 写入。
+
+这不要求普通用户直接看见或管理 DID。客户端和服务端 MAY 提供类似 Matrix 的 `@user:domain` 体验，把它作为联系人搜索、登录名、组织 handle 或桥接 alias；在提交持久 operation、grant、repo commit 或 MLS membership 前，必须解析或绑定到 principal DID。
 
 但 Contrix 不等同于 atprotocol：
 

@@ -297,8 +297,8 @@ class HLCGenerator {
 
   private format(): HLC {
     const physicalHex = this.physical.toString(16).padStart(12, '0');
-    const logicalHex = this.logical.toString(16).padStart(8, '0');
-    const nodeHash = this.nodeId.substring(0, 8);
+    const logicalHex = this.logical.toString(16).padStart(4, '0');
+    const nodeHash = sha256hex(this.nodeId).substring(0, 8);
     return `${physicalHex}-${logicalHex}-${nodeHash}`;
   }
 

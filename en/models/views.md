@@ -123,6 +123,7 @@ Suggested fields:
 
 ### 4.3 Review and Agent Views
 
+- `review_queue`
 - `memory_review`
 - `agent_runs`
 - `context_timeline`

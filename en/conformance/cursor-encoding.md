@@ -2,13 +2,38 @@
 
 ## 1. Overview
 
-This specification defines the encoding format for sync cursors in Contrix v1. Cursors are opaque tokens used for incremental synchronization and must support reliable resumption across client sessions.
+This specification defines the encoding format for sync cursors in Contrix v1. Cursors are **opaque tokens** used for incremental synchronization. Clients MUST NOT parse or modify cursor content — they treat cursors as opaque strings passed between sync requests and responses.
 
-## 2. Cursor Structure
+## 2. Cursor Format
 
-Contrix v1 uses a structured JSON encoding with Base64URL representation for transport.
+Contrix v1 cursors are opaque strings with the following transport format:
 
-### 2.1 Schema
+```text
+cx:cursor:<base64url>
+```
+
+Where `<base64url>` is the Base64URL encoding (no padding) of the server-internal cursor data.
+
+### 2.1 Client Rules
+
+- Clients MUST treat cursors as opaque strings.
+- Clients MUST NOT decode, parse, or modify cursor content.
+- Clients MUST store the most recent `next_batch` cursor for resumption.
+- Clients MUST use the cursor exactly as received in the next sync request.
+
+### 2.2 Server Internal Structure
+
+Servers encode cursor internals as canonical JSON before Base64URL encoding. The internal structure is server-defined and MAY include:
+
+- Query hash or filter fingerprint
+- Last sort key (HLC)
+- Last event ID
+- Causal frontier (event IDs)
+- State hash
+- Expiration timestamp
+- Space positions
+
+The following is a **recommended** internal schema for interoperability — servers MAY use any structure as long as the transport format is `cx:cursor:<base64url>`:
 
 ```json
 {
@@ -28,14 +53,11 @@ Contrix v1 uses a structured JSON encoding with Base64URL representation for tra
 }
 ```
 
-### 2.2 Field Definitions
-
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `v` | string | yes | Cursor version, must be "1" |
 | `t` | timestamp | yes | Cursor generation timestamp |
 | `s` | object | yes | Space positions map |
-| `s.<space_id>` | object | yes | Per-space position |
 | `s.<space_id>.p` | array | yes | Causal frontier (event IDs) |
 | `s.<space_id>.o` | string | yes | Timeline order HLC |
 | `s.<space_id>.h` | hash | yes | State hash at this position |
@@ -45,28 +67,32 @@ Contrix v1 uses a structured JSON encoding with Base64URL representation for tra
 
 ## 3. Transport Encoding
 
-The JSON object is serialized to canonical JSON (no extra whitespace, keys sorted) and encoded using Base64URL without padding.
+The server serializes its internal cursor structure to canonical JSON (UTF-8, no extra whitespace, keys sorted) and encodes using Base64URL without padding.
 
 ### 3.1 Example
 
-Input:
+Server internal JSON:
 ```json
 {"v":"1","s":{}}
 ```
 
-Encoded:
-`eyJ2IjoiMSIsInM6e30ifQ` (Note: padding removed)
+Transport cursor:
+```
+cx:cursor:eyJ2IjoiMSIsInMiOnt9fQ
+```
 
 ## 4. Validation Rules
 
 Servers MUST validate cursors on receipt:
 
-1. **Version Check**: `v` must be supported
-2. **Expiration**: `x` must be in the future (allow 5 min clock skew)
-3. **Structure**: Must be valid JSON after decoding
-4. **Space IDs**: All space IDs must be valid `cx:space:*` format
-5. **Event IDs**: All event IDs in causal frontiers must be valid
-6. **HLC Format**: Timeline order must be valid HLC format
+1. **Prefix Check**: Cursor must start with `cx:cursor:`
+2. **Base64URL**: Remainder must be valid Base64URL
+3. **Version Check**: Decoded `v` must be supported
+4. **Expiration**: Decoded `x` must be in the future (allow 5 min clock skew)
+5. **Structure**: Decoded content must be valid JSON
+6. **Space IDs**: All space IDs must be valid `cx:space:*` format
+7. **Event IDs**: All event IDs in causal frontiers must be valid
+8. **HLC Format**: Timeline order must be valid HLC format
 
 Invalid cursors MUST be rejected with `invalid_cursor` error.
 
@@ -85,10 +111,11 @@ New cursor versions:
 
 ## 6. Security Considerations
 
-1. **Tamper Detection**: Clients SHOULD verify cursor content matches sync state
+1. **Tamper Detection**: Servers SHOULD include a MAC or signature over cursor content
 2. **Expiration**: Cursors MUST expire to prevent stale state replay
 3. **Privacy**: Cursors may reveal space access patterns; encrypt in sensitive contexts
 4. **Size Limits**: Servers MAY reject cursors exceeding 4KB after encoding
+5. **Opaque to Clients**: Clients MUST NOT inspect cursor internals — this prevents information leakage and coupling
 
 ## 7. Implementation Notes
 
@@ -97,7 +124,7 @@ New cursor versions:
 - Always use the most recent `next_batch` cursor
 - Store cursor locally for resume capability
 - Handle `cursor_expired` by starting fresh sync
-- Don't modify cursor content
+- NEVER modify or inspect cursor content
 
 ### 7.2 Server Behavior
 
@@ -111,13 +138,14 @@ New cursor versions:
 For large accounts with many spaces, servers MAY use compression:
 - Apply gzip before Base64URL encoding
 - Add `c=gz` flag to indicate compression
-- Clients must support decompression
+- Clients must support decompression (transparent, since cursor remains opaque)
 
 ## 8. Conformance
 
 Implementations claiming Contrix v1 sync support MUST:
-- Accept and generate version 1 cursors
-- Validate all cursor fields
+- Accept and transport version 1 cursors as opaque strings
+- Servers MUST validate all cursor fields on receipt
+- Clients MUST NOT parse cursor content
 - Support at least 50 spaces per cursor
 - Support expiration times up to 7 days
 - Reject invalid cursors with appropriate errors
@@ -134,7 +162,7 @@ Request without `since`:
 Response with first cursor:
 ```json
 {
-  "next_batch": "eyJ2IjoiMSIsInMiOnt9fQ",
+  "next_batch": "cx:cursor:eyJ2IjoiMSIsInMiOnt9fQ",
   "spaces": {...}
 }
 ```
@@ -144,7 +172,7 @@ Response with first cursor:
 Request with cursor:
 ```json
 {
-  "since": "eyJ2IjoiMSIsInMiOnt9fQ"
+  "since": "cx:cursor:eyJ2IjoiMSIsInMiOnt9fQ"
 }
 ```
 

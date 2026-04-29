@@ -61,18 +61,16 @@ Authorization condition: Claim / Attestation
   "space_id": "cx:space:01JS0SP000000000000000000",
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
-  "resource": {
-    "kind": "entity",
-    "refs": [
-      "cx:entity:01JS0BD000000000000000000"
+  "scope": {
+    "space_ids": ["cx:space:01JS0SP000000000000000000"],
+    "entity_types": ["task"],
+    "actions": [
+      "cx.entity.read",
+      "cx.entity.update",
+      "cx.run.create",
+      "cx.memory.create"
     ]
   },
-  "actions": [
-    "read",
-    "edit_item",
-    "create_run",
-    "write_memory"
-  ],
   "constraints": {
     "expires_at": "2026-04-30T00:00:00Z",
     "fields_write_allow": [
@@ -157,83 +155,83 @@ Contrix v1 支持以下 `kind`：
 
 ## 5. 动作集合
 
+动作名称与 `operations-sync.md` 中的事件 kind 对齐，使用 `cx.<domain>.<action>` 点分记法。通配符 `cx.<domain>.*` 表示该域的管理权限。
+
 ### 5.1 通用动作
 
-- `discover`
-- `read`
-- `read_metadata`
-- `read_content`
-- `create`
-- `update`
-- `archive`
-- `restore`
+- `cx.space.discover`
+- `cx.entity.read`
+- `cx.entity.read_metadata`
+- `cx.entity.read_content`
+- `cx.entity.create`
+- `cx.entity.update`
+- `cx.entity.archive`
+- `cx.entity.restore`
 
 ### 5.2 看板与对象动作
 
-- `create_entity`
-- `edit_entity`
-- `move_entity`
-- `reorder_entity`
-- `assign_item`
-- `comment`
-- `manage_relations`
-- `manage_attachments`
-- `manage_views`
+- `cx.entity.create`
+- `cx.entity.update`
+- `cx.entity.move`
+- `cx.entity.reorder`
+- `cx.relation.create` (assigned_to 等)
+- `cx.comment.create`
+- `cx.relation.*`
+- `cx.attachment.*`
+- `cx.view.*`
 
 ### 5.3 会话动作
 
-- `read_history`
-- `send_message`
-- `react`
-- `edit_own_message`
-- `edit_any_message`
-- `redact_own_message`
-- `redact_any_message`
-- `manage_channels`
-- `manage_topics`
+- `cx.event.read`
+- `cx.message.create`
+- `cx.reaction.add`
+- `cx.message.update` (任意消息) / `cx.message.update.own` (仅自己)
+- `cx.message.redact` (任意消息) / `cx.message.redact.own` (仅自己)
+- `cx.channel.*`
+- `cx.topic.*`
 
 ### 5.4 Run 与 Memory 动作
 
-- `create_run`
-- `update_run`
-- `write_memory`
-- `confirm_memory`
-- `invalidate_memory`
-- `curate_memory`
+- `cx.run.create`
+- `cx.run.update`
+- `cx.memory.create`
+- `cx.memory.confirm`
+- `cx.memory.invalidate`
+- `cx.memory.curate`
 
 ### 5.5 管理动作
 
-- `manage_space`
-- `manage_board`
-- `manage_schema`
-- `manage_capabilities`
-- `manage_policy`
-- `manage_invites`
+- `cx.space.admin`
+- `cx.board.admin`
+- `cx.schema.*`
+- `cx.capability.*`
+- `cx.policy.*`
+- `cx.invite.*`
 
 ### 5.6 服务动作
 
-- `sync_ops`
-- `index_space`
-- `store_blobs`
+- `cx.sync.*`
+- `cx.index.*`
+- `cx.blob.*`
 
 ### 5.7 人类界面与个人状态动作
 
-- `write_read_markers`
-- `read_notifications`
-- `ack_notifications`
-- `accept_invite`
+- `cx.read.marker`
+- `cx.notification.read`
+- `cx.notification.ack`
+- `cx.invite.accept`
 
 ### 5.8 社交动作
 
-- `publish_post`
-- `reply_post`
-- `react_post`
-- `repost`
-- `quote_post`
-- `follow`
-- `manage_followers`
-- `manage_circle`
-- `manage_audience_policy`
+- `cx.social_post.create`
+- `cx.social_post.reply`
+- `cx.social_post.react`
+- `cx.social_post.repost`
+- `cx.social_post.quote`
+- `cx.relation.create` (follows 关系)
+- `cx.relation.*` (followers 管理)
+- `cx.social_circle.*`
+- `cx.audience_policy.*`
 
 ## 6. Constraints
 

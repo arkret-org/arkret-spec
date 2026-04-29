@@ -75,7 +75,7 @@ The draft uses commits as the repo publication unit.
 ```json
 {
   "commit_id": "cx:commit:01JS0CMT000000000000000000",
-  "repo_did": "did:web:alice.example.com",
+  "repo_id": "did:web:alice.example.com",
   "prev_commit": "cx:commit:01JS0CMP000000000000000000",
   "seq": 144,
   "created_at": "2026-04-22T08:30:00Z",
@@ -83,11 +83,15 @@ The draft uses commits as the repo publication unit.
     "cx:operation:01JS0OP000000000000000000",
     "cx:operation:01JS0OQ000000000000000000"
   ],
-  "signature": {
-    "key_id": "did:web:alice.example.com#device-laptop",
-    "alg": "ES256",
-    "sig": "base64url..."
-  }
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example.com#device-laptop",
+      "payload_hash": "sha256:...",
+      "jws": "base64url..."
+    }
+  ]
 }
 ```
 
@@ -99,23 +103,27 @@ Every operation MUST have a common envelope.
 {
   "operation_id": "cx:operation:01JS0OP000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "actor": "did:web:alice.example.com",
-  "type": "cx.entity.update",
+  "actor_id": "did:web:alice.example.com",
+  "kind": "cx.entity.update",
   "target_ref": "cx:entity:01JS0EN000000000000000000",
   "causal": {
     "deps": [
       "cx:operation:01JS0OO000000000000000000"
     ],
-    "hlc": "2026-04-22T08:31:03.221Z-0007-did:web:alice.example.com",
+    "hlc": "01970e589d21-0007-a13f9c2e",
     "actor_seq": 42
   },
-  "body": {},
+  "content": {},
   "authz_ref": "cx:grant:01JS0GR000000000000000000",
-  "signature": {
-    "key_id": "did:web:alice.example.com#device-laptop",
-    "alg": "ES256",
-    "sig": "base64url..."
-  }
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example.com#device-laptop",
+      "payload_hash": "sha256:...",
+      "jws": "base64url..."
+    }
+  ]
 }
 ```
 
@@ -131,36 +139,43 @@ The draft uses:
 
 ## 7. Operation Families
 
-### 7.1 Space / Schema / Policy
+### 7.1 Space / Schema / Policy / Discovery
 
 - `cx.space.create`
 - `cx.space.update`
+- `cx.space.archive` (archive: Space enters read-only state, all writes MUST be rejected)
+- `cx.space.freeze` (temporary freeze, triggered by actor with `space.admin` capability)
+- `cx.space.destroy` (mark for recycling, Sync Service and Index clean up per retention policy)
+- `cx.space.discovery` (Space discoverability policy state event)
+- `cx.organization.discovery` (Organization discoverability policy)
 - `cx.schema.define`
 - `cx.schema.update`
 - `cx.policy.set`
 
-### 7.2 Board / Collection / View
-
-- `cx.board.create`
-- `cx.board.update`
-- `cx.collection.create`
-- `cx.collection.update`
-- `cx.collection.move`
-- `cx.view.create`
-- `cx.view.update`
-
-### 7.3 Entity / Comment / Relation / Attachment
+### 7.2 Entity / Relation / View
 
 - `cx.entity.create`
 - `cx.entity.update`
 - `cx.entity.delete`
 - `cx.entity.restore`
-- `cx.relation.move` (for list/order reposition)
+- `cx.relation.create`
+- `cx.relation.update`
+- `cx.relation.delete`
+- `cx.relation.rebalance` (score index rebalancing for ordered collections)
+- `cx.view.create`
+- `cx.view.update`
+
+### 7.3 Standard Semantic Operations
+
+The following are semantic sugar and MUST be reducible to `entity.*` or `relation.*`:
+
+- `cx.task.create`
+- `cx.task.update`
+- `cx.task.move`
+- `cx.task.reorder`
 - `cx.comment.create`
 - `cx.comment.update`
 - `cx.comment.redact`
-- `cx.relation.create`
-- `cx.relation.delete`
 - `cx.attachment.add`
 - `cx.attachment.remove`
 
@@ -191,20 +206,39 @@ The draft uses:
 - `cx.memory.invalidate`
 - `cx.memory.supersede`
 
-### 7.6 Invite / Read State
+### 7.6 Membership
+
+- `cx.membership.join` (join Space)
+- `cx.membership.leave` (voluntary leave)
+- `cx.membership.kick` (removed by admin)
+- `cx.membership.ban` (banned, cannot rejoin)
+- `cx.membership.unban` (unbanned)
+- `cx.membership.knock` (request to join, pending approval)
+
+### 7.7 Invite / Read State
 
 - `cx.invite.create`
 - `cx.invite.cancel`
 - `cx.invite.accept`
 - `cx.read.marker`
 
-### 7.7 Capability
+### 7.8 Capability
 
 - `cx.capability.grant`
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-### 7.8 Private and Ephemeral State
+### 7.9 Profile / Device / Space Key
+
+- `cx.profile.update` (Actor profile update)
+- `cx.profile.space_override` (Space-specific profile override)
+- `cx.device.authorized` (device authorization)
+- `cx.device.revoked` (device revocation)
+- `cx.device.list_update` (device list change notification)
+- `cx.space_key.share` (MLS epoch key distribution)
+- `cx.space_key.withheld` (MLS key withheld notification)
+
+### 7.10 Private and Ephemeral State
 
 The following are not recommended as durable shared operations:
 
@@ -264,17 +298,19 @@ Snapshots are acceleration layers, not truth sources.
 }
 ```
 
-Implementations SHOULD let the snapshot manifest additionally carry:
+The snapshot manifest MUST contain the following trust-chain fields:
 
 - `schema_profile_refs`
-- `chunk_digests`
-- `generator_signature`
+- `chunk_digests` (SHA-256 digest of each chunk)
+- `state_hash` (Merkle Root of the full state within the snapshot coverage)
+- `signed_by` (signer DID, should be Space Owner or trusted Index node)
+- `generator_signature` (cryptographic signature over `state_hash` + `chunk_digests`)
 
-That allows clients to verify before trusting a snapshot:
+Before adopting a snapshot, clients MUST verify:
 
-- which frontier it covers
-- which reducer and schema profile produced it
-- whether chunk contents were tampered with
+1. the `generator_signature` is valid (signer public key resolved via DID Document)
+2. each chunk's actual SHA-256 matches the value declared in `chunk_digests`
+3. if any verification fails, the client MUST discard the snapshot and fall back to raw repo history replay
 
 ## 11. Sync Surfaces
 
@@ -379,7 +415,7 @@ This prevents:
 
 ## 16. Conflicts and Convergence
 
-### 15.1 No Global Consensus
+### 16.1 No Global Consensus
 
 The first version of Contrix does not introduce a global consensus chain.
 
@@ -391,18 +427,18 @@ It requires:
 
 to converge to the same current state.
 
-### 15.2 Base Ordering Rule
+### 16.2 Base Ordering Rule
 
-When two operations have no explicit causal ordering, compare in this order:
+When two operations have no explicit causal ordering (Reverse Topological Authorization Ordering), compare in this order:
 
-1. `hlc`
-2. `actor`
-3. `actor_seq`
-4. `operation_id`
+1. **Authorization weight**: the capability / role / creator-admin weight held by the `actor` at the time the operation was produced. Higher weight wins.
+2. **HLC**: if authorization weight is equal, compare `hlc` timestamps. Higher timestamp wins.
+3. **Actor ID lexicographic order**: if timestamps are equal, compare `actor_id` string lexicographically.
+4. **Operation hash**: as a last resort, compare `operation_id` lexicographically.
 
 ## 17. Field-level Merge and Object-level Convergence
 
-### 16.1 Scalar Fields
+### 17.1 Scalar Fields
 
 Examples:
 
@@ -415,7 +451,7 @@ Suggested strategy:
 
 - LWW by causal order
 
-### 16.2 Set Fields
+### 17.2 Set Fields
 
 Examples:
 
@@ -427,7 +463,7 @@ Suggested strategy:
 
 - OR-Set
 
-### 16.3 Ordered Fields
+### 17.3 Ordered Fields
 
 Examples:
 
@@ -436,13 +472,13 @@ Examples:
 
 These should be handled via move/reorder semantics.
 
-### 16.4 Message
+### 17.4 Message
 
 - `cx.message.create` is append-only
 - `cx.message.revise` forms a revision chain
 - default views show the latest visible revision
 
-### 16.5 Reaction
+### 17.5 Reaction
 
 Reactions converge using `(message_id, actor, reaction_key)` as the OR-Set key.
 
@@ -461,11 +497,11 @@ Message timeline display order should use:
 
 ## 19. Tombstones, Redaction, and Restore
 
-### 18.1 Object Deletion
+### 19.1 Object Deletion
 
 Object deletion SHOULD use tombstones.
 
-### 18.2 Message Recall
+### 19.2 Message Recall
 
 Message recalls should use redaction rather than physical disappearance.
 
@@ -475,7 +511,7 @@ Required semantics:
 - normal views should not keep leaking the body
 - no promise of global physical erasure
 
-### 18.3 Redaction Before the Original Message Arrives
+### 19.3 Redaction Before the Original Message Arrives
 
 Receivers SHOULD keep dangling redactions and apply them once the target message arrives.
 
@@ -498,7 +534,7 @@ ACLs are not the same thing as ciphertext protection, and sync services should n
 
 The first version should therefore distinguish:
 
-- routable metadata: `space_id`, `target_ref`, `type`, `causal`
+- routable metadata: `space_id`, `target_ref`, `kind`, `causal`
 - cleartext indexable metadata: light workflow fields such as `status`, `labels`, `priority`, and `due_at`; if such fields expose private content or sensitive organization state, the receiving Index MUST be listed in `plaintext_visible_services`
 - opaque encrypted payload: message bodies, attachment contents, sensitive memory bodies
 
@@ -537,15 +573,16 @@ The current draft recommends fixing:
 - recalls as redaction/tombstone semantics
 - convergence through fixed reducer rules
 
-## 25. Further Work
+## 25. Normative References
 
-The next round still needs:
+The following wire-level items are defined in v1-related documents and are not retained as open items here:
 
-- cursor encoding
-- HLC text format
-- snapshot chunk schemas
-- formal schemas for snapshot signatures and chunk digests
-- an encrypted-payload envelope schema
-- a standard sync surface for read markers
-- wire-level sync/index interfaces
+- Cursor encoding and opaque semantics: see `encoding.md`, `data-structures.md`, and `encoding-conformance-vectors.md`.
+- HLC text format is fixed as `<unix_ms_hex>-<logical_hex>-<node_id_hash>`; sorting vectors: `encoding-conformance-vectors.md`.
+- Snapshot manifest, chunk digest, `state_hash`, and signing rules: `snapshot-schema.md`.
+- Encrypted payload envelope schema: `data-structures.md`, `snapshot-schema.md`, `encryption-and-audit.md`, and `encoding-conformance-vectors.md`.
+- Read marker private state, sync surface, and notification derivation: `read-notification-schema.md`, `read-receipts.md`, and `client-preferences.md`.
+- Sync Service / Index wire-level interfaces: `service-surface.md`, `service-http-binding.md`, and `query-schema.md`; transport equivalence: `transport-bindings.md`.
+
+Implementations that lack any of the above normative dependencies MUST declare non-support for the corresponding profile in feature discovery and MUST NOT claim full Contrix v1 sync support.
 

@@ -28,7 +28,7 @@ Space 可通过 state event 声明策略服务：
 }
 ```
 
-声明该事件需要 `space.policy.manage` capability。
+声明该事件需要 `cx.policy.manage` capability。
 
 ## 3. Check Request
 

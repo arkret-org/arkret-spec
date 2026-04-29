@@ -14,6 +14,14 @@ Core decisions:
 - Raw W3C DID/VC documents MAY be preserved as external evidence and mapped into Contrix normalized views.
 - Public-persona DIDs MAY publish `also_known_as`; pairwise/private DIDs SHOULD NOT.
 
+## User-Facing Identifiers Are Optional
+
+Implementations MAY let users discover, log in, invite, or recover accounts through `@alice:example.org`, `alice@example.org`, organization usernames, OIDC subjects, invitation links, or other human-readable identifiers.
+
+These identifiers are user-facing identifiers, service-account ids, handles, 3PIDs, or bridge aliases; they are not protocol primary keys. Before accepting any durable Event, repo commit, capability grant, federation transaction, MLS membership, or service delegation, the implementation MUST bind the current session to a principal DID and device, then verify that binding according to local trust policy.
+
+If the user does not yet have an explicit DID, an Auth / Account Server MAY create a supported managed DID before registration completion, invite claiming, or first write, such as `did:uuid`, `did:web`, or an organization-private DID. The managed DID's controller, recovery policy, trust domain, and service-account binding MUST be auditable; subsequent protocol objects still use the DID as the root for `actor_id`, `repo_id`, `author`, grant `subject`, service DID, or `verification_method`.
+
 Raw W3C field mappings:
 
 | Raw field | Contrix canonical field |

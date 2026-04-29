@@ -92,7 +92,7 @@ Contrix v1 repo 以 commit 为发布单元。
 ```json
 {
   "commit_id": "cx:commit:01JS0CMT000000000000000000",
-  "repo_did": "did:web:alice.example.com",
+  "repo_id": "did:web:alice.example.com",
   "prev_commit": "cx:commit:01JS0CMP000000000000000000",
   "seq": 144,
   "created_at": "2026-04-22T08:30:00Z",
@@ -112,14 +112,16 @@ Contrix v1 repo 以 commit 为发布单元。
 
 每个 operation MUST 具备统一 envelope。
 
-Operation Envelope 是 sync / federation 写路径的签名承载信封。它不同于 `data-structures.md` 中的 canonical Operation object：Envelope 的 `type` 是事件 kind，且通过 `causal`、`target_ref`、`authz_ref` 和 `signature` 绑定写入语义；canonical Operation object 的 `type` 固定为 `"operation"`，并使用 `operation_type` 描述 create/update/delete 等对象级动作。
+Operation Envelope 是 sync / federation 写路径的签名承载信封。它不同于 `data-structures.md` 中的 canonical Operation object：Envelope 的 `kind` 是事件 kind，且通过 `causal`、`target_ref`、`authz_ref` 和 `proofs` 绑定写入语义；canonical Operation object 的 `type` 固定为 `"operation"`，并使用 `operation_type` 描述 create/update/delete 等对象级动作。
+
+Envelope 的字段名与 `data-structures.md` Event Envelope 保持一致（`actor_id`、`kind`、`content`、`proofs`），确保 sync 路径和持久化路径使用相同的字段语义。
 
 ```json
 {
   "operation_id": "cx:operation:01JS0OP000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "actor": "did:web:alice.example.com",
-  "type": "cx.entity.update",
+  "actor_id": "did:web:alice.example.com",
+  "kind": "cx.entity.update",
   "target_ref": "cx:entity:01JS0EN000000000000000000",
   "causal": {
     "deps": [
@@ -128,13 +130,17 @@ Operation Envelope 是 sync / federation 写路径的签名承载信封。它不
     "hlc": "01970e589d21-0007-a13f9c2e",
     "actor_seq": 42
   },
-  "body": {},
+  "content": {},
   "authz_ref": "cx:grant:01JS0GR000000000000000000",
-  "signature": {
-    "key_id": "did:web:alice.example.com#device-laptop",
-    "alg": "ES256",
-    "sig": "base64url..."
-  }
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example.com#device-laptop",
+      "payload_hash": "sha256:...",
+      "jws": "base64url..."
+    }
+  ]
 }
 ```
 
@@ -160,20 +166,22 @@ Contrix v1 要求：
 
 ## 7. 操作类型
 
-所有 `type` 都是可见事件类型（`event.type`）；Operation 本身是 `event` 的承载信封。
+所有 `kind` 都是可见事件类型（`event.kind`）；Operation 本身是 `event` 的承载信封。
 因此以下规则必须成立：
 
-- 处理层不再引入独立的 `operation_type` 命名空间；`operation.type == event.type`。
-- 不应出现既无 schema 注册也未在服务端能力清单中注册的自定义 `type`。
+- 处理层不再引入独立的 `operation_type` 命名空间；`operation.kind == event.kind`。
+- 不应出现既无 schema 注册也未在服务端能力清单中注册的自定义 `kind`。
 - 旧实现若发送未带 `cx.` 前缀的事件，必须经过兼容适配后映射为注册表 `cx.*` 名称。
 
-### 7.1 Space / Schema / Policy
+### 7.1 Space / Schema / Policy / Discovery
 
 - `cx.space.create`
 - `cx.space.update`
 - `cx.space.archive` (归档：Space 进入只读状态，所有写入 MUST 被拒绝，历史数据可查)
 - `cx.space.freeze` (临时冻结，由具备 `space.admin` 权限的 Actor 触发，可解冻)
 - `cx.space.destroy` (标记待回收，Sync Service 和 Index 按 retention policy 倒计时清理)
+- `cx.space.discovery` (Space 可发现性策略 state event)
+- `cx.organization.discovery` (Organization 可发现性策略)
 - `cx.schema.define`
 - `cx.schema.update`
 - `cx.policy.set`
@@ -187,6 +195,7 @@ Contrix v1 要求：
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
+- `cx.relation.rebalance` (有序集合的分数索引重平衡)
 - `cx.view.create`
 - `cx.view.update`
 
@@ -253,7 +262,17 @@ Contrix v1 要求：
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-### 7.9 私有与临时状态
+### 7.9 Profile / Device / Space Key
+
+- `cx.profile.update` (Actor profile 更新)
+- `cx.profile.space_override` (Space 内 profile 覆盖)
+- `cx.device.authorized` (设备授权)
+- `cx.device.revoked` (设备撤销)
+- `cx.device.list_update` (设备列表变更通知)
+- `cx.space_key.share` (MLS epoch 密钥分发)
+- `cx.space_key.withheld` (MLS 密钥 withheld 通知)
+
+### 7.10 私有与临时状态
 
 以下状态不建议作为 durable shared operation：
 

@@ -224,6 +224,6 @@ Actor Profile 不替代 DID，也不成为权限主键。
 
 - 标准 Relation cardinality 按本文件各类型语义、`data-structures.md` 的 Relation 字段和业务 profile 执行；未声明多重关系时，active relation MUST 以 `(relation_kind, from_ref, to_ref)` 收敛为单条。
 - Content block registry 见 `content-types.md`；未知 content block 必须按降级规则保留和展示。
-- Task status profile 使用 `todo`、`doing`、`blocked`、`review`、`done`、`archived` 作为 v1 基础集合；Space schema 可增加自定义状态，但不得改变基础状态语义。
+- Task status profile 使用 `todo`、`in_progress`、`blocked`、`review`、`done`、`archived` 作为 v1 基础集合；Space schema 可增加自定义状态，但不得改变基础状态语义。
 - Poll result reducer vector 必须按 event 集合归约，不能只信任计数字段；匿名投票的明文选择不得进入未授权 Index。
 - Social post / feed / circle schema 见 `social-graph.md` 和 `data-structures.md`；受众集合、转发、索引和回复权限必须由 Audience Policy 控制。
