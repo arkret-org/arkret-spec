@@ -276,7 +276,7 @@
             "properties": { "column_model": { "const": "collection" } },
             "required": ["column_model"]
           },
-          "then": { "required": ["board_entity_id"] }
+          "then": { "required": ["board_entity_id", "card_relation_kind"] }
         }
       ],
       "additionalProperties": false

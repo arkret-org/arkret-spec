@@ -611,34 +611,153 @@ cx.vector.sync.token_expiry_recovery.v1
 cx.vector.sync.kanban_projection_column_pagination.v1
 ```
 
+初始请求：
+
+```json
+{
+  "projection": "kanban",
+  "view_id": "cx:view:01js0vw0000000000000000000",
+  "entity_types": ["task"],
+  "limit": 2
+}
+```
+
 输入响应：
 
 ```json
 {
-  "view_id": "cx:view:01js0vw000000000000000000",
+  "projection": "kanban",
+  "view_id": "cx:view:01js0vw0000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "frontier": {
+    "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "operation_ids": ["cx:operation:01js0qp0000000000000000000"]
+  },
   "columns": [
     {
       "key": "todo",
-      "cards": ["task_a", "task_b"],
-      "next_cursor": "todo_after_task_b",
+      "title": "Todo",
+      "rank": "F",
+      "source": {
+        "model": "field_value",
+        "field": "fields.status",
+        "value": "todo"
+      },
+      "cards": [
+        {
+          "entity": {
+            "id": "cx:entity:01js0ta0000000000000000000",
+            "entity_type": "task",
+            "title": "Task A"
+          },
+          "position": {
+            "model": "field_value",
+            "container_id": "todo",
+            "rank": "F"
+          }
+        },
+        {
+          "entity": {
+            "id": "cx:entity:01js0tb0000000000000000000",
+            "entity_type": "task",
+            "title": "Task B"
+          },
+          "position": {
+            "model": "field_value",
+            "container_id": "todo",
+            "rank": "V"
+          }
+        }
+      ],
+      "next_cursor": "cx:cursor:kanban_todo_after_task_b",
       "limited": true
     },
     {
       "key": "done",
-      "cards": ["task_z"],
+      "title": "Done",
+      "rank": "V",
+      "source": {
+        "model": "field_value",
+        "field": "fields.status",
+        "value": "done"
+      },
+      "cards": [
+        {
+          "entity": {
+            "id": "cx:entity:01js0tz0000000000000000000",
+            "entity_type": "task",
+            "title": "Task Z"
+          },
+          "position": {
+            "model": "field_value",
+            "container_id": "done",
+            "rank": "V"
+          }
+        }
+      ],
       "next_cursor": null,
       "limited": false
     }
-  ],
-  "frontier": { "state_hash": "sha256:state_after_projection" }
+  ]
+}
+```
+
+后续请求：
+
+```json
+{
+  "projection": "kanban",
+  "view_id": "cx:view:01js0vw0000000000000000000",
+  "cursor": "cx:cursor:kanban_todo_after_task_b",
+  "limit": 2
+}
+```
+
+期望后续响应：
+
+```json
+{
+  "projection": "kanban",
+  "view_id": "cx:view:01js0vw0000000000000000000",
+  "frontier": {
+    "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "columns": [
+    {
+      "key": "todo",
+      "title": "Todo",
+      "source": {
+        "model": "field_value",
+        "field": "fields.status",
+        "value": "todo"
+      },
+      "cards": [
+        {
+          "entity": {
+            "id": "cx:entity:01js0tc0000000000000000000",
+            "entity_type": "task",
+            "title": "Task C"
+          },
+          "position": {
+            "model": "field_value",
+            "container_id": "todo",
+            "rank": "k"
+          }
+        }
+      ],
+      "next_cursor": null,
+      "limited": false
+    }
+  ]
 }
 ```
 
 期望行为：
 
 - 客户端 MUST 只把 `todo` 列标记为未完整窗口。
-- `todo_after_task_b` 只能用于继续拉取 `todo` 列，不得作为整个 View 的全局 cursor。
+- `cx:cursor:kanban_todo_after_task_b` 只能用于继续拉取 `todo` 列，不得作为整个 View 的全局 cursor。
 - `done.limited=false` 不得让客户端推断其他列完整。
+- 上述请求与响应 MUST 通过 `contrix-service-api.openapi.yaml` 中的 `QueryRequest` 与 `KanbanProjectionResponse` 校验。
 
 ## 16. Vector: Kanban Projection Hidden Counts
 
@@ -648,11 +767,88 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 cx.vector.sync.kanban_projection_hidden_counts.v1
 ```
 
+输入状态：
+
+```json
+{
+  "view": {
+    "id": "cx:view:01js0vw0000000000000000000",
+    "type": "view",
+    "space_id": "cx:space:01js0sp0000000000000000000",
+    "kind": "kanban",
+    "query": {
+      "entity_types": ["task"]
+    },
+    "kanban": {
+      "column_model": "field_value",
+      "group_by": "fields.status",
+      "columns": [
+        { "key": "review", "title": "Review", "rank": "F" }
+      ],
+      "card_order_by": [{ "field": "fields.rank", "direction": "asc" }],
+      "hidden_count_policy": "omit"
+    },
+    "created_by": "did:web:alice.example",
+    "created_at": "2026-04-29T00:00:00Z"
+  },
+  "actor_visibility": {
+    "visible_entities": ["cx:entity:01js0tv0000000000000000000"],
+    "hidden_entities": ["cx:entity:01js0th0000000000000000000"]
+  },
+  "canonical_column_membership": {
+    "review": [
+      "cx:entity:01js0tv0000000000000000000",
+      "cx:entity:01js0th0000000000000000000"
+    ]
+  }
+}
+```
+
+允许响应：
+
+```json
+{
+  "projection": "kanban",
+  "view_id": "cx:view:01js0vw0000000000000000000",
+  "frontier": {
+    "state_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "columns": [
+    {
+      "key": "review",
+      "title": "Review",
+      "source": {
+        "model": "field_value",
+        "field": "fields.status",
+        "value": "review"
+      },
+      "cards": [
+        {
+          "entity": {
+            "id": "cx:entity:01js0tv0000000000000000000",
+            "entity_type": "task",
+            "title": "Visible task"
+          },
+          "position": {
+            "model": "field_value",
+            "container_id": "review",
+            "rank": "F"
+          }
+        }
+      ],
+      "next_cursor": null,
+      "limited": false
+    }
+  ]
+}
+```
+
 判定要点：
 
 - 当 View policy 未允许 `hidden_count_policy=authorized_exact` 时，Index MUST NOT 返回包含不可见卡片的精确列总数。
 - `total_estimate` 若返回，MUST 只基于权限裁剪后的可见结果，或明确标记为权限裁剪后的估计。
 - 不可见卡片不得通过空列、错误码、计数差异或 cursor 形态泄露存在性。
+- 在上述输入中，返回 `total_estimate: 2` 或任何可推断隐藏卡片数量的 cursor / warning 均为失败。
 
 ## 17. 覆盖矩阵
 

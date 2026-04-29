@@ -495,7 +495,7 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
 
 #### 7.1.3 Collection 列模型
 
-复杂看板 SHOULD 使用 Collection 列模型。此时每一列都是 `Entity{entity_type="collection"}`，适合需要列级权限、列 WIP 限制、列说明、列归档、跨看板复用或列讨论的场景。
+复杂看板 SHOULD 使用 Collection 列模型。此时每一列都是 `Entity{entity_type="collection"}`，适合需要列级权限、列 WIP 限制、列说明、列归档、跨看板复用或列讨论的场景。Collection 模型的 View MUST 显式声明 `kanban.card_relation_kind`；实现不得在 `contains` 与 `belongs_to` 等关系之间本地推断。
 
 示例列 Entity：
 
@@ -548,9 +548,9 @@ Board 包含列：
 
 Collection 列模型的投影规则：
 
-1. 从 board 出发查询 `contains` 到 `collection` 的 Relation，得到列集合。
+1. 从 board 出发查询 `kanban.column_relation_kind` 到 `collection` 的 Relation，得到列集合；缺省 `column_relation_kind` 为 `contains`。
 2. 列按 board->collection Relation 的 `fields.rank` 排序；缺失时按 collection `fields.rank` 和 ID tie breaker。
-3. 对每个 collection 查询 `contains` 到 task/issue 的 Relation，得到该列卡片。
+3. 对每个 collection 查询 `kanban.card_relation_kind` 到 task/issue 的 Relation，得到该列卡片。
 4. 卡片按 collection->card Relation 的 `fields.rank` 排序。
 5. 同一张卡片若被多个 active column 包含，reducer MUST 按 Space version 的冲突规则保留一个有效位置，或将其标记为 conflict 交给客户端解决。
 
@@ -560,6 +560,7 @@ Collection 列模型的投影规则：
 {
   "kind": "cx.relation.move",
   "content": {
+    "scope_container_id": "cx:entity:01board",
     "relation_kind": "contains",
     "entity_id": "cx:entity:01task",
     "from_container_id": "cx:entity:01col_todo",
@@ -616,6 +617,7 @@ Index / AppView MAY 为 `View{kind="kanban"}` 返回已经物化的看板投影�
             "title": "Finalize release notes"
           },
           "position": {
+            "model": "field_value",
             "container_id": "review",
             "rank": "mV"
           }
@@ -632,10 +634,12 @@ Projection 规则：
 
 1. 每个 `columns[*].cards` MUST 使用该 View 的 `kanban.card_order_by` 排序。
 2. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、`entity.id`；若这些字段不可得，则使用 `entity.id` 作为最终稳定 tie-break。
-3. 大列 MAY 按列分页；每列的 `next_cursor` 只恢复该列的卡片窗口，不得暗示其他列完整。
-4. `limited=true` 表示该列结果不是完整窗口；客户端 MUST 使用该列 cursor 继续拉取，不得把缺口解释为删除或无权限。
-5. 无权读取的卡片或字段 MUST 被裁剪。除非 Space policy 明确允许泄漏聚合统计，响应 MUST NOT 返回因无权读取而被隐藏的精确数量。
-6. `total_estimate` 若存在，MUST 是权限裁剪后的估计值；不得包含不可见卡片。
+3. 字段分组看板的 `cards[*].position.model` MUST 为 `field_value`，并携带 `container_id` 与 `rank`。
+4. Collection 看板的 `cards[*].position.model` MUST 为 `relation`，并携带 `scope_container_id`、`container_id`、`relation_kind`、`relation_id` 与 `rank`，以便审计器和客户端把投影位置追溯到 active containment Relation。
+5. 大列 MAY 按列分页；每列的 `next_cursor` 只恢复该列的卡片窗口，不得暗示其他列完整。
+6. `limited=true` 表示该列结果不是完整窗口；客户端 MUST 使用该列 cursor 继续拉取，不得把缺口解释为删除或无权限。
+7. 无权读取的卡片或字段 MUST 被裁剪。除非 Space policy 明确允许泄漏聚合统计，响应 MUST NOT 返回因无权读取而被隐藏的精确数量。
+8. `total_estimate` 若存在，MUST 是权限裁剪后的估计值；不得包含不可见卡片。
 
 #### 7.1.6 WIP Limit 与列约束
 

@@ -219,7 +219,7 @@ Schema id: `cx.schema.view.v1`
 | `columns` | conditional | `array<object>` | `field_value` 模型 SHOULD 设置。 | 字段值列定义。 |
 | `board_entity_id` | conditional | `id:entity` | `collection` 模型必填。 | 看板 Entity。 |
 | `column_relation_kind` | no | `string` | 默认 `contains`。 | board 到 column 的关系语义。 |
-| `card_relation_kind` | no | `string` | 默认 `contains` 或 `belongs_to`。 | column/board 到 card 的关系语义。 |
+| `card_relation_kind` | conditional | `string` | `collection` 模型必填；不得隐式推断。 | column/board 到 card 的关系语义。 |
 | `card_order_by` | yes | `array<SortSpec>` | SHOULD 使用 `fields.rank` 或 Relation `fields.rank`。 | 卡片排序。 |
 | `uncategorized_policy` | no | `enum(show, hide, reject)` | 默认 `show`。 | 未分类卡片处理。 |
 | `conflict_policy` | no | `enum(reducer_winner, expose_conflict, reject)` | 默认 `reducer_winner`。 | 并发位置冲突的投影策略；reducer 仍必须可审计记录冲突。 |
@@ -240,7 +240,7 @@ Schema id: `cx.schema.view.v1`
 KanbanConfig 约束：
 
 - `column_model="field_value"` 时，`group_by` 与 `columns` MUST 存在；`board_entity_id` MAY 存在，用于限定 View 所属 board。
-- `column_model="collection"` 时，`board_entity_id` MUST 存在；列集合来自 board 到 collection 的 Relation。
+- `column_model="collection"` 时，`board_entity_id` 与 `card_relation_kind` MUST 存在；列集合来自 board 到 collection 的 Relation，卡片集合来自 column 到 card 的 `card_relation_kind` Relation。
 - `card_order_by` MUST 至少包含一个稳定排序字段；推荐 `fields.rank` 或 Relation `fields.rank`。
 - 用于拖拽的 `group_by` 字段与 rank 字段 MUST 通过 `cx.task.move` 或等价 `atomic_position` 原子写入，避免并发时列值和 rank 分别由不同 operation 胜出。
 

@@ -413,19 +413,46 @@ components:
               type: object
           additionalProperties: false
         position:
-          type: object
-          required: [container_id, rank]
-          properties:
-            container_id:
-              type: string
-              minLength: 1
-            rank:
-              type: string
-              pattern: "^[0-9A-Za-z]{1,128}$"
-            relation_id:
-              type: string
-              pattern: "^cx:relation:[0-9a-hjkmnp-z]{26}$"
-          additionalProperties: false
+          oneOf:
+            - $ref: "#/components/schemas/KanbanFieldValueCardPosition"
+            - $ref: "#/components/schemas/KanbanRelationCardPosition"
+      additionalProperties: false
+    KanbanFieldValueCardPosition:
+      type: object
+      required: [model, container_id, rank]
+      properties:
+        model:
+          type: string
+          const: field_value
+        container_id:
+          type: string
+          minLength: 1
+        rank:
+          type: string
+          pattern: "^[0-9A-Za-z]{1,128}$"
+      additionalProperties: false
+    KanbanRelationCardPosition:
+      type: object
+      required: [model, scope_container_id, container_id, relation_kind, relation_id, rank]
+      properties:
+        model:
+          type: string
+          const: relation
+        scope_container_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        container_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        relation_kind:
+          type: string
+          minLength: 1
+        relation_id:
+          type: string
+          pattern: "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+        rank:
+          type: string
+          pattern: "^[0-9A-Za-z]{1,128}$"
       additionalProperties: false
   responses:
     NotFound:

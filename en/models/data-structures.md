@@ -15,3 +15,5 @@ Canonical Operation objects use `operation_type` plus optional `semantic_kind`. 
 - `cx.task.reorder` maps to `operation_type="reorder"` and `object_type="entity"`.
 - `cx.relation.rebalance` maps to `operation_type="rebalance"` and `object_type="relation"`.
 
+For collection-backed Kanban views, `kanban.card_relation_kind` is required and must not be inferred from local defaults. It is the relation kind used by relation-backed card positions and by `cx.relation.move` exclusive position keys.
+
