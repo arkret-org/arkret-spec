@@ -639,7 +639,7 @@ Projection 规则：
 5. 大列 MAY 按列分页；每列的 `next_cursor` 只恢复该列的卡片窗口，不得暗示其他列完整。
 6. `limited=true` 表示该列结果不是完整窗口；客户端 MUST 使用该列 cursor 继续拉取，不得把缺口解释为删除或无权限。
 7. 无权读取的卡片或字段 MUST 被裁剪。除非 Space policy 明确允许泄漏聚合统计，响应 MUST NOT 返回因无权读取而被隐藏的精确数量。
-8. `total_estimate` 若存在，MUST 是权限裁剪后的估计值；不得包含不可见卡片。
+8. `total_estimate` 若存在，MUST 由 `kanban.hidden_count_policy` 授权。`authorized_estimate` / `authorized_exact` 默认只覆盖权限裁剪后的 visible set，不得包含不可见卡片；只有另有列级聚合授权时，才可返回包含隐藏成员的聚合计数。
 
 #### 7.1.6 WIP Limit 与列约束
 

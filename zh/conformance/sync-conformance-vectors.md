@@ -845,8 +845,10 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
 
 判定要点：
 
-- 当 View policy 未允许 `hidden_count_policy=authorized_exact` 时，Index MUST NOT 返回包含不可见卡片的精确列总数。
-- `total_estimate` 若返回，MUST 只基于权限裁剪后的可见结果，或明确标记为权限裁剪后的估计。
+- 本向量 MUST 至少执行 `omit`、`authorized_estimate`、`authorized_exact` 三组 policy case。
+- `hidden_count_policy=omit` 时，Index MUST NOT 返回任何 `total_estimate`。
+- `hidden_count_policy=authorized_estimate` 时，Index MAY 返回权限裁剪后的估计计数；在上述输入中允许 `total_estimate=1`，返回 `total_estimate=2` 为失败。
+- `hidden_count_policy=authorized_exact` 时，Index MAY 返回权限裁剪后的精确计数；在上述输入中允许 `total_estimate=1`，返回 `total_estimate=2` 为失败，除非另有独立列级聚合授权。
 - 不可见卡片不得通过空列、错误码、计数差异或 cursor 形态泄露存在性。
 - 在上述输入中，返回 `total_estimate: 2` 或任何可推断隐藏卡片数量的 cursor / warning 均为失败。
 

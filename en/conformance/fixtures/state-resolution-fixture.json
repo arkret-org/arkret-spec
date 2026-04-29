@@ -23,8 +23,98 @@
     },
     {
       "name": "kanban_concurrent_card_move",
+      "vector": "cx.vector.state_resolution.kanban_concurrent_move.v1",
       "scenario": "same card moved concurrently to two columns in one board scope",
-      "expected": "single_active_position_with_conflict_record"
+      "input": {
+        "base_state": {
+          "scope_container_id": "cx:entity:01js0bd0000000000000000000",
+          "relation_kind": "contains",
+          "entity_id": "cx:entity:01js0tk0000000000000000000",
+          "container_id": "cx:entity:01js0c10000000000000000000",
+          "rank": "h0",
+          "relation_id": "cx:relation:01js0r10000000000000000000",
+          "source_operation_id": "cx:operation:01js0bs1000000000000000000"
+        },
+        "candidates": [
+          {
+            "operation_id": "cx:operation:01js0mv1000000000000000000",
+            "kind": "cx.relation.move",
+            "actor_id": "did:web:alice.example",
+            "hlc": "01970e589d24-0001-11111111",
+            "auth_weight": 10,
+            "content": {
+              "scope_container_id": "cx:entity:01js0bd0000000000000000000",
+              "relation_kind": "contains",
+              "entity_id": "cx:entity:01js0tk0000000000000000000",
+              "from_container_id": "cx:entity:01js0c10000000000000000000",
+              "to_container_id": "cx:entity:01js0c20000000000000000000",
+              "rank": "mV",
+              "expected_position": {
+                "container_id": "cx:entity:01js0c10000000000000000000",
+                "rank": "h0",
+                "relation_id": "cx:relation:01js0r10000000000000000000"
+              }
+            }
+          },
+          {
+            "operation_id": "cx:operation:01js0mv2000000000000000000",
+            "kind": "cx.relation.move",
+            "actor_id": "did:web:bob.example",
+            "hlc": "01970e589d24-0002-22222222",
+            "auth_weight": 10,
+            "content": {
+              "scope_container_id": "cx:entity:01js0bd0000000000000000000",
+              "relation_kind": "contains",
+              "entity_id": "cx:entity:01js0tk0000000000000000000",
+              "from_container_id": "cx:entity:01js0c10000000000000000000",
+              "to_container_id": "cx:entity:01js0c30000000000000000000",
+              "rank": "p0",
+              "expected_position": {
+                "container_id": "cx:entity:01js0c10000000000000000000",
+                "rank": "h0",
+                "relation_id": "cx:relation:01js0r10000000000000000000"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "resolved_position": {
+          "scope_container_id": "cx:entity:01js0bd0000000000000000000",
+          "relation_kind": "contains",
+          "entity_id": "cx:entity:01js0tk0000000000000000000",
+          "container_id": "cx:entity:01js0c30000000000000000000",
+          "rank": "p0",
+          "source_operation_id": "cx:operation:01js0mv2000000000000000000"
+        },
+        "active_position_registers": [
+          {
+            "state_key": "cx:entity:01js0bd0000000000000000000|contains|cx:entity:01js0tk0000000000000000000",
+            "container_id": "cx:entity:01js0c30000000000000000000",
+            "rank": "p0",
+            "source_operation_id": "cx:operation:01js0mv2000000000000000000"
+          }
+        ],
+        "inactive_source_operation_ids": [
+          "cx:operation:01js0bs1000000000000000000",
+          "cx:operation:01js0mv1000000000000000000"
+        ],
+        "conflict_records": [
+          {
+            "conflict_type": "exclusive_position",
+            "state_key": "cx:entity:01js0bd0000000000000000000|contains|cx:entity:01js0tk0000000000000000000",
+            "winner": "cx:operation:01js0mv2000000000000000000",
+            "losers": ["cx:operation:01js0mv1000000000000000000"],
+            "reason": "same auth weight; later HLC wins by deterministic operation order"
+          }
+        ]
+      },
+      "assertions": [
+        "exactly one active_position_register exists for the state_key",
+        "resolved_position container_id, rank, and source_operation_id all come from the same winning cx.relation.move",
+        "loser operation does not remain active in ordinary Kanban projection",
+        "conflict_records preserve winner, loser, state_key, and deterministic reason"
+      ]
     },
     {
       "name": "kanban_atomic_task_move",

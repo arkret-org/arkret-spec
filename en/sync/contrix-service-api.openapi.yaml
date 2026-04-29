@@ -362,6 +362,10 @@ components:
           pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
       additionalProperties: false
     KanbanProjectionColumn:
+      oneOf:
+        - $ref: "#/components/schemas/KanbanFieldValueProjectionColumn"
+        - $ref: "#/components/schemas/KanbanCollectionProjectionColumn"
+    KanbanProjectionColumnBase:
       type: object
       required: [key, title, source, cards, limited]
       properties:
@@ -375,17 +379,14 @@ components:
           type: string
           pattern: "^[0-9A-Za-z]{1,128}$"
         source:
-          oneOf:
-            - $ref: "#/components/schemas/KanbanFieldValueColumnSource"
-            - $ref: "#/components/schemas/KanbanCollectionColumnSource"
+          type: object
         cards:
           type: array
-          items:
-            $ref: "#/components/schemas/KanbanProjectionCard"
         next_cursor:
-          type:
-            - string
-            - "null"
+          oneOf:
+            - type: string
+              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
+            - type: "null"
         limited:
           type: boolean
         wip_state:
@@ -395,6 +396,28 @@ components:
           type: integer
           minimum: 0
       additionalProperties: false
+    KanbanFieldValueProjectionColumn:
+      allOf:
+        - $ref: "#/components/schemas/KanbanProjectionColumnBase"
+        - type: object
+          properties:
+            source:
+              $ref: "#/components/schemas/KanbanFieldValueColumnSource"
+            cards:
+              type: array
+              items:
+                $ref: "#/components/schemas/KanbanFieldValueProjectionCard"
+    KanbanCollectionProjectionColumn:
+      allOf:
+        - $ref: "#/components/schemas/KanbanProjectionColumnBase"
+        - type: object
+          properties:
+            source:
+              $ref: "#/components/schemas/KanbanCollectionColumnSource"
+            cards:
+              type: array
+              items:
+                $ref: "#/components/schemas/KanbanRelationProjectionCard"
     KanbanProjectionCard:
       type: object
       required: [entity, position]
@@ -405,8 +428,10 @@ components:
           properties:
             id:
               type: string
+              pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
             entity_type:
               type: string
+              minLength: 1
             title:
               type: string
             fields:
@@ -417,6 +442,20 @@ components:
             - $ref: "#/components/schemas/KanbanFieldValueCardPosition"
             - $ref: "#/components/schemas/KanbanRelationCardPosition"
       additionalProperties: false
+    KanbanFieldValueProjectionCard:
+      allOf:
+        - $ref: "#/components/schemas/KanbanProjectionCard"
+        - type: object
+          properties:
+            position:
+              $ref: "#/components/schemas/KanbanFieldValueCardPosition"
+    KanbanRelationProjectionCard:
+      allOf:
+        - $ref: "#/components/schemas/KanbanProjectionCard"
+        - type: object
+          properties:
+            position:
+              $ref: "#/components/schemas/KanbanRelationCardPosition"
     KanbanFieldValueCardPosition:
       type: object
       required: [model, container_id, rank]

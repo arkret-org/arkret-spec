@@ -9,7 +9,340 @@
     { "name": "filter_mismatch", "expected": "invalid_param_or_describe_guidance" },
     { "name": "to_device_ack", "expected": "acked_message_not_redelivered" },
     { "name": "snapshot_manifest_chunk_frontier", "expected": "state_hash_and_chunks_verify" },
-    { "name": "kanban_projection_column_pagination", "expected": "per_column_cursor_does_not_claim_other_columns_complete" },
-    { "name": "kanban_projection_hidden_counts", "expected": "hidden_cards_do_not_contribute_to_exact_counts_without_policy" }
+    {
+      "name": "kanban_projection_column_pagination",
+      "vector": "cx.vector.sync.kanban_projection_column_pagination.v1",
+      "schema_refs": {
+        "request": "QueryRequest",
+        "response": "KanbanProjectionResponse"
+      },
+      "initial_request": {
+        "projection": "kanban",
+        "view_id": "cx:view:01js0vw0000000000000000000",
+        "entity_types": ["task"],
+        "limit": 2
+      },
+      "initial_response": {
+        "projection": "kanban",
+        "view_id": "cx:view:01js0vw0000000000000000000",
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "frontier": {
+          "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "operation_ids": ["cx:operation:01js0qp0000000000000000000"]
+        },
+        "columns": [
+          {
+            "key": "todo",
+            "title": "Todo",
+            "rank": "F",
+            "source": {
+              "model": "field_value",
+              "field": "fields.status",
+              "value": "todo"
+            },
+            "cards": [
+              {
+                "entity": {
+                  "id": "cx:entity:01js0ta0000000000000000000",
+                  "entity_type": "task",
+                  "title": "Task A"
+                },
+                "position": {
+                  "model": "field_value",
+                  "container_id": "todo",
+                  "rank": "F"
+                }
+              },
+              {
+                "entity": {
+                  "id": "cx:entity:01js0tb0000000000000000000",
+                  "entity_type": "task",
+                  "title": "Task B"
+                },
+                "position": {
+                  "model": "field_value",
+                  "container_id": "todo",
+                  "rank": "V"
+                }
+              }
+            ],
+            "next_cursor": "cx:cursor:kanban_todo_after_task_b",
+            "limited": true
+          },
+          {
+            "key": "done",
+            "title": "Done",
+            "rank": "V",
+            "source": {
+              "model": "field_value",
+              "field": "fields.status",
+              "value": "done"
+            },
+            "cards": [
+              {
+                "entity": {
+                  "id": "cx:entity:01js0tz0000000000000000000",
+                  "entity_type": "task",
+                  "title": "Task Z"
+                },
+                "position": {
+                  "model": "field_value",
+                  "container_id": "done",
+                  "rank": "V"
+                }
+              }
+            ],
+            "next_cursor": null,
+            "limited": false
+          }
+        ]
+      },
+      "followup_request": {
+        "projection": "kanban",
+        "view_id": "cx:view:01js0vw0000000000000000000",
+        "cursor": "cx:cursor:kanban_todo_after_task_b",
+        "limit": 2
+      },
+      "expected_followup_response": {
+        "projection": "kanban",
+        "view_id": "cx:view:01js0vw0000000000000000000",
+        "frontier": {
+          "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "columns": [
+          {
+            "key": "todo",
+            "title": "Todo",
+            "source": {
+              "model": "field_value",
+              "field": "fields.status",
+              "value": "todo"
+            },
+            "cards": [
+              {
+                "entity": {
+                  "id": "cx:entity:01js0tc0000000000000000000",
+                  "entity_type": "task",
+                  "title": "Task C"
+                },
+                "position": {
+                  "model": "field_value",
+                  "container_id": "todo",
+                  "rank": "k"
+                }
+              }
+            ],
+            "next_cursor": null,
+            "limited": false
+          }
+        ]
+      },
+      "assertions": [
+        "initial_response.columns[todo].limited == true",
+        "initial_response.columns[done].limited == false",
+        "followup_request.cursor resumes only the todo column",
+        "expected_followup_response validates as KanbanProjectionResponse"
+      ]
+    },
+    {
+      "name": "kanban_projection_hidden_counts",
+      "vector": "cx.vector.sync.kanban_projection_hidden_counts.v1",
+      "schema_refs": {
+        "view": "view.schema.json",
+        "response": "KanbanProjectionResponse"
+      },
+      "input": {
+        "base_view": {
+          "id": "cx:view:01js0vw0000000000000000000",
+          "type": "view",
+          "space_id": "cx:space:01js0sp0000000000000000000",
+          "kind": "kanban",
+          "query": {
+            "entity_types": ["task"]
+          },
+          "kanban": {
+            "column_model": "field_value",
+            "group_by": "fields.status",
+            "columns": [
+              {
+                "key": "review",
+                "title": "Review",
+                "rank": "F"
+              }
+            ],
+            "card_order_by": [
+              {
+                "field": "fields.rank",
+                "direction": "asc"
+              }
+            ]
+          },
+          "created_by": "did:web:alice.example",
+          "created_at": "2026-04-29T00:00:00Z"
+        },
+        "actor_visibility": {
+          "visible_entities": ["cx:entity:01js0tv0000000000000000000"],
+          "hidden_entities": ["cx:entity:01js0th0000000000000000000"]
+        },
+        "canonical_column_membership": {
+          "review": [
+            "cx:entity:01js0tv0000000000000000000",
+            "cx:entity:01js0th0000000000000000000"
+          ]
+        }
+      },
+      "policy_cases": [
+        {
+          "name": "omit",
+          "hidden_count_policy": "omit",
+          "allowed_response": {
+            "projection": "kanban",
+            "view_id": "cx:view:01js0vw0000000000000000000",
+            "frontier": {
+              "state_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            },
+            "columns": [
+              {
+                "key": "review",
+                "title": "Review",
+                "source": {
+                  "model": "field_value",
+                  "field": "fields.status",
+                  "value": "review"
+                },
+                "cards": [
+                  {
+                    "entity": {
+                      "id": "cx:entity:01js0tv0000000000000000000",
+                      "entity_type": "task",
+                      "title": "Visible task"
+                    },
+                    "position": {
+                      "model": "field_value",
+                      "container_id": "review",
+                      "rank": "F"
+                    }
+                  }
+                ],
+                "next_cursor": null,
+                "limited": false
+              }
+            ]
+          },
+          "rejected_response_fragments": [
+            {
+              "reason": "hidden_count_policy=omit forbids visible or canonical count exposure",
+              "column_key": "review",
+              "total_estimate": 1
+            },
+            {
+              "reason": "hidden_count_policy=omit cannot expose canonical hidden membership",
+              "column_key": "review",
+              "total_estimate": 2
+            }
+          ]
+        },
+        {
+          "name": "authorized_estimate",
+          "hidden_count_policy": "authorized_estimate",
+          "allowed_response": {
+            "projection": "kanban",
+            "view_id": "cx:view:01js0vw0000000000000000000",
+            "frontier": {
+              "state_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+            },
+            "columns": [
+              {
+                "key": "review",
+                "title": "Review",
+                "source": {
+                  "model": "field_value",
+                  "field": "fields.status",
+                  "value": "review"
+                },
+                "cards": [
+                  {
+                    "entity": {
+                      "id": "cx:entity:01js0tv0000000000000000000",
+                      "entity_type": "task",
+                      "title": "Visible task"
+                    },
+                    "position": {
+                      "model": "field_value",
+                      "container_id": "review",
+                      "rank": "F"
+                    }
+                  }
+                ],
+                "next_cursor": null,
+                "limited": false,
+                "total_estimate": 1
+              }
+            ]
+          },
+          "rejected_response_fragments": [
+            {
+              "reason": "authorized_estimate is still visibility-trimmed unless separate aggregate policy grants hidden counts",
+              "column_key": "review",
+              "total_estimate": 2
+            }
+          ]
+        },
+        {
+          "name": "authorized_exact",
+          "hidden_count_policy": "authorized_exact",
+          "allowed_response": {
+            "projection": "kanban",
+            "view_id": "cx:view:01js0vw0000000000000000000",
+            "frontier": {
+              "state_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+            },
+            "columns": [
+              {
+                "key": "review",
+                "title": "Review",
+                "source": {
+                  "model": "field_value",
+                  "field": "fields.status",
+                  "value": "review"
+                },
+                "cards": [
+                  {
+                    "entity": {
+                      "id": "cx:entity:01js0tv0000000000000000000",
+                      "entity_type": "task",
+                      "title": "Visible task"
+                    },
+                    "position": {
+                      "model": "field_value",
+                      "container_id": "review",
+                      "rank": "F"
+                    }
+                  }
+                ],
+                "next_cursor": null,
+                "limited": false,
+                "total_estimate": 1
+              }
+            ]
+          },
+          "rejected_response_fragments": [
+            {
+              "reason": "authorized_exact is exact over authorized visible cards, not hidden canonical membership",
+              "column_key": "review",
+              "total_estimate": 2
+            }
+          ]
+        }
+      ],
+      "assertions": [
+        "each policy case view validates after applying hidden_count_policy to input.base_view.kanban",
+        "each allowed_response validates as KanbanProjectionResponse",
+        "each allowed_response.columns[review].cards contains only visible_entities",
+        "omit case must not return total_estimate",
+        "authorized_estimate and authorized_exact may return only visibility-trimmed counts unless separate aggregate policy grants hidden counts",
+        "cursor shape and error behavior must not reveal hidden_entities"
+      ]
+    }
   ]
 }
