@@ -4,20 +4,13 @@
 
 Contrix must remain human-friendly, so the protocol must support natural projections into:
 
-- boards
-- lists
-- tables
-- calendars
-- timelines
-- graphs
-- activity feeds
-- chat
-- topic forums
-- single-thread discussions
-- memory review queues
-- agent run views
+- boards, lists, tables, calendars, and Gantt views
+- timelines, activity feeds, chat, topic forums, and single-thread discussions
+- graphs and trees
+- documents
+- dashboards, review queues, inboxes, notifications, memory reviews, and agent run views
 
-All of these presentation modes must come from the same substrate:
+These presentation modes are `preset` values, not new protocol roots. All of them must come from the same substrate:
 
 ```txt
 Space + Actor + Entity + Relation + Event
@@ -35,18 +28,30 @@ Views do not carry the canonical truth of underlying objects.
 
 A task Entity may appear in:
 
-- a Kanban board
-- a list
-- a calendar
-- a thread anchor
+- `collection` / `preset=kanban`
+- `collection` / `preset=list`
+- `collection` / `preset=calendar`
+- a `timeline` thread anchor
 
 A message Entity may appear in:
 
-- a chat timeline
-- a topic thread
-- an activity feed
+- `timeline` / `preset=chat`
+- `timeline` / `preset=thread`
+- `timeline` / `preset=activity`
 
-### 2.3 Shared / Private / System Must Coexist
+### 2.3 Few Core Primitives, Many Product Presets
+
+The protocol core defines only five `View.kind` values:
+
+- `collection`
+- `timeline`
+- `graph`
+- `document`
+- `composite`
+
+`kanban`, `table`, `thread`, `chat`, `review_queue`, and similar product shapes are `preset` values. New product shapes SHOULD add a preset first, not a new top-level `kind`. A new top-level `kind` is justified only when the five existing primitives cannot express the required reducer, cursor, authorization, or projection contract.
+
+### 2.4 Shared / Private / System Must Coexist
 
 The first version should support:
 
@@ -54,7 +59,7 @@ The first version should support:
 - `private`
 - `system`
 
-### 2.4 Unified Context Timeline
+### 2.5 Unified Context Timeline
 
 One work item may require board, graph, and chat perspectives at the same time.  
 This should be supported by a context projection instead of splitting canonical meaning:
@@ -75,8 +80,9 @@ Suggested fields:
   "id": "cx:view:01JS0VW000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "created_by": "did:web:acme.example.com",
-  "kind": "kanban",
-  "name": "Release Flow",
+  "kind": "collection",
+  "preset": "kanban",
+  "title": "Release Flow",
   "visibility": "shared",
   "query": {
     "entity_types": ["task", "issue"],
@@ -84,9 +90,23 @@ Suggested fields:
       { "field": "archived", "op": "neq", "value": true }
     ]
   },
-  "order_by": [
-    { "field": "fields.rank", "direction": "asc" }
-  ],
+  "collection": {
+    "item_entity_types": ["task", "issue"],
+    "item_render": "card",
+    "item_order_by": [
+      { "field": "fields.rank", "direction": "asc" }
+    ],
+    "grouping": {
+      "mode": "field",
+      "field": "fields.status",
+      "lanes": [
+        { "key": "todo", "title": "Todo", "rank": "F" },
+        { "key": "in_progress", "title": "In Progress", "rank": "V" },
+        { "key": "done", "title": "Done", "rank": "k" }
+      ],
+      "hidden_count_policy": "omit"
+    }
+  },
   "visible_fields": [
     "title",
     "assignees",
@@ -96,57 +116,21 @@ Suggested fields:
 }
 ```
 
-## 4. Standard `kind` Values
-
-### 4.1 Work-object Views
-
-- `kanban`
-- `list`
-- `table`
-- `calendar`
-- `timeline`
-- `graph`
-- `tree`
-- `gantt`
-- `matrix`
-- `document`
-- `dashboard`
-
-### 4.2 Conversation Views
-
-- `chat`
-- `forum`
-- `thread`
-- `activity`
-- `inbox`
-- `notifications`
-
-### 4.3 Review and Agent Views
-
-- `review_queue`
-- `memory_review`
-- `agent_runs`
-- `context_timeline`
-- `moderation_queue`
-
-### 4.4 Product View Profiles
+## 4. Standard `kind` and `preset`
 
 Each top-level `kind` maps to a machine-verifiable configuration profile. `layout` is only a UI hint and never replaces the profile config.
 
-| Profile | View kinds | Required config | Standard projection response |
+| Core kind | Standard presets | Required config | Standard projection response |
 | --- | --- | --- | --- |
-| Board | `kanban` | `kanban` | `KanbanProjectionResponse` |
-| Row | `list`, `table` | `tabular` | `RowProjectionResponse` |
-| Time window | `calendar`, `gantt` | `time_window` | `RowProjectionResponse` |
-| Timeline | `timeline`, `activity`, `context_timeline` | `timeline` | `TimelineProjectionResponse` |
-| Conversation | `chat`, `thread`, `forum` | `conversation` | `TimelineProjectionResponse` |
-| Graph | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
-| Queue | `review_queue`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `moderation_queue` | `queue` | `RowProjectionResponse` |
-| Matrix | `matrix` | `matrix` | `RowProjectionResponse` |
-| Document | `document` | `document` | `RowProjectionResponse` |
-| Dashboard | `dashboard` | `dashboard` | `RowProjectionResponse` |
+| `collection` | `kanban`, `list`, `table`, `calendar`, `gantt`, `review_queue`, `matrix`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `moderation_queue` | `collection` | `CollectionProjectionResponse` |
+| `timeline` | `timeline`, `chat`, `thread`, `forum`, `activity`, `context_timeline` | `timeline`; conversation presets also require `conversation` or anchor/relation | `TimelineProjectionResponse` |
+| `graph` | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
+| `document` | `document` | `document` | `DocumentProjectionResponse` |
+| `composite` | `dashboard` | `dashboard` | `CompositeProjectionResponse` |
 
-For non-raw projections, Index / AppView MUST return `view_id`, `frontier`, and the standard response profile. Clients must not treat an arbitrary object array as a standard View projection.
+For non-raw projections, Index / AppView MUST return `view_id`, `frontier`, and the standard response for the core primitive. Clients must not treat an arbitrary object array as a standard View projection.
+
+A Kanban card, table row, calendar event, and review queue item are different render surfaces over `collection.items[*]`. A `thread` or `message` Entity MAY be displayed as a Kanban card when it satisfies `collection.item_entity_types` and authorization trimming.
 
 ## 5. Query Model
 
@@ -307,11 +291,11 @@ The canonical input for Kanban views should be:
 - `entity_type = "collection"`
 - `entity_type = "task"` or another work object type
 - Relation `relation_kind = "contains"` / `belongs_to`
-- `kind = "kanban"`
+- `kind = "collection"` + `preset = "kanban"`
 
 rather than some UI-private array-of-columns structure.
 
-For v1 interoperability, Kanban views MUST use the machine-verifiable `kanban` config in `view.schema.json`. Field-value boards use `cx.task.move` so the group value and rank converge atomically; collection boards MUST explicitly declare `kanban.card_relation_kind` and use `cx.relation.move` within a `scope_container_id` so one card has one active position per board scope. Projection card positions are discriminated: field-value positions use `model="field_value"`, while relation-backed positions use `model="relation"` and include `scope_container_id`, `container_id`, `relation_kind`, `relation_id`, and `rank`. WIP enforcement for `reject` and `require_review` MUST use the untrimmed canonical active column membership, while Index / AppView Kanban projections return authorization-trimmed `columns[]` with per-column cursors; `authorized_estimate` and `authorized_exact` counts are visibility-trimmed unless a separate aggregate-count policy grants hidden membership counts.
+For v1 interoperability, Kanban views MUST use the machine-verifiable `collection` config in `view.schema.json` with `preset="kanban"`. Field-value boards use `cx.task.move` so the group value and rank converge atomically; collection boards MUST explicitly declare `collection.grouping.item_relation_kind` and use `cx.relation.move` within a `scope_container_id` so one item has one active position per board scope. Projection item positions are discriminated: field-value positions use `model="field_value"`, while relation-backed positions use `model="relation"` and include `scope_container_id`, `container_id`, `relation_kind`, `relation_id`, and `rank`. WIP enforcement for `reject` and `require_review` MUST use the untrimmed canonical active column membership, while Index / AppView Kanban preset projections return authorization-trimmed `groups[]` with per-group cursors; `authorized_estimate` and `authorized_exact` counts are visibility-trimmed unless a separate aggregate-count policy grants hidden membership counts.
 
 ### 7.2 Chat
 
@@ -394,8 +378,8 @@ The current draft recommends fixing:
 
 - views as independent objects
 - structured JSON queries first
-- standard `kanban/chat/forum/thread/inbox/notifications` and related view kinds
-- boards and chat as standard projections rather than protocol roots
+- standard `collection/timeline/graph/document/composite` core view kinds
+- `kanban/chat/forum/thread/inbox/notifications` and related product shapes as presets, not protocol roots
 - shared/private/system coexistence
 
 ## 13. Further Work

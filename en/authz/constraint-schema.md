@@ -149,8 +149,10 @@ All constraints follow this structure:
 ```json
 {
   "constraint_type": "scope_limitation",
-  "allowed_view_kinds": ["kanban", "list"],
-  "denied_view_kinds": ["graph", "admin"]
+  "allowed_view_kinds": ["collection"],
+  "allowed_view_presets": ["kanban", "list"],
+  "denied_view_kinds": ["graph"],
+  "denied_view_presets": ["admin"]
 }
 ```
 

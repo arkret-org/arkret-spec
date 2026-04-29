@@ -240,12 +240,29 @@ Space SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 
 ```json
 {
-  "kind": "moderation_queue",
+  "kind": "collection",
+  "preset": "moderation_queue",
   "query": {
     "entity_types": ["moderation_report"],
     "filters": [
       { "field": "fields.status", "op": "eq", "value": "pending" }
     ]
+  },
+  "collection": {
+    "item_entity_types": ["moderation_report"],
+    "item_render": "row",
+    "item_order_by": [
+      { "field": "fields.priority", "direction": "desc" },
+      { "field": "created_at", "direction": "asc" }
+    ],
+    "grouping": {
+      "mode": "field",
+      "field": "fields.status",
+      "lanes": [
+        { "key": "pending", "title": "Pending" }
+      ],
+      "hidden_count_policy": "omit"
+    }
   }
 }
 ```

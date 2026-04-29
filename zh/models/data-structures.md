@@ -200,26 +200,57 @@ Schema id: `cx.schema.view.v1`
 | `id` | yes | `id:view` |  | View ID。 |
 | `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `kind` | yes | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, graph, timeline, review_queue, matrix, document, dashboard, activity, inbox, notifications, memory_review, agent_runs, context_timeline, moderation_queue)` |  | 投影形态。 |
+| `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
+| `preset` | no | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, timeline, review_queue, matrix, document, dashboard, activity, inbox, notifications, memory_review, agent_runs, context_timeline, moderation_queue, custom)` | 必须与 `kind` 映射一致。 | 产品形态模板，不是新的协议根类型。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
-| `kanban` | conditional | `KanbanConfig` | `kind="kanban"` 时 MUST 设置。 | 看板投影配置。 |
-| `tabular` | conditional | `TabularConfig` | `kind in (list, table)` 时 MUST 设置。 | 行/列表/表格展示配置。 |
-| `time_window` | conditional | `TimeWindowConfig` | `kind in (calendar, gantt)` 时 MUST 设置。 | 时间窗口配置。 |
-| `timeline` | conditional | `TimelineConfig` | `kind in (timeline, activity, context_timeline)` 时 MUST 设置。 | 时间线配置。 |
-| `conversation` | conditional | `ConversationConfig` | `kind in (chat, thread, forum)` 时 MUST 设置。 | 会话配置。 |
-| `graph` | conditional | `GraphConfig` | `kind in (graph, tree)` 时 MUST 设置。 | 图/树遍历配置。 |
-| `queue` | conditional | `QueueConfig` | `kind in (review_queue, inbox, notifications, memory_review, agent_runs, moderation_queue)` 时 MUST 设置。 | 队列配置。 |
-| `matrix` | conditional | `MatrixConfig` | `kind="matrix"` 时 MUST 设置。 | 双轴分组配置。 |
+| `collection` | conditional | `CollectionConfig` | `kind="collection"` 时 MUST 设置。 | 集合投影配置；覆盖 kanban/list/table/calendar/gantt/queue/matrix 等 preset。 |
+| `kanban` | no | `KanbanConfig` | deprecated；兼容旧实现。 | 旧看板投影配置；新实现 MUST 使用 `collection`。 |
+| `tabular` | no | `TabularConfig` | deprecated；兼容旧实现。 | 旧行/列表/表格配置。 |
+| `time_window` | no | `TimeWindowConfig` | deprecated；兼容旧实现。 | 旧时间窗口配置。 |
+| `timeline` | conditional | `TimelineConfig` | `kind="timeline"` 时 MUST 设置。 | 时间线配置。 |
+| `conversation` | conditional | `ConversationConfig` | `preset in (chat, thread, forum)` 时 MUST 设置，或 query 必须提供 anchor/relation。 | 会话配置。 |
+| `graph` | conditional | `GraphConfig` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
+| `queue` | no | `QueueConfig` | deprecated；兼容旧实现。 | 旧队列配置；新实现 SHOULD 映射到 `collection`。 |
+| `matrix` | no | `MatrixConfig` | deprecated；兼容旧实现。 | 旧双轴配置；新实现 SHOULD 映射到 `collection.grouping.mode="matrix"`。 |
 | `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
 | `dashboard` | conditional | `DashboardConfig` | `kind="dashboard"` 时 MUST 设置。 | 仪表盘 widget 配置。 |
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-`KanbanConfig` 字段：
+`CollectionConfig` 字段：
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `item_entity_types` | yes | `array<string>` | 至少 1 项。 | 可投影为 item/card/row/message 的 Entity 类型。 |
+| `item_render` | yes | `enum(card, row, tile, compact, badge, message)` | `preset="kanban"` SHOULD 为 `card`。 | 默认展示面。 |
+| `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 preset SHOULD 使用 rank。 |
+| `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
+| `grouping` | yes | `CollectionGrouping` |  | 分组/列/时间桶/矩阵配置。 |
+| `selection_policy` | no | `enum(none, single, multiple)` | 默认 `multiple`。 | UI 选择策略。 |
+| `count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 集合级计数策略。 |
+| `page_size` | no | `integer` | 1..1000。 | 默认分页大小。 |
+
+`CollectionGrouping` 字段：
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
+| `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
+| `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
+| `board_entity_id` | conditional | `id:entity` | `mode="relation_container"` 时必填。 | board/root Entity。 |
+| `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
+| `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
+| `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |
+| `end_field` | no | `string` |  | 时间窗口终点字段。 |
+| `rows_by` / `columns_by` | conditional | `string` | `mode="matrix"` 时必填。 | 矩阵双轴字段。 |
+| `hidden_count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 分组计数授权策略。 |
+| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 默认 `warn`。 | Kanban/review 类 preset 的 WIP enforcement。 |
+
+`KanbanConfig` 是旧兼容配置。新实现 MUST 使用 `CollectionConfig` + `preset="kanban"`。旧字段如下：
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |

@@ -33,10 +33,10 @@
 
 - `space_ids`: REQUIRED，查询范围。
 - `entity_types`: OPTIONAL，限制 Entity type。
-- `anchor_entity_id`: OPTIONAL，`context_timeline` 的上下文锚点对象 ID。若设置，表示查询应围绕该对象收敛相关边界与事件。
+- `anchor_entity_id`: OPTIONAL，`timeline` / `preset="context_timeline"` 的上下文锚点对象 ID。若设置，表示查询应围绕该对象收敛相关边界与事件。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
-- `context`: OPTIONAL，上下文时间线聚合参数，若存在用于 `context_timeline` 聚合：
+- `context`: OPTIONAL，上下文时间线聚合参数，若存在用于 `timeline` / `preset="context_timeline"` 聚合：
   - `event_kinds`: OPTIONAL，返回的事件 kind 列表。
   - `relation_kinds`: OPTIONAL，关系收敛时允许的关系类型。
   - `event_tiebreak`: OPTIONAL，事件同序比较的 tie-break 字段名，例如 `event_id`。

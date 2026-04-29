@@ -11,17 +11,15 @@
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "kind": {
       "type": "string",
-      "enum": [
-        "kanban", "list", "table", "calendar", "gantt", "chat", "thread", "forum", "tree",
-        "graph", "timeline", "review_queue", "matrix", "document", "dashboard", "activity",
-        "inbox", "notifications", "memory_review", "agent_runs", "context_timeline", "moderation_queue"
-      ]
+      "enum": ["collection", "timeline", "graph", "document", "composite"]
     },
+    "preset": { "$ref": "#/$defs/view_preset" },
     "title": { "type": "string" },
     "query": { "$ref": "#/$defs/query" },
     "visible_fields": { "type": "array", "items": { "$ref": "#/$defs/field_path" } },
     "layout": { "type": "object" },
-    "kanban": { "$ref": "#/$defs/kanban_config" },
+    "collection": { "$ref": "#/$defs/collection_config" },
+    "kanban": { "$ref": "#/$defs/kanban_config", "deprecated": true },
     "tabular": { "$ref": "#/$defs/tabular_config" },
     "time_window": { "$ref": "#/$defs/time_window_config" },
     "timeline": { "$ref": "#/$defs/timeline_config" },
@@ -38,14 +36,14 @@
   "allOf": [
     {
       "if": {
-        "properties": { "kind": { "const": "kanban" } },
+        "properties": { "kind": { "const": "collection" } },
         "required": ["kind"]
       },
-      "then": { "required": ["kanban"] }
+      "then": { "required": ["collection"] }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "kanban" } },
+        "properties": { "kind": { "const": "collection" } },
         "required": ["kind"]
       },
       "then": {
@@ -66,36 +64,49 @@
     },
     {
       "if": {
-        "properties": { "kind": { "enum": ["list", "table"] } },
-        "required": ["kind"]
+        "properties": {
+          "preset": {
+            "enum": [
+              "kanban", "list", "table", "calendar", "gantt", "review_queue", "matrix",
+              "inbox", "notifications", "memory_review", "agent_runs", "moderation_queue"
+            ]
+          }
+        },
+        "required": ["preset"]
       },
-      "then": { "required": ["tabular"] }
+      "then": {
+        "properties": { "kind": { "const": "collection" } }
+      }
     },
     {
       "if": {
-        "properties": { "kind": { "enum": ["calendar", "gantt"] } },
-        "required": ["kind"]
-      },
-      "then": { "required": ["time_window"] }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "enum": ["timeline", "activity", "context_timeline"] } },
+        "properties": { "kind": { "const": "timeline" } },
         "required": ["kind"]
       },
       "then": { "required": ["timeline"] }
     },
     {
       "if": {
-        "properties": { "kind": { "enum": ["chat", "thread", "forum"] } },
-        "required": ["kind"]
+        "properties": {
+          "preset": { "enum": ["timeline", "chat", "thread", "forum", "activity", "context_timeline"] }
+        },
+        "required": ["preset"]
+      },
+      "then": {
+        "properties": { "kind": { "const": "timeline" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "preset": { "enum": ["chat", "thread", "forum"] } },
+        "required": ["preset"]
       },
       "then": { "required": ["conversation"] }
     },
     {
       "if": {
-        "properties": { "kind": { "enum": ["chat", "thread", "forum"] } },
-        "required": ["kind"]
+        "properties": { "preset": { "enum": ["chat", "thread", "forum"] } },
+        "required": ["preset"]
       },
       "then": {
         "properties": {
@@ -110,14 +121,23 @@
     },
     {
       "if": {
-        "properties": { "kind": { "enum": ["graph", "tree"] } },
+        "properties": { "kind": { "const": "graph" } },
         "required": ["kind"]
       },
       "then": { "required": ["graph"] }
     },
     {
       "if": {
-        "properties": { "kind": { "enum": ["graph", "tree"] } },
+        "properties": { "preset": { "enum": ["graph", "tree"] } },
+        "required": ["preset"]
+      },
+      "then": {
+        "properties": { "kind": { "const": "graph" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "graph" } },
         "required": ["kind"]
       },
       "then": {
@@ -128,32 +148,14 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "context_timeline" } },
-        "required": ["kind"]
+        "properties": { "preset": { "const": "context_timeline" } },
+        "required": ["preset"]
       },
       "then": {
         "properties": {
           "query": { "required": ["anchor_entity_id", "context"] }
         }
       }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "enum": ["review_queue", "inbox", "notifications", "memory_review", "agent_runs", "moderation_queue"]
-          }
-        },
-        "required": ["kind"]
-      },
-      "then": { "required": ["queue"] }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "matrix" } },
-        "required": ["kind"]
-      },
-      "then": { "required": ["matrix"] }
     },
     {
       "if": {
@@ -164,13 +166,40 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "dashboard" } },
+        "properties": { "preset": { "const": "document" } },
+        "required": ["preset"]
+      },
+      "then": {
+        "properties": { "kind": { "const": "document" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "composite" } },
         "required": ["kind"]
       },
       "then": { "required": ["dashboard"] }
+    },
+    {
+      "if": {
+        "properties": { "preset": { "const": "dashboard" } },
+        "required": ["preset"]
+      },
+      "then": {
+        "properties": { "kind": { "const": "composite" } }
+      }
     }
   ],
   "$defs": {
+    "view_preset": {
+      "type": "string",
+      "enum": [
+        "kanban", "list", "table", "calendar", "gantt", "chat", "thread", "forum", "tree",
+        "timeline", "review_queue", "matrix", "document", "dashboard", "activity",
+        "inbox", "notifications", "memory_review", "agent_runs", "context_timeline",
+        "moderation_queue", "custom"
+      ]
+    },
     "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
     "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
@@ -339,6 +368,130 @@
       },
       "additionalProperties": false
     },
+    "collection_lane": {
+      "type": "object",
+      "required": ["key", "title"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
+        "value": { "$ref": "#/$defs/filter_value" },
+        "collection_entity_id": { "$ref": "#/$defs/entity_id" },
+        "wip_limit": { "type": "integer", "minimum": 0 },
+        "wip_limit_enforcement": {
+          "type": "string",
+          "enum": ["warn", "reject", "require_review"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "collection_grouping": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["none", "field", "relation_container", "time_bucket", "matrix"]
+        },
+        "field": { "$ref": "#/$defs/field_path" },
+        "lanes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/collection_lane" },
+          "minItems": 1
+        },
+        "board_entity_id": { "$ref": "#/$defs/entity_id" },
+        "container_relation_kind": { "type": "string", "minLength": 1, "default": "contains" },
+        "item_relation_kind": { "type": "string", "minLength": 1 },
+        "start_field": { "$ref": "#/$defs/field_path" },
+        "end_field": { "$ref": "#/$defs/field_path" },
+        "timezone": { "type": "string", "minLength": 1, "default": "UTC" },
+        "bucket": { "type": "string", "enum": ["hour", "day", "week", "month", "quarter"], "default": "week" },
+        "overlap_policy": { "type": "string", "enum": ["include_overlap", "start_within_range"], "default": "include_overlap" },
+        "rows_by": { "$ref": "#/$defs/field_path" },
+        "columns_by": { "$ref": "#/$defs/field_path" },
+        "uncategorized_policy": {
+          "type": "string",
+          "enum": ["show", "hide", "reject"],
+          "default": "show"
+        },
+        "conflict_policy": {
+          "type": "string",
+          "enum": ["reducer_winner", "expose_conflict", "reject"],
+          "default": "reducer_winner"
+        },
+        "hidden_count_policy": {
+          "type": "string",
+          "enum": ["omit", "authorized_estimate", "authorized_exact"],
+          "default": "omit"
+        },
+        "wip_limit_enforcement": {
+          "type": "string",
+          "enum": ["warn", "reject", "require_review"],
+          "default": "warn"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "mode": { "const": "field" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["field", "lanes"] }
+        },
+        {
+          "if": {
+            "properties": { "mode": { "const": "relation_container" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["board_entity_id", "item_relation_kind"] }
+        },
+        {
+          "if": {
+            "properties": { "mode": { "const": "time_bucket" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["start_field", "timezone", "bucket"] }
+        },
+        {
+          "if": {
+            "properties": { "mode": { "const": "matrix" } },
+            "required": ["mode"]
+          },
+          "then": { "required": ["rows_by", "columns_by"] }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "collection_config": {
+      "type": "object",
+      "required": ["item_entity_types", "item_render", "item_order_by", "grouping"],
+      "properties": {
+        "item_entity_types": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "item_render": {
+          "type": "string",
+          "enum": ["card", "row", "tile", "compact", "badge", "message"],
+          "default": "row"
+        },
+        "item_order_by": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sort_spec" },
+          "minItems": 1
+        },
+        "display_fields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/display_column" }
+        },
+        "grouping": { "$ref": "#/$defs/collection_grouping" },
+        "selection_policy": { "type": "string", "enum": ["none", "single", "multiple"], "default": "multiple" },
+        "count_policy": { "type": "string", "enum": ["omit", "authorized_estimate", "authorized_exact"], "default": "omit" },
+        "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 }
+      },
+      "additionalProperties": false
+    },
     "tabular_config": {
       "type": "object",
       "required": ["columns"],
@@ -501,8 +654,9 @@
         "title": { "type": "string", "minLength": 1, "maxLength": 128 },
         "projection": {
           "type": "string",
-          "enum": ["list", "table", "calendar", "gantt", "timeline", "graph", "tree", "matrix", "review_queue", "activity", "inbox", "notifications", "memory_review", "agent_runs", "moderation_queue"]
+          "enum": ["collection", "timeline", "graph", "document", "composite"]
         },
+        "preset": { "$ref": "#/$defs/view_preset" },
         "query": { "$ref": "#/$defs/query" },
         "refresh_interval_ms": { "type": "integer", "minimum": 1000 }
       },
@@ -595,5 +749,5 @@
       "additionalProperties": false
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

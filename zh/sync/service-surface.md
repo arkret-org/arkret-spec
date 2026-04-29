@@ -371,7 +371,7 @@ POST /api/v1/index/query
 - 排序
 - cursor
 - limit
-- `view_id` 与 `projection`: 当 `projection="kanban"` 时，响应 MUST 使用 `views.md` 定义的标准 Kanban Projection Response，并支持列级 cursor。
+- `view_id`、`projection` 与 `preset`: 非 raw projection MUST 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如 Kanban 必须用 `projection="collection", preset="kanban"`，响应 MUST 使用 `views.md` 定义的标准 `CollectionProjectionResponse`，并支持分组级 cursor。
 - `sync_token`: 可选。如果提供，Index 节点在响应前 MUST 阻塞等待本地物化进度到达或超过该 token 指示的因果前沿 (如特定的 `commit_hash`)，以保障“读己之所写”体验。超时则返回 408 或 504。
 
 ### 6.4 thread / topic 查询

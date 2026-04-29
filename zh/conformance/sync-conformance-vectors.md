@@ -615,7 +615,8 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 
 ```json
 {
-  "projection": "kanban",
+  "projection": "collection",
+  "preset": "kanban",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "entity_types": ["task"],
   "limit": 2
@@ -626,14 +627,15 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 
 ```json
 {
-  "projection": "kanban",
+  "projection": "collection",
+  "preset": "kanban",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "frontier": {
     "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
     "operation_ids": ["cx:operation:01js0qp0000000000000000000"]
   },
-  "columns": [
+  "groups": [
     {
       "key": "todo",
       "title": "Todo",
@@ -643,7 +645,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
         "field": "fields.status",
         "value": "todo"
       },
-      "cards": [
+      "items": [
         {
           "entity": {
             "id": "cx:entity:01js0ta0000000000000000000",
@@ -681,7 +683,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
         "field": "fields.status",
         "value": "done"
       },
-      "cards": [
+      "items": [
         {
           "entity": {
             "id": "cx:entity:01js0tz0000000000000000000",
@@ -706,7 +708,8 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 
 ```json
 {
-  "projection": "kanban",
+  "projection": "collection",
+  "preset": "kanban",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "cursor": "cx:cursor:kanban_todo_after_task_b",
   "limit": 2
@@ -717,12 +720,13 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 
 ```json
 {
-  "projection": "kanban",
+  "projection": "collection",
+  "preset": "kanban",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "frontier": {
     "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
   },
-  "columns": [
+  "groups": [
     {
       "key": "todo",
       "title": "Todo",
@@ -731,7 +735,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
         "field": "fields.status",
         "value": "todo"
       },
-      "cards": [
+      "items": [
         {
           "entity": {
             "id": "cx:entity:01js0tc0000000000000000000",
@@ -757,7 +761,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 - 客户端 MUST 只把 `todo` 列标记为未完整窗口。
 - `cx:cursor:kanban_todo_after_task_b` 只能用于继续拉取 `todo` 列，不得作为整个 View 的全局 cursor。
 - `done.limited=false` 不得让客户端推断其他列完整。
-- 上述请求与响应 MUST 通过 `contrix-service-api.openapi.yaml` 中的 `QueryRequest` 与 `KanbanProjectionResponse` 校验。
+- 上述请求与响应 MUST 通过 `contrix-service-api.openapi.yaml` 中的 `QueryRequest` 与 `CollectionProjectionResponse` 校验，且必须带 `preset="kanban"`。
 
 ## 16. Vector: Kanban Projection Hidden Counts
 
@@ -775,18 +779,23 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
     "id": "cx:view:01js0vw0000000000000000000",
     "type": "view",
     "space_id": "cx:space:01js0sp0000000000000000000",
-    "kind": "kanban",
+    "kind": "collection",
+    "preset": "kanban",
     "query": {
       "entity_types": ["task"]
     },
-    "kanban": {
-      "column_model": "field_value",
-      "group_by": "fields.status",
-      "columns": [
-        { "key": "review", "title": "Review", "rank": "F" }
-      ],
-      "card_order_by": [{ "field": "fields.rank", "direction": "asc" }],
-      "hidden_count_policy": "omit"
+    "collection": {
+      "item_entity_types": ["task"],
+      "item_render": "card",
+      "item_order_by": [{ "field": "fields.rank", "direction": "asc" }],
+      "grouping": {
+        "mode": "field",
+        "field": "fields.status",
+        "lanes": [
+          { "key": "review", "title": "Review", "rank": "F" }
+        ],
+        "hidden_count_policy": "omit"
+      }
     },
     "created_by": "did:web:alice.example",
     "created_at": "2026-04-29T00:00:00Z"
@@ -808,12 +817,13 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
 
 ```json
 {
-  "projection": "kanban",
+  "projection": "collection",
+  "preset": "kanban",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "frontier": {
     "state_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
   },
-  "columns": [
+  "groups": [
     {
       "key": "review",
       "title": "Review",
@@ -822,7 +832,7 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
         "field": "fields.status",
         "value": "review"
       },
-      "cards": [
+      "items": [
         {
           "entity": {
             "id": "cx:entity:01js0tv0000000000000000000",
@@ -869,9 +879,11 @@ cx.vector.sync.view_projection_profiles.v1
 判定要点：
 
 - `projection` discriminator MUST 只匹配一个 OpenAPI response schema。
-- Row 类视图 MUST 返回 `RowProjectionResponse`，并让每个 `items[*].entity.id` 可追溯到 `cx:entity`。
-- Timeline / Chat 类视图 MUST 返回 `TimelineProjectionResponse`，并提供稳定 `sort_key`、`frontier`、redaction/tombstone 表达和 cursor grammar。
-- Graph / Tree 类视图 MUST 返回 `GraphProjectionResponse`，并提供 `nodes[]`、`edges[]`、`lazy` / `truncated` 标记和 Relation provenance。
+- Collection 类视图（包括 kanban/list/table/calendar/gantt/queue/matrix preset）MUST 返回 `CollectionProjectionResponse`，并让每个 `items[*].entity.id` 或 `groups[*].items[*].entity.id` 可追溯到 `cx:entity`。
+- Timeline 类视图（包括 chat/thread/forum/activity/context_timeline preset）MUST 返回 `TimelineProjectionResponse`，并提供稳定 `sort_key`、`frontier`、redaction/tombstone 表达和 cursor grammar。
+- Graph 类视图（包括 tree preset）MUST 返回 `GraphProjectionResponse`，并提供 `nodes[]`、`edges[]`、`lazy` / `truncated` 标记和 Relation provenance。
+- Document 类视图 MUST 返回 `DocumentProjectionResponse`，并提供 section `sort_key`、body/redaction 与 frontier。
+- Composite 类视图（dashboard preset）MUST 返回 `CompositeProjectionResponse`，并让每个 widget 携带自己的 projection/frontier/result 或标准 error。
 - 任一非 `raw` projection 缺少 `view_id` 或 `frontier` 均为失败。
 
 ## 18. 覆盖矩阵

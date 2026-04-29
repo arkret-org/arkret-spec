@@ -269,7 +269,8 @@ View 示例：
 {
   "id": "cx:view:01JS0VW000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "kind": "kanban",
+  "kind": "collection",
+  "preset": "kanban",
   "query": {
     "entity_types": ["task"],
     "filters": [

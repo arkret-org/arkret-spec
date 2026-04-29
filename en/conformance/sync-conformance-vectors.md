@@ -20,5 +20,5 @@ Expected behavior in English:
 - If validation fails, implementation MUST fall back to operation-only replay (or equivalent recovery path) and may mark the peer degraded.
 - Operations replay must start from the advertised `snapshot_frontier`, never as an unauthenticated new genesis.
 
-Standard View projection profile vectors cover row, timeline, and graph responses. Implementations must validate the corresponding fixtures in `artifacts/fixtures/sync-fixture.json` against the OpenAPI response profiles.
+Standard View projection profile vectors cover collection, timeline, graph, document, and composite responses. Kanban/list/table/calendar/gantt/queue/matrix presets validate through `CollectionProjectionResponse`; chat/thread/forum/activity/context timeline presets validate through `TimelineProjectionResponse`; tree validates through `GraphProjectionResponse`; dashboard validates through `CompositeProjectionResponse`. Implementations must validate the corresponding fixtures in `artifacts/fixtures/sync-fixture.json` against the OpenAPI response profiles.
 

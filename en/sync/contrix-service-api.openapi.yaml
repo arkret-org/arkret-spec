@@ -225,6 +225,31 @@ components:
               - required: [target_entity_id, target_space_id]
               - required: [target_actor_id, target_space_id]
       additionalProperties: false
+    ViewPreset:
+      type: string
+      enum:
+        - kanban
+        - list
+        - table
+        - calendar
+        - gantt
+        - chat
+        - thread
+        - forum
+        - tree
+        - timeline
+        - review_queue
+        - matrix
+        - document
+        - dashboard
+        - activity
+        - inbox
+        - notifications
+        - memory_review
+        - agent_runs
+        - context_timeline
+        - moderation_queue
+        - custom
     QueryRequest:
       type: object
       properties:
@@ -241,28 +266,13 @@ components:
           type: string
           enum:
             - raw
-            - kanban
-            - list
-            - table
-            - calendar
-            - gantt
-            - chat
-            - thread
-            - forum
-            - tree
-            - graph
+            - collection
             - timeline
-            - review_queue
-            - matrix
+            - graph
             - document
-            - dashboard
-            - activity
-            - inbox
-            - notifications
-            - memory_review
-            - agent_runs
-            - context_timeline
-            - moderation_queue
+            - composite
+        preset:
+          $ref: "#/components/schemas/ViewPreset"
         entity_types:
           type: array
           items:
@@ -296,40 +306,74 @@ components:
       additionalProperties: false
       allOf:
         - if:
+            required: [preset]
+          then:
+            required: [projection, view_id]
+        - if:
             properties:
               projection:
-                const: kanban
+                const: raw
+            required: [projection]
+          then:
+            not:
+              required: [preset]
+        - if:
+            properties:
+              projection:
+                enum:
+                  - collection
+                  - graph
+                  - timeline
+                  - document
+                  - composite
             required: [projection]
           then:
             required: [view_id]
         - if:
             properties:
-              projection:
-                enum:
-                  - list
-                  - table
-                  - calendar
-                  - gantt
-                  - chat
-                  - thread
-                  - forum
-                  - tree
-                  - graph
-                  - timeline
-                  - review_queue
-                  - matrix
-                  - document
-                  - dashboard
-                  - activity
-                  - inbox
-                  - notifications
-                  - memory_review
-                  - agent_runs
-                  - context_timeline
-                  - moderation_queue
-            required: [projection]
+              preset:
+                enum: [kanban, list, table, calendar, gantt, review_queue, matrix, inbox, notifications, memory_review, agent_runs, moderation_queue]
+            required: [preset]
           then:
-            required: [view_id]
+            properties:
+              projection:
+                const: collection
+        - if:
+            properties:
+              preset:
+                enum: [timeline, chat, thread, forum, activity, context_timeline]
+            required: [preset]
+          then:
+            properties:
+              projection:
+                const: timeline
+        - if:
+            properties:
+              preset:
+                enum: [graph, tree]
+            required: [preset]
+          then:
+            properties:
+              projection:
+                const: graph
+        - if:
+            properties:
+              preset:
+                const: document
+            required: [preset]
+          then:
+            properties:
+              projection:
+                const: document
+        - if:
+            properties:
+              preset:
+                const: dashboard
+            required: [preset]
+          then:
+            properties:
+              projection:
+                const: composite
     StateFrontier:
       type: object
       required: [state_hash]
@@ -365,9 +409,232 @@ components:
         stale:
           type: boolean
       additionalProperties: false
+    CollectionFieldValueGroupSource:
+      type: object
+      required: [model, field, value]
+      properties:
+        model:
+          type: string
+          const: field_value
+        field:
+          type: string
+          pattern: "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$"
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+      additionalProperties: false
+    CollectionRelationGroupSource:
+      type: object
+      required: [model, scope_container_id, container_id, relation_kind]
+      properties:
+        model:
+          type: string
+          const: relation_container
+        scope_container_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        container_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        relation_kind:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionTimeBucketGroupSource:
+      type: object
+      required: [model, start, end, timezone]
+      properties:
+        model:
+          type: string
+          const: time_bucket
+        start:
+          type: string
+          format: date-time
+          pattern: "Z$"
+        end:
+          type: string
+          format: date-time
+          pattern: "Z$"
+        timezone:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionMatrixGroupSource:
+      type: object
+      required: [model, row_key, column_key]
+      properties:
+        model:
+          type: string
+          const: matrix_cell
+        row_key:
+          type: string
+          minLength: 1
+        column_key:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionGroupSource:
+      oneOf:
+        - $ref: "#/components/schemas/CollectionFieldValueGroupSource"
+        - $ref: "#/components/schemas/CollectionRelationGroupSource"
+        - $ref: "#/components/schemas/CollectionTimeBucketGroupSource"
+        - $ref: "#/components/schemas/CollectionMatrixGroupSource"
+    CollectionFieldValuePosition:
+      type: object
+      required: [model, container_id, rank]
+      properties:
+        model:
+          type: string
+          const: field_value
+        container_id:
+          type: string
+          minLength: 1
+        rank:
+          type: string
+          pattern: "^[0-9A-Za-z]{1,128}$"
+      additionalProperties: false
+    CollectionRelationPosition:
+      type: object
+      required: [model, scope_container_id, container_id, relation_kind, relation_id, rank]
+      properties:
+        model:
+          type: string
+          const: relation
+        scope_container_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        container_id:
+          type: string
+          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+        relation_kind:
+          type: string
+          minLength: 1
+        relation_id:
+          type: string
+          pattern: "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+        rank:
+          type: string
+          pattern: "^[0-9A-Za-z]{1,128}$"
+      additionalProperties: false
+    CollectionTimeWindowPosition:
+      type: object
+      required: [model, start, sort_key]
+      properties:
+        model:
+          type: string
+          const: time_window
+        start:
+          type: string
+          format: date-time
+          pattern: "Z$"
+        end:
+          type:
+            - string
+            - "null"
+          format: date-time
+        timezone:
+          type: string
+          minLength: 1
+        sort_key:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionMatrixPosition:
+      type: object
+      required: [model, row_key, column_key, sort_key]
+      properties:
+        model:
+          type: string
+          const: matrix_cell
+        row_key:
+          type: string
+          minLength: 1
+        column_key:
+          type: string
+          minLength: 1
+        sort_key:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionProjectionGroup:
+      type: object
+      required: [key, title, source, items, limited]
+      properties:
+        key:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        rank:
+          type: string
+          pattern: "^[0-9A-Za-z]{1,128}$"
+        source:
+          $ref: "#/components/schemas/CollectionGroupSource"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectionItem"
+        next_cursor:
+          oneOf:
+            - type: string
+              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
+            - type: "null"
+        limited:
+          type: boolean
+        wip_state:
+          type: string
+          enum: [ok, over_limit, unknown]
+        total_estimate:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+    CollectionProjectionResponse:
+      type: object
+      required: [projection, view_id, frontier]
+      properties:
+        projection:
+          type: string
+          const: collection
+        preset:
+          $ref: "#/components/schemas/ViewPreset"
+        view_id:
+          type: string
+          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        space_id:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionProjectionGroup"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectionItem"
+        next_cursor:
+          oneOf:
+            - type: string
+              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
+            - type: "null"
+        total_estimate:
+          type: integer
+          minimum: 0
+        stale:
+          type: boolean
+      anyOf:
+        - required: [groups]
+        - required: [items]
+      additionalProperties: false
     KanbanProjectionResponse:
       type: object
       required: [projection, view_id, columns, frontier]
+      deprecated: true
+      description: Deprecated compatibility schema. New /index/query responses use CollectionProjectionResponse with preset=kanban.
       properties:
         projection:
           type: string
@@ -567,16 +834,32 @@ components:
       properties:
         entity:
           $ref: "#/components/schemas/ProjectionEntity"
+        render:
+          type: string
+          enum: [card, row, tile, compact, badge, message]
         display:
           type: object
         position:
-          type: object
+          oneOf:
+            - $ref: "#/components/schemas/CollectionFieldValuePosition"
+            - $ref: "#/components/schemas/CollectionRelationPosition"
+            - $ref: "#/components/schemas/CollectionTimeWindowPosition"
+            - $ref: "#/components/schemas/CollectionMatrixPosition"
+            - type: object
+              required: [sort_key]
+              properties:
+                sort_key:
+                  type: string
+                  minLength: 1
+              additionalProperties: false
         state:
           type: object
       additionalProperties: false
     RowProjectionResponse:
       type: object
       required: [projection, view_id, items, frontier]
+      deprecated: true
+      description: Deprecated compatibility schema. New /index/query responses use CollectionProjectionResponse with the appropriate preset.
       properties:
         projection:
           type: string
@@ -642,7 +925,9 @@ components:
       properties:
         projection:
           type: string
-          enum: [timeline, chat, thread, forum, activity, context_timeline]
+          const: timeline
+        preset:
+          $ref: "#/components/schemas/ViewPreset"
         view_id:
           type: string
           pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
@@ -707,7 +992,9 @@ components:
       properties:
         projection:
           type: string
-          enum: [graph, tree]
+          const: graph
+        preset:
+          $ref: "#/components/schemas/ViewPreset"
         view_id:
           type: string
           pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
@@ -731,6 +1018,98 @@ components:
             - type: "null"
         limited:
           type: boolean
+        stale:
+          type: boolean
+      additionalProperties: false
+    DocumentProjectionSection:
+      type: object
+      required: [entity, sort_key]
+      properties:
+        entity:
+          $ref: "#/components/schemas/ProjectionEntity"
+        sort_key:
+          type: string
+          minLength: 1
+        depth:
+          type: integer
+          minimum: 0
+        body:
+          type: object
+        redacted:
+          type: boolean
+      additionalProperties: false
+    DocumentProjectionResponse:
+      type: object
+      required: [projection, view_id, sections, frontier]
+      properties:
+        projection:
+          type: string
+          const: document
+        preset:
+          $ref: "#/components/schemas/ViewPreset"
+        view_id:
+          type: string
+          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        space_id:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentProjectionSection"
+        next_cursor:
+          oneOf:
+            - type: string
+              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
+            - type: "null"
+        stale:
+          type: boolean
+      additionalProperties: false
+    CompositeProjectionWidget:
+      type: object
+      required: [id, title, projection, frontier]
+      properties:
+        id:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        projection:
+          type: string
+          enum: [collection, timeline, graph, document, composite]
+        preset:
+          $ref: "#/components/schemas/ViewPreset"
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+        result:
+          type: object
+        error:
+          $ref: "#/components/schemas/ErrorEnvelope"
+      additionalProperties: false
+    CompositeProjectionResponse:
+      type: object
+      required: [projection, view_id, widgets, frontier]
+      properties:
+        projection:
+          type: string
+          const: composite
+        preset:
+          $ref: "#/components/schemas/ViewPreset"
+        view_id:
+          type: string
+          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        space_id:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+        widgets:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompositeProjectionWidget"
         stale:
           type: boolean
       additionalProperties: false
@@ -974,10 +1353,11 @@ paths:
               schema:
                 oneOf:
                   - $ref: "#/components/schemas/RawQueryResponse"
-                  - $ref: "#/components/schemas/KanbanProjectionResponse"
-                  - $ref: "#/components/schemas/RowProjectionResponse"
+                  - $ref: "#/components/schemas/CollectionProjectionResponse"
                   - $ref: "#/components/schemas/TimelineProjectionResponse"
                   - $ref: "#/components/schemas/GraphProjectionResponse"
+                  - $ref: "#/components/schemas/DocumentProjectionResponse"
+                  - $ref: "#/components/schemas/CompositeProjectionResponse"
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle

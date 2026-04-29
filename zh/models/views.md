@@ -4,20 +4,13 @@
 
 Contrix 必须对人类友好，因此协议必须允许对象自然投影为：
 
-- 看板
-- 列表
-- 表格
-- 日历
-- 时间线
-- 图谱
-- 活动流
-- 聊天
-- 话题论坛
-- 单线程讨论
-- 记忆审阅队列
-- agent 运行轨迹
+- 看板、列表、表格、日历、甘特图
+- 时间线、活动流、聊天、话题论坛、单线程讨论
+- 图谱、树
+- 文档
+- dashboard、审阅队列、inbox、notification、agent 运行轨迹
 
-这些展示模式都必须从同一套底层结构产生：
+这些展示模式都是 `preset`，不是新的协议根类型。它们都必须从同一套底层结构产生：
 
 ```txt
 Space + Actor + Entity + Relation + Event
@@ -35,20 +28,32 @@ view 不承载底层对象的唯一真相状态。
 
 一个 task Entity 可以同时出现在：
 
-- kanban
-- list
-- calendar
-- thread anchor
+- `collection` / `preset=kanban`
+- `collection` / `preset=list`
+- `collection` / `preset=calendar`
+- `timeline` 的 thread anchor
 
 一个 message Entity 可以同时出现在：
 
-- chat timeline
-- topic thread
-- activity feed
+- `timeline` / `preset=chat`
+- `timeline` / `preset=thread`
+- `timeline` / `preset=activity`
 
 同一个 Entity 还可以通过不同 Relation 同时参与树、图谱、甘特图和 inbox。
 
-### 2.3 Shared / Private / System 并存
+### 2.3 少数核心原语，多种产品 preset
+
+协议核心只定义 5 个 `View.kind`：
+
+- `collection`
+- `timeline`
+- `graph`
+- `document`
+- `composite`
+
+`kanban`、`table`、`thread`、`chat`、`review_queue` 等是 `preset`。新增产品形态 SHOULD 优先新增 preset，而不是新增顶层 `kind`。只有当现有 5 个原语无法表达新的 reducer、cursor、authz 或投影 contract 时，才可以考虑新增顶层 `kind`。
+
+### 2.4 Shared / Private / System 并存
 
 初版建议支持：
 
@@ -56,7 +61,7 @@ view 不承载底层对象的唯一真相状态。
 - `private`
 - `system`
 
-### 2.4 统一上下文投影（Context Timeline）
+### 2.5 统一上下文投影（Context Timeline）
 
 同一件事情可能同时需要看板列、依赖图、聊天时间线。  
 这类需求不应依赖单一 view，而应使用统一上下文投影：
@@ -77,8 +82,9 @@ view 不承载底层对象的唯一真相状态。
   "id": "cx:view:01JS0VW000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "created_by": "did:web:acme.example.com",
-  "kind": "kanban",
-  "name": "Release Flow",
+  "kind": "collection",
+  "preset": "kanban",
+  "title": "Release Flow",
   "visibility": "shared",
   "query": {
     "entity_types": ["task", "issue"],
@@ -92,10 +98,23 @@ view 不承载底层对象的唯一真相状态。
       "depth": 2
     }
   },
-  "group_by": "fields.status",
-  "order_by": [
-    { "field": "fields.rank", "direction": "asc" }
-  ],
+  "collection": {
+    "item_entity_types": ["task", "issue"],
+    "item_render": "card",
+    "item_order_by": [
+      { "field": "fields.rank", "direction": "asc" }
+    ],
+    "grouping": {
+      "mode": "field",
+      "field": "fields.status",
+      "lanes": [
+        { "key": "todo", "title": "Todo", "rank": "F" },
+        { "key": "in_progress", "title": "In Progress", "rank": "V" },
+        { "key": "done", "title": "Done", "rank": "k" }
+      ],
+      "hidden_count_policy": "omit"
+    }
+  },
   "visible_fields": [
     "title",
     "fields.priority",
@@ -105,56 +124,21 @@ view 不承载底层对象的唯一真相状态。
 }
 ```
 
-## 4. 标准 `kind`
-
-### 4.1 工作对象视图
-
-- `kanban`
-- `list`
-- `table`
-- `calendar`
-- `timeline`
-- `graph`
-- `tree`
-- `gantt`
-- `matrix`
-- `document`
-- `dashboard`
-
-### 4.2 会话视图
-
-- `chat`
-- `forum`
-- `thread`
-- `activity`
-- `inbox`
-- `notifications`
-
-### 4.3 审阅与 agent 视图
-
-- `memory_review`
-- `agent_runs`
-- `context_timeline`
-- `moderation_queue`
-
-### 4.4 产品级 View Profile
+## 4. 标准 `kind` 与 `preset`
 
 顶层 `kind` 必须映射到一个机器可验证的配置 profile。`layout` 只是 UI hint，不能替代以下配置：
 
-| Profile | View kinds | 必填配置 | 标准投影响应 |
+| Core kind | 标准 preset | 必填配置 | 标准投影响应 |
 | --- | --- | --- | --- |
-| Board | `kanban` | `kanban` | `KanbanProjectionResponse` |
-| Row | `list`, `table` | `tabular` | `RowProjectionResponse` |
-| Time window | `calendar`, `gantt` | `time_window` | `RowProjectionResponse` |
-| Timeline | `timeline`, `activity`, `context_timeline` | `timeline` | `TimelineProjectionResponse` |
-| Conversation | `chat`, `thread`, `forum` | `conversation` | `TimelineProjectionResponse` |
-| Graph | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
-| Queue | `review_queue`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `moderation_queue` | `queue` | `RowProjectionResponse` |
-| Matrix | `matrix` | `matrix` | `RowProjectionResponse` |
-| Document | `document` | `document` | `RowProjectionResponse` |
-| Dashboard | `dashboard` | `dashboard` | `RowProjectionResponse` |
+| `collection` | `kanban`, `list`, `table`, `calendar`, `gantt`, `review_queue`, `matrix`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `moderation_queue` | `collection` | `CollectionProjectionResponse` |
+| `timeline` | `timeline`, `chat`, `thread`, `forum`, `activity`, `context_timeline` | `timeline`; 会话类还需要 `conversation` 或 anchor/relation | `TimelineProjectionResponse` |
+| `graph` | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
+| `document` | `document` | `document` | `DocumentProjectionResponse` |
+| `composite` | `dashboard` | `dashboard` | `CompositeProjectionResponse` |
 
-Index / AppView 对非 raw projection MUST 返回 `view_id`、`frontier` 和对应 profile 的标准响应。客户端不得把未知对象数组解释为标准 View projection。
+Index / AppView 对非 raw projection MUST 返回 `view_id`、`frontier` 和对应核心原语的标准响应。客户端不得把未知对象数组解释为标准 View projection。
+
+Kanban card、table row、calendar event、review queue item 都是 `collection.items[*]` 的不同 render surface。一个 `thread` 或 `message` Entity 只要满足 `collection.item_entity_types` 和权限裁剪，就 MAY 被作为 kanban card 显示。
 
 ## 5. Query Model
 
@@ -374,7 +358,7 @@ Kanban 视图的 canonical 输入应是：
 - `entity_type = "collection"`
 - `entity_type = "task"` 或其他工作对象
 - Relation `relation_kind = "contains"` / `belongs_to`
-- `kind = "kanban"`
+- `kind = "collection"` + `preset = "kanban"`
 
 而不是某种 UI 私有列数组。
 
@@ -385,7 +369,7 @@ Kanban 视图的 canonical 输入应是：
 | UI 概念 | Canonical 数据 | 说明 |
 | --- | --- | --- |
 | 看板 | `Entity{entity_type="board"}` | 看板本身是一个 Entity，可被引用、授权、讨论和审计。 |
-| 视图配置 | `View{kind="kanban"}` | 定义查询范围、列来源、排序和展示字段。 |
+| 视图配置 | `View{kind="collection", preset="kanban"}` | 定义查询范围、列来源、排序和展示字段。 |
 | 列 | `fields.<group_by>` 的枚举值，或 `Entity{entity_type="collection"}` | 简单工作流用字段分组；复杂工作流用 collection 实体。 |
 | 卡片 | `Entity{entity_type="task"}` 或 `issue` / 自定义工作对象 | 卡片不是单独 UI 数据，而是业务 Entity。 |
 | 卡片属于看板 | `Relation{relation_kind="contains"}` 或 `belongs_to` | 表示 board/collection 与 task 的包含关系。 |
@@ -397,7 +381,7 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
 
 1. 先执行 `View.query`，得到该 View 的候选对象集合。
 2. 再按 actor 的 Space membership、capability、history visibility、field authorization 裁剪不可见对象和字段。
-3. 再按 `kanban.column_model` 计算列和卡片位置。
+3. 再按 `collection.grouping.mode` 计算分组和卡片位置。
 4. 最后按 `visible_fields` 与客户端展示规则渲染卡片。
 
 因此，Space 中的其他数据仍然是协议数据，但不一定属于当前看板：
@@ -434,7 +418,8 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
 {
   "id": "cx:view:01view",
   "space_id": "cx:space:01space",
-  "kind": "kanban",
+  "kind": "collection",
+  "preset": "kanban",
   "title": "Launch Flow",
   "query": {
     "space_ids": ["cx:space:01space"],
@@ -451,18 +436,22 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
       { "field": "fields.rank", "direction": "asc", "nulls": "last" }
     ]
   },
-  "kanban": {
-    "column_model": "field_value",
-    "group_by": "fields.status",
-    "columns": [
-      { "key": "todo", "title": "Todo" },
-      { "key": "in_progress", "title": "In Progress" },
-      { "key": "review", "title": "Review" },
-      { "key": "done", "title": "Done" }
-    ],
-    "card_order_by": [
+  "collection": {
+    "item_entity_types": ["task"],
+    "item_render": "card",
+    "item_order_by": [
       { "field": "fields.rank", "direction": "asc", "nulls": "last" }
-    ]
+    ],
+    "grouping": {
+      "mode": "field",
+      "field": "fields.status",
+      "lanes": [
+        { "key": "todo", "title": "Todo" },
+        { "key": "in_progress", "title": "In Progress" },
+        { "key": "review", "title": "Review" },
+        { "key": "done", "title": "Done" }
+      ]
+    }
   },
   "visible_fields": [
     "title",
@@ -494,7 +483,7 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
 
 1. 先执行 `View.query` 得到候选卡片集合。
 2. 对每个卡片读取 `group_by` 指向的字段，例如 `fields.status`。
-3. 字段值匹配 `kanban.columns[*].key` 的卡片进入对应列。
+3. 字段值匹配 `collection.grouping.lanes[*].key` 的卡片进入对应列。
 4. 字段缺失或值未知时，客户端 SHOULD 放入系统列 `__uncategorized`，或按 View policy 隐藏。
 5. 列内按 `card_order_by` 排序；若排序字段缺失，使用 `nulls` 规则和 timeline tie breaker。
 
@@ -515,7 +504,7 @@ Kanban View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以�
 
 #### 7.1.3 Collection 列模型
 
-复杂看板 SHOULD 使用 Collection 列模型。此时每一列都是 `Entity{entity_type="collection"}`，适合需要列级权限、列 WIP 限制、列说明、列归档、跨看板复用或列讨论的场景。Collection 模型的 View MUST 显式声明 `kanban.card_relation_kind`；实现不得在 `contains` 与 `belongs_to` 等关系之间本地推断。
+复杂看板 SHOULD 使用 Collection 列模型。此时每一列都是 `Entity{entity_type="collection"}`，适合需要列级权限、列 WIP 限制、列说明、列归档、跨看板复用或列讨论的场景。Collection 模型的 View MUST 显式声明 `collection.grouping.item_relation_kind`；实现不得在 `contains` 与 `belongs_to` 等关系之间本地推断。
 
 示例列 Entity：
 
@@ -568,9 +557,9 @@ Board 包含列：
 
 Collection 列模型的投影规则：
 
-1. 从 board 出发查询 `kanban.column_relation_kind` 到 `collection` 的 Relation，得到列集合；缺省 `column_relation_kind` 为 `contains`。
+1. 从 board 出发查询 `collection.grouping.container_relation_kind` 到 `collection` 的 Relation，得到列集合；缺省 `container_relation_kind` 为 `contains`。
 2. 列按 board->collection Relation 的 `fields.rank` 排序；缺失时按 collection `fields.rank` 和 ID tie breaker。
-3. 对每个 collection 查询 `kanban.card_relation_kind` 到 task/issue 的 Relation，得到该列卡片。
+3. 对每个 collection 查询 `collection.grouping.item_relation_kind` 到 task/issue 的 Relation，得到该列卡片。
 4. 卡片按 collection->card Relation 的 `fields.rank` 排序。
 5. 同一张卡片若被多个 active column 包含，reducer MUST 按 Space version 的冲突规则保留一个有效位置，或将其标记为 conflict 交给客户端解决。
 
@@ -602,24 +591,25 @@ Collection 列模型的投影规则：
 | 列有讨论、归档、负责人、自动化规则 | Collection 列模型 | 列需要 Entity 能力。 |
 | 从 Trello/Jira 等桥接导入 | Collection 列模型 MAY 更合适 | 外部列通常有自己的 ID 和配置。 |
 
-两种模型 MAY 共存，但同一个 Kanban View MUST 明确 `kanban.column_model`。客户端 MUST NOT 同时用 `fields.status` 和 collection containment 推导同一张卡片的主列，除非 View 显式声明冲突解决规则。
+两种模型 MAY 共存，但同一个 Kanban preset View MUST 明确 `collection.grouping.mode`。客户端 MUST NOT 同时用 `fields.status` 和 collection containment 推导同一张卡片的主列，除非 View 显式声明冲突解决规则。
 
 #### 7.1.5 标准 Kanban Projection Response
 
-Index / AppView MAY 为 `View{kind="kanban"}` 返回已经物化的看板投影，但该响应是派生结果，不是真相源。响应 MUST 能追溯到 `frontier`、View 定义、Entity、Relation 和 reducer profile。
+Index / AppView MAY 为 `View{kind="collection", preset="kanban"}` 返回已经物化的看板投影，但该响应是派生结果，不是真相源。响应 MUST 能追溯到 `frontier`、View 定义、Entity、Relation 和 reducer profile。
 
 最小响应形状：
 
 ```json
 {
-  "projection": "kanban",
+  "projection": "collection",
+  "preset": "kanban",
   "view_id": "cx:view:01js0vw000000000000000000",
   "space_id": "cx:space:01js0sp000000000000000000",
   "frontier": {
     "state_hash": "sha256:...",
     "operation_ids": ["cx:operation:01js0qp000000000000000000"]
   },
-  "columns": [
+  "groups": [
     {
       "key": "review",
       "title": "Review",
@@ -629,7 +619,7 @@ Index / AppView MAY 为 `View{kind="kanban"}` 返回已经物化的看板投影�
         "field": "fields.status",
         "value": "review"
       },
-      "cards": [
+      "items": [
         {
           "entity": {
             "id": "cx:entity:01js0tk000000000000000000",
@@ -652,21 +642,21 @@ Index / AppView MAY 为 `View{kind="kanban"}` 返回已经物化的看板投影�
 
 Projection 规则：
 
-1. 每个 `columns[*].cards` MUST 使用该 View 的 `kanban.card_order_by` 排序。
+1. 每个 `groups[*].items` MUST 使用该 View 的 `collection.item_order_by` 排序。
 2. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、`entity.id`；若这些字段不可得，则使用 `entity.id` 作为最终稳定 tie-break。
-3. 字段分组看板的 `cards[*].position.model` MUST 为 `field_value`，并携带 `container_id` 与 `rank`。
-4. Collection 看板的 `cards[*].position.model` MUST 为 `relation`，并携带 `scope_container_id`、`container_id`、`relation_kind`、`relation_id` 与 `rank`，以便审计器和客户端把投影位置追溯到 active containment Relation。
+3. 字段分组看板的 `items[*].position.model` MUST 为 `field_value`，并携带 `container_id` 与 `rank`。
+4. Collection 看板的 `items[*].position.model` MUST 为 `relation`，并携带 `scope_container_id`、`container_id`、`relation_kind`、`relation_id` 与 `rank`，以便审计器和客户端把投影位置追溯到 active containment Relation。
 5. 大列 MAY 按列分页；每列的 `next_cursor` 只恢复该列的卡片窗口，不得暗示其他列完整。
 6. `limited=true` 表示该列结果不是完整窗口；客户端 MUST 使用该列 cursor 继续拉取，不得把缺口解释为删除或无权限。
 7. 无权读取的卡片或字段 MUST 被裁剪。除非 Space policy 明确允许泄漏聚合统计，响应 MUST NOT 返回因无权读取而被隐藏的精确数量。
-8. `total_estimate` 若存在，MUST 由 `kanban.hidden_count_policy` 授权。`authorized_estimate` / `authorized_exact` 默认只覆盖权限裁剪后的 visible set，不得包含不可见卡片；只有另有列级聚合授权时，才可返回包含隐藏成员的聚合计数。
+8. `total_estimate` 若存在，MUST 由 `collection.grouping.hidden_count_policy` 授权。`authorized_estimate` / `authorized_exact` 默认只覆盖权限裁剪后的 visible set，不得包含不可见卡片；只有另有列级聚合授权时，才可返回包含隐藏成员的聚合计数。
 
 #### 7.1.6 WIP Limit 与列约束
 
 `wip_limit` 是列级策略输入，不只是 UI 提示。
 
 - Reducer enforcement MUST 使用权限裁剪前的 canonical active column membership 计数。`reject` 超限时，`cx.relation.move` / `cx.task.move` MUST 被拒绝；`require_review` 超限时，MUST 进入 proposal / review 路径。
-- Kanban projection MAY 返回 `wip_state`，但普通客户端可见计数 MUST 基于权限裁剪后的 visible cards，除非列 policy 明确允许列级聚合计数。
+- Kanban preset projection MAY 返回 `wip_state`，但普通客户端可见计数 MUST 基于权限裁剪后的 visible items，除非列 policy 明确允许列级聚合计数。
 - 当 canonical WIP 已超限但 actor 无权看到导致超限的卡片时，projection MAY 返回 `wip_state="unknown"` 或 policy 允许的 stripped warning；不得用精确差值泄漏隐藏卡片数量。
 
 ### 7.2 Chat
@@ -760,8 +750,8 @@ Contrix v1 固定：
 
 - View 是独立对象
 - Query 先采用结构化 JSON
-- 标准化 `kanban/chat/forum/thread/inbox/notifications/tree/graph/gantt` 等 kind
-- 看板与聊天是标准投影，不是协议根
+- 标准化 `collection/timeline/graph/document/composite` 五个核心 kind
+- `kanban/chat/forum/thread/inbox/notifications/tree/graph/gantt` 等是 preset，不是协议根
 - Shared / private / system 并存
 
 ## 13. 规范性引用

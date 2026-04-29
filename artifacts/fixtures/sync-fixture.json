@@ -14,23 +14,25 @@
       "vector": "cx.vector.sync.kanban_projection_column_pagination.v1",
       "schema_refs": {
         "request": "QueryRequest",
-        "response": "KanbanProjectionResponse"
+        "response": "CollectionProjectionResponse"
       },
       "initial_request": {
-        "projection": "kanban",
+        "projection": "collection",
+        "preset": "kanban",
         "view_id": "cx:view:01js0vw0000000000000000000",
         "entity_types": ["task"],
         "limit": 2
       },
       "initial_response": {
-        "projection": "kanban",
+        "projection": "collection",
+        "preset": "kanban",
         "view_id": "cx:view:01js0vw0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
           "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "operation_ids": ["cx:operation:01js0qp0000000000000000000"]
         },
-        "columns": [
+        "groups": [
           {
             "key": "todo",
             "title": "Todo",
@@ -40,7 +42,7 @@
               "field": "fields.status",
               "value": "todo"
             },
-            "cards": [
+            "items": [
               {
                 "entity": {
                   "id": "cx:entity:01js0ta0000000000000000000",
@@ -78,7 +80,7 @@
               "field": "fields.status",
               "value": "done"
             },
-            "cards": [
+            "items": [
               {
                 "entity": {
                   "id": "cx:entity:01js0tz0000000000000000000",
@@ -98,18 +100,20 @@
         ]
       },
       "followup_request": {
-        "projection": "kanban",
+        "projection": "collection",
+        "preset": "kanban",
         "view_id": "cx:view:01js0vw0000000000000000000",
         "cursor": "cx:cursor:kanban_todo_after_task_b",
         "limit": 2
       },
       "expected_followup_response": {
-        "projection": "kanban",
+        "projection": "collection",
+        "preset": "kanban",
         "view_id": "cx:view:01js0vw0000000000000000000",
         "frontier": {
           "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
         },
-        "columns": [
+        "groups": [
           {
             "key": "todo",
             "title": "Todo",
@@ -118,7 +122,7 @@
               "field": "fields.status",
               "value": "todo"
             },
-            "cards": [
+            "items": [
               {
                 "entity": {
                   "id": "cx:entity:01js0tc0000000000000000000",
@@ -138,10 +142,10 @@
         ]
       },
       "assertions": [
-        "initial_response.columns[todo].limited == true",
-        "initial_response.columns[done].limited == false",
+        "initial_response.groups[todo].limited == true",
+        "initial_response.groups[done].limited == false",
         "followup_request.cursor resumes only the todo column",
-        "expected_followup_response validates as KanbanProjectionResponse"
+        "expected_followup_response validates as CollectionProjectionResponse with preset=kanban"
       ]
     },
     {
@@ -149,33 +153,39 @@
       "vector": "cx.vector.sync.kanban_projection_hidden_counts.v1",
       "schema_refs": {
         "view": "view.schema.json",
-        "response": "KanbanProjectionResponse"
+        "response": "CollectionProjectionResponse"
       },
       "input": {
         "base_view": {
           "id": "cx:view:01js0vw0000000000000000000",
           "type": "view",
           "space_id": "cx:space:01js0sp0000000000000000000",
-          "kind": "kanban",
+          "kind": "collection",
+          "preset": "kanban",
           "query": {
             "entity_types": ["task"]
           },
-          "kanban": {
-            "column_model": "field_value",
-            "group_by": "fields.status",
-            "columns": [
-              {
-                "key": "review",
-                "title": "Review",
-                "rank": "F"
-              }
-            ],
-            "card_order_by": [
+          "collection": {
+            "item_entity_types": ["task"],
+            "item_render": "card",
+            "item_order_by": [
               {
                 "field": "fields.rank",
                 "direction": "asc"
               }
-            ]
+            ],
+            "grouping": {
+              "mode": "field",
+              "field": "fields.status",
+              "lanes": [
+                {
+                  "key": "review",
+                  "title": "Review",
+                  "rank": "F"
+                }
+              ],
+              "hidden_count_policy": "omit"
+            }
           },
           "created_by": "did:web:alice.example",
           "created_at": "2026-04-29T00:00:00Z"
@@ -196,12 +206,13 @@
           "name": "omit",
           "hidden_count_policy": "omit",
           "allowed_response": {
-            "projection": "kanban",
+            "projection": "collection",
+            "preset": "kanban",
             "view_id": "cx:view:01js0vw0000000000000000000",
             "frontier": {
               "state_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
             },
-            "columns": [
+            "groups": [
               {
                 "key": "review",
                 "title": "Review",
@@ -210,7 +221,7 @@
                   "field": "fields.status",
                   "value": "review"
                 },
-                "cards": [
+                "items": [
                   {
                     "entity": {
                       "id": "cx:entity:01js0tv0000000000000000000",
@@ -246,12 +257,13 @@
           "name": "authorized_estimate",
           "hidden_count_policy": "authorized_estimate",
           "allowed_response": {
-            "projection": "kanban",
+            "projection": "collection",
+            "preset": "kanban",
             "view_id": "cx:view:01js0vw0000000000000000000",
             "frontier": {
               "state_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
             },
-            "columns": [
+            "groups": [
               {
                 "key": "review",
                 "title": "Review",
@@ -260,7 +272,7 @@
                   "field": "fields.status",
                   "value": "review"
                 },
-                "cards": [
+                "items": [
                   {
                     "entity": {
                       "id": "cx:entity:01js0tv0000000000000000000",
@@ -292,12 +304,13 @@
           "name": "authorized_exact",
           "hidden_count_policy": "authorized_exact",
           "allowed_response": {
-            "projection": "kanban",
+            "projection": "collection",
+            "preset": "kanban",
             "view_id": "cx:view:01js0vw0000000000000000000",
             "frontier": {
               "state_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
             },
-            "columns": [
+            "groups": [
               {
                 "key": "review",
                 "title": "Review",
@@ -306,7 +319,7 @@
                   "field": "fields.status",
                   "value": "review"
                 },
-                "cards": [
+                "items": [
                   {
                     "entity": {
                       "id": "cx:entity:01js0tv0000000000000000000",
@@ -336,9 +349,9 @@
         }
       ],
       "assertions": [
-        "each policy case view validates after applying hidden_count_policy to input.base_view.kanban",
-        "each allowed_response validates as KanbanProjectionResponse",
-        "each allowed_response.columns[review].cards contains only visible_entities",
+        "each policy case view validates after applying hidden_count_policy to input.base_view.collection.grouping",
+        "each allowed_response validates as CollectionProjectionResponse with preset=kanban",
+        "each allowed_response.groups[review].items contains only visible_entities",
         "omit case must not return total_estimate",
         "authorized_estimate and authorized_exact may return only visibility-trimmed counts unless separate aggregate policy grants hidden counts",
         "cursor shape and error behavior must not reveal hidden_entities"
@@ -349,16 +362,18 @@
       "vector": "cx.vector.sync.view_projection.row.v1",
       "schema_refs": {
         "request": "QueryRequest",
-        "response": "RowProjectionResponse"
+        "response": "CollectionProjectionResponse"
       },
       "request": {
-        "projection": "table",
+        "projection": "collection",
+        "preset": "table",
         "view_id": "cx:view:01js0vr0000000000000000000",
         "entity_types": ["task"],
         "limit": 50
       },
       "response": {
-        "projection": "table",
+        "projection": "collection",
+        "preset": "table",
         "view_id": "cx:view:01js0vr0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
@@ -387,7 +402,7 @@
         "total_estimate": 1
       },
       "assertions": [
-        "projection discriminator selects RowProjectionResponse only",
+        "projection discriminator selects CollectionProjectionResponse only",
         "each item.entity.id is a cx:entity id",
         "next_cursor matches cursor grammar",
         "display fields remain authorization-trimmed"
@@ -401,13 +416,15 @@
         "response": "TimelineProjectionResponse"
       },
       "request": {
-        "projection": "chat",
+        "projection": "timeline",
+        "preset": "chat",
         "view_id": "cx:view:01js0vc0000000000000000000",
         "entity_types": ["message"],
         "limit": 30
       },
       "response": {
-        "projection": "chat",
+        "projection": "timeline",
+        "preset": "chat",
         "view_id": "cx:view:01js0vc0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
@@ -452,6 +469,7 @@
       },
       "request": {
         "projection": "graph",
+        "preset": "graph",
         "view_id": "cx:view:01js0vg0000000000000000000",
         "entity_types": ["task"],
         "relation": {
@@ -462,6 +480,7 @@
       },
       "response": {
         "projection": "graph",
+        "preset": "graph",
         "view_id": "cx:view:01js0vg0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
@@ -504,6 +523,92 @@
         "nodes and edges use cx entity/relation identifiers",
         "lazy/truncated nodes do not expose unauthorized target fields",
         "frontier identifies the reduced graph snapshot"
+      ]
+    },
+    {
+      "name": "document_projection_contract",
+      "vector": "cx.vector.sync.view_projection.document.v1",
+      "schema_refs": {
+        "request": "QueryRequest",
+        "response": "DocumentProjectionResponse"
+      },
+      "request": {
+        "projection": "document",
+        "preset": "document",
+        "view_id": "cx:view:01js0vd0000000000000000000",
+        "entity_types": ["document"]
+      },
+      "response": {
+        "projection": "document",
+        "preset": "document",
+        "view_id": "cx:view:01js0vd0000000000000000000",
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "frontier": {
+          "state_hash": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+        },
+        "sections": [
+          {
+            "entity": {
+              "id": "cx:entity:01js0ds0000000000000000000",
+              "entity_type": "document",
+              "title": "Release notes"
+            },
+            "sort_key": "0001|cx:entity:01js0ds0000000000000000000",
+            "depth": 0,
+            "body": {
+              "format": "markdown",
+              "text": "Visible section"
+            },
+            "redacted": false
+          }
+        ],
+        "next_cursor": null
+      },
+      "assertions": [
+        "projection discriminator selects DocumentProjectionResponse only",
+        "sections carry stable sort_key and frontier",
+        "redacted sections must be tombstones or omitted according to view config"
+      ]
+    },
+    {
+      "name": "composite_projection_contract",
+      "vector": "cx.vector.sync.view_projection.composite.v1",
+      "schema_refs": {
+        "request": "QueryRequest",
+        "response": "CompositeProjectionResponse"
+      },
+      "request": {
+        "projection": "composite",
+        "preset": "dashboard",
+        "view_id": "cx:view:01js0vb0000000000000000000"
+      },
+      "response": {
+        "projection": "composite",
+        "preset": "dashboard",
+        "view_id": "cx:view:01js0vb0000000000000000000",
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "frontier": {
+          "state_hash": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "widgets": [
+          {
+            "id": "open-work",
+            "title": "Open work",
+            "projection": "collection",
+            "preset": "table",
+            "frontier": {
+              "state_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "result": {
+              "total_estimate": 12
+            }
+          }
+        ]
+      },
+      "assertions": [
+        "projection discriminator selects CompositeProjectionResponse only",
+        "each widget declares a core projection and carries its own frontier",
+        "partial widget failures use ErrorEnvelope without invalidating successful widgets"
       ]
     }
   ]

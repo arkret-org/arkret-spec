@@ -2,22 +2,27 @@
 
 ## 已发现缺口
 
-- [x] 顶层支持的 View kind 没有统一列出，且中文数据结构文档缺 `moderation_queue`。
-- [x] 除 `kanban` 外，其他 View kind 没有机器可验证的 typed config。
-- [x] `/index/query` 的 `projection` 只支持 `raw` 和 `kanban`，与顶层 View kind 不一致。
-- [x] 非 Kanban 投影没有标准 response profile；graph/tree/timeline/chat/list/table 等只能退回 generic object。
-- [x] 图/树视图缺少 node/edge/lazy link/truncation 的响应 contract。
-- [x] 时间线/聊天/活动类视图缺少 entry sort_key、redaction/tombstone 和 cursor contract。
-- [x] row/queue/table/calendar/gantt 等缺少 item/entity/frontier/count 的响应 contract。
-- [x] `View.query` 允许空 query；graph/tree、conversation、context_timeline 缺少最低 anchor/relation 约束。
-- [x] conformance fixture 只有 Kanban 专项，缺少 row/timeline/graph 三类基础投影覆盖。
-- [x] zh/en schema、OpenAPI、fixtures 容易漂移，需要本轮继续保持镜像一致。
+- [x] 旧设计把 22 个产品形态都放进顶层 `View.kind`，导致 schema、OpenAPI、conformance 和实现面过宽。
+- [x] Kanban card 被隐含建模成特殊卡片对象，抽象度不足；thread/message/run/memory 作为 card 显示需要靠自然语言解释。
+- [x] `/index/query.projection` 暴露所有产品形态，导致 response `oneOf` 和 cursor 语义膨胀。
+- [x] Row/Kanban/Queue/Calendar/Gantt/Matrix 本质都是集合投影，但此前分散到多个配置 profile。
+- [x] `dashboard` 被当作 row-like projection，不足以表达 widget 局部 frontier 和局部错误。
+- [x] `document` 被当作 row-like projection，不足以表达 section/body/redaction contract。
+- [x] conformance fixture 曾把 Kanban 当成独立 projection，没有证明 kanban 是 collection preset。
+- [x] zh/en schema、OpenAPI、fixtures 容易漂移，需要保持镜像一致。
 
 ## 本轮修复范围
 
-- [x] 在 View schema 中加入 `tabular`、`time_window`、`timeline`、`conversation`、`graph`、`queue`、`matrix`、`document`、`dashboard` typed configs。
-- [x] 为每个非 Kanban View kind 建立 required config 条件。
-- [x] 扩展 OpenAPI `QueryRequest.projection` 到所有 View kind。
-- [x] 增加 `RowProjectionResponse`、`TimelineProjectionResponse`、`GraphProjectionResponse`，并接入 `/index/query` response `oneOf`。
-- [x] 增加 row/timeline/graph projection fixtures。
-- [x] 更新中英文 View 文档、HTTP binding、data structures。
+- [x] 将 canonical `View.kind` 收敛到 `collection`、`timeline`、`graph`、`document`、`composite`。
+- [x] 增加 `preset` registry，并用 schema 约束 preset 到核心 kind 的映射。
+- [x] 增加通用 `collection` config，覆盖 card/row/tile/message render、field/relation/time/matrix grouping、count/WIP/conflict policy。
+- [x] 将 OpenAPI `QueryRequest.projection` 收敛到 `raw` + 5 个核心投影原语，并增加 `preset`。
+- [x] 增加 `CollectionProjectionResponse`，把 Kanban/Row 类响应降级为兼容 legacy schema。
+- [x] 增加 `DocumentProjectionResponse` 与 `CompositeProjectionResponse`。
+- [x] 将 Kanban sync fixture 改为 `projection="collection", preset="kanban"`。
+
+## 后续产品化守门
+
+- [ ] 新增产品形态时优先新增 preset，不得新增顶层 `View.kind`，除非证明 5 个原语无法表达其 reducer/cursor/authz contract。
+- [ ] 实现者 MUST 在 feature discovery 中声明支持的 core projection 与 preset，而不是声明大量互不兼容的 endpoint。
+- [ ] UI layout hint 不得绕过 `collection` / `timeline` / `graph` / `document` / `composite` 的机器 contract。
