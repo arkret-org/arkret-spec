@@ -233,6 +233,7 @@ The first version recommends support for:
 - `fields_write_allow`
 - `fields_write_deny`
 - `entity_type_allow`
+- `entity_facet_allow`
 - `memory_kind_allow`
 - `allowed_channel_refs`
 - `visibility_allow`

@@ -188,7 +188,7 @@ Selectors define the **resource scope** of a grant. The complete authorization r
 
 `*` selectors can match unintended resources. Mitigations:
 - Always use with `expires_at`
-- Combine with `entity_type_allow` constraints
+- Combine with `entity_facet_allow` / `entity_type_allow` constraints; new profiles SHOULD prefer facet-scoped capability restrictions
 - Require admin approval for wildcard grants
 - Audit wildcard grant usage
 

@@ -20,6 +20,17 @@
     "fields_write_allow": { "type": "array", "items": { "type": "string" } },
     "fields_write_deny": { "type": "array", "items": { "type": "string" } },
     "allowed_entity_types": { "type": "array", "items": { "type": "string" } },
+    "allowed_entity_facets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "container", "replyable", "schedulable", "assignable", "stateful",
+          "rankable", "reviewable", "notifiable", "documentable", "renderable"
+        ]
+      },
+      "uniqueItems": true
+    },
     "allowed_view_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$" } },
     "relation_kind_allow": { "type": "array", "items": { "type": "string" } },
     "allowed_from_container_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$" } },

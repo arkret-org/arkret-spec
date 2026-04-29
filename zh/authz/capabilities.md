@@ -63,7 +63,7 @@ Authorization condition: Claim / Attestation
   "subject": "did:web:agent.copy.example.com",
   "scope": {
     "space_ids": ["cx:space:01JS0SP000000000000000000"],
-    "entity_types": ["task"],
+    "entity_facets": ["stateful", "assignable"],
     "actions": [
       "cx.entity.read",
       "cx.entity.update",
@@ -172,17 +172,17 @@ Contrix v1 支持以下 `kind`：
 
 - `cx.entity.create`
 - `cx.entity.update`
-- `cx.task.move` (字段分组看板的原子位置写入)
-- `cx.task.reorder`
+- `cx.field_position.move` (字段分组视图的原子位置写入)
+- `cx.field_position.reorder`
 - `cx.relation.create` (assigned_to、contains 等)
-- `cx.relation.move` (collection 列模型的卡片移动)
-- `cx.relation.rebalance`
+- `cx.container.move_item` (container / collection 模型的 item 移动)
+- `cx.container.rebalance`
 - `cx.comment.create`
 - `cx.relation.*`
 - `cx.attachment.*`
 - `cx.view.*`
 
-实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。看板拖拽权限应优先使用 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束组合表达。
+`cx.task.move`、`cx.task.reorder`、`cx.relation.move` 和 `cx.relation.rebalance` 是兼容旧名称；新 grant SHOULD 使用 facet-oriented action。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。看板拖拽权限应优先使用 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束组合表达。
 
 ### 5.3 会话动作
 
@@ -246,6 +246,7 @@ Contrix v1 支持：
 - `fields_write_allow`
 - `fields_write_deny`
 - `entity_type_allow`
+- `entity_facet_allow`
 - `memory_kind_allow`
 - `allowed_channel_refs`
 - `allowed_view_refs`

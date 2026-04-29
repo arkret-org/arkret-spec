@@ -363,11 +363,13 @@ POST /api/v1/index/query
 
 The request body SHOULD accept:
 
-- `kind`
+- `entity_types` or `facets`; new profiles SHOULD prefer `facets` for capability-based selection
+- `relation`
 - filters
 - ordering
 - cursor
 - limit
+- `view_id`, `projection`, `preset`, and `renderer`; non-raw projections MUST use the core primitives `collection`, `timeline`, `graph`, `document`, or `composite`. For example, Kanban uses `projection="collection", preset="kanban", renderer="board"` and returns `CollectionProjectionResponse` with group-level cursors.
 
 ### 6.4 Thread / Topic Query
 

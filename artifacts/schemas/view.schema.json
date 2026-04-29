@@ -14,6 +14,7 @@
       "enum": ["collection", "timeline", "graph", "document", "composite"]
     },
     "preset": { "$ref": "#/$defs/view_preset" },
+    "renderer": { "$ref": "#/$defs/view_renderer" },
     "title": { "type": "string" },
     "query": { "$ref": "#/$defs/query" },
     "visible_fields": { "type": "array", "items": { "$ref": "#/$defs/field_path" } },
@@ -50,7 +51,10 @@
         "properties": {
           "query": {
             "type": "object",
-            "required": ["entity_types"],
+            "anyOf": [
+              { "required": ["entity_types"] },
+              { "required": ["facets"] }
+            ],
             "properties": {
               "entity_types": {
                 "type": "array",
@@ -200,6 +204,20 @@
         "moderation_queue", "custom"
       ]
     },
+    "facet_name": {
+      "type": "string",
+      "enum": [
+        "container", "replyable", "schedulable", "assignable", "stateful",
+        "rankable", "reviewable", "notifiable", "documentable", "renderable"
+      ]
+    },
+    "view_renderer": {
+      "type": "string",
+      "enum": [
+        "board", "card", "row", "table", "calendar", "gantt", "timeline",
+        "thread", "chat", "forum", "graph", "tree", "document", "dashboard", "custom"
+      ]
+    },
     "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
     "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
@@ -299,6 +317,12 @@
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
           "minItems": 1
+        },
+        "facets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/facet_name" },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "anchor_entity_id": { "$ref": "#/$defs/entity_id" },
         "filters": {
@@ -464,12 +488,18 @@
     },
     "collection_config": {
       "type": "object",
-      "required": ["item_entity_types", "item_render", "item_order_by", "grouping"],
+      "required": ["item_render", "item_order_by", "grouping"],
       "properties": {
         "item_entity_types": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
           "minItems": 1
+        },
+        "item_facets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/facet_name" },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "item_render": {
           "type": "string",
@@ -490,6 +520,10 @@
         "count_policy": { "type": "string", "enum": ["omit", "authorized_estimate", "authorized_exact"], "default": "omit" },
         "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 }
       },
+      "anyOf": [
+        { "required": ["item_entity_types"] },
+        { "required": ["item_facets"] }
+      ],
       "additionalProperties": false
     },
     "tabular_config": {
@@ -550,12 +584,18 @@
     },
     "conversation_config": {
       "type": "object",
-      "required": ["message_entity_types", "message_time_field", "thread_relation_kind"],
+      "required": ["message_time_field", "thread_relation_kind"],
       "properties": {
         "message_entity_types": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
           "minItems": 1
+        },
+        "message_facets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/facet_name" },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "message_time_field": { "$ref": "#/$defs/field_path" },
         "thread_relation_kind": { "type": "string", "minLength": 1 },
@@ -565,16 +605,26 @@
         "redaction_policy": { "type": "string", "enum": ["tombstone", "hide"], "default": "tombstone" },
         "read_state_policy": { "type": "string", "enum": ["none", "per_actor", "per_device"], "default": "per_actor" }
       },
+      "anyOf": [
+        { "required": ["message_entity_types"] },
+        { "required": ["message_facets"] }
+      ],
       "additionalProperties": false
     },
     "graph_config": {
       "type": "object",
-      "required": ["node_entity_types", "edge_relation_kinds", "max_depth"],
+      "required": ["edge_relation_kinds", "max_depth"],
       "properties": {
         "node_entity_types": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
           "minItems": 1
+        },
+        "node_facets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/facet_name" },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "edge_relation_kinds": {
           "type": "array",
@@ -590,16 +640,26 @@
           "items": { "$ref": "#/$defs/sort_spec" }
         }
       },
+      "anyOf": [
+        { "required": ["node_entity_types"] },
+        { "required": ["node_facets"] }
+      ],
       "additionalProperties": false
     },
     "queue_config": {
       "type": "object",
-      "required": ["item_entity_types", "state_field", "state_values"],
+      "required": ["state_field", "state_values"],
       "properties": {
         "item_entity_types": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },
           "minItems": 1
+        },
+        "item_facets": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/facet_name" },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "state_field": { "$ref": "#/$defs/field_path" },
         "state_values": {
@@ -616,6 +676,10 @@
         "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
         "count_policy": { "type": "string", "enum": ["omit", "authorized_estimate", "authorized_exact"], "default": "omit" }
       },
+      "anyOf": [
+        { "required": ["item_entity_types"] },
+        { "required": ["item_facets"] }
+      ],
       "additionalProperties": false
     },
     "matrix_config": {

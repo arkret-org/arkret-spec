@@ -10,7 +10,7 @@ Contrix must remain human-friendly, so the protocol must support natural project
 - documents
 - dashboards, review queues, inboxes, notifications, memory reviews, and agent run views
 
-These presentation modes are `preset` values, not new protocol roots. All of them must come from the same substrate:
+These presentation modes are facet-composition `preset` / `renderer` values, not new protocol roots. All of them must come from the same substrate:
 
 ```txt
 Space + Actor + Entity + Relation + Event
@@ -39,9 +39,26 @@ A message Entity may appear in:
 - `timeline` / `preset=thread`
 - `timeline` / `preset=activity`
 
-### 2.3 Few Core Primitives, Many Product Presets
+### 2.3 Entity Facets Are the Capability Center
 
-The protocol core defines only five `View.kind` values:
+The protocol must not let a View kind implicitly grant object capabilities. Whether an Entity can act as a container, be replied to, be scheduled, be assigned, or enter a review queue MUST be declared by Entity `facets` or by the Space schema profile:
+
+- `container`: can contain, order, and move other Entities.
+- `replyable`: can be replied to, forming thread/chat/forum projections.
+- `schedulable`: has a time window for calendar/gantt projections.
+- `assignable`: can be assigned to an actor/team/agent.
+- `stateful`: has a controlled state machine.
+- `rankable`: has stable manual ordering.
+- `reviewable`: can enter review or moderation queues.
+- `notifiable`: can derive inbox/notification/read state.
+- `documentable`: can act as a document or section root.
+- `renderable`: declares allowed default render surfaces.
+
+`entity_type` is a semantic label; facets define field sets, allowed relations, standard operations, and projection capabilities. `kanban`, `table`, `thread`, `chat`, `review_queue`, and similar product shapes SHOULD be described as facet compositions rather than View-defined object capabilities.
+
+### 2.4 Few Response Families, Many Product Presets
+
+Views still need machine-verifiable response families. The protocol keeps five `View.kind` values as response families:
 
 - `collection`
 - `timeline`
@@ -49,9 +66,9 @@ The protocol core defines only five `View.kind` values:
 - `document`
 - `composite`
 
-`kanban`, `table`, `thread`, `chat`, `review_queue`, and similar product shapes are `preset` values. New product shapes SHOULD add a preset first, not a new top-level `kind`. A new top-level `kind` is justified only when the five existing primitives cannot express the required reducer, cursor, authorization, or projection contract.
+These `kind` values constrain response contracts, cursors, and frontiers only. They do not define object capabilities. New product shapes SHOULD add a preset / renderer / facet profile first, not a new top-level `kind`.
 
-### 2.4 Shared / Private / System Must Coexist
+### 2.5 Shared / Private / System Must Coexist
 
 The first version should support:
 
@@ -59,7 +76,7 @@ The first version should support:
 - `private`
 - `system`
 
-### 2.5 Unified Context Timeline
+### 2.6 Unified Context Timeline
 
 One work item may require board, graph, and chat perspectives at the same time.  
 This should be supported by a context projection instead of splitting canonical meaning:
@@ -85,13 +102,13 @@ Suggested fields:
   "title": "Release Flow",
   "visibility": "shared",
   "query": {
-    "entity_types": ["task", "issue"],
+    "facets": ["stateful", "rankable"],
     "filters": [
       { "field": "archived", "op": "neq", "value": true }
     ]
   },
   "collection": {
-    "item_entity_types": ["task", "issue"],
+    "item_facets": ["stateful", "rankable"],
     "item_render": "card",
     "item_order_by": [
       { "field": "fields.rank", "direction": "asc" }
@@ -118,7 +135,7 @@ Suggested fields:
 
 ## 4. Standard `kind` and `preset`
 
-Each top-level `kind` maps to a machine-verifiable configuration profile. `layout` is only a UI hint and never replaces the profile config.
+Each top-level `kind` maps to a machine-verifiable response profile; object capabilities come from facets. `layout` is only a UI hint and never replaces the profile config.
 
 | Core kind | Standard presets | Required config | Standard projection response |
 | --- | --- | --- | --- |
@@ -130,7 +147,7 @@ Each top-level `kind` maps to a machine-verifiable configuration profile. `layou
 
 For non-raw projections, Index / AppView MUST return `view_id`, `frontier`, and the standard response for the core primitive. Clients must not treat an arbitrary object array as a standard View projection.
 
-A Kanban card, table row, calendar event, and review queue item are different render surfaces over `collection.items[*]`. A `thread` or `message` Entity MAY be displayed as a Kanban card when it satisfies `collection.item_entity_types` and authorization trimming.
+A Kanban card, table row, calendar event, and review queue item are different render surfaces over `collection.items[*]`. A `thread` or `message` Entity MAY be displayed as a Kanban card when it satisfies `query.facets` / `collection.item_facets` and authorization trimming.
 
 ## 5. Query Model
 
@@ -140,7 +157,7 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "entity_types": ["task", "issue"],
+  "facets": ["stateful", "rankable"],
   "filters": [
     { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] },
     { "field": "archived", "op": "eq", "value": false }
@@ -152,7 +169,7 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "entity_types": ["message"],
+  "facets": ["replyable", "renderable"],
   "filters": [
     { "field": "fields.redacted", "op": "eq", "value": false }
   ],
@@ -168,7 +185,7 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "entity_types": ["topic"],
+  "facets": ["replyable", "stateful"],
   "filters": [
     { "field": "fields.status", "op": "eq", "value": "open" }
   ]
@@ -179,7 +196,7 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "entity_types": ["message", "task", "invite", "run", "memory"],
+  "facets": ["notifiable"],
   "filters": [
     { "field": "derived.notification_state", "op": "eq", "value": "unread" },
     { "field": "derived.recipient", "op": "eq", "value": "did:web:alice.example.com" }
@@ -191,7 +208,7 @@ Views should use structured queries to define object scope.
 
 ```json
 {
-  "entity_types": ["task"],
+  "facets": ["stateful"],
   "relation": {
     "kind": "depends_on",
     "direction": "out",
@@ -207,7 +224,7 @@ Aggregate status updates, relations, messages, and reviews for one task context:
 ```json
 {
   "anchor_entity_id": "cx:entity:01JS0TASK000000000000000000",
-  "entity_types": ["task", "message", "topic", "memory", "relation"],
+  "facets": ["stateful", "replyable", "reviewable", "documentable"],
   "filters": [
     { "field": "fields.archived", "op": "eq", "value": false }
   ],
@@ -224,7 +241,7 @@ Aggregate status updates, relations, messages, and reviews for one task context:
     "event_kinds": [
       "cx.entity.update",
       "cx.relation.create",
-      "cx.relation.move",
+      "cx.container.move_item",
       "cx.message.create",
       "cx.task.assign",
       "cx.redaction",
@@ -295,7 +312,7 @@ The canonical input for Kanban views should be:
 
 rather than some UI-private array-of-columns structure.
 
-For v1 interoperability, Kanban views MUST use the machine-verifiable `collection` config in `view.schema.json` with `preset="kanban"`. Field-value boards use `cx.task.move` so the group value and rank converge atomically; collection boards MUST explicitly declare `collection.grouping.item_relation_kind` and use `cx.relation.move` within a `scope_container_id` so one item has one active position per board scope. Projection item positions are discriminated: field-value positions use `model="field_value"`, while relation-backed positions use `model="relation"` and include `scope_container_id`, `container_id`, `relation_kind`, `relation_id`, and `rank`. WIP enforcement for `reject` and `require_review` MUST use the untrimmed canonical active column membership, while Index / AppView Kanban preset projections return authorization-trimmed `groups[]` with per-group cursors; `authorized_estimate` and `authorized_exact` counts are visibility-trimmed unless a separate aggregate-count policy grants hidden membership counts.
+For v1 interoperability, Kanban views MUST use the machine-verifiable `collection` config in `view.schema.json` with `preset="kanban"`. Field-value boards use `cx.field_position.move` so the group value and rank converge atomically; collection boards MUST explicitly declare `collection.grouping.item_relation_kind` and use `cx.container.move_item` within a `scope_container_id` so one item has one active position per board scope. `cx.task.move` and `cx.relation.move` remain compatibility aliases. Projection item positions are discriminated: field-value positions use `model="field_value"`, while relation-backed positions use `model="relation"` and include `scope_container_id`, `container_id`, `relation_kind`, `relation_id`, and `rank`. WIP enforcement for `reject` and `require_review` MUST use the untrimmed canonical active column membership, while Index / AppView Kanban preset projections return authorization-trimmed `groups[]` with per-group cursors; `authorized_estimate` and `authorized_exact` counts are visibility-trimmed unless a separate aggregate-count policy grants hidden membership counts.
 
 ### 7.2 Chat
 

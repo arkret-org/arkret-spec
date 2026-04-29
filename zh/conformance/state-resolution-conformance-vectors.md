@@ -347,7 +347,7 @@ cx.vector.state_resolution.kanban_concurrent_move.v1
   "candidates": [
     {
       "operation_id": "cx:operation:01js0mv1000000000000000000",
-      "kind": "cx.relation.move",
+      "kind": "cx.container.move_item",
       "actor_id": "did:web:alice.example",
       "hlc": "01970e589d24-0001-11111111",
       "auth_weight": 10,
@@ -362,7 +362,7 @@ cx.vector.state_resolution.kanban_concurrent_move.v1
     },
     {
       "operation_id": "cx:operation:01js0mv2000000000000000000",
-      "kind": "cx.relation.move",
+      "kind": "cx.container.move_item",
       "actor_id": "did:web:bob.example",
       "hlc": "01970e589d24-0002-22222222",
       "auth_weight": 10,
@@ -409,12 +409,12 @@ cx.vector.state_resolution.kanban_concurrent_move.v1
 - loser 不得继续作为 active containment 出现在普通 Kanban projection 中。
 - 审计输出 MUST 保留 loser operation 和冲突原因。
 
-## 7. Vector: Kanban 字段列原子移动
+## 7. Vector: 字段位置原子移动
 
 向量名称：
 
 ```text
-cx.vector.state_resolution.kanban_atomic_task_move.v1
+cx.vector.state_resolution.kanban_atomic_field_position_move.v1
 ```
 
 输入：
@@ -432,7 +432,7 @@ cx.vector.state_resolution.kanban_atomic_task_move.v1
   "candidates": [
     {
       "operation_id": "cx:operation:01js0tm1000000000000000000",
-      "kind": "cx.task.move",
+      "kind": "cx.field_position.move",
       "actor_id": "did:web:alice.example",
       "hlc": "01970e589d25-0001-11111111",
       "auth_weight": 10,
@@ -446,7 +446,7 @@ cx.vector.state_resolution.kanban_atomic_task_move.v1
     },
     {
       "operation_id": "cx:operation:01js0tm2000000000000000000",
-      "kind": "cx.task.move",
+      "kind": "cx.field_position.move",
       "actor_id": "did:web:bob.example",
       "hlc": "01970e589d25-0002-22222222",
       "auth_weight": 10,
@@ -488,7 +488,7 @@ cx.vector.state_resolution.kanban_atomic_task_move.v1
 
 判定要点：
 
-- 两个并发 `cx.task.move` 写入同一 `(view_id, entity_id, group_by)` 时，`to_value` 和 `rank` MUST 来自同一个 winner。
+- 两个并发 `cx.field_position.move` 写入同一 `(view_id, entity_id, group_by)` 时，`to_value` 和 `rank` MUST 来自同一个 winner。旧 `cx.task.move` 按兼容别名映射到同一 reducer。
 - 实现不得输出 `status` 来自 operation A、`rank` 来自 operation B 的混合位置。
 - 若客户端用裸 `cx.entity.update` 同时写 `fields.status` 与 `fields.rank` 且未声明 `atomic_position`，实现 MAY 按普通 scalar LWW 处理，但不得声称通过本向量。
 
@@ -532,7 +532,7 @@ cx.vector.state_resolution.kanban_relation_rebalance_assignment.v1
   },
   "operation": {
     "operation_id": "cx:operation:01js0rb1000000000000000000",
-    "kind": "cx.relation.rebalance",
+    "kind": "cx.container.rebalance",
     "actor_id": "did:web:alice.example",
     "hlc": "01970e589d26-0001-11111111",
     "auth_weight": 10,
@@ -629,7 +629,7 @@ cx.vector.state_resolution.kanban_relation_rebalance_cas_conflict.v1
   },
   "operation": {
     "operation_id": "cx:operation:01js0rb2000000000000000000",
-    "kind": "cx.relation.rebalance",
+    "kind": "cx.container.rebalance",
     "content": {
       "scope_container_id": "cx:entity:01js0bd0000000000000000000",
       "container_id": "cx:entity:01js0c2000000000000000000",

@@ -203,7 +203,7 @@ function matches(target, selector):
 `*` 选择器可能匹配非预期资源。缓解措施：
 
 - 始终配合 `expires_at` 使用
-- 与 `entity_type_allow` 约束组合
+- 与 `entity_facet_allow` / `entity_type_allow` 约束组合；新 profile SHOULD 优先按 facet 限制能力范围
 - 通配符授权要求管理员审批
 - 审计通配符授权使用
 

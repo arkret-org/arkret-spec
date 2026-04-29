@@ -7,10 +7,12 @@ Scope:
 ```json
 {
   "space_ids": [],
-  "entity_types": [],
+  "entity_facets": [],
   "actions": []
 }
 ```
+
+`entity_types` remains a compatibility semantic-label filter. New profiles SHOULD use `entity_facets` for capability-scoped grants.
 
 Constraints may include time windows, writable field allow/deny lists, required claims, approval requirements, audience binding, device binding, max blob bytes, and delegation depth.
 

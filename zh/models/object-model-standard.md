@@ -5,7 +5,9 @@
 本文定义 Contrix 初版标准 Entity 类型。  
 这些类型是语义层约定，不改变核心模型：所有对象仍然是 Entity，所有跨对象语义仍然使用 Relation。
 
-核心字段类型、必填性和通用约束见 `data-structures.md`。本文只定义标准 `entity_type` 的业务语义、常用字段和推荐关系。
+核心字段类型、必填性和通用约束见 `data-structures.md`。本文只定义标准 `entity_type` 的业务语义、常用字段、推荐关系和推荐 facet composition。
+
+`entity_type` 不得隐式授予能力。标准 profile MAY 为常见 `entity_type` 注入默认 facets，但实现和 conformance 判断 MUST 以实际 `Entity.facets` / Space schema profile 为准。
 
 ## 2. Board
 
@@ -32,6 +34,29 @@
 {
   "entity_type": "board",
   "title": "Product Launch",
+  "facets": {
+    "container": {
+      "child_facets": {
+        "any": ["container", "stateful", "replyable", "documentable"],
+        "all": ["renderable"]
+      },
+      "relation_kinds": ["contains"],
+      "ordering": {
+        "mode": "relation_rank",
+        "rank_field": "fields.rank",
+        "exclusive_scope": "per_root"
+      },
+      "allowed_renderers": ["card", "row"]
+    },
+    "replyable": {
+      "reply_facets": {
+        "all": ["renderable"],
+        "any": ["replyable", "notifiable"]
+      },
+      "reply_relation_kind": "replies_to",
+      "time_field": "created_at"
+    }
+  },
   "fields": {
     "default_view_kind": "kanban"
   }
@@ -49,6 +74,15 @@
 - `rank`
 - `due_at`
 - `labels`
+
+推荐 facets：
+
+- `stateful`
+- `rankable`
+- `assignable`
+- `schedulable`
+- `replyable`
+- `renderable`
 
 常见关系：
 
@@ -70,6 +104,12 @@ Message 可以存在于 channel、topic、thread 或 task discussion 中。
 - `attachments`
 - `edited_at`
 - `redacted`
+
+推荐 facets：
+
+- `replyable`
+- `renderable`
+- `notifiable`
 
 常见关系：
 
@@ -94,6 +134,12 @@ Topic 可挂接到：
 
 - `contains` -> message
 - `attached_to` -> entity
+
+推荐 facets：
+
+- `container`
+- `replyable`
+- `renderable`
 
 ## 6. Channel
 

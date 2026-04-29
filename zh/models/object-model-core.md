@@ -272,7 +272,7 @@ View 示例：
   "kind": "collection",
   "preset": "kanban",
   "query": {
-    "entity_types": ["task"],
+    "facets": ["stateful", "rankable"],
     "filters": [
       { "field": "fields.archived", "op": "neq", "value": true }
     ],

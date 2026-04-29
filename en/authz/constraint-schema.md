@@ -107,16 +107,19 @@ All constraints follow this structure:
 
 ## 5. Type Restrictions
 
-### 5.1 Entity Type Allow List
+### 5.1 Entity Facet / Type Allow List
 
 ```json
 {
   "constraint_type": "type_restriction",
   "effect": "allow",
+  "entity_facet_allow": ["stateful", "replyable", "documentable"],
   "entity_type_allow": ["task", "message", "document"],
   "entity_type_deny": ["run", "memory"]
 }
 ```
+
+`entity_type_allow` only narrows semantic labels; it does not grant capabilities. New profiles SHOULD use `entity_facet_allow` for capability-scoped grants and keep `entity_type_allow` as an optional refinement.
 
 ### 5.2 Memory Kind Restrictions
 

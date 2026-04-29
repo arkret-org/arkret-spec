@@ -250,6 +250,37 @@ components:
         - context_timeline
         - moderation_queue
         - custom
+    FacetName:
+      type: string
+      enum:
+        - container
+        - replyable
+        - schedulable
+        - assignable
+        - stateful
+        - rankable
+        - reviewable
+        - notifiable
+        - documentable
+        - renderable
+    ViewRenderer:
+      type: string
+      enum:
+        - board
+        - card
+        - row
+        - table
+        - calendar
+        - gantt
+        - timeline
+        - thread
+        - chat
+        - forum
+        - graph
+        - tree
+        - document
+        - dashboard
+        - custom
     QueryRequest:
       type: object
       properties:
@@ -273,12 +304,20 @@ components:
             - composite
         preset:
           $ref: "#/components/schemas/ViewPreset"
+        renderer:
+          $ref: "#/components/schemas/ViewRenderer"
         entity_types:
           type: array
           items:
             type: string
             minLength: 1
           minItems: 1
+        facets:
+          type: array
+          items:
+            $ref: "#/components/schemas/FacetName"
+          minItems: 1
+          uniqueItems: true
         relation:
           oneOf:
             - $ref: "#/components/schemas/RelationQuery"
@@ -590,6 +629,87 @@ components:
         total_estimate:
           type: integer
           minimum: 0
+      allOf:
+        - if:
+            properties:
+              source:
+                properties:
+                  model:
+                    const: field_value
+                required: [model]
+            required: [source]
+          then:
+            properties:
+              items:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/ProjectionItem"
+                    - type: object
+                      required: [position]
+                      properties:
+                        position:
+                          $ref: "#/components/schemas/CollectionFieldValuePosition"
+        - if:
+            properties:
+              source:
+                properties:
+                  model:
+                    const: relation_container
+                required: [model]
+            required: [source]
+          then:
+            properties:
+              items:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/ProjectionItem"
+                    - type: object
+                      required: [position]
+                      properties:
+                        position:
+                          $ref: "#/components/schemas/CollectionRelationPosition"
+        - if:
+            properties:
+              source:
+                properties:
+                  model:
+                    const: time_bucket
+                required: [model]
+            required: [source]
+          then:
+            properties:
+              items:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/ProjectionItem"
+                    - type: object
+                      required: [position]
+                      properties:
+                        position:
+                          $ref: "#/components/schemas/CollectionTimeWindowPosition"
+        - if:
+            properties:
+              source:
+                properties:
+                  model:
+                    const: matrix_cell
+                required: [model]
+            required: [source]
+          then:
+            properties:
+              items:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/ProjectionItem"
+                    - type: object
+                      required: [position]
+                      properties:
+                        position:
+                          $ref: "#/components/schemas/CollectionMatrixPosition"
       additionalProperties: false
     CollectionProjectionResponse:
       type: object
@@ -823,6 +943,11 @@ components:
         entity_type:
           type: string
           minLength: 1
+        facets:
+          type: array
+          items:
+            $ref: "#/components/schemas/FacetName"
+          uniqueItems: true
         title:
           type: string
         fields:

@@ -26,12 +26,12 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
 ```json
 {
   "space_ids": ["cx:space:01JS0SP000000000000000000"],
-  "entity_types": ["task", "message"],
+  "entity_facets": ["stateful", "replyable", "renderable"],
   "actions": ["cx.entity.create", "cx.entity.update", "cx.message.create"]
 }
 ```
 
-Scope MUST be allow-list based。未列出的动作默认拒绝。
+Scope MUST be allow-list based。未列出的动作默认拒绝。`entity_types` MAY 作为向后兼容的语义标签过滤；新 profile SHOULD 使用 `entity_facets` 表达能力范围。
 
 ## 4. Constraint
 
@@ -43,6 +43,7 @@ Scope MUST be allow-list based。未列出的动作默认拒绝。
   },
   "fields_write_allow": ["title", "fields.status"],
   "fields_write_deny": ["policy", "encryption_profile"],
+  "entity_facet_allow": ["stateful", "replyable"],
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
   "allowed_from_container_refs": ["cx:entity:01js0c1000000000000000000"],

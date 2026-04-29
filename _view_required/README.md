@@ -2,30 +2,38 @@
 
 本目录是本轮 View 协议产品化审查的临时工作区。
 
-结论：不应把 `kanban`、`thread`、`table`、`chat` 等产品形态都提升为协议核心类型。协议核心只保留少数可验证的投影原语，产品形态通过 `preset` 表达。
+结论：不应把 `kanban`、`thread`、`table`、`chat` 等产品形态都提升为协议核心类型；也不应让 View 原语承担对象职责。协议核心应先定义 Entity 的可组合 `facets`，View 只是对 facet/relation graph 的查询与渲染。
 
-当前核心 `View.kind`：
+当前标准 Entity facets：
+
+```text
+container, replyable, schedulable, assignable, stateful,
+rankable, reviewable, notifiable, documentable, renderable
+```
+
+当前 View response family 仍保留以下机器返回形态，但它们不定义对象能力：
 
 ```text
 collection, timeline, graph, document, composite
 ```
 
-产品 preset 映射：
+产品 preset 由 facet composition 派生：
 
-| Core kind | Presets |
+| Preset | Required / typical facets |
 | --- | --- |
-| `collection` | `kanban`, `list`, `table`, `calendar`, `gantt`, `review_queue`, `matrix`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `moderation_queue` |
-| `timeline` | `timeline`, `chat`, `thread`, `forum`, `activity`, `context_timeline` |
-| `graph` | `graph`, `tree` |
-| `document` | `document` |
-| `composite` | `dashboard` |
+| `kanban` | card items are usually `stateful` + `rankable`; relation-backed boards use container entities with `container`. |
+| `thread` / `chat` / `forum` | anchors use `replyable`; messages are renderable timeline entries. |
+| `calendar` / `gantt` | items use `schedulable`; dependencies are relation edges. |
+| `review_queue` / `moderation_queue` | items use `reviewable` plus optional `assignable` / `stateful`. |
+| `document` | root uses `documentable`; sections are contained/renderable entities. |
+| `dashboard` | composite view over other facet queries. |
 
 设计含义：
 
-- Kanban card 是 `collection` item 的一种 card render surface，不是独立协议对象。
-- Thread/chat/message/task/run/memory 都可以作为 `collection.items[*].entity` 或 `timeline.entries[*].entity` 投影。
-- 顶层 reducer、cursor、authz、schema 和 OpenAPI 只需要支持 5 类原语。
-- preset 只约束配置模板和 UI 语义，不新增真相源。
+- Kanban card 是满足某组 facets 的 Entity 使用 `card` renderer 的结果，不是独立协议对象。
+- Thread/chat/message/task/run/memory 都可以作为 `collection.items[*].entity` 或 `timeline.entries[*].entity` 投影，关键取决于 facets 与 relation。
+- `entity_type` 只提供语义标签；facet 才声明字段组、允许关系、标准操作与投影能力。
+- preset 只约束 facet composition 和 UI 语义，不新增真相源。
 
 文件：
 

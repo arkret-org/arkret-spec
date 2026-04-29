@@ -36,7 +36,25 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.field_position.move" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/$defs/task_move_content" } }
+      }
+    },
+    {
+      "if": {
         "properties": { "kind": { "const": "cx.relation.move" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/$defs/relation_move_content" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.container.move_item" } },
         "required": ["kind"]
       },
       "then": {
@@ -54,7 +72,25 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.field_position.reorder" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/$defs/task_reorder_content" } }
+      }
+    },
+    {
+      "if": {
         "properties": { "kind": { "const": "cx.relation.rebalance" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "content": { "$ref": "#/$defs/relation_rebalance_content" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.container.rebalance" } },
         "required": ["kind"]
       },
       "then": {

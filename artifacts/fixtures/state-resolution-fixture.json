@@ -38,7 +38,7 @@
         "candidates": [
           {
             "operation_id": "cx:operation:01js0mv1000000000000000000",
-            "kind": "cx.relation.move",
+            "kind": "cx.container.move_item",
             "actor_id": "did:web:alice.example",
             "hlc": "01970e589d24-0001-11111111",
             "auth_weight": 10,
@@ -58,7 +58,7 @@
           },
           {
             "operation_id": "cx:operation:01js0mv2000000000000000000",
-            "kind": "cx.relation.move",
+            "kind": "cx.container.move_item",
             "actor_id": "did:web:bob.example",
             "hlc": "01970e589d24-0002-22222222",
             "auth_weight": 10,
@@ -111,7 +111,7 @@
       },
       "assertions": [
         "exactly one active_position_register exists for the state_key",
-        "resolved_position container_id, rank, and source_operation_id all come from the same winning cx.relation.move",
+        "resolved_position container_id, rank, and source_operation_id all come from the same winning cx.container.move_item",
         "loser operation does not remain active in ordinary Kanban projection",
         "conflict_records preserve winner, loser, state_key, and deterministic reason"
       ]
@@ -131,7 +131,7 @@
         "candidates": [
           {
             "operation_id": "cx:operation:01js0tm1000000000000000000",
-            "kind": "cx.task.move",
+            "kind": "cx.field_position.move",
             "actor_id": "did:web:alice.example",
             "hlc": "01970e589d25-0001-11111111",
             "auth_weight": 10,
@@ -145,7 +145,7 @@
           },
           {
             "operation_id": "cx:operation:01js0tm2000000000000000000",
-            "kind": "cx.task.move",
+            "kind": "cx.field_position.move",
             "actor_id": "did:web:bob.example",
             "hlc": "01970e589d25-0002-22222222",
             "auth_weight": 10,

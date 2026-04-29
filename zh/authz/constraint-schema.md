@@ -108,16 +108,19 @@
 
 ## 5. 类型限制
 
-### 5.1 实体类型允许列表
+### 5.1 实体能力 / 类型允许列表
 
 ```json
 {
   "constraint_type": "type_restriction",
   "effect": "allow",
+  "entity_facet_allow": ["stateful", "replyable", "documentable"],
   "entity_type_allow": ["task", "message", "document"],
   "entity_type_deny": ["run", "memory"]
 }
 ```
+
+`entity_type_allow` 只按语义标签收窄范围，不赋予能力。新 profile SHOULD 用 `entity_facet_allow` 约束可操作对象能力，再用 `entity_type_allow` 作为可选细分过滤。
 
 ### 5.2 Memory 类型限制
 
@@ -170,7 +173,7 @@
 }
 ```
 
-`container_move` MUST 在授权判定中早于 operation 生效。目标列禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.relation.move` / `cx.task.move` 不得直接生效。
+`container_move` MUST 在授权判定中早于 operation 生效。目标列禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.container.move_item` / `cx.field_position.move` 不得直接生效；旧 `cx.relation.move` / `cx.task.move` 按兼容别名处理。
 
 ## 7. 委托控制
 

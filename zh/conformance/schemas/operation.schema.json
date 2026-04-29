@@ -36,7 +36,33 @@
     },
     {
       "if": {
+        "properties": { "semantic_kind": { "const": "cx.field_position.move" } },
+        "required": ["semantic_kind"]
+      },
+      "then": {
+        "properties": {
+          "operation_type": { "const": "move" },
+          "object_type": { "const": "entity" },
+          "payload": { "$ref": "#/$defs/task_move_payload" }
+        }
+      }
+    },
+    {
+      "if": {
         "properties": { "semantic_kind": { "const": "cx.relation.move" } },
+        "required": ["semantic_kind"]
+      },
+      "then": {
+        "properties": {
+          "operation_type": { "const": "move" },
+          "object_type": { "const": "relation" },
+          "payload": { "$ref": "#/$defs/relation_move_payload" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "semantic_kind": { "const": "cx.container.move_item" } },
         "required": ["semantic_kind"]
       },
       "then": {
@@ -62,7 +88,33 @@
     },
     {
       "if": {
+        "properties": { "semantic_kind": { "const": "cx.field_position.reorder" } },
+        "required": ["semantic_kind"]
+      },
+      "then": {
+        "properties": {
+          "operation_type": { "const": "reorder" },
+          "object_type": { "const": "entity" },
+          "payload": { "$ref": "#/$defs/task_reorder_payload" }
+        }
+      }
+    },
+    {
+      "if": {
         "properties": { "semantic_kind": { "const": "cx.relation.rebalance" } },
+        "required": ["semantic_kind"]
+      },
+      "then": {
+        "properties": {
+          "operation_type": { "const": "rebalance" },
+          "object_type": { "const": "relation" },
+          "payload": { "$ref": "#/$defs/relation_rebalance_payload" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "semantic_kind": { "const": "cx.container.rebalance" } },
         "required": ["semantic_kind"]
       },
       "then": {
@@ -81,7 +133,9 @@
       "then": {
         "required": ["semantic_kind"],
         "properties": {
-          "semantic_kind": { "enum": ["cx.task.move", "cx.relation.move"] }
+          "semantic_kind": {
+            "enum": ["cx.field_position.move", "cx.container.move_item", "cx.task.move", "cx.relation.move"]
+          }
         }
       }
     },
@@ -93,7 +147,7 @@
       "then": {
         "required": ["semantic_kind"],
         "properties": {
-          "semantic_kind": { "enum": ["cx.task.reorder"] }
+          "semantic_kind": { "enum": ["cx.field_position.reorder", "cx.task.reorder"] }
         }
       }
     },
@@ -105,7 +159,7 @@
       "then": {
         "required": ["semantic_kind"],
         "properties": {
-          "semantic_kind": { "enum": ["cx.relation.rebalance"] }
+          "semantic_kind": { "enum": ["cx.container.rebalance", "cx.relation.rebalance"] }
         }
       }
     }

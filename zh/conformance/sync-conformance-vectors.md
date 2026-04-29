@@ -375,7 +375,7 @@ Content-Type: application/json
 ```json
 {
   "space_ids": ["space_a"],
-  "entity_types": ["message"],
+  "facets": ["replyable", "renderable"],
   "limit": 20
 }
 ```
@@ -618,7 +618,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
   "projection": "collection",
   "preset": "kanban",
   "view_id": "cx:view:01js0vw0000000000000000000",
-  "entity_types": ["task"],
+  "facets": ["stateful", "rankable"],
   "limit": 2
 }
 ```
@@ -782,10 +782,10 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
     "kind": "collection",
     "preset": "kanban",
     "query": {
-      "entity_types": ["task"]
+      "facets": ["stateful", "rankable"]
     },
     "collection": {
-      "item_entity_types": ["task"],
+      "item_facets": ["stateful", "rankable"],
       "item_render": "card",
       "item_order_by": [{ "field": "fields.rank", "direction": "asc" }],
       "grouping": {

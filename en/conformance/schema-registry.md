@@ -52,8 +52,12 @@ Initial object schemas:
 | `cx.relation.create` | Relation create |
 | `cx.relation.update` | Relation patch |
 | `cx.relation.delete` | Relation tombstone |
-| `cx.relation.move` | Relation/containment move |
-| `cx.relation.rebalance` | Ordered relation rank rebalance |
+| `cx.relation.move` | Compatibility alias for `cx.container.move_item` |
+| `cx.relation.rebalance` | Compatibility alias for `cx.container.rebalance` |
+| `cx.container.move_item` | Facet container item move |
+| `cx.container.rebalance` | Facet container rank rebalance |
+| `cx.field_position.move` | Facet field-position move |
+| `cx.field_position.reorder` | Facet field-position reorder |
 | `cx.message.create` | Message create |
 | `cx.message.revise` | Message edit patch (canonical edit operation) |
 | `cx.message.redact` | Message redaction |
@@ -64,8 +68,8 @@ Initial object schemas:
 | `cx.capability.revoke` | Revocation |
 | `cx.task.create` | Task create |
 | `cx.task.update` | Task patch |
-| `cx.task.move` | Task move |
-| `cx.task.reorder` | Task rank-only reorder |
+| `cx.task.move` | Task move compatibility alias for `cx.field_position.move` |
+| `cx.task.reorder` | Task rank-only reorder compatibility alias for `cx.field_position.reorder` |
 | `cx.view.create` | View create |
 | `cx.view.update` | View update |
 | `cx.view.reconcile` | View schema/definition sync |

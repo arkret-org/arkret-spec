@@ -161,8 +161,10 @@ The draft uses:
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
-- `cx.relation.move` (ordered containment / membership edge move)
-- `cx.relation.rebalance` (score index rebalancing for ordered collections)
+- `cx.container.move_item` (ordered container item / membership edge move)
+- `cx.container.rebalance` (score index rebalancing for ordered containers)
+- `cx.relation.move` (compatibility alias)
+- `cx.relation.rebalance` (compatibility alias)
 - `cx.view.create`
 - `cx.view.update`
 
@@ -172,8 +174,9 @@ The following are semantic sugar and MUST be reducible to `entity.*` or `relatio
 
 - `cx.task.create`
 - `cx.task.update`
-- `cx.task.move`
-- `cx.task.reorder`
+- `cx.field_position.move`
+- `cx.field_position.reorder`
+- `cx.task.move` / `cx.task.reorder` (compatibility aliases)
 - `cx.comment.create`
 - `cx.comment.update`
 - `cx.comment.redact`
@@ -256,10 +259,10 @@ Non-create operations SHOULD carry deltas rather than full object snapshots.
 Examples:
 
 - `cx.entity.update` carries field deltas
-- `cx.task.move` carries field-value Kanban column value and rank as one atomic position write
-- `cx.task.reorder` carries rank-only reorder within a field-value Kanban column
-- `cx.relation.move` carries target container and rank for collection Kanban moves
-- `cx.relation.rebalance` carries full-container rank assignments plus `expected_state_hash`
+- `cx.field_position.move` carries field-value column value and rank as one atomic position write
+- `cx.field_position.reorder` carries rank-only reorder within a field-value column
+- `cx.container.move_item` carries target container and rank for container-backed moves
+- `cx.container.rebalance` carries full-container rank assignments plus `expected_state_hash`
 - `cx.message.revise` carries only new content
 - `cx.message.redact` carries only the target message and reason
 

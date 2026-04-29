@@ -107,6 +107,7 @@ Schema id: `cx.schema.entity.v1`
 | `type` | yes | `enum(entity)` | 固定为 `entity`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `entity_type` | yes | `string` | 标准值见 `object-model-standard.md`，扩展不得使用未注册 `cx.` 前缀。 | 语义类型。 |
+| `facets` | no | `map<FacetConfig>` | 标准键见下方；未知 facet 必须由 Space schema 声明。 | Entity 拥有哪些职责/能力包；字段组、允许关系、操作语义和可投影能力由 facet 声明。 |
 | `title` | no | `string` | SHOULD <= 512 chars。 | 标题。 |
 | `content` | no | `object` | 富文本/blocks 见 `content-types.md`。 | 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
@@ -123,6 +124,25 @@ Schema id: `cx.schema.entity.v1`
 board, collection, task, message, topic, channel, document, file,
 memory, run, actor_profile, poll, social_post, social_feed, social_circle
 ```
+
+标准 `facets`：
+
+| Facet | 说明 | 典型字段/关系 |
+| --- | --- | --- |
+| `container` | Entity 可作为容器，包含、排序或移动其他 Entity。 | `child_facets` / `child_entity_types`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
+| `replyable` | Entity 可被回复，形成 thread/chat/forum。 | `reply_facets` / `reply_entity_types`, `reply_relation_kind`, `time_field`, `redaction_policy`。 |
+| `schedulable` | Entity 有时间窗口，可进入 calendar/gantt。 | `start_field`, `end_field`, `timezone_field`, `dependency_relation_kinds`。 |
+| `assignable` | Entity 可分配给 actor/team/agent。 | `assignee_relation_kind` 或 `assignee_field`。 |
+| `stateful` | Entity 有受控状态机。 | `state_field`, `states`, `transition_policy`。 |
+| `rankable` | Entity 有稳定手动排序 rank。 | `rank_field`, `rank_profile`, `collision_policy`。 |
+| `reviewable` | Entity 可进入审核/审阅队列。 | `review_state_field`, `reviewer_relation_kind`, `priority_field`。 |
+| `notifiable` | Entity 可派生 notification/inbox/read state。 | `notification_types`, `read_state_policy`。 |
+| `documentable` | Entity 可作为文档或 section root。 | `section_relation_kind`, `section_order_field`, `body_field`。 |
+| `renderable` | Entity 声明允许的默认展示面。 | `renderers`, `title_field`, `summary_field`, `media_field`。 |
+
+`query.facets`、`collection.item_facets`、`conversation.message_facets` 和 `graph.node_facets` 的数组语义为 AND：候选 Entity MUST 同时具备列出的全部 facet。`container.child_facets` 与 `replyable.reply_facets` 使用 `{all?, any?, none?}` 选择器，避免把“至少具备其中一个能力”和“必须同时具备全部能力”混淆。
+
+`entity_type` 是语义标签，不得隐式授予能力。例如 `entity_type="task"` 默认不等于可拖拽、可排期或可回复；这些能力必须由 `facets.stateful`、`facets.rankable`、`facets.schedulable`、`facets.replyable` 等显式声明，或由该 Space 的 schema profile 明确注入。
 
 ## 7. Relation
 
@@ -225,7 +245,8 @@ Schema id: `cx.schema.view.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `item_entity_types` | yes | `array<string>` | 至少 1 项。 | 可投影为 item/card/row/message 的 Entity 类型。 |
+| `item_entity_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 可投影为 item/card/row/message 的 Entity 类型。 |
+| `item_facets` | conditional | `array<FacetName>` | 可替代 `item_entity_types`；至少 1 项。 | 按 Entity 能力选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
 | `item_render` | yes | `enum(card, row, tile, compact, badge, message)` | `preset="kanban"` SHOULD 为 `card`。 | 默认展示面。 |
 | `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 preset SHOULD 使用 rank。 |
 | `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
@@ -282,7 +303,7 @@ KanbanConfig 约束：
 - `column_model="field_value"` 时，`group_by` 与 `columns` MUST 存在；`board_entity_id` MAY 存在，用于限定 View 所属 board。
 - `column_model="collection"` 时，`board_entity_id` 与 `card_relation_kind` MUST 存在；列集合来自 board 到 collection 的 Relation，卡片集合来自 column 到 card 的 `card_relation_kind` Relation。
 - `card_order_by` MUST 至少包含一个稳定排序字段；推荐 `fields.rank` 或 Relation `fields.rank`。
-- 用于拖拽的 `group_by` 字段与 rank 字段 MUST 通过 `cx.task.move` 或等价 `atomic_position` 原子写入，避免并发时列值和 rank 分别由不同 operation 胜出。
+- 用于拖拽的 `group_by` 字段与 rank 字段 MUST 通过 `cx.field_position.move`（旧兼容名 `cx.task.move`）或等价 `atomic_position` 原子写入，避免并发时列值和 rank 分别由不同 operation 胜出。
 
 ## 11. Policy
 
@@ -405,7 +426,7 @@ Schema id: `cx.schema.operation.v1`
 | `operation_id` | yes | `id:operation` 或 `hash` |  | Operation ID。 |
 | `type` | yes | `enum(operation)` | 固定为 `operation`。 | 对象种类。 |
 | `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref, move, reorder, rebalance)` |  | operation 类型。 |
-| `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.task.move`。`move/reorder/rebalance` 必填。 | 语义操作类型，用于校验 payload。 |
+| `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.container.move_item`。`move/reorder/rebalance` 必填。 | 语义操作类型，用于校验 payload。 |
 | `space_id` | yes | `id:space` |  | 目标 Space。 |
 | `object_id` | no | `string` | create 可由 payload 指定。 | 目标对象。 |
 | `object_type` | yes | `string` | `entity`、`relation` 等。 | 目标对象类型。 |
@@ -414,10 +435,11 @@ Schema id: `cx.schema.operation.v1`
 
 Canonical Operation 与 Operation Envelope 的映射：
 
-- `semantic_kind="cx.task.move"` MUST 使用 `operation_type="move"`、`object_type="entity"`，并使用 `cx.task.move` payload schema。
-- `semantic_kind="cx.relation.move"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用 `cx.relation.move` payload schema。
-- `semantic_kind="cx.task.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="entity"`，并使用 `cx.task.reorder` payload schema。
-- `semantic_kind="cx.relation.rebalance"` MUST 使用 `operation_type="rebalance"`、`object_type="relation"`，并使用 `cx.relation.rebalance` payload schema。
+- `semantic_kind="cx.field_position.move"` MUST 使用 `operation_type="move"`、`object_type="entity"`，并使用字段位置 move payload schema。
+- `semantic_kind="cx.container.move_item"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用容器 item move payload schema。
+- `semantic_kind="cx.field_position.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="entity"`，并使用字段位置 reorder payload schema。
+- `semantic_kind="cx.container.rebalance"` MUST 使用 `operation_type="rebalance"`、`object_type="relation"`，并使用容器 rebalance payload schema。
+- `semantic_kind="cx.task.move"`、`cx.task.reorder`、`cx.relation.move`、`cx.relation.rebalance` 是兼容旧名称，新 profile SHOULD 使用 facet-oriented 名称。
 - `operation_type` 为 `move`、`reorder` 或 `rebalance` 时，`semantic_kind` MUST 存在且属于本 schema 声明的有序操作语义白名单；实现不得把有序集合操作塞进无语义的 generic `update`，也不得使用未知 `semantic_kind` 绕过 payload validation。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
