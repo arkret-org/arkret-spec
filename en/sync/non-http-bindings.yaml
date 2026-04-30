@@ -82,6 +82,18 @@ grpc:
       Head: cx.blob.head
     Moderation:
       Report: cx.moderation.report
+    Mimi:
+      ProviderDirectory: cx.mimi.provider_directory
+      KeyMaterial: cx.mimi.key_material
+      RoomUpdate: cx.mimi.room_update
+      Notify: cx.mimi.notify
+      SubmitMessage: cx.mimi.submit_message
+      GroupInfo: cx.mimi.group_info
+      RequestConsent: cx.mimi.request_consent
+      UpdateConsent: cx.mimi.update_consent
+      IdentifierQuery: cx.mimi.identifier_query
+      ReportAbuse: cx.mimi.report_abuse
+      ProxyDownload: cx.mimi.proxy_download
     Push:
       RegisterDevice: cx.push.register_device
       UnregisterDevice: cx.push.unregister_device
@@ -124,6 +136,17 @@ mq:
     keys.keypackages.consume: cx.keys.keypackages.consume
     keys.keypackages.revoke: cx.keys.keypackages.revoke
     moderation.report: cx.moderation.report
+    mimi.provider_directory: cx.mimi.provider_directory
+    mimi.key_material: cx.mimi.key_material
+    mimi.room_update: cx.mimi.room_update
+    mimi.notify: cx.mimi.notify
+    mimi.submit_message: cx.mimi.submit_message
+    mimi.group_info: cx.mimi.group_info
+    mimi.request_consent: cx.mimi.request_consent
+    mimi.update_consent: cx.mimi.update_consent
+    mimi.identifier_query: cx.mimi.identifier_query
+    mimi.report_abuse: cx.mimi.report_abuse
+    mimi.proxy_download: cx.mimi.proxy_download
     push.notify: cx.push.notify
     authz.check: cx.authz.check
 libp2p:

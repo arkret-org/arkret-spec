@@ -111,6 +111,7 @@ Main document groups:
 - [glossary.md](./overview/glossary.md)
 - [space-hierarchy.md](./models/space-hierarchy.md)
 - [agent-protocol-interop.md](./extensions/agent-protocol-interop.md)
+- [mimi-interop.md](./extensions/mimi-interop.md)
 - [tsp-integration.md](./identity/tsp-integration.md)
 - [progressive-disclosure.md](./identity/progressive-disclosure.md)
 

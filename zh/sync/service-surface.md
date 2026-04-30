@@ -85,6 +85,7 @@ DID Document SHOULD 只负责：
 | Authz / Policy Server | 个人可内置；共享 Space 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Space、third-party lookup。 |
+| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、Space Host 或 Applet Bridge 承载 | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/repo` 写回结果 | agent 执行、tool 调用、run log、memory、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
 | Moderation / Compliance Server | 公共或组织部署建议独立 | `/moderation`, `/server` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 |
@@ -97,6 +98,7 @@ DID Document SHOULD 只负责：
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_bridge`：Applet Server + Repo writer + Authz precheck，只在授权 namespace 和 capability 内工作。
+- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Channel。
 - `agent_runtime`：Agent Runtime + Repo writer + Memory/Index integration，所有写入仍通过 principal / agent DID 签名。
 
 客户端选择服务时 MUST 先解析 DID Document 与 Space policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
@@ -140,7 +142,7 @@ GET /api/v1/server/describe
 服务类型命名规则：
 
 - DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixIndex`。
-- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`index_node`、`appview_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`。
+- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`index_node`、`appview_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`。
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 
@@ -542,7 +544,36 @@ POST /api/v1/directory/private-contact-discovery
 
 该操作用于 `cx.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 time-bound reachability proof 或 invite/consent 引导，不得返回原始 connection identifier、完整 profile、成员列表或社交图。
 
-## 9. Capability / Invite Surface
+## 9. MIMI Provider Facade Surface
+
+MIMI Provider Facade 是 MIMI 草案兼容的互操作服务面。它不替代 Principal Server / Federation / Device Key Server；它只把被授权的 Contrix Space / Channel 投影为 MIMI room。
+
+推荐操作：
+
+```text
+GET /api/v1/mimi/provider-directory
+POST /api/v1/mimi/key-material
+PUT /api/v1/mimi/rooms/{room_id}/update
+POST /api/v1/mimi/rooms/{room_id}/notify
+POST /api/v1/mimi/rooms/{room_id}/messages
+GET /api/v1/mimi/rooms/{room_id}/group-info
+POST /api/v1/mimi/consent/request
+POST /api/v1/mimi/consent/update
+POST /api/v1/mimi/identifiers/query
+POST /api/v1/mimi/report-abuse
+POST /api/v1/mimi/proxy-download
+```
+
+规则：
+
+- 只有存在 accepted `cx.mimi.room_binding` 的 Space / Channel / Topic 可以通过该 surface 暴露为 MIMI room。
+- MIMI 写请求 MUST 使用 provider service DID 的 HTTP Message Signature，并绑定 source / destination / room id / request hash。
+- Facade MUST 将 MIMI 写入转换为 Contrix event / operation，并执行 DID、device、MLS、capability、auth refs 和 Space policy 校验。
+- MIMI provider timestamp、room id、user id 和 role 只能作为互操作 metadata，不得替代 Contrix event id、HLC、DID 或 capability。
+
+完整语义见 `../extensions/mimi-interop.md`。
+
+## 10. Capability / Invite Surface
 
 虽然 grant / revoke / invite 本身也是对象或 operation，但服务层仍需要可查询面。
 
@@ -566,7 +597,7 @@ POST /api/v1/authz/check
 - sync service 分发前快速过滤
 - client 发送前本地 UX 提示
 
-## 10. Space Bootstrap Flow
+## 11. Space Bootstrap Flow
 
 Contrix v1 的首次加入流程：
 
@@ -580,7 +611,7 @@ Contrix v1 的首次加入流程：
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态
 
-## 11. 新鲜度与多服务并存
+## 12. 新鲜度与多服务并存
 
 当多个 Principal Server / index 并存时，服务 SHOULD 公开：
 
@@ -607,7 +638,7 @@ Contrix v1 的首次加入流程：
 - 落后副本
 - 还是可能发生了分叉或作恶
 
-## 12. 传输安全与密文
+## 13. 传输安全与密文
 
 服务面 SHOULD 区分：
 
@@ -619,19 +650,19 @@ Contrix v1 的首次加入流程：
 - repo / sync service / index MAY 不解密正文
 - 但仍 SHOULD 保留 hash、cursor、causal 与目标引用
 
-## 13. 防滥用与配额机制 (Anti-Spam & Quota)
+## 14. 防滥用与配额机制 (Anti-Spam & Quota)
 
 在去中心化网络中，计算、存储与带宽都是稀缺资源。协议要求所有提供写入或传播服务的节点实现必须具备防御恶意滥用的能力：
 
-### 13.1 存储责任与 Blob Quota
+### 14.1 存储责任与 Blob Quota
 - **成本归属**：Space 的整体数据大小、历史 Operation 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Space 的 `owner` 或负责托管的 `responsible_actor_id`。
 - **拒绝写入**：当 Blob 服务或 Index 服务评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Operation 或大文件 Blob。
 
-### 13.2 写频率控制 (Rate Limiting)
+### 14.2 写频率控制 (Rate Limiting)
 - Sync Service 和 Repo 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。
 - 对于来自未验证或低信誉 DID 的恶意刷写（例如短时间内进行海量无效的 `message.create` 或反复触发高并发图重组），节点有权暂时熔断该 DID 的请求。
 
-## 14. 设计决定
+## 15. 设计决定
 
 Contrix v1 固定：
 
@@ -643,13 +674,13 @@ Contrix v1 固定：
 - 服务必须公开 reducer / schema / feature profile
 - 明确 Space Owner 的资源记账责任与防滥用熔断标准
 
-## 15. HTTP/JSON Binding
+## 16. HTTP/JSON Binding
 
 默认 HTTP/JSON binding 的具体路径、请求/响应形状、Blob 上传下载和标准错误码移至 `service-http-binding.md`。
 
 `service-surface.md` 只定义服务角色和语义面。任何 HTTP、gRPC、WebSocket、SSE、message queue、libp2p 或 IPC 实现都必须映射到本文定义的等价语义。
 
-## 16. 线级互操作要求
+## 17. 线级互操作要求
 
 以下事项是 v1 的落地要求，不再作为待定项处理：
 

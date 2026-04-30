@@ -84,6 +84,7 @@ Common combinations follow. "Required" here means the protocol interaction needs
 | Authz / Policy Server | May be embedded for individuals; recommended as a separate service for shared Spaces and organization governance | `/authz`, `/contrix/v1/check`, `/server` | Effective grants, invite queries, capability precheck, signed policy decisions, risk / quarantine. |
 | Push Gateway | Ordinary users normally use public or managed push; intranet or high-security organizations may self-host it | `/push`, `/server` | Push device registration, unregister, blind notification delivery, APNs/FCM/vendor adapters. |
 | Applet Server | Optional for integrations, bridges, and automations | `/applet`, `/server` | Applet describe, transactions, ghost actors, portal Spaces, third-party lookup. |
+| MIMI Provider Facade | Optional for interoperability with external MIMI providers; may be hosted by a Principal Server, Space Host, or Applet Bridge | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery, room binding, key material, submit message, groupInfo, consent, identifier query, abuse report, proxy download. |
 | Agent Runtime Server | Optional but recommended for agent workloads | Service surfaces defined by `extensions/agent-*`, usually writing results through `/repo` | Agent execution, tool calls, run logs, memory, A2A/ACP/MCP handoff. |
 | Realtime Media Server | Optional for calls and meetings | `/contrix/v1/ice-config`, plus WebRTC signaling / TURN / SFU profiles | ICE config, TURN/STUN, SFU/MCU, recording policy, short-lived media credentials. |
 | Moderation / Compliance Server | Recommended as a separate service for public or organization deployments | `/moderation`, `/server` | Reports, review queues, server ACLs, policy lists, appeals, legal hold / erasure workflows. |
@@ -96,6 +97,7 @@ Recommended deployment profiles:
 - `isolated_enclave`: Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance all deployed inside the trust domain.
 - `public_federation_ingress`: restricted Principal/Federation + Policy + Moderation + Directory; plaintext is not visible by default.
 - `applet_bridge`: Applet Server + Repo writer + Authz precheck, limited to authorized namespace and capability.
+- `mimi_provider_facade`: MIMI facade + Device/Key + Federation/Authz integration, limited to Spaces / Channels authorized by `cx.mimi.room_binding`.
 - `agent_runtime`: Agent Runtime + Repo writer + Memory/Index integration; all durable writes are signed by principal / agent DID.
 
 Clients MUST resolve DID Documents and Space policy first, then verify `server/describe`. Sharing a domain name does not imply shared authority or the same plaintext visibility scope.
@@ -139,7 +141,7 @@ Example:
 Service type naming rules:
 
 - DID Document `service.type` uses protocol registered names such as `ContrixPrincipalServer` and `ContrixIndex`.
-- `describe` responses use lower-case runtime `service_type` values such as `principal_server`, `sync_node`, `index_node`, `appview_node`, `identity_registry`, `auth_server`, `blob_node`, `directory_service`, `device_key_service`, `authz_service`, `policy_server`, `push_gateway`, `applet_service`, `agent_runtime`, `media_service`, `sfu_service`, `turn_service`, and `moderation_service`.
+- `describe` responses use lower-case runtime `service_type` values such as `principal_server`, `sync_node`, `index_node`, `appview_node`, `identity_registry`, `auth_server`, `blob_node`, `directory_service`, `device_key_service`, `authz_service`, `policy_server`, `push_gateway`, `applet_service`, `mimi_provider_facade`, `agent_runtime`, `media_service`, `sfu_service`, `turn_service`, and `moderation_service`.
 - Conformance profiles use `cx.profile.*` ids such as `cx.profile.principal_server.v1`.
 - Implementations MUST keep these three naming layers distinct.
 
@@ -421,11 +423,35 @@ POST /api/v1/directory/private-contact-discovery
 
 `private-contact-discovery` is for `cx.private_contact_discovery.v1`. Requests MUST use blinded / padded connection identifier batches. Responses only return time-bound reachability proof or invite/consent guidance; they MUST NOT return raw connection identifiers, full profiles, member lists, or social graph.
 
-## 8. Blob Surface
+## 8. MIMI Provider Facade Surface
+
+MIMI Provider Facade is the interoperability surface compatible with the MIMI drafts. It does not replace Principal Server, Federation, or Device Key Server; it projects authorized Contrix Spaces / Channels as MIMI rooms.
+
+Recommended operations:
+
+```text
+GET /api/v1/mimi/provider-directory
+POST /api/v1/mimi/key-material
+PUT /api/v1/mimi/rooms/{room_id}/update
+POST /api/v1/mimi/rooms/{room_id}/notify
+POST /api/v1/mimi/rooms/{room_id}/messages
+GET /api/v1/mimi/rooms/{room_id}/group-info
+POST /api/v1/mimi/consent/request
+POST /api/v1/mimi/consent/update
+POST /api/v1/mimi/identifiers/query
+POST /api/v1/mimi/report-abuse
+POST /api/v1/mimi/proxy-download
+```
+
+Only accepted `cx.mimi.room_binding` scopes may be exposed as MIMI rooms. MIMI writes MUST use provider service DID HTTP Message Signatures and bind source, destination, room id, and request hash. The facade maps MIMI writes to Contrix events / operations and still checks DID, device, MLS, capability, auth refs, and Space policy.
+
+Full semantics are in `../extensions/mimi-interop.md`.
+
+## 9. Blob Surface
 
 Blob services should expose at least:
 
-### 8.1 Upload a Blob
+### 9.1 Upload a Blob
 
 ```text
 POST /api/v1/blob/upload
@@ -437,13 +463,13 @@ Returning:
 - `sha256`
 - `size`
 
-### 8.2 Inspect Blob Headers
+### 9.2 Inspect Blob Headers
 
 ```text
 HEAD /api/v1/blob/get?blob_ref=<ref>
 ```
 
-### 8.3 Download a Blob
+### 9.3 Download a Blob
 
 ```text
 GET /api/v1/blob/get?blob_ref=<ref>
@@ -451,7 +477,7 @@ GET /api/v1/blob/get?blob_ref=<ref>
 
 Blob validation MUST be content-hash based rather than URL based.
 
-## 9. Capability / Invite Surface
+## 10. Capability / Invite Surface
 
 Even though grant / revoke / invite are themselves objects or operations, the service layer still needs query surfaces.
 
@@ -475,7 +501,7 @@ The `check` surface is useful for:
 - fast filtering before sync distribution
 - local UX warnings before a client sends a write
 
-## 10. Space Bootstrap Flow
+## 11. Space Bootstrap Flow
 
 The recommended first-time join flow is:
 
@@ -489,7 +515,7 @@ The recommended first-time join flow is:
 8. the client runs the reducer locally
 9. the client establishes personal state such as read markers and notification cursors
 
-## 11. Freshness and Multi-service Coexistence
+## 12. Freshness and Multi-service Coexistence
 
 When multiple Principal Servers or indexes coexist, services SHOULD expose:
 
@@ -516,7 +542,7 @@ Clients may use those values to decide whether a registry is:
 - merely a lagging replica
 - or potentially forked / malicious
 
-## 12. Transport Security and Ciphertext
+## 13. Transport Security and Ciphertext
 
 The service surface SHOULD distinguish:
 
@@ -528,7 +554,7 @@ If a payload is already encrypted under `policy.encryption_profile`, then:
 - repos / sync services / indexes MAY be unable to decrypt the body
 - but they SHOULD still preserve hash, cursor, causality, and target references
 
-## 13. Initial Design Decisions
+## 14. Initial Design Decisions
 
 The current draft recommends fixing:
 
@@ -539,7 +565,7 @@ The current draft recommends fixing:
 - bootstrap covering invite / grant / snapshot / backfill
 - services publishing reducer / schema / feature profiles
 
-## 14. Further Work
+## 15. Further Work
 
 The next round still needs:
 

@@ -91,6 +91,7 @@ contrix-spec/
       applet-schema.md
       agent-memory.md
       agent-protocol-interop.md
+      mimi-interop.md
     conformance/
       README.md
       fixtures/
@@ -175,6 +176,7 @@ contrix-spec/
       applet-schema.md
       agent-memory.md
       agent-protocol-interop.md
+      mimi-interop.md
     conformance/
       README.md
       fixtures/

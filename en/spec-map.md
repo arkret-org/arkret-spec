@@ -151,6 +151,7 @@ When learning the protocol for the first time, we recommend this sequence:
 | `extensions/applet-schema.md` | Applet schema and OpenAPI draft. |
 | `extensions/agent-memory.md` | Agent memory, run lifecycle, promotion and review. |
 | `extensions/agent-protocol-interop.md` | A2A / ACP legacy / external agent protocol handoff. |
+| `extensions/mimi-interop.md` | MIMI Provider Facade, room binding, content/policy/identity mapping. |
 | `sync/third-party-invites.md` | 3PID invites and claim flow. |
 | `models/space-hierarchy.md` | Space parent/child, inheritance, lazy links, cycle handling. |
 

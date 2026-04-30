@@ -160,6 +160,37 @@
   - [x] 允许 Space policy 选择是否在 MLS AAD 暴露 opaque message/event id 以换取投递诊断能力。
   - [x] 隐私 Space 默认不暴露可跨服务关联的 message id。
 
+## P1: MIMI 互操作支持落地
+
+目标: 在不改变 Contrix core truth model 的前提下，提供可实现、可测试的 MIMI provider facade，使 Contrix Space / Channel 能与 MIMI provider 互通。
+
+- [x] 定义 `cx.profile.mimi_interop.v1`:
+  - [x] 固定目标草案版本: `draft-ietf-mimi-protocol-06`、`draft-ietf-mimi-content-08`、`draft-ietf-mimi-room-policy-03`、`draft-kohbrok-mimi-identifiers-01`。
+  - [x] 草案版本漂移时通过 profile version / draft pinning 处理，核心 Space version 不变。
+- [x] 定义 MIMI Provider Facade:
+  - [x] provider directory / describe 语义。
+  - [x] hub / follower provider 与 Contrix Principal Server / Space Host 的映射。
+  - [x] HTTP Message Signature、service DID、destination binding 和 Space policy 授权规则。
+- [x] 定义 Room Binding:
+  - [x] `cx.mimi.room_binding` 将 Contrix Space / Channel / Topic 绑定到 MIMI room URI。
+  - [x] 明确 canonical truth 仍是 Contrix signed Event / Reducer，MIMI room state 是互操作投影。
+  - [x] 规定 MIMI participant / role / policy 与 Contrix membership / capability / policy components 的双向映射。
+- [x] 定义 MIMI endpoint surface:
+  - [x] `key-material`、`update`、`notify`、`submit-message`、`group-info`。
+  - [x] `request-consent`、`update-consent`、`identifier-query`。
+  - [x] `report-abuse`、`proxy-download`。
+- [x] 定义内容转码:
+  - [x] `cx.content.*` 与 `application/mimi-content`、`text/plain;charset=utf-8`、`text/markdown;variant=GFM-MIMI` 映射。
+  - [x] reply、reaction、edit、delete、expiration、attachment、thread/topic 映射。
+  - [x] 未能无损映射的 Contrix 内容以 proprietary alternative part 保留。
+- [x] 定义身份、发现和 consent:
+  - [x] MIMI URI / connection identifier / provider identifier 到 DID / handle / pairwise DID 的映射。
+  - [x] consent state 与 Contrix private discovery / invite / presentation 兼容。
+- [x] 定义 conformance 与机器工件:
+  - [x] 新增 MIMI interop schema、fixture、profile manifest。
+  - [x] 更新 operation registry、OpenAPI、non-HTTP binding。
+  - [x] 中英文 spec map 与 extension 文档结构对齐。
+
 ## Cross-Project Contract Output
 
 - `contrix-rust-sdk`: 消费 schema、operation registry、fixture，并提供 typed builders/validators。
