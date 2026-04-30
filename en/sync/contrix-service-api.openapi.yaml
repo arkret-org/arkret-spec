@@ -1683,6 +1683,160 @@ paths:
             application/json:
               schema:
                 type: object
+  /mimi/provider-directory:
+    get:
+      operationId: cx.mimi.provider_directory
+      responses:
+        "200":
+          description: MIMI provider directory
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/mimi-interop.schema.json
+  /mimi/key-material:
+    post:
+      operationId: cx.mimi.key_material
+      security:
+        - httpMessageSignature: []
+      responses:
+        "200":
+          description: MIMI key material claim result
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/rooms/{room_id}/update:
+    put:
+      operationId: cx.mimi.room_update
+      security:
+        - httpMessageSignature: []
+      parameters:
+        - name: room_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: MIMI room update result
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/rooms/{room_id}/notify:
+    post:
+      operationId: cx.mimi.notify
+      security:
+        - httpMessageSignature: []
+      parameters:
+        - name: room_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          description: MIMI notification accepted
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/rooms/{room_id}/messages:
+    post:
+      operationId: cx.mimi.submit_message
+      security:
+        - httpMessageSignature: []
+      parameters:
+        - name: room_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: MIMI message submission result
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/rooms/{room_id}/group-info:
+    get:
+      operationId: cx.mimi.group_info
+      security:
+        - httpMessageSignature: []
+      parameters:
+        - name: room_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: MIMI groupInfo projection
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/consent/request:
+    post:
+      operationId: cx.mimi.request_consent
+      security:
+        - httpMessageSignature: []
+      responses:
+        "202":
+          description: MIMI consent request accepted
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/consent/update:
+    post:
+      operationId: cx.mimi.update_consent
+      security:
+        - httpMessageSignature: []
+      responses:
+        "200":
+          description: MIMI consent update result
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/identifiers/query:
+    post:
+      operationId: cx.mimi.identifier_query
+      security:
+        - httpMessageSignature: []
+      responses:
+        "200":
+          description: MIMI identifier query result
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/report-abuse:
+    post:
+      operationId: cx.mimi.report_abuse
+      security:
+        - httpMessageSignature: []
+      responses:
+        "202":
+          description: MIMI abuse report accepted
+          content:
+            application/json:
+              schema:
+                type: object
+  /mimi/proxy-download:
+    post:
+      operationId: cx.mimi.proxy_download
+      security:
+        - httpMessageSignature: []
+      responses:
+        "200":
+          description: MIMI proxy download result
+          content:
+            application/json:
+              schema:
+                type: object
   /auth/account/session-grants:
     post:
       operationId: cx.account.issue_session_grant

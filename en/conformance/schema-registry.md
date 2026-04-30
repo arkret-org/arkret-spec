@@ -18,6 +18,7 @@ Initial object schemas:
 - `cx.schema.blob.v1`
 - `cx.schema.encrypted_payload.v1`
 - `cx.schema.client_sync_response.v1`
+- `cx.schema.mimi_interop.v1`
 
 ## Event Types
 
@@ -86,6 +87,7 @@ Initial object schemas:
 | `cx.applet.registration` | Applet registration |
 | `cx.applet.protocol_session.start` | Applet/agent protocol session start |
 | `cx.applet.protocol_session.status` | Session status |
+| `cx.mimi.room_binding` | MIMI room binding state |
 | `cx.call.signal` | WebRTC signal message |
 | `cx.redaction` | Generic redaction envelope |
 

@@ -22,6 +22,7 @@ cx.profile.<name>.v<major>
 - `cx.profile.principal_server.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
+- `cx.profile.mimi_interop.v1`
 
 ## 3. 通用强制要求（所有 Profile 必须遵守）
 
@@ -257,6 +258,32 @@ SHOULD 支持：
 
 `cx.profile.applet_service.v1` 适用于桥接外部系统和运行 Applet 集成服务。  
 `cx.profile.applet_bridge.v1` 视为兼容别名，v1 工具链 SHOULD 归一到 `cx.profile.applet_service.v1`。
+
+## 10.7 MIMI Interop Provider Facade
+
+`cx.profile.mimi_interop.v1` 适用于需要与外部 MIMI provider 互通的 facade 服务。
+
+MUST 支持：
+
+- pinned MIMI draft version discovery
+- `cx.mimi.room_binding` 生命周期校验
+- MIMI provider directory 和 endpoint surface
+- KeyPackage claim / consume / revoke lifecycle
+- MIMI message 到 Contrix event / operation 的映射
+- Contrix event 到 MIMI message / receipt 的映射
+- room policy component 到 Contrix capability / policy state 的映射
+- identifier query 的 private contact discovery
+- consent state isolation
+- E2EE abuse report franking
+- asset privacy policy 下的 proxy / OHTTP 下载策略
+- unsupported draft fail-closed
+
+MUST NOT：
+
+- 把 MIMI room id 当作 `space_id`
+- 把 MIMI provider timestamp 当作 Contrix HLC / event creation truth
+- 把 MIMI user identifier 当作 DID
+- 绕过 Contrix auth refs、capability、MLS epoch 或 Space policy
 
 ## 11. Enterprise Client
 
@@ -501,6 +528,16 @@ Applet Service / Bridge profile MUST 额外提供：
 - portal Space mapping vector
 - unauthorized write rejection vector
 
+MIMI Interop profile MUST 额外提供：
+
+- provider directory draft pinning vector
+- room binding projection vector
+- content roundtrip vector
+- identifier query privacy vector
+- consent isolation vector
+- proxy download policy vector
+- unsupported draft fail-closed vector
+
 ## 15. Feature Discovery 示例
 
 ```json
@@ -537,6 +574,7 @@ Applet Service / Bridge profile MUST 额外提供：
 - `blob_node`
 - `push_gateway`
 - `applet_service`
+- `mimi_interop`
 
 `full_client` 和 `e2ee_client` 是产品可用性的目标 profile。  
 `enterprise_client` 和 `agent_runtime` 是高价值扩展 profile，但不应阻塞基础互操作。

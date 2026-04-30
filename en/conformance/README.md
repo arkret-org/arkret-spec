@@ -4,8 +4,8 @@ This directory collects the Contrix v1 conformance documents, test vectors, and 
 
 ## Contents
 
-- `schemas/`: JSON Schema artifacts for core objects, sync state, blob/media, push, and identity.
-- `fixtures/`: official JSON fixtures consumable by `cotest`, SDKs, and service implementations.
+- `schemas/`: JSON Schema artifacts for core objects, sync state, blob/media, push, identity, and MIMI interop.
+- `fixtures/`: official JSON fixtures consumable by `cotest`, SDKs, and service implementations, including MIMI interop vectors.
 - `encoding.md`, `encoding-conformance-vectors.md`: canonical JSON, hash, proof, HLC, cursor, and rank rules.
 - `cursor-encoding.md`, `cursor-test-vectors.md`: cursor format and vectors.
 - `hlc-specification.md`, `hlc-test-vectors.md`: HLC format, comparison rules, and vectors.

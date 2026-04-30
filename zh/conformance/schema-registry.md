@@ -24,6 +24,7 @@
 | `cx.schema.blob.v1` | Blob Metadata |
 | `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
 | `cx.schema.client_sync_response.v1` | Client Sync Response |
+| `cx.schema.mimi_interop.v1` | MIMI Provider Directory / Room Binding / Mapping Receipt |
 
 ## 3. Event Type
 
@@ -93,6 +94,7 @@
 | `cx.applet.registration` | Applet registration |
 | `cx.applet.protocol_session.start` | Applet / agent protocol session start |
 | `cx.applet.protocol_session.status` | Session status |
+| `cx.mimi.room_binding` | MIMI room binding state |
 | `cx.call.signal` | WebRTC signal message |
 | `cx.redaction` | Generic redaction envelope |
 

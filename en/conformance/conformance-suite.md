@@ -25,6 +25,7 @@ This version does not introduce a new space version. Compatibility evolution is 
 - `cx.profile.applet_bridge.v1`
 - `cx.profile.enterprise_client.v1`
 - `cx.profile.agent_runtime.v1`
+- `cx.profile.mimi_interop.v1`
 
 ## 3. OpenAPI and Transport Mapping
 
@@ -51,6 +52,7 @@ Each implementation must verify:
 - `state-resolution-conformance-vectors.md`: state conflict, deterministic winner, and conflict record fixtures.
 - `redaction-conformance-vectors.md`: redaction preserve fields and index/audit consistency fixtures.
 - `capability-conformance-vectors.md`: delegation chain, revoke rollback, approval constraint fixtures.
+- `mimi-interop-fixture.json`: MIMI provider directory, room binding, content mapping, identifier query, consent, proxy download, and unsupported-draft vectors.
 
 ### 4.2 State Resolution (new baseline)
 
@@ -92,6 +94,7 @@ Each implementation must verify:
 | Index Node | query reconstruction, authorization filtering, wait-for frontier, stale markers | notification materialization |
 | E2EE Client | epoch recovery, to-device, removed-member fail-closed | local plaintext search coordination |
 | Applet Bridge | registration signature, transaction idempotency, namespace conflicts, unauthorized write rejection | portal-space mapping |
+| MIMI Provider Facade | draft pinning, room binding, KeyPackage claim, message/content roundtrip, policy mapping, identifier privacy, consent isolation, proxy download, unsupported-draft fail-closed | lossless MIMI content extension preservation |
 | Policy Server | decision signing, replay protection, hard_deny/quarantine semantics | federation secondary checks |
 | Identity Registry | DID log continuity, witness receipt, method adapter metadata | witness-only, read replica |
 

@@ -25,6 +25,7 @@
 - `cx.profile.applet_bridge.v1`
 - `cx.profile.enterprise_client.v1`
 - `cx.profile.agent_runtime.v1`
+- `cx.profile.mimi_interop.v1`
 
 ## 3. OpenAPI 与 Transport 一致性
 
@@ -50,6 +51,7 @@
 - `state-resolution-conformance-vectors.md`：state 冲突与收敛向量（本文件未完全展开的补充）。
 - `redaction-conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `capability-conformance-vectors.md`：委派、撤销回滚与审批约束向量。
+- `mimi-interop-fixture.json`：MIMI provider directory、room binding、content mapping、identifier query、consent、proxy download 与 unsupported draft 向量。
 
 ### 4.2 State resolution 向量
 
@@ -94,6 +96,7 @@ v1 新增以下必测项：
 | Index Node | query 结果可重建性、授权过滤、wait-for 前沿、stale 标记、目录结果可见性一致 | notification materialization |
 | E2EE Client | epoch 回填、to-device、removed 成员 fail-closed | 本地 search 协调 |
 | Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal space 映射 |
+| MIMI Provider Facade | draft pinning、room binding、KeyPackage claim、message/content roundtrip、policy mapping、identifier privacy、consent isolation、proxy download、unsupported draft fail-closed | MIMI content extension lossless preservation |
 | Policy Server | decision 签名、replay 保护、hard_deny / quarantine 语义、rate_limit / spam 风险码 | federation 再检 |
 | Identity Registry | DID log 一致性、witness receipt、method adapter | witness-only、read-replica |
 

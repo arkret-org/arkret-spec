@@ -22,6 +22,7 @@
     { "schema_id": "cx.schema.identity_receipt.v1", "file": "schemas/identity-receipt.schema.json" },
     { "schema_id": "cx.schema.handle_claim.v1", "file": "schemas/handle-claim.schema.json" },
     { "schema_id": "cx.schema.grant_constraint.v1", "file": "schemas/grant-constraint.schema.json" },
-    { "schema_id": "cx.schema.resource_selector.v1", "file": "schemas/resource-selector.schema.json" }
+    { "schema_id": "cx.schema.resource_selector.v1", "file": "schemas/resource-selector.schema.json" },
+    { "schema_id": "cx.schema.mimi_interop.v1", "file": "schemas/mimi-interop.schema.json" }
   ]
 }

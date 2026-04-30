@@ -16,6 +16,7 @@ Contrix implementations declare testable profiles rather than claiming generic s
 - `cx.profile.push_gateway.v1`
 - `cx.profile.applet_service.v1`
 - `cx.profile.agent_runtime.v1`
+- `cx.profile.mimi_interop.v1`
 
 `cx.profile.applet_bridge.v1` is retained as a compatibility alias and should normalize to `cx.profile.applet_service.v1`.
 
@@ -40,6 +41,8 @@ Contrix implementations declare testable profiles rather than claiming generic s
 `cx.profile.push_gateway.v1` MUST cover `register_device`, `unregister_device`, `notify`, minimized blind wakeup payloads, trusted service signature verification, invalid token cleanup, and `rejected[]` reporting. Push gateways MUST NOT ingest plaintext message bodies or treat delivery receipts as read receipts.
 
 `cx.profile.applet_service.v1` MUST cover signed registration, namespace declaration, ping/describe, transaction push, idempotency, actor/space lookup, protocol metadata, accountability metadata, capability enforcement, HTTP message signature verification, and external event deduplication.
+
+`cx.profile.mimi_interop.v1` MUST cover pinned MIMI draft version discovery, `cx.mimi.room_binding`, the MIMI provider endpoint surface, KeyPackage claim lifecycle, MIMI-to-Contrix and Contrix-to-MIMI content mapping, room policy component mapping, private identifier queries, consent isolation, E2EE abuse report franking, asset proxy download policy, and unsupported-draft fail-closed behavior. It MUST NOT replace `space_id`, DID, HLC/event hash, Contrix auth refs, capability checks, MLS epoch checks, or Space policy with MIMI identifiers or provider metadata.
 
 `cx.profile.enterprise_client.v1` MUST cover OIDC / SSO gateway session grants, device inventory, admin-triggered device revocation, auditable E2EE warning UI, compliance audit display, and managed update policy.
 
@@ -74,4 +77,5 @@ Conformance suites should include schema validation, signature verification, ide
 - Capability: `capability-conformance-vectors.md`
 - Core sync/encoding vectors: `sync-conformance-vectors.md`, `encoding-conformance-vectors.md`
 - E2EE hardening: KeyPackage single-use, MLS-bound state root mismatch, minimal-metadata identity link, AAD visibility, E2EE franking report
+- MIMI interop: provider directory draft pinning, room binding projection, content roundtrip, identifier query privacy, consent isolation, proxy download policy, unsupported-draft fail-closed
 - Machine-readable fixtures: `fixtures/*.json`
