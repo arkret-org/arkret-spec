@@ -78,7 +78,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | `identity/identity-did.md` | DID、did:uuid、DID Document、key log、Organization ownership。 |
-| `identity/identity-handles.md` | Handle 解析、双向绑定、claim / attestation。 |
+| `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation。 |
 | `identity/progressive-disclosure.md` | 渐进披露、presentation request、disclosure policy、私有存储。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
@@ -101,9 +101,9 @@
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
 | `authz/grant-constraint-schema.md` | Grant constraint schema。 |
-| `authz/event-auth-state-resolution.md` | Space version、auth refs、membership、state resolution。 |
+| `authz/event-auth-state-resolution.md` | Space version、auth refs、membership、policy components、history sharing、state resolution。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
-| `authz/moderation.md` | 举报、Space/Organization 审核策略、个人屏蔽入口。 |
+| `authz/moderation.md` | 举报、E2EE franking、Space/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
 | `authz/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
 
@@ -126,7 +126,7 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| `discovery/discovery-directory.md` | Space / Organization / Actor / Applet discoverability 与目录服务。 |
+| `discovery/discovery-directory.md` | Space / Organization / Actor / Applet discoverability、私密联系人发现与目录服务。 |
 | `discovery/profiles-presence.md` | Actor profile、presence、typing、用户目录。 |
 | `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist。 |
 | `discovery/push-notifications.md` | 推送规则、推送网关、E2EE 脱敏推送。 |
@@ -139,8 +139,8 @@
 | --- | --- |
 | `crypto-media/device-crypto-verification.md` | 设备身份、cross-signing、to-device、secret storage、key backup。 |
 | `crypto-media/devices-and-auth.md` | 多设备、登录、认证、SSO。 |
-| `crypto-media/encryption-and-audit.md` | MLS E2EE 与可审查留痕。 |
-| `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media。 |
+| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS-bound state、KeyPackage lifecycle、minimal metadata Space 与可审查留痕。 |
+| `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话、会议、TURN/STUN/ICE、SFU/MCU。 |
 
 ### 4.8 扩展、Agent 与集成

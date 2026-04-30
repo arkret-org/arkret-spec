@@ -9,7 +9,13 @@
     { "operation_id": "cx.federation.transaction", "http": "PUT /federation/transactions/{txn_id}", "grpc": "Federation/Transaction", "mq": "federation.transaction" },
     { "operation_id": "cx.index.query", "http": "POST /index/query", "grpc": "Index/Query", "mq": "index.query" },
     { "operation_id": "cx.directory.resolve_handle", "http": "POST /directory/resolve-handle", "grpc": "Directory/ResolveHandle", "mq": "directory.resolve_handle" },
+    { "operation_id": "cx.directory.private_contact_discovery", "http": "POST /directory/private-contact-discovery", "grpc": "Directory/PrivateContactDiscovery", "mq": "directory.private_contact_discovery" },
     { "operation_id": "cx.blob.get", "http": "GET /blob/get", "grpc": "Blob/Get", "mq": "blob.get" },
+    { "operation_id": "cx.keys.keypackages.upload", "http": "POST /keys/keypackages/upload", "grpc": "Keys/KeyPackagesUpload", "mq": "keys.keypackages.upload" },
+    { "operation_id": "cx.keys.keypackages.claim", "http": "POST /keys/keypackages/claim", "grpc": "Keys/KeyPackagesClaim", "mq": "keys.keypackages.claim" },
+    { "operation_id": "cx.keys.keypackages.consume", "http": "POST /keys/keypackages/consume", "grpc": "Keys/KeyPackagesConsume", "mq": "keys.keypackages.consume" },
+    { "operation_id": "cx.keys.keypackages.revoke", "http": "POST /keys/keypackages/revoke", "grpc": "Keys/KeyPackagesRevoke", "mq": "keys.keypackages.revoke" },
+    { "operation_id": "cx.moderation.report", "http": "POST /moderation/report", "grpc": "Moderation/Report", "mq": "moderation.report" },
     { "operation_id": "cx.push.notify", "http": "POST /push/notify", "grpc": "Push/Notify", "mq": "push.notify" },
     { "operation_id": "cx.authz.check", "http": "POST /authz/check", "grpc": "Authz/Check", "mq": "authz.check" },
     { "operation_id": "cx.applet.transaction", "http": "PUT /applet/transactions/{txn_id}", "grpc": "Applet/Transaction", "mq": "applet.transaction" }

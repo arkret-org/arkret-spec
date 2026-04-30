@@ -179,6 +179,59 @@ POST /api/v1/keys/claim
 - 服务端返回 key 时 MUST 附带 device signature。
 - 客户端 MUST 拒绝未被 self-signing key 或 principal key 链接的 device key，除非用户明确接受未验证设备。
 
+## 6.5 MLS KeyPackage Claim API
+
+MLS KeyPackage 使用独立的 single-use claim API，而不是复用 one-time prekey 语义。
+
+推荐操作：
+
+```http
+POST /api/v1/keys/keypackages/upload
+POST /api/v1/keys/keypackages/claim
+POST /api/v1/keys/keypackages/consume
+POST /api/v1/keys/keypackages/revoke
+```
+
+`upload` 请求字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `principal_id` | `did` | required | KeyPackage 所属 principal。 |
+| `device_id` | `id` | required | KeyPackage 所属设备。 |
+| `keypackages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。 |
+| `device_signature` | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。 |
+
+`claim` 请求字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `target_principal_id` | `did` | required | 被邀请或加入的 principal。 |
+| `target_device_ids` | `id[]` | optional | 为空时由服务选择可用设备。 |
+| `intended_space_id` | `id` | required | 目标 Space。 |
+| `requester` | `did` | required | 发起 claim 的 actor 或 service DID。 |
+| `required_capabilities` | `string[]` | required | 需要的 content / MLS / policy profile。 |
+| `minimal_metadata_allowed` | `boolean` | optional | 是否允许 pseudonymous credential。 |
+| `claim_nonce` | `string` | required | 防重放随机数。 |
+| `expires_at` | `datetime` | required | claim 有效期。 |
+| `proofs` | `proof[]` | required | requester / service / device proof。 |
+
+`claim` 响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、device binding、expiry 和 capabilities。 |
+| `failures` | `object[]` | optional | 不可领取设备与原因；不得泄露不可见用户或设备。 |
+
+`consume` MUST 由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `claim_id`、`welcome_ref`、`space_id` 和 device proof。`revoke` 可由设备、principal controller 或 policy 授权服务发起。
+
+规则：
+
+- `claim` MUST 原子地把 KeyPackage 从 `published` 转为 `claimed`。
+- 同一 `keypackage_ref` 不得被多个 active claim 使用。
+- 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST 不再返回该 KeyPackage。
+- `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。
+- claim record SHOULD 被 Principal Server / Device Key Server 保留到 Welcome 过期后的一段短 TTL，用于重试、诊断和滥用审计；不得长期保留可关联 private room 的明文目标信息。
+
 ## 7. Verification Flows
 
 Contrix 标准验证消息：

@@ -67,6 +67,8 @@ AAD 包含路由元数据，具有以下特性：
 - 被认证覆盖（完整性保护）
 - 篡改必定被检测
 
+AAD 字段集合受 Space 的 `aad_visibility` policy 约束。隐私优先 Space SHOULD 只保留路由所需的 `space_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 调试或投递确认的 Space MAY 暴露 opaque `event_id` / `message_id`，但该选择 MUST 在 Space policy 中声明并纳入 MLS-bound `policy_root`。
+
 ### 3.2 规范 AAD 序列化
 
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：

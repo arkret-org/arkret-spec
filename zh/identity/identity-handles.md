@@ -36,6 +36,26 @@ authorization condition = verified claim / attestation
 Handle MAY 变更、冻结、迁移或重新绑定。  
 历史 Event 仍然保留原 DID 作为 actor，因此 handle 被回收不会改变历史责任主体。
 
+### 2.3 Connection Identifier 与显示名分离
+
+实现 MUST 区分以下标识层：
+
+| 层 | 示例 | 用途 | 是否可作为协议主体 |
+| --- | --- | --- | --- |
+| Connection Identifier | `alice@example.com`、手机号、通讯录用户名、外部账号 ID | 发现联系人、请求 consent、发送邀请或建立初始关系 | 否 |
+| Administrative Identifier | 组织账号、计费账号、客服账号、受管员工编号 | 组织本地管理、合规和账号恢复 | 否 |
+| Handle | `alice.example.com`、`@alice:example.org` | 人类可读入口和公开/半公开别名 | 否 |
+| Display Name | `Alice Zhang` | UI 展示 | 否 |
+| Principal DID | `did:uuid:...`、`did:web:...` | 签名、授权、事件责任主体 | 是 |
+
+规则：
+
+- Connection Identifier 只用于发现、consent、邀请或一次性绑定证明。它不得自动写入 DID Document、Space history、membership event、grant subject 或 MLS credential。
+- Provider、Directory 或 Auth Server 证明某个 connection identifier 可达时，输出仍 MUST 归约为 DID 或 pending invite proof，并带有 purpose、audience、expiry 和 issuer proof。
+- 同一个 principal 可以为不同 provider、组织或 Space 使用不同 connection identifier 和 pairwise DID。实现不得要求全局唯一 connection identifier。
+- Connection identifier 与 DID 的绑定默认是关系私有状态。除非 holder 明确发布为 handle 或 VC claim，其他 Space 成员和 federation peer 不得获得该映射。
+- Display name 是可变 metadata，不得被用于 ACL、grant、audit attribution 或 sender verification。
+
 ## 3. Handle 格式
 
 初版推荐 DNS 风格 handle：

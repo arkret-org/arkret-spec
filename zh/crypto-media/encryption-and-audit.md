@@ -64,6 +64,123 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 服务端、Sync Service、Index 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
 
+### 2.5 MLS 绑定的应用状态根
+
+E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或房间元数据。
+
+每个 `cx.mls.commit` MUST 绑定一个 `application_state_ref`，并把该引用纳入 MLS transcript 或等价的 commit-authenticated data：
+
+```json
+{
+  "application_state_ref": {
+    "space_id": "cx:space:01JS0SP000000000000000000",
+    "mls_group_id": "base64url...",
+    "previous_epoch": 41,
+    "next_epoch": 42,
+    "membership_frontier": ["cx:event:membership_head"],
+    "policy_root": "sha256:canonical_state_policy_root",
+    "capability_root": "sha256:effective_capability_root",
+    "room_metadata_hash": "sha256:canonical_room_metadata",
+    "reducer_profile": "cx.reducer.v1"
+  }
+}
+```
+
+规则：
+
+- `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员状态、invite/leave/ban 变化和设备信任变化。
+- `policy_root` MUST 覆盖影响加密、history visibility、asset privacy、logging、bot、moderation 和 plaintext-visible service 的 Space policy state。
+- `capability_root` SHOULD 覆盖与本次成员或策略变化相关的 effective grant / revoke / claim 状态。
+- `room_metadata_hash` SHOULD 覆盖成员可见的房间名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
+- 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix state 已经按 `event-auth-state-resolution.md` accepted。无法回补或 hash 不匹配时 MUST 标记该 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
+- 并发 Commit 仍按 Contrix 的 auth weight / HLC / actor / event hash 规则裁决；失败 Commit 的 MLS transcript 不得被接受为当前 epoch。
+
+实现若使用 MLS AppSync、GroupContext extension 或 future MLS application-state extension，SHOULD 将上述字段放入该扩展。若底层 MLS 库暂不支持扩展，MUST 至少把 `application_state_ref` 放入签名 Event 和 Commit transcript hash 可验证覆盖的字段中。
+
+### 2.6 KeyPackage Claim 生命周期
+
+KeyPackage 不应被建模为可无限次公开拉取的静态材料。E2EE 实现 MUST 将 MLS KeyPackage 作为可声明、可领取、可消费、可撤销的单次使用材料。
+
+KeyPackage lifecycle：
+
+```text
+published -> claimed -> consumed
+          -> expired
+          -> revoked
+```
+
+推荐记录：
+
+```json
+{
+  "type": "cx.mls.keypackage",
+  "keypackage_id": "cx:mls:kp:01JS...",
+  "principal_id": "did:uuid:alice",
+  "device_id": "dev_01HV...",
+  "keypackage_ref": "sha256:...",
+  "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
+  "capabilities": ["mimi.content.v1", "cx.content.v1"],
+  "state": "published",
+  "created_at": "2026-04-30T00:00:00Z",
+  "expires_at": "2026-05-07T00:00:00Z",
+  "device_signature": "base64url..."
+}
+```
+
+Claim 请求 MUST 绑定：
+
+- requester principal / service DID 和 device proof。
+- intended `space_id` 或 room id。
+- required capabilities / content profiles / cipher suites。
+- 是否允许 minimal-metadata pseudonymous credential。
+- claim nonce、过期时间和目标 Welcome 路由服务。
+
+Claim 成功后：
+
+- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Space、capability set 和 expiry。
+- 同一 KeyPackage 不得被第二个 room、第二个 requester 或第二次 Welcome 重复使用。
+- Welcome 发送方 MUST 引用 `keypackage_ref` / `claim_id`，接收端 MUST 校验 Welcome 使用的是自己设备已 claimed 且未过期、未撤销、未消费的 KeyPackage。
+- 成功处理 Welcome 后，接收端或服务端状态 SHOULD 标记该 KeyPackage 为 `consumed`。若 Welcome 失败或过期，KeyPackage 不得自动回到 `published`；设备 SHOULD 发布新的 KeyPackage。
+- 服务端返回 KeyPackage 时 MUST 附带 device signature、principal binding 和 revocation status。客户端 MUST 通过 DID control chain 与 device trust chain 验证后才能加密。
+
+### 2.7 Minimal-Metadata E2EE Space
+
+高隐私 Space MAY 启用 `cx.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared Space Host 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或社交图。
+
+Profile 规则：
+
+- MLS leaf credential MAY 使用 room-scoped pseudonymous credential，例如 `cx:pseudonym:<space_id>:<random>`。
+- 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `cx.identity_link` application message 或 MLS private extension 中，只对当前 room members 可见。
+- `cx.identity_link` MUST 绑定 pseudonym、principal DID、device id、room id、MLS leaf index、effective time 和签名证明。
+- Sync / Federation 服务只可按 pseudonym、space id、epoch、event id 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
+- Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Space policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Space。
+- 任何从 pseudonym 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Space history。
+
+Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pseudonymous sender，但不得被提升为已验证 DID 发送者。
+
+### 2.8 Message ID AAD 可见性
+
+加密信封中的 AAD 能帮助路由和诊断，但也可能成为跨服务关联信号。Space policy MUST 声明 `aad_visibility`：
+
+```json
+{
+  "aad_visibility": {
+    "message_id": "hidden",
+    "event_id": "routing_hash",
+    "debug_trace_id": "disabled"
+  }
+}
+```
+
+取值：
+
+- `hidden`：默认值；不在 MLS AAD 或服务可见 metadata 中暴露稳定 message id。
+- `routing_hash`：只暴露不可逆 hash，用于去重、幂等和 backfill 诊断。
+- `opaque_id`：暴露 opaque event/message id，用于跨 provider 投递确认。
+- `debug`：仅限短期调试或受控企业 profile；MUST 有过期时间、审计和用户/管理员可见声明。
+
+隐私优先 Space SHOULD 使用 `hidden` 或 `routing_hash`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `application_state_ref.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
+
 ## 3. 可审查的端到端加密 (Auditable E2EE)
 
 在很多去中心化产品中，如果存在审查，往往是通过向客户端下发“旁路后门”或者弱化密钥机制实现的，这引起了极大的隐私恐慌。

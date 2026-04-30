@@ -1,6 +1,6 @@
 # contrix-spec Active TODO
 
-> 更新日期: 2026-04-29
+> 更新日期: 2026-04-30
 > 范围: Contrix v1 协议规范、机器可执行工件和跨实现一致性材料。中文规范为主规范文本，英文规范保持结构对齐。
 
 ## 0. 当前边界
@@ -130,6 +130,35 @@
   - [x] block/mute/hide/quarantine。
   - [x] server ACL。
   - [x] appeal and audit trail。
+
+## P1: MIMI 草案借鉴落地
+
+目标: 吸收 MIMI 最新草案中对 E2EE 联邦聊天有普适价值的机制，同时保持 Contrix 的 repo-first、Space-first 和 DID/capability 模型。
+
+- [x] MLS-bound state root:
+  - [x] `cx.mls.commit` 绑定 membership frontier、policy root、capability root、metadata hash 和 reducer profile。
+  - [x] 接收端在 MLS transcript 与 Contrix accepted state 不一致时 fail closed。
+- [x] KeyPackage claim lifecycle:
+  - [x] KeyPackage 从“可公开拉取材料”收敛为 single-use `published -> claimed -> consumed | expired | revoked` 状态机。
+  - [x] Claim 绑定 intended Space、requester、RequiredCapabilities、device trust 和 Welcome 路由引用。
+- [x] Minimal-metadata encrypted Space:
+  - [x] 增加 room-scoped pseudonymous MLS credential 和 E2EE identity link 规则。
+  - [x] 服务端只看到 routing pseudonym，不默认获得真实 principal DID 映射。
+- [x] E2EE moderation franking:
+  - [x] 增加服务端不可读正文时的 message frank / delivery receipt 证明。
+  - [x] 举报方可提交 plaintext + frank，审核方可验证内容曾被对应服务接收但不要求服务端保留明文。
+- [x] Asset download privacy policy:
+  - [x] Space policy 声明 direct、provider proxy、OHTTP/relay proxy 等下载路径。
+  - [x] 私有附件下载不得因 direct fetch 泄露 IP、在线时间或 provider 关系，除非 policy 明确允许。
+- [x] Policy components and history sharing:
+  - [x] 将 role、preauth、asset、logging、bot、expiration、operational、history sharing 等策略组件化。
+  - [x] 明确 history sharing 会削弱 forward secrecy，并绑定可分享角色、窗口和审计。
+- [x] Connection identifier and private discovery:
+  - [x] 区分 connection identifier、administrative identifier、display name 和 DID。
+  - [x] 增加私密联系人发现 profile，避免目录服务同时看到 requester DID 与原始邮箱/手机号/用户名。
+- [x] Message ID AAD visibility:
+  - [x] 允许 Space policy 选择是否在 MLS AAD 暴露 opaque message/event id 以换取投递诊断能力。
+  - [x] 隐私 Space 默认不暴露可跨服务关联的 message id。
 
 ## Cross-Project Contract Output
 

@@ -26,5 +26,18 @@
     "cross_domain_space_join",
     "policy_decision_exchange",
     "quarantine_appeal_audit"
+  ],
+  "e2ee_hardening": [
+    "mls_bound_application_state_root",
+    "keypackage_claim_lifecycle",
+    "minimal_metadata_space",
+    "aad_visibility_policy",
+    "e2ee_report_framed_franking"
+  ],
+  "privacy_hardening": [
+    "asset_download_privacy_policy",
+    "private_contact_discovery",
+    "connection_identifier_separation",
+    "history_sharing_policy"
   ]
 }

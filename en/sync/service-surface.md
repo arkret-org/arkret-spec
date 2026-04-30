@@ -78,9 +78,9 @@ Common combinations follow. "Required" here means the protocol interaction needs
 | Auth / Account Server | May be embedded for personal deployments; organizations usually separate it or connect SSO | Exposed through `auth_metadata`; login paths may be deployment-specific | Login, passkeys/OIDC/SSO, session grants, device pairing, account recovery; does not replace DID control. |
 | Sync / Federation Server | Usually embedded in the Principal Server for ordinary users | `/sync`, `/federation`, `/server` | Client sync, subscriptions, backfill, snapshot heads, cross-domain transactions, replay and destination-binding checks. |
 | Index / AppView Server | May be local or embedded for individuals; organizations self-host it when search and app views require it | `/index`, `/server` | Current state, query, search, inbox, notification, View projection, embedding/vector index. |
-| Directory Server | Ordinary users normally use a public directory; organizations self-host it for discovery control or isolated networks | `/directory`, `/server` | Authorized search and resolution for Spaces, Organizations, Actors, handles, and Applets. |
+| Directory Server | Ordinary users normally use a public directory; organizations self-host it for discovery control or isolated networks | `/directory`, `/server` | Authorized search and resolution for Spaces, Organizations, Actors, handles, Applets, and private contact discovery. |
 | Blob / Media Server | Usually embedded for individuals; may be separated for large files or high-security organizations | `/blob`, `/server` | Blob upload, authenticated download, HEAD, Range, thumbnails, previews, retention, media safety. |
-| Device / Key Server | Needed by E2EE profiles; usually embedded in the Principal Server for individuals | `/device_messages`, `/keys`, `/server` | To-device messages, one-time keys, fallback keys, device lists, key-backup metadata. |
+| Device / Key Server | Needed by E2EE profiles; usually embedded in the Principal Server for individuals | `/device_messages`, `/keys`, `/keys/keypackages`, `/server` | To-device messages, one-time keys, fallback keys, MLS KeyPackage claims, device lists, key-backup metadata. |
 | Authz / Policy Server | May be embedded for individuals; recommended as a separate service for shared Spaces and organization governance | `/authz`, `/contrix/v1/check`, `/server` | Effective grants, invite queries, capability precheck, signed policy decisions, risk / quarantine. |
 | Push Gateway | Ordinary users normally use public or managed push; intranet or high-security organizations may self-host it | `/push`, `/server` | Push device registration, unregister, blind notification delivery, APNs/FCM/vendor adapters. |
 | Applet Server | Optional for integrations, bridges, and automations | `/applet`, `/server` | Applet describe, transactions, ghost actors, portal Spaces, third-party lookup. |
@@ -402,11 +402,30 @@ Index / AppView services are derived layers, not truth sources, but they can hol
 - clients MUST verify service DID, `service_type`, supported profile, Space policy delegation, and plaintext-visible declaration before selecting an Index
 - Index output MUST NOT expand visibility; query results, notifications, search hits, and previews remain constrained by the underlying Space policy and capability rules
 
-## 7. Blob Surface
+## 7. Directory Surface
+
+Directory services should expose authorized search and exact resolution for Spaces, Organizations, Actors, handles, and Applets.
+
+Recommended operations:
+
+```text
+GET /api/v1/directory/describe
+POST /api/v1/directory/search-spaces
+POST /api/v1/directory/resolve-space
+POST /api/v1/directory/search-organizations
+POST /api/v1/directory/resolve-organization
+POST /api/v1/directory/search-actors
+POST /api/v1/directory/resolve-handle
+POST /api/v1/directory/private-contact-discovery
+```
+
+`private-contact-discovery` is for `cx.private_contact_discovery.v1`. Requests MUST use blinded / padded connection identifier batches. Responses only return time-bound reachability proof or invite/consent guidance; they MUST NOT return raw connection identifiers, full profiles, member lists, or social graph.
+
+## 8. Blob Surface
 
 Blob services should expose at least:
 
-### 7.1 Upload a Blob
+### 8.1 Upload a Blob
 
 ```text
 POST /api/v1/blob/upload
@@ -418,13 +437,13 @@ Returning:
 - `sha256`
 - `size`
 
-### 7.2 Inspect Blob Headers
+### 8.2 Inspect Blob Headers
 
 ```text
 HEAD /api/v1/blob/get?blob_ref=<ref>
 ```
 
-### 7.3 Download a Blob
+### 8.3 Download a Blob
 
 ```text
 GET /api/v1/blob/get?blob_ref=<ref>
@@ -432,7 +451,7 @@ GET /api/v1/blob/get?blob_ref=<ref>
 
 Blob validation MUST be content-hash based rather than URL based.
 
-## 8. Capability / Invite Surface
+## 9. Capability / Invite Surface
 
 Even though grant / revoke / invite are themselves objects or operations, the service layer still needs query surfaces.
 
@@ -456,7 +475,7 @@ The `check` surface is useful for:
 - fast filtering before sync distribution
 - local UX warnings before a client sends a write
 
-## 9. Space Bootstrap Flow
+## 10. Space Bootstrap Flow
 
 The recommended first-time join flow is:
 
@@ -470,7 +489,7 @@ The recommended first-time join flow is:
 8. the client runs the reducer locally
 9. the client establishes personal state such as read markers and notification cursors
 
-## 10. Freshness and Multi-service Coexistence
+## 11. Freshness and Multi-service Coexistence
 
 When multiple Principal Servers or indexes coexist, services SHOULD expose:
 
@@ -497,7 +516,7 @@ Clients may use those values to decide whether a registry is:
 - merely a lagging replica
 - or potentially forked / malicious
 
-## 11. Transport Security and Ciphertext
+## 12. Transport Security and Ciphertext
 
 The service surface SHOULD distinguish:
 
@@ -509,7 +528,7 @@ If a payload is already encrypted under `policy.encryption_profile`, then:
 - repos / sync services / indexes MAY be unable to decrypt the body
 - but they SHOULD still preserve hash, cursor, causality, and target references
 
-## 12. Initial Design Decisions
+## 13. Initial Design Decisions
 
 The current draft recommends fixing:
 
@@ -520,7 +539,7 @@ The current draft recommends fixing:
 - bootstrap covering invite / grant / snapshot / backfill
 - services publishing reducer / schema / feature profiles
 
-## 13. Further Work
+## 14. Further Work
 
 The next round still needs:
 

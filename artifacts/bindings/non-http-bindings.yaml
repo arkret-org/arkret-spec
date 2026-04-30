@@ -70,10 +70,18 @@ grpc:
       ResolveOrganization: cx.directory.resolve_organization
       SearchActors: cx.directory.search_actors
       ResolveHandle: cx.directory.resolve_handle
+      PrivateContactDiscovery: cx.directory.private_contact_discovery
+    Keys:
+      KeyPackagesUpload: cx.keys.keypackages.upload
+      KeyPackagesClaim: cx.keys.keypackages.claim
+      KeyPackagesConsume: cx.keys.keypackages.consume
+      KeyPackagesRevoke: cx.keys.keypackages.revoke
     Blob:
       Upload: cx.blob.upload
       Get: cx.blob.get
       Head: cx.blob.head
+    Moderation:
+      Report: cx.moderation.report
     Push:
       RegisterDevice: cx.push.register_device
       UnregisterDevice: cx.push.unregister_device
@@ -110,6 +118,12 @@ mq:
     repo.submit_commit: cx.repo.submit_commit
     sync.client_sync: cx.sync.client_sync
     federation.transaction: cx.federation.transaction
+    directory.private_contact_discovery: cx.directory.private_contact_discovery
+    keys.keypackages.upload: cx.keys.keypackages.upload
+    keys.keypackages.claim: cx.keys.keypackages.claim
+    keys.keypackages.consume: cx.keys.keypackages.consume
+    keys.keypackages.revoke: cx.keys.keypackages.revoke
+    moderation.report: cx.moderation.report
     push.notify: cx.push.notify
     authz.check: cx.authz.check
 libp2p:

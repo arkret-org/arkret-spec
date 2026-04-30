@@ -25,7 +25,7 @@ Contrix implementations declare testable profiles rather than claiming generic s
 
 `cx.profile.full_client.v1` MUST add local reducer/cache, offline operation replay, Space bootstrap, invite accept/reject, read markers, notifications, blob transfer, and conflict UX.
 
-`cx.profile.e2ee_client.v1` MUST add MLS state, KeyPackage flows, epoch recovery, encrypted payload/attachment handling, revoked-device response, and fail-closed encrypted history behavior.
+`cx.profile.e2ee_client.v1` MUST add MLS state, KeyPackage claim/consume/revoke flows, MLS-bound application state root verification, epoch recovery, encrypted payload/attachment handling, minimal-metadata identity links when advertised, AAD visibility policy handling, revoked-device response, and fail-closed encrypted history behavior.
 
 `cx.profile.principal_server_repo_api.v1` MUST cover submit/fetch history, idempotent writes, signature/schema validation, capability precheck, conflict reporting, and content-addressed blob reference validation.
 
@@ -35,7 +35,7 @@ Contrix implementations declare testable profiles rather than claiming generic s
 
 `cx.profile.identity_registry.v1` MUST cover DID resolve, DID log fetch, DID operation submit, inception-key validation, receipt publication, and method adapter metadata.
 
-`cx.profile.blob_node.v1` MUST cover upload, download, HEAD metadata, SHA-256 verification, MIME metadata, range-aware authorization, and private blob anti-enumeration behavior.
+`cx.profile.blob_node.v1` MUST cover upload, download, HEAD metadata, SHA-256 verification, MIME metadata, range-aware authorization, asset privacy policy enforcement, and private blob anti-enumeration behavior.
 
 `cx.profile.push_gateway.v1` MUST cover `register_device`, `unregister_device`, `notify`, minimized blind wakeup payloads, trusted service signature verification, invalid token cleanup, and `rejected[]` reporting. Push gateways MUST NOT ingest plaintext message bodies or treat delivery receipts as read receipts.
 
@@ -73,4 +73,5 @@ Conformance suites should include schema validation, signature verification, ide
 - Redaction: `redaction-conformance-vectors.md`
 - Capability: `capability-conformance-vectors.md`
 - Core sync/encoding vectors: `sync-conformance-vectors.md`, `encoding-conformance-vectors.md`
+- E2EE hardening: KeyPackage single-use, MLS-bound state root mismatch, minimal-metadata identity link, AAD visibility, E2EE franking report
 - Machine-readable fixtures: `fixtures/*.json`

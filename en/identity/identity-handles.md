@@ -13,6 +13,18 @@ Matrix-style identifiers such as `@alice:example.org` MAY be accepted as user-fa
 
 DNS / HTTPS well-known resolution applies to DNS-style handles. Non-DNS handles such as `@alice:example.org` or `alice@google.com` MAY resolve through an organization Directory, Auth / Account Server, bridge registry, or trusted issuer claim, but the result still MUST reduce to a DID plus verifiable binding evidence.
 
+Implementations MUST distinguish:
+
+| Layer | Examples | Use | Protocol subject |
+| --- | --- | --- | --- |
+| Connection Identifier | email, phone, contact username, external account id | contact discovery, consent, invite, initial relationship | no |
+| Administrative Identifier | organization account, billing account, managed employee id | local administration, compliance, recovery | no |
+| Handle | DNS handle, Matrix-style id | human entry point and alias | no |
+| Display Name | `Alice Zhang` | UI display | no |
+| Principal DID | `did:uuid:...`, `did:web:...` | signing, authorization, accountability | yes |
+
+Connection identifiers are relationship-private discovery inputs. They MUST NOT automatically enter DID Documents, Space history, membership events, grants, or MLS credentials. A provider proof of reachability still reduces to a DID or pending invite proof with purpose, audience, expiry, and issuer proof.
+
 Contrix separates:
 
 - public persona handle binding through `also_known_as`

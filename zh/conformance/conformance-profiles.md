@@ -88,7 +88,11 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 - MLS RFC 9420 group state
 - KeyPackage publish / fetch / verify
+- KeyPackage claim / consume / revoke lifecycle
 - Welcome / Commit / Proposal event
+- MLS-bound application state root verification
+- minimal-metadata pseudonymous credential handling when profile is advertised
+- AAD visibility policy handling
 - epoch mismatch recovery
 - encrypted payload envelope
 - encrypted attachment envelope
@@ -101,6 +105,7 @@ MUST NOT：
 - 把明文消息发送给 sync service / index
 - 把解密密钥上传给不受信服务
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
+- 在 MLS-bound policy / membership root 不匹配时继续解密正文
 
 ## 6. Principal Server Repo API
 
@@ -211,11 +216,13 @@ MUST 支持：
 - size limit
 - MIME metadata
 - authorization-aware access
+- asset privacy policy enforcement
 
 SHOULD 支持：
 
 - encrypted attachment metadata
 - thumbnail / preview derivation
+- provider proxy 或 OHTTP relay 下载模式
 - GC grace period
 - legal hold
 - unsafe media flag
@@ -460,9 +467,14 @@ SHOULD 支持：
 E2EE profile MUST 额外提供：
 
 - KeyPackage verification vector
+- KeyPackage claim single-use vector
+- MLS-bound state root mismatch vector
+- minimal-metadata identity link vector
+- AAD visibility vector
 - MLS epoch transition vector
 - encrypted payload vector
 - removed member cannot decrypt vector
+- E2EE franking report vector
 
 Client Sync 相关 profile MUST/SHOULD 按 `sync-conformance-vectors.md` 执行对应向量：
 

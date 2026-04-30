@@ -41,4 +41,19 @@ Non-E2EE / non-content-encrypted private Spaces MUST explicitly declare services
 
 Services absent from this state event may only receive public content, encrypted envelopes, irreversible hashes, minimum routing metadata, or policy-allowed stripped previews. Revocation or replacement follows normal state resolution; after the effective point, old services MUST NOT receive non-encrypted private content.
 
+## Policy Components And History Sharing
+
+Complex Spaces SHOULD express policy as components instead of one large policy object. `cx.space.policy_components` can reference components for roles, preauthorization, asset privacy, logging, bot/Applet/agent participation, message expiration, operational limits, and history sharing. The component set SHOULD produce a `component_root` that is covered by the MLS-bound `policy_root`.
+
+Roles are compatibility and UI bundles only; they do not replace capability checks.
+
+E2EE Spaces that allow new members to receive pre-join history keys MUST declare `cx.space.history_sharing_policy`. That policy binds:
+
+- roles or capabilities allowed to share history
+- maximum shareable range
+- whether automatic sharing is allowed
+- whether an audit event is required before key material is sent
+- withholding reasons such as unverified device, history not visible, or policy denied
+
+History sharing weakens forward secrecy. Clients MUST make this visible before join and MUST check membership, device trust, history visibility, capability, and policy before sharing MLS history key material.
 

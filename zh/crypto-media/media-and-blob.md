@@ -200,7 +200,52 @@ Cache-Control: public, immutable, max-age=31536000
 - 预览 URL、尺寸、MIME、文件名和 unsafe 标记都必须服从 Space policy 与 capability，不能绕过正文授权。
 - 缩略图必须重新绑定源 blob、生成参数、生成服务 DID 和可见性；删除、撤回、保留策略或 legal hold 改变时，派生内容必须随源内容重新判定。
 
-## 6. Safety
+## 6. Asset Privacy Policy
+
+私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Space SHOULD 使用 `cx.space.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求：
+
+```json
+{
+  "kind": "cx.space.asset_privacy_policy",
+  "state_key": "",
+  "content": {
+    "download_mode": "provider_proxy",
+    "allowed_modes": ["provider_proxy", "ohttp_relay"],
+    "direct_download_allowed": false,
+    "upload_services": [
+      "did:web:blob.acme.example"
+    ],
+    "download_proxy_services": [
+      "did:web:media-proxy.acme.example"
+    ],
+    "ohttp_gateway_services": [
+      "did:web:ohttp-gateway.example"
+    ],
+    "max_plaintext_metadata": ["size_bucket", "media_type_family"],
+    "requires_client_hash_check": true
+  }
+}
+```
+
+`download_mode` 取值：
+
+| 值 | 含义 |
+| --- | --- |
+| `direct` | 客户端直接从 Blob / 对象存储下载。只适合公开内容、同一信任域或明确接受 IP 暴露的 Space。 |
+| `provider_proxy` | 通过调用方或 Space policy 指定的受信 media proxy 下载，隐藏源 Blob 服务或对象存储细节。 |
+| `ohttp_relay` | 通过 OHTTP 或等价 oblivious relay 取回内容，降低 Blob 服务同时观察调用方身份和目标 blob 的能力。 |
+| `client_mirror` | 客户端从多个 authorized mirror 选择，按内容 hash 验证，适合高可用或隔离网络。 |
+
+规则：
+
+- 私有 Space、E2EE 附件和高隐私 minimal-metadata Space 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。
+- `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。
+- Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
+- `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Space SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
+- 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
+- `cx.space.asset_privacy_policy` SHOULD 被 `cx.space.policy_components.asset` 引用，并纳入 MLS-bound `policy_root`。
+
+## 7. Safety
 
 Blob service SHOULD:
 
@@ -212,7 +257,7 @@ Blob service SHOULD:
 - support unsafe flag
 - support GC grace period
 
-## 7. Lifecycle
+## 8. Lifecycle
 
 Blob MAY be GC'ed if:
 

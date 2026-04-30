@@ -137,7 +137,26 @@ Actor / Principal discovery MUST preserve holder privacy:
 
 Unknown actor profile lookup in shared space is only for rendering authorized content (display name, avatar), not unrelated handles.
 
-## 6. Directory Service
+## 6. Private Contact Discovery
+
+Address-book style discovery is more sensitive than ordinary directory search. Implementations MAY support `cx.private_contact_discovery.v1` to discover reachable subjects without uploading raw contact identifiers or letting the Discovery Provider observe both requester DID and raw connection identifier.
+
+Profile goals:
+
+- Provider should not learn both requester stable DID and raw email/phone/username.
+- Requests use batching, padding, rate limiting, time-bound proofs, and anti-enumeration behavior.
+- Results return minimal reachability material, not full profiles or social graph.
+
+Recommended flow:
+
+1. Client normalizes connection identifiers locally and computes blinded tokens.
+2. Client submits a padded blinded batch over anonymized or identity-separated transport.
+3. Provider returns time-bound signed reachability proofs for discoverable entries.
+4. Client discloses its DID, pairwise DID, or presentation only when the user confirms contact or invite.
+
+Raw email, phone, address-book labels, local contact names, and unsalted low-entropy hashes MUST NOT be sent to public Directory services.
+
+## 7. Directory Service
 
 Directory service is a derivative index layer, not source of truth. It MAY index:
 
@@ -162,7 +181,7 @@ Directory service MUST NOT:
 - expose private handles / pairwise DID / disclosure policy
 - rank hidden resources in a way that leaks existence
 
-## 7. Service Surface
+## 8. Service Surface
 
 Recommended operations:
 
@@ -247,7 +266,7 @@ Unauthorized hidden resource resolve SHOULD return:
 
 Implementations SHOULD keep status, latency class, and shape the same for missing vs unauthorized hidden resources.
 
-## 8. Parent Space and Organization Directory
+## 9. Parent Space and Organization Directory
 
 Space hierarchy can assist discovery, but parent membership does not imply child membership or read access.
 
@@ -258,7 +277,7 @@ Rules:
 - Removing a Space from org directory does not revoke membership or erase data.
 - Revoking `cx.space.organization` endorsement MUST remove official directory badge once directory catches up.
 
-## 9. Security Requirements
+## 10. Security Requirements
 
 Directory implementations MUST defend:
 
@@ -268,12 +287,14 @@ Directory implementations MUST defend:
 - hidden organization probing
 - private handle correlation
 - pairwise DID correlation
+- raw connection identifier leakage
+- private contact graph reconstruction
 - timing side-channels that reveal hidden existence
 - stale official badge after endorsement revocation
 
 For high-privacy deployments, clients SHOULD prefer invite links or encrypted out-of-band invitation instead of plain search.
 
-## 10. Conformance
+## 11. Conformance
 
 `cx.profile.directory.v1` SHOULD test:
 
@@ -285,3 +306,4 @@ For high-privacy deployments, clients SHOULD prefer invite links or encrypted ou
 - official space verification through `cx.space.organization`
 - hidden pairwise exclusion
 - stale result rejection after discovery policy update
+- private contact discovery does not disclose raw connection identifiers

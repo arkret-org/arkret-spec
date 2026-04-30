@@ -78,7 +78,7 @@ When learning the protocol for the first time, we recommend this sequence:
 | Document | Purpose |
 | --- | --- |
 | `identity/identity-did.md` | DID, `did:uuid`, DID Document, key log, and organization ownership. |
-| `identity/identity-handles.md` | Handle resolution, bidirectional binding, claim / attestation model. |
+| `identity/identity-handles.md` | Handle resolution, connection identifiers, bidirectional binding, claim / attestation model. |
 | `identity/progressive-disclosure.md` | Progressive disclosure, presentation requests, disclosure policy, private storage. |
 | `identity/tsp-integration.md` | TSP as optional trust transport binding. |
 | `identity/key-management.md` | Keys, recovery, and Accountable Actor. |
@@ -101,9 +101,9 @@ When learning the protocol for the first time, we recommend this sequence:
 | --- | --- |
 | `authz/capabilities.md` | Capability, delegation, revocation, and claim conditions. |
 | `authz/grant-constraint-schema.md` | Grant constraint schema. |
-| `authz/event-auth-state-resolution.md` | Space versioning, auth refs, membership, state resolution. |
+| `authz/event-auth-state-resolution.md` | Space versioning, auth refs, membership, policy components, history sharing, state resolution. |
 | `authz/policy-server.md` | Policy Server risk gating and signed decisions. |
-| `authz/moderation.md` | Reporting, Space/Organization moderation policy, and personal filtering endpoints. |
+| `authz/moderation.md` | Reporting, E2EE franking, Space/Organization moderation policy, and personal filtering endpoints. |
 | `security/server-threat-model.md` | Server-side abuse and anti-abuse patterns. |
 | `authz/account-lifecycle.md` | Lock, disable, erase, and session revocation. |
 
@@ -126,7 +126,7 @@ When learning the protocol for the first time, we recommend this sequence:
 
 | Document | Purpose |
 | --- | --- |
-| `discovery/discovery-directory.md` | Space / Organization / Actor / Applet discoverability and directory services. |
+| `discovery/discovery-directory.md` | Space / Organization / Actor / Applet discoverability, private contact discovery, and directory services. |
 | `discovery/profiles-presence.md` | Actor profiles, presence, typing, and directory visibility. |
 | `discovery/client-preferences.md` | Account metadata, private labels, notification preferences, personal blocklist. |
 | `discovery/push-notifications.md` | Push rules, push gateway, and E2EE redaction. |
@@ -139,8 +139,8 @@ When learning the protocol for the first time, we recommend this sequence:
 | --- | --- |
 | `crypto-media/device-crypto-verification.md` | Device identity, cross-signing, to-device flow, secret storage, key backup. |
 | `crypto-media/devices-and-auth.md` | Multi-device, login, authentication, SSO. |
-| `crypto-media/encryption-and-audit.md` | MLS E2EE and auditability. |
-| `crypto-media/media-and-blob.md` | Blob metadata, thumbnails, authenticated media. |
+| `crypto-media/encryption-and-audit.md` | MLS E2EE, MLS-bound state, KeyPackage lifecycle, minimal metadata Spaces, and auditability. |
+| `crypto-media/media-and-blob.md` | Blob metadata, thumbnails, authenticated media, and asset privacy policy. |
 | `crypto-media/webrtc-signaling.md` | Voice/video signaling, meeting support, TURN/STUN/ICE, SFU/MCU. |
 
 ### 4.8 Extensions and Integration

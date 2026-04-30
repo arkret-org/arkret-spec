@@ -188,10 +188,27 @@ Thumbnails, OCR text, transcodes, and media probe metadata are derived content.
 - Preview URLs, size, MIME, filename, and unsafe markers must follow Space policy and capability rules and cannot bypass body authorization.
 - Thumbnails must bind source blob, generation parameters, generating service DID, and visibility. Deletion, redaction, retention, or legal-hold changes must re-evaluate derived content with the source content.
 
-## 6. Safety
+## 6. Asset Privacy Policy
+
+Private asset download can leak IP address, online time, service relationships, blob size, and download frequency. Spaces SHOULD declare `cx.space.asset_privacy_policy`.
+
+Download modes:
+
+| Value | Meaning |
+| --- | --- |
+| `direct` | Client downloads directly from Blob/object storage. Suitable for public content or an explicitly accepted trust domain. |
+| `provider_proxy` | A trusted media proxy fetches bytes to hide source storage details. |
+| `ohttp_relay` | OHTTP or equivalent oblivious relay reduces the ability to observe both caller identity and target blob. |
+| `client_mirror` | Client chooses among authorized mirrors and verifies content by hash. |
+
+Private Spaces, E2EE attachments, and minimal-metadata Spaces SHOULD default to `provider_proxy` or `ohttp_relay`, not direct download. When `direct_download_allowed=false`, clients MUST NOT bypass proxy policy by following direct external URLs. Proxies do not gain plaintext access; E2EE attachments remain ciphertext.
+
+The policy SHOULD be referenced by `cx.space.policy_components.asset` and included in the MLS-bound `policy_root`.
+
+## 7. Safety
 
 Blob services SHOULD validate declared size, compute digest server-side, reject digest mismatch, store MIME metadata as untrusted, support malware scanning metadata, support unsafe flags, and support garbage-collection grace periods.
 
-## 7. Lifecycle
+## 8. Lifecycle
 
 A blob MAY be garbage-collected if there are no live Entity references, the grace period has elapsed, it is not under legal hold, and policy permits deletion.

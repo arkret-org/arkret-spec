@@ -79,9 +79,9 @@ DID Document SHOULD 只负责：
 | Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
 | Index / AppView Server | 个人可本地或内置；组织按搜索和应用视图需求自建 | `/index`, `/server` | 当前态、查询、搜索、inbox、notification、View projection、embedding/vector index。 |
-| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，最小披露发现。 |
+| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
-| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/server` | to-device message、one-time key、fallback key、device list、key backup metadata。 |
+| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/keys/keypackages`, `/server` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、key backup metadata。 |
 | Authz / Policy Server | 个人可内置；共享 Space 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Space、third-party lookup。 |
@@ -533,6 +533,14 @@ POST /api/v1/directory/resolve-handle
 ```
 
 Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Space 推断出的关系。
+
+### 8.6 私密联系人发现
+
+```text
+POST /api/v1/directory/private-contact-discovery
+```
+
+该操作用于 `cx.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 time-bound reachability proof 或 invite/consent 引导，不得返回原始 connection identifier、完整 profile、成员列表或社交图。
 
 ## 9. Capability / Invite Surface
 

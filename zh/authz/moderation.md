@@ -92,6 +92,41 @@ POST /api/v1/moderation/report
 - 被举报人不会收到通知
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）
 
+### 3.4 E2EE 举报 Franking
+
+在 E2EE Space 中，服务端无法读取正文，但审核方仍需要验证“被举报明文确实对应某条已投递消息”。实现 SHOULD 支持 message franking：服务在接收密文事件时生成不可伪造的收讫证明，而不保存明文。
+
+推荐 frank 结构：
+
+```json
+{
+  "type": "cx.moderation.frank",
+  "frank_id": "cx:frank:01JS...",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "event_id": "cx:event:01JS...",
+  "ciphertext_digest": "sha256:...",
+  "aad_digest": "sha256:...",
+  "sender_claim": {
+    "actor_id": "did:uuid:alice",
+    "device_id": "dev_01HV...",
+    "mls_group_id": "base64url...",
+    "epoch": 42
+  },
+  "received_by": "did:web:server.acme.example",
+  "received_at": "2026-04-30T00:00:00Z",
+  "signature": "base64url..."
+}
+```
+
+规则：
+
+- Frank MUST be generated over canonical event routing metadata, ciphertext digest, AAD digest, sender claim, receiving service DID and received time.
+- Frank MUST NOT contain plaintext body, attachment filename, reply excerpt, mention list, private handle or decrypted content hash unless Space policy explicitly allows that field.
+- 接收方客户端在解密消息后 SHOULD 保存 frank 与明文的本地绑定证明；该绑定默认只在本地或 E2EE 私有报告中保存。
+- 举报 E2EE 内容时，`cx.moderation.report` MAY 携带 `plaintext_evidence` 的加密副本、原始 encrypted envelope、frank 和 reporter 对明文/evidence package 的签名。
+- 审核方验证时 MUST 检查：frank 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
+- Frank 只证明服务接收过对应密文事件，不单独证明明文含义。审核决定仍必须落成 signed moderation decision，并受 Space policy、capability 和 appeal 规则约束。
+
 ## 4. 用户屏蔽 (Ignore/Block)
 
 ### 4.1 屏蔽是 Actor-Private 状态

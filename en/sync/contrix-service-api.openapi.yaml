@@ -1493,6 +1493,25 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/handle-claim.schema.json
+  /directory/private-contact-discovery:
+    post:
+      operationId: cx.directory.private_contact_discovery
+      security:
+        - bearerAuth: []
+        - httpMessageSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Time-bound private contact discovery result
+          content:
+            application/json:
+              schema:
+                type: object
   /blob/upload:
     post:
       operationId: cx.blob.upload
@@ -1628,6 +1647,30 @@ paths:
       responses:
         "200":
           description: One-time key claim result
+  /keys/keypackages/upload:
+    post:
+      operationId: cx.keys.keypackages.upload
+      responses:
+        "200":
+          description: MLS KeyPackage upload result
+  /keys/keypackages/claim:
+    post:
+      operationId: cx.keys.keypackages.claim
+      responses:
+        "200":
+          description: MLS KeyPackage claim result
+  /keys/keypackages/consume:
+    post:
+      operationId: cx.keys.keypackages.consume
+      responses:
+        "200":
+          description: MLS KeyPackage consume result
+  /keys/keypackages/revoke:
+    post:
+      operationId: cx.keys.keypackages.revoke
+      responses:
+        "200":
+          description: MLS KeyPackage revoke result
   /moderation/report:
     post:
       operationId: cx.moderation.report

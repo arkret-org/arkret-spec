@@ -71,6 +71,8 @@
 | `cx.policy.*` | `cx.space.create`、actor membership、policy/admin capability、上一版同 key policy |
 | `cx.space.discovery` | `cx.space.create`、actor membership、discovery/policy/admin capability、上一版 discovery state |
 | `cx.space.moderation_policy` | `cx.space.create`、actor membership、moderation/policy/admin capability、上一版 moderation policy |
+| `cx.space.policy_components` | `cx.space.create`、actor membership、policy/admin capability、上一版 policy component state |
+| `cx.space.history_sharing_policy` | `cx.space.create`、actor membership、policy/admin capability、上一版 history sharing state、当前 encryption policy |
 | `cx.space.child` | parent Space 的 `cx.space.create`、发送者 parent membership、`space.hierarchy.manage` capability、目标 child Space stripped create 或可验证引用 |
 | `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
 | `cx.space.inheritance_policy` | child Space 的 `cx.space.create`、child policy/admin capability、confirmed parent edge |
@@ -158,6 +160,77 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 - `joined`：仅加入后历史默认可见。
 
 E2EE Space 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。
+
+`cx.space.history_sharing_policy`:
+
+`history_visibility` 只描述默认读取边界。E2EE Space 若允许新成员获取加入前的解密材料，MUST 额外声明 history sharing policy：
+
+```json
+{
+  "kind": "cx.space.history_sharing_policy",
+  "state_key": "",
+  "content": {
+    "enabled": true,
+    "roles_that_can_share": ["admin", "history_curator"],
+    "shareable_range": {
+      "mode": "duration",
+      "max_before_join_ms": 2592000000
+    },
+    "automatic_share": false,
+    "requires_audit_event": true,
+    "withholding_allowed_reasons": [
+      "unverified_device",
+      "history_not_visible",
+      "policy_denied"
+    ]
+  }
+}
+```
+
+规则：
+
+- E2EE 历史共享会削弱 forward secrecy；客户端在加入前 MUST 向用户或管理员可见地展示该 policy。
+- `automatic_share=true` 只可用于 Space policy 明确允许、且接收设备已通过 device trust chain 验证的场景。
+- 共享历史密钥材料前，发送设备 MUST 检查接收 principal 的 membership、device trust、history visibility、capability 和本 state event。
+- `requires_audit_event=true` 时，发送设备必须先写入 `cx.space_key.share_audit` 或等价审计事件，并等待因果确认后再发送历史 key material。
+- policy 变更只影响变更后发起的共享动作，不追溯授权已经发送给旧成员的历史解密材料。
+
+`cx.space.policy_components`:
+
+复杂 Space SHOULD 将策略拆成可独立演进的组件，而不是把所有布尔开关塞进单个 policy 对象：
+
+```json
+{
+  "kind": "cx.space.policy_components",
+  "state_key": "",
+  "content": {
+    "components": {
+      "roles": "cx:event:roles_policy",
+      "preauth": "cx:event:preauth_policy",
+      "asset": "cx:event:asset_privacy_policy",
+      "logging": "cx:event:logging_policy",
+      "bot": "cx:event:bot_policy",
+      "message_expiration": "cx:event:expiration_policy",
+      "operational": "cx:event:operational_policy",
+      "history_sharing": "cx:event:history_sharing_policy"
+    },
+    "component_root": "sha256:canonical_component_set"
+  }
+}
+```
+
+组件语义：
+
+- `roles`：把 UI role 或 compatibility role 映射到 capability bundle；role 不能替代 capability 检查。
+- `preauth`：预授权加入、邀请链接、knock 审批和一次性 join token。
+- `asset`：附件上传域、下载隐私、proxy/OHTTP 要求和媒体大小/类型限制。
+- `logging`：消息保留、导出、审计、合规可见性和删除边界。
+- `bot`：bot / Applet / bridge / agent 是否允许加入，是否必须标识为 automated actor。
+- `message_expiration`：消息过期、tombstone、legal hold 和本地清理提示。
+- `operational`：限流、fanout、最大成员数、最大附件数、服务故障处理。
+- `history_sharing`：加入前历史和 MLS epoch key material 的共享规则。
+
+`component_root` SHOULD 被 `cx.mls.commit.application_state_ref.policy_root` 覆盖。客户端如果支持 E2EE 且无法验证组件根，MUST fail closed，至少不得接受依赖未知组件的新写入或 MLS epoch。
 
 `cx.space.plaintext_visible_services`:
 

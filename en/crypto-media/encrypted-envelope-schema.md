@@ -66,6 +66,8 @@ AAD contains routing metadata that:
 - Is covered by authentication (integrity protected)
 - Cannot be tampered with without detection
 
+The AAD field set is controlled by Space `aad_visibility` policy. Privacy-first Spaces SHOULD keep only routing-required `space_id`, event kind, epoch, and irreversible routing hashes. Spaces that need cross-provider delivery diagnosis MAY expose opaque `event_id` / `message_id`, but that choice MUST be declared in Space policy and covered by the MLS-bound `policy_root`.
+
 ### 3.2 Canonical AAD Serialization
 
 AAD must be serialized to canonical JSON before computing `aad_digest`:

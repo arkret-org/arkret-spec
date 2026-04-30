@@ -139,7 +139,48 @@ Actor / Principal discovery MUST respect holder privacy:
 
 Unknown actor profile lookup in a shared Space is allowed only to the extent required for rendering authorized content, for example display name and avatar. It must not reveal unrelated handles or organization accounts.
 
-## 6. Directory Service
+## 6. Private Contact Discovery
+
+通讯录式发现比普通目录搜索更敏感。实现 MAY 支持 `cx.private_contact_discovery.v1`，用于在不上传明文通讯录、不让目录服务同时看到 requester DID 与目标 connection identifier 的前提下发现可联系主体。
+
+Profile 目标：
+
+- Discovery Provider 不应同时获得 requester 的稳定 DID 和原始邮箱/手机号/用户名。
+- 请求应使用 batch、padding、rate limit 和 time-bound proof，避免逐个枚举。
+- 发现结果应返回最小可联系材料，而不是完整 profile 或社交图。
+
+推荐流程：
+
+1. 客户端本地规范化 connection identifier，并计算 blinded token。
+2. 客户端通过匿名化传输、代理或与身份分离的 session 向 Discovery Provider 提交 blinded batch。
+3. Provider 对可发现条目返回 time-bound signed reachability proof。
+4. 客户端只在用户确认联系或发起邀请时，才向目标 provider 披露自己的 DID、pairwise DID 或 presentation。
+
+请求形态（非完整 schema）：
+
+```json
+{
+  "profile": "cx.private_contact_discovery.v1",
+  "batch_id": "cx:batch:01JS...",
+  "blinded_identifiers": ["base64url...", "base64url..."],
+  "padding_count": 128,
+  "accepted_result_types": ["reachable", "invite_only"],
+  "proof_request": {
+    "audience": "did:web:directory.example",
+    "expires_at": "2026-04-30T00:10:00Z"
+  }
+}
+```
+
+规则：
+
+- Raw email、phone number、address-book label、local contact name 和未加盐低熵 hash MUST NOT 被发送给公共 Directory。
+- Provider 返回的 proof MUST 绑定 blinded identifier、issuer service DID、expiry、result type 和 anti-replay nonce。
+- Private discovery 结果只证明“可尝试联系”或“可发起 consent/invite”，不得自动证明 handle verified、组织成员资格、Space membership 或读取权限。
+- Provider MUST 对 batch 大小、失败响应、计时和 result cardinality 做反枚举处理；不存在、不可发现和 policy-denied SHOULD 保持相同响应形态。
+- 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
+
+## 7. Directory Service
 
 Directory Service 是派生索引服务，不是真相源。它 MAY index:
 
@@ -164,7 +205,7 @@ Directory Service MUST NOT:
 - expose private handles, pairwise DID, disclosure policy or credential contents
 - rank hidden resources in a way that reveals their existence
 
-## 7. Service Surface
+## 8. Service Surface
 
 Recommended operations:
 
@@ -249,7 +290,7 @@ Unauthorized exact resolve of hidden resources SHOULD return:
 
 Implementations SHOULD use the same status, timing class and response shape for nonexistent and unauthorized hidden resources.
 
-## 8. Parent Space and Organization Directory
+## 9. Parent Space and Organization Directory
 
 Space hierarchy MAY aid discovery, but parent membership does not grant child membership or child read access.
 
@@ -260,7 +301,7 @@ Rules:
 - Removing a Space from an organization directory does not revoke membership or delete data.
 - Revoking `cx.space.organization` endorsement MUST remove official directory badges once the directory catches up.
 
-## 9. Security Requirements
+## 10. Security Requirements
 
 Directory and discovery implementations MUST defend against:
 
@@ -270,12 +311,14 @@ Directory and discovery implementations MUST defend against:
 - hidden organization probing
 - private handle correlation
 - pairwise DID correlation
+- raw connection identifier leakage
+- private contact graph reconstruction
 - timing side channels that reveal hidden existence
 - stale official badge after organization endorsement revocation
 
 For high privacy deployments, clients SHOULD prefer invite links or encrypted out-of-band invitations over directory search.
 
-## 10. Conformance
+## 11. Conformance
 
 `cx.profile.directory.v1` MUST test:
 
@@ -287,3 +330,4 @@ For high privacy deployments, clients SHOULD prefer invite links or encrypted ou
 - official Space verification through `cx.space.organization`
 - hidden pairwise DID exclusion
 - stale result rejection after discovery policy update
+- private contact discovery does not disclose raw connection identifiers
