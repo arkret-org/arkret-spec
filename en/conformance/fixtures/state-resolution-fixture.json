@@ -22,9 +22,9 @@
       "expected": "stable_actor_seq_then_event_id_order"
     },
     {
-      "name": "kanban_concurrent_card_move",
-      "vector": "cx.vector.state_resolution.kanban_concurrent_move.v1",
-      "scenario": "same card moved concurrently to two columns in one board scope",
+      "name": "board_concurrent_item_move",
+      "vector": "cx.vector.state_resolution.board_concurrent_item_move.v1",
+      "scenario": "same item moved concurrently to two containers in one board scope",
       "input": {
         "base_state": {
           "scope_container_id": "cx:entity:01js0bd0000000000000000000",
@@ -112,13 +112,13 @@
       "assertions": [
         "exactly one active_position_register exists for the state_key",
         "resolved_position container_id, rank, and source_operation_id all come from the same winning cx.container.move_item",
-        "loser operation does not remain active in ordinary Kanban projection",
+        "loser operation does not remain active in ordinary board projection",
         "conflict_records preserve winner, loser, state_key, and deterministic reason"
       ]
     },
     {
-      "name": "kanban_atomic_task_move",
-      "scenario": "field-value kanban move updates group value and rank atomically",
+      "name": "board_atomic_field_position_move",
+      "scenario": "field-position move updates group value and rank atomically",
       "input": {
         "base_state": {
           "view_id": "cx:view:01js0vw0000000000000000000",
@@ -180,7 +180,7 @@
       }
     },
     {
-      "name": "relation_rebalance_assignment",
+      "name": "container_rebalance_assignment",
       "scenario": "rank rebalance rewrites all active edges in stable reducer order",
       "input": {
         "rank_profile": "cx.rank.lexofractional.v1",
@@ -223,7 +223,7 @@
       ]
     },
     {
-      "name": "relation_rebalance_cas_conflict",
+      "name": "container_rebalance_cas_conflict",
       "scenario": "rank rebalance submitted against stale ordered-set state hash",
       "input": {
         "state_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",

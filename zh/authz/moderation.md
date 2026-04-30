@@ -276,7 +276,7 @@ Space SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 ```json
 {
   "kind": "collection",
-  "preset": "moderation_queue",
+  "renderer": "row",
   "query": {
     "facets": ["reviewable"],
     "filters": [

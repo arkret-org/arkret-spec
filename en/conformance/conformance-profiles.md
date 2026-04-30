@@ -18,8 +18,6 @@ Contrix implementations declare testable profiles rather than claiming generic s
 - `cx.profile.agent_runtime.v1`
 - `cx.profile.mimi_interop.v1`
 
-`cx.profile.applet_bridge.v1` is retained as a compatibility alias and should normalize to `cx.profile.applet_service.v1`.
-
 ## Profile Requirements
 
 `cx.profile.minimal_client.v1` MUST cover DID/handle resolution, service discovery, repo fetch, index query, event decode, cursor pagination, and standard error handling.

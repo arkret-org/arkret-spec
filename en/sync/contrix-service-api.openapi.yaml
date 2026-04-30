@@ -225,31 +225,6 @@ components:
               - required: [target_entity_id, target_space_id]
               - required: [target_actor_id, target_space_id]
       additionalProperties: false
-    ViewPreset:
-      type: string
-      enum:
-        - kanban
-        - list
-        - table
-        - calendar
-        - gantt
-        - chat
-        - thread
-        - forum
-        - tree
-        - timeline
-        - review_queue
-        - matrix
-        - document
-        - dashboard
-        - activity
-        - inbox
-        - notifications
-        - memory_review
-        - agent_runs
-        - context_timeline
-        - moderation_queue
-        - custom
     FacetName:
       type: string
       enum:
@@ -302,8 +277,6 @@ components:
             - graph
             - document
             - composite
-        preset:
-          $ref: "#/components/schemas/ViewPreset"
         renderer:
           $ref: "#/components/schemas/ViewRenderer"
         entity_types:
@@ -345,17 +318,13 @@ components:
       additionalProperties: false
       allOf:
         - if:
-            required: [preset]
-          then:
-            required: [projection, view_id]
-        - if:
             properties:
               projection:
                 const: raw
             required: [projection]
           then:
             not:
-              required: [preset]
+              required: [renderer]
         - if:
             properties:
               projection:
@@ -368,51 +337,6 @@ components:
             required: [projection]
           then:
             required: [view_id]
-        - if:
-            properties:
-              preset:
-                enum: [kanban, list, table, calendar, gantt, review_queue, matrix, inbox, notifications, memory_review, agent_runs, moderation_queue]
-            required: [preset]
-          then:
-            properties:
-              projection:
-                const: collection
-        - if:
-            properties:
-              preset:
-                enum: [timeline, chat, thread, forum, activity, context_timeline]
-            required: [preset]
-          then:
-            properties:
-              projection:
-                const: timeline
-        - if:
-            properties:
-              preset:
-                enum: [graph, tree]
-            required: [preset]
-          then:
-            properties:
-              projection:
-                const: graph
-        - if:
-            properties:
-              preset:
-                const: document
-            required: [preset]
-          then:
-            properties:
-              projection:
-                const: document
-        - if:
-            properties:
-              preset:
-                const: dashboard
-            required: [preset]
-          then:
-            properties:
-              projection:
-                const: composite
     StateFrontier:
       type: object
       required: [state_hash]
@@ -718,8 +642,8 @@ components:
         projection:
           type: string
           const: collection
-        preset:
-          $ref: "#/components/schemas/ViewPreset"
+        renderer:
+          $ref: "#/components/schemas/ViewRenderer"
         view_id:
           type: string
           pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
@@ -749,189 +673,6 @@ components:
       anyOf:
         - required: [groups]
         - required: [items]
-      additionalProperties: false
-    KanbanProjectionResponse:
-      type: object
-      required: [projection, view_id, columns, frontier]
-      deprecated: true
-      description: Deprecated compatibility schema. New /index/query responses use CollectionProjectionResponse with preset=kanban.
-      properties:
-        projection:
-          type: string
-          const: kanban
-        view_id:
-          type: string
-          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
-        space_id:
-          type: string
-          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
-        frontier:
-          $ref: "#/components/schemas/StateFrontier"
-        columns:
-          type: array
-          items:
-            $ref: "#/components/schemas/KanbanProjectionColumn"
-        stale:
-          type: boolean
-      additionalProperties: false
-    KanbanFieldValueColumnSource:
-      type: object
-      required: [model, field, value]
-      properties:
-        model:
-          type: string
-          const: field_value
-        field:
-          type: string
-          pattern: "^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*$"
-        value:
-          oneOf:
-            - type: string
-            - type: number
-            - type: boolean
-      additionalProperties: false
-    KanbanCollectionColumnSource:
-      type: object
-      required: [model, collection_entity_id]
-      properties:
-        model:
-          type: string
-          const: collection
-        collection_entity_id:
-          type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
-      additionalProperties: false
-    KanbanProjectionColumn:
-      oneOf:
-        - $ref: "#/components/schemas/KanbanFieldValueProjectionColumn"
-        - $ref: "#/components/schemas/KanbanCollectionProjectionColumn"
-    KanbanProjectionColumnBase:
-      type: object
-      required: [key, title, source, cards, limited]
-      properties:
-        key:
-          type: string
-          minLength: 1
-        title:
-          type: string
-          minLength: 1
-        rank:
-          type: string
-          pattern: "^[0-9A-Za-z]{1,128}$"
-        source:
-          type: object
-        cards:
-          type: array
-        next_cursor:
-          oneOf:
-            - type: string
-              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
-            - type: "null"
-        limited:
-          type: boolean
-        wip_state:
-          type: string
-          enum: [ok, over_limit, unknown]
-        total_estimate:
-          type: integer
-          minimum: 0
-      additionalProperties: false
-    KanbanFieldValueProjectionColumn:
-      allOf:
-        - $ref: "#/components/schemas/KanbanProjectionColumnBase"
-        - type: object
-          properties:
-            source:
-              $ref: "#/components/schemas/KanbanFieldValueColumnSource"
-            cards:
-              type: array
-              items:
-                $ref: "#/components/schemas/KanbanFieldValueProjectionCard"
-    KanbanCollectionProjectionColumn:
-      allOf:
-        - $ref: "#/components/schemas/KanbanProjectionColumnBase"
-        - type: object
-          properties:
-            source:
-              $ref: "#/components/schemas/KanbanCollectionColumnSource"
-            cards:
-              type: array
-              items:
-                $ref: "#/components/schemas/KanbanRelationProjectionCard"
-    KanbanProjectionCard:
-      type: object
-      required: [entity, position]
-      properties:
-        entity:
-          type: object
-          required: [id, entity_type]
-          properties:
-            id:
-              type: string
-              pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
-            entity_type:
-              type: string
-              minLength: 1
-            title:
-              type: string
-            fields:
-              type: object
-          additionalProperties: false
-        position:
-          oneOf:
-            - $ref: "#/components/schemas/KanbanFieldValueCardPosition"
-            - $ref: "#/components/schemas/KanbanRelationCardPosition"
-      additionalProperties: false
-    KanbanFieldValueProjectionCard:
-      allOf:
-        - $ref: "#/components/schemas/KanbanProjectionCard"
-        - type: object
-          properties:
-            position:
-              $ref: "#/components/schemas/KanbanFieldValueCardPosition"
-    KanbanRelationProjectionCard:
-      allOf:
-        - $ref: "#/components/schemas/KanbanProjectionCard"
-        - type: object
-          properties:
-            position:
-              $ref: "#/components/schemas/KanbanRelationCardPosition"
-    KanbanFieldValueCardPosition:
-      type: object
-      required: [model, container_id, rank]
-      properties:
-        model:
-          type: string
-          const: field_value
-        container_id:
-          type: string
-          minLength: 1
-        rank:
-          type: string
-          pattern: "^[0-9A-Za-z]{1,128}$"
-      additionalProperties: false
-    KanbanRelationCardPosition:
-      type: object
-      required: [model, scope_container_id, container_id, relation_kind, relation_id, rank]
-      properties:
-        model:
-          type: string
-          const: relation
-        scope_container_id:
-          type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
-        container_id:
-          type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
-        relation_kind:
-          type: string
-          minLength: 1
-        relation_id:
-          type: string
-          pattern: "^cx:relation:[0-9a-hjkmnp-z]{26}$"
-        rank:
-          type: string
-          pattern: "^[0-9A-Za-z]{1,128}$"
       additionalProperties: false
     ProjectionEntity:
       type: object
@@ -980,38 +721,6 @@ components:
         state:
           type: object
       additionalProperties: false
-    RowProjectionResponse:
-      type: object
-      required: [projection, view_id, items, frontier]
-      deprecated: true
-      description: Deprecated compatibility schema. New /index/query responses use CollectionProjectionResponse with the appropriate preset.
-      properties:
-        projection:
-          type: string
-          enum: [list, table, calendar, gantt, review_queue, matrix, document, dashboard, inbox, notifications, memory_review, agent_runs, moderation_queue]
-        view_id:
-          type: string
-          pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
-        space_id:
-          type: string
-          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
-        frontier:
-          $ref: "#/components/schemas/StateFrontier"
-        items:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProjectionItem"
-        next_cursor:
-          oneOf:
-            - type: string
-              pattern: "^cx:cursor:[A-Za-z0-9_-]+$"
-            - type: "null"
-        total_estimate:
-          type: integer
-          minimum: 0
-        stale:
-          type: boolean
-      additionalProperties: false
     TimelineProjectionEntry:
       type: object
       required: [id, entry_type, sort_key]
@@ -1051,8 +760,8 @@ components:
         projection:
           type: string
           const: timeline
-        preset:
-          $ref: "#/components/schemas/ViewPreset"
+        renderer:
+          $ref: "#/components/schemas/ViewRenderer"
         view_id:
           type: string
           pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
@@ -1118,8 +827,8 @@ components:
         projection:
           type: string
           const: graph
-        preset:
-          $ref: "#/components/schemas/ViewPreset"
+        renderer:
+          $ref: "#/components/schemas/ViewRenderer"
         view_id:
           type: string
           pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
@@ -1170,8 +879,8 @@ components:
         projection:
           type: string
           const: document
-        preset:
-          $ref: "#/components/schemas/ViewPreset"
+        renderer:
+          $ref: "#/components/schemas/ViewRenderer"
         view_id:
           type: string
           pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
@@ -1205,8 +914,8 @@ components:
         projection:
           type: string
           enum: [collection, timeline, graph, document, composite]
-        preset:
-          $ref: "#/components/schemas/ViewPreset"
+        renderer:
+          $ref: "#/components/schemas/ViewRenderer"
         frontier:
           $ref: "#/components/schemas/StateFrontier"
         result:
@@ -1221,8 +930,8 @@ components:
         projection:
           type: string
           const: composite
-        preset:
-          $ref: "#/components/schemas/ViewPreset"
+        renderer:
+          $ref: "#/components/schemas/ViewRenderer"
         view_id:
           type: string
           pattern: "^cx:view:[0-9a-hjkmnp-z]{26}$"
@@ -1711,11 +1420,10 @@ paths:
       security:
         - httpMessageSignature: []
       parameters:
-        - name: room_id
-          in: path
+        - in: path
+          name: room_id
           required: true
-          schema:
-            type: string
+          schema: { type: string }
       responses:
         "200":
           description: MIMI room update result
@@ -1729,14 +1437,13 @@ paths:
       security:
         - httpMessageSignature: []
       parameters:
-        - name: room_id
-          in: path
+        - in: path
+          name: room_id
           required: true
-          schema:
-            type: string
+          schema: { type: string }
       responses:
-        "202":
-          description: MIMI notification accepted
+        "200":
+          description: MIMI notification result
           content:
             application/json:
               schema:
@@ -1747,11 +1454,10 @@ paths:
       security:
         - httpMessageSignature: []
       parameters:
-        - name: room_id
-          in: path
+        - in: path
+          name: room_id
           required: true
-          schema:
-            type: string
+          schema: { type: string }
       responses:
         "200":
           description: MIMI message submission result
@@ -1765,11 +1471,10 @@ paths:
       security:
         - httpMessageSignature: []
       parameters:
-        - name: room_id
-          in: path
+        - in: path
+          name: room_id
           required: true
-          schema:
-            type: string
+          schema: { type: string }
       responses:
         "200":
           description: MIMI groupInfo projection
@@ -1783,8 +1488,8 @@ paths:
       security:
         - httpMessageSignature: []
       responses:
-        "202":
-          description: MIMI consent request accepted
+        "200":
+          description: MIMI consent request result
           content:
             application/json:
               schema:
@@ -1819,8 +1524,8 @@ paths:
       security:
         - httpMessageSignature: []
       responses:
-        "202":
-          description: MIMI abuse report accepted
+        "200":
+          description: MIMI abuse report result
           content:
             application/json:
               schema:

@@ -324,12 +324,12 @@ cx.vector.state_resolution.schema_update.v1
 - 直接用 `event_seq`（本地接收顺序）进行并发决断。
 - 忽略 conflict record 的返回（审计不可复现）。
 
-## 6. Vector: Kanban 并发移动冲突
+## 6. Vector: Board 并发项目移动冲突
 
 向量名称：
 
 ```text
-cx.vector.state_resolution.kanban_concurrent_move.v1
+cx.vector.state_resolution.board_concurrent_item_move.v1
 ```
 
 输入：
@@ -406,7 +406,7 @@ cx.vector.state_resolution.kanban_concurrent_move.v1
 判定要点：
 
 - 最终 reduced state MUST 只有一个 active position edge。
-- loser 不得继续作为 active containment 出现在普通 Kanban projection 中。
+- loser 不得继续作为 active containment 出现在普通 board projection 中。
 - 审计输出 MUST 保留 loser operation 和冲突原因。
 
 ## 7. Vector: 字段位置原子移动
@@ -414,7 +414,7 @@ cx.vector.state_resolution.kanban_concurrent_move.v1
 向量名称：
 
 ```text
-cx.vector.state_resolution.kanban_atomic_field_position_move.v1
+cx.vector.state_resolution.board_atomic_field_position_move.v1
 ```
 
 输入：
@@ -488,16 +488,16 @@ cx.vector.state_resolution.kanban_atomic_field_position_move.v1
 
 判定要点：
 
-- 两个并发 `cx.field_position.move` 写入同一 `(view_id, entity_id, group_by)` 时，`to_value` 和 `rank` MUST 来自同一个 winner。旧 `cx.task.move` 按兼容别名映射到同一 reducer。
+- 两个并发 `cx.field_position.move` 写入同一 `(view_id, entity_id, group_by)` 时，`to_value` 和 `rank` MUST 来自同一个 winner。
 - 实现不得输出 `status` 来自 operation A、`rank` 来自 operation B 的混合位置。
 - 若客户端用裸 `cx.entity.update` 同时写 `fields.status` 与 `fields.rank` 且未声明 `atomic_position`，实现 MAY 按普通 scalar LWW 处理，但不得声称通过本向量。
 
-## 8. Vector: Kanban Relation Rebalance Assignment
+## 8. Vector: Container Rebalance Assignment
 
 向量名称：
 
 ```text
-cx.vector.state_resolution.kanban_relation_rebalance_assignment.v1
+cx.vector.state_resolution.container_rebalance_assignment.v1
 ```
 
 输入：
@@ -597,12 +597,12 @@ cx.vector.state_resolution.kanban_relation_rebalance_assignment.v1
 - Rebalance 不得改变三个 active edge 的相对顺序，不得新增、删除或移动 membership。
 - assignments MUST 覆盖目标 container 的全部 active edges；遗漏任一 active edge MUST 使 operation 失败。
 
-## 9. Vector: Kanban Relation Rebalance CAS Conflict
+## 9. Vector: Container Rebalance CAS Conflict
 
 向量名称：
 
 ```text
-cx.vector.state_resolution.kanban_relation_rebalance_cas_conflict.v1
+cx.vector.state_resolution.container_rebalance_cas_conflict.v1
 ```
 
 输入：

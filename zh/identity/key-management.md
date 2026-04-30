@@ -211,7 +211,7 @@ MLS KeyPackage key 用于加入加密 Space。
 ## 6. Session Grant
 
 Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。  
-Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型；`schema-registry.md` 中的兼容别名仅用于迁移 profile。
+Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 
 示例：
 

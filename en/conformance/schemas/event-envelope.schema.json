@@ -27,29 +27,11 @@
   "allOf": [
     {
       "if": {
-        "properties": { "kind": { "const": "cx.task.move" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "content": { "$ref": "#/$defs/task_move_content" } }
-      }
-    },
-    {
-      "if": {
         "properties": { "kind": { "const": "cx.field_position.move" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "content": { "$ref": "#/$defs/task_move_content" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "cx.relation.move" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "content": { "$ref": "#/$defs/relation_move_content" } }
+        "properties": { "content": { "$ref": "#/$defs/field_position_move_content" } }
       }
     },
     {
@@ -58,16 +40,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "content": { "$ref": "#/$defs/relation_move_content" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "cx.task.reorder" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "content": { "$ref": "#/$defs/task_reorder_content" } }
+        "properties": { "content": { "$ref": "#/$defs/container_move_item_content" } }
       }
     },
     {
@@ -76,16 +49,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "content": { "$ref": "#/$defs/task_reorder_content" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "cx.relation.rebalance" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "content": { "$ref": "#/$defs/relation_rebalance_content" } }
+        "properties": { "content": { "$ref": "#/$defs/field_position_reorder_content" } }
       }
     },
     {
@@ -94,7 +58,7 @@
         "required": ["kind"]
       },
       "then": {
-        "properties": { "content": { "$ref": "#/$defs/relation_rebalance_content" } }
+        "properties": { "content": { "$ref": "#/$defs/container_rebalance_content" } }
       }
     }
   ],
@@ -115,7 +79,7 @@
       ]
     },
     "eventRef": { "type": "string", "pattern": "^cx:(evt|event|operation):[0-9a-hjkmnp-z]{26}$" },
-    "task_move_content": {
+    "field_position_move_content": {
       "type": "object",
       "required": ["entity_id", "view_id", "group_by", "to_value", "rank"],
       "properties": {
@@ -135,7 +99,7 @@
       },
       "additionalProperties": false
     },
-    "task_reorder_content": {
+    "field_position_reorder_content": {
       "type": "object",
       "required": ["entity_id", "view_id", "group_by", "rank"],
       "properties": {
@@ -154,7 +118,7 @@
       },
       "additionalProperties": false
     },
-    "relation_move_content": {
+    "container_move_item_content": {
       "type": "object",
       "required": ["scope_container_id", "relation_kind", "entity_id", "to_container_id", "rank"],
       "properties": {
@@ -176,7 +140,7 @@
       },
       "additionalProperties": false
     },
-    "relation_rebalance_content": {
+    "container_rebalance_content": {
       "type": "object",
       "required": ["scope_container_id", "container_id", "relation_kind", "expected_state_hash", "assignments"],
       "properties": {

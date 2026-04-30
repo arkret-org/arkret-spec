@@ -26,5 +26,5 @@ Filters support `eq`, `neq`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains
 
 Index nodes MUST apply authorization filtering and must not leak invisible resource existence.
 
-Optional `context` is used by `timeline` / `preset="context_timeline"` views to request stable event ordering and relation-aware expansion across multiple object kinds around one anchor object.
+Optional `context` is used by `timeline` / `renderer="timeline"` views to request stable event ordering and relation-aware expansion across multiple object kinds around one anchor object.
 

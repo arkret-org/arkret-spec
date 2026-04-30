@@ -462,7 +462,7 @@ Soft failed state event MAY 在后续上下文补齐后重新评估。Rejected e
     "target_schema_profile": "cx.schema.v1",
     "target_reducer_profile": "cx.reducer.v1",
     "migration_policy": "copy_state_and_continue",
-    "compatibility_mode": "legacy_ignore_unknown_fields",
+    "compatibility_mode": "ignore_unknown_fields",
     "replacement_ref": "event:..."
   }
 }

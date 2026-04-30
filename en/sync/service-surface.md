@@ -96,7 +96,7 @@ Recommended deployment profiles:
 - `principal_server_secure_organization`: one or more organization-delegated Principal Servers paired with Auth / Account Server, Identity Resolution Infrastructure, Policy/Authz, and Blob/Media; public Directory, Push, or external federation ingress are optional external connectivity points only.
 - `isolated_enclave`: Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance all deployed inside the trust domain.
 - `public_federation_ingress`: restricted Principal/Federation + Policy + Moderation + Directory; plaintext is not visible by default.
-- `applet_bridge`: Applet Server + Repo writer + Authz precheck, limited to authorized namespace and capability.
+- `applet_service`: Applet Server + Repo writer + Authz precheck, limited to authorized namespace and capability.
 - `mimi_provider_facade`: MIMI facade + Device/Key + Federation/Authz integration, limited to Spaces / Channels authorized by `cx.mimi.room_binding`.
 - `agent_runtime`: Agent Runtime + Repo writer + Memory/Index integration; all durable writes are signed by principal / agent DID.
 
@@ -371,7 +371,7 @@ The request body SHOULD accept:
 - ordering
 - cursor
 - limit
-- `view_id`, `projection`, `preset`, and `renderer`; non-raw projections MUST use the core primitives `collection`, `timeline`, `graph`, `document`, or `composite`. For example, Kanban uses `projection="collection", preset="kanban", renderer="board"` and returns `CollectionProjectionResponse` with group-level cursors.
+- `view_id`, `projection`, and `renderer`; non-raw projections MUST use the core primitives `collection`, `timeline`, `graph`, `document`, or `composite`. For example, board display uses `projection="collection", renderer="board"` and returns `CollectionProjectionResponse` with group-level cursors.
 
 ### 6.4 Thread / Topic Query
 

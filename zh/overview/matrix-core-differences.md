@@ -25,7 +25,7 @@ Contrix 的核心抽象是 **principal repo + Space + Entity / Relation / Event 
 | 授权模型 | Room auth rules、membership、power levels。 | Capability grant、constraint、claim、policy、deterministic authorization。 |
 | 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Space、Actor、对象范围、用户授权和 capability 细分。 |
 | AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可拥有 repo、capability、run、memory、protocol session。 |
-| 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP legacy / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
+| 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
 | E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Contrix 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
 | 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影；Index / AppView 明确是派生查询层，不能成为真相源。 |
 | 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容必须只进入 principal 或 Space policy 明确委托的服务；明文可见服务用 `plaintext_visible_services` 声明。 |
@@ -53,7 +53,7 @@ Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix
 - agent 可以是 principal、Actor、capability subject。
 - agent 输出可以落成 `run`、`memory`、`message`、`task` 等标准 Entity。
 - agent 权限必须窄范围、短时效、可撤销、可审计。
-- agent-to-agent 场景可以显式升级到 A2A / ACP legacy / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Contrix。
+- agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Contrix。
 - Contrix 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。
 
 ### 4.3 身份系统的演进

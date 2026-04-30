@@ -10,7 +10,7 @@ Contrix must remain human-friendly, so the protocol must support natural project
 - documents
 - dashboards, review queues, inboxes, notifications, memory reviews, and agent run views
 
-These presentation modes are facet-composition `preset` / `renderer` values, not new protocol roots. All of them must come from the same substrate:
+These presentation modes are facet-composition `renderer` values, not new protocol roots. All of them must come from the same substrate:
 
 ```txt
 Space + Actor + Entity + Relation + Event
@@ -28,16 +28,16 @@ Views do not carry the canonical truth of underlying objects.
 
 A task Entity may appear in:
 
-- `collection` / `preset=kanban`
-- `collection` / `preset=list`
-- `collection` / `preset=calendar`
+- `collection` projection + `renderer=board` + `item_render=card`
+- `collection` projection + `renderer=row`
+- `collection` projection + `renderer=calendar`
 - a `timeline` thread anchor
 
 A message Entity may appear in:
 
-- `timeline` / `preset=chat`
-- `timeline` / `preset=thread`
-- `timeline` / `preset=activity`
+- `timeline` projection + `renderer=chat`
+- `timeline` projection + `renderer=thread`
+- `timeline` projection + `renderer=timeline`
 
 ### 2.3 Entity Facets Are the Capability Center
 
@@ -56,7 +56,7 @@ The protocol must not let a View kind implicitly grant object capabilities. Whet
 
 `entity_type` is a semantic label; facets define field sets, allowed relations, standard operations, and projection capabilities. `kanban`, `table`, `thread`, `chat`, `review_queue`, and similar product shapes SHOULD be described as facet compositions rather than View-defined object capabilities.
 
-### 2.4 Few Response Families, Many Product Presets
+### 2.4 Few Response Families, Many Renderers
 
 Views still need machine-verifiable response families. The protocol keeps five `View.kind` values as response families:
 
@@ -66,7 +66,7 @@ Views still need machine-verifiable response families. The protocol keeps five `
 - `document`
 - `composite`
 
-These `kind` values constrain response contracts, cursors, and frontiers only. They do not define object capabilities. New product shapes SHOULD add a preset / renderer / facet profile first, not a new top-level `kind`.
+These `kind` values constrain response contracts, cursors, and frontiers only. They do not define object capabilities. New product shapes SHOULD add a renderer / facet profile first, not a new top-level `kind`.
 
 ### 2.5 Shared / Private / System Must Coexist
 
@@ -98,7 +98,7 @@ Suggested fields:
   "space_id": "cx:space:01JS0SP000000000000000000",
   "created_by": "did:web:acme.example.com",
   "kind": "collection",
-  "preset": "kanban",
+  "renderer": "board",
   "title": "Release Flow",
   "visibility": "shared",
   "query": {
@@ -133,14 +133,14 @@ Suggested fields:
 }
 ```
 
-## 4. Standard `kind` and `preset`
+## 4. Standard `kind` and `renderer`
 
 Each top-level `kind` maps to a machine-verifiable response profile; object capabilities come from facets. `layout` is only a UI hint and never replaces the profile config.
 
-| Core kind | Standard presets | Required config | Standard projection response |
+| Core kind | Common renderers | Required config | Standard projection response |
 | --- | --- | --- | --- |
-| `collection` | `kanban`, `list`, `table`, `calendar`, `gantt`, `review_queue`, `matrix`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `moderation_queue` | `collection` | `CollectionProjectionResponse` |
-| `timeline` | `timeline`, `chat`, `thread`, `forum`, `activity`, `context_timeline` | `timeline`; conversation presets also require `conversation` or anchor/relation | `TimelineProjectionResponse` |
+| `collection` | `board`, `row`, `table`, `calendar`, `gantt`, `custom` | `collection` | `CollectionProjectionResponse` |
+| `timeline` | `timeline`, `chat`, `thread`, `forum`, `custom` | `timeline`; conversation renderers also require `conversation` or anchor/relation | `TimelineProjectionResponse` |
 | `graph` | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
 | `document` | `document` | `document` | `DocumentProjectionResponse` |
 | `composite` | `dashboard` | `dashboard` | `CompositeProjectionResponse` |
@@ -304,15 +304,13 @@ These define the shared minimum display contract. Clients may locally enhance th
 
 The canonical input for Kanban views should be:
 
-- `entity_type = "board"`
-- `entity_type = "collection"`
-- `entity_type = "task"` or another work object type
-- Relation `relation_kind = "contains"` / `belongs_to`
-- `kind = "collection"` + `preset = "kanban"`
+- Entities with explicit facets, typically `container` board / collection entities and `renderable` item entities matching `collection.item_facets`
+- Relation `relation_kind = "contains"` / `belongs_to`, explicitly selected by the View config rather than inferred from local defaults
+- the protocol response family is `kind = "collection"`; `renderer = "board"` / card renderer only selects the board presentation profile
 
-rather than some UI-private array-of-columns structure.
+`board`, `collection`, and `task` are common semantic labels, but they do not grant behavior by themselves. `card` is not a core `entity_type`; it is an item render surface. Kanban is not a separate protocol-level projection family; it is `CollectionProjectionResponse` rendered with `renderer="board"` and `item_render="card"` from the Entity / Relation graph rather than from some UI-private array-of-columns structure.
 
-For v1 interoperability, Kanban views MUST use the machine-verifiable `collection` config in `view.schema.json` with `preset="kanban"`. Field-value boards use `cx.field_position.move` so the group value and rank converge atomically; collection boards MUST explicitly declare `collection.grouping.item_relation_kind` and use `cx.container.move_item` within a `scope_container_id` so one item has one active position per board scope. `cx.task.move` and `cx.relation.move` remain compatibility aliases. Projection item positions are discriminated: field-value positions use `model="field_value"`, while relation-backed positions use `model="relation"` and include `scope_container_id`, `container_id`, `relation_kind`, `relation_id`, and `rank`. WIP enforcement for `reject` and `require_review` MUST use the untrimmed canonical active column membership, while Index / AppView Kanban preset projections return authorization-trimmed `groups[]` with per-group cursors; `authorized_estimate` and `authorized_exact` counts are visibility-trimmed unless a separate aggregate-count policy grants hidden membership counts.
+For v1 interoperability, board-rendered collection views MUST use the machine-verifiable `collection` config in `view.schema.json` with `renderer="board"` and `item_render="card"`. Field-value boards use `cx.field_position.move` so the group value and rank converge atomically; collection boards MUST explicitly declare `collection.grouping.item_relation_kind` and use `cx.container.move_item` within a `scope_container_id` so one item has one active position per board scope. Projection item positions are discriminated: field-value positions use `model="field_value"`, while relation-backed positions use `model="relation"` and include `scope_container_id`, `container_id`, `relation_kind`, `relation_id`, and `rank`. WIP enforcement for `reject` and `require_review` MUST use the untrimmed canonical active column membership, while Index / AppView collection projections rendered as boards return authorization-trimmed `groups[]` with per-group cursors; `authorized_estimate` and `authorized_exact` counts are visibility-trimmed unless a separate aggregate-count policy grants hidden membership counts.
 
 ### 7.2 Chat
 
@@ -396,7 +394,7 @@ The current draft recommends fixing:
 - views as independent objects
 - structured JSON queries first
 - standard `collection/timeline/graph/document/composite` core view kinds
-- `kanban/chat/forum/thread/inbox/notifications` and related product shapes as presets, not protocol roots
+- `kanban/chat/forum/thread/inbox/notifications` and related product shapes as renderers, not protocol roots or new projection families
 - shared/private/system coexistence
 
 ## 13. Further Work

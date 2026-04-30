@@ -189,7 +189,7 @@ cx.vector.sync.pagination_gap.v1
 
 ```json
 {
-  "rooms": {
+  "spaces": {
     "space_a": {
       "timeline": {
         "events": ["evt_6", "evt_7"],
@@ -603,12 +603,12 @@ cx.vector.sync.token_expiry_recovery.v1
 - 客户端 MUST 保留本地未确认离线写入队列。
 - 客户端 MUST NOT 清空已验证 repo cache，除非 cache hash 与新 snapshot 明确冲突。
 
-## 15. Vector: Kanban Projection Column Pagination
+## 15. Vector: Board Projection Group Pagination
 
 向量名称：
 
 ```text
-cx.vector.sync.kanban_projection_column_pagination.v1
+cx.vector.sync.board_projection_group_pagination.v1
 ```
 
 初始请求：
@@ -616,7 +616,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 ```json
 {
   "projection": "collection",
-  "preset": "kanban",
+  "renderer": "board",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "facets": ["stateful", "rankable"],
   "limit": 2
@@ -628,7 +628,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 ```json
 {
   "projection": "collection",
-  "preset": "kanban",
+  "renderer": "board",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "frontier": {
@@ -671,7 +671,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
           }
         }
       ],
-      "next_cursor": "cx:cursor:kanban_todo_after_task_b",
+      "next_cursor": "cx:cursor:board_todo_after_task_b",
       "limited": true
     },
     {
@@ -709,9 +709,9 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 ```json
 {
   "projection": "collection",
-  "preset": "kanban",
+  "renderer": "board",
   "view_id": "cx:view:01js0vw0000000000000000000",
-  "cursor": "cx:cursor:kanban_todo_after_task_b",
+  "cursor": "cx:cursor:board_todo_after_task_b",
   "limit": 2
 }
 ```
@@ -721,7 +721,7 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 ```json
 {
   "projection": "collection",
-  "preset": "kanban",
+  "renderer": "board",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "frontier": {
     "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -759,16 +759,16 @@ cx.vector.sync.kanban_projection_column_pagination.v1
 期望行为：
 
 - 客户端 MUST 只把 `todo` 列标记为未完整窗口。
-- `cx:cursor:kanban_todo_after_task_b` 只能用于继续拉取 `todo` 列，不得作为整个 View 的全局 cursor。
+- `cx:cursor:board_todo_after_task_b` 只能用于继续拉取 `todo` 分组，不得作为整个 View 的全局 cursor。
 - `done.limited=false` 不得让客户端推断其他列完整。
-- 上述请求与响应 MUST 通过 `contrix-service-api.openapi.yaml` 中的 `QueryRequest` 与 `CollectionProjectionResponse` 校验，且必须带 `preset="kanban"`。
+- 上述请求与响应 MUST 通过 `contrix-service-api.openapi.yaml` 中的 `QueryRequest` 与 `CollectionProjectionResponse` 校验，且必须带 `renderer="board"`。
 
-## 16. Vector: Kanban Projection Hidden Counts
+## 16. Vector: Board Projection Hidden Counts
 
 向量名称：
 
 ```text
-cx.vector.sync.kanban_projection_hidden_counts.v1
+cx.vector.sync.board_projection_hidden_counts.v1
 ```
 
 输入状态：
@@ -780,7 +780,7 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
     "type": "view",
     "space_id": "cx:space:01js0sp0000000000000000000",
     "kind": "collection",
-    "preset": "kanban",
+    "renderer": "board",
     "query": {
       "facets": ["stateful", "rankable"]
     },
@@ -818,7 +818,7 @@ cx.vector.sync.kanban_projection_hidden_counts.v1
 ```json
 {
   "projection": "collection",
-  "preset": "kanban",
+  "renderer": "board",
   "view_id": "cx:view:01js0vw0000000000000000000",
   "frontier": {
     "state_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
@@ -879,11 +879,11 @@ cx.vector.sync.view_projection_profiles.v1
 判定要点：
 
 - `projection` discriminator MUST 只匹配一个 OpenAPI response schema。
-- Collection 类视图（包括 kanban/list/table/calendar/gantt/queue/matrix preset）MUST 返回 `CollectionProjectionResponse`，并让每个 `items[*].entity.id` 或 `groups[*].items[*].entity.id` 可追溯到 `cx:entity`。
-- Timeline 类视图（包括 chat/thread/forum/activity/context_timeline preset）MUST 返回 `TimelineProjectionResponse`，并提供稳定 `sort_key`、`frontier`、redaction/tombstone 表达和 cursor grammar。
-- Graph 类视图（包括 tree preset）MUST 返回 `GraphProjectionResponse`，并提供 `nodes[]`、`edges[]`、`lazy` / `truncated` 标记和 Relation provenance。
+- Collection 类视图（包括 board/list/table/calendar/gantt/queue/matrix renderer）MUST 返回 `CollectionProjectionResponse`，并让每个 `items[*].entity.id` 或 `groups[*].items[*].entity.id` 可追溯到 `cx:entity`。
+- Timeline 类视图（包括 chat/thread/forum/activity/context_timeline renderer）MUST 返回 `TimelineProjectionResponse`，并提供稳定 `sort_key`、`frontier`、redaction/tombstone 表达和 cursor grammar。
+- Graph 类视图（包括 tree renderer）MUST 返回 `GraphProjectionResponse`，并提供 `nodes[]`、`edges[]`、`lazy` / `truncated` 标记和 Relation provenance。
 - Document 类视图 MUST 返回 `DocumentProjectionResponse`，并提供 section `sort_key`、body/redaction 与 frontier。
-- Composite 类视图（dashboard preset）MUST 返回 `CompositeProjectionResponse`，并让每个 widget 携带自己的 projection/frontier/result 或标准 error。
+- Composite 类视图（dashboard renderer）MUST 返回 `CompositeProjectionResponse`，并让每个 widget 携带自己的 projection/frontier/result 或标准 error。
 - 任一非 `raw` projection 缺少 `view_id` 或 `frontier` 均为失败。
 
 ## 18. 覆盖矩阵
@@ -902,8 +902,8 @@ cx.vector.sync.view_projection_profiles.v1
 | `cx.vector.sync.removed_member_fail_closed.v1` | N/A | MAY | MUST | SHOULD | SHOULD | SHOULD |
 | `cx.vector.sync.backfill_order.v1` | MUST | MUST | MUST | MAY | SHOULD | SHOULD |
 | `cx.vector.sync.token_expiry_recovery.v1` | MUST | MUST | MUST | MAY | MAY | SHOULD |
-| `cx.vector.sync.kanban_projection_column_pagination.v1` | SHOULD | MUST | SHOULD | N/A | MAY | MUST |
-| `cx.vector.sync.kanban_projection_hidden_counts.v1` | SHOULD | MUST | MUST | N/A | SHOULD | MUST |
+| `cx.vector.sync.board_projection_group_pagination.v1` | SHOULD | MUST | SHOULD | N/A | MAY | MUST |
+| `cx.vector.sync.board_projection_hidden_counts.v1` | SHOULD | MUST | MUST | N/A | SHOULD | MUST |
 | `cx.vector.sync.view_projection_profiles.v1` | SHOULD | MUST | MUST | N/A | SHOULD | MUST |
 
 ## 19. 实现报告要求

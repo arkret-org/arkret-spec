@@ -23,7 +23,7 @@
 | 3PID 邀请 | `third-party-invites.md` | v1 已覆盖 |
 | WebRTC / 会议 | `webrtc-signaling.md` | 已覆盖 P2P、SFU、TURN/STUN/ICE、录制和屏幕共享 |
 | Applet / Bridge | `applet-integration.md`, `applet-schema.md` | 已覆盖注册、命名空间和交易推送 |
-| Agent 协议互操作 | `agent-protocol-interop.md` | 已覆盖 A2A / ACP legacy 等外部 agent transport handoff |
+| Agent 协议互操作 | `agent-protocol-interop.md` | 已覆盖 A2A / ACP 等外部 agent transport handoff |
 | Transport binding | `transport-bindings.md`, `api-conventions.md` | 已明确 HTTP/JSON 是默认 binding，不是协议核心唯一绑定 |
 | REST 安全契约 | `api-conventions.md`, `service-http-binding.md`, `service-api-schema.md` | 已覆盖未知路径/错误 method、禁止 query string 认证、`Retry-After`、CORS、统一错误 envelope |
 | 媒体与 Blob 安全 | `media-and-blob.md`, `service-http-binding.md` | 已覆盖认证下载、Range/HEAD 防泄露、Content-Type/Disposition、短期跳转 URL 和缓存边界 |

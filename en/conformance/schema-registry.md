@@ -25,7 +25,7 @@ Initial object schemas:
 ### Naming Rule
 
 - Standard event types MUST use `cx.` namespace with the shape `cx.<domain>.<verb>`.
-- Unprefixed legacy names such as `space.create` are migration-only aliases.
+- Unprefixed event names such as `space.create` are not standard event types and MUST NOT appear in interoperable event streams.
 - Arbitrary free-form `custom.*` event names are not directly registrable. Custom behavior MUST be mapped through custom schema + capability guard.
 
 | event type | meaning |
@@ -53,8 +53,6 @@ Initial object schemas:
 | `cx.relation.create` | Relation create |
 | `cx.relation.update` | Relation patch |
 | `cx.relation.delete` | Relation tombstone |
-| `cx.relation.move` | Compatibility alias for `cx.container.move_item` |
-| `cx.relation.rebalance` | Compatibility alias for `cx.container.rebalance` |
 | `cx.container.move_item` | Facet container item move |
 | `cx.container.rebalance` | Facet container rank rebalance |
 | `cx.field_position.move` | Facet field-position move |
@@ -69,8 +67,6 @@ Initial object schemas:
 | `cx.capability.revoke` | Revocation |
 | `cx.task.create` | Task create |
 | `cx.task.update` | Task patch |
-| `cx.task.move` | Task move compatibility alias for `cx.field_position.move` |
-| `cx.task.reorder` | Task rank-only reorder compatibility alias for `cx.field_position.reorder` |
 | `cx.view.create` | View create |
 | `cx.view.update` | View update |
 | `cx.view.reconcile` | View schema/definition sync |
@@ -90,18 +86,3 @@ Initial object schemas:
 | `cx.mimi.room_binding` | MIMI room binding state |
 | `cx.call.signal` | WebRTC signal message |
 | `cx.redaction` | Generic redaction envelope |
-
-### Compatibility aliases (recommended to deprecate)
-
-The following historical aliases are accepted only in migration periods and should be mapped before standard processing:
-
-- `space.create`
-- `session.grant`
-- `entity.create`
-- `message.edit` (legacy, maps to `cx.message.revise`)
-- `message.react` (legacy, maps to `cx.reaction.add`)
-- `message.unreact` (legacy, maps to `cx.reaction.remove`)
-- `relation.delete`
-- `capability.revoke`
-- `membership.invite|join|leave|ban`
-

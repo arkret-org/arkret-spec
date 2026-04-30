@@ -10,7 +10,7 @@
 - 以 **capability** 为权限根
 - 以 **views/projections** 为人类展示根
 - 以 **Event** 为协作事实根
-- 以 **memory/run/message/task** 等标准 Entity 类型承载业务语义
+- 以 **memory/run/message/task** 等 Entity 语义标签承载业务分类，并由 facets 声明能力
 
 它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、聊天/话题、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
 
@@ -21,7 +21,7 @@ Contrix v1 聚焦以下目标：
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
 2. 面向对象协作  
-   协议根抽象固定为 Space、Actor、Entity、Relation、Event、View；board、task、message、memory、run 等是标准 Entity 类型。
+   协议根抽象固定为 Space、Actor、Entity、Relation、Event、View；board、task、message、memory、run 等是常见 Entity 语义标签，能力由 facets 或 Space schema profile 声明。
 3. 去中心化同步  
    真相基底是签名操作和 repo commit，而不是单一中心数据库。
 4. 多交互模式  
@@ -98,14 +98,14 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - `relation` 是一等对象，用于表达包含、依赖、回复、引用、分配、提及等关系
 - `event` 是协作事实和审计根
 - `view` 是投影，不拥有核心数据
-- `board/task/message/channel/topic/memory/run` 是标准 Entity 类型，不是协议根
+- `board/task/message/channel/topic/memory/run` 是标准 Entity 语义标签，不是协议根，也不自动授予能力
 - `schema/policy` 是正式对象，不再只是引用占位符
 - `invite/read_marker/notification` 补齐人类协作的加入、已读、提醒链路；notification 是派生投影，不是 canonical truth
 
 ### 5.3 看板与会话
 
-- 看板是 `Entity + Relation + View` 的投影，常用语义类型为 `board/collection/task`
-- 聊天是 `Entity + Relation + View` 的投影，常用语义类型为 `channel/topic/message`
+- 看板是 `Entity + Relation + View` 的投影；`board/collection/task` 是常用语义标签，真正的容器、排序和卡片展示能力由 `container/rankable/renderable` 等 facets 声明
+- 聊天是 `Entity + Relation + View` 的投影；`channel/topic/message` 是常用语义标签，真正的回复、时间线和展示能力由 `replyable/renderable/notifiable` 等 facets 声明
 - 话题模式是 `topic/message` Entity 与 `belongs_to/replies_to` Relation 的投影
 - 同一个 `task`、`run`、`memory` 都可以通过 Relation 挂接默认讨论话题
 - `@user`、`@object` 在 UI 层可写成文本，在协议层必须落成结构化 Entity/Actor 引用与 `mentions` Relation

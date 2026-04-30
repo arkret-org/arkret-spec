@@ -171,7 +171,7 @@ Contrix v1 要求：
 
 - 处理层不再引入独立的 `operation_type` 命名空间；`operation.kind == event.kind`。
 - 不应出现既无 schema 注册也未在服务端能力清单中注册的自定义 `kind`。
-- 旧实现若发送未带 `cx.` 前缀的事件，必须经过兼容适配后映射为注册表 `cx.*` 名称。
+- 实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的事件类型。
 
 ### 7.1 Space / Schema / Policy / Discovery
 
@@ -197,8 +197,6 @@ Contrix v1 要求：
 - `cx.relation.delete`
 - `cx.container.move_item` (有序 container item / membership edge 转移)
 - `cx.container.rebalance` (有序 container 的分数索引重平衡)
-- `cx.relation.move` (兼容别名)
-- `cx.relation.rebalance` (兼容别名)
 - `cx.view.create`
 - `cx.view.update`
 
@@ -210,7 +208,6 @@ Contrix v1 要求：
 - `cx.task.update`
 - `cx.field_position.move`
 - `cx.field_position.reorder`
-- `cx.task.move` / `cx.task.reorder` (兼容别名)
 - `cx.comment.create`
 - `cx.comment.update`
 - `cx.comment.redact`
@@ -299,11 +296,11 @@ Contrix v1 要求：
 
 ### 8.1 看板 / 有序集合操作体
 
-看板拖拽、树节点移动和有序 collection 重排 MUST 使用可还原为 Entity / Relation 变化的标准操作体。新 profile SHOULD 使用 facet-oriented 操作：`cx.field_position.move`、`cx.field_position.reorder`、`cx.container.move_item`、`cx.container.rebalance`。`cx.task.move` / `cx.task.reorder` / `cx.relation.move` / `cx.relation.rebalance` 是兼容别名。
+看板拖拽、树节点移动和有序 collection 重排 MUST 使用可还原为 Entity / Relation 变化的标准操作体：`cx.field_position.move`、`cx.field_position.reorder`、`cx.container.move_item`、`cx.container.rebalance`。
 
 #### 8.1.1 `cx.field_position.move`
 
-`cx.field_position.move` 用于字段分组列模型，例如 `fields.status` 驱动的 Kanban。它等价于对目标 Entity 的一次原子位置写入，而不是两个互相独立的 scalar update。旧 `cx.task.move` 映射到同一 payload。
+`cx.field_position.move` 用于字段分组列模型，例如 `fields.status` 驱动的看板展示。它等价于对目标 Entity 的一次原子位置写入，而不是两个互相独立的 scalar update。
 
 ```json
 {
@@ -327,7 +324,7 @@ Reducer MUST 将 `group_by` 指向的字段和值内排序字段视为同一个 
 
 #### 8.1.2 `cx.field_position.reorder`
 
-`cx.field_position.reorder` 只改变字段分组列模型中同一列内的 rank，不改变 `group_by` 字段值。它用于同列拖拽，payload 仍必须机器可校验，避免客户端把 rank-only 操作伪装成 generic update。旧 `cx.task.reorder` 映射到同一 payload。
+`cx.field_position.reorder` 只改变字段分组列模型中同一列内的 rank，不改变 `group_by` 字段值。它用于同列拖拽，payload 仍必须机器可校验，避免客户端把 rank-only 操作伪装成 generic update。
 
 ```json
 {
@@ -350,7 +347,7 @@ Reducer MUST 将 `cx.field_position.reorder` 归入同一 `(view_id, entity_id, 
 
 #### 8.1.3 `cx.container.move_item`
 
-`cx.container.move_item` 用于 collection 列模型和其他有序 containment edge。它移动的是某个对象在一个 exclusive position scope 内的 active Relation。旧 `cx.relation.move` 映射到同一 payload。
+`cx.container.move_item` 用于 collection 列模型和其他有序 containment edge。它移动的是某个对象在一个 exclusive position scope 内的 active Relation。
 
 ```json
 {
@@ -394,7 +391,7 @@ Reducer 语义：
 
 #### 8.1.4 `cx.container.rebalance`
 
-`cx.container.rebalance` 只能重写同一 container 内的 rank，不得改变 membership / containment。旧 `cx.relation.rebalance` 映射到同一 payload。
+`cx.container.rebalance` 只能重写同一 container 内的 rank，不得改变 membership / containment。
 
 ```json
 {
@@ -678,7 +675,7 @@ graph TD
 应通过 move/reorder 语义处理。`rank` 推荐使用 Fractional Indexing string。
 
 **重平衡 (Rebalance) 与并发防乱序机制**：
-当高频拖拽导致 Fractional Indexing 字符串长度膨胀或精度耗尽时，具备 `cx.board.admin`、`cx.view.update` 或对应 collection 管理权限的 Actor MAY 提交一条特殊的 `cx.container.rebalance` 操作。该操作将在其所属分支上截断现有的长尾 rank，为容器内所有对象重新分配短且等距的 rank 字符串，以消除碎片和性能隐患。旧 `cx.relation.rebalance` 是兼容别名。
+当高频拖拽导致 Fractional Indexing 字符串长度膨胀或精度耗尽时，具备 `cx.board.admin`、`cx.view.update` 或对应 collection 管理权限的 Actor MAY 提交一条特殊的 `cx.container.rebalance` 操作。该操作将在其所属分支上截断现有的长尾 rank，为容器内所有对象重新分配短且等距的 rank 字符串，以消除碎片和性能隐患。
 为防止多端并发触发重平衡导致列表排序被彻底损毁（并发乱序风暴），`rebalance` 操作 MUST 携带一个 **`expected_state_hash` (CAS 并发锁)**。节点在处理 `rebalance` 时，如果当前列表状态哈希与预期不符，MUST 拒绝该次重平衡。客户端若遭遇 CAS 失败，应自动使用指数退避 (Exponential Backoff) 策略拉取最新状态后重试。
 
 排序收敛规则：

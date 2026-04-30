@@ -19,7 +19,7 @@ Question:
 Decision:
 
 - Contrix is **space-first + entity-graph-first + event-first**.
-- Chat, topic, Kanban, tree, graph, and Gantt are standard projections on the same collaboration graph.
+- Chat, topic, Kanban, tree, graph, and Gantt are presentation profiles over the same collaboration graph. Protocol-level projection families are defined only by View `kind`.
 - The protocol root is not a room, message, task, or board. It is `Space + Actor + Entity + Relation + Event + View`.
 
 ### 2.2 If the System Should Render as a Board, What Is the Canonical Data Shape?
@@ -32,10 +32,12 @@ Question:
 Decision:
 
 - The board substrate is not "column arrays + card arrays".
-- The substrate is `Entity + Relation + View`.
-- `board`, `collection`, and `task/card` are standard `entity_type` values.
-- board contains collection, and collection contains task/card, through `contains` Relations.
-- Kanban is one standard `kind = "collection"` + `preset = "kanban"` projection.
+- The canonical substrate is `Entity + Relation + View`; column arrays and card arrays are only derived AppView / Index projections.
+- `board`, `collection`, `task`, `message`, and `topic` are semantic Entity type labels. They do not automatically grant container, drag, reply, or card-rendering behavior.
+- Entity capabilities come from explicit `facets` or the Space schema profile. For example, board / collection objects typically need `container`; card-renderable objects typically need `renderable`; drag ordering typically needs `rankable` or relation rank.
+- In complex boards, a board contains column collections through explicit `contains` Relations, and a column collection contains Entities matching `collection.item_facets` through explicit `contains` Relations.
+- `card` is not a core `entity_type`; it is an item render surface declared by `collection.item_render="card"`.
+- Kanban is not a separate protocol-level projection family, nor an independent projection contract created by `kind + renderer`. It is a board display of `CollectionProjectionResponse`, expressed by `renderer = "board"`, `collection.item_render = "card"`, and `collection.grouping`.
 
 ### 2.3 If the Protocol Should Support Chat or Topic Mode, How Should That Work?
 
@@ -46,7 +48,7 @@ Question:
 
 Decision:
 
-- The protocol defines `channel/topic/message` as standard `entity_type` values, not new protocol roots.
+- The protocol defines `channel/topic/message` as standard semantic labels, not new protocol roots; conversation behavior still comes from facets such as `replyable`, `renderable`, and `notifiable`, or from the Space schema profile.
 - `channel` is a long-lived conversation space.
 - `topic` is a thread/topic that may anchor through Relations to `space / board / task / run / memory`.
 - `message` is a timeline message.
@@ -189,8 +191,8 @@ Decision:
 Taken together, the protocol adopts the following overall plan:
 
 1. Fix the root model as `Space + Actor + Entity + Relation + Event + View`.
-2. Model boards as standard Entity types `board/collection/task` plus `contains/belongs_to` Relations and a Kanban View.
-3. Model conversation as standard Entity types `channel/topic/message` plus `belongs_to/replies_to/mentions` Relations and Chat/Thread Views.
+2. Model boards with `Entity.facets`, `contains/belongs_to` Relations, and the `View{kind="collection"}` collection projection; `renderer="board"` is only a board presentation profile hint, and `board/collection/task` are common semantic labels.
+3. Model conversation with facets such as `replyable/renderable`, `belongs_to/replies_to/mentions` Relations, and Chat/Thread Views; `channel/topic/message` are common semantic labels.
 4. Keep `comment` for durable object-level notes, while `message` handles timeline conversation.
 5. Standardize `@mention` as structured DID/entity references and `mentions` Relations.
 6. Use revision chains for editing and redaction/tombstones for recalls.

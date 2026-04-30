@@ -563,7 +563,7 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 
 ## 15. Conformance
 
-`cx.profile.applet_bridge.v1` MUST 测试：
+`cx.profile.applet_service.v1` MUST 测试：
 
 - registration signature
 - namespace matching

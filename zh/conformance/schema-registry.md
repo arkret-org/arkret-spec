@@ -32,7 +32,7 @@
 
 - 标准 event type 应使用 namespace：`cx.<domain>.<verb>`。
 - 所有标准事件必须使用 `cx.` 前缀。
-- 旧草案中的裸名（如 `space.create`）视为历史兼容语法，不再用于新增互操作定义。
+- 裸名事件（如 `space.create`）不是标准事件类型，MUST NOT 出现在互操作事件流中。
 - 语义上不安全的自由字符串事件（如 `custom.*`）不直接进入注册表，必须通过自定义 schema + state filter+capability 约束映射到 `cx.custom.*` 空间。
 
 | event type | payload |
@@ -60,8 +60,6 @@
 | `cx.relation.create` | Relation create |
 | `cx.relation.update` | Relation patch |
 | `cx.relation.delete` | Relation tombstone |
-| `cx.relation.move` | Compatibility alias for `cx.container.move_item` |
-| `cx.relation.rebalance` | Compatibility alias for `cx.container.rebalance` |
 | `cx.container.move_item` | Facet container item move |
 | `cx.container.rebalance` | Facet container rank rebalance |
 | `cx.field_position.move` | Facet field-position move |
@@ -76,8 +74,6 @@
 | `cx.capability.revoke` | Revocation |
 | `cx.task.create` | Task create |
 | `cx.task.update` | Task patch |
-| `cx.task.move` | Task move compatibility alias for `cx.field_position.move` |
-| `cx.task.reorder` | Task rank-only reorder compatibility alias for `cx.field_position.reorder` |
 | `cx.view.create` | View create |
 | `cx.view.update` | View update |
 | `cx.view.reconcile` | View schema/definition sync |
@@ -88,7 +84,7 @@
 | `cx.device.authorized` | Device authorization |
 | `cx.device.revoked` | Device revocation |
 | `cx.session.grant` | Session grant |
-| `cx.read.marker` | Read marker event (legacy/private) |
+| `cx.read.marker` | Read marker event |
 | `cx.receipt.read` | Read receipt event |
 | `cx.applet.bridge_error` | Bridge failure |
 | `cx.applet.registration` | Applet registration |
@@ -97,20 +93,6 @@
 | `cx.mimi.room_binding` | MIMI room binding state |
 | `cx.call.signal` | WebRTC signal message |
 | `cx.redaction` | Generic redaction envelope |
-
-### 3.2 兼容别名（建议弃用）
-
-下列历史别名在迁移期可被接受，但新协议与 conformance profile MUST 优先校验 `cx.*` 形式：
-
-- `space.create`
-- `session.grant`
-- `entity.create`
-- `message.edit`（兼容别名，映射到 `cx.message.revise`）
-- `message.react`（兼容别名，映射到 `cx.reaction.add`）
-- `message.unreact`（兼容别名，映射到 `cx.reaction.remove`）
-- `relation.delete`
-- `capability.revoke`
-- `membership.invite|join|leave|ban`
 
 ## 4. Extension
 

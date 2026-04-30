@@ -118,7 +118,7 @@ Schema id: `cx.schema.entity.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-标准 `entity_type`：
+标准 `entity_type` 语义标签：
 
 ```text
 board, collection, task, message, topic, channel, document, file,
@@ -221,22 +221,17 @@ Schema id: `cx.schema.view.v1`
 | `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
-| `preset` | no | `enum(kanban, list, table, calendar, gantt, chat, thread, forum, tree, timeline, review_queue, matrix, document, dashboard, activity, inbox, notifications, memory_review, agent_runs, context_timeline, moderation_queue, custom)` | 必须与 `kind` 映射一致。 | 产品形态模板，不是新的协议根类型。 |
+| `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；能力仍由 facets 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
-| `collection` | conditional | `CollectionConfig` | `kind="collection"` 时 MUST 设置。 | 集合投影配置；覆盖 kanban/list/table/calendar/gantt/queue/matrix 等 preset。 |
-| `kanban` | no | `KanbanConfig` | deprecated；兼容旧实现。 | 旧看板投影配置；新实现 MUST 使用 `collection`。 |
-| `tabular` | no | `TabularConfig` | deprecated；兼容旧实现。 | 旧行/列表/表格配置。 |
-| `time_window` | no | `TimeWindowConfig` | deprecated；兼容旧实现。 | 旧时间窗口配置。 |
+| `collection` | conditional | `CollectionConfig` | `kind="collection"` 时 MUST 设置。 | 集合投影配置；看板、表格、日历、甘特、队列、矩阵都由该配置表达。 |
 | `timeline` | conditional | `TimelineConfig` | `kind="timeline"` 时 MUST 设置。 | 时间线配置。 |
-| `conversation` | conditional | `ConversationConfig` | `preset in (chat, thread, forum)` 时 MUST 设置，或 query 必须提供 anchor/relation。 | 会话配置。 |
+| `conversation` | conditional | `ConversationConfig` | 会话/讨论类 renderer SHOULD 设置，或 query 必须提供 anchor/relation。 | 会话配置。 |
 | `graph` | conditional | `GraphConfig` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
-| `queue` | no | `QueueConfig` | deprecated；兼容旧实现。 | 旧队列配置；新实现 SHOULD 映射到 `collection`。 |
-| `matrix` | no | `MatrixConfig` | deprecated；兼容旧实现。 | 旧双轴配置；新实现 SHOULD 映射到 `collection.grouping.mode="matrix"`。 |
 | `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
-| `dashboard` | conditional | `DashboardConfig` | `kind="dashboard"` 时 MUST 设置。 | 仪表盘 widget 配置。 |
+| `dashboard` | conditional | `DashboardConfig` | `kind="composite"` 时 MUST 设置。 | 仪表盘 widget 配置。 |
 | `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -245,10 +240,10 @@ Schema id: `cx.schema.view.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `item_entity_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 可投影为 item/card/row/message 的 Entity 类型。 |
+| `item_entity_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项；兼容字段，新 profile SHOULD 优先使用 `item_facets`。 | 按语义标签过滤可投影为 item/card/row/message 的 Entity；不授予能力。 |
 | `item_facets` | conditional | `array<FacetName>` | 可替代 `item_entity_types`；至少 1 项。 | 按 Entity 能力选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
-| `item_render` | yes | `enum(card, row, tile, compact, badge, message)` | `preset="kanban"` SHOULD 为 `card`。 | 默认展示面。 |
-| `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 preset SHOULD 使用 rank。 |
+| `item_render` | yes | `enum(card, row, tile, compact, badge, message)` | 看板式展示 SHOULD 为 `card`。 | 默认展示面。 |
+| `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 collection SHOULD 使用 rank。 |
 | `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
 | `grouping` | yes | `CollectionGrouping` |  | 分组/列/时间桶/矩阵配置。 |
 | `selection_policy` | no | `enum(none, single, multiple)` | 默认 `multiple`。 | UI 选择策略。 |
@@ -269,41 +264,7 @@ Schema id: `cx.schema.view.v1`
 | `end_field` | no | `string` |  | 时间窗口终点字段。 |
 | `rows_by` / `columns_by` | conditional | `string` | `mode="matrix"` 时必填。 | 矩阵双轴字段。 |
 | `hidden_count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 分组计数授权策略。 |
-| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 默认 `warn`。 | Kanban/review 类 preset 的 WIP enforcement。 |
-
-`KanbanConfig` 是旧兼容配置。新实现 MUST 使用 `CollectionConfig` + `preset="kanban"`。旧字段如下：
-
-| 字段 | 必填 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- | --- |
-| `column_model` | yes | `enum(field_value, collection)` |  | 列来源模型。 |
-| `group_by` | conditional | `string` | `field_value` 模型必填，dot path。 | 分组字段，例如 `fields.status`。 |
-| `columns` | conditional | `array<object>` | `field_value` 模型 SHOULD 设置。 | 字段值列定义。 |
-| `board_entity_id` | conditional | `id:entity` | `collection` 模型必填。 | 看板 Entity。 |
-| `column_relation_kind` | no | `string` | 默认 `contains`。 | board 到 column 的关系语义。 |
-| `card_relation_kind` | conditional | `string` | `collection` 模型必填；不得隐式推断。 | column/board 到 card 的关系语义。 |
-| `card_order_by` | yes | `array<SortSpec>` | SHOULD 使用 `fields.rank` 或 Relation `fields.rank`。 | 卡片排序。 |
-| `uncategorized_policy` | no | `enum(show, hide, reject)` | 默认 `show`。 | 未分类卡片处理。 |
-| `conflict_policy` | no | `enum(reducer_winner, expose_conflict, reject)` | 默认 `reducer_winner`。 | 并发位置冲突的投影策略；reducer 仍必须可审计记录冲突。 |
-| `hidden_count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | Kanban projection 是否暴露权限裁剪后的计数。 |
-| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 默认 `warn`。 | WIP limit 超限处理。 |
-| `page_size` | no | `integer` | 1..500。 | 每列默认卡片窗口大小。 |
-
-`columns` item 字段：
-
-| 字段 | 必填 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- | --- |
-| `key` | yes | `string` | 必须匹配 `group_by` 字段值。 | 列 key。 |
-| `title` | yes | `string` | 1..128 chars。 | 列标题。 |
-| `rank` | no | `string` | Fractional rank。 | 列顺序。 |
-| `wip_limit` | no | `integer` | >= 0。 | WIP 限制。 |
-| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 覆盖 View 默认值。 | 本列 WIP 超限处理。 |
-
-KanbanConfig 约束：
-
-- `column_model="field_value"` 时，`group_by` 与 `columns` MUST 存在；`board_entity_id` MAY 存在，用于限定 View 所属 board。
-- `column_model="collection"` 时，`board_entity_id` 与 `card_relation_kind` MUST 存在；列集合来自 board 到 collection 的 Relation，卡片集合来自 column 到 card 的 `card_relation_kind` Relation。
-- `card_order_by` MUST 至少包含一个稳定排序字段；推荐 `fields.rank` 或 Relation `fields.rank`。
-- 用于拖拽的 `group_by` 字段与 rank 字段 MUST 通过 `cx.field_position.move`（旧兼容名 `cx.task.move`）或等价 `atomic_position` 原子写入，避免并发时列值和 rank 分别由不同 operation 胜出。
+| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 默认 `warn`。 | 分组 WIP enforcement；只影响 reducer / review policy，不由 renderer 决定。 |
 
 ## 11. Policy
 
@@ -439,7 +400,6 @@ Canonical Operation 与 Operation Envelope 的映射：
 - `semantic_kind="cx.container.move_item"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用容器 item move payload schema。
 - `semantic_kind="cx.field_position.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="entity"`，并使用字段位置 reorder payload schema。
 - `semantic_kind="cx.container.rebalance"` MUST 使用 `operation_type="rebalance"`、`object_type="relation"`，并使用容器 rebalance payload schema。
-- `semantic_kind="cx.task.move"`、`cx.task.reorder`、`cx.relation.move`、`cx.relation.rebalance` 是兼容旧名称，新 profile SHOULD 使用 facet-oriented 名称。
 - `operation_type` 为 `move`、`reorder` 或 `rebalance` 时，`semantic_kind` MUST 存在且属于本 schema 声明的有序操作语义白名单；实现不得把有序集合操作塞进无语义的 generic `update`，也不得使用未知 `semantic_kind` 绕过 payload validation。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
@@ -482,7 +442,7 @@ Schema id: `cx.schema.client_sync_response.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `next_batch` | yes | `cursor` 或 `string` | opaque。 | 下一次 sync token。 |
-| `rooms` | no | `map<SyncSpace>` | key 为 `space_id`。 | Space 增量。 |
+| `spaces` | no | `map<SyncSpace>` | key 为 `space_id`。 | Space 增量。 |
 | `to_device` | no | `array<object>` | E2EE / device channel。 | 设备消息。 |
 | `device_lists` | no | `object` | 设备变更。 | 设备列表增量。 |
 | `account_data` | no | `array<object>` | 私有账号数据。 | 私有状态。 |

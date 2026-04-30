@@ -20,7 +20,7 @@
 决策：
 
 - Contrix 采用 **space-first + entity-graph-first + event-first**。
-- chat、topic、kanban、tree、graph、gantt 都是同一协作图上的标准投影。
+- chat、topic、kanban、tree、graph、gantt 都是同一协作图上的展示 profile；协议级投影 family 只由 View `kind` 定义。
 - 协议根对象不是房间、消息、任务或看板，而是 `Space + Actor + Entity + Relation + Event + View`。
 
 ### 2.2 如果要展示成看板，底层数据应该怎么设计？
@@ -33,10 +33,12 @@
 决策：
 
 - 看板底层不是“列数组 + 卡片数组”。
-- 底层应是 `Entity + Relation + View`。
-- `board`、`collection`、`task/card` 都是标准 `entity_type`。
-- board 包含 collection、collection 包含 task/card，使用 `contains` Relation。
-- Kanban 是 `kind = "collection"` + `preset = "kanban"` 的一种标准投影。
+- 底层真相源应是 `Entity + Relation + View`；列数组和卡片数组只是 AppView / Index 的派生投影结果。
+- `board`、`collection`、`task`、`message`、`topic` 等是 Entity 的语义类型标签，不得自动授予容器、拖拽、回复或卡片展示能力。
+- Entity 的能力由 `facets` 或 Space schema profile 显式声明；例如 board / collection 通常需要 `container` facet，可作为卡片显示的对象通常需要 `renderable`，拖拽排序通常需要 `rankable` 或 relation rank。
+- 复杂看板中，board 通过显式 `contains` Relation 包含 column collection；column collection 再通过显式 `contains` Relation 包含满足 `collection.item_facets` 的 Entity。
+- `card` 不是核心 `entity_type`，而是 `collection.item_render="card"` 声明的 item 展示面。
+- Kanban 不是新的协议级投影 family，也不是 `kind + renderer` 组合出来的独立投影契约；它只是 `CollectionProjectionResponse` 的看板展示方式，由 `renderer = "board"`、`collection.item_render = "card"` 和 `collection.grouping` 共同表达。
 
 ### 2.3 如果要支持聊天模式或话题模式，应该怎么设计？
 
@@ -47,11 +49,11 @@
 
 决策：
 
-- 协议将 `channel/topic/message` 定义为标准 `entity_type`，而不是新的协议根。
+- 协议将 `channel/topic/message` 定义为标准语义标签，而不是新的协议根；会话能力仍由 `replyable`、`renderable`、`notifiable` 等 facets 或 Space schema profile 声明。
 - `channel` 表示长期会话空间。
 - `topic` 表示线程或话题，可通过 Relation 挂在 `space / board / task / run / memory` 上。
 - `message` 表示时间线消息。
-- `comment` 仍然保留为标准 Entity 类型，但定位为对象上的 durable review/note，而不是通用聊天时间线。
+- `comment` 仍然保留为标准语义标签，但定位为对象上的 durable review/note，而不是通用聊天时间线。
 - 归属、回复、引用、提及必须落成结构化 Relation。
 
 ### 2.4 看板和聊天如何打通？
@@ -66,7 +68,7 @@
 - task Entity 可以通过 Relation 关联自己的默认 `topic`。
 - board 可以通过 Relation 关联一个或多个 `channel` 和 `topic`。
 - 一个 `topic` 可以锚定到 `task / run / memory / board / document`。
-- 人类可以在 kanban view 里看 task，同时点进同一个 task 的 thread/chat view。
+- 人类可以在 board-rendered collection view 里看 task，同时点进同一个 task 的 thread/chat view。
 
 ### 2.5 支持 `@user` 吗？
 
@@ -191,8 +193,8 @@
 综合以上问题，当前协议采用如下整体方案：
 
 1. 根模型固定为 `Space + Actor + Entity + Relation + Event + View`。
-2. 看板采用标准 Entity 类型 `board/collection/task` + `contains/belongs_to` Relation + `kanban` View。
-3. 聊天/话题采用标准 Entity 类型 `channel/topic/message` + `belongs_to/replies_to/mentions` Relation + `chat/thread` View。
+2. 看板采用 `Entity.facets` + `contains/belongs_to` Relation + `View{kind="collection"}` 的集合投影；`renderer="board"` 只是看板展示 profile 提示，`board/collection/task` 只是常见语义标签。
+3. 聊天/话题采用 `replyable/renderable` 等 facets + `belongs_to/replies_to/mentions` Relation + `chat/thread` View；`channel/topic/message` 只是常见语义标签。
 4. `comment` 继续保留为对象级 durable 说明；`message` 负责时间线会话。
 5. `@mention` 统一采用结构化 DID/entity ref，并落成 `mentions` Relation。
 6. 编辑采用 revision chain；撤回采用 redaction/tombstone。

@@ -69,7 +69,6 @@ Content-Type: application/json
 | --- | --- | --- | --- |
 | `next_batch` | `token` | required | 下次同步使用的 opaque token。 |
 | `spaces` | `object` | optional | Contrix 原生 Space 聚合同步结果。 |
-| `rooms` | `object` | optional | Matrix bridge 兼容字段；原生实现 SHOULD 使用 `spaces`。 |
 | `to_device` | `object` | optional | 当前设备 to-device 消息。 |
 | `device_lists` | `object` | optional | 设备列表变化。 |
 | `presence` | `object` | optional | presence 事件。 |
@@ -81,7 +80,6 @@ Content-Type: application/json
 ```json
 {
   "next_batch": "sync_opaque_token_2",
-  "rooms": {},
   "spaces": {
     "join": {},
     "invite": {},
@@ -95,8 +93,6 @@ Content-Type: application/json
   "notifications": {"events": []}
 }
 ```
-
-`rooms` 字段仅为兼容 bridge MAY 使用；Contrix 原生实现 SHOULD 使用 `spaces`。
 
 ## 3. Stream Classes
 

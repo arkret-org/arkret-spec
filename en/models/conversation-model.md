@@ -315,7 +315,7 @@ They may be:
 
 The current draft recommends fixing:
 
-- `channel/topic/message` as formal conversation objects
+- `channel/topic/message` as formal conversation semantic labels, with conversation capabilities declared by facets or the Space schema profile
 - `@mention` as structured DID/entity references and `mentions` Relations
 - edits as revision chains
 - recalls as redaction/tombstone semantics

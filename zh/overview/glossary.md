@@ -34,17 +34,17 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Board | 看板 | 由 Entity、Relation 和 kanban View 投影出的工作管理界面，不是协议根对象。 |
-| Task | 任务 | 标准 Entity 类型，用于表达待办、状态、负责人、截止时间、依赖和讨论关系。 |
-| Channel | 频道 | 标准 Entity 类型，用于承载长期消息流或话题集合。 |
-| Topic | 话题 | 标准 Entity 类型，用于论坛式或线程式讨论，可挂接到 task、memory、run 等对象。 |
-| Message | 消息 | 标准 Entity 类型，用于会话内容。消息仍是 Entity，不是协议唯一事实根。 |
-| Memory | 记忆 | 标准 Entity 类型，用于 agent 或人类确认的长期知识、事实、偏好或上下文。 |
-| Run | 运行记录 | 标准 Entity 类型，用于记录 agent、自动化或工具执行过程。 |
-| Agent Protocol Session | Agent 协议会话 | Contrix 任务显式切换到 A2A、ACP legacy 或其他外部 agent protocol 执行时登记的受控会话。 |
+| Board | 看板 | 由 Entity、Relation 和 `kind="collection", renderer="board"` 的 View 投影出的工作管理界面，不是协议根对象。 |
+| Task | 任务 | 标准 Entity 语义标签，用于表达待办、状态、负责人、截止时间、依赖和讨论关系；可拖拽、排期、回复等能力必须由 facets 声明。 |
+| Channel | 频道 | 标准 Entity 语义标签，用于承载长期消息流或话题集合；时间线和通知能力由 facets / profile 声明。 |
+| Topic | 话题 | 标准 Entity 语义标签，用于论坛式或线程式讨论，可挂接到 task、memory、run 等对象；回复能力由 facets / profile 声明。 |
+| Message | 消息 | 标准 Entity 语义标签，用于会话内容。消息仍是 Entity，不是协议唯一事实根；展示与通知能力由 facets / profile 声明。 |
+| Memory | 记忆 | 标准 Entity 语义标签，用于 agent 或人类确认的长期知识、事实、偏好或上下文。 |
+| Run | 运行记录 | 标准 Entity 语义标签，用于记录 agent、自动化或工具执行过程。 |
+| Agent Protocol Session | Agent 协议会话 | Contrix 任务显式切换到 A2A、ACP 或其他外部 agent protocol 执行时登记的受控会话。 |
 | Mention | 提及 | 对 Actor 或 Entity 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
 | Reaction | 反应 | 对目标 Entity/Event 的轻量语义反馈，通常通过 Relation 或标准 reaction event 表达。 |
-| Social Post | 社交发布 | 标准 Entity 类型，用于个人、组织或社区 feed 中的发布内容；可公开、受众受限或私有。 |
+| Social Post | 社交发布 | 标准 Entity 语义标签，用于个人、组织或社区 feed 中的发布内容；可公开、受众受限或私有。 |
 | Social Feed | 社交时间线 | 个人主页、组织公告、项目动态或关注流的发布入口/投影源；本身不替代 Repo 或 Space。 |
 | Social Circle | 社交圈 | 发布者维护的受众集合，例如朋友圈、亲友圈、内部成员圈；成员列表默认私有或受限可见。 |
 | Audience Policy | 受众策略 | 定义 post/feed 的可读、可回复、可转发、可索引和受众快照规则。 |
@@ -151,7 +151,7 @@
 | Ghost Actor | 幽灵行为者 | 外部网络用户在 Contrix 中的镜像 Actor，必须可审计且不能静默冒充原生 human actor。 |
 | Portal Space | 门户空间 | 外部系统 location 在 Contrix 中的镜像 Space，例如 Slack channel、GitHub issue discussion。 |
 | Bridge | 桥接 | 在 Contrix 与外部系统之间转换 identity、message、event、file、membership 和 permission 的机制。 |
-| Protocol Adapter | 协议适配器 | 将 Contrix task/session 映射到 A2A、ACP legacy、MCP bridge 或企业私有 agent API 的组件。 |
+| Protocol Adapter | 协议适配器 | 将 Contrix task/session 映射到 A2A、ACP、MCP bridge 或企业私有 agent API 的组件。 |
 
 ## 9. 设备、会话与加密
 

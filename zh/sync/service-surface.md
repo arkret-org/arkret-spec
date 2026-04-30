@@ -97,7 +97,7 @@ DID Document SHOULD 只负责：
 - `principal_server_secure_organization`：一个或多个组织委托的 Principal Server，搭配 Auth / Account Server、Identity Resolution Infrastructure、Policy/Authz、Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
-- `applet_bridge`：Applet Server + Repo writer + Authz precheck，只在授权 namespace 和 capability 内工作。
+- `applet_service`：Applet Server + Repo writer + Authz precheck，只在授权 namespace 和 capability 内工作。
 - `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Channel。
 - `agent_runtime`：Agent Runtime + Repo writer + Memory/Index integration，所有写入仍通过 principal / agent DID 签名。
 
@@ -373,7 +373,7 @@ POST /api/v1/index/query
 - 排序
 - cursor
 - limit
-- `view_id`、`projection`、`preset` 与 `renderer`: 非 raw projection MUST 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如 Kanban 必须用 `projection="collection", preset="kanban", renderer="board"`，响应 MUST 使用 `views.md` 定义的标准 `CollectionProjectionResponse`，并支持分组级 cursor。
+- `view_id`、`projection` 与 `renderer`: 非 raw projection MUST 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`，响应 MUST 使用 `views.md` 定义的标准 `CollectionProjectionResponse`，并支持分组级 cursor。
 - `sync_token`: 可选。如果提供，Index 节点在响应前 MUST 阻塞等待本地物化进度到达或超过该 token 指示的因果前沿 (如特定的 `commit_hash`)，以保障“读己之所写”体验。超时则返回 408 或 504。
 
 ### 6.4 thread / topic 查询

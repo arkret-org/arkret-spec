@@ -20,7 +20,7 @@ Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 
 - BeeAI Framework 仍提供 ACP adapter，可连接 ACP-compliant service。
 - A2A 使用 AgentCard / Task / Message / Artifact 等概念，面向 agent discovery、长任务协作、streaming、async 和跨框架互操作。
 
-因此 Contrix 不应硬编码“ACP-only”路径。实现 MUST 使用 protocol adapter registry，并允许 A2A、ACP legacy、MCP bridge、私有企业 agent protocol 并存。
+因此 Contrix 不应硬编码“ACP-only”路径。实现 MUST 使用 protocol adapter registry，并允许 A2A、ACP、MCP bridge、私有企业 agent protocol 并存。
 
 ## 3. 什么时候留在 Contrix
 
@@ -68,7 +68,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
       "content_types": ["text/plain", "application/json", "application/octet-stream"]
     },
     {
-      "protocol": "acp_legacy",
+      "protocol": "acp",
       "version": "0.x",
       "metadata_url": "https://agent.example/info",
       "transport": ["https", "sse"],
@@ -188,7 +188,7 @@ Capability constraint SHOULD 支持：
 
 ```json
 {
-  "allowed_protocols": ["a2a", "acp_legacy"],
+  "allowed_protocols": ["a2a", "acp"],
   "allowed_endpoints": ["https://*.trusted.example"],
   "max_duration_seconds": 3600,
   "max_artifact_bytes": 10485760,
@@ -234,7 +234,7 @@ Contrix 只要求最终状态、artifact、审计证明和授权边界回流，�
 | Adapter | 用途 |
 | --- | --- |
 | `a2a` | 首选 agent-to-agent 外部协议。 |
-| `acp_legacy` | 连接仍使用 ACP metadata / endpoint 的 BeeAI 或旧服务。 |
+| `acp` | 连接使用 ACP metadata / endpoint 的 BeeAI 或 ACP-compliant service。 |
 | `mcp_bridge` | 将 Contrix task 包装为 MCP tool/resource 调用，适合 agent-to-tool。 |
 | `http_custom` | 企业内部私有 agent API，需要显式 allowlist。 |
 
@@ -275,4 +275,3 @@ Contrix SHOULD 支持 agent protocol upgrade，但它必须是受控 handoff：
 - 所有外部执行的输入边界、状态、结果和审计证明必须回到 Contrix。
 
 这样 Contrix 可以连接外部 agent 生态，同时不牺牲 DID、capability、Space policy、E2EE 和审计模型。
-

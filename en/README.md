@@ -10,7 +10,7 @@
 - **capabilities** as the authorization root
 - **views/projections** as the human presentation root
 - **Events** as the collaboration fact root
-- **memory/run/message/task** as standard Entity types
+- **memory/run/message/task** as Entity semantic labels, with capabilities declared by facets
 
 Its goal is not to wrap a chat protocol in a Kanban shell. Its goal is to define one protocol that can project into boards, chat/topic flows, tables, calendars, trees, graphs, Gantt views, and agent memory.
 
@@ -21,7 +21,7 @@ Contrix v1 focuses on:
 1. Stable identity  
    All principals use DIDs as stable identifiers, while handles remain portable human-readable entry points.
 2. Object-centric collaboration  
-   The protocol root is Space, Actor, Entity, Relation, Event, and View; boards, tasks, messages, memories, and runs are standard Entity types.
+   The protocol root is Space, Actor, Entity, Relation, Event, and View; boards, tasks, messages, memories, and runs are common Entity semantic labels, while capabilities come from facets or the Space schema profile.
 3. Decentralized synchronization  
    The source of truth is signed operations and repo commits, not a single central database.
 4. Multiple interaction modes  
@@ -141,15 +141,15 @@ Main document groups:
 - `relation` is first-class and represents containment, dependency, replies, references, assignments, mentions, and similar links
 - `event` is the collaboration fact and audit root
 - `view` is a projection and does not own core data
-- `board/task/channel/topic/message/memory/run` are standard Entity types, not protocol roots
+- `board/task/channel/topic/message/memory/run` are standard Entity semantic labels, not protocol roots, and do not grant capabilities by themselves
 - `schema/policy` are formal objects rather than unresolved references
 - `invite/read_marker/notification` complete the join/read/attention path for human collaboration
 
 ### 5.3 Boards and Conversation
 
-- boards are projected from standard Entity types, Relations, and a Kanban View
-- chat is projected from standard `channel/topic/message` Entities, Relations, and a Chat View
-- topic mode is projected from `topic/message` Entities and `belongs_to/replies_to` Relations
+- boards are projected from Entity facets, Relations, and a `kind="collection", renderer="board"` View; `board/collection/task` are common semantic labels
+- chat is projected from replyable/renderable Entities, Relations, and a Chat View; `channel/topic/message` are common semantic labels
+- topic mode is projected from replyable topic/message-like Entities and `belongs_to/replies_to` Relations
 - the same `task`, `run`, or `memory` may have a default discussion topic through Relations
 - `@user` and `@object` may be authored as text in the UI, but must be stored as structured Entity/Actor references and `mentions` Relations
 

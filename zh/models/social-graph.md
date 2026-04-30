@@ -22,7 +22,7 @@ Contrix 可以支持个人或组织的社交发布、关注、时间线、朋友
 - 朋友圈式内容必须按 audience policy 授权，不能靠客户端 UI 隐藏实现。
 - 组织 feed 的官方性必须由 Organization DID 或 `cx.space.organization` 背书证明。
 
-## 3. 标准 Entity 类型
+## 3. 标准 Entity 语义类型
 
 ### 3.1 `social_post`
 

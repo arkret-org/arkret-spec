@@ -1,6 +1,6 @@
 # Standard Object Types
 
-Standard Entity types in the first profile:
+Standard Entity semantic type labels in the first profile:
 
 - `board`
 - `collection`

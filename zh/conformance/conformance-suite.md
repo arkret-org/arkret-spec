@@ -22,7 +22,7 @@
 - `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
 - `cx.profile.blob_node.v1`
-- `cx.profile.applet_bridge.v1`
+- `cx.profile.applet_service.v1`
 - `cx.profile.enterprise_client.v1`
 - `cx.profile.agent_runtime.v1`
 - `cx.profile.mimi_interop.v1`

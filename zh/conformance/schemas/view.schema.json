@@ -13,21 +13,15 @@
       "type": "string",
       "enum": ["collection", "timeline", "graph", "document", "composite"]
     },
-    "preset": { "$ref": "#/$defs/view_preset" },
     "renderer": { "$ref": "#/$defs/view_renderer" },
     "title": { "type": "string" },
     "query": { "$ref": "#/$defs/query" },
     "visible_fields": { "type": "array", "items": { "$ref": "#/$defs/field_path" } },
     "layout": { "type": "object" },
     "collection": { "$ref": "#/$defs/collection_config" },
-    "kanban": { "$ref": "#/$defs/kanban_config", "deprecated": true },
-    "tabular": { "$ref": "#/$defs/tabular_config" },
-    "time_window": { "$ref": "#/$defs/time_window_config" },
     "timeline": { "$ref": "#/$defs/timeline_config" },
     "conversation": { "$ref": "#/$defs/conversation_config" },
     "graph": { "$ref": "#/$defs/graph_config" },
-    "queue": { "$ref": "#/$defs/queue_config" },
-    "matrix": { "$ref": "#/$defs/matrix_config" },
     "document": { "$ref": "#/$defs/document_config" },
     "dashboard": { "$ref": "#/$defs/dashboard_config" },
     "sort": { "type": "array", "items": { "$ref": "#/$defs/sort_spec" } },
@@ -68,22 +62,6 @@
     },
     {
       "if": {
-        "properties": {
-          "preset": {
-            "enum": [
-              "kanban", "list", "table", "calendar", "gantt", "review_queue", "matrix",
-              "inbox", "notifications", "memory_review", "agent_runs", "moderation_queue"
-            ]
-          }
-        },
-        "required": ["preset"]
-      },
-      "then": {
-        "properties": { "kind": { "const": "collection" } }
-      }
-    },
-    {
-      "if": {
         "properties": { "kind": { "const": "timeline" } },
         "required": ["kind"]
       },
@@ -91,53 +69,10 @@
     },
     {
       "if": {
-        "properties": {
-          "preset": { "enum": ["timeline", "chat", "thread", "forum", "activity", "context_timeline"] }
-        },
-        "required": ["preset"]
-      },
-      "then": {
-        "properties": { "kind": { "const": "timeline" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "preset": { "enum": ["chat", "thread", "forum"] } },
-        "required": ["preset"]
-      },
-      "then": { "required": ["conversation"] }
-    },
-    {
-      "if": {
-        "properties": { "preset": { "enum": ["chat", "thread", "forum"] } },
-        "required": ["preset"]
-      },
-      "then": {
-        "properties": {
-          "query": {
-            "anyOf": [
-              { "required": ["anchor_entity_id"] },
-              { "required": ["relation"] }
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
         "properties": { "kind": { "const": "graph" } },
         "required": ["kind"]
       },
       "then": { "required": ["graph"] }
-    },
-    {
-      "if": {
-        "properties": { "preset": { "enum": ["graph", "tree"] } },
-        "required": ["preset"]
-      },
-      "then": {
-        "properties": { "kind": { "const": "graph" } }
-      }
     },
     {
       "if": {
@@ -152,17 +87,6 @@
     },
     {
       "if": {
-        "properties": { "preset": { "const": "context_timeline" } },
-        "required": ["preset"]
-      },
-      "then": {
-        "properties": {
-          "query": { "required": ["anchor_entity_id", "context"] }
-        }
-      }
-    },
-    {
-      "if": {
         "properties": { "kind": { "const": "document" } },
         "required": ["kind"]
       },
@@ -170,40 +94,13 @@
     },
     {
       "if": {
-        "properties": { "preset": { "const": "document" } },
-        "required": ["preset"]
-      },
-      "then": {
-        "properties": { "kind": { "const": "document" } }
-      }
-    },
-    {
-      "if": {
         "properties": { "kind": { "const": "composite" } },
         "required": ["kind"]
       },
       "then": { "required": ["dashboard"] }
-    },
-    {
-      "if": {
-        "properties": { "preset": { "const": "dashboard" } },
-        "required": ["preset"]
-      },
-      "then": {
-        "properties": { "kind": { "const": "composite" } }
-      }
     }
   ],
   "$defs": {
-    "view_preset": {
-      "type": "string",
-      "enum": [
-        "kanban", "list", "table", "calendar", "gantt", "chat", "thread", "forum", "tree",
-        "timeline", "review_queue", "matrix", "document", "dashboard", "activity",
-        "inbox", "notifications", "memory_review", "agent_runs", "context_timeline",
-        "moderation_queue", "custom"
-      ]
-    },
     "facet_name": {
       "type": "string",
       "enum": [
@@ -526,42 +423,6 @@
       ],
       "additionalProperties": false
     },
-    "tabular_config": {
-      "type": "object",
-      "required": ["columns"],
-      "properties": {
-        "columns": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/display_column" },
-          "minItems": 1
-        },
-        "row_order_by": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/sort_spec" },
-          "minItems": 1
-        },
-        "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
-        "selection_policy": { "type": "string", "enum": ["none", "single", "multiple"], "default": "multiple" },
-        "density": { "type": "string", "enum": ["compact", "standard", "comfortable"], "default": "standard" }
-      },
-      "additionalProperties": false
-    },
-    "time_window_config": {
-      "type": "object",
-      "required": ["start_field"],
-      "properties": {
-        "start_field": { "$ref": "#/$defs/field_path" },
-        "end_field": { "$ref": "#/$defs/field_path" },
-        "timezone": { "type": "string", "minLength": 1, "default": "UTC" },
-        "bucket": { "type": "string", "enum": ["day", "week", "month", "quarter"], "default": "week" },
-        "overlap_policy": { "type": "string", "enum": ["include_overlap", "start_within_range"], "default": "include_overlap" },
-        "dependency_relation_kinds": {
-          "type": "array",
-          "items": { "type": "string", "minLength": 1 }
-        }
-      },
-      "additionalProperties": false
-    },
     "timeline_config": {
       "type": "object",
       "required": ["time_field", "order"],
@@ -646,55 +507,6 @@
       ],
       "additionalProperties": false
     },
-    "queue_config": {
-      "type": "object",
-      "required": ["state_field", "state_values"],
-      "properties": {
-        "item_entity_types": {
-          "type": "array",
-          "items": { "type": "string", "minLength": 1 },
-          "minItems": 1
-        },
-        "item_facets": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/facet_name" },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "state_field": { "$ref": "#/$defs/field_path" },
-        "state_values": {
-          "type": "array",
-          "items": { "type": "string", "minLength": 1 },
-          "minItems": 1
-        },
-        "assignee_field": { "$ref": "#/$defs/field_path" },
-        "priority_order_by": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/sort_spec" },
-          "minItems": 1
-        },
-        "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
-        "count_policy": { "type": "string", "enum": ["omit", "authorized_estimate", "authorized_exact"], "default": "omit" }
-      },
-      "anyOf": [
-        { "required": ["item_entity_types"] },
-        { "required": ["item_facets"] }
-      ],
-      "additionalProperties": false
-    },
-    "matrix_config": {
-      "type": "object",
-      "required": ["rows_by", "columns_by"],
-      "properties": {
-        "rows_by": { "$ref": "#/$defs/field_path" },
-        "columns_by": { "$ref": "#/$defs/field_path" },
-        "cell_aggregation": { "type": "string", "enum": ["count", "sum", "min", "max", "latest"], "default": "count" },
-        "value_field": { "$ref": "#/$defs/field_path" },
-        "row_limit": { "type": "integer", "minimum": 1, "maximum": 1000 },
-        "column_limit": { "type": "integer", "minimum": 1, "maximum": 200 }
-      },
-      "additionalProperties": false
-    },
     "document_config": {
       "type": "object",
       "required": ["root_entity_id", "section_relation_kind"],
@@ -720,7 +532,7 @@
           "type": "string",
           "enum": ["collection", "timeline", "graph", "document", "composite"]
         },
-        "preset": { "$ref": "#/$defs/view_preset" },
+        "renderer": { "$ref": "#/$defs/view_renderer" },
         "query": { "$ref": "#/$defs/query" },
         "refresh_interval_ms": { "type": "integer", "minimum": 1000 }
       },
@@ -736,80 +548,6 @@
           "minItems": 1
         }
       },
-      "additionalProperties": false
-    },
-    "kanban_column": {
-      "type": "object",
-      "required": ["key", "title"],
-      "properties": {
-        "key": { "type": "string", "minLength": 1 },
-        "title": { "type": "string", "minLength": 1, "maxLength": 128 },
-        "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
-        "wip_limit": { "type": "integer", "minimum": 0 },
-        "wip_limit_enforcement": {
-          "type": "string",
-          "enum": ["warn", "reject", "require_review"]
-        }
-      },
-      "additionalProperties": false
-    },
-    "kanban_config": {
-      "type": "object",
-      "required": ["column_model", "card_order_by"],
-      "properties": {
-        "column_model": { "type": "string", "enum": ["field_value", "collection"] },
-        "group_by": { "$ref": "#/$defs/field_path" },
-        "columns": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/kanban_column" },
-          "minItems": 1
-        },
-        "board_entity_id": { "$ref": "#/$defs/entity_id" },
-        "column_relation_kind": { "type": "string", "minLength": 1, "default": "contains" },
-        "card_relation_kind": { "type": "string", "minLength": 1 },
-        "card_order_by": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/sort_spec" },
-          "minItems": 1
-        },
-        "uncategorized_policy": {
-          "type": "string",
-          "enum": ["show", "hide", "reject"],
-          "default": "show"
-        },
-        "conflict_policy": {
-          "type": "string",
-          "enum": ["reducer_winner", "expose_conflict", "reject"],
-          "default": "reducer_winner"
-        },
-        "hidden_count_policy": {
-          "type": "string",
-          "enum": ["omit", "authorized_estimate", "authorized_exact"],
-          "default": "omit"
-        },
-        "wip_limit_enforcement": {
-          "type": "string",
-          "enum": ["warn", "reject", "require_review"],
-          "default": "warn"
-        },
-        "page_size": { "type": "integer", "minimum": 1, "maximum": 500 }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": { "column_model": { "const": "field_value" } },
-            "required": ["column_model"]
-          },
-          "then": { "required": ["group_by", "columns"] }
-        },
-        {
-          "if": {
-            "properties": { "column_model": { "const": "collection" } },
-            "required": ["column_model"]
-          },
-          "then": { "required": ["board_entity_id", "card_relation_kind"] }
-        }
-      ],
       "additionalProperties": false
     }
   },

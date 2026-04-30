@@ -182,7 +182,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.attachment.*`
 - `cx.view.*`
 
-`cx.task.move`、`cx.task.reorder`、`cx.relation.move` 和 `cx.relation.rebalance` 是兼容旧名称；新 grant SHOULD 使用 facet-oriented action。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。看板拖拽权限应优先使用 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束组合表达。
+看板拖拽权限应使用 `cx.field_position.move`、`cx.field_position.reorder`、`cx.container.move_item`、`cx.container.rebalance` 等 facet-oriented action，并结合 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束表达。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。
 
 ### 5.3 会话动作
 

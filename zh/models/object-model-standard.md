@@ -2,10 +2,10 @@
 
 ## 1. 目标
 
-本文定义 Contrix 初版标准 Entity 类型。  
+本文定义 Contrix 初版标准 Entity 语义类型标签。
 这些类型是语义层约定，不改变核心模型：所有对象仍然是 Entity，所有跨对象语义仍然使用 Relation。
 
-核心字段类型、必填性和通用约束见 `data-structures.md`。本文只定义标准 `entity_type` 的业务语义、常用字段、推荐关系和推荐 facet composition。
+核心字段类型、必填性和通用约束见 `data-structures.md`。本文只定义标准 `entity_type` 标签的业务语义、常用字段、推荐关系和推荐 facet composition。
 
 `entity_type` 不得隐式授予能力。标准 profile MAY 为常见 `entity_type` 注入默认 facets，但实现和 conformance 判断 MUST 以实际 `Entity.facets` / Space schema profile 为准。
 
@@ -15,17 +15,17 @@
 
 看板列有两种标准来源：
 
-- 字段分组列：列来自 task 的 `fields.status` 等字段枚举值。
+- 字段分组列：列来自具备 `stateful` facet 的 item Entity 的 `fields.status` 等字段枚举值；`task` 只是最常见语义标签。
 - Collection 列：列来自 `entity_type="collection"` 的 Entity，并通过 `contains` Relation 挂到 board。
 
-看板不会自动显示 Space 中所有对象。只有被 Kanban View 的 `query` 选中、通过权限裁剪、并符合该 View card 规则的 Entity 才显示为卡片。其他 Entity / Relation / Event 仍可作为底层数据、关系输入或审计输入存在。
+看板不会自动显示 Space 中所有对象。只有被 `kind="collection", renderer="board"` 的 View `query` 选中、通过权限裁剪、并符合该 View `collection.item_facets` 与 card renderer 规则的 Entity 才显示为卡片。其他 Entity / Relation / Event 仍可作为底层数据、关系输入或审计输入存在。
 
 具体投影规则见 `views.md` 的 Kanban 章节。
 
 常见关系：
 
-- `contains` -> `task`
-- `contains` -> `collection`
+- `contains` -> 满足 `container.child_facets` 的 item Entity（通常语义标签为 `task` / `issue` / `message` 等）
+- `contains` -> 带 `container` facet 的 column collection Entity
 - `has_default_view` -> `view`
 
 示例：
@@ -58,14 +58,15 @@
     }
   },
   "fields": {
-    "default_view_kind": "kanban"
+    "default_view_kind": "collection",
+    "default_view_renderer": "board"
   }
 }
 ```
 
 ## 3. Task
 
-`task` 表示可分配、可排期、可完成的工作项。
+`task` 表示工作项语义标签；是否可分配、可排期、可完成、可回复或可作为卡片显示，必须由 `assignable`、`schedulable`、`stateful`、`replyable`、`renderable` 等 facets 或 Space schema profile 声明。
 
 常用字段：
 

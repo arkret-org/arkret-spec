@@ -23,19 +23,6 @@
   "allOf": [
     {
       "if": {
-        "properties": { "semantic_kind": { "const": "cx.task.move" } },
-        "required": ["semantic_kind"]
-      },
-      "then": {
-        "properties": {
-          "operation_type": { "const": "move" },
-          "object_type": { "const": "entity" },
-          "payload": { "$ref": "#/$defs/task_move_payload" }
-        }
-      }
-    },
-    {
-      "if": {
         "properties": { "semantic_kind": { "const": "cx.field_position.move" } },
         "required": ["semantic_kind"]
       },
@@ -43,20 +30,7 @@
         "properties": {
           "operation_type": { "const": "move" },
           "object_type": { "const": "entity" },
-          "payload": { "$ref": "#/$defs/task_move_payload" }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": { "semantic_kind": { "const": "cx.relation.move" } },
-        "required": ["semantic_kind"]
-      },
-      "then": {
-        "properties": {
-          "operation_type": { "const": "move" },
-          "object_type": { "const": "relation" },
-          "payload": { "$ref": "#/$defs/relation_move_payload" }
+          "payload": { "$ref": "#/$defs/field_position_move_payload" }
         }
       }
     },
@@ -69,20 +43,7 @@
         "properties": {
           "operation_type": { "const": "move" },
           "object_type": { "const": "relation" },
-          "payload": { "$ref": "#/$defs/relation_move_payload" }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": { "semantic_kind": { "const": "cx.task.reorder" } },
-        "required": ["semantic_kind"]
-      },
-      "then": {
-        "properties": {
-          "operation_type": { "const": "reorder" },
-          "object_type": { "const": "entity" },
-          "payload": { "$ref": "#/$defs/task_reorder_payload" }
+          "payload": { "$ref": "#/$defs/container_move_item_payload" }
         }
       }
     },
@@ -95,20 +56,7 @@
         "properties": {
           "operation_type": { "const": "reorder" },
           "object_type": { "const": "entity" },
-          "payload": { "$ref": "#/$defs/task_reorder_payload" }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": { "semantic_kind": { "const": "cx.relation.rebalance" } },
-        "required": ["semantic_kind"]
-      },
-      "then": {
-        "properties": {
-          "operation_type": { "const": "rebalance" },
-          "object_type": { "const": "relation" },
-          "payload": { "$ref": "#/$defs/relation_rebalance_payload" }
+          "payload": { "$ref": "#/$defs/field_position_reorder_payload" }
         }
       }
     },
@@ -121,7 +69,7 @@
         "properties": {
           "operation_type": { "const": "rebalance" },
           "object_type": { "const": "relation" },
-          "payload": { "$ref": "#/$defs/relation_rebalance_payload" }
+          "payload": { "$ref": "#/$defs/container_rebalance_payload" }
         }
       }
     },
@@ -134,7 +82,7 @@
         "required": ["semantic_kind"],
         "properties": {
           "semantic_kind": {
-            "enum": ["cx.field_position.move", "cx.container.move_item", "cx.task.move", "cx.relation.move"]
+            "enum": ["cx.field_position.move", "cx.container.move_item"]
           }
         }
       }
@@ -147,7 +95,7 @@
       "then": {
         "required": ["semantic_kind"],
         "properties": {
-          "semantic_kind": { "enum": ["cx.field_position.reorder", "cx.task.reorder"] }
+          "semantic_kind": { "enum": ["cx.field_position.reorder"] }
         }
       }
     },
@@ -159,7 +107,7 @@
       "then": {
         "required": ["semantic_kind"],
         "properties": {
-          "semantic_kind": { "enum": ["cx.container.rebalance", "cx.relation.rebalance"] }
+          "semantic_kind": { "enum": ["cx.container.rebalance"] }
         }
       }
     }
@@ -178,7 +126,7 @@
         { "type": "boolean" }
       ]
     },
-    "task_move_payload": {
+    "field_position_move_payload": {
       "type": "object",
       "required": ["entity_id", "view_id", "group_by", "to_value", "rank"],
       "properties": {
@@ -198,7 +146,7 @@
       },
       "additionalProperties": false
     },
-    "task_reorder_payload": {
+    "field_position_reorder_payload": {
       "type": "object",
       "required": ["entity_id", "view_id", "group_by", "rank"],
       "properties": {
@@ -217,7 +165,7 @@
       },
       "additionalProperties": false
     },
-    "relation_move_payload": {
+    "container_move_item_payload": {
       "type": "object",
       "required": ["scope_container_id", "relation_kind", "entity_id", "to_container_id", "rank"],
       "properties": {
@@ -239,7 +187,7 @@
       },
       "additionalProperties": false
     },
-    "relation_rebalance_payload": {
+    "container_rebalance_payload": {
       "type": "object",
       "required": ["scope_container_id", "container_id", "relation_kind", "expected_state_hash", "assignments"],
       "properties": {

@@ -24,7 +24,7 @@ The protocols can interoperate through bridges, but their roots are different.
 | Authorization | Room auth rules, membership, and power levels. | Capability grants, constraints, claims, policy, and deterministic authorization. |
 | Integrations | Application Services are mostly homeserver-registered namespace integrations. | Applets are signed, authorized, auditable service DIDs scoped by Space, Actor, object range, user grant, and capability. |
 | AI agents | Bots can join through users or appservices, but agents are not protocol-root objects. | Agents are first-class principals / Actors with repos, capabilities, runs, memories, and protocol sessions. |
-| Agent protocols | No native A2A / ACP handoff semantics. | A2A / ACP legacy / MCP bridge / custom agent APIs can be controlled protocol sessions. |
+| Agent protocols | No native A2A / ACP handoff semantics. | A2A / ACP / MCP bridge / custom agent APIs can be controlled protocol sessions. |
 | E2EE | Matrix E2EE is based on Olm / Megolm. | Contrix recommends MLS RFC 9420 for group E2EE. |
 | Views and query | Client experience is reconstructed from sync, state, relations, and aggregation APIs. | View is first-class; Index / AppView are explicit derived query layers and cannot be truth sources. |
 | Plaintext boundary | Depends on deployment, encryption, appservice, and bridge configuration. | Private plaintext may only enter principal- or Space-policy-delegated services; `plaintext_visible_services` declares visibility. |
@@ -47,7 +47,7 @@ Contrix Applets differ in their granularity and authorization model:
 
 In Matrix, AI can be integrated via bots, appservices, or bridges, but it is not a protocol-native entity.
 
-Contrix incorporates agents deeply into its object model: it treats agents as principals, Actors, and capability subjects; agent outputs can become `run`, `memory`, `message`, or `task` Entities; and agent-to-agent work can explicitly upgrade to A2A / ACP legacy / MCP bridge / private agent APIs while writing session state, status, artifacts, and results back to Contrix.
+Contrix incorporates agents deeply into its object model: it treats agents as principals, Actors, and capability subjects; agent outputs can become `run`, `memory`, `message`, or `task` Entities; and agent-to-agent work can explicitly upgrade to A2A / ACP / MCP bridge / private agent APIs while writing session state, status, artifacts, and results back to Contrix.
 
 ### 4.3 Evolution of the Identity System
 
@@ -61,7 +61,7 @@ While Contrix leverages DID-rooted identity, bidirectional handle validation, se
 
 While Matrix's Olm / Megolm ecosystem is mature, widely deployed, and highly capable, Contrix integrates the modern, IETF standard MLS (RFC 9420) as its foundation for group E2EE. 
 
-MLS maps naturally to group state, epochs, commits, proposals, member add/remove, history visibility, device authorization, and auditable E2EE. This better suits dynamic governance of collaborative Spaces and enterprise objects over legacy channel-first structures.
+MLS maps naturally to group state, epochs, commits, proposals, member add/remove, history visibility, device authorization, and auditable E2EE. This better suits dynamic governance of collaborative Spaces and enterprise objects over channel-first structures.
 
 ## 5. Other Important Differences
 

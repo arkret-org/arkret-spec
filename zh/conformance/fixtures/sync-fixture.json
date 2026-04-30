@@ -1,36 +1,64 @@
 {
   "suite": "sync",
   "cases": [
-    { "name": "initial_sync", "expected": "full_visible_state_with_next_batch" },
-    { "name": "incremental_sync", "expected": "only_delta_since_cursor" },
-    { "name": "state_after", "expected": "response_carries_post_reducer_frontier" },
-    { "name": "limited_timeline_backfill", "expected": "limited_true_with_prev_batch" },
-    { "name": "expired_cursor", "expected": "sync_token_expired_or_snapshot_bootstrap" },
-    { "name": "filter_mismatch", "expected": "invalid_param_or_describe_guidance" },
-    { "name": "to_device_ack", "expected": "acked_message_not_redelivered" },
-    { "name": "snapshot_manifest_chunk_frontier", "expected": "state_hash_and_chunks_verify" },
     {
-      "name": "kanban_projection_column_pagination",
-      "vector": "cx.vector.sync.kanban_projection_column_pagination.v1",
+      "name": "initial_sync",
+      "expected": "full_visible_state_with_next_batch"
+    },
+    {
+      "name": "incremental_sync",
+      "expected": "only_delta_since_cursor"
+    },
+    {
+      "name": "state_after",
+      "expected": "response_carries_post_reducer_frontier"
+    },
+    {
+      "name": "limited_timeline_backfill",
+      "expected": "limited_true_with_prev_batch"
+    },
+    {
+      "name": "expired_cursor",
+      "expected": "sync_token_expired_or_snapshot_bootstrap"
+    },
+    {
+      "name": "filter_mismatch",
+      "expected": "invalid_param_or_describe_guidance"
+    },
+    {
+      "name": "to_device_ack",
+      "expected": "acked_message_not_redelivered"
+    },
+    {
+      "name": "snapshot_manifest_chunk_frontier",
+      "expected": "state_hash_and_chunks_verify"
+    },
+    {
+      "name": "board_projection_group_pagination",
+      "vector": "cx.vector.sync.board_projection_group_pagination.v1",
       "schema_refs": {
         "request": "QueryRequest",
         "response": "CollectionProjectionResponse"
       },
       "initial_request": {
         "projection": "collection",
-        "preset": "kanban",
         "view_id": "cx:view:01js0vw0000000000000000000",
-        "facets": ["stateful", "rankable"],
-        "limit": 2
+        "facets": [
+          "stateful",
+          "rankable"
+        ],
+        "limit": 2,
+        "renderer": "board"
       },
       "initial_response": {
         "projection": "collection",
-        "preset": "kanban",
         "view_id": "cx:view:01js0vw0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
           "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "operation_ids": ["cx:operation:01js0qp0000000000000000000"]
+          "operation_ids": [
+            "cx:operation:01js0qp0000000000000000000"
+          ]
         },
         "groups": [
           {
@@ -47,7 +75,12 @@
                 "entity": {
                   "id": "cx:entity:01js0ta0000000000000000000",
                   "entity_type": "task",
-                  "facets": ["stateful", "rankable", "assignable", "renderable"],
+                  "facets": [
+                    "stateful",
+                    "rankable",
+                    "assignable",
+                    "renderable"
+                  ],
                   "title": "Task A"
                 },
                 "position": {
@@ -60,7 +93,12 @@
                 "entity": {
                   "id": "cx:entity:01js0tb0000000000000000000",
                   "entity_type": "task",
-                  "facets": ["stateful", "rankable", "assignable", "renderable"],
+                  "facets": [
+                    "stateful",
+                    "rankable",
+                    "assignable",
+                    "renderable"
+                  ],
                   "title": "Task B"
                 },
                 "position": {
@@ -70,7 +108,7 @@
                 }
               }
             ],
-            "next_cursor": "cx:cursor:kanban_todo_after_task_b",
+            "next_cursor": "cx:cursor:board_todo_after_task_b",
             "limited": true
           },
           {
@@ -87,7 +125,12 @@
                 "entity": {
                   "id": "cx:entity:01js0tz0000000000000000000",
                   "entity_type": "task",
-                  "facets": ["stateful", "rankable", "assignable", "renderable"],
+                  "facets": [
+                    "stateful",
+                    "rankable",
+                    "assignable",
+                    "renderable"
+                  ],
                   "title": "Task Z"
                 },
                 "position": {
@@ -100,18 +143,18 @@
             "next_cursor": null,
             "limited": false
           }
-        ]
+        ],
+        "renderer": "board"
       },
       "followup_request": {
         "projection": "collection",
-        "preset": "kanban",
         "view_id": "cx:view:01js0vw0000000000000000000",
-        "cursor": "cx:cursor:kanban_todo_after_task_b",
-        "limit": 2
+        "cursor": "cx:cursor:board_todo_after_task_b",
+        "limit": 2,
+        "renderer": "board"
       },
       "expected_followup_response": {
         "projection": "collection",
-        "preset": "kanban",
         "view_id": "cx:view:01js0vw0000000000000000000",
         "frontier": {
           "state_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -130,7 +173,12 @@
                 "entity": {
                   "id": "cx:entity:01js0tc0000000000000000000",
                   "entity_type": "task",
-                  "facets": ["stateful", "rankable", "assignable", "renderable"],
+                  "facets": [
+                    "stateful",
+                    "rankable",
+                    "assignable",
+                    "renderable"
+                  ],
                   "title": "Task C"
                 },
                 "position": {
@@ -143,18 +191,19 @@
             "next_cursor": null,
             "limited": false
           }
-        ]
+        ],
+        "renderer": "board"
       },
       "assertions": [
         "initial_response.groups[todo].limited == true",
         "initial_response.groups[done].limited == false",
         "followup_request.cursor resumes only the todo column",
-        "expected_followup_response validates as CollectionProjectionResponse with preset=kanban"
+        "expected_followup_response validates as CollectionProjectionResponse with renderer=board"
       ]
     },
     {
-      "name": "kanban_projection_hidden_counts",
-      "vector": "cx.vector.sync.kanban_projection_hidden_counts.v1",
+      "name": "board_projection_hidden_counts",
+      "vector": "cx.vector.sync.board_projection_hidden_counts.v1",
       "schema_refs": {
         "view": "view.schema.json",
         "response": "CollectionProjectionResponse"
@@ -165,12 +214,17 @@
           "type": "view",
           "space_id": "cx:space:01js0sp0000000000000000000",
           "kind": "collection",
-          "preset": "kanban",
           "query": {
-            "facets": ["stateful", "rankable"]
+            "facets": [
+              "stateful",
+              "rankable"
+            ]
           },
           "collection": {
-            "item_facets": ["stateful", "rankable"],
+            "item_facets": [
+              "stateful",
+              "rankable"
+            ],
             "item_render": "card",
             "item_order_by": [
               {
@@ -192,11 +246,16 @@
             }
           },
           "created_by": "did:web:alice.example",
-          "created_at": "2026-04-29T00:00:00Z"
+          "created_at": "2026-04-29T00:00:00Z",
+          "renderer": "board"
         },
         "actor_visibility": {
-          "visible_entities": ["cx:entity:01js0tv0000000000000000000"],
-          "hidden_entities": ["cx:entity:01js0th0000000000000000000"]
+          "visible_entities": [
+            "cx:entity:01js0tv0000000000000000000"
+          ],
+          "hidden_entities": [
+            "cx:entity:01js0th0000000000000000000"
+          ]
         },
         "canonical_column_membership": {
           "review": [
@@ -211,7 +270,6 @@
           "hidden_count_policy": "omit",
           "allowed_response": {
             "projection": "collection",
-            "preset": "kanban",
             "view_id": "cx:view:01js0vw0000000000000000000",
             "frontier": {
               "state_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
@@ -230,7 +288,11 @@
                     "entity": {
                       "id": "cx:entity:01js0tv0000000000000000000",
                       "entity_type": "task",
-                      "facets": ["stateful", "rankable", "renderable"],
+                      "facets": [
+                        "stateful",
+                        "rankable",
+                        "renderable"
+                      ],
                       "title": "Visible task"
                     },
                     "position": {
@@ -243,7 +305,8 @@
                 "next_cursor": null,
                 "limited": false
               }
-            ]
+            ],
+            "renderer": "board"
           },
           "rejected_response_fragments": [
             {
@@ -263,7 +326,6 @@
           "hidden_count_policy": "authorized_estimate",
           "allowed_response": {
             "projection": "collection",
-            "preset": "kanban",
             "view_id": "cx:view:01js0vw0000000000000000000",
             "frontier": {
               "state_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
@@ -282,7 +344,11 @@
                     "entity": {
                       "id": "cx:entity:01js0tv0000000000000000000",
                       "entity_type": "task",
-                      "facets": ["stateful", "rankable", "renderable"],
+                      "facets": [
+                        "stateful",
+                        "rankable",
+                        "renderable"
+                      ],
                       "title": "Visible task"
                     },
                     "position": {
@@ -296,7 +362,8 @@
                 "limited": false,
                 "total_estimate": 1
               }
-            ]
+            ],
+            "renderer": "board"
           },
           "rejected_response_fragments": [
             {
@@ -311,7 +378,6 @@
           "hidden_count_policy": "authorized_exact",
           "allowed_response": {
             "projection": "collection",
-            "preset": "kanban",
             "view_id": "cx:view:01js0vw0000000000000000000",
             "frontier": {
               "state_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
@@ -330,7 +396,11 @@
                     "entity": {
                       "id": "cx:entity:01js0tv0000000000000000000",
                       "entity_type": "task",
-                      "facets": ["stateful", "rankable", "renderable"],
+                      "facets": [
+                        "stateful",
+                        "rankable",
+                        "renderable"
+                      ],
                       "title": "Visible task"
                     },
                     "position": {
@@ -344,7 +414,8 @@
                 "limited": false,
                 "total_estimate": 1
               }
-            ]
+            ],
+            "renderer": "board"
           },
           "rejected_response_fragments": [
             {
@@ -357,7 +428,7 @@
       ],
       "assertions": [
         "each policy case view validates after applying hidden_count_policy to input.base_view.collection.grouping",
-        "each allowed_response validates as CollectionProjectionResponse with preset=kanban",
+        "each allowed_response validates as CollectionProjectionResponse with renderer=board",
         "each allowed_response.groups[review].items contains only visible_entities",
         "omit case must not return total_estimate",
         "authorized_estimate and authorized_exact may return only visibility-trimmed counts unless separate aggregate policy grants hidden counts",
@@ -373,14 +444,16 @@
       },
       "request": {
         "projection": "collection",
-        "preset": "table",
         "view_id": "cx:view:01js0vr0000000000000000000",
-        "facets": ["stateful", "assignable"],
-        "limit": 50
+        "facets": [
+          "stateful",
+          "assignable"
+        ],
+        "limit": 50,
+        "renderer": "table"
       },
       "response": {
         "projection": "collection",
-        "preset": "table",
         "view_id": "cx:view:01js0vr0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
@@ -391,7 +464,11 @@
             "entity": {
               "id": "cx:entity:01js0tr0000000000000000000",
               "entity_type": "task",
-              "facets": ["stateful", "assignable", "renderable"],
+              "facets": [
+                "stateful",
+                "assignable",
+                "renderable"
+              ],
               "title": "Row task"
             },
             "display": {
@@ -407,7 +484,8 @@
           }
         ],
         "next_cursor": "cx:cursor:row_after_task_r",
-        "total_estimate": 1
+        "total_estimate": 1,
+        "renderer": "table"
       },
       "assertions": [
         "projection discriminator selects CollectionProjectionResponse only",
@@ -425,14 +503,16 @@
       },
       "request": {
         "projection": "timeline",
-        "preset": "chat",
         "view_id": "cx:view:01js0vc0000000000000000000",
-        "facets": ["replyable", "renderable"],
-        "limit": 30
+        "facets": [
+          "replyable",
+          "renderable"
+        ],
+        "limit": 30,
+        "renderer": "chat"
       },
       "response": {
         "projection": "timeline",
-        "preset": "chat",
         "view_id": "cx:view:01js0vc0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
@@ -446,7 +526,11 @@
             "entity": {
               "id": "cx:entity:01js0mg0000000000000000000",
               "entity_type": "message",
-              "facets": ["replyable", "renderable", "notifiable"],
+              "facets": [
+                "replyable",
+                "renderable",
+                "notifiable"
+              ],
               "title": "Message"
             },
             "actor_id": "did:web:alice.example",
@@ -460,7 +544,8 @@
           }
         ],
         "next_cursor": "cx:cursor:timeline_after_message_1",
-        "limited": false
+        "limited": false,
+        "renderer": "chat"
       },
       "assertions": [
         "projection discriminator selects TimelineProjectionResponse only",
@@ -478,18 +563,19 @@
       },
       "request": {
         "projection": "graph",
-        "preset": "graph",
         "view_id": "cx:view:01js0vg0000000000000000000",
-        "facets": ["stateful"],
+        "facets": [
+          "stateful"
+        ],
         "relation": {
           "kind": "depends_on",
           "direction": "out",
           "depth": 2
-        }
+        },
+        "renderer": "graph"
       },
       "response": {
         "projection": "graph",
-        "preset": "graph",
         "view_id": "cx:view:01js0vg0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
@@ -500,7 +586,11 @@
             "entity": {
               "id": "cx:entity:01js0gn0000000000000000000",
               "entity_type": "task",
-              "facets": ["stateful", "rankable", "renderable"],
+              "facets": [
+                "stateful",
+                "rankable",
+                "renderable"
+              ],
               "title": "Graph root"
             },
             "depth": 0
@@ -509,7 +599,10 @@
             "entity": {
               "id": "cx:entity:01js0gx0000000000000000000",
               "entity_type": "task",
-              "facets": ["stateful", "renderable"],
+              "facets": [
+                "stateful",
+                "renderable"
+              ],
               "title": "Lazy external stub"
             },
             "depth": 1,
@@ -527,7 +620,8 @@
           }
         ],
         "next_cursor": null,
-        "limited": false
+        "limited": false,
+        "renderer": "graph"
       },
       "assertions": [
         "projection discriminator selects GraphProjectionResponse only",
@@ -545,13 +639,14 @@
       },
       "request": {
         "projection": "document",
-        "preset": "document",
         "view_id": "cx:view:01js0vd0000000000000000000",
-        "facets": ["documentable"]
+        "facets": [
+          "documentable"
+        ],
+        "renderer": "document"
       },
       "response": {
         "projection": "document",
-        "preset": "document",
         "view_id": "cx:view:01js0vd0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
@@ -562,7 +657,10 @@
             "entity": {
               "id": "cx:entity:01js0ds0000000000000000000",
               "entity_type": "document",
-              "facets": ["documentable", "renderable"],
+              "facets": [
+                "documentable",
+                "renderable"
+              ],
               "title": "Release notes"
             },
             "sort_key": "0001|cx:entity:01js0ds0000000000000000000",
@@ -574,7 +672,8 @@
             "redacted": false
           }
         ],
-        "next_cursor": null
+        "next_cursor": null,
+        "renderer": "document"
       },
       "assertions": [
         "projection discriminator selects DocumentProjectionResponse only",
@@ -591,12 +690,11 @@
       },
       "request": {
         "projection": "composite",
-        "preset": "dashboard",
-        "view_id": "cx:view:01js0vb0000000000000000000"
+        "view_id": "cx:view:01js0vb0000000000000000000",
+        "renderer": "dashboard"
       },
       "response": {
         "projection": "composite",
-        "preset": "dashboard",
         "view_id": "cx:view:01js0vb0000000000000000000",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "frontier": {
@@ -607,15 +705,16 @@
             "id": "open-work",
             "title": "Open work",
             "projection": "collection",
-            "preset": "table",
             "frontier": {
               "state_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
             },
             "result": {
               "total_estimate": 12
-            }
+            },
+            "renderer": "table"
           }
-        ]
+        ],
+        "renderer": "dashboard"
       },
       "assertions": [
         "projection discriminator selects CompositeProjectionResponse only",

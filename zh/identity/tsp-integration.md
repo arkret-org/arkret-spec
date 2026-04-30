@@ -110,7 +110,7 @@ Contrix SHOULD 采用以下组合：
 - Federation bootstrap：MAY use TSP to verify service VID and establish secure channel。
 - Space durable events：MUST still use Contrix event signature / hash / reducer。
 - Encrypted Space content：SHOULD use MLS。
-- Agent handoff：MAY use TSP to authenticate endpoint, then use A2A / ACP legacy / custom transport as negotiated。
+- Agent handoff：MAY use TSP to authenticate endpoint, then use A2A / ACP / custom transport as negotiated。
 - WebRTC media：MUST NOT use TSP for RTP media encryption; use WebRTC SRTP plus SFrame/Insertable Streams where needed。
 
 ## 7.1 渐进披露中的 TSP

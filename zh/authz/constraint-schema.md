@@ -154,9 +154,9 @@
 {
   "constraint_type": "scope_limitation",
   "allowed_view_kinds": ["collection"],
-  "allowed_view_presets": ["kanban", "list"],
+  "allowed_view_renderers": ["board", "list"],
   "denied_view_kinds": ["graph"],
-  "denied_view_presets": ["admin"]
+  "denied_view_renderers": ["admin"]
 }
 ```
 
@@ -173,7 +173,7 @@
 }
 ```
 
-`container_move` MUST 在授权判定中早于 operation 生效。目标列禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.container.move_item` / `cx.field_position.move` 不得直接生效；旧 `cx.relation.move` / `cx.task.move` 按兼容别名处理。
+`container_move` MUST 在授权判定中早于 operation 生效。目标列禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.container.move_item` / `cx.field_position.move` 不得直接生效。
 
 ## 7. 委托控制
 

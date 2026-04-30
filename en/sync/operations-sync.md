@@ -163,8 +163,6 @@ The draft uses:
 - `cx.relation.delete`
 - `cx.container.move_item` (ordered container item / membership edge move)
 - `cx.container.rebalance` (score index rebalancing for ordered containers)
-- `cx.relation.move` (compatibility alias)
-- `cx.relation.rebalance` (compatibility alias)
 - `cx.view.create`
 - `cx.view.update`
 
@@ -176,7 +174,6 @@ The following are semantic sugar and MUST be reducible to `entity.*` or `relatio
 - `cx.task.update`
 - `cx.field_position.move`
 - `cx.field_position.reorder`
-- `cx.task.move` / `cx.task.reorder` (compatibility aliases)
 - `cx.comment.create`
 - `cx.comment.update`
 - `cx.comment.redact`

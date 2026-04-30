@@ -33,7 +33,7 @@ Contrix 不回到 room/message-first 模型。
 
 正确做法是：
 
-- 把会话作为标准 Entity 类型
+- 把会话作为标准 Entity 语义标签与 facet/profile 组合
 - 但仍让 `Space + Actor + Entity + Relation + Event + View` 保持为协议根
 
 ### 2.3 durable note 与 timeline message 分开
@@ -45,13 +45,13 @@ Contrix 不回到 room/message-first 模型。
 
 ## 3. 会话对象集合
 
-Contrix v1 标准化以下 `entity_type`：
+Contrix v1 标准化以下会话语义标签：
 
 - `channel`
 - `topic`
 - `message`
 
-并定义 `reaction` 为 message Entity 上的标准派生状态。
+并定义 `reaction` 为 message-like Entity 上的标准派生状态。`channel/topic/message` 不自动授予回复、时间线或通知能力；这些能力必须由 facets 或 Space schema profile 声明。
 
 ## 4. Channel
 
@@ -298,7 +298,7 @@ message 创建是 append-only。
 
 Contrix v1 固定：
 
-- `channel/topic/message` 为标准 Entity 类型，不是协议根
+- `channel/topic/message` 为标准 Entity 语义标签，不是协议根；会话能力由 facets / profile 声明
 - `@mention` 使用结构化 DID/entity ref，并落成 Relation
 - 编辑采用 revision chain
 - 撤回采用 redaction/tombstone

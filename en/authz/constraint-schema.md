@@ -153,9 +153,9 @@ All constraints follow this structure:
 {
   "constraint_type": "scope_limitation",
   "allowed_view_kinds": ["collection"],
-  "allowed_view_presets": ["kanban", "list"],
+  "allowed_view_renderers": ["board", "list"],
   "denied_view_kinds": ["graph"],
-  "denied_view_presets": ["admin"]
+  "denied_view_renderers": ["admin"]
 }
 ```
 

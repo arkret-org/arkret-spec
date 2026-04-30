@@ -18,14 +18,8 @@ Canonical Operation objects use `operation_type` plus optional `semantic_kind`. 
 - `cx.container.move_item` maps to `operation_type="move"` and `object_type="relation"`.
 - `cx.field_position.reorder` maps to `operation_type="reorder"` and `object_type="entity"`.
 - `cx.container.rebalance` maps to `operation_type="rebalance"` and `object_type="relation"`.
-- Legacy `cx.task.move` maps to `cx.field_position.move`.
-- Legacy `cx.relation.move` maps to `cx.container.move_item`.
-- Legacy `cx.task.reorder` maps to `cx.field_position.reorder`.
-- Legacy `cx.relation.rebalance` maps to `cx.container.rebalance`.
 
-The `cx.task.*` and `cx.relation.*` names are compatibility aliases. New profiles SHOULD use the facet-oriented names.
+For collection-backed board-rendered collection views, `collection.grouping.item_relation_kind` is required and must not be inferred from local defaults. It is the relation kind used by relation-backed item positions and by `cx.container.move_item` exclusive position keys.
 
-For collection-backed Kanban preset views, `collection.grouping.item_relation_kind` is required and must not be inferred from local defaults. It is the relation kind used by relation-backed item positions and by `cx.container.move_item` exclusive position keys.
-
-The canonical View kind registry is the enum in `artifacts/schemas/view.schema.json`: `collection`, `timeline`, `graph`, `document`, and `composite`. Product shapes such as `kanban`, `list`, `table`, `calendar`, `gantt`, `chat`, `thread`, `forum`, `tree`, `review_queue`, `matrix`, `dashboard`, `activity`, `inbox`, `notifications`, `memory_review`, `agent_runs`, `context_timeline`, and `moderation_queue` are `preset` values mapped to those five primitives. `collection` views use `CollectionConfig`; `timeline`, `graph`, `document`, and `composite` use their matching typed configs. Legacy `kanban`, `tabular`, `time_window`, `queue`, and `matrix` configs are compatibility fields and are not new top-level View kinds.
+The canonical View kind registry is the enum in `artifacts/schemas/view.schema.json`: `collection`, `timeline`, `graph`, `document`, and `composite`. Product shapes such as boards, tables, calendars, chats, threads, review queues, inboxes, and dashboards are expressed through `renderer`, typed View config, Entity facets, and relation/query constraints; they are not new projection families. `collection` views use `CollectionConfig`; `timeline`, `graph`, `document`, and `composite` use their matching typed configs.
 
