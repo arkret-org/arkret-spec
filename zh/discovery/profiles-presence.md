@@ -20,7 +20,7 @@
   "display_name": "Alice Chen",
   "avatar": {
     "blob_ref": "cx:blob:sha256:a1b2c3...",
-    "mimetype": "image/webp",
+    "mime_type": "image/webp",
     "width": 256,
     "height": 256
   },

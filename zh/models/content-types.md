@@ -67,13 +67,13 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
   "type": "cx.content.image",
   "body": "screenshot.png",
   "blob_ref": "cx:blob:sha256:a1b2c3...",
-  "mimetype": "image/png",
+  "mime_type": "image/png",
   "width": 1920,
   "height": 1080,
   "size": 204800,
   "thumbnail": {
     "blob_ref": "cx:blob:sha256:d4e5f6...",
-    "mimetype": "image/webp",
+    "mime_type": "image/webp",
     "width": 320,
     "height": 180,
     "size": 12400
@@ -85,7 +85,7 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `blob_ref` | string | MUST | Blob 内容地址 |
-| `mimetype` | string | MUST | MIME 类型 |
+| `mime_type` | string | MUST | MIME 类型 |
 | `width` | integer | SHOULD | 像素宽度 |
 | `height` | integer | SHOULD | 像素高度 |
 | `size` | integer | SHOULD | 字节数 |
@@ -99,14 +99,14 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
   "type": "cx.content.video",
   "body": "demo-recording.mp4",
   "blob_ref": "cx:blob:sha256:b2c3d4...",
-  "mimetype": "video/mp4",
+  "mime_type": "video/mp4",
   "width": 1280,
   "height": 720,
   "duration_ms": 45000,
   "size": 10485760,
   "thumbnail": {
     "blob_ref": "cx:blob:sha256:e5f6a7...",
-    "mimetype": "image/jpeg",
+    "mime_type": "image/jpeg",
     "width": 320,
     "height": 180
   }
@@ -124,7 +124,7 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
   "type": "cx.content.audio",
   "body": "voice-memo.ogg",
   "blob_ref": "cx:blob:sha256:c3d4e5...",
-  "mimetype": "audio/ogg",
+  "mime_type": "audio/ogg",
   "duration_ms": 12000,
   "size": 96000,
   "waveform": [10, 25, 48, 62, 55, 30, 15, 8]
@@ -142,7 +142,7 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
   "type": "cx.content.file",
   "body": "Q2-financial-report.pdf",
   "blob_ref": "cx:blob:sha256:d4e5f6...",
-  "mimetype": "application/pdf",
+  "mime_type": "application/pdf",
   "size": 2097152,
   "filename": "Q2-financial-report.pdf"
 }
@@ -244,7 +244,7 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
       "type": "cx.content.image",
       "body": "design-v3.png",
       "blob_ref": "cx:blob:sha256:aaa...",
-      "mimetype": "image/png",
+      "mime_type": "image/png",
       "width": 1920,
       "height": 1080
     },
@@ -252,7 +252,7 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
       "type": "cx.content.file",
       "body": "spec-v3.pdf",
       "blob_ref": "cx:blob:sha256:bbb...",
-      "mimetype": "application/pdf",
+      "mime_type": "application/pdf",
       "size": 1048576,
       "filename": "spec-v3.pdf"
     }

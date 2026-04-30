@@ -68,7 +68,7 @@
   "images": {
     "party_parrot": {
       "blob_ref": "cx:blob:sha256:abcd...",
-      "mimetype": "image/gif"
+      "mime_type": "image/gif"
     }
   }
 }
