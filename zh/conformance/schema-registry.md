@@ -10,7 +10,12 @@
 | --- | --- |
 | `cx.schema.space.v1` | Space |
 | `cx.schema.actor_profile.v1` | Actor Profile |
-| `cx.schema.entity.v1` | Entity |
+| `cx.schema.room.v1` | Room |
+| `cx.schema.board.v1` | Board |
+| `cx.schema.list.v1` | List |
+| `cx.schema.card.v1` | Card |
+| `cx.schema.message.v1` | Message |
+| `cx.schema.morph.v1` | Morph |
 | `cx.schema.relation.v1` | Relation |
 | `cx.schema.view.v1` | View |
 | `cx.schema.policy.v1` | Policy |
@@ -52,18 +57,33 @@
 | `cx.space.freeze` | Enter temporary freeze |
 | `cx.space.destroy` | Destroy / reclaim marker |
 | `cx.member.state` | Membership state |
-| `cx.entity.create` | Entity create |
-| `cx.entity.update` | Entity patch |
-| `cx.entity.delete` | Entity delete |
-| `cx.entity.restore` | Entity restore |
-| `cx.entity.redact` | Entity redaction |
+| `cx.room.create` | Room create |
+| `cx.room.update` | Room patch |
+| `cx.room.member` | Room membership state |
+| `cx.room.archive` | Room archive |
+| `cx.board.create` | Board create |
+| `cx.board.update` | Board patch |
+| `cx.board.archive` | Board archive |
+| `cx.list.create` | List create |
+| `cx.list.update` | List patch |
+| `cx.list.reorder` | List reorder |
+| `cx.card.create` | Card create |
+| `cx.card.update` | Card patch |
+| `cx.card.archive` | Card archive |
+| `cx.card.move` | Card move between Lists |
+| `cx.card.reorder` | Card reorder within List |
+| `cx.card.link_room` | Link Room to Card |
+| `cx.card.unlink_room` | Unlink Room from Card |
+| `cx.card.set_primary_room` | Set Card primary Room relation |
+| `cx.morph.create` | Morph create |
+| `cx.morph.update` | Morph patch |
+| `cx.morph.archive` | Morph archive |
+| `cx.morph.restore` | Morph restore |
 | `cx.relation.create` | Relation create |
 | `cx.relation.update` | Relation patch |
 | `cx.relation.delete` | Relation tombstone |
 | `cx.container.move_item` | Facet container item move |
 | `cx.container.rebalance` | Facet container rank rebalance |
-| `cx.field_position.move` | Facet field-position move |
-| `cx.field_position.reorder` | Facet field-position reorder |
 | `cx.message.create` | Message create |
 | `cx.message.revise` | Message edit patch（规范编辑操作，优先定义） |
 | `cx.message.redact` | Message redaction |
@@ -72,8 +92,6 @@
 | `cx.capability.grant` | Grant |
 | `cx.capability.delegate` | Delegate grant |
 | `cx.capability.revoke` | Revocation |
-| `cx.task.create` | Task create |
-| `cx.task.update` | Task patch |
 | `cx.view.create` | View create |
 | `cx.view.update` | View update |
 | `cx.view.reconcile` | View schema/definition sync |

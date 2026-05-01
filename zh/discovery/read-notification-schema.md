@@ -10,7 +10,8 @@ Read marker 是 actor-private 状态。
   "actor_id": "did:web:alice.example",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "scope": {
-    "entity_id": "cx:entity:topic1"
+    "kind": "room",
+    "ref": "cx:room:01JS0ROOM000000000000000"
   },
   "position": {
     "event_id": "cx:event:01JS0EV000000000000000000",
@@ -44,7 +45,7 @@ Notification 是派生 projection。
   "actor_id": "did:web:alice.example",
   "space_id": "cx:space:...",
   "source_event_id": "cx:event:...",
-  "source_entity_id": "cx:entity:...",
+  "source_ref": "cx:message:...",
   "kind": "mention",
   "state": "unread",
   "priority": "normal",

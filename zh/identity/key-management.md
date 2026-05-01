@@ -139,7 +139,7 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ## 4. Device Record
 
-建议 device record 是 actor repo 中的标准 Entity 或 identity sidecar 中的 signed state。
+建议 device record 是 actor repo 中的标准对象或 identity sidecar 中的 signed state。
 
 示例：
 

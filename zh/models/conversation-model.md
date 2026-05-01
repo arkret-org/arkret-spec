@@ -4,150 +4,111 @@
 
 Contrix 虽然不是 chat-first 协议，但必须正式支持：
 
-- 频道式聊天
-- 话题式讨论
-- thread/reply
+- Room
+- Message timeline
+- thread / reply
 - `@mention`
 - 编辑
 - 撤回
 - reaction
+- Card 关联讨论
 
-并且这些能力要能和 board、task、run、memory 等 Entity 打通，而不是另起一套孤立系统。
+会话能力必须能和 Board、Card、Run、Memory、Morph 等对象打通，但 Room / Message 不再伪装成 Entity。
 
 ## 2. 设计原则
 
-### 2.1 会话是对象图的一部分
+### 2.1 Room 是标准对象
 
-会话不是一个独立宇宙。  
-会话对象必须能链接到：
+Room 是 Space 内的讨论容器。它拥有自己的：
 
-- space
-- board Entity
-- task Entity
-- run Entity
-- memory Entity
+- membership / access policy
+- history visibility
+- notification policy
+- optional E2EE group
+- message timeline
 
-### 2.2 会话不应重新成为协议根
+Room 不是服务器，也不是 Space。Room 的所有写入仍然受 Space policy、capability、DID signature 和 reducer 约束。
 
-Contrix 不回到 room/message-first 模型。
+### 2.2 Card 和 Room 严格区分
 
-正确做法是：
+Card 是工作对象。Room 是讨论容器。
 
-- 把会话作为标准 Entity 语义标签与 facet/profile 组合
-- 但仍让 `Space + Actor + Entity + Relation + Event + View` 保持为协议根
+Card 可以关联 0..N 个 Room，但关联关系不传递权限：
 
-### 2.3 durable note 与 timeline message 分开
+- Card 可见不表示 Room 可见。
+- Room 可见不表示 Card 可见。
+- Card 权限变化不自动改变 Room membership。
+- Room membership 变化不自动改变 Card 权限。
+- Card 归档、删除或移动时不自动删除 Room。
 
-`comment` 和 `message` 都存在，但语义不同：
+这避免了 bound room 的复杂度，也允许一个 Card 同时关联产品、工程、安全、外部供应商或私密决策等多个 Room。
 
-- `comment`：对象上的 durable note / review / approval note
-- `message`：频道或话题中的 timeline 消息
+### 2.3 Message 是 Room 时间线单元
 
-## 3. 会话对象集合
+Message 是 Room 中的 append-only 消息对象。编辑不重写原消息；撤回使用 redaction/tombstone。
 
-Contrix v1 标准化以下会话语义标签：
+### 2.4 durable note 与 timeline message 分开
 
-- `channel`
-- `topic`
-- `message`
+`comment` 和 `message` 都可以存在，但语义不同：
 
-并定义 `reaction` 为 message-like Entity 上的标准派生状态。`channel/topic/message` 不自动授予回复、时间线或通知能力；这些能力必须由 facets 或 Space schema profile 声明。
+- `comment`：对象上的 durable note / review / approval note，可作为 Card/Morph 字段或专用 profile。
+- `message`：Room 时间线中的聊天或讨论消息。
 
-## 4. Channel
+## 3. Room
 
-Channel 是长期会话空间，对应 `entity_type = "channel"`。
-
-适合：
+Room 适合：
 
 - 团队聊天
-- board 讨论区
-- 组织公告流
+- 项目讨论
+- Board 讨论区
+- Card 相关讨论
+- 审阅/评审讨论
+- 外部协作沟通
 - agent 运行播报流
 
-建议字段：
+示例：
 
 ```json
 {
-  "id": "cx:channel:01JS1000000000000000000000",
-  "type": "entity",
-  "schema": "cx.schema.entity.v1",
+  "id": "cx:room:01JS1000000000000000000000",
+  "type": "room",
+  "schema": "cx.schema.room.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "entity_type": "channel",
-  "title": "release-chat",
-  "content": {
-    "format": "text",
-    "text": "General release coordination chat"
-  },
-  "fields": {
-    "channel_kind": "chat",
-    "visibility": "space",
-    "default_topic_mode": "inline",
-    "archived": false
-  }
+  "title": "release-engineering",
+  "summary": "Engineering coordination for release readiness.",
+  "room_kind": "discussion",
+  "history_visibility": "joined",
+  "membership_policy_ref": "cx:policy:01JS0RP000000000000000000",
+  "created_by": "did:web:alice.example"
 }
 ```
 
-`channel_kind` 初版建议支持：
+`room_kind` 初版建议支持：
 
-- `chat`
-- `announce`
+- `discussion`
+- `announcement`
 - `support`
 - `activity`
+- `review`
+- `external`
 
-## 5. Topic
+## 4. Message
 
-Topic 是会话线程或主题对象，对应 `entity_type = "topic"`。
+Message 是 Room 时间线中的原子消息对象。
 
-它可以：
-
-- 通过 `belongs_to` Relation 隶属于某个 channel
-- 通过 `attached_to` Relation 直接锚定到某个 Entity
-
-建议字段：
-
-```json
-{
-  "id": "cx:topic:01JS1000000000000000000001",
-  "type": "entity",
-  "schema": "cx.schema.entity.v1",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "entity_type": "topic",
-  "title": "Legal review follow-up",
-  "fields": {
-    "topic_kind": "thread",
-    "status": "open"
-  },
-  "created_by": "did:web:alice.example.com"
-}
-```
-
-topic 与 channel、anchor object 的关系使用 Relation 表达：
-
-- `topic --belongs_to--> channel`
-- `topic --attached_to--> board/task/run/memory/document`
-
-这意味着：
-
-- 一个 task Entity 可以有一个默认 topic
-- 一个 run Entity 也可以有自己的执行话题
-
-## 6. Message
-
-Message 是时间线中的原子消息对象，对应 `entity_type = "message"`。
-
-建议字段：
+示例：
 
 ```json
 {
   "id": "cx:message:01JS1000000000000000000002",
-  "type": "entity",
-  "schema": "cx.schema.entity.v1",
+  "type": "message",
+  "schema": "cx.schema.message.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "entity_type": "message",
+  "room_id": "cx:room:01JS1000000000000000000000",
   "created_by": "did:web:alice.example.com",
   "content": {
     "format": "markdown",
-    "text": "@bob 请确认这个 item 的 legal 风险。"
+    "text": "@bob 请确认这个 card 的 legal 风险。"
   },
   "fields": {
     "revision_root": "cx:message:01JS1000000000000000000002",
@@ -156,27 +117,85 @@ Message 是时间线中的原子消息对象，对应 `entity_type = "message"`�
 }
 ```
 
-message 与 topic/channel/reply/mention 的关系使用 Relation 表达：
+message 与 room/reply/mention 的关系使用 Relation 或 message 字段表达：
 
-- `message --belongs_to--> topic`
-- `message --belongs_to--> channel`
+- `room --contains--> message`
 - `message --replies_to--> message`
-- `message --mentions--> actor_profile/task/document`
+- `message --mentions--> actor / card / morph / room`
+- `message --references--> card / board / morph / blob`
 
-## 7. `@mention` 与引用的派生设计
+## 5. Card 与 Room 关联
 
-### 7.1 避免正文与引用的“脑裂 (Split-Brain)”
+Card 关联 Room 使用 Relation：
 
-如果协议强制要求客户端在正文保留 `@alice` 文本的同时，还必须手动发送一个对应的 `relation.create (mentions)` Operation，这极易导致状态分裂。若用户反复编辑 (Revise) 文本修改 Mention 对象，客户端的 Bug 或网络丢包会使得文本内容和底层的 `mentions` Relation 产生严重的不一致。
+```json
+{
+  "type": "relation",
+  "relation_kind": "links_room",
+  "from_ref": "cx:card:01JS0CD000000000000000000",
+  "to_ref": "cx:room:01JS0RM000000000000000000",
+  "fields": {
+    "purpose": "implementation_discussion",
+    "primary": false
+  }
+}
+```
 
-### 7.2 基于 AST 的隐式派生原则
+一个 Card MAY 有一个 `primary_room`：
 
-为解决此问题，协议要求：
-- `message` 的 `content` 字段 MUST 使用结构化的 AST (如 Prosemirror JSON) 或是带有明确特殊标记的 Markdown (如 `[Alice](did:uuid:...)`)。
-- 客户端在提交或编辑消息时，**不需要也不应该**手动提交额外的 `mentions` Relation Operation。
-- **派生真相 (Derived Truth)**：当 Index 节点或 Reducer 解析这条 Message 时，它通过解析内容 AST 中的 DID 节点，**自动在内存和索引层面派生出**对于目标主体的 Mention 关系和 Inbox 通知。
+```json
+{
+  "type": "relation",
+  "relation_kind": "primary_room",
+  "from_ref": "cx:card:01JS0CD000000000000000000",
+  "to_ref": "cx:room:01JS0RM000000000000000000"
+}
+```
 
-这种“单一数据源 (Single Source of Truth)”确保了即使发生任何编辑，通知状态都能和正文保持 100% 的绝对一致。
+`primary_room` 只表示 UI 默认讨论入口，不授予读取、写入或管理权限。
+
+推荐 `purpose`：
+
+- `general`
+- `design`
+- `implementation`
+- `review`
+- `incident`
+- `external_partner`
+- `private`
+- `archive`
+
+## 6. Room Membership
+
+Room membership 是 Space 内的子范围授权。它不替代 Space membership，也不扩展 Card 权限。
+
+推荐状态事件：
+
+```json
+{
+  "kind": "cx.room.member",
+  "state_key": "cx:room:01JS0RM000000000000000000|did:web:bob.example",
+  "content": {
+    "room_id": "cx:room:01JS0RM000000000000000000",
+    "member": "did:web:bob.example",
+    "membership": "join",
+    "reason": "invited"
+  }
+}
+```
+
+规则：
+
+- Room participant MUST satisfy Space policy。高安全 Space MAY 要求所有 Room 成员也是 Space member。
+- Space policy MAY allow room-scoped external admission，但该 admission 不授予其他 Room、Board、Card 或 Space directory 可见性。
+- Room membership 只控制该 Room 的消息读取、发送、历史和通知。
+- Room membership 不改变 Card assignment、Card visibility、Board position 或 Space membership。
+
+## 7. `@mention` 与引用
+
+为避免正文与引用关系脑裂，消息正文 SHOULD 使用结构化 AST 或带 DID/object ref 的 Markdown 链接。
+
+客户端提交或编辑消息时 MAY 不提交独立 `mentions` Relation。Index / Reducer 可以从 Message content AST 派生 mention 关系和通知，但派生关系不得扩大权限。
 
 ## 8. 编辑、撤回、Reaction
 
@@ -186,19 +205,19 @@ message 与 topic/channel/reply/mention 的关系使用 Relation 表达：
 
 原则：
 
-- 不静默改写原始历史
-- 默认视图显示最新 revision
-- 审计视图可看到 revision 链
+- 不静默改写原始历史。
+- 默认视图显示最新 revision。
+- 审计视图可看到 revision 链。
 
 ### 8.2 撤回
 
-撤回通过 `message.redact` 实现。
+撤回通过 `cx.message.redact` 实现。
 
 原则：
 
-- 默认视图显示 tombstone
-- 被撤回消息不应继续在普通视图泄露正文
-- 协议不承诺全网物理擦除
+- 默认视图显示 tombstone。
+- 被撤回消息不应继续在普通视图泄露正文。
+- 协议不承诺全网物理擦除。
 
 ### 8.3 Reaction
 
@@ -209,128 +228,101 @@ reaction 建议通过独立 Operation 表达：
 
 归约策略：
 
-- 以 `(message_id, actor, reaction_key)` 为 OR-Set key
+- 以 `(message_id, actor, reaction_key)` 为 OR-Set key。
 
-## 9. 评论与消息的区别
+## 9. 同步模型
 
-为避免协议语义混乱，Contrix 应明确：
-
-- `comment` 更适合对象审阅、审批说明、审计性注释
-- `message` 更适合连续聊天、thread 对话、频道时间线
-
-如果一个 task Entity 既要有审阅说明，又要有轻量对话：
-
-- 审阅意见写 `comment`
-- 即时讨论写 `topic/message`
-
-## 10. 同步模型
-
-### 10.1 Chat 模式
+### 9.1 Room 模式
 
 推荐同步：
 
-- channel metadata
-- open topics
+- room metadata
+- room membership summary
 - 最近 N 条消息
 - live message/reaction/redaction 增量
+- read marker / notification 派生状态
 
-### 10.2 Topic 模式
-
-推荐同步：
-
-- topic metadata
-- anchor object
-- 最近 N 条 message
-- 反向 backfill cursor
-
-### 10.3 Board 模式
+### 9.2 Card 上下文模式
 
 推荐同步：
 
-- board/task 当前态
-- 当前打开 task 的默认 topic 摘要
-- 最近评论和最近消息摘要
+- card 当前态
+- linked room 列表及可见性裁剪后的 preview
+- primary room 最近摘要
+- 与 card 相关的 relation / message reference / decision summary
 
-## 11. 冲突与收敛
+Card context sync 不得因为用户能读 Card 就自动拉取不可见 Room 消息。
 
-### 11.1 Message 创建
+## 10. 冲突与收敛
+
+### 10.1 Message 创建
 
 message 创建是 append-only。
 
 时间线排序建议按：
 
-1. `hlc`
-2. `actor`
-3. `actor_seq`
-4. `operation_id`
+1. 因果前序
+2. `hlc`
+3. `actor_id`
+4. `actor_seq`
+5. `operation_id`
 
-### 11.2 Message 编辑
+### 10.2 Message 编辑
 
-并发 revision 并存于 revision chain 中。  
-默认视图显示最新可见 revision。
+并发 revision 并存于 revision chain 中。默认视图显示最新可见 revision。
 
-### 11.3 Message 撤回
+### 10.3 Message 撤回
 
 若 revision 和 redaction 并发：
 
-- 默认视图 redaction 优先
-- 审计视图仍可保留完整历史
+- 默认视图 redaction 优先。
+- 审计视图仍可保留完整历史。
 
-### 11.4 先收到撤回，后收到原消息
+### 10.4 先收到撤回，后收到原消息
 
-接收方 SHOULD 保留 dangling redaction。  
-待原消息到达后再应用它。
+接收方 SHOULD 保留 dangling redaction。待原消息到达后再应用它。
 
-## 12. 临时信号与 Ephemeral State
+## 11. 临时信号与 Ephemeral State
 
-以下高频变动的交互状态会引发极其严重的写放大，MUST NOT 作为持久化的 Durable Shared Object 写入密码学 Repo 链中：
+以下高频变动的交互状态 MUST NOT 作为持久化 Durable Shared Object 写入密码学 Repo 链：
 
-- `read_marker` (已读回执)
-- `typing` (正在输入状态)
+- typing
 - 当前输入草稿
-- 临时在线状态 (Presence)
+- 临时在线状态
+- 高频 read marker
 
-它们 SHOULD：
-- 作为 Sync Service 上的 Ephemeral Signal（通过旁路 WebSocket 短时广播）。
-- 由各端本地在内存或缓存中记录，不强求全局长久一致性。
+它们 SHOULD 作为 Sync Service 上的 ephemeral signal，或由各端本地缓存。
+
+## 12. 历史可见性
+
+当新成员加入一个 Room 或 Space 时，他能看到多少历史消息是核心隐私边界。
+
+| 策略值 | 含义 |
+| --- | --- |
+| `world_readable` | 任何人可见全部历史，包括非成员。 |
+| `shared` | 当前成员可见加入前的全部历史。 |
+| `joined` | 仅可见该成员正式加入之后的消息。 |
+| `invited` | 从被邀请时刻起可见。 |
+| `restricted` | 由 Room/Space policy 与 capability 决定。 |
+
+私密 Room 或 E2EE Room SHOULD 默认为 `joined`。
+
+E2EE Room 中，`history_visibility=joined` 时新成员 MUST NOT 收到加入前的 MLS epoch key。若允许加入前历史共享，必须通过 history sharing policy 显式声明并产生审计事件。
 
 ## 13. 设计决定
 
 Contrix v1 固定：
 
-- `channel/topic/message` 为标准 Entity 语义标签，不是协议根；会话能力由 facets / profile 声明
-- `@mention` 使用结构化 DID/entity ref，并落成 Relation
-- 编辑采用 revision chain
-- 撤回采用 redaction/tombstone
-- reaction 用 OR-Set 收敛
-- board/chat/topic/tree/graph 共享同一同步协议，只是 profile 和 View 不同
+- Room / Message 是标准对象，不再是 Entity 语义标签。
+- Card 可关联 0..N 个 Room。
+- Card 和 Room 权限完全独立；关联 relation 不传递权限。
+- `primary_room` 只是 UI 默认入口。
+- 编辑采用 revision chain。
+- 撤回采用 redaction/tombstone。
+- reaction 用 OR-Set 收敛。
+- Board/Card/Room 共享同一 sync/reducer 基础，但对象语义不同。
 
-## 14. 历史可见性 (History Visibility)
-
-当新成员加入一个 Channel 或 Space 时，他能看到多少历史消息是一个核心隐私边界。协议通过 `history_visibility` 策略字段控制此行为。
-
-### 14.1 策略值
-
-| 策略值 | 含义 |
-|--------|------|
-| `world_readable` | 任何人可见全部历史，包括非 Space 成员 |
-| `shared` | 当前成员可见加入前的全部历史 |
-| `joined` | 仅可见该成员正式加入 (join) 时间点之后的消息 |
-| `invited` | 从被邀请 (invite) 时刻起可见 |
-
-### 14.2 默认值
-- Channel 默认为 `shared`。
-- 私密 Channel 或涉及 E2EE 的 Space 建议默认为 `joined`。
-
-### 14.3 与 E2EE 的交互
-- 当 `history_visibility` 为 `joined` 时，新成员 MUST NOT 收到加入前的 MLS Epoch 密钥。因此即使 Sync Service 转发了历史密文，新成员也在密码学层面无法解密。
-- 当 `history_visibility` 为 `shared` 时，邀请者的客户端 MAY 通过 MLS 的 `Welcome` 消息中附带历史 Epoch 密钥，使新成员能够回溯解密加入前的内容。
-
-### 14.4 变更规则
-- `history_visibility` 的变更本身是一个 `cx.policy.set` 操作，需要 `space.admin` 权限。
-- 变更仅影响变更后的新消息对新加入者的可见性，不追溯改变已有成员的可见范围。
-
-## 15. 规范性引用
+## 14. 规范性引用
 
 - 富文本 block 结构见 `content-types.md`。消息正文必须使用注册 content block 或按未知 block 降级规则保留。
 - 附件在 message 中的嵌入语义见 `content-types.md` 与 `../crypto-media/media-and-blob.md`；附件安全边界由 blob auth、hash 校验、MIME 清理和 E2EE envelope 共同决定。

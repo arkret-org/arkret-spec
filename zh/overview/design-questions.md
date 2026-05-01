@@ -1,228 +1,170 @@
-# Design Questions And Decisions
+# Design Questions
 
-## 1. 目的
+## 1. 目标
 
-这份文档先把协议必须回答的问题列出来，再给出统一决策。
+本文记录 Contrix v1 当前已经收敛的关键设计问题。旧的“所有对象都是 Entity + facets”路线已经废弃；现行模型以标准对象和 Morph 并行组成协作图。
 
-原因很简单：  
-如果不先把“协议到底要解决哪些问题”列清楚，后面的对象模型、同步、权限、视图都会各说各话，最终会退回到“像看板，又像聊天，又不像协议”的状态。
-
-## 2. 问题清单与统一决策
-
-### 2.1 协议的根模型到底是什么？
-
-问题：
-
-- 是 chat-first？
-- 是 board-first？
-- 是 database-first？
+## 2. 根模型是什么？
 
 决策：
 
-- Contrix 采用 **space-first + entity-graph-first + event-first**。
-- chat、topic、kanban、tree、graph、gantt 都是同一协作图上的展示 profile；协议级投影 family 只由 View `kind` 定义。
-- 协议根对象不是房间、消息、任务或看板，而是 `Space + Actor + Entity + Relation + Event + View`。
+- Contrix 采用 **space-first + standard-object-first + event-first**。
+- 协议根模型固定为 `Space + Actor + Room + Board + List + Card + Message + Morph + Relation + Event + View`。
+- Room、Board、List、Card、Message 是标准对象，拥有明确主语义、授权和 reducer。
+- Morph 是开放对象，用于扩展业务类型和实验类型；facets 是能力 mixin，不是对象身份。
+- View 只负责投影定义。View 拥有 query / renderer / layout 等定义真相，但不拥有被投影对象的协作事实。
 
-### 2.2 如果要展示成看板，底层数据应该怎么设计？
+理由：
 
-问题：
+- 把 Board、Card、Room、Message 都压成通用 Entity 会损失真实结构语义。
+- 标准对象能让授权、同步、索引和 UI 行为更直接、更可测试。
+- Morph 保留扩展性，但不再吞掉核心协议概念。
 
-- 看板的数据是“列和卡片”吗？
-- 还是有更稳定的底层模型？
-
-决策：
-
-- 看板底层不是“列数组 + 卡片数组”。
-- 底层真相源应是 `Entity + Relation + View`；列数组和卡片数组只是 AppView / Index 的派生投影结果。
-- `board`、`collection`、`task`、`message`、`topic` 等是 Entity 的语义类型标签，不得自动授予容器、拖拽、回复或卡片展示能力。
-- Entity 的能力由 `facets` 或 Space schema profile 显式声明；例如 board / collection 通常需要 `container` facet，可作为卡片显示的对象通常需要 `renderable`，拖拽排序通常需要 `rankable` 或 relation rank。
-- 复杂看板中，board 通过显式 `contains` Relation 包含 column collection；column collection 再通过显式 `contains` Relation 包含满足 `collection.item_facets` 的 Entity。
-- `card` 不是核心 `entity_type`，而是 `collection.item_render="card"` 声明的 item 展示面。
-- Kanban 不是新的协议级投影 family，也不是 `kind + renderer` 组合出来的独立投影契约；它只是 `CollectionProjectionResponse` 的看板展示方式，由 `renderer = "board"`、`collection.item_render = "card"` 和 `collection.grouping` 共同表达。
-
-### 2.3 如果要支持聊天模式或话题模式，应该怎么设计？
-
-问题：
-
-- 是复用 comment 就够了？
-- 还是需要正式的会话对象？
+## 3. Space 与跨服务器协作的边界是什么？
 
 决策：
 
-- 协议将 `channel/topic/message` 定义为标准语义标签，而不是新的协议根；会话能力仍由 `replyable`、`renderable`、`notifiable` 等 facets 或 Space schema profile 声明。
-- `channel` 表示长期会话空间。
-- `topic` 表示线程或话题，可通过 Relation 挂在 `space / board / task / run / memory` 上。
-- `message` 表示时间线消息。
-- `comment` 仍然保留为标准语义标签，但定位为对象上的 durable review/note，而不是通用聊天时间线。
-- 归属、回复、引用、提及必须落成结构化 Relation。
+- Space 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
+- 跨服务器协作以 Space 为主要同步单位。
+- 用户 join / invite 进入的是 Space 或 Room，而不是某台服务器。
+- Principal Server 是 principal 控制或委托的服务入口，不是协作成员边界。
 
-### 2.4 看板和聊天如何打通？
+规则：
 
-问题：
+- 一个 Organization 可以创建、拥有、托管或背书多个 Space。
+- 一个 Organization 可以委托一个或多个 Principal Server / Index / Policy Server。
+- 服务器托管关系不自动证明 Organization ownership；官方性必须由 Organization DID 或 `cx.space.organization` 背书。
 
-- item 的讨论是 comment 还是 chat thread？
-- board 和 topic 是什么关系？
-
-决策：
-
-- task Entity 可以通过 Relation 关联自己的默认 `topic`。
-- board 可以通过 Relation 关联一个或多个 `channel` 和 `topic`。
-- 一个 `topic` 可以锚定到 `task / run / memory / board / document`。
-- 人类可以在 board-rendered collection view 里看 task，同时点进同一个 task 的 thread/chat view。
-
-### 2.5 支持 `@user` 吗？
-
-问题：
-
-- 只靠正文文本里的 `@alice` 行不行？
-- Handle 改了怎么办？
+## 4. Board / List / Card 如何建模？
 
 决策：
 
-- 支持 `@user`，也支持 `@object`。
-- UI 可以使用 `@handle` 或 `@title` 输入。
-- 协议层 canonical 存储必须落为结构化 `mentions` Relation。
-- principal mention 一律引用 DID。
-- object mention 一律引用 stable entity ID。
-- 即使 handle 后续迁移，历史 mention 仍指向原 DID。
+- Board 是标准对象。
+- List 是 Board 下的标准有序分组对象。
+- Card 是 List 下的标准工作项、主题项或推进项。
+- 看板拖拽使用 `cx.card.move`、`cx.card.reorder`、`cx.list.reorder` 等标准操作。
 
-### 2.6 支持消息编辑吗？
+关系：
 
-问题：
+- `board --contains--> list`
+- `list --contains--> card`
+- Card 的状态、标题、负责人、标签、截止时间等属于 Card 自身或其 facets/profile。
 
-- 用户发错了能改吗？
+View 只负责把 Board/List/Card 投影成 kanban、table、calendar、gantt 等展示。Board/List/Card 的存在、包含关系、rank 和字段状态仍由标准对象、Relation 与对应 operation 维护。
 
-决策：
+View 仍然保留为一层独立抽象，因为同一组 Card / Room / Morph 需要被多个团队或个人以不同方式观察，例如 board、table、calendar、timeline、dashboard、review queue。改变观察方式写入 View；改变协作对象事实写入对象或 Relation。
 
-- 支持编辑。
-- 编辑不覆盖原始历史，而是通过 `message.revise` 形成 revision chain。
-- 默认视图展示最新可见 revision。
-- 审计视图可追溯原始 revision。
+## 5. Card 与 Room 是一个概念吗？
 
-### 2.7 支持撤回吗？
+决策：不是。Card 和 Room 严格区分。
 
-问题：
+Card：
 
-- 去中心化系统里能不能真的撤回？
+- 面向工作推进、状态、排序、归档、负责人、字段和依赖。
+- 可以出现在 Board/List 中。
+- 适合表达“一个需要被组织、推进、总结和落地的主题”。
 
-决策：
+Room：
 
-- 支持“逻辑撤回”，通过 `redact / withdraw` 语义实现。
-- 默认人类视图里应显示“消息已撤回”或等效 tombstone。
-- 协议不承诺已传播副本在全球范围内被物理抹除。
-- 如需更强删除效果，应依赖 retention policy、附件 key 撤销或存储端 GC。
+- 面向持续会话、消息历史、成员、通知、E2EE epoch 和 moderation。
+- 不属于 Board/List。
+- 适合表达“围绕某个上下文发生的讨论流”。
 
-### 2.8 信息如何同步？
-
-问题：
-
-- 看板同步和聊天同步是一套还是两套？
+## 6. Card 如何关联讨论？
 
 决策：
 
-- 一套协议，多种同步 profile。
-- actor 先写自己的 repo。
-- Principal Server / Sync Service 同步 Space 范围授权操作。
-- index 物化当前态和查询。
-- board、chat、topic、tree、graph 模式只是订阅过滤和投影方式不同。
+- 一个 Card 可以链接零到多个 Room。
+- `links_room` 表示 Card 与 Room 有上下文关联。
+- `primary_room` 只表示默认打开或 UI 首选讨论入口。
+- Card-to-Room link 不传播权限。
 
-### 2.9 历史如何回补？
+规则：
 
-问题：
+- Card 可见不代表 linked Room timeline 可读。
+- Room 可读不代表 linked Card 可写。
+- Room membership、history visibility、E2EE epoch、moderation 和 notification 独立计算。
+- 不引入 bound room / inherited room membership 作为 v1 基础语义。
 
-- 聊天要最近消息窗口
-- 看板要当前态
-- 话题要可回溯
+理由：
 
-决策：
+- 独立 Room 避免复杂的受控 Room 继承模型。
+- 一个 Card 可能需要多个讨论 Room，例如设计、法律、客户沟通、事故复盘。
+- 权限独立让外部协作和局部讨论更容易组合。
 
-- 首次恢复优先走 snapshot + Operation 增量。
-- message/topic 支持 cursor + backfill。
-- board 默认同步当前态 + 最近相关讨论摘要。
-- chat 默认同步频道元数据 + 最近窗口 + live 增量。
-
-### 2.10 冲突如何解决？
-
-问题：
-
-- 两个人同时改标题怎么办？
-- 同时拖动卡片怎么办？
-- 同时编辑消息和撤回消息怎么办？
+## 7. Morph + facets 的边界是什么？
 
 决策：
 
-- 统一基于固定 reducer 规则收敛。
-- 标量字段采用 LWW by causal order。
-- 集合字段采用 OR-Set。
-- 排序采用 fractional indexing。
-- message 是 append-only timeline。
-- `message.revise` 形成 revision chain。
-- `message.redact` 在默认视图中优先于 revision。
+- Morph 是开放对象类型。
+- facets 是能力 mixin，例如 `assignable`、`schedulable`、`reviewable`、`documentable`。
+- Morph 不替代 Room、Board、List、Card、Message。
 
-### 2.11 权限如何统一？
+适合 Morph 的对象：
 
-问题：
+- memory
+- run
+- document
+- file profile
+- poll
+- social post
+- call
+- 外部集成对象
+- 领域专用业务对象
 
-- 看板编辑权、消息发送权、撤回权、频道管理权是不是同一个东西？
+不适合 Morph 的对象：
 
-决策：
+- Room
+- Board
+- List
+- Card
+- Message
 
-- 一律归入 capability。
-- 至少区分：
-  - board/item actions
-  - channel/topic/message actions
-  - moderation/redaction actions
-  - run/memory actions
-- `edit_own_message` 与 `redact_any_message` 必须分开。
-
-### 2.12 AI agent 在这里扮演什么角色？
-
-问题：
-
-- agent 只是插件，还是协议参与者？
+## 8. Message 是什么？
 
 决策：
 
-- agent 是一等 principal。
-- agent 可以被授予有限 board/message/memory 权限。
-- agent 产生的对话、输出、决策摘要可以沉淀为 `run` 与 `memory`。
-- message、comment、topic 都可以成为 memory 提取来源。
+- Message 是 Room 内的一等标准对象。
+- Message 归属一个 Room。
+- Message 的回复、reaction、mention、redaction 通过 Message 事件和 Relation 表达。
 
-## 3. 最优解的整体规划
+Message 不再是通用 Entity 语义标签，也不是协议唯一事实根。
 
-综合以上问题，当前协议采用如下整体方案：
+## 9. 授权如何拆分？
 
-1. 根模型固定为 `Space + Actor + Entity + Relation + Event + View`。
-2. 看板采用 `Entity.facets` + `contains/belongs_to` Relation + `View{kind="collection"}` 的集合投影；`renderer="board"` 只是看板展示 profile 提示，`board/collection/task` 只是常见语义标签。
-3. 聊天/话题采用 `replyable/renderable` 等 facets + `belongs_to/replies_to/mentions` Relation + `chat/thread` View；`channel/topic/message` 只是常见语义标签。
-4. `comment` 继续保留为对象级 durable 说明；`message` 负责时间线会话。
-5. `@mention` 统一采用结构化 DID/entity ref，并落成 `mentions` Relation。
-6. 编辑采用 revision chain；撤回采用 redaction/tombstone。
-7. 同步统一走 repo-first + Principal Server sync + index，只是 profile 不同。
-8. 冲突统一由 reducer 固定规则解决，而不是让客户端自由发挥。
-9. 权限统一收敛进 capability，不再靠隐式角色猜测。
+决策：
 
-## 4. 写回协议的范围
+- Space membership 只说明 actor 在 Space 中的基础参与状态。
+- Room membership 是局部参与状态，不授予 Space-wide、Board 或 Card 权限。
+- Capability action 使用对象域命名，例如 `cx.card.update`、`cx.room.member`、`cx.message.create`、`cx.morph.update`。
+- Resource selector 使用 `room`、`board`、`list`、`card`、`message`、`morph`、`object`，不再使用 `entity`。
 
-基于这份问题清单，后续文档应当明确覆盖：
+## 10. 同步和索引如何表达？
 
-- [object-model-core.md](../models/object-model-core.md) 与 [object-model-standard.md](../models/object-model-standard.md)  
-  固定 `Space/Actor/Entity/Relation/Event/View`，并定义 board/chat/task/message/run/memory 的语义层映射。
-- [conversation-model.md](../models/conversation-model.md)  
-  补 mention/edit/redaction/reaction 的交互层定义。
-- [operations-sync.md](../sync/operations-sync.md)  
-  补 board/chat/topic 的同步模式与冲突收敛。
-- [capabilities.md](../authz/capabilities.md)  
-  补消息、话题、频道、撤回、moderation 动作。
-- [views.md](../models/views.md)  
-  补 `chat/forum/thread/inbox` 等标准视图。
+决策：
 
-## 5. 当前结论
+- Repo / Operation / Event 仍是审计和归约输入。
+- Sync 以 Space 为主要范围，同时支持 Room、Board、Card、Morph 等过滤。
+- Index 查询使用 `object_types`、`morph_types`、`facets`。
+- `/index/object` 替代 `/index/entity`。
+- Relation 使用 `from_ref` / `to_ref`，可连接标准对象、Morph、Actor 和 Space。
 
-Contrix 最合理的方向不是在“看板协议”和“聊天协议”之间二选一。  
-最合理的方向是：
+## 11. 与 Matrix 的关系
 
-- 用统一 Entity/Relation/Event 图表达工作与沟通
-- 用统一同步模型分发它们
-- 用统一权限模型控制它们
-- 用多种视图把它们展示给人和 agent
+决策：
+
+- Contrix 吸收 Matrix 的 state resolution、auth refs、E2EE、client sync 和 federation 经验。
+- Contrix 不继承 Matrix 的 room-first 抽象根。
+- Room 在 Contrix 中是一等会话对象，但 Space 才是协作边界，Board/Card/Morph 也是协议一等图节点。
+
+## 12. 当前结论
+
+Contrix v1 当前固定：
+
+1. Space 是协作边界。
+2. Room、Board、List、Card、Message 是标准对象。
+3. Morph + facets 承担开放扩展。
+4. Card 与 Room 严格区分，但可通过 Relation 关联多个 Room。
+5. Card-Room link 不传播权限。
+6. View 是投影定义，拥有自己的定义真相，但不拥有被投影对象的协作事实。
+7. Capability、resource selector、query、sync 和 schema 全部按标准对象 / Morph 模型命名。

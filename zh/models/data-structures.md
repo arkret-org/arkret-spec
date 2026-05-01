@@ -38,7 +38,7 @@
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:*` | kind 必须匹配对象类型。 | 对象稳定 ID。 |
-| `type` | yes | `enum(space, actor_profile, entity, relation, event, view, policy, invite, read_marker, notification, capability, commit, operation, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
+| `type` | yes | `enum(space, actor_profile, room, board, list, card, message, morph, relation, event, view, policy, invite, read_marker, notification, capability, commit, operation, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
 | `space_id` | conditional | `id:space` | Space 外对象可省略。 | 所属 Space。 |
 | `schema` | yes | `string` | SHOULD 是 `cx.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体。 |
@@ -60,7 +60,7 @@ Schema id: `cx.schema.space.v1`
 | `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
-| `space_kind` | yes | `enum(collaboration, direct, group, project, document, board, channel, social_feed, enclave)` | 自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
+| `space_kind` | yes | `enum(collaboration, personal, project, organization, social_feed, enclave)` | Room / Board / Card 不再作为 Space kind。自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `cx.schema.core.v1` 或兼容 profile。 | 启用 schema。 |
@@ -83,7 +83,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:entity` | Actor Profile 作为 Entity 存储。 | Profile Entity ID。 |
+| `id` | yes | `id:actor_profile` | Actor Profile 是标准对象，不作为 Morph/Entity 存储。 | Profile 对象 ID。 |
 | `type` | yes | `enum(actor_profile)` | 固定为 `actor_profile`。 | 对象种类。 |
 | `space_id` | no | `id:space` | 全局 profile 可省略。 | 所属 Space。 |
 | `principal_id` | yes | `did` | 权限仍以 DID/capability 为准。 | Principal DID。 |
@@ -97,20 +97,81 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-## 6. Entity
+## 6. Standard Objects
 
-Schema id: `cx.schema.entity.v1`
+Room、Board、List、Card 和 Message 是标准对象，不再通过 `entity_type` 表达。
+
+### 6.1 Room
+
+Schema id: `cx.schema.room.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:entity` | 以 `cx:entity:` 开头。 | Entity ID。 |
-| `type` | yes | `enum(entity)` | 固定为 `entity`。 | 对象种类。 |
+| `id` | yes | `id:room` | 以 `cx:room:` 开头。 | Room ID。 |
+| `type` | yes | `enum(room)` | 固定为 `room`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `entity_type` | yes | `string` | 标准值见 `object-model-standard.md`，扩展不得使用未注册 `cx.` 前缀。 | 语义类型。 |
-| `facets` | no | `map<FacetConfig>` | 标准键见下方；未知 facet 必须由 Space schema 声明。 | Entity 拥有哪些职责/能力包；字段组、允许关系、操作语义和可投影能力由 facet 声明。 |
-| `title` | no | `string` | SHOULD <= 512 chars。 | 标题。 |
-| `content` | no | `object` | 富文本/blocks 见 `content-types.md`。 | 正文内容。 |
-| `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
+| `title` | yes | `string` | 1..256 chars。 | 名称。 |
+| `summary` | no | `string` | SHOULD <= 2048 chars。 | 简介 / 公告。 |
+| `room_kind` | yes | `enum(discussion, announcement, support, activity, review, external)` | 自定义 kind 放入 `fields`。 | Room 类型。 |
+| `membership_policy_ref` | no | `id:policy` | Room 独立 membership / access policy。 | 成员策略。 |
+| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 见 `conversation-model.md`。 | 历史可见性。 |
+| `encryption_profile` | no | `enum(none, mls_rfc9420, external)` | 可与 Space 不同，但必须被 Space policy 允许。 | 加密配置。 |
+| `fields` | no | `object` |  | 扩展字段。 |
+| `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
+| `created_by` | yes | `did` |  | 创建者。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `updated_at` | no | `timestamp` |  | 更新时间。 |
+
+### 6.2 Board
+
+Schema id: `cx.schema.board.v1`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:board` | 以 `cx:board:` 开头。 | Board ID。 |
+| `type` | yes | `enum(board)` | 固定为 `board`。 | 对象种类。 |
+| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `title` | yes | `string` | 1..256 chars。 | 名称。 |
+| `summary` | no | `string` |  | 说明。 |
+| `board_kind` | yes | `enum(kanban, scrum, review_queue, intake, custom)` |  | Board 类型。 |
+| `default_view_id` | no | `id:view` |  | 默认 View。 |
+| `fields` | no | `object` |  | 扩展字段。 |
+| `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
+| `created_by` | yes | `did` |  | 创建者。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+### 6.3 List
+
+Schema id: `cx.schema.list.v1`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:list` | 以 `cx:list:` 开头。 | List ID。 |
+| `type` | yes | `enum(list)` | 固定为 `list`。 | 对象种类。 |
+| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `board_id` | yes | `id:board` |  | 所属 Board。 |
+| `title` | yes | `string` | 1..256 chars。 | 名称。 |
+| `summary` | no | `string` |  | 说明。 |
+| `rank` | yes | `string` | Fractional indexing rank。 | Board 内顺序。 |
+| `wip_limit` | no | `integer` |  | WIP 限制。 |
+| `fields` | no | `object` |  | 扩展字段。 |
+| `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
+| `created_by` | yes | `did` |  | 创建者。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+### 6.4 Card
+
+Schema id: `cx.schema.card.v1`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:card` | 以 `cx:card:` 开头。 | Card ID。 |
+| `type` | yes | `enum(card)` | 固定为 `card`。 | 对象种类。 |
+| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `title` | yes | `string` | 1..512 chars。 | 标题。 |
+| `body` | no | `object` | 富文本/blocks 见 `content-types.md`。 | 内容。 |
+| `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 状态、优先级、截止时间等属性。 |
+| `facets` | no | `map<FacetConfig>` | 标准 facet 见 7 节。 | 可选能力混入。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `version` | no | `integer` | SHOULD 单调递增，不能替代 event order。 | 物化版本。 |
 | `created_by` | yes | `did` |  | 创建者。 |
@@ -118,33 +179,60 @@ Schema id: `cx.schema.entity.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-标准 `entity_type` 语义标签：
+### 6.5 Message
 
-```text
-board, collection, task, message, topic, channel, document, file,
-memory, run, actor_profile, poll, social_post, social_feed, social_circle
-```
+Schema id: `cx.schema.message.v1`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:message` | 以 `cx:message:` 开头。 | Message ID。 |
+| `type` | yes | `enum(message)` | 固定为 `message`。 | 对象种类。 |
+| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `room_id` | yes | `id:room` |  | 所属 Room。 |
+| `content` | yes | `object` | 富文本/blocks 见 `content-types.md`。 | 消息正文。 |
+| `fields` | no | `object` | 可放 revision、visibility、client metadata。 | 扩展字段。 |
+| `created_by` | yes | `did` |  | 发送者。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+## 7. Morph and Facets
+
+Schema id: `cx.schema.morph.v1`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:morph` | 以 `cx:morph:` 开头。 | Morph ID。 |
+| `type` | yes | `enum(morph)` | 固定为 `morph`。 | 对象种类。 |
+| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `cx.` 前缀。 | 开放类型。 |
+| `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Space schema 声明。 | Morph 拥有哪些能力包。 |
+| `title` | no | `string` | SHOULD <= 512 chars。 | 标题。 |
+| `summary` | no | `string` |  | 摘要。 |
+| `content` | no | `object` | 富文本/blocks 见 `content-types.md`。 | 正文内容。 |
+| `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
+| `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
+| `created_by` | yes | `did` |  | 创建者。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `updated_by` | no | `did` |  | 最近更新者。 |
+| `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 标准 `facets`：
 
 | Facet | 说明 | 典型字段/关系 |
 | --- | --- | --- |
-| `container` | Entity 可作为容器，包含、排序或移动其他 Entity。 | `child_facets` / `child_entity_types`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
-| `replyable` | Entity 可被回复，形成 thread/chat/forum。 | `reply_facets` / `reply_entity_types`, `reply_relation_kind`, `time_field`, `redaction_policy`。 |
-| `schedulable` | Entity 有时间窗口，可进入 calendar/gantt。 | `start_field`, `end_field`, `timezone_field`, `dependency_relation_kinds`。 |
-| `assignable` | Entity 可分配给 actor/team/agent。 | `assignee_relation_kind` 或 `assignee_field`。 |
-| `stateful` | Entity 有受控状态机。 | `state_field`, `states`, `transition_policy`。 |
-| `rankable` | Entity 有稳定手动排序 rank。 | `rank_field`, `rank_profile`, `collision_policy`。 |
-| `reviewable` | Entity 可进入审核/审阅队列。 | `review_state_field`, `reviewer_relation_kind`, `priority_field`。 |
-| `notifiable` | Entity 可派生 notification/inbox/read state。 | `notification_types`, `read_state_policy`。 |
-| `documentable` | Entity 可作为文档或 section root。 | `section_relation_kind`, `section_order_field`, `body_field`。 |
-| `renderable` | Entity 声明允许的默认展示面。 | `renderers`, `title_field`, `summary_field`, `media_field`。 |
+| `container` | 对象可作为容器，包含、排序或移动其他对象。 | `child_object_types`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
+| `replyable` | 对象可被回复，形成 thread/discussion。 | `reply_object_types`, `reply_relation_kind`, `time_field`, `redaction_policy`。 |
+| `schedulable` | 对象有时间窗口，可进入 calendar/gantt。 | `start_field`, `end_field`, `timezone_field`, `dependency_relation_kinds`。 |
+| `assignable` | 对象可分配给 actor/team/agent。 | `assignee_relation_kind` 或 `assignee_field`。 |
+| `stateful` | 对象有受控状态机。 | `state_field`, `states`, `transition_policy`。 |
+| `rankable` | 对象有稳定手动排序 rank。 | `rank_field`, `rank_profile`, `collision_policy`。 |
+| `reviewable` | 对象可进入审核/审阅队列。 | `review_state_field`, `reviewer_relation_kind`, `priority_field`。 |
+| `notifiable` | 对象可派生 notification/inbox/read state。 | `notification_types`, `read_state_policy`。 |
+| `documentable` | 对象可作为文档或 section root。 | `section_relation_kind`, `section_order_field`, `body_field`。 |
+| `renderable` | 对象声明允许的默认展示面。 | `renderers`, `title_field`, `summary_field`, `media_field`。 |
 
-`query.facets`、`collection.item_facets`、`conversation.message_facets` 和 `graph.node_facets` 的数组语义为 AND：候选 Entity MUST 同时具备列出的全部 facet。`container.child_facets` 与 `replyable.reply_facets` 使用 `{all?, any?, none?}` 选择器，避免把“至少具备其中一个能力”和“必须同时具备全部能力”混淆。
+`query.facets`、`collection.item_facets` 和 `graph.node_facets` 的数组语义为 AND：候选对象 MUST 同时具备列出的全部 facet。`container.child_facets` 与 `replyable.reply_facets` 使用 `{all?, any?, none?}` 选择器。
 
-`entity_type` 是语义标签，不得隐式授予能力。例如 `entity_type="task"` 默认不等于可拖拽、可排期或可回复；这些能力必须由 `facets.stateful`、`facets.rankable`、`facets.schedulable`、`facets.replyable` 等显式声明，或由该 Space 的 schema profile 明确注入。
-
-## 7. Relation
+## 8. Relation
 
 Schema id: `cx.schema.relation.v1`
 
@@ -154,12 +242,8 @@ Schema id: `cx.schema.relation.v1`
 | `type` | yes | `enum(relation)` | 固定为 `relation`。 | 对象种类。 |
 | `space_id` | yes | `id:space` | Relation 所在 Space。 | 所属 Space。 |
 | `relation_kind` | yes | `string` | 标准值见下方。 | 关系语义。 |
-| `from_entity_id` | conditional | `id:entity` | `from_*` 必须恰好一个。 | 起点 Entity。 |
-| `from_actor_id` | conditional | `did` | `from_*` 必须恰好一个。 | 起点 Actor。 |
-| `from_space_id` | conditional | `id:space` | `from_*` 必须恰好一个。 | 起点 Space。 |
-| `to_entity_id` | conditional | `id:entity` | `to_*` 必须恰好一个。 | 终点 Entity。 |
-| `to_actor_id` | conditional | `did` | `to_*` 必须恰好一个。 | 终点 Actor。 |
-| `to_space_id` | conditional | `id:space` | `to_*` 必须恰好一个。 | 终点 Space。 |
+| `from_ref` | yes | `string` | MUST 是 `cx:<kind>:...` 或 DID。 | 起点对象/Actor/Space 引用。 |
+| `to_ref` | yes | `string` | MUST 是 `cx:<kind>:...` 或 DID。 | 终点对象/Actor/Space 引用。 |
 | `fields` | no | `object` | 可放 rank、role、edge metadata。 | 关系属性。 |
 | `state` | no | `enum(active, deleted, redacted)` |  | 关系状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
@@ -169,13 +253,14 @@ Schema id: `cx.schema.relation.v1`
 
 ```text
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
-assigned_to, references, derived_from, attached_to, has_topic,
-has_default_view, produced, used, triggered_by, has_log,
+assigned_to, references, derived_from, attached_to, links_room,
+primary_room, has_default_view, produced, used, triggered_by, has_log,
+summarized_from, promoted_from_room,
 reposts, quotes,
 follows, contact, circle_member, blocks_social, likes
 ```
 
-## 8. Event Envelope
+## 9. Event Envelope
 
 Schema id: `cx.schema.event.v1`
 
@@ -198,7 +283,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
-## 9. Proof
+## 10. Proof
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -211,9 +296,11 @@ Event 是 reducer 输入。它不是当前态对象。
 | `audience` | no | `string` 或 `array<string>` | 跨域/服务调用 SHOULD 设置。 | 受众绑定。 |
 | `jws` | yes | `string` | detached JWS。 | 签名值。 |
 
-## 10. View
+## 11. View
 
 Schema id: `cx.schema.view.v1`
+
+View 是投影定义对象。它的 canonical state 只覆盖“如何看”：query、kind、renderer、typed config、visible fields、layout 和共享配置。它不得作为被投影对象的状态、位置、关系、权限或消息历史的唯一来源。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -221,7 +308,7 @@ Schema id: `cx.schema.view.v1`
 | `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
-| `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；能力仍由 facets 与 typed config 决定。 |
+| `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；能力仍由对象类型、facets 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
@@ -236,12 +323,14 @@ Schema id: `cx.schema.view.v1`
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
+若某个 UI 操作改变 Card 所属 List、Card rank、List rank、Room message、Relation 或对象字段，必须使用对应对象 operation；只有改变 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。
+
 `CollectionConfig` 字段：
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `item_entity_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项；兼容字段，新 profile SHOULD 优先使用 `item_facets`。 | 按语义标签过滤可投影为 item/card/row/message 的 Entity；不授予能力。 |
-| `item_facets` | conditional | `array<FacetName>` | 可替代 `item_entity_types`；至少 1 项。 | 按 Entity 能力选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
+| `item_object_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 按对象类型过滤可投影为 item/card/row/message 的对象。 |
+| `item_facets` | conditional | `array<FacetName>` | 可替代 `item_object_types`；至少 1 项。 | 按对象能力选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
 | `item_render` | yes | `enum(card, row, tile, compact, badge, message)` | 看板式展示 SHOULD 为 `card`。 | 默认展示面。 |
 | `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 collection SHOULD 使用 rank。 |
 | `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
@@ -257,7 +346,7 @@ Schema id: `cx.schema.view.v1`
 | `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
 | `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
 | `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
-| `board_entity_id` | conditional | `id:entity` | `mode="relation_container"` 时必填。 | board/root Entity。 |
+| `board_id` | conditional | `id:board` | `mode="relation_container"` 时必填。 | Board。 |
 | `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
 | `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
 | `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |
@@ -266,7 +355,7 @@ Schema id: `cx.schema.view.v1`
 | `hidden_count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 分组计数授权策略。 |
 | `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 默认 `warn`。 | 分组 WIP enforcement；只影响 reducer / review policy，不由 renderer 决定。 |
 
-## 11. Policy
+## 12. Policy
 
 Schema id: `cx.schema.policy.v1`
 
@@ -284,7 +373,7 @@ Schema id: `cx.schema.policy.v1`
 | `created_by` | yes | `did` | 必须有 policy/admin capability。 | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-## 12. Capability Grant
+## 13. Capability Grant
 
 Schema id: `cx.schema.capability.v1`
 
@@ -295,7 +384,7 @@ Schema id: `cx.schema.capability.v1`
 | `space_id` | no | `id:space` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
-| `actions` | yes | `array<string>` | 例如 `entity.update`。 | 允许动作。 |
+| `actions` | yes | `array<string>` | 例如 `card.update`、`room.message.send`。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 `grant-constraint-schema.md`。 | 约束条件。 |
 | `delegable` | no | `boolean` | 默认 false。 | 是否可转授。 |
@@ -306,7 +395,7 @@ Schema id: `cx.schema.capability.v1`
 | `revoked_at` | no | `timestamp` |  | 撤销时间。 |
 | `proofs` | yes | `array<Proof>` |  | 授权签名。 |
 
-## 13. Invite
+## 14. Invite
 
 Schema id: `cx.schema.invite.v1`
 
@@ -324,7 +413,7 @@ Schema id: `cx.schema.invite.v1`
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired)` |  | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-## 14. Read Marker
+## 15. Read Marker
 
 Schema id: `cx.schema.read_marker.v1`
 
@@ -334,13 +423,13 @@ Schema id: `cx.schema.read_marker.v1`
 | `type` | yes | `enum(read_marker)` | 固定为 `read_marker`。 | 对象种类。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `space_id` | yes | `id:space` |  | Space。 |
-| `scope` | yes | `enum(space, channel, topic, thread, view, entity)` |  | 已读范围。 |
+| `scope` | yes | `enum(space, room, thread, view, card, message, morph)` |  | 已读范围。 |
 | `scope_id` | no | `string` | scope 不是 space 时必填。 | 范围对象。 |
 | `event_id` | yes | `id:event` 或 `hash` |  | 已读到的事件。 |
 | `timeline_order_key` | no | `object` | 可加速比较。 | 已读排序键。 |
 | `updated_at` | yes | `timestamp` |  | 更新时间。 |
 
-## 15. Notification
+## 16. Notification
 
 Schema id: `cx.schema.notification.v1`
 
@@ -360,7 +449,7 @@ Notification 是派生 inbox projection，不是 canonical truth。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-## 16. Repo Commit
+## 17. Repo Commit
 
 Schema id: `cx.schema.commit.v1`
 
@@ -376,7 +465,7 @@ Schema id: `cx.schema.commit.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Commit proof。 |
 
-## 17. Canonical Operation Object
+## 18. Canonical Operation Object
 
 Schema id: `cx.schema.operation.v1`
 
@@ -386,24 +475,25 @@ Schema id: `cx.schema.operation.v1`
 | --- | --- | --- | --- | --- |
 | `operation_id` | yes | `id:operation` 或 `hash` |  | Operation ID。 |
 | `type` | yes | `enum(operation)` | 固定为 `operation`。 | 对象种类。 |
-| `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref, move, reorder, rebalance)` |  | operation 类型。 |
-| `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.container.move_item`。`move/reorder/rebalance` 必填。 | 语义操作类型，用于校验 payload。 |
+| `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref, move, reorder, rebalance, link, unlink)` |  | operation 类型。 |
+| `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.card.move`。`move/reorder/rebalance/link/unlink` 必填。 | 语义操作类型，用于校验 payload。 |
 | `space_id` | yes | `id:space` |  | 目标 Space。 |
 | `object_id` | no | `string` | create 可由 payload 指定。 | 目标对象。 |
-| `object_type` | yes | `string` | `entity`、`relation` 等。 | 目标对象类型。 |
+| `object_type` | yes | `string` | `room`、`board`、`list`、`card`、`message`、`morph`、`relation` 等。 | 目标对象类型。 |
 | `payload` | yes | `object` | 由 operation_type 决定。 | 操作内容。 |
 | `idempotency_key` | no | `string` | 重试写入 SHOULD 设置。 | 幂等键。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
 
 Canonical Operation 与 Operation Envelope 的映射：
 
-- `semantic_kind="cx.field_position.move"` MUST 使用 `operation_type="move"`、`object_type="entity"`，并使用字段位置 move payload schema。
+- `semantic_kind="cx.card.move"` MUST 使用 `operation_type="move"`、`object_type="card"`，并使用 card move payload schema。
 - `semantic_kind="cx.container.move_item"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用容器 item move payload schema。
-- `semantic_kind="cx.field_position.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="entity"`，并使用字段位置 reorder payload schema。
+- `semantic_kind="cx.card.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="card"`，并使用 card reorder payload schema。
+- `semantic_kind="cx.card.link_room"` MUST 使用 `operation_type="link"`、`object_type="card"`，并创建或更新 `links_room` Relation。
 - `semantic_kind="cx.container.rebalance"` MUST 使用 `operation_type="rebalance"`、`object_type="relation"`，并使用容器 rebalance payload schema。
 - `operation_type` 为 `move`、`reorder` 或 `rebalance` 时，`semantic_kind` MUST 存在且属于本 schema 声明的有序操作语义白名单；实现不得把有序集合操作塞进无语义的 generic `update`，也不得使用未知 `semantic_kind` 绕过 payload validation。
-| `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-## 18. Blob Metadata
+## 19. Blob Metadata
 
 Schema id: `cx.schema.blob.v1`
 
@@ -420,7 +510,7 @@ Schema id: `cx.schema.blob.v1`
 | `created_by` | yes | `did` |  | 上传者。 |
 | `created_at` | yes | `timestamp` |  | 上传时间。 |
 
-## 19. MLS Encrypted Payload Envelope
+## 20. MLS Encrypted Payload Envelope
 
 Schema id: `cx.schema.encrypted_payload.v1`
 
@@ -435,7 +525,7 @@ Schema id: `cx.schema.encrypted_payload.v1`
 | `payload_digest` | yes | `hash` | 见 `encoding-conformance-vectors.md`。 | 密文 envelope digest。 |
 | `key_ref` | no | `string` | 不得泄露 secret。 | 密钥引用。 |
 
-## 20. Client Sync Response
+## 21. Client Sync Response
 
 Schema id: `cx.schema.client_sync_response.v1`
 
@@ -467,7 +557,7 @@ Schema id: `cx.schema.client_sync_response.v1`
 | `limited` | yes | `boolean` | true 表示存在 gap。 | 是否截断。 |
 | `prev_batch` | no | `cursor` 或 `string` | opaque。 | 反向 backfill token。 |
 
-## 21. 最小 JSON Schema 生成规则
+## 22. 最小 JSON Schema 生成规则
 
 机器可验证 JSON Schema SHOULD 从本文表格生成，并遵守：
 

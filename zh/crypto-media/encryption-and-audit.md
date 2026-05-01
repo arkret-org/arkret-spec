@@ -12,7 +12,7 @@
 ## 2. 基础加密架构：MLS 与 Contrix 的融合
 
 Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf.org/doc/html/rfc9420) 作为官方的群组加密标准。
-不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 `board` 或 `channel` 协作空间中，双棘轮会导致巨大的性能开销与并发处理难题。
+不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 Room 或大型协作 Space 中，双棘轮会导致巨大的性能开销与并发处理难题。
 
 ### 2.1 KeyPackage 与服务发现
 在参与 MLS 加密前，用户必须公布自己的 `KeyPackage`。
@@ -47,7 +47,7 @@ sequenceDiagram
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。由于其仅面向特定新成员解密，该消息可通过 Sync Service 的 Ephemeral Channel 发送，或通过私信 `message` 投递。
 
 ### 2.3 载荷加密 (Application Data)
-日常的 `message` 或 `task` 的内容负载在写入 Repo 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
+日常的 Message、Card 或 Morph 内容负载在写入 Repo 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
 - **可路由元数据分离**：密文信封 `encrypted_payload` 仅包裹实际的业务内容 (`body`, `content`, `attachments`)。
 - **明文元数据保留**：用于网络路由和索引查询的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
 - Sync Service 和 Index 节点可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。

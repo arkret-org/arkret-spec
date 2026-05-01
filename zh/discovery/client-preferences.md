@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-在 Contrix 网络中，绝大部分数据是跨节点共享的协作对象（Space, Task, Message）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
+在 Contrix 网络中，绝大部分数据是跨节点共享的协作对象（Space、Room、Board、List、Card、Message、Morph）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
 
 本规范定义了这些**客户端偏好与账户数据 (Account Data)** 的存储、同步与标准 Schema。
 
@@ -145,7 +145,7 @@ Rules:
 
 虽然 Account Repo 对外不公开，但用户的私有 Index 节点（运行在受控环境中，或可信端侧节点）会拉取并解密这些数据，并合并到查询结果中。
 
-例如：当调用 `POST /api/v1/index/query` 以 `entity_types=["space"]` 查询加入的 Space 列表时，私有 Index 会将 `cx.tags.space.*` 数据 Join 进去，客户端可以直接得到带私有标签的 Space 列表。该接口的字段级 schema 见 `cx.index.query`。
+例如：当调用 `POST /api/v1/index/query` 以 `object_types=["space"]` 查询加入的 Space 列表时，私有 Index 会将 `cx.tags.space.*` 数据 Join 进去，客户端可以直接得到带私有标签的 Space 列表。该接口的字段级 schema 见 `cx.index.query`。
 
 ## 5. 安全与隐私
 

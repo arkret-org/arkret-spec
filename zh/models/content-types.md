@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
+Contrix 的 `message` 标准对象和可讨论的 Card / Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不认识某种内容类型的旧客户端能通过 `fallback_text` 优雅降级
@@ -12,7 +12,7 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-`message` 或 `comment` 的 `content` 字段 MUST 使用本规范定义的结构化 JSON 格式，而非依赖客户端猜测渲染方式。
+Message、Card 评论摘要或 Morph 内容的 `content` 字段 MUST 使用本规范定义的结构化 JSON 格式，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 
@@ -329,6 +329,6 @@ Contrix 的 `message` 和 `comment` Entity 需要承载远比纯文本丰富的�
 ## 9. v1 扩展规则
 
 - Emoji / Sticker MUST 作为 `cx.content.image`、`cx.content.file` 或注册的 `cx.content.sticker` block 表达，并引用 content-addressed blob；客户端不得从未授权 URL 热加载私有表情资源。
-- 投票 / 表单等交互式消息 SHOULD 使用 `poll` Entity、Relation 和 event reducer 表达；消息中的 content block 只能作为入口或摘要，不能成为唯一计票真相源。
+- 投票 / 表单等交互式消息 SHOULD 使用 `poll` Morph、Relation 和 event reducer 表达；消息中的 content block 只能作为入口或摘要，不能成为唯一计票真相源。
 - URL 预览 MUST 作为可丢弃的 rendering hint 或受控 preview blob 表达。服务端抓取私有链接前必须有用户或 Space policy 授权，预览服务若接触正文或页面内容，MUST 列入 `plaintext_visible_services`。
 - E2EE 场景下缩略图 SHOULD 由客户端生成并加密上传；服务端生成缩略图前必须被声明为 plaintext-visible service，并遵守 `media-and-blob.md` 的 MIME、缓存和授权规则。

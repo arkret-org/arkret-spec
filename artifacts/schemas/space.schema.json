@@ -26,7 +26,7 @@
     "summary": { "type": "string", "maxLength": 2048 },
     "space_kind": {
       "type": "string",
-      "enum": ["collaboration", "direct", "group", "project", "document", "board", "channel", "social_feed", "enclave"]
+      "enum": ["collaboration", "personal", "project", "organization", "social_feed", "enclave"]
     },
     "created_by_principal": { "$ref": "#/$defs/did" },
     "owning_organizations": { "type": "array", "items": { "$ref": "#/$defs/did" } },

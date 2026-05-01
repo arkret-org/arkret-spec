@@ -47,7 +47,7 @@ Content-Type: application/json
     "timeline_limit": 50,
     "lazy_load_members": true,
     "include_redundant_members": false,
-    "event_types": ["cx.message.*", "cx.entity.*"],
+    "event_types": ["cx.message.*", "cx.room.*", "cx.board.*", "cx.list.*", "cx.card.*", "cx.morph.*"],
     "not_event_types": ["cx.typing"]
   },
   "subscriptions": {

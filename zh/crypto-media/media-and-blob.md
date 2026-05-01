@@ -261,7 +261,7 @@ Blob service SHOULD:
 
 Blob MAY be GC'ed if:
 
-- no live Entity references it
+- no live object references it
 - grace period elapsed
 - not under legal hold
 - policy permits deletion

@@ -10,57 +10,77 @@ Contrix 必须对人类友好，因此协议必须允许对象自然投影为：
 - 文档
 - dashboard、审阅队列、inbox、notification、agent 运行轨迹
 
-这些展示模式都是 facet composition 的 `renderer`，不是新的协议根类型。它们都必须从同一套底层结构产生：
+这些展示模式都是 View projection。View 本身是一个可签名、可共享、可授权的协议对象，但它拥有的是**投影定义的真相**，不是被投影对象的协作事实。
+
+View 可以持有：
+
+- 查询范围
+- 过滤、排序、分组
+- renderer / layout / visible fields
+- shared saved view 配置
+- materialization hint / cache policy（不是缓存内容本身）
+
+View 不拥有：
+
+- Board 包含哪些 List
+- List 包含哪些 Card
+- Card 的标题、状态、负责人、rank、归档状态
+- Room 的成员、消息、E2EE epoch、history visibility
+- Relation、Capability、Policy 等协作事实
+
+这些对象事实必须从同一套底层结构产生：
 
 ```txt
-Space + Actor + Entity + Relation + Event
+Space + Actor + Room + Board + List + Card + Message + Morph + Relation + Event
 ```
 
-View 的职责是观察和组织这张协作图，而不是定义新的数据真相。
+View 的职责是观察和组织协作图，而不是替代标准对象、Relation 或 Event 成为新的业务真相源。
 
 ## 2. 设计原则
 
-### 2.1 View 不是对象真相
+### 2.1 View 有定义真相，但不是对象真相
 
-view 不承载底层对象的唯一真相状态。
+View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `cx.view.create` / `cx.view.update` 修改、签名、审计和同步。
 
-### 2.2 同一对象可以进入多个 view
+View 不承载被投影对象的 canonical state。Board / List / Card / Room / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。Index / AppView 输出必须能追溯到 signed Event / Operation、reducer profile 和 causal frontier。
 
-一个 task Entity 可以同时出现在：
+Materialized View cache 只是加速层。缓存丢失、过期或迁移后，系统 MUST 能用 View definition + canonical object graph 重新计算 projection。
 
-- `collection` 投影 + `renderer=board` + `item_render=card`
+### 2.2 标准对象优先，Morph 扩展
+
+View 查询 SHOULD 优先使用标准对象类型：
+
+- `room`
+- `board`
+- `list`
+- `card`
+- `message`
+- `morph`
+
+只有开放对象才主要依赖 `morph_type` 和 `facets`。标准对象 MAY 通过 facets 增加能力，但 View 不应把标准对象降级为 Morph。
+
+### 2.3 同一对象可以进入多个 View
+
+一个 Card 可以同时出现在：
+
+- `collection` 投影 + `renderer=board`
 - `collection` 投影 + `renderer=row`
 - `collection` 投影 + `renderer=calendar`
-- `timeline` 的 thread anchor
+- `graph` 投影中的依赖节点
+- `timeline` 投影中的上下文锚点
 
-一个 message Entity 可以同时出现在：
+一个 Message 可以同时出现在：
 
-- `timeline` 投影 + `renderer=chat`
-- `timeline` 投影 + `renderer=thread`
-- `timeline` 投影 + `renderer=timeline`
+- Room chat timeline
+- Card context timeline
+- mention inbox
+- audit/review timeline
 
-同一个 Entity 还可以通过不同 Relation 同时参与树、图谱、甘特图和 inbox。
-
-### 2.3 Entity facet 是能力中心
-
-协议不应让 View kind 隐式赋予对象能力。一个 Entity 是否能作为容器、被回复、被排期、被分配、进入审阅队列，必须由 Entity 的 `facets` 或 Space schema profile 显式声明：
-
-- `container`：可包含/排序/移动其他 Entity。
-- `replyable`：可被回复，形成 thread/chat/forum。
-- `schedulable`：有时间窗口，可进入 calendar/gantt。
-- `assignable`：可分配给 actor/team/agent。
-- `stateful`：有受控状态机。
-- `rankable`：有稳定手动排序 rank。
-- `reviewable`：可进入审核/审阅队列。
-- `notifiable`：可派生 inbox/notification/read state。
-- `documentable`：可作为文档或 section root。
-- `renderable`：声明允许的默认展示面。
-
-`entity_type` 是语义标签；facet 才定义字段组、允许关系、标准操作和投影能力。看板、表格、thread、chat、review queue 等产品形态 SHOULD 由 facet、typed config 和 `renderer` 组合描述，而不是由 View 单独“发明”对象能力。
+同一个 Morph 也可以通过不同 Relation 同时参与树、图谱、审阅队列和 inbox。
 
 ### 2.4 少数响应形态，多种展示 renderer
 
-View 仍需要机器可验证的响应形态。协议保留 5 个 `View.kind` 作为 response family：
+协议保留 5 个 `View.kind` 作为 response family：
 
 - `collection`
 - `timeline`
@@ -68,27 +88,32 @@ View 仍需要机器可验证的响应形态。协议保留 5 个 `View.kind` �
 - `document`
 - `composite`
 
-这些 `kind` 只约束响应 contract、cursor 和 frontier，不代表对象职责。新增产品形态 SHOULD 优先新增 renderer / facet profile，而不是新增顶层 `kind`。
+这些 `kind` 只约束响应 contract、cursor 和 frontier，不代表对象职责。新增产品形态 SHOULD 优先新增 renderer / profile，而不是新增顶层 `kind`。
 
-### 2.5 Shared / Private / System 并存
+### 2.5 Card / Room 权限独立
 
-初版建议支持：
+View 展示 Card 关联 Room 时，必须分别执行授权裁剪：
 
-- `shared`
-- `private`
-- `system`
+- 用户能看 Card，不自动能看 linked Room。
+- 用户能看 linked Room，不自动能看 Card。
+- Card context view MAY 显示不可见 Room 的 locked link，但不得泄露 Room 标题、成员、消息摘要或统计，除非 Room discovery policy 允许。
 
-### 2.6 统一上下文投影（Context Timeline）
+### 2.6 交互写入必须落回真实对象
 
-同一件事情可能同时需要看板列、依赖图、聊天时间线。  
-这类需求不应依赖单一 view，而应使用统一上下文投影：
+客户端 MAY 在 View 中提供拖拽、编辑、批量操作和快捷入口，但写入语义必须落到对应标准对象、Relation 或 Account Data：
 
-- 以锚点对象为中心（`anchor_entity_id`）；
-- 同时抓取与锚点有关的实体、关系和事件；
-- 按统一时序排序（`hlc` 为主，`event_id` 作为稳定 tie-break）；
-- 在 UI 上按时间线展示，并允许客户端按卡片/关系/消息分段。
+| 用户动作 | canonical operation |
+| --- | --- |
+| Card 拖到另一个 List | `cx.card.move` |
+| Card 在同一 List 内排序 | `cx.card.reorder` |
+| List 在 Board 内排序 | `cx.list.reorder` |
+| 修改 Card 标题、状态、负责人、截止时间 | `cx.card.update` |
+| 修改 Board / List 元数据 | `cx.board.update` / `cx.list.update` |
+| 发送、编辑、删除 Room 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
+| 为 Card 关联或移除 Room | `cx.card.link_room` / `cx.card.unlink_room` |
+| 改变 View filter / sort / group / columns / layout | `cx.view.update` 或 actor-private account data |
 
-这意味着真相仍是 `Event` + `Entity` + `Relation`，`View` 只是读时组织方式。
+Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会改变协作对象的状态、位置、权限、关系或消息历史，它 MUST 写入对应对象或 Relation；只有改变观察方式时才写入 View。
 
 ## 3. View 对象
 
@@ -104,31 +129,28 @@ View 仍需要机器可验证的响应形态。协议保留 5 个 `View.kind` �
   "title": "Release Flow",
   "visibility": "shared",
   "query": {
-    "facets": ["stateful", "rankable"],
+    "object_types": ["card"],
     "filters": [
-      { "field": "archived", "op": "neq", "value": true }
+      { "field": "fields.archived", "op": "neq", "value": true }
     ],
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_entity_id": "cx:entity:01JS0BD000000000000000000",
+      "source_ref": "cx:board:01JS0BD000000000000000000",
       "depth": 2
     }
   },
   "collection": {
-    "item_facets": ["stateful", "rankable"],
+    "item_object_types": ["card"],
     "item_render": "card",
     "item_order_by": [
-      { "field": "fields.rank", "direction": "asc" }
+      { "field": "rank", "direction": "asc" }
     ],
     "grouping": {
-      "mode": "field",
-      "field": "fields.status",
-      "lanes": [
-        { "key": "todo", "title": "Todo", "rank": "F" },
-        { "key": "in_progress", "title": "In Progress", "rank": "V" },
-        { "key": "done", "title": "Done", "rank": "k" }
-      ],
+      "mode": "relation_container",
+      "board_id": "cx:board:01JS0BD000000000000000000",
+      "container_relation_kind": "contains",
+      "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
     }
   },
@@ -141,9 +163,9 @@ View 仍需要机器可验证的响应形态。协议保留 5 个 `View.kind` �
 }
 ```
 
-## 4. 标准 `kind` 与 `renderer`
+上述字段是 View 自己拥有的定义真相。它们决定“如何看”对象图，但不改变对象图本身。若 `renderer="board"` 的 View 指向某个 Board，它只是说明使用 board renderer 展示该 Board 及其 List/Card 关系；Board/List/Card 的存在、包含关系和排序仍由 `board`、`list`、`card` 与 `contains` Relation 决定。
 
-顶层 `kind` 必须映射到一个机器可验证的响应 profile；对象能力来自 facet。`layout` 只是 UI hint，不能替代以下配置：
+## 4. 标准 `kind` 与 `renderer`
 
 | Core kind | 常用 renderer | 必填配置 | 标准投影响应 |
 | --- | --- | --- | --- |
@@ -155,8 +177,6 @@ View 仍需要机器可验证的响应形态。协议保留 5 个 `View.kind` �
 
 Index / AppView 对非 raw projection MUST 返回 `view_id`、`frontier` 和对应核心原语的标准响应。客户端不得把未知对象数组解释为标准 View projection。
 
-Kanban card、table row、calendar event、review queue item 都是 `CollectionProjectionResponse.items[*]` 的不同 render surface；它们不是不同的协议级 projection family。一个 `thread` 或 `message` Entity 只要满足 `query.facets` / `collection.item_facets` 和权限裁剪，就 MAY 被作为 kanban card 显示。
-
 ## 5. Query Model
 
 View 应通过结构化 query 表达对象范围。
@@ -165,7 +185,8 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "facets": ["stateful", "rankable"],
+  "object_types": ["card", "morph"],
+  "facets": ["reviewable"],
   "filters": [
     { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] }
   ],
@@ -181,11 +202,13 @@ View 应通过结构化 query 表达对象范围。
 }
 ```
 
+`object_types` 选择标准对象类型。`facets` 只用于需要能力过滤时，尤其是 Morph 或带扩展能力的标准对象。
+
 ### 5.1 看板查询示例
 
 ```json
 {
-  "facets": ["stateful", "rankable"],
+  "object_types": ["card"],
   "filters": [
     { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] },
     { "field": "archived", "op": "eq", "value": false }
@@ -193,617 +216,265 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_entity_id": "cx:entity:01JS0BD000000000000000000",
+    "source_ref": "cx:board:01JS0BD000000000000000000",
     "depth": 2
   }
 }
 ```
 
-### 5.2 聊天查询示例
+### 5.2 Room 聊天查询示例
 
 ```json
 {
-  "facets": ["replyable", "renderable"],
+  "object_types": ["message"],
   "filters": [
-    { "field": "fields.redacted", "op": "eq", "value": false }
+    { "field": "fields.visible_state", "op": "eq", "value": "active" },
+    { "field": "room_id", "op": "eq", "value": "cx:room:01JS1000000000000000000000" }
   ],
-  "relation": {
-    "kind": "belongs_to",
-    "target_entity_id": "cx:entity:01JS1000000000000000000000",
-    "direction": "out"
-  }
-}
-```
-
-### 5.3 话题查询示例
-
-```json
-{
-  "facets": ["replyable", "stateful"],
-  "filters": [
-    { "field": "fields.status", "op": "eq", "value": "open" }
-  ],
-  "relation": {
-    "kind": "attached_to",
-    "target_entity_id": "cx:entity:01JS0TASK0000000000000000",
-    "direction": "out"
-  }
-}
-```
-
-### 5.4 通知查询示例
-
-```json
-{
-  "facets": ["notifiable"],
-  "filters": [
-    { "field": "derived.notification_state", "op": "eq", "value": "unread" },
-    { "field": "derived.recipient", "op": "eq", "value": "did:web:alice.example.com" }
-  ]
-}
-```
-
-### 5.5 依赖图查询示例
-
-```json
-{
-  "facets": ["stateful"],
-  "relation": {
-    "kind": "depends_on",
-    "direction": "out",
-    "depth": 4
-  }
-}
-```
-
-### 5.6 树形查询示例
-
-```json
-{
-  "facets": ["container", "documentable"],
-  "relation": {
-    "kind": "contains",
-    "direction": "out",
-    "depth": 8
-  }
-}
-```
-
-### 5.7 跨域深度查询与惰性链接 (Lazy Link)
-
-去中心化网络中，`Space` 构成了严格的权限边界。协议明确禁止 Index 节点在执行带有 `depth` 的深度查询时自动跨越 Space 边界追踪数据，以防止未授权的数据泄露与性能级联。
-
-**截断与回退规则**：
-当 Index 在图谱展开过程中遇到指向外部 Space 的 `target_ref` 时，MUST 立即中止该分支的展开。Index 应向查询方返回一个不含底层属性的 **惰性链接 (Lazy Link)**，结构如下：
-```json
-{
-  "id": "cx:entity:external_01",
-  "kind": "lazy_link",
-  "space_id": "cx:space:target_space_02"
-}
-```
-跨域图谱的完整拼接由 **客户端 (Client)** 负责。如果客户端确定当前 Actor 拥有 `cx:space:target_space_02` 的访问权限，则可主动向该目标 Space 对应的 Index 节点发起二次图查询并自行在 UI 层拼接。
-
-### 5.8 统一上下文查询示例
-
-围绕任务对象聚合其进展、关系、消息与审阅活动：
-
-```json
-{
-  "anchor_entity_id": "cx:entity:01JS0TASK000000000000000000",
-  "facets": ["stateful", "replyable", "reviewable", "documentable"],
-  "filters": [
-    { "field": "fields.archived", "op": "eq", "value": false }
-  ],
-  "relation": {
-    "kind": "contains",
-    "direction": "both",
-    "source_entity_id": "cx:entity:01JS0TASK000000000000000000",
-    "depth": 3
-  },
   "order_by": [
-    { "field": "event_hlc", "direction": "asc" }
-  ],
-  "context": {
-    "event_kinds": [
-      "cx.entity.update",
-      "cx.relation.create",
-      "cx.container.move_item",
-      "cx.message.create",
-      "cx.task.assign",
-      "cx.redaction",
-      "cx.memory.create"
-    ],
-    "relation_kinds": [
-      "contains",
-      "assigned_to",
-      "depends_on",
-      "replies_to",
-      "mentions"
-    ],
-    "event_tiebreak": "event_id"
-  }
-}
-```
-
-实现要求（context_timeline）：
-
-- `event_hlc` 为上下文时间线排序主键；无 `event_hlc` 时回退 `created_at`，并打上 `timestamp_untrusted` 标记；
-- `event_id` 作为 tie-break，保证同序事件排序稳定；
-- 未授权对象/关系不得泄漏“存在与不存在”信息，只能裁剪不可见项；
-- 同一 `space_frontier` 与同一权限上下文下，重复查询结果应保持可重放一致顺序。
-
-## 6. 分组、排序、显示
-
-### 6.1 `group_by`
-
-初版建议支持：
-
-- `status`
-- `assignee`
-- `priority`
-- `memory_kind`
-- `run_status`
-- `channel`
-- `topic_status`
-- `custom:<field_name>`
-
-### 6.2 `order_by`
-
-初版建议支持：
-
-- `rank`
-- `created_at`
-- `updated_at`
-- `due_at`
-- `priority`
-- `started_at`
-- `ended_at`
-- `last_message_at`
-
-### 6.3 `visible_fields`
-
-共享最小展示约定，客户端可在不违反权限的前提下做本地增强。
-
-## 7. 核心投影与展示原则
-
-### 7.1 Kanban
-
-Kanban 视图的 canonical 输入应是：
-
-- 带 `container` facet 的 board / collection Entity
-- 带 `stateful` / `rankable` / `renderable` facet、并可渲染为 card 的 item Entity
-- Relation `relation_kind = "contains"` / `belongs_to`
-- 标准响应 family 为 `kind = "collection"`；`renderer = "board"` / card renderer 只选择看板展示 profile
-
-而不是某种 UI 私有列数组。
-
-#### 7.1.1 看板投影模型
-
-看板 UI 中的元素 MUST 映射到协议对象，而不是只存在于客户端本地状态：
-
-| UI 概念 | Canonical 数据 | 说明 |
-| --- | --- | --- |
-| 看板 | 带 `container` facet 的 Entity | 看板本身是一个 Entity，可被引用、授权、讨论和审计。 |
-| 视图配置 | `View{kind="collection", renderer="board"}` | 定义查询范围、列来源、排序和展示字段；`renderer` 是展示面提示，不是新的 projection family。 |
-| 列 | `fields.<group_by>` 的枚举值，或带 `container` facet 的 Entity | 简单工作流用字段分组；复杂工作流用 collection 实体。 |
-| 卡片 | 带 `renderable` 且满足 `collection.item_facets` 的 Entity | 卡片不是单独 UI 数据，而是业务 Entity，`task` / `issue` / `thread` 只是语义标签。 |
-| 卡片属于看板 | `Relation{relation_kind="contains"}` 或 `belongs_to` | 表示 board/collection 与满足 `collection.item_facets` 的 Entity 的包含关系。 |
-| 卡片列位置 | `fields.status`，或 item Entity 到 collection 的 Relation | 取决于列模型。 |
-| 列内顺序 | `fields.rank` 或 Relation `fields.rank` | 推荐 Fractional Indexing string。 |
-| 卡片展示字段 | View `visible_fields` | 只决定显示，不提升权限。 |
-
-Board-rendered collection View MUST NOT 默认显示 Space 中的全部数据。实现 MUST 按以下顺序确定可见内容：
-
-1. 先执行 `View.query`，得到该 View 的候选对象集合。
-2. 再按 actor 的 Space membership、capability、history visibility、field authorization 裁剪不可见对象和字段。
-3. 再按 `collection.grouping.mode` 计算分组和卡片位置。
-4. 最后按 `visible_fields` 与客户端展示规则渲染卡片。
-
-因此，Space 中的其他数据仍然是协议数据，但不一定属于当前看板：
-
-- 不满足 `View.query` 的 Entity MUST NOT 出现在该看板中。
-- 满足查询但缺少 View 要求的 `collection.item_facets` 或不允许 `card` renderer 的对象 SHOULD 作为投影输入处理，不直接显示为卡片。
-- Relation、Event、Capability、Policy、Audit 等对象通常作为投影、授权或审计输入，不作为普通 Kanban 卡片显示。
-- `message`、`topic`、`document`、`run`、`memory` 等 Entity 只有在 View 明确通过 `query.facets` / `collection.item_facets` 选中它们并定义 card 显示规则时，才 MAY 作为卡片显示。
-- 无权读取的对象或字段 MUST 被裁剪；实现 MUST NOT 用空列、计数或错误信息泄露不可见对象是否存在。
-
-#### 7.1.2 字段分组列模型
-
-简单看板 SHOULD 使用字段分组列模型。此时列不是 durable Entity，而是某个字段的合法取值。
-
-示例 Board Entity：
-
-```json
-{
-  "id": "cx:entity:01board",
-  "type": "entity",
-  "space_id": "cx:space:01space",
-  "entity_type": "board",
-  "title": "Product Launch",
-  "fields": {
-    "workflow_field": "fields.status",
-    "workflow_values": ["todo", "in_progress", "review", "done"]
-  }
-}
-```
-
-示例 board-rendered collection View：
-
-```json
-{
-  "id": "cx:view:01view",
-  "space_id": "cx:space:01space",
-  "kind": "collection",
-  "renderer": "board",
-  "title": "Launch Flow",
-  "query": {
-    "space_ids": ["cx:space:01space"],
-    "facets": ["stateful", "rankable"],
-    "filters": [
-      { "field": "fields.archived", "op": "neq", "value": true }
-    ],
-    "relation": {
-      "kind": "belongs_to",
-      "direction": "out",
-      "target_entity_id": "cx:entity:01board"
-    },
-    "order_by": [
-      { "field": "fields.rank", "direction": "asc", "nulls": "last" }
-    ]
-  },
-  "collection": {
-    "item_facets": ["stateful", "rankable"],
-    "item_render": "card",
-    "item_order_by": [
-      { "field": "fields.rank", "direction": "asc", "nulls": "last" }
-    ],
-    "grouping": {
-      "mode": "field",
-      "field": "fields.status",
-      "lanes": [
-        { "key": "todo", "title": "Todo" },
-        { "key": "in_progress", "title": "In Progress" },
-        { "key": "review", "title": "Review" },
-        { "key": "done", "title": "Done" }
-      ]
-    }
-  },
-  "visible_fields": [
-    "title",
-    "fields.priority",
-    "fields.due_at",
-    "fields.labels"
+    { "field": "created_at", "direction": "asc" }
   ]
 }
 ```
 
-示例 Task Entity：
+### 5.3 Card 上下文查询示例
 
 ```json
 {
-  "id": "cx:entity:01task",
-  "type": "entity",
-  "space_id": "cx:space:01space",
-  "entity_type": "task",
-  "facets": {
-    "stateful": {
-      "state_field": "fields.status",
-      "states": ["todo", "in_progress", "review", "done"]
-    },
-    "rankable": {
-      "rank_field": "fields.rank"
-    },
-    "renderable": {
-      "renderers": ["card", "row"],
-      "title_field": "title"
-    }
-  },
-  "title": "Finalize release notes",
+  "anchor_ref": "cx:card:01JS0CD000000000000000000",
+  "include": [
+    "relations",
+    "linked_rooms",
+    "recent_messages",
+    "dependent_cards",
+    "audit_events"
+  ],
+  "authorization": {
+    "locked_room_policy": "lazy_link"
+  }
+}
+```
+
+## 6. Board Projection
+
+### 6.1 概念映射
+
+| 产品概念 | 协议对象 | 说明 |
+| --- | --- | --- |
+| 看板 | `board` | 标准对象，可被引用、授权、讨论和审计。 |
+| 列/泳道 | `list` | Board 内有序容器。 |
+| 卡片 | `card` | 标准工作对象。 |
+| 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=card_id}` | 表示 List 与 Card 的包含关系。 |
+| 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的包含关系。 |
+| Card 讨论 | `Relation{relation_kind="links_room"}` 或 `primary_room` | 不传递权限。 |
+
+### 6.2 Board 不显示全 Space 数据
+
+Board projection MUST NOT 默认显示 Space 中的全部 Card。实现 MUST 按以下顺序确定可见内容：
+
+1. 根据 View query 找到目标 Board。
+2. 查询 `board --contains--> list` 得到列集合。
+3. 查询 `list --contains--> card` 得到候选 Card。
+4. 按 actor 的 Space membership、capability、history visibility、Room/Card access policy 裁剪不可见对象和字段。
+5. 按 List/Card rank 和稳定 tie-break 排序。
+
+不在这些 Relation 下的 Card 仍是协议数据，但不属于该 Board 的默认投影。
+
+在 Board projection 中拖拽或重排对象时，View 只提供交互入口。实际写入 MUST 使用 `cx.card.move`、`cx.card.reorder` 或 `cx.list.reorder`。实现不得把新的列位置只保存到 View layout 或 materialized projection cache 中。
+
+### 6.3 示例 Board / List / Card
+
+```json
+{
+  "id": "cx:board:01board",
+  "type": "board",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "title": "Launch Board",
+  "board_kind": "kanban"
+}
+```
+
+```json
+{
+  "id": "cx:list:01review",
+  "type": "list",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "board_id": "cx:board:01board",
+  "title": "Review",
+  "rank": "mV"
+}
+```
+
+```json
+{
+  "id": "cx:card:01task",
+  "type": "card",
+  "space_id": "cx:space:01JS0SP000000000000000000",
+  "title": "Legal review",
   "fields": {
     "status": "review",
+    "priority": "high",
+    "due_at": "2026-05-01T00:00:00Z"
+  }
+}
+```
+
+### 6.4 Card Move
+
+把 Card 从一个 List 拖到另一个 List SHOULD 产生 `cx.card.move`：
+
+```json
+{
+  "kind": "cx.card.move",
+  "target_ref": "cx:card:01task",
+  "content": {
+    "board_id": "cx:board:01board",
+    "card_id": "cx:card:01task",
+    "from_list_id": "cx:list:01todo",
+    "to_list_id": "cx:list:01review",
     "rank": "mV",
-    "priority": "high"
-  }
-}
-```
-
-字段分组列模型的投影规则：
-
-1. 先执行 `View.query` 得到候选卡片集合。
-2. 对每个卡片读取 `group_by` 指向的字段，例如 `fields.status`。
-3. 字段值匹配 `collection.grouping.lanes[*].key` 的卡片进入对应列。
-4. 字段缺失或值未知时，客户端 SHOULD 放入系统列 `__uncategorized`，或按 View policy 隐藏。
-5. 列内按 `card_order_by` 排序；若排序字段缺失，使用 `nulls` 规则和 timeline tie breaker。
-
-在该模型中，把卡片从 `todo` 拖到 `review` SHOULD 产生 `cx.field_position.move`，使列值和 rank 作为同一次原子位置写入收敛。只使用裸 `cx.entity.update` 会让并发拖拽把不同操作的 `status` 与 `rank` 混合，客户端不得用这种方式表达拖拽语义。
-
-```json
-{
-  "kind": "cx.field_position.move",
-  "content": {
-    "entity_id": "cx:entity:01task",
-    "view_id": "cx:view:01view",
-    "group_by": "fields.status",
-    "to_value": "review",
-    "rank": "mV"
-  }
-}
-```
-
-#### 7.1.3 Collection 列模型
-
-复杂看板 SHOULD 使用 Collection 列模型。此时每一列都是 `Entity{entity_type="collection"}`，适合需要列级权限、列 WIP 限制、列说明、列归档、跨看板复用或列讨论的场景。Collection 模型的 View MUST 显式声明 `collection.grouping.item_relation_kind`；实现不得在 `contains` 与 `belongs_to` 等关系之间本地推断。
-
-示例列 Entity：
-
-```json
-{
-  "id": "cx:entity:01col_review",
-  "type": "entity",
-  "space_id": "cx:space:01space",
-  "entity_type": "collection",
-  "facets": {
-    "container": {
-      "child_facets": {
-        "any": ["stateful", "replyable", "documentable"],
-        "all": ["renderable"]
-      },
-      "relation_kinds": ["contains"],
-      "ordering": {
-        "mode": "relation_rank",
-        "rank_field": "fields.rank",
-        "exclusive_scope": "per_root"
-      },
-      "allowed_renderers": ["card", "row"]
-    },
-    "renderable": {
-      "renderers": ["card", "row"],
-      "title_field": "title"
+    "expected_position": {
+      "list_id": "cx:list:01todo",
+      "rank": "h0",
+      "relation_id": "cx:relation:01old"
     }
-  },
-  "title": "Review",
-  "fields": {
-    "collection_kind": "kanban_column",
-    "wip_limit": 5,
-    "rank": "h0"
   }
 }
 ```
 
-Board 包含列：
+Reducer 语义：
+
+1. 验证 actor 对 board、from list、to list 和 card 的 move/reorder 权限。
+2. 验证 `to_list_id` 属于目标 Board。
+3. 关闭同一 `(board_id, card_id)` 下其他 active list position edge。
+4. 创建或更新 `to_list_id --contains--> card_id` 的 active Relation，并设置 rank。
+5. 对相同 Operation 保持幂等。
+
+### 6.5 Card Reorder
+
+同一 List 内排序 SHOULD 使用 `cx.card.reorder`：
 
 ```json
 {
-  "id": "cx:relation:01board_col",
-  "type": "relation",
-  "space_id": "cx:space:01space",
-  "relation_kind": "contains",
-  "from_entity_id": "cx:entity:01board",
-  "to_entity_id": "cx:entity:01col_review",
-  "fields": {
-    "rank": "h0"
-  }
-}
-```
-
-列包含卡片：
-
-```json
-{
-  "id": "cx:relation:01col_task",
-  "type": "relation",
-  "space_id": "cx:space:01space",
-  "relation_kind": "contains",
-  "from_entity_id": "cx:entity:01col_review",
-  "to_entity_id": "cx:entity:01task",
-  "fields": {
-    "rank": "mV"
-  }
-}
-```
-
-Collection 列模型的投影规则：
-
-1. 从 board 出发查询 `collection.grouping.container_relation_kind` 到 `collection` 的 Relation，得到列集合；缺省 `container_relation_kind` 为 `contains`。
-2. 列按 board->collection Relation 的 `fields.rank` 排序；缺失时按 collection `fields.rank` 和 ID tie breaker。
-3. 对每个 collection 查询 `collection.grouping.item_relation_kind` 到满足 `collection.item_facets` 的 Entity 的 Relation，得到该列卡片。
-4. 卡片按 collection->card Relation 的 `fields.rank` 排序。
-5. 同一张卡片若被多个 active column 包含，reducer MUST 按 Space version 的冲突规则保留一个有效位置，或将其标记为 conflict 交给客户端解决。
-
-在该模型中，把卡片从列 A 拖到列 B SHOULD 产生 relation move 语义，而不是只改 `fields.status`：
-
-```json
-{
-  "kind": "cx.container.move_item",
+  "kind": "cx.card.reorder",
+  "target_ref": "cx:card:01task",
   "content": {
-    "scope_container_id": "cx:entity:01board",
-    "relation_kind": "contains",
-    "entity_id": "cx:entity:01task",
-    "from_container_id": "cx:entity:01col_todo",
-    "to_container_id": "cx:entity:01col_review",
-    "rank": "mV"
+    "board_id": "cx:board:01board",
+    "list_id": "cx:list:01review",
+    "card_id": "cx:card:01task",
+    "rank": "mV",
+    "expected_position": {
+      "rank": "h0",
+      "relation_id": "cx:relation:01pos"
+    }
   }
 }
 ```
 
-`cx.container.move_item` 的 reducer 语义等价于：删除旧 active containment edge，并创建或更新新 containment edge。实现 MUST 保持该操作幂等。具体 payload、并发冲突、重平衡和 CAS 规则见 `operations-sync.md`。
+### 6.6 Board Projection Response
 
-#### 7.1.4 两种列模型的选择
-
-| 场景 | 推荐模型 | 原因 |
-| --- | --- | --- |
-| 普通任务状态流转 | 字段分组列模型 | 数据更简单，跨 list/table/calendar 投影自然。 |
-| 需要列级权限或 WIP limit | Collection 列模型 | 列本身需要成为可授权对象。 |
-| 一张卡片可能进入多个分组视角 | 字段分组列模型 + 多 View | 避免重复 containment。 |
-| 列有讨论、归档、负责人、自动化规则 | Collection 列模型 | 列需要 Entity 能力。 |
-| 从 Trello/Jira 等桥接导入 | Collection 列模型 MAY 更合适 | 外部列通常有自己的 ID 和配置。 |
-
-两种模型 MAY 共存，但同一个 board-rendered collection View MUST 明确 `collection.grouping.mode`。客户端 MUST NOT 同时用 `fields.status` 和 collection containment 推导同一张卡片的主列，除非 View 显式声明冲突解决规则。
-
-#### 7.1.5 标准 Board Collection Projection Response
-
-Index / AppView MAY 为 `View{kind="collection", renderer="board"}` 返回已经物化的 `CollectionProjectionResponse`，并带有看板展示面提示；该响应是派生结果，不是真相源。响应 MUST 能追溯到 `frontier`、View 定义、Entity、Relation 和 reducer profile。
-
-最小响应形状：
+Index / AppView MAY 为 `View{kind="collection", renderer="board"}` 返回已经物化的 `CollectionProjectionResponse`。响应是派生结果，不是真相源。
 
 ```json
 {
-  "projection": "collection",
+  "kind": "collection",
   "renderer": "board",
-  "view_id": "cx:view:01js0vw000000000000000000",
-  "space_id": "cx:space:01js0sp000000000000000000",
-  "frontier": {
-    "state_hash": "sha256:...",
-    "operation_ids": ["cx:operation:01js0qp000000000000000000"]
-  },
+  "view_id": "cx:view:01JS0VW000000000000000000",
+  "frontier": ["cx:event:..."],
   "groups": [
     {
-      "key": "review",
+      "group_id": "cx:list:01review",
       "title": "Review",
-      "rank": "h0",
-      "source": {
-        "model": "field_value",
-        "field": "fields.status",
-        "value": "review"
-      },
+      "rank": "mV",
       "items": [
         {
-          "entity": {
-            "id": "cx:entity:01js0tk000000000000000000",
-            "entity_type": "task",
-            "title": "Finalize release notes"
+          "object": {
+            "id": "cx:card:01task",
+            "type": "card",
+            "title": "Legal review"
           },
           "position": {
-            "model": "field_value",
-            "container_id": "review",
+            "relation_id": "cx:relation:01pos",
             "rank": "mV"
-          }
+          },
+          "linked_rooms": [
+            {
+              "room_id": "cx:room:01review",
+              "visibility": "accessible",
+              "purpose": "review"
+            },
+            {
+              "room_id": "cx:room:01private",
+              "visibility": "locked",
+              "lazy_link": true
+            }
+          ]
         }
-      ],
-      "next_cursor": null,
-      "limited": false
+      ]
     }
   ]
 }
 ```
 
-Projection 规则：
+## 7. Timeline / Chat Projection
 
-1. 每个 `groups[*].items` MUST 使用该 View 的 `collection.item_order_by` 排序。
-2. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、`entity.id`；若这些字段不可得，则使用 `entity.id` 作为最终稳定 tie-break。
-3. 字段分组看板的 `items[*].position.model` MUST 为 `field_value`，并携带 `container_id` 与 `rank`。
-4. Collection 看板的 `items[*].position.model` MUST 为 `relation`，并携带 `scope_container_id`、`container_id`、`relation_kind`、`relation_id` 与 `rank`，以便审计器和客户端把投影位置追溯到 active containment Relation。
-5. 大列 MAY 按列分页；每列的 `next_cursor` 只恢复该列的卡片窗口，不得暗示其他列完整。
-6. `limited=true` 表示该列结果不是完整窗口；客户端 MUST 使用该列 cursor 继续拉取，不得把缺口解释为删除或无权限。
-7. 无权读取的卡片或字段 MUST 被裁剪。除非 Space policy 明确允许泄漏聚合统计，响应 MUST NOT 返回因无权读取而被隐藏的精确数量。
-8. `total_estimate` 若存在，MUST 由 `collection.grouping.hidden_count_policy` 授权。`authorized_estimate` / `authorized_exact` 默认只覆盖权限裁剪后的 visible set，不得包含不可见卡片；只有另有列级聚合授权时，才可返回包含隐藏成员的聚合计数。
+Room chat projection 以 `room_id` 为时间线根，主要返回 Message。
 
-#### 7.1.6 WIP Limit 与列约束
+Card context timeline 可以混合：
 
-`wip_limit` 是列级策略输入，不只是 UI 提示。
+- Card update events
+- linked Room 可见 Message 摘要
+- Relation changes
+- Review / approval notes
+- Run / agent activity
 
-- Reducer enforcement MUST 使用权限裁剪前的 canonical active column membership 计数。`reject` 超限时，`cx.container.move_item` / `cx.field_position.move` MUST 被拒绝；`require_review` 超限时，MUST 进入 proposal / review 路径。
-- board-rendered collection projection MAY 返回 `wip_state`，但普通客户端可见计数 MUST 基于权限裁剪后的 visible items，除非列 policy 明确允许列级聚合计数。
-- 当 canonical WIP 已超限但 actor 无权看到导致超限的卡片时，projection MAY 返回 `wip_state="unknown"` 或 policy 允许的 stripped warning；不得用精确差值泄漏隐藏卡片数量。
+混合 timeline 必须保持每个来源对象的权限裁剪，不能因为进入同一上下文投影而合并权限。
 
-### 7.2 Chat
+## 8. Graph / Tree Projection
 
-Chat 视图的 canonical 输入应是：
+Graph projection 可展开 Card、Morph、Room、Board 等对象之间的 Relation。
 
-- `entity_type = "channel"`
-- `entity_type = "topic"`
-- `entity_type = "message"`
-- Relation `relation_kind = "belongs_to"` / `replies_to` / `mentions`
+去中心化网络中，Space 构成严格权限边界。Index 节点在执行带有 `depth` 的深度查询时，遇到跨 Space 引用 MUST 截断并返回 Lazy Link，不能自动跨 Space 拼接图谱。
 
-### 7.3 Topic
+Lazy Link 示例：
 
-Thread/topic 视图的 canonical 输入应是：
+```json
+{
+  "ref": "cx:card:external_01",
+  "space_id": "cx:space:external",
+  "lazy_link": true,
+  "edge_kind": "references"
+}
+```
 
-- `entity_type = "topic"`
-- `entity_type = "message"`
-- `kind = "attached_to"` / `belongs_to` / `replies_to`
+## 9. 排序与计数
 
-### 7.4 Graph
+排序规则：
 
-Graph 视图的 canonical 输入应是：
+1. 明确 Relation rank 优先。
+2. 无 rank 时使用对象字段排序。
+3. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、对象 id。
 
-- 任意 `entity_type`
-- 一个或多个 `kind`
-- 展开方向与深度
+计数规则：
 
-例如任务依赖图使用 `depends_on`，知识图谱使用 `references` / `derived_from`。
+- 普通客户端可见计数 MUST 基于权限裁剪后的 visible items。
+- 除非 policy 明确允许聚合泄漏，否则不得返回隐藏对象的精确数量。
 
-### 7.5 Tree
-
-Tree 视图的 canonical 输入应是：
-
-- 任意可分层 Entity
-- `contains` 或 `belongs_to` Relation
-- root Entity 与展开深度
-
-## 8. 人类友好性要求
-
-实现 SHOULD 至少保证：
-
-1. 每个核心对象都有默认标题与摘要
-2. task Entity 能自然投影为 card 或 row
-3. message Entity 能自然投影为 timeline bubble 或 row
-4. topic Entity 能自然投影为 forum thread row
-5. memory Entity 能自然投影为 review row 或 graph node
-6. run Entity 能自然投影为 timeline row 或 activity block
-7. notification 能自然投影为 inbox row 或 badge source
-
-## 9. Shared / Private / System
-
-### 9.1 Shared
-
-属于 space，对团队可见。
-
-### 9.2 Private
-
-仅本地保存，或保存在 actor 私有 repo。
-
-### 9.3 System
-
-由协议或产品自动生成，例如：
-
-- Assigned to Me
-- Needs Review
-- Candidate Memories
-- Failed Agent Runs
-- Mentioned Messages
-- Notifications
-- Unread Topics
-
-## 10. 视图权限
-
-创建和修改共享视图应受 capability 控制。
-
-若 view query 命中了用户无权读取的对象，返回结果 MUST 被裁剪。
-
-## 11. 视图退化与兼容
-
-当底层字段或 schema 变化时，view 应优雅退化，而不是破坏数据。
-
-例如：
-
-- 缺少字段时显示 warning
-- 被撤回消息显示 tombstone
-- graph 缺少 relation 时跳过对应边
-
-## 12. 设计决定
+## 10. 设计决定
 
 Contrix v1 固定：
 
-- View 是独立对象
-- Query 先采用结构化 JSON
-- 标准化 `collection/timeline/graph/document/composite` 五个核心 projection family
-- `kanban/chat/forum/thread/inbox/notifications/tree/graph/gantt` 等是展示面 renderer，不是协议根，也不是新的 projection family
-- Shared / private / system 并存
+- View 投影标准对象和 Morph，不再以 Entity 为中心。
+- Board 是标准对象，List 是标准对象，Card 是标准对象。
+- Card 和 Room 可关联，但权限独立。
+- 看板拖拽使用 `cx.card.move` / `cx.card.reorder`。
+- Room chat 使用 `room + message`。
+- Graph / Tree 遇到跨 Space 必须 lazy link。
+- View / Index 输出不得成为真相源。
 
-## 13. 规范性引用
+## 11. 规范性引用
 
-- Query JSON schema 见 `../conformance/query-schema.md`。View query 不得表达绕过 capability 的私有 join，也不得要求客户端解析服务器私有 SQL。
-- 默认 card/chat/thread 展示约定由本文件第 7 节、`conversation-model.md` 和 `object-model-standard.md` 固定。展示字段只是 UI hint，不能扩大读取权限。
-- System view 生成规则必须由客户端或 Index 从 signed Event、read marker、notification rule 和 local account state 派生；system view 不得创建新的协议真相。
+- Query JSON schema 见 `../conformance/query-schema.md`。
+- Room / Message 规则见 `conversation-model.md`。
+- Board / List / Card / Morph 标准对象见 `object-model-standard.md`。
+- View 展示字段只是 UI hint，不能扩大读取权限。

@@ -68,7 +68,7 @@ Client MUST verify signature and `state_hash` before using snapshot.
   "space_id": "cx:space:01JS0SP000000000000000000",
   "epoch": 42,
   "cleartext_metadata": {
-    "entity_id": "cx:entity:...",
+    "object_ref": "cx:message:...",
     "event_type": "cx.message.create"
   },
   "ciphertext": "base64url...",

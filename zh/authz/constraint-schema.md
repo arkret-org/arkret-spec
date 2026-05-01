@@ -26,8 +26,8 @@
 |----------|------|------|
 | `temporal` | 基于时间的约束 | v1 |
 | `field_access` | 字段级读写控制 | v1 |
-| `type_restriction` | 实体类型限制 | v1 |
-| `scope_limitation` | Space/channel/view 范围 | v1 |
+| `type_restriction` | 对象类型限制 | v1 |
+| `scope_limitation` | Space/Room/Board/Card/View 范围 | v1 |
 | `delegation_control` | 委托深度和路径 | v1 |
 | `rate_limiting` | 操作频率限制 | v1 |
 | `approval_workflow` | 审批要求 | v1 |
@@ -77,7 +77,7 @@
   "scope": "write",
   "fields": ["title", "body", "fields.status"],
   "condition": {
-    "when": "entity_is_owned_by_actor"
+    "when": "object_is_owned_by_actor"
   }
 }
 ```
@@ -108,19 +108,20 @@
 
 ## 5. 类型限制
 
-### 5.1 实体能力 / 类型允许列表
+### 5.1 对象能力 / 类型允许列表
 
 ```json
 {
   "constraint_type": "type_restriction",
   "effect": "allow",
-  "entity_facet_allow": ["stateful", "replyable", "documentable"],
-  "entity_type_allow": ["task", "message", "document"],
-  "entity_type_deny": ["run", "memory"]
+  "object_type_allow": ["card", "message", "morph"],
+  "morph_type_allow": ["document", "run", "memory"],
+  "facet_allow": ["stateful", "replyable", "documentable"],
+  "morph_type_deny": ["credential"]
 }
 ```
 
-`entity_type_allow` 只按语义标签收窄范围，不赋予能力。新 profile SHOULD 用 `entity_facet_allow` 约束可操作对象能力，再用 `entity_type_allow` 作为可选细分过滤。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`facet_allow` 只表达能力 mixin；Morph 语义 SHOULD 通过 `morph_type_allow` 继续细分。
 
 ### 5.2 Memory 类型限制
 
@@ -134,16 +135,16 @@
 
 ## 6. 范围限制
 
-### 6.1 Channel 限制
+### 6.1 Room 限制
 
 ```json
 {
   "constraint_type": "scope_limitation",
-  "allowed_channel_refs": [
-    "cx:channel:01JS0CH000000000000000000"
+  "allowed_room_refs": [
+    "cx:room:01JS0ROOM000000000000000"
   ],
-  "denied_channel_refs": [
-    "cx:channel:01JS0CH999999999999999999"
+  "denied_room_refs": [
+    "cx:room:01JS0ROOM999999999999999"
   ]
 }
 ```
@@ -167,13 +168,13 @@
   "constraint_type": "container_move",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
-  "allowed_from_container_refs": ["cx:entity:01js0c1000000000000000000"],
-  "allowed_to_container_refs": ["cx:entity:01js0c2000000000000000000"],
+  "allowed_from_container_refs": ["cx:list:01js0c1000000000000000000"],
+  "allowed_to_container_refs": ["cx:list:01js0c2000000000000000000"],
   "wip_limit_override": false
 }
 ```
 
-`container_move` MUST 在授权判定中早于 operation 生效。目标列禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.container.move_item` / `cx.field_position.move` 不得直接生效。
+`container_move` MUST 在授权判定中早于 operation 生效。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.card.move` / `cx.container.move_item` 不得直接生效。
 
 ## 7. 委托控制
 
@@ -219,7 +220,7 @@
 {
   "constraint_type": "rate_limiting",
   "max_resources": 1000,
-  "resource_type": "entity",
+  "resource_type": "object",
   "period": "24h",
   "scope": "per_space"
 }
@@ -249,7 +250,7 @@
 {
   "constraint_type": "approval_workflow",
   "approval_mode": "proposal_then_approve",
-  "proposal_entity_type": "proposal",
+  "proposal_morph_type": "proposal",
   "approval_threshold": "majority|unanimous|quorum",
   "approvers": [
     "did:web:approver1.example.com",
@@ -515,12 +516,12 @@ function matches_field_access(operation, constraint):
 {
   "grant_id": "cx:grant:...",
   "subject": "did:web:agent.example.com",
-  "actions": ["read", "create_entity", "write_memory"],
+  "actions": ["read", "card.create", "memory.write"],
   "resources": [
     {
-      "kind": "entity",
+      "kind": "card",
       "space_id": "cx:space:...",
-      "entity_type": "task"
+      "card_id": "*"
     }
   ],
   "constraints": [

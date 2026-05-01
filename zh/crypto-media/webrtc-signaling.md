@@ -44,14 +44,14 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 默认多人会议 SHOULD 使用 SFU。
 
-## 4. Call Entity
+## 4. Call Morph
 
-会议或通话 SHOULD 用标准 Entity 表示：
+会议或通话 SHOULD 用标准 Morph 表示：
 
 ```json
 {
-  "type": "entity",
-  "entity_type": "call",
+  "type": "morph",
+  "morph_type": "call",
   "space_id": "cx:space:...",
   "title": "Design review",
   "fields": {
@@ -446,7 +446,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 - 客户端 MUST 对所有参会者显示录制中。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
 - 录制结果 MUST 通过 `cx.call.recording.result` 引用 blob hash、duration、media type、retention policy。
-- 转写需要 `call.transcribe`，转写文本应作为 Entity 或 Artifact，并遵守同一 Space policy。
+- 转写需要 `call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Space policy。
 
 ## 14. 推送集成
 

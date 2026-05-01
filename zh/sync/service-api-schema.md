@@ -152,15 +152,18 @@ paths:
   /index/describe:
     get:
       operationId: cx.index.describe
-  /index/entity:
+  /index/object:
     get:
-      operationId: cx.index.get_entity
+      operationId: cx.index.get_object
   /index/query:
     post:
       operationId: cx.index.query
-  /index/thread:
+  /index/room-timeline:
     get:
-      operationId: cx.index.thread
+      operationId: cx.index.room_timeline
+  /index/card-discussions:
+    get:
+      operationId: cx.index.card_discussions
   /index/notifications:
     get:
       operationId: cx.index.notifications

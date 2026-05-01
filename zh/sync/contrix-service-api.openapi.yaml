@@ -195,17 +195,17 @@ components:
         direction:
           type: string
           enum: [out, in, both]
-        source_entity_id:
+        source_ref:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+          pattern: "^(cx:(space|room|board|list|card|message|morph|relation):[0-9a-hjkmnp-z]{26}|did:.+)$"
         source_actor_id:
           type: string
         source_space_id:
           type: string
           pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
-        target_entity_id:
+        target_ref:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+          pattern: "^(cx:(space|room|board|list|card|message|morph|relation):[0-9a-hjkmnp-z]{26}|did:.+)$"
         target_actor_id:
           type: string
         target_space_id:
@@ -218,11 +218,11 @@ components:
       allOf:
         - not:
             anyOf:
-              - required: [source_entity_id, source_actor_id]
-              - required: [source_entity_id, source_space_id]
+              - required: [source_ref, source_actor_id]
+              - required: [source_ref, source_space_id]
               - required: [source_actor_id, source_space_id]
-              - required: [target_entity_id, target_actor_id]
-              - required: [target_entity_id, target_space_id]
+              - required: [target_ref, target_actor_id]
+              - required: [target_ref, target_space_id]
               - required: [target_actor_id, target_space_id]
       additionalProperties: false
     FacetName:
@@ -279,7 +279,13 @@ components:
             - composite
         renderer:
           $ref: "#/components/schemas/ViewRenderer"
-        entity_types:
+        object_types:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          minItems: 1
+        morph_types:
           type: array
           items:
             type: string
@@ -337,6 +343,196 @@ components:
             required: [projection]
           then:
             required: [view_id]
+    ObjectRef:
+      type: string
+      pattern: "^cx:(space|room|board|list|card|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$"
+    IndexDescribeResponse:
+      type: object
+      required: [service_did, reducer_profiles, schema_profiles, query_features]
+      properties:
+        service_did:
+          type: string
+        reducer_profiles:
+          type: array
+          items:
+            type: string
+        schema_profiles:
+          type: array
+          items:
+            type: string
+        query_features:
+          type: array
+          items:
+            type: string
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+      additionalProperties: false
+    ObjectLookupResponse:
+      type: object
+      required: [object, visibility]
+      properties:
+        object:
+          $ref: "#/components/schemas/ProjectionObject"
+        state_after:
+          $ref: "#/components/schemas/StateFrontier"
+        visibility:
+          type: string
+          enum: [visible, redacted, partial]
+      additionalProperties: false
+    RoomTimelineResponse:
+      type: object
+      required: [entries]
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimelineProjectionEntry"
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectionObject"
+        next_cursor:
+          type: string
+        state_after:
+          $ref: "#/components/schemas/StateFrontier"
+      additionalProperties: false
+    CardDiscussion:
+      type: object
+      required: [room]
+      properties:
+        room:
+          $ref: "#/components/schemas/ProjectionObject"
+        relation:
+          type: object
+        summary:
+          type: object
+        unread:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+    CardDiscussionsResponse:
+      type: object
+      required: [rooms]
+      properties:
+        rooms:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardDiscussion"
+        summaries:
+          type: object
+        next_cursor:
+          type: string
+        state_after:
+          $ref: "#/components/schemas/StateFrontier"
+      additionalProperties: false
+    NotificationIndexResponse:
+      type: object
+      required: [notifications]
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: ../schemas/notification.schema.json
+        counts:
+          type: object
+        next_cursor:
+          type: string
+      additionalProperties: false
+    InboxResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectionItem"
+        next_cursor:
+          type: string
+        frontier:
+          $ref: "#/components/schemas/StateFrontier"
+      additionalProperties: false
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+        space_ids:
+          type: array
+          items:
+            type: string
+            pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        object_types:
+          type: array
+          items:
+            type: string
+        morph_types:
+          type: array
+          items:
+            type: string
+        time_range:
+          type: object
+        cursor:
+          type: string
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      additionalProperties: false
+    SearchResult:
+      type: object
+      required: [object]
+      properties:
+        object:
+          $ref: "#/components/schemas/ProjectionObject"
+        score:
+          type: number
+        highlights:
+          type: array
+          items:
+            type: object
+      additionalProperties: false
+    SearchResponse:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResult"
+        next_cursor:
+          type: string
+        total_estimate:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+    SpaceHierarchyResponse:
+      type: object
+      required: [root, children, edges]
+      properties:
+        root:
+          $ref: "#/components/schemas/ProjectionObject"
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectionObject"
+        edges:
+          type: array
+          items:
+            type: object
+            required: [parent_ref, child_ref]
+            properties:
+              parent_ref:
+                $ref: "#/components/schemas/ObjectRef"
+              child_ref:
+                $ref: "#/components/schemas/ObjectRef"
+              relation_kind:
+                type: string
+            additionalProperties: false
+        next_cursor:
+          type: string
+      additionalProperties: false
     StateFrontier:
       type: object
       required: [state_hash]
@@ -397,10 +593,10 @@ components:
           const: relation_container
         scope_container_id:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$"
         container_id:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$"
         relation_kind:
           type: string
           minLength: 1
@@ -467,10 +663,10 @@ components:
           const: relation
         scope_container_id:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$"
         container_id:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$"
         relation_kind:
           type: string
           minLength: 1
@@ -674,16 +870,18 @@ components:
         - required: [groups]
         - required: [items]
       additionalProperties: false
-    ProjectionEntity:
+    ProjectionObject:
       type: object
-      required: [id, entity_type]
+      required: [id, type]
       properties:
         id:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
-        entity_type:
+          pattern: "^cx:(space|room|board|list|card|message|morph):[0-9a-hjkmnp-z]{26}$"
+        type:
           type: string
-          minLength: 1
+          enum: [space, room, board, list, card, message, morph]
+        morph_type:
+          type: string
         facets:
           type: array
           items:
@@ -696,10 +894,10 @@ components:
       additionalProperties: false
     ProjectionItem:
       type: object
-      required: [entity]
+      required: [object]
       properties:
-        entity:
-          $ref: "#/components/schemas/ProjectionEntity"
+        object:
+          $ref: "#/components/schemas/ProjectionObject"
         render:
           type: string
           enum: [card, row, tile, compact, badge, message]
@@ -734,8 +932,8 @@ components:
         event_id:
           type: string
           pattern: "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$"
-        entity:
-          $ref: "#/components/schemas/ProjectionEntity"
+        object:
+          $ref: "#/components/schemas/ProjectionObject"
         actor_id:
           type: string
         created_at:
@@ -747,7 +945,7 @@ components:
           minLength: 1
         thread_id:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(room|message):[0-9a-hjkmnp-z]{26}$"
         body:
           type: object
         redacted:
@@ -786,10 +984,10 @@ components:
       additionalProperties: false
     GraphProjectionNode:
       type: object
-      required: [entity, depth]
+      required: [object, depth]
       properties:
-        entity:
-          $ref: "#/components/schemas/ProjectionEntity"
+        object:
+          $ref: "#/components/schemas/ProjectionObject"
         depth:
           type: integer
           minimum: 0
@@ -800,7 +998,7 @@ components:
       additionalProperties: false
     GraphProjectionEdge:
       type: object
-      required: [relation_id, relation_kind, from_entity_id, to_entity_id]
+      required: [relation_id, relation_kind, from_ref, to_ref]
       properties:
         relation_id:
           type: string
@@ -808,12 +1006,12 @@ components:
         relation_kind:
           type: string
           minLength: 1
-        from_entity_id:
+        from_ref:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
-        to_entity_id:
+          pattern: "^(cx:(space|room|board|list|card|message|morph):[0-9a-hjkmnp-z]{26}|did:.+)$"
+        to_ref:
           type: string
-          pattern: "^cx:entity:[0-9a-hjkmnp-z]{26}$"
+          pattern: "^(cx:(space|room|board|list|card|message|morph):[0-9a-hjkmnp-z]{26}|did:.+)$"
         rank:
           type: string
           pattern: "^[0-9A-Za-z]{1,128}$"
@@ -857,10 +1055,10 @@ components:
       additionalProperties: false
     DocumentProjectionSection:
       type: object
-      required: [entity, sort_key]
+      required: [object, sort_key]
       properties:
-        entity:
-          $ref: "#/components/schemas/ProjectionEntity"
+        object:
+          $ref: "#/components/schemas/ProjectionObject"
         sort_key:
           type: string
           minLength: 1
@@ -1170,6 +1368,41 @@ paths:
             application/json:
               schema:
                 type: object
+  /index/describe:
+    get:
+      operationId: cx.index.describe
+      responses:
+        "200":
+          description: Index service capabilities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndexDescribeResponse"
+  /index/object:
+    get:
+      operationId: cx.index.get_object
+      parameters:
+        - in: query
+          name: ref
+          required: true
+          schema:
+            $ref: "#/components/schemas/ObjectRef"
+        - in: query
+          name: space_id
+          schema:
+            type: string
+            pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        - in: query
+          name: at
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Object lookup result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ObjectLookupResponse"
   /index/query:
     post:
       operationId: cx.index.query
@@ -1192,6 +1425,153 @@ paths:
                   - $ref: "#/components/schemas/GraphProjectionResponse"
                   - $ref: "#/components/schemas/DocumentProjectionResponse"
                   - $ref: "#/components/schemas/CompositeProjectionResponse"
+  /index/room-timeline:
+    get:
+      operationId: cx.index.room_timeline
+      parameters:
+        - in: query
+          name: room_id
+          required: true
+          schema:
+            type: string
+            pattern: "^cx:room:[0-9a-hjkmnp-z]{26}$"
+        - in: query
+          name: cursor
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+      responses:
+        "200":
+          description: Room timeline entries visible to the caller
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomTimelineResponse"
+  /index/card-discussions:
+    get:
+      operationId: cx.index.card_discussions
+      parameters:
+        - in: query
+          name: card_id
+          required: true
+          schema:
+            type: string
+            pattern: "^cx:card:[0-9a-hjkmnp-z]{26}$"
+        - in: query
+          name: cursor
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+      responses:
+        "200":
+          description: Rooms linked to a Card with independently authorized discussion summaries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardDiscussionsResponse"
+  /index/notifications:
+    get:
+      operationId: cx.index.notifications
+      parameters:
+        - in: query
+          name: cursor
+          schema:
+            type: string
+        - in: query
+          name: state
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+      responses:
+        "200":
+          description: Principal-private notification projection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationIndexResponse"
+  /index/inbox:
+    get:
+      operationId: cx.index.inbox
+      parameters:
+        - in: query
+          name: scope
+          schema:
+            type: string
+        - in: query
+          name: cursor
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+      responses:
+        "200":
+          description: Principal-private inbox projection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InboxResponse"
+  /index/search:
+    post:
+      operationId: cx.index.search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: Search result over authorized visible content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+  /index/space-hierarchy:
+    get:
+      operationId: cx.index.space_hierarchy
+      parameters:
+        - in: query
+          name: space_id
+          required: true
+          schema:
+            type: string
+            pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        - in: query
+          name: depth
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 32
+        - in: query
+          name: include_unconfirmed
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Discoverable Space hierarchy projection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceHierarchyResponse"
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle

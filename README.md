@@ -1,7 +1,7 @@
 # Contrix Spec
 
 - 中文版本: [zh/README.md](./zh/README.md)
-- English version: [en/README.md](./en/README.md)
+- English version: [en/README.md](./en/README.md)（当前英文翻译在 2026-05 对象模型重构后已标记为 stale；以 `zh/` 与 `artifacts/` 为准）
 
 ## Structure
 

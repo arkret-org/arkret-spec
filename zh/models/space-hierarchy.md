@@ -17,7 +17,7 @@ Contrix 支持 Space 之间形成层级或图状组织，用于表达组织、�
 
 ## 3. 标准关系
 
-Space 层级使用 state event 表达，而不是普通 Entity relation。
+Space 层级使用 state event 表达，而不是普通对象 Relation。
 
 Parent 侧声明：
 
@@ -121,7 +121,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
     "source_grant": "cx:grant:parent_viewer",
     "source_space_id": "cx:space:parent_01",
     "target_space_id": "cx:space:child_01",
-    "actions": ["space.read", "entity.read"],
+    "actions": ["space.read", "object.read"],
     "constraints": {
       "expires_at": "2026-05-01T00:00:00Z",
       "inherited_depth": 1
@@ -223,7 +223,7 @@ GET /api/v1/index/space-hierarchy?space_id=<id>&depth=2&include_unconfirmed=fals
 规则：
 
 - Index MUST 对每个 child 独立检查 read capability。
-- 无权限 child 只能返回 `space_id`、`edge_state` 和 `lazy_link=true`，不得泄露名称、成员、topic、消息摘要或统计。
+- 无权限 child 只能返回 `space_id`、`edge_state` 和 `lazy_link=true`，不得泄露名称、成员、Room/Card 摘要、消息摘要或统计。
 - `depth` MUST 有服务端上限。
 - 遍历时发现 cycle，MUST 截断并返回 `cycle_detected=true`。
 - Sync 不得默认订阅所有 descendants。客户端必须显式设置 `include_descendants` 或列出 child space ids。
@@ -251,7 +251,7 @@ Parent archive / tombstone 不自动 archive child。Child archive / tombstone �
 
 ## 13. Applet and Portal Spaces
 
-Portal Space MAY 被挂在组织、项目或频道 Space 下。Applet registration 的 namespace 命中不等于 parent Space 权限。
+Portal Space MAY 被挂在组织、项目或 Room-oriented Space 下。Applet registration 的 namespace 命中不等于 parent Space 权限。
 
 Applet 对 child Portal Space 写入仍需：
 
@@ -265,6 +265,6 @@ Applet 对 child Portal Space 写入仍需：
 Contrix 的 Space hierarchy 借鉴 Matrix `m.space.child` / `m.space.parent` 的双向确认经验，但区别是：
 
 - Contrix Space 是权限和对象图边界，不只是 room directory。
-- Entity / Relation 仍然承载业务对象层级，不应把所有对象拆成子 Space。
+- Room / Board / List / Card / Message / Morph / Relation 仍然承载业务对象层级，不应把所有对象拆成子 Space。
 - 权限和加密默认不继承。
 - 跨 Space 深度查询必须 Lazy Link，不能自动拼接泄露。

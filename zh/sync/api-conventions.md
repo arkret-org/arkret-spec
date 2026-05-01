@@ -132,7 +132,7 @@ API 调用 SHOULD 使用以下方式之一：
   "ok": false,
   "error": {
     "code": "capability_denied",
-    "message": "actor does not have entity.update on this task",
+    "message": "actor does not have card.update on this card",
     "retry_after_ms": null,
     "details": {}
   },

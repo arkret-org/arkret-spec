@@ -19,8 +19,9 @@
     "expires_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
     "fields_write_allow": { "type": "array", "items": { "type": "string" } },
     "fields_write_deny": { "type": "array", "items": { "type": "string" } },
-    "allowed_entity_types": { "type": "array", "items": { "type": "string" } },
-    "allowed_entity_facets": {
+    "allowed_object_types": { "type": "array", "items": { "type": "string" } },
+    "allowed_morph_types": { "type": "array", "items": { "type": "string" } },
+    "allowed_facets": {
       "type": "array",
       "items": {
         "type": "string",
@@ -33,8 +34,8 @@
     },
     "allowed_view_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$" } },
     "relation_kind_allow": { "type": "array", "items": { "type": "string" } },
-    "allowed_from_container_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$" } },
-    "allowed_to_container_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$" } },
+    "allowed_from_container_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$" } },
+    "allowed_to_container_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$" } },
     "wip_limit_override": { "type": "boolean", "default": false },
     "denied_view_kinds": { "type": "array", "items": { "type": "string" } },
     "max_delegation_depth": { "type": "integer", "minimum": 0 },

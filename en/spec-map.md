@@ -1,5 +1,8 @@
 # Spec Map
 
+> Status: this English draft is stale after the 2026-05 object model refactor.
+> Use `../zh/` and `../artifacts/` as the current normative protocol text until the English translation is regenerated.
+
 ## 1. Objective
 
 This is the protocol reading entrypoint for the English draft. It is organized by protocol planes to prevent getting lost in a long list of standalone files.

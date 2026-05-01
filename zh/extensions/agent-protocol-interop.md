@@ -28,7 +28,7 @@ Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 
 
 - 需要强审计和长期可验证协作历史。
 - 需要 Space membership / capability / policy 逐事件判定。
-- 需要 Entity / Relation / View 与人类 UI 紧密联动。
+- 需要 Card / Morph / Relation / View 与人类 UI 紧密联动。
 - 任务结果需要被人类审阅、批准、撤回或归档。
 - 对端 agent 不可信、不可发现或没有受支持协议。
 - E2EE / 合规 / policy server 要求所有步骤进入 Space 账本。
@@ -89,7 +89,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "actor_id": "did:uuid:requesting_agent",
   "content": {
     "session_id": "cx:agent_session:01J...",
-    "task_entity_id": "cx:entity:task_01",
+    "task_card_id": "cx:card:task_01",
     "counterparty_agent": "did:uuid:remote_agent",
     "protocol": "a2a",
     "protocol_version": "1.x",
@@ -149,7 +149,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
     "artifacts": [
       {
         "artifact_type": "text",
-        "entity_id": "cx:entity:result_doc",
+        "object_ref": "cx:morph:result_doc",
         "hash": "sha256:..."
       }
     ],
@@ -159,19 +159,19 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 }
 ```
 
-大型结果 SHOULD 存为 Entity / Blob / Artifact，并在 result event 中引用 hash。
+大型结果 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
 
 ## 6. 协商流程
 
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
-2. Requesting agent 在 Contrix 中创建或选择 task Entity。
+2. Requesting agent 在 Contrix 中创建或选择任务 Card，或选择可承载任务语义的 Morph。
 3. Requesting agent 检查自己是否拥有 `agent.protocol_session.start` capability。
 4. Policy server MAY 检查目标 endpoint、数据分类、跨域、E2EE 边界和外发风险。
 5. Requesting agent 提交 `cx.agent.protocol_session.start`。
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。
 8. 结果、artifact、transcript hash、错误或取消原因回写 Contrix。
-9. Reducer 将 task / run / memory / notification 更新为最终状态。
+9. Reducer 将 Card / run / memory / notification 更新为最终状态。
 
 ## 7. Capability
 

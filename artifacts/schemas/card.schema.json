@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/card.schema.json",
+  "title": "Contrix Card",
+  "type": "object",
+  "required": ["id", "type", "schema", "space_id", "board_id", "list_id", "created_by", "created_at"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
+    "type": { "const": "card" },
+    "schema": { "const": "cx.schema.card.v1" },
+    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "board_id": { "type": "string", "pattern": "^cx:board:[0-9a-hjkmnp-z]{26}$" },
+    "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },
+    "title": { "type": "string" },
+    "summary": { "type": "string" },
+    "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
+    "fields": { "type": "object" },
+    "created_by": { "$ref": "#/$defs/did" },
+    "created_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  },
+  "additionalProperties": true
+}

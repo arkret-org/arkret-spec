@@ -147,7 +147,7 @@ Profile 的变更通过 `cx.profile.update` 操作提交到 Actor 的 Repo：
   "type": "cx.typing",
   "actor": "did:web:alice.example.com",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "topic_id": "cx:topic:01JS1000000000000000000001",
+  "room_id": "cx:room:01JS1000000000000000000001",
   "typing": true,
   "ttl_ms": 5000
 }

@@ -19,32 +19,40 @@
 | Official Space | 官方空间 | 由 Organization DID 直接创建，或被 active `cx.space.organization` state event 背书且 `scope.official=true` 的 Space。名称、域名、服务器托管方或成员列表不能单独证明官方性。 |
 | Space Hierarchy | 空间层级 | Space 之间的 parent/child 组织关系，用于导航、发现和受控继承；不默认级联权限、成员、历史或加密。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、父 Space、组织页、精确链接或邀请发现的策略；不等于 join rule、read permission 或 history visibility。 |
-| Entity | 实体 | 所有协作对象的统一载体，例如 task、message、topic、board、memory、run、file、profile。 |
-| Relation | 关系 | Entity / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件等语义。 |
+| Room | 房间 | Space 内的一等会话容器，用于承载 Message、成员状态、历史可见性、通知和 E2EE epoch。Room 可以被 Card 链接，但权限和成员独立。 |
+| Board | 看板 | Space 内的一等工作组织对象，包含多个 List；Board 是协议对象，不只是 View 投影。 |
+| List | 列表 | Board 下的一等有序分组对象，通常包含多个 Card，并维护局部排序与归档状态。 |
+| Card | 卡片 | Board/List 下的一等工作项、主题项或可推进对象。Card 可链接零到多个 Room，但不继承或控制这些 Room 的成员。 |
+| Message | 消息 | Room 内的一等会话内容对象。Message 归属某个 Room，不是 Space 的唯一事实根。 |
+| Morph | 开放对象 | 可由 `facets` 扩展字段和能力的开放对象。Morph 用于 task 之外的新类型、实验类型、集成对象和领域对象，不替代 Room/Board/List/Card/Message 的主语义。 |
+| Facet | 能力切面 | Morph 或支持扩展的标准对象上声明的能力 mixin，例如 assignable、schedulable、replyable、documentable。Facet 不是对象身份。 |
+| Relation | 关系 | Room / Board / List / Card / Message / Morph / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件、Card linked Room 等语义。 |
 | Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 repo、sync、index 和 reducer。 |
 | State Event | 状态事件 | 带 `state_key` 的 Event，当前状态由 `(type, state_key)` 归约得到，例如 membership、policy、schema、view definition。 |
-| View | 视图 | 对 Entity / Relation / Event 的投影定义，例如 kanban、table、calendar、chat、thread、graph、review queue。View 不拥有真相数据。 |
+| View | 视图 | 对标准对象 / Morph / Relation / Event 的投影定义，例如 kanban、table、calendar、chat、thread、graph、review queue。View 拥有自己的定义真相（query、filter、sort、renderer、layout、visible fields），但不拥有被投影对象的协作事实。 |
 | Projection | 投影 | Index 或客户端根据 View / query / reducer 从 canonical Event 集合派生出的展示或查询结果。 |
-| Schema | 模式 | 对 Entity、Relation、Event、View 或 service payload 的结构约束。 |
+| Schema | 模式 | 对标准对象、Morph、Relation、Event、View 或 service payload 的结构约束。 |
 | Policy | 策略 | Space 或服务级治理规则，例如加入规则、历史可见性、媒体规则、审核策略、policy server 配置。 |
 | Moderation Policy | 审核策略 | Space 或 Organization 发布的黑名单、允许列表、过滤、隔离、审核队列和上诉规则。它是 deny/quarantine 层，不创建 capability。 |
 | Personal Blocklist | 个人屏蔽列表 | Actor 私有的屏蔽与过滤规则，存储在本地或加密 Account Repo 中，只影响个人客户端体验和通知/联系请求处理。 |
 
-## 3. 标准语义类型
+## 3. 标准对象与语义类型
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Board | 看板 | 由 Entity、Relation 和 `kind="collection", renderer="board"` 的 View 投影出的工作管理界面，不是协议根对象。 |
-| Task | 任务 | 标准 Entity 语义标签，用于表达待办、状态、负责人、截止时间、依赖和讨论关系；可拖拽、排期、回复等能力必须由 facets 声明。 |
-| Channel | 频道 | 标准 Entity 语义标签，用于承载长期消息流或话题集合；时间线和通知能力由 facets / profile 声明。 |
-| Topic | 话题 | 标准 Entity 语义标签，用于论坛式或线程式讨论，可挂接到 task、memory、run 等对象；回复能力由 facets / profile 声明。 |
-| Message | 消息 | 标准 Entity 语义标签，用于会话内容。消息仍是 Entity，不是协议唯一事实根；展示与通知能力由 facets / profile 声明。 |
-| Memory | 记忆 | 标准 Entity 语义标签，用于 agent 或人类确认的长期知识、事实、偏好或上下文。 |
-| Run | 运行记录 | 标准 Entity 语义标签，用于记录 agent、自动化或工具执行过程。 |
-| Agent Protocol Session | Agent 协议会话 | Contrix 任务显式切换到 A2A、ACP 或其他外部 agent protocol 执行时登记的受控会话。 |
-| Mention | 提及 | 对 Actor 或 Entity 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
-| Reaction | 反应 | 对目标 Entity/Event 的轻量语义反馈，通常通过 Relation 或标准 reaction event 表达。 |
-| Social Post | 社交发布 | 标准 Entity 语义标签，用于个人、组织或社区 feed 中的发布内容；可公开、受众受限或私有。 |
+| Standard Object | 标准对象 | 协议直接定义主语义、授权和 reducer 的对象类型，包括 Space、Actor Profile、Room、Board、List、Card、Message、Relation、Event、View、Policy 等。 |
+| Open Object | 开放对象 | `Morph` 的语义别名，强调对象类型可由 schema、facets 和应用 profile 扩展。 |
+| Task | 任务 | 常见 Card 语义或 Morph 类型，用于表达待办、状态、负责人、截止时间、依赖和讨论关系。若需要看板拖拽，应建模为 Card；若只是领域对象，可建模为 Morph。 |
+| Topic | 主题 | 常见 Card 语义或 Room 组织方式。需要推进、状态和列表位置时用 Card；需要持续会话时用 Room。 |
+| Thread | 线程 | Message 的回复链或 Room 内局部会话投影，不是独立权限边界。 |
+| Document | 文档 | 标准对象或 Morph 类型，用于结构化长文、页面、规范、笔记。是否可评论、可审阅、可版本化由对象类型和 facets 决定。 |
+| File | 文件 | Blob metadata 与可见性策略的对象化表示，可作为 Morph 或标准 file profile 实现。 |
+| Memory | 记忆 | Morph 类型或扩展 profile，用于 agent 或人类确认的长期知识、事实、偏好或上下文。 |
+| Run | 运行记录 | Morph 类型或扩展 profile，用于记录 agent、自动化或工具执行过程。 |
+| Agent Protocol Session | Agent 协议会话 | Card、Morph 或 Run 显式切换到 A2A、ACP 或其他外部 agent protocol 执行时登记的受控会话。 |
+| Mention | 提及 | 对 Actor、Room、Board、List、Card、Message、Morph 或 Space 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
+| Reaction | 反应 | 对目标 Message、Card、Morph、Event 或其他对象的轻量语义反馈，通常通过 Relation 或标准 reaction event 表达。 |
+| Social Post | 社交发布 | Morph 类型或扩展 profile，用于个人、组织或社区 feed 中的发布内容；可公开、受众受限或私有。 |
 | Social Feed | 社交时间线 | 个人主页、组织公告、项目动态或关注流的发布入口/投影源；本身不替代 Repo 或 Space。 |
 | Social Circle | 社交圈 | 发布者维护的受众集合，例如朋友圈、亲友圈、内部成员圈；成员列表默认私有或受限可见。 |
 | Audience Policy | 受众策略 | 定义 post/feed 的可读、可回复、可转发、可索引和受众快照规则。 |
@@ -77,7 +85,7 @@
 | Delegation | 委托 | 一个主体把有限 capability 委托给另一个主体、设备、agent 或 Applet。 |
 | Derived Grant | 派生授权 | 由 Space 层级继承机制自动从父 Space grant 派生出的子 Space grant，受 `inherited_depth` 和继承策略约束。 |
 | Revocation | 撤销 | 使 grant、device、session 或 delegation 在其因果后继中失效的事件或状态。 |
-| Constraint | 约束 | capability 的使用条件，例如时间、Space、Entity、字段、设备、速率、审批、Applet namespace。 |
+| Constraint | 约束 | capability 的使用条件，例如时间、Space、Room、Board、Card、Morph、字段、设备、速率、审批、Applet namespace。 |
 | Condition Selector | 条件选择器 | 以可验证属性匹配主体的授权 subject，例如“某组织当前成员”。 |
 | Accountable Actor | 可追责行为者 | 有直接身份但需要 responsible、guardian 或 controller 的 Actor，例如 agent、未成年人、托管账号。 |
 | Responsible Party | 责任主体 | 对 accountable actor 行为承担责任的 principal。 |
@@ -205,7 +213,7 @@
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Canonical JSON | 规范 JSON | 用于 hash 和 signature 的确定性 JSON 编码规则。 |
-| Canonical Object | 规范对象 | 持久化、可签名、可审计的协议对象（如 Entity、Relation、Event、View、Policy），区别于传输信封或投影结果。 |
+| Canonical Object | 规范对象 | 持久化、可签名、可审计的协议对象（如 Room、Board、Card、Message、Morph、Relation、Event、View、Policy），区别于传输信封或投影结果。 |
 | ULID | 通用排序唯一标识符 | Universally Unique Lexicographically Sortable Identifier，Crockford Base32 编码，用于 Contrix ID 的排序部分。 |
 | 3PID | 第三方标识 | Third-party Identifier，如邮箱、手机号，用于邀请和身份关联。 |
 | Multihash | 多哈希 | 携带哈希算法标识的内容哈希编码。 |
@@ -249,8 +257,8 @@
 | Discoverability 与 History Visibility | Discoverability 不授予历史读取；公开可搜索的 Space 不等于 `world_readable`。 |
 | Follow 与 Contact/Circle | Follow 是订阅关系，通常单向；Contact 是联系人关系；Circle 是发布者私有或受限的受众集合，不能互相等同。 |
 | Public Feed 与 Circle Feed | Public Feed 面向公开索引和广播；Circle Feed 必须按 Audience Policy 授权，不能只靠 UI 隐藏。 |
-| Entity 与 Event | Entity 是协作对象；Event 是事实和变更记录。 |
-| Relation 与 View | Relation 是一等语义边；View 是投影定义。 |
+| 标准对象 / Morph 与 Event | 标准对象和 Morph 是协作对象；Event 是事实和变更记录。 |
+| Relation 与 View | Relation 是一等语义边；View 是投影定义。对象之间的包含、依赖、回复、关联等事实必须由 Relation 表达，不能只存在于 View cache 或 layout 中。 |
 | Repo 与 Index | Repo 保存可审计事实；Index 保存派生查询结果。 |
 | Repo 与 Principal Server | Repo 是可验证日志；Principal Server 提供 `/repo/*` API 来访问、托管或复制该日志。 |
 | Sync Service 与 Authority | Sync Service 只提供受控同步；授权仍由签名、capability、policy 和 reducer 验证。 |
@@ -268,7 +276,7 @@
 
 1. Principal 是身份根；Actor 是 Space 内行为者视图。任何授权、签名验证和责任追溯 MUST 能回到 Principal DID 或受验证的 condition selector。Actor Profile、display name、handle、头像和组织目录结果都不得成为权限主键。
 2. Organization 是治理 Principal；Space 是协作边界。组织可以拥有、托管或背书多个 Space，但 Organization DID、Space owner、Principal Server 运营方和成员列表是四个独立概念。实现 MUST NOT 仅凭域名、服务器托管方或 Space membership 推断组织归属。
-3. Entity 是当前协作对象；Event / Operation 是事实与审计输入；View / Projection 是派生展示。实现 MUST NOT 只保存当前 Entity 而丢弃可验证事件链，也 MUST NOT 把 View 的可见字段当作权限裁剪。
+3. 标准对象和 Morph 是当前协作对象；Event / Operation 是事实与审计输入；View 是投影定义，Projection 是派生展示。View 的定义本身可以是 canonical state，但被投影对象的状态、位置、关系和权限必须回到对象、Relation、Policy 和 Event。实现 MUST NOT 只保存当前对象而丢弃可验证事件链，也 MUST NOT 把 View 的可见字段当作权限裁剪。
 4. Relation 是协议内的一等语义边；正文中的链接、mention、引用和回复若影响授权、通知、检索或审计，MUST 落成结构化 Relation 或 Event 字段。客户端正文扫描只能作为输入辅助。
 5. Repo 是可验证发布日志；Principal Server 是服务边界；Index 是派生查询层。三者可以同机部署，但 service DID、`service_type`、capability、plaintext visibility 和 conformance profile MUST 可区分。
 6. Capability 授予动作；Policy 限制、隔离或要求审查；Moderation Policy 不授予能力。任何 `allow` 结果都必须先满足 capability，再满足 policy、membership、device trust 和 schema 约束。

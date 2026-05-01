@@ -26,12 +26,14 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
 ```json
 {
   "space_ids": ["cx:space:01JS0SP000000000000000000"],
-  "entity_facets": ["stateful", "replyable", "renderable"],
-  "actions": ["cx.entity.create", "cx.entity.update", "cx.message.create"]
+  "object_types": ["card", "message", "morph"],
+  "morph_types": ["run", "memory"],
+  "facets": ["stateful", "replyable", "renderable"],
+  "actions": ["cx.card.create", "cx.card.update", "cx.message.create"]
 }
 ```
 
-Scope MUST be allow-list based。未列出的动作默认拒绝。`entity_types` MAY 作为向后兼容的语义标签过滤；新 profile SHOULD 使用 `entity_facets` 表达能力范围。
+Scope MUST be allow-list based。未列出的动作默认拒绝。标准对象 SHOULD 使用 `object_types` 过滤；开放对象 SHOULD 使用 `morph_types` 过滤；`facets` 只作为能力 mixin 约束，不替代对象类型。
 
 ## 4. Constraint
 
@@ -43,11 +45,13 @@ Scope MUST be allow-list based。未列出的动作默认拒绝。`entity_types`
   },
   "fields_write_allow": ["title", "fields.status"],
   "fields_write_deny": ["policy", "encryption_profile"],
-  "entity_facet_allow": ["stateful", "replyable"],
+  "object_type_allow": ["card", "morph"],
+  "morph_type_allow": ["run", "memory"],
+  "facet_allow": ["stateful", "replyable"],
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
-  "allowed_from_container_refs": ["cx:entity:01js0c1000000000000000000"],
-  "allowed_to_container_refs": ["cx:entity:01js0c2000000000000000000"],
+  "allowed_from_container_refs": ["cx:list:01js0c1000000000000000000"],
+  "allowed_to_container_refs": ["cx:list:01js0c2000000000000000000"],
   "wip_limit_override": false,
   "max_blob_bytes": 10485760,
   "requires_claims": [],
@@ -128,8 +132,8 @@ Delegated grant MUST be equal or narrower than parent grant.
   "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
-  "allowed_from_container_refs": ["cx:entity:01js0c1000000000000000000"],
-  "allowed_to_container_refs": ["cx:entity:01js0c2000000000000000000"],
+  "allowed_from_container_refs": ["cx:list:01js0c1000000000000000000"],
+  "allowed_to_container_refs": ["cx:list:01js0c2000000000000000000"],
   "wip_limit_override": false
 }
 ```
@@ -138,5 +142,5 @@ Delegated grant MUST be equal or narrower than parent grant.
 
 - `relation_kind_allow` 限定可移动的 Relation 类型，避免 `assigned_to`、`depends_on` 和 `contains` 被同一宽泛授权混用。
 - `allowed_from_container_refs` 与 `allowed_to_container_refs` 分别限制可移出和可移入的列 / collection。
-- `allowed_view_refs` 限定授权适用的 View；同一个 Entity 出现在多个 View 时不得自动继承移动权。
+- `allowed_view_refs` 限定授权适用的 View；同一个 Card 出现在多个 View 时不得自动继承移动权。
 - `wip_limit_override=false` 时，若目标列 `wip_limit_enforcement` 为 `reject` 或 `require_review`，移动必须失败或进入审批路径。

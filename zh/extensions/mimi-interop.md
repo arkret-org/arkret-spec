@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Space / Repo / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Space / Channel 可以与 MIMI provider 互通。
+本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Space / Repo / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Space / Room 可以与 MIMI provider 互通。
 
 `cx.profile.mimi_interop.v1` 固定参考以下草案版本：
 
@@ -21,7 +21,7 @@
 | Hub provider | 对外拥有 MIMI room URI 的 Space Host / Principal Server；负责 MIMI room fanout 和 groupInfo。 |
 | Follower provider | 参与 MIMI room 的远端 provider；在 Contrix 中表现为 federation peer 或 Applet bridge peer。 |
 | User / client | Contrix principal DID + device id，可按 Space policy 使用 pairwise DID 或 room-scoped pseudonym。 |
-| Room | Contrix Space、Channel 或 Topic 的 MIMI 投影。 |
+| Room | Contrix Room 的 MIMI 投影，可附带所在 Space 的最小上下文。 |
 
 MIMI facade 不是新的真相源。Contrix native 侧的 canonical truth 仍然是 signed Event、auth refs、state resolution、MLS-bound state root 和 reducer 输出。MIMI room state 是对这些状态的互操作投影。
 
@@ -75,8 +75,7 @@ GET /api/v1/mimi/provider-directory
     "mimi_room_uri": "mimi://example.com/rooms/01JSMIMI...",
     "binding_scope": {
       "space_id": "cx:space:01JS0SP000000000000000000",
-      "channel_id": "cx:channel:01JS...",
-      "topic_id": null
+      "room_id": "cx:room:01JS..."
     },
     "hub_provider": "did:web:mimi.example.com",
     "local_provider_role": "hub",
@@ -93,7 +92,7 @@ GET /api/v1/mimi/provider-directory
 
 规则：
 
-- `binding_scope.space_id` MUST 指向一个 accepted Space。`channel_id` 或 `topic_id` 存在时，MIMI room timeline 只投影该 channel / topic 的消息。
+- `binding_scope.space_id` MUST 指向一个 accepted Space。`room_id` MUST 指向该 Space 内的 accepted Room；MIMI room timeline 只投影该 Room 的消息。
 - `hub_provider` MUST 是 Space policy、Organization DID 或 participant DID 明确委托的 service DID。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `bridge_only`。
 - `cx.mimi.room_binding` 的创建、更新和撤销 MUST require `cx.policy.manage`、`cx.space.admin` 或等价 interop capability。
@@ -176,7 +175,7 @@ MIMI facade MUST 支持接收：
 | `cx.message.redact` | MIMI delete behavior |
 | `message_expiration` policy | MIMI expiring message field |
 | attachment `blob_ref` | MIMI external content / asset reference |
-| topic/thread relation | MIMI topic / threading field |
+| Room thread / Message relation | MIMI topic / threading field |
 
 规则：
 

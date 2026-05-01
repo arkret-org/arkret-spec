@@ -106,11 +106,10 @@
             "mimi_room_uri": { "$ref": "#/$defs/mimi_uri" },
             "binding_scope": {
               "type": "object",
-              "required": ["space_id"],
+              "required": ["space_id", "room_id"],
               "properties": {
                 "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-                "channel_id": { "type": "string" },
-                "topic_id": { "type": "string" }
+                "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" }
               },
               "additionalProperties": true
             },

@@ -323,7 +323,7 @@ When external access ends:
 
 If compromise is suspected:
 
-- freeze Space or affected Entity set
+- freeze Space or affected object set
 - quarantine cross-domain events
 - rotate service keys
 - require re-verification for all external members

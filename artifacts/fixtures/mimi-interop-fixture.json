@@ -37,7 +37,7 @@
           "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
           "binding_scope": {
             "space_id": "cx:space:01234567890123456789012345",
-            "channel_id": "cx:channel:general"
+            "room_id": "cx:room:01234567890123456789012345"
           },
           "hub_provider": "did:web:mimi.example.com",
           "local_provider_role": "hub",

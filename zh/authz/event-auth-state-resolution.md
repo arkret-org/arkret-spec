@@ -77,9 +77,14 @@
 | `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
 | `cx.space.inheritance_policy` | child Space 的 `cx.space.create`、child policy/admin capability、confirmed parent edge |
 | `cx.space.organization` | `cx.space.create`、组织 DID 当前控制状态、组织签发或撤销该声明的 capability / service binding |
-| `cx.entity.*` | actor membership、对应 create/update/delete capability、目标 entity 当前状态 |
-| `cx.relation.*` | actor membership、relation type schema、source/target 可见状态、对应 relation capability |
-| `cx.message.*` | actor membership、channel/topic 可见状态、send/edit/redact capability |
+| `cx.room.*` | actor Space membership、目标 Room 当前状态、Room membership / policy、对应 room capability |
+| `cx.room.member` | actor Space membership、目标 actor 当前 Room membership、Room join / invite / moderation policy、对应 room membership capability |
+| `cx.board.*` | actor Space membership、目标 Board 当前状态、对应 board capability |
+| `cx.list.*` | actor Space membership、所属 Board 当前状态、目标 List 当前状态、对应 list capability |
+| `cx.card.*` | actor Space membership、所属 Board/List 当前状态、目标 Card 当前状态、对应 card capability |
+| `cx.morph.*` | actor Space membership、目标 Morph 当前状态、morph schema / facet policy、对应 morph capability |
+| `cx.relation.*` | actor Space membership、relation type schema、source/target 可见状态、对应 relation capability |
+| `cx.message.*` | actor Space membership、目标 Room membership / visibility、目标 Message 当前状态、send/edit/redact capability |
 | `cx.mls.*` | actor membership、encryption policy、当前 epoch state、device trust state |
 | `cx.redaction` | actor membership、被 redaction 事件、redact_own 或 redact_any capability |
 | `cx.space.upgrade` | `cx.space.create`、当前 upgrade policy、creator/admin capability |
@@ -128,6 +133,36 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 | ban | leave | 有 unban capability |
 
 被 ban 的 actor MUST NOT 发送除 appeal/profile-level 之外的 Space 写事件。
+
+### 5.1 Room Membership
+
+Room membership 是 Space membership 之下的局部参与状态，用于控制某个 Room 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予任何 Card、Board、List 或 Morph 的权限。
+
+Contrix 使用 `cx.room.member` 表达 actor 在 Room 中的成员状态：
+
+```json
+{
+  "kind": "cx.room.member",
+  "state_key": "cx:room:01JS0ROOM0000000000000000|did:uuid:actor",
+  "content": {
+    "room_id": "cx:room:01JS0ROOM0000000000000000",
+    "actor_id": "did:uuid:actor",
+    "membership": "join",
+    "via": ["did:web:example.com"],
+    "reason": "invited",
+    "invite_ref": "event:..."
+  }
+}
+```
+
+Room membership 的 `membership` 取值与 Space membership 相同：`join`、`invite`、`knock`、`leave`、`ban`。
+
+规则：
+
+- 默认情况下，Room member MUST 同时是所在 Space 的 member。
+- Space policy MAY 允许 room-scoped external admission。此时外部 actor 只获得该 Room 的受限访问，不获得 Space directory、Board、Card 或其他 Room 的可见性。
+- Card 与 Room 的关系只由 `links_room` / `primary_room` relation 表达。Card link 不复制 membership；Room 的成员、E2EE epoch、history visibility 和 moderation 独立计算。
+- 一个 Card 可链接多个 Room，但每个 Room 仍按自己的 `cx.room.member` 与 room policy 授权。
 
 ## 6. Discovery, Join Rule and History Visibility
 
@@ -352,7 +387,10 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.space.moderation_policy`
 - `cx.space.join_rule`
 - `cx.space.history_visibility`
+- `cx.space.history_sharing_policy`
 - `cx.space.policy_server`
+- `cx.space.policy_components`
+- `cx.space.plaintext_visible_services`
 - `cx.space.schema`
 - `cx.space.child`
 - `cx.space.parent`
@@ -360,6 +398,9 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.space.organization`
 - `cx.space.upgrade`
 - `cx.member.state`
+- `cx.room.member`
+- `cx.room.history_visibility`
+- `cx.room.policy_components`
 - `cx.capability.grant`
 - `cx.capability.revoke`
 - `cx.policy.rule`

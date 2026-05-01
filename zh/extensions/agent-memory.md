@@ -234,7 +234,7 @@ Embedding、reranking、全文索引都可以作为增强层。
 - 派生索引可重建
 - 派生索引不作为唯一真相
 - 派生索引必须服从相同 ACL
-- **异步物化 (Async Materialization)**：向量数据库 (Vector Store) 在架构中应被视为一种“受信任的 Index 节点”。它通过订阅协议层中处于 `confirmed` 状态的 Operation 增量，在本地异步计算 Embedding，从而对外提供高效的高维空间相似度检索。这种架构确保了即使更换向量库技术栈，基于 `memory` Entity 的知识真相源依然稳固。
+- **异步物化 (Async Materialization)**：向量数据库 (Vector Store) 在架构中应被视为一种“受信任的 Index 节点”。它通过订阅协议层中处于 `confirmed` 状态的 Operation 增量，在本地异步计算 Embedding，从而对外提供高效的高维空间相似度检索。这种架构确保了即使更换向量库技术栈，基于 `memory` Morph 的知识真相源依然稳固。
 - **防止僵尸幻觉 (Zombie Memory Prevention)**：作为 Index 节点的向量库 MUST 严格订阅并处理 `memory.invalidated` 和 `memory.superseded` 事件。当捕获到某条记忆被人类否决或被新知识覆盖时，向量库 MUST 在本地对其 Embedding 向量执行**不可恢复的硬删除 (Hard-delete)** 或将其权重强制归零。否则，Agent 将不断检索到被废弃的僵尸记忆从而引发严重的系统性幻觉。
 
 ## 12. 忘记与保留

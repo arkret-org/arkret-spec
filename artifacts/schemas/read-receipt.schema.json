@@ -10,7 +10,7 @@
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "reader": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
     "event_id": { "type": "string", "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$" },
-    "scope": { "type": "string", "enum": ["space", "channel", "topic", "thread"] },
+    "scope": { "type": "string", "enum": ["space", "room", "thread"] },
     "created_at": { "type": "string", "format": "date-time", "pattern": "Z$" }
   },
   "additionalProperties": true

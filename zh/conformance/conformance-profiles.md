@@ -44,7 +44,7 @@ MUST 支持：
 - service discovery
 - repo commit / operation 拉取
 - index 查询
-- 基础 Entity / Relation / Event 解码
+- 基础 Room / Board / List / Card / Message / Morph / Relation / Event 解码
 - capability 检查结果处理
 - cursor 分页
 - 标准错误响应
@@ -166,7 +166,7 @@ Principal Server MUST NOT forward non-E2EE private content or reversible derived
 MUST 支持：
 
 - reducer profile declaration
-- entity current-state query
+- object current-state query
 - relation query
 - structured query
 - notification / inbox materialization

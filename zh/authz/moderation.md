@@ -36,7 +36,7 @@ Contrix 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过
 
 ### 3.1 举报操作
 
-用户可以举报 Space 中的任何 Entity（消息、任务、评论等）：
+用户可以举报 Space 中的任何可见对象（Message、Card、Morph、Relation 等）：
 
 ```
 POST /api/v1/moderation/report
@@ -47,7 +47,7 @@ POST /api/v1/moderation/report
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `space_id` | id | required | 被举报对象所在 Space。 |
-| `target_ref` | id | required | 被举报 Entity / Event / Operation 引用。 |
+| `target_ref` | id | required | 被举报 Object / Event / Operation 引用。 |
 | `reason` | enum | required | 举报原因，取值见 3.2。 |
 | `description` | string | optional；`reason=other` 时 required | 举报说明；服务端 MAY 限制长度。 |
 | `reporter` | did | required | 举报人 DID，MUST 与认证 session / device proof 一致。 |
@@ -244,7 +244,7 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
     ],
     "appeal": {
       "enabled": true,
-      "endpoint": "cx:entity:appeal-topic"
+      "endpoint": "cx:room:appeal"
     }
   }
 }

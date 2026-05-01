@@ -11,7 +11,7 @@
 
 ## 2. Read Receipt (已读回执)
 
-已读回执是向同一个 Space (通常是 Chat 或 Topic) 的其他成员广播“我已经看到这条消息了”。
+已读回执是向同一个 Room 的其他成员广播“我已经看到这条消息了”。
 
 ### 2.1 临时性与高频特征
 
@@ -26,7 +26,7 @@
 {
   "type": "cx.receipt.read",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "topic_id": "cx:topic:01JS1000000000000000000001",
+  "room_id": "cx:room:01JS1000000000000000000001",
   "actor": "did:web:alice.example.com",
   "event_id": "cx:event:01JS1READ00000000000000000",
   "timestamp": "2026-04-26T10:00:00Z"
@@ -57,7 +57,7 @@ Read Marker 作为一种持久化的个人状态，MUST 作为 Operation 提交�
   "type": "cx.marker.read",
   "body": {
     "space_id": "cx:space:01JS0SP000000000000000000",
-    "topic_id": "cx:topic:01JS1000000000000000000001",
+    "room_id": "cx:room:01JS1000000000000000000001",
     "event_id": "cx:event:01JS1READ00000000000000000"
   }
 }
@@ -71,10 +71,10 @@ Read Marker 作为一种持久化的个人状态，MUST 作为 Operation 提交�
 未读计数是由 **Index 节点** 维护的派生数据。
 
 1. Index 节点监听用户的 Account Repo 拿到最新的 `cx.marker.read`。
-2. Index 节点计算 `cx.marker.read` 指向的 `event_id` 之后，该 Topic 内产生了多少条新的、应该触发提醒的 Entity。
+2. Index 节点计算 `cx.marker.read` 指向的 `event_id` 之后，该 Room 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
 3. 客户端通过 `GET /api/v1/index/notifications` 接口直接获取算好的未读数。
 
 ## 5. Thread (子线程) 的已读隔离
 
-在 Thread 模式下，主 Topic 和子 Thread 的阅读进度是分离的。
-如果 `cx.receipt.read` 或 `cx.marker.read` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Topic 的游标，反之亦然。
+在 Thread 模式下，Room timeline 和子 Thread 的阅读进度是分离的。
+如果 `cx.receipt.read` 或 `cx.marker.read` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Room timeline 的游标，反之亦然。

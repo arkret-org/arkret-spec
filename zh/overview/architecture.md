@@ -19,6 +19,8 @@ Contrix 采用 **principal server + principal repo + identity registry + query i
 
 Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
+协作数据层使用 Space 作为复制与授权边界，在 Space 内直接建模 Room、Board、List、Card、Message 等标准对象。Morph 只承担开放扩展对象角色，通过 facets 声明能力；它不是替代所有标准对象的万能容器。
+
 ### 2.0 Organization / Space 边界
 
 组织在 Contrix 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Space。
@@ -175,7 +177,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 | Authz / Policy Server | `authz_service` / `policy_server` | capability 查询、grant / invite 查询、policy decision、risk score、quarantine / review。 | 否；决策必须可追溯到签名 policy / grant。 | policy preview 只能接收最小披露字段，除非显式明文授权。 |
 | Push Gateway | `push_gateway` | push device register / unregister、脱敏通知投递、移动平台适配。 | 否。 | 默认不得接收 E2EE 明文或正文摘要。 |
 | Applet Server | `applet_service` | bot、bridge、外部 SaaS、portal Space、ghost actor、Applet transaction。 | 否；写入仍需 capability 和签名。 | 只在 Space / principal 明确授权范围内可见明文。 |
-| MIMI Provider Facade | `mimi_provider_facade` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 | 否；MIMI room state 是 Contrix Space/Channel 的互操作投影。 | 只能处理 `cx.mimi.room_binding` 和 Space policy 授权范围内的密文、metadata 或明文。 |
+| MIMI Provider Facade | `mimi_provider_facade` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 | 否；MIMI room state 是 Contrix Space/Room 的互操作投影。 | 只能处理 `cx.mimi.room_binding` 和 Space policy 授权范围内的密文、metadata 或明文。 |
 | Agent Runtime Server | `agent_runtime` | agent run、tool execution、memory promotion、A2A / ACP / MCP handoff。 | 否；输出必须写回 Repo / Space 才成为协议事实。 | agent 可见范围由 capability、device / session 和 Space policy 限定。 |
 | Realtime Media Server | `media_service` / `sfu_service` / `turn_service` | WebRTC signaling 辅助、ICE config、TURN / STUN、SFU / MCU、录制。 | 否。 | SFU / TURN 通常不应接触明文；MCU / 录制必须显式授权。 |
 | Moderation / Compliance Server | `moderation_service` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 | 否；处理结果必须落成可审计 policy / moderation Event。 | 只能接收审核所需的最小证据或授权明文。 |
@@ -407,7 +409,7 @@ Contrix 固定以下架构取向：
 - 房间不是唯一世界模型
 - 消息也不是唯一原子单元
 - UI 不需要从聊天历史里推业务状态
-- 协议直接允许“任务、决策、记忆、运行记录、关系”成为一等对象
+- 协议直接允许 Room、Board、List、Card、Message、Morph 和 Relation 成为一等对象
 
 ## 6. 信任边界
 
@@ -473,7 +475,7 @@ Contrix 不打算做“两套系统”：
 
 - AI 写入的对象能被人类审阅
 - 人类创建的对象能被 AI 理解和引用
-- 任务、评论、关系、运行记录、记忆可以互相链接
+- Card、Message、Relation、运行记录、记忆和其他 Morph 对象可以互相链接
 - 所有沉淀都能投影成可操作界面
 
 ## 8. 架构决定
@@ -486,7 +488,7 @@ Contrix v1 固定以下方向：
 - index/appview 是物化查询层
 - blob 是独立内容层
 - capability 是独立决策层
-- run 与 memory 是一等协议对象
+- run 与 memory 通过 Morph 类型或扩展 profile 成为可审计协议对象
 - 同一数据既服务人类 UI，也服务 agent 记忆
 - confidentiality 与 portability 也是明确协议平面，而不是部署细节
 

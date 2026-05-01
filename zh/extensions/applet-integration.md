@@ -111,7 +111,8 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
   "requested_scopes": [
     "space.read",
     "space.write",
-    "cx.entity.create",
+    "cx.card.create",
+    "cx.morph.create",
     "cx.message.create",
     "cx.relation.create"
   ],
@@ -199,7 +200,8 @@ Handle namespace 适用于外部用户或 location 的人类入口。
       "cx:space:01JS0SP000000000000000000"
     ],
     "actions": [
-      "cx.entity.create",
+      "cx.card.create",
+      "cx.morph.create",
       "cx.message.create",
       "cx.relation.create"
     ]
@@ -428,7 +430,8 @@ Applet 写入 Contrix MUST 使用常规 repo submit 接口。
     "event_id": "1714040000.000100"
   },
   "payload": {
-    "entity_type": "message",
+    "type": "message",
+    "room_id": "cx:room:portal:slack:T123:C456",
     "content": {
       "body": "hello from Slack"
     }

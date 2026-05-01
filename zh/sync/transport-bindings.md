@@ -57,7 +57,7 @@ Transport binding SHOULD 映射到以下 canonical `operation_id`。取值使用
 | `cx.federation.transaction` | Principal Server 之间交换签名 transaction。 |
 | `cx.federation.push_operations` | 跨域推送 Space operation。 |
 | `cx.federation.pull_operations` | 跨域拉取缺失 operation / backfill。 |
-| `cx.index.query` | 查询 Entity / Relation / View projection。 |
+| `cx.index.query` | 查询 Object / Morph / Relation / View projection。 |
 | `cx.index.space_hierarchy` | 查询 Space 层级。 |
 | `cx.directory.search` | 授权搜索 Space / Organization / Actor。 |
 | `cx.directory.resolve` | 精确解析 Space / Organization / Actor / handle。 |

@@ -52,7 +52,7 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
       "fields": [
         "name",
         "avatar",
-        "topic",
+        "summary",
         "owning_organizations",
         "join_rule",
         "member_count_bucket"
@@ -257,7 +257,7 @@ Result:
     {
       "space_id": "cx:space:01JS0SP000000000000000000",
       "name": "Release Coordination",
-      "topic": "Public release coordination",
+      "summary": "Public release coordination",
       "discoverability": "listed",
       "join_rule": "knock_restricted",
       "history_visibility": "joined",

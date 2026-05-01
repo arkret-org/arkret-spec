@@ -1,5 +1,8 @@
 # Contrix Protocol
 
+> Status: this English draft is stale after the 2026-05 object model refactor.
+> Use `../zh/` and `../artifacts/` as the current normative protocol text until the English translation is regenerated.
+
 ## 1. Positioning
 
 `contrix-spec` is the **Contrix v1 decentralized collaboration protocol**. Contrix uses:

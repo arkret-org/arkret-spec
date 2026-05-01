@@ -1,5 +1,5 @@
 {
-  "version": "2026-04-29",
+  "version": "2026-05-01",
   "operations": [
     { "operation_id": "cx.server.describe", "http": "GET /server/describe", "grpc": "Server/Describe", "mq": "server.describe" },
     { "operation_id": "cx.identity.resolve", "http": "POST /identity/resolve", "grpc": "Identity/Resolve", "mq": "identity.resolve" },
@@ -7,7 +7,15 @@
     { "operation_id": "cx.sync.client_sync", "http": "POST /sync", "grpc": "Sync/ClientSync", "mq": "sync.client_sync" },
     { "operation_id": "cx.sync.subscribe", "http": "GET /sync/subscribe", "grpc": "Sync/Subscribe", "mq": "sync.subscribe" },
     { "operation_id": "cx.federation.transaction", "http": "PUT /federation/transactions/{txn_id}", "grpc": "Federation/Transaction", "mq": "federation.transaction" },
+    { "operation_id": "cx.index.describe", "http": "GET /index/describe", "grpc": "Index/Describe", "mq": "index.describe" },
+    { "operation_id": "cx.index.get_object", "http": "GET /index/object", "grpc": "Index/GetObject", "mq": "index.get_object" },
     { "operation_id": "cx.index.query", "http": "POST /index/query", "grpc": "Index/Query", "mq": "index.query" },
+    { "operation_id": "cx.index.room_timeline", "http": "GET /index/room-timeline", "grpc": "Index/RoomTimeline", "mq": "index.room_timeline" },
+    { "operation_id": "cx.index.card_discussions", "http": "GET /index/card-discussions", "grpc": "Index/CardDiscussions", "mq": "index.card_discussions" },
+    { "operation_id": "cx.index.notifications", "http": "GET /index/notifications", "grpc": "Index/Notifications", "mq": "index.notifications" },
+    { "operation_id": "cx.index.inbox", "http": "GET /index/inbox", "grpc": "Index/Inbox", "mq": "index.inbox" },
+    { "operation_id": "cx.index.search", "http": "POST /index/search", "grpc": "Index/Search", "mq": "index.search" },
+    { "operation_id": "cx.index.space_hierarchy", "http": "GET /index/space-hierarchy", "grpc": "Index/SpaceHierarchy", "mq": "index.space_hierarchy" },
     { "operation_id": "cx.directory.resolve_handle", "http": "POST /directory/resolve-handle", "grpc": "Directory/ResolveHandle", "mq": "directory.resolve_handle" },
     { "operation_id": "cx.directory.private_contact_discovery", "http": "POST /directory/private-contact-discovery", "grpc": "Directory/PrivateContactDiscovery", "mq": "directory.private_contact_discovery" },
     { "operation_id": "cx.blob.get", "http": "GET /blob/get", "grpc": "Blob/Get", "mq": "blob.get" },

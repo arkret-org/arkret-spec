@@ -2,20 +2,22 @@
 
 ## 1. 目标
 
-本文定义 Contrix Index / View / Inbox 使用的标准查询语法。查询语法必须可序列化、可验证、可分页，并且不能绕过 Space policy 与 capability。
+本文定义 Contrix Index / View / Inbox 使用的标准查询语法。查询语法必须可序列化、可验证、可分页，并且不能绕过 Space policy、Room membership、E2EE 可见性与 capability。
 
 ## 2. Query 对象
 
 ```json
 {
   "space_ids": ["cx:space:01JS0SP000000000000000000"],
-  "entity_types": ["task", "message"],
-  "anchor_entity_id": "cx:entity:01JS0TASK000000000000000000",
+  "object_types": ["card", "message", "morph"],
+  "morph_types": ["memory"],
+  "facets": ["assignable"],
+  "anchor_ref": "cx:card:01JS0CARD000000000000000",
   "filters": [],
   "relation": null,
   "context": {
-    "event_kinds": ["cx.entity.update", "cx.message.create", "cx.relation.create"],
-    "relation_kinds": ["contains", "assigned_to", "depends_on", "replies_to"],
+    "event_kinds": ["cx.card.update", "cx.message.create", "cx.relation.create"],
+    "relation_kinds": ["contains", "assigned_to", "depends_on", "replies_to", "links_room"],
     "event_tiebreak": "event_id"
   },
   "order_by": [],
@@ -32,8 +34,10 @@
 字段：
 
 - `space_ids`: REQUIRED，查询范围。
-- `entity_types`: OPTIONAL，限制 Entity type。
-- `anchor_entity_id`: OPTIONAL，`timeline` / `renderer="timeline"` 的上下文锚点对象 ID。若设置，表示查询应围绕该对象收敛相关边界与事件。
+- `object_types`: OPTIONAL，限制标准对象类型，例如 `room`、`board`、`list`、`card`、`message`、`morph`。
+- `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
+- `facets`: OPTIONAL，能力 mixin 过滤。Facet 不替代对象类型，也不绕过授权。
+- `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Card context 的上下文锚点对象引用。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
 - `context`: OPTIONAL，上下文时间线聚合参数，若存在用于 `timeline` / `renderer="timeline"` 聚合：
@@ -78,7 +82,7 @@
 ```json
 {
   "and": [
-    { "field": "entity_type", "op": "eq", "value": "task" },
+    { "field": "type", "op": "eq", "value": "card" },
     { "field": "fields.status", "op": "neq", "value": "done" }
   ]
 }
@@ -98,35 +102,39 @@
 {
   "kind": "assigned_to",
   "direction": "out",
-  "target_actor_id": "did:web:alice.example"
+  "target_ref": "did:web:alice.example"
 }
 ```
 
 `direction`:
 
-- `out`: 从当前 Entity 出发。
-- `in`: 指向当前 Entity。
+- `out`: 从当前对象出发。
+- `in`: 指向当前对象。
 - `both`: 双向查询。
 
 Relation Query 字段：
 
-- `kind`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`。
+- `kind`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`、`links_room`。
 - `direction`: REQUIRED，`out` / `in` / `both`。
-- `source_entity_id`: OPTIONAL，限制 relation 起点 Entity。
-- `source_actor_id`: OPTIONAL，限制 relation 起点 Actor。
-- `source_space_id`: OPTIONAL，限制 relation 起点 Space。
-- `target_entity_id`: OPTIONAL，限制 relation 终点 Entity。
-- `target_actor_id`: OPTIONAL，限制 relation 终点 Actor。
-- `target_space_id`: OPTIONAL，限制 relation 终点 Space。
+- `source_ref`: OPTIONAL，限制 relation 起点对象、Actor 或 Space。
+- `target_ref`: OPTIONAL，限制 relation 终点对象、Actor 或 Space。
+- `source_type`: OPTIONAL，限制起点类型，例如 `card`、`room`、`actor`、`space`。
+- `target_type`: OPTIONAL，限制终点类型。
 - `depth`: OPTIONAL，关系展开深度；跨 Space 规则见 `views.md` Lazy Link。
 
-`source_*` 与 `target_*` 每侧最多指定一个。Index MUST reject 含糊或互相矛盾的 Relation Query。
+Card 与 Room 的 relation 查询必须遵守独立授权：
+
+- `links_room` / `primary_room` 可显示 Room 引用和可见性状态。
+- Card 可见不代表 Room timeline 可读。
+- Room 可读不代表 Card 可写。
+
+Index MUST reject 含糊或互相矛盾的 Relation Query。
 
 ## 6. Sort
 
 ```json
 {
-  "field": "fields.rank",
+  "field": "rank",
   "direction": "asc",
   "nulls": "last"
 }
@@ -140,7 +148,7 @@ Relation Query 字段：
 ```json
 [
   "id",
-  "entity_type",
+  "type",
   "title",
   "fields.status"
 ]
@@ -166,8 +174,9 @@ Projection 只减少返回字段，不提升权限。
 
 Index MUST:
 
-- 对 query 做 schema validation
-- 对 Space 和字段做 authorization filtering
-- 对高成本 full_text / relation expansion 限流
-- 不泄露不可见对象是否存在
-- 在 E2EE Space 中不得对密文正文做服务器全文搜索
+- 对 query 做 schema validation。
+- 对 Space、Room、对象和字段做 authorization filtering。
+- 对 Card-linked Room 做独立 Room membership / history visibility 检查。
+- 对高成本 full_text / relation expansion 限流。
+- 不泄露不可见对象是否存在。
+- 在 E2EE Space 中不得对密文正文做服务器全文搜索。

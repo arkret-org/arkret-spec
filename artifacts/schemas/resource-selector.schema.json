@@ -5,10 +5,20 @@
   "type": "object",
   "required": ["kind"],
   "properties": {
-    "kind": { "type": "string", "enum": ["space", "entity", "relation", "view", "notification", "read_marker", "blob", "*"] },
+    "kind": {
+      "type": "string",
+      "enum": ["space", "room", "board", "list", "card", "message", "morph", "object", "relation", "view", "notification", "read_marker", "blob", "*"]
+    },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "entity_type": { "type": "string" },
-    "entity_id": { "type": "string", "pattern": "^cx:entity:[0-9a-hjkmnp-z]{26}$" },
+    "object_type": { "type": "string" },
+    "object_ref": { "type": "string", "pattern": "^cx:(space|room|board|list|card|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$" },
+    "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
+    "board_id": { "type": "string", "pattern": "^cx:board:[0-9a-hjkmnp-z]{26}$" },
+    "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },
+    "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
+    "message_id": { "type": "string", "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$" },
+    "morph_id": { "type": "string", "pattern": "^cx:morph:[0-9a-hjkmnp-z]{26}$" },
+    "morph_type": { "type": "string" },
     "relation_kind": { "type": "string" },
     "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
     "view_id": { "type": "string", "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$" },

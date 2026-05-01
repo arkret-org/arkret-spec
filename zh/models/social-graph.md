@@ -17,20 +17,21 @@ Contrix 可以支持个人或组织的社交发布、关注、时间线、朋友
 社交能力必须遵守以下边界：
 
 - DID / Principal 仍然是身份根。
-- Post / Feed / Circle / Profile 仍然是 Entity / Relation / View，不是新的协议根。
+- Post / Feed / Circle / Profile 作为 Morph、Relation 与 View profile 表达，不是新的协议根。
 - 公开可发现不等于可互动；可读不等于可回复、转发或索引。
 - 朋友圈式内容必须按 audience policy 授权，不能靠客户端 UI 隐藏实现。
 - 组织 feed 的官方性必须由 Organization DID 或 `cx.space.organization` 背书证明。
 
-## 3. 标准 Entity 语义类型
+## 3. 标准 Morph 语义类型
 
 ### 3.1 `social_post`
 
-`social_post` 表示可被时间线投影的发布内容。
+`social_post` 表示可被时间线投影的 Morph 发布内容。
 
 ```json
 {
-  "entity_type": "social_post",
+  "type": "morph",
+  "morph_type": "social_post",
   "author": "did:uuid:alice",
   "content": {
     "format": "contrix.richtext.v1",
@@ -46,11 +47,12 @@ Contrix 可以支持个人或组织的社交发布、关注、时间线、朋友
 
 ### 3.2 `social_feed`
 
-`social_feed` 是发布入口或时间线源，例如个人主页、组织公告、项目动态。
+`social_feed` 是 Morph 发布入口或时间线源，例如个人主页、组织公告、项目动态。
 
 ```json
 {
-  "entity_type": "social_feed",
+  "type": "morph",
+  "morph_type": "social_feed",
   "owner": "did:web:acme.example",
   "feed_kind": "organization_announcement",
   "discoverability": "public",
@@ -60,11 +62,12 @@ Contrix 可以支持个人或组织的社交发布、关注、时间线、朋友
 
 ### 3.3 `social_circle`
 
-`social_circle` 是发布者维护的受众集合，用于朋友圈、亲友圈、团队动态等。
+`social_circle` 是 Morph 受众集合，用于朋友圈、亲友圈、团队动态等。
 
 ```json
 {
-  "entity_type": "social_circle",
+  "type": "morph",
+  "morph_type": "social_circle",
   "owner": "did:uuid:alice",
   "circle_id": "cx:circle:close-friends",
   "visibility": "private",

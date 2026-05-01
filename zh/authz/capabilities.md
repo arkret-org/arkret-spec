@@ -7,7 +7,7 @@ Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系
 这样做的原因是：
 
 - 跨组织协作很常见
-- board、chat、topic、memory 等 Entity/View 的动作集不同
+- Room、Board、List、Card、Message、Morph、View 的动作集不同
 - agent 必须被精细授权
 - 授权变化必须可审计
 
@@ -26,8 +26,8 @@ Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主�
 不要依赖以下隐式假设：
 
 - 进入 Space 就拥有全部能力
-- 能编辑 task Entity 就一定能撤回别人的消息
-- channel owner 天然拥有全量管理权
+- 能编辑 Card 就一定能撤回 linked Room 里的别人的消息
+- Room owner 天然拥有全量 Board/Card 管理权
 
 ### 2.3 权限判定基于当时有效的 capability 集
 
@@ -63,10 +63,14 @@ Authorization condition: Claim / Attestation
   "subject": "did:web:agent.copy.example.com",
   "scope": {
     "space_ids": ["cx:space:01JS0SP000000000000000000"],
-    "entity_facets": ["stateful", "assignable"],
+    "object_types": ["card", "morph"],
+    "morph_types": ["run", "memory"],
+    "facets": ["stateful", "assignable"],
     "actions": [
-      "cx.entity.read",
-      "cx.entity.update",
+      "cx.card.read",
+      "cx.card.update",
+      "cx.morph.read",
+      "cx.morph.update",
       "cx.run.create",
       "cx.memory.create"
     ]
@@ -136,14 +140,21 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 Contrix v1 支持以下 `kind`：
 
 - `space`
-- `entity`
+- `room`
+- `board`
+- `list`
+- `card`
+- `message`
+- `morph`
+- `object`
 - `relation`
 - `event`
 - `actor`
 - `view`
 - `schema`
 - `policy`
-- `entity_type:<type>`
+- `object_type:<type>`
+- `morph_type:<type>`
 - `relation_kind:<type>`
 - `view`
 - `run`
@@ -160,39 +171,50 @@ Contrix v1 支持以下 `kind`：
 ### 5.1 通用动作
 
 - `cx.space.discover`
-- `cx.entity.read`
-- `cx.entity.read_metadata`
-- `cx.entity.read_content`
-- `cx.entity.create`
-- `cx.entity.update`
-- `cx.entity.archive`
-- `cx.entity.restore`
+- `cx.object.read`
+- `cx.object.read_metadata`
+- `cx.object.read_content`
+- `cx.object.archive`
+- `cx.object.restore`
 
 ### 5.2 看板与对象动作
 
-- `cx.entity.create`
-- `cx.entity.update`
-- `cx.field_position.move` (字段分组视图的原子位置写入)
-- `cx.field_position.reorder`
+- `cx.board.create`
+- `cx.board.update`
+- `cx.board.archive`
+- `cx.list.create`
+- `cx.list.update`
+- `cx.list.reorder`
+- `cx.card.create`
+- `cx.card.read`
+- `cx.card.update`
+- `cx.card.archive`
+- `cx.card.move`
+- `cx.card.reorder`
+- `cx.card.link_room`
+- `cx.card.unlink_room`
+- `cx.card.set_primary_room`
 - `cx.relation.create` (assigned_to、contains 等)
-- `cx.container.move_item` (container / collection 模型的 item 移动)
+- `cx.container.move_item` (通用 container / collection 模型的 item 移动)
 - `cx.container.rebalance`
-- `cx.comment.create`
 - `cx.relation.*`
 - `cx.attachment.*`
 - `cx.view.*`
 
-看板拖拽权限应使用 `cx.field_position.move`、`cx.field_position.reorder`、`cx.container.move_item`、`cx.container.rebalance` 等 facet-oriented action，并结合 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束表达。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。
+看板拖拽权限 SHOULD 优先使用 `cx.card.move`、`cx.card.reorder`、`cx.list.reorder` 等标准对象 action。需要通用 collection profile 时，才使用 `cx.container.move_item`、`cx.container.rebalance`，并结合 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束表达。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。
 
 ### 5.3 会话动作
 
 - `cx.event.read`
+- `cx.room.create`
+- `cx.room.update`
+- `cx.room.member`
+- `cx.room.archive`
 - `cx.message.create`
 - `cx.reaction.add`
 - `cx.message.update` (任意消息) / `cx.message.update.own` (仅自己)
 - `cx.message.redact` (任意消息) / `cx.message.redact.own` (仅自己)
-- `cx.channel.*`
-- `cx.topic.*`
+- `cx.room.*`
 
 ### 5.4 Run 与 Memory 动作
 
@@ -207,6 +229,7 @@ Contrix v1 支持以下 `kind`：
 
 - `cx.space.admin`
 - `cx.board.admin`
+- `cx.room.admin`
 - `cx.schema.*`
 - `cx.capability.*`
 - `cx.policy.*`
@@ -245,10 +268,14 @@ Contrix v1 支持：
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `entity_type_allow`
-- `entity_facet_allow`
+- `object_type_allow`
+- `morph_type_allow`
+- `facet_allow`
 - `memory_kind_allow`
-- `allowed_channel_refs`
+- `allowed_room_refs`
+- `allowed_board_refs`
+- `allowed_list_refs`
+- `allowed_card_refs`
 - `allowed_view_refs`
 - `relation_kind_allow`
 - `allowed_from_container_refs`
@@ -414,7 +441,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 ```txt
 actor -> proposal.created
 guardian/controller -> proposal.approved
-system/human -> entity.updated
+system/human -> card.updated 或 morph.updated
 ```
 
 这样 agent 或受限 Actor 可以提出意图，但不会直接修改高风险状态。
@@ -423,7 +450,7 @@ system/human -> entity.updated
 
 给 agent 授权时 SHOULD 默认：
 
-- 只授予明确 Space / Entity / View 范围
+- 只授予明确 Space / Room / Board / Card / Morph / View 范围
 - 只授予所需动作
 - 只授予有限时效
 - 只授予允许的对象种类
@@ -502,7 +529,7 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 - `board_manager`
 - `contributor`
 - `observer`
-- `channel_moderator`
+- `room_moderator`
 - `agent_writer`
 
 但这些 role 在协议层只是 capability bundle，不是主语义。
@@ -532,7 +559,7 @@ Contrix v1 至少区分：
 - 编辑任意消息
 - 撤回自己的消息
 - 撤回任意消息
-- 管理 channel/topic
+- 管理 Room、Room member、Card-linked Room
 
 这能避免把“撤回别人的消息”错误地和“能发消息”混成一种权限。
 
@@ -576,8 +603,8 @@ Contrix v1 至少区分：
 
 在“聊天消息收发”或“卡片状态拖拽”等高频交互场景下，每一步操作都执行上述 12 步深层推演将导致极其严重的性能瓶颈。因此，节点实现 SHOULD 引入 **Capability 快照缓存 (Authz Snapshot Bitmap)**：
 
-1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或 Index 节点针对活跃 Actor 预计算出针对特定目标（如当前 Channel 或 Board）的有效权限位图 (Permission Bitmap)。
-2. **快速命中**：对于后续提交的纯业务 Operation（如 `send_message`, `react`, `edit_entity`），只要 Space 内没有发生新的 `cx.capability.*` 授权操作（或相关 Claim 撤销），节点直接查询 Bitmap 缓存即可，将 O(N) 的深层权限推演降维为 O(1)。
+1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或 Index 节点针对活跃 Actor 预计算出针对特定目标（如当前 Room、Board 或 Card）的有效权限位图 (Permission Bitmap)。
+2. **快速命中**：对于后续提交的纯业务 Operation（如 `send_message`, `react`, `card.update`），只要 Space 内没有发生新的 `cx.capability.*` 授权操作（或相关 Claim 撤销），节点直接查询 Bitmap 缓存即可，将 O(N) 的深层权限推演降维为 O(1)。
 3. **缓存失效与回滚**：当发生乱序操作、离线回补导致因果前沿包含新的授权变更或过期触发时，受影响的快照缓存将自动失效，并在下一次被访问时或后台任务中触发重建。
 
 ## 19. 设计决定

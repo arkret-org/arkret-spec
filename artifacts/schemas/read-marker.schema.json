@@ -10,7 +10,7 @@
     "schema": { "const": "cx.schema.read_marker.v1" },
     "actor_id": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "scope": { "type": "string", "enum": ["space", "channel", "topic", "thread", "view", "entity"] },
+    "scope": { "type": "string", "enum": ["space", "room", "thread", "view", "card", "message", "morph"] },
     "scope_id": { "type": "string" },
     "event_id": { "type": "string", "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$" },
     "timeline_order_key": { "type": "object" },

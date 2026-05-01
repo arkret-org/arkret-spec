@@ -98,7 +98,7 @@ DID Document SHOULD 只负责：
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_service`：Applet Server + Repo writer + Authz precheck，只在授权 namespace 和 capability 内工作。
-- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Channel。
+- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Room。
 - `agent_runtime`：Agent Runtime + Repo writer + Memory/Index integration，所有写入仍通过 principal / agent DID 签名。
 
 客户端选择服务时 MUST 先解析 DID Document 与 Space policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
@@ -352,11 +352,13 @@ index 至少应提供以下语义：
 GET /api/v1/index/describe
 ```
 
-### 6.2 获取 Entity 当前态
+### 6.2 获取 Object 当前态
 
 ```text
-GET /api/v1/index/entity?entity_id=<id>
+GET /api/v1/index/object?ref=<cx-ref>
 ```
+
+`ref` MAY 指向标准对象或 Morph，例如 `cx:room:*`、`cx:board:*`、`cx:list:*`、`cx:card:*`、`cx:message:*`、`cx:morph:*`。Index MUST 按 Space policy、对象 capability、Room membership 和 E2EE 可见性裁剪返回内容。
 
 ### 6.3 结构化查询
 
@@ -367,7 +369,9 @@ POST /api/v1/index/query
 其请求头 SHOULD 支持 `X-Contrix-Wait-For: <sync_token>`。
 其请求体 SHOULD 接受：
 
-- `entity_types` 或 `facets`（新 profile SHOULD 优先用 `facets` 表达能力选择）
+- `object_types`：标准对象类型，例如 `room`、`board`、`list`、`card`、`message`、`morph`
+- `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
+- `facets`：能力 mixin 选择器，只用于 Morph 或声明支持 facets 的标准对象
 - `relation`
 - 过滤条件
 - 排序
@@ -376,11 +380,14 @@ POST /api/v1/index/query
 - `view_id`、`projection` 与 `renderer`: 非 raw projection MUST 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`，响应 MUST 使用 `views.md` 定义的标准 `CollectionProjectionResponse`，并支持分组级 cursor。
 - `sync_token`: 可选。如果提供，Index 节点在响应前 MUST 阻塞等待本地物化进度到达或超过该 token 指示的因果前沿 (如特定的 `commit_hash`)，以保障“读己之所写”体验。超时则返回 408 或 504。
 
-### 6.4 thread / topic 查询
+### 6.4 room / card discussion 查询
 
 ```text
-GET /api/v1/index/thread?topic_id=<id>&cursor=<cursor>
+GET /api/v1/index/room-timeline?room_id=<id>&cursor=<cursor>
+GET /api/v1/index/card-discussions?card_id=<id>&cursor=<cursor>
 ```
+
+`card-discussions` 只返回 Card 链接的 Room 引用、用户可见的摘要和访问状态。它不得因为 Card 可见就展开 Room 内容，也不得因为 Room 可见就授予 Card 权限。
 
 ### 6.5 inbox / notification 查询
 
@@ -404,7 +411,8 @@ POST /api/v1/index/search
 {
   "query": "legal review",
   "space_ids": ["cx:space:01JS0SP000000000000000000"],
-  "entity_types": ["message", "task", "comment"],
+  "object_types": ["message", "card", "morph"],
+  "morph_types": ["comment"],
   "sender": "did:web:alice.example.com",
   "time_range": {
     "after": "2026-04-01T00:00:00Z",
@@ -423,7 +431,7 @@ POST /api/v1/index/search
   "results": [
     {
       "rank": 0.95,
-      "entity": { /* Entity 当前态 */ },
+      "object": { /* Object 当前态 */ },
       "highlights": [
         { "field": "content.body", "snippet": "Please complete the <em>legal review</em> by Friday." }
       ]
@@ -546,7 +554,7 @@ POST /api/v1/directory/private-contact-discovery
 
 ## 9. MIMI Provider Facade Surface
 
-MIMI Provider Facade 是 MIMI 草案兼容的互操作服务面。它不替代 Principal Server / Federation / Device Key Server；它只把被授权的 Contrix Space / Channel 投影为 MIMI room。
+MIMI Provider Facade 是 MIMI 草案兼容的互操作服务面。它不替代 Principal Server / Federation / Device Key Server；它只把被授权的 Contrix Space / Room 投影为 MIMI room。
 
 推荐操作：
 
@@ -566,7 +574,7 @@ POST /api/v1/mimi/proxy-download
 
 规则：
 
-- 只有存在 accepted `cx.mimi.room_binding` 的 Space / Channel / Topic 可以通过该 surface 暴露为 MIMI room。
+- 只有存在 accepted `cx.mimi.room_binding` 的 Space / Room 可以通过该 surface 暴露为 MIMI room。
 - MIMI 写请求 MUST 使用 provider service DID 的 HTTP Message Signature，并绑定 source / destination / room id / request hash。
 - Facade MUST 将 MIMI 写入转换为 Contrix event / operation，并执行 DID、device、MLS、capability、auth refs 和 Space policy 校验。
 - MIMI provider timestamp、room id、user id 和 role 只能作为互操作 metadata，不得替代 Contrix event id、HLC、DID 或 capability。

@@ -23,7 +23,7 @@ TSP 不适合直接承担：
 
 - Space 多成员群组 E2EE 状态机。
 - MLS epoch / group membership 变更。
-- Entity / Relation / Event reducer。
+- Object / Morph / Relation / Event reducer。
 - capability 授权本身。
 - 高吞吐媒体 RTP 转发。
 

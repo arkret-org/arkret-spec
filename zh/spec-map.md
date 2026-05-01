@@ -27,9 +27,12 @@
 - Organization 是一种 Principal，负责治理、签发、服务委派和官方背书。
 - Organization 不是 Space；Space 是协作数据边界。
 
-### 3.2 Space / Feed / View
+### 3.2 Space / Standard Objects / Morph / View
 
 - Space 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
+- Room、Board、List、Card、Message 是协议标准对象，拥有明确主语义和 reducer。
+- Morph 是开放对象，用于 schema / profile 扩展类型；facets 是能力 mixin，不是对象身份。
+- Card 与 Room 严格分离；Card 可链接多个 Room，但不继承 Room membership 或历史权限。
 - Feed 是一种社交或活动时间线投影源，不替代 Space。
 - View 是投影定义，不拥有真相数据。
 
@@ -87,11 +90,11 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| `models/object-model-core.md` | Space、Actor、Entity、Relation、Event、View 核心对象。 |
-| `models/object-model-standard.md` | Task、Message、Run、Memory、Social Post 等标准类型。 |
+| `models/object-model-core.md` | Space、Actor、Room、Board、List、Card、Message、Morph、Relation、Event、View 核心对象。 |
+| `models/object-model-standard.md` | 标准对象、Morph 类型、标准 facets 与 schema evolution。 |
 | `models/data-structures.md` | 核心对象字段级定义：必填性、类型、枚举、约束和说明。 |
-| `models/conversation-model.md` | Channel、Topic、Message、Thread、Mention、Reaction。 |
-| `models/views.md` | Board、Table、Timeline、Graph 等投影。 |
+| `models/conversation-model.md` | Room、Message、Card-linked Room、Thread、Mention、Reaction。 |
+| `models/views.md` | Board/List/Card、Table、Timeline、Graph 等投影。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
 | `models/social-graph.md` | 社交 feed、朋友圈、follow/contact/circle、Audience Policy。 |
 

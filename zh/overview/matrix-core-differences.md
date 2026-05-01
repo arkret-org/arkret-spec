@@ -8,7 +8,7 @@
 
 Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
 
-Contrix 的核心抽象是 **principal repo + Space + Entity / Relation / Event / View + capability**，重点服务可审计的协作对象、任务、看板、知识、agent 运行和多视图投影。
+Contrix 的核心抽象是 **principal repo + Space + Room / Board / List / Card / Message / Morph / Relation / Event / View + capability**，重点服务可审计的协作对象、任务、看板、知识、agent 运行和多视图投影。
 
 因此二者可以互联或桥接，但协议根不同。
 
@@ -16,7 +16,7 @@ Contrix 的核心抽象是 **principal repo + Space + Entity / Relation / Event 
 
 | 维度 | Matrix | Contrix |
 | --- | --- | --- |
-| 数据根 | Room 内事件流与 room state。 | Space 内授权 Event / operation 集合，归约为 Entity、Relation、View。 |
+| 数据根 | Room 内事件流与 room state。 | Space 内授权 Event / operation 集合，归约为 Room、Board、List、Card、Message、Morph、Relation、View。 |
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、知识记忆、agent run、审计工作流。 |
 | 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Repo、Sync、Index、Blob、Policy 分层。 |
 | 真相源 | Room event graph 与状态解析。 | Principal 签名 repo commit / operation，加上 Space reducer；Index / AppView 都是派生层。 |
@@ -51,7 +51,7 @@ Contrix Applet 的差异不是简单“更强”，而是粒度不同：
 Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix 的协议根对象。Contrix 从对象模型开始就把 agent 纳入：
 
 - agent 可以是 principal、Actor、capability subject。
-- agent 输出可以落成 `run`、`memory`、`message`、`task` 等标准 Entity。
+- agent 输出可以落成 `run`、`memory` 等 Morph 类型，也可以写入 Message、Card 或 Relation。
 - agent 权限必须窄范围、短时效、可撤销、可审计。
 - agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Contrix。
 - Contrix 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。
@@ -92,7 +92,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 
 Matrix 可以承载很多非聊天数据，但它的协议根仍是 room event。
 
-Contrix 从一开始把 `task`、`message`、`topic`、`memory`、`run`、`board` projection、relation graph 都作为协作对象处理。聊天只是 View 之一，不是所有业务状态的唯一载体。
+Contrix 从一开始把 Room、Board、List、Card、Message、Morph 和 Relation 都作为协作对象处理。聊天只是 Room 的一种常见投影，不是所有业务状态的唯一载体。
 
 ### 5.2 Power level 与 capability
 
@@ -100,7 +100,7 @@ Matrix power level 适合 room 内角色治理。
 
 Contrix capability 更适合细粒度协作系统：
 
-- 可以限定 Space、Entity、Relation、字段、时间、设备、速率、审批条件。
+- 可以限定 Space、Room、Board、Card、Morph、Relation、字段、时间、设备、速率、审批条件。
 - 可以委托给 agent、Applet、设备、组织角色或外部服务。
 - 可撤销、可审计，并与 policy server 风险决策分离。
 
