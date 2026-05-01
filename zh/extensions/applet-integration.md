@@ -109,8 +109,8 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
   "receive_ephemeral": false,
   "rate_limited": true,
   "requested_scopes": [
-    "space.read",
-    "space.write",
+    "cx.space.discover",
+    "cx.object.read",
     "cx.card.create",
     "cx.morph.create",
     "cx.message.create",
@@ -206,10 +206,14 @@ Handle namespace 适用于外部用户或 location 的人类入口。
       "cx.relation.create"
     ]
   },
-  "constraints": {
-    "via_applet_id": "cx:applet:slack-bridge",
-    "allowed_actor_namespace": "did:web:slack-bridge.example#ghost-*"
-  },
+  "constraints": [
+    {
+      "constraint_type": "scope_limitation",
+      "effect": "allow",
+      "via_applet_id": "cx:applet:slack-bridge",
+      "allowed_actor_namespace": "did:web:slack-bridge.example#ghost-*"
+    }
+  ],
   "expires_at": "2026-07-26T00:00:00Z"
 }
 ```

@@ -75,16 +75,24 @@ Authorization condition: Claim / Attestation
       "cx.memory.create"
     ]
   },
-  "constraints": {
-    "expires_at": "2026-04-30T00:00:00Z",
-    "fields_write_allow": [
-      "title",
-      "body",
-      "labels",
-      "due_at"
-    ],
-    "max_delegation_depth": 0
-  }
+  "constraints": [
+    {
+      "constraint_type": "temporal",
+      "effect": "allow",
+      "expires_at": "2026-04-30T00:00:00Z"
+    },
+    {
+      "constraint_type": "field_access",
+      "effect": "allow",
+      "scope": "write",
+      "fields": ["title", "body", "labels", "due_at"]
+    },
+    {
+      "constraint_type": "delegation_control",
+      "effect": "allow",
+      "max_delegation_depth": 0
+    }
+  ]
 }
 ```
 
@@ -97,16 +105,20 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 ```json
 {
   "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-  "constraints": {
-    "requires_claims": [
-      {
-        "claim_type": "org_membership",
-        "issuer": "did:web:google.com",
-        "organization": "did:web:google.com",
-        "status": "active"
-      }
-    ]
-  }
+  "constraints": [
+    {
+      "constraint_type": "claim_based",
+      "effect": "allow",
+      "requires_claims": [
+        {
+          "claim_type": "org_membership",
+          "issuer": "did:web:google.com",
+          "organization": "did:web:google.com",
+          "status": "active"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -151,12 +163,9 @@ Contrix v1 支持以下 `kind`：
 - `event`
 - `actor`
 - `view`
-- `schema`
-- `policy`
 - `object_type:<type>`
 - `morph_type:<type>`
 - `relation_kind:<type>`
-- `view`
 - `run`
 - `memory`
 - `schema`
@@ -233,7 +242,10 @@ Contrix v1 支持以下 `kind`：
 - `cx.schema.*`
 - `cx.capability.*`
 - `cx.policy.*`
+- `cx.invite.create`
+- `cx.invite.revoke`
 - `cx.invite.*`
+- `cx.approval.vote`
 
 ### 5.6 服务动作
 
@@ -407,14 +419,18 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 
 ```json
 {
-  "constraints": {
-    "approval_required": true,
-    "approval_mode": "before_commit",
-    "approval_actor_refs": [
-      "did:web:alice.example.com"
-    ],
-    "approval_relation": "controller"
-  }
+  "constraints": [
+    {
+      "constraint_type": "approval_workflow",
+      "effect": "require_review",
+      "approval_required": true,
+      "approval_mode": "before_commit",
+      "approval_actor_refs": [
+        "did:web:alice.example.com"
+      ],
+      "approval_relation": "controller"
+    }
+  ]
 }
 ```
 
@@ -441,7 +457,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 ```txt
 actor -> proposal.created
 guardian/controller -> proposal.approved
-system/human -> card.updated 或 morph.updated
+system/human -> `cx.card.update` 或 `cx.morph.update`
 ```
 
 这样 agent 或受限 Actor 可以提出意图，但不会直接修改高风险状态。
@@ -604,7 +620,7 @@ Contrix v1 至少区分：
 在“聊天消息收发”或“卡片状态拖拽”等高频交互场景下，每一步操作都执行上述 12 步深层推演将导致极其严重的性能瓶颈。因此，节点实现 SHOULD 引入 **Capability 快照缓存 (Authz Snapshot Bitmap)**：
 
 1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或 Index 节点针对活跃 Actor 预计算出针对特定目标（如当前 Room、Board 或 Card）的有效权限位图 (Permission Bitmap)。
-2. **快速命中**：对于后续提交的纯业务 Operation（如 `send_message`, `react`, `card.update`），只要 Space 内没有发生新的 `cx.capability.*` 授权操作（或相关 Claim 撤销），节点直接查询 Bitmap 缓存即可，将 O(N) 的深层权限推演降维为 O(1)。
+2. **快速命中**：对于后续提交的纯业务 Operation（如 `cx.message.create`、`cx.reaction.add`、`cx.card.update`），只要 Space 内没有发生新的 `cx.capability.*` 授权操作（或相关 Claim 撤销），节点直接查询 Bitmap 缓存即可，将 O(N) 的深层权限推演降维为 O(1)。
 3. **缓存失效与回滚**：当发生乱序操作、离线回补导致因果前沿包含新的授权变更或过期触发时，受影响的快照缓存将自动失效，并在下一次被访问时或后台任务中触发重建。
 
 ## 19. 设计决定
@@ -629,8 +645,8 @@ Contrix v1 固定：
 
 以下授权事项在 v1 中按本节和引用文档执行，不再作为开放问题：
 
-- Resource selector 语法由 `grant-constraint-schema.md` 固定。selector MUST 显式声明 resource kind、id / pattern、Space scope 和是否允许子资源；默认不递归、不跨 Space。
-- Constraint schema 由 `grant-constraint-schema.md` 固定。未知 constraint 在授权判定中 MUST fail closed，除非 grant 明确标注该 constraint 为 non-critical hint。
+- Resource selector 语法由 `resource-selector-grammar.md` 和 `resource-selector.schema.json` 固定。selector MUST 显式声明 resource kind、id / pattern、Space scope 和是否允许子资源；默认不递归、不跨 Space。
+- Constraint schema 由 `constraint-schema.md` 固定，`grant-constraint-schema.md` 只定义 grant 如何嵌入 typed constraint 数组。未知 constraint 在授权判定中 MUST fail closed，除非 grant 明确标注该 constraint 为 non-critical hint。
 - 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交；过期、撤销、delegation depth、claim 失效、approval 未满足和 policy deny 均优先于 allow。
 - Moderation policy 与 capability 的关系固定为：capability 先给出基础可做，moderation / policy server 再给出 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。Moderation policy 不得凭空授予 capability。
 - Approval proof 与 proposal 状态机由本文件第 11 节、`event-auth-state-resolution.md` 和 `capability-conformance-vectors.md` 固定。高风险动作缺少 approval 时 MUST 进入 proposal / review / quarantine 路径，不得直接生效。

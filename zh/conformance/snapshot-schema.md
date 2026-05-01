@@ -9,10 +9,10 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
 ```json
 {
   "type": "snapshot_manifest",
-  "snapshot_id": "cx:snapshot:01JS0SN000000000000000000",
+  "snapshot_ref": "cx:snapshot:01JS0SN000000000000000000",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "reducer_profile": "cx.reducer.v1",
-  "schema_profile": "cx.schema.core.v1",
+  "schema_profile_refs": ["cx.schema.core.v1"],
   "frontier": {
     "max_hlc": "01970e589d21-0004-a13f9c2e",
     "commit_hashes": ["sha256:..."]
@@ -21,7 +21,14 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
   "chunks": [],
   "created_by": "did:web:index.example",
   "created_at": "2026-04-26T00:00:00Z",
-  "proof": {}
+  "signature": {
+    "kind": "detached_jws",
+    "alg": "EdDSA",
+    "verification_method": "did:web:index.example#snapshot-key-1",
+    "payload_hash": "sha256:...",
+    "created_at": "2026-04-26T00:00:00Z",
+    "jws": "..."
+  }
 }
 ```
 
@@ -50,14 +57,16 @@ sha256(kind || ":" || id || ":" || sha256(canonical_json(object)))
 
 ## 5. Snapshot Signature
 
-Manifest MUST be signed by one of:
+Manifest MUST contain exactly one normative `signature` field. `signature` MUST use the same detached proof shape as Event proof and MUST cover the canonical manifest payload excluding `signature`.
+
+The signing DID MUST be one of:
 
 - Space owner
 - trusted index node
 - witness quorum
 - policy-approved snapshot issuer
 
-Client MUST verify signature and `state_hash` before using snapshot.
+Client MUST verify signature, signer authority, `state_hash`, frontier and every chunk digest before using snapshot. `proof`, `signed_by`, `generator_signature` and `state_signature` are not v1 snapshot manifest fields.
 
 ## 6. Encrypted Envelope
 

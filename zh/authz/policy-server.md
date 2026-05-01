@@ -46,7 +46,7 @@ Content-Type: application/json
 | `request_id` | body | `string` | required | 请求 ID，用于日志和幂等追踪。 |
 | `space_id` | body | `id` | optional | 相关 Space；Space 相关检查 SHOULD 提供。 |
 | `request_canonical_hash` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
-| `action` | body | `string` | required | 待检查动作，例如 `message.send`。 |
+| `action` | body | `string` | required | 待检查动作，例如 `cx.message.create`。 |
 | `actor` | body | `did` | required | 发起动作的 Actor DID。 |
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
@@ -64,7 +64,7 @@ Content-Type: application/json
   "request_id": "polreq_01",
   "space_id": "space:...",
   "request_canonical_hash": "sha256:...",
-  "action": "message.send",
+  "action": "cx.message.create",
   "actor": "did:uuid:...",
   "device_id": "dev_a",
   "source": {

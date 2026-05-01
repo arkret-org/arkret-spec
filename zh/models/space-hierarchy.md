@@ -121,11 +121,19 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
     "source_grant": "cx:grant:parent_viewer",
     "source_space_id": "cx:space:parent_01",
     "target_space_id": "cx:space:child_01",
-    "actions": ["space.read", "object.read"],
-    "constraints": {
-      "expires_at": "2026-05-01T00:00:00Z",
-      "inherited_depth": 1
-    }
+    "actions": ["cx.space.discover", "cx.object.read"],
+    "constraints": [
+      {
+        "constraint_type": "temporal",
+        "effect": "allow",
+        "expires_at": "2026-05-01T00:00:00Z"
+      },
+      {
+        "constraint_type": "delegation_control",
+        "effect": "allow",
+        "inherited_depth": 1
+      }
+    ]
   }
 }
 ```

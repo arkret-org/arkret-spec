@@ -111,6 +111,19 @@ Contrix 把身份解析抽象为 `Identity Resolution Infrastructure`，而不�
 
 因此，使用 `did:key` 或 `did:keri` 不表示“不需要身份解析”。它只表示通常不需要公共可写 registry。客户端、Auth Server、Principal Server 和 Policy / Authz 仍然必须具备对应 DID method 的 resolver / verifier，才能确认 DID 控制状态、服务委托和密钥轮换历史。
 
+### 3.2.1 `did:uuid` 最小解析 Profile
+
+`did:uuid` resolver profile MUST 至少定义：
+
+- resolver trust domain：公共 registry、组织私有 registry、witness quorum、offline bundle 或本地 pinset。
+- lookup 输入：`did`、requested version/head、audience、challenge 和 requester purpose。
+- lookup 输出：DID Document、key log head、最近序号、registry / witness receipts、service delegation metadata 和 method evidence。
+- 验证规则：重新计算 inception key hash fragment、验证 key log 从 inception event 到 head 的授权链、验证 receipts 绑定 `did`、`seq`、`head_event_hash`、registry service DID、audience 和签名。
+- 缓存规则：缓存必须绑定 resolver trust domain、head hash、receipt set 和 expiry；DID key log、service delegation 或 registry trust policy 变化时 MUST 失效。
+- 失败规则：无法在本地 trust policy 下解析、receipt quorum 不足、key log 断链、hash fragment 不匹配或 service delegation 过期时，resolver MUST fail closed。
+
+普通部署 MAY 使用公共 `did:uuid` resolver；组织或 sovereign deployment MAY 使用私有 resolver。两者的 DID 字符串格式相同，但解析入口和信任根由本地 resolver policy 决定。
+
 ### 3.3 Resolver、Auth Server 与组织授权
 
 DID 解析、登录认证和组织数据授权是三个不同职责：
@@ -194,6 +207,10 @@ service account 绑定是组织本地状态。它不会把 DID 所有权转移�
 - Version 和 Variant 位 MUST 被明确跳过
 - hash fragment 总长度为 74 位
 
+74 位 `hash fragment` 只是 DID 字符串内的紧凑绑定提示，不是完整碰撞安全证明。实现 MUST NOT 仅凭该 fragment 接受 DID 控制权。Resolver 返回的 DID Document / inception event MUST 携带完整 `inception_key_digest`（默认 `sha256:<64 hex>`），客户端 MUST 重新计算并验证完整 digest、key log 授权链和 registry / witness receipt。
+
+若同一 `did:uuid` 出现多个不同 `inception_key_digest`、不同 inception event 或互相冲突的 key log head，resolver 和客户端 MUST fail closed，并把该 DID 标记为 fork / collision quarantine。Registry / witness MUST 拒绝为同一 DID 签发不同 inception digest 的有效 receipt。
+
 ## 5. Hash Algorithm ID
 
 初版注册表：
@@ -237,6 +254,7 @@ fragment = first 74 bits of hash
 - timestamp MUST 反映生成时的 Unix 毫秒时间
 - Hash Algorithm ID MUST 与实际哈希函数一致
 - 74 位 hash fragment MUST 来自 `inception_key` canonical bytes
+- inception event MUST 记录完整 `inception_key_digest`
 - 普通密钥轮换 MUST NOT 重新生成 DID
 
 以下情况 MUST 拒绝：

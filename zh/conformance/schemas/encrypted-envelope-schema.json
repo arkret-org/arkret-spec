@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/encrypted-envelope.schema.json",
-  "title": "Contrix Encrypted Payload Envelope",
+  "$id": "https://contrix.io/artifacts/schemas/encrypted-envelope-schema.json",
+  "title": "Contrix Encrypted Payload Envelope Schema",
   "type": "object",
   "required": ["scheme", "group_id", "epoch", "content_type", "ciphertext", "aad", "payload_digest"],
   "properties": {

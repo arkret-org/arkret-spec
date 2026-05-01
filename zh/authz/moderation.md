@@ -127,6 +127,15 @@ POST /api/v1/moderation/report
 - 审核方验证时 MUST 检查：frank 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
 - Frank 只证明服务接收过对应密文事件，不单独证明明文含义。审核决定仍必须落成 signed moderation decision，并受 Space policy、capability 和 appeal 规则约束。
 
+Franking 信任链：
+
+1. 从 frank 的 `received_by` 取得 receiving service DID。
+2. 解析该 DID Document，并验证 frank `signature` 使用的 verification method 在 `received_at` 时有效且未撤销。
+3. 验证该 service DID 在目标 Space 的 policy / service binding 中被授权为 Sync、Federation、MIMI facade 或 moderation ingestion 服务。
+4. 验证 DID service endpoint、HTTP Message Signature / federation binding 与实际接收服务一致，防止把其他服务签名重放到本 Space。
+5. 验证 frank payload hash 覆盖 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、received time 和 replay nonce。
+6. 若任一环节缺失，审核方 MAY 接收举报材料作人工线索，但 MUST NOT 将 frank 视为可验证投递证明。
+
 ## 4. 用户屏蔽 (Ignore/Block)
 
 ### 4.1 屏蔽是 Actor-Private 状态

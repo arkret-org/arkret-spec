@@ -14,7 +14,7 @@
     "prev_commit": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "operations": { "type": "array", "items": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }, "minItems": 1 },
     "created_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "proofs": { "type": "array", "items": { "$ref": "./event-envelope.schema.json#/$defs/proof" }, "minItems": 1 }
+    "proofs": { "type": "array", "items": { "$ref": "./event-schema.json#/$defs/proof" }, "minItems": 1 }
   },
   "additionalProperties": true
 }

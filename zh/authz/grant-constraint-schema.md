@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、何时做、以什么身份或设备做。本文定义标准 constraint 语法。
+Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、何时做、以什么身份或设备做。本文定义 grant 如何嵌入 `constraint-schema.md` 中的标准 typed constraint。`constraint-schema.md` 是约束对象的规范性结构；本文不定义第二套 grant-only 扁平结构。
 
 ## 2. Grant Envelope
 
@@ -13,7 +13,7 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
   "issuer": "did:web:acme.example",
   "subject": "did:web:alice.example",
   "scope": {},
-  "constraints": {},
+  "constraints": [],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": "2026-07-26T00:00:00Z",
   "revocation_ref": "cx:revocation-list:default",
@@ -38,34 +38,38 @@ Scope MUST be allow-list based。未列出的动作默认拒绝。标准对象 S
 ## 4. Constraint
 
 ```json
-{
-  "time": {
+[
+  {
+    "constraint_type": "temporal",
+    "effect": "allow",
     "not_before": "2026-04-26T00:00:00Z",
     "expires_at": "2026-07-26T00:00:00Z"
   },
-  "fields_write_allow": ["title", "fields.status"],
-  "fields_write_deny": ["policy", "encryption_profile"],
-  "object_type_allow": ["card", "morph"],
-  "morph_type_allow": ["run", "memory"],
-  "facet_allow": ["stateful", "replyable"],
-  "relation_kind_allow": ["contains"],
-  "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
-  "allowed_from_container_refs": ["cx:list:01js0c1000000000000000000"],
-  "allowed_to_container_refs": ["cx:list:01js0c2000000000000000000"],
-  "wip_limit_override": false,
-  "max_blob_bytes": 10485760,
-  "requires_claims": [],
-  "requires_approval": null,
-  "device_bound": true,
-  "audience": ["did:web:repo.example"]
-}
+  {
+    "constraint_type": "field_access",
+    "effect": "allow",
+    "scope": "write",
+    "fields": ["title", "fields.status"]
+  },
+  {
+    "constraint_type": "type_restriction",
+    "effect": "allow",
+    "object_type_allow": ["card", "morph"],
+    "morph_type_allow": ["run", "memory"],
+    "facet_allow": ["stateful", "replyable"]
+  }
+]
 ```
+
+Grant `constraints` MUST be an array of typed constraint objects. Evaluation order is defined in `constraint-schema.md`: deny / quarantine / require_review constraints are evaluated before allow constraints within the same category, then `priority` breaks ties.
 
 ## 5. Claim Constraint
 
 ```json
 {
-  "type": "contrix_org_membership_credential",
+  "constraint_type": "claim_based",
+  "effect": "allow",
+  "claim_type": "contrix_org_membership_credential",
   "issuer": ["did:web:google.example"],
   "subject_matches_actor": true,
   "claims": {
@@ -79,6 +83,8 @@ Scope MUST be allow-list based。未列出的动作默认拒绝。标准对象 S
 
 ```json
 {
+  "constraint_type": "approval_workflow",
+  "effect": "require_review",
   "mode": "required",
   "approvers": ["did:web:manager.example"],
   "threshold": 1,
@@ -93,6 +99,8 @@ Grant MAY allow delegation:
 
 ```json
 {
+  "constraint_type": "delegation_control",
+  "effect": "allow",
   "delegation": {
     "allowed": true,
     "max_depth": 1,
@@ -130,6 +138,7 @@ Delegated grant MUST be equal or narrower than parent grant.
 {
   "constraint_type": "container_move",
   "effect": "allow",
+  "priority": 0,
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
   "allowed_from_container_refs": ["cx:list:01js0c1000000000000000000"],

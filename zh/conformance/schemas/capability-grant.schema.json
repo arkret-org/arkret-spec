@@ -33,7 +33,7 @@
     "valid_until": { "type": "string", "format": "date-time", "pattern": "Z$" },
     "revoked_by": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
     "revoked_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "proofs": { "type": "array", "items": { "$ref": "./event-envelope.schema.json#/$defs/proof" }, "minItems": 1 }
+    "proofs": { "type": "array", "items": { "$ref": "./event-schema.json#/$defs/proof" }, "minItems": 1 }
   },
   "additionalProperties": true
 }

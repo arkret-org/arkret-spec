@@ -13,7 +13,7 @@
     "witness_role": { "type": "string", "enum": ["writer", "witness", "replica"] },
     "audience": { "type": "string" },
     "created_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "signature": { "$ref": "./event-envelope.schema.json#/$defs/proof" }
+    "signature": { "$ref": "./event-schema.json#/$defs/proof" }
   },
   "additionalProperties": true
 }

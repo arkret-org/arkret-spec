@@ -19,9 +19,24 @@
     "expires_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
     "fields_write_allow": { "type": "array", "items": { "type": "string" } },
     "fields_write_deny": { "type": "array", "items": { "type": "string" } },
-    "allowed_object_types": { "type": "array", "items": { "type": "string" } },
-    "allowed_morph_types": { "type": "array", "items": { "type": "string" } },
-    "allowed_facets": {
+    "object_type_allow": { "type": "array", "items": { "type": "string" } },
+    "object_type_deny": { "type": "array", "items": { "type": "string" } },
+    "morph_type_allow": { "type": "array", "items": { "type": "string" } },
+    "morph_type_deny": { "type": "array", "items": { "type": "string" } },
+    "memory_kind_allow": { "type": "array", "items": { "type": "string" } },
+    "memory_kind_deny": { "type": "array", "items": { "type": "string" } },
+    "facet_allow": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "container", "replyable", "schedulable", "assignable", "stateful",
+          "rankable", "reviewable", "notifiable", "documentable", "renderable"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "facet_deny": {
       "type": "array",
       "items": {
         "type": "string",

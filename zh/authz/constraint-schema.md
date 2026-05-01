@@ -8,17 +8,18 @@
 
 ### 2.1 基础 Schema
 
-所有约束遵循以下结构：
+所有约束使用同一个 typed flat object 结构。`constraint_type`、`effect` 和 `priority` 是通用字段；类型专属字段直接放在同一对象上，不再包入另一层 `parameters`。Grant、policy、proposal 和 conformance schema 都 MUST 使用这一种结构。
 
 ```json
 {
   "constraint_id": "string",
   "constraint_type": "enum",
   "effect": "allow|deny|quarantine|require_review",
-  "parameters": {},
-  "priority": "integer"
+  "priority": 0
 }
 ```
+
+`constraint_id` 是可选稳定标识，用于审计、UI diff 和局部更新；未提供时，评估器可用 constraint 在 grant 内的数组位置和 canonical hash 作为诊断标识。
 
 ### 2.2 约束类型
 
@@ -43,6 +44,7 @@
 ```json
 {
   "constraint_type": "temporal",
+  "effect": "allow",
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": "2026-05-26T00:00:00Z",
   "recurrence": {
@@ -60,6 +62,7 @@
 ```json
 {
   "constraint_type": "temporal",
+  "effect": "allow",
   "max_duration": "8h",
   "max_session_duration": "1h",
   "inactivity_timeout": "30m"
@@ -128,6 +131,7 @@
 ```json
 {
   "constraint_type": "type_restriction",
+  "effect": "allow",
   "memory_kind_allow": ["episodic", "semantic"],
   "memory_kind_deny": ["sensitive", "credentials"]
 }
@@ -140,6 +144,7 @@
 ```json
 {
   "constraint_type": "scope_limitation",
+  "effect": "allow",
   "allowed_room_refs": [
     "cx:room:01JS0ROOM000000000000000"
   ],
@@ -154,6 +159,7 @@
 ```json
 {
   "constraint_type": "scope_limitation",
+  "effect": "allow",
   "allowed_view_kinds": ["collection"],
   "allowed_view_renderers": ["board", "list"],
   "denied_view_kinds": ["graph"],
@@ -166,6 +172,7 @@
 ```json
 {
   "constraint_type": "container_move",
+  "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
   "allowed_from_container_refs": ["cx:list:01js0c1000000000000000000"],
@@ -183,6 +190,7 @@
 ```json
 {
   "constraint_type": "delegation_control",
+  "effect": "allow",
   "max_delegation_depth": 2,
   "delegation_path": ["did:web:org.example.com"],
   "prohibit_subdelegation": false
@@ -194,6 +202,7 @@
 ```json
 {
   "constraint_type": "delegation_control",
+  "effect": "allow",
   "delegation_scope": "narrowing_only",
   "allow_scope_expansion": false,
   "require_parent_reference": true
@@ -207,6 +216,7 @@
 ```json
 {
   "constraint_type": "rate_limiting",
+  "effect": "allow",
   "max_operations": 100,
   "period": "1h",
   "burst": 10,
@@ -219,6 +229,7 @@
 ```json
 {
   "constraint_type": "rate_limiting",
+  "effect": "allow",
   "max_resources": 1000,
   "resource_type": "object",
   "period": "24h",
@@ -233,6 +244,7 @@
 ```json
 {
   "constraint_type": "approval_workflow",
+  "effect": "require_review",
   "approval_required": true,
   "approval_mode": "before_commit",
   "approval_actor_refs": [
@@ -249,6 +261,7 @@
 ```json
 {
   "constraint_type": "approval_workflow",
+  "effect": "require_review",
   "approval_mode": "proposal_then_approve",
   "proposal_morph_type": "proposal",
   "approval_threshold": "majority|unanimous|quorum",
@@ -266,6 +279,7 @@
 ```json
 {
   "constraint_type": "claim_based",
+  "effect": "allow",
   "requires_claims": [
     {
       "claim_type": "org_membership",
@@ -288,6 +302,7 @@
 ```json
 {
   "constraint_type": "claim_based",
+  "effect": "allow",
   "validation_mode": "strict|lenient",
   "allow_expired_claims": false,
   "allow_revoked_claims": false,
@@ -302,6 +317,7 @@
 ```json
 {
   "constraint_type": "accountability",
+  "effect": "allow",
   "accountability_required": true,
   "responsible_actor": "did:web:guardian.example.com",
   "accountability_relation": "guardian",
@@ -315,6 +331,7 @@
 ```json
 {
   "constraint_type": "accountability",
+  "effect": "require_review",
   "guardian_approval_required": true,
   "guardian_actor_refs": [
     "did:web:parent1.example.com",
@@ -331,6 +348,7 @@
 ```json
 {
   "constraint_type": "encryption_requirement",
+  "effect": "allow",
   "encryption_required": true,
   "min_encryption_level": "mls_rfc9420",
   "allow_plaintext_fallback": false,
@@ -343,6 +361,7 @@
 ```json
 {
   "constraint_type": "encryption_requirement",
+  "effect": "allow",
   "key_rotation_period": "7d",
   "max_key_age": "30d",
   "require_key_backup": true,
@@ -361,8 +380,8 @@
 ```
 1. 所有 deny 约束（最高优先级优先）
 2. 所有 quarantine 约束
-3. 所有 allow 约束（最低优先级优先）
-4. 所有 require_review 约束
+3. 所有 require_review 约束
+4. 所有 allow 约束（最低优先级优先）
 ```
 
 在每个类别中，`priority` 值越大优先级越高。
@@ -516,7 +535,7 @@ function matches_field_access(operation, constraint):
 {
   "grant_id": "cx:grant:...",
   "subject": "did:web:agent.example.com",
-  "actions": ["read", "card.create", "memory.write"],
+  "actions": ["cx.object.read", "cx.card.create", "cx.memory.create"],
   "resources": [
     {
       "kind": "card",
@@ -527,6 +546,7 @@ function matches_field_access(operation, constraint):
   "constraints": [
     {
       "constraint_type": "temporal",
+      "effect": "allow",
       "expires_at": "2026-05-01T00:00:00Z"
     },
     {
@@ -537,11 +557,13 @@ function matches_field_access(operation, constraint):
     },
     {
       "constraint_type": "accountability",
+      "effect": "allow",
       "accountability_required": true,
       "responsible_actor": "did:web:owner.example.com"
     },
     {
       "constraint_type": "approval_workflow",
+      "effect": "require_review",
       "approval_required": true,
       "approval_mode": "after_commit_review"
     }
@@ -556,6 +578,7 @@ function matches_field_access(operation, constraint):
   "constraints": [
     {
       "constraint_type": "temporal",
+      "effect": "allow",
       "not_before": "2026-04-26T09:00:00Z",
       "expires_at": "2026-04-26T17:00:00Z",
       "recurrence": {
@@ -566,6 +589,7 @@ function matches_field_access(operation, constraint):
     },
     {
       "constraint_type": "claim_based",
+      "effect": "allow",
       "requires_claims": [{
         "claim_type": "org_role",
         "roles": ["on_call"]

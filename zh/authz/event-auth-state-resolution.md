@@ -428,7 +428,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 
 1. 将所有 state set 中相同 `(kind, state_key)` 且 event id 相同的项放入 unconflicted state。
 2. 将不同 event id 的项放入 conflicted set。
-3. 计算 auth difference：所有 conflicted event 的 auth chain 差集。
+3. 计算 auth difference：见 9.3.1。
 4. 对 auth difference 先排序并授权，得到 provisional auth state。
 5. 对 conflicted set 按 priority class 分组：
    - `space.create`
@@ -449,6 +449,30 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 9. 输出 conflict record，索引器 SHOULD 暴露给审计视图。
 
 该算法 MUST deterministic。任何实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
+
+### 9.3.1 Auth Difference
+
+`auth difference` MUST 使用集合算法计算，不得依赖遍历顺序：
+
+```text
+auth_chain(e):
+  result = {}
+  stack = e.auth_refs
+  while stack not empty:
+    a = pop(stack)
+    if a not in result:
+      result.add(a)
+      stack.extend(a.auth_refs)
+  return result
+
+auth_difference(conflicted_events):
+  chains = [auth_chain(e) for e in conflicted_events]
+  common = intersection(chains)
+  diff = union(chains) - common
+  return diff
+```
+
+实现 MUST 对 `diff` 中的事件按 state resolution 的 deterministic ordering 排序后再验证授权。若某个 auth event 缺失、hash 不匹配或自身不能 accepted，依赖它的候选事件 MUST soft-fail 或 fail closed，不能把缺失 auth 当作允许。
 
 ## 10. Redaction
 

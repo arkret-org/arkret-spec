@@ -164,8 +164,6 @@ Contrix v1 要求：
 - `cx.room.update`
 - `cx.room.archive`
 - `cx.room.member`
-- `cx.room.link_card`
-- `cx.room.unlink_card`
 - `cx.message.create`
 - `cx.message.revise`
 - `cx.message.redact`
@@ -205,6 +203,8 @@ Contrix v1 要求：
 
 `cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Card 所属 List、Card rank、List rank、Room membership、Message timeline、Relation active state 或对象字段的唯一真相。
 
+Card 与 Room 的关联只使用 Card 视角事件：`cx.card.link_room`、`cx.card.unlink_room` 和 `cx.card.set_primary_room`。`cx.room.link_card` / `cx.room.unlink_card` 不是 v1 标准事件，接收方 MUST 拒绝它们，避免同一语义出现双写路径。
+
 ### 7.5 Run / Memory / Extensions
 
 - `cx.run.create`
@@ -214,10 +214,11 @@ Contrix v1 要求：
 - `cx.memory.create`
 - `cx.memory.update`
 - `cx.memory.confirm`
+- `cx.memory.reject`
 - `cx.memory.invalidate`
 - `cx.memory.supersede`
 
-这些 MAY 在 agent / memory profile 中作为标准对象或 Morph profile 实现。
+这些事件在 v1 Core 中作用于 `morph_type=run` / `morph_type=memory` 的 Morph。若未来 profile 将 Run / Memory 提升为标准对象，必须声明新的 schema/profile 版本和迁移规则。
 
 ### 7.6 Membership / Invite / Capability
 
@@ -359,17 +360,20 @@ Snapshot 是加速层，不是真相源。
 
 Snapshot manifest MUST 包含：
 
+- `snapshot_ref`
+- `space_id`
 - `schema_profile_refs`
 - `chunk_digests`
 - `state_hash`
-- `signed_by`
-- `generator_signature`
+- `frontier`
+- `signature`
 
 客户端在采用 Snapshot 前 MUST 验证：
 
-1. `generator_signature` 的签名有效性。
-2. 每个 chunk 的实际 SHA-256 与 `chunk_digests` 中声明的值一致。
-3. 若任何校验失败，客户端 MUST 丢弃快照并回退到 Repo 进行原始历史回放。
+1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`space_id`、`state_hash`、`frontier`、`chunk_digests`、`reducer_profile` 和 `schema_profile_refs` 的 canonical manifest hash。
+2. `signature.verification_method` 对应的 DID 必须是 Space owner、Space policy 授权的 snapshot issuer、可信 Index service DID 或 witness quorum 成员。
+3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
+4. 若任何校验失败，客户端 MUST 丢弃快照并回退到 Repo 进行原始历史回放。
 
 ## 12. 同步面
 

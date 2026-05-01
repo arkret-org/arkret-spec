@@ -263,7 +263,7 @@ Agent memory 往往比普通任务更敏感，因此实现 SHOULD 支持：
 
 Contrix v1 固定：
 
-- run 与 memory 是一等对象
+- run 与 memory 在 v1 Core 中是一等 Morph profile；`cx.profile.agent_memory.v1` 定义其生命周期事件和查询语义
 - episodic / semantic / task memory 共存
 - embedding 是派生层
 - memory 必须带来源

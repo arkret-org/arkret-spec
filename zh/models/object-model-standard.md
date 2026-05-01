@@ -220,7 +220,7 @@ Morph 适合：
 
 ## 8. Document
 
-`document` 表示可协作编辑或引用的文档对象。Document MAY 在后续 profile 中成为标准对象；在核心 profile 中可先作为 Morph profile 实现。
+`document` 表示可协作编辑或引用的文档对象。v1 Core 中 Document 是 Morph profile，不是标准对象。后续版本若提升为标准对象，必须通过新的 schema/profile 版本声明迁移规则。
 
 文档正文 MAY 存储为：
 
@@ -231,13 +231,13 @@ Morph 适合：
 
 ## 9. File
 
-`file` 表示 blob 的协作元数据。File MAY 在后续 profile 中成为标准对象；在核心 profile 中可先作为 Morph profile 实现。
+`file` 表示 blob 的协作元数据。v1 Core 中 File 是 Morph profile，不是标准对象。后续版本若提升为标准对象，必须通过新的 schema/profile 版本声明迁移规则。
 
 内容本身 SHOULD 使用 blob service 存储，并通过 content hash 校验。
 
 ## 10. Memory
 
-`memory` 表示可由人或 agent 读取、引用、更新的长期记忆。Memory MAY 是标准对象或 Morph profile，取决于实现 profile。
+`memory` 表示可由人或 agent 读取、引用、更新的长期记忆。v1 Core 中 Memory 是 Morph profile；高级生命周期由 `cx.profile.agent_memory.v1` 扩展声明。
 
 Memory MUST 记录来源：
 
@@ -249,7 +249,7 @@ Memory MUST 记录来源：
 
 ## 11. Run
 
-`run` 表示 agent、automation 或 CI 的一次执行。Run MAY 是标准对象或 Morph profile，取决于 agent profile。
+`run` 表示 agent、automation 或 CI 的一次执行。v1 Core 中 Run 是 Morph profile；A2A/ACP/MCP bridge 等执行语义由扩展 profile 声明。
 
 Run SHOULD 记录：
 

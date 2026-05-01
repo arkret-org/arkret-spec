@@ -384,7 +384,7 @@ Schema id: `cx.schema.capability.v1`
 | `space_id` | no | `id:space` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
-| `actions` | yes | `array<string>` | 例如 `card.update`、`room.message.send`。 | 允许动作。 |
+| `actions` | yes | `array<string>` | 例如 `cx.card.update`、`cx.message.create`。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 `grant-constraint-schema.md`。 | 约束条件。 |
 | `delegable` | no | `boolean` | 默认 false。 | 是否可转授。 |

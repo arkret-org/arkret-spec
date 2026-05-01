@@ -348,7 +348,7 @@ Facet 选择适合：
 {
   "grant_id": "cx:grant:...",
   "subject": "did:web:alice.example.com",
-  "actions": ["card.read", "card.update"],
+  "actions": ["cx.card.read", "cx.card.update"],
   "resources": [
     {
       "kind": "card",
@@ -356,9 +356,14 @@ Facet 选择适合：
       "card_id": "cx:card:01JS0CARD000000000000000"
     }
   ],
-  "constraints": {
-    "fields_write_allow": ["title", "status"]
-  }
+  "constraints": [
+    {
+      "constraint_type": "field_access",
+      "effect": "allow",
+      "scope": "write",
+      "fields": ["title", "status"]
+    }
+  ]
 }
 ```
 
@@ -368,7 +373,7 @@ Facet 选择适合：
 {
   "grant_id": "cx:grant:...",
   "subject": "did:web:bob.example.com",
-  "actions": ["room.message.send"],
+  "actions": ["cx.message.create"],
   "resources": [
     {
       "kind": "room",
@@ -387,7 +392,7 @@ Facet 选择适合：
 {
   "grant_id": "cx:grant:...",
   "subject": "did:web:agent.example.com",
-  "actions": ["morph.create", "morph.update"],
+  "actions": ["cx.morph.create", "cx.morph.update"],
   "resources": [
     {
       "kind": "morph",
@@ -395,9 +400,13 @@ Facet 选择适合：
       "morph_type": "run"
     }
   ],
-  "constraints": {
-    "facet_allow": ["reviewable", "documentable"]
-  }
+  "constraints": [
+    {
+      "constraint_type": "type_restriction",
+      "effect": "allow",
+      "facet_allow": ["reviewable", "documentable"]
+    }
+  ]
 }
 ```
 

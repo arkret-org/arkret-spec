@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/cursor.schema.json",
-  "title": "Contrix Cursor",
+  "$id": "https://contrix.io/artifacts/schemas/cursor-schema.json",
+  "title": "Contrix Cursor Schema",
   "type": "object",
   "required": ["v", "t", "s", "x"],
   "properties": {

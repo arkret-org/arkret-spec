@@ -116,6 +116,14 @@ did_document.also_known_as contains contrix://<handle>
 
 若双向验证失败，客户端 MUST NOT 把该 handle 当作可信绑定。
 
+DNS TXT 只能作为发现通道。若使用 DNS TXT 直接声明 handle 绑定，客户端 MUST 满足以下至少一项才可显示为 verified：
+
+- DNSSEC validation 成功，且 TXT 内容绑定 handle、DID、service DID、created_at、expires_at 和 signature / hash commitment。
+- TXT 记录内的绑定声明由目标 DID、Organization DID 或受信 issuer 签名，客户端能通过 DID resolver / VC 验证该签名。
+- HTTPS well-known 或 Directory / VC presentation 提供等价的签名绑定证据。
+
+未启用 DNSSEC 且没有可验证签名的 DNS 结果只能作为 unverified discovery hint，MUST NOT 作为 grant subject、Organization membership、official Space 或 verified handle 的依据。
+
 ## 7. Verified Claim
 
 Handle、组织成员、邮箱控制权和角色 SHOULD 通过 credential / attestation 表达。

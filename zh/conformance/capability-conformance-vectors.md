@@ -33,8 +33,8 @@ cx.vector.capability.delegate_chain.v1
     "kind": "cx.capability.grant",
     "state_key": "space-admin",
     "subject": "did:uuid:root_admin",
-    "actions": ["cx.space.manage"],
-    "constraints": {}
+    "actions": ["cx.space.admin"],
+    "constraints": []
   },
   "delegations": [
     {
@@ -48,12 +48,20 @@ cx.vector.capability.delegate_chain.v1
         "source_capability": "space-admin",
         "subject": "did:uuid:ops",
         "scope": "space:01js0ms000000000000000000",
-        "actions": ["capability.grant", "invite.send"],
-        "constraints": {
-          "time_after": "2026-04-20T00:00:00Z",
-          "time_before": "2026-05-20T00:00:00Z",
-          "ratelimit": "5/hour"
-        }
+        "actions": ["cx.capability.*", "cx.invite.create"],
+        "constraints": [
+          {
+            "constraint_type": "temporal",
+            "effect": "allow",
+            "not_before": "2026-04-20T00:00:00Z",
+            "expires_at": "2026-05-20T00:00:00Z"
+          },
+          {
+            "constraint_type": "rate_limiting",
+            "effect": "allow",
+            "rate_limit": "5/hour"
+          }
+        ]
       },
       "auth_refs": ["cx:event:01js0rootgrant"]
     },
@@ -68,18 +76,26 @@ cx.vector.capability.delegate_chain.v1
         "source_capability": "space-admin-delegate-a",
         "subject": "did:uuid:intern",
         "scope": "space:01js0ms000000000000000000",
-        "actions": ["invite.send"],
-        "constraints": {
-          "rate_limit": "2/day",
-          "audiences": ["did:web:partner.example", "did:web:vendor.example"]
-        }
+        "actions": ["cx.invite.create"],
+        "constraints": [
+          {
+            "constraint_type": "rate_limiting",
+            "effect": "allow",
+            "rate_limit": "2/day"
+          },
+          {
+            "constraint_type": "scope_limitation",
+            "effect": "allow",
+            "allowed_audiences": ["did:web:partner.example", "did:web:vendor.example"]
+          }
+        ]
       },
       "auth_refs": ["cx:event:01js0d1g000000000000000000"]
     }
   ],
   "action_query": {
     "actor_id": "did:uuid:intern",
-    "action": "invite.send",
+    "action": "cx.invite.create",
     "resource": "cx:space:01js0ms000000000000000000",
     "request_time": "2026-04-26T01:00:00Z",
     "request_audience": "did:web:vendor.example"
@@ -129,7 +145,7 @@ cx.vector.capability.revoke_rollback.v1
       "event_id": "cx:event:01js0g2a000000000000000000",
       "kind": "cx.capability.grant",
       "state_key": "cap-post-001",
-      "content": { "subject": "did:uuid:alice", "actions": ["message.send"] },
+      "content": { "subject": "did:uuid:alice", "actions": ["cx.message.create"] },
       "created_at": "2026-04-26T00:00:00Z"
     },
     {
@@ -192,7 +208,7 @@ cx.vector.capability.approval_constraint.v1
     "space_version": "1",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "content": {
-      "action": "delete.space",
+      "action": "cx.space.admin",
       "approval_required": true,
       "approval_quorum": 2,
       "scope": "space:01js0ms000000000000000000"
@@ -204,13 +220,13 @@ cx.vector.capability.approval_constraint.v1
       "kind": "cx.capability.grant",
       "state_key": "admin-delete",
       "subject": "did:web:contractor.example",
-      "actions": ["space.admin"]
+      "actions": ["cx.space.admin"]
     },
     {
       "kind": "cx.capability.grant",
       "state_key": "evidence",
       "subject": "did:uuid:approver_1",
-      "actions": ["approval.vote"]
+      "actions": ["cx.approval.vote"]
     }
   ]
 }

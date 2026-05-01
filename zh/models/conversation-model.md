@@ -229,6 +229,8 @@ reaction 建议通过独立 Operation 表达：
 归约策略：
 
 - 以 `(message_id, actor, reaction_key)` 为 OR-Set key。
+- 如果 reaction 到达时目标 Message 已经 redacted，reducer 仍 MAY 保留 reaction event 的最小审计事实，但默认 timeline / message view MUST NOT 展示、计数或通知该 reaction，除非 Space policy 明确允许对 tombstone 显示 reaction metadata。
+- 如果 reaction 先到达、redaction 后到达，redaction 生效后默认视图 MUST 重新裁剪既有 reaction projection。审计 View MAY 显示 reaction 曾存在，但不得恢复已撤回正文。
 
 ## 9. 同步模型
 

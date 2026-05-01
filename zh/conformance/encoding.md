@@ -138,8 +138,38 @@ Cursor 内容 MAY 包含：
 - 字符集固定为 ASCII `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`，按该字符集顺序比较。
 - Rank MUST 是 1..128 字符的字符串，且每个字符 MUST 来自上述字符集。
 - 排序 MUST 使用逐字符字典序；若一个字符串是另一个字符串的前缀，较短者排在较前。
-- `rank_between(left, right)` MUST 返回一个严格满足 `left < rank < right` 的 rank；`left` 或 `right` MAY 为空，表示容器开头或结尾的哨兵边界。
-- 标准 midpoint 算法：从左到右比较字符值；缺失的 left 字符视为 `-1`，缺失的 right 字符视为 `alphabet_length`。若 `right_value - left_value > 1`，输出当前前缀加中间字符 `floor((left_value + right_value) / 2)`；否则复制 left 当前字符并继续下一位。若 left 当前字符缺失且无间隙，复制 alphabet 第一个字符并继续。
+- `rank_between(left, right)` MUST 返回一个严格满足 `left < rank < right` 的 rank，或返回规范错误 `rank_exhausted`。`left` 或 `right` MAY 为空，表示容器开头或结尾的哨兵边界。
+- 标准 midpoint 算法 MUST 是有界算法，不能在无间隙边界无限循环。参考伪代码：
+
+```text
+alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+base = len(alphabet)
+min = -1
+max = base
+
+rank_between(left, right):
+  assert left == "" or all chars in alphabet
+  assert right == "" or all chars in alphabet
+  assert right == "" or left == "" or left < right
+  prefix = ""
+  i = 0
+  while len(prefix) < 128:
+    l = value(left[i]) if i < len(left) else min
+    r = value(right[i]) if right != "" and i < len(right) else max
+    if r - l > 1:
+      return prefix + alphabet[floor((l + r) / 2)]
+    if i < len(left):
+      prefix += left[i]
+    else:
+      prefix += alphabet[0]
+      if right != "" and prefix == right:
+        return rank_exhausted
+      return prefix
+    i += 1
+  return rank_exhausted
+```
+
+例如 `rank_between("", "0")` MUST 返回 `rank_exhausted`，因为在 start sentinel 与最小 rank `"0"` 之间不存在合法 rank。客户端或 reducer 遇到 `rank_exhausted` MUST 触发 rebalance 或要求调用方提交 `cx.container.rebalance`，不得生成非法 rank。
 - 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `cx.container.rebalance`。Reducer 不得接受超过 128 字符的 rank。
 - 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。
 - `cx.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST 拒绝该 rebalance。

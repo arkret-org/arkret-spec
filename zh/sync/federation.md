@@ -187,10 +187,10 @@ Host: server-alpha.com
 | `snapshot_ref` | `id` | optional | 快照标识。 |
 | `state_hash` | `string` | optional | 快照状态根，必须与快照 frontier 对应。 |
 | `snapshot_frontier` | `id[]` | optional | 需要从该 frontier 之后开始增量回放。 |
-| `state_signature` | `object` | optional | 对 `snapshot_ref`、`state_hash`、`snapshot_frontier` 的签名。 |
-| `state_signature.issuer` | `did` | optional | 用于信任锚点的签发者 DID。 |
-| `state_signature.alg` | `string` | optional | 签名算法。 |
-| `state_signature.sig` | `string` | optional | detached 签名。 |
+| `signature` | `object` | optional | 标准 Snapshot detached proof，覆盖 `snapshot_ref`、`state_hash`、`snapshot_frontier` 和 reducer/schema profile。 |
+| `signature.verification_method` | `string` | optional | 用于信任锚点的 DID verification method。 |
+| `signature.alg` | `string` | optional | 签名算法。 |
+| `signature.jws` | `string` | optional | detached JWS。 |
 
 ### 4.3 重复与幂等
 
@@ -451,11 +451,11 @@ POST /api/v1/federation/verify-actor
 | `snapshot_bootstrap.snapshot_ref` | `id` | optional | 触发本次增量前可选的 snapshot id。 |
 | `snapshot_bootstrap.state_hash` | `string` | optional | snapshot 的状态摘要。 |
 | `snapshot_bootstrap.snapshot_frontier` | `id[]` | optional | snapshot 覆盖的 frontier。 |
-| `snapshot_bootstrap.state_signature` | `object` | optional | 快照签名；接收方必须验证签名、state_hash 与 `snapshot_frontier` 一致性。 |
+| `snapshot_bootstrap.signature` | `object` | optional | 标准 Snapshot detached proof；接收方必须验证签名、state_hash 与 `snapshot_frontier` 一致性。 |
 
 校验规则：
 
-- 客户端在接收到 `snapshot_bootstrap` 时，先执行快照签名和 `state_hash` 校验。
+- 客户端在接收到 `snapshot_bootstrap` 时，先执行 `signature`、签名者授权、`state_hash` 和 chunk digest 校验。
 - 接受快照后，增量回放起点必须以 `snapshot_frontier` 为锚点，不得把 snapshot 当成无因果前沿的新 genesis。
 - 快照校验失败时，必须退回到纯 operation 增量回放，并将该来源记入 `quarantine` 或 `rate_limited` 分支进行观察。
 

@@ -442,7 +442,7 @@ POST /api/v1/index/search
 }
 ```
 
-**E2EE 场景说明**：在加密 Space 中，Index 节点无法对密文执行全文搜索。此时客户端 SHOULD 依赖本地解密后维护的客户端全文索引，或在受控网络中指定可信 TEE 节点代理搜索功能（详见 `operations-sync.md` 21.3 节）。
+**E2EE 场景说明**：在加密 Space 中，Index 节点无法对密文执行全文搜索。此时客户端 SHOULD 依赖本地解密后维护的客户端全文索引，或在受控网络中指定可信 TEE 节点代理搜索功能；具体明文可见边界见 `encryption-and-audit.md` 与本节 `plaintext_visible_services` 规则。
 
 ### 6.7 明文索引边界
 
@@ -452,6 +452,12 @@ Index / AppView 是派生服务，不是真相源，但它们可能持有比 Syn
 - 未列入 `plaintext_visible_services` 的 Index MUST 只接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
 - 客户端在选择 Index 前 MUST 校验 service DID、`service_type`、supported profile、Space policy 委托和 plaintext-visible 声明。
 - Index 输出不得扩大可见性；查询结果、通知、搜索命中和 preview 都必须受底层 Space policy 与 capability 约束。
+
+服务端强制边界：
+
+- Repo / Sync / Federation / Index / AppView / Push / Blob preview 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Space policy 的 `plaintext_visible_services` 中，且 visibility 等级覆盖该内容类型。
+- 未授权服务 MUST 拒绝明文请求并返回 `capability_denied` 或 `schema_violation`，不得静默索引、转发、缓存或降级保存。
+- 恶意客户端把明文发送到协议外服务不属于协议可强制阻止的范围；但任何声称支持 Contrix profile 的服务若接收或处理未授权明文，均视为 profile violation。
 
 ## 7. Blob Surface
 
@@ -614,7 +620,7 @@ Contrix v1 的首次加入流程：
 3. 从 DID Document 和 Space policy 发现 Principal Server / identity registry / repo / sync / index / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Space metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 和 Index 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 中包含的 `state_hash` (Merkle Root)，且该哈希 MUST 具备 `Space Owner` 或可信发行者的密码学签名。若校验失败，客户端 MUST 丢弃快照并回退到 Repo 进行原始历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 和 Index 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Space owner、Space policy 授权的 snapshot issuer、可信 Index service DID 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 Repo 进行原始历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态

@@ -24,12 +24,24 @@ cx.profile.<name>.v<major>
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.mimi_interop.v1`
 
+## 2.1 v1 MVP 分层
+
+为降低实现复杂度，v1 profile 分为三层：
+
+| 层级 | 含义 | 典型内容 |
+| --- | --- | --- |
+| Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Repo/Operation/Event、Space、Room、Board、List、Card、Message、Morph、Relation、Capability、Index query、Sync cursor、Blob hash 校验、标准错误。 |
+| Recommended | 主客户端和 Principal Server SHOULD 支持，但轻量实现可以不支持。 | E2EE、push、presence、read receipt、snapshot bootstrap、local full-text search、moderation report。 |
+| Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、Agent Memory advanced lifecycle、social feed、sovereign deployment。 |
+
+Document、File、Memory、Run、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
+
 ## 3. 通用强制要求（所有 Profile 必须遵守）
 
 以下要求不依赖具体角色，必须作为可互操作实现的基础：
 
 - 事件名必须符合 `cx.` 命名规则，且必须在 `schema-registry.md` 注册。
-- 事件/关系/实体/View 的 `type`、`created_at`、`space_id`、`space_version`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `auth_refs` 在 reducer 与验证逻辑中不能被跳过。
+- 事件/关系/对象/View 的 `type`、`created_at`、`space_id`、`space_version`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `auth_refs` 在 reducer 与验证逻辑中不能被跳过。
 - `space_version` 与 `auth` 约束必须执行，不得通过客户端配置豁免。
 - 裸名事件（如 `space.create`）MUST 被拒绝，不能作为新增标准互操作行为。
 - 实现 MUST 对 `causal` 关系、`revoked` 与 `proof` 失效状态进行一致性拒绝（fail-closed），不能“静默接受”。

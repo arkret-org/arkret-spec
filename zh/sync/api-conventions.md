@@ -149,7 +149,7 @@ API 调用 SHOULD 使用以下方式之一：
 | --- | ---: | --- |
 | `bad_json` | 400 | JSON 无法解析 |
 | `bad_query` | 400 | query 参数无法解析、重复冲突或不符合 endpoint schema |
-| `schema_violation` | 400 / 422 | 请求不符合 schema |
+| `schema_violation` | 422 | JSON 可解析但不符合 endpoint schema |
 | `missing_param` | 400 | 缺少必填参数 |
 | `invalid_param` | 400 | 参数值非法 |
 | `unauthenticated` | 401 | 缺少或无法验证认证材料 |
@@ -166,14 +166,17 @@ API 调用 SHOULD 使用以下方式之一：
 | `epoch_mismatch` | 409 | 加密 epoch 过期 |
 | `duplicate_conflict` | 409 | 相同幂等键对应不同内容 |
 | `payload_too_large` | 413 | 请求体或 blob 超限 |
-| `quota_exceeded` | 413 / 402 | 存储、带宽或计算配额超限 |
+| `digest_mismatch` | 422 | 上传、下载、代理或镜像内容摘要与声明不一致 |
+| `quota_exceeded` | 403 | 存储、带宽或计算配额超限 |
 | `rate_limited` | 429 | 请求频率超限 |
-| `timeout` | 504 / 408 | 长轮询、等待 frontier 或上游请求超时 |
-| `stale_frontier` | 409 / 503 | 服务本地授权或同步 frontier 尚未覆盖请求要求 |
-| `sync_token_expired` | 400 / 410 | 客户端同步 token 已过期，需要回退到 initial sync 或 snapshot bootstrap |
+| `timeout` | 504 | 长轮询、等待 frontier 或上游请求超时 |
+| `stale_frontier` | 409 | 服务本地授权或同步 frontier 尚未覆盖请求要求 |
+| `sync_token_expired` | 410 | 客户端同步 token 已过期，需要回退到 initial sync 或 snapshot bootstrap |
 | `unsupported_feature` | 501 | 服务不支持该 feature |
 | `internal_error` | 500 | 服务内部错误 |
 | `temporarily_unavailable` | 503 | 服务暂不可用 |
+
+多状态旧写法不再规范。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。`stale_frontier` 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。Malformed sync token 使用 `invalid_param` / 400；格式正确但已过期的 sync token 使用 `sync_token_expired` / 410。
 
 ### 5.2 未知路径与错误方法
 

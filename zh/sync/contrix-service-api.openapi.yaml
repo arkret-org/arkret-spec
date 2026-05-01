@@ -128,6 +128,55 @@ components:
           type: string
         evaluated_at:
           type: string
+    AuthzCheckRequest:
+      type: object
+      required: [actor, action, resource]
+      properties:
+        actor:
+          type: string
+        action:
+          type: string
+        resource:
+          type: object
+        context:
+          type: object
+      additionalProperties: false
+    AuthzCheckResponse:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [allow, deny, quarantine, require_review, soft_fail]
+        matched_grants:
+          type: array
+          items:
+            type: object
+        applied_constraints:
+          type: array
+          items:
+            type: object
+        policy_results:
+          type: array
+          items:
+            type: object
+        missing_proofs:
+          type: array
+          items:
+            type: object
+        frontier:
+          type: object
+        cache_valid_until:
+          type: string
+          format: date-time
+          pattern: "Z$"
+        reason_code:
+          type: string
+        obligations:
+          type: array
+          items:
+            type: object
+      additionalProperties: false
     ModerationQueueResponse:
       type: object
       properties:
@@ -1689,13 +1738,19 @@ paths:
   /authz/check:
     post:
       operationId: cx.authz.check
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthzCheckRequest"
       responses:
         "200":
           description: Authorization decision
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/AuthzCheckResponse"
   /authz/effective-grants:
     get:
       operationId: cx.authz.get_effective_grants

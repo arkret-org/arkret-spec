@@ -181,10 +181,10 @@ MLS KeyPackage key 用于加入加密 Space。
   "device_id": "cx:device:01JS0KE000000000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
-    "repo.read",
-    "repo.write",
-    "space.sync",
-    "mls.key_package.publish"
+    "cx.repo.describe",
+    "cx.repo.submit_commit",
+    "cx.sync.client_sync",
+    "cx.keys.keypackages.upload"
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": null,
@@ -223,9 +223,11 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
   "scopes": [
-    "repo.write",
-    "space.read",
-    "space.write"
+    "cx.repo.submit_commit",
+    "cx.space.discover",
+    "cx.object.read",
+    "cx.card.update",
+    "cx.message.create"
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-27T00:00:00Z",
