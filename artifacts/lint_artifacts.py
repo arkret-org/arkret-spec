@@ -194,6 +194,75 @@ def markdown_files() -> list[Path]:
     return [path for path in roots if path.is_file()]
 
 
+def check_registry_manifest(lint: Lint) -> None:
+    path = ARTIFACTS / "registry" / "registry-manifest.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    if data.get("source_of_truth") is not True:
+        lint.fail(path, "source_of_truth must be true")
+
+    rows = data.get("registries")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "registries must be a non-empty list")
+        return
+
+    seen_names: set[str] = set()
+    seen_files: set[str] = set()
+    listed_files: set[str] = set()
+    actual_files = {
+        f"registry/{candidate.name}"
+        for candidate in sorted((ARTIFACTS / "registry").glob("*.json"))
+    }
+
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            lint.fail(path, f"registries[{index}] must be an object")
+            continue
+        name = row.get("name")
+        file_ref = row.get("file")
+        kind = row.get("kind")
+        source_of_truth = row.get("source_of_truth")
+        description = row.get("description")
+
+        if not isinstance(name, str) or not name:
+            lint.fail(path, f"registries[{index}].name must be a non-empty string")
+            continue
+        if name in seen_names:
+            lint.fail(path, f"duplicate registry name {name!r}")
+        seen_names.add(name)
+
+        if not isinstance(file_ref, str) or not file_ref:
+            lint.fail(path, f"registries[{index}].file must be a non-empty string")
+            continue
+        if file_ref in seen_files:
+            lint.fail(path, f"duplicate registry file {file_ref!r}")
+        seen_files.add(file_ref)
+        listed_files.add(file_ref)
+        if Path(file_ref).is_absolute() or ".." in Path(file_ref).parts:
+            lint.fail(path, f"registries[{index}].file escapes artifacts/: {file_ref}")
+            continue
+        if not file_ref.startswith("registry/"):
+            lint.fail(path, f"registries[{index}].file must stay inside artifacts/registry: {file_ref}")
+            continue
+        target = ARTIFACTS / file_ref
+        if not target.exists():
+            lint.fail(path, f"registries[{index}].file does not exist: {file_ref}")
+
+        if not isinstance(kind, str) or not kind:
+            lint.fail(path, f"registries[{index}].kind must be a non-empty string")
+        if source_of_truth is not True:
+            lint.fail(path, f"registries[{index}].source_of_truth must be true")
+        if not isinstance(description, str) or not description.strip():
+            lint.fail(path, f"registries[{index}].description must be a non-empty string")
+
+    for file_ref in sorted(actual_files - listed_files):
+        lint.fail(path, f"registry manifest missing file {file_ref}")
+    for file_ref in sorted(listed_files - actual_files):
+        lint.fail(path, f"registry manifest lists unknown file {file_ref}")
+
+
 def check_markdown_links(lint: Lint) -> None:
     for path in markdown_files():
         text = path.read_text(encoding="utf-8")
@@ -1045,6 +1114,7 @@ def check_zh_mirrors(lint: Lint) -> None:
 
 def main() -> int:
     lint = Lint()
+    check_registry_manifest(lint)
     known = check_registries(lint)
     check_legacy_compatibility_policy(lint, known)
     check_schema_refs(lint, known)
