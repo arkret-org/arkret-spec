@@ -320,7 +320,7 @@ For high privacy deployments, clients SHOULD prefer invite links or encrypted ou
 
 ## 11. Conformance
 
-`cx.profile.directory.v1` MUST test:
+Directory-capable implementations MUST test:
 
 - public Space search
 - listed organization directory search

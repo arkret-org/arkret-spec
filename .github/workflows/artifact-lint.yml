@@ -1,0 +1,19 @@
+name: Artifact lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  artifact-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Validate registry, artifacts, fixtures, profiles, and zh mirrors
+        run: python artifacts/lint_artifacts.py

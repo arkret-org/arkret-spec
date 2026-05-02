@@ -64,7 +64,7 @@ Schema id: `cx.schema.space.v1`
 | `space_kind` | yes | `enum(collaboration, personal, project, organization, social_feed, enclave)` | Room / Board / Card 不再作为 Space kind。自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
-| `schema_refs` | yes | `array<string>` | MUST 包含 `cx.schema.core.v1` 或兼容 profile。 | 启用 schema。 |
+| `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或兼容 profile。 | 启用 schema。 |
 | `policy_ref` | no | `id:policy` | 若省略，使用 create event 默认 policy。 | Space policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | 见 `discovery-directory.md`。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | `invite` 表示只允许邀请加入；旧草案中的 `private` MUST 映射为 `invite` 后再进入 v1 canonical state。 | 默认加入规则。 |

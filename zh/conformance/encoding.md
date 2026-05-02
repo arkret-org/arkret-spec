@@ -52,7 +52,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 特殊 ID/ref 形式：
 
 - `cx:cursor:<base64url>` 是 opaque token，不是 typed ULID object ID。
-- `cx:blob:sha256:<digest>` 是内容寻址 Blob ref；`cx:blob:<ulid>` 是 Blob metadata ID。二者不得混用。
+- `cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`cx:blob:01js0bm0000000000000000000` 是 Blob metadata ID。二者不得混用。
 - `cx:mls:<profile>:<profile_id>`、`cx:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 
 自定义 profile 若新增 `cx:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `cx:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。

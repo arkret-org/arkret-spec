@@ -241,7 +241,7 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Room、Board、List�
 
 ## 10. Memory
 
-`memory` 表示可由人或 agent 读取、引用、更新的长期记忆。v1 Core 中 Memory 是 Morph profile；高级生命周期由 `cx.profile.agent_memory.v1` 扩展声明。
+`memory` 表示可由人或 agent 读取、引用、更新的长期记忆。v1 Core 中 Memory 是 Morph profile；高级生命周期由 `cx.profile.agent_runtime.v1` 扩展声明。
 
 Memory MUST 记录来源：
 

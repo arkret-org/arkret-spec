@@ -164,7 +164,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
   "title": "Launch Plan",
   "created_by_principal": "did:web:acme.example",
   "schema_refs": [
-    "cx.schema.core.v1"
+    "cx.schema.space.v1"
   ],
   "policy_ref": "cx:policy:01js0p10000000000000000000",
   "encryption_profile": "mls_rfc9420",

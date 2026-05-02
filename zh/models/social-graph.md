@@ -252,7 +252,7 @@ Follow 可以是单向；Contact 通常需要双向确认或至少本地确认�
 
 ## 13. Conformance
 
-`cx.profile.social.v1` MUST test:
+Social graph implementations MUST test:
 
 - public post indexing
 - follower timeline projection

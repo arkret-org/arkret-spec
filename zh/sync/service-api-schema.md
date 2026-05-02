@@ -55,7 +55,7 @@ openapi: 3.1.0
 info:
   title: Contrix Service API
   version: 0.2.0
-  x-conformance-profile: cx.profile.conformance.v1
+  x-conformance-profile: cx.profile.core_event_store.v1
 servers:
   - url: https://{host}/api/v1
     variables:

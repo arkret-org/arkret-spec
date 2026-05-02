@@ -83,7 +83,10 @@
 ```json
 {
   "sidebar_collapsed": false,
-  "recent_spaces": ["cx:space:1", "cx:space:2"],
+  "recent_spaces": [
+    "cx:space:01js0sa0000000000000000000",
+    "cx:space:01js0sb0000000000000000000"
+  ],
   "language": "zh-CN"
 }
 ```

@@ -569,6 +569,7 @@ SHOULD 支持：
 - idempotency tests
 - reducer convergence tests（含 state resolution 向量）
 - state resolution state vectors（见 `state-resolution-conformance-vectors.md`）
+- Event Envelope negative vectors（见 `artifacts/fixtures/event-envelope-negative-fixture.json` 与中文镜像）
 - redaction vectors（见 `redaction-conformance-vectors.md`）
 - capability vectors（见 `capability-conformance-vectors.md`）
 - sync fixture、state-resolution fixture、capability fixture 和 privacy/security fixture（见 `artifacts/fixtures/*.json` 与中文镜像）
@@ -666,7 +667,7 @@ MIMI Interop profile MUST 额外提供：
     "cx.reducer.v1"
   ],
   "schema_profiles": [
-    "cx.schema.core.v1"
+    "cx.schema.event.v1"
   ]
 }
 ```

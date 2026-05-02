@@ -15,6 +15,7 @@ contrix-spec/
       capability-fixture.json
       crypto-signature-fixture.json
       encoding-fixture.json
+      event-envelope-negative-fixture.json
       federation-fixture.json
       privacy-security-fixture.json
       redaction-fixture.json

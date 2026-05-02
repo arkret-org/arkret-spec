@@ -169,7 +169,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - 支持的 `protocol_version`，v1 使用 `1.0`。
 - 支持的 conformance profile，例如 `cx.profile.full_client.v1`。
-- 支持的 schema / reducer profile，例如 `cx.schema.core.v1` 与 `cx.reducer.v1`。
+- 支持的 schema / reducer profile，例如 `cx.schema.event.v1` 与 `cx.profile.core_event_store.v1`。
 - 支持的规模上限与分页边界；默认见 [conformance/scalability-constraints.md](./conformance/scalability-constraints.md)。
 - 未支持的可选扩展，例如 WebRTC、Applet、Agent Runtime、Sovereign Deployment。
 

@@ -12,7 +12,7 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
   "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "reducer_profile": "cx.reducer.v1",
-  "schema_profile_refs": ["cx.schema.core.v1"],
+  "schema_profile_refs": ["cx.profile.core_event_store.v1"],
   "frontier": {
     "event_ids": ["cx:event:01js0ev0000000000000000000"],
     "timeline_hlc": "01970e589d21-0004-a13f9c2e"

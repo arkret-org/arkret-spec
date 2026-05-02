@@ -1,0 +1,254 @@
+{
+  "suite": "event_envelope_negative",
+  "profile": "cx.profile.core_event_store.v1",
+  "version": "2026-05-02",
+  "cases": [
+    {
+      "name": "reject_bare_event_kind",
+      "input": {
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9na00000000000000000000",
+          "kind": "message.create",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 1,
+          "created_at": "2026-05-02T00:00:00Z",
+          "hlc": "01970e589d21-0001-a13f9c2e",
+          "prev_refs": [],
+          "auth_refs": [],
+          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "hello" },
+          "proofs": []
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "reason": "Event.kind MUST use registered cx.* spelling"
+      }
+    },
+    {
+      "name": "reject_unknown_critical_feature",
+      "input": {
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9nb00000000000000000000",
+          "kind": "cx.message.create",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 2,
+          "created_at": "2026-05-02T00:00:01Z",
+          "hlc": "01970e589d22-0001-a13f9c2e",
+          "prev_refs": ["cx:event:01k9na00000000000000000000"],
+          "auth_refs": ["cx:event:01k9au00000000000000000000"],
+          "critical_extensions": [
+            {
+              "id": "cx.feature.future_required.v1",
+              "scope": "reducer",
+              "fail_closed": true
+            }
+          ],
+          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "hello" },
+          "proofs": []
+        },
+        "supported_features": ["cx.feature.detached_jws.v1"]
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "unsupported_feature",
+        "must_not_enter_reducer": true
+      }
+    },
+    {
+      "name": "reject_signature_payload_hash_mismatch",
+      "input": {
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9nc00000000000000000000",
+          "kind": "cx.message.create",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 3,
+          "created_at": "2026-05-02T00:00:02Z",
+          "hlc": "01970e589d23-0001-a13f9c2e",
+          "prev_refs": ["cx:event:01k9nb00000000000000000000"],
+          "auth_refs": ["cx:event:01k9au00000000000000000000"],
+          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "tampered" },
+          "proofs": [
+            {
+              "kind": "detached_jws",
+              "alg": "EdDSA",
+              "verification_method": "did:web:alice.example#ed25519-2026-05-fixture",
+              "payload_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+              "created_at": "2026-05-02T00:00:02Z",
+              "domain": "contrix-event-v1",
+              "jws": "eyJhbGciOiJFZERTQSJ9..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "invalid_signature",
+        "reason": "proof.payload_hash does not match canonical Event bytes without proofs"
+      }
+    },
+    {
+      "name": "reject_actor_seq_rollback",
+      "input": {
+        "actor_frontier": {
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 10,
+          "event_id": "cx:event:01k9nf00000000000000000000"
+        },
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9nd00000000000000000000",
+          "kind": "cx.message.create",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 9,
+          "created_at": "2026-05-02T00:00:03Z",
+          "hlc": "01970e589d24-0001-a13f9c2e",
+          "prev_refs": ["cx:event:01k9nf00000000000000000000"],
+          "auth_refs": ["cx:event:01k9au00000000000000000000"],
+          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "rollback" },
+          "proofs": []
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "causal_conflict",
+        "must_not_advance_actor_frontier": true
+      }
+    },
+    {
+      "name": "reject_prev_refs_over_limit",
+      "input": {
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9ne00000000000000000000",
+          "kind": "cx.message.create",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 11,
+          "created_at": "2026-05-02T00:00:04Z",
+          "hlc": "01970e589d25-0001-a13f9c2e",
+          "prev_ref_count": 129,
+          "prev_refs": [
+            "cx:event:01k9p100000000000000000000",
+            "cx:event:01k9p200000000000000000000",
+            "cx:event:01k9p300000000000000000000"
+          ],
+          "auth_refs": ["cx:event:01k9au00000000000000000000"],
+          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "too many prev refs" },
+          "proofs": []
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "limit": "prev_refs <= 128"
+      }
+    },
+    {
+      "name": "reject_missing_auth_refs",
+      "input": {
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9ng00000000000000000000",
+          "kind": "cx.message.create",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 12,
+          "created_at": "2026-05-02T00:00:05Z",
+          "hlc": "01970e589d26-0001-a13f9c2e",
+          "prev_refs": ["cx:event:01k9ne00000000000000000000"],
+          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "missing auth refs" },
+          "proofs": []
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "reason": "auth_refs is required before auth backfill can run"
+      }
+    },
+    {
+      "name": "quarantine_duplicate_event_id_conflict",
+      "input": {
+        "stored_event": {
+          "event_id": "cx:event:01k9nh00000000000000000000",
+          "canonical_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "incoming_event": {
+          "event_id": "cx:event:01k9nh00000000000000000000",
+          "canonical_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      },
+      "expected": {
+        "decision": "quarantine",
+        "error_code": "duplicate_conflict",
+        "must_report_conflict_record": true
+      }
+    },
+    {
+      "name": "reject_actor_private_kind_in_shared_history",
+      "input": {
+        "wire_scope": "durable_history",
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9nk00000000000000000000",
+          "kind": "cx.read.marker",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 13,
+          "created_at": "2026-05-02T00:00:06Z",
+          "hlc": "01970e589d27-0001-a13f9c2e",
+          "prev_refs": ["cx:event:01k9ne00000000000000000000"],
+          "auth_refs": ["cx:event:01k9au00000000000000000000"],
+          "content": { "event_id": "cx:event:01k9na00000000000000000000" },
+          "proofs": []
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "reason": "actor_private_event MUST stay in actor-private channel"
+      }
+    },
+    {
+      "name": "reject_ephemeral_kind_in_shared_history",
+      "input": {
+        "wire_scope": "durable_history",
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9nm00000000000000000000",
+          "kind": "cx.typing",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 14,
+          "created_at": "2026-05-02T00:00:07Z",
+          "hlc": "01970e589d28-0001-a13f9c2e",
+          "prev_refs": ["cx:event:01k9ne00000000000000000000"],
+          "auth_refs": ["cx:event:01k9au00000000000000000000"],
+          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "typing": true },
+          "proofs": []
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "reason": "ephemeral_event MUST NOT be inserted into durable Event history"
+      }
+    }
+  ]
+}

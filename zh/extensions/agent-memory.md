@@ -273,7 +273,7 @@ Agent 不能默认读取 owner-private memory、在线状态、组织知识库�
 
 Contrix v1 固定：
 
-- run 与 memory 在 v1 Core 中是一等 Morph profile；`cx.profile.agent_memory.v1` 定义其生命周期事件和查询语义
+- run 与 memory 在 v1 Core 中是一等 Morph profile；`cx.profile.agent_runtime.v1` 定义其生命周期事件和查询语义
 - episodic / semantic / task memory 共存
 - embedding 是派生层
 - memory 必须带来源

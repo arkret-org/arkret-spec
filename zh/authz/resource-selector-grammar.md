@@ -195,7 +195,7 @@ disjunction_selector ::= selector "," selector
 
 ### 4.2 析取 (,)
 
-`space:cx:space:A,space:cx:space:B`
+`space:cx:space:01js0sa0000000000000000000,space:cx:space:01js0sb0000000000000000000`
 
 - 匹配：Space A 或 Space B。
 
