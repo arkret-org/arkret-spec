@@ -456,7 +456,7 @@ State resolution MUST 受 `../conformance/scalability-constraints.md` 的上限�
    - view definition
    - other state
 6. 组内排序键：
-   - `auth_weight`：creator/admin capability 优先于普通 grant。
+   - `auth_weight`：按 9.3.2 的确定性函数计算。
    - `causal_depth`：因果上更新者优先。
    - `hlc`：更大 HLC 优先。
    - `event_id`：字节序更小者作为最终 tie-breaker。
@@ -491,6 +491,27 @@ auth_difference(conflicted_events):
 ```
 
 实现 MUST 对 `diff` 中的事件按 state resolution 的 deterministic ordering 排序后再验证授权。若某个 auth event 缺失、hash 不匹配或自身不能 accepted，依赖它的候选事件 MUST soft-fail 或 fail closed，不能把缺失 auth 当作允许。
+
+### 9.3.2 Auth Weight
+
+`auth_weight` 是 state resolution 的排序键，不是额外授权来源。候选事件必须先通过签名、schema、causal dependency、`auth_refs` 和 policy hard deny 检查；未通过者没有 `auth_weight`，不得进入 winner 选择。
+
+实现 MUST 在候选事件自己的 causal auth state 上计算 `auth_weight`，不得使用接收节点的当前最新状态、HTTP 到达顺序、数据库行号或尚未通过授权的竞争候选。若同一候选事件可由多个 grant / role / issuer 授权，取下列权重中最高者；同权重时按 `delegation_depth` 较小、`grant_event_id` 字节序较小、`issuer_did` 字节序较小继续比较。
+
+| weight | 条件 |
+| --- | --- |
+| 700 | Space create / recovery root：由 `cx.space.create.initial_creators`、Space root recovery key 或治理根明确授权的事件。 |
+| 650 | Active Organization governance：由 active `cx.space.organization{relationship=owner|sponsor, scope.official=true}` 绑定的 governance DID / service DID 直接签发，且 action 在声明 scope 内。 |
+| 600 | Direct Space admin：候选事件由未委派的 active Space admin / creator capability 授权，resource 精确覆盖目标 Space。 |
+| 550 | Direct policy or membership admin：候选事件由未委派的 policy / membership / capability 管理 grant 授权，resource 精确覆盖目标 state key 或对象。 |
+| 500 | Direct object admin：候选事件由未委派的 Board / Room / Card / Morph / Relation 管理 grant 授权，resource 精确覆盖目标对象。 |
+| 400 | Delegated admin：由 delegated admin grant 授权，且 delegation chain 有效、未过期、未被 revoke，depth 在 profile 限制内。 |
+| 300 | Delegated action：由 delegated non-admin action grant 授权，且 selector、constraint、claim、approval 均满足。 |
+| 200 | Direct action：由直接 non-admin action grant 授权。 |
+| 100 | Self / admission action：actor 自己的 leave、knock、invite accept、read marker 等自我状态或入场动作，且对应 join rule / invite / history policy 允许。 |
+| 0 | 只通过基础 membership 但没有更高 grant 的低风险 state；仅限具体 event kind 明确允许的场景。 |
+
+Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 approval、未知 critical constraint、claim revocation 无法确认且该 claim 为必要条件时，MUST 在计算权重前使候选事件 fail closed、soft fail 或 quarantine。它们不得通过高 `auth_weight` 被覆盖。
 
 ## 10. Redaction
 

@@ -1,6 +1,9 @@
 {
-  "version": "2026-04-29",
+  "version": "2026-05-02",
   "implementation_profiles": [
+    "cx.profile.core_event_store.v1",
+    "cx.profile.chat_mvp.v1",
+    "cx.profile.kanban_mvp.v1",
     "cx.profile.minimal_client.v1",
     "cx.profile.chat_only_client.v1",
     "cx.profile.kanban_only_client.v1",
@@ -16,7 +19,9 @@
     "cx.profile.push_gateway.v1",
     "cx.profile.applet_service.v1",
     "cx.profile.agent_runtime.v1",
-    "cx.profile.mimi_interop.v1"
+    "cx.profile.mimi_interop.v1",
+    "cx.profile.sovereign_deployment.v1",
+    "cx.profile.sovereign_client.v1"
   ],
   "deployment_profiles": [
     "cx.profile.personal_node.v1",
@@ -56,5 +61,8 @@
     "e2ee_franking_report",
     "proxy_download_policy",
     "unsupported_draft_fail_closed"
+  ],
+  "hardening_profiles": [
+    "cx.profile.mls_state_binding.full.v1"
   ]
 }

@@ -280,6 +280,10 @@ Event 是 reducer 输入。它不是当前态对象。
 | `hlc` | yes | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 | HLC。 |
 | `prev_refs` | yes | `array<id:event \| hash>` | 可为空。 | Actor event chain 前序。 |
 | `auth_refs` | yes | `array<id:event \| hash>` | create event 可为空。 | 授权依赖。 |
+| `schema_profile_refs` | no | `array<string>` | MUST 进入 event digest。 | 事件声明依赖的 schema profile。 |
+| `reducer_profile_ref` | no | `string` | MUST 进入 event digest。 | 事件声明依赖的 reducer profile。 |
+| `required_features` | no | `array<string>` | 未支持时 MUST fail closed。 | 事件依赖的 feature/profile。 |
+| `critical_extensions` | no | `array<object>` | 每项必须有 `id`、`scope`、`fail_closed=true`。 | 事件内 critical extension 声明。 |
 | `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `content` | yes | `object` | 由 event kind schema 定义。 | 事件内容。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |

@@ -15,6 +15,9 @@
 ## 2. 测试角色（Profile）
 
 - `cx.profile.minimal_client.v1`
+- `cx.profile.core_event_store.v1`
+- `cx.profile.chat_mvp.v1`
+- `cx.profile.kanban_mvp.v1`
 - `cx.profile.chat_only_client.v1`
 - `cx.profile.kanban_only_client.v1`
 - `cx.profile.full_client.v1`
@@ -29,6 +32,9 @@
 - `cx.profile.enterprise_client.v1`
 - `cx.profile.agent_runtime.v1`
 - `cx.profile.mimi_interop.v1`
+- `cx.profile.sovereign_deployment.v1`
+- `cx.profile.sovereign_client.v1`
+- `cx.profile.mls_state_binding.full.v1`
 
 ## 3. OpenAPI 与 Transport 一致性
 
@@ -37,7 +43,7 @@
 每个实现必须通过以下验收：
 
 - `/api/v1` 下公开至少包含 `service/identity/events/sync/index/blob/authz` 关键 operation。
-- `operation_id` 与 `service-api-schema.md` 映射一致。
+- `operation_id` MUST 以 `artifacts/registry/operation-registry.json` 为唯一 source of truth；`service-api-schema.md`、OpenAPI 和非 HTTP binding 不得声明 registry 中不存在的 operation，也不得遗漏实现声明支持的 operation。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests

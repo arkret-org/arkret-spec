@@ -2030,6 +2030,290 @@ paths:
             application/json:
               schema:
                 type: object
+  /identity/describe:
+    get:
+      operationId: cx.identity.describe_registry
+      responses:
+        "200":
+          description: Identity registry metadata
+          content:
+            application/json:
+              schema:
+                type: object
+  /sync/describe:
+    get:
+      operationId: cx.sync.describe
+      responses:
+        "200":
+          description: Sync service metadata and limits
+          content:
+            application/json:
+              schema:
+                type: object
+  /federation/push-operations:
+    post:
+      operationId: cx.federation.push_operations
+      responses:
+        "200":
+          description: Federation event push transaction
+          content:
+            application/json:
+              schema:
+                type: object
+  /federation/pull-operations:
+    get:
+      operationId: cx.federation.pull_operations
+      responses:
+        "200":
+          description: Federation event pull or backfill
+          content:
+            application/json:
+              schema:
+                type: object
+  /federation/space-members:
+    get:
+      operationId: cx.federation.space_members
+      responses:
+        "200":
+          description: Federation-visible Space members
+          content:
+            application/json:
+              schema:
+                type: object
+  /federation/verify-actor:
+    post:
+      operationId: cx.federation.verify_actor
+      responses:
+        "200":
+          description: Actor verification cache hint
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/describe:
+    get:
+      operationId: cx.directory.describe
+      responses:
+        "200":
+          description: Directory metadata
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/search-spaces:
+    post:
+      operationId: cx.directory.search_spaces
+      responses:
+        "200":
+          description: Authorized Space search
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/resolve-space:
+    post:
+      operationId: cx.directory.resolve_space
+      responses:
+        "200":
+          description: Authorized Space resolution
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/search-organizations:
+    post:
+      operationId: cx.directory.search_organizations
+      responses:
+        "200":
+          description: Authorized organization search
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/resolve-organization:
+    post:
+      operationId: cx.directory.resolve_organization
+      responses:
+        "200":
+          description: Authorized organization resolution
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/search-actors:
+    post:
+      operationId: cx.directory.search_actors
+      responses:
+        "200":
+          description: Authorized actor search
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/search-users:
+    get:
+      operationId: cx.directory.search_users
+      responses:
+        "200":
+          description: Mention autocomplete user search
+          content:
+            application/json:
+              schema:
+                type: object
+  /authz/invites:
+    get:
+      operationId: cx.authz.get_invites
+      responses:
+        "200":
+          description: Authorized invite query
+          content:
+            application/json:
+              schema:
+                type: object
+  /device_messages:
+    get:
+      operationId: cx.device_messages.get
+      responses:
+        "200":
+          description: Device message fetch
+          content:
+            application/json:
+              schema:
+                type: object
+  /applet/ping:
+    get:
+      operationId: cx.applet.ping
+      responses:
+        "200":
+          description: Applet liveness and public metadata
+          content:
+            application/json:
+              schema:
+                type: object
+  /applet/describe:
+    get:
+      operationId: cx.applet.describe
+      responses:
+        "200":
+          description: Applet capabilities and namespace metadata
+          content:
+            application/json:
+              schema:
+                type: object
+  /applet/transactions/{txn_id}:
+    put:
+      operationId: cx.applet.transaction
+      parameters:
+        - in: path
+          name: txn_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Applet transaction accepted
+          content:
+            application/json:
+              schema:
+                type: object
+  /applet/actors/{actor_id}:
+    get:
+      operationId: cx.applet.query_actor
+      parameters:
+        - in: path
+          name: actor_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Applet actor namespace query
+          content:
+            application/json:
+              schema:
+                type: object
+  /applet/spaces/{space_id_or_alias}:
+    get:
+      operationId: cx.applet.query_space
+      parameters:
+        - in: path
+          name: space_id_or_alias
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Applet Space namespace query
+          content:
+            application/json:
+              schema:
+                type: object
+  /applet/protocols/{protocol}:
+    get:
+      operationId: cx.applet.protocol_metadata
+      parameters:
+        - in: path
+          name: protocol
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Applet external protocol metadata
+          content:
+            application/json:
+              schema:
+                type: object
+  /applet/third_party/users:
+    get:
+      operationId: cx.applet.third_party_users
+      responses:
+        "200":
+          description: Applet third-party user mapping
+          content:
+            application/json:
+              schema:
+                type: object
+  /applet/third_party/locations:
+    get:
+      operationId: cx.applet.third_party_locations
+      responses:
+        "200":
+          description: Applet third-party location mapping
+          content:
+            application/json:
+              schema:
+                type: object
+  /contrix/v1/check:
+    servers:
+      - url: https://{host}
+        variables:
+          host:
+            default: localhost
+    post:
+      operationId: cx.policy.check
+      responses:
+        "200":
+          description: Signed policy decision
+          content:
+            application/json:
+              schema:
+                type: object
+  /contrix/v1/ice-config:
+    servers:
+      - url: https://{host}
+        variables:
+          host:
+            default: localhost
+    post:
+      operationId: cx.media.ice_config
+      responses:
+        "200":
+          description: Signed ICE server configuration
+          content:
+            application/json:
+              schema:
+                type: object
   /auth/account/session-grants:
     post:
       operationId: cx.account.issue_session_grant

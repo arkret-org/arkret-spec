@@ -108,6 +108,8 @@ v1 的规范性 wire fact 只有 **Event Envelope**。Events API、Sync、Federa
 
 Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`prev_refs` 表示 actor event chain 前序，`auth_refs` 表示授权依赖。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `content` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`auth_refs`、`actor_seq` 和签名绑定。
 
+如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event Envelope 顶层声明 `required_features` 或 `critical_extensions`。这些字段和 `schema_profile_refs`、`reducer_profile_ref` MUST 进入 canonical event bytes、`event_id` 派生和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通旧语义接受。
+
 ```json
 {
   "event_id": "cx:event:01JS0EV000000000000000000",

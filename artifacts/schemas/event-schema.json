@@ -19,6 +19,10 @@
     "hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" },
     "prev_refs": { "type": "array", "items": { "$ref": "#/$defs/eventRef" } },
     "auth_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:(event|grant|policy):[0-9a-hjkmnp-z]{26}$" } },
+    "schema_profile_refs": { "type": "array", "items": { "$ref": "#/$defs/profileRef" }, "uniqueItems": true },
+    "reducer_profile_ref": { "$ref": "#/$defs/profileRef" },
+    "required_features": { "type": "array", "items": { "$ref": "#/$defs/featureRef" }, "uniqueItems": true },
+    "critical_extensions": { "type": "array", "items": { "$ref": "#/$defs/criticalExtension" }, "uniqueItems": true },
     "redacts": { "$ref": "#/$defs/eventRef" },
     "content": { "type": "object" },
     "unsigned": { "type": "object" },
@@ -46,6 +50,19 @@
     "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
     "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
     "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "profileRef": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$" },
+    "featureRef": { "type": "string", "pattern": "^(cx|[a-z0-9][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)+)\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$" },
+    "criticalExtension": {
+      "type": "object",
+      "required": ["id", "scope", "fail_closed"],
+      "properties": {
+        "id": { "$ref": "#/$defs/featureRef" },
+        "scope": { "type": "string", "enum": ["event", "content", "proof", "authz", "reducer", "projection", "encryption"] },
+        "schema_ref": { "$ref": "#/$defs/profileRef" },
+        "fail_closed": { "const": true }
+      },
+      "additionalProperties": true
+    },
     "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
     "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
     "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },

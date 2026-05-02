@@ -10,7 +10,7 @@
 
 - 标准类型提供主语义。
 - `Morph` 提供开放扩展。
-- `facets` 提供可选能力混入，不替代对象类型。
+- `facets` 是由 Space schema / Morph profile 声明的能力提示和查询标签，不替代对象类型，也不单独定义授权、状态机、排序或 reducer 语义。
 - View 只定义如何投影对象；它拥有自己的定义状态，但不发明对象能力，也不持有被投影对象的协作事实。
 
 ## 2. Room
@@ -194,6 +194,8 @@ Morph 适合：
 - 未来标准类型的试验对象
 - 不要求强互操作的弱结构数据
 
+Morph 是扩展缓冲层，不是标准对象的替代品。Room、Board、List、Card、Message 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象退化为 Morph。
+
 推荐字段：
 
 - `morph_type`
@@ -217,6 +219,8 @@ Morph 适合：
 - `renderable`
 
 实现遇到未知 `morph_type` SHOULD 降级为 generic Morph 展示。未知 facet 必须保留，但不得绕过 schema、capability、policy 或 encryption 约束。
+
+任何影响授权、状态机、排序、reducer、事件类型或 wire 互操作的 Morph 语义，MUST 由明确的 Space schema、Morph profile、event kind 和 capability action 定义。实现不得只因为看到 `facets.container`、`facets.stateful`、`facets.rankable` 或其他 facet 字符串，就接受移动、排序、状态转换、授权扩大或 reducer 特例。
 
 ## 8. Document
 
@@ -302,7 +306,9 @@ Social post / feed / circle 可以用标准对象 profile，也可以在早期�
 
 ## 15. 标准 Facets
 
-Facets 是能力混入，不是对象身份。标准对象 MAY 使用 facets 声明额外能力；Morph 通常依赖 facets 表达能力。
+Facets 是 schema-declared capability hints，不是对象身份。标准对象 MAY 使用 facets 声明额外展示或查询能力，但标准对象的核心语义不依赖 facets 才成立；Morph MAY 使用 facets 帮助 Index、View、UI 和插件做过滤、降级展示和默认 renderer 选择。
+
+Facets MUST NOT be the sole normative source for authorization, state machines, ordering semantics, reducer behavior, event kind acceptance, or wire interoperability. 这些语义必须由 Space schema / Morph profile / event registry / capability action 明确定义。Facet 配置可以引用这些 profile 或暴露 UI hints，但不能替代它们。
 
 | Facet | 说明 |
 | --- | --- |

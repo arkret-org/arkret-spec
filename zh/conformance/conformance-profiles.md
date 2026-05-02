@@ -177,6 +177,8 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
+声明 `cx.profile.mls_state_binding.full.v1` 时，客户端和服务端 MUST 额外验证 MLS application state root 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier。无法验证该 root 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
+
 MUST NOT：
 
 - 把明文消息发送给 sync service / index
