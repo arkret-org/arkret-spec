@@ -17,3 +17,5 @@ jobs:
           python-version: "3.x"
       - name: Validate registry, artifacts, fixtures, profiles, and zh mirrors
         run: python artifacts/lint_artifacts.py
+      - name: Reject removed legacy subject-room-card contracts
+        run: python tools/check_no_legacy_contracts.py

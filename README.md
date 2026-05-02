@@ -207,3 +207,16 @@ For v1 interoperability, only active entries referenced by `artifacts/registry/*
 
 Any drift between `zh/` and generated artifacts is a specification bug. Until regenerated artifacts are brought back into sync, implementations MUST follow the Chinese normative text plus the active machine registries, and MUST NOT treat stale legacy compatibility files as the source of truth.
 
+## Legacy contract status (2026-05-03)
+
+The active v1 wire contract no longer includes `subject` / `room` / `card` typed IDs, schema IDs, or `cx.subject.*` / `cx.room.*` / `cx.card.*` event kinds.
+
+Normative references:
+
+- `artifacts/registry/legacy-compatibility-policy.json`
+- `zh/guides/legacy-subject-room-card-to-flow-migration.md`
+
+CI guard:
+
+- `tools/check_no_legacy_contracts.py`
+- `.github/workflows/artifact-lint.yml`

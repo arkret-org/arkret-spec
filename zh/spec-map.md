@@ -177,3 +177,12 @@
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。
 
 
+
+## Legacy contract removal entry（2026-05-03）
+
+实现方如需确认 `subject` / `room` / `card` 到 `flow` 的迁移边界，应同时阅读：
+
+- `artifacts/registry/legacy-compatibility-policy.json`
+- `zh/guides/legacy-subject-room-card-to-flow-migration.md`
+
+仓库 CI 已通过 `tools/check_no_legacy_contracts.py` 阻止旧 typed ID、旧 schema ID 和旧 event kind 重新进入 active contract。

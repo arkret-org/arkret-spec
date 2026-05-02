@@ -200,3 +200,17 @@ Contrix 要解决的是：
 
 而不是再造一个改名后的聊天协议。
 
+
+## Legacy contract removal status（2026-05-03）
+
+当前 v1 active wire contract 已不再包含 `subject` / `room` / `card` typed ID、schema ID，以及 `cx.subject.*` / `cx.room.*` / `cx.card.*` 事件族。
+
+规范入口：
+
+- `artifacts/registry/legacy-compatibility-policy.json`
+- `zh/guides/legacy-subject-room-card-to-flow-migration.md`
+
+CI 守卫：
+
+- `tools/check_no_legacy_contracts.py`
+- `.github/workflows/artifact-lint.yml`
