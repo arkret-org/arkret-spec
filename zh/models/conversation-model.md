@@ -11,6 +11,7 @@ Contrix 的会话模型不再把 `subject`、`room`、`card` 拆成三个需要�
 - `message` 永远写入 `flow` 的 `discussion` branch。
 - `kind="card"` 默认走 `synthesis` branch，但 MAY 开启 `discussion` branch。
 - `kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段与可选 `synthesis` branch。
+- `semantic_kind` 承载业务语义分类，例如 `decision`、`incident`、`task_cluster`。
 - `cx.flow.convert` 允许在 `card` 和 `room` 模式之间切换，且不改变 Flow identity。
 
 `comment` 和 `message` 都可以存在，但语义不同：
@@ -38,6 +39,7 @@ Flow 的 `discussion` branch 适合：
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "kind": "room",
+  "semantic_kind": "initiative",
   "title": "release-engineering",
   "description": "Engineering coordination for release readiness.",
   "brief": "默认以讨论为主入口。",
@@ -105,6 +107,7 @@ Flow 通过 `kind` 和 `primary_branch` 表达默认交互方式：
 
 - `kind="room"`：默认 `primary_branch="discussion"`，适合会话主导的对象。
 - `kind="card"`：默认 `primary_branch="synthesis"`，适合状态推进、字段编辑和 Board/List 管理。
+- `semantic_kind`：例如 `decision`、`incident`、`research`，用于业务过滤、默认 View 和 agent policy。
 
 `kind="card"` MAY 开启 `discussion` branch。开启后，该 Flow 仍然是同一个对象，只是多了讨论能力。
 
@@ -142,6 +145,7 @@ Room/Card 互转通过 `cx.flow.convert` 完成：
 
 - 转换不改变 `flow_id`。
 - 转换不复制或迁移消息历史。
+- 转换到 `kind="room"` 时，若 `discussion` branch 尚未启用，Reducer MUST 自动启用它，或在 policy 禁止时 fail closed。
 - 已启用的 `discussion` branch 在转换后继续保留。
 - Flow 的 Board/List 位置、字段和讨论历史由各自 reducer 独立维护。
 
@@ -171,6 +175,7 @@ Discussion branch membership 是 Space 内的子范围授权。它不替代 Spac
 - Space policy MAY allow flow-scoped external admission，但该 admission 不授予其他 Flow、Board、Morph 或 Space directory 可见性。
 - Discussion membership 只控制该 branch 的消息读取、发送、历史和通知。
 - Discussion membership 不改变 Flow assignment、Flow visibility、Board position 或 Space membership。
+- `assigned_to`、watchers 或其他 Flow relation 不自动成为 discussion member。
 
 ## 7. `@mention` 与引用
 

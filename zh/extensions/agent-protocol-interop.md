@@ -28,7 +28,7 @@ Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 
 
 - 需要强审计和长期可验证协作历史。
 - 需要 Space membership / capability / policy 逐事件判定。
-- 需要 Card / Morph / Relation / View 与人类 UI 紧密联动。
+- 需要 Flow / Morph / Relation / View 与人类 UI 紧密联动。
 - 任务结果需要被人类审阅、批准、撤回或归档。
 - 对端 agent 不可信、不可发现或没有受支持协议。
 - E2EE / 合规 / policy server 要求所有步骤进入 Space 账本。
@@ -89,7 +89,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "actor_id": "did:web:requesting-agent.example.com",
   "content": {
     "session_id": "cx:agent_session:01J...",
-    "task_card_id": "cx:card:task0100000000000000000000",
+    "task_flow_id": "cx:flow:task0100000000000000000000",
     "counterparty_agent": "did:web:remote-agent.example.com",
     "protocol": "a2a",
     "protocol_version": "1.x",
@@ -146,6 +146,14 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "content": {
     "session_id": "cx:agent_session:01J...",
     "status": "completed",
+    "result_objects": [
+      {
+        "object_type": "flow",
+        "object_ref": "cx:flow:task0100000000000000000000",
+        "branch": "synthesis",
+        "role": "primary_result"
+      }
+    ],
     "artifacts": [
       {
         "artifact_type": "text",
@@ -159,30 +167,32 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 }
 ```
 
-大型结果 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
+`cx.agent.protocol_session.result` 的 `content` MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
+
+Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如 `semantic_kind="task_cluster"` 的执行 Flow、`semantic_kind="decision"` 的决策 Flow、`semantic_kind="proposal"` 的方案 Flow 或 `semantic_kind="research"` 的分析 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
 
 ## 6. 协商流程
 
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
-2. Requesting agent 在 Contrix 中创建或选择任务 Card，或选择可承载任务语义的 Morph。
-3. Requesting agent 检查自己是否拥有 `agent.protocol_session.start` capability。
+2. Requesting agent 在 Contrix 中创建或选择任务 Flow，或选择可承载任务语义的 Morph。
+3. Requesting agent 检查自己是否拥有 `cx.agent.protocol_session.start` capability。
 4. Policy server MAY 检查目标 endpoint、数据分类、跨域、E2EE 边界和外发风险。
 5. Requesting agent 提交 `cx.agent.protocol_session.start`。
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。
 8. 结果、artifact、transcript hash、错误或取消原因回写 Contrix。
-9. Reducer 将 Card、Morph、Relation 或 notification 更新为最终状态。
+9. Reducer 将 Flow、Morph、Relation 或 notification 更新为最终状态。
 
 ## 7. Capability
 
 新增标准动作：
 
-- `agent.protocol.discover`
-- `agent.protocol_session.start`
-- `agent.protocol_session.cancel`
-- `agent.protocol_session.stream_status`
-- `agent.protocol_session.attach_artifact`
-- `agent.protocol_session.read_transcript`
+- `cx.agent.protocol.discover`
+- `cx.agent.protocol_session.start`
+- `cx.agent.protocol_session.cancel`
+- `cx.agent.protocol_session.stream_status`
+- `cx.agent.protocol_session.attach_artifact`
+- `cx.agent.protocol_session.read_transcript`
 
 Capability constraint SHOULD 支持：
 

@@ -100,23 +100,24 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 
 ## 6. Standard Objects
 
-Subject、Room、Board、List、Card 和 Message 是标准对象，不再通过 `entity_type` 表达。
+Flow、Space 和 Message 是标准对象。`Board` 与 `List` 是 `Space.kind` 的特化形态；`Card` 与 `Room` 是 `Flow.kind` 的特化形态，不再作为独立顶层对象。
 
-### 6.1 Subject
+### 6.1 Flow
 
-Schema id: `cx.schema.subject.v1`
-
-Subject 是薄语义中心，不承载 Room timeline、Room membership、Card position 或 Document 正文。
+Schema id: `cx.schema.flow.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:subject` | 以 `cx:subject:` 开头。 | Subject ID。 |
-| `type` | yes | `enum(subject)` | 固定为 `subject`。 | 对象种类。 |
+| `id` | yes | `id:flow` | 以 `cx:flow:` 开头。 | Flow ID。 |
+| `type` | yes | `enum(flow)` | 固定为 `flow`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `title` | yes | `string` | 1..512 chars。 | 名称。 |
-| `brief` | no | `string` | SHOULD <= 2048 chars。 | 简短说明，适合列表/标题上下文。 |
-| `summary` | no | `string` | SHOULD <= 8192 chars。 | 较完整摘要，可由人或 agent 更新。 |
-| `subject_kind` | yes | `enum(topic, initiative, decision, incident, customer_case, proposal, research, task_cluster, asset, custom)` | 自定义 kind 放入 `fields`。 | Subject 语义分类。 |
+| `kind` | yes | `enum(card, room)` | 决定默认主分支与默认交互面。 | Flow 形态。 |
+| `semantic_kind` | no | `enum(topic, initiative, decision, incident, customer_case, proposal, research, task_cluster, asset, custom)` | 用于表达业务语义分类。 | Flow 语义分类。 |
+| `title` | yes | `string` | 1..512 chars。 | 标题。 |
+| `description` | no | `string` | SHOULD <= 8192 chars。 | 较完整说明。 |
+| `brief` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
+| `primary_branch` | yes | `enum(synthesis, discussion)` | `card` 默认 `synthesis`，`room` 默认 `discussion`。 | 默认入口分支。 |
+| `branches` | yes | `object` | 至少包含 `synthesis`；`discussion` 可选。 | 分支状态。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `version` | no | `integer` | SHOULD 单调递增，不能替代 event order。 | 物化版本。 |
@@ -125,32 +126,11 @@ Subject 是薄语义中心，不承载 Room timeline、Room membership、Card po
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-Subject 的协作 surface 由 `subject --has_surface--> object` Relation 表达。`fields.surface_role` SHOULD 声明用途，例如 `status_card`、`primary_discussion`、`design_doc` 或 `activity_view`；`fields.primary` 只影响默认 UI 入口，不授予权限。
+`branches.synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`branches.discussion` 在启用时承载房间式讨论能力，包括 `room_kind`、`history_visibility`、`encryption_profile`、`membership_policy_ref` 与讨论成员管理。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员。
 
-### 6.2 Room
+### 6.2 Board-Space
 
-Schema id: `cx.schema.room.v1`
-
-| 字段 | 必填 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- | --- |
-| `id` | yes | `id:room` | 以 `cx:room:` 开头。 | Room ID。 |
-| `type` | yes | `enum(room)` | 固定为 `room`。 | 对象种类。 |
-| `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `title` | yes | `string` | 1..256 chars。 | 名称。 |
-| `summary` | no | `string` | SHOULD <= 2048 chars。 | 简介 / 公告。 |
-| `room_kind` | yes | `enum(discussion, announcement, support, activity, review, external)` | 自定义 kind 放入 `fields`。 | Room 类型。 |
-| `membership_policy_ref` | no | `id:policy` | Room 独立 membership / access policy。 | 成员策略。 |
-| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 见 `conversation-model.md`。 | 历史可见性。 |
-| `encryption_profile` | no | `enum(none, mls_rfc9420, external)` | 可与 Space 不同，但必须被 Space policy 允许。 | 加密配置。 |
-| `fields` | no | `object` |  | 扩展字段。 |
-| `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
-| `created_by` | yes | `did` |  | 创建者。 |
-| `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_at` | no | `timestamp` |  | 更新时间。 |
-
-### 6.3 Board-Space
-
-Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:space:` 格式。Board-Space 特有字段在 `space.schema.json` 中作为可选字段定义。
+Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:space:` 格式。Board-Space 的视图样式通过 `fields`、schema profile 或 `View.renderer` 表达，不再使用与 `kind` 平级的 `board_kind`。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -160,14 +140,13 @@ Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:spac
 | `space_id` | yes | `id:space` |  | 父 Space ID。 |
 | `title` | yes | `string` | 1..256 chars。 | 名称。 |
 | `summary` | no | `string` |  | 说明。 |
-| `board_kind` | no | `enum(kanban, scrum, review_queue, intake, custom)` |  | Board 类型。 |
 | `default_view_id` | no | `id:view` |  | 默认 View。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-### 6.4 List-Space
+### 6.3 List-Space
 
 List 是 `Space` 的列/泳道形态，`kind="list"`，ID 使用 `cx:space:` 格式。List-Space 通过 `cx.space.child`/`cx.space.parent` 层级关系挂载到 Board-Space 下。
 
@@ -186,29 +165,7 @@ List 是 `Space` 的列/泳道形态，`kind="list"`，ID 使用 `cx:space:` 格
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-### 6.5 Card
-
-Schema id: `cx.schema.card.v1`
-
-| 字段 | 必填 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- | --- |
-| `id` | yes | `id:card` | 以 `cx:card:` 开头。 | Card ID。 |
-| `type` | yes | `enum(card)` | 固定为 `card`。 | 对象种类。 |
-| `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `title` | yes | `string` | 1..512 chars。 | 标题。 |
-| `body` | no | `object` | 富文本/blocks 见 `content-types.md`。 | 内容。 |
-| `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 状态、优先级、截止时间等属性。 |
-| `facets` | no | `map<FacetConfig>` | 标准 facet 见 7 节。 | 已声明能力的可选 hint / 查询标签。 |
-| `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
-| `version` | no | `integer` | SHOULD 单调递增，不能替代 event order。 | 物化版本。 |
-| `created_by` | yes | `did` |  | 创建者。 |
-| `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `updated_by` | no | `did` |  | 最近更新者。 |
-| `updated_at` | no | `timestamp` |  | 更新时间。 |
-
-Card canonical object 不包含 `subject_id`、`board_id` 或 `list_id` 必填字段。Card 与 Subject 的关系由 active `has_surface` Relation 表达；Card 在 Board/List 中的主位置由 active `contains` Relation / position edge 归约得到；View projection MAY 返回派生的 `subject_id`、`board_id`、`list_id` 和 `rank` 方便客户端渲染，但这些派生字段不得成为签名 Card 对象的唯一真相源。
-
-### 6.6 Message
+### 6.4 Message
 
 Schema id: `cx.schema.message.v1`
 
@@ -217,7 +174,8 @@ Schema id: `cx.schema.message.v1`
 | `id` | yes | `id:message` | 以 `cx:message:` 开头。 | Message ID。 |
 | `type` | yes | `enum(message)` | 固定为 `message`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `room_id` | yes | `id:room` |  | 所属 Room。 |
+| `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
+| `branch` | yes | `enum(discussion)` | v1 标准 Message 只位于 discussion branch。 | 所属 Flow 分支。 |
 | `content` | yes | `object` | 富文本/blocks 见 `content-types.md`。 | 消息正文。 |
 | `fields` | no | `object` | 可放 revision、visibility、client metadata。 | 扩展字段。 |
 | `created_by` | yes | `did` |  | 发送者。 |
@@ -417,7 +375,7 @@ Schema id: `cx.schema.capability.v1`
 | `space_id` | no | `id:space` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
-| `actions` | yes | `array<string>` | 例如 `cx.card.update`、`cx.message.create`。 | 允许动作。 |
+| `actions` | yes | `array<string>` | 例如 `cx.flow.update`、`cx.message.create`。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 `grant-constraint-schema.md`。 | 约束条件。 |
 | `delegable` | no | `boolean` | 默认 false。 | 是否可转授。 |
@@ -456,7 +414,7 @@ Schema id: `cx.schema.read_marker.v1`
 | `type` | yes | `enum(read_marker)` | 固定为 `read_marker`。 | 对象种类。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `space_id` | yes | `id:space` |  | Space。 |
-| `scope` | yes | `enum(space, subject, room, thread, view, card, message, morph)` |  | 已读范围。 |
+| `scope` | yes | `enum(space, flow, discussion, thread, view, message, morph)` |  | 已读范围。 |
 | `scope_id` | no | `string` | scope 不是 space 时必填。 | 范围对象。 |
 | `event_id` | yes | `id:event` |  | 已读到的事件。 |
 | `timeline_order_key` | no | `object` | 可加速比较。 | 已读排序键。 |
@@ -513,7 +471,7 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 | --- | --- | --- | --- |
 | Canonical Operation Object | SDK builder 输出、离线草稿或本地内容寻址对象。 | 否，除非 profile 明确声明私有传输。 | 否，必须先包入 Event Envelope。 |
 | Event Envelope | Events API、Sync、Federation、Client write 的签名承载，也是唯一规范事实。 | 是。 | 是，reducer 读取其 `kind`、`content`、`auth_refs`、`prev_refs`、proof 和 causal metadata。 |
-| Materialized Object | reducer 输出的当前态对象，例如 Card、Relation、View。 | 否。 | 否，不能反向替代事件历史。 |
+| Materialized Object | reducer 输出的当前态对象，例如 Flow、Relation、View。 | 否。 | 否，不能反向替代事件历史。 |
 
 字段映射：
 
@@ -521,7 +479,7 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 | --- | --- |
 | `id` | 本地草稿 / builder 对象 ID；进入 wire 后必须能稳定映射到 `event_id` 或被 `event_id` 取代。 |
 | `semantic_kind` | `kind`。 |
-| `object_id` | `content` 内的目标对象字段，例如 `card_id`、`room_id`、`target_ref`。 |
+| `object_id` | `content` 内的目标对象字段，例如 `flow_id`、`space_id`、`target_ref`。 |
 | `payload` | `content`。 |
 | `created_at` | `created_at`，但 envelope 还必须包含 `hlc`、`actor_seq`、`prev_refs` 和 `auth_refs`。 |
 | `idempotency_key` | 传输请求 idempotency metadata；不得进入 event digest，除非 profile 明确声明。 |
@@ -531,22 +489,22 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 | `id` | yes | `id:operation` 或 `hash` | 不得命名为 `operation_id`；`operation_id` 保留给服务 API canonical operation。 | Canonical Operation Object ID。 |
 | `type` | yes | `enum(operation)` | 固定为 `operation`。 | 对象种类。 |
 | `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref, move, reorder, rebalance, link, unlink)` |  | operation 类型。 |
-| `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.card.move`。`move/reorder/rebalance/link/unlink` 必填。 | 语义操作类型，用于校验 payload。 |
+| `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.flow.move`。`move/reorder/rebalance/link/unlink` 必填。 | 语义操作类型，用于校验 payload。 |
 | `space_id` | yes | `id:space` |  | 目标 Space。 |
 | `object_id` | no | `string` | create 可由 payload 指定。 | 目标对象。 |
-| `object_type` | yes | `string` | `subject`、`room`、`board`、`list`、`card`、`message`、`morph`、`relation` 等。 | 目标对象类型。 |
+| `object_type` | yes | `string` | `flow`、`space`、`message`、`morph`、`relation` 等。 | 目标对象类型。 |
 | `payload` | yes | `object` | 由 operation_type 决定。 | 操作内容。 |
 | `idempotency_key` | no | `string` | 重试写入 SHOULD 设置。 | 幂等键。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
 Canonical Operation 与 Event Envelope 的映射：
 
-- `semantic_kind="cx.card.move"` MUST 使用 `operation_type="move"`、`object_type="card"`，并使用 card move payload schema。
+- `semantic_kind="cx.flow.move"` MUST 使用 `operation_type="move"`、`object_type="flow"`，并使用 flow move payload schema。
 - `semantic_kind="cx.container.move_item"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用容器 item move payload schema。
-- `semantic_kind="cx.card.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="card"`，并使用 card reorder payload schema。
-- `semantic_kind="cx.subject.link_surface"` MUST 使用 `operation_type="link"`、`object_type="subject"`，并创建或更新 `has_surface` Relation。
-- `semantic_kind="cx.subject.unlink_surface"` MUST 使用 `operation_type="unlink"`、`object_type="subject"`，并 tombstone 对应 `has_surface` Relation。
-- `semantic_kind="cx.subject.set_primary_surface"` MUST 使用 `operation_type="update"`、`object_type="subject"`，并更新对应 `has_surface` Relation 的 primary 状态。
+- `semantic_kind="cx.flow.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="flow"`，并使用 flow reorder payload schema。
+- `semantic_kind="cx.flow.branch.enable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch enable payload schema。
+- `semantic_kind="cx.flow.branch.disable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch disable payload schema。
+- `semantic_kind="cx.flow.convert"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow convert payload schema。
 - `semantic_kind="cx.card.link_room"` MUST 使用 `operation_type="link"`、`object_type="card"`，并创建或更新 `links_room` Relation。
 - `semantic_kind="cx.container.rebalance"` MUST 使用 `operation_type="rebalance"`、`object_type="relation"`，并使用容器 rebalance payload schema。
 - `operation_type` 为 `move`、`reorder` 或 `rebalance` 时，`semantic_kind` MUST 存在且属于本 schema 声明的有序操作语义白名单；实现不得把有序集合操作塞进无语义的 generic `update`，也不得使用未知 `semantic_kind` 绕过 payload validation。

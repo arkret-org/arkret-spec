@@ -308,6 +308,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - enable `discussion` branch 不自动授予 membership。
 - Flow synthesis 可见不代表 discussion 内容可读；projection 必须按 branch 自身权限裁剪。
 - 切换默认入口时应通过 `cx.flow.branch.set_primary`，Reducer MUST 保证同一 Flow 至多一个 `primary_branch`。
+- 发送 `cx.message.*` 到未启用的 discussion branch MUST 返回 `discussion_branch_disabled` 或等价 fail-closed 结果。
 
 ## 9. Flow 有序操作
 
@@ -391,8 +392,11 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 
 规则：
 
+- convert 要求独立 capability action `cx.flow.convert`。
 - convert 不改变 `flow_id`。
 - convert 不自动删除已有 discussion 历史或 synthesis 字段。
+- 转换到 `kind="room"` 时，Reducer MUST 保证 `discussion` branch 已启用；若当前未启用，则 MUST 自动启用它，或在 policy 禁止时 reject。
+- 从 `kind="room"` 转回 `kind="card"` 时，不得自动 archive discussion branch；若要关闭讨论，必须显式写入 `cx.flow.branch.disable` 或等价 policy 动作。
 - 设置 `primary_branch="discussion"` 时，Reducer MUST 保证 `discussion` branch 已启用。
 - convert 不自动移除 Board/List 位置；是否移除由后续 `cx.flow.move` / profile policy 决定。
 

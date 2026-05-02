@@ -2,23 +2,23 @@
 
 ## 1. 目标
 
-本文定义 Contrix 标准对象类型。标准对象是一等协议对象，不再是 `Entity` 语义标签。
+本文定义 Contrix 的标准对象类型。标准对象是一等协议对象，不再是 `Entity` 语义标签。
 
-核心字段类型、必填性和通用约束见 `data-structures.md`。本文定义标准对象的业务语义、常用字段、推荐关系和推荐 facets。
+核心字段类型、必填性和通用约束见 `data-structures.md`。本文定义标准对象的业务语义、推荐字段、推荐关系和推荐 facets。
 
 原则：
 
 - 标准类型提供主语义。
-- `subject` 提供薄语义中心；Card、Room、Document 等通过 surface relation 围绕它协作。
-- `Morph` 提供开放扩展。
+- `flow` 是统一协作主对象，取代 `subject`、`room`、`card` 的三实体拆分。
+- `morph` 提供开放扩展。
 - `facets` 是由 Space schema / Morph profile 声明的能力提示和查询标签，不替代对象类型，也不单独定义授权、状态机、排序或 reducer 语义。
 - View 只定义如何投影对象；它拥有自己的定义状态，但不发明对象能力，也不持有被投影对象的协作事实。
 
-## 2. Subject
+## 2. Flow
 
-`subject` 表示 Space 内被讨论、推进、引用、审阅、执行或沉淀的“东西本身”。它不是 Room、Card 或 Document 的替代品，而是这些协作 surface 的共同锚点。
+`flow` 表示 Space 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。它既可以表现为偏内容/推进的 `kind="card"`，也可以表现为偏讨论/协作的 `kind="room"`，但 identity 始终只保留一份。
 
-Subject 适合：
+Flow 适合：
 
 - 产品/工程 initiative
 - 决策或提案
@@ -26,18 +26,40 @@ Subject 适合：
 - 跨多个团队的任务簇
 - 需要长期沉淀的知识主题
 - 外部资产或业务对象的协作锚点
+- 会话主导的协作线程
 
 推荐字段：
 
 - `title`
+- `description`
 - `brief`
 - `summary`
-- `subject_kind`
-- `state`
+- `kind`
+- `semantic_kind`
+- `body`
 - `fields`
-- `archived`
+- `primary_branch`
+- `branches`
+- `state`
 
-`subject_kind` 初版建议：
+### 2.1 `kind`
+
+`kind` 表示 Flow 的默认主视角：
+
+- `card`
+- `room`
+
+规则：
+
+- `kind="card"` 默认主入口 SHOULD 是 `synthesis` branch。
+- `kind="room"` 默认主入口 SHOULD 是 `discussion` branch。
+- `kind` 影响默认交互入口，不改变 `flow_id`，也不强制删除其他 branch。
+
+### 2.2 `semantic_kind`
+
+旧 Subject 模型中的语义分类收敛为 Flow 的可选字段 `semantic_kind`。它用于声明“这个 Flow 在业务上是什么”，而不是“默认以什么交互方式打开”。
+
+初版建议枚举：
 
 - `topic`
 - `initiative`
@@ -50,51 +72,48 @@ Subject 适合：
 - `asset`
 - `custom`
 
-常见关系：
+规则：
 
-- `subject --has_surface--> card`
-- `subject --has_surface--> room`
-- `subject --has_surface--> morph`
-- `subject --has_surface--> view`
-- `subject --contains--> subject`
-- `subject --references--> card / room / morph / message / blob`
+- `semantic_kind` 与 `kind` 正交。
+- 同一个 `semantic_kind="decision"` 的 Flow 可以是 `kind="card"` 或 `kind="room"`。
+- Space schema SHOULD 可以约束允许的 `semantic_kind` 集合。
+- View、搜索、通知和 agent policy SHOULD 允许按 `semantic_kind` 过滤或做默认 renderer 选择。
 
-`has_surface` 的 `fields.surface_role` SHOULD 声明 surface 用途，例如 `status_card`、`primary_discussion`、`design_discussion`、`review_discussion`、`external_discussion`、`decision_log`、`design_doc`、`spec_doc`、`activity_view`、`source_message`。
+### 2.3 `synthesis` branch
 
-权限规则：
+`synthesis` branch 承载 Flow 的整理后正式表达。它不是“摘要专栏”，而是 Flow 当前可被编辑、被引用、被推进的主数据面。
 
-- Subject 可见不代表 surface 内容可读。
-- Room membership 不授予 Subject 更新、surface 管理或授权管理权限。
-- Card 写权限不授予 Subject 更新或 Room 管理权限。
-- Surface relation 不传播权限；不可读 surface 必须被裁剪为 locked stub、authorized hidden count，或完全不返回。
+适合放入：
 
-`Topic` 是一种 Subject 语义，不是新的核心对象类型；产品可使用 `subject_kind="topic"`。
+- `title`
+- `description`
+- `brief`
+- `summary`
+- `body`
+- `fields`
+- 状态推进字段
+- 结构化业务字段
 
-## 3. Room
+### 2.4 `discussion` branch
 
-`room` 表示 Space 内的讨论容器和消息时间线入口。
+`discussion` branch 承载会话能力，而不是独立对象。它包含：
 
-Room 适合：
-
-- 团队聊天
-- 项目讨论
-- Card 相关讨论
-- 评审或决策会议记录
-- 外部协作沟通
-- agent 运行播报流
+- Message timeline
+- discussion membership
+- history visibility
+- 可选 E2EE group
+- 讨论相关 policy 组件
 
 推荐字段：
 
-- `title`
-- `summary`
+- `enabled`
 - `room_kind`
-- `topic`
-- `history_visibility`
 - `membership_policy_ref`
+- `history_visibility`
 - `encryption_profile`
-- `archived`
+- `fields`
 
-`room_kind` 初版建议：
+`room_kind` 初版建议支持：
 
 - `discussion`
 - `announcement`
@@ -103,82 +122,83 @@ Room 适合：
 - `review`
 - `external`
 
-常见关系：
+规则：
 
-- `room --contains--> message`
-- `subject --has_surface--> room`
-- `card --links_room--> room`
-- `card --primary_room--> room`
-- `room --references--> card / morph`
+- `room_kind` 是 discussion branch 的语义/profile 选择器，不是自动授权后门。
+- `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `room_kind` 字符串隐式生效。
+- `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
+- `discussion` branch membership 独立于 `assigned_to`、`watchers` 或其他 Flow relation。
+- `history_visibility` 与 `encryption_profile="mls_rfc9420"` 组合时，若未显式声明 history sharing policy，默认 SHOULD 等价于 `joined`。
+- 当 `discussion.enabled=false` 或 branch 不存在时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_branch_disabled` 或等价 fail-closed 结果。
 
-Room 权限独立于 Subject / Card：
+### 2.5 转换
 
-- Subject 可见不代表 Room 可见。
-- Card 可见不代表 Room 可见。
-- Room 可见不代表 Card 可见。
-- Room membership 不授予 Subject 管理权限。
-- Card 归档或删除不自动删除 Room。
-- Room membership / policy / E2EE / history visibility 必须独立验证。
+`cx.flow.convert` 在 `kind="card"` 和 `kind="room"` 之间切换同一个 Flow 的主视角。
 
-## 4. Card
+规则：
 
-`card` 表示可执行、可跟踪、可沉淀的工作对象。Card 是 Board-Space / List-Space 里的主要工作单元，也可以是 Subject 的状态推进 surface。独立 Card 可以存在于 Space 中；进入 Board 时由 `list-space --contains--> card` position edge 表达其主位置。
+- 转换不改变 `flow_id`。
+- 转换不复制或迁移消息历史。
+- 从 `card -> room` 时，若 `discussion` branch 尚未启用，Reducer MUST 自动启用它，或在 policy 禁止时 fail closed。
+- 从 `room -> card` 时，不得自动删除 `discussion` branch 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.branch.disable` 或 profile 声明的 archive 语义。
+- 转换不自动移除 Board/List 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
 
-Card 和 Room 严格区分：
+### 2.6 常见关系
 
-- Card 是工作状态对象或推进 surface。
-- Room 是讨论容器。
-- Subject 是语义中心。
-- Card 可关联 0..N 个 Room。
-- 关联 Room 独立管理 membership、policy、history visibility 和 E2EE。
+- `list-space --contains--> flow`
+- `flow --assigned_to--> actor`
+- `flow --depends_on--> flow`
+- `flow --blocks--> flow`
+- `flow --references--> flow / morph / message / blob`
+- `flow --derived_from--> flow / morph`
+- `flow --summarized_from--> message`
+- `flow --promoted_from_discussion--> message`
+
+## 3. Board-Space
+
+Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:space:` 格式。Board 本身不再使用平级 `board_kind` 字段表达产品变体；看板类型、泳道策略、WIP 规则和自定义 workflow profile SHOULD 进入 `fields` 或 Space schema。
 
 推荐字段：
 
 - `title`
-- `body`
-- `status`
-- `priority`
+- `summary`
 - `rank`
-- `due_at`
-- `labels`
-- `acceptance_criteria`
-- `decision_summary`
-- `archived`
-
-推荐 facets：
-
-- `assignable`
-- `schedulable`
-- `stateful`
-- `rankable`
-- `reviewable`
-- `notifiable`
-- `renderable`
+- `fields`
+- `default_view_id`
+- `state`
 
 常见关系：
 
-- `list-space --contains--> card`
-- `subject --has_surface--> card`
-- `card --assigned_to--> actor`
-- `card --depends_on--> card`
-- `card --blocks--> card`
-- `card --links_room--> room`
-- `card --primary_room--> room`
-- `card --references--> morph / document`
-- `card --summarized_from--> room`
-- `card --promoted_from_room--> room`
+- `board-space --contains--> list-space`
+- `board-space --has_default_view--> view`
 
-`primary_room` 是 UI 默认入口，不是权限继承。一个 Card MAY 有一个 primary Room 和多个 linked Room。新写入 SHOULD 优先使用共同 Subject 聚合 Card 与 Room；Card-Room link 保留为兼容或局部上下文关系。
+## 4. List-Space
 
-## 5. Message
-
-`message` 表示 Room 时间线中的原子消息。
+List 是 `Space` 的列/泳道形态，`kind="list"`，ID 使用 `cx:space:` 格式。List-Space 通过 `contains` relation 挂载到 Board-Space 下。
 
 推荐字段：
 
-- `room_id`
+- `title`
+- `summary`
+- `rank`
+- `wip_limit`
+- `fields`
+- `state`
+
+常见关系：
+
+- `board-space --contains--> list-space`
+- `list-space --contains--> flow`
+
+## 5. Message
+
+`message` 表示 Flow `discussion` branch 时间线中的原子消息。
+
+推荐字段：
+
+- `flow_id`
+- `branch`
 - `content`
-- `format`
 - `attachments`
 - `revision_root`
 - `edited_at`
@@ -187,11 +207,10 @@ Card 和 Room 严格区分：
 
 常见关系：
 
-- `room --contains--> message`
-- `subject --has_surface--> message`
+- `flow(discussion) --contains--> message`
 - `message --replies_to--> message`
-- `message --mentions--> actor / subject / card / room / morph`
-- `message --references--> subject / card / board / morph / blob`
+- `message --mentions--> actor / flow / morph`
+- `message --references--> flow / morph / blob`
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
@@ -207,7 +226,7 @@ Morph 适合：
 - 未来标准类型的试验对象
 - 不要求强互操作的弱结构数据
 
-Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Card、Message 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象退化为 Morph。
+Morph 是扩展缓冲层，不是标准对象的替代品。Flow、Message 和 Space workflow 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象退化为 Morph。
 
 推荐字段：
 
@@ -218,41 +237,11 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Car
 - `fields`
 - `facets`
 
-推荐 facets：
+## 7. Document and File
 
-- `container`
-- `replyable`
-- `schedulable`
-- `assignable`
-- `stateful`
-- `rankable`
-- `reviewable`
-- `notifiable`
-- `documentable`
-- `renderable`
+`document` 与 `file` 在 v1 Core 中仍是 Morph profile，不是独立标准对象。后续版本若提升为标准对象，必须通过新的 schema/profile 版本声明迁移规则。
 
-实现遇到未知 `morph_type` SHOULD 降级为 generic Morph 展示。未知 facet 必须保留，但不得绕过 schema、capability、policy 或 encryption 约束。
-
-任何影响授权、状态机、排序、reducer、事件类型或 wire 互操作的 Morph 语义，MUST 由明确的 Space schema、Morph profile、event kind 和 capability action 定义。实现不得只因为看到 `facets.container`、`facets.stateful`、`facets.rankable` 或其他 facet 字符串，就接受移动、排序、状态转换、授权扩大或 reducer 特例。
-
-## 7. Document
-
-`document` 表示可协作编辑或引用的文档对象。v1 Core 中 Document 是 Morph profile，不是标准对象。后续版本若提升为标准对象，必须通过新的 schema/profile 版本声明迁移规则。
-
-文档正文 MAY 存储为：
-
-- inline structured content
-- blob reference
-- CRDT snapshot
-- external document binding
-
-## 8. File
-
-`file` 表示 blob 的协作元数据。v1 Core 中 File 是 Morph profile，不是标准对象。后续版本若提升为标准对象，必须通过新的 schema/profile 版本声明迁移规则。
-
-内容本身 SHOULD 使用 blob service 存储，并通过 content hash 校验。
-
-## 9. Actor Profile
+## 8. Actor Profile
 
 `actor_profile` 是 Actor 在协作图中的展示镜像。
 
@@ -265,21 +254,7 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Car
 
 Actor Profile 不替代 DID，也不成为权限主键。
 
-## 10. Poll
-
-`poll` 表示投票或决策收集。Poll MAY 是 Morph profile。
-
-应支持：
-
-- single choice
-- multiple choice
-- deadline
-- visibility policy
-- anonymous result policy
-
-投票结果 SHOULD 作为 event 集合归约，而不是只更新单一计数字段。
-
-## 11. 标准 Facets
+## 9. 标准 Facets
 
 Facets 是 schema-declared capability hints，不是对象身份。标准对象 MAY 暴露 schema/profile 已声明的 facets 来辅助展示或查询，但标准对象的核心语义不依赖 facets 才成立；Morph MAY 使用 facets 帮助 View、本地搜索、UI 和插件做过滤、降级展示和默认 renderer 选择。
 
@@ -298,19 +273,19 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 | `documentable` | 可作为文档或 section root。 |
 | `renderable` | 声明允许的默认展示面。 |
 
-## 12. Schema Evolution
+## 10. Schema Evolution
 
 标准类型演进 MUST 遵守：
 
-- 新字段优先 optional
-- 旧字段不得静默改变语义
-- reducer 和客户端 MUST 保留未知字段
-- UI 遇到未知 Morph type SHOULD 降级为 generic Morph card
-- 标准对象不得阻止 Space 定义自定义 Morph type
+- 新字段优先 optional。
+- 旧字段不得静默改变语义。
+- reducer 和客户端 MUST 保留未知字段。
+- UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
+- 标准对象不得阻止 Space 定义自定义 Morph type。
 
-## 13. 规范性引用
+## 11. 规范性引用
 
-- 标准 Relation cardinality 按本文件各类型语义、`data-structures.md` 的 Relation 字段和业务 profile 执行；未声明多重关系时，active relation MUST 以 `(relation_kind, from_ref, to_ref)` 收敛为单条。
-- Content block registry 见 `content-types.md`；未知 content block 必须按降级规则保留和展示。
-- Card status profile 使用 `todo`、`in_progress`、`blocked`、`review`、`done`、`archived` 作为 v1 基础集合；Space schema 可增加自定义状态，但不得改变基础状态语义。
-- Poll result reducer vector 必须按 event 集合归约，不能只信任计数字段；匿名投票的明文选择不得进入未授权受托 search / projection 服务。
+- Flow / Message / branch 规则见 `conversation-model.md`。
+- Flow / Board / List / Message 的核心字段见 `data-structures.md`。
+- View 投影规则见 `views.md`。
+- 授权规则见 `../authz/capabilities.md` 与 `../authz/event-auth-state-resolution.md`。

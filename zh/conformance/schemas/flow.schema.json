@@ -10,6 +10,10 @@
     "schema": { "const": "cx.schema.flow.v1" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "kind": { "type": "string", "enum": ["card", "room"] },
+    "semantic_kind": {
+      "type": "string",
+      "enum": ["topic", "initiative", "decision", "incident", "customer_case", "proposal", "research", "task_cluster", "asset", "custom"]
+    },
     "title": { "type": "string", "minLength": 1, "maxLength": 512 },
     "description": { "type": "string", "maxLength": 4096 },
     "brief": { "type": "string", "maxLength": 2048 },

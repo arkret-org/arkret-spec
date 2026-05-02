@@ -12,7 +12,7 @@
 ## 2. 基础加密架构：MLS 与 Contrix 的融合
 
 Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf.org/doc/html/rfc9420) 作为官方的群组加密标准。
-不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 Room 或大型协作 Space 中，双棘轮会导致巨大的性能开销与并发处理难题。
+不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 discussion branch 或大型协作 Space 中，双棘轮会导致巨大的性能开销与并发处理难题。
 
 ### 2.1 KeyPackage 与服务发现
 在参与 MLS 加密前，用户必须公布自己的 `KeyPackage`。
@@ -47,7 +47,7 @@ sequenceDiagram
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。由于其仅面向特定新成员解密，该消息可通过 Sync Service 的 Ephemeral Channel 发送，或通过私信 `message` 投递。
 
 ### 2.3 载荷加密 (Application Data)
-日常的 Message、Card 或 Morph 内容负载在写入 Event 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
+日常的 Message、Flow synthesis 或 Morph 内容负载在写入 Event 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
 - **可路由元数据分离**：密文信封 `encrypted_payload` 仅包裹实际的业务内容 (`body`, `content`, `attachments`)。
 - **明文元数据保留**：用于网络路由和客户端本地 projection 的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
 - Sync Service 可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。客户端在解密后 MAY 建立本地搜索索引；受托 search / projection 服务只有在 `plaintext_visible_services` 授权下才能接收明文或可逆摘要。
@@ -66,7 +66,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 ### 2.5 MLS 绑定的应用状态根
 
-E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或房间元数据。
+E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据。
 
 每个 `cx.mls.commit` MUST 绑定一个 `application_state_ref`，并把该引用纳入 MLS transcript 或等价的 commit-authenticated data：
 
@@ -80,7 +80,7 @@ E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务�
     "membership_frontier": ["cx:event:membersh1phead000000000000"],
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
-    "room_metadata_hash": "sha256:canonical_room_metadata",
+    "discussion_metadata_hash": "sha256:canonical_discussion_metadata",
     "binding_profile": "cx.profile.mls_state_binding.full.v1",
     "reducer_profile": "cx.reducer.v1"
   }
@@ -92,7 +92,7 @@ E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务�
 - `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员状态、invite/leave/ban 变化和设备信任变化。
 - `policy_root` MUST 覆盖影响加密、history visibility、asset privacy、logging、bot、moderation 和 plaintext-visible service 的 Space policy state。
 - v1 base E2EE profile 只要求 `membership_frontier` 与 `policy_root`。这两个字段缺失或无法验证时，客户端 MUST 标记 epoch 为 `state_mismatch` 或 `decryption_pending`。
-- `capability_root` 与 `room_metadata_hash` 属于 `cx.profile.mls_state_binding.full.v1` hardening profile。实现声明该 profile 时，它们 MUST 覆盖与本次成员或策略变化相关的 effective grant / revoke / claim 状态，以及成员可见的房间名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
+- `capability_root` 与 `discussion_metadata_hash` 属于 `cx.profile.mls_state_binding.full.v1` hardening profile。实现声明该 profile 时，它们 MUST 覆盖与本次成员或策略变化相关的 effective grant / revoke / claim 状态，以及成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
 - 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix state 已经按 `event-auth-state-resolution.md` accepted。无法回补或 hash 不匹配时 MUST 标记该 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 仍按 Contrix 的 auth weight / HLC / actor / event hash 规则裁决；失败 Commit 的 MLS transcript 不得被接受为当前 epoch。
 
@@ -246,7 +246,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 规则：
 
 - Agent 私钥、Controller 主体私钥、Controller recovery key 和 Controller backup key MUST 是不同密钥域。
-- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Space / Room、读取 owner-private 知识源、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
+- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Space / Flow discussion branch、读取 owner-private 知识源、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
 - Agent Authority Panel MUST 能解释 Controller、responsible actor、effective grant、presence policy、knowledge source、join policy 和 expiry。
 - 撤销 Controller 对 Agent 的控制通道时，必须使相关 session grant、owner-private 知识源 grant、presence trigger 和 tool / protocol session grant 失效。
 

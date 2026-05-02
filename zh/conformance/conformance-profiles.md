@@ -33,7 +33,7 @@ cx.profile.<name>.v<major>
 
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
-| Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space、Subject、Room、Board、List、Card、Message、Morph、Relation、Capability、View query shape、Sync cursor、Blob hash 校验、标准错误。 |
+| Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space（含 `board` / `list` kind）、Flow（含 `card` / `room` kind）、Message、Morph、Relation、Capability、View query shape、Sync cursor、Blob hash 校验、标准错误。 |
 | Recommended | 主客户端和 Principal Server SHOULD 支持，但轻量实现可以不支持。 | E2EE、push、presence、read receipt、snapshot bootstrap、local full-text search、moderation report。 |
 | Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、sovereign deployment。 |
 
@@ -42,8 +42,8 @@ Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profi
 为避免 Core 范围过大导致实现无法启动，v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `cx.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
-- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、Room、`cx.room.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
-- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space、Board、List、Card、`contains` position Relation、`cx.card.move`、`cx.card.reorder`、客户端 Collection projection 和 wait-for query。
+- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、`Flow(kind=room)` 或启用 discussion branch 的 Flow、`cx.flow.branch.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
+- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 `Space(kind=board/list)`、`Flow(kind=card)`、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、客户端 Collection projection 和 wait-for query。
 
 `chat_only_client`、`kanban_only_client`、`minimal_client` 和 `principal_server` 可以组合上述闭环声明能力；未声明的闭环不得被对端视为默认可用。
 
@@ -70,28 +70,28 @@ Profile 不支持某个标准能力时的默认行为：
 MUST 支持：
 
 - DID / handle 解析和 service discovery
-- Space bootstrap、Space membership、Room、Room membership、Message、Reaction、Redaction
+- Space bootstrap、Space membership、Flow discussion branch、`cx.flow.branch.member`、Message、Reaction、Redaction
 - 基础 `cx.message.create`、`cx.message.revise`、`cx.message.redact`、`cx.reaction.add`、`cx.reaction.remove`
 - 基础 capability check 结果处理和 `cx.message.*` 高频授权快路径
 - client sync、timeline pagination、backfill、`state_after`
-- Room history visibility 和 linked Room 不继承 Card 权限的裁剪规则
+- Flow discussion branch 的 history_visibility、membership 与 synthesis 写权限独立裁剪规则
 
-MAY 支持 Board、List、Card、View projection、Applet、Agent、WebRTC、MIMI 和 E2EE。未声明支持时，客户端不得把这些能力作为必需交互。
+MAY 支持 `Space(kind=board/list)`、`Flow(kind=card)`、View projection、Applet、Agent、WebRTC、MIMI 和 E2EE。未声明支持时，客户端不得把这些能力作为必需交互。
 
 ### `cx.profile.kanban_only_client.v1`
 
-适用于只实现 Space / Board / List / Card 工作流的客户端。
+适用于只实现 `Space(kind=board/list)` / `Flow(kind=card)` 工作流的客户端。
 
 MUST 支持：
 
 - DID / handle 解析和 service discovery
-- Space bootstrap、Board、List、Card、Relation position edge、View collection projection
-- `cx.space.*`（Board-Space / List-Space 创建、更新、层级结构）、`cx.card.create`、`cx.card.update`、`cx.card.move`、`cx.card.reorder`
+- Space bootstrap、`Space(kind=board/list)`、`Flow(kind=card)`、Relation position edge、View collection projection
+- `cx.space.*`（Board-Space / List-Space 创建、更新、层级结构）、`cx.flow.create`、`cx.flow.update`、`cx.flow.move`、`cx.flow.reorder`
 - Board position 的 CAS / stale reorder 处理和 deterministic conflict record 展示
-- 基础 capability check 结果处理和 `cx.card.move` / `cx.card.reorder` 高频授权快路径
+- 基础 capability check 结果处理和 `cx.flow.move` / `cx.flow.reorder` 高频授权快路径
 - client sync、本地 projection、wait-for、pagination、backfill
 
-MAY 支持 Room / Message。若支持 Card linked Room，必须按 Room membership 独立裁剪。
+MAY 支持 Flow discussion branch / Message。若支持 discussion branch，必须按 discussion membership 独立裁剪。
 
 ### `cx.profile.federation_minimal.v1`
 
@@ -133,7 +133,7 @@ MUST 支持：
 - service discovery
 - event 拉取 / backfill
 - 本地查询和 projection
-- 基础 Subject / Room / Board / List / Card / Message / Morph / Relation / Event 解码
+- 基础 Flow / Space / Message / Morph / Relation / Event 解码
 - 未知 Morph / facet 字段保留和 generic fallback，不要求专用 renderer
 - capability 检查结果处理
 - cursor 分页
@@ -583,8 +583,8 @@ E2EE profile MUST 额外提供：
 Client Sync 相关 profile MUST/SHOULD 按 `sync-conformance-vectors.md` 执行对应向量：
 
 - Minimal Client MUST 覆盖基础排序、tie break、pagination gap、backfill order 和 token expiry recovery。
-- Chat-only Client MUST 覆盖 Room timeline、message edit/redaction、reaction OR-Set、Room history visibility 和 linked Room 裁剪。
-- Kanban-only Client MUST 覆盖 Board projection、Card move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
+- Chat-only Client MUST 覆盖 Flow discussion timeline、message edit/redaction、reaction OR-Set、discussion history visibility 和 membership 裁剪。
+- Kanban-only Client MUST 覆盖 Board projection、Flow move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。

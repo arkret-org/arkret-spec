@@ -210,9 +210,10 @@ Accountable actor MUST 记录责任关系，但 accountability 不等于 capabil
 
 Flow 是 Space 内统一的协作主对象。它取代 Subject / Room / Card 的三实体拆分，直接承载“这件事本身”、一组参与者和围绕它的上下文信息。
 
-Flow 通过两层语义表达差异：
+Flow 通过三层语义表达差异：
 
 - `kind`：主模式。`card` 默认主入口是 `synthesis` branch；`room` 默认主入口是 `discussion` branch。
+- `semantic_kind`：业务语义分类，例如 `initiative`、`decision`、`incident`。
 - `branches`：能力分支。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天、成员、历史和 E2EE 边界。
 
 由于 `room` 和 `card` 只是同一 Flow 的两种模式，实现 MAY 通过 `cx.flow.convert` 在二者之间切换。转换不会改变 Flow identity，也不要求复制或迁移消息历史。
@@ -226,6 +227,7 @@ Flow 通过两层语义表达差异：
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "kind": "card",
+  "semantic_kind": "initiative",
   "title": "支付重构",
   "description": "统一支付链路、风控回调和退款状态机。",
   "brief": "同步 owner、决策和 blocker。",
@@ -291,7 +293,6 @@ Board-Space 最小结构：
   "kind": "board",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Release Board",
-  "board_kind": "kanban",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
