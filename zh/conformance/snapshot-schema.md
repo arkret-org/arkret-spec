@@ -14,11 +14,25 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
   "reducer_profile": "cx.reducer.v1",
   "schema_profile_refs": ["cx.schema.core.v1"],
   "frontier": {
-    "max_hlc": "01970e589d21-0004-a13f9c2e",
-    "event_hashes": ["sha256:..."]
+    "event_ids": ["cx:event:01js0ev0000000000000000000"],
+    "timeline_hlc": "01970e589d21-0004-a13f9c2e"
+  },
+  "event_set_commitment": {
+    "algorithm": "merkle_event_set_v1",
+    "root": "sha256:...",
+    "covered_event_count": 42000,
+    "covered_frontier": ["cx:event:01js0ev0000000000000000000"]
   },
   "state_hash": "sha256:...",
   "chunks": [],
+  "verification_hints": {
+    "inclusion_proof_url": "https://index.example/snapshots/01js0sn/proofs",
+    "challenge_window_seconds": 86400,
+    "witness_quorum": 2,
+    "conflict_records_digest": "sha256:...",
+    "soft_failed_digest": "sha256:...",
+    "quarantined_digest": "sha256:..."
+  },
   "created_by": "did:web:index.example",
   "created_at": "2026-04-26T00:00:00Z",
   "signature": {
@@ -66,9 +80,26 @@ The signing DID MUST be one of:
 - witness quorum
 - policy-approved snapshot issuer
 
-Client MUST verify signature, signer authority, `state_hash`, frontier and every chunk digest before using snapshot. `proof`, `signed_by`, `generator_signature` and `state_signature` are not v1 snapshot manifest fields.
+Client MUST verify signature, signer authority, `state_hash`, frontier, `event_set_commitment` and every chunk digest before using snapshot. `proof`, `signed_by`, `generator_signature` and `state_signature` are not v1 snapshot manifest fields.
 
-## 6. Encrypted Envelope
+## 6. Inclusion and Omission Defense
+
+Snapshot signer authority only proves who signed the reduced state; it does not by itself prove the signer included every accepted Event it should have included. For that reason v1 snapshot manifests MUST carry `event_set_commitment`.
+
+`event_set_commitment.root` commits to the ordered set of Event Envelope IDs and canonical event hashes covered by the snapshot frontier. Implementations MUST support one of:
+
+- `ordered_event_id_sha256_v1`: SHA-256 over canonical JSON array entries `{event_id,event_hash,actor_id,actor_seq,hlc}` sorted by `(actor_id, actor_seq, event_id)`.
+- `merkle_event_set_v1`: Merkle root over the same canonical entries.
+
+High-assurance profiles MUST support inclusion challenge:
+
+1. Client asks the snapshot issuer or witness for inclusion proofs for sampled Event IDs and actor sequence ranges.
+2. Issuer returns Merkle branches or ordered-set slices bound to `event_set_commitment.root`.
+3. Client rejects or quarantines the snapshot if any sampled accepted Event is missing, if an actor sequence range has a gap not represented in `soft_failed` / `quarantined`, or if the proof root differs.
+
+`verification_hints.conflict_records_digest`, `soft_failed_digest` and `quarantined_digest` commit to non-accepted or unresolved inputs. A snapshot MUST NOT silently hide conflict, soft-fail or quarantine records that affect authorization, visibility, E2EE epoch or object state.
+
+## 7. Encrypted Envelope
 
 ```json
 {

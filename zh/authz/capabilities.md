@@ -498,6 +498,23 @@ system/human -> `cx.card.update` 或 `cx.morph.update`
 - 不记录 responsible / controller / operator
 - 高风险操作不需要 approval
 
+### 9.1 Agent Authority Panel
+
+任何可代表人、组织或 Space 执行动作的 agent，服务和客户端 MUST 能构造 `cx.schema.agent_authority.v1` 权限面板。该对象不是新的授权来源，只是对当前 causal frontier 下 grant、presence、knowledge source 和 join policy 的可验证解释。
+
+`AgentAuthority` 至少回答：
+
+- `agent_id`：当前发起动作的 agent DID。
+- `responsible_actor` / `controller` / `operator`：谁对该 agent 行为负责、谁能撤销或审批。
+- `effective_grant_refs`：本次动作依赖的 grant 集。
+- `presence_policy`：agent 是否被允许读取 owner 在线状态，以及是否可由 `owner_offline` 触发。默认 `owner_presence_visible=false`，除非 owner-private account data 或 Space policy 显式授权。
+- `knowledge_sources`：agent 可读取的 owner-private、Space、Organization、object 或 public 知识源，以及每个来源的 grant、明文级别和 retention 边界。
+- `join_policy`：agent 是否可在 responsible actor 未加入时加入 Space / Room。默认 `may_join_without_responsible_actor=false` 且 `requires_explicit_space_invite=true`。
+
+实现 MUST NOT 用“owner 具有权限”推导 agent 自动具有权限。Agent 加入 Space、读取 owner 私有记忆、读取在线状态、代发消息、启动外部 agent protocol session、执行 tool 或写入 confirmed memory，都必须命中 agent 自己的 grant / approval / policy 组合。
+
+产品界面 SHOULD 在 agent 发言、写入、审批请求和外部执行前显示 Agent Authority Panel 的简化投影：以谁的身份、由谁负责、可见哪些知识、权限何时过期、最近 run log 是什么。
+
 ## 10. Delegation
 
 委托表示 subject 可以将其能力的一部分再授予第三方。

@@ -1,21 +1,98 @@
 {
   "suite": "privacy_security",
+  "profile": "cx.profile.privacy_security_vectors.v1",
+  "version": "2026-05-02",
   "cases": [
     {
+      "name": "hidden_space_resolve_indistinguishable",
+      "operation_id": "cx.directory.resolve_space",
+      "inputs": [
+        { "label": "missing", "body": { "space_id": "cx:space:01js0aa0000000000000000000", "requester": "did:web:mallory.example" } },
+        { "label": "hidden", "body": { "space_id": "cx:space:01js0bb0000000000000000000", "requester": "did:web:mallory.example" } },
+        { "label": "invite_only_without_proof", "body": { "space_id": "cx:space:01js0cc0000000000000000000", "requester": "did:web:mallory.example" } }
+      ],
+      "expected": {
+        "same_http_status": 404,
+        "same_error_code": "not_found",
+        "same_body_shape": ["ok", "error.code", "request_id"],
+        "same_timing_class": "privacy_not_found",
+        "must_not_include": ["space_id", "title", "join_rule", "discoverability", "member_count", "service_endpoints"]
+      }
+    },
+    {
+      "name": "private_contact_discovery_padding_and_cardinality",
+      "operation_id": "cx.directory.private_contact_discovery",
+      "input": {
+        "requester": "did:web:alice.example",
+        "contacts": [
+          { "blinded_identifier": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+          { "blinded_identifier": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }
+        ],
+        "padding": { "target_batch_size": 128, "dummy_count": 126 }
+      },
+      "expected": {
+        "result_count_does_not_reveal_match_count": true,
+        "no_raw_connection_identifier": true,
+        "proofs_are_time_bound": true,
+        "same_error_class_for_policy_denied_and_no_match": true
+      }
+    },
+    {
+      "name": "plaintext_visible_service_required_for_private_body_processing",
+      "operation_id": "cx.events.submit",
+      "input": {
+        "service_did": "did:web:index.example",
+        "event_kind": "cx.message.create",
+        "content_class": "private_plaintext",
+        "space_policy": {
+          "plaintext_visible_services": [
+            {
+              "service_did": "did:web:principal.example",
+              "service_type": "principal_server",
+              "purposes": ["events", "sync"],
+              "visibility": "private_plaintext"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "decision": "deny",
+        "error_code": "capability_denied",
+        "reason_code": "service_not_plaintext_visible",
+        "must_not_forward_plaintext": true
+      }
+    },
+    {
       "name": "private_blob_head_range_anti_enumeration",
-      "expected": "same_error_class_for_missing_and_hidden_blob"
+      "operation_id": "cx.blob.head",
+      "inputs": [
+        { "label": "missing", "blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+        { "label": "hidden", "blob_ref": "cx:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }
+      ],
+      "expected": {
+        "same_http_status": 404,
+        "same_error_code": "not_found",
+        "must_not_include_headers": ["Content-Length", "Content-Type", "Content-Disposition", "Accept-Ranges", "Digest"],
+        "range_request_same_error_class": true
+      }
     },
     {
       "name": "push_blind_wakeup_payload",
-      "expected": "no_plaintext_message_body_or_member_list"
-    },
-    {
-      "name": "pairwise_did_resolve_proof",
-      "expected": "resolve_requires_holder_approved_proof"
-    },
-    {
-      "name": "encrypted_payload_forwarding_without_plaintext",
-      "expected": "service_forwards_ciphertext_only"
+      "operation_id": "cx.push.notify",
+      "input": {
+        "notification": {
+          "event_id": "cx:event:01js0ev0000000000000000000",
+          "space_id": "cx:space:01js0sp0000000000000000000",
+          "type": "mention",
+          "push_hint": "wakeup"
+        }
+      },
+      "expected": {
+        "no_plaintext_message_body": true,
+        "no_member_list": true,
+        "no_room_title_for_e2ee": true,
+        "device_payload_max_bytes": 512
+      }
     }
   ]
 }

@@ -273,7 +273,7 @@ Event 是 reducer 输入。它不是当前态对象。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `event_id` | yes | `id:event` 或 `hash` | 派生规则见 `encoding-conformance-vectors.md`。 | 事件 ID。 |
+| `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `encoding-conformance-vectors.md`。 | 事件 ID。 |
 | `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。 | 事件 kind。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
 | `space_version` | yes | `string` | 初版 `1`。 | 授权/状态版本。 |
@@ -281,8 +281,8 @@ Event 是 reducer 输入。它不是当前态对象。
 | `actor_seq` | yes | `integer` | 同一 actor event chain 内严格单调。 | Actor 发布序列。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
 | `hlc` | yes | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 | HLC。 |
-| `prev_refs` | yes | `array<id:event \| hash>` | 可为空。 | Actor event chain 前序。 |
-| `auth_refs` | yes | `array<id:event \| hash>` | create event 可为空。 | 授权依赖。 |
+| `prev_refs` | yes | `array<id:event>` | 可为空。 | Actor event chain 前序。 |
+| `auth_refs` | yes | `array<id:event>` | create event 可为空；必须引用授权状态事件，不能直接引用 grant / policy object ID。 | 授权依赖。 |
 | `schema_profile_refs` | no | `array<string>` | MUST 进入 event digest。 | 事件声明依赖的 schema profile。 |
 | `reducer_profile_ref` | no | `string` | MUST 进入 event digest。 | 事件声明依赖的 reducer profile。 |
 | `required_features` | no | `array<string>` | 未支持时 MUST fail closed。 | 事件依赖的 feature/profile。 |
@@ -434,7 +434,7 @@ Schema id: `cx.schema.read_marker.v1`
 | `space_id` | yes | `id:space` |  | Space。 |
 | `scope` | yes | `enum(space, room, thread, view, card, message, morph)` |  | 已读范围。 |
 | `scope_id` | no | `string` | scope 不是 space 时必填。 | 范围对象。 |
-| `event_id` | yes | `id:event` 或 `hash` |  | 已读到的事件。 |
+| `event_id` | yes | `id:event` |  | 已读到的事件。 |
 | `timeline_order_key` | no | `object` | 可加速比较。 | 已读排序键。 |
 | `updated_at` | yes | `timestamp` |  | 更新时间。 |
 
@@ -450,7 +450,7 @@ Notification 是派生 inbox projection，不是 canonical truth。
 | `type` | yes | `enum(notification)` | 固定为 `notification`。 | 对象种类。 |
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `space_id` | no | `id:space` |  | 来源 Space。 |
-| `source_event_id` | yes | `id:event` 或 `hash` |  | 来源事件。 |
+| `source_event_id` | yes | `id:event` |  | 来源事件。 |
 | `notification_type` | yes | `enum(mention, reply, assignment, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
 | `priority` | yes | `enum(low, normal, high, urgent)` |  | 优先级。 |
 | `state` | yes | `enum(unread, read, dismissed, archived)` |  | 通知状态。 |

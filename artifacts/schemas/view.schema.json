@@ -3,7 +3,7 @@
   "$id": "https://contrix.io/artifacts/schemas/view.schema.json",
   "title": "Contrix View",
   "type": "object",
-  "required": ["id", "type", "space_id", "kind", "query", "created_by", "created_at"],
+  "required": ["id", "type", "schema", "space_id", "kind", "query", "created_by", "created_at"],
   "properties": {
     "id": { "type": "string", "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$" },
     "type": { "const": "view" },

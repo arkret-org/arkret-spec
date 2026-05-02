@@ -75,6 +75,8 @@
     { "kind": "presentation", "category": "identity", "status": "active", "wire_form": "cx:presentation:<ulid>", "description": "Presentation/proof exchange ID" },
     { "kind": "receipt", "category": "receipt", "status": "active", "wire_form": "cx:receipt:<ulid>", "description": "Receipt object ID" },
     { "kind": "relation", "category": "core_object", "status": "active", "wire_form": "cx:relation:<ulid>", "description": "Relation object ID" },
+    { "kind": "report", "category": "moderation", "status": "active", "wire_form": "cx:report:<ulid>", "description": "Moderation report ID" },
+    { "kind": "modq", "category": "moderation", "status": "active", "wire_form": "cx:modq:<ulid>", "description": "Moderation queue item ID" },
     { "kind": "req", "category": "transport", "status": "active", "wire_form": "cx:req:<ulid>", "description": "Request/correlation ID" },
     { "kind": "room", "category": "core_object", "status": "active", "wire_form": "cx:room:<ulid>", "description": "Room object ID" },
     { "kind": "snapshot", "category": "snapshot", "status": "active", "wire_form": "cx:snapshot:<ulid>", "description": "Snapshot manifest ID" },

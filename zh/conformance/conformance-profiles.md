@@ -104,9 +104,12 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 以下要求不依赖具体角色，必须作为可互操作实现的基础：
 
-- 事件名必须符合 `cx.` 命名规则，且必须在 `schema-registry.md` 注册。
+- 事件名必须符合 `cx.` 命名规则，且标准 `cx.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
+- Event Envelope MUST 先通过 `cx.schema.event.v1`，再按 `Event.kind` 通过 `cx.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
 - 事件/关系/对象/View 的 `type`、`created_at`、`space_id`、`space_version`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `auth_refs` 在 reducer 与验证逻辑中不能被跳过。
 - `space_version` 与 `auth` 约束必须执行，不得通过客户端配置豁免。
+- State frontier、snapshot frontier、projection frontier 和 wait-for token MUST 以 `event_id` / actor frontier 为语义单位；`operation_id` 只可表示服务 canonical operation 或旧 SDK 本地幂等别名。
+- Snapshot manifest MUST 包含 `event_set_commitment`；high-assurance profile MUST 支持 inclusion / omission challenge 或 witness quorum 校验。
 - 裸名事件（如 `space.create`）MUST 被拒绝，不能作为新增标准互操作行为。
 - 实现 MUST 对 `causal` 关系、`revoked` 与 `proof` 失效状态进行一致性拒绝（fail-closed），不能“静默接受”。
 
@@ -504,7 +507,11 @@ MUST 支持：
 
 - DID 或 delegated actor identity
 - explicit capability grant
+- `cx.schema.agent_authority.v1` authority panel
 - scoped action execution
+- owner presence / trigger policy
+- declared knowledge sources and memory visibility
+- join policy that rejects owner-permission inheritance
 - run log
 - memory write policy
 - accountability metadata
@@ -564,13 +571,14 @@ SHOULD 支持：
 - state resolution state vectors（见 `state-resolution-conformance-vectors.md`）
 - redaction vectors（见 `redaction-conformance-vectors.md`）
 - capability vectors（见 `capability-conformance-vectors.md`）
+- sync fixture、state-resolution fixture、capability fixture 和 privacy/security fixture（见 `artifacts/fixtures/*.json` 与中文镜像）
 - authorization tests
 - privacy regression tests
 - error response tests
 - downgrade / unsupported feature tests
 - unknown-field preservation tests
 
-所有 profile MUST 能按 `data-structures.md` 解码和验证其声明支持的核心对象字段。实现 MUST 在 canonical object 中保留未知 non-critical 字段，并覆盖“hash/signature 校验、存储、联邦转发、backfill 后字段仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。
+所有 profile MUST 能按 `data-structures.md` 解码和验证其声明支持的核心对象字段。实现 MUST 在 canonical object 中保留未知 non-critical 字段，并覆盖“hash/signature 校验、存储、联邦转发、backfill 后字段仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
 
 所有 profile MUST 按 `encoding-conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Index、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
 
@@ -595,6 +603,22 @@ Client Sync 相关 profile MUST/SHOULD 按 `sync-conformance-vectors.md` 执行�
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Index Node MUST 覆盖 deterministic timeline order、causal barrier 和 stale frontier reporting。
 - Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
+- Snapshot bootstrap MUST 覆盖 `event_set_commitment` root、covered frontier、conflict/soft-fail/quarantine 摘要和 inclusion / omission challenge hint。
+
+Privacy / security hardening profile MUST 额外覆盖：
+
+- hidden Space resolve 的不可见/不存在响应同形态
+- private contact discovery 的 batch padding 与 cardinality protection
+- plaintext-visible service 对私有正文处理的强制拒绝
+- private blob HEAD / Range anti-enumeration
+- blind wakeup push payload 最小披露
+
+Moderation profile MUST 额外覆盖：
+
+- `cx.schema.moderation_report.v1`
+- `cx.schema.moderation_queue_item.v1`
+- `cx.moderation.report` payload schema validation
+- E2EE evidence package / frank 只向授权 moderation recipient 披露
 
 Identity profile MUST 额外提供：
 

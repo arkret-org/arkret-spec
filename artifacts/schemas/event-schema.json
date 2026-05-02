@@ -22,7 +22,7 @@
     "created_at": { "$ref": "#/$defs/timestamp" },
     "hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" },
     "prev_refs": { "type": "array", "items": { "$ref": "#/$defs/eventRef" } },
-    "auth_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:(event|grant|policy):[0-9a-hjkmnp-z]{26}$" } },
+    "auth_refs": { "type": "array", "items": { "$ref": "#/$defs/eventRef" } },
     "schema_profile_refs": { "type": "array", "items": { "$ref": "#/$defs/profileRef" }, "uniqueItems": true },
     "reducer_profile_ref": { "$ref": "#/$defs/profileRef" },
     "required_features": { "type": "array", "items": { "$ref": "#/$defs/featureRef" }, "uniqueItems": true },
@@ -56,6 +56,234 @@
     {
       "if": { "properties": { "kind": { "const": "cx.card.set_primary_room" } }, "required": ["kind"] },
       "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.member.state", "cx.room.member"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/membership_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.space.plaintext_visible_services" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_content" } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.space.create",
+              "cx.room.create",
+              "cx.board.create",
+              "cx.list.create",
+              "cx.card.create",
+              "cx.morph.create"
+            ]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/object_create_content" } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.space.update",
+              "cx.room.update",
+              "cx.board.update",
+              "cx.list.update",
+              "cx.card.update",
+              "cx.morph.update",
+              "cx.profile.update",
+              "cx.profile.space_override"
+            ]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/object_patch_content" } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.space.upgrade",
+              "cx.space.organization",
+              "cx.space.child",
+              "cx.space.parent",
+              "cx.space.inheritance_policy",
+              "cx.space.join_rule",
+              "cx.space.history_visibility",
+              "cx.space.discovery",
+              "cx.space.policy",
+              "cx.space.policy_server",
+              "cx.space.policy_components",
+              "cx.space.schema",
+              "cx.space.history_sharing_policy",
+              "cx.space.asset_privacy_policy",
+              "cx.space.moderation_policy",
+              "cx.space.media_service",
+              "cx.space.tombstone",
+              "cx.space.archive",
+              "cx.space.freeze",
+              "cx.space.destroy",
+              "cx.organization.discovery",
+              "cx.organization.moderation_policy",
+              "cx.did.proof",
+              "cx.identity.disclosure_policy",
+              "cx.identity.disclosure_receipt",
+              "cx.identity.presentation_request",
+              "cx.identity.presentation_response",
+              "cx.schema.define",
+              "cx.schema.update",
+              "cx.policy.set",
+              "cx.policy.rule",
+              "cx.policy.action",
+              "cx.account.status",
+              "cx.account.blocklist",
+              "cx.account_data.set",
+              "cx.presence",
+              "cx.typing",
+              "cx.read.marker",
+              "cx.receipt.read",
+              "cx.room.history_visibility",
+              "cx.room.policy_components",
+              "cx.social.audience_policy",
+              "cx.sovereign.did_policy"
+            ]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/state_content" } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.room.archive",
+              "cx.board.archive",
+              "cx.list.archive",
+              "cx.card.archive",
+              "cx.card.restore",
+              "cx.morph.archive",
+              "cx.morph.restore"
+            ]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.message.create" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/message_create_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.message.revise" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/message_revise_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.message.redact", "cx.redaction"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/message_redact_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.reaction.add", "cx.reaction.remove"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/reaction_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.relation.create" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/relation_create_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.relation.update", "cx.relation.delete"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/relation_update_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.container.move_item", "cx.container.rebalance"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/container_position_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.view.create", "cx.view.update", "cx.view.reconcile"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/view_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.run.create", "cx.run.update", "cx.run.complete", "cx.run.fail"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/run_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.memory.create", "cx.memory.update", "cx.memory.confirm", "cx.memory.reject", "cx.memory.invalidate", "cx.memory.supersede"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/memory_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.agent.endpoint" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.agent.protocol_session.start" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_session_start_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.agent.protocol_session.status" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_session_status_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.agent.protocol_session.result" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_session_result_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.capability.grant", "cx.capability.delegate", "cx.capability.derived", "cx.session.grant"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/capability_grant_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.capability.revoke" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/capability_revoke_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.invite.create", "cx.invite.cancel", "cx.invite.accept", "cx.invite.third_party", "cx.invite.claim", "cx.invite.revoke"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/invite_content" } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.device.authorized",
+              "cx.device.revoked",
+              "cx.device.list_update",
+              "cx.key.verification.request",
+              "cx.mls.proposal",
+              "cx.mls.commit",
+              "cx.mls.welcome",
+              "cx.mls.keypackage",
+              "cx.mls.epoch",
+              "cx.space_key.share",
+              "cx.space_key.withheld",
+              "cx.space_key.share_audit"
+            ]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/crypto_device_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.moderation.report" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/moderation_report_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.audit.accessed", "cx.moderation.frank"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/audit_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.call.signal", "cx.call.state", "cx.call.recording.start"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/call_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.applet.bridge_error", "cx.applet.registration", "cx.applet.protocol_session.start", "cx.applet.protocol_session.status", "cx.mimi.room_binding"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_content" } } }
     }
   ],
   "$defs": {

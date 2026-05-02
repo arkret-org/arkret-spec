@@ -64,5 +64,16 @@
   ],
   "hardening_profiles": [
     "cx.profile.mls_state_binding.full.v1"
+  ],
+  "vector_profiles": [
+    "cx.profile.capability_vectors.v1",
+    "cx.profile.crypto_signature_vectors.v1",
+    "cx.profile.encoding_vectors.v1",
+    "cx.profile.federation_vectors.v1",
+    "cx.profile.privacy_security_vectors.v1",
+    "cx.profile.redaction_vectors.v1",
+    "cx.profile.state_resolution_vectors.v1",
+    "cx.profile.sync_vectors.v1",
+    "cx.profile.mimi_interop_vectors.v1"
   ]
 }

@@ -43,23 +43,25 @@
 每个实现必须通过以下验收：
 
 - `/api/v1` 下公开至少包含 `service/identity/events/sync/index/blob/authz` 关键 operation。
-- 服务 `operation_id` MUST 以 `artifacts/registry/operation-registry.json` 为唯一 source of truth；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 source of truth，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 source of truth。`service-api-schema.md`、OpenAPI 和非 HTTP binding 不得声明 registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `cx.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `cx:<kind>:` typed ID 前缀。
+- 服务 `operation_id` MUST 以 `artifacts/registry/operation-registry.json` 为唯一 source of truth；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 source of truth，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 source of truth；标准 Event payload class MUST 以 `artifacts/schemas/event-payload.schema.json` 为唯一 source of truth。`service-api-schema.md`、OpenAPI 和非 HTTP binding 不得声明 registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `cx.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `cx:<kind>:` typed ID 前缀。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests
 
 - canonical JSON 字段顺序与空值处理一致。
+- Event Envelope 校验必须按 kind 选择 payload schema；active 标准 kind 未命中 payload class 或 payload class 校验失败，必须在 reducer 前以 `schema_violation` 失败。
 - 同一请求在不同服务节点（Principal Server Events API / sync service / index）可重放得到一致事件 hash 或查询结果边界。
 
 ## 4. Conformance 向量分层
 
 ### 4.1 Sync / encoding 向量（已在现有文件）
 
-- `sync-conformance-vectors.md`：timeline 顺序、分页缺口、snapshot frontier、MLS 回填、decryption_pending。
+- `sync-conformance-vectors.md` 与 `sync-fixture.json`：timeline 顺序、分页缺口、snapshot frontier、`event_set_commitment`、MLS 回填、decryption_pending。
 - `encoding-conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
-- `state-resolution-conformance-vectors.md`：state 冲突与收敛向量（本文件未完全展开的补充）。
+- `state-resolution-conformance-vectors.md` 与 `state-resolution-fixture.json`：state 冲突、policy hard deny 优先级、离线写入与 revoke freshness 的收敛向量。
 - `redaction-conformance-vectors.md`：redaction 保留与审计可见性向量。
-- `capability-conformance-vectors.md`：委派、撤销回滚与审批约束向量。
+- `capability-conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、linked Room 不继承 Card 权限与审批约束向量。
+- `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
 - `mimi-interop-fixture.json`：MIMI provider directory、room binding、content mapping、identifier query、consent、proxy download 与 unsupported draft 向量。
 
 ### 4.2 State resolution 向量
@@ -108,6 +110,8 @@ v1 新增以下必测项：
 | MIMI Provider Facade | draft pinning、room binding、KeyPackage claim、message/content roundtrip、policy mapping、identifier privacy、consent isolation、proxy download、unsupported draft fail-closed | MIMI content extension lossless preservation |
 | Policy Server | decision 签名、replay 保护、hard_deny / quarantine 语义、rate_limit / spam 风险码 | federation 再检 |
 | Identity Registry | DID log 一致性、witness receipt、method adapter | witness-only、read-replica |
+| Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
+| Agent Runtime | agent authority panel、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
 
 ## 6. 执行与发布要求
 

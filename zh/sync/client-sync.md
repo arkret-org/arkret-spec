@@ -56,7 +56,7 @@ Content-Type: application/json
       "required_state": [
         ["cx.space.*", ""],
         ["cx.member.state", "$ME"],
-        ["cx.view.definition", "*"]
+        ["cx.view.*", "*"]
       ]
     }
   }

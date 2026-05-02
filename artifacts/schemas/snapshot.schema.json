@@ -3,17 +3,57 @@
   "$id": "https://contrix.io/artifacts/schemas/snapshot.schema.json",
   "title": "Contrix Snapshot Manifest",
   "type": "object",
-  "required": ["snapshot_ref", "space_id", "state_hash", "frontier", "chunks", "signature"],
+  "required": ["snapshot_ref", "space_id", "state_hash", "frontier", "event_set_commitment", "chunks", "signature"],
   "properties": {
     "snapshot_ref": { "type": "string", "pattern": "^cx:snapshot:[0-9a-hjkmnp-z]{26}$" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "state_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
     "frontier": {
       "type": "object",
-      "required": ["events", "timeline_hlc"],
+      "required": ["event_ids", "timeline_hlc"],
       "properties": {
-        "events": { "type": "array", "items": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" } },
+        "event_ids": { "type": "array", "items": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" } },
         "timeline_hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" }
+      },
+      "additionalProperties": true
+    },
+    "event_set_commitment": {
+      "type": "object",
+      "required": ["algorithm", "root", "covered_event_count"],
+      "properties": {
+        "algorithm": { "type": "string", "enum": ["ordered_event_id_sha256_v1", "merkle_event_set_v1"] },
+        "root": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "covered_event_count": { "type": "integer", "minimum": 0 },
+        "covered_frontier": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" }
+        },
+        "actor_seq_ranges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["actor_id", "from_seq", "to_seq", "root"],
+            "properties": {
+              "actor_id": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+              "from_seq": { "type": "integer", "minimum": 0 },
+              "to_seq": { "type": "integer", "minimum": 0 },
+              "root": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "verification_hints": {
+      "type": "object",
+      "properties": {
+        "inclusion_proof_url": { "type": "string" },
+        "challenge_window_seconds": { "type": "integer", "minimum": 0 },
+        "witness_quorum": { "type": "integer", "minimum": 0 },
+        "conflict_records_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "soft_failed_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "quarantined_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
       },
       "additionalProperties": true
     },

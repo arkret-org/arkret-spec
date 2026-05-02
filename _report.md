@@ -1,4 +1,6 @@
-# Contrix 当前协议审查报告
+# Contrix 收敛前协议审查报告
+
+> 本报告保留为 2026-05-02 收敛前的审查记录。当前闭环状态以 `zh/overview/gap-analysis.md`、`artifacts/` 机器工件和 `zh/conformance/` 为准。
 
 审查日期：2026-05-02
 

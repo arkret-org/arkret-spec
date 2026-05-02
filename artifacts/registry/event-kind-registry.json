@@ -15,6 +15,13 @@
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Event history.",
     "Entries with wire_scope=deprecated_alias MUST NOT be emitted by conforming producers; consumers MAY map them to replaced_by during migration."
   ],
+  "payload_schema_contract": {
+    "event_envelope_schema": "schemas/event-envelope.schema.json",
+    "payload_schema_file": "schemas/event-payload.schema.json",
+    "coverage_required": true,
+    "validation_rule": "Every active standard cx.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
+    "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.critical_extensions and fail closed when unsupported."
+  },
   "event_kinds": [
     { "event_kind": "cx.space.create", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space create" },
     { "event_kind": "cx.space.update", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space patch" },
@@ -55,6 +62,8 @@
     { "event_kind": "cx.room.create", "category": "room", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Room create" },
     { "event_kind": "cx.room.update", "category": "room", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Room patch" },
     { "event_kind": "cx.room.member", "category": "room", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Room membership state" },
+    { "event_kind": "cx.room.history_visibility", "category": "room", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Room history visibility state" },
+    { "event_kind": "cx.room.policy_components", "category": "room", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Room policy component state" },
     { "event_kind": "cx.room.archive", "category": "room", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Room archive" },
     { "event_kind": "cx.message.create", "category": "message", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Message create" },
     { "event_kind": "cx.message.revise", "category": "message", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Message edit patch" },
@@ -124,10 +133,12 @@
     { "event_kind": "cx.mls.commit", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS commit" },
     { "event_kind": "cx.mls.welcome", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS welcome reference" },
     { "event_kind": "cx.mls.keypackage", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS KeyPackage publication" },
+    { "event_kind": "cx.mls.epoch", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS epoch state" },
     { "event_kind": "cx.space_key.share", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space key share" },
     { "event_kind": "cx.space_key.withheld", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space key withheld notice" },
     { "event_kind": "cx.space_key.share_audit", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Auditable history key share marker" },
     { "event_kind": "cx.audit.accessed", "category": "audit", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Auditable access" },
+    { "event_kind": "cx.moderation.report", "category": "moderation", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Moderation report" },
     { "event_kind": "cx.moderation.frank", "category": "audit", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Moderation franking proof" },
     { "event_kind": "cx.read.marker", "category": "read", "status": "active", "wire_scope": "actor_private_event", "reducer_input": false, "payload": "Read marker event" },
     { "event_kind": "cx.receipt.read", "category": "read", "status": "active", "wire_scope": "ephemeral_event", "reducer_input": false, "payload": "Read receipt event" },

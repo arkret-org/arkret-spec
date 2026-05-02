@@ -203,4 +203,4 @@ contrix-spec/
       server-threat-model.md
 ```
 
-The Chinese specification is the leading normative text for Contrix v1. The English folder is structurally aligned and mirrors the v1 concepts, profiles, service boundaries, and machine-readable artifact layout. Canonical wire-contract outputs live in `artifacts/`, with mirrored copies under `zh/` and `en/` for local navigation.
+The Chinese specification is the leading normative text for Contrix v1. Canonical wire-contract outputs live in `artifacts/`, with current navigation mirrors under `zh/`. The English folder is structurally aligned but stale after the 2026-05 object-model and Event-envelope closure work, so it must not be used as the source of truth until refreshed.

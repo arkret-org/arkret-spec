@@ -73,7 +73,7 @@
 | `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
 | `overview/matrix-core-differences.md` | 与 Matrix 的核心区别、边界和取舍。 |
 | `overview/design-questions.md` | 早期关键设计问题与决策记录。 |
-| `overview/gap-analysis.md` | 当前实现缺口和落地优先级。 |
+| `overview/gap-analysis.md` | 当前闭环状态、已收敛工件和剩余工程化事项。 |
 | `overview/glossary.md` | 全局术语表。 |
 
 ### 4.2 身份、组织与隐私

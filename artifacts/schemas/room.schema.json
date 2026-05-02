@@ -3,17 +3,32 @@
   "$id": "https://contrix.io/artifacts/schemas/room.schema.json",
   "title": "Contrix Room",
   "type": "object",
-  "required": ["id", "type", "schema", "space_id", "created_by", "created_at"],
+  "required": ["id", "type", "schema", "space_id", "title", "room_kind", "history_visibility", "created_by", "created_at"],
   "properties": {
     "id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
     "type": { "const": "room" },
     "schema": { "const": "cx.schema.room.v1" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "title": { "type": "string" },
-    "summary": { "type": "string" },
-    "history_visibility": { "type": "string" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "summary": { "type": "string", "maxLength": 2048 },
+    "room_kind": {
+      "type": "string",
+      "enum": ["discussion", "announcement", "support", "activity", "review", "external"]
+    },
+    "membership_policy_ref": { "type": "string", "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$" },
+    "history_visibility": {
+      "type": "string",
+      "enum": ["world_readable", "shared", "invited", "joined", "restricted"]
+    },
+    "encryption_profile": {
+      "type": "string",
+      "enum": ["none", "mls_rfc9420", "external"]
+    },
+    "fields": { "type": "object" },
+    "state": { "type": "string", "enum": ["active", "archived", "deleted"] },
     "created_by": { "$ref": "#/$defs/did" },
-    "created_at": { "$ref": "#/$defs/timestamp" }
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" }
   },
   "$defs": {
     "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },

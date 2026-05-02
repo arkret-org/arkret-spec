@@ -165,7 +165,7 @@ sha256:ccc24849977b4554ec5b77a988978631f25587436ea4a5367a1d80e156b2d6ee
 
 判定规则：
 
-- `event_id` MUST 从 redaction 前、去除 `proofs` 后的 canonical event bytes 派生。
+- event digest / proof `payload_hash` MUST 从 redaction 前、去除 `proofs` 后的 canonical event bytes 派生；`event_id` 是稳定 `cx:event:*` typed ID，不替代 digest。
 - 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
 - 同一事件在不同 Events API、Sync Service 或 Index 上 MUST 得到相同 digest。
 

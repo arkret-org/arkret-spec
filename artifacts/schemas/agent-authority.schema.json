@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/agent-authority.schema.json",
+  "title": "Contrix Agent Authority Panel",
+  "type": "object",
+  "required": ["agent_id", "responsible_actor", "effective_grant_refs", "presence_policy", "knowledge_sources", "join_policy"],
+  "properties": {
+    "agent_id": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "responsible_actor": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "controller": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "operator": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "acting_mode": {
+      "type": "string",
+      "enum": ["self_actor", "delegated_assistant", "organization_agent", "space_agent", "service_agent"]
+    },
+    "effective_grant_refs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "expires_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "presence_policy": {
+      "type": "object",
+      "required": ["owner_presence_visible", "allowed_triggers"],
+      "properties": {
+        "owner_presence_visible": { "type": "boolean" },
+        "presence_source": { "type": "string", "enum": ["none", "owner_private_account_data", "space_presence", "organization_policy"] },
+        "allowed_triggers": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["manual_command", "owner_offline", "scheduled", "mention", "assignment", "policy_event", "webhook"] },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "knowledge_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scope", "grant_ref", "visibility"],
+        "properties": {
+          "scope": { "type": "string", "enum": ["owner_private", "space", "organization", "object", "public"] },
+          "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+          "object_ref": {
+            "type": "string",
+            "pattern": "^(cx:(room|board|list|card|message|morph|relation|view):[0-9a-hjkmnp-z]{26})$"
+          },
+          "grant_ref": { "type": "string", "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$" },
+          "visibility": { "type": "string", "enum": ["metadata_only", "derived_summary", "plaintext", "ciphertext_only"] },
+          "allowed_memory_kinds": { "type": "array", "items": { "type": "string" } },
+          "max_retention_seconds": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "join_policy": {
+      "type": "object",
+      "required": ["may_join_without_responsible_actor", "requires_explicit_space_invite"],
+      "properties": {
+        "may_join_without_responsible_actor": { "type": "boolean" },
+        "requires_explicit_space_invite": { "type": "boolean" },
+        "allowed_space_ids": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+          "uniqueItems": true
+        },
+        "room_scoped_only": { "type": "boolean" },
+        "max_duration_seconds": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "approval_policy": {
+      "type": "object",
+      "properties": {
+        "requires_controller_approval": { "type": "boolean" },
+        "requires_responsible_actor_approval": { "type": "boolean" },
+        "high_risk_actions": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "last_run_ref": { "type": "string", "pattern": "^cx:(event|morph):[0-9a-hjkmnp-z]{26}$" },
+    "frontier": { "type": "object" }
+  },
+  "additionalProperties": false
+}

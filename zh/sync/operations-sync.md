@@ -108,7 +108,7 @@ v1 的规范性 wire fact 只有 **Event Envelope**。Events API、Sync、Federa
 
 Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`prev_refs` 表示 actor event chain 前序，`auth_refs` 表示授权依赖。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `content` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`auth_refs`、`actor_seq` 和签名绑定。
 
-如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event Envelope 顶层声明 `required_features` 或 `critical_extensions`。这些字段和 `schema_profile_refs`、`reducer_profile_ref` MUST 进入 canonical event bytes、`event_id` 派生和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通旧语义接受。
+如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event Envelope 顶层声明 `required_features` 或 `critical_extensions`。这些字段和 `schema_profile_refs`、`reducer_profile_ref` MUST 进入 canonical event bytes、event digest 和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通旧语义接受。
 
 ```json
 {
@@ -193,6 +193,8 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.room.update`
 - `cx.room.archive`
 - `cx.room.member`
+- `cx.room.history_visibility`
+- `cx.room.policy_components`
 - `cx.message.create`
 - `cx.message.revise`
 - `cx.message.redact`
@@ -269,6 +271,8 @@ Card 与 Room 的关联只使用 Card 视角事件：`cx.card.link_room`、`cx.c
 - `cx.device.authorized`
 - `cx.device.revoked`
 - `cx.device.list_update`
+- `cx.mls.epoch`
+- `cx.mls.keypackage`
 - `cx.space_key.share`
 - `cx.space_key.withheld`
 - `cx.mls.proposal`
@@ -402,14 +406,18 @@ Snapshot manifest MUST 包含：
 - `chunk_digests`
 - `state_hash`
 - `frontier`
+- `event_set_commitment`
+- `verification_hints`（可选，但 high-assurance profile 必须包含 inclusion proof 入口或 witness quorum）
 - `signature`
 
 客户端在采用 Snapshot 前 MUST 验证：
 
-1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`space_id`、`state_hash`、`frontier`、`chunk_digests`、`reducer_profile` 和 `schema_profile_refs` 的 canonical manifest hash。
+1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`space_id`、`state_hash`、`frontier`、`event_set_commitment`、`chunk_digests`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
 2. `signature.verification_method` 对应的 DID 必须是 Space owner、Space policy 授权的 snapshot issuer、可信 Index service DID 或 witness quorum 成员。
 3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
-4. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `/events/*` / `/sync/backfill` 进行原始 Event 历史回放。
+4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
+5. high-assurance profile 中，客户端 MUST 能对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要发起 inclusion / omission challenge；issuer 无法提供证明时，客户端 MUST quarantine snapshot 或回退到原始 Event 回放。
+6. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `/events/*` / `/sync/backfill` 进行原始 Event 历史回放。
 
 ## 12. 同步面
 

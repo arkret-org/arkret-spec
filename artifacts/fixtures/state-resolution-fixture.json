@@ -1,8 +1,9 @@
 {
   "profile": "cx.profile.state_resolution_vectors.v1",
+  "version": "2026-05-02",
   "vectors": [
     {
-      "name": "concurrent_card_move",
+      "name": "concurrent_card_move_hlc_tiebreak",
       "base": {
         "card_id": "cx:card:01js0ca0000000000000000000",
         "list_id": "cx:list:01js0111000000000000000000",
@@ -12,6 +13,7 @@
         {
           "event_id": "cx:event:01js0ev1000000000000000000",
           "kind": "cx.card.move",
+          "auth_weight": 200,
           "content": {
             "board_id": "cx:board:01js0bd0000000000000000000",
             "card_id": "cx:card:01js0ca0000000000000000000",
@@ -23,6 +25,7 @@
         {
           "event_id": "cx:event:01js0ev2000000000000000000",
           "kind": "cx.card.move",
+          "auth_weight": 200,
           "content": {
             "board_id": "cx:board:01js0bd0000000000000000000",
             "card_id": "cx:card:01js0ca0000000000000000000",
@@ -33,9 +36,93 @@
         }
       ],
       "expected": {
+        "winner_event_id": "cx:event:01js0ev2000000000000000000",
         "card_id": "cx:card:01js0ca0000000000000000000",
         "list_id": "cx:list:01js0113000000000000000000",
         "rank": "U"
+      }
+    },
+    {
+      "name": "conflict_space_membership_ban_wins_over_join",
+      "state_key": "did:web:bob.example",
+      "candidates": [
+        {
+          "event_id": "cx:event:01js0mj0000000000000000000",
+          "kind": "cx.member.state",
+          "auth_weight": 200,
+          "content": { "membership": "join", "reason": "accepted_invite" },
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        },
+        {
+          "event_id": "cx:event:01js0mb0000000000000000000",
+          "kind": "cx.member.state",
+          "auth_weight": 500,
+          "content": { "membership": "ban", "reason": "abuse" },
+          "hlc": "01970e589d21-0001-b13f9c2e"
+        }
+      ],
+      "expected": {
+        "winner_event_id": "cx:event:01js0mb0000000000000000000",
+        "membership": "ban",
+        "reason": "higher_auth_weight"
+      }
+    },
+    {
+      "name": "policy_hard_deny_precedes_auth_weight",
+      "state_key": "cx:space:01js0sp0000000000000000000|join_rule",
+      "candidates": [
+        {
+          "event_id": "cx:event:01js0jr0000000000000000000",
+          "kind": "cx.space.join_rule",
+          "auth_weight": 650,
+          "policy_result": "hard_deny",
+          "content": { "join_rule": "public" },
+          "hlc": "01970e589d21-0004-a13f9c2e"
+        },
+        {
+          "event_id": "cx:event:01js0j10000000000000000000",
+          "kind": "cx.space.join_rule",
+          "auth_weight": 500,
+          "policy_result": "allow",
+          "content": { "join_rule": "invite" },
+          "hlc": "01970e589d21-0003-a13f9c2e"
+        }
+      ],
+      "expected": {
+        "winner_event_id": "cx:event:01js0j10000000000000000000",
+        "join_rule": "invite",
+        "rejected": ["cx:event:01js0jr0000000000000000000"],
+        "reason": "policy_hard_deny_before_weight"
+      }
+    },
+    {
+      "name": "offline_write_concurrent_with_revoke_soft_fails_when_order_unknown",
+      "grant_ref": "cx:grant:01js0gr0000000000000000000",
+      "events": [
+        {
+          "event_id": "cx:event:01js0rv0000000000000000000",
+          "kind": "cx.capability.revoke",
+          "actor_id": "did:web:admin.example",
+          "actor_seq": 10,
+          "prev_refs": ["cx:event:01js0ra0000000000000000000"],
+          "content": { "grant_ref": "cx:grant:01js0gr0000000000000000000" },
+          "hlc": "01970e589d22-0001-a13f9c2e"
+        },
+        {
+          "event_id": "cx:event:01js0wr0000000000000000000",
+          "kind": "cx.card.update",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 7,
+          "prev_refs": ["cx:event:01js0wa0000000000000000000"],
+          "auth_refs": ["cx:event:01js0gr0000000000000000000"],
+          "content": { "target_ref": "cx:card:01js0ca0000000000000000000", "patch": { "title": "offline" } },
+          "hlc": "01970e589d20-0001-a13f9c2e"
+        }
+      ],
+      "expected": {
+        "event_id": "cx:event:01js0wr0000000000000000000",
+        "decision": "soft_fail",
+        "reason_code": "revoke_order_unknown_requires_backfill_or_review"
       }
     }
   ]

@@ -3,7 +3,7 @@
   "$id": "https://contrix.io/artifacts/schemas/relation.schema.json",
   "title": "Contrix Relation",
   "type": "object",
-  "required": ["id", "type", "space_id", "relation_kind", "from_ref", "to_ref", "created_by", "created_at"],
+  "required": ["id", "type", "schema", "space_id", "relation_kind", "from_ref", "to_ref", "created_by", "created_at"],
   "properties": {
     "id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
     "type": { "const": "relation" },

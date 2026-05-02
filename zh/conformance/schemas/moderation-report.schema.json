@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/moderation-report.schema.json",
+  "title": "Contrix Moderation Report",
+  "$ref": "../../../artifacts/schemas/moderation-report.schema.json"
+}

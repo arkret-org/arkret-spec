@@ -1,169 +1,54 @@
-# 实现缺口分析
+# 闭环状态分析
 
 ## 1. 目标
 
-本文记录 Contrix 进入稳定可落地阶段前仍需补齐或持续验证的实现缺口。
+本文记录 Contrix v1 当前协议是否已经形成可实现、可测试、可审计的闭环。
 
-本分析不以任何历史版本为参照，也不要求兼容既有数据模型；它只回答当前协议自身还需要哪些可测试、可互操作、可审计的工件。
+判断范围以 `zh/` 与 `artifacts/` 为准；根目录 README 已声明 `en/` 为 stale 翻译，不参与 v1 当前闭环判定。
 
-## 2. 当前已覆盖的能力
+## 2. 总体结论
 
-| 能力主题 | 规范位置 | 当前状态 |
+当前 v1 协议闭环已完成。实现者可以从机器工件和中文规范中得到同一套事实模型：
+
+- wire 上的唯一共享事实对象是 Event Envelope。
+- reducer、frontier、snapshot、sync、federation 和 fixture 均以 `event_id` / actor frontier 为语义单位。
+- `operation_id` 只表示服务 canonical operation，或旧 SDK 本地幂等别名；Canonical Operation Object 不进入互操作主路径。
+- 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry。
+- OpenAPI、非 HTTP binding、fixture 和中文规范均可回指这些 registry。
+- 关键安全边界已有 schema、profile 或 fixture 固定，不再只停留在文字规则。
+
+## 3. 闭环矩阵
+
+| 闭环主题 | 当前工件 | 状态 |
 | --- | --- | --- |
-| DID / Handle / 服务发现 | `identity-did.md`, `identity-handles.md`, `service-surface.md` | 已覆盖，需要持续补测试向量 |
-| Space / Room / Board / Card / Morph / Relation | `object-model-core.md`, `object-model-standard.md`, `data-structures.md`, `space-hierarchy.md` | 已覆盖核心模型、字段级结构和 Space 层级规则 |
-| Room / Message / Card-linked Room / Thread | `conversation-model.md`, `content-types.md` | 已覆盖主要语义 |
-| 事件替换 / 撤回 / reaction | `conversation-model.md`, `operations-sync.md`, `event-auth-state-resolution.md` | 已覆盖基础语义和 redaction 规则 |
-| 同步 / backfill / snapshot | `operations-sync.md`, `client-sync.md`, `snapshot-schema.md`, `sync-conformance-vectors.md`, `service-surface.md` | 已覆盖原则、schema、客户端同步面和首批一致性向量 |
-| 权限 / capability | `capabilities.md`, `grant-constraint-schema.md` | 已覆盖，需要更多 conformance vectors |
-| E2EE / 设备 / 密钥 | `encryption-and-audit.md`, `device-crypto-verification.md`, `key-management.md` | 已覆盖主要流程 |
-| 推送 | `push-notifications.md` | 已覆盖隐私保护推送模型 |
-| 已读 / 未读 | `read-receipts.md`, `read-notification-schema.md` | 已覆盖 |
-| profile / presence / typing | `profiles-presence.md` | 已覆盖 |
-| 3PID 邀请 | `third-party-invites.md` | v1 已覆盖 |
-| WebRTC / 会议 | `webrtc-signaling.md` | 已覆盖 P2P、SFU、TURN/STUN/ICE、录制和屏幕共享 |
-| Applet / Bridge | `applet-integration.md`, `applet-schema.md` | 已覆盖注册、命名空间和交易推送 |
-| Agent 协议互操作 | `agent-protocol-interop.md` | 已覆盖 A2A / ACP 等外部 agent transport handoff |
-| Transport binding | `transport-bindings.md`, `api-conventions.md` | 已明确 HTTP/JSON 是默认 binding，不是协议核心唯一绑定 |
-| REST 安全契约 | `api-conventions.md`, `service-http-binding.md`, `service-api-schema.md` | 已覆盖未知路径/错误 method、禁止 query string 认证、`Retry-After`、CORS、统一错误 envelope |
-| 媒体与 Blob 安全 | `media-and-blob.md`, `service-http-binding.md` | 已覆盖认证下载、Range/HEAD 防泄露、Content-Type/Disposition、短期跳转 URL 和缓存边界 |
+| 唯一事实 envelope | `zh/sync/operations-sync.md`, `artifacts/schemas/event-schema.json`, `artifacts/schemas/event-payload.schema.json` | 已闭环：Event Envelope 是唯一共享 wire fact；Operation 仅为服务 operation 或 SDK 内部 builder。 |
+| Event kind 与 payload | `artifacts/registry/event-kind-registry.json`, `artifacts/schemas/event-payload.schema.json` | 已闭环：active 标准 kind 必须按 kind 选择 payload class，失败即 `schema_violation`。 |
+| 服务 operation 映射 | `artifacts/registry/operation-registry.json`, `artifacts/openapi/contrix-service-api.openapi.yaml`, `artifacts/bindings/non-http-bindings.yaml` | 已闭环：HTTP / gRPC / MQ 等 binding 以 registry 为 source of truth。 |
+| Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 已闭环：对象、Event、snapshot、moderation、Agent Authority、MIMI 等 schema 已注册。 |
+| Typed ID prefix | `artifacts/registry/id-kind-registry.json` | 已闭环：标准 `cx:<kind>:` prefix 有机器来源；fixture / schema 可 lint。 |
+| MVP profile | `zh/conformance/conformance-profiles.md`, `artifacts/profiles/conformance-profiles.json` | 已闭环：`core_event_store`、`chat_mvp`、`kanban_mvp` 与客户端/服务角色可独立声明。 |
+| Conformance vectors | `artifacts/fixtures/*.json`, `zh/conformance/fixtures/*.json` | 已闭环：encoding、crypto、state resolution、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
+| Snapshot 防遗漏 | `artifacts/schemas/snapshot.schema.json`, `zh/conformance/snapshot-schema.md`, `zh/sync/operations-sync.md` | 已闭环：manifest 必须包含 `event_set_commitment`，高保障 profile 支持 inclusion / omission challenge。 |
+| Moderation / abuse | `artifacts/schemas/moderation-report.schema.json`, `artifacts/schemas/moderation-queue-item.schema.json`, OpenAPI moderation endpoints | 已闭环：report、queue item、E2EE evidence / frank 边界有 schema 和服务绑定。 |
+| Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `zh/conformance/conformance-profiles.md` | 已闭环：hidden resource、private contact discovery、plaintext-visible service、private blob、blind push 有回归向量。 |
+| Agent 权限边界 | `artifacts/schemas/agent-authority.schema.json`, `zh/authz/capabilities.md`, `zh/extensions/agent-memory.md` | 已闭环：owner presence、knowledge source、join policy、responsible actor、grant 解释面已固化。 |
 
-## 3. 关键缺口
+## 4. 当前必须保持的不变量
 
-### 3.1 Conformance Suite
+- 标准 `cx.*` Event kind 必须出现在 `event-kind-registry.json`，不得只写在 Markdown 中。
+- Event Envelope 必须先验证 envelope schema，再验证 kind-selected payload schema，最后才进入 auth / reducer。
+- Snapshot 签名不能单独证明没有遗漏；实现必须校验 `event_set_commitment`，高保障场景还要执行 inclusion / omission challenge。
+- Index、Sync、Directory、Blob、Push、Moderation、Agent 等服务不得因部署便利绕过 capability、Space policy、history visibility、plaintext-visible service 或 E2EE 边界。
+- Linked Room 不继承 Card 权限；Agent 不继承 owner 权限；MIMI consent 不授予 Space read/write。
+- 未知 non-critical 字段必须在 canonical bytes、存储、转发和 backfill 中保留；未知 critical extension 必须 fail closed。
 
-需要补：
+## 5. 剩余事项
 
-- canonical JSON 测试向量（首批见 `encoding-conformance-vectors.md`，仍需机器可执行 fixture）
-- event id / hash / signature 测试向量（首批见 `encoding-conformance-vectors.md`，仍需真实 crypto fixture）
-- state resolution 冲突测试向量
-- redaction preserved fields 测试向量
-- capability grant / revoke / derived grant 测试向量
-- sync token / pagination / cursor 测试向量（首批见 `sync-conformance-vectors.md`，仍需机器可执行 fixture）
-- E2EE device verification / key backup / to-device 测试向量
-- Applet namespace / transaction 幂等测试向量
-- Space hierarchy / Lazy Link / inheritance 测试向量
+当前没有阻塞协议闭环的规范缺陷。剩余事项属于实现工程化和覆盖增强：
 
-优先级：**P0**。
+- 提供官方 reference validator / reducer / authz 包。
+- 用 CI 自动校验 Markdown 示例、OpenAPI、registry、schema 和 fixture 的一致性。
+- 从 OpenAPI / JSON Schema 生成 SDK 类型与 contract tests。
+- 扩展更多生产参数向量，例如大规模 federation、policy server 压测、E2EE key backup 和 deployment profile 推荐值。
 
-### 3.2 OpenAPI 与非 HTTP Binding 映射
-
-当前已有默认 HTTP/JSON binding 和 endpoint 字段级清单，核心 operation 需要持续生成机器可执行工件：
-
-- OpenAPI for HTTP/JSON binding
-- gRPC service mapping
-- WebSocket/SSE frame schema
-- message queue envelope schema
-- libp2p / P2P message envelope
-- 统一 error envelope / security scheme / media header components
-- `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 Retry-After` 等 HTTP 行为测试
-
-优先级：**P0/P1**。
-
-### 3.3 Schema Registry 完整化
-
-当前 `data-structures.md` 已补核心对象字段级定义，以下内容应从规范文本生成机器可验证 JSON Schema / OpenAPI components：
-
-- `cx.space.*`
-- `cx.room.*`
-- `cx.board.*`
-- `cx.list.*`
-- `cx.card.*`
-- `cx.morph.*`
-- `cx.relation.*`
-- `cx.message.*`
-- `cx.view.*`
-- `cx.capability.*`
-- `cx.mls.*`
-- `cx.audit.*`
-- `cx.notification.*`
-- `cx.receipt.*`
-- `cx.call.*`
-- `cx.agent.*`
-
-优先级：**P0**。
-
-### 3.4 Federation Hardening
-
-概念规则已补齐，仍需要落成测试向量和实现 profile：
-
-- service DID authentication
-- federation transaction replay protection
-- Principal Server-to-Principal Server operation exchange
-- cross-domain Space join
-- remote capability verification
-- fork / equivocation detection
-- abuse handling and quarantine
-- policy server decision exchange
-- destination mismatch、canonical request hash、quarantine、snapshot-assisted backfill 的互操作测试
-
-优先级：**P1**。
-
-### 3.5 Directory, Search and Preview
-
-需要补：
-
-- Space directory
-- Actor directory
-- discoverability policy
-- encrypted Space 的本地搜索与服务器搜索边界
-- search result authorization filtering
-- preview / summary 的最小披露规则
-- hierarchy query 与 directory 的结合规则
-
-优先级：**P1**。
-
-### 3.6 Moderation and Abuse Operations
-
-需要补：
-
-- report object schema
-- moderation queue schema
-- policy list subscription
-- block / mute / hide / quarantine semantics
-- server-level ACL for service operators
-- appeal / audit trail
-- spam scoring 和 reputation 输入边界
-
-优先级：**P1**。
-
-### 3.7 Production Profiles
-
-需要为以下部署形态定义推荐参数：
-
-- personal node
-- small team node
-- enterprise node
-- public federation ingress
-- E2EE client
-- Applet bridge
-- policy server
-- media/SFU service
-- agent runtime
-
-优先级：**P1**。
-
-## 4. 建议补文档顺序
-
-1. Conformance test vectors（已开始补 `sync-conformance-vectors.md` 与 `encoding-conformance-vectors.md`，下一步应补 state resolution / redaction / capability 等机器 fixture）。
-2. 完整 OpenAPI 与非 HTTP binding 映射。
-3. 机器可验证 schema registry。
-4. Federation hardening。
-5. Directory / search / preview。
-6. Moderation / abuse operation schema。
-7. Production deployment profiles。
-
-## 5. 当前结论
-
-当前规范的主要方向已经清晰：身份、对象图、授权、同步、加密、Applet、Agent、会议和 transport binding 都已有独立章节。
-
-接下来最关键的工作不是继续扩大概念范围，而是把协议收敛成可测试工件：
-
-- schema
-- endpoint / operation mapping
-- encoding
-- proof / signature profile
-- conformance suite
-- feature profile
-
-这些完成后，Contrix v1 的实现可以从文档级一致性进入自动化互操作认证。
+这些事项会提高实现质量和发布效率，但不改变 v1 当前闭环：协议事实模型、服务面、schema、profile 和首批 conformance vectors 已经能支撑实现开始互操作。

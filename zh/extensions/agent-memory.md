@@ -259,6 +259,16 @@ Agent memory 往往比普通任务更敏感，因此实现 SHOULD 支持：
 - memory 类型限制
 - 对 candidate memory 的更严格读权限
 
+Agent 不能默认读取 owner-private memory、在线状态、组织知识库或 Space 明文摘要。实现 MUST 通过 `cx.schema.agent_authority.v1` 的 `knowledge_sources` 声明每个知识来源，并绑定对应 grant、visibility、retention 和 frontier。
+
+默认规则：
+
+- owner 私有记忆只在 owner-private grant 或 controller approval 明确授权后可被 agent 使用。
+- Organization / Space 知识必须由 Organization claim、Space membership、capability 和 plaintext visibility 同时允许。
+- candidate memory 不得自动进入高信任 prompt；confirmed memory 也不得越过原始 Space / object ACL。
+- agent 若在 responsible actor 未加入 Space 的情况下加入或读取 Room，必须命中 `join_policy` 中的显式 Space invite / room-scoped grant；owner 的 membership 不会自动继承给 agent。
+- 使用 owner 在线状态触发自动回复必须声明 `presence_policy.owner_presence_visible=true`，且状态来源必须是 owner-private account data、Space presence 或 Organization policy 中明确授权的一种。
+
 ## 14. 设计决定
 
 Contrix v1 固定：

@@ -1,0 +1,505 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/event-payload.schema.json",
+  "title": "Contrix Standard Event Payloads",
+  "description": "Common payload contracts for registered cx.* Event.kind values. Event validators MUST combine these payload classes with artifacts/registry/event-kind-registry.json.",
+  "$ref": "#/$defs/generic_standard_content",
+  "$defs": {
+    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "event_ref": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
+    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
+    "board_id": { "type": "string", "pattern": "^cx:board:[0-9a-hjkmnp-z]{26}$" },
+    "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },
+    "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
+    "message_id": { "type": "string", "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$" },
+    "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
+    "morph_id": { "type": "string", "pattern": "^cx:morph:[0-9a-hjkmnp-z]{26}$" },
+    "grant_id": { "type": "string", "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$" },
+    "invite_id": { "type": "string", "pattern": "^cx:invite:[0-9a-hjkmnp-z]{26}$" },
+    "agent_session_id": { "type": "string", "pattern": "^cx:agent_session:[0-9a-hjkmnp-z]{26}$" },
+    "object_ref": {
+      "type": "string",
+      "pattern": "^(cx:(space|room|board|list|card|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-hjkmnp-z]{26}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+    },
+    "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
+    "patch": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "object_snapshot": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "$ref": "#/$defs/object_ref" },
+        "type": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "generic_standard_content": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "object_create_content": {
+      "type": "object",
+      "required": ["object"],
+      "properties": {
+        "object": { "$ref": "#/$defs/object_snapshot" },
+        "initial_relations": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": true
+    },
+    "object_patch_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["target_ref", "patch"] },
+        { "required": ["object_ref", "patch"] },
+        { "required": ["patch"] }
+      ],
+      "properties": {
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "object_ref": { "$ref": "#/$defs/object_ref" },
+        "patch": { "$ref": "#/$defs/patch" },
+        "expected_state_hash": { "$ref": "#/$defs/hash" }
+      },
+      "additionalProperties": true
+    },
+    "object_lifecycle_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["target_ref"] },
+        { "required": ["object_ref"] },
+        { "required": ["status"] }
+      ],
+      "properties": {
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "object_ref": { "$ref": "#/$defs/object_ref" },
+        "status": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string" },
+        "effective_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": true
+    },
+    "state_content": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "state_key": { "type": "string" },
+        "value": {},
+        "status": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "membership_content": {
+      "type": "object",
+      "required": ["membership"],
+      "properties": {
+        "room_id": { "$ref": "#/$defs/room_id" },
+        "actor_id": { "$ref": "#/$defs/did" },
+        "membership": { "type": "string", "enum": ["join", "invite", "knock", "leave", "ban"] },
+        "via": { "type": "array", "items": { "$ref": "#/$defs/did" } },
+        "reason": { "type": "string" },
+        "invite_ref": {
+          "oneOf": [
+            { "$ref": "#/$defs/event_ref" },
+            { "$ref": "#/$defs/invite_id" }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "plaintext_visible_services_content": {
+      "type": "object",
+      "required": ["services"],
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service_did", "service_type", "purposes", "visibility"],
+            "properties": {
+              "service_did": { "$ref": "#/$defs/did" },
+              "service_type": { "type": "string", "minLength": 1 },
+              "purposes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+              "visibility": { "type": "string", "enum": ["private_plaintext", "derived_plaintext"] },
+              "expires_at": { "$ref": "#/$defs/timestamp" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "message_create_content": {
+      "type": "object",
+      "required": ["room_id"],
+      "anyOf": [
+        { "required": ["body"] },
+        { "required": ["blocks"] },
+        { "required": ["encrypted_payload"] },
+        { "required": ["blob_refs"] }
+      ],
+      "properties": {
+        "room_id": { "$ref": "#/$defs/room_id" },
+        "message_id": { "$ref": "#/$defs/message_id" },
+        "body": { "type": "string" },
+        "blocks": { "type": "array", "items": { "type": "object" } },
+        "encrypted_payload": { "type": "object" },
+        "blob_refs": { "type": "array", "items": { "$ref": "#/$defs/object_ref" } },
+        "reply_to": { "$ref": "#/$defs/message_id" }
+      },
+      "additionalProperties": true
+    },
+    "message_revise_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["message_id"] },
+        { "required": ["target_ref"] },
+        { "required": ["revision_of"] }
+      ],
+      "properties": {
+        "message_id": { "$ref": "#/$defs/message_id" },
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "revision_of": { "$ref": "#/$defs/message_id" },
+        "body": { "type": "string" },
+        "blocks": { "type": "array", "items": { "type": "object" } },
+        "encrypted_payload": { "type": "object" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "message_redact_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["message_id"] },
+        { "required": ["target_ref"] },
+        { "required": ["event_id"] }
+      ],
+      "properties": {
+        "message_id": { "$ref": "#/$defs/message_id" },
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "event_id": { "$ref": "#/$defs/event_ref" },
+        "reason": { "type": "string" },
+        "preserve": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "reaction_content": {
+      "type": "object",
+      "required": ["target_ref", "key"],
+      "properties": {
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "key": { "type": "string", "minLength": 1 },
+        "annotation": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "card_move_content": {
+      "type": "object",
+      "required": ["board_id", "card_id", "to_list_id", "rank"],
+      "properties": {
+        "board_id": { "$ref": "#/$defs/board_id" },
+        "card_id": { "$ref": "#/$defs/card_id" },
+        "from_list_id": { "$ref": "#/$defs/list_id" },
+        "to_list_id": { "$ref": "#/$defs/list_id" },
+        "rank": { "$ref": "#/$defs/rank" },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "list_id": { "$ref": "#/$defs/list_id" },
+            "rank": { "$ref": "#/$defs/rank" },
+            "relation_id": { "$ref": "#/$defs/relation_id" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "card_reorder_content": {
+      "type": "object",
+      "required": ["board_id", "card_id", "list_id", "rank"],
+      "properties": {
+        "board_id": { "$ref": "#/$defs/board_id" },
+        "card_id": { "$ref": "#/$defs/card_id" },
+        "list_id": { "$ref": "#/$defs/list_id" },
+        "rank": { "$ref": "#/$defs/rank" },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "rank": { "$ref": "#/$defs/rank" },
+            "relation_id": { "$ref": "#/$defs/relation_id" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "list_reorder_content": {
+      "type": "object",
+      "required": ["board_id", "list_id", "rank"],
+      "properties": {
+        "board_id": { "$ref": "#/$defs/board_id" },
+        "list_id": { "$ref": "#/$defs/list_id" },
+        "rank": { "$ref": "#/$defs/rank" },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "rank": { "$ref": "#/$defs/rank" },
+            "relation_id": { "$ref": "#/$defs/relation_id" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "card_room_link_content": {
+      "type": "object",
+      "required": ["card_id", "room_id"],
+      "properties": {
+        "card_id": { "$ref": "#/$defs/card_id" },
+        "room_id": { "$ref": "#/$defs/room_id" },
+        "purpose": { "type": "string" },
+        "primary": { "type": "boolean", "default": false }
+      },
+      "additionalProperties": false
+    },
+    "relation_create_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["relation"] },
+        { "required": ["kind", "from_ref", "to_ref"] }
+      ],
+      "properties": {
+        "relation": { "$ref": "#/$defs/object_snapshot" },
+        "kind": { "type": "string", "minLength": 1 },
+        "from_ref": { "$ref": "#/$defs/object_ref" },
+        "to_ref": { "$ref": "#/$defs/object_ref" },
+        "rank": { "$ref": "#/$defs/rank" }
+      },
+      "additionalProperties": true
+    },
+    "relation_update_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["relation_id", "patch"] },
+        { "required": ["target_ref", "patch"] },
+        { "required": ["relation_id", "status"] }
+      ],
+      "properties": {
+        "relation_id": { "$ref": "#/$defs/relation_id" },
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "patch": { "$ref": "#/$defs/patch" },
+        "status": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "container_position_content": {
+      "type": "object",
+      "required": ["source_ref", "target_ref", "container_ref", "rank"],
+      "properties": {
+        "source_ref": { "$ref": "#/$defs/object_ref" },
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "container_ref": { "$ref": "#/$defs/object_ref" },
+        "relation_kind": { "type": "string" },
+        "rank": { "$ref": "#/$defs/rank" }
+      },
+      "additionalProperties": true
+    },
+    "view_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["object"] },
+        { "required": ["view_id", "patch"] },
+        { "required": ["definition"] }
+      ],
+      "properties": {
+        "object": { "$ref": "#/$defs/object_snapshot" },
+        "view_id": { "type": "string", "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$" },
+        "definition": { "type": "object" },
+        "patch": { "$ref": "#/$defs/patch" }
+      },
+      "additionalProperties": true
+    },
+    "run_content": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "run_id": { "$ref": "#/$defs/object_ref" },
+        "status": { "type": "string" },
+        "task_ref": { "$ref": "#/$defs/object_ref" },
+        "output_refs": { "type": "array", "items": { "$ref": "#/$defs/object_ref" } },
+        "error": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "memory_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["object"] },
+        { "required": ["memory_id", "status"] },
+        { "required": ["source_refs", "confidence", "status"] }
+      ],
+      "properties": {
+        "object": { "$ref": "#/$defs/object_snapshot" },
+        "memory_id": { "$ref": "#/$defs/object_ref" },
+        "memory_kind": { "type": "string" },
+        "subject_ref": { "$ref": "#/$defs/object_ref" },
+        "source_refs": { "type": "array", "items": { "$ref": "#/$defs/object_ref" }, "minItems": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "status": { "type": "string", "enum": ["candidate", "confirmed", "rejected", "invalidated", "superseded"] },
+        "supersedes": { "$ref": "#/$defs/object_ref" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "agent_endpoint_content": {
+      "type": "object",
+      "required": ["agent_id", "endpoints"],
+      "properties": {
+        "agent_id": { "$ref": "#/$defs/did" },
+        "endpoints": { "type": "array", "items": { "type": "object" }, "minItems": 1 }
+      },
+      "additionalProperties": true
+    },
+    "agent_session_start_content": {
+      "type": "object",
+      "required": ["session_id", "counterparty_agent", "protocol", "capability_grant"],
+      "properties": {
+        "session_id": { "$ref": "#/$defs/agent_session_id" },
+        "task_card_id": { "$ref": "#/$defs/card_id" },
+        "counterparty_agent": { "$ref": "#/$defs/did" },
+        "protocol": { "type": "string", "enum": ["a2a", "acp", "mcp_bridge", "http_custom"] },
+        "protocol_version": { "type": "string" },
+        "endpoint_ref": { "type": "string", "minLength": 1 },
+        "capability_grant": { "$ref": "#/$defs/grant_id" },
+        "max_duration_seconds": { "type": "integer", "minimum": 1 },
+        "audit_mode": { "type": "string", "enum": ["status_only", "summary_and_artifacts", "full_transcript_hash", "full_transcript"] }
+      },
+      "additionalProperties": true
+    },
+    "agent_session_status_content": {
+      "type": "object",
+      "required": ["session_id", "status"],
+      "properties": {
+        "session_id": { "$ref": "#/$defs/agent_session_id" },
+        "status": { "type": "string", "enum": ["negotiating", "accepted", "working", "input_required", "blocked", "completed", "failed", "cancelled", "expired"] },
+        "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+        "summary": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "agent_session_result_content": {
+      "type": "object",
+      "required": ["session_id", "status"],
+      "properties": {
+        "session_id": { "$ref": "#/$defs/agent_session_id" },
+        "status": { "type": "string", "enum": ["completed", "failed", "cancelled", "expired"] },
+        "artifacts": { "type": "array", "items": { "type": "object" } },
+        "external_transcript_hash": { "$ref": "#/$defs/hash" },
+        "completed_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": true
+    },
+    "capability_grant_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["grant"] },
+        { "required": ["grant_id", "subject", "actions", "resources"] }
+      ],
+      "properties": {
+        "grant": { "$ref": "./capability-grant.schema.json" },
+        "grant_id": { "$ref": "#/$defs/grant_id" },
+        "subject": {},
+        "actions": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "resources": { "type": "array", "items": { "type": "object" }, "minItems": 1 }
+      },
+      "additionalProperties": true
+    },
+    "capability_revoke_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["grant_ref"] },
+        { "required": ["grant_id"] }
+      ],
+      "properties": {
+        "grant_ref": { "$ref": "#/$defs/grant_id" },
+        "grant_id": { "$ref": "#/$defs/grant_id" },
+        "reason": { "type": "string" },
+        "revocation_frontier": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "invite_content": {
+      "type": "object",
+      "anyOf": [
+        { "required": ["invite"] },
+        { "required": ["invite_id"] },
+        { "required": ["invitee"] },
+        { "required": ["third_party_id"] }
+      ],
+      "properties": {
+        "invite": { "$ref": "./invite.schema.json" },
+        "invite_id": { "$ref": "#/$defs/invite_id" },
+        "invitee": { "$ref": "#/$defs/did" },
+        "third_party_id": { "type": "object" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "crypto_device_content": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "device_id": { "type": "string", "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$" },
+        "room_id": { "$ref": "#/$defs/room_id" },
+        "mls_group_id": { "type": "string" },
+        "epoch": { "type": "integer", "minimum": 0 },
+        "key_package_ref": { "$ref": "#/$defs/object_ref" },
+        "proposal_ref": { "$ref": "#/$defs/event_ref" },
+        "commit_ref": { "$ref": "#/$defs/event_ref" }
+      },
+      "additionalProperties": true
+    },
+    "moderation_report_content": {
+      "type": "object",
+      "required": ["space_id", "target_ref", "reason", "reporter"],
+      "properties": {
+        "space_id": { "$ref": "#/$defs/space_id" },
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "reason": { "type": "string", "enum": ["spam", "harassment", "hate_speech", "nsfw", "illegal", "misinformation", "other"] },
+        "description": { "type": "string" },
+        "reporter": { "$ref": "#/$defs/did" },
+        "evidence_refs": { "type": "array", "items": { "$ref": "#/$defs/object_ref" } },
+        "evidence_package": { "type": "object" },
+        "frank": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "audit_content": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "target_ref": { "$ref": "#/$defs/object_ref" },
+        "actor_id": { "$ref": "#/$defs/did" },
+        "purpose": { "type": "string" },
+        "accessed_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": true
+    },
+    "call_content": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "call_id": { "type": "string", "pattern": "^cx:call:[0-9a-hjkmnp-z]{26}$" },
+        "room_id": { "$ref": "#/$defs/room_id" },
+        "state": { "type": "string" },
+        "signal": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

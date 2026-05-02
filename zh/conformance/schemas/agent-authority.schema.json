@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/agent-authority.schema.json",
+  "title": "Contrix Agent Authority Panel",
+  "$ref": "../../../artifacts/schemas/agent-authority.schema.json"
+}

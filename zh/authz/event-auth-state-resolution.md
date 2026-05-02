@@ -45,7 +45,7 @@
 收到事件后，节点 MUST 按以下顺序验证：
 
 1. Parse canonical JSON，不接受重复 key、非规范 number、无效 UTF-8 或超过 profile 限制的对象。
-2. 验证 `event_id` 等于事件 redaction 前 canonical bytes 的 multihash 派生值。
+2. 验证 `event_id` 是合法 `cx:event:*` typed ID，并验证事件 redaction 前、去除 `proofs` 后 canonical bytes 的 digest 与 proof `payload_hash` / event digest 一致。
 3. 验证 `proofs` 中 actor/device/service 签名。
 4. 验证 `space_id`、`space_version`、`kind`、`created_at`、`hlc` 与 schema。
 5. 拉取并验证 `prev_refs` 和 `auth_refs` 指向事件的 hash。
@@ -410,7 +410,9 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.capability.revoke`
 - `cx.policy.rule`
 - `cx.mls.epoch`
-- `cx.view.definition`
+- `cx.view.create`
+- `cx.view.update`
+- `cx.view.reconcile`
 
 非 state event 仍可影响物化 projection，但不进入 auth state map，除非具体类型声明其为 auth dependency。
 

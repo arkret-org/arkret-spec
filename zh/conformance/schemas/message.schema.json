@@ -3,15 +3,16 @@
   "$id": "https://contrix.io/artifacts/schemas/message.schema.json",
   "title": "Contrix Message",
   "type": "object",
-  "required": ["id", "type", "schema", "space_id", "room_id", "sender", "created_at"],
+  "required": ["id", "type", "schema", "space_id", "room_id", "content", "created_by", "created_at"],
   "properties": {
     "id": { "type": "string", "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$" },
     "type": { "const": "message" },
     "schema": { "const": "cx.schema.message.v1" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
-    "sender": { "$ref": "#/$defs/did" },
     "content": { "type": "object" },
+    "fields": { "type": "object" },
+    "created_by": { "$ref": "#/$defs/did" },
     "created_at": { "$ref": "#/$defs/timestamp" },
     "redacted": { "type": "boolean" }
   },

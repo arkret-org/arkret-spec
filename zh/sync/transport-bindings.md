@@ -62,8 +62,8 @@ Transport binding MUST 映射到 `artifacts/registry/operation-registry.json` �
 | `cx.federation.pull_operations` | 跨域拉取缺失 Event / backfill。 |
 | `cx.index.query` | 查询 Object / Morph / Relation / View projection。 |
 | `cx.index.space_hierarchy` | 查询 Space 层级。 |
-| `cx.directory.search` | 授权搜索 Space / Organization / Actor。 |
-| `cx.directory.resolve` | 精确解析 Space / Organization / Actor / handle。 |
+| `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Space / Organization / Actor / User。 |
+| `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Space / Organization / handle。 |
 | `cx.blob.upload` | 上传 blob。 |
 | `cx.blob.get` | 获取 blob 或下载授权。 |
 | `cx.push.register_device` | 注册推送设备和推送网关。 |
@@ -75,10 +75,10 @@ Transport binding MUST 映射到 `artifacts/registry/operation-registry.json` �
 | `cx.applet.describe` | 查询 Applet profile、namespace 与限制。 |
 | `cx.device_messages.put` | 发送 to-device message。 |
 | `cx.keys.upload` / `cx.keys.query` / `cx.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
-| `cx.agent.protocol_session_start` | 启动外部 agent protocol handoff。 |
-| `cx.agent.protocol_session_status` | 回写 agent session 状态。 |
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
+
+Agent protocol handoff 状态通过 durable Event kind（例如 `cx.agent.protocol_session.start`、`cx.agent.protocol_session.status`）表达，不注册为 service `operation_id`。
 
 ## 5. HTTP/JSON Binding
 

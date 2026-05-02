@@ -179,13 +179,33 @@ components:
       additionalProperties: false
     ModerationQueueResponse:
       type: object
+      required: [items]
       properties:
         items:
           type: array
           items:
-            type: object
+            $ref: ../schemas/moderation-queue-item.schema.json
         next_cursor:
           type: string
+        counts:
+          type: object
+      additionalProperties: false
+    ModerationReportResponse:
+      type: object
+      required: [report_id, status]
+      properties:
+        report_id:
+          type: string
+          pattern: "^cx:report:[0-9a-hjkmnp-z]{26}$"
+        status:
+          type: string
+          enum: [submitted, triaged, reviewing, actioned, dismissed, appealed, closed]
+        routed_to:
+          type: array
+          items:
+            type: string
+            pattern: "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      additionalProperties: false
     FieldFilter:
       type: object
       required: [field, op]
@@ -589,11 +609,30 @@ components:
         state_hash:
           type: string
           pattern: "^sha256:[0-9a-f]{64}$"
-        operation_ids:
+        event_ids:
           type: array
           items:
             type: string
-            pattern: "^cx:operation:[0-9a-hjkmnp-z]{26}$"
+            pattern: "^cx:event:[0-9a-hjkmnp-z]{26}$"
+        actor_frontiers:
+          type: array
+          items:
+            type: object
+            required: [actor_id, actor_seq, event_id]
+            properties:
+              actor_id:
+                type: string
+                pattern: "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+              actor_seq:
+                type: integer
+                minimum: 0
+              event_id:
+                type: string
+                pattern: "^cx:event:[0-9a-hjkmnp-z]{26}$"
+              hlc:
+                type: string
+                pattern: "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+            additionalProperties: false
       additionalProperties: false
     RawQueryResponse:
       type: object
@@ -1873,13 +1912,19 @@ paths:
       operationId: cx.moderation.report
       security:
         - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/moderation-report.schema.json
       responses:
         "200":
           description: Moderation report created
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/ModerationReportResponse"
   /mimi/provider-directory:
     get:
       operationId: cx.mimi.provider_directory
