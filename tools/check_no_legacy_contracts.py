@@ -1,22 +1,18 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import re
 import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+POLICY_PATH = ROOT / "artifacts" / "registry" / "legacy-compatibility-policy.json"
 TEXT_SUFFIXES = {".json", ".md", ".yaml", ".yml"}
 EXCLUDED = {
     Path("tools/check_no_legacy_contracts.py"),
     Path("artifacts/registry/legacy-compatibility-policy.json"),
     Path("zh/guides/legacy-subject-room-card-to-flow-migration.md"),
-}
-PATTERNS = {
-    "legacy typed ID": re.compile(r"cx:(subject|room|card):"),
-    "legacy event kind": re.compile(r"cx\.(subject|room|card)\."),
-    "legacy schema ID": re.compile(r"cx\.schema\.(subject|room|card)\.v1"),
-    "legacy schema file": re.compile(r"(subject|room|card)\.schema\.json"),
 }
 
 
@@ -36,19 +32,38 @@ def iter_text_files() -> list[Path]:
     return files
 
 
+def load_policy() -> dict[str, object]:
+    return json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+
+
 def main() -> int:
+    policy = load_policy()
+    forbidden_patterns = policy.get("forbidden_patterns", [])
+    removed_contract_files = policy.get("removed_contract_files", [])
+    patterns = [
+        (pattern, re.compile(re.escape(pattern)))
+        for pattern in forbidden_patterns
+        if isinstance(pattern, str) and pattern
+    ]
     findings: list[str] = []
+
+    for file_ref in removed_contract_files:
+        if not isinstance(file_ref, str) or not file_ref:
+            continue
+        path = ROOT / file_ref
+        if path.exists():
+            findings.append(f"{file_ref}: removed contract file exists")
 
     for path in iter_text_files():
         rel = path.relative_to(ROOT)
         text = path.read_text(encoding="utf-8", errors="ignore")
         for lineno, line in enumerate(text.splitlines(), start=1):
-            for label, pattern in PATTERNS.items():
+            for pattern_text, pattern in patterns:
                 match = pattern.search(line)
                 if not match:
                     continue
                 snippet = line.strip()
-                findings.append(f"{rel}:{lineno}: {label}: {snippet}")
+                findings.append(f"{rel}:{lineno}: forbidden pattern {pattern_text!r}: {snippet}")
 
     if findings:
         print("Removed legacy contracts were reintroduced:")
