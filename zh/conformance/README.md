@@ -2,7 +2,7 @@
 
 本目录汇总 Contrix v1 的一致性规范、测试向量与机器工件入口。
 
-注意：本目录中的 `schemas/` 与 `fixtures/` 是根目录 `artifacts/` 的镜像副本，不是独立真相源。修改 canonical machine artifact 时，应先改 `artifacts/`，再用 `python tools/sync_zh_mirrors.py` 同步到本目录。镜像路径清单由 `artifacts/registry/mirror-manifest.json` 统一声明。
+注意：本目录中的 `schemas/` 与 `fixtures/` 是根目录 `artifacts/` 的镜像副本，不是独立真相源。修改 canonical machine artifact 时，应先改 `artifacts/`，再用 `python tools/artifact_pipeline.py sync` 同步到本目录。镜像路径清单由 `artifacts/registry/mirror-manifest.json` 统一声明。
 
 ## 目录
 

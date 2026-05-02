@@ -212,5 +212,5 @@ Contrix 要解决的是：
 
 CI 守卫：
 
-- `tools/check_no_legacy_contracts.py`
+- `python tools/artifact_pipeline.py check`
 - `.github/workflows/artifact-lint.yml`

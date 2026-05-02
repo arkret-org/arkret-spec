@@ -15,9 +15,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Check zh mirror sync
-        run: python tools/sync_zh_mirrors.py --check
-      - name: Validate registry, artifacts, fixtures, profiles, and zh mirrors
-        run: python artifacts/lint_artifacts.py
-      - name: Reject removed legacy subject-room-card contracts
-        run: python tools/check_no_legacy_contracts.py
+      - name: Run unified artifact pipeline
+        run: python tools/artifact_pipeline.py check

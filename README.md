@@ -27,12 +27,8 @@ Normative references:
 - `artifacts/registry/legacy-compatibility-policy.json`
 - `zh/guides/legacy-subject-room-card-to-flow-migration.md`
 
-CI guard:
+Artifact maintenance pipeline:
 
-- `tools/check_no_legacy_contracts.py`
+- `python tools/artifact_pipeline.py sync`
+- `python tools/artifact_pipeline.py check`
 - `.github/workflows/artifact-lint.yml`
-
-Canonical artifact mirror sync:
-
-- `python tools/sync_zh_mirrors.py`
-- `python tools/sync_zh_mirrors.py --check`

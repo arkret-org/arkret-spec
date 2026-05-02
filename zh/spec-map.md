@@ -185,4 +185,4 @@
 - `artifacts/registry/legacy-compatibility-policy.json`
 - `zh/guides/legacy-subject-room-card-to-flow-migration.md`
 
-仓库 CI 已通过 `tools/check_no_legacy_contracts.py` 阻止旧 typed ID、旧 schema ID 和旧 event kind 重新进入 active contract。
+仓库 CI 已通过 `python tools/artifact_pipeline.py check` 阻止旧 typed ID、旧 schema ID 和旧 event kind 重新进入 active contract，并统一执行 machine-artifact mirror drift 与 registry lint。
