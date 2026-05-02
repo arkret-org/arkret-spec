@@ -368,32 +368,18 @@ def check_legacy_compatibility_policy(lint: Lint, known: dict[str, set[str]]) ->
     if not isinstance(data, dict):
         return
 
-    if data.get("status") != "legacy_removed":
-        lint.fail(path, "status must be legacy_removed")
     if data.get("scope") != "v1_wire_contract":
         lint.fail(path, "scope must be v1_wire_contract")
-    if data.get("contract_family") != "subject_room_card_to_flow":
-        lint.fail(path, "contract_family must be subject_room_card_to_flow")
-    if not isinstance(data.get("summary"), str) or not data["summary"].strip():
-        lint.fail(path, "summary must be a non-empty string")
+    if data.get("policy_status") != "active":
+        lint.fail(path, "policy_status must be active")
 
-    def require_string_list(key: str) -> list[str]:
-        value = data.get(key)
-        if not isinstance(value, list) or not value:
-            lint.fail(path, f"{key} must be a non-empty list")
-            return []
-        items: list[str] = []
-        seen: set[str] = set()
-        for index, item in enumerate(value):
-            if not isinstance(item, str) or not item.strip():
-                lint.fail(path, f"{key}[{index}] must be a non-empty string")
-                continue
-            if item in seen:
-                lint.fail(path, f"{key}[{index}] duplicates {item!r}")
-                continue
-            seen.add(item)
-            items.append(item)
-        return items
+    registry_rules = data.get("registry_rules")
+    if not isinstance(registry_rules, list) or not registry_rules:
+        lint.fail(path, "registry_rules must be a non-empty list")
+    else:
+        for index, rule in enumerate(registry_rules):
+            if not isinstance(rule, str) or not rule.strip():
+                lint.fail(path, f"registry_rules[{index}] must be a non-empty string")
 
     allowed_phases = {"active", "import_only", "historical_only", "removed"}
     phase_definitions = data.get("phase_definitions")
@@ -418,175 +404,215 @@ def check_legacy_compatibility_policy(lint: Lint, known: dict[str, set[str]]) ->
         for phase in sorted(allowed_phases - phase_names):
             lint.fail(path, f"phase_definitions missing phase {phase}")
 
-    current_phase = data.get("current_phase")
-    if current_phase != "removed":
-        lint.fail(path, "current_phase must be removed")
-    elif current_phase not in phase_names:
-        lint.fail(path, "current_phase must exist in phase_definitions")
+    families = data.get("contract_families")
+    if not isinstance(families, list) or not families:
+        lint.fail(path, "contract_families must be a non-empty list")
+        return
 
-    current_phase_requirements = data.get("current_phase_requirements")
-    if not isinstance(current_phase_requirements, dict):
-        lint.fail(path, "current_phase_requirements must be an object")
-    else:
-        allowed_wire_values = {"allowed", "forbidden"}
-        allowed_historical_import_values = {"native", "rewrite_before_validation", "reject"}
-        allowed_historical_reexport_values = {"allowed", "rewrite_before_export", "forbidden"}
+    seen_families: set[str] = set()
+    allowed_wire_values = {"allowed", "forbidden"}
+    allowed_historical_import_values = {"native", "rewrite_before_validation", "reject"}
+    allowed_historical_reexport_values = {"allowed", "rewrite_before_export", "forbidden"}
 
-        wire_emit = current_phase_requirements.get("wire_emit")
-        wire_accept = current_phase_requirements.get("wire_accept")
-        historical_import = current_phase_requirements.get("historical_import")
-        historical_reexport = current_phase_requirements.get("historical_reexport")
-
-        if wire_emit not in allowed_wire_values:
-            lint.fail(path, f"current_phase_requirements.wire_emit must be one of {sorted(allowed_wire_values)}")
-        if wire_accept not in allowed_wire_values:
-            lint.fail(path, f"current_phase_requirements.wire_accept must be one of {sorted(allowed_wire_values)}")
-        if historical_import not in allowed_historical_import_values:
-            lint.fail(
-                path,
-                "current_phase_requirements.historical_import must be one of "
-                f"{sorted(allowed_historical_import_values)}",
-            )
-        if historical_reexport not in allowed_historical_reexport_values:
-            lint.fail(
-                path,
-                "current_phase_requirements.historical_reexport must be one of "
-                f"{sorted(allowed_historical_reexport_values)}",
-            )
-
-        if current_phase == "removed":
-            if wire_emit != "forbidden":
-                lint.fail(path, "removed current_phase must set wire_emit=forbidden")
-            if wire_accept != "forbidden":
-                lint.fail(path, "removed current_phase must set wire_accept=forbidden")
-            if historical_import != "rewrite_before_validation":
-                lint.fail(path, "removed current_phase must set historical_import=rewrite_before_validation")
-            if historical_reexport != "rewrite_before_export":
-                lint.fail(path, "removed current_phase must set historical_reexport=rewrite_before_export")
-
-    producer_requirements = require_string_list("producer_requirements")
-    consumer_requirements = require_string_list("consumer_requirements")
-    forbidden_patterns = require_string_list("forbidden_patterns")
-    removed_contract_files = require_string_list("removed_contract_files")
-    if not producer_requirements:
-        lint.fail(path, "producer_requirements must declare at least one requirement")
-    if not consumer_requirements:
-        lint.fail(path, "consumer_requirements must declare at least one requirement")
-
-    id_kind_mappings = data.get("id_kind_mappings")
-    if not isinstance(id_kind_mappings, list) or not id_kind_mappings:
-        lint.fail(path, "id_kind_mappings must be a non-empty list")
-    else:
-        seen_legacy_kinds: set[str] = set()
-        for index, row in enumerate(id_kind_mappings):
-            if not isinstance(row, dict):
-                lint.fail(path, f"id_kind_mappings[{index}] must be an object")
+    def require_family_string_list(family: dict[str, Any], prefix: str, key: str) -> list[str]:
+        value = family.get(key)
+        if not isinstance(value, list) or not value:
+            lint.fail(path, f"{prefix}.{key} must be a non-empty list")
+            return []
+        items: list[str] = []
+        local_seen: set[str] = set()
+        for index, item in enumerate(value):
+            if not isinstance(item, str) or not item.strip():
+                lint.fail(path, f"{prefix}.{key}[{index}] must be a non-empty string")
                 continue
-            legacy_kind = row.get("legacy_kind")
-            replacement_kind = row.get("replacement_kind")
-            replacement_flow_kind = row.get("replacement_flow_kind")
-            migration_semantics = row.get("migration_semantics")
-            if not isinstance(legacy_kind, str) or not legacy_kind:
-                lint.fail(path, f"id_kind_mappings[{index}].legacy_kind must be a non-empty string")
+            if item in local_seen:
+                lint.fail(path, f"{prefix}.{key}[{index}] duplicates {item!r}")
                 continue
-            if legacy_kind in seen_legacy_kinds:
-                lint.fail(path, f"id_kind_mappings duplicate legacy_kind {legacy_kind!r}")
-            seen_legacy_kinds.add(legacy_kind)
-            if legacy_kind in known["id_kinds"] or legacy_kind in known["special_id_kinds"]:
-                lint.fail(path, f"id_kind_mappings legacy_kind still registered as active/special kind: {legacy_kind}")
-            if not isinstance(replacement_kind, str) or replacement_kind not in known["id_kinds"]:
-                lint.fail(path, f"id_kind_mappings[{index}].replacement_kind must reference an active id kind")
-            if replacement_flow_kind is not None and not isinstance(replacement_flow_kind, str):
-                lint.fail(path, f"id_kind_mappings[{index}].replacement_flow_kind must be string or null")
-            if not isinstance(migration_semantics, str) or not migration_semantics.strip():
-                lint.fail(path, f"id_kind_mappings[{index}].migration_semantics must be a non-empty string")
-            if f"cx:{legacy_kind}:" not in forbidden_patterns:
-                lint.fail(path, f"forbidden_patterns missing cx:{legacy_kind}: for legacy kind {legacy_kind}")
+            local_seen.add(item)
+            items.append(item)
+        return items
 
-    schema_id_mappings = data.get("schema_id_mappings")
-    if not isinstance(schema_id_mappings, list) or not schema_id_mappings:
-        lint.fail(path, "schema_id_mappings must be a non-empty list")
-    else:
-        seen_legacy_schema_ids: set[str] = set()
-        for index, row in enumerate(schema_id_mappings):
-            if not isinstance(row, dict):
-                lint.fail(path, f"schema_id_mappings[{index}] must be an object")
-                continue
-            legacy_schema_id = row.get("legacy_schema_id")
-            replacement_schema_id = row.get("replacement_schema_id")
-            if not isinstance(legacy_schema_id, str) or not SCHEMA_ID_RE.fullmatch(legacy_schema_id):
-                lint.fail(path, f"schema_id_mappings[{index}].legacy_schema_id has invalid format")
-                continue
-            if legacy_schema_id in seen_legacy_schema_ids:
-                lint.fail(path, f"schema_id_mappings duplicate legacy_schema_id {legacy_schema_id!r}")
-            seen_legacy_schema_ids.add(legacy_schema_id)
-            if legacy_schema_id in known["schema_ids"]:
-                lint.fail(path, f"legacy schema id still registered as active schema: {legacy_schema_id}")
-            if not isinstance(replacement_schema_id, str) or replacement_schema_id not in known["schema_ids"]:
-                lint.fail(path, f"schema_id_mappings[{index}].replacement_schema_id must be a registered schema")
-            if legacy_schema_id not in forbidden_patterns:
-                lint.fail(path, f"forbidden_patterns missing legacy schema id {legacy_schema_id}")
-
-    event_kind_alias_mappings = data.get("event_kind_alias_mappings")
-    if not isinstance(event_kind_alias_mappings, list) or not event_kind_alias_mappings:
-        lint.fail(path, "event_kind_alias_mappings must be a non-empty list")
-    else:
-        seen_legacy_event_kinds: set[str] = set()
-        legacy_event_families: set[str] = set()
-        for index, row in enumerate(event_kind_alias_mappings):
-            if not isinstance(row, dict):
-                lint.fail(path, f"event_kind_alias_mappings[{index}] must be an object")
-                continue
-            legacy_event_kind = row.get("legacy_event_kind")
-            replacement_event_kind = row.get("replacement_event_kind")
-            if not isinstance(legacy_event_kind, str) or not OPERATION_ID_RE.fullmatch(legacy_event_kind):
-                lint.fail(path, f"event_kind_alias_mappings[{index}].legacy_event_kind has invalid format")
-                continue
-            if legacy_event_kind in seen_legacy_event_kinds:
-                lint.fail(path, f"event_kind_alias_mappings duplicate legacy_event_kind {legacy_event_kind!r}")
-            seen_legacy_event_kinds.add(legacy_event_kind)
-            family = ".".join(legacy_event_kind.split(".")[:2]) + "."
-            legacy_event_families.add(family)
-            if legacy_event_kind in known["event_kinds"]:
-                lint.fail(path, f"legacy event kind still registered in event-kind-registry: {legacy_event_kind}")
-            if not isinstance(replacement_event_kind, str) or replacement_event_kind not in known["event_kinds"]:
-                lint.fail(path, f"event_kind_alias_mappings[{index}].replacement_event_kind must be registered")
-        for family in sorted(legacy_event_families):
-            if family not in forbidden_patterns:
-                lint.fail(path, f"forbidden_patterns missing legacy event family {family}")
-
-    removed_without_direct_alias = data.get("removed_without_direct_alias")
-    if not isinstance(removed_without_direct_alias, list) or not removed_without_direct_alias:
-        lint.fail(path, "removed_without_direct_alias must be a non-empty list")
-    else:
-        seen_removed_event_kinds: set[str] = set()
-        for index, row in enumerate(removed_without_direct_alias):
-            if not isinstance(row, dict):
-                lint.fail(path, f"removed_without_direct_alias[{index}] must be an object")
-                continue
-            legacy_event_kind = row.get("legacy_event_kind")
-            replacement_semantics = row.get("replacement_semantics")
-            if not isinstance(legacy_event_kind, str) or not OPERATION_ID_RE.fullmatch(legacy_event_kind):
-                lint.fail(path, f"removed_without_direct_alias[{index}].legacy_event_kind has invalid format")
-                continue
-            if legacy_event_kind in seen_removed_event_kinds:
-                lint.fail(path, f"removed_without_direct_alias duplicate legacy_event_kind {legacy_event_kind!r}")
-            seen_removed_event_kinds.add(legacy_event_kind)
-            if legacy_event_kind in known["event_kinds"]:
-                lint.fail(path, f"removed_without_direct_alias legacy event is still registered: {legacy_event_kind}")
-            if not isinstance(replacement_semantics, str) or not replacement_semantics.strip():
-                lint.fail(path, f"removed_without_direct_alias[{index}].replacement_semantics must be a non-empty string")
-
-    for file_ref in removed_contract_files:
-        file_path = ROOT / file_ref
-        if Path(file_ref).is_absolute() or ".." in Path(file_ref).parts:
-            lint.fail(path, f"removed_contract_files entry escapes repository: {file_ref}")
+    for family_index, family in enumerate(families):
+        prefix = f"contract_families[{family_index}]"
+        if not isinstance(family, dict):
+            lint.fail(path, f"{prefix} must be an object")
             continue
-        if file_path.exists():
-            lint.fail(path, f"removed contract file still exists: {file_ref}")
-        basename = Path(file_ref).name
-        if basename not in forbidden_patterns:
-            lint.fail(path, f"forbidden_patterns missing removed contract file token {basename}")
+
+        contract_family = family.get("contract_family")
+        if not isinstance(contract_family, str) or not contract_family:
+            lint.fail(path, f"{prefix}.contract_family must be a non-empty string")
+            continue
+        if contract_family in seen_families:
+            lint.fail(path, f"duplicate contract_family {contract_family!r}")
+        seen_families.add(contract_family)
+
+        if family.get("status") != "legacy_removed":
+            lint.fail(path, f"{prefix}.status must be legacy_removed")
+        summary = family.get("summary")
+        if not isinstance(summary, str) or not summary.strip():
+            lint.fail(path, f"{prefix}.summary must be a non-empty string")
+
+        current_phase = family.get("current_phase")
+        if current_phase not in allowed_phases:
+            lint.fail(path, f"{prefix}.current_phase must be one of {sorted(allowed_phases)}")
+        elif current_phase not in phase_names:
+            lint.fail(path, f"{prefix}.current_phase must exist in phase_definitions")
+
+        current_phase_requirements = family.get("current_phase_requirements")
+        if not isinstance(current_phase_requirements, dict):
+            lint.fail(path, f"{prefix}.current_phase_requirements must be an object")
+        else:
+            wire_emit = current_phase_requirements.get("wire_emit")
+            wire_accept = current_phase_requirements.get("wire_accept")
+            historical_import = current_phase_requirements.get("historical_import")
+            historical_reexport = current_phase_requirements.get("historical_reexport")
+
+            if wire_emit not in allowed_wire_values:
+                lint.fail(path, f"{prefix}.current_phase_requirements.wire_emit must be one of {sorted(allowed_wire_values)}")
+            if wire_accept not in allowed_wire_values:
+                lint.fail(path, f"{prefix}.current_phase_requirements.wire_accept must be one of {sorted(allowed_wire_values)}")
+            if historical_import not in allowed_historical_import_values:
+                lint.fail(path, f"{prefix}.current_phase_requirements.historical_import must be one of {sorted(allowed_historical_import_values)}")
+            if historical_reexport not in allowed_historical_reexport_values:
+                lint.fail(path, f"{prefix}.current_phase_requirements.historical_reexport must be one of {sorted(allowed_historical_reexport_values)}")
+
+            if current_phase == "removed":
+                if wire_emit != "forbidden":
+                    lint.fail(path, f"{prefix} removed current_phase must set wire_emit=forbidden")
+                if wire_accept != "forbidden":
+                    lint.fail(path, f"{prefix} removed current_phase must set wire_accept=forbidden")
+                if historical_import != "rewrite_before_validation":
+                    lint.fail(path, f"{prefix} removed current_phase must set historical_import=rewrite_before_validation")
+                if historical_reexport != "rewrite_before_export":
+                    lint.fail(path, f"{prefix} removed current_phase must set historical_reexport=rewrite_before_export")
+
+        producer_requirements = require_family_string_list(family, prefix, "producer_requirements")
+        consumer_requirements = require_family_string_list(family, prefix, "consumer_requirements")
+        forbidden_patterns = require_family_string_list(family, prefix, "forbidden_patterns")
+        removed_contract_files = require_family_string_list(family, prefix, "removed_contract_files")
+        if not producer_requirements:
+            lint.fail(path, f"{prefix}.producer_requirements must declare at least one requirement")
+        if not consumer_requirements:
+            lint.fail(path, f"{prefix}.consumer_requirements must declare at least one requirement")
+
+        id_kind_mappings = family.get("id_kind_mappings")
+        if not isinstance(id_kind_mappings, list) or not id_kind_mappings:
+            lint.fail(path, f"{prefix}.id_kind_mappings must be a non-empty list")
+        else:
+            seen_legacy_kinds: set[str] = set()
+            for index, row in enumerate(id_kind_mappings):
+                row_prefix = f"{prefix}.id_kind_mappings[{index}]"
+                if not isinstance(row, dict):
+                    lint.fail(path, f"{row_prefix} must be an object")
+                    continue
+                legacy_kind = row.get("legacy_kind")
+                replacement_kind = row.get("replacement_kind")
+                replacement_flow_kind = row.get("replacement_flow_kind")
+                migration_semantics = row.get("migration_semantics")
+                if not isinstance(legacy_kind, str) or not legacy_kind:
+                    lint.fail(path, f"{row_prefix}.legacy_kind must be a non-empty string")
+                    continue
+                if legacy_kind in seen_legacy_kinds:
+                    lint.fail(path, f"{prefix}.id_kind_mappings duplicate legacy_kind {legacy_kind!r}")
+                seen_legacy_kinds.add(legacy_kind)
+                if legacy_kind in known["id_kinds"] or legacy_kind in known["special_id_kinds"]:
+                    lint.fail(path, f"{row_prefix} legacy_kind still registered as active/special kind: {legacy_kind}")
+                if not isinstance(replacement_kind, str) or replacement_kind not in known["id_kinds"]:
+                    lint.fail(path, f"{row_prefix}.replacement_kind must reference an active id kind")
+                if replacement_flow_kind is not None and not isinstance(replacement_flow_kind, str):
+                    lint.fail(path, f"{row_prefix}.replacement_flow_kind must be string or null")
+                if not isinstance(migration_semantics, str) or not migration_semantics.strip():
+                    lint.fail(path, f"{row_prefix}.migration_semantics must be a non-empty string")
+                if f"cx:{legacy_kind}:" not in forbidden_patterns:
+                    lint.fail(path, f"{prefix}.forbidden_patterns missing cx:{legacy_kind}: for legacy kind {legacy_kind}")
+
+        schema_id_mappings = family.get("schema_id_mappings")
+        if not isinstance(schema_id_mappings, list) or not schema_id_mappings:
+            lint.fail(path, f"{prefix}.schema_id_mappings must be a non-empty list")
+        else:
+            seen_legacy_schema_ids: set[str] = set()
+            for index, row in enumerate(schema_id_mappings):
+                row_prefix = f"{prefix}.schema_id_mappings[{index}]"
+                if not isinstance(row, dict):
+                    lint.fail(path, f"{row_prefix} must be an object")
+                    continue
+                legacy_schema_id = row.get("legacy_schema_id")
+                replacement_schema_id = row.get("replacement_schema_id")
+                if not isinstance(legacy_schema_id, str) or not SCHEMA_ID_RE.fullmatch(legacy_schema_id):
+                    lint.fail(path, f"{row_prefix}.legacy_schema_id has invalid format")
+                    continue
+                if legacy_schema_id in seen_legacy_schema_ids:
+                    lint.fail(path, f"{prefix}.schema_id_mappings duplicate legacy_schema_id {legacy_schema_id!r}")
+                seen_legacy_schema_ids.add(legacy_schema_id)
+                if legacy_schema_id in known["schema_ids"]:
+                    lint.fail(path, f"{row_prefix} legacy schema id still registered as active schema: {legacy_schema_id}")
+                if not isinstance(replacement_schema_id, str) or replacement_schema_id not in known["schema_ids"]:
+                    lint.fail(path, f"{row_prefix}.replacement_schema_id must be a registered schema")
+                if legacy_schema_id not in forbidden_patterns:
+                    lint.fail(path, f"{prefix}.forbidden_patterns missing legacy schema id {legacy_schema_id}")
+
+        event_kind_alias_mappings = family.get("event_kind_alias_mappings")
+        if not isinstance(event_kind_alias_mappings, list) or not event_kind_alias_mappings:
+            lint.fail(path, f"{prefix}.event_kind_alias_mappings must be a non-empty list")
+        else:
+            seen_legacy_event_kinds: set[str] = set()
+            legacy_event_families: set[str] = set()
+            for index, row in enumerate(event_kind_alias_mappings):
+                row_prefix = f"{prefix}.event_kind_alias_mappings[{index}]"
+                if not isinstance(row, dict):
+                    lint.fail(path, f"{row_prefix} must be an object")
+                    continue
+                legacy_event_kind = row.get("legacy_event_kind")
+                replacement_event_kind = row.get("replacement_event_kind")
+                if not isinstance(legacy_event_kind, str) or not OPERATION_ID_RE.fullmatch(legacy_event_kind):
+                    lint.fail(path, f"{row_prefix}.legacy_event_kind has invalid format")
+                    continue
+                if legacy_event_kind in seen_legacy_event_kinds:
+                    lint.fail(path, f"{prefix}.event_kind_alias_mappings duplicate legacy_event_kind {legacy_event_kind!r}")
+                seen_legacy_event_kinds.add(legacy_event_kind)
+                family_token = ".".join(legacy_event_kind.split(".")[:2]) + "."
+                legacy_event_families.add(family_token)
+                if legacy_event_kind in known["event_kinds"]:
+                    lint.fail(path, f"{row_prefix} legacy event kind still registered in event-kind-registry: {legacy_event_kind}")
+                if not isinstance(replacement_event_kind, str) or replacement_event_kind not in known["event_kinds"]:
+                    lint.fail(path, f"{row_prefix}.replacement_event_kind must be registered")
+            for family_token in sorted(legacy_event_families):
+                if family_token not in forbidden_patterns:
+                    lint.fail(path, f"{prefix}.forbidden_patterns missing legacy event family {family_token}")
+
+        removed_without_direct_alias = family.get("removed_without_direct_alias")
+        if not isinstance(removed_without_direct_alias, list) or not removed_without_direct_alias:
+            lint.fail(path, f"{prefix}.removed_without_direct_alias must be a non-empty list")
+        else:
+            seen_removed_event_kinds: set[str] = set()
+            for index, row in enumerate(removed_without_direct_alias):
+                row_prefix = f"{prefix}.removed_without_direct_alias[{index}]"
+                if not isinstance(row, dict):
+                    lint.fail(path, f"{row_prefix} must be an object")
+                    continue
+                legacy_event_kind = row.get("legacy_event_kind")
+                replacement_semantics = row.get("replacement_semantics")
+                if not isinstance(legacy_event_kind, str) or not OPERATION_ID_RE.fullmatch(legacy_event_kind):
+                    lint.fail(path, f"{row_prefix}.legacy_event_kind has invalid format")
+                    continue
+                if legacy_event_kind in seen_removed_event_kinds:
+                    lint.fail(path, f"{prefix}.removed_without_direct_alias duplicate legacy_event_kind {legacy_event_kind!r}")
+                seen_removed_event_kinds.add(legacy_event_kind)
+                if legacy_event_kind in known["event_kinds"]:
+                    lint.fail(path, f"{row_prefix} legacy event is still registered: {legacy_event_kind}")
+                if not isinstance(replacement_semantics, str) or not replacement_semantics.strip():
+                    lint.fail(path, f"{row_prefix}.replacement_semantics must be a non-empty string")
+
+        for file_ref in removed_contract_files:
+            file_path = ROOT / file_ref
+            if Path(file_ref).is_absolute() or ".." in Path(file_ref).parts:
+                lint.fail(path, f"{prefix}.removed_contract_files entry escapes repository: {file_ref}")
+                continue
+            if file_path.exists():
+                lint.fail(path, f"{prefix} removed contract file still exists: {file_ref}")
+            basename = Path(file_ref).name
+            if basename not in forbidden_patterns:
+                lint.fail(path, f"{prefix}.forbidden_patterns missing removed contract file token {basename}")
 
 
 def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:

@@ -18,7 +18,7 @@
 - `historical_only`：只允许存在于封存历史、审计快照或离线档案，不接受新的迁移输入。
 - `removed`：完全移出 active wire contract；实现只可离线读取并一次性重写到新 contract。
 
-当前 `subject / room / card -> flow` contract family 的 `current_phase` 为 `removed`。规范性 machine-readable 定义见 `artifacts/registry/legacy-compatibility-policy.json`。
+当前 `subject / room / card -> flow` contract family 的 `current_phase` 为 `removed`。规范性 machine-readable 定义见 `artifacts/registry/legacy-compatibility-policy.json` 中对应的 `contract_families[]` 条目。
 
 ## 2. ID 与 schema 迁移
 

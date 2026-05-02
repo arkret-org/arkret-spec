@@ -1,9 +1,12 @@
 {
   "version": "2026-05-03",
-  "status": "legacy_removed",
   "scope": "v1_wire_contract",
-  "contract_family": "subject_room_card_to_flow",
-  "summary": "Legacy subject/room/card typed IDs, schema IDs, and cx.subject.* / cx.room.* / cx.card.* event contracts are removed from the active v1 wire contract.",
+  "policy_status": "active",
+  "registry_rules": [
+    "Each contract family declares a bounded legacy-to-active migration policy for one removed or transitional wire-contract surface.",
+    "Families with current_phase other than active MUST NOT be reintroduced into active wire outputs unless the policy is explicitly revised.",
+    "CI, validators, and migration tooling SHOULD derive forbidden patterns and rewrite boundaries from this registry instead of duplicating family-local rules."
+  ],
   "phase_definitions": [
     {
       "phase": "active",
@@ -22,174 +25,181 @@
       "description": "Legacy contract is fully removed from the active wire contract; implementations MAY only process it offline for one-time rewrite into active replacements."
     }
   ],
-  "current_phase": "removed",
-  "current_phase_requirements": {
-    "wire_emit": "forbidden",
-    "wire_accept": "forbidden",
-    "historical_import": "rewrite_before_validation",
-    "historical_reexport": "rewrite_before_export"
-  },
-  "producer_requirements": [
-    "Producers MUST emit cx:flow:<ulid> for all legacy room/card/subject-derived collaboration objects.",
-    "Producers MUST emit cx.schema.flow.v1 instead of cx.schema.subject.v1, cx.schema.room.v1, or cx.schema.card.v1.",
-    "Producers MUST emit cx.flow.* event kinds for direct flow lifecycle and patch operations.",
-    "Producers MUST NOT emit removed legacy event kinds, schema IDs, or typed ID prefixes on the active wire."
-  ],
-  "consumer_requirements": [
-    "Consumers MAY migrate historical local storage from legacy IDs into flow IDs before replay or re-export.",
-    "Consumers MUST treat removed legacy event kinds and schema IDs as unsupported on the active v1 wire contract.",
-    "Validators and CI SHOULD reject reintroduction of removed legacy typed IDs, schema IDs, and event kinds."
-  ],
-  "id_kind_mappings": [
+  "contract_families": [
     {
-      "legacy_kind": "subject",
-      "replacement_kind": "flow",
-      "replacement_flow_kind": null,
-      "migration_semantics": "Subject-centric collaboration identity is absorbed into the unified Flow object model."
-    },
-    {
-      "legacy_kind": "room",
-      "replacement_kind": "flow",
-      "replacement_flow_kind": "room",
-      "migration_semantics": "Discussion-capable room objects are represented as Flow objects with kind=room."
-    },
-    {
-      "legacy_kind": "card",
-      "replacement_kind": "flow",
-      "replacement_flow_kind": "card",
-      "migration_semantics": "Board/list task cards are represented as Flow objects with kind=card."
+      "contract_family": "subject_room_card_to_flow",
+      "status": "legacy_removed",
+      "summary": "Legacy subject/room/card typed IDs, schema IDs, and cx.subject.* / cx.room.* / cx.card.* event contracts are removed from the active v1 wire contract.",
+      "current_phase": "removed",
+      "current_phase_requirements": {
+        "wire_emit": "forbidden",
+        "wire_accept": "forbidden",
+        "historical_import": "rewrite_before_validation",
+        "historical_reexport": "rewrite_before_export"
+      },
+      "producer_requirements": [
+        "Producers MUST emit cx:flow:<ulid> for all legacy room/card/subject-derived collaboration objects.",
+        "Producers MUST emit cx.schema.flow.v1 instead of cx.schema.subject.v1, cx.schema.room.v1, or cx.schema.card.v1.",
+        "Producers MUST emit cx.flow.* event kinds for direct flow lifecycle and patch operations.",
+        "Producers MUST NOT emit removed legacy event kinds, schema IDs, or typed ID prefixes on the active wire."
+      ],
+      "consumer_requirements": [
+        "Consumers MAY migrate historical local storage from legacy IDs into flow IDs before replay or re-export.",
+        "Consumers MUST treat removed legacy event kinds and schema IDs as unsupported on the active v1 wire contract.",
+        "Validators and CI SHOULD reject reintroduction of removed legacy typed IDs, schema IDs, and event kinds."
+      ],
+      "id_kind_mappings": [
+        {
+          "legacy_kind": "subject",
+          "replacement_kind": "flow",
+          "replacement_flow_kind": null,
+          "migration_semantics": "Subject-centric collaboration identity is absorbed into the unified Flow object model."
+        },
+        {
+          "legacy_kind": "room",
+          "replacement_kind": "flow",
+          "replacement_flow_kind": "room",
+          "migration_semantics": "Discussion-capable room objects are represented as Flow objects with kind=room."
+        },
+        {
+          "legacy_kind": "card",
+          "replacement_kind": "flow",
+          "replacement_flow_kind": "card",
+          "migration_semantics": "Board/list task cards are represented as Flow objects with kind=card."
+        }
+      ],
+      "schema_id_mappings": [
+        {
+          "legacy_schema_id": "cx.schema.subject.v1",
+          "replacement_schema_id": "cx.schema.flow.v1"
+        },
+        {
+          "legacy_schema_id": "cx.schema.room.v1",
+          "replacement_schema_id": "cx.schema.flow.v1"
+        },
+        {
+          "legacy_schema_id": "cx.schema.card.v1",
+          "replacement_schema_id": "cx.schema.flow.v1"
+        }
+      ],
+      "event_kind_alias_mappings": [
+        {
+          "legacy_event_kind": "cx.subject.create",
+          "replacement_event_kind": "cx.flow.create"
+        },
+        {
+          "legacy_event_kind": "cx.subject.update",
+          "replacement_event_kind": "cx.flow.update"
+        },
+        {
+          "legacy_event_kind": "cx.subject.archive",
+          "replacement_event_kind": "cx.flow.archive"
+        },
+        {
+          "legacy_event_kind": "cx.subject.restore",
+          "replacement_event_kind": "cx.flow.restore"
+        },
+        {
+          "legacy_event_kind": "cx.room.create",
+          "replacement_event_kind": "cx.flow.create"
+        },
+        {
+          "legacy_event_kind": "cx.room.update",
+          "replacement_event_kind": "cx.flow.update"
+        },
+        {
+          "legacy_event_kind": "cx.room.archive",
+          "replacement_event_kind": "cx.flow.archive"
+        },
+        {
+          "legacy_event_kind": "cx.room.restore",
+          "replacement_event_kind": "cx.flow.restore"
+        },
+        {
+          "legacy_event_kind": "cx.card.create",
+          "replacement_event_kind": "cx.flow.create"
+        },
+        {
+          "legacy_event_kind": "cx.card.update",
+          "replacement_event_kind": "cx.flow.update"
+        },
+        {
+          "legacy_event_kind": "cx.card.archive",
+          "replacement_event_kind": "cx.flow.archive"
+        },
+        {
+          "legacy_event_kind": "cx.card.restore",
+          "replacement_event_kind": "cx.flow.restore"
+        },
+        {
+          "legacy_event_kind": "cx.card.move",
+          "replacement_event_kind": "cx.flow.move"
+        },
+        {
+          "legacy_event_kind": "cx.card.reorder",
+          "replacement_event_kind": "cx.flow.reorder"
+        },
+        {
+          "legacy_event_kind": "cx.room.member",
+          "replacement_event_kind": "cx.flow.branch.member"
+        },
+        {
+          "legacy_event_kind": "cx.room.history_visibility",
+          "replacement_event_kind": "cx.flow.branch.history_visibility"
+        },
+        {
+          "legacy_event_kind": "cx.room.policy_components",
+          "replacement_event_kind": "cx.flow.branch.policy_components"
+        }
+      ],
+      "removed_without_direct_alias": [
+        {
+          "legacy_event_kind": "cx.subject.link_surface",
+          "replacement_semantics": "Represent the primary discussion surface through Flow discussion-branch state and projection semantics instead of a standalone subject-surface link event."
+        },
+        {
+          "legacy_event_kind": "cx.subject.unlink_surface",
+          "replacement_semantics": "Disable or deproject the relevant Flow discussion surface via branch state instead of a standalone subject-surface unlink event."
+        },
+        {
+          "legacy_event_kind": "cx.subject.set_primary_surface",
+          "replacement_semantics": "Use Flow branch primary-state semantics instead of a dedicated subject-surface primary event."
+        },
+        {
+          "legacy_event_kind": "cx.card.link_room",
+          "replacement_semantics": "Use Flow discussion-branch enablement and projection semantics instead of a card-room link event."
+        },
+        {
+          "legacy_event_kind": "cx.card.unlink_room",
+          "replacement_semantics": "Use Flow discussion-branch disablement or projection semantics instead of a card-room unlink event."
+        },
+        {
+          "legacy_event_kind": "cx.card.set_primary_room",
+          "replacement_semantics": "Use Flow branch primary-state semantics instead of a card-room primary-link event."
+        }
+      ],
+      "removed_contract_files": [
+        "artifacts/schemas/subject.schema.json",
+        "artifacts/schemas/room.schema.json",
+        "artifacts/schemas/card.schema.json",
+        "zh/conformance/schemas/subject.schema.json",
+        "zh/conformance/schemas/room.schema.json",
+        "zh/conformance/schemas/card.schema.json"
+      ],
+      "forbidden_patterns": [
+        "cx:subject:",
+        "cx:room:",
+        "cx:card:",
+        "cx.subject.",
+        "cx.room.",
+        "cx.card.",
+        "cx.schema.subject.v1",
+        "cx.schema.room.v1",
+        "cx.schema.card.v1",
+        "subject.schema.json",
+        "room.schema.json",
+        "card.schema.json"
+      ]
     }
-  ],
-  "schema_id_mappings": [
-    {
-      "legacy_schema_id": "cx.schema.subject.v1",
-      "replacement_schema_id": "cx.schema.flow.v1"
-    },
-    {
-      "legacy_schema_id": "cx.schema.room.v1",
-      "replacement_schema_id": "cx.schema.flow.v1"
-    },
-    {
-      "legacy_schema_id": "cx.schema.card.v1",
-      "replacement_schema_id": "cx.schema.flow.v1"
-    }
-  ],
-  "event_kind_alias_mappings": [
-    {
-      "legacy_event_kind": "cx.subject.create",
-      "replacement_event_kind": "cx.flow.create"
-    },
-    {
-      "legacy_event_kind": "cx.subject.update",
-      "replacement_event_kind": "cx.flow.update"
-    },
-    {
-      "legacy_event_kind": "cx.subject.archive",
-      "replacement_event_kind": "cx.flow.archive"
-    },
-    {
-      "legacy_event_kind": "cx.subject.restore",
-      "replacement_event_kind": "cx.flow.restore"
-    },
-    {
-      "legacy_event_kind": "cx.room.create",
-      "replacement_event_kind": "cx.flow.create"
-    },
-    {
-      "legacy_event_kind": "cx.room.update",
-      "replacement_event_kind": "cx.flow.update"
-    },
-    {
-      "legacy_event_kind": "cx.room.archive",
-      "replacement_event_kind": "cx.flow.archive"
-    },
-    {
-      "legacy_event_kind": "cx.room.restore",
-      "replacement_event_kind": "cx.flow.restore"
-    },
-    {
-      "legacy_event_kind": "cx.card.create",
-      "replacement_event_kind": "cx.flow.create"
-    },
-    {
-      "legacy_event_kind": "cx.card.update",
-      "replacement_event_kind": "cx.flow.update"
-    },
-    {
-      "legacy_event_kind": "cx.card.archive",
-      "replacement_event_kind": "cx.flow.archive"
-    },
-    {
-      "legacy_event_kind": "cx.card.restore",
-      "replacement_event_kind": "cx.flow.restore"
-    },
-    {
-      "legacy_event_kind": "cx.card.move",
-      "replacement_event_kind": "cx.flow.move"
-    },
-    {
-      "legacy_event_kind": "cx.card.reorder",
-      "replacement_event_kind": "cx.flow.reorder"
-    },
-    {
-      "legacy_event_kind": "cx.room.member",
-      "replacement_event_kind": "cx.flow.branch.member"
-    },
-    {
-      "legacy_event_kind": "cx.room.history_visibility",
-      "replacement_event_kind": "cx.flow.branch.history_visibility"
-    },
-    {
-      "legacy_event_kind": "cx.room.policy_components",
-      "replacement_event_kind": "cx.flow.branch.policy_components"
-    }
-  ],
-  "removed_without_direct_alias": [
-    {
-      "legacy_event_kind": "cx.subject.link_surface",
-      "replacement_semantics": "Represent the primary discussion surface through Flow discussion-branch state and projection semantics instead of a standalone subject-surface link event."
-    },
-    {
-      "legacy_event_kind": "cx.subject.unlink_surface",
-      "replacement_semantics": "Disable or deproject the relevant Flow discussion surface via branch state instead of a standalone subject-surface unlink event."
-    },
-    {
-      "legacy_event_kind": "cx.subject.set_primary_surface",
-      "replacement_semantics": "Use Flow branch primary-state semantics instead of a dedicated subject-surface primary event."
-    },
-    {
-      "legacy_event_kind": "cx.card.link_room",
-      "replacement_semantics": "Use Flow discussion-branch enablement and projection semantics instead of a card-room link event."
-    },
-    {
-      "legacy_event_kind": "cx.card.unlink_room",
-      "replacement_semantics": "Use Flow discussion-branch disablement or projection semantics instead of a card-room unlink event."
-    },
-    {
-      "legacy_event_kind": "cx.card.set_primary_room",
-      "replacement_semantics": "Use Flow branch primary-state semantics instead of a card-room primary-link event."
-    }
-  ],
-  "removed_contract_files": [
-    "artifacts/schemas/subject.schema.json",
-    "artifacts/schemas/room.schema.json",
-    "artifacts/schemas/card.schema.json",
-    "zh/conformance/schemas/subject.schema.json",
-    "zh/conformance/schemas/room.schema.json",
-    "zh/conformance/schemas/card.schema.json"
-  ],
-  "forbidden_patterns": [
-    "cx:subject:",
-    "cx:room:",
-    "cx:card:",
-    "cx.subject.",
-    "cx.room.",
-    "cx.card.",
-    "cx.schema.subject.v1",
-    "cx.schema.room.v1",
-    "cx.schema.card.v1",
-    "subject.schema.json",
-    "room.schema.json",
-    "card.schema.json"
   ]
 }

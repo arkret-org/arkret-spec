@@ -38,18 +38,29 @@ def load_policy() -> dict[str, object]:
 
 def main() -> int:
     policy = load_policy()
-    forbidden_patterns = policy.get("forbidden_patterns", [])
-    removed_contract_files = policy.get("removed_contract_files", [])
+    families = policy.get("contract_families", [])
+    forbidden_patterns: list[str] = []
+    removed_contract_files: list[str] = []
+    if isinstance(families, list):
+        for family in families:
+            if not isinstance(family, dict):
+                continue
+            if family.get("current_phase") == "active":
+                continue
+            patterns = family.get("forbidden_patterns", [])
+            files = family.get("removed_contract_files", [])
+            if isinstance(patterns, list):
+                forbidden_patterns.extend(pattern for pattern in patterns if isinstance(pattern, str) and pattern)
+            if isinstance(files, list):
+                removed_contract_files.extend(file_ref for file_ref in files if isinstance(file_ref, str) and file_ref)
+
     patterns = [
         (pattern, re.compile(re.escape(pattern)))
-        for pattern in forbidden_patterns
-        if isinstance(pattern, str) and pattern
+        for pattern in dict.fromkeys(forbidden_patterns)
     ]
     findings: list[str] = []
 
-    for file_ref in removed_contract_files:
-        if not isinstance(file_ref, str) or not file_ref:
-            continue
+    for file_ref in dict.fromkeys(removed_contract_files):
         path = ROOT / file_ref
         if path.exists():
             findings.append(f"{file_ref}: removed contract file exists")
@@ -71,7 +82,7 @@ def main() -> int:
             print(f"  {finding}")
         return 1
 
-    print("No removed legacy subject/room/card contracts were found.")
+    print("No removed legacy contracts were found in non-active contract families.")
     return 0
 
 
