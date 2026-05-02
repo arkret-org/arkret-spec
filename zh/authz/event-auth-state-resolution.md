@@ -85,9 +85,7 @@
 | `cx.space.organization` | `cx.space.create`、组织 DID 当前控制状态、组织签发或撤销该声明的 capability / service binding |
 | `cx.room.*` | actor Space membership、目标 Room 当前状态、Room membership / policy、对应 room capability |
 | `cx.room.member` | actor Space membership、目标 actor 当前 Room membership、Room join / invite / moderation policy、对应 room membership capability |
-| `cx.board.*` | actor Space membership、目标 Board 当前状态、对应 board capability |
-| `cx.list.*` | actor Space membership、所属 Board 当前状态、目标 List 当前状态、对应 list capability |
-| `cx.card.*` | actor Space membership、所属 Board/List 当前状态、目标 Card 当前状态、对应 card capability |
+| `cx.card.*` | actor Space membership、所属 Board-Space / List-Space 当前状态、目标 Card 当前状态、对应 card capability |
 | `cx.morph.*` | actor Space membership、目标 Morph 当前状态、morph schema / facet policy、对应 morph capability |
 | `cx.relation.*` | actor Space membership、relation type schema、source/target 可见状态、对应 relation capability |
 | `cx.message.*` | actor Space membership、目标 Room membership / visibility、目标 Message 当前状态、send/edit/redact capability |

@@ -11,7 +11,7 @@
     },
     "groups": [
       {
-        "id": "cx:list:01js0111000000000000000000",
+        "id": "cx:space:01js0111000000000000000000",
         "title": "Todo",
         "items": [
           {
@@ -22,7 +22,7 @@
             },
             "position": {
               "model": "relation",
-              "container_id": "cx:list:01js0111000000000000000000",
+              "container_id": "cx:space:01js0111000000000000000000",
               "relation_id": "cx:relation:01js0re1000000000000000000",
               "rank": "U"
             },

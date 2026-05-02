@@ -164,8 +164,8 @@
   "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw0000000000000000000"],
-  "allowed_from_container_refs": ["cx:list:01js0c10000000000000000000"],
-  "allowed_to_container_refs": ["cx:list:01js0c20000000000000000000"],
+  "allowed_from_container_refs": ["cx:space:01js0c10000000000000000000"],
+  "allowed_to_container_refs": ["cx:space:01js0c20000000000000000000"],
   "wip_limit_override": false
 }
 ```

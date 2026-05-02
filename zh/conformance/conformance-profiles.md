@@ -86,7 +86,7 @@ MUST 支持：
 
 - DID / handle 解析和 service discovery
 - Space bootstrap、Board、List、Card、Relation position edge、View collection projection
-- `cx.board.*`、`cx.list.*`、`cx.card.create`、`cx.card.update`、`cx.card.move`、`cx.card.reorder`
+- `cx.space.*`（Board-Space / List-Space 创建、更新、层级结构）、`cx.card.create`、`cx.card.update`、`cx.card.move`、`cx.card.reorder`
 - Board position 的 CAS / stale reorder 处理和 deterministic conflict record 展示
 - 基础 capability check 结果处理和 `cx.card.move` / `cx.card.reorder` 高频授权快路径
 - client sync、本地 projection、wait-for、pagination、backfill

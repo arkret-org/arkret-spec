@@ -42,10 +42,6 @@
       "then": { "properties": { "content": { "$ref": "#/$defs/card_reorder_content" } } }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.list.reorder" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/list_reorder_content" } } }
-    },
-    {
       "if": { "properties": { "kind": { "const": "cx.card.link_room" } }, "required": ["kind"] },
       "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
     },
@@ -77,8 +73,6 @@
               "cx.space.create",
               "cx.subject.create",
               "cx.room.create",
-              "cx.board.create",
-              "cx.list.create",
               "cx.card.create",
               "cx.morph.create"
             ]
@@ -96,8 +90,6 @@
               "cx.space.update",
               "cx.subject.update",
               "cx.room.update",
-              "cx.board.update",
-              "cx.list.update",
               "cx.card.update",
               "cx.morph.update",
               "cx.profile.update",
@@ -187,8 +179,6 @@
               "cx.room.archive",
               "cx.subject.archive",
               "cx.subject.restore",
-              "cx.board.archive",
-              "cx.list.archive",
               "cx.card.archive",
               "cx.card.restore",
               "cx.morph.archive",
@@ -327,9 +317,9 @@
       "additionalProperties": true
     },
     "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
-    "board_id": { "type": "string", "pattern": "^cx:board:[0-9a-hjkmnp-z]{26}$" },
+    "board_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
-    "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },
+    "list_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
     "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
     "eventRef": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
@@ -360,24 +350,6 @@
       "properties": {
         "board_id": { "$ref": "#/$defs/board_id" },
         "card_id": { "$ref": "#/$defs/card_id" },
-        "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "list_reorder_content": {
-      "type": "object",
-      "required": ["board_id", "list_id", "rank"],
-      "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
         "list_id": { "$ref": "#/$defs/list_id" },
         "rank": { "$ref": "#/$defs/rank" },
         "expected_position": {

@@ -48,14 +48,15 @@
   "space_id": "cx:space:01js0sp0000000000000000000",
   "events": [
     {
-      "kind": "cx.board.create",
-      "target_ref": "cx:board:01js0bd0000000000000000000"
+      "kind": "cx.space.create",
+      "target_ref": "cx:space:01js0bd0000000000000000000",
+      "content": { "kind": "board", "board_kind": "kanban" }
     },
     {
-      "kind": "cx.list.create",
-      "target_ref": "cx:list:01js0111000000000000000000",
+      "kind": "cx.space.create",
+      "target_ref": "cx:space:01js0111000000000000000000",
       "content": {
-        "board_id": "cx:board:01js0bd0000000000000000000",
+        "kind": "list",
         "rank": "U"
       }
     },
@@ -63,8 +64,8 @@
       "kind": "cx.card.create",
       "target_ref": "cx:card:01js0ca1000000000000000000",
       "content": {
-        "board_id": "cx:board:01js0bd0000000000000000000",
-        "list_id": "cx:list:01js0111000000000000000000",
+        "board_id": "cx:space:01js0bd0000000000000000000",
+        "list_id": "cx:space:01js0111000000000000000000",
         "rank": "U"
       }
     }
@@ -75,7 +76,7 @@
 期望：
 
 - Collection projection MUST 返回 `object.id = cx:card:01js0ca1000000000000000000`。
-- 返回项 MUST 位于 `cx:list:01js0111000000000000000000`。
+- 返回项 MUST 位于 `cx:space:01js0111000000000000000000`。
 - View cursor MUST 绑定 projection、view、frontier 与权限上下文。
 
 ## 4. Vector: Card Move Read-Your-Writes
@@ -88,10 +89,10 @@
     "kind": "cx.card.move",
     "target_ref": "cx:card:01js0ca1000000000000000000",
     "content": {
-      "board_id": "cx:board:01js0bd0000000000000000000",
+      "board_id": "cx:space:01js0bd0000000000000000000",
       "card_id": "cx:card:01js0ca1000000000000000000",
-      "from_list_id": "cx:list:01js0111000000000000000000",
-      "to_list_id": "cx:list:01js0112000000000000000000",
+      "from_list_id": "cx:space:01js0111000000000000000000",
+      "to_list_id": "cx:space:01js0112000000000000000000",
       "rank": "U"
     }
   },
@@ -107,7 +108,7 @@
 期望：
 
 - Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
-- 查询结果中该 Card 的 `list_id` MUST 为 `cx:list:01js0112000000000000000000`。
+- 查询结果中该 Card 的 `list_id` MUST 为 `cx:space:01js0112000000000000000000`。
 
 ## 5. Vector: Linked Room Visibility
 

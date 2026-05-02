@@ -19,8 +19,6 @@
 | `cx.schema.actor_profile.v1` | Actor Profile |
 | `cx.schema.subject.v1` | Subject |
 | `cx.schema.room.v1` | Room |
-| `cx.schema.board.v1` | Board |
-| `cx.schema.list.v1` | List |
 | `cx.schema.card.v1` | Card |
 | `cx.schema.message.v1` | Message |
 | `cx.schema.morph.v1` | Morph |
@@ -96,13 +94,6 @@
 | `cx.room.history_visibility` | Room history visibility state |
 | `cx.room.policy_components` | Room policy component state |
 | `cx.room.archive` | Room archive |
-| `cx.board.create` | Board create |
-| `cx.board.update` | Board patch |
-| `cx.board.archive` | Board archive |
-| `cx.list.create` | List create |
-| `cx.list.update` | List patch |
-| `cx.list.archive` | List archive |
-| `cx.list.reorder` | List reorder |
 | `cx.card.create` | Card create |
 | `cx.card.update` | Card patch |
 | `cx.card.archive` | Card archive |

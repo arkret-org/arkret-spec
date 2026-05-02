@@ -69,7 +69,7 @@ cx.vector.state_resolution.concurrent_card_move.v1
 {
   "base": {
     "card_id": "cx:card:01js0ca0000000000000000000",
-    "list_id": "cx:list:01js0111000000000000000000",
+    "list_id": "cx:space:01js0111000000000000000000",
     "rank": "U"
   },
   "candidates": [
@@ -77,9 +77,9 @@ cx.vector.state_resolution.concurrent_card_move.v1
       "event_id": "cx:event:01js0ev1000000000000000000",
       "kind": "cx.card.move",
       "content": {
-        "board_id": "cx:board:01js0bd0000000000000000000",
+        "board_id": "cx:space:01js0bd0000000000000000000",
         "card_id": "cx:card:01js0ca0000000000000000000",
-        "to_list_id": "cx:list:01js0112000000000000000000",
+        "to_list_id": "cx:space:01js0112000000000000000000",
         "rank": "U"
       },
       "hlc": "01970e589d21-0001-a13f9c2e"
@@ -88,9 +88,9 @@ cx.vector.state_resolution.concurrent_card_move.v1
       "event_id": "cx:event:01js0ev2000000000000000000",
       "kind": "cx.card.move",
       "content": {
-        "board_id": "cx:board:01js0bd0000000000000000000",
+        "board_id": "cx:space:01js0bd0000000000000000000",
         "card_id": "cx:card:01js0ca0000000000000000000",
-        "to_list_id": "cx:list:01js0113000000000000000000",
+        "to_list_id": "cx:space:01js0113000000000000000000",
         "rank": "U"
       },
       "hlc": "01970e589d21-0002-a13f9c2e"

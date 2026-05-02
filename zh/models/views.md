@@ -119,9 +119,9 @@ View 展示 Card 关联 Room 时，必须分别执行授权裁剪：
 | --- | --- |
 | Card 拖到另一个 List | `cx.card.move` |
 | Card 在同一 List 内排序 | `cx.card.reorder` |
-| List 在 Board 内排序 | `cx.list.reorder` |
+| List-Space 在 Board-Space 内排序 | `cx.space.update`（更新 List-Space 的 `rank` 字段） |
 | 修改 Card 标题、状态、负责人、截止时间 | `cx.card.update` |
-| 修改 Board / List 元数据 | `cx.board.update` / `cx.list.update` |
+| 修改 Board-Space / List-Space 元数据 | `cx.space.update` |
 | 发送、编辑、删除 Room 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
 | 为 Card 关联或移除 Room | `cx.card.link_room` / `cx.card.unlink_room` |
 | 改变共享 View filter / sort / group / columns / layout | `cx.view.update` |
@@ -150,7 +150,7 @@ Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会�
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_ref": "cx:board:01js0bd0000000000000000000",
+    "source_ref": "cx:space:01js0bd0000000000000000000",
       "depth": 2
     }
   },
@@ -162,7 +162,7 @@ Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会�
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_id": "cx:board:01js0bd0000000000000000000",
+      "board_id": "cx:space:01js0bd0000000000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
@@ -232,7 +232,7 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_ref": "cx:board:01js0bd0000000000000000000",
+    "source_ref": "cx:space:01js0bd0000000000000000000",
     "depth": 2
   }
 }
@@ -301,8 +301,8 @@ Card 上下文查询仍可用于兼容或局部工作流：
 
 | 产品概念 | 协议对象 | 说明 |
 | --- | --- | --- |
-| 看板 | `board` | 标准对象，可被引用、授权、讨论和审计。 |
-| 列/泳道 | `list` | Board 内有序容器。 |
+| 看板 | Board-Space（`Space kind="board"`） | 标准 Space 对象，可被引用、授权、讨论和审计。 |
+| 列/泳道 | List-Space（`Space kind="list"`） | Board-Space 内有序容器。 |
 | 卡片 | `card` | 标准工作对象。 |
 | Subject surface | `Relation{relation_kind="has_surface", from_ref=subject_id, to_ref=card_id}` | 表示该 Card 是某个 Subject 的推进面；不决定看板位置。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=card_id}` | 表示 List 与 Card 的 canonical 包含关系；投影中的 `list_id` 是派生字段。 |
@@ -324,26 +324,27 @@ Board projection MUST NOT 默认显示 Space 中的全部 Card。实现 MUST 按
 
 Board projection MAY 在返回项中携带派生 `board_id`、`list_id`、`rank` 和 `position_relation_id`，用于渲染和 CAS 交互。这些字段必须可追溯到 active `contains` Relation、rank source event 和 reducer frontier；客户端不得把它们回写为 Card canonical fields。
 
-在 Board projection 中拖拽或重排对象时，View 只提供交互入口。实际写入 MUST 使用 `cx.card.move`、`cx.card.reorder` 或 `cx.list.reorder`。实现不得把新的列位置只保存到 View layout 或 materialized projection cache 中。
+在 Board projection 中拖拽或重排对象时，View 只提供交互入口。实际写入 MUST 使用 `cx.card.move`、`cx.card.reorder` 或 `cx.space.update`（更新 List-Space rank）。实现不得把新的列位置只保存到 View layout 或 materialized projection cache 中。
 
 ### 6.3 示例 Board / List / Card
 
 ```json
 {
-  "id": "cx:board:01b0ard0000000000000000000",
-  "type": "board",
+  "id": "cx:space:01b0ard0000000000000000000",
+  "type": "space",
+  "kind": "board",
+  "board_kind": "kanban",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "title": "Launch Board",
-  "kind": "kanban"
+  "title": "Launch Board"
 }
 ```
 
 ```json
 {
-  "id": "cx:list:01rev1ew000000000000000000",
-  "type": "list",
+  "id": "cx:space:01rev1ew000000000000000000",
+  "type": "space",
+  "kind": "list",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "board_id": "cx:board:01b0ard0000000000000000000",
   "title": "Review",
   "rank": "mV"
 }
@@ -372,13 +373,13 @@ Board projection MAY 在返回项中携带派生 `board_id`、`list_id`、`rank`
   "kind": "cx.card.move",
   "target_ref": "cx:card:01task00000000000000000000",
   "content": {
-    "board_id": "cx:board:01b0ard0000000000000000000",
+    "board_id": "cx:space:01b0ard0000000000000000000",
     "card_id": "cx:card:01task00000000000000000000",
-    "from_list_id": "cx:list:01t0d000000000000000000000",
-    "to_list_id": "cx:list:01rev1ew000000000000000000",
+    "from_list_id": "cx:space:01t0d000000000000000000000",
+    "to_list_id": "cx:space:01rev1ew000000000000000000",
     "rank": "mV",
     "expected_position": {
-      "list_id": "cx:list:01t0d000000000000000000000",
+      "list_id": "cx:space:01t0d000000000000000000000",
       "rank": "h0",
       "relation_id": "cx:relation:0101d000000000000000000000"
     }
@@ -403,8 +404,8 @@ Reducer 语义：
   "kind": "cx.card.reorder",
   "target_ref": "cx:card:01task00000000000000000000",
   "content": {
-    "board_id": "cx:board:01b0ard0000000000000000000",
-    "list_id": "cx:list:01rev1ew000000000000000000",
+    "board_id": "cx:space:01b0ard0000000000000000000",
+    "list_id": "cx:space:01rev1ew000000000000000000",
     "card_id": "cx:card:01task00000000000000000000",
     "rank": "mV",
     "expected_position": {
@@ -427,7 +428,7 @@ Reducer 语义：
   "frontier": ["cx:event:..."],
   "groups": [
     {
-      "group_id": "cx:list:01rev1ew000000000000000000",
+      "group_id": "cx:space:01rev1ew000000000000000000",
       "title": "Review",
       "rank": "mV",
       "items": [

@@ -124,9 +124,9 @@
     "cx.profile.kanban_mvp.v1": {
       "inherits": ["cx.profile.core_event_store.v1"],
       "required_endpoints": ["cx.sync.backfill"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.board.create", "cx.list.create", "cx.list.reorder", "cx.card.create", "cx.card.update", "cx.card.move", "cx.card.reorder", "cx.relation.create", "cx.container.rebalance"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.card.create", "cx.card.update", "cx.card.move", "cx.card.reorder", "cx.relation.create", "cx.container.rebalance"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.board.v1", "cx.schema.list.v1", "cx.schema.card.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
+      "required_schemas": ["cx.schema.space.v1", "cx.schema.card.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
       "required_fixtures": ["sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json"],
       "optional_extensions": ["linked_room", "snapshot_bootstrap"],
       "feature_discovery": { "required": ["projection_types", "wait_for", "supported_event_kinds"], "unsupported_optional": "return unsupported_feature or omit projection capability" }
@@ -136,7 +136,7 @@
       "required_endpoints": ["cx.server.describe", "cx.events.get", "cx.events.list", "cx.sync.backfill"],
       "required_event_kinds": ["cx.space.create", "cx.member.state"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.board.v1", "cx.schema.list.v1", "cx.schema.card.v1", "cx.schema.message.v1", "cx.schema.morph.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
+      "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.card.v1", "cx.schema.message.v1", "cx.schema.morph.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
       "required_fixtures": ["encoding-fixture.json", "sync-fixture.json"],
       "optional_extensions": ["local_reducer", "e2ee_decrypt", "push_notifications"],
       "feature_discovery": { "required": ["supported_profiles", "unsupported_features"], "unsupported_optional": "render generic fallback or return unsupported_feature" }
@@ -154,9 +154,9 @@
     "cx.profile.kanban_only_client.v1": {
       "inherits": ["cx.profile.kanban_mvp.v1"],
       "required_endpoints": ["cx.authz.check"],
-      "required_event_kinds": ["cx.board.create", "cx.list.create", "cx.list.reorder", "cx.card.create", "cx.card.update", "cx.card.move", "cx.card.reorder", "cx.relation.create", "cx.container.rebalance"],
+      "required_event_kinds": ["cx.card.create", "cx.card.update", "cx.card.move", "cx.card.reorder", "cx.relation.create", "cx.container.rebalance"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.board.v1", "cx.schema.list.v1", "cx.schema.card.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
+      "required_schemas": ["cx.schema.space.v1", "cx.schema.card.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
       "required_fixtures": ["state-resolution-fixture.json", "capability-fixture.json", "sync-fixture.json"],
       "optional_extensions": ["linked_room", "card_discussions"],
       "feature_discovery": { "required": ["collection_projection", "wait_for", "cas_reorder"], "unsupported_optional": "disable unsupported renderer actions" }
@@ -164,7 +164,7 @@
     "cx.profile.full_client.v1": {
       "inherits": ["cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
       "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync", "cx.sync.subscribe", "cx.blob.upload", "cx.blob.get", "cx.authz.check"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.room.member", "cx.board.create", "cx.list.create", "cx.card.create", "cx.message.create", "cx.reaction.add", "cx.redaction", "cx.account_data.set", "cx.read.marker"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.room.member", "cx.card.create", "cx.message.create", "cx.reaction.add", "cx.redaction", "cx.account_data.set", "cx.read.marker"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.client_sync_response.v1", "cx.schema.blob.v1", "cx.schema.notification.v1", "cx.schema.read_marker.v1"],
       "required_fixtures": ["encoding-fixture.json", "sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json", "privacy-security-fixture.json"],
@@ -204,7 +204,7 @@
     "cx.profile.principal_server.v1": {
       "inherits": ["cx.profile.principal_server_events_api.v1", "cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
       "required_endpoints": ["cx.server.describe", "cx.sync.describe", "cx.sync.client_sync", "cx.sync.subscribe", "cx.sync.backfill", "cx.sync.get_snapshot_head", "cx.federation.transaction", "cx.authz.check"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.board.create", "cx.card.create", "cx.message.create", "cx.capability.grant", "cx.capability.revoke"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.card.create", "cx.message.create", "cx.capability.grant", "cx.capability.revoke"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.client_sync_response.v1", "cx.schema.snapshot.v1", "cx.schema.capability.v1", "cx.schema.grant_constraint.v1"],
       "required_fixtures": ["event-envelope-negative-fixture.json", "sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json", "privacy-security-fixture.json"],
@@ -308,7 +308,7 @@
     "cx.profile.small_team.v1": {
       "inherits": ["cx.profile.principal_server.v1", "cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
       "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.board.create", "cx.card.create", "cx.message.create"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.card.create", "cx.message.create"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.card.v1", "cx.schema.message.v1"],
       "required_fixtures": ["sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json"],

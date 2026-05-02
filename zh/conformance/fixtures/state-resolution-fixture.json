@@ -6,7 +6,7 @@
       "name": "concurrent_card_move_hlc_tiebreak",
       "base": {
         "card_id": "cx:card:01js0ca0000000000000000000",
-        "list_id": "cx:list:01js0111000000000000000000",
+        "list_id": "cx:space:01js0111000000000000000000",
         "rank": "U"
       },
       "candidates": [
@@ -15,9 +15,9 @@
           "kind": "cx.card.move",
           "auth_weight": 200,
           "content": {
-            "board_id": "cx:board:01js0bd0000000000000000000",
+            "board_id": "cx:space:01js0bd0000000000000000000",
             "card_id": "cx:card:01js0ca0000000000000000000",
-            "to_list_id": "cx:list:01js0112000000000000000000",
+            "to_list_id": "cx:space:01js0112000000000000000000",
             "rank": "U"
           },
           "hlc": "01970e589d21-0001-a13f9c2e"
@@ -27,9 +27,9 @@
           "kind": "cx.card.move",
           "auth_weight": 200,
           "content": {
-            "board_id": "cx:board:01js0bd0000000000000000000",
+            "board_id": "cx:space:01js0bd0000000000000000000",
             "card_id": "cx:card:01js0ca0000000000000000000",
-            "to_list_id": "cx:list:01js0113000000000000000000",
+            "to_list_id": "cx:space:01js0113000000000000000000",
             "rank": "U"
           },
           "hlc": "01970e589d21-0002-a13f9c2e"
@@ -38,7 +38,7 @@
       "expected": {
         "winner_event_id": "cx:event:01js0ev2000000000000000000",
         "card_id": "cx:card:01js0ca0000000000000000000",
-        "list_id": "cx:list:01js0113000000000000000000",
+        "list_id": "cx:space:01js0113000000000000000000",
         "rank": "U"
       }
     },

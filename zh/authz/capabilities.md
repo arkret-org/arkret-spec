@@ -203,12 +203,6 @@ Contrix v1 支持以下 `kind`：
 - `cx.subject.link_surface`
 - `cx.subject.unlink_surface`
 - `cx.subject.set_primary_surface`
-- `cx.board.create`
-- `cx.board.update`
-- `cx.board.archive`
-- `cx.list.create`
-- `cx.list.update`
-- `cx.list.reorder`
 - `cx.card.create`
 - `cx.card.read`
 - `cx.card.update`
@@ -225,7 +219,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.attachment.*`
 - `cx.view.*`
 
-Subject 权限只覆盖 Subject 自身字段和 `has_surface` relation 管理，不授予 surface 内容权限。看板拖拽权限 SHOULD 优先使用 `cx.card.move`、`cx.card.reorder`、`cx.list.reorder` 等标准对象 action。需要通用 collection profile 时，才使用 `cx.container.move_item`、`cx.container.rebalance`，并结合 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束表达。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。
+Subject 权限只覆盖 Subject 自身字段和 `has_surface` relation 管理，不授予 surface 内容权限。看板拖拽权限 SHOULD 优先使用 `cx.card.move`、`cx.card.reorder`、`cx.space.update`（更新 List-Space rank）等标准对象 action。需要通用 collection profile 时，才使用 `cx.container.move_item`、`cx.container.rebalance`，并结合 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束表达。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。
 
 ### 5.3 会话动作
 
@@ -243,7 +237,6 @@ Subject 权限只覆盖 Subject 自身字段和 `has_surface` relation 管理，
 ### 5.4 管理动作
 
 - `cx.space.admin`
-- `cx.board.admin`
 - `cx.room.admin`
 - `cx.schema.*`
 - `cx.capability.*`

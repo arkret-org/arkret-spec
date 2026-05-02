@@ -43,7 +43,7 @@
 - Board 是标准对象。
 - List 是 Board 下的标准有序分组对象。
 - Card 是 List 下的标准工作项、推进项或 Subject 的状态 surface。
-- 看板拖拽使用 `cx.card.move`、`cx.card.reorder`、`cx.list.reorder` 等标准操作。
+- 看板拖拽使用 `cx.card.move`、`cx.card.reorder`、`cx.space.update`（更新 List-Space rank）等标准操作。
 
 关系：
 

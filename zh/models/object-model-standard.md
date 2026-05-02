@@ -109,10 +109,9 @@ Room 适合：
 - `subject --has_surface--> room`
 - `card --links_room--> room`
 - `card --primary_room--> room`
-- `board --links_room--> room`
-- `room --references--> card / board / morph`
+- `room --references--> card / morph`
 
-Room 权限独立于 Subject / Card / Board：
+Room 权限独立于 Subject / Card：
 
 - Subject 可见不代表 Room 可见。
 - Card 可见不代表 Room 可见。
@@ -121,59 +120,9 @@ Room 权限独立于 Subject / Card / Board：
 - Card 归档或删除不自动删除 Room。
 - Room membership / policy / E2EE / history visibility 必须独立验证。
 
-## 4. Board
+## 4. Card
 
-`board` 表示可视化工作台。标准 Board 由多个 `list` 组成，`list` 中包含 `card`。
-
-Board 适合：
-
-- Kanban
-- Scrum board
-- Review queue
-- Work intake
-- Incident workflow
-
-推荐字段：
-
-- `title`
-- `summary`
-- `kind`
-- `default_view_id`
-- `archived`
-
-常见关系：
-
-- `board --contains--> list`
-- `subject --has_surface--> board`
-- `board --links_room--> room`
-- `board --has_default_view--> view`
-
-Board 不自动显示 Space 中所有 Card。只有通过 `board --contains--> list --contains--> card` 或 View 明确 query 选中的 Card 才属于该 Board 的投影范围。即使通过 View 呈现，Board/List/Card 的包含关系、位置和排序仍由标准对象与 active `contains` Relation 归约得到，不属于 View layout 或缓存，也不是 Card canonical object 的 `board_id` / `list_id` 字段。
-
-## 5. List
-
-`list` 表示 Board 内的有序列、泳道或阶段。
-
-推荐字段：
-
-- `title`
-- `summary`
-- `rank`
-- `wip_limit`
-- `state`
-- `color`
-
-常见关系：
-
-- `board --contains--> list`
-- `list --contains--> card`
-- `list --links_room--> room`
-
-List 的权限默认不独立于 Board；若实现需要列级权限、列级讨论或列级归档，必须在 schema / policy 中显式声明。
-
-## 6. Card
-
-`card` 表示可执行、可跟踪、可沉淀的工作对象。Card 是 Board/List 里的主要工作单元，也可以是 Subject 的状态推进 surface。独立 Card 可以存在于 Space 中；进入 Board 时由 `list --contains--> card` position edge 表达其主位置。
+`card` 表示可执行、可跟踪、可沉淀的工作对象。Card 是 Board-Space / List-Space 里的主要工作单元，也可以是 Subject 的状态推进 surface。独立 Card 可以存在于 Space 中；进入 Board 时由 `list-space --contains--> card` position edge 表达其主位置。
 
 Card 和 Room 严格区分：
 
@@ -208,7 +157,7 @@ Card 和 Room 严格区分：
 
 常见关系：
 
-- `list --contains--> card`
+- `list-space --contains--> card`
 - `subject --has_surface--> card`
 - `card --assigned_to--> actor`
 - `card --depends_on--> card`
@@ -221,7 +170,7 @@ Card 和 Room 严格区分：
 
 `primary_room` 是 UI 默认入口，不是权限继承。一个 Card MAY 有一个 primary Room 和多个 linked Room。新写入 SHOULD 优先使用共同 Subject 聚合 Card 与 Room；Card-Room link 保留为兼容或局部上下文关系。
 
-## 7. Message
+## 5. Message
 
 `message` 表示 Room 时间线中的原子消息。
 
@@ -246,7 +195,7 @@ Card 和 Room 严格区分：
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-## 8. Morph
+## 6. Morph
 
 `morph` 是开放形态对象。它替代旧模型中承担所有业务类型的 `Entity`。
 
@@ -258,7 +207,7 @@ Morph 适合：
 - 未来标准类型的试验对象
 - 不要求强互操作的弱结构数据
 
-Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Board、List、Card、Message 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象退化为 Morph。
+Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Card、Message 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象退化为 Morph。
 
 推荐字段：
 
@@ -286,7 +235,7 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Boa
 
 任何影响授权、状态机、排序、reducer、事件类型或 wire 互操作的 Morph 语义，MUST 由明确的 Space schema、Morph profile、event kind 和 capability action 定义。实现不得只因为看到 `facets.container`、`facets.stateful`、`facets.rankable` 或其他 facet 字符串，就接受移动、排序、状态转换、授权扩大或 reducer 特例。
 
-## 9. Document
+## 7. Document
 
 `document` 表示可协作编辑或引用的文档对象。v1 Core 中 Document 是 Morph profile，不是标准对象。后续版本若提升为标准对象，必须通过新的 schema/profile 版本声明迁移规则。
 
@@ -297,13 +246,13 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Boa
 - CRDT snapshot
 - external document binding
 
-## 10. File
+## 8. File
 
 `file` 表示 blob 的协作元数据。v1 Core 中 File 是 Morph profile，不是标准对象。后续版本若提升为标准对象，必须通过新的 schema/profile 版本声明迁移规则。
 
 内容本身 SHOULD 使用 blob service 存储，并通过 content hash 校验。
 
-## 11. Actor Profile
+## 9. Actor Profile
 
 `actor_profile` 是 Actor 在协作图中的展示镜像。
 
@@ -316,7 +265,7 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Boa
 
 Actor Profile 不替代 DID，也不成为权限主键。
 
-## 12. Poll
+## 10. Poll
 
 `poll` 表示投票或决策收集。Poll MAY 是 Morph profile。
 
@@ -330,7 +279,7 @@ Actor Profile 不替代 DID，也不成为权限主键。
 
 投票结果 SHOULD 作为 event 集合归约，而不是只更新单一计数字段。
 
-## 13. 标准 Facets
+## 11. 标准 Facets
 
 Facets 是 schema-declared capability hints，不是对象身份。标准对象 MAY 暴露 schema/profile 已声明的 facets 来辅助展示或查询，但标准对象的核心语义不依赖 facets 才成立；Morph MAY 使用 facets 帮助 View、本地搜索、UI 和插件做过滤、降级展示和默认 renderer 选择。
 
@@ -349,7 +298,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 | `documentable` | 可作为文档或 section root。 |
 | `renderable` | 声明允许的默认展示面。 |
 
-## 14. Schema Evolution
+## 12. Schema Evolution
 
 标准类型演进 MUST 遵守：
 
@@ -359,7 +308,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card
 - 标准对象不得阻止 Space 定义自定义 Morph type
 
-## 15. 规范性引用
+## 13. 规范性引用
 
 - 标准 Relation cardinality 按本文件各类型语义、`data-structures.md` 的 Relation 字段和业务 profile 执行；未声明多重关系时，active relation MUST 以 `(relation_kind, from_ref, to_ref)` 收敛为单条。
 - Content block registry 见 `content-types.md`；未知 content block 必须按降级规则保留和展示。

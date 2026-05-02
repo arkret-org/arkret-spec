@@ -10,7 +10,7 @@ Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议
 - append-only 审计日志
 - Subject 语义中心与 surface 关系
 - Room / Message 时间线
-- Board / List / Card 工作流
+- Board-Space / List-Space / Card 工作流
 - Morph 开放对象
 - 离线写入
 - 最终一致收敛
@@ -68,7 +68,7 @@ Contrix 采用 Event-first 模型：
 
 - Room / Message
 - Subject / surface
-- Board / List / Card
+- Board-Space / List-Space / Card
 - Morph
 
 ## 4. Event Batch Receipt / Checkpoint
@@ -224,15 +224,10 @@ Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关
 - `cx.reaction.add`
 - `cx.reaction.remove`
 
-### 7.4 Board / List / Card
+### 7.4 Card
 
-- `cx.board.create`
-- `cx.board.update`
-- `cx.board.archive`
-- `cx.list.create`
-- `cx.list.update`
-- `cx.list.archive`
-- `cx.list.reorder`
+Board-Space 和 List-Space 通过标准 `cx.space.create` / `cx.space.update` / `cx.space.archive` 创建和管理（`kind="board"` 或 `kind="list"`）。Card 使用以下专用 Event kind：
+
 - `cx.card.create`
 - `cx.card.update`
 - `cx.card.archive`
@@ -258,7 +253,7 @@ Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关
 - `cx.view.update`
 - `cx.view.reconcile`
 
-`cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Card 所属 List、Card rank、List rank、Room membership、Message timeline、Relation active state 或对象字段的唯一真相。
+`cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Card 所属 List-Space、Card rank、List-Space rank、Room membership、Message timeline、Relation active state 或对象字段的唯一真相。
 
 新写入 SHOULD 优先通过 `cx.subject.link_surface` 把 Card 和 Room 挂到共同 Subject 上。Card 与 Room 的兼容关联只使用 Card 视角事件：`cx.card.link_room`、`cx.card.unlink_room` 和 `cx.card.set_primary_room`。`cx.room.link_card` / `cx.room.unlink_card` 不是 v1 标准事件，接收方 MUST 拒绝它们，避免同一语义出现双写路径。
 
@@ -328,24 +323,24 @@ Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关
 - Subject 可见不代表 surface 内容可读；projection 必须按 surface 自身权限裁剪。
 - 设置 `primary=true` 时，Reducer MUST 按 `(subject_id, surface_role)` 或 profile 声明的唯一性 key 保证至多一个 active primary surface。
 
-## 9. Board / Card 有序操作
+## 9. Card 有序操作
 
 ### 9.1 `cx.card.move`
 
-`cx.card.move` 用于跨 List 移动 Card。它移动的是 Card 在一个 Board 内的主位置，而不是修改 Room 或 Card linked Room。
+`cx.card.move` 用于跨 List-Space 移动 Card。它移动的是 Card 在一个 Board-Space 内的主位置，而不是修改 Room 或 Card linked Room。
 
 ```json
 {
   "kind": "cx.card.move",
   "target_ref": "cx:card:01js0tk0000000000000000000",
   "content": {
-    "board_id": "cx:board:01js0bd0000000000000000000",
+    "board_id": "cx:space:01js0bd0000000000000000000",
     "card_id": "cx:card:01js0tk0000000000000000000",
-    "from_list_id": "cx:list:01t0d000000000000000000000",
-    "to_list_id": "cx:list:01rev1ew000000000000000000",
+    "from_list_id": "cx:space:01t0d000000000000000000000",
+    "to_list_id": "cx:space:01rev1ew000000000000000000",
     "rank": "mV",
     "expected_position": {
-      "list_id": "cx:list:01t0d000000000000000000000",
+      "list_id": "cx:space:01t0d000000000000000000000",
       "rank": "h0",
       "relation_id": "cx:relation:0101d000000000000000000000"
     }
@@ -356,7 +351,7 @@ Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关
 Reducer 语义：
 
 1. 验证 actor 对 `board_id`、`card_id`、`from_list_id` 和 `to_list_id` 的 move/reorder 权限。
-2. 验证 `to_list_id` 在 `board_id` 下是 active List。
+2. 验证 `to_list_id` 是 `board_id` 下的 active List-Space（`kind="list"` 且为其 child space）。
 3. 在 reduced state 中关闭同一 `(board_id, card_id)` 下其他 active position edge。
 4. 创建或更新 `to_list_id --contains--> card_id` 的 active Relation，并把 rank 设置为 `rank`。
 5. 对相同 Event 保持幂等。
@@ -365,15 +360,15 @@ Reducer 语义：
 
 ### 9.2 `cx.card.reorder`
 
-`cx.card.reorder` 只改变同一 List 内的 rank，不改变 List membership。
+`cx.card.reorder` 只改变同一 List-Space 内的 rank，不改变 List-Space membership。
 
 ```json
 {
   "kind": "cx.card.reorder",
   "target_ref": "cx:card:01js0tk0000000000000000000",
   "content": {
-    "board_id": "cx:board:01js0bd0000000000000000000",
-    "list_id": "cx:list:01rev1ew000000000000000000",
+    "board_id": "cx:space:01js0bd0000000000000000000",
+    "list_id": "cx:space:01rev1ew000000000000000000",
     "card_id": "cx:card:01js0tk0000000000000000000",
     "rank": "mV",
     "expected_position": {
@@ -384,11 +379,11 @@ Reducer 语义：
 }
 ```
 
-`cx.card.reorder` 不得改变 List。若当前 List 与 `expected_position` 不一致，除非 policy 明确允许 non-CAS reorder，否则实现 SHOULD 返回 `cas_conflict` 或标记为 stale reorder。
+`cx.card.reorder` 不得改变 List-Space。若当前 List-Space 与 `expected_position` 不一致，除非 policy 明确允许 non-CAS reorder，否则实现 SHOULD 返回 `cas_conflict` 或标记为 stale reorder。
 
-### 9.3 `cx.list.reorder`
+### 9.3 List-Space 排序
 
-`cx.list.reorder` 改变 List 在 Board 内的顺序。它不得移动 Card。
+List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Space 的 `rank` 字段来改变。它不得移动 Card。
 
 ### 9.4 `cx.card.link_room`
 
@@ -424,7 +419,7 @@ Reducer 语义：
 4. `space_id` 与 target object 所属 Space 一致。
 5. capability 在操作时点有效。
 6. `prev_refs` / `auth_refs` 因果依赖不违反基本约束。
-7. 对 Subject / Room / Card / Board / Morph 执行对象类型 schema validation。
+7. 对 Subject / Room / Card / Morph 执行对象类型 schema validation；Board-Space 和 List-Space 按 Space schema 验证。
 
 ## 11. Snapshot
 

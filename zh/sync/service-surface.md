@@ -384,7 +384,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 
 若客户端、SDK 或可选受托服务对外暴露可互操作查询语义，SHOULD 复用 `query-schema.md` 中的 Query 形状：
 
-- `object_types`：标准对象类型，例如 `room`、`board`、`list`、`card`、`message`、`morph`
+- `object_types`：标准对象类型，例如 `room`、`card`、`message`、`morph`（board-space 和 list-space 通过 space kind 标识）
 - `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
 - `facets`：schema-declared capability hint 选择器，只用于 Morph 或声明支持 facets 的标准对象；不得作为授权、状态机、排序或 reducer 语义的唯一来源
 - `relation`

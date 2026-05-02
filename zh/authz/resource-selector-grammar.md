@@ -84,8 +84,8 @@ disjunction_selector ::= selector "," selector
 - `space_id`：`cx:space:` 后接 ULID。
 - `subject_id`：`cx:subject:` 后接 ULID。
 - `room_id`：`cx:room:` 后接 ULID。
-- `board_id`：`cx:board:` 后接 ULID。
-- `list_id`：`cx:list:` 后接 ULID。
+- `board_id`：`cx:space:` 后接 ULID（Board-Space）。
+- `list_id`：`cx:space:` 后接 ULID（List-Space）。
 - `card_id`：`cx:card:` 后接 ULID。
 - `message_id`：`cx:message:` 后接 ULID。
 - `morph_id`：`cx:morph:` 后接 ULID。

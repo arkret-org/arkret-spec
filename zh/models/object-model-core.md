@@ -6,12 +6,10 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 
 核心对象：
 
-- `space`
+- `space`（包含 `kind="board"` 和 `kind="list"` 子类型）
 - `actor`
 - `subject`
 - `room`
-- `board`
-- `list`
 - `card`
 - `message`
 - `morph`
@@ -51,9 +49,7 @@ Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组�
 
 - `subject`：语义中心，表示被讨论、推进、引用和沉淀的“东西本身”。
 - `room`：讨论容器和消息时间线入口。
-- `board`：工作流看板。
-- `list`：Board 内的有序泳道/列。
-- `card`：有生命周期、状态、负责人、位置和决策沉淀的工作对象。
+- `card`：有生命周期、状态、负责人、位置和决策沉淀的工作对象。Board（`Space kind="board"`）和 List（`Space kind="list"`）通过 Space 层级表达工作流容器。
 - `message`：Room 时间线中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
 
@@ -93,7 +89,7 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 - `summarized_from`
 - `promoted_from_room`
 
-Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `subject`、`room`、`board`、`list`、`card`、`message`、`morph`、`actor` 或 `space`。
+Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `subject`、`room`、`card`、`message`、`morph`、`actor` 或 `space`（包括 Board-Space 和 List-Space）。
 
 #### 2.4.1 跨 Space 引用
 
@@ -121,7 +117,7 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 
 `view` 是一等协议对象，但它拥有的是投影定义的真相，而不是被投影对象的协作事实。它定义查询、过滤、排序、分组、renderer、布局、可见字段和共享 saved view 配置。
 
-同一组 Subject / Room / Board / List / Card / Message / Morph / Relation 可以投影为：
+同一组 Subject / Room / Card / Message / Morph / Relation 可以投影为：
 
 - board
 - list
@@ -135,9 +131,9 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 - subject activity
 - review queue
 
-View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Subject 的 surface、Board 包含 List、List 包含 Card、Card 的字段与位置、Room 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
+View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Subject 的 surface、Board-Space 包含 List-Space、List-Space 包含 Card、Card 的字段与位置、Room 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
 
-当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Card 跨 List 拖拽写为 `cx.card.move`，同 List 排序写为 `cx.card.reorder`，修改列顺序写为 `cx.list.reorder`，改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
+当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Card 跨 List 拖拽写为 `cx.card.move`，同 List 排序写为 `cx.card.reorder`，修改列顺序写为 `cx.space.update`（更新 List-Space 的 `rank` 字段），改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
 
 ## 3. 通用字段规则
 
@@ -163,8 +159,6 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 - `cx:space:<ulid>`
 - `cx:subject:<ulid>`
 - `cx:room:<ulid>`
-- `cx:board:<ulid>`
-- `cx:list:<ulid>`
 - `cx:card:<ulid>`
 - `cx:message:<ulid>`
 - `cx:morph:<ulid>`
@@ -195,7 +189,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 Space policy 决定：
 
 - 谁能加入 Space
-- 哪些 Subject / Room / Board / Card / Morph 类型可用
+- 哪些 Subject / Room / Card / Morph 类型可用
 - 哪些服务可同步、索引或看见明文
 - 是否加密
 - 是否允许外部联邦
@@ -304,32 +298,32 @@ Room 规则：
 - Room membership 变化不自动改变 Card 权限。
 - Card 删除、归档或移动时不自动删除 Room；只 MAY tombstone 或更新 `links_room` Relation。
 
-## 8. Board / List / Card
+## 8. Board-Space / List-Space / Card
 
-Board / List 可作为 `Space.kind` 的工作流容器形态（`kind=board`、`kind=list`）。与其语义一致的标准对象仍保留 `board` / `list` 标识和关系建模路径，便于与已有事件、capability 和 migration 保持兼容。
+Board 和 List 是 `Space` 的工作流容器形态，分别以 `kind="board"` 和 `kind="list"` 表示，使用 `cx:space:` ID。Board-Space 是工作流容器；List-Space 是 Board-Space 内的列/泳道；Card 是可执行、可跟踪、可沉淀的工作对象，也可以作为 Subject 的状态推进 surface。
 
-Board 是工作流容器。List 是 Board 内的列/泳道。Card 是可执行、可跟踪、可沉淀的工作对象，也可以作为 Subject 的状态推进 surface。
-
-Board 最小结构：
+Board-Space 最小结构：
 
 ```json
 {
-  "id": "cx:board:01js0bd0000000000000000000",
-  "type": "board",
+  "id": "cx:space:01js0bd0000000000000000000",
+  "type": "space",
+  "kind": "board",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Release Board",
-  "kind": "kanban",
+  "board_kind": "kanban",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
-List 最小结构：
+List-Space 最小结构：
 
 ```json
 {
-  "id": "cx:list:01js01s0000000000000000000",
-  "type": "list",
+  "id": "cx:space:01js01s0000000000000000000",
+  "type": "space",
+  "kind": "list",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Review",
   "rank": "mV",
@@ -510,7 +504,7 @@ View 示例：
     ],
     "relation": {
       "kind": "contains",
-      "source_ref": "cx:board:01js0bd0000000000000000000",
+      "source_ref": "cx:space:01js0bd0000000000000000000",
       "depth": 2
     }
   },

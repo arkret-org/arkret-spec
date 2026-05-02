@@ -148,37 +148,38 @@ Schema id: `cx.schema.room.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-### 6.3 Board
+### 6.3 Board-Space
 
-Schema id: `cx.schema.board.v1`
+Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:space:` 格式。Board-Space 特有字段在 `space.schema.json` 中作为可选字段定义。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:board` | 以 `cx:board:` 开头。 | Board ID。 |
-| `type` | yes | `enum(board)` | 固定为 `board`。 | 对象种类。 |
-| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
+| `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
+| `kind` | yes | `enum(board)` | 固定为 `board`。 | Space 形态。 |
+| `space_id` | yes | `id:space` |  | 父 Space ID。 |
 | `title` | yes | `string` | 1..256 chars。 | 名称。 |
 | `summary` | no | `string` |  | 说明。 |
-| `kind` | yes | `enum(kanban, scrum, review_queue, intake, custom)` | Board 类型。 |
+| `board_kind` | no | `enum(kanban, scrum, review_queue, intake, custom)` |  | Board 类型。 |
 | `default_view_id` | no | `id:view` |  | 默认 View。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-### 6.4 List
+### 6.4 List-Space
 
-Schema id: `cx.schema.list.v1`
+List 是 `Space` 的列/泳道形态，`kind="list"`，ID 使用 `cx:space:` 格式。List-Space 通过 `cx.space.child`/`cx.space.parent` 层级关系挂载到 Board-Space 下。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:list` | 以 `cx:list:` 开头。 | List ID。 |
-| `type` | yes | `enum(list)` | 固定为 `list`。 | 对象种类。 |
-| `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `board_id` | no | `id:board` | 仅作为创建/投影提示；canonical containment 由 `board --contains--> list` Relation 表达。 | 所属 Board。 |
+| `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
+| `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
+| `kind` | yes | `enum(list)` | 固定为 `list`。 | Space 形态。 |
+| `space_id` | yes | `id:space` |  | 父 Space ID（Board-Space）。 |
 | `title` | yes | `string` | 1..256 chars。 | 名称。 |
 | `summary` | no | `string` |  | 说明。 |
-| `rank` | no | `string` | Fractional indexing rank；Board 内 canonical rank SHOULD 放在 contains Relation fields。 | Board 内顺序。 |
+| `rank` | no | `string` | Fractional indexing rank。 | Board-Space 内顺序。 |
 | `wip_limit` | no | `integer` |  | WIP 限制。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted)` |  | 状态。 |

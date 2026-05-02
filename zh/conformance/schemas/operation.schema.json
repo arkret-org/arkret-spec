@@ -42,16 +42,6 @@
       }
     },
     {
-      "if": { "properties": { "semantic_kind": { "const": "cx.list.reorder" } }, "required": ["semantic_kind"] },
-      "then": {
-        "properties": {
-          "operation_type": { "const": "reorder" },
-          "object_type": { "const": "list" },
-          "payload": { "$ref": "#/$defs/list_reorder_payload" }
-        }
-      }
-    },
-    {
       "if": { "properties": { "semantic_kind": { "const": "cx.subject.link_surface" } }, "required": ["semantic_kind"] },
       "then": {
         "properties": {
@@ -85,10 +75,10 @@
   "$defs": {
     "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
     "subject_id": { "type": "string", "pattern": "^cx:subject:[0-9a-hjkmnp-z]{26}$" },
-    "object_ref": { "type": "string", "pattern": "^(cx:(space|subject|room|board|list|card|message|morph|relation|view):[0-9a-hjkmnp-z]{26}|did:.+)$" },
-    "board_id": { "type": "string", "pattern": "^cx:board:[0-9a-hjkmnp-z]{26}$" },
+    "object_ref": { "type": "string", "pattern": "^(cx:(space|subject|room|card|message|morph|relation|view):[0-9a-hjkmnp-z]{26}|did:.+)$" },
+    "board_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
-    "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },
+    "list_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
     "card_move_payload": {
       "type": "object",
@@ -117,24 +107,6 @@
       "properties": {
         "board_id": { "$ref": "#/$defs/board_id" },
         "card_id": { "$ref": "#/$defs/card_id" },
-        "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "list_reorder_payload": {
-      "type": "object",
-      "required": ["board_id", "list_id", "rank"],
-      "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
         "list_id": { "$ref": "#/$defs/list_id" },
         "rank": { "$ref": "#/$defs/rank" },
         "expected_position": {
