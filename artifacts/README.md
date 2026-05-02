@@ -21,7 +21,7 @@ python tools/sync_zh_mirrors.py --check
 python artifacts/lint_artifacts.py
 ```
 
-The lint checks registry uniqueness, schema file and `$ref` existence, Event.kind coverage in `event-schema.json`, profile-to-test matrix references, OpenAPI and non-HTTP binding operation IDs against `operation-registry.json`, fixture references to event kinds / schemas / profiles / operations / typed ID kinds, crypto fixture canonical hashes, Markdown examples in `zh/`, deprecated Event.kind alias leakage, and `zh/` mirror drift for canonical schemas, fixtures, OpenAPI, and non-HTTP bindings. The same command runs in `.github/workflows/artifact-lint.yml`.
+The lint checks registry uniqueness, schema file and `$ref` existence, Event.kind coverage in `event-schema.json`, profile-to-test matrix references, OpenAPI and non-HTTP binding operation IDs against `operation-registry.json`, fixture references to event kinds / schemas / profiles / operations / typed ID kinds, crypto fixture canonical hashes, local Markdown link integrity, Markdown examples in `zh/`, deprecated Event.kind alias leakage, and `zh/` mirror drift for canonical schemas, fixtures, OpenAPI, and non-HTTP bindings. The same command runs in `.github/workflows/artifact-lint.yml`.
 
 ## Mirror sync
 

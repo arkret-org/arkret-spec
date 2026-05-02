@@ -34,6 +34,7 @@ OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$"
 YAML_REF_RE = re.compile(r"\$ref:\s*['\"]?([^'\"\s#]+(?:#[^'\"\s]+)?)")
 JSON_FENCE_RE = re.compile(r"```json\s*(.*?)```", re.IGNORECASE | re.DOTALL)
 TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):")
+MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 
 
 class Lint:
@@ -191,6 +192,27 @@ def markdown_files() -> list[Path]:
     roots = [ROOT / "README.md", ARTIFACTS / "README.md"]
     roots.extend(sorted((ROOT / "zh").rglob("*.md")))
     return [path for path in roots if path.is_file()]
+
+
+def check_markdown_links(lint: Lint) -> None:
+    for path in markdown_files():
+        text = path.read_text(encoding="utf-8")
+        for target in MARKDOWN_LINK_RE.findall(text):
+            if not target or target.startswith("#"):
+                continue
+            if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
+                continue
+            target_path = split_ref(target)
+            if not target_path:
+                continue
+            resolved = (path.parent / target_path).resolve()
+            try:
+                resolved.relative_to(ROOT.resolve())
+            except ValueError:
+                lint.fail(path, f"markdown link escapes repository: {target}")
+                continue
+            if not resolved.exists():
+                lint.fail(path, f"markdown link target does not exist: {target}")
 
 
 def load_mirror_manifest(lint: Lint) -> list[dict[str, str]]:
@@ -1031,6 +1053,7 @@ def main() -> int:
     check_operation_surfaces(lint, known)
     check_fixtures(lint, known)
     check_crypto_signature_fixture(lint)
+    check_markdown_links(lint)
     check_markdown_examples(lint, known)
     check_deprecated_alias_leakage(lint, known)
     check_zh_mirrors(lint)
