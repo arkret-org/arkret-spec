@@ -68,7 +68,7 @@ Content-Type: application/json
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `next_batch` | `token` | required | 下次同步使用的 opaque token。 |
-| `spaces` | `object` | optional | Contrix 原生 Space 聚合同步结果。 |
+| `spaces` | `object` | optional | Contrix 原生 Space 聚合同步结果，按 `join` / `invite` / `knock` / `leave` 分桶；每个 bucket 以 `cx:space:*` 为 key。 |
 | `to_device` | `object` | optional | 当前设备 to-device 消息。 |
 | `device_lists` | `object` | optional | 设备列表变化。 |
 | `presence` | `object` | optional | presence 事件。 |
@@ -94,6 +94,13 @@ Content-Type: application/json
 }
 ```
 
+`spaces.join`、`spaces.invite`、`spaces.knock` 和 `spaces.leave` MUST 是对象；每个对象的 key 是 `cx:space:*`，value 是该 Space 的聚合同步结果。`state`、`state_after`、`ephemeral`、Space-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状：
+
+```json
+{
+  "events": []
+}
+```
 ## 3. Stream Classes
 
 Sync 响应包含以下 stream：
@@ -329,3 +336,4 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 - 缺事件依赖：event MUST remain soft failed until backfill resolves it.
 - 缺 MLS epoch：event MAY be accepted as encrypted event but displayed as `decryption_pending`.
 - epoch 明确已被移除成员不可访问：客户端 MUST fail closed and not request keys from unauthorized members.
+

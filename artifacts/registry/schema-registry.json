@@ -1,11 +1,9 @@
 {
-  "version": "2026-05-02",
+  "version": "2026-05-03",
   "schemas": [
     { "schema_id": "cx.schema.space.v1", "file": "schemas/space.schema.json" },
     { "schema_id": "cx.schema.actor_profile.v1", "file": "schemas/actor-profile.schema.json" },
-    { "schema_id": "cx.schema.subject.v1", "file": "schemas/subject.schema.json" },
-    { "schema_id": "cx.schema.room.v1", "file": "schemas/room.schema.json" },
-    { "schema_id": "cx.schema.card.v1", "file": "schemas/card.schema.json" },
+    { "schema_id": "cx.schema.flow.v1", "file": "schemas/flow.schema.json" },
     { "schema_id": "cx.schema.message.v1", "file": "schemas/message.schema.json" },
     { "schema_id": "cx.schema.morph.v1", "file": "schemas/morph.schema.json" },
     { "schema_id": "cx.schema.relation.v1", "file": "schemas/relation.schema.json" },

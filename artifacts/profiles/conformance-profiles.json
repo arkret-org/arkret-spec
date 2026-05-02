@@ -146,7 +146,7 @@
       "required_endpoints": ["cx.sync.client_sync", "cx.authz.check"],
       "required_event_kinds": ["cx.flow.create", "cx.flow.branch.member", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.room.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
+      "required_schemas": ["cx.schema.flow.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
       "required_fixtures": ["sync-fixture.json", "redaction-fixture.json", "privacy-security-fixture.json"],
       "optional_extensions": ["cx.profile.e2ee_client.v1", "cx.profile.push_gateway.v1"],
       "feature_discovery": { "required": ["chat_mvp", "discussion_timeline", "state_after"], "unsupported_optional": "hide unsupported board/list Flow interactions" }
@@ -164,7 +164,7 @@
     "cx.profile.full_client.v1": {
       "inherits": ["cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
       "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync", "cx.sync.subscribe", "cx.blob.upload", "cx.blob.get", "cx.authz.check"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.room.member", "cx.card.create", "cx.message.create", "cx.reaction.add", "cx.redaction", "cx.account_data.set", "cx.read.marker"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.flow.branch.member", "cx.message.create", "cx.reaction.add", "cx.redaction", "cx.account_data.set", "cx.read.marker"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.client_sync_response.v1", "cx.schema.blob.v1", "cx.schema.notification.v1", "cx.schema.read_marker.v1"],
       "required_fixtures": ["encoding-fixture.json", "sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json", "privacy-security-fixture.json"],
@@ -447,3 +447,4 @@
     }
   }
 }
+

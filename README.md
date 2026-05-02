@@ -26,6 +26,7 @@ contrix-spec/
     profiles/
       conformance-profiles.json
     registry/
+      error-code-registry.json
       event-kind-registry.json
       id-kind-registry.json
       operation-registry.json
@@ -200,4 +201,9 @@ contrix-spec/
       server-threat-model.md
 ```
 
-The Chinese specification is the leading normative text for Contrix v1. Canonical wire-contract outputs live in `artifacts/`, with current navigation mirrors under `zh/`. The English folder is structurally aligned but stale after the 2026-05 object-model and Event-envelope closure work, so it must not be used as the source of truth until refreshed.
+The Chinese specification under `zh/` is the leading normative text for Contrix v1. `artifacts/` contains machine-readable registries, schemas, OpenAPI descriptions, and fixtures derived from that normative text.
+
+For v1 interoperability, only active entries referenced by `artifacts/registry/*` and `artifacts/profiles/*` are normative machine contracts. Compatibility files kept on disk during model migration do not become active wire contract merely because they still exist in the repository.
+
+Any drift between `zh/` and generated artifacts is a specification bug. Until regenerated artifacts are brought back into sync, implementations MUST follow the Chinese normative text plus the active machine registries, and MUST NOT treat stale legacy compatibility files as the source of truth.
+

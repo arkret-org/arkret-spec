@@ -384,7 +384,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 
 若客户端、SDK 或可选受托服务对外暴露可互操作查询语义，SHOULD 复用 `query-schema.md` 中的 Query 形状：
 
-- `object_types`：标准对象类型，例如 `room`、`card`、`message`、`morph`（board-space 和 list-space 通过 space kind 标识）
+- `object_types`：标准对象类型，例如 `space`、`flow`、`message`、`morph`（Board/List 通过 `space.kind` 标识；Room/Card 通过 `flow.kind` 标识）
 - `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
 - `facets`：schema-declared capability hint 选择器，只用于 Morph 或声明支持 facets 的标准对象；不得作为授权、状态机、排序或 reducer 语义的唯一来源
 - `relation`
@@ -395,9 +395,9 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
 - `sync_token`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Space frontier。
 
-### 6.2 Subject / Room / Card Discussion Projection
+### 6.2 Flow Discussion / Context Projection
 
-Subject context timeline、Room timeline、Card context timeline 和 Card discussion projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Subject-linked / Card-linked Room 都必须独立执行 Room membership / history visibility 检查；不得因为 Subject 或 Card 可见就展开 Room 内容，也不得因为 Room 可见就授予 Subject 或 Card 权限。
+Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` branch 都必须独立执行 discussion membership / history visibility 检查；不得因为 Flow synthesis 可见就展开 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Space 对象权限。
 
 ### 6.3 Inbox / Notification Projection
 
@@ -703,4 +703,5 @@ Contrix v1 固定：
 - Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref`、`plaintext_visibility` 和 `binding`。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。
 - Sync cursor recovery MUST 按 `sync-conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `encoding-conformance-vectors.md` 和 `sync-conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。
+
 

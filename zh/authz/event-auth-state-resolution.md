@@ -88,7 +88,7 @@
 | `cx.flow.*` | actor Space membership、所属 Board-Space / List-Space 当前状态（若适用）、目标 Flow 当前状态、对应 flow capability |
 | `cx.morph.*` | actor Space membership、目标 Morph 当前状态、morph schema / facet policy、对应 morph capability |
 | `cx.relation.*` | actor Space membership、relation type schema、source/target 可见状态、对应 relation capability |
-| `cx.message.*` | actor Space membership、目标 Room membership / visibility、目标 Message 当前状态、send/edit/redact capability |
+| `cx.message.*` | actor Space membership、目标 Flow discussion membership / visibility、目标 Message 当前状态、send/edit/redact capability |
 | `cx.mls.*` | actor membership、encryption policy、当前 epoch state、device trust state |
 | `cx.redaction` | actor membership、被 redaction 事件、redact_own 或 redact_any capability |
 | `cx.space.upgrade` | `cx.space.create`、当前 upgrade policy、creator/admin capability |
@@ -140,7 +140,7 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 被 ban 的 actor MUST NOT 发送除 appeal/profile-level 之外的 Space 写事件。
 
-### 5.1 Room Membership
+### 5.1 Flow Discussion Membership
 
 Flow discussion branch membership 是 Space membership 之下的局部参与状态，用于控制某个 Flow discussion 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予 Flow synthesis、Board/List 或 Morph 的权限。
 
@@ -513,7 +513,7 @@ auth_difference(conflicted_events):
 | 650 | Active Organization governance：由 active `cx.space.organization{relationship=owner|sponsor, scope.official=true}` 绑定的 governance DID / service DID 直接签发，且 action 在声明 scope 内。 |
 | 600 | Direct Space admin：候选事件由未委派的 active Space admin / creator capability 授权，resource 精确覆盖目标 Space。 |
 | 550 | Direct policy or membership admin：候选事件由未委派的 policy / membership / capability 管理 grant 授权，resource 精确覆盖目标 state key 或对象。 |
-| 500 | Direct object admin：候选事件由未委派的 Subject / Board / Room / Card / Morph / Relation 管理 grant 授权，resource 精确覆盖目标对象。 |
+| 500 | Direct object admin：候选事件由未委派的 Flow / Space / Morph / Relation 管理 grant 授权，resource 精确覆盖目标对象。 |
 | 400 | Delegated admin：由 delegated admin grant 授权，且 delegation chain 有效、未过期、未被 revoke，depth 在 profile 限制内。 |
 | 300 | Delegated action：由 delegated non-admin action grant 授权，且 selector、constraint、claim、approval 均满足。 |
 | 200 | Direct action：由直接 non-admin action grant 授权。 |
@@ -681,3 +681,4 @@ Space lifecycle 是 reducer state，不是本地服务开关。v1 使用以下�
 - `tombstoned` 和 `destroyed` 是 terminal state。后续普通业务 Event MUST reject；只允许 redaction、export、legal hold、account lifecycle、migration proof、snapshot/witness proof 和 policy 明确列出的维护类 Event。
 - `destroy` 不等于全网物理删除。它只声明该 Space 已不可恢复地 decommission；已签名 Event、verification stub、legal hold 和外部副本仍按各自 policy 处理。
 - 这些转换均需要 Space admin / owner / governance root 或 policy 声明的 lifecycle capability；policy hard deny 优先于 auth weight。
+

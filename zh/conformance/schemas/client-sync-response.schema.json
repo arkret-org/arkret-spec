@@ -5,49 +5,76 @@
   "type": "object",
   "required": ["next_batch"],
   "properties": {
-    "next_batch": {
+    "next_batch": { "$ref": "#/$defs/cursor_value" },
+    "spaces": {
+      "type": "object",
+      "properties": {
+        "join": { "$ref": "#/$defs/space_bucket" },
+        "invite": { "$ref": "#/$defs/space_bucket" },
+        "knock": { "$ref": "#/$defs/space_bucket" },
+        "leave": { "$ref": "#/$defs/space_bucket" }
+      },
+      "additionalProperties": false
+    },
+    "to_device": { "$ref": "#/$defs/event_container" },
+    "device_lists": { "type": "object" },
+    "account_data": { "$ref": "#/$defs/event_container" },
+    "presence": { "$ref": "#/$defs/event_container" },
+    "notifications": { "$ref": "#/$defs/event_container" },
+    "partial": { "type": "boolean" },
+    "priority": { "type": "string" }
+  },
+  "$defs": {
+    "cursor_value": {
       "oneOf": [
         { "type": "string", "pattern": "^cx:cursor:.+$" },
         { "$ref": "./cursor.schema.json" }
       ]
     },
-    "spaces": {
+    "event_container": {
       "type": "object",
-      "patternProperties": {
-        "^cx:space:[0-9a-hjkmnp-z]{26}$": {
-          "type": "object",
-          "properties": {
-            "timeline": {
-              "type": "object",
-              "required": ["events", "limited"],
-              "properties": {
-                "events": { "type": "array", "items": { "$ref": "./event-envelope.schema.json" } },
-                "limited": { "type": "boolean" },
-                "prev_batch": {
-                  "oneOf": [
-                    { "type": "string", "pattern": "^cx:cursor:.+$" },
-                    { "$ref": "./cursor.schema.json" }
-                  ]
-                }
-              },
-              "additionalProperties": true
-            },
-            "state": { "type": "array", "items": { "$ref": "./event-envelope.schema.json" } },
-            "summary": { "type": "object" },
-            "ephemeral": { "type": "array", "items": { "type": "object" } },
-            "unread": { "type": "object" },
-            "state_after": { "type": "string" }
-          },
-          "additionalProperties": true
+      "required": ["events"],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": { "$ref": "./event-envelope.schema.json" }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": true
     },
-    "to_device": { "type": "array", "items": { "type": "object" } },
-    "device_lists": { "type": "object" },
-    "account_data": { "type": "array", "items": { "type": "object" } },
-    "presence": { "type": "array", "items": { "type": "object" } },
-    "partial": { "type": "boolean" }
+    "timeline": {
+      "type": "object",
+      "required": ["events", "limited"],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": { "$ref": "./event-envelope.schema.json" }
+        },
+        "limited": { "type": "boolean" },
+        "prev_batch": { "$ref": "#/$defs/cursor_value" }
+      },
+      "additionalProperties": true
+    },
+    "space_entry": {
+      "type": "object",
+      "properties": {
+        "timeline": { "$ref": "#/$defs/timeline" },
+        "state": { "$ref": "#/$defs/event_container" },
+        "state_after": { "$ref": "#/$defs/event_container" },
+        "ephemeral": { "$ref": "#/$defs/event_container" },
+        "account_data": { "$ref": "#/$defs/event_container" },
+        "summary": { "type": "object" },
+        "unread_notifications": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "space_bucket": {
+      "type": "object",
+      "patternProperties": {
+        "^cx:space:[0-9a-hjkmnp-z]{26}$": { "$ref": "#/$defs/space_entry" }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": true
 }

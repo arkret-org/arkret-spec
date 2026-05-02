@@ -143,6 +143,7 @@ API 调用 SHOULD 使用以下方式之一：
 客户端 MUST 以 `code` 作为主要错误分类。
 
 ### 5.1 标准错误码
+标准 `error.code` 与批处理/联邦响应中的逐项 `reason_code` 共享同一字符串命名空间。若某个接口返回 `accepted[]` / `rejected[]` / `quarantine[]`，其中逐项 `reason_code` SHOULD 复用下表中的标准代码；新增代码必须同时写入本文与 `artifacts/registry/error-code-registry.json`。
 
 | code | HTTP status | 含义 |
 | --- | ---: | --- |
@@ -162,6 +163,9 @@ API 调用 SHOULD 使用以下方式之一：
 | `method_not_allowed` | 405 | HTTP method 不支持 |
 | `conflict` | 409 | 通用状态冲突 |
 | `cas_conflict` | 409 | `expected_state_hash` 不匹配 |
+| `causal_conflict` | 409 | `prev_refs` / `auth_refs`、actor chain 或同批依赖违反因果约束 |
+| `dependency_missing` | 409 | 缺少必要依赖；可通过 backfill / snapshot / 重试恢复 |
+| `discussion_branch_disabled` | 409 | 目标 Flow discussion branch 未启用，不能接收 `cx.message.*` |
 | `epoch_mismatch` | 409 | 加密 epoch 过期 |
 | `duplicate_conflict` | 409 | 相同幂等键对应不同内容 |
 | `payload_too_large` | 413 | 请求体或 blob 超限 |
@@ -172,6 +176,8 @@ API 调用 SHOULD 使用以下方式之一：
 | `stale_frontier` | 409 | 服务本地授权或同步 frontier 尚未覆盖请求要求 |
 | `sync_token_expired` | 410 | 客户端同步 token 已过期，需要回退到 initial sync 或 snapshot bootstrap |
 | `unsupported_feature` | 501 | 服务不支持该 feature |
+| `unsupported_event_kind` | 501 | 服务不接收该 active 标准 Event kind |
+| `projection_incomplete` | 409 | 受限 reducer / projection 无法在当前依赖与 feature 集下声称完整结果 |
 | `internal_error` | 500 | 服务内部错误 |
 | `temporarily_unavailable` | 503 | 服务暂不可用 |
 
@@ -352,4 +358,5 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - 记录可审计但不泄露明文的安全日志
 - 对管理操作要求更强认证
 - 对联邦写入执行 reputation / quarantine 策略
+
 
