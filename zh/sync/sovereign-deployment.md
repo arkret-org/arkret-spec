@@ -36,7 +36,7 @@ flowchart TB
         ORG["Organization DID / Governance"]
         REG["Private Identity Registry"]
         WIT["Private Witness Set"]
-        REPO["Internal Event Storage"]
+        STORE["Internal Event Store"]
         SYNC["Internal Principal Server / Sync Service"]
         DIR["Private Directory"]
         BLOB["Private Blob Store"]
@@ -56,21 +56,21 @@ flowchart TB
     subgraph "External Organization Domain"
         EXTORG["External Organization DID"]
         EXTCLIENT["External Managed Client"]
-        EXTREPO["External Principal Server / Events API"]
+        EXTAPI["External Principal Server / Events API"]
         EXTSYNC["External Principal Server / Sync Service"]
     end
 
     ORG --> REG
     ORG --> WIT
     ORG --> SYNC
-    SYNC --> REPO
+    SYNC --> STORE
     ORG --> DIR
     ORG --> BLOB
     ORG --> POL
     ORG --> MEDIA
 
-    INTCLIENT --> REPO
-    REPO --> SYNC
+    INTCLIENT --> STORE
+    STORE --> SYNC
     SYNC --> POL
 
     ORG -->|"creates / endorses"| ESPACE
@@ -82,8 +82,8 @@ flowchart TB
     INTCLIENT -->|"approved membership"| ESPACE
     EXTORG -->|"authority chain / VC"| EPOL
     EXTCLIENT -->|"invite + restricted join"| ESPACE
-    EXTCLIENT --> EXTREPO
-    EXTREPO -->|"signed Operations"| ESYNC
+    EXTCLIENT --> EXTAPI
+    EXTAPI -->|"signed Events"| ESYNC
     EXTSYNC -. "optional allowlisted federation" .-> ESYNC
 
     EPOL -->|"allow / deny / quarantine"| ESYNC

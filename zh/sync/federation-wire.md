@@ -43,7 +43,8 @@ PUT /api/v1/federation/transactions/{txn_id}
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | Space policy 版本或 hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `operations` | body | `object[]` | required | 签名 Event Envelope 数组；字段名沿用 `operations`，每项独立验签和授权。 |
+| `events` | body | `object[]` | required | 签名 Event Envelope 数组；每项独立验签和授权。 |
+| `operations` | body | `object[]` | optional | 旧字段名兼容别名；若同时存在，MUST 与 `events` canonical hash 一致，否则拒绝。 |
 | `receipts` | body | `object[]` | optional | 与本 transaction 相关的 receipt / witness 证明。 |
 | `frontier` | body | `object` | optional | 发送方当前 causal frontier。 |
 | `created_at` | body | `datetime` | optional | 发送方创建时间；不得作为授权依据。 |
@@ -61,7 +62,7 @@ PUT /api/v1/federation/transactions/{txn_id}
     "membership_frontier": ["cx:event:..."],
     "destination_service_type": "principal_server"
   },
-  "operations": [],
+  "events": [],
   "receipts": [],
   "frontier": {},
   "created_at": "2026-04-26T00:00:00Z"
@@ -79,6 +80,8 @@ PUT /api/v1/federation/transactions/{txn_id}
 - 同一幂等键 + 不同 canonical request hash MUST 返回 `duplicate_conflict`。
 - 已过期签名、重复 nonce、高频失败或来源行为异常 MAY 进入 `quarantine`，但不得把隔离队列成功写入当作 Event 已接受。
 - 单条 Event 的接受条件仍是 Actor 签名、schema、capability、Space policy、服务委托和因果依赖全部通过；transaction 签名只证明传输来源。
+
+`events[]` MUST 按数组顺序处理。接收方在验证第 N 项时，可以把本 transaction 中前 N-1 项已经进入 `accepted[]` 的 Event 作为可解析依赖；不得把后续项、已拒绝项或 quarantine 项当作已接受事实。部分失败不回滚已接受项；依赖同批失败或缺失 Event 的后续项 MUST 进入 `rejected[]` 或 quarantine，并给出 `dependency_missing`、`causal_conflict` 或等价 `reason_code`。
 
 响应字段：
 

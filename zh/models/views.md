@@ -271,6 +271,8 @@ Subject 上下文查询用于打开“东西本身”的详情页，返回 Subje
 
 Subject context MUST NOT 因为 actor 可读 Subject 就展开不可读 Room timeline、Card 字段或 Morph 内容。
 
+若 `anchor_ref` 指向其他 Space，或 context projection 遇到跨 Space Relation，executor MUST 使用跨 Space Lazy Link 规则：源 Space 中的引用 metadata 可见不代表目标对象内容可见，展开目标 preview / timeline / fields 前必须重新按目标 Space policy 授权。
+
 Card 上下文查询仍可用于兼容或局部工作流：
 
 ```json
@@ -473,6 +475,8 @@ Card context timeline 可以混合：
 Graph projection 可展开 Subject、Card、Morph、Room、Board 等对象之间的 Relation。
 
 去中心化网络中，Space 构成严格权限边界。Projection executor 在执行带有 `depth` 的深度查询时，遇到跨 Space 引用 MUST 截断并返回 Lazy Link，不能自动跨 Space 拼接图谱。
+
+Lazy Link 只证明存在一个源 Space 可见的引用事实；它不证明调用方能读取目标对象，也不要求 Sync 层传播目标 Space 历史。目标 preview 只能包含目标 Space policy 明确允许公开或授权披露的 metadata。
 
 Lazy Link 示例：
 

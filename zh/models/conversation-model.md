@@ -235,6 +235,8 @@ Room membership 是 Space 内的子范围授权。它不替代 Space membership�
 
 客户端提交或编辑消息时 MAY 不提交独立 `mentions` Relation。客户端 reducer 可以从 Message content AST 派生 mention 关系和通知，但派生关系不得扩大权限。
 
+消息正文、mention 或 `references` Relation 指向其他 Space 对象时，按 `object-model-core.md` 的跨 Space 引用规则处理。源消息可以暴露 ref 本身和最小引用 metadata；目标对象内容、preview、成员、附件和历史必须重新按目标 Space policy 授权。不可见目标 MUST 呈现为 Lazy Link / locked reference，不得因消息所在 Room 可读而展开。
+
 ## 8. 编辑、撤回、Reaction
 
 ### 8.1 编辑

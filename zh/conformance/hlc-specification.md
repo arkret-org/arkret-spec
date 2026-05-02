@@ -122,23 +122,26 @@ function compare_hlc(hlc1, hlc2):
 
 ## 6. 在 Contrix 中的使用
 
-### 6.1 事件排序
+### 6.1 Timeline 事件排序
 
-事件按以下规则排序：
+客户端 timeline、backfill page 和展示层的默认事件排序按以下规则递增：
 
 ```
 causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 ```
 
-HLC 在因果依赖之后提供第二级排序。
+HLC 在因果依赖之后提供第二级展示排序。该顺序不表示授权状态或对象字段冲突的 winner 选择，也不得覆盖 `prev_refs` / `auth_refs` 已经表达的因果关系。
 
-### 6.2 冲突解决
+### 6.2 State / Reducer 冲突解决
 
 当两个并发操作冲突（无因果关系）时：
 
-1. 按 HLC 比较（较大的胜出）
-2. 若 HLC 相等（极少见），按 actor_id 比较（字典序）
-3. 若仍相等，按 event_id 比较（字典序）
+1. 按该 reducer 或 auth-state profile 的授权权重 / domain-specific priority 比较（若定义）
+2. 按 HLC 比较（较大的已验证 HLC 胜出）
+3. 若 HLC 相等（极少见），按 actor_id 比较（字典序）
+4. 若仍相等，按 event_id 或 event hash 比较（字典序，按对应 profile 固定）
+
+冲突 winner 顺序与 6.1 的 timeline 展示顺序是两个不同投影：前者选状态，后者排历史。实现 MUST 在 profile 中明确使用哪一个，不得把 timeline 中最后出现的 Event 直接当作状态 winner。
 
 ### 6.3 游标位置
 

@@ -301,7 +301,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
 | `space_version` | yes | `string` | 初版 `1`。 | 授权/状态版本。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
-| `actor_seq` | yes | `integer` | 同一 actor event chain 内严格单调。 | Actor 发布序列。 |
+| `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
 | `hlc` | yes | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 | HLC。 |
 | `prev_refs` | yes | `array<id:event>` | 可为空。 | Actor event chain 前序。 |
@@ -579,7 +579,7 @@ Schema id: `cx.schema.encrypted_payload.v1`
 | `content_type` | yes | `string` | 明文类型提示。 | 解密后内容类型。 |
 | `ciphertext` | yes | `string` | base64url。 | 密文。 |
 | `aad` | no | `object` | MUST 进入 envelope digest。 | 附加认证数据。 |
-| `payload_digest` | yes | `hash` | 见 `encoding-conformance-vectors.md`。 | 密文 envelope digest。 |
+| `payload_digest` | yes | `hash` | 见 `encoding-conformance-vectors.md`；不同于 Event proof 的 `payload_hash`。 | 密文 envelope digest。 |
 | `key_ref` | no | `string` | 不得泄露 secret。 | 密钥引用。 |
 
 ## 21. Client Sync Response

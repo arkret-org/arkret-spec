@@ -95,7 +95,7 @@
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Event Store | 事件存储 | Principal Server、客户端、本地节点或授权副本保存 signed Event 的服务/存储能力。它不是协议一等真相源；Event Envelope 才是 canonical fact。 |
-| Event Chain | 事件链 | 同一 actor 通过 `actor_id`、`actor_seq` 和 `prev_refs` 形成的可验证发布顺序。它替代旧草案中的数据仓库概念，作为 actor 侧审计和重放基础。 |
+| Event Chain | 事件链 | 同一 actor 通过 `actor_id`、`actor_seq` 和 `prev_refs` 形成的可验证发布 DAG；单条因果路径上 `actor_seq` 严格递增，多设备并发可形成 sibling fork。它替代旧草案中的数据仓库概念，作为 actor 侧审计和重放基础。 |
 | Event Batch Receipt | 事件批次回执 | 对一批 Event、frontier 或 witness 状态的签名证明，可用于 read-your-writes、回填对账和审计加速；不是 canonical history 的必经层。 |
 | Operation | 操作 | 服务 API、SDK 或本地 reducer 中的写入动作/意图名称，不是 v1 wire 的签名事实对象。进入 Events API、sync、federation 的规范事实为 Event Envelope。 |
 | Event Envelope | 事件信封 | v1 events / sync / federation 写路径的规范签名承载对象，包含 `event_id`、`space_version`、`actor_id`、`kind`、`prev_refs`、`auth_refs`、`content`、`proofs`。 |

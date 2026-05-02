@@ -37,7 +37,7 @@
   },
   "room_timeline": {
     "room_id": "cx:room:01js0r00000000000000000000",
-    "ordering": ["origin_server_ts", "hlc", "event_id"],
+    "ordering": ["causal_depth", "hlc", "actor_id", "actor_seq", "event_id"],
     "entries": [
       {
         "event_id": "cx:event:01js0me0000000000000000000",

@@ -134,7 +134,23 @@ GET /api/v1/server/describe
     "supported_auth_methods": ["passkey", "oidc", "device_pairing"],
     "did_binding_methods": ["session_grant", "did_http_signature"]
   },
-  "max_body_bytes": 1048576
+  "max_body_bytes": 1048576,
+  "limits": {
+    "max_body_bytes": 1048576,
+    "max_events_per_batch": 100
+  },
+  "rate_limit_policy": {
+    "policy_version": "2026-05-02",
+    "entries": [
+      {
+        "operation_id": "cx.federation.push_operations",
+        "scope": ["service_did", "space_id"],
+        "window_seconds": 60,
+        "max_requests": 120,
+        "burst": 20
+      }
+    ]
+  }
 }
 ```
 
@@ -229,7 +245,7 @@ Contrix v1 要求：
 
 Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/events/*`。
 
-Contrix v1 不要求实现 atprotocol/Git 式数据仓库、提交日志或旧式仓库命名接口。Principal Server 可以托管、复制或索引 Event，但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 单调性、`prev_refs` / `auth_refs` 因果依赖和 `event_id` 幂等性。
+Contrix v1 不要求实现 atprotocol/Git 式数据仓库、提交日志或旧式仓库命名接口。Principal Server 可以托管、复制或索引 Event，但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` / `auth_refs` 因果依赖和 `event_id` 幂等性。
 
 Events API 至少应提供以下语义：
 
@@ -260,6 +276,8 @@ POST /api/v1/events
 - 同一个 `event_id` 若内容不同 MUST 拒绝并记录冲突。
 - 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Space policy、`actor_seq` 和因果依赖。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Space frontier 以及 read-your-writes `sync_token`。
+
+当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 `prev_refs` / `auth_refs` / content-level causal reference；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
 
 ### 4.3 获取单个 Event
 
@@ -682,7 +700,7 @@ Contrix v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_valid_until`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
-- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `binding`。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。
+- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref`、`plaintext_visibility` 和 `binding`。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。
 - Sync cursor recovery MUST 按 `sync-conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `encoding-conformance-vectors.md` 和 `sync-conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。
 

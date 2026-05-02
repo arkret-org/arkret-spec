@@ -97,6 +97,22 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 
 Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `subject`、`room`、`board`、`list`、`card`、`message`、`morph`、`actor` 或 `space`。
 
+#### 2.4.1 跨 Space 引用
+
+Relation 的 `space_id` 表示关系事实所在的源 Space；`from_ref` / `to_ref` MAY 指向其他 Space 的对象、Actor 或 Space。跨 Space 引用只发布引用事实，不复制被引用对象内容，也不授予读取、写入、管理或同步被引用 Space 历史的权限。
+
+创建跨 Space Relation 时，actor MUST 同时满足：
+
+- 对 Relation 所在源 Space 的写入能力。
+- 对被引用目标的 discover/reference 能力，或目标 Space policy 允许的等价引用能力。
+
+读取与同步规则：
+
+- 引用 ID、目标类型和目标 `space_id`（若已知）可以作为源 Space 的 Relation metadata 同步。
+- 被引用对象的标题、字段、消息、附件、成员、计数、preview 和历史只按目标 Space 的 policy、history visibility、E2EE epoch 与 redaction policy 展开。
+- 公共 Space 引用私有 Space 对象时，默认只能展示 opaque ref 或 Lazy Link；除非目标 Space policy 明确允许 preview，不得泄露目标内容、成员、计数或存在性细节。
+- Sync / projection 层不得因为源 Space 可见就自动 backfill 目标 Space；跨 Space 展开必须重新执行目标 Space 授权，并在响应 metadata 中标记 `lazy_link`、`locked`、`accessible` 或等价可见性状态。
+
 ### 2.5 Event 是事实
 
 所有协作变化最终都落为签名 `event`。

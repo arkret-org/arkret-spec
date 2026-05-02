@@ -102,6 +102,14 @@ components:
           type: array
           items:
             type: string
+        limits:
+          type: object
+          additionalProperties: true
+        rate_limit_policy_ref:
+          type: string
+        rate_limit_policy:
+          type: object
+          additionalProperties: true
     IdentityResolveResponse:
       type: object
       properties:

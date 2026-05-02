@@ -181,7 +181,7 @@ event_id ASC
 
 - `causal_depth` 来自已知 DAG / prev refs。
 - `hlc` 用于近实时排序。
-- `actor_seq` 保证同一 actor 本地顺序。
+- `actor_seq` 只在同一 actor 的已知因果路径内辅助排序；并发 sibling fork 仍由后续 tie-breaker 收敛。
 - `event_id` 是最终 tie-breaker。
 
 对于 state event，客户端 MUST 使用 `event-auth-state-resolution.md` 的 state resolution 输出解释当前态，不得只取 timeline 中最后出现的同 key state event。

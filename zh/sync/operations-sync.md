@@ -37,7 +37,7 @@ Event Store 是 Principal Server、客户端、本地节点或授权副本保存
 - frontier / cursor：按 actor、Space 或查询范围暴露调用方可见的同步前沿。
 - proof material：签名、hash、DID key 状态引用和可选 witness receipt。
 
-网络上的 `/events/*` 是 Event 提交、读取、回填和前沿查询 API surface。接收方验证 Event 时 MUST 校验 Event 签名、DID 控制链、canonical hash、`actor_seq` 单调性、`prev_refs` 因果约束、`auth_refs` 授权依赖和 `event_id` 幂等性。
+网络上的 `/events/*` 是 Event 提交、读取、回填和前沿查询 API surface。接收方验证 Event 时 MUST 校验 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增约束、`prev_refs` 因果约束、`auth_refs` 授权依赖和 `event_id` 幂等性。
 
 实现 MAY 发布 Event batch receipt、checkpoint、snapshot 或 witness receipt 加速恢复和审计，但这些对象不得成为 canonical history 的必经层，也不得替代 Event Envelope 本身的签名责任。
 
@@ -156,13 +156,14 @@ Contrix v1 要求：
 
 - `prev_refs` 表示 actor event chain 的直接前序
 - `hlc` 表示近实时逻辑时间
-- `actor_seq` 表示 actor 本地单调序列
+- `actor_seq` 表示 actor 因果路径高度和防回退索引
 
 三者的职责边界固定如下：
 
 - `prev_refs` / `auth_refs` 是因果事实。HLC 更大不得覆盖缺失或相反的因果依赖。
-- `actor_seq` 是同一 actor event chain 的单调防回退索引。接收方若已接受同 actor 更高 `actor_seq`，较低 `actor_seq` 的新事件 MUST reject 或 quarantine，除非它已经作为旧历史被同一 canonical hash 回补。
-- 同一 actor 发布的新 durable Event SHOULD 以其上一个 accepted durable Event 为唯一直接 `prev_refs`。多设备或离线分叉导致多个直接前序时，生产者 MAY 使用多个 `prev_refs` 合并分支；接收方 MUST 保留 fork / merge 证据并按 reducer 规则收敛。
+- `actor_seq` 在同一 actor 的任一因果路径上 MUST 严格递增；它不是 device-local sequence，也不是全局 total order。生产者 SHOULD 令新事件的 `actor_seq` 大于其同 actor 直接 `prev_refs` 的最大 `actor_seq`。
+- 同一 actor 的多个设备或离线写入 MAY 产生同一高度的 sibling fork。接收方若已接受同 actor 更高 `actor_seq`，不得仅因新事件的 `actor_seq` 较低或相同而拒绝；只有当该事件不能从任何已知 frontier 回填为有效历史分支、违反直接前序递增规则、或与同一 `event_id` 的 canonical hash 冲突时，才 MUST reject 或 quarantine。
+- 同一 actor 发布的新 durable Event SHOULD 以其上一个 accepted durable Event 为唯一直接 `prev_refs`。多设备或离线分叉导致多个 actor frontier head 时，生产者 MAY 使用多个同 actor `prev_refs` 合并分支，并 SHOULD 设置 `actor_seq = max(prev_actor_seq) + 1`；接收方 MUST 把 actor frontier 表达为 head set，而不是单个最大序号，并保留 fork / merge 证据按 reducer 规则收敛。
 - `prev_refs` 或 `auth_refs` MUST NOT 包含当前 `event_id`。任何自引用事件 MUST 以 `causal_conflict` reject。
 - 当 `prev_refs` 表示 A 因果先于 B，但 `hlc(A) > hlc(B)` 时，因果顺序仍为 A -> B；实现 MAY 记录 clock skew warning，但不得用 HLC 反转因果。
 - 当两个事件之间没有因果路径时，reducer 才可使用 deterministic ordering 中的 HLC / actor / event hash 作为 tie-breaker。
@@ -558,11 +559,11 @@ Contrix 初版不引入全网共识链。
 并发操作 tie-breaker 依次为：
 
 1. 授权权重。
-2. HLC。
+2. HLC（作为 winner 选择时取较大的已验证 HLC）。
 3. Actor ID 字典序。
 4. Event hash / `event_id` 字典序。
 
-实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
+该 winner 顺序不同于客户端 timeline 的展示顺序；timeline 通常按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
 
 ## 17. 字段级 merge 与对象级收敛
 
