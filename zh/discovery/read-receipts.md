@@ -25,10 +25,10 @@
 ```json
 {
   "type": "cx.receipt.read",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "room_id": "cx:room:01JS1000000000000000000001",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "room_id": "cx:room:01js1000000000000000000001",
   "actor": "did:web:alice.example.com",
-  "event_id": "cx:event:01JS1READ00000000000000000",
+  "event_id": "cx:event:01js1read00000000000000000",
   "timestamp": "2026-04-26T10:00:00Z"
 }
 ```
@@ -56,9 +56,9 @@ Read Marker 作为一种持久化的个人状态，MUST 作为加密 account dat
 {
   "type": "cx.read.marker",
   "body": {
-    "space_id": "cx:space:01JS0SP000000000000000000",
-    "room_id": "cx:room:01JS1000000000000000000001",
-    "event_id": "cx:event:01JS1READ00000000000000000"
+    "space_id": "cx:space:01js0sp0000000000000000000",
+    "room_id": "cx:room:01js1000000000000000000001",
+    "event_id": "cx:event:01js1read00000000000000000"
   }
 }
 ```

@@ -79,19 +79,19 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
 
 ```json
 {
-  "receipt_id": "cx:receipt:01JS0RCP000000000000000000",
+  "receipt_id": "cx:receipt:01js0rcp000000000000000000",
   "issuer": "did:web:alice.example.net",
   "scope": {
     "actor_id": "did:web:alice.example.com",
-    "space_id": "cx:space:01JS0SP000000000000000000"
+    "space_id": "cx:space:01js0sp0000000000000000000"
   },
   "frontier": {
     "actor_seq": 144,
     "event_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "events": [
-    "cx:event:01JS0EV000000000000000000",
-    "cx:event:01JS0EW000000000000000000"
+    "cx:event:01js0ev0000000000000000000",
+    "cx:event:01js0ew0000000000000000000"
   ],
   "created_at": "2026-04-22T08:30:00Z",
   "proofs": []
@@ -112,8 +112,8 @@ Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`p
 
 ```json
 {
-  "event_id": "cx:event:01JS0EV000000000000000000",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "event_id": "cx:event:01js0ev0000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "space_version": "1",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 42,
@@ -121,13 +121,13 @@ Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`p
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0007-a13f9c2e",
   "prev_refs": [
-    "cx:event:01JS0EU000000000000000000"
+    "cx:event:01js0ev0000000000000000000"
   ],
   "auth_refs": [
-    "cx:event:01JS0GR000000000000000000"
+    "cx:event:01js0gr0000000000000000000"
   ],
   "content": {
-    "card_id": "cx:card:01JS0CD000000000000000000",
+    "card_id": "cx:card:01js0cd0000000000000000000",
     "patch": {
       "fields.status": "review"
     }
@@ -161,7 +161,9 @@ Contrix v1 要求：
 
 ## 7. 标准 Event Kind
 
-所有 `kind` 都是可见事件类型。标准 `Event.kind` 的机器可读 source of truth 是 `artifacts/registry/event-kind-registry.json`；`schema-registry.md` 只是文档视图。实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的标准事件类型。自定义事件不得使用 `cx.` 前缀，除非已纳入标准 registry。
+标准 `Event.kind` 的机器可读 source of truth 是 `artifacts/registry/event-kind-registry.json`；`schema-registry.md` 只是文档视图。实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的标准事件类型。自定义事件不得使用 `cx.` 前缀，除非已纳入标准 registry。
+
+registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 且 `wire_scope=durable_event` 的 kind 可以进入共享 Event Envelope 历史、参与 actor chain、推进 reducer frontier 或 state hash；`wire_scope=actor_private_event` 只能用于加密 account data 或 actor-private stream；`wire_scope=ephemeral_event` 只能走 ephemeral channel，MUST NOT 增加 `actor_seq`、`prev_refs`、state hash 或 reducer frontier；`wire_scope=deprecated_alias` 只能被消费者按 `replaced_by` 做迁移兼容，生产者不得再发出。
 
 本节列出 Event-first 写路径中的核心 durable Event kind，不替代 registry。
 
@@ -299,17 +301,17 @@ Card 与 Room 的关联只使用 Card 视角事件：`cx.card.link_room`、`cx.c
 ```json
 {
   "kind": "cx.card.move",
-  "target_ref": "cx:card:01js0tk000000000000000000",
+  "target_ref": "cx:card:01js0tk0000000000000000000",
   "content": {
-    "board_id": "cx:board:01js0bd000000000000000000",
-    "card_id": "cx:card:01js0tk000000000000000000",
-    "from_list_id": "cx:list:01todo",
-    "to_list_id": "cx:list:01review",
+    "board_id": "cx:board:01js0bd0000000000000000000",
+    "card_id": "cx:card:01js0tk0000000000000000000",
+    "from_list_id": "cx:list:01t0d000000000000000000000",
+    "to_list_id": "cx:list:01rev1ew000000000000000000",
     "rank": "mV",
     "expected_position": {
-      "list_id": "cx:list:01todo",
+      "list_id": "cx:list:01t0d000000000000000000000",
       "rank": "h0",
-      "relation_id": "cx:relation:01old"
+      "relation_id": "cx:relation:0101d000000000000000000000"
     }
   }
 }
@@ -332,15 +334,15 @@ Reducer 语义：
 ```json
 {
   "kind": "cx.card.reorder",
-  "target_ref": "cx:card:01js0tk000000000000000000",
+  "target_ref": "cx:card:01js0tk0000000000000000000",
   "content": {
-    "board_id": "cx:board:01js0bd000000000000000000",
-    "list_id": "cx:list:01review",
-    "card_id": "cx:card:01js0tk000000000000000000",
+    "board_id": "cx:board:01js0bd0000000000000000000",
+    "list_id": "cx:list:01rev1ew000000000000000000",
+    "card_id": "cx:card:01js0tk0000000000000000000",
     "rank": "mV",
     "expected_position": {
       "rank": "h0",
-      "relation_id": "cx:relation:01pos"
+      "relation_id": "cx:relation:01p0s000000000000000000000"
     }
   }
 }
@@ -359,10 +361,10 @@ Reducer 语义：
 ```json
 {
   "kind": "cx.card.link_room",
-  "target_ref": "cx:card:01js0tk000000000000000000",
+  "target_ref": "cx:card:01js0tk0000000000000000000",
   "content": {
-    "card_id": "cx:card:01js0tk000000000000000000",
-    "room_id": "cx:room:01js0rm000000000000000000",
+    "card_id": "cx:card:01js0tk0000000000000000000",
+    "room_id": "cx:room:01js0rm0000000000000000000",
     "purpose": "implementation_discussion",
     "primary": false
   }

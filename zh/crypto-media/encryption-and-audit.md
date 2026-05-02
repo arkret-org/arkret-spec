@@ -73,11 +73,11 @@ E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务�
 ```json
 {
   "application_state_ref": {
-    "space_id": "cx:space:01JS0SP000000000000000000",
+    "space_id": "cx:space:01js0sp0000000000000000000",
     "mls_group_id": "base64url...",
     "previous_epoch": 41,
     "next_epoch": 42,
-    "membership_frontier": ["cx:event:membership_head"],
+    "membership_frontier": ["cx:event:membersh1phead000000000000"],
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
     "room_metadata_hash": "sha256:canonical_room_metadata",
@@ -210,12 +210,12 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 ### 3.3 强制留痕机制 (Audit Record Mandatory)
 获得密钥并不意味着可以随意“暗中偷看”。协议要求 Audit Agent 的实现（强烈建议依托于 TEE / SGX enclave 技术）必须执行以下硬性工作流：
 
-1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:msg:123`）。
+1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:message:msg12300000000000000000000`）。
 2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条类型为 `cx.audit.accessed` 的不可撤销 Event，并提交给该 Space：
    ```json
    {
      "type": "cx.audit.accessed",
-     "target_ref": "cx:msg:123",
+     "target_ref": "cx:message:msg12300000000000000000000",
      "reason": "Internal legal compliance request #8801",
      "actor": "did:web:compliance.acme.corp"
    }

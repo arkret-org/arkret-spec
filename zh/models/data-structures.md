@@ -20,7 +20,7 @@
 | `enum(...)` | 枚举字符串。 |
 | `timestamp` | RFC 3339 UTC string，必须以 `Z` 结尾。 |
 | `did` | DID URI string。 |
-| `id:<kind>` | `cx:<kind>:<ulid>` 或该 kind 的标准 ID string。 |
+| `id:<kind>` | `cx:<kind>:<ulid>` typed ID，或该 kind 在 `id-kind-registry.json` 声明的特殊 wire form。 |
 | `hash` | `sha256:<lowercase_hex_digest>`。 |
 | `cursor` | `cx:cursor:<base64url>` opaque string。 |
 
@@ -30,6 +30,7 @@
 - `null` 只有在类型中明确写出时才允许。
 - 实现 MUST 保留未知字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
+- `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `cx:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 
 ## 3. Common Object Fields
 

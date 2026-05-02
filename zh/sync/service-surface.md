@@ -425,7 +425,7 @@ POST /api/v1/index/search
 ```json
 {
   "query": "legal review",
-  "space_ids": ["cx:space:01JS0SP000000000000000000"],
+  "space_ids": ["cx:space:01js0sp0000000000000000000"],
   "object_types": ["message", "card", "morph"],
   "morph_types": ["comment"],
   "sender": "did:web:alice.example.com",

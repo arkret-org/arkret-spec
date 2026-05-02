@@ -24,7 +24,7 @@ cx.vector.state_resolution.conflict_space_membership.v1
 
 输入：
 
-- Space: `cx:space:01js0ms000000000000000000`
+- Space: `cx:space:01js0ms0000000000000000000`
 - State key: `did:uuid:bob`
 - Candidate A: `cx.member.state` -> `join`
 - Candidate B: `cx.member.state` -> `ban`
@@ -44,8 +44,8 @@ cx.vector.state_resolution.conflict_room_membership.v1
 
 输入：
 
-- Room: `cx:room:01js0ro000000000000000000`
-- State key: `cx:room:01js0ro000000000000000000|did:uuid:bob`
+- Room: `cx:room:01js0r00000000000000000000`
+- State key: `cx:room:01js0r00000000000000000000|did:uuid:bob`
 - Candidate A: `cx.room.member` -> `join`
 - Candidate B: `cx.room.member` -> `leave`
 
@@ -68,29 +68,29 @@ cx.vector.state_resolution.concurrent_card_move.v1
 ```json
 {
   "base": {
-    "card_id": "cx:card:01js0ca000000000000000000",
-    "list_id": "cx:list:01js0li100000000000000000",
+    "card_id": "cx:card:01js0ca0000000000000000000",
+    "list_id": "cx:list:01js0111000000000000000000",
     "rank": "U"
   },
   "candidates": [
     {
-      "event_id": "cx:event:01js0ev100000000000000000",
+      "event_id": "cx:event:01js0ev1000000000000000000",
       "kind": "cx.card.move",
       "content": {
-        "board_id": "cx:board:01js0bd000000000000000000",
-        "card_id": "cx:card:01js0ca000000000000000000",
-        "to_list_id": "cx:list:01js0li200000000000000000",
+        "board_id": "cx:board:01js0bd0000000000000000000",
+        "card_id": "cx:card:01js0ca0000000000000000000",
+        "to_list_id": "cx:list:01js0112000000000000000000",
         "rank": "U"
       },
       "hlc": "01970e589d21-0001-a13f9c2e"
     },
     {
-      "event_id": "cx:event:01js0ev200000000000000000",
+      "event_id": "cx:event:01js0ev2000000000000000000",
       "kind": "cx.card.move",
       "content": {
-        "board_id": "cx:board:01js0bd000000000000000000",
-        "card_id": "cx:card:01js0ca000000000000000000",
-        "to_list_id": "cx:list:01js0li300000000000000000",
+        "board_id": "cx:board:01js0bd0000000000000000000",
+        "card_id": "cx:card:01js0ca0000000000000000000",
+        "to_list_id": "cx:list:01js0113000000000000000000",
         "rank": "U"
       },
       "hlc": "01970e589d21-0002-a13f9c2e"

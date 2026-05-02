@@ -16,7 +16,7 @@
     },
     "display_name": { "type": "string", "minLength": 1, "maxLength": 128 },
     "handle": { "type": "string" },
-    "avatar_blob_ref": { "type": "string", "pattern": "^cx:blob:[0-9a-hjkmnp-z]{26}$" },
+    "avatar_blob_ref": { "type": "string", "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$" },
     "status": { "type": "string", "enum": ["active", "suspended", "deactivated", "deleted"] },
     "accountable_to": { "type": "array", "items": { "$ref": "#/$defs/did" } },
     "profile_fields": { "type": "object" },

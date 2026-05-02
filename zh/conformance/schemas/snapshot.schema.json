@@ -23,7 +23,7 @@
         "type": "object",
         "required": ["chunk_ref", "sha256", "size_bytes"],
         "properties": {
-          "chunk_ref": { "type": "string", "pattern": "^cx:blob:[0-9a-hjkmnp-z]{26}$" },
+          "chunk_ref": { "type": "string", "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$" },
           "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "size_bytes": { "type": "integer", "minimum": 0 }
         },

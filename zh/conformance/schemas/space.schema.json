@@ -47,7 +47,7 @@
     "encryption_profile": { "type": "string", "enum": ["none", "mls_rfc9420", "external"] },
     "federation_policy": { "type": "string", "enum": ["open", "restricted", "closed", "quarantine"] },
     "retention_policy_ref": { "type": "string", "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$" },
-    "avatar_blob_ref": { "type": "string", "pattern": "^cx:blob:[0-9a-hjkmnp-z]{26}$" },
+    "avatar_blob_ref": { "type": "string", "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$" },
     "created_at": { "$ref": "#/$defs/timestamp" },
     "updated_at": { "$ref": "#/$defs/timestamp" }
   },

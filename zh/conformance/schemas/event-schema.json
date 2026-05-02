@@ -12,7 +12,7 @@
     "kind": {
       "type": "string",
       "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-      "description": "Standard cx.* kinds MUST appear in artifacts/registry/event-kind-registry.json."
+      "description": "Standard cx.* kinds MUST appear in artifacts/registry/event-kind-registry.json. Durable Event Envelope history accepts only active entries with wire_scope=durable_event unless a profile defines a private actor channel."
     },
     "schema": { "const": "cx.schema.event.v1" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
@@ -167,7 +167,7 @@
             { "type": "array", "items": { "type": "string" } }
           ]
         },
-        "jws": { "type": "string", "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$" }
+        "jws": { "type": "string", "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$" }
       },
       "additionalProperties": true
     }

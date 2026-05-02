@@ -13,6 +13,7 @@ contrix-spec/
       non-http-bindings.yaml
     fixtures/
       capability-fixture.json
+      crypto-signature-fixture.json
       encoding-fixture.json
       federation-fixture.json
       privacy-security-fixture.json
@@ -25,6 +26,7 @@ contrix-spec/
       conformance-profiles.json
     registry/
       event-kind-registry.json
+      id-kind-registry.json
       operation-registry.json
       schema-registry.json
     schemas/

@@ -29,38 +29,40 @@ sha256:<lowercase_hex_digest>
 
 ## 4. ID
 
-ID 格式：
+协议 wire / canonical object 层的 typed ID 格式：
 
 ```text
 cx:<kind>:<ulid>
 ```
 
-常见 kind：
+标准 `kind` 的机器可读 source of truth 是 `artifacts/registry/id-kind-registry.json`。本文只定义通用规则。
 
-- `space`
-- `room`
-- `board`
-- `list`
-- `card`
-- `message`
-- `morph`
-- `relation`
-- `event`
-- `receipt`
-- `operation`
-- `grant`
-- `view`
-- `blob`
-- `txn`
+`cx:` 前缀表示 Contrix 协议命名空间；`<kind>` 表示对象或引用类型；`<ulid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
+
+- Event Envelope、canonical object、receipt、snapshot、fixture 和 OpenAPI / non-HTTP DTO。
+- canonical JSON、签名 payload、`payload_hash`、event digest、cursor 内部 state、federation payload、audit log。
+- 跨服务引用、日志和错误响应中需要自描述对象类型的字段。
+
+数据库或本地索引实现 MAY 不把 `cx:<kind>:` 前缀作为主键的一部分存储。例如 `receipts` 表可以只存 `d1sc01j0000000000000000000`，因为表名或显式 `kind` 列已经提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，不得用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
+
+`<kind>` 是 canonical bytes 的一部分。实现不得把 `cx:receipt:<id>` 改写成 `cx:event:<id>`，也不得因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
 v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 ULID 部分 MUST 使用小写 Crockford Base32 字符集 `[0-9a-hjkmnp-z]`，并且不得包含 `i`、`l`、`o`、`u`。旧草案或外部导入数据 MAY 使用大写 ULID；实现必须在生成 v1 Event Envelope、object id、cursor payload 或 proof `payload_hash` 前把它规范化为小写。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写。
+
+特殊 ID/ref 形式：
+
+- `cx:cursor:<base64url>` 是 opaque token，不是 typed ULID object ID。
+- `cx:blob:sha256:<digest>` 是内容寻址 Blob ref；`cx:blob:<ulid>` 是 Blob metadata ID。二者不得混用。
+- `cx:mls:<profile>:<profile_id>`、`cx:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
+
+自定义 profile 若新增 `cx:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `cx:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
 ## 5. Event Batch Receipt Hash
 
 ```json
 {
   "schema": "cx.schema.event_batch_receipt.v1",
-  "receipt_id": "cx:receipt:01JS0RC000000000000000000",
+  "receipt_id": "cx:receipt:01js0rc0000000000000000000",
   "type": "event_batch_receipt",
   "issuer": "did:web:alice.example",
   "scope": {

@@ -37,7 +37,7 @@
 ```json
 {
   "type": "cx.identity.presentation_request",
-  "request_id": "cx:req:pres_01J...",
+  "request_id": "cx:req:pres01j0000000000000000000",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
   "domain": "google.example",
@@ -79,7 +79,7 @@ Verifier MUST sign the request or send it through an authenticated relationship.
 ```json
 {
   "type": "cx.identity.disclosure_policy",
-  "policy_id": "cx:policy:disc_01J...",
+  "policy_id": "cx:policy:d1sc01j0000000000000000000",
   "holder_did": "did:uuid:holder_root_or_pairwise",
   "audience": {
     "org_did": "did:web:google.example",
@@ -116,7 +116,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Space�
 ```json
 {
   "type": "cx.identity.presentation_response",
-  "request_id": "cx:req:pres_01J...",
+  "request_id": "cx:req:pres01j0000000000000000000",
   "holder_subject": "did:uuid:g_pairwise...",
   "proof_profile": "vc_di_bbs_2023",
   "presentation": {},
@@ -137,8 +137,8 @@ Response MUST NOT contain undisclosed fields, base proof, unrelated credential i
 ```json
 {
   "type": "cx.identity.disclosure_receipt",
-  "receipt_id": "cx:receipt:disc_01J...",
-  "request_id": "cx:req:pres_01J...",
+  "receipt_id": "cx:receipt:d1sc01j0000000000000000000",
+  "request_id": "cx:req:pres01j0000000000000000000",
   "holder_did": "did:uuid:g_pairwise...",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",

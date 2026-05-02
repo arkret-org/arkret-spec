@@ -572,7 +572,7 @@ SHOULD 支持：
 
 所有 profile MUST 能按 `data-structures.md` 解码和验证其声明支持的核心对象字段。实现 MUST 在 canonical object 中保留未知 non-critical 字段，并覆盖“hash/signature 校验、存储、联邦转发、backfill 后字段仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。
 
-所有 profile MUST 按 `encoding-conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、HLC 和 cursor 的基础向量。Events API、Index、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
+所有 profile MUST 按 `encoding-conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Index、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
 
 E2EE profile MUST 额外提供：
 

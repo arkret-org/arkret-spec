@@ -5,8 +5,8 @@
       "name": "card_update_grant",
       "selector": {
         "kind": "card",
-        "space_id": "cx:space:01js0sp000000000000000000",
-        "card_id": "cx:card:01js0ca000000000000000000"
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "card_id": "cx:card:01js0ca0000000000000000000"
       },
       "actions": ["cx.card.read", "cx.card.update"],
       "expected": "allow"
@@ -15,11 +15,11 @@
       "name": "linked_room_not_inherited",
       "selector": {
         "kind": "card",
-        "space_id": "cx:space:01js0sp000000000000000000",
-        "card_id": "cx:card:01js0ca000000000000000000"
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "card_id": "cx:card:01js0ca0000000000000000000"
       },
       "attempted_action": "cx.message.create",
-      "target_ref": "cx:room:01js0ro000000000000000000",
+      "target_ref": "cx:room:01js0r00000000000000000000",
       "expected": "deny"
     }
   ]

@@ -70,15 +70,15 @@ Room 适合：
 
 ```json
 {
-  "id": "cx:room:01JS1000000000000000000000",
+  "id": "cx:room:01js1000000000000000000000",
   "type": "room",
   "schema": "cx.schema.room.v1",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "release-engineering",
   "summary": "Engineering coordination for release readiness.",
   "room_kind": "discussion",
   "history_visibility": "joined",
-  "membership_policy_ref": "cx:policy:01JS0RP000000000000000000",
+  "membership_policy_ref": "cx:policy:01js0rp0000000000000000000",
   "created_by": "did:web:alice.example"
 }
 ```
@@ -100,18 +100,18 @@ Message 是 Room 时间线中的原子消息对象。
 
 ```json
 {
-  "id": "cx:message:01JS1000000000000000000002",
+  "id": "cx:message:01js1000000000000000000002",
   "type": "message",
   "schema": "cx.schema.message.v1",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "room_id": "cx:room:01JS1000000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "room_id": "cx:room:01js1000000000000000000000",
   "created_by": "did:web:alice.example.com",
   "content": {
     "format": "markdown",
     "text": "@bob 请确认这个 card 的 legal 风险。"
   },
   "fields": {
-    "revision_root": "cx:message:01JS1000000000000000000002",
+    "revision_root": "cx:message:01js1000000000000000000002",
     "visible_state": "active"
   }
 }
@@ -132,8 +132,8 @@ Card 关联 Room 使用 Relation：
 {
   "type": "relation",
   "relation_kind": "links_room",
-  "from_ref": "cx:card:01JS0CD000000000000000000",
-  "to_ref": "cx:room:01JS0RM000000000000000000",
+  "from_ref": "cx:card:01js0cd0000000000000000000",
+  "to_ref": "cx:room:01js0rm0000000000000000000",
   "fields": {
     "purpose": "implementation_discussion",
     "primary": false
@@ -147,8 +147,8 @@ Card 关联 Room 使用 Relation：
 {
   "type": "relation",
   "relation_kind": "primary_room",
-  "from_ref": "cx:card:01JS0CD000000000000000000",
-  "to_ref": "cx:room:01JS0RM000000000000000000"
+  "from_ref": "cx:card:01js0cd0000000000000000000",
+  "to_ref": "cx:room:01js0rm0000000000000000000"
 }
 ```
 
@@ -174,9 +174,9 @@ Room membership 是 Space 内的子范围授权。它不替代 Space membership�
 ```json
 {
   "kind": "cx.room.member",
-  "state_key": "cx:room:01JS0RM000000000000000000|did:web:bob.example",
+  "state_key": "cx:room:01js0rm0000000000000000000|did:web:bob.example",
   "content": {
-    "room_id": "cx:room:01JS0RM000000000000000000",
+    "room_id": "cx:room:01js0rm0000000000000000000",
     "member": "did:web:bob.example",
     "membership": "join",
     "reason": "invited"

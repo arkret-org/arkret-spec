@@ -93,7 +93,7 @@ disjunction_selector ::= selector "," selector
 
 ### 3.1 Space 选择器
 
-`space:cx:space:01JS0SP000000000000000000`
+`space:cx:space:01js0sp0000000000000000000`
 
 - 匹配：特定 Space。
 - 适用：该 Space 中的所有标准对象、Morph、Relation、Event 和 View。
@@ -110,7 +110,7 @@ disjunction_selector ::= selector "," selector
 - 匹配：该 Space 中所有 Card。
 - 不匹配：Room、Message、Morph 或其他对象。
 
-`card:cx:space:...:cx:card:01JS0CARD000000000000000`
+`card:cx:space:...:cx:card:01js0card00000000000000000`
 
 - 匹配：特定 Card。
 - 最高特异性。
@@ -132,7 +132,7 @@ disjunction_selector ::= selector "," selector
 - 匹配：该 Space 中所有 `morph_type=memory` 的 Morph。
 - 不匹配：标准 Message 或 Card。
 
-`morph:cx:space:...:cx:morph:01JS0MO000000000000000000`
+`morph:cx:space:...:cx:morph:01js0m00000000000000000000`
 
 - 匹配：特定 Morph。
 
@@ -149,7 +149,7 @@ disjunction_selector ::= selector "," selector
 
 - 匹配：该 Space 中所有 `type=card` 的对象。
 
-`object:cx:space:...:cx:card:01JS0CARD000000000000000`
+`object:cx:space:...:cx:card:01js0card00000000000000000`
 
 - 匹配：给定对象引用。
 
@@ -166,7 +166,7 @@ disjunction_selector ::= selector "," selector
 
 ### 3.6 View 选择器
 
-`view:cx:space:...:cx:view:01JS0VW000000000000000000`
+`view:cx:space:...:cx:view:01js0vw0000000000000000000`
 
 - 匹配：特定 View。
 - 权限：`read` 允许读取 View 定义，但查询结果仍按底层对象授权裁剪。
@@ -212,16 +212,16 @@ disjunction_selector ::= selector "," selector
   "resources": [
     {
       "kind": "space",
-      "space_id": "cx:space:01JS0SP000000000000000000"
+      "space_id": "cx:space:01js0sp0000000000000000000"
     },
     {
       "kind": "card",
-      "space_id": "cx:space:01JS0SP000000000000000000",
-      "card_id": "cx:card:01JS0CARD000000000000000"
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "card_id": "cx:card:01js0card00000000000000000"
     },
     {
       "kind": "morph",
-      "space_id": "cx:space:01JS0SP000000000000000000",
+      "space_id": "cx:space:01js0sp0000000000000000000",
       "morph_type": "memory"
     }
   ]
@@ -353,7 +353,7 @@ Facet 选择适合：
     {
       "kind": "card",
       "space_id": "cx:space:...",
-      "card_id": "cx:card:01JS0CARD000000000000000"
+      "card_id": "cx:card:01js0card00000000000000000"
     }
   ],
   "constraints": [
@@ -378,7 +378,7 @@ Facet 选择适合：
     {
       "kind": "room",
       "space_id": "cx:space:...",
-      "room_id": "cx:room:01JS0ROOM000000000000000"
+      "room_id": "cx:room:01js0r00m00000000000000000"
     }
   ]
 }

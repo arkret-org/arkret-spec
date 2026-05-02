@@ -145,14 +145,14 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ```json
 {
-  "id": "cx:device:01JS0KE000000000000000000",
+  "id": "cx:device:01js0ke0000000000000000000",
   "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
   "device_label": "Alice MacBook Pro",
   "device_public_key": "z6Mks...",
   "device_key_type": "Multikey",
   "created_at": "2026-04-26T00:00:00Z",
-  "authorized_by": "cx:device:01JS0KD000000000000000000",
-  "authorization_ref": "cx:event:01JS0KF000000000000000000",
+  "authorized_by": "cx:device:01js0kd0000000000000000000",
+  "authorization_ref": "cx:event:01js0kf0000000000000000000",
   "status": "active",
   "last_seen_at": "2026-04-26T08:00:00Z",
   "revocation_ref": null
@@ -178,7 +178,7 @@ MLS KeyPackage key 用于加入加密 Space。
 {
   "type": "cx.device.authorized",
   "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-  "device_id": "cx:device:01JS0KE000000000000000000",
+  "device_id": "cx:device:01js0ke0000000000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
     "cx.events.describe",
@@ -188,7 +188,7 @@ MLS KeyPackage key 用于加入加密 Space。
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": null,
-  "authorized_by": "cx:device:01JS0KD000000000000000000",
+  "authorized_by": "cx:device:01js0kd0000000000000000000",
   "proof": {
     "kind": "detached_jws",
     "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#device-old",
@@ -265,7 +265,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 {
   "type": "key_backup",
   "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
-  "backup_id": "cx:backup:01JS0KE000000000000000000",
+  "backup_id": "cx:backup:01js0ke0000000000000000000",
   "created_at": "2026-04-26T00:00:00Z",
   "kdf": {
     "name": "argon2id",

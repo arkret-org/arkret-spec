@@ -122,7 +122,7 @@ Signature: sig1=:base64...:
 {
   "origin": "did:web:server-alpha.com",
   "destination": "did:web:server-beta.com",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "service_binding_ref": {
     "space_policy_hash": "sha256:...",
     "membership_frontier": ["cx:event:..."],
@@ -230,7 +230,7 @@ Bob 也可以主动申请加入：
 
 ```json
 {
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "sync_endpoints": [
     {
       "did": "did:web:server-alpha.com",

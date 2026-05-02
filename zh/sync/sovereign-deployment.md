@@ -245,7 +245,7 @@ Recommended policy:
   "issuer": "did:web:defense.example",
   "subject": "did:web:contractor.example",
   "scope": {
-    "space_id": "cx:space:joint-operation",
+    "space_id": "cx:space:j01nt000000000000000000000-operation",
     "roles": ["contractor_reviewer"],
     "max_members": 20
   },

@@ -3,7 +3,7 @@
 ## 1. 目标
 
 本文件将 capability 的链式授权、撤销回滚与审批约束固定为跨实现向量。  
-适配对象：`identity-registry`, `principal_server_repo_api`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
+适配对象：`identity-registry`, `principal_server_events_api`, `e2ee_client`, `enterprise_client`, `agent_runtime`.
 
 向量命名：
 
@@ -41,7 +41,7 @@ cx.vector.capability.delegate_chain.v1
       "event_id": "cx:event:01js0d1g000000000000000000",
       "kind": "cx.capability.delegate",
       "state_key": "space-admin-delegate-a",
-      "space_id": "cx:space:01js0ms000000000000000000",
+      "space_id": "cx:space:01js0ms0000000000000000000",
       "space_version": "1",
       "actor_id": "did:uuid:root_admin",
       "content": {
@@ -63,13 +63,13 @@ cx.vector.capability.delegate_chain.v1
           }
         ]
       },
-      "auth_refs": ["cx:event:01js0rootgrant"]
+      "auth_refs": ["cx:event:01js0r00tgrant000000000000"]
     },
     {
       "event_id": "cx:event:01js0d1h000000000000000000",
       "kind": "cx.capability.delegate",
       "state_key": "invite-ops",
-      "space_id": "cx:space:01js0ms000000000000000000",
+      "space_id": "cx:space:01js0ms0000000000000000000",
       "space_version": "1",
       "actor_id": "did:uuid:ops",
       "content": {
@@ -96,7 +96,7 @@ cx.vector.capability.delegate_chain.v1
   "action_query": {
     "actor_id": "did:uuid:intern",
     "action": "cx.invite.create",
-    "resource": "cx:space:01js0ms000000000000000000",
+    "resource": "cx:space:01js0ms0000000000000000000",
     "request_time": "2026-04-26T01:00:00Z",
     "request_audience": "did:web:vendor.example"
   }
@@ -109,7 +109,7 @@ cx.vector.capability.delegate_chain.v1
 {
   "authorized": true,
   "valid_chain": [
-    "cx:event:01js0rootgrant",
+    "cx:event:01js0r00tgrant000000000000",
     "cx:event:01js0d1g000000000000000000",
     "cx:event:01js0d1h000000000000000000"
   ],
@@ -157,12 +157,13 @@ cx.vector.capability.revoke_rollback.v1
     },
     {
       "event_id": "cx:event:01js0x2a000000000000000000",
-      "kind": "cx.member.*",
+      "kind": "cx.member.state",
       "state_key": "did:uuid:alice",
+      "content": { "membership": "leave" },
       "created_at": "2026-04-26T00:00:02Z"
     },
     {
-      "event_id": "cx:event:01js0msg2a000000000000000000",
+      "event_id": "cx:event:01js0msg2a0000000000000000",
       "kind": "cx.message.create",
       "actor_id": "did:uuid:alice",
       "created_at": "2026-04-26T00:00:03Z",
@@ -179,7 +180,7 @@ cx.vector.capability.revoke_rollback.v1
 
 期望输出：
 
-- 初始解析：`cx:event:01js0msg2a000000000000000000` 因 revoke 生效应拒绝或标记 soft-fail/rejected（取决于实现策略）。
+- 初始解析：`cx:event:01js0msg2a0000000000000000` 因 revoke 生效应拒绝或标记 soft-fail/rejected（取决于实现策略）。
 - 回滚 revoke 后重算：同一事件在回滚前瞻分析中应变为 authorized。
 - 回滚必须产生独立可审计结果，不可直接修改历史事件链的 event_id。
 
@@ -204,7 +205,7 @@ cx.vector.capability.approval_constraint.v1
     "event_id": "cx:event:01js0mha000000000000000000",
     "kind": "cx.policy.action",
     "actor_id": "did:web:contractor.example",
-    "space_id": "cx:space:01js0ms000000000000000000",
+    "space_id": "cx:space:01js0ms0000000000000000000",
     "space_version": "1",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "content": {
@@ -213,7 +214,7 @@ cx.vector.capability.approval_constraint.v1
       "approval_quorum": 2,
       "scope": "space:01js0ms000000000000000000"
     },
-    "auth_refs": ["cx:event:01js0space_admin"]
+    "auth_refs": ["cx:event:01js0spaceadm1n00000000000"]
   },
   "capabilities": [
     {

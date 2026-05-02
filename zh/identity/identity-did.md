@@ -322,7 +322,7 @@ Raw W3C VC 字段同理：
 
 ```json
 {
-  "event_id": "cx:keyevt:01JS0KE000000000000000000",
+  "event_id": "cx:keyevt:01js0ke0000000000000000000",
   "seq": 2,
   "type": "rotate",
   "performed_at": "2026-04-26T00:00:00Z",

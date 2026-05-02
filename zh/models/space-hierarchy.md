@@ -24,9 +24,9 @@ Parent 侧声明：
 ```json
 {
   "type": "cx.space.child",
-  "state_key": "cx:space:child_01",
+  "state_key": "cx:space:ch11d010000000000000000000",
   "content": {
-    "child_space_id": "cx:space:child_01",
+    "child_space_id": "cx:space:ch11d010000000000000000000",
     "via": ["did:web:server.example"],
     "order": "mV",
     "suggested": false,
@@ -40,9 +40,9 @@ Child 侧确认：
 ```json
 {
   "type": "cx.space.parent",
-  "state_key": "cx:space:parent_01",
+  "state_key": "cx:space:parent01000000000000000000",
   "content": {
-    "parent_space_id": "cx:space:parent_01",
+    "parent_space_id": "cx:space:parent01000000000000000000",
     "via": ["did:web:server.example"],
     "canonical": true
   }
@@ -86,9 +86,9 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 ```json
 {
   "type": "cx.space.inheritance_policy",
-  "state_key": "cx:space:parent_01",
+  "state_key": "cx:space:parent01000000000000000000",
   "content": {
-    "parent_space_id": "cx:space:parent_01",
+    "parent_space_id": "cx:space:parent01000000000000000000",
     "inherits": {
       "membership": false,
       "capability_bundles": ["viewer", "commenter"],
@@ -116,11 +116,11 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 ```json
 {
   "type": "cx.capability.derived",
-  "state_key": "cx:grant:derived_01",
+  "state_key": "cx:grant:der1ved0100000000000000000",
   "content": {
-    "source_grant": "cx:grant:parent_viewer",
-    "source_space_id": "cx:space:parent_01",
-    "target_space_id": "cx:space:child_01",
+    "source_grant": "cx:grant:parentv1ewer00000000000000",
+    "source_space_id": "cx:space:parent01000000000000000000",
+    "target_space_id": "cx:space:ch11d010000000000000000000",
     "actions": ["cx.space.discover", "cx.object.read"],
     "constraints": [
       {
@@ -207,10 +207,10 @@ GET /api/v1/index/space-hierarchy?space_id=<id>&depth=2&include_unconfirmed=fals
 
 ```json
 {
-  "root_space_id": "cx:space:parent_01",
+  "root_space_id": "cx:space:parent01000000000000000000",
   "children": [
     {
-      "space_id": "cx:space:child_01",
+      "space_id": "cx:space:ch11d010000000000000000000",
       "edge_state": "confirmed",
       "accessible": true,
       "summary": {
@@ -219,7 +219,7 @@ GET /api/v1/index/space-hierarchy?space_id=<id>&depth=2&include_unconfirmed=fals
       }
     },
     {
-      "space_id": "cx:space:child_private",
+      "space_id": "cx:space:ch11dpr1vate00000000000000",
       "edge_state": "confirmed",
       "accessible": false,
       "lazy_link": true

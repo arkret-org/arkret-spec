@@ -133,8 +133,8 @@ Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会�
 
 ```json
 {
-  "id": "cx:view:01JS0VW000000000000000000",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "id": "cx:view:01js0vw0000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "created_by": "did:web:acme.example.com",
   "kind": "collection",
   "renderer": "board",
@@ -148,7 +148,7 @@ Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会�
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_ref": "cx:board:01JS0BD000000000000000000",
+      "source_ref": "cx:board:01js0bd0000000000000000000",
       "depth": 2
     }
   },
@@ -160,7 +160,7 @@ Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会�
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_id": "cx:board:01JS0BD000000000000000000",
+      "board_id": "cx:board:01js0bd0000000000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
@@ -228,7 +228,7 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_ref": "cx:board:01JS0BD000000000000000000",
+    "source_ref": "cx:board:01js0bd0000000000000000000",
     "depth": 2
   }
 }
@@ -241,7 +241,7 @@ View 应通过结构化 query 表达对象范围。
   "object_types": ["message"],
   "filters": [
     { "field": "fields.visible_state", "op": "eq", "value": "active" },
-    { "field": "room_id", "op": "eq", "value": "cx:room:01JS1000000000000000000000" }
+    { "field": "room_id", "op": "eq", "value": "cx:room:01js1000000000000000000000" }
   ],
   "order_by": [
     { "field": "created_at", "direction": "asc" }
@@ -253,7 +253,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "anchor_ref": "cx:card:01JS0CD000000000000000000",
+  "anchor_ref": "cx:card:01js0cd0000000000000000000",
   "include": [
     "relations",
     "linked_rooms",
@@ -300,9 +300,9 @@ Board projection MAY 在返回项中携带派生 `board_id`、`list_id`、`rank`
 
 ```json
 {
-  "id": "cx:board:01board",
+  "id": "cx:board:01b0ard0000000000000000000",
   "type": "board",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Launch Board",
   "board_kind": "kanban"
 }
@@ -310,10 +310,10 @@ Board projection MAY 在返回项中携带派生 `board_id`、`list_id`、`rank`
 
 ```json
 {
-  "id": "cx:list:01review",
+  "id": "cx:list:01rev1ew000000000000000000",
   "type": "list",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "board_id": "cx:board:01board",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "board_id": "cx:board:01b0ard0000000000000000000",
   "title": "Review",
   "rank": "mV"
 }
@@ -321,9 +321,9 @@ Board projection MAY 在返回项中携带派生 `board_id`、`list_id`、`rank`
 
 ```json
 {
-  "id": "cx:card:01task",
+  "id": "cx:card:01task00000000000000000000",
   "type": "card",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Legal review",
   "fields": {
     "status": "review",
@@ -340,17 +340,17 @@ Board projection MAY 在返回项中携带派生 `board_id`、`list_id`、`rank`
 ```json
 {
   "kind": "cx.card.move",
-  "target_ref": "cx:card:01task",
+  "target_ref": "cx:card:01task00000000000000000000",
   "content": {
-    "board_id": "cx:board:01board",
-    "card_id": "cx:card:01task",
-    "from_list_id": "cx:list:01todo",
-    "to_list_id": "cx:list:01review",
+    "board_id": "cx:board:01b0ard0000000000000000000",
+    "card_id": "cx:card:01task00000000000000000000",
+    "from_list_id": "cx:list:01t0d000000000000000000000",
+    "to_list_id": "cx:list:01rev1ew000000000000000000",
     "rank": "mV",
     "expected_position": {
-      "list_id": "cx:list:01todo",
+      "list_id": "cx:list:01t0d000000000000000000000",
       "rank": "h0",
-      "relation_id": "cx:relation:01old"
+      "relation_id": "cx:relation:0101d000000000000000000000"
     }
   }
 }
@@ -371,15 +371,15 @@ Reducer 语义：
 ```json
 {
   "kind": "cx.card.reorder",
-  "target_ref": "cx:card:01task",
+  "target_ref": "cx:card:01task00000000000000000000",
   "content": {
-    "board_id": "cx:board:01board",
-    "list_id": "cx:list:01review",
-    "card_id": "cx:card:01task",
+    "board_id": "cx:board:01b0ard0000000000000000000",
+    "list_id": "cx:list:01rev1ew000000000000000000",
+    "card_id": "cx:card:01task00000000000000000000",
     "rank": "mV",
     "expected_position": {
       "rank": "h0",
-      "relation_id": "cx:relation:01pos"
+      "relation_id": "cx:relation:01p0s000000000000000000000"
     }
   }
 }
@@ -393,32 +393,32 @@ Index / AppView MAY 为 `View{kind="collection", renderer="board"}` 返回已经
 {
   "kind": "collection",
   "renderer": "board",
-  "view_id": "cx:view:01JS0VW000000000000000000",
+  "view_id": "cx:view:01js0vw0000000000000000000",
   "frontier": ["cx:event:..."],
   "groups": [
     {
-      "group_id": "cx:list:01review",
+      "group_id": "cx:list:01rev1ew000000000000000000",
       "title": "Review",
       "rank": "mV",
       "items": [
         {
           "object": {
-            "id": "cx:card:01task",
+            "id": "cx:card:01task00000000000000000000",
             "type": "card",
             "title": "Legal review"
           },
           "position": {
-            "relation_id": "cx:relation:01pos",
+            "relation_id": "cx:relation:01p0s000000000000000000000",
             "rank": "mV"
           },
           "linked_rooms": [
             {
-              "room_id": "cx:room:01review",
+              "room_id": "cx:room:01rev1ew000000000000000000",
               "visibility": "accessible",
               "purpose": "review"
             },
             {
-              "room_id": "cx:room:01private",
+              "room_id": "cx:room:01pr1vate00000000000000000",
               "visibility": "locked",
               "lazy_link": true
             }
@@ -454,8 +454,8 @@ Lazy Link 示例：
 
 ```json
 {
-  "ref": "cx:card:external_01",
-  "space_id": "cx:space:external",
+  "ref": "cx:card:externa1010000000000000000",
+  "space_id": "cx:space:externa1000000000000000000",
   "lazy_link": true,
   "edge_kind": "references"
 }

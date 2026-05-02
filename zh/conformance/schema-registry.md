@@ -7,7 +7,8 @@
 机器可读 source of truth：
 
 - Object / DTO schema：`artifacts/registry/schema-registry.json`
-- Standard Event kind：`artifacts/registry/event-kind-registry.json`
+- Protocol typed ID kind：`artifacts/registry/id-kind-registry.json`
+- Standard Event kind：`artifacts/registry/event-kind-registry.json`（含 `wire_scope` 与 `reducer_input` 语义分类）
 - Service operation id：`artifacts/registry/operation-registry.json`
 
 ## 2. Object Schema
@@ -55,7 +56,9 @@
 - 裸名事件（如 `space.create`）不是标准事件类型，MUST NOT 出现在互操作事件流中。
 - 语义上不安全的自由字符串事件（如 `custom.*`）不直接进入注册表，必须通过自定义 schema + state filter+capability 约束映射到 `cx.custom.*` 空间。
 
-完整标准事件集合以 `artifacts/registry/event-kind-registry.json` 为准。下表是主要 durable Event kind 的文档视图；实现不得只解析本 Markdown 表，而必须加载机器 registry 或等价生成物。
+完整标准事件集合以 `artifacts/registry/event-kind-registry.json` 为准。registry 中的 `wire_scope` 是规范语义：`durable_event` 可以进入共享 Event Envelope 历史并作为 reducer 输入；`actor_private_event` 只能进入加密 account data 或 actor-private stream；`ephemeral_event` 只能走短暂同步通道；`deprecated_alias` 只能用于迁移读取。实现不得只解析本 Markdown 表，而必须加载机器 registry 或等价生成物。
+
+下表是主要已注册 kind 的文档视图，不替代机器 registry，也不改变 registry 的 `wire_scope`。
 
 | event type | payload |
 | --- | --- |

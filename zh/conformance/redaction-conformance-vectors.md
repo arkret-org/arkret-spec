@@ -24,9 +24,9 @@ cx.vector.redaction.preserve_fields.v1
 ```json
 {
   "target_event": {
-    "event_id": "cx:event:01js0mrec000000000000000000",
+    "event_id": "cx:event:01js0mrc000000000000000000",
     "kind": "cx.message.create",
-    "space_id": "cx:space:01js0ms000000000000000000",
+    "space_id": "cx:space:01js0ms0000000000000000000",
     "space_version": "1",
     "actor_id": "did:uuid:alice",
     "created_at": "2026-04-26T00:00:00Z",
@@ -47,17 +47,17 @@ cx.vector.redaction.preserve_fields.v1
     }
   },
   "redaction_event": {
-    "event_id": "cx:event:01js0rmov000000000000000000",
+    "event_id": "cx:event:01js0rm0v00000000000000000",
     "kind": "cx.redaction",
-    "space_id": "cx:space:01js0ms000000000000000000",
+    "space_id": "cx:space:01js0ms0000000000000000000",
     "space_version": "1",
     "actor_id": "did:uuid:alice",
     "created_at": "2026-04-26T00:00:02Z",
     "hlc": "01970e589d24-0002-bbbbbbbb",
-    "prev_refs": ["cx:event:01js0mrec000000000000000000"],
-    "auth_refs": ["cx:event:01js0capredact"],
+    "prev_refs": ["cx:event:01js0mrc000000000000000000"],
+    "auth_refs": ["cx:event:01js0cap000000000000000000"],
     "content": {
-      "redacts": "cx:event:01js0mrec000000000000000000",
+      "redacts": "cx:event:01js0mrc000000000000000000",
       "reason_code": "policy_recall"
     }
   }
@@ -68,7 +68,7 @@ cx.vector.redaction.preserve_fields.v1
 
 ```json
 {
-  "event_id": "cx:event:01js0mrec000000000000000000",
+  "event_id": "cx:event:01js0mrc000000000000000000",
   "state": "redacted",
   "kept_envelope_fields": [
     "event_id",
@@ -125,9 +125,9 @@ cx.vector.redaction.policy_scope.v1
 {
   "timeline": [
     {
-      "event_id": "cx:event:01js0qev1000000000000000000",
+      "event_id": "cx:event:01js0qv1000000000000000000",
       "kind": "cx.message.create",
-      "space_id": "cx:space:01js0ms000000000000000000",
+      "space_id": "cx:space:01js0ms0000000000000000000",
       "space_version": "1",
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
@@ -135,27 +135,27 @@ cx.vector.redaction.policy_scope.v1
       "content": { "body": "bad link: spam.example/phish" }
     },
     {
-      "event_id": "cx:event:01js0qev2c000000000000000000",
+      "event_id": "cx:event:01js0qv2c00000000000000000",
       "kind": "cx.policy.action",
-      "space_id": "cx:space:01js0ms000000000000000000",
+      "space_id": "cx:space:01js0ms0000000000000000000",
       "space_version": "1",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
       "actor_id": "did:uuid:policy_bot",
       "content": {
-        "target_id": "cx:event:01js0qev1000000000000000000",
+        "target_id": "cx:event:01js0qv1000000000000000000",
         "scope": "public",
         "decision": "quarantine"
       }
     },
     {
-      "event_id": "cx:event:01js0qev3r000000000000000000",
+      "event_id": "cx:event:01js0qv3r00000000000000000",
       "kind": "cx.redaction",
-      "space_id": "cx:space:01js0ms000000000000000000",
+      "space_id": "cx:space:01js0ms0000000000000000000",
       "space_version": "1",
       "actor_id": "did:web:policy-admin.example",
       "content": {
-        "redacts": "cx:event:01js0qev1000000000000000000",
+        "redacts": "cx:event:01js0qv1000000000000000000",
         "reason_code": "policy_recall"
       }
     }

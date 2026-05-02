@@ -74,7 +74,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 ```json
 {
   "type": "cx.profile.space_override",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "body": {
     "display_name": "alice-oss",
     "avatar": null
@@ -146,8 +146,8 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 {
   "type": "cx.typing",
   "actor": "did:web:alice.example.com",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "room_id": "cx:room:01JS1000000000000000000001",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "room_id": "cx:room:01js1000000000000000000001",
   "typing": true,
   "ttl_ms": 5000
 }

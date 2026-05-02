@@ -5,13 +5,13 @@
   "type": "object",
   "required": ["blob_ref", "media_type", "size", "access"],
   "properties": {
-    "blob_ref": { "type": "string", "pattern": "^cx:blob:[0-9a-hjkmnp-z]{26}$" },
+    "blob_ref": { "type": "string", "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$" },
     "media_type": { "type": "string", "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$" },
     "size": { "type": "integer", "minimum": 0 },
     "duration_ms": { "type": "integer", "minimum": 0 },
     "width": { "type": "integer", "minimum": 0 },
     "height": { "type": "integer", "minimum": 0 },
-    "preview_blob_ref": { "type": "string", "pattern": "^cx:blob:[0-9a-hjkmnp-z]{26}$" },
+    "preview_blob_ref": { "type": "string", "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$" },
     "access": {
       "type": "object",
       "required": ["visibility"],

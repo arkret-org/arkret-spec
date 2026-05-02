@@ -9,7 +9,7 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
 ```json
 {
   "type": "capability_grant",
-  "grant_id": "cx:grant:01JS0GR000000000000000000",
+  "grant_id": "cx:grant:01js0gr0000000000000000000",
   "issuer": "did:web:acme.example",
   "subject": "did:web:alice.example",
   "scope": {},
@@ -25,7 +25,7 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
 
 ```json
 {
-  "space_ids": ["cx:space:01JS0SP000000000000000000"],
+  "space_ids": ["cx:space:01js0sp0000000000000000000"],
   "object_types": ["card", "message", "morph"],
   "morph_types": ["run", "memory"],
   "facets": ["stateful", "replyable", "renderable"],
@@ -140,9 +140,9 @@ Delegated grant MUST be equal or narrower than parent grant.
   "effect": "allow",
   "priority": 0,
   "relation_kind_allow": ["contains"],
-  "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
-  "allowed_from_container_refs": ["cx:list:01js0c1000000000000000000"],
-  "allowed_to_container_refs": ["cx:list:01js0c2000000000000000000"],
+  "allowed_view_refs": ["cx:view:01js0vw0000000000000000000"],
+  "allowed_from_container_refs": ["cx:list:01js0c10000000000000000000"],
+  "allowed_to_container_refs": ["cx:list:01js0c20000000000000000000"],
   "wip_limit_override": false
 }
 ```

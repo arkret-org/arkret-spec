@@ -100,7 +100,7 @@ POST /api/v1/push/unregister-device
       "kind": "override",
       "enabled": true,
       "conditions": [
-        { "kind": "field_match", "field": "space_id", "pattern": "cx:space:muted..." }
+        { "kind": "field_match", "field": "space_id", "pattern": "cx:space:mvted000000000000000000000..." }
       ],
       "actions": ["dont_notify"]
     },
@@ -196,8 +196,8 @@ POST /api/v1/push/notify
 ```json
 {
   "notification": {
-    "event_id": "cx:event:01JS0EV000000000000000000",
-    "space_id": "cx:space:01JS0SP000000000000000000",
+    "event_id": "cx:event:01js0ev0000000000000000000",
+    "space_id": "cx:space:01js0sp0000000000000000000",
     "type": "cx.message.create",
     "sender": "did:web:bob.example.com",
     "sender_display_name": "Bob",

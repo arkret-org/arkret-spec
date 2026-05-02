@@ -3,31 +3,31 @@
   "collection_projection": {
     "projection": "collection",
     "renderer": "board",
-    "view_id": "cx:view:01js0vw000000000000000000",
+    "view_id": "cx:view:01js0vw0000000000000000000",
     "groups": [
       {
-        "id": "cx:list:01js0li100000000000000000",
+        "id": "cx:list:01js0111000000000000000000",
         "title": "Todo",
         "items": [
           {
             "object": {
-              "id": "cx:card:01js0ca100000000000000000",
+              "id": "cx:card:01js0ca1000000000000000000",
               "type": "card",
               "title": "Legal review"
             },
-            "position": { "list_id": "cx:list:01js0li100000000000000000", "rank": "U" }
+            "position": { "list_id": "cx:list:01js0111000000000000000000", "rank": "U" }
           }
         ]
       }
     ]
   },
   "room_timeline": {
-    "room_id": "cx:room:01js0ro000000000000000000",
+    "room_id": "cx:room:01js0r00000000000000000000",
     "messages": [
       {
-        "id": "cx:message:01js0me000000000000000000",
+        "id": "cx:message:01js0me0000000000000000000",
         "type": "message",
-        "room_id": "cx:room:01js0ro000000000000000000"
+        "room_id": "cx:room:01js0r00000000000000000000"
       }
     ]
   }

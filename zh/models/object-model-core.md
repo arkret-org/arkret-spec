@@ -128,9 +128,9 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 
 ```json
 {
-  "id": "cx:card:01JS0KE000000000000000000",
+  "id": "cx:card:01js0ke0000000000000000000",
   "type": "card",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "created_by": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_by": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
@@ -159,14 +159,14 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 
 ```json
 {
-  "id": "cx:space:01JS0SP000000000000000000",
+  "id": "cx:space:01js0sp0000000000000000000",
   "type": "space",
   "title": "Launch Plan",
   "created_by_principal": "did:web:acme.example",
   "schema_refs": [
     "cx.schema.core.v1"
   ],
-  "policy_ref": "cx:policy:01JS0PL000000000000000000",
+  "policy_ref": "cx:policy:01js0p10000000000000000000",
   "encryption_profile": "mls_rfc9420",
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -211,13 +211,13 @@ Room 可以独立于 Card 存在，也可以通过 Relation 被 Card 关联。Ca
 
 ```json
 {
-  "id": "cx:room:01JS0RM000000000000000000",
+  "id": "cx:room:01js0rm0000000000000000000",
   "type": "room",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Engineering review",
   "summary": "Implementation discussion for the launch plan.",
   "room_kind": "discussion",
-  "membership_policy_ref": "cx:policy:01JS0RP000000000000000000",
+  "membership_policy_ref": "cx:policy:01js0rp0000000000000000000",
   "history_visibility": "joined",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -240,9 +240,9 @@ Board 最小结构：
 
 ```json
 {
-  "id": "cx:board:01JS0BD000000000000000000",
+  "id": "cx:board:01js0bd0000000000000000000",
   "type": "board",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Release Board",
   "board_kind": "kanban",
   "created_by": "did:web:alice.example",
@@ -254,9 +254,9 @@ List 最小结构：
 
 ```json
 {
-  "id": "cx:list:01JS0LS000000000000000000",
+  "id": "cx:list:01js01s0000000000000000000",
   "type": "list",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Review",
   "rank": "mV",
   "state": "active",
@@ -269,9 +269,9 @@ Card 最小结构：
 
 ```json
 {
-  "id": "cx:card:01JS0CD000000000000000000",
+  "id": "cx:card:01js0cd0000000000000000000",
   "type": "card",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Review launch checklist",
   "body": {
     "format": "markdown",
@@ -305,17 +305,17 @@ Message 是 Room 时间线中的原子消息对象。
 
 ```json
 {
-  "id": "cx:message:01JS0MS000000000000000000",
+  "id": "cx:message:01js0ms0000000000000000000",
   "type": "message",
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "room_id": "cx:room:01JS0RM000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "room_id": "cx:room:01js0rm0000000000000000000",
   "created_by": "did:web:alice.example",
   "content": {
     "format": "markdown",
     "text": "@bob 请确认这个 item 的 legal 风险。"
   },
   "fields": {
-    "revision_root": "cx:message:01JS0MS000000000000000000",
+    "revision_root": "cx:message:01js0ms0000000000000000000",
     "visible_state": "active"
   },
   "created_at": "2026-04-26T00:00:00Z"
@@ -330,9 +330,9 @@ Morph 是开放对象。
 
 ```json
 {
-  "id": "cx:morph:01JS0MP000000000000000000",
+  "id": "cx:morph:01js0mp0000000000000000000",
   "type": "morph",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "morph_type": "customer_risk",
   "title": "ACME procurement risk",
   "facets": {
@@ -360,12 +360,12 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 ```json
 {
-  "id": "cx:relation:01JS0R0000000000000000000",
+  "id": "cx:relation:01js0r00000000000000000000",
   "type": "relation",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "relation_kind": "links_room",
-  "from_ref": "cx:card:01JS0CD000000000000000000",
-  "to_ref": "cx:room:01JS0RM000000000000000000",
+  "from_ref": "cx:card:01js0cd0000000000000000000",
+  "to_ref": "cx:room:01js0rm0000000000000000000",
   "fields": {
     "purpose": "implementation_discussion",
     "primary": false
@@ -385,22 +385,22 @@ Event 是 reducer 输入和审计事实。
 
 ```json
 {
-  "event_id": "cx:event:01JS0EV000000000000000000",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "event_id": "cx:event:01js0ev0000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "actor_id": "did:web:alice.example",
   "kind": "cx.card.update",
   "created_at": "2026-04-26T00:00:00Z",
   "space_version": "1",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
-    "cx:event:01JS0EU000000000000000000"
+    "cx:event:01js0ev0000000000000000000"
   ],
   "auth_refs": [
-    "cx:space:01JS0SP000000000000000000",
-    "cx:event:01JS0MS000000000000000000"
+    "cx:space:01js0sp0000000000000000000",
+    "cx:event:01js0ms0000000000000000000"
   ],
   "content": {
-    "card_id": "cx:card:01JS0CD000000000000000000",
+    "card_id": "cx:card:01js0cd0000000000000000000",
     "patch": {
       "fields.status": "done"
     }
@@ -423,8 +423,8 @@ View 示例：
 
 ```json
 {
-  "id": "cx:view:01JS0VW000000000000000000",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "id": "cx:view:01js0vw0000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "kind": "collection",
   "renderer": "board",
   "query": {
@@ -434,7 +434,7 @@ View 示例：
     ],
     "relation": {
       "kind": "contains",
-      "source_ref": "cx:board:01JS0BD000000000000000000",
+      "source_ref": "cx:board:01js0bd0000000000000000000",
       "depth": 2
     }
   },

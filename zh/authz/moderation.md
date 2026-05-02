@@ -65,8 +65,8 @@ POST /api/v1/moderation/report
 
 ```json
 {
-  "space_id": "cx:space:01JS0SP000000000000000000",
-  "target_ref": "cx:message:01JS1000000000000000000002",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "target_ref": "cx:message:01js1000000000000000000002",
   "reason": "harassment",
   "description": "This message contains targeted personal attacks.",
   "reporter": "did:web:alice.example.com"
@@ -102,7 +102,7 @@ POST /api/v1/moderation/report
 {
   "type": "cx.moderation.frank",
   "frank_id": "cx:frank:01JS...",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "event_id": "cx:event:01JS...",
   "ciphertext_digest": "sha256:...",
   "aad_digest": "sha256:...",
@@ -243,7 +243,7 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
     ],
     "content_filters": [
       {
-        "filter_id": "cx:filter:spam-links",
+        "filter_id": "cx:filter:spam11nks00000000000000000",
         "match": {
           "kind": "url_domain",
           "pattern_hash": "sha256:..."
@@ -253,7 +253,7 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
     ],
     "appeal": {
       "enabled": true,
-      "endpoint": "cx:room:appeal"
+      "endpoint": "cx:room:appea100000000000000000000"
     }
   }
 }

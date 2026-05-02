@@ -189,6 +189,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.directory.search_actors` | 无 | `query: string`; `space_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID。 |
 | `cx.directory.search_users` | `query.q: string` | `query.space_id: id`; `query.limit: int` | `results: object[]` | mention autocomplete；受共同 Space / directory policy 限制。 |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | private handle 需要 presentation。 |
+| `cx.directory.private_contact_discovery` | `requester: did`; `contacts: object[]` | `proofs: proof[]`; `privacy_profile: string`; `padding: object` | `matches: object[]`; `proofs: object[]?`; `retry_after_ms: int?` | MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或社交图。 |
 | `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `media_type: string`; `filename: string`; `purpose: string`; binary/multipart body; `header.Content-Type: string` | `blob_ref: string`; `size: int`; `media_type: string?`; `sha256: string`; `upload_receipt: object?` | upload capability、quota、media policy；`Content-Type` 缺省为 `application/octet-stream`。 |
 | `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: token` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；不得通过 header 泄露不可见资源。 |
 | `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；Range 和 redirect 不得泄露不可见资源。 |
@@ -200,6 +201,10 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.keys.upload` | `device_id: id`; `device_signature: signature` | `one_time_keys: object`; `fallback_keys: object` | `one_time_key_counts: object`; `fallback_keys: object?` | key 必须链接 self-signing / principal key。 |
 | `cx.keys.query` | `device_keys: object` | `timeout_ms: int` | `device_keys: object`; `failures: object?` | 查询范围可按关系 / Space 限制。 |
 | `cx.keys.claim` | `one_time_keys: object` | 无 | `one_time_keys: object`; `failures: object?` | one-time key MUST 原子消费。 |
+| `cx.keys.keypackages.upload` | `device_id: id`; `key_packages: object[]`; `device_signature: signature` | `expires_at: datetime`; `room_id: id`; `mls_group_id: string` | `accepted: int`; `rejected: object[]?`; `key_package_refs: id[]?` | MLS KeyPackage MUST 绑定 device key、credential 和 supported cipher suites。 |
+| `cx.keys.keypackages.claim` | `claims: object[]` | `timeout_ms: int`; `room_id: id`; `mls_group_id: string` | `key_packages: object[]`; `failures: object?` | KeyPackage claim MUST 原子保留，重复 claim 不得返回同一 one-time package。 |
+| `cx.keys.keypackages.consume` | `key_package_refs: id[]`; `consumer_device_id: id`; `signature: signature` | `room_id: id`; `epoch: int` | `consumed: id[]`; `failures: object?` | consume MUST 校验 claim holder、epoch 和 package freshness。 |
+| `cx.keys.keypackages.revoke` | `key_package_refs: id[]`; `device_id: id`; `signature: signature` | `reason: string` | `revoked: id[]`; `failures: object?` | 只能由 owning device、principal 或授权 admin 撤销。 |
 | `cx.authz.get_effective_grants` | `query.space_id: id`; `query.subject: did` | `query.at: string` | `grants: object[]`; `state_hash: string?`; `evaluated_at: datetime` | subject 本人、Space admin 或授权服务。 |
 | `cx.authz.get_invites` | `query.subject: did 或 string` | `query.space_id: id`; `query.cursor: cursor` | `invites: object[]`; `next_cursor: cursor?` | secret invite 不可枚举。 |
 | `cx.authz.check` | `actor: did`; `action: string`; `resource: object` | `context: object` | `decision: enum(allow,deny,quarantine,require_review,soft_fail)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `cache_valid_until: datetime?`; `reason_code: string?`; `obligations: object[]?` | Policy allow 不创建 capability；客户端不得把旧 `allowed` 字段作为规范字段。 |
@@ -213,6 +218,24 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob: string?`; `field_types: object`; `instances: object[]?` | instance list 可要求授权。 |
 | `cx.applet.third_party_users` | `query.protocol: string`; external ids | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
 | `cx.applet.third_party_locations` | `query.protocol: string`; external ids | 无 | `space_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
+| `cx.mimi.provider_directory` | 无 | `query.provider_id: string`; `query.features: string[]` | `providers: object[]`; `features: object`; `expires_at: datetime?` | 只返回公开 provider capability，不泄露 Space membership。 |
+| `cx.mimi.key_material` | `requester: did`; `room_id: id`; `device_id: id` | `mls_group_id: string`; `epoch: int`; `proofs: proof[]` | `key_packages: object[]?`; `group_info: object?`; `failures: object?` | 必须存在 accepted `cx.mimi.room_binding` 且 requester 有对应 room / device 权限。 |
+| `cx.mimi.room_update` | `path.room_id: id`; `mls_group_id: string`; `update: object` | `epoch: int`; `transcript_hash: string`; `sender: did` | `accepted: boolean`; `room_state_ref: id?`; `rejected: object[]?` | 更新必须映射到 Contrix Room / Space policy 授权范围内。 |
+| `cx.mimi.notify` | `path.room_id: id`; `notification: object` | `origin_provider: string`; `routing: object` | `accepted: boolean`; `retry_after_ms: int?` | 只可传递最小 fanout / delivery signal，不得携带未授权明文。 |
+| `cx.mimi.submit_message` | `path.room_id: id`; `sender: did`; `device_id: id`; `ciphertext: object` | `mls_group_id: string`; `epoch: int`; `associated_data: object` | `event_ref: id?`; `delivery: object`; `rejected: object[]?` | 必须校验 MLS epoch、Room membership、capability 和 `cx.mimi.room_binding`。 |
+| `cx.mimi.group_info` | `path.room_id: id` | `query.epoch: int`; `query.include_proof: boolean` | `group_info: object`; `room_binding_ref: id?`; `proofs: object[]?` | 只能返回 requester 授权可见的 MLS groupInfo / room projection。 |
+| `cx.mimi.request_consent` | `requester: did`; `target: object`; `purpose: string` | `room_id: id`; `expires_at: datetime`; `proofs: proof[]` | `consent_id: id`; `status: string`; `challenge: string?` | consent 只表达联系 / invite 意图，不授予 Space read/write。 |
+| `cx.mimi.update_consent` | `consent_id: id`; `decision: enum(accept,deny,revoke)`; `actor: did`; `signature: signature` | `reason: string`; `expires_at: datetime` | `status: string`; `updated_at: datetime`; `event_ref: id?` | 必须绑定原 request、target identity proof 和 replay protection。 |
+| `cx.mimi.identifier_query` | `identifiers: object[]` | `requester: did`; `privacy_profile: string`; `proofs: proof[]` | `results: object[]`; `proofs: object[]?` | SHOULD 使用 private contact discovery；不得返回原始通讯录或完整社交图。 |
+| `cx.mimi.report_abuse` | `room_id: id`; `target_ref: id`; `reporter: did`; `reason: enum` | `evidence_package: object`; `frank: object`; `description: string` | `report_id: id`; `status: string`; `routed_to: did[]?` | E2EE report 只能向授权 moderation recipient 解密 evidence。 |
+| `cx.mimi.proxy_download` | `asset_ref: string`; `requester: did` | `room_id: id`; `ohttp_context: object`; `range: string` | `download_ref: string`; `headers: object?`; `expires_at: datetime?` | 当 Space asset privacy policy 要求 proxy/OHTTP 时不得返回 direct object-store URL。 |
+| `cx.account.issue_session_grant` | `principal_did: did`; `device_id: id`; `requested_scopes: string[]`; `proof: proof` | `expires_at: datetime`; `audience: string`; `constraints: object` | `session_grant: object`; `expires_at: datetime`; `capability_refs: id[]?` | 必须绑定 principal、device key、audience 和最小 scope。 |
+| `cx.account.device_pair` | `principal_did: did`; `new_device_key: object`; `pairing_proof: proof` | `display_name: string`; `device_metadata: object` | `device_id: id`; `device_grant: object`; `key_backup_hint: object?` | pairing code / proof 必须短期有效且一次性使用。 |
+| `cx.account.oidc_callback` | `issuer: url`; `code: string`; `state: string` | `redirect_uri: url`; `nonce: string`; `device_id: id` | `principal_did: did`; `session_grant: object`; `account_status: string` | MUST 校验 state、nonce、issuer binding 和 DID/account linkage。 |
+| `cx.admin.get_server_status` | 无 | `query.include: string[]` | `status: string`; `protocol_version: string`; `features: string[]`; `capacity: object?`; `warnings: string[]?` | 公开响应只能包含 operational metadata；敏感细节需要 admin session。 |
+| `cx.admin.update_account_status` | `path.account_id: id`; `status: string`; `moderator: did`; `proof: proof` | `reason: string`; `expires_at: datetime`; `notify: boolean` | `account_id: id`; `status: string`; `event_ref: id?`; `updated_at: datetime` | 必须生成可审计 account lifecycle 状态或 admin receipt。 |
+| `cx.admin.revoke_device` | `path.device_id: id`; `moderator: did`; `proof: proof` | `reason: string`; `revoke_sessions: boolean` | `device_id: id`; `revoked: boolean`; `event_ref: id?` | 必须撤销 device grant、session grant 和相关 key package。 |
+| `cx.admin.get_moderation_queue` | 无 | `query.space_id: id`; `query.status: string`; `query.cursor: cursor`; `query.limit: int` | `items: object[]`; `next_cursor: cursor?`; `counts: object?` | 只对授权 moderator / compliance service 可见，证据按 policy 最小披露。 |
 | `cx.media.ice_config` | `space_id: id`; `call_id: id`; `actor_id: did`; `device_id: id`; `mode: string` | 无 | `ttl_seconds: int`; `ice_servers: object[]`; `policy: object`; `signature: signature` | actor 必须有 call/media capability；Media Service 必须被委托。 |
 
 ## 3. Events API
@@ -228,16 +251,16 @@ POST /api/v1/events
 ```json
 {
   "event": {
-    "event_id": "cx:event:01JS0EV000000000000000000",
-    "space_id": "cx:space:01JS0SP000000000000000000",
+    "event_id": "cx:event:01js0ev0000000000000000000",
+    "space_id": "cx:space:01js0sp0000000000000000000",
     "space_version": "1",
     "actor_id": "did:web:alice.example.com",
     "actor_seq": 42,
     "kind": "cx.card.update",
     "created_at": "2026-04-22T08:30:00Z",
     "hlc": "01970e589d21-0007-a13f9c2e",
-    "prev_refs": ["cx:event:01JS0EU000000000000000000"],
-    "auth_refs": ["cx:event:01JS0GR000000000000000000"],
+    "prev_refs": ["cx:event:01js0ev0000000000000000000"],
+    "auth_refs": ["cx:event:01js0gr0000000000000000000"],
     "content": {},
     "proofs": []
   }
@@ -249,11 +272,11 @@ POST /api/v1/events
 ```json
 {
   "status": "accepted",
-  "accepted": ["cx:event:01JS0EV000000000000000000"],
+  "accepted": ["cx:event:01js0ev0000000000000000000"],
   "actor_frontier": {
     "actor_id": "did:web:alice.example.com",
     "actor_seq": 42,
-    "event_id": "cx:event:01JS0EV000000000000000000"
+    "event_id": "cx:event:01js0ev0000000000000000000"
   },
   "sync_token": "opaque"
 }
@@ -271,7 +294,7 @@ POST /api/v1/events/batch-get
 
 ```json
 {
-  "event_ids": ["cx:event:01JS0EV000000000000000000"],
+  "event_ids": ["cx:event:01js0ev0000000000000000000"],
   "include_payload": true
 }
 ```

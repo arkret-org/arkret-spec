@@ -292,7 +292,7 @@ Message、Card 评论摘要或 Morph 内容的 `content` 字段 MUST 使用本�
   "body": "> Alice: 这个方案可行吗？\n\n我觉得需要再评估一下风险。",
   "format": "markdown",
   "reply_context": {
-    "ref": "cx:message:01JS1000000000000000000099",
+    "ref": "cx:message:01js1000000000000000000099",
     "sender": "did:web:alice.example.com",
     "excerpt": "这个方案可行吗？"
   }

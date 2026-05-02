@@ -74,7 +74,7 @@ GET /api/v1/mimi/provider-directory
     "profile": "cx.profile.mimi_interop.v1",
     "mimi_room_uri": "mimi://example.com/rooms/01JSMIMI...",
     "binding_scope": {
-      "space_id": "cx:space:01JS0SP000000000000000000",
+      "space_id": "cx:space:01js0sp0000000000000000000",
       "room_id": "cx:room:01JS..."
     },
     "hub_provider": "did:web:mimi.example.com",

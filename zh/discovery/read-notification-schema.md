@@ -8,13 +8,13 @@ Read marker 是 actor-private 状态。
 {
   "type": "read_marker",
   "actor_id": "did:web:alice.example",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "scope": {
     "kind": "room",
-    "ref": "cx:room:01JS0ROOM000000000000000"
+    "ref": "cx:room:01js0r00m00000000000000000"
   },
   "position": {
-    "event_id": "cx:event:01JS0EV000000000000000000",
+    "event_id": "cx:event:01js0ev0000000000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T00:00:00Z"
@@ -41,7 +41,7 @@ Notification 是派生 projection。
 
 ```json
 {
-  "notification_id": "cx:notif:01JS0NF000000000000000000",
+  "notification_id": "cx:notif:01js0nf0000000000000000000",
   "actor_id": "did:web:alice.example",
   "space_id": "cx:space:...",
   "source_event_id": "cx:event:...",

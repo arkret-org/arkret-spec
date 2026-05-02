@@ -43,7 +43,7 @@
 每个实现必须通过以下验收：
 
 - `/api/v1` 下公开至少包含 `service/identity/events/sync/index/blob/authz` 关键 operation。
-- 服务 `operation_id` MUST 以 `artifacts/registry/operation-registry.json` 为唯一 source of truth；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 source of truth。`service-api-schema.md`、OpenAPI 和非 HTTP binding 不得声明 registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `cx.*` event kind。
+- 服务 `operation_id` MUST 以 `artifacts/registry/operation-registry.json` 为唯一 source of truth；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 source of truth，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 source of truth。`service-api-schema.md`、OpenAPI 和非 HTTP binding 不得声明 registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `cx.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `cx:<kind>:` typed ID 前缀。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests
@@ -56,7 +56,7 @@
 ### 4.1 Sync / encoding 向量（已在现有文件）
 
 - `sync-conformance-vectors.md`：timeline 顺序、分页缺口、snapshot frontier、MLS 回填、decryption_pending。
-- `encoding-conformance-vectors.md`：canonical JSON、digest、签名绑定、HLC、cursor、encrypted envelope。
+- `encoding-conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
 - `state-resolution-conformance-vectors.md`：state 冲突与收敛向量（本文件未完全展开的补充）。
 - `redaction-conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `capability-conformance-vectors.md`：委派、撤销回滚与审批约束向量。

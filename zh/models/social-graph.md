@@ -38,7 +38,7 @@ Contrix 可以支持个人或组织的社交发布、关注、时间线、朋友
     "body": "Ship notes for today"
   },
   "attachments": [],
-  "audience_ref": "cx:audience:public",
+  "audience_ref": "cx:audience:pvb11c00000000000000000000",
   "reply_policy": "followers",
   "reshare_policy": "public_allowed",
   "created_at": "2026-04-26T00:00:00Z"
@@ -69,7 +69,7 @@ Contrix 可以支持个人或组织的社交发布、关注、时间线、朋友
   "type": "morph",
   "morph_type": "social_circle",
   "owner": "did:uuid:alice",
-  "circle_id": "cx:circle:close-friends",
+  "circle_id": "cx:circle:c10se000000000000000000000-friends",
   "visibility": "private",
   "membership_policy": "owner_managed",
   "member_refs": [
@@ -103,11 +103,11 @@ Follow 可以是单向；Contact 通常需要双向确认或至少本地确认�
 ```json
 {
   "type": "cx.social.audience_policy",
-  "audience_id": "cx:audience:close-friends",
+  "audience_id": "cx:audience:c10se000000000000000000000-friends",
   "owner": "did:uuid:alice",
   "mode": "circle",
   "readers": {
-    "circle_refs": ["cx:circle:close-friends"],
+    "circle_refs": ["cx:circle:c10se000000000000000000000-friends"],
     "actor_refs": [],
     "claim_selectors": []
   },

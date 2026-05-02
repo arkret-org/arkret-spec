@@ -9,8 +9,8 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
 ```json
 {
   "type": "snapshot_manifest",
-  "snapshot_ref": "cx:snapshot:01JS0SN000000000000000000",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "reducer_profile": "cx.reducer.v1",
   "schema_profile_refs": ["cx.schema.core.v1"],
   "frontier": {
@@ -36,7 +36,7 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
 
 ```json
 {
-  "chunk_id": "cx:chunk:01JS0CH000000000000000000",
+  "chunk_id": "cx:chunk:01js0ch0000000000000000000",
   "index": 0,
   "content_type": "application/json",
   "item_count": 1000,
@@ -74,7 +74,7 @@ Client MUST verify signature, signer authority, `state_hash`, frontier and every
 {
   "type": "encrypted_envelope",
   "encryption_profile": "mls_rfc9420",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "epoch": 42,
   "cleartext_metadata": {
     "object_ref": "cx:message:...",

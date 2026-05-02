@@ -5,7 +5,7 @@
 ## 目录
 
 - `schemas/`：JSON Schema 工件，覆盖核心对象、sync、blob/media、push、identity、MIMI interop。
-- `fixtures/`：官方 JSON fixture，供 `cotest`、SDK 和服务端实现直接消费，包含 MIMI interop 向量。
+- `fixtures/`：官方 JSON fixture，供 `cotest`、SDK 和服务端实现直接消费，包含 crypto signature、MIMI interop 等向量。
 - `encoding.md`、`encoding-conformance-vectors.md`：canonical JSON、hash、proof、HLC、cursor、rank。
 - `cursor-encoding.md`、`cursor-test-vectors.md`：cursor 编码规范与向量。
 - `hlc-specification.md`、`hlc-test-vectors.md`：HLC 文本格式、比较规则与向量。

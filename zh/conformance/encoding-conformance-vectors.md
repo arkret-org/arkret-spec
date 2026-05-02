@@ -138,7 +138,7 @@ cx.vector.encoding.event_digest.v1
 {
   "kind": "cx.message.create",
   "space_version": "1",
-  "space_id": "cx:space:01js0ke000000000000000000",
+  "space_id": "cx:space:01js0ke0000000000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -154,13 +154,13 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"content":{"body":"hello"},"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","prev_refs":[],"space_id":"cx:space:01js0ke000000000000000000","space_version":"1"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"content":{"body":"hello"},"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000","space_version":"1"}
 ```
 
 期望 digest：
 
 ```text
-sha256:eb874f42a73755f5e77d3815a9cefa19487d84e12459d9c53766fdd6dc43cc5a
+sha256:ccc24849977b4554ec5b77a988978631f25587436ea4a5367a1d80e156b2d6ee
 ```
 
 判定规则：
@@ -182,7 +182,7 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 ```json
 {
   "schema": "cx.schema.event_batch_receipt.v1",
-  "receipt_id": "cx:receipt:01js0rc000000000000000000",
+  "receipt_id": "cx:receipt:01js0rc0000000000000000000",
   "type": "event_batch_receipt",
   "issuer": "did:web:alice.example",
   "scope": {
@@ -202,13 +202,13 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01js0rc000000000000000000","schema":"cx.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"},"type":"event_batch_receipt"}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01js0rc0000000000000000000","schema":"cx.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"},"type":"event_batch_receipt"}
 ```
 
 期望 digest：
 
 ```text
-sha256:1998dbca1e9d438ec05f0631167aed3a101c35fdbbd49e25a56465f40c1ebc6f
+sha256:1a0b0bb8198a6b5adaba2e31f8aa6d9cac1fd94e2db6d41519414d6bca00162d
 ```
 
 失败条件：
@@ -357,17 +357,22 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 | `cx.vector.encoding.event_digest.v1` | SHOULD | MUST | MUST | MUST | SHOULD | MUST |
 | `cx.vector.encoding.event_batch_receipt_digest.v1` | MAY | SHOULD | SHOULD | SHOULD | MAY | MAY |
 | `cx.vector.encoding.signature_binding_payload.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.crypto.ed25519_detached_jws.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD | MUST |
 | `cx.vector.encoding.cursor_opaque.v1` | MUST | MUST | MUST | MAY | SHOULD | MUST |
 | `cx.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST | SHOULD |
 
 ## 13. Crypto Fixture 要求
 
-自动化 conformance suite MUST 增加独立 fixture：
+自动化 conformance suite MUST 加载 `artifacts/fixtures/crypto-signature-fixture.json`（中文镜像：`zh/conformance/fixtures/crypto-signature-fixture.json`）。该 fixture 固定了 `cx.vector.encoding.crypto.ed25519_detached_jws.v1`：
 
 - Ed25519 public key / private test key
 - detached JWS signature
 - DID Document verification method
+- canonical Event payload、`payload_hash`、proof binding object、detached JWS signing input 和 expected rejection 条件
+
+后续 conformance suite 仍应增加扩展 fixture：
+
 - key rotation 后的 signature verification
 - redaction 前后 event digest 验证
 - malformed UTF-8 / duplicate key parser rejection

@@ -99,7 +99,7 @@
   "version": 1,
   "entries": [
     {
-      "entry_id": "cx:block:01JS0BLK000000000000000000",
+      "entry_id": "cx:block:01js0b7k000000000000000000",
       "target": {
         "kind": "actor",
         "did": "did:web:spammer.example.com"

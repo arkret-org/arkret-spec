@@ -255,7 +255,7 @@ Result:
 {
   "results": [
     {
-      "space_id": "cx:space:01JS0SP000000000000000000",
+      "space_id": "cx:space:01js0sp0000000000000000000",
       "name": "Release Coordination",
       "summary": "Public release coordination",
       "discoverability": "listed",
@@ -266,9 +266,9 @@ Result:
       ],
       "preview_ref": "cx:event:01JS0PV...",
       "source_refs": [
-        "cx:event:space_create_hash",
-        "cx:event:space_discovery_hash",
-        "cx:event:space_organization_hash"
+        "cx:event:spacecreatehash00000000000",
+        "cx:event:spaced1sc0veryhash00000000",
+        "cx:event:space0rgan1zat10nhash00000"
       ]
     }
   ],

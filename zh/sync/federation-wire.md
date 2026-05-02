@@ -53,7 +53,7 @@ PUT /api/v1/federation/transactions/{txn_id}
 
 ```json
 {
-  "txn_id": "cx:txn:01JS0TX000000000000000000",
+  "txn_id": "cx:txn:01js0tx0000000000000000000",
   "origin": "did:web:server.a.example",
   "destination": "did:web:server.b.example",
   "service_binding_ref": {

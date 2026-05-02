@@ -67,7 +67,7 @@
 | 当前事件类型 | 必需 auth refs |
 | --- | --- |
 | `cx.space.create` | 无 |
-| `cx.member.*` | `cx.space.create`、目标 actor 当前 membership、发送者 membership、相关 join rule、相关 capability grant |
+| `cx.member.state` | `cx.space.create`、目标 actor 当前 membership、发送者 membership、相关 join rule、相关 capability grant |
 | `cx.capability.grant` | `cx.space.create`、grantor membership、grantor 当前 grant/role/admin capability |
 | `cx.capability.revoke` | 被撤销 grant、revoker membership、revoker revoke/admin capability |
 | `cx.policy.*` | `cx.space.create`、actor membership、policy/admin capability、上一版同 key policy |
@@ -145,9 +145,9 @@ Contrix 使用 `cx.room.member` 表达 actor 在 Room 中的成员状态：
 ```json
 {
   "kind": "cx.room.member",
-  "state_key": "cx:room:01JS0ROOM0000000000000000|did:uuid:actor",
+  "state_key": "cx:room:01js0r00m00000000000000000|did:uuid:actor",
   "content": {
-    "room_id": "cx:room:01JS0ROOM0000000000000000",
+    "room_id": "cx:room:01js0r00m00000000000000000",
     "actor_id": "did:uuid:actor",
     "membership": "join",
     "via": ["did:web:example.com"],
@@ -245,14 +245,14 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
   "state_key": "",
   "content": {
     "components": {
-      "roles": "cx:event:roles_policy",
-      "preauth": "cx:event:preauth_policy",
-      "asset": "cx:event:asset_privacy_policy",
-      "logging": "cx:event:logging_policy",
-      "bot": "cx:event:bot_policy",
-      "message_expiration": "cx:event:expiration_policy",
-      "operational": "cx:event:operational_policy",
-      "history_sharing": "cx:event:history_sharing_policy"
+      "roles": "cx:event:r01esp011cy000000000000000",
+      "preauth": "cx:event:preavthp011cy0000000000000",
+      "asset": "cx:event:assetpr1vacyp011cy00000000",
+      "logging": "cx:event:10gg1ngp011cy0000000000000",
+      "bot": "cx:event:b0tp011cy00000000000000000",
+      "message_expiration": "cx:event:exp1rat10np011cy0000000000",
+      "operational": "cx:event:0perat10na1p011cy000000000",
+      "history_sharing": "cx:event:h1st0ryshar1ngp011cy000000"
     },
     "component_root": "sha256:canonical_component_set"
   }

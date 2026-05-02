@@ -146,10 +146,10 @@
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "allowed_room_refs": [
-    "cx:room:01JS0ROOM000000000000000"
+    "cx:room:01js0r00m00000000000000000"
   ],
   "denied_room_refs": [
-    "cx:room:01JS0ROOM999999999999999"
+    "cx:room:01js0r00m99999999999999900"
   ]
 }
 ```
@@ -174,9 +174,9 @@
   "constraint_type": "container_move",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
-  "allowed_view_refs": ["cx:view:01js0vw000000000000000000"],
-  "allowed_from_container_refs": ["cx:list:01js0c1000000000000000000"],
-  "allowed_to_container_refs": ["cx:list:01js0c2000000000000000000"],
+  "allowed_view_refs": ["cx:view:01js0vw0000000000000000000"],
+  "allowed_from_container_refs": ["cx:list:01js0c10000000000000000000"],
+  "allowed_to_container_refs": ["cx:list:01js0c20000000000000000000"],
   "wip_limit_override": false
 }
 ```

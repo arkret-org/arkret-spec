@@ -89,7 +89,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "actor_id": "did:uuid:requesting_agent",
   "content": {
     "session_id": "cx:agent_session:01J...",
-    "task_card_id": "cx:card:task_01",
+    "task_card_id": "cx:card:task0100000000000000000000",
     "counterparty_agent": "did:uuid:remote_agent",
     "protocol": "a2a",
     "protocol_version": "1.x",
@@ -149,7 +149,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
     "artifacts": [
       {
         "artifact_type": "text",
-        "object_ref": "cx:morph:result_doc",
+        "object_ref": "cx:morph:resv1td0c00000000000000000",
         "hash": "sha256:..."
       }
     ],

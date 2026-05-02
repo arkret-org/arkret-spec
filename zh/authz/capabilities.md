@@ -57,10 +57,10 @@ Authorization condition: Claim / Attestation
 
 ```json
 {
-  "id": "cx:grant:01JS0GR000000000000000000",
+  "id": "cx:grant:01js0gr0000000000000000000",
   "type": "capability",
   "schema": "cx.schema.capability.v1",
-  "space_id": "cx:space:01JS0SP000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
   "actions": [
@@ -74,19 +74,19 @@ Authorization condition: Claim / Attestation
   "resources": [
     {
       "kind": "object",
-      "space_id": "cx:space:01JS0SP000000000000000000",
+      "space_id": "cx:space:01js0sp0000000000000000000",
       "object_type": "card",
       "scope": "space_wide"
     },
     {
       "kind": "morph",
-      "space_id": "cx:space:01JS0SP000000000000000000",
+      "space_id": "cx:space:01js0sp0000000000000000000",
       "morph_type": "run",
       "scope": "space_wide"
     },
     {
       "kind": "morph",
-      "space_id": "cx:space:01JS0SP000000000000000000",
+      "space_id": "cx:space:01js0sp0000000000000000000",
       "morph_type": "memory",
       "scope": "space_wide"
     }
@@ -337,7 +337,7 @@ Claim / Attestation 表示某个 issuer 对某个 subject 的可验证声明。
 
 ```json
 {
-  "claim_id": "cx:claim:01JS0CLM00000000000000000",
+  "claim_id": "cx:claim:01js0c1m000000000000000000",
   "issuer": "did:web:google.com",
   "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
   "claim_type": "org_membership",
@@ -349,7 +349,7 @@ Claim / Attestation 表示某个 issuer 对某个 subject 的可验证声明。
   },
   "not_before": "2026-04-01T00:00:00Z",
   "expires_at": "2026-05-01T00:00:00Z",
-  "revocation_ref": "cx:event:01JS0RVK0000000000000000",
+  "revocation_ref": "cx:event:01js0rvk000000000000000000",
   "proof": {
     "type": "DataIntegrityProof",
     "verification_method": "did:web:google.com#key-1",
@@ -531,7 +531,7 @@ Contrix v1 采用 **allow-grant + explicit revoke** 模型。
 {
   "type": "cx.capability.revoke",
   "body": {
-    "grant_ref": "cx:grant:01JS0GR000000000000000000",
+    "grant_ref": "cx:grant:01js0gr0000000000000000000",
     "reason": "contract ended"
   }
 }

@@ -341,7 +341,7 @@ Wallet MUST verify：
 ```json
 {
   "type": "cx.identity.disclosure_policy",
-  "policy_id": "cx:policy:disc_01J...",
+  "policy_id": "cx:policy:d1sc01j0000000000000000000",
   "holder_did": "did:uuid:holder_root_or_pairwise",
   "audience": {
     "org_did": "did:web:google.example",
@@ -403,7 +403,7 @@ Wallet SHOULD 在 holder private account data 中保存 disclosure receipt：
 ```json
 {
   "type": "cx.identity.disclosure_receipt",
-  "receipt_id": "cx:receipt:disc_01J...",
+  "receipt_id": "cx:receipt:d1sc01j0000000000000000000",
   "holder_did": "did:uuid:g_pairwise...",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",

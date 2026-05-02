@@ -8,11 +8,11 @@
 
 ```json
 {
-  "space_ids": ["cx:space:01JS0SP000000000000000000"],
+  "space_ids": ["cx:space:01js0sp0000000000000000000"],
   "object_types": ["card", "message", "morph"],
   "morph_types": ["memory"],
   "facets": ["assignable"],
-  "anchor_ref": "cx:card:01JS0CARD000000000000000",
+  "anchor_ref": "cx:card:01js0card00000000000000000",
   "filters": [],
   "relation": null,
   "context": {
