@@ -111,7 +111,7 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
   "requested_scopes": [
     "cx.space.discover",
     "cx.object.read",
-    "cx.card.create",
+    "cx.flow.create",
     "cx.morph.create",
     "cx.message.create",
     "cx.relation.create"
@@ -200,7 +200,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
       "cx:space:01js0sp0000000000000000000"
     ],
     "actions": [
-      "cx.card.create",
+      "cx.flow.create",
       "cx.morph.create",
       "cx.message.create",
       "cx.relation.create"

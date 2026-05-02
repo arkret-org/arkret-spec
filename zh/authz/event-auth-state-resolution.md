@@ -83,9 +83,9 @@
 | `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
 | `cx.space.inheritance_policy` | child Space 的 `cx.space.create`、child policy/admin capability、confirmed parent edge |
 | `cx.space.organization` | `cx.space.create`、组织 DID 当前控制状态、组织签发或撤销该声明的 capability / service binding |
-| `cx.room.*` | actor Space membership、目标 Room 当前状态、Room membership / policy、对应 room capability |
-| `cx.room.member` | actor Space membership、目标 actor 当前 Room membership、Room join / invite / moderation policy、对应 room membership capability |
-| `cx.card.*` | actor Space membership、所属 Board-Space / List-Space 当前状态、目标 Card 当前状态、对应 card capability |
+| `cx.flow.branch.*` | actor Space membership、目标 Flow 当前状态、目标 discussion branch 当前状态、对应 flow branch capability |
+| `cx.flow.branch.member` | actor Space membership、目标 actor 当前 discussion membership、discussion join / invite / moderation policy、对应 branch membership capability |
+| `cx.flow.*` | actor Space membership、所属 Board-Space / List-Space 当前状态（若适用）、目标 Flow 当前状态、对应 flow capability |
 | `cx.morph.*` | actor Space membership、目标 Morph 当前状态、morph schema / facet policy、对应 morph capability |
 | `cx.relation.*` | actor Space membership、relation type schema、source/target 可见状态、对应 relation capability |
 | `cx.message.*` | actor Space membership、目标 Room membership / visibility、目标 Message 当前状态、send/edit/redact capability |
@@ -142,33 +142,30 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 ### 5.1 Room Membership
 
-Room membership 是 Space membership 之下的局部参与状态，用于控制某个 Room 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予任何 Card、Board、List 或 Morph 的权限。
+Flow discussion branch membership 是 Space membership 之下的局部参与状态，用于控制某个 Flow discussion 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予 Flow synthesis、Board/List 或 Morph 的权限。
 
-Contrix 使用 `cx.room.member` 表达 actor 在 Room 中的成员状态：
+Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch 中的成员状态：
 
 ```json
 {
-  "kind": "cx.room.member",
-  "state_key": "cx:room:01js0r00m00000000000000000|did:web:actor.example.com",
+  "kind": "cx.flow.branch.member",
+  "state_key": "cx:flow:01js0r00m00000000000000000|discussion|did:web:actor.example.com",
   "content": {
-    "room_id": "cx:room:01js0r00m00000000000000000",
+    "flow_id": "cx:flow:01js0r00m00000000000000000",
+    "branch": "discussion",
     "actor_id": "did:web:actor.example.com",
-    "membership": "join",
-    "via": ["did:web:example.com"],
-    "reason": "invited",
-    "invite_ref": "event:..."
+    "membership": "join"
   }
 }
 ```
 
-Room membership 的 `membership` 取值与 Space membership 相同：`join`、`invite`、`knock`、`leave`、`ban`。
-
 规则：
 
-- 默认情况下，Room member MUST 同时是所在 Space 的 member。
-- Space policy MAY 允许 room-scoped external admission。此时外部 actor 只获得该 Room 的受限访问，不获得 Space directory、Board、Card 或其他 Room 的可见性。
-- Subject 与 surface 的关系由 `has_surface` relation 表达；该 relation 不复制权限。Card 与 Room 的兼容关系只由 `links_room` / `primary_room` relation 表达。Card link 不复制 membership；Room 的成员、E2EE epoch、history visibility 和 moderation 独立计算。
-- 一个 Card 可链接多个 Room，但每个 Room 仍按自己的 `cx.room.member` 与 room policy 授权。
+- 默认情况下，discussion member MUST 同时是所在 Space 的 member。
+- Space policy MAY 允许 discussion-scoped external admission。此时外部 actor 只获得该 discussion 的受限访问，不获得 Space directory、Board/List、Flow synthesis 或其他 discussion 的可见性。
+- `cx.flow.branch.member` 只授予 discussion membership；它不复制 `cx.flow.update`、`cx.flow.move`、`cx.space.*` 或 grant 管理权限。
+- Flow synthesis 可见不代表 discussion timeline 可读；discussion 可读也不代表 synthesis 可写。
+- `promoted_from_discussion` 等 relation 只表达沉淀来源，不传播 membership、E2EE epoch 或 history visibility。
 
 ## 6. Discovery, Join Rule and History Visibility
 
@@ -203,11 +200,11 @@ Room membership 的 `membership` 取值与 Space membership 相同：`join`、`i
 - `invited`：被邀请 actor 可读取 stripped preview state。
 - `joined`：仅加入后历史默认可见。
 
-E2EE Space 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。
+E2EE Space 或启用 E2EE 的 Flow discussion branch 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。
 
 `cx.space.history_sharing_policy`:
 
-`history_visibility` 只描述默认读取边界。E2EE Space 若允许新成员获取加入前的解密材料，MUST 额外声明 history sharing policy：
+`history_visibility` 只描述默认读取边界。E2EE Space 或启用 E2EE 的 discussion branch 若允许新成员获取加入前的解密材料，MUST 额外声明 history sharing policy：
 
 ```json
 {
@@ -411,9 +408,9 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.space.organization`
 - `cx.space.upgrade`
 - `cx.member.state`
-- `cx.room.member`
-- `cx.room.history_visibility`
-- `cx.room.policy_components`
+- `cx.flow.branch.member`
+- `cx.flow.branch.history_visibility`
+- `cx.flow.branch.policy_components`
 - `cx.capability.grant`
 - `cx.capability.revoke`
 - `cx.policy.rule`

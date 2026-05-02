@@ -68,6 +68,8 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据。
 
+MLS group 的绑定层级取决于启用位置：若 Space 级 policy 声明 `encryption_profile="mls_rfc9420"`，group 可以覆盖整个 Space；若某个 Flow 的 `discussion` branch 独立启用 E2EE，则 MLS group MUST 绑定到 `flow_id + branch=discussion`，不得隐式扩展到整个 Space。Space 级与 branch 级 group 可以并存，但必须通过 policy 明确区分成员范围、history sharing 和审计边界。
+
 每个 `cx.mls.commit` MUST 绑定一个 `application_state_ref`，并把该引用纳入 MLS transcript 或等价的 commit-authenticated data：
 
 ```json
@@ -86,6 +88,8 @@ E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务�
   }
 }
 ```
+
+当 MLS group 绑定到 Flow discussion branch 时，`application_state_ref` MUST 同时覆盖 `flow_id` 与 `branch="discussion"`，并以该 branch 的 membership、history visibility 和 policy state 作为验证边界。
 
 规则：
 

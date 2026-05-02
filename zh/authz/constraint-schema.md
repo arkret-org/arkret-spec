@@ -170,7 +170,7 @@
 }
 ```
 
-`container_move` MUST 在授权判定中早于 operation 生效。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.card.move` / `cx.container.move_item` 不得直接生效。
+`container_move` MUST 在授权判定中早于 operation 生效。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
 
 ## 7. 委托控制
 
@@ -524,7 +524,7 @@ function matches_field_access(operation, constraint):
 {
   "grant_id": "cx:grant:...",
   "subject": "did:web:agent.example.com",
-  "actions": ["cx.object.read", "cx.card.create", "cx.morph.create"],
+  "actions": ["cx.object.read", "cx.flow.create", "cx.morph.create"],
   "resources": [
     {
       "kind": "card",

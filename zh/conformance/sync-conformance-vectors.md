@@ -26,8 +26,8 @@
   "hlc": "019b76daa800-0000-a0000000",
   "prev_refs": [],
   "auth_refs": [],
-  "kind": "cx.card.update",
-  "target_ref": "cx:card:01js0ca0000000000000000000",
+  "kind": "cx.flow.update",
+  "target_ref": "cx:flow:01js0ca0000000000000000000",
   "content_hash": "sha256:..."
 }
 ```
@@ -61,8 +61,8 @@
       }
     },
     {
-      "kind": "cx.card.create",
-      "target_ref": "cx:card:01js0ca1000000000000000000",
+      "kind": "cx.flow.create",
+      "target_ref": "cx:flow:01js0ca1000000000000000000",
       "content": {
         "board_id": "cx:space:01js0bd0000000000000000000",
         "list_id": "cx:space:01js0111000000000000000000",
@@ -75,7 +75,7 @@
 
 期望：
 
-- Collection projection MUST 返回 `object.id = cx:card:01js0ca1000000000000000000`。
+- Collection projection MUST 返回 `object.id = cx:flow:01js0ca1000000000000000000`。
 - 返回项 MUST 位于 `cx:space:01js0111000000000000000000`。
 - View cursor MUST 绑定 projection、view、frontier 与权限上下文。
 
@@ -86,11 +86,11 @@
 ```json
 {
   "write": {
-    "kind": "cx.card.move",
-    "target_ref": "cx:card:01js0ca1000000000000000000",
+    "kind": "cx.flow.move",
+    "target_ref": "cx:flow:01js0ca1000000000000000000",
     "content": {
       "board_id": "cx:space:01js0bd0000000000000000000",
-      "card_id": "cx:card:01js0ca1000000000000000000",
+      "card_id": "cx:flow:01js0ca1000000000000000000",
       "from_list_id": "cx:space:01js0111000000000000000000",
       "to_list_id": "cx:space:01js0112000000000000000000",
       "rank": "U"
@@ -116,7 +116,7 @@
 
 ```json
 {
-  "card_id": "cx:card:01js0ca1000000000000000000",
+  "card_id": "cx:flow:01js0ca1000000000000000000",
   "linked_room_id": "cx:room:01js0r01000000000000000000",
   "viewer": "did:web:viewer.example.com",
   "viewer_can_read_card": true,
@@ -127,8 +127,8 @@
 期望：
 
 - Card projection MAY show a lazy linked Room reference.
-- Room timeline MUST NOT be expanded.
-- Notification/search results MUST NOT reveal hidden Room messages.
+- Flow discussion timeline MUST NOT be expanded.
+- Notification/search results MUST NOT reveal hidden discussion messages.
 
 ## 5.1 Vector: Subject Surface Visibility
 

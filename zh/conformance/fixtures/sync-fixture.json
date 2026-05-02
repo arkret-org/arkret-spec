@@ -26,7 +26,7 @@
               "relation_id": "cx:relation:01js0re1000000000000000000",
               "rank": "U"
             },
-            "permissions": ["cx.card.read", "cx.card.update"],
+            "permissions": ["cx.flow.read", "cx.flow.update"],
             "pending_events": [],
             "conflict_records": []
           }

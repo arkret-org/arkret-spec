@@ -32,7 +32,7 @@ Contrix v1 不注册 `cx:revocation-list:*` typed ID；实现不得生成或要�
   "object_types": ["card", "message", "morph"],
   "morph_types": ["document", "customer_case"],
   "facets": ["stateful", "replyable", "renderable"],
-  "actions": ["cx.card.create", "cx.card.update", "cx.message.create"]
+  "actions": ["cx.flow.create", "cx.flow.update", "cx.message.create"]
 }
 ```
 

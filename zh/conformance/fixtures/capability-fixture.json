@@ -9,14 +9,14 @@
           "id": "cx:grant:01js0gr0000000000000000000",
           "issuer": "did:web:owner.example",
           "subject": "did:web:alice.example",
-          "actions": ["cx.card.read", "cx.card.update"],
-          "resources": [{ "kind": "card", "space_id": "cx:space:01js0sp0000000000000000000", "card_id": "cx:card:01js0ca0000000000000000000" }]
+          "actions": ["cx.flow.read", "cx.flow.update"],
+          "resources": [{ "kind": "flow", "space_id": "cx:space:01js0sp0000000000000000000", "flow_id": "cx:flow:01js0ca0000000000000000000" }]
         }
       ],
       "request": {
         "actor": "did:web:alice.example",
-        "action": "cx.card.update",
-        "resource": { "kind": "card", "space_id": "cx:space:01js0sp0000000000000000000", "card_id": "cx:card:01js0ca0000000000000000000" }
+        "action": "cx.flow.update",
+        "resource": { "kind": "flow", "space_id": "cx:space:01js0sp0000000000000000000", "flow_id": "cx:flow:01js0ca0000000000000000000" }
       },
       "expected": { "decision": "allow", "matched_grants": ["cx:grant:01js0gr0000000000000000000"] }
     },
@@ -27,23 +27,23 @@
           "id": "cx:grant:01js0gr1000000000000000000",
           "issuer": "did:web:owner.example",
           "subject": "did:web:alice.example",
-          "actions": ["cx.card.read", "cx.card.update"],
-          "resources": [{ "kind": "card", "space_id": "cx:space:01js0sp0000000000000000000", "card_id": "cx:card:01js0ca0000000000000000000" }]
+          "actions": ["cx.flow.read", "cx.flow.update"],
+          "resources": [{ "kind": "flow", "space_id": "cx:space:01js0sp0000000000000000000", "flow_id": "cx:flow:01js0ca0000000000000000000" }]
         }
       ],
       "request": {
         "actor": "did:web:alice.example",
         "action": "cx.message.create",
-        "resource": { "kind": "room", "space_id": "cx:space:01js0sp0000000000000000000", "room_id": "cx:room:01js0r00000000000000000000", "linked_from_card_id": "cx:card:01js0ca0000000000000000000" }
+        "resource": { "kind": "room", "space_id": "cx:space:01js0sp0000000000000000000", "room_id": "cx:room:01js0r00000000000000000000", "linked_from_card_id": "cx:flow:01js0ca0000000000000000000" }
       },
       "expected": { "decision": "deny", "reason_code": "no_room_message_grant" }
     },
     {
       "name": "revoked_grant_denies_later_write",
       "events": [
-        { "event_id": "cx:event:01js0eg0000000000000000000", "kind": "cx.capability.grant", "hlc": "01970e589d21-0001-a13f9c2e", "content": { "grant_id": "cx:grant:01js0gr2000000000000000000", "subject": "did:web:alice.example", "actions": ["cx.card.update"], "resources": [{ "kind": "card", "card_id": "cx:card:01js0ca0000000000000000000" }] } },
+        { "event_id": "cx:event:01js0eg0000000000000000000", "kind": "cx.capability.grant", "hlc": "01970e589d21-0001-a13f9c2e", "content": { "grant_id": "cx:grant:01js0gr2000000000000000000", "subject": "did:web:alice.example", "actions": ["cx.flow.update"], "resources": [{ "kind": "flow", "flow_id": "cx:flow:01js0ca0000000000000000000" }] } },
         { "event_id": "cx:event:01js0er0000000000000000000", "kind": "cx.capability.revoke", "hlc": "01970e589d22-0001-a13f9c2e", "content": { "grant_ref": "cx:grant:01js0gr2000000000000000000" } },
-        { "event_id": "cx:event:01js0ew0000000000000000000", "kind": "cx.card.update", "hlc": "01970e589d23-0001-a13f9c2e", "auth_refs": ["cx:event:01js0eg0000000000000000000"], "content": { "target_ref": "cx:card:01js0ca0000000000000000000", "patch": { "title": "After revoke" } } }
+        { "event_id": "cx:event:01js0ew0000000000000000000", "kind": "cx.flow.update", "hlc": "01970e589d23-0001-a13f9c2e", "auth_refs": ["cx:event:01js0eg0000000000000000000"], "content": { "target_ref": "cx:flow:01js0ca0000000000000000000", "patch": { "title": "After revoke" } } }
       ],
       "expected": { "event_id": "cx:event:01js0ew0000000000000000000", "decision": "deny", "reason_code": "grant_revoked_before_event_frontier" }
     },

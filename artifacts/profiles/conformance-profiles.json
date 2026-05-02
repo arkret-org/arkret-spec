@@ -114,21 +114,21 @@
     "cx.profile.chat_mvp.v1": {
       "inherits": ["cx.profile.core_event_store.v1"],
       "required_endpoints": ["cx.sync.client_sync", "cx.sync.backfill"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.room.member", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove", "cx.redaction"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.flow.branch.member", "cx.flow.branch.history_visibility", "cx.flow.branch.policy_components", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove", "cx.redaction"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
+      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
       "required_fixtures": ["sync-fixture.json", "redaction-fixture.json", "state-resolution-fixture.json", "privacy-security-fixture.json"],
       "optional_extensions": ["cx.profile.e2ee_client.v1", "read_receipts", "push_notifications"],
-      "feature_discovery": { "required": ["supported_sync_profiles", "supported_event_kinds", "history_visibility"], "unsupported_optional": "return unsupported_feature without dropping encrypted events" }
+      "feature_discovery": { "required": ["supported_sync_profiles", "supported_event_kinds", "discussion_history_visibility"], "unsupported_optional": "return unsupported_feature without dropping encrypted events" }
     },
     "cx.profile.kanban_mvp.v1": {
       "inherits": ["cx.profile.core_event_store.v1"],
       "required_endpoints": ["cx.sync.backfill"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.card.create", "cx.card.update", "cx.card.move", "cx.card.reorder", "cx.relation.create", "cx.container.rebalance"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.flow.update", "cx.flow.move", "cx.flow.reorder", "cx.relation.create", "cx.container.rebalance"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.card.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
+      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
       "required_fixtures": ["sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json"],
-      "optional_extensions": ["linked_room", "snapshot_bootstrap"],
+      "optional_extensions": ["discussion_branch", "snapshot_bootstrap"],
       "feature_discovery": { "required": ["projection_types", "wait_for", "supported_event_kinds"], "unsupported_optional": "return unsupported_feature or omit projection capability" }
     },
     "cx.profile.minimal_client.v1": {
@@ -136,7 +136,7 @@
       "required_endpoints": ["cx.server.describe", "cx.events.get", "cx.events.list", "cx.sync.backfill"],
       "required_event_kinds": ["cx.space.create", "cx.member.state"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.card.v1", "cx.schema.message.v1", "cx.schema.morph.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
+      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.message.v1", "cx.schema.morph.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
       "required_fixtures": ["encoding-fixture.json", "sync-fixture.json"],
       "optional_extensions": ["local_reducer", "e2ee_decrypt", "push_notifications"],
       "feature_discovery": { "required": ["supported_profiles", "unsupported_features"], "unsupported_optional": "render generic fallback or return unsupported_feature" }
@@ -144,21 +144,21 @@
     "cx.profile.chat_only_client.v1": {
       "inherits": ["cx.profile.chat_mvp.v1"],
       "required_endpoints": ["cx.sync.client_sync", "cx.authz.check"],
-      "required_event_kinds": ["cx.room.create", "cx.room.member", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove"],
+      "required_event_kinds": ["cx.flow.create", "cx.flow.branch.member", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.room.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
       "required_fixtures": ["sync-fixture.json", "redaction-fixture.json", "privacy-security-fixture.json"],
       "optional_extensions": ["cx.profile.e2ee_client.v1", "cx.profile.push_gateway.v1"],
-      "feature_discovery": { "required": ["chat_mvp", "room_timeline", "state_after"], "unsupported_optional": "hide unsupported Board/Card interactions" }
+      "feature_discovery": { "required": ["chat_mvp", "discussion_timeline", "state_after"], "unsupported_optional": "hide unsupported board/list Flow interactions" }
     },
     "cx.profile.kanban_only_client.v1": {
       "inherits": ["cx.profile.kanban_mvp.v1"],
       "required_endpoints": ["cx.authz.check"],
-      "required_event_kinds": ["cx.card.create", "cx.card.update", "cx.card.move", "cx.card.reorder", "cx.relation.create", "cx.container.rebalance"],
+      "required_event_kinds": ["cx.flow.create", "cx.flow.update", "cx.flow.move", "cx.flow.reorder", "cx.relation.create", "cx.container.rebalance"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.card.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
+      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
       "required_fixtures": ["state-resolution-fixture.json", "capability-fixture.json", "sync-fixture.json"],
-      "optional_extensions": ["linked_room", "card_discussions"],
+      "optional_extensions": ["discussion_branch", "snapshot_bootstrap"],
       "feature_discovery": { "required": ["collection_projection", "wait_for", "cas_reorder"], "unsupported_optional": "disable unsupported renderer actions" }
     },
     "cx.profile.full_client.v1": {
@@ -204,7 +204,7 @@
     "cx.profile.principal_server.v1": {
       "inherits": ["cx.profile.principal_server_events_api.v1", "cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
       "required_endpoints": ["cx.server.describe", "cx.sync.describe", "cx.sync.client_sync", "cx.sync.subscribe", "cx.sync.backfill", "cx.sync.get_snapshot_head", "cx.federation.transaction", "cx.authz.check"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.card.create", "cx.message.create", "cx.capability.grant", "cx.capability.revoke"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.message.create", "cx.capability.grant", "cx.capability.revoke"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.client_sync_response.v1", "cx.schema.snapshot.v1", "cx.schema.capability.v1", "cx.schema.grant_constraint.v1"],
       "required_fixtures": ["event-envelope-negative-fixture.json", "sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json", "privacy-security-fixture.json"],
@@ -308,9 +308,9 @@
     "cx.profile.small_team.v1": {
       "inherits": ["cx.profile.principal_server.v1", "cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
       "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.card.create", "cx.message.create"],
+      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.message.create"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.card.v1", "cx.schema.message.v1"],
+      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.message.v1"],
       "required_fixtures": ["sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json"],
       "optional_extensions": ["e2ee", "push_gateway"],
       "feature_discovery": { "required": ["team_limits", "supported_profiles"], "unsupported_optional": "return unsupported_feature" }
@@ -420,7 +420,7 @@
     },
     "cx.profile.state_resolution_vectors.v1": {
       "required_endpoints": ["cx.events.submit"],
-      "required_event_kinds": ["cx.member.state", "cx.room.member", "cx.card.move", "cx.card.reorder", "cx.policy.set"],
+      "required_event_kinds": ["cx.member.state", "cx.flow.branch.member", "cx.flow.move", "cx.flow.reorder", "cx.policy.set"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1"],
       "required_fixtures": ["state-resolution-fixture.json"],

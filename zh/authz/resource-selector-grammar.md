@@ -92,7 +92,7 @@ disjunction_selector ::= selector "," selector
 - `morph_type`：Space schema 中注册的开放对象类型。
 - `object_type`：标准对象类型或 `morph`。
 - `object_ref`：任一 canonical object id。
-- `relation_kind`：字符串标识符，例如 `contains`、`assigned_to`、`has_surface`、`links_room`。
+- `relation_kind`：字符串标识符，例如 `contains`、`assigned_to`、`promoted_from_discussion`、`summarized_from`。
 - `view_id`：`cx:view:` 后接 ULID。
 - 空白字符被忽略（引号内字符串除外）。
 
@@ -167,15 +167,10 @@ disjunction_selector ::= selector "," selector
 
 ### 3.5 Relation 选择器
 
-`relation:cx:space:...:has_surface`
+`relation:cx:space:...:promoted_from_discussion`
 
-- 匹配：该 Space 中所有 `has_surface` 关系。
-- 注意：创建或读取 Subject surface relation 不授予目标 surface 内容访问权。
-
-`relation:cx:space:...:links_room`
-
-- 匹配：该 Space 中所有 `links_room` 关系。
-- 注意：创建或读取 Card-to-Room relation 不授予目标 Room 内容访问权。
+- 匹配：该 Space 中所有 `promoted_from_discussion` 关系。
+- 注意：读取 discussion 到 synthesis 的沉淀关系不授予 discussion 内容访问权。
 
 `relation:*:assigned_to`
 
@@ -365,7 +360,7 @@ Facet 选择适合：
 {
   "grant_id": "cx:grant:...",
   "subject": "did:web:alice.example.com",
-  "actions": ["cx.card.read", "cx.card.update"],
+  "actions": ["cx.flow.read", "cx.flow.update"],
   "resources": [
     {
       "kind": "card",

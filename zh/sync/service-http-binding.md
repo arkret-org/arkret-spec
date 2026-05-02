@@ -237,7 +237,7 @@ POST /api/v1/events
     "space_version": "1",
     "actor_id": "did:web:alice.example.com",
     "actor_seq": 42,
-    "kind": "cx.card.update",
+    "kind": "cx.flow.update",
     "created_at": "2026-04-22T08:30:00Z",
     "hlc": "01970e589d21-0007-a13f9c2e",
     "prev_refs": ["cx:event:01js0et0000000000000000000"],

@@ -226,7 +226,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
     "cx.events.submit",
     "cx.space.discover",
     "cx.object.read",
-    "cx.card.update",
+    "cx.flow.update",
     "cx.message.create"
   ],
   "not_before": "2026-04-26T00:00:00Z",

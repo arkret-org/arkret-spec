@@ -34,32 +34,20 @@
   },
   "allOf": [
     {
-      "if": { "properties": { "kind": { "const": "cx.card.move" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_move_content" } } }
+      "if": { "properties": { "kind": { "const": "cx.flow.move" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/flow_move_content" } } }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.card.reorder" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_reorder_content" } } }
+      "if": { "properties": { "kind": { "const": "cx.flow.reorder" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/flow_reorder_content" } } }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.card.link_room" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "const": "cx.card.unlink_room" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "const": "cx.card.set_primary_room" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "enum": ["cx.subject.link_surface", "cx.subject.unlink_surface", "cx.subject.set_primary_surface"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/subject_surface_link_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "enum": ["cx.member.state", "cx.room.member"] } }, "required": ["kind"] },
+      "if": { "properties": { "kind": { "enum": ["cx.member.state", "cx.flow.branch.member"] } }, "required": ["kind"] },
       "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/membership_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "enum": ["cx.flow.branch.history_visibility", "cx.flow.branch.policy_components"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/state_content" } } }
     },
     {
       "if": { "properties": { "kind": { "const": "cx.space.plaintext_visible_services" } }, "required": ["kind"] },
@@ -318,62 +306,9 @@
     },
     "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
     "board_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
+    "flow_id": { "type": "string", "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$" },
     "list_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
     "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
-    "eventRef": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
-    "card_move_content": {
-      "type": "object",
-      "required": ["board_id", "card_id", "to_list_id", "rank"],
-      "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "card_id": { "$ref": "#/$defs/card_id" },
-        "from_list_id": { "$ref": "#/$defs/list_id" },
-        "to_list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "list_id": { "$ref": "#/$defs/list_id" },
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "card_reorder_content": {
-      "type": "object",
-      "required": ["board_id", "card_id", "list_id", "rank"],
-      "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "card_id": { "$ref": "#/$defs/card_id" },
-        "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "card_room_link_content": {
-      "type": "object",
-      "required": ["card_id", "room_id"],
-      "properties": {
-        "card_id": { "$ref": "#/$defs/card_id" },
-        "room_id": { "$ref": "#/$defs/room_id" },
-        "purpose": { "type": "string" },
-        "primary": { "type": "boolean", "default": false }
-      },
-      "additionalProperties": false
-    },
     "proof": {
       "type": "object",
       "required": ["kind", "alg", "verification_method", "payload_hash", "created_at", "jws"],

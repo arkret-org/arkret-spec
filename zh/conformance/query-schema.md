@@ -16,8 +16,8 @@
   "filters": [],
   "relation": null,
   "context": {
-    "event_kinds": ["cx.card.update", "cx.message.create", "cx.relation.create"],
-    "relation_kinds": ["contains", "assigned_to", "depends_on", "replies_to", "links_room"],
+    "event_kinds": ["cx.flow.update", "cx.message.create", "cx.relation.create"],
+    "relation_kinds": ["contains", "assigned_to", "depends_on", "replies_to", "promoted_from_discussion"],
     "event_tiebreak": "event_id"
   },
   "order_by": [],
@@ -114,7 +114,7 @@
 
 Relation Query 字段：
 
-- `kind`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`、`links_room`。
+- `kind`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`、`promoted_from_discussion`。
 - `direction`: REQUIRED，`out` / `in` / `both`。
 - `source_ref`: OPTIONAL，限制 relation 起点对象、Actor 或 Space。
 - `target_ref`: OPTIONAL，限制 relation 终点对象、Actor 或 Space。
@@ -122,11 +122,11 @@ Relation Query 字段：
 - `target_type`: OPTIONAL，限制终点类型。
 - `depth`: OPTIONAL，关系展开深度；跨 Space 规则见 `views.md` Lazy Link。
 
-Card 与 Room 的 relation 查询必须遵守独立授权：
+Flow synthesis 与 discussion 的 relation 查询必须遵守独立授权：
 
-- `links_room` / `primary_room` 可显示 Room 引用和可见性状态。
-- Card 可见不代表 Room timeline 可读。
-- Room 可读不代表 Card 可写。
+- `promoted_from_discussion` 可显示 synthesis 条目来自 discussion 的沉淀关系。
+- Flow synthesis 可见不代表 discussion timeline 可读。
+- Discussion 可读不代表 Flow synthesis 可写。
 
 查询执行方 MUST reject 含糊或互相矛盾的 Relation Query。
 

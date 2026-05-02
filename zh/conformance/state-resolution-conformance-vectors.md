@@ -44,10 +44,10 @@ cx.vector.state_resolution.conflict_room_membership.v1
 
 输入：
 
-- Room: `cx:room:01js0r00000000000000000000`
-- State key: `cx:room:01js0r00000000000000000000|did:web:bob.example.com`
-- Candidate A: `cx.room.member` -> `join`
-- Candidate B: `cx.room.member` -> `leave`
+- Flow discussion: `cx:flow:01js0r00000000000000000000`
+- State key: `cx:flow:01js0r00000000000000000000|discussion|did:web:bob.example.com`
+- Candidate A: `cx.flow.branch.member` -> `join`
+- Candidate B: `cx.flow.branch.member` -> `leave`
 
 期望：
 
@@ -68,17 +68,17 @@ cx.vector.state_resolution.concurrent_card_move.v1
 ```json
 {
   "base": {
-    "card_id": "cx:card:01js0ca0000000000000000000",
+    "card_id": "cx:flow:01js0ca0000000000000000000",
     "list_id": "cx:space:01js0111000000000000000000",
     "rank": "U"
   },
   "candidates": [
     {
       "event_id": "cx:event:01js0ev1000000000000000000",
-      "kind": "cx.card.move",
+      "kind": "cx.flow.move",
       "content": {
         "board_id": "cx:space:01js0bd0000000000000000000",
-        "card_id": "cx:card:01js0ca0000000000000000000",
+        "card_id": "cx:flow:01js0ca0000000000000000000",
         "to_list_id": "cx:space:01js0112000000000000000000",
         "rank": "U"
       },
@@ -86,10 +86,10 @@ cx.vector.state_resolution.concurrent_card_move.v1
     },
     {
       "event_id": "cx:event:01js0ev2000000000000000000",
-      "kind": "cx.card.move",
+      "kind": "cx.flow.move",
       "content": {
         "board_id": "cx:space:01js0bd0000000000000000000",
-        "card_id": "cx:card:01js0ca0000000000000000000",
+        "card_id": "cx:flow:01js0ca0000000000000000000",
         "to_list_id": "cx:space:01js0113000000000000000000",
         "rank": "U"
       },
@@ -116,8 +116,8 @@ cx.vector.state_resolution.card_linked_room_auth.v1
 输入：
 
 - Candidate A: `cx.card.link_room(card_id, room_id, primary=false)`
-- Viewer has `cx.card.read` on Card.
-- Viewer has no `cx.room.member` for linked Room.
+- Viewer has `cx.flow.read` on Card.
+- Viewer has no `cx.flow.branch.member` for linked Room.
 
 期望：
 
@@ -136,8 +136,8 @@ cx.vector.state_resolution.subject_surface_auth.v1
 输入：
 
 - Candidate A: `cx.subject.link_surface(subject_id, surface_ref=room_id, surface_role=primary_discussion, primary=true)`
-- Viewer has `cx.subject.read` on Subject.
-- Viewer has no `cx.room.member` for linked Room.
+- Viewer has `cx.flow.read` on Subject.
+- Viewer has no `cx.flow.branch.member` for linked Room.
 
 期望：
 
