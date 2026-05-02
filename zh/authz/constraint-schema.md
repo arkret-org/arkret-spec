@@ -117,7 +117,7 @@
 {
   "constraint_type": "type_restriction",
   "effect": "allow",
-  "object_type_allow": ["card", "message", "morph"],
+  "object_type_allow": ["flow", "message", "morph"],
   "morph_type_allow": ["document", "customer_case"],
   "facet_allow": ["stateful", "replyable", "documentable"],
   "morph_type_deny": ["credential"]
@@ -135,10 +135,10 @@
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "allowed_room_refs": [
-    "cx:room:01js0r00m00000000000000000"
+    "cx:flow:01js0r00m00000000000000000"
   ],
   "denied_room_refs": [
-    "cx:room:01js0r00m99999999999999900"
+    "cx:flow:01js0r00m99999999999999900"
   ]
 }
 ```
@@ -529,7 +529,7 @@ function matches_field_access(operation, constraint):
     {
       "kind": "card",
       "space_id": "cx:space:...",
-      "card_id": "*"
+      "flow_id": "*"
     }
   ],
   "constraints": [

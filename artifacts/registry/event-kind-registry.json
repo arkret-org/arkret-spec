@@ -23,123 +23,951 @@
     "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.critical_extensions and fail closed when unsupported."
   },
   "event_kinds": [
-    { "event_kind": "cx.space.create", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space create" },
-    { "event_kind": "cx.space.update", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space patch" },
-    { "event_kind": "cx.space.upgrade", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space version upgrade" },
-    { "event_kind": "cx.space.organization", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space official or sponsoring organization statement" },
-    { "event_kind": "cx.space.child", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Child Space link" },
-    { "event_kind": "cx.space.parent", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Parent Space link" },
-    { "event_kind": "cx.space.inheritance_policy", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space inheritance policy declaration" },
-    { "event_kind": "cx.space.join_rule", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Join rule state" },
-    { "event_kind": "cx.space.history_visibility", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "History visibility state" },
-    { "event_kind": "cx.space.discovery", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Discoverability state" },
-    { "event_kind": "cx.space.policy", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space policy state" },
-    { "event_kind": "cx.space.policy_server", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Policy server binding state" },
-    { "event_kind": "cx.space.policy_components", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Policy component state" },
-    { "event_kind": "cx.space.schema", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space schema refs state" },
-    { "event_kind": "cx.space.plaintext_visible_services", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Plaintext-visible service allow-list state" },
-    { "event_kind": "cx.space.history_sharing_policy", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "E2EE history sharing policy state" },
-    { "event_kind": "cx.space.asset_privacy_policy", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Asset privacy policy state" },
-    { "event_kind": "cx.space.moderation_policy", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Moderation policy state" },
-    { "event_kind": "cx.space.media_service", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Media service binding state" },
-    { "event_kind": "cx.space.tombstone", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Terminal Space tombstone or replacement marker" },
-    { "event_kind": "cx.space.archive", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Set reversible archive state" },
-    { "event_kind": "cx.space.freeze", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Set reversible temporary freeze state" },
-    { "event_kind": "cx.space.destroy", "category": "space", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Terminal Space decommission marker" },
-    { "event_kind": "cx.organization.discovery", "category": "organization", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Organization discoverability state" },
-    { "event_kind": "cx.organization.moderation_policy", "category": "organization", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Organization moderation policy state" },
-    { "event_kind": "cx.did.proof", "category": "identity", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "DID proof object or event" },
-    { "event_kind": "cx.identity.disclosure_policy", "category": "identity", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Identity disclosure policy" },
-    { "event_kind": "cx.identity.disclosure_receipt", "category": "identity", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Identity disclosure receipt" },
-    { "event_kind": "cx.identity.presentation_request", "category": "identity", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Presentation request" },
-    { "event_kind": "cx.identity.presentation_response", "category": "identity", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Presentation response" },
-    { "event_kind": "cx.schema.define", "category": "schema", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Schema definition" },
-    { "event_kind": "cx.schema.update", "category": "schema", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Schema patch" },
-    { "event_kind": "cx.policy.set", "category": "policy", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Policy object set" },
-    { "event_kind": "cx.policy.rule", "category": "policy", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Policy rule state" },
-    { "event_kind": "cx.policy.action", "category": "policy", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Policy-gated action proposal or execution" },
-    { "event_kind": "cx.member.state", "category": "membership", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space membership state" },
-    { "event_kind": "cx.flow.create", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow create" },
-    { "event_kind": "cx.flow.update", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow patch" },
-    { "event_kind": "cx.flow.archive", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow archive" },
-    { "event_kind": "cx.flow.restore", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow restore" },
-    { "event_kind": "cx.flow.convert", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow mode convert" },
-    { "event_kind": "cx.flow.branch.enable", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Enable Flow branch" },
-    { "event_kind": "cx.flow.branch.disable", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Disable Flow branch" },
-    { "event_kind": "cx.flow.branch.update", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow branch patch" },
-    { "event_kind": "cx.flow.branch.set_primary", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Set Flow primary branch" },
-    { "event_kind": "cx.flow.branch.member", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow discussion branch membership state" },
-    { "event_kind": "cx.flow.branch.history_visibility", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow discussion branch history visibility state" },
-    { "event_kind": "cx.flow.branch.policy_components", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow discussion branch policy component state" },
-    { "event_kind": "cx.flow.move", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow move between Lists" },
-    { "event_kind": "cx.flow.reorder", "category": "flow", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Flow reorder within List" },
-    { "event_kind": "cx.message.create", "category": "message", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Message create" },
-    { "event_kind": "cx.message.revise", "category": "message", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Message edit patch" },
-    { "event_kind": "cx.message.redact", "category": "message", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Message-scoped redaction; does not grant generic redaction authority" },
-    { "event_kind": "cx.reaction.add", "category": "message", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Reaction add" },
-    { "event_kind": "cx.reaction.remove", "category": "message", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Reaction remove" },
-    { "event_kind": "cx.redaction", "category": "message", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming" },
-    { "event_kind": "cx.morph.create", "category": "morph", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Morph create" },
-    { "event_kind": "cx.morph.update", "category": "morph", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Morph patch" },
-    { "event_kind": "cx.morph.archive", "category": "morph", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Morph archive" },
-    { "event_kind": "cx.morph.restore", "category": "morph", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Morph restore" },
-    { "event_kind": "cx.relation.create", "category": "relation", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Relation create" },
-    { "event_kind": "cx.relation.update", "category": "relation", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Relation patch" },
-    { "event_kind": "cx.relation.delete", "category": "relation", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Relation tombstone" },
-    { "event_kind": "cx.container.move_item", "category": "relation", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Profile-declared container item move" },
-    { "event_kind": "cx.container.rebalance", "category": "relation", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Profile-declared container rank rebalance" },
-    { "event_kind": "cx.view.create", "category": "view", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "View create" },
-    { "event_kind": "cx.view.update", "category": "view", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "View update" },
-    { "event_kind": "cx.view.reconcile", "category": "view", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "View schema or definition sync" },
-    { "event_kind": "cx.agent.endpoint", "category": "agent", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Agent protocol endpoint declaration" },
-    { "event_kind": "cx.agent.protocol_session.start", "category": "agent", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Agent protocol session start" },
-    { "event_kind": "cx.agent.protocol_session.status", "category": "agent", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Agent protocol session status" },
-    { "event_kind": "cx.agent.protocol_session.result", "category": "agent", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Agent protocol session result" },
-    { "event_kind": "cx.capability.grant", "category": "authz", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Capability grant" },
-    { "event_kind": "cx.capability.delegate", "category": "authz", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Capability delegation" },
-    { "event_kind": "cx.capability.revoke", "category": "authz", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Capability revocation" },
-    { "event_kind": "cx.capability.derived", "category": "authz", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Derived capability state" },
-    { "event_kind": "cx.session.grant", "category": "authz", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Session grant" },
-    { "event_kind": "cx.account.status", "category": "account", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Signed account lifecycle status" },
-    { "event_kind": "cx.account.blocklist", "category": "account", "status": "active", "wire_scope": "actor_private_event", "reducer_input": false, "payload": "Actor-private blocklist state" },
-    { "event_kind": "cx.account_data.set", "category": "account", "status": "active", "wire_scope": "actor_private_event", "reducer_input": false, "payload": "Actor-private account data update" },
-    { "event_kind": "cx.presence", "category": "account", "status": "active", "wire_scope": "ephemeral_event", "reducer_input": false, "payload": "Presence ephemeral or account state" },
-    { "event_kind": "cx.typing", "category": "account", "status": "active", "wire_scope": "ephemeral_event", "reducer_input": false, "payload": "Typing ephemeral event" },
-    { "event_kind": "cx.profile.update", "category": "profile", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Actor profile update" },
-    { "event_kind": "cx.profile.space_override", "category": "profile", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space-scoped profile override" },
-    { "event_kind": "cx.device.authorized", "category": "device", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Device authorization" },
-    { "event_kind": "cx.device.revoked", "category": "device", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Device revocation" },
-    { "event_kind": "cx.device.list_update", "category": "device", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Device list update" },
-    { "event_kind": "cx.key.verification.request", "category": "device", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Device key verification request" },
-    { "event_kind": "cx.mls.proposal", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS proposal" },
-    { "event_kind": "cx.mls.commit", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS commit" },
-    { "event_kind": "cx.mls.welcome", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS welcome reference" },
-    { "event_kind": "cx.mls.keypackage", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS KeyPackage publication" },
-    { "event_kind": "cx.mls.epoch", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MLS epoch checkpoint derived from winning commit; not an independent epoch authority" },
-    { "event_kind": "cx.space_key.share", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space key share" },
-    { "event_kind": "cx.space_key.withheld", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Space key withheld notice" },
-    { "event_kind": "cx.space_key.share_audit", "category": "e2ee", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Auditable history key share marker" },
-    { "event_kind": "cx.audit.accessed", "category": "audit", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Auditable access" },
-    { "event_kind": "cx.moderation.report", "category": "moderation", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Moderation report" },
-    { "event_kind": "cx.moderation.frank", "category": "audit", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Moderation franking proof" },
-    { "event_kind": "cx.read.marker", "category": "read", "status": "active", "wire_scope": "actor_private_event", "reducer_input": false, "payload": "Read marker event" },
-    { "event_kind": "cx.receipt.read", "category": "read", "status": "active", "wire_scope": "ephemeral_event", "reducer_input": false, "payload": "Read receipt event" },
-    { "event_kind": "cx.invite.create", "category": "invite", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Invite create" },
-    { "event_kind": "cx.invite.cancel", "category": "invite", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Invite cancel" },
-    { "event_kind": "cx.invite.accept", "category": "invite", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Invite accept" },
-    { "event_kind": "cx.invite.third_party", "category": "invite", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Third-party identifier pending invite" },
-    { "event_kind": "cx.invite.claim", "category": "invite", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Third-party invite claim" },
-    { "event_kind": "cx.invite.revoke", "category": "invite", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Third-party invite revoke" },
-    { "event_kind": "cx.applet.bridge_error", "category": "applet", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Bridge failure" },
-    { "event_kind": "cx.applet.registration", "category": "applet", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Applet registration" },
-    { "event_kind": "cx.applet.protocol_session.start", "category": "applet", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Applet protocol session start" },
-    { "event_kind": "cx.applet.protocol_session.status", "category": "applet", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Applet protocol session status" },
-    { "event_kind": "cx.mimi.room_binding", "category": "mimi", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "MIMI room binding state" },
-    { "event_kind": "cx.call.signal", "category": "call", "status": "active", "wire_scope": "ephemeral_event", "reducer_input": false, "payload": "WebRTC signal message" },
-    { "event_kind": "cx.call.state", "category": "call", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Call state" },
-    { "event_kind": "cx.call.recording.start", "category": "call", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Call recording start" },
-    { "event_kind": "cx.sovereign.did_policy", "category": "sovereign", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Sovereign DID resolver policy state" },
-    { "event_kind": "cx.marker.read", "category": "read", "status": "deprecated", "wire_scope": "deprecated_alias", "reducer_input": false, "replaced_by": "cx.read.marker", "payload": "Legacy read marker name" },
-    { "event_kind": "cx.morph.delete", "category": "morph", "status": "deprecated", "wire_scope": "deprecated_alias", "reducer_input": false, "replaced_by": "cx.morph.archive", "payload": "Legacy Morph archive name" }
+    {
+      "event_kind": "cx.space.create",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space create"
+    },
+    {
+      "event_kind": "cx.space.update",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space patch"
+    },
+    {
+      "event_kind": "cx.space.upgrade",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space version upgrade"
+    },
+    {
+      "event_kind": "cx.space.organization",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space official or sponsoring organization statement"
+    },
+    {
+      "event_kind": "cx.space.child",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Child Space link"
+    },
+    {
+      "event_kind": "cx.space.parent",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Parent Space link"
+    },
+    {
+      "event_kind": "cx.space.inheritance_policy",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space inheritance policy declaration"
+    },
+    {
+      "event_kind": "cx.space.join_rule",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Join rule state"
+    },
+    {
+      "event_kind": "cx.space.history_visibility",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "History visibility state"
+    },
+    {
+      "event_kind": "cx.space.discovery",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Discoverability state"
+    },
+    {
+      "event_kind": "cx.space.policy",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space policy state"
+    },
+    {
+      "event_kind": "cx.space.policy_server",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Policy server binding state"
+    },
+    {
+      "event_kind": "cx.space.policy_components",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Policy component state"
+    },
+    {
+      "event_kind": "cx.space.schema",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space schema refs state"
+    },
+    {
+      "event_kind": "cx.space.plaintext_visible_services",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Plaintext-visible service allow-list state"
+    },
+    {
+      "event_kind": "cx.space.history_sharing_policy",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "E2EE history sharing policy state"
+    },
+    {
+      "event_kind": "cx.space.asset_privacy_policy",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Asset privacy policy state"
+    },
+    {
+      "event_kind": "cx.space.moderation_policy",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Moderation policy state"
+    },
+    {
+      "event_kind": "cx.space.media_service",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Media service binding state"
+    },
+    {
+      "event_kind": "cx.space.tombstone",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Terminal Space tombstone or replacement marker"
+    },
+    {
+      "event_kind": "cx.space.archive",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Set reversible archive state"
+    },
+    {
+      "event_kind": "cx.space.freeze",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Set reversible temporary freeze state"
+    },
+    {
+      "event_kind": "cx.space.destroy",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Terminal Space decommission marker"
+    },
+    {
+      "event_kind": "cx.organization.discovery",
+      "category": "organization",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Organization discoverability state"
+    },
+    {
+      "event_kind": "cx.organization.moderation_policy",
+      "category": "organization",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Organization moderation policy state"
+    },
+    {
+      "event_kind": "cx.did.proof",
+      "category": "identity",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "DID proof object or event"
+    },
+    {
+      "event_kind": "cx.identity.disclosure_policy",
+      "category": "identity",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Identity disclosure policy"
+    },
+    {
+      "event_kind": "cx.identity.disclosure_receipt",
+      "category": "identity",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Identity disclosure receipt"
+    },
+    {
+      "event_kind": "cx.identity.presentation_request",
+      "category": "identity",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Presentation request"
+    },
+    {
+      "event_kind": "cx.identity.presentation_response",
+      "category": "identity",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Presentation response"
+    },
+    {
+      "event_kind": "cx.schema.define",
+      "category": "schema",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Schema definition"
+    },
+    {
+      "event_kind": "cx.schema.update",
+      "category": "schema",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Schema patch"
+    },
+    {
+      "event_kind": "cx.policy.set",
+      "category": "policy",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Policy object set"
+    },
+    {
+      "event_kind": "cx.policy.rule",
+      "category": "policy",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Policy rule state"
+    },
+    {
+      "event_kind": "cx.policy.action",
+      "category": "policy",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Policy-gated action proposal or execution"
+    },
+    {
+      "event_kind": "cx.member.state",
+      "category": "membership",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space membership state"
+    },
+    {
+      "event_kind": "cx.flow.create",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow create"
+    },
+    {
+      "event_kind": "cx.flow.update",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow patch"
+    },
+    {
+      "event_kind": "cx.flow.archive",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow archive"
+    },
+    {
+      "event_kind": "cx.flow.restore",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow restore"
+    },
+    {
+      "event_kind": "cx.flow.convert",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow mode convert"
+    },
+    {
+      "event_kind": "cx.flow.branch.enable",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Enable Flow branch"
+    },
+    {
+      "event_kind": "cx.flow.branch.disable",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Disable Flow branch"
+    },
+    {
+      "event_kind": "cx.flow.branch.update",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow branch patch"
+    },
+    {
+      "event_kind": "cx.flow.branch.set_primary",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Set Flow primary branch"
+    },
+    {
+      "event_kind": "cx.flow.branch.member",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow discussion branch membership state"
+    },
+    {
+      "event_kind": "cx.flow.branch.history_visibility",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow discussion branch history visibility state"
+    },
+    {
+      "event_kind": "cx.flow.branch.policy_components",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow discussion branch policy component state"
+    },
+    {
+      "event_kind": "cx.flow.move",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow move between Lists"
+    },
+    {
+      "event_kind": "cx.flow.reorder",
+      "category": "flow",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Flow reorder within List"
+    },
+    {
+      "event_kind": "cx.message.create",
+      "category": "message",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Message create"
+    },
+    {
+      "event_kind": "cx.message.revise",
+      "category": "message",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Message edit patch"
+    },
+    {
+      "event_kind": "cx.message.redact",
+      "category": "message",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Message-scoped redaction; does not grant generic redaction authority"
+    },
+    {
+      "event_kind": "cx.reaction.add",
+      "category": "message",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Reaction add"
+    },
+    {
+      "event_kind": "cx.reaction.remove",
+      "category": "message",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Reaction remove"
+    },
+    {
+      "event_kind": "cx.redaction",
+      "category": "message",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming"
+    },
+    {
+      "event_kind": "cx.morph.create",
+      "category": "morph",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Morph create"
+    },
+    {
+      "event_kind": "cx.morph.update",
+      "category": "morph",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Morph patch"
+    },
+    {
+      "event_kind": "cx.morph.archive",
+      "category": "morph",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Morph archive"
+    },
+    {
+      "event_kind": "cx.morph.restore",
+      "category": "morph",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Morph restore"
+    },
+    {
+      "event_kind": "cx.relation.create",
+      "category": "relation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Relation create"
+    },
+    {
+      "event_kind": "cx.relation.update",
+      "category": "relation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Relation patch"
+    },
+    {
+      "event_kind": "cx.relation.delete",
+      "category": "relation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Relation tombstone"
+    },
+    {
+      "event_kind": "cx.container.move_item",
+      "category": "relation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Profile-declared container item move"
+    },
+    {
+      "event_kind": "cx.container.rebalance",
+      "category": "relation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Profile-declared container rank rebalance"
+    },
+    {
+      "event_kind": "cx.view.create",
+      "category": "view",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "View create"
+    },
+    {
+      "event_kind": "cx.view.update",
+      "category": "view",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "View update"
+    },
+    {
+      "event_kind": "cx.view.reconcile",
+      "category": "view",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "View schema or definition sync"
+    },
+    {
+      "event_kind": "cx.agent.endpoint",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent protocol endpoint declaration"
+    },
+    {
+      "event_kind": "cx.agent.protocol_session.start",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent protocol session start"
+    },
+    {
+      "event_kind": "cx.agent.protocol_session.status",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent protocol session status"
+    },
+    {
+      "event_kind": "cx.agent.protocol_session.result",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent protocol session result"
+    },
+    {
+      "event_kind": "cx.capability.grant",
+      "category": "authz",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Capability grant"
+    },
+    {
+      "event_kind": "cx.capability.delegate",
+      "category": "authz",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Capability delegation"
+    },
+    {
+      "event_kind": "cx.capability.revoke",
+      "category": "authz",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Capability revocation"
+    },
+    {
+      "event_kind": "cx.capability.derived",
+      "category": "authz",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Derived capability state"
+    },
+    {
+      "event_kind": "cx.session.grant",
+      "category": "authz",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Session grant"
+    },
+    {
+      "event_kind": "cx.account.status",
+      "category": "account",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Signed account lifecycle status"
+    },
+    {
+      "event_kind": "cx.account.blocklist",
+      "category": "account",
+      "status": "active",
+      "wire_scope": "actor_private_event",
+      "reducer_input": false,
+      "payload": "Actor-private blocklist state"
+    },
+    {
+      "event_kind": "cx.account_data.set",
+      "category": "account",
+      "status": "active",
+      "wire_scope": "actor_private_event",
+      "reducer_input": false,
+      "payload": "Actor-private account data update"
+    },
+    {
+      "event_kind": "cx.presence",
+      "category": "account",
+      "status": "active",
+      "wire_scope": "ephemeral_event",
+      "reducer_input": false,
+      "payload": "Presence ephemeral or account state"
+    },
+    {
+      "event_kind": "cx.typing",
+      "category": "account",
+      "status": "active",
+      "wire_scope": "ephemeral_event",
+      "reducer_input": false,
+      "payload": "Typing ephemeral event"
+    },
+    {
+      "event_kind": "cx.profile.update",
+      "category": "profile",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Actor profile update"
+    },
+    {
+      "event_kind": "cx.profile.space_override",
+      "category": "profile",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space-scoped profile override"
+    },
+    {
+      "event_kind": "cx.device.authorized",
+      "category": "device",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Device authorization"
+    },
+    {
+      "event_kind": "cx.device.revoked",
+      "category": "device",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Device revocation"
+    },
+    {
+      "event_kind": "cx.device.list_update",
+      "category": "device",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Device list update"
+    },
+    {
+      "event_kind": "cx.key.verification.request",
+      "category": "device",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Device key verification request"
+    },
+    {
+      "event_kind": "cx.mls.proposal",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "MLS proposal"
+    },
+    {
+      "event_kind": "cx.mls.commit",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "MLS commit"
+    },
+    {
+      "event_kind": "cx.mls.welcome",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "MLS welcome reference"
+    },
+    {
+      "event_kind": "cx.mls.keypackage",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "MLS KeyPackage publication"
+    },
+    {
+      "event_kind": "cx.mls.epoch",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "MLS epoch checkpoint derived from winning commit; not an independent epoch authority"
+    },
+    {
+      "event_kind": "cx.space_key.share",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space key share"
+    },
+    {
+      "event_kind": "cx.space_key.withheld",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space key withheld notice"
+    },
+    {
+      "event_kind": "cx.space_key.share_audit",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Auditable history key share marker"
+    },
+    {
+      "event_kind": "cx.audit.accessed",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Auditable access"
+    },
+    {
+      "event_kind": "cx.moderation.report",
+      "category": "moderation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Moderation report"
+    },
+    {
+      "event_kind": "cx.moderation.frank",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Moderation franking proof"
+    },
+    {
+      "event_kind": "cx.read.marker",
+      "category": "read",
+      "status": "active",
+      "wire_scope": "actor_private_event",
+      "reducer_input": false,
+      "payload": "Read marker event"
+    },
+    {
+      "event_kind": "cx.receipt.read",
+      "category": "read",
+      "status": "active",
+      "wire_scope": "ephemeral_event",
+      "reducer_input": false,
+      "payload": "Read receipt event"
+    },
+    {
+      "event_kind": "cx.invite.create",
+      "category": "invite",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Invite create"
+    },
+    {
+      "event_kind": "cx.invite.cancel",
+      "category": "invite",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Invite cancel"
+    },
+    {
+      "event_kind": "cx.invite.accept",
+      "category": "invite",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Invite accept"
+    },
+    {
+      "event_kind": "cx.invite.third_party",
+      "category": "invite",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Third-party identifier pending invite"
+    },
+    {
+      "event_kind": "cx.invite.claim",
+      "category": "invite",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Third-party invite claim"
+    },
+    {
+      "event_kind": "cx.invite.revoke",
+      "category": "invite",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Third-party invite revoke"
+    },
+    {
+      "event_kind": "cx.applet.bridge_error",
+      "category": "applet",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Bridge failure"
+    },
+    {
+      "event_kind": "cx.applet.registration",
+      "category": "applet",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Applet registration"
+    },
+    {
+      "event_kind": "cx.applet.protocol_session.start",
+      "category": "applet",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Applet protocol session start"
+    },
+    {
+      "event_kind": "cx.applet.protocol_session.status",
+      "category": "applet",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Applet protocol session status"
+    },
+    {
+      "event_kind": "cx.mimi.room_binding",
+      "category": "mimi",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "MIMI room binding state"
+    },
+    {
+      "event_kind": "cx.call.signal",
+      "category": "call",
+      "status": "active",
+      "wire_scope": "ephemeral_event",
+      "reducer_input": false,
+      "payload": "WebRTC signal message"
+    },
+    {
+      "event_kind": "cx.call.state",
+      "category": "call",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Call state"
+    },
+    {
+      "event_kind": "cx.call.recording.start",
+      "category": "call",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Call recording start"
+    },
+    {
+      "event_kind": "cx.sovereign.did_policy",
+      "category": "sovereign",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Sovereign DID resolver policy state"
+    },
+    {
+      "event_kind": "cx.marker.read",
+      "category": "read",
+      "status": "deprecated",
+      "wire_scope": "deprecated_alias",
+      "reducer_input": false,
+      "replaced_by": "cx.read.marker",
+      "payload": "Legacy read marker name"
+    },
+    {
+      "event_kind": "cx.morph.delete",
+      "category": "morph",
+      "status": "deprecated",
+      "wire_scope": "deprecated_alias",
+      "reducer_input": false,
+      "replaced_by": "cx.morph.archive",
+      "payload": "Legacy Morph archive name"
+    }
   ]
 }

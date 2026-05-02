@@ -411,7 +411,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read marker、mention
 {
   "query": "legal review",
   "space_ids": ["cx:space:01js0sp0000000000000000000"],
-  "object_types": ["message", "card", "morph"],
+  "object_types": ["message", "flow", "morph"],
   "morph_types": ["comment"],
   "sender": "did:web:alice.example.com",
   "time_range": {
@@ -567,10 +567,10 @@ MIMI Provider Facade 是 MIMI 草案兼容的互操作服务面。它不替代 P
 ```text
 GET /api/v1/mimi/provider-directory
 POST /api/v1/mimi/key-material
-PUT /api/v1/mimi/rooms/{room_id}/update
-POST /api/v1/mimi/rooms/{room_id}/notify
-POST /api/v1/mimi/rooms/{room_id}/messages
-GET /api/v1/mimi/rooms/{room_id}/group-info
+PUT /api/v1/mimi/rooms/{flow_id}/update
+POST /api/v1/mimi/rooms/{flow_id}/notify
+POST /api/v1/mimi/rooms/{flow_id}/messages
+GET /api/v1/mimi/rooms/{flow_id}/group-info
 POST /api/v1/mimi/consent/request
 POST /api/v1/mimi/consent/update
 POST /api/v1/mimi/identifiers/query

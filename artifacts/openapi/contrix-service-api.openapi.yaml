@@ -274,7 +274,7 @@ components:
           enum: [out, in, both]
         source_ref:
           type: string
-          pattern: "^(cx:(space|room|board|list|card|message|morph|relation):[0-9a-hjkmnp-z]{26}|did:.+)$"
+          pattern: "^(cx:(space|flow|message|morph|relation):[0-9a-hjkmnp-z]{26}|did:.+)$"
         source_actor_id:
           type: string
         source_space_id:
@@ -282,7 +282,7 @@ components:
           pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
         target_ref:
           type: string
-          pattern: "^(cx:(space|room|board|list|card|message|morph|relation):[0-9a-hjkmnp-z]{26}|did:.+)$"
+          pattern: "^(cx:(space|flow|message|morph|relation):[0-9a-hjkmnp-z]{26}|did:.+)$"
         target_actor_id:
           type: string
         target_space_id:
@@ -422,7 +422,7 @@ components:
             required: [view_id]
     ObjectRef:
       type: string
-      pattern: "^cx:(space|room|board|list|card|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$"
+      pattern: "^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$"
     ObjectLookupResponse:
       type: object
       required: [object, visibility]
@@ -454,9 +454,9 @@ components:
       additionalProperties: false
     CardDiscussion:
       type: object
-      required: [room]
+      required: [flow]
       properties:
-        room:
+        flow:
           $ref: "#/components/schemas/ProjectionObject"
         relation:
           type: object
@@ -468,9 +468,9 @@ components:
       additionalProperties: false
     CardDiscussionsResponse:
       type: object
-      required: [rooms]
+      required: [flows]
       properties:
-        rooms:
+        flows:
           type: array
           items:
             $ref: "#/components/schemas/CardDiscussion"
@@ -951,10 +951,10 @@ components:
       properties:
         id:
           type: string
-          pattern: "^cx:(space|room|board|list|card|message|morph):[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(space|flow|message|morph):[0-9a-hjkmnp-z]{26}$"
         type:
           type: string
-          enum: [space, room, board, list, card, message, morph]
+          enum: [space, flow, message, morph]
         morph_type:
           type: string
         facets:
@@ -1020,7 +1020,7 @@ components:
           minLength: 1
         thread_id:
           type: string
-          pattern: "^cx:(room|message):[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(flow|message):[0-9a-hjkmnp-z]{26}$"
         body:
           type: object
         redacted:
@@ -1083,10 +1083,10 @@ components:
           minLength: 1
         from_ref:
           type: string
-          pattern: "^(cx:(space|room|board|list|card|message|morph):[0-9a-hjkmnp-z]{26}|did:.+)$"
+          pattern: "^(cx:(space|flow|message|morph):[0-9a-hjkmnp-z]{26}|did:.+)$"
         to_ref:
           type: string
-          pattern: "^(cx:(space|room|board|list|card|message|morph):[0-9a-hjkmnp-z]{26}|did:.+)$"
+          pattern: "^(cx:(space|flow|message|morph):[0-9a-hjkmnp-z]{26}|did:.+)$"
         rank:
           type: string
           pattern: "^[0-9A-Za-z]{1,128}$"
@@ -1730,14 +1730,14 @@ paths:
             application/json:
               schema:
                 type: object
-  /mimi/rooms/{room_id}/update:
+  /mimi/rooms/{flow_id}/update:
     put:
       operationId: cx.mimi.room_update
       security:
         - httpMessageSignature: []
       parameters:
         - in: path
-          name: room_id
+          name: flow_id
           required: true
           schema: { type: string }
       responses:
@@ -1747,14 +1747,14 @@ paths:
             application/json:
               schema:
                 type: object
-  /mimi/rooms/{room_id}/notify:
+  /mimi/rooms/{flow_id}/notify:
     post:
       operationId: cx.mimi.notify
       security:
         - httpMessageSignature: []
       parameters:
         - in: path
-          name: room_id
+          name: flow_id
           required: true
           schema: { type: string }
       responses:
@@ -1764,14 +1764,14 @@ paths:
             application/json:
               schema:
                 type: object
-  /mimi/rooms/{room_id}/messages:
+  /mimi/rooms/{flow_id}/messages:
     post:
       operationId: cx.mimi.submit_message
       security:
         - httpMessageSignature: []
       parameters:
         - in: path
-          name: room_id
+          name: flow_id
           required: true
           schema: { type: string }
       responses:
@@ -1781,14 +1781,14 @@ paths:
             application/json:
               schema:
                 type: object
-  /mimi/rooms/{room_id}/group-info:
+  /mimi/rooms/{flow_id}/group-info:
     get:
       operationId: cx.mimi.group_info
       security:
         - httpMessageSignature: []
       parameters:
         - in: path
-          name: room_id
+          name: flow_id
           required: true
           schema: { type: string }
       responses:

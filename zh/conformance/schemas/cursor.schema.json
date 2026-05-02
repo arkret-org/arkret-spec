@@ -3,20 +3,47 @@
   "$id": "https://contrix.io/artifacts/schemas/cursor.schema.json",
   "title": "Contrix Cursor",
   "type": "object",
-  "required": ["v", "t", "s", "x"],
+  "required": [
+    "v",
+    "t",
+    "s",
+    "x"
+  ],
   "properties": {
-    "v": { "const": "1" },
-    "t": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "v": {
+      "const": "1"
+    },
+    "t": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
     "s": {
       "type": "object",
       "patternProperties": {
         "^cx:space:[0-9a-hjkmnp-z]{26}$": {
           "type": "object",
-          "required": ["p", "o", "h"],
+          "required": [
+            "p",
+            "o",
+            "h"
+          ],
           "properties": {
-            "p": { "type": "array", "items": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" } },
-            "o": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" },
-            "h": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+            "p": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+              }
+            },
+            "o": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+            },
+            "h": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
           },
           "additionalProperties": false
         }
@@ -26,11 +53,17 @@
     "d": {
       "type": "object",
       "patternProperties": {
-        "^.+$": { "type": "string", "pattern": "^cx:devmsg:[0-9a-hjkmnp-z]{26}$" }
+        "^.+$": {
+          "type": "string",
+          "pattern": "^cx:devmsg:[0-9a-hjkmnp-z]{26}$"
+        }
       },
       "additionalProperties": false
     },
-    "x": { "type": "integer", "minimum": 0 }
+    "x": {
+      "type": "integer",
+      "minimum": 0
+    }
   },
   "additionalProperties": false
 }

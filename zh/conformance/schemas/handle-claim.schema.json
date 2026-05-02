@@ -3,18 +3,70 @@
   "$id": "https://contrix.io/artifacts/schemas/handle-claim.schema.json",
   "title": "Contrix Handle Claim",
   "type": "object",
-  "required": ["handle", "subject", "issuer", "binding_state", "created_at", "proofs"],
+  "required": [
+    "handle",
+    "subject",
+    "issuer",
+    "binding_state",
+    "created_at",
+    "proofs"
+  ],
   "properties": {
-    "handle": { "type": "string", "minLength": 3 },
-    "subject": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
-    "issuer": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$|^[a-z0-9.-]+$" },
-    "binding_state": { "type": "string", "enum": ["pending", "verified", "revoked", "expired"] },
-    "claim_type": { "type": "string", "enum": ["handle_binding", "organization_handle", "service_handle"] },
-    "challenge": { "type": "string" },
-    "claims": { "type": "array", "items": { "type": "object" } },
-    "created_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "expires_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "proofs": { "type": "array", "items": { "$ref": "./event-schema.json#/$defs/proof" }, "minItems": 1 }
+    "handle": {
+      "type": "string",
+      "minLength": 3
+    },
+    "subject": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "issuer": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$|^[a-z0-9.-]+$"
+    },
+    "binding_state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "revoked",
+        "expired"
+      ]
+    },
+    "claim_type": {
+      "type": "string",
+      "enum": [
+        "handle_binding",
+        "organization_handle",
+        "service_handle"
+      ]
+    },
+    "challenge": {
+      "type": "string"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "proofs": {
+      "type": "array",
+      "items": {
+        "$ref": "./event-schema.json#/$defs/proof"
+      },
+      "minItems": 1
+    }
   },
   "additionalProperties": true
 }

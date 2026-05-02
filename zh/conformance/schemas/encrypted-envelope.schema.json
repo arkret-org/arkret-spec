@@ -3,36 +3,95 @@
   "$id": "https://contrix.io/artifacts/schemas/encrypted-envelope.schema.json",
   "title": "Contrix Encrypted Payload Envelope",
   "type": "object",
-  "required": ["scheme", "group_id", "epoch", "content_type", "ciphertext", "aad", "payload_digest"],
+  "required": [
+    "scheme",
+    "group_id",
+    "epoch",
+    "content_type",
+    "ciphertext",
+    "aad",
+    "payload_digest"
+  ],
   "properties": {
-    "scheme": { "const": "mls-rfc9420" },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
-    "group_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
-    "epoch": { "type": "integer", "minimum": 0 },
-    "content_type": { "type": "string", "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$" },
-    "ciphertext": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
-    "authentication_tag": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+    "scheme": {
+      "const": "mls-rfc9420"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "group_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "content_type": {
+      "type": "string",
+      "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+    },
+    "ciphertext": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "authentication_tag": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
     "aad": {
       "type": "object",
-      "required": ["space_id", "event_type", "event_id", "causal_refs"],
+      "required": [
+        "space_id",
+        "event_type",
+        "event_id",
+        "causal_refs"
+      ],
       "properties": {
-        "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-        "event_type": { "type": "string", "pattern": "^cx\\.[a-z0-9_]+\\.[a-z0-9_]+$" },
-        "event_id": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
-        "causal_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" } }
+        "space_id": {
+          "type": "string",
+          "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        },
+        "event_type": {
+          "type": "string",
+          "pattern": "^cx\\.[a-z0-9_]+\\.[a-z0-9_]+$"
+        },
+        "event_id": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+        },
+        "causal_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+          }
+        }
       },
       "additionalProperties": true
     },
     "key_ref": {
       "type": "object",
       "properties": {
-        "algorithm": { "const": "MLS" },
-        "ratchet_tree": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" }
+        "algorithm": {
+          "const": "MLS"
+        },
+        "ratchet_tree": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
       },
       "additionalProperties": true
     },
-    "payload_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-    "aad_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+    "payload_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "aad_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
   },
   "additionalProperties": true
 }

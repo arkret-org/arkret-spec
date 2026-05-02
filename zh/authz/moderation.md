@@ -253,7 +253,7 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
     ],
     "appeal": {
       "enabled": true,
-      "endpoint": "cx:room:appea100000000000000000000"
+      "endpoint": "cx:flow:appea100000000000000000000"
     }
   }
 }

@@ -18,7 +18,10 @@
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
           "auth_refs": [],
-          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "hello" },
+          "content": {
+            "flow_id": "cx:flow:01k9rm00000000000000000000",
+            "body": "hello"
+          },
           "proofs": []
         }
       },
@@ -41,8 +44,12 @@
           "actor_seq": 2,
           "created_at": "2026-05-02T00:00:01Z",
           "hlc": "01970e589d22-0001-a13f9c2e",
-          "prev_refs": ["cx:event:01k9na00000000000000000000"],
-          "auth_refs": ["cx:event:01k9au00000000000000000000"],
+          "prev_refs": [
+            "cx:event:01k9na00000000000000000000"
+          ],
+          "auth_refs": [
+            "cx:event:01k9au00000000000000000000"
+          ],
           "critical_extensions": [
             {
               "id": "cx.feature.future_required.v1",
@@ -50,10 +57,15 @@
               "fail_closed": true
             }
           ],
-          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "hello" },
+          "content": {
+            "flow_id": "cx:flow:01k9rm00000000000000000000",
+            "body": "hello"
+          },
           "proofs": []
         },
-        "supported_features": ["cx.feature.detached_jws.v1"]
+        "supported_features": [
+          "cx.feature.detached_jws.v1"
+        ]
       },
       "expected": {
         "decision": "reject",
@@ -74,9 +86,16 @@
           "actor_seq": 3,
           "created_at": "2026-05-02T00:00:02Z",
           "hlc": "01970e589d23-0001-a13f9c2e",
-          "prev_refs": ["cx:event:01k9nb00000000000000000000"],
-          "auth_refs": ["cx:event:01k9au00000000000000000000"],
-          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "tampered" },
+          "prev_refs": [
+            "cx:event:01k9nb00000000000000000000"
+          ],
+          "auth_refs": [
+            "cx:event:01k9au00000000000000000000"
+          ],
+          "content": {
+            "flow_id": "cx:flow:01k9rm00000000000000000000",
+            "body": "tampered"
+          },
           "proofs": [
             {
               "kind": "detached_jws",
@@ -114,9 +133,16 @@
           "actor_seq": 9,
           "created_at": "2026-05-02T00:00:03Z",
           "hlc": "01970e589d24-0001-a13f9c2e",
-          "prev_refs": ["cx:event:01k9nf00000000000000000000"],
-          "auth_refs": ["cx:event:01k9au00000000000000000000"],
-          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "rollback" },
+          "prev_refs": [
+            "cx:event:01k9nf00000000000000000000"
+          ],
+          "auth_refs": [
+            "cx:event:01k9au00000000000000000000"
+          ],
+          "content": {
+            "flow_id": "cx:flow:01k9rm00000000000000000000",
+            "body": "rollback"
+          },
           "proofs": []
         }
       },
@@ -145,8 +171,13 @@
             "cx:event:01k9p200000000000000000000",
             "cx:event:01k9p300000000000000000000"
           ],
-          "auth_refs": ["cx:event:01k9au00000000000000000000"],
-          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "too many prev refs" },
+          "auth_refs": [
+            "cx:event:01k9au00000000000000000000"
+          ],
+          "content": {
+            "flow_id": "cx:flow:01k9rm00000000000000000000",
+            "body": "too many prev refs"
+          },
           "proofs": []
         }
       },
@@ -169,8 +200,13 @@
           "actor_seq": 12,
           "created_at": "2026-05-02T00:00:05Z",
           "hlc": "01970e589d26-0001-a13f9c2e",
-          "prev_refs": ["cx:event:01k9ne00000000000000000000"],
-          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "missing auth refs" },
+          "prev_refs": [
+            "cx:event:01k9ne00000000000000000000"
+          ],
+          "content": {
+            "flow_id": "cx:flow:01k9rm00000000000000000000",
+            "body": "missing auth refs"
+          },
           "proofs": []
         }
       },
@@ -193,9 +229,16 @@
           "actor_seq": 13,
           "created_at": "2026-05-02T00:00:06Z",
           "hlc": "01970e589d27-0001-a13f9c2e",
-          "prev_refs": ["cx:event:01k9nx00000000000000000000"],
-          "auth_refs": ["cx:event:01k9au00000000000000000000"],
-          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "self ref" },
+          "prev_refs": [
+            "cx:event:01k9nx00000000000000000000"
+          ],
+          "auth_refs": [
+            "cx:event:01k9au00000000000000000000"
+          ],
+          "content": {
+            "flow_id": "cx:flow:01k9rm00000000000000000000",
+            "body": "self ref"
+          },
           "proofs": []
         }
       },
@@ -237,9 +280,15 @@
           "actor_seq": 14,
           "created_at": "2026-05-02T00:00:06Z",
           "hlc": "01970e589d27-0001-a13f9c2e",
-          "prev_refs": ["cx:event:01k9ne00000000000000000000"],
-          "auth_refs": ["cx:event:01k9au00000000000000000000"],
-          "content": { "event_id": "cx:event:01k9na00000000000000000000" },
+          "prev_refs": [
+            "cx:event:01k9ne00000000000000000000"
+          ],
+          "auth_refs": [
+            "cx:event:01k9au00000000000000000000"
+          ],
+          "content": {
+            "event_id": "cx:event:01k9na00000000000000000000"
+          },
           "proofs": []
         }
       },
@@ -263,9 +312,16 @@
           "actor_seq": 15,
           "created_at": "2026-05-02T00:00:07Z",
           "hlc": "01970e589d28-0001-a13f9c2e",
-          "prev_refs": ["cx:event:01k9ne00000000000000000000"],
-          "auth_refs": ["cx:event:01k9au00000000000000000000"],
-          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "typing": true },
+          "prev_refs": [
+            "cx:event:01k9ne00000000000000000000"
+          ],
+          "auth_refs": [
+            "cx:event:01k9au00000000000000000000"
+          ],
+          "content": {
+            "flow_id": "cx:flow:01k9rm00000000000000000000",
+            "typing": true
+          },
           "proofs": []
         }
       },

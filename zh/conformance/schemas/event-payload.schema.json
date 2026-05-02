@@ -5,25 +5,71 @@
   "description": "Common payload contracts for registered cx.* Event.kind values. Event validators MUST combine these payload classes with artifacts/registry/event-kind-registry.json.",
   "$ref": "#/$defs/generic_standard_content",
   "$defs": {
-    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
-    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-    "event_ref": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
-    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "flow_id": { "type": "string", "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$" },
-    "board_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "list_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "message_id": { "type": "string", "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$" },
-    "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
-    "morph_id": { "type": "string", "pattern": "^cx:morph:[0-9a-hjkmnp-z]{26}$" },
-    "grant_id": { "type": "string", "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$" },
-    "invite_id": { "type": "string", "pattern": "^cx:invite:[0-9a-hjkmnp-z]{26}$" },
-    "agent_session_id": { "type": "string", "pattern": "^cx:agent_session:[0-9a-hjkmnp-z]{26}$" },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+    },
+    "board_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "list_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "message_id": {
+      "type": "string",
+      "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$"
+    },
+    "relation_id": {
+      "type": "string",
+      "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+    },
+    "morph_id": {
+      "type": "string",
+      "pattern": "^cx:morph:[0-9a-hjkmnp-z]{26}$"
+    },
+    "grant_id": {
+      "type": "string",
+      "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$"
+    },
+    "invite_id": {
+      "type": "string",
+      "pattern": "^cx:invite:[0-9a-hjkmnp-z]{26}$"
+    },
+    "agent_session_id": {
+      "type": "string",
+      "pattern": "^cx:agent_session:[0-9a-hjkmnp-z]{26}$"
+    },
     "object_ref": {
       "type": "string",
-      "pattern": "^(cx:(space|subject|room|card|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-hjkmnp-z]{26}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(cx:(space|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-hjkmnp-z]{26}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
-    "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
+    "rank": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z]{1,128}$"
+    },
     "patch_path": {
       "type": "string",
       "description": "Contrix field patch path. Segments are snake_case identifiers or backtick-quoted literals; array indexes are not part of cx.patch.v1.",
@@ -31,42 +77,105 @@
     },
     "patch_operation": {
       "type": "object",
-      "required": ["$op"],
+      "required": [
+        "$op"
+      ],
       "properties": {
-        "$op": { "type": "string", "enum": ["set", "unset", "add", "remove"] },
+        "$op": {
+          "type": "string",
+          "enum": [
+            "set",
+            "unset",
+            "add",
+            "remove"
+          ]
+        },
         "value": {},
-        "if_match": { "$ref": "#/$defs/hash" }
+        "if_match": {
+          "$ref": "#/$defs/hash"
+        }
       },
       "allOf": [
         {
-          "if": { "properties": { "$op": { "enum": ["set", "add", "remove"] } }, "required": ["$op"] },
-          "then": { "required": ["value"] }
+          "if": {
+            "properties": {
+              "$op": {
+                "enum": [
+                  "set",
+                  "add",
+                  "remove"
+                ]
+              }
+            },
+            "required": [
+              "$op"
+            ]
+          },
+          "then": {
+            "required": [
+              "value"
+            ]
+          }
         },
         {
-          "if": { "properties": { "$op": { "const": "unset" } }, "required": ["$op"] },
-          "then": { "not": { "required": ["value"] } }
+          "if": {
+            "properties": {
+              "$op": {
+                "const": "unset"
+              }
+            },
+            "required": [
+              "$op"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          }
         }
       ],
       "additionalProperties": false
     },
     "patch_value": {
       "description": "A plain value is shorthand for {\"$op\":\"set\",\"value\":...}. Objects containing $op MUST be patch_operation objects.",
-      "if": { "type": "object", "required": ["$op"] },
-      "then": { "$ref": "#/$defs/patch_operation" },
+      "if": {
+        "type": "object",
+        "required": [
+          "$op"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/patch_operation"
+      },
       "else": {}
     },
     "patch": {
       "type": "object",
       "minProperties": 1,
-      "propertyNames": { "$ref": "#/$defs/patch_path" },
-      "additionalProperties": { "$ref": "#/$defs/patch_value" }
+      "propertyNames": {
+        "$ref": "#/$defs/patch_path"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/patch_value"
+      }
     },
     "object_snapshot": {
       "type": "object",
-      "required": ["id", "type"],
+      "required": [
+        "id",
+        "type"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/object_ref" },
-        "type": { "type": "string", "minLength": 1 }
+        "id": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "additionalProperties": true
     },
@@ -76,41 +185,95 @@
     },
     "object_create_content": {
       "type": "object",
-      "required": ["object"],
+      "required": [
+        "object"
+      ],
       "properties": {
-        "object": { "$ref": "#/$defs/object_snapshot" },
-        "initial_relations": { "type": "array", "items": { "type": "object" } }
+        "object": {
+          "$ref": "#/$defs/object_snapshot"
+        },
+        "initial_relations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
       },
       "additionalProperties": true
     },
     "object_patch_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["target_ref", "patch"] },
-        { "required": ["object_ref", "patch"] },
-        { "required": ["patch"] }
+        {
+          "required": [
+            "target_ref",
+            "patch"
+          ]
+        },
+        {
+          "required": [
+            "object_ref",
+            "patch"
+          ]
+        },
+        {
+          "required": [
+            "patch"
+          ]
+        }
       ],
       "properties": {
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "object_ref": { "$ref": "#/$defs/object_ref" },
-        "patch": { "$ref": "#/$defs/patch" },
-        "expected_state_hash": { "$ref": "#/$defs/hash" }
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "object_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "patch": {
+          "$ref": "#/$defs/patch"
+        },
+        "expected_state_hash": {
+          "$ref": "#/$defs/hash"
+        }
       },
       "additionalProperties": true
     },
     "object_lifecycle_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["target_ref"] },
-        { "required": ["object_ref"] },
-        { "required": ["status"] }
+        {
+          "required": [
+            "target_ref"
+          ]
+        },
+        {
+          "required": [
+            "object_ref"
+          ]
+        },
+        {
+          "required": [
+            "status"
+          ]
+        }
       ],
       "properties": {
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "object_ref": { "$ref": "#/$defs/object_ref" },
-        "status": { "type": "string", "minLength": 1 },
-        "reason": { "type": "string" },
-        "effective_at": { "$ref": "#/$defs/timestamp" }
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "object_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": true
     },
@@ -118,70 +281,146 @@
       "type": "object",
       "minProperties": 1,
       "properties": {
-        "state_key": { "type": "string" },
+        "state_key": {
+          "type": "string"
+        },
         "value": {},
-        "status": { "type": "string" },
-        "reason": { "type": "string" }
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
       },
       "additionalProperties": true
     },
     "space_archive_content": {
       "type": "object",
-      "required": ["archived"],
+      "required": [
+        "archived"
+      ],
       "properties": {
-        "archived": { "type": "boolean" },
-        "reason": { "type": "string" },
-        "effective_at": { "$ref": "#/$defs/timestamp" }
+        "archived": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "space_freeze_content": {
       "type": "object",
-      "required": ["frozen"],
+      "required": [
+        "frozen"
+      ],
       "properties": {
-        "frozen": { "type": "boolean" },
-        "reason": { "type": "string" },
-        "effective_at": { "$ref": "#/$defs/timestamp" },
-        "until": { "$ref": "#/$defs/timestamp" }
+        "frozen": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "until": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "space_tombstone_content": {
       "type": "object",
-      "required": ["reason"],
+      "required": [
+        "reason"
+      ],
       "properties": {
-        "reason": { "type": "string" },
-        "replacement_space": { "$ref": "#/$defs/space_id" },
-        "replacement_event": { "$ref": "#/$defs/event_ref" },
-        "effective_at": { "$ref": "#/$defs/timestamp" }
+        "reason": {
+          "type": "string"
+        },
+        "replacement_space": {
+          "$ref": "#/$defs/space_id"
+        },
+        "replacement_event": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": false
     },
     "space_destroy_content": {
       "type": "object",
-      "required": ["reason"],
+      "required": [
+        "reason"
+      ],
       "properties": {
-        "reason": { "type": "string" },
-        "effective_at": { "$ref": "#/$defs/timestamp" },
-        "retention_policy_ref": { "$ref": "#/$defs/object_ref" },
-        "verification_stub_required": { "type": "boolean", "default": true }
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "retention_policy_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "verification_stub_required": {
+          "type": "boolean",
+          "default": true
+        }
       },
       "additionalProperties": false
     },
     "membership_content": {
       "type": "object",
-      "required": ["flow_id", "branch", "membership"],
+      "required": [
+        "flow_id",
+        "branch",
+        "membership"
+      ],
       "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "branch": { "type": "string", "const": "discussion" },
-        "actor_id": { "$ref": "#/$defs/did" },
-        "membership": { "type": "string", "enum": ["join", "invite", "knock", "leave", "ban"] },
-        "via": { "type": "array", "items": { "$ref": "#/$defs/did" } },
-        "reason": { "type": "string" },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "branch": {
+          "type": "string",
+          "const": "discussion"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "membership": {
+          "type": "string",
+          "enum": [
+            "join",
+            "invite",
+            "knock",
+            "leave",
+            "ban"
+          ]
+        },
+        "via": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          }
+        },
+        "reason": {
+          "type": "string"
+        },
         "invite_ref": {
           "oneOf": [
-            { "$ref": "#/$defs/event_ref" },
-            { "$ref": "#/$defs/invite_id" }
+            {
+              "$ref": "#/$defs/event_ref"
+            },
+            {
+              "$ref": "#/$defs/invite_id"
+            }
           ]
         }
       },
@@ -189,19 +428,46 @@
     },
     "plaintext_visible_services_content": {
       "type": "object",
-      "required": ["services"],
+      "required": [
+        "services"
+      ],
       "properties": {
         "services": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["service_did", "service_type", "purposes", "visibility"],
+            "required": [
+              "service_did",
+              "service_type",
+              "purposes",
+              "visibility"
+            ],
             "properties": {
-              "service_did": { "$ref": "#/$defs/did" },
-              "service_type": { "type": "string", "minLength": 1 },
-              "purposes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
-              "visibility": { "type": "string", "enum": ["private_plaintext", "derived_plaintext"] },
-              "expires_at": { "$ref": "#/$defs/timestamp" }
+              "service_did": {
+                "$ref": "#/$defs/did"
+              },
+              "service_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "purposes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              },
+              "visibility": {
+                "type": "string",
+                "enum": [
+                  "private_plaintext",
+                  "derived_plaintext"
+                ]
+              },
+              "expires_at": {
+                "$ref": "#/$defs/timestamp"
+              }
             },
             "additionalProperties": true
           }
@@ -211,84 +477,211 @@
     },
     "message_create_content": {
       "type": "object",
-      "required": ["flow_id", "branch"],
+      "required": [
+        "flow_id",
+        "branch"
+      ],
       "anyOf": [
-        { "required": ["body"] },
-        { "required": ["blocks"] },
-        { "required": ["encrypted_payload"] },
-        { "required": ["blob_refs"] }
+        {
+          "required": [
+            "body"
+          ]
+        },
+        {
+          "required": [
+            "blocks"
+          ]
+        },
+        {
+          "required": [
+            "encrypted_payload"
+          ]
+        },
+        {
+          "required": [
+            "blob_refs"
+          ]
+        }
       ],
       "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "branch": { "type": "string", "const": "discussion" },
-        "message_id": { "$ref": "#/$defs/message_id" },
-        "body": { "type": "string" },
-        "blocks": { "type": "array", "items": { "type": "object" } },
-        "encrypted_payload": { "type": "object" },
-        "blob_refs": { "type": "array", "items": { "$ref": "#/$defs/object_ref" } },
-        "reply_to": { "$ref": "#/$defs/message_id" }
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "branch": {
+          "type": "string",
+          "const": "discussion"
+        },
+        "message_id": {
+          "$ref": "#/$defs/message_id"
+        },
+        "body": {
+          "type": "string"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "encrypted_payload": {
+          "type": "object"
+        },
+        "blob_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/object_ref"
+          }
+        },
+        "reply_to": {
+          "$ref": "#/$defs/message_id"
+        }
       },
       "additionalProperties": true
     },
     "message_revise_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["message_id"] },
-        { "required": ["target_ref"] },
-        { "required": ["revision_of"] }
+        {
+          "required": [
+            "message_id"
+          ]
+        },
+        {
+          "required": [
+            "target_ref"
+          ]
+        },
+        {
+          "required": [
+            "revision_of"
+          ]
+        }
       ],
       "properties": {
-        "message_id": { "$ref": "#/$defs/message_id" },
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "revision_of": { "$ref": "#/$defs/message_id" },
-        "body": { "type": "string" },
-        "blocks": { "type": "array", "items": { "type": "object" } },
-        "encrypted_payload": { "type": "object" },
-        "reason": { "type": "string" }
+        "message_id": {
+          "$ref": "#/$defs/message_id"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "revision_of": {
+          "$ref": "#/$defs/message_id"
+        },
+        "body": {
+          "type": "string"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "encrypted_payload": {
+          "type": "object"
+        },
+        "reason": {
+          "type": "string"
+        }
       },
       "additionalProperties": true
     },
     "message_redact_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["message_id"] },
-        { "required": ["target_ref"] },
-        { "required": ["event_id"] }
+        {
+          "required": [
+            "message_id"
+          ]
+        },
+        {
+          "required": [
+            "target_ref"
+          ]
+        },
+        {
+          "required": [
+            "event_id"
+          ]
+        }
       ],
       "properties": {
-        "message_id": { "$ref": "#/$defs/message_id" },
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "event_id": { "$ref": "#/$defs/event_ref" },
-        "reason": { "type": "string" },
-        "preserve": { "type": "array", "items": { "type": "string" } }
+        "message_id": {
+          "$ref": "#/$defs/message_id"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "event_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "preserve": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       },
       "additionalProperties": true
     },
     "reaction_content": {
       "type": "object",
-      "required": ["target_ref", "key"],
+      "required": [
+        "target_ref",
+        "key"
+      ],
       "properties": {
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "key": { "type": "string", "minLength": 1 },
-        "annotation": { "type": "string" }
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "annotation": {
+          "type": "string"
+        }
       },
       "additionalProperties": true
     },
     "flow_move_content": {
       "type": "object",
-      "required": ["board_id", "flow_id", "to_list_id", "rank"],
+      "required": [
+        "board_id",
+        "flow_id",
+        "to_list_id",
+        "rank"
+      ],
       "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "from_list_id": { "$ref": "#/$defs/list_id" },
-        "to_list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "from_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "to_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
         "expected_position": {
           "type": "object",
           "properties": {
-            "list_id": { "$ref": "#/$defs/list_id" },
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
+            "list_id": {
+              "$ref": "#/$defs/list_id"
+            },
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
           },
           "additionalProperties": false
         }
@@ -297,17 +690,34 @@
     },
     "flow_reorder_content": {
       "type": "object",
-      "required": ["board_id", "flow_id", "list_id", "rank"],
+      "required": [
+        "board_id",
+        "flow_id",
+        "list_id",
+        "rank"
+      ],
       "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
         "expected_position": {
           "type": "object",
           "properties": {
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
           },
           "additionalProperties": false
         }
@@ -316,16 +726,30 @@
     },
     "list_reorder_content": {
       "type": "object",
-      "required": ["board_id", "list_id", "rank"],
+      "required": [
+        "board_id",
+        "list_id",
+        "rank"
+      ],
       "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
         "expected_position": {
           "type": "object",
           "properties": {
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
           },
           "additionalProperties": false
         }
@@ -334,174 +758,446 @@
     },
     "flow_branch_content": {
       "type": "object",
-      "required": ["flow_id", "branch"],
+      "required": [
+        "flow_id",
+        "branch"
+      ],
       "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "branch": { "type": "string", "enum": ["synthesis", "discussion"] },
-        "purpose": { "type": "string" },
-        "primary": { "type": "boolean", "default": false }
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "branch": {
+          "type": "string",
+          "enum": [
+            "synthesis",
+            "discussion"
+          ]
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "primary": {
+          "type": "boolean",
+          "default": false
+        }
       },
       "additionalProperties": false
     },
     "promoted_from_discussion_content": {
       "type": "object",
-      "required": ["flow_id", "branch"],
+      "required": [
+        "flow_id",
+        "branch"
+      ],
       "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "branch": { "type": "string", "const": "discussion" },
-        "message_id": { "$ref": "#/$defs/message_id" },
-        "relation_id": { "$ref": "#/$defs/relation_id" }
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "branch": {
+          "type": "string",
+          "const": "discussion"
+        },
+        "message_id": {
+          "$ref": "#/$defs/message_id"
+        },
+        "relation_id": {
+          "$ref": "#/$defs/relation_id"
+        }
       },
       "additionalProperties": false
     },
     "relation_create_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["relation"] },
-        { "required": ["kind", "from_ref", "to_ref"] }
+        {
+          "required": [
+            "relation"
+          ]
+        },
+        {
+          "required": [
+            "kind",
+            "from_ref",
+            "to_ref"
+          ]
+        }
       ],
       "properties": {
-        "relation": { "$ref": "#/$defs/object_snapshot" },
-        "kind": { "type": "string", "minLength": 1 },
-        "from_ref": { "$ref": "#/$defs/object_ref" },
-        "to_ref": { "$ref": "#/$defs/object_ref" },
-        "rank": { "$ref": "#/$defs/rank" }
+        "relation": {
+          "$ref": "#/$defs/object_snapshot"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "to_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        }
       },
       "additionalProperties": true
     },
     "relation_update_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["relation_id", "patch"] },
-        { "required": ["target_ref", "patch"] },
-        { "required": ["relation_id", "status"] }
+        {
+          "required": [
+            "relation_id",
+            "patch"
+          ]
+        },
+        {
+          "required": [
+            "target_ref",
+            "patch"
+          ]
+        },
+        {
+          "required": [
+            "relation_id",
+            "status"
+          ]
+        }
       ],
       "properties": {
-        "relation_id": { "$ref": "#/$defs/relation_id" },
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "patch": { "$ref": "#/$defs/patch" },
-        "status": { "type": "string" }
+        "relation_id": {
+          "$ref": "#/$defs/relation_id"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "patch": {
+          "$ref": "#/$defs/patch"
+        },
+        "status": {
+          "type": "string"
+        }
       },
       "additionalProperties": true
     },
     "container_position_content": {
       "type": "object",
-      "required": ["source_ref", "target_ref", "container_ref", "rank"],
+      "required": [
+        "source_ref",
+        "target_ref",
+        "container_ref",
+        "rank"
+      ],
       "properties": {
-        "source_ref": { "$ref": "#/$defs/object_ref" },
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "container_ref": { "$ref": "#/$defs/object_ref" },
-        "relation_kind": { "type": "string" },
-        "rank": { "$ref": "#/$defs/rank" }
+        "source_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "container_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "relation_kind": {
+          "type": "string"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        }
       },
       "additionalProperties": true
     },
     "view_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["object"] },
-        { "required": ["view_id", "patch"] },
-        { "required": ["definition"] }
+        {
+          "required": [
+            "object"
+          ]
+        },
+        {
+          "required": [
+            "view_id",
+            "patch"
+          ]
+        },
+        {
+          "required": [
+            "definition"
+          ]
+        }
       ],
       "properties": {
-        "object": { "$ref": "#/$defs/object_snapshot" },
-        "view_id": { "type": "string", "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$" },
-        "definition": { "type": "object" },
-        "patch": { "$ref": "#/$defs/patch" }
+        "object": {
+          "$ref": "#/$defs/object_snapshot"
+        },
+        "view_id": {
+          "type": "string",
+          "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        },
+        "definition": {
+          "type": "object"
+        },
+        "patch": {
+          "$ref": "#/$defs/patch"
+        }
       },
       "additionalProperties": true
     },
     "agent_endpoint_content": {
       "type": "object",
-      "required": ["agent_id", "endpoints"],
+      "required": [
+        "agent_id",
+        "endpoints"
+      ],
       "properties": {
-        "agent_id": { "$ref": "#/$defs/did" },
-        "endpoints": { "type": "array", "items": { "type": "object" }, "minItems": 1 }
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "minItems": 1
+        }
       },
       "additionalProperties": true
     },
     "agent_session_start_content": {
       "type": "object",
-      "required": ["session_id", "counterparty_agent", "protocol", "capability_grant"],
+      "required": [
+        "session_id",
+        "counterparty_agent",
+        "protocol",
+        "capability_grant"
+      ],
       "properties": {
-        "session_id": { "$ref": "#/$defs/agent_session_id" },
-        "task_card_id": { "$ref": "#/$defs/card_id" },
-        "counterparty_agent": { "$ref": "#/$defs/did" },
-        "protocol": { "type": "string", "enum": ["a2a", "acp", "mcp_bridge", "http_custom"] },
-        "protocol_version": { "type": "string" },
-        "endpoint_ref": { "type": "string", "minLength": 1 },
-        "capability_grant": { "$ref": "#/$defs/grant_id" },
-        "max_duration_seconds": { "type": "integer", "minimum": 1 },
-        "audit_mode": { "type": "string", "enum": ["status_only", "summary_and_artifacts", "full_transcript_hash", "full_transcript"] }
+        "session_id": {
+          "$ref": "#/$defs/agent_session_id"
+        },
+        "task_flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "counterparty_agent": {
+          "$ref": "#/$defs/did"
+        },
+        "protocol": {
+          "type": "string",
+          "enum": [
+            "a2a",
+            "acp",
+            "mcp_bridge",
+            "http_custom"
+          ]
+        },
+        "protocol_version": {
+          "type": "string"
+        },
+        "endpoint_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capability_grant": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "max_duration_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "audit_mode": {
+          "type": "string",
+          "enum": [
+            "status_only",
+            "summary_and_artifacts",
+            "full_transcript_hash",
+            "full_transcript"
+          ]
+        }
       },
       "additionalProperties": true
     },
     "agent_session_status_content": {
       "type": "object",
-      "required": ["session_id", "status"],
+      "required": [
+        "session_id",
+        "status"
+      ],
       "properties": {
-        "session_id": { "$ref": "#/$defs/agent_session_id" },
-        "status": { "type": "string", "enum": ["negotiating", "accepted", "working", "input_required", "blocked", "completed", "failed", "cancelled", "expired"] },
-        "progress": { "type": "number", "minimum": 0, "maximum": 1 },
-        "summary": { "type": "string" }
+        "session_id": {
+          "$ref": "#/$defs/agent_session_id"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "negotiating",
+            "accepted",
+            "working",
+            "input_required",
+            "blocked",
+            "completed",
+            "failed",
+            "cancelled",
+            "expired"
+          ]
+        },
+        "progress": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "summary": {
+          "type": "string"
+        }
       },
       "additionalProperties": true
     },
     "agent_session_result_content": {
       "type": "object",
-      "required": ["session_id", "status"],
+      "required": [
+        "session_id",
+        "status"
+      ],
       "properties": {
-        "session_id": { "$ref": "#/$defs/agent_session_id" },
-        "status": { "type": "string", "enum": ["completed", "failed", "cancelled", "expired"] },
-        "artifacts": { "type": "array", "items": { "type": "object" } },
-        "external_transcript_hash": { "$ref": "#/$defs/hash" },
-        "completed_at": { "$ref": "#/$defs/timestamp" }
+        "session_id": {
+          "$ref": "#/$defs/agent_session_id"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled",
+            "expired"
+          ]
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "external_transcript_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "completed_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": true
     },
     "capability_grant_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["grant"] },
-        { "required": ["grant_id", "subject", "actions", "resources"] }
+        {
+          "required": [
+            "grant"
+          ]
+        },
+        {
+          "required": [
+            "grant_id",
+            "subject",
+            "actions",
+            "resources"
+          ]
+        }
       ],
       "properties": {
-        "grant": { "$ref": "./capability-grant.schema.json" },
-        "grant_id": { "$ref": "#/$defs/grant_id" },
+        "grant": {
+          "$ref": "./capability-grant.schema.json"
+        },
+        "grant_id": {
+          "$ref": "#/$defs/grant_id"
+        },
         "subject": {},
-        "actions": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-        "resources": { "type": "array", "items": { "type": "object" }, "minItems": 1 }
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "minItems": 1
+        }
       },
       "additionalProperties": true
     },
     "capability_revoke_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["grant_ref"] },
-        { "required": ["grant_id"] }
+        {
+          "required": [
+            "grant_ref"
+          ]
+        },
+        {
+          "required": [
+            "grant_id"
+          ]
+        }
       ],
       "properties": {
-        "grant_ref": { "$ref": "#/$defs/grant_id" },
-        "grant_id": { "$ref": "#/$defs/grant_id" },
-        "reason": { "type": "string" },
-        "revocation_frontier": { "type": "object" }
+        "grant_ref": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "grant_id": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "revocation_frontier": {
+          "type": "object"
+        }
       },
       "additionalProperties": true
     },
     "invite_content": {
       "type": "object",
       "anyOf": [
-        { "required": ["invite"] },
-        { "required": ["invite_id"] },
-        { "required": ["invitee"] },
-        { "required": ["third_party_id"] }
+        {
+          "required": [
+            "invite"
+          ]
+        },
+        {
+          "required": [
+            "invite_id"
+          ]
+        },
+        {
+          "required": [
+            "invitee"
+          ]
+        },
+        {
+          "required": [
+            "third_party_id"
+          ]
+        }
       ],
       "properties": {
-        "invite": { "$ref": "./invite.schema.json" },
-        "invite_id": { "$ref": "#/$defs/invite_id" },
-        "invitee": { "$ref": "#/$defs/did" },
-        "third_party_id": { "type": "object" },
-        "reason": { "type": "string" }
+        "invite": {
+          "$ref": "./invite.schema.json"
+        },
+        "invite_id": {
+          "$ref": "#/$defs/invite_id"
+        },
+        "invitee": {
+          "$ref": "#/$defs/did"
+        },
+        "third_party_id": {
+          "type": "object"
+        },
+        "reason": {
+          "type": "string"
+        }
       },
       "additionalProperties": true
     },
@@ -509,79 +1205,230 @@
       "type": "object",
       "minProperties": 1,
       "properties": {
-        "device_id": { "type": "string", "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$" },
-        "room_id": { "$ref": "#/$defs/room_id" },
-        "mls_group_id": { "type": "string" },
-        "epoch": { "type": "integer", "minimum": 0 },
-        "base_epoch": { "type": "integer", "minimum": 0 },
-        "next_epoch": { "type": "integer", "minimum": 0 },
-        "base_epoch_ref": { "$ref": "#/$defs/object_ref" },
-        "key_package_ref": { "$ref": "#/$defs/object_ref" },
-        "proposal_refs": { "type": "array", "items": { "$ref": "#/$defs/event_ref" } },
-        "commit_ref": { "$ref": "#/$defs/event_ref" },
-        "commit_message_ref": { "$ref": "#/$defs/object_ref" },
-        "commit_hash": { "$ref": "#/$defs/hash" },
-        "application_state_ref": { "$ref": "#/$defs/mls_application_state_ref" }
+        "device_id": {
+          "type": "string",
+          "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "mls_group_id": {
+          "type": "string"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "base_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "base_epoch_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "key_package_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "proposal_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          }
+        },
+        "commit_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "commit_message_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "commit_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "application_state_ref": {
+          "$ref": "#/$defs/mls_application_state_ref"
+        }
       },
       "additionalProperties": true
     },
     "mls_application_state_ref": {
       "type": "object",
-      "required": ["membership_frontier", "policy_root"],
+      "required": [
+        "membership_frontier",
+        "policy_root"
+      ],
       "properties": {
-        "space_id": { "$ref": "#/$defs/space_id" },
-        "mls_group_id": { "type": "string", "minLength": 1 },
-        "previous_epoch": { "type": "integer", "minimum": 0 },
-        "next_epoch": { "type": "integer", "minimum": 0 },
-        "membership_frontier": { "type": "array", "items": { "$ref": "#/$defs/event_ref" }, "minItems": 1 },
-        "policy_root": { "$ref": "#/$defs/hash" },
-        "capability_root": { "$ref": "#/$defs/hash" },
-        "room_metadata_hash": { "$ref": "#/$defs/hash" },
-        "binding_profile": { "type": "string", "pattern": "^cx\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$" },
-        "reducer_profile": { "type": "string", "minLength": 1 }
+        "space_id": {
+          "$ref": "#/$defs/space_id"
+        },
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "previous_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "membership_frontier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "minItems": 1
+        },
+        "policy_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "capability_root": {
+          "$ref": "#/$defs/hash"
+        },
+        "room_metadata_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "binding_profile": {
+          "type": "string",
+          "pattern": "^cx\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+        },
+        "reducer_profile": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "additionalProperties": true
     },
     "mls_commit_content": {
       "type": "object",
-      "required": ["mls_group_id", "base_epoch", "base_epoch_ref", "proposal_refs", "next_epoch", "commit_hash", "application_state_ref"],
-      "not": { "required": ["proposal_ref"] },
+      "required": [
+        "mls_group_id",
+        "base_epoch",
+        "base_epoch_ref",
+        "proposal_refs",
+        "next_epoch",
+        "commit_hash",
+        "application_state_ref"
+      ],
+      "not": {
+        "required": [
+          "proposal_ref"
+        ]
+      },
       "properties": {
-        "mls_group_id": { "type": "string", "minLength": 1 },
-        "base_epoch": { "type": "integer", "minimum": 0 },
-        "base_epoch_ref": { "$ref": "#/$defs/object_ref" },
-        "proposal_refs": { "type": "array", "items": { "$ref": "#/$defs/event_ref" }, "uniqueItems": true },
-        "next_epoch": { "type": "integer", "minimum": 1 },
-        "commit_message_ref": { "$ref": "#/$defs/object_ref" },
-        "commit_hash": { "$ref": "#/$defs/hash" },
-        "application_state_ref": { "$ref": "#/$defs/mls_application_state_ref" }
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "base_epoch_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "proposal_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "uniqueItems": true
+        },
+        "next_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "commit_message_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "commit_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "application_state_ref": {
+          "$ref": "#/$defs/mls_application_state_ref"
+        }
       },
       "additionalProperties": true
     },
     "mls_epoch_content": {
       "type": "object",
-      "required": ["mls_group_id", "epoch", "commit_ref", "application_state_ref", "source"],
+      "required": [
+        "mls_group_id",
+        "epoch",
+        "commit_ref",
+        "application_state_ref",
+        "source"
+      ],
       "properties": {
-        "mls_group_id": { "type": "string", "minLength": 1 },
-        "epoch": { "type": "integer", "minimum": 0 },
-        "commit_ref": { "$ref": "#/$defs/event_ref" },
-        "application_state_ref": { "$ref": "#/$defs/mls_application_state_ref" },
-        "source": { "const": "commit_winner_checkpoint" }
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "commit_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "application_state_ref": {
+          "$ref": "#/$defs/mls_application_state_ref"
+        },
+        "source": {
+          "const": "commit_winner_checkpoint"
+        }
       },
       "additionalProperties": true
     },
     "moderation_report_content": {
       "type": "object",
-      "required": ["space_id", "target_ref", "reason", "reporter"],
+      "required": [
+        "space_id",
+        "target_ref",
+        "reason",
+        "reporter"
+      ],
       "properties": {
-        "space_id": { "$ref": "#/$defs/space_id" },
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "reason": { "type": "string", "enum": ["spam", "harassment", "hate_speech", "nsfw", "illegal", "misinformation", "other"] },
-        "description": { "type": "string" },
-        "reporter": { "$ref": "#/$defs/did" },
-        "evidence_refs": { "type": "array", "items": { "$ref": "#/$defs/object_ref" } },
-        "evidence_package": { "type": "object" },
-        "frank": { "type": "object" }
+        "space_id": {
+          "$ref": "#/$defs/space_id"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "spam",
+            "harassment",
+            "hate_speech",
+            "nsfw",
+            "illegal",
+            "misinformation",
+            "other"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "reporter": {
+          "$ref": "#/$defs/did"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/object_ref"
+          }
+        },
+        "evidence_package": {
+          "type": "object"
+        },
+        "frank": {
+          "type": "object"
+        }
       },
       "additionalProperties": true
     },
@@ -589,10 +1436,18 @@
       "type": "object",
       "minProperties": 1,
       "properties": {
-        "target_ref": { "$ref": "#/$defs/object_ref" },
-        "actor_id": { "$ref": "#/$defs/did" },
-        "purpose": { "type": "string" },
-        "accessed_at": { "$ref": "#/$defs/timestamp" }
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "accessed_at": {
+          "$ref": "#/$defs/timestamp"
+        }
       },
       "additionalProperties": true
     },
@@ -600,10 +1455,19 @@
       "type": "object",
       "minProperties": 1,
       "properties": {
-        "call_id": { "type": "string", "pattern": "^cx:call:[0-9a-hjkmnp-z]{26}$" },
-        "room_id": { "$ref": "#/$defs/room_id" },
-        "state": { "type": "string" },
-        "signal": { "type": "object" }
+        "call_id": {
+          "type": "string",
+          "pattern": "^cx:call:[0-9a-hjkmnp-z]{26}$"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "state": {
+          "type": "string"
+        },
+        "signal": {
+          "type": "object"
+        }
       },
       "additionalProperties": true
     }

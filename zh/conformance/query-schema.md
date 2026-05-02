@@ -9,10 +9,10 @@
 ```json
 {
   "space_ids": ["cx:space:01js0sp0000000000000000000"],
-  "object_types": ["card", "message", "morph"],
+  "object_types": ["flow", "message", "morph"],
   "morph_types": ["customer_case"],
   "facets": ["assignable"],
-  "anchor_ref": "cx:card:01js0card00000000000000000",
+  "anchor_ref": "cx:flow:01js0card00000000000000000",
   "filters": [],
   "relation": null,
   "context": {

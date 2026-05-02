@@ -7,16 +7,45 @@
       "name": "hidden_space_resolve_indistinguishable",
       "operation_id": "cx.directory.resolve_space",
       "inputs": [
-        { "label": "missing", "body": { "space_id": "cx:space:01js0aa0000000000000000000", "requester": "did:web:mallory.example" } },
-        { "label": "hidden", "body": { "space_id": "cx:space:01js0bb0000000000000000000", "requester": "did:web:mallory.example" } },
-        { "label": "invite_only_without_proof", "body": { "space_id": "cx:space:01js0cc0000000000000000000", "requester": "did:web:mallory.example" } }
+        {
+          "label": "missing",
+          "body": {
+            "space_id": "cx:space:01js0aa0000000000000000000",
+            "requester": "did:web:mallory.example"
+          }
+        },
+        {
+          "label": "hidden",
+          "body": {
+            "space_id": "cx:space:01js0bb0000000000000000000",
+            "requester": "did:web:mallory.example"
+          }
+        },
+        {
+          "label": "invite_only_without_proof",
+          "body": {
+            "space_id": "cx:space:01js0cc0000000000000000000",
+            "requester": "did:web:mallory.example"
+          }
+        }
       ],
       "expected": {
         "same_http_status": 404,
         "same_error_code": "not_found",
-        "same_body_shape": ["ok", "error.code", "request_id"],
+        "same_body_shape": [
+          "ok",
+          "error.code",
+          "request_id"
+        ],
         "same_timing_class": "privacy_not_found",
-        "must_not_include": ["space_id", "title", "join_rule", "discoverability", "member_count", "service_endpoints"]
+        "must_not_include": [
+          "space_id",
+          "title",
+          "join_rule",
+          "discoverability",
+          "member_count",
+          "service_endpoints"
+        ]
       }
     },
     {
@@ -25,10 +54,17 @@
       "input": {
         "requester": "did:web:alice.example",
         "contacts": [
-          { "blinded_identifier": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
-          { "blinded_identifier": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }
+          {
+            "blinded_identifier": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "blinded_identifier": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
         ],
-        "padding": { "target_batch_size": 128, "dummy_count": 126 }
+        "padding": {
+          "target_batch_size": 128,
+          "dummy_count": 126
+        }
       },
       "expected": {
         "result_count_does_not_reveal_match_count": true,
@@ -49,7 +85,10 @@
             {
               "service_did": "did:web:principal.example",
               "service_type": "principal_server",
-              "purposes": ["events", "sync"],
+              "purposes": [
+                "events",
+                "sync"
+              ],
               "visibility": "private_plaintext"
             }
           ]
@@ -66,13 +105,25 @@
       "name": "private_blob_head_range_anti_enumeration",
       "operation_id": "cx.blob.head",
       "inputs": [
-        { "label": "missing", "blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
-        { "label": "hidden", "blob_ref": "cx:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }
+        {
+          "label": "missing",
+          "blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "label": "hidden",
+          "blob_ref": "cx:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
       ],
       "expected": {
         "same_http_status": 404,
         "same_error_code": "not_found",
-        "must_not_include_headers": ["Content-Length", "Content-Type", "Content-Disposition", "Accept-Ranges", "Digest"],
+        "must_not_include_headers": [
+          "Content-Length",
+          "Content-Type",
+          "Content-Disposition",
+          "Accept-Ranges",
+          "Digest"
+        ],
         "range_request_same_error_class": true
       }
     },

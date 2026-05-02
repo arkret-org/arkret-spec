@@ -39,7 +39,7 @@
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:*` | kind 必须匹配对象类型。 | 对象稳定 ID。 |
-| `type` | yes | `enum(space, actor_profile, subject, room, board, list, card, message, morph, relation, event, view, policy, invite, read_marker, notification, capability, operation, event_batch_receipt, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
+| `type` | yes | `enum(space, actor_profile, flow, message, morph, relation, event, view, policy, invite, read_marker, notification, capability, operation, event_batch_receipt, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
 | `space_id` | conditional | `id:space` | Space 外对象可省略。 | 所属 Space。 |
 | `schema` | yes | `string` | SHOULD 是 `cx.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体。 |

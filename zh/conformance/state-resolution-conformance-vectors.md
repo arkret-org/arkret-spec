@@ -68,7 +68,7 @@ cx.vector.state_resolution.concurrent_card_move.v1
 ```json
 {
   "base": {
-    "card_id": "cx:flow:01js0ca0000000000000000000",
+    "flow_id": "cx:flow:01js0ca0000000000000000000",
     "list_id": "cx:space:01js0111000000000000000000",
     "rank": "U"
   },
@@ -78,7 +78,7 @@ cx.vector.state_resolution.concurrent_card_move.v1
       "kind": "cx.flow.move",
       "content": {
         "board_id": "cx:space:01js0bd0000000000000000000",
-        "card_id": "cx:flow:01js0ca0000000000000000000",
+        "flow_id": "cx:flow:01js0ca0000000000000000000",
         "to_list_id": "cx:space:01js0112000000000000000000",
         "rank": "U"
       },
@@ -89,7 +89,7 @@ cx.vector.state_resolution.concurrent_card_move.v1
       "kind": "cx.flow.move",
       "content": {
         "board_id": "cx:space:01js0bd0000000000000000000",
-        "card_id": "cx:flow:01js0ca0000000000000000000",
+        "flow_id": "cx:flow:01js0ca0000000000000000000",
         "to_list_id": "cx:space:01js0113000000000000000000",
         "rank": "U"
       },
@@ -103,45 +103,45 @@ cx.vector.state_resolution.concurrent_card_move.v1
 
 - 授权都有效时，reducer MUST 使用 deterministic tie-breaker 选择一个最终 Card position。
 - 失败候选不应生成第二个 Card 副本。
-- 最终位置 key 为 `(board_id, card_id)`，不是 `(list_id, card_id)`。
+- 最终位置 key 为 `(board_id, flow_id)`，不是 `(list_id, flow_id)`。
 
 ## 5. Vector: Card Linked Room 不继承权限
 
 向量名称：
 
 ```text
-cx.vector.state_resolution.card_linked_room_auth.v1
+cx.vector.state_resolution.flow_discussion_visibility.v1
 ```
 
 输入：
 
-- Candidate A: `cx.card.link_room(card_id, room_id, primary=false)`
-- Viewer has `cx.flow.read` on Card.
-- Viewer has no `cx.flow.branch.member` for linked Room.
+- Candidate A: `cx.flow.branch.enable(flow_id, branch_kind=discussion, primary=true)`
+- Viewer has `cx.flow.read` on Flow.
+- Viewer has no `cx.flow.branch.member` for the discussion branch.
 
 期望：
 
-- Relation is accepted if author has card link capability and can reference the target Room.
-- Viewer can see only a lazy Room reference or locked state.
-- Viewer cannot read linked Room Message events.
+- Branch is accepted if author has the required flow branch capability.
+- Viewer can see only a lazy discussion reference or locked state.
+- Viewer cannot read discussion Message events.
 
-## 6. Vector: Subject Surface 不继承权限
+## 6. Vector: Flow Discussion Surface 不继承权限
 
 向量名称：
 
 ```text
-cx.vector.state_resolution.subject_surface_auth.v1
+cx.vector.state_resolution.flow_discussion_surface_auth.v1
 ```
 
 输入：
 
-- Candidate A: `cx.subject.link_surface(subject_id, surface_ref=room_id, surface_role=primary_discussion, primary=true)`
-- Viewer has `cx.flow.read` on Subject.
-- Viewer has no `cx.flow.branch.member` for linked Room.
+- Candidate A: `cx.flow.branch.enable(flow_id, branch_kind=discussion, primary=true)`
+- Viewer has `cx.flow.read` on Flow.
+- Viewer has no `cx.flow.branch.member` for the discussion branch.
 
 期望：
 
-- Relation is accepted if author has subject surface capability and can reference the target Room.
-- Viewer can see only a locked surface stub, authorized hidden count, or no surface entry depending on Room discoverability.
-- Viewer cannot read linked Room Message events.
+- Branch is accepted if author has the required flow branch capability.
+- Viewer can see only a locked discussion stub, authorized hidden count, or no surface entry depending on discussion discoverability.
+- Viewer cannot read discussion Message events.
 - Room membership, Card visibility, and Subject update rights are unchanged.

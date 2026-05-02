@@ -14,7 +14,9 @@
       "input": {
         "service_did": "did:web:mimi.example.com",
         "service_type": "mimi_provider_facade",
-        "supported_profiles": ["cx.profile.mimi_interop.v1"],
+        "supported_profiles": [
+          "cx.profile.mimi_interop.v1"
+        ],
         "mimi": {
           "protocol_draft": "draft-ietf-mimi-protocol-06",
           "content_draft": "draft-ietf-mimi-content-08",
@@ -22,7 +24,15 @@
           "identifier_draft": "draft-kohbrok-mimi-identifiers-01",
           "base_url": "https://mimi.example.com/api/v1/mimi",
           "provider_id": "mimi://mimi.example.com",
-          "features": ["key_material", "submit_message", "group_info", "consent", "identifier_query", "report_abuse", "proxy_download"]
+          "features": [
+            "key_material",
+            "submit_message",
+            "group_info",
+            "consent",
+            "identifier_query",
+            "report_abuse",
+            "proxy_download"
+          ]
         }
       },
       "expected": "accepted_only_when_profile_and_pinned_drafts_match"
@@ -37,7 +47,7 @@
           "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
           "binding_scope": {
             "space_id": "cx:space:01234567890123456789012345",
-            "room_id": "cx:room:01234567890123456789012345"
+            "flow_id": "cx:flow:01234567890123456789012345"
           },
           "hub_provider": "did:web:mimi.example.com",
           "local_provider_role": "hub",

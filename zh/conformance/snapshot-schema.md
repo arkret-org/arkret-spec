@@ -73,11 +73,12 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
   "items": [
     {
       "kind": "card",
-      "id": "cx:card:01js0ca0000000000000000000",
+      "id": "cx:flow:01js0ca0000000000000000000",
       "object": {
-        "id": "cx:card:01js0ca0000000000000000000",
-        "type": "card",
-        "schema": "cx.schema.card.v1"
+        "id": "cx:flow:01js0ca0000000000000000000",
+        "type": "flow",
+        "kind": "card",
+        "schema": "cx.schema.flow.v1"
       },
       "source_event_id": "cx:event:01js0ev0000000000000000000"
     }

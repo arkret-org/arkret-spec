@@ -1,13 +1,25 @@
 {
   "profile": "cx.profile.encoding_vectors.v1",
   "rank_order": [
-    { "card_id": "cx:card:01js0ca1000000000000000000", "list_id": "cx:space:01js0110000000000000000000", "rank": "U" },
-    { "card_id": "cx:card:01js0ca2000000000000000000", "list_id": "cx:space:01js0110000000000000000000", "rank": "j" },
-    { "card_id": "cx:card:01js0ca3000000000000000000", "list_id": "cx:space:01js0110000000000000000000", "rank": "t" }
+    {
+      "flow_id": "cx:flow:01js0ca1000000000000000000",
+      "list_id": "cx:space:01js0110000000000000000000",
+      "rank": "U"
+    },
+    {
+      "flow_id": "cx:flow:01js0ca2000000000000000000",
+      "list_id": "cx:space:01js0110000000000000000000",
+      "rank": "j"
+    },
+    {
+      "flow_id": "cx:flow:01js0ca3000000000000000000",
+      "list_id": "cx:space:01js0110000000000000000000",
+      "rank": "t"
+    }
   ],
   "expected_order": [
-    "cx:card:01js0ca1000000000000000000",
-    "cx:card:01js0ca2000000000000000000",
-    "cx:card:01js0ca3000000000000000000"
+    "cx:flow:01js0ca1000000000000000000",
+    "cx:flow:01js0ca2000000000000000000",
+    "cx:flow:01js0ca3000000000000000000"
   ]
 }

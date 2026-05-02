@@ -90,14 +90,14 @@
     "target_ref": "cx:flow:01js0ca1000000000000000000",
     "content": {
       "board_id": "cx:space:01js0bd0000000000000000000",
-      "card_id": "cx:flow:01js0ca1000000000000000000",
+      "flow_id": "cx:flow:01js0ca1000000000000000000",
       "from_list_id": "cx:space:01js0111000000000000000000",
       "to_list_id": "cx:space:01js0112000000000000000000",
       "rank": "U"
     }
   },
   "query": {
-    "object_types": ["card"],
+    "object_types": ["flow"],
     "consistency": {
       "wait_for": "sync_token_from_write"
     }
@@ -116,38 +116,38 @@
 
 ```json
 {
-  "card_id": "cx:flow:01js0ca1000000000000000000",
-  "linked_room_id": "cx:room:01js0r01000000000000000000",
+  "flow_id": "cx:flow:01js0ca1000000000000000000",
+  "linked_flow_id": "cx:flow:01js0r01000000000000000000",
   "viewer": "did:web:viewer.example.com",
-  "viewer_can_read_card": true,
-  "viewer_is_room_member": false
+  "viewer_can_read_flow": true,
+  "viewer_is_branch_member": false
 }
 ```
 
 期望：
 
-- Card projection MAY show a lazy linked Room reference.
+- Flow projection MAY show a lazy discussion-branch reference.
 - Flow discussion timeline MUST NOT be expanded.
 - Notification/search results MUST NOT reveal hidden discussion messages.
 
-## 5.1 Vector: Subject Surface Visibility
+## 5.1 Vector: Flow Discussion Surface Visibility
 
 输入：
 
 ```json
 {
-  "subject_id": "cx:subject:01js0sb1000000000000000000",
-  "surface_room_id": "cx:room:01js0r02000000000000000000",
-  "viewer_grants": ["cx.subject.read"],
+  "flow_id": "cx:flow:01js0sb1000000000000000000",
+  "surface_flow_id": "cx:flow:01js0r02000000000000000000",
+  "viewer_grants": ["cx.flow.read"],
   "viewer_room_membership": "none"
 }
 ```
 
 期望：
 
-- Subject projection MAY show a lazy/locked Room surface reference if Room discoverability permits.
-- Subject activity MUST NOT include hidden Room messages.
-- Subject context MUST NOT leak hidden Room message bodies through previews, summaries, notifications, search snippets, embeddings, or decision summaries.
+- Flow projection MAY show a lazy/locked discussion surface reference if discussion discoverability permits.
+- Flow activity MUST NOT include hidden discussion messages.
+- Flow context MUST NOT leak hidden discussion message bodies through previews, summaries, notifications, search snippets, embeddings, or decision summaries.
 
 ## 6. Vector: Room Timeline
 
@@ -155,13 +155,13 @@
 
 ```json
 {
-  "room_id": "cx:room:01js0r01000000000000000000",
+  "flow_id": "cx:flow:01js0r01000000000000000000",
   "events": [
     {
       "kind": "cx.message.create",
       "target_ref": "cx:message:01js0me1000000000000000000",
       "content": {
-        "room_id": "cx:room:01js0r01000000000000000000"
+        "flow_id": "cx:flow:01js0r01000000000000000000"
       }
     }
   ]

@@ -3,87 +3,245 @@
   "$id": "https://contrix.io/artifacts/schemas/operation.schema.json",
   "title": "Contrix Canonical Operation",
   "type": "object",
-  "required": ["id", "type", "operation_type", "space_id", "object_type", "payload", "created_at"],
+  "required": [
+    "id",
+    "type",
+    "operation_type",
+    "space_id",
+    "object_type",
+    "payload",
+    "created_at"
+  ],
   "properties": {
-    "id": { "type": "string", "pattern": "^cx:operation:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$" },
-    "type": { "const": "operation" },
-    "schema": { "const": "cx.schema.operation.v1" },
+    "id": {
+      "type": "string",
+      "pattern": "^cx:operation:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$"
+    },
+    "type": {
+      "const": "operation"
+    },
+    "schema": {
+      "const": "cx.schema.operation.v1"
+    },
     "operation_type": {
       "type": "string",
-      "enum": ["create", "update", "delete", "redact", "grant", "revoke", "snapshot_ref", "move", "reorder", "rebalance", "link", "unlink"]
+      "enum": [
+        "create",
+        "update",
+        "delete",
+        "redact",
+        "grant",
+        "revoke",
+        "snapshot_ref",
+        "move",
+        "reorder",
+        "rebalance",
+        "link",
+        "unlink"
+      ]
     },
-    "semantic_kind": { "type": "string", "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$" },
-    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "object_id": { "type": "string" },
-    "object_type": { "type": "string", "enum": ["space", "flow", "message", "morph", "relation", "view", "policy"] },
-    "payload": { "type": "object" },
-    "idempotency_key": { "type": "string" },
-    "created_at": { "type": "string", "format": "date-time", "pattern": "Z$" }
+    "semantic_kind": {
+      "type": "string",
+      "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "object_id": {
+      "type": "string"
+    },
+    "object_type": {
+      "type": "string",
+      "enum": [
+        "space",
+        "flow",
+        "message",
+        "morph",
+        "relation",
+        "view",
+        "policy"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "idempotency_key": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
   },
   "allOf": [
     {
-      "if": { "properties": { "semantic_kind": { "const": "cx.flow.move" } }, "required": ["semantic_kind"] },
+      "if": {
+        "properties": {
+          "semantic_kind": {
+            "const": "cx.flow.move"
+          }
+        },
+        "required": [
+          "semantic_kind"
+        ]
+      },
       "then": {
         "properties": {
-          "operation_type": { "const": "move" },
-          "object_type": { "const": "flow" },
-          "payload": { "$ref": "#/$defs/flow_move_payload" }
+          "operation_type": {
+            "const": "move"
+          },
+          "object_type": {
+            "const": "flow"
+          },
+          "payload": {
+            "$ref": "#/$defs/flow_move_payload"
+          }
         }
       }
     },
     {
-      "if": { "properties": { "semantic_kind": { "const": "cx.flow.reorder" } }, "required": ["semantic_kind"] },
+      "if": {
+        "properties": {
+          "semantic_kind": {
+            "const": "cx.flow.reorder"
+          }
+        },
+        "required": [
+          "semantic_kind"
+        ]
+      },
       "then": {
         "properties": {
-          "operation_type": { "const": "reorder" },
-          "object_type": { "const": "flow" },
-          "payload": { "$ref": "#/$defs/flow_reorder_payload" }
+          "operation_type": {
+            "const": "reorder"
+          },
+          "object_type": {
+            "const": "flow"
+          },
+          "payload": {
+            "$ref": "#/$defs/flow_reorder_payload"
+          }
         }
       }
     },
     {
-      "if": { "properties": { "semantic_kind": { "enum": ["cx.flow.branch.enable", "cx.flow.branch.disable", "cx.flow.branch.set_primary"] } }, "required": ["semantic_kind"] },
+      "if": {
+        "properties": {
+          "semantic_kind": {
+            "enum": [
+              "cx.flow.branch.enable",
+              "cx.flow.branch.disable",
+              "cx.flow.branch.set_primary"
+            ]
+          }
+        },
+        "required": [
+          "semantic_kind"
+        ]
+      },
       "then": {
         "properties": {
-          "operation_type": { "const": "update" },
-          "object_type": { "const": "flow" },
-          "payload": { "$ref": "#/$defs/flow_branch_payload" }
+          "operation_type": {
+            "const": "update"
+          },
+          "object_type": {
+            "const": "flow"
+          },
+          "payload": {
+            "$ref": "#/$defs/flow_branch_payload"
+          }
         }
       }
     },
     {
-      "if": { "properties": { "semantic_kind": { "const": "cx.flow.convert" } }, "required": ["semantic_kind"] },
+      "if": {
+        "properties": {
+          "semantic_kind": {
+            "const": "cx.flow.convert"
+          }
+        },
+        "required": [
+          "semantic_kind"
+        ]
+      },
       "then": {
         "properties": {
-          "operation_type": { "const": "update" },
-          "object_type": { "const": "flow" },
-          "payload": { "$ref": "#/$defs/flow_convert_payload" }
+          "operation_type": {
+            "const": "update"
+          },
+          "object_type": {
+            "const": "flow"
+          },
+          "payload": {
+            "$ref": "#/$defs/flow_convert_payload"
+          }
         }
       }
     }
   ],
   "$defs": {
-    "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
-    "object_ref": { "type": "string", "pattern": "^(cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}|did:.+)$" },
-    "board_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "flow_id": { "type": "string", "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$" },
-    "list_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
+    "rank": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z]{1,128}$"
+    },
+    "object_ref": {
+      "type": "string",
+      "pattern": "^(cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}|did:.+)$"
+    },
+    "board_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+    },
+    "list_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "relation_id": {
+      "type": "string",
+      "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+    },
     "flow_move_payload": {
       "type": "object",
-      "required": ["board_id", "flow_id", "to_list_id", "rank"],
+      "required": [
+        "board_id",
+        "flow_id",
+        "to_list_id",
+        "rank"
+      ],
       "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "from_list_id": { "$ref": "#/$defs/list_id" },
-        "to_list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "from_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "to_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
         "expected_position": {
           "type": "object",
           "properties": {
-            "list_id": { "$ref": "#/$defs/list_id" },
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
+            "list_id": {
+              "$ref": "#/$defs/list_id"
+            },
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
           },
           "additionalProperties": false
         }
@@ -92,17 +250,34 @@
     },
     "flow_reorder_payload": {
       "type": "object",
-      "required": ["board_id", "flow_id", "list_id", "rank"],
+      "required": [
+        "board_id",
+        "flow_id",
+        "list_id",
+        "rank"
+      ],
       "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
         "expected_position": {
           "type": "object",
           "properties": {
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
           },
           "additionalProperties": false
         }
@@ -111,21 +286,56 @@
     },
     "flow_branch_payload": {
       "type": "object",
-      "required": ["branch"],
+      "required": [
+        "branch"
+      ],
       "properties": {
-        "branch": { "type": "string", "enum": ["synthesis", "discussion"] },
-        "config": { "type": "object" },
-        "primary": { "type": "boolean" }
+        "branch": {
+          "type": "string",
+          "enum": [
+            "synthesis",
+            "discussion"
+          ]
+        },
+        "config": {
+          "type": "object"
+        },
+        "primary": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": true
     },
     "flow_convert_payload": {
       "type": "object",
-      "required": ["to_kind"],
+      "required": [
+        "to_kind"
+      ],
       "properties": {
-        "to_kind": { "type": "string", "enum": ["card", "room"] },
-        "primary_branch": { "type": "string", "enum": ["synthesis", "discussion"] },
-        "enable_branches": { "type": "array", "items": { "type": "string", "enum": ["synthesis", "discussion"] } }
+        "to_kind": {
+          "type": "string",
+          "enum": [
+            "card",
+            "room"
+          ]
+        },
+        "primary_branch": {
+          "type": "string",
+          "enum": [
+            "synthesis",
+            "discussion"
+          ]
+        },
+        "enable_branches": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "synthesis",
+              "discussion"
+            ]
+          }
+        }
       },
       "additionalProperties": true
     }

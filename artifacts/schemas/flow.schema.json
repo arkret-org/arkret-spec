@@ -3,84 +3,204 @@
   "$id": "https://contrix.io/artifacts/schemas/flow.schema.json",
   "title": "Contrix Flow",
   "type": "object",
-  "required": ["id", "type", "schema", "space_id", "kind", "title", "primary_branch", "branches", "created_by", "created_at"],
+  "required": [
+    "id",
+    "type",
+    "schema",
+    "space_id",
+    "kind",
+    "title",
+    "primary_branch",
+    "branches",
+    "created_by",
+    "created_at"
+  ],
   "properties": {
-    "id": { "type": "string", "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$" },
-    "type": { "const": "flow" },
-    "schema": { "const": "cx.schema.flow.v1" },
-    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "kind": { "type": "string", "enum": ["card", "room"] },
+    "id": {
+      "type": "string",
+      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+    },
+    "type": {
+      "const": "flow"
+    },
+    "schema": {
+      "const": "cx.schema.flow.v1"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "card",
+        "room"
+      ]
+    },
     "semantic_kind": {
       "type": "string",
-      "enum": ["topic", "initiative", "decision", "incident", "customer_case", "proposal", "research", "task_cluster", "asset", "custom"]
+      "enum": [
+        "topic",
+        "initiative",
+        "decision",
+        "incident",
+        "customer_case",
+        "proposal",
+        "research",
+        "task_cluster",
+        "asset",
+        "custom"
+      ]
     },
-    "title": { "type": "string", "minLength": 1, "maxLength": 512 },
-    "description": { "type": "string", "maxLength": 4096 },
-    "brief": { "type": "string", "maxLength": 2048 },
-    "summary": { "type": "string", "maxLength": 8192 },
-    "body": { "type": "object" },
-    "fields": { "type": "object" },
-    "state": { "type": "string", "enum": ["active", "archived", "deleted", "redacted"] },
-    "version": { "type": "integer", "minimum": 0 },
-    "primary_branch": { "type": "string", "enum": ["synthesis", "discussion"] },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 4096
+    },
+    "brief": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 8192
+    },
+    "body": {
+      "type": "object"
+    },
+    "fields": {
+      "type": "object"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "deleted",
+        "redacted"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "primary_branch": {
+      "type": "string",
+      "enum": [
+        "synthesis",
+        "discussion"
+      ]
+    },
     "branches": {
       "type": "object",
-      "required": ["synthesis"],
+      "required": [
+        "synthesis"
+      ],
       "properties": {
         "synthesis": {
           "type": "object",
           "properties": {
-            "enabled": { "type": "boolean" },
-            "template": { "type": "string" },
-            "fields": { "type": "object" }
+            "enabled": {
+              "type": "boolean"
+            },
+            "template": {
+              "type": "string"
+            },
+            "fields": {
+              "type": "object"
+            }
           },
           "additionalProperties": true
         },
         "discussion": {
           "type": "object",
           "properties": {
-            "enabled": { "type": "boolean" },
+            "enabled": {
+              "type": "boolean"
+            },
             "room_kind": {
               "type": "string",
-              "enum": ["discussion", "announcement", "support", "activity", "review", "external"]
+              "enum": [
+                "discussion",
+                "announcement",
+                "support",
+                "activity",
+                "review",
+                "external"
+              ]
             },
-            "membership_policy_ref": { "type": "string", "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$" },
+            "membership_policy_ref": {
+              "type": "string",
+              "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
+            },
             "history_visibility": {
               "type": "string",
-              "enum": ["world_readable", "shared", "invited", "joined", "restricted"]
+              "enum": [
+                "world_readable",
+                "shared",
+                "invited",
+                "joined",
+                "restricted"
+              ]
             },
             "encryption_profile": {
               "type": "string",
-              "enum": ["none", "mls_rfc9420", "external"]
+              "enum": [
+                "none",
+                "mls_rfc9420",
+                "external"
+              ]
             },
-            "fields": { "type": "object" }
+            "fields": {
+              "type": "object"
+            }
           },
           "additionalProperties": true
         }
       },
       "additionalProperties": false
     },
-    "created_by": { "$ref": "#/$defs/did" },
-    "created_at": { "$ref": "#/$defs/timestamp" },
-    "updated_by": { "$ref": "#/$defs/did" },
-    "updated_at": { "$ref": "#/$defs/timestamp" }
+    "created_by": {
+      "$ref": "#/$defs/did"
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "updated_by": {
+      "$ref": "#/$defs/did"
+    },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "allOf": [
     {
       "if": {
         "properties": {
-          "primary_branch": { "const": "discussion" }
+          "primary_branch": {
+            "const": "discussion"
+          }
         }
       },
       "then": {
         "properties": {
           "branches": {
-            "required": ["discussion"],
+            "required": [
+              "discussion"
+            ],
             "properties": {
               "discussion": {
-                "required": ["enabled"],
+                "required": [
+                  "enabled"
+                ],
                 "properties": {
-                  "enabled": { "const": true }
+                  "enabled": {
+                    "const": true
+                  }
                 }
               }
             }
@@ -91,19 +211,30 @@
     {
       "if": {
         "properties": {
-          "kind": { "const": "room" }
+          "kind": {
+            "const": "room"
+          }
         }
       },
       "then": {
         "properties": {
-          "primary_branch": { "const": "discussion" },
+          "primary_branch": {
+            "const": "discussion"
+          },
           "branches": {
-            "required": ["discussion"],
+            "required": [
+              "discussion"
+            ],
             "properties": {
               "discussion": {
-                "required": ["enabled", "history_visibility"],
+                "required": [
+                  "enabled",
+                  "history_visibility"
+                ],
                 "properties": {
-                  "enabled": { "const": true }
+                  "enabled": {
+                    "const": true
+                  }
                 }
               }
             }
@@ -113,8 +244,15 @@
     }
   ],
   "$defs": {
-    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
-    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
   },
   "additionalProperties": true
 }

@@ -7,7 +7,9 @@
     "view_id": "cx:view:01js0vw0000000000000000000",
     "frontier": {
       "state_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "event_ids": ["cx:event:01js0ev0000000000000000000"]
+      "event_ids": [
+        "cx:event:01js0ev0000000000000000000"
+      ]
     },
     "groups": [
       {
@@ -16,8 +18,9 @@
         "items": [
           {
             "object": {
-              "id": "cx:card:01js0ca1000000000000000000",
-              "type": "card",
+              "id": "cx:flow:01js0ca1000000000000000000",
+              "type": "flow",
+              "kind": "card",
               "title": "Legal review"
             },
             "position": {
@@ -26,7 +29,10 @@
               "relation_id": "cx:relation:01js0re1000000000000000000",
               "rank": "U"
             },
-            "permissions": ["cx.flow.read", "cx.flow.update"],
+            "permissions": [
+              "cx.flow.read",
+              "cx.flow.update"
+            ],
             "pending_events": [],
             "conflict_records": []
           }
@@ -36,13 +42,19 @@
     ]
   },
   "room_timeline": {
-    "room_id": "cx:room:01js0r00000000000000000000",
-    "ordering": ["causal_depth", "hlc", "actor_id", "actor_seq", "event_id"],
+    "flow_id": "cx:flow:01js0r00000000000000000000",
+    "ordering": [
+      "causal_depth",
+      "hlc",
+      "actor_id",
+      "actor_seq",
+      "event_id"
+    ],
     "entries": [
       {
         "event_id": "cx:event:01js0me0000000000000000000",
         "message_id": "cx:message:01js0me0000000000000000000",
-        "room_id": "cx:room:01js0r00000000000000000000",
+        "flow_id": "cx:flow:01js0r00000000000000000000",
         "decryption_state": "cleartext"
       }
     ],
@@ -50,7 +62,14 @@
     "limited": false
   },
   "cursor_gap_recovery": {
-    "request": { "since": "cx:cursor:expired", "filter": { "space_ids": ["cx:space:01js0sp0000000000000000000"] } },
+    "request": {
+      "since": "cx:cursor:expired",
+      "filter": {
+        "space_ids": [
+          "cx:space:01js0sp0000000000000000000"
+        ]
+      }
+    },
     "expected_error": {
       "code": "sync_token_expired",
       "http_status": 410,
@@ -64,26 +83,35 @@
     "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
     "state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "frontier": {
-      "event_ids": ["cx:event:01js0ev0000000000000000000"],
+      "event_ids": [
+        "cx:event:01js0ev0000000000000000000"
+      ],
       "timeline_hlc": "01970e589d21-0001-a13f9c2e"
     },
     "event_set_commitment": {
       "algorithm": "ordered_event_id_sha256_v1",
       "root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "covered_event_count": 1,
-      "covered_frontier": ["cx:event:01js0ev0000000000000000000"]
+      "covered_frontier": [
+        "cx:event:01js0ev0000000000000000000"
+      ]
     },
     "expected": {
       "verify_signature": true,
       "verify_event_set_commitment": true,
-      "backfill_after": ["cx:event:01js0ev0000000000000000000"]
+      "backfill_after": [
+        "cx:event:01js0ev0000000000000000000"
+      ]
     }
   },
   "e2ee_decryption_pending": {
     "event_id": "cx:event:01js0m10000000000000000000",
-    "room_id": "cx:room:01js0r00000000000000000000",
+    "flow_id": "cx:flow:01js0r00000000000000000000",
     "mls_epoch": 7,
-    "client_missing": ["welcome", "epoch_secret"],
+    "client_missing": [
+      "welcome",
+      "epoch_secret"
+    ],
     "expected_projection_state": "decryption_pending",
     "must_not_drop_timeline_entry": true
   }

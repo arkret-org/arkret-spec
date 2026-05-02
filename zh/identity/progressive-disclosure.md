@@ -64,7 +64,7 @@
   "forbidden_claims": [
     "other_handles",
     "external_accounts",
-    "global_subject_identifier",
+    "global_flow_identifier",
     "credential_id"
   ],
   "transport_hints": ["tsp", "http_jwe", "didcomm_like"],
@@ -101,7 +101,7 @@ Verifier MUST sign the request or send it through an authenticated relationship.
   "forbidden_fields": [
     "other_handles",
     "external_accounts",
-    "global_subject_identifier",
+    "global_flow_identifier",
     "credential_id"
   ],
   "requires_user_consent": true,

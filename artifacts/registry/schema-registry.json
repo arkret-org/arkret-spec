@@ -1,37 +1,133 @@
 {
   "version": "2026-05-03",
   "schemas": [
-    { "schema_id": "cx.schema.space.v1", "file": "schemas/space.schema.json" },
-    { "schema_id": "cx.schema.actor_profile.v1", "file": "schemas/actor-profile.schema.json" },
-    { "schema_id": "cx.schema.flow.v1", "file": "schemas/flow.schema.json" },
-    { "schema_id": "cx.schema.message.v1", "file": "schemas/message.schema.json" },
-    { "schema_id": "cx.schema.morph.v1", "file": "schemas/morph.schema.json" },
-    { "schema_id": "cx.schema.relation.v1", "file": "schemas/relation.schema.json" },
-    { "schema_id": "cx.schema.view.v1", "file": "schemas/view.schema.json" },
-    { "schema_id": "cx.schema.policy.v1", "file": "schemas/policy.schema.json" },
-    { "schema_id": "cx.schema.invite.v1", "file": "schemas/invite.schema.json" },
-    { "schema_id": "cx.schema.event.v1", "file": "schemas/event-envelope.schema.json" },
-    { "schema_id": "cx.schema.event_payload.v1", "file": "schemas/event-payload.schema.json" },
-    { "schema_id": "cx.schema.operation.v1", "file": "schemas/operation.schema.json" },
-    { "schema_id": "cx.schema.event_batch_receipt.v1", "file": "schemas/event-batch-receipt.schema.json" },
-    { "schema_id": "cx.schema.capability.v1", "file": "schemas/capability-grant.schema.json" },
-    { "schema_id": "cx.schema.cursor.v1", "file": "schemas/cursor.schema.json" },
-    { "schema_id": "cx.schema.snapshot.v1", "file": "schemas/snapshot.schema.json" },
-    { "schema_id": "cx.schema.client_sync_response.v1", "file": "schemas/client-sync-response.schema.json" },
-    { "schema_id": "cx.schema.blob.v1", "file": "schemas/blob.schema.json" },
-    { "schema_id": "cx.schema.media_metadata.v1", "file": "schemas/media-metadata.schema.json" },
-    { "schema_id": "cx.schema.encrypted_payload.v1", "file": "schemas/encrypted-envelope.schema.json" },
-    { "schema_id": "cx.schema.notification.v1", "file": "schemas/notification.schema.json" },
-    { "schema_id": "cx.schema.read_marker.v1", "file": "schemas/read-marker.schema.json" },
-    { "schema_id": "cx.schema.read_receipt.v1", "file": "schemas/read-receipt.schema.json" },
-    { "schema_id": "cx.schema.did_key_log_entry.v1", "file": "schemas/did-key-log-entry.schema.json" },
-    { "schema_id": "cx.schema.identity_receipt.v1", "file": "schemas/identity-receipt.schema.json" },
-    { "schema_id": "cx.schema.handle_claim.v1", "file": "schemas/handle-claim.schema.json" },
-    { "schema_id": "cx.schema.grant_constraint.v1", "file": "schemas/grant-constraint.schema.json" },
-    { "schema_id": "cx.schema.resource_selector.v1", "file": "schemas/resource-selector.schema.json" },
-    { "schema_id": "cx.schema.mimi_interop.v1", "file": "schemas/mimi-interop.schema.json" },
-    { "schema_id": "cx.schema.moderation_report.v1", "file": "schemas/moderation-report.schema.json" },
-    { "schema_id": "cx.schema.moderation_queue_item.v1", "file": "schemas/moderation-queue-item.schema.json" },
-    { "schema_id": "cx.schema.agent_authority.v1", "file": "schemas/agent-authority.schema.json" }
+    {
+      "schema_id": "cx.schema.space.v1",
+      "file": "schemas/space.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.actor_profile.v1",
+      "file": "schemas/actor-profile.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.flow.v1",
+      "file": "schemas/flow.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.message.v1",
+      "file": "schemas/message.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.morph.v1",
+      "file": "schemas/morph.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.relation.v1",
+      "file": "schemas/relation.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.view.v1",
+      "file": "schemas/view.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.policy.v1",
+      "file": "schemas/policy.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.invite.v1",
+      "file": "schemas/invite.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.event.v1",
+      "file": "schemas/event-envelope.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.event_payload.v1",
+      "file": "schemas/event-payload.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.operation.v1",
+      "file": "schemas/operation.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.event_batch_receipt.v1",
+      "file": "schemas/event-batch-receipt.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.capability.v1",
+      "file": "schemas/capability-grant.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.cursor.v1",
+      "file": "schemas/cursor.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.snapshot.v1",
+      "file": "schemas/snapshot.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.client_sync_response.v1",
+      "file": "schemas/client-sync-response.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.blob.v1",
+      "file": "schemas/blob.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.media_metadata.v1",
+      "file": "schemas/media-metadata.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.encrypted_payload.v1",
+      "file": "schemas/encrypted-envelope.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.notification.v1",
+      "file": "schemas/notification.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.read_marker.v1",
+      "file": "schemas/read-marker.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.read_receipt.v1",
+      "file": "schemas/read-receipt.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.did_key_log_entry.v1",
+      "file": "schemas/did-key-log-entry.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.identity_receipt.v1",
+      "file": "schemas/identity-receipt.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.handle_claim.v1",
+      "file": "schemas/handle-claim.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.grant_constraint.v1",
+      "file": "schemas/grant-constraint.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.resource_selector.v1",
+      "file": "schemas/resource-selector.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.mimi_interop.v1",
+      "file": "schemas/mimi-interop.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.moderation_report.v1",
+      "file": "schemas/moderation-report.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.moderation_queue_item.v1",
+      "file": "schemas/moderation-queue-item.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.agent_authority.v1",
+      "file": "schemas/agent-authority.schema.json"
+    }
   ]
 }

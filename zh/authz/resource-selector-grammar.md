@@ -12,29 +12,29 @@ Contrix v1 不再使用 `entity` 作为通用资源选择器。标准对象使�
 
 ```ebnf
 selector             ::= space_selector
-                      | subject_selector
-                      | room_selector
+                      | flow_selector
+                      | flow_selector
                       | board_selector
                       | list_selector
-                      | card_selector
+                      | flow_selector
                       | message_selector
                       | morph_selector
                       | relation_selector
                       | view_selector
                       | object_selector
-                      | wildcard_selector
+                      | wildflow_selector
                       | conjunction_selector
                       | disjunction_selector
 
 space_selector       ::= "space" ":" space_id
                       | "space" ":" "*"
 
-subject_selector     ::= "subject" ":" space_id ":" subject_id
+flow_selector     ::= "subject" ":" space_id ":" flow_id
                       | "subject" ":" space_id ":*"
-                      | "subject" ":" "*" ":" subject_id
+                      | "subject" ":" "*" ":" flow_id
                       | "subject" ":" "*"
 
-room_selector        ::= "room" ":" space_id ":" room_id
+flow_selector        ::= "room" ":" space_id ":" flow_id
                       | "room" ":" space_id ":*"
                       | "room" ":" "*"
 
@@ -46,13 +46,13 @@ list_selector        ::= "list" ":" space_id ":" board_id ":" list_id
                       | "list" ":" space_id ":" board_id ":*"
                       | "list" ":" space_id ":*"
 
-card_selector        ::= "card" ":" space_id ":" card_id
+flow_selector        ::= "card" ":" space_id ":" flow_id
                       | "card" ":" space_id ":*"
-                      | "card" ":" "*" ":" card_id
+                      | "card" ":" "*" ":" flow_id
                       | "card" ":" "*"
 
-message_selector     ::= "message" ":" space_id ":" room_id ":" message_id
-                      | "message" ":" space_id ":" room_id ":*"
+message_selector     ::= "message" ":" space_id ":" flow_id ":" message_id
+                      | "message" ":" space_id ":" flow_id ":*"
                       | "message" ":" space_id ":*"
 
 morph_selector       ::= "morph" ":" space_id ":" morph_type
@@ -71,7 +71,7 @@ object_selector      ::= "object" ":" space_id ":" object_type
                       | "object" ":" "*" ":" object_type
                       | "object" ":" space_id ":*"
 
-wildcard_selector    ::= "*"
+wildflow_selector    ::= "*"
                       | "space" ":" "*"
 
 conjunction_selector ::= selector "+" selector
@@ -82,11 +82,11 @@ disjunction_selector ::= selector "," selector
 ### 2.2 词法规则
 
 - `space_id`：`cx:space:` 后接 ULID。
-- `subject_id`：`cx:subject:` 后接 ULID。
-- `room_id`：`cx:room:` 后接 ULID。
+- `flow_id`：`cx:flow:` 后接 ULID。
+- `flow_id`：`cx:flow:` 后接 ULID。
 - `board_id`：`cx:space:` 后接 ULID（Board-Space）。
 - `list_id`：`cx:space:` 后接 ULID（List-Space）。
-- `card_id`：`cx:card:` 后接 ULID。
+- `flow_id`：`cx:flow:` 后接 ULID。
 - `message_id`：`cx:message:` 后接 ULID。
 - `morph_id`：`cx:morph:` 后接 ULID。
 - `morph_type`：Space schema 中注册的开放对象类型。
@@ -112,27 +112,27 @@ disjunction_selector ::= selector "," selector
 
 ### 3.2 标准对象选择器
 
-`subject:cx:space:...:*`
+`flow:cx:space:...:*`
 
 - 匹配：该 Space 中所有 Subject。
 - 注意：Subject 读取不授予 surface 内容读取；Room、Card、Morph 等 surface 仍按自身权限裁剪。
 
-`card:cx:space:...:*`
+`flow:cx:space:...:*`
 
 - 匹配：该 Space 中所有 Card。
 - 不匹配：Room、Message、Morph 或其他对象。
 
-`card:cx:space:...:cx:card:01js0card00000000000000000`
+`flow:cx:space:...:cx:flow:01js0card00000000000000000`
 
 - 匹配：特定 Card。
 - 最高特异性。
 
-`room:cx:space:...:*`
+`flow:cx:space:...:*`
 
 - 匹配：该 Space 中所有 Room。
 - 注意：Room 读取和写入仍必须通过 Room membership / history visibility / E2EE 检查。
 
-`message:cx:space:...:cx:room:...:*`
+`message:cx:space:...:cx:flow:...:*`
 
 - 匹配：某个 Room 内所有 Message。
 - 不授予 Card 权限，即使该 Room 被某 Card 链接。
@@ -155,13 +155,13 @@ disjunction_selector ::= selector "," selector
 
 ### 3.4 Object 选择器
 
-`object` 是跨对象类型的通用选择器，用于授权面确实需要同时覆盖多类对象的情况。实现 SHOULD 优先使用更具体的 `subject`、`room`、`card`、`message` 或 `morph` 选择器。
+`object` 是跨对象类型的通用选择器，用于授权面确实需要同时覆盖多类对象的情况。实现 SHOULD 优先使用更具体的 `flow`、`message` 或 `morph` 选择器。
 
 `object:cx:space:...:card`
 
 - 匹配：该 Space 中所有 `type=card` 的对象。
 
-`object:cx:space:...:cx:card:01js0card00000000000000000`
+`object:cx:space:...:cx:flow:01js0card00000000000000000`
 
 - 匹配：给定对象引用。
 
@@ -199,7 +199,7 @@ disjunction_selector ::= selector "," selector
 
 ### 4.1 合取 (+)
 
-`space:cx:space:...+card:cx:space:...:*`
+`space:cx:space:...+flow:cx:space:...:*`
 
 - 匹配：特定 Space 中的所有 Card。
 - 冗余：Space 已由 Card 选择器隐含。
@@ -211,7 +211,7 @@ disjunction_selector ::= selector "," selector
 
 - 匹配：Space A 或 Space B。
 
-`card:cx:space:...:*,room:cx:space:...:*`
+`flow:cx:space:...:*,flow:cx:space:...:*`
 
 - 匹配：该 Space 中的 Card 或 Room。
 
@@ -229,7 +229,7 @@ disjunction_selector ::= selector "," selector
     {
       "kind": "card",
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "card_id": "cx:card:01js0card00000000000000000"
+      "flow_id": "cx:flow:01js0card00000000000000000"
     },
     {
       "kind": "morph",
@@ -249,7 +249,7 @@ function matches(target, selector):
     if selector.kind == "space":
         return target.space_id == selector.space_id or selector.space_id == "*"
 
-    if selector.kind in ["subject", "room", "board", "list", "card", "message", "morph"]:
+    if selector.kind in ["space", "flow", "message", "morph"]:
         if target.space_id != selector.space_id and selector.space_id != "*":
             return false
         if target.type != selector.kind:
@@ -260,7 +260,7 @@ function matches(target, selector):
             return false
         if selector.board_id and target.board_id != selector.board_id:
             return false
-        if selector.room_id and target.room_id != selector.room_id:
+        if selector.flow_id and target.flow_id != selector.flow_id:
             return false
         return true
 
@@ -338,7 +338,7 @@ Facet 选择适合：
 
 - 按 `space_id` 索引授权（最常见过滤器）。
 - 按标准对象 `type` 索引。
-- 按 `subject_id`、`room_id`、`board_id`、`card_id`、`morph_type` 建立局部索引。
+- 按 `flow_id`、`space_id`、`morph_type` 建立局部索引。
 - 单独缓存通配符授权。
 
 ### 9.2 求值顺序
@@ -365,7 +365,7 @@ Facet 选择适合：
     {
       "kind": "card",
       "space_id": "cx:space:...",
-      "card_id": "cx:card:01js0card00000000000000000"
+      "flow_id": "cx:flow:01js0card00000000000000000"
     }
   ],
   "constraints": [
@@ -390,7 +390,7 @@ Facet 选择适合：
     {
       "kind": "room",
       "space_id": "cx:space:...",
-      "room_id": "cx:room:01js0r00m00000000000000000"
+      "flow_id": "cx:flow:01js0r00m00000000000000000"
     }
   ]
 }

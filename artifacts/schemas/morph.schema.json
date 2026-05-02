@@ -3,30 +3,82 @@
   "$id": "https://contrix.io/artifacts/schemas/morph.schema.json",
   "title": "Contrix Morph",
   "type": "object",
-  "required": ["id", "type", "schema", "space_id", "morph_type", "created_by", "created_at"],
+  "required": [
+    "id",
+    "type",
+    "schema",
+    "space_id",
+    "morph_type",
+    "created_by",
+    "created_at"
+  ],
   "properties": {
-    "id": { "type": "string", "pattern": "^cx:morph:[0-9a-hjkmnp-z]{26}$" },
-    "type": { "const": "morph" },
-    "schema": { "const": "cx.schema.morph.v1" },
-    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "morph_type": { "type": "string", "minLength": 1 },
+    "id": {
+      "type": "string",
+      "pattern": "^cx:morph:[0-9a-hjkmnp-z]{26}$"
+    },
+    "type": {
+      "const": "morph"
+    },
+    "schema": {
+      "const": "cx.schema.morph.v1"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "morph_type": {
+      "type": "string",
+      "minLength": 1
+    },
     "facets": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "uniqueItems": true
     },
-    "title": { "type": "string" },
-    "summary": { "type": "string" },
-    "content": { "type": "object" },
-    "fields": { "type": "object" },
-    "state": { "type": "string", "enum": ["active", "archived", "deleted", "redacted"] },
-    "created_by": { "$ref": "#/$defs/did" },
-    "created_at": { "$ref": "#/$defs/timestamp" },
-    "updated_at": { "$ref": "#/$defs/timestamp" }
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "content": {
+      "type": "object"
+    },
+    "fields": {
+      "type": "object"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "deleted",
+        "redacted"
+      ]
+    },
+    "created_by": {
+      "$ref": "#/$defs/did"
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "$defs": {
-    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
-    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
   },
   "additionalProperties": true
 }

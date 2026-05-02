@@ -4,12 +4,20 @@
     "write_receiver_unknown_active_standard_kind": {
       "must_not_accept": true,
       "primary_result": "unsupported_feature",
-      "allowed_results": ["unsupported_event_kind", "schema_violation", "quarantine"]
+      "allowed_results": [
+        "unsupported_event_kind",
+        "schema_violation",
+        "quarantine"
+      ]
     },
     "read_only_unknown_accepted_kind": {
       "must_preserve_raw_event": true,
       "must_mark_projection_incomplete": true,
-      "allowed_results": ["generic_fallback", "projection_incomplete", "unsupported_feature"]
+      "allowed_results": [
+        "generic_fallback",
+        "projection_incomplete",
+        "unsupported_feature"
+      ]
     },
     "unknown_non_critical_extension": {
       "must_preserve_canonical_bytes": true,
@@ -18,11 +26,19 @@
     },
     "unknown_required_feature_or_critical_extension": {
       "must_fail_closed": true,
-      "allowed_results": ["unsupported_feature", "schema_violation", "soft_fail", "quarantine"]
+      "allowed_results": [
+        "unsupported_feature",
+        "schema_violation",
+        "soft_fail",
+        "quarantine"
+      ]
     },
     "optional_extension": {
       "may_omit_interaction": true,
-      "allowed_results": ["unsupported_feature", "feature_not_advertised"]
+      "allowed_results": [
+        "unsupported_feature",
+        "feature_not_advertised"
+      ]
     }
   },
   "implementation_profiles": [
@@ -103,348 +119,1368 @@
   ],
   "profile_requirements": {
     "cx.profile.core_event_store.v1": {
-      "required_endpoints": ["cx.server.describe", "cx.events.describe", "cx.events.submit", "cx.events.get", "cx.events.batch_get", "cx.events.list", "cx.events.frontier", "cx.sync.backfill"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state"],
-      "rejected_event_kinds": ["wire_scope:actor_private_event", "wire_scope:ephemeral_event", "wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1", "cx.schema.event_batch_receipt.v1", "cx.schema.cursor.v1"],
-      "required_fixtures": ["encoding-fixture.json", "crypto-signature-fixture.json", "event-envelope-negative-fixture.json", "sync-fixture.json"],
-      "optional_extensions": ["event_batch_receipt", "snapshot_bootstrap"],
-      "feature_discovery": { "required": ["supported_profiles", "supported_operations", "supported_event_schemas", "limits"], "unsupported_optional": "omit optional feature or return unsupported_feature" }
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.events.describe",
+        "cx.events.submit",
+        "cx.events.get",
+        "cx.events.batch_get",
+        "cx.events.list",
+        "cx.events.frontier",
+        "cx.sync.backfill"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:actor_private_event",
+        "wire_scope:ephemeral_event",
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1",
+        "cx.schema.event_batch_receipt.v1",
+        "cx.schema.cursor.v1"
+      ],
+      "required_fixtures": [
+        "encoding-fixture.json",
+        "crypto-signature-fixture.json",
+        "event-envelope-negative-fixture.json",
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [
+        "event_batch_receipt",
+        "snapshot_bootstrap"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_profiles",
+          "supported_operations",
+          "supported_event_schemas",
+          "limits"
+        ],
+        "unsupported_optional": "omit optional feature or return unsupported_feature"
+      }
     },
     "cx.profile.chat_mvp.v1": {
-      "inherits": ["cx.profile.core_event_store.v1"],
-      "required_endpoints": ["cx.sync.client_sync", "cx.sync.backfill"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.flow.branch.member", "cx.flow.branch.history_visibility", "cx.flow.branch.policy_components", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove", "cx.redaction"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
-      "required_fixtures": ["sync-fixture.json", "redaction-fixture.json", "state-resolution-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["cx.profile.e2ee_client.v1", "read_receipts", "push_notifications"],
-      "feature_discovery": { "required": ["supported_sync_profiles", "supported_event_kinds", "discussion_history_visibility"], "unsupported_optional": "return unsupported_feature without dropping encrypted events" }
+      "inherits": [
+        "cx.profile.core_event_store.v1"
+      ],
+      "required_endpoints": [
+        "cx.sync.client_sync",
+        "cx.sync.backfill"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state",
+        "cx.flow.create",
+        "cx.flow.branch.member",
+        "cx.flow.branch.history_visibility",
+        "cx.flow.branch.policy_components",
+        "cx.message.create",
+        "cx.message.revise",
+        "cx.message.redact",
+        "cx.reaction.add",
+        "cx.reaction.remove",
+        "cx.redaction"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.space.v1",
+        "cx.schema.flow.v1",
+        "cx.schema.message.v1",
+        "cx.schema.client_sync_response.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json",
+        "redaction-fixture.json",
+        "state-resolution-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.profile.e2ee_client.v1",
+        "read_receipts",
+        "push_notifications"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_sync_profiles",
+          "supported_event_kinds",
+          "discussion_history_visibility"
+        ],
+        "unsupported_optional": "return unsupported_feature without dropping encrypted events"
+      }
     },
     "cx.profile.kanban_mvp.v1": {
-      "inherits": ["cx.profile.core_event_store.v1"],
-      "required_endpoints": ["cx.sync.backfill"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.flow.update", "cx.flow.move", "cx.flow.reorder", "cx.relation.create", "cx.container.rebalance"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
-      "required_fixtures": ["sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json"],
-      "optional_extensions": ["discussion_branch", "snapshot_bootstrap"],
-      "feature_discovery": { "required": ["projection_types", "wait_for", "supported_event_kinds"], "unsupported_optional": "return unsupported_feature or omit projection capability" }
+      "inherits": [
+        "cx.profile.core_event_store.v1"
+      ],
+      "required_endpoints": [
+        "cx.sync.backfill"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state",
+        "cx.flow.create",
+        "cx.flow.update",
+        "cx.flow.move",
+        "cx.flow.reorder",
+        "cx.relation.create",
+        "cx.container.rebalance"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.space.v1",
+        "cx.schema.flow.v1",
+        "cx.schema.relation.v1",
+        "cx.schema.view.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json",
+        "state-resolution-fixture.json",
+        "capability-fixture.json"
+      ],
+      "optional_extensions": [
+        "discussion_branch",
+        "snapshot_bootstrap"
+      ],
+      "feature_discovery": {
+        "required": [
+          "projection_types",
+          "wait_for",
+          "supported_event_kinds"
+        ],
+        "unsupported_optional": "return unsupported_feature or omit projection capability"
+      }
     },
     "cx.profile.minimal_client.v1": {
-      "inherits": ["cx.profile.core_event_store.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.events.get", "cx.events.list", "cx.sync.backfill"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.message.v1", "cx.schema.morph.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
-      "required_fixtures": ["encoding-fixture.json", "sync-fixture.json"],
-      "optional_extensions": ["local_reducer", "e2ee_decrypt", "push_notifications"],
-      "feature_discovery": { "required": ["supported_profiles", "unsupported_features"], "unsupported_optional": "render generic fallback or return unsupported_feature" }
+      "inherits": [
+        "cx.profile.core_event_store.v1"
+      ],
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.events.get",
+        "cx.events.list",
+        "cx.sync.backfill"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.space.v1",
+        "cx.schema.flow.v1",
+        "cx.schema.message.v1",
+        "cx.schema.morph.v1",
+        "cx.schema.relation.v1",
+        "cx.schema.view.v1"
+      ],
+      "required_fixtures": [
+        "encoding-fixture.json",
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [
+        "local_reducer",
+        "e2ee_decrypt",
+        "push_notifications"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_profiles",
+          "unsupported_features"
+        ],
+        "unsupported_optional": "render generic fallback or return unsupported_feature"
+      }
     },
     "cx.profile.chat_only_client.v1": {
-      "inherits": ["cx.profile.chat_mvp.v1"],
-      "required_endpoints": ["cx.sync.client_sync", "cx.authz.check"],
-      "required_event_kinds": ["cx.flow.create", "cx.flow.branch.member", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.flow.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
-      "required_fixtures": ["sync-fixture.json", "redaction-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["cx.profile.e2ee_client.v1", "cx.profile.push_gateway.v1"],
-      "feature_discovery": { "required": ["chat_mvp", "discussion_timeline", "state_after"], "unsupported_optional": "hide unsupported board/list Flow interactions" }
+      "inherits": [
+        "cx.profile.chat_mvp.v1"
+      ],
+      "required_endpoints": [
+        "cx.sync.client_sync",
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.flow.create",
+        "cx.flow.branch.member",
+        "cx.message.create",
+        "cx.message.revise",
+        "cx.message.redact",
+        "cx.reaction.add",
+        "cx.reaction.remove"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.flow.v1",
+        "cx.schema.message.v1",
+        "cx.schema.client_sync_response.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json",
+        "redaction-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.profile.e2ee_client.v1",
+        "cx.profile.push_gateway.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "chat_mvp",
+          "discussion_timeline",
+          "state_after"
+        ],
+        "unsupported_optional": "hide unsupported board/list Flow interactions"
+      }
     },
     "cx.profile.kanban_only_client.v1": {
-      "inherits": ["cx.profile.kanban_mvp.v1"],
-      "required_endpoints": ["cx.authz.check"],
-      "required_event_kinds": ["cx.flow.create", "cx.flow.update", "cx.flow.move", "cx.flow.reorder", "cx.relation.create", "cx.container.rebalance"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
-      "required_fixtures": ["state-resolution-fixture.json", "capability-fixture.json", "sync-fixture.json"],
-      "optional_extensions": ["discussion_branch", "snapshot_bootstrap"],
-      "feature_discovery": { "required": ["collection_projection", "wait_for", "cas_reorder"], "unsupported_optional": "disable unsupported renderer actions" }
+      "inherits": [
+        "cx.profile.kanban_mvp.v1"
+      ],
+      "required_endpoints": [
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.flow.create",
+        "cx.flow.update",
+        "cx.flow.move",
+        "cx.flow.reorder",
+        "cx.relation.create",
+        "cx.container.rebalance"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.space.v1",
+        "cx.schema.flow.v1",
+        "cx.schema.relation.v1",
+        "cx.schema.view.v1"
+      ],
+      "required_fixtures": [
+        "state-resolution-fixture.json",
+        "capability-fixture.json",
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [
+        "discussion_branch",
+        "snapshot_bootstrap"
+      ],
+      "feature_discovery": {
+        "required": [
+          "collection_projection",
+          "wait_for",
+          "cas_reorder"
+        ],
+        "unsupported_optional": "disable unsupported renderer actions"
+      }
     },
     "cx.profile.full_client.v1": {
-      "inherits": ["cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync", "cx.sync.subscribe", "cx.blob.upload", "cx.blob.get", "cx.authz.check"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.flow.branch.member", "cx.message.create", "cx.reaction.add", "cx.redaction", "cx.account_data.set", "cx.read.marker"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.client_sync_response.v1", "cx.schema.blob.v1", "cx.schema.notification.v1", "cx.schema.read_marker.v1"],
-      "required_fixtures": ["encoding-fixture.json", "sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["cx.profile.e2ee_client.v1", "cx.profile.mimi_interop.v1", "cx.profile.agent_runtime.v1"],
-      "feature_discovery": { "required": ["offline_queue", "conflict_records", "pending_state"], "unsupported_optional": "surface unavailable capability before write" }
+      "inherits": [
+        "cx.profile.chat_mvp.v1",
+        "cx.profile.kanban_mvp.v1"
+      ],
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.events.submit",
+        "cx.sync.client_sync",
+        "cx.sync.subscribe",
+        "cx.blob.upload",
+        "cx.blob.get",
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state",
+        "cx.flow.create",
+        "cx.flow.branch.member",
+        "cx.message.create",
+        "cx.reaction.add",
+        "cx.redaction",
+        "cx.account_data.set",
+        "cx.read.marker"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.client_sync_response.v1",
+        "cx.schema.blob.v1",
+        "cx.schema.notification.v1",
+        "cx.schema.read_marker.v1"
+      ],
+      "required_fixtures": [
+        "encoding-fixture.json",
+        "sync-fixture.json",
+        "state-resolution-fixture.json",
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.profile.e2ee_client.v1",
+        "cx.profile.mimi_interop.v1",
+        "cx.profile.agent_runtime.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "offline_queue",
+          "conflict_records",
+          "pending_state"
+        ],
+        "unsupported_optional": "surface unavailable capability before write"
+      }
     },
     "cx.profile.e2ee_client.v1": {
-      "inherits": ["cx.profile.full_client.v1"],
-      "required_endpoints": ["cx.keys.upload", "cx.keys.query", "cx.keys.claim", "cx.keys.keypackages.upload", "cx.keys.keypackages.claim", "cx.keys.keypackages.consume", "cx.keys.keypackages.revoke"],
-      "required_event_kinds": ["cx.device.authorized", "cx.device.revoked", "cx.mls.proposal", "cx.mls.commit", "cx.mls.welcome", "cx.mls.epoch", "cx.space_key.share", "cx.space_key.withheld", "cx.space_key.share_audit"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.encrypted_payload.v1", "cx.schema.media_metadata.v1"],
-      "required_fixtures": ["crypto-signature-fixture.json", "privacy-security-fixture.json", "sync-fixture.json"],
-      "optional_extensions": ["cx.profile.mls_state_binding.full.v1", "minimal_metadata_space", "aad_visibility_policy"],
-      "feature_discovery": { "required": ["supported_mls_version", "keypackage_lifecycle", "decryption_pending"], "unsupported_optional": "preserve encrypted events and expose key_missing" }
+      "inherits": [
+        "cx.profile.full_client.v1"
+      ],
+      "required_endpoints": [
+        "cx.keys.upload",
+        "cx.keys.query",
+        "cx.keys.claim",
+        "cx.keys.keypackages.upload",
+        "cx.keys.keypackages.claim",
+        "cx.keys.keypackages.consume",
+        "cx.keys.keypackages.revoke"
+      ],
+      "required_event_kinds": [
+        "cx.device.authorized",
+        "cx.device.revoked",
+        "cx.mls.proposal",
+        "cx.mls.commit",
+        "cx.mls.welcome",
+        "cx.mls.epoch",
+        "cx.space_key.share",
+        "cx.space_key.withheld",
+        "cx.space_key.share_audit"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.encrypted_payload.v1",
+        "cx.schema.media_metadata.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json",
+        "privacy-security-fixture.json",
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.profile.mls_state_binding.full.v1",
+        "minimal_metadata_space",
+        "aad_visibility_policy"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_mls_version",
+          "keypackage_lifecycle",
+          "decryption_pending"
+        ],
+        "unsupported_optional": "preserve encrypted events and expose key_missing"
+      }
     },
     "cx.profile.enterprise_client.v1": {
-      "inherits": ["cx.profile.full_client.v1"],
-      "required_endpoints": ["cx.directory.resolve_organization", "cx.directory.search_organizations", "cx.authz.get_effective_grants"],
-      "required_event_kinds": ["cx.organization.discovery", "cx.organization.moderation_policy", "cx.policy.set", "cx.policy.rule"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.policy.v1", "cx.schema.handle_claim.v1", "cx.schema.identity_receipt.v1"],
-      "required_fixtures": ["capability-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["enterprise_directory", "managed_device_policy"],
-      "feature_discovery": { "required": ["organization_claims", "admin_policy"], "unsupported_optional": "return unsupported_feature for managed-only action" }
+      "inherits": [
+        "cx.profile.full_client.v1"
+      ],
+      "required_endpoints": [
+        "cx.directory.resolve_organization",
+        "cx.directory.search_organizations",
+        "cx.authz.get_effective_grants"
+      ],
+      "required_event_kinds": [
+        "cx.organization.discovery",
+        "cx.organization.moderation_policy",
+        "cx.policy.set",
+        "cx.policy.rule"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.policy.v1",
+        "cx.schema.handle_claim.v1",
+        "cx.schema.identity_receipt.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "enterprise_directory",
+        "managed_device_policy"
+      ],
+      "feature_discovery": {
+        "required": [
+          "organization_claims",
+          "admin_policy"
+        ],
+        "unsupported_optional": "return unsupported_feature for managed-only action"
+      }
     },
     "cx.profile.principal_server_events_api.v1": {
-      "inherits": ["cx.profile.core_event_store.v1"],
-      "required_endpoints": ["cx.events.describe", "cx.events.submit", "cx.events.get", "cx.events.batch_get", "cx.events.list", "cx.events.frontier"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state"],
-      "rejected_event_kinds": ["wire_scope:actor_private_event", "wire_scope:ephemeral_event", "wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1", "cx.schema.cursor.v1"],
-      "required_fixtures": ["crypto-signature-fixture.json", "event-envelope-negative-fixture.json", "sync-fixture.json"],
-      "optional_extensions": ["event_batch_receipt", "witness_receipt"],
-      "feature_discovery": { "required": ["supported_event_schemas", "supported_signatures", "limits"], "unsupported_optional": "return unsupported_feature" }
+      "inherits": [
+        "cx.profile.core_event_store.v1"
+      ],
+      "required_endpoints": [
+        "cx.events.describe",
+        "cx.events.submit",
+        "cx.events.get",
+        "cx.events.batch_get",
+        "cx.events.list",
+        "cx.events.frontier"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:actor_private_event",
+        "wire_scope:ephemeral_event",
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1",
+        "cx.schema.cursor.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json",
+        "event-envelope-negative-fixture.json",
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [
+        "event_batch_receipt",
+        "witness_receipt"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_event_schemas",
+          "supported_signatures",
+          "limits"
+        ],
+        "unsupported_optional": "return unsupported_feature"
+      }
     },
     "cx.profile.principal_server.v1": {
-      "inherits": ["cx.profile.principal_server_events_api.v1", "cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.sync.describe", "cx.sync.client_sync", "cx.sync.subscribe", "cx.sync.backfill", "cx.sync.get_snapshot_head", "cx.federation.transaction", "cx.authz.check"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.message.create", "cx.capability.grant", "cx.capability.revoke"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.client_sync_response.v1", "cx.schema.snapshot.v1", "cx.schema.capability.v1", "cx.schema.grant_constraint.v1"],
-      "required_fixtures": ["event-envelope-negative-fixture.json", "sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["cx.profile.federation_minimal.v1", "cx.profile.push_gateway.v1", "snapshot_witness"],
-      "feature_discovery": { "required": ["supported_operations", "supported_profiles", "plaintext_visibility_classes"], "unsupported_optional": "omit optional operation or return unsupported_feature" }
+      "inherits": [
+        "cx.profile.principal_server_events_api.v1",
+        "cx.profile.chat_mvp.v1",
+        "cx.profile.kanban_mvp.v1"
+      ],
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.sync.describe",
+        "cx.sync.client_sync",
+        "cx.sync.subscribe",
+        "cx.sync.backfill",
+        "cx.sync.get_snapshot_head",
+        "cx.federation.transaction",
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state",
+        "cx.flow.create",
+        "cx.message.create",
+        "cx.capability.grant",
+        "cx.capability.revoke"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.client_sync_response.v1",
+        "cx.schema.snapshot.v1",
+        "cx.schema.capability.v1",
+        "cx.schema.grant_constraint.v1"
+      ],
+      "required_fixtures": [
+        "event-envelope-negative-fixture.json",
+        "sync-fixture.json",
+        "state-resolution-fixture.json",
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.profile.federation_minimal.v1",
+        "cx.profile.push_gateway.v1",
+        "snapshot_witness"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_operations",
+          "supported_profiles",
+          "plaintext_visibility_classes"
+        ],
+        "unsupported_optional": "omit optional operation or return unsupported_feature"
+      }
     },
     "cx.profile.federation_minimal.v1": {
-      "inherits": ["cx.profile.core_event_store.v1"],
-      "required_endpoints": ["cx.federation.transaction", "cx.federation.pull_operations", "cx.federation.verify_actor", "cx.federation.space_members"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state"],
-      "rejected_event_kinds": ["wire_scope:actor_private_event", "wire_scope:ephemeral_event", "wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1", "cx.schema.event_batch_receipt.v1"],
-      "required_fixtures": ["federation-fixture.json", "event-envelope-negative-fixture.json", "sync-fixture.json"],
-      "optional_extensions": ["snapshot_assisted_bootstrap", "gossip"],
-      "feature_discovery": { "required": ["service_did", "supported_bindings", "accepted_profiles"], "unsupported_optional": "reject unsupported profile before accepting events" }
+      "inherits": [
+        "cx.profile.core_event_store.v1"
+      ],
+      "required_endpoints": [
+        "cx.federation.transaction",
+        "cx.federation.pull_operations",
+        "cx.federation.verify_actor",
+        "cx.federation.space_members"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:actor_private_event",
+        "wire_scope:ephemeral_event",
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1",
+        "cx.schema.event_batch_receipt.v1"
+      ],
+      "required_fixtures": [
+        "federation-fixture.json",
+        "event-envelope-negative-fixture.json",
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [
+        "snapshot_assisted_bootstrap",
+        "gossip"
+      ],
+      "feature_discovery": {
+        "required": [
+          "service_did",
+          "supported_bindings",
+          "accepted_profiles"
+        ],
+        "unsupported_optional": "reject unsupported profile before accepting events"
+      }
     },
     "cx.profile.identity_registry.v1": {
-      "required_endpoints": ["cx.identity.describe_registry", "cx.identity.resolve", "cx.identity.get_document", "cx.identity.get_log", "cx.identity.get_receipts", "cx.identity.submit_did_operation"],
-      "required_event_kinds": ["cx.did.proof", "cx.identity.disclosure_policy", "cx.identity.disclosure_receipt", "cx.identity.presentation_request", "cx.identity.presentation_response"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.did_key_log_entry.v1", "cx.schema.identity_receipt.v1", "cx.schema.handle_claim.v1"],
-      "required_fixtures": ["privacy-security-fixture.json", "crypto-signature-fixture.json"],
-      "optional_extensions": ["did:web_adapter", "did:key_adapter", "did:keri_future_adapter"],
-      "feature_discovery": { "required": ["supported_did_methods", "resolver_policy", "registry_visibility"], "unsupported_optional": "return unsupported_did_method" }
+      "required_endpoints": [
+        "cx.identity.describe_registry",
+        "cx.identity.resolve",
+        "cx.identity.get_document",
+        "cx.identity.get_log",
+        "cx.identity.get_receipts",
+        "cx.identity.submit_did_operation"
+      ],
+      "required_event_kinds": [
+        "cx.did.proof",
+        "cx.identity.disclosure_policy",
+        "cx.identity.disclosure_receipt",
+        "cx.identity.presentation_request",
+        "cx.identity.presentation_response"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.did_key_log_entry.v1",
+        "cx.schema.identity_receipt.v1",
+        "cx.schema.handle_claim.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json",
+        "crypto-signature-fixture.json"
+      ],
+      "optional_extensions": [
+        "did:web_adapter",
+        "did:key_adapter",
+        "did:keri_future_adapter"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_did_methods",
+          "resolver_policy",
+          "registry_visibility"
+        ],
+        "unsupported_optional": "return unsupported_did_method"
+      }
     },
     "cx.profile.blob_node.v1": {
-      "required_endpoints": ["cx.blob.upload", "cx.blob.get", "cx.blob.head"],
-      "required_event_kinds": ["cx.space.asset_privacy_policy", "cx.space.media_service"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.blob.v1", "cx.schema.media_metadata.v1"],
-      "required_fixtures": ["privacy-security-fixture.json"],
-      "optional_extensions": ["range_requests", "proxy_download_policy"],
-      "feature_discovery": { "required": ["max_blob_size", "supported_digests", "visibility_classes"], "unsupported_optional": "return unsupported_media_policy" }
+      "required_endpoints": [
+        "cx.blob.upload",
+        "cx.blob.get",
+        "cx.blob.head"
+      ],
+      "required_event_kinds": [
+        "cx.space.asset_privacy_policy",
+        "cx.space.media_service"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.blob.v1",
+        "cx.schema.media_metadata.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "range_requests",
+        "proxy_download_policy"
+      ],
+      "feature_discovery": {
+        "required": [
+          "max_blob_size",
+          "supported_digests",
+          "visibility_classes"
+        ],
+        "unsupported_optional": "return unsupported_media_policy"
+      }
     },
     "cx.profile.push_gateway.v1": {
-      "required_endpoints": ["cx.push.register_device", "cx.push.unregister_device", "cx.push.notify"],
-      "required_event_kinds": ["cx.device.authorized", "cx.device.revoked", "cx.account_data.set"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.notification.v1"],
-      "required_fixtures": ["privacy-security-fixture.json"],
-      "optional_extensions": ["blind_wakeup", "notification_summary"],
-      "feature_discovery": { "required": ["payload_max_bytes", "plaintext_visibility_classes"], "unsupported_optional": "strip unsupported plaintext fields" }
+      "required_endpoints": [
+        "cx.push.register_device",
+        "cx.push.unregister_device",
+        "cx.push.notify"
+      ],
+      "required_event_kinds": [
+        "cx.device.authorized",
+        "cx.device.revoked",
+        "cx.account_data.set"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.notification.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "blind_wakeup",
+        "notification_summary"
+      ],
+      "feature_discovery": {
+        "required": [
+          "payload_max_bytes",
+          "plaintext_visibility_classes"
+        ],
+        "unsupported_optional": "strip unsupported plaintext fields"
+      }
     },
     "cx.profile.applet_service.v1": {
-      "required_endpoints": ["cx.applet.describe", "cx.applet.ping", "cx.applet.transaction", "cx.applet.query_actor", "cx.applet.query_space", "cx.applet.protocol_metadata"],
-      "required_event_kinds": ["cx.applet.registration", "cx.applet.protocol_session.start", "cx.applet.protocol_session.status", "cx.applet.bridge_error"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1"],
-      "required_fixtures": ["capability-fixture.json", "federation-fixture.json"],
-      "optional_extensions": ["third_party_locations", "third_party_users"],
-      "feature_discovery": { "required": ["supported_protocols", "namespace", "service_did"], "unsupported_optional": "return unsupported_feature" }
+      "required_endpoints": [
+        "cx.applet.describe",
+        "cx.applet.ping",
+        "cx.applet.transaction",
+        "cx.applet.query_actor",
+        "cx.applet.query_space",
+        "cx.applet.protocol_metadata"
+      ],
+      "required_event_kinds": [
+        "cx.applet.registration",
+        "cx.applet.protocol_session.start",
+        "cx.applet.protocol_session.status",
+        "cx.applet.bridge_error"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json",
+        "federation-fixture.json"
+      ],
+      "optional_extensions": [
+        "third_party_locations",
+        "third_party_users"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_protocols",
+          "namespace",
+          "service_did"
+        ],
+        "unsupported_optional": "return unsupported_feature"
+      }
     },
     "cx.profile.agent_runtime.v1": {
-      "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.events.list", "cx.authz.check"],
-      "required_event_kinds": ["cx.agent.endpoint", "cx.agent.protocol_session.start", "cx.agent.protocol_session.status", "cx.agent.protocol_session.result"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.agent_authority.v1", "cx.schema.capability.v1"],
-      "required_fixtures": ["capability-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["tool_execution", "owner_presence_delegate"],
-      "feature_discovery": { "required": ["authority_panel", "responsible_actor", "grant_scope"], "unsupported_optional": "require explicit grant before join or tool use" }
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.events.submit",
+        "cx.events.list",
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.agent.endpoint",
+        "cx.agent.protocol_session.start",
+        "cx.agent.protocol_session.status",
+        "cx.agent.protocol_session.result"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.agent_authority.v1",
+        "cx.schema.capability.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "tool_execution",
+        "owner_presence_delegate"
+      ],
+      "feature_discovery": {
+        "required": [
+          "authority_panel",
+          "responsible_actor",
+          "grant_scope"
+        ],
+        "unsupported_optional": "require explicit grant before join or tool use"
+      }
     },
     "cx.profile.mimi_interop.v1": {
-      "required_endpoints": ["cx.mimi.provider_directory", "cx.mimi.request_consent", "cx.mimi.update_consent", "cx.mimi.room_update", "cx.mimi.submit_message", "cx.mimi.group_info"],
-      "required_event_kinds": ["cx.mimi.room_binding", "cx.mls.keypackage", "cx.mls.commit"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.mimi_interop.v1", "cx.schema.encrypted_payload.v1"],
-      "required_fixtures": ["mimi-interop-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["proxy_download_policy", "e2ee_franking_report"],
-      "feature_discovery": { "required": ["mimi_draft_versions", "provider_directory", "consent_model"], "unsupported_optional": "fail closed on unsupported draft" }
+      "required_endpoints": [
+        "cx.mimi.provider_directory",
+        "cx.mimi.request_consent",
+        "cx.mimi.update_consent",
+        "cx.mimi.room_update",
+        "cx.mimi.submit_message",
+        "cx.mimi.group_info"
+      ],
+      "required_event_kinds": [
+        "cx.mimi.room_binding",
+        "cx.mls.keypackage",
+        "cx.mls.commit"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.mimi_interop.v1",
+        "cx.schema.encrypted_payload.v1"
+      ],
+      "required_fixtures": [
+        "mimi-interop-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "proxy_download_policy",
+        "e2ee_franking_report"
+      ],
+      "feature_discovery": {
+        "required": [
+          "mimi_draft_versions",
+          "provider_directory",
+          "consent_model"
+        ],
+        "unsupported_optional": "fail closed on unsupported draft"
+      }
     },
     "cx.profile.sovereign_deployment.v1": {
-      "inherits": ["cx.profile.principal_server.v1", "cx.profile.identity_registry.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.identity.resolve", "cx.federation.transaction", "cx.authz.check"],
-      "required_event_kinds": ["cx.sovereign.did_policy", "cx.space.policy", "cx.capability.grant", "cx.capability.revoke"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.policy.v1", "cx.schema.capability.v1"],
-      "required_fixtures": ["federation-fixture.json", "capability-fixture.json"],
-      "optional_extensions": ["isolated_resolver", "bridge_quarantine"],
-      "feature_discovery": { "required": ["resolver_policy", "federation_boundary", "audit_policy"], "unsupported_optional": "deny bridge until explicit policy exists" }
+      "inherits": [
+        "cx.profile.principal_server.v1",
+        "cx.profile.identity_registry.v1"
+      ],
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.identity.resolve",
+        "cx.federation.transaction",
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.sovereign.did_policy",
+        "cx.space.policy",
+        "cx.capability.grant",
+        "cx.capability.revoke"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.policy.v1",
+        "cx.schema.capability.v1"
+      ],
+      "required_fixtures": [
+        "federation-fixture.json",
+        "capability-fixture.json"
+      ],
+      "optional_extensions": [
+        "isolated_resolver",
+        "bridge_quarantine"
+      ],
+      "feature_discovery": {
+        "required": [
+          "resolver_policy",
+          "federation_boundary",
+          "audit_policy"
+        ],
+        "unsupported_optional": "deny bridge until explicit policy exists"
+      }
     },
     "cx.profile.sovereign_client.v1": {
-      "inherits": ["cx.profile.full_client.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.identity.resolve", "cx.federation.transaction"],
-      "required_event_kinds": ["cx.sovereign.did_policy", "cx.space.policy"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.policy.v1", "cx.schema.identity_receipt.v1"],
-      "required_fixtures": ["federation-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["pinned_resolver", "offline_sovereign_cache"],
-      "feature_discovery": { "required": ["trusted_resolvers", "bridge_policy"], "unsupported_optional": "mark remote Space unavailable" }
+      "inherits": [
+        "cx.profile.full_client.v1"
+      ],
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.identity.resolve",
+        "cx.federation.transaction"
+      ],
+      "required_event_kinds": [
+        "cx.sovereign.did_policy",
+        "cx.space.policy"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.policy.v1",
+        "cx.schema.identity_receipt.v1"
+      ],
+      "required_fixtures": [
+        "federation-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "pinned_resolver",
+        "offline_sovereign_cache"
+      ],
+      "feature_discovery": {
+        "required": [
+          "trusted_resolvers",
+          "bridge_policy"
+        ],
+        "unsupported_optional": "mark remote Space unavailable"
+      }
     },
     "cx.profile.personal_node.v1": {
-      "inherits": ["cx.profile.principal_server_events_api.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.account_data.set"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.client_sync_response.v1"],
-      "required_fixtures": ["event-envelope-negative-fixture.json", "sync-fixture.json"],
-      "optional_extensions": ["blob_node", "push_gateway"],
-      "feature_discovery": { "required": ["local_storage_policy", "supported_profiles"], "unsupported_optional": "omit unsupported service binding" }
+      "inherits": [
+        "cx.profile.principal_server_events_api.v1"
+      ],
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.events.submit",
+        "cx.sync.client_sync"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state",
+        "cx.account_data.set"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.client_sync_response.v1"
+      ],
+      "required_fixtures": [
+        "event-envelope-negative-fixture.json",
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [
+        "blob_node",
+        "push_gateway"
+      ],
+      "feature_discovery": {
+        "required": [
+          "local_storage_policy",
+          "supported_profiles"
+        ],
+        "unsupported_optional": "omit unsupported service binding"
+      }
     },
     "cx.profile.small_team.v1": {
-      "inherits": ["cx.profile.principal_server.v1", "cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.flow.create", "cx.message.create"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.space.v1", "cx.schema.flow.v1", "cx.schema.message.v1"],
-      "required_fixtures": ["sync-fixture.json", "state-resolution-fixture.json", "capability-fixture.json"],
-      "optional_extensions": ["e2ee", "push_gateway"],
-      "feature_discovery": { "required": ["team_limits", "supported_profiles"], "unsupported_optional": "return unsupported_feature" }
+      "inherits": [
+        "cx.profile.principal_server.v1",
+        "cx.profile.chat_mvp.v1",
+        "cx.profile.kanban_mvp.v1"
+      ],
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.events.submit",
+        "cx.sync.client_sync"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state",
+        "cx.flow.create",
+        "cx.message.create"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.space.v1",
+        "cx.schema.flow.v1",
+        "cx.schema.message.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json",
+        "state-resolution-fixture.json",
+        "capability-fixture.json"
+      ],
+      "optional_extensions": [
+        "e2ee",
+        "push_gateway"
+      ],
+      "feature_discovery": {
+        "required": [
+          "team_limits",
+          "supported_profiles"
+        ],
+        "unsupported_optional": "return unsupported_feature"
+      }
     },
     "cx.profile.organization.v1": {
-      "inherits": ["cx.profile.principal_server.v1", "cx.profile.identity_registry.v1"],
-      "required_endpoints": ["cx.directory.resolve_organization", "cx.authz.get_effective_grants", "cx.admin.get_server_status"],
-      "required_event_kinds": ["cx.organization.discovery", "cx.organization.moderation_policy", "cx.policy.set", "cx.account.status"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.policy.v1", "cx.schema.handle_claim.v1", "cx.schema.moderation_report.v1"],
-      "required_fixtures": ["capability-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["managed_devices", "enterprise_directory"],
-      "feature_discovery": { "required": ["organization_policy", "claim_issuer_registry"], "unsupported_optional": "deny managed action without support" }
+      "inherits": [
+        "cx.profile.principal_server.v1",
+        "cx.profile.identity_registry.v1"
+      ],
+      "required_endpoints": [
+        "cx.directory.resolve_organization",
+        "cx.authz.get_effective_grants",
+        "cx.admin.get_server_status"
+      ],
+      "required_event_kinds": [
+        "cx.organization.discovery",
+        "cx.organization.moderation_policy",
+        "cx.policy.set",
+        "cx.account.status"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.policy.v1",
+        "cx.schema.handle_claim.v1",
+        "cx.schema.moderation_report.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "managed_devices",
+        "enterprise_directory"
+      ],
+      "feature_discovery": {
+        "required": [
+          "organization_policy",
+          "claim_issuer_registry"
+        ],
+        "unsupported_optional": "deny managed action without support"
+      }
     },
     "cx.profile.high_security_organization.v1": {
-      "inherits": ["cx.profile.organization.v1", "cx.profile.e2ee_client.v1", "cx.profile.mls_state_binding.full.v1"],
-      "required_endpoints": ["cx.sync.get_snapshot_head", "cx.keys.keypackages.revoke", "cx.admin.revoke_device"],
-      "required_event_kinds": ["cx.device.revoked", "cx.mls.commit", "cx.space_key.withheld", "cx.space.moderation_policy"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.snapshot.v1", "cx.schema.encrypted_payload.v1", "cx.schema.moderation_queue_item.v1"],
-      "required_fixtures": ["crypto-signature-fixture.json", "privacy-security-fixture.json", "capability-fixture.json"],
-      "optional_extensions": ["witness_quorum", "hardware_key_policy"],
-      "feature_discovery": { "required": ["snapshot_witness", "mls_state_binding", "revocation_freshness"], "unsupported_optional": "fail closed for high-risk action" }
+      "inherits": [
+        "cx.profile.organization.v1",
+        "cx.profile.e2ee_client.v1",
+        "cx.profile.mls_state_binding.full.v1"
+      ],
+      "required_endpoints": [
+        "cx.sync.get_snapshot_head",
+        "cx.keys.keypackages.revoke",
+        "cx.admin.revoke_device"
+      ],
+      "required_event_kinds": [
+        "cx.device.revoked",
+        "cx.mls.commit",
+        "cx.space_key.withheld",
+        "cx.space.moderation_policy"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.snapshot.v1",
+        "cx.schema.encrypted_payload.v1",
+        "cx.schema.moderation_queue_item.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json",
+        "privacy-security-fixture.json",
+        "capability-fixture.json"
+      ],
+      "optional_extensions": [
+        "witness_quorum",
+        "hardware_key_policy"
+      ],
+      "feature_discovery": {
+        "required": [
+          "snapshot_witness",
+          "mls_state_binding",
+          "revocation_freshness"
+        ],
+        "unsupported_optional": "fail closed for high-risk action"
+      }
     },
     "cx.profile.isolated_sovereign_network.v1": {
-      "inherits": ["cx.profile.sovereign_deployment.v1", "cx.profile.high_security_organization.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.identity.resolve", "cx.federation.transaction"],
-      "required_event_kinds": ["cx.sovereign.did_policy", "cx.space.policy", "cx.capability.grant", "cx.capability.revoke"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.policy.v1", "cx.schema.capability.v1", "cx.schema.snapshot.v1"],
-      "required_fixtures": ["federation-fixture.json", "capability-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["airgap_export", "manual_witness"],
-      "feature_discovery": { "required": ["isolation_boundary", "trusted_resolvers", "manual_bridge_policy"], "unsupported_optional": "deny cross-boundary operation" }
+      "inherits": [
+        "cx.profile.sovereign_deployment.v1",
+        "cx.profile.high_security_organization.v1"
+      ],
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.identity.resolve",
+        "cx.federation.transaction"
+      ],
+      "required_event_kinds": [
+        "cx.sovereign.did_policy",
+        "cx.space.policy",
+        "cx.capability.grant",
+        "cx.capability.revoke"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.policy.v1",
+        "cx.schema.capability.v1",
+        "cx.schema.snapshot.v1"
+      ],
+      "required_fixtures": [
+        "federation-fixture.json",
+        "capability-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "airgap_export",
+        "manual_witness"
+      ],
+      "feature_discovery": {
+        "required": [
+          "isolation_boundary",
+          "trusted_resolvers",
+          "manual_bridge_policy"
+        ],
+        "unsupported_optional": "deny cross-boundary operation"
+      }
     },
     "cx.profile.mls_state_binding.full.v1": {
-      "inherits": ["cx.profile.e2ee_client.v1"],
-      "required_endpoints": ["cx.keys.keypackages.claim", "cx.keys.keypackages.consume", "cx.sync.backfill"],
-      "required_event_kinds": ["cx.mls.commit", "cx.mls.epoch", "cx.space_key.share", "cx.space_key.withheld"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.encrypted_payload.v1", "cx.schema.snapshot.v1"],
-      "required_fixtures": ["crypto-signature-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["aad_visibility_policy", "minimal_metadata_space"],
-      "feature_discovery": { "required": ["application_state_root", "covered_frontier"], "unsupported_optional": "fail closed on root mismatch" }
+      "inherits": [
+        "cx.profile.e2ee_client.v1"
+      ],
+      "required_endpoints": [
+        "cx.keys.keypackages.claim",
+        "cx.keys.keypackages.consume",
+        "cx.sync.backfill"
+      ],
+      "required_event_kinds": [
+        "cx.mls.commit",
+        "cx.mls.epoch",
+        "cx.space_key.share",
+        "cx.space_key.withheld"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.encrypted_payload.v1",
+        "cx.schema.snapshot.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "aad_visibility_policy",
+        "minimal_metadata_space"
+      ],
+      "feature_discovery": {
+        "required": [
+          "application_state_root",
+          "covered_frontier"
+        ],
+        "unsupported_optional": "fail closed on root mismatch"
+      }
     },
     "cx.profile.capability_vectors.v1": {
-      "required_endpoints": ["cx.authz.check"],
-      "required_event_kinds": ["cx.capability.grant", "cx.capability.revoke", "cx.member.state"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.capability.v1", "cx.schema.grant_constraint.v1", "cx.schema.resource_selector.v1"],
-      "required_fixtures": ["capability-fixture.json"],
+      "required_endpoints": [
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.capability.grant",
+        "cx.capability.revoke",
+        "cx.member.state"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.capability.v1",
+        "cx.schema.grant_constraint.v1",
+        "cx.schema.resource_selector.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["vector_runner"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.crypto_signature_vectors.v1": {
       "required_endpoints": [],
-      "required_event_kinds": ["cx.message.create"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1"],
-      "required_fixtures": ["crypto-signature-fixture.json"],
+      "required_event_kinds": [
+        "cx.message.create"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["ed25519_detached_jws"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "ed25519_detached_jws"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.encoding_vectors.v1": {
       "required_endpoints": [],
-      "required_event_kinds": ["cx.message.create"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.cursor.v1", "cx.schema.event_batch_receipt.v1"],
-      "required_fixtures": ["encoding-fixture.json"],
+      "required_event_kinds": [
+        "cx.message.create"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.cursor.v1",
+        "cx.schema.event_batch_receipt.v1"
+      ],
+      "required_fixtures": [
+        "encoding-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["canonical_json", "hlc", "cursor"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "canonical_json",
+          "hlc",
+          "cursor"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.event_envelope_negative_vectors.v1": {
-      "required_endpoints": ["cx.events.submit"],
-      "required_event_kinds": ["cx.message.create", "cx.read.marker", "cx.typing"],
-      "rejected_event_kinds": ["wire_scope:actor_private_event", "wire_scope:ephemeral_event", "wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1"],
-      "required_fixtures": ["event-envelope-negative-fixture.json"],
+      "required_endpoints": [
+        "cx.events.submit"
+      ],
+      "required_event_kinds": [
+        "cx.message.create",
+        "cx.read.marker",
+        "cx.typing"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:actor_private_event",
+        "wire_scope:ephemeral_event",
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "event-envelope-negative-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["negative_vector_runner"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "negative_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.federation_vectors.v1": {
-      "required_endpoints": ["cx.federation.transaction"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1"],
-      "required_fixtures": ["federation-fixture.json"],
+      "required_endpoints": [
+        "cx.federation.transaction"
+      ],
+      "required_event_kinds": [
+        "cx.space.create",
+        "cx.member.state"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1"
+      ],
+      "required_fixtures": [
+        "federation-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["federation_vector_runner"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "federation_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.privacy_security_vectors.v1": {
-      "required_endpoints": ["cx.directory.resolve_space", "cx.directory.private_contact_discovery", "cx.events.submit", "cx.blob.head", "cx.push.notify"],
-      "required_event_kinds": ["cx.message.create"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.notification.v1", "cx.schema.blob.v1"],
-      "required_fixtures": ["privacy-security-fixture.json"],
+      "required_endpoints": [
+        "cx.directory.resolve_space",
+        "cx.directory.private_contact_discovery",
+        "cx.events.submit",
+        "cx.blob.head",
+        "cx.push.notify"
+      ],
+      "required_event_kinds": [
+        "cx.message.create"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.notification.v1",
+        "cx.schema.blob.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["privacy_vector_runner"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "privacy_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.redaction_vectors.v1": {
-      "required_endpoints": ["cx.events.submit", "cx.sync.backfill"],
-      "required_event_kinds": ["cx.message.create", "cx.message.redact", "cx.redaction"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1"],
-      "required_fixtures": ["redaction-fixture.json"],
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.sync.backfill"
+      ],
+      "required_event_kinds": [
+        "cx.message.create",
+        "cx.message.redact",
+        "cx.redaction"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "redaction-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["redaction_vector_runner"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "redaction_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.state_resolution_vectors.v1": {
-      "required_endpoints": ["cx.events.submit"],
-      "required_event_kinds": ["cx.member.state", "cx.flow.branch.member", "cx.flow.move", "cx.flow.reorder", "cx.policy.set"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1"],
-      "required_fixtures": ["state-resolution-fixture.json"],
+      "required_endpoints": [
+        "cx.events.submit"
+      ],
+      "required_event_kinds": [
+        "cx.member.state",
+        "cx.flow.branch.member",
+        "cx.flow.move",
+        "cx.flow.reorder",
+        "cx.policy.set"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "state-resolution-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["state_resolution_vector_runner"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "state_resolution_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.sync_vectors.v1": {
-      "required_endpoints": ["cx.sync.client_sync", "cx.sync.backfill", "cx.sync.get_snapshot_head"],
-      "required_event_kinds": ["cx.message.create", "cx.member.state"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.client_sync_response.v1", "cx.schema.cursor.v1", "cx.schema.snapshot.v1"],
-      "required_fixtures": ["sync-fixture.json"],
+      "required_endpoints": [
+        "cx.sync.client_sync",
+        "cx.sync.backfill",
+        "cx.sync.get_snapshot_head"
+      ],
+      "required_event_kinds": [
+        "cx.message.create",
+        "cx.member.state"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.client_sync_response.v1",
+        "cx.schema.cursor.v1",
+        "cx.schema.snapshot.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["sync_vector_runner"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "sync_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     },
     "cx.profile.mimi_interop_vectors.v1": {
-      "required_endpoints": ["cx.mimi.provider_directory", "cx.mimi.room_update", "cx.mimi.submit_message"],
-      "required_event_kinds": ["cx.mimi.room_binding", "cx.mls.keypackage"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.mimi_interop.v1"],
-      "required_fixtures": ["mimi-interop-fixture.json"],
+      "required_endpoints": [
+        "cx.mimi.provider_directory",
+        "cx.mimi.room_update",
+        "cx.mimi.submit_message"
+      ],
+      "required_event_kinds": [
+        "cx.mimi.room_binding",
+        "cx.mls.keypackage"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:deprecated_alias"
+      ],
+      "required_schemas": [
+        "cx.schema.mimi_interop.v1"
+      ],
+      "required_fixtures": [
+        "mimi-interop-fixture.json"
+      ],
       "optional_extensions": [],
-      "feature_discovery": { "required": ["mimi_vector_runner"], "unsupported_optional": "not applicable" }
+      "feature_discovery": {
+        "required": [
+          "mimi_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
     }
   }
 }
-

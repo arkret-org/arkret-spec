@@ -147,7 +147,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
   "type": "cx.typing",
   "actor": "did:web:alice.example.com",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "room_id": "cx:room:01js1000000000000000000001",
+  "flow_id": "cx:flow:01js1000000000000000000001",
   "typing": true,
   "ttl_ms": 5000
 }

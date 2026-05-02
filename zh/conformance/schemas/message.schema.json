@@ -3,23 +3,65 @@
   "$id": "https://contrix.io/artifacts/schemas/message.schema.json",
   "title": "Contrix Message",
   "type": "object",
-  "required": ["id", "type", "schema", "space_id", "flow_id", "branch", "content", "created_by", "created_at"],
+  "required": [
+    "id",
+    "type",
+    "schema",
+    "space_id",
+    "flow_id",
+    "branch",
+    "content",
+    "created_by",
+    "created_at"
+  ],
   "properties": {
-    "id": { "type": "string", "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$" },
-    "type": { "const": "message" },
-    "schema": { "const": "cx.schema.message.v1" },
-    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "flow_id": { "type": "string", "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$" },
-    "branch": { "const": "discussion" },
-    "content": { "type": "object" },
-    "fields": { "type": "object" },
-    "created_by": { "$ref": "#/$defs/did" },
-    "created_at": { "$ref": "#/$defs/timestamp" },
-    "redacted": { "type": "boolean" }
+    "id": {
+      "type": "string",
+      "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$"
+    },
+    "type": {
+      "const": "message"
+    },
+    "schema": {
+      "const": "cx.schema.message.v1"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+    },
+    "branch": {
+      "const": "discussion"
+    },
+    "content": {
+      "type": "object"
+    },
+    "fields": {
+      "type": "object"
+    },
+    "created_by": {
+      "$ref": "#/$defs/did"
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "redacted": {
+      "type": "boolean"
+    }
   },
   "$defs": {
-    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
-    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
   },
   "additionalProperties": true
 }

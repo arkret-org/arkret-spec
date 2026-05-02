@@ -244,7 +244,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
   "forbidden_claims": [
     "other_handles",
     "external_accounts",
-    "global_subject_identifier"
+    "global_flow_identifier"
   ]
 }
 ```
@@ -382,7 +382,7 @@ Wallet MUST verify：
   "forbidden_fields": [
     "other_handles",
     "external_accounts",
-    "global_subject_identifier",
+    "global_flow_identifier",
     "credential_id"
   ],
   "requires_user_consent": true,

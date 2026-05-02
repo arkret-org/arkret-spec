@@ -50,14 +50,20 @@
           "event_id": "cx:event:01js0mj0000000000000000000",
           "kind": "cx.member.state",
           "auth_weight": 200,
-          "content": { "membership": "join", "reason": "accepted_invite" },
+          "content": {
+            "membership": "join",
+            "reason": "accepted_invite"
+          },
           "hlc": "01970e589d21-0001-a13f9c2e"
         },
         {
           "event_id": "cx:event:01js0mb0000000000000000000",
           "kind": "cx.member.state",
           "auth_weight": 500,
-          "content": { "membership": "ban", "reason": "abuse" },
+          "content": {
+            "membership": "ban",
+            "reason": "abuse"
+          },
           "hlc": "01970e589d21-0001-b13f9c2e"
         }
       ],
@@ -76,7 +82,9 @@
           "kind": "cx.space.join_rule",
           "auth_weight": 650,
           "policy_result": "hard_deny",
-          "content": { "join_rule": "public" },
+          "content": {
+            "join_rule": "public"
+          },
           "hlc": "01970e589d21-0004-a13f9c2e"
         },
         {
@@ -84,14 +92,18 @@
           "kind": "cx.space.join_rule",
           "auth_weight": 500,
           "policy_result": "allow",
-          "content": { "join_rule": "invite" },
+          "content": {
+            "join_rule": "invite"
+          },
           "hlc": "01970e589d21-0003-a13f9c2e"
         }
       ],
       "expected": {
         "winner_event_id": "cx:event:01js0j10000000000000000000",
         "join_rule": "invite",
-        "rejected": ["cx:event:01js0jr0000000000000000000"],
+        "rejected": [
+          "cx:event:01js0jr0000000000000000000"
+        ],
         "reason": "policy_hard_deny_before_weight"
       }
     },
@@ -104,8 +116,12 @@
           "kind": "cx.capability.revoke",
           "actor_id": "did:web:admin.example",
           "actor_seq": 10,
-          "prev_refs": ["cx:event:01js0ra0000000000000000000"],
-          "content": { "grant_ref": "cx:grant:01js0gr0000000000000000000" },
+          "prev_refs": [
+            "cx:event:01js0ra0000000000000000000"
+          ],
+          "content": {
+            "grant_ref": "cx:grant:01js0gr0000000000000000000"
+          },
           "hlc": "01970e589d22-0001-a13f9c2e"
         },
         {
@@ -113,9 +129,18 @@
           "kind": "cx.flow.update",
           "actor_id": "did:web:alice.example",
           "actor_seq": 7,
-          "prev_refs": ["cx:event:01js0wa0000000000000000000"],
-          "auth_refs": ["cx:event:01js0gr0000000000000000000"],
-          "content": { "target_ref": "cx:flow:01js0ca0000000000000000000", "patch": { "title": "offline" } },
+          "prev_refs": [
+            "cx:event:01js0wa0000000000000000000"
+          ],
+          "auth_refs": [
+            "cx:event:01js0gr0000000000000000000"
+          ],
+          "content": {
+            "target_ref": "cx:flow:01js0ca0000000000000000000",
+            "patch": {
+              "title": "offline"
+            }
+          },
           "hlc": "01970e589d20-0001-a13f9c2e"
         }
       ],
@@ -127,4 +152,3 @@
     }
   ]
 }
-

@@ -51,11 +51,11 @@
           }
         ],
         "content": {
-          "room_id": "cx:room:01k9rm00000000000000000000",
+          "flow_id": "cx:flow:01k9rm00000000000000000000",
           "body": "hello"
         }
       },
-      "canonical_event_payload": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"auth_refs\":[],\"content\":{\"body\":\"hello\",\"room_id\":\"cx:room:01k9rm00000000000000000000\"},\"created_at\":\"2026-05-02T00:00:00Z\",\"critical_extensions\":[{\"fail_closed\":true,\"id\":\"cx.feature.message_plaintext_body.v1\",\"schema_ref\":\"cx.profile.chat_mvp.v1\",\"scope\":\"content\"}],\"event_id\":\"cx:event:01k9ab00000000000000000000\",\"hlc\":\"01970e589d21-0001-a13f9c2e\",\"kind\":\"cx.message.create\",\"prev_refs\":[],\"reducer_profile_ref\":\"cx.profile.core_event_store.v1\",\"required_features\":[\"cx.feature.detached_jws.v1\"],\"schema\":\"cx.schema.event.v1\",\"schema_profile_refs\":[\"cx.profile.chat_mvp.v1\"],\"space_id\":\"cx:space:01k9sp00000000000000000000\",\"space_version\":\"1\"}",
+      "canonical_event_payload": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"auth_refs\":[],\"content\":{\"body\":\"hello\",\"flow_id\":\"cx:flow:01k9rm00000000000000000000\"},\"created_at\":\"2026-05-02T00:00:00Z\",\"critical_extensions\":[{\"fail_closed\":true,\"id\":\"cx.feature.message_plaintext_body.v1\",\"schema_ref\":\"cx.profile.chat_mvp.v1\",\"scope\":\"content\"}],\"event_id\":\"cx:event:01k9ab00000000000000000000\",\"hlc\":\"01970e589d21-0001-a13f9c2e\",\"kind\":\"cx.message.create\",\"prev_refs\":[],\"reducer_profile_ref\":\"cx.profile.core_event_store.v1\",\"required_features\":[\"cx.feature.detached_jws.v1\"],\"schema\":\"cx.schema.event.v1\",\"schema_profile_refs\":[\"cx.profile.chat_mvp.v1\"],\"space_id\":\"cx:space:01k9sp00000000000000000000\",\"space_version\":\"1\"}",
       "payload_hash": "sha256:38f8db2a999c5c629bdac2a4fe022ce09a01a4c54717b6b1c66ab414c4b4bcf1",
       "binding_object": {
         "actor_id": "did:web:alice.example",
@@ -111,7 +111,7 @@
           }
         ],
         "content": {
-          "room_id": "cx:room:01k9rm00000000000000000000",
+          "flow_id": "cx:flow:01k9rm00000000000000000000",
           "body": "hello"
         },
         "proofs": [

@@ -435,7 +435,7 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
   },
   "payload": {
     "type": "message",
-    "room_id": "cx:room:p0rta100000000000000000000:slack:T123:C456",
+    "flow_id": "cx:flow:p0rta100000000000000000000:slack:T123:C456",
     "content": {
       "body": "hello from Slack"
     }

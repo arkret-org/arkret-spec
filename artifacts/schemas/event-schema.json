@@ -4,66 +4,186 @@
   "title": "Contrix Event Schema",
   "type": "object",
   "required": [
-    "event_id", "kind", "space_id", "space_version", "actor_id", "actor_seq", "created_at",
-    "hlc", "prev_refs", "auth_refs", "content", "proofs"
+    "event_id",
+    "kind",
+    "space_id",
+    "space_version",
+    "actor_id",
+    "actor_seq",
+    "created_at",
+    "hlc",
+    "prev_refs",
+    "auth_refs",
+    "content",
+    "proofs"
   ],
   "properties": {
-    "event_id": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
+    "event_id": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+    },
     "kind": {
       "type": "string",
       "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
       "description": "Standard cx.* kinds MUST appear in artifacts/registry/event-kind-registry.json. Durable Event Envelope history accepts only active entries with wire_scope=durable_event unless a profile defines a private actor channel."
     },
-    "schema": { "const": "cx.schema.event.v1" },
-    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "space_version": { "type": "string", "pattern": "^\\d+$" },
-    "actor_id": { "$ref": "#/$defs/did" },
-    "actor_seq": { "type": "integer", "minimum": 0 },
-    "created_at": { "$ref": "#/$defs/timestamp" },
-    "hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" },
-    "prev_refs": { "type": "array", "items": { "$ref": "#/$defs/eventRef" } },
-    "auth_refs": { "type": "array", "items": { "$ref": "#/$defs/eventRef" } },
-    "schema_profile_refs": { "type": "array", "items": { "$ref": "#/$defs/profileRef" }, "uniqueItems": true },
-    "reducer_profile_ref": { "$ref": "#/$defs/profileRef" },
-    "required_features": { "type": "array", "items": { "$ref": "#/$defs/featureRef" }, "uniqueItems": true },
-    "critical_extensions": { "type": "array", "items": { "$ref": "#/$defs/criticalExtension" }, "uniqueItems": true },
-    "redacts": { "$ref": "#/$defs/eventRef" },
-    "content": { "type": "object" },
-    "unsigned": { "type": "object" },
-    "proofs": { "type": "array", "items": { "$ref": "#/$defs/proof" }, "minItems": 1 }
+    "schema": {
+      "const": "cx.schema.event.v1"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "space_version": {
+      "type": "string",
+      "pattern": "^\\d+$"
+    },
+    "actor_id": {
+      "$ref": "#/$defs/did"
+    },
+    "actor_seq": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "hlc": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+    },
+    "prev_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/eventRef"
+      }
+    },
+    "auth_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/eventRef"
+      }
+    },
+    "schema_profile_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/profileRef"
+      },
+      "uniqueItems": true
+    },
+    "reducer_profile_ref": {
+      "$ref": "#/$defs/profileRef"
+    },
+    "required_features": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/featureRef"
+      },
+      "uniqueItems": true
+    },
+    "critical_extensions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/criticalExtension"
+      },
+      "uniqueItems": true
+    },
+    "redacts": {
+      "$ref": "#/$defs/eventRef"
+    },
+    "content": {
+      "type": "object"
+    },
+    "unsigned": {
+      "type": "object"
+    },
+    "proofs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/proof"
+      },
+      "minItems": 1
+    }
   },
   "allOf": [
     {
-      "if": { "properties": { "kind": { "const": "cx.card.move" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_move_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.flow.move"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/flow_move_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.card.reorder" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_reorder_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.flow.reorder"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/flow_reorder_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.card.link_room" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.member.state",
+              "cx.flow.branch.member"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/membership_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.card.unlink_room" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "const": "cx.card.set_primary_room" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "enum": ["cx.subject.link_surface", "cx.subject.unlink_surface", "cx.subject.set_primary_surface"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/subject_surface_link_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "enum": ["cx.member.state", "cx.room.member"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/membership_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "const": "cx.space.plaintext_visible_services" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.space.plaintext_visible_services"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_content"
+          }
+        }
+      }
     },
     {
       "if": {
@@ -71,16 +191,22 @@
           "kind": {
             "enum": [
               "cx.space.create",
-              "cx.subject.create",
-              "cx.room.create",
-              "cx.card.create",
+              "cx.flow.create",
               "cx.morph.create"
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/object_create_content" } } }
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/object_create_content"
+          }
+        }
+      }
     },
     {
       "if": {
@@ -88,34 +214,100 @@
           "kind": {
             "enum": [
               "cx.space.update",
-              "cx.subject.update",
-              "cx.room.update",
-              "cx.card.update",
+              "cx.flow.update",
               "cx.morph.update",
               "cx.profile.update",
               "cx.profile.space_override"
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/object_patch_content" } } }
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/object_patch_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.space.archive" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/space_archive_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.space.archive"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/space_archive_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.space.freeze" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/space_freeze_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.space.freeze"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/space_freeze_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.space.tombstone" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/space_tombstone_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.space.tombstone"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/space_tombstone_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.space.destroy" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/space_destroy_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.space.destroy"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/space_destroy_content"
+          }
+        }
+      }
     },
     {
       "if": {
@@ -161,94 +353,360 @@
               "cx.typing",
               "cx.read.marker",
               "cx.receipt.read",
-              "cx.room.history_visibility",
-              "cx.room.policy_components",
+              "cx.flow.branch.history_visibility",
+              "cx.flow.branch.policy_components",
               "cx.sovereign.did_policy"
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/state_content" } } }
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/state_content"
+          }
+        }
+      }
     },
     {
       "if": {
         "properties": {
           "kind": {
             "enum": [
-              "cx.room.archive",
-              "cx.subject.archive",
-              "cx.subject.restore",
-              "cx.card.archive",
-              "cx.card.restore",
+              "cx.flow.archive",
+              "cx.flow.restore",
               "cx.morph.archive",
               "cx.morph.restore"
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_content" } } }
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.message.create" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/message_create_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.message.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/message_create_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.message.revise" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/message_revise_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.message.revise"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/message_revise_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.message.redact", "cx.redaction"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/message_redact_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.message.redact",
+              "cx.redaction"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/message_redact_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.reaction.add", "cx.reaction.remove"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/reaction_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.reaction.add",
+              "cx.reaction.remove"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/reaction_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.relation.create" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/relation_create_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.relation.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/relation_create_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.relation.update", "cx.relation.delete"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/relation_update_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.relation.update",
+              "cx.relation.delete"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/relation_update_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.container.move_item", "cx.container.rebalance"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/container_position_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.container.move_item",
+              "cx.container.rebalance"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/container_position_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.view.create", "cx.view.update", "cx.view.reconcile"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/view_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.view.create",
+              "cx.view.update",
+              "cx.view.reconcile"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/view_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.agent.endpoint" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.agent.endpoint"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.agent.protocol_session.start" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_session_start_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.agent.protocol_session.start"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_start_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.agent.protocol_session.status" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_session_status_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.agent.protocol_session.status"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_status_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.agent.protocol_session.result" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_session_result_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.agent.protocol_session.result"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_result_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.capability.grant", "cx.capability.delegate", "cx.capability.derived", "cx.session.grant"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/capability_grant_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.capability.grant",
+              "cx.capability.delegate",
+              "cx.capability.derived",
+              "cx.session.grant"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/capability_grant_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.capability.revoke" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/capability_revoke_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.capability.revoke"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/capability_revoke_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.invite.create", "cx.invite.cancel", "cx.invite.accept", "cx.invite.third_party", "cx.invite.claim", "cx.invite.revoke"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/invite_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.invite.create",
+              "cx.invite.cancel",
+              "cx.invite.accept",
+              "cx.invite.third_party",
+              "cx.invite.claim",
+              "cx.invite.revoke"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/invite_content"
+          }
+        }
+      }
     },
     {
       "if": {
@@ -270,129 +728,358 @@
             ]
           }
         },
-        "required": ["kind"]
+        "required": [
+          "kind"
+        ]
       },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/crypto_device_content" } } }
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/crypto_device_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.mls.commit" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/mls_commit_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.mls.commit"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_commit_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.mls.epoch" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/mls_epoch_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.mls.epoch"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_epoch_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "const": "cx.moderation.report" } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/moderation_report_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.moderation.report"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/moderation_report_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.audit.accessed", "cx.moderation.frank"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/audit_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.audit.accessed",
+              "cx.moderation.frank"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.call.signal", "cx.call.state", "cx.call.recording.start"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/call_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.call.signal",
+              "cx.call.state",
+              "cx.call.recording.start"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/call_content"
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.applet.bridge_error", "cx.applet.registration", "cx.applet.protocol_session.start", "cx.applet.protocol_session.status", "cx.mimi.room_binding"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_content" } } }
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.applet.bridge_error",
+              "cx.applet.registration",
+              "cx.applet.protocol_session.start",
+              "cx.applet.protocol_session.status",
+              "cx.mimi.room_binding"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/generic_standard_content"
+          }
+        }
+      }
     }
   ],
   "$defs": {
-    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
-    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-    "profileRef": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$" },
-    "featureRef": { "type": "string", "pattern": "^(cx|[a-z0-9][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)+)\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$" },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "profileRef": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+    },
+    "featureRef": {
+      "type": "string",
+      "pattern": "^(cx|[a-z0-9][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)+)\\.[a-z0-9_]+(\\.[a-z0-9_]+)*\\.v[0-9]+$"
+    },
     "criticalExtension": {
       "type": "object",
-      "required": ["id", "scope", "fail_closed"],
+      "required": [
+        "id",
+        "scope",
+        "fail_closed"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/featureRef" },
-        "scope": { "type": "string", "enum": ["event", "content", "proof", "authz", "reducer", "projection", "encryption"] },
-        "schema_ref": { "$ref": "#/$defs/profileRef" },
-        "fail_closed": { "const": true }
+        "id": {
+          "$ref": "#/$defs/featureRef"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "event",
+            "content",
+            "proof",
+            "authz",
+            "reducer",
+            "projection",
+            "encryption"
+          ]
+        },
+        "schema_ref": {
+          "$ref": "#/$defs/profileRef"
+        },
+        "fail_closed": {
+          "const": true
+        }
       },
       "additionalProperties": true
     },
-    "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
-    "board_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
-    "list_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
-    "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
-    "eventRef": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
-    "card_move_content": {
-      "type": "object",
-      "required": ["board_id", "card_id", "to_list_id", "rank"],
-      "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "card_id": { "$ref": "#/$defs/card_id" },
-        "from_list_id": { "$ref": "#/$defs/list_id" },
-        "to_list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "list_id": { "$ref": "#/$defs/list_id" },
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
+    "rank": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z]{1,128}$"
     },
-    "card_reorder_content": {
-      "type": "object",
-      "required": ["board_id", "card_id", "list_id", "rank"],
-      "properties": {
-        "board_id": { "$ref": "#/$defs/board_id" },
-        "card_id": { "$ref": "#/$defs/card_id" },
-        "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "rank": { "$ref": "#/$defs/rank" },
-            "relation_id": { "$ref": "#/$defs/relation_id" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
+    "board_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
     },
-    "card_room_link_content": {
-      "type": "object",
-      "required": ["card_id", "room_id"],
-      "properties": {
-        "card_id": { "$ref": "#/$defs/card_id" },
-        "room_id": { "$ref": "#/$defs/room_id" },
-        "purpose": { "type": "string" },
-        "primary": { "type": "boolean", "default": false }
-      },
-      "additionalProperties": false
+    "flow_id": {
+      "type": "string",
+      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+    },
+    "list_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "relation_id": {
+      "type": "string",
+      "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+    },
+    "eventRef": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
     },
     "proof": {
       "type": "object",
-      "required": ["kind", "alg", "verification_method", "payload_hash", "created_at", "jws"],
+      "required": [
+        "kind",
+        "alg",
+        "verification_method",
+        "payload_hash",
+        "created_at",
+        "jws"
+      ],
       "properties": {
-        "kind": { "const": "detached_jws" },
-        "alg": { "type": "string", "enum": ["EdDSA", "ES256", "ES384", "ES512"] },
-        "verification_method": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+(#.+)?$" },
-        "payload_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-        "created_at": { "$ref": "#/$defs/timestamp" },
-        "domain": { "type": "string" },
-        "audience": {
-          "oneOf": [
-            { "type": "string" },
-            { "type": "array", "items": { "type": "string" } }
+        "kind": {
+          "const": "detached_jws"
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ES384",
+            "ES512"
           ]
         },
-        "jws": { "type": "string", "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$" }
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+(#.+)?$"
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "audience": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
       },
       "additionalProperties": true
+    },
+    "flow_move_content": {
+      "type": "object",
+      "required": [
+        "board_id",
+        "flow_id",
+        "to_list_id",
+        "rank"
+      ],
+      "properties": {
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "from_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "to_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "list_id": {
+              "$ref": "#/$defs/list_id"
+            },
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "flow_reorder_content": {
+      "type": "object",
+      "required": [
+        "board_id",
+        "flow_id",
+        "list_id",
+        "rank"
+      ],
+      "properties": {
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

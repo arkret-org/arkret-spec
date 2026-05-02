@@ -3,7 +3,12 @@
   "cases": [
     {
       "name": "preserved_fields",
-      "preserve": ["event_id", "created_at", "actor_id", "redacts"]
+      "preserve": [
+        "event_id",
+        "created_at",
+        "actor_id",
+        "redacts"
+      ]
     },
     {
       "name": "dangling_redaction",

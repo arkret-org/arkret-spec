@@ -3,20 +3,85 @@
   "$id": "https://contrix.io/artifacts/schemas/notification.schema.json",
   "title": "Contrix Notification",
   "type": "object",
-  "required": ["id", "type", "actor_id", "source_event_id", "notification_type", "priority", "state", "created_at"],
+  "required": [
+    "id",
+    "type",
+    "actor_id",
+    "source_event_id",
+    "notification_type",
+    "priority",
+    "state",
+    "created_at"
+  ],
   "properties": {
-    "id": { "type": "string" },
-    "type": { "const": "notification" },
-    "schema": { "const": "cx.schema.notification.v1" },
-    "actor_id": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
-    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "source_event_id": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
-    "notification_type": { "type": "string", "enum": ["mention", "reply", "assignment", "invite", "reaction", "policy", "call", "applet", "agent", "moderation", "system"] },
-    "priority": { "type": "string", "enum": ["low", "normal", "high", "urgent"] },
-    "state": { "type": "string", "enum": ["unread", "read", "dismissed", "archived"] },
-    "preview": { "type": "object" },
-    "created_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "updated_at": { "type": "string", "format": "date-time", "pattern": "Z$" }
+    "id": {
+      "type": "string"
+    },
+    "type": {
+      "const": "notification"
+    },
+    "schema": {
+      "const": "cx.schema.notification.v1"
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "source_event_id": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+    },
+    "notification_type": {
+      "type": "string",
+      "enum": [
+        "mention",
+        "reply",
+        "assignment",
+        "invite",
+        "reaction",
+        "policy",
+        "call",
+        "applet",
+        "agent",
+        "moderation",
+        "system"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ]
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "unread",
+        "read",
+        "dismissed",
+        "archived"
+      ]
+    },
+    "preview": {
+      "type": "object"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
   },
   "additionalProperties": true
 }

@@ -75,7 +75,7 @@ GET /api/v1/mimi/provider-directory
     "mimi_room_uri": "mimi://example.com/rooms/01JSMIMI...",
     "binding_scope": {
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "room_id": "cx:room:01JS..."
+      "flow_id": "cx:flow:01JS..."
     },
     "hub_provider": "did:web:mimi.example.com",
     "local_provider_role": "hub",
@@ -92,7 +92,7 @@ GET /api/v1/mimi/provider-directory
 
 规则：
 
-- `binding_scope.space_id` MUST 指向一个 accepted Space。`room_id` MUST 指向该 Space 内的 accepted Room；MIMI room timeline 只投影该 Room 的消息。
+- `binding_scope.space_id` MUST 指向一个 accepted Space。`flow_id` MUST 指向该 Space 内的 accepted Room；MIMI room timeline 只投影该 Room 的消息。
 - `hub_provider` MUST 是 Space policy、Organization DID 或 participant DID 明确委托的 service DID。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `bridge_only`。
 - `cx.mimi.room_binding` 的创建、更新和撤销 MUST require `cx.policy.manage`、`cx.space.admin` 或等价 interop capability。
@@ -107,10 +107,10 @@ MIMI facade 至少定义以下 canonical operation：
 | --- | --- | --- |
 | `cx.mimi.provider_directory` | `GET /mimi/provider-directory` | 返回 MIMI provider feature profile。 |
 | `cx.mimi.key_material` | `POST /mimi/key-material` | 领取 MLS KeyPackage，映射到 Contrix KeyPackage claim lifecycle。 |
-| `cx.mimi.room_update` | `PUT /mimi/rooms/{room_id}/update` | 提交或转发 room state / MLS update。 |
-| `cx.mimi.notify` | `POST /mimi/rooms/{room_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
-| `cx.mimi.submit_message` | `POST /mimi/rooms/{room_id}/messages` | 提交 MIMI encrypted application message。 |
-| `cx.mimi.group_info` | `GET /mimi/rooms/{room_id}/group-info` | 获取 MLS groupInfo / room projection。 |
+| `cx.mimi.room_update` | `PUT /mimi/rooms/{flow_id}/update` | 提交或转发 room state / MLS update。 |
+| `cx.mimi.notify` | `POST /mimi/rooms/{flow_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
+| `cx.mimi.submit_message` | `POST /mimi/rooms/{flow_id}/messages` | 提交 MIMI encrypted application message。 |
+| `cx.mimi.group_info` | `GET /mimi/rooms/{flow_id}/group-info` | 获取 MLS groupInfo / room projection。 |
 | `cx.mimi.request_consent` | `POST /mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
 | `cx.mimi.update_consent` | `POST /mimi/consent/update` | 更新 consent state。 |
 | `cx.mimi.identifier_query` | `POST /mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |

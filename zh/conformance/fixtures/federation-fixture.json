@@ -25,7 +25,9 @@
     ],
     "service_binding_ref": {
       "space_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "membership_frontier": ["cx:event:01js0mb0000000000000000000"],
+      "membership_frontier": [
+        "cx:event:01js0mb0000000000000000000"
+      ],
       "destination_service_type": "principal_server"
     }
   },

@@ -11,7 +11,7 @@ Read marker 是 actor-private 状态。
   "space_id": "cx:space:01js0sp0000000000000000000",
   "scope": {
     "kind": "room",
-    "ref": "cx:room:01js0r00m00000000000000000"
+    "ref": "cx:flow:01js0r00m00000000000000000"
   },
   "position": {
     "event_id": "cx:event:01js0ev0000000000000000000",
