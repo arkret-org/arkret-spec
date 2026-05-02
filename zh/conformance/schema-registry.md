@@ -17,9 +17,7 @@
 | --- | --- |
 | `cx.schema.space.v1` | Space |
 | `cx.schema.actor_profile.v1` | Actor Profile |
-| `cx.schema.subject.v1` | Subject |
-| `cx.schema.room.v1` | Room |
-| `cx.schema.card.v1` | Card |
+| `cx.schema.flow.v1` | Flow |
 | `cx.schema.message.v1` | Message |
 | `cx.schema.morph.v1` | Morph |
 | `cx.schema.relation.v1` | Relation |
@@ -81,28 +79,20 @@
 | `cx.space.freeze` | Set reversible temporary freeze state |
 | `cx.space.destroy` | Terminal Space decommission marker |
 | `cx.member.state` | Membership state |
-| `cx.subject.create` | Subject create |
-| `cx.subject.update` | Subject patch |
-| `cx.subject.archive` | Subject archive |
-| `cx.subject.restore` | Subject restore |
-| `cx.subject.link_surface` | Link surface to Subject |
-| `cx.subject.unlink_surface` | Unlink surface from Subject |
-| `cx.subject.set_primary_surface` | Set Subject primary surface |
-| `cx.room.create` | Room create |
-| `cx.room.update` | Room patch |
-| `cx.room.member` | Room membership state |
-| `cx.room.history_visibility` | Room history visibility state |
-| `cx.room.policy_components` | Room policy component state |
-| `cx.room.archive` | Room archive |
-| `cx.card.create` | Card create |
-| `cx.card.update` | Card patch |
-| `cx.card.archive` | Card archive |
-| `cx.card.restore` | Card restore |
-| `cx.card.move` | Card move between Lists |
-| `cx.card.reorder` | Card reorder within List |
-| `cx.card.link_room` | Link Room to Card |
-| `cx.card.unlink_room` | Unlink Room from Card |
-| `cx.card.set_primary_room` | Set Card primary Room relation |
+| `cx.flow.create` | Flow create |
+| `cx.flow.update` | Flow patch |
+| `cx.flow.archive` | Flow archive |
+| `cx.flow.restore` | Flow restore |
+| `cx.flow.convert` | Flow mode convert |
+| `cx.flow.branch.enable` | Enable Flow branch |
+| `cx.flow.branch.disable` | Disable Flow branch |
+| `cx.flow.branch.update` | Flow branch patch |
+| `cx.flow.branch.set_primary` | Set Flow primary branch |
+| `cx.flow.branch.member` | Flow discussion branch membership state |
+| `cx.flow.branch.history_visibility` | Flow discussion branch history visibility state |
+| `cx.flow.branch.policy_components` | Flow discussion branch policy component state |
+| `cx.flow.move` | Flow move between Lists |
+| `cx.flow.reorder` | Flow reorder within List |
 | `cx.morph.create` | Morph create |
 | `cx.morph.update` | Morph patch |
 | `cx.morph.archive` | Morph archive |

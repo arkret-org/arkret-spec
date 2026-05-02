@@ -8,9 +8,7 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 
 - `space`（包含 `kind="board"` 和 `kind="list"` 子类型）
 - `actor`
-- `subject`
-- `room`
-- `card`
+- `flow`
 - `message`
 - `morph`
 - `relation`
@@ -32,28 +30,26 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 
 一个 Space 可以包含多个：
 
-- Room
-- Subject
+- Flow
 - Board
-- Card
+- List
 - Document
 - Morph
 
 Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组织，但 child Space 仍然是独立边界。membership、capability、history visibility、schema、policy 和 encryption key 默认不从 parent 级联到 child；任何继承都必须由 child Space 显式声明。详细规则见 `space-hierarchy.md`。
 
-### 2.2 标准对象承载主语义
+### 2.2 Flow 承载主语义
 
-协议不再把 `subject`、`board`、`card`、`room`、`message` 等都压成 `entity_type`。
+协议不再把同一个协作主题拆成 `subject`、`room`、`card` 三个互相跳转的标准对象。
 
 标准对象本身表达主语义：
 
-- `subject`：语义中心，表示被讨论、推进、引用和沉淀的“东西本身”。
-- `room`：讨论容器和消息时间线入口。
-- `card`：有生命周期、状态、负责人、位置和决策沉淀的工作对象。Board（`Space kind="board"`）和 List（`Space kind="list"`）通过 Space 层级表达工作流容器。
-- `message`：Room 时间线中的消息。
+- `flow`：统一协作主对象。它承载标题、description、brief、summary 等基础字段，并通过 `flow_kind` 决定默认视角：`card` 偏内容和推进，`room` 偏讨论和协作。
+- `message`：Flow `discussion` branch 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
+- Board（`Space kind="board"`）和 List（`Space kind="list"`）通过 Space 层级表达工作流容器，并管理 `flow_kind="card"` 的 Flow 位置。
 
-标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `subject` 天然是语义中心；`card` 天然是可被 Board/List 管理的工作对象；`room` 天然是讨论容器；`message` 天然属于 Room timeline。实现不得要求标准对象先声明 facet 才承认其主语义。
+标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；`flow_kind="card"` 天然适合作为 Board/List 管理的工作对象；`flow_kind="room"` 天然适合作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才承认其主语义。
 
 ### 2.3 Morph 是开放对象
 
@@ -76,20 +72,17 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 
 - `contains`
 - `belongs_to`
-- `links_room`
-- `primary_room`
 - `replies_to`
 - `depends_on`
 - `blocks`
 - `mentions`
 - `assigned_to`
 - `references`
-- `has_surface`
 - `derived_from`
 - `summarized_from`
-- `promoted_from_room`
+- `promoted_from_discussion`
 
-Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `subject`、`room`、`card`、`message`、`morph`、`actor` 或 `space`（包括 Board-Space 和 List-Space）。
+Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `flow`、`message`、`morph`、`actor` 或 `space`（包括 Board-Space 和 List-Space）。
 
 #### 2.4.1 跨 Space 引用
 
@@ -117,7 +110,7 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 
 `view` 是一等协议对象，但它拥有的是投影定义的真相，而不是被投影对象的协作事实。它定义查询、过滤、排序、分组、renderer、布局、可见字段和共享 saved view 配置。
 
-同一组 Subject / Room / Card / Message / Morph / Relation 可以投影为：
+同一组 Flow / Message / Morph / Relation 可以投影为：
 
 - board
 - list
@@ -128,12 +121,12 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 - thread
 - forum
 - graph
-- subject activity
+- flow activity
 - review queue
 
-View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Subject 的 surface、Board-Space 包含 List-Space、List-Space 包含 Card、Card 的字段与位置、Room 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
+View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Board-Space 包含 List-Space、List-Space 包含 Flow、Flow 的字段与位置、Flow `discussion` branch 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
 
-当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Card 跨 List 拖拽写为 `cx.card.move`，同 List 排序写为 `cx.card.reorder`，修改列顺序写为 `cx.space.update`（更新 List-Space 的 `rank` 字段），改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
+当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Flow 跨 List 拖拽写为 `cx.flow.move`，同 List 排序写为 `cx.flow.reorder`，修改列顺序写为 `cx.space.update`（更新 List-Space 的 `rank` 字段），改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
 
 ## 3. 通用字段规则
 
@@ -143,23 +136,21 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 
 ```json
 {
-  "id": "cx:card:01js0ke0000000000000000000",
-  "type": "card",
+  "id": "cx:flow:01js0ke0000000000000000000",
+  "type": "flow",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "created_by": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_by": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "updated_at": "2026-04-26T00:00:00Z",
-  "schema": "cx.schema.card.v1"
+  "schema": "cx.schema.flow.v1"
 }
 ```
 
 对象 ID SHOULD 使用带类型前缀的稳定字符串：
 
 - `cx:space:<ulid>`
-- `cx:subject:<ulid>`
-- `cx:room:<ulid>`
-- `cx:card:<ulid>`
+- `cx:flow:<ulid>`
 - `cx:message:<ulid>`
 - `cx:morph:<ulid>`
 - `cx:relation:<ulid>`
@@ -189,7 +180,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 Space policy 决定：
 
 - 谁能加入 Space
-- 哪些 Subject / Room / Card / Morph 类型可用
+- 哪些 Flow / Morph 类型与 branch profile 可用
 - 哪些服务可同步、索引或看见明文
 - 是否加密
 - 是否允许外部联邦
@@ -215,92 +206,81 @@ Actor MAY 有对应的 `actor_profile` 对象，便于在协作图中被 mention
 
 Accountable actor MUST 记录责任关系，但 accountability 不等于 capability。
 
-## 6. Subject
+## 6. Flow
 
-Subject 是 Space 内的语义中心。它表示一个被讨论、推进、引用、审阅、执行或沉淀的“东西本身”，例如事项、议题、决策、事故、客户 case、研究主题、资产或长期记忆锚点。
+Flow 是 Space 内统一的协作主对象。它取代 Subject / Room / Card 的三实体拆分，直接承载“这件事本身”、一组参与者和围绕它的上下文信息。
 
-Subject 保持很薄。它只承载身份连续性、标题、brief、summary、生命周期、语义分类和 surface 关联。它不承载 Room 的消息时间线、Room membership、E2EE epoch、Card 在 Board/List 中的位置、Card 的工作流 reducer、Message thread 或 Document 正文协作。
+Flow 通过两层语义表达差异：
+
+- `flow_kind`：主模式。`card` 默认主入口是 `content` branch；`room` 默认主入口是 `discussion` branch。
+- `branches`：能力分支。`content` branch 承载描述、结构化字段和推进信息；`discussion` branch 承载聊天、成员、历史和 E2EE 边界。
+
+由于 `room` 和 `card` 只是同一 Flow 的两种模式，实现 MAY 通过 `cx.flow.convert` 在二者之间切换。转换不会改变 Flow identity，也不要求复制或迁移消息历史。
 
 最小结构：
 
 ```json
 {
-  "id": "cx:subject:01js0sb0000000000000000000",
-  "type": "subject",
-  "schema": "cx.schema.subject.v1",
+  "id": "cx:flow:01js0fl0000000000000000000",
+  "type": "flow",
+  "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
+  "flow_kind": "card",
   "title": "支付重构",
-  "brief": "统一支付链路、风控回调和退款状态机。",
-  "subject_kind": "initiative",
+  "description": "统一支付链路、风控回调和退款状态机。",
+  "brief": "同步 owner、决策和 blocker。",
+  "summary": "内容与讨论收敛在同一个 Flow 内。",
+  "body": {
+    "format": "markdown",
+    "text": "Please finish the final review."
+  },
+  "fields": {
+    "status": "review",
+    "priority": "high",
+    "due_at": "2026-05-01T00:00:00Z"
+  },
+  "primary_branch": "content",
+  "branches": {
+    "content": {
+      "enabled": true
+    },
+    "discussion": {
+      "enabled": true,
+      "room_kind": "review",
+      "membership_policy_ref": "cx:policy:01js0rp0000000000000000000",
+      "history_visibility": "joined",
+      "encryption_profile": "mls_rfc9420"
+    }
+  },
   "state": "active",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
-推荐 `subject_kind`：
+Flow 规则：
 
-- `topic`
-- `initiative`
-- `decision`
-- `incident`
-- `customer_case`
-- `proposal`
-- `research`
-- `task_cluster`
-- `asset`
-- `custom`
+- Flow identity 只保存一份，`flow_kind` 和 `primary_branch` 只决定默认视角，不创建新的对象副本。
+- `content` branch 与 `discussion` branch 可以共享同一标题和基础字段，但各自的 reducer 语义独立。
+- `discussion` branch 的 membership、history visibility 和 E2EE 不自动放大 `content` branch 的可见字段。
+- `primary_branch` 只是默认入口，不授予读取、写入或管理权限。
 
-Subject 与协作 surface 的关系使用 `has_surface`：
+## 7. Flow Discussion Branch
 
-- `subject --has_surface--> card`
-- `subject --has_surface--> room`
-- `subject --has_surface--> morph`
-- `subject --has_surface--> view`
-- `subject --has_surface--> message`
+Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线、通知规则、历史可见性和可选 E2EE group。
 
-`has_surface` 的 `fields.surface_role` SHOULD 说明 surface 用途，例如 `status_card`、`primary_discussion`、`review_discussion`、`external_discussion`、`design_doc`、`decision_log`、`activity_view`。同一 Subject MAY 有多个 surface；若某个 role 只允许一个 primary surface，Reducer MUST 按该 profile 的唯一性规则收敛。
+`flow_kind="room"` SHOULD 默认创建并启用 `discussion` branch，且 `primary_branch` SHOULD 为 `discussion`。`flow_kind="card"` MAY 初始只带 `content` branch；需要讨论时再启用 `discussion` branch。
 
-Subject 权限只控制 Subject 自身字段和 surface 关系。能读 Subject 不代表能读所有 surface；能进 Room 不代表能改 Subject；能改 Card 不代表能管理 Subject surface。Surface 内容仍由各自对象权限、membership、history visibility、E2EE 和 policy 判断。
+Discussion branch 规则：
 
-Subject activity / timeline 是派生 projection，而不是新的 canonical log。它可以聚合 Subject 事件、surface relation 变化、Card 状态变化、可见 Room 消息摘要和 Document 更新。
+- 能看 Flow content 不表示能看 `discussion` branch。
+- 能看 `discussion` branch 不表示能改 Flow 的字段、状态或 Board 位置。
+- `discussion` branch membership 不自动改变 Flow assignment、Flow visibility 或 Space membership。
+- Flow 从 `card` 转成 `room`，或从 `room` 转成 `card`，都不自动删除已有讨论历史。
 
-## 7. Room
+## 8. Board-Space / List-Space / Flow
 
-Room 是 Space 内的讨论容器。它承载一个或多个消息时间线、通知规则、历史可见性和可选 E2EE group。
-
-Room 可以独立存在，也可以作为 Subject 的讨论 surface，或通过兼容 Relation 被 Card 关联。Card 可关联 0..N 个 Room；Room 的 membership、policy、history visibility 和 E2EE 独立于 Subject 和 Card。
-
-最小结构：
-
-```json
-{
-  "id": "cx:room:01js0rm0000000000000000000",
-  "type": "room",
-  "space_id": "cx:space:01js0sp0000000000000000000",
-  "title": "Engineering review",
-  "summary": "Implementation discussion for the launch plan.",
-  "room_kind": "discussion",
-  "membership_policy_ref": "cx:policy:01js0rp0000000000000000000",
-  "history_visibility": "joined",
-  "created_by": "did:web:alice.example",
-  "created_at": "2026-04-26T00:00:00Z"
-}
-```
-
-Room 规则：
-
-- 能看 Card 不表示能看关联 Room。
-- 能看 Subject 不表示能看它的关联 Room。
-- 能看 Room 不表示能看关联 Card。
-- Room membership 不授予 Subject 更新或 surface 管理权限。
-- Card 成员或负责人变化不自动改变 Room membership。
-- Room membership 变化不自动改变 Card 权限。
-- Card 删除、归档或移动时不自动删除 Room；只 MAY tombstone 或更新 `links_room` Relation。
-
-## 8. Board-Space / List-Space / Card
-
-Board 和 List 是 `Space` 的工作流容器形态，分别以 `kind="board"` 和 `kind="list"` 表示，使用 `cx:space:` ID。Board-Space 是工作流容器；List-Space 是 Board-Space 内的列/泳道；Card 是可执行、可跟踪、可沉淀的工作对象，也可以作为 Subject 的状态推进 surface。
+Board 和 List 是 `Space` 的工作流容器形态，分别以 `kind="board"` 和 `kind="list"` 表示，使用 `cx:space:` ID。Board-Space 是工作流容器；List-Space 是 Board-Space 内的列/泳道；Board/List 默认管理 `flow_kind="card"` 的 Flow。
 
 Board-Space 最小结构：
 
@@ -333,13 +313,15 @@ List-Space 最小结构：
 }
 ```
 
-Card 最小结构：
+Board/List 中的 Flow 示例：
 
 ```json
 {
-  "id": "cx:card:01js0cd0000000000000000000",
-  "type": "card",
+  "id": "cx:flow:01js0cd0000000000000000000",
+  "type": "flow",
+  "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
+  "flow_kind": "card",
   "title": "Review launch checklist",
   "body": {
     "format": "markdown",
@@ -356,29 +338,27 @@ Card 最小结构：
 }
 ```
 
-Card 在 Board/List 中的位置通过 active `contains` Relation / card position event 表达，不由 Subject 或 Room 决定，也不要求 Card canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
+Flow 在 Board/List 中的位置通过 active `contains` Relation / flow position event 表达，不由 branch 决定，也不要求 Flow canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
 
 常见关系：
 
 - `board --contains--> list`
-- `list --contains--> card`
-- `subject --has_surface--> card`
-- `subject --has_surface--> room`
-- `card --links_room--> room`
-- `card --primary_room--> room`
-- `card --assigned_to--> actor`
-- `card --depends_on--> card`
+- `list --contains--> flow`
+- `flow --assigned_to--> actor`
+- `flow --depends_on--> flow`
+- `message --references--> flow`
 
 ## 9. Message
 
-Message 是 Room 时间线中的原子消息对象。
+Message 是 Flow `discussion` branch 时间线中的原子消息对象。
 
 ```json
 {
   "id": "cx:message:01js0ms0000000000000000000",
   "type": "message",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "room_id": "cx:room:01js0rm0000000000000000000",
+  "flow_id": "cx:flow:01js0fl0000000000000000000",
+  "branch": "discussion",
   "created_by": "did:web:alice.example",
   "content": {
     "format": "markdown",
@@ -392,7 +372,7 @@ Message 是 Room 时间线中的原子消息对象。
 }
 ```
 
-Message MAY reply to another Message, mention Actor or object, reference Subject / Card / Morph / Room, or be redacted. 编辑通过 revision chain 表达；撤回通过 redaction/tombstone 表达。
+Message MAY reply to another Message, mention Actor or object, reference Flow / Morph / Space, or be redacted. 编辑通过 revision chain 表达；撤回通过 redaction/tombstone 表达。
 
 ## 10. Morph
 
@@ -422,7 +402,7 @@ Morph 是开放对象。
 }
 ```
 
-Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Subject surface 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象不应为了复用字段而退化为 Morph。
+Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Flow branch projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象不应为了复用字段而退化为 Morph。
 
 ## 11. Relation
 
@@ -557,7 +537,7 @@ Invite 是加入引导对象，不等于 capability grant。
 
 ## 18. Notification
 
-`notification` SHOULD 是从 Event / Subject / Message / Room / Card / Relation 派生的 inbox projection，不是 canonical truth。
+`notification` SHOULD 是从 Event / Flow / Message / Relation 派生的 inbox projection，不是 canonical truth。
 
 ## 19. Reducer 规则
 

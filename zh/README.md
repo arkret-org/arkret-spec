@@ -5,14 +5,14 @@
 `contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。Contrix 明确采用：
 
 - 以 **DID principal** 为身份根
-- 以 **Space / Subject / Room / Board / List / Card / Message / Morph / Relation 协作图** 为数据根
+- 以 **Space / Flow / Board / List / Message / Morph / Relation 协作图** 为数据根
 - 以 **signed Event + per-actor event chain** 为审计根
 - 以 **capability** 为权限根
 - 以 **views/projections** 为人类展示根
 - 以 **Event** 为协作事实根
-- 以 **Subject、Room、Board、List、Card、Message** 承载标准协作语义，以 **Morph + schema/profile-declared facets** 承载开放扩展对象
+- 以 **Flow、Board、List、Message** 承载标准协作语义，以 **Morph + schema/profile-declared facets** 承载开放扩展对象
 
-它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、Room 会话、Subject 事项、Card 推进面、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
+它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、Flow 讨论流、Flow 内容面、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
 
 ## 2. 设计目标
 
@@ -21,13 +21,13 @@ Contrix v1 聚焦以下目标：
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
 2. 面向对象协作  
-   协议根抽象固定为 Space、Actor、Subject、Room、Board、List、Card、Message、Morph、Relation、Event、View；Subject 承载“这个东西是谁”的语义中心，Card / Room / Morph 等作为围绕它的协作 surface；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
+   协议根抽象固定为 Space、Actor、Flow、Board、List、Message、Morph、Relation、Event、View；Flow 承载统一 identity，并通过 `flow_kind` 与 `content` / `discussion` branch 表达内容推进与讨论语义；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
 3. 去中心化同步  
    真相基底是 signed Event Envelope 和可验证 actor event chain，而不是单一中心数据库或 atprotocol/Git 式数据仓库。
 4. 多交互模式  
    同一协议同时支持 kanban、list、table、calendar、gantt、chat、thread、forum、tree、graph 等模式。
 5. 人类友好  
-   数据必须天然能投影成看板、时间线、Subject activity、Card 推进流、Room 消息流、审阅队列。
+   数据必须天然能投影成看板、时间线、Flow activity、content/discussion 双分支、审阅队列。
 6. AI 友好  
    协议天然支持 agent principal、delegation 和外部协议 handoff。
 7. 审计与恢复  
@@ -100,19 +100,18 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - `relation` 是一等对象，用于表达包含、依赖、回复、引用、分配、提及等关系
 - `event` 是协作事实和审计根
 - `view` 是投影，不拥有核心数据
-- Subject 是 Card、Room、Document 等 surface 的共同锚点。Card 与 Room 仍严格分离；历史兼容的 Card-Room link 只表达上下文关系，不继承或控制 Room membership
+- `flow` 是统一协作对象；`flow_kind="card"` 偏内容推进，`flow_kind="room"` 偏讨论协作，二者可以在同一个 `flow_id` 上互转
 - `document` 等可作为 Morph 类型或扩展 profile，不自动授予能力
 - `schema/policy` 是正式对象，不再只是引用占位符
 - `invite/read_marker/notification` 补齐人类协作的加入、已读、提醒链路；notification 是派生投影，不是 canonical truth
 
 ### 5.3 看板与会话
 
-- 看板由 `Board -> List -> Card` 的标准对象链表达；View 负责投影，不再把 Board 伪装成通用开放对象集合
-- Subject 表示事项/主题/决策/事故/客户 case 等语义中心；Card 是 Subject 的状态推进 surface，Room 是 Subject 的讨论 surface
-- 会话由 `Room -> Message` 表达；Room 是独立权限、成员、历史和 E2EE 边界
-- Subject 通过 `has_surface` Relation 关联 Card、Room、Document、View 等 surface；这些链接只表达语义聚合，不传递权限
-- Card 可以继续通过 `links_room` / `primary_room` Relation 关联多个 Room，作为兼容或局部上下文关系；新模型 SHOULD 优先通过共同 Subject 组织 Card 与 Room
-- 主题模式通常建模为 Subject + surfaces；是否需要状态推进和看板位置决定是否为该 Subject 创建 Card surface
+- 看板由 `Board -> List -> Flow(flow_kind="card")` 表达；View 负责投影，不再把 Board 伪装成通用开放对象集合
+- 会话由 `Flow(discussion branch) -> Message` 表达；discussion branch 是独立权限、成员、历史和 E2EE 边界
+- `flow_kind="card"` 默认走 `content` branch，但可以开启 `discussion` branch
+- `flow_kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段和可选 `content` branch
+- `cx.flow.convert` 只切换默认视角，不复制对象、不迁移消息历史
 - `@user`、`@object` 在 UI 层可写成文本，在协议层必须落成结构化 Actor/Object 引用与 `mentions` Relation
 
 ### 5.4 同步
@@ -140,7 +139,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 权限主体使用 DID 或 condition selector，handle 不作为权限主键
 - 组织成员、角色、handle 绑定等动态条件由可验证 claim / attestation 表达
 - DID Document 不作为跨组织身份画像；公开 persona DID 可以声明 handle，pairwise/private DID 默认不公开 handle，并通过最小披露 VC / presentation 证明属性
-- 消息发送、编辑、撤回、Room 管理、Card 管理和 Board/List 排序都应有独立动作语义
+- 消息发送、编辑、撤回、Flow branch 管理、Flow 管理和 Board/List 排序都应有独立动作语义
 
 ## 6. 工程原则
 
@@ -181,7 +180,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 当前规范已经覆盖：
 
 - DID、handle、组织主体、服务 DID 与渐进披露。
-- Space、Subject、Room、Board、List、Card、Message、Morph、Relation、Event、View 和标准业务类型。
+- Space、Flow、Board、List、Message、Morph、Relation、Event、View 和标准业务类型。
 - 核心数据结构字段级类型、必填性、枚举和约束。
 - Capability、delegation、claim 条件、policy server、moderation policy。
 - Event-first 发布、Principal Server 同步、客户端本地查询/投影、Directory 发现、HTTP binding。
@@ -196,7 +195,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 Contrix 要解决的是：
 
 - 去中心化协作对象
-- 看板、Room 会话、Subject 事项、Card 推进面、树、图谱与任务依赖的统一数据模型
+- 看板、Flow 讨论流、Flow 内容面、树、图谱与任务依赖的统一数据模型
 - 稳定身份和授权
 - AI agent 可写入、可检索、可审计的长期记忆
 

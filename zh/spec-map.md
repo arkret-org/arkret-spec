@@ -30,9 +30,9 @@
 ### 3.2 Space / Standard Objects / Morph / View
 
 - Space 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
-- Subject、Room、Board、List、Card、Message 是协议标准对象，拥有明确主语义和 reducer。
+- Flow、Board、List、Message 是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- Card 与 Room 严格分离；Card 可链接多个 Room，但不继承 Room membership 或历史权限。
+- `room` / `card` 退化为 `flow_kind`；Flow 的 `discussion` branch 独立承载 membership、历史与 E2EE 权限。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Projection
@@ -83,11 +83,11 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| `models/object-model-core.md` | Space、Actor、Subject、Room、Board、List、Card、Message、Morph、Relation、Event、View 核心对象。 |
+| `models/object-model-core.md` | Space、Actor、Flow、Board、List、Message、Morph、Relation、Event、View 核心对象。 |
 | `models/object-model-standard.md` | 标准对象、Morph 类型、标准 facets 与 schema evolution。 |
 | `models/data-structures.md` | 核心对象字段级定义：必填性、类型、枚举、约束和说明。 |
-| `models/conversation-model.md` | Room、Message、Card-linked Room、Thread、Mention、Reaction。 |
-| `models/views.md` | Board/List/Card、Table、Timeline、Graph 等投影。 |
+| `models/conversation-model.md` | Flow discussion branch、Message、Mention、Reaction。 |
+| `models/views.md` | Board/List/Flow、Table、Timeline、Graph 等投影。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
 
 ### 4.4 授权、治理与状态
