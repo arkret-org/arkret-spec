@@ -1,6 +1,8 @@
 {
-  "version": "2026-05-02",
-  "source_of_truth": true,
+  "version": "2026-05-03",
+  "source_of_truth": false,
+  "generated_from": "registry/contract-catalog.json",
+  "generated_by": "tools/artifact_pipeline.py",
   "namespace": "cx",
   "ulid_pattern": "^[0-9a-hjkmnp-z]{26}$",
   "typed_ulid_pattern": "^cx:<kind>:[0-9a-hjkmnp-z]{26}$",

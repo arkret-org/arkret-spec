@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Lint Contrix artifact/registry consistency.
 
-The registries in artifacts/registry are the source of truth for standard
-Event.kind values, cx.schema.* IDs, cx:<kind>: typed IDs, and service
-operation IDs. This script keeps the machine-readable artifacts aligned with
-those registries without requiring third-party Python packages.
+Canonical registries plus generated registry views under artifacts/registry
+define the machine-readable wire contract. This script validates registry
+manifests, cross-artifact references, and mirror/link integrity without
+requiring third-party Python packages.
 """
 
 from __future__ import annotations
@@ -211,6 +211,7 @@ def check_registry_manifest(lint: Lint) -> None:
     seen_names: set[str] = set()
     seen_files: set[str] = set()
     listed_files: set[str] = set()
+    entries_by_file: dict[str, dict[str, Any]] = {}
     actual_files = {
         f"registry/{candidate.name}"
         for candidate in sorted((ARTIFACTS / "registry").glob("*.json"))
@@ -223,7 +224,9 @@ def check_registry_manifest(lint: Lint) -> None:
         name = row.get("name")
         file_ref = row.get("file")
         kind = row.get("kind")
+        source_role = row.get("source_role")
         source_of_truth = row.get("source_of_truth")
+        generated_from = row.get("generated_from")
         description = row.get("description")
 
         if not isinstance(name, str) or not name:
@@ -240,6 +243,7 @@ def check_registry_manifest(lint: Lint) -> None:
             lint.fail(path, f"duplicate registry file {file_ref!r}")
         seen_files.add(file_ref)
         listed_files.add(file_ref)
+        entries_by_file[file_ref] = row
         if Path(file_ref).is_absolute() or ".." in Path(file_ref).parts:
             lint.fail(path, f"registries[{index}].file escapes artifacts/: {file_ref}")
             continue
@@ -252,16 +256,42 @@ def check_registry_manifest(lint: Lint) -> None:
 
         if not isinstance(kind, str) or not kind:
             lint.fail(path, f"registries[{index}].kind must be a non-empty string")
-        if source_of_truth is not True:
-            lint.fail(path, f"registries[{index}].source_of_truth must be true")
+        if source_role not in {"canonical", "generated"}:
+            lint.fail(path, f"registries[{index}].source_role must be canonical or generated")
+        if source_role == "canonical":
+            if source_of_truth is not True:
+                lint.fail(path, f"registries[{index}].source_of_truth must be true for canonical entries")
+            if generated_from not in {None, ""}:
+                lint.fail(path, f"registries[{index}] canonical entry must not declare generated_from")
+        elif source_role == "generated":
+            if source_of_truth is not False:
+                lint.fail(path, f"registries[{index}].source_of_truth must be false for generated entries")
+            if not isinstance(generated_from, str) or not generated_from:
+                lint.fail(path, f"registries[{index}].generated_from must be a non-empty string")
+            elif Path(generated_from).is_absolute() or ".." in Path(generated_from).parts:
+                lint.fail(path, f"registries[{index}].generated_from escapes artifacts/: {generated_from}")
+            elif not generated_from.startswith("registry/"):
+                lint.fail(path, f"registries[{index}].generated_from must stay inside artifacts/registry: {generated_from}")
+            elif not (ARTIFACTS / generated_from).exists():
+                lint.fail(path, f"registries[{index}].generated_from does not exist: {generated_from}")
         if not isinstance(description, str) or not description.strip():
             lint.fail(path, f"registries[{index}].description must be a non-empty string")
+
+    for file_ref, row in entries_by_file.items():
+        if row.get("source_role") != "generated":
+            continue
+        generated_from = row.get("generated_from")
+        if generated_from not in entries_by_file:
+            lint.fail(path, f"generated registry {file_ref} references unlisted source {generated_from!r}")
+            continue
+        source_row = entries_by_file[generated_from]
+        if source_row.get("source_role") != "canonical":
+            lint.fail(path, f"generated registry {file_ref} must reference a canonical source entry")
 
     for file_ref in sorted(actual_files - listed_files):
         lint.fail(path, f"registry manifest missing file {file_ref}")
     for file_ref in sorted(listed_files - actual_files):
         lint.fail(path, f"registry manifest lists unknown file {file_ref}")
-
 
 def check_markdown_links(lint: Lint) -> None:
     for path in markdown_files():

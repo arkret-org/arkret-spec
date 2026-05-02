@@ -29,6 +29,7 @@ Normative references:
 
 Artifact maintenance pipeline:
 
+- `python tools/artifact_pipeline.py generate`
 - `python tools/artifact_pipeline.py sync`
 - `python tools/artifact_pipeline.py check`
 - `.github/workflows/artifact-lint.yml`

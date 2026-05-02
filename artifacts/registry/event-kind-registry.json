@@ -1,6 +1,8 @@
 {
-  "version": "2026-05-02",
-  "source_of_truth": true,
+  "version": "2026-05-03",
+  "source_of_truth": false,
+  "generated_from": "registry/contract-catalog.json",
+  "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "wire_scope_definitions": {
     "durable_event": "Valid Event Envelope kind for persisted canonical history and reducer input.",

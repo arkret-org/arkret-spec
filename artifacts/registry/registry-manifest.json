@@ -3,9 +3,18 @@
   "source_of_truth": true,
   "registries": [
     {
+      "name": "contract_catalog",
+      "file": "registry/contract-catalog.json",
+      "kind": "contract_catalog",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical catalog for generated event/schema/id/operation registry views."
+    },
+    {
       "name": "error_codes",
       "file": "registry/error-code-registry.json",
       "kind": "error_code_registry",
+      "source_role": "canonical",
       "source_of_truth": true,
       "description": "Standard service-level and per-item error code registry."
     },
@@ -13,20 +22,25 @@
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
       "kind": "event_kind_registry",
-      "source_of_truth": true,
-      "description": "Canonical registry for standard cx.* Event.kind values and wire scopes."
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-catalog.json",
+      "description": "Generated registry view for standard cx.* Event.kind values and wire scopes."
     },
     {
       "name": "id_kinds",
       "file": "registry/id-kind-registry.json",
       "kind": "id_kind_registry",
-      "source_of_truth": true,
-      "description": "Canonical registry for cx:<kind>: typed ID prefixes and storage/wire rules."
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-catalog.json",
+      "description": "Generated registry view for cx:<kind>: typed ID prefixes and storage/wire rules."
     },
     {
       "name": "legacy_compatibility",
       "file": "registry/legacy-compatibility-policy.json",
       "kind": "legacy_contract_policy_registry",
+      "source_role": "canonical",
       "source_of_truth": true,
       "description": "Registry of legacy contract families, migration phases, and forbidden patterns."
     },
@@ -34,6 +48,7 @@
       "name": "mirror_manifest",
       "file": "registry/mirror-manifest.json",
       "kind": "mirror_manifest",
+      "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical declaration of machine-artifact mirrors copied from artifacts/ into zh/."
     },
@@ -41,13 +56,16 @@
       "name": "operations",
       "file": "registry/operation-registry.json",
       "kind": "operation_registry",
-      "source_of_truth": true,
-      "description": "Canonical registry for service operation IDs across HTTP, gRPC, and message-queue surfaces."
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-catalog.json",
+      "description": "Generated registry view for service operation IDs across HTTP, gRPC, and message-queue surfaces."
     },
     {
       "name": "registry_manifest",
       "file": "registry/registry-manifest.json",
       "kind": "registry_index",
+      "source_role": "canonical",
       "source_of_truth": true,
       "description": "Index of every machine-readable registry file under artifacts/registry."
     },
@@ -55,8 +73,10 @@
       "name": "schemas",
       "file": "registry/schema-registry.json",
       "kind": "schema_registry",
-      "source_of_truth": true,
-      "description": "Canonical registry for active schema IDs and their schema file locations."
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-catalog.json",
+      "description": "Generated registry view for active schema IDs and schema file locations."
     }
   ]
 }

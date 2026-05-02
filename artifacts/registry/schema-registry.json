@@ -1,5 +1,8 @@
 {
   "version": "2026-05-03",
+  "source_of_truth": false,
+  "generated_from": "registry/contract-catalog.json",
+  "generated_by": "tools/artifact_pipeline.py",
   "schemas": [
     {
       "schema_id": "cx.schema.space.v1",

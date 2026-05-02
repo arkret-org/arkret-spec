@@ -1,0 +1,1915 @@
+{
+  "version": "2026-05-03",
+  "source_of_truth": true,
+  "description": "Canonical catalog for generated event/schema/id/operation registry views.",
+  "generated_registries": [
+    {
+      "name": "event_kinds",
+      "file": "registry/event-kind-registry.json",
+      "section": "event_kind_registry",
+      "description": "Generated registry view for standard cx.* Event.kind values and wire scopes."
+    },
+    {
+      "name": "schemas",
+      "file": "registry/schema-registry.json",
+      "section": "schema_registry",
+      "description": "Generated registry view for active schema IDs and schema file locations."
+    },
+    {
+      "name": "id_kinds",
+      "file": "registry/id-kind-registry.json",
+      "section": "id_kind_registry",
+      "description": "Generated registry view for cx:<kind>: typed ID prefixes and storage/wire rules."
+    },
+    {
+      "name": "operations",
+      "file": "registry/operation-registry.json",
+      "section": "operation_registry",
+      "description": "Generated registry view for service operation IDs across HTTP, gRPC, and MQ surfaces."
+    }
+  ],
+  "event_kind_registry": {
+    "kind_pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+    "wire_scope_definitions": {
+      "durable_event": "Valid Event Envelope kind for persisted canonical history and reducer input.",
+      "actor_private_event": "Persisted actor-private/account-data event; not shared Space history and not Space reducer input.",
+      "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history.",
+      "deprecated_alias": "Historical standard spelling accepted only for migration/read compatibility; producers MUST emit replaced_by."
+    },
+    "registry_rules": [
+      "Standard cx.* Event.kind values MUST appear in this registry.",
+      "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
+      "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance actor_seq, prev_refs, state_hash, or reducer frontier.",
+      "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Event history.",
+      "Entries with wire_scope=deprecated_alias MUST NOT be emitted by conforming producers; consumers MAY map them to replaced_by during migration."
+    ],
+    "payload_schema_contract": {
+      "event_envelope_schema": "schemas/event-envelope.schema.json",
+      "payload_schema_file": "schemas/event-payload.schema.json",
+      "coverage_required": true,
+      "validation_rule": "Every active standard cx.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
+      "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.critical_extensions and fail closed when unsupported."
+    },
+    "event_kinds": [
+      {
+        "event_kind": "cx.space.create",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space create"
+      },
+      {
+        "event_kind": "cx.space.update",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space patch"
+      },
+      {
+        "event_kind": "cx.space.upgrade",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space version upgrade"
+      },
+      {
+        "event_kind": "cx.space.organization",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space official or sponsoring organization statement"
+      },
+      {
+        "event_kind": "cx.space.child",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Child Space link"
+      },
+      {
+        "event_kind": "cx.space.parent",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Parent Space link"
+      },
+      {
+        "event_kind": "cx.space.inheritance_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space inheritance policy declaration"
+      },
+      {
+        "event_kind": "cx.space.join_rule",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Join rule state"
+      },
+      {
+        "event_kind": "cx.space.history_visibility",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "History visibility state"
+      },
+      {
+        "event_kind": "cx.space.discovery",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Discoverability state"
+      },
+      {
+        "event_kind": "cx.space.policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space policy state"
+      },
+      {
+        "event_kind": "cx.space.policy_server",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Policy server binding state"
+      },
+      {
+        "event_kind": "cx.space.policy_components",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Policy component state"
+      },
+      {
+        "event_kind": "cx.space.schema",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space schema refs state"
+      },
+      {
+        "event_kind": "cx.space.plaintext_visible_services",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Plaintext-visible service allow-list state"
+      },
+      {
+        "event_kind": "cx.space.history_sharing_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "E2EE history sharing policy state"
+      },
+      {
+        "event_kind": "cx.space.asset_privacy_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Asset privacy policy state"
+      },
+      {
+        "event_kind": "cx.space.moderation_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Moderation policy state"
+      },
+      {
+        "event_kind": "cx.space.media_service",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Media service binding state"
+      },
+      {
+        "event_kind": "cx.space.tombstone",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Terminal Space tombstone or replacement marker"
+      },
+      {
+        "event_kind": "cx.space.archive",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Set reversible archive state"
+      },
+      {
+        "event_kind": "cx.space.freeze",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Set reversible temporary freeze state"
+      },
+      {
+        "event_kind": "cx.space.destroy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Terminal Space decommission marker"
+      },
+      {
+        "event_kind": "cx.organization.discovery",
+        "category": "organization",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Organization discoverability state"
+      },
+      {
+        "event_kind": "cx.organization.moderation_policy",
+        "category": "organization",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Organization moderation policy state"
+      },
+      {
+        "event_kind": "cx.did.proof",
+        "category": "identity",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "DID proof object or event"
+      },
+      {
+        "event_kind": "cx.identity.disclosure_policy",
+        "category": "identity",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Identity disclosure policy"
+      },
+      {
+        "event_kind": "cx.identity.disclosure_receipt",
+        "category": "identity",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Identity disclosure receipt"
+      },
+      {
+        "event_kind": "cx.identity.presentation_request",
+        "category": "identity",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Presentation request"
+      },
+      {
+        "event_kind": "cx.identity.presentation_response",
+        "category": "identity",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Presentation response"
+      },
+      {
+        "event_kind": "cx.schema.define",
+        "category": "schema",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Schema definition"
+      },
+      {
+        "event_kind": "cx.schema.update",
+        "category": "schema",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Schema patch"
+      },
+      {
+        "event_kind": "cx.policy.set",
+        "category": "policy",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Policy object set"
+      },
+      {
+        "event_kind": "cx.policy.rule",
+        "category": "policy",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Policy rule state"
+      },
+      {
+        "event_kind": "cx.policy.action",
+        "category": "policy",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Policy-gated action proposal or execution"
+      },
+      {
+        "event_kind": "cx.member.state",
+        "category": "membership",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space membership state"
+      },
+      {
+        "event_kind": "cx.flow.create",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow create"
+      },
+      {
+        "event_kind": "cx.flow.update",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow patch"
+      },
+      {
+        "event_kind": "cx.flow.archive",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow archive"
+      },
+      {
+        "event_kind": "cx.flow.restore",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow restore"
+      },
+      {
+        "event_kind": "cx.flow.convert",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow mode convert"
+      },
+      {
+        "event_kind": "cx.flow.branch.enable",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Enable Flow branch"
+      },
+      {
+        "event_kind": "cx.flow.branch.disable",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Disable Flow branch"
+      },
+      {
+        "event_kind": "cx.flow.branch.update",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow branch patch"
+      },
+      {
+        "event_kind": "cx.flow.branch.set_primary",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Set Flow primary branch"
+      },
+      {
+        "event_kind": "cx.flow.branch.member",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow discussion branch membership state"
+      },
+      {
+        "event_kind": "cx.flow.branch.history_visibility",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow discussion branch history visibility state"
+      },
+      {
+        "event_kind": "cx.flow.branch.policy_components",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow discussion branch policy component state"
+      },
+      {
+        "event_kind": "cx.flow.move",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow move between Lists"
+      },
+      {
+        "event_kind": "cx.flow.reorder",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow reorder within List"
+      },
+      {
+        "event_kind": "cx.message.create",
+        "category": "message",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Message create"
+      },
+      {
+        "event_kind": "cx.message.revise",
+        "category": "message",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Message edit patch"
+      },
+      {
+        "event_kind": "cx.message.redact",
+        "category": "message",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Message-scoped redaction; does not grant generic redaction authority"
+      },
+      {
+        "event_kind": "cx.reaction.add",
+        "category": "message",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Reaction add"
+      },
+      {
+        "event_kind": "cx.reaction.remove",
+        "category": "message",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Reaction remove"
+      },
+      {
+        "event_kind": "cx.redaction",
+        "category": "message",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming"
+      },
+      {
+        "event_kind": "cx.morph.create",
+        "category": "morph",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Morph create"
+      },
+      {
+        "event_kind": "cx.morph.update",
+        "category": "morph",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Morph patch"
+      },
+      {
+        "event_kind": "cx.morph.archive",
+        "category": "morph",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Morph archive"
+      },
+      {
+        "event_kind": "cx.morph.restore",
+        "category": "morph",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Morph restore"
+      },
+      {
+        "event_kind": "cx.relation.create",
+        "category": "relation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Relation create"
+      },
+      {
+        "event_kind": "cx.relation.update",
+        "category": "relation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Relation patch"
+      },
+      {
+        "event_kind": "cx.relation.delete",
+        "category": "relation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Relation tombstone"
+      },
+      {
+        "event_kind": "cx.container.move_item",
+        "category": "relation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Profile-declared container item move"
+      },
+      {
+        "event_kind": "cx.container.rebalance",
+        "category": "relation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Profile-declared container rank rebalance"
+      },
+      {
+        "event_kind": "cx.view.create",
+        "category": "view",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "View create"
+      },
+      {
+        "event_kind": "cx.view.update",
+        "category": "view",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "View update"
+      },
+      {
+        "event_kind": "cx.view.reconcile",
+        "category": "view",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "View schema or definition sync"
+      },
+      {
+        "event_kind": "cx.agent.endpoint",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent protocol endpoint declaration"
+      },
+      {
+        "event_kind": "cx.agent.protocol_session.start",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent protocol session start"
+      },
+      {
+        "event_kind": "cx.agent.protocol_session.status",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent protocol session status"
+      },
+      {
+        "event_kind": "cx.agent.protocol_session.result",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent protocol session result"
+      },
+      {
+        "event_kind": "cx.capability.grant",
+        "category": "authz",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Capability grant"
+      },
+      {
+        "event_kind": "cx.capability.delegate",
+        "category": "authz",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Capability delegation"
+      },
+      {
+        "event_kind": "cx.capability.revoke",
+        "category": "authz",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Capability revocation"
+      },
+      {
+        "event_kind": "cx.capability.derived",
+        "category": "authz",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Derived capability state"
+      },
+      {
+        "event_kind": "cx.session.grant",
+        "category": "authz",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Session grant"
+      },
+      {
+        "event_kind": "cx.account.status",
+        "category": "account",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Signed account lifecycle status"
+      },
+      {
+        "event_kind": "cx.account.blocklist",
+        "category": "account",
+        "status": "active",
+        "wire_scope": "actor_private_event",
+        "reducer_input": false,
+        "payload": "Actor-private blocklist state"
+      },
+      {
+        "event_kind": "cx.account_data.set",
+        "category": "account",
+        "status": "active",
+        "wire_scope": "actor_private_event",
+        "reducer_input": false,
+        "payload": "Actor-private account data update"
+      },
+      {
+        "event_kind": "cx.presence",
+        "category": "account",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Presence ephemeral or account state"
+      },
+      {
+        "event_kind": "cx.typing",
+        "category": "account",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Typing ephemeral event"
+      },
+      {
+        "event_kind": "cx.profile.update",
+        "category": "profile",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Actor profile update"
+      },
+      {
+        "event_kind": "cx.profile.space_override",
+        "category": "profile",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space-scoped profile override"
+      },
+      {
+        "event_kind": "cx.device.authorized",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Device authorization"
+      },
+      {
+        "event_kind": "cx.device.revoked",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Device revocation"
+      },
+      {
+        "event_kind": "cx.device.list_update",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Device list update"
+      },
+      {
+        "event_kind": "cx.key.verification.request",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Device key verification request"
+      },
+      {
+        "event_kind": "cx.mls.proposal",
+        "category": "e2ee",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "MLS proposal"
+      },
+      {
+        "event_kind": "cx.mls.commit",
+        "category": "e2ee",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "MLS commit"
+      },
+      {
+        "event_kind": "cx.mls.welcome",
+        "category": "e2ee",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "MLS welcome reference"
+      },
+      {
+        "event_kind": "cx.mls.keypackage",
+        "category": "e2ee",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "MLS KeyPackage publication"
+      },
+      {
+        "event_kind": "cx.mls.epoch",
+        "category": "e2ee",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "MLS epoch checkpoint derived from winning commit; not an independent epoch authority"
+      },
+      {
+        "event_kind": "cx.space_key.share",
+        "category": "e2ee",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space key share"
+      },
+      {
+        "event_kind": "cx.space_key.withheld",
+        "category": "e2ee",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space key withheld notice"
+      },
+      {
+        "event_kind": "cx.space_key.share_audit",
+        "category": "e2ee",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Auditable history key share marker"
+      },
+      {
+        "event_kind": "cx.audit.accessed",
+        "category": "audit",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Auditable access"
+      },
+      {
+        "event_kind": "cx.moderation.report",
+        "category": "moderation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Moderation report"
+      },
+      {
+        "event_kind": "cx.moderation.frank",
+        "category": "audit",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Moderation franking proof"
+      },
+      {
+        "event_kind": "cx.read.marker",
+        "category": "read",
+        "status": "active",
+        "wire_scope": "actor_private_event",
+        "reducer_input": false,
+        "payload": "Read marker event"
+      },
+      {
+        "event_kind": "cx.receipt.read",
+        "category": "read",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Read receipt event"
+      },
+      {
+        "event_kind": "cx.invite.create",
+        "category": "invite",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Invite create"
+      },
+      {
+        "event_kind": "cx.invite.cancel",
+        "category": "invite",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Invite cancel"
+      },
+      {
+        "event_kind": "cx.invite.accept",
+        "category": "invite",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Invite accept"
+      },
+      {
+        "event_kind": "cx.invite.third_party",
+        "category": "invite",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Third-party identifier pending invite"
+      },
+      {
+        "event_kind": "cx.invite.claim",
+        "category": "invite",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Third-party invite claim"
+      },
+      {
+        "event_kind": "cx.invite.revoke",
+        "category": "invite",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Third-party invite revoke"
+      },
+      {
+        "event_kind": "cx.applet.bridge_error",
+        "category": "applet",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Bridge failure"
+      },
+      {
+        "event_kind": "cx.applet.registration",
+        "category": "applet",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Applet registration"
+      },
+      {
+        "event_kind": "cx.applet.protocol_session.start",
+        "category": "applet",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Applet protocol session start"
+      },
+      {
+        "event_kind": "cx.applet.protocol_session.status",
+        "category": "applet",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Applet protocol session status"
+      },
+      {
+        "event_kind": "cx.mimi.room_binding",
+        "category": "mimi",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "MIMI room binding state"
+      },
+      {
+        "event_kind": "cx.call.signal",
+        "category": "call",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "WebRTC signal message"
+      },
+      {
+        "event_kind": "cx.call.state",
+        "category": "call",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Call state"
+      },
+      {
+        "event_kind": "cx.call.recording.start",
+        "category": "call",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Call recording start"
+      },
+      {
+        "event_kind": "cx.sovereign.did_policy",
+        "category": "sovereign",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Sovereign DID resolver policy state"
+      },
+      {
+        "event_kind": "cx.marker.read",
+        "category": "read",
+        "status": "deprecated",
+        "wire_scope": "deprecated_alias",
+        "reducer_input": false,
+        "replaced_by": "cx.read.marker",
+        "payload": "Legacy read marker name"
+      },
+      {
+        "event_kind": "cx.morph.delete",
+        "category": "morph",
+        "status": "deprecated",
+        "wire_scope": "deprecated_alias",
+        "reducer_input": false,
+        "replaced_by": "cx.morph.archive",
+        "payload": "Legacy Morph archive name"
+      }
+    ]
+  },
+  "schema_registry": {
+    "schemas": [
+      {
+        "schema_id": "cx.schema.space.v1",
+        "file": "schemas/space.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.actor_profile.v1",
+        "file": "schemas/actor-profile.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.flow.v1",
+        "file": "schemas/flow.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.message.v1",
+        "file": "schemas/message.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.morph.v1",
+        "file": "schemas/morph.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.relation.v1",
+        "file": "schemas/relation.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.view.v1",
+        "file": "schemas/view.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.policy.v1",
+        "file": "schemas/policy.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.invite.v1",
+        "file": "schemas/invite.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.event.v1",
+        "file": "schemas/event-envelope.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.event_payload.v1",
+        "file": "schemas/event-payload.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.operation.v1",
+        "file": "schemas/operation.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.event_batch_receipt.v1",
+        "file": "schemas/event-batch-receipt.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.capability.v1",
+        "file": "schemas/capability-grant.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.cursor.v1",
+        "file": "schemas/cursor.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.snapshot.v1",
+        "file": "schemas/snapshot.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.client_sync_response.v1",
+        "file": "schemas/client-sync-response.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.blob.v1",
+        "file": "schemas/blob.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.media_metadata.v1",
+        "file": "schemas/media-metadata.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.encrypted_payload.v1",
+        "file": "schemas/encrypted-envelope.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.notification.v1",
+        "file": "schemas/notification.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.read_marker.v1",
+        "file": "schemas/read-marker.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.read_receipt.v1",
+        "file": "schemas/read-receipt.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.did_key_log_entry.v1",
+        "file": "schemas/did-key-log-entry.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.identity_receipt.v1",
+        "file": "schemas/identity-receipt.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.handle_claim.v1",
+        "file": "schemas/handle-claim.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.grant_constraint.v1",
+        "file": "schemas/grant-constraint.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.resource_selector.v1",
+        "file": "schemas/resource-selector.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.mimi_interop.v1",
+        "file": "schemas/mimi-interop.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.moderation_report.v1",
+        "file": "schemas/moderation-report.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.moderation_queue_item.v1",
+        "file": "schemas/moderation-queue-item.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.agent_authority.v1",
+        "file": "schemas/agent-authority.schema.json"
+      }
+    ]
+  },
+  "id_kind_registry": {
+    "namespace": "cx",
+    "ulid_pattern": "^[0-9a-hjkmnp-z]{26}$",
+    "typed_ulid_pattern": "^cx:<kind>:[0-9a-hjkmnp-z]{26}$",
+    "storage_rules": [
+      "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form cx:<kind>:<id> unless a special form below applies.",
+      "Storage implementations MAY store raw IDs without the cx:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
+      "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
+      "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
+      "The raw ULID segment MUST use lowercase Crockford Base32 and MUST NOT contain i, l, o, or u."
+    ],
+    "special_forms": [
+      {
+        "kind": "cursor",
+        "wire_form": "cx:cursor:<base64url>",
+        "status": "active",
+        "storage_recommendation": "Store as an opaque token or store server-private cursor state keyed by a raw token.",
+        "description": "Opaque sync/query cursor; not a typed ULID object ID."
+      },
+      {
+        "kind": "blob",
+        "wire_form": "cx:blob:sha256:<digest>",
+        "status": "active",
+        "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
+        "description": "Content-addressed blob reference; distinct from cx:blob:<ulid> blob metadata IDs."
+      },
+      {
+        "kind": "mls",
+        "wire_form": "cx:mls:<profile>:<profile_id>",
+        "status": "profile_extension",
+        "storage_recommendation": "Store profile and raw profile_id separately.",
+        "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed ULID pattern."
+      },
+      {
+        "kind": "pseudonym",
+        "wire_form": "cx:pseudonym:<scope_id>:<random>",
+        "status": "profile_extension",
+        "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
+        "description": "Room/Space-scoped pseudonymous credential reference; validated by the E2EE profile."
+      }
+    ],
+    "id_kinds": [
+      {
+        "kind": "actor_profile",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:actor_profile:<ulid>",
+        "description": "Actor profile object ID"
+      },
+      {
+        "kind": "agent_session",
+        "category": "extension",
+        "status": "active",
+        "wire_form": "cx:agent_session:<ulid>",
+        "description": "Agent protocol session ID"
+      },
+      {
+        "kind": "applet",
+        "category": "extension",
+        "status": "active",
+        "wire_form": "cx:applet:<ulid>",
+        "description": "Applet registration/service ID"
+      },
+      {
+        "kind": "backup",
+        "category": "identity",
+        "status": "active",
+        "wire_form": "cx:backup:<ulid>",
+        "description": "Encrypted backup object ID"
+      },
+      {
+        "kind": "batch",
+        "category": "discovery",
+        "status": "active",
+        "wire_form": "cx:batch:<ulid>",
+        "description": "Discovery/private-contact batch ID"
+      },
+      {
+        "kind": "blob",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:blob:<ulid>",
+        "description": "Blob metadata row ID; content-addressed blobs use the special digest form"
+      },
+      {
+        "kind": "block",
+        "category": "account_private",
+        "status": "active",
+        "wire_form": "cx:block:<ulid>",
+        "description": "Actor-private blocklist entry ID"
+      },
+      {
+        "kind": "call",
+        "category": "media",
+        "status": "active",
+        "wire_form": "cx:call:<ulid>",
+        "description": "Call/session ID"
+      },
+      {
+        "kind": "capability",
+        "category": "authz",
+        "status": "active",
+        "wire_form": "cx:capability:<ulid>",
+        "description": "Capability object/reference ID"
+      },
+      {
+        "kind": "flow",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:flow:<ulid>",
+        "description": "Flow object ID"
+      },
+      {
+        "kind": "chunk",
+        "category": "snapshot",
+        "status": "active",
+        "wire_form": "cx:chunk:<ulid>",
+        "description": "Snapshot/blob chunk ID"
+      },
+      {
+        "kind": "claim",
+        "category": "identity_authz",
+        "status": "active",
+        "wire_form": "cx:claim:<ulid>",
+        "description": "Claim or attestation ID"
+      },
+      {
+        "kind": "device",
+        "category": "identity",
+        "status": "active",
+        "wire_form": "cx:device:<ulid>",
+        "description": "Device ID"
+      },
+      {
+        "kind": "devmsg",
+        "category": "sync",
+        "status": "active",
+        "wire_form": "cx:devmsg:<ulid>",
+        "description": "To-device message queue ID"
+      },
+      {
+        "kind": "event",
+        "category": "event_history",
+        "status": "active",
+        "wire_form": "cx:event:<ulid>",
+        "description": "Event Envelope ID"
+      },
+      {
+        "kind": "filter",
+        "category": "policy",
+        "status": "active",
+        "wire_form": "cx:filter:<ulid>",
+        "description": "Moderation/filter rule ID"
+      },
+      {
+        "kind": "frame",
+        "category": "transport",
+        "status": "active",
+        "wire_form": "cx:frame:<ulid>",
+        "description": "Non-HTTP stream frame ID"
+      },
+      {
+        "kind": "frank",
+        "category": "moderation",
+        "status": "active",
+        "wire_form": "cx:frank:<ulid>",
+        "description": "Message franking proof ID"
+      },
+      {
+        "kind": "grant",
+        "category": "authz",
+        "status": "active",
+        "wire_form": "cx:grant:<ulid>",
+        "description": "Capability grant ID"
+      },
+      {
+        "kind": "invite",
+        "category": "authz",
+        "status": "active",
+        "wire_form": "cx:invite:<ulid>",
+        "description": "Invite object ID"
+      },
+      {
+        "kind": "keyevt",
+        "category": "identity",
+        "status": "active",
+        "wire_form": "cx:keyevt:<ulid>",
+        "description": "DID/key log event ID"
+      },
+      {
+        "kind": "message",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:message:<ulid>",
+        "description": "Message object ID"
+      },
+      {
+        "kind": "morph",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:morph:<ulid>",
+        "description": "Morph object ID"
+      },
+      {
+        "kind": "notif",
+        "category": "derived_projection",
+        "status": "active",
+        "wire_form": "cx:notif:<ulid>",
+        "description": "Notification projection ID"
+      },
+      {
+        "kind": "operation",
+        "category": "sdk_internal",
+        "status": "active",
+        "wire_form": "cx:operation:<ulid>",
+        "description": "Canonical Operation builder/object ID before Event wrapping"
+      },
+      {
+        "kind": "policy",
+        "category": "policy",
+        "status": "active",
+        "wire_form": "cx:policy:<ulid>",
+        "description": "Policy object ID"
+      },
+      {
+        "kind": "presentation",
+        "category": "identity",
+        "status": "active",
+        "wire_form": "cx:presentation:<ulid>",
+        "description": "Presentation/proof exchange ID"
+      },
+      {
+        "kind": "receipt",
+        "category": "receipt",
+        "status": "active",
+        "wire_form": "cx:receipt:<ulid>",
+        "description": "Receipt object ID"
+      },
+      {
+        "kind": "relation",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:relation:<ulid>",
+        "description": "Relation object ID"
+      },
+      {
+        "kind": "report",
+        "category": "moderation",
+        "status": "active",
+        "wire_form": "cx:report:<ulid>",
+        "description": "Moderation report ID"
+      },
+      {
+        "kind": "modq",
+        "category": "moderation",
+        "status": "active",
+        "wire_form": "cx:modq:<ulid>",
+        "description": "Moderation queue item ID"
+      },
+      {
+        "kind": "req",
+        "category": "transport",
+        "status": "active",
+        "wire_form": "cx:req:<ulid>",
+        "description": "Request/correlation ID"
+      },
+      {
+        "kind": "snapshot",
+        "category": "snapshot",
+        "status": "active",
+        "wire_form": "cx:snapshot:<ulid>",
+        "description": "Snapshot manifest ID"
+      },
+      {
+        "kind": "space",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:space:<ulid>",
+        "description": "Space object ID"
+      },
+      {
+        "kind": "sync",
+        "category": "transport",
+        "status": "active",
+        "wire_form": "cx:sync:<ulid>",
+        "description": "Sync token/checkpoint ID when not using opaque cursor form"
+      },
+      {
+        "kind": "txn",
+        "category": "transport",
+        "status": "active",
+        "wire_form": "cx:txn:<ulid>",
+        "description": "Federation/applet transaction ID"
+      },
+      {
+        "kind": "view",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:view:<ulid>",
+        "description": "View object ID"
+      }
+    ]
+  },
+  "operation_registry": {
+    "operations": [
+      {
+        "operation_id": "cx.account.device_pair",
+        "http": "POST /auth/account/device-pair",
+        "grpc": "Account/DevicePair",
+        "mq": "account.device_pair"
+      },
+      {
+        "operation_id": "cx.account.issue_session_grant",
+        "http": "POST /auth/account/session-grants",
+        "grpc": "Account/IssueSessionGrant",
+        "mq": "account.issue_session_grant"
+      },
+      {
+        "operation_id": "cx.account.oidc_callback",
+        "http": "POST /auth/account/oidc/callback",
+        "grpc": "Account/OidcCallback",
+        "mq": "account.oidc_callback"
+      },
+      {
+        "operation_id": "cx.admin.get_moderation_queue",
+        "http": "GET /admin/moderation/queue",
+        "grpc": "Admin/GetModerationQueue",
+        "mq": "admin.get_moderation_queue"
+      },
+      {
+        "operation_id": "cx.admin.get_server_status",
+        "http": "GET /admin/server/status",
+        "grpc": "Admin/GetServerStatus",
+        "mq": "admin.get_server_status"
+      },
+      {
+        "operation_id": "cx.admin.revoke_device",
+        "http": "POST /admin/devices/{device_id}/revoke",
+        "grpc": "Admin/RevokeDevice",
+        "mq": "admin.revoke_device"
+      },
+      {
+        "operation_id": "cx.admin.update_account_status",
+        "http": "POST /admin/accounts/{account_id}/status",
+        "grpc": "Admin/UpdateAccountStatus",
+        "mq": "admin.update_account_status"
+      },
+      {
+        "operation_id": "cx.applet.describe",
+        "http": "GET /applet/describe",
+        "grpc": "Applet/Describe",
+        "mq": "applet.describe"
+      },
+      {
+        "operation_id": "cx.applet.ping",
+        "http": "GET /applet/ping",
+        "grpc": "Applet/Ping",
+        "mq": "applet.ping"
+      },
+      {
+        "operation_id": "cx.applet.protocol_metadata",
+        "http": "GET /applet/protocols/{protocol}",
+        "grpc": "Applet/ProtocolMetadata",
+        "mq": "applet.protocol_metadata"
+      },
+      {
+        "operation_id": "cx.applet.query_actor",
+        "http": "GET /applet/actors/{actor_id}",
+        "grpc": "Applet/QueryActor",
+        "mq": "applet.query_actor"
+      },
+      {
+        "operation_id": "cx.applet.query_space",
+        "http": "GET /applet/spaces/{space_id_or_alias}",
+        "grpc": "Applet/QuerySpace",
+        "mq": "applet.query_space"
+      },
+      {
+        "operation_id": "cx.applet.third_party_locations",
+        "http": "GET /applet/third_party/locations",
+        "grpc": "Applet/ThirdPartyLocations",
+        "mq": "applet.third_party_locations"
+      },
+      {
+        "operation_id": "cx.applet.third_party_users",
+        "http": "GET /applet/third_party/users",
+        "grpc": "Applet/ThirdPartyUsers",
+        "mq": "applet.third_party_users"
+      },
+      {
+        "operation_id": "cx.applet.transaction",
+        "http": "PUT /applet/transactions/{txn_id}",
+        "grpc": "Applet/Transaction",
+        "mq": "applet.transaction"
+      },
+      {
+        "operation_id": "cx.authz.check",
+        "http": "POST /authz/check",
+        "grpc": "Authz/Check",
+        "mq": "authz.check"
+      },
+      {
+        "operation_id": "cx.authz.get_effective_grants",
+        "http": "GET /authz/effective-grants",
+        "grpc": "Authz/GetEffectiveGrants",
+        "mq": "authz.get_effective_grants"
+      },
+      {
+        "operation_id": "cx.authz.get_invites",
+        "http": "GET /authz/invites",
+        "grpc": "Authz/GetInvites",
+        "mq": "authz.get_invites"
+      },
+      {
+        "operation_id": "cx.blob.get",
+        "http": "GET /blob/get",
+        "grpc": "Blob/Get",
+        "mq": "blob.get"
+      },
+      {
+        "operation_id": "cx.blob.head",
+        "http": "HEAD /blob/get",
+        "grpc": "Blob/Head",
+        "mq": "blob.head"
+      },
+      {
+        "operation_id": "cx.blob.upload",
+        "http": "POST /blob/upload",
+        "grpc": "Blob/Upload",
+        "mq": "blob.upload"
+      },
+      {
+        "operation_id": "cx.device_messages.get",
+        "http": "GET /device_messages",
+        "grpc": "DeviceMessages/Get",
+        "mq": "device_messages.get"
+      },
+      {
+        "operation_id": "cx.device_messages.put",
+        "http": "PUT /device_messages/{txn_id}",
+        "grpc": "DeviceMessages/Put",
+        "mq": "device_messages.put"
+      },
+      {
+        "operation_id": "cx.directory.describe",
+        "http": "GET /directory/describe",
+        "grpc": "Directory/Describe",
+        "mq": "directory.describe"
+      },
+      {
+        "operation_id": "cx.directory.private_contact_discovery",
+        "http": "POST /directory/private-contact-discovery",
+        "grpc": "Directory/PrivateContactDiscovery",
+        "mq": "directory.private_contact_discovery"
+      },
+      {
+        "operation_id": "cx.directory.resolve_handle",
+        "http": "POST /directory/resolve-handle",
+        "grpc": "Directory/ResolveHandle",
+        "mq": "directory.resolve_handle"
+      },
+      {
+        "operation_id": "cx.directory.resolve_organization",
+        "http": "POST /directory/resolve-organization",
+        "grpc": "Directory/ResolveOrganization",
+        "mq": "directory.resolve_organization"
+      },
+      {
+        "operation_id": "cx.directory.resolve_space",
+        "http": "POST /directory/resolve-space",
+        "grpc": "Directory/ResolveSpace",
+        "mq": "directory.resolve_space"
+      },
+      {
+        "operation_id": "cx.directory.search_actors",
+        "http": "POST /directory/search-actors",
+        "grpc": "Directory/SearchActors",
+        "mq": "directory.search_actors"
+      },
+      {
+        "operation_id": "cx.directory.search_organizations",
+        "http": "POST /directory/search-organizations",
+        "grpc": "Directory/SearchOrganizations",
+        "mq": "directory.search_organizations"
+      },
+      {
+        "operation_id": "cx.directory.search_spaces",
+        "http": "POST /directory/search-spaces",
+        "grpc": "Directory/SearchSpaces",
+        "mq": "directory.search_spaces"
+      },
+      {
+        "operation_id": "cx.directory.search_users",
+        "http": "GET /directory/search-users",
+        "grpc": "Directory/SearchUsers",
+        "mq": "directory.search_users"
+      },
+      {
+        "operation_id": "cx.events.batch_get",
+        "http": "POST /events/batch-get",
+        "grpc": "Events/BatchGet",
+        "mq": "events.batch_get"
+      },
+      {
+        "operation_id": "cx.events.describe",
+        "http": "GET /events/describe",
+        "grpc": "Events/Describe",
+        "mq": "events.describe"
+      },
+      {
+        "operation_id": "cx.events.frontier",
+        "http": "GET /events/frontier",
+        "grpc": "Events/Frontier",
+        "mq": "events.frontier"
+      },
+      {
+        "operation_id": "cx.events.get",
+        "http": "GET /events/{event_id}",
+        "grpc": "Events/Get",
+        "mq": "events.get"
+      },
+      {
+        "operation_id": "cx.events.list",
+        "http": "GET /events",
+        "grpc": "Events/List",
+        "mq": "events.list"
+      },
+      {
+        "operation_id": "cx.events.submit",
+        "http": "POST /events",
+        "grpc": "Events/Submit",
+        "mq": "events.submit"
+      },
+      {
+        "operation_id": "cx.federation.pull_operations",
+        "http": "GET /federation/pull-operations",
+        "grpc": "Federation/PullOperations",
+        "mq": "federation.pull_operations"
+      },
+      {
+        "operation_id": "cx.federation.push_operations",
+        "http": "POST /federation/push-operations",
+        "grpc": "Federation/PushOperations",
+        "mq": "federation.push_operations"
+      },
+      {
+        "operation_id": "cx.federation.space_members",
+        "http": "GET /federation/space-members",
+        "grpc": "Federation/SpaceMembers",
+        "mq": "federation.space_members"
+      },
+      {
+        "operation_id": "cx.federation.transaction",
+        "http": "PUT /federation/transactions/{txn_id}",
+        "grpc": "Federation/Transaction",
+        "mq": "federation.transaction"
+      },
+      {
+        "operation_id": "cx.federation.verify_actor",
+        "http": "POST /federation/verify-actor",
+        "grpc": "Federation/VerifyActor",
+        "mq": "federation.verify_actor"
+      },
+      {
+        "operation_id": "cx.identity.describe_registry",
+        "http": "GET /identity/describe",
+        "grpc": "Identity/DescribeRegistry",
+        "mq": "identity.describe_registry"
+      },
+      {
+        "operation_id": "cx.identity.get_document",
+        "http": "GET /identity/document",
+        "grpc": "Identity/GetDocument",
+        "mq": "identity.get_document"
+      },
+      {
+        "operation_id": "cx.identity.get_log",
+        "http": "GET /identity/log",
+        "grpc": "Identity/GetLog",
+        "mq": "identity.get_log"
+      },
+      {
+        "operation_id": "cx.identity.get_receipts",
+        "http": "GET /identity/receipts",
+        "grpc": "Identity/GetReceipts",
+        "mq": "identity.get_receipts"
+      },
+      {
+        "operation_id": "cx.identity.resolve",
+        "http": "POST /identity/resolve",
+        "grpc": "Identity/Resolve",
+        "mq": "identity.resolve"
+      },
+      {
+        "operation_id": "cx.identity.submit_did_operation",
+        "http": "POST /identity/submit-did-operation",
+        "grpc": "Identity/SubmitDidOperation",
+        "mq": "identity.submit_did_operation"
+      },
+      {
+        "operation_id": "cx.keys.claim",
+        "http": "POST /keys/claim",
+        "grpc": "Keys/Claim",
+        "mq": "keys.claim"
+      },
+      {
+        "operation_id": "cx.keys.keypackages.claim",
+        "http": "POST /keys/keypackages/claim",
+        "grpc": "Keys/KeyPackagesClaim",
+        "mq": "keys.keypackages.claim"
+      },
+      {
+        "operation_id": "cx.keys.keypackages.consume",
+        "http": "POST /keys/keypackages/consume",
+        "grpc": "Keys/KeyPackagesConsume",
+        "mq": "keys.keypackages.consume"
+      },
+      {
+        "operation_id": "cx.keys.keypackages.revoke",
+        "http": "POST /keys/keypackages/revoke",
+        "grpc": "Keys/KeyPackagesRevoke",
+        "mq": "keys.keypackages.revoke"
+      },
+      {
+        "operation_id": "cx.keys.keypackages.upload",
+        "http": "POST /keys/keypackages/upload",
+        "grpc": "Keys/KeyPackagesUpload",
+        "mq": "keys.keypackages.upload"
+      },
+      {
+        "operation_id": "cx.keys.query",
+        "http": "POST /keys/query",
+        "grpc": "Keys/Query",
+        "mq": "keys.query"
+      },
+      {
+        "operation_id": "cx.keys.upload",
+        "http": "POST /keys/upload",
+        "grpc": "Keys/Upload",
+        "mq": "keys.upload"
+      },
+      {
+        "operation_id": "cx.media.ice_config",
+        "http": "POST /contrix/v1/ice-config",
+        "grpc": "Media/IceConfig",
+        "mq": "media.ice_config"
+      },
+      {
+        "operation_id": "cx.mimi.group_info",
+        "http": "GET /mimi/rooms/{flow_id}/group-info",
+        "grpc": "Mimi/GroupInfo",
+        "mq": "mimi.group_info"
+      },
+      {
+        "operation_id": "cx.mimi.identifier_query",
+        "http": "POST /mimi/identifiers/query",
+        "grpc": "Mimi/IdentifierQuery",
+        "mq": "mimi.identifier_query"
+      },
+      {
+        "operation_id": "cx.mimi.key_material",
+        "http": "POST /mimi/key-material",
+        "grpc": "Mimi/KeyMaterial",
+        "mq": "mimi.key_material"
+      },
+      {
+        "operation_id": "cx.mimi.notify",
+        "http": "POST /mimi/rooms/{flow_id}/notify",
+        "grpc": "Mimi/Notify",
+        "mq": "mimi.notify"
+      },
+      {
+        "operation_id": "cx.mimi.provider_directory",
+        "http": "GET /mimi/provider-directory",
+        "grpc": "Mimi/ProviderDirectory",
+        "mq": "mimi.provider_directory"
+      },
+      {
+        "operation_id": "cx.mimi.proxy_download",
+        "http": "POST /mimi/proxy-download",
+        "grpc": "Mimi/ProxyDownload",
+        "mq": "mimi.proxy_download"
+      },
+      {
+        "operation_id": "cx.mimi.report_abuse",
+        "http": "POST /mimi/report-abuse",
+        "grpc": "Mimi/ReportAbuse",
+        "mq": "mimi.report_abuse"
+      },
+      {
+        "operation_id": "cx.mimi.request_consent",
+        "http": "POST /mimi/consent/request",
+        "grpc": "Mimi/RequestConsent",
+        "mq": "mimi.request_consent"
+      },
+      {
+        "operation_id": "cx.mimi.room_update",
+        "http": "PUT /mimi/rooms/{flow_id}/update",
+        "grpc": "Mimi/RoomUpdate",
+        "mq": "mimi.room_update"
+      },
+      {
+        "operation_id": "cx.mimi.submit_message",
+        "http": "POST /mimi/rooms/{flow_id}/messages",
+        "grpc": "Mimi/SubmitMessage",
+        "mq": "mimi.submit_message"
+      },
+      {
+        "operation_id": "cx.mimi.update_consent",
+        "http": "POST /mimi/consent/update",
+        "grpc": "Mimi/UpdateConsent",
+        "mq": "mimi.update_consent"
+      },
+      {
+        "operation_id": "cx.moderation.report",
+        "http": "POST /moderation/report",
+        "grpc": "Moderation/Report",
+        "mq": "moderation.report"
+      },
+      {
+        "operation_id": "cx.policy.check",
+        "http": "POST /contrix/v1/check",
+        "grpc": "Policy/Check",
+        "mq": "policy.check"
+      },
+      {
+        "operation_id": "cx.push.notify",
+        "http": "POST /push/notify",
+        "grpc": "Push/Notify",
+        "mq": "push.notify"
+      },
+      {
+        "operation_id": "cx.push.register_device",
+        "http": "POST /push/register-device",
+        "grpc": "Push/RegisterDevice",
+        "mq": "push.register_device"
+      },
+      {
+        "operation_id": "cx.push.unregister_device",
+        "http": "POST /push/unregister-device",
+        "grpc": "Push/UnregisterDevice",
+        "mq": "push.unregister_device"
+      },
+      {
+        "operation_id": "cx.server.describe",
+        "http": "GET /server/describe",
+        "grpc": "Server/Describe",
+        "mq": "server.describe"
+      },
+      {
+        "operation_id": "cx.sync.backfill",
+        "http": "GET /sync/backfill",
+        "grpc": "Sync/Backfill",
+        "mq": "sync.backfill"
+      },
+      {
+        "operation_id": "cx.sync.client_sync",
+        "http": "POST /sync",
+        "grpc": "Sync/ClientSync",
+        "mq": "sync.client_sync"
+      },
+      {
+        "operation_id": "cx.sync.describe",
+        "http": "GET /sync/describe",
+        "grpc": "Sync/Describe",
+        "mq": "sync.describe"
+      },
+      {
+        "operation_id": "cx.sync.get_snapshot_head",
+        "http": "GET /sync/snapshot-head",
+        "grpc": "Sync/GetSnapshotHead",
+        "mq": "sync.get_snapshot_head"
+      },
+      {
+        "operation_id": "cx.sync.subscribe",
+        "http": "GET /sync/subscribe",
+        "grpc": "Sync/Subscribe",
+        "mq": "sync.subscribe"
+      }
+    ]
+  }
+}
