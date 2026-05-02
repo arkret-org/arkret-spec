@@ -18,10 +18,13 @@ cx.profile.<name>.v<major>
 示例：
 
 - `cx.profile.minimal_client.v1`
+- `cx.profile.chat_only_client.v1`
+- `cx.profile.kanban_only_client.v1`
 - `cx.profile.principal_server_repo_api.v1`
 - `cx.profile.principal_server.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
+- `cx.profile.federation_minimal.v1`
 - `cx.profile.mimi_interop.v1`
 
 ## 2.1 v1 MVP 分层
@@ -35,6 +38,57 @@ cx.profile.<name>.v<major>
 | Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、Agent Memory advanced lifecycle、social feed、sovereign deployment。 |
 
 Document、File、Memory、Run、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
+
+## 2.2 v1 启动 Profile
+
+以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。
+
+### `cx.profile.chat_only_client.v1`
+
+适用于只实现聊天/讨论体验的客户端。
+
+MUST 支持：
+
+- DID / handle 解析和 service discovery
+- Space bootstrap、Space membership、Room、Room membership、Message、Reaction、Redaction
+- 基础 `cx.message.create`、`cx.message.revise`、`cx.message.redact`、`cx.reaction.add`、`cx.reaction.remove`
+- 基础 capability check 结果处理和 `cx.message.*` 高频授权快路径
+- client sync、timeline pagination、backfill、`state_after`
+- Room history visibility 和 linked Room 不继承 Card 权限的裁剪规则
+
+MAY 支持 Board、List、Card、View projection、Applet、Agent、WebRTC、MIMI 和 E2EE。未声明支持时，客户端不得把这些能力作为必需交互。
+
+### `cx.profile.kanban_only_client.v1`
+
+适用于只实现 Space / Board / List / Card 工作流的客户端。
+
+MUST 支持：
+
+- DID / handle 解析和 service discovery
+- Space bootstrap、Board、List、Card、Relation position edge、View collection projection
+- `cx.board.*`、`cx.list.*`、`cx.card.create`、`cx.card.update`、`cx.card.move`、`cx.card.reorder`
+- Board position 的 CAS / stale reorder 处理和 deterministic conflict record 展示
+- 基础 capability check 结果处理和 `cx.card.move` / `cx.card.reorder` 高频授权快路径
+- client sync、index query、wait-for、pagination、backfill
+
+MAY 支持 Room / Message。若支持 Card linked Room，必须按 Room membership 独立裁剪。
+
+### `cx.profile.federation_minimal.v1`
+
+适用于最小跨 Principal Server 操作交换。
+
+MUST 支持：
+
+- service DID authentication
+- federation transaction idempotency
+- destination binding 校验
+- signed Operation Envelope / Event Envelope 逐条验签与授权
+- `accepted[]` / `rejected[]` / `quarantine[]` 分项结果
+- dependency missing 的 pull / backfill 恢复
+- duplicate conflict quarantine
+- scalability constraints 中的 batch、operation size 和 retry 规则
+
+MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge 和 full-text search。
 
 ## 3. 通用强制要求（所有 Profile 必须遵守）
 
@@ -60,6 +114,8 @@ MUST 支持：
 - capability 检查结果处理
 - cursor 分页
 - 标准错误响应
+
+`minimal_client` 是通用解码与同步基线，不要求实现完整聊天 UI、完整看板 UI、E2EE、Applet、Agent、WebRTC 或 MIMI。实现若只提供聊天或看板产品体验，SHOULD 额外声明 `chat_only_client` 或 `kanban_only_client`，避免把未实现对象误标为可用交互。
 
 MAY 支持：
 
@@ -517,6 +573,8 @@ E2EE profile MUST 额外提供：
 Client Sync 相关 profile MUST/SHOULD 按 `sync-conformance-vectors.md` 执行对应向量：
 
 - Minimal Client MUST 覆盖基础排序、tie break、pagination gap、backfill order 和 token expiry recovery。
+- Chat-only Client MUST 覆盖 Room timeline、message edit/redaction、reaction OR-Set、Room history visibility 和 linked Room 裁剪。
+- Kanban-only Client MUST 覆盖 Board projection、Card move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Index Node MUST 覆盖 deterministic timeline order、causal barrier 和 stale frontier reporting。
@@ -578,8 +636,11 @@ MIMI Interop profile MUST 额外提供：
 首个互操作目标 SHOULD 是：
 
 - `minimal_client`
+- `chat_only_client`
+- `kanban_only_client`
 - `principal_server_repo_api`
 - `principal_server`
+- `federation_minimal`
 - `index_node`
 - `identity_registry`
 - `blob_node`

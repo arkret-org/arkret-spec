@@ -15,10 +15,13 @@
 ## 2. 测试角色（Profile）
 
 - `cx.profile.minimal_client.v1`
+- `cx.profile.chat_only_client.v1`
+- `cx.profile.kanban_only_client.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.principal_server_repo_api.v1`
 - `cx.profile.principal_server.v1`
+- `cx.profile.federation_minimal.v1`
 - `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
 - `cx.profile.blob_node.v1`

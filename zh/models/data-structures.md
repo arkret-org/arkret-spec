@@ -149,10 +149,10 @@ Schema id: `cx.schema.list.v1`
 | `id` | yes | `id:list` | 以 `cx:list:` 开头。 | List ID。 |
 | `type` | yes | `enum(list)` | 固定为 `list`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `board_id` | yes | `id:board` |  | 所属 Board。 |
+| `board_id` | no | `id:board` | 仅作为创建/投影提示；canonical containment 由 `board --contains--> list` Relation 表达。 | 所属 Board。 |
 | `title` | yes | `string` | 1..256 chars。 | 名称。 |
 | `summary` | no | `string` |  | 说明。 |
-| `rank` | yes | `string` | Fractional indexing rank。 | Board 内顺序。 |
+| `rank` | no | `string` | Fractional indexing rank；Board 内 canonical rank SHOULD 放在 contains Relation fields。 | Board 内顺序。 |
 | `wip_limit` | no | `integer` |  | WIP 限制。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
@@ -178,6 +178,8 @@ Schema id: `cx.schema.card.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
+
+Card canonical object 不包含 `board_id` 或 `list_id` 必填字段。Card 在 Board/List 中的主位置由 active `contains` Relation / position edge 归约得到；Index 或 View projection MAY 返回派生的 `board_id`、`list_id` 和 `rank` 方便客户端渲染，但这些派生字段不得成为签名 Card 对象的唯一真相源。
 
 ### 6.5 Message
 
@@ -323,7 +325,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-若某个 UI 操作改变 Card 所属 List、Card rank、List rank、Room message、Relation 或对象字段，必须使用对应对象 operation；只有改变 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。
+若某个 UI 操作改变 Card 所属 List、Card rank、List rank、Room message、Relation 或对象字段，必须使用对应对象 operation；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态和本地 pin MUST 使用 actor-private account data 或等价私有 repo 操作。
 
 `CollectionConfig` 字段：
 
@@ -469,7 +471,26 @@ Schema id: `cx.schema.commit.v1`
 
 Schema id: `cx.schema.operation.v1`
 
-本节定义 Repo / 本地存储可内容寻址的 canonical Operation object。它使用固定 `type="operation"` 与独立的 `operation_type`。Sync / Federation 写路径中带签名、因果和 `target_ref` 的承载信封称为 **Operation Envelope**，见 `../sync/operations-sync.md`；该信封的 `type` 是事件 kind，不使用本节的 `operation_type` 字段。实现不得把两者合并成一个含糊结构。
+本节定义 Repo / 本地存储可内容寻址的 canonical Operation object。它使用固定 `type="operation"` 与独立的 `operation_type`。Sync / Federation 写路径中带签名、因果和 `target_ref` 的承载信封称为 **Operation Envelope**，见 `../sync/operations-sync.md`；该信封的 `kind` 是事件 kind，不使用本节的 `operation_type` 字段。实现不得把两者合并成一个含糊结构。
+
+三层边界：
+
+| 层 | 用途 | 是否 wire format | 是否 reducer input |
+| --- | --- | --- | --- |
+| Canonical Operation Object | Repo 内部内容寻址、commit 引用、SDK builder 输出。 | 否，除非 profile 明确声明传输 canonical object。 | 否，必须先包入 Event / Operation Envelope。 |
+| Operation Envelope / Event Envelope | Sync、Federation、Client write 的签名承载。 | 是。 | 是，reducer 读取其 `kind`、`content`、`auth_refs`、`prev_refs`、proof 和 causal metadata。 |
+| Materialized Object | reducer 输出的当前态对象，例如 Card、Relation、View。 | 否。 | 否，不能反向替代事件历史。 |
+
+字段映射：
+
+| Canonical Operation | Operation / Event Envelope |
+| --- | --- |
+| `operation_id` | `operation_id` 或派生 `event_id`，由 encoding profile 固定。 |
+| `semantic_kind` | `kind`。 |
+| `object_id` | `target_ref`。 |
+| `payload` | `content`。 |
+| `created_at` | `created_at`，但 envelope 还必须包含 `hlc`、`actor_seq`、`prev_refs` 和 `auth_refs`。 |
+| `idempotency_key` | 传输请求 idempotency metadata；不得进入 event digest，除非 profile 明确声明。 |
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |

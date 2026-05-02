@@ -617,11 +617,22 @@ Contrix v1 至少区分：
 
 ### 18.1 高频交互的 O(1) 快速路径 (Fast Path)
 
-在“聊天消息收发”或“卡片状态拖拽”等高频交互场景下，每一步操作都执行上述 12 步深层推演将导致极其严重的性能瓶颈。因此，节点实现 SHOULD 引入 **Capability 快照缓存 (Authz Snapshot Bitmap)**：
+在“聊天消息收发”或“卡片状态拖拽”等高频交互场景下，每一步操作都执行上述 12 步深层推演将导致极其严重的性能瓶颈。因此，声称支持以下 profile 的写入接收方和授权过滤方 MUST 实现 **Capability 快照缓存 (Authz Snapshot Bitmap)** 或语义等价的预计算 fast path：
 
-1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或 Index 节点针对活跃 Actor 预计算出针对特定目标（如当前 Room、Board 或 Card）的有效权限位图 (Permission Bitmap)。
-2. **快速命中**：对于后续提交的纯业务 Operation（如 `cx.message.create`、`cx.reaction.add`、`cx.card.update`），只要 Space 内没有发生新的 `cx.capability.*` 授权操作（或相关 Claim 撤销），节点直接查询 Bitmap 缓存即可，将 O(N) 的深层权限推演降维为 O(1)。
-3. **缓存失效与回滚**：当发生乱序操作、离线回补导致因果前沿包含新的授权变更或过期触发时，受影响的快照缓存将自动失效，并在下一次被访问时或后台任务中触发重建。
+- `cx.profile.chat_only_client.v1` 相关的 Principal Server / Sync / Index 写入与查询面
+- `cx.profile.kanban_only_client.v1` 相关的 Principal Server / Sync / Index 写入与查询面
+- `cx.profile.full_client.v1` 依赖的 Principal Server / Sync / Index 写入与查询面
+- `cx.profile.principal_server.v1`
+- `cx.profile.index_node.v1`
+
+Fast path 规则：
+
+1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或 Index 节点针对活跃 Actor 预计算出针对特定目标（如当前 Room、Board、List 或 Card）的有效权限位图 (Permission Bitmap)。
+2. **缓存绑定**：缓存 key MUST 至少绑定 `space_id`、actor DID / device 或 session grant、resource selector、action family、membership frontier、grant / revoke frontier、claim status frontier、policy component root 和 reducer profile。
+3. **快速命中**：对于后续提交的纯业务 Operation（如 `cx.message.create`、`cx.reaction.add`、`cx.card.update`、`cx.card.move`、`cx.card.reorder`），只要绑定 frontier 未变化且缓存未过期，节点 MAY 直接查询 Bitmap 缓存，将 O(N) 的深层权限推演降维为 O(1)。
+4. **失效**：当发生 `cx.capability.*`、相关 membership、policy component、claim status、approval proof、DID key state、accountable actor controller 或 delegation chain 变化时，受影响缓存 MUST 立即标记 stale。stale cache 不得继续作出新的 allow 决策。
+5. **重建**：缓存 miss、stale 或 frontier 不匹配时，节点 MUST 重新执行完整授权判定或返回可恢复的 `soft_fail` / `temporarily_unavailable`。高频路径最大重建延迟见 `../conformance/scalability-constraints.md`。
+6. **安全边界**：Fast path 只能缓存“基础 capability 是否允许”。Moderation / Policy Server 的 `deny`、`quarantine`、`require_review`、rate limit、legal hold 和 abuse policy 仍 MUST 在写入接收、分发和查询返回前执行。缓存命中不得绕过 plaintext-visible service 检查。
 
 ## 19. 设计决定
 

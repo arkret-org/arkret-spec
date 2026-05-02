@@ -46,6 +46,17 @@ View 不承载被投影对象的 canonical state。Board / List / Card / Room / 
 
 Materialized View cache 只是加速层。缓存丢失、过期或迁移后，系统 MUST 能用 View definition + canonical object graph 重新计算 projection。
 
+### 2.1.1 Shared View 与 Personal View
+
+v1 区分两类 View 状态：
+
+| 类别 | 存储位置 | 写入语义 |
+| --- | --- | --- |
+| Shared View | Space canonical state | 团队共享的 query、renderer、默认列、共享 filter、共享 layout、review queue 定义等，使用 `cx.view.create` / `cx.view.update`。 |
+| Personal View | actor-private account data | 个人排序偏好、临时 filter、列宽、折叠状态、最近打开 tab、本地 pin、密度设置等，使用 `cx.account_data.set` 或等价私有 repo 操作。 |
+
+客户端 MUST NOT 把个人 UI 偏好写入 Space shared View，除非用户明确执行“保存为共享视图”或 Space policy 要求共享配置。Index / AppView 在返回 projection 时 MAY 合并 Shared View 与调用者 Personal View，但必须在响应元数据中保留 shared definition frontier 与 personal preference revision 的区别，避免把个人偏好传播给其他成员。
+
 ### 2.2 标准对象优先，Morph 扩展
 
 View 查询 SHOULD 优先使用标准对象类型：
@@ -111,7 +122,8 @@ View 展示 Card 关联 Room 时，必须分别执行授权裁剪：
 | 修改 Board / List 元数据 | `cx.board.update` / `cx.list.update` |
 | 发送、编辑、删除 Room 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
 | 为 Card 关联或移除 Room | `cx.card.link_room` / `cx.card.unlink_room` |
-| 改变 View filter / sort / group / columns / layout | `cx.view.update` 或 actor-private account data |
+| 改变共享 View filter / sort / group / columns / layout | `cx.view.update` |
+| 改变个人 View 偏好、临时 filter、列宽、折叠状态 | actor-private account data |
 
 Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会改变协作对象的状态、位置、权限、关系或消息历史，它 MUST 写入对应对象或 Relation；只有改变观察方式时才写入 View。
 
@@ -264,8 +276,8 @@ View 应通过结构化 query 表达对象范围。
 | 看板 | `board` | 标准对象，可被引用、授权、讨论和审计。 |
 | 列/泳道 | `list` | Board 内有序容器。 |
 | 卡片 | `card` | 标准工作对象。 |
-| 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=card_id}` | 表示 List 与 Card 的包含关系。 |
-| 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的包含关系。 |
+| 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=card_id}` | 表示 List 与 Card 的 canonical 包含关系；投影中的 `list_id` 是派生字段。 |
+| 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系；List 对象中的 `board_id` 不得作为唯一真相源。 |
 | Card 讨论 | `Relation{relation_kind="links_room"}` 或 `primary_room` | 不传递权限。 |
 
 ### 6.2 Board 不显示全 Space 数据
@@ -279,6 +291,8 @@ Board projection MUST NOT 默认显示 Space 中的全部 Card。实现 MUST 按
 5. 按 List/Card rank 和稳定 tie-break 排序。
 
 不在这些 Relation 下的 Card 仍是协议数据，但不属于该 Board 的默认投影。
+
+Board projection MAY 在返回项中携带派生 `board_id`、`list_id`、`rank` 和 `position_relation_id`，用于渲染和 CAS 交互。这些字段必须可追溯到 active `contains` Relation、rank source event 和 reducer frontier；客户端不得把它们回写为 Card canonical fields。
 
 在 Board projection 中拖拽或重排对象时，View 只提供交互入口。实际写入 MUST 使用 `cx.card.move`、`cx.card.reorder` 或 `cx.list.reorder`。实现不得把新的列位置只保存到 View layout 或 materialized projection cache 中。
 

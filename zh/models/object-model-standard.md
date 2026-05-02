@@ -87,7 +87,7 @@ Board 适合：
 - `board --links_room--> room`
 - `board --has_default_view--> view`
 
-Board 不自动显示 Space 中所有 Card。只有通过 `board --contains--> list --contains--> card` 或 View 明确 query 选中的 Card 才属于该 Board 的投影范围。即使通过 View 呈现，Board/List/Card 的包含关系、位置和状态仍是标准对象与 Relation 的事实，不属于 View layout 或缓存。
+Board 不自动显示 Space 中所有 Card。只有通过 `board --contains--> list --contains--> card` 或 View 明确 query 选中的 Card 才属于该 Board 的投影范围。即使通过 View 呈现，Board/List/Card 的包含关系、位置和排序仍由标准对象与 active `contains` Relation 归约得到，不属于 View layout 或缓存，也不是 Card canonical object 的 `board_id` / `list_id` 字段。
 
 ## 4. List
 
@@ -112,7 +112,7 @@ List 的权限默认不独立于 Board；若实现需要列级权限、列级讨
 
 ## 5. Card
 
-`card` 表示可执行、可跟踪、可沉淀的工作对象。Card 是 Board/List 里的主要工作单元，但不要求必须属于某个 Board。
+`card` 表示可执行、可跟踪、可沉淀的工作对象。Card 是 Board/List 里的主要工作单元，但不要求必须属于某个 Board。独立 Card 可以存在于 Space 中；进入 Board 时由 `list --contains--> card` position edge 表达其主位置。
 
 Card 和 Room 严格区分：
 

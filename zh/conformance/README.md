@@ -10,6 +10,7 @@
 - `cursor-encoding.md`、`cursor-test-vectors.md`：cursor 编码规范与向量。
 - `hlc-specification.md`、`hlc-test-vectors.md`：HLC 文本格式、比较规则与向量。
 - `state-resolution-conformance-vectors.md`、`redaction-conformance-vectors.md`、`capability-conformance-vectors.md`、`sync-conformance-vectors.md`：核心行为向量。
+- `scalability-constraints.md`：v1 wire、授权、state resolution、Board/Relation/View 和 E2EE 的规模上限。
 - `schema-registry.md`、`conformance-profiles.md`、`conformance-suite.md`：registry、profile 与 suite。
 
 语言无关的 canonical 输出位于根目录 [`artifacts`](../../artifacts/README.md)。

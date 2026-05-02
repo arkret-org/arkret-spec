@@ -424,6 +424,17 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `resolved_state`: 单一 state map。
 - `conflict_records`: 被压制候选及原因。
 
+### 9.2.1 规模上限与 Snapshot Fallback
+
+State resolution MUST 受 `../conformance/scalability-constraints.md` 的上限约束。默认 v1 限制包括：
+
+- 单个 state key 的 conflict candidate 数最多 256。
+- `auth_chain` 闭包深度最多 64。
+- `auth_difference` 事件数最多 4,096。
+- 单个事件 `auth_refs` 数最多 64。
+
+超过上述限制时，节点 MUST 使用最近可验证 snapshot 作为 `base_state` 执行 snapshot-assisted resolution，或将依赖事件保持 `soft_failed` / `quarantined`，不得继续无界展开 auth chain。fallback snapshot 必须验证 signer authority、frontier、state hash 和 chunk digest。没有可验证 snapshot 时，节点 MUST fail closed；不得使用本地接收顺序、数据库自增 ID 或 Sync Service 到达顺序裁决 winner。
+
 ### 9.3 算法
 
 1. 将所有 state set 中相同 `(kind, state_key)` 且 event id 相同的项放入 unconflicted state。

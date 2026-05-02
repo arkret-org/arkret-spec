@@ -81,6 +81,7 @@ E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务�
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
     "room_metadata_hash": "sha256:canonical_room_metadata",
+    "binding_profile": "cx.profile.mls_state_binding.full.v1",
     "reducer_profile": "cx.reducer.v1"
   }
 }
@@ -90,8 +91,8 @@ E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务�
 
 - `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员状态、invite/leave/ban 变化和设备信任变化。
 - `policy_root` MUST 覆盖影响加密、history visibility、asset privacy、logging、bot、moderation 和 plaintext-visible service 的 Space policy state。
-- `capability_root` SHOULD 覆盖与本次成员或策略变化相关的 effective grant / revoke / claim 状态。
-- `room_metadata_hash` SHOULD 覆盖成员可见的房间名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
+- v1 base E2EE profile 只要求 `membership_frontier` 与 `policy_root`。这两个字段缺失或无法验证时，客户端 MUST 标记 epoch 为 `state_mismatch` 或 `decryption_pending`。
+- `capability_root` 与 `room_metadata_hash` 属于 `cx.profile.mls_state_binding.full.v1` hardening profile。实现声明该 profile 时，它们 MUST 覆盖与本次成员或策略变化相关的 effective grant / revoke / claim 状态，以及成员可见的房间名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
 - 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix state 已经按 `event-auth-state-resolution.md` accepted。无法回补或 hash 不匹配时 MUST 标记该 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 仍按 Contrix 的 auth weight / HLC / actor / event hash 规则裁决；失败 Commit 的 MLS transcript 不得被接受为当前 epoch。
 

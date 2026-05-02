@@ -170,6 +170,7 @@
 | `conformance/capability-conformance-vectors.md` | delegated capability、revoke 回滚、approval 约束向量。 |
 | `conformance/query-schema.md` | Index / View / Inbox 查询语法。 |
 | `conformance/snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
+| `conformance/scalability-constraints.md` | v1 wire、授权、state resolution、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
 | `conformance/sync-conformance-vectors.md` | Client Sync、pagination、snapshot、MLS epoch backfill 的一致性测试向量。 |

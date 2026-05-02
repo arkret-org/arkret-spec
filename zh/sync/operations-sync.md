@@ -101,6 +101,8 @@ Contrix v1 repo 以 commit 为发布单元。
 
 每个 operation MUST 具备统一 envelope。Envelope 的 `kind` 是事件 kind，并通过 `causal`、`target_ref`、`authz_ref` 和 `proofs` 绑定写入语义。
 
+本文中的 Operation Envelope 是 v1 默认 wire format，也是 reducer 接收的事实输入。`data-structures.md` 中的 Canonical Operation Object 是 repo / SDK 内部可内容寻址对象；实现 MAY 用它生成 Envelope，但不得在 federation 或 sync 中要求对端同时理解两个不同的 wire object。若一个 profile 直接传输 Canonical Operation Object，必须声明映射到本节 Envelope 的规则，并通过同一套 signature、hash、auth_refs 和 reducer conformance。
+
 ```json
 {
   "operation_id": "cx:operation:01JS0OP000000000000000000",
@@ -290,6 +292,8 @@ Reducer 语义：
 3. 在 reduced state 中关闭同一 `(board_id, card_id)` 下其他 active position edge。
 4. 创建或更新 `to_list_id --contains--> card_id` 的 active Relation，并把 rank 设置为 `rank`。
 5. 对相同 Operation 保持幂等。
+
+`cx.card.move` 不得把 `board_id`、`list_id` 或 `rank` 写入 Card canonical object 作为唯一真相源。Index / View projection MAY 返回这些派生字段，但必须能追溯到 active position edge 和 reducer frontier。
 
 ### 9.2 `cx.card.reorder`
 

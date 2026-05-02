@@ -255,7 +255,6 @@ List 最小结构：
   "id": "cx:list:01JS0LS000000000000000000",
   "type": "list",
   "space_id": "cx:space:01JS0SP000000000000000000",
-  "board_id": "cx:board:01JS0BD000000000000000000",
   "title": "Review",
   "rank": "mV",
   "state": "active",
@@ -287,7 +286,7 @@ Card 最小结构：
 }
 ```
 
-Card 在 Board/List 中的位置通过 Relation 或 card position event 表达，不由 Room 决定。
+Card 在 Board/List 中的位置通过 active `contains` Relation / card position event 表达，不由 Room 决定，也不要求 Card canonical object 自带 `board_id` 或 `list_id`。Index / AppView 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
 
 常见关系：
 
