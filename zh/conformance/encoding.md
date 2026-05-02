@@ -46,7 +46,7 @@ cx:<kind>:<ulid>
 - `morph`
 - `relation`
 - `event`
-- `commit`
+- `receipt`
 - `operation`
 - `grant`
 - `view`
@@ -55,23 +55,27 @@ cx:<kind>:<ulid>
 
 ULID MUST 使用 Crockford Base32 大写或规范小写之一；同一 profile MUST 固定大小写。Contrix canonical 文本推荐小写。
 
-## 5. Commit Hash
+## 5. Event Batch Receipt Hash
 
 ```json
 {
-  "schema": "cx.schema.commit.v1",
-  "commit_id": "cx:commit:01JS0KE000000000000000000",
-  "type": "commit",
-  "repo_id": "did:web:alice.example",
-  "author": "did:web:alice.example",
-  "author_seq": 1,
-  "prev_commit": "sha256:...",
-  "operations": ["sha256:..."],
+  "schema": "cx.schema.event_batch_receipt.v1",
+  "receipt_id": "cx:receipt:01JS0RC000000000000000000",
+  "type": "event_batch_receipt",
+  "issuer": "did:web:alice.example",
+  "scope": {
+    "actor_id": "did:web:alice.example"
+  },
+  "frontier": {
+    "actor_seq": 1,
+    "event_hash": "sha256:..."
+  },
+  "events": ["sha256:..."],
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
-`commit_hash = sha256(canonical_json(commit_without_proofs))`。`repo_id`、`author_seq`、`schema` 和 `type` 必须进入 hash，防止 Commit 被跨 repo 或跨序列重放。
+`receipt_hash = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 和 `type` 必须进入 hash，防止 receipt 被跨 actor、跨 Space 或跨前沿重放。
 
 ## 6. Signature
 
@@ -171,7 +175,7 @@ rank_between(left, right):
 
 例如 `rank_between("", "0")` MUST 返回 `rank_exhausted`，因为在 start sentinel 与最小 rank `"0"` 之间不存在合法 rank。客户端或 reducer 遇到 `rank_exhausted` MUST 触发 rebalance 或要求调用方提交 `cx.container.rebalance`，不得生成非法 rank。
 - 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `cx.container.rebalance`。Reducer 不得接受超过 128 字符的 rank。
-- 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。
+- 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_hlc`、`rank_source_actor_id`、`rank_source_event_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。
 - `cx.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST 拒绝该 rebalance。
 - Rebalance assignments MUST 覆盖 container 内全部 active edges，且不得新增、删除或跨 container 移动 edge。CAS 的 `expected_state_hash` 不匹配时，MUST 拒绝整个 operation，不得部分应用。
 

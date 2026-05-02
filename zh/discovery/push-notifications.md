@@ -24,7 +24,7 @@
 
 ### 2.3 用户完全控制推送规则
 
-推送规则是 Actor-private 的配置，存储在用户自己的 Repo 中。用户有权关闭任何 Space 的推送、设置静默时段、自定义关键词触发等。
+推送规则是 Actor-private 的配置，存储在用户自己的加密 account data 中。用户有权关闭任何 Space 的推送、设置静默时段、自定义关键词触发等。
 
 ## 3. 推送设备注册
 
@@ -274,7 +274,7 @@ POST /api/v1/push/notify
 
 ## 8. v1 互操作要求
 
-- 推送规则的跨设备同步使用私有 Account Data 或加密 Account Repo；规则变更 MUST 由 holder device 签名，未授权服务不得读取敏感关键词或联系人规则。
+- 推送规则的跨设备同步使用私有加密 Account Data；规则变更 MUST 由 holder device 签名，未授权服务不得读取敏感关键词或联系人规则。
 - Delivery Receipt 只能表示推送网关或平台尝试投递，不等于用户已读。已读状态仍由 read marker / read receipt profile 表达。
 - 语音/视频通话推送使用 `cx.call.signal` 的 invite hint；payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会议标题，除非 Space policy 明确允许。
 - Push Gateway 高可用不得通过共享长期 device token 实现。多网关部署 MUST 使用 service DID、短期授权、token 分片或 per-gateway registration，并支持撤销。

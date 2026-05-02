@@ -18,9 +18,9 @@
 
 当 Alice 想通过电子邮件 `bob@example.com` 邀请 Bob 加入 Space 时：
 
-1. **发起盲化邀请**：Alice 的客户端向她的 Principal Server 或授权的 Identity Verification Service 提交一个针对 3PID 的邀请。公开持久化 Repo 中 MUST NOT 写入明文邮箱、手机号或可枚举的未加盐哈希。
+1. **发起盲化邀请**：Alice 的客户端向她的 Principal Server 或授权的 Identity Verification Service 提交一个针对 3PID 的邀请。公开持久化 Event 中 MUST NOT 写入明文邮箱、手机号或可枚举的未加盐哈希。
 2. **生成邀请令牌**：验证服务生成至少 128 bit 熵的随机 `invite_token`，并生成独立 `token_salt`。`invite_token` MUST 只通过外部通知渠道发送给被邀请人，不得写入公开 Event。
-3. **写入占位符 Operation**：Alice 向 Space Repo 提交一个特殊的 `cx.invite.third_party` 操作：
+3. **写入占位符 Event**：Alice 向 Space 提交一个特殊的 `cx.invite.third_party` Event：
 
 ```json
 {
@@ -55,9 +55,9 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Sp
 身份验证服务验证 token、过期时间、claim 次数和 Space 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，声明：
 “持有该 Token 的人现在对应的 DID 是 `did:web:bob.example.com`”。
 
-### 4.2 提交转换 Operation
+### 4.2 提交转换 Event
 
-身份验证服务（或 Bob 代理）将该证明连同 Bob 的签名，打包成一个 `cx.invite.claim` 操作提交到 Space Repo：
+身份验证服务（或 Bob 代理）将该证明连同 Bob 的签名，打包成一个 `cx.invite.claim` Event 提交到 Space：
 
 ```json
 {
@@ -81,7 +81,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Sp
 
 ### 4.3 状态机转换
 
-Space 中的其他节点（Sync Service / Index）在收到该 Operation 时：
+Space 中的其他节点（Sync Service / Index）在收到该 Event 时：
 1. 匹配 `token_commitment` 与未过期、未撤销、未认领的 `cx.invite.third_party`。
 2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_did`、`space_id`、audience、过期时间和 claim nonce。
 3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。
@@ -101,6 +101,6 @@ Space 中的其他节点（Sync Service / Index）在收到该 Operation 时：
 - `cx.invite.third_party` MUST 携带 `expires_at`；默认过期时间 SHOULD 不超过 7 天，高安全 Space SHOULD 不超过 24 小时。
 - 邀请者、Space 管理员或 policy server MAY 发布 `cx.invite.revoke` 撤销 pending invite。撤销后任何 claim MUST reject。
 - 验证服务 MUST 对 token claim 做限速、IP / device 风险控制和重放检测；失败响应不得泄露 token 是否存在、Space 是否存在或 3PID 是否被邀请。
-- Repo 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。
+- Event 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。
 - `token_salt` MUST 按邀请或批次高熵生成，不能使用全局常量 salt。低熵 3PID 的承诺必须加入服务私有 pepper 或改用不公开的 lookup table，防止离线字典爆破。
 - claim 成功后，外部 3PID 与 `subject_did` 的绑定默认只在邀请上下文内有效；不得自动发布为全局 handle、联系人或组织成员资格。

@@ -87,7 +87,7 @@ POST /api/v1/moderation/report
 
 ### 3.3 举报的处理
 
-- 举报会生成一个 `cx.moderation.report` 事件，写入 Space Repo
+- 举报会生成一个 `cx.moderation.report` 事件，写入 Space Event history
 - 该事件仅对拥有 `cx.space.moderate` 权限的 Actor 可见
 - 被举报人不会收到通知
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）
@@ -140,7 +140,7 @@ Franking 信任链：
 
 ### 4.1 屏蔽是 Actor-Private 状态
 
-用户可以屏蔽任意 Actor，屏蔽列表存储在本地或用户的私有 Repo 中：
+用户可以屏蔽任意 Actor，屏蔽列表存储在本地或用户的私有 account data 中：
 
 ```json
 {
@@ -191,7 +191,7 @@ Franking 信任链：
 
 个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Sync Service、Space、Directory 或被屏蔽方可见的位置。
 
-跨设备同步 SHOULD 使用 Account Repo + 客户端加密。服务端只应看到不透明密文。
+跨设备同步 SHOULD 使用加密 account data。服务端只应看到不透明密文。
 
 ## 5. Space 审核工具
 
@@ -204,7 +204,7 @@ Franking 信任链：
 
 ### 5.2 用户封禁
 
-管理员通过 `cx.membership.ban` 操作封禁用户（详见 `object-model-core.md` 的成员与 policy 语义）。封禁后：
+管理员通过 `cx.member.state{membership="ban"}` Event 封禁用户（详见 `object-model-core.md` 的成员与 policy 语义）。封禁后：
 
 - 被封禁用户无法重新加入该 Space
 - 其未来的 Operation 提交将被 Sync Service 拒绝

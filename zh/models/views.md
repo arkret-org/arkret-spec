@@ -53,7 +53,7 @@ v1 区分两类 View 状态：
 | 类别 | 存储位置 | 写入语义 |
 | --- | --- | --- |
 | Shared View | Space canonical state | 团队共享的 query、renderer、默认列、共享 filter、共享 layout、review queue 定义等，使用 `cx.view.create` / `cx.view.update`。 |
-| Personal View | actor-private account data | 个人排序偏好、临时 filter、列宽、折叠状态、最近打开 tab、本地 pin、密度设置等，使用 `cx.account_data.set` 或等价私有 repo 操作。 |
+| Personal View | actor-private account data | 个人排序偏好、临时 filter、列宽、折叠状态、最近打开 tab、本地 pin、密度设置等，使用 `cx.account_data.set` 或等价私有 Event。 |
 
 客户端 MUST NOT 把个人 UI 偏好写入 Space shared View，除非用户明确执行“保存为共享视图”或 Space policy 要求共享配置。Index / AppView 在返回 projection 时 MAY 合并 Shared View 与调用者 Personal View，但必须在响应元数据中保留 shared definition frontier 与 personal preference revision 的区别，避免把个人偏好传播给其他成员。
 
@@ -467,7 +467,7 @@ Lazy Link 示例：
 
 1. 明确 Relation rank 优先。
 2. 无 rank 时使用对象字段排序。
-3. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_operation_id`、对象 id。
+3. 同一排序键完全相同时，tie-break MUST 依次使用 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_event_id`、对象 id。
 
 计数规则：
 

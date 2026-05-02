@@ -157,7 +157,7 @@
         "original_envelope_hash": { "$ref": "#/$defs/hash" },
         "mapped_operation_id": { "type": "string" },
         "mimi_message_id": { "type": "string" },
-        "contrix_event_id": { "type": "string", "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$" },
+        "contrix_event_id": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
         "accepted_at": { "type": "string", "format": "date-time", "pattern": "Z$" }
       },
       "additionalProperties": true

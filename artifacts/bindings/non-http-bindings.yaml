@@ -46,10 +46,13 @@ grpc:
       GetLog: cx.identity.get_log
       SubmitDidOperation: cx.identity.submit_did_operation
       GetReceipts: cx.identity.get_receipts
-    Repo:
-      SubmitCommit: cx.repo.submit_commit
-      GetOperations: cx.repo.get_operations
-      Sync: cx.repo.sync
+    Events:
+      Describe: cx.events.describe
+      Submit: cx.events.submit
+      Get: cx.events.get
+      BatchGet: cx.events.batch_get
+      List: cx.events.list
+      Frontier: cx.events.frontier
     Sync:
       ClientSync: cx.sync.client_sync
       Subscribe: cx.sync.subscribe
@@ -127,7 +130,9 @@ mq:
       signatures:
         type: array
   topics:
-    repo.submit_commit: cx.repo.submit_commit
+    events.submit: cx.events.submit
+    events.batch_get: cx.events.batch_get
+    events.list: cx.events.list
     sync.client_sync: cx.sync.client_sync
     federation.transaction: cx.federation.transaction
     directory.private_contact_discovery: cx.directory.private_contact_discovery

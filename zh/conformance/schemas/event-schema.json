@@ -8,7 +8,7 @@
     "hlc", "prev_refs", "auth_refs", "content", "proofs"
   ],
   "properties": {
-    "event_id": { "type": "string", "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$" },
+    "event_id": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
     "kind": { "type": "string", "pattern": "^cx\\.[a-z0-9_]+\\.[a-z0-9_]+$" },
     "schema": { "const": "cx.schema.event.v1" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
@@ -18,7 +18,7 @@
     "created_at": { "$ref": "#/$defs/timestamp" },
     "hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" },
     "prev_refs": { "type": "array", "items": { "$ref": "#/$defs/eventRef" } },
-    "auth_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:(evt|event|grant|policy):[0-9a-hjkmnp-z]{26}$" } },
+    "auth_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:(event|grant|policy):[0-9a-hjkmnp-z]{26}$" } },
     "redacts": { "$ref": "#/$defs/eventRef" },
     "content": { "type": "object" },
     "unsigned": { "type": "object" },
@@ -50,7 +50,7 @@
     "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
     "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },
     "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
-    "eventRef": { "type": "string", "pattern": "^cx:(evt|event|operation):[0-9a-hjkmnp-z]{26}$" },
+    "eventRef": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
     "card_move_content": {
       "type": "object",
       "required": ["card_id", "to_list_id", "rank"],

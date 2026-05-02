@@ -15,11 +15,11 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | 单个 canonical Event / Operation envelope | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。正文、附件和大对象必须使用 Blob。 |
-| 单个 Repo commit 引用的 operation 数 | 1,000 | 超过时 MUST 拆分 commit。 |
-| 单个 federation transaction 的 operation 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
+| 单次 `/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
+| 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / index page 返回项 | 1,000 | 服务端 MUST enforce；客户端不得假设更大 page 可用。 |
-| 单个 operation 的 `prev_refs` 数量 | 128 | 超过时 MUST reject 或要求提交 snapshot / checkpoint 引用。 |
-| 单个 operation 的 `auth_refs` 数量 | 64 | 超过时 MUST reject；auth refs 必须是最小授权状态集合。 |
+| 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject 或要求提交 snapshot / checkpoint 引用。 |
+| 单个 Event 的 `auth_refs` 数量 | 64 | 超过时 MUST reject；auth refs 必须是最小授权状态集合。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。 |
 | 关系展开深度 | 32 | Index / graph query MUST enforce，跨 Space 引用必须按 Lazy Link 截断。 |
 

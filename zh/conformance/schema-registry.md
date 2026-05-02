@@ -24,7 +24,7 @@
 | `cx.schema.notification.v1` | Notification |
 | `cx.schema.capability.v1` | Capability Grant |
 | `cx.schema.event.v1` | Event Envelope |
-| `cx.schema.commit.v1` | Repo Commit |
+| `cx.schema.event_batch_receipt.v1` | Event Batch Receipt |
 | `cx.schema.operation.v1` | Operation |
 | `cx.schema.blob.v1` | Blob Metadata |
 | `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
@@ -143,7 +143,7 @@ Schema evolution MUST:
 - provide migration notes for reducer behavior
 - 若字段改变授权、可见性、排序或收敛语义，必须声明新的 schema 或 reducer profile。
 
-未知的 non-critical 字段出现在 canonical Event、Operation、Commit、Snapshot、Grant 或 encrypted envelope 中时，接收方 MUST 在存储、转发、backfill 和 hash/signature 校验所用 canonical bytes 中保留这些字段；不理解该字段的 reducer MUST 忽略它，而不是剔除、重排语义或当作失败。Index / OpenAPI DTO / materialized view MAY 在派生响应中省略未知字段，但不得在验证、联邦转发或审计回放前从 canonical object 中剥离。
+未知的 non-critical 字段出现在 canonical Event、Operation、Event Batch Receipt、Snapshot、Grant 或 encrypted envelope 中时，接收方 MUST 在存储、转发、backfill 和 hash/signature 校验所用 canonical bytes 中保留这些字段；不理解该字段的 reducer MUST 忽略它，而不是剔除、重排语义或当作失败。Index / OpenAPI DTO / materialized view MAY 在派生响应中省略未知字段，但不得在验证、联邦转发或审计回放前从 canonical object 中剥离。
 
 未知 critical feature MUST fail closed。发送方可通过声明的 schema/reducer profile、event type、`required_features` 风格的 profile metadata，或扩展 schema 明确标注 critical 语义。接收方若不支持该 critical 语义，MUST 返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得静默接受并用旧语义解释。
 

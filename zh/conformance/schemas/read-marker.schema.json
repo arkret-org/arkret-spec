@@ -12,7 +12,7 @@
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "scope": { "type": "string", "enum": ["space", "room", "thread", "view", "card", "message", "morph"] },
     "scope_id": { "type": "string" },
-    "event_id": { "type": "string", "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$" },
+    "event_id": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$" },
     "timeline_order_key": { "type": "object" },
     "updated_at": { "type": "string", "format": "date-time", "pattern": "Z$" }
   },

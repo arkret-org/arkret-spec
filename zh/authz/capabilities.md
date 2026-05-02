@@ -57,24 +57,40 @@ Authorization condition: Claim / Attestation
 
 ```json
 {
-  "grant_id": "cx:grant:01JS0GR000000000000000000",
+  "id": "cx:grant:01JS0GR000000000000000000",
+  "type": "capability",
+  "schema": "cx.schema.capability.v1",
   "space_id": "cx:space:01JS0SP000000000000000000",
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
-  "scope": {
-    "space_ids": ["cx:space:01JS0SP000000000000000000"],
-    "object_types": ["card", "morph"],
-    "morph_types": ["run", "memory"],
-    "facets": ["stateful", "assignable"],
-    "actions": [
-      "cx.card.read",
-      "cx.card.update",
-      "cx.morph.read",
-      "cx.morph.update",
-      "cx.run.create",
-      "cx.memory.create"
-    ]
-  },
+  "actions": [
+    "cx.card.read",
+    "cx.card.update",
+    "cx.morph.read",
+    "cx.morph.update",
+    "cx.run.create",
+    "cx.memory.create"
+  ],
+  "resources": [
+    {
+      "kind": "object",
+      "space_id": "cx:space:01JS0SP000000000000000000",
+      "object_type": "card",
+      "scope": "space_wide"
+    },
+    {
+      "kind": "morph",
+      "space_id": "cx:space:01JS0SP000000000000000000",
+      "morph_type": "run",
+      "scope": "space_wide"
+    },
+    {
+      "kind": "morph",
+      "space_id": "cx:space:01JS0SP000000000000000000",
+      "morph_type": "memory",
+      "scope": "space_wide"
+    }
+  ],
   "constraints": [
     {
       "constraint_type": "temporal",
@@ -221,7 +237,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.room.archive`
 - `cx.message.create`
 - `cx.reaction.add`
-- `cx.message.update` (任意消息) / `cx.message.update.own` (仅自己)
+- `cx.message.revise` (任意消息) / `cx.message.revise.own` (仅自己)
 - `cx.message.redact` (任意消息) / `cx.message.redact.own` (仅自己)
 - `cx.room.*`
 
@@ -586,7 +602,7 @@ Contrix v1 至少区分：
 权限检查 MUST 至少在以下位置执行：
 
 - client 预检查
-- repo 接收写入时
+- Events API 接收写入时
 - Sync Service 分发前
 - index 返回查询前
 - blob store 下发内容前

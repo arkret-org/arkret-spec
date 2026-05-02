@@ -16,7 +16,7 @@
 ### 2.1 临时性与高频特征
 
 与具体的业务数据不同，已读回执变动极其频繁（用户每次滑动屏幕都会产生），并且其历史记录没有长期保留价值。
-因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Repo 的因果图中。
+因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。
 
 ### 2.2 广播格式
 
@@ -48,7 +48,7 @@ Read Marker 用于多设备同步（例如你在手机上看了消息，电脑�
 
 ### 3.1 存储位置
 
-Read Marker 作为一种持久化的个人状态，MUST 作为 Operation 提交到用户的 **私人账号 Repo (Account Repo)** 中，而不是提交到发生协作的共享 Space Repo。
+Read Marker 作为一种持久化的个人状态，MUST 作为加密 account data 或 actor-private Event 保存，而不是提交到发生协作的共享 Space Event history。
 
 ### 3.2 格式
 
@@ -63,14 +63,14 @@ Read Marker 作为一种持久化的个人状态，MUST 作为 Operation 提交�
 }
 ```
 
-- 该 Operation 被加密存储在用户的 Account Repo 中。
-- 用户的其他设备通过同步 Account Repo 的变更，获取最新的游标位置，从而清除本地未读红点。
+- 该状态被加密存储在用户的 account data 中。
+- 用户的其他设备通过同步 account data 的变更，获取最新的游标位置，从而清除本地未读红点。
 
 ## 4. 未读计数 (Unread Notification Count)
 
 未读计数是由 **Index 节点** 维护的派生数据。
 
-1. Index 节点监听用户的 Account Repo 拿到最新的 `cx.marker.read`。
+1. Index 节点监听用户的 account data 拿到最新的 `cx.marker.read`。
 2. Index 节点计算 `cx.marker.read` 指向的 `event_id` 之后，该 Room 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
 3. 客户端通过 `GET /api/v1/index/notifications` 接口直接获取算好的未读数。
 

@@ -213,7 +213,7 @@ Follow 可以是单向；Contact 通常需要双向确认或至少本地确认�
 - organization announcement Space：组织公告。
 - community Space：类似论坛/社区时间线。
 
-但 feed 不要求每个 follower 都加入同一个 Space。公共广播可从作者 Principal Repo 直接发布，再由 Index/AppView 物化成 feed。朋友圈和组织内部 feed 更适合使用 Space membership、MLS 或 audience snapshot 管理加密与回填。
+但 feed 不要求每个 follower 都加入同一个 Space。公共广播可由作者签名 Event 直接发布，再由 Index/AppView 物化成 feed。朋友圈和组织内部 feed 更适合使用 Space membership、MLS 或 audience snapshot 管理加密与回填。
 
 ## 10. Moderation and Blocking
 
@@ -228,7 +228,7 @@ Follow 可以是单向；Contact 通常需要双向确认或至少本地确认�
 
 公共社交内容 SHOULD be portable:
 
-- post 存在作者 Principal Repo 中
+- post 存在作者签名 Event history 中
 - feed projection 可由任意授权 Index 重建
 - follow graph 可导出/导入
 - handle 变更不改变历史 author DID

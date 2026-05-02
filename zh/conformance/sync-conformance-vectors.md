@@ -11,7 +11,7 @@
 - `cx.profile.kanban_only_client.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
-- `cx.profile.principal_server_repo_api.v1`
+- `cx.profile.principal_server_events_api.v1`
 - `cx.profile.principal_server.v1`
 - `cx.profile.index_node.v1`
 
@@ -36,7 +36,7 @@
 实现 MAY 使用真实 canonical JSON、CID、签名和 hash 替换示例值，但 MUST 保持以下语义：
 
 - `event_id` 是内容寻址或签名绑定后的稳定 ID。
-- `actor_seq` 在同一 actor repo 内严格单调。
+- `actor_seq` 在同一 actor event chain 内严格单调。
 - `hlc` 是 Hybrid Logical Clock，不能单独决定因果顺序。
 - `target_ref` MUST 指向标准对象、Morph、Relation、View 或 Space。
 

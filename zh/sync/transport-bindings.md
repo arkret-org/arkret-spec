@@ -4,7 +4,7 @@
 
 Contrix 协议核心不绑定 REST API。协议核心定义的是：
 
-- canonical object / event / operation schema
+- canonical object / event schema
 - DID identity and service discovery
 - capability authorization
 - Space policy and reducer semantics
@@ -17,7 +17,7 @@ HTTP/JSON REST 是默认互操作 binding，用于浏览器、普通服务端和
 
 | 层 | 是否协议核心 | 例子 |
 | --- | --- | --- |
-| Semantic operation | 是 | `submit_commit`, `sync`, `query`, `backfill`, `authz_check`, `applet_transaction` |
+| Semantic operation | 是 | `submit_event`, `get_events`, `sync`, `query`, `backfill`, `authz_check`, `applet_transaction` |
 | Message envelope | 是 | request id、actor、device、capability refs、idempotency key、cursor、error code |
 | Encoding profile | 是 | canonical JSON、hash、signature、CBOR profile 可选 |
 | Transport binding | 否，除非实现声明 | HTTP/REST、gRPC、WebSocket、SSE、GraphQL、libp2p |
@@ -49,14 +49,17 @@ Transport binding SHOULD 映射到以下 canonical `operation_id`。取值使用
 | `cx.identity.resolve` | 解析 DID，返回 DID document 与 normalized principal view。 |
 | `cx.identity.get_log` | 获取 DID key log。 |
 | `cx.identity.submit_did_operation` | 提交 DID 更新操作。 |
-| `cx.repo.submit_commit` | 提交签名 commit。 |
-| `cx.repo.get_operations` | 批量读取 operation / event。 |
+| `cx.events.submit` | 提交 signed Event Envelope。 |
+| `cx.events.get` | 按 ID 读取单个 Event。 |
+| `cx.events.batch_get` | 批量读取 Event。 |
+| `cx.events.list` | 按 actor / Space / cursor 列出 Event。 |
+| `cx.events.frontier` | 获取 actor 或 Space 的可见 Event frontier。 |
 | `cx.sync.subscribe` | 订阅 Space 增量流。 |
 | `cx.sync.backfill` | 回填历史事件。 |
 | `cx.sync.client_sync` | 客户端增量同步。 |
 | `cx.federation.transaction` | Principal Server 之间交换签名 transaction。 |
-| `cx.federation.push_operations` | 跨域推送 Space operation。 |
-| `cx.federation.pull_operations` | 跨域拉取缺失 operation / backfill。 |
+| `cx.federation.push_operations` | 跨域推送 Space Event。 |
+| `cx.federation.pull_operations` | 跨域拉取缺失 Event / backfill。 |
 | `cx.index.query` | 查询 Object / Morph / Relation / View projection。 |
 | `cx.index.space_hierarchy` | 查询 Space 层级。 |
 | `cx.directory.search` | 授权搜索 Space / Organization / Actor。 |
@@ -138,7 +141,7 @@ Frame MUST 可独立验证其 stream context，且不得依赖不受保护的连
 P2P binding MAY 用于离线、边缘或本地优先场景。要求：
 
 - peer identity MUST 绑定 service DID 或 device DID。
-- gossip 只传播 signed events / commits / transactions。
+- gossip 只传播 signed events、event batch receipts、snapshots 或 transactions。
 - 接收方 MUST 独立验证，不得信任 peer routing。
 - backfill 和 snapshot MUST 通过 hash 校验。
 

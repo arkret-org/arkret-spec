@@ -33,9 +33,9 @@ Contrix 使用 DID 作为稳定身份根。Handle、邮箱、组织用户名和�
 
 实现 MAY 允许用户使用 `@alice:example.org`、`alice@example.org`、组织用户名、OIDC subject、邀请链接或其他人类可读标识完成发现、登录、邀请和账号恢复。
 
-这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现接受任何持久 Event、repo commit、capability grant、federation transaction、MLS membership 或 service delegation 前，MUST 将当前会话绑定到 principal DID 与 device，并按本地 trust policy 验证该绑定。
+这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现接受任何持久 Event、capability grant、federation transaction、MLS membership 或 service delegation 前，MUST 将当前会话绑定到 principal DID 与 device，并按本地 trust policy 验证该绑定。
 
-如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID，例如 `did:uuid`、`did:web` 或组织私有 DID。托管 DID 的 controller、recovery policy、trust domain 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、`repo_id`、`author`、grant `subject`、service DID 或 `verification_method` 的根。
+如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID，例如 `did:uuid`、`did:web` 或组织私有 DID。托管 DID 的 controller、recovery policy、trust domain 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
 
 ### 2.2 DID 持久，密钥可轮换
 
@@ -130,9 +130,9 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 | 层次 | 负责什么 | 不负责什么 |
 | --- | --- | --- |
-| Identity Resolution Infrastructure | 把 DID 解析为 DID Document、key state、key log / KERI log、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Space / repo 数据访问权。 |
+| Identity Resolution Infrastructure | 把 DID 解析为 DID Document、key state、key log / KERI log、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Space / Event 数据访问权。 |
 | Auth / Account Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 DID / device。 | 不改变 DID 控制权；不替代 DID key proof；不决定所有组织授权。 |
-| Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Space、repo、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
+| Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Space、Event、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
 
 一个组织 MAY 自建 Auth / Account Server，同时继续使用公共 `did:uuid` 解析网络。典型流程是：
 

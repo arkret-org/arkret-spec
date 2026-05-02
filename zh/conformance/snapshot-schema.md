@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真相源仍然是签名 Operation / commit log。
+Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真相源仍然是 signed Event Envelope 和可验证 Event history。
 
 ## 2. Snapshot Manifest
 
@@ -15,7 +15,7 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
   "schema_profile_refs": ["cx.schema.core.v1"],
   "frontier": {
     "max_hlc": "01970e589d21-0004-a13f9c2e",
-    "commit_hashes": ["sha256:..."]
+    "event_hashes": ["sha256:..."]
   },
   "state_hash": "sha256:...",
   "chunks": [],

@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Contrix Event / Space / Repo 模型内。
+Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Contrix Event / Space 模型内。
 
 当两个 agent 都支持专用 agent-to-agent 协议，例如 A2A 或 ACP 兼容 endpoint，且任务适合高频、流式、长运行或跨框架直接协作时，Contrix MAY 将一次协作从 canonical 协作层升级为外部 agent protocol session。
 

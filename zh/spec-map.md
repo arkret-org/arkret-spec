@@ -11,7 +11,7 @@
 初次理解协议时，建议按以下顺序阅读：
 
 1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
-2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Principal Server / Repo。
+2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
 3. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
 4. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/progressive-disclosure.md`：理解身份、handle 和隐私披露。
 5. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
@@ -36,10 +36,10 @@
 - Feed 是一种社交或活动时间线投影源，不替代 Space。
 - View 是投影定义，不拥有真相数据。
 
-### 3.3 Principal Server / Repo / Sync / Index
+### 3.3 Principal Server / Events / Sync / Index
 
-- Repo 是可验证发布日志，不等同于服务器。
-- Principal Server 通过 `/repo/*` API 访问或托管 Repo。
+- signed Event Envelope 是唯一 canonical fact。
+- Principal Server 通过 `/events/*` API 提交、读取、回填和验证 Event frontier。
 - Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Space 同步能力。
 - Index 是查询和投影层，不是真相源。
 
@@ -114,9 +114,9 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| `sync/operations-sync.md` | Repo-first 发布、Operation、snapshot、冲突收敛。 |
+| `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
-| `sync/service-surface.md` | 最小服务面与实际服务组合：principal server、identity、repo、sync、index、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
+| `sync/service-surface.md` | 最小服务面与实际服务组合：principal server、identity、events、sync、index、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/service-api-schema.md` | 核心 request / response schema。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
@@ -163,7 +163,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
-| `conformance/encoding-conformance-vectors.md` | Canonical JSON、hash、event/commit digest、signature binding、HLC、cursor 的一致性测试向量。 |
+| `conformance/encoding-conformance-vectors.md` | Canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 的一致性测试向量。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
 | `conformance/state-resolution-conformance-vectors.md` | 并发 membership/capability/governance state resolution向量。 |
 | `conformance/redaction-conformance-vectors.md` | redaction 约束与可见性向量。 |

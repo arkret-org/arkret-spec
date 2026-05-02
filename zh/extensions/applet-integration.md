@@ -223,7 +223,7 @@ Applet MUST NOT write into a Space unless it has an effective grant or is explic
 ## 7. Applet API
 
 Applet API 是 Contrix 节点调用 Applet 的接口。  
-Applet 调用 Contrix 节点时使用常规 repo / sync service / index / authz API。
+Applet 调用 Contrix 节点时使用常规 Events API / sync service / index / authz API。
 
 Base URL 来自 registration 的 `base_url`。
 
@@ -271,7 +271,7 @@ GET /api/v1/applet/describe
 PUT /api/v1/applet/transactions/{txn_id}
 ```
 
-Contrix sync service / index / repo 向 Applet 推送事件批次。
+Contrix sync service / index / Events API 向 Applet 推送事件批次。
 
 请求示例（非完整 schema）：
 
@@ -409,7 +409,7 @@ GET /api/v1/applet/third_party/locations?protocol=slack&team=T123&channel=C456
 
 ## 8. Applet 写入 Contrix
 
-Applet 写入 Contrix MUST 使用常规 repo submit 接口。
+Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
 
 每个写入 Event MUST 包含：
 
@@ -591,4 +591,4 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 - Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `cx.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。
-- Applet UI widget sandbox MUST 与 Space capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Contrix session token 或未授权 repo access。
+- Applet UI widget sandbox MUST 与 Space capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Contrix session token 或未授权 Event history access。

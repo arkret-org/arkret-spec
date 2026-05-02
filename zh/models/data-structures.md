@@ -38,7 +38,7 @@
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:*` | kind 必须匹配对象类型。 | 对象稳定 ID。 |
-| `type` | yes | `enum(space, actor_profile, room, board, list, card, message, morph, relation, event, view, policy, invite, read_marker, notification, capability, commit, operation, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
+| `type` | yes | `enum(space, actor_profile, room, board, list, card, message, morph, relation, event, view, policy, invite, read_marker, notification, capability, operation, event_batch_receipt, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
 | `space_id` | conditional | `id:space` | Space 外对象可省略。 | 所属 Space。 |
 | `schema` | yes | `string` | SHOULD 是 `cx.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体。 |
@@ -66,7 +66,7 @@ Schema id: `cx.schema.space.v1`
 | `schema_refs` | yes | `array<string>` | MUST 包含 `cx.schema.core.v1` 或兼容 profile。 | 启用 schema。 |
 | `policy_ref` | no | `id:policy` | 若省略，使用 create event 默认 policy。 | Space policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | 见 `discovery-directory.md`。 | 默认可发现性。 |
-| `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | 见 `event-auth-state-resolution.md`。 | 默认加入规则。 |
+| `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | `invite` 表示只允许邀请加入；旧草案中的 `private` MUST 映射为 `invite` 后再进入 v1 canonical state。 | 默认加入规则。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 加入后可见历史范围。 | 历史可见性。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | sovereign 默认 SHOULD `closed`。 | 联邦策略。 |
@@ -275,10 +275,10 @@ Event 是 reducer 输入。它不是当前态对象。
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
 | `space_version` | yes | `string` | 初版 `1`。 | 授权/状态版本。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
-| `actor_seq` | yes | `integer` | 同一 actor repo 内严格单调。 | Actor repo 序列。 |
+| `actor_seq` | yes | `integer` | 同一 actor event chain 内严格单调。 | Actor 发布序列。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
 | `hlc` | yes | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 | HLC。 |
-| `prev_refs` | yes | `array<id:event \| hash>` | 可为空。 | Actor repo 前序。 |
+| `prev_refs` | yes | `array<id:event \| hash>` | 可为空。 | Actor event chain 前序。 |
 | `auth_refs` | yes | `array<id:event \| hash>` | create event 可为空。 | 授权依赖。 |
 | `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `content` | yes | `object` | 由 event kind schema 定义。 | 事件内容。 |
@@ -325,7 +325,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-若某个 UI 操作改变 Card 所属 List、Card rank、List rank、Room message、Relation 或对象字段，必须使用对应对象 operation；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态和本地 pin MUST 使用 actor-private account data 或等价私有 repo 操作。
+若某个 UI 操作改变 Card 所属 List、Card rank、List rank、Room message、Relation 或对象字段，必须使用对应对象 Event；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态和本地 pin MUST 使用 actor-private account data 或等价私有 Event。
 
 `CollectionConfig` 字段：
 
@@ -451,43 +451,46 @@ Notification 是派生 inbox projection，不是 canonical truth。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-## 17. Repo Commit
+## 17. Event Batch Receipt
 
-Schema id: `cx.schema.commit.v1`
+Schema id: `cx.schema.event_batch_receipt.v1`
+
+Event Batch Receipt 是可选审计/同步加速对象，不是 canonical history，也不是 reducer input。缺少 receipt 不得导致格式、签名、授权和因果均有效的 Event 被拒绝，除非 deployment profile 额外要求 witness。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `commit_id` | yes | `id:commit` |  | Commit ID。 |
-| `type` | yes | `enum(commit)` | 固定为 `commit`。 | 对象种类。 |
-| `repo_id` | yes | `did` 或 `id:space` | Actor repo 或 Space repo。 | Repo ID。 |
-| `author` | yes | `did` | 必须控制签名 key。 | 作者。 |
-| `author_seq` | yes | `integer` | repo 内严格单调。 | 作者序列。 |
-| `prev_commit` | no | `hash` | genesis commit 可空。 | 前一 commit hash。 |
-| `operations` | yes | `array<hash>` | 数组顺序参与 hash。 | operation hash 列表。 |
+| `receipt_id` | yes | `id:receipt` |  | Receipt ID。 |
+| `type` | yes | `enum(event_batch_receipt)` | 固定为 `event_batch_receipt`。 | 对象种类。 |
+| `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Principal Server 或 witness。 |
+| `scope` | yes | `object` | SHOULD 包含 `actor_id`、`space_id` 或查询范围 hash。 | receipt 覆盖范围。 |
+| `frontier` | yes | `object` | SHOULD 包含 `actor_seq`、`event_id` / event hash、HLC 或 Space frontier。 | 签发时前沿。 |
+| `events` | yes | `array<id:event \| hash>` | 数组顺序参与 hash。 | 被 receipt 覆盖的 Event Envelope 引用。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
-| `proofs` | yes | `array<Proof>` |  | Commit proof。 |
+| `proofs` | yes | `array<Proof>` |  | Receipt proof。 |
 
 ## 18. Canonical Operation Object
 
 Schema id: `cx.schema.operation.v1`
 
-本节定义 Repo / 本地存储可内容寻址的 canonical Operation object。它使用固定 `type="operation"` 与独立的 `operation_type`。Sync / Federation 写路径中带签名、因果和 `target_ref` 的承载信封称为 **Operation Envelope**，见 `../sync/operations-sync.md`；该信封的 `kind` 是事件 kind，不使用本节的 `operation_type` 字段。实现不得把两者合并成一个含糊结构。
+本节定义 SDK 内部可内容寻址的 canonical Operation object。它使用固定 `type="operation"` 与独立的 `operation_type`，适合作为 builder 输出、离线草稿或 Event Envelope 生成前的中间对象。
+
+v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/operations-sync.md`。Events API、Sync、Federation、Client write 和 reducer MUST 使用 Event Envelope，不得要求对端直接接收本节的 Canonical Operation Object。实现可以用 Canonical Operation Object 生成 Event Envelope，但不得把两者合并成一个含糊结构。
 
 三层边界：
 
 | 层 | 用途 | 是否 wire format | 是否 reducer input |
 | --- | --- | --- | --- |
-| Canonical Operation Object | Repo 内部内容寻址、commit 引用、SDK builder 输出。 | 否，除非 profile 明确声明传输 canonical object。 | 否，必须先包入 Event / Operation Envelope。 |
-| Operation Envelope / Event Envelope | Sync、Federation、Client write 的签名承载。 | 是。 | 是，reducer 读取其 `kind`、`content`、`auth_refs`、`prev_refs`、proof 和 causal metadata。 |
+| Canonical Operation Object | SDK builder 输出、离线草稿或本地内容寻址对象。 | 否，除非 profile 明确声明私有传输。 | 否，必须先包入 Event Envelope。 |
+| Event Envelope | Events API、Sync、Federation、Client write 的签名承载，也是唯一规范事实。 | 是。 | 是，reducer 读取其 `kind`、`content`、`auth_refs`、`prev_refs`、proof 和 causal metadata。 |
 | Materialized Object | reducer 输出的当前态对象，例如 Card、Relation、View。 | 否。 | 否，不能反向替代事件历史。 |
 
 字段映射：
 
-| Canonical Operation | Operation / Event Envelope |
+| Canonical Operation | Event Envelope |
 | --- | --- |
-| `operation_id` | `operation_id` 或派生 `event_id`，由 encoding profile 固定。 |
+| `operation_id` | `event_id` 或本地幂等别名；进入 wire 后必须能稳定映射到 `event_id`。 |
 | `semantic_kind` | `kind`。 |
-| `object_id` | `target_ref`。 |
+| `object_id` | `content` 内的目标对象字段，例如 `card_id`、`room_id`、`target_ref`。 |
 | `payload` | `content`。 |
 | `created_at` | `created_at`，但 envelope 还必须包含 `hlc`、`actor_seq`、`prev_refs` 和 `auth_refs`。 |
 | `idempotency_key` | 传输请求 idempotency metadata；不得进入 event digest，除非 profile 明确声明。 |
@@ -505,7 +508,7 @@ Schema id: `cx.schema.operation.v1`
 | `idempotency_key` | no | `string` | 重试写入 SHOULD 设置。 | 幂等键。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-Canonical Operation 与 Operation Envelope 的映射：
+Canonical Operation 与 Event Envelope 的映射：
 
 - `semantic_kind="cx.card.move"` MUST 使用 `operation_type="move"`、`object_type="card"`，并使用 card move payload schema。
 - `semantic_kind="cx.container.move_item"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用容器 item move payload schema。

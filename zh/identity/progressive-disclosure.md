@@ -200,13 +200,13 @@ Implementations MUST NOT claim zero-knowledge or unlinkability unless the select
 
 | Data | Location | Encryption |
 | --- | --- | --- |
-| raw credential / base proof | wallet local encrypted store or holder private repo | device key / recovery key |
+| raw credential / base proof | wallet local encrypted store or holder private account data | device key / recovery key |
 | pairwise DID private keys | device secret storage | hardware-backed when available |
-| disclosure policy | holder private repo | E2EE to holder devices |
-| presentation request | temporary inbox or encrypted private repo | verifier-holder transport encryption |
+| disclosure policy | holder private account data | E2EE to holder devices |
+| presentation request | temporary inbox or encrypted private account data | verifier-holder transport encryption |
 | presentation response | sent only to verifier; optional local encrypted copy | TSP / JWE / DIDComm-like / MLS DM |
-| disclosure receipt | holder private repo | E2EE to holder devices |
-| status / revocation cache | wallet cache or holder private repo | E2EE to holder devices |
+| disclosure receipt | holder private account data | E2EE to holder devices |
+| status / revocation cache | wallet cache or holder private account data | E2EE to holder devices |
 
 Sync Service / index / service operator MUST NOT learn raw credential contents, base proofs, full disclosure policies, or undisclosed handles.
 
@@ -233,7 +233,7 @@ If policy requires nested/routed metadata privacy and verifier lacks TSP or equi
 7. Wallet derives proof using selected proof profile.
 8. Wallet sends response over selected transport.
 9. Verifier validates proof, issuer, status, challenge, domain, audience and freshness.
-10. Wallet writes disclosure receipt to holder private repo.
+10. Wallet writes disclosure receipt to holder private account data.
 
 ## 9. Failure Codes
 
@@ -267,4 +267,3 @@ Verifier MUST:
 - not require global subject identifier unless policy explicitly permits and holder consents.
 - not request credential id if unlinkability is required.
 - treat different pairwise DID presentations as separate subjects unless holder provides linking proof.
-

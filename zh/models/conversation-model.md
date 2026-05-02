@@ -267,7 +267,7 @@ message 创建是 append-only。
 2. `hlc`
 3. `actor_id`
 4. `actor_seq`
-5. `operation_id`
+5. `event_id`
 
 ### 10.2 Message 编辑
 
@@ -286,7 +286,7 @@ message 创建是 append-only。
 
 ## 11. 临时信号与 Ephemeral State
 
-以下高频变动的交互状态 MUST NOT 作为持久化 Durable Shared Object 写入密码学 Repo 链：
+以下高频变动的交互状态 MUST NOT 作为持久化 Durable Shared Object 写入密码学 Event 链：
 
 - typing
 - 当前输入草稿

@@ -481,7 +481,7 @@ Invite 是加入引导对象，不等于 capability grant。
 
 ## 16. Read Marker
 
-`read_marker` 是 actor-private 状态。它 SHOULD 存在于私有 repo 或 ephemeral sync channel 中，而不是作为公共 durable Event 高频写入。
+`read_marker` 是 actor-private 状态。它 SHOULD 存在于私有 account data 或 ephemeral sync channel 中，而不是作为公共 durable Event 高频写入。
 
 ## 17. Notification
 

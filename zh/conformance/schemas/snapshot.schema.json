@@ -12,7 +12,7 @@
       "type": "object",
       "required": ["events", "timeline_hlc"],
       "properties": {
-        "events": { "type": "array", "items": { "type": "string", "pattern": "^cx:(evt|event):[0-9a-hjkmnp-z]{26}$" } },
+        "events": { "type": "array", "items": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" } },
         "timeline_hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" }
       },
       "additionalProperties": true

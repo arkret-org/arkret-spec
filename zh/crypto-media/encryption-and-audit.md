@@ -16,16 +16,16 @@ Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.iet
 
 ### 2.1 KeyPackage 与服务发现
 在参与 MLS 加密前，用户必须公布自己的 `KeyPackage`。
-- **发布位置**：Actor 通过 Repo 发布自己的 `KeyPackage`，或者在其 DID Document 的 `service` 中指定独立的 `MLS Delivery Service` 节点入口。
-- **生命周期验证**：其他客户端在拉取 `KeyPackage` 时，MUST 通过 Actor 的 DID Document 与 Repo 历史验证该包的公钥签名，确保未被身份盗用。
+- **发布位置**：Actor 通过 signed Event 发布自己的 `KeyPackage`，或者在其 DID Document 的 `service` 中指定独立的 `MLS Delivery Service` 节点入口。
+- **生命周期验证**：其他客户端在拉取 `KeyPackage` 时，MUST 通过 Actor 的 DID Document 与 Event history 验证该包的公钥签名，确保未被身份盗用。
 
 ### 2.2 握手与组成员管理 (Welcome, Commit)
-MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Contrix 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Space` 与 `Repo` 模型中：
+MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Contrix 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Space` 与 Event 模型中：
 
 ```mermaid
 sequenceDiagram
     participant Alice
-    participant Sync Service (Space Repo)
+    participant Sync Service (Space Events)
     participant Bob (Index)
 
     Alice->>Sync Service: POST /api/v1/keys/query
@@ -43,11 +43,11 @@ sequenceDiagram
     note over Bob: Derives Group Epoch Secret
 ```
 
-- **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Space Repo。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
+- **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Space Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。由于其仅面向特定新成员解密，该消息可通过 Sync Service 的 Ephemeral Channel 发送，或通过私信 `message` 投递。
 
 ### 2.3 载荷加密 (Application Data)
-日常的 Message、Card 或 Morph 内容负载在写入 Repo 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
+日常的 Message、Card 或 Morph 内容负载在写入 Event 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
 - **可路由元数据分离**：密文信封 `encrypted_payload` 仅包裹实际的业务内容 (`body`, `content`, `attachments`)。
 - **明文元数据保留**：用于网络路由和索引查询的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
 - Sync Service 和 Index 节点可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。
@@ -211,7 +211,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 获得密钥并不意味着可以随意“暗中偷看”。协议要求 Audit Agent 的实现（强烈建议依托于 TEE / SGX enclave 技术）必须执行以下硬性工作流：
 
 1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:msg:123`）。
-2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条类型为 `cx.audit.accessed` 的不可撤销操作，并提交给该 Space 的 Repo：
+2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条类型为 `cx.audit.accessed` 的不可撤销 Event，并提交给该 Space：
    ```json
    {
      "type": "cx.audit.accessed",
@@ -220,7 +220,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
      "actor": "did:web:compliance.acme.corp"
    }
    ```
-3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Repo 或至少一个独立验证节点的 `sync_token`（或因果确权回执），确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
+3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Events API 或至少一个独立验证节点的 `sync_token`（或因果确权回执），确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地（或受控合规服务）才被允许利用持有的 MLS 密钥将对应的明文吐出给合规人员。
 
 ### 3.4 审查透明公示
@@ -239,7 +239,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 ### 4.1 方案 A：密钥衍生与影子客户端 (Key Derivation / Ghost Client) —— 首选
 如果 Agent 是完全独立的 DID，其初始私钥 MUST 由 Master 的根种子（Root Seed）以分层确定性（HD）方式衍生。
 - **机制**：Master 设备在本地计算出 Agent 的 MLS 私钥，并在本地静默运行一个无 UI 的“影子客户端”。
-- **效果**：Master 能够直接从 Repo 同步并解密发给 Agent 的所有群组信息。对于群内其他成员而言，消息只是发给了 Agent，这不会破坏群组的加密边界，也不会产生额外的协议开销。
+- **效果**：Master 能够直接从 Event history 同步并解密发给 Agent 的所有群组信息。对于群内其他成员而言，消息只是发给了 Agent，这不会破坏群组的加密边界，也不会产生额外的协议开销。
 
 ### 4.2 方案 B：记忆提取与私聊同步 (Memory Forwarding)
 如果 Agent 运行在受控云端环境中，Master 无需同步全量密文：
@@ -266,7 +266,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 
 ### 5.3 防冲突仲裁 (Concurrency Resolution)
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
-- 节点将根据底层 Repo 的 **Tie-breaking 规则**（优先级排序：`Auth Weight` -> `HLC` -> `Actor_ID 字典序` -> `Event Hash`）进行无分歧的绝对仲裁。
+- 节点将根据底层 Event reducer 的 **Tie-breaking 规则**（优先级排序：`Auth Weight` -> `HLC` -> `Actor_ID 字典序` -> `Event Hash`）进行无分歧的绝对仲裁。
 - 胜出者的 Commit 成为合法的下一个 Epoch。失败者的客户端发现自己的 Commit 版本过期后，会自动丢弃本地更改并拉取胜出者的状态，确保 E2EE 的强一致性。
 
 ## 6. 离线支持与消息延迟到达

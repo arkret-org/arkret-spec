@@ -10,7 +10,7 @@ Contrix 协议核心不强绑定 REST API；核心操作、消息 envelope 与 t
 本文作为默认 HTTP binding 适用于：
 
 - identity registry
-- repo
+- events
 - Sync Service
 - index
 - blob
@@ -32,7 +32,7 @@ Contrix 协议核心不强绑定 REST API；核心操作、消息 envelope 与 t
 Contrix canonical JSON 字段名 MUST 使用小写字母与下划线连接，例如：
 
 - `space_id`
-- `commit_id`
+- `event_id`
 - `service_endpoint`
 - `verification_method`
 - `retry_after_ms`
@@ -195,8 +195,8 @@ API 调用 SHOULD 使用以下方式之一：
 
 写入请求 SHOULD 携带以下之一：
 
-- `operation_id`
-- `commit_id`
+- `event_id`
+- `operation_id`（仅兼容层或 SDK 本地别名）
 - `request_id`
 - endpoint-specific `idempotency_key`
 
@@ -205,7 +205,7 @@ API 调用 SHOULD 使用以下方式之一：
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
 - 服务端 SHOULD 记录幂等键与 canonical request hash；联邦与服务间写入 MUST 将该 hash 纳入签名 transcript 或 transaction replay cache。
-- 服务端 SHOULD 记录幂等结果至少到相关 Operation 被最终同步或过期。
+- 服务端 SHOULD 记录幂等结果至少到相关 Event 被最终同步或过期。
 
 ## 7. 分页与 cursor
 
@@ -230,7 +230,7 @@ API 调用 SHOULD 使用以下方式之一：
 ```json
 {
   "status": "accepted",
-  "commit_id": "cx:commit:01JS0KE000000000000000000",
+  "event_id": "cx:event:01JS0EV000000000000000000",
   "sync_token": "cx:sync:..."
 }
 ```

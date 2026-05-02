@@ -6,7 +6,7 @@
 
 - 以 **DID principal** 为身份根
 - 以 **Space / Room / Board / List / Card / Message / Morph / Relation 协作图** 为数据根
-- 以 **append-only repo + operations** 为审计根
+- 以 **signed Event + per-actor event chain** 为审计根
 - 以 **capability** 为权限根
 - 以 **views/projections** 为人类展示根
 - 以 **Event** 为协作事实根
@@ -23,7 +23,7 @@ Contrix v1 聚焦以下目标：
 2. 面向对象协作  
    协议根抽象固定为 Space、Actor、Room、Board、List、Card、Message、Morph、Relation、Event、View；标准对象承载主语义，Morph 通过 facets 和 Space schema profile 扩展领域对象。
 3. 去中心化同步  
-   真相基底是签名操作和 repo commit，而不是单一中心数据库。
+   真相基底是 signed Event Envelope 和可验证 actor event chain，而不是单一中心数据库或 atprotocol/Git 式数据仓库。
 4. 多交互模式  
    同一协议同时支持 kanban、list、table、calendar、gantt、chat、thread、forum、tree、graph 等模式。
 5. 人类友好  
@@ -51,7 +51,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 核心阅读路径：
 
 1. [architecture.md](./overview/architecture.md)：架构平面、Principal Server 部署形态、部署拓扑和信任边界。
-2. [glossary.md](./overview/glossary.md)：术语边界，尤其是 Principal / Actor / Organization / Space / Principal Server / Repo。
+2. [glossary.md](./overview/glossary.md)：术语边界，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
 3. [object-model-core.md](./models/object-model-core.md) 与 [object-model-standard.md](./models/object-model-standard.md)：核心对象和标准类型。
    字段级定义见 [data-structures.md](./models/data-structures.md)。
 4. [identity-did.md](./identity/identity-did.md)、[identity-handles.md](./identity/identity-handles.md)、[progressive-disclosure.md](./identity/progressive-disclosure.md)：身份、handle、隐私披露。
@@ -91,8 +91,8 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 ### 5.2 数据
 
-- 每个 principal 拥有自己的 repo
-- 所有共享状态来自 **授权 Event / operation 集合的归约结果**
+- 所有持久协作修改都是 signed Event
+- 所有共享状态来自 **授权 Event 集合的归约结果**
 - `space` 是复制、权限、schema 与 policy 边界
 - `room`、`board`、`list`、`card`、`message` 是协议一等标准对象
 - `morph` 是开放对象载体，用于 schema / profile 扩展类型，并通过 facets 声明能力
@@ -114,13 +114,13 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 ### 5.4 同步
 
-- repo commit 是 actor 侧发布单元
-- operation log 是审计真相源
+- signed Event Envelope 是 actor 侧发布单元
+- per-actor event chain 是审计和重放基础
 - Principal Server / Sync Service 是受控同步与订阅层，不是唯一真相源
 - index/appview 是查询与物化层，不是唯一真相源
-- 服务面要求最小可互操作 principal server / identity registry / repo / sync / index / blob / authz 接口
+- 服务面要求最小可互操作 principal server / identity registry / events / sync / index / blob / authz 接口
 - board/chat/thread/tree/graph 只是不同同步配置和 View 投影，不是不同协议
-- commit/operation 提交必须天然幂等
+- Event 提交必须天然幂等
 - 授权有效性也必须由同一 reducer 顺序收敛
 - 撤回通过 redaction 收敛，不等于保证全球物理删除
 - sync service / index 可以转发不解密的密文 payload；未加密私有正文不得提交给未委托第三方服务
@@ -181,7 +181,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - Space、Room、Board、List、Card、Message、Morph、Relation、Event、View 和标准业务类型。
 - 核心数据结构字段级类型、必填性、枚举和约束。
 - Capability、delegation、claim 条件、policy server、moderation policy。
-- Repo-first 发布、Principal Server 同步、Index 查询、Directory 发现、HTTP binding。
+- Event-first 发布、Principal Server 同步、Index 查询、Directory 发现、HTTP binding。
 - MLS E2EE、设备验证、WebRTC 会议、Blob 与媒体。
 - Applet、Agent protocol interop、Social feed、Space hierarchy。
 - Sovereign deployment 与 controlled collaboration Space。

@@ -8,11 +8,11 @@
 
 ## 2. 存储模型
 
-### 2.1 存储在私有的 Account Repo
+### 2.1 存储在私有 Account Data
 
-由于 Contrix 采用“每个 Actor 都有自己的 Repo”作为信任根，所有的账户私有数据 MUST 作为 Operation 提交到该 Actor 的**个人私有 Repo (Account Repo)** 中。
+由于 Contrix 采用 signed Event 和 per-actor event chain 作为信任根，账户私有数据 SHOULD 作为加密 account data 或 actor-private Event 保存。
 
-这个 Repo 只有用户本人的受信任设备有权限读写。Sync Service 节点仅负责存储加密或不透明的二进制块，并不解析其中的明文。
+这些私有数据只有用户本人的受信任设备有权限读写。Sync Service 节点仅负责存储加密或不透明的二进制块，并不解析其中的明文。
 
 ### 2.2 数据寻址
 
@@ -90,7 +90,7 @@
 
 ### 3.5 个人屏蔽与过滤 (Personal Blocklist)
 
-用户可以在私有 Account Repo 中保存个人 blocklist。该数据只影响用户自己的客户端、私有 Index、通知规则和联系请求处理，不改变 Space 的共享事实。
+用户可以在私有 account data 中保存个人 blocklist。该数据只影响用户自己的客户端、私有 Index、通知规则和联系请求处理，不改变 Space 的共享事实。
 
 **Key:** `cx.account.blocklist`
 
@@ -143,14 +143,14 @@ Rules:
 
 ## 4. 与 Index 节点的交互
 
-虽然 Account Repo 对外不公开，但用户的私有 Index 节点（运行在受控环境中，或可信端侧节点）会拉取并解密这些数据，并合并到查询结果中。
+虽然 account data 对外不公开，但用户的私有 Index 节点（运行在受控环境中，或可信端侧节点）会拉取并解密这些数据，并合并到查询结果中。
 
 例如：当调用 `POST /api/v1/index/query` 以 `object_types=["space"]` 查询加入的 Space 列表时，私有 Index 会将 `cx.tags.space.*` 数据 Join 进去，客户端可以直接得到带私有标签的 Space 列表。该接口的字段级 schema 见 `cx.index.query`。
 
 ## 5. 安全与隐私
 
 - 涉及用户敏感信息的 Account Data（例如访问第三方服务的私钥、密码管理器的 Vault），MUST 另外进行客户端加密（Client-Side Encryption），使用类似 Matrix 4S (Secret Storage) 的机制，通过单独的 Recovery Key 保护。
-- 普通的 UI 偏好和标签可以直接由用户的 Device Key 签名写入 Account Repo。
+- 普通的 UI 偏好和标签可以直接由用户的 Device Key 签名写入加密 account data。
 
 ## 6. v1 规则
 

@@ -183,11 +183,14 @@ Room membership 的 `membership` 取值与 Space membership 相同：`join`、`i
 
 `cx.space.join_rule`:
 
-- `private`：只允许 invite。
+- `invite`：只允许 invite。
 - `public`：任何 actor 可 join，但仍需通过 policy server 和 rate limit。
 - `knock`：外部 actor 可 knock，不可直接 join。
 - `restricted`：actor 必须满足 `allowed_selectors` 中至少一个可验证条件。
 - `knock_restricted`：不满足 restricted 条件者可 knock。
+- `closed`：不接受普通加入、knock 或 invite accept；只允许迁移、维护或管理员明确声明的例外流程。
+
+旧草案中的 `private` 是 `invite` 的同义旧名。v1 canonical event、Space object 和 JSON Schema MUST 使用 `invite`；接收方 MAY 在导入旧数据时把 `private` 规范化为 `invite`，但不得在新的 v1 event 中继续写出 `private`。
 
 `cx.space.history_visibility`:
 
@@ -282,7 +285,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
       {
         "service_did": "did:web:server.acme.example",
         "service_type": "principal_server",
-        "purposes": ["repo", "sync", "backfill"],
+        "purposes": ["events", "sync", "backfill"],
         "visibility": "private_plaintext"
       },
       {
@@ -376,7 +379,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 7. 验证 event kind 的专用规则。
 8. 验证 policy server hard deny、server ACL、ban list 与本地 quarantine list。
 
-授权计算 MUST 使用事件 `created_at` 对应的 auth state，而不是接收时间的最新状态。撤销事件只影响其 causal frontier 之后的事件。
+授权计算 MUST 使用事件被接受时的因果 auth state，而不是接收时间的最新状态。`created_at` 只用于校验签名 key、claim、grant 有效期和时钟窗口，不得让缺少因果前序或 actor_seq 回退的事件绕过 revoke。撤销事件只影响其 causal frontier 之后的事件；若业务事件与相关 revoke 的顺序无法通过 `prev_refs`、`actor_seq` 和 HLC 确定，节点 MUST fail closed、soft fail 或进入 review。
 
 ## 8. State Events
 

@@ -8,7 +8,7 @@
 
 Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
 
-Contrix 的核心抽象是 **principal repo + Space + Room / Board / List / Card / Message / Morph / Relation / Event / View + capability**，重点服务可审计的协作对象、任务、看板、知识、agent 运行和多视图投影。
+Contrix 的核心抽象是 **signed Event + per-actor event chain + Space + Room / Board / List / Card / Message / Morph / Relation / View + capability**，重点服务可审计的协作对象、任务、看板、知识、agent 运行和多视图投影。
 
 因此二者可以互联或桥接，但协议根不同。
 
@@ -16,15 +16,15 @@ Contrix 的核心抽象是 **principal repo + Space + Room / Board / List / Card
 
 | 维度 | Matrix | Contrix |
 | --- | --- | --- |
-| 数据根 | Room 内事件流与 room state。 | Space 内授权 Event / operation 集合，归约为 Room、Board、List、Card、Message、Morph、Relation、View。 |
+| 数据根 | Room 内事件流与 room state。 | Space 内授权 Event 集合，归约为 Room、Board、List、Card、Message、Morph、Relation、View。 |
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、知识记忆、agent run、审计工作流。 |
-| 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Repo、Sync、Index、Blob、Policy 分层。 |
-| 真相源 | Room event graph 与状态解析。 | Principal 签名 repo commit / operation，加上 Space reducer；Index / AppView 都是派生层。 |
+| 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Events、Sync、Index、Blob、Policy 分层。 |
+| 真相源 | Room event graph 与状态解析。 | Actor/device/service 签名 Event Envelope，加上 Space reducer；Index / AppView 都是派生层。 |
 | 身份 | Matrix user ID 绑定 homeserver 域，如 `@alice:example.org`。 | Principal 使用 DID 作为协议主键；`@alice:example.org` 这类标识可作为 handle、登录入口或 bridge alias，但不能作为权限主体。 |
-| 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 身份、repo 与服务 endpoint 分离，DID / handle / service delegation 支持迁移。 |
+| 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 身份、Event 发布链与服务 endpoint 分离，DID / handle / service delegation 支持迁移。 |
 | 授权模型 | Room auth rules、membership、power levels。 | Capability grant、constraint、claim、policy、deterministic authorization。 |
 | 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Space、Actor、对象范围、用户授权和 capability 细分。 |
-| AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可拥有 repo、capability、run、memory、protocol session。 |
+| AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可签名 Event，并拥有 capability、run、memory、protocol session。 |
 | 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
 | E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Contrix 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
 | 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影；Index / AppView 明确是派生查询层，不能成为真相源。 |
@@ -63,16 +63,16 @@ Contrix 的身份与发布模型借鉴 atprotocol 的几个方向：
 - DID 是稳定身份根，handle 是可变入口。
 - handle 需要双向验证。
 - DID Document 用于服务发现和 key discovery。
-- 每个 principal 有自己的可验证 repo。
-- repo commit 是签名发布单元，服务器不能伪造 principal 写入。
+- 每个 actor 通过 `actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
+- signed Event Envelope 是发布单元，服务器不能伪造 principal 写入。
 
-这不要求普通用户直接看见或管理 DID。客户端和服务端 MAY 提供类似 Matrix 的 `@user:domain` 体验，把它作为联系人搜索、登录名、组织 handle 或桥接 alias；在提交持久 operation、grant、repo commit 或 MLS membership 前，必须解析或绑定到 principal DID。
+这不要求普通用户直接看见或管理 DID。客户端和服务端 MAY 提供类似 Matrix 的 `@user:domain` 体验，把它作为联系人搜索、登录名、组织 handle 或桥接 alias；在提交持久 Event、grant 或 MLS membership 前，必须解析或绑定到 principal DID。
 
 但 Contrix 不等同于 atprotocol：
 
 - atprotocol 主要面向公开社交 record 与 PDS；Contrix 面向多方协作 Space、授权状态、私有内容、E2EE 和企业治理。
 - Contrix 默认身份方法是 `did:uuid`，同时支持 `did:web`、外部 DID method adapter 和渐进披露。
-- Contrix 的 repo 记录协作 operation，不是社交 feed record。
+- Contrix 的 Event 记录协作事实，不是社交 feed record。
 - Contrix 把 Space policy、capability、Index、Applet、Agent、MLS 都纳入同一协作协议边界。
 
 ### 4.4 E2EE 架构选择
@@ -108,7 +108,7 @@ Contrix capability 更适合细粒度协作系统：
 
 Matrix homeserver 是用户与 room federation 的核心承载点。
 
-Contrix Principal Server 是受 principal 或 Space policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Repo、Sync、Index、Blob、Push、Policy，但协议仍保持分层。
+Contrix Principal Server 是受 principal 或 Space policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Events API、Sync、Index、Blob、Push、Policy，但协议仍保持分层。
 
 这也是 Contrix 去掉独立第三方分发服务器后的核心边界：未加密私有内容不应进入不受用户、组织或 Space policy 控制的第三方服务。
 
@@ -116,7 +116,7 @@ Contrix Principal Server 是受 principal 或 Space policy 控制的服务边界
 
 Matrix 客户端通常从 sync、state、relations 和聚合接口构建体验。
 
-Contrix 明确把 Index / AppView 作为派生层，用于搜索、通知、inbox、board、table、graph、agent memory retrieval 等。但 Index 不能成为真相源，输出必须可追溯到签名 Event / operation、reducer profile 和授权状态。
+Contrix 明确把 Index / AppView 作为派生层，用于搜索、通知、inbox、board、table、graph、agent memory retrieval 等。但 Index 不能成为真相源，输出必须可追溯到签名 Event、reducer profile 和授权状态。
 
 ### 5.5 协作图比通信图更大
 

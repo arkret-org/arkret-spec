@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多个服务账户、OAuth/OIDC session、device token 和 repo 服务。本文件定义这些层的锁定、暂停、注销、软登出、数据擦除和服务账号生命周期。
+Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多个服务账户、OAuth/OIDC session、device token 和 Principal Server / Events API。本文件定义这些层的锁定、暂停、注销、软登出、数据擦除和服务账号生命周期。
 
 ## 2. 分层
 
@@ -11,7 +11,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 | DID principal | `did:uuid:...` | DID controller / recovery policy |
 | Service account | `alice@example.com` 登录入口 | account service |
 | Device session | access token / refresh token | auth service |
-| Repo data | principal repo / private state | repo service + principal policy |
+| Event / private state | signed Event history / private account data | Events API + principal policy |
 | Space membership | `cx.member.state` | Space policy/capability |
 
 服务 account 被注销不等于 DID 消失。DID 被恢复或轮换不等于所有服务 session 继续有效。
@@ -31,9 +31,9 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 - 绑定到用户已控制的 principal DID，并验证 DID proof、device binding 或等价 session grant。
 - 为该服务账号创建受支持的托管 DID，并记录 controller、recovery policy、trust domain、service-account 绑定和审计证据。
 
-未绑定 DID 的 session MAY 执行注册、风险检查、邀请预览、邮箱验证、设备初始化等 pre-registration 操作；MUST NOT 作为最终 actor 提交 Space Event、repo commit、capability grant、MLS membership、service delegation 或 federation transaction。
+未绑定 DID 的 session MAY 执行注册、风险检查、邀请预览、邮箱验证、设备初始化等 pre-registration 操作；MUST NOT 作为最终 actor 提交 Space Event、capability grant、MLS membership、service delegation 或 federation transaction。
 
-如果用户后续改用自有 DID、pairwise DID 或组织私有 DID，服务 MAY 根据 policy 迁移 handle、service account binding、credential 或后续写入身份。历史 Event 的 `actor_id`、repo `author` 和 grant `subject` MUST NOT 被改写；需要表达迁移时，应发布显式 claim、attestation、profile update 或 account binding record。
+如果用户后续改用自有 DID、pairwise DID 或组织私有 DID，服务 MAY 根据 policy 迁移 handle、service account binding、credential 或后续写入身份。历史 Event 的 `actor_id` 和 grant `subject` MUST NOT 被改写；需要表达迁移时，应发布显式 claim、attestation、profile update 或 account binding record。
 
 当 service account 已绑定到某个 `principal_id` 时，DID proof MAY 作为恢复该 service account 访问的强证据。恢复服务 SHOULD 通过一次性 challenge 验证用户当前控制该 `principal_id`，再允许重设 service account 密码、重新绑定 passkey / WebAuthn 凭据、解除 `soft_logged_out`，或签发短期 session grant。该 DID proof MUST 按 DID method 和本地 trust policy 验证 DID Document、key log / method history、当前 authentication key 或授权 device key、challenge audience、origin、过期时间和重放状态。
 
@@ -93,7 +93,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 - 拒绝新 access token。
 - 可允许 recovery / appeal / export。
 - 可撤销 refresh token。
-- 不自动删除 repo 数据。
+- 不自动删除 Event history 或私有 account data。
 
 已登录设备 SHOULD 收到 account status sync，并停止提交写事件。
 

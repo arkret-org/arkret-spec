@@ -143,7 +143,7 @@ Message 不再是通用 Entity 语义标签，也不是协议唯一事实根。
 
 决策：
 
-- Repo / Operation / Event 仍是审计和归约输入。
+- Event 仍是审计和归约输入；Operation 只作为 SDK / API 语义名称或兼容别名。
 - Sync 以 Space 为主要范围，同时支持 Room、Board、Card、Morph 等过滤。
 - Index 查询使用 `object_types`、`morph_types`、`facets`。
 - `/index/object` 替代 `/index/entity`。

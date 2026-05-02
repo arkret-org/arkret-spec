@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Space / Repo / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Space / Room 可以与 MIMI provider 互通。
+本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Space / Event / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Space / Room 可以与 MIMI provider 互通。
 
 `cx.profile.mimi_interop.v1` 固定参考以下草案版本：
 
@@ -127,7 +127,7 @@ MIMI facade 至少定义以下 canonical operation：
 - created / expires
 - body digest
 
-Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Contrix operation / event / to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Space policy。
+Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Contrix Event 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Space policy。
 
 ## 6. Key Material
 

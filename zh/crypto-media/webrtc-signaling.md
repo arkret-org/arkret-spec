@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Space Repo；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
+Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Space Event history；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
 
 本文件定义：
 
@@ -18,7 +18,7 @@ Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时
 
 Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令 SHOULD 通过 Sync Service 的 Ephemeral Channel 或等价 streaming transport 发送。
 
-通话摘要、会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Space Repo。
+通话摘要、会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Space Event history。
 
 ### 2.2 信令必须认证和加密
 

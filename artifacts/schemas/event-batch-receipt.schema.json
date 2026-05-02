@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/event-batch-receipt.schema.json",
+  "title": "Contrix Event Batch Receipt",
+  "type": "object",
+  "required": ["receipt_id", "type", "issuer", "scope", "frontier", "events", "created_at", "proofs"],
+  "properties": {
+    "receipt_id": { "type": "string", "pattern": "^cx:receipt:[0-9a-hjkmnp-z]{26}$" },
+    "type": { "const": "event_batch_receipt" },
+    "schema": { "const": "cx.schema.event_batch_receipt.v1" },
+    "issuer": { "$ref": "./event-schema.json#/$defs/did" },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "actor_id": { "$ref": "./event-schema.json#/$defs/did" },
+        "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+        "query_hash": { "$ref": "./event-schema.json#/$defs/hash" }
+      },
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "frontier": {
+      "type": "object",
+      "properties": {
+        "actor_seq": { "type": "integer", "minimum": 0 },
+        "event_id": { "$ref": "./event-schema.json#/$defs/eventRef" },
+        "event_hash": { "$ref": "./event-schema.json#/$defs/hash" },
+        "hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" }
+      },
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "$ref": "./event-schema.json#/$defs/eventRef" },
+          { "$ref": "./event-schema.json#/$defs/hash" }
+        ]
+      },
+      "minItems": 1
+    },
+    "created_at": { "$ref": "./event-schema.json#/$defs/timestamp" },
+    "proofs": { "type": "array", "items": { "$ref": "./event-schema.json#/$defs/proof" }, "minItems": 1 }
+  },
+  "additionalProperties": true
+}

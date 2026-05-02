@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Client Sync 是客户端稳定增量同步协议。它不替代 repo replication，而是在 repo / sync service / index 之上提供低延迟、可恢复、可分页、可过滤的客户端视图。
+Client Sync 是客户端稳定增量同步协议。它不替代 Events API / Event history backfill，而是在 Events API / sync service / index 之上提供低延迟、可恢复、可分页、可过滤的客户端视图。
 
 本文定义 Contrix v1 的客户端同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
 
@@ -16,7 +16,7 @@ Authorization: Bearer <session_token>
 Content-Type: application/json
 ```
 
-该端点对应 `cx.sync.client_sync`，用于客户端聚合增量同步。它不同于 `GET /api/v1/sync/subscribe` 的 Space operation 流订阅，也不同于 `GET /api/v1/sync/backfill` 的历史回补；三者共享 cursor 与授权规则，但 `operation_id` 和响应语义不同。
+该端点对应 `cx.sync.client_sync`，用于客户端聚合增量同步。它不同于 `GET /api/v1/sync/subscribe` 的 Space Event 流订阅，也不同于 `GET /api/v1/sync/backfill` 的历史回补；三者共享 cursor 与授权规则，但 `operation_id` 和响应语义不同。
 
 请求字段：
 
@@ -276,7 +276,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 2. 收到 `sync_token_expired` / `stale_frontier` 后，先调用 `sync/describe` 或 `sync/snapshot-head` 获取当前 frontier 与推荐 snapshot。
 3. 若 snapshot 可用，客户端 MUST 验证签名、签名者授权、state hash、frontier 和 chunk digest 后再采用。
 4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `sync/backfill`，补齐缺口后再恢复 `sync/subscribe` 或 `POST /sync`。
-5. 若 snapshot 校验失败，客户端 MUST 回退到 repo history replay 或 operation-only backfill，并可将来源标记为 degraded。
+5. 若 snapshot 校验失败，客户端 MUST 回退到 Event history replay 或 Event-only backfill，并可将来源标记为 degraded。
 
 ## 11. Initial Sync
 

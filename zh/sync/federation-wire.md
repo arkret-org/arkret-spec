@@ -43,7 +43,7 @@ PUT /api/v1/federation/transactions/{txn_id}
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | Space policy 版本或 hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `operations` | body | `object[]` | required | 签名 Operation Envelope 数组；每项独立验签和授权。 |
+| `operations` | body | `object[]` | required | 签名 Event Envelope 数组；字段名沿用 `operations`，每项独立验签和授权。 |
 | `receipts` | body | `object[]` | optional | 与本 transaction 相关的 receipt / witness 证明。 |
 | `frontier` | body | `object` | optional | 发送方当前 causal frontier。 |
 | `created_at` | body | `datetime` | optional | 发送方创建时间；不得作为授权依据。 |
@@ -58,7 +58,7 @@ PUT /api/v1/federation/transactions/{txn_id}
   "destination": "did:web:server.b.example",
   "service_binding_ref": {
     "space_policy_hash": "sha256:...",
-    "membership_frontier": ["cx:evt:..."],
+    "membership_frontier": ["cx:event:..."],
     "destination_service_type": "principal_server"
   },
   "operations": [],
@@ -77,15 +77,15 @@ PUT /api/v1/federation/transactions/{txn_id}
 - 接收方 MUST 以 `(origin, destination, txn_id)` 作为 transaction 幂等键。
 - 同一幂等键 + 相同 canonical request hash MUST 返回语义等价响应。
 - 同一幂等键 + 不同 canonical request hash MUST 返回 `duplicate_conflict`。
-- 已过期签名、重复 nonce、高频失败或来源行为异常 MAY 进入 `quarantine`，但不得把隔离队列成功写入当作 Operation 已接受。
-- 单条 Operation 的接受条件仍是 Actor 签名、schema、capability、Space policy、服务委托和因果依赖全部通过；transaction 签名只证明传输来源。
+- 已过期签名、重复 nonce、高频失败或来源行为异常 MAY 进入 `quarantine`，但不得把隔离队列成功写入当作 Event 已接受。
+- 单条 Event 的接受条件仍是 Actor 签名、schema、capability、Space policy、服务委托和因果依赖全部通过；transaction 签名只证明传输来源。
 
 响应字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `ok` | `boolean` | required | transaction 是否被处理；为 `true` 不表示所有 operation 都接受。 |
-| `accepted` | `id[]` | required | 已接受 operation ID。 |
+| `ok` | `boolean` | required | transaction 是否被处理；为 `true` 不表示所有 Event 都接受。 |
+| `accepted` | `id[]` | required | 已接受 event ID。 |
 | `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和诊断信息。 |
 | `next_retry_at` | `datetime` | optional | 可重试时间；仅限限流、临时不可用或待依赖补齐场景。 |
 
@@ -97,10 +97,10 @@ PUT /api/v1/federation/transactions/{txn_id}
 | --- | --- |
 | `invalid_signature` | service 或 Actor 签名无效。 |
 | `destination_mismatch` | `destination` 与签名、URL、DID service endpoint 或 policy binding 不一致。 |
-| `duplicate_conflict` | 相同 transaction / Operation id 对应不同内容。 |
+| `duplicate_conflict` | 相同 transaction / event id 对应不同内容。 |
 | `dependency_missing` | 缺少因果依赖，可通过 backfill 或 snapshot bootstrap 恢复。 |
 | `capability_denied` | Actor、service 或 Space policy 不允许。 |
-| `schema_violation` | Operation 或 transaction schema 不合法。 |
+| `schema_violation` | Event 或 transaction schema 不合法。 |
 | `temporarily_unavailable` | 依赖、frontier 或本地队列暂不可用。 |
 | `rate_limited` | 来源被限流；响应 SHOULD 携带 `Retry-After`。 |
 
@@ -134,7 +134,7 @@ Backfill 请求字段：
 
 Backfill 授权 MUST 基于 Space policy、membership frontier、service delegation 与 plaintext visibility rules 校验 requester service DID。若请求范围包含非 E2EE 私有内容，请求方 MUST 是参与方 Principal Server，或在该范围内被显式列入 `plaintext_visible_services`。
 
-Backfill response MUST preserve the original signed Operation envelope. 服务端不得在 backfill 中重写 Actor 签名、伪造发送者、替换时间戳或把不可见明文降级为 stripped preview，除非 Space policy 明确允许该 preview 类型。
+Backfill response MUST preserve the original signed Event Envelope. 服务端不得在 backfill 中重写 Actor 签名、伪造发送者、替换时间戳或把不可见明文降级为 stripped preview，除非 Space policy 明确允许该 preview 类型。
 
 ## 6. Fork Detection
 
@@ -149,9 +149,9 @@ Services SHOULD exchange frontier:
 }
 ```
 
-If two histories contain conflicting commits with same id but different hash, service MUST quarantine and report `duplicate_conflict`。
+If two histories contain conflicting Events with same id but different hash, service MUST quarantine and report `duplicate_conflict`。
 
-如果冲突来自同一 Actor 或同一 Repo 的不同签名 head，接收方 SHOULD 保留最小证据集：冲突 commit id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
+如果冲突来自同一 Actor 的不同签名 Event frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 
 ## 7. Quarantine
 

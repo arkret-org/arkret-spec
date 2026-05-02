@@ -37,7 +37,7 @@ flowchart TB
         ORG["Organization DID / Governance"]
         REG["Private Identity Registry"]
         WIT["Private Witness Set"]
-        REPO["Internal Repo Storage"]
+        REPO["Internal Event Storage"]
         SYNC["Internal Principal Server / Sync Service"]
         INDEX["Internal Index / AppView"]
         DIR["Private Directory"]
@@ -59,7 +59,7 @@ flowchart TB
     subgraph "External Organization Domain"
         EXTORG["External Organization DID"]
         EXTCLIENT["External Managed Client"]
-        EXTREPO["External Principal Repo"]
+        EXTREPO["External Principal Server / Events API"]
         EXTSYNC["External Principal Server / Sync Service"]
     end
 
@@ -107,7 +107,7 @@ flowchart TB
 - 主网络保持 closed federation，不向外部主体暴露内部 Directory、Index 或服务拓扑。
 - Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Space。
 - 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Space。
-- 外部组织可以保留自己的 Repo，但写入必须经过 enclave Principal Server / Sync Service、Policy Server 和本地授权验证。
+- 外部组织可以保留自己的 Principal Server / Events API，但写入必须经过 enclave Principal Server / Sync Service、Policy Server 和本地授权验证。
 - 主网络与 enclave 之间没有默认桥接；资料进出必须经过 export / import review。
 
 ## 2.2 Sovereign Client
@@ -139,7 +139,7 @@ Sovereign client SHOULD:
 - 禁止公共 federation。
 - 禁止公共 directory listing。
 - Space 默认 `discoverability=secret` 或 `invite_only`。
-- Space 默认 `join_rule=private` 或 `restricted`。
+- Space 默认 `join_rule=invite` 或 `restricted`。
 - Policy Server 默认 `closed` 或 `quarantine` fail mode。
 - Sync Service / Index / Directory 只接受 allowlist service DID。
 - Blob、snapshot、backup、audit log 存储在组织控制基础设施内。
@@ -253,7 +253,7 @@ Recommended policy:
 }
 ```
 
-外部组织 MAY operate its own Repo / Principal Server, but the controlled Space SHOULD require:
+外部组织 MAY operate its own Principal Server / Events API, but the controlled Space SHOULD require:
 
 - approved external service DID
 - federation transaction signature
@@ -327,7 +327,7 @@ If compromise is suspected:
 - quarantine cross-domain events
 - rotate service keys
 - require re-verification for all external members
-- run backfill integrity audit from source Repo
+- run backfill integrity audit from source Events API
 
 ## 11. Conformance Profile
 

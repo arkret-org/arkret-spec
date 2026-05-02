@@ -97,7 +97,7 @@ recovery key 用于当前控制密钥丢失或泄露后的恢复。
 device key 用于：
 
 - 日常 Operation 签名
-- repo sync 认证
+- Events API / sync 认证
 - device-to-device pairing
 - MLS KeyPackage 身份绑定
 
@@ -139,7 +139,7 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ## 4. Device Record
 
-建议 device record 是 actor repo 中的标准对象或 identity sidecar 中的 signed state。
+建议 device record 是 actor-private signed Event 或 identity sidecar 中的 signed state。
 
 示例：
 
@@ -169,8 +169,8 @@ MLS KeyPackage key 用于加入加密 Space。
 2. 新设备展示 pairing code / QR，其中包含 device public key、challenge、过期时间。
 3. 已授权设备扫描并验证 challenge。
 4. 已授权设备签发 `cx.device.authorized` event。
-5. repo / identity registry 接受并传播该 event。
-6. 新设备开始同步 repo、Space membership 和必要的 MLS Welcome。
+5. Events API / identity registry 接受并传播该 event。
+6. 新设备开始同步 Event history、Space membership 和必要的 MLS Welcome。
 
 `cx.device.authorized` 示例：
 
@@ -181,8 +181,8 @@ MLS KeyPackage key 用于加入加密 Space。
   "device_id": "cx:device:01JS0KE000000000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
-    "cx.repo.describe",
-    "cx.repo.submit_commit",
+    "cx.events.describe",
+    "cx.events.submit",
     "cx.sync.client_sync",
     "cx.keys.keypackages.upload"
   ],
@@ -203,7 +203,7 @@ MLS KeyPackage key 用于加入加密 Space。
 
 吊销后：
 
-- repo MUST 拒绝该设备的新签名写入
+- Events API MUST 拒绝该设备的新签名写入
 - authz MUST 视相关 session grant 失效
 - 加密 Space SHOULD 通过 MLS Remove 推进 epoch
 - Index SHOULD 标记旧设备产生的未确认 Operation 为高风险
@@ -223,7 +223,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
   "scopes": [
-    "cx.repo.submit_commit",
+    "cx.events.submit",
     "cx.space.discover",
     "cx.object.read",
     "cx.card.update",
@@ -250,7 +250,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 
 - recovery key share
 - device state
-- encrypted private repo cache
+- encrypted private account data cache
 - MLS group state
 - pending Welcome
 - private account state

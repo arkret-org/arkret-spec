@@ -336,7 +336,7 @@ Wallet MUST verify：
 
 ### 16.2 披露策略对象
 
-用户的 wallet 或 private repo MAY 保存 `cx.identity.disclosure_policy`：
+用户的 wallet 或 private account data MAY 保存 `cx.identity.disclosure_policy`：
 
 ```json
 {
@@ -386,19 +386,19 @@ Wallet MUST verify：
 
 | 数据 | 推荐位置 | 可见性 |
 | --- | --- | --- |
-| 原始 credential / base proof | wallet 本地加密库或 holder private repo | 仅 holder 设备 |
+| 原始 credential / base proof | wallet 本地加密库或 holder private account data | 仅 holder 设备 |
 | pairwise DID key material | wallet / device secret storage | 仅 holder 设备 |
-| disclosure policy | holder private repo，端到端加密 | holder 自己的设备 |
-| presentation request | 临时 inbox 或 encrypted private repo | holder 与 verifier 可见 |
+| disclosure policy | holder private account data，端到端加密 | holder 自己的设备 |
+| presentation request | 临时 inbox 或 encrypted private account data | holder 与 verifier 可见 |
 | derived proof / presentation | 只发送给目标 verifier；可在本地加密留存副本 | holder 与 verifier |
-| disclosure receipt | holder private repo，可选写入审计摘要 | 默认仅 holder |
-| revocation/status material cache | holder private repo 或 wallet cache | holder 自己的设备 |
+| disclosure receipt | holder private account data，可选写入审计摘要 | 默认仅 holder |
+| revocation/status material cache | holder private account data 或 wallet cache | holder 自己的设备 |
 
-Holder private repo MUST 使用设备或 recovery key 加密。服务端、Sync Service、index 不应能读取原始 credential、base proof、完整 disclosure policy 或跨组织 handle 列表。
+Holder private account data MUST 使用设备或 recovery key 加密。服务端、Sync Service、index 不应能读取原始 credential、base proof、完整 disclosure policy 或跨组织 handle 列表。
 
 ### 16.4 披露记录
 
-Wallet SHOULD 在 holder private repo 中保存 disclosure receipt：
+Wallet SHOULD 在 holder private account data 中保存 disclosure receipt：
 
 ```json
 {

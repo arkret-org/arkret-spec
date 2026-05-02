@@ -27,14 +27,14 @@
 | Morph | 开放对象 | 可由 `facets` 扩展字段和能力的开放对象。Morph 用于 task 之外的新类型、实验类型、集成对象和领域对象，不替代 Room/Board/List/Card/Message 的主语义。 |
 | Facet | 能力切面 | Morph 或支持扩展的标准对象上声明的能力 mixin，例如 assignable、schedulable、replyable、documentable。Facet 不是对象身份。 |
 | Relation | 关系 | Room / Board / List / Card / Message / Morph / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件、Card linked Room 等语义。 |
-| Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 repo、sync、index 和 reducer。 |
+| Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 Events API、sync、index 和 reducer。 |
 | State Event | 状态事件 | 带 `state_key` 的 Event，当前状态由 `(type, state_key)` 归约得到，例如 membership、policy、schema、view definition。 |
 | View | 视图 | 对标准对象 / Morph / Relation / Event 的投影定义，例如 kanban、table、calendar、chat、thread、graph、review queue。View 拥有自己的定义真相（query、filter、sort、renderer、layout、visible fields），但不拥有被投影对象的协作事实。 |
 | Projection | 投影 | Index 或客户端根据 View / query / reducer 从 canonical Event 集合派生出的展示或查询结果。 |
 | Schema | 模式 | 对标准对象、Morph、Relation、Event、View 或 service payload 的结构约束。 |
 | Policy | 策略 | Space 或服务级治理规则，例如加入规则、历史可见性、媒体规则、审核策略、policy server 配置。 |
 | Moderation Policy | 审核策略 | Space 或 Organization 发布的黑名单、允许列表、过滤、隔离、审核队列和上诉规则。它是 deny/quarantine 层，不创建 capability。 |
-| Personal Blocklist | 个人屏蔽列表 | Actor 私有的屏蔽与过滤规则，存储在本地或加密 Account Repo 中，只影响个人客户端体验和通知/联系请求处理。 |
+| Personal Blocklist | 个人屏蔽列表 | Actor 私有的屏蔽与过滤规则，存储在本地或加密 account data 中，只影响个人客户端体验和通知/联系请求处理。 |
 
 ## 3. 标准对象与语义类型
 
@@ -53,7 +53,7 @@
 | Mention | 提及 | 对 Actor、Room、Board、List、Card、Message、Morph 或 Space 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
 | Reaction | 反应 | 对目标 Message、Card、Morph、Event 或其他对象的轻量语义反馈，通常通过 Relation 或标准 reaction event 表达。 |
 | Social Post | 社交发布 | Morph 类型或扩展 profile，用于个人、组织或社区 feed 中的发布内容；可公开、受众受限或私有。 |
-| Social Feed | 社交时间线 | 个人主页、组织公告、项目动态或关注流的发布入口/投影源；本身不替代 Repo 或 Space。 |
+| Social Feed | 社交时间线 | 个人主页、组织公告、项目动态或关注流的发布入口/投影源；本身不替代 Event 或 Space。 |
 | Social Circle | 社交圈 | 发布者维护的受众集合，例如朋友圈、亲友圈、内部成员圈；成员列表默认私有或受限可见。 |
 | Audience Policy | 受众策略 | 定义 post/feed 的可读、可回复、可转发、可索引和受众快照规则。 |
 
@@ -93,16 +93,18 @@
 | Proposal | 提案 | 受限主体不能直接提交高风险 Event 时创建的待审批意图。 |
 | Authz | 授权判定 | Authorization 的缩写，指 capability、policy、membership、device trust 等规则的综合判定。 |
 
-## 6. Repo、同步与状态
+## 6. Event、同步与状态
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Repo | 仓库 | Principal 或 Space 发布 signed commit / operation 的追加式可验证日志。Repo 是协议逻辑对象，不等同于服务器。 |
-| Commit | 提交 | Actor 侧发布单元，包含一个或多个 operation/event 引用和签名。 |
-| Operation | 操作 | 对协作图的原子变更意图或事实，通常封装为 Event 或被 Event 引用。其 wire 字段名为 `operation` / `operations`。 |
-| Operation Envelope | 操作信封 | sync / federation 写路径的签名承载信封，字段名与 Event Envelope 一致（`actor_id`、`kind`、`content`、`proofs`），通过 `causal`、`target_ref`、`authz_ref` 绑定写入语义。 |
-| Operation Log | 操作日志 | 追加式审计记录，用于归约、同步、回放和冲突分析。 |
-| Reducer | 归约器 | 将 accepted Event / Operation 集合归约为当前状态和 projection 的确定性规则。 |
+| Event Store | 事件存储 | Principal Server、客户端、本地节点或授权副本保存 signed Event 的服务/存储能力。它不是协议一等真相源；Event Envelope 才是 canonical fact。 |
+| Event Chain | 事件链 | 同一 actor 通过 `actor_id`、`actor_seq` 和 `prev_refs` 形成的可验证发布顺序。它替代旧草案中的数据仓库概念，作为 actor 侧审计和重放基础。 |
+| Event Batch Receipt | 事件批次回执 | 对一批 Event、frontier 或 witness 状态的签名证明，可用于 read-your-writes、回填对账和审计加速；不是 canonical history 的必经层。 |
+| Operation | 操作 | 服务 API、SDK 或本地 reducer 中的写入动作/意图名称，不是 v1 wire 的签名事实对象。进入 Events API、sync、federation 的规范事实为 Event Envelope。 |
+| Event Envelope | 事件信封 | v1 events / sync / federation 写路径的规范签名承载对象，包含 `event_id`、`space_version`、`actor_id`、`kind`、`prev_refs`、`auth_refs`、`content`、`proofs`。 |
+| Operation Envelope | 操作信封 | 旧文档或 SDK 可能使用的兼容别名；新规范不得定义第二套 wire envelope，出现时 MUST 稳定映射为 Event Envelope。 |
+| Event Log | 事件日志 | 追加式审计记录，用于归约、同步、回放和冲突分析。 |
+| Reducer | 归约器 | 将 accepted Event 集合归约为当前状态和 projection 的确定性规则。 |
 | Reducer Profile | 归约器画像 | 定义 reducer 版本和行为规范的标识符，例如 `cx.reducer.v1`。 |
 | OR-Set | 观察-移除集合 | 冲突解决中用于集合字段的 CRDT 策略，支持并发 add/remove 收敛。 |
 | State Resolution | 状态解析 | 对同一 state key 的并发冲突进行确定性合并的算法。 |
@@ -126,7 +128,7 @@
 | --- | --- | --- |
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID method resolver、registry、witness、watcher、OOBI discovery 或 method-specific verifier 的统称。它证明 DID 控制历史、key state 和服务委托，不决定某个 DID 是否能登录组织或访问组织数据。`did:key` 可以只需要本地 resolver；`did:keri` 通常需要 KERI log、witness、watcher 或 OOBI。 |
 | Witness | 见证节点 | 对 DID log、key rotation、重要状态变更进行外部见证的服务或主体。 |
-| Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 repo、sync、index、blob、push、policy 等能力；`service_type` 应声明为 `principal_server`。 |
+| Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 Events API、sync、index、blob、push、policy 等能力；`service_type` 应声明为 `principal_server`。 |
 | Auth / Account Server | 认证/账户服务器 | 处理 passkey、OIDC、SSO、设备配对、session grant、账户恢复和 soft logout 的服务。它证明服务账户登录并绑定到 DID / device，不直接证明 DID 控制权，也不必须与 DID resolver 同源部署。 |
 | Sync Service | 同步服务 | Principal Server 上的 Space 增量同步能力，负责订阅、回补、去重、临时信令和受控分发；它不是独立第三方服务器角色，也不是真相源。 |
 | Index | 索引 | 将授权事件物化为查询结果、当前态、搜索结果和视图投影的派生层。 |
@@ -139,7 +141,7 @@
 | Push Gateway | 推送网关 | 将脱敏通知投递到移动或桌面平台推送系统的服务。 |
 | Directory Service | 目录服务 | 对 Space、Organization、Actor、Applet 等资源提供授权过滤后的搜索、列举和精确解析的派生服务；不是真相源。 |
 | Applet Server | Applet 服务器 | 承载 Applet / bridge / bot / portal / ghost actor 逻辑的服务，写入仍需 capability、namespace 和签名。 |
-| Agent Runtime Server | Agent 运行服务器 | 执行 agent run、tool call、memory promotion 和外部 agent protocol handoff 的服务；输出写回 Repo / Space 后才成为协议事实。 |
+| Agent Runtime Server | Agent 运行服务器 | 执行 agent run、tool call、memory promotion 和外部 agent protocol handoff 的服务；输出写成 signed Event 后才成为协议事实。 |
 | Realtime Media Server | 实时媒体服务器 | 提供 ICE config、TURN/STUN、SFU/MCU、录制或会议辅助能力的服务。 |
 | Moderation / Compliance Server | 审核/合规服务器 | 提供 report、审核队列、server ACL、policy list、appeal、legal hold 和 erasure workflow 的服务。 |
 
@@ -200,8 +202,8 @@
 | Push Rule | 推送规则 | 用户私有或 Space 级的通知匹配规则。 |
 | Presence | 在线状态 | Actor/device 当前在线、离开、忙碌等短暂状态。 |
 | Typing | 输入中 | 短暂的正在输入指示。 |
-| Ephemeral Event | 临时事件 | 不进入长期 repo 审计图的短期事件，例如 typing、presence、WebRTC ICE candidate。 |
-| Durable Event | 持久事件 | 进入 repo / reducer / audit 的长期事件。 |
+| Ephemeral Event | 临时事件 | 不进入长期 Event 审计图的短期事件，例如 typing、presence、WebRTC ICE candidate。 |
+| Durable Event | 持久事件 | 进入 Event log / reducer / audit 的长期事件。 |
 | STUN | NAT 探测服务 | WebRTC 用于发现公网反射地址的服务。 |
 | TURN | 中继媒体服务 | WebRTC 无法直连或要求隐藏 IP 时使用的媒体中继服务，凭证必须短期有效。 |
 | ICE | 连接候选协商 | WebRTC 用于选择 P2P、STUN 或 TURN 路径的连接协商机制。 |
@@ -259,8 +261,8 @@
 | Public Feed 与 Circle Feed | Public Feed 面向公开索引和广播；Circle Feed 必须按 Audience Policy 授权，不能只靠 UI 隐藏。 |
 | 标准对象 / Morph 与 Event | 标准对象和 Morph 是协作对象；Event 是事实和变更记录。 |
 | Relation 与 View | Relation 是一等语义边；View 是投影定义。对象之间的包含、依赖、回复、关联等事实必须由 Relation 表达，不能只存在于 View cache 或 layout 中。 |
-| Repo 与 Index | Repo 保存可审计事实；Index 保存派生查询结果。 |
-| Repo 与 Principal Server | Repo 是可验证日志；Principal Server 提供 `/repo/*` API 来访问、托管或复制该日志。 |
+| Event Store 与 Index | Event Store 保存可审计 Event；Index 保存派生查询结果。 |
+| Events API 与 Principal Server | Events API 是 Principal Server 的 Event 提交、读取、回填和 frontier 查询服务面；它不是单独的协议真相源。 |
 | Sync Service 与 Authority | Sync Service 只提供受控同步；授权仍由签名、capability、policy 和 reducer 验证。 |
 | Capability 与 Namespace | Capability 授权动作；Namespace 只说明 Applet 负责哪个名称范围。 |
 | Redaction 与 Erasure | Redaction 裁剪协议内容并保留审计；Erasure 是服务侧物理删除/最小化流程。 |
@@ -276,9 +278,9 @@
 
 1. Principal 是身份根；Actor 是 Space 内行为者视图。任何授权、签名验证和责任追溯 MUST 能回到 Principal DID 或受验证的 condition selector。Actor Profile、display name、handle、头像和组织目录结果都不得成为权限主键。
 2. Organization 是治理 Principal；Space 是协作边界。组织可以拥有、托管或背书多个 Space，但 Organization DID、Space owner、Principal Server 运营方和成员列表是四个独立概念。实现 MUST NOT 仅凭域名、服务器托管方或 Space membership 推断组织归属。
-3. 标准对象和 Morph 是当前协作对象；Event / Operation 是事实与审计输入；View 是投影定义，Projection 是派生展示。View 的定义本身可以是 canonical state，但被投影对象的状态、位置、关系和权限必须回到对象、Relation、Policy 和 Event。实现 MUST NOT 只保存当前对象而丢弃可验证事件链，也 MUST NOT 把 View 的可见字段当作权限裁剪。
+3. 标准对象和 Morph 是当前协作对象；Event 是事实与审计输入；View 是投影定义，Projection 是派生展示。View 的定义本身可以是 canonical state，但被投影对象的状态、位置、关系和权限必须回到对象、Relation、Policy 和 Event。实现 MUST NOT 只保存当前对象而丢弃可验证事件链，也 MUST NOT 把 View 的可见字段当作权限裁剪。
 4. Relation 是协议内的一等语义边；正文中的链接、mention、引用和回复若影响授权、通知、检索或审计，MUST 落成结构化 Relation 或 Event 字段。客户端正文扫描只能作为输入辅助。
-5. Repo 是可验证发布日志；Principal Server 是服务边界；Index 是派生查询层。三者可以同机部署，但 service DID、`service_type`、capability、plaintext visibility 和 conformance profile MUST 可区分。
+5. Event Envelope 是 canonical fact；Principal Server 是服务边界；Index 是派生查询层。三者可以同机部署，但 service DID、`service_type`、capability、plaintext visibility 和 conformance profile MUST 可区分。
 6. Capability 授予动作；Policy 限制、隔离或要求审查；Moderation Policy 不授予能力。任何 `allow` 结果都必须先满足 capability，再满足 policy、membership、device trust 和 schema 约束。
 7. Invite 是加入引导，不自动授予完整权限。接受邀请后，只有被引用并满足约束的 grant 才进入有效授权集合；过期、撤销或认领失败的 invite MUST fail closed。
 8. Handle、Claim、Attestation 和 VC 只能证明属性或绑定。权限判定若依赖这些属性，MUST 验证 issuer、audience、有效期、撤销状态和选择性披露范围。

@@ -1329,9 +1329,9 @@ paths:
                     type: array
                     items:
                       $ref: ../schemas/identity-receipt.schema.json
-  /repo/submit-commit:
+  /events:
     post:
-      operationId: cx.repo.submit_commit
+      operationId: cx.events.submit
       security:
         - bearerAuth: []
         - httpMessageSignature: []
@@ -1340,10 +1340,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/commit.schema.json
+              oneOf:
+                - $ref: ../schemas/event-envelope.schema.json
+                - type: object
+                  required: [events]
+                  properties:
+                    events:
+                      type: array
+                      items:
+                        $ref: ../schemas/event-envelope.schema.json
       responses:
         "200":
-          description: Commit accepted
+          description: Event accepted
           headers:
             Idempotency-Key:
               $ref: "#/components/headers/IdempotencyKey"
@@ -1353,12 +1361,57 @@ paths:
             application/json:
               schema:
                 type: object
-  /repo/operations:
-    post:
-      operationId: cx.repo.get_operations
+    get:
+      operationId: cx.events.list
       responses:
         "200":
-          description: Operation batch
+          description: Event history page
+          content:
+            application/json:
+              schema:
+                type: object
+  /events/describe:
+    get:
+      operationId: cx.events.describe
+      responses:
+        "200":
+          description: Events API capabilities
+          content:
+            application/json:
+              schema:
+                type: object
+  /events/{event_id}:
+    get:
+      operationId: cx.events.get
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Event envelope
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/event-envelope.schema.json
+  /events/batch-get:
+    post:
+      operationId: cx.events.batch_get
+      responses:
+        "200":
+          description: Event batch
+          content:
+            application/json:
+              schema:
+                type: object
+  /events/frontier:
+    get:
+      operationId: cx.events.frontier
+      responses:
+        "200":
+          description: Event frontier
           content:
             application/json:
               schema:

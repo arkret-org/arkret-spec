@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/invite.schema.json",
+  "title": "Contrix Invite",
+  "type": "object",
+  "required": ["id", "type", "space_id", "inviter", "join_rule_snapshot", "state", "created_at"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^cx:invite:[0-9a-hjkmnp-z]{26}$" },
+    "type": { "const": "invite" },
+    "schema": { "const": "cx.schema.invite.v1" },
+    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "inviter": { "$ref": "#/$defs/did" },
+    "invitee": { "$ref": "#/$defs/did" },
+    "third_party_id": { "type": "object" },
+    "join_rule_snapshot": { "type": "object" },
+    "capability_grant_refs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$" }
+    },
+    "expires_at": { "$ref": "#/$defs/timestamp" },
+    "state": { "type": "string", "enum": ["pending", "accepted", "rejected", "revoked", "expired"] },
+    "created_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  },
+  "additionalProperties": true
+}

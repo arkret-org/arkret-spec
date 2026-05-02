@@ -3,7 +3,12 @@
   "operations": [
     { "operation_id": "cx.server.describe", "http": "GET /server/describe", "grpc": "Server/Describe", "mq": "server.describe" },
     { "operation_id": "cx.identity.resolve", "http": "POST /identity/resolve", "grpc": "Identity/Resolve", "mq": "identity.resolve" },
-    { "operation_id": "cx.repo.submit_commit", "http": "POST /repo/submit-commit", "grpc": "Repo/SubmitCommit", "mq": "repo.submit_commit" },
+    { "operation_id": "cx.events.describe", "http": "GET /events/describe", "grpc": "Events/Describe", "mq": "events.describe" },
+    { "operation_id": "cx.events.submit", "http": "POST /events", "grpc": "Events/Submit", "mq": "events.submit" },
+    { "operation_id": "cx.events.get", "http": "GET /events/{event_id}", "grpc": "Events/Get", "mq": "events.get" },
+    { "operation_id": "cx.events.batch_get", "http": "POST /events/batch-get", "grpc": "Events/BatchGet", "mq": "events.batch_get" },
+    { "operation_id": "cx.events.list", "http": "GET /events", "grpc": "Events/List", "mq": "events.list" },
+    { "operation_id": "cx.events.frontier", "http": "GET /events/frontier", "grpc": "Events/Frontier", "mq": "events.frontier" },
     { "operation_id": "cx.sync.client_sync", "http": "POST /sync", "grpc": "Sync/ClientSync", "mq": "sync.client_sync" },
     { "operation_id": "cx.sync.subscribe", "http": "GET /sync/subscribe", "grpc": "Sync/Subscribe", "mq": "sync.subscribe" },
     { "operation_id": "cx.federation.transaction", "http": "PUT /federation/transactions/{txn_id}", "grpc": "Federation/Transaction", "mq": "federation.transaction" },

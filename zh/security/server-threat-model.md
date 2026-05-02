@@ -3,7 +3,7 @@
 ## 1. 目标
 
 本文件给出服务端可直接落地的威胁与防护。
-不再复用与当前协议不一致的传统通道细节，所有条目均按 Contrix 的 Repo / Sync Service / Index / Directory / Policy Server / Identity 平面映射到协议规则。
+不再复用与当前协议不一致的传统通道细节，所有条目均按 Contrix 的 Events API / Sync Service / Index / Directory / Policy Server / Identity 平面映射到协议规则。
 
 ## 2. 服务端攻击面
 
@@ -16,7 +16,7 @@
    对认证入口进行高频尝试，或利用泄露/重放的 session token、service token、gateway token 发起越权写入与批量操作。
 
 3. **写入泛滥（Write Flood）**
-   大量 `submit-commit`、`push-operations`、`media.upload`、`call` 事务造成 CPU/IO/队列压垮。
+   大量 `events.submit`、`push-operations`、`media.upload`、`call` 事务造成 CPU/IO/队列压垮。
 
 4. **放大与重试风暴（Amplification / Retry Storm）**
    利用短周期失败、重试、回执链路放大或抖动，触发队列/重试池快速增长。
@@ -49,7 +49,7 @@
     污染 DID resolver、registry、witness 可信链或 `did:web` 域绑定，错误承认身份控制权。
 
 14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**
-    利用重复 `operation_id`、同 `event_id` 不同内容、frontier 分叉制造 state resolution 分支偏序。
+    利用重复 `event_id`、同 `event_id` 不同内容、frontier 分叉制造 state resolution 分支偏序。
 
 15. **快照与快照块投毒（Snapshot / Snapshot Chunk Poisoning）**
     通过伪造 snapshot manifest、chunk/索引入口、签名链错误，劫持 bootstrap 或跳过一致性回放。
@@ -86,7 +86,7 @@
 
 - **身份与来源前置验签**：服务来源先做服务 DID 绑定、签名验证、trust policy 检查，再执行业务授权。
 - **分层限速与退避**：按来源、source service、space、IP hash、tenant、endpoint 限速，超过阈值退避或拒绝。
-- **幂等与重放防护**：`request_id`、`txn_id`、`operation_id` 与 canonical hash 绑定；`operation_id` 重复但内容不一致 MUST reject。
+- **幂等与重放防护**：`request_id`、`txn_id`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
 - **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
 - **多源交叉校验**：snapshot / resolver / frontier / policy decision / DID 头部状态引入二次验证。
@@ -107,7 +107,7 @@
 | 恶意载荷 | 是 | blob/mime/hash 扫描、危险标签隔离、`quarantine` 与人工复核。 |
 | 枚举探测 | 是 | 目录/join/probe 接口统一 `not_found`/`forbidden` 时序与时延。 |
 | 队列耗尽 | 是 | `quota_exceeded`、`rate_limited` 与短时限批量写保护。 |
-| 重放 | 是 | `request_id` 与 canonical hash 绑定；`operation_id` 重复且内容不同 reject；`duplicate_conflict`。 |
+| 重放 | 是 | `request_id` 与 canonical hash 绑定；`event_id` 重复且内容不同 reject；`duplicate_conflict`。 |
 | 配置误用 | 是 | 变更审计、最小默认权限、fail-closed。 |
 | 拓扑污染 | 是 | service list 与发现结果签名可验证，目录/Space 官方背书需双重签名。 |
 | 解析污染 | 是 | resolver trust domain pinning，`did:web` 与 method adapter 证据核验。 |

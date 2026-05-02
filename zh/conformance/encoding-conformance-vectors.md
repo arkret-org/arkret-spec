@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文定义 Contrix canonical JSON、hash、event digest、commit digest、signature binding、HLC、cursor 与 encrypted envelope digest 的一致性测试向量。
+本文定义 Contrix canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 与 encrypted envelope digest 的一致性测试向量。
 
 这些向量是 `encoding.md` 的测试化补充。实现只要在 hash 输入、字段排序、签名绑定或时间排序上产生差异，就不能声称与 Contrix v1 编码 profile 互操作。
 
@@ -167,28 +167,32 @@ sha256:eb874f42a73755f5e77d3815a9cefa19487d84e12459d9c53766fdd6dc43cc5a
 
 - `event_id` MUST 从 redaction 前、去除 `proofs` 后的 canonical event bytes 派生。
 - 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
-- 同一事件在不同 Sync Service、repo replica 或 index 上 MUST 得到相同 digest。
+- 同一事件在不同 Events API、Sync Service 或 Index 上 MUST 得到相同 digest。
 
-## 7. Vector: Commit Digest
+## 7. Vector: Event Batch Receipt Digest
 
 向量名称：
 
 ```text
-cx.vector.encoding.commit_digest.v1
+cx.vector.encoding.event_batch_receipt_digest.v1
 ```
 
-输入 commit，不含 proof：
+输入 Event Batch Receipt，不含 proof：
 
 ```json
 {
-  "schema": "cx.schema.commit.v1",
-  "commit_id": "cx:commit:01js0ke000000000000000000",
-  "type": "commit",
-  "repo_id": "did:web:alice.example",
-  "author": "did:web:alice.example",
-  "author_seq": 1,
-  "prev_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-  "operations": [
+  "schema": "cx.schema.event_batch_receipt.v1",
+  "receipt_id": "cx:receipt:01js0rc000000000000000000",
+  "type": "event_batch_receipt",
+  "issuer": "did:web:alice.example",
+  "scope": {
+    "actor_id": "did:web:alice.example"
+  },
+  "frontier": {
+    "actor_seq": 1,
+    "event_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "events": [
     "sha256:1111111111111111111111111111111111111111111111111111111111111111"
   ],
   "created_at": "2026-04-26T00:00:00Z"
@@ -198,21 +202,21 @@ cx.vector.encoding.commit_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"author":"did:web:alice.example","author_seq":1,"commit_id":"cx:commit:01js0ke000000000000000000","created_at":"2026-04-26T00:00:00Z","operations":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"prev_commit":"sha256:0000000000000000000000000000000000000000000000000000000000000000","repo_id":"did:web:alice.example","schema":"cx.schema.commit.v1","type":"commit"}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01js0rc000000000000000000","schema":"cx.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"},"type":"event_batch_receipt"}
 ```
 
 期望 digest：
 
 ```text
-sha256:8ee2713192bc01d5a6ba7c0a6b2125e00dffff1fb6f4ee85add16c81e6d2d8f0
+sha256:1998dbca1e9d438ec05f0631167aed3a101c35fdbbd49e25a56465f40c1ebc6f
 ```
 
 失败条件：
 
-- `operations` 数组被排序或去重后再 hash。
-- proof 字段被包含进 commit digest。
-- `repo_id`、`author_seq`、`schema` 或 `type` 被排除在 digest 外。
-- `commit_id` 大小写被实现私自改写。
+- `events` 数组被排序或去重后再 hash。
+- proof 字段被包含进 receipt digest。
+- `issuer`、`scope`、`frontier`、`schema` 或 `type` 被排除在 digest 外。
+- `receipt_id` 大小写被实现私自改写。
 
 ## 8. Vector: Signature Binding Payload
 
@@ -345,13 +349,13 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 
 ## 12. 覆盖矩阵
 
-| 向量 | Minimal Client | Full Client | E2EE Client | Repo Node | Principal Server | Index Node |
+| 向量 | Minimal Client | Full Client | E2EE Client | Events API | Principal Server | Index Node |
 | --- | --- | --- | --- | --- | --- | --- |
 | `cx.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.reject_noncanonical_numbers.v1` | MUST | MUST | MUST | MUST | SHOULD | MUST |
 | `cx.vector.encoding.event_digest.v1` | SHOULD | MUST | MUST | MUST | SHOULD | MUST |
-| `cx.vector.encoding.commit_digest.v1` | MAY | SHOULD | SHOULD | MUST | MAY | MAY |
+| `cx.vector.encoding.event_batch_receipt_digest.v1` | MAY | SHOULD | SHOULD | SHOULD | MAY | MAY |
 | `cx.vector.encoding.signature_binding_payload.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
 | `cx.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD | MUST |
 | `cx.vector.encoding.cursor_opaque.v1` | MUST | MUST | MUST | MAY | SHOULD | MUST |
