@@ -16,7 +16,7 @@
     "actor_id": { "$ref": "#/$defs/did" },
     "actor_seq": { "type": "integer", "minimum": 0 },
     "created_at": { "$ref": "#/$defs/timestamp" },
-    "hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{8}-[0-9a-f]{8}$" },
+    "hlc": { "type": "string", "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$" },
     "prev_refs": { "type": "array", "items": { "$ref": "#/$defs/eventRef" } },
     "auth_refs": { "type": "array", "items": { "type": "string", "pattern": "^cx:(evt|event|grant|policy):[0-9a-hjkmnp-z]{26}$" } },
     "redacts": { "$ref": "#/$defs/eventRef" },

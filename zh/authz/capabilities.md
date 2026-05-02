@@ -634,6 +634,12 @@ Fast path 规则：
 5. **重建**：缓存 miss、stale 或 frontier 不匹配时，节点 MUST 重新执行完整授权判定或返回可恢复的 `soft_fail` / `temporarily_unavailable`。高频路径最大重建延迟见 `../conformance/scalability-constraints.md`。
 6. **安全边界**：Fast path 只能缓存“基础 capability 是否允许”。Moderation / Policy Server 的 `deny`、`quarantine`、`require_review`、rate limit、legal hold 和 abuse policy 仍 MUST 在写入接收、分发和查询返回前执行。缓存命中不得绕过 plaintext-visible service 检查。
 
+### 18.2 Revocation Freshness
+
+对高风险动作（capability 管理、membership 管理、policy 变更、MLS epoch、service delegation、blob 明文下载、agent/tool 执行），allow 决策 MUST 绑定最近可验证的 grant / revoke frontier。若节点知道存在更新的 revoke frontier 但尚未完成验证，MUST 返回 `soft_fail`、`stale_frontier` 或 `temporarily_unavailable`，不得使用旧缓存继续放行。
+
+授权缓存的 `cache_valid_until` 只是性能提示，不是离线长期授权。高风险 allow 缓存 SHOULD 使用短 TTL；超过 `scalability-constraints.md` 声明的重建窗口后，缓存只能用于 deny 或 require_review，不得继续产生新的 allow。
+
 ## 19. 设计决定
 
 Contrix v1 固定：

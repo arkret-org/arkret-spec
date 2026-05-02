@@ -77,6 +77,7 @@ Initial object schemas:
 | `cx.device.authorized` | Device authorization |
 | `cx.device.revoked` | Device revocation |
 | `cx.session.grant` | Session grant |
+| `cx.account.status` | Signed account lifecycle status |
 | `cx.read.marker` | Read marker event |
 | `cx.receipt.read` | Read receipt event |
 | `cx.applet.bridge_error` | Bridge failure |
@@ -86,3 +87,29 @@ Initial object schemas:
 | `cx.mimi.room_binding` | MIMI room binding state |
 | `cx.call.signal` | WebRTC signal message |
 | `cx.redaction` | Generic redaction envelope |
+
+## Extensions
+
+Custom schema ids SHOULD use reverse-DNS names, for example:
+
+```text
+com.example.schema.foo.v1
+```
+
+Custom event types MUST NOT use the `cx.` prefix unless they are accepted into this standard registry. Free-form `custom.*` event names are not directly interoperable; custom behavior MUST be guarded by a declared schema profile, explicit capabilities, and reducer behavior.
+
+## Compatibility
+
+Schema evolution MUST:
+
+- preserve unknown fields in canonical protocol objects when storing, forwarding, backfilling, or computing hashes.
+- avoid changing the meaning of existing fields.
+- add optional non-critical fields before adding required fields.
+- provide migration notes for reducer behavior.
+- declare a new schema or reducer profile when a field changes authorization, visibility, ordering, or convergence semantics.
+
+Unknown non-critical fields in a canonical Event, Operation, Commit, Snapshot, Grant, or encrypted envelope MUST be retained in the signed canonical bytes and ignored by reducers that do not understand them. Materialized views and OpenAPI DTO responses MAY omit unknown fields, but they MUST NOT strip them from the canonical object before signature/hash verification or federation forwarding.
+
+Unknown critical features MUST fail closed. A sender marks critical behavior through a declared schema/reducer profile, event type, `required_features`-style profile metadata, or an extension rule explicitly marked critical by the owning schema. Receivers that do not support the critical behavior MUST return `unsupported_feature`, `schema_violation`, `soft_fail`, or `quarantine`; they MUST NOT silently accept and reinterpret the event.
+
+OpenAPI request/response schemas MAY use `additionalProperties: false` for service DTOs. That does not override canonical object preservation rules. If a DTO embeds a canonical protocol object, the embedded object MUST be parsed with the registry schema and preserved according to this section.

@@ -112,6 +112,7 @@
 | `cx.device.authorized` | Device authorization |
 | `cx.device.revoked` | Device revocation |
 | `cx.session.grant` | Session grant |
+| `cx.account.status` | Signed account lifecycle status |
 | `cx.read.marker` | Read marker event |
 | `cx.receipt.read` | Read receipt event |
 | `cx.applet.bridge_error` | Bridge failure |
@@ -140,3 +141,10 @@ Schema evolution MUST:
 - avoid changing field meaning
 - add optional fields before required fields
 - provide migration notes for reducer behavior
+- 若字段改变授权、可见性、排序或收敛语义，必须声明新的 schema 或 reducer profile。
+
+未知的 non-critical 字段出现在 canonical Event、Operation、Commit、Snapshot、Grant 或 encrypted envelope 中时，接收方 MUST 在存储、转发、backfill 和 hash/signature 校验所用 canonical bytes 中保留这些字段；不理解该字段的 reducer MUST 忽略它，而不是剔除、重排语义或当作失败。Index / OpenAPI DTO / materialized view MAY 在派生响应中省略未知字段，但不得在验证、联邦转发或审计回放前从 canonical object 中剥离。
+
+未知 critical feature MUST fail closed。发送方可通过声明的 schema/reducer profile、event type、`required_features` 风格的 profile metadata，或扩展 schema 明确标注 critical 语义。接收方若不支持该 critical 语义，MUST 返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得静默接受并用旧语义解释。
+
+OpenAPI request/response schema MAY 对服务 DTO 使用 `additionalProperties: false`。这不覆盖 canonical object 的字段保留规则。若 DTO 内嵌 canonical protocol object，内嵌对象 MUST 按 registry schema 解析，并按本节保留未知字段。

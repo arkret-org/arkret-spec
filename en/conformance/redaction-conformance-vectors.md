@@ -93,3 +93,18 @@ Expected:
 - redacted event body is hidden, but redaction evidence remains.
 - archived/frozen content keeps timeline order and does not become fully deleted.
 
+## 4. Vector: Hard erasure receipt
+
+Vector ID:
+
+```text
+cx.vector.redaction.hard_erasure_receipt.v1
+```
+
+Expected:
+
+- hard erasure removes payload bytes and derived plaintext from the tested storage boundary.
+- the implementation retains a verification stub with original event id, original canonical hash or payload digest, redaction event id, erasure reason, executing service DID, time, and signed receipt.
+- backfill returns the redacted / erased stub and does not fabricate a replacement event.
+- legal hold blocks hard erasure while preserving redacted presentation.
+

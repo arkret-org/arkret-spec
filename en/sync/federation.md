@@ -270,6 +270,10 @@ This is an optional optimization.
 - A batch success is not equivalent to final authorization.
 - Batch-level request hash/chunk digest SHOULD be supplied for replay/flood detection.
 
+If an implementation enables multi-hop gossip rather than direct push/pull, each federation transaction MUST carry transport-level path metadata covered by the service-to-service signature, such as `relay_path`, `hop_count`, and `max_hops`. A receiver MUST reject or quarantine a transaction when its own service DID already appears in the path, when `origin` or `destination` is inconsistent with the signature transcript, or when `max_hops` is exceeded. Path metadata does not replace operation signatures and is not part of the actor's canonical event.
+
+Forwarders MUST deduplicate by operation id and canonical operation hash before fanout. They SHOULD keep a bounded per `(space_id, operation_id, peer_service_did)` replay cache and MUST apply per-origin, per-space, and per-peer in-flight limits. When queues exceed local policy, services return `rate_limited` or `temporarily_unavailable` with `Retry-After`; they MUST NOT create unbounded retry storms.
+
 ### 9.3 Cross-domain delegation and propagation control (Required security boundary)
 
 Cross-domain delegation must remain explicit:

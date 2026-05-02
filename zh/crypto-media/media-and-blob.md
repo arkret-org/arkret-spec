@@ -104,6 +104,14 @@ GET /api/v1/blob/get?blob_ref=<ref>
 - retention / legal hold
 - unsafe media policy
 
+Retention 与 erasure 规则：
+
+- Blob 删除 MUST 由 Space policy、对象所有权、account lifecycle、retention expiry 或签名 compliance decision 授权。
+- 处于 legal hold 的 blob MUST NOT 被物理删除；服务可以通过 redaction 或 policy 在普通视图中隐藏。
+- Blob 被擦除后，服务 SHOULD 只保留最小 receipt：`blob_ref`、digest、策略允许时的 size class、erasure reason、执行服务 DID、执行时间和签名。
+- 缩略图、preview、转码、搜索文本、embedding 和通知摘要等派生内容 MUST 在源 blob 或源 event 被 redacted / erased 后删除或重新最小化。
+- E2EE 附件密钥销毁只能阻止后续访问，不能撤回已被授权接收方下载或解密的明文。
+
 受保护内容默认必须走 authenticated download。公开 blob MAY 允许匿名读取，但私有 Space、受控组织、E2EE 附件和任何带访问策略的媒体 MUST 要求认证。
 
 下载请求 SHOULD 支持：

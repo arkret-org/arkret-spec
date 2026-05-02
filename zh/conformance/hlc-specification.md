@@ -163,6 +163,8 @@ HLC 在因果依赖之后提供第二级排序。
 - 在本地维护单调性
 - 使用一致的 node_id 计算方式
 
+该文本格式对 Event envelope、cursor、snapshot frontier、暴露 HLC 位置的 sync token 和 conformance fixture 都是规范格式。profile 不得把 logical counter 替换为 8 字符或可变宽度编码；若确需改变，必须声明新的 HLC version 和 schema profile。
+
 ## 8. 安全考虑
 
 1. **时钟漂移攻击**：验证物理时间在合理范围内

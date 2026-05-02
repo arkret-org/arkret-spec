@@ -175,3 +175,18 @@ cx.vector.redaction.policy_scope.v1
 - 在 redaction 后把事件从 timeline 移除。
 - 使用完整明文替代 redaction 保留字段。
 - 将 `quarantine` 解释为“删除”而非显示约束。
+
+## 4. Vector: hard erasure receipt
+
+向量名称：
+
+```text
+cx.vector.redaction.hard_erasure_receipt.v1
+```
+
+期望：
+
+- hard erasure 在被测存储边界内删除 payload bytes 与派生明文。
+- 实现保留 verification stub：原始 event id、原始 canonical hash 或 payload digest、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。
+- backfill 返回 redacted / erased stub，不伪造替代事件，也不静默造成历史缺口。
+- legal hold 存在时阻止 hard erasure，但默认展示仍应用 redaction。

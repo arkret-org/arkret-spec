@@ -100,6 +100,14 @@ Response fields / headers:
 
 Services MUST check actor authorization, Space visibility, retention / legal hold, and unsafe media policy before serving protected content.
 
+Retention and erasure rules:
+
+- Blob deletion MUST be authorized by Space policy, object ownership, account lifecycle, retention expiry, or a signed compliance decision.
+- A blob under legal hold MUST NOT be physically deleted; services may hide it from normal views through redaction or policy.
+- When a blob is erased, the service SHOULD retain only a minimal receipt: `blob_ref`, digest, size class if policy allows, erasure reason, executing service DID, time, and signature.
+- Derived thumbnails, previews, transcodes, search text, embeddings, and notification snippets MUST be deleted or re-minimized when their source blob or source event is redacted or erased.
+- E2EE attachment key destruction is an erasure mechanism for future access, but it does not revoke plaintext already downloaded or decrypted by authorized recipients.
+
 Protected content MUST use authenticated download by default. Public blobs MAY allow anonymous reads, but private Spaces, controlled organizations, E2EE attachments, and any media with access policy MUST require authentication.
 
 Rules:

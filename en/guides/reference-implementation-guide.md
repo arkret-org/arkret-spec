@@ -208,7 +208,7 @@ interface Grant {
 }
 
 // HLC type
-type HLC = string;  // Format: <physical_hex_12>-<logical_hex_8>-<node_hex_8>
+type HLC = string;  // Format: <physical_hex_12>-<logical_hex_4>-<node_hex_8>
 
 // Cursor type
 interface Cursor {

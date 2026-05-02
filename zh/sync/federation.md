@@ -401,6 +401,8 @@ POST /api/v1/federation/verify-actor
 - 按 `origin` DID、来源 IP hash、endpoint 和 Space id 做独立限速
 - 对来自未知域的首次请求做降级处理（先验证后全速）
 - 限制单次请求体积和批次大小，超阈值先进入 `rate_limited`
+- 先执行低成本 envelope / size / signature transcript 校验，再进入昂贵的 DID resolution、auth chain 展开和 reducer 预演
+- 对连续失败来源使用有界队列和 `Retry-After`，不得让失败请求触发无限 backfill 或 retry fanout
 
 ### 8.2 选择性拒绝
 
@@ -467,6 +469,8 @@ POST /api/v1/federation/verify-actor
 - Gossip 转发不得改变单条 operation 的语义、签名或时间线排序前置假设。
 - 不得以批处理成功作为 Operation 被最终可验证的充要条件；最终仍以 `operation_id`、签名、因果前沿验证判定是否可见。
 - 每个 batch 应带可核验的批次摘要（例如请求级 hash）以便对端做重试/重放检测。
+- 若实现启用多跳 gossip 而不是直接 push / pull，每个 federation transaction MUST 携带由 service-to-service 签名覆盖的 transport-level path metadata，例如 `relay_path`、`hop_count` 和 `max_hops`。接收方发现自己的 service DID 已在路径中、`origin`/`destination` 与签名 transcript 不一致，或超过 `max_hops` 时，MUST reject 或 quarantine。path metadata 不能替代单条 Operation 的 Actor 签名，也不是 Actor canonical event 的一部分。
+- 转发方 MUST 在 fanout 前按 operation id 与 canonical operation hash 去重。实现 SHOULD 维护有界的 `(space_id, operation_id, peer_service_did)` replay cache，并对 `origin`、Space 和 peer 维度设置 in-flight 上限。队列超过本地策略时返回 `rate_limited` 或 `temporarily_unavailable` 并带 `Retry-After`，不得制造无界重试风暴。
 
 ### 9.3 跨域权限委托与级联（明确边界项）
 

@@ -56,6 +56,8 @@
 
 节点 MUST NOT 因为事件来自可信 Sync Service 就跳过任何步骤。
 
+接收方在进入授权和 state resolution 前 MUST 验证 HLC 格式和时钟窗口。HLC 物理时间超过本地接收时间允许偏差（默认 5 分钟）的事件 MUST reject 或 quarantine；被 quarantine 的事件不得参与 winner 选择。对于 `cx.capability.*`、membership、policy、MLS epoch、service binding 等高风险 state event，若候选事件的 HLC 明显超出该 actor / service 最近观测 drift，节点 SHOULD soft-fail 或 quarantine 并请求 backfill / policy check，而不得仅因更大的 HLC 让其胜出。
+
 ## 4. Auth Refs
 
 每个写事件 MUST 包含 `auth_refs`。`auth_refs` 是授权当前事件所需的最小状态事件集合，不是完整状态快照。
@@ -461,6 +463,8 @@ State resolution MUST 受 `../conformance/scalability-constraints.md` 的上限�
 
 该算法 MUST deterministic。任何实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
 
+HLC 只能在候选事件已通过格式、签名、授权、时钟窗口和 causal dependency 检查后参与排序。`created_at`、HTTP receive time、provider timestamp 或外部桥接时间戳不得替代 HLC，也不得单独作为授权或 winner 依据。
+
 ### 9.3.1 Auth Difference
 
 `auth difference` MUST 使用集合算法计算，不得依赖遍历顺序：
@@ -517,6 +521,20 @@ auth_difference(conflicted_events):
 - `client_generated`
 
 Redaction 不保证物理删除。Blob 删除、密钥销毁和法律擦除由 `media-and-blob.md` 与 `account-lifecycle.md` 定义。
+
+### 10.1 Redaction 与 Erasure
+
+Redaction 是协议层可验证内容裁剪；Erasure 是某个存储边界内的物理删除或数据最小化流程。实现和 UI MUST 区分二者，不能把 redaction 描述为全网物理删除。
+
+当 Space policy、account lifecycle、legal request 或 retention policy 要求 hard erasure 时，服务 MAY 在本地删除原始 payload bytes、blob bytes、缩略图、全文索引、embedding、preview 和可逆派生内容，但必须满足：
+
+1. 已存在 accepted 的 `cx.redaction`、`cx.account.status{status="erasure_pending"}`、signed erasure receipt、retention expiry 或等价可审计授权依据。
+2. 没有 active legal hold、审计保全或组织保留策略阻止删除。
+3. 保留最小 verification stub：`event_id`、原始 canonical hash / payload digest、redaction event id、erasure reason code、执行服务 DID、执行时间和签名 receipt。
+4. 不得重写原事件 hash、签名或 causal refs；backfill 返回 redacted / erased stub，而不是伪造一个新事件或静默缺失。
+5. 派生服务（Index、Search、Embedding、Thumbnail、Notification preview）必须按同一 erasure receipt 重新判定并删除或最小化派生内容。
+
+对于 E2EE 内容，密钥销毁或停止共享只能阻止后续访问；已经被成员解密、导出或复制的明文不受协议保证。客户端和合规文档 MUST 明确这一点。
 
 ## 11. Soft Fail, Reject, Quarantine
 

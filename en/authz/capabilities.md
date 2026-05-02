@@ -552,6 +552,12 @@ When multiple grants match, the recommended behavior is:
 - then intersect or tighten constraints to the strictest effective shape
 - finally apply revocation, expiry, delegation-depth, claim, and approval trimming
 
+### 18.1 Revocation Freshness
+
+High-risk actions, including capability management, membership management, policy changes, MLS epoch changes, service delegation, private blob download, and agent/tool execution, MUST bind allow decisions to the latest verifiable grant / revoke frontier available to the node. If the node knows a newer revoke frontier exists but has not verified it, it MUST return `soft_fail`, `stale_frontier`, or `temporarily_unavailable`; it MUST NOT keep allowing through an older cache.
+
+`cache_valid_until` is a performance hint, not long-lived offline authority. High-risk allow caches SHOULD use short TTLs. After the declared authz snapshot rebuild window is exceeded, stale caches may be used only to deny or require review, not to produce new allow decisions.
+
 ## 19. Initial Design Decisions
 
 The current draft recommends fixing:

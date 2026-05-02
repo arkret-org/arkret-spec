@@ -550,12 +550,13 @@ Contrix v1 固定：
 - 授权有效性由同一 reducer 顺序收敛。
 - 密文负载可以被不解密的 sync service / index 转发。
 - 撤回采用 redaction/tombstone 语义。
+- hard erasure 只能删除本地 payload / blob / 派生内容，并保留 verification stub；不得重写 event hash 或伪装事件从未存在。
 - 冲突通过固定 reducer 规则收敛。
 
 ## 23. 规范性引用
 
 - Cursor 编码与 opaque 语义见 `encoding.md`、`data-structures.md` 和 `encoding-conformance-vectors.md`。
-- HLC 文本格式固定为 `<unix_ms_hex>-<logical_hex>-<node_id_hash>`，排序向量见 `encoding-conformance-vectors.md`。
+- HLC 文本格式固定为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，排序向量见 `encoding-conformance-vectors.md`。
 - Snapshot manifest、chunk digest、`state_hash` 和签名规则见 `snapshot-schema.md`。
 - Room / Message 语义见 `../models/conversation-model.md`。
 - Board / List / Card / Morph 语义见 `../models/object-model-standard.md` 和 `../models/views.md`。

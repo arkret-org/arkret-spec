@@ -152,6 +152,8 @@ Implementations MUST:
 - Maintain monotonicity locally
 - Use consistent node_id calculation
 
+This exact textual format is normative for Event envelopes, cursors, snapshot frontiers, sync tokens that expose HLC positions, and conformance fixtures. Profiles MUST NOT substitute an 8-character logical counter or a variable-width encoding without declaring a new HLC version and schema profile.
+
 ## 8. Security Considerations
 
 1. **Clock Skew Attacks**: Validate physical time is within reasonable bounds

@@ -148,7 +148,7 @@ Sync 响应包含以下 stream：
 }
 ```
 
-如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。
+如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_batch`、`next_batch`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `sync_token_expired`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。
 
 ## 5. State After
 
@@ -268,7 +268,15 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - stream positions
 - expiry
 
-服务端 MAY 拒绝过期 token，并返回 `sync_token_expired`。客户端应回退到 initial sync。
+服务端 MAY 拒绝过期 token，并返回 `sync_token_expired`。客户端应回退到 initial sync 或 snapshot-assisted initial sync，同时保留本地未确认写入队列。
+
+过期或缺口恢复流程：
+
+1. 客户端保留本地 `next_batch`、filter hash、未确认写入和最后可验证 frontier。
+2. 收到 `sync_token_expired` / `stale_frontier` 后，先调用 `sync/describe` 或 `sync/snapshot-head` 获取当前 frontier 与推荐 snapshot。
+3. 若 snapshot 可用，客户端 MUST 验证签名、签名者授权、state hash、frontier 和 chunk digest 后再采用。
+4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `sync/backfill`，补齐缺口后再恢复 `sync/subscribe` 或 `POST /sync`。
+5. 若 snapshot 校验失败，客户端 MUST 回退到 repo history replay 或 operation-only backfill，并可将来源标记为 degraded。
 
 ## 11. Initial Sync
 

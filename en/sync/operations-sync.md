@@ -516,6 +516,8 @@ Required semantics:
 - default views show "recalled" or equivalent
 - normal views should not keep leaking the body
 - no promise of global physical erasure
+- hard-erasure capable services must retain a verification stub instead of rewriting event hashes or pretending the event never existed
+- derived indexes, previews, embeddings, thumbnails, and notifications must re-evaluate visibility after redaction or erasure receipts
 
 ### 19.3 Redaction Before the Original Message Arrives
 
@@ -584,7 +586,7 @@ The current draft recommends fixing:
 The following wire-level items are defined in v1-related documents and are not retained as open items here:
 
 - Cursor encoding and opaque semantics: see `encoding.md`, `data-structures.md`, and `encoding-conformance-vectors.md`.
-- HLC text format is fixed as `<unix_ms_hex>-<logical_hex>-<node_id_hash>`; sorting vectors: `encoding-conformance-vectors.md`.
+- HLC text format is fixed as `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`; sorting vectors: `encoding-conformance-vectors.md`.
 - Snapshot manifest, chunk digest, `state_hash`, and signing rules: `snapshot-schema.md`.
 - Encrypted payload envelope schema: `data-structures.md`, `snapshot-schema.md`, `encryption-and-audit.md`, and `encoding-conformance-vectors.md`.
 - Read marker private state, sync surface, and notification derivation: `read-notification-schema.md`, `read-receipts.md`, and `client-preferences.md`.

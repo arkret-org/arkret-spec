@@ -68,12 +68,13 @@ The following release/acceptance profiles define deployment shape rather than a 
 
 ## Fixture Families
 
-Conformance suites should include schema validation, signature verification, idempotency, reducer convergence, authorization, privacy regression, unsupported-feature tests, and these fixture families:
+Conformance suites should include schema validation, signature verification, idempotency, reducer convergence, authorization, privacy regression, unsupported-feature tests, unknown-field preservation tests, and these fixture families:
 
 - State resolution: `state-resolution-conformance-vectors.md`
 - Redaction: `redaction-conformance-vectors.md`
 - Capability: `capability-conformance-vectors.md`
 - Core sync/encoding vectors: `sync-conformance-vectors.md`, `encoding-conformance-vectors.md`
+- Schema evolution: unknown non-critical fields preserved through hash verification, storage, federation forwarding, and backfill; unknown critical features fail closed.
 - E2EE hardening: KeyPackage single-use, MLS-bound state root mismatch, minimal-metadata identity link, AAD visibility, E2EE franking report
 - MIMI interop: provider directory draft pinning, room binding projection, content roundtrip, identifier query privacy, consent isolation, proxy download policy, unsupported-draft fail-closed
 - Machine-readable fixtures: `fixtures/*.json`
