@@ -9,7 +9,7 @@
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "target_ref": {
       "type": "string",
-      "pattern": "^(cx:(event|room|board|list|card|message|morph|relation|view|blob):[0-9a-hjkmnp-z]{26}|cx:blob:sha256:[0-9a-f]{64})$"
+      "pattern": "^(cx:(event|subject|room|board|list|card|message|morph|relation|view|blob):[0-9a-hjkmnp-z]{26}|cx:blob:sha256:[0-9a-f]{64})$"
     },
     "reason": {
       "type": "string",

@@ -19,14 +19,15 @@
 | Official Space | 官方空间 | 由 Organization DID 直接创建，或被 active `cx.space.organization` state event 背书且 `scope.official=true` 的 Space。名称、域名、服务器托管方或成员列表不能单独证明官方性。 |
 | Space Hierarchy | 空间层级 | Space 之间的 parent/child 组织关系，用于导航、发现和受控继承；不默认级联权限、成员、历史或加密。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、父 Space、组织页、精确链接或邀请发现的策略；不等于 join rule、read permission 或 history visibility。 |
+| Subject | 语义中心 | Space 内被讨论、推进、引用、审阅、执行或沉淀的“东西本身”。Subject 只承载稳定 ID、标题、brief、kind、生命周期和 surface 关系；Card、Room、Document、Run、Memory 等通过 `has_surface` 围绕它协作。 |
 | Room | 房间 | Space 内的一等会话容器，用于承载 Message、成员状态、历史可见性、通知和 E2EE epoch。Room 可以被 Card 链接，但权限和成员独立。 |
 | Board | 看板 | Space 内的一等工作组织对象，包含多个 List；Board 是协议对象，不只是 View 投影。 |
 | List | 列表 | Board 下的一等有序分组对象，通常包含多个 Card，并维护局部排序与归档状态。 |
-| Card | 卡片 | Board/List 下的一等工作项、主题项或可推进对象。Card 可链接零到多个 Room，但不继承或控制这些 Room 的成员。 |
+| Card | 卡片 | Board/List 下的一等工作项或 Subject 的状态推进 surface。Card 可链接零到多个 Room，但不继承或控制这些 Room 的成员。 |
 | Message | 消息 | Room 内的一等会话内容对象。Message 归属某个 Room，不是 Space 的唯一事实根。 |
-| Morph | 开放对象 | 可由 schema / profile 扩展类型和字段的开放对象；`facets` 只暴露已声明能力的 hint / 查询标签。Morph 用于 task 之外的新类型、实验类型、集成对象和领域对象，不替代 Room/Board/List/Card/Message 的主语义。 |
+| Morph | 开放对象 | 可由 schema / profile 扩展类型和字段的开放对象；`facets` 只暴露已声明能力的 hint / 查询标签。Morph 用于 task 之外的新类型、实验类型、集成对象和领域对象，不替代 Subject/Room/Board/List/Card/Message 的主语义。 |
 | Facet | 能力提示 | Space schema / Morph profile 声明能力后的可查询标签或展示提示，例如 assignable、schedulable、replyable、documentable。Facet 不是对象身份，也不是授权、状态机、reducer 或 wire 语义的来源。 |
-| Relation | 关系 | Room / Board / List / Card / Message / Morph / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件、Card linked Room 等语义。 |
+| Relation | 关系 | Subject / Room / Board / List / Card / Message / Morph / Actor / Space 之间的一等连接对象，用于表达包含、surface、回复、依赖、引用、分配、提及、父子、附件、Card linked Room 等语义。 |
 | Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 Events API、sync 和 reducer。 |
 | State Event | 状态事件 | 带 `state_key` 的 Event，当前状态由 `(type, state_key)` 归约得到，例如 membership、policy、schema、view definition。 |
 | View | 视图 | 对标准对象 / Morph / Relation / Event 的投影定义，例如 kanban、table、calendar、chat、thread、graph、review queue。View 拥有自己的定义真相（query、filter、sort、renderer、layout、visible fields），但不拥有被投影对象的协作事实。 |
@@ -40,17 +41,17 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Standard Object | 标准对象 | 协议直接定义主语义、授权和 reducer 的对象类型，包括 Space、Actor Profile、Room、Board、List、Card、Message、Relation、Event、View、Policy 等。 |
+| Standard Object | 标准对象 | 协议直接定义主语义、授权和 reducer 的对象类型，包括 Space、Actor Profile、Subject、Room、Board、List、Card、Message、Relation、Event、View、Policy 等。 |
 | Open Object | 开放对象 | `Morph` 的语义别名，强调对象类型可由 schema 和应用 profile 扩展；facets 只作为声明后的提示标签。 |
 | Task | 任务 | 常见 Card 语义或 Morph 类型，用于表达待办、状态、负责人、截止时间、依赖和讨论关系。若需要看板拖拽，应建模为 Card；若只是领域对象，可建模为 Morph。 |
-| Topic | 主题 | 常见 Card 语义或 Room 组织方式。需要推进、状态和列表位置时用 Card；需要持续会话时用 Room。 |
+| Topic | 主题 | 常见 Subject kind，而不是新的协议根。需要表达“东西本身”时用 `subject_kind="topic"`；需要推进、状态和列表位置时为 Subject 增加 Card surface；需要持续会话时增加 Room surface。 |
 | Thread | 线程 | Message 的回复链或 Room 内局部会话投影，不是独立权限边界。 |
 | Document | 文档 | 标准对象或 Morph 类型，用于结构化长文、页面、规范、笔记。是否可评论、可审阅、可版本化由对象类型和显式 schema/profile 决定；facets 只能提示已声明能力。 |
 | File | 文件 | Blob metadata 与可见性策略的对象化表示，可作为 Morph 或标准 file profile 实现。 |
 | Memory | 记忆 | Morph 类型或扩展 profile，用于 agent 或人类确认的长期知识、事实、偏好或上下文。 |
 | Run | 运行记录 | Morph 类型或扩展 profile，用于记录 agent、自动化或工具执行过程。 |
 | Agent Protocol Session | Agent 协议会话 | Card、Morph 或 Run 显式切换到 A2A、ACP 或其他外部 agent protocol 执行时登记的受控会话。 |
-| Mention | 提及 | 对 Actor、Room、Board、List、Card、Message、Morph 或 Space 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
+| Mention | 提及 | 对 Actor、Subject、Room、Board、List、Card、Message、Morph 或 Space 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
 | Reaction | 反应 | 对目标 Message、Card、Morph、Event 或其他对象的轻量语义反馈，通常通过 Relation 或标准 reaction event 表达。 |
 
 ## 4. 身份与可发现性
@@ -81,7 +82,7 @@
 | Delegation | 委托 | 一个主体把有限 capability 委托给另一个主体、设备、agent 或 Applet。 |
 | Derived Grant | 派生授权 | 由 Space 层级继承机制自动从父 Space grant 派生出的子 Space grant，受 `inherited_depth` 和继承策略约束。 |
 | Revocation | 撤销 | 使 grant、device、session 或 delegation 在其因果后继中失效的事件或状态。 |
-| Constraint | 约束 | capability 的使用条件，例如时间、Space、Room、Board、Card、Morph、字段、设备、速率、审批、Applet namespace。 |
+| Constraint | 约束 | capability 的使用条件，例如时间、Space、Subject、Room、Board、Card、Morph、字段、设备、速率、审批、Applet namespace。 |
 | Condition Selector | 条件选择器 | 以可验证属性匹配主体的授权 subject，例如“某组织当前成员”。 |
 | Accountable Actor | 可追责行为者 | 有直接身份但需要 responsible、guardian 或 controller 的 Actor，例如 agent、未成年人、托管账号。 |
 | Responsible Party | 责任主体 | 对 accountable actor 行为承担责任的 principal。 |
@@ -209,7 +210,7 @@
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Canonical JSON | 规范 JSON | 用于 hash 和 signature 的确定性 JSON 编码规则。 |
-| Canonical Object | 规范对象 | 持久化、可签名、可审计的协议对象（如 Room、Board、Card、Message、Morph、Relation、Event、View、Policy），区别于传输信封或投影结果。 |
+| Canonical Object | 规范对象 | 持久化、可签名、可审计的协议对象（如 Subject、Room、Board、Card、Message、Morph、Relation、Event、View、Policy），区别于传输信封或投影结果。 |
 | ULID | 通用排序唯一标识符 | Universally Unique Lexicographically Sortable Identifier，Crockford Base32 编码，用于 Contrix ID 的排序部分。 |
 | 3PID | 第三方标识 | Third-party Identifier，如邮箱、手机号，用于邀请和身份关联。 |
 | Multihash | 多哈希 | 携带哈希算法标识的内容哈希编码。 |

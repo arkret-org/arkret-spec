@@ -8,6 +8,7 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 
 - `space`
 - `actor`
+- `subject`
 - `room`
 - `board`
 - `list`
@@ -34,6 +35,7 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 一个 Space 可以包含多个：
 
 - Room
+- Subject
 - Board
 - Card
 - Document
@@ -45,10 +47,11 @@ Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组�
 
 ### 2.2 标准对象承载主语义
 
-协议不再把 `board`、`card`、`room`、`message`、`run`、`memory` 等都压成 `entity_type`。
+协议不再把 `subject`、`board`、`card`、`room`、`message`、`run`、`memory` 等都压成 `entity_type`。
 
 标准对象本身表达主语义：
 
+- `subject`：语义中心，表示被讨论、推进、引用和沉淀的“东西本身”。
 - `room`：讨论容器和消息时间线入口。
 - `board`：工作流看板。
 - `list`：Board 内的有序泳道/列。
@@ -56,7 +59,7 @@ Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组�
 - `message`：Room 时间线中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
 
-标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `card` 天然是可被 Board/List 管理的工作对象；`room` 天然是讨论容器；`message` 天然属于 Room timeline。实现不得要求标准对象先声明 facet 才承认其主语义。
+标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `subject` 天然是语义中心；`card` 天然是可被 Board/List 管理的工作对象；`room` 天然是讨论容器；`message` 天然属于 Room timeline。实现不得要求标准对象先声明 facet 才承认其主语义。
 
 ### 2.3 Morph 是开放对象
 
@@ -87,11 +90,12 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 - `mentions`
 - `assigned_to`
 - `references`
+- `has_surface`
 - `derived_from`
 - `summarized_from`
 - `promoted_from_room`
 
-Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `room`、`board`、`list`、`card`、`message`、`morph`、`actor` 或 `space`。
+Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `subject`、`room`、`board`、`list`、`card`、`message`、`morph`、`actor` 或 `space`。
 
 ### 2.5 Event 是事实
 
@@ -103,7 +107,7 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 
 `view` 是一等协议对象，但它拥有的是投影定义的真相，而不是被投影对象的协作事实。它定义查询、过滤、排序、分组、renderer、布局、可见字段和共享 saved view 配置。
 
-同一组 Room / Board / List / Card / Message / Morph / Relation 可以投影为：
+同一组 Subject / Room / Board / List / Card / Message / Morph / Relation 可以投影为：
 
 - board
 - list
@@ -114,9 +118,10 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 - thread
 - forum
 - graph
+- subject activity
 - review queue
 
-View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Board 包含 List、List 包含 Card、Card 的字段与位置、Room 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
+View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Subject 的 surface、Board 包含 List、List 包含 Card、Card 的字段与位置、Room 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
 
 当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Card 跨 List 拖拽写为 `cx.card.move`，同 List 排序写为 `cx.card.reorder`，修改列顺序写为 `cx.list.reorder`，改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
 
@@ -142,6 +147,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 对象 ID SHOULD 使用带类型前缀的稳定字符串：
 
 - `cx:space:<ulid>`
+- `cx:subject:<ulid>`
 - `cx:room:<ulid>`
 - `cx:board:<ulid>`
 - `cx:list:<ulid>`
@@ -175,7 +181,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 Space policy 决定：
 
 - 谁能加入 Space
-- 哪些 Room / Board / Card / Morph 类型可用
+- 哪些 Subject / Room / Board / Card / Morph 类型可用
 - 哪些服务可同步、索引或看见明文
 - 是否加密
 - 是否允许外部联邦
@@ -201,11 +207,62 @@ Actor MAY 有对应的 `actor_profile` 对象，便于在协作图中被 mention
 
 Accountable actor MUST 记录责任关系，但 accountability 不等于 capability。
 
-## 6. Room
+## 6. Subject
+
+Subject 是 Space 内的语义中心。它表示一个被讨论、推进、引用、审阅、执行或沉淀的“东西本身”，例如事项、议题、决策、事故、客户 case、研究主题、资产或长期记忆锚点。
+
+Subject 保持很薄。它只承载身份连续性、标题、brief、summary、生命周期、语义分类和 surface 关联。它不承载 Room 的消息时间线、Room membership、E2EE epoch、Card 在 Board/List 中的位置、Card 的工作流 reducer、Message thread 或 Document 正文协作。
+
+最小结构：
+
+```json
+{
+  "id": "cx:subject:01js0sb0000000000000000000",
+  "type": "subject",
+  "schema": "cx.schema.subject.v1",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "title": "支付重构",
+  "brief": "统一支付链路、风控回调和退款状态机。",
+  "subject_kind": "initiative",
+  "state": "active",
+  "created_by": "did:web:alice.example",
+  "created_at": "2026-04-26T00:00:00Z"
+}
+```
+
+推荐 `subject_kind`：
+
+- `topic`
+- `initiative`
+- `decision`
+- `incident`
+- `customer_case`
+- `proposal`
+- `research`
+- `task_cluster`
+- `asset`
+- `memory_subject`
+- `custom`
+
+Subject 与协作 surface 的关系使用 `has_surface`：
+
+- `subject --has_surface--> card`
+- `subject --has_surface--> room`
+- `subject --has_surface--> morph`
+- `subject --has_surface--> view`
+- `subject --has_surface--> message`
+
+`has_surface` 的 `fields.surface_role` SHOULD 说明 surface 用途，例如 `status_card`、`primary_discussion`、`review_discussion`、`external_discussion`、`design_doc`、`decision_log`、`agent_run_log`、`memory`、`activity_view`。同一 Subject MAY 有多个 surface；若某个 role 只允许一个 primary surface，Reducer MUST 按该 profile 的唯一性规则收敛。
+
+Subject 权限只控制 Subject 自身字段和 surface 关系。能读 Subject 不代表能读所有 surface；能进 Room 不代表能改 Subject；能改 Card 不代表能管理 Subject surface。Surface 内容仍由各自对象权限、membership、history visibility、E2EE 和 policy 判断。
+
+Subject activity / timeline 是派生 projection，而不是新的 canonical log。它可以聚合 Subject 事件、surface relation 变化、Card 状态变化、可见 Room 消息摘要、Document 更新、Run 结果和 Memory 状态。
+
+## 7. Room
 
 Room 是 Space 内的讨论容器。它承载一个或多个消息时间线、通知规则、历史可见性和可选 E2EE group。
 
-Room 可以独立于 Card 存在，也可以通过 Relation 被 Card 关联。Card 可关联 0..N 个 Room；Room 的 membership、policy、history visibility 和 E2EE 独立于 Card。
+Room 可以独立存在，也可以作为 Subject 的讨论 surface，或通过兼容 Relation 被 Card 关联。Card 可关联 0..N 个 Room；Room 的 membership、policy、history visibility 和 E2EE 独立于 Subject 和 Card。
 
 最小结构：
 
@@ -227,14 +284,16 @@ Room 可以独立于 Card 存在，也可以通过 Relation 被 Card 关联。Ca
 Room 规则：
 
 - 能看 Card 不表示能看关联 Room。
+- 能看 Subject 不表示能看它的关联 Room。
 - 能看 Room 不表示能看关联 Card。
+- Room membership 不授予 Subject 更新或 surface 管理权限。
 - Card 成员或负责人变化不自动改变 Room membership。
 - Room membership 变化不自动改变 Card 权限。
 - Card 删除、归档或移动时不自动删除 Room；只 MAY tombstone 或更新 `links_room` Relation。
 
-## 7. Board / List / Card
+## 8. Board / List / Card
 
-Board 是工作流容器。List 是 Board 内的列/泳道。Card 是可执行、可跟踪、可沉淀的工作对象。
+Board 是工作流容器。List 是 Board 内的列/泳道。Card 是可执行、可跟踪、可沉淀的工作对象，也可以作为 Subject 的状态推进 surface。
 
 Board 最小结构：
 
@@ -288,18 +347,20 @@ Card 最小结构：
 }
 ```
 
-Card 在 Board/List 中的位置通过 active `contains` Relation / card position event 表达，不由 Room 决定，也不要求 Card canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
+Card 在 Board/List 中的位置通过 active `contains` Relation / card position event 表达，不由 Subject 或 Room 决定，也不要求 Card canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
 
 常见关系：
 
 - `board --contains--> list`
 - `list --contains--> card`
+- `subject --has_surface--> card`
+- `subject --has_surface--> room`
 - `card --links_room--> room`
 - `card --primary_room--> room`
 - `card --assigned_to--> actor`
 - `card --depends_on--> card`
 
-## 8. Message
+## 9. Message
 
 Message 是 Room 时间线中的原子消息对象。
 
@@ -322,9 +383,9 @@ Message 是 Room 时间线中的原子消息对象。
 }
 ```
 
-Message MAY reply to another Message, mention Actor or object, reference Card / Morph / Room, or be redacted. 编辑通过 revision chain 表达；撤回通过 redaction/tombstone 表达。
+Message MAY reply to another Message, mention Actor or object, reference Subject / Card / Morph / Room, or be redacted. 编辑通过 revision chain 表达；撤回通过 redaction/tombstone 表达。
 
-## 9. Morph
+## 10. Morph
 
 Morph 是开放对象。
 
@@ -352,9 +413,9 @@ Morph 是开放对象。
 }
 ```
 
-Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象不应为了复用字段而退化为 Morph。
+Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Subject surface 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象不应为了复用字段而退化为 Morph。
 
-## 10. Relation
+## 11. Relation
 
 最小结构：
 
@@ -363,11 +424,11 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
   "id": "cx:relation:01js0r00000000000000000000",
   "type": "relation",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "relation_kind": "links_room",
-  "from_ref": "cx:card:01js0cd0000000000000000000",
+  "relation_kind": "has_surface",
+  "from_ref": "cx:subject:01js0sb0000000000000000000",
   "to_ref": "cx:room:01js0rm0000000000000000000",
   "fields": {
-    "purpose": "implementation_discussion",
+    "surface_role": "implementation_discussion",
     "primary": false
   },
   "created_by": "did:web:bob.example",
@@ -377,7 +438,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询层或 schema 派生。
 
-## 11. Event
+## 12. Event
 
 Event 是 reducer 输入和审计事实。
 
@@ -417,7 +478,7 @@ Event 是 reducer 输入和审计事实。
 
 Event MUST be signed。Reducer MUST reject events that fail signature, schema, capability, or causal validation.
 
-## 12. View
+## 13. View
 
 View 示例：
 
@@ -446,7 +507,7 @@ View 示例：
 }
 ```
 
-## 13. Schema
+## 14. Schema
 
 Schema 约束：
 
@@ -460,7 +521,7 @@ Schema 约束：
 
 Schema evolution MUST be additive by default。新版本 SHOULD 保留未知字段，避免旧客户端破坏数据。
 
-## 14. Policy
+## 15. Policy
 
 Policy 约束：
 
@@ -475,21 +536,21 @@ Policy 约束：
 
 Policy 是 reducer 和服务节点判断请求是否可接受的输入。
 
-## 15. Invite
+## 16. Invite
 
 Invite 是加入引导对象，不等于 capability grant。
 
 接受 invite 后，相关 capability grant 才进入有效集合。
 
-## 16. Read Marker
+## 17. Read Marker
 
 `read_marker` 是 actor-private 状态。它 SHOULD 存在于私有 account data 或 ephemeral sync channel 中，而不是作为公共 durable Event 高频写入。
 
-## 17. Notification
+## 18. Notification
 
-`notification` SHOULD 是从 Event / Message / Room / Card / Relation 派生的 inbox projection，不是 canonical truth。
+`notification` SHOULD 是从 Event / Subject / Message / Room / Card / Relation 派生的 inbox projection，不是 canonical truth。
 
-## 18. Reducer 规则
+## 19. Reducer 规则
 
 Reducer MUST：
 
@@ -501,7 +562,7 @@ Reducer MUST：
 - 保留未知字段
 - 输出可声明的 reducer profile
 
-## 19. 规范性引用
+## 20. 规范性引用
 
 - 标准 event type 注册表见 `../conformance/schema-registry.md`。
 - Reducer conformance vector 见 `../conformance/state-resolution-conformance-vectors.md`、`../conformance/redaction-conformance-vectors.md` 和 `../conformance/sync-conformance-vectors.md`。

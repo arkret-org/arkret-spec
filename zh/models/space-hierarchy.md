@@ -269,6 +269,6 @@ Applet 对 child Portal Space 写入仍需：
 Contrix 的 Space hierarchy 借鉴 Matrix `m.space.child` / `m.space.parent` 的双向确认经验，但区别是：
 
 - Contrix Space 是权限和对象图边界，不只是 room directory。
-- Room / Board / List / Card / Message / Morph / Relation 仍然承载业务对象层级，不应把所有对象拆成子 Space。
+- Subject / Room / Board / List / Card / Message / Morph / Relation 仍然承载业务对象层级，不应把所有对象拆成子 Space。
 - 权限和加密默认不继承。
 - 跨 Space 深度查询必须 Lazy Link，不能自动拼接泄露。

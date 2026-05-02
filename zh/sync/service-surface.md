@@ -377,9 +377,9 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
 - `sync_token`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Space frontier。
 
-### 6.2 Room / Card Discussion Projection
+### 6.2 Subject / Room / Card Discussion Projection
 
-Room timeline、Card context timeline 和 Card discussion projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Card-linked Room 都必须独立执行 Room membership / history visibility 检查；不得因为 Card 可见就展开 Room 内容，也不得因为 Room 可见就授予 Card 权限。
+Subject context timeline、Room timeline、Card context timeline 和 Card discussion projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Subject-linked / Card-linked Room 都必须独立执行 Room membership / history visibility 检查；不得因为 Subject 或 Card 可见就展开 Room 内容，也不得因为 Room 可见就授予 Subject 或 Card 权限。
 
 ### 6.3 Inbox / Notification Projection
 

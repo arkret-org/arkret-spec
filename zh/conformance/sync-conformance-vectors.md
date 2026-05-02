@@ -129,6 +129,25 @@
 - Room timeline MUST NOT be expanded.
 - Notification/search results MUST NOT reveal hidden Room messages.
 
+## 5.1 Vector: Subject Surface Visibility
+
+输入：
+
+```json
+{
+  "subject_id": "cx:subject:01js0sb1000000000000000000",
+  "surface_room_id": "cx:room:01js0r02000000000000000000",
+  "viewer_grants": ["cx.subject.read"],
+  "viewer_room_membership": "none"
+}
+```
+
+期望：
+
+- Subject projection MAY show a lazy/locked Room surface reference if Room discoverability permits.
+- Subject activity MUST NOT include hidden Room messages.
+- Subject context MUST NOT leak hidden Room message bodies through previews, summaries, notifications, search snippets, embeddings, or decision summaries.
+
 ## 6. Vector: Room Timeline
 
 输入：

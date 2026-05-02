@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文件把 `event-auth-state-resolution.md` 的 state resolution 与冲突裁决规则转成可复现向量。当前向量按 Room / Board / List / Card / Message / Morph 模型定义，不包含旧 `Entity` 兼容性要求。
+本文件把 `event-auth-state-resolution.md` 的 state resolution 与冲突裁决规则转成可复现向量。当前向量按 Subject / Room / Board / List / Card / Message / Morph 模型定义，不包含旧 `Entity` 兼容性要求。
 
 实现必须对每个向量输出：
 
@@ -124,3 +124,24 @@ cx.vector.state_resolution.card_linked_room_auth.v1
 - Relation is accepted if author has card link capability and can reference the target Room.
 - Viewer can see only a lazy Room reference or locked state.
 - Viewer cannot read linked Room Message events.
+
+## 6. Vector: Subject Surface 不继承权限
+
+向量名称：
+
+```text
+cx.vector.state_resolution.subject_surface_auth.v1
+```
+
+输入：
+
+- Candidate A: `cx.subject.link_surface(subject_id, surface_ref=room_id, surface_role=primary_discussion, primary=true)`
+- Viewer has `cx.subject.read` on Subject.
+- Viewer has no `cx.room.member` for linked Room.
+
+期望：
+
+- Relation is accepted if author has subject surface capability and can reference the target Room.
+- Viewer can see only a locked surface stub, authorized hidden count, or no surface entry depending on Room discoverability.
+- Viewer cannot read linked Room Message events.
+- Room membership, Card visibility, and Subject update rights are unchanged.

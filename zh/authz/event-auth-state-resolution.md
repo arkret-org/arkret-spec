@@ -163,7 +163,7 @@ Room membership 的 `membership` 取值与 Space membership 相同：`join`、`i
 
 - 默认情况下，Room member MUST 同时是所在 Space 的 member。
 - Space policy MAY 允许 room-scoped external admission。此时外部 actor 只获得该 Room 的受限访问，不获得 Space directory、Board、Card 或其他 Room 的可见性。
-- Card 与 Room 的关系只由 `links_room` / `primary_room` relation 表达。Card link 不复制 membership；Room 的成员、E2EE epoch、history visibility 和 moderation 独立计算。
+- Subject 与 surface 的关系由 `has_surface` relation 表达；该 relation 不复制权限。Card 与 Room 的兼容关系只由 `links_room` / `primary_room` relation 表达。Card link 不复制 membership；Room 的成员、E2EE epoch、history visibility 和 moderation 独立计算。
 - 一个 Card 可链接多个 Room，但每个 Room 仍按自己的 `cx.room.member` 与 room policy 授权。
 
 ## 6. Discovery, Join Rule and History Visibility
@@ -506,7 +506,7 @@ auth_difference(conflicted_events):
 | 650 | Active Organization governance：由 active `cx.space.organization{relationship=owner|sponsor, scope.official=true}` 绑定的 governance DID / service DID 直接签发，且 action 在声明 scope 内。 |
 | 600 | Direct Space admin：候选事件由未委派的 active Space admin / creator capability 授权，resource 精确覆盖目标 Space。 |
 | 550 | Direct policy or membership admin：候选事件由未委派的 policy / membership / capability 管理 grant 授权，resource 精确覆盖目标 state key 或对象。 |
-| 500 | Direct object admin：候选事件由未委派的 Board / Room / Card / Morph / Relation 管理 grant 授权，resource 精确覆盖目标对象。 |
+| 500 | Direct object admin：候选事件由未委派的 Subject / Board / Room / Card / Morph / Relation 管理 grant 授权，resource 精确覆盖目标对象。 |
 | 400 | Delegated admin：由 delegated admin grant 授权，且 delegation chain 有效、未过期、未被 revoke，depth 在 profile 限制内。 |
 | 300 | Delegated action：由 delegated non-admin action grant 授权，且 selector、constraint、claim、approval 均满足。 |
 | 200 | Direct action：由直接 non-admin action grant 授权。 |

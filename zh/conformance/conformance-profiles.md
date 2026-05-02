@@ -33,7 +33,7 @@ cx.profile.<name>.v<major>
 
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
-| Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space、Room、Board、List、Card、Message、Morph、Relation、Capability、View query shape、Sync cursor、Blob hash 校验、标准错误。 |
+| Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space、Subject、Room、Board、List、Card、Message、Morph、Relation、Capability、View query shape、Sync cursor、Blob hash 校验、标准错误。 |
 | Recommended | 主客户端和 Principal Server SHOULD 支持，但轻量实现可以不支持。 | E2EE、push、presence、read receipt、snapshot bootstrap、local full-text search、moderation report。 |
 | Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、Agent Memory advanced lifecycle、sovereign deployment。 |
 
@@ -123,7 +123,7 @@ MUST 支持：
 - service discovery
 - event 拉取 / backfill
 - 本地查询和 projection
-- 基础 Room / Board / List / Card / Message / Morph / Relation / Event 解码
+- 基础 Subject / Room / Board / List / Card / Message / Morph / Relation / Event 解码
 - 未知 Morph / facet 字段保留和 generic fallback，不要求专用 renderer
 - capability 检查结果处理
 - cursor 分页

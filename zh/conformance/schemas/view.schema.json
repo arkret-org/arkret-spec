@@ -80,7 +80,7 @@
     "dashboard_config": { "type": "object", "additionalProperties": true },
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(space|room|board|list|card|message|morph|relation|event|view):[0-9a-hjkmnp-z]{26}|did:.+)$"
+      "pattern": "^(cx:(space|subject|room|board|list|card|message|morph|relation|event|view):[0-9a-hjkmnp-z]{26}|did:.+)$"
     }
   },
   "additionalProperties": true

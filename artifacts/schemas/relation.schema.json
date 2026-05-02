@@ -20,7 +20,7 @@
   "$defs": {
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(space|actor_profile|room|board|list|card|message|morph|relation|event|view):[0-9a-hjkmnp-z]{26}|did:.+)$"
+      "pattern": "^(cx:(space|actor_profile|subject|room|board|list|card|message|morph|relation|event|view):[0-9a-hjkmnp-z]{26}|did:.+)$"
     },
     "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
     "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }

@@ -11,9 +11,10 @@ Contrix 虽然不是 chat-first 协议，但必须正式支持：
 - 编辑
 - 撤回
 - reaction
+- Subject 关联讨论
 - Card 关联讨论
 
-会话能力必须能和 Board、Card、Run、Memory、Morph 等对象打通，但 Room / Message 不再伪装成 Entity。
+会话能力必须能和 Subject、Board、Card、Run、Memory、Morph 等对象打通，但 Room / Message 不再伪装成 Entity。
 
 ## 2. 设计原则
 
@@ -33,10 +34,13 @@ Room 不是服务器，也不是 Space。Room 的所有写入仍然受 Space pol
 
 Card 是工作对象。Room 是讨论容器。
 
-Card 可以关联 0..N 个 Room，但关联关系不传递权限：
+新模型中，Subject 是语义中心，Room 和 Card 都可以作为 Subject 的 surface。Card 仍可以关联 0..N 个 Room，但该关联主要用于兼容、快捷入口或局部上下文；关联关系不传递权限：
 
+- Subject 可见不表示 Room 可见。
 - Card 可见不表示 Room 可见。
 - Room 可见不表示 Card 可见。
+- Room membership 变化不自动改变 Subject 权限。
+- Subject surface 变化不自动改变 Room membership。
 - Card 权限变化不自动改变 Room membership。
 - Room membership 变化不自动改变 Card 权限。
 - Card 归档、删除或移动时不自动删除 Room。
@@ -124,7 +128,41 @@ message 与 room/reply/mention 的关系使用 Relation 或 message 字段表达
 - `message --mentions--> actor / card / morph / room`
 - `message --references--> card / board / morph / blob`
 
-## 5. Card 与 Room 关联
+## 5. Subject、Card 与 Room 关联
+
+推荐模型：
+
+```json
+{
+  "type": "relation",
+  "relation_kind": "has_surface",
+  "from_ref": "cx:subject:01js0sb0000000000000000000",
+  "to_ref": "cx:room:01js0rm0000000000000000000",
+  "fields": {
+    "surface_role": "primary_discussion",
+    "primary": true
+  }
+}
+```
+
+Subject 也可以关联 Card surface：
+
+```json
+{
+  "type": "relation",
+  "relation_kind": "has_surface",
+  "from_ref": "cx:subject:01js0sb0000000000000000000",
+  "to_ref": "cx:card:01js0cd0000000000000000000",
+  "fields": {
+    "surface_role": "status_card",
+    "primary": true
+  }
+}
+```
+
+`has_surface` 只表达语义聚合，不授予读取、写入或管理权限。客户端展示 Subject 时，必须按当前 actor 对每个 surface 的可见性裁剪 Room timeline、Message preview、Card 状态和附件摘要。
+
+兼容模型：
 
 Card 关联 Room 使用 Relation：
 
@@ -187,7 +225,7 @@ Room membership 是 Space 内的子范围授权。它不替代 Space membership�
 规则：
 
 - Room participant MUST satisfy Space policy。高安全 Space MAY 要求所有 Room 成员也是 Space member。
-- Space policy MAY allow room-scoped external admission，但该 admission 不授予其他 Room、Board、Card 或 Space directory 可见性。
+- Space policy MAY allow room-scoped external admission，但该 admission 不授予其他 Subject、Room、Board、Card 或 Space directory 可见性。
 - Room membership 只控制该 Room 的消息读取、发送、历史和通知。
 - Room membership 不改变 Card assignment、Card visibility、Board position 或 Space membership。
 
@@ -253,7 +291,7 @@ reaction 建议通过独立 Operation 表达：
 - primary room 最近摘要
 - 与 card 相关的 relation / message reference / decision summary
 
-Card context sync 不得因为用户能读 Card 就自动拉取不可见 Room 消息。
+Subject/Card context sync 不得因为用户能读 Subject 或 Card 就自动拉取不可见 Room 消息。
 
 ## 10. 冲突与收敛
 
@@ -316,13 +354,14 @@ E2EE Room 中，`history_visibility=joined` 时新成员 MUST NOT 收到加入�
 Contrix v1 固定：
 
 - Room / Message 是标准对象，不再是 Entity 语义标签。
+- Subject 是语义中心；Room 和 Card 可以作为 Subject surface。
 - Card 可关联 0..N 个 Room。
 - Card 和 Room 权限完全独立；关联 relation 不传递权限。
 - `primary_room` 只是 UI 默认入口。
 - 编辑采用 revision chain。
 - 撤回采用 redaction/tombstone。
 - reaction 用 OR-Set 收敛。
-- Board/Card/Room 共享同一 sync/reducer 基础，但对象语义不同。
+- Subject/Board/Card/Room 共享同一 sync/reducer 基础，但对象语义不同。
 
 ## 14. 规范性引用
 

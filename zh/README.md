@@ -5,14 +5,14 @@
 `contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。Contrix 明确采用：
 
 - 以 **DID principal** 为身份根
-- 以 **Space / Room / Board / List / Card / Message / Morph / Relation 协作图** 为数据根
+- 以 **Space / Subject / Room / Board / List / Card / Message / Morph / Relation 协作图** 为数据根
 - 以 **signed Event + per-actor event chain** 为审计根
 - 以 **capability** 为权限根
 - 以 **views/projections** 为人类展示根
 - 以 **Event** 为协作事实根
-- 以 **Room、Board、List、Card、Message** 承载标准协作语义，以 **Morph + schema/profile-declared facets** 承载开放扩展对象
+- 以 **Subject、Room、Board、List、Card、Message** 承载标准协作语义，以 **Morph + schema/profile-declared facets** 承载开放扩展对象
 
-它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、Room 会话、Card 主题、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
+它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、Room 会话、Subject 事项、Card 推进面、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
 
 ## 2. 设计目标
 
@@ -21,13 +21,13 @@ Contrix v1 聚焦以下目标：
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
 2. 面向对象协作  
-   协议根抽象固定为 Space、Actor、Room、Board、List、Card、Message、Morph、Relation、Event、View；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
+   协议根抽象固定为 Space、Actor、Subject、Room、Board、List、Card、Message、Morph、Relation、Event、View；Subject 承载“这个东西是谁”的语义中心，Card / Room / Morph 等作为围绕它的协作 surface；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
 3. 去中心化同步  
    真相基底是 signed Event Envelope 和可验证 actor event chain，而不是单一中心数据库或 atprotocol/Git 式数据仓库。
 4. 多交互模式  
    同一协议同时支持 kanban、list、table、calendar、gantt、chat、thread、forum、tree、graph 等模式。
 5. 人类友好  
-   数据必须天然能投影成看板、时间线、Card 主题流、Room 消息流、审阅队列。
+   数据必须天然能投影成看板、时间线、Subject activity、Card 推进流、Room 消息流、审阅队列。
 6. AI 友好  
    协议天然支持 agent principal、delegation、run log、memory extraction。
 7. 审计与恢复  
@@ -94,12 +94,13 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 所有持久协作修改都是 signed Event
 - 所有共享状态来自 **授权 Event 集合的归约结果**
 - `space` 是复制、权限、schema 与 policy 边界
+- `subject` 是语义中心，表示被讨论、推进、引用或沉淀的“那个东西”；它保持薄身份、标题、brief、生命周期和 surface 关联
 - `room`、`board`、`list`、`card`、`message` 是协议一等标准对象
 - `morph` 是开放对象载体，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不单独定义授权、状态机、排序或 reducer 语义
 - `relation` 是一等对象，用于表达包含、依赖、回复、引用、分配、提及等关系
 - `event` 是协作事实和审计根
 - `view` 是投影，不拥有核心数据
-- Card 与 Room 严格分离；Card 可通过 Relation 链接零到多个 Room，但不继承或控制 Room membership
+- Subject 是 Card、Room、Document、Run、Memory 等 surface 的共同锚点。Card 与 Room 仍严格分离；历史兼容的 Card-Room link 只表达上下文关系，不继承或控制 Room membership
 - `memory/run/document` 等可作为 Morph 类型或扩展 profile，不自动授予能力
 - `schema/policy` 是正式对象，不再只是引用占位符
 - `invite/read_marker/notification` 补齐人类协作的加入、已读、提醒链路；notification 是派生投影，不是 canonical truth
@@ -107,9 +108,11 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 ### 5.3 看板与会话
 
 - 看板由 `Board -> List -> Card` 的标准对象链表达；View 负责投影，不再把 Board 伪装成通用开放对象集合
+- Subject 表示事项/主题/决策/事故/客户 case 等语义中心；Card 是 Subject 的状态推进 surface，Room 是 Subject 的讨论 surface
 - 会话由 `Room -> Message` 表达；Room 是独立权限、成员、历史和 E2EE 边界
-- Card 可以通过 `links_room` / `primary_room` Relation 关联多个 Room；这些链接只表达上下文关系，不传递权限
-- 主题模式通常建模为 Card + linked Room，或 Room 内的 Message thread；是否需要状态推进和看板位置决定是否使用 Card
+- Subject 通过 `has_surface` Relation 关联 Card、Room、Document、Run、Memory、View 等 surface；这些链接只表达语义聚合，不传递权限
+- Card 可以继续通过 `links_room` / `primary_room` Relation 关联多个 Room，作为兼容或局部上下文关系；新模型 SHOULD 优先通过共同 Subject 组织 Card 与 Room
+- 主题模式通常建模为 Subject + surfaces；是否需要状态推进和看板位置决定是否为该 Subject 创建 Card surface
 - `@user`、`@object` 在 UI 层可写成文本，在协议层必须落成结构化 Actor/Object 引用与 `mentions` Relation
 
 ### 5.4 同步
@@ -178,7 +181,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 当前规范已经覆盖：
 
 - DID、handle、组织主体、服务 DID 与渐进披露。
-- Space、Room、Board、List、Card、Message、Morph、Relation、Event、View 和标准业务类型。
+- Space、Subject、Room、Board、List、Card、Message、Morph、Relation、Event、View 和标准业务类型。
 - 核心数据结构字段级类型、必填性、枚举和约束。
 - Capability、delegation、claim 条件、policy server、moderation policy。
 - Event-first 发布、Principal Server 同步、客户端本地查询/投影、Directory 发现、HTTP binding。
@@ -193,7 +196,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 Contrix 要解决的是：
 
 - 去中心化协作对象
-- 看板、Room 会话、Card 主题、树、图谱与任务依赖的统一数据模型
+- 看板、Room 会话、Subject 事项、Card 推进面、树、图谱与任务依赖的统一数据模型
 - 稳定身份和授权
 - AI agent 可写入、可检索、可审计的长期记忆
 

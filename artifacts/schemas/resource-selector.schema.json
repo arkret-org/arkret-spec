@@ -7,11 +7,12 @@
   "properties": {
     "kind": {
       "type": "string",
-      "enum": ["space", "room", "board", "list", "card", "message", "morph", "object", "relation", "view", "notification", "read_marker", "blob", "*"]
+      "enum": ["space", "subject", "room", "board", "list", "card", "message", "morph", "object", "relation", "view", "notification", "read_marker", "blob", "*"]
     },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "object_type": { "type": "string" },
-    "object_ref": { "type": "string", "pattern": "^cx:(space|room|board|list|card|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$" },
+    "object_ref": { "type": "string", "pattern": "^cx:(space|subject|room|board|list|card|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$" },
+    "subject_id": { "type": "string", "pattern": "^cx:subject:[0-9a-hjkmnp-z]{26}$" },
     "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
     "board_id": { "type": "string", "pattern": "^cx:board:[0-9a-hjkmnp-z]{26}$" },
     "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },

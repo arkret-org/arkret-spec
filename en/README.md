@@ -8,14 +8,14 @@
 `contrix-spec` is the **Contrix v1 decentralized collaboration protocol**. Contrix uses:
 
 - **DID principals** as the identity root
-- **Space / Entity / Relation collaboration graphs** as the data root
-- **append-only repos + operations** as the audit root
+- **Space / Subject / Room / Board / List / Card / Message / Morph / Relation collaboration graphs** as the data root
+- **signed Event + per-actor event chains** as the audit root
 - **capabilities** as the authorization root
 - **views/projections** as the human presentation root
 - **Events** as the collaboration fact root
-- **memory/run/message/task** as Entity semantic labels, with capabilities declared by facets
+- **Subject, Room, Board, List, Card, and Message** as standard collaboration semantics, with **Morph + schema/profile-declared facets** for open extension objects
 
-Its goal is not to wrap a chat protocol in a Kanban shell. Its goal is to define one protocol that can project into boards, chat/topic flows, tables, calendars, trees, graphs, Gantt views, and agent memory.
+Its goal is not to wrap a chat protocol in a Kanban shell. Its goal is to define one protocol that can project into boards, Room conversations, Subject-centered work surfaces, tables, calendars, trees, graphs, Gantt views, and agent memory.
 
 ## 2. Design Goals
 
@@ -24,13 +24,13 @@ Contrix v1 focuses on:
 1. Stable identity  
    All principals use DIDs as stable identifiers, while handles remain portable human-readable entry points.
 2. Object-centric collaboration  
-   The protocol root is Space, Actor, Entity, Relation, Event, and View; boards, tasks, messages, memories, and runs are common Entity semantic labels, while capabilities come from facets or the Space schema profile.
+   The protocol root is Space, Actor, Subject, Room, Board, List, Card, Message, Morph, Relation, Event, and View. Subject is the semantic center; Card, Room, Document, Run, and Memory are collaboration surfaces around it.
 3. Decentralized synchronization  
    The source of truth is signed operations and repo commits, not a single central database.
 4. Multiple interaction modes  
    The same protocol supports Kanban, list, table, calendar, Gantt, chat, thread, forum, tree, graph, and similar modes.
 5. Human-friendly presentation  
-   Data must naturally project into boards, timelines, topic streams, message streams, and review queues.
+   Data must naturally project into boards, timelines, Subject activity, topic surfaces, message streams, and review queues.
 6. AI-friendly participation  
    The protocol natively supports agent principals, delegation, run logs, and memory extraction.
 7. Audit and recovery  
@@ -139,21 +139,23 @@ Main document groups:
 - each principal owns its own repo
 - shared state is reduced from the authorized Event / operation set
 - `space` is the replication, authorization, schema, and policy boundary
-- `entity` is the unified carrier for collaboration objects
+- `subject` is the thin semantic center for the thing being discussed, advanced, referenced, or remembered
+- `room`, `board`, `list`, `card`, and `message` are first-class standard objects
+- `morph` is the open extension object carrier
 - `relation` is first-class and represents containment, dependency, replies, references, assignments, mentions, and similar links
 - `event` is the collaboration fact and audit root
 - `view` is a projection and does not own core data
-- `board/task/channel/topic/message/memory/run` are standard Entity semantic labels, not protocol roots, and do not grant capabilities by themselves
+- Card and Room are surfaces that may be grouped through `subject --has_surface--> surface`; surface links do not grant capabilities by themselves
 - `schema/policy` are formal objects rather than unresolved references
 - `invite/read_marker/notification` complete the join/read/attention path for human collaboration
 
 ### 5.3 Boards and Conversation
 
-- boards are projected from Entity facets, Relations, and a `kind="collection", renderer="board"` View; `board/collection/task` are common semantic labels
-- chat is projected from replyable/renderable Entities, Relations, and a Chat View; `channel/topic/message` are common semantic labels
-- topic mode is projected from replyable topic/message-like Entities and `belongs_to/replies_to` Relations
-- the same `task`, `run`, or `memory` may have a default discussion topic through Relations
-- `@user` and `@object` may be authored as text in the UI, but must be stored as structured Entity/Actor references and `mentions` Relations
+- boards are modeled with standard Board/List/Card objects and View projections
+- chat is modeled with Room/Message; a Room can be a Subject discussion surface
+- topic mode is modeled as `subject_kind="topic"` plus Card, Room, Document, Run, or Memory surfaces
+- the same Subject may have multiple discussion, status, document, run, and memory surfaces through Relations
+- `@user` and `@object` may be authored as text in the UI, but must be stored as structured Actor/Object references and `mentions` Relations
 
 ### 5.4 Sync
 

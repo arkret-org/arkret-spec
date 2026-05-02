@@ -175,7 +175,7 @@ Projection 只减少返回字段，不提升权限。
 任何对外暴露可互操作 query / search / projection 语义的执行方 MUST:
 
 - 对 query 做 schema validation。
-- 对 Space、Room、对象和字段做 authorization filtering。
+- 对 Space、Subject、Room、对象和字段做 authorization filtering。
 - 把 `facets` 仅作为过滤条件和 projection hint；不得因 facet 字符串扩大授权、启用未声明 reducer 或绕过 Morph profile validation。
 - 对 Card-linked Room 做独立 Room membership / history visibility 检查。
 - 对高成本 full_text / relation expansion 限流。

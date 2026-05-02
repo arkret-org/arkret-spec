@@ -7,7 +7,7 @@ Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系
 这样做的原因是：
 
 - 跨组织协作很常见
-- Room、Board、List、Card、Message、Morph、View 的动作集不同
+- Subject、Room、Board、List、Card、Message、Morph、View 的动作集不同
 - agent 必须被精细授权
 - 授权变化必须可审计
 
@@ -168,6 +168,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 Contrix v1 支持以下 `kind`：
 
 - `space`
+- `subject`
 - `room`
 - `board`
 - `list`
@@ -202,8 +203,16 @@ Contrix v1 支持以下 `kind`：
 - `cx.object.archive`
 - `cx.object.restore`
 
-### 5.2 看板与对象动作
+### 5.2 Subject、看板与对象动作
 
+- `cx.subject.create`
+- `cx.subject.read`
+- `cx.subject.update`
+- `cx.subject.archive`
+- `cx.subject.restore`
+- `cx.subject.link_surface`
+- `cx.subject.unlink_surface`
+- `cx.subject.set_primary_surface`
 - `cx.board.create`
 - `cx.board.update`
 - `cx.board.archive`
@@ -226,7 +235,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.attachment.*`
 - `cx.view.*`
 
-看板拖拽权限 SHOULD 优先使用 `cx.card.move`、`cx.card.reorder`、`cx.list.reorder` 等标准对象 action。需要通用 collection profile 时，才使用 `cx.container.move_item`、`cx.container.rebalance`，并结合 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束表达。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。
+Subject 权限只覆盖 Subject 自身字段和 `has_surface` relation 管理，不授予 surface 内容权限。看板拖拽权限 SHOULD 优先使用 `cx.card.move`、`cx.card.reorder`、`cx.list.reorder` 等标准对象 action。需要通用 collection profile 时，才使用 `cx.container.move_item`、`cx.container.rebalance`，并结合 `relation_kind_allow`、`allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_view_refs` 和字段写入约束表达。实现 SHOULD 避免直接授予宽泛的 `cx.relation.*`。
 
 ### 5.3 会话动作
 
@@ -288,6 +297,7 @@ Contrix v1 支持：
 - `facet_allow`
 - `memory_kind_allow`
 - `allowed_room_refs`
+- `allowed_subject_refs`
 - `allowed_board_refs`
 - `allowed_list_refs`
 - `allowed_card_refs`
@@ -469,7 +479,7 @@ system/human -> `cx.card.update` 或 `cx.morph.update`
 
 给 agent 授权时 SHOULD 默认：
 
-- 只授予明确 Space / Room / Board / Card / Morph / View 范围
+- 只授予明确 Space / Subject / Room / Board / Card / Morph / View 范围
 - 只授予所需动作
 - 只授予有限时效
 - 只授予允许的对象种类
@@ -646,7 +656,7 @@ Contrix v1 至少区分：
 
 Fast path 规则：
 
-1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或受托 projection executor 可以针对活跃 Actor 预计算出针对特定目标（如当前 Room、Board、List 或 Card）的有效权限位图 (Permission Bitmap)。
+1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或受托 projection executor 可以针对活跃 Actor 预计算出针对特定目标（如当前 Subject、Room、Board、List 或 Card）的有效权限位图 (Permission Bitmap)。
 2. **缓存绑定**：缓存 key MUST 至少绑定 `space_id`、actor DID / device 或 session grant、resource selector、action family、membership frontier、grant / revoke frontier、claim status frontier、policy component root 和 reducer profile。
 3. **快速命中**：对于后续提交的纯业务 Operation（如 `cx.message.create`、`cx.reaction.add`、`cx.card.update`、`cx.card.move`、`cx.card.reorder`），只要绑定 frontier 未变化且缓存未过期，节点 MAY 直接查询 Bitmap 缓存，将 O(N) 的深层权限推演降维为 O(1)。
 4. **失效**：当发生 `cx.capability.*`、相关 membership、policy component、claim status、approval proof、DID key state、accountable actor controller 或 delegation chain 变化时，受影响缓存 MUST 立即标记 stale。stale cache 不得继续作出新的 allow 决策。

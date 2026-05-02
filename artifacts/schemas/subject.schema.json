@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/subject.schema.json",
+  "title": "Contrix Subject",
+  "type": "object",
+  "required": ["id", "type", "schema", "space_id", "title", "subject_kind", "created_by", "created_at"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^cx:subject:[0-9a-hjkmnp-z]{26}$" },
+    "type": { "const": "subject" },
+    "schema": { "const": "cx.schema.subject.v1" },
+    "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "brief": { "type": "string", "maxLength": 2048 },
+    "summary": { "type": "string", "maxLength": 8192 },
+    "subject_kind": {
+      "type": "string",
+      "enum": [
+        "topic",
+        "initiative",
+        "decision",
+        "incident",
+        "customer_case",
+        "proposal",
+        "research",
+        "task_cluster",
+        "asset",
+        "memory_subject",
+        "custom"
+      ]
+    },
+    "fields": { "type": "object" },
+    "state": { "type": "string", "enum": ["active", "archived", "deleted", "redacted"] },
+    "version": { "type": "integer", "minimum": 0 },
+    "created_by": { "$ref": "#/$defs/did" },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_by": { "$ref": "#/$defs/did" },
+    "updated_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "did": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  },
+  "additionalProperties": true
+}

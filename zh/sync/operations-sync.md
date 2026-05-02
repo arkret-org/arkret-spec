@@ -8,6 +8,7 @@ Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议
 
 - actor 侧可验证发布
 - append-only 审计日志
+- Subject 语义中心与 surface 关系
 - Room / Message 时间线
 - Board / List / Card 工作流
 - Morph 开放对象
@@ -66,6 +67,7 @@ Contrix 采用 Event-first 模型：
 这套模型同时适用于：
 
 - Room / Message
+- Subject / surface
 - Board / List / Card
 - Morph
 - Run / Memory
@@ -186,7 +188,19 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.schema.update`
 - `cx.policy.set`
 
-### 7.2 Room / Message
+### 7.2 Subject
+
+- `cx.subject.create`
+- `cx.subject.update`
+- `cx.subject.archive`
+- `cx.subject.restore`
+- `cx.subject.link_surface`
+- `cx.subject.unlink_surface`
+- `cx.subject.set_primary_surface`
+
+Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关系。它们不得写入 Room timeline、Room membership、Card position、Card workflow field 或 Morph 正文内容。`cx.subject.link_surface` / `cx.subject.unlink_surface` / `cx.subject.set_primary_surface` 的 reducer 产物是 `has_surface` Relation 或其 active/primary 状态。
+
+### 7.3 Room / Message
 
 - `cx.room.create`
 - `cx.room.update`
@@ -200,7 +214,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.reaction.add`
 - `cx.reaction.remove`
 
-### 7.3 Board / List / Card
+### 7.4 Board / List / Card
 
 - `cx.board.create`
 - `cx.board.update`
@@ -219,7 +233,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.card.unlink_room`
 - `cx.card.set_primary_room`
 
-### 7.4 Morph / Relation / View
+### 7.5 Morph / Relation / View
 
 - `cx.morph.create`
 - `cx.morph.update`
@@ -236,9 +250,9 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 `cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Card 所属 List、Card rank、List rank、Room membership、Message timeline、Relation active state 或对象字段的唯一真相。
 
-Card 与 Room 的关联只使用 Card 视角事件：`cx.card.link_room`、`cx.card.unlink_room` 和 `cx.card.set_primary_room`。`cx.room.link_card` / `cx.room.unlink_card` 不是 v1 标准事件，接收方 MUST 拒绝它们，避免同一语义出现双写路径。
+新写入 SHOULD 优先通过 `cx.subject.link_surface` 把 Card 和 Room 挂到共同 Subject 上。Card 与 Room 的兼容关联只使用 Card 视角事件：`cx.card.link_room`、`cx.card.unlink_room` 和 `cx.card.set_primary_room`。`cx.room.link_card` / `cx.room.unlink_card` 不是 v1 标准事件，接收方 MUST 拒绝它们，避免同一语义出现双写路径。
 
-### 7.5 Run / Memory / Extensions
+### 7.6 Run / Memory / Extensions
 
 - `cx.run.create`
 - `cx.run.update`
@@ -253,7 +267,7 @@ Card 与 Room 的关联只使用 Card 视角事件：`cx.card.link_room`、`cx.c
 
 这些事件在 v1 Core 中作用于 `morph_type=run` / `morph_type=memory` 的 Morph。若未来 profile 将 Run / Memory 提升为标准对象，必须声明新的 schema/profile 版本和迁移规则。
 
-### 7.6 Membership / Invite / Capability
+### 7.7 Membership / Invite / Capability
 
 - `cx.member.state`
 - `cx.invite.create`
@@ -263,7 +277,7 @@ Card 与 Room 的关联只使用 Card 视角事件：`cx.card.link_room`、`cx.c
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-### 7.7 Profile / Device / Space Key
+### 7.8 Profile / Device / Space Key
 
 - `cx.profile.update`
 - `cx.profile.space_override`
@@ -294,6 +308,30 @@ Card 与 Room 的关联只使用 Card 视角事件：`cx.card.link_room`、`cx.c
 - `cx.message.redact` 只带目标消息与原因
 - `cx.morph.update` 只带 Morph 字段 patch
 - `cx.view.update` 只带投影定义 patch；通过 View 触发的对象变更仍使用对应对象 Event kind
+
+### 8.1 Subject Surface Link
+
+`cx.subject.link_surface` 为 Subject 关联一个 surface。surface 可以是 Card、Room、Morph、View、Message 或 profile 声明的其他对象引用。
+
+```json
+{
+  "kind": "cx.subject.link_surface",
+  "target_ref": "cx:subject:01js0sb0000000000000000000",
+  "content": {
+    "subject_id": "cx:subject:01js0sb0000000000000000000",
+    "surface_ref": "cx:room:01js0rm0000000000000000000",
+    "surface_role": "primary_discussion",
+    "primary": true
+  }
+}
+```
+
+规则：
+
+- link 不传递权限。
+- link 不改变 Room membership、Card visibility 或 Morph visibility。
+- Subject 可见不代表 surface 内容可读；projection 必须按 surface 自身权限裁剪。
+- 设置 `primary=true` 时，Reducer MUST 按 `(subject_id, surface_role)` 或 profile 声明的唯一性 key 保证至多一个 active primary surface。
 
 ## 9. Board / Card 有序操作
 
@@ -391,7 +429,7 @@ Reducer 语义：
 4. `space_id` 与 target object 所属 Space 一致。
 5. capability 在操作时点有效。
 6. `prev_refs` / `auth_refs` 因果依赖不违反基本约束。
-7. 对 Room / Card / Board / Morph 执行对象类型 schema validation。
+7. 对 Subject / Room / Card / Board / Morph 执行对象类型 schema validation。
 
 ## 11. Snapshot
 
@@ -428,19 +466,25 @@ Snapshot manifest MUST 包含：
 
 用于 Space 级当前态与增量同步。
 
-### 12.3 Room Sync
+### 12.3 Subject Sync
+
+用于 Subject 当前态、surface 列表、可见性裁剪后的 surface preview 和 Subject activity projection。
+
+Subject Sync MUST NOT 因为 actor 可读 Subject 就自动展开不可读 Room timeline、Card 字段或 Morph 内容。
+
+### 12.4 Room Sync
 
 用于 Room 消息时间线、Room membership 和通知。
 
-### 12.4 Board Sync
+### 12.5 Board Sync
 
 用于 Board/List/Card 当前态、Card position 和拖拽增量。
 
-### 12.5 Query Surface
+### 12.6 Query Surface
 
 用于 view、搜索、memory 检索与 context timeline 查询。
 
-### 12.6 Authz / Invite Surface
+### 12.7 Authz / Invite Surface
 
 用于：
 
@@ -467,6 +511,7 @@ Snapshot manifest MUST 包含：
 选择性同步至少支持以下过滤维度：
 
 - space
+- subject
 - room
 - board
 - list
@@ -583,7 +628,8 @@ Contrix v1 固定：
 - signed Event Envelope 是 actor 发布单元。
 - Event Envelope 是共享状态归约单元。
 - Room / Message、Board / List / Card、Morph 共享同一同步协议。
-- Card 和 Room 通过 relation 关联，权限不继承。
+- Subject 是语义中心；Card、Room、Document、Run、Memory 等通过 `has_surface` relation 聚合，权限不继承。
+- Card 和 Room 仍可通过兼容 relation 关联，权限不继承。
 - invite / grant / snapshot 组成 Space bootstrap 主流程。
 - event 重试必须幂等。
 - 授权有效性由同一 reducer 顺序收敛。
@@ -598,4 +644,4 @@ Contrix v1 固定：
 - HLC 文本格式固定为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，排序向量见 `encoding-conformance-vectors.md`。
 - Snapshot manifest、chunk digest、`state_hash` 和签名规则见 `snapshot-schema.md`。
 - Room / Message 语义见 `../models/conversation-model.md`。
-- Board / List / Card / Morph 语义见 `../models/object-model-standard.md` 和 `../models/views.md`。
+- Subject / Board / List / Card / Morph 语义见 `../models/object-model-standard.md` 和 `../models/views.md`。

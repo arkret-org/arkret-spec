@@ -12,6 +12,7 @@ Contrix v1 不再使用 `entity` 作为通用资源选择器。标准对象使�
 
 ```ebnf
 selector             ::= space_selector
+                      | subject_selector
                       | room_selector
                       | board_selector
                       | list_selector
@@ -27,6 +28,11 @@ selector             ::= space_selector
 
 space_selector       ::= "space" ":" space_id
                       | "space" ":" "*"
+
+subject_selector     ::= "subject" ":" space_id ":" subject_id
+                      | "subject" ":" space_id ":*"
+                      | "subject" ":" "*" ":" subject_id
+                      | "subject" ":" "*"
 
 room_selector        ::= "room" ":" space_id ":" room_id
                       | "room" ":" space_id ":*"
@@ -76,6 +82,7 @@ disjunction_selector ::= selector "," selector
 ### 2.2 词法规则
 
 - `space_id`：`cx:space:` 后接 ULID。
+- `subject_id`：`cx:subject:` 后接 ULID。
 - `room_id`：`cx:room:` 后接 ULID。
 - `board_id`：`cx:board:` 后接 ULID。
 - `list_id`：`cx:list:` 后接 ULID。
@@ -85,7 +92,7 @@ disjunction_selector ::= selector "," selector
 - `morph_type`：Space schema 中注册的开放对象类型。
 - `object_type`：标准对象类型或 `morph`。
 - `object_ref`：任一 canonical object id。
-- `relation_kind`：字符串标识符，例如 `contains`、`assigned_to`、`links_room`。
+- `relation_kind`：字符串标识符，例如 `contains`、`assigned_to`、`has_surface`、`links_room`。
 - `view_id`：`cx:view:` 后接 ULID。
 - 空白字符被忽略（引号内字符串除外）。
 
@@ -104,6 +111,11 @@ disjunction_selector ::= selector "," selector
 - 配合：`max_delegation_depth=0`、短有效期和审批约束，防止意外扩展。
 
 ### 3.2 标准对象选择器
+
+`subject:cx:space:...:*`
+
+- 匹配：该 Space 中所有 Subject。
+- 注意：Subject 读取不授予 surface 内容读取；Room、Card、Morph 等 surface 仍按自身权限裁剪。
 
 `card:cx:space:...:*`
 
@@ -143,7 +155,7 @@ disjunction_selector ::= selector "," selector
 
 ### 3.4 Object 选择器
 
-`object` 是跨对象类型的通用选择器，用于授权面确实需要同时覆盖多类对象的情况。实现 SHOULD 优先使用更具体的 `room`、`card`、`message` 或 `morph` 选择器。
+`object` 是跨对象类型的通用选择器，用于授权面确实需要同时覆盖多类对象的情况。实现 SHOULD 优先使用更具体的 `subject`、`room`、`card`、`message` 或 `morph` 选择器。
 
 `object:cx:space:...:card`
 
@@ -154,6 +166,11 @@ disjunction_selector ::= selector "," selector
 - 匹配：给定对象引用。
 
 ### 3.5 Relation 选择器
+
+`relation:cx:space:...:has_surface`
+
+- 匹配：该 Space 中所有 `has_surface` 关系。
+- 注意：创建或读取 Subject surface relation 不授予目标 surface 内容访问权。
 
 `relation:cx:space:...:links_room`
 
@@ -237,7 +254,7 @@ function matches(target, selector):
     if selector.kind == "space":
         return target.space_id == selector.space_id or selector.space_id == "*"
 
-    if selector.kind in ["room", "board", "list", "card", "message", "morph"]:
+    if selector.kind in ["subject", "room", "board", "list", "card", "message", "morph"]:
         if target.space_id != selector.space_id and selector.space_id != "*":
             return false
         if target.type != selector.kind:
@@ -326,7 +343,7 @@ Facet 选择适合：
 
 - 按 `space_id` 索引授权（最常见过滤器）。
 - 按标准对象 `type` 索引。
-- 按 `room_id`、`board_id`、`card_id`、`morph_type` 建立局部索引。
+- 按 `subject_id`、`room_id`、`board_id`、`card_id`、`morph_type` 建立局部索引。
 - 单独缓存通配符授权。
 
 ### 9.2 求值顺序
@@ -335,7 +352,7 @@ Facet 选择适合：
 
 1. 精确 `space_id` 匹配。
 2. 精确对象 ID 匹配。
-3. Room / Board / Card 局部范围匹配。
+3. Subject / Room / Board / Card 局部范围匹配。
 4. 基于对象类型或 Morph 类型的匹配。
 5. Facet 约束匹配。
 6. 通配符匹配。

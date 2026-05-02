@@ -249,7 +249,29 @@ View 应通过结构化 query 表达对象范围。
 }
 ```
 
-### 5.3 Card 上下文查询示例
+### 5.3 Subject / Card 上下文查询示例
+
+Subject 上下文查询用于打开“东西本身”的详情页，返回 Subject 当前态、surface 列表和按权限裁剪的 activity projection。
+
+```json
+{
+  "anchor_ref": "cx:subject:01js0sb0000000000000000000",
+  "include": [
+    "relations",
+    "surfaces",
+    "surface_previews",
+    "activity_events",
+    "audit_events"
+  ],
+  "authorization": {
+    "locked_surface_policy": "lazy_link"
+  }
+}
+```
+
+Subject context MUST NOT 因为 actor 可读 Subject 就展开不可读 Room timeline、Card 字段或 Morph 内容。
+
+Card 上下文查询仍可用于兼容或局部工作流：
 
 ```json
 {
@@ -276,9 +298,11 @@ View 应通过结构化 query 表达对象范围。
 | 看板 | `board` | 标准对象，可被引用、授权、讨论和审计。 |
 | 列/泳道 | `list` | Board 内有序容器。 |
 | 卡片 | `card` | 标准工作对象。 |
+| Subject surface | `Relation{relation_kind="has_surface", from_ref=subject_id, to_ref=card_id}` | 表示该 Card 是某个 Subject 的推进面；不决定看板位置。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=card_id}` | 表示 List 与 Card 的 canonical 包含关系；投影中的 `list_id` 是派生字段。 |
 | 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系；List 对象中的 `board_id` 不得作为唯一真相源。 |
-| Card 讨论 | `Relation{relation_kind="links_room"}` 或 `primary_room` | 不传递权限。 |
+| Subject 讨论 | `Relation{relation_kind="has_surface", from_ref=subject_id, to_ref=room_id}` | 推荐模型；Room 权限独立裁剪。 |
+| Card 讨论 | `Relation{relation_kind="links_room"}` 或 `primary_room` | 兼容/快捷关系；不传递权限。 |
 
 ### 6.2 Board 不显示全 Space 数据
 
@@ -446,7 +470,7 @@ Card context timeline 可以混合：
 
 ## 8. Graph / Tree Projection
 
-Graph projection 可展开 Card、Morph、Room、Board 等对象之间的 Relation。
+Graph projection 可展开 Subject、Card、Morph、Room、Board 等对象之间的 Relation。
 
 去中心化网络中，Space 构成严格权限边界。Projection executor 在执行带有 `depth` 的深度查询时，遇到跨 Space 引用 MUST 截断并返回 Lazy Link，不能自动跨 Space 拼接图谱。
 

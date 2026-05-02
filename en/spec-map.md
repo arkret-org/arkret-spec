@@ -83,10 +83,10 @@ When learning the protocol for the first time, we recommend this sequence:
 
 | Document | Purpose |
 | --- | --- |
-| `models/object-model-core.md` | Core objects: Space, Actor, Entity, Relation, Event, View. |
-| `models/object-model-standard.md` | Standard types: Task, Message, Run, Memory, etc. |
+| `models/object-model-core.md` | Core objects: Space, Actor, Subject, Room, Board, List, Card, Message, Morph, Relation, Event, View. |
+| `models/object-model-standard.md` | Standard types and surfaces: Subject, Room, Board, List, Card, Message, Morph profiles for Run/Memory/etc. |
 | `models/data-structures.md` | Object field-level definitions: requiredness, types, enums, constraints. |
-| `models/conversation-model.md` | Channel, Topic, Message, Thread, Mention, Reaction. |
+| `models/conversation-model.md` | Room, Message, Thread, Mention, Reaction, and Subject/Card discussion surfaces. |
 | `models/views.md` | Board, Table, Timeline, Graph projections. |
 | `models/content-types.md` | Rich text, media, poll, and content block typing. |
 

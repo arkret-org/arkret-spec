@@ -3,6 +3,7 @@
   "schemas": [
     { "schema_id": "cx.schema.space.v1", "file": "schemas/space.schema.json" },
     { "schema_id": "cx.schema.actor_profile.v1", "file": "schemas/actor-profile.schema.json" },
+    { "schema_id": "cx.schema.subject.v1", "file": "schemas/subject.schema.json" },
     { "schema_id": "cx.schema.room.v1", "file": "schemas/room.schema.json" },
     { "schema_id": "cx.schema.board.v1", "file": "schemas/board.schema.json" },
     { "schema_id": "cx.schema.list.v1", "file": "schemas/list.schema.json" },

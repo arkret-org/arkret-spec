@@ -28,7 +28,7 @@
 | `temporal` | 基于时间的约束 | v1 |
 | `field_access` | 字段级读写控制 | v1 |
 | `type_restriction` | 对象类型限制 | v1 |
-| `scope_limitation` | Space/Room/Board/Card/View 范围 | v1 |
+| `scope_limitation` | Space/Subject/Room/Board/Card/View 范围 | v1 |
 | `delegation_control` | 委托深度和路径 | v1 |
 | `rate_limiting` | 操作频率限制 | v1 |
 | `approval_workflow` | 审批要求 | v1 |

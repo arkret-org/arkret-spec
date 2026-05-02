@@ -58,6 +58,10 @@
       "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
     },
     {
+      "if": { "properties": { "kind": { "enum": ["cx.subject.link_surface", "cx.subject.unlink_surface", "cx.subject.set_primary_surface"] } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/subject_surface_link_content" } } }
+    },
+    {
       "if": { "properties": { "kind": { "enum": ["cx.member.state", "cx.room.member"] } }, "required": ["kind"] },
       "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/membership_content" } } }
     },
@@ -71,6 +75,7 @@
           "kind": {
             "enum": [
               "cx.space.create",
+              "cx.subject.create",
               "cx.room.create",
               "cx.board.create",
               "cx.list.create",
@@ -89,6 +94,7 @@
           "kind": {
             "enum": [
               "cx.space.update",
+              "cx.subject.update",
               "cx.room.update",
               "cx.board.update",
               "cx.list.update",
@@ -163,6 +169,8 @@
           "kind": {
             "enum": [
               "cx.room.archive",
+              "cx.subject.archive",
+              "cx.subject.restore",
               "cx.board.archive",
               "cx.list.archive",
               "cx.card.archive",

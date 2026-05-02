@@ -17,6 +17,7 @@
 | --- | --- |
 | `cx.schema.space.v1` | Space |
 | `cx.schema.actor_profile.v1` | Actor Profile |
+| `cx.schema.subject.v1` | Subject |
 | `cx.schema.room.v1` | Room |
 | `cx.schema.board.v1` | Board |
 | `cx.schema.list.v1` | List |
@@ -81,6 +82,13 @@
 | `cx.space.freeze` | Enter temporary freeze |
 | `cx.space.destroy` | Destroy / reclaim marker |
 | `cx.member.state` | Membership state |
+| `cx.subject.create` | Subject create |
+| `cx.subject.update` | Subject patch |
+| `cx.subject.archive` | Subject archive |
+| `cx.subject.restore` | Subject restore |
+| `cx.subject.link_surface` | Link surface to Subject |
+| `cx.subject.unlink_surface` | Unlink surface from Subject |
+| `cx.subject.set_primary_surface` | Set Subject primary surface |
 | `cx.room.create` | Room create |
 | `cx.room.update` | Room patch |
 | `cx.room.member` | Room membership state |

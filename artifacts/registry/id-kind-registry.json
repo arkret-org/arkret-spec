@@ -79,6 +79,7 @@
     { "kind": "room", "category": "core_object", "status": "active", "wire_form": "cx:room:<ulid>", "description": "Room object ID" },
     { "kind": "snapshot", "category": "snapshot", "status": "active", "wire_form": "cx:snapshot:<ulid>", "description": "Snapshot manifest ID" },
     { "kind": "space", "category": "core_object", "status": "active", "wire_form": "cx:space:<ulid>", "description": "Space object ID" },
+    { "kind": "subject", "category": "core_object", "status": "active", "wire_form": "cx:subject:<ulid>", "description": "Subject semantic center object ID" },
     { "kind": "sync", "category": "transport", "status": "active", "wire_form": "cx:sync:<ulid>", "description": "Sync token/checkpoint ID when not using opaque cursor form" },
     { "kind": "txn", "category": "transport", "status": "active", "wire_form": "cx:txn:<ulid>", "description": "Federation/applet transaction ID" },
     { "kind": "view", "category": "core_object", "status": "active", "wire_form": "cx:view:<ulid>", "description": "View object ID" }
