@@ -2,5 +2,38 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/moderation-queue-item.schema.json",
   "title": "Contrix Moderation Queue Item",
-  "$ref": "../../../artifacts/schemas/moderation-queue-item.schema.json"
+  "type": "object",
+  "required": ["queue_item_id", "report", "status", "visibility", "created_at"],
+  "properties": {
+    "queue_item_id": { "type": "string", "pattern": "^cx:modq:[0-9a-hjkmnp-z]{26}$" },
+    "report": { "$ref": "./moderation-report.schema.json" },
+    "status": { "type": "string", "enum": ["submitted", "triaged", "reviewing", "actioned", "dismissed", "appealed", "closed"] },
+    "priority": { "type": "string", "enum": ["low", "normal", "high", "urgent"] },
+    "visibility": {
+      "type": "string",
+      "enum": ["metadata_only", "encrypted_evidence", "plaintext_evidence", "frank_only"]
+    },
+    "assigned_to": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" }
+    },
+    "evidence_policy": {
+      "type": "object",
+      "required": ["plaintext_allowed", "requires_frank_verification"],
+      "properties": {
+        "plaintext_allowed": { "type": "boolean" },
+        "requires_frank_verification": { "type": "boolean" },
+        "retention_until": { "type": "string", "format": "date-time", "pattern": "Z$" },
+        "legal_hold": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "audit_refs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" }
+    },
+    "created_at": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "updated_at": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  },
+  "additionalProperties": false
 }
