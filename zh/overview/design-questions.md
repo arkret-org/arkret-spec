@@ -11,7 +11,7 @@
 - Contrix 采用 **space-first + standard-object-first + event-first**。
 - 协议根模型固定为 `Space + Actor + Room + Board + List + Card + Message + Morph + Relation + Event + View`。
 - Room、Board、List、Card、Message 是标准对象，拥有明确主语义、授权和 reducer。
-- Morph 是开放对象，用于扩展业务类型和实验类型；facets 是能力 mixin，不是对象身份。
+- Morph 是开放对象，用于扩展业务类型和实验类型；facets 是 Space schema / Morph profile 声明能力的 hint / 查询标签，不是对象身份，也不是授权、状态机或 reducer 语义来源。
 - View 只负责投影定义。View 拥有 query / renderer / layout 等定义真相，但不拥有被投影对象的协作事实。
 
 理由：
@@ -48,7 +48,7 @@
 
 - `board --contains--> list`
 - `list --contains--> card`
-- Card 的状态、标题、负责人、标签、截止时间等属于 Card 自身或其 facets/profile。
+- Card 的状态、标题、负责人、标签、截止时间等属于 Card 自身或显式 profile/schema；facets 只可作为已声明能力的查询和投影 hint。
 
 View 只负责把 Board/List/Card 投影成 kanban、table、calendar、gantt 等展示。Board/List/Card 的存在、包含关系、rank 和字段状态仍由标准对象、Relation 与对应 operation 维护。
 
@@ -92,12 +92,13 @@ Room：
 - 一个 Card 可能需要多个讨论 Room，例如设计、法律、客户沟通、事故复盘。
 - 权限独立让外部协作和局部讨论更容易组合。
 
-## 7. Morph + facets 的边界是什么？
+## 7. Morph / facets 的边界是什么？
 
 决策：
 
 - Morph 是开放对象类型。
-- facets 是能力 mixin，例如 `assignable`、`schedulable`、`reviewable`、`documentable`。
+- Morph 的领域能力由 Space schema / Morph profile 显式声明。
+- facets 是已声明能力的 hint / 查询标签，例如 `assignable`、`schedulable`、`reviewable`、`documentable`，不得单独决定授权、状态机、排序语义、reducer 行为、event kind 接受规则或 wire 互操作。
 - Morph 不替代 Room、Board、List、Card、Message。
 
 适合 Morph 的对象：
@@ -145,7 +146,7 @@ Message 不再是通用 Entity 语义标签，也不是协议唯一事实根。
 
 - Event 仍是审计和归约输入；Operation 只作为 SDK / API 语义名称或兼容别名。
 - Sync 以 Space 为主要范围，同时支持 Room、Board、Card、Morph 等过滤。
-- Index 查询使用 `object_types`、`morph_types`、`facets`。
+- Index 查询使用 `object_types`、`morph_types`、`facets`；其中 `facets` 只筛选 schema/profile 已声明的 hint / 查询标签。
 - `/index/object` 替代 `/index/entity`。
 - Relation 使用 `from_ref` / `to_ref`，可连接标准对象、Morph、Actor 和 Space。
 
@@ -163,7 +164,7 @@ Contrix v1 当前固定：
 
 1. Space 是协作边界。
 2. Room、Board、List、Card、Message 是标准对象。
-3. Morph + facets 承担开放扩展。
+3. Morph 承担开放扩展；facets 只表达 schema/profile 已声明能力的 hint / 查询标签。
 4. Card 与 Room 严格区分，但可通过 Relation 关联多个 Room。
 5. Card-Room link 不传播权限。
 6. View 是投影定义，拥有自己的定义真相，但不拥有被投影对象的协作事实。

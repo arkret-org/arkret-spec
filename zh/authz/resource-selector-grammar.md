@@ -294,12 +294,12 @@ function matches(target, selector):
 
 ### 8.2 Facet 限制
 
-Facet 是能力 mixin，不是对象身份。实现不得只因为对象声明了 `replyable`、`assignable` 或 `rankable` facet 就绕过标准对象授权规则。
+Facet 是 Space schema / Morph profile 声明后的 hint / 查询标签，不是对象身份，也不是 capability action。实现不得只因为对象声明了 `replyable`、`assignable` 或 `rankable` facet 就绕过标准对象授权规则，或自动获得回复、分配、排序等写入能力。
 
 Facet 选择适合：
 
-- 限定 Morph 类型族的能力范围。
-- 在确有需要时为标准对象增加附加能力约束。
+- 限定 Morph 类型族的已声明 hint 范围。
+- 在确有需要时为标准对象增加附加过滤约束。
 
 ### 8.3 选择器注入
 

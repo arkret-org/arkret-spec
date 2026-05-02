@@ -31,7 +31,7 @@
 
 - Space 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
 - Room、Board、List、Card、Message 是协议标准对象，拥有明确主语义和 reducer。
-- Morph 是开放对象，用于 schema / profile 扩展类型；facets 是能力 mixin，不是对象身份。
+- Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
 - Card 与 Room 严格分离；Card 可链接多个 Room，但不继承 Room membership 或历史权限。
 - Feed 是一种社交或活动时间线投影源，不替代 Space。
 - View 是投影定义，不拥有真相数据。

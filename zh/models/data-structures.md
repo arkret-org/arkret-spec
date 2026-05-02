@@ -171,7 +171,7 @@ Schema id: `cx.schema.card.v1`
 | `title` | yes | `string` | 1..512 chars。 | 标题。 |
 | `body` | no | `object` | 富文本/blocks 见 `content-types.md`。 | 内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 状态、优先级、截止时间等属性。 |
-| `facets` | no | `map<FacetConfig>` | 标准 facet 见 7 节。 | 可选能力混入。 |
+| `facets` | no | `map<FacetConfig>` | 标准 facet 见 7 节。 | 已声明能力的可选 hint / 查询标签。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `version` | no | `integer` | SHOULD 单调递增，不能替代 event order。 | 物化版本。 |
 | `created_by` | yes | `did` |  | 创建者。 |
@@ -206,7 +206,7 @@ Schema id: `cx.schema.morph.v1`
 | `type` | yes | `enum(morph)` | 固定为 `morph`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `cx.` 前缀。 | 开放类型。 |
-| `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Space schema 声明。 | Morph 拥有哪些能力包。 |
+| `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Space schema / Morph profile 声明。 | Morph 暴露哪些已声明能力 hint。 |
 | `title` | no | `string` | SHOULD <= 512 chars。 | 标题。 |
 | `summary` | no | `string` |  | 摘要。 |
 | `content` | no | `object` | 富文本/blocks 见 `content-types.md`。 | 正文内容。 |
@@ -217,22 +217,24 @@ Schema id: `cx.schema.morph.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-标准 `facets`：
+标准 `facets` 名称作为 schema/profile 声明后的 hint / 查询标签使用：
 
 | Facet | 说明 | 典型字段/关系 |
 | --- | --- | --- |
-| `container` | 对象可作为容器，包含、排序或移动其他对象。 | `child_object_types`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
-| `replyable` | 对象可被回复，形成 thread/discussion。 | `reply_object_types`, `reply_relation_kind`, `time_field`, `redaction_policy`。 |
-| `schedulable` | 对象有时间窗口，可进入 calendar/gantt。 | `start_field`, `end_field`, `timezone_field`, `dependency_relation_kinds`。 |
-| `assignable` | 对象可分配给 actor/team/agent。 | `assignee_relation_kind` 或 `assignee_field`。 |
-| `stateful` | 对象有受控状态机。 | `state_field`, `states`, `transition_policy`。 |
-| `rankable` | 对象有稳定手动排序 rank。 | `rank_field`, `rank_profile`, `collision_policy`。 |
-| `reviewable` | 对象可进入审核/审阅队列。 | `review_state_field`, `reviewer_relation_kind`, `priority_field`。 |
-| `notifiable` | 对象可派生 notification/inbox/read state。 | `notification_types`, `read_state_policy`。 |
-| `documentable` | 对象可作为文档或 section root。 | `section_relation_kind`, `section_order_field`, `body_field`。 |
-| `renderable` | 对象声明允许的默认展示面。 | `renderers`, `title_field`, `summary_field`, `media_field`。 |
+| `container` | 提示对象可按显式 relation/profile 作为容器投影。 | `child_object_types`, `relation_kinds`, `ordering`, `exclusive_scope`。 |
+| `replyable` | 提示对象可按声明的 reply relation 被回复，形成 thread/discussion。 | `reply_object_types`, `reply_relation_kind`, `time_field`, `redaction_policy`。 |
+| `schedulable` | 提示对象有声明的时间窗口，可进入 calendar/gantt 投影。 | `start_field`, `end_field`, `timezone_field`, `dependency_relation_kinds`。 |
+| `assignable` | 提示对象有声明的分配字段或关系。 | `assignee_relation_kind` 或 `assignee_field`。 |
+| `stateful` | 提示对象有显式 profile 定义的受控状态机。 | `state_field`, `states`, `transition_policy`。 |
+| `rankable` | 提示对象有声明的稳定手动排序 rank。 | `rank_field`, `rank_profile`, `collision_policy`。 |
+| `reviewable` | 提示对象有声明的审核/审阅状态。 | `review_state_field`, `reviewer_relation_kind`, `priority_field`。 |
+| `notifiable` | 提示对象可按声明的 notification profile 派生 notification/inbox/read state。 | `notification_types`, `read_state_policy`。 |
+| `documentable` | 提示对象可按声明的 document profile 作为文档或 section root。 | `section_relation_kind`, `section_order_field`, `body_field`。 |
+| `renderable` | 提示对象声明允许的默认展示面。 | `renderers`, `title_field`, `summary_field`, `media_field`。 |
 
 `query.facets`、`collection.item_facets` 和 `graph.node_facets` 的数组语义为 AND：候选对象 MUST 同时具备列出的全部 facet。`container.child_facets` 与 `replyable.reply_facets` 使用 `{all?, any?, none?}` 选择器。
+
+Facet 配置 MUST NOT 成为授权、状态机、排序语义、reducer 行为、event kind 接受规则或 wire 互操作的唯一规范来源。这些语义必须由 Space schema / Morph profile / event registry / capability action 明确定义。
 
 ## 8. Relation
 
@@ -314,7 +316,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
-| `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；能力仍由对象类型、facets 与 typed config 决定。 |
+| `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
@@ -336,7 +338,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `item_object_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 按对象类型过滤可投影为 item/card/row/message 的对象。 |
-| `item_facets` | conditional | `array<FacetName>` | 可替代 `item_object_types`；至少 1 项。 | 按对象能力选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
+| `item_facets` | conditional | `array<FacetName>` | 可替代 `item_object_types`；至少 1 项。 | 按声明 hint 选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
 | `item_render` | yes | `enum(card, row, tile, compact, badge, message)` | 看板式展示 SHOULD 为 `card`。 | 默认展示面。 |
 | `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 collection SHOULD 使用 rank。 |
 | `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |

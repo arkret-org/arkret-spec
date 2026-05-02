@@ -386,7 +386,7 @@ POST /api/v1/index/query
 
 - `object_types`：标准对象类型，例如 `room`、`board`、`list`、`card`、`message`、`morph`
 - `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
-- `facets`：能力 mixin 选择器，只用于 Morph 或声明支持 facets 的标准对象
+- `facets`：schema-declared capability hint 选择器，只用于 Morph 或声明支持 facets 的标准对象；不得作为授权、状态机、排序或 reducer 语义的唯一来源
 - `relation`
 - 过滤条件
 - 排序

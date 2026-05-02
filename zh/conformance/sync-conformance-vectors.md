@@ -89,6 +89,7 @@
     "kind": "cx.card.move",
     "target_ref": "cx:card:01js0ca100000000000000000",
     "content": {
+      "board_id": "cx:board:01js0bd000000000000000000",
       "card_id": "cx:card:01js0ca100000000000000000",
       "from_list_id": "cx:list:01js0li100000000000000000",
       "to_list_id": "cx:list:01js0li200000000000000000",

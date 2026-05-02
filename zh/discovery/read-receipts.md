@@ -54,7 +54,7 @@ Read Marker 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 ```json
 {
-  "type": "cx.marker.read",
+  "type": "cx.read.marker",
   "body": {
     "space_id": "cx:space:01JS0SP000000000000000000",
     "room_id": "cx:room:01JS1000000000000000000001",
@@ -70,11 +70,11 @@ Read Marker 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 未读计数是由 **Index 节点** 维护的派生数据。
 
-1. Index 节点监听用户的 account data 拿到最新的 `cx.marker.read`。
-2. Index 节点计算 `cx.marker.read` 指向的 `event_id` 之后，该 Room 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
+1. Index 节点监听用户的 account data 拿到最新的 `cx.read.marker`。
+2. Index 节点计算 `cx.read.marker` 指向的 `event_id` 之后，该 Room 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
 3. 客户端通过 `GET /api/v1/index/notifications` 接口直接获取算好的未读数。
 
 ## 5. Thread (子线程) 的已读隔离
 
 在 Thread 模式下，Room timeline 和子 Thread 的阅读进度是分离的。
-如果 `cx.receipt.read` 或 `cx.marker.read` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Room timeline 的游标，反之亦然。
+如果 `cx.receipt.read` 或 `cx.read.marker` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Room timeline 的游标，反之亦然。

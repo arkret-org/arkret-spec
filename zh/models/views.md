@@ -68,7 +68,7 @@ View 查询 SHOULD 优先使用标准对象类型：
 - `message`
 - `morph`
 
-只有开放对象才主要依赖 `morph_type` 和 `facets`。标准对象 MAY 通过 facets 增加能力，但 View 不应把标准对象降级为 Morph。
+只有开放对象才主要依赖 `morph_type`。标准对象 MAY 暴露 schema/profile 声明后的 facets 用于过滤或默认展示，但 View 不应把标准对象降级为 Morph。
 
 ### 2.3 同一对象可以进入多个 View
 
@@ -214,7 +214,7 @@ View 应通过结构化 query 表达对象范围。
 }
 ```
 
-`object_types` 选择标准对象类型。`facets` 只用于需要能力过滤时，尤其是 Morph 或带扩展能力的标准对象。
+`object_types` 选择标准对象类型。`facets` 只用于按 schema/profile 声明的 hint 过滤，尤其是 Morph 或带扩展 profile 的标准对象；它不授予写入、排序、状态转换或 renderer 能力。
 
 ### 5.1 看板查询示例
 

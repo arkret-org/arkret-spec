@@ -2,7 +2,13 @@
 
 ## 1. 目标
 
-本文定义 Contrix v1 标准 schema registry。字段级结构定义见 `data-structures.md`；机器可验证 JSON Schema 文件 SHOULD 从 `data-structures.md` 与本注册表共同生成。
+本文定义 Contrix v1 标准 schema registry 与 event kind registry 的文档视图。字段级结构定义见 `data-structures.md`。
+
+机器可读 source of truth：
+
+- Object / DTO schema：`artifacts/registry/schema-registry.json`
+- Standard Event kind：`artifacts/registry/event-kind-registry.json`
+- Service operation id：`artifacts/registry/operation-registry.json`
 
 ## 2. Object Schema
 
@@ -26,6 +32,15 @@
 | `cx.schema.event.v1` | Event Envelope |
 | `cx.schema.event_batch_receipt.v1` | Event Batch Receipt |
 | `cx.schema.operation.v1` | Operation |
+| `cx.schema.cursor.v1` | Cursor |
+| `cx.schema.snapshot.v1` | Snapshot Manifest |
+| `cx.schema.grant_constraint.v1` | Grant Constraint |
+| `cx.schema.resource_selector.v1` | Resource Selector |
+| `cx.schema.did_key_log_entry.v1` | DID Key Log Entry |
+| `cx.schema.identity_receipt.v1` | Identity Receipt |
+| `cx.schema.handle_claim.v1` | Handle Claim |
+| `cx.schema.media_metadata.v1` | Media Metadata |
+| `cx.schema.read_receipt.v1` | Read Receipt |
 | `cx.schema.blob.v1` | Blob Metadata |
 | `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
 | `cx.schema.client_sync_response.v1` | Client Sync Response |
@@ -35,10 +50,12 @@
 
 ### 3.1 命名规则
 
-- 标准 event type 应使用 namespace：`cx.<domain>.<verb>`。
+- 标准 event type 应使用 namespace：`cx.<domain>[.<subdomain>].<verb>`；少数根级标准事件（例如 `cx.redaction`）必须显式出现在 event kind registry 中。
 - 所有标准事件必须使用 `cx.` 前缀。
 - 裸名事件（如 `space.create`）不是标准事件类型，MUST NOT 出现在互操作事件流中。
 - 语义上不安全的自由字符串事件（如 `custom.*`）不直接进入注册表，必须通过自定义 schema + state filter+capability 约束映射到 `cx.custom.*` 空间。
+
+完整标准事件集合以 `artifacts/registry/event-kind-registry.json` 为准。下表是主要 durable Event kind 的文档视图；实现不得只解析本 Markdown 表，而必须加载机器 registry 或等价生成物。
 
 | event type | payload |
 | --- | --- |

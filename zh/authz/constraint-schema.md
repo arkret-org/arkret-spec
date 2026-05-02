@@ -111,7 +111,7 @@
 
 ## 5. 类型限制
 
-### 5.1 对象能力 / 类型允许列表
+### 5.1 对象类型 / 声明 hint 允许列表
 
 ```json
 {
@@ -124,7 +124,7 @@
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。`facet_allow` 只表达能力 mixin；Morph 语义 SHOULD 通过 `morph_type_allow` 继续细分。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
 
 ### 5.2 Memory 类型限制
 

@@ -161,7 +161,9 @@ Contrix v1 要求：
 
 ## 7. 标准 Event Kind
 
-所有 `kind` 都是可见事件类型。实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的事件类型。
+所有 `kind` 都是可见事件类型。标准 `Event.kind` 的机器可读 source of truth 是 `artifacts/registry/event-kind-registry.json`；`schema-registry.md` 只是文档视图。实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的标准事件类型。自定义事件不得使用 `cx.` 前缀，除非已纳入标准 registry。
+
+本节列出 Event-first 写路径中的核心 durable Event kind，不替代 registry。
 
 ### 7.1 Space / Schema / Policy / Discovery
 
@@ -170,6 +172,13 @@ Contrix v1 要求：
 - `cx.space.archive`
 - `cx.space.freeze`
 - `cx.space.destroy`
+- `cx.space.schema`
+- `cx.space.policy`
+- `cx.space.policy_server`
+- `cx.space.policy_components`
+- `cx.space.plaintext_visible_services`
+- `cx.space.history_visibility`
+- `cx.space.join_rule`
 - `cx.space.discovery`
 - `cx.organization.discovery`
 - `cx.schema.define`
@@ -211,13 +220,16 @@ Contrix v1 要求：
 
 - `cx.morph.create`
 - `cx.morph.update`
-- `cx.morph.delete`
+- `cx.morph.archive`
 - `cx.morph.restore`
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
+- `cx.container.move_item`
+- `cx.container.rebalance`
 - `cx.view.create`
 - `cx.view.update`
+- `cx.view.reconcile`
 
 `cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Card 所属 List、Card rank、List rank、Room membership、Message timeline、Relation active state 或对象字段的唯一真相。
 
@@ -257,6 +269,13 @@ Card 与 Room 的关联只使用 Card 视角事件：`cx.card.link_room`、`cx.c
 - `cx.device.list_update`
 - `cx.space_key.share`
 - `cx.space_key.withheld`
+- `cx.mls.proposal`
+- `cx.mls.commit`
+- `cx.mls.welcome`
+- `cx.read.marker`
+- `cx.receipt.read`
+- `cx.audit.accessed`
+- `cx.redaction`
 
 ## 8. 操作体原则
 

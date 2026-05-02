@@ -24,8 +24,8 @@
 | List | 列表 | Board 下的一等有序分组对象，通常包含多个 Card，并维护局部排序与归档状态。 |
 | Card | 卡片 | Board/List 下的一等工作项、主题项或可推进对象。Card 可链接零到多个 Room，但不继承或控制这些 Room 的成员。 |
 | Message | 消息 | Room 内的一等会话内容对象。Message 归属某个 Room，不是 Space 的唯一事实根。 |
-| Morph | 开放对象 | 可由 `facets` 扩展字段和能力的开放对象。Morph 用于 task 之外的新类型、实验类型、集成对象和领域对象，不替代 Room/Board/List/Card/Message 的主语义。 |
-| Facet | 能力切面 | Morph 或支持扩展的标准对象上声明的能力 mixin，例如 assignable、schedulable、replyable、documentable。Facet 不是对象身份。 |
+| Morph | 开放对象 | 可由 schema / profile 扩展类型和字段的开放对象；`facets` 只暴露已声明能力的 hint / 查询标签。Morph 用于 task 之外的新类型、实验类型、集成对象和领域对象，不替代 Room/Board/List/Card/Message 的主语义。 |
+| Facet | 能力提示 | Space schema / Morph profile 声明能力后的可查询标签或展示提示，例如 assignable、schedulable、replyable、documentable。Facet 不是对象身份，也不是授权、状态机、reducer 或 wire 语义的来源。 |
 | Relation | 关系 | Room / Board / List / Card / Message / Morph / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件、Card linked Room 等语义。 |
 | Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 Events API、sync、index 和 reducer。 |
 | State Event | 状态事件 | 带 `state_key` 的 Event，当前状态由 `(type, state_key)` 归约得到，例如 membership、policy、schema、view definition。 |
@@ -41,11 +41,11 @@
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Standard Object | 标准对象 | 协议直接定义主语义、授权和 reducer 的对象类型，包括 Space、Actor Profile、Room、Board、List、Card、Message、Relation、Event、View、Policy 等。 |
-| Open Object | 开放对象 | `Morph` 的语义别名，强调对象类型可由 schema、facets 和应用 profile 扩展。 |
+| Open Object | 开放对象 | `Morph` 的语义别名，强调对象类型可由 schema 和应用 profile 扩展；facets 只作为声明后的提示标签。 |
 | Task | 任务 | 常见 Card 语义或 Morph 类型，用于表达待办、状态、负责人、截止时间、依赖和讨论关系。若需要看板拖拽，应建模为 Card；若只是领域对象，可建模为 Morph。 |
 | Topic | 主题 | 常见 Card 语义或 Room 组织方式。需要推进、状态和列表位置时用 Card；需要持续会话时用 Room。 |
 | Thread | 线程 | Message 的回复链或 Room 内局部会话投影，不是独立权限边界。 |
-| Document | 文档 | 标准对象或 Morph 类型，用于结构化长文、页面、规范、笔记。是否可评论、可审阅、可版本化由对象类型和 facets 决定。 |
+| Document | 文档 | 标准对象或 Morph 类型，用于结构化长文、页面、规范、笔记。是否可评论、可审阅、可版本化由对象类型和显式 schema/profile 决定；facets 只能提示已声明能力。 |
 | File | 文件 | Blob metadata 与可见性策略的对象化表示，可作为 Morph 或标准 file profile 实现。 |
 | Memory | 记忆 | Morph 类型或扩展 profile，用于 agent 或人类确认的长期知识、事实、偏好或上下文。 |
 | Run | 运行记录 | Morph 类型或扩展 profile，用于记录 agent、自动化或工具执行过程。 |

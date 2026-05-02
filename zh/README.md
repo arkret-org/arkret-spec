@@ -10,7 +10,7 @@
 - 以 **capability** 为权限根
 - 以 **views/projections** 为人类展示根
 - 以 **Event** 为协作事实根
-- 以 **Room、Board、List、Card、Message** 承载标准协作语义，以 **Morph + facets** 承载开放扩展对象
+- 以 **Room、Board、List、Card、Message** 承载标准协作语义，以 **Morph + schema/profile-declared facets** 承载开放扩展对象
 
 它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、Room 会话、Card 主题、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
 
@@ -21,7 +21,7 @@ Contrix v1 聚焦以下目标：
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
 2. 面向对象协作  
-   协议根抽象固定为 Space、Actor、Room、Board、List、Card、Message、Morph、Relation、Event、View；标准对象承载主语义，Morph 通过 facets 和 Space schema profile 扩展领域对象。
+   协议根抽象固定为 Space、Actor、Room、Board、List、Card、Message、Morph、Relation、Event、View；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
 3. 去中心化同步  
    真相基底是 signed Event Envelope 和可验证 actor event chain，而不是单一中心数据库或 atprotocol/Git 式数据仓库。
 4. 多交互模式  
@@ -95,7 +95,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 所有共享状态来自 **授权 Event 集合的归约结果**
 - `space` 是复制、权限、schema 与 policy 边界
 - `room`、`board`、`list`、`card`、`message` 是协议一等标准对象
-- `morph` 是开放对象载体，用于 schema / profile 扩展类型，并通过 facets 声明能力
+- `morph` 是开放对象载体，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不单独定义授权、状态机、排序或 reducer 语义
 - `relation` 是一等对象，用于表达包含、依赖、回复、引用、分配、提及等关系
 - `event` 是协作事实和审计根
 - `view` 是投影，不拥有核心数据

@@ -24,6 +24,7 @@ contrix-spec/
     profiles/
       conformance-profiles.json
     registry/
+      event-kind-registry.json
       operation-registry.json
       schema-registry.json
     schemas/

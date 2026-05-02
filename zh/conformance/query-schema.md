@@ -36,7 +36,7 @@
 - `space_ids`: REQUIRED，查询范围。
 - `object_types`: OPTIONAL，限制标准对象类型，例如 `room`、`board`、`list`、`card`、`message`、`morph`。
 - `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
-- `facets`: OPTIONAL，能力 mixin 过滤。Facet 不替代对象类型，也不绕过授权。
+- `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、Room membership 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
 - `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Card context 的上下文锚点对象引用。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
@@ -176,6 +176,7 @@ Index MUST:
 
 - 对 query 做 schema validation。
 - 对 Space、Room、对象和字段做 authorization filtering。
+- 把 `facets` 仅作为过滤条件和 projection hint；不得因 facet 字符串扩大授权、启用未声明 reducer 或绕过 Morph profile validation。
 - 对 Card-linked Room 做独立 Room membership / history visibility 检查。
 - 对高成本 full_text / relation expansion 限流。
 - 不泄露不可见对象是否存在。

@@ -77,6 +77,7 @@ cx.vector.state_resolution.concurrent_card_move.v1
       "event_id": "cx:event:01js0ev100000000000000000",
       "kind": "cx.card.move",
       "content": {
+        "board_id": "cx:board:01js0bd000000000000000000",
         "card_id": "cx:card:01js0ca000000000000000000",
         "to_list_id": "cx:list:01js0li200000000000000000",
         "rank": "U"
@@ -87,6 +88,7 @@ cx.vector.state_resolution.concurrent_card_move.v1
       "event_id": "cx:event:01js0ev200000000000000000",
       "kind": "cx.card.move",
       "content": {
+        "board_id": "cx:board:01js0bd000000000000000000",
         "card_id": "cx:card:01js0ca000000000000000000",
         "to_list_id": "cx:list:01js0li300000000000000000",
         "rank": "U"

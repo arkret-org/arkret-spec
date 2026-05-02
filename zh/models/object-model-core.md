@@ -56,7 +56,7 @@ Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组�
 - `message`：Room 时间线中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
 
-标准对象 MAY 声明 `facets` 来扩展能力，但它的核心职责不依赖 facets 才成立。例如 `card` 天然是可被 Board/List 管理的工作对象；`room` 天然是讨论容器；`morph` 才主要依赖 facets 描述自身能力。
+标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `card` 天然是可被 Board/List 管理的工作对象；`room` 天然是讨论容器；`message` 天然属于 Room timeline。实现不得要求标准对象先声明 facet 才承认其主语义。
 
 ### 2.3 Morph 是开放对象
 
@@ -67,7 +67,9 @@ Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组�
 - 外部系统镜像对象
 - 低频、弱互操作的扩展数据
 
-Morph 的能力由 `facets` 声明。实现遇到未知标准类型 SHOULD fail closed；遇到未知 Morph facet SHOULD 保留数据，但不得让未知 facet 绕过 schema、capability、policy 或 encryption 约束。
+Morph 的可见能力可以由 Space schema / Morph profile 声明，并通过 `facets` 暴露给 Index、View、UI 或插件。实现遇到未知标准类型 SHOULD fail closed；遇到未知 Morph facet SHOULD 保留数据，但不得让未知 facet 绕过 schema、capability、policy 或 encryption 约束。
+
+Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变写入权限、状态转换、排序、包含关系、事件有效性或跨实现 wire 行为的能力，MUST 由明确 schema/profile/event kind/capability action 定义。
 
 ### 2.4 Relation 是一等对象
 
@@ -114,7 +116,7 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 - graph
 - review queue
 
-View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、facets、schema 和 capability。Board 包含 List、List 包含 Card、Card 的字段与位置、Room 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
+View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Board 包含 List、List 包含 Card、Card 的字段与位置、Room 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
 
 当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Card 跨 List 拖拽写为 `cx.card.move`，同 List 排序写为 `cx.card.reorder`，修改列顺序写为 `cx.list.reorder`，改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
 
@@ -350,7 +352,7 @@ Morph 是开放对象。
 }
 ```
 
-Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 facets 参与 Board、Timeline、Graph 或 Document View，但标准对象不应为了复用字段而退化为 Morph。
+Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象不应为了复用字段而退化为 Morph。
 
 ## 10. Relation
 

@@ -4,7 +4,7 @@
 
 把 Contrix v1 规范转化为可复现的实现标准。本套件以 profile 为测试入口，强制验证：
 
-- canonical `operation_id` 语义
+- canonical `Event.kind` 与服务 `operation_id` 语义
 - reducer 兼容性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
@@ -43,7 +43,7 @@
 每个实现必须通过以下验收：
 
 - `/api/v1` 下公开至少包含 `service/identity/events/sync/index/blob/authz` 关键 operation。
-- `operation_id` MUST 以 `artifacts/registry/operation-registry.json` 为唯一 source of truth；`service-api-schema.md`、OpenAPI 和非 HTTP binding 不得声明 registry 中不存在的 operation，也不得遗漏实现声明支持的 operation。
+- 服务 `operation_id` MUST 以 `artifacts/registry/operation-registry.json` 为唯一 source of truth；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 source of truth。`service-api-schema.md`、OpenAPI 和非 HTTP binding 不得声明 registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `cx.*` event kind。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests

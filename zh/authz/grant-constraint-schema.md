@@ -33,7 +33,7 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
 }
 ```
 
-Scope MUST be allow-list based。未列出的动作默认拒绝。标准对象 SHOULD 使用 `object_types` 过滤；开放对象 SHOULD 使用 `morph_types` 过滤；`facets` 只作为能力 mixin 约束，不替代对象类型。
+Scope MUST be allow-list based。未列出的动作默认拒绝。标准对象 SHOULD 使用 `object_types` 过滤；开放对象 SHOULD 使用 `morph_types` 过滤；`facets` 只作为 Space schema / Morph profile 已声明 hint 的范围收窄约束，不替代对象类型、动作列表或 capability 判定。
 
 ## 4. Constraint
 

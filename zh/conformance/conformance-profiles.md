@@ -47,6 +47,8 @@ Document、File、Memory、Run、Poll 在 v1 MVP 中默认是 Morph profile 或 
 
 `chat_only_client`、`kanban_only_client`、`minimal_client`、`principal_server` 和 `index_node` 可以组合上述闭环声明能力；未声明的闭环不得被对端视为默认可用。
 
+`chat_mvp` 与 `kanban_mvp` 不要求实现任意 Morph renderer、任意 facet reducer 或插件 UI。它们只需要按声明 profile 保留未知 Morph / facet 字段、同步相关 Event、执行 schema/capability 校验，并在必须展示时提供 generic Morph fallback。任何依赖特定 `morph_type` 或 facet 的交互能力 MUST 由额外 profile 显式声明。
+
 ## 2.2 v1 启动 Profile
 
 以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。
@@ -119,6 +121,7 @@ MUST 支持：
 - event 拉取 / backfill
 - index 查询
 - 基础 Room / Board / List / Card / Message / Morph / Relation / Event 解码
+- 未知 Morph / facet 字段保留和 generic fallback，不要求专用 renderer
 - capability 检查结果处理
 - cursor 分页
 - 标准错误响应

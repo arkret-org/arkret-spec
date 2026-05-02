@@ -9,7 +9,11 @@
   ],
   "properties": {
     "event_id": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
-    "kind": { "type": "string", "pattern": "^cx\\.[a-z0-9_]+\\.[a-z0-9_]+$" },
+    "kind": {
+      "type": "string",
+      "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+      "description": "Standard cx.* kinds MUST appear in artifacts/registry/event-kind-registry.json."
+    },
     "schema": { "const": "cx.schema.event.v1" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "space_version": { "type": "string", "pattern": "^\\d+$" },
@@ -44,6 +48,14 @@
     {
       "if": { "properties": { "kind": { "const": "cx.card.link_room" } }, "required": ["kind"] },
       "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.card.unlink_room" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.card.set_primary_room" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "#/$defs/card_room_link_content" } } }
     }
   ],
   "$defs": {
@@ -64,14 +76,17 @@
       "additionalProperties": true
     },
     "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
+    "board_id": { "type": "string", "pattern": "^cx:board:[0-9a-hjkmnp-z]{26}$" },
     "card_id": { "type": "string", "pattern": "^cx:card:[0-9a-hjkmnp-z]{26}$" },
     "list_id": { "type": "string", "pattern": "^cx:list:[0-9a-hjkmnp-z]{26}$" },
     "room_id": { "type": "string", "pattern": "^cx:room:[0-9a-hjkmnp-z]{26}$" },
+    "relation_id": { "type": "string", "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$" },
     "eventRef": { "type": "string", "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$" },
     "card_move_content": {
       "type": "object",
-      "required": ["card_id", "to_list_id", "rank"],
+      "required": ["board_id", "card_id", "to_list_id", "rank"],
       "properties": {
+        "board_id": { "$ref": "#/$defs/board_id" },
         "card_id": { "$ref": "#/$defs/card_id" },
         "from_list_id": { "$ref": "#/$defs/list_id" },
         "to_list_id": { "$ref": "#/$defs/list_id" },
@@ -80,7 +95,8 @@
           "type": "object",
           "properties": {
             "list_id": { "$ref": "#/$defs/list_id" },
-            "rank": { "$ref": "#/$defs/rank" }
+            "rank": { "$ref": "#/$defs/rank" },
+            "relation_id": { "$ref": "#/$defs/relation_id" }
           },
           "additionalProperties": false
         }
@@ -89,20 +105,38 @@
     },
     "card_reorder_content": {
       "type": "object",
-      "required": ["card_id", "list_id", "rank"],
+      "required": ["board_id", "card_id", "list_id", "rank"],
       "properties": {
+        "board_id": { "$ref": "#/$defs/board_id" },
         "card_id": { "$ref": "#/$defs/card_id" },
         "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" }
+        "rank": { "$ref": "#/$defs/rank" },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "rank": { "$ref": "#/$defs/rank" },
+            "relation_id": { "$ref": "#/$defs/relation_id" }
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },
     "list_reorder_content": {
       "type": "object",
-      "required": ["list_id", "rank"],
+      "required": ["board_id", "list_id", "rank"],
       "properties": {
+        "board_id": { "$ref": "#/$defs/board_id" },
         "list_id": { "$ref": "#/$defs/list_id" },
-        "rank": { "$ref": "#/$defs/rank" }
+        "rank": { "$ref": "#/$defs/rank" },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "rank": { "$ref": "#/$defs/rank" },
+            "relation_id": { "$ref": "#/$defs/relation_id" }
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },
@@ -112,6 +146,7 @@
       "properties": {
         "card_id": { "$ref": "#/$defs/card_id" },
         "room_id": { "$ref": "#/$defs/room_id" },
+        "purpose": { "type": "string" },
         "primary": { "type": "boolean", "default": false }
       },
       "additionalProperties": false

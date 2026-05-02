@@ -306,9 +306,9 @@ Social post / feed / circle 可以用标准对象 profile，也可以在早期�
 
 ## 15. 标准 Facets
 
-Facets 是 schema-declared capability hints，不是对象身份。标准对象 MAY 使用 facets 声明额外展示或查询能力，但标准对象的核心语义不依赖 facets 才成立；Morph MAY 使用 facets 帮助 Index、View、UI 和插件做过滤、降级展示和默认 renderer 选择。
+Facets 是 schema-declared capability hints，不是对象身份。标准对象 MAY 暴露 schema/profile 已声明的 facets 来辅助展示或查询，但标准对象的核心语义不依赖 facets 才成立；Morph MAY 使用 facets 帮助 Index、View、UI 和插件做过滤、降级展示和默认 renderer 选择。
 
-Facets MUST NOT be the sole normative source for authorization, state machines, ordering semantics, reducer behavior, event kind acceptance, or wire interoperability. 这些语义必须由 Space schema / Morph profile / event registry / capability action 明确定义。Facet 配置可以引用这些 profile 或暴露 UI hints，但不能替代它们。
+Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event kind 接受规则或 wire 互操作的唯一规范来源。这些语义必须由 Space schema / Morph profile / event registry / capability action 明确定义。Facet 配置可以引用这些 profile 或暴露 UI hints，但不能替代它们。
 
 | Facet | 说明 |
 | --- | --- |
