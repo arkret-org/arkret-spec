@@ -347,7 +347,7 @@ message 创建是 append-only。
 
 私密 Room 或 E2EE Room SHOULD 默认为 `joined`。
 
-E2EE Room 中，`history_visibility=joined` 时新成员 MUST NOT 收到加入前的 MLS epoch key。若允许加入前历史共享，必须通过 history sharing policy 显式声明并产生审计事件。
+E2EE Room 中，`history_visibility=joined` 时新成员 MUST NOT 收到加入前的 MLS epoch key。若允许加入前历史共享，必须通过 history sharing policy 显式声明并产生审计事件。普通客户端不得为了潜在历史共享而无限期保留旧 epoch 明文 secret；需要长期保留时必须使用显式 Archive / Audit Node、受保护 key backup 或 legal-hold 边界。
 
 ## 13. 设计决定
 

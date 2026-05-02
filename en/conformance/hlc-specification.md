@@ -148,7 +148,8 @@ Sync cursors include HLC to track timeline position:
 
 Implementations MUST:
 - Validate HLC format with regex: `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$`
-- Reject HLC values where physical time is in the future (allow 5min skew)
+- Reject or quarantine HLC values whose physical time exceeds the hard future-skew ceiling; the v1 default hard ceiling is 5 minutes
+- Use a smaller profile-declared or locally configured expected drift window for high-risk state events; 5 minutes is not an ordering trust window
 - Maintain monotonicity locally
 - Use consistent node_id calculation
 
@@ -156,7 +157,7 @@ This exact textual format is normative for Event envelopes, cursors, snapshot fr
 
 ## 8. Security Considerations
 
-1. **Clock Skew Attacks**: Validate physical time is within reasonable bounds
+1. **Clock Skew Attacks**: Validate physical time against the hard ceiling and apply tighter expected / observed drift checks for high-risk state events
 2. **Node ID Collisions**: Use full SHA256 space makes collisions negligible
 3. **Replay Detection**: Combine HLC with other causal tracking
 
@@ -168,6 +169,7 @@ Nodes should track maximum drift seen:
 - If local clock is behind remote, advance to remote
 - If local clock is ahead, cap advance rate
 - Log when skew exceeds 1 second
+- If skew exceeds profile expected drift but remains under the hard ceiling, ordinary events may soft-fail / backfill; high-risk capability, membership, policy, MLS epoch, service binding, and Space upgrade events should enter quarantine or review
 
 ### 9.2 Overflow Handling
 
@@ -179,7 +181,7 @@ Physical time overflow won't occur for millennia, but implementations should:
 
 Test suites should include:
 - Monotonicity under high concurrency
-- Correctness with clock skew up to ±5 minutes
+- Hard future-skew boundaries plus expected-drift and observed-drift soft-fail / quarantine behavior
 - Lexicographic ordering matches numeric comparison
 - Node id calculation consistency
 

@@ -293,6 +293,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 ## 6. 离线支持与消息延迟到达
 - 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `cx.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Sync Service 中的加密事件。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
+- 这种前驱 Epoch 保留是有界的恢复缓存，不是为未来新成员历史共享而无限期保存旧 secret。客户端 MUST 对本地旧 epoch key 使用设备保护存储或明确授权的 key backup，并在 retention / legal hold / erasure policy 不再要求保留时销毁。
 
 ## 7. v1 集成要求
 

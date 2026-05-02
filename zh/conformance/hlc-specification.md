@@ -159,7 +159,8 @@ HLC 在因果依赖之后提供第二级排序。
 实现 MUST：
 
 - 使用正则表达式验证 HLC 格式：`^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$`
-- 拒绝物理时间在未来（允许 5 分钟偏差）的 HLC 值
+- 拒绝或隔离物理时间超过 hard future-skew 上限的 HLC 值；v1 默认 hard 上限为 5 分钟
+- 对高风险 state event 应使用 profile 声明或本地策略中的更小 expected drift 窗口；5 分钟不得被解释为排序信任窗口
 - 在本地维护单调性
 - 使用一致的 node_id 计算方式
 
@@ -167,7 +168,7 @@ HLC 在因果依赖之后提供第二级排序。
 
 ## 8. 安全考虑
 
-1. **时钟漂移攻击**：验证物理时间在合理范围内
+1. **时钟漂移攻击**：验证物理时间在 hard 上限内，并对高风险 state event 使用更小 expected drift / observed drift 检查
 2. **Node ID 碰撞**：使用完整 SHA256 空间使碰撞可忽略
 3. **重放检测**：结合 HLC 与其他因果追踪机制
 
@@ -180,6 +181,7 @@ HLC 在因果依赖之后提供第二级排序。
 - 若本地时钟落后于远端，则推进到远端时间
 - 若本地时钟超前，限制推进速率
 - 漂移超过 1 秒时记录日志
+- 漂移超过 profile expected drift 但未超过 hard 上限时，对普通事件可 soft-fail / backfill；对 capability、membership、policy、MLS epoch、service binding 和 Space upgrade 等高风险事件应 quarantine 或人工审查
 
 ### 9.2 溢出处理
 
@@ -193,7 +195,7 @@ HLC 在因果依赖之后提供第二级排序。
 测试套件应包含：
 
 - 高并发下的单调性
-- 时钟漂移达 ±5 分钟时的正确性
+- hard future-skew 边界、profile expected drift 和 observed drift 超限时的 soft-fail / quarantine 行为
 - 字典序排序与数值比较的一致性
 - Node ID 计算一致性
 

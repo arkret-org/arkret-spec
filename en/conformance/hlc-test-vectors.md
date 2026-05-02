@@ -219,14 +219,14 @@ Expected behavior:
 ### 7.2 Clock Skew Beyond Threshold
 
 ```
-Scenario: Remote clock skewed by more than 5 minutes
+Scenario: Remote clock exceeds the hard future-skew ceiling
 
 Input:
   local_time = "01970e589d21" (2026-04-26T00:00:00Z)
   remote_hlc = "0197237f2400-00000001-a13f9c2e" (2026-05-01T00:00:00Z)
 
 Expected behavior:
-  1. Reject event with `clock_skew_exceeded` error
+  1. Reject or quarantine event with `clock_skew_exceeded` error
   2. Log warning for monitoring
   3. Optionally notify operator
 ```
@@ -269,7 +269,7 @@ Input:
   event_hlc = "999999999999-00000001-a13f9c2e"
 
 Expected:
-  1. Detect physical time is > 5 minutes in future
+  1. Detect physical time is beyond the hard future-skew ceiling
   2. Reject with `hlc_future_timestamp` error
   3. Log potential time manipulation attempt
 ```
@@ -298,8 +298,8 @@ Implementations MUST:
 3. Implement correct comparison ordering
 4. Maintain local monotonicity
 5. Validate incoming HLC format
-6. Handle clock skew up to ±5 minutes
-7. Reject HLC values with timestamps > 5 minutes in future
+6. Handle profile expected drift and hard future-skew thresholds distinctly
+7. Reject or quarantine HLC values beyond the hard future-skew ceiling
 
 Implementations SHOULD:
 

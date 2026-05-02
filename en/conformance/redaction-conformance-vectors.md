@@ -104,7 +104,8 @@ cx.vector.redaction.hard_erasure_receipt.v1
 Expected:
 
 - hard erasure removes payload bytes and derived plaintext from the tested storage boundary.
-- the implementation retains a verification stub with original event id, original canonical hash or payload digest, redaction event id, erasure reason, executing service DID, time, and signed receipt.
+- the implementation retains a verification stub with original event id, the Event envelope digest / proof `payload_hash` needed to verify the event graph, redaction event id, erasure reason, executing service DID, time, and signed receipt.
+- the stub does not additionally retain standalone content hashes, payload-only digests, or unsalted search fingerprints for erased plaintext; audit commitments use a per-event salt or HMAC / pepper commitment whose secret stays inside legal hold or is destroyed by erasure policy.
 - backfill returns the redacted / erased stub and does not fabricate a replacement event.
 - legal hold blocks hard erasure while preserving redacted presentation.
 

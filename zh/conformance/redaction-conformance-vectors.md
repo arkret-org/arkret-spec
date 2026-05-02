@@ -187,6 +187,7 @@ cx.vector.redaction.hard_erasure_receipt.v1
 期望：
 
 - hard erasure 在被测存储边界内删除 payload bytes 与派生明文。
-- 实现保留 verification stub：原始 event id、原始 canonical hash 或 payload digest、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。
+- 实现保留 verification stub：原始 event id、验证事件图所需的 Event envelope digest / proof `payload_hash`、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。
+- stub 不得额外保留已擦除明文字段的 standalone content hash、payload-only digest 或未加盐搜索 fingerprint；若审计必须保留内容承诺，必须使用每事件 salt 或 HMAC/pepper commitment，并把 secret 留在 legal-hold 边界或按 erasure policy 销毁。
 - backfill 返回 redacted / erased stub，不伪造替代事件，也不静默造成历史缺口。
 - legal hold 存在时阻止 hard erasure，但默认展示仍应用 redaction。

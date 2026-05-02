@@ -511,7 +511,7 @@ Required semantics:
 - default views show "recalled" or equivalent
 - normal views should not keep leaking the body
 - no promise of global physical erasure
-- hard-erasure capable services must retain a verification stub instead of rewriting event hashes or pretending the event never existed
+- hard-erasure capable services must retain only the minimal event-graph verification stub, must not rewrite event hashes, and must not add unsalted digests of erased plaintext
 - derived indexes, previews, embeddings, thumbnails, and notifications must re-evaluate visibility after redaction or erasure receipts
 
 ### 19.3 Redaction Before the Original Message Arrives

@@ -635,7 +635,7 @@ Contrix v1 固定：
 - 授权有效性由同一 reducer 顺序收敛。
 - 密文负载可以被不解密的 sync service 转发。
 - 撤回采用 redaction/tombstone 语义。
-- hard erasure 只能删除本地 payload / blob / 派生内容，并保留 verification stub；不得重写 event hash 或伪装事件从未存在。
+- hard erasure 只能删除本地 payload / blob / 派生内容，并保留事件图验证所需的最小 verification stub；不得重写 event hash、额外保留已擦除明文的未加盐 digest，或伪装事件从未存在。
 - 冲突通过固定 reducer 规则收敛。
 
 ## 23. 规范性引用

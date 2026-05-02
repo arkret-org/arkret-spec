@@ -19,3 +19,4 @@
 - 实现 MUST 保证 HLC 单调前进。
 - reducer、timeline 和 sync frontier 的比较 MUST 使用同一 HLC 比较规则。
 - 仅靠 `created_at` MUST NOT 替代 HLC 做因果排序。
+- 5 分钟只作为 hard future-skew 上限；高风险 state event MUST 覆盖更小 expected drift / observed drift 超限时的 soft-fail 或 quarantine 向量。

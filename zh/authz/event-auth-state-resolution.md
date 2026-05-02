@@ -56,7 +56,11 @@
 
 节点 MUST NOT 因为事件来自可信 Sync Service 就跳过任何步骤。
 
-接收方在进入授权和 state resolution 前 MUST 验证 HLC 格式和时钟窗口。HLC 物理时间超过本地接收时间允许偏差（默认 5 分钟）的事件 MUST reject 或 quarantine；被 quarantine 的事件不得参与 winner 选择。对于 `cx.capability.*`、membership、policy、MLS epoch、service binding 等高风险 state event，若候选事件的 HLC 明显超出该 actor / service 最近观测 drift，节点 SHOULD soft-fail 或 quarantine 并请求 backfill / policy check，而不得仅因更大的 HLC 让其胜出。
+接收方在进入授权和 state resolution 前 MUST 验证 HLC 格式和时钟窗口。Contrix v1 的 `5 分钟` 是默认 hard future-skew 上限，用于识别明显错误或伪造的未来时间；它不是高风险 state event 的默认排序信任窗口。HLC 物理时间超过 hard future-skew 的事件 MUST reject 或 quarantine；被 quarantine 的事件不得参与 winner 选择。
+
+实现和 Space / reducer profile SHOULD 声明更小的 `expected_future_skew_ms`。未声明时，普通服务端写入 SHOULD 以 30 秒作为 expected drift，高风险 state event（`cx.capability.*`、membership、policy、MLS epoch、service binding、Space upgrade）SHOULD 以 10 秒或本地运维可证明的更小窗口作为 expected drift。移动端、离线端或弱同步环境 MAY 使用更宽 expected drift，但必须在 profile / policy 中声明，并且不得让 HLC 单独覆盖缺失的 causal dependency、`actor_seq` 回退或 revoke freshness。
+
+若候选事件的 HLC 未超过 hard future-skew 但明显超出该 actor / service 最近观测 drift 或 profile expected drift，节点 SHOULD soft-fail 或 quarantine 并请求 backfill / policy check。对于高风险 state event，节点不得仅因更大的 HLC 让其胜出；必须先满足签名、授权、`prev_refs`、`auth_refs`、`actor_seq` 和 revoke freshness 检查。
 
 ## 4. Auth Refs
 
@@ -233,6 +237,9 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 - `automatic_share=true` 只可用于 Space policy 明确允许、且接收设备已通过 device trust chain 验证的场景。
 - 共享历史密钥材料前，发送设备 MUST 检查接收 principal 的 membership、device trust、history visibility、capability 和本 state event。
 - `requires_audit_event=true` 时，发送设备必须先写入 `cx.space_key.share_audit` 或等价审计事件，并等待因果确认后再发送历史 key material。
+- 历史 key share MUST 绑定接收 principal、接收 device、epoch / range、policy hash、审计事件和发送设备签名；不得作为未限定范围的“给新成员全部旧密钥”隐式流程。
+- 普通客户端 MUST NOT 为未来可能的历史共享而无限期保留旧 epoch 明文 secret。需要本地恢复或合规保留时，旧 key material MUST 以设备受保护密钥或明确授权的 key backup 加密保存，受 retention / legal hold / erasure policy 约束，并在不再需要时销毁。
+- 若 Space 使用 Archive Node / Audit Node 保存历史解密能力，该节点 MUST 是显式成员、受托 service 或 capability subject，且其保留范围、访问目的、审计义务和撤销流程必须写入 Space policy；不得把普通成员客户端伪装成隐式长期密钥仓库。
 - policy 变更只影响变更后发起的共享动作，不追溯授权已经发送给旧成员的历史解密材料。
 
 `cx.space.policy_components`:
@@ -556,9 +563,13 @@ Redaction 是协议层可验证内容裁剪；Erasure 是某个存储边界内�
 
 1. 已存在 accepted 的 `cx.redaction`、`cx.account.status{status="erasure_pending"}`、signed erasure receipt、retention expiry 或等价可审计授权依据。
 2. 没有 active legal hold、审计保全或组织保留策略阻止删除。
-3. 保留最小 verification stub：`event_id`、原始 canonical hash / payload digest、redaction event id、erasure reason code、执行服务 DID、执行时间和签名 receipt。
+3. 保留最小 verification stub：`event_id`、验证事件图所需的原始 Event envelope digest / proof `payload_hash`、redaction event id、erasure reason code、执行服务 DID、执行时间和签名 receipt。
 4. 不得重写原事件 hash、签名或 causal refs；backfill 返回 redacted / erased stub，而不是伪造一个新事件或静默缺失。
 5. 派生服务（Search、Embedding、Thumbnail、Notification preview 和其他受托 projection）必须按同一 erasure receipt 重新判定并删除或最小化派生内容。
+
+Hard erasure stub 不得额外保留已擦除明文字段的 standalone content hash、payload-only digest、未加盐搜索 fingerprint 或其他可对低熵内容离线枚举的验证物。若审计场景必须在擦除前承诺某段明文内容，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC/pepper commitment；salt / pepper 不得随普通 stub 分发，且在 erasure policy 要求不可恢复时必须销毁或转入 legal-hold 边界。
+
+原始 Event envelope digest / proof `payload_hash` 可能已经被复制到其他节点、receipt 或审计日志中，因此 hard erasure 不能承诺从全网移除所有哈希痕迹。对短小、可预测的私密明文，Space SHOULD 使用 E2EE 或内容加密 payload profile，使持久 verifier 只暴露密文 digest 或不可逆路由 hash，而不是明文内容 digest。
 
 对于 E2EE 内容，密钥销毁或停止共享只能阻止后续访问；已经被成员解密、导出或复制的明文不受协议保证。客户端和合规文档 MUST 明确这一点。
 
@@ -572,18 +583,25 @@ Soft failed state event MAY 在后续上下文补齐后重新评估。Rejected e
 
 ## 12. Space Upgrade
 
-在 Contrix v1 中，Space 升级通过 `cx.space.upgrade` 在同一 `space_id` 上执行，不启用新 `space_version`：
+在 Contrix v1 中，Space 升级通过 `cx.space.upgrade` 在同一 `space_id` 上执行，不启用新 `space_version`。只增加向后兼容字段、且不改变 auth / reducer 语义的升级 MAY 直接发布 enforcement 事件；引入新 critical feature、auth 规则、reducer 规则或加密语义的升级 MUST 使用多阶段流程：
 
 ```json
 {
   "kind": "cx.space.upgrade",
-  "state_key": "",
+  "state_key": "upgrade:cx.reducer.v1_1",
   "content": {
+    "phase": "announcement",
     "target_schema_profile": "cx.schema.v1",
-    "target_reducer_profile": "cx.reducer.v1",
+    "target_reducer_profile": "cx.reducer.v1_1",
     "migration_policy": "copy_state_and_continue",
     "compatibility_mode": "ignore_unknown_fields",
-    "replacement_ref": "event:..."
+    "replacement_ref": "cx:event:01js0sp0000000000000000000",
+    "earliest_enforcement_hlc": "01970e589d21-0000-a13f9c2e",
+    "readiness_deadline": "2026-05-16T00:00:00Z",
+    "min_readiness": {
+      "mode": "service_receipts",
+      "required_services": ["principal_server", "sync_service"]
+    }
   }
 }
 ```
@@ -593,9 +611,13 @@ Soft failed state event MAY 在后续上下文补齐后重新评估。Rejected e
 升级规则：
 
 - `cx.space.upgrade` MUST 由拥有 `space.upgrade` 或等价 admin capability 的 actor 发起。
-- `target_schema_profile`、`target_reducer_profile`、`migration_policy`、`compatibility_mode` 和 `replacement_ref` 必须被事件签名覆盖。
+- `phase`、`target_schema_profile`、`target_reducer_profile`、`migration_policy`、`compatibility_mode`、`replacement_ref`、activation frontier / HLC 和 readiness 条件必须被事件签名覆盖。
 - `replacement_ref` MAY 指向迁移计划、snapshot manifest 或新 profile 描述，但不能指向未签名的外部说明。
-- 未支持目标 profile 的节点 MUST 停止接受依赖新语义的写入；MAY 继续只读展示升级前的 accepted history。
+- `phase=announcement` 只发布目标 profile、兼容模式、最早 enforcement 时间 / frontier 和迁移说明；它不得让节点开始接受依赖新语义的写入。
+- `phase=readiness_check` MAY 汇总 service / bridge / client family 的 signed readiness receipts 或缺席清单；receipt 只能说明能力，不替代本地 schema、auth 和 reducer 校验。
+- `phase=enforcement` 才切换 accepted target profile。它 MUST 引用 announcement，满足 readiness 条件或明确记录 admin override，并绑定 activation causal frontier；未到达该 frontier 的普通历史仍按旧 profile 解释。
+- 未支持目标 profile 的节点在 enforcement 生效后 MUST 停止接受依赖新语义的写入；MAY 继续只读展示升级前的 accepted history，并可通过兼容 projection 或代理提供降级视图。
+- 降级代理不得把新 auth / reducer 语义翻译成旧语义后重新签发为普通写入；只能提供只读 projection、迁移提示或明确标记的 compatibility write path。
 - 升级不得重写历史 event hash；任何 state 迁移都必须表现为新的 signed event、snapshot 或 reducer profile 输出。
 
 ### 12.1 Tombstone / Replacement
