@@ -3,13 +3,13 @@
   "$id": "https://contrix.io/artifacts/schemas/flow.schema.json",
   "title": "Contrix Flow",
   "type": "object",
-  "required": ["id", "type", "schema", "space_id", "flow_kind", "title", "primary_branch", "branches", "created_by", "created_at"],
+  "required": ["id", "type", "schema", "space_id", "kind", "title", "primary_branch", "branches", "created_by", "created_at"],
   "properties": {
     "id": { "type": "string", "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$" },
     "type": { "const": "flow" },
     "schema": { "const": "cx.schema.flow.v1" },
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
-    "flow_kind": { "type": "string", "enum": ["card", "room"] },
+    "kind": { "type": "string", "enum": ["card", "room"] },
     "title": { "type": "string", "minLength": 1, "maxLength": 512 },
     "description": { "type": "string", "maxLength": 4096 },
     "brief": { "type": "string", "maxLength": 2048 },
@@ -18,12 +18,12 @@
     "fields": { "type": "object" },
     "state": { "type": "string", "enum": ["active", "archived", "deleted", "redacted"] },
     "version": { "type": "integer", "minimum": 0 },
-    "primary_branch": { "type": "string", "enum": ["content", "discussion"] },
+    "primary_branch": { "type": "string", "enum": ["synthesis", "discussion"] },
     "branches": {
       "type": "object",
-      "required": ["content"],
+      "required": ["synthesis"],
       "properties": {
-        "content": {
+        "synthesis": {
           "type": "object",
           "properties": {
             "enabled": { "type": "boolean" },
@@ -87,7 +87,7 @@
     {
       "if": {
         "properties": {
-          "flow_kind": { "const": "room" }
+          "kind": { "const": "room" }
         }
       },
       "then": {

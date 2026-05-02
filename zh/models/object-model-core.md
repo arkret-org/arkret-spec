@@ -44,12 +44,12 @@ Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组�
 
 标准对象本身表达主语义：
 
-- `flow`：统一协作主对象。它承载标题、description、brief、summary 等基础字段，并通过 `flow_kind` 决定默认视角：`card` 偏内容和推进，`room` 偏讨论和协作。
+- `flow`：统一协作主对象。它承载标题、description、brief、summary 等基础字段，并通过 `kind` 决定默认视角：`card` 偏整理与推进，`room` 偏讨论和协作。
 - `message`：Flow `discussion` branch 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
-- Board（`Space kind="board"`）和 List（`Space kind="list"`）通过 Space 层级表达工作流容器，并管理 `flow_kind="card"` 的 Flow 位置。
+- Board（`Space kind="board"`）和 List（`Space kind="list"`）通过 Space 层级表达工作流容器，并管理 `kind="card"` 的 Flow 位置。
 
-标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；`flow_kind="card"` 天然适合作为 Board/List 管理的工作对象；`flow_kind="room"` 天然适合作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才承认其主语义。
+标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；`kind="card"` 天然适合作为 Board/List 管理的工作对象；`kind="room"` 天然适合作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才承认其主语义。
 
 ### 2.3 Morph 是开放对象
 
@@ -212,8 +212,8 @@ Flow 是 Space 内统一的协作主对象。它取代 Subject / Room / Card 的
 
 Flow 通过两层语义表达差异：
 
-- `flow_kind`：主模式。`card` 默认主入口是 `content` branch；`room` 默认主入口是 `discussion` branch。
-- `branches`：能力分支。`content` branch 承载描述、结构化字段和推进信息；`discussion` branch 承载聊天、成员、历史和 E2EE 边界。
+- `kind`：主模式。`card` 默认主入口是 `synthesis` branch；`room` 默认主入口是 `discussion` branch。
+- `branches`：能力分支。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天、成员、历史和 E2EE 边界。
 
 由于 `room` 和 `card` 只是同一 Flow 的两种模式，实现 MAY 通过 `cx.flow.convert` 在二者之间切换。转换不会改变 Flow identity，也不要求复制或迁移消息历史。
 
@@ -225,7 +225,7 @@ Flow 通过两层语义表达差异：
   "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_kind": "card",
+  "kind": "card",
   "title": "支付重构",
   "description": "统一支付链路、风控回调和退款状态机。",
   "brief": "同步 owner、决策和 blocker。",
@@ -239,9 +239,9 @@ Flow 通过两层语义表达差异：
     "priority": "high",
     "due_at": "2026-05-01T00:00:00Z"
   },
-  "primary_branch": "content",
+  "primary_branch": "synthesis",
   "branches": {
-    "content": {
+    "synthesis": {
       "enabled": true
     },
     "discussion": {
@@ -260,27 +260,27 @@ Flow 通过两层语义表达差异：
 
 Flow 规则：
 
-- Flow identity 只保存一份，`flow_kind` 和 `primary_branch` 只决定默认视角，不创建新的对象副本。
-- `content` branch 与 `discussion` branch 可以共享同一标题和基础字段，但各自的 reducer 语义独立。
-- `discussion` branch 的 membership、history visibility 和 E2EE 不自动放大 `content` branch 的可见字段。
+- Flow identity 只保存一份，`kind` 和 `primary_branch` 只决定默认视角，不创建新的对象副本。
+- `synthesis` branch 与 `discussion` branch 可以共享同一标题和基础字段，但各自的 reducer 语义独立。
+- `discussion` branch 的 membership、history visibility 和 E2EE 不自动放大 `synthesis` branch 的可见字段。
 - `primary_branch` 只是默认入口，不授予读取、写入或管理权限。
 
 ## 7. Flow Discussion Branch
 
 Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线、通知规则、历史可见性和可选 E2EE group。
 
-`flow_kind="room"` SHOULD 默认创建并启用 `discussion` branch，且 `primary_branch` SHOULD 为 `discussion`。`flow_kind="card"` MAY 初始只带 `content` branch；需要讨论时再启用 `discussion` branch。
+`kind="room"` SHOULD 默认创建并启用 `discussion` branch，且 `primary_branch` SHOULD 为 `discussion`。`kind="card"` MAY 初始只带 `synthesis` branch；需要讨论时再启用 `discussion` branch。
 
 Discussion branch 规则：
 
-- 能看 Flow content 不表示能看 `discussion` branch。
+- 能看 Flow synthesis 不表示能看 `discussion` branch。
 - 能看 `discussion` branch 不表示能改 Flow 的字段、状态或 Board 位置。
 - `discussion` branch membership 不自动改变 Flow assignment、Flow visibility 或 Space membership。
 - Flow 从 `card` 转成 `room`，或从 `room` 转成 `card`，都不自动删除已有讨论历史。
 
 ## 8. Board-Space / List-Space / Flow
 
-Board 和 List 是 `Space` 的工作流容器形态，分别以 `kind="board"` 和 `kind="list"` 表示，使用 `cx:space:` ID。Board-Space 是工作流容器；List-Space 是 Board-Space 内的列/泳道；Board/List 默认管理 `flow_kind="card"` 的 Flow。
+Board 和 List 是 `Space` 的工作流容器形态，分别以 `kind="board"` 和 `kind="list"` 表示，使用 `cx:space:` ID。Board-Space 是工作流容器；List-Space 是 Board-Space 内的列/泳道；Board/List 默认管理 `kind="card"` 的 Flow。
 
 Board-Space 最小结构：
 
@@ -321,7 +321,7 @@ Board/List 中的 Flow 示例：
   "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_kind": "card",
+  "kind": "card",
   "title": "Review launch checklist",
   "body": {
     "format": "markdown",
@@ -413,12 +413,11 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
   "id": "cx:relation:01js0r00000000000000000000",
   "type": "relation",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "relation_kind": "has_surface",
-  "from_ref": "cx:subject:01js0sb0000000000000000000",
-  "to_ref": "cx:room:01js0rm0000000000000000000",
+  "relation_kind": "contains",
+  "from_ref": "cx:space:01js0bd0000000000000000000",
+  "to_ref": "cx:flow:01js0cd0000000000000000000",
   "fields": {
-    "surface_role": "implementation_discussion",
-    "primary": false
+    "rank": "mV"
   },
   "created_by": "did:web:bob.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -438,7 +437,7 @@ Event 是 reducer 输入和审计事实。
   "event_id": "cx:event:01js0ev0000000000000000000",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "actor_id": "did:web:alice.example",
-  "kind": "cx.card.update",
+  "kind": "cx.flow.update",
   "created_at": "2026-04-26T00:00:00Z",
   "space_version": "1",
   "hlc": "01970e589d21-0004-a13f9c2e",
@@ -450,7 +449,7 @@ Event 是 reducer 输入和审计事实。
     "cx:event:01js0ms0000000000000000000"
   ],
   "content": {
-    "card_id": "cx:card:01js0cd0000000000000000000",
+    "flow_id": "cx:flow:01js0cd0000000000000000000",
     "patch": {
       "fields.status": "done"
     }
@@ -478,7 +477,7 @@ View 示例：
   "kind": "collection",
   "renderer": "board",
   "query": {
-    "object_types": ["card"],
+    "object_types": ["flow"],
     "filters": [
       { "field": "fields.archived", "op": "neq", "value": true }
     ],

@@ -6,11 +6,11 @@ Contrix 的会话模型不再把 `subject`、`room`、`card` 拆成三个需要�
 
 ## 2. 设计原则
 
-- `flow` 是唯一主对象；`flow_kind` 只决定默认视角。
+- `flow` 是唯一主对象；`kind` 只决定默认视角。
 - `discussion` branch 是会话能力，不是独立对象。
 - `message` 永远写入 `flow` 的 `discussion` branch。
-- `flow_kind="card"` 默认走 `content` branch，但 MAY 开启 `discussion` branch。
-- `flow_kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段与可选 `content` branch。
+- `kind="card"` 默认走 `synthesis` branch，但 MAY 开启 `discussion` branch。
+- `kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段与可选 `synthesis` branch。
 - `cx.flow.convert` 允许在 `card` 和 `room` 模式之间切换，且不改变 Flow identity。
 
 `comment` 和 `message` 都可以存在，但语义不同：
@@ -37,13 +37,13 @@ Flow 的 `discussion` branch 适合：
   "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_kind": "room",
+  "kind": "room",
   "title": "release-engineering",
   "description": "Engineering coordination for release readiness.",
   "brief": "默认以讨论为主入口。",
   "primary_branch": "discussion",
   "branches": {
-    "content": {
+    "synthesis": {
       "enabled": true
     },
     "discussion": {
@@ -101,12 +101,12 @@ message 与 flow/reply/mention 的关系使用 Relation 或 message 字段表达
 
 ## 5. Flow 模式与转换
 
-Flow 通过 `flow_kind` 和 `primary_branch` 表达默认交互方式：
+Flow 通过 `kind` 和 `primary_branch` 表达默认交互方式：
 
-- `flow_kind="room"`：默认 `primary_branch="discussion"`，适合会话主导的对象。
-- `flow_kind="card"`：默认 `primary_branch="content"`，适合状态推进、字段编辑和 Board/List 管理。
+- `kind="room"`：默认 `primary_branch="discussion"`，适合会话主导的对象。
+- `kind="card"`：默认 `primary_branch="synthesis"`，适合状态推进、字段编辑和 Board/List 管理。
 
-`flow_kind="card"` MAY 开启 `discussion` branch。开启后，该 Flow 仍然是同一个对象，只是多了讨论能力。
+`kind="card"` MAY 开启 `discussion` branch。开启后，该 Flow 仍然是同一个对象，只是多了讨论能力。
 
 ```json
 {
@@ -131,7 +131,7 @@ Room/Card 互转通过 `cx.flow.convert` 完成：
   "target_ref": "cx:flow:01js0cd0000000000000000000",
   "content": {
     "flow_id": "cx:flow:01js0cd0000000000000000000",
-    "to_flow_kind": "room",
+    "to_kind": "room",
     "primary_branch": "discussion",
     "ensure_branches": ["discussion"]
   }
@@ -147,7 +147,7 @@ Room/Card 互转通过 `cx.flow.convert` 完成：
 
 ## 6. Discussion Branch Membership
 
-Discussion branch membership 是 Space 内的子范围授权。它不替代 Space membership，也不扩展 Flow `content` branch 的编辑权限。
+Discussion branch membership 是 Space 内的子范围授权。它不替代 Space membership，也不扩展 Flow `synthesis` branch 的编辑权限。
 
 推荐状态事件：
 
@@ -232,12 +232,12 @@ reaction 建议通过独立 Operation 表达：
 推荐同步：
 
 - Flow 当前态
-- Flow `content` branch 字段
+- Flow `synthesis` branch 字段
 - discussion branch 启用状态与可见性裁剪后的 preview
 - primary branch 最近摘要
 - 与 Flow 相关的 relation / message reference / decision summary
 
-Flow context sync 不得因为用户能读 Flow content 就自动拉取不可见 discussion 消息。
+Flow context sync 不得因为用户能读 Flow synthesis 就自动拉取不可见 discussion 消息。
 
 ## 10. 冲突与收敛
 
@@ -299,10 +299,11 @@ E2EE discussion branch 中，`history_visibility=joined` 时新成员 MUST NOT �
 
 Contrix v1 固定：
 
-- `flow` 是统一标准对象；`room` / `card` 是 `flow_kind`，不是独立主实体。
+- `flow` 是统一标准对象；`room` / `card` 是 `kind`，不是独立主实体。
 - `discussion` branch 是会话能力，不是单独对象。
+- `synthesis` branch 承载整理后的正式表达与推进字段。
 - `message` 永远属于 Flow `discussion` branch。
-- `flow_kind="card"` 可以开启 `discussion` branch。
+- `kind="card"` 可以开启 `discussion` branch。
 - `cx.flow.convert` 只切换模式，不改变 identity。
 - 编辑采用 revision chain。
 - 撤回采用 redaction/tombstone。

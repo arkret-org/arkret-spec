@@ -12,7 +12,7 @@
 - 以 **Event** 为协作事实根
 - 以 **Flow、Board、List、Message** 承载标准协作语义，以 **Morph + schema/profile-declared facets** 承载开放扩展对象
 
-它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、Flow 讨论流、Flow 内容面、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
+它的目标不是“把聊天协议包装成看板”，而是定义一套能投影为看板、Flow 讨论流、Flow synthesis 面、表格、日历、树、图谱、甘特图和 agent 记忆的统一协作协议。
 
 ## 2. 设计目标
 
@@ -21,13 +21,13 @@ Contrix v1 聚焦以下目标：
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
 2. 面向对象协作  
-   协议根抽象固定为 Space、Actor、Flow、Board、List、Message、Morph、Relation、Event、View；Flow 承载统一 identity，并通过 `flow_kind` 与 `content` / `discussion` branch 表达内容推进与讨论语义；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
+   协议根抽象固定为 Space、Actor、Flow、Board、List、Message、Morph、Relation、Event、View；Flow 承载统一 identity，并通过 `kind` 与 `synthesis` / `discussion` branch 表达整理推进与讨论语义；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
 3. 去中心化同步  
    真相基底是 signed Event Envelope 和可验证 actor event chain，而不是单一中心数据库或 atprotocol/Git 式数据仓库。
 4. 多交互模式  
    同一协议同时支持 kanban、list、table、calendar、gantt、chat、thread、forum、tree、graph 等模式。
 5. 人类友好  
-   数据必须天然能投影成看板、时间线、Flow activity、content/discussion 双分支、审阅队列。
+   数据必须天然能投影成看板、时间线、Flow activity、synthesis/discussion 双分支、审阅队列。
 6. AI 友好  
    协议天然支持 agent principal、delegation 和外部协议 handoff。
 7. 审计与恢复  
@@ -94,23 +94,22 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 所有持久协作修改都是 signed Event
 - 所有共享状态来自 **授权 Event 集合的归约结果**
 - `space` 是复制、权限、schema 与 policy 边界
-- `subject` 是语义中心，表示被讨论、推进、引用或沉淀的“那个东西”；它保持薄身份、标题、brief、生命周期和 surface 关联
-- `room`、`board`、`list`、`card`、`message` 是协议一等标准对象
+- `flow` 是统一协作对象；`kind="card"` 偏整理推进，`kind="room"` 偏讨论协作，二者可以在同一个 `flow_id` 上互转
+- `board`、`list`、`message` 是协议一等标准对象
 - `morph` 是开放对象载体，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不单独定义授权、状态机、排序或 reducer 语义
 - `relation` 是一等对象，用于表达包含、依赖、回复、引用、分配、提及等关系
 - `event` 是协作事实和审计根
 - `view` 是投影，不拥有核心数据
-- `flow` 是统一协作对象；`flow_kind="card"` 偏内容推进，`flow_kind="room"` 偏讨论协作，二者可以在同一个 `flow_id` 上互转
 - `document` 等可作为 Morph 类型或扩展 profile，不自动授予能力
 - `schema/policy` 是正式对象，不再只是引用占位符
 - `invite/read_marker/notification` 补齐人类协作的加入、已读、提醒链路；notification 是派生投影，不是 canonical truth
 
 ### 5.3 看板与会话
 
-- 看板由 `Board -> List -> Flow(flow_kind="card")` 表达；View 负责投影，不再把 Board 伪装成通用开放对象集合
+- 看板由 `Board -> List -> Flow(kind="card")` 表达；View 负责投影，不再把 Board 伪装成通用开放对象集合
 - 会话由 `Flow(discussion branch) -> Message` 表达；discussion branch 是独立权限、成员、历史和 E2EE 边界
-- `flow_kind="card"` 默认走 `content` branch，但可以开启 `discussion` branch
-- `flow_kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段和可选 `content` branch
+- `kind="card"` 默认走 `synthesis` branch，但可以开启 `discussion` branch
+- `kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段和可选 `synthesis` branch
 - `cx.flow.convert` 只切换默认视角，不复制对象、不迁移消息历史
 - `@user`、`@object` 在 UI 层可写成文本，在协议层必须落成结构化 Actor/Object 引用与 `mentions` Relation
 
@@ -195,7 +194,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 Contrix 要解决的是：
 
 - 去中心化协作对象
-- 看板、Flow 讨论流、Flow 内容面、树、图谱与任务依赖的统一数据模型
+- 看板、Flow 讨论流、Flow synthesis 面、树、图谱与任务依赖的统一数据模型
 - 稳定身份和授权
 - AI agent 可写入、可检索、可审计的长期记忆
 

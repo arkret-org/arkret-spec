@@ -116,7 +116,7 @@ Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`p
   "space_version": "1",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 42,
-  "kind": "cx.card.update",
+  "kind": "cx.flow.update",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0007-a13f9c2e",
   "prev_refs": [
@@ -126,7 +126,7 @@ Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`p
     "cx:event:01js0gr0000000000000000000"
   ],
   "content": {
-    "card_id": "cx:card:01js0cd0000000000000000000",
+    "flow_id": "cx:flow:01js0cd0000000000000000000",
     "patch": {
       "fields.status": "review"
     }
@@ -276,8 +276,8 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 例如：
 
-- `cx.card.update` 只带字段变更
-- `cx.card.move` 只带目标 List 和新 rank
+- `cx.flow.update` 只带字段变更
+- `cx.flow.move` 只带目标 List 和新 rank
 - `cx.message.revise` 只带新正文
 - `cx.message.redact` 只带目标消息与原因
 - `cx.morph.update` 只带 Morph 字段 patch
@@ -285,7 +285,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 ### 8.1 Flow Branch Enable
 
-`cx.flow.branch.enable` 为 Flow 开启一个 branch。branch 初版支持 `content` 和 `discussion`。
+`cx.flow.branch.enable` 为 Flow 开启一个 branch。branch 初版支持 `synthesis` 和 `discussion`。
 
 ```json
 {
@@ -306,14 +306,14 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 - enable/disable 不改变 Flow identity。
 - enable `discussion` branch 不自动授予 membership。
-- Flow content 可见不代表 discussion 内容可读；projection 必须按 branch 自身权限裁剪。
+- Flow synthesis 可见不代表 discussion 内容可读；projection 必须按 branch 自身权限裁剪。
 - 切换默认入口时应通过 `cx.flow.branch.set_primary`，Reducer MUST 保证同一 Flow 至多一个 `primary_branch`。
 
 ## 9. Flow 有序操作
 
 ### 9.1 `cx.flow.move`
 
-`cx.flow.move` 用于跨 List-Space 移动 `flow_kind="card"` 的 Flow。它移动的是 Flow 在一个 Board-Space 内的主位置，而不是修改 discussion branch。
+`cx.flow.move` 用于跨 List-Space 移动 `kind="card"` 的 Flow。它移动的是 Flow 在一个 Board-Space 内的主位置，而不是修改 discussion branch。
 
 ```json
 {
@@ -338,7 +338,7 @@ Reducer 语义：
 
 1. 验证 actor 对 `board_id`、`flow_id`、`from_list_id` 和 `to_list_id` 的 move/reorder 权限。
 2. 验证 `to_list_id` 是 `board_id` 下的 active List-Space（`kind="list"` 且为其 child space）。
-3. 验证目标 Flow 当前 `flow_kind="card"`，或 profile 明确允许其他 kind 进入 Board。
+3. 验证目标 Flow 当前 `kind="card"`，或 profile 明确允许其他 kind 进入 Board。
 4. 在 reduced state 中关闭同一 `(board_id, flow_id)` 下其他 active position edge。
 5. 创建或更新 `to_list_id --contains--> flow_id` 的 active Relation，并把 rank 设置为 `rank`。
 6. 对相同 Event 保持幂等。
@@ -370,7 +370,7 @@ Reducer 语义：
 
 ### 9.3 List-Space 排序
 
-List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Space 的 `rank` 字段来改变。它不得移动 Card。
+List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Space 的 `rank` 字段来改变。它不得移动 Flow。
 
 ### 9.4 `cx.flow.convert`
 
@@ -382,7 +382,7 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
   "target_ref": "cx:flow:01js0tk0000000000000000000",
   "content": {
     "flow_id": "cx:flow:01js0tk0000000000000000000",
-    "to_flow_kind": "room",
+    "to_kind": "room",
     "primary_branch": "discussion",
     "ensure_branches": ["discussion"]
   }
@@ -392,7 +392,7 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 规则：
 
 - convert 不改变 `flow_id`。
-- convert 不自动删除已有 discussion 历史或 content 字段。
+- convert 不自动删除已有 discussion 历史或 synthesis 字段。
 - 设置 `primary_branch="discussion"` 时，Reducer MUST 保证 `discussion` branch 已启用。
 - convert 不自动移除 Board/List 位置；是否移除由后续 `cx.flow.move` / profile policy 决定。
 
@@ -448,7 +448,7 @@ Snapshot manifest MUST 包含：
 
 用于 Flow 当前态、branch 状态、可见性裁剪后的 discussion preview 和 Flow activity projection。
 
-Flow Sync MUST NOT 因为 actor 可读 Flow content 就自动展开不可读 discussion timeline 或 Morph 内容。
+Flow Sync MUST NOT 因为 actor 可读 Flow synthesis 就自动展开不可读 discussion timeline 或 Morph 内容。
 
 ### 12.4 Discussion Sync
 
@@ -580,7 +580,7 @@ Reducer 输出：
 
 ### 17.3 Board position
 
-同一张 Card 在同一 Board 内的唯一主位置 key 是 `(board_id, card_id)`。同一 key 下出现多个 active position edge 时，Reducer MUST 按 deterministic event order 选择唯一 winner，并在 `conflict_records` 中记录 losers。
+同一个 `kind="card"` 的 Flow 在同一 Board 内的唯一主位置 key 是 `(board_id, flow_id)`。同一 key 下出现多个 active position edge 时，Reducer MUST 按 deterministic event order 选择唯一 winner，并在 `conflict_records` 中记录 losers。
 
 ### 17.4 Graph cycle
 
@@ -629,7 +629,8 @@ Contrix v1 固定：
 - signed Event Envelope 是 actor 发布单元。
 - Event Envelope 是共享状态归约单元。
 - Flow / Message、Board / List 工作流、Morph 共享同一同步协议。
-- `flow` 是统一协作主对象；`room` / `card` 只是 `flow_kind` 与默认 branch 视角。
+- `flow` 是统一协作主对象；`room` / `card` 只是 `kind` 与默认 branch 视角。
+- `synthesis` branch 承载整理后的正式表达与推进字段。
 - discussion branch 的 membership、history visibility 和 E2EE 独立收敛。
 - invite / grant / snapshot 组成 Space bootstrap 主流程。
 - event 重试必须幂等。
@@ -644,5 +645,5 @@ Contrix v1 固定：
 - Cursor 编码与 opaque 语义见 `encoding.md`、`data-structures.md` 和 `encoding-conformance-vectors.md`。
 - HLC 文本格式固定为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，排序向量见 `encoding-conformance-vectors.md`。
 - Snapshot manifest、chunk digest、`state_hash` 和签名规则见 `snapshot-schema.md`。
-- Room / Message 语义见 `../models/conversation-model.md`。
-- Subject / Board / List / Card / Morph 语义见 `../models/object-model-standard.md` 和 `../models/views.md`。
+- Flow discussion branch / Message 语义见 `../models/conversation-model.md`。
+- Flow / Board / List / Morph 语义见 `../models/object-model-standard.md` 和 `../models/views.md`。
