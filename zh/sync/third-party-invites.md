@@ -81,7 +81,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Sp
 
 ### 4.3 状态机转换
 
-Space 中的其他节点（Sync Service / Index）在收到该 Event 时：
+Space 中的其他节点（Sync Service / 客户端本地 projection）在收到该 Event 时：
 1. 匹配 `token_commitment` 与未过期、未撤销、未认领的 `cx.invite.third_party`。
 2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_did`、`space_id`、audience、过期时间和 claim nonce。
 3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。

@@ -35,12 +35,12 @@
 - Card 与 Room 严格分离；Card 可链接多个 Room，但不继承 Room membership 或历史权限。
 - View 是投影定义，不拥有真相数据。
 
-### 3.3 Principal Server / Events / Sync / Index
+### 3.3 Principal Server / Events / Sync / Projection
 
 - signed Event Envelope 是唯一 canonical fact。
 - Principal Server 通过 `/events/*` API 提交、读取、回填和验证 Event frontier。
 - Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Space 同步能力。
-- Index 是查询和投影层，不是真相源。
+- 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不得成为真相源。
 
 ### 3.4 Discoverability / Join Rule / History Visibility
 
@@ -108,7 +108,7 @@
 | --- | --- |
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
-| `sync/service-surface.md` | 最小服务面与实际服务组合：principal server、identity、events、sync、index、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
+| `sync/service-surface.md` | 最小服务面与实际服务组合：principal server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/service-api-schema.md` | 核心 request / response schema。 |
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
@@ -160,7 +160,7 @@
 | `conformance/state-resolution-conformance-vectors.md` | 并发 membership/capability/governance state resolution向量。 |
 | `conformance/redaction-conformance-vectors.md` | redaction 约束与可见性向量。 |
 | `conformance/capability-conformance-vectors.md` | delegated capability、revoke 回滚、approval 约束向量。 |
-| `conformance/query-schema.md` | Index / View / Inbox 查询语法。 |
+| `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
 | `conformance/snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
 | `conformance/scalability-constraints.md` | v1 wire、授权、state resolution、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |

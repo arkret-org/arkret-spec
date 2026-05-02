@@ -1,12 +1,12 @@
 # Federation
 
-Contrix federation connects Principal Servers and their delegated repo, sync, index, identity, and blob services across domains.
+Contrix federation connects Principal Servers and their delegated repo, sync, identity, and blob services across domains.
 
 Federation relies on DID service identities, signed service requests, idempotent transactions, cross-domain Space joins, and backfill authorization. It does not require an independent third-party distribution service; Space operations move between participating Principal Servers or explicitly delegated Space Hosts.
 
 ## Service Identity
 
-Each Principal Server, Repo, and Index node MUST have its own service DID. DID Document `service.type` uses protocol registered names such as `ContrixPrincipalServer`; service `describe` responses use runtime `service_type` values such as `principal_server`. Federation authentication MUST verify the binding between service DID, endpoint, request signature, and declared service type.
+Each Principal Server and Repo service MUST have its own service DID. DID Document `service.type` uses protocol registered names such as `ContrixPrincipalServer`; service `describe` responses use runtime `service_type` values such as `principal_server`. Federation authentication MUST verify the binding between service DID, endpoint, request signature, and declared service type.
 
 Service-to-service HTTP requests MUST use HTTP Message Signatures. The signature MUST cover `@method`, `@target-uri`, `@authority`, `content-digest` when a body is present, the request time window such as `created` / `expires`, source service DID, destination service DID, and canonical request hash.
 

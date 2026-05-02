@@ -6,7 +6,7 @@ This document defines the wire-level conventions for the default Contrix HTTP/JS
 
 The Contrix protocol core is not tied to REST. Non-HTTP bindings such as gRPC, WebSocket, SSE, libp2p, message queues, or IPC MUST preserve equivalent authentication, authorization, idempotency, pagination, error, and flow-control semantics.
 
-This document applies to identity registry, repo, Sync Service, index, blob, authz, push gateway, federation, and applet service surfaces unless a more specific document states an exception.
+This document applies to identity registry, repo, Sync Service, blob, authz, push gateway, federation, and applet service surfaces unless a more specific document states an exception.
 
 ## 2. Transport And Encoding
 

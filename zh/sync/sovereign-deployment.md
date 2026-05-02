@@ -19,7 +19,6 @@ Sovereign deployment 是由单一组织或联盟控制的 Contrix 服务域。�
 - Organization DID / governance registry / witness
 - Identity Registry
 - Principal Server / Sync Service
-- Index / AppView
 - Directory
 - Blob Store
 - Policy Server
@@ -39,7 +38,6 @@ flowchart TB
         WIT["Private Witness Set"]
         REPO["Internal Event Storage"]
         SYNC["Internal Principal Server / Sync Service"]
-        INDEX["Internal Index / AppView"]
         DIR["Private Directory"]
         BLOB["Private Blob Store"]
         POL["Policy Server"]
@@ -50,7 +48,6 @@ flowchart TB
     subgraph "Controlled Collaboration Enclave"
         ESPACE["Controlled Collaboration Space"]
         ESYNC["Enclave Principal Server / Sync Service"]
-        EINDEX["Enclave Index"]
         EDIR["Enclave Directory"]
         EBLOB["Enclave Blob Store"]
         EPOL["Enclave Policy Server"]
@@ -67,7 +64,6 @@ flowchart TB
     ORG --> WIT
     ORG --> SYNC
     SYNC --> REPO
-    ORG --> INDEX
     ORG --> DIR
     ORG --> BLOB
     ORG --> POL
@@ -75,14 +71,10 @@ flowchart TB
 
     INTCLIENT --> REPO
     REPO --> SYNC
-    SYNC --> INDEX
-    INDEX --> DIR
     SYNC --> POL
-    INDEX --> POL
 
     ORG -->|"creates / endorses"| ESPACE
     ESPACE --> ESYNC
-    ESPACE --> EINDEX
     ESPACE --> EDIR
     ESPACE --> EBLOB
     ESPACE --> EPOL
@@ -94,8 +86,6 @@ flowchart TB
     EXTREPO -->|"signed Operations"| ESYNC
     EXTSYNC -. "optional allowlisted federation" .-> ESYNC
 
-    ESYNC -->|"accepted events only"| EINDEX
-    EINDEX -->|"stripped preview only"| EDIR
     EPOL -->|"allow / deny / quarantine"| ESYNC
 
     SYNC -. "no default bridge" .- ESYNC
@@ -104,7 +94,7 @@ flowchart TB
 
 拓扑含义：
 
-- 主网络保持 closed federation，不向外部主体暴露内部 Directory、Index 或服务拓扑。
+- 主网络保持 closed federation，不向外部主体暴露内部 Directory 或服务拓扑。
 - Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Space。
 - 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Space。
 - 外部组织可以保留自己的 Principal Server / Events API，但写入必须经过 enclave Principal Server / Sync Service、Policy Server 和本地授权验证。
@@ -119,7 +109,7 @@ Sovereign client MUST:
 - pin organization trust anchors：Organization DID、governance DID、registry DID、witness DID、service DID allowlist。
 - 使用组织配置的 DID resolver policy，不得默认查询公共 registry / public directory。
 - 验证服务 DID 委派、证书、HTTP message signature 和 feature profile。
-- 禁止用户手动添加未批准 Sync Service / Index / Directory / Blob / Applet endpoint。
+- 禁止用户手动添加未批准 Sync Service / Directory / Blob / Applet endpoint。
 - 默认关闭公共 federation、公共搜索、外部 Applet 和外部 Agent handoff。
 - 对每个 Space 显示 classification、E2EE、auditable E2EE、export、external member policy。
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。
@@ -141,7 +131,7 @@ Sovereign client SHOULD:
 - Space 默认 `discoverability=secret` 或 `invite_only`。
 - Space 默认 `join_rule=invite` 或 `restricted`。
 - Policy Server 默认 `closed` 或 `quarantine` fail mode。
-- Sync Service / Index / Directory 只接受 allowlist service DID。
+- Sync Service / Directory 只接受 allowlist service DID。
 - Blob、snapshot、backup、audit log 存储在组织控制基础设施内。
 - 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Space 明确开启。
 - E2EE 默认开启；需要合规审查时使用 auditable E2EE，且必须向成员显示。
@@ -179,7 +169,7 @@ Rules:
 - Internal `did:uuid` DID documents MUST be obtained from approved registry / witness / offline bundle.
 - Public DID methods MAY be accepted for external collaborators only when policy allows and the authority chain is verified.
 - Pairwise DID SHOULD be used for external collaboration when correlation risk matters.
-- DID Document service endpoints that point to public Sync Service / Index / Directory MUST be ignored unless allowlisted.
+- DID Document service endpoints that point to public Sync Service / Directory MUST be ignored unless allowlisted.
 
 ## 4. Controlled Collaboration Space
 
@@ -225,7 +215,7 @@ Recommended policy:
 4. Space admin 或 delegated approval actor 发出 invite。
 5. 外部主体接受 invite，并提交 `cx.member.state` join event。
 6. 对 E2EE Space，管理员客户端或 key service 只向该主体授权设备发 MLS Welcome。
-7. Directory / Index 只暴露该 Space 允许的 stripped preview 和加入后历史。
+7. Directory 和客户端本地 projection 只暴露该 Space 允许的 stripped preview 和加入后历史。
 
 外部主体 MUST NOT receive:
 
@@ -271,7 +261,7 @@ Recommended pattern:
 - 主网络保持 closed federation。
 - 创建 isolated collaboration enclave。
 - 外部主体只被邀请到 enclave Space。
-- enclave Space 使用独立 Principal Server / Index / Blob / Policy Server。
+- enclave Space 使用独立 Principal Server / Blob / Policy Server。
 - 从主网络复制到 enclave 的资料必须经 redaction / export review / declassification policy。
 - 从 enclave 回流主网络的资料必须经 import review / malware scan / policy approval。
 

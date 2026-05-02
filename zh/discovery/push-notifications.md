@@ -11,9 +11,9 @@
 
 ## 2. 设计原则
 
-### 2.1 推送由 Sync Service / Index 触发，不由客户端维护
+### 2.1 推送由 Sync Service 或受托通知服务触发
 
-客户端在离线前向 Sync Service 注册推送设备信息。此后由 Sync Service 或 Index 节点在收到匹配推送规则的事件时，向推送网关 (Push Gateway) 发送通知。
+客户端在离线前向 Sync Service 注册推送设备信息。此后由 Sync Service 或 Space policy 明确授权的通知服务在收到匹配推送规则的事件时，向推送网关 (Push Gateway) 发送通知。
 
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 

@@ -32,7 +32,7 @@
 规则：
 
 - 一个 Organization 可以创建、拥有、托管或背书多个 Space。
-- 一个 Organization 可以委托一个或多个 Principal Server / Index / Policy Server。
+- 一个 Organization 可以委托一个或多个 Principal Server / Policy Server，以及可选受托 search / projection 服务。
 - 服务器托管关系不自动证明 Organization ownership；官方性必须由 Organization DID 或 `cx.space.organization` 背书。
 
 ## 4. Board / List / Card 如何建模？
@@ -145,8 +145,8 @@ Message 不再是通用 Entity 语义标签，也不是协议唯一事实根。
 
 - Event 仍是审计和归约输入；Operation 只作为 SDK / API 语义名称或兼容别名。
 - Sync 以 Space 为主要范围，同时支持 Room、Board、Card、Morph 等过滤。
-- Index 查询使用 `object_types`、`morph_types`、`facets`；其中 `facets` 只筛选 schema/profile 已声明的 hint / 查询标签。
-- `/index/object` 替代 `/index/entity`。
+- Query shape 使用 `object_types`、`morph_types`、`facets`；其中 `facets` 只筛选 schema/profile 已声明的 hint / 查询标签。
+- 对象当前态查询默认由客户端本地 reducer / projection 实现。
 - Relation 使用 `from_ref` / `to_ref`，可连接标准对象、Morph、Actor 和 Space。
 
 ## 11. 与 Matrix 的关系

@@ -117,13 +117,13 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - signed Event Envelope 是 actor 侧发布单元
 - per-actor event chain 是审计和重放基础
 - Principal Server / Sync Service 是受控同步与订阅层，不是唯一真相源
-- index/appview 是查询与物化层，不是唯一真相源
-- 服务面要求最小可互操作 principal server / identity registry / events / sync / index / blob / authz 接口
+- 搜索、inbox、notification 和 View projection 默认由客户端或 SDK 本地派生，不是必需服务面
+- 服务面要求最小可互操作 principal server / identity registry / events / sync / blob / authz 接口
 - board/chat/thread/tree/graph 只是不同同步配置和 View 投影，不是不同协议
 - Event 提交必须天然幂等
 - 授权有效性也必须由同一 reducer 顺序收敛
 - 撤回通过 redaction 收敛，不等于保证全球物理删除
-- sync service / index 可以转发不解密的密文 payload；未加密私有正文不得提交给未委托第三方服务
+- sync service 可以转发不解密的密文 payload；未加密私有正文不得提交给未委托第三方服务或受托搜索扩展
 - DID 里的哈希锚定 `inception_key`；普通密钥轮换不换 DID，只有不可恢复时才考虑例外性身份重建
 
 ### 5.5 权限
@@ -181,7 +181,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - Space、Room、Board、List、Card、Message、Morph、Relation、Event、View 和标准业务类型。
 - 核心数据结构字段级类型、必填性、枚举和约束。
 - Capability、delegation、claim 条件、policy server、moderation policy。
-- Event-first 发布、Principal Server 同步、Index 查询、Directory 发现、HTTP binding。
+- Event-first 发布、Principal Server 同步、客户端本地查询/投影、Directory 发现、HTTP binding。
 - MLS E2EE、设备验证、WebRTC 会议、Blob 与媒体。
 - Applet、Agent protocol interop、Space hierarchy。
 - Sovereign deployment 与 controlled collaboration Space。

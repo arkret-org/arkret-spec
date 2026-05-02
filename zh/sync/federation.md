@@ -27,7 +27,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 ### 3.1 基于 DID 的服务器身份
 
-每个 Principal Server / Events API / Index 节点 MUST 拥有自己的 DID（通常是 `did:web`），并在其 DID Document 中声明 Service Endpoints：
+每个 Principal Server / Events API 节点 MUST 拥有自己的 DID（通常是 `did:web`），并在其 DID Document 中声明 Service Endpoints：
 
 ```json
 {

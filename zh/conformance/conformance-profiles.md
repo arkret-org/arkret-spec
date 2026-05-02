@@ -33,7 +33,7 @@ cx.profile.<name>.v<major>
 
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
-| Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space、Room、Board、List、Card、Message、Morph、Relation、Capability、Index query、Sync cursor、Blob hash 校验、标准错误。 |
+| Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space、Room、Board、List、Card、Message、Morph、Relation、Capability、View query shape、Sync cursor、Blob hash 校验、标准错误。 |
 | Recommended | 主客户端和 Principal Server SHOULD 支持，但轻量实现可以不支持。 | E2EE、push、presence、read receipt、snapshot bootstrap、local full-text search、moderation report。 |
 | Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、Agent Memory advanced lifecycle、sovereign deployment。 |
 
@@ -43,9 +43,9 @@ Document、File、Memory、Run、Poll 在 v1 MVP 中默认是 Morph profile 或 
 
 - `cx.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
 - `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、Room、`cx.room.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
-- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space、Board、List、Card、`contains` position Relation、`cx.card.move`、`cx.card.reorder`、Collection projection 和 wait-for query。
+- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space、Board、List、Card、`contains` position Relation、`cx.card.move`、`cx.card.reorder`、客户端 Collection projection 和 wait-for query。
 
-`chat_only_client`、`kanban_only_client`、`minimal_client`、`principal_server` 和 `index_node` 可以组合上述闭环声明能力；未声明的闭环不得被对端视为默认可用。
+`chat_only_client`、`kanban_only_client`、`minimal_client` 和 `principal_server` 可以组合上述闭环声明能力；未声明的闭环不得被对端视为默认可用。
 
 `chat_mvp` 与 `kanban_mvp` 不要求实现任意 Morph renderer、任意 facet reducer 或插件 UI。它们只需要按声明 profile 保留未知 Morph / facet 字段、同步相关 Event、执行 schema/capability 校验，并在必须展示时提供 generic Morph fallback。任何依赖特定 `morph_type` 或 facet 的交互能力 MUST 由额外 profile 显式声明。
 
@@ -79,7 +79,7 @@ MUST 支持：
 - `cx.board.*`、`cx.list.*`、`cx.card.create`、`cx.card.update`、`cx.card.move`、`cx.card.reorder`
 - Board position 的 CAS / stale reorder 处理和 deterministic conflict record 展示
 - 基础 capability check 结果处理和 `cx.card.move` / `cx.card.reorder` 高频授权快路径
-- client sync、index query、wait-for、pagination、backfill
+- client sync、本地 projection、wait-for、pagination、backfill
 
 MAY 支持 Room / Message。若支持 Card linked Room，必须按 Room membership 独立裁剪。
 
@@ -122,7 +122,7 @@ MUST 支持：
 - DID / handle 解析
 - service discovery
 - event 拉取 / backfill
-- index 查询
+- 本地查询和 projection
 - 基础 Room / Board / List / Card / Message / Morph / Relation / Event 解码
 - 未知 Morph / facet 字段保留和 generic fallback，不要求专用 renderer
 - capability 检查结果处理
@@ -187,7 +187,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 MUST NOT：
 
-- 把明文消息发送给 sync service / index
+- 把明文消息发送给未授权 sync service 或受托 search / projection 服务
 - 把解密密钥上传给不受信服务
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
 - 在 MLS-bound policy / membership root 不匹配时继续解密正文
@@ -245,31 +245,7 @@ SHOULD 支持：
 Principal Server MUST NOT become the canonical truth source for Space state.
 Principal Server MUST NOT forward non-E2EE private content or reversible derived plaintext to services absent from the relevant DID delegation or Space policy `plaintext_visible_services`.
 
-## 8. Index Node
-
-`cx.profile.index_node.v1` 适用于查询和物化节点。
-
-MUST 支持：
-
-- reducer profile declaration
-- object current-state query
-- relation query
-- structured query
-- notification / inbox materialization
-- authorization filtering
-- stale frontier reporting
-- `X-Contrix-Wait-For` 或等价 sync token
-- plaintext-visible declaration and policy enforcement when indexing private plaintext
-
-SHOULD 支持：
-
-- full-text search for plaintext Space
-- local-only search coordination for encrypted Space
-- explain / debug endpoint for reducer state
-
-Index Node MUST NOT be treated as an authority unless its output can be traced to signed Event Envelopes and declared reducer profile.
-
-## 9. Identity Registry Node
+## 8. Identity Registry Node
 
 `cx.profile.identity_registry.v1` 适用于 DID 文档与 key log 服务。
 
@@ -408,7 +384,7 @@ MUST support:
 MUST NOT:
 
 - expose internal Space directory to external members
-- treat external Principal Server / Index as authority
+- treat external Principal Server or search / projection service as authority
 - allow public federation by default
 - allow external Applet or Agent handoff without explicit capability and policy
 
@@ -441,7 +417,7 @@ MUST support:
 
 MUST NOT:
 
-- let users add arbitrary Principal Server / Index / Directory / Blob endpoints
+- let users add arbitrary Principal Server / Directory / Blob endpoints
 - resolve internal `did:uuid` through public registry by default
 - silently join Space with external members or auditable E2EE
 - expose private organization directory to public search
@@ -467,7 +443,7 @@ SHOULD support:
 
 `cx.profile.personal_node.v1` MUST cover：
 
-- principal server、events、sync、index、blob 可以同机合并
+- principal server、events、sync、blob 可以同机合并
 - 默认最小管理员面
 - 本地备份与恢复
 
@@ -581,7 +557,7 @@ SHOULD 支持：
 
 所有 profile MUST 能按 `data-structures.md` 解码和验证其声明支持的核心对象字段。实现 MUST 在 canonical object 中保留未知 non-critical 字段，并覆盖“hash/signature 校验、存储、联邦转发、backfill 后字段仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
 
-所有 profile MUST 按 `encoding-conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Index、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
+所有 profile MUST 按 `encoding-conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
 
 E2EE profile MUST 额外提供：
 
@@ -602,7 +578,6 @@ Client Sync 相关 profile MUST/SHOULD 按 `sync-conformance-vectors.md` 执行�
 - Kanban-only Client MUST 覆盖 Board projection、Card move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
-- Index Node MUST 覆盖 deterministic timeline order、causal barrier 和 stale frontier reporting。
 - Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
 - Snapshot bootstrap MUST 覆盖 `event_set_commitment` root、covered frontier、conflict/soft-fail/quarantine 摘要和 inclusion / omission challenge hint。
 
@@ -652,16 +627,16 @@ MIMI Interop profile MUST 额外提供：
 
 ```json
 {
-  "service_did": "did:web:index.example.com",
-  "service_type": "ContrixIndex",
+  "service_did": "did:web:server.example.com",
+  "service_type": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [
-    "cx.profile.index_node.v1"
+    "cx.profile.principal_server.v1"
   ],
   "supported_features": [
-    "structured_query",
-    "notification_index",
-    "wait_for_sync_token"
+    "sync_stream",
+    "snapshot_bootstrap",
+    "plaintext_visibility_classes"
   ],
   "reducer_profiles": [
     "cx.reducer.v1"
@@ -682,7 +657,6 @@ MIMI Interop profile MUST 额外提供：
 - `principal_server_events_api`
 - `principal_server`
 - `federation_minimal`
-- `index_node`
 - `identity_registry`
 - `blob_node`
 - `push_gateway`

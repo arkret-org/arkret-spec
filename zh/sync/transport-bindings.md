@@ -17,7 +17,7 @@ HTTP/JSON REST 是默认互操作 binding，用于浏览器、普通服务端和
 
 | 层 | 是否协议核心 | 例子 |
 | --- | --- | --- |
-| Semantic operation | 是 | `submit_event`, `get_events`, `sync`, `query`, `backfill`, `authz_check`, `applet_transaction` |
+| Semantic operation | 是 | `submit_event`, `get_events`, `sync`, `backfill`, `authz_check`, `applet_transaction` |
 | Message envelope | 是 | request id、actor、device、capability refs、idempotency key、cursor、error code |
 | Encoding profile | 是 | canonical JSON、hash、signature、CBOR profile 可选 |
 | Transport binding | 否，除非实现声明 | HTTP/REST、gRPC、WebSocket、SSE、GraphQL、libp2p |
@@ -60,8 +60,6 @@ Transport binding MUST 映射到 `artifacts/registry/operation-registry.json` �
 | `cx.federation.transaction` | Principal Server 之间交换签名 transaction。 |
 | `cx.federation.push_operations` | 跨域推送 Space Event。 |
 | `cx.federation.pull_operations` | 跨域拉取缺失 Event / backfill。 |
-| `cx.index.query` | 查询 Object / Morph / Relation / View projection。 |
-| `cx.index.space_hierarchy` | 查询 Space 层级。 |
 | `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Space / Organization / Actor / User。 |
 | `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Space / Organization / handle。 |
 | `cx.blob.upload` | 上传 blob。 |

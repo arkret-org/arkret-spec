@@ -24,7 +24,7 @@ Standard query shape:
 
 Filters support `eq`, `neq`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `exists`, `prefix`, and `full_text`.
 
-Index nodes MUST apply authorization filtering and must not leak invisible resource existence.
+Any query / search / projection executor MUST apply authorization filtering and must not leak invisible resource existence.
 
 Optional `context` is used by `timeline` / `renderer="timeline"` views to request stable event ordering and relation-aware expansion across multiple object kinds around one anchor object.
 

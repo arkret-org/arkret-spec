@@ -160,8 +160,8 @@ Main document groups:
 - repo commits are the actor-side publication unit
 - operation logs are the audit truth source
 - Principal Servers / Sync Services are the controlled sync/subscription layer, not the sole truth source
-- indexes/appviews are the query/materialization layer, not the sole truth source
-- the service layer requires a minimum interoperable principal-server / identity-registry / repo / sync / index / blob / authz surface
+- search, inbox, notifications, and View projection are client-local derived layers by default, not sole truth sources
+- the service layer requires a minimum interoperable principal-server / identity-registry / repo / sync / blob / authz surface
 - board/chat/topic/tree/graph are sync profiles and View projections, not separate protocols
 - commit/operation submission must be idempotent by design
 - authorization validity must converge under the same reducer ordering

@@ -128,7 +128,7 @@ Contrix Server
 ├── Storage Layer
 │   ├── Event Store (persistent storage)
 │   ├── State Store (materialized state)
-│   ├── Index Store (searchable data)
+│   ├── Local Search Store (optional searchable data)
 │   └── Cursor Store (sync positions)
 ├── Federation Layer
 │   ├── Federation Client (outgoing)

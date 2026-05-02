@@ -315,7 +315,7 @@ Space SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 
 ### 6.1 Server ACL
 
-Principal Server 和 Index 节点可以配置服务器级别的 ACL，控制哪些域的联邦请求被接受或拒绝：
+Principal Server 可以配置服务器级别的 ACL，控制哪些域的联邦请求被接受或拒绝：
 
 ```json
 {
@@ -410,10 +410,10 @@ Policy Server MAY return `hard_deny`, `quarantine`, `require_review` or `soft_de
 在“去中心化服务治理”场景中，服务端常见风险的抗滥用经验如下：
 
 - **入口源身份强制**：任何外部服务联邦请求都先验 `service DID`。未签名或未被 allowlist 的源服务不得参与写路径（至少转入 `soft_deny` / `quarantine`）。
-- **多级限速**：Sync Service / Index / Policy Server 应至少按以下维度限速：`source DID`、`source IP`（或其哈希）、`service token`、`space id`、`endpoint`。超阈值 MUST 返回 `rate_limited`。
+- **多级限速**：Sync Service / Policy Server 和受托 search / projection 服务应至少按以下维度限速：`source DID`、`source IP`（或其哈希）、`service token`、`space id`、`endpoint`。超阈值 MUST 返回 `rate_limited`。
 - **批量事件反滥用**：对短周期内的 `invite`、`join`、`message`、`media.upload` 进行突发抑制；出现异常突发可触发 `quarantine`。
 - **最小可观察性差异**：对未通过鉴权的目录/加入枚举请求，返回统一错误，不泄露对象可见性差异。
-- **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 Sync Service/index；必要时按 `snapshot`/`preview` 再二次放行。
+- **可疑媒体隔离**：媒体 hash、MIME、扫描标签先入审计与审核，不应默认解密给 Sync Service 或受托 projection；必要时按 `snapshot`/`preview` 再二次放行。
 - **可追溯审计**：每次风控拦截、隔离、降级决策都要记录结构化审计事件，且不得仅依赖联邦来源的本地口头说明。
 
 上述规则至少部分对应 `server-threat-model.md` 中的映射结果。  

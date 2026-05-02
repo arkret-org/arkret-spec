@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-去中心化协作协议面临着复杂的隐私与合规矛盾：一方面，商业数据和私密频道必须提供不可被 Sync Service / Index 窃听的端到端加密 (E2EE)；另一方面，在特定组织边界内，数据流又需要受到法律或合规层面的安全审查。
+去中心化协作协议面临着复杂的隐私与合规矛盾：一方面，商业数据和私密频道必须提供不可被 Sync Service 或未授权受托服务窃听的端到端加密 (E2EE)；另一方面，在特定组织边界内，数据流又需要受到法律或合规层面的安全审查。
 
 本规范定义了 Contrix 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
@@ -26,7 +26,7 @@ MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Contrix 中，群组的�
 sequenceDiagram
     participant Alice
     participant Sync Service (Space Events)
-    participant Bob (Index)
+    participant BobClient as Bob Client
 
     Alice->>Sync Service: POST /api/v1/keys/query
     Sync Service-->>Alice: Bob's signed KeyPackage / device keys
@@ -36,11 +36,11 @@ sequenceDiagram
     Alice->>Sync Service: Submit `cx.mls.welcome` (Encrypted for Bob)
     Alice->>Sync Service: Submit `cx.mls.commit` (Group state update)
     
-    Sync Service->>Bob (Index): Push Notification & Sync
+    Sync Service->>BobClient: Push Notification & Sync
     
-    Bob->>Sync Service: Fetch `cx.mls.welcome`
-    note over Bob: Decrypts Welcome using InitKey
-    note over Bob: Derives Group Epoch Secret
+    BobClient->>Sync Service: Fetch `cx.mls.welcome`
+    note over BobClient: Decrypts Welcome using InitKey
+    note over BobClient: Derives Group Epoch Secret
 ```
 
 - **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Space Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
@@ -49,8 +49,8 @@ sequenceDiagram
 ### 2.3 载荷加密 (Application Data)
 日常的 Message、Card 或 Morph 内容负载在写入 Event 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
 - **可路由元数据分离**：密文信封 `encrypted_payload` 仅包裹实际的业务内容 (`body`, `content`, `attachments`)。
-- **明文元数据保留**：用于网络路由和索引查询的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
-- Sync Service 和 Index 节点可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。
+- **明文元数据保留**：用于网络路由和客户端本地 projection 的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
+- Sync Service 可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。客户端在解密后 MAY 建立本地搜索索引；受托 search / projection 服务只有在 `plaintext_visible_services` 授权下才能接收明文或可逆摘要。
 
 ### 2.4 Sync 与 MLS Epoch
 
@@ -62,7 +62,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 - backfill 历史事件时，客户端 SHOULD 同步对应 epoch 区间的 MLS state，而不是逐条向成员请求密钥。
 - 被移除成员不得获取移除后 epoch 的 group secret；客户端必须 fail closed。
 
-服务端、Sync Service、Index 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
+服务端和 Sync Service 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
 
 ### 2.5 MLS 绑定的应用状态根
 
@@ -224,7 +224,7 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 4. **完成解密**：只有在接收到确权回执后，硬件飞地（或受控合规服务）才被允许利用持有的 MLS 密钥将对应的明文吐出给合规人员。
 
 ### 3.4 审查透明公示
-因为 `cx.audit.accessed` 是一条公开写入的协作事件，所有参与者的客户端 Index 都能实时同步到该事件。
+因为 `cx.audit.accessed` 是一条公开写入的协作事件，所有参与者的客户端都能通过 sync 实时同步到该事件。
 - **用户端 UI**：客户端检测到自己发送的消息被附加了 `cx.audit.accessed` 后，应在界面上（如气泡旁边）显示明显的标识（例如一个带警告色的“合规审查”眼睛图标），并允许用户点击查看审查事由与时间。
 - **不可抵赖性**：合规员无法悄无声息地查看信息；一旦查看，全群组所有成员都能看到透明的访问足迹。
 
@@ -232,16 +232,26 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 
 协议严格区分“场地方合规审查 (Space Audit)”与“参与方主控权穿透 (Master-Agent Control)”。
 
-当一个受控账户（如 AI Agent，拥有自己独立的 DID）加入了一个私密加密群组，其拥有者（Master）理论上拥有读取该 Agent 所有通信记录的权利。这属于**终端节点数据与密钥管理范畴**，不需要、也不应该触发前文所述的 `cx.audit.accessed` 强制公开留痕机制。
+当一个受控账户（如 AI Agent，拥有自己独立的 DID）加入了一个私密加密群组，其控制者（Controller / Master）可以通过显式设备、授权转发或受控日志获得该 Agent 的通信副本。这属于**终端节点数据与密钥管理范畴**，不等同于场地方合规审查；只要访问范围已经在 Agent authority、grant、设备绑定或 owner-private policy 中声明，就不需要触发前文所述的 `cx.audit.accessed` 强制公开留痕机制。
 
-协议推荐以下三种原生方式实现 Master 对 Agent 的通信穿透：
+协议支持以下三种原生方式实现 Controller 对 Agent 的通信穿透。默认实现 SHOULD 使用方案 A；方案 B / C 只在部署和产品策略明确时启用。
 
-### 4.1 方案 A：密钥衍生与影子客户端 (Key Derivation / Ghost Client) —— 首选
-如果 Agent 是完全独立的 DID，其初始私钥 MUST 由 Master 的根种子（Root Seed）以分层确定性（HD）方式衍生。
-- **机制**：Master 设备在本地计算出 Agent 的 MLS 私钥，并在本地静默运行一个无 UI 的“影子客户端”。
-- **效果**：Master 能够直接从 Event history 同步并解密发给 Agent 的所有群组信息。对于群内其他成员而言，消息只是发给了 Agent，这不会破坏群组的加密边界，也不会产生额外的协议开销。
+### 4.1 方案 A：独立 Agent 密钥与显式控制通道 (Independent Agent Key) —— 默认
+
+Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Controller 通过 capability delegation、`cx.schema.agent_authority.v1`、device / session grant、approval policy 和可撤销的 owner-private control channel 管理该 Agent。
+
+- **机制**：Agent 自己生成和持有签名密钥、设备密钥与 MLS KeyPackage；Controller 通过显式 grant、controller approval、kill switch、run log 和可选的 owner-private 1 对 1 E2EE Space 接收必要副本或摘要。
+- **效果**：Agent compromise 的影响边界限制在 Agent 自身 DID、device、session、grant 和可见 Space 内。Controller 根种子、恢复密钥和其他身份材料不会因为 Agent 运行环境泄露而被扩散。
+
+规则：
+
+- Agent 私钥、Controller 主体私钥、Controller recovery key 和 Controller backup key MUST 是不同密钥域。
+- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Space / Room、读取 owner-private memory、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
+- Agent Authority Panel MUST 能解释 Controller、responsible actor、effective grant、presence policy、knowledge source、join policy 和 expiry。
+- 撤销 Controller 对 Agent 的控制通道时，必须使相关 session grant、owner-private memory grant、presence trigger 和 tool / protocol session grant 失效。
 
 ### 4.2 方案 B：记忆提取与私聊同步 (Memory Forwarding)
+
 如果 Agent 运行在受控云端环境中，Master 无需同步全量密文：
 - **机制**：Agent 在可信执行环境 (TEE) 中解密所参与的群聊消息，提炼为 `memory` 对象，然后通过 Agent 与 Master 之间单独建立的 **专属 1 对 1 E2EE Space** 转发给 Master。
 - **效果**：利用应用层的常规消息传递机制完成上下文汇报，无需污染原始协作空间的加密树。
@@ -249,6 +259,17 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 ### 4.3 方案 C：多设备绑定 (Multi-Device KeyPackage)
 - **机制**：Agent 作为一个独立的物理/逻辑实体，生成自己的 `KeyPackage`，但在身份层面上挂靠在 Master 的 DID 下，作为 Master 的另一台“设备”。
 - **效果**：在 MLS 树中，发送者对同一个主体的多个叶子节点加密。Master 手机与 Agent 服务器同时收到密文副本并各自解密。
+
+方案 C 会把 Agent 与 Controller 的主体边界收紧，适合“同一 principal 的托管设备”而不是“独立 Agent DID”。若产品向用户展示 Agent 是独立 Actor，或 Space policy 要求 automated actor 可审计，MUST 使用方案 A 或方案 B，不得把 Agent 静默伪装成 Controller 的普通设备。
+
+### 4.4 HD 派生的限制
+
+使用 Controller 根种子或主恢复种子派生 Agent 初始私钥不是 v1 默认 profile。实现 MAY 在完全本地、单用户、可导出性受控且 UI 明确告知风险的 profile 中使用 HD 派生，但必须满足：
+
+- 派生路径、purpose、Agent DID、device id、audience 和 expiry 必须固定并可审计。
+- Agent 子密钥泄露不得允许攻击者推导 Controller 根种子、Controller DID 控制密钥、recovery key 或其他 Agent 子密钥。
+- HD 派生密钥不得用于 Controller 的 DID recovery、Space admin grant 签发或组织治理动作。
+- 该 profile 必须声明为可选高风险能力；互操作对端不得假设所有 Agent DID 都由 Controller 根种子派生。
 
 ## 5. 组员变动与高可用容错 (Proposal & Commit)
 

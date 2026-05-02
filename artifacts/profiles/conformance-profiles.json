@@ -13,7 +13,6 @@
     "cx.profile.principal_server_events_api.v1",
     "cx.profile.principal_server.v1",
     "cx.profile.federation_minimal.v1",
-    "cx.profile.index_node.v1",
     "cx.profile.identity_registry.v1",
     "cx.profile.blob_node.v1",
     "cx.profile.push_gateway.v1",
@@ -89,7 +88,7 @@
     },
     "cx.profile.chat_mvp.v1": {
       "inherits": ["cx.profile.core_event_store.v1"],
-      "required_endpoints": ["cx.sync.client_sync", "cx.sync.backfill", "cx.index.room_timeline"],
+      "required_endpoints": ["cx.sync.client_sync", "cx.sync.backfill"],
       "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.room.member", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove", "cx.redaction"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
@@ -99,7 +98,7 @@
     },
     "cx.profile.kanban_mvp.v1": {
       "inherits": ["cx.profile.core_event_store.v1"],
-      "required_endpoints": ["cx.index.query", "cx.index.get_object", "cx.sync.backfill"],
+      "required_endpoints": ["cx.sync.backfill"],
       "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.board.create", "cx.list.create", "cx.list.reorder", "cx.card.create", "cx.card.update", "cx.card.move", "cx.card.reorder", "cx.relation.create", "cx.container.rebalance"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.space.v1", "cx.schema.board.v1", "cx.schema.list.v1", "cx.schema.card.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
@@ -109,7 +108,7 @@
     },
     "cx.profile.minimal_client.v1": {
       "inherits": ["cx.profile.core_event_store.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.events.get", "cx.events.list", "cx.sync.backfill", "cx.index.query"],
+      "required_endpoints": ["cx.server.describe", "cx.events.get", "cx.events.list", "cx.sync.backfill"],
       "required_event_kinds": ["cx.space.create", "cx.member.state"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.board.v1", "cx.schema.list.v1", "cx.schema.card.v1", "cx.schema.message.v1", "cx.schema.morph.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
@@ -119,7 +118,7 @@
     },
     "cx.profile.chat_only_client.v1": {
       "inherits": ["cx.profile.chat_mvp.v1"],
-      "required_endpoints": ["cx.sync.client_sync", "cx.index.room_timeline", "cx.authz.check"],
+      "required_endpoints": ["cx.sync.client_sync", "cx.authz.check"],
       "required_event_kinds": ["cx.room.create", "cx.room.member", "cx.message.create", "cx.message.revise", "cx.message.redact", "cx.reaction.add", "cx.reaction.remove"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.room.v1", "cx.schema.message.v1", "cx.schema.client_sync_response.v1"],
@@ -129,7 +128,7 @@
     },
     "cx.profile.kanban_only_client.v1": {
       "inherits": ["cx.profile.kanban_mvp.v1"],
-      "required_endpoints": ["cx.index.query", "cx.index.get_object", "cx.authz.check"],
+      "required_endpoints": ["cx.authz.check"],
       "required_event_kinds": ["cx.board.create", "cx.list.create", "cx.list.reorder", "cx.card.create", "cx.card.update", "cx.card.move", "cx.card.reorder", "cx.relation.create", "cx.container.rebalance"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.board.v1", "cx.schema.list.v1", "cx.schema.card.v1", "cx.schema.relation.v1", "cx.schema.view.v1"],
@@ -139,7 +138,7 @@
     },
     "cx.profile.full_client.v1": {
       "inherits": ["cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync", "cx.sync.subscribe", "cx.index.query", "cx.blob.upload", "cx.blob.get", "cx.authz.check"],
+      "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync", "cx.sync.subscribe", "cx.blob.upload", "cx.blob.get", "cx.authz.check"],
       "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.room.member", "cx.board.create", "cx.list.create", "cx.card.create", "cx.message.create", "cx.reaction.add", "cx.redaction", "cx.account_data.set", "cx.read.marker"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.client_sync_response.v1", "cx.schema.blob.v1", "cx.schema.notification.v1", "cx.schema.read_marker.v1"],
@@ -196,16 +195,6 @@
       "required_fixtures": ["federation-fixture.json", "event-envelope-negative-fixture.json", "sync-fixture.json"],
       "optional_extensions": ["snapshot_assisted_bootstrap", "gossip"],
       "feature_discovery": { "required": ["service_did", "supported_bindings", "accepted_profiles"], "unsupported_optional": "reject unsupported profile before accepting events" }
-    },
-    "cx.profile.index_node.v1": {
-      "inherits": ["cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
-      "required_endpoints": ["cx.index.describe", "cx.index.query", "cx.index.get_object", "cx.index.room_timeline", "cx.index.notifications", "cx.index.inbox", "cx.index.search"],
-      "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.room.member", "cx.board.create", "cx.list.create", "cx.card.create", "cx.relation.create", "cx.message.create", "cx.redaction"],
-      "rejected_event_kinds": ["wire_scope:deprecated_alias"],
-      "required_schemas": ["cx.schema.view.v1", "cx.schema.client_sync_response.v1", "cx.schema.notification.v1"],
-      "required_fixtures": ["sync-fixture.json", "state-resolution-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["full_text_search", "access_explanation", "snapshot_bootstrap"],
-      "feature_discovery": { "required": ["reducer_profiles", "schema_profiles", "query_features", "frontier"], "unsupported_optional": "return unsupported_feature for projection or renderer" }
     },
     "cx.profile.identity_registry.v1": {
       "required_endpoints": ["cx.identity.describe_registry", "cx.identity.resolve", "cx.identity.get_document", "cx.identity.get_log", "cx.identity.get_receipts", "cx.identity.submit_did_operation"],
@@ -293,7 +282,7 @@
     },
     "cx.profile.small_team.v1": {
       "inherits": ["cx.profile.principal_server.v1", "cx.profile.chat_mvp.v1", "cx.profile.kanban_mvp.v1"],
-      "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync", "cx.index.query"],
+      "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.sync.client_sync"],
       "required_event_kinds": ["cx.space.create", "cx.member.state", "cx.room.create", "cx.board.create", "cx.card.create", "cx.message.create"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.space.v1", "cx.schema.room.v1", "cx.schema.card.v1", "cx.schema.message.v1"],
@@ -405,7 +394,7 @@
       "feature_discovery": { "required": ["redaction_vector_runner"], "unsupported_optional": "not applicable" }
     },
     "cx.profile.state_resolution_vectors.v1": {
-      "required_endpoints": ["cx.events.submit", "cx.index.query"],
+      "required_endpoints": ["cx.events.submit"],
       "required_event_kinds": ["cx.member.state", "cx.room.member", "cx.card.move", "cx.card.reorder", "cx.policy.set"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.event.v1", "cx.schema.event_payload.v1"],

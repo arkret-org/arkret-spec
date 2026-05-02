@@ -17,11 +17,11 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 单个 canonical Event / Operation envelope | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。正文、附件和大对象必须使用 Blob。 |
 | 单次 `/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
-| 单次 sync / backfill / index page 返回项 | 1,000 | 服务端 MUST enforce；客户端不得假设更大 page 可用。 |
+| 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
 | 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject 或要求提交 snapshot / checkpoint 引用。 |
 | 单个 Event 的 `auth_refs` 数量 | 64 | 超过时 MUST reject；auth refs 必须是最小授权状态集合。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。 |
-| 关系展开深度 | 32 | Index / graph query MUST enforce，跨 Space 引用必须按 Lazy Link 截断。 |
+| 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Space 引用必须按 Lazy Link 截断。 |
 
 ## 3. 授权与 Capability 上限
 
@@ -31,7 +31,7 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 单次授权判定展开 grant 数 | 1,024 | 超过时 MUST fail closed、使用已验证 snapshot，或返回 `soft_fail` / `temporarily_unavailable`。 |
 | 单个 grant 的 constraint 数 | 64 | 超过时 MUST reject。 |
 | 单个 resource selector AST 深度 | 16 | 超过时 MUST reject。 |
-| 高频路径 authz snapshot 最大重建延迟 | 5 秒 | `chat_only_client`、`kanban_only_client`、`full_client`、`principal_server` 和 `index_node` 相关服务 MUST 满足。 |
+| 高频路径 authz snapshot 最大重建延迟 | 5 秒 | `chat_only_client`、`kanban_only_client`、`full_client` 和 `principal_server` 相关服务 MUST 满足。 |
 
 当 grant / revoke / claim status / policy component / membership frontier 变化时，受影响的 capability snapshot MUST 立即标记 stale。stale snapshot 不得继续用于新的写入 allow 决策。
 
@@ -52,11 +52,11 @@ State resolution fallback 不得选择本地接收顺序或数据库 ID。fallba
 | --- | ---: | --- |
 | 单个 Board active List 数 | 500 | 超过时 Board projection MUST paginate 或 require filtered View。 |
 | 单个 List active Card 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
-| 单个对象 active Relation 数 | 10,000 | Index query MUST paginate，不能要求客户端一次性拉全。 |
+| 单个对象 active Relation 数 | 10,000 | Projection executor MUST paginate，不能要求客户端一次性拉全。 |
 | 单个 View projection page | 1,000 items | View cursor MUST 绑定 authorization context 和 frontier。 |
 | rank 长度 | 128 chars | 超过时 MUST reject，见 `encoding.md`。 |
 
-Board position edge 的 canonical key 是 `(board_id, card_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；Index MAY 暴露 loser conflict records，但不得把同一 Card 渲染成多个主位置。
+Board position edge 的 canonical key 是 `(board_id, card_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；View projection MAY 暴露 loser conflict records，但不得把同一 Card 渲染成多个主位置。
 
 ## 6. E2EE 与设备上限
 

@@ -165,7 +165,7 @@ cx.vector.redaction.policy_scope.v1
 
 期望：
 
-- Index 不得展示已 redacted 的 `content`，但应保留 stripped 证据用于审计。
+- Projection 不得展示已 redacted 的 `content`，但应保留 stripped 证据用于审计。
 - 历史可见性为 `world_readable` 时，外部审计仍应看到 redaction 事实而不是原文。
 - 冻结空间（frozen space）与历史归档（archived event）场景下，timeline 位置必须保留，不能物理删除。
 - policy 的 `quarantine` 仍需要保留 redaction 后事件的 `event_id` 指纹映射。

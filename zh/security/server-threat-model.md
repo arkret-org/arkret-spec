@@ -3,7 +3,7 @@
 ## 1. 目标
 
 本文件给出服务端可直接落地的威胁与防护。
-不再复用与当前协议不一致的传统通道细节，所有条目均按 Contrix 的 Events API / Sync Service / Index / Directory / Policy Server / Identity 平面映射到协议规则。
+不再复用与当前协议不一致的传统通道细节，所有条目均按 Contrix 的 Events API / Sync Service / Directory / Policy Server / Identity 平面映射到协议规则。
 
 ## 2. 服务端攻击面
 

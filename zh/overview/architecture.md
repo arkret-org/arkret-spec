@@ -9,13 +9,13 @@ Contrix 的顶层架构要同时满足四件事：
 - 对人类友好的工作界面
 - 对 AI agent 友好的执行与记忆模型
 
-这要求协议在一开始就把“身份、写入、传播、查询、展示、记忆”拆成不同平面，而不是把所有能力都塞进一个服务角色里。
+这要求协议在一开始就把“身份、写入、传播、展示、记忆”和可选查询体验拆成不同平面，而不是把所有能力都塞进一个服务角色里。
 
 ## 2. 总体模型
 
-Contrix 采用 **principal server + signed Event + identity registry + query index** 的分层模型。
+Contrix 采用 **principal server + signed Event + identity registry + client-side projection** 的分层模型。
 
-`Principal Server` 是 principal 自己控制或通过 DID / Space policy 明确委托的服务入口。它可以同机承载 Events API、sync、index、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。
+`Principal Server` 是 principal 自己控制或通过 DID / Space policy 明确委托的服务入口。它可以同机承载 Events API、sync、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。搜索、inbox、notification 和 View projection 默认是客户端或 SDK 的派生能力；若某部署额外提供受托搜索服务，该服务仍是可选扩展，不是协议核心真相源。
 
 Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
@@ -28,7 +28,7 @@ Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织
 Organization principal 可以：
 
 - 签发组织成员资格、组织角色、handle 绑定等 credential
-- 控制 Principal Server、Index、Policy Server、Applet、Media Service 等 service DID
+- 控制 Principal Server、Policy Server、Applet、Media Service 等 service DID
 - 作为 Space owner、policy issuer、trusted issuer 或 capability issuer
 - 托管多个 Space，或与其他组织共同治理同一个 Space
 
@@ -66,7 +66,6 @@ Principal Server 是 principal 的受控服务边界。它负责承载或代理�
 
 - Event 的提交、读取、回填与复制
 - Space 范围的增量同步、回补与订阅
-- 个人或组织受控 index / appview
 - blob、push、policy、device message 等辅助服务
 - 与其他 Principal Server 的 federation transaction
 
@@ -81,20 +80,16 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
-### 2.3 Query Index / AppView
+### 2.3 Client Query / Projection
 
-Index 负责把授权 Event 物化成便于查询的当前态和投影。
+客户端或 SDK 可以把已同步、已授权、已解密的 Event 集合物化成当前态、搜索索引、inbox、notification 和 View projection。这些都是本地派生体验，不是协议必需服务面。
 
-它承担：
+协议只约束以下边界：
 
-- 当前态归约
-- 复杂查询
-- 全文搜索
-- 视图渲染输入
-- 统计和报表
-- 可选 embedding / vector index
-
-Index 是派生层，不是真相源。
+- View 是可同步的投影定义，不拥有被投影对象的事实。
+- 查询、搜索和 projection 不得绕过 Space policy、Room membership、history visibility、E2EE 可见性或 capability。
+- 任何受托 search / projection 服务若接收私有明文、正文摘要、embedding、通知摘要或可逆派生内容，MUST 被 Space policy 列入 `plaintext_visible_services`。
+- 派生输出不得成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和 causal frontier 重新计算。
 
 ### 2.4 Blob Store
 
@@ -110,7 +105,7 @@ Capability Authority 是一个逻辑角色，不要求独立部署。
 
 - 发布授权策略
 - 响应 grant / revoke / delegate 相关查询
-- 为 Events API / sync / index 提供可缓存的授权依据
+- 为 Events API / sync / projection executor 提供可缓存的授权依据
 
 ### 2.6 Client / Agent
 
@@ -160,17 +155,16 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 
 `did:web` 等 method-specific DID MAY 按各自方法从域名或外部网络解析；组织私有 `did:uuid` MAY 只在组织或隔离网络的 resolver trust domain 内解析。客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID method 同为 `did:uuid` 就假设解析入口相同。
 
-普通用户不应被要求单独部署 Directory Server、Push Gateway、Identity Resolution Infrastructure、TURN / Media Relay、Moderation / Compliance Server 或独立 Index / AppView Server。若使用 `did:key`，identity resolution 可以完全本地完成；若使用 `did:keri`，通常需要 KERI log / witness / watcher / OOBI 基础设施，但不需要传统中心化 registry。只有当组织需要身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 时，才应把这些基础设施收回自建。
+普通用户不应被要求单独部署 Directory Server、Push Gateway、Identity Resolution Infrastructure、TURN / Media Relay 或 Moderation / Compliance Server。搜索、inbox、notification 和 View projection 默认可在客户端本地完成。若使用 `did:key`，identity resolution 可以完全本地完成；若使用 `did:keri`，通常需要 KERI log / witness / watcher / OOBI 基础设施，但不需要传统中心化 registry。只有当组织需要身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 时，才应把这些基础设施收回自建。
 
 高级实现仍应按以下服务角色声明能力和安全边界。多个角色可以合并在同一部署中，但必须在 service DID、`service_type`、capability、Space policy、plaintext visibility 和 endpoint 契约上保持可区分。
 
 | 服务角色 | 常见 `service_type` | 主要服务 | 是否真相源 | 明文边界 |
 | --- | --- | --- | --- | --- |
-| Principal Server | `principal_server` | principal 的受控入口；可聚合 Events API、sync、federation、device message、policy、blob、index 等受托能力。 | 否；真相来自 signed Event。 | 可以接收该 principal 或 Space policy 授权范围内的非加密内容。 |
+| Principal Server | `principal_server` | principal 的受控入口；可聚合 Events API、sync、federation、device message、policy、blob 等受托能力。 | 否；真相来自 signed Event。 | 可以接收该 principal 或 Space policy 授权范围内的非加密内容。 |
 | Identity Resolution Infrastructure | `identity_registry` 或 method-specific resolver | DID Document、DID key log、KERI event log、handle binding、receipt / witness、watcher、OOBI、service discovery。 | 是身份控制链的可验证来源之一；`did:key` 可由本地算法解析。 | 不应接收 Space 正文。 |
 | Auth / Account Server | `auth_server` 或部署私有名 | passkey、OIDC、SSO、设备配对、session grant、账户恢复与 soft logout。 | 否；只证明服务账户登录，并绑定到 DID / device。 | 不应因密码恢复获得 E2EE 明文或 DID 控制权。 |
 | Sync / Federation Server | `principal_server` 或 `sync_node` | client sync、Space subscription、backfill、snapshot head、跨域 federation transaction。 | 否；只传播和回补。 | 只能把非加密私有内容发给授权 Principal Server 或 `plaintext_visible_services`。 |
-| Index / AppView Server | `index_node` / `appview_node` | current state、query、search、inbox、notification、view projection、embedding / vector index。 | 否；派生层。 | 若索引私有明文，必须列入 `plaintext_visible_services`。 |
 | Directory Server | `directory_service` | Space / Organization / Actor / handle / Applet 的授权搜索与精确解析。 | 否；派生发现层。 | 只返回最小可发现信息，不应暴露私有拓扑。 |
 | Blob / Media Server | `blob_node` / `media_service` | blob upload、HEAD / GET authenticated download、thumbnail、preview、retention、media policy。 | 内容 hash 可验证；metadata 是服务声明。 | 私有 blob 下载、预览和缩略图必须按授权执行。 |
 | Device / Key Server | `device_key_service` | to-device message、one-time key、fallback key、device list、secret backup metadata。 | 否；设备信任来自签名链。 | 不应能解密 E2EE 正文。 |
@@ -213,7 +207,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 - space 增量同步
 - 去重与 cursor
 
-### 3.4 Query Plane
+### 3.4 Local Query / Projection Plane
 
 负责：
 
@@ -221,7 +215,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 - 视图查询
 - 搜索
 - memory 检索
-- **因果一致性屏障 (Causal Barrier)**：在返回查询结果前，可根据客户端提供的 `sync_token` 阻塞等待特定写入前沿的到达，保障“读己之所写”体验。
+- **因果一致性屏障 (Causal Barrier)**：客户端或可选受托服务在返回查询结果前，可根据本地 sync frontier 等待特定写入前沿的到达，保障“读己之所写”体验。
 
 ### 3.5 Presentation Plane
 
@@ -256,7 +250,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 - export / import
 - snapshot + Event replay
 - service replacement
-- 多 Principal Server / 多 index 迁移
+- 多 Principal Server / 受托 search service 迁移
 
 ## 4. 部署拓扑
 
@@ -270,6 +264,7 @@ flowchart LR
         C1["Human Client"]
         C2["Agent Runtime"]
         C3["Applet / Automation"]
+        CQ["Local Search / Projection"]
     end
 
     subgraph "Identity Plane"
@@ -288,9 +283,7 @@ flowchart LR
         PS2["Principal Server B"]
     end
 
-    subgraph "Query / Presentation Plane"
-        IDX["Index"]
-        APPV["AppView"]
+    subgraph "Discovery Plane"
         DIR["Directory"]
     end
 
@@ -314,26 +307,21 @@ flowchart LR
     ER --> PS1
     ER --> PS2
 
-    PS1 --> IDX
-    PS2 --> IDX
-    IDX --> APPV
-    IDX --> DIR
-
-    C1 --> APPV
+    C1 --> CQ
+    C2 --> CQ
     C1 --> DIR
     C1 --> BLOB
 
     PS1 --> AUTHZ
-    IDX --> AUTHZ
     AUTHZ --> POL
-    APPV --> PUSH
+    C1 --> PUSH
 ```
 
 要点：
 
 - DID / Registry / Witness 负责身份解析和控制链证明。
 - Actor Event Chain 是主体发布日志，Principal Server 提供受控同步、托管和联邦入口。
-- Index / AppView / Directory 都是派生层，不能替代签名事件和 reducer。
+- Search / View projection 默认在客户端本地派生；Directory 是受授权的发现层，不能替代签名事件和 reducer。
 - Blob、Policy、Push 是独立服务平面，可与其他角色同机部署，也可分离部署。
 
 ### 4.1 单人/小团队拓扑
@@ -343,7 +331,6 @@ flowchart LR
 - identity registry
 - events
 - sync service
-- index
 - blob
 
 适合：
@@ -357,9 +344,9 @@ flowchart LR
 常见模式是：
 
 - 每个组织维护自己的受控 Principal Server / Event store
-- 每个组织或可信运营方运行自己的 Principal Server / index / policy server
+- 每个组织或可信运营方运行自己的 Principal Server / policy server
 - 参与方 Principal Server 通过 federation transaction 交换 Space 相关 Event
-- 多个 query index 为不同参与方提供视图
+- 各参与方客户端基于自身授权范围生成本地视图，或显式使用受托 search / projection 扩展
 - Space policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
 
 这种模式更接近跨企业交付与供应链协作。
@@ -372,11 +359,11 @@ flowchart LR
 - agent DID 拥有受限 capability
 - run log 写成 agent 签名 Event
 - agent 的 Principal Server 将 run log 同步到协作 Space
-- index 生成 human review queue
+- 客户端或受托 projection 扩展生成 human review queue
 
 ### 4.4 Sovereign / High-Assurance 拓扑
 
-高安全组织 MAY 运行 sovereign deployment，即由组织或联盟控制 identity registry、events、sync、index、directory、blob、policy server、media service、applet runtime 和 agent runtime。
+高安全组织 MAY 运行 sovereign deployment，即由组织或联盟控制 identity registry、events、sync、directory、blob、policy server、media service、applet runtime 和 agent runtime。
 
 该拓扑默认关闭公共 federation 和公共 directory，只允许 allowlist service DID 与受控客户端接入。
 
@@ -388,7 +375,7 @@ Controlled Collaboration Space SHOULD：
 - 使用 `join_rule=restricted` 或 `knock_restricted`。
 - 通过 Organization DID、external organization DID、claim / VC、policy server 和 admin approval 验证外部主体。
 - 使用 E2EE，并只向批准设备发送 MLS Welcome。
-- 使用独立 Principal Server / index / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
+- 使用独立 Principal Server / directory / blob enclave，避免外部主体获得主网络目录或服务拓扑。
 - 对 Applet、Agent handoff、media recording、export、bulk download 默认 deny，按 capability 显式授权。
 
 详细规则见 `sovereign-deployment.md`。
@@ -436,18 +423,18 @@ Principal Server 不可以：
 - 伪造 actor Event
 - 静默删除仍然有效的历史 Event
 - 把未授权明文内容发送给未被 principal 或 Space policy 委托的第三方服务
-- 把非加密私有内容复制到未声明为 `plaintext_visible_services` 的 Index、AppView、Push、Blob preview 或 Policy preview 服务
+- 把非加密私有内容复制到未声明为 `plaintext_visible_services` 的 Push、Blob preview、Policy preview 或任何受托 search / projection 服务
 
-### 6.3 Index 可解释状态，但不应替代原始审计链
+### 6.3 Projection 可解释状态，但不应替代原始审计链
 
-index 可以：
+客户端本地 projection 或受托 search / projection 服务可以：
 
 - 给出当前态
 - 提供搜索
 - 给出看板/列表/图投影
 - 依据 `sync_token` 提供强一致性屏障
 
-index 不能作为唯一可验证来源。
+这些派生输出不能作为唯一可验证来源。
 
 ### 6.4 Capability 是共享状态合法性的裁判，不是 UI 假设
 
@@ -483,7 +470,7 @@ Contrix v1 固定以下方向：
 - signed Event Envelope 和 per-actor event chain 是 actor 发布基线
 - identity registry / witness 是 DID 文档的解析与写入层
 - Principal Server / Sync Service 是受控同步与联邦层
-- index/appview 是物化查询层
+- search / View projection 默认是客户端本地派生体验；受托搜索服务只能作为可选扩展
 - blob 是独立内容层
 - capability 是独立决策层
 - run 与 memory 通过 Morph 类型或扩展 profile 成为可审计协议对象
@@ -492,12 +479,12 @@ Contrix v1 固定以下方向：
 
 ## 9. 可落地性要求
 
-Contrix v1 不允许实现用单一“万能服务”隐藏协议边界。任何声称支持 `cx.profile.principal_server.v1`、`cx.profile.index_node.v1` 或 `cx.profile.full_client.v1` 的实现 MUST 满足以下要求：
+Contrix v1 不允许实现用单一“万能服务”隐藏协议边界。任何声称支持 `cx.profile.principal_server.v1` 或 `cx.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `encoding-conformance-vectors.md` 执行。
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`sync-conformance-vectors.md` 与 `service-surface.md` 执行。
-- Index query surface 按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；Index 结果必须能追溯到 signed Event、reducer profile 和 causal frontier。
+- Search / View projection 若对外暴露可互操作语义，按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；结果必须能追溯到 signed Event、reducer profile 和 causal frontier。
 - Capability cache 只能作为优化。缓存命中必须绑定 causal frontier、grant / revoke / claim 状态和 policy version；上下文缺失、过期或发生分叉时 MUST fail closed 或重新执行完整 authz。
-- 多 Principal Server / 多 Index 并存时，客户端 MUST 比较 DID service delegation、Space policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
+- 多 Principal Server 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Space policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
 - 加密 envelope、device / key server、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`devices-and-auth.md`、`device-crypto-verification.md` 与 `media-and-blob.md` 执行。
-- Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端不得仅信任外部 index dump。
+- Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端不得仅信任外部 projection 或 search dump。

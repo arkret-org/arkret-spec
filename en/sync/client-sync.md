@@ -2,7 +2,7 @@
 
 This file is the English companion for the detailed Chinese draft in `../../zh/sync/client-sync.md`.
 
-It defines client-facing incremental sync streams over Contrix repo, Sync Service, and index services.
+It defines client-facing incremental sync streams over Contrix repo and Sync Service.
 
 The name does not imply separate sync v1/v2 protocol generations in the current draft.
 

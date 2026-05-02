@@ -9,7 +9,7 @@
 - identity registry 如何收发 DID 操作与 receipt
 - Events API 如何提交、读取、回填 signed Event
 - Principal Server 如何提供 space sync stream 与 backfill
-- index 如何做查询与 inbox / notification 物化
+- search / View projection 的语义边界如何在客户端或显式受托服务中保持一致
 - directory 如何做 Space / Organization / Actor 的授权搜索与精确解析
 - blob 如何上传与校验
 - invite / grant 如何参与首次加入工作区
@@ -25,7 +25,7 @@
 
 DID Document SHOULD 只负责：
 
-- 声明 principal server、identity registry、events、sync service、index、blob、capability 服务入口
+- 声明 principal server、identity registry、events、sync service、blob、capability 服务入口
 - 声明服务 DID 或服务 endpoint
 
 它不应直接塞入：
@@ -38,7 +38,7 @@ DID Document SHOULD 只负责：
 
 - signed Event 是 actor 发布和协作事实真相源
 - sync service 是 Principal Server 上的受控同步入口
-- index 是查询物化层
+- search、inbox、notification 和 View projection 是派生体验，可以由客户端本地计算，也可以由显式受托服务计算
 - blob 是内容层
 
 客户端应能在这些层之间交叉验证 frontier、hash 与 reducer profile。
@@ -68,17 +68,16 @@ DID Document SHOULD 只负责：
 
 实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `server/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
 
-协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Index、Blob、Identity Resolution 等能力表达。
+协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
 
 常见组合如下。这里的“需要”表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建一个 Principal Server，其余基础设施可使用公共或托管服务。
 
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
-| Principal Server | 普通用户或组织自建的核心入口 | `/server`, `/events`, `/sync`, `/federation`, 可代理 `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、Event 提交/读取、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
+| Principal Server | 普通用户或组织自建的核心入口 | `/server`, `/events`, `/sync`, `/federation`, 可代理 `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、Event 提交/读取、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/identity`, `/server` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
 | Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
-| Index / AppView Server | 个人可本地或内置；组织按搜索和应用视图需求自建 | `/index`, `/server` | 当前态、查询、搜索、inbox、notification、View projection、embedding/vector index。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
 | Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/keys/keypackages`, `/server` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、key backup metadata。 |
@@ -92,14 +91,14 @@ DID Document SHOULD 只负责：
 
 推荐 deployment profile：
 
-- `principal_server_personal`：一个 Principal Server；内部合并 Events API + Sync/Federation + Blob + Device/Key + Authz，可选本地 Index；Identity Resolver、Directory、Push 和 TURN/Media 默认可用公共服务。
-- `principal_server_organization`：一个组织委托的 Principal Server；通常搭配 Auth / Account Server；需要统一授权和审计时增加 Policy Server；Index、Blob、Directory、Push 可按规模和合规要求拆分。
+- `principal_server_personal`：一个 Principal Server；内部合并 Events API + Sync/Federation + Blob + Device/Key + Authz；客户端可自行维护本地 search / projection；Identity Resolver、Directory、Push 和 TURN/Media 默认可用公共服务。
+- `principal_server_organization`：一个组织委托的 Principal Server；通常搭配 Auth / Account Server；需要统一授权和审计时增加 Policy Server；Blob、Directory、Push 可按规模和合规要求拆分。
 - `principal_server_secure_organization`：一个或多个组织委托的 Principal Server，搭配 Auth / Account Server、Identity Resolution Infrastructure、Policy/Authz、Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Events/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_service`：Applet Server + Event writer + Authz precheck，只在授权 namespace 和 capability 内工作。
 - `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Room。
-- `agent_runtime`：Agent Runtime + Event writer + Memory/Index integration，所有写入仍通过 principal / agent DID 签名。
+- `agent_runtime`：Agent Runtime + Event writer + Memory/search integration，所有写入仍通过 principal / agent DID 签名。
 
 客户端选择服务时 MUST 先解析 DID Document 与 Space policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
 
@@ -121,7 +120,7 @@ GET /api/v1/server/describe
   "supported_features": [
     "sync_stream",
     "snapshot",
-    "notification-index"
+    "notifications"
   ],
   "supported_reducer_profiles": [
     "cx.reducer.v1"
@@ -141,8 +140,8 @@ GET /api/v1/server/describe
 
 服务类型命名规则：
 
-- DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixIndex`。
-- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`index_node`、`appview_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`。
+- DID Document `service.type` 使用协议注册名，例如 `ContrixPrincipalServer`、`ContrixDirectory`。
+- describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`。
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 
@@ -352,37 +351,20 @@ GET /api/v1/sync/snapshot-head?space_id=<id>
 
 - 客户端 MUST NOT 将 message body、comment body、附件明文、敏感 memory 明文或可逆派生摘要提交给未授权第三方服务。
 - `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Space policy 明确委托的 Principal Server。
-- Index、AppView、Directory、Push Gateway、Blob preview、Policy preview 若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Space policy 中声明为 `plaintext_visible_services`。
+- Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Space policy 中声明为 `plaintext_visible_services`。
 - shared Space Host 若可见明文，必须在 Space policy 中作为明文可见方列出。
 - 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Space policy MUST 把这视为内容可见边界，而不是透明中继。
 - 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
-## 6. Index Surface
+## 6. Search / Projection Semantics
 
-index 至少应提供以下语义：
+Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查询、View projection、inbox、notification 和全文搜索默认属于客户端或 SDK 的本地派生能力；客户端可以根据已同步且已授权、已解密的 Event 集合自行维护本地索引，也可以完全不提供搜索功能。
 
-### 6.1 描述 index
+实现 MAY 提供协议外或扩展 profile 的受托 search / projection 服务，但该服务不是核心协议角色。任何此类服务都不得成为真相源；其输出必须能追溯到 signed Event、reducer profile、View definition 和 causal frontier。
 
-```text
-GET /api/v1/index/describe
-```
+### 6.1 结构化查询形状
 
-### 6.2 获取 Object 当前态
-
-```text
-GET /api/v1/index/object?ref=<cx-ref>
-```
-
-`ref` MAY 指向标准对象或 Morph，例如 `cx:room:*`、`cx:board:*`、`cx:list:*`、`cx:card:*`、`cx:message:*`、`cx:morph:*`。Index MUST 按 Space policy、对象 capability、Room membership 和 E2EE 可见性裁剪返回内容。
-
-### 6.3 结构化查询
-
-```text
-POST /api/v1/index/query
-```
-
-其请求头 SHOULD 支持 `X-Contrix-Wait-For: <sync_token>`。
-其请求体 SHOULD 接受：
+若客户端、SDK 或可选受托服务对外暴露可互操作查询语义，SHOULD 复用 `query-schema.md` 中的 Query 形状：
 
 - `object_types`：标准对象类型，例如 `room`、`board`、`list`、`card`、`message`、`morph`
 - `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
@@ -392,35 +374,20 @@ POST /api/v1/index/query
 - 排序
 - cursor
 - limit
-- `view_id`、`projection` 与 `renderer`: 非 raw projection MUST 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`，响应 MUST 使用 `views.md` 定义的标准 `CollectionProjectionResponse`，并支持分组级 cursor。
-- `sync_token`: 可选。如果提供，Index 节点在响应前 MUST 阻塞等待本地物化进度到达或超过该 token 指示的因果前沿（如特定的 `event_id` / event hash / Space frontier），以保障“读己之所写”体验。超时则返回 408 或 504。
+- `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
+- `sync_token`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Space frontier。
 
-### 6.4 room / card discussion 查询
+### 6.2 Room / Card Discussion Projection
 
-```text
-GET /api/v1/index/room-timeline?room_id=<id>&cursor=<cursor>
-GET /api/v1/index/card-discussions?card_id=<id>&cursor=<cursor>
-```
+Room timeline、Card context timeline 和 Card discussion projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Card-linked Room 都必须独立执行 Room membership / history visibility 检查；不得因为 Card 可见就展开 Room 内容，也不得因为 Room 可见就授予 Card 权限。
 
-`card-discussions` 只返回 Card 链接的 Room 引用、用户可见的摘要和访问状态。它不得因为 Card 可见就展开 Room 内容，也不得因为 Room 可见就授予 Card 权限。
+### 6.3 Inbox / Notification Projection
 
-### 6.5 inbox / notification 查询
+Inbox 和 notification 可以由客户端从本地 Event、read marker、mention Relation、assignment Relation 和 actor-private account data 派生。若受托服务生成 inbox preview、通知摘要或可逆派生内容，必须满足本节明文边界。
 
-```text
-GET /api/v1/index/notifications?cursor=<cursor>&state=unread
-```
+### 6.4 全文搜索
 
-```text
-GET /api/v1/index/inbox?scope=<scope>&cursor=<cursor>
-```
-
-### 6.6 全文搜索
-
-```text
-POST /api/v1/index/search
-```
-
-请求体：
+全文搜索是可选功能。请求形状 MAY 使用：
 
 ```json
 {
@@ -439,7 +406,7 @@ POST /api/v1/index/search
 }
 ```
 
-响应示例（非完整 schema）：
+响应形状 MAY 使用：
 
 ```json
 {
@@ -457,20 +424,20 @@ POST /api/v1/index/search
 }
 ```
 
-**E2EE 场景说明**：在加密 Space 中，Index 节点无法对密文执行全文搜索。此时客户端 SHOULD 依赖本地解密后维护的客户端全文索引，或在受控网络中指定可信 TEE 节点代理搜索功能；具体明文可见边界见 `encryption-and-audit.md` 与本节 `plaintext_visible_services` 规则。
+**E2EE 场景说明**：在加密 Space 中，远端服务无法对密文执行全文搜索。默认搜索发生在客户端本地：客户端同步 Event、解密可见内容，并自行维护本地全文索引。受控网络中的 TEE 或组织搜索服务属于可选扩展，不是核心协议能力。
 
-### 6.7 明文索引边界
+### 6.5 明文搜索边界
 
-Index / AppView 是派生服务，不是真相源，但它们可能持有比 Sync Surface 更容易查询的明文投影。因此：
+Search / projection 派生结果可能比 Sync Surface 更容易查询，也可能包含正文摘要、命中片段、embedding 或通知摘要。因此：
 
 - 非 E2EE 私有 Space 的全文搜索、embedding、通知摘要、inbox preview 和报表投影只能由 `plaintext_visible_services` 中列出的服务生成或保存。
-- 未列入 `plaintext_visible_services` 的 Index MUST 只接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
-- 客户端在选择 Index 前 MUST 校验 service DID、`service_type`、supported profile、Space policy 委托和 plaintext-visible 声明。
-- Index 输出不得扩大可见性；查询结果、通知、搜索命中和 preview 都必须受底层 Space policy 与 capability 约束。
+- 未列入 `plaintext_visible_services` 的受托 search / projection 服务 MUST 只接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
+- 客户端在选择受托 search / projection 服务前 MUST 校验 service DID、supported profile、Space policy 委托和 plaintext-visible 声明。
+- Search / projection 输出不得扩大可见性；查询结果、通知、搜索命中和 preview 都必须受底层 Space policy 与 capability 约束。
 
 服务端强制边界：
 
-- Events / Sync / Federation / Index / AppView / Push / Blob preview 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Space policy 的 `plaintext_visible_services` 中，且 visibility 等级覆盖该内容类型。
+- Events / Sync / Federation / Push / Blob preview，以及任何受托 search / projection 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Space policy 的 `plaintext_visible_services` 中，且 visibility 等级覆盖该内容类型。
 - 未授权服务 MUST 拒绝明文请求并返回 `capability_denied` 或 `schema_violation`，不得静默索引、转发、缓存或降级保存。
 - 恶意客户端把明文发送到协议外服务不属于协议可强制阻止的范围；但任何声称支持 Contrix profile 的服务若接收或处理未授权明文，均视为 profile violation。
 
@@ -632,28 +599,28 @@ Contrix v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Space link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 DID Document 和 Space policy 发现 Principal Server / identity registry / events / sync / index / blob / authz 服务
+3. 从 DID Document 和 Space policy 发现 Principal Server / identity registry / events / sync / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Space metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 和 Index 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Space owner、Space policy 授权的 snapshot issuer、可信 Index service DID 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `/events/*` 或 `/sync/backfill` 进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `/events/*` 或 `/sync/backfill` 进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态
 
 ## 12. 新鲜度与多服务并存
 
-当多个 Principal Server / index 并存时，服务 SHOULD 公开：
+当多个 Principal Server 或受托 search / projection 扩展并存时，相关服务 SHOULD 公开：
 
 - 当前 frontier
 - snapshot frontier
 - reducer profile
-- 最后物化时间
+- 最后物化时间（如适用）
 
 客户端 MAY 比较这些值来判断：
 
 - 哪个服务更新
 - 是否需要回退到 Event 重放
-- 某个 index 是否只是暂时落后，而不是数据冲突
+- 某个受托 projection 是否只是暂时落后，而不是数据冲突
 
 对于 identity registry，同样 SHOULD 公开：
 
@@ -676,7 +643,7 @@ Contrix v1 的首次加入流程：
 
 如果 payload 已按 `policy.encryption_profile` 加密，则：
 
-- Events / sync service / index MAY 不解密正文
+- Events / sync service MAY 不解密正文
 - 但仍 SHOULD 保留 hash、cursor、causal 与目标引用
 
 ## 14. 防滥用与配额机制 (Anti-Spam & Quota)
@@ -685,7 +652,7 @@ Contrix v1 的首次加入流程：
 
 ### 14.1 存储责任与 Blob Quota
 - **成本归属**：Space 的整体数据大小、历史 Event 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Space 的 `owner` 或负责托管的 `responsible_actor_id`。
-- **拒绝写入**：当 Blob 服务或 Index 服务评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Event 或大文件 Blob。
+- **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Event 或大文件 Blob。
 
 ### 14.2 写频率控制 (Rate Limiting)
 - Events API 和 Sync Service 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。
@@ -695,7 +662,7 @@ Contrix v1 的首次加入流程：
 
 Contrix v1 固定：
 
-- 定义最小 principal server / identity registry / events / sync / index / blob / authz 服务面
+- 定义最小 principal server / identity registry / events / sync / blob / authz 服务面
 - HTTP/JSON 路径是默认推荐 binding，但语义等价最重要，可兼容其他调用风格
 - 写接口必须幂等
 - DID 写入采用多 registry / witness receipt，而不是区块链

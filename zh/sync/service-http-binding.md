@@ -18,7 +18,7 @@
 
 ### 2.1 REST API 命名空间组织
 
-Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织，而不是按某个产品形态拆成固定的 Client API / Server API / Push API 包。客户端、Principal Server、Events API、Index、Directory、Applet、Push Gateway 等都可以暴露自己的服务面；服务发现决定某个节点实际支持哪些命名空间。
+Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织，而不是按某个产品形态拆成固定的 Client API / Server API / Push API 包。客户端、Principal Server、Events API、Directory、Applet、Push Gateway 等都可以暴露自己的服务面；服务发现决定某个节点实际支持哪些命名空间。
 
 默认 REST 命名空间如下：
 
@@ -29,17 +29,16 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Space 历史回填、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
 | `/sync/*` | 客户端、Principal Server | 客户端聚合同步、Space 增量订阅、backfill、snapshot head。 | `client-sync.md`、`service-surface.md` |
 | `/federation/*` | Principal Server 之间 | 跨域 transaction、operation 推送/拉取、成员查询、actor 验证。 | `federation.md`、`federation-wire.md` |
-| `/index/*` | 客户端、服务 | Object 查询、结构化查询、搜索、inbox、notification、Space hierarchy。 | `service-surface.md`、`query-schema.md` |
 | `/directory/*` | 客户端、服务 | Space / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
-| `/push/*` | 客户端、Sync / Index、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
+| `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
 | `/device_messages/*`、`/keys/*` | E2EE 客户端、Principal Server | to-device、one-time key、fallback key、device list 相关操作。 | `device-crypto-verification.md` |
 | `/authz/*`、`/contrix/v1/check` | 客户端、Events API、Sync、Policy Server | capability 预检查、policy server 签名决策。 | `capabilities.md`、`policy-server.md` |
 | `/contrix/v1/ice-config` | 通话客户端、Media Service | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
 | `/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `moderation.md` |
 | `/applet/*` | Contrix 服务调用 Applet | applet ping / describe、transaction push、ghost actor / portal 查询。 | `applet-integration.md` |
 
-客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/sync`、`/index`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/federation`、`/events`、`/sync`、`/authz`、`/contrix/v1/check`、`/applet` 和 `/push/notify`。
+客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/sync`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/federation`、`/events`、`/sync`、`/authz`、`/contrix/v1/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
 
 新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.md`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
@@ -97,15 +96,6 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/federation/pull-operations` | query `{space_id: id, after_cursor?: cursor, limit?: int}` | `service_signature`; requester 必须有 backfill 权限和明文可见资格。 | `{events[], snapshot_bootstrap?, next_cursor?, has_more}` |
 | `GET /api/v1/federation/space-members` | query `{space_id: id, cursor?: cursor, limit?: int}` | `service_signature`; 仅对参与方 Principal Server 或 policy 允许服务开放。 | `{members[], membership_frontier, next_cursor?}` |
 | `POST /api/v1/federation/verify-actor` | body `{actor_id: did, challenge?: string, signed_payload_hash?: string, signature: signature, purpose: string, space_id?: id}` | `service_signature`; 不得作为公开 DID oracle；requester 必须有 federation、join、event-source 或 shared-Space 相关目的。 | `{valid: boolean, actor_id, verified_key_id?, key_log_head?, did_document_ref?, expires_at?, warnings[]}` |
-| `GET /api/v1/index/describe` | query none | `public_metadata`；私有 reducer/frontier 可要求认证。 | `{service_did, reducer_profiles[], schema_profiles[], query_features[], frontier?}` |
-| `GET /api/v1/index/object` | query `{ref: id, space_id?: id, at?: string}` | caller 必须可读该 Object 所在 Space / Room / projection。 | `{object, state_after?, visibility}` |
-| `POST /api/v1/index/query` | body `{space_ids?: id[], view_id?: id, projection?: enum(raw, collection, timeline, graph, document, composite), renderer?: enum(ViewRenderer), object_types?: string[], morph_types?: string[], facets?: enum(FacetName)[], relation?: object, filters?: object[], order_by?: object[], cursor?: cursor, limit?: int, wait_for?: token}` | 查询结果逐项按 capability / Room membership / history visibility 过滤；支持 `X-Contrix-Wait-For`。非 `raw` projection MUST 提供 `view_id`；`renderer` MUST 与 projection/core kind 映射一致。 | `RawQueryResponse` / `CollectionProjectionResponse` / `TimelineProjectionResponse` / `GraphProjectionResponse` / `DocumentProjectionResponse` / `CompositeProjectionResponse` |
-| `GET /api/v1/index/room-timeline` | query `{room_id: id, cursor?: cursor, limit?: int}` | Room 可读；结果按 message visibility 过滤。 | `{events[] 或 messages[], next_cursor?, state_after?}` |
-| `GET /api/v1/index/card-discussions` | query `{card_id: id, cursor?: cursor, limit?: int}` | Card 可读；linked Room 内容仍按 Room membership 独立过滤。 | `{rooms[], summaries?, next_cursor?, state_after?}` |
-| `GET /api/v1/index/notifications` | query `{cursor?: cursor, state?: string, limit?: int}` | `user_session`; 只返回当前 principal/device 的通知。 | `{notifications[], counts?, next_cursor?}` |
-| `GET /api/v1/index/inbox` | query `{scope?: string, cursor?: cursor, limit?: int}` | `user_session`; holder-private projection 不得给其他 principal。 | `{items[], next_cursor?, frontier?}` |
-| `POST /api/v1/index/search` | body `{query: string, space_ids?: id[], object_types?: string[], morph_types?: string[], time_range?: object, cursor?: cursor, limit?: int}` | 仅可搜索授权范围；E2EE 内容只能由本地索引或 plaintext-visible / TEE profile 处理。 | `{results[], next_cursor?, total_estimate?}` |
-| `GET /api/v1/index/space-hierarchy` | query `{space_id: id, depth?: int, include_unconfirmed?: boolean}` | caller 必须可发现 root Space；子项逐项按 discoverability 过滤。 | `{root, children[], edges[], next_cursor?}` |
 | `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `{service_did, resource_types[], discovery_profiles[], restricted_query_proof?: boolean}` |
 | `POST /api/v1/directory/search-spaces` | body `{query?: string, organization_did?: did, parent_space_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?}` |
 | `POST /api/v1/directory/resolve-space` | body `{space_id?: id, alias?: string, invite_token?: string, signed_link?: string, requester?: did, proofs?: proof[]}` | invite / restricted / secret Space 按统一 `not_found` 失败。 | `{space_preview, stripped_state?, join_rule?, via_services?}` |
@@ -118,7 +108,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `HEAD/GET /api/v1/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Contrix-Wait-For?` | 公开 blob 可匿名；私有 blob 必须验证 actor/device/Space/purpose/expiry；不得 query string 认证。 | bytes 或 headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
 | `POST /api/v1/push/register-device` | body `{device_id: id, push_gateway: url, push_key: string, platform?: string, app_id?: string, display_name?: string}` | `user_session` for same principal/device；push_key 必须被加密或最小披露存储。 | `{ok: true, registration_id?, expires_at?}` |
 | `POST /api/v1/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
-| `POST /api/v1/push/notify` | body `{notification: {event_id?, space_id?, type, sender?, push_hint?, counts?, devices[]}}` | `service_signature` from authorized Sync / Index；MUST be blind/minimized for E2EE。 | `{rejected[]}` |
+| `POST /api/v1/push/notify` | body `{notification: {event_id?, space_id?, type, sender?, push_hint?, counts?, devices[]}}` | `service_signature` from authorized Sync or notification service；MUST be blind/minimized for E2EE。 | `{rejected[]}` |
 | `PUT /api/v1/device_messages/{txn_id}` | path `{txn_id}` body `{messages: {principal_id: {device_id: {type, content}}}}` | sender `user_session` / device key；目标必须是授权 device；按 `(sender, txn_id)` 幂等。 | `{ok: true, delivered?, unknown_devices?}` |
 | `GET /api/v1/device_messages` | query `{from?: token, limit?: int}` | `user_session` bound to current device；只返回该 device 队列。 | `{events[], next_batch?, limited?}` |
 | `POST /api/v1/keys/upload` | body `{device_id: id, one_time_keys?: object, fallback_keys?: object, device_signature: signature}` | current device proof；key 必须链接 self-signing / principal key。 | `{one_time_key_counts, fallback_keys?}` |
@@ -172,15 +162,6 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.federation.pull_operations` | `query.space_id: id` | `query.after_cursor: cursor`; `query.limit: int` | `events: object[]`; `snapshot_bootstrap?: object`; `next_cursor: cursor?`; `has_more: boolean` | requester 必须有 backfill 权限和明文可见资格。 |
 | `cx.federation.space_members` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `members: object[]`; `membership_frontier: object`; `next_cursor: cursor?` | 仅参与方 Principal Server 或 policy 允许服务。 |
 | `cx.federation.verify_actor` | `actor_id: did`; `purpose: enum(event_source,federation_join,device_binding)`; `signature: signature` | `space_id: id`; `challenge: string`; `signed_payload_hash: string` | `valid: boolean`; `actor_id: did`; `verified_key_id: string?`; `key_log_head: id?`; `did_document_ref: string?`; `expires_at: datetime?`; `warnings: string[]` | 只作缓存/诊断；不得替代本地 DID、key log、capability 和 Space policy 验证。 |
-| `cx.index.describe` | 无 | 无 | `service_did: did`; `reducer_profiles: string[]`; `schema_profiles: string[]`; `query_features: string[]`; `frontier: object?` | private reducer/frontier 可要求认证。 |
-| `cx.index.get_object` | `query.ref: id` | `query.space_id: id`; `query.at: string` | `object: object`; `state_after: string?`; `visibility: string` | caller 必须可读 Object 所属 Space / Room / projection。 |
-| `cx.index.query` | 无 | `space_ids: id[]`; `view_id: id`; `projection: enum(raw,collection,timeline,graph,document,composite)`; `renderer: enum(ViewRenderer)`; `object_types: string[]`; `morph_types: string[]`; `facets: enum(FacetName)[]`; `relation: object`; `filters: object[]`; `order_by: object[]`; `cursor: cursor`; `limit: int`; `wait_for: token`; `header.X-Contrix-Wait-For: token` | `RawQueryResponse` / `CollectionProjectionResponse` / `TimelineProjectionResponse` / `GraphProjectionResponse` / `DocumentProjectionResponse` / `CompositeProjectionResponse` | 结果逐项按 capability / Room membership / history visibility 过滤；View cursor 必须绑定 projection、renderer、view、frontier 与权限上下文。 |
-| `cx.index.room_timeline` | `query.room_id: id` | `query.cursor: cursor`; `query.limit: int` | `events: object[]?`; `messages: object[]?`; `next_cursor: cursor?`; `state_after: string?` | Room 可读；message 逐项过滤。 |
-| `cx.index.card_discussions` | `query.card_id: id` | `query.cursor: cursor`; `query.limit: int` | `rooms: object[]`; `summaries: object[]?`; `next_cursor: cursor?`; `state_after: string?` | Card 可读；linked Room 内容仍按 Room membership 独立过滤。 |
-| `cx.index.notifications` | 无 | `query.cursor: cursor`; `query.state: string`; `query.limit: int` | `notifications: object[]`; `counts: object?`; `next_cursor: cursor?` | 只返回当前 principal/device 通知。 |
-| `cx.index.inbox` | 无 | `query.scope: string`; `query.cursor: cursor`; `query.limit: int` | `items: object[]`; `next_cursor: cursor?`; `frontier: object?` | holder-private projection 不得跨 principal 泄露。 |
-| `cx.index.search` | `query: string` | `space_ids: id[]`; `object_types: string[]`; `morph_types: string[]`; `time_range: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `total_estimate: int?` | E2EE 内容只允许本地索引、plaintext-visible 或 TEE profile。 |
-| `cx.index.space_hierarchy` | `query.space_id: id` | `query.depth: int`; `query.include_unconfirmed: boolean` | `root: object`; `children: object[]`; `edges: object[]`; `next_cursor: cursor?` | root 和子项逐项按 discoverability 过滤。 |
 | `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?` | `public_metadata`; 可限流。 |
 | `cx.directory.search_spaces` | 无 | `query: string`; `organization_did: did`; `parent_space_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | hidden resource 不泄露存在性。 |
 | `cx.directory.resolve_space` | 至少一个：`space_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]?` | secret/restricted Space 使用统一 `not_found`。 |
@@ -195,7 +176,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；Range 和 redirect 不得泄露不可见资源。 |
 | `cx.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | 只能注册当前 principal/device。 |
 | `cx.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | same device/principal 或 device revocation path。 |
-| `cx.push.notify` | `notification: object` | `notification.event_id: id`; `notification.space_id: id`; `notification.sender: did`; `notification.push_hint: string`; `notification.counts: object`; `notification.devices: object[]` | `rejected: object[]` | 来自授权 Sync/Index；E2EE 必须脱敏。 |
+| `cx.push.notify` | `notification: object` | `notification.event_id: id`; `notification.space_id: id`; `notification.sender: did`; `notification.push_hint: string`; `notification.counts: object`; `notification.devices: object[]` | `rejected: object[]` | 来自授权 Sync 或 notification service；E2EE 必须脱敏。 |
 | `cx.device_messages.put` | `path.txn_id: id`; `messages: object` | 无 | `ok: boolean`; `delivered: object?`; `unknown_devices: object?` | sender + txn_id 幂等；目标必须是授权 device。 |
 | `cx.device_messages.get` | 无 | `query.from: token`; `query.limit: int` | `events: object[]`; `next_batch: token?`; `limited: boolean?` | 只返回当前 device 队列。 |
 | `cx.keys.upload` | `device_id: id`; `device_signature: signature` | `one_time_keys: object`; `fallback_keys: object` | `one_time_key_counts: object`; `fallback_keys: object?` | key 必须链接 self-signing / principal key。 |

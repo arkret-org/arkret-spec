@@ -67,16 +67,6 @@ grpc:
       PullOperations: cx.federation.pull_operations
       SpaceMembers: cx.federation.space_members
       VerifyActor: cx.federation.verify_actor
-    Index:
-      Describe: cx.index.describe
-      GetObject: cx.index.get_object
-      Query: cx.index.query
-      RoomTimeline: cx.index.room_timeline
-      CardDiscussions: cx.index.card_discussions
-      Notifications: cx.index.notifications
-      Inbox: cx.index.inbox
-      Search: cx.index.search
-      SpaceHierarchy: cx.index.space_hierarchy
     Directory:
       Describe: cx.directory.describe
       SearchSpaces: cx.directory.search_spaces

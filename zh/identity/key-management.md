@@ -206,7 +206,7 @@ MLS KeyPackage key 用于加入加密 Space。
 - Events API MUST 拒绝该设备的新签名写入
 - authz MUST 视相关 session grant 失效
 - 加密 Space SHOULD 通过 MLS Remove 推进 epoch
-- Index SHOULD 标记旧设备产生的未确认 Operation 为高风险
+- 客户端和受托 projection executor SHOULD 标记旧设备产生的未确认 Operation 为高风险
 
 ## 6. Session Grant
 

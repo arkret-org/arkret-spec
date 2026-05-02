@@ -38,17 +38,30 @@
 - 标准 `cx.*` Event kind 必须出现在 `event-kind-registry.json`，不得只写在 Markdown 中。
 - Event Envelope 必须先验证 envelope schema，再验证 kind-selected payload schema，最后才进入 auth / reducer。
 - Snapshot 签名不能单独证明没有遗漏；实现必须校验 `event_set_commitment`，高保障场景还要执行 inclusion / omission challenge。
-- Index、Sync、Directory、Blob、Push、Moderation、Agent 等服务不得因部署便利绕过 capability、Space policy、history visibility、plaintext-visible service 或 E2EE 边界。
+- Sync、Directory、Blob、Push、Moderation、Agent 和受托 search / projection 等服务不得因部署便利绕过 capability、Space policy、history visibility、plaintext-visible service 或 E2EE 边界。
 - Linked Room 不继承 Card 权限；Agent 不继承 owner 权限；MIMI consent 不授予 Space read/write。
 - 未知 non-critical 字段必须在 canonical bytes、存储、转发和 backfill 中保留；未知 critical extension 必须 fail closed。
 
-## 5. 剩余事项
+## 5. 发布判定
 
-当前没有阻塞协议闭环的规范缺陷。剩余事项属于实现工程化和覆盖增强：
+当前没有阻塞 `v1-core-rc` 的规范缺陷。协议事实模型、服务面、schema、profile 和首批 conformance vectors 已经能支撑实现开始互操作。
+
+但 `v1.0-stable` 仍必须以可执行验收为门槛，而不是只以规范文本完成为门槛。稳定发布前 SHOULD 至少满足：
+
+- 官方 reference validator / reducer / authz evaluator 可运行，并能加载 `artifacts/` registry、schema、profile 和 fixtures。
+- canonical JSON parser 明确拒绝 malformed UTF-8、duplicate key、未知 critical extension、非法 number profile 和非规范 timestamp。
+- `core_event_store`、`chat_mvp`、`kanban_mvp` 至少有两个独立实现通过同一 conformance runner。
+- 使用宽泛 payload schema 的 profile 必须有额外 reducer / semantic validator 覆盖；不能只凭 JSON Schema 通过宣称完全互操作。
+- 英文目录或其他翻译必须去掉 stale 标记并通过同一 registry lint 后，才能作为公开 source of truth。
+
+## 6. 剩余事项
+
+剩余事项属于实现工程化和覆盖增强：
 
 - 提供官方 reference validator / reducer / authz 包。
 - 用 CI 自动校验 Markdown 示例、OpenAPI、registry、schema 和 fixture 的一致性。
 - 从 OpenAPI / JSON Schema 生成 SDK 类型与 contract tests。
 - 扩展更多生产参数向量，例如大规模 federation、policy server 压测、E2EE key backup 和 deployment profile 推荐值。
+- 将 `state_content` / `generic_standard_content` 覆盖的高风险事件逐步拆成更严格的 per-kind payload schema，或在 reference validator 中提供等价语义校验。
 
-这些事项会提高实现质量和发布效率，但不改变 v1 当前闭环：协议事实模型、服务面、schema、profile 和首批 conformance vectors 已经能支撑实现开始互操作。
+这些事项会提高实现质量和发布效率。它们不阻塞 `v1-core-rc`，但其中 reference validator / reducer / authz evaluator 与可执行 conformance runner 应作为 `v1.0-stable` 的发布门槛。

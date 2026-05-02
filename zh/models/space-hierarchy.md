@@ -60,7 +60,7 @@ Child 侧确认：
 - `rejected`：任一侧 policy 明确拒绝。
 - `tombstoned`：任一侧删除或归档该 edge。
 
-Index 在默认 hierarchy 查询中 SHOULD 只返回 confirmed edge。需要显示外部引用时 MAY 返回 unconfirmed link，但必须标记状态。
+客户端默认 hierarchy projection SHOULD 只返回 confirmed edge。需要显示外部引用时 MAY 返回 unconfirmed link，但必须标记状态。
 
 ## 5. 禁止隐式级联
 
@@ -180,11 +180,7 @@ E2EE 要求：
 
 ## 10. Query and Sync
 
-Hierarchy 查询：
-
-```http
-GET /api/v1/index/space-hierarchy?space_id=<id>&depth=2&include_unconfirmed=false
-```
+Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求远端 endpoint。
 
 请求字段：
 
@@ -230,7 +226,7 @@ GET /api/v1/index/space-hierarchy?space_id=<id>&depth=2&include_unconfirmed=fals
 
 规则：
 
-- Index MUST 对每个 child 独立检查 read capability。
+- Projection executor MUST 对每个 child 独立检查 read capability。
 - 无权限 child 只能返回 `space_id`、`edge_state` 和 `lazy_link=true`，不得泄露名称、成员、Room/Card 摘要、消息摘要或统计。
 - `depth` MUST 有服务端上限。
 - 遍历时发现 cycle，MUST 截断并返回 `cycle_detected=true`。
@@ -240,7 +236,7 @@ GET /api/v1/index/space-hierarchy?space_id=<id>&depth=2&include_unconfirmed=fals
 
 Space hierarchy 是图，但 UI 层级遍历必须防循环。
 
-节点在写入 confirmed edge 时 SHOULD 检查是否产生 cycle。若无法完整检查，Index 在查询时 MUST 使用 visited set 截断。
+节点在写入 confirmed edge 时 SHOULD 检查是否产生 cycle。若无法完整检查，projection executor 在查询时 MUST 使用 visited set 截断。
 
 Cycle 不应导致事件 reject，除非 Space policy 明确要求 acyclic hierarchy。默认行为是允许图状组织，但层级查询截断循环。
 

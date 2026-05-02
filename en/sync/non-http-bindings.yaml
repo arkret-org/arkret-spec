@@ -59,10 +59,6 @@ grpc:
       Transaction: cx.federation.transaction
       PushOperations: cx.federation.push_operations
       PullOperations: cx.federation.pull_operations
-    Index:
-      Query: cx.index.query
-      Search: cx.index.search
-      SpaceHierarchy: cx.index.space_hierarchy
     Directory:
       SearchSpaces: cx.directory.search_spaces
       ResolveSpace: cx.directory.resolve_space

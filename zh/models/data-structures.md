@@ -180,7 +180,7 @@ Schema id: `cx.schema.card.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-Card canonical object 不包含 `board_id` 或 `list_id` 必填字段。Card 在 Board/List 中的主位置由 active `contains` Relation / position edge 归约得到；Index 或 View projection MAY 返回派生的 `board_id`、`list_id` 和 `rank` 方便客户端渲染，但这些派生字段不得成为签名 Card 对象的唯一真相源。
+Card canonical object 不包含 `board_id` 或 `list_id` 必填字段。Card 在 Board/List 中的主位置由 active `contains` Relation / position edge 归约得到；View projection MAY 返回派生的 `board_id`、`list_id` 和 `rank` 方便客户端渲染，但这些派生字段不得成为签名 Card 对象的唯一真相源。
 
 ### 6.5 Message
 

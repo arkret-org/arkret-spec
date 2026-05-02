@@ -8,7 +8,7 @@ Move the draft into an implementable interoperability surface by forcing repeata
 - reducer convergence (especially auth/state)
 - redaction and redacted field preservation
 - capability and delegated authorization
-- repo, sync, index, E2EE, applet, and policy-server interoperability
+- repo, sync, E2EE, applet, and policy-server interoperability
 
 This version does not introduce a new space version. Compatibility evolution is handled in `space_version=1` through explicit profile gating and deprecation policy.
 
@@ -19,7 +19,6 @@ This version does not introduce a new space version. Compatibility evolution is 
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.principal_server_repo_api.v1`
 - `cx.profile.principal_server.v1`
-- `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
 - `cx.profile.blob_node.v1`
 - `cx.profile.applet_service.v1`
@@ -33,7 +32,7 @@ This version does not introduce a new space version. Compatibility evolution is 
 
 Each implementation must verify:
 
-- required HTTP operations for identity/repo/sync/index/blob/authz
+- required HTTP operations for identity/repo/sync/blob/authz
 - stable `operation_id` mappings in `service-api-schema.md`
 - transport-mapping consistency (HTTP ↔ gRPC/WebSocket/SSE/MQ) for at least selected canary vectors
 
@@ -50,7 +49,7 @@ Each implementation must verify:
 - `sync-conformance-vectors.md`: timeline order, pagination gaps, snapshot frontier, MLS epoch backfill, decryption pending.
 - `encoding-conformance-vectors.md`: canonical JSON, digests, signature bindings, HLC, cursor, encrypted envelope digest.
 - `state-resolution-conformance-vectors.md`: state conflict, deterministic winner, and conflict record fixtures.
-- `redaction-conformance-vectors.md`: redaction preserve fields and index/audit consistency fixtures.
+- `redaction-conformance-vectors.md`: redaction preserve fields and projection/audit consistency fixtures.
 - `capability-conformance-vectors.md`: delegation chain, revoke rollback, approval constraint fixtures.
 - `mimi-interop-fixture.json`: MIMI provider directory, room binding, content mapping, identifier query, consent, proxy download, and unsupported-draft vectors.
 
@@ -73,7 +72,7 @@ Each implementation must verify:
   - expected: keep redacted envelope fields only; remove mutable content fields exactly as spec.
 - `cx.vector.redaction.policy_scope.v1`
   - redaction in encrypted/plain, historical/frozen space cases.
-  - expected: index and audit views remain consistent; no physical delete assumptions.
+  - expected: projection and audit views remain consistent; no physical delete assumptions.
 
 ### 4.4 Capability (new baseline)
 
@@ -91,7 +90,6 @@ Each implementation must verify:
 | Minimal/Full Client | filters, pagination, state_after, decryption_pending | snapshot frontier, causal wait |
 | Repo Node | submitCommit, idempotent operation writes, commit digest checks, signature validation | snapshot generation, receipt |
 | Principal Server | sync-stream resume, backfill ordering, duplicate suppression, encrypted envelope forward | multi-upstream federation, snapshot pointers |
-| Index Node | query reconstruction, authorization filtering, wait-for frontier, stale markers | notification materialization |
 | E2EE Client | epoch recovery, to-device, removed-member fail-closed | local plaintext search coordination |
 | Applet Bridge | registration signature, transaction idempotency, namespace conflicts, unauthorized write rejection | portal-space mapping |
 | MIMI Provider Facade | draft pinning, room binding, KeyPackage claim, message/content roundtrip, policy mapping, identifier privacy, consent isolation, proxy download, unsupported-draft fail-closed | lossless MIMI content extension preservation |

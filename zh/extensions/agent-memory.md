@@ -234,8 +234,8 @@ Embedding、reranking、全文索引都可以作为增强层。
 - 派生索引可重建
 - 派生索引不作为唯一真相
 - 派生索引必须服从相同 ACL
-- **异步物化 (Async Materialization)**：向量数据库 (Vector Store) 在架构中应被视为一种“受信任的 Index 节点”。它通过订阅协议层中处于 `confirmed` 状态的 Operation 增量，在本地异步计算 Embedding，从而对外提供高效的高维空间相似度检索。这种架构确保了即使更换向量库技术栈，基于 `memory` Morph 的知识真相源依然稳固。
-- **防止僵尸幻觉 (Zombie Memory Prevention)**：作为 Index 节点的向量库 MUST 严格订阅并处理 `memory.invalidated` 和 `memory.superseded` 事件。当捕获到某条记忆被人类否决或被新知识覆盖时，向量库 MUST 在本地对其 Embedding 向量执行**不可恢复的硬删除 (Hard-delete)** 或将其权重强制归零。否则，Agent 将不断检索到被废弃的僵尸记忆从而引发严重的系统性幻觉。
+- **异步物化 (Async Materialization)**：向量数据库 (Vector Store) 是可选受托 search / retrieval 扩展。它通过订阅协议层中处于 `confirmed` 状态的 Operation 增量，在本地异步计算 Embedding，从而对外提供高效的高维空间相似度检索。这种架构确保了即使更换向量库技术栈，基于 `memory` Morph 的知识真相源依然稳固。
+- **防止僵尸幻觉 (Zombie Memory Prevention)**：向量库 MUST 严格订阅并处理 `memory.invalidated` 和 `memory.superseded` 事件。当捕获到某条记忆被人类否决或被新知识覆盖时，向量库 MUST 在本地对其 Embedding 向量执行**不可恢复的硬删除 (Hard-delete)** 或将其权重强制归零。否则，Agent 将不断检索到被废弃的僵尸记忆从而引发严重的系统性幻觉。
 
 ## 12. 忘记与保留
 
@@ -283,5 +283,5 @@ Contrix v1 固定：
 
 - Memory 提取流程 MUST 从 signed source refs 开始，生成 candidate memory，并保留 extractor actor、run ref、input hash、policy context 和 confidence。未确认 candidate 不得作为高信任事实自动注入 agent prompt。
 - `candidate -> confirmed` MUST 经过拥有 `memory.confirm` capability 的 human、agent 或 policy-approved reviewer；拒绝、失效和替代必须写入可审计 event。
-- 向量检索是 Index 兼容面：vector store MUST 声明 service DID、plaintext visibility、source frontier、embedding model/version 和 deletion/supersession lag。查询结果不得扩大 Space capability。
+- 向量检索是可选受托 search 扩展：vector store MUST 声明 service DID、plaintext visibility、source frontier、embedding model/version 和 deletion/supersession lag。查询结果不得扩大 Space capability。
 - Retention / legal hold / export 语义按 Space policy、`media-and-blob.md` 和 `service-surface.md` 的 export/import 边界执行。被 legal hold 的 memory 可阻止物理删除，但仍必须在默认视图中反映 redaction、invalidated 或 superseded 状态。

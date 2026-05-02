@@ -8,7 +8,7 @@
 - reducer 兼容性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
-- Principal Server Events API / sync service / index / E2EE / applet / policy-server 关键接口
+- Principal Server Events API / sync service / E2EE / applet / policy-server 关键接口
 
 本版本不新增 `space_version`；所有兼容性演进通过 `space_version=1` 下的 profile 与字段废弃流程完成。
 
@@ -25,7 +25,6 @@
 - `cx.profile.principal_server_events_api.v1`
 - `cx.profile.principal_server.v1`
 - `cx.profile.federation_minimal.v1`
-- `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
 - `cx.profile.blob_node.v1`
 - `cx.profile.applet_service.v1`
@@ -42,7 +41,7 @@
 
 每个实现必须通过以下验收：
 
-- `/api/v1` 下公开至少包含 `service/identity/events/sync/index/blob/authz` 关键 operation。
+- `/api/v1` 下公开至少包含 `service/identity/events/sync/blob/authz` 关键 operation。
 - 服务 `operation_id` MUST 以 `artifacts/registry/operation-registry.json` 为唯一 source of truth；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 source of truth，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 source of truth；标准 Event payload class MUST 以 `artifacts/schemas/event-payload.schema.json` 为唯一 source of truth。`service-api-schema.md`、OpenAPI 和非 HTTP binding 不得声明 registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `cx.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `cx:<kind>:` typed ID 前缀。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
@@ -50,7 +49,7 @@
 
 - canonical JSON 字段顺序与空值处理一致。
 - Event Envelope 校验必须按 kind 选择 payload schema；active 标准 kind 未命中 payload class 或 payload class 校验失败，必须在 reducer 前以 `schema_violation` 失败。
-- 同一请求在不同服务节点（Principal Server Events API / sync service / index）可重放得到一致事件 hash 或查询结果边界。
+- 同一请求在不同服务节点（Principal Server Events API / sync service）可重放得到一致事件 hash 或查询结果边界。
 
 ## 4. Conformance 向量分层
 
@@ -104,7 +103,6 @@ v1 新增以下必测项：
 | Minimal/Full Client | filter、pagination、state_after、decryption_pending | snapshot frontier、causal wait |
 | Events API | submitEvent、eventIdempotency、eventDigest 验证、signature 校验 | snapshot generation、event batch receipt |
 | Principal Server | sync stream 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游 federation、快照指针 |
-| Index Node | query 结果可重建性、授权过滤、wait-for 前沿、stale 标记、目录结果可见性一致 | notification materialization |
 | E2EE Client | epoch 回填、to-device、removed 成员 fail-closed | 本地 search 协调 |
 | Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal space 映射 |
 | MIMI Provider Facade | draft pinning、room binding、KeyPackage claim、message/content roundtrip、policy mapping、identifier privacy、consent isolation、proxy download、unsupported draft fail-closed | MIMI content extension lossless preservation |
@@ -119,3 +117,15 @@ v1 新增以下必测项：
 - 每条失败向量必须包含最小复现实例。
 - 未通过的 profile 可通过但不得标记为“完全互操作”。
 - 本套件目标是在当前 `space_version=1` 下形成稳定收敛，避免为兼容问题引入新 space version。
+
+### 6.1 发布分级
+
+规范文本闭环不等于实现生态已经稳定。Contrix 发布时 SHOULD 使用以下分级：
+
+| 标签 | 允许用途 | 必须满足 |
+| --- | --- | --- |
+| `v1-core-rc` | 面向实现者启动互操作开发。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结。 |
+| `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
+| `v1.0-stable` | 对外宣称稳定协议版本。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、state resolution、capability、privacy/security、sync 和 snapshot vectors 均由 CI 执行；英文或其他翻译不得作为 stale source of truth 发布。 |
+
+若某 profile 的 payload schema 仍使用宽泛结构（例如 `state_content` 或 `generic_standard_content`），该 profile 的 stable 声明必须额外依赖 reference reducer / validator 中的语义校验，不能只依赖 JSON Schema 通过。

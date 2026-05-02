@@ -394,7 +394,7 @@ Wallet MUST verify：
 | disclosure receipt | holder private account data，可选写入审计摘要 | 默认仅 holder |
 | revocation/status material cache | holder private account data 或 wallet cache | holder 自己的设备 |
 
-Holder private account data MUST 使用设备或 recovery key 加密。服务端、Sync Service、index 不应能读取原始 credential、base proof、完整 disclosure policy 或跨组织 handle 列表。
+Holder private account data MUST 使用设备或 recovery key 加密。服务端、Sync Service 或受托服务不应能读取原始 credential、base proof、完整 disclosure policy 或跨组织 handle 列表。
 
 ### 16.4 披露记录
 

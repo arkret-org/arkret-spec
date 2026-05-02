@@ -208,7 +208,7 @@ Implementations MUST NOT claim zero-knowledge or unlinkability unless the select
 | disclosure receipt | holder private account data | E2EE to holder devices |
 | status / revocation cache | wallet cache or holder private account data | E2EE to holder devices |
 
-Sync Service / index / service operator MUST NOT learn raw credential contents, base proofs, full disclosure policies, or undisclosed handles.
+Sync Service / service operator MUST NOT learn raw credential contents, base proofs, full disclosure policies, or undisclosed handles.
 
 ## 7. Transport Selection
 

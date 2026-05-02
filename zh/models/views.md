@@ -42,7 +42,7 @@ View 的职责是观察和组织协作图，而不是替代标准对象、Relati
 
 View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `cx.view.create` / `cx.view.update` 修改、签名、审计和同步。
 
-View 不承载被投影对象的 canonical state。Board / List / Card / Room / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。Index / AppView 输出必须能追溯到 signed Event / Operation、reducer profile 和 causal frontier。
+View 不承载被投影对象的 canonical state。Board / List / Card / Room / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event / Operation、reducer profile 和 causal frontier。
 
 Materialized View cache 只是加速层。缓存丢失、过期或迁移后，系统 MUST 能用 View definition + canonical object graph 重新计算 projection。
 
@@ -55,7 +55,7 @@ v1 区分两类 View 状态：
 | Shared View | Space canonical state | 团队共享的 query、renderer、默认列、共享 filter、共享 layout、review queue 定义等，使用 `cx.view.create` / `cx.view.update`。 |
 | Personal View | actor-private account data | 个人排序偏好、临时 filter、列宽、折叠状态、最近打开 tab、本地 pin、密度设置等，使用 `cx.account_data.set` 或等价私有 Event。 |
 
-客户端 MUST NOT 把个人 UI 偏好写入 Space shared View，除非用户明确执行“保存为共享视图”或 Space policy 要求共享配置。Index / AppView 在返回 projection 时 MAY 合并 Shared View 与调用者 Personal View，但必须在响应元数据中保留 shared definition frontier 与 personal preference revision 的区别，避免把个人偏好传播给其他成员。
+客户端 MUST NOT 把个人 UI 偏好写入 Space shared View，除非用户明确执行“保存为共享视图”或 Space policy 要求共享配置。客户端本地 projection 或可选受托 projection 扩展 MAY 合并 Shared View 与调用者 Personal View，但必须在响应元数据中保留 shared definition frontier 与 personal preference revision 的区别，避免把个人偏好传播给其他成员。
 
 ### 2.2 标准对象优先，Morph 扩展
 
@@ -187,7 +187,7 @@ Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会�
 | `document` | `document` | `document` | `DocumentProjectionResponse` |
 | `composite` | `dashboard` | `dashboard` | `CompositeProjectionResponse` |
 
-Index / AppView 对非 raw projection MUST 返回 `view_id`、`frontier` 和对应核心原语的标准响应。客户端不得把未知对象数组解释为标准 View projection。
+对外暴露可互操作 projection 响应的客户端、SDK 或可选受托服务 SHOULD 返回 `view_id`、`frontier` 和对应核心原语的标准响应。客户端不得把未知对象数组解释为标准 View projection。
 
 ## 5. Query Model
 
@@ -387,7 +387,7 @@ Reducer 语义：
 
 ### 6.6 Board Projection Response
 
-Index / AppView MAY 为 `View{kind="collection", renderer="board"}` 返回已经物化的 `CollectionProjectionResponse`。响应是派生结果，不是真相源。
+客户端、SDK 或可选受托 projection 扩展 MAY 为 `View{kind="collection", renderer="board"}` 生成已经物化的 `CollectionProjectionResponse`。响应是派生结果，不是真相源。
 
 ```json
 {
@@ -448,7 +448,7 @@ Card context timeline 可以混合：
 
 Graph projection 可展开 Card、Morph、Room、Board 等对象之间的 Relation。
 
-去中心化网络中，Space 构成严格权限边界。Index 节点在执行带有 `depth` 的深度查询时，遇到跨 Space 引用 MUST 截断并返回 Lazy Link，不能自动跨 Space 拼接图谱。
+去中心化网络中，Space 构成严格权限边界。Projection executor 在执行带有 `depth` 的深度查询时，遇到跨 Space 引用 MUST 截断并返回 Lazy Link，不能自动跨 Space 拼接图谱。
 
 Lazy Link 示例：
 
@@ -484,7 +484,7 @@ Contrix v1 固定：
 - 看板拖拽使用 `cx.card.move` / `cx.card.reorder`。
 - Room chat 使用 `room + message`。
 - Graph / Tree 遇到跨 Space 必须 lazy link。
-- View / Index 输出不得成为真相源。
+- View projection 输出不得成为真相源。
 
 ## 11. 规范性引用
 

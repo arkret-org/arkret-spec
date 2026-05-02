@@ -13,7 +13,6 @@
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.principal_server_events_api.v1`
 - `cx.profile.principal_server.v1`
-- `cx.profile.index_node.v1`
 
 ## 2. 通用约定
 
@@ -107,7 +106,7 @@
 
 期望：
 
-- Index 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
+- Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
 - 查询结果中该 Card 的 `list_id` MUST 为 `cx:list:01js0112000000000000000000`。
 
 ## 5. Vector: Linked Room Visibility

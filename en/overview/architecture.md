@@ -13,9 +13,9 @@ This requires the protocol to separate identity, writes, distribution, queries, 
 
 ## 2. Overall Model
 
-Contrix uses a **principal server + principal repo + identity registry + query index** architecture.
+Contrix uses a **principal server + principal repo + identity registry + client-side projection** architecture.
 
-A `Principal Server` is the service boundary controlled by a principal or explicitly delegated through DID service metadata and Space policy. It may host repo, sync, index, blob, push, and policy capabilities on one deployment while the protocol keeps those responsibilities separate.
+A `Principal Server` is the service boundary controlled by a principal or explicitly delegated through DID service metadata and Space policy. It may host repo, sync, blob, push, and policy capabilities on one deployment while the protocol keeps those responsibilities separate. Search, inbox, notifications, and View projection are client- or SDK-local derived capabilities by default.
 
 Contrix does not define an independent third-party distribution server as a core role. Cross-principal and cross-organization propagation is handled by sync and federation between participating Principal Servers.
 
@@ -49,7 +49,6 @@ The Principal Server hosts or proxies:
 
 - principal repo submission, reading, and replication
 - space-scoped incremental sync, backfill, and subscriptions
-- principal-controlled index / appview
 - blob, push, policy, and device-message support
 - federation transactions with other Principal Servers
 
@@ -64,20 +63,16 @@ Plaintext rule:
 - Recipient Principal Servers are visibility boundaries for non-encrypted content delivered to their recipients; they are not transparent forwarding layers.
 - Untrusted third-party services may receive only public content, encrypted envelopes, or opaque payloads.
 
-### 2.3 Query Index / AppView
+### 2.3 Client Query / Projection
 
-The index materializes authorized operations into queryable current state and projections.
+Clients or SDKs may materialize synchronized, authorized, and decrypted events into current state, search indexes, inboxes, notifications, and View projections. These are local derived experiences, not mandatory protocol services.
 
-It is responsible for:
+The protocol constrains the following boundaries:
 
-- current-state reduction
-- complex querying
-- full-text search
-- view inputs for rendering
-- reporting and metrics
-- optional embedding/vector indexing
-
-The index is a derived layer, not the truth source.
+- View is a synchronized projection definition, not the truth source for projected objects.
+- Query, search, and projection must not bypass Space policy, Room membership, history visibility, E2EE visibility, or capability.
+- Any delegated search / projection service that receives private plaintext, body summaries, embeddings, notification summaries, or reversible derived content MUST be listed in `plaintext_visible_services`.
+- Derived output is not a truth source and must be recomputable from signed events, reducer profiles, View definitions, and causal frontiers.
 
 ### 2.4 Blob Store
 
@@ -93,7 +88,7 @@ It is responsible for:
 
 - publishing authorization policy
 - serving grant/revoke/delegate related state
-- providing cacheable authorization inputs for repos, sync services, and indexes
+- providing cacheable authorization inputs for repos, sync services, and projection executors
 
 ### 2.6 Client / Agent
 
@@ -143,17 +138,16 @@ Auth / Account Server and Identity Resolution Infrastructure do not need to be d
 
 `did:web` and other method-specific DIDs MAY resolve through their own domain or external network rules; organization-private `did:uuid` MAY resolve only inside the organization's or enclave's resolver trust domain. Clients and servers must select resolvers according to local trust policy and must not assume that all `did:uuid` identifiers share the same resolver entry point.
 
-Ordinary users should not need to self-host Directory Server, Push Gateway, Identity Resolution Infrastructure, TURN / Media Relay, Moderation / Compliance Server, or a standalone Index / AppView Server. With `did:key`, identity resolution can be fully local; with `did:keri`, deployments usually need KERI log / witness / watcher / OOBI infrastructure but not a traditional centralized registry. These infrastructure roles should be self-hosted only when an organization needs identity sovereignty, network isolation, compliance audit, independence from public networks, or controlled cross-organization federation.
+Ordinary users should not need to self-host Directory Server, Push Gateway, Identity Resolution Infrastructure, TURN / Media Relay, or Moderation / Compliance Server. Search, inbox, notification, and View projection can be local client features. With `did:key`, identity resolution can be fully local; with `did:keri`, deployments usually need KERI log / witness / watcher / OOBI infrastructure but not a traditional centralized registry. These infrastructure roles should be self-hosted only when an organization needs identity sovereignty, network isolation, compliance audit, independence from public networks, or controlled cross-organization federation.
 
 Advanced implementations still declare capabilities and security boundaries through the following service roles. Multiple roles may be combined in one deployment, but service DID, `service_type`, capability, Space policy, plaintext visibility, and endpoint contracts must remain distinguishable.
 
 | Service role | Common `service_type` | Main services | Truth source? | Plaintext boundary |
 | --- | --- | --- | --- | --- |
-| Principal Server | `principal_server` | Principal-controlled entry point; may aggregate repo, sync, federation, device messages, policy, blob, and index capabilities. | No; truth comes from signed repos / events. | May receive non-encrypted content only within principal or Space-policy delegation. |
+| Principal Server | `principal_server` | Principal-controlled entry point; may aggregate repo, sync, federation, device messages, policy, and blob capabilities. | No; truth comes from signed repos / events. | May receive non-encrypted content only within principal or Space-policy delegation. |
 | Identity Resolution Infrastructure | `identity_registry` or method-specific resolver | DID Documents, DID key logs, KERI event logs, handle bindings, receipts / witnesses, watchers, OOBI, service discovery. | One verifiable source for identity control history; `did:key` may resolve locally by algorithm. | Should not receive Space bodies. |
 | Auth / Account Server | `auth_server` or deployment-specific | Passkeys, OIDC, SSO, device pairing, session grants, account recovery, soft logout. | No; it proves service-account login and binds it to DID / device. | Password recovery must not grant E2EE plaintext or DID control by itself. |
 | Sync / Federation Server | `principal_server` or `sync_node` | Client sync, Space subscription, backfill, snapshot heads, cross-domain federation transactions. | No; it propagates and backfills. | May forward non-encrypted private content only to authorized Principal Servers or `plaintext_visible_services`. |
-| Index / AppView Server | `index_node` / `appview_node` | Current state, query, search, inbox, notifications, view projections, embeddings / vector indexes. | No; derived layer. | Private plaintext indexing requires `plaintext_visible_services`. |
 | Directory Server | `directory_service` | Authorized search and exact resolution for Spaces, Organizations, Actors, handles, and Applets. | No; derived discovery layer. | Returns minimum discoverable data and must not expose private topology. |
 | Blob / Media Server | `blob_node` / `media_service` | Blob upload, HEAD / GET authenticated download, thumbnails, previews, retention, media policy. | Content hash is verifiable; metadata is service-declared. | Private downloads, previews, and thumbnails require authorization. |
 | Device / Key Server | `device_key_service` | To-device messages, one-time keys, fallback keys, device lists, secret-backup metadata. | No; device trust comes from signature chains. | Should not be able to decrypt E2EE bodies. |
@@ -240,7 +234,7 @@ Responsible for:
 - export / import
 - snapshot + operation replay
 - service replacement
-- migration across multiple repos / Principal Servers / indexes
+- migration across multiple repos / Principal Servers / delegated search services
 
 ## 4. Deployment Topologies
 
@@ -253,7 +247,6 @@ One deployment may host:
 - identity registry
 - repo
 - sync service
-- index
 - blob
 
 This is suitable for:
@@ -269,7 +262,7 @@ A common pattern is:
 - each organization maintains its own principal repos
 - each participant uses its own Principal Server or explicitly delegated organization server
 - Principal Servers exchange Space operations through federation transactions
-- multiple query indexes serve different parties
+- participants generate local views from their own authorized data, or explicitly use delegated search / projection extensions
 
 This maps well to cross-company delivery and supply-chain collaboration.
 
@@ -281,7 +274,7 @@ In agent-heavy environments, a common pattern is:
 - an agent DID receives constrained capabilities
 - run logs are written to an agent repo
 - the agent Principal Server syncs run logs into the collaboration Space
-- an index materializes human review queues
+- clients or delegated projection extensions materialize human review queues
 
 ## 5. Core Architecture Direction
 
@@ -326,17 +319,17 @@ A Principal Server must not:
 - forge actor operations
 - silently drop still-valid historical operations
 - forward plaintext private content to services not delegated by a principal or Space policy
-- copy non-encrypted private content to Index, AppView, Push, Blob preview, or Policy preview services that are not declared in `plaintext_visible_services`
+- copy non-encrypted private content to Push, Blob preview, Policy preview, or any delegated search / projection service that is not declared in `plaintext_visible_services`
 
-### 6.3 The Index Interprets State but Must Not Replace the Audit Chain
+### 6.3 Projection Interprets State but Must Not Replace the Audit Chain
 
-An index may:
+Client-local projection or a delegated search / projection service may:
 
 - serve current state
 - provide search
 - return board/list/graph projections
 
-An index must not become the only verifiable source.
+Derived output must not become the only verifiable source.
 
 ### 6.4 Capability Is the Legitimacy Boundary
 
@@ -366,7 +359,7 @@ The current draft recommends fixing the following directions:
 - principal repos are the actor publication baseline
 - identity registries / witnesses are the DID-document resolution and write layer
 - Principal Servers / Sync Services are the controlled sync and federation layer
-- indexes/appviews are the materialized query layer
+- search / View projection is a client-local derived experience by default; delegated search services are optional extensions
 - blobs are a separate content layer
 - capabilities form an explicit authorization layer
 - runs and memories are first-class protocol objects
@@ -379,9 +372,9 @@ The next round still needs to define:
 
 - the precise repo commit encoding
 - the sync stream subscription protocol
-- the index query surface
+- the client-side query / projection contract
 - capability cache consistency strategy
-- interoperability requirements with multiple Principal Servers and indexes
+- interoperability requirements with multiple Principal Servers and delegated search / projection extensions
 - encrypted-envelope and key-distribution interfaces
 - consistency boundaries for export / import
 

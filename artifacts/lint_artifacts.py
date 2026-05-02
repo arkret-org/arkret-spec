@@ -52,14 +52,50 @@ class Lint:
 
 def load_json(lint: Lint, path: Path) -> Any:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return parse_json_text(path.read_text(encoding="utf-8"))
     except Exception as exc:  # pragma: no cover - exact parser errors vary
         lint.fail(path, f"invalid JSON: {exc}")
         return None
 
 
+def reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-standard JSON numeric literal {value!r}")
+
+
+def reject_duplicate_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key {key!r}")
+        result[key] = value
+    return result
+
+
+def parse_json_text(text: str) -> Any:
+    data = json.loads(
+        text,
+        object_pairs_hook=reject_duplicate_object,
+        parse_constant=reject_json_constant,
+    )
+    reject_lone_surrogates(data)
+    return data
+
+
+def reject_lone_surrogates(value: Any, json_path: str = "$") -> None:
+    if isinstance(value, str):
+        if any(0xD800 <= ord(char) <= 0xDFFF for char in value):
+            raise ValueError(f"lone surrogate in string at {json_path}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            reject_lone_surrogates(child, f"{json_path}[{index}]")
+    elif isinstance(value, dict):
+        for key, child in value.items():
+            reject_lone_surrogates(key, f"{json_path}.<key>")
+            reject_lone_surrogates(child, f"{json_path}.{key}")
+
+
 def canonical_json(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True, allow_nan=False)
 
 
 def sha256_text(value: str) -> str:
@@ -600,6 +636,11 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
             try:
                 data = json.loads(block)
             except json.JSONDecodeError:
+                continue
+            try:
+                data = parse_json_text(block)
+            except Exception as exc:
+                lint.fail(path, f"json_block[{block_index}] invalid canonical JSON: {exc}")
                 continue
             for json_path, value, key in walk_json(data):
                 check_markdown_json_value(lint, path, f"json_block[{block_index}]{json_path[1:]}", value, key, known)

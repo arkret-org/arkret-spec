@@ -10,7 +10,6 @@ Contrix implementations declare testable profiles rather than claiming generic s
 - `cx.profile.enterprise_client.v1`
 - `cx.profile.principal_server_repo_api.v1`
 - `cx.profile.principal_server.v1`
-- `cx.profile.index_node.v1`
 - `cx.profile.identity_registry.v1`
 - `cx.profile.blob_node.v1`
 - `cx.profile.push_gateway.v1`
@@ -20,7 +19,7 @@ Contrix implementations declare testable profiles rather than claiming generic s
 
 ## Profile Requirements
 
-`cx.profile.minimal_client.v1` MUST cover DID/handle resolution, service discovery, repo fetch, index query, event decode, cursor pagination, and standard error handling.
+`cx.profile.minimal_client.v1` MUST cover DID/handle resolution, service discovery, repo fetch, local query/projection, event decode, cursor pagination, and standard error handling.
 
 `cx.profile.full_client.v1` MUST add local reducer/cache, offline operation replay, Space bootstrap, invite accept/reject, read markers, notifications, blob transfer, and conflict UX.
 
@@ -29,8 +28,6 @@ Contrix implementations declare testable profiles rather than claiming generic s
 `cx.profile.principal_server_repo_api.v1` MUST cover submit/fetch history, idempotent writes, signature/schema validation, capability precheck, conflict reporting, and content-addressed blob reference validation.
 
 `cx.profile.principal_server.v1` MUST cover client sync (`POST /sync`), sync subscription, backfill, cursor stability, duplicate suppression, encrypted payload forwarding, federation destination service binding verification, and plaintext-visible service enforcement. Principal Servers MUST NOT forward non-E2EE private content or reversible derived plaintext to services absent from the relevant DID delegation or Space policy `plaintext_visible_services`.
-
-`cx.profile.index_node.v1` MUST cover reducer profile declaration, entity/relation/query reconstruction, authorization filtering, stale frontier reporting, wait-for sync tokens, and plaintext-visible declaration / policy enforcement when indexing private plaintext.
 
 `cx.profile.identity_registry.v1` MUST cover DID resolve, DID log fetch, DID operation submit, inception-key validation, receipt publication, and method adapter metadata.
 
@@ -56,7 +53,7 @@ The following release/acceptance profiles define deployment shape rather than a 
 - `cx.profile.high_security_organization.v1`
 - `cx.profile.isolated_sovereign_network.v1`
 
-`cx.profile.personal_node.v1` MUST cover co-located principal server/repo/sync/index/blob services, a minimum local admin surface, and local backup/recovery.
+`cx.profile.personal_node.v1` MUST cover co-located principal server/repo/sync/blob services, a minimum local admin surface, and local backup/recovery.
 
 `cx.profile.small_team.v1` MUST cover shared Spaces, basic directory and push, moderation queue, and snapshot/backfill.
 

@@ -19,7 +19,6 @@ A sovereign deployment is a Contrix service domain controlled by one organizatio
 - Organization DID / governance registry / witness
 - Identity Registry
 - Principal Server / Sync Service
-- Index / AppView
 - Directory
 - Blob Store
 - Policy Server
@@ -39,7 +38,6 @@ flowchart TB
         WIT["Private Witness Set"]
         REPO["Internal Repo Storage"]
         SYNC["Internal Principal Server / Sync Service"]
-        INDEX["Internal Index / AppView"]
         DIR["Private Directory"]
         BLOB["Private Blob Store"]
         POL["Policy Server"]
@@ -50,7 +48,6 @@ flowchart TB
     subgraph "Controlled Collaboration Enclave"
         ESPACE["Controlled Collaboration Space"]
         ESYNC["Enclave Principal Server / Sync Service"]
-        EINDEX["Enclave Index"]
         EDIR["Enclave Directory"]
         EBLOB["Enclave Blob Store"]
         EPOL["Enclave Policy Server"]
@@ -67,7 +64,6 @@ flowchart TB
     ORG --> WIT
     ORG --> SYNC
     SYNC --> REPO
-    ORG --> INDEX
     ORG --> DIR
     ORG --> BLOB
     ORG --> POL
@@ -75,14 +71,10 @@ flowchart TB
 
     INTCLIENT --> REPO
     REPO --> SYNC
-    SYNC --> INDEX
-    INDEX --> DIR
     SYNC --> POL
-    INDEX --> POL
 
     ORG -->|"creates / endorses"| ESPACE
     ESPACE --> ESYNC
-    ESPACE --> EINDEX
     ESPACE --> EDIR
     ESPACE --> EBLOB
     ESPACE --> EPOL
@@ -94,8 +86,6 @@ flowchart TB
     EXTREPO -->|"signed Operations"| ESYNC
     EXTSYNC -. "optional allowlisted federation" .-> ESYNC
 
-    ESYNC -->|"accepted events only"| EINDEX
-    EINDEX -->|"stripped preview only"| EDIR
     EPOL -->|"allow / deny / quarantine"| ESYNC
 
     SYNC -. "no default bridge" .- ESYNC
@@ -104,7 +94,7 @@ flowchart TB
 
 Implications:
 
-- Main domain keeps closed federation and does not expose internal directory/index or topology.
+- Main domain keeps closed federation and does not expose internal directory or topology.
 - Controlled enclosure is isolated and only hosts approved Spaces.
 - External actors join enclave via DID / VC / authority chain / invite / restricted join.
 - External organizations may keep own repos, but writes must pass enclave Principal Server / Sync Service, policy server, and local authorization.
@@ -121,7 +111,7 @@ Sovereign clients MUST:
 - pin organization trust anchors (organization DID, governance DID, registry DID, witness DIDs, service allowlist)
 - use organization DID resolver policy and avoid default public registry queries
 - verify service DID delegation, certificates, message signature, and feature profile
-- block unapproved sync/index/directory/blob/applet endpoints
+- block unapproved sync/directory/blob/applet endpoints
 - disable public federation, public search, external applets and agent handoff by default
 - show per-space classification, E2EE status, egress policy, and export permissions
 - support remote revocation of session, device, grant, applet delegation, and cached secrets
@@ -143,7 +133,7 @@ High-assurance deployments SHOULD default to:
 - spaces default `discoverability=secret` or `invite_only`
 - spaces default `join_rule=private` or `restricted`
 - Policy Server default `closed` or `quarantine` fail mode
-- sync/index/directory accept allowlisted service DIDs only
+- sync/directory accept allowlisted service DIDs only
 - blob/snapshot/backup/audit stored inside organization infrastructure
 - disable external applets, A2A/ACP handoff, TSP by default; allow only by explicit Space policy
 - E2EE enabled by default, auditable E2EE enabled where policy requires and visible to members
@@ -183,7 +173,7 @@ Rules:
 - Internal `did:uuid` documents MUST come from approved registry / witness / offline bundle.
 - Public DID methods MAY be accepted for external collaborators only when policy permits and authority chain is valid.
 - Pairwise DID SHOULD be used for high-correlation risk collaboration.
-- DID document service endpoints to public sync/index/directory services MUST be ignored unless allowlisted.
+- DID document service endpoints to public sync/directory services MUST be ignored unless allowlisted.
 
 ## 4. Controlled Collaboration Spaces
 
@@ -229,7 +219,7 @@ External actors SHOULD follow:
 4. Space admin or delegated approval actor issues invite
 5. external actor accepts invite and submits `cx.member.state`
 6. for E2EE Spaces, admin client or key service only issues MLS Welcome to approved devices
-7. Directory/Index only expose allowed stripped preview and history after join
+7. Directory and client-local projection only expose allowed stripped preview and history after join
 
 External actors MUST NOT receive:
 
@@ -275,7 +265,7 @@ Recommended pattern:
 - keep main network closed federation
 - create isolated collaboration enclave
 - invite external actors only into enclave space
-- use separate Principal Server/index/blob/policy inside enclave
+- use separate Principal Server/blob/policy inside enclave
 - redact + export review + declassification required before importing into enclave
 - import review + malware scan + policy approval for egress to main network
 

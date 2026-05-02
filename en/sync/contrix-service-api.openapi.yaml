@@ -1170,28 +1170,6 @@ paths:
             application/json:
               schema:
                 type: object
-  /index/query:
-    post:
-      operationId: cx.index.query
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QueryRequest"
-      responses:
-        "200":
-          description: Structured query result
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/RawQueryResponse"
-                  - $ref: "#/components/schemas/CollectionProjectionResponse"
-                  - $ref: "#/components/schemas/TimelineProjectionResponse"
-                  - $ref: "#/components/schemas/GraphProjectionResponse"
-                  - $ref: "#/components/schemas/DocumentProjectionResponse"
-                  - $ref: "#/components/schemas/CompositeProjectionResponse"
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle

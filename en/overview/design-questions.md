@@ -32,7 +32,7 @@ Question:
 Decision:
 
 - The board substrate is not "column arrays + card arrays".
-- The canonical substrate is `Entity + Relation + View`; column arrays and card arrays are only derived AppView / Index projections.
+- The canonical substrate is `Entity + Relation + View`; column arrays and card arrays are only derived projections.
 - `board`, `collection`, `task`, `message`, and `topic` are semantic Entity type labels. They do not automatically grant container, drag, reply, or card-rendering behavior.
 - Entity capabilities come from explicit `facets` or the Space schema profile. For example, board / collection objects typically need `container`; card-renderable objects typically need `renderable`; drag ordering typically needs `rankable` or relation rank.
 - In complex boards, a board contains column collections through explicit `contains` Relations, and a column collection contains Entities matching `collection.item_facets` through explicit `contains` Relations.
@@ -121,7 +121,7 @@ Decision:
 - No. One protocol, multiple sync profiles.
 - Actors write to their own repos first.
 - Principal Servers exchange authorized Space operations.
-- Indexes materialize current state and queries.
+- Clients materialize current state and queries locally by default; delegated search services are optional extensions.
 - Board, chat, topic, tree, and graph modes differ in filters and projections, not protocol identity.
 
 ### 2.9 How Is History Backfilled?
@@ -196,7 +196,7 @@ Taken together, the protocol adopts the following overall plan:
 4. Keep `comment` for durable object-level notes, while `message` handles timeline conversation.
 5. Standardize `@mention` as structured DID/entity references and `mentions` Relations.
 6. Use revision chains for editing and redaction/tombstones for recalls.
-7. Reuse the same repo-first + Principal Server sync + index model across board/chat/topic modes.
+7. Reuse the same repo-first + Principal Server sync + client projection model across board/chat/topic modes.
 8. Resolve conflicts through fixed reducer rules rather than client-specific heuristics.
 9. Unify all permissions under capabilities rather than implicit roles.
 

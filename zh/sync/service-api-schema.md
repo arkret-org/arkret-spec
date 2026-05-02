@@ -38,7 +38,6 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | Events | `cx.events.*` | `/events/*` |
 | 客户端同步与 Space 同步 | `cx.sync.*` | `/sync/*` |
 | 联邦 | `cx.federation.*` | `/federation/*` |
-| 查询与投影 | `cx.index.*` | `/index/*` |
 | 目录发现 | `cx.directory.*` | `/directory/*` |
 | Blob / media | `cx.blob.*` | `/blob/*` |
 | 推送 | `cx.push.*` | `/push/*` |
@@ -147,34 +146,6 @@ paths:
   /federation/verify-actor:
     post:
       operationId: cx.federation.verify_actor
-
-  /index/describe:
-    get:
-      operationId: cx.index.describe
-  /index/object:
-    get:
-      operationId: cx.index.get_object
-  /index/query:
-    post:
-      operationId: cx.index.query
-  /index/room-timeline:
-    get:
-      operationId: cx.index.room_timeline
-  /index/card-discussions:
-    get:
-      operationId: cx.index.card_discussions
-  /index/notifications:
-    get:
-      operationId: cx.index.notifications
-  /index/inbox:
-    get:
-      operationId: cx.index.inbox
-  /index/search:
-    post:
-      operationId: cx.index.search
-  /index/space-hierarchy:
-    get:
-      operationId: cx.index.space_hierarchy
 
   /directory/describe:
     get:
@@ -298,7 +269,6 @@ paths:
 | `cx.sync.subscribe` | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
 | `cx.sync.backfill` / `cx.sync.get_snapshot_head` | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
 | `cx.federation.transaction` / `cx.federation.push_operations` / `cx.federation.pull_operations` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-operations`, `GET /federation/pull-operations` | gRPC Federation Service / signed MQ transaction |
-| `cx.index.query` / `cx.index.search` | `POST /index/*` | gRPC `IndexQuery` / SSE 查询流 |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC Discovery Service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
 | `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |

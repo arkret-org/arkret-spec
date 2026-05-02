@@ -29,7 +29,6 @@ The unified API schema is grouped by canonical operation. HTTP paths are only th
 | Repo and commit | `cx.repo.*` | `/repo/*` |
 | Client and Space sync | `cx.sync.*` | `/sync/*` |
 | Federation | `cx.federation.*` | `/federation/*` |
-| Query and projection | `cx.index.*` | `/index/*` |
 | Directory discovery | `cx.directory.*` | `/directory/*` |
 | Blob / media | `cx.blob.*` | `/blob/*` |
 | Push | `cx.push.*` | `/push/*` |
@@ -148,32 +147,6 @@ paths:
   /federation/verify-actor:
     post:
       operationId: cx.federation.verify_actor
-
-  /index/describe:
-    get:
-      operationId: cx.index.describe
-  /index/entity:
-    get:
-      operationId: cx.index.get_entity
-  /index/query:
-    post:
-      operationId: cx.index.query
-
-  /index/thread:
-    get:
-      operationId: cx.index.thread
-  /index/notifications:
-    get:
-      operationId: cx.index.notifications
-  /index/inbox:
-    get:
-      operationId: cx.index.inbox
-  /index/search:
-    post:
-      operationId: cx.index.search
-  /index/space-hierarchy:
-    get:
-      operationId: cx.index.space_hierarchy
 
   /directory/describe:
     get:
@@ -309,7 +282,6 @@ The following mapping binds each canonical operation to a transport implementati
 | `cx.sync.subscribe` | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
 | `cx.sync.backfill` / `cx.sync.get_snapshot_head` | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
 | `cx.federation.transaction` / `cx.federation.push_operations` / `cx.federation.pull_operations` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-operations`, `GET /federation/pull-operations` | gRPC Federation Service / signed MQ transaction |
-| `cx.index.query` / `cx.index.search` | `POST /index/*` | gRPC `IndexQuery` / SSE search stream |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC discovery service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
 | `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |

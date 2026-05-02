@@ -289,8 +289,8 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
         "visibility": "private_plaintext"
       },
       {
-        "service_did": "did:web:index.acme.example",
-        "service_type": "index_node",
+        "service_did": "did:web:search.acme.example",
+        "service_type": "delegated_search",
         "purposes": ["search", "notification", "preview"],
         "visibility": "derived_plaintext"
       }
@@ -331,7 +331,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
       "allowed_labels": ["official", "support"],
       "service_dids": [
         "did:web:server.acme.example",
-        "did:web:index.acme.example"
+        "did:web:search.acme.example"
       ]
     },
     "valid_from": "2026-04-26T00:00:00Z",
@@ -345,7 +345,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 
 - `owner`：组织是 Space 的所有者或共同所有者。
 - `sponsor`：组织认可该 Space，但不单独拥有全部治理权。
-- `host`：组织托管 Sync Service / Index / Blob / Media 等服务，但不声明内容所有权。
+- `host`：组织托管 Sync Service / Blob / Media / delegated search 等服务，但不声明内容所有权。
 - `issuer`：组织只作为 trusted issuer / policy issuer。
 
 客户端判断一个 Space 是否为某 Organization 官方创建或官方认可时，MUST 同时验证：
@@ -361,7 +361,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 
 - Space 名称、头像、主题或简介包含组织名。
 - `space_id`、alias、handle、域名或邮箱后缀看起来属于组织。
-- Sync Service / Index 由组织托管。
+- Sync Service 或受托 search / projection 服务由组织托管。
 - Space 中有组织成员加入。
 
 组织可通过后续 `cx.space.organization` 将 `status` 改为 `revoked`、`suspended` 或 `transferred`。撤销只影响官方背书和后续治理判断，不应自动删除历史数据；历史展示 SHOULD 保留“曾经由该组织背书，已于某时间撤销”的审计状态。
@@ -558,7 +558,7 @@ Redaction 是协议层可验证内容裁剪；Erasure 是某个存储边界内�
 2. 没有 active legal hold、审计保全或组织保留策略阻止删除。
 3. 保留最小 verification stub：`event_id`、原始 canonical hash / payload digest、redaction event id、erasure reason code、执行服务 DID、执行时间和签名 receipt。
 4. 不得重写原事件 hash、签名或 causal refs；backfill 返回 redacted / erased stub，而不是伪造一个新事件或静默缺失。
-5. 派生服务（Index、Search、Embedding、Thumbnail、Notification preview）必须按同一 erasure receipt 重新判定并删除或最小化派生内容。
+5. 派生服务（Search、Embedding、Thumbnail、Notification preview 和其他受托 projection）必须按同一 erasure receipt 重新判定并删除或最小化派生内容。
 
 对于 E2EE 内容，密钥销毁或停止共享只能阻止后续访问；已经被成员解密、导出或复制的明文不受协议保证。客户端和合规文档 MUST 明确这一点。
 

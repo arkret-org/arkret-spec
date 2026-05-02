@@ -23,7 +23,6 @@ Contrix v1 区分：
 - `event_store`
 - `principal_server`
 - `sync_service`
-- `index`
 - `blob store`
 
 ### 2.1 Event Store
@@ -62,7 +61,7 @@ Contrix 采用 Event-first 模型：
 1. actor/device/service 生成 signed Event Envelope。
 2. `/events/*` 或等价 transport 接收、校验、幂等保存 Event。
 3. Principal Server / Sync Service 同步调用方授权可见的 Space Event。
-4. index / AppView / client reducer 将 accepted Event 集合归约为当前态。
+4. client reducer 将 accepted Event 集合归约为当前态；客户端可选择生成本地搜索索引和 View projection。
 
 这套模型同时适用于：
 
@@ -329,7 +328,7 @@ Reducer 语义：
 4. 创建或更新 `to_list_id --contains--> card_id` 的 active Relation，并把 rank 设置为 `rank`。
 5. 对相同 Event 保持幂等。
 
-`cx.card.move` 不得把 `board_id`、`list_id` 或 `rank` 写入 Card canonical object 作为唯一真相源。Index / View projection MAY 返回这些派生字段，但必须能追溯到 active position edge 和 reducer frontier。
+`cx.card.move` 不得把 `board_id`、`list_id` 或 `rank` 写入 Card canonical object 作为唯一真相源。View projection MAY 返回这些派生字段，但必须能追溯到 active position edge 和 reducer frontier。
 
 ### 9.2 `cx.card.reorder`
 
@@ -384,7 +383,7 @@ Reducer 语义：
 
 ## 10. 验证流程
 
-任何接收 Event Envelope 的 Event API、sync service 或 index，至少应校验：
+任何接收 Event Envelope 的 Events API 或 sync service，至少应校验：
 
 1. 签名有效。
 2. actor DID 可解析。
@@ -413,7 +412,7 @@ Snapshot manifest MUST 包含：
 客户端在采用 Snapshot 前 MUST 验证：
 
 1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`space_id`、`state_hash`、`frontier`、`event_set_commitment`、`chunk_digests`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
-2. `signature.verification_method` 对应的 DID 必须是 Space owner、Space policy 授权的 snapshot issuer、可信 Index service DID 或 witness quorum 成员。
+2. `signature.verification_method` 对应的 DID 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。
 3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
 5. high-assurance profile 中，客户端 MUST 能对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要发起 inclusion / omission challenge；issuer 无法提供证明时，客户端 MUST quarantine snapshot 或回退到原始 Event 回放。
@@ -487,7 +486,7 @@ Snapshot manifest MUST 包含：
 - `event_id` MUST 全局稳定。
 - 同一个 `event_id` 的完全相同内容 MAY 被重复接收。
 - 若同一个 ID 对应不同内容，节点 MUST 拒绝并记为冲突。
-- sync service 与 index SHOULD 以 `event_id` 去重，而不是按到达次数计数。
+- sync service SHOULD 以 `event_id` 去重，而不是按到达次数计数。
 
 ## 16. 冲突与收敛
 
@@ -566,7 +565,7 @@ ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。
 字段可见性分级：
 
 - 可路由元数据：`space_id`、`target_ref`、`type`、`causal`。
-- 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，相关 Index 必须列入 `plaintext_visible_services`。
+- 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，接收它们的受托 search / projection 服务必须列入 `plaintext_visible_services`。
 - 不透明加密负载：message body、附件内容、敏感 memory 细节等。
 
 ## 21. 本地存储建议
@@ -575,7 +574,7 @@ ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。
 
 - raw events
 - reduced snapshots
-- materialized indexes
+- materialized local indexes
 
 ## 22. 设计决定
 
@@ -588,7 +587,7 @@ Contrix v1 固定：
 - invite / grant / snapshot 组成 Space bootstrap 主流程。
 - event 重试必须幂等。
 - 授权有效性由同一 reducer 顺序收敛。
-- 密文负载可以被不解密的 sync service / index 转发。
+- 密文负载可以被不解密的 sync service 转发。
 - 撤回采用 redaction/tombstone 语义。
 - hard erasure 只能删除本地 payload / blob / 派生内容，并保留 verification stub；不得重写 event hash 或伪装事件从未存在。
 - 冲突通过固定 reducer 规则收敛。

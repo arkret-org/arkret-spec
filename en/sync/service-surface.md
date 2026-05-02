@@ -9,7 +9,7 @@ Contrix therefore needs an initial definition for:
 - how identity registries accept DID operations and receipts
 - how repos publish and serve commits / operations
 - how Principal Servers expose space sync streams and backfill
-- how indexes serve queries and materialize inbox / notifications
+- how search / View projection semantics remain safe when computed locally or by an explicitly delegated service
 - how blob services upload and verify content
 - how invites / grants participate in first-time space join
 
@@ -24,7 +24,7 @@ This file explains service semantics by role. Field-level request / response sch
 
 DID Documents SHOULD be used to:
 
-- declare principal server, identity-registry, repo, sync service, index, blob, and capability endpoints
+- declare principal server, identity-registry, repo, sync service, blob, and capability endpoints
 - declare service DIDs or service endpoints
 
 They should not directly carry:
@@ -37,7 +37,7 @@ They should not directly carry:
 
 - the repo is the actor publication truth source
 - the sync service is the controlled synchronization surface of a Principal Server
-- the index is the query/materialization layer
+- search, inbox, notifications, and View projection are derived experiences, computed locally by clients by default or by an explicitly delegated service
 - the blob service is the content layer
 
 Clients should be able to cross-check frontier, hashes, and reducer profiles across those layers.
@@ -67,17 +67,16 @@ Without that, clients cannot safely decide whether to use the service.
 
 In deployment, a "server" is a combination of one or more service surfaces; it is not automatically a protocol truth source. Implementations may merge servers, but `server/describe` must still declare `service_type`, `supported_operations`, authentication methods, limits, and profiles.
 
-The protocol term for the controlled entry point owned or delegated by a principal is **Principal Server**. Deployment differences are expressed by the deployment profile, supported operations, and whether Auth / Account, Policy, Repo, Index, Blob, Identity Resolution, and related capabilities are embedded or separated.
+The protocol term for the controlled entry point owned or delegated by a principal is **Principal Server**. Deployment differences are expressed by the deployment profile, supported operations, and whether Auth / Account, Policy, Repo, Blob, Identity Resolution, and related capabilities are embedded or separated.
 
 Common combinations follow. "Required" here means the protocol interaction needs the capability to exist; it does not mean every user must self-host it. Individuals and small teams usually self-host only one Principal Server and use public or managed infrastructure for the rest.
 
 | Concrete server | Standard deployment guidance | Typical REST namespaces | Main capability |
 | --- | --- | --- | --- |
-| Principal Server | Core user- or organization-hosted entry point | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/index`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
+| Principal Server | Core user- or organization-hosted entry point | `/server`, `/sync`, `/federation`, and optionally delegated `/repo`, `/blob`, `/authz`, `/device_messages`, `/keys` | Controlled user/org entry point, client sync, federation transactions, discovery aggregation, plaintext visibility enforcement. |
 | Identity Resolution Infrastructure | Ordinary users normally use public services or local method resolvers; high-security or isolated networks self-host the full infrastructure | `/identity`, `/server`, or method-specific resolver | DID Documents, DID / KERI logs, handle bindings, receipts, witnesses, watchers, OOBI, service endpoint discovery. |
 | Auth / Account Server | May be embedded for personal deployments; organizations usually separate it or connect SSO | Exposed through `auth_metadata`; login paths may be deployment-specific | Login, passkeys/OIDC/SSO, session grants, device pairing, account recovery; does not replace DID control. |
 | Sync / Federation Server | Usually embedded in the Principal Server for ordinary users | `/sync`, `/federation`, `/server` | Client sync, subscriptions, backfill, snapshot heads, cross-domain transactions, replay and destination-binding checks. |
-| Index / AppView Server | May be local or embedded for individuals; organizations self-host it when search and app views require it | `/index`, `/server` | Current state, query, search, inbox, notification, View projection, embedding/vector index. |
 | Directory Server | Ordinary users normally use a public directory; organizations self-host it for discovery control or isolated networks | `/directory`, `/server` | Authorized search and resolution for Spaces, Organizations, Actors, handles, Applets, and private contact discovery. |
 | Blob / Media Server | Usually embedded for individuals; may be separated for large files or high-security organizations | `/blob`, `/server` | Blob upload, authenticated download, HEAD, Range, thumbnails, previews, retention, media safety. |
 | Device / Key Server | Needed by E2EE profiles; usually embedded in the Principal Server for individuals | `/device_messages`, `/keys`, `/keys/keypackages`, `/server` | To-device messages, one-time keys, fallback keys, MLS KeyPackage claims, device lists, key-backup metadata. |
@@ -91,14 +90,14 @@ Common combinations follow. "Required" here means the protocol interaction needs
 
 Recommended deployment profiles:
 
-- `principal_server_personal`: one Principal Server; internally combines Repo + Sync/Federation + Blob + Device/Key + Authz, with optional local Index; Identity Resolver, Directory, Push, and TURN/Media may use public services by default.
-- `principal_server_organization`: an organization-delegated Principal Server; usually paired with an Auth / Account Server; add Policy Server when centralized authorization and audit are needed; Index, Blob, Directory, and Push may be split according to scale and compliance requirements.
+- `principal_server_personal`: one Principal Server; internally combines Repo + Sync/Federation + Blob + Device/Key + Authz; clients may maintain local search / projection; Identity Resolver, Directory, Push, and TURN/Media may use public services by default.
+- `principal_server_organization`: an organization-delegated Principal Server; usually paired with an Auth / Account Server; add Policy Server when centralized authorization and audit are needed; Blob, Directory, and Push may be split according to scale and compliance requirements.
 - `principal_server_secure_organization`: one or more organization-delegated Principal Servers paired with Auth / Account Server, Identity Resolution Infrastructure, Policy/Authz, and Blob/Media; public Directory, Push, or external federation ingress are optional external connectivity points only.
 - `isolated_enclave`: Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Repo/Blob + Sync/Federation + Audit/Compliance all deployed inside the trust domain.
 - `public_federation_ingress`: restricted Principal/Federation + Policy + Moderation + Directory; plaintext is not visible by default.
 - `applet_service`: Applet Server + Repo writer + Authz precheck, limited to authorized namespace and capability.
 - `mimi_provider_facade`: MIMI facade + Device/Key + Federation/Authz integration, limited to Spaces / Channels authorized by `cx.mimi.room_binding`.
-- `agent_runtime`: Agent Runtime + Repo writer + Memory/Index integration; all durable writes are signed by principal / agent DID.
+- `agent_runtime`: Agent Runtime + Repo writer + memory/search integration; all durable writes are signed by principal / agent DID.
 
 Clients MUST resolve DID Documents and Space policy first, then verify `server/describe`. Sharing a domain name does not imply shared authority or the same plaintext visibility scope.
 
@@ -120,7 +119,7 @@ Example:
   "supported_features": [
     "sync_stream",
     "snapshot",
-    "notification-index"
+    "notifications"
   ],
   "supported_reducer_profiles": [
     "cx.reducer.v1"
@@ -140,8 +139,8 @@ Example:
 
 Service type naming rules:
 
-- DID Document `service.type` uses protocol registered names such as `ContrixPrincipalServer` and `ContrixIndex`.
-- `describe` responses use lower-case runtime `service_type` values such as `principal_server`, `sync_node`, `index_node`, `appview_node`, `identity_registry`, `auth_server`, `blob_node`, `directory_service`, `device_key_service`, `authz_service`, `policy_server`, `push_gateway`, `applet_service`, `mimi_provider_facade`, `agent_runtime`, `media_service`, `sfu_service`, `turn_service`, and `moderation_service`.
+- DID Document `service.type` uses protocol registered names such as `ContrixPrincipalServer` and `ContrixDirectory`.
+- `describe` responses use lower-case runtime `service_type` values such as `principal_server`, `sync_node`, `identity_registry`, `auth_server`, `blob_node`, `directory_service`, `device_key_service`, `authz_service`, `policy_server`, `push_gateway`, `applet_service`, `mimi_provider_facade`, `agent_runtime`, `media_service`, `sfu_service`, `turn_service`, and `moderation_service`.
 - Conformance profiles use `cx.profile.*` ids such as `cx.profile.principal_server.v1`.
 - Implementations MUST keep these three naming layers distinct.
 
@@ -336,73 +335,49 @@ If a Space does not use E2EE or content-layer encryption:
 
 - clients MUST NOT submit message bodies, comment bodies, plaintext attachments, sensitive memory bodies, or reversible derived summaries to unauthorized third-party services
 - `repo/submit-commit`, `sync`, `sync/subscribe`, and `sync/backfill` must target a Principal Server delegated by the principal DID, Organization DID, or Space policy
-- Index, AppView, Directory, Push Gateway, Blob preview, and Policy preview services that receive body text, body summaries, attachment previews, full-text indexes, or reversible derived content MUST be declared in Space policy as `plaintext_visible_services`
+- Directory, Push Gateway, Blob preview, Policy preview, and any delegated search / projection service that receives body text, body summaries, attachment previews, full-text indexes, or reversible derived content MUST be declared in Space policy as `plaintext_visible_services`
 - shared Space Hosts that can see plaintext must be declared as plaintext-visible services in Space policy
 - recipient Principal Servers can see non-encrypted content delivered to their recipients; clients and Space policy MUST treat them as content visibility boundaries
 - untrusted services may receive only public content, encrypted envelopes, or opaque payloads
 
-## 6. Index Surface
+## 6. Search / Projection Semantics
 
-Indexes should expose at least the following semantics:
+Contrix v1 does not define a mandatory remote indexing or app-view service surface. Current-state lookup, View projection, inbox, notifications, and full-text search are client- or SDK-local derived capabilities by default. Clients may maintain local indexes over synchronized, authorized, and decrypted events, or provide no search feature at all.
 
-### 6.1 Describe the Index
+Implementations MAY provide delegated search / projection services through extension profiles, but those services are not core protocol roles and are not truth sources. Their output must be traceable to signed events, reducer profiles, View definitions, and causal frontiers.
 
-```text
-GET /api/v1/index/describe
-```
+### 6.1 Structured Query Shape
 
-### 6.2 Fetch Current Object State
+If a client, SDK, or optional delegated service exposes interoperable query semantics, it SHOULD reuse the Query shape in `query-schema.md`:
 
-```text
-GET /api/v1/index/entity?entity_id=<id>
-```
-
-### 6.3 Structured Query
-
-```text
-POST /api/v1/index/query
-```
-
-The request body SHOULD accept:
-
-- `entity_types` or `facets`; new profiles SHOULD prefer `facets` for capability-based selection
+- `object_types`, `morph_types`, or `facets`
 - `relation`
 - filters
 - ordering
 - cursor
 - limit
-- `view_id`, `projection`, and `renderer`; non-raw projections MUST use the core primitives `collection`, `timeline`, `graph`, `document`, or `composite`. For example, board display uses `projection="collection", renderer="board"` and returns `CollectionProjectionResponse` with group-level cursors.
+- `view_id`, `projection`, and `renderer`; non-raw projections SHOULD use the core primitives `collection`, `timeline`, `graph`, `document`, or `composite`.
 
-### 6.4 Thread / Topic Query
+### 6.2 Thread / Topic Projection
 
-```text
-GET /api/v1/index/thread?topic_id=<id>&cursor=<cursor>
-```
+Thread / topic projections are client-local presentation shapes by default.
 
-### 6.5 Inbox / Notification Query
+### 6.3 Inbox / Notification Projection
 
-```text
-GET /api/v1/index/notifications?cursor=<cursor>&state=unread
-```
+Inbox and notification projections may be derived by clients from local events, read markers, mentions, assignments, and actor-private account data.
 
-```text
-GET /api/v1/index/inbox?scope=<scope>&cursor=<cursor>
-```
+### 6.4 Full-Text Search
 
-### 6.6 Full-Text Search
+Full-text search is optional. In E2EE Spaces, default search happens locally after decryption. TEEs or organization search services are optional extensions, not core protocol services.
 
-```text
-POST /api/v1/index/search
-```
+### 6.5 Plaintext Search Boundary
 
-### 6.7 Plaintext Index Boundary
-
-Index / AppView services are derived layers, not truth sources, but they can hold highly searchable plaintext projections. Therefore:
+Search / projection results can contain body excerpts, summaries, embeddings, notification text, or other reversible derived data. Therefore:
 
 - full-text search, embeddings, notification summaries, inbox previews, and report projections for non-E2EE private Spaces may only be generated or stored by services listed in `plaintext_visible_services`
-- indexes not listed in `plaintext_visible_services` MUST receive only public content, encrypted envelopes, irreversible hashes, minimum routing metadata, or policy-allowed stripped previews
-- clients MUST verify service DID, `service_type`, supported profile, Space policy delegation, and plaintext-visible declaration before selecting an Index
-- Index output MUST NOT expand visibility; query results, notifications, search hits, and previews remain constrained by the underlying Space policy and capability rules
+- delegated search / projection services not listed in `plaintext_visible_services` MUST receive only public content, encrypted envelopes, irreversible hashes, minimum routing metadata, or policy-allowed stripped previews
+- clients MUST verify service DID, supported profile, Space policy delegation, and plaintext-visible declaration before selecting a delegated search / projection service
+- search / projection output MUST NOT expand visibility; query results, notifications, search hits, and previews remain constrained by the underlying Space policy and capability rules
 
 ## 7. Directory Surface
 
@@ -507,7 +482,7 @@ The recommended first-time join flow is:
 
 1. the user enters a handle, DID, or space link
 2. the client resolves the DID and completes handle bidirectional verification
-3. the client discovers Principal Server / identity registry / repo / sync / index / blob / authz services from DID Documents and Space policy
+3. the client discovers Principal Server / identity registry / repo / sync / blob / authz services from DID Documents and Space policy
 4. the client fetches invite / grant views relevant to the principal
 5. the client fetches space metadata and the snapshot head
 6. the client downloads the snapshot manifest and chunks
@@ -517,7 +492,7 @@ The recommended first-time join flow is:
 
 ## 12. Freshness and Multi-service Coexistence
 
-When multiple Principal Servers or indexes coexist, services SHOULD expose:
+When multiple Principal Servers or delegated search / projection extensions coexist, services SHOULD expose:
 
 - current frontier
 - snapshot frontier
@@ -528,7 +503,7 @@ Clients MAY compare these values to decide:
 
 - which service is fresher
 - whether they need to fall back to repo replay
-- whether an index is merely behind versus actually inconsistent
+- whether a delegated projection is merely behind versus actually inconsistent
 
 For identity registries, services SHOULD also expose:
 
@@ -551,14 +526,14 @@ The service surface SHOULD distinguish:
 
 If a payload is already encrypted under `policy.encryption_profile`, then:
 
-- repos / sync services / indexes MAY be unable to decrypt the body
+- repos / sync services MAY be unable to decrypt the body
 - but they SHOULD still preserve hash, cursor, causality, and target references
 
 ## 14. Initial Design Decisions
 
 The current draft recommends fixing:
 
-- a minimum principal server / identity-registry / repo / sync / index / blob / authz service surface
+- a minimum principal server / identity-registry / repo / sync / blob / authz service surface
 - HTTP/JSON paths as the default reference binding while preserving transport-equivalent semantics
 - idempotent write interfaces
 - DID writes confirmed by multi-registry / witness receipts rather than blockchains

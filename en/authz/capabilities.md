@@ -525,7 +525,7 @@ They should happen at least in:
 - client-side prechecks
 - repo write acceptance
 - Sync Service distribution
-- index query serving
+- delegated search / projection serving
 - blob content serving
 
 ## 18. Minimal Authorization Algorithm

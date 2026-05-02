@@ -12,7 +12,7 @@
 
 ### 2.1 Profile 对象
 
-每个 Actor DID 关联一个标准化的 Profile，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Index 被其他节点发现。
+每个 Actor DID 关联一个标准化的 Profile，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。
 
 ```json
 {
@@ -65,7 +65,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 
 - 仅携带发生变化的字段（delta 更新）
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
-- Index 节点 SHOULD 缓存 Profile 并在查询响应中内联展示
+- 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
 ### 2.4 Per-Space Profile 覆写
 
@@ -161,7 +161,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 
 ### 4.1 搜索接口
 
-Index 节点 SHOULD 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现：
+Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现：
 
 ```
 GET /api/v1/directory/search-users?q=alice&space_id=cx:space:...&limit=10

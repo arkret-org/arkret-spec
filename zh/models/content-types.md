@@ -302,7 +302,7 @@ Message、Card 评论摘要或 Morph 内容的 `content` 字段 MUST 使用本�
 ### 6.2 Fallback 规则
 
 - `reply_context` 是**渲染提示 (Rendering Hint)**，不是真相源。真正的回复关系由 `replies_to` Relation 决定。
-- 若客户端在本地 Index 中已有原消息，SHOULD 优先使用本地数据渲染引用块，忽略 `reply_context.excerpt`。
+- 若客户端在本地缓存/搜索索引中已有原消息，SHOULD 优先使用本地数据渲染引用块，忽略 `reply_context.excerpt`。
 - 若客户端无法获取原消息（例如跨 Space 引用或权限限制），则使用 `reply_context.excerpt` 做降级展示。
 
 ## 7. 自定义与扩展类型

@@ -41,7 +41,7 @@
       "name": "plaintext_visible_service_required_for_private_body_processing",
       "operation_id": "cx.events.submit",
       "input": {
-        "service_did": "did:web:index.example",
+        "service_did": "did:web:search.example",
         "event_kind": "cx.message.create",
         "content_class": "private_plaintext",
         "space_policy": {

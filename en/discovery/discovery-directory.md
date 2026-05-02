@@ -18,7 +18,7 @@ This document defines discovery for Space, Organization, Actor, and Applet, dire
 
 | Value | Meaning |
 | --- | --- |
-| `public` | Visible to public index and search. |
+| `public` | Visible to public directory and search. |
 | `listed` | Listed in allowed directories or organization pages but not necessarily public search. |
 | `restricted` | Visible only to holders satisfying verifiable conditions such as membership, organization claim, or invited state. |
 | `unlisted` | Not included in search; MAY be resolved by exact id/alias/invite link or parent edge when policy allows. |

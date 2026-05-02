@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Client Sync 是客户端稳定增量同步协议。它不替代 Events API / Event history backfill，而是在 Events API / sync service / index 之上提供低延迟、可恢复、可分页、可过滤的客户端视图。
+Client Sync 是客户端稳定增量同步协议。它不替代 Events API / Event history backfill，而是在 Events API / sync service 之上提供低延迟、可恢复、可分页、可过滤的客户端视图。
 
 本文定义 Contrix v1 的客户端同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
 

@@ -223,7 +223,7 @@ Applet MUST NOT write into a Space unless it has an effective grant or is explic
 ## 7. Applet API
 
 Applet API 是 Contrix 节点调用 Applet 的接口。  
-Applet 调用 Contrix 节点时使用常规 Events API / sync service / index / authz API。
+Applet 调用 Contrix 节点时使用常规 Events API / sync service / authz API。
 
 Base URL 来自 registration 的 `base_url`。
 
@@ -271,7 +271,7 @@ GET /api/v1/applet/describe
 PUT /api/v1/applet/transactions/{txn_id}
 ```
 
-Contrix sync service / index / Events API 向 Applet 推送事件批次。
+Contrix sync service / Events API 向 Applet 推送事件批次。
 
 请求示例（非完整 schema）：
 

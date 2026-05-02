@@ -67,7 +67,7 @@ Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组�
 - 外部系统镜像对象
 - 低频、弱互操作的扩展数据
 
-Morph 的可见能力可以由 Space schema / Morph profile 声明，并通过 `facets` 暴露给 Index、View、UI 或插件。实现遇到未知标准类型 SHOULD fail closed；遇到未知 Morph facet SHOULD 保留数据，但不得让未知 facet 绕过 schema、capability、policy 或 encryption 约束。
+Morph 的可见能力可以由 Space schema / Morph profile 声明，并通过 `facets` 暴露给 View、UI、本地搜索或插件。实现遇到未知标准类型 SHOULD fail closed；遇到未知 Morph facet SHOULD 保留数据，但不得让未知 facet 绕过 schema、capability、policy 或 encryption 约束。
 
 Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变写入权限、状态转换、排序、包含关系、事件有效性或跨实现 wire 行为的能力，MUST 由明确 schema/profile/event kind/capability action 定义。
 
@@ -288,7 +288,7 @@ Card 最小结构：
 }
 ```
 
-Card 在 Board/List 中的位置通过 active `contains` Relation / card position event 表达，不由 Room 决定，也不要求 Card canonical object 自带 `board_id` 或 `list_id`。Index / AppView 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
+Card 在 Board/List 中的位置通过 active `contains` Relation / card position event 表达，不由 Room 决定，也不要求 Card canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
 
 常见关系：
 

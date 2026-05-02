@@ -40,7 +40,6 @@ Bindings SHOULD map to canonical `operation_id` values. Values use `cx.<namespac
 - `cx.repo.submit_commit`, `cx.repo.get_operations`
 - `cx.sync.subscribe`, `cx.sync.backfill`, `cx.sync.client_sync`
 - `cx.federation.transaction`, `cx.federation.push_operations`, `cx.federation.pull_operations`
-- `cx.index.query`, `cx.index.space_hierarchy`
 - `cx.directory.search`, `cx.directory.resolve`
 - `cx.blob.upload`, `cx.blob.get`
 - `cx.push.register_device`, `cx.push.notify`

@@ -195,7 +195,7 @@ Room membership 是 Space 内的子范围授权。它不替代 Space membership�
 
 为避免正文与引用关系脑裂，消息正文 SHOULD 使用结构化 AST 或带 DID/object ref 的 Markdown 链接。
 
-客户端提交或编辑消息时 MAY 不提交独立 `mentions` Relation。Index / Reducer 可以从 Message content AST 派生 mention 关系和通知，但派生关系不得扩大权限。
+客户端提交或编辑消息时 MAY 不提交独立 `mentions` Relation。客户端 reducer 可以从 Message content AST 派生 mention 关系和通知，但派生关系不得扩大权限。
 
 ## 8. 编辑、撤回、Reaction
 

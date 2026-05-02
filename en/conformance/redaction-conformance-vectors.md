@@ -89,7 +89,7 @@ Input timeline:
 
 Expected:
 
-- index keeps event position in timeline.
+- projection keeps event position in timeline.
 - redacted event body is hidden, but redaction evidence remains.
 - archived/frozen content keeps timeline order and does not become fully deleted.
 

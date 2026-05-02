@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文定义 Contrix Index / View / Inbox 使用的标准查询语法。查询语法必须可序列化、可验证、可分页，并且不能绕过 Space policy、Room membership、E2EE 可见性与 capability。
+本文定义 Contrix View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Space policy、Room membership、E2EE 可见性与 capability。
 
 ## 2. Query 对象
 
@@ -47,7 +47,7 @@
 - `order_by`: OPTIONAL，排序规则。
 - `projection`: OPTIONAL，返回字段选择。
 - `cursor`: OPTIONAL，不透明分页游标。
-- `limit`: OPTIONAL，默认 50，服务 MAY 限制最大值。
+- `limit`: OPTIONAL，默认 50，执行方 MAY 限制最大值。
 - `consistency`: OPTIONAL，读己之所写等待条件。
 
 ## 3. Filter
@@ -94,7 +94,7 @@
 - `or`
 - `not`
 
-服务 MAY 限制嵌套深度，防止高成本查询。
+执行方 MAY 限制嵌套深度，防止高成本查询。
 
 ## 5. Relation Query
 
@@ -128,7 +128,7 @@ Card 与 Room 的 relation 查询必须遵守独立授权：
 - Card 可见不代表 Room timeline 可读。
 - Room 可读不代表 Card 可写。
 
-Index MUST reject 含糊或互相矛盾的 Relation Query。
+查询执行方 MUST reject 含糊或互相矛盾的 Relation Query。
 
 ## 6. Sort
 
@@ -172,7 +172,7 @@ Projection 只减少返回字段，不提升权限。
 
 ## 9. 安全规则
 
-Index MUST:
+任何对外暴露可互操作 query / search / projection 语义的执行方 MUST:
 
 - 对 query 做 schema validation。
 - 对 Space、Room、对象和字段做 authorization filtering。
@@ -180,4 +180,4 @@ Index MUST:
 - 对 Card-linked Room 做独立 Room membership / history visibility 检查。
 - 对高成本 full_text / relation expansion 限流。
 - 不泄露不可见对象是否存在。
-- 在 E2EE Space 中不得对密文正文做服务器全文搜索。
+- 在 E2EE Space 中不得对密文正文做服务器全文搜索；客户端本地搜索只能覆盖本设备已解密且当前 actor 仍有权读取的内容。

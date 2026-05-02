@@ -35,12 +35,12 @@ When learning the protocol for the first time, we recommend this sequence:
 - Space is the boundary for replication, authorization, schema, policy, membership, history visibility, and E2EE.
 - View is a projection definition and does not hold truth data.
 
-### 3.3 Principal Server / Repo / Sync / Index
+### 3.3 Principal Server / Repo / Sync / Projection
 
 - Repo is a verifiable append-only publication log, not a server.
 - Principal Server provides `/repo/*` APIs for accessing or hosting repos.
 - Principal Server is the controlled or delegated service boundary; Sync Service is its Space sync capability.
-- Index is the query/materialization layer, not the source of truth.
+- Search, inbox, notifications, and View projection are client-local derived layers by default, not sources of truth.
 
 ### 3.4 Discoverability / Join Rule / History Visibility
 
@@ -108,7 +108,7 @@ When learning the protocol for the first time, we recommend this sequence:
 | --- | --- |
 | `sync/operations-sync.md` | Repo-first publication, operations, snapshots, and conflict resolution. |
 | `sync/client-sync.md` | Client incremental sync, timeline, state_after, to_device behavior. |
-| `sync/service-surface.md` | Minimal service surface and concrete service composition: principal server, identity, repo, sync, index, directory, blob, authz, device/key, push, applet, agent, media, moderation. |
+| `sync/service-surface.md` | Minimal service surface and concrete service composition: principal server, identity, repo, sync, directory, blob, authz, device/key, push, applet, agent, media, moderation. |
 | `sync/service-http-binding.md` | HTTP/JSON binding entrypoints, request/response, standard errors. |
 | `sync/service-api-schema.md` | Core request/response schema. |
 | `sync/api-conventions.md` | Error handling, pagination, idempotency, feature discovery. |
@@ -160,7 +160,7 @@ When learning the protocol for the first time, we recommend this sequence:
 | `conformance/state-resolution-conformance-vectors.md` | Concurrency and state-resolution vectors for membership/capability/governance. |
 | `conformance/redaction-conformance-vectors.md` | Redaction constraints and visibility vectors. |
 | `conformance/capability-conformance-vectors.md` | Delegated capability, revoke rollback, and approval constraints. |
-| `conformance/query-schema.md` | Index / View / Inbox query syntax. |
+| `conformance/query-schema.md` | Reusable View / Search / Inbox query shape. |
 | `conformance/snapshot-schema.md` | Snapshot manifest, chunking, signatures, encrypted envelopes. |
 | `conformance/conformance-suite.md` | Interoperability suite structure and vector prioritization. |
 | `conformance/conformance-profiles.md` | Implementation profiles and conformance scope. |

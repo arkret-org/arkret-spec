@@ -56,7 +56,7 @@ Notification 是派生 projection。
 ## 4. Query
 
 ```text
-GET /api/v1/index/notifications?state=unread&cursor=<cursor>
+客户端本地 notification query: state=unread, cursor=<cursor>
 ```
 
 请求字段：

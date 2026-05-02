@@ -39,8 +39,8 @@ Non-E2EE / non-content-encrypted private Spaces MUST explicitly declare services
         "visibility": "private_plaintext"
       },
       {
-        "service_did": "did:web:index.acme.example",
-        "service_type": "index_node",
+        "service_did": "did:web:search.acme.example",
+        "service_type": "delegated_search",
         "purposes": ["search", "notification", "preview"],
         "visibility": "derived_plaintext"
       }

@@ -23,7 +23,6 @@ The initial draft distinguishes:
 - `repo`
 - `principal_server`
 - `sync_service`
-- `index`
 - `blob store`
 
 ### 2.1 Repo
@@ -45,11 +44,7 @@ Implementations MAY store a repo in a database, object storage, append-only file
 
 A Principal Server is the service boundary controlled or explicitly delegated by a principal; the sync service is its space incremental sync capability. It is not an independent third-party server role and must not receive plaintext private content unless delegated by the relevant principal or Space policy. It MUST NOT write non-encrypted private bodies, attachment previews, full-text indexes, notification summaries, embeddings, or reversible derived summaries into derived services absent from `plaintext_visible_services`.
 
-### 2.3 Index
-
-An index is the materialization and query layer.
-
-### 2.4 Blob Store
+### 2.3 Blob Store
 
 The blob store is responsible for attachments and large content.
 
@@ -145,7 +140,7 @@ The draft uses:
 - `cx.space.update`
 - `cx.space.archive` (archive: Space enters read-only state, all writes MUST be rejected)
 - `cx.space.freeze` (temporary freeze, triggered by actor with `space.admin` capability)
-- `cx.space.destroy` (mark for recycling, Sync Service and Index clean up per retention policy)
+- `cx.space.destroy` (mark for recycling; Sync Service and clients clean up per retention policy)
 - `cx.space.discovery` (Space discoverability policy state event)
 - `cx.organization.discovery` (Organization discoverability policy)
 - `cx.schema.define`
@@ -267,7 +262,7 @@ Ordered operations MUST NOT be encoded as generic `cx.entity.update` / `cx.relat
 
 ## 9. Validation Flow
 
-Any repo, sync service, or index receiving an operation should validate at least:
+Any repo or sync service receiving an operation should validate at least:
 
 1. the signature is valid
 2. the actor DID resolves
@@ -289,16 +284,16 @@ Snapshots are acceleration layers, not truth sources.
     "cx:operation:01JS0OQ000000000000000000"
   ],
   "generated_at": "2026-04-22T08:40:00Z",
-  "generator": "did:web:index.example.com",
+  "generator": "did:web:server.example.com",
   "reducer_version": "0.1.0",
   "chunks": [
     {
       "kind": "items",
-      "url": "https://index.example.com/cx/snapshots/01/items.json"
+      "url": "https://server.example.com/cx/snapshots/01/items.json"
     },
     {
       "kind": "messages",
-      "url": "https://index.example.com/cx/snapshots/01/messages.json"
+      "url": "https://server.example.com/cx/snapshots/01/messages.json"
     }
   ]
 }
@@ -309,7 +304,7 @@ The snapshot manifest MUST contain the following trust-chain fields:
 - `schema_profile_refs`
 - `chunk_digests` (SHA-256 digest of each chunk)
 - `state_hash` (Merkle Root of the full state within the snapshot coverage)
-- `signed_by` (signer DID, should be Space Owner or trusted Index node)
+- `signed_by` (signer DID, should be Space Owner or trusted snapshot issuer)
 - `generator_signature` (cryptographic signature over `state_hash` + `chunk_digests`)
 
 Before adopting a snapshot, clients MUST verify:
@@ -543,11 +538,11 @@ ACLs are not the same thing as ciphertext protection, and sync services should n
 The first version should therefore distinguish:
 
 - routable metadata: `space_id`, `target_ref`, `kind`, `causal`
-- cleartext indexable metadata: light workflow fields such as `status`, `labels`, `priority`, and `due_at`; if such fields expose private content or sensitive organization state, the receiving Index MUST be listed in `plaintext_visible_services`
+- cleartext metadata useful for local projection: light workflow fields such as `status`, `labels`, `priority`, and `due_at`; if such fields expose private content or sensitive organization state, any delegated search / projection service receiving them MUST be listed in `plaintext_visible_services`
 - opaque encrypted payload: message bodies, attachment contents, sensitive memory bodies
 
 Implementations MAY encrypt content using the envelope format named by `policy.encryption_profile`.  
-Even when a sync service or index cannot decrypt the payload, it SHOULD still be able to forward it, deduplicate it, and preserve causal structure.
+Even when a sync service cannot decrypt the payload, it SHOULD still be able to forward it, deduplicate it, and preserve causal structure.
 
 ## 22. Blob Sync
 
@@ -577,7 +572,7 @@ The current draft recommends fixing:
 - invite / grant / snapshot as the main space-bootstrap flow
 - commit/operation retries as idempotent by design
 - authorization validity converging under the same reducer ordering
-- encrypted payloads being forwardable through non-decrypting sync services and indexes
+- encrypted payloads being forwardable through non-decrypting sync services
 - recalls as redaction/tombstone semantics
 - convergence through fixed reducer rules
 
@@ -590,6 +585,6 @@ The following wire-level items are defined in v1-related documents and are not r
 - Snapshot manifest, chunk digest, `state_hash`, and signing rules: `snapshot-schema.md`.
 - Encrypted payload envelope schema: `data-structures.md`, `snapshot-schema.md`, `encryption-and-audit.md`, and `encoding-conformance-vectors.md`.
 - Read marker private state, sync surface, and notification derivation: `read-notification-schema.md`, `read-receipts.md`, and `client-preferences.md`.
-- Sync Service / Index wire-level interfaces: `service-surface.md`, `service-http-binding.md`, and `query-schema.md`; transport equivalence: `transport-bindings.md`.
+- Sync Service wire-level interfaces: `service-surface.md`, `service-http-binding.md`, and `query-schema.md`; transport equivalence: `transport-bindings.md`.
 
 Implementations that lack any of the above normative dependencies MUST declare non-support for the corresponding profile in feature discovery and MUST NOT claim full Contrix v1 sync support.

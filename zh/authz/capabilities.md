@@ -266,7 +266,6 @@ Contrix v1 支持以下 `kind`：
 ### 5.6 服务动作
 
 - `cx.sync.*`
-- `cx.index.*`
 - `cx.blob.*`
 
 ### 5.7 人类界面与个人状态动作
@@ -609,7 +608,7 @@ Contrix v1 至少区分：
 - client 预检查
 - Events API 接收写入时
 - Sync Service 分发前
-- index 返回查询前
+- 受托 search / projection 服务返回结果前
 - blob store 下发内容前
 
 ## 18. 最小权限判定算法与性能优化
@@ -640,15 +639,14 @@ Contrix v1 至少区分：
 
 在“聊天消息收发”或“卡片状态拖拽”等高频交互场景下，每一步操作都执行上述 12 步深层推演将导致极其严重的性能瓶颈。因此，声称支持以下 profile 的写入接收方和授权过滤方 MUST 实现 **Capability 快照缓存 (Authz Snapshot Bitmap)** 或语义等价的预计算 fast path：
 
-- `cx.profile.chat_only_client.v1` 相关的 Principal Server / Sync / Index 写入与查询面
-- `cx.profile.kanban_only_client.v1` 相关的 Principal Server / Sync / Index 写入与查询面
-- `cx.profile.full_client.v1` 依赖的 Principal Server / Sync / Index 写入与查询面
+- `cx.profile.chat_only_client.v1` 相关的 Principal Server / Sync 写入与分发面
+- `cx.profile.kanban_only_client.v1` 相关的 Principal Server / Sync 写入与分发面
+- `cx.profile.full_client.v1` 依赖的 Principal Server / Sync 写入与分发面
 - `cx.profile.principal_server.v1`
-- `cx.profile.index_node.v1`
 
 Fast path 规则：
 
-1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或 Index 节点针对活跃 Actor 预计算出针对特定目标（如当前 Room、Board、List 或 Card）的有效权限位图 (Permission Bitmap)。
+1. **预计算**：基于当前特定的因果前沿 (Causal Frontier)，Sync Service 或受托 projection executor 可以针对活跃 Actor 预计算出针对特定目标（如当前 Room、Board、List 或 Card）的有效权限位图 (Permission Bitmap)。
 2. **缓存绑定**：缓存 key MUST 至少绑定 `space_id`、actor DID / device 或 session grant、resource selector、action family、membership frontier、grant / revoke frontier、claim status frontier、policy component root 和 reducer profile。
 3. **快速命中**：对于后续提交的纯业务 Operation（如 `cx.message.create`、`cx.reaction.add`、`cx.card.update`、`cx.card.move`、`cx.card.reorder`），只要绑定 frontier 未变化且缓存未过期，节点 MAY 直接查询 Bitmap 缓存，将 O(N) 的深层权限推演降维为 O(1)。
 4. **失效**：当发生 `cx.capability.*`、相关 membership、policy component、claim status、approval proof、DID key state、accountable actor controller 或 delegation chain 变化时，受影响缓存 MUST 立即标记 stale。stale cache 不得继续作出新的 allow 决策。

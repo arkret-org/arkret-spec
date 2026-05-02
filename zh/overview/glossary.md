@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | Contrix | 协议名称 | 面向去中心化协作对象、会话、任务、看板、知识记忆和 agent 协作的协议族。 |
 | Principal | 主体 | 协议中的稳定身份主体，通常由 DID 表示。人、组织、agent、Applet 都可以是 principal。 |
-| Organization | 组织 | 一类 principal，通常由组织 DID 表示，可签发成员资格/角色 credential、控制服务 DID、托管 Principal Server / Index / Applet、发布 policy 或拥有 Space。Organization 不是 Space；它是治理与身份主体。 |
+| Organization | 组织 | 一类 principal，通常由组织 DID 表示，可签发成员资格/角色 credential、控制服务 DID、托管 Principal Server / Applet、发布 policy 或拥有 Space。Organization 不是 Space；它是治理与身份主体。 |
 | Organization Governance | 组织治理 | Organization DID 的控制策略，包括治理密钥、阈值、多签、服务委派、恢复和所有权转移规则。 |
 | Actor | 行为者 | 在 Space 中执行动作、产生 Event、拥有 profile 和 membership 的主体视图。Actor 通常映射到 principal，但可包含 ghost actor、bot actor 或 accountable actor。 |
 | Space | 协作空间 | 复制、授权、schema、policy、membership 和 history visibility 的边界。它替代 Matrix room 作为 Contrix 的协作边界，但不是唯一数据模型。 |
@@ -27,10 +27,10 @@
 | Morph | 开放对象 | 可由 schema / profile 扩展类型和字段的开放对象；`facets` 只暴露已声明能力的 hint / 查询标签。Morph 用于 task 之外的新类型、实验类型、集成对象和领域对象，不替代 Room/Board/List/Card/Message 的主语义。 |
 | Facet | 能力提示 | Space schema / Morph profile 声明能力后的可查询标签或展示提示，例如 assignable、schedulable、replyable、documentable。Facet 不是对象身份，也不是授权、状态机、reducer 或 wire 语义的来源。 |
 | Relation | 关系 | Room / Board / List / Card / Message / Morph / Actor / Space 之间的一等连接对象，用于表达包含、回复、依赖、引用、分配、提及、父子、附件、Card linked Room 等语义。 |
-| Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 Events API、sync、index 和 reducer。 |
+| Event | 事件 | 协作事实和审计根。Event 由 actor/device/service 签名，进入 Events API、sync 和 reducer。 |
 | State Event | 状态事件 | 带 `state_key` 的 Event，当前状态由 `(type, state_key)` 归约得到，例如 membership、policy、schema、view definition。 |
 | View | 视图 | 对标准对象 / Morph / Relation / Event 的投影定义，例如 kanban、table、calendar、chat、thread、graph、review queue。View 拥有自己的定义真相（query、filter、sort、renderer、layout、visible fields），但不拥有被投影对象的协作事实。 |
-| Projection | 投影 | Index 或客户端根据 View / query / reducer 从 canonical Event 集合派生出的展示或查询结果。 |
+| Projection | 投影 | 客户端、SDK 或可选受托服务根据 View / query / reducer 从 canonical Event 集合派生出的展示或查询结果。 |
 | Schema | 模式 | 对标准对象、Morph、Relation、Event、View 或 service payload 的结构约束。 |
 | Policy | 策略 | Space 或服务级治理规则，例如加入规则、历史可见性、媒体规则、审核策略、policy server 配置。 |
 | Moderation Policy | 审核策略 | Space 或 Organization 发布的黑名单、允许列表、过滤、隔离、审核队列和上诉规则。它是 deny/quarantine 层，不创建 capability。 |
@@ -124,11 +124,9 @@
 | --- | --- | --- |
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID method resolver、registry、witness、watcher、OOBI discovery 或 method-specific verifier 的统称。它证明 DID 控制历史、key state 和服务委托，不决定某个 DID 是否能登录组织或访问组织数据。`did:key` 可以只需要本地 resolver；`did:keri` 通常需要 KERI log、witness、watcher 或 OOBI。 |
 | Witness | 见证节点 | 对 DID log、key rotation、重要状态变更进行外部见证的服务或主体。 |
-| Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 Events API、sync、index、blob、push、policy 等能力；`service_type` 应声明为 `principal_server`。 |
+| Principal Server | 主体服务器 | 由 principal 控制或通过 DID / Space policy 明确委托的服务边界，可承载 Events API、sync、blob、push、policy 等能力；`service_type` 应声明为 `principal_server`。 |
 | Auth / Account Server | 认证/账户服务器 | 处理 passkey、OIDC、SSO、设备配对、session grant、账户恢复和 soft logout 的服务。它证明服务账户登录并绑定到 DID / device，不直接证明 DID 控制权，也不必须与 DID resolver 同源部署。 |
 | Sync Service | 同步服务 | Principal Server 上的 Space 增量同步能力，负责订阅、回补、去重、临时信令和受控分发；它不是独立第三方服务器角色，也不是真相源。 |
-| Index | 索引 | 将授权事件物化为查询结果、当前态、搜索结果和视图投影的派生层。 |
-| AppView | 应用视图服务 | 面向特定产品或 UI 的 Index / projection 服务。 |
 | Plaintext-visible Service | 明文可见服务 | 被 Space policy、principal DID 或组织 DID 明确委托，允许接收或保存非 E2EE 私有正文、附件预览、全文索引、通知摘要、embedding 或可逆派生摘要的服务。 |
 | Blob Store | 大对象存储 | 存储附件、媒体、snapshot chunk 或大对象的服务，地址可多源，校验基于内容哈希。 |
 | Device / Key Server | 设备与密钥服务器 | 提供 to-device message、one-time key、fallback key、device list 和 key backup metadata 的服务；设备信任仍来自签名链。 |
@@ -146,7 +144,7 @@
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Federation | 联邦 | 不同域、组织或服务节点之间交换 Event、Operation、state、backfill、join/invite 的协议层。 |
-| Service DID | 服务 DID | Principal Server、Index、Applet、Policy Server 等服务使用的 DID。 |
+| Service DID | 服务 DID | Principal Server、Directory、Applet、Policy Server 等服务使用的 DID。 |
 | Federation Transaction | 联邦交易 | 跨服务批量交换 PDU/EDU 等消息的传输单元；Contrix 中对应 signed transaction envelope。 |
 | Cross-domain Join | 跨域加入 | Actor 通过一个服务加入另一个服务或组织托管的 Space。 |
 | Server ACL | 服务级访问控制 | 对联邦服务、域、IP、service DID 或 Principal Server 的接入限制。 |
@@ -181,7 +179,7 @@
 | MLS Epoch | MLS 轮次 | MLS group state 的版本。成员变更、密钥更新会推进 epoch。 |
 | KeyPackage | MLS 加入材料 | 设备发布的 MLS 加入包，必须绑定 DID 和 device identity。 |
 | Space Key | 空间密钥 | MLS group 的 epoch 密钥材料，用于加密/解密 Space 内消息。通过 `cx.space_key.share` / `cx.space_key.withheld` 在设备间分发。 |
-| E2EE | 端到端加密 | 非授权服务器和 index 默认无法解密内容的加密模式。 |
+| E2EE | 端到端加密 | 非授权服务器和受托服务默认无法解密内容的加密模式。 |
 | HPKE | 混合公钥加密 | 用于设备间加密、secret wrapping 或引导加密会话的机制。 |
 
 ## 10. 媒体、通知与临时事件
@@ -239,7 +237,7 @@
 | Locked | 锁定 | 安全风险导致临时禁止登录或写入，但不删除数据。 |
 | Suspended | 暂停 | 治理或合规原因导致写入、公开展示或联邦行为受限。 |
 | Deactivated | 已停用 | 账户被用户或管理员停用，session 和 device delegation 被撤销。 |
-| Erasure Pending | 擦除中 | 正在执行数据最小化、Blob 删除、index 删除或合规保留处理。 |
+| Erasure Pending | 擦除中 | 正在执行数据最小化、Blob 删除、本地/受托派生内容删除或合规保留处理。 |
 | Session Revocation | 会话撤销 | 撤销 access token、refresh token、device session 或 Applet delegated session。 |
 | Legal Hold | 法律保留 | 因合规或法律要求暂缓物理删除某些审计或媒体数据。 |
 
@@ -255,7 +253,7 @@
 | Discoverability 与 History Visibility | Discoverability 不授予历史读取；公开可搜索的 Space 不等于 `world_readable`。 |
 | 标准对象 / Morph 与 Event | 标准对象和 Morph 是协作对象；Event 是事实和变更记录。 |
 | Relation 与 View | Relation 是一等语义边；View 是投影定义。对象之间的包含、依赖、回复、关联等事实必须由 Relation 表达，不能只存在于 View cache 或 layout 中。 |
-| Event Store 与 Index | Event Store 保存可审计 Event；Index 保存派生查询结果。 |
+| Event Store 与 Projection | Event Store 保存可审计 Event；Projection 是从 Event / reducer / View definition 派生的查询或展示结果。 |
 | Events API 与 Principal Server | Events API 是 Principal Server 的 Event 提交、读取、回填和 frontier 查询服务面；它不是单独的协议真相源。 |
 | Sync Service 与 Authority | Sync Service 只提供受控同步；授权仍由签名、capability、policy 和 reducer 验证。 |
 | Capability 与 Namespace | Capability 授权动作；Namespace 只说明 Applet 负责哪个名称范围。 |
@@ -274,7 +272,7 @@
 2. Organization 是治理 Principal；Space 是协作边界。组织可以拥有、托管或背书多个 Space，但 Organization DID、Space owner、Principal Server 运营方和成员列表是四个独立概念。实现 MUST NOT 仅凭域名、服务器托管方或 Space membership 推断组织归属。
 3. 标准对象和 Morph 是当前协作对象；Event 是事实与审计输入；View 是投影定义，Projection 是派生展示。View 的定义本身可以是 canonical state，但被投影对象的状态、位置、关系和权限必须回到对象、Relation、Policy 和 Event。实现 MUST NOT 只保存当前对象而丢弃可验证事件链，也 MUST NOT 把 View 的可见字段当作权限裁剪。
 4. Relation 是协议内的一等语义边；正文中的链接、mention、引用和回复若影响授权、通知、检索或审计，MUST 落成结构化 Relation 或 Event 字段。客户端正文扫描只能作为输入辅助。
-5. Event Envelope 是 canonical fact；Principal Server 是服务边界；Index 是派生查询层。三者可以同机部署，但 service DID、`service_type`、capability、plaintext visibility 和 conformance profile MUST 可区分。
+5. Event Envelope 是 canonical fact；Principal Server 是服务边界；搜索、inbox、notification 和 View projection 是客户端本地或可选受托派生层。受托服务若接收私有明文，service DID、capability、plaintext visibility 和 conformance profile MUST 可区分。
 6. Capability 授予动作；Policy 限制、隔离或要求审查；Moderation Policy 不授予能力。任何 `allow` 结果都必须先满足 capability，再满足 policy、membership、device trust 和 schema 约束。
 7. Invite 是加入引导，不自动授予完整权限。接受邀请后，只有被引用并满足约束的 grant 才进入有效授权集合；过期、撤销或认领失败的 invite MUST fail closed。
 8. Handle、Claim、Attestation 和 VC 只能证明属性或绑定。权限判定若依赖这些属性，MUST 验证 issuer、audience、有效期、撤销状态和选择性披露范围。

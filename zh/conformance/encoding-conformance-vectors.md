@@ -106,7 +106,7 @@ cx.vector.encoding.reject_noncanonical_numbers.v1
 
 以下输入 MUST 被拒绝为签名/hash 输入：
 
-```json
+```text
 [
   {"n": NaN},
   {"n": Infinity},
@@ -119,10 +119,33 @@ cx.vector.encoding.reject_noncanonical_numbers.v1
 判定规则：
 
 - NaN / Infinity / -Infinity MUST reject。
-- 若 JSON parser 接收 `1.0` 或 `1e0`，canonicalizer MUST 将其归一到协议允许的唯一 number 表示，或按 profile reject。
+- `-0` MUST reject。
+- 若 JSON parser 接收 `1.0` 或 `1e0`，canonicalizer MUST 将其归一到 RFC 8785 / JCS 等价的唯一 number 表示；无法保证精确往返或唯一 decimal serialization 时 MUST reject。
 - 签名验证 MUST 在 canonicalization 成功后才执行。
 
-实现报告 MUST 明确其 number profile：`integer_only`、`decimal_canonical` 或 `reject_ambiguous_decimal`。
+实现报告 MUST 明确其 number profile。声明任何包含 `confidence`、`progress` 或其他 JSON number 字段的 profile 时，必须支持 `decimal_canonical`；否则只能声明不支持这些 profile 或拒绝相关事件。
+
+## 5.1 Vector: Reject Malformed JSON
+
+向量名称：
+
+```text
+cx.vector.encoding.reject_malformed_json.v1
+```
+
+以下输入 MUST 在 canonicalization 前或 canonicalization 阶段失败，不能进入签名验证、hash 计算或 reducer：
+
+- malformed UTF-8。
+- JSON object duplicate key，例如同一层同时出现两个 `"event_id"`。
+- lone surrogate 或无法唯一解释的转义字符串。
+- 非标准 JSON literal，例如 `NaN`、`Infinity`。
+- parser 接收但 canonicalizer 无法唯一序列化的 number。
+
+判定规则：
+
+- duplicate key 不得按 parser 默认行为静默覆盖。
+- malformed string 不得被替换成 U+FFFD 后继续签名。
+- reject 结果 MUST 可审计，错误码 SHOULD 使用 `schema_violation`、`invalid_canonical_json` 或 `invalid_encoding`。
 
 ## 6. Vector: Event Digest
 
@@ -167,7 +190,7 @@ sha256:ccc24849977b4554ec5b77a988978631f25587436ea4a5367a1d80e156b2d6ee
 
 - event digest / proof `payload_hash` MUST 从 redaction 前、去除 `proofs` 后的 canonical event bytes 派生；`event_id` 是稳定 `cx:event:*` typed ID，不替代 digest。
 - 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
-- 同一事件在不同 Events API、Sync Service 或 Index 上 MUST 得到相同 digest。
+- 同一事件在不同 Events API 或 Sync Service 上 MUST 得到相同 digest。
 
 ## 7. Vector: Event Batch Receipt Digest
 
@@ -345,22 +368,23 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 
 - digest 输入 MUST 为 `canonical_json(cleartext_metadata) || ciphertext_bytes`。
 - 实现 MUST NOT hash 明文 payload。
-- 实现 MUST NOT 省略路由和解密所需的 cleartext metadata，否则 sync service / index 无法安全去重和审计密文 envelope。
+- 实现 MUST NOT 省略路由和解密所需的 cleartext metadata，否则 sync service 无法安全去重和审计密文 envelope。
 
 ## 12. 覆盖矩阵
 
-| 向量 | Minimal Client | Full Client | E2EE Client | Events API | Principal Server | Index Node |
-| --- | --- | --- | --- | --- | --- | --- |
-| `cx.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.reject_noncanonical_numbers.v1` | MUST | MUST | MUST | MUST | SHOULD | MUST |
-| `cx.vector.encoding.event_digest.v1` | SHOULD | MUST | MUST | MUST | SHOULD | MUST |
-| `cx.vector.encoding.event_batch_receipt_digest.v1` | MAY | SHOULD | SHOULD | SHOULD | MAY | MAY |
-| `cx.vector.encoding.signature_binding_payload.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.crypto.ed25519_detached_jws.v1` | MUST | MUST | MUST | MUST | MUST | MUST |
-| `cx.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD | MUST |
-| `cx.vector.encoding.cursor_opaque.v1` | MUST | MUST | MUST | MAY | SHOULD | MUST |
-| `cx.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST | SHOULD |
+| 向量 | Minimal Client | Full Client | E2EE Client | Events API | Principal Server |
+| --- | --- | --- | --- | --- | --- |
+| `cx.vector.encoding.canonical_json.basic.v1` | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.canonical_json.nested.v1` | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.reject_noncanonical_numbers.v1` | MUST | MUST | MUST | MUST | SHOULD |
+| `cx.vector.encoding.reject_malformed_json.v1` | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.event_digest.v1` | SHOULD | MUST | MUST | MUST | SHOULD |
+| `cx.vector.encoding.event_batch_receipt_digest.v1` | MAY | SHOULD | SHOULD | SHOULD | MAY |
+| `cx.vector.encoding.signature_binding_payload.v1` | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.crypto.ed25519_detached_jws.v1` | MUST | MUST | MUST | MUST | MUST |
+| `cx.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD |
+| `cx.vector.encoding.cursor_opaque.v1` | MUST | MUST | MUST | MAY | SHOULD |
+| `cx.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST |
 
 ## 13. Crypto Fixture 要求
 
@@ -375,6 +399,5 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 
 - key rotation 后的 signature verification
 - redaction 前后 event digest 验证
-- malformed UTF-8 / duplicate key parser rejection
 
 测试私钥只能用于公开测试向量，不得被任何生产实现信任。生产 profile MUST 拒绝测试 DID、测试 key id 或测试 trust domain。

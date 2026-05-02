@@ -87,8 +87,8 @@ PBKDF2 只允许作为 legacy / constrained-platform 降级 profile；服务和�
 
 ### 5.2 脱敏投递工作流
 1. **Token 注册**：客户端向 `Push Gateway` 注册自己的设备 `Push Token`，并将其与自己的 DID 建立匿名映射。
-2. **事件触发**：当受信任的 Index 节点或 Sync Service 侦测到该用户的 `@mention` 或紧急任务分配时，它无法也无权解密内容。
-3. **脱敏唤醒 (Blind Wakeup)**：Index 向 `Push Gateway` 发出一个极其简略的脱敏触发信号，例如：
+2. **事件触发**：当 Sync Service 或受托 notification service 侦测到该用户的 `@mention` 或紧急任务分配时，它无法也无权解密内容。
+3. **脱敏唤醒 (Blind Wakeup)**：该服务向 `Push Gateway` 发出一个极其简略的脱敏触发信号，例如：
    ```json
    {
      "target_did": "did:web:alice.com",

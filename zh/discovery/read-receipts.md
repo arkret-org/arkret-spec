@@ -68,11 +68,11 @@ Read Marker 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 ## 4. 未读计数 (Unread Notification Count)
 
-未读计数是由 **Index 节点** 维护的派生数据。
+未读计数是客户端本地或受托 notification service 维护的派生数据。
 
-1. Index 节点监听用户的 account data 拿到最新的 `cx.read.marker`。
-2. Index 节点计算 `cx.read.marker` 指向的 `event_id` 之后，该 Room 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
-3. 客户端通过 `GET /api/v1/index/notifications` 接口直接获取算好的未读数。
+1. 客户端同步用户的 account data 拿到最新的 `cx.read.marker`。
+2. 客户端计算 `cx.read.marker` 指向的 `event_id` 之后，该 Room 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
+3. 若部署使用受托 notification service，该服务必须按调用者权限和 `plaintext_visible_services` 规则生成最小化结果。
 
 ## 5. Thread (子线程) 的已读隔离
 

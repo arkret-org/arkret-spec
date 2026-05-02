@@ -93,7 +93,7 @@
 
 ### 3.5 个人屏蔽与过滤 (Personal Blocklist)
 
-用户可以在私有 account data 中保存个人 blocklist。该数据只影响用户自己的客户端、私有 Index、通知规则和联系请求处理，不改变 Space 的共享事实。
+用户可以在私有 account data 中保存个人 blocklist。该数据只影响用户自己的客户端、本地搜索/投影、通知规则和联系请求处理，不改变 Space 的共享事实。
 
 **Key:** `cx.account.blocklist`
 
@@ -144,11 +144,11 @@ Rules:
 - Clients MUST NOT publish the blocklist to public Space state or directory services.
 - Blocking an organization or domain MUST be evaluated through verified DID / claim bindings when possible; clients SHOULD warn when only a weak string match is available.
 
-## 4. 与 Index 节点的交互
+## 4. 与本地投影的交互
 
-虽然 account data 对外不公开，但用户的私有 Index 节点（运行在受控环境中，或可信端侧节点）会拉取并解密这些数据，并合并到查询结果中。
+虽然 account data 对外不公开，但用户自己的客户端或可信端侧节点会拉取并解密这些数据，并合并到本地查询结果中。
 
-例如：当调用 `POST /api/v1/index/query` 以 `object_types=["space"]` 查询加入的 Space 列表时，私有 Index 会将 `cx.tags.space.*` 数据 Join 进去，客户端可以直接得到带私有标签的 Space 列表。该接口的字段级 schema 见 `cx.index.query`。
+例如：当客户端以 `object_types=["space"]` 查询加入的 Space 列表时，本地 projection 可以将 `cx.tags.space.*` 数据 Join 进去，得到带私有标签的 Space 列表。
 
 ## 5. 安全与隐私
 

@@ -126,7 +126,7 @@ Space 内 membership 不自动变成 ban；是否移除由 Space policy 决定�
 
 - canonical event log：通常只能 redaction/minimization，不能破坏审计 hash 链。
 - blob bytes：可按 retention/legal hold 删除。
-- index projection：可删除或重新物化。
+- 本地/受托 projection：可删除或重新物化。
 - account private state：可删除。
 - policy/audit record：按合规周期保留最小字段。
 

@@ -6,16 +6,21 @@
 
 ## 2. Canonical JSON
 
+Contrix canonical JSON 是签名、hash、event digest、receipt digest、snapshot commitment 和 cursor 内部状态的唯一编码 profile。实现 MAY 复用 RFC 8785 / JCS 类库，但最终输出必须满足本节的收窄规则和 `encoding-conformance-vectors.md` 的测试向量。
+
 Contrix canonical JSON MUST 使用：
 
-- UTF-8
-- object key 按 Unicode code point 升序排序
-- 无 insignificant whitespace
-- number 不得使用 NaN / Infinity
-- timestamp 使用 RFC 3339 UTC，尾部 `Z`
-- 字段名使用 snake_case
+- UTF-8；输入若包含 malformed UTF-8、孤立 surrogate 或无法被 JSON parser 唯一解释的字符串，MUST reject。
+- object key 按 Unicode code point 升序排序，并在每一层独立排序。
+- 无 insignificant whitespace。
+- JSON object 中的重复 key MUST reject，不得采用“最后一个 wins”或“第一个 wins”。
+- number MUST 使用 RFC 8785 / JCS 等价的唯一 decimal serialization；NaN、Infinity、-Infinity、`-0`、无法精确往返的 number、超出实现声明精度范围的 number MUST reject。
+- timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入不得接受本地时区、隐式时区或 leap-second 变体。
+- 字段名使用 snake_case。
 
-签名和 hash 输入 MUST 是 canonical JSON bytes。
+签名和 hash 输入 MUST 是去除 `proofs` 后的 canonical JSON bytes。实现不得对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。
+
+生产者 SHOULD 避免在高风险签名对象中使用非整数 number。若 schema 允许 `confidence`、`progress` 等小数值，生产者 MUST 输出 canonical decimal；消费者 MUST 在 canonicalization 后再验证签名。无法提供确定性 number canonicalization 的实现不得声明通过包含 number 字段的 profile。
 
 ## 3. Hash
 

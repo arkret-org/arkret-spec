@@ -18,15 +18,15 @@ The protocols can interoperate through bridges, but their roots are different.
 | --- | --- | --- |
 | Data root | Room event streams and room state. | Authorized Event / operation sets in a Space, reduced into Entities, Relations, and Views. |
 | Main use | Instant messaging, group chat, VoIP signaling, bridges. | Collaboration objects, tasks/boards, chat/topics, knowledge memory, agent runs, audit workflows. |
-| Server model | Homeservers are central to accounts, room participation, and federation. | Principal Servers are controlled or explicitly delegated service boundaries; Repo, Sync, Index, Blob, and Policy remain layered. |
-| Truth source | Room event graph and state resolution. | Principal-signed repo commits / operations plus Space reducers; Index / AppView are derived layers. |
+| Server model | Homeservers are central to accounts, room participation, and federation. | Principal Servers are controlled or explicitly delegated service boundaries; Repo, Sync, Blob, and Policy remain layered. |
+| Truth source | Room event graph and state resolution. | Principal-signed repo commits / operations plus Space reducers; search and View projection are derived layers. |
 | Identity | Matrix user IDs are tied to homeserver domains, e.g. `@alice:example.org`. | Principals use DIDs as protocol primary keys; identifiers like `@alice:example.org` can be handles, login entry points, or bridge aliases, but not authorization subjects. |
 | Authorization | Room auth rules, membership, and power levels. | Capability grants, constraints, claims, policy, and deterministic authorization. |
 | Integrations | Application Services are mostly homeserver-registered namespace integrations. | Applets are signed, authorized, auditable service DIDs scoped by Space, Actor, object range, user grant, and capability. |
 | AI agents | Bots can join through users or appservices, but agents are not protocol-root objects. | Agents are first-class principals / Actors with repos, capabilities, runs, memories, and protocol sessions. |
 | Agent protocols | No native A2A / ACP handoff semantics. | A2A / ACP / MCP bridge / custom agent APIs can be controlled protocol sessions. |
 | E2EE | Matrix E2EE is based on Olm / Megolm. | Contrix recommends MLS RFC 9420 for group E2EE. |
-| Views and query | Client experience is reconstructed from sync, state, relations, and aggregation APIs. | View is first-class; Index / AppView are explicit derived query layers and cannot be truth sources. |
+| Views and query | Client experience is reconstructed from sync, state, relations, and aggregation APIs. | View is first-class; search and projection are client-local by default and cannot be truth sources. |
 | Plaintext boundary | Depends on deployment, encryption, appservice, and bridge configuration. | Private plaintext may only enter principal- or Space-policy-delegated services; `plaintext_visible_services` declares visibility. |
 
 ## 4. Deep Dive on Core Concepts

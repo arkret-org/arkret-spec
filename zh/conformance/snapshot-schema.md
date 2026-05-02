@@ -26,19 +26,19 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
   "state_hash": "sha256:...",
   "chunks": [],
   "verification_hints": {
-    "inclusion_proof_url": "https://index.example/snapshots/01js0sn/proofs",
+    "inclusion_proof_url": "https://server.example/snapshots/01js0sn/proofs",
     "challenge_window_seconds": 86400,
     "witness_quorum": 2,
     "conflict_records_digest": "sha256:...",
     "soft_failed_digest": "sha256:...",
     "quarantined_digest": "sha256:..."
   },
-  "created_by": "did:web:index.example",
+  "created_by": "did:web:server.example",
   "created_at": "2026-04-26T00:00:00Z",
   "signature": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:web:index.example#snapshot-key-1",
+    "verification_method": "did:web:server.example#snapshot-key-1",
     "payload_hash": "sha256:...",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
@@ -76,7 +76,7 @@ Manifest MUST contain exactly one normative `signature` field. `signature` MUST 
 The signing DID MUST be one of:
 
 - Space owner
-- trusted index node
+- trusted snapshot issuer
 - witness quorum
 - policy-approved snapshot issuer
 
@@ -116,4 +116,4 @@ High-assurance profiles MUST support inclusion challenge:
 }
 ```
 
-Sync Service / index MAY route by `cleartext_metadata` but MUST NOT require plaintext content.
+Sync Service MAY route by `cleartext_metadata` but MUST NOT require plaintext content.
