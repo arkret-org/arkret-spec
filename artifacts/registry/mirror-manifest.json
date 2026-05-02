@@ -1,0 +1,29 @@
+{
+  "version": "2026-05-03",
+  "mirrors": [
+    {
+      "label": "schema",
+      "mode": "tree",
+      "canonical": "artifacts/schemas",
+      "mirror": "zh/conformance/schemas"
+    },
+    {
+      "label": "fixture",
+      "mode": "tree",
+      "canonical": "artifacts/fixtures",
+      "mirror": "zh/conformance/fixtures"
+    },
+    {
+      "label": "OpenAPI",
+      "mode": "file",
+      "canonical": "artifacts/openapi/contrix-service-api.openapi.yaml",
+      "mirror": "zh/sync/contrix-service-api.openapi.yaml"
+    },
+    {
+      "label": "non-HTTP binding",
+      "mode": "file",
+      "canonical": "artifacts/bindings/non-http-bindings.yaml",
+      "mirror": "zh/sync/non-http-bindings.yaml"
+    }
+  ]
+}

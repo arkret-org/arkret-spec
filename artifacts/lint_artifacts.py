@@ -193,6 +193,66 @@ def markdown_files() -> list[Path]:
     return [path for path in roots if path.is_file()]
 
 
+def load_mirror_manifest(lint: Lint) -> list[dict[str, str]]:
+    path = ARTIFACTS / "registry" / "mirror-manifest.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return []
+    mirrors = data.get("mirrors")
+    if not isinstance(mirrors, list) or not mirrors:
+        lint.fail(path, "mirrors must be a non-empty list")
+        return []
+
+    normalized: list[dict[str, str]] = []
+    seen_labels: set[str] = set()
+    seen_pairs: set[tuple[str, str]] = set()
+    for index, row in enumerate(mirrors):
+        if not isinstance(row, dict):
+            lint.fail(path, f"mirrors[{index}] must be an object")
+            continue
+        label = row.get("label")
+        mode = row.get("mode")
+        canonical = row.get("canonical")
+        mirror = row.get("mirror")
+        if not isinstance(label, str) or not label:
+            lint.fail(path, f"mirrors[{index}].label must be a non-empty string")
+            continue
+        if label in seen_labels:
+            lint.fail(path, f"duplicate mirror label {label!r}")
+        seen_labels.add(label)
+        if mode not in {"file", "tree"}:
+            lint.fail(path, f"mirrors[{index}].mode must be file or tree")
+        if not isinstance(canonical, str) or not canonical:
+            lint.fail(path, f"mirrors[{index}].canonical must be a non-empty string")
+            continue
+        if not isinstance(mirror, str) or not mirror:
+            lint.fail(path, f"mirrors[{index}].mirror must be a non-empty string")
+            continue
+        pair = (canonical, mirror)
+        if pair in seen_pairs:
+            lint.fail(path, f"duplicate mirror pair {pair!r}")
+        seen_pairs.add(pair)
+        if Path(canonical).is_absolute() or ".." in Path(canonical).parts:
+            lint.fail(path, f"mirrors[{index}].canonical escapes repository: {canonical}")
+            continue
+        if Path(mirror).is_absolute() or ".." in Path(mirror).parts:
+            lint.fail(path, f"mirrors[{index}].mirror escapes repository: {mirror}")
+            continue
+        canonical_path = ROOT / canonical
+        mirror_path = ROOT / mirror
+        if not canonical_path.exists():
+            lint.fail(path, f"mirrors[{index}].canonical does not exist: {canonical}")
+        normalized.append(
+            {
+                "label": label,
+                "mode": mode,
+                "canonical": canonical,
+                "mirror": mirror,
+            }
+        )
+    return normalized
+
+
 def check_registries(lint: Lint) -> dict[str, set[str]]:
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     schema_path = ARTIFACTS / "registry" / "schema-registry.json"
@@ -921,26 +981,18 @@ def compare_tree(lint: Lint, canonical: Path, mirror: Path, label: str) -> None:
 
 
 def check_zh_mirrors(lint: Lint) -> None:
-    compare_tree(lint, ARTIFACTS / "schemas", ROOT / "zh" / "conformance" / "schemas", "schema")
-    compare_tree(lint, ARTIFACTS / "fixtures", ROOT / "zh" / "conformance" / "fixtures", "fixture")
-
-    mirror_pairs = [
-        (
-            ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml",
-            ROOT / "zh" / "sync" / "contrix-service-api.openapi.yaml",
-            "OpenAPI",
-        ),
-        (
-            ARTIFACTS / "bindings" / "non-http-bindings.yaml",
-            ROOT / "zh" / "sync" / "non-http-bindings.yaml",
-            "non-HTTP binding",
-        ),
-    ]
-    for canonical, mirror, label in mirror_pairs:
-        if not mirror.exists():
-            lint.fail(mirror, f"{label} mirror missing")
-        elif canonical.read_bytes() != mirror.read_bytes():
-            lint.fail(mirror, f"{label} mirror differs from {lint.rel(canonical)}")
+    for row in load_mirror_manifest(lint):
+        canonical = ROOT / row["canonical"]
+        mirror = ROOT / row["mirror"]
+        label = row["label"]
+        mode = row["mode"]
+        if mode == "tree":
+            compare_tree(lint, canonical, mirror, label)
+        else:
+            if not mirror.exists():
+                lint.fail(mirror, f"{label} mirror missing")
+            elif canonical.read_bytes() != mirror.read_bytes():
+                lint.fail(mirror, f"{label} mirror differs from {lint.rel(canonical)}")
 
 
 def main() -> int:

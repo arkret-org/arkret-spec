@@ -220,3 +220,8 @@ CI guard:
 
 - `tools/check_no_legacy_contracts.py`
 - `.github/workflows/artifact-lint.yml`
+
+Canonical artifact mirror sync:
+
+- `python tools/sync_zh_mirrors.py`
+- `python tools/sync_zh_mirrors.py --check`
