@@ -8,7 +8,7 @@
 
 Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
 
-Contrix 的核心抽象是 **signed Event + per-actor event chain + Space + Subject + Room / Board / List / Card / Message / Morph / Relation / View + capability**，重点服务可审计的协作对象、任务、看板、知识、agent 运行和多视图投影。
+Contrix 的核心抽象是 **signed Event + per-actor event chain + Space + Subject + Room / Board / List / Card / Message / Morph / Relation / View + capability**，重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
 
 因此二者可以互联或桥接，但协议根不同。
 
@@ -17,14 +17,14 @@ Contrix 的核心抽象是 **signed Event + per-actor event chain + Space + Subj
 | 维度 | Matrix | Contrix |
 | --- | --- | --- |
 | 数据根 | Room 内事件流与 room state。 | Space 内授权 Event 集合，归约为 Subject、Room、Board、List、Card、Message、Morph、Relation、View。 |
-| 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、知识记忆、agent run、审计工作流。 |
+| 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、agent 协作、审计工作流。 |
 | 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Events、Sync、Blob、Policy 分层。 |
 | 真相源 | Room event graph 与状态解析。 | Actor/device/service 签名 Event Envelope，加上 Space reducer；搜索和 View projection 都是派生层。 |
 | 身份 | Matrix user ID 绑定 homeserver 域，如 `@alice:example.org`。 | Principal 使用 DID 作为协议主键；`@alice:example.org` 这类标识可作为 handle、登录入口或 bridge alias，但不能作为权限主体。 |
 | 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 身份、Event 发布链与服务 endpoint 分离，DID / handle / service delegation 支持迁移。 |
 | 授权模型 | Room auth rules、membership、power levels。 | Capability grant、constraint、claim、policy、deterministic authorization。 |
 | 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Space、Actor、对象范围、用户授权和 capability 细分。 |
-| AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可签名 Event，并拥有 capability、run、memory、protocol session。 |
+| AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可签名 Event，并拥有 capability 和 protocol session。 |
 | 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
 | E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Contrix 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
 | 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影定义；搜索和 projection 默认由客户端本地派生，不能成为真相源。 |
@@ -51,7 +51,7 @@ Contrix Applet 的差异不是简单“更强”，而是粒度不同：
 Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix 的协议根对象。Contrix 从对象模型开始就把 agent 纳入：
 
 - agent 可以是 principal、Actor、capability subject。
-- agent 输出可以落成 `run`、`memory` 等 Morph 类型，也可以写入 Message、Card 或 Relation。
+- agent 输出可以写入 Message、Card、Morph 或 Relation。
 - agent 权限必须窄范围、短时效、可撤销、可审计。
 - agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Contrix。
 - Contrix 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。
@@ -116,13 +116,13 @@ Contrix Principal Server 是受 principal 或 Space policy 控制的服务边界
 
 Matrix 客户端通常从 sync、state、relations 和聚合接口构建体验。
 
-Contrix 明确把搜索、通知、inbox、board、table、graph、agent memory retrieval 等作为派生体验。默认由客户端本地完成；可选受托服务不能成为真相源，输出必须可追溯到签名 Event、reducer profile 和授权状态。
+Contrix 明确把搜索、通知、inbox、board、table、graph 等作为派生体验。默认由客户端本地完成；可选受托服务不能成为真相源，输出必须可追溯到签名 Event、reducer profile 和授权状态。
 
 ### 5.5 协作图比通信图更大
 
 Matrix 的强项是通信网络。
 
-Contrix 的目标是协作图：任务依赖、对象引用、结构化 mention、run、memory、agent action、审计记录、审批和视图投影都属于同一个协议图。
+Contrix 的目标是协作图：任务依赖、对象引用、结构化 mention、agent action、审计记录、审批和视图投影都属于同一个协议图。
 
 ## 6. Matrix 仍然更强的地方
 
@@ -138,7 +138,6 @@ Contrix 不应忽略 Matrix 的成熟度：
 
 - `extensions/applet-integration.md`
 - `extensions/agent-protocol-interop.md`
-- `extensions/agent-memory.md`
 - `identity/identity-did.md`
 - `crypto-media/encryption-and-audit.md`
 - `authz/capabilities.md`

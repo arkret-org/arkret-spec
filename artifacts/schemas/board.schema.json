@@ -3,7 +3,7 @@
   "$id": "https://contrix.io/artifacts/schemas/board.schema.json",
   "title": "Contrix Board",
   "type": "object",
-  "required": ["id", "type", "schema", "space_id", "title", "board_kind", "created_by", "created_at"],
+  "required": ["id", "type", "schema", "space_id", "title", "kind", "created_by", "created_at"],
   "properties": {
     "id": { "type": "string", "pattern": "^cx:board:[0-9a-hjkmnp-z]{26}$" },
     "type": { "const": "board" },
@@ -11,7 +11,7 @@
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "title": { "type": "string", "minLength": 1, "maxLength": 256 },
     "summary": { "type": "string" },
-    "board_kind": {
+    "kind": {
       "type": "string",
       "enum": ["kanban", "scrum", "review_queue", "intake", "custom"]
     },

@@ -118,24 +118,13 @@
   "constraint_type": "type_restriction",
   "effect": "allow",
   "object_type_allow": ["card", "message", "morph"],
-  "morph_type_allow": ["document", "run", "memory"],
+  "morph_type_allow": ["document", "customer_case"],
   "facet_allow": ["stateful", "replyable", "documentable"],
   "morph_type_deny": ["credential"]
 }
 ```
 
 `object_type_allow` 只按对象类型收窄范围，不赋予能力。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
-
-### 5.2 Memory 类型限制
-
-```json
-{
-  "constraint_type": "type_restriction",
-  "effect": "allow",
-  "memory_kind_allow": ["episodic", "semantic"],
-  "memory_kind_deny": ["sensitive", "credentials"]
-}
-```
 
 ## 6. 范围限制
 
@@ -535,7 +524,7 @@ function matches_field_access(operation, constraint):
 {
   "grant_id": "cx:grant:...",
   "subject": "did:web:agent.example.com",
-  "actions": ["cx.object.read", "cx.card.create", "cx.memory.create"],
+  "actions": ["cx.object.read", "cx.card.create", "cx.morph.create"],
   "resources": [
     {
       "kind": "card",

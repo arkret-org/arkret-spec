@@ -27,8 +27,7 @@ Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 
 - object updater
 - grant issuer
 - grant subject
-- run actor
-- memory author
+- agent actor
 - service node actor
 
 #### 2.1.1 用户可见标识 MAY 不是 DID

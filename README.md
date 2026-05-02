@@ -92,7 +92,6 @@ contrix-spec/
     extensions/
       applet-integration.md
       applet-schema.md
-      agent-memory.md
       agent-protocol-interop.md
       mimi-interop.md
     conformance/
@@ -176,7 +175,6 @@ contrix-spec/
     extensions/
       applet-integration.md
       applet-schema.md
-      agent-memory.md
       agent-protocol-interop.md
       mimi-interop.md
     conformance/

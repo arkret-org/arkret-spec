@@ -11,7 +11,7 @@
     "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$" },
     "kind": {
       "type": "string",
-      "enum": ["collection", "timeline", "graph", "document", "composite"]
+      "enum": ["collection", "timeline", "graph", "document", "composite", "board", "list"]
     },
     "renderer": { "$ref": "#/$defs/view_renderer" },
     "title": { "type": "string" },

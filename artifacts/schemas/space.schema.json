@@ -8,7 +8,7 @@
     "type",
     "space_version",
     "title",
-    "space_kind",
+    "kind",
     "created_by_principal",
     "schema_refs",
     "default_discoverability",
@@ -24,9 +24,9 @@
     "space_version": { "type": "string", "pattern": "^\\d+$" },
     "title": { "type": "string", "minLength": 1, "maxLength": 256 },
     "summary": { "type": "string", "maxLength": 2048 },
-    "space_kind": {
+    "kind": {
       "type": "string",
-      "enum": ["collaboration", "personal", "project", "organization", "enclave"]
+      "enum": ["collaboration", "personal", "project", "organization", "enclave", "board", "list"]
     },
     "created_by_principal": { "$ref": "#/$defs/did" },
     "owning_organizations": { "type": "array", "items": { "$ref": "#/$defs/did" } },

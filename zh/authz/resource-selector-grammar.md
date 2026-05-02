@@ -139,18 +139,18 @@ disjunction_selector ::= selector "," selector
 
 ### 3.3 Morph 选择器
 
-`morph:cx:space:...:memory`
+`morph:cx:space:...:customer_case`
 
-- 匹配：该 Space 中所有 `morph_type=memory` 的 Morph。
+- 匹配：该 Space 中所有 `morph_type=customer_case` 的 Morph。
 - 不匹配：标准 Message 或 Card。
 
 `morph:cx:space:...:cx:morph:01js0m00000000000000000000`
 
 - 匹配：特定 Morph。
 
-`morph:*:run`
+`morph:*:document`
 
-- 匹配：所有可访问 Space 中的所有 `run` Morph。
+- 匹配：所有可访问 Space 中的所有 `document` Morph。
 - 要求：`space:*` 或明确的 Space policy 委托。
 
 ### 3.4 Object 选择器
@@ -239,7 +239,7 @@ disjunction_selector ::= selector "," selector
     {
       "kind": "morph",
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "morph_type": "memory"
+      "morph_type": "customer_case"
     }
   ]
 }
@@ -414,7 +414,7 @@ Facet 选择适合：
     {
       "kind": "morph",
       "space_id": "cx:space:...",
-      "morph_type": "run"
+      "morph_type": "document"
     }
   ],
   "constraints": [

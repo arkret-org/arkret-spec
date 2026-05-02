@@ -30,7 +30,7 @@ Contrix v1 不注册 `cx:revocation-list:*` typed ID；实现不得生成或要�
 {
   "space_ids": ["cx:space:01js0sp0000000000000000000"],
   "object_types": ["card", "message", "morph"],
-  "morph_types": ["run", "memory"],
+  "morph_types": ["document", "customer_case"],
   "facets": ["stateful", "replyable", "renderable"],
   "actions": ["cx.card.create", "cx.card.update", "cx.message.create"]
 }
@@ -58,7 +58,7 @@ Scope MUST be allow-list based。未列出的动作默认拒绝。标准对象 S
     "constraint_type": "type_restriction",
     "effect": "allow",
     "object_type_allow": ["card", "morph"],
-    "morph_type_allow": ["run", "memory"],
+    "morph_type_allow": ["document", "customer_case"],
     "facet_allow": ["stateful", "replyable"]
   }
 ]

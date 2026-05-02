@@ -234,35 +234,29 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 
 当一个受控账户（如 AI Agent，拥有自己独立的 DID）加入了一个私密加密群组，其控制者（Controller / Master）可以通过显式设备、授权转发或受控日志获得该 Agent 的通信副本。这属于**终端节点数据与密钥管理范畴**，不等同于场地方合规审查；只要访问范围已经在 Agent authority、grant、设备绑定或 owner-private policy 中声明，就不需要触发前文所述的 `cx.audit.accessed` 强制公开留痕机制。
 
-协议支持以下三种原生方式实现 Controller 对 Agent 的通信穿透。默认实现 SHOULD 使用方案 A；方案 B / C 只在部署和产品策略明确时启用。
+协议支持以下两种原生方式实现 Controller 对 Agent 的通信穿透。默认实现 SHOULD 使用方案 A；方案 B 只在部署和产品策略明确时启用。
 
 ### 4.1 方案 A：独立 Agent 密钥与显式控制通道 (Independent Agent Key) —— 默认
 
 Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Controller 通过 capability delegation、`cx.schema.agent_authority.v1`、device / session grant、approval policy 和可撤销的 owner-private control channel 管理该 Agent。
 
-- **机制**：Agent 自己生成和持有签名密钥、设备密钥与 MLS KeyPackage；Controller 通过显式 grant、controller approval、kill switch、run log 和可选的 owner-private 1 对 1 E2EE Space 接收必要副本或摘要。
+- **机制**：Agent 自己生成和持有签名密钥、设备密钥与 MLS KeyPackage；Controller 通过显式 grant、controller approval、kill switch、审计事件和可选的 owner-private 1 对 1 E2EE Space 接收必要副本或摘要。
 - **效果**：Agent compromise 的影响边界限制在 Agent 自身 DID、device、session、grant 和可见 Space 内。Controller 根种子、恢复密钥和其他身份材料不会因为 Agent 运行环境泄露而被扩散。
 
 规则：
 
 - Agent 私钥、Controller 主体私钥、Controller recovery key 和 Controller backup key MUST 是不同密钥域。
-- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Space / Room、读取 owner-private memory、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
+- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Space / Room、读取 owner-private 知识源、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
 - Agent Authority Panel MUST 能解释 Controller、responsible actor、effective grant、presence policy、knowledge source、join policy 和 expiry。
-- 撤销 Controller 对 Agent 的控制通道时，必须使相关 session grant、owner-private memory grant、presence trigger 和 tool / protocol session grant 失效。
+- 撤销 Controller 对 Agent 的控制通道时，必须使相关 session grant、owner-private 知识源 grant、presence trigger 和 tool / protocol session grant 失效。
 
-### 4.2 方案 B：记忆提取与私聊同步 (Memory Forwarding)
-
-如果 Agent 运行在受控云端环境中，Master 无需同步全量密文：
-- **机制**：Agent 在可信执行环境 (TEE) 中解密所参与的群聊消息，提炼为 `memory` 对象，然后通过 Agent 与 Master 之间单独建立的 **专属 1 对 1 E2EE Space** 转发给 Master。
-- **效果**：利用应用层的常规消息传递机制完成上下文汇报，无需污染原始协作空间的加密树。
-
-### 4.3 方案 C：多设备绑定 (Multi-Device KeyPackage)
+### 4.2 方案 B：多设备绑定 (Multi-Device KeyPackage)
 - **机制**：Agent 作为一个独立的物理/逻辑实体，生成自己的 `KeyPackage`，但在身份层面上挂靠在 Master 的 DID 下，作为 Master 的另一台“设备”。
 - **效果**：在 MLS 树中，发送者对同一个主体的多个叶子节点加密。Master 手机与 Agent 服务器同时收到密文副本并各自解密。
 
-方案 C 会把 Agent 与 Controller 的主体边界收紧，适合“同一 principal 的托管设备”而不是“独立 Agent DID”。若产品向用户展示 Agent 是独立 Actor，或 Space policy 要求 automated actor 可审计，MUST 使用方案 A 或方案 B，不得把 Agent 静默伪装成 Controller 的普通设备。
+方案 B 会把 Agent 与 Controller 的主体边界收紧，适合“同一 principal 的托管设备”而不是“独立 Agent DID”。若产品向用户展示 Agent 是独立 Actor，或 Space policy 要求 automated actor 可审计，MUST 使用方案 A，不得把 Agent 静默伪装成 Controller 的普通设备。
 
-### 4.4 HD 派生的限制
+### 4.3 HD 派生的限制
 
 使用 Controller 根种子或主恢复种子派生 Agent 初始私钥不是 v1 默认 profile。实现 MAY 在完全本地、单用户、可导出性受控且 UI 明确告知风险的 profile 中使用 HD 派生，但必须满足：
 

@@ -14,7 +14,7 @@ Contrix 虽然不是 chat-first 协议，但必须正式支持：
 - Subject 关联讨论
 - Card 关联讨论
 
-会话能力必须能和 Subject、Board、Card、Run、Memory、Morph 等对象打通，但 Room / Message 不再伪装成 Entity。
+会话能力必须能和 Subject、Board、Card、Morph 等对象打通，但 Room / Message 不再伪装成 Entity。
 
 ## 2. 设计原则
 

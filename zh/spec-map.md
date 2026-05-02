@@ -144,7 +144,6 @@
 | --- | --- |
 | `extensions/applet-integration.md` | Applet / bridge / bot / ghost actor / portal Space。 |
 | `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
-| `extensions/agent-memory.md` | Agent memory、run、promotion、review。 |
 | `extensions/agent-protocol-interop.md` | A2A / ACP / external agent protocol handoff。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领。 |

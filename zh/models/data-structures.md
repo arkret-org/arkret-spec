@@ -61,7 +61,7 @@ Schema id: `cx.schema.space.v1`
 | `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
-| `space_kind` | yes | `enum(collaboration, personal, project, organization, enclave)` | Subject / Room / Board / Card 不再作为 Space kind。自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
+| `kind` | yes | `enum(collaboration, personal, project, organization, enclave, board, list)` | `collaboration/personal/project/organization/enclave` 表示通用 Space，`board/list` 表示 Work container space。自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或兼容 profile。 | 启用 schema。 |
@@ -116,7 +116,7 @@ Subject 是薄语义中心，不承载 Room timeline、Room membership、Card po
 | `title` | yes | `string` | 1..512 chars。 | 名称。 |
 | `brief` | no | `string` | SHOULD <= 2048 chars。 | 简短说明，适合列表/标题上下文。 |
 | `summary` | no | `string` | SHOULD <= 8192 chars。 | 较完整摘要，可由人或 agent 更新。 |
-| `subject_kind` | yes | `enum(topic, initiative, decision, incident, customer_case, proposal, research, task_cluster, asset, memory_subject, custom)` | 自定义 kind 放入 `fields`。 | Subject 语义分类。 |
+| `subject_kind` | yes | `enum(topic, initiative, decision, incident, customer_case, proposal, research, task_cluster, asset, custom)` | 自定义 kind 放入 `fields`。 | Subject 语义分类。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `version` | no | `integer` | SHOULD 单调递增，不能替代 event order。 | 物化版本。 |
@@ -125,7 +125,7 @@ Subject 是薄语义中心，不承载 Room timeline、Room membership、Card po
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-Subject 的协作 surface 由 `subject --has_surface--> object` Relation 表达。`fields.surface_role` SHOULD 声明用途，例如 `status_card`、`primary_discussion`、`design_doc`、`agent_run_log` 或 `memory`；`fields.primary` 只影响默认 UI 入口，不授予权限。
+Subject 的协作 surface 由 `subject --has_surface--> object` Relation 表达。`fields.surface_role` SHOULD 声明用途，例如 `status_card`、`primary_discussion`、`design_doc` 或 `activity_view`；`fields.primary` 只影响默认 UI 入口，不授予权限。
 
 ### 6.2 Room
 
@@ -159,7 +159,7 @@ Schema id: `cx.schema.board.v1`
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `title` | yes | `string` | 1..256 chars。 | 名称。 |
 | `summary` | no | `string` |  | 说明。 |
-| `board_kind` | yes | `enum(kanban, scrum, review_queue, intake, custom)` |  | Board 类型。 |
+| `kind` | yes | `enum(kanban, scrum, review_queue, intake, custom)` | Board 类型。 |
 | `default_view_id` | no | `id:view` |  | 默认 View。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
@@ -339,7 +339,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `id` | yes | `id:view` |  | View ID。 |
 | `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
+| `kind` | yes | `enum(collection, timeline, graph, document, composite, board, list)` |  | 核心投影原语。 |
 | `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |

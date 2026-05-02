@@ -184,7 +184,7 @@ Controlled Collaboration Space SHOULD 使用：
   "kind": "cx.space.create",
   "space_version": "1",
   "content": {
-    "space_kind": "controlled_collaboration",
+    "kind": "enclave",
     "created_by_principal": "did:web:defense.example",
     "owning_organizations": ["did:web:defense.example"],
     "default_discoverability": "unlisted",

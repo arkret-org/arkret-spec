@@ -10,7 +10,7 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Contrix | 协议名称 | 面向去中心化协作对象、会话、任务、看板、知识记忆和 agent 协作的协议族。 |
+| Contrix | 协议名称 | 面向去中心化协作对象、会话、任务、看板和 agent 协作的协议族。 |
 | Principal | 主体 | 协议中的稳定身份主体，通常由 DID 表示。人、组织、agent、Applet 都可以是 principal。 |
 | Organization | 组织 | 一类 principal，通常由组织 DID 表示，可签发成员资格/角色 credential、控制服务 DID、托管 Principal Server / Applet、发布 policy 或拥有 Space。Organization 不是 Space；它是治理与身份主体。 |
 | Organization Governance | 组织治理 | Organization DID 的控制策略，包括治理密钥、阈值、多签、服务委派、恢复和所有权转移规则。 |
@@ -19,7 +19,7 @@
 | Official Space | 官方空间 | 由 Organization DID 直接创建，或被 active `cx.space.organization` state event 背书且 `scope.official=true` 的 Space。名称、域名、服务器托管方或成员列表不能单独证明官方性。 |
 | Space Hierarchy | 空间层级 | Space 之间的 parent/child 组织关系，用于导航、发现和受控继承；不默认级联权限、成员、历史或加密。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、父 Space、组织页、精确链接或邀请发现的策略；不等于 join rule、read permission 或 history visibility。 |
-| Subject | 语义中心 | Space 内被讨论、推进、引用、审阅、执行或沉淀的“东西本身”。Subject 只承载稳定 ID、标题、brief、kind、生命周期和 surface 关系；Card、Room、Document、Run、Memory 等通过 `has_surface` 围绕它协作。 |
+| Subject | 语义中心 | Space 内被讨论、推进、引用、审阅、执行或沉淀的“东西本身”。Subject 只承载稳定 ID、标题、brief、kind、生命周期和 surface 关系；Card、Room、Document 等通过 `has_surface` 围绕它协作。 |
 | Room | 房间 | Space 内的一等会话容器，用于承载 Message、成员状态、历史可见性、通知和 E2EE epoch。Room 可以被 Card 链接，但权限和成员独立。 |
 | Board | 看板 | Space 内的一等工作组织对象，包含多个 List；Board 是协议对象，不只是 View 投影。 |
 | List | 列表 | Board 下的一等有序分组对象，通常包含多个 Card，并维护局部排序与归档状态。 |
@@ -48,9 +48,7 @@
 | Thread | 线程 | Message 的回复链或 Room 内局部会话投影，不是独立权限边界。 |
 | Document | 文档 | 标准对象或 Morph 类型，用于结构化长文、页面、规范、笔记。是否可评论、可审阅、可版本化由对象类型和显式 schema/profile 决定；facets 只能提示已声明能力。 |
 | File | 文件 | Blob metadata 与可见性策略的对象化表示，可作为 Morph 或标准 file profile 实现。 |
-| Memory | 记忆 | Morph 类型或扩展 profile，用于 agent 或人类确认的长期知识、事实、偏好或上下文。 |
-| Run | 运行记录 | Morph 类型或扩展 profile，用于记录 agent、自动化或工具执行过程。 |
-| Agent Protocol Session | Agent 协议会话 | Card、Morph 或 Run 显式切换到 A2A、ACP 或其他外部 agent protocol 执行时登记的受控会话。 |
+| Agent Protocol Session | Agent 协议会话 | Card、Morph 或其他对象显式切换到 A2A、ACP 或其他外部 agent protocol 执行时登记的受控会话。 |
 | Mention | 提及 | 对 Actor、Subject、Room、Board、List、Card、Message、Morph 或 Space 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
 | Reaction | 反应 | 对目标 Message、Card、Morph、Event 或其他对象的轻量语义反馈，通常通过 Relation 或标准 reaction event 表达。 |
 
@@ -136,7 +134,7 @@
 | Push Gateway | 推送网关 | 将脱敏通知投递到移动或桌面平台推送系统的服务。 |
 | Directory Service | 目录服务 | 对 Space、Organization、Actor、Applet 等资源提供授权过滤后的搜索、列举和精确解析的派生服务；不是真相源。 |
 | Applet Server | Applet 服务器 | 承载 Applet / bridge / bot / portal / ghost actor 逻辑的服务，写入仍需 capability、namespace 和签名。 |
-| Agent Runtime Server | Agent 运行服务器 | 执行 agent run、tool call、memory promotion 和外部 agent protocol handoff 的服务；输出写成 signed Event 后才成为协议事实。 |
+| Agent Runtime Server | Agent 运行服务器 | 执行 agent、tool call 和外部 agent protocol handoff 的服务；输出写成 signed Event 后才成为协议事实。 |
 | Realtime Media Server | 实时媒体服务器 | 提供 ICE config、TURN/STUN、SFU/MCU、录制或会议辅助能力的服务。 |
 | Moderation / Compliance Server | 审核/合规服务器 | 提供 report、审核队列、server ACL、policy list、appeal、legal hold 和 erasure workflow 的服务。 |
 

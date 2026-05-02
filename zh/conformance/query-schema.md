@@ -10,7 +10,7 @@
 {
   "space_ids": ["cx:space:01js0sp0000000000000000000"],
   "object_types": ["card", "message", "morph"],
-  "morph_types": ["memory"],
+  "morph_types": ["customer_case"],
   "facets": ["assignable"],
   "anchor_ref": "cx:card:01js0card00000000000000000",
   "filters": [],

@@ -233,14 +233,6 @@
       "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/view_content" } } }
     },
     {
-      "if": { "properties": { "kind": { "enum": ["cx.run.create", "cx.run.update", "cx.run.complete", "cx.run.fail"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/run_content" } } }
-    },
-    {
-      "if": { "properties": { "kind": { "enum": ["cx.memory.create", "cx.memory.update", "cx.memory.confirm", "cx.memory.reject", "cx.memory.invalidate", "cx.memory.supersede"] } }, "required": ["kind"] },
-      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/memory_content" } } }
-    },
-    {
       "if": { "properties": { "kind": { "const": "cx.agent.endpoint" } }, "required": ["kind"] },
       "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_content" } } }
     },

@@ -91,13 +91,15 @@ View 查询 SHOULD 优先使用标准对象类型：
 
 ### 2.4 少数响应形态，多种展示 renderer
 
-协议保留 5 个 `View.kind` 作为 response family：
+协议保留 7 个 `View.kind` 作为 response family：
 
 - `collection`
 - `timeline`
 - `graph`
 - `document`
 - `composite`
+- `board`
+- `list`
 
 这些 `kind` 只约束响应 contract、cursor 和 frontier，不代表对象职责。新增产品形态 SHOULD 优先新增 renderer / profile，而不是新增顶层 `kind`。
 
@@ -186,6 +188,8 @@ Renderer 不能把 UI 内部状态偷偷变成协议事实。若一个交互会�
 | `graph` | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
 | `document` | `document` | `document` | `DocumentProjectionResponse` |
 | `composite` | `dashboard` | `dashboard` | `CompositeProjectionResponse` |
+| `board` | `board` | `collection` | `CollectionProjectionResponse` |
+| `list` | `row` | `collection` | `CollectionProjectionResponse` |
 
 对外暴露可互操作 projection 响应的客户端、SDK 或可选受托服务 SHOULD 返回 `view_id`、`frontier` 和对应核心原语的标准响应。客户端不得把未知对象数组解释为标准 View projection。
 
@@ -330,7 +334,7 @@ Board projection MAY 在返回项中携带派生 `board_id`、`list_id`、`rank`
   "type": "board",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Launch Board",
-  "board_kind": "kanban"
+  "kind": "kanban"
 }
 ```
 
@@ -466,7 +470,7 @@ Card context timeline 可以混合：
 - linked Room 可见 Message 摘要
 - Relation changes
 - Review / approval notes
-- Run / agent activity
+- agent protocol session activity
 
 混合 timeline 必须保持每个来源对象的权限裁剪，不能因为进入同一上下文投影而合并权限。
 

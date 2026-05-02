@@ -412,38 +412,6 @@
       },
       "additionalProperties": true
     },
-    "run_content": {
-      "type": "object",
-      "minProperties": 1,
-      "properties": {
-        "run_id": { "$ref": "#/$defs/object_ref" },
-        "status": { "type": "string" },
-        "task_ref": { "$ref": "#/$defs/object_ref" },
-        "output_refs": { "type": "array", "items": { "$ref": "#/$defs/object_ref" } },
-        "error": { "type": "object" }
-      },
-      "additionalProperties": true
-    },
-    "memory_content": {
-      "type": "object",
-      "anyOf": [
-        { "required": ["object"] },
-        { "required": ["memory_id", "status"] },
-        { "required": ["source_refs", "confidence", "status"] }
-      ],
-      "properties": {
-        "object": { "$ref": "#/$defs/object_snapshot" },
-        "memory_id": { "$ref": "#/$defs/object_ref" },
-        "memory_kind": { "type": "string" },
-        "subject_ref": { "$ref": "#/$defs/object_ref" },
-        "source_refs": { "type": "array", "items": { "$ref": "#/$defs/object_ref" }, "minItems": 1 },
-        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-        "status": { "type": "string", "enum": ["candidate", "confirmed", "rejected", "invalidated", "superseded"] },
-        "supersedes": { "$ref": "#/$defs/object_ref" },
-        "reason": { "type": "string" }
-      },
-      "additionalProperties": true
-    },
     "agent_endpoint_content": {
       "type": "object",
       "required": ["agent_id", "endpoints"],

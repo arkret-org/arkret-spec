@@ -11,7 +11,7 @@
 - Contrix 采用 **space-first + standard-object-first + event-first**。
 - 协议根模型固定为 `Space + Actor + Subject + Room + Board + List + Card + Message + Morph + Relation + Event + View`。
 - Subject、Room、Board、List、Card、Message 是标准对象，拥有明确主语义、授权和 reducer。
-- Subject 是薄语义中心：它回答“这组讨论、推进、文档、运行记录和记忆共同围绕的那个东西是什么”。Card、Room、Document、Run、Memory 等是围绕 Subject 的协作 surface。
+- Subject 是薄语义中心：它回答“这组讨论、推进和文档共同围绕的那个东西是什么”。Card、Room、Document 等是围绕 Subject 的协作 surface。
 - Morph 是开放对象，用于扩展业务类型和实验类型；facets 是 Space schema / Morph profile 声明能力的 hint / 查询标签，不是对象身份，也不是授权、状态机或 reducer 语义来源。
 - View 只负责投影定义。View 拥有 query / renderer / layout 等定义真相，但不拥有被投影对象的协作事实。
 
@@ -61,7 +61,7 @@ View 仍然保留为一层独立抽象，因为同一组 Card / Room / Morph 需
 
 Subject：
 
-- 面向“东西本身”：事项、议题、决策、事故、客户 case、研究主题、资产、长期记忆锚点。
+- 面向“东西本身”：事项、议题、决策、事故、客户 case、研究主题或资产。
 - 拥有稳定 ID、标题、brief、summary、kind、生命周期和少量自身字段。
 - 可以被搜索、引用、归档、总结，也可以作为 tree/graph/document/timeline View 的 anchor。
 - 不承载 Room timeline、Room membership、E2EE epoch、Card 排序、Board/List 位置或 Message thread。
@@ -70,7 +70,7 @@ Surface：
 
 - `subject --has_surface--> card`：Card 负责状态推进、看板位置、负责人、优先级、截止时间等 workflow 语义。
 - `subject --has_surface--> room`：Room 负责讨论时间线、成员、历史、通知、moderation 和 E2EE。
-- `subject --has_surface--> morph`：Document、Run、Memory、Poll、外部系统对象等作为扩展 surface。
+- `subject --has_surface--> morph`：Document、Poll、外部系统对象等作为扩展 surface。
 - `subject --has_surface--> view`：可选地表达某个默认 activity / graph / document / dashboard projection。
 
 规则：
@@ -85,7 +85,7 @@ Surface：
 
 - Subject 让协议有一个“真正的东西”，避免 Card 和 Room 只能互相硬连。
 - Subject 足够薄，不会退回旧的万能 Entity，也不会吞掉 Room/Card/Message/Morph 的 reducer 和授权边界。
-- 多个 Card、多个 Room、Document、Run、Memory 可自然围绕同一 Subject 聚合，适合真实协作中的设计、评审、外部沟通、执行和沉淀。
+- 多个 Card、多个 Room、Document 可自然围绕同一 Subject 聚合，适合真实协作中的设计、评审、外部沟通、执行和沉淀。
 
 ## 6. Card 与 Room 是一个概念吗？
 
@@ -139,8 +139,6 @@ Room：
 
 适合 Morph 的对象：
 
-- memory
-- run
 - document
 - file profile
 - poll
@@ -187,7 +185,7 @@ Message 不再是通用 Entity 语义标签，也不是协议唯一事实根。
 - Query shape 使用 `object_types`、`subject_kinds`、`morph_types`、`facets`；其中 `facets` 只筛选 schema/profile 已声明的 hint / 查询标签。
 - 对象当前态查询默认由客户端本地 reducer / projection 实现。
 - Relation 使用 `from_ref` / `to_ref`，可连接标准对象、Morph、Actor 和 Space。
-- Subject activity / timeline 是投影：它聚合 Subject 自身事件、surface relation 变化、Card 状态变化、可见 Room 消息摘要、Document 更新、Run 结果和 Memory 状态，不是新的 canonical message log。
+- Subject activity / timeline 是投影：它聚合 Subject 自身事件、surface relation 变化、Card 状态变化、可见 Room 消息摘要和 Document 更新，不是新的 canonical message log。
 
 ## 12. 与 Matrix 的关系
 
@@ -203,7 +201,7 @@ Contrix v1 当前固定：
 
 1. Space 是协作边界。
 2. Subject、Room、Board、List、Card、Message 是标准对象。
-3. Subject 是薄语义中心；Card、Room、Document、Run、Memory 等通过 `has_surface` Relation 成为围绕它的协作 surface。
+3. Subject 是薄语义中心；Card、Room、Document 等通过 `has_surface` Relation 成为围绕它的协作 surface。
 4. Morph 承担开放扩展；facets 只表达 schema/profile 已声明能力的 hint / 查询标签。
 5. Card 与 Room 严格区分，但可通过共同 Subject 聚合，也可通过兼容 Relation 关联多个 Room。
 6. Subject-surface、Card-Room link 均不传播权限。

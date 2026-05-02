@@ -29,7 +29,7 @@ Contrix v1 聚焦以下目标：
 5. 人类友好  
    数据必须天然能投影成看板、时间线、Subject activity、Card 推进流、Room 消息流、审阅队列。
 6. AI 友好  
-   协议天然支持 agent principal、delegation、run log、memory extraction。
+   协议天然支持 agent principal、delegation 和外部协议 handoff。
 7. 审计与恢复  
    编辑、撤回、授权变化、冲突收敛都必须可解释、可审计。
 
@@ -100,8 +100,8 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - `relation` 是一等对象，用于表达包含、依赖、回复、引用、分配、提及等关系
 - `event` 是协作事实和审计根
 - `view` 是投影，不拥有核心数据
-- Subject 是 Card、Room、Document、Run、Memory 等 surface 的共同锚点。Card 与 Room 仍严格分离；历史兼容的 Card-Room link 只表达上下文关系，不继承或控制 Room membership
-- `memory/run/document` 等可作为 Morph 类型或扩展 profile，不自动授予能力
+- Subject 是 Card、Room、Document 等 surface 的共同锚点。Card 与 Room 仍严格分离；历史兼容的 Card-Room link 只表达上下文关系，不继承或控制 Room membership
+- `document` 等可作为 Morph 类型或扩展 profile，不自动授予能力
 - `schema/policy` 是正式对象，不再只是引用占位符
 - `invite/read_marker/notification` 补齐人类协作的加入、已读、提醒链路；notification 是派生投影，不是 canonical truth
 
@@ -110,7 +110,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 看板由 `Board -> List -> Card` 的标准对象链表达；View 负责投影，不再把 Board 伪装成通用开放对象集合
 - Subject 表示事项/主题/决策/事故/客户 case 等语义中心；Card 是 Subject 的状态推进 surface，Room 是 Subject 的讨论 surface
 - 会话由 `Room -> Message` 表达；Room 是独立权限、成员、历史和 E2EE 边界
-- Subject 通过 `has_surface` Relation 关联 Card、Room、Document、Run、Memory、View 等 surface；这些链接只表达语义聚合，不传递权限
+- Subject 通过 `has_surface` Relation 关联 Card、Room、Document、View 等 surface；这些链接只表达语义聚合，不传递权限
 - Card 可以继续通过 `links_room` / `primary_room` Relation 关联多个 Room，作为兼容或局部上下文关系；新模型 SHOULD 优先通过共同 Subject 组织 Card 与 Room
 - 主题模式通常建模为 Subject + surfaces；是否需要状态推进和看板位置决定是否为该 Subject 创建 Card surface
 - `@user`、`@object` 在 UI 层可写成文本，在协议层必须落成结构化 Actor/Object 引用与 `mentions` Relation

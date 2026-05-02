@@ -31,7 +31,7 @@
 | Snapshot 防遗漏 | `artifacts/schemas/snapshot.schema.json`, `zh/conformance/snapshot-schema.md`, `zh/sync/operations-sync.md` | 已闭环：manifest 必须包含 `event_set_commitment`，高保障 profile 支持 inclusion / omission challenge。 |
 | Moderation / abuse | `artifacts/schemas/moderation-report.schema.json`, `artifacts/schemas/moderation-queue-item.schema.json`, OpenAPI moderation endpoints | 已闭环：report、queue item、E2EE evidence / frank 边界有 schema 和服务绑定。 |
 | Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `zh/conformance/conformance-profiles.md` | 已闭环：hidden resource、private contact discovery、plaintext-visible service、private blob、blind push 有回归向量。 |
-| Agent 权限边界 | `artifacts/schemas/agent-authority.schema.json`, `zh/authz/capabilities.md`, `zh/extensions/agent-memory.md` | 已闭环：owner presence、knowledge source、join policy、responsible actor、grant 解释面已固化。 |
+| Agent 权限边界 | `artifacts/schemas/agent-authority.schema.json`, `zh/authz/capabilities.md`, `zh/extensions/agent-protocol-interop.md` | 已闭环：owner presence、knowledge source、join policy、responsible actor、grant 解释面已固化。 |
 
 ## 4. 当前必须保持的不变量
 

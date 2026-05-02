@@ -15,7 +15,7 @@
   "kind": "cx.space.create",
   "space_version": "1",
   "content": {
-    "space_kind": "collaboration",
+    "kind": "collaboration",
     "initial_creators": ["did:plc:..."],
     "created_by_principal": "did:plc:...",
     "owning_organizations": [],

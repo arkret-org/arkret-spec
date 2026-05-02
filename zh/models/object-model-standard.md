@@ -9,7 +9,7 @@
 原则：
 
 - 标准类型提供主语义。
-- `subject` 提供薄语义中心；Card、Room、Document、Run、Memory 等通过 surface relation 围绕它协作。
+- `subject` 提供薄语义中心；Card、Room、Document 等通过 surface relation 围绕它协作。
 - `Morph` 提供开放扩展。
 - `facets` 是由 Space schema / Morph profile 声明的能力提示和查询标签，不替代对象类型，也不单独定义授权、状态机、排序或 reducer 语义。
 - View 只定义如何投影对象；它拥有自己的定义状态，但不发明对象能力，也不持有被投影对象的协作事实。
@@ -48,7 +48,6 @@ Subject 适合：
 - `research`
 - `task_cluster`
 - `asset`
-- `memory_subject`
 - `custom`
 
 常见关系：
@@ -60,7 +59,7 @@ Subject 适合：
 - `subject --contains--> subject`
 - `subject --references--> card / room / morph / message / blob`
 
-`has_surface` 的 `fields.surface_role` SHOULD 声明 surface 用途，例如 `status_card`、`primary_discussion`、`design_discussion`、`review_discussion`、`external_discussion`、`decision_log`、`design_doc`、`spec_doc`、`agent_run_log`、`memory`、`activity_view`、`source_message`。
+`has_surface` 的 `fields.surface_role` SHOULD 声明 surface 用途，例如 `status_card`、`primary_discussion`、`design_discussion`、`review_discussion`、`external_discussion`、`decision_log`、`design_doc`、`spec_doc`、`activity_view`、`source_message`。
 
 权限规则：
 
@@ -138,7 +137,7 @@ Board 适合：
 
 - `title`
 - `summary`
-- `board_kind`
+- `kind`
 - `default_view_id`
 - `archived`
 
@@ -216,7 +215,7 @@ Card 和 Room 严格区分：
 - `card --blocks--> card`
 - `card --links_room--> room`
 - `card --primary_room--> room`
-- `card --references--> morph / document / run / memory`
+- `card --references--> morph / document`
 - `card --summarized_from--> room`
 - `card --promoted_from_room--> room`
 
@@ -304,41 +303,7 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Subject、Room、Boa
 
 内容本身 SHOULD 使用 blob service 存储，并通过 content hash 校验。
 
-## 11. Memory
-
-`memory` 表示可由人或 agent 读取、引用、更新的长期记忆。v1 Core 中 Memory 是 Morph profile；高级生命周期由 `cx.profile.agent_runtime.v1` 扩展声明。
-
-Memory MUST 记录来源：
-
-- `source_event_id`
-- `source_object_ref`
-- `extracted_by`
-- `confidence`
-- `expires_at`
-- `subject_ref`
-
-## 12. Run
-
-`run` 表示 agent、automation 或 CI 的一次执行。v1 Core 中 Run 是 Morph profile；A2A/ACP/MCP bridge 等执行语义由扩展 profile 声明。
-
-Run SHOULD 记录：
-
-- input
-- output
-- tool calls
-- approval refs
-- error state
-- responsible actor
-
-常用关系：
-
-- `run --produced--> card / morph / memory`
-- `run --used--> tool / input`
-- `run --triggered_by--> actor / event / card`
-- `subject --has_surface--> run`
-- `run --links_room--> room`
-
-## 13. Actor Profile
+## 11. Actor Profile
 
 `actor_profile` 是 Actor 在协作图中的展示镜像。
 
@@ -351,7 +316,7 @@ Run SHOULD 记录：
 
 Actor Profile 不替代 DID，也不成为权限主键。
 
-## 14. Poll
+## 12. Poll
 
 `poll` 表示投票或决策收集。Poll MAY 是 Morph profile。
 
@@ -365,7 +330,7 @@ Actor Profile 不替代 DID，也不成为权限主键。
 
 投票结果 SHOULD 作为 event 集合归约，而不是只更新单一计数字段。
 
-## 15. 标准 Facets
+## 13. 标准 Facets
 
 Facets 是 schema-declared capability hints，不是对象身份。标准对象 MAY 暴露 schema/profile 已声明的 facets 来辅助展示或查询，但标准对象的核心语义不依赖 facets 才成立；Morph MAY 使用 facets 帮助 View、本地搜索、UI 和插件做过滤、降级展示和默认 renderer 选择。
 
@@ -384,7 +349,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 | `documentable` | 可作为文档或 section root。 |
 | `renderable` | 声明允许的默认展示面。 |
 
-## 16. Schema Evolution
+## 14. Schema Evolution
 
 标准类型演进 MUST 遵守：
 
@@ -394,7 +359,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card
 - 标准对象不得阻止 Space 定义自定义 Morph type
 
-## 17. 规范性引用
+## 15. 规范性引用
 
 - 标准 Relation cardinality 按本文件各类型语义、`data-structures.md` 的 Relation 字段和业务 profile 执行；未声明多重关系时，active relation MUST 以 `(relation_kind, from_ref, to_ref)` 收敛为单条。
 - Content block registry 见 `content-types.md`；未知 content block 必须按降级规则保留和展示。

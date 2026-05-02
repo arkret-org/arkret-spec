@@ -23,8 +23,6 @@
     "object_type_deny": { "type": "array", "items": { "type": "string" } },
     "morph_type_allow": { "type": "array", "items": { "type": "string" } },
     "morph_type_deny": { "type": "array", "items": { "type": "string" } },
-    "memory_kind_allow": { "type": "array", "items": { "type": "string" } },
-    "memory_kind_deny": { "type": "array", "items": { "type": "string" } },
     "facet_allow": {
       "type": "array",
       "items": {

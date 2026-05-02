@@ -171,7 +171,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。
 8. 结果、artifact、transcript hash、错误或取消原因回写 Contrix。
-9. Reducer 将 Card / run / memory / notification 更新为最终状态。
+9. Reducer 将 Card、Morph、Relation 或 notification 更新为最终状态。
 
 ## 7. Capability
 

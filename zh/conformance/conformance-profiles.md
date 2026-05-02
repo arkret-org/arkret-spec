@@ -35,9 +35,9 @@ cx.profile.<name>.v<major>
 | --- | --- | --- |
 | Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space、Subject、Room、Board、List、Card、Message、Morph、Relation、Capability、View query shape、Sync cursor、Blob hash 校验、标准错误。 |
 | Recommended | 主客户端和 Principal Server SHOULD 支持，但轻量实现可以不支持。 | E2EE、push、presence、read receipt、snapshot bootstrap、local full-text search、moderation report。 |
-| Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、Agent Memory advanced lifecycle、sovereign deployment。 |
+| Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、sovereign deployment。 |
 
-Document、File、Memory、Run、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
+Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
 为避免 Core 范围过大导致实现无法启动，v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
@@ -496,10 +496,9 @@ MUST 支持：
 - `cx.schema.agent_authority.v1` authority panel
 - scoped action execution
 - owner presence / trigger policy
-- declared knowledge sources and memory visibility
+- declared knowledge sources
 - join policy that rejects owner-permission inheritance
-- run log
-- memory write policy
+- protocol session audit metadata
 - accountability metadata
 - kill switch / revocation check
 

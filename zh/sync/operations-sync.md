@@ -70,7 +70,6 @@ Contrix 采用 Event-first 模型：
 - Subject / surface
 - Board / List / Card
 - Morph
-- Run / Memory
 
 ## 4. Event Batch Receipt / Checkpoint
 
@@ -263,22 +262,7 @@ Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关
 
 新写入 SHOULD 优先通过 `cx.subject.link_surface` 把 Card 和 Room 挂到共同 Subject 上。Card 与 Room 的兼容关联只使用 Card 视角事件：`cx.card.link_room`、`cx.card.unlink_room` 和 `cx.card.set_primary_room`。`cx.room.link_card` / `cx.room.unlink_card` 不是 v1 标准事件，接收方 MUST 拒绝它们，避免同一语义出现双写路径。
 
-### 7.6 Run / Memory / Extensions
-
-- `cx.run.create`
-- `cx.run.update`
-- `cx.run.complete`
-- `cx.run.fail`
-- `cx.memory.create`
-- `cx.memory.update`
-- `cx.memory.confirm`
-- `cx.memory.reject`
-- `cx.memory.invalidate`
-- `cx.memory.supersede`
-
-这些事件在 v1 Core 中作用于 `morph_type=run` / `morph_type=memory` 的 Morph。若未来 profile 将 Run / Memory 提升为标准对象，必须声明新的 schema/profile 版本和迁移规则。
-
-### 7.7 Membership / Invite / Capability
+### 7.6 Membership / Invite / Capability
 
 - `cx.member.state`
 - `cx.invite.create`
@@ -288,7 +272,7 @@ Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-### 7.8 Profile / Device / Space Key
+### 7.7 Profile / Device / Space Key
 
 - `cx.profile.update`
 - `cx.profile.space_override`
@@ -494,7 +478,7 @@ Subject Sync MUST NOT 因为 actor 可读 Subject 就自动展开不可读 Room 
 
 ### 12.6 Query Surface
 
-用于 view、搜索、memory 检索与 context timeline 查询。
+用于 view、搜索与 context timeline 查询。
 
 ### 12.7 Authz / Invite Surface
 
@@ -647,7 +631,7 @@ ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。
 
 - 可路由元数据：`space_id`、`target_ref`、`type`、`causal`。
 - 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，接收它们的受托 search / projection 服务必须列入 `plaintext_visible_services`。
-- 不透明加密负载：message body、附件内容、敏感 memory 细节等。
+- 不透明加密负载：message body、附件内容等。
 
 ## 21. 本地存储建议
 
@@ -664,7 +648,7 @@ Contrix v1 固定：
 - signed Event Envelope 是 actor 发布单元。
 - Event Envelope 是共享状态归约单元。
 - Room / Message、Board / List / Card、Morph 共享同一同步协议。
-- Subject 是语义中心；Card、Room、Document、Run、Memory 等通过 `has_surface` relation 聚合，权限不继承。
+- Subject 是语义中心；Card、Room、Document 等通过 `has_surface` relation 聚合，权限不继承。
 - Card 和 Room 仍可通过兼容 relation 关联，权限不继承。
 - invite / grant / snapshot 组成 Space bootstrap 主流程。
 - event 重试必须幂等。

@@ -259,11 +259,11 @@
     },
     "cx.profile.agent_runtime.v1": {
       "required_endpoints": ["cx.server.describe", "cx.events.submit", "cx.events.list", "cx.authz.check"],
-      "required_event_kinds": ["cx.agent.endpoint", "cx.agent.protocol_session.start", "cx.agent.protocol_session.status", "cx.agent.protocol_session.result", "cx.memory.create", "cx.memory.confirm", "cx.memory.reject"],
+      "required_event_kinds": ["cx.agent.endpoint", "cx.agent.protocol_session.start", "cx.agent.protocol_session.status", "cx.agent.protocol_session.result"],
       "rejected_event_kinds": ["wire_scope:deprecated_alias"],
       "required_schemas": ["cx.schema.agent_authority.v1", "cx.schema.capability.v1"],
       "required_fixtures": ["capability-fixture.json", "privacy-security-fixture.json"],
-      "optional_extensions": ["confirmed_memory", "tool_execution", "owner_presence_delegate"],
+      "optional_extensions": ["tool_execution", "owner_presence_delegate"],
       "feature_discovery": { "required": ["authority_panel", "responsible_actor", "grant_scope"], "unsupported_optional": "require explicit grant before join or tool use" }
     },
     "cx.profile.mimi_interop.v1": {

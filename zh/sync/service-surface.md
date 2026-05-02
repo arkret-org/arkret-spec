@@ -85,7 +85,7 @@ DID Document SHOULD 只负责：
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Space、third-party lookup。 |
 | MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、Space Host 或 Applet Bridge 承载 | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
-| Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/events` 写回结果 | agent 执行、tool 调用、run log、memory、A2A/ACP/MCP handoff。 |
+| Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
 | Moderation / Compliance Server | 公共或组织部署建议独立 | `/moderation`, `/server` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 |
 
@@ -98,7 +98,7 @@ DID Document SHOULD 只负责：
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_service`：Applet Server + Event writer + Authz precheck，只在授权 namespace 和 capability 内工作。
 - `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Room。
-- `agent_runtime`：Agent Runtime + Event writer + Memory/search integration，所有写入仍通过 principal / agent DID 签名。
+- `agent_runtime`：Agent Runtime + Event writer，所有写入仍通过 principal / agent DID 签名。
 
 客户端选择服务时 MUST 先解析 DID Document 与 Space policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
 
@@ -367,7 +367,7 @@ GET /api/v1/sync/snapshot-head?space_id=<id>
 
 如果 Space 未启用 E2EE 或内容层加密：
 
-- 客户端 MUST NOT 将 message body、comment body、附件明文、敏感 memory 明文或可逆派生摘要提交给未授权第三方服务。
+- 客户端 MUST NOT 将 message body、comment body、附件明文或可逆派生摘要提交给未授权第三方服务。
 - `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Space policy 明确委托的 Principal Server。
 - Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Space policy 中声明为 `plaintext_visible_services`。
 - shared Space Host 若可见明文，必须在 Space policy 中作为明文可见方列出。

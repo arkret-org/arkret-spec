@@ -116,16 +116,6 @@
 | `cx.morph.update` | Morph patch |
 | `cx.morph.archive` | Morph archive |
 | `cx.morph.restore` | Morph restore |
-| `cx.run.create` | Agent / automation run create |
-| `cx.run.update` | Run metadata or progress patch |
-| `cx.run.complete` | Run completed |
-| `cx.run.fail` | Run failed |
-| `cx.memory.create` | Memory candidate or record create |
-| `cx.memory.update` | Memory patch |
-| `cx.memory.confirm` | Memory confirmation |
-| `cx.memory.reject` | Memory candidate rejection |
-| `cx.memory.invalidate` | Memory invalidation |
-| `cx.memory.supersede` | Memory superseded by newer record |
 | `cx.agent.endpoint` | Agent protocol endpoint declaration |
 | `cx.agent.protocol_session.start` | Agent protocol session start |
 | `cx.agent.protocol_session.status` | Agent protocol session status |

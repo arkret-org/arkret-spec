@@ -67,9 +67,7 @@ Authorization condition: Claim / Attestation
     "cx.card.read",
     "cx.card.update",
     "cx.morph.read",
-    "cx.morph.update",
-    "cx.run.create",
-    "cx.memory.create"
+    "cx.morph.update"
   ],
   "resources": [
     {
@@ -81,13 +79,7 @@ Authorization condition: Claim / Attestation
     {
       "kind": "morph",
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "morph_type": "run",
-      "scope": "space_wide"
-    },
-    {
-      "kind": "morph",
-      "space_id": "cx:space:01js0sp0000000000000000000",
-      "morph_type": "memory",
+      "morph_type": "document",
       "scope": "space_wide"
     }
   ],
@@ -183,8 +175,6 @@ Contrix v1 支持以下 `kind`：
 - `object_type:<type>`
 - `morph_type:<type>`
 - `relation_kind:<type>`
-- `run`
-- `memory`
 - `schema`
 - `policy`
 - `invite`
@@ -250,16 +240,7 @@ Subject 权限只覆盖 Subject 自身字段和 `has_surface` relation 管理，
 - `cx.message.redact` (任意消息) / `cx.message.redact.own` (仅自己)
 - `cx.room.*`
 
-### 5.4 Run 与 Memory 动作
-
-- `cx.run.create`
-- `cx.run.update`
-- `cx.memory.create`
-- `cx.memory.confirm`
-- `cx.memory.invalidate`
-- `cx.memory.curate`
-
-### 5.5 管理动作
+### 5.4 管理动作
 
 - `cx.space.admin`
 - `cx.board.admin`
@@ -295,7 +276,6 @@ Contrix v1 支持：
 - `object_type_allow`
 - `morph_type_allow`
 - `facet_allow`
-- `memory_kind_allow`
 - `allowed_room_refs`
 - `allowed_subject_refs`
 - `allowed_board_refs`
@@ -422,7 +402,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 - owner / guardian / controller 不会自动把自己的权限传给 subject
 - subject 要执行操作，仍然必须命中显式 grant
 - 高风险动作 MAY 要求 responsible / guardian / controller approval
-- Event SHOULD 记录 grant、delegation chain、approval 证据和 run 上下文
+- Event SHOULD 记录 grant、delegation chain、approval 证据和执行上下文
 
 ### 8.1 Approval Constraint
 
@@ -483,7 +463,7 @@ system/human -> `cx.card.update` 或 `cx.morph.update`
 - 只授予所需动作
 - 只授予有限时效
 - 只授予允许的对象种类
-- 尽量限制可写字段与可写 memory 类型
+- 尽量限制可写字段与可写 Morph 类型
 - 要求必要的 controller / responsible actor approval
 
 高风险模式包括：
@@ -491,7 +471,7 @@ system/human -> `cx.card.update` 或 `cx.morph.update`
 - 给 agent 长期全 Space 管理权
 - 让 agent 直接继承 human owner 全权限
 - 不设过期时间
-- 不保留 run 审计链
+- 不保留 agent 执行审计链
 - 不记录 responsible / controller / operator
 - 高风险操作不需要 approval
 
@@ -508,9 +488,9 @@ system/human -> `cx.card.update` 或 `cx.morph.update`
 - `knowledge_sources`：agent 可读取的 owner-private、Space、Organization、object 或 public 知识源，以及每个来源的 grant、明文级别和 retention 边界。
 - `join_policy`：agent 是否可在 responsible actor 未加入时加入 Space / Room。默认 `may_join_without_responsible_actor=false` 且 `requires_explicit_space_invite=true`。
 
-实现 MUST NOT 用“owner 具有权限”推导 agent 自动具有权限。Agent 加入 Space、读取 owner 私有记忆、读取在线状态、代发消息、启动外部 agent protocol session、执行 tool 或写入 confirmed memory，都必须命中 agent 自己的 grant / approval / policy 组合。
+实现 MUST NOT 用“owner 具有权限”推导 agent 自动具有权限。Agent 加入 Space、读取 owner-private 知识源、读取在线状态、代发消息、启动外部 agent protocol session 或执行 tool，都必须命中 agent 自己的 grant / approval / policy 组合。
 
-产品界面 SHOULD 在 agent 发言、写入、审批请求和外部执行前显示 Agent Authority Panel 的简化投影：以谁的身份、由谁负责、可见哪些知识、权限何时过期、最近 run log 是什么。
+产品界面 SHOULD 在 agent 发言、写入、审批请求和外部执行前显示 Agent Authority Panel 的简化投影：以谁的身份、由谁负责、可见哪些知识、权限何时过期、最近审计事件是什么。
 
 ## 10. Delegation
 
@@ -674,7 +654,7 @@ Fast path 规则：
 Contrix v1 固定：
 
 - 权限采用 capability 模型
-- 看板、会话、memory、run 都使用统一 grant 体系
+- 看板、会话、agent 执行都使用统一 grant 体系
 - `edit_own_message` 与 `redact_any_message` 分开
 - invite / notification / read marker 进入统一 capability 体系
 - 协议级语义采用 allow-grant + explicit revoke

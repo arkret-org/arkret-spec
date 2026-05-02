@@ -39,15 +39,13 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 - Board
 - Card
 - Document
-- Run
-- Memory
 - Morph
 
 Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组织，但 child Space 仍然是独立边界。membership、capability、history visibility、schema、policy 和 encryption key 默认不从 parent 级联到 child；任何继承都必须由 child Space 显式声明。详细规则见 `space-hierarchy.md`。
 
 ### 2.2 标准对象承载主语义
 
-协议不再把 `subject`、`board`、`card`、`room`、`message`、`run`、`memory` 等都压成 `entity_type`。
+协议不再把 `subject`、`board`、`card`、`room`、`message` 等都压成 `entity_type`。
 
 标准对象本身表达主语义：
 
@@ -257,7 +255,6 @@ Subject 保持很薄。它只承载身份连续性、标题、brief、summary、
 - `research`
 - `task_cluster`
 - `asset`
-- `memory_subject`
 - `custom`
 
 Subject 与协作 surface 的关系使用 `has_surface`：
@@ -268,11 +265,11 @@ Subject 与协作 surface 的关系使用 `has_surface`：
 - `subject --has_surface--> view`
 - `subject --has_surface--> message`
 
-`has_surface` 的 `fields.surface_role` SHOULD 说明 surface 用途，例如 `status_card`、`primary_discussion`、`review_discussion`、`external_discussion`、`design_doc`、`decision_log`、`agent_run_log`、`memory`、`activity_view`。同一 Subject MAY 有多个 surface；若某个 role 只允许一个 primary surface，Reducer MUST 按该 profile 的唯一性规则收敛。
+`has_surface` 的 `fields.surface_role` SHOULD 说明 surface 用途，例如 `status_card`、`primary_discussion`、`review_discussion`、`external_discussion`、`design_doc`、`decision_log`、`activity_view`。同一 Subject MAY 有多个 surface；若某个 role 只允许一个 primary surface，Reducer MUST 按该 profile 的唯一性规则收敛。
 
 Subject 权限只控制 Subject 自身字段和 surface 关系。能读 Subject 不代表能读所有 surface；能进 Room 不代表能改 Subject；能改 Card 不代表能管理 Subject surface。Surface 内容仍由各自对象权限、membership、history visibility、E2EE 和 policy 判断。
 
-Subject activity / timeline 是派生 projection，而不是新的 canonical log。它可以聚合 Subject 事件、surface relation 变化、Card 状态变化、可见 Room 消息摘要、Document 更新、Run 结果和 Memory 状态。
+Subject activity / timeline 是派生 projection，而不是新的 canonical log。它可以聚合 Subject 事件、surface relation 变化、Card 状态变化、可见 Room 消息摘要和 Document 更新。
 
 ## 7. Room
 
@@ -309,6 +306,8 @@ Room 规则：
 
 ## 8. Board / List / Card
 
+Board / List 可作为 `Space.kind` 的工作流容器形态（`kind=board`、`kind=list`）。与其语义一致的标准对象仍保留 `board` / `list` 标识和关系建模路径，便于与已有事件、capability 和 migration 保持兼容。
+
 Board 是工作流容器。List 是 Board 内的列/泳道。Card 是可执行、可跟踪、可沉淀的工作对象，也可以作为 Subject 的状态推进 surface。
 
 Board 最小结构：
@@ -319,7 +318,7 @@ Board 最小结构：
   "type": "board",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Release Board",
-  "board_kind": "kanban",
+  "kind": "kanban",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }

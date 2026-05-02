@@ -172,7 +172,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 | Push Gateway | `push_gateway` | push device register / unregister、脱敏通知投递、移动平台适配。 | 否。 | 默认不得接收 E2EE 明文或正文摘要。 |
 | Applet Server | `applet_service` | bot、bridge、外部 SaaS、portal Space、ghost actor、Applet transaction。 | 否；写入仍需 capability 和签名。 | 只在 Space / principal 明确授权范围内可见明文。 |
 | MIMI Provider Facade | `mimi_provider_facade` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 | 否；MIMI room state 是 Contrix Space/Room 的互操作投影。 | 只能处理 `cx.mimi.room_binding` 和 Space policy 授权范围内的密文、metadata 或明文。 |
-| Agent Runtime Server | `agent_runtime` | agent run、tool execution、memory promotion、A2A / ACP / MCP handoff。 | 否；输出必须写成 signed Event 才成为协议事实。 | agent 可见范围由 capability、device / session 和 Space policy 限定。 |
+| Agent Runtime Server | `agent_runtime` | agent execution、tool execution、A2A / ACP / MCP handoff。 | 否；输出必须写成 signed Event 才成为协议事实。 | agent 可见范围由 capability、device / session 和 Space policy 限定。 |
 | Realtime Media Server | `media_service` / `sfu_service` / `turn_service` | WebRTC signaling 辅助、ICE config、TURN / STUN、SFU / MCU、录制。 | 否。 | SFU / TURN 通常不应接触明文；MCU / 录制必须显式授权。 |
 | Moderation / Compliance Server | `moderation_service` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 | 否；处理结果必须落成可审计 policy / moderation Event。 | 只能接收审核所需的最小证据或授权明文。 |
 
@@ -214,7 +214,6 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 - 当前态查询
 - 视图查询
 - 搜索
-- memory 检索
 - **因果一致性屏障 (Causal Barrier)**：客户端或可选受托服务在返回查询结果前，可根据本地 sync frontier 等待特定写入前沿的到达，保障“读己之所写”体验。
 
 ### 3.5 Presentation Plane
@@ -223,18 +222,9 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 
 - kanban/list/table/calendar/timeline/graph/activity
 - 人类审阅队列
-- agent run timeline
+- agent protocol session timeline
 
-### 3.6 Memory Plane
-
-负责：
-
-- run 轨迹沉淀
-- episodic memory
-- semantic memory
-- memory promotion / supersession / forgetting
-
-### 3.7 Confidentiality Plane
+### 3.6 Confidentiality Plane
 
 负责：
 
@@ -243,7 +233,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 - key distribution / rotation
 - 让 Sync Service 在不解密正文时也能继续转发
 
-### 3.8 Portability Plane
+### 3.7 Portability Plane
 
 负责：
 
@@ -357,8 +347,8 @@ flowchart LR
 
 - user/org DID 作为 authority
 - agent DID 拥有受限 capability
-- run log 写成 agent 签名 Event
-- agent 的 Principal Server 将 run log 同步到协作 Space
+- agent 的结果和审计摘要写成 agent 签名 Event
+- agent 的 Principal Server 将这些 Event 同步到协作 Space
 - 客户端或受托 projection 扩展生成 human review queue
 
 ### 4.4 Sovereign / High-Assurance 拓扑
@@ -454,13 +444,13 @@ Space 构成了协作图的硬性隔离边界：
 Contrix 不打算做“两套系统”：
 
 - 一套给人类看板
-- 一套给 AI memory
+- 一套给 agent 上下文
 
 相反，协议应该保证：
 
 - AI 写入的对象能被人类审阅
 - 人类创建的对象能被 AI 理解和引用
-- Card、Message、Relation、运行记录、记忆和其他 Morph 对象可以互相链接
+- Card、Message、Relation 和其他 Morph 对象可以互相链接
 - 所有沉淀都能投影成可操作界面
 
 ## 8. 架构决定
@@ -473,8 +463,8 @@ Contrix v1 固定以下方向：
 - search / View projection 默认是客户端本地派生体验；受托搜索服务只能作为可选扩展
 - blob 是独立内容层
 - capability 是独立决策层
-- run 与 memory 通过 Morph 类型或扩展 profile 成为可审计协议对象
-- 同一数据既服务人类 UI，也服务 agent 记忆
+- agent 输出通过 Message、Card、Morph、Relation 或 agent protocol session event 成为可审计协议事实
+- 同一数据既服务人类 UI，也服务 agent 上下文
 - confidentiality 与 portability 也是明确协议平面，而不是部署细节
 
 ## 9. 可落地性要求
