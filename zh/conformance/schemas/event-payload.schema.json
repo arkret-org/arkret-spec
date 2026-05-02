@@ -26,10 +26,42 @@
       "pattern": "^(cx:(space|subject|room|board|list|card|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-hjkmnp-z]{26}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
     "rank": { "type": "string", "pattern": "^[0-9A-Za-z]{1,128}$" },
+    "patch_path": {
+      "type": "string",
+      "description": "Contrix field patch path. Segments are snake_case identifiers or backtick-quoted literals; array indexes are not part of cx.patch.v1.",
+      "pattern": "^(?:[a-z_][a-z0-9_]*|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`)(?:\\.(?:[a-z_][a-z0-9_]*|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`))*$"
+    },
+    "patch_operation": {
+      "type": "object",
+      "required": ["$op"],
+      "properties": {
+        "$op": { "type": "string", "enum": ["set", "unset", "add", "remove"] },
+        "value": {},
+        "if_match": { "$ref": "#/$defs/hash" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "$op": { "enum": ["set", "add", "remove"] } }, "required": ["$op"] },
+          "then": { "required": ["value"] }
+        },
+        {
+          "if": { "properties": { "$op": { "const": "unset" } }, "required": ["$op"] },
+          "then": { "not": { "required": ["value"] } }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "patch_value": {
+      "description": "A plain value is shorthand for {\"$op\":\"set\",\"value\":...}. Objects containing $op MUST be patch_operation objects.",
+      "if": { "type": "object", "required": ["$op"] },
+      "then": { "$ref": "#/$defs/patch_operation" },
+      "else": {}
+    },
     "patch": {
       "type": "object",
       "minProperties": 1,
-      "additionalProperties": true
+      "propertyNames": { "$ref": "#/$defs/patch_path" },
+      "additionalProperties": { "$ref": "#/$defs/patch_value" }
     },
     "object_snapshot": {
       "type": "object",
@@ -94,6 +126,49 @@
         "reason": { "type": "string" }
       },
       "additionalProperties": true
+    },
+    "space_archive_content": {
+      "type": "object",
+      "required": ["archived"],
+      "properties": {
+        "archived": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "effective_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "space_freeze_content": {
+      "type": "object",
+      "required": ["frozen"],
+      "properties": {
+        "frozen": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "effective_at": { "$ref": "#/$defs/timestamp" },
+        "until": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "space_tombstone_content": {
+      "type": "object",
+      "required": ["reason"],
+      "properties": {
+        "reason": { "type": "string" },
+        "replacement_space": { "$ref": "#/$defs/space_id" },
+        "replacement_event": { "$ref": "#/$defs/event_ref" },
+        "effective_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "space_destroy_content": {
+      "type": "object",
+      "required": ["reason"],
+      "properties": {
+        "reason": { "type": "string" },
+        "effective_at": { "$ref": "#/$defs/timestamp" },
+        "retention_policy_ref": { "$ref": "#/$defs/object_ref" },
+        "verification_stub_required": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false
     },
     "membership_content": {
       "type": "object",

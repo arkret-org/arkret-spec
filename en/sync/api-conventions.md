@@ -12,9 +12,9 @@ This document applies to identity registry, repo, Sync Service, blob, authz, pus
 
 Production endpoints MUST use HTTPS. Plain HTTP is only allowed for local development, test networks, or controlled intranet simulations.
 
-JSON requests and responses MUST use UTF-8. Contrix canonical JSON fields use snake_case, for example `space_id`, `commit_id`, `service_endpoint`, `verification_method`, and `retry_after_ms`.
+JSON requests and responses MUST use UTF-8. Contrix-owned JSON fields use snake_case, for example `space_id`, `commit_id`, `service_endpoint`, `verification_method`, and `retry_after_ms`.
 
-External raw standards MAY retain their original field names, such as W3C DID Core `verificationMethod`, but normalized Contrix views, indexes, policy inputs, and reducer inputs MUST map them to snake_case.
+External raw standards MUST retain their original field names, such as W3C DID Core `verificationMethod`, `alsoKnownAs`, `serviceEndpoint`, and VC `credentialSubject`. Normalized Contrix views, indexes, policy inputs, and reducer inputs MAY use snake_case derived fields, but those derived fields MUST NOT be emitted as raw DID / VC documents.
 
 JSON requests with a body SHOULD use `Content-Type: application/json`; JSON responses MUST use `Content-Type: application/json`. Blob and media byte streams MAY use other content types, but metadata responses remain JSON.
 

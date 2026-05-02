@@ -110,6 +110,22 @@
       "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/object_patch_content" } } }
     },
     {
+      "if": { "properties": { "kind": { "const": "cx.space.archive" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/space_archive_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.space.freeze" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/space_freeze_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.space.tombstone" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/space_tombstone_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.space.destroy" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/space_destroy_content" } } }
+    },
+    {
       "if": {
         "properties": {
           "kind": {

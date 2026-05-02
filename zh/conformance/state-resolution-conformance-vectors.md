@@ -25,7 +25,7 @@ cx.vector.state_resolution.conflict_space_membership.v1
 输入：
 
 - Space: `cx:space:01js0ms0000000000000000000`
-- State key: `did:uuid:bob`
+- State key: `did:web:bob.example.com`
 - Candidate A: `cx.member.state` -> `join`
 - Candidate B: `cx.member.state` -> `ban`
 
@@ -45,7 +45,7 @@ cx.vector.state_resolution.conflict_room_membership.v1
 输入：
 
 - Room: `cx:room:01js0r00000000000000000000`
-- State key: `cx:room:01js0r00000000000000000000|did:uuid:bob`
+- State key: `cx:room:01js0r00000000000000000000|did:web:bob.example.com`
 - Candidate A: `cx.room.member` -> `join`
 - Candidate B: `cx.room.member` -> `leave`
 

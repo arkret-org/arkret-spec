@@ -57,7 +57,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 ```json
 {
   "type": "cx.agent.endpoint",
-  "agent_id": "did:uuid:agent",
+  "agent_id": "did:web:agent.example.com",
   "endpoints": [
     {
       "protocol": "a2a",
@@ -86,11 +86,11 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 {
   "type": "cx.agent.protocol_session.start",
   "space_id": "cx:space:...",
-  "actor_id": "did:uuid:requesting_agent",
+  "actor_id": "did:web:requesting-agent.example.com",
   "content": {
     "session_id": "cx:agent_session:01J...",
     "task_card_id": "cx:card:task0100000000000000000000",
-    "counterparty_agent": "did:uuid:remote_agent",
+    "counterparty_agent": "did:web:remote-agent.example.com",
     "protocol": "a2a",
     "protocol_version": "1.x",
     "endpoint_ref": "https://agent.example/.well-known/agent-card.json",

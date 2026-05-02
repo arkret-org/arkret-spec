@@ -79,15 +79,15 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - `principal_id = DID URI`
 - Handle 与 DID 分离
-- 默认 DID 方法为 `did:uuid`
-- `did:uuid` 基于自定义 UUID v8：44 位毫秒时间戳 + 4 位哈希算法标识 + 74 位初始锚点公钥哈希片段
-- DID 哈希填充与验证 MUST 使用大端序
-- 普通密钥轮换 MUST NOT 改变 DID
-- 当前控制密钥通过 `key_log` 从 `inception_key` 继承，不要求始终与 DID 哈希直接匹配
-- DID 文档由多 `identity registry / witness / replica` 节点保存与复制，而不是单中心目录
+- 默认普通用户 DID 方法为 `did:plc`
+- Contrix 不定义自有 DID method；新对象和规范示例 MUST 使用现有 DID method
+- 长期 principal DID SHOULD 支持密钥轮换、恢复、停用或可验证历史
+- Resolver policy MUST 声明 allowed methods、默认 method、trust roots、method capability 与 fail-closed 规则
+- DID 文档、operation history 和 method evidence 由对应 DID method 的 resolver / verifier 校验
 - 解析模式参考 atprotocol 的 handle 双向验证，但更偏向协作与多服务发现
-- 初版 SHOULD 支持 `did:web` 作为组织/服务互操作方法
-- 对 `did:plc`、`did:web` 等外部 DID，采用 `method adapter + normalized principal view + sidecar` 兼容层；保留原始文档与历史，不强行改写成 `did:uuid`
+- 组织 / service DID SHOULD 使用 `did:web`；高保证组织 SHOULD 使用 `did:webvh`
+- `did:key` 仅用于临时、测试、设备、邀请或 bootstrap 场景；`did:pkh` 仅用于钱包身份绑定
+- 对 `did:plc`、`did:web` 等 DID，采用 `method adapter + normalized principal view + sidecar` 兼容层；保留原始文档与历史，不强行改写成私有 DID
 
 ### 5.2 数据
 

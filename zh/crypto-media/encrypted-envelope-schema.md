@@ -78,7 +78,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "space_id": "cx:space:01js0sp0000000000000000000",
   "event_type": "cx.message.create",
   "event_id": "cx:event:01js0ev0000000000000000000",
-  "causal_refs": ["cx:event:01js0ev0000000000000000000"]
+  "causal_refs": ["cx:event:01js0et0000000000000000000"]
 }
 ```
 
@@ -193,7 +193,7 @@ function encrypt_content(content, aad, group_context):
   "space_id": "cx:space:01js0sp0000000000000000000",
   "actor_id": "did:web:alice.example.com",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": ["cx:event:01js0ev0000000000000000000"],
+  "prev_refs": ["cx:event:01js0et0000000000000000000"],
   "content": {
     "encrypted_envelope": {
       "scheme": "mls-rfc9420",

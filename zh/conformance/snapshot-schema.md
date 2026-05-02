@@ -24,7 +24,13 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
     "covered_frontier": ["cx:event:01js0ev0000000000000000000"]
   },
   "state_hash": "sha256:...",
-  "chunks": [],
+  "chunks": [
+    {
+      "chunk_ref": "cx:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "size_bytes": 524288
+    }
+  ],
   "verification_hints": {
     "inclusion_proof_url": "https://server.example/snapshots/01js0sn/proofs",
     "challenge_window_seconds": 86400,
@@ -50,15 +56,45 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
 
 ```json
 {
-  "chunk_id": "cx:chunk:01js0ch0000000000000000000",
-  "index": 0,
-  "content_type": "application/json",
-  "item_count": 1000,
-  "byte_length": 524288,
-  "digest": "sha256:...",
-  "blob_ref": "cx:blob:sha256:..."
+  "chunk_ref": "cx:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "size_bytes": 524288
 }
 ```
+
+Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payload 本身是 canonical JSON，最小格式如下：
+
+```json
+{
+  "type": "snapshot_chunk",
+  "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
+  "index": 0,
+  "reducer_profile": "cx.reducer.v1",
+  "items": [
+    {
+      "kind": "card",
+      "id": "cx:card:01js0ca0000000000000000000",
+      "object": {
+        "id": "cx:card:01js0ca0000000000000000000",
+        "type": "card",
+        "schema": "cx.schema.card.v1"
+      },
+      "source_event_id": "cx:event:01js0ev0000000000000000000"
+    }
+  ],
+  "conflict_records": [],
+  "soft_failed": [],
+  "quarantined": []
+}
+```
+
+规则：
+
+- `items` MUST 按 `(kind, id)` canonical byte order 排序。
+- `object` 是该 reducer profile 在 snapshot frontier 下的 materialized canonical object，包括 active object、active Relation、以及 reducer profile 声明需要保留的 tombstone / redaction verification stub。
+- `source_event_id` 是产生该 materialized object 当前版本的最后 accepted Event；字段级 merge 时 MAY 指向最后改变该对象任一字段的 Event。
+- chunk `sha256` MUST 覆盖 chunk payload 的 canonical JSON bytes。Manifest `state_hash` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
+- `conflict_records`、`soft_failed` 和 `quarantined` 可为空，但 high-assurance snapshot MUST 通过 manifest `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入。
 
 ## 4. State Hash
 
@@ -68,6 +104,8 @@ Leaf hash:
 ```text
 sha256(kind || ":" || id || ":" || sha256(canonical_json(object)))
 ```
+
+Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。不同 reducer profile 产生的 `state_hash` 不保证兼容，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 compatible profile。
 
 ## 5. Snapshot Signature
 

@@ -16,8 +16,8 @@
   "space_version": "1",
   "content": {
     "space_kind": "collaboration",
-    "initial_creators": ["did:uuid:..."],
-    "created_by_principal": "did:uuid:...",
+    "initial_creators": ["did:plc:..."],
+    "created_by_principal": "did:plc:...",
     "owning_organizations": [],
     "default_discoverability": "invite_only",
     "default_join_rule": "invite",
@@ -104,7 +104,7 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 ```json
 {
   "kind": "cx.member.state",
-  "state_key": "did:uuid:actor",
+  "state_key": "did:web:actor.example.com",
   "content": {
     "membership": "join",
     "via": ["did:web:example.com"],
@@ -149,10 +149,10 @@ Contrix 使用 `cx.room.member` 表达 actor 在 Room 中的成员状态：
 ```json
 {
   "kind": "cx.room.member",
-  "state_key": "cx:room:01js0r00m00000000000000000|did:uuid:actor",
+  "state_key": "cx:room:01js0r00m00000000000000000|did:web:actor.example.com",
   "content": {
     "room_id": "cx:room:01js0r00m00000000000000000",
-    "actor_id": "did:uuid:actor",
+    "actor_id": "did:web:actor.example.com",
     "membership": "join",
     "via": ["did:web:example.com"],
     "reason": "invited",
@@ -526,6 +526,13 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 
 `cx.redaction` 是 state-independent event，但其效果由 reducer 应用到目标事件。
 
+`cx.message.redact` 与 `cx.redaction` 的边界如下：
+
+- `cx.message.redact` 是 Message 专用 redaction。生产者在撤回 Room Message、Message revision 或 Message reaction projection 时 SHOULD 使用它；content MUST 指向 `message_id`、`target_ref` 或目标 `event_id`，并携带可审计原因。
+- `cx.redaction` 是通用 redaction envelope，用于非 Message 对象、任意 Event payload、附件引用或 profile 声明的内容裁剪。
+- 两者不是互相扩大权限的别名。授权仍按目标对象、目标 Event、actor 和 capability 独立判定；拥有 `cx.message.redact.own` 不等于拥有通用 `cx.redaction`。
+- 若两类 redaction 指向同一目标，reducer MUST 幂等地应用同一 redaction effect，并在审计视图保留多个 redaction event 的 event id、actor 和 reason。
+
 被 redaction 后，事件只保留：
 
 - `event_id`
@@ -580,6 +587,15 @@ Hard erasure stub 不得额外保留已擦除明文字段的 standalone content 
 - `quarantined`：基础授权可过，但被本地/联邦策略标记为高风险。不得自动展示，可供管理员审查。
 
 Soft failed state event MAY 在后续上下文补齐后重新评估。Rejected event MUST NOT 自动复活，除非重新提交为新 event。
+
+Frontier 与存储语义：
+
+- `accepted` Event 才能推进 actor accepted frontier、Space reducer frontier、state hash 和 materialized projection。
+- `soft_failed` Event MAY 进入 pending store、backfill 队列和诊断 API，但 MUST NOT 推进 accepted frontier、state hash 或用户可见 projection。上下文补齐后重新评估通过时，才以原 `event_id` 进入 accepted set。
+- `rejected` Event MUST NOT 推进 accepted frontier，也不占据 accepted actor chain 中的 `actor_seq`。实现 MAY 保存 rejected envelope 的最小诊断记录或 abuse evidence，但不得把它返回为 accepted history；客户端展示时 MUST 标注为 rejected diagnostic，而不是普通事件。
+- `quarantined` Event MUST NOT 自动进入 reducer 或普通 sync。管理员、policy server 或异步验证将其释放后，必须重新执行完整 validation，并以原 `event_id` 进入 accepted set；若最终拒绝，按 rejected 处理。
+- 如果 actor 后续提交的 Event 以 soft-failed / quarantined / rejected Event 作为 `prev_refs`，接收方 MUST soft-fail 或 quarantine 后续 Event，直到该前序进入 accepted set；不得因为后续事件签名有效而跳过缺失或无效前序。
+- 对同一 `event_id` 的相同 canonical bytes 重试保持幂等。对同一 `event_id` 的不同 canonical bytes，节点 MUST quarantine `duplicate_conflict`，并且不得让任一冲突版本推进 accepted frontier，除非本地已经有一个 accepted 版本；此时新冲突版本仍保持 quarantined/rejected diagnostic。
 
 ## 12. Space Upgrade
 
@@ -643,3 +659,25 @@ Soft failed state event MAY 在后续上下文补齐后重新评估。Rejected e
 - Tombstoned Space MUST reject 新普通写入，只允许 redaction、export、legal hold、account lifecycle、migration proof 等维护类事件。
 - `replacement_space` 若存在，客户端 MUST 独立验证其 create event、owner / organization endorsement、Space policy 和历史导入证明。
 - Tombstone 不自动授予新 Space 读取旧 Space 历史的权限；历史访问仍受旧 Space 的 history visibility、capability、E2EE epoch 和 retention policy 约束。
+
+### 12.2 Space Lifecycle State Machine
+
+Space lifecycle 是 reducer state，不是本地服务开关。v1 使用以下状态：
+
+| 当前状态 | Event | 下一状态 | 是否可恢复 | 主要效果 |
+| --- | --- | --- | --- | --- |
+| `active` | `cx.space.archive{archived=true}` | `archived` | yes | 从默认 active 列表和普通 discovery 中隐藏；普通业务写入默认 SHOULD reject，除非 policy 允许 archive maintenance。 |
+| `archived` | `cx.space.archive{archived=false}` | `active` | yes | 恢复普通展示和写入。 |
+| `active` / `archived` | `cx.space.freeze{frozen=true}` | `frozen` | yes | 临时写入冻结；只允许 redaction、export、legal hold、policy/account lifecycle、unfreeze 和管理员维护事件。 |
+| `frozen` | `cx.space.freeze{frozen=false}` | `active` 或 `archived` | yes | 解除冻结，回到冻结前基础状态。 |
+| `active` / `archived` / `frozen` | `cx.space.tombstone` | `tombstoned` | no | 关闭或迁移 Space；拒绝新普通写入，只保留维护、审计和迁移证明。 |
+| `active` / `archived` / `frozen` | `cx.space.destroy` | `destroyed` | no | 不可恢复的 decommission marker；服务可按 retention / erasure policy 释放本地 payload，但仍不得伪造历史缺失。 |
+| `tombstoned` | `cx.space.destroy` | `destroyed` | no | tombstone 后的最终销毁或资源回收声明。 |
+
+规则：
+
+- `cx.space.archive` 和 `cx.space.freeze` 是 state event；同一 `state_key=""` 下的最新 accepted event 决定对应布尔状态。v1 不新增 `restore` / `unfreeze` kind。
+- `frozen` 可以叠加在 `archived` 上；解除冻结后 MUST 回到冻结前的 archived/active 基础状态。
+- `tombstoned` 和 `destroyed` 是 terminal state。后续普通业务 Event MUST reject；只允许 redaction、export、legal hold、account lifecycle、migration proof、snapshot/witness proof 和 policy 明确列出的维护类 Event。
+- `destroy` 不等于全网物理删除。它只声明该 Space 已不可恢复地 decommission；已签名 Event、verification stub、legal hold 和外部副本仍按各自 policy 处理。
+- 这些转换均需要 Space admin / owner / governance root 或 policy 声明的 lifecycle capability；policy hard deny 优先于 auth weight。

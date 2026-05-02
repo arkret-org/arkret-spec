@@ -46,7 +46,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 | Administrative Identifier | 组织账号、计费账号、客服账号、受管员工编号 | 组织本地管理、合规和账号恢复 | 否 |
 | Handle | `alice.example.com`、`@alice:example.org` | 人类可读入口和公开/半公开别名 | 否 |
 | Display Name | `Alice Zhang` | UI 展示 | 否 |
-| Principal DID | `did:uuid:...`、`did:web:...` | 签名、授权、事件责任主体 | 是 |
+| Principal DID | `did:plc:...`、`did:web:...` | 签名、授权、事件责任主体 | 是 |
 
 规则：
 
@@ -81,7 +81,7 @@ Matrix-style identifier（如 `@alice:example.org`）MAY 作为用户可见 hand
 
 ```json
 {
-  "also_known_as": [
+  "alsoKnownAs": [
     "contrix://alice.example.com"
   ]
 }
@@ -102,7 +102,7 @@ Well-known 示例：
 
 ```json
 {
-  "did": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992"
+  "did": "did:plc:ewvi7nxzyoun6zhxrhs64oiz"
 }
 ```
 
@@ -111,7 +111,7 @@ Well-known 示例：
 客户端解析 handle 得到 DID 后，MUST 继续解析 DID Document，并验证：
 
 ```text
-did_document.also_known_as contains contrix://<handle>
+did_document.alsoKnownAs contains contrix://<handle>
 ```
 
 若双向验证失败，客户端 MUST NOT 把该 handle 当作可信绑定。
@@ -161,11 +161,11 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 
 对 `alice@google.com` 和 `alice@facebook.com`：
 
-1. Alice 为 Google 关系使用 `did:uuid:g_pairwise...`
-2. Alice 为 Facebook 关系使用 `did:uuid:f_pairwise...`
-3. 两个 DID MUST NOT 复用相同 verification method、专用 service endpoint、endpoint 用户名、`also_known_as` 或公开 profile URL
-4. Google 或受信 issuer 给 `did:uuid:g_pairwise...` 签发 `ContrixOrgMembershipCredential`
-5. Facebook 或受信 issuer 给 `did:uuid:f_pairwise...` 签发独立 credential
+1. Alice 为 Google 关系使用 `did:key:z6Mkgpairwise...`
+2. Alice 为 Facebook 关系使用 `did:key:z6Mkfpairwise...`
+3. 两个 DID MUST NOT 复用相同 verification method、专用 service endpoint、endpoint 用户名、`alsoKnownAs` 或公开 profile URL
+4. Google 或受信 issuer 给 `did:key:z6Mkgpairwise...` 签发 `ContrixOrgMembershipCredential`
+5. Facebook 或受信 issuer 给 `did:key:z6Mkfpairwise...` 签发独立 credential
 6. 面向 Google verifier 时，wallet 只生成 Google 相关 presentation
 7. Google verifier MUST NOT 要求披露 Facebook credential、Facebook DID 或跨域 subject identifier
 
@@ -177,15 +177,15 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 {
   "type": ["verifiable_credential", "contrix_org_membership_credential"],
   "issuer": "did:web:google.example",
-  "credential_subject": {
-    "id": "did:uuid:g_pairwise...",
+  "credentialSubject": {
+    "id": "did:key:z6Mkgpairwise...",
     "org": "did:web:google.example",
     "member": true,
     "handle_verified": true
   },
-  "valid_from": "2026-04-26T00:00:00Z",
-  "valid_until": "2026-07-26T00:00:00Z",
-  "credential_status": {
+  "validFrom": "2026-04-26T00:00:00Z",
+  "validUntil": "2026-07-26T00:00:00Z",
+  "credentialStatus": {
     "type": "privacy_preserving_status_list"
   }
 }
@@ -195,8 +195,8 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 
 ```json
 {
-  "credential_subject": {
-    "id": "did:uuid:g_pairwise...",
+  "credentialSubject": {
+    "id": "did:key:z6Mkgpairwise...",
     "handle": "alice@google.com",
     "handle_verified": true
   }
@@ -275,7 +275,7 @@ Capability policy MAY 依赖 verified claim，但 grant subject 仍然是 DID。
 正确：
 
 ```text
-grant subject = did:uuid:g_pairwise...
+grant subject = did:key:z6Mkgpairwise...
 condition = has valid contrix_org_membership_credential where org = did:web:google.example
 ```
 
@@ -342,7 +342,7 @@ Wallet MUST verify：
 {
   "type": "cx.identity.disclosure_policy",
   "policy_id": "cx:policy:d1sc01j0000000000000000000",
-  "holder_did": "did:uuid:holder_root_or_pairwise",
+  "holder_did": "did:web:holder.example.com",
   "audience": {
     "org_did": "did:web:google.example",
     "verifier_dids": ["did:web:login.google.example"],
@@ -352,14 +352,14 @@ Wallet MUST verify：
     {
       "claim_type": "contrix_org_membership_credential",
       "issuer": "did:web:google.example",
-      "subject_did": "did:uuid:g_pairwise...",
+      "subject_did": "did:key:z6Mkgpairwise...",
       "disclosure": "abstract",
       "fields": ["org", "member", "handle_verified"]
     },
     {
       "claim_type": "verified_handle",
       "issuer": "did:web:google.example",
-      "subject_did": "did:uuid:g_pairwise...",
+      "subject_did": "did:key:z6Mkgpairwise...",
       "disclosure": "explicit",
       "fields": ["handle"],
       "value_constraints": {
@@ -404,17 +404,17 @@ Wallet SHOULD 在 holder private account data 中保存 disclosure receipt：
 {
   "type": "cx.identity.disclosure_receipt",
   "receipt_id": "cx:receipt:d1sc01j0000000000000000000",
-  "holder_did": "did:uuid:g_pairwise...",
+  "holder_did": "did:key:z6Mkgpairwise...",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
   "presentation_hash": "sha256:...",
   "disclosed_fields": [
-    "credential_subject.org",
-    "credential_subject.member",
-    "credential_subject.handle_verified"
+    "credentialSubject.org",
+    "credentialSubject.member",
+    "credentialSubject.handle_verified"
   ],
   "withheld_fields": [
-    "credential_subject.handle",
+    "credentialSubject.handle",
     "other_handles",
     "external_accounts"
   ],

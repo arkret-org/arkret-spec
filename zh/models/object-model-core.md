@@ -136,9 +136,9 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
   "id": "cx:card:01js0ke0000000000000000000",
   "type": "card",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "created_by": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "created_by": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "updated_by": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "updated_at": "2026-04-26T00:00:00Z",
   "schema": "cx.schema.card.v1"
 }
@@ -454,10 +454,10 @@ Event 是 reducer 输入和审计事实。
   "space_version": "1",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
-    "cx:event:01js0ev0000000000000000000"
+    "cx:event:01js0et0000000000000000000"
   ],
   "auth_refs": [
-    "cx:space:01js0sp0000000000000000000",
+    "cx:event:01js0sp0000000000000000000",
     "cx:event:01js0ms0000000000000000000"
   ],
   "content": {

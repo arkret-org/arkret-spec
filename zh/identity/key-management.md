@@ -25,7 +25,7 @@
 协议层主体仍然是 DID。设备权力来自：
 
 - DID Document 当前控制密钥
-- `key_log`
+- DID method history / key log / operation log
 - device authorization event
 - capability grant
 - recovery policy
@@ -60,13 +60,13 @@
 
 ### 3.1 Inception Key
 
-`inception_key` 用于生成 `did:uuid` 并作为身份历史根。
+`inception_key` 表示 DID method 的初始控制材料或等价 genesis authority。不同 DID method 可能使用不同名称，例如 `did:plc` genesis operation / rotation keys、`did:webvh` SCID 与首个 DID log entry、KERI inception event，或其他 method-specific root。
 
 要求：
 
-- 公钥 MUST 永久可验证
-- 私钥 SHOULD 在 DID 创建后离线保存或销毁
-- 普通操作 MUST NOT 依赖 inception private key 在线存在
+- 初始控制材料或其 method-specific 证明 MUST 可验证
+- 若 method 支持离线 genesis / recovery material，私钥 SHOULD 在 DID 创建后离线保存或销毁
+- 普通操作 MUST NOT 依赖高权限 inception / recovery private key 在线存在
 
 ### 3.2 Principal Signing Key
 
@@ -77,7 +77,7 @@ principal signing key 用于：
 - device authorization
 - recovery policy 更新
 
-它 MAY 轮换。轮换 MUST 进入 `key_log`。
+它 MAY 轮换。轮换 MUST 进入 DID method history、key log 或等价 signed event。
 
 ### 3.3 Recovery Key
 
@@ -88,7 +88,7 @@ recovery key 用于当前控制密钥丢失或泄露后的恢复。
 - SHOULD 与日常设备隔离
 - SHOULD 支持多份或门限方案
 - MUST 只能执行 recovery policy 允许的操作
-- recovery event MUST 写入 `key_log`
+- recovery event MUST 写入 DID method history、key log 或等价 signed event
 
 ### 3.4 Device Key
 
@@ -146,7 +146,7 @@ MLS KeyPackage key 用于加入加密 Space。
 ```json
 {
   "id": "cx:device:01js0ke0000000000000000000",
-  "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "device_label": "Alice MacBook Pro",
   "device_public_key": "z6Mks...",
   "device_key_type": "Multikey",
@@ -177,7 +177,7 @@ MLS KeyPackage key 用于加入加密 Space。
 ```json
 {
   "type": "cx.device.authorized",
-  "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "device_id": "cx:device:01js0ke0000000000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
@@ -191,7 +191,7 @@ MLS KeyPackage key 用于加入加密 Space。
   "authorized_by": "cx:device:01js0kd0000000000000000000",
   "proof": {
     "kind": "detached_jws",
-    "verification_method": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992#device-old",
+    "verification_method": "did:plc:ewvi7nxzyoun6zhxrhs64oiz#device-old",
     "jws": "..."
   }
 }
@@ -219,7 +219,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 {
   "type": "cx.session.grant",
   "issuer": "did:web:auth-gateway.example.com",
-  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
   "scopes": [
@@ -264,7 +264,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 ```json
 {
   "type": "key_backup",
-  "actor_id": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "backup_id": "cx:backup:01js0ke0000000000000000000",
   "created_at": "2026-04-26T00:00:00Z",
   "kdf": {
@@ -333,7 +333,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 - **钓鱼与中继**：攻击者可能诱导用户解密 challenge；proof 必须绑定 domain / service DID / audience，并在 UI 中展示高风险恢复意图。
 - **隐私泄露**：用历史内容证明所有权会向恢复服务暴露用户拥有或可读哪些私有内容。
 
-因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 `key_log` 中的 `recover`、`rotate`、`cx.device.authorized` 或等价 signed event。
+因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 DID method history、key log、`recover`、`rotate`、`cx.device.authorized` 或等价 signed event。
 
 ## 8. 社交恢复与门限恢复
 

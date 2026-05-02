@@ -22,24 +22,24 @@ Input:
 
 ```json
 {
-  "root": { "kind": "cx.capability.grant", "state_key": "space-admin", "subject": "did:uuid:root_admin" },
+  "root": { "kind": "cx.capability.grant", "state_key": "space-admin", "subject": "did:web:root-admin.example.com" },
   "delegation_a": {
     "event_id": "cx:event:01js0d1g000000000000000000",
     "kind": "cx.capability.delegate",
     "state_key": "space-admin-delegate-a",
-    "subject": "did:uuid:ops"
+    "subject": "did:web:ops.example.com"
   },
   "delegation_b": {
     "event_id": "cx:event:01js0d1h000000000000000000",
     "kind": "cx.capability.delegate",
     "state_key": "invite-ops",
-    "subject": "did:uuid:intern",
+    "subject": "did:web:intern.example.com",
     "constraints": {
       "audiences": ["did:web:vendor.example"]
     }
   },
   "action_request": {
-    "actor_id": "did:uuid:intern",
+    "actor_id": "did:web:intern.example.com",
     "action": "invite.send"
   }
 }

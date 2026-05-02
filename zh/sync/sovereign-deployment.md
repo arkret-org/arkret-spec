@@ -138,7 +138,7 @@ Sovereign client SHOULD:
 
 ## 3.1 DID Policy
 
-Sovereign deployment MAY use `did:uuid` internally. `did:uuid` is not tied to the public Contrix network.
+Sovereign deployment MUST use an existing DID method internally. It SHOULD use private or allowlisted `did:webvh` / `did:web` for organization and service principals, and MAY accept `did:plc` for external collaborators only when policy allows.
 
 The deployment MUST define a DID resolver policy:
 
@@ -146,18 +146,18 @@ The deployment MUST define a DID resolver policy:
 {
   "kind": "cx.sovereign.did_policy",
   "trust_domain": "did:web:defense.example#contrix-domain",
-  "allowed_methods": ["did:uuid", "did:web"],
-  "registries": [
-    "did:web:registry.defense.example"
-  ],
-  "witnesses": [
+  "default_principal_method": "did:webvh",
+  "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
+  "trust_roots": [
+    "did:web:registry.defense.example",
     "did:web:witness-1.defense.example",
     "did:web:witness-2.defense.example"
   ],
-  "public_registry_allowed": false,
-  "external_did_methods": {
+  "public_resolver_allowed": false,
+  "method_policy": {
+    "did:webvh": "allowlist",
     "did:web": "allowlist",
-    "did:plc": "deny",
+    "did:plc": "external_collaborator_only",
     "did:key": "ephemeral_only"
   }
 }
@@ -165,8 +165,8 @@ The deployment MUST define a DID resolver policy:
 
 Rules:
 
-- Clients MUST NOT resolve internal `did:uuid` through public registry endpoints.
-- Internal `did:uuid` DID documents MUST be obtained from approved registry / witness / offline bundle.
+- Clients MUST NOT resolve internal principals through public resolver endpoints unless policy explicitly allows the method and trust root.
+- Internal DID documents and method history MUST be obtained from approved resolver / witness / watcher / offline bundle.
 - Public DID methods MAY be accepted for external collaborators only when policy allows and the authority chain is verified.
 - Pairwise DID SHOULD be used for external collaboration when correlation risk matters.
 - DID Document service endpoints that point to public Sync Service / Directory MUST be ignored unless allowlisted.

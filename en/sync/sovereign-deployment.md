@@ -140,9 +140,7 @@ High-assurance deployments SHOULD default to:
 
 ### 3.1 DID Policy
 
-Sovereign deployments MAY use internal `did:uuid`.
-
-`did:uuid` is not tied to public Contrix network policy.
+Sovereign deployments MUST use existing DID methods internally. They SHOULD use private or allowlisted `did:webvh` / `did:web` for organization and service principals, and MAY accept `did:plc` for external collaborators only when policy permits.
 
 Deployment MUST define DID resolver policy:
 
@@ -150,18 +148,18 @@ Deployment MUST define DID resolver policy:
 {
   "kind": "cx.sovereign.did_policy",
   "trust_domain": "did:web:defense.example#contrix-domain",
-  "allowed_methods": ["did:uuid", "did:web"],
-  "registries": [
-    "did:web:registry.defense.example"
-  ],
-  "witnesses": [
+  "default_principal_method": "did:webvh",
+  "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
+  "trust_roots": [
+    "did:web:registry.defense.example",
     "did:web:witness-1.defense.example",
     "did:web:witness-2.defense.example"
   ],
-  "public_registry_allowed": false,
-  "external_did_methods": {
+  "public_resolver_allowed": false,
+  "method_policy": {
+    "did:webvh": "allowlist",
     "did:web": "allowlist",
-    "did:plc": "deny",
+    "did:plc": "external_collaborator_only",
     "did:key": "ephemeral_only"
   }
 }
@@ -169,8 +167,8 @@ Deployment MUST define DID resolver policy:
 
 Rules:
 
-- Clients MUST NOT resolve internal `did:uuid` via public registry endpoints.
-- Internal `did:uuid` documents MUST come from approved registry / witness / offline bundle.
+- Clients MUST NOT resolve internal principals through public resolver endpoints unless policy explicitly allows the method and trust root.
+- Internal DID documents and method history MUST come from approved resolver / witness / watcher / offline bundle.
 - Public DID methods MAY be accepted for external collaborators only when policy permits and authority chain is valid.
 - Pairwise DID SHOULD be used for high-correlation risk collaboration.
 - DID document service endpoints to public sync/directory services MUST be ignored unless allowlisted.

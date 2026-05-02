@@ -614,7 +614,51 @@ Schema id: `cx.schema.client_sync_response.v1`
 | `limited` | yes | `boolean` | true 表示存在 gap。 | 是否截断。 |
 | `prev_batch` | no | `cursor` 或 `string` | opaque。 | 反向 backfill token。 |
 
-## 22. 最小 JSON Schema 生成规则
+## 22. Field Patch (`cx.patch.v1`)
+
+非 create 类对象更新事件使用 `cx.patch.v1`。Patch 是一个 JSON object，key 是字段路径，value 是字段操作。
+
+路径语法：
+
+- 路径由 `.` 分隔的 segment 组成，例如 `title`、`fields.status`、`metadata.due_at`。
+- 普通 segment MUST 使用 snake_case 标识符：`[a-z_][a-z0-9_]*`。
+- 若字段名本身包含 `.`、反引号或不符合 snake_case，MUST 使用反引号包裹，并用反斜线转义反引号、点和反斜线，例如 `` fields.`vendor\.status` ``。
+- `cx.patch.v1` 不支持数组下标路径。需要改写数组时，默认替换整个数组字段；需要集合语义时，字段必须由对象 schema / reducer profile 声明为 set-like collection。
+
+值语义：
+
+- 普通 JSON value 是 `{"$op":"set","value": <value>}` 的简写。
+- 操作对象使用保留字段 `$op`，取值为 `set`、`unset`、`add`、`remove`。
+- `set` 必须带 `value`，表示替换路径处字段。
+- `unset` 不得带 `value`，表示删除该字段；若字段不存在，reducer MUST 保持幂等。
+- `add` / `remove` 必须带 `value`，只适用于 schema / reducer profile 明确声明的 set-like collection；元素匹配使用 canonical JSON equality。
+- 如果 patch value 是 object 且包含 `$op`，它 MUST 符合操作对象 schema。需要把普通对象值写入字段时，若对象包含 `$op` 字段，生产者 MUST 使用 `{"$op":"set","value": {...}}` 避免歧义。
+
+示例：
+
+```json
+{
+  "title": "New title",
+  "fields.status": "review",
+  "fields.assignee": {
+    "$op": "unset"
+  },
+  "labels": {
+    "$op": "add",
+    "value": "blocked"
+  }
+}
+```
+
+验证规则：
+
+- Event schema MUST 用 `event-payload.schema.json#/$defs/patch` 校验 patch 形状。
+- Reducer MUST 在应用 patch 前验证字段存在性、字段类型、字段级 capability constraint、schema profile 和 object lifecycle。
+- Patch 不得修改对象 identity 字段、`space_id`、`type`、`schema`、`created_by`、`created_at` 或其他对象 schema 声明为 immutable 的字段。
+- 同一个 patch object 中同一路径只能出现一次；JSON canonical parser 已拒绝 duplicate key。
+- Patch 应用顺序按 canonical key byte order 定义，但同一 patch 不应依赖多个路径之间的顺序副作用。存在依赖时，生产者 SHOULD 拆成多个 Event。
+
+## 23. 最小 JSON Schema 生成规则
 
 机器可验证 JSON Schema SHOULD 从本文表格生成，并遵守：
 

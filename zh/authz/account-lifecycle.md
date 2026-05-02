@@ -8,7 +8,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 
 | 层 | 示例 | 生命周期控制者 |
 | --- | --- | --- |
-| DID principal | `did:uuid:...` | DID controller / recovery policy |
+| DID principal | `did:plc:...` | DID controller / recovery policy |
 | Service account | `alice@example.com` 登录入口 | account service |
 | Device session | access token / refresh token | auth service |
 | Event / private state | signed Event history / private account data | Events API + principal policy |
@@ -66,7 +66,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 {
   "type": "cx.account.status",
   "account_id": "acct_...",
-  "principal_id": "did:uuid:...",
+  "principal_id": "did:plc:...",
   "status": "suspended",
   "reason_code": "abuse_review",
   "effective_at": "2026-04-26T00:00:00Z",

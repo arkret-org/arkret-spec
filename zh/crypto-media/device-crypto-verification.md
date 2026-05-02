@@ -11,18 +11,18 @@
 ```json
 {
   "device_id": "dev_01HV...",
-  "principal_id": "did:uuid:...",
+  "principal_id": "did:plc:...",
   "display_name": "Alice iPhone",
   "algorithms": ["cx.mls.v1", "cx.hpke_x25519_aead_xchacha20poly1305.v1"],
   "verify_key": {
     "kty": "OKP",
     "crv": "Ed25519",
-    "kid": "did:uuid:...#dev_01HV_verify"
+    "kid": "did:plc:...#dev_01HV_verify"
   },
   "hpke_key": {
     "kty": "OKP",
     "crv": "X25519",
-    "kid": "did:uuid:...#dev_01HV_hpke"
+    "kid": "did:plc:...#dev_01HV_hpke"
   },
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -48,7 +48,7 @@ Contrix 使用三层签名链：
 {
   "type": "cx.device.list_update",
   "content": {
-    "principal_id": "did:uuid:...",
+    "principal_id": "did:plc:...",
     "changed": ["dev_a"],
     "left": ["dev_old"],
     "stream_id": "devstream_42"
@@ -95,7 +95,7 @@ Content-Type: application/json
 ```json
 {
   "messages": {
-    "did:uuid:alice": {
+    "did:web:alice.example.com": {
       "dev_a": {
         "type": "cx.key.verification.request",
         "content": {

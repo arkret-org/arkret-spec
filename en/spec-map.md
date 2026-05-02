@@ -73,7 +73,7 @@ When learning the protocol for the first time, we recommend this sequence:
 
 | Document | Purpose |
 | --- | --- |
-| `identity/identity-did.md` | DID, `did:uuid`, DID Document, key log, and organization ownership. |
+| `identity/identity-did.md` | DID, default `did:plc`, DID Document, method adapters, and organization ownership. |
 | `identity/identity-handles.md` | Handle resolution, connection identifiers, bidirectional binding, claim / attestation model. |
 | `identity/progressive-disclosure.md` | Progressive disclosure, presentation requests, disclosure policy, private storage. |
 | `identity/tsp-integration.md` | TSP as optional trust transport binding. |

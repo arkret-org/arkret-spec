@@ -181,6 +181,31 @@
       }
     },
     {
+      "name": "reject_self_referential_prev_ref",
+      "input": {
+        "event": {
+          "schema": "cx.schema.event.v1",
+          "event_id": "cx:event:01k9nx00000000000000000000",
+          "kind": "cx.message.create",
+          "space_id": "cx:space:01k9sp00000000000000000000",
+          "space_version": "1",
+          "actor_id": "did:web:alice.example",
+          "actor_seq": 13,
+          "created_at": "2026-05-02T00:00:06Z",
+          "hlc": "01970e589d27-0001-a13f9c2e",
+          "prev_refs": ["cx:event:01k9nx00000000000000000000"],
+          "auth_refs": ["cx:event:01k9au00000000000000000000"],
+          "content": { "room_id": "cx:room:01k9rm00000000000000000000", "body": "self ref" },
+          "proofs": []
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "causal_conflict",
+        "reason": "prev_refs MUST NOT contain the event's own event_id"
+      }
+    },
+    {
       "name": "quarantine_duplicate_event_id_conflict",
       "input": {
         "stored_event": {
@@ -209,7 +234,7 @@
           "space_id": "cx:space:01k9sp00000000000000000000",
           "space_version": "1",
           "actor_id": "did:web:alice.example",
-          "actor_seq": 13,
+          "actor_seq": 14,
           "created_at": "2026-05-02T00:00:06Z",
           "hlc": "01970e589d27-0001-a13f9c2e",
           "prev_refs": ["cx:event:01k9ne00000000000000000000"],
@@ -235,7 +260,7 @@
           "space_id": "cx:space:01k9sp00000000000000000000",
           "space_version": "1",
           "actor_id": "did:web:alice.example",
-          "actor_seq": 14,
+          "actor_seq": 15,
           "created_at": "2026-05-02T00:00:07Z",
           "hlc": "01970e589d28-0001-a13f9c2e",
           "prev_refs": ["cx:event:01k9ne00000000000000000000"],

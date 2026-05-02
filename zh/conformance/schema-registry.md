@@ -78,9 +78,10 @@
 | `cx.space.history_visibility` | History visibility state |
 | `cx.space.discovery` | Discoverability state |
 | `cx.space.policy` | Space policy state |
-| `cx.space.archive` | Enter archive mode |
-| `cx.space.freeze` | Enter temporary freeze |
-| `cx.space.destroy` | Destroy / reclaim marker |
+| `cx.space.tombstone` | Terminal Space tombstone or replacement marker |
+| `cx.space.archive` | Set reversible archive state |
+| `cx.space.freeze` | Set reversible temporary freeze state |
+| `cx.space.destroy` | Terminal Space decommission marker |
 | `cx.member.state` | Membership state |
 | `cx.subject.create` | Subject create |
 | `cx.subject.update` | Subject patch |

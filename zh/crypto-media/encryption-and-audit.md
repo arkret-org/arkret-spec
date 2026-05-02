@@ -116,7 +116,7 @@ published -> claimed -> consumed
 {
   "type": "cx.mls.keypackage",
   "keypackage_id": "cx:mls:kp:01JS...",
-  "principal_id": "did:uuid:alice",
+  "principal_id": "did:web:alice.example.com",
   "device_id": "dev_01HV...",
   "keypackage_ref": "sha256:...",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],

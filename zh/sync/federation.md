@@ -36,14 +36,14 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
     {
       "id": "#contrix-principal-server",
       "type": "ContrixPrincipalServer",
-      "service_endpoint": "https://server.acme.example.com/api/v1"
+      "serviceEndpoint": "https://server.acme.example.com/api/v1"
     }
   ],
-  "verification_method": [
+  "verificationMethod": [
     {
       "id": "#server-key-1",
       "type": "Ed25519VerificationKey2020",
-      "public_key_multibase": "z6Mkf..."
+      "publicKeyMultibase": "z6Mkf..."
     }
   ]
 }
@@ -257,7 +257,7 @@ Bob 也可以主动申请加入：
 给定一个 Actor 的 DID，其他节点通过解析 DID Document 中的 `#contrix-principal-server` 或等价服务端点来定位其 Events API：
 
 ```
-DID Document -> service[type=ContrixPrincipalServer] -> service_endpoint
+DID Document -> service[type=ContrixPrincipalServer] -> serviceEndpoint
 ```
 
 ### 6.3 域名级服务发现缓存
@@ -346,13 +346,13 @@ POST /api/v1/federation/verify-actor
 
 ```json
 {
-  "actor_id": "did:uuid:...",
+  "actor_id": "did:plc:...",
   "purpose": "event_source",
   "space_id": "cx:space:...",
   "challenge": "base64url...",
   "signed_payload_hash": "sha256:...",
   "signature": {
-    "kid": "did:uuid:...#device-a",
+    "kid": "did:plc:...#device-a",
     "alg": "Ed25519",
     "sig": "base64url..."
   }
@@ -376,8 +376,8 @@ POST /api/v1/federation/verify-actor
 ```json
 {
   "valid": true,
-  "actor_id": "did:uuid:...",
-  "verified_key_id": "did:uuid:...#device-a",
+  "actor_id": "did:plc:...",
+  "verified_key_id": "did:plc:...#device-a",
   "key_log_head": "cx:keyevt:...",
   "did_document_ref": "sha256:...",
   "expires_at": "2026-04-26T00:05:00Z",

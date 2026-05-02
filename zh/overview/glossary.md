@@ -58,9 +58,9 @@
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| DID | 去中心化标识符 | Principal 的稳定标识。Contrix 默认 DID 方法为 `did:uuid`，同时支持 `did:web`、`did:keri`、`did:key` 等外部或 method-specific 适配。 |
+| DID | 去中心化标识符 | Principal 的稳定标识。Contrix 默认普通用户 DID 方法为 `did:plc`，同时支持 `did:web`、`did:webvh`、`did:key`、`did:pkh` 等现有 DID method 适配。 |
 | DID Document | DID 文档 | DID 解析得到的控制密钥、服务端点、验证方法等文档。外部 DID 文档保留原始字段，进入 Contrix normalized view 前映射为 snake_case。 |
-| DID Method | DID 方法 | DID 的解析与更新规则，例如 `did:uuid`、`did:web`、`did:keri`、`did:key`、`did:plc`。不同方法可能使用公共 registry、私有 registry、KERI witness / watcher、域名解析或纯本地 resolver。 |
+| DID Method | DID 方法 | DID 的解析与更新规则，例如 `did:plc`、`did:web`、`did:webvh`、`did:key`、`did:pkh`、`did:keri`。不同方法可能使用 directory、DID log、witness / watcher、域名解析、链上账号或纯本地 resolver。 |
 | DID Key Log | DID 密钥日志 | 记录 DID 控制密钥演化、轮换、恢复和见证的追加式日志。 |
 | Handle | 人类可读标识 | 例如 `alice.example.com` 或 `alice@service`。Handle 用于发现和显示，不作为权限主键。 |
 | Claim | 声明 | 对某个主体属性、绑定或资格的可验证声明，例如 handle binding、组织成员资格。 |

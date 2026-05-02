@@ -307,6 +307,8 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
         data = load_json(lint, path)
         if data is None:
             continue
+        if path.name != "event-envelope-negative-fixture.json":
+            check_event_ref_invariants_in_value(lint, path, "$", data)
         for json_path, value, key in walk_json(data):
             if key == "$ref" and isinstance(value, str):
                 ensure_relative_file(lint, path, path.parent, value, f"{json_path} $ref")
@@ -408,6 +410,21 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
                 lint.fail(path, f"{profile_id} feature_discovery.required must be a list")
             if not isinstance(feature_discovery.get("unsupported_optional"), str):
                 lint.fail(path, f"{profile_id} feature_discovery.unsupported_optional must be a string")
+
+
+def check_event_ref_invariants_in_value(lint: Lint, path: Path, json_path: str, value: Any) -> None:
+    if isinstance(value, dict):
+        event_id = value.get("event_id")
+        if isinstance(event_id, str):
+            for ref_key in ("prev_refs", "auth_refs"):
+                refs = value.get(ref_key)
+                if isinstance(refs, list) and event_id in refs:
+                    lint.fail(path, f"{json_path}.{ref_key} contains its own event_id {event_id}")
+        for key, child in value.items():
+            check_event_ref_invariants_in_value(lint, path, f"{json_path}.{key}", child)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            check_event_ref_invariants_in_value(lint, path, f"{json_path}[{index}]", child)
 
 
 def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -642,6 +659,7 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
             except Exception as exc:
                 lint.fail(path, f"json_block[{block_index}] invalid canonical JSON: {exc}")
                 continue
+            check_event_ref_invariants_in_value(lint, path, f"json_block[{block_index}]", data)
             for json_path, value, key in walk_json(data):
                 check_markdown_json_value(lint, path, f"json_block[{block_index}]{json_path[1:]}", value, key, known)
 

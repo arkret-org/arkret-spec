@@ -80,7 +80,7 @@ Verifier MUST sign the request or send it through an authenticated relationship.
 {
   "type": "cx.identity.disclosure_policy",
   "policy_id": "cx:policy:d1sc01j0000000000000000000",
-  "holder_did": "did:uuid:holder_root_or_pairwise",
+  "holder_did": "did:web:holder.example.com",
   "audience": {
     "org_did": "did:web:google.example",
     "verifier_dids": ["did:web:login.google.example"],
@@ -90,7 +90,7 @@ Verifier MUST sign the request or send it through an authenticated relationship.
     {
       "claim_type": "verified_handle",
       "issuer": "did:web:google.example",
-      "subject_did": "did:uuid:g_pairwise...",
+      "subject_did": "did:key:z6Mkgpairwise...",
       "disclosure": "explicit",
       "fields": ["handle"],
       "value_constraints": {
@@ -117,13 +117,13 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Space�
 {
   "type": "cx.identity.presentation_response",
   "request_id": "cx:req:pres01j0000000000000000000",
-  "holder_subject": "did:uuid:g_pairwise...",
+  "holder_subject": "did:key:z6Mkgpairwise...",
   "proof_profile": "vc_di_bbs_2023",
   "presentation": {},
   "disclosed_fields": [
-    "credential_subject.org",
-    "credential_subject.member",
-    "credential_subject.handle_verified"
+    "credentialSubject.org",
+    "credentialSubject.member",
+    "credentialSubject.handle_verified"
   ],
   "presentation_hash": "sha256:...",
   "created_at": "2026-04-26T00:00:00Z"
@@ -139,7 +139,7 @@ Response MUST NOT contain undisclosed fields, base proof, unrelated credential i
   "type": "cx.identity.disclosure_receipt",
   "receipt_id": "cx:receipt:d1sc01j0000000000000000000",
   "request_id": "cx:req:pres01j0000000000000000000",
-  "holder_did": "did:uuid:g_pairwise...",
+  "holder_did": "did:key:z6Mkgpairwise...",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
   "presentation_hash": "sha256:...",
@@ -147,11 +147,11 @@ Response MUST NOT contain undisclosed fields, base proof, unrelated credential i
   "transport": "tsp",
   "tsp_relationship_id": "tsp:rel:...",
   "disclosed_fields": [
-    "credential_subject.org",
-    "credential_subject.member"
+    "credentialSubject.org",
+    "credentialSubject.member"
   ],
   "withheld_fields": [
-    "credential_subject.handle",
+    "credentialSubject.handle",
     "other_handles"
   ],
   "created_at": "2026-04-26T00:00:00Z"

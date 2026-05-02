@@ -122,7 +122,7 @@ Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`p
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0007-a13f9c2e",
   "prev_refs": [
-    "cx:event:01js0ev0000000000000000000"
+    "cx:event:01js0et0000000000000000000"
   ],
   "auth_refs": [
     "cx:event:01js0gr0000000000000000000"
@@ -157,6 +157,15 @@ Contrix v1 要求：
 - `prev_refs` 表示 actor event chain 的直接前序
 - `hlc` 表示近实时逻辑时间
 - `actor_seq` 表示 actor 本地单调序列
+
+三者的职责边界固定如下：
+
+- `prev_refs` / `auth_refs` 是因果事实。HLC 更大不得覆盖缺失或相反的因果依赖。
+- `actor_seq` 是同一 actor event chain 的单调防回退索引。接收方若已接受同 actor 更高 `actor_seq`，较低 `actor_seq` 的新事件 MUST reject 或 quarantine，除非它已经作为旧历史被同一 canonical hash 回补。
+- 同一 actor 发布的新 durable Event SHOULD 以其上一个 accepted durable Event 为唯一直接 `prev_refs`。多设备或离线分叉导致多个直接前序时，生产者 MAY 使用多个 `prev_refs` 合并分支；接收方 MUST 保留 fork / merge 证据并按 reducer 规则收敛。
+- `prev_refs` 或 `auth_refs` MUST NOT 包含当前 `event_id`。任何自引用事件 MUST 以 `causal_conflict` reject。
+- 当 `prev_refs` 表示 A 因果先于 B，但 `hlc(A) > hlc(B)` 时，因果顺序仍为 A -> B；实现 MAY 记录 clock skew warning，但不得用 HLC 反转因果。
+- 当两个事件之间没有因果路径时，reducer 才可使用 deterministic ordering 中的 HLC / actor / event hash 作为 tie-breaker。
 
 实现 MUST NOT 把 Sync Service 到达顺序、数据库自增 ID 或 HTTP 接收顺序当作协议顺序。
 
@@ -298,7 +307,7 @@ Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关
 
 ## 8. 操作体原则
 
-非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。
+非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 `../models/data-structures.md#22-field-patch-cxpatchv1`；实现不得用私有 dot-path 解析规则替代该格式。
 
 例如：
 
@@ -439,8 +448,9 @@ Snapshot manifest MUST 包含：
 
 - `snapshot_ref`
 - `space_id`
+- `reducer_profile`
 - `schema_profile_refs`
-- `chunk_digests`
+- `chunks[]`（每项包含 `chunk_ref`、`sha256`、`size_bytes`）
 - `state_hash`
 - `frontier`
 - `event_set_commitment`
@@ -449,7 +459,7 @@ Snapshot manifest MUST 包含：
 
 客户端在采用 Snapshot 前 MUST 验证：
 
-1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`space_id`、`state_hash`、`frontier`、`event_set_commitment`、`chunk_digests`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
+1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`space_id`、`state_hash`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
 2. `signature.verification_method` 对应的 DID 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。
 3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。

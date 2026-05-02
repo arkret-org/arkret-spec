@@ -148,7 +148,7 @@ Content-Type: application/json
 {
   "space_id": "cx:space:...",
   "call_id": "cx:call:01J...",
-  "actor_id": "did:uuid:...",
+  "actor_id": "did:plc:...",
   "device_id": "dev_a",
   "mode": "p2p"
 }
@@ -182,7 +182,7 @@ Content-Type: application/json
     },
     {
       "urls": ["turns:turn.example.com:5349?transport=tcp"],
-      "username": "1699999999:did_uuid_alice",
+      "username": "1699999999:did_plc_alice",
       "credential": "base64url...",
       "credential_type": "password"
     }
@@ -216,7 +216,7 @@ Content-Type: application/json
   "type": "cx.call.signal",
   "call_id": "cx:call:01J...",
   "space_id": "cx:space:...",
-  "sender": "did:uuid:alice",
+  "sender": "did:web:alice.example.com",
   "sender_device": "dev_a",
   "seq": 12,
   "sent_at": "2026-04-26T00:00:00Z",
@@ -326,7 +326,7 @@ SFU join request:
 {
   "call_id": "cx:call:01J...",
   "space_id": "cx:space:...",
-  "actor_id": "did:uuid:alice",
+  "actor_id": "did:web:alice.example.com",
   "device_id": "dev_a",
   "capability_refs": ["cx:grant:..."],
   "desired_media": {
@@ -386,7 +386,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
     "mode": "sfu",
     "participants": [
       {
-        "actor_id": "did:uuid:alice",
+        "actor_id": "did:web:alice.example.com",
         "device_id": "dev_a",
         "joined_at": "2026-04-26T00:00:00Z",
         "media": {"audio": true, "video": true, "screen": false}
@@ -459,7 +459,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
   "type": "call_invite",
   "space_id": "cx:space:...",
   "call_id": "cx:call:01J...",
-  "sender": "did:uuid:alice",
+  "sender": "did:web:alice.example.com",
   "voip": true,
   "expires_at": "2026-04-26T00:01:00Z"
 }

@@ -95,7 +95,7 @@ Concrete DID grant:
 
 ```json
 {
-  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "constraints": {
     "requires_claims": [
       {
@@ -266,7 +266,7 @@ Suggested minimal shape:
 {
   "claim_id": "cx:claim:01JS0CLM00000000000000000",
   "issuer": "did:web:google.com",
-  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "claim_type": "org_membership",
   "claims": {
     "organization": "did:web:google.com",
@@ -319,7 +319,7 @@ Example:
 {
   "claim_type": "verified_handle",
   "issuer": "did:web:google.com",
-  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "claims": {
     "handle": "alice.google.com",
     "namespace": "google.com",

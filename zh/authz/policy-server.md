@@ -65,7 +65,7 @@ Content-Type: application/json
   "space_id": "space:...",
   "request_canonical_hash": "sha256:...",
   "action": "cx.message.create",
-  "actor": "did:uuid:...",
+  "actor": "did:plc:...",
   "device_id": "dev_a",
   "source": {
     "service_did": "did:web:server.example",
@@ -77,7 +77,7 @@ Content-Type: application/json
     "type": "cx.message.create",
     "content_hash": "sha256:...",
     "redacted_content": {
-      "mentions": ["did:uuid:bob"],
+      "mentions": ["did:web:bob.example.com"],
       "media": [{"blob_id": "blob:...", "mime": "image/png"}]
     }
   },

@@ -206,7 +206,7 @@ Request example (not a complete schema):
 
 ```json
 {
-  "repo_id": "did:uuid:alice-or-cx-space",
+  "repo_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "commit": {
     "commit_id": "cx:commit:01JS0KE...",
     "prev": ["cx:commit:01JS0KD..."],
@@ -240,7 +240,7 @@ Request example (not a complete schema):
 
 ```json
 {
-  "repo_id": "did:uuid:alice-or-cx-space",
+  "repo_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "since": "cursor-or-operation-id",
   "limit": 500
 }
@@ -276,7 +276,7 @@ Response example (not a complete schema):
 {
   "did_document": {
     "id": "did:web:alice.example",
-    "verification_method": [],
+    "verificationMethod": [],
     "service": []
   },
   "key_log_head": "cx:keyevt:01JS...",

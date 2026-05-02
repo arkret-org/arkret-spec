@@ -107,7 +107,7 @@ POST /api/v1/moderation/report
   "ciphertext_digest": "sha256:...",
   "aad_digest": "sha256:...",
   "sender_claim": {
-    "actor_id": "did:uuid:alice",
+    "actor_id": "did:web:alice.example.com",
     "device_id": "dev_01HV...",
     "mls_group_id": "base64url...",
     "epoch": 42
@@ -145,7 +145,7 @@ Franking 信任链：
 ```json
 {
   "type": "cx.account.blocklist",
-  "owner": "did:uuid:alice",
+  "owner": "did:web:alice.example.com",
   "entries": [
     {
       "target": {

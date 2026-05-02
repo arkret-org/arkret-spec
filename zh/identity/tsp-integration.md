@@ -49,8 +49,8 @@ Contrix DID method adapter SHOULD expose whether a principal or service supports
 ```json
 {
   "type": "cx.service.tsp",
-  "service_id": "did:web:server.example#tsp",
-  "service_endpoint": "https://server.example/tsp",
+  "id": "did:web:server.example#tsp",
+  "serviceEndpoint": "https://server.example/tsp",
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [

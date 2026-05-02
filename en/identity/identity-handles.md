@@ -21,13 +21,13 @@ Implementations MUST distinguish:
 | Administrative Identifier | organization account, billing account, managed employee id | local administration, compliance, recovery | no |
 | Handle | DNS handle, Matrix-style id | human entry point and alias | no |
 | Display Name | `Alice Zhang` | UI display | no |
-| Principal DID | `did:uuid:...`, `did:web:...` | signing, authorization, accountability | yes |
+| Principal DID | `did:plc:...`, `did:web:...` | signing, authorization, accountability | yes |
 
 Connection identifiers are relationship-private discovery inputs. They MUST NOT automatically enter DID Documents, Space history, membership events, grants, or MLS credentials. A provider proof of reachability still reduces to a DID or pending invite proof with purpose, audience, expiry, and issuer proof.
 
 Contrix separates:
 
-- public persona handle binding through `also_known_as`
+- public persona handle binding through `alsoKnownAs`
 - pairwise/private DIDs for privacy-sensitive relationships
 - verifiable credentials for organization membership, handle ownership, email control, and role claims
 - selective-disclosure or unlinkable presentations for high-privacy proofs

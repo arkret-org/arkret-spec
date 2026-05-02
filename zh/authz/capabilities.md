@@ -120,7 +120,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ```json
 {
-  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "constraints": [
     {
       "constraint_type": "claim_based",
@@ -336,7 +336,7 @@ Claim / Attestation 表示某个 issuer 对某个 subject 的可验证声明。
 {
   "claim_id": "cx:claim:01js0c1m000000000000000000",
   "issuer": "did:web:google.com",
-  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "claim_type": "org_membership",
   "claims": {
     "organization": "did:web:google.com",
@@ -389,7 +389,7 @@ Handle 可以作为 claim 的字段，但不能作为权限主键。
 {
   "claim_type": "verified_handle",
   "issuer": "did:web:google.com",
-  "subject": "did:uuid:01970e58-9d21-8123-8b7c-0d8f7a31c992",
+  "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "claims": {
     "handle": "alice.google.com",
     "namespace": "google.com",

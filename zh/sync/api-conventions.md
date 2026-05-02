@@ -36,7 +36,7 @@ Contrix canonical JSON 字段名 MUST 使用小写字母与下划线连接，例
 - `verification_method`
 - `retry_after_ms`
 
-Raw 外部标准文档 MAY 保留外部字段名，例如 W3C DID Core 的 `verificationMethod`，但进入 Contrix normalized view、索引、policy input 和 reducer input 前 MUST 映射为 snake_case。
+Raw 外部标准文档 MUST 保留外部标准字段名，例如 W3C DID Core 的 `verificationMethod` / `alsoKnownAs` / `serviceEndpoint` 和 VC 的 `credentialSubject`。Contrix normalized view、索引、policy input 和 reducer input MAY 使用 snake_case 派生字段，但这些派生字段不得作为 raw DID / VC 文档重新输出。
 
 ### 2.3 Content-Type
 

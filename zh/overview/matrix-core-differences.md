@@ -71,7 +71,7 @@ Contrix 的身份与发布模型借鉴 atprotocol 的几个方向：
 但 Contrix 不等同于 atprotocol：
 
 - atprotocol 主要面向公开 record 与 PDS；Contrix 面向多方协作 Space、授权状态、私有内容、E2EE 和企业治理。
-- Contrix 默认身份方法是 `did:uuid`，同时支持 `did:web`、外部 DID method adapter 和渐进披露。
+- Contrix 默认普通用户身份方法是 `did:plc`，同时支持 `did:web`、`did:webvh`、`did:key`、`did:pkh` 等现有 DID method adapter 和渐进披露。
 - Contrix 的 Event 记录协作事实，不是公开内容分发 record。
 - Contrix 把 Space policy、capability、Applet、Agent、MLS 和受托明文服务边界都纳入同一协作协议边界。
 

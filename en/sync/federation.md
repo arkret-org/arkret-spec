@@ -199,13 +199,13 @@ Request example (not a complete schema):
 
 ```json
 {
-  "actor_id": "did:uuid:...",
+  "actor_id": "did:plc:...",
   "purpose": "event_source",
   "space_id": "cx:space:...",
   "challenge": "base64url...",
   "signed_payload_hash": "sha256:...",
   "signature": {
-    "kid": "did:uuid:...#device-a",
+    "kid": "did:plc:...#device-a",
     "alg": "Ed25519",
     "sig": "base64url..."
   }
@@ -229,8 +229,8 @@ Response example (not a complete schema):
 ```json
 {
   "valid": true,
-  "actor_id": "did:uuid:...",
-  "verified_key_id": "did:uuid:...#device-a",
+  "actor_id": "did:plc:...",
+  "verified_key_id": "did:plc:...#device-a",
   "key_log_head": "cx:keyevt:...",
   "did_document_ref": "sha256:...",
   "expires_at": "2026-04-26T00:05:00Z",

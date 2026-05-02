@@ -124,15 +124,15 @@ Main document groups:
 
 - `principal_id = DID URI`
 - handles are strictly separated from DIDs
-- the default DID method is `did:uuid`
-- `did:uuid` is based on a custom UUID v8: 44-bit millisecond timestamp + 4-bit hash algorithm id + 74-bit inception-key hash fragment
-- DID hash filling and validation MUST use big-endian ordering
-- ordinary key rotation MUST NOT change the DID
-- current control keys are inherited from `inception_key` through `key_log` and do not need to directly equal the DID fragment
-- DID documents are stored and replicated through multiple identity registry / witness / replica nodes rather than one central directory
+- the default ordinary user DID method is `did:plc`
+- Contrix does not define a private DID method; new objects and normative examples MUST use existing DID methods
+- long-lived principal DIDs SHOULD support key rotation, recovery, deactivation, or verifiable history
+- resolver policy MUST declare allowed methods, the default method, trust roots, method capability, and fail-closed rules
+- DID documents, operation history, and method evidence are verified by the selected DID method's resolver / verifier
 - handle resolution follows an atprotocol-inspired bidirectional model, adapted for collaboration and multi-service discovery
-- version one SHOULD support `did:web` for org/service interoperability
-- external DID methods such as `did:plc` and `did:web` use a `method adapter + normalized principal view + sidecar` compatibility layer; raw documents and history are preserved instead of being rewritten into fake `did:uuid` documents
+- organization and service DIDs SHOULD use `did:web`; high-assurance organizations SHOULD use `did:webvh`
+- `did:key` is limited to temporary, test, device, invitation, or bootstrap use; `did:pkh` is limited to wallet identity binding
+- DID methods such as `did:plc` and `did:web` use a `method adapter + normalized principal view + sidecar` compatibility layer; raw documents and history are preserved instead of being rewritten into private DID documents
 
 ### 5.2 Data
 

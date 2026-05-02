@@ -42,17 +42,17 @@ Input:
   "base_state": {
     "event_id": "cx:event:01js0base000000000000000000",
     "kind": "cx.member.state",
-    "state_key": "did:uuid:alice",
+    "state_key": "did:web:alice.example.com",
     "content": { "membership": "join" }
   },
   "candidates": [
     {
       "event_id": "cx:event:01js0m1b000000000000000000",
       "kind": "cx.member.state",
-      "state_key": "did:uuid:alice",
+      "state_key": "did:web:alice.example.com",
       "space_id": "cx:space:01js0ms000000000000000000",
       "space_version": "1",
-      "actor_id": "did:uuid:admin_a",
+      "actor_id": "did:web:admin-a.example.com",
       "hlc": "01970e589d21-0004-a13f9c2e",
       "causal_depth": 10,
       "content": { "membership": "ban", "reason": "policy" }
@@ -60,10 +60,10 @@ Input:
     {
       "event_id": "cx:event:01js0m1a000000000000000000",
       "kind": "cx.member.state",
-      "state_key": "did:uuid:alice",
+      "state_key": "did:web:alice.example.com",
       "space_id": "cx:space:01js0ms000000000000000000",
       "space_version": "1",
-      "actor_id": "did:uuid:admin_b",
+      "actor_id": "did:web:admin-b.example.com",
       "hlc": "01970e589d21-0004-a13f9d2e",
       "causal_depth": 10,
       "content": { "membership": "leave", "reason": "requested" }
@@ -71,10 +71,10 @@ Input:
     {
       "event_id": "cx:event:01js0m1c000000000000000000",
       "kind": "cx.member.state",
-      "state_key": "did:uuid:alice",
+      "state_key": "did:web:alice.example.com",
       "space_id": "cx:space:01js0ms000000000000000000",
       "space_version": "1",
-      "actor_id": "did:uuid:admin_c",
+      "actor_id": "did:web:admin-c.example.com",
       "hlc": "01970e589d21-0004-a13f9f2e",
       "causal_depth": 10,
       "content": { "membership": "invite", "reason": "recovery" }
@@ -114,7 +114,7 @@ Input:
     "kind": "cx.capability.grant",
     "state_key": "cap-chan-post",
     "content": {
-      "subject": "did:uuid:alice",
+      "subject": "did:web:alice.example.com",
       "actions": ["message.send"],
       "state": "active"
     }
@@ -125,7 +125,7 @@ Input:
       "kind": "cx.capability.grant",
       "state_key": "cap-chan-post",
       "space_version": "1",
-      "actor_id": "did:uuid:moderator_1",
+      "actor_id": "did:web:moderator-1.example.com",
       "hlc": "01970e589d22-0001-11111111",
       "causal_depth": 8
     },
@@ -134,7 +134,7 @@ Input:
       "kind": "cx.capability.revoke",
       "state_key": "cap-chan-post",
       "space_version": "1",
-      "actor_id": "did:uuid:member_x",
+      "actor_id": "did:web:member-x.example.com",
       "hlc": "01970e589d22-0001-22222222",
       "causal_depth": 9,
       "content": { "target_capability_id": "cap-chan-post" }
@@ -144,11 +144,11 @@ Input:
       "kind": "cx.capability.grant",
       "state_key": "cap-chan-post",
       "space_version": "1",
-      "actor_id": "did:uuid:moderator_2",
+      "actor_id": "did:web:moderator-2.example.com",
       "hlc": "01970e589d22-0001-33333333",
       "causal_depth": 9,
       "content": {
-        "subject": "did:uuid:alice",
+        "subject": "did:web:alice.example.com",
         "actions": ["message.send", "message.react"]
       }
     }
@@ -164,7 +164,7 @@ Expected:
     "kind": "cx.capability.grant",
     "state_key": "cap-chan-post",
     "content": {
-      "subject": "did:uuid:alice",
+      "subject": "did:web:alice.example.com",
       "actions": ["message.send", "message.react"]
     },
     "source_event_id": "cx:event:01js0g1f000000000000000000"

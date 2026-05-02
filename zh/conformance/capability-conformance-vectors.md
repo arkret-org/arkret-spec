@@ -32,7 +32,7 @@ cx.vector.capability.delegate_chain.v1
   "base": {
     "kind": "cx.capability.grant",
     "state_key": "space-admin",
-    "subject": "did:uuid:root_admin",
+    "subject": "did:web:root-admin.example.com",
     "actions": ["cx.space.admin"],
     "constraints": []
   },
@@ -43,10 +43,10 @@ cx.vector.capability.delegate_chain.v1
       "state_key": "space-admin-delegate-a",
       "space_id": "cx:space:01js0ms0000000000000000000",
       "space_version": "1",
-      "actor_id": "did:uuid:root_admin",
+      "actor_id": "did:web:root-admin.example.com",
       "content": {
         "source_capability": "space-admin",
-        "subject": "did:uuid:ops",
+        "subject": "did:web:ops.example.com",
         "scope": "space:01js0ms000000000000000000",
         "actions": ["cx.capability.*", "cx.invite.create"],
         "constraints": [
@@ -71,10 +71,10 @@ cx.vector.capability.delegate_chain.v1
       "state_key": "invite-ops",
       "space_id": "cx:space:01js0ms0000000000000000000",
       "space_version": "1",
-      "actor_id": "did:uuid:ops",
+      "actor_id": "did:web:ops.example.com",
       "content": {
         "source_capability": "space-admin-delegate-a",
-        "subject": "did:uuid:intern",
+        "subject": "did:web:intern.example.com",
         "scope": "space:01js0ms000000000000000000",
         "actions": ["cx.invite.create"],
         "constraints": [
@@ -94,7 +94,7 @@ cx.vector.capability.delegate_chain.v1
     }
   ],
   "action_query": {
-    "actor_id": "did:uuid:intern",
+    "actor_id": "did:web:intern.example.com",
     "action": "cx.invite.create",
     "resource": "cx:space:01js0ms0000000000000000000",
     "request_time": "2026-04-26T01:00:00Z",
@@ -145,7 +145,7 @@ cx.vector.capability.revoke_rollback.v1
       "event_id": "cx:event:01js0g2a000000000000000000",
       "kind": "cx.capability.grant",
       "state_key": "cap-post-001",
-      "content": { "subject": "did:uuid:alice", "actions": ["cx.message.create"] },
+      "content": { "subject": "did:web:alice.example.com", "actions": ["cx.message.create"] },
       "created_at": "2026-04-26T00:00:00Z"
     },
     {
@@ -158,14 +158,14 @@ cx.vector.capability.revoke_rollback.v1
     {
       "event_id": "cx:event:01js0x2a000000000000000000",
       "kind": "cx.member.state",
-      "state_key": "did:uuid:alice",
+      "state_key": "did:web:alice.example.com",
       "content": { "membership": "leave" },
       "created_at": "2026-04-26T00:00:02Z"
     },
     {
       "event_id": "cx:event:01js0msg2a0000000000000000",
       "kind": "cx.message.create",
-      "actor_id": "did:uuid:alice",
+      "actor_id": "did:web:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
       "content": { "body": "should_fail_if_revoke_applies" },
       "prev_refs": ["cx:event:01js0x2a000000000000000000"]
@@ -226,7 +226,7 @@ cx.vector.capability.approval_constraint.v1
     {
       "kind": "cx.capability.grant",
       "state_key": "evidence",
-      "subject": "did:uuid:approver_1",
+      "subject": "did:web:approver-1.example.com",
       "actions": ["cx.approval.vote"]
     }
   ]

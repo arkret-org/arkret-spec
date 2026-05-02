@@ -405,7 +405,7 @@ MUST support:
 
 - managed configuration signed by organization DID or governance service DID
 - resolver trust domain pinning
-- internal `did:uuid` resolution through approved registry / witness only
+- internal DID resolution through approved resolver / witness / watcher only
 - service DID allowlist enforcement
 - rejection of public registry / public directory for internal principals
 - device posture check
@@ -418,7 +418,7 @@ MUST support:
 MUST NOT:
 
 - let users add arbitrary Principal Server / Directory / Blob endpoints
-- resolve internal `did:uuid` through public registry by default
+- resolve internal principals through public resolver endpoints by default
 - silently join Space with external members or auditable E2EE
 - expose private organization directory to public search
 - enable public search, Applet or Agent handoff unless policy allows
@@ -598,8 +598,9 @@ Moderation profile MUST 额外覆盖：
 
 Identity profile MUST 额外提供：
 
-- `did:uuid` bit layout vector
-- `inception_key` hash vector
+- `did:plc` method adapter vector
+- `did:web` resolver vector
+- `did:key` local resolver vector
 - key rotation vector
 - recovery vector
 - pairwise DID unlinkability checks

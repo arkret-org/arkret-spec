@@ -21,7 +21,7 @@
 ```json
 {
   "event_id": "cx:event:01js0ev0000000000000000000",
-  "actor_id": "did:uuid:actor_a",
+  "actor_id": "did:web:actor-a.example.com",
   "actor_seq": 1,
   "hlc": "019b76daa800-0000-a0000000",
   "prev_refs": [],
@@ -117,7 +117,7 @@
 {
   "card_id": "cx:card:01js0ca1000000000000000000",
   "linked_room_id": "cx:room:01js0r01000000000000000000",
-  "viewer": "did:uuid:viewer",
+  "viewer": "did:web:viewer.example.com",
   "viewer_can_read_card": true,
   "viewer_is_room_member": false
 }

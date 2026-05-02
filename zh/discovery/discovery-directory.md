@@ -240,7 +240,7 @@ POST /api/v1/directory/resolve-handle
     "organization_did": "did:web:acme.example",
     "parent_space_id": null
   },
-  "requester": "did:uuid:alice",
+  "requester": "did:web:alice.example.com",
   "proofs": [
     "cx:presentation:..."
   ],

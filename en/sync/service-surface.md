@@ -146,7 +146,7 @@ Service type naming rules:
 
 ### 3.1 Identity Resolution Surface
 
-Identity Resolution Surface is the common abstraction for DID method resolvers, registries, witnesses, watchers, or method-specific verifiers. `did:key` may be implemented only by a local resolver and need no network API; `did:keri` may be implemented through KERI logs, witnesses, watchers, and OOBI discovery; `did:uuid` may be implemented through registries, witnesses, and replicas.
+Identity Resolution Surface is the common abstraction for DID method resolvers, registries, witnesses, watchers, or method-specific verifiers. `did:plc` may be implemented through PLC directories, mirrors, or audit sources; `did:web` through HTTPS / DNS resolution; `did:webvh` through DID logs, watchers, and witnesses; `did:key` may be implemented only by a local resolver and need no network API; `did:keri` may be implemented through KERI logs, witnesses, watchers, and OOBI discovery.
 
 Networked identity registries should expose at least the following semantics:
 

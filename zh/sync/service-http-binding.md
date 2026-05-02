@@ -240,7 +240,7 @@ POST /api/v1/events
     "kind": "cx.card.update",
     "created_at": "2026-04-22T08:30:00Z",
     "hlc": "01970e589d21-0007-a13f9c2e",
-    "prev_refs": ["cx:event:01js0ev0000000000000000000"],
+    "prev_refs": ["cx:event:01js0et0000000000000000000"],
     "auth_refs": ["cx:event:01js0gr0000000000000000000"],
     "content": {},
     "proofs": []
@@ -327,7 +327,7 @@ POST /api/v1/identity/resolve
 {
   "did_document": {
     "id": "did:web:alice.example",
-    "verification_method": [],
+    "verificationMethod": [],
     "service": []
   },
   "key_log_head": "cx:keyevt:01JS...",

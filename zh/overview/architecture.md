@@ -146,14 +146,14 @@ Principal Server
 
 它可以默认使用公共基础设施：
 
-- Identity Resolver：公共 DID / handle 解析；具体可由 `did:uuid` registry / witness、`did:web` method resolver、`did:key` 本地 resolver 或 `did:keri` witness / watcher / resolver 实现。
+- Identity Resolver：公共 DID / handle 解析；具体可由 `did:plc` directory / mirror、`did:web` method resolver、`did:webvh` DID log / witness、`did:key` 本地 resolver 或 `did:keri` witness / watcher / resolver 实现。
 - Directory Server：公共 Space、Organization、Actor、Applet 发现。
 - Push Gateway：移动或桌面脱敏通知投递。
 - TURN / Media Relay：音视频中继和 NAT 穿透。
 
-Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部署。普通组织可以自建自己的登录入口、SSO、设备配对和 session 管理，同时继续使用公共 `did:uuid` resolver 来解析用户 DID，或使用 `did:key` 本地 resolver、`did:keri` resolver / witness / watcher。登录服务器负责证明“这个服务账户 / 设备当前绑定到哪个 DID”，identity resolver 只负责返回或验证该 DID 的控制密钥、key state、key log / KERI log 和服务委托证据；组织 Policy / Authz 再决定该 DID 是否能访问组织 Space、Event 或管理动作。
+Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部署。普通组织可以自建自己的登录入口、SSO、设备配对和 session 管理，同时继续使用公共 `did:plc` resolver 来解析用户 DID，或使用 `did:web` / `did:webvh` resolver、`did:key` 本地 resolver、`did:keri` resolver / witness / watcher。登录服务器负责证明“这个服务账户 / 设备当前绑定到哪个 DID”，identity resolver 只负责返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托证据；组织 Policy / Authz 再决定该 DID 是否能访问组织 Space、Event 或管理动作。
 
-`did:web` 等 method-specific DID MAY 按各自方法从域名或外部网络解析；组织私有 `did:uuid` MAY 只在组织或隔离网络的 resolver trust domain 内解析。客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID method 同为 `did:uuid` 就假设解析入口相同。
+`did:web`、`did:webvh` 等 method-specific DID MAY 按各自方法从域名、DID log 或外部网络解析；组织私有部署 MAY 只允许 allowlist 中的 resolver trust domain。客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验。
 
 普通用户不应被要求单独部署 Directory Server、Push Gateway、Identity Resolution Infrastructure、TURN / Media Relay 或 Moderation / Compliance Server。搜索、inbox、notification 和 View projection 默认可在客户端本地完成。若使用 `did:key`，identity resolution 可以完全本地完成；若使用 `did:keri`，通常需要 KERI log / witness / watcher / OOBI 基础设施，但不需要传统中心化 registry。只有当组织需要身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 时，才应把这些基础设施收回自建。
 

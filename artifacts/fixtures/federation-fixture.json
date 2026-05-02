@@ -1,24 +1,82 @@
 {
   "suite": "federation",
+  "profile": "cx.profile.federation_vectors.v1",
+  "topology": {
+    "space_id": "cx:space:01js0sp0000000000000000000",
+    "principal_servers": [
+      {
+        "service_did": "did:web:server-alpha.example",
+        "endpoint": "https://server-alpha.example/api/v1",
+        "role": "origin",
+        "plaintext_visible": true
+      },
+      {
+        "service_did": "did:web:server-beta.example",
+        "endpoint": "https://server-beta.example/api/v1",
+        "role": "participant",
+        "plaintext_visible": false
+      },
+      {
+        "service_did": "did:web:server-gamma.example",
+        "endpoint": "https://server-gamma.example/api/v1",
+        "role": "witness",
+        "plaintext_visible": false
+      }
+    ],
+    "service_binding_ref": {
+      "space_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "membership_frontier": ["cx:event:01js0mb0000000000000000000"],
+      "destination_service_type": "principal_server"
+    }
+  },
   "cases": [
     {
       "name": "http_message_signature_hash",
+      "input": {
+        "origin": "did:web:server-alpha.example",
+        "destination": "did:web:server-beta.example",
+        "method": "POST",
+        "target_uri": "https://server-beta.example/api/v1/federation/push-operations",
+        "content_digest_matches_canonical_body": true
+      },
       "expected": "canonical_request_hash_matches_signature_input"
     },
     {
       "name": "origin_destination_service_did_mismatch",
+      "input": {
+        "signature_origin": "did:web:server-alpha.example",
+        "body_origin": "did:web:server-gamma.example",
+        "destination": "did:web:server-beta.example"
+      },
       "expected": "request_rejected_or_quarantined"
     },
     {
       "name": "replay_protection",
+      "input": {
+        "txn_id": "cx:req:01js0rq0000000000000000000",
+        "first_body_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "second_body_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
       "expected": "duplicate_txn_id_or_replay_key_rejected"
     },
     {
       "name": "fork_quarantine",
+      "input": {
+        "event_id": "cx:event:01js0fk0000000000000000000",
+        "alpha_event_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "beta_event_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
       "expected": "divergent_space_history_quarantined"
     },
     {
       "name": "pull_authorization",
+      "input": {
+        "requester": "did:web:server-beta.example",
+        "source": "did:web:server-alpha.example",
+        "space_id": "cx:space:01js0sp0000000000000000000",
+        "requested_visibility": "private_plaintext",
+        "requester_plaintext_visible": false
+      },
       "expected": "unauthorized_backfill_pull_blinded"
     }
   ]
