@@ -9,6 +9,17 @@
 - `cx.subject.*`、`cx.room.*`、`cx.card.*` 不再是 active event contract；直接等价的 lifecycle / patch / position 行为必须改写到 `cx.flow.*`。
 - 没有直接一对一别名的旧 link-surface / link-room 语义，必须迁移到 Flow discussion branch 和 projection 语义。
 
+## 1.1 Phase 模型
+
+为后续处理其他 legacy contract，迁移策略采用统一 phase 结构：
+
+- `active`：仍属于 active wire contract，可直接 emit / accept。
+- `import_only`：不属于 active wire contract，但受控迁移导入器可接受，并且必须先重写再进入 active validation / replay。
+- `historical_only`：只允许存在于封存历史、审计快照或离线档案，不接受新的迁移输入。
+- `removed`：完全移出 active wire contract；实现只可离线读取并一次性重写到新 contract。
+
+当前 `subject / room / card -> flow` contract family 的 `current_phase` 为 `removed`。规范性 machine-readable 定义见 `artifacts/registry/legacy-compatibility-policy.json`。
+
 ## 2. ID 与 schema 迁移
 
 | 旧 wire 形式 | 新 wire 形式 | 说明 |

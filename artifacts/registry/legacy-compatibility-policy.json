@@ -2,7 +2,33 @@
   "version": "2026-05-03",
   "status": "legacy_removed",
   "scope": "v1_wire_contract",
+  "contract_family": "subject_room_card_to_flow",
   "summary": "Legacy subject/room/card typed IDs, schema IDs, and cx.subject.* / cx.room.* / cx.card.* event contracts are removed from the active v1 wire contract.",
+  "phase_definitions": [
+    {
+      "phase": "active",
+      "description": "Legacy contract is part of the active wire contract and may be emitted and accepted directly."
+    },
+    {
+      "phase": "import_only",
+      "description": "Legacy contract is not part of the active wire contract, but bounded migration importers MAY accept it and MUST rewrite it before active validation, replay, or re-export."
+    },
+    {
+      "phase": "historical_only",
+      "description": "Legacy contract MAY exist only inside sealed historical records, audit snapshots, or offline archives and MUST NOT be accepted as new migration input."
+    },
+    {
+      "phase": "removed",
+      "description": "Legacy contract is fully removed from the active wire contract; implementations MAY only process it offline for one-time rewrite into active replacements."
+    }
+  ],
+  "current_phase": "removed",
+  "current_phase_requirements": {
+    "wire_emit": "forbidden",
+    "wire_accept": "forbidden",
+    "historical_import": "rewrite_before_validation",
+    "historical_reexport": "rewrite_before_export"
+  },
   "producer_requirements": [
     "Producers MUST emit cx:flow:<ulid> for all legacy room/card/subject-derived collaboration objects.",
     "Producers MUST emit cx.schema.flow.v1 instead of cx.schema.subject.v1, cx.schema.room.v1, or cx.schema.card.v1.",

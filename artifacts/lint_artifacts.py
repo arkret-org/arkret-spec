@@ -312,6 +312,8 @@ def check_legacy_compatibility_policy(lint: Lint, known: dict[str, set[str]]) ->
         lint.fail(path, "status must be legacy_removed")
     if data.get("scope") != "v1_wire_contract":
         lint.fail(path, "scope must be v1_wire_contract")
+    if data.get("contract_family") != "subject_room_card_to_flow":
+        lint.fail(path, "contract_family must be subject_room_card_to_flow")
     if not isinstance(data.get("summary"), str) or not data["summary"].strip():
         lint.fail(path, "summary must be a non-empty string")
 
@@ -332,6 +334,75 @@ def check_legacy_compatibility_policy(lint: Lint, known: dict[str, set[str]]) ->
             seen.add(item)
             items.append(item)
         return items
+
+    allowed_phases = {"active", "import_only", "historical_only", "removed"}
+    phase_definitions = data.get("phase_definitions")
+    phase_names: set[str] = set()
+    if not isinstance(phase_definitions, list) or not phase_definitions:
+        lint.fail(path, "phase_definitions must be a non-empty list")
+    else:
+        for index, row in enumerate(phase_definitions):
+            if not isinstance(row, dict):
+                lint.fail(path, f"phase_definitions[{index}] must be an object")
+                continue
+            phase = row.get("phase")
+            description = row.get("description")
+            if not isinstance(phase, str) or phase not in allowed_phases:
+                lint.fail(path, f"phase_definitions[{index}].phase must be one of {sorted(allowed_phases)}")
+                continue
+            if phase in phase_names:
+                lint.fail(path, f"phase_definitions duplicate phase {phase!r}")
+            phase_names.add(phase)
+            if not isinstance(description, str) or not description.strip():
+                lint.fail(path, f"phase_definitions[{index}].description must be a non-empty string")
+        for phase in sorted(allowed_phases - phase_names):
+            lint.fail(path, f"phase_definitions missing phase {phase}")
+
+    current_phase = data.get("current_phase")
+    if current_phase != "removed":
+        lint.fail(path, "current_phase must be removed")
+    elif current_phase not in phase_names:
+        lint.fail(path, "current_phase must exist in phase_definitions")
+
+    current_phase_requirements = data.get("current_phase_requirements")
+    if not isinstance(current_phase_requirements, dict):
+        lint.fail(path, "current_phase_requirements must be an object")
+    else:
+        allowed_wire_values = {"allowed", "forbidden"}
+        allowed_historical_import_values = {"native", "rewrite_before_validation", "reject"}
+        allowed_historical_reexport_values = {"allowed", "rewrite_before_export", "forbidden"}
+
+        wire_emit = current_phase_requirements.get("wire_emit")
+        wire_accept = current_phase_requirements.get("wire_accept")
+        historical_import = current_phase_requirements.get("historical_import")
+        historical_reexport = current_phase_requirements.get("historical_reexport")
+
+        if wire_emit not in allowed_wire_values:
+            lint.fail(path, f"current_phase_requirements.wire_emit must be one of {sorted(allowed_wire_values)}")
+        if wire_accept not in allowed_wire_values:
+            lint.fail(path, f"current_phase_requirements.wire_accept must be one of {sorted(allowed_wire_values)}")
+        if historical_import not in allowed_historical_import_values:
+            lint.fail(
+                path,
+                "current_phase_requirements.historical_import must be one of "
+                f"{sorted(allowed_historical_import_values)}",
+            )
+        if historical_reexport not in allowed_historical_reexport_values:
+            lint.fail(
+                path,
+                "current_phase_requirements.historical_reexport must be one of "
+                f"{sorted(allowed_historical_reexport_values)}",
+            )
+
+        if current_phase == "removed":
+            if wire_emit != "forbidden":
+                lint.fail(path, "removed current_phase must set wire_emit=forbidden")
+            if wire_accept != "forbidden":
+                lint.fail(path, "removed current_phase must set wire_accept=forbidden")
+            if historical_import != "rewrite_before_validation":
+                lint.fail(path, "removed current_phase must set historical_import=rewrite_before_validation")
+            if historical_reexport != "rewrite_before_export":
+                lint.fail(path, "removed current_phase must set historical_reexport=rewrite_before_export")
 
     producer_requirements = require_string_list("producer_requirements")
     consumer_requirements = require_string_list("consumer_requirements")
