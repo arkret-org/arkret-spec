@@ -61,7 +61,7 @@ Schema id: `cx.schema.space.v1`
 | `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
-| `space_kind` | yes | `enum(collaboration, personal, project, organization, social_feed, enclave)` | Room / Board / Card 不再作为 Space kind。自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
+| `space_kind` | yes | `enum(collaboration, personal, project, organization, enclave)` | Room / Board / Card 不再作为 Space kind。自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或兼容 profile。 | 启用 schema。 |
@@ -260,9 +260,7 @@ Schema id: `cx.schema.relation.v1`
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
 assigned_to, references, derived_from, attached_to, links_room,
 primary_room, has_default_view, produced, used, triggered_by, has_log,
-summarized_from, promoted_from_room,
-reposts, quotes,
-follows, contact, circle_member, blocks_social, likes
+summarized_from, promoted_from_room
 ```
 
 ## 9. Event Envelope
@@ -373,7 +371,7 @@ Schema id: `cx.schema.policy.v1`
 | `id` | yes | `id:policy` |  | Policy ID。 |
 | `type` | yes | `enum(policy)` | 固定为 `policy`。 | 对象种类。 |
 | `space_id` | no | `id:space` | 组织级 policy 可省略。 | 适用 Space。 |
-| `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent, social)` |  | 策略类型。 |
+| `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
 | `rules` | yes | `array<object>` | 每条规则必须有 `effect`。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
 | `priority` | no | `integer` | 数值大者优先。 | 策略优先级。 |

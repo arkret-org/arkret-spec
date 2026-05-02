@@ -149,7 +149,6 @@
               "cx.receipt.read",
               "cx.room.history_visibility",
               "cx.room.policy_components",
-              "cx.social.audience_policy",
               "cx.sovereign.did_policy"
             ]
           }

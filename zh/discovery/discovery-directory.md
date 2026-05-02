@@ -147,7 +147,7 @@ Profile 目标：
 
 - Discovery Provider 不应同时获得 requester 的稳定 DID 和原始邮箱/手机号/用户名。
 - 请求应使用 batch、padding、rate limit 和 time-bound proof，避免逐个枚举。
-- 发现结果应返回最小可联系材料，而不是完整 profile 或社交图。
+- 发现结果应返回最小可联系材料，而不是完整 profile 或关系图谱。
 
 推荐流程：
 

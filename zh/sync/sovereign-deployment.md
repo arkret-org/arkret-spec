@@ -120,7 +120,7 @@ Sovereign client MUST:
 - 使用组织配置的 DID resolver policy，不得默认查询公共 registry / public directory。
 - 验证服务 DID 委派、证书、HTTP message signature 和 feature profile。
 - 禁止用户手动添加未批准 Sync Service / Index / Directory / Blob / Applet endpoint。
-- 默认关闭公共 federation、公共搜索、公共 social feed、外部 Applet 和外部 Agent handoff。
+- 默认关闭公共 federation、公共搜索、外部 Applet 和外部 Agent handoff。
 - 对每个 Space 显示 classification、E2EE、auditable E2EE、export、external member policy。
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。
 - 支持本地日志、审计导出和密钥擦除策略。
@@ -304,7 +304,7 @@ Export controls SHOULD include:
 - require approval for attachments and snapshots
 - preserve audience / classification labels
 - prevent public directory indexing
-- prevent repost / quote / social redistribution
+- prevent unauthorized cross-service redistribution
 
 If content is encrypted, export must not include keys beyond the intended recipient set.
 

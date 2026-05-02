@@ -298,13 +298,7 @@ Actor Profile 不替代 DID，也不成为权限主键。
 
 投票结果 SHOULD 作为 event 集合归约，而不是只更新单一计数字段。
 
-## 14. Social Types
-
-社交能力作为标准语义扩展定义，详细规则见 `social-graph.md`。
-
-Social post / feed / circle 可以用标准对象 profile，也可以在早期实现中作为 Morph profile。无论采用哪种承载，受众集合、转发、索引和回复权限必须由 Audience Policy 控制。
-
-## 15. 标准 Facets
+## 14. 标准 Facets
 
 Facets 是 schema-declared capability hints，不是对象身份。标准对象 MAY 暴露 schema/profile 已声明的 facets 来辅助展示或查询，但标准对象的核心语义不依赖 facets 才成立；Morph MAY 使用 facets 帮助 Index、View、UI 和插件做过滤、降级展示和默认 renderer 选择。
 
@@ -323,7 +317,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 | `documentable` | 可作为文档或 section root。 |
 | `renderable` | 声明允许的默认展示面。 |
 
-## 16. Schema Evolution
+## 15. Schema Evolution
 
 标准类型演进 MUST 遵守：
 
@@ -333,10 +327,9 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card
 - 标准对象不得阻止 Space 定义自定义 Morph type
 
-## 17. 规范性引用
+## 16. 规范性引用
 
 - 标准 Relation cardinality 按本文件各类型语义、`data-structures.md` 的 Relation 字段和业务 profile 执行；未声明多重关系时，active relation MUST 以 `(relation_kind, from_ref, to_ref)` 收敛为单条。
 - Content block registry 见 `content-types.md`；未知 content block 必须按降级规则保留和展示。
 - Card status profile 使用 `todo`、`in_progress`、`blocked`、`review`、`done`、`archived` 作为 v1 基础集合；Space schema 可增加自定义状态，但不得改变基础状态语义。
 - Poll result reducer vector 必须按 event 集合归约，不能只信任计数字段；匿名投票的明文选择不得进入未授权 Index。
-- Social post / feed / circle schema 见 `social-graph.md` 和 `data-structures.md`；受众集合、转发、索引和回复权限必须由 Audience Policy 控制。

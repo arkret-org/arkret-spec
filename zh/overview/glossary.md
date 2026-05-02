@@ -52,10 +52,6 @@
 | Agent Protocol Session | Agent 协议会话 | Card、Morph 或 Run 显式切换到 A2A、ACP 或其他外部 agent protocol 执行时登记的受控会话。 |
 | Mention | 提及 | 对 Actor、Room、Board、List、Card、Message、Morph 或 Space 的结构化引用，协议层必须落成 ref / relation，不依赖正文扫描。 |
 | Reaction | 反应 | 对目标 Message、Card、Morph、Event 或其他对象的轻量语义反馈，通常通过 Relation 或标准 reaction event 表达。 |
-| Social Post | 社交发布 | Morph 类型或扩展 profile，用于个人、组织或社区 feed 中的发布内容；可公开、受众受限或私有。 |
-| Social Feed | 社交时间线 | 个人主页、组织公告、项目动态或关注流的发布入口/投影源；本身不替代 Event 或 Space。 |
-| Social Circle | 社交圈 | 发布者维护的受众集合，例如朋友圈、亲友圈、内部成员圈；成员列表默认私有或受限可见。 |
-| Audience Policy | 受众策略 | 定义 post/feed 的可读、可回复、可转发、可索引和受众快照规则。 |
 
 ## 4. 身份与可发现性
 
@@ -73,7 +69,7 @@
 | Disclosure Policy | 披露策略 | Holder 私有规则，定义可向哪些 verifier / organization 披露哪些 claim、handle 或 derived proof。 |
 | Disclosure Receipt | 披露回执 | Holder 私有审计记录，记录一次 presentation 披露了哪些字段、发给谁、使用何种 proof profile，不包含未披露字段值。 |
 | Pairwise DID | 成对 DID | 面向特定关系或组织使用的私有 DID，用于降低跨域关联风险。 |
-| Public Persona DID | 公开人格 DID | 主动公开用于发现、社交或品牌展示的 DID。 |
+| Public Persona DID | 公开人格 DID | 主动公开用于发现、公开展示或品牌展示的 DID。 |
 | Normalized Principal View | 规范化主体视图 | 将不同 DID 方法、外部文档和 sidecar 数据映射为 Contrix 内部可验证主体视图。 |
 
 ## 5. 授权与责任
@@ -257,8 +253,6 @@
 | Space Hierarchy 与权限继承 | 层级关系只表达组织和发现；权限、成员、历史、加密默认不继承，必须由 child Space 显式 opt-in。 |
 | Discoverability 与 Join Rule | Discoverability 决定能否发现资源存在；Join Rule 决定如何加入。公开可发现的 Space 仍可要求 invite、knock 或 restricted join。 |
 | Discoverability 与 History Visibility | Discoverability 不授予历史读取；公开可搜索的 Space 不等于 `world_readable`。 |
-| Follow 与 Contact/Circle | Follow 是订阅关系，通常单向；Contact 是联系人关系；Circle 是发布者私有或受限的受众集合，不能互相等同。 |
-| Public Feed 与 Circle Feed | Public Feed 面向公开索引和广播；Circle Feed 必须按 Audience Policy 授权，不能只靠 UI 隐藏。 |
 | 标准对象 / Morph 与 Event | 标准对象和 Morph 是协作对象；Event 是事实和变更记录。 |
 | Relation 与 View | Relation 是一等语义边；View 是投影定义。对象之间的包含、依赖、回复、关联等事实必须由 Relation 表达，不能只存在于 View cache 或 layout 中。 |
 | Event Store 与 Index | Event Store 保存可审计 Event；Index 保存派生查询结果。 |

@@ -156,7 +156,6 @@
     { "event_kind": "cx.call.signal", "category": "call", "status": "active", "wire_scope": "ephemeral_event", "reducer_input": false, "payload": "WebRTC signal message" },
     { "event_kind": "cx.call.state", "category": "call", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Call state" },
     { "event_kind": "cx.call.recording.start", "category": "call", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Call recording start" },
-    { "event_kind": "cx.social.audience_policy", "category": "social", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Social audience policy state" },
     { "event_kind": "cx.sovereign.did_policy", "category": "sovereign", "status": "active", "wire_scope": "durable_event", "reducer_input": true, "payload": "Sovereign DID resolver policy state" },
     { "event_kind": "cx.marker.read", "category": "read", "status": "deprecated", "wire_scope": "deprecated_alias", "reducer_input": false, "replaced_by": "cx.read.marker", "payload": "Legacy read marker name" },
     { "event_kind": "cx.morph.delete", "category": "morph", "status": "deprecated", "wire_scope": "deprecated_alias", "reducer_input": false, "replaced_by": "cx.morph.archive", "payload": "Legacy Morph archive name" }

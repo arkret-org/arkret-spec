@@ -15,7 +15,7 @@ Contrix 的方向是清楚的：它不是 chat-first，而是 space-first、obje
 - Repo、Sync、Index、Blob、Policy 分层，避免中心服务器成为唯一真相源。
 - 对明文可见服务、E2EE、redaction、snapshot 验证、capability revoke 都有明确安全意识。
 
-但当前规范最大问题是：概念已经展开到很大范围，而线级事实模型、命名、最小 profile 和机器 schema 还没有完全收敛。实际实现者会遇到“应该实现哪一个对象、以哪个 envelope 为准、哪些字段是 wire contract、哪些只是内部 canonical object”的问题。建议先冻结一个可实现的 v1 Core，再把 Agent、MIMI、Sovereign、Applet、WebRTC、Social 等放到独立 profile。
+但当前规范最大问题是：概念已经展开到很大范围，而线级事实模型、命名、最小 profile 和机器 schema 还没有完全收敛。实际实现者会遇到“应该实现哪一个对象、以哪个 envelope 为准、哪些字段是 wire contract、哪些只是内部 canonical object”的问题。建议先冻结一个可实现的 v1 Core，再把 Agent、MIMI、Sovereign、Applet、WebRTC 等放到独立 profile。
 
 优先级判断：
 

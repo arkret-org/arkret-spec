@@ -35,7 +35,7 @@ cx.profile.<name>.v<major>
 | --- | --- | --- |
 | Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space、Room、Board、List、Card、Message、Morph、Relation、Capability、Index query、Sync cursor、Blob hash 校验、标准错误。 |
 | Recommended | 主客户端和 Principal Server SHOULD 支持，但轻量实现可以不支持。 | E2EE、push、presence、read receipt、snapshot bootstrap、local full-text search、moderation report。 |
-| Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、Agent Memory advanced lifecycle、social feed、sovereign deployment。 |
+| Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、Agent Memory advanced lifecycle、sovereign deployment。 |
 
 Document、File、Memory、Run、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
@@ -445,7 +445,7 @@ MUST NOT:
 - resolve internal `did:uuid` through public registry by default
 - silently join Space with external members or auditable E2EE
 - expose private organization directory to public search
-- enable public social feed, Applet or Agent handoff unless policy allows
+- enable public search, Applet or Agent handoff unless policy allows
 
 SHOULD support:
 

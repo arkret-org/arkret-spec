@@ -145,7 +145,7 @@ Profile goals:
 
 - Provider should not learn both requester stable DID and raw email/phone/username.
 - Requests use batching, padding, rate limiting, time-bound proofs, and anti-enumeration behavior.
-- Results return minimal reachability material, not full profiles or social graph.
+- Results return minimal reachability material, not full profiles or relationship graphs.
 
 Recommended flow:
 

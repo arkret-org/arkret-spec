@@ -23,8 +23,7 @@
         "plaintext_visibility",
         "media",
         "applet",
-        "agent",
-        "social"
+        "agent"
       ]
     },
     "rules": {

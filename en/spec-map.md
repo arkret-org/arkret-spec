@@ -19,7 +19,7 @@ When learning the protocol for the first time, we recommend this sequence:
 4. `identity/identity-did.md`, `identity/identity-handles.md`, `identity/progressive-disclosure.md`: understand identity, handle, and privacy disclosure.
 5. `authz/capabilities.md` and `authz/event-auth-state-resolution.md`: understand permissions and Space state transitions.
 6. `sync/operations-sync.md`, `sync/client-sync.md`, `sync/service-surface.md`: understand write, sync, and service surfaces.
-7. Read extensions by use case: Applet, Agent, WebRTC, Social, Directory, Moderation, Federation, Sovereign Deployment.
+7. Read extensions by use case: Applet, Agent, WebRTC, Directory, Moderation, Federation, Sovereign Deployment.
 
 ## 3. Core Boundary Model
 
@@ -30,10 +30,9 @@ When learning the protocol for the first time, we recommend this sequence:
 - Organization is a Principal that provides governance, issuance, service delegation, and official endorsement.
 - Organization is not the Space; Space is the collaboration boundary.
 
-### 3.2 Space / Feed / View
+### 3.2 Space / View
 
 - Space is the boundary for replication, authorization, schema, policy, membership, history visibility, and E2EE.
-- Feed is an observable social/activity projection, not a replacement for Space.
 - View is a projection definition and does not hold truth data.
 
 ### 3.3 Principal Server / Repo / Sync / Index
@@ -55,12 +54,6 @@ When learning the protocol for the first time, we recommend this sequence:
 - Capability defines base action permissions.
 - Moderation Policy can deny, quarantine, or require review; it does not grant permissions.
 - Personal blocklists are user-local and only shape local client experience.
-
-### 3.6 Public Feed / Circle Feed
-
-- Public Feed is suitable for open indexing, following, and broadcasting.
-- Circle Feed must use Audience Policy, recipient snapshots, and optional E2EE.
-- A “post then hide” approach is not a valid privacy mechanism.
 
 ## 4. Document Groups
 
@@ -91,12 +84,11 @@ When learning the protocol for the first time, we recommend this sequence:
 | Document | Purpose |
 | --- | --- |
 | `models/object-model-core.md` | Core objects: Space, Actor, Entity, Relation, Event, View. |
-| `models/object-model-standard.md` | Standard types: Task, Message, Run, Memory, Social Post, etc. |
+| `models/object-model-standard.md` | Standard types: Task, Message, Run, Memory, etc. |
 | `models/data-structures.md` | Object field-level definitions: requiredness, types, enums, constraints. |
 | `models/conversation-model.md` | Channel, Topic, Message, Thread, Mention, Reaction. |
 | `models/views.md` | Board, Table, Timeline, Graph projections. |
 | `models/content-types.md` | Rich text, media, poll, and content block typing. |
-| `models/social-graph.md` | Social feed, circle, contact/follow, and audience policy. |
 
 ### 4.4 Authorization, Governance, and State
 
@@ -181,5 +173,5 @@ New content should continue to follow these rules:
 - If it changes identity, DID, handles, or claims, place it in Identity.
 - If it changes shared-state validity, place it in Authorization/Governance.
 - If it changes service API or transport behavior, place it in Sync/Service/Federation.
-- New business capabilities should be extension profiles first (social, agent, applet, webrtc).
+- New business capabilities should be extension profiles first (agent, applet, webrtc).
 - Do not model deployment roles as identity subjects; do not present UI projections as sources of truth.

@@ -276,18 +276,6 @@ Contrix v1 支持以下 `kind`：
 - `cx.notification.ack`
 - `cx.invite.accept`
 
-### 5.8 社交动作
-
-- `cx.social_post.create`
-- `cx.social_post.reply`
-- `cx.social_post.react`
-- `cx.social_post.repost`
-- `cx.social_post.quote`
-- `cx.relation.create` (follows 关系)
-- `cx.relation.*` (followers 管理)
-- `cx.social_circle.*`
-- `cx.audience_policy.*`
-
 ## 6. Constraints
 
 Contrix v1 支持：

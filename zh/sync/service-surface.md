@@ -571,7 +571,7 @@ Actor / handle directory MUST NOT return pairwise DID、private DID、private ha
 POST /api/v1/directory/private-contact-discovery
 ```
 
-该操作用于 `cx.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 time-bound reachability proof 或 invite/consent 引导，不得返回原始 connection identifier、完整 profile、成员列表或社交图。
+该操作用于 `cx.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 time-bound reachability proof 或 invite/consent 引导，不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。
 
 ## 9. MIMI Provider Facade Surface
 

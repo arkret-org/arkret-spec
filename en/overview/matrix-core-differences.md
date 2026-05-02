@@ -55,7 +55,7 @@ Contrix adopts a DID-rooted approach to identity and verifiable repositories, si
 
 This does not require ordinary users to see or manage DIDs directly. Clients and services MAY offer a Matrix-like `@user:domain` experience for contact search, login, organization handles, or bridge aliases; before submitting durable operations, grants, repo commits, or MLS membership, that identifier must resolve or bind to a principal DID.
 
-While Contrix leverages DID-rooted identity, bidirectional handle validation, service discovery through DID Documents, and per-principal verifiable repos, it focuses on enterprise environments and secure collaboration. atprotocol is primarily a public social-record and PDS architecture, whereas Contrix targets multi-party collaboration, private Spaces, deterministic authorization state, integrated E2EE, and complex enterprise governance.
+While Contrix leverages DID-rooted identity, bidirectional handle validation, service discovery through DID Documents, and per-principal verifiable repos, it focuses on enterprise environments and secure collaboration. atprotocol is primarily a public-record and PDS architecture, whereas Contrix targets multi-party collaboration, private Spaces, deterministic authorization state, integrated E2EE, and complex enterprise governance.
 
 ### 4.4 E2EE Architecture Choice
 

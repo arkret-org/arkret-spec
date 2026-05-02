@@ -122,7 +122,7 @@ Sovereign clients MUST:
 - use organization DID resolver policy and avoid default public registry queries
 - verify service DID delegation, certificates, message signature, and feature profile
 - block unapproved sync/index/directory/blob/applet endpoints
-- disable public federation, public search, public social feed, external applets and agent handoff by default
+- disable public federation, public search, external applets and agent handoff by default
 - show per-space classification, E2EE status, egress policy, and export permissions
 - support remote revocation of session, device, grant, applet delegation, and cached secrets
 - support local logs, audit export, and key wipe policies
@@ -308,7 +308,7 @@ Export controls SHOULD include:
 - approval for attachments and snapshots
 - preserve audience/classification labels
 - prevent public directory indexing
-- prevent repost / quote / cross-service redistribution
+- prevent unauthorized cross-service redistribution
 
 For encrypted content, export MUST NOT leak keys beyond intended recipients.
 

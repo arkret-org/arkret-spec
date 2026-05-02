@@ -57,7 +57,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 4. [identity-did.md](./identity/identity-did.md)、[identity-handles.md](./identity/identity-handles.md)、[progressive-disclosure.md](./identity/progressive-disclosure.md)：身份、handle、隐私披露。
 5. [capabilities.md](./authz/capabilities.md) 与 [event-auth-state-resolution.md](./authz/event-auth-state-resolution.md)：授权、membership、state resolution。
 6. [operations-sync.md](./sync/operations-sync.md)、[client-sync.md](./sync/client-sync.md)、[service-surface.md](./sync/service-surface.md)、[service-http-binding.md](./sync/service-http-binding.md)：写入、同步、实际服务组合、服务面和默认 HTTP binding。
-7. 按场景阅读扩展：Applet、Agent、WebRTC、Directory、Social、Moderation、Federation、Sovereign Deployment。
+7. 按场景阅读扩展：Applet、Agent、WebRTC、Directory、Moderation、Federation、Sovereign Deployment。
 8. 与 Matrix 的核心区别见 [matrix-core-differences.md](./overview/matrix-core-differences.md)。
 9. 安全加固对照阅读：[server-threat-model.md](./security/server-threat-model.md)（服务端攻击模型与抗滥用规则）
 
@@ -100,7 +100,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - `event` 是协作事实和审计根
 - `view` 是投影，不拥有核心数据
 - Card 与 Room 严格分离；Card 可通过 Relation 链接零到多个 Room，但不继承或控制 Room membership
-- `memory/run/document/social_post` 等可作为 Morph 类型或扩展 profile，不自动授予能力
+- `memory/run/document` 等可作为 Morph 类型或扩展 profile，不自动授予能力
 - `schema/policy` 是正式对象，不再只是引用占位符
 - `invite/read_marker/notification` 补齐人类协作的加入、已读、提醒链路；notification 是派生投影，不是 canonical truth
 
@@ -183,7 +183,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - Capability、delegation、claim 条件、policy server、moderation policy。
 - Event-first 发布、Principal Server 同步、Index 查询、Directory 发现、HTTP binding。
 - MLS E2EE、设备验证、WebRTC 会议、Blob 与媒体。
-- Applet、Agent protocol interop、Social feed、Space hierarchy。
+- Applet、Agent protocol interop、Space hierarchy。
 - Sovereign deployment 与 controlled collaboration Space。
 
 新增能力应优先作为 profile、扩展章节或 schema registry 条目进入 [spec-map.md](./spec-map.md) 对应分组，避免继续堆进单个超大文件。

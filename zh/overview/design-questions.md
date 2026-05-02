@@ -108,7 +108,6 @@ Room：
 - document
 - file profile
 - poll
-- social post
 - call
 - 外部集成对象
 - 领域专用业务对象

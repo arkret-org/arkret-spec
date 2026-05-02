@@ -56,7 +56,6 @@ contrix-spec/
       conversation-model.md
       views.md
       content-types.md
-      social-graph.md
       space-hierarchy.md
     authz/
       capabilities.md
@@ -141,7 +140,6 @@ contrix-spec/
       conversation-model.md
       views.md
       content-types.md
-      social-graph.md
       space-hierarchy.md
     authz/
       capabilities.md

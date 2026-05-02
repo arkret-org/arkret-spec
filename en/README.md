@@ -63,7 +63,6 @@ Main document groups:
 - [identity-handles.md](./identity/identity-handles.md)
 - [key-management.md](./identity/key-management.md)
 - [object-model-core.md](./models/object-model-core.md)
-- [social-graph.md](./models/social-graph.md)
 - [object-model-standard.md](./models/object-model-standard.md)
 - [data-structures.md](./models/data-structures.md)
 - [conversation-model.md](./models/conversation-model.md)

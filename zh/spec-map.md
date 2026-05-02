@@ -16,7 +16,7 @@
 4. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/progressive-disclosure.md`：理解身份、handle 和隐私披露。
 5. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
 6. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
-7. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Social、Directory。
+7. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
 ## 3. 核心概念边界
 
@@ -33,7 +33,6 @@
 - Room、Board、List、Card、Message 是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
 - Card 与 Room 严格分离；Card 可链接多个 Room，但不继承 Room membership 或历史权限。
-- Feed 是一种社交或活动时间线投影源，不替代 Space。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Index
@@ -55,12 +54,6 @@
 - Capability 决定基础动作权限。
 - Moderation Policy 可以 deny、quarantine 或 require review，但不能授予权限。
 - Personal Blocklist 是个人私有过滤，只影响自己的客户端体验。
-
-### 3.6 Public Feed / Circle Feed
-
-- Public Feed 适合公开索引、关注和广播。
-- Circle Feed 必须使用 Audience Policy、受众快照和可选 E2EE。
-- 朋友圈不能靠“公开发布后 UI 隐藏”实现。
 
 ## 4. 文档分组
 
@@ -96,7 +89,6 @@
 | `models/conversation-model.md` | Room、Message、Card-linked Room、Thread、Mention、Reaction。 |
 | `models/views.md` | Board/List/Card、Table、Timeline、Graph 等投影。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
-| `models/social-graph.md` | 社交 feed、朋友圈、follow/contact/circle、Audience Policy。 |
 
 ### 4.4 授权、治理与状态
 
@@ -182,7 +174,7 @@
 - 改变身份、DID、handle、claim 的内容，放入身份与隐私组。
 - 改变共享状态有效性的内容，放入授权、治理与状态组。
 - 改变服务 API 或 transport 的内容，放入同步、服务与联邦组。
-- 新业务能力优先做 profile，例如 social、agent、applet、webrtc。
+- 新业务能力优先做 profile，例如 agent、applet、webrtc。
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。
 
 

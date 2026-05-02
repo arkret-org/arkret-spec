@@ -421,7 +421,7 @@ POST /api/v1/directory/resolve-handle
 POST /api/v1/directory/private-contact-discovery
 ```
 
-`private-contact-discovery` is for `cx.private_contact_discovery.v1`. Requests MUST use blinded / padded connection identifier batches. Responses only return time-bound reachability proof or invite/consent guidance; they MUST NOT return raw connection identifiers, full profiles, member lists, or social graph.
+`private-contact-discovery` is for `cx.private_contact_discovery.v1`. Requests MUST use blinded / padded connection identifier batches. Responses only return time-bound reachability proof or invite/consent guidance; they MUST NOT return raw connection identifiers, full profiles, member lists, or relationship graphs.
 
 ## 8. MIMI Provider Facade Surface
 

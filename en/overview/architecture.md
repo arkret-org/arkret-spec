@@ -30,7 +30,7 @@ It is responsible for:
 - retransmission after offline periods
 - the audit baseline
 
-This borrows from atproto's repo idea, but Contrix repos publish **collaboration operations**, not social records for feeds.
+This borrows from atproto's repo idea, but Contrix repos publish **collaboration operations**, not public-content distribution records.
 
 A Principal Repo is a logical verifiable publication log, not a server. It may be carried by:
 

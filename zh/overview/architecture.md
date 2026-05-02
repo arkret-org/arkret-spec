@@ -47,7 +47,7 @@ Contrix v1 不再把用户数据仓库作为协议一等概念。每个 actor �
 - 设备离线后重传
 - 审计基线
 
-这保留了 atproto per-principal publication 的安全目标，但不要求实现 atprotocol/Git 式数据仓库。Contrix 记录的是 **协作 Event**，不是面向社交 feed 的 record 集。
+这保留了 atproto per-principal publication 的安全目标，但不要求实现 atprotocol/Git 式数据仓库。Contrix 记录的是 **协作 Event**，不是面向公开内容分发的 record 集。
 
 Event chain 可以由以下形态承载：
 
