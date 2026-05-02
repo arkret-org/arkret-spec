@@ -1,5 +1,30 @@
 {
   "version": "2026-05-02",
+  "default_unsupported_behavior": {
+    "write_receiver_unknown_active_standard_kind": {
+      "must_not_accept": true,
+      "primary_result": "unsupported_feature",
+      "allowed_results": ["unsupported_event_kind", "schema_violation", "quarantine"]
+    },
+    "read_only_unknown_accepted_kind": {
+      "must_preserve_raw_event": true,
+      "must_mark_projection_incomplete": true,
+      "allowed_results": ["generic_fallback", "projection_incomplete", "unsupported_feature"]
+    },
+    "unknown_non_critical_extension": {
+      "must_preserve_canonical_bytes": true,
+      "may_ignore_for_reducer": true,
+      "must_not_affect_state_hash": true
+    },
+    "unknown_required_feature_or_critical_extension": {
+      "must_fail_closed": true,
+      "allowed_results": ["unsupported_feature", "schema_violation", "soft_fail", "quarantine"]
+    },
+    "optional_extension": {
+      "may_omit_interaction": true,
+      "allowed_results": ["unsupported_feature", "feature_not_advertised"]
+    }
+  },
   "implementation_profiles": [
     "cx.profile.core_event_store.v1",
     "cx.profile.chat_mvp.v1",

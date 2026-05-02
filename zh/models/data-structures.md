@@ -518,7 +518,7 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 
 | Canonical Operation | Event Envelope |
 | --- | --- |
-| `operation_id` | `event_id` 或本地幂等别名；进入 wire 后必须能稳定映射到 `event_id`。 |
+| `id` | 本地草稿 / builder 对象 ID；进入 wire 后必须能稳定映射到 `event_id` 或被 `event_id` 取代。 |
 | `semantic_kind` | `kind`。 |
 | `object_id` | `content` 内的目标对象字段，例如 `card_id`、`room_id`、`target_ref`。 |
 | `payload` | `content`。 |
@@ -527,7 +527,7 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `operation_id` | yes | `id:operation` 或 `hash` |  | Operation ID。 |
+| `id` | yes | `id:operation` 或 `hash` | 不得命名为 `operation_id`；`operation_id` 保留给服务 API canonical operation。 | Canonical Operation Object ID。 |
 | `type` | yes | `enum(operation)` | 固定为 `operation`。 | 对象种类。 |
 | `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref, move, reorder, rebalance, link, unlink)` |  | operation 类型。 |
 | `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.card.move`。`move/reorder/rebalance/link/unlink` 必填。 | 语义操作类型，用于校验 payload。 |
@@ -613,6 +613,18 @@ Schema id: `cx.schema.client_sync_response.v1`
 | `events` | yes | `array<Event>` | MUST 按 timeline order。 | 事件列表。 |
 | `limited` | yes | `boolean` | true 表示存在 gap。 | 是否截断。 |
 | `prev_batch` | no | `cursor` 或 `string` | opaque。 | 反向 backfill token。 |
+
+## 21.1 Schema Refs and Extension Fields
+
+`fields`、`metadata`、Morph `content` 和 profile-defined extension objects 都进入其所在 Event / object 的 canonical JSON、event digest、payload hash 和签名输入，除非具体字段被声明为 `unsigned` 或协议外本地缓存。实现不得因为字段未知就把它从 canonical bytes 中剔除。
+
+`schema_refs` 的解释必须可跨实现复现：
+
+- 标准 `cx.schema.*.vN` MUST 在 `artifacts/registry/schema-registry.json` 注册，并解析到确定的 JSON Schema / reducer profile 语义。
+- Space 或对象声明的自定义 schema ref MUST 是内容寻址 ref、带版本的反向域名 ID，或由 Space policy / schema registry 事件绑定到 schema digest；同一个 schema ref 不得在同一 causal frontier 下解析成不同 schema。
+- `fields` 中会影响授权、排序、状态机、可见性、redaction、notification、E2EE AAD 或 reducer 输出的字段，MUST 由 schema/ref/profile 声明。未知非 critical 字段可保留和同步，但不得影响 reducer 结果或 capability 判定。
+- 如果生产者依赖某个 extension field 的语义，Event Envelope MUST 在 `required_features`、`critical_extensions`、`schema_profile_refs` 或 `reducer_profile_ref` 中声明；接收方不支持时 MUST fail closed 或把对应 projection 标记为 incomplete。
+- Schema validation 是签名验证之后、reducer 应用之前的结构和语义检查。验证失败的 Event 不得进入 accepted reducer frontier；验证通过也不替代 capability、policy、MLS 或 DID 控制链检查。
 
 ## 22. Field Patch (`cx.patch.v1`)
 

@@ -16,10 +16,13 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
   "constraints": [],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": "2026-07-26T00:00:00Z",
-  "revocation_ref": "cx:revocation-list:default",
   "proof": {}
 }
 ```
+
+Grant 的撤销状态不由 `revocation_ref` 字段或未注册的 revocation-list 对象决定。Contrix v1 的 grant 撤销 MUST 表达为 accepted `cx.capability.revoke` Event，且该 Event 的 content MUST 指向被撤销的 `grant_id` / `grant_ref`。授权判定使用当前动作因果前沿中的 grant / revoke frontier；无法确认高风险动作的 revoke freshness 时，必须按 `capabilities.md#18.2-revocation-freshness` soft-fail 或 fail closed。
+
+Contrix v1 不注册 `cx:revocation-list:*` typed ID；实现不得生成或要求解析这种引用。
 
 ## 3. Scope
 

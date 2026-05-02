@@ -137,7 +137,7 @@
 | `cx.container.rebalance` | Facet container rank rebalance |
 | `cx.message.create` | Message create |
 | `cx.message.revise` | Message edit patch（规范编辑操作，优先定义） |
-| `cx.message.redact` | Message redaction |
+| `cx.message.redact` | Message-scoped redaction |
 | `cx.reaction.add` | Reaction add |
 | `cx.reaction.remove` | Reaction remove |
 | `cx.capability.grant` | Grant |
@@ -151,7 +151,7 @@
 | `cx.mls.commit` | MLS commit |
 | `cx.mls.welcome` | MLS welcome ref |
 | `cx.mls.keypackage` | MLS KeyPackage publication |
-| `cx.mls.epoch` | MLS epoch state |
+| `cx.mls.epoch` | MLS epoch checkpoint derived from winning commit |
 | `cx.space_key.share` | Space key share |
 | `cx.space_key.withheld` | Space key withheld notice |
 | `cx.space_key.share_audit` | Auditable history key share marker |

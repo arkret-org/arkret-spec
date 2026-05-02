@@ -3,9 +3,9 @@
   "$id": "https://contrix.io/artifacts/schemas/operation.schema.json",
   "title": "Contrix Canonical Operation",
   "type": "object",
-  "required": ["operation_id", "type", "operation_type", "space_id", "object_type", "payload", "created_at"],
+  "required": ["id", "type", "operation_type", "space_id", "object_type", "payload", "created_at"],
   "properties": {
-    "operation_id": { "type": "string", "pattern": "^cx:operation:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$" },
+    "id": { "type": "string", "pattern": "^cx:operation:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$" },
     "type": { "const": "operation" },
     "schema": { "const": "cx.schema.operation.v1" },
     "operation_type": {

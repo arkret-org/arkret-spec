@@ -51,6 +51,8 @@ Child 侧确认：
 
 一个 edge 只有在 parent 的 `cx.space.child` 与 child 的 `cx.space.parent` 同时 accepted 时，才是 confirmed edge。
 
+两侧 state event 位于不同 Space 的 event chain，`prev_refs` 不要求跨 Space 直接连接。实现 MUST 通过各自 Space 的 accepted event、event digest、state key 和 auth refs 验证双方声明；需要把双方绑定成同一个 edge 时，双方 content SHOULD 包含对侧 Space id、对侧 edge state event ref 或 edge nonce / digest commitment。缺少对侧可验证声明时，该 edge 只能是 `unconfirmed_link`。
+
 ## 4. Edge 状态
 
 层级 edge 状态：
@@ -61,6 +63,8 @@ Child 侧确认：
 - `tombstoned`：任一侧删除或归档该 edge。
 
 客户端默认 hierarchy projection SHOULD 只返回 confirmed edge。需要显示外部引用时 MAY 返回 unconfirmed link，但必须标记状态。
+
+`unconfirmed_link` 没有功能性效力。它不得触发 inheritance policy、生效的 derived grant、成员同步、自动订阅、history visibility 展开、E2EE key share、配额继承或 policy cascade。Parent 侧已 accepted 的 `cx.space.child` 不会因为 child 迟迟未确认而自动撤销；它只保持为 parent Space 中的可审计声明，直到 parent tombstone / replace 该声明、child 确认、或 child / policy 明确拒绝。Projection 和 UI 可以展示 pending / rejected 状态，但授权和同步 MUST 按未确认处理。
 
 ## 5. 禁止隐式级联
 
@@ -103,6 +107,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 
 继承规则：
 
+- `cx.space.inheritance_policy` 只有在目标 parent-child edge 已 confirmed 后才可生效。若确认缺失、被拒绝、tombstoned 或无法在 backfill / snapshot 上限内验证，继承策略 MUST soft-fail 或视为 unset。
 - `mode` MUST 为 `narrow_only`。继承只能收窄或附加限制，不能绕过 child 本地 policy。
 - Child local deny / revoke / ban MUST 覆盖 inherited allow。
 - 继承 capability MUST 在 child 中物化为 derived grant，且记录 parent grant、继承策略和有效 causal frontier。

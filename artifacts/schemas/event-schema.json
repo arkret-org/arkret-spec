@@ -293,6 +293,14 @@
       "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/crypto_device_content" } } }
     },
     {
+      "if": { "properties": { "kind": { "const": "cx.mls.commit" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/mls_commit_content" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "cx.mls.epoch" } }, "required": ["kind"] },
+      "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/mls_epoch_content" } } }
+    },
+    {
       "if": { "properties": { "kind": { "const": "cx.moderation.report" } }, "required": ["kind"] },
       "then": { "properties": { "content": { "$ref": "./event-payload.schema.json#/$defs/moderation_report_content" } } }
     },

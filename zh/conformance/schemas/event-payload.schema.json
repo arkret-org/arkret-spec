@@ -546,9 +546,60 @@
         "room_id": { "$ref": "#/$defs/room_id" },
         "mls_group_id": { "type": "string" },
         "epoch": { "type": "integer", "minimum": 0 },
+        "base_epoch": { "type": "integer", "minimum": 0 },
+        "next_epoch": { "type": "integer", "minimum": 0 },
+        "base_epoch_ref": { "$ref": "#/$defs/object_ref" },
         "key_package_ref": { "$ref": "#/$defs/object_ref" },
-        "proposal_ref": { "$ref": "#/$defs/event_ref" },
-        "commit_ref": { "$ref": "#/$defs/event_ref" }
+        "proposal_refs": { "type": "array", "items": { "$ref": "#/$defs/event_ref" } },
+        "commit_ref": { "$ref": "#/$defs/event_ref" },
+        "commit_message_ref": { "$ref": "#/$defs/object_ref" },
+        "commit_hash": { "$ref": "#/$defs/hash" },
+        "application_state_ref": { "$ref": "#/$defs/mls_application_state_ref" }
+      },
+      "additionalProperties": true
+    },
+    "mls_application_state_ref": {
+      "type": "object",
+      "required": ["membership_frontier", "policy_root"],
+      "properties": {
+        "space_id": { "$ref": "#/$defs/space_id" },
+        "mls_group_id": { "type": "string", "minLength": 1 },
+        "previous_epoch": { "type": "integer", "minimum": 0 },
+        "next_epoch": { "type": "integer", "minimum": 0 },
+        "membership_frontier": { "type": "array", "items": { "$ref": "#/$defs/event_ref" }, "minItems": 1 },
+        "policy_root": { "$ref": "#/$defs/hash" },
+        "capability_root": { "$ref": "#/$defs/hash" },
+        "room_metadata_hash": { "$ref": "#/$defs/hash" },
+        "binding_profile": { "type": "string", "pattern": "^cx\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$" },
+        "reducer_profile": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "mls_commit_content": {
+      "type": "object",
+      "required": ["mls_group_id", "base_epoch", "base_epoch_ref", "proposal_refs", "next_epoch", "commit_hash", "application_state_ref"],
+      "not": { "required": ["proposal_ref"] },
+      "properties": {
+        "mls_group_id": { "type": "string", "minLength": 1 },
+        "base_epoch": { "type": "integer", "minimum": 0 },
+        "base_epoch_ref": { "$ref": "#/$defs/object_ref" },
+        "proposal_refs": { "type": "array", "items": { "$ref": "#/$defs/event_ref" }, "uniqueItems": true },
+        "next_epoch": { "type": "integer", "minimum": 1 },
+        "commit_message_ref": { "$ref": "#/$defs/object_ref" },
+        "commit_hash": { "$ref": "#/$defs/hash" },
+        "application_state_ref": { "$ref": "#/$defs/mls_application_state_ref" }
+      },
+      "additionalProperties": true
+    },
+    "mls_epoch_content": {
+      "type": "object",
+      "required": ["mls_group_id", "epoch", "commit_ref", "application_state_ref", "source"],
+      "properties": {
+        "mls_group_id": { "type": "string", "minLength": 1 },
+        "epoch": { "type": "integer", "minimum": 0 },
+        "commit_ref": { "$ref": "#/$defs/event_ref" },
+        "application_state_ref": { "$ref": "#/$defs/mls_application_state_ref" },
+        "source": { "const": "commit_winner_checkpoint" }
       },
       "additionalProperties": true
     },

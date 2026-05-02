@@ -146,7 +146,7 @@ Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`p
 }
 ```
 
-`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）或旧 SDK 的本地幂等别名。若兼容层需要把旧 `operation_id` 暴露给客户端，它 MUST 是 `event_id` 的稳定别名或由 `event_id` 可验证派生，并且不得进入另一套排序、去重或签名规则。
+`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）。Event Envelope、Canonical Operation Object、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`。若旧 SDK 兼容层仍向本地调用方暴露 `operation_id`，它只能是 `event_id` 或本地草稿 `id` 的稳定别名，且不得进入另一套排序、去重或签名规则。
 
 ## 6. 为什么需要 `prev_refs + hlc + actor_seq`
 
@@ -163,6 +163,7 @@ Contrix v1 要求：
 - `prev_refs` / `auth_refs` 是因果事实。HLC 更大不得覆盖缺失或相反的因果依赖。
 - `actor_seq` 在同一 actor 的任一因果路径上 MUST 严格递增；它不是 device-local sequence，也不是全局 total order。生产者 SHOULD 令新事件的 `actor_seq` 大于其同 actor 直接 `prev_refs` 的最大 `actor_seq`。
 - 同一 actor 的多个设备或离线写入 MAY 产生同一高度的 sibling fork。接收方若已接受同 actor 更高 `actor_seq`，不得仅因新事件的 `actor_seq` 较低或相同而拒绝；只有当该事件不能从任何已知 frontier 回填为有效历史分支、违反直接前序递增规则、或与同一 `event_id` 的 canonical hash 冲突时，才 MUST reject 或 quarantine。
+- 同一高度的 sibling fork 只允许出现在互不因果依赖的分支上。若事件 B 的 `prev_refs` 包含同 actor 事件 A，B 的 `actor_seq` MUST 大于 A；两个同 actor、同 `actor_seq` 的事件 MUST NOT 把对方作为直接或间接前序。
 - 同一 actor 发布的新 durable Event SHOULD 以其上一个 accepted durable Event 为唯一直接 `prev_refs`。多设备或离线分叉导致多个 actor frontier head 时，生产者 MAY 使用多个同 actor `prev_refs` 合并分支，并 SHOULD 设置 `actor_seq = max(prev_actor_seq) + 1`；接收方 MUST 把 actor frontier 表达为 head set，而不是单个最大序号，并保留 fork / merge 证据按 reducer 规则收敛。
 - `prev_refs` 或 `auth_refs` MUST NOT 包含当前 `event_id`。任何自引用事件 MUST 以 `causal_conflict` reject。
 - 当 `prev_refs` 表示 A 因果先于 B，但 `hlc(A) > hlc(B)` 时，因果顺序仍为 A -> B；实现 MAY 记录 clock skew warning，但不得用 HLC 反转因果。
@@ -294,7 +295,7 @@ Subject 事件只修改 Subject 自身或 `subject --has_surface--> surface` 关
 - `cx.device.authorized`
 - `cx.device.revoked`
 - `cx.device.list_update`
-- `cx.mls.epoch`
+- `cx.mls.epoch`（由 winning `cx.mls.commit` 派生的 epoch checkpoint）
 - `cx.mls.keypackage`
 - `cx.space_key.share`
 - `cx.space_key.withheld`
@@ -564,6 +565,30 @@ Contrix 初版不引入全网共识链。
 4. Event hash / `event_id` 字典序。
 
 该 winner 顺序不同于客户端 timeline 的展示顺序；timeline 通常按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
+
+### 16.1 Reducer Contract
+
+Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一 `space_id`、同一 accepted Event 集合、同一 `space_version` 和同一 reducer profile，正确实现 MUST 产生相同的 `state_hash`、materialized object state、conflict records 和 reducer frontier。
+
+Reducer 输入：
+
+- accepted Event Envelope 集合及其 canonical bytes / digest。
+- 每个 Event 的 `prev_refs`、`auth_refs`、`actor_seq`、HLC、kind、content、proof validation result 和 authorization result。
+- `space_version`、schema profile refs、reducer profile ref、Space policy state 和必要 snapshot base。
+
+Reducer 输出：
+
+- materialized object state / state map。
+- reducer frontier，表示已纳入当前结果的 Event head set。
+- conflict records、redaction records、soft-fail dependency records 和 state hash。
+
+规则：
+
+- Reducer MUST 幂等：重复输入同一 Event 不得改变输出。
+- Reducer MUST 对输入集合顺序不敏感；排序只能使用本规范声明的 deterministic ordering。
+- Reducer profile MUST 明确声明它处理的 Event kind、state key 规则、字段 merge operator、redaction preserved fields、rank/order profile、schema interpretation profile 和 critical extension 行为。
+- 两个 reducer profile 只有在 profile id、space_version、critical feature 集合、state resolution 规则和字段 merge operator 均兼容时，才可比较 state hash。否则必须声明为不同 projection，不得声称同一 canonical state。
+- Partial reducer MAY 用于客户端视图、搜索、通知或只读 projection，但它输出的是 scoped projection frontier，不是 Space accepted reducer frontier。Partial reducer 遇到不支持但会影响其输出语义的 standard Event kind、critical extension 或 required feature 时 MUST fail closed、返回 `projection_incomplete` / `unsupported_feature`，或降级为明确标注的不完整视图；不得静默忽略后继续声称完整。
 
 ## 17. 字段级 merge 与对象级收敛
 

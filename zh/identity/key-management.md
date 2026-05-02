@@ -49,7 +49,7 @@
 设备、agent、session 和企业网关颁发的权限 MUST 有明确失效条件：
 
 - `expires_at`
-- `revocation_ref`
+- revoke event、status event 或 profile 注册的 credential status mechanism
 - `scope`
 - `audience`
 - `not_before`
@@ -230,8 +230,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
     "cx.message.create"
   ],
   "not_before": "2026-04-26T00:00:00Z",
-  "expires_at": "2026-04-27T00:00:00Z",
-  "revocation_ref": "cx:revocation-list:enterprise-session"
+  "expires_at": "2026-04-27T00:00:00Z"
 }
 ```
 
@@ -241,6 +240,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 - session key MUST NOT outlive grant
 - session grant SHOULD be audience-bound
 - session grant SHOULD be non-exportable in WebCrypto / platform keystore where available
+- session grant 撤销 MUST 由 accepted `cx.session.grant` 状态更新、device/account revoke、或 profile 注册的 credential status mechanism 表达；不得使用未注册的 `cx:revocation-list:*` typed ID。
 
 ## 7. 密钥备份
 

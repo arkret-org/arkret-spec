@@ -95,7 +95,9 @@
 | `cx.redaction` | actor membership、被 redaction 事件、redact_own 或 redact_any capability |
 | `cx.space.upgrade` | `cx.space.create`、当前 upgrade policy、creator/admin capability |
 
-如果事件缺少必需 auth ref，节点 MUST soft fail 并尝试 backfill。若 backfill 后仍缺失，MUST reject。
+如果事件缺少必需 auth ref，节点 MUST soft fail 并尝试 backfill。Backfill MUST 受 `../conformance/scalability-constraints.md` 的 `auth_chain` 深度、`auth_refs` 数量、page size、retry 和本地资源上限约束；实现不得为了验证单个事件无限递归拉取历史。若在上限内仍缺失，或只能通过未验证 snapshot / 未授权服务获得依赖，节点 MUST reject、保持 soft-failed 或 quarantine，具体取决于错误是否可恢复。
+
+长期 Space 中的 `cx.space.create` MAY 通过已验证 snapshot manifest、checkpoint、witness receipt 或 stripped create event 满足 bootstrap 依赖，但接收方仍必须能验证 create event digest、space id、space_version、creator authority 和 snapshot signer authority。任何 snapshot-assisted auth ref 都不得替代事件本身的签名责任，也不得允许服务端伪造 Space 起源。
 
 ## 5. Membership
 
@@ -312,6 +314,7 @@ E2EE Space 中，history visibility 只授权索引和密钥共享资格，不�
 - `visibility=private_plaintext` 表示可接收正文或附件预览；`visibility=derived_plaintext` 表示只可接收通知摘要、全文索引、embedding、报表等派生内容。
 - 未列入该 state event 的服务只能接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
 - 该 state event 的撤销或覆盖按普通 state resolution 生效；生效点之后不得继续向旧服务发送非加密私有内容。
+- 该 state event 是成员可验证的透明度机制。允许某服务看见明文但对受影响成员隐藏该事实是不合规的；高安全 Space SHOULD 使用 E2EE、minimal-metadata profile 或本地客户端索引，而不是 admin-only 隐藏明文服务清单。
 
 ### 6.1 Organization Ownership and Endorsement
 
@@ -422,6 +425,8 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.view.reconcile`
 
 非 state event 仍可影响物化 projection，但不进入 auth state map，除非具体类型声明其为 auth dependency。
+
+`cx.mls.epoch` 在 state map 中表示当前 MLS epoch checkpoint，但它不得作为独立授权事实推进 epoch。验证规则见 `../crypto-media/encryption-and-audit.md` 第 5.3 节：checkpoint 必须能从同一 conflict set 的 winning `cx.mls.commit` 机械验证，无法验证时 MUST reject 或 soft-fail。
 
 ## 9. State Resolution
 

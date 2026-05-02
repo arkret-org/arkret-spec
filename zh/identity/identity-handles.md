@@ -124,6 +124,18 @@ DNS TXT 只能作为发现通道。若使用 DNS TXT 直接声明 handle 绑定�
 
 未启用 DNSSEC 且没有可验证签名的 DNS 结果只能作为 unverified discovery hint，MUST NOT 作为 grant subject、Organization membership、official Space 或 verified handle 的依据。
 
+### 6.1 缓存与失效
+
+Handle 解析结果是带时间边界的绑定，不是永久身份事实。
+
+缓存规则：
+
+- verified handle cache MUST 绑定 `handle`、`did`、解析通道、DID Document version / digest、alsoKnownAs proof、issuer proof（如有）、verified_at、expires_at 和 resolver policy。
+- DNS / HTTPS 解析结果的 TTL MUST 不超过底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL 和本地 resolver policy 上限中的最小值。未提供 TTL 时，verified cache SHOULD 不超过 24 小时；高风险授权或组织背书 SHOULD 使用更短 TTL 或实时 status check。
+- 当 DID Document 移除对应 `alsoKnownAs`、issuer claim 被 revoke / expired、well-known 绑定变更、DNSSEC validation 失败、handle 被解析到不同 DID、或 resolver policy 更新时，缓存 MUST 失效或降级为 unverified。
+- Handle 转让不改变历史 Event 的 actor DID、签名责任或 audit attribution。历史 `@mention`、profile snapshot 或 message text MAY 保留当时显示字符串，但安全敏感 UI 必须能显示事件实际 DID，并在当前 handle 解析与历史 sender DID 不一致时标记为 handle changed / transferred。
+- 授权、grant subject、membership、MLS credential 和 audit attribution MUST 使用 DID / verified claim，而不是缓存中的 handle 字符串。缓存失效不得自动撤销 DID 已签名的历史事件；只影响后续显示、发现和基于 handle claim 的条件化授权。
+
 ## 7. Verified Claim
 
 Handle、组织成员、邮箱控制权和角色 SHOULD 通过 credential / attestation 表达。
