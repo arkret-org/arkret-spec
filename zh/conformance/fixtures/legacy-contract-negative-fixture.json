@@ -1,0 +1,190 @@
+{
+  "profile": "cx.profile.core_event_store.v1",
+  "fixture_id": "legacy-contract-negative-fixture.json",
+  "mode": "black_box_mutation_set",
+  "forbidden_patterns_source": "artifacts/registry/legacy-compatibility-policy.json",
+  "summary": "Black-box reject set for removed subject/room/card wire-contract surfaces.",
+  "base_event_template": {
+    "event_id": "cx:event:01ka1000000000000000000000",
+    "schema": "cx.schema.event.v1",
+    "kind": "cx.flow.create",
+    "actor_id": "did:web:alice.example",
+    "space_id": "cx:space:01ka1100000000000000000000",
+    "space_version": "1",
+    "created_at": "2026-05-03T00:00:00Z",
+    "hlc": "01970e589d21-0001-a13f9c2e",
+    "actor_seq": 1,
+    "prev_refs": [],
+    "auth_refs": [],
+    "content": {
+      "object": {
+        "id": "cx:flow:01ka1200000000000000000000",
+        "type": "flow",
+        "schema": "cx.schema.flow.v1",
+        "kind": "card"
+      }
+    }
+  },
+  "vectors": [
+    {
+      "name": "reject_removed_typed_id_subject",
+      "mutation": {
+        "path": "$.content.object.id",
+        "value": "cx:subject:01ka1200000000000000000000"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "schema_violation",
+          "unsupported_feature",
+          "unsupported_event_kind"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_typed_id_room",
+      "mutation": {
+        "path": "$.content.object.id",
+        "value": "cx:room:01ka1200000000000000000000"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_typed_id_card",
+      "mutation": {
+        "path": "$.content.object.id",
+        "value": "cx:card:01ka1200000000000000000000"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_schema_id_subject",
+      "mutation": {
+        "path": "$.content.object.schema",
+        "value": "cx.schema.subject.v1"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_schema_id_room",
+      "mutation": {
+        "path": "$.content.object.schema",
+        "value": "cx.schema.room.v1"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_schema_id_card",
+      "mutation": {
+        "path": "$.content.object.schema",
+        "value": "cx.schema.card.v1"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_event_kind_subject_create",
+      "mutation": {
+        "path": "$.kind",
+        "value": "cx.subject.create"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "unsupported_event_kind",
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_event_kind_room_member",
+      "mutation": {
+        "path": "$.kind",
+        "value": "cx.room.member"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "unsupported_event_kind",
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_event_kind_card_move",
+      "mutation": {
+        "path": "$.kind",
+        "value": "cx.card.move"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "unsupported_event_kind",
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_event_kind_subject_link_surface",
+      "mutation": {
+        "path": "$.kind",
+        "value": "cx.subject.link_surface"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "unsupported_event_kind",
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    },
+    {
+      "name": "reject_removed_event_kind_card_set_primary_room",
+      "mutation": {
+        "path": "$.kind",
+        "value": "cx.card.set_primary_room"
+      },
+      "expected": {
+        "result": "reject",
+        "allowed_errors": [
+          "unsupported_event_kind",
+          "schema_violation",
+          "unsupported_feature"
+        ]
+      }
+    }
+  ]
+}

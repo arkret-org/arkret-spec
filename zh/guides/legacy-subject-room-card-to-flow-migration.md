@@ -77,6 +77,23 @@
 - “切换 primary room / primary surface” 改为 “切换 Flow branch 的 primary state”。
 - “解除 room / surface link” 改为 “禁用对应 discussion branch，或停止在 projection 中暴露该入口”。
 
+### 3.3 无 direct alias 旧语义的精确替代边界
+
+| 旧语义 | 必须替代到的新语义 | 不得再做的事 |
+| --- | --- | --- |
+| `cx.subject.link_surface` | 若目标是讨论入口，则写 `cx.flow.branch.enable`；若只是暴露入口，则只改 projection / renderer，不新增独立 link object。 | 不得继续维持一个可签名的 `subject-surface` wire object。 |
+| `cx.subject.unlink_surface` | 若讨论能力需要真正关闭，则写 `cx.flow.branch.disable`；若只是不再展示，则只移除 projection 暴露。 | 不得把“取消展示”误写成对象删除或 Flow identity 变化。 |
+| `cx.subject.set_primary_surface` | 写 `cx.flow.branch.set_primary`。 | 不得把 primary surface 单独建成另一套 state key。 |
+| `cx.card.link_room` | 对同一 `flow_id` 开启 `discussion` branch，并在 projection 中声明讨论入口。 | 不得再把 card 和 room 视为两个可独立签名、需跨对象跳转的 identity。 |
+| `cx.card.unlink_room` | 若讨论能力要停用，则写 `cx.flow.branch.disable`；否则只去掉 projection 暴露。 | 不得隐式删消息历史。 |
+| `cx.card.set_primary_room` | 写 `cx.flow.branch.set_primary`，必要时先保证对应 branch 已启用。 | 不得重建 `room_id` alias。 |
+
+判定规则：
+
+- branch state 是 canonical state；projection 只是展示面。
+- “关闭讨论能力” 和 “不再在 UI 上突出展示讨论入口” 是两件不同的事，迁移时不得混写。
+- 若旧数据无法判断它表达的是 branch lifecycle 还是单纯 projection，导入器 MUST 保守地迁移到 projection 语义，而不是擅自删除 branch 或消息历史。
+
 ## 4. 实现策略
 
 服务端迁移建议顺序：
@@ -91,14 +108,71 @@
 2. 权限检查改用 `cx.flow.*` 与 `cx.flow.branch.*`。
 3. timeline / discussion 入口不要再依赖 `room_id` typed ID。
 
+### 4.1 一次性历史导入规则
+
+历史导入器必须按以下顺序执行：
+
+1. typed ID rewrite  
+   把 `cx:subject:*` / `cx:room:*` / `cx:card:*` 全部重写为 `cx:flow:*`，并按旧语义补出 `kind="room"` 或 `kind="card"`。
+2. schema rewrite  
+   把 `cx.schema.subject.v1` / `cx.schema.room.v1` / `cx.schema.card.v1` 全部重写为 `cx.schema.flow.v1`。
+3. event kind rewrite  
+   对有 direct alias 的旧 event kind，按本文件第 3.1 节重写为 `cx.flow.*` 或 `cx.flow.branch.*`。
+4. branch / projection 语义替换  
+   对无 direct alias 的 `link_surface` / `link_room` 类语义，必须先判断它表达的是 branch lifecycle 还是 projection 暴露，再迁移到 branch state 或 projection state。
+5. active validation  
+   只有在上述 rewrite 完成后，事件才能进入 active schema validation、hash、signature、snapshot、sync、federation 或 reducer replay。
+
+导入器不得：
+
+- 在 active validator 前接受未重写的 legacy typed ID、schema ID 或 event kind。
+- 通过保留 hidden alias 的方式“兼容” legacy contract。
+- 因为旧 `link_room` 数据缺少完整上下文，就擅自删除 discussion history。
+
+### 4.2 下游仓库最小迁移清单
+
+`contrix-rust-sdk`
+
+- 删除 `subject` / `room` / `card` typed ID builder 与 schema enum。
+- builder、validator、parser 统一到 `flow` / `flow.branch.*`。
+- 把 `legacy-contract-negative-fixture.json` 纳入最小拒绝回归。
+
+`soland`
+
+- 存储导出层、sync DTO、federation DTO 不再输出 legacy typed ID / schema ID / event kind。
+- `supported_operations`、OpenAPI 和 service binding 全部以 registry / catalog 为准。
+- 历史导入器与 active validator 分层，不能共用一条“软兼容”写入路径。
+
+`yougen`
+
+- 代码生成模板停止手写旧 operation / DTO alias。
+- OpenAPI、service-api inventory、operation registry 只能从 canonical catalog / generated registry 读取。
+- 生成物若仍保留 `room` / `card` 命名，只能作为 UI label，不得回流为 wire token。
+
+`cotest`
+
+- 把 `legacy-contract-negative-fixture.json` 作为黑盒 mutation set。
+- 对 removed contract 的期望结果必须是 reject，而不是 optional backward compatibility。
+- 允许的错误码集合以 fixture 的 `allowed_errors` 为准。
+
 ## 5. 兼容性边界
 
 - active v1 wire contract 不要求接受旧 `subject` / `room` / `card` event。
 - 若实现需要导入历史离线数据，转换必须在进入 active validation / replay 之前完成。
 - 对重新出现的旧 event kind，推荐返回 `unsupported_event_kind` 或等价 schema validation error。
 
+## 5.1 `cotest` 黑盒拒绝基线
+
+用于黑盒回归的规范性拒绝集合见：
+
+- `artifacts/fixtures/legacy-contract-negative-fixture.json`
+
+该 fixture 的用途不是证明“旧 contract 还能被兼容读取”，而是证明 active wire 实现会稳定拒绝它们。
+
 ## 6. 机器可读策略文件
 
 规范性迁移映射与禁用模式见：
 
 - `artifacts/registry/legacy-compatibility-policy.json`
+- `artifacts/fixtures/legacy-contract-negative-fixture.json`
+- `implementation-compatibility-matrix.md`

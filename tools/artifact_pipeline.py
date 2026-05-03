@@ -18,12 +18,16 @@ CONTRACT_CATALOG_PATH = REGISTRY / "contract-catalog.json"
 MIRROR_MANIFEST_PATH = REGISTRY / "mirror-manifest.json"
 LEGACY_POLICY_PATH = REGISTRY / "legacy-compatibility-policy.json"
 LINT_SCRIPT = ARTIFACTS / "lint_artifacts.py"
+PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
 SERVICE_API_SCHEMA_PATH = ROOT / "zh" / "sync" / "service-api-schema.md"
 GENERATED_OPERATION_INVENTORY_START = "<!-- BEGIN GENERATED OPERATION INVENTORY -->"
 GENERATED_OPERATION_INVENTORY_END = "<!-- END GENERATED OPERATION INVENTORY -->"
 ALLOWED_LEGACY_PATHS = {
     LEGACY_POLICY_PATH.resolve(),
     (ARTIFACTS / "lint_artifacts.py").resolve(),
+    (ARTIFACTS / "fixtures" / "legacy-contract-negative-fixture.json").resolve(),
+    (ROOT / "zh" / "conformance" / "fixtures" / "legacy-contract-negative-fixture.json").resolve(),
+    (ROOT / "zh" / "guides" / "implementation-compatibility-matrix.md").resolve(),
     (ROOT / "zh" / "guides" / "legacy-subject-room-card-to-flow-migration.md").resolve(),
 }
 TEXT_SUFFIXES = {".json", ".yaml", ".yml", ".md", ".py", ".toml", ".txt"}
@@ -193,6 +197,59 @@ def check_generated_service_api_schema() -> list[str]:
     ]
 
 
+def profile_summary_text() -> str:
+    data = load_json(PROFILE_REGISTRY_PATH)
+    if not isinstance(data, dict):
+        raise SystemExit("invalid conformance profile registry")
+    implementation_profiles = data.get("implementation_profiles", [])
+    deployment_profiles = data.get("deployment_profiles", [])
+    vector_profiles = data.get("vector_profiles", [])
+    hardening_profiles = data.get("hardening_profiles", [])
+    profile_requirements = data.get("profile_requirements", {})
+    return (
+        "profile summary: "
+        f"{len(implementation_profiles)} implementation, "
+        f"{len(deployment_profiles)} deployment, "
+        f"{len(vector_profiles)} vector, "
+        f"{len(hardening_profiles)} hardening, "
+        f"{len(profile_requirements)} requirement blocks"
+    )
+
+
+def forbidden_pattern_summary_text() -> str:
+    data = load_contract_catalog()
+    del data
+    legacy = load_json(LEGACY_POLICY_PATH)
+    if not isinstance(legacy, dict):
+        raise SystemExit("invalid legacy compatibility policy")
+    families = legacy.get("contract_families", [])
+    if not isinstance(families, list):
+        raise SystemExit("legacy compatibility policy missing contract_families")
+    family_count = 0
+    pattern_count = 0
+    for row in families:
+        if not isinstance(row, dict):
+            continue
+        family_count += 1
+        patterns = row.get("forbidden_patterns", [])
+        if isinstance(patterns, list):
+            pattern_count += sum(1 for item in patterns if isinstance(item, str) and item)
+    return f"forbidden patterns: {pattern_count} across {family_count} legacy contract families"
+
+
+def registry_diff_summary_text() -> str:
+    drifts = check_generated_registries() + check_generated_service_api_schema()
+    if not drifts:
+        return "registry diff: clean"
+    return f"registry diff: {len(drifts)} generated artifact drift(s)"
+
+
+def print_contract_status() -> None:
+    print(forbidden_pattern_summary_text())
+    print(profile_summary_text())
+    print(registry_diff_summary_text())
+
+
 def write_generated_registries() -> None:
     for path, payload in generated_registry_payloads(load_contract_catalog()).items():
         path.write_text(dump_json(payload), encoding="utf-8")
@@ -228,8 +285,22 @@ def sync_file(canonical: Path, mirror: Path) -> None:
 
 
 def sync_tree(canonical: Path, mirror: Path) -> None:
+    mirror.mkdir(parents=True, exist_ok=True)
+    canonical_entries: set[Path] = set()
+    for source in sorted(canonical.rglob("*")):
+        rel = source.relative_to(canonical)
+        dest = mirror / rel
+        canonical_entries.add(dest.resolve())
+        if source.is_dir():
+            dest.mkdir(parents=True, exist_ok=True)
+        else:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, dest)
     if mirror.exists():
         for candidate in sorted(mirror.rglob("*"), reverse=True):
+            resolved = candidate.resolve()
+            if resolved in canonical_entries:
+                continue
             if candidate.is_file():
                 candidate.unlink()
             elif candidate.is_dir():
@@ -237,15 +308,6 @@ def sync_tree(canonical: Path, mirror: Path) -> None:
                     candidate.rmdir()
                 except OSError:
                     pass
-    mirror.mkdir(parents=True, exist_ok=True)
-    for source in sorted(canonical.rglob("*")):
-        rel = source.relative_to(canonical)
-        dest = mirror / rel
-        if source.is_dir():
-            dest.mkdir(parents=True, exist_ok=True)
-        else:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, dest)
 
 
 def sync_mirrors() -> None:
@@ -364,11 +426,13 @@ def run_lint() -> int:
 def cmd_generate(_: argparse.Namespace) -> int:
     write_generated_registries()
     write_generated_service_api_schema()
+    print_contract_status()
     return 0
 
 
 def cmd_sync(_: argparse.Namespace) -> int:
     sync_mirrors()
+    print_contract_status()
     return 0
 
 
@@ -381,7 +445,11 @@ def cmd_check(_: argparse.Namespace) -> int:
     if errors:
         for error in errors:
             print(error, file=sys.stderr)
+        print(forbidden_pattern_summary_text())
+        print(profile_summary_text())
+        print(f"registry diff: {len(errors)} pre-lint pipeline error(s)")
         return 1
+    print_contract_status()
     return run_lint()
 
 

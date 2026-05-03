@@ -28,8 +28,11 @@ LEGACY_REMOVED_SCHEMA_IDS = {
 LEGACY_REMOVED_TYPED_ID_KINDS = {"subject", "room", "card"}
 LEGACY_REFERENCE_PATHS = {
     (ARTIFACTS / "registry" / "legacy-compatibility-policy.json").resolve(),
+    (ARTIFACTS / "fixtures" / "legacy-contract-negative-fixture.json").resolve(),
+    (ROOT / "zh" / "guides" / "implementation-compatibility-matrix.md").resolve(),
     (ROOT / "zh" / "guides" / "legacy-subject-room-card-to-flow-migration.md").resolve(),
 }
+LEGACY_REMOVED_EVENT_PREFIXES = ("cx.subject.", "cx.room.", "cx.card.")
 
 EVENT_KIND_TOKEN_RE = re.compile(r"\bcx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
 OPERATION_ID_RE = re.compile(r"^cx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
@@ -1071,11 +1074,14 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
         data = load_json(lint, path)
         if data is None:
             continue
+        allow_legacy_removed = path.resolve() in LEGACY_REFERENCE_PATHS
         for json_path, value, key in walk_json(data):
             if not isinstance(value, str):
                 continue
 
             for schema_id in SCHEMA_ID_TOKEN_RE.findall(value):
+                if allow_legacy_removed and schema_id in LEGACY_REMOVED_SCHEMA_IDS:
+                    continue
                 if schema_id not in known["schema_ids"]:
                     lint.fail(path, f"{json_path} references unknown schema id: {schema_id}")
 
@@ -1088,6 +1094,8 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
                     lint.fail(path, f"{json_path} uses deprecated Event.kind alias: {deprecated_kind}")
 
             if key in {"kind", "event_kind", "target_format"} and value.startswith("cx."):
+                if allow_legacy_removed and value.startswith(LEGACY_REMOVED_EVENT_PREFIXES):
+                    continue
                 if value not in known["event_kinds"]:
                     lint.fail(path, f"{json_path} references unregistered Event.kind: {value}")
                 elif value in known["deprecated_event_kinds"]:
@@ -1101,6 +1109,8 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
                     lint.fail(path, f"{json_path} references unregistered recovery operation_id: {value}")
 
             for match in TYPED_ID_TOKEN_RE.finditer(value):
+                if allow_legacy_removed and match.group(1) in LEGACY_REMOVED_TYPED_ID_KINDS:
+                    continue
                 check_typed_id_token(lint, path, json_path, match.group(1), match.group(2), known)
 
 

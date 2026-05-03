@@ -35,4 +35,10 @@ python tools/artifact_pipeline.py check
 - legacy contract reintroduction guard derived from `legacy-compatibility-policy.json`
 - registry-first artifact lint from `artifacts/lint_artifacts.py`, including mirror drift and Markdown/link checks
 
+`generate` / `sync` / `check` also print:
+
+- forbidden pattern summary derived from `legacy-compatibility-policy.json`
+- profile summary derived from `artifacts/profiles/conformance-profiles.json`
+- registry diff status for generated registry views and generated Markdown inventories
+
 CI runs the same entrypoint through `.github/workflows/artifact-lint.yml`.

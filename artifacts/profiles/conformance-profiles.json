@@ -148,6 +148,7 @@
         "encoding-fixture.json",
         "crypto-signature-fixture.json",
         "event-envelope-negative-fixture.json",
+        "legacy-contract-negative-fixture.json",
         "sync-fixture.json"
       ],
       "optional_extensions": [
