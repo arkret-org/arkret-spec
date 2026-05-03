@@ -19,9 +19,9 @@ Contrix 采用 **principal server + signed Event + identity registry + client-si
 
 Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
-协作数据层使用 Space 作为复制与授权边界，在 Space 内直接建模 Subject、Room、Board、List、Card、Message 等标准对象。Morph 只承担开放扩展对象角色；其可选能力由 Space schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
+协作数据层使用 Space 作为复制与授权边界，在 Space 内直接建模 Flow、Space、Message 等标准对象；看板与列容器通过 `Space (kind=board)` / `Space (kind=list)` 表达。Morph 只承担开放扩展对象角色；其可选能力由 Space schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
 
-### 2.0 Organization / Space 边界
+### 2.1 Organization / Space 边界
 
 组织在 Contrix 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Space。
 
@@ -384,7 +384,7 @@ Contrix 固定以下架构取向：
 - 房间不是唯一世界模型
 - 消息也不是唯一原子单元
 - UI 不需要从聊天历史里推业务状态
-- 协议直接允许 Subject、Room、Board、List、Card、Message、Morph 和 Relation 成为一等对象
+- 协议直接允许 Flow、Space、Message、Morph 和 Relation 成为一等对象
 
 ## 6. 信任边界
 
@@ -450,7 +450,7 @@ Contrix 不打算做“两套系统”：
 
 - AI 写入的对象能被人类审阅
 - 人类创建的对象能被 AI 理解和引用
-- Card、Message、Relation 和其他 Morph 对象可以互相链接
+- 卡片型 Flow、Message、Relation 和其他 Morph 对象可以互相链接
 - 所有沉淀都能投影成可操作界面
 
 ## 8. 架构决定
@@ -463,7 +463,7 @@ Contrix v1 固定以下方向：
 - search / View projection 默认是客户端本地派生体验；受托搜索服务只能作为可选扩展
 - blob 是独立内容层
 - capability 是独立决策层
-- agent 输出通过 Message、Card、Morph、Relation 或 agent protocol session event 成为可审计协议事实
+- agent 输出通过 Message、卡片型 Flow、Morph、Relation 或 agent protocol session event 成为可审计协议事实
 - 同一数据既服务人类 UI，也服务 agent 上下文
 - confidentiality 与 portability 也是明确协议平面，而不是部署细节
 

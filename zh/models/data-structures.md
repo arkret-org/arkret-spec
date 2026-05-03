@@ -50,6 +50,8 @@
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `metadata` | no | `object` | 非授权关键字段。 | 扩展元数据。 |
 
+说明：`operation` 与 `event_batch_receipt` 非 v1 的标准持久化 canonical object；前者是 SDK 内部可寻址中间对象，后者为可选加速/审计对象，协议事实与 reducer 真相仍由 Event Envelope 与 Materialized State 决定。`space_id` / `schema` 字段在这些类型上仍保留可扩展性。
+
 ## 4. Space
 
 Schema id: `cx.schema.space.v1`
@@ -100,7 +102,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 
 ## 6. Standard Objects
 
-Flow、Space 和 Message 是标准对象。`Board` 与 `List` 是 `Space.kind` 的特化形态；`Card` 与 `Room` 是 `Flow.kind` 的特化形态，不再作为独立顶层对象。
+Flow、Space 和 Message 是标准对象。`Board` 与 `List` 在本协议中收敛为 `Space` 的特化形态 Space (kind=board)/Space (kind=list)；`Card` 与 `Room` 为 Flow 的特化形态，不再作为独立顶层对象。
 
 ### 6.1 Flow
 
@@ -128,9 +130,9 @@ Schema id: `cx.schema.flow.v1`
 
 `branches.synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`branches.discussion` 在启用时承载房间式讨论能力，包括 `room_kind`、`history_visibility`、`encryption_profile`、`membership_policy_ref` 与讨论成员管理。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员。
 
-### 6.2 Board-Space
+### 6.2 Space (kind=board)
 
-Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:space:` 格式。Board-Space 的视图样式通过 `fields`、schema profile 或 `View.renderer` 表达，不再使用与 `kind` 平级的 `board_kind`。
+Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 格式。Space (kind=board) 的视图样式通过 `fields`、schema profile 或 `View.renderer` 表达，不再使用与 `kind` 平级的 `board_kind`。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -146,19 +148,19 @@ Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:spac
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-### 6.3 List-Space
+### 6.3 Space (kind=list)
 
-List 是 `Space` 的列/泳道形态，`kind="list"`，ID 使用 `cx:space:` 格式。List-Space 通过 `cx.space.child`/`cx.space.parent` 层级关系挂载到 Board-Space 下。
+Space (kind=list) 是 `Space` 的列/泳道形态，ID 使用 `cx:space:` 格式。Space (kind=list) 通过 `cx.space.child`/`cx.space.parent` 层级关系挂载到 Space (kind=board) 下。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
 | `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
 | `kind` | yes | `enum(list)` | 固定为 `list`。 | Space 形态。 |
-| `space_id` | yes | `id:space` |  | 父 Space ID（Board-Space）。 |
+| `space_id` | yes | `id:space` |  | 父 Space ID（Space (kind=board)）。 |
 | `title` | yes | `string` | 1..256 chars。 | 名称。 |
 | `summary` | no | `string` |  | 说明。 |
-| `rank` | no | `string` | Fractional indexing rank。 | Board-Space 内顺序。 |
+| `rank` | no | `string` | Fractional indexing rank。 | Space (kind=board) 内顺序。 |
 | `wip_limit` | no | `integer` |  | WIP 限制。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
@@ -297,7 +299,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `id` | yes | `id:view` |  | View ID。 |
 | `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `kind` | yes | `enum(collection, timeline, graph, document, composite, board, list)` |  | 核心投影原语。 |
+| `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
 | `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
 | `query` | yes | `Query` | 见 `query-schema.md`。 | 数据查询。 |
@@ -336,7 +338,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
 | `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
 | `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
-| `board_id` | conditional | `id:board` | `mode="relation_container"` 时必填。 | Board。 |
+| `board_id` | conditional | `id:space` | `mode="relation_container"` 时必填。 | Space (kind=board)。 |
 | `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
 | `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
 | `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |
@@ -504,3 +506,23 @@ Canonical Operation 与 Event Envelope 的映射：
 - `semantic_kind="cx.flow.branch.enable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch enable payload schema。
 - `semantic_kind="cx.flow.branch.disable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch disable payload schema。
 - `semantic_kind="cx.flow.convert"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow convert payload schema。
+
+## 22. Field Patch (cx.patch.v1)
+
+非 create 类更新建议使用 `cx.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。
+
+`cx.patch.v1` 为 map 类型：
+
+- `key`: patch path（字段路径）。
+- `value`: patch 操作，支持两种表达：
+  - 直接值：等价于 `{"$op":"set","value":...}`。
+  - 对象：`{"$op":"set|unset|add|remove","value":...}`。
+
+patch path 规则：
+
+- path 由 `snake_case` 标识符或反引号转义字段名组成；
+- 仅支持对象路径，不支持数组下标；
+- `unset` 不允许带 `value`；
+- `set`、`add`、`remove` 必须带 `value`。
+
+客户端不能把数组下标写入 path；如需列表元素更新，必须将对象重建为具名集合项或使用明确的 API 约束字段表示更新目标。

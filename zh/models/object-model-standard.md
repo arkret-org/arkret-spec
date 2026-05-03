@@ -141,11 +141,11 @@ Flow 适合：
 - 转换不复制或迁移消息历史。
 - 从 `card -> room` 时，若 `discussion` branch 尚未启用，Reducer MUST 自动启用它，或在 policy 禁止时 fail closed。
 - 从 `room -> card` 时，不得自动删除 `discussion` branch 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.branch.disable` 或 profile 声明的 archive 语义。
-- 转换不自动移除 Board/List 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
+- 转换不自动移除 Space (kind=board)/Space (kind=list) 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
 
 ### 2.6 常见关系
 
-- `list-space --contains--> flow`
+- `Space (kind=list) --contains--> flow`
 - `flow --assigned_to--> actor`
 - `flow --depends_on--> flow`
 - `flow --blocks--> flow`
@@ -154,9 +154,9 @@ Flow 适合：
 - `flow --summarized_from--> message`
 - `flow --promoted_from_discussion--> message`
 
-## 3. Board-Space
+## 3. Space (kind=board)
 
-Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:space:` 格式。Board 本身不再使用平级 `board_kind` 字段表达产品变体；看板类型、泳道策略、WIP 规则和自定义 workflow profile SHOULD 进入 `fields` 或 Space schema。
+Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 格式。Space (kind=board) 本身不再使用平级 `board_kind` 字段表达产品变体；看板类型、泳道策略、WIP 规则和自定义 workflow profile SHOULD 进入 `fields` 或 Space schema。
 
 推荐字段：
 
@@ -169,12 +169,12 @@ Board 是 `Space` 的工作流容器形态，`kind="board"`，ID 使用 `cx:spac
 
 常见关系：
 
-- `board-space --contains--> list-space`
-- `board-space --has_default_view--> view`
+- `Space (kind=board) --contains--> Space (kind=list)`
+- `Space (kind=board) --has_default_view--> view`
 
-## 4. List-Space
+## 4. Space (kind=list)
 
-List 是 `Space` 的列/泳道形态，`kind="list"`，ID 使用 `cx:space:` 格式。List-Space 通过 `contains` relation 挂载到 Board-Space 下。
+Space (kind=list) 是 `Space` 的列/泳道形态，ID 使用 `cx:space:` 格式。Space (kind=list) 通过 `contains` relation 挂载到 Space (kind=board) 下。
 
 推荐字段：
 
@@ -187,8 +187,8 @@ List 是 `Space` 的列/泳道形态，`kind="list"`，ID 使用 `cx:space:` 格
 
 常见关系：
 
-- `board-space --contains--> list-space`
-- `list-space --contains--> flow`
+- `Space (kind=board) --contains--> Space (kind=list)`
+- `Space (kind=list) --contains--> flow`
 
 ## 5. Message
 
@@ -286,6 +286,6 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 ## 11. 规范性引用
 
 - Flow / Message / branch 规则见 `conversation-model.md`。
-- Flow / Board / List / Message 的核心字段见 `data-structures.md`。
+- Flow / Space / Message 的核心字段见 `data-structures.md`。
 - View 投影规则见 `views.md`。
 - 授权规则见 `../authz/capabilities.md` 与 `../authz/event-auth-state-resolution.md`。

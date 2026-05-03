@@ -99,14 +99,14 @@ message 与 flow/reply/mention 的关系使用 Relation 或 message 字段表达
 - `flow(discussion) --contains--> message`
 - `message --replies_to--> message`
 - `message --mentions--> actor / flow / morph`
-- `message --references--> flow / board / morph / blob`
+- `message --references--> flow / space / morph / blob`
 
 ## 5. Flow 模式与转换
 
 Flow 通过 `kind` 和 `primary_branch` 表达默认交互方式：
 
 - `kind="room"`：默认 `primary_branch="discussion"`，适合会话主导的对象。
-- `kind="card"`：默认 `primary_branch="synthesis"`，适合状态推进、字段编辑和 Board/List 管理。
+- `kind="card"`：默认 `primary_branch="synthesis"`，适合状态推进、字段编辑和 Space (kind=board)/Space (kind=list) 管理。
 - `semantic_kind`：例如 `decision`、`incident`、`research`，用于业务过滤、默认 View 和 agent policy。
 
 `kind="card"` MAY 开启 `discussion` branch。开启后，该 Flow 仍然是同一个对象，只是多了讨论能力。
@@ -147,7 +147,7 @@ Room/Card 互转通过 `cx.flow.convert` 完成：
 - 转换不复制或迁移消息历史。
 - 转换到 `kind="room"` 时，若 `discussion` branch 尚未启用，Reducer MUST 自动启用它，或在 policy 禁止时 fail closed。
 - 已启用的 `discussion` branch 在转换后继续保留。
-- Flow 的 Board/List 位置、字段和讨论历史由各自 reducer 独立维护。
+- Flow 的 Space (kind=board)/Space (kind=list) 位置、字段和讨论历史由各自 reducer 独立维护。
 
 ## 6. Discussion Branch Membership
 

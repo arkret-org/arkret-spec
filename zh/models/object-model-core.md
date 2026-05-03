@@ -6,7 +6,7 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 
 核心对象：
 
-- `space`（包含 `kind="board"` 和 `kind="list"` 子类型）
+- `space`（包含 Space (kind=board) 与 Space (kind=list) 子类型）
 - `actor`
 - `flow`
 - `message`
@@ -47,9 +47,9 @@ Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组�
 - `flow`：统一协作主对象。它承载标题、description、brief、summary 等基础字段，并通过 `kind` 决定默认视角：`card` 偏整理与推进，`room` 偏讨论和协作。
 - `message`：Flow `discussion` branch 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
-- Board（`Space kind="board"`）和 List（`Space kind="list"`）通过 Space 层级表达工作流容器，并管理 `kind="card"` 的 Flow 位置。
+- Space (kind=board) 和 Space (kind=list) 通过 Space 层级表达工作流容器，并管理 `kind="card"` 的 Flow 位置。
 
-标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；`kind="card"` 天然适合作为 Board/List 管理的工作对象；`kind="room"` 天然适合作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才承认其主语义。
+标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；`kind="card"` 天然适合作为 Space (kind=board)/Space (kind=list) 管理的工作对象；`kind="room"` 天然适合作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才能承认其主语义。
 
 ### 2.3 Morph 是开放对象
 
@@ -82,7 +82,7 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 - `summarized_from`
 - `promoted_from_discussion`
 
-Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `flow`、`message`、`morph`、`actor` 或 `space`（包括 Board-Space 和 List-Space）。
+Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `flow`、`message`、`morph`、`actor` 或 `space`（包括 Space (kind=board) 和 Space (kind=list)）。
 
 #### 2.4.1 跨 Space 引用
 
@@ -124,9 +124,9 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 - flow activity
 - review queue
 
-View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Board-Space 包含 List-Space、List-Space 包含 Flow、Flow 的字段与位置、Flow `discussion` branch 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
+View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Space (kind=board) 包含 Space (kind=list)、Space (kind=list) 包含 Flow、Flow 的字段与位置、Flow `discussion` branch 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
 
-当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Flow 跨 List 拖拽写为 `cx.flow.move`，同 List 排序写为 `cx.flow.reorder`，修改列顺序写为 `cx.space.update`（更新 List-Space 的 `rank` 字段），改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
+当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Flow 跨 List 拖拽写为 `cx.flow.move`，同 List 排序写为 `cx.flow.reorder`，修改列顺序写为 `cx.space.update`（更新 Space (kind=list) 的 `rank` 字段），改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
 
 ## 3. 通用字段规则
 
@@ -280,11 +280,11 @@ Discussion branch 规则：
 - `discussion` branch membership 不自动改变 Flow assignment、Flow visibility 或 Space membership。
 - Flow 从 `card` 转成 `room`，或从 `room` 转成 `card`，都不自动删除已有讨论历史。
 
-## 8. Board-Space / List-Space / Flow
+## 8. Space (kind=board) / Space (kind=list) / Flow
 
-Board 和 List 是 `Space` 的工作流容器形态，分别以 `kind="board"` 和 `kind="list"` 表示，使用 `cx:space:` ID。Board-Space 是工作流容器；List-Space 是 Board-Space 内的列/泳道；Board/List 默认管理 `kind="card"` 的 Flow。
+Space (kind=board) 与 Space (kind=list) 是 `Space` 的工作流容器形态，使用 `cx:space:` ID。Space (kind=board) 是工作流容器；Space (kind=list) 是 Space (kind=board) 内的列/泳道；Space (kind=board) / Space (kind=list) 默认管理 `kind="card"` 的 Flow。
 
-Board-Space 最小结构：
+Space (kind=board) 最小结构：
 
 ```json
 {
@@ -298,7 +298,7 @@ Board-Space 最小结构：
 }
 ```
 
-List-Space 最小结构：
+Space (kind=list) 最小结构：
 
 ```json
 {
@@ -314,7 +314,7 @@ List-Space 最小结构：
 }
 ```
 
-Board/List 中的 Flow 示例：
+Space (kind=board)/Space (kind=list) 中的 Flow 示例：
 
 ```json
 {
@@ -339,7 +339,7 @@ Board/List 中的 Flow 示例：
 }
 ```
 
-Flow 在 Board/List 中的位置通过 active `contains` Relation / flow position event 表达，不由 branch 决定，也不要求 Flow canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
+Flow 在 Space (kind=board) / Space (kind=list) 中的位置通过 active `contains` Relation / flow position event 表达，不由 branch 决定，也不要求 Flow canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
 
 常见关系：
 

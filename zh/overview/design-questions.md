@@ -27,14 +27,14 @@
 - `cx.flow.convert` 在 `card` / `room` 模式间切换同一个 Flow，不改变 `flow_id`。
 - `cx.flow.branch.enable`、`cx.flow.branch.disable`、`cx.flow.branch.set_primary` 管理 branch 生命周期和默认入口。
 
-## 4. Board / List 是 Space.kind，不是 View.kind
+## 4. Space (kind=board) / Space (kind=list) 是 Space 形态，不是 View.kind
 
 工作流容器仍然存在，但它们属于 `Space` 的形态，而不是独立对象家族：
 
-- `Space.kind="board"`
-- `Space.kind="list"`
+- `Space (kind=board)`
+- `Space (kind=list)`
 
-Flow 在 Board/List 中的位置通过 `contains` relation 与 `cx.flow.move` / `cx.flow.reorder` 维护。`board` / `list` 不再进入 `View.kind` 枚举。
+Flow 在 Space (kind=board) / Space (kind=list) 中的位置通过 `contains` relation 与 `cx.flow.move` / `cx.flow.reorder` 维护。`Space (kind=board)` / `Space (kind=list)` 不再进入 `View.kind` 枚举。
 
 ## 5. View 只负责投影
 
@@ -82,5 +82,5 @@ Contrix v1 当前的统一读法是：
 1. `Space` 是协作边界。
 2. `Flow` 是统一协作对象。
 3. `synthesis` / `discussion` 是 Flow 的两个标准 branch。
-4. `board` / `list` 是 `Space.kind`。
+4. `Space (kind=board)` / `Space (kind=list)` 是 `Space` 的两种工作流形态。
 5. `View` 只做投影，不持有真实对象语义。

@@ -83,10 +83,8 @@ disjunction_selector ::= selector "," selector
 
 - `space_id`：`cx:space:` 后接 ULID。
 - `flow_id`：`cx:flow:` 后接 ULID。
-- `flow_id`：`cx:flow:` 后接 ULID。
-- `board_id`：`cx:space:` 后接 ULID（Board-Space）。
-- `list_id`：`cx:space:` 后接 ULID（List-Space）。
-- `flow_id`：`cx:flow:` 后接 ULID。
+- `board_id`：`cx:space:` 后接 ULID（Space (kind=board)）。
+- `list_id`：`cx:space:` 后接 ULID（Space (kind=list)）。
 - `message_id`：`cx:message:` 后接 ULID。
 - `morph_id`：`cx:morph:` 后接 ULID。
 - `morph_type`：Space schema 中注册的开放对象类型。

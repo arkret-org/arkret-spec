@@ -119,7 +119,7 @@ Contrix v1 支持以下 `kind`：
 - `morph_type:<type>`
 - `relation_kind:<type>`
 
-资源选择器应把 Board / List 表达为 `space` + `kind` 约束，而不是把它们当成独立主对象域。
+资源选择器应把 Space (kind=board) / Space (kind=list) 表达为 `space` + `kind` 约束，而不是把它们当成独立主对象域。
 
 ## 5. 动作集合
 

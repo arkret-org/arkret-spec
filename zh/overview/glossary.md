@@ -2,21 +2,53 @@
 
 ## 1. 目标
 
-本文集中定义 Contrix 规范中的核心术语。若其他文档使用同一术语，除非所在章节明确覆盖，否则应以本文定义为准。
+本文集中定义 Contrix 规范中的核心术语。若其他文档使用同一术语，除非所在章节另有说明，以下定义优先于扩展实现约定。
 
-本文中的英文术语保留为规范关键字；中文解释用于帮助阅读，不改变字段名、事件名或协议对象名。
+本文中的英文术语保留为规范关键字；中文解释用于阅读，不能替代字段名、对象名或事件名。
 
-## 2. 核心对象
+## 2. 核心术语
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Contrix | 协议名称 | 面向去中心化协作对象、会话、任务、看板和 agent 协作的协议族。 |
-| Principal | 主体 | 协议中的稳定身份主体，通常由 DID 表示。人、组织、agent、Applet 都可以是 principal。 |
-| Organization | 组织 | 一类 principal，通常由组织 DID 表示，可签发成员资格/角色 credential、控制服务 DID、托管 Principal Server / Applet、发布 policy 或拥有 Space。Organization 不是 Space；它是治理与身份主体。 |
-| Organization Governance | 组织治理 | Organization DID 的控制策略，包括治理密钥、阈值、多签、服务委派、恢复和所有权转移规则。 |
-| Actor | 行为者 | 在 Space 中执行动作、产生 Event、拥有 profile 和 membership 的主体视图。Actor 通常映射到 principal，但可包含 ghost actor、bot actor 或 accountable actor。 |
-| Space | 协作空间 | 复制、授权、schema、policy、membership 和 history visibility 的边界。它替代 Matrix room 作为 Contrix 的协作边界，但不是唯一数据模型。 |
-| Official Space | 官方空间 | 由 Organization DID 直接创建，或被 active `cx.space.organization` state event 背书且 `scope.official=true` 的 Space。名称、域名、服务器托管方或成员列表不能单独证明官方性。 |
-| Space Hierarchy | 空间层级 | Space 之间的 parent/child 组织关系，用于导航、发现和受控继承；不默认级联权限、成员、历史或加密。 |
-| Discoverability | 可发现性 | 资源是否可被目录、搜索、父 Space、组织页、精确链接或邀请发现的策略；不等于 join rule、read permission 或 history visibility。 |
-| Flow | 协作流 | Space 内统一的协作载体，用于同时承载正式表达、结构化字段和可选 discussion。`kind` 表达默认主模式，`semantic_kind` 表达业务语义。 |
+| Contrix | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
+| Principal | 主体 | 协议中的稳定行为者身份；通常由 DID 标识，包含个人主体、组织、agent、Applet 等。 |
+| Actor | 主体视图 | 在 Space 中执行动作、产生 Event、持有 profile 与 membership 的可见身份表示。 |
+| Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
+| Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
+| Space | 协作边界 | 授权、policy、membership、history visibility、同步与真相归约的作用域。 |
+| Official Space | 官方空间 | 由组织或 policy 明确确认的 Space，不等于单纯“有官方 handle 的 Space”。 |
+| Space Hierarchy | Space 层级 | Space 之间的 parent/child 组织关系，用于导航与受控继承；不默认级联权限或历史。 |
+| Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
+| Flow | 统一协作对象 | 替代历史 `Subject/Room/Card` 分拆的主对象，承载一个协作议题或任务。 |
+| Flow kind | Flow 形态 | `flow.kind`，当前推荐值 `card` / `room`，用于定义默认入口与交互模式。 |
+| semantic_kind | 业务语义 | `Flow.semantic_kind` 指定领域语义（如 `initiative`、`decision` 等）。 |
+| synthesis branch | 正式表达分支 | Flow 的“synthesis”分支，承载正式状态、结构化字段与决策正文。 |
+| discussion branch | 讨论分支 | Flow 的“discussion”分支，承载成员、消息、时间线与讨论历史可见策略。 |
+| Space (kind=board) | 看板空间 | `type=space`，用于组织一组 Space (kind=list) 的工作容器空间。 |
+| Space (kind=list) | 列/泳道空间 | `type=space`，表示一列或泳道容器，可挂到 Space (kind=board) 并承载 Flow 成员。 |
+| Board | 看板（历史术语） | 旧模型中的 `Board` 表述，v1 语义等同 `Space (kind=board)`。 |
+| List | 列（历史术语） | 旧模型中的 `List` 表述，v1 语义等同 `Space (kind=list)`。 |
+| Message | 消息对象 | 发生在 Flow discussion 分支中的即时沟通与补充记录。 |
+| Morph | 开放对象 | 标准对象扩展框架，承载非固定业务类型的可声明对象。 |
+| Facet | 能力标签 | Morph/Profile 的能力提示（如 container/schedulable/renderable）。 |
+| Relation | 关系边 | 对象间有向关系定义，如 `contains`、`mentions`、`depends_on`。 |
+| Event | 协议事件 | 协议传播和验证的基础事实单元（Envelope 的内容承载形式）。 |
+| Event Envelope | 事件外壳 | `event_id`、`actor_id`、`kind`、`content`、`proofs` 等字段的签名封包。 |
+| Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
+| Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 frontier。 |
+| HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，形如 `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 |
+| Cursor | 同步游标 | 指定 frontier 的 `scope:space|actor|query` 编码，用于增量同步与重放。 |
+| Canonical JSON | 规范 JSON | 确定性序列化格式，所有签名/哈希/对账输入必须使用。 |
+| View | 投影定义 | 查询 + kind + renderer + config 的共享可签名对象，定义“怎么看”。 |
+| View.kind | 投影族类 | `collection / timeline / graph / document / composite`。 |
+| Capability | 能力 | 授权语义与对象的绑定关系，授予 subject 执行特定 action。 |
+| Capability Grant | 能力授权对象 | `capability` 标准对象；记录谁在什么条件下可执行何动作。 |
+| Policy | 策略 | 运行期约束对象，用于授权、密钥、留存、治理与安全边界。 |
+| Invite | 邀请 | 邀请主体加入 Space 或授予特定能力的标准对象/事件 payload。 |
+| Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / sync / discovery 等核心 API。 |
+| Sync Service | 同步服务 | 公开/订阅事件与 frontier 的受控同步能力，通常由 Principal Server 提供。 |
+| Event Store Service | 事件存储服务 | 与 Sync Service 关联的持久化与检索服务角色。 |
+| Blob Store | 二进制对象存储 | 附件、媒体、文件对象的存储与引用服务。 |
+| Directory Server | 目录服务 | 提供可发现的 Space、组织、actor、Applet 信息。 |
+| Identity Resolution Infrastructure | 身份解析基础设施 | DID 文档、method resolver、密钥材料与验证链路。 |
+| Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |

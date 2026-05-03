@@ -222,7 +222,7 @@ Normalized principal view SHOULD 包含：
 
 - `did`
 - `did_method`
-- `support_profile`
+- `supported_profiles`
 - `raw_document_hash`
 - `raw_history_ref`
 - `current_control_keys`

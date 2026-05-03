@@ -85,7 +85,7 @@
 | `cx.space.organization` | `cx.space.create`、组织 DID 当前控制状态、组织签发或撤销该声明的 capability / service binding |
 | `cx.flow.branch.*` | actor Space membership、目标 Flow 当前状态、目标 discussion branch 当前状态、对应 flow branch capability |
 | `cx.flow.branch.member` | actor Space membership、目标 actor 当前 discussion membership、discussion join / invite / moderation policy、对应 branch membership capability |
-| `cx.flow.*` | actor Space membership、所属 Board-Space / List-Space 当前状态（若适用）、目标 Flow 当前状态、对应 flow capability |
+| `cx.flow.*` | actor Space membership、所属 Space (kind=board) / Space (kind=list) 当前状态（若适用）、目标 Flow 当前状态、对应 flow capability |
 | `cx.morph.*` | actor Space membership、目标 Morph 当前状态、morph schema / facet policy、对应 morph capability |
 | `cx.relation.*` | actor Space membership、relation type schema、source/target 可见状态、对应 relation capability |
 | `cx.message.*` | actor Space membership、目标 Flow discussion membership / visibility、目标 Message 当前状态、send/edit/redact capability |
@@ -142,7 +142,7 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 ### 5.1 Flow Discussion Membership
 
-Flow discussion branch membership 是 Space membership 之下的局部参与状态，用于控制某个 Flow discussion 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予 Flow synthesis、Board/List 或 Morph 的权限。
+Flow discussion branch membership 是 Space membership 之下的局部参与状态，用于控制某个 Flow discussion 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予 Flow synthesis、Space (kind=board)/Space (kind=list) 或 Morph 的权限。
 
 Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch 中的成员状态：
 
@@ -162,7 +162,7 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 规则：
 
 - 默认情况下，discussion member MUST 同时是所在 Space 的 member。
-- Space policy MAY 允许 discussion-scoped external admission。此时外部 actor 只获得该 discussion 的受限访问，不获得 Space directory、Board/List、Flow synthesis 或其他 discussion 的可见性。
+- Space policy MAY 允许 discussion-scoped external admission。此时外部 actor 只获得该 discussion 的受限访问，不获得 Space directory、Space (kind=board)/Space (kind=list)、Flow synthesis 或其他 discussion 的可见性。
 - `cx.flow.branch.member` 只授予 discussion membership；它不复制 `cx.flow.update`、`cx.flow.move`、`cx.space.*` 或 grant 管理权限。
 - Flow synthesis 可见不代表 discussion timeline 可读；discussion 可读也不代表 synthesis 可写。
 - `promoted_from_discussion` 等 relation 只表达沉淀来源，不传播 membership、E2EE epoch 或 history visibility。
@@ -540,8 +540,7 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 - `space_version`
 - `kind`
 - `state_key`
-- `sender`
-- `sender_device`
+- `actor_id`
 - `created_at`
 - `hlc`
 - `prev_refs`
@@ -681,4 +680,3 @@ Space lifecycle 是 reducer state，不是本地服务开关。v1 使用以下�
 - `tombstoned` 和 `destroyed` 是 terminal state。后续普通业务 Event MUST reject；只允许 redaction、export、legal hold、account lifecycle、migration proof、snapshot/witness proof 和 policy 明确列出的维护类 Event。
 - `destroy` 不等于全网物理删除。它只声明该 Space 已不可恢复地 decommission；已签名 Event、verification stub、legal hold 和外部副本仍按各自 policy 处理。
 - 这些转换均需要 Space admin / owner / governance root 或 policy 声明的 lifecycle capability；policy hard deny 优先于 auth weight。
-

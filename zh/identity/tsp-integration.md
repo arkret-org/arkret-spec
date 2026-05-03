@@ -113,7 +113,7 @@ Contrix SHOULD 采用以下组合：
 - Agent handoff：MAY use TSP to authenticate endpoint, then use A2A / ACP / custom transport as negotiated。
 - WebRTC media：MUST NOT use TSP for RTP media encryption; use WebRTC SRTP plus SFrame/Insertable Streams where needed。
 
-## 7.1 渐进披露中的 TSP
+### 7.1 渐进披露中的 TSP
 
 TSP 可以作为选择性披露 presentation 的私密传输层。推荐模式：
 
