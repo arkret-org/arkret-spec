@@ -10,7 +10,7 @@
 3. 用 [`artifacts/openapi/contrix-service-api.openapi.yaml`](../../artifacts/openapi/contrix-service-api.openapi.yaml) 生成服务 stub、client 或 contract tests。
 4. 用 `artifacts/fixtures/` 运行一致性向量。
 5. 依据 `conformance-profiles.md` 与 `artifacts/profiles/conformance-profiles.json` 声明实现 profile。
-6. 若实现从旧 `subject/room/card` contract 迁移，必须同时阅读 [`legacy-subject-room-card-to-flow-migration.md`](./legacy-subject-room-card-to-flow-migration.md) 与 [`implementation-compatibility-matrix.md`](./implementation-compatibility-matrix.md)。
+6. 产测与兼容边界应以 active contract fixtures、registry 和 conformance profile 为准，不再要求额外维护移植说明文档。
 
 ## 2. 实现要求
 
@@ -18,7 +18,7 @@
 - 结构校验通过后，仍 MUST 独立执行 signature、hash、capability、policy 与 MLS 验证。
 - `operation_id`、`Event.kind`、schema id、profile id MUST 视为稳定兼容锚点。
 - query string MUST NOT 承载长期认证材料。
-- 对 removed legacy contract 的离线导入、拒绝基线和 rewrite 顺序，MUST 以 `legacy-compatibility-policy.json` 与 `legacy-contract-negative-fixture.json` 为准，而不是以仓库外口头约定为准。
+- 对 removed wire surface 的离线导入与拒绝基线，须使用 conformance fixtures 与 active registry 的标准序列验证，不接受口头约定替代。
 
 ## 3. 产出建议
 
@@ -27,8 +27,7 @@
 - 客户端：schema decode + sync/profile regression。
 - `cotest`：以 profile 为单位输出 pass/fail 与 coverage。
 
-## 4. 迁移交接入口
+## 4. 交接基线
 
-- 迁移规则：[`legacy-subject-room-card-to-flow-migration.md`](./legacy-subject-room-card-to-flow-migration.md)
-- 下游兼容矩阵：[`implementation-compatibility-matrix.md`](./implementation-compatibility-matrix.md)
-- 黑盒拒绝基线：[`artifacts/fixtures/legacy-contract-negative-fixture.json`](../../artifacts/fixtures/legacy-contract-negative-fixture.json)
+- 下游对齐清单：`artifacts/fixtures/` 与 `artifacts/profiles/conformance-profiles.json`
+- 黑盒拒绝基线：`artifacts/fixtures/*` 中与 conformance profile 对齐的 reject/mutation 套件

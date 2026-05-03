@@ -73,7 +73,7 @@ Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根�
 - **存储**：加密后的密文 `Ciphertext Blob` 可以安全地存储在公共 Sync Service、用户的私有云网盘或 Contrix Identity Registry 中。
 - **恢复**：用户在新设备上输入相同的强口令，拉取 Blob，本地解密还原出完整身份状态。因为存储的是强加密密文，即使云存储服务商被黑客攻破也无法盗取用户身份。
 
-PBKDF2 只允许作为 legacy / constrained-platform 降级 profile；服务和客户端 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。新创建的云保险箱不得默认使用 PBKDF2。
+PBKDF2 只允许作为 fallback / constrained-platform 降级 profile；服务和客户端 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。新创建的云保险箱不得默认使用 PBKDF2。
 
 ### 4.2 门限社交恢复 (Social Recovery)
 高级别账号 MAY 支持通过 Shamir's Secret Sharing (SSS) 将恢复密钥分割为多份碎片（如 3-of-5），分别分发给值得信任的联系人或企业管理员保管。恢复时需集齐指定数量的碎片即可重构私钥。

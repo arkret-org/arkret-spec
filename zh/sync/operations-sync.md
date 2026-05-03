@@ -103,7 +103,7 @@ Receipt 可用于 read-your-writes、回放完整性检查、witness 证明或�
 
 v1 的规范性 wire fact 只有 **Event Envelope**。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `data-structures.md` 中的 `cx.schema.event.v1` Event Envelope 作为共享状态事实输入。
 
-历史文档、HTTP 路径或 SDK 仍可能把一批 Event 称为 `operations`，这是传输集合名，不表示存在第二套 wire object。`data-structures.md` 中的 Canonical Operation Object 只允许作为 SDK 内部 builder、离线草稿或内容寻址中间对象；它进入网络、联邦、sync 或 reducer 前 MUST 被封装成 Event Envelope。互操作 profile 不得要求对端同时理解 Canonical Operation Object 和 Event Envelope。
+部分 HTTP 路径或 SDK 仍可能把一批 Event 称为 `operations`，这是传输集合名，不表示存在第二套 wire object。`data-structures.md` 中的 Canonical Operation Object 只允许作为 SDK 内部 builder、离线草稿或内容寻址中间对象；它进入网络、联邦、sync 或 reducer 前 MUST 被封装成 Event Envelope。互操作 profile 不得要求对端同时理解 Canonical Operation Object 和 Event Envelope。
 
 Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`prev_refs` 表示 actor event chain 前序，`auth_refs` 表示授权依赖。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `content` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`auth_refs`、`actor_seq` 和签名绑定。
 
@@ -173,7 +173,7 @@ Contrix v1 要求：
 
 标准 `Event.kind` 的机器可读 source of truth 是 `artifacts/registry/event-kind-registry.json`；`schema-registry.md` 只是文档视图。实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的标准事件类型。自定义事件不得使用 `cx.` 前缀，除非已纳入标准 registry。
 
-registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 且 `wire_scope=durable_event` 的 kind 可以进入共享 Event Envelope 历史、参与 actor chain、推进 reducer frontier 或 state hash；`wire_scope=actor_private_event` 只能用于加密 account data 或 actor-private stream；`wire_scope=ephemeral_event` 只能走 ephemeral channel，MUST NOT 增加 `actor_seq`、`prev_refs`、state hash 或 reducer frontier；`wire_scope=deprecated_alias` 只能被消费者按 `replaced_by` 做迁移兼容，生产者不得再发出。
+registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 且 `wire_scope=durable_event` 的 kind 可以进入共享 Event Envelope 历史、参与 actor chain、推进 reducer frontier 或 state hash；`wire_scope=actor_private_event` 只能用于加密 account data 或 actor-private stream；`wire_scope=ephemeral_event` 只能走 ephemeral channel，MUST NOT 增加 `actor_seq`、`prev_refs`、state hash 或 reducer frontier。生产者不得发出未声明的 wire_scope。
 
 本节列出 Event-first 写路径中的核心 durable Event kind，不替代 registry。
 

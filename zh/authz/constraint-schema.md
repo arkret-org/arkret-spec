@@ -28,7 +28,7 @@
 | `temporal` | 基于时间的约束 | v1 |
 | `field_access` | 字段级读写控制 | v1 |
 | `type_restriction` | 对象类型限制 | v1 |
-| `scope_limitation` | Space/Subject/Room/Board/Card/View 范围 | v1 |
+| `scope_limitation` | Space / Flow / View 范围（room / card 为 flow.kind） | v1 |
 | `delegation_control` | 委托深度和路径 | v1 |
 | `rate_limiting` | 操作频率限制 | v1 |
 | `approval_workflow` | 审批要求 | v1 |
@@ -128,16 +128,16 @@
 
 ## 6. 范围限制
 
-### 6.1 Room 限制
+### 6.1 流程范围限制（Flow/Space）
 
 ```json
 {
   "constraint_type": "scope_limitation",
   "effect": "allow",
-  "allowed_room_refs": [
+  "allowed_flow_refs": [
     "cx:flow:01js0r00m00000000000000000"
   ],
-  "denied_room_refs": [
+  "denied_flow_refs": [
     "cx:flow:01js0r00m99999999999999900"
   ]
 }

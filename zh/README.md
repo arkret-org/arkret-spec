@@ -48,11 +48,25 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 完整分组阅读入口见 [spec-map.md](./spec-map.md)。README 只保留顶层入口，避免随着扩展 profile 增多而变成长清单。
 
+### 4.1 一分钟执行链路（实现导向）
+
+建议按以下顺序实现：
+
+1. DID 与服务发现，完成 principal/service 绑定。  
+2. 空间创建后锁定 `space_version` 与策略基线。  
+3. Event first 写入，经过 auth state 初检。  
+4. 客户端做 `event-auth-state-resolution` 收敛。  
+5. snapshot/frontier 用于快速重建状态。  
+6. 讨论类空间先做 MLS application state 绑定校验，再决定是否解密显示。  
+7. reducer 产出 canonical projection；UI 仅消费 projection。  
+8. 所有失败退化写入 `decryption_pending` / `state_mismatch` 的可恢复状态。  
+
+
 核心阅读路径：
 
 1. [architecture.md](./overview/architecture.md)：架构平面、Principal Server 部署形态、部署拓扑和信任边界。
 2. [glossary.md](./overview/glossary.md)：术语边界，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
-3. [object-model-core.md](./models/object-model-core.md) 与 [object-model-standard.md](./models/object-model-standard.md)：核心对象和标准类型。
+3. [object-model-core.md](./models/object-model-core.md) 与 [object-model-standard.md](./models/object-model-standard.md)：核心对象和标准类型，重点将 `card`、`room` 作为 `flow.kind`（非独立 typed-id）理解。
    字段级定义见 [data-structures.md](./models/data-structures.md)。
 4. [identity-did.md](./identity/identity-did.md)、[identity-handles.md](./identity/identity-handles.md)、[progressive-disclosure.md](./identity/progressive-disclosure.md)：身份、handle、隐私披露。
 5. [capabilities.md](./authz/capabilities.md) 与 [event-auth-state-resolution.md](./authz/event-auth-state-resolution.md)：授权、membership、state resolution。
@@ -211,16 +225,3 @@ Contrix 要解决的是：
 而不是再造一个改名后的聊天协议。
 
 
-## Legacy contract removal status（2026-05-03）
-
-当前 v1 active wire contract 已不再包含 legacy `subject` / `room` / `card` typed ID、schema ID，以及已移除的 subject/room/card 事件族。
-
-规范入口：
-
-- `artifacts/registry/legacy-compatibility-policy.json`
-- `zh/guides/legacy-subject-room-card-to-flow-migration.md`
-
-CI 守卫：
-
-- `python tools/artifact_pipeline.py check`
-- `.github/workflows/artifact-lint.yml`

@@ -26,6 +26,13 @@
 6. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
 7. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
+### 2.1 快速收敛链路（先读）
+
+1. `overview/glossary.md`
+2. `models/object-model-core.md` + `models/object-model-standard.md`
+3. `authz/event-auth-state-resolution.md` + `crypto-media/encryption-and-audit.md`
+4. `sync/client-sync.md` + `sync/operations-sync.md`（含 snapshot、fork、decryption_pending）
+
 ## 3. 核心概念边界
 
 ### 3.1 Principal / Actor / Organization
@@ -185,12 +192,3 @@
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。
 
 
-
-## Legacy contract removal entry（2026-05-03）
-
-实现方如需确认 `subject` / `room` / `card` 到 `flow` 的迁移边界，应同时阅读：
-
-- `artifacts/registry/legacy-compatibility-policy.json`
-- `zh/guides/legacy-subject-room-card-to-flow-migration.md`
-
-仓库 CI 已通过 `python tools/artifact_pipeline.py check` 阻止旧 typed ID、旧 schema ID 和旧 event kind 重新进入 active contract，并统一执行 machine-artifact mirror drift 与 registry lint。

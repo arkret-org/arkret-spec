@@ -6,7 +6,6 @@
 
 - `artifacts/registry/contract-catalog.json`: canonical source for the generated Event.kind, schema, typed-ID, and operation registries.
 - `artifacts/registry/error-code-registry.json`: canonical error code registry.
-- `artifacts/registry/legacy-compatibility-policy.json`: canonical registry of removed or transitional contract families.
 - `artifacts/registry/mirror-manifest.json`: canonical declaration of artifact -> `zh/` mirror mappings.
 - `artifacts/registry/registry-manifest.json`: canonical index of every machine-readable registry file under `artifacts/registry/`.
 
@@ -32,12 +31,10 @@ python tools/artifact_pipeline.py check
 `check` performs three layers in one pass:
 
 - generated registry drift detection against `contract-catalog.json`
-- legacy contract reintroduction guard derived from `legacy-compatibility-policy.json`
 - registry-first artifact lint from `artifacts/lint_artifacts.py`, including mirror drift and Markdown/link checks
 
 `generate` / `sync` / `check` also print:
 
-- forbidden pattern summary derived from `legacy-compatibility-policy.json`
 - profile summary derived from `artifacts/profiles/conformance-profiles.json`
 - registry diff status for generated registry views and generated Markdown inventories
 

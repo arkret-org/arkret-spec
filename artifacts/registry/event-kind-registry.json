@@ -7,15 +7,13 @@
   "wire_scope_definitions": {
     "durable_event": "Valid Event Envelope kind for persisted canonical history and reducer input.",
     "actor_private_event": "Persisted actor-private/account-data event; not shared Space history and not Space reducer input.",
-    "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history.",
-    "deprecated_alias": "Historical standard spelling accepted only for migration/read compatibility; producers MUST emit replaced_by."
+    "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history."
   },
   "registry_rules": [
     "Standard cx.* Event.kind values MUST appear in this registry.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance actor_seq, prev_refs, state_hash, or reducer frontier.",
-    "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Event history.",
-    "Entries with wire_scope=deprecated_alias MUST NOT be emitted by conforming producers; consumers MAY map them to replaced_by during migration."
+    "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Event history."
   ],
   "payload_schema_contract": {
     "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -952,24 +950,6 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Sovereign DID resolver policy state"
-    },
-    {
-      "event_kind": "cx.marker.read",
-      "category": "read",
-      "status": "deprecated",
-      "wire_scope": "deprecated_alias",
-      "reducer_input": false,
-      "replaced_by": "cx.read.marker",
-      "payload": "Legacy read marker name"
-    },
-    {
-      "event_kind": "cx.morph.delete",
-      "category": "morph",
-      "status": "deprecated",
-      "wire_scope": "deprecated_alias",
-      "reducer_input": false,
-      "replaced_by": "cx.morph.archive",
-      "payload": "Legacy Morph archive name"
     }
   ]
 }

@@ -16,22 +16,11 @@ ARTIFACTS = ROOT / "artifacts"
 REGISTRY = ARTIFACTS / "registry"
 CONTRACT_CATALOG_PATH = REGISTRY / "contract-catalog.json"
 MIRROR_MANIFEST_PATH = REGISTRY / "mirror-manifest.json"
-LEGACY_POLICY_PATH = REGISTRY / "legacy-compatibility-policy.json"
 LINT_SCRIPT = ARTIFACTS / "lint_artifacts.py"
 PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
 SERVICE_API_SCHEMA_PATH = ROOT / "zh" / "sync" / "service-api-schema.md"
 GENERATED_OPERATION_INVENTORY_START = "<!-- BEGIN GENERATED OPERATION INVENTORY -->"
 GENERATED_OPERATION_INVENTORY_END = "<!-- END GENERATED OPERATION INVENTORY -->"
-ALLOWED_LEGACY_PATHS = {
-    LEGACY_POLICY_PATH.resolve(),
-    (ARTIFACTS / "lint_artifacts.py").resolve(),
-    (ARTIFACTS / "fixtures" / "legacy-contract-negative-fixture.json").resolve(),
-    (ROOT / "zh" / "conformance" / "fixtures" / "legacy-contract-negative-fixture.json").resolve(),
-    (ROOT / "zh" / "guides" / "implementation-compatibility-matrix.md").resolve(),
-    (ROOT / "zh" / "guides" / "legacy-subject-room-card-to-flow-migration.md").resolve(),
-}
-TEXT_SUFFIXES = {".json", ".yaml", ".yml", ".md", ".py", ".toml", ".txt"}
-SKIP_DIRS = {".git", "__pycache__", ".venv", "venv", "node_modules"}
 
 
 def load_json(path: Path) -> Any:
@@ -217,24 +206,7 @@ def profile_summary_text() -> str:
 
 
 def forbidden_pattern_summary_text() -> str:
-    data = load_contract_catalog()
-    del data
-    legacy = load_json(LEGACY_POLICY_PATH)
-    if not isinstance(legacy, dict):
-        raise SystemExit("invalid legacy compatibility policy")
-    families = legacy.get("contract_families", [])
-    if not isinstance(families, list):
-        raise SystemExit("legacy compatibility policy missing contract_families")
-    family_count = 0
-    pattern_count = 0
-    for row in families:
-        if not isinstance(row, dict):
-            continue
-        family_count += 1
-        patterns = row.get("forbidden_patterns", [])
-        if isinstance(patterns, list):
-            pattern_count += sum(1 for item in patterns if isinstance(item, str) and item)
-    return f"forbidden patterns: {pattern_count} across {family_count} legacy contract families"
+    return "contract policy: active-contract checks only"
 
 
 def registry_diff_summary_text() -> str:
@@ -361,63 +333,6 @@ def check_mirrors() -> list[str]:
     return errors
 
 
-def load_legacy_policy() -> dict[str, Any]:
-    data = load_json(LEGACY_POLICY_PATH)
-    if not isinstance(data, dict):
-        raise SystemExit("invalid legacy compatibility policy")
-    return data
-
-
-def collect_legacy_guard_inputs(policy: dict[str, Any]) -> tuple[list[str], list[str]]:
-    patterns: list[str] = []
-    removed_files: list[str] = []
-    families = policy.get("contract_families")
-    if not isinstance(families, list):
-        raise SystemExit("legacy compatibility policy missing contract_families")
-    for family in families:
-        if not isinstance(family, dict):
-            continue
-        if family.get("current_phase") == "active":
-            continue
-        patterns.extend(pattern for pattern in family.get("forbidden_patterns", []) if isinstance(pattern, str) and pattern)
-        removed_files.extend(path for path in family.get("removed_contract_files", []) if isinstance(path, str) and path)
-    return sorted(set(patterns)), sorted(set(removed_files))
-
-
-def iter_text_files():
-    for path in ROOT.rglob("*"):
-        if not path.is_file():
-            continue
-        if any(part in SKIP_DIRS for part in path.parts):
-            continue
-        if path.suffix.lower() not in TEXT_SUFFIXES and path.name != "README.md":
-            continue
-        yield path
-
-
-def check_legacy_contracts() -> list[str]:
-    policy = load_legacy_policy()
-    patterns, removed_files = collect_legacy_guard_inputs(policy)
-    errors: list[str] = []
-    for rel in removed_files:
-        if (ROOT / rel).exists():
-            errors.append(f"removed legacy contract file reintroduced: {rel}")
-    for path in iter_text_files():
-        if path.resolve() in ALLOWED_LEGACY_PATHS:
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            continue
-        for pattern in patterns:
-            if pattern in text:
-                errors.append(
-                    f"forbidden legacy pattern {pattern!r} in {path.relative_to(ROOT).as_posix()}"
-                )
-                break
-    return errors
-
-
 def run_lint() -> int:
     result = subprocess.run([sys.executable, str(LINT_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -440,7 +355,6 @@ def cmd_check(_: argparse.Namespace) -> int:
     errors: list[str] = []
     errors.extend(check_generated_registries())
     errors.extend(check_generated_service_api_schema())
-    errors.extend(check_legacy_contracts())
     errors.extend(check_mirrors())
     if errors:
         for error in errors:
@@ -468,7 +382,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     check_parser = subparsers.add_parser(
         "check",
-        help="check generated registries, generated markdown inventories, legacy guards, mirrors, and artifact lint",
+        help="check generated registries, generated markdown inventories, mirrors, and artifact lint",
     )
     check_parser.set_defaults(func=cmd_check)
 

@@ -37,14 +37,6 @@
       "description": "Generated registry view for cx:<kind>: typed ID prefixes and storage/wire rules."
     },
     {
-      "name": "legacy_compatibility",
-      "file": "registry/legacy-compatibility-policy.json",
-      "kind": "legacy_contract_policy_registry",
-      "source_role": "canonical",
-      "source_of_truth": true,
-      "description": "Registry of legacy contract families, migration phases, and forbidden patterns."
-    },
-    {
       "name": "mirror_manifest",
       "file": "registry/mirror-manifest.json",
       "kind": "mirror_manifest",

@@ -85,7 +85,7 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 ### 4.1 推送模式 (Push)
 
-本文件中的联邦载荷项是 v1 规范性 Event Envelope。HTTP 路径与 wire 字段继续使用 `push-operations`、`pull-operations` 与 `operations` 作为历史兼容集合名；这些名称在语义上均表示 Event Envelope 集合，不引入第二套 Operation wire object。
+本文件中的联邦载荷项是 v1 规范性 Event Envelope。HTTP 路径与 wire 字段继续使用 `push-operations`、`pull-operations` 与 `operations` 作为兼容集合名；这些名称在语义上均表示 Event Envelope 集合，不引入第二套 Operation wire object。
 
 当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Event，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
 

@@ -69,7 +69,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 ### 2.3 端点契约清单
 
-类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`events` 为 Event Envelope 数组；历史兼容字段 `operations` 只可作为 Event 数组别名。
+类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`events` 为 Event Envelope 数组；兼容别名字段 `operations` 只可作为 Event 数组别名。
 
 | Endpoint | Request 类型 | Auth / 访问限制 | Success 类型 |
 | --- | --- | --- | --- |
@@ -263,7 +263,7 @@ POST /api/v1/events
 }
 ```
 
-若 `expected_frontier` 校验失败，返回 `409 cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、checkpoint 或 legacy commit 才承认其 canonical history 地位。
+若 `expected_frontier` 校验失败，返回 `409 cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、checkpoint 或 predecessor commit 才承认其 canonical history 地位。
 
 `events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项的 `prev_refs`、`auth_refs` 或显式 content reference 解析；后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
 

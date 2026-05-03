@@ -11,7 +11,7 @@ Contrix 使用 DID 作为稳定身份根。Handle、邮箱、组织用户名和�
 - resolver policy 与 method adapter
 - DID Document normalized view
 - 组织账号绑定的 DID proof
-- 旧 `did:uuid` 标识的迁移规则
+- `did:uuid` 不纳入 v1 协议 DID 方法集合
 
 Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 MUST 使用已有 DID method，例如 `did:plc`、`did:web`、`did:webvh`、`did:key`、`did:pkh`，或本地 trust policy 明确允许的其他公开 DID method。
 
@@ -56,9 +56,7 @@ DID Document MUST NOT 被用作跨组织身份画像。邮箱、跨组织 handle
 
 ### 2.4 不再使用 `did:uuid`
 
-新实现、测试向量、fixture、规范示例和新写入的协议对象 MUST NOT 使用 `did:uuid`。
-
-历史数据中已经存在的 `did:uuid` MAY 作为 legacy identifier 只读保留。实现若需要迁移历史 `did:uuid`，MUST 创建一个新的受支持 DID，并通过可验证 link claim、旧 DID 控制密钥签名、新 DID 控制密钥签名、组织治理记录或人工审计记录之一建立迁移证据。迁移证据 MUST 写入普通 Contrix Event 或组织审计记录，不得把旧 `did:uuid` 伪装成新的 DID method。
+新实现、测试向量、fixture、规范示例和新写入的协议对象 MUST NOT 使用 `did:uuid`。`did:uuid` 不属于 Contrix v1 的主身份形式；解析与写入路径对该方法直接拒绝。
 
 ## 3. 默认 DID 方法
 
@@ -360,7 +358,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 7. DID 未被 deactivated、quarantined 或本地 policy 禁止。
 8. `did:key`、`did:pkh` 等受限 method 未被用于 policy 禁止的长期 principal、组织或高风险 service 角色。
 9. Pairwise/private DID 不被强制公开 `alsoKnownAs`。
-10. Legacy `did:uuid` 不得用于新写入；历史对象只能按迁移 / 只读策略处理。
+10. `did:uuid` 不得用于新写入；`did:uuid` 对象不得进入当前协议可读写身份主键通道。
 
 ## 10. 一致性要求
 

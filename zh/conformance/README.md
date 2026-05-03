@@ -7,7 +7,7 @@
 ## 目录
 
 - `schemas/`：JSON Schema 工件，覆盖核心对象、Event Envelope payload classes、sync、blob/media、push、identity、moderation、Agent Authority、MIMI interop。
-- `fixtures/`：官方 JSON fixture，供 `cotest`、SDK 和服务端实现直接消费，包含 crypto signature、Event Envelope 负向验证、legacy contract 拒绝基线、state resolution、capability、sync、privacy/security、MIMI interop 等向量。
+- `fixtures/`：官方 JSON fixture，供 `cotest`、SDK 和服务端实现直接消费，包含 crypto signature、Event Envelope 负向验证、reject baseline、state resolution、capability、sync、privacy/security、MIMI interop 等向量。
 - `encoding.md`、`encoding-conformance-vectors.md`：canonical JSON、hash、proof、HLC、cursor、rank。
 - `cursor-encoding.md`、`cursor-test-vectors.md`：cursor 编码规范与向量。
 - `hlc-specification.md`、`hlc-test-vectors.md`：HLC 文本格式、比较规则与向量。
