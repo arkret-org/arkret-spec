@@ -26,8 +26,6 @@
 | discussion branch | 讨论分支 | Flow 的“discussion”分支，承载成员、消息、时间线与讨论历史可见策略。 |
 | Space (kind=board) | 看板空间 | `type=space`，用于组织一组 Space (kind=list) 的工作容器空间。 |
 | Space (kind=list) | 列/泳道空间 | `type=space`，表示一列或泳道容器，可挂到 Space (kind=board) 并承载 Flow 成员。 |
-| Board | 看板（历史术语） | 旧模型中的 `Board` 表述，v1 语义等同 `Space (kind=board)`。 |
-| List | 列（历史术语） | 旧模型中的 `List` 表述，v1 语义等同 `Space (kind=list)`。 |
 | Message | 消息对象 | 发生在 Flow discussion 分支中的即时沟通与补充记录。 |
 | Morph | 开放对象 | 标准对象扩展框架，承载非固定业务类型的可声明对象。 |
 | Facet | 能力标签 | Morph/Profile 的能力提示（如 container/schedulable/renderable）。 |

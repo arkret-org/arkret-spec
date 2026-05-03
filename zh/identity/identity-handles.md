@@ -301,169 +301,23 @@ grant subject = alice@google.com
 
 ## 16. 定向披露策略与存储
 
-TSP 可以帮助把 presentation 发送给正确的 VID，并通过 nested/routed message 降低元数据关联风险；但“对谁披露哪个 handle、披露条件是什么、披露记录存在哪里”属于 Contrix identity / wallet / private state 语义，MUST 明确定义。
+TSP 可以帮助把 presentation 发送给正确的 VID，并通过 nested/routed message 降低元数据关联风险；但"对谁披露哪个 handle、披露条件是什么、披露记录存在哪里"属于 Contrix identity / wallet / private state 语义，MUST 明确定义。
 
-完整端到端实现规则见 `progressive-disclosure.md`。本节保留核心身份语义和对象摘要。
+完整端到端实现规则见 [progressive-disclosure.md](./progressive-disclosure.md)，包括：
+- §4 组织和 Verifier 确认（authority chain 验证）
+- §3 数据对象（disclosure policy、presentation request/receipt）
+- §5 Proof Profile Selection（BBS / SD-JWT VC）
+- §6 Storage Model（分层存储与可见性）
+- §7 Transport Selection（TSP / direct）
+- §8 End-to-End Flow（8 步完整流程）
 
-### 16.1 组织如何确定
+### 核心约束摘要
 
-“特定组织”MUST 由可验证组织主体标识，而不是显示名、邮箱域名或普通字符串决定。
-
-组织标识符 SHOULD 是：
-
-- 组织 DID，例如 `did:web:google.example`
-- 组织 service DID，例如 `did:web:google.example#hr`
-- 受 trust registry / governance registry 认可的 VID
-- Space policy 中列出的 trusted issuer DID
-
-Verifier 声称自己代表某组织时，MUST 提供：
-
-```json
-{
-  "verifier_did": "did:web:login.google.example",
-  "represented_org": "did:web:google.example",
-  "authority_chain": [
-    {
-      "issuer": "did:web:google.example",
-      "subject": "did:web:login.google.example",
-      "claim_type": "org_service_authorization",
-      "service": "contrix_verifier",
-      "valid_until": "2026-07-26T00:00:00Z"
-    }
-  ],
-  "challenge": "cx_chal_01J...",
-  "domain": "google.example"
-}
-```
-
-Wallet MUST verify：
-
-1. `verifier_did` 可解析。
-2. `represented_org` 与用户预期组织一致。
-3. `authority_chain` 由 represented org 或受信 governance issuer 签发。
-4. challenge / domain / audience 与本次 presentation request 匹配。
-5. Space policy 或用户本地 disclosure policy 允许向该 verifier 披露对应 claim。
-
-仅凭 `google.com` 域名、TLS 证书、邮箱后缀或 UI 文案，MUST NOT 视为组织身份已经确定。
-
-### 16.2 披露策略对象
-
-用户的 wallet 或 private account data MAY 保存 `cx.identity.disclosure_policy`：
-
-```json
-{
-  "type": "cx.identity.disclosure_policy",
-  "policy_id": "cx:policy:d1sc01j0000000000000000000",
-  "holder_did": "did:web:holder.example.com",
-  "audience": {
-    "org_did": "did:web:google.example",
-    "verifier_dids": ["did:web:login.google.example"],
-    "tsp_vids": ["did:webs:google.example:verifier"]
-  },
-  "allowed_claims": [
-    {
-      "claim_type": "contrix_org_membership_credential",
-      "issuer": "did:web:google.example",
-      "subject_did": "did:key:z6Mkgpairwise...",
-      "disclosure": "abstract",
-      "fields": ["org", "member", "handle_verified"]
-    },
-    {
-      "claim_type": "verified_handle",
-      "issuer": "did:web:google.example",
-      "subject_did": "did:key:z6Mkgpairwise...",
-      "disclosure": "explicit",
-      "fields": ["handle"],
-      "value_constraints": {
-        "handle": "alice@google.com"
-      }
-    }
-  ],
-  "forbidden_fields": [
-    "other_handles",
-    "external_accounts",
-    "global_flow_identifier",
-    "credential_id"
-  ],
-  "requires_user_consent": true,
-  "expires_at": "2026-07-26T00:00:00Z"
-}
-```
-
-该 policy 是 holder-private state，默认不得写入公共 Space。
-
-### 16.3 存储位置
-
-私密身份披露相关数据分层存储：
-
-| 数据 | 推荐位置 | 可见性 |
-| --- | --- | --- |
-| 原始 credential / base proof | wallet 本地加密库或 holder private account data | 仅 holder 设备 |
-| pairwise DID key material | wallet / device secret storage | 仅 holder 设备 |
-| disclosure policy | holder private account data，端到端加密 | holder 自己的设备 |
-| presentation request | 临时 inbox 或 encrypted private account data | holder 与 verifier 可见 |
-| derived proof / presentation | 只发送给目标 verifier；可在本地加密留存副本 | holder 与 verifier |
-| disclosure receipt | holder private account data，可选写入审计摘要 | 默认仅 holder |
-| revocation/status material cache | holder private account data 或 wallet cache | holder 自己的设备 |
-
-Holder private account data MUST 使用设备或 recovery key 加密。服务端、Sync Service 或受托服务不应能读取原始 credential、base proof、完整 disclosure policy 或跨组织 handle 列表。
-
-### 16.4 披露记录
-
-Wallet SHOULD 在 holder private account data 中保存 disclosure receipt：
-
-```json
-{
-  "type": "cx.identity.disclosure_receipt",
-  "receipt_id": "cx:receipt:d1sc01j0000000000000000000",
-  "holder_did": "did:key:z6Mkgpairwise...",
-  "verifier_did": "did:web:login.google.example",
-  "represented_org": "did:web:google.example",
-  "presentation_hash": "sha256:...",
-  "disclosed_fields": [
-    "credentialSubject.org",
-    "credentialSubject.member",
-    "credentialSubject.handle_verified"
-  ],
-  "withheld_fields": [
-    "credentialSubject.handle",
-    "other_handles",
-    "external_accounts"
-  ],
-  "proof_profile": "vc_di_bbs_2023",
-  "tsp_relationship_id": "tsp:rel:...",
-  "created_at": "2026-04-26T00:00:00Z"
-}
-```
-
-Receipt MUST NOT contain undisclosed handle values or other organization identifiers.
-
-### 16.5 TSP 在定向披露中的作用
-
-若 verifier 支持 TSP，wallet MAY 使用 TSP：
-
-- 用 verifier VID 建立 directional TSP relationship。
-- 在 outer TSP relationship 中发送 presentation request / response。
-- 使用 nested TSP message 隐藏 holder 的内层 pairwise DID。
-- 使用 routed mode 降低网络层对 holder/verifier 关系的关联。
-
-但 TSP 只保护传输和 VID 关系：
-
-- TSP 不决定哪些 claim 可以披露。
-- TSP 不验证组织成员资格语义。
-- TSP 不替代 VC/BBS/SD-JWT proof。
-- TSP 不替代 holder 本地 disclosure policy。
-
-### 16.6 端到端流程
-
-1. Verifier 发送 presentation request，声明 `verifier_did`、`represented_org`、challenge、domain 和 required claims。
-2. Wallet 解析 verifier DID / VID，验证 authority chain。
-3. Wallet 查找本地 disclosure policy，匹配 represented org。
-4. Wallet 选择对应 pairwise DID 和 credential。
-5. Wallet 生成 SD-JWT VC disclosure 或 BBS derived proof。
-6. 如启用 TSP，Wallet 通过 direct/routed/nested TSP message 发送 presentation。
-7. Verifier 验证 proof、issuer、challenge、domain、audience 和 status。
-8. Wallet 写入私有 disclosure receipt。
+1. "特定组织"MUST 由可验证组织主体标识（组织 DID / service DID），不得仅凭域名、TLS 证书或 UI 文案确定。
+2. Verifier 声称代表组织时 MUST 提供 `authority_chain` 并由 represented org 签发。
+3. Disclosure policy 是 holder-private state，默认不得写入公共 Space。
+4. Holder private account data MUST 使用设备或 recovery key 加密；服务端不应能读取原始 credential、base proof 或完整 disclosure policy。
+5. TSP 仅保护传输和 VID 关系，不替代 VC/BBS/SD-JWT proof 或 holder 本地 disclosure policy。
 
 ## 17. v1 互操作要求
 

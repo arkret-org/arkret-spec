@@ -14,9 +14,9 @@ Contrix 的会话模型不再把 `subject`、`room`、`card` 拆成三个需要�
 - `semantic_kind` 承载业务语义分类，例如 `decision`、`incident`、`task_cluster`。
 - `cx.flow.convert` 允许在 `card` 和 `room` 模式之间切换，且不改变 Flow identity。
 
-`comment` 和 `message` 都可以存在，但语义不同：
+`comment`（对象评注）与 `message`（讨论消息）语义不同：
 
-- `comment`：对象上的 durable note / review / approval note，可作为 Flow/Morph 字段或专用 profile。
+- `comment`：对象上的 durable note / review / approval note。不是独立 `type`，而是通过 Morph profile（如 `cx.morph.comment.v1`）或 `message` 子类型实现的**语义模式**。
 - `message`：Flow `discussion` branch 时间线中的聊天或讨论消息。
 
 ## 3. Flow Discussion Branch

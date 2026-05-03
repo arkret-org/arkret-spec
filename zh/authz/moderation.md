@@ -108,7 +108,7 @@ POST /api/v1/moderation/report
   "aad_digest": "sha256:...",
   "sender_claim": {
     "actor_id": "did:web:alice.example.com",
-    "device_id": "dev_01HV...",
+    "device_id": "cx:device:01js0ke0000000000000000000",
     "mls_group_id": "base64url...",
     "epoch": 42
   },

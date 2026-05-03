@@ -263,6 +263,8 @@ E2EE Space 或启用 E2EE 的 Flow discussion branch 中，history visibility �
 }
 ```
 
+> 注：`components` 中的值为占位 event_id，实际部署 MUST 替换为真实 event_id。
+
 组件语义：
 
 - `roles`：把 UI role 或 compatibility role 映射到 capability bundle；role 不能替代 capability 检查。

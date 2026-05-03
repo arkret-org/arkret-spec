@@ -7,18 +7,25 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 核心对象：
 
 - `space`（包含 Space (kind=board) 与 Space (kind=list) 子类型）
-- `actor`
+- `actor_profile`
 - `flow`
 - `message`
 - `morph`
 - `relation`
 - `event`
 - `view`
-- `schema`
 - `policy`
 - `invite`
 - `read_marker`
 - `notification`
+- `capability`
+
+辅助对象（SDK 内部或非持久化 canonical 对象）：
+
+- `operation`（SDK 内部可寻址中间对象）
+- `event_batch_receipt`（可选加速/审计对象）
+
+注：`schema` 不作为独立 `type` 枚举值。Schema 约束通过 `schema_refs` 字段引用和 `cx.schema.define` / `cx.schema.update` state event 管理。`policy` 同时具有 `type` 枚举值和 state event 形态。
 
 字段级结构、必填性、类型和约束见 `data-structures.md`。本文保留核心模型语义和示例，具体 JSON Schema SHOULD 从 `data-structures.md` 与 `schema-registry.md` 生成。
 

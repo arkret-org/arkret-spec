@@ -24,6 +24,8 @@
 | `hash` | `sha256:<lowercase_hex_digest>`。 |
 | `cursor` | `cx:cursor:<base64url>` opaque string。 |
 
+注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `cx:device:<ulid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `cx:<kind>:<ulid>` 格式。这些标识符的编码规则由各自所在章节定义。
+
 字段默认规则：
 
 - 未标记 optional 的字段为 required。
@@ -31,6 +33,7 @@
 - 实现 MUST 保留未知字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `cx:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
+- 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<ulid>`，不得写成局部别名如 `dev_a` 或 `a`。
 
 ## 3. Common Object Fields
 
@@ -39,7 +42,7 @@
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:*` | kind 必须匹配对象类型。 | 对象稳定 ID。 |
-| `type` | yes | `enum(space, actor_profile, flow, message, morph, relation, event, view, policy, invite, read_marker, notification, capability, operation, event_batch_receipt, blob)` | 标准类型或 profile 声明的扩展类型。 | 对象种类。 |
+| `type` | yes | `enum(space, actor_profile, flow, message, morph, relation, event, view, policy, invite, read_marker, notification, capability, operation, event_batch_receipt, blob)` | 标准类型或 profile 声明的扩展类型。`operation` 与 `event_batch_receipt` 为 SDK 内部或辅助对象，非持久化 canonical 对象。`schema` 通过 `schema_refs` 引用，不作为独立 `type`。 | 对象种类。 |
 | `space_id` | conditional | `id:space` | Space 外对象可省略。 | 所属 Space。 |
 | `schema` | yes | `string` | SHOULD 是 `cx.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体。 |

@@ -6,23 +6,23 @@
 
 ## 2. Device Identity
 
-每个设备 MUST 有稳定 `device_id` 和设备签名密钥：
+每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `cx:device:<ulid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
 
 ```json
 {
-  "device_id": "dev_01HV...",
+  "device_id": "cx:device:01HV...",
   "principal_id": "did:plc:...",
   "display_name": "Alice iPhone",
   "algorithms": ["cx.mls.v1", "cx.hpke_x25519_aead_xchacha20poly1305.v1"],
   "verify_key": {
     "kty": "OKP",
     "crv": "Ed25519",
-    "kid": "did:plc:...#dev_01HV_verify"
+    "kid": "did:plc:...#cx_device_01HV_verify"
   },
   "hpke_key": {
     "kty": "OKP",
     "crv": "X25519",
-    "kid": "did:plc:...#dev_01HV_hpke"
+    "kid": "did:plc:...#cx_device_01HV_hpke"
   },
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -49,8 +49,8 @@ Contrix 使用三层签名链：
   "type": "cx.device.list_update",
   "content": {
     "principal_id": "did:plc:...",
-    "changed": ["dev_a"],
-    "left": ["dev_old"],
+    "changed": ["cx:device:01js0ke0000000000000000000"],
+    "left": ["cx:device:01js0kg0000000000000000000"],
     "stream_id": "devstream_42"
   }
 }
@@ -78,7 +78,7 @@ Content-Type: application/json
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal 与发送设备。 |
 | `messages` | body | `object` | required | 收件人 principal 到 device 消息的映射。 |
 | `messages.{principal_id}` | body | `object` | required | 目标 principal DID。 |
-| `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息。 |
+| `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息；`{device_id}` MUST 是完整 `id:device` wire key。 |
 | `messages.{principal_id}.{device_id}.type` | body | `string` | required | to-device 消息类型，例如 `cx.key.verification.request`。 |
 | `messages.{principal_id}.{device_id}.content` | body | `object` | required | 消息内容；私密内容 SHOULD 端到端加密。 |
 
@@ -96,11 +96,11 @@ Content-Type: application/json
 {
   "messages": {
     "did:web:alice.example.com": {
-      "dev_a": {
+      "cx:device:01js0ke0000000000000000000": {
         "type": "cx.key.verification.request",
         "content": {
           "transaction_id": "ver_123",
-          "from_device": "dev_b",
+          "from_device": "cx:device:01js0kf0000000000000000000",
           "methods": ["sas", "qr"]
         }
       }
@@ -148,7 +148,7 @@ POST /api/v1/keys/claim
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `device_id` | body | `id` | required | 当前上传设备。 |
+| `device_id` | body | `id:device` | required | 当前上传设备。 |
 | `one_time_keys` | body | `object` | optional | 算法名到 one-time key 的映射。 |
 | `fallback_keys` | body | `object` | optional | 算法名到 fallback key 的映射。 |
 | `device_signature` | body | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。 |
@@ -179,7 +179,7 @@ POST /api/v1/keys/claim
 - 服务端返回 key 时 MUST 附带 device signature。
 - 客户端 MUST 拒绝未被 self-signing key 或 principal key 链接的 device key，除非用户明确接受未验证设备。
 
-## 6.5 MLS KeyPackage Claim API
+## 7. MLS KeyPackage Claim API
 
 MLS KeyPackage 使用独立的 single-use claim API，而不是复用 one-time prekey 语义。
 
@@ -197,7 +197,7 @@ POST /api/v1/keys/keypackages/revoke
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `principal_id` | `did` | required | KeyPackage 所属 principal。 |
-| `device_id` | `id` | required | KeyPackage 所属设备。 |
+| `device_id` | `id:device` | required | KeyPackage 所属设备。 |
 | `keypackages` | `object[]` | required | MLS KeyPackage 与 metadata；每项 MUST 带 unique `keypackage_id` 和 `keypackage_ref`。 |
 | `device_signature` | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。 |
 
@@ -206,7 +206,7 @@ POST /api/v1/keys/keypackages/revoke
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `target_principal_id` | `did` | required | 被邀请或加入的 principal。 |
-| `target_device_ids` | `id[]` | optional | 为空时由服务选择可用设备。 |
+| `target_device_ids` | `array<id:device>` | optional | 为空时由服务选择可用设备。 |
 | `intended_space_id` | `id` | required | 目标 Space。 |
 | `requester` | `did` | required | 发起 claim 的 actor 或 service DID。 |
 | `required_capabilities` | `string[]` | required | 需要的 content / MLS / policy profile。 |
@@ -232,7 +232,7 @@ POST /api/v1/keys/keypackages/revoke
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。
 - claim record SHOULD 被 Principal Server / Device Key Server 保留到 Welcome 过期后的一段短 TTL，用于重试、诊断和滥用审计；不得长期保留可关联 private room 的明文目标信息。
 
-## 7. Verification Flows
+## 8. Verification Flows
 
 Contrix 标准验证消息：
 
@@ -257,7 +257,7 @@ MAC 阶段 MUST 覆盖以上 transcript。任何 transcript 不一致 MUST cance
 
 QR 验证 MUST 使用一次性 secret 或 public commitment，且 QR 内容 MUST 有过期时间和 intended verifier。
 
-## 8. Secret Storage
+## 9. Secret Storage
 
 Secret storage 用于保存：
 
@@ -287,21 +287,21 @@ Secret storage envelope：
 
 服务端只存密文。恢复口令、recovery key 或硬件密钥不得上传。
 
-## 9. Key Backup
+## 10. Key Backup
 
 Key backup 保存已加密的 Space / MLS 历史密钥材料。备份单元：
 
 ```json
 {
   "backup_version": "kb_1",
-  "space_id": "space:...",
+  "space_id": "cx:space:...",
   "epoch": 42,
   "session_id": "mls_epoch_42",
-  "first_event_id": "event:...",
-  "last_event_id": "event:...",
+  "first_event_id": "cx:event:...",
+  "last_event_id": "cx:event:...",
   "ciphertext": "base64url...",
   "auth_data": {
-    "device_id": "dev_a",
+    "device_id": "cx:device:01js0ke0000000000000000000",
     "signature": "base64url..."
   }
 }
@@ -309,7 +309,7 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。备份单元：
 
 备份 MUST 加密给 recovery public key 或 secret storage key。服务端 MUST NOT 能解密。
 
-## 10. Room-Key Equivalent and Withholding
+## 11. Room-Key Equivalent and Withholding
 
 Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送设备 MUST 检查：
 
@@ -327,7 +327,7 @@ Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送�
 - `policy_denied`
 - `unknown_session`
 
-## 11. Cross-Signing Reset
+## 12. Cross-Signing Reset
 
 重置 `self_signing_key` 或 `user_signing_key` 是高风险操作。实现 MUST 要求以下至少一种证明：
 
@@ -338,7 +338,7 @@ Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送�
 
 重置后，旧设备签名链不再自动可信。客户端 MUST 将所有旧信任标记为 `needs_reverification`。
 
-## 12. Applet Device Delegation
+## 13. Applet Device Delegation
 
 Applet 如需代表 ghost actor 或桥接用户参与 E2EE，MUST 使用受限 delegated device：
 

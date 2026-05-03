@@ -43,7 +43,7 @@ Content-Type: application/json
   "timeout_ms": 30000,
   "set_presence": "online",
   "filter": {
-    "spaces": ["space:..."],
+    "spaces": ["cx:space:..."],
     "timeline_limit": 50,
     "lazy_load_members": true,
     "include_redundant_members": false,

@@ -121,7 +121,7 @@ published -> claimed -> consumed
   "type": "cx.mls.keypackage",
   "keypackage_id": "cx:mls:kp:01JS...",
   "principal_id": "did:web:alice.example.com",
-  "device_id": "dev_01HV...",
+  "device_id": "cx:device:01js0ke0000000000000000000",
   "keypackage_ref": "sha256:...",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
   "capabilities": ["mimi.content.v1", "cx.content.v1"],

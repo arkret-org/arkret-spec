@@ -5,7 +5,7 @@
 `contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。Contrix 明确采用：
 
 - 以 **DID principal** 为身份根
-- 以 **Space / Flow / Board / List / Message / Morph / Relation 协作图** 为数据根
+- 以 **Space（含 Board / List 形态）/ Flow / Message / Morph / Relation / Event / View / Capability 协作图** 为数据根
 - 以 **signed Event + per-actor event chain** 为审计根
 - 以 **capability** 为权限根
 - 以 **views/projections** 为人类展示根
@@ -21,7 +21,7 @@ Contrix v1 聚焦以下目标：
 1. 稳定身份  
    所有主体使用 DID 作为稳定 ID，Handle 只是可迁移的人类可读入口。
 2. 面向对象协作  
-   协议根抽象固定为 Space、Actor、Flow、Board、List、Message、Morph、Relation、Event、View；Flow 承载统一 identity，并通过 `kind` 与 `synthesis` / `discussion` branch 表达整理推进与讨论语义；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
+   协议根抽象固定为 Space（含 Board / List 形态）、Actor、Flow、Message、Morph、Relation、Event、View、Capability；Flow 承载统一 identity，并通过 `kind` 与 `synthesis` / `discussion` branch 表达整理推进与讨论语义；标准对象承载主语义，Morph 通过 Space schema / Morph profile 扩展领域对象，facets 只作为声明后的能力提示和查询标签。
 3. 去中心化同步  
    真相基底是 signed Event Envelope 和可验证 actor event chain，而不是单一中心数据库或 atprotocol/Git 式数据仓库。
 4. 多交互模式  
@@ -77,6 +77,8 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 ### 5.1 身份
 
+> 详细设计决定与取舍分析见 [design-questions.md](./overview/design-questions.md)。
+
 - `principal_id = DID URI`
 - Handle 与 DID 分离
 - 默认普通用户 DID 方法为 `did:plc`
@@ -92,11 +94,13 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 ### 5.2 数据
 
+> 对象字段级定义见 [data-structures.md](./models/data-structures.md)，核心对象模型见 [object-model-core.md](./models/object-model-core.md)。
+
 - 所有持久协作修改都是 signed Event
 - 所有共享状态来自 **授权 Event 集合的归约结果**
 - `space` 是复制、权限、schema 与 policy 边界
 - `flow` 是统一协作对象；`kind="card"` 偏整理推进，`kind="room"` 偏讨论协作，二者可以在同一个 `flow_id` 上互转
-- `board`、`list`、`message` 是协议一等标准对象
+- `space(kind=board)`、`space(kind=list)`、`message` 是协议一等标准对象
 - `morph` 是开放对象载体，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不单独定义授权、状态机、排序或 reducer 语义
 - `relation` 是一等对象，用于表达包含、依赖、回复、引用、分配、提及等关系
 - `event` 是协作事实和审计根
@@ -107,7 +111,9 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 ### 5.3 看板与会话
 
-- 看板由 `Board -> List -> Flow(kind="card")` 表达；View 负责投影，不再把 Board 伪装成通用开放对象集合
+> 会话模型细节见 [conversation-model.md](./models/conversation-model.md)，看板/层级见 [space-hierarchy.md](./models/space-hierarchy.md)。
+
+- 看板由 `Space(kind=board) -> Space(kind=list) -> Flow(kind="card")` 表达；View 负责投影，不再把 Board 伪装成通用开放对象集合
 - 会话由 `Flow(discussion branch) -> Message` 表达；discussion branch 是独立权限、成员、历史和 E2EE 边界
 - `kind="card"` 默认走 `synthesis` branch，但可以开启 `discussion` branch
 - `kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段和可选 `synthesis` branch
@@ -115,6 +121,8 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - `@user`、`@object` 在 UI 层可写成文本，在协议层必须落成结构化 Actor/Object 引用与 `mentions` Relation
 
 ### 5.4 同步
+
+> 同步协议细节见 [operations-sync.md](./sync/operations-sync.md) 与 [client-sync.md](./sync/client-sync.md)。
 
 - signed Event Envelope 是 actor 侧发布单元
 - per-actor event chain 是审计和重放基础
@@ -129,6 +137,8 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 ### 5.5 权限
 
+> 授权模型见 [capabilities.md](./authz/capabilities.md)，状态解析见 [event-auth-state-resolution.md](./authz/event-auth-state-resolution.md)。
+
 - 权限采用 capability 模型
 - delegation 必须显式、可验证、可撤销
 - agent 必须使用窄权限、短时效、可审计授权
@@ -138,7 +148,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 权限主体使用 DID 或 condition selector，handle 不作为权限主键
 - 组织成员、角色、handle 绑定等动态条件由可验证 claim / attestation 表达
 - DID Document 不作为跨组织身份画像；公开 persona DID 可以声明 handle，pairwise/private DID 默认不公开 handle，并通过最小披露 VC / presentation 证明属性
-- 消息发送、编辑、撤回、Flow branch 管理、Flow 管理和 Board/List 排序都应有独立动作语义
+- 消息发送、编辑、撤回、Flow branch 管理、Flow 管理和 Space 排序都应有独立动作语义
 
 ## 6. 工程原则
 
@@ -179,7 +189,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 当前规范已经覆盖：
 
 - DID、handle、组织主体、服务 DID 与渐进披露。
-- Space、Flow、Board、List、Message、Morph、Relation、Event、View 和标准业务类型。
+- Space（含 Board / List 形态）、Flow、Message、Morph、Relation、Event、View 和标准业务类型。
 - 核心数据结构字段级类型、必填性、枚举和约束。
 - Capability、delegation、claim 条件、policy server、moderation policy。
 - Event-first 发布、Principal Server 同步、客户端本地查询/投影、Directory 发现、HTTP binding。
