@@ -1,26 +1,32 @@
 # Artifacts
 
-`artifacts/` holds the machine-readable protocol contract for the Contrix spec.
+`artifacts/` 存放 Contrix 的机器可读协议契约（machine-readable contract）。
 
-## Canonical registry sources
+## 1. 约定与分层
 
-- `artifacts/registry/contract-catalog.json`: canonical source for the generated Event.kind, schema, typed-ID, and operation registries.
-- `artifacts/registry/error-code-registry.json`: canonical error code registry.
-- `artifacts/registry/mirror-manifest.json`: canonical declaration of artifact -> `zh/` mirror mappings.
-- `artifacts/registry/registry-manifest.json`: canonical index of every machine-readable registry file under `artifacts/registry/`.
+### 1.1 真实来源（Canonical）
 
-## Generated registry views
+- `artifacts/registry/contract-catalog.json`
+  - 事件 kind、schema、typed-ID 与 operation 的源定义。
+- `artifacts/registry/error-code-registry.json`
+  - 错误码体系。
+- `artifacts/registry/mirror-manifest.json`
+  - `zh/` 与工件文件镜像关系。
+- `artifacts/registry/registry-manifest.json`
+  - `artifacts/registry/` 下所有机器注册表索引。
 
-These files are derived from `artifacts/registry/contract-catalog.json` and must not be edited directly.
+### 1.2 生成视图（Generated）
+
+以下文件由 `contract-catalog.json` 派生，**不得直接手工编辑**：
 
 - `artifacts/registry/event-kind-registry.json`
 - `artifacts/registry/schema-registry.json`
 - `artifacts/registry/id-kind-registry.json`
 - `artifacts/registry/operation-registry.json`
 
-## Unified maintenance pipeline
+## 2. 维护与校验流水线
 
-Use one entrypoint for generation, mirror sync, and contract checks.
+统一入口：
 
 ```bash
 python tools/artifact_pipeline.py generate
@@ -28,14 +34,18 @@ python tools/artifact_pipeline.py sync
 python tools/artifact_pipeline.py check
 ```
 
-`check` performs three layers in one pass:
+流水线职责：
 
-- generated registry drift detection against `contract-catalog.json`
-- registry-first artifact lint from `artifacts/lint_artifacts.py`, including mirror drift and Markdown/link checks
+- 合成生成文件
+- 同步文档镜像与机器注册表
+- 触发约束校验与兼容性检查
 
-`generate` / `sync` / `check` also print:
+其中 `check` 会执行三层校验：
 
-- profile summary derived from `artifacts/profiles/conformance-profiles.json`
-- registry diff status for generated registry views and generated Markdown inventories
+- 与 `contract-catalog.json` 的 drift 检测
+- 基于 `artifacts/lint_artifacts.py` 的 registry-first 校验（包括镜像漂移与 Markdown 链接完整性）
+- Profile 与 registry 变化摘要输出
 
-CI runs the same entrypoint through `.github/workflows/artifact-lint.yml`.
+## 3. CI 要求
+
+`.github/workflows/artifact-lint.yml` 会以同一入口在持续集成中执行协议约束校验，保证仓库内协议契约与机器视图一致。

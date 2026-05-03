@@ -1,4 +1,4 @@
-# 兼容性与实现 Profile
+# 实现 Profile 与一致性要求
 
 ## 1. 目标
 
@@ -59,7 +59,7 @@ Profile 不支持某个标准能力时的默认行为：
 
 机器可读默认行为见 `artifacts/profiles/conformance-profiles.json.default_unsupported_behavior`。其中 `must_not_accept`、`must_fail_closed`、`allowed_results` 等字段用于 conformance lint / test，而不是自由文本提示。
 
-## 2.2 v1 启动 Profile
+## 2.2 场景化 Profile
 
 以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。
 
@@ -657,7 +657,7 @@ MIMI Interop profile MUST 额外提供：
 }
 ```
 
-## 22. 初版决定
+## 22. 基线 Profile
 
 首个互操作目标 SHOULD 是：
 

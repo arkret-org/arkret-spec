@@ -80,8 +80,8 @@
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
 | `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
 | `overview/matrix-core-differences.md` | 与 Matrix 的核心区别、边界和取舍。 |
-| `overview/design-questions.md` | 早期关键设计问题与决策记录。 |
-| `overview/gap-analysis.md` | 当前闭环状态、已收敛工件和剩余工程化事项。 |
+| `overview/current-model.md` | Flow / branch / board / list / view 的统一模型说明。 |
+| `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
 
 ### 4.2 身份、组织与隐私
@@ -171,7 +171,7 @@
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
 | `conformance/encoding-conformance-vectors.md` | Canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 的一致性测试向量。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
-| `conformance/state-resolution-conformance-vectors.md` | 并发 membership/capability/governance state resolution向量。 |
+| `conformance/state-resolution-conformance-vectors.md` | 并发 membership/capability/governance state resolution 向量。 |
 | `conformance/redaction-conformance-vectors.md` | redaction 约束与可见性向量。 |
 | `conformance/capability-conformance-vectors.md` | delegated capability、revoke 回滚、approval 约束向量。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
@@ -190,5 +190,6 @@
 - 改变服务 API 或 transport 的内容，放入同步、服务与联邦组。
 - 新业务能力优先做 profile，例如 agent、applet、webrtc。
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。
+
 
 

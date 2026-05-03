@@ -5,12 +5,12 @@
 把 Contrix v1 规范转化为可复现的实现标准。本套件以 profile 为测试入口，强制验证：
 
 - canonical `Event.kind` 与服务 `operation_id` 语义
-- reducer 兼容性（特别是 auth/state 重算）
+- reducer 一致性（特别是 auth/state 重算）
 - redaction 与隐私字段保留规则
 - capability 与授权派生规则
 - Principal Server Events API / sync service / E2EE / applet / policy-server 关键接口
 
-本版本不新增 `space_version`；所有兼容性演进通过 `space_version=1` 下的 profile 与字段废弃流程完成。
+本版本不新增 `space_version`；所有 schema / profile 变更通过 `space_version=1` 下的声明与演进流程完成。
 
 ## 2. 测试角色（Profile）
 
@@ -116,7 +116,7 @@ v1 新增以下必测项：
 - 每个实现 MUST 提供覆盖结果文档，声明通过/失败的 vector 列表。
 - 每条失败向量必须包含最小复现实例。
 - 未通过的 profile 可通过但不得标记为“完全互操作”。
-- 本套件目标是在当前 `space_version=1` 下形成稳定收敛，避免为兼容问题引入新 space version。
+- 本套件目标是在当前 `space_version=1` 下形成稳定收敛，避免为实现差异引入新 space version。
 
 ### 6.1 发布分级
 
