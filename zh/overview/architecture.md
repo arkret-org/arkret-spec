@@ -36,7 +36,7 @@ Space 则是协作数据边界。它定义 membership、capability scope、schem
 
 因此实现 MUST NOT 以 `space_id` 代替组织身份，也 MUST NOT 仅凭用户在某 Space 内的 membership 推断其属于某组织。组织身份和成员资格应通过组织 DID 签发的 claim / VC / attestation、Space policy 中列出的 trusted issuer、或 governance registry 中的组织记录证明。
 
-### 2.1 Per-Actor Event Chain
+### 2.2 Per-Actor Event Chain
 
 Contrix v1 不再把用户数据仓库作为协议一等概念。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
 
@@ -60,7 +60,7 @@ Event 的实际存储形态由实现决定：可以是数据库表、对象存�
 
 Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链、`actor_seq` 路径递增约束、`prev_refs` 因果链和 `event_id` 幂等性，而不是来自托管它的 Principal Server。Principal Server 可以拒绝服务、延迟同步或丢失副本，但不能替 principal 伪造有效写入。
 
-### 2.2 Principal Server
+### 2.3 Principal Server
 
 Principal Server 是 principal 的受控服务边界。它负责承载或代理：
 
@@ -80,7 +80,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
-### 2.3 Client Query / Projection
+### 2.4 Client Query / Projection
 
 客户端或 SDK 可以把已同步、已授权、已解密的 Event 集合物化成当前态、搜索索引、inbox、notification 和 View projection。这些都是本地派生体验，不是协议必需服务面。
 
@@ -91,13 +91,13 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 - 任何受托 search / projection 服务若接收私有明文、正文摘要、embedding、通知摘要或可逆派生内容，MUST 被 Space policy 列入 `plaintext_visible_services`。
 - 派生输出不得成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和 causal frontier 重新计算。
 
-### 2.4 Blob Store
+### 2.5 Blob Store
 
 Blob Store 提供附件、大对象和可选 snapshot chunk 的内容存储。
 
 Blob 地址可以多源，校验应基于内容哈希而不是单一 URL。
 
-### 2.5 Capability Authority
+### 2.6 Capability Authority
 
 Capability Authority 是一个逻辑角色，不要求独立部署。
 
@@ -107,7 +107,7 @@ Capability Authority 是一个逻辑角色，不要求独立部署。
 - 响应 grant / revoke / delegate 相关查询
 - 为 Events API / sync / projection executor 提供可缓存的授权依据
 
-### 2.6 Client / Agent
+### 2.7 Client / Agent
 
 Contrix 的 client 不只包括 GUI 应用，也包括：
 
@@ -119,7 +119,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 协议必须把 agent 当作一等参与者，而不是 UI 里的“插件”。
 
-### 2.7 Principal Server 部署形态
+### 2.8 Principal Server 部署形态
 
 Contrix 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署不得改变各角色的安全边界：service DID、`service_type`、capability、Space policy、plaintext visibility 和 endpoint 契约仍必须可区分。
 

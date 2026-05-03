@@ -163,7 +163,7 @@ Sync 响应包含以下 stream：
 
 这避免客户端用新权限、新成员名或新加密 epoch 错误解释旧事件。
 
-## 5.1 Event Ordering
+## 6. Event Ordering
 
 Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权真相本身。授权真相仍由 event hash、`prev_refs`、`auth_refs`、space version 和 reducer 决定。
 
@@ -193,7 +193,7 @@ event_id ASC
 
 对于 state event，客户端 MUST 使用 `event-auth-state-resolution.md` 的 state resolution 输出解释当前态，不得只取 timeline 中最后出现的同 key state event。
 
-## 5.2 Large Account and Large Space Sync
+## 7. Large Account and Large Space Sync
 
 数据量巨大时，Client Sync MUST 支持分层同步，而不是一次性拉取全部事件。
 
@@ -221,7 +221,7 @@ event_id ASC
 
 客户端 MUST treat `next_batch` as the only resume token. 如果某个 Space 的 timeline 返回 `limited=true`，客户端不得把当前窗口视为完整历史。
 
-## 6. Lazy Loading Members
+## 8. Lazy Loading Members
 
 当 `lazy_load_members=true`：
 
@@ -229,7 +229,7 @@ event_id ASC
 - 客户端遇到未知 actor 时 MAY 调用 profile/directory API 补全。
 - 如果 `include_redundant_members=false`，服务器 SHOULD 避免重复发送客户端已知且未变化的 member state。
 
-## 7. Account Data and Private State
+## 9. Account Data and Private State
 
 `account_data` 是 principal 或 device 私有状态，不进入 Space canonical state。标准类型：
 
@@ -242,7 +242,7 @@ event_id ASC
 
 Account data MUST 按 principal/device 授权隔离。联邦节点不得向其他 principal 泄露 account data。
 
-## 8. To-Device Delivery
+## 10. To-Device Delivery
 
 `to_device.events` MUST 只包含当前 access token 对应 device 的消息。服务器在发送某个 `next_batch` 后 MAY 认为其中 to-device 已投递；客户端如果未处理成功，必须通过本地事务日志恢复。
 
@@ -252,7 +252,7 @@ To-device 队列过长时，服务器 MAY 返回 `limited=true` 并要求客户�
 GET /api/v1/device_messages?from=<token>&limit=...
 ```
 
-## 9. Filters
+## 11. Filters
 
 Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MAY 限制：
 
@@ -264,7 +264,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 超限返回 `rate_limited`、`payload_too_large` 或 `invalid_param`，并在 `Retry-After`、`retry_after_ms` 或 `limits` 中说明。
 
-## 10. Token Semantics
+## 12. Token Semantics
 
 `next_batch` MUST 绑定：
 
@@ -285,7 +285,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `sync/backfill`，补齐缺口后再恢复 `sync/subscribe` 或 `POST /sync`。
 5. 若 snapshot 校验失败，客户端 MUST 回退到 Event history replay 或 Event-only backfill，并可将来源标记为 degraded。
 
-## 11. Initial Sync
+## 13. Initial Sync
 
 没有 `since` 时为 initial sync。服务器 SHOULD：
 
@@ -296,7 +296,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Space。
 
-## 12. E2EE Requirements
+## 14. E2EE Requirements
 
 E2EE client 在处理 encrypted event 前 MUST：
 
@@ -307,7 +307,7 @@ E2EE client 在处理 encrypted event 前 MUST：
 
 服务器 MUST NOT 因无法解密而过滤 encrypted event。
 
-## 13. E2EE and MLS Sync Performance
+## 15. E2EE and MLS Sync Performance
 
 E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处理。事件可以先进入本地 raw event cache；解密可以异步完成。
 
@@ -327,7 +327,7 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 - MLS epoch state SHOULD be returned as required state when encrypted timeline includes events from unknown epochs.
 - 客户端 SHOULD cache epoch state and ratchet tree by `(space_id, epoch)`.
 - 历史 backfill SHOULD request encrypted payload and MLS epoch material in separate ranges.
-- 新设备恢复 SHOULD prefer encrypted key backup / secret storage over asking其他成员逐条重发历史密钥。
+- 新设备恢复 SHOULD 优先使用加密密钥备份 / secret storage，而非向其他成员逐条重发历史密钥。
 - 加密附件 SHOULD be lazy-loaded by blob ref and content hash.
 - 服务端全文搜索 MUST NOT require plaintext. 加密 Space 搜索应使用本地索引或受控 TEE profile。
 

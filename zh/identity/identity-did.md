@@ -202,13 +202,13 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 }
 ```
 
-Auth Server MUST NOT accept a DID proof if:
+Auth Server 在以下情况下 MUST NOT 接受 DID proof：
 
-- the DID cannot be resolved under the organization's trust policy
-- the verification method is not currently authorized for authentication or the asserted device/session path
-- the signature does not cover the exact challenge payload
-- the challenge is expired, reused, audience-mismatched, or origin-mismatched
-- the DID is deactivated or the method history is invalid
+- DID 在组织 trust policy 下无法解析
+- 验证方法当前未被授权用于身份认证或所声明的 device/session 路径
+- 签名未覆盖完整的 challenge payload
+- challenge 已过期、已使用、audience 不匹配或 origin 不匹配
+- DID 已停用或 method history 无效
 
 service account 绑定是组织本地状态。它不会把 DID 所有权转移给组织，也不会允许组织轮换、恢复或停用用户 DID，除非 DID 自身控制状态或 recovery policy 授权该动作。
 
@@ -333,7 +333,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 规则：
 
-- Organization principal MUST be controlled by keys or delegated services in its DID Document / method history.
+- Organization principal MUST 由其 DID Document / method history 中的密钥或委托服务控制。
 - 高风险治理动作 SHOULD 使用阈值签名、多签 approval 或 governance service attestation。
 - 组织可委派 service DID 代表其运行 Principal Server、Policy Server、Applet、Directory 或受托 search / projection 扩展，但该委派 MUST 明确 purpose、scope 和有效期。
 - 组织 DID 的密钥轮换、恢复和停用 MUST 进入 DID method 的可验证历史。
@@ -366,9 +366,9 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 Contrix v1 对 DID 实现要求如下：
 
-- Default principal DID creation MUST use `did:plc` unless deployment policy explicitly selects another existing DID method.
+- 默认 principal DID 创建 MUST 使用 `did:plc`，除非部署 policy 显式选择了另一个已有 DID method。
 - Method adapter conformance tests MUST 覆盖 `did:plc`、`did:web`、`did:key`，并 SHOULD 覆盖 `did:webvh` 或其他 history-bearing method。
-- `did:uuid` MUST NOT appear in normative examples, new fixtures, new conformance vectors, service DID, actor DID, capability subject, federation transaction, or newly written Event。
+- `did:uuid` MUST NOT 出现在规范示例、新 fixture、新一致性向量、服务 DID、actor DID、capability subject、federation transaction 或新写入的 Event 中。
 - DID proof JSON Schema MUST 与 `data-structures.md` 的 Proof 和 `encoding.md` 的 canonical JSON 规则一致。
 - Normalized principal view MUST 保留 raw document hash、method-specific proof、current control keys、service bindings、contrix bindings 和 evidence；不得丢弃外部 DID 的原始语义。
 - 无法验证 method history 的 adapter 只能声明 limited trust profile，并且 MUST NOT 被默认用于高风险组织、service delegation 或长期 principal 创建。

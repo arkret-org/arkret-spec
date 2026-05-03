@@ -52,3 +52,21 @@
 | Directory Server | 目录服务 | 提供可发现的 Space、组织、actor、Applet 信息。 |
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID 文档、method resolver、密钥材料与验证链路。 |
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
+| Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
+| Auth Weight | 授权权重 | State resolution 中候选事件的排序键，由授权来源的层级决定（700=Space root，0=基础 membership）。 |
+| Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值，用于 deterministic timeline 排序。 |
+| Soft Fail | 软失败 | 事件格式和签名有效但缺少上下文或暂时无法授权的中间状态；可在上下文补齐后重新评估。 |
+| Quarantine | 隔离 | 基础授权可通过但被策略标记为高风险的事件状态；不自动展示，需管理员审查。 |
+| Accepted | 已接受 | 事件通过全部校验后的最终状态；可推进 frontier 和 reducer。 |
+| Rejected | 已拒绝 | 事件在格式、签名、schema 或授权上确定失败；不得进入 reducer。 |
+| State Resolution | 状态收敛 | 多分支对同一 `(kind, state_key)` 给出不同 accepted state event 时，按确定性算法选择唯一 winner。 |
+| Reducer | 归约器 | 确定性纯函数，将 accepted Event 集合归约为当前态、state hash 和 conflict records。 |
+| Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Flow、Relation、View。 |
+| Canonical JSON | 规范 JSON | 确定性 JSON 序列化格式，用于签名和哈希输入；要求 UTF-8、key 排序、无空白、唯一 number 表示。 |
+| Frontier | 前沿 | Actor 或 Space 已接受事件的最远同步边界，用 event_id / HLC / actor_seq 表示。 |
+| Inception Key | 起源密钥 | DID 创建时的初始控制密钥，锚定在 DID 的 method history 中。 |
+| Plaintext Visible Service | 明文可见服务 | Space policy 显式声明可接收非加密私有内容或可逆派生摘要的服务。 |
+| History Visibility | 历史可见性 | 控制加入 Space 后能看到多少历史事件的范围规则。 |
+| Join Rule | 加入规则 | 控制 Actor 如何加入 Space 的策略（public、invite、knock、restricted 等）。 |
+| Discoverability | 可发现性 | 控制资源能否被目录、搜索、邀请或精确链接发现的分级策略。 |
+| MLS Bound State | MLS 绑定状态 | E2EE Space 中由 MLS application state root 覆盖的 membership、policy 等关键状态。 |

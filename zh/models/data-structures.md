@@ -507,7 +507,7 @@ Canonical Operation 与 Event Envelope 的映射：
 - `semantic_kind="cx.flow.branch.disable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch disable payload schema。
 - `semantic_kind="cx.flow.convert"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow convert payload schema。
 
-## 22. Field Patch (cx.patch.v1)
+## 19. Field Patch (cx.patch.v1)
 
 非 create 类更新建议使用 `cx.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。
 

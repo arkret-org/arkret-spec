@@ -88,6 +88,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 组织 / service DID SHOULD 使用 `did:web`；高保证组织 SHOULD 使用 `did:webvh`
 - `did:key` 仅用于临时、测试、设备、邀请或 bootstrap 场景；`did:pkh` 仅用于钱包身份绑定
 - 对 `did:plc`、`did:web` 等 DID，采用 `method adapter + normalized principal view + sidecar` 兼容层；保留原始文档与历史，不强行改写成私有 DID
+- DID 的哈希锚定 `inception_key`；普通密钥轮换不换 DID，只有不可恢复时才考虑例外性身份重建
 
 ### 5.2 数据
 
@@ -125,7 +126,6 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 授权有效性也必须由同一 reducer 顺序收敛
 - 撤回通过 redaction 收敛，不等于保证全球物理删除
 - sync service 可以转发不解密的密文 payload；未加密私有正文不得提交给未委托第三方服务或受托搜索扩展
-- DID 里的哈希锚定 `inception_key`；普通密钥轮换不换 DID，只有不可恢复时才考虑例外性身份重建
 
 ### 5.5 权限
 

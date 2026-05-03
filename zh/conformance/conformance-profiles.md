@@ -148,7 +148,7 @@ MAY 支持：
 - 离线写入
 - push notification
 
-## 4. Full Client
+## 5. Full Client
 
 `cx.profile.full_client.v1` 适用于桌面、Web 和移动主客户端。
 
@@ -173,7 +173,7 @@ SHOULD 支持：
 - multi-device sync
 - export / backup
 
-## 5. E2EE Client
+## 6. E2EE Client
 
 `cx.profile.e2ee_client.v1` 适用于加密 Space。
 
@@ -202,7 +202,7 @@ MUST NOT：
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
 - 在 MLS-bound policy / membership root 不匹配时继续解密正文
 
-## 6. Principal Server Events API
+## 7. Principal Server Events API
 
 `cx.profile.principal_server_events_api.v1` 适用于 Principal Server 暴露的 Event 提交、读取、回填和 frontier 查询 API。
 
@@ -228,7 +228,7 @@ SHOULD 支持：
 - rate limiting
 - quota accounting
 
-## 7. Principal Server
+## 8. Principal Server
 
 `cx.profile.principal_server.v1` 适用于用户、组织或 agent principal 控制/委托的服务入口。
 
@@ -255,7 +255,7 @@ SHOULD 支持：
 Principal Server MUST NOT become the canonical truth source for Space state.
 Principal Server MUST NOT forward non-E2EE private content or reversible derived plaintext to services absent from the relevant DID delegation or Space policy `plaintext_visible_services`.
 
-## 8. Identity Registry Node
+## 9. Identity Registry Node
 
 `cx.profile.identity_registry.v1` 适用于 DID 文档与 key log 服务。
 
@@ -300,7 +300,7 @@ SHOULD 支持：
 - legal hold
 - unsafe media flag
 
-## 10.5 Push Gateway
+## 11. Push Gateway
 
 `cx.profile.push_gateway.v1` 适用于移动端或桌面通知的推送网关。
 
@@ -326,11 +326,11 @@ SHOULD 支持：
 - token 分片或短期授权
 - 高优先级与静音规则透传
 
-## 10.6 Applet Service / Bridge
+## 12. Applet Service / Bridge（概要）
 
-`cx.profile.applet_service.v1` 适用于桥接外部系统和运行 Applet 集成服务。  
+详见第 19 节完整定义。
 
-## 10.7 MIMI Interop Provider Facade
+## 13. MIMI Interop Provider Facade
 
 `cx.profile.mimi_interop.v1` 适用于需要与外部 MIMI provider 互通的 facade 服务。
 
@@ -356,7 +356,7 @@ MUST NOT：
 - 把 MIMI user identifier 当作 DID
 - 绕过 Contrix auth refs、capability、MLS epoch 或 Space policy
 
-## 11. Enterprise Client
+## 14. Enterprise Client
 
 `cx.profile.enterprise_client.v1` 适用于企业受控客户端。
 
@@ -371,77 +371,77 @@ MUST 支持 Full Client，并根据 policy 支持：
 
 MUST NOT 在不显示 policy 的情况下静默加入 auditable encrypted Space。
 
-## 11.5 Sovereign Deployment
+## 15. Sovereign Deployment
 
 `cx.profile.sovereign_deployment.v1` 适用于军方、关键基础设施、金融核心、情报或其他高安全组织的自建/专属部署。
 
-MUST support:
+MUST 支持：
 
-- Organization DID controlled service delegation
-- service DID allowlist
-- closed federation default
-- private directory default
-- controlled collaboration Space
-- restricted or invite-only external join
-- policy server `closed` or `quarantine` fail mode
-- E2EE default for controlled collaboration
-- MLS Welcome only to approved external devices
-- external Applet / Agent / transport allowlist
-- cross-domain event audit
-- grant / invite / membership revocation
-- MLS epoch rotation after external removal
+- 组织 DID 控制的服务委托
+- 服务 DID allowlist
+- 默认 closed federation
+- 默认私有目录
+- 受控协作 Space
+- restricted 或 invite-only 外部加入
+- Policy Server `closed` 或 `quarantine` 失败模式
+- 受控协作默认 E2EE
+- MLS Welcome 只发给已批准的外部设备
+- 外部 Applet / Agent / transport allowlist
+- 跨域事件审计
+- grant / invite / membership 撤销
+- 外部成员移除后 MLS epoch 轮换
 
-MUST NOT:
+MUST NOT：
 
-- expose internal Space directory to external members
-- treat external Principal Server or search / projection service as authority
-- allow public federation by default
-- allow external Applet or Agent handoff without explicit capability and policy
+- 向外部成员暴露内部 Space 目录
+- 将外部 Principal Server 或 search / projection 服务视为权威
+- 默认允许公共 federation
+- 在无显式 capability 和 policy 时允许外部 Applet 或 Agent handoff
 
-SHOULD support:
+SHOULD 支持：
 
-- isolated collaboration enclave
-- import/export review metadata
-- data classification labels
-- hardware-backed service keys
-- offline witness receipts
-- break-glass workflow with signed audit
+- 隔离协作 enclave
+- 导入导出审查元数据
+- 数据分类标签
+- 硬件保护的服务密钥
+- 离线 witness receipt
+- 带签名审计的 break-glass 流程
 
-## 11.6 Sovereign Client
+## 16. Sovereign Client
 
 `cx.profile.sovereign_client.v1` 适用于接入 sovereign deployment 的受控客户端。
 
-MUST support:
+MUST 支持：
 
-- managed configuration signed by organization DID or governance service DID
-- resolver trust domain pinning
-- internal DID resolution through approved resolver / witness / watcher only
-- service DID allowlist enforcement
-- rejection of public registry / public directory for internal principals
-- device posture check
-- remote session and device revocation
-- E2EE default
-- classification and external member policy display
-- local export controls
-- audit log generation
+- 由组织 DID 或治理服务 DID 签名的托管配置
+- Resolver 信任域钉扎
+- 仅通过已批准 resolver / witness / watcher 解析内部 DID
+- 服务 DID allowlist 执行
+- 拒绝内部 principal 的公共 registry / 公共目录
+- 设备状态检查
+- 远程 session 和设备撤销
+- 默认 E2EE
+- 分类标签与外部成员策略展示
+- 本地导出控制
+- 审计日志生成
 
-MUST NOT:
+MUST NOT：
 
-- let users add arbitrary Principal Server / Directory / Blob endpoints
-- resolve internal principals through public resolver endpoints by default
-- silently join Space with external members or auditable E2EE
-- expose private organization directory to public search
-- enable public search, Applet or Agent handoff unless policy allows
+- 允许用户添加任意 Principal Server / Directory / Blob endpoint
+- 默认通过公共 resolver endpoint 解析内部 principal
+- 静默加入包含外部成员或可审计 E2EE 的 Space
+- 向公共搜索暴露私有组织目录
+- 在 policy 未允许时启用公共搜索、Applet 或 Agent handoff
 
-SHOULD support:
+SHOULD 支持：
 
-- hardware-backed device keys
-- offline resolver bundles
-- smart card / platform authenticator
-- policy-controlled copy, screenshot and bulk export restrictions
-- emergency wipe
+- 硬件保护设备密钥
+- 离线 resolver bundle
+- 智能卡 / 平台认证器
+- Policy 控制的复制、截图和批量导出限制
+- 紧急擦除
 
-## 11.7 Deployment Profiles
+## 17. Deployment Profiles
 
 以下 deployment profile 用于发布与验收，不替代实现 profile：
 
@@ -485,7 +485,7 @@ SHOULD support:
 - 导入导出审查
 - 外部服务与 applet allowlist
 
-## 12. Agent Runtime
+## 18. Agent Runtime
 
 `cx.profile.agent_runtime.v1` 适用于 AI agent、bot、automation。
 
@@ -509,7 +509,7 @@ SHOULD 支持：
 - deterministic replay metadata
 - tool call audit envelope
 
-## 13. Applet Service / Bridge
+## 19. Applet Service / Bridge
 
 `cx.profile.applet_service.v1` 适用于桥接外部系统和运行 Applet 集成服务。
 
@@ -545,7 +545,7 @@ SHOULD 支持：
 - per-Space bridge policy
 - Applet health and lag metrics
 
-## 14. Conformance 测试要求
+## 20. Conformance 测试要求
 
 每个 profile SHOULD 提供：
 
@@ -633,7 +633,7 @@ MIMI Interop profile MUST 额外提供：
 - proxy download policy vector
 - unsupported draft fail-closed vector
 
-## 15. Feature Discovery 示例
+## 21. Feature Discovery 示例
 
 ```json
 {
@@ -657,7 +657,7 @@ MIMI Interop profile MUST 额外提供：
 }
 ```
 
-## 16. 初版决定
+## 22. 初版决定
 
 首个互操作目标 SHOULD 是：
 
