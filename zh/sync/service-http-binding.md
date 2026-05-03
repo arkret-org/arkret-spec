@@ -135,7 +135,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 本节是 REST 端点的字段级 schema 索引。字段写法为 `name: type - 说明`。出现在“必填字段”列的字段为 required；出现在“可选字段”列的字段为 optional。位置若非 body，会显式标注为 `path.`、`query.` 或 `header.`。
 
-规范性 operation 集合以 `artifacts/registry/operation-registry.json` 为唯一 source of truth。本表、OpenAPI 与非 HTTP binding 均 MUST 从该 registry 生成或通过 CI 校验；不得新增 registry 中不存在的 `operation_id`，也不得在声明支持某 operation 时遗漏对应 registry 条目。
+规范性 operation contract 以 `artifacts/registry/contract-catalog.json#operation_registry` 为 canonical source；`artifacts/registry/operation-registry.json` 是其生成视图。本表、OpenAPI 与非 HTTP binding 均 MUST 从 canonical source 生成或通过 CI 校验；不得新增 catalog 中不存在的 `operation_id`，也不得在声明支持某 operation 时遗漏对应 catalog 条目。
 
 | `operation_id` | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |

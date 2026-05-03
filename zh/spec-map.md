@@ -6,6 +6,14 @@
 
 若本文与具体规范冲突，以具体规范中的 MUST / SHOULD 规则为准。
 
+### 1.1 规范权威层级
+
+- `artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
+- `artifacts/registry/*.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
+- `zh/sync/contrix-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
+- `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
+- `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
+
 ## 2. 推荐阅读顺序
 
 初次理解协议时，建议按以下顺序阅读：

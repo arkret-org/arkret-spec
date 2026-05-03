@@ -1435,6 +1435,193 @@
     ]
   },
   "operation_registry": {
+    "description": "Canonical operation catalog for generated service operation views and transport bindings.",
+    "normative_source": "artifacts/registry/contract-catalog.json#operation_registry",
+    "generated_views": [
+      {
+        "file": "registry/operation-registry.json",
+        "role": "Generated machine-readable operation registry view."
+      },
+      {
+        "file": "../zh/sync/contrix-service-api.openapi.yaml",
+        "role": "HTTP/OpenAPI binding shape aligned to the catalog; not a second operation namespace."
+      },
+      {
+        "file": "../zh/sync/service-api-schema.md",
+        "role": "Descriptive operation map and governance notes; excerpt-only unless explicitly marked generated."
+      }
+    ],
+    "registry_rules": [
+      "New operation_id values MUST be added here before any OpenAPI, HTTP binding table, SDK generator, or alternative transport binding references them.",
+      "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
+      "Supporting Contrix core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
+      "Account, admin, applet, MIMI, media, moderation, directory, push, and key-management surfaces are optional or deployment-specific unless required by an advertised conformance profile.",
+      "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint."
+    ],
+    "capability_tiers": {
+      "core": "Base interoperable surfaces commonly needed by Events API, Principal Server, and clients.",
+      "extension": "Optional interoperable surfaces that require explicit discovery/profile advertisement.",
+      "deployment_local": "Deployment-specific, operator, or product-local surfaces that MUST NOT be assumed from core protocol support alone."
+    },
+    "surface_groups": [
+      {
+        "surface": "service_discovery",
+        "tier": "core",
+        "operations": [
+          "cx.server.describe"
+        ]
+      },
+      {
+        "surface": "identity_registry",
+        "tier": "core",
+        "operations": [
+          "cx.identity.describe_registry",
+          "cx.identity.resolve",
+          "cx.identity.get_document",
+          "cx.identity.get_log",
+          "cx.identity.get_receipts",
+          "cx.identity.submit_did_operation"
+        ]
+      },
+      {
+        "surface": "events_sync",
+        "tier": "core",
+        "operations": [
+          "cx.events.describe",
+          "cx.events.submit",
+          "cx.events.get",
+          "cx.events.batch_get",
+          "cx.events.list",
+          "cx.events.frontier",
+          "cx.sync.client_sync",
+          "cx.sync.describe",
+          "cx.sync.subscribe",
+          "cx.sync.backfill",
+          "cx.sync.get_snapshot_head"
+        ]
+      },
+      {
+        "surface": "federation",
+        "tier": "extension",
+        "operations": [
+          "cx.federation.transaction",
+          "cx.federation.push_operations",
+          "cx.federation.pull_operations",
+          "cx.federation.space_members",
+          "cx.federation.verify_actor"
+        ]
+      },
+      {
+        "surface": "directory_discovery",
+        "tier": "extension",
+        "operations": [
+          "cx.directory.describe",
+          "cx.directory.search_spaces",
+          "cx.directory.resolve_space",
+          "cx.directory.search_organizations",
+          "cx.directory.resolve_organization",
+          "cx.directory.search_actors",
+          "cx.directory.search_users",
+          "cx.directory.resolve_handle",
+          "cx.directory.private_contact_discovery"
+        ]
+      },
+      {
+        "surface": "blob_media",
+        "tier": "extension",
+        "operations": [
+          "cx.blob.upload",
+          "cx.blob.head",
+          "cx.blob.get",
+          "cx.media.ice_config"
+        ]
+      },
+      {
+        "surface": "authz_policy",
+        "tier": "extension",
+        "operations": [
+          "cx.authz.check",
+          "cx.authz.get_effective_grants",
+          "cx.authz.get_invites",
+          "cx.policy.check"
+        ]
+      },
+      {
+        "surface": "device_and_keys",
+        "tier": "extension",
+        "operations": [
+          "cx.device_messages.put",
+          "cx.device_messages.get",
+          "cx.keys.upload",
+          "cx.keys.query",
+          "cx.keys.claim",
+          "cx.keys.keypackages.upload",
+          "cx.keys.keypackages.claim",
+          "cx.keys.keypackages.consume",
+          "cx.keys.keypackages.revoke"
+        ]
+      },
+      {
+        "surface": "push",
+        "tier": "extension",
+        "operations": [
+          "cx.push.register_device",
+          "cx.push.unregister_device",
+          "cx.push.notify"
+        ]
+      },
+      {
+        "surface": "applet",
+        "tier": "extension",
+        "operations": [
+          "cx.applet.ping",
+          "cx.applet.describe",
+          "cx.applet.transaction",
+          "cx.applet.query_actor",
+          "cx.applet.query_space",
+          "cx.applet.protocol_metadata",
+          "cx.applet.third_party_users",
+          "cx.applet.third_party_locations"
+        ]
+      },
+      {
+        "surface": "mimi_interop",
+        "tier": "extension",
+        "operations": [
+          "cx.mimi.provider_directory",
+          "cx.mimi.group_info",
+          "cx.mimi.key_material",
+          "cx.mimi.submit_message",
+          "cx.mimi.room_update",
+          "cx.mimi.request_consent",
+          "cx.mimi.update_consent",
+          "cx.mimi.identifier_query",
+          "cx.mimi.notify",
+          "cx.mimi.report_abuse",
+          "cx.mimi.proxy_download"
+        ]
+      },
+      {
+        "surface": "account_auth",
+        "tier": "deployment_local",
+        "operations": [
+          "cx.account.device_pair",
+          "cx.account.issue_session_grant",
+          "cx.account.oidc_callback"
+        ]
+      },
+      {
+        "surface": "admin_operator",
+        "tier": "deployment_local",
+        "operations": [
+          "cx.admin.get_moderation_queue",
+          "cx.admin.get_server_status",
+          "cx.admin.revoke_device",
+          "cx.admin.update_account_status",
+          "cx.moderation.report"
+        ]
+      }
+    ],
     "operations": [
       {
         "operation_id": "cx.account.device_pair",

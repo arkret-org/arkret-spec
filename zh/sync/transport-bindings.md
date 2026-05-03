@@ -41,7 +41,7 @@ HTTP/JSON REST 是默认互操作 binding，用于浏览器、普通服务端和
 
 ## 4. Canonical Operation IDs
 
-Transport binding MUST 映射到 `artifacts/registry/operation-registry.json` 中的 canonical `operation_id`。取值使用 `cx.<namespace>.<lower_snake_case>`。下表只是核心示例；完整集合以 registry 为准，OpenAPI、gRPC、MQ、SSE、WebSocket 和 libp2p binding 均不得声明 registry 中不存在的 operation。
+Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#operation_registry` 中定义的 canonical `operation_id`。`artifacts/registry/operation-registry.json` 是实现可直接消费的生成视图。取值使用 `cx.<namespace>.<lower_snake_case>`。下表只是核心示例；完整集合以 generated registry 为准，OpenAPI、gRPC、MQ、SSE、WebSocket 和 libp2p binding 均不得声明 catalog 中不存在的 operation。
 
 | Operation | 语义 |
 | --- | --- |

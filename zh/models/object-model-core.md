@@ -222,7 +222,7 @@ Flow 通过三层语义表达差异：
 
 ```json
 {
-  "id": "cx:flow:01js0fl0000000000000000000",
+  "id": "cx:flow:01js0fk0000000000000000000",
   "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
@@ -358,7 +358,7 @@ Message 是 Flow `discussion` branch 时间线中的原子消息对象。
   "id": "cx:message:01js0ms0000000000000000000",
   "type": "message",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_id": "cx:flow:01js0fl0000000000000000000",
+  "flow_id": "cx:flow:01js0fk0000000000000000000",
   "branch": "discussion",
   "created_by": "did:web:alice.example",
   "content": {

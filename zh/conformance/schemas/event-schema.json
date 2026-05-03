@@ -120,7 +120,7 @@
       "then": {
         "properties": {
           "content": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_move_content"
+            "$ref": "#/$defs/flow_move_content"
           }
         }
       }
@@ -139,7 +139,83 @@
       "then": {
         "properties": {
           "content": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_reorder_content"
+            "$ref": "#/$defs/flow_reorder_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.flow.branch.enable"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/flow_branch_enable_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.flow.branch.disable"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/flow_branch_disable_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.flow.branch.set_primary"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/flow_branch_set_primary_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.flow.convert"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/flow_convert_content"
           }
         }
       }
@@ -162,28 +238,6 @@
         "properties": {
           "content": {
             "$ref": "./event-payload.schema.json#/$defs/membership_content"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "cx.flow.branch.history_visibility",
-              "cx.flow.branch.policy_components"
-            ]
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/state_content"
           }
         }
       }
@@ -237,6 +291,7 @@
             "enum": [
               "cx.space.update",
               "cx.flow.update",
+              "cx.flow.branch.update",
               "cx.morph.update",
               "cx.profile.update",
               "cx.profile.space_override"
@@ -964,6 +1019,10 @@
       "type": "string",
       "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
     },
+    "eventRef": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+    },
     "proof": {
       "type": "object",
       "required": [
@@ -1020,6 +1079,194 @@
         }
       },
       "additionalProperties": true
+    },
+    "flow_move_content": {
+      "type": "object",
+      "required": [
+        "board_id",
+        "flow_id",
+        "to_list_id",
+        "rank"
+      ],
+      "properties": {
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "from_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "to_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "list_id": {
+              "$ref": "#/$defs/list_id"
+            },
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "flow_reorder_content": {
+      "type": "object",
+      "required": [
+        "board_id",
+        "flow_id",
+        "list_id",
+        "rank"
+      ],
+      "properties": {
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "flow_branch_enable_content": {
+      "type": "object",
+      "required": [
+        "flow_id",
+        "branch"
+      ],
+      "properties": {
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "branch": {
+          "type": "string",
+          "enum": [
+            "synthesis",
+            "discussion"
+          ]
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "flow_branch_disable_content": {
+      "type": "object",
+      "required": [
+        "flow_id",
+        "branch"
+      ],
+      "properties": {
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "branch": {
+          "type": "string",
+          "enum": [
+            "synthesis",
+            "discussion"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "flow_branch_set_primary_content": {
+      "type": "object",
+      "required": [
+        "flow_id",
+        "primary_branch"
+      ],
+      "properties": {
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "primary_branch": {
+          "type": "string",
+          "enum": [
+            "synthesis",
+            "discussion"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "flow_convert_content": {
+      "type": "object",
+      "required": [
+        "flow_id",
+        "to_kind"
+      ],
+      "properties": {
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "to_kind": {
+          "type": "string",
+          "enum": [
+            "card",
+            "room"
+          ]
+        },
+        "primary_branch": {
+          "type": "string",
+          "enum": [
+            "synthesis",
+            "discussion"
+          ]
+        },
+        "ensure_branches": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "synthesis",
+              "discussion"
+            ]
+          }
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

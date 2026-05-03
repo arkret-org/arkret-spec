@@ -379,17 +379,11 @@
     "membership_content": {
       "type": "object",
       "required": [
-        "flow_id",
-        "branch",
         "membership"
       ],
       "properties": {
         "flow_id": {
           "$ref": "#/$defs/flow_id"
-        },
-        "branch": {
-          "type": "string",
-          "const": "discussion"
         },
         "actor_id": {
           "$ref": "#/$defs/did"
@@ -478,8 +472,7 @@
     "message_create_content": {
       "type": "object",
       "required": [
-        "flow_id",
-        "branch"
+        "flow_id"
       ],
       "anyOf": [
         {
@@ -506,10 +499,6 @@
       "properties": {
         "flow_id": {
           "$ref": "#/$defs/flow_id"
-        },
-        "branch": {
-          "type": "string",
-          "const": "discussion"
         },
         "message_id": {
           "$ref": "#/$defs/message_id"
@@ -646,84 +635,6 @@
       },
       "additionalProperties": true
     },
-    "flow_move_content": {
-      "type": "object",
-      "required": [
-        "board_id",
-        "flow_id",
-        "to_list_id",
-        "rank"
-      ],
-      "properties": {
-        "board_id": {
-          "$ref": "#/$defs/board_id"
-        },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "from_list_id": {
-          "$ref": "#/$defs/list_id"
-        },
-        "to_list_id": {
-          "$ref": "#/$defs/list_id"
-        },
-        "rank": {
-          "$ref": "#/$defs/rank"
-        },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "list_id": {
-              "$ref": "#/$defs/list_id"
-            },
-            "rank": {
-              "$ref": "#/$defs/rank"
-            },
-            "relation_id": {
-              "$ref": "#/$defs/relation_id"
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "flow_reorder_content": {
-      "type": "object",
-      "required": [
-        "board_id",
-        "flow_id",
-        "list_id",
-        "rank"
-      ],
-      "properties": {
-        "board_id": {
-          "$ref": "#/$defs/board_id"
-        },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "list_id": {
-          "$ref": "#/$defs/list_id"
-        },
-        "rank": {
-          "$ref": "#/$defs/rank"
-        },
-        "expected_position": {
-          "type": "object",
-          "properties": {
-            "rank": {
-              "$ref": "#/$defs/rank"
-            },
-            "relation_id": {
-              "$ref": "#/$defs/relation_id"
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
     "list_reorder_content": {
       "type": "object",
       "required": [
@@ -752,56 +663,6 @@
             }
           },
           "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "flow_branch_content": {
-      "type": "object",
-      "required": [
-        "flow_id",
-        "branch"
-      ],
-      "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "branch": {
-          "type": "string",
-          "enum": [
-            "synthesis",
-            "discussion"
-          ]
-        },
-        "purpose": {
-          "type": "string"
-        },
-        "primary": {
-          "type": "boolean",
-          "default": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "promoted_from_discussion_content": {
-      "type": "object",
-      "required": [
-        "flow_id",
-        "branch"
-      ],
-      "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "branch": {
-          "type": "string",
-          "const": "discussion"
-        },
-        "message_id": {
-          "$ref": "#/$defs/message_id"
-        },
-        "relation_id": {
-          "$ref": "#/$defs/relation_id"
         }
       },
       "additionalProperties": false
@@ -1470,6 +1331,84 @@
         }
       },
       "additionalProperties": true
+    },
+    "flow_move_content": {
+      "type": "object",
+      "required": [
+        "board_id",
+        "flow_id",
+        "to_list_id",
+        "rank"
+      ],
+      "properties": {
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "from_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "to_list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "list_id": {
+              "$ref": "#/$defs/list_id"
+            },
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "flow_reorder_content": {
+      "type": "object",
+      "required": [
+        "board_id",
+        "flow_id",
+        "list_id",
+        "rank"
+      ],
+      "properties": {
+        "board_id": {
+          "$ref": "#/$defs/board_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "list_id": {
+          "$ref": "#/$defs/list_id"
+        },
+        "rank": {
+          "$ref": "#/$defs/rank"
+        },
+        "expected_position": {
+          "type": "object",
+          "properties": {
+            "rank": {
+              "$ref": "#/$defs/rank"
+            },
+            "relation_id": {
+              "$ref": "#/$defs/relation_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

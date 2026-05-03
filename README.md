@@ -20,7 +20,7 @@ Any drift between `zh/` and generated artifacts is a specification bug. Until re
 
 ## Legacy contract status (2026-05-03)
 
-The active v1 wire contract no longer includes `subject` / `room` / `card` typed IDs, schema IDs, or `cx.subject.*` / `cx.room.*` / `cx.card.*` event kinds.
+The active v1 wire contract no longer includes legacy `subject` / `room` / `card` typed IDs, schema IDs, or the removed subject/room/card event families.
 
 Normative references:
 

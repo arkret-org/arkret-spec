@@ -93,7 +93,7 @@
             "const": "move"
           },
           "object_type": {
-            "const": "flow"
+            "const": "card"
           },
           "payload": {
             "$ref": "#/$defs/flow_move_payload"
@@ -118,64 +118,10 @@
             "const": "reorder"
           },
           "object_type": {
-            "const": "flow"
+            "const": "card"
           },
           "payload": {
             "$ref": "#/$defs/flow_reorder_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "semantic_kind": {
-            "enum": [
-              "cx.flow.branch.enable",
-              "cx.flow.branch.disable",
-              "cx.flow.branch.set_primary"
-            ]
-          }
-        },
-        "required": [
-          "semantic_kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "operation_type": {
-            "const": "update"
-          },
-          "object_type": {
-            "const": "flow"
-          },
-          "payload": {
-            "$ref": "#/$defs/flow_branch_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "semantic_kind": {
-            "const": "cx.flow.convert"
-          }
-        },
-        "required": [
-          "semantic_kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "operation_type": {
-            "const": "update"
-          },
-          "object_type": {
-            "const": "flow"
-          },
-          "payload": {
-            "$ref": "#/$defs/flow_convert_payload"
           }
         }
       }
@@ -186,6 +132,10 @@
       "type": "string",
       "pattern": "^[0-9A-Za-z]{1,128}$"
     },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+    },
     "object_ref": {
       "type": "string",
       "pattern": "^(cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}|did:.+)$"
@@ -193,10 +143,6 @@
     "board_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
-    },
-    "flow_id": {
-      "type": "string",
-      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
     },
     "list_id": {
       "type": "string",
@@ -283,61 +229,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "flow_branch_payload": {
-      "type": "object",
-      "required": [
-        "branch"
-      ],
-      "properties": {
-        "branch": {
-          "type": "string",
-          "enum": [
-            "synthesis",
-            "discussion"
-          ]
-        },
-        "config": {
-          "type": "object"
-        },
-        "primary": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": true
-    },
-    "flow_convert_payload": {
-      "type": "object",
-      "required": [
-        "to_kind"
-      ],
-      "properties": {
-        "to_kind": {
-          "type": "string",
-          "enum": [
-            "card",
-            "room"
-          ]
-        },
-        "primary_branch": {
-          "type": "string",
-          "enum": [
-            "synthesis",
-            "discussion"
-          ]
-        },
-        "enable_branches": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "synthesis",
-              "discussion"
-            ]
-          }
-        }
-      },
-      "additionalProperties": true
     }
   },
   "additionalProperties": true

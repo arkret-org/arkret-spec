@@ -313,7 +313,39 @@ cx.vector.encoding.hlc_order.v1
 - HLC MUST 按 `(unix_ms, logical, node_id_hash)` 排序。
 - 实现 MUST NOT 把 HLC 当作本地 wall clock string 进行非结构化比较，除非 profile 保证 fixed-width lowercase hex 且比较结果等价。
 
-## 10. Vector: Cursor Opaqueness
+## 10. Vector: HLC Logical Overflow
+
+向量名称：
+
+```text
+cx.vector.encoding.hlc_logical_overflow.v1
+```
+
+输入状态：
+
+```json
+{
+  "last_emitted_hlc": "01970e589d21-ffff-a13f9c2e",
+  "observed_unix_ms_hex": "01970e589d21",
+  "next_event_requires_same_actor_write": true
+}
+```
+
+期望行为：
+
+- 生产者 MUST NOT 生成 `01970e589d21-0000-a13f9c2e` 或任何同毫秒回绕后的 HLC。
+- 生产者 MUST 选择以下两种结果之一：
+  - 等待到更大的 `unix_ms_hex`，然后生成形如 `01970e589d22-0000-a13f9c2e` 的 HLC。
+  - 在 canonical bytes 生成前返回本地临时错误，例如 `hlc_logical_overflow`，由调用方重试。
+- 重试或等待期间，事件的 `prev_refs`、`auth_refs` 与 `actor_seq` 约束不得被放松。
+
+失败条件：
+
+- 逻辑计数器回绕到更小值并继续发出事件。
+- 通过伪造更大的 wall clock skew 逃避 overflow，同时破坏本地 HLC 单调性或 causal 约束。
+- 消费者把上述回绕值当作正常排序输入接受并推进 accepted history。
+
+## 11. Vector: Cursor Opaqueness
 
 向量名称：
 
@@ -338,7 +370,7 @@ cx:cursor:eyJxdWVyeV9oYXNoIjoic2hhMjU2OmFiYyIsImxhc3RfZXZlbnRfaWQiOiJldnRfMSJ9
 - 客户端解析 `last_event_id` 后自行构造下一页请求。
 - 客户端在 cursor 解码失败时拒绝整个协议，而不是按 opaque token 处理。
 
-## 11. Vector: Encrypted Envelope Digest
+## 12. Vector: Encrypted Envelope Digest
 
 向量名称：
 

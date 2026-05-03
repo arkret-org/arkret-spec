@@ -120,7 +120,22 @@ Hybrid Logical Clock 编码：
 01970e589d21-0004-a13f9c2e
 ```
 
+字段规则：
+
+- `unix_ms_hex` MUST 是 12 位小写十六进制毫秒时间戳。
+- `logical_hex` MUST 是 4 位小写十六进制逻辑计数器，取值范围 `0000..ffff`。
+- `node_id_hash` MUST 是 8 位小写十六进制稳定节点哈希；它只用于同一 `(unix_ms, logical)` 下的确定性 tie-break，不得替代因果关系或授权判断。
+
 排序按 `(unix_ms, logical, node_id_hash)` 字典序。
+
+溢出规则：
+
+- 生产者若在同一 `unix_ms` 内需要把 `logical_hex` 从 `ffff` 再递增，MUST NOT 回绕到 `0000`，也 MUST NOT 复用任何已发出的 HLC tuple。
+- 遇到该情况时，生产者 MUST 采取以下两种行为之一：
+  - 等待直到本地可生成更大的 `unix_ms_hex`，然后以 `logical_hex=0000` 生成新 HLC。
+  - 在生成 canonical bytes 之前以本地临时错误终止该次写入，例如 `hlc_logical_overflow`，由调用方稍后重试。
+- 生产者在等待或重试期间 MUST 保留原有 `prev_refs`、`auth_refs` 和 `actor_seq` 约束，不得仅为了逃避 overflow 而伪造更大的 wall clock skew。
+- 消费者若观察到同一 producer 出现 `unix_ms` 不变、`logical_hex` 从 `ffff` 回绕到更小值且没有更大 `unix_ms`，MUST 将其视为无效 HLC，并以 `schema_violation`、`causal_conflict`、`soft_fail` 或 quarantine 处理；不得把它当作正常排序值接受。
 
 ## 8. Cursor
 

@@ -203,7 +203,7 @@ Contrix 要解决的是：
 
 ## Legacy contract removal status（2026-05-03）
 
-当前 v1 active wire contract 已不再包含 `subject` / `room` / `card` typed ID、schema ID，以及 `cx.subject.*` / `cx.room.*` / `cx.card.*` 事件族。
+当前 v1 active wire contract 已不再包含 legacy `subject` / `room` / `card` typed ID、schema ID，以及已移除的 subject/room/card 事件族。
 
 规范入口：
 

@@ -18,8 +18,12 @@ CONTRACT_CATALOG_PATH = REGISTRY / "contract-catalog.json"
 MIRROR_MANIFEST_PATH = REGISTRY / "mirror-manifest.json"
 LEGACY_POLICY_PATH = REGISTRY / "legacy-compatibility-policy.json"
 LINT_SCRIPT = ARTIFACTS / "lint_artifacts.py"
+SERVICE_API_SCHEMA_PATH = ROOT / "zh" / "sync" / "service-api-schema.md"
+GENERATED_OPERATION_INVENTORY_START = "<!-- BEGIN GENERATED OPERATION INVENTORY -->"
+GENERATED_OPERATION_INVENTORY_END = "<!-- END GENERATED OPERATION INVENTORY -->"
 ALLOWED_LEGACY_PATHS = {
     LEGACY_POLICY_PATH.resolve(),
+    (ARTIFACTS / "lint_artifacts.py").resolve(),
     (ROOT / "zh" / "guides" / "legacy-subject-room-card-to-flow-migration.md").resolve(),
 }
 TEXT_SUFFIXES = {".json", ".yaml", ".yml", ".md", ".py", ".toml", ".txt"}
@@ -31,8 +35,7 @@ def load_json(path: Path) -> Any:
 
 
 def dump_json(data: Any) -> str:
-    return json.dumps(data, ensure_ascii=False, indent=2) + "
-"
+    return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 
 def load_contract_catalog() -> dict[str, Any]:
@@ -71,6 +74,123 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
             **section_payload,
         }
     return payloads
+
+
+def generated_operation_inventory_markdown(catalog: dict[str, Any]) -> str:
+    operation_registry = catalog.get("operation_registry")
+    if not isinstance(operation_registry, dict):
+        raise SystemExit("contract catalog missing operation_registry")
+
+    operations = operation_registry.get("operations")
+    surface_groups = operation_registry.get("surface_groups")
+    capability_tiers = operation_registry.get("capability_tiers")
+    if not isinstance(operations, list) or not operations:
+        raise SystemExit("operation_registry missing operations")
+    if not isinstance(surface_groups, list) or not surface_groups:
+        raise SystemExit("operation_registry missing surface_groups")
+    if not isinstance(capability_tiers, dict) or not capability_tiers:
+        raise SystemExit("operation_registry missing capability_tiers")
+
+    rows_by_id: dict[str, dict[str, str]] = {}
+    for index, row in enumerate(operations):
+        if not isinstance(row, dict):
+            raise SystemExit(f"operation_registry.operations[{index}] must be an object")
+        operation_id = row.get("operation_id")
+        if not isinstance(operation_id, str) or not operation_id:
+            raise SystemExit(f"operation_registry.operations[{index}] missing operation_id")
+        if operation_id in rows_by_id:
+            raise SystemExit(f"duplicate operation_id in operation_registry: {operation_id}")
+        rows_by_id[operation_id] = row
+
+    rendered_rows: list[str] = []
+    assigned: set[str] = set()
+    for index, group in enumerate(surface_groups):
+        if not isinstance(group, dict):
+            raise SystemExit(f"operation_registry.surface_groups[{index}] must be an object")
+        surface = group.get("surface")
+        tier = group.get("tier")
+        group_operations = group.get("operations")
+        if not isinstance(surface, str) or not surface:
+            raise SystemExit(f"operation_registry.surface_groups[{index}] missing surface")
+        if not isinstance(tier, str) or tier not in capability_tiers:
+            raise SystemExit(f"operation_registry.surface_groups[{index}] has unknown tier {tier!r}")
+        if not isinstance(group_operations, list) or not group_operations:
+            raise SystemExit(f"operation_registry.surface_groups[{index}] missing operations")
+        for operation_id in group_operations:
+            if not isinstance(operation_id, str) or not operation_id:
+                raise SystemExit(f"operation_registry.surface_groups[{index}] contains invalid operation_id")
+            row = rows_by_id.get(operation_id)
+            if row is None:
+                raise SystemExit(f"surface group {surface!r} references unknown operation_id {operation_id}")
+            if operation_id in assigned:
+                raise SystemExit(f"operation_id assigned to multiple surface_groups: {operation_id}")
+            assigned.add(operation_id)
+            rendered_rows.append(
+                "| "
+                + " | ".join(
+                    [
+                        f"`{tier}`",
+                        f"`{surface}`",
+                        f"`{operation_id}`",
+                        f"`{row.get('http', '')}`",
+                        f"`{row.get('grpc', '')}`",
+                        f"`{row.get('mq', '')}`",
+                    ]
+                )
+                + " |"
+            )
+
+    missing = sorted(set(rows_by_id) - assigned)
+    if missing:
+        raise SystemExit(
+            "operation_registry.surface_groups missing operation assignments: " + ", ".join(missing)
+        )
+
+    return "\n".join(
+        [
+            "| Tier | Surface | `operation_id` | HTTP | gRPC | MQ |",
+            "| --- | --- | --- | --- | --- | --- |",
+            *rendered_rows,
+            "",
+        ]
+    )
+
+
+def replace_generated_block(text: str, start_marker: str, end_marker: str, content: str) -> str:
+    start = text.find(start_marker)
+    end = text.find(end_marker)
+    if start == -1 or end == -1 or end < start:
+        raise SystemExit(f"missing generated block markers: {start_marker} / {end_marker}")
+    block_start = start + len(start_marker)
+    return text[:block_start] + "\n" + content + text[end:]
+
+
+def generated_service_api_schema_text() -> str:
+    text = SERVICE_API_SCHEMA_PATH.read_text(encoding="utf-8")
+    content = generated_operation_inventory_markdown(load_contract_catalog())
+    return replace_generated_block(
+        text,
+        GENERATED_OPERATION_INVENTORY_START,
+        GENERATED_OPERATION_INVENTORY_END,
+        content,
+    )
+
+
+def write_generated_service_api_schema() -> None:
+    SERVICE_API_SCHEMA_PATH.write_text(generated_service_api_schema_text(), encoding="utf-8")
+    print(f"updated {SERVICE_API_SCHEMA_PATH.relative_to(ROOT).as_posix()}")
+
+
+def check_generated_service_api_schema() -> list[str]:
+    expected = generated_service_api_schema_text()
+    actual = SERVICE_API_SCHEMA_PATH.read_text(encoding="utf-8")
+    if actual == expected:
+        return []
+    return [
+        "generated markdown drift: "
+        + SERVICE_API_SCHEMA_PATH.relative_to(ROOT).as_posix()
+        + " (run python tools/artifact_pipeline.py generate)"
+    ]
 
 
 def write_generated_registries() -> None:
@@ -243,6 +363,7 @@ def run_lint() -> int:
 
 def cmd_generate(_: argparse.Namespace) -> int:
     write_generated_registries()
+    write_generated_service_api_schema()
     return 0
 
 
@@ -254,6 +375,7 @@ def cmd_sync(_: argparse.Namespace) -> int:
 def cmd_check(_: argparse.Namespace) -> int:
     errors: list[str] = []
     errors.extend(check_generated_registries())
+    errors.extend(check_generated_service_api_schema())
     errors.extend(check_legacy_contracts())
     errors.extend(check_mirrors())
     if errors:
@@ -267,13 +389,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    generate_parser = subparsers.add_parser("generate", help="regenerate derived registries from contract-catalog.json")
+    generate_parser = subparsers.add_parser(
+        "generate",
+        help="regenerate derived registries and generated markdown inventories from contract-catalog.json",
+    )
     generate_parser.set_defaults(func=cmd_generate)
 
     sync_parser = subparsers.add_parser("sync", help="sync canonical artifacts into zh/ mirrors")
     sync_parser.set_defaults(func=cmd_sync)
 
-    check_parser = subparsers.add_parser("check", help="check generated registries, legacy guards, mirrors, and artifact lint")
+    check_parser = subparsers.add_parser(
+        "check",
+        help="check generated registries, generated markdown inventories, legacy guards, mirrors, and artifact lint",
+    )
     check_parser.set_defaults(func=cmd_check)
 
     return parser

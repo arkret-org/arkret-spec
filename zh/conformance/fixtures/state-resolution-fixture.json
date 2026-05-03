@@ -3,7 +3,7 @@
   "version": "2026-05-02",
   "vectors": [
     {
-      "name": "concurrent_card_move_hlc_tiebreak",
+      "name": "concurrent_flow_move_hlc_tiebreak",
       "base": {
         "flow_id": "cx:flow:01js0ca0000000000000000000",
         "list_id": "cx:space:01js0111000000000000000000",

@@ -23,7 +23,7 @@
 | --- | --- | --- |
 | 唯一事实 envelope | `zh/sync/operations-sync.md`, `artifacts/schemas/event-schema.json`, `artifacts/schemas/event-payload.schema.json` | 已闭环：Event Envelope 是唯一共享 wire fact；Operation 仅为服务 operation 或 SDK 内部 builder。 |
 | Event kind 与 payload | `artifacts/registry/event-kind-registry.json`, `artifacts/schemas/event-payload.schema.json` | 已闭环：active 标准 kind 必须按 kind 选择 payload class，失败即 `schema_violation`。 |
-| 服务 operation 映射 | `artifacts/registry/operation-registry.json`, `artifacts/openapi/contrix-service-api.openapi.yaml`, `artifacts/bindings/non-http-bindings.yaml` | 已闭环：HTTP / gRPC / MQ 等 binding 以 registry 为 source of truth。 |
+| 服务 operation 映射 | `artifacts/registry/contract-catalog.json`, `artifacts/registry/operation-registry.json`, `artifacts/openapi/contrix-service-api.openapi.yaml`, `artifacts/bindings/non-http-bindings.yaml` | 已闭环：`contract-catalog.json#operation_registry` 是 canonical source；HTTP / gRPC / MQ 等 binding 消费生成 registry 或等价生成物。 |
 | Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 已闭环：对象、Event、snapshot、moderation、Agent Authority、MIMI 等 schema 已注册。 |
 | Typed ID prefix | `artifacts/registry/id-kind-registry.json` | 已闭环：标准 `cx:<kind>:` prefix 有机器来源；fixture / schema 可 lint。 |
 | MVP profile | `zh/conformance/conformance-profiles.md`, `artifacts/profiles/conformance-profiles.json` | 已闭环：`core_event_store`、`chat_mvp`、`kanban_mvp` 与客户端/服务角色可独立声明。 |

@@ -20,6 +20,16 @@ from typing import Any, Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
+LEGACY_REMOVED_SCHEMA_IDS = {
+    "cx.schema.subject.v1",
+    "cx.schema.room.v1",
+    "cx.schema.card.v1",
+}
+LEGACY_REMOVED_TYPED_ID_KINDS = {"subject", "room", "card"}
+LEGACY_REFERENCE_PATHS = {
+    (ARTIFACTS / "registry" / "legacy-compatibility-policy.json").resolve(),
+    (ROOT / "zh" / "guides" / "legacy-subject-room-card-to-flow-migration.md").resolve(),
+}
 
 EVENT_KIND_TOKEN_RE = re.compile(r"\bcx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+\b")
 OPERATION_ID_RE = re.compile(r"^cx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$")
@@ -452,9 +462,76 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
 
     operation_rows = operation_registry.get("operations", [])
     operation_ids = unique_values(lint, operation_path, operation_rows, "operation_id")
+    operation_http_map: dict[str, str] = {}
+    operation_grpc_map: dict[str, str] = {}
+    operation_mq_map: dict[str, str] = {}
     for operation_id in operation_ids:
         if not OPERATION_ID_RE.fullmatch(operation_id):
             lint.fail(operation_path, f"operation_id has invalid format: {operation_id}")
+    for row in operation_rows if isinstance(operation_rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        operation_id = row.get("operation_id")
+        if not isinstance(operation_id, str) or operation_id not in operation_ids:
+            continue
+        http = row.get("http")
+        grpc = row.get("grpc")
+        mq = row.get("mq")
+        if not isinstance(http, str) or not http:
+            lint.fail(operation_path, f"{operation_id} missing http binding")
+        else:
+            operation_http_map[operation_id] = http
+        if not isinstance(grpc, str) or not grpc:
+            lint.fail(operation_path, f"{operation_id} missing grpc binding")
+        else:
+            operation_grpc_map[operation_id] = grpc
+        if not isinstance(mq, str) or not mq:
+            lint.fail(operation_path, f"{operation_id} missing mq binding")
+        else:
+            operation_mq_map[operation_id] = mq
+
+    capability_tiers = operation_registry.get("capability_tiers")
+    surface_groups = operation_registry.get("surface_groups")
+    assigned_operations: dict[str, str] = {}
+    if not isinstance(capability_tiers, dict) or not capability_tiers:
+        lint.fail(operation_path, "operation registry missing capability_tiers")
+    if not isinstance(surface_groups, list) or not surface_groups:
+        lint.fail(operation_path, "operation registry missing surface_groups")
+    else:
+        for index, row in enumerate(surface_groups):
+            if not isinstance(row, dict):
+                lint.fail(operation_path, f"surface_groups[{index}] must be an object")
+                continue
+            surface = row.get("surface")
+            tier = row.get("tier")
+            surface_operations = row.get("operations")
+            if not isinstance(surface, str) or not surface:
+                lint.fail(operation_path, f"surface_groups[{index}].surface must be a non-empty string")
+                continue
+            if not isinstance(tier, str) or (
+                isinstance(capability_tiers, dict) and tier not in capability_tiers
+            ):
+                lint.fail(operation_path, f"surface_groups[{index}] has unknown tier {tier!r}")
+            if not isinstance(surface_operations, list) or not surface_operations:
+                lint.fail(operation_path, f"surface_groups[{index}].operations must be a non-empty list")
+                continue
+            for operation_id in surface_operations:
+                if not isinstance(operation_id, str) or not operation_id:
+                    lint.fail(operation_path, f"surface_groups[{index}] contains invalid operation_id")
+                    continue
+                if operation_id not in operation_ids:
+                    lint.fail(operation_path, f"surface_groups[{index}] references unknown operation_id {operation_id}")
+                    continue
+                prior = assigned_operations.get(operation_id)
+                if prior is not None:
+                    lint.fail(
+                        operation_path,
+                        f"operation_id {operation_id} assigned to multiple surface_groups: {prior}, {surface}",
+                    )
+                    continue
+                assigned_operations[operation_id] = surface
+        for operation_id in sorted(operation_ids - set(assigned_operations)):
+            lint.fail(operation_path, f"operation_id missing from surface_groups: {operation_id}")
 
     profiles: set[str] = set()
     for _, value, _ in walk_json(profile_registry):
@@ -479,6 +556,9 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "id_kinds": id_kinds,
         "special_id_kinds": special_id_kinds,
         "operation_ids": operation_ids,
+        "operation_http_map": operation_http_map,
+        "operation_grpc_map": operation_grpc_map,
+        "operation_mq_map": operation_mq_map,
         "profiles": profiles,
     }
 
@@ -747,6 +827,8 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
             if key == "$ref" and isinstance(value, str):
                 ensure_relative_file(lint, path, path.parent, value, f"{json_path} $ref")
         for schema_id in json_string_tokens(data, SCHEMA_ID_TOKEN_RE):
+            if path.resolve() in LEGACY_REFERENCE_PATHS and schema_id in LEGACY_REMOVED_SCHEMA_IDS:
+                continue
             if schema_id not in known["schema_ids"]:
                 lint.fail(path, f"unknown schema id reference: {schema_id}")
         for profile_id in json_string_tokens(data, PROFILE_ID_TOKEN_RE):
@@ -887,6 +969,47 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
         lint.fail(path, f"deprecated Event.kind alias appears in event-schema enum coverage: {token}")
 
 
+def parse_openapi_operation_http_map(text: str) -> tuple[dict[str, str], list[str]]:
+    mapping: dict[str, str] = {}
+    errors: list[str] = []
+    in_paths = False
+    current_path: str | None = None
+    current_method: str | None = None
+
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        if not in_paths:
+            if line.strip() == "paths:":
+                in_paths = True
+            continue
+        if line and not line.startswith(" "):
+            break
+
+        path_match = re.match(r"^  (/[^:]+):\s*$", line)
+        if path_match:
+            current_path = path_match.group(1)
+            current_method = None
+            continue
+
+        method_match = re.match(r"^    (get|post|put|patch|delete|head|options|trace):\s*$", line)
+        if method_match and current_path is not None:
+            current_method = method_match.group(1).upper()
+            continue
+
+        operation_match = re.match(r"^      operationId:\s*([A-Za-z0-9_.-]+)\s*$", line)
+        if operation_match and current_path is not None and current_method is not None:
+            operation_id = operation_match.group(1)
+            http_binding = f"{current_method} {current_path}"
+            previous = mapping.get(operation_id)
+            if previous is not None and previous != http_binding:
+                errors.append(
+                    f"line {line_no}: operationId {operation_id} maps to multiple HTTP bindings: "
+                    f"{previous} vs {http_binding}"
+                )
+            mapping[operation_id] = http_binding
+
+    return mapping, errors
+
+
 def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
     openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
     openapi_text = openapi_path.read_text(encoding="utf-8")
@@ -899,6 +1022,22 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
         lint.fail(openapi_path, f"operationId not registered: {operation_id}")
     for operation_id in sorted(known["operation_ids"] - openapi_set):
         lint.fail(openapi_path, f"registered operation_id missing from OpenAPI: {operation_id}")
+    openapi_http_map, openapi_parse_errors = parse_openapi_operation_http_map(openapi_text)
+    for error in openapi_parse_errors:
+        lint.fail(openapi_path, error)
+    for operation_id in sorted(known["operation_ids"]):
+        expected_http = known["operation_http_map"].get(operation_id)
+        actual_http = openapi_http_map.get(operation_id)
+        if expected_http is None:
+            continue
+        if actual_http is None:
+            lint.fail(openapi_path, f"operationId missing HTTP path/method mapping: {operation_id}")
+        elif actual_http != expected_http:
+            lint.fail(
+                openapi_path,
+                f"operationId HTTP binding mismatch for {operation_id}: "
+                f"registry={expected_http!r}, openapi={actual_http!r}",
+            )
 
     binding_path = ARTIFACTS / "bindings" / "non-http-bindings.yaml"
     binding_text = binding_path.read_text(encoding="utf-8")
@@ -1062,6 +1201,8 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
         text = path.read_text(encoding="utf-8")
 
         for schema_id in SCHEMA_ID_TOKEN_RE.findall(text):
+            if path.resolve() in LEGACY_REFERENCE_PATHS and schema_id in LEGACY_REMOVED_SCHEMA_IDS:
+                continue
             if schema_id not in known["schema_ids"]:
                 lint.fail(path, f"markdown references unknown schema id: {schema_id}")
         for profile_id in PROFILE_ID_TOKEN_RE.findall(text):
@@ -1070,12 +1211,16 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
 
         for prefix_match in TYPED_ID_PREFIX_TOKEN_RE.finditer(text):
             kind = prefix_match.group(1)
+            if path.resolve() in LEGACY_REFERENCE_PATHS and kind in LEGACY_REMOVED_TYPED_ID_KINDS:
+                continue
             if kind not in known["id_kinds"] and kind not in known["special_id_kinds"]:
                 lint.fail(path, f"markdown references unregistered typed ID kind: cx:{kind}:")
 
         for match in TYPED_ID_TOKEN_RE.finditer(text):
             kind, rest = match.group(1), match.group(2)
             if is_placeholder_typed_id(rest):
+                continue
+            if path.resolve() in LEGACY_REFERENCE_PATHS and kind in LEGACY_REMOVED_TYPED_ID_KINDS:
                 continue
             check_typed_id_token(lint, path, "markdown", kind, rest, known)
 
@@ -1104,6 +1249,8 @@ def check_deprecated_alias_leakage(lint: Lint, known: dict[str, set[str]]) -> No
         return
     allowed = {
         (ARTIFACTS / "registry" / "event-kind-registry.json").resolve(),
+        (ARTIFACTS / "registry" / "contract-catalog.json").resolve(),
+        (ARTIFACTS / "registry" / "legacy-compatibility-policy.json").resolve(),
         Path(__file__).resolve(),
     }
     for path in raw_artifact_files():

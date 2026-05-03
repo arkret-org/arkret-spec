@@ -6,10 +6,11 @@
 
 机器可读 source of truth：
 
-- Object / DTO schema：`artifacts/registry/schema-registry.json`
-- Protocol typed ID kind：`artifacts/registry/id-kind-registry.json`
-- Standard Event kind：`artifacts/registry/event-kind-registry.json`（含 `wire_scope` 与 `reducer_input` 语义分类）
-- Service operation id：`artifacts/registry/operation-registry.json`
+- Canonical contract catalog：`artifacts/registry/contract-catalog.json`
+- Object / DTO schema：`artifacts/registry/schema-registry.json`（generated view）
+- Protocol typed ID kind：`artifacts/registry/id-kind-registry.json`（generated view）
+- Standard Event kind：`artifacts/registry/event-kind-registry.json`（generated view，含 `wire_scope` 与 `reducer_input` 语义分类）
+- Service operation id：`artifacts/registry/operation-registry.json`（generated view）
 
 ## 2. Object Schema
 

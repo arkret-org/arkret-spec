@@ -53,6 +53,32 @@
         "list"
       ]
     },
+    "board_kind": {
+      "type": "string",
+      "enum": [
+        "kanban",
+        "scrum",
+        "review_queue",
+        "intake",
+        "custom"
+      ],
+      "description": "Workflow sub-type; only meaningful when kind=board"
+    },
+    "default_view_id": {
+      "type": "string",
+      "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$",
+      "description": "Default view for kind=board spaces"
+    },
+    "rank": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z]{1,128}$",
+      "description": "Fractional-index rank within parent board space; only meaningful when kind=list"
+    },
+    "wip_limit": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Work-in-progress limit; only meaningful when kind=list"
+    },
     "created_by_principal": {
       "$ref": "#/$defs/did"
     },

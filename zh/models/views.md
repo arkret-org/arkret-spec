@@ -211,7 +211,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "anchor_ref": "cx:flow:01js0fl0000000000000000000",
+  "anchor_ref": "cx:flow:01js0fk0000000000000000000",
   "include": [
     "relations",
     "synthesis",
