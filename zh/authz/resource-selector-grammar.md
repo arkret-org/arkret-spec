@@ -6,7 +6,7 @@
 
 Contrix v1 capability 使用以下 canonical resource selector 模型：
 
-- `flow` 是统一协作主对象，`card` 与 `room` 只是 `Flow.kind`。
+- `flow` 是统一协作主对象，默认入口由 branch primary 解析规则得到，不是 selector domain。
 - `message` 总是属于某个 Flow 的 `discussion` branch。
 - `Space(kind=board)` 与 `Space(kind=list)` 是 Space 的工作流容器形态，不是独立 selector domain。
 - `morph` 用于开放扩展对象。
@@ -124,7 +124,7 @@ Capability grant 的 canonical 表示必须使用 JSON resource selector。字�
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "flow_kind_allow": ["card"],
+      "object_type_allow": ["flow"],
       "allowed_branches": ["synthesis"]
     }
   ]
@@ -155,9 +155,9 @@ Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind �
 
 List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`relation_kind_allow` 或对应 flow move payload 字段。
 
-### 3.2 Flow kind 选择
+### 3.2 Flow branch 选择
 
-Card-like 与 room-like 视角使用 `kind="flow"` 选择器，再用 `flow_kind_allow` 限制 `Flow.kind`。实现 MUST NOT 接受 `kind="card"` 或 `kind="room"` 作为 canonical resource selector kind。
+Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用 `allowed_branches` 限制 branch 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
 
 ```json
 {
@@ -172,14 +172,13 @@ Card-like 与 room-like 视角使用 `kind="flow"` 选择器，再用 `flow_kind
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "flow_kind_allow": ["room"],
       "allowed_branches": ["discussion"]
     }
   ]
 }
 ```
 
-`flow_kind_allow=["room"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并满足有效 branch access、history visibility 和 E2EE key eligibility。
+`allowed_branches=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并满足有效 branch access、history visibility 和 E2EE key eligibility。
 
 ## 4. 选择器求值
 
@@ -200,8 +199,8 @@ Card-like 与 room-like 视角使用 `kind="flow"` 选择器，再用 `flow_kind
 
 `flow:cx:space:...:*`
 
-- 匹配：该 Space 中所有 Flow，不区分 `Flow.kind`。
-- 若只允许 card-like 或 room-like 视角，必须使用 `flow_kind_allow`。
+- 匹配：该 Space 中所有 Flow。
+- 若只允许某个 branch 范围，必须使用 `allowed_branches`。
 
 `flow:cx:space:...:cx:flow:01js0ca1000000000000000000`
 
@@ -234,7 +233,7 @@ Card-like 与 room-like 视角使用 `kind="flow"` 选择器，再用 `flow_kind
 `object:cx:space:...:flow`
 
 - 匹配：该 Space 中所有 `type=flow` 的对象。
-- 若只允许 `Flow.kind="card"`，必须额外使用 `flow_kind_allow`。
+- 若只允许某个 branch 范围，必须额外使用 `allowed_branches`。
 
 `object:cx:space:...:cx:flow:01js0ca1000000000000000000`
 
@@ -377,7 +376,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须在授权 `actions` 中，或被明确的通配动作覆盖。
-3. **约束匹配**：`flow_kind_allow`、`flow_semantic_kind_allow`、`space_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_branches` 等约束必须满足。
+3. **约束匹配**：`space_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_branches` 等约束必须满足。
 4. **Branch access 检查**：Message 和 discussion branch 访问必须满足有效 branch access、history visibility 和 E2EE key eligibility。
 5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
@@ -389,13 +388,13 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 `*`、`space:*` 和 `object:*:*` 可能匹配非预期资源。缓解措施：
 
 - 始终配合 `expires_at` 使用。
-- 与 `object_type_allow`、`flow_kind_allow`、`morph_type_allow`、`facet_allow` 等约束组合。
+- 与 `object_type_allow`、`space_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_branches` 等约束组合。
 - 要求管理员审批与审计理由。
 - `max_delegation_depth` SHOULD 为 0。
 
 ### 8.2 非 canonical selector domain
 
-实现 MUST reject canonical JSON 中的 `kind="subject"`、`kind="room"`、`kind="card"`、`kind="board"` 和 `kind="list"`。Card / room 视角必须使用 `kind="flow"` 加 `flow_kind_allow`；board / list 容器必须使用 `kind="space"` 加 `space_kind_allow`。
+实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card、board 和 list。Flow branch 范围必须使用 `kind="flow"` 加 `allowed_branches`；board / list 容器必须使用 `kind="space"` 加 `space_kind_allow`。
 
 字符串 shorthand 也必须映射到上述 canonical domain；未声明的 selector domain MUST fail closed。
 

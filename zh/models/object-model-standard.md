@@ -16,7 +16,7 @@
 
 ## 2. Flow
 
-`flow` 表示 Space 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。它既可以表现为偏内容/推进的 `kind="card"`，也可以表现为偏讨论/协作的 `kind="room"`，但 identity 始终只保留一份。
+`flow` 表示 Space 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。Flow 不再定义额外的顶层模式或分类字段；默认入口由 branch primary 解析规则决定，业务语义由 Space schema、profile、`fields`、Relation 或 Morph 扩展表达。
 
 Flow 适合：
 
@@ -34,53 +34,51 @@ Flow 适合：
 - `description`
 - `brief`
 - `summary`
-- `kind`
-- `semantic_kind`
 - `body`
 - `fields`
-- `primary_branch`
 - `branches`
-- `access`
 - `state`
 
-### 2.1 `kind`
+### 2.1 `branches`
 
-`kind` 表示 Flow 的默认主视角：
+`branches` 是 Flow 的 branch 定义数组。每个元素至少包含 `name`；`is_primary=true` 是可选显式 primary 标记。
 
-- `card`
-- `room`
+示例：
 
-规则：
-
-- `kind="card"` 默认主入口 SHOULD 是 `synthesis` branch。
-- `kind="room"` 默认主入口 SHOULD 是 `discussion` branch。
-- `kind` 影响默认交互入口，不改变 `flow_id`，也不强制删除其他 branch。
-
-### 2.2 `semantic_kind`
-
-`semantic_kind` 是 Flow 的可选业务语义分类字段。它用于声明“这个 Flow 在业务上是什么”，而不是“默认以什么交互方式打开”。
-
-初版建议枚举：
-
-- `topic`
-- `initiative`
-- `decision`
-- `incident`
-- `customer_case`
-- `proposal`
-- `research`
-- `task_cluster`
-- `asset`
-- `custom`
+```json
+{
+  "branches": [
+    {
+      "name": "synthesis",
+      "is_primary": true
+    },
+    {
+      "name": "discussion",
+      "profile": "discussion",
+      "access": {
+        "membership": "inherit_flow",
+        "permissions": "inherit_flow",
+        "history_visibility": "joined",
+        "e2ee": "inherit_space"
+      }
+    }
+  ]
+}
+```
 
 规则：
 
-- `semantic_kind` 与 `kind` 正交。
-- 同一个 `semantic_kind="decision"` 的 Flow 可以是 `kind="card"` 或 `kind="room"`。
-- Space schema SHOULD 可以约束允许的 `semantic_kind` 集合。
-- View、搜索、通知和 agent policy SHOULD 允许按 `semantic_kind` 过滤或做默认 renderer 选择。
+- 每个 Flow MUST 至少有一个 active branch。
+- `branches[].name` 在同一个 Flow 内 MUST 唯一。`synthesis` 与 `discussion` 是 v1 标准 branch 名；profile MAY 声明更多 branch 名。
+- 同一个 Flow 中至多一个 branch MAY 设置 `is_primary=true`。多个显式 primary MUST 被 schema / reducer 拒绝。
+- 若没有 branch 显式设置 `is_primary=true`，Reducer MUST 按确定性规则派生 primary：若存在 `name="synthesis"`，选择 `synthesis`；否则若只有一个 branch，选择该 branch；否则若 profile 声明了默认 branch 且该 branch 存在，选择该 branch；仍无法唯一确定时 MUST fail closed，要求写入 `cx.flow.branch.set_primary` 或等价修复事件。
+- `is_primary=false` 与省略 `is_primary` 等价；它不是阻止默认派生的 veto。
+- resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，不授予读取、写入或管理权限。
+- branch 存在即表示 active；禁用 branch 应通过 `cx.flow.branch.disable` 从 active branch 集合移除或标记为 profile 声明的 archived state，不得留下可写入的 disabled 分支。
+- View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Space schema/profile、branch config 和可见字段；不得要求 Flow 额外声明模式字段。
+- 业务语义过滤 SHOULD 使用 Space schema/profile、`fields`、Relation、labels 或 Morph profile；不得通过 Flow 顶层分类字段形成核心协议语义。
 
-### 2.3 `synthesis` branch
+### 2.2 `synthesis` branch
 
 `synthesis` branch 承载 Flow 的整理后正式表达。它不是“摘要专栏”，而是 Flow 当前可被编辑、被引用、被推进的主数据面。
 
@@ -95,7 +93,7 @@ Flow 适合：
 - 状态推进字段
 - 结构化业务字段
 
-### 2.4 `discussion` branch
+### 2.3 `discussion` branch
 
 `discussion` branch 承载会话能力，而不是独立对象。它包含：
 
@@ -106,11 +104,11 @@ Flow 适合：
 
 推荐字段：
 
-- `enabled`
-- `room_kind`
+- `profile`
+- `access`
 - `fields`
 
-`room_kind` 初版建议支持：
+`profile` 初版建议支持：
 
 - `discussion`
 - `announcement`
@@ -121,28 +119,29 @@ Flow 适合：
 
 规则：
 
-- `room_kind` 是 discussion branch 的语义/profile 选择器，不是自动授权后门。
-- `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `room_kind` 字符串隐式生效。
+- `profile` 是 discussion branch 的语义/profile 选择器，不是自动授权后门。
+- `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `profile` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
-- Flow branch 默认继承 Flow / Space 的有效 membership、permission 与 E2EE 规则；独立 discussion membership、history visibility 或 E2EE group MUST 通过 `access.branch_overrides.discussion` 或等价 policy/capability state event 显式声明。
+- Flow branch 默认继承 Flow / Space 的有效 membership、permission 与 E2EE 规则；独立 discussion membership、history visibility 或 E2EE group MUST 通过 `branches[].access` 或等价 policy/capability state event 显式声明。
 - `discussion` branch membership 不从 `assigned_to`、`watchers` 或其他 Flow relation 隐式派生；若实现需要此类映射，必须在有效 access policy 中可审计地声明。
-- `access.branch_overrides.discussion.history_visibility` 与 `encryption_profile="mls_rfc9420"` 组合时，若未显式声明 history sharing policy，默认 SHOULD 等价于 `joined`。
-- 当 `discussion.enabled=false` 或 branch 不存在时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_branch_disabled` 或等价 fail-closed 结果。
+- `branches[].access.history_visibility` 与 `encryption_profile="mls_rfc9420"` 组合时，若未显式声明 history sharing policy，默认 SHOULD 等价于 `joined`。
+- 当 `discussion` branch 不存在或不处于 active 状态时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_branch_disabled` 或等价 fail-closed 结果。
 
-### 2.5 Branch Access
+### 2.4 Branch Access
 
-Flow 使用统一 access 语义表达 branch 的 membership、permission、history visibility 与 E2EE：
+Flow 在每个 branch 定义内使用 `access` 表达 membership、permission、history visibility 与 E2EE 的继承或 override：
 
 ```json
 {
-  "access": {
-    "defaults": {
-      "membership": "inherit_flow",
-      "permissions": "inherit_flow",
-      "e2ee": "inherit_space"
+  "branches": [
+    {
+      "name": "synthesis",
+      "is_primary": true
     },
-    "branch_overrides": {
-      "discussion": {
+    {
+      "name": "discussion",
+      "profile": "review",
+      "access": {
         "membership": "branch_scoped",
         "permissions": "branch_scoped",
         "history_visibility": "joined",
@@ -151,30 +150,30 @@ Flow 使用统一 access 语义表达 branch 的 membership、permission、histo
         "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
       }
     }
-  }
+  ]
 }
 ```
 
 规则：
 
-- `branches` 表达 branch 是否存在、默认入口和交互 profile；它不是另一套权限对象。
-- 缺省情况下，`synthesis` 与 `discussion` 都继承同一个 Flow / Space 授权体系。
-- 只有显式 override 的 branch 才拥有独立 membership、history visibility 或 E2EE group。
+- `branches` 表达 branch 是否存在、哪个 branch 是默认入口、以及 branch 的交互 profile 和访问继承方式。
+- 缺省情况下，branch 等价于 `membership="inherit_flow"`、`permissions="inherit_flow"`、`e2ee="inherit_space"`。
+- 只有 `access` 显式声明 `branch_scoped` 的 branch 才拥有独立 membership、history visibility 或 E2EE group。
 - `synthesis` branch SHOULD 使用继承访问规则；需要字段级限制时，应优先使用 capability constraints，而不是为 `synthesis` 创建另一套成员表。
 
-### 2.6 转换
+### 2.5 转换
 
-`cx.flow.convert` 在 `kind="card"` 和 `kind="room"` 之间切换同一个 Flow 的主视角。
+`cx.flow.convert` 在同一个 Flow 内把目标 `branch` 标记为唯一 primary，并可要求 reducer 确保目标 branch 存在。它不再携带模式字段。
 
 规则：
 
 - 转换不改变 `flow_id`。
 - 转换不复制或迁移消息历史。
-- 从 `card -> room` 时，若 `discussion` branch 尚未启用，Reducer MUST 自动启用它，或在 policy 禁止时 fail closed。
-- 从 `room -> card` 时，不得自动删除 `discussion` branch 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.branch.disable` 或 profile 声明的 archive 语义。
+- 切换到 `branch="discussion"` 时，若 `discussion` branch 尚不存在，Reducer MUST 自动创建它，或在 policy 禁止时 fail closed。
+- 切换到其他 branch 时，不得自动删除 `discussion` branch 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.branch.disable` 或 profile 声明的 archive 语义。
 - 转换不自动移除 Space (kind=board)/Space (kind=list) 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
 
-### 2.7 常见关系
+### 2.6 常见关系
 
 - `Space (kind=list) --contains--> flow`
 - `flow --assigned_to--> actor`

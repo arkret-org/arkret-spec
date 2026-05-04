@@ -51,7 +51,7 @@ Contrix Applet 的差异不是简单“更强”，而是粒度不同：
 Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix 的协议根对象。Contrix 从对象模型开始就把 agent 纳入：
 
 - agent 可以是 principal、Actor、capability subject。
-- agent 输出可以写入 Message、`kind="card"` 的 Flow、Morph 或 Relation。
+- agent 输出可以写入 Message、Flow、Morph 或 Relation。
 - agent 权限必须窄范围、短时效、可撤销、可审计。
 - agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Contrix。
 - Contrix 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。

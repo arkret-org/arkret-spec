@@ -44,8 +44,8 @@ Core identity conformance 只要求 DID Core 解析 / 验证抽象、`did:web` �
 为避免 Core 范围过大导致实现无法启动，v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `cx.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
-- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、`Flow(kind=room)` 或启用 discussion branch 的 Flow、`cx.flow.branch.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
-- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 `Space(kind=board/list)`、`Flow(kind=card)`、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、客户端 Collection projection 和 wait-for query。
+- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion branch 且可设为 primary 的 Flow、`cx.flow.branch.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
+- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 `Space(kind=board/list)`、Flow、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、客户端 Collection projection 和 wait-for query。
 
 `chat_only_client`、`kanban_only_client`、`minimal_client` 和 `principal_server` 可以组合上述闭环声明能力；未声明的闭环不得被对端视为默认可用。
 
@@ -78,16 +78,16 @@ MUST 支持：
 - client sync、timeline pagination、backfill、`state_after`
 - Flow discussion branch 的有效 access 裁剪规则，包括默认继承和 branch-scoped history_visibility / membership override
 
-MAY 支持 `Space(kind=board/list)`、`Flow(kind=card)`、View projection、Applet、Agent、WebRTC、MIMI 和 E2EE。未声明支持时，客户端不得把这些能力作为必需交互。
+MAY 支持 `Space(kind=board/list)`、Flow workflow positioning、View projection、Applet、Agent、WebRTC、MIMI 和 E2EE。未声明支持时，客户端不得把这些能力作为必需交互。
 
 ### `cx.profile.kanban_only_client.v1`
 
-适用于只实现 `Space(kind=board/list)` / `Flow(kind=card)` 工作流的客户端。
+适用于只实现 `Space(kind=board/list)` / Flow 工作流的客户端。
 
 MUST 支持：
 
 - DID / handle 解析和 service discovery
-- Space bootstrap、`Space(kind=board/list)`、`Flow(kind=card)`、Relation position edge、View collection projection
+- Space bootstrap、`Space(kind=board/list)`、Flow、Relation position edge、View collection projection
 - `cx.space.*`（Board-Space / List-Space 创建、更新、层级结构）、`cx.flow.create`、`cx.flow.update`、`cx.flow.move`、`cx.flow.reorder`
 - Board position 的 CAS / stale reorder 处理和 deterministic conflict record 展示
 - 基础 capability check 结果处理和 `cx.flow.move` / `cx.flow.reorder` 高频授权快路径

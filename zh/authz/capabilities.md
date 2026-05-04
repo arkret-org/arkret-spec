@@ -116,7 +116,7 @@ Contrix v1 支持以下 `kind`：
 - `read_marker`
 - `blob`
 
-资源选择器应把 Space(kind=board/list)、Flow(kind=card/room)、Flow semantic kind、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。
+资源选择器应把 Space(kind=board/list)、Flow branch、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义不再是顶层字段，应该通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。
 
 ## 5. 动作集合
 
@@ -221,8 +221,6 @@ Contrix v1 支持：
 - `fields_write_allow`
 - `fields_write_deny`
 - `space_kind_allow`
-- `flow_kind_allow`
-- `flow_semantic_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
 - `allowed_flow_refs`
@@ -252,7 +250,7 @@ Contrix v1 支持：
 
 上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准。
 
-`room` 不是独立资源类型。需要限制讨论型 Flow 时，使用 `object_type_allow=["flow"]`、`flow_kind_allow=["room"]` 和 `allowed_branches=["discussion"]`；不得引入 `room_kind_allow` 作为 v1 grant 字段。`branches.discussion.room_kind` 只是 Flow discussion branch 的语义/profile hint，不能单独授予读取、发送或成员权限。
+`discussion` 不是独立资源类型。需要限制 discussion branch 时，使用 `object_type_allow=["flow"]` 和 `allowed_branches=["discussion"]`；不得引入按 branch profile 名称授权的 v1 grant 字段。`branches[].profile` 只是 Flow branch 的语义/profile hint，不能单独授予读取、发送或成员权限。
 
 | 扁平名称 | Typed `constraint_type` | 对应字段 |
 |----------|------------------------|----------|
@@ -261,8 +259,6 @@ Contrix v1 支持：
 | `fields_write_allow` | `field_access` | `scope: "write"`, `effect: "allow"`, `fields` |
 | `fields_write_deny` | `field_access` | `scope: "write"`, `effect: "deny"`, `fields` |
 | `space_kind_allow` | `type_restriction` | `space_kind_allow` |
-| `flow_kind_allow` | `type_restriction` | `flow_kind_allow` |
-| `flow_semantic_kind_allow` | `type_restriction` | `flow_semantic_kind_allow` |
 | `morph_type_allow` | `type_restriction` | `morph_type_allow` |
 | `facet_allow` | `type_restriction` | `facet_allow` |
 | `allowed_flow_refs` | `scope_limitation` | `allowed_flow_refs` |
@@ -436,7 +432,7 @@ Contrix v1 至少区分：
 - 编辑任意消息。
 - 撤回自己的消息。
 - 撤回任意消息。
-- 转换 `kind="card"` / `kind="room"`。
+- 切换 primary branch。
 
 这能避免把“能改 Flow”和“能进 branch-scoped discussion”混成一种权限，同时允许普通 discussion 在有效 access policy 中显式继承 Flow / Space 权限。
 

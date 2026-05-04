@@ -79,7 +79,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 | Flow 拖到另一个 List | `cx.flow.move` |
 | Flow 在同一 List 内排序 | `cx.flow.reorder` |
 | 修改 Flow 标题、状态、负责人、截止时间 | `cx.flow.update` |
-| 切换 Flow card/room 视角 | `cx.flow.convert` |
+| 切换 Flow 默认 branch | `cx.flow.convert` / `cx.flow.branch.set_primary` |
 | 开启/关闭 discussion branch | `cx.flow.branch.enable` / `cx.flow.branch.disable` |
 | 修改 Space (kind=board) / Space (kind=list) 元数据 | `cx.space.update` |
 | 发送、编辑、撤回 discussion 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
@@ -102,7 +102,6 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
   "query": {
     "object_types": ["flow"],
     "filters": [
-      { "field": "kind", "op": "eq", "value": "card" },
       { "field": "fields.archived", "op": "neq", "value": true }
     ],
     "relation": {
@@ -128,7 +127,6 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
   },
   "visible_fields": [
     "title",
-    "semantic_kind",
     "fields.priority",
     "fields.due_at"
   ]
@@ -176,9 +174,8 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "object_types": ["flow"],
-  "filters": [
-    { "field": "kind", "op": "eq", "value": "card" },
+    "object_types": ["flow"],
+    "filters": [
     { "field": "fields.status", "op": "in", "value": ["todo", "in_progress"] },
     { "field": "state", "op": "eq", "value": "active" }
   ],
@@ -235,10 +232,10 @@ Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开未被有效 a
 | --- | --- | --- |
 | 看板 | Space (kind=board) | 标准 Space 对象，可被引用、授权、讨论和审计。 |
 | 列/泳道 | Space (kind=list) | Space (kind=board) 内有序容器。 |
-| 卡片 | `flow` with `kind="card"` | 标准工作对象。 |
+| 卡片 | `flow` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=flow_id}` | 表示 List 与 Flow 的 canonical 包含关系。 |
 | 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系。 |
-| 讨论入口 | `flow.branches.discussion` + `flow.access` | 讨论能力属于同一个 Flow；`branches` 表达能力存在，`access` 表达继承或 branch-scoped override。 |
+| 讨论入口 | `branches[]` 中 `name="discussion"` 的 branch | 讨论能力属于同一个 Flow；`branches[].access` 表达继承或 branch-scoped override。 |
 
 ### 6.2 Board 不显示全 Space 数据
 
@@ -270,7 +267,6 @@ Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按
           "object": {
             "id": "cx:flow:01task00000000000000000000",
             "type": "flow",
-            "kind": "card",
             "title": "Legal review"
           },
           "position": {

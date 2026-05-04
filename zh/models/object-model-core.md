@@ -39,7 +39,7 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 - `boundary_profile="security_boundary"`：复制、权限、schema、policy、membership、history visibility、加密和索引的硬边界。
 - `boundary_profile="container"`：安全边界内的工作流容器，用于稳定 ID、排序、View / Relation anchor 和局部元数据；不形成独立 membership、join rule、history visibility、MLS group、federation topology 或 plaintext-visible service。
 
-标准 `Space.kind` 中，`collaboration`、`personal`、`project`、`organization` 和 `enclave` 默认是 `security_boundary`；`board` 和 `list` 默认是 `container`。实现不得仅凭 `type="space"` 就假定对象一定形成新安全边界，必须按 `boundary_profile` 或由 `kind` 派生的默认值判断。
+标准 `Space.kind` 中，`collaboration`、`personal`、`project`、`organization` 和 `enclave` 默认是 `security_boundary`；`board` 和 `list` 默认是 `container`。实现不得仅凭 `type="space"` 或 `cx:space:` ID 前缀就假定对象一定形成新安全边界，必须按 `boundary_profile` 或由 `kind` 派生的默认值判断。任意 `cx:space:` 的处理决策树见 `data-structures.md` §4.1。
 
 一个 Space 可以包含多个：
 
@@ -55,16 +55,16 @@ Security-boundary Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成�
 
 ### 2.2 Flow 承载主语义
 
-同一个协作主题由一个 Flow 表达；`kind` 与 branch 决定默认入口和能力面。
+同一个协作主题由一个 Flow 表达；branch primary 解析规则与 branch 配置决定默认入口和能力面。
 
 标准对象本身表达主语义：
 
-- `flow`：统一协作主对象。它承载标题、description、brief、summary 等基础字段，并通过 `kind` 决定默认视角：`card` 偏整理与推进，`room` 偏讨论和协作。
+- `flow`：统一协作主对象。它承载标题、description、brief、summary 等基础字段，并通过 branch primary 解析规则决定默认进入哪个 branch。
 - `message`：Flow `discussion` branch 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
-- Space (kind=board) 和 Space (kind=list) 通过 Space 层级表达工作流容器，并管理 `kind="card"` 的 Flow 位置。
+- Space (kind=board) 和 Space (kind=list) 通过 Space 层级表达工作流容器，并管理 Flow 位置。
 
-标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；`kind="card"` 天然适合作为 Space (kind=board)/Space (kind=list) 管理的工作对象；`kind="room"` 天然适合作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才能承认其主语义。
+标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；启用 `synthesis` 的 Flow 可作为 Space (kind=board)/Space (kind=list) 管理的工作对象；启用 `discussion` 的 Flow 可作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才能承认其主语义。
 
 ### 2.3 Morph 是开放对象
 
@@ -225,14 +225,12 @@ Accountable actor MUST 记录责任关系，但 accountability 不等于 capabil
 
 Flow 是 Space 内统一的协作主对象，直接承载“这件事本身”、一组参与者和围绕它的上下文信息。
 
-Flow 通过三层语义表达差异：
+Flow 通过两层语义表达差异：
 
-- `kind`：主模式。`card` 默认主入口是 `synthesis` branch；`room` 默认主入口是 `discussion` branch。
-- `semantic_kind`：业务语义分类，例如 `initiative`、`decision`、`incident`。
-- `branches`：能力分支。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天和讨论 timeline。
-- `access`：branch 默认继承与显式 override。缺省情况下 branch 使用同一 Flow / Space 授权体系；只有声明 branch-scoped override 时，才形成独立成员、历史或 E2EE 边界。
+- `branches`：能力分支数组。`name` 标识 branch，`is_primary=true` 可显式标识默认入口；未显式标记时按确定性规则派生。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天和讨论 timeline。
+- `branches[].access`：branch 默认继承与显式 override。缺省情况下 branch 使用同一 Flow / Space 授权体系；只有声明 branch-scoped override 时，才形成独立成员、历史或 E2EE 边界。
 
-由于 `room` 和 `card` 只是同一 Flow 的两种模式，实现 MAY 通过 `cx.flow.convert` 在二者之间切换。转换不会改变 Flow identity，也不要求复制或迁移消息历史。
+业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Space schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。`cx.flow.convert` 只切换 `branches[].is_primary` 或确保目标 branch 存在；转换不会改变 Flow identity，也不要求复制或迁移消息历史。
 
 最小结构：
 
@@ -242,8 +240,6 @@ Flow 通过三层语义表达差异：
   "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "kind": "card",
-  "semantic_kind": "initiative",
   "title": "支付重构",
   "description": "统一支付链路、风控回调和退款状态机。",
   "brief": "同步 owner、决策和 blocker。",
@@ -257,24 +253,15 @@ Flow 通过三层语义表达差异：
     "priority": "high",
     "due_at": "2026-05-01T00:00:00Z"
   },
-  "primary_branch": "synthesis",
-  "branches": {
-    "synthesis": {
-      "enabled": true
+  "branches": [
+    {
+      "name": "synthesis",
+      "is_primary": true
     },
-    "discussion": {
-      "enabled": true,
-      "room_kind": "review"
-    }
-  },
-  "access": {
-    "defaults": {
-      "membership": "inherit_flow",
-      "permissions": "inherit_flow",
-      "e2ee": "inherit_space"
-    },
-    "branch_overrides": {
-      "discussion": {
+    {
+      "name": "discussion",
+      "profile": "review",
+      "access": {
         "membership": "branch_scoped",
         "permissions": "branch_scoped",
         "history_visibility": "joined",
@@ -283,7 +270,7 @@ Flow 通过三层语义表达差异：
         "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
       }
     }
-  },
+  ],
   "state": "active",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -292,29 +279,31 @@ Flow 通过三层语义表达差异：
 
 Flow 规则：
 
-- Flow identity 只保存一份，`kind` 和 `primary_branch` 只决定默认视角，不创建新的对象副本。
+- Flow identity 只保存一份，resolved primary branch 只决定默认视角，不创建新的对象副本。
+- 同一 Flow 的 `branches[].name` MUST 唯一，且至多一个 active branch MAY 设置 `is_primary=true`。
+- 若没有显式 `is_primary=true`，Reducer MUST 派生 primary：`synthesis` 存在时优先选择 `synthesis`；否则单 branch Flow 选择唯一 branch；否则按 profile 默认 branch 选择；仍无法唯一确定时 fail closed。
 - `synthesis` branch 与 `discussion` branch 可以共享同一标题和基础字段，branch reducer 只负责对应交互面当前态。
 - branch access 默认继承 Flow / Space；`discussion` branch 的 membership、history visibility 和 E2EE 只有在显式 override 时才独立收敛，且不得放大 `synthesis` branch 的可见字段。
-- `primary_branch` 只是默认入口，不授予读取、写入或管理权限。
-- branch-scoped E2EE group 的 scope MUST 绑定 `space_id + flow_id + branch="discussion"`。`cx.flow.convert` 只改变默认入口和 Flow kind，不得隐式重建、合并或迁移该 MLS group；只有显式 branch access / encryption policy event 才能创建、reinit、archive 或替换 group。
+- `is_primary` 只是默认入口标记，不授予读取、写入或管理权限。
+- branch-scoped E2EE group 的 scope MUST 绑定 `space_id + flow_id + branch="discussion"`。`cx.flow.convert` 只改变默认入口或 branch 启用状态，不得隐式重建、合并或迁移该 MLS group；只有显式 branch access / encryption policy event 才能创建、reinit、archive 或替换 group。
 
 ## 7. Flow Discussion Branch
 
-Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线和通知 profile；历史可见性、成员表和可选 E2EE group 通过 Flow `access` 或 policy/capability state event 显式声明。
+Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线和通知 profile；历史可见性、成员表和可选 E2EE group 通过 `branches[].access` 或 policy/capability state event 显式声明。
 
-`kind="room"` SHOULD 默认创建并启用 `discussion` branch，且 `primary_branch` SHOULD 为 `discussion`。`kind="card"` MAY 初始只带 `synthesis` branch；需要讨论时再启用 `discussion` branch。
+若 `discussion` branch 设置 `is_primary=true`，该 branch MUST 存在于 active `branches` 数组中。Flow MAY 初始只带 `synthesis` branch；需要讨论时再启用 `discussion` branch。
 
 Discussion branch 规则：
 
 - 能看 Flow synthesis 只有在有效 access policy 继承或授予 discussion 读取时，才表示能看 `discussion` branch。
 - 能看 `discussion` branch 不表示能改 Flow 的字段、状态或 Board 位置。
 - branch-scoped `discussion` membership 不自动改变 Flow assignment、Flow visibility 或 Space membership。
-- Flow 从 `card` 转成 `room`，或从 `room` 转成 `card`，都不自动删除已有讨论历史。
+- 切换 primary branch 不会自动删除已有讨论历史。
 - 当 branch-scoped membership 与 branch-scoped E2EE 同时启用时，`cx.flow.branch.member` 的有效 frontier MUST 被对应 MLS `application_state_ref.membership_frontier` 覆盖；否则客户端只能把新 epoch 视为 `decryption_pending` / `state_mismatch`。
 
 ## 8. Space (kind=board) / Space (kind=list) / Flow
 
-Space (kind=board) 与 Space (kind=list) 是 `Space` 的工作流容器形态，使用 `cx:space:` ID，但默认 `boundary_profile="container"`。Space (kind=board) 是工作流容器；Space (kind=list) 是 Space (kind=board) 内的列/泳道；Space (kind=board) / Space (kind=list) 默认管理 `kind="card"` 的 Flow。
+Space (kind=board) 与 Space (kind=list) 是 `Space` 的工作流容器形态，使用 `cx:space:` ID，但默认 `boundary_profile="container"`。Space (kind=board) 是工作流容器；Space (kind=list) 是 Space (kind=board) 内的列/泳道；Space (kind=board) / Space (kind=list) 默认管理 Flow 的位置关系。
 
 Space (kind=board) 投影示例（非完整 canonical Space schema）：
 
@@ -356,7 +345,6 @@ Space (kind=board)/Space (kind=list) 中的 Flow 示例：
   "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "kind": "card",
   "title": "Review launch checklist",
   "body": {
     "format": "markdown",
@@ -367,6 +355,12 @@ Space (kind=board)/Space (kind=list) 中的 Flow 示例：
     "priority": "high",
     "due_at": "2026-05-01T00:00:00Z"
   },
+  "branches": [
+    {
+      "name": "synthesis",
+      "is_primary": true
+    }
+  ],
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_at": "2026-04-26T00:00:00Z"
@@ -375,7 +369,7 @@ Space (kind=board)/Space (kind=list) 中的 Flow 示例：
 
 Flow 在 Space (kind=board) / Space (kind=list) 中的位置通过 active `contains` Relation / flow position event 表达，不由 branch 决定，也不要求 Flow canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
 
-**位置唯一性**：一个 Flow 在同一个 Board-Space 内 MUST NOT 同时占据多个 List-Space 的 active position edge。`(board_id, flow_id)` 是 active position edge 的去重 key。`cx.flow.move` reducer 在创建新 position edge 前 MUST 关闭同一 `(board_id, flow_id)` 下的其他 active position edge。这保证了看板视图中每个 card 只出现在一个列中。
+**位置唯一性**：一个 Flow 在同一个 Board-Space 内 MUST NOT 同时占据多个 List-Space 的 active position edge。`(board_id, flow_id)` 是 active position edge 的去重 key。`cx.flow.move` reducer 在创建新 position edge 前 MUST 关闭同一 `(board_id, flow_id)` 下的其他 active position edge。这保证了看板视图中每个 Flow item 只出现在一个列中。
 
 常见关系：
 

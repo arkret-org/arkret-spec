@@ -28,7 +28,7 @@
 | `temporal` | 基于时间的约束 | v1 |
 | `field_access` | 字段级读写控制 | v1 |
 | `type_restriction` | 对象类型限制 | v1 |
-| `scope_limitation` | Space / Flow / View 范围（room / card 为 flow.kind） | v1 |
+| `scope_limitation` | Space / Flow / View / branch 范围 | v1 |
 | `delegation_control` | 委托深度和路径 | v1 |
 | `rate_limiting` | 操作频率限制 | v1 |
 | `approval_workflow` | 审批要求 | v1 |
@@ -122,15 +122,13 @@
   "effect": "allow",
   "object_type_allow": ["flow", "message", "morph"],
   "space_kind_allow": ["board", "list"],
-  "flow_kind_allow": ["card"],
-  "flow_semantic_kind_allow": ["task_cluster", "customer_case"],
   "morph_type_allow": ["document", "customer_case"],
   "facet_allow": ["stateful", "replyable", "documentable"],
   "morph_type_deny": ["credential"]
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 只用于区分 `Space.kind`，例如 `board` / `list` 工作流容器；它不得把容器 Space 升级为独立 membership 或 E2EE 边界。`flow_kind_allow` 只用于区分 `Flow.kind`，例如 `card` / `room`；`flow_semantic_kind_allow` 用于业务语义分类。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 只用于区分 `Space.kind`，例如 `board` / `list` 工作流容器；它不得把容器 Space 升级为独立 membership 或 E2EE 边界。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
@@ -152,7 +150,7 @@
 
 `allowed_branches` 只限制 Flow branch 范围，不自动授予对应 branch 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并满足 branch access、history visibility 和 E2EE key eligibility。
 
-`room` 不是独立实体或 selector kind。授权讨论型 Flow 应使用 `flow_kind_allow=["room"]`；授权 discussion branch 应同时使用 `allowed_branches=["discussion"]`。`branches.discussion.room_kind` 只是 branch-local semantic/profile hint，v1 grant constraint 不定义 `room_kind_allow` / `room_kind_deny`。
+`discussion` 不是独立实体或 selector kind。授权 discussion branch 应使用 `allowed_branches=["discussion"]`。`branches[].profile` 只是 branch-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、branch access、history visibility 和 E2EE key eligibility 决定。
 
 ### 6.2 视图限制
 
@@ -597,7 +595,7 @@ function matches_field_access(operation, constraint):
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "flow_kind_allow": ["card"]
+      "object_type_allow": ["flow"]
     },
     {
       "constraint_type": "field_access",

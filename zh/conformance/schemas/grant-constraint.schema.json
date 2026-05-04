@@ -106,42 +106,6 @@
       },
       "uniqueItems": true
     },
-    "flow_kind_allow": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "card",
-          "room"
-        ]
-      },
-      "uniqueItems": true
-    },
-    "flow_kind_deny": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "card",
-          "room"
-        ]
-      },
-      "uniqueItems": true
-    },
-    "flow_semantic_kind_allow": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
-    },
-    "flow_semantic_kind_deny": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
-    },
     "morph_type_allow": {
       "type": "array",
       "items": {

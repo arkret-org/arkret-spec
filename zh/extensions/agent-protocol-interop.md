@@ -169,7 +169,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 `cx.agent.protocol_session.result` 的 `content` MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
 
-Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如 `semantic_kind="task_cluster"` 的执行 Flow、`semantic_kind="decision"` 的决策 Flow、`semantic_kind="proposal"` 的方案 Flow 或 `semantic_kind="research"` 的分析 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
+Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Space schema/profile、`fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
 
 ## 6. 协商流程
 

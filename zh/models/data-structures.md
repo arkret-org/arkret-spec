@@ -98,6 +98,40 @@ Space kind 语义：
 
 `boundary_profile=security_boundary` 的 Space 是复制、授权、schema、policy、membership、history visibility、E2EE 和索引边界。`boundary_profile=container` 的 Space 只提供容器 ID、排序、View / Relation anchor 和局部工作流元数据；它不得隐式创建独立 membership、join rule、history visibility、MLS group、federation topology、retention policy 或 plaintext-visible service。Profile 若允许自定义 kind 成为容器，必须显式声明 `boundary_profile=container`，并说明父安全边界如何解析。
 
+### 4.1 `cx:space:` ID 处理决策树
+
+`cx:space:` 前缀只表示对象类型为 Space，不表示它一定是安全边界。实现收到任意 `id:space` 时，MUST 先解析该 Space 的 `kind` / `boundary_profile`，再决定授权、同步、加密和投影行为。
+
+```mermaid
+flowchart TD
+    A["Input: cx:space:*"] --> B["Load Space object or stripped/snapshot proof"]
+    B --> C{"boundary_profile present?"}
+    C -->|yes| D["Use declared boundary_profile"]
+    C -->|no| E{"standard kind?"}
+    E -->|"board/list"| F["Derive boundary_profile=container"]
+    E -->|"collaboration/personal/project/organization/enclave"| G["Derive boundary_profile=security_boundary"]
+    E -->|"custom/unknown"| H["Require profile declaration; otherwise fail closed for writes"]
+    D --> I{"security_boundary?"}
+    F --> J["Resolve nearest security-boundary ancestor"]
+    G --> K["Treat this Space as security boundary"]
+    H --> I
+    I -->|yes| K
+    I -->|container| J
+    J --> L{"ancestor verified?"}
+    L -->|yes| M["Use ancestor membership/policy/history/E2EE/federation"]
+    L -->|no| N["read-only/locked or dependency_missing"]
+    K --> O["Use this Space membership/policy/history/E2EE/federation"]
+    M --> P["Use container only for View/Relation/rank/local workflow metadata"]
+```
+
+处理规则：
+
+- 授权、membership、history visibility、E2EE、federation、retention、plaintext-visible service 和 policy server 解析必须落到 `boundary_profile=security_boundary` 的 Space。Container Space 不得单独成为这些安全决策的根。
+- Board/List 的 `space_id` 指向其父容器或父安全边界，但实现不能只跟随一跳就停止；List 的最近安全边界通常是 `Space(collaboration/project/...) -> Board -> List` 链上的第一个 security-boundary ancestor。
+- `cx.space.child` / `cx.space.parent`、Relation 或 snapshot proof 都可以帮助解析容器层级；解析结果必须验证事件签名、state resolution、frontier 和权限。
+- 若某个 `cx:space:` 缺少可验证 Space object / stripped state，客户端 MAY 显示 opaque locked reference，但 MUST NOT 推断它是 board、list 或安全边界。
+- 写入路径中，`cx.flow.move`、`cx.container.move_item`、board/list rank 更新等容器操作仍必须在最近 security-boundary Space 的 auth state 下授权，再验证目标 container 的存在、状态和关系约束。
+
 ## 5. Actor Profile
 
 Schema id: `cx.schema.actor_profile.v1`
@@ -122,7 +156,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 
 ## 6. Standard Objects
 
-Flow、Space 和 Message 是标准对象。Space (kind=board)/Space (kind=list) 表达工作流容器；Flow (kind=card)/Flow (kind=room) 表达协作主对象的默认交互形态。
+Flow、Space 和 Message 是标准对象。Space (kind=board)/Space (kind=list) 表达工作流容器；Flow 通过 branch primary 解析规则表达协作主对象的默认入口。
 
 ### 6.1 Flow
 
@@ -133,14 +167,10 @@ Schema id: `cx.schema.flow.v1`
 | `id` | yes | `id:flow` | 以 `cx:flow:` 开头。 | Flow ID。 |
 | `type` | yes | `enum(flow)` | 固定为 `flow`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
-| `kind` | yes | `enum(card, room)` | 决定默认主分支与默认交互面。 | Flow 形态。 |
-| `semantic_kind` | no | `enum(topic, initiative, decision, incident, customer_case, proposal, research, task_cluster, asset, custom)` | 用于表达业务语义分类。 | Flow 语义分类。 |
 | `title` | yes | `string` | 1..512 chars。 | 标题。 |
 | `description` | no | `string` | SHOULD <= 8192 chars。 | 较完整说明。 |
 | `brief` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
-| `primary_branch` | yes | `enum(synthesis, discussion)` | `card` 默认 `synthesis`，`room` 默认 `discussion`。 | 默认入口分支。 |
-| `branches` | yes | `object` | `kind=card` 时 MUST 包含 `synthesis`；`kind=room` 时 MUST 包含 `discussion`。两个分支均可存在。 | 分支状态。 |
-| `access` | no | `object` | branch 默认访问规则与显式 override。 | 统一授权/成员/E2EE 继承配置。 |
+| `branches` | yes | `array<FlowBranch>` | 至少 1 项；`name` 在同一 Flow 内唯一；至多 1 项 `is_primary=true`。 | 分支定义、默认入口与分支访问继承。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `version` | no | `integer` | SHOULD 单调递增，不能替代 event order。 | 物化版本。 |
@@ -149,7 +179,36 @@ Schema id: `cx.schema.flow.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-`branches.synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`branches.discussion` 在启用时承载房间式讨论能力，例如 `room_kind`、timeline profile 与 branch-local fields。Branch 的成员、权限和 E2EE 默认使用 `access.defaults` 继承 Flow / Space 的有效访问规则；只有 `access.branch_overrides.<branch>` 或对应 policy/capability state event 明确声明时，才形成 branch-scoped membership、history visibility 或 E2EE 边界。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非有效 access policy 明确把它们映射为授权条件。
+`branches` 是 active branch 定义数组。标准 branch name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 branch name。`synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`discussion` 在启用时承载讨论能力，例如 `profile`、timeline profile 与 branch-local fields。Branch 的成员、权限和 E2EE 默认继承 Flow / Space 的有效访问规则；只有 `branches[].access` 或对应 policy/capability state event 明确声明 `branch_scoped` 时，才形成 branch-scoped membership、history visibility 或 E2EE 边界。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非有效 access policy 明确把它们映射为授权条件。
+
+`FlowBranch` 字段：
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `name` | yes | `string` | `^[a-z][a-z0-9_]{0,63}$`；同一 Flow 内唯一。 | Branch 稳定名。 |
+| `is_primary` | no | `boolean` | 同一 Flow 至多一个 branch 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
+| `profile` | no | `string` | 由 Space schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | branch 交互 profile。 |
+| `access` | no | `object` | 缺省继承 Flow / Space；显式值见下表。 | 分支访问继承或 override。 |
+| `fields` | no | `object` |  | branch-local 扩展字段。 |
+
+`FlowBranch.access` 字段：
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `membership` | no | `enum(inherit_flow, inherit_space, branch_scoped)` | 缺省 `inherit_flow`。 | 成员继承方式。 |
+| `permissions` | no | `enum(inherit_flow, inherit_space, branch_scoped)` | 缺省 `inherit_flow`。 | 权限继承方式。 |
+| `history_visibility` | no | `enum(world_readable, shared, invited, joined, restricted)` | branch-scoped discussion + E2EE 缺省 SHOULD 为 `joined`。 | 历史可见性。 |
+| `e2ee` | no | `enum(inherit_space, inherit_flow, branch_scoped, none)` | 缺省 `inherit_space`。 | 加密继承方式。 |
+| `encryption_profile` | no | `enum(none, mls_rfc9420, external)` | `e2ee=branch_scoped` 时 SHOULD 设置。 | 加密 profile。 |
+| `membership_policy_ref` | no | `id:policy` |  | branch-scoped membership policy 引用。 |
+
+Primary branch 解析规则：
+
+1. 若恰好一个 branch 设置 `is_primary=true`，它是 primary。
+2. 若没有显式 primary 且存在 `name="synthesis"`，`synthesis` 是 primary。
+3. 若没有显式 primary 且只有一个 branch，该唯一 branch 是 primary。
+4. 若没有显式 primary，且 profile 声明了可验证默认 branch，使用该默认 branch。
+5. 仍无法唯一确定时，Reducer MUST fail closed，要求写入 `cx.flow.branch.set_primary` 或等价修复事件。
 
 ### 6.2 Space (kind=board)
 
@@ -349,7 +408,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-若某个 UI 操作改变 Flow(kind=card) 所属 List、Flow rank、List rank、Flow discussion Message、Relation 或对象字段，必须使用对应对象 Event；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态和本地 pin MUST 使用 actor-private account data 或等价私有 Event。
+若某个 UI 操作改变 Flow 所属 List、Flow rank、List rank、Flow discussion Message、Relation 或对象字段，必须使用对应对象 Event；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态和本地 pin MUST 使用 actor-private account data 或等价私有 Event。
 
 `CollectionConfig` 字段：
 
@@ -513,7 +572,7 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 | Canonical Operation | Event Envelope |
 | --- | --- |
 | `id` | 本地草稿 / builder 对象 ID；进入 wire 后必须能稳定映射到 `event_id` 或被 `event_id` 取代。 |
-| `semantic_kind` | `kind`。 |
+| `action_id` | `kind`。 |
 | `object_id` | `content` 内的目标对象字段，例如 `flow_id`、`space_id`、`target_ref`。 |
 | `payload` | `content`。 |
 | `created_at` | `created_at`，但 envelope 还必须包含 `hlc`、`actor_seq`、`prev_refs` 和 `auth_refs`。 |
@@ -524,7 +583,7 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 | `id` | yes | `id:operation` 或 `hash` | 不得命名为 `operation_id`；`operation_id` 保留给服务 API canonical operation。 | Canonical Operation Object ID。 |
 | `type` | yes | `enum(operation)` | 固定为 `operation`。 | 对象种类。 |
 | `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref, move, reorder, rebalance, link, unlink)` |  | operation 类型。 |
-| `semantic_kind` | no | `string` | 标准事件 kind，例如 `cx.flow.move`。`move/reorder/rebalance/link/unlink` 必填。 | 语义操作类型，用于校验 payload。 |
+| `action_id` | no | `string` | 标准事件 kind，例如 `cx.flow.move`。`move/reorder/rebalance/link/unlink` 必填。 | 操作 action 标识，用于校验 payload。 |
 | `space_id` | yes | `id:space` |  | 目标 Space。 |
 | `object_id` | no | `string` | create 可由 payload 指定。 | 目标对象。 |
 | `object_type` | yes | `string` | `flow`、`space`、`message`、`morph`、`relation` 等。 | 目标对象类型。 |
@@ -534,12 +593,12 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 
 Canonical Operation 与 Event Envelope 的映射：
 
-- `semantic_kind="cx.flow.move"` MUST 使用 `operation_type="move"`、`object_type="flow"`，并使用 flow move payload schema。
-- `semantic_kind="cx.container.move_item"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用容器 item move payload schema。
-- `semantic_kind="cx.flow.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="flow"`，并使用 flow reorder payload schema。
-- `semantic_kind="cx.flow.branch.enable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch enable payload schema。
-- `semantic_kind="cx.flow.branch.disable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch disable payload schema。
-- `semantic_kind="cx.flow.convert"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow convert payload schema。
+- `action_id="cx.flow.move"` MUST 使用 `operation_type="move"`、`object_type="flow"`，并使用 flow move payload schema。
+- `action_id="cx.container.move_item"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用容器 item move payload schema。
+- `action_id="cx.flow.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="flow"`，并使用 flow reorder payload schema。
+- `action_id="cx.flow.branch.enable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch enable payload schema。
+- `action_id="cx.flow.branch.disable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch disable payload schema。
+- `action_id="cx.flow.convert"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow convert payload schema。
 
 ## 19. Field Patch (cx.patch.v1)
 

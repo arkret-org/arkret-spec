@@ -8,13 +8,13 @@
 
 `Flow` 承载同一事项的正式表达与讨论过程：
 
-- `Flow.kind="card"`：默认主入口是 `synthesis`
-- `Flow.kind="room"`：默认主入口是 `discussion`
-- `Flow.semantic_kind`：表达业务语义，例如 `initiative`、`decision`、`incident`、`task_cluster`
+- `branches[].name`：定义 Flow 当前启用的能力分支
+- `branches[].is_primary=true`：可显式定义默认主入口；若未显式设置且存在 `synthesis`，默认主入口派生为 `synthesis`
+- 业务语义通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 表达
 
 ## 3. Flow 的标准 Branch
 
-`Flow.branches` 标准化为两个能力分支：
+`Flow.branches` 是 branch 定义数组。v1 标准化两个 branch name：
 
 - `synthesis`：正式表达、结构化字段、状态推进、标题、摘要、正文
 - `discussion`：成员、消息、历史可见性、通知与可选 E2EE
@@ -22,7 +22,7 @@
 分支规则：
 
 - `discussion` 可独立启用或关闭
-- `cx.flow.convert` 在 `card` / `room` 模式间切换同一个 Flow，不改变 `flow_id`
+- `cx.flow.convert` 切换显式 primary branch，不改变 `flow_id`
 - `cx.flow.branch.enable`、`cx.flow.branch.disable`、`cx.flow.branch.set_primary` 管理 branch 生命周期与默认入口
 
 ## 4. 工作流容器
@@ -60,7 +60,7 @@ MLS 加密可绑定到两个层级：
 - Space 级：整个 Space 共用加密边界
 - Flow discussion branch 级：某个 Flow 的 `discussion` 通过 branch-scoped override 独立作为 MLS group
 
-当 `discussion` branch 通过 `access.branch_overrides.discussion` 或等价 policy 使用 `encryption_profile="mls_rfc9420"` 时，成员、`history_visibility`、key sharing 和审计边界均以该 branch 为准。
+当 `discussion` branch 通过 `branches[].access` 或等价 policy 使用 `encryption_profile="mls_rfc9420"` 时，成员、`history_visibility`、key sharing 和审计边界均以该 branch 为准。
 
 ## 8. Agent 结果落点
 
@@ -70,7 +70,7 @@ Agent 的标准落点为：
 - `Message`：discussion 中的即时沟通或补充结论
 - `Morph` / `Blob`：长报告、代码包、外部 transcript 或二进制成果
 
-推荐做法是先将 agent 结果沉淀到 `Flow.semantic_kind` 明确的 Flow，再按需要附加 Message / Morph / Blob 引用。
+推荐做法是先将 agent 结果沉淀到带有明确 Space schema/profile 或业务 `fields` 的 Flow，再按需要附加 Message / Morph / Blob 引用。
 
 ## 9. 统一读法
 

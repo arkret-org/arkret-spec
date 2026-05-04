@@ -25,9 +25,8 @@
 | Space Hierarchy | Space 层级 | Space 之间的 parent/child 组织关系，用于导航与受控继承；不默认级联权限或历史。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
 | Flow | 协作主对象 | Space 内承载协作议题、任务、正式表达与讨论分支的标准对象。 |
-| Flow kind | Flow 形态 | `flow.kind`，当前推荐值 `card` / `room`，用于定义默认入口与交互模式。 |
-| Room | 讨论型 Flow | `Flow(kind=room)` 或 Flow 的 discussion branch 的简称。 |
-| semantic_kind | 业务语义 | `Flow.semantic_kind` 指定领域语义（如 `initiative`、`decision` 等）。 |
+| Flow primary branch | Flow 默认入口 | 按 branch primary 解析规则得到的默认 branch；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
+| Room | 讨论分支视图 | Flow 的 discussion branch 或以 discussion 为默认入口的会话视图简称。 |
 | synthesis branch | 正式表达分支 | Flow 的“synthesis”分支，承载正式状态、结构化字段与决策正文。 |
 | discussion branch | 讨论分支 | Flow 的“discussion”分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow / Space access，显式 override 时才 branch-scoped。 |
 | Space (kind=board) | 看板空间 | `type=space`，用于组织一组 Space (kind=list) 的工作容器空间。 |

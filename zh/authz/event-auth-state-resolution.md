@@ -169,7 +169,7 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 ### 5.1 Flow Discussion Membership
 
-Flow discussion branch membership 是 Flow access 的显式 override 形态。默认情况下，discussion branch 继承 Flow / Space 的有效访问规则；只有 `access.branch_overrides.discussion.membership="branch_scoped"` 或等价 policy state 生效时，`cx.flow.branch.member` 才作为 Space membership 之下的局部参与状态，用于控制某个 Flow discussion 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予 Flow synthesis、Space (kind=board)/Space (kind=list) 或 Morph 的权限。
+Flow discussion branch membership 是 branch `access` 的显式 override 形态。默认情况下，discussion branch 继承 Flow / Space 的有效访问规则；只有 `branches[]` 中 `name="discussion"` 的 branch 声明 `access.membership="branch_scoped"` 或等价 policy state 生效时，`cx.flow.branch.member` 才作为 Space membership 之下的局部参与状态，用于控制某个 Flow discussion 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予 Flow synthesis、Space (kind=board)/Space (kind=list) 或 Morph 的权限。
 
 Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch 中的成员状态：
 

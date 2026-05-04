@@ -1208,6 +1208,10 @@
       "type": "string",
       "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
     },
+    "branch_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
     "list_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
@@ -1366,11 +1370,7 @@
           "$ref": "#/$defs/flow_id"
         },
         "branch": {
-          "type": "string",
-          "enum": [
-            "synthesis",
-            "discussion"
-          ]
+          "$ref": "#/$defs/branch_name"
         },
         "config": {
           "type": "object",
@@ -1390,11 +1390,7 @@
           "$ref": "#/$defs/flow_id"
         },
         "branch": {
-          "type": "string",
-          "enum": [
-            "synthesis",
-            "discussion"
-          ]
+          "$ref": "#/$defs/branch_name"
         },
         "reason": {
           "type": "string"
@@ -1409,18 +1405,14 @@
       "type": "object",
       "required": [
         "flow_id",
-        "primary_branch"
+        "branch"
       ],
       "properties": {
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "primary_branch": {
-          "type": "string",
-          "enum": [
-            "synthesis",
-            "discussion"
-          ]
+        "branch": {
+          "$ref": "#/$defs/branch_name"
         }
       },
       "additionalProperties": false
@@ -1429,34 +1421,19 @@
       "type": "object",
       "required": [
         "flow_id",
-        "to_kind"
+        "branch"
       ],
       "properties": {
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "to_kind": {
-          "type": "string",
-          "enum": [
-            "card",
-            "room"
-          ]
-        },
-        "primary_branch": {
-          "type": "string",
-          "enum": [
-            "synthesis",
-            "discussion"
-          ]
+        "branch": {
+          "$ref": "#/$defs/branch_name"
         },
         "ensure_branches": {
           "type": "array",
           "items": {
-            "type": "string",
-            "enum": [
-              "synthesis",
-              "discussion"
-            ]
+            "$ref": "#/$defs/branch_name"
           }
         },
         "reason": {

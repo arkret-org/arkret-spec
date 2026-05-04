@@ -96,7 +96,7 @@
 | `cx.flow.update` | Flow patch |
 | `cx.flow.archive` | Flow archive |
 | `cx.flow.restore` | Flow restore |
-| `cx.flow.convert` | Flow mode convert |
+| `cx.flow.convert` | Flow primary branch convert |
 | `cx.flow.move` | Flow move between Lists |
 | `cx.flow.reorder` | Flow reorder within List |
 | `cx.flow.branch.enable` | Enable Flow branch |

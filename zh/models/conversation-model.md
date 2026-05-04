@@ -6,14 +6,12 @@ Contrix 的会话模型由 `flow` 承载统一 identity，并通过 `discussion`
 
 ## 2. 设计原则
 
-- `flow` 是唯一主对象；`kind` 只决定默认视角。
+- `flow` 是唯一主对象；resolved primary branch 只决定默认视角。
 - `discussion` branch 是会话能力，不是独立对象。
 - Branch access 默认继承 Flow / Space；只有显式 branch-scoped override 才引入独立 membership、history visibility 或 E2EE group。
 - `message` 永远写入 `flow` 的 `discussion` branch。
-- `kind="card"` 默认走 `synthesis` branch，但 MAY 开启 `discussion` branch。
-- `kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段与可选 `synthesis` branch。
-- `semantic_kind` 承载业务语义分类，例如 `decision`、`incident`、`task_cluster`。
-- `cx.flow.convert` 允许在 `card` 和 `room` 模式之间切换，且不改变 Flow identity。
+- Flow MAY 只启用 `synthesis` branch，也 MAY 同时启用 `discussion` branch。
+- `cx.flow.convert` 允许切换 primary branch 标记并确保目标 branch 存在，且不改变 Flow identity。
 
 `comment`（对象评注）与 `message`（讨论消息）语义不同：
 
@@ -39,41 +37,30 @@ Flow 的 `discussion` branch 适合：
   "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "kind": "room",
-  "semantic_kind": "initiative",
   "title": "release-engineering",
   "description": "Engineering coordination for release readiness.",
   "brief": "默认以讨论为主入口。",
-  "primary_branch": "discussion",
-  "branches": {
-    "synthesis": {
-      "enabled": true
+  "branches": [
+    {
+      "name": "synthesis"
     },
-    "discussion": {
-      "enabled": true,
-      "room_kind": "discussion"
-    }
-  },
-  "access": {
-    "defaults": {
-      "membership": "inherit_flow",
-      "permissions": "inherit_flow",
-      "e2ee": "inherit_space"
-    },
-    "branch_overrides": {
-      "discussion": {
+    {
+      "name": "discussion",
+      "is_primary": true,
+      "profile": "discussion",
+      "access": {
         "membership": "branch_scoped",
         "permissions": "branch_scoped",
         "history_visibility": "joined",
         "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
       }
     }
-  },
+  ],
   "created_by": "did:web:alice.example"
 }
 ```
 
-`room_kind` 初版建议支持：
+`name="discussion"` 的 branch `profile` 初版建议支持：
 
 - `discussion`
 - `announcement`
@@ -115,15 +102,18 @@ message 与 flow/reply/mention 的关系使用 Relation 或 message 字段表达
 - `message --mentions--> actor / flow / morph`
 - `message --references--> flow / space / morph / blob`
 
-## 5. Flow 模式与转换
+## 5. Flow 默认入口与转换
 
-Flow 通过 `kind` 和 `primary_branch` 表达默认交互方式：
+Flow 通过 resolved primary branch 表达默认交互入口：
 
-- `kind="room"`：默认 `primary_branch="discussion"`，适合会话主导的对象。
-- `kind="card"`：默认 `primary_branch="synthesis"`，适合状态推进、字段编辑和 Space (kind=board)/Space (kind=list) 管理。
-- `semantic_kind`：例如 `decision`、`incident`、`research`，用于业务过滤、默认 View 和 agent policy。
+- `{"name":"synthesis","is_primary":true}`：默认进入整理、推进和结构化字段编辑界面。
+- `{"name":"discussion","is_primary":true}`：默认进入会话界面。
 
-`kind="card"` MAY 开启 `discussion` branch。开启后，该 Flow 仍然是同一个对象，只是多了讨论能力。
+若没有任何 branch 显式设置 `is_primary=true`，且 `synthesis` 与 `discussion` 同时存在，默认入口 MUST 派生为 `synthesis`。只有一个 branch 时默认入口为该唯一 branch；多个非标准 branch 且无法按 profile 派生时必须 fail closed。
+
+业务过滤、默认 View 和 agent policy SHOULD 使用 Space schema/profile、`fields`、Relation、labels 或 Morph profile。Flow 顶层不再定义业务分类字段。
+
+Flow MAY 开启 `discussion` branch。开启后，该 Flow 仍然是同一个对象，只是多了讨论能力。
 
 ```json
 {
@@ -133,8 +123,8 @@ Flow 通过 `kind` 和 `primary_branch` 表达默认交互方式：
     "flow_id": "cx:flow:01js0cd0000000000000000000",
     "branch": "discussion",
     "config": {
-      "room_kind": "implementation",
-      "access_override": {
+      "profile": "implementation",
+      "access": {
         "membership": "branch_scoped",
         "permissions": "branch_scoped",
         "history_visibility": "joined"
@@ -144,7 +134,7 @@ Flow 通过 `kind` 和 `primary_branch` 表达默认交互方式：
 }
 ```
 
-Flow kind 互转通过 `cx.flow.convert` 完成：
+Flow 默认入口切换通过 `cx.flow.branch.set_primary` 或 `cx.flow.convert` 完成：
 
 ```json
 {
@@ -152,8 +142,7 @@ Flow kind 互转通过 `cx.flow.convert` 完成：
   "target_ref": "cx:flow:01js0cd0000000000000000000",
   "content": {
     "flow_id": "cx:flow:01js0cd0000000000000000000",
-    "to_kind": "room",
-    "primary_branch": "discussion",
+    "branch": "discussion",
     "ensure_branches": ["discussion"]
   }
 }
@@ -163,13 +152,13 @@ Flow kind 互转通过 `cx.flow.convert` 完成：
 
 - 转换不改变 `flow_id`。
 - 转换不复制或迁移消息历史。
-- 转换到 `kind="room"` 时，若 `discussion` branch 尚未启用，Reducer MUST 自动启用它，或在 policy 禁止时 fail closed。
+- 切换到 `branch="discussion"` 时，若 `discussion` branch 尚不存在，Reducer MUST 自动创建它，或在 policy 禁止时 fail closed。
 - 已启用的 `discussion` branch 在转换后继续保留。
 - Flow 的 Space (kind=board)/Space (kind=list) 位置、字段和讨论历史由对应 reducer 维护；讨论历史只有在 branch-scoped override 明确声明时，才使用独立 membership / history / E2EE 边界。
 
 ## 6. Discussion Branch Membership
 
-Discussion branch membership 是 Flow access 的显式 override 形态。默认情况下，discussion 继承 Flow / Space 的有效访问规则；只有 `access.branch_overrides.discussion.membership="branch_scoped"` 或等价 policy state 生效时，`cx.flow.branch.member` 才成为该 discussion 的局部参与状态。它不替代 Space membership，也不扩展 Flow `synthesis` branch 的编辑权限。
+Discussion branch membership 是 branch `access` 的显式 override 形态。默认情况下，discussion 继承 Flow / Space 的有效访问规则；只有 `branches[]` 中 `name="discussion"` 的 branch 声明 `access.membership="branch_scoped"` 或等价 policy state 生效时，`cx.flow.branch.member` 才成为该 discussion 的局部参与状态。它不替代 Space membership，也不扩展 Flow `synthesis` branch 的编辑权限。
 
 推荐状态事件：
 
@@ -324,12 +313,12 @@ Branch-scoped E2EE discussion 中，`history_visibility=joined` 时新成员 MUS
 
 Contrix v1 固定：
 
-- `flow` 是统一标准对象；`room` / `card` 是 `kind`，不是独立主实体。
+- `flow` 是统一标准对象；默认入口由 branch primary 解析规则表达，不再有 Flow 模式字段。
 - `discussion` branch 是会话能力，不是单独对象。
 - `synthesis` branch 承载整理后的正式表达与推进字段。
 - `message` 永远属于 Flow `discussion` branch。
-- `kind="card"` 可以开启 `discussion` branch。
-- `cx.flow.convert` 只切换模式，不改变 identity。
+- Flow 可以同时启用 `synthesis` 与 `discussion` branch。
+- `cx.flow.convert` 只切换默认入口或确保 branch 存在，不改变 identity。
 - 编辑采用 revision chain。
 - 撤回采用 redaction/tombstone。
 - reaction 用 OR-Set 收敛。
