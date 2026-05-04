@@ -125,6 +125,62 @@ components:
             $ref: ../schemas/identity-receipt.schema.json
     SyncResponse:
       $ref: ../schemas/client-sync-response.schema.json
+    DeviceMessageEnvelope:
+      $ref: ../schemas/device-message.schema.json
+    DeviceMessageTarget:
+      type: object
+      required:
+        - kind
+        - content
+      properties:
+        kind:
+          type: string
+          pattern: "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+        content:
+          type: object
+        expires_at:
+          type: string
+          format: date-time
+          pattern: "Z$"
+      additionalProperties: false
+    DeviceMessagesPutRequest:
+      type: object
+      required:
+        - messages
+      properties:
+        messages:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/DeviceMessageTarget"
+      additionalProperties: false
+    DeviceMessagesPutResponse:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+        delivered:
+          type: object
+        unknown_devices:
+          type: object
+      additionalProperties: false
+    DeviceMessagesGetResponse:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeviceMessageEnvelope"
+        next_batch:
+          type: string
+        limited:
+          type: boolean
+      additionalProperties: false
     GrantListResponse:
       type: object
       properties:
@@ -1645,9 +1701,19 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceMessagesPutRequest"
       responses:
         "200":
           description: To-device write accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceMessagesPutResponse"
   /keys/upload:
     post:
       operationId: cx.keys.upload
@@ -2007,7 +2073,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/DeviceMessagesGetResponse"
   /applet/ping:
     get:
       operationId: cx.applet.ping

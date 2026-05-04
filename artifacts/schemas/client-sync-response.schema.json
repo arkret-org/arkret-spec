@@ -29,7 +29,7 @@
       "additionalProperties": false
     },
     "to_device": {
-      "$ref": "#/$defs/event_container"
+      "$ref": "#/$defs/device_message_container"
     },
     "device_lists": {
       "type": "object"
@@ -72,6 +72,21 @@
           "type": "array",
           "items": {
             "$ref": "./event-envelope.schema.json"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "device_message_container": {
+      "type": "object",
+      "required": [
+        "events"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "./device-message.schema.json"
           }
         }
       },

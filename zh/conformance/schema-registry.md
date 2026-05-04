@@ -44,6 +44,7 @@
 | `cx.schema.blob.v1` | Blob Metadata |
 | `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
 | `cx.schema.client_sync_response.v1` | Client Sync Response |
+| `cx.schema.device_message.v1` | To-device Message Envelope |
 | `cx.schema.mimi_interop.v1` | MIMI Provider Directory / Room Binding / Mapping Receipt |
 | `cx.schema.moderation_report.v1` | Moderation Report |
 | `cx.schema.moderation_queue_item.v1` | Moderation Queue Item |
@@ -138,6 +139,13 @@
 | `cx.audit.accessed` | Auditable access |
 | `cx.moderation.report` | Moderation report |
 | `cx.key.verification.request` | Device key verification request |
+| `cx.key.verification.ready` | Device key verification ready |
+| `cx.key.verification.start` | Device key verification start |
+| `cx.key.verification.accept` | Device key verification accept |
+| `cx.key.verification.key` | Device key verification ephemeral key |
+| `cx.key.verification.mac` | Device key verification MAC |
+| `cx.key.verification.done` | Device key verification completion |
+| `cx.key.verification.cancel` | Device key verification cancellation |
 | `cx.session.grant` | Session grant |
 | `cx.device.authorized` | Device authorization |
 | `cx.device.revoked` | Device revocation |

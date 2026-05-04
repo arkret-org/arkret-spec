@@ -790,10 +790,201 @@
         "properties": {
           "kind": {
             "enum": [
+              "cx.key.verification.request",
+              "cx.key.verification.ready",
+              "cx.key.verification.start",
+              "cx.key.verification.accept",
+              "cx.key.verification.key",
+              "cx.key.verification.mac",
+              "cx.key.verification.done",
+              "cx.key.verification.cancel"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./device-message.schema.json#/$defs/key_verification_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.request"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "methods",
+              "timestamp",
+              "expires_at"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.ready"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "methods"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.start"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "method"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.accept"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "commitment"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.key"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "key"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.mac"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "mac",
+              "keys"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.cancel"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "code"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
               "cx.device.authorized",
               "cx.device.revoked",
               "cx.device.list_update",
-              "cx.key.verification.request",
               "cx.mls.proposal",
               "cx.mls.commit",
               "cx.mls.welcome",

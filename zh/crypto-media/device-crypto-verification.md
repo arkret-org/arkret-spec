@@ -62,6 +62,21 @@ Contrix 使用三层签名链：
 
 To-device message 是面向具体 principal/device 的非 Space 持久消息，用于密钥交换、验证、secret sharing 和通知。
 
+To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `EventEnvelope`。标准 `cx.key.verification.*` 名称在 to-device 通道中出现在 `kind` 字段；它们不得推进 `actor_seq`、`prev_refs`、Space reducer frontier 或持久 timeline。
+
+`DeviceMessageEnvelope` 基本字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `kind` | `string` | required | 消息 kind，例如 `cx.key.verification.request`。标准 `cx.*` to-device kind MUST 在 registry 中登记为 `ephemeral_event` 或由扩展 profile 声明。 |
+| `txn_id` | `id` | required | 发送方幂等 ID，MUST 与 PUT path `{txn_id}` 一致。 |
+| `sender_principal_id` | `did` | required | 发送 principal。 |
+| `sender_device_id` | `id:device` | required | 发送设备。 |
+| `sent_at` | `datetime` | required | 发送时间。 |
+| `expires_at` | `datetime` | optional | 过期时间；验证和 secret sharing 消息 SHOULD 设置短 TTL。 |
+| `content` | `object` | required | 类型相关内容；私密内容 SHOULD 端到端加密。 |
+| `device_proof` | `proof` | optional | 传输认证不能覆盖的场景 MAY 带 detached device proof。 |
+
 发送接口：
 
 ```http
@@ -79,7 +94,7 @@ Content-Type: application/json
 | `messages` | body | `object` | required | 收件人 principal 到 device 消息的映射。 |
 | `messages.{principal_id}` | body | `object` | required | 目标 principal DID。 |
 | `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息；`{device_id}` MUST 是完整 `id:device` wire key。 |
-| `messages.{principal_id}.{device_id}.type` | body | `string` | required | to-device 消息类型，例如 `cx.key.verification.request`。 |
+| `messages.{principal_id}.{device_id}.kind` | body | `string` | required | to-device 消息 kind，例如 `cx.key.verification.request`。 |
 | `messages.{principal_id}.{device_id}.content` | body | `object` | required | 消息内容；私密内容 SHOULD 端到端加密。 |
 
 响应字段：
@@ -101,7 +116,7 @@ Content-Type: application/json
         "content": {
           "transaction_id": "ver_123",
           "from_device": "cx:device:01js0kf0000000000000000000",
-          "methods": ["sas", "qr"]
+          "methods": ["cx.sas.v1", "cx.qr.v1"]
         }
       }
     }
@@ -234,7 +249,15 @@ POST /api/v1/keys/keypackages/revoke
 
 ## 8. Verification Flows
 
-Contrix 标准验证消息：
+设备密钥验证用于确认“这个 principal/device/key 是否是用户想信任的对象”。验证成功本身不授予登录态、Space 权限或长期设备权力：
+
+- 同一 principal 的新设备登录，验证成功后仍 MUST 通过 `cx.device.authorized`、DID/key-log operation 或 recovery policy 把设备加入有效设备集合。
+- 跨 principal 验证只表达人工信任；通常由本地 `user_signing_key` 签名对方 identity key 或设备 key，不得改变对方设备授权状态。
+- `cx.session.grant` 只授予短期会话能力；不得因 SAS/QR 成功而自动升级为长期设备授权。
+
+### 8.1 标准消息类型
+
+Contrix 标准验证消息通过 to-device 通道发送：
 
 - `cx.key.verification.request`
 - `cx.key.verification.ready`
@@ -245,6 +268,51 @@ Contrix 标准验证消息：
 - `cx.key.verification.done`
 - `cx.key.verification.cancel`
 
+所有验证消息 content MUST 包含：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `transaction_id` | `string` | required | 交易 ID；对参与 principal/device 组合唯一，长度 1..128，不能复用已完成或已取消交易。 |
+| `from_device` | `id:device` | required | 发送设备；MUST 等于 envelope 的 `sender_device_id`。 |
+
+各消息的额外字段：
+
+| `kind` | 额外必填字段 | 说明 |
+| --- | --- | --- |
+| `cx.key.verification.request` | `methods`, `timestamp`, `expires_at` | 发起验证。`methods` 使用标准方法名，例如 `cx.sas.v1`、`cx.qr.v1`。 |
+| `cx.key.verification.ready` | `methods` | 接受请求并回报本设备可用方法。 |
+| `cx.key.verification.start` | `method` | 选择方法并开始。SAS 还 MUST 带 `key_agreement_protocols`、`hashes`、`message_authentication_codes`、`short_authentication_string`。 |
+| `cx.key.verification.accept` | `commitment` | 接受 `start` 并提交本端 ephemeral key 承诺；还 MUST 固定选定算法。 |
+| `cx.key.verification.key` | `key` | 发送本端 ephemeral public key。 |
+| `cx.key.verification.mac` | `mac`, `keys` | 发送待验证 key 的 MAC 与 key-id MAC。 |
+| `cx.key.verification.done` | none | 双方 MAC 验证通过后完成。MAY 带本地生成的签名摘要。 |
+| `cx.key.verification.cancel` | `code` | 任意阶段取消；`reason` MAY 给出面向用户的短说明。 |
+
+### 8.2 状态机、超时与并发
+
+标准交互状态机为：
+
+```text
+request -> ready -> start -> accept -> key -> mac -> done
+```
+
+`cancel` MAY 在任意阶段发送。接收方 MUST 对重复的同一消息做幂等处理；对越序或状态不匹配的消息 MUST cancel，`code=unexpected_message`。
+
+请求超时规则：
+
+- `request.timestamp` 不能比接收设备本地时间晚 5 分钟以上。
+- `request.expires_at` MUST 不晚于 `timestamp + 10m`。
+- 用户在展示提示后 2 分钟内没有交互，客户端 SHOULD 本地取消或隐藏提示。
+- 过期交易的后续消息 MUST 被忽略或以 `code=timeout` 取消。
+
+并发规则：
+
+- `request` 可以发送给同一 principal 的多个设备；`ready` 之后实际验证 MUST 收敛到两个具体设备。
+- 一台接收设备接受后，发起方 SHOULD 向其他待处理设备发送 `cancel`，`code=accepted_by_other_device`。
+- 交易完成或取消后，`transaction_id` MUST NOT 在相同 principal/device 组合中重用。
+
+### 8.3 SAS 验证
+
 SAS 验证 MUST 绑定：
 
 - 双方 principal id
@@ -253,9 +321,55 @@ SAS 验证 MUST 绑定：
 - transaction id
 - chosen method and algorithms
 
-MAC 阶段 MUST 覆盖以上 transcript。任何 transcript 不一致 MUST cancel，原因码为 `mismatched_commitment` 或 `mismatched_mac`。
+`accept.commitment` MUST 是对本端 ephemeral public key 与 canonical `start` 消息的哈希承诺。收到 `key` 后，接收方 MUST 重算 commitment；不一致 MUST cancel，`code=mismatched_commitment`。
+
+MAC 阶段 MUST 覆盖完整 transcript，包括双方 principal id、device id、device verify key、transaction id、method、算法选择、双方 ephemeral key 和待验证 key id。任何 transcript 不一致 MUST cancel，`code=mismatched_mac`。
+
+SAS 展示值 MUST 从同一 transcript 派生。用户确认前，客户端不得把对方 device key 标记为 verified。
+
+### 8.4 QR 验证
 
 QR 验证 MUST 使用一次性 secret 或 public commitment，且 QR 内容 MUST 有过期时间和 intended verifier。
+
+QR payload MUST 至少绑定：
+
+- `transaction_id`
+- 展示端 principal id 与 device id
+- intended verifier principal id；若已知，还 SHOULD 绑定 intended verifier device id
+- 一次性 secret 或 public commitment
+- `expires_at`
+- supported verification method
+
+QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret 或 MLS group secret。扫码后，客户端仍 MUST 通过 to-device transcript 完成 `mac` / `done`，不能只凭扫码动作直接信任设备。
+
+### 8.5 成功后的动作
+
+同一 principal 的新设备配对完成后，已授权设备 MAY：
+
+1. 签发 `cx.device.authorized` 或符合 DID method 的 key-log operation。
+2. 发布 `cx.device.list_update`。
+3. 在用户或 policy 允许时，通过加密 to-device 消息共享 `self_signing_key`、secret storage bootstrap 或 MLS Welcome。
+
+跨 principal 验证完成后，客户端 MAY 使用 `user_signing_key` 对对方 principal identity key 或 device key 生成信任签名。该签名只影响本 principal 的信任视图，不授予对方 Space capability。
+
+### 8.6 Cancel Code Registry
+
+标准 cancel code：
+
+| code | 含义 |
+| --- | --- |
+| `user_cancelled` | 用户主动取消。 |
+| `timeout` | 交易过期或交互超时。 |
+| `unknown_transaction` | 本设备不存在该交易。 |
+| `unexpected_message` | 消息与当前状态机不匹配。 |
+| `unsupported_method` | 无共同验证方法。 |
+| `unsupported_algorithm` | 无共同 key agreement、hash、MAC 或 SAS 表示算法。 |
+| `mismatched_commitment` | ephemeral key commitment 校验失败。 |
+| `mismatched_mac` | MAC 或 key-id MAC 校验失败。 |
+| `device_revoked` | 任一参与设备已撤销。 |
+| `untrusted_device` | policy 要求验证设备，但设备信任链不满足。 |
+| `policy_denied` | Space、组织或账号 policy 拒绝。 |
+| `accepted_by_other_device` | 同一请求已被另一设备接受。 |
 
 ## 9. Secret Storage
 

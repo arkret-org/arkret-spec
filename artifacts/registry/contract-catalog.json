@@ -749,9 +749,65 @@
         "event_kind": "cx.key.verification.request",
         "category": "device",
         "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
         "payload": "Device key verification request"
+      },
+      {
+        "event_kind": "cx.key.verification.ready",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Device key verification ready"
+      },
+      {
+        "event_kind": "cx.key.verification.start",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Device key verification start"
+      },
+      {
+        "event_kind": "cx.key.verification.accept",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Device key verification accept"
+      },
+      {
+        "event_kind": "cx.key.verification.key",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Device key verification ephemeral key"
+      },
+      {
+        "event_kind": "cx.key.verification.mac",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Device key verification MAC"
+      },
+      {
+        "event_kind": "cx.key.verification.done",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Device key verification completion"
+      },
+      {
+        "event_kind": "cx.key.verification.cancel",
+        "category": "device",
+        "status": "active",
+        "wire_scope": "ephemeral_event",
+        "reducer_input": false,
+        "payload": "Device key verification cancellation"
       },
       {
         "event_kind": "cx.mls.proposal",
@@ -1048,6 +1104,10 @@
       {
         "schema_id": "cx.schema.client_sync_response.v1",
         "file": "schemas/client-sync-response.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.device_message.v1",
+        "file": "schemas/device-message.schema.json"
       },
       {
         "schema_id": "cx.schema.blob.v1",

@@ -73,6 +73,10 @@
       "file": "schemas/client-sync-response.schema.json"
     },
     {
+      "schema_id": "cx.schema.device_message.v1",
+      "file": "schemas/device-message.schema.json"
+    },
+    {
       "schema_id": "cx.schema.blob.v1",
       "file": "schemas/blob.schema.json"
     },

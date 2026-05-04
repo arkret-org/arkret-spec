@@ -1,0 +1,362 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/device-message.schema.json",
+  "title": "Contrix Device Message Envelope",
+  "type": "object",
+  "required": [
+    "kind",
+    "txn_id",
+    "sender_principal_id",
+    "sender_device_id",
+    "sent_at",
+    "content"
+  ],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+    },
+    "txn_id": {
+      "$ref": "#/$defs/transaction_id"
+    },
+    "sender_principal_id": {
+      "$ref": "#/$defs/did"
+    },
+    "sender_device_id": {
+      "$ref": "#/$defs/device_id"
+    },
+    "sent_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "content": {
+      "type": "object"
+    },
+    "device_proof": {
+      "type": "object"
+    },
+    "unsigned": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.key.verification.request",
+              "cx.key.verification.ready",
+              "cx.key.verification.start",
+              "cx.key.verification.accept",
+              "cx.key.verification.key",
+              "cx.key.verification.mac",
+              "cx.key.verification.done",
+              "cx.key.verification.cancel"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/key_verification_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.request"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "methods",
+              "timestamp",
+              "expires_at"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.ready"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "methods"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.start"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "method"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.accept"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "commitment"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.key"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "key"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.mac"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "mac",
+              "keys"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.key.verification.cancel"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "required": [
+              "transaction_id",
+              "from_device",
+              "code"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:.+$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "transaction_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._~=-]{1,128}$"
+    },
+    "key_verification_content": {
+      "type": "object",
+      "required": [
+        "transaction_id",
+        "from_device"
+      ],
+      "properties": {
+        "transaction_id": {
+          "$ref": "#/$defs/transaction_id"
+        },
+        "from_device": {
+          "$ref": "#/$defs/device_id"
+        },
+        "methods": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          },
+          "uniqueItems": true
+        },
+        "method": {
+          "type": "string",
+          "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "key_agreement_protocols": {
+          "$ref": "#/$defs/string_list"
+        },
+        "hashes": {
+          "$ref": "#/$defs/string_list"
+        },
+        "message_authentication_codes": {
+          "$ref": "#/$defs/string_list"
+        },
+        "short_authentication_string": {
+          "$ref": "#/$defs/string_list"
+        },
+        "commitment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mac": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "keys": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "verified_keys": {
+          "$ref": "#/$defs/string_list"
+        },
+        "signatures": {
+          "type": "object"
+        },
+        "code": {
+          "enum": [
+            "user_cancelled",
+            "timeout",
+            "unknown_transaction",
+            "unexpected_message",
+            "unsupported_method",
+            "unsupported_algorithm",
+            "mismatched_commitment",
+            "mismatched_mac",
+            "device_revoked",
+            "untrusted_device",
+            "policy_denied",
+            "accepted_by_other_device"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": true
+    },
+    "string_list": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}

@@ -30,6 +30,16 @@ Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根�
 
 服务账号密码重置只改变服务账号登录凭据；除非同时存在有效 DID 控制证明或 recovery policy 事件，否则不得自动授予 DID 控制权、不得签发长期 device grant、不得访问 E2EE 密钥备份。
 
+## 1.2 登录、设备授权与设备验证的边界
+
+Contrix v1 把三件事分开处理：
+
+- **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
+- **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorized`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
+- **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Space capability。
+
+因此“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `cx.device.authorized` 或短期 `cx.session.grant`。短期 Web/OIDC 登录可以只使用 `cx.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须走设备授权和设备密钥验证。
+
 ## 2. 多设备配对 (Device Pairing)
 
 在 Contrix 中，用户的每个物理/逻辑设备都应该拥有本地独立生成的设备级密钥对 (Device Key)。
