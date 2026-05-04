@@ -258,43 +258,69 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 
 加密信封的规范字段名是 `aad.event_kind`。`aad.event_type` 仅是 legacy 兼容输入；新 producer MUST NOT 生成，receiver 在计算 `aad_digest` 或 MLS authenticated data 前必须按 `encrypted-envelope-schema.md` 归一为 `event_kind`。Space policy、AAD visibility、日志和 conformance vector 不得再使用 `event_type` 作为规范字段名。
 
-## 3. 可审查的端到端加密 (Auditable E2EE)
+## 3. 受审计的端到端加密 (Audited E2EE)
 
 在很多去中心化产品中，如果存在审查，往往是通过向客户端下发“旁路后门”或者弱化密钥机制实现的，这引起了极大的隐私恐慌。
 
-Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：既满足组织的强制合规要求，又向所有参与者提供可验证的审计记录。TEE / HSM / 等价受控执行 profile 可以把 key release 或明文输出绑定到先写审计记录；software-only profile 只能提供协议级流程和审计要求，不能密码学阻止持钥客户端绕过日志。
+Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：既满足组织的强制合规要求，又向所有参与者提供可验证的审计记录。该机制划分为两类正交保证：
 
-### 3.1 Auditable Policy 声明
-要启用此机制，Space 的 `schema/policy` 必须显式声明：
+- **`attested` 类**（`cx.profile.attested_audit.e2ee.v1`）：通过 TEE / HSM / 等价硬件隔离把 key release 或明文输出**密码学绑定**到先写审计记录。
+- **`disclosed` 类**（`cx.profile.disclosed_audit.e2ee.v1`）：仅在 Space policy 中**公开声明**审计代理在场并约定流程，**不提供密码学/硬件强制**——协议层不能阻止恶意持钥客户端绕过日志。
+
+`disclosed` 与 `attested` **不是强弱不同的同一保证**，而是不同 family 的保证。任何把两者混称为 "Auditable E2EE" 或暗示二者等价的措辞都不符合本规范（见 §3.5）。
+
+### 3.1 Audit Policy 声明
+
+要启用此机制，Space 的 `schema/policy` 必须显式声明 **两个正交字段**：`audit_disclosure`（透明度承诺，两类共用）+ `audit_assurance`（保证类型，决定使用哪个 profile）。
+
 ```json
 {
   "encryption_profile": "mls_rfc9420",
-  "auditable_e2ee": true,
-  "auditable_e2ee_profile": "cx.profile.auditable_e2ee.tee_required.v1",
-  "audit_enforcement_level": "hardware_tee",
-  "audit_actors": [
-    "did:web:compliance.acme.corp"
-  ]
+  "audit_disclosure": {
+    "audit_actors": ["did:web:compliance.acme.corp"],
+    "purpose_classes": ["legal_compliance"],
+    "retention_days": 365,
+    "ryw_receipt_required": true
+  },
+  "audit_assurance": "attested_hardware"
 }
 ```
 
-`audit_enforcement_level` 取值：
+`audit_assurance` 是封闭 enum，且与 profile id 一一映射；schema 通过 `if/then` 强约束二者一致。
 
-| 值 | 说明 |
-|-----|------|
-| `hardware_tee` | Audit Agent 在 TEE / HSM / 等价硬件隔离环境中运行；密钥和明文不离开受控边界。 |
-| `software_process` | 无硬件隔离；审计保证依赖协议流程和合规监督，不提供密码学阻断。 |
-| `none` | 未声明审计强制级别；客户端 MUST 视为最弱保证。 |
+| `audit_assurance` 值 | 对应 profile | 含义 |
+| --- | --- | --- |
+| `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Key material 与明文输出 MUST 在受控边界内处理。 |
+| `disclosed_policy` | `cx.profile.disclosed_audit.e2ee.v1` | 不要求 TEE。Audit Agent 仍然 MUST 执行 `cx.audit.accessed` 先写后解密流程并等待 RYW receipt，但**保证类别仅是合规与流程承诺，不是密码学强制**。Space policy MUST 在加入前可见确认该降级。 |
 
-客户端在加入 auditable Space 前 MUST 读取 `audit_enforcement_level` 并向用户展示当前强制级别。
-客户端在加入此类 Space 前，**UI 必须向人类用户明确警告**：“这是一个受审核的加密空间，内容对合规员可见，但任何审查都会被记录并在群内公示。”
+旧字段映射（v1 pre-stable，v1.0-stable 前完成迁移）：
 
-Auditable E2EE profile：
+| 已废弃字段 | 替换 |
+| --- | --- |
+| `auditable_e2ee: bool` | 删除——由 `audit_disclosure` 是否存在表达 |
+| `auditable_e2ee_profile` | 删除——由 `audit_assurance` 派生 |
+| `audit_enforcement_level: "hardware_tee"` | `audit_assurance: "attested_hardware"` |
+| `audit_enforcement_level: "software_process"` | `audit_assurance: "disclosed_policy"` |
+| `audit_enforcement_level: "none"` | 不允许；省略 `audit_disclosure` 即未启用审计 |
+| `audit_actors` 顶层 | 移入 `audit_disclosure.audit_actors` |
 
-- `cx.profile.auditable_e2ee.tee_required.v1`：Audit Agent MUST 在声明的 TEE / enclave 或等价硬件隔离环境中运行；remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。
-- `cx.profile.auditable_e2ee.software_only.v1`：不要求 TEE，但 Space policy MUST 明确声明该降级；成员加入前必须可见确认。该 profile 仍然必须执行 `cx.audit.accessed` 先写后解密流程，但其保证属于合规和可审计流程保证，不是密码学强制保证。
+旧 profile id `cx.profile.auditable_e2ee.tee_required` 形态在 v1 pre-stable 期间被重命名为 `cx.profile.attested_audit.e2ee.v1`；旧 profile id `cx.profile.auditable_e2ee.software_only` 形态被重命名为 `cx.profile.disclosed_audit.e2ee.v1`。所有 v1.0-stable 工件 MUST 使用新 id；conformance-profiles 不再保留旧 id。
 
-Conformance profile MUST 把 `software_only` 标记为 `audit_process_only` 或等价级别；它不得通过测试声明“TEE-equivalent”、“cryptographically enforced audit”或任何正式密码学审计保证。
+客户端在加入声明 `audit_disclosure` 的 Space 前 MUST 读取 `audit_assurance`，并按 §3.1.1 显示**正确分类**的 join warning；MUST NOT 用同一段笼统文案覆盖两种保证。
+
+#### 3.1.1 Join Warning（normative MUST，必须分两套）
+
+实现 MUST 按 `audit_assurance` 显示如下两套文案之一（也可本地化，但必须保留区分）。MUST NOT 把两套文案合并成一段或省略关键限定词。
+
+- 当 `audit_assurance = "attested_hardware"`（profile = `cx.profile.attested_audit.e2ee.v1`）：
+
+  > 这是一个**硬件强制审计的加密空间**。审查由声明的 TEE / 飞地强制执行先写后解密：合规员的访问会在你看到之前先公开留痕，群内可验证。被移除的合规员仍可解密其成员期间的历史。
+
+- 当 `audit_assurance = "disclosed_policy"`（profile = `cx.profile.disclosed_audit.e2ee.v1`）：
+
+  > 这是一个**仅依赖流程承诺的审计加密空间**。合规员能解密内容；空间公开声明会留痕，但**协议层不能阻止恶意合规客户端在不留痕的情况下解密内容**——是否信任取决于你对该组织和该客户端实现的信任，而不是密码学强制。被移除的合规员仍可解密其成员期间的历史。
+
+`disclosed_policy` 文案中"协议层不能阻止恶意合规客户端…"一段 MUST 完整呈现，不得作为可折叠的次要说明被默认收起。
 
 ### 3.2 审计节点的入群
 `did:web:compliance.acme.corp` 对应的合规客户端（Audit Agent）会作为一个合法的、只读的成员，由创建者通过正常的 `cx.mls.commit` 邀请加入 MLS 群组。
@@ -304,20 +330,20 @@ Conformance profile MUST 把 `software_only` 标记为 `audit_process_only` 或�
 
 #### 3.2.1 审计节点最小权限与前向安全边界
 
-Auditable E2EE 必须明确承认其安全边界：Audit Agent 是真实 MLS 成员，因此它被移除后仍可解密其成员期间已经收到且按 retention policy 保留的历史消息；Audit Agent key 泄露会影响其可访问 epoch 的机密性。Contrix 不得把这种模式描述为“审计方不可见内容”或“对审计方仍保持完整 forward secrecy”。
+Audited E2EE 必须明确承认其安全边界：Audit Agent 是真实 MLS 成员，因此它被移除后仍可解密其成员期间已经收到且按 retention policy 保留的历史消息；Audit Agent key 泄露会影响其可访问 epoch 的机密性。Contrix 不得把这种模式描述为“审计方不可见内容”或“对审计方仍保持完整 forward secrecy”。
 
 Audit Agent profile MUST 满足：
 
 - 只授予 `cx.audit.accessed`、必要的 key receive / decrypt capability 和 policy 明确声明的 audit query capability；不得授予普通发消息、编辑内容、管理 membership、签发 capability、推进 MLS epoch 或更改 Space policy 的权限。
 - MLS leaf credential、service DID、attestation evidence、operator DID、保留策略、允许的 audit purpose 和有效期 MUST 对成员可见，并被 Space policy / `application_state_ref.policy_root` 覆盖。
-- `hardware_tee` profile 下，MLS key material、exporter secret、历史 epoch secret 和明文输出 MUST 在 HSM、TEE、enclave 或等价硬件隔离边界内处理；remote attestation 必须绑定代码 measurement、service DID、policy version、audit purpose、created_at 和 expiry。
-- `software_process` profile 下，客户端必须向成员显示这是流程性审计保证，不是硬件强制保证。
+- `audit_assurance = "attested_hardware"` 下，MLS key material、exporter secret、历史 epoch secret 和明文输出 MUST 在 HSM、TEE、enclave 或等价硬件隔离边界内处理；remote attestation 必须绑定代码 measurement、service DID、policy version、audit purpose、created_at 和 expiry。
+- `audit_assurance = "disclosed_policy"` 下，客户端必须按 §3.1.1 disclosed 文案向成员显示这是**流程性披露**，不是硬件强制保证；MUST NOT 复用 `attested_hardware` 文案。
 - Audit Agent 的本地 key retention MUST 有上限，并能被成员验证为 policy 声明的一部分；legal hold 或监管保留需要单独声明，不能由 Agent 私下延长。
 
 不需要常驻审计解密能力的 Space SHOULD 使用 franking / moderation proof profile（例如 `cx.moderation.frank` 或 profile 注册的等价 token）来证明消息可审计性，并在真正审计时由发送方、持钥成员或受控服务按 policy 解密；不得把 standing Audit Agent 作为唯一合规模式。
 
 ### 3.3 强制留痕机制 (Audit Record Mandatory)
-获得密钥并不意味着可以合规地随意查看。协议要求 Audit Agent 按声明的 auditable E2EE profile 执行以下工作流；`tee_required` profile 下该实现必须依托 TEE / enclave 或等价硬件隔离环境，并保证 MLS key、exporter secret 或解密明文不会在审计确认前离开受控边界：
+获得密钥并不意味着可以合规地随意查看。协议要求 Audit Agent 按声明的 audit profile 执行以下工作流；`cx.profile.attested_audit.e2ee.v1` 下该实现必须依托 TEE / enclave 或等价硬件隔离环境，并保证 MLS key、exporter secret 或解密明文不会在审计确认前离开受控边界：
 
 1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:message:msg12300000000000000000000`）。
 2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条 `kind="cx.audit.accessed"` 的不可撤销 Event，并提交给该 Space：
@@ -333,10 +359,10 @@ Audit Agent profile MUST 满足：
      }
    }
    ```
-3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Events API、witness receipt 或至少一个独立验证节点的因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
-   - **独立节点验证**：高保证 profile SHOULD 从至少一个与 Audit Agent 无共同控制面的验证节点获得回执；单节点部署或 software-only profile 只能使用单源回执时，MUST 在审计记录中标记 `receipt_source_count=1` 和 `receipt_independence="single_source"`。
-   - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
-4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。Software-only profile MUST 按同一顺序执行并记录证明，但对恶意持钥客户端不提供密码学阻断。
+3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Events API、witness receipt 或至少一个独立验证节点的因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。回执 MUST 携带 `audit_assurance_class` 字段，且其值 MUST 与 Space policy 声明的 `audit_assurance` 一致；不一致时接收方 MUST fail closed。
+   - **独立节点验证**：`cx.profile.attested_audit.e2ee.v1` SHOULD 从至少一个与 Audit Agent 无共同控制面的验证节点获得回执；单节点部署或 `cx.profile.disclosed_audit.e2ee.v1` 只能使用单源回执时，MUST 在审计记录中标记 `receipt_source_count=1` 和 `receipt_independence="single_source"`。
+   - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、`audit_assurance_class` 与 Space `audit_assurance` 不一致、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
+4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。`cx.profile.disclosed_audit.e2ee.v1` MUST 按同一顺序执行并记录证明，但**对恶意持钥客户端不提供密码学阻断**——这是该 profile 的本质局限，不是实现缺陷。
 
 #### 3.3.1 RYW Receipt Schema
 
@@ -366,6 +392,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
   },
   "observed_at": "2026-04-26T00:00:00.123Z",
   "receipt_independence": "independent",
+  "audit_assurance_class": "attested_hardware",
   "proofs": [
     {
       "kind": "detached_jws",
@@ -396,19 +423,35 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `frontier.actor_frontier` | conditional | 至少包含 `audit_actor_id` 的 frontier。其它 actor frontier 由 issuer 选择性透出。 |
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
 | `receipt_independence` | yes | `independent` / `single_source`，与 §3.3 step 3 文字一致。 |
+| `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Space `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
 
 规则：
 
-- Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；高保证 profile（包括 `cx.profile.auditable_e2ee.tee_required.v1`）SHOULD 等待来自至少 2 个独立 issuer 的 receipts，且每个 `receipt_independence="independent"`。
+- Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；`cx.profile.attested_audit.e2ee.v1` SHOULD 等待来自至少 2 个独立 issuer 的 receipts，且每个 `receipt_independence="independent"`。
 - Issuer 不得伪造未观测到的 receipt；任何客户端 / 审计客户端 MUST 拒绝 `audit_event_digest` 与 envelope 实际 digest 不符的 receipt，并按 `audit_receipt_invalidated`（参见 `error-code-registry.json`）处理。
-- RYW receipt 默认是 actor-private / ephemeral 在 `cx.profile.auditable_e2ee.software_only.v1` 下；在 `cx.profile.auditable_e2ee.tee_required.v1` 下 receipt 可以同时作为 durable Event 进入 audit log，便于事后调查。
-- Receipt 可被 redaction 覆盖，但 redaction 只清除 cleartext metadata；`audit_event_id` 与 `audit_event_digest` 仍保留，以便审计链可还原。
+- RYW receipt 默认是 actor-private / ephemeral 在 `cx.profile.disclosed_audit.e2ee.v1` 下；在 `cx.profile.attested_audit.e2ee.v1` 下 receipt 可以同时作为 durable Event（`cx.audit.ryw_receipt`）进入 audit log，便于事后调查。
+- Receipt 可被 redaction 覆盖，但 redaction 只清除 cleartext metadata；`audit_event_id`、`audit_event_digest` 与 `audit_assurance_class` 仍保留，以便审计链可还原。
 
 ### 3.4 审查透明公示
 因为 `cx.audit.accessed` 是一条公开写入的协作事件，所有参与者的客户端都能通过 sync 实时同步到该事件。
-- **用户端 UI**：客户端检测到自己发送的消息被附加了 `cx.audit.accessed` 后，应在界面上（如气泡旁边）显示明显的标识（例如一个带警告色的“合规审查”眼睛图标），并允许用户点击查看审查事由与时间。
-- **不可抵赖性范围**：在 TEE / HSM / 等价受控执行 profile 中，合规输出必须绑定到 `cx.audit.accessed` 的确权回执；在 software-only profile 中，成员可审计合规客户端是否按流程记录访问，但协议不能阻止恶意持钥实现绕过日志。
+- **用户端 UI**：客户端检测到自己发送的消息被附加了 `cx.audit.accessed` 后，应在界面上（如气泡旁边）显示明显的标识（例如一个带警告色的“合规审查”眼睛图标），并允许用户点击查看审查事由、时间与 `audit_assurance_class`。
+- **不可抵赖性范围**：在 `cx.profile.attested_audit.e2ee.v1` 下，合规输出必须绑定到 `cx.audit.accessed` 的确权回执；在 `cx.profile.disclosed_audit.e2ee.v1` 下，成员可审计合规客户端是否按流程记录访问，但协议不能阻止恶意持钥实现绕过日志。
+
+### 3.5 禁止误导性营销措辞 (normative)
+
+`cx.profile.disclosed_audit.e2ee.v1` 提供的是流程性披露，不是密码学/硬件强制保证。该 profile 的产品文档、UI 标签、合规材料、营销材料、销售对外材料和向监管/采购方提交的合规说明 **MUST NOT** 使用以下措辞或它们在其他语言下的等价含义：
+
+- "cryptographically enforced audit"
+- "hardware-bound audit" / "TEE-equivalent audit"
+- "attested audit"（除非该部署同时声明并实现了 `cx.profile.attested_audit.e2ee.v1`，且 attestation evidence 当前有效）
+- "tamper-proof audit log"
+- "end-to-end encrypted with audit"（暗示加密强度等同于 audit 强度）
+- "auditable encryption"（v1 弃用统称——必须明确二选一）
+
+`cx.profile.attested_audit.e2ee.v1` 的对外材料 MAY 使用 "hardware-attested" / "TEE-bound" / "enclave-enforced" 等措辞，**但仅限 attestation evidence 当前在有效期内、measurement 与已发布 reference value 一致、且 service DID 仍为 Space policy 声明的 audit_actors 之一**。Attestation 失效或撤销期间，对外材料 MUST 暂停使用上述措辞。
+
+实现声明对本规范一致时，conformance suite SHOULD 包含一条 documentation lint vector（`forbidden_marketing_terms_check`），扫描产品材料语料并对违规命中 fail closed；该 lint 不替代但补充审计员对真实 attestation evidence 的人工核验。
 
 ## 4. 受控账号的通信穿透 (Master-Agent Control)
 
@@ -541,5 +584,5 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 ## 7. v1 集成要求
 
 - KeyPackage 在 DID Document 或 Device / Key Server 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
-- 当 auditable E2EE profile 要求 TEE 时，Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `cx.audit.accessed` 先写后解密要求。`software_only` profile 不得伪造或暗示存在 TEE attestation。
+- 当 Space 声明 `audit_assurance = "attested_hardware"`（profile = `cx.profile.attested_audit.e2ee.v1`）时，Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `cx.audit.accessed` 先写后解密要求。`cx.profile.disclosed_audit.e2ee.v1` 不得伪造或暗示存在 TEE attestation；该 profile 在所有对外材料中遵守 §3.5 禁用措辞条款。
 - Signal / Double Ratchet 私信互操作只能作为 profile-specific fallback。fallback 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和迁移边界；不得在 MLS Space 内静默降级。

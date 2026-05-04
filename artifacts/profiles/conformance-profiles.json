@@ -84,8 +84,8 @@
     "keypackage_claim_lifecycle",
     "minimal_metadata_space",
     "aad_visibility_policy",
-    "cx.profile.auditable_e2ee.tee_required.v1",
-    "cx.profile.auditable_e2ee.software_only.v1",
+    "cx.profile.attested_audit.e2ee.v1",
+    "cx.profile.disclosed_audit.e2ee.v1",
     "e2ee_report_framed_franking"
   ],
   "privacy_hardening": [
@@ -108,8 +108,8 @@
   ],
   "hardening_profiles": [
     "cx.profile.mls_state_binding.full.v1",
-    "cx.profile.auditable_e2ee.tee_required.v1",
-    "cx.profile.auditable_e2ee.software_only.v1"
+    "cx.profile.attested_audit.e2ee.v1",
+    "cx.profile.disclosed_audit.e2ee.v1"
   ],
   "vector_profiles": [
     "cx.profile.capability_vectors.v1",
@@ -1257,7 +1257,7 @@
         "unsupported_optional": "fail closed on root mismatch"
       }
     },
-    "cx.profile.auditable_e2ee.tee_required.v1": {
+    "cx.profile.attested_audit.e2ee.v1": {
       "inherits": [
         "cx.profile.e2ee_client.v1"
       ],
@@ -1267,13 +1267,15 @@
       ],
       "required_event_kinds": [
         "cx.audit.accessed",
+        "cx.audit.ryw_receipt",
         "cx.mls.commit"
       ],
       "rejected_event_kinds": [
       ],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.encrypted_payload.v1"
+        "cx.schema.encrypted_payload.v1",
+        "cx.schema.audit_ryw_receipt.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -1285,12 +1287,13 @@
         "required": [
           "audit_agent_attestation",
           "audit_access_ryw_receipt",
-          "audit_actor_membership_visible"
+          "audit_actor_membership_visible",
+          "audit_assurance_class_attested_hardware"
         ],
         "unsupported_optional": "fail closed before joining auditable encrypted Space"
       }
     },
-    "cx.profile.auditable_e2ee.software_only.v1": {
+    "cx.profile.disclosed_audit.e2ee.v1": {
       "inherits": [
         "cx.profile.e2ee_client.v1"
       ],
@@ -1300,13 +1303,15 @@
       ],
       "required_event_kinds": [
         "cx.audit.accessed",
+        "cx.audit.ryw_receipt",
         "cx.mls.commit"
       ],
       "rejected_event_kinds": [
       ],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.encrypted_payload.v1"
+        "cx.schema.encrypted_payload.v1",
+        "cx.schema.audit_ryw_receipt.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1317,7 +1322,9 @@
         "required": [
           "audit_profile_disclosure",
           "audit_access_ryw_receipt",
-          "audit_actor_membership_visible"
+          "audit_actor_membership_visible",
+          "audit_assurance_class_disclosed_policy",
+          "forbidden_marketing_terms_check"
         ],
         "unsupported_optional": "fail closed before joining auditable encrypted Space"
       }

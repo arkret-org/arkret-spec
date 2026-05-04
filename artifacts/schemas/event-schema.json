@@ -1255,6 +1255,7 @@
           "kind": {
             "enum": [
               "cx.audit.accessed",
+              "cx.audit.ryw_receipt",
               "cx.moderation.frank"
             ]
           }

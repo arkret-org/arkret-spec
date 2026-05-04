@@ -898,6 +898,14 @@
         "payload": "Auditable access"
       },
       {
+        "event_kind": "cx.audit.ryw_receipt",
+        "category": "audit",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": false,
+        "payload": "Audit RYW receipt"
+      },
+      {
         "event_kind": "cx.moderation.report",
         "category": "moderation",
         "status": "active",

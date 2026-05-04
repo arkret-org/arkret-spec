@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/audit-ryw-receipt.schema.json",
-  "title": "Contrix Auditable E2EE RYW Receipt",
-  "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a cx.audit.accessed envelope has reached accepted state. Required by cx.profile.auditable_e2ee.* before the Audit Agent is allowed to release plaintext (see zh/crypto-media/encryption-and-audit.md §3.3.1).",
+  "title": "Contrix Audit RYW Receipt",
+  "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a cx.audit.accessed envelope has reached accepted state. Required by cx.profile.attested_audit.e2ee.v1 and cx.profile.disclosed_audit.e2ee.v1 before the Audit Agent is allowed to release plaintext (see zh/crypto-media/encryption-and-audit.md §3.3.1). The audit_assurance_class field MUST match the Space-declared audit_assurance value; mismatch fail closed.",
   "type": "object",
   "required": [
     "receipt_id",
@@ -17,6 +17,7 @@
     "frontier",
     "observed_at",
     "receipt_independence",
+    "audit_assurance_class",
     "proofs"
   ],
   "properties": {
@@ -103,6 +104,14 @@
         "independent",
         "single_source"
       ]
+    },
+    "audit_assurance_class": {
+      "type": "string",
+      "enum": [
+        "attested_hardware",
+        "disclosed_policy"
+      ],
+      "description": "Audit assurance class propagated from the Space audit_assurance policy field. attested_hardware = cx.profile.attested_audit.e2ee.v1 (TEE/HSM/enclave attestation required). disclosed_policy = cx.profile.disclosed_audit.e2ee.v1 (process-only disclosure, NOT cryptographically enforced). Audit Agents MUST propagate the Space-declared value verbatim; receivers MUST fail closed when this field disagrees with the Space audit_assurance at the receipt's frontier."
     },
     "proofs": {
       "type": "array",

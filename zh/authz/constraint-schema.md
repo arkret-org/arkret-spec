@@ -8,18 +8,23 @@
 
 ### 2.1 基础 Schema
 
-所有约束使用同一个 typed flat object 结构。`constraint_type`、`effect` 和 `priority` 是通用字段；类型专属字段直接放在同一对象上。Grant、policy、proposal 和 conformance schema 都 MUST 使用这一种结构。
+所有约束使用同一个 typed flat object 结构。`constraint_type`、`effect`、`evaluation_class` 和 `priority` 是通用字段；类型专属字段直接放在同一对象上。Grant、policy、proposal 和 conformance schema 都 MUST 使用这一种结构。
 
 ```json
 {
   "constraint_id": "string",
   "constraint_type": "enum",
   "effect": "allow|deny|quarantine|require_review",
+  "evaluation_class": "stateless|grant_local|space_state|external",
   "priority": 0
 }
 ```
 
-`constraint_id` 是可选稳定标识，用于审计、UI diff 和局部更新；未提供时，评估器可用 constraint 在 grant 内的数组位置和 canonical hash 作为诊断标识。
+字段语义：
+
+- `constraint_id`：可选稳定标识，用于审计、UI diff 和局部更新；未提供时，评估器可用 constraint 在 grant 内的数组位置和 canonical hash 作为诊断标识。
+- `evaluation_class`：可缓存性/依赖范围 hint，决定授权评估器能否走 fast path。每个 `constraint_type` 在 §2.3 有 canonical evaluation_class；实现 MAY 在不破坏正确性的前提下收紧（如把声明的 `grant_local` 实际当 `stateless` 缓存），但 MUST NOT 放宽（不得把 `external` 当 `stateless` 缓存）。
+- `priority`：仅对 `effect=allow` 有效，且仅用于诊断（"是哪条 allow 让本次操作 ALLOWED"）。MUST NOT 影响 `deny` / `quarantine` / `require_review` 的判定——这三种 effect 一律"任一命中即生效"（§15）。
 
 ### 2.2 约束类型
 
@@ -39,6 +44,35 @@
 | `visibility_control` | 对象/消息可见性控制 | v1 |
 | `resource_limit` | 资源大小/数量限制 | v1 |
 | `edit_window` | 编辑/撤回时间窗口 | v1 |
+
+### 2.3 evaluation_class 分类
+
+每个 `constraint_type` 的 canonical `evaluation_class`。授权评估器 MUST 按此分类决定缓存键；实现声明的 `evaluation_class` 与 canonical 不一致时 MUST 视作不一致 conformance 错误。
+
+| constraint_type | canonical evaluation_class | 缓存键建议 | 备注 |
+| --- | --- | --- | --- |
+| `temporal`（不含 `recurrence`/`max_session_duration`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
+| `temporal` 带 `recurrence` 或 `max_session_duration` | `stateless` | TTL ≤ 下一个 recurrence 边界 | 仍是纯函数，但 TTL 必须缩短 |
+| `field_access`（无 `condition`） | `stateless` | (constraint_hash, op_kind) | 仅 allow / deny 列表比较 |
+| `field_access` 带 `condition.kind` | `space_state` | (space_id, frontier_hash, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
+| `type_restriction` | `stateless` | (constraint_hash, op_target_type) | |
+| `scope_limitation` | `stateless` | (constraint_hash, op_target) | |
+| `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
+| `rate_limiting` | `external` | 不可缓存 | 必须查 actor 历史计数 |
+| `approval_workflow` | `external` | 不可缓存 | 等待 approval event |
+| `claim_based` | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
+| `accountability` | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
+| `encryption_requirement` | `space_state` | (space_id, frontier_hash) | 取 Space `encryption_profile` / `audit_assurance` |
+| `container_move` | `space_state` | (space_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
+| `visibility_control` | `space_state` | (space_id, frontier_hash) | 看 Space `history_visibility` |
+| `resource_limit`（`blob_max_bytes` 单次） | `stateless` | 单次操作的字节计数无需历史 | |
+| `resource_limit`（`max_total_blob_bytes` 累计） | `external` | 不可缓存 | 必须查 scope 内累计 |
+| `edit_window` | `stateless` | TTL ≤ window 剩余时间 | 时间预算 |
+
+落地要点：
+
+- 14 种 constraint type 中有 7 种属于 `external` / `space_state`——这是大型授权图不可整体缓存的根因。fast path（仅 `stateless` + `grant_local`）SHOULD 用于读取 marker、reaction 等低风险动作；写入与高风险动作 MUST 跑完整集合。
+- `evaluation_class` 同时承担 lint 锚点：实现声明的依赖与 canonical 不一致时，conformance lint MUST 报错。
 
 ## 3. 时间约束
 
@@ -82,10 +116,14 @@
   "effect": "allow",
   "fields_write_allow": ["title", "body", "fields.status"],
   "condition": {
-    "when": "object_is_owned_by_actor"
+    "kind": "object_is_owned_by_actor"
   }
 }
 ```
+
+`condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
+
+实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段（如旧版本曾使用的 `when` 字符串）；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
 
 ### 4.2 字段写入拒绝
 
@@ -415,57 +453,49 @@
 
 ## 15. 约束求值
 
-### 15.1 求值顺序
+### 15.1 求值规则（normative）
 
-约束按优先级顺序求值：
+求值规则是**任一命中即生效**的全或无模型，不再依赖跨 effect 的优先级排序：
 
 ```
-1. 所有 deny 约束（最高优先级优先）
-2. 所有 quarantine 约束
-3. 所有 require_review 约束
-4. 所有 allow 约束（最低优先级优先）
+1. 任一 deny 命中            → DENIED
+2. 任一 quarantine 命中      → QUARANTINED
+3. 任一 require_review 命中  → REQUIRES_REVIEW
+4. 所有 allow 命中           → ALLOWED
+5. 否则                      → DENIED (default deny)
 ```
 
-在每个类别中，`priority` 值越大优先级越高。
+`priority` 字段对 `deny` / `quarantine` / `require_review` **没有意义**，实现 MUST NOT 用其影响判定结果。`priority` 仅在 `effect=allow` 上承担诊断用途，用于在多条 allow 同时通过时标识"是哪条 allow 解释了 ALLOWED"，便于审计 UI 展示与日志归因；它不参与裁决，也不能让一条 allow 抑制另一条 allow。
 
 ### 15.2 约束组合
 
 当多个约束适用时：
 
-- 所有约束必须同时满足（AND 逻辑）
-- 冲突解决：deny > quarantine > require_review > allow
-- 每种约束类型可定义例外
+- 所有 `allow` 约束必须同时满足（AND 逻辑）才得出 ALLOWED；任一不满足即 DENIED。
+- `deny` / `quarantine` / `require_review` 三类彼此不通过 priority 排序——它们之间的 precedence 由 §15.1 的步骤顺序决定（deny 优于 quarantine 优于 require_review）。
+- 这种全或无模型让授权评估器可以把每个 effect 类别当作集合命中检查，缓存键无需按 priority 编排。
 
 ### 15.3 求值算法
 
 ```
 function evaluate_constraints(operation, grant_constraints):
-    # 首先检查 deny 约束
-    for constraint in grant_constraints:
-        if constraint.effect == "deny":
-            if matches(operation, constraint):
-                return DENIED
+    deny       = [c for c in grant_constraints if c.effect == "deny"]
+    quarantine = [c for c in grant_constraints if c.effect == "quarantine"]
+    review     = [c for c in grant_constraints if c.effect == "require_review"]
+    allow      = [c for c in grant_constraints if c.effect == "allow"]
 
-    # 检查 quarantine 约束
-    for constraint in grant_constraints:
-        if constraint.effect == "quarantine":
-            if matches(operation, constraint):
-                return QUARANTINED
-
-    # 检查 require_review 约束
-    for constraint in grant_constraints:
-        if constraint.effect == "require_review":
-            if matches(operation, constraint):
-                return REQUIRES_REVIEW
-
-    # 所有 allow 约束必须通过
-    for constraint in grant_constraints:
-        if constraint.effect == "allow":
-            if not matches(operation, constraint):
-                return DENIED
-
-    return ALLOWED
+    if any(matches(operation, c) for c in deny):
+        return DENIED
+    if any(matches(operation, c) for c in quarantine):
+        return QUARANTINED
+    if any(matches(operation, c) for c in review):
+        return REQUIRES_REVIEW
+    if all(matches(operation, c) for c in allow):
+        return ALLOWED  # diagnostic: max(c.priority for matching allows) explains the outcome
+    return DENIED
 ```
+
+实现 SHOULD 按 §2.3 的 `evaluation_class` 分组：先跑 `stateless` 与 `grant_local` 的 fast path（命中即可短路返回 DENIED / QUARANTINED / REQUIRES_REVIEW），再跑 `space_state` 与 `external` 的 slow path（必要时走异步 / 缓存绑定 frontier）。`external` 类约束 MUST NOT 缓存。
 
 ## 16. 约束匹配
 
