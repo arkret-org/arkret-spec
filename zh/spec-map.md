@@ -20,11 +20,12 @@
 
 1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
-3. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
-4. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/progressive-disclosure.md`：理解身份、handle 和隐私披露。
-5. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
-6. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
-7. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
+3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、branch 模型、E2EE 边界、agent 落点）。
+4. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
+5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/progressive-disclosure.md`：理解身份、handle 和隐私披露。
+6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
+7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
+8. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
 ### 2.1 快速收敛链路（先读）
 

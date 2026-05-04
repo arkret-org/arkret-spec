@@ -67,6 +67,8 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
+`cx.profile.update` 是 principal-scoped profile state。若封装为 `cx.schema.event.v1` Event Envelope，顶层 `space_id` MUST 是该 actor 的 `principal_control_space_id`；不得把全局 profile 更新写入任意协作 Space history。
+
 ### 2.4 Per-Space Profile 覆写
 
 用户 MAY 为特定 Space 设置不同的显示名或头像（例如在公司 Space 用真名，在开源项目 Space 用昵称）：
@@ -84,6 +86,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 
 - Space 覆写的优先级高于全局 Profile
 - `null` 值表示使用全局 Profile 的对应字段
+- `cx.profile.space_override` MUST 同时绑定 actor DID 与目标 Space。若作为共享 Space history 传播，顶层 `space_id` 是目标 Space，事件必须通过目标 Space 的 membership / visibility / policy 校验；若作为 actor-private 或 principal control profile state 传播，content MUST 显式包含目标 Space id，projection 服务只可向有权读取该 Space profile override 的请求方披露。
 
 ## 3. 在线状态 (Presence)
 

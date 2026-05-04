@@ -159,6 +159,23 @@ MLS KeyPackage key 用于加入加密 Space。
 }
 ```
 
+### 4.1 Principal Control Event Stream
+
+设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意协作 Space。Contrix v1 使用 **Principal Control Event Stream** 承载这些 durable identity state。
+
+当 `cx.device.authorized`、`cx.device.revoked`、`cx.device.list_update` 或 `cx.session.grant` 以 `cx.schema.event.v1` Event Envelope 传播时：
+
+- `space_id` MUST 是该 principal 的专用 `principal_control_space_id`，不得使用任意协作 Space 的 `space_id`。
+- `space_version` MUST 使用 control stream 支持的版本；v1 默认 `"1"`。
+- `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
+- `content.principal_id` / `content.subject` MUST 与该 control Space 绑定的 principal DID 一致；不一致时 MUST reject。
+- control Space 的 `cx.space.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。
+- 普通协作 Space 的业务事件 MAY 通过 `auth_refs`、verified snapshot reference、policy server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该协作 Space history 来改变身份状态。
+
+`principal_control_space_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Space 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
+
+实现 MAY 用 identity sidecar、device registry 或 DID/key-log operation 存储同一状态，但它们必须提供等价的签名、digest、auth dependency 和撤销语义；桥接到 Event Envelope 时仍必须遵守上述 `space_id` 规则。
+
 ## 5. 设备授权流程
 
 ### 5.1 新设备加入
@@ -210,13 +227,13 @@ MLS KeyPackage key 用于加入加密 Space。
 ## 6. Session Grant
 
 Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。  
-Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
+Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标准 durable control event 类型。
 
-示例：
+`cx.session.grant.content` 示例：
 
 ```json
 {
-  "kind": "cx.session.grant",
+  "grant_id": "cx:grant:01js0sg0000000000000000000",
   "issuer": "did:web:auth-gateway.example.com",
   "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "session_public_key": "z6Mss...",
@@ -312,8 +329,18 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 }
 ```
 
-实现 SHOULD 使用现代 KDF，例如 Argon2id。  
+实现 SHOULD 使用现代 KDF，例如 Argon2id。
 如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。新创建的云保险箱不得默认使用 PBKDF2。
+
+`key_commitment` 的推荐构造：
+
+```
+derived_key = KDF(passphrase, salt, kdf_params)
+commitment_key = HKDF(derived_key, info="contrix-key-backup-commitment-v1")
+key_commitment = SHA256(commitment_key)
+```
+
+客户端 MAY 在尝试解密 `ciphertext` 前用用户输入的 passphrase 派生 key，计算 commitment 并与 envelope 中的 `key_commitment` 比对。不匹配时 MUST 拒绝解密并提示用户 passphrase 错误。`key_commitment` 只是本地快速拒绝错误口令和防止密文替换的辅助值，不是服务端认证材料；服务端不得要求用户上传 passphrase、derived key、commitment key 或使用 `key_commitment` 做在线口令检查。离线攻击者仍可对备份执行 KDF 级别的口令猜测，因此实现必须执行强口令策略、Argon2id 参数下限和速率受控的恢复 UI。
 
 `ciphertext_digest` 覆盖密文字节，`plaintext_commitment` 若存在只用于本地完整性或跨设备一致性检查；服务端不得要求知道明文 hash 才能存储或返回备份。
 

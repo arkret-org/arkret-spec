@@ -100,11 +100,48 @@ MLS group 的绑定层级取决于启用位置：若 Space 级 policy 声明 `en
 - 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix state 已经按 `event-auth-state-resolution.md` accepted。无法回补或 hash 不匹配时 MUST 标记该 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 仍按 Contrix 的 auth weight / HLC / actor / event hash 规则裁决；失败 Commit 的 MLS transcript 不得被接受为当前 epoch。
 
-实现若使用 MLS AppSync、GroupContext extension 或 future MLS application-state extension，SHOULD 将上述字段放入该扩展。若底层 MLS 库暂不支持扩展，MUST 至少把 `application_state_ref` 放入签名 Event 和 Commit transcript hash 可验证覆盖的字段中。
+实现 SHOULD 将 `application_state_ref` 纳入 MLS GroupContext extension，使其被 `confirmed_transcript_hash` 覆盖。声明 `cx.profile.mls_state_binding.full.v1` 或更高保证 profile 的实现 MUST 支持该绑定方式，或声明等价 transcript-authenticated binding profile。
+
+#### 2.5.1 GroupContext Extension 定义
+
+Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 必须通过实现 profile、部署 profile 或未来 registry 协商，不能静默占用未声明的公共 codepoint。
+
+| 字段 | 值 |
+|------|-----|
+| ExtensionType | `cx_app_state_ref`（profile-negotiated；private-use codepoint 只能在双方显式协商后使用） |
+| ExtensionData | `application_state_ref` 对象的 CBOR 编码 |
+
+CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列：
+
+```cbor
+{
+  "binding_profile":     tstr,
+  "capability_root":     bstr,    ; optional, full profile only
+  "discussion_metadata_hash": bstr, ; optional, full profile only
+  "mls_group_id":        bstr,
+  "membership_frontier": [+ bstr],
+  "next_epoch":          uint,
+  "policy_root":         bstr,
+  "previous_epoch":      uint,
+  "reducer_profile":     tstr,
+  "space_id":            tstr
+}
+```
+
+当 MLS group 绑定到 Flow discussion branch 时，CBOR map MUST 包含额外键 `"flow_id"` (tstr) 和 `"branch"` (tstr, 值为 `"discussion"`)。
+
+规则：
+
+- 声明 full binding profile 时，`cx_app_state_ref` extension MUST 出现在每次 `cx.mls.commit` 对应的 GroupContext `extensions` 字段中。
+- `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Contrix 应用状态绑定到 MLS transcript。
+- 若底层 MLS 库暂不支持 GroupContext extension，base E2EE profile MUST 至少把 `application_state_ref` 放入签名 Event 和 Commit transcript hash 可验证覆盖的字段中，并在实现文档中声明降级原因；不得声称支持 full binding profile。
+- 接收方验证 Commit 时 MUST 解码 `cx_app_state_ref` extension 并执行 section 2.5 中的 `application_state_ref` 验证规则。
 
 ### 2.6 KeyPackage Claim 生命周期
 
 KeyPackage 不应被建模为可无限次公开拉取的静态材料。E2EE 实现 MUST 将 MLS KeyPackage 作为可声明、可领取、可消费、可撤销的单次使用材料。
+
+> **Contrix 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Contrix 的 claim 模型在此基础上增加了 `intended_space_id` 绑定和 room-scoped claim，要求 MLS Delivery Service 跟踪 room affinity。这是 Contrix 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) room-scoped claim 使客户端可以控制自己被邀请进入哪些 Space，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Space 消费。实现若使用标准 MLS 库（不支持 room-scoped claim），MUST 至少在 Contrix 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
 
 KeyPackage lifecycle：
 
@@ -164,6 +201,13 @@ Profile 规则：
 
 Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pairwise sender，但不得被提升为已验证 principal DID 发送者。
 
+**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(space_id, pairwise_did)`。缓存 MUST 包含验证时间、MLS epoch、principal DID、device id 和签名证明摘要。缓存失效规则：
+
+- MLS epoch 变更（成员被移除或主动离开）时，MUST 失效对应成员的缓存条目。
+- `cx.identity_link` 被更新或撤销时，MUST 替换旧条目。
+- 缓存 TTL SHOULD 不超过 7 天；过期后 MUST 重新验证。
+- 设备丢失或恢复后，MUST 清除所有 identity_link 缓存。
+
 ### 2.8 Message ID AAD 可见性
 
 加密信封中的 AAD 能帮助路由和诊断，但也可能成为跨服务关联信号。Space policy MUST 声明 `aad_visibility`：
@@ -200,11 +244,22 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
   "encryption_profile": "mls_rfc9420",
   "auditable_e2ee": true,
   "auditable_e2ee_profile": "cx.profile.auditable_e2ee.tee_required.v1",
+  "audit_enforcement_level": "hardware_tee",
   "audit_actors": [
     "did:web:compliance.acme.corp"
   ]
 }
 ```
+
+`audit_enforcement_level` 取值：
+
+| 值 | 说明 |
+|-----|------|
+| `hardware_tee` | Audit Agent 在 TEE / HSM / 等价硬件隔离环境中运行；密钥和明文不离开受控边界。 |
+| `software_process` | 无硬件隔离；审计保证依赖协议流程和合规监督，不提供密码学阻断。 |
+| `none` | 未声明审计强制级别；客户端 MUST 视为最弱保证。 |
+
+客户端在加入 auditable Space 前 MUST 读取 `audit_enforcement_level` 并向用户展示当前强制级别。
 客户端在加入此类 Space 前，**UI 必须向人类用户明确警告**：“这是一个受审核的加密空间，内容对合规员可见，但任何审查都会被记录并在群内公示。”
 
 Auditable E2EE profile：
@@ -235,7 +290,9 @@ Auditable E2EE profile：
      }
    }
    ```
-3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Events API 或至少一个独立验证节点的 `sync_token`（或因果确权回执），确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
+3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Events API、witness receipt 或至少一个独立验证节点的因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
+   - **独立节点验证**：高保证 profile SHOULD 从至少一个与 Audit Agent 无共同控制面的验证节点获得回执；单节点部署或 software-only profile 只能使用单源回执时，MUST 在审计记录中标记 `receipt_source_count=1` 和 `receipt_independence="single_source"`。
+   - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。Software-only profile MUST 按同一顺序执行并记录证明，但对恶意持钥客户端不提供密码学阻断。
 
 ### 3.4 审查透明公示

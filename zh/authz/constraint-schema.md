@@ -36,6 +36,9 @@
 | `accountability` | 责任方追踪 | v1 |
 | `encryption_requirement` | 强制加密 | v1 |
 | `container_move` | 看板 / collection 移动范围 | v1 |
+| `visibility_control` | 对象/消息可见性控制 | v1 |
+| `resource_limit` | 资源大小/数量限制 | v1 |
+| `edit_window` | 编辑/撤回时间窗口 | v1 |
 
 ## 3. 时间约束
 
@@ -148,6 +151,8 @@
 ```
 
 `allowed_branches` 只限制 Flow branch 范围，不自动授予对应 branch 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并满足 branch access、history visibility 和 E2EE key eligibility。
+
+`room` 不是独立实体或 selector kind。授权讨论型 Flow 应使用 `flow_kind_allow=["room"]`；授权 discussion branch 应同时使用 `allowed_branches=["discussion"]`。`branches.discussion.room_kind` 只是 branch-local semantic/profile hint，v1 grant constraint 不定义 `room_kind_allow` / `room_kind_deny`。
 
 ### 6.2 视图限制
 
@@ -366,9 +371,54 @@
 }
 ```
 
-## 13. 约束求值
+## 13. 可见性控制
 
-### 13.1 求值顺序
+### 13.1 对象可见性
+
+```json
+{
+  "constraint_type": "visibility_control",
+  "effect": "allow",
+  "visibility_allow": ["world_readable", "shared", "joined"],
+  "deny_redacted_history": true
+}
+```
+
+`visibility_allow` 限制 actor 可访问的对象/消息可见性级别。取值与 `history_visibility` 枚举一致：`world_readable`、`shared`、`invited`、`joined`、`restricted`。
+
+## 14. 资源限制
+
+### 14.1 Blob 大小限制
+
+```json
+{
+  "constraint_type": "resource_limit",
+  "effect": "allow",
+  "blob_max_bytes": 10485760,
+  "max_total_blob_bytes": 104857600,
+  "scope": "per_space"
+}
+```
+
+`blob_max_bytes` 限制单次上传 blob 的最大字节数。`max_total_blob_bytes` 限制 scope 内的累计 blob 大小。
+
+### 14.2 消息编辑窗口
+
+```json
+{
+  "constraint_type": "edit_window",
+  "effect": "allow",
+  "message_edit_window": "15m",
+  "message_redact_window": "24h",
+  "allow_redact_after_window": false
+}
+```
+
+`message_edit_window` 限制发送后可编辑消息的时间窗口。`message_redact_window` 限制可撤回消息的时间窗口。超时后 `cx.message.revise.own` 或 `cx.message.redact.own` MUST 被拒绝，除非 actor 持有更高权限的 `cx.message.revise` 或 `cx.message.redact`。
+
+## 15. 约束求值
+
+### 15.1 求值顺序
 
 约束按优先级顺序求值：
 
@@ -381,7 +431,7 @@
 
 在每个类别中，`priority` 值越大优先级越高。
 
-### 13.2 约束组合
+### 15.2 约束组合
 
 当多个约束适用时：
 
@@ -389,7 +439,7 @@
 - 冲突解决：deny > quarantine > require_review > allow
 - 每种约束类型可定义例外
 
-### 13.3 求值算法
+### 15.3 求值算法
 
 ```
 function evaluate_constraints(operation, grant_constraints):
@@ -420,9 +470,9 @@ function evaluate_constraints(operation, grant_constraints):
     return ALLOWED
 ```
 
-## 14. 约束匹配
+## 16. 约束匹配
 
-### 14.1 时间匹配
+### 16.1 时间匹配
 
 ```javascript
 function matches_temporal(operation, constraint):
@@ -438,7 +488,7 @@ function matches_temporal(operation, constraint):
     return true
 ```
 
-### 14.2 字段访问匹配
+### 16.2 字段访问匹配
 
 ```javascript
 function matches_field_access(operation, constraint):
@@ -458,9 +508,9 @@ function matches_field_access(operation, constraint):
     return true
 ```
 
-## 15. 安全考虑
+## 17. 安全考虑
 
-### 15.1 约束规避
+### 17.1 约束规避
 
 防止规避的措施：
 
@@ -469,7 +519,7 @@ function matches_field_access(operation, constraint):
 - 约束违规审计日志
 - 约束求值频率限制
 
-### 15.2 基于时间的攻击
+### 17.2 基于时间的攻击
 
 缓解措施：
 
@@ -478,7 +528,7 @@ function matches_field_access(operation, constraint):
 - 记录时间验证失败
 - 监控时间操纵尝试
 
-### 15.3 声明伪造
+### 17.3 声明伪造
 
 防止伪造的措施：
 
@@ -487,9 +537,9 @@ function matches_field_access(operation, constraint):
 - 验证声明新鲜度
 - 仅使用受信声明发行者
 
-## 16. 性能考虑
+## 18. 性能考虑
 
-### 16.1 约束缓存
+### 18.1 约束缓存
 
 缓存约束求值结果：
 
@@ -497,14 +547,14 @@ function matches_field_access(operation, constraint):
 - TTL：基于约束时间边界
 - 失效：约束变更时
 
-### 16.2 优化策略
+### 18.2 优化策略
 
 - 按类型索引约束
 - 预计算约束组合
 - 对简单约束使用快速路径
 - 批量约束求值
 
-## 17. 一致性
+## 19. 一致性
 
 实现 MUST：
 
@@ -522,9 +572,9 @@ function matches_field_access(operation, constraint):
 - 支持约束模板
 - 监控约束性能
 
-## 18. 示例
+## 20. 示例
 
-### 18.1 带约束的 Agent 授权
+### 20.1 带约束的 Agent 授权
 
 ```json
 {
@@ -571,7 +621,7 @@ function matches_field_access(operation, constraint):
 }
 ```
 
-### 18.2 临时提升访问权限
+### 20.2 临时提升访问权限
 
 ```json
 {

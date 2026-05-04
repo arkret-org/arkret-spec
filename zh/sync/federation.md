@@ -156,6 +156,27 @@ Signature: sig1=:base64...:
 - 联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
 - 当服务委托被撤销或成员被移除后，生效因果点之后不得继续向已撤销 service DID 推送非加密私有内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
 
+### 4.1.1 Transaction 与 Push-Operations 的关系
+
+Contrix v1 定义两个联邦推送 endpoint：
+
+| 特性 | `PUT /federation/transactions/{txn_id}` | `POST /federation/push-operations` |
+|------|----------------------------------------|-------------------------------------|
+| 定义文件 | `federation-wire.md` | `federation.md` |
+| 幂等机制 | `(origin, destination, txn_id)` 显式事务 ID | `(origin, destination, event_id)` 逐事件去重 |
+| 适用场景 | 有状态联邦：两个互信 Principal Server 之间的持续同步 | 无状态/单次推送：一次性事件投递或无事务管理能力的轻量客户端 |
+| 额外字段 | `receipts[]`、`frontier`、`request_canonical_hash` | `space_id` |
+| 响应差异 | `{ok, accepted[], rejected[], next_retry_at?}` | `{accepted[], rejected[], quarantine[]?}` |
+
+规则：
+
+- 实现 MUST 至少支持其中一个 endpoint。声称 `cx.profile.principal_server.v1` 的实现 SHOULD 两个都支持。
+- `transactions/{txn_id}` 是有状态联邦的首选 endpoint，适用于持续同步、批量重试和 frontier 交换场景。
+- `push-operations` 是无状态推送的便捷 endpoint，适用于单次事件投递或不需要事务管理的场景。
+- 两个 endpoint 的 `events[]` 处理规则（有序处理、部分失败、因果依赖解析）完全一致。
+- `push-operations` 的幂等依赖 event-level 去重（`event_id` + `space_id`），不要求发送方管理事务 ID。接收方 MUST 对重复 `event_id` 返回 `accepted[]` 而非报错。
+- `quarantine[]` 响应字段在两个 endpoint 中均可用：`transactions/{txn_id}` 的 quarantine 项 SHOULD 放入 `rejected[]` 并附 `reason_code=quarantined`，或由实现扩展响应 schema。
+
 ### 4.2 拉取模式 (Pull / Backfill)
 
 当节点发现自己的因果图中存在缺失（`prev_refs` 或 `auth_refs` 引用了本地没有的 Event）时，可以主动向源 Principal Server 或源 Events API 拉取：

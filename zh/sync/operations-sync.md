@@ -169,6 +169,36 @@ Contrix v1 要求：
 
 实现 MUST NOT 把 Sync Service 到达顺序、数据库自增 ID 或 HTTP 接收顺序当作协议顺序。
 
+参考验证算法：
+
+```
+function validate_actor_seq(event, known_frontiers):
+    actor = event.actor_id
+    seq = event.actor_seq
+
+    // 规则 1: 直接前序递增
+    prev_seqs = [e.actor_seq for e in event.prev_refs if e.actor_id == actor]
+    if prev_seqs:
+        if seq <= max(prev_seqs):
+            reject("actor_seq must exceed direct prev_refs max")
+
+    // 规则 2: 防回退 — 低于所有已知 frontier heads 时先回补上下文
+    if actor in known_frontiers:
+        frontier_heads = known_frontiers[actor]  // head set, not single max
+        if all(seq < h for h in frontier_heads):
+            soft_fail("actor_seq below known heads; backfill required")
+
+    // 规则 3: 无自引用
+    if event.event_id in event.prev_refs or event.event_id in event.auth_refs:
+        reject("self-referential event")
+
+    accept()
+```
+
+低于所有已知 frontier head 的事件不应被立即永久拒绝，因为它可能是稍后回补到达的合法历史分支。接收方 MUST 先尝试 backfill 或用可验证 snapshot 证明该事件能连接到某个有效分支；只有在确认无法连接、直接前序递增规则被破坏、或同 `event_id` hash 冲突时，才 reject / quarantine。
+
+该算法只验证 `actor_seq` 语义。完整的 Event 验证还必须包括签名、schema、capability、Space policy、因果依赖（`prev_refs` / `auth_refs` 存在性）和 HLC 合理性检查。
+
 ## 7. 标准 Event Kind
 
 标准 `Event.kind` 的机器可读 source of truth 是 `artifacts/registry/event-kind-registry.json`；`schema-registry.md` 只是文档视图。实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的标准事件类型。自定义事件不得使用 `cx.` 前缀，除非已纳入标准 registry。
@@ -265,10 +295,15 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.mls.proposal`
 - `cx.mls.commit`
 - `cx.mls.welcome`
-- `cx.read.marker`
-- `cx.receipt.read`
 - `cx.audit.accessed`
 - `cx.redaction`
+
+`cx.profile.update`、`cx.device.*` 与 `cx.session.grant` 是 durable Event Envelope kind，但其规范作用域是 principal control Space。生产者 MUST 使用目标 principal 的 `principal_control_space_id` 作为 `space_id`；普通协作 Space 只能通过 `auth_refs`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入协作 Space history。`cx.profile.space_override` 若作为共享 Space history 传播，MUST 使用目标 Space 的 `space_id` 并通过该 Space policy；若作为 principal control profile state 传播，MUST 在 content 中显式绑定目标 Space。
+
+以下标准 kind 不属于共享 durable Space history，不能列入本节 durable 写路径：
+
+- `cx.read.marker`：`actor_private_event`，只能进入 encrypted account data 或 actor-private stream。
+- `cx.receipt.read`：`ephemeral_event`，只能走 ephemeral / receipt stream，不推进 `actor_seq`、Space reducer frontier 或 state hash。
 
 ## 8. 操作体原则
 
@@ -349,6 +384,8 @@ Reducer 语义：
 6. 对相同 Event 保持幂等。
 
 `cx.flow.move` 不得把 `board_id`、`list_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源。View projection MAY 返回这些派生字段，但必须能追溯到 active position edge 和 reducer frontier。
+
+CAS 语义：`expected_position` 描述的是移动前源 List 中 Flow 的当前位置。Reducer MUST 验证 `expected_position.list_id`、`expected_position.rank` 和 `expected_position.relation_id` 与当前 reduced state 一致；不一致时 SHOULD 返回 `cas_conflict`，除非 policy 明确允许 non-CAS move。目标 List 的 rank 不要求 CAS（由 reducer 按目标 List 当前内容计算或接受客户端提供的 rank）。`cx.flow.move` 不要求源侧 CAS 的场景：若 `expected_position` 缺失或为空，reducer SHOULD 接受移动但 MUST 在目标侧执行 `(board_id, flow_id)` 去重（关闭旧 position edge）。
 
 ### 9.2 `cx.flow.reorder`
 

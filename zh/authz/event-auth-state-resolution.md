@@ -77,8 +77,16 @@
 | `cx.policy.*` | `cx.space.create`、actor membership、policy/admin capability、上一版同 key policy |
 | `cx.space.discovery` | `cx.space.create`、actor membership、discovery/policy/admin capability、上一版 discovery state |
 | `cx.space.moderation_policy` | `cx.space.create`、actor membership、moderation/policy/admin capability、上一版 moderation policy |
+| `cx.space.policy` | `cx.space.create`、actor membership、policy/admin capability、上一版同 key policy state |
+| `cx.space.join_rule` | `cx.space.create`、actor membership、join policy/admin capability、上一版 join rule state |
+| `cx.space.history_visibility` | `cx.space.create`、actor membership、history/policy/admin capability、上一版 history visibility state、当前 encryption / history sharing policy |
+| `cx.space.policy_server` | `cx.space.create`、actor membership、policy/admin capability、service DID delegation、上一版 policy server state |
 | `cx.space.policy_components` | `cx.space.create`、actor membership、policy/admin capability、上一版 policy component state |
+| `cx.space.plaintext_visible_services` | `cx.space.create`、actor membership、privacy/policy/admin capability、service DID delegation、上一版 plaintext visible service state |
+| `cx.space.schema` | `cx.space.create`、actor membership、schema/policy/admin capability、上一版 schema state、upgrade policy（如适用） |
 | `cx.space.history_sharing_policy` | `cx.space.create`、actor membership、policy/admin capability、上一版 history sharing state、当前 encryption policy |
+| `cx.space.asset_privacy_policy` | `cx.space.create`、actor membership、asset privacy / policy / admin capability、上一版 asset privacy state |
+| `cx.space.media_service` | `cx.space.create`、actor membership、media service / policy / admin capability、service DID delegation、上一版 media service state |
 | `cx.space.child` | parent Space 的 `cx.space.create`、发送者 parent membership、`cx.space.hierarchy.manage` capability、目标 child Space stripped create 或可验证引用 |
 | `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`cx.space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
 | `cx.space.inheritance_policy` | child Space 的 `cx.space.create`、child policy/admin capability、confirmed parent edge |
@@ -92,6 +100,12 @@
 | `cx.mls.*` | actor membership、encryption policy、当前 epoch state、device trust state |
 | `cx.redaction` | actor membership、被 redaction 事件、redact_own 或 redact_any capability |
 | `cx.space.upgrade` | `cx.space.create`、当前 upgrade policy、creator/admin capability |
+| `cx.space.archive` | `cx.space.create`、当前 lifecycle state、actor lifecycle/admin capability、archive policy、未完成 child security-boundary Space / legal-hold / export gate |
+| `cx.space.freeze` | `cx.space.create`、当前 lifecycle state、actor lifecycle/admin capability、freeze policy、maintenance / incident response constraint |
+| `cx.space.tombstone` | `cx.space.create`、当前 lifecycle state、owner/governance/admin lifecycle capability、replacement / migration / retention policy |
+| `cx.space.destroy` | `cx.space.create`、当前 lifecycle state、owner/governance/admin lifecycle capability、tombstone / export / retention / legal-hold constraint、无活跃 child Space 和无未决 grant |
+| `cx.device.authorized` / `cx.device.revoked` / `cx.device.list_update` | principal control Space 的 `cx.space.create`、目标 principal 当前 DID/key-log state、授权设备或 recovery policy、上一版 device state |
+| `cx.session.grant` | principal control Space 的 `cx.space.create`、目标 principal 当前 DID/device state、issuer service binding 或组织 policy、上一版同 session / subject grant state |
 
 如果事件缺少必需 auth ref，节点 MUST soft fail 并尝试 backfill。Backfill MUST 受 `../conformance/scalability-constraints.md` 的 `auth_chain` 深度、`auth_refs` 数量、page size、retry 和本地资源上限约束；实现不得为了验证单个事件无限递归拉取历史。若在上限内仍缺失，或只能通过未验证 snapshot / 未授权服务获得依赖，节点 MUST reject、保持 soft-failed 或 quarantine，具体取决于错误是否可恢复。
 
@@ -198,9 +212,10 @@ Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请
 - `world_readable`：任何 actor 可读取明文或已授权公开内容。
 - `shared`：当前和历史成员可读取加入前历史。
 - `invited`：被邀请 actor 可读取 stripped preview state。
+- `restricted`：只有满足 Space policy 中 `allowed_selectors`、claim、capability 或等价 history access proof 的 actor 可读取加入前历史或 stripped state；无法验证时 MUST 按 `joined` 或更严格规则 fail closed。
 - `joined`：仅加入后历史默认可见。
 
-E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussion branch 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。
+E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussion branch 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。`restricted` 不授予 discoverability、join 权限或自动密钥下发；它只让满足证明的 actor 进入 pre-join history 和 E2EE key share eligibility 的候选集合。
 
 `cx.space.history_sharing_policy`:
 
@@ -397,29 +412,45 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.space.create`
 - `cx.space.discovery`
 - `cx.space.moderation_policy`
+- `cx.space.policy`
 - `cx.space.join_rule`
 - `cx.space.history_visibility`
 - `cx.space.history_sharing_policy`
 - `cx.space.policy_server`
 - `cx.space.policy_components`
 - `cx.space.plaintext_visible_services`
+- `cx.space.asset_privacy_policy`
+- `cx.space.media_service`
 - `cx.space.schema`
 - `cx.space.child`
 - `cx.space.parent`
 - `cx.space.inheritance_policy`
 - `cx.space.organization`
 - `cx.space.upgrade`
+- `cx.space.archive`
+- `cx.space.freeze`
+- `cx.space.tombstone`
+- `cx.space.destroy`
 - `cx.member.state`
 - `cx.flow.branch.member`
 - `cx.flow.branch.history_visibility`
 - `cx.flow.branch.policy_components`
 - `cx.capability.grant`
+- `cx.capability.derived`
 - `cx.capability.revoke`
 - `cx.policy.rule`
 - `cx.mls.epoch`
+- `cx.device.authorized`
+- `cx.device.revoked`
+- `cx.device.list_update`
+- `cx.session.grant`
 - `cx.view.create`
 - `cx.view.update`
 - `cx.view.reconcile`
+
+`cx.device.*` 和 `cx.session.grant` 是 principal-scoped state event。它们只在 principal control Space 的 state map 中解析；普通协作 Space MAY 通过 `auth_refs`、snapshot reference 或 policy server proof 引用该 state，但不得把另一个 principal 的设备/会话事件写入任意协作 Space history 来改变其身份状态。
+
+principal control state 的 `state_key` MUST 可从事件内容确定性导出：`cx.device.authorized` 与 `cx.device.revoked` 使用 `{principal_id}|{device_id}`，`cx.device.list_update` 使用 `{principal_id}`，`cx.session.grant` 优先使用 `grant_id`；没有 `grant_id` 的 legacy payload MUST 使用 `{subject}|{audience}|sha256(session_public_key)` 并在 normalized state 中暴露该派生 key。实现不得用本地数据库自增 ID 参与 state resolution。
 
 State event 不等于 auth state dependency。`cx.view.*` 等投影定义事件可以使用 state resolution 形成当前 View 定义，但默认不进入 capability / membership / policy / MLS 的 auth state map；只有当某个 View 被 policy 明确声明为授权依赖、审计依赖或 materialized query contract 时，相关 View state event 才能作为对应业务事件的 `auth_refs`。非 state event 仍可影响物化 projection，但不进入 auth state map，除非具体类型声明其为 auth dependency。
 

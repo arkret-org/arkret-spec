@@ -19,6 +19,7 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 - `read_marker`
 - `notification`
 - `capability`
+- `blob`（内容层对象，由 Blob Store 管理，不参与协作图归约）
 
 辅助对象（SDK 内部或非持久化 canonical 对象）：
 
@@ -371,6 +372,8 @@ Space (kind=board)/Space (kind=list) 中的 Flow 示例：
 ```
 
 Flow 在 Space (kind=board) / Space (kind=list) 中的位置通过 active `contains` Relation / flow position event 表达，不由 branch 决定，也不要求 Flow canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
+
+**位置唯一性**：一个 Flow 在同一个 Board-Space 内 MUST NOT 同时占据多个 List-Space 的 active position edge。`(board_id, flow_id)` 是 active position edge 的去重 key。`cx.flow.move` reducer 在创建新 position edge 前 MUST 关闭同一 `(board_id, flow_id)` 下的其他 active position edge。这保证了看板视图中每个 card 只出现在一个列中。
 
 常见关系：
 

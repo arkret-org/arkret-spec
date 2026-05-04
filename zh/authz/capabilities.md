@@ -229,7 +229,6 @@ Contrix v1 支持：
 - `allowed_space_refs`
 - `allowed_view_refs`
 - `allowed_branches`
-- `room_kind_allow`
 - `relation_kind_allow`
 - `allowed_from_container_refs`
 - `allowed_to_container_refs`
@@ -250,6 +249,46 @@ Contrix v1 支持：
 - `trusted_claim_issuers`
 - `claim_refresh_required`
 - `claim_max_age`
+
+上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准。
+
+`room` 不是独立资源类型。需要限制讨论型 Flow 时，使用 `object_type_allow=["flow"]`、`flow_kind_allow=["room"]` 和 `allowed_branches=["discussion"]`；不得引入 `room_kind_allow` 作为 v1 grant 字段。`branches.discussion.room_kind` 只是 Flow discussion branch 的语义/profile hint，不能单独授予读取、发送或成员权限。
+
+| 扁平名称 | Typed `constraint_type` | 对应字段 |
+|----------|------------------------|----------|
+| `expires_at` | `temporal` | `expires_at` |
+| `not_before` | `temporal` | `not_before` |
+| `fields_write_allow` | `field_access` | `scope: "write"`, `effect: "allow"`, `fields` |
+| `fields_write_deny` | `field_access` | `scope: "write"`, `effect: "deny"`, `fields` |
+| `space_kind_allow` | `type_restriction` | `space_kind_allow` |
+| `flow_kind_allow` | `type_restriction` | `flow_kind_allow` |
+| `flow_semantic_kind_allow` | `type_restriction` | `flow_semantic_kind_allow` |
+| `morph_type_allow` | `type_restriction` | `morph_type_allow` |
+| `facet_allow` | `type_restriction` | `facet_allow` |
+| `allowed_flow_refs` | `scope_limitation` | `allowed_flow_refs` |
+| `allowed_space_refs` | `scope_limitation` | `allowed_space_refs` |
+| `allowed_view_refs` | `scope_limitation` | `allowed_view_refs` |
+| `allowed_branches` | `scope_limitation` | `allowed_branches` |
+| `relation_kind_allow` | `scope_limitation` | `relation_kind_allow` |
+| `allowed_from_container_refs` | `container_move` | `allowed_from_container_refs` |
+| `allowed_to_container_refs` | `container_move` | `allowed_to_container_refs` |
+| `visibility_allow` | `visibility_control` | `visibility_allow` |
+| `blob_max_bytes` | `resource_limit` | `blob_max_bytes` |
+| `encryption_required` | `encryption_requirement` | `encryption_required` |
+| `message_edit_window` | `edit_window` | `message_edit_window` |
+| `max_delegation_depth` | `delegation_control` | `max_delegation_depth` |
+| `rate_limit` | `rate_limiting` | `max_operations`, `period` |
+| `approval_required` | `approval_workflow` | `approval_required` |
+| `approval_mode` | `approval_workflow` | `approval_mode` |
+| `approval_actor_refs` | `approval_workflow` | `approval_actor_refs` |
+| `approval_relation` | `approval_workflow` | `approval_relation` |
+| `accountability_required` | `accountability` | `accountability_required` |
+| `guardian_approval_required` | `accountability` | `guardian_approval_required` |
+| `controller_approval_required` | `accountability` | `controller_approval_required` |
+| `requires_claims` | `claim_based` | `requires_claims` |
+| `trusted_claim_issuers` | `claim_based` | `trusted_claim_issuers` |
+| `claim_refresh_required` | `claim_based` | `claim_refresh_required` |
+| `claim_max_age` | `claim_based` | `claim_max_age` |
 
 ## 7. Claim / Attestation
 
@@ -444,6 +483,14 @@ Contrix v1 至少区分：
 - `cx.flow.convert`
 
 Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Server 的 `deny`、`quarantine`、`require_review`、rate limit、legal hold 和 abuse policy 仍 MUST 在写入接收、分发和查询返回前执行。
+
+### 18.2 撤销新鲜度 (Revocation Freshness)
+
+高风险动作（例如 `cx.space.destroy`、`cx.capability.revoke`、`cx.space.admin`、E2EE key export、legal hold bypass）的授权判定 MUST 验证相关 grant 的撤销状态新鲜度：
+
+- 判定节点 MUST 确认其已同步到包含该 grant 最新 revoke event 的因果前沿。
+- 若判定节点无法确认前沿新鲜度（例如 sync lag、分区、frontier 不可达），MUST 按以下策略之一处理：(a) soft-fail，拒绝该操作并返回 `revocation_freshness_unknown`；(b) fail closed，拒绝操作。
+- 低风险高频动作（`cx.message.create`、`cx.reaction.add`）的 revoke freshness 由 fast path 缓存 TTL 保证；缓存过期时 MUST 回退到完整判定链路。
 
 ## 19. 设计决定
 

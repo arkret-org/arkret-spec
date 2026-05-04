@@ -97,9 +97,6 @@
     },
     "branches": {
       "type": "object",
-      "required": [
-        "synthesis"
-      ],
       "properties": {
         "synthesis": {
           "type": "object",
@@ -264,6 +261,24 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "card"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "branches": {
+            "required": [
+              "synthesis"
+            ]
           }
         }
       }

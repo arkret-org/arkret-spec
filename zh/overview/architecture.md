@@ -216,6 +216,8 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 - 搜索
 - **因果一致性屏障 (Causal Barrier)**：客户端或可选受托服务在返回查询结果前，可根据本地 sync frontier 等待特定写入前沿的到达，保障“读己之所写”体验。
 
+Projection Plane 的输出 MUST 是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计）。Projection MUST NOT 依赖 Presentation Plane 的渲染逻辑。
+
 ### 3.5 Presentation Plane
 
 负责：
@@ -223,6 +225,8 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 - kanban/list/table/calendar/timeline/graph/activity
 - 人类审阅队列
 - agent protocol session timeline
+
+Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可交互的渲染结果。Presentation MUST NOT 持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。
 
 ### 3.6 Confidentiality Plane
 

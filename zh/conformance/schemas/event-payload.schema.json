@@ -1034,6 +1034,67 @@
       },
       "additionalProperties": true
     },
+    "session_grant_content": {
+      "type": "object",
+      "required": [
+        "issuer",
+        "subject",
+        "session_public_key",
+        "audience",
+        "scopes",
+        "not_before",
+        "expires_at"
+      ],
+      "properties": {
+        "grant_id": {
+          "$ref": "#/$defs/grant_id"
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "subject": {
+          "$ref": "#/$defs/did"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "session_public_key": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "audience": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "origin": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "scopes": {
+          "$ref": "#/$defs/string_list"
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/signature_material"
+        },
+        "revocation_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/event_ref"
+            },
+            {
+              "$ref": "#/$defs/non_empty_string"
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
     "capability_revoke_content": {
       "type": "object",
       "anyOf": [

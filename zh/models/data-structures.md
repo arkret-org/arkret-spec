@@ -139,7 +139,7 @@ Schema id: `cx.schema.flow.v1`
 | `description` | no | `string` | SHOULD <= 8192 chars。 | 较完整说明。 |
 | `brief` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `primary_branch` | yes | `enum(synthesis, discussion)` | `card` 默认 `synthesis`，`room` 默认 `discussion`。 | 默认入口分支。 |
-| `branches` | yes | `object` | 至少包含 `synthesis`；`discussion` 可选。 | 分支状态。 |
+| `branches` | yes | `object` | `kind=card` 时 MUST 包含 `synthesis`；`kind=room` 时 MUST 包含 `discussion`。两个分支均可存在。 | 分支状态。 |
 | `access` | no | `object` | branch 默认访问规则与显式 override。 | 统一授权/成员/E2EE 继承配置。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |

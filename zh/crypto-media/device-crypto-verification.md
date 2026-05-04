@@ -42,7 +42,7 @@ Contrix 使用三层签名链：
 
 ## 4. Device List Sync
 
-任何设备新增、撤销、签名更新或算法更新，MUST 产生 `cx.device.list_update` event：
+任何设备新增、撤销、签名更新或算法更新，MUST 产生 `cx.device.list_update` event。该 event 是 principal control stream 中的 durable identity state；若使用 Event Envelope，顶层 `space_id` MUST 是目标 principal 的 `principal_control_space_id`：
 
 ```json
 {
@@ -250,7 +250,7 @@ POST /api/v1/keys/keypackages/revoke
 - `claim` MUST 原子地把 KeyPackage 从 `published` 转为 `claimed`。
 - 同一 `keypackage_ref` 不得被多个 active claim 使用。
 - 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST 不再返回该 KeyPackage。
-- `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。
+- `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码 SHOULD 合并为单一不透明错误码 `claim_failed`，不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
 - claim record SHOULD 被 Principal Server / Device Key Server 保留到 Welcome 过期后的一段短 TTL，用于重试、诊断和滥用审计；不得长期保留可关联 private room 的明文目标信息。
 
 ## 8. Verification Flows

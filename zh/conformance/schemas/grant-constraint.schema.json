@@ -21,7 +21,10 @@
         "claim_based",
         "accountability",
         "encryption_requirement",
-        "container_move"
+        "container_move",
+        "visibility_control",
+        "resource_limit",
+        "edit_window"
       ]
     },
     "effect": {
@@ -196,6 +199,52 @@
         "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$"
       }
     },
+    "allowed_flow_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+      },
+      "uniqueItems": true
+    },
+    "denied_flow_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+      },
+      "uniqueItems": true
+    },
+    "allowed_space_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      },
+      "uniqueItems": true
+    },
+    "denied_space_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      },
+      "uniqueItems": true
+    },
+    "allowed_view_kinds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "allowed_view_renderers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
     "relation_kind_allow": {
       "type": "array",
       "items": {
@@ -224,7 +273,15 @@
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
+    },
+    "denied_view_renderers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
     },
     "allowed_branches": {
       "type": "array",
@@ -248,9 +305,91 @@
       },
       "uniqueItems": true
     },
+    "visibility_allow": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "world_readable",
+          "shared",
+          "invited",
+          "joined",
+          "restricted"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "deny_redacted_history": {
+      "type": "boolean"
+    },
+    "blob_max_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_total_blob_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "message_edit_window": {
+      "type": "string",
+      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+    },
+    "message_redact_window": {
+      "type": "string",
+      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+    },
+    "allow_redact_after_window": {
+      "type": "boolean"
+    },
     "max_delegation_depth": {
       "type": "integer",
       "minimum": 0
+    },
+    "delegation_path": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      }
+    },
+    "prohibit_subdelegation": {
+      "type": "boolean"
+    },
+    "delegation_scope": {
+      "type": "string",
+      "enum": [
+        "narrowing_only",
+        "same_scope",
+        "custom"
+      ]
+    },
+    "allow_scope_expansion": {
+      "type": "boolean"
+    },
+    "require_parent_reference": {
+      "type": "boolean"
+    },
+    "max_operations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "period": {
+      "type": "string",
+      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+    },
+    "burst": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scope": {
+      "type": "string"
+    },
+    "max_resources": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "resource_type": {
+      "type": "string"
     },
     "approval_required": {
       "type": "boolean"
@@ -279,6 +418,62 @@
         "space_admin",
         "custom"
       ]
+    },
+    "timeout": {
+      "type": "string",
+      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+    },
+    "auto_reject_on_timeout": {
+      "type": "boolean"
+    },
+    "proposal_morph_type": {
+      "type": "string"
+    },
+    "approval_threshold": {
+      "type": "string",
+      "enum": [
+        "majority",
+        "unanimous",
+        "quorum",
+        "custom"
+      ]
+    },
+    "approvers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      }
+    },
+    "accountability_required": {
+      "type": "boolean"
+    },
+    "guardian_approval_required": {
+      "type": "boolean"
+    },
+    "controller_approval_required": {
+      "type": "boolean"
+    },
+    "encryption_required": {
+      "type": "boolean"
+    },
+    "key_rotation_period": {
+      "type": "string",
+      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+    },
+    "max_key_age": {
+      "type": "string",
+      "pattern": "^[0-9]+(ms|s|m|h|d)$"
+    },
+    "require_key_backup": {
+      "type": "boolean"
+    },
+    "approved_key_issuers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      }
     },
     "requires_claims": {
       "type": "array",
@@ -312,6 +507,20 @@
         },
         "additionalProperties": true
       }
+    },
+    "trusted_claim_issuers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      }
+    },
+    "claim_refresh_required": {
+      "type": "boolean"
+    },
+    "claim_max_age": {
+      "type": "string",
+      "pattern": "^[0-9]+(ms|s|m|h|d)$"
     }
   },
   "additionalProperties": true

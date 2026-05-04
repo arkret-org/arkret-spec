@@ -238,6 +238,8 @@ reaction 建议通过独立 Event 表达：
 - 如果 reaction 到达时目标 Message 已经 redacted，reducer 仍 MAY 保留 reaction event 的最小审计事实，但默认 timeline / message view MUST NOT 展示、计数或通知该 reaction，除非 Space policy 明确允许对 tombstone 显示 reaction metadata。
 - 如果 reaction 先到达、redaction 后到达，redaction 生效后默认视图 MUST 重新裁剪既有 reaction projection。审计 View MAY 显示 reaction 曾存在，但不得恢复已撤回正文。
 
+> **Snapshot 持久化**：Reaction 状态 MUST 由 reducer 从 `cx.reaction.add` / `cx.reaction.remove` 事件归约得到。若实现使用 snapshot-only restore（不回放完整 event history），snapshot MUST 包含 reaction 的 materialized state（即当前有效的 `(message_id, actor, reaction_key)` 集合）。仅包含 event log 而不包含 reaction materialized state 的 snapshot 在恢复后 MUST 回放缺失的 reaction 事件以重建状态。实现不得假设 reaction 是 ephemeral 的而丢弃其状态。
+
 ## 9. 同步模型
 
 ### 9.1 Discussion 模式

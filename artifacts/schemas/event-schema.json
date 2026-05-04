@@ -745,8 +745,7 @@
             "enum": [
               "cx.capability.grant",
               "cx.capability.delegate",
-              "cx.capability.derived",
-              "cx.session.grant"
+              "cx.capability.derived"
             ]
           }
         },
@@ -822,6 +821,25 @@
         "properties": {
           "content": {
             "$ref": "./event-payload.schema.json#/$defs/device_authorized_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.session.grant"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/session_grant_content"
           }
         }
       }

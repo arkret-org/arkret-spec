@@ -53,7 +53,7 @@ Contrix v1 把三件事分开处理：
    - DID Document SHOULD 只承载身份控制密钥和服务发现入口。普通设备列表、设备信任状态、吊销状态和算法更新 SHOULD 由 `cx.device.*` 事件、device key log 或受控 device registry 表达；只有 DID method 本身要求时，才把设备 verification method 写入 DID Document。
    - 短期浏览器或临时执行环境 MAY 只拿到 `cx.session.grant`，但它不改变长期设备集合，也不得访问 E2EE 历史密钥，除非另有有效设备授权和密钥共享流程。
 4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过 MLS Welcome / Commit 把新设备加入合适的 group）同步给新设备。
-5. **事件广播**：主设备向网络广播 `cx.device.authorized` 事件。新设备获得的能力由该事件、session grant、Space capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
+5. **事件广播**：主设备向 principal control stream 广播 `cx.device.authorized` 事件；若封装为 Event Envelope，其 `space_id` 是目标 principal 的 `principal_control_space_id`。新设备获得的能力由该事件、session grant、Space capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
 
 ### 2.2 设备吊销
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `cx.device.revoked`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。

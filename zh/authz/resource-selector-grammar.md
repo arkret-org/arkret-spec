@@ -19,7 +19,9 @@ Contrix v1 capability 使用以下 canonical resource selector 模型：
 字符串 selector 是 JSON canonical selector 的可读 shorthand。协议签名、hash、registry schema 和 wire grant 以 JSON 表示为准。
 
 ```ebnf
-selector             ::= selector_term (("+" | ",") selector_term)*
+selector             ::= disjunction
+disjunction          ::= conjunction ("," conjunction)*
+conjunction          ::= selector_term ("+" selector_term)*
 
 selector_term        ::= wildcard_selector
                       | space_selector
@@ -73,6 +75,8 @@ read_marker_selector ::= "read_marker" ":" space_part ":" "*"
 space_part           ::= space_id | "*"
 flow_part            ::= flow_id | "*"
 ```
+
+**运算符优先级**：`+`（合取/AND）优先级高于 `,`（析取/OR）。即 `a+b,c` 解析为 `(a AND b) OR c`。需要表达 `a AND (b OR c)` 时，MUST 使用 JSON canonical selector 或在字符串 shorthand 中拆分为独立 selector。
 
 ### 2.2 词法规则
 
