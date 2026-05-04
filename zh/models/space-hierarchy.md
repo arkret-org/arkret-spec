@@ -12,7 +12,7 @@ Contrix 支持 Space 之间形成层级或图状组织，用于表达组织、�
 
 1. Space hierarchy 是有向图，不强制是树。一个 Space MAY 有多个 parent。
 2. Child security-boundary Space 是独立 Space，拥有自己的 `space_id`、membership、policy、schema、history visibility 和 encryption epoch。
-3. Parent 不得单方面把任意 Space 声明为 child。有效 parent-child edge MUST 由双方确认，除非 edge 被标记为 `unconfirmed_link`。
+3. Parent 不得单方面把任意 Space 声明为 child。有效 parent-child 边 MUST 由双方确认，除非该 edge 被标记为 `unconfirmed_link`。
 4. 权限、成员、历史可见性、加密密钥和配额默认不级联。
 5. 任何级联都必须由 child Space 显式 opt-in，并且只能收窄，不能扩大 child 的本地安全边界。
 6. 查询和同步遍历层级时，节点 MUST 对每个 Space 独立做授权检查。
@@ -21,7 +21,7 @@ Contrix 支持 Space 之间形成层级或图状组织，用于表达组织、�
 
 以下 `cx.space.child` / `cx.space.parent` 关系对 security-boundary Space 具有边界语义。对 `boundary_profile="container"` 的 Board/List，关系只表达导航、包含或工作流投影；不得触发 membership、capability、history visibility、E2EE key share 或 federation 拓扑继承。
 
-Space 层级使用 state event 表达，而不是普通对象 Relation。
+Space 层级使用 state event 表达，而不是普通对象 Relation。本文使用“边（edge）”表示有向图中的 parent-child 连接关系；对外 projection 字段统一使用 `edge_status` 表示该边的派生状态。
 
 Parent 侧声明：
 
@@ -57,26 +57,32 @@ Child 侧确认：
 }
 ```
 
-一个 edge 只有在 parent 的 `cx.space.child` 与 child 的 `cx.space.parent` 同时 accepted 时，才是 confirmed edge。
+`cx.space.child` 的 `state_key` MUST 等于 `payload.child_space_id`；`cx.space.parent` 的 `state_key` MUST 等于 `payload.parent_space_id`。两类 payload 的 `status` 默认是 `active`；后续同 `(kind, state_key)` state event 可用 `status="tombstoned"` 撤销该侧声明，或用 `status="rejected"` 表达该侧明确拒绝。`via` 只表示推荐的发现 / backfill 路由，不授予读取或写入能力。
 
-两侧 state event 位于不同 Space 的 event chain，`prev_refs` 不要求跨 Space 直接连接。实现 MUST 通过各自 Space 的 accepted event、event digest、state key 和 auth refs 验证双方声明；需要把双方绑定成同一个 edge 时，双方 content SHOULD 包含对侧 Space id、对侧 edge state event ref 或 edge nonce / digest commitment。缺少对侧可验证声明时，该 edge 只能是 `unconfirmed_link`。
+如果同一操作者同时拥有 parent Space 与 child Space 的 `cx.space.hierarchy.manage` capability，客户端 MAY 在一个用户动作中连续提交两侧 state event。此时 UI 不需要额外的人工确认步骤；协议上的“双方确认”由 parent Space 中 accepted 的 `cx.space.child` 与 child Space 中 accepted 的 `cx.space.parent` 共同满足。若操作者只具备 parent 侧权限，客户端只能创建 `unconfirmed_link`，并等待 child 侧有权限 actor 接受或拒绝。
 
-## 4. Edge 状态
+一条 parent-child 边只有在 parent 的 `cx.space.child` 与 child 的 `cx.space.parent` 同时 accepted 时，才是 confirmed 边。
 
-层级 edge 状态：
+两侧 state event 位于不同 Space 的 event chain，`prev_refs` 不要求跨 Space 直接连接。实现 MUST 通过各自 Space 的 accepted event、event digest、state key 和 auth refs 验证双方声明；需要把双方绑定成同一条边时，双方 content SHOULD 包含对侧 Space id、对侧层级 state event ref 或 edge nonce / digest commitment。缺少对侧可验证声明时，该边只能是 `unconfirmed_link`。
 
-- `confirmed`：双方 state event 均 accepted。
+## 4. 层级边状态
+
+层级边状态（`edge_status`）取值：
+
+- `confirmed`：双方 state event 均 accepted，且两侧 payload `status` 均为 `active` 或未声明。
 - `unconfirmed_link`：只有一侧声明，客户端 MAY 展示为外部链接，但不得自动展开。
-- `rejected`：任一侧 policy 明确拒绝。
-- `tombstoned`：任一侧删除或归档该 edge。
+- `rejected`：任一侧 payload `status="rejected"`，或 policy 明确拒绝。
+- `tombstoned`：任一侧 payload `status="tombstoned"`，或 Space lifecycle / replacement 使该边失效。
 
-客户端默认 hierarchy projection SHOULD 只返回 confirmed edge。需要显示外部引用时 MAY 返回 unconfirmed link，但必须标记状态。
+`edge_status` 是 projection 输出字段，不是 `cx.space.child` / `cx.space.parent` payload 中必须持久化的字段。实现 MUST 从双方 accepted state event、两侧 payload status、policy 结果和 tombstone / replacement 状态派生该值。
+
+客户端默认 hierarchy projection SHOULD 只返回 confirmed 边。需要显示外部引用时 MAY 返回 `unconfirmed_link`，但必须标记状态。
 
 `unconfirmed_link` 没有功能性效力。它不得触发 inheritance policy、生效的 derived grant、成员同步、自动订阅、history visibility 展开、E2EE key share、配额继承或 policy cascade。Parent 侧已 accepted 的 `cx.space.child` 不会因为 child 迟迟未确认而自动撤销；它只保持为 parent Space 中的可审计声明，直到 parent tombstone / replace 该声明、child 确认、或 child / policy 明确拒绝。Projection 和 UI 可以展示 pending / rejected 状态，但授权和同步 MUST 按未确认处理。
 
 ## 5. 禁止隐式级联
 
-以下内容 MUST NOT 因 parent-child edge 自动级联：
+以下内容 MUST NOT 因 parent-child 边自动级联：
 
 - membership
 - capability grant
@@ -121,7 +127,8 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 
 继承规则：
 
-- `cx.space.inheritance_policy` 只有在目标 parent-child edge 已 confirmed 后才可生效。若确认缺失、被拒绝、tombstoned 或无法在 backfill / snapshot 上限内验证，继承策略 MUST soft-fail 或视为 unset。
+- `cx.space.inheritance_policy` 的 `state_key` MUST 等于 `payload.parent_space_id`。payload `status` 默认是 `active`；`status="tombstoned"` 表示 child 停止使用该 parent 的继承策略。
+- `cx.space.inheritance_policy` 只有在目标 parent-child 边已 confirmed 后才可生效。若确认缺失、被拒绝、tombstoned 或无法在 backfill / snapshot 上限内验证，继承策略 MUST soft-fail 或视为 unset。
 - `mode` MUST 为 `narrow_only`。继承只能收窄或附加限制，不能绕过 child 本地 policy。
 - Child local deny / revoke / ban MUST 覆盖 inherited allow。
 - 继承 capability MUST 在 child 中物化为 derived grant，且记录 parent grant、继承策略和有效 causal frontier。
@@ -162,7 +169,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 
 `cx.capability.derived` MUST satisfy：
 
-1. target Space 存在 confirmed parent edge。
+1. target Space 存在 confirmed parent 边。
 2. child Space 有 accepted `cx.space.inheritance_policy`。
 3. derived grant 的 action/scope/expiry 不得宽于 source grant。
 4. source grant 被 revoke 后，derived grant MUST 在其 causal 后继中失效。
@@ -211,16 +218,19 @@ Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求�
 | --- | --- | --- | --- | --- |
 | `space_id` | query | `id` | required | 根 Space。 |
 | `depth` | query | `int` | optional | 查询深度；服务端 MUST enforce 最大值。 |
-| `include_unconfirmed` | query | `boolean` | optional | 是否包含未确认 edge。 |
+| `include_unconfirmed` | query | `boolean` | optional | 是否包含未确认边。 |
+| `include_edges` | query | `boolean` | optional | 是否返回独立 `edges` 列表；默认 MAY 只返回 `children`。 |
 
 响应字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `root` 或 `root_space_id` | `object` 或 `id` | required | 根 Space 摘要或 ID。 |
-| `children` | `object[]` | required | 子 Space 摘要数组。 |
-| `edges` | `object[]` | optional | 层级边列表。 |
+| `root_space_id` | `id` | required | 根 Space ID。 |
+| `root` | `object` | optional | 根 Space 摘要；无权限或本地只需要 ID 时 MAY 省略。 |
+| `children` | `object[]` | required | 子 Space 摘要数组；每个 child entry MUST 包含 `space_id` 和 `edge_status`。 |
+| `edges` | `object[]` | optional | 层级边列表；每条边 MUST 包含 `edge_status`。 |
 | `next_cursor` | `cursor` | optional | 分页 cursor。 |
+| `cycle_detected` | `boolean` | optional | 遍历是否因 cycle 被截断。 |
 
 响应示例（非完整 schema）：
 
@@ -230,7 +240,7 @@ Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求�
   "children": [
     {
       "space_id": "cx:space:ch11d010000000000000000000",
-      "edge_state": "confirmed",
+      "edge_status": "confirmed",
       "accessible": true,
       "summary": {
         "name": "Design",
@@ -239,7 +249,7 @@ Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求�
     },
     {
       "space_id": "cx:space:ch11dpr1vate00000000000000",
-      "edge_state": "confirmed",
+      "edge_status": "confirmed",
       "accessible": false,
       "lazy_link": true
     }
@@ -250,7 +260,7 @@ Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求�
 规则：
 
 - Projection executor MUST 对每个 child 独立检查 read capability。
-- 无权限 child 只能返回 `space_id`、`edge_state` 和 `lazy_link=true`，不得泄露名称、成员、Flow 摘要、Message 摘要或统计。
+- 无权限 child 只能返回 `space_id`、`edge_status` 和 `lazy_link=true`，不得泄露名称、成员、Flow 摘要、Message 摘要或统计。
 - `depth` MUST 有服务端上限。
 - 遍历时发现 cycle，MUST 截断并返回 `cycle_detected=true`。
 - Sync 不得默认订阅所有 descendants。客户端必须显式设置 `include_descendants` 或列出 child space ids。
@@ -259,7 +269,7 @@ Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求�
 
 Space hierarchy 是图，但 UI 层级遍历必须防循环。
 
-节点在写入 confirmed edge 时 SHOULD 检查是否产生 cycle。若无法完整检查，projection executor 在查询时 MUST 使用 visited set 截断。
+节点在写入 confirmed 边时 SHOULD 检查是否产生 cycle。若无法完整检查，projection executor 在查询时 MUST 使用 visited set 截断。
 
 Cycle 不应导致事件 reject，除非 Space policy 明确要求 acyclic hierarchy。默认行为是允许图状组织，但层级查询截断循环。
 
@@ -272,7 +282,7 @@ Parent archive / tombstone 不自动 archive child。Child archive / tombstone �
 1. Parent 提交 `cx.space.archive_proposal`，列出 affected children。
 2. 每个 child 管理员独立批准或拒绝。
 3. 被批准的 child 提交自己的 archive/tombstone event。
-4. Parent 更新 child edge 为 tombstoned。
+4. Parent 更新 child 边为 tombstoned。
 
 强制级联删除非常危险，MUST 只允许在同一 controller、同一 retention policy 且 child 显式 opt-in 的受管层级中使用。
 
@@ -282,7 +292,7 @@ Portal Space MAY 被挂在组织、项目或 discussion-oriented Flow 所在 Spa
 
 Applet 对 child Portal Space 写入仍需：
 
-- confirmed parent/child edge，若业务要求。
+- confirmed parent/child 边，若业务要求。
 - child Space 的 explicit capability。
 - child Space 的 policy server / moderation 检查。
 - E2EE 边界提示，若 bridge 到非 E2EE 外部系统。

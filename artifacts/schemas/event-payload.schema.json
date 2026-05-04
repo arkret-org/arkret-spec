@@ -398,6 +398,160 @@
       },
       "additionalProperties": true
     },
+    "hierarchy_link_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "rejected",
+        "tombstoned"
+      ]
+    },
+    "inheritance_policy_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "tombstoned"
+      ]
+    },
+    "space_child_payload": {
+      "type": "object",
+      "required": [
+        "child_space_id"
+      ],
+      "properties": {
+        "child_space_id": {
+          "$ref": "#/$defs/space_id"
+        },
+        "status": {
+          "$ref": "#/$defs/hierarchy_link_status"
+        },
+        "via": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "order": {
+          "$ref": "#/$defs/rank"
+        },
+        "suggested": {
+          "type": "boolean"
+        },
+        "canonical": {
+          "type": "boolean"
+        },
+        "counterpart_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "edge_nonce": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "edge_digest_commitment": {
+          "$ref": "#/$defs/hash"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "space_parent_payload": {
+      "type": "object",
+      "required": [
+        "parent_space_id"
+      ],
+      "properties": {
+        "parent_space_id": {
+          "$ref": "#/$defs/space_id"
+        },
+        "status": {
+          "$ref": "#/$defs/hierarchy_link_status"
+        },
+        "via": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "canonical": {
+          "type": "boolean"
+        },
+        "counterpart_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "edge_nonce": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "edge_digest_commitment": {
+          "$ref": "#/$defs/hash"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "space_inheritance_policy_payload": {
+      "type": "object",
+      "required": [
+        "parent_space_id",
+        "inherits",
+        "mode"
+      ],
+      "properties": {
+        "parent_space_id": {
+          "$ref": "#/$defs/space_id"
+        },
+        "inherits": {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "membership": {
+              "type": "boolean"
+            },
+            "capability_bundles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "uniqueItems": true
+            },
+            "policy_rules": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "uniqueItems": true
+            },
+            "notification_defaults": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "narrow_only"
+          ]
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "$ref": "#/$defs/inheritance_policy_status"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "space_archive_payload": {
       "type": "object",
       "required": [

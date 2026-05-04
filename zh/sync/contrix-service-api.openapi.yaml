@@ -621,28 +621,59 @@ components:
       additionalProperties: false
     SpaceHierarchyResponse:
       type: object
-      required: [root, children, edges]
+      required: [root_space_id, children]
       properties:
+        root_space_id:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
         root:
           $ref: "#/components/schemas/ProjectionObject"
         children:
           type: array
           items:
-            $ref: "#/components/schemas/ProjectionObject"
+            $ref: "#/components/schemas/SpaceHierarchyChild"
         edges:
           type: array
           items:
-            type: object
-            required: [parent_ref, child_ref]
-            properties:
-              parent_ref:
-                $ref: "#/components/schemas/ObjectRef"
-              child_ref:
-                $ref: "#/components/schemas/ObjectRef"
-              relation_kind:
-                type: string
-            additionalProperties: false
+            $ref: "#/components/schemas/SpaceHierarchyEdge"
         next_cursor:
+          type: string
+        cycle_detected:
+          type: boolean
+      additionalProperties: false
+    SpaceHierarchyEdgeStatus:
+      type: string
+      description: Derived status of a parent-child hierarchy edge.
+      enum: [confirmed, unconfirmed_link, rejected, tombstoned]
+    SpaceHierarchyChild:
+      type: object
+      required: [space_id, edge_status]
+      properties:
+        space_id:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        edge_status:
+          $ref: "#/components/schemas/SpaceHierarchyEdgeStatus"
+        accessible:
+          type: boolean
+        lazy_link:
+          type: boolean
+        summary:
+          type: object
+      additionalProperties: false
+    SpaceHierarchyEdge:
+      type: object
+      required: [parent_ref, child_ref, edge_status]
+      properties:
+        parent_ref:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        child_ref:
+          type: string
+          pattern: "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        edge_status:
+          $ref: "#/components/schemas/SpaceHierarchyEdgeStatus"
+        relation_kind:
           type: string
       additionalProperties: false
     StateFrontier:
