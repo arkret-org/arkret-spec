@@ -50,12 +50,14 @@
     {
       "kind": "cx.space.create",
       "target_ref": "cx:space:01js0bd0000000000000000000",
-      "content": { "kind": "board" }
+      "payload": {
+        "kind": "board"
+      }
     },
     {
       "kind": "cx.space.create",
       "target_ref": "cx:space:01js0111000000000000000000",
-      "content": {
+      "payload": {
         "kind": "list",
         "rank": "U"
       }
@@ -63,7 +65,7 @@
     {
       "kind": "cx.flow.create",
       "target_ref": "cx:flow:01js0ca1000000000000000000",
-      "content": {
+      "payload": {
         "board_id": "cx:space:01js0bd0000000000000000000",
         "list_id": "cx:space:01js0111000000000000000000",
         "rank": "U"
@@ -88,7 +90,7 @@
   "write": {
     "kind": "cx.flow.move",
     "target_ref": "cx:flow:01js0ca1000000000000000000",
-    "content": {
+    "payload": {
       "board_id": "cx:space:01js0bd0000000000000000000",
       "flow_id": "cx:flow:01js0ca1000000000000000000",
       "from_list_id": "cx:space:01js0111000000000000000000",
@@ -97,7 +99,9 @@
     }
   },
   "query": {
-    "object_types": ["flow"],
+    "object_types": [
+      "flow"
+    ],
     "consistency": {
       "wait_for": "sync_token_from_write"
     }
@@ -159,7 +163,7 @@
     {
       "kind": "cx.message.create",
       "target_ref": "cx:message:01js0me1000000000000000000",
-      "content": {
+      "payload": {
         "flow_id": "cx:flow:01js0r01000000000000000000",
         "content": {
           "type": "cx.content.text",

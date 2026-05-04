@@ -325,7 +325,7 @@ Audit Agent profile MUST 满足：
      "kind": "cx.audit.accessed",
      "space_id": "cx:space:01js0sp0000000000000000000",
      "actor_id": "did:web:compliance.acme.corp",
-     "content": {
+     "payload": {
        "target_ref": "cx:message:msg12300000000000000000000",
        "purpose": "Internal legal compliance request #8801",
        "accessed_at": "2026-04-30T00:00:00Z"
@@ -423,7 +423,7 @@ Genesis 接受规则：
 - 节点将根据底层 Event reducer 的 **Tie-breaking 规则**（优先级排序：`Auth Weight` -> `HLC` -> `Actor_ID 字典序` -> `Event Hash`）进行无分歧的绝对仲裁。
 - 胜出者的 Commit 成为合法的下一个 Epoch。失败者的客户端发现自己的 Commit 版本过期后，会自动丢弃本地更改并拉取胜出者的状态，确保 E2EE 的强一致性。
 
-MLS Commit 的输入和输出必须在 Event content 中可验证表达：
+MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 - `group_id`：目标 MLS group。
 - `base_epoch`：Commit 构造时读取的当前 epoch。
@@ -437,9 +437,9 @@ MLS Commit 的输入和输出必须在 Event content 中可验证表达：
 
 `cx.mls.epoch` 是从 winner `cx.mls.commit` 机械派生的 epoch checkpoint，不是独立的成员操作。若实现把该 checkpoint 作为 durable Event Envelope 传播或缓存，必须满足：
 
-- `content.source` MUST 为 `commit_winner_checkpoint`。
-- `content.commit_ref` MUST 指向已 accepted 且在同一 `(group_id, base_epoch)` conflict set 中胜出的 `cx.mls.commit`。
-- `content.epoch` MUST 等于 winner commit 的 `next_epoch`，`application_state_ref` MUST 与 winner commit 中被 MLS transcript 覆盖的引用一致。
+- `payload.source` MUST 为 `commit_winner_checkpoint`。
+- `payload.commit_ref` MUST 指向已 accepted 且在同一 `(group_id, base_epoch)` conflict set 中胜出的 `cx.mls.commit`。
+- `payload.epoch` MUST 等于 winner commit 的 `next_epoch`，`application_state_ref` MUST 与 winner commit 中被 MLS transcript 覆盖的引用一致。
 - `auth_refs` MUST 包含 winner commit 或其已验证 checkpoint / snapshot 证明。
 - Events API MUST reject 任何无法从 winner commit 机械验证的 `cx.mls.epoch`；actor、service 或 key server 不得通过单独提交 `cx.mls.epoch` 推进 epoch。
 
@@ -461,7 +461,7 @@ MLS Commit 的输入和输出必须在 Event content 中可验证表达：
 规则：
 
 - 事件的 `actor_id` MUST 是报告失败的 principal 或其授权设备 / service actor；`reporter_device_id` 必须能从 principal control state 验证。
-- `content` MUST NOT 包含 MLS secret、明文、Welcome 明文、私钥、passphrase、完整 ratchet tree 或可用于离线攻击的调试 dump。
+- `payload` MUST NOT 包含 MLS secret、明文、Welcome 明文、私钥、passphrase、完整 ratchet tree 或可用于离线攻击的调试 dump。
 - `auth_refs` SHOULD 包含失败的 `commit_ref`、相关 `cx.mls.welcome`、当前 membership / policy frontier 或可验证 snapshot reference。
 - 收到该事件的客户端 MAY 将相关消息保持 `decryption_pending`，并提示重新同步；服务端或管理员 MAY 重发 Welcome 或提交修复 Commit，但必须重新走普通授权和 state resolution。
 

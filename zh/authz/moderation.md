@@ -218,7 +218,7 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
 {
   "kind": "cx.space.moderation_policy",
   "state_key": "default",
-  "content": {
+  "payload": {
     "version": 1,
     "targets": [
       {

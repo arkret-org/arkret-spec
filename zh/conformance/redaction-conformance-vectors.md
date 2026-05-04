@@ -33,14 +33,19 @@ cx.vector.redaction.preserve_fields.v1
     "hlc": "01970e589d24-0001-aaaaaaaa",
     "prev_refs": [],
     "auth_refs": [],
-    "content": {
+    "payload": {
       "flow_id": "cx:flow:01js0mrd000000000000000000",
       "content": {
         "type": "cx.content.text",
         "body": "private notes"
       },
-      "mentions": ["@bob"],
-      "attachments": ["hash:img1", "hash:img2"],
+      "mentions": [
+        "@bob"
+      ],
+      "attachments": [
+        "hash:img1",
+        "hash:img2"
+      ],
       "fields": {
         "rank": 10
       }
@@ -58,9 +63,13 @@ cx.vector.redaction.preserve_fields.v1
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:02Z",
     "hlc": "01970e589d24-0002-bbbbbbbb",
-    "prev_refs": ["cx:event:01js0mrc000000000000000000"],
-    "auth_refs": ["cx:event:01js0cap000000000000000000"],
-    "content": {
+    "prev_refs": [
+      "cx:event:01js0mrc000000000000000000"
+    ],
+    "auth_refs": [
+      "cx:event:01js0cap000000000000000000"
+    ],
+    "payload": {
       "redacts": "cx:event:01js0mrc000000000000000000",
       "reason_code": "policy_recall"
     }
@@ -136,7 +145,7 @@ cx.vector.redaction.policy_scope.v1
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "state_key": "tx1",
-      "content": {
+      "payload": {
         "flow_id": "cx:flow:01js0qv1000000000000000000",
         "content": {
           "type": "cx.content.text",
@@ -152,7 +161,7 @@ cx.vector.redaction.policy_scope.v1
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
       "actor_id": "did:web:policy-bot.example.com",
-      "content": {
+      "payload": {
         "target_id": "cx:event:01js0qv1000000000000000000",
         "scope": "public",
         "decision": "quarantine"
@@ -164,7 +173,7 @@ cx.vector.redaction.policy_scope.v1
       "space_id": "cx:space:01js0ms0000000000000000000",
       "space_version": "1",
       "actor_id": "did:web:policy-admin.example",
-      "content": {
+      "payload": {
         "redacts": "cx:event:01js0qv1000000000000000000",
         "reason_code": "policy_recall"
       }

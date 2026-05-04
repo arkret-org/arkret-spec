@@ -277,7 +277,7 @@ POST /api/v1/events
 - 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Space policy、`actor_seq` 和因果依赖。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Space frontier 以及 read-your-writes `sync_token`。
 
-当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 `prev_refs` / `auth_refs` / content-level causal reference；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
+当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 `prev_refs` / `auth_refs` / payload-level causal reference；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
 
 ### 4.3 获取单个 Event
 

@@ -417,11 +417,11 @@ Event 是 reducer 输入。它不是当前态对象。
 | `required_features` | no | `array<string>` | 未支持时 MUST fail closed。 | 事件依赖的 feature/profile。 |
 | `critical_extensions` | no | `array<object>` | 每项必须有 `id`、`scope`、`fail_closed=true`。 | 事件内 critical extension 声明。 |
 | `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
-| `content` | yes | `object` | 由 event kind schema 定义。 | 事件内容。 |
+| `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
-Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。`content.type` 不得重复写入 `cx.*` Event kind；若 payload 需要引用被创建对象，使用 `content.object.type` 等对象字段。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。`payload.type` 不得重复写入 `cx.*` Event kind；若 payload 需要引用被创建对象，使用 `payload.object.type` 等对象字段。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 `actor_seq` fork 约束：
 
@@ -629,7 +629,7 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 | 层 | 用途 | 是否 wire format | 是否 reducer input |
 | --- | --- | --- | --- |
 | Canonical Operation Object | SDK builder 输出、离线草稿或本地内容寻址对象。 | 否，除非 profile 明确声明私有传输。 | 否，必须先包入 Event Envelope。 |
-| Event Envelope | Events API、Sync、Federation、Client write 的签名承载，也是唯一规范事实。 | 是。 | 是，reducer 读取其 `kind`、`content`、`auth_refs`、`prev_refs`、proof 和 causal metadata。 |
+| Event Envelope | Events API、Sync、Federation、Client write 的签名承载，也是唯一规范事实。 | 是。 | 是，reducer 读取其 `kind`、`payload`、`auth_refs`、`prev_refs`、proof 和 causal metadata。 |
 | Materialized Object | reducer 输出的当前态对象，例如 Flow、Relation、View。 | 否。 | 否，不能反向替代事件历史。 |
 
 字段映射：
@@ -638,8 +638,8 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 | --- | --- |
 | `id` | 本地草稿 / builder 对象 ID；进入 wire 后必须能稳定映射到 `event_id` 或被 `event_id` 取代。 |
 | `action_id` | `kind`。 |
-| `object_id` | `content` 内的目标对象字段，例如 `flow_id`、`space_id`、`target_ref`。 |
-| `payload` | `content`。 |
+| `object_id` | `payload` 内的目标对象字段，例如 `flow_id`、`space_id`、`target_ref`。 |
+| `payload` | Event Envelope 的 `payload`。 |
 | `created_at` | `created_at`，但 envelope 还必须包含 `hlc`、`actor_seq`、`prev_refs` 和 `auth_refs`。 |
 | `idempotency_key` | 传输请求 idempotency metadata；不得进入 event digest，除非 profile 明确声明。 |
 

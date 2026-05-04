@@ -141,7 +141,7 @@
       "required": [
         "kind",
         "state_key",
-        "content"
+        "payload"
       ],
       "properties": {
         "schema": {
@@ -153,7 +153,7 @@
         "state_key": {
           "$ref": "#/$defs/mimi_uri"
         },
-        "content": {
+        "payload": {
           "type": "object",
           "required": [
             "profile",

@@ -382,7 +382,7 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 ```json
 {
   "kind": "cx.capability.revoke",
-  "content": {
+  "payload": {
     "grant_ref": "cx:grant:01js0gr0000000000000000000",
     "reason": "contract ended"
   }

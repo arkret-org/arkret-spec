@@ -14,9 +14,11 @@
 {
   "kind": "cx.space.create",
   "space_version": "1",
-  "content": {
+  "payload": {
     "kind": "collaboration",
-    "initial_creators": ["did:plc:..."],
+    "initial_creators": [
+      "did:plc:..."
+    ],
     "created_by_principal": "did:plc:...",
     "owning_organizations": [],
     "default_discoverability": "invite_only",
@@ -50,7 +52,7 @@
 4. 验证 `space_id`、`space_version`、`kind`、`created_at`、`hlc` 与 schema。
 5. 拉取并验证 `prev_refs` 和 `auth_refs` 指向事件的 hash。
 6. 对 `auth_refs` 运行授权算法。
-7. 对 `content` 运行类型级 schema validation。
+7. 对 `payload` 运行类型级 schema validation。
 8. 对策略服务、capability constraint、rate limit 和 abuse policy 运行本地检查。
 9. 输出 `accepted`、`soft_failed`、`rejected` 或 `quarantined`。
 
@@ -132,9 +134,11 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 {
   "kind": "cx.member.state",
   "state_key": "did:web:actor.example.com",
-  "content": {
+  "payload": {
     "membership": "join",
-    "via": ["did:web:example.com"],
+    "via": [
+      "did:web:example.com"
+    ],
     "reason": "invited",
     "invite_ref": "event:..."
   }
@@ -177,7 +181,7 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 {
   "kind": "cx.flow.branch.member",
   "state_key": "cx:flow:01js0r00m00000000000000000|discussion|did:web:actor.example.com",
-  "content": {
+  "payload": {
     "flow_id": "cx:flow:01js0r00m00000000000000000",
     "branch": "discussion",
     "actor_id": "did:web:actor.example.com",
@@ -238,9 +242,12 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 {
   "kind": "cx.space.history_sharing_policy",
   "state_key": "",
-  "content": {
+  "payload": {
     "enabled": true,
-    "roles_that_can_share": ["admin", "history_curator"],
+    "roles_that_can_share": [
+      "admin",
+      "history_curator"
+    ],
     "shareable_range": {
       "mode": "duration",
       "max_before_join_ms": 2592000000
@@ -275,7 +282,7 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 {
   "kind": "cx.space.policy_components",
   "state_key": "",
-  "content": {
+  "payload": {
     "components": {
       "roles": "cx:event:01js0r01es0000000000000000",
       "preauth": "cx:event:01js0preav0000000000000000",
@@ -314,18 +321,26 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 {
   "kind": "cx.space.plaintext_visible_services",
   "state_key": "",
-  "content": {
+  "payload": {
     "services": [
       {
         "service_did": "did:web:server.acme.example",
         "service_type": "principal_server",
-        "purposes": ["events", "sync", "backfill"],
+        "purposes": [
+          "events",
+          "sync",
+          "backfill"
+        ],
         "visibility": "private_plaintext"
       },
       {
         "service_did": "did:web:search.acme.example",
         "service_type": "delegated_search",
-        "purposes": ["search", "notification", "preview"],
+        "purposes": [
+          "search",
+          "notification",
+          "preview"
+        ],
         "visibility": "derived_plaintext"
       }
     ]
@@ -356,14 +371,17 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 {
   "kind": "cx.space.organization",
   "state_key": "did:web:acme.example",
-  "content": {
+  "payload": {
     "organization_did": "did:web:acme.example",
     "relationship": "owner",
     "status": "active",
     "endorsed_by": "did:web:acme.example#governance-key-1",
     "scope": {
       "official": true,
-      "allowed_labels": ["official", "support"],
+      "allowed_labels": [
+        "official",
+        "support"
+      ],
       "service_dids": [
         "did:web:server.acme.example",
         "did:web:search.acme.example"
@@ -578,7 +596,7 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 
 `cx.message.redact` 与 `cx.redaction` 的边界如下：
 
-- `cx.message.redact` 是 Message 专用 redaction。生产者在撤回 Flow discussion Message、Message revision 或 Message reaction projection 时 SHOULD 使用它；content MUST 指向 `message_id`、`target_ref` 或目标 `event_id`，并携带可审计原因。
+- `cx.message.redact` 是 Message 专用 redaction。生产者在撤回 Flow discussion Message、Message revision 或 Message reaction projection 时 SHOULD 使用它；payload MUST 指向 `message_id`、`target_ref` 或目标 `event_id`，并携带可审计原因。
 - `cx.redaction` 是通用 redaction envelope，用于非 Message 对象、任意 Event payload、附件引用或 profile 声明的内容裁剪。
 - 两者不是互相扩大权限的别名。授权仍按目标对象、目标 Event、actor 和 capability 独立判定；拥有 `cx.message.redact.own` 不等于拥有通用 `cx.redaction`。
 - 若两类 redaction 指向同一目标，reducer MUST 幂等地应用同一 redaction effect，并在审计视图保留多个 redaction event 的 event id、actor 和 reason。
@@ -604,7 +622,7 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 
 以下字段 MUST 清除：
 
-- `content`
+- `payload`
 - `unsigned`
 - `attachments`
 - `mentions`
@@ -656,7 +674,7 @@ Frontier 与存储语义：
 {
   "kind": "cx.space.upgrade",
   "state_key": "upgrade:cx.reducer.v1_1",
-  "content": {
+  "payload": {
     "phase": "announcement",
     "target_schema_profile": "cx.schema.v1",
     "target_reducer_profile": "cx.reducer.v1_1",
@@ -667,7 +685,10 @@ Frontier 与存储语义：
     "readiness_deadline": "2026-05-16T00:00:00Z",
     "min_readiness": {
       "mode": "service_receipts",
-      "required_services": ["principal_server", "sync_service"]
+      "required_services": [
+        "principal_server",
+        "sync_service"
+      ]
     }
   }
 }
@@ -696,7 +717,7 @@ Frontier 与存储语义：
 {
   "kind": "cx.space.tombstone",
   "state_key": "",
-  "content": {
+  "payload": {
     "reason": "migrated",
     "replacement_space": "cx:space:01NEW...",
     "replacement_event": "cx:event:...",

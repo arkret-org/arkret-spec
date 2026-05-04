@@ -12,11 +12,22 @@ Space 可通过 state event 声明策略服务：
 {
   "kind": "cx.space.policy_server",
   "state_key": "primary",
-  "content": {
+  "payload": {
     "server_id": "did:web:policy.example.com",
     "endpoint": "https://policy.example.com/contrix/v1/check",
-    "public_keys": ["did:web:policy.example.com#key-1"],
-    "applies_to": ["join", "invite", "message", "media", "applet", "directory", "call", "federation"],
+    "public_keys": [
+      "did:web:policy.example.com#key-1"
+    ],
+    "applies_to": [
+      "join",
+      "invite",
+      "message",
+      "media",
+      "applet",
+      "directory",
+      "call",
+      "federation"
+    ],
     "policy_sources": [
       "cx.space.moderation_policy",
       "cx.organization.moderation_policy"

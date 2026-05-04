@@ -40,7 +40,7 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 {
   "kind": "cx.space.discovery",
   "state_key": "",
-  "content": {
+  "payload": {
     "discoverability": "listed",
     "directory_visibility": {
       "public_directory": false,

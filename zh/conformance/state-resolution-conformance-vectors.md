@@ -76,7 +76,7 @@ cx.vector.state_resolution.concurrent_flow_card_move.v1
     {
       "event_id": "cx:event:01js0ev1000000000000000000",
       "kind": "cx.flow.move",
-      "content": {
+      "payload": {
         "board_id": "cx:space:01js0bd0000000000000000000",
         "flow_id": "cx:flow:01js0ca0000000000000000000",
         "to_list_id": "cx:space:01js0112000000000000000000",
@@ -87,7 +87,7 @@ cx.vector.state_resolution.concurrent_flow_card_move.v1
     {
       "event_id": "cx:event:01js0ev2000000000000000000",
       "kind": "cx.flow.move",
-      "content": {
+      "payload": {
         "board_id": "cx:space:01js0bd0000000000000000000",
         "flow_id": "cx:flow:01js0ca0000000000000000000",
         "to_list_id": "cx:space:01js0113000000000000000000",

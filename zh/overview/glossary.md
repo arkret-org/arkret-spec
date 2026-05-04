@@ -36,7 +36,7 @@
 | Facet | 能力标签 | Morph/Profile 的能力提示（如 container/schedulable/renderable）。 |
 | Relation | 关系边 | 对象间有向关系定义，如 `contains`、`mentions`、`depends_on`。 |
 | Event | 协议事件 | 协议传播和验证的基础事实单元（Envelope 的内容承载形式）。 |
-| Event Envelope | 事件外壳 | `event_id`、`actor_id`、`kind`、`content`、`proofs` 等字段的签名封包。 |
+| Event Envelope | 事件外壳 | `event_id`、`actor_id`、`kind`、`payload`、`proofs` 等字段的签名封包。 |
 | Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
 | Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 frontier。 |
 | HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，形如 `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 |

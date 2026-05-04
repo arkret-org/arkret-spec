@@ -14,7 +14,7 @@
           "event_id": "cx:event:01js0ev1000000000000000000",
           "kind": "cx.flow.move",
           "auth_weight": 200,
-          "content": {
+          "payload": {
             "board_id": "cx:space:01js0bd0000000000000000000",
             "flow_id": "cx:flow:01js0ca0000000000000000000",
             "to_list_id": "cx:space:01js0112000000000000000000",
@@ -26,7 +26,7 @@
           "event_id": "cx:event:01js0ev2000000000000000000",
           "kind": "cx.flow.move",
           "auth_weight": 200,
-          "content": {
+          "payload": {
             "board_id": "cx:space:01js0bd0000000000000000000",
             "flow_id": "cx:flow:01js0ca0000000000000000000",
             "to_list_id": "cx:space:01js0113000000000000000000",
@@ -50,7 +50,7 @@
           "event_id": "cx:event:01js0mj0000000000000000000",
           "kind": "cx.member.state",
           "auth_weight": 200,
-          "content": {
+          "payload": {
             "membership": "join",
             "reason": "accepted_invite"
           },
@@ -60,7 +60,7 @@
           "event_id": "cx:event:01js0mb0000000000000000000",
           "kind": "cx.member.state",
           "auth_weight": 500,
-          "content": {
+          "payload": {
             "membership": "ban",
             "reason": "abuse"
           },
@@ -82,7 +82,7 @@
           "kind": "cx.space.join_rule",
           "auth_weight": 650,
           "policy_result": "hard_deny",
-          "content": {
+          "payload": {
             "join_rule": "public"
           },
           "hlc": "01970e589d21-0004-a13f9c2e"
@@ -92,7 +92,7 @@
           "kind": "cx.space.join_rule",
           "auth_weight": 500,
           "policy_result": "allow",
-          "content": {
+          "payload": {
             "join_rule": "invite"
           },
           "hlc": "01970e589d21-0003-a13f9c2e"
@@ -119,7 +119,7 @@
           "prev_refs": [
             "cx:event:01js0ra0000000000000000000"
           ],
-          "content": {
+          "payload": {
             "grant_ref": "cx:grant:01js0gr0000000000000000000"
           },
           "hlc": "01970e589d22-0001-a13f9c2e"
@@ -135,7 +135,7 @@
           "auth_refs": [
             "cx:event:01js0gr0000000000000000000"
           ],
-          "content": {
+          "payload": {
             "target_ref": "cx:flow:01js0ca0000000000000000000",
             "patch": {
               "title": "offline"

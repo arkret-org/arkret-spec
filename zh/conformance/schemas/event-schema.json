@@ -14,7 +14,7 @@
     "hlc",
     "prev_refs",
     "auth_refs",
-    "content",
+    "payload",
     "proofs"
   ],
   "properties": {
@@ -91,7 +91,7 @@
     "redacts": {
       "$ref": "#/$defs/eventRef"
     },
-    "content": {
+    "payload": {
       "type": "object"
     },
     "unsigned": {
@@ -147,8 +147,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "#/$defs/flow_move_content"
+          "payload": {
+            "$ref": "#/$defs/flow_move_payload"
           }
         }
       }
@@ -166,8 +166,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "#/$defs/flow_reorder_content"
+          "payload": {
+            "$ref": "#/$defs/flow_reorder_payload"
           }
         }
       }
@@ -185,8 +185,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "#/$defs/flow_branch_enable_content"
+          "payload": {
+            "$ref": "#/$defs/flow_branch_enable_payload"
           }
         }
       }
@@ -204,8 +204,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "#/$defs/flow_branch_disable_content"
+          "payload": {
+            "$ref": "#/$defs/flow_branch_disable_payload"
           }
         }
       }
@@ -223,8 +223,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "#/$defs/flow_branch_set_primary_content"
+          "payload": {
+            "$ref": "#/$defs/flow_branch_set_primary_payload"
           }
         }
       }
@@ -242,8 +242,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "#/$defs/flow_convert_content"
+          "payload": {
+            "$ref": "#/$defs/flow_convert_payload"
           }
         }
       }
@@ -264,8 +264,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/membership_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/membership_payload"
           }
         }
       }
@@ -283,8 +283,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload"
           }
         }
       }
@@ -306,8 +306,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/object_create_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/object_create_payload"
           }
         }
       }
@@ -332,8 +332,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/object_patch_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/object_patch_payload"
           }
         }
       }
@@ -351,8 +351,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/space_archive_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_archive_payload"
           }
         }
       }
@@ -370,8 +370,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/space_freeze_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_freeze_payload"
           }
         }
       }
@@ -389,8 +389,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/space_tombstone_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_tombstone_payload"
           }
         }
       }
@@ -408,8 +408,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/space_destroy_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_destroy_payload"
           }
         }
       }
@@ -464,8 +464,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/state_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/state_payload"
           }
         }
       }
@@ -488,8 +488,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
           }
         }
       }
@@ -507,8 +507,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/message_create_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/message_create_payload"
           }
         }
       }
@@ -526,8 +526,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/message_revise_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/message_revise_payload"
           }
         }
       }
@@ -548,8 +548,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/message_redact_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/message_redact_payload"
           }
         }
       }
@@ -570,8 +570,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/reaction_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/reaction_payload"
           }
         }
       }
@@ -589,8 +589,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/relation_create_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/relation_create_payload"
           }
         }
       }
@@ -611,8 +611,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/relation_update_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/relation_update_payload"
           }
         }
       }
@@ -633,8 +633,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/container_position_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/container_position_payload"
           }
         }
       }
@@ -656,8 +656,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/view_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/view_payload"
           }
         }
       }
@@ -675,8 +675,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_payload"
           }
         }
       }
@@ -694,8 +694,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_start_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_start_payload"
           }
         }
       }
@@ -713,8 +713,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_status_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_status_payload"
           }
         }
       }
@@ -732,8 +732,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_result_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_session_result_payload"
           }
         }
       }
@@ -755,8 +755,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/capability_grant_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/capability_grant_payload"
           }
         }
       }
@@ -774,8 +774,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/capability_revoke_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/capability_revoke_payload"
           }
         }
       }
@@ -800,8 +800,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/invite_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/invite_payload"
           }
         }
       }
@@ -819,8 +819,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/device_authorized_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/device_authorized_payload"
           }
         }
       }
@@ -838,8 +838,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/session_grant_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/session_grant_payload"
           }
         }
       }
@@ -857,8 +857,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/device_revoked_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/device_revoked_payload"
           }
         }
       }
@@ -876,8 +876,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/device_list_update_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/device_list_update_payload"
           }
         }
       }
@@ -895,8 +895,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_proposal_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_proposal_payload"
           }
         }
       }
@@ -914,8 +914,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_genesis_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_genesis_payload"
           }
         }
       }
@@ -933,8 +933,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_welcome_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_welcome_payload"
           }
         }
       }
@@ -952,8 +952,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_keypackage_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_keypackage_payload"
           }
         }
       }
@@ -971,8 +971,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/space_key_share_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_key_share_payload"
           }
         }
       }
@@ -990,8 +990,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/space_key_withheld_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_key_withheld_payload"
           }
         }
       }
@@ -1009,8 +1009,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/space_key_share_audit_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_key_share_audit_payload"
           }
         }
       }
@@ -1028,8 +1028,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_commit_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_commit_payload"
           }
         }
       }
@@ -1047,8 +1047,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_commit_failed_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_commit_failed_payload"
           }
         }
       }
@@ -1066,8 +1066,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_epoch_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_epoch_payload"
           }
         }
       }
@@ -1085,8 +1085,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/moderation_report_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload"
           }
         }
       }
@@ -1107,8 +1107,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/audit_payload"
           }
         }
       }
@@ -1129,8 +1129,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/call_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/call_payload"
           }
         }
       }
@@ -1154,8 +1154,8 @@
       },
       "then": {
         "properties": {
-          "content": {
-            "$ref": "./event-payload.schema.json#/$defs/generic_standard_content"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload"
           }
         }
       }
@@ -1198,7 +1198,7 @@
           "type": "string",
           "enum": [
             "event",
-            "content",
+            "payload",
             "proof",
             "authz",
             "reducer",
@@ -1300,7 +1300,7 @@
       },
       "additionalProperties": true
     },
-    "flow_move_content": {
+    "flow_move_payload": {
       "type": "object",
       "required": [
         "board_id",
@@ -1342,7 +1342,7 @@
       },
       "additionalProperties": false
     },
-    "flow_reorder_content": {
+    "flow_reorder_payload": {
       "type": "object",
       "required": [
         "board_id",
@@ -1378,7 +1378,7 @@
       },
       "additionalProperties": false
     },
-    "flow_branch_enable_content": {
+    "flow_branch_enable_payload": {
       "type": "object",
       "required": [
         "flow_id",
@@ -1398,7 +1398,7 @@
       },
       "additionalProperties": false
     },
-    "flow_branch_disable_content": {
+    "flow_branch_disable_payload": {
       "type": "object",
       "required": [
         "flow_id",
@@ -1420,7 +1420,7 @@
       },
       "additionalProperties": false
     },
-    "flow_branch_set_primary_content": {
+    "flow_branch_set_primary_payload": {
       "type": "object",
       "required": [
         "flow_id",
@@ -1436,7 +1436,7 @@
       },
       "additionalProperties": false
     },
-    "flow_convert_content": {
+    "flow_convert_payload": {
       "type": "object",
       "required": [
         "flow_id",

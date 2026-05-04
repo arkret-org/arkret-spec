@@ -488,7 +488,7 @@ Event 是 reducer 输入和审计事实。
     "cx:event:01js0sp0000000000000000000",
     "cx:event:01js0ms0000000000000000000"
   ],
-  "content": {
+  "payload": {
     "flow_id": "cx:flow:01js0cd0000000000000000000",
     "patch": {
       "fields.status": "done"

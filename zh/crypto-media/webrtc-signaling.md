@@ -108,12 +108,18 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 {
   "kind": "cx.space.media_service",
   "state_key": "default",
-  "content": {
+  "payload": {
     "service_id": "did:web:media.example.com",
-    "modes": ["turn", "sfu"],
+    "modes": [
+      "turn",
+      "sfu"
+    ],
     "ice_config_endpoint": "https://media.example.com/contrix/v1/ice-config",
     "sfu_endpoint": "https://sfu.example.com/contrix/v1",
-    "allowed_call_modes": ["p2p", "sfu"],
+    "allowed_call_modes": [
+      "p2p",
+      "sfu"
+    ],
     "recording_supported": false
   }
 }
@@ -380,7 +386,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 {
   "kind": "cx.call.state",
   "space_id": "cx:space:...",
-  "content": {
+  "payload": {
     "call_id": "cx:call:01J...",
     "state": "active",
     "mode": "sfu",
@@ -389,7 +395,11 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
         "actor_id": "did:web:alice.example.com",
         "device_id": "cx:device:01js0ke0000000000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
-        "media": {"audio": true, "video": true, "screen": false}
+        "media": {
+          "audio": true,
+          "video": true,
+          "screen": false
+        }
       }
     ]
   }
@@ -431,7 +441,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 {
   "kind": "cx.call.recording.start",
   "space_id": "cx:space:...",
-  "content": {
+  "payload": {
     "call_id": "cx:call:01J...",
     "recording_agent": "did:web:recorder.example",
     "mode": "audio_video",

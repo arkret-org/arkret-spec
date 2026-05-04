@@ -47,10 +47,14 @@ Contrix 使用三层签名链：
 ```json
 {
   "kind": "cx.device.list_update",
-  "content": {
+  "payload": {
     "principal_id": "did:plc:...",
-    "changed": ["cx:device:01js0ke0000000000000000000"],
-    "left": ["cx:device:01js0kg0000000000000000000"],
+    "changed": [
+      "cx:device:01js0ke0000000000000000000"
+    ],
+    "left": [
+      "cx:device:01js0kg0000000000000000000"
+    ],
     "stream_id": "devstream_42"
   }
 }
@@ -117,10 +121,13 @@ Content-Type: application/json
     "did:web:alice.example.com": {
       "cx:device:01js0ke0000000000000000000": {
         "kind": "cx.key.verification.request",
-        "content": {
+        "payload": {
           "transaction_id": "ver_123",
           "from_device": "cx:device:01js0kf0000000000000000000",
-          "methods": ["cx.sas.v1", "cx.qr.v1"]
+          "methods": [
+            "cx.sas.v1",
+            "cx.qr.v1"
+          ]
         }
       }
     }

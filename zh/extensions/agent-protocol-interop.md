@@ -87,7 +87,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "kind": "cx.agent.protocol_session.start",
   "space_id": "cx:space:...",
   "actor_id": "did:web:requesting-agent.example.com",
-  "content": {
+  "payload": {
     "session_id": "cx:agent_session:01J...",
     "task_flow_id": "cx:flow:task0100000000000000000000",
     "counterparty_agent": "did:web:remote-agent.example.com",
@@ -95,7 +95,11 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
     "protocol_version": "1.x",
     "endpoint_ref": "https://agent.example/.well-known/agent-card.json",
     "capability_grant": "cx:grant:...",
-    "allowed_artifact_types": ["text", "file", "json"],
+    "allowed_artifact_types": [
+      "text",
+      "file",
+      "json"
+    ],
     "max_duration_seconds": 3600,
     "audit_mode": "summary_and_artifacts"
   }
@@ -112,7 +116,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 {
   "kind": "cx.agent.protocol_session.status",
   "space_id": "cx:space:...",
-  "content": {
+  "payload": {
     "session_id": "cx:agent_session:01J...",
     "external_task_id": "a2a-task-123",
     "status": "working",
@@ -143,7 +147,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 {
   "kind": "cx.agent.protocol_session.result",
   "space_id": "cx:space:...",
-  "content": {
+  "payload": {
     "session_id": "cx:agent_session:01J...",
     "status": "completed",
     "result_objects": [

@@ -18,7 +18,7 @@
           "hlc": "01970e589d21-0001-a13f9c2e",
           "prev_refs": [],
           "auth_refs": [],
-          "content": {
+          "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
               "type": "cx.content.text",
@@ -60,7 +60,7 @@
               "fail_closed": true
             }
           ],
-          "content": {
+          "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
               "type": "cx.content.text",
@@ -98,7 +98,7 @@
           "auth_refs": [
             "cx:event:01k9au00000000000000000000"
           ],
-          "content": {
+          "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
               "type": "cx.content.text",
@@ -148,7 +148,7 @@
           "auth_refs": [
             "cx:event:01k9au00000000000000000000"
           ],
-          "content": {
+          "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
               "type": "cx.content.text",
@@ -186,7 +186,7 @@
           "auth_refs": [
             "cx:event:01k9au00000000000000000000"
           ],
-          "content": {
+          "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
               "type": "cx.content.text",
@@ -218,7 +218,7 @@
           "prev_refs": [
             "cx:event:01k9ne00000000000000000000"
           ],
-          "content": {
+          "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
               "type": "cx.content.text",
@@ -253,7 +253,7 @@
           "auth_refs": [
             "cx:event:01k9au00000000000000000000"
           ],
-          "content": {
+          "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
               "type": "cx.content.text",
@@ -307,7 +307,7 @@
           "auth_refs": [
             "cx:event:01k9au00000000000000000000"
           ],
-          "content": {
+          "payload": {
             "event_id": "cx:event:01k9na00000000000000000000"
           },
           "proofs": []
@@ -339,7 +339,7 @@
           "auth_refs": [
             "cx:event:01k9au00000000000000000000"
           ],
-          "content": {
+          "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "typing": true
           },

@@ -29,9 +29,11 @@ Parent 侧声明：
 {
   "kind": "cx.space.child",
   "state_key": "cx:space:ch11d010000000000000000000",
-  "content": {
+  "payload": {
     "child_space_id": "cx:space:ch11d010000000000000000000",
-    "via": ["did:web:server.example"],
+    "via": [
+      "did:web:server.example"
+    ],
     "order": "mV",
     "suggested": false,
     "canonical": true
@@ -45,9 +47,11 @@ Child 侧确认：
 {
   "kind": "cx.space.parent",
   "state_key": "cx:space:parent01000000000000000000",
-  "content": {
+  "payload": {
     "parent_space_id": "cx:space:parent01000000000000000000",
-    "via": ["did:web:server.example"],
+    "via": [
+      "did:web:server.example"
+    ],
     "canonical": true
   }
 }
@@ -95,12 +99,18 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 {
   "kind": "cx.space.inheritance_policy",
   "state_key": "cx:space:parent01000000000000000000",
-  "content": {
+  "payload": {
     "parent_space_id": "cx:space:parent01000000000000000000",
     "inherits": {
       "membership": false,
-      "capability_bundles": ["viewer", "commenter"],
-      "policy_rules": ["server_acl", "media_blocklist"],
+      "capability_bundles": [
+        "viewer",
+        "commenter"
+      ],
+      "policy_rules": [
+        "server_acl",
+        "media_blocklist"
+      ],
       "notification_defaults": true
     },
     "mode": "narrow_only",
@@ -126,11 +136,14 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 {
   "kind": "cx.capability.derived",
   "state_key": "cx:grant:der1ved0100000000000000000",
-  "content": {
+  "payload": {
     "source_grant": "cx:grant:parentv1ewer00000000000000",
     "source_space_id": "cx:space:parent01000000000000000000",
     "target_space_id": "cx:space:ch11d010000000000000000000",
-    "actions": ["cx.space.discover", "cx.object.read"],
+    "actions": [
+      "cx.space.discover",
+      "cx.object.read"
+    ],
     "constraints": [
       {
         "constraint_type": "temporal",

@@ -183,10 +183,12 @@ Controlled Collaboration Space SHOULD 使用：
 {
   "kind": "cx.space.create",
   "space_version": "1",
-  "content": {
+  "payload": {
     "kind": "enclave",
     "created_by_principal": "did:web:defense.example",
-    "owning_organizations": ["did:web:defense.example"],
+    "owning_organizations": [
+      "did:web:defense.example"
+    ],
     "default_discoverability": "unlisted",
     "default_join_rule": "restricted",
     "history_visibility": "joined"

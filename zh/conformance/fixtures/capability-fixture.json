@@ -80,7 +80,7 @@
           "event_id": "cx:event:01js0eg0000000000000000000",
           "kind": "cx.capability.grant",
           "hlc": "01970e589d21-0001-a13f9c2e",
-          "content": {
+          "payload": {
             "grant_id": "cx:grant:01js0gr2000000000000000000",
             "subject": "did:web:alice.example",
             "actions": [
@@ -98,7 +98,7 @@
           "event_id": "cx:event:01js0er0000000000000000000",
           "kind": "cx.capability.revoke",
           "hlc": "01970e589d22-0001-a13f9c2e",
-          "content": {
+          "payload": {
             "grant_ref": "cx:grant:01js0gr2000000000000000000"
           }
         },
@@ -109,7 +109,7 @@
           "auth_refs": [
             "cx:event:01js0eg0000000000000000000"
           ],
-          "content": {
+          "payload": {
             "target_ref": "cx:flow:01js0ca0000000000000000000",
             "patch": {
               "title": "After revoke"

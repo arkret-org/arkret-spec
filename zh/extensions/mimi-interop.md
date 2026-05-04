@@ -70,7 +70,7 @@ GET /api/v1/mimi/provider-directory
 {
   "kind": "cx.mimi.room_binding",
   "state_key": "mimi://example.com/rooms/01JSMIMI...",
-  "content": {
+  "payload": {
     "profile": "cx.profile.mimi_interop.v1",
     "mimi_room_uri": "mimi://example.com/rooms/01JSMIMI...",
     "binding_scope": {

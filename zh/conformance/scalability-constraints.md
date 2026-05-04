@@ -62,7 +62,7 @@ State resolution fallback 不得选择本地接收顺序或数据库 ID。fallba
 渐进恢复阶段：
 
 1. **Frontier probe**：先查询 actor / Space frontier、可用 snapshot manifest 和缺失 ref 的 source。
-2. **Targeted dependency fetch**：按缺失 `auth_refs`、`prev_refs` 和 content causal refs 拉最小闭包。
+2. **Targeted dependency fetch**：按缺失 `auth_refs`、`prev_refs` 和 payload causal refs 拉最小闭包。
 3. **Snapshot-assisted resolution**：闭包超过预算时，改用最近可验证 snapshot 作为 base，再回放 snapshot frontier 之后的事件。
 4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已 accepted 历史的只读 projection，并显式标记 `auth_incomplete`。
 5. **Write revalidation**：任何新写入必须在提交前重新验证所依赖的 auth state；不得继承 partial view 的乐观允许结果。

@@ -248,9 +248,13 @@ POST /api/v1/events
     "kind": "cx.flow.update",
     "created_at": "2026-04-22T08:30:00Z",
     "hlc": "01970e589d21-0007-a13f9c2e",
-    "prev_refs": ["cx:event:01js0et0000000000000000000"],
-    "auth_refs": ["cx:event:01js0gr0000000000000000000"],
-    "content": {},
+    "prev_refs": [
+      "cx:event:01js0et0000000000000000000"
+    ],
+    "auth_refs": [
+      "cx:event:01js0gr0000000000000000000"
+    ],
+    "payload": {},
     "proofs": []
   }
 }
@@ -273,7 +277,7 @@ POST /api/v1/events
 
 若 `expected_frontier` 校验失败，返回 `409 cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、checkpoint 或 predecessor commit 才承认其 canonical history 地位。
 
-`events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项的 `prev_refs`、`auth_refs` 或显式 content reference 解析；后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
+`events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项的 `prev_refs`、`auth_refs` 或显式 payload reference 解析；后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
 
 ### 3.2 批量获取 Event
 

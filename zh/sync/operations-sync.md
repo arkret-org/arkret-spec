@@ -105,7 +105,7 @@ v1 的规范性 wire fact 只有 **Event Envelope**。Events API、Sync、Federa
 
 Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event Envelope。`data-structures.md` 中的 Canonical Operation Object 只允许作为 SDK 内部 builder、离线草稿或内容寻址中间对象；它进入网络、联邦、sync 或 reducer 前 MUST 被封装成 Event Envelope。互操作 profile 不得要求对端同时理解 Canonical Operation Object 和 Event Envelope。
 
-Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`prev_refs` 表示 actor event chain 前序，`auth_refs` 表示授权依赖。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `content.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `content` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`auth_refs`、`actor_seq` 和签名绑定。
+Event Envelope 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs` 表示 actor event chain 前序，`auth_refs` 表示授权依赖。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `payload.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `payload` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`auth_refs`、`actor_seq` 和签名绑定。
 
 如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event Envelope 顶层声明 `required_features` 或 `critical_extensions`。这些字段和 `schema_profile_refs`、`reducer_profile_ref` MUST 进入 canonical event bytes、event digest 和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
 
@@ -125,7 +125,7 @@ Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`p
   "auth_refs": [
     "cx:event:01js0gr0000000000000000000"
   ],
-  "content": {
+  "payload": {
     "flow_id": "cx:flow:01js0cd0000000000000000000",
     "patch": {
       "fields.status": "review"
@@ -173,7 +173,7 @@ Contrix v1 要求：
 
 Contrix v1 将依赖关系和 winner tie-breaker 分开处理：
 
-- `prev_refs`、`auth_refs` 和具体 event kind 声明的 content-level causal refs 共同形成 accepted dependency graph。
+- `prev_refs`、`auth_refs` 和具体 event kind 声明的 payload-level causal refs 共同形成 accepted dependency graph。
 - 若事件 B 的 dependency closure 包含事件 A，任何 canonical replay、timeline recovery 或 reducer input normalization 都 MUST 在拓扑上令 A 先于 B；即使 `hlc(A) > hlc(B)` 也不得反转。
 - `auth_refs` 表示“B 的授权判定必须能看到 A”，不表示 A 的业务 payload 自动覆盖 B，也不额外提高 A 的 state resolution 权重。它只影响 B 是否可进入 accepted set、B 的 auth state map 和 deterministic dependency depth。
 - 只有当两个 accepted Event 在 dependency graph 中互不可达时，才使用 HLC、Actor ID、`actor_seq`、`event_id` / hash 作为 deterministic total-order tie-breaker。
@@ -311,7 +311,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.audit.accessed`
 - `cx.redaction`
 
-`cx.profile.update`、`cx.device.*` 与 `cx.session.grant` 是 durable Event Envelope kind，但其规范作用域是 principal control Space。生产者 MUST 使用目标 principal 的 `principal_control_space_id` 作为 `space_id`；普通协作 Space 只能通过 `auth_refs`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入协作 Space history。`cx.profile.space_override` 若作为共享 Space history 传播，MUST 使用目标 Space 的 `space_id` 并通过该 Space policy；若作为 principal control profile state 传播，MUST 在 content 中显式绑定目标 Space。
+`cx.profile.update`、`cx.device.*` 与 `cx.session.grant` 是 durable Event Envelope kind，但其规范作用域是 principal control Space。生产者 MUST 使用目标 principal 的 `principal_control_space_id` 作为 `space_id`；普通协作 Space 只能通过 `auth_refs`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入协作 Space history。`cx.profile.space_override` 若作为共享 Space history 传播，MUST 使用目标 Space 的 `space_id` 并通过该 Space policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Space。
 
 以下标准 kind 不属于共享 durable Space history，不能列入本节 durable 写路径：
 
@@ -320,7 +320,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 ## 8. 操作体原则
 
-非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 `../models/data-structures.md#19-field-patch-cxpatchv1`；实现不得用私有 dot-path 解析规则替代该格式。Event Envelope 中，patch 永远嵌入 `content.patch`，目标对象用 `content.flow_id`、`content.morph_id`、`content.relation_id`、`content.view_id` 或该 kind schema 声明的等价字段表达。
+非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 `../models/data-structures.md#19-field-patch-cxpatchv1`；实现不得用私有 dot-path 解析规则替代该格式。Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。
 
 对于 `branches` 这类具名集合数组，patch path MUST 使用 schema 允许的 selector 段，例如 `branches[name=discussion].access.permissions`；不得使用数字下标，因为不同副本上的数组物理顺序不是授权或 reducer 语义。
 
@@ -341,7 +341,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 {
   "kind": "cx.flow.branch.enable",
   "target_ref": "cx:flow:01js0sb0000000000000000000",
-  "content": {
+  "payload": {
     "flow_id": "cx:flow:01js0sb0000000000000000000",
     "branch": "discussion",
     "config": {
@@ -374,7 +374,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 {
   "kind": "cx.flow.move",
   "target_ref": "cx:flow:01js0tk0000000000000000000",
-  "content": {
+  "payload": {
     "board_id": "cx:space:01js0bd0000000000000000000",
     "flow_id": "cx:flow:01js0tk0000000000000000000",
     "from_list_id": "cx:space:01t0d000000000000000000000",
@@ -410,7 +410,7 @@ CAS 语义：`expected_position` 描述的是移动前源 List 中 Flow 的当�
 {
   "kind": "cx.flow.reorder",
   "target_ref": "cx:flow:01js0tk0000000000000000000",
-  "content": {
+  "payload": {
     "board_id": "cx:space:01js0bd0000000000000000000",
     "list_id": "cx:space:01rev1ew000000000000000000",
     "flow_id": "cx:flow:01js0tk0000000000000000000",
@@ -437,10 +437,12 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 {
   "kind": "cx.flow.convert",
   "target_ref": "cx:flow:01js0tk0000000000000000000",
-  "content": {
+  "payload": {
     "flow_id": "cx:flow:01js0tk0000000000000000000",
     "branch": "discussion",
-    "ensure_branches": ["discussion"]
+    "ensure_branches": [
+      "discussion"
+    ]
   }
 }
 ```
@@ -589,7 +591,7 @@ Contrix 初版不引入全网共识链。
 3. Actor ID 字典序。
 4. Event hash / `event_id` 字典序。
 
-该 winner 顺序不同于客户端 timeline 的展示顺序；timeline 通常先按 `prev_refs` / `auth_refs` / content causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
+该 winner 顺序不同于客户端 timeline 的展示顺序；timeline 通常先按 `prev_refs` / `auth_refs` / payload causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
 
 ### 16.1 Reducer Contract
 
@@ -598,7 +600,7 @@ Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一
 Reducer 输入：
 
 - accepted Event Envelope 集合及其 canonical bytes / digest。
-- 每个 Event 的 `prev_refs`、`auth_refs`、`actor_seq`、HLC、kind、content、proof validation result 和 authorization result。
+- 每个 Event 的 `prev_refs`、`auth_refs`、`actor_seq`、HLC、kind、payload、proof validation result 和 authorization result。
 - `space_version`、schema profile refs、reducer profile ref、Space policy state 和必要 snapshot base。
 
 Reducer 输出：

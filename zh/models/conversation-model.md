@@ -104,7 +104,7 @@ message 与 flow/reply/mention 的关系使用 Relation 或 message 字段表达
 - `message --mentions--> actor / flow / morph`
 - `message --references--> flow / space / morph / blob`
 
-`cx.message.create` / `cx.message.revise` Event payload 中的消息正文 MUST 放在 `content` 字段内，并使用 `content-types.md` 定义的 Content Block。`flow_id`、`message_id`、`reply_to` 等字段只作为路由、目标或关系 metadata，不能替代 `content.type` / `content.body`。
+`cx.message.create` / `cx.message.revise` Event payload 中的消息正文 MUST 放在 `payload.content` 字段内，并使用 `content-types.md` 定义的 Content Block。`flow_id`、`message_id`、`reply_to` 等字段只作为路由、目标或关系 metadata，不能替代 `payload.content.type` / `payload.content.body`。
 
 ## 5. Flow 默认入口与转换
 
@@ -123,7 +123,7 @@ Flow MAY 开启 `discussion` branch。开启后，该 Flow 仍然是同一个对
 {
   "kind": "cx.flow.branch.enable",
   "target_ref": "cx:flow:01js0cd0000000000000000000",
-  "content": {
+  "payload": {
     "flow_id": "cx:flow:01js0cd0000000000000000000",
     "branch": "discussion",
     "config": {
@@ -144,10 +144,12 @@ Flow 默认入口切换通过 `cx.flow.branch.set_primary` 或 `cx.flow.convert`
 {
   "kind": "cx.flow.convert",
   "target_ref": "cx:flow:01js0cd0000000000000000000",
-  "content": {
+  "payload": {
     "flow_id": "cx:flow:01js0cd0000000000000000000",
     "branch": "discussion",
-    "ensure_branches": ["discussion"]
+    "ensure_branches": [
+      "discussion"
+    ]
   }
 }
 ```
@@ -170,7 +172,7 @@ Discussion branch membership 是 branch `access` 的显式 override 形态。默
 {
   "kind": "cx.flow.branch.member",
   "state_key": "cx:flow:01js0rm0000000000000000000|discussion|did:web:bob.example",
-  "content": {
+  "payload": {
     "flow_id": "cx:flow:01js0rm0000000000000000000",
     "branch": "discussion",
     "member": "did:web:bob.example",

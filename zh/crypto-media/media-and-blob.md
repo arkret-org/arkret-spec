@@ -217,9 +217,12 @@ Cache-Control: public, immutable, max-age=31536000
 {
   "kind": "cx.space.asset_privacy_policy",
   "state_key": "",
-  "content": {
+  "payload": {
     "download_mode": "provider_proxy",
-    "allowed_modes": ["provider_proxy", "ohttp_relay"],
+    "allowed_modes": [
+      "provider_proxy",
+      "ohttp_relay"
+    ],
     "direct_download_allowed": false,
     "upload_services": [
       "did:web:blob.acme.example"
@@ -230,7 +233,10 @@ Cache-Control: public, immutable, max-age=31536000
     "ohttp_gateway_services": [
       "did:web:ohttp-gateway.example"
     ],
-    "max_plaintext_metadata": ["size_bucket", "media_type_family"],
+    "max_plaintext_metadata": [
+      "size_bucket",
+      "media_type_family"
+    ],
     "requires_client_hash_check": true
   }
 }
