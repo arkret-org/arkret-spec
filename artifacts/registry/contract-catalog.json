@@ -1188,6 +1188,10 @@
       {
         "schema_id": "cx.schema.agent_authority.v1",
         "file": "schemas/agent-authority.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.audit_ryw_receipt.v1",
+        "file": "schemas/audit-ryw-receipt.schema.json"
       }
     ]
   },

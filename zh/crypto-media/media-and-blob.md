@@ -9,6 +9,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 ```json
 {
   "blob_ref": "cx:blob:sha256:...",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "sha256": "hex...",
   "size": 1234,
   "media_type": "image/png",
@@ -23,6 +24,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `blob_ref` | `string` | required | 内容地址，通常包含强 hash。 |
+| `space_id` | `id:space` | conditional | Owning Space。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Space 服务 blob（例如 avatar 公共预览）才可省略。 |
 | `sha256` | `string` | required | 服务端计算的内容 hash。 |
 | `size` | `int` | required | 字节大小。 |
 | `media_type` | `string` | optional | 上传声明或服务端校正后的 MIME。缺省为 `application/octet-stream`。 |
@@ -40,19 +42,30 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ## 3. Encrypted Attachment
 
+加密附件的 `key_ref` MUST 使用与 `crypto-media/encrypted-envelope-schema.md` §2.1 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。不再使用 `"mls_epoch:42"` 等字符串简写。
+
 ```json
 {
   "blob_ref": "cx:blob:sha256:...",
   "encrypted": true,
   "alg": "xchacha20_poly1305",
-  "key_ref": "mls_epoch:42",
+  "key_ref": {
+    "algorithm": "MLS",
+    "group_state_ref": {
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "flow_id": null,
+      "branch": null,
+      "epoch": 42
+    }
+  },
   "nonce": "base64url...",
   "ciphertext_digest": "sha256:...",
-  "cleartext_sha256": "hex...",
   "size": 1234,
   "media_type": "image/png"
 }
 ```
+
+`cleartext_sha256` 字段 v1 不再作为附件 metadata 标准字段：在 E2EE Space 中泄露明文 hash 会破坏内容机密性（短/可预测明文可被离线枚举）。如果 deployment 出于审计需要保留 cleartext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC/pepper commitment（见 `event-auth-state-resolution.md` §10.1）。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
 ## 4. Thumbnail
 

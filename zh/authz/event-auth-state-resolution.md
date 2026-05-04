@@ -120,6 +120,10 @@
 | `cx.space.destroy` | `cx.space.create`、当前 lifecycle state、owner/governance/admin lifecycle capability、tombstone / export / retention / legal-hold constraint、无活跃 child Space 和无未决 grant |
 | `cx.device.authorized` / `cx.device.revoked` / `cx.device.list_update` | principal control Space 的 `cx.space.create`、目标 principal 当前 DID/key-log state、授权设备或 recovery policy、上一版 device state |
 | `cx.session.grant` | principal control Space 的 `cx.space.create`、目标 principal 当前 DID/device state、issuer service binding 或组织 policy、上一版同 session / subject grant state |
+| `cx.account.status` | principal control Space 的 `cx.space.create`、actor lifecycle / admin / governance capability、上一版 `cx.account.status` state、retention / legal-hold / erasure policy（如适用） |
+| `cx.moderation.report` | actor membership、reporter capability（基础举报 capability 默认对成员开放）、被举报对象的可见性证明、上一版同 `(reporter, target)` report state（用于去重）|
+| `cx.moderation.frank` | actor membership、E2EE Space 的 encryption / audit policy、对应 `cx.moderation.report` 引用、moderation server / audit agent service binding |
+| `cx.moderation.policy_action` | actor membership、moderation / policy / admin capability、`cx.space.moderation_policy` 当前状态、政策列表 hash |
 
 如果事件缺少必需 auth ref，节点 MUST soft fail 并尝试 backfill。Backfill MUST 受 `../conformance/scalability-constraints.md` 的 `auth_chain` 深度、`auth_refs` 数量、page size、retry 和本地资源上限约束；实现不得为了验证单个事件无限递归拉取历史。若在上限内仍缺失，或只能通过未验证 snapshot / 未授权服务获得依赖，节点 MUST reject、保持 soft-failed 或 quarantine，具体取决于错误是否可恢复。
 
@@ -192,11 +196,17 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 ```json
 {
   "kind": "cx.flow.branch.member",
-  "state_key": "cx:flow:01js0r00m00000000000000000|discussion|did:web:actor.example.com",
+  "state_key": "<base64url_nopad(sha256(canonical_json([\"cx.flow.branch.member\",\"cx:flow:01js0r00m00000000000000000\",\"discussion\",\"did:web:actor.example.com\"])))>",
   "payload": {
     "flow_id": "cx:flow:01js0r00m00000000000000000",
     "branch": "discussion",
     "actor_id": "did:web:actor.example.com",
+    "state_key_components": [
+      "cx.flow.branch.member",
+      "cx:flow:01js0r00m00000000000000000",
+      "discussion",
+      "did:web:actor.example.com"
+    ],
     "membership": "join"
   }
 }
@@ -234,7 +244,7 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 - `knock_restricted`：不满足 restricted 条件者可 knock。
 - `closed`：不接受普通加入、knock 或 invite accept；只允许迁移、维护或管理员明确声明的例外流程。
 
-Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请加入。接收方 MUST reject `default_join_rule="private"`；`private` 不是 Contrix v1 枚举值，该规则只是针对 Matrix-style legacy import、bridge payload 或旧客户端错误字段的防御性拒绝。实现不得把 `private` 静默映射为 `invite` 或 `closed`，因为这会掩盖签名 payload 与 policy intent 的差异。
+Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请加入。`private`、`open`、`hidden` 等不在本枚举内的取值是无效输入，接收方 MUST 按 `schema_violation` reject，不得静默映射为 `invite`、`closed` 或 `restricted`，否则会掩盖签名 payload 与 policy intent 的差异。Matrix-style legacy import 或 bridge 必须在写入前显式映射到本枚举值，并以新签名事件提交。
 
 `cx.space.history_visibility`:
 
@@ -489,13 +499,28 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.device.revoked`
 - `cx.device.list_update`
 - `cx.session.grant`
+- `cx.account.status`
+- `cx.moderation.policy_action`
 - `cx.view.create`
 - `cx.view.update`
 - `cx.view.reconcile`
 
+非 state 但参与 reducer / 审计的 moderation event 列表（state_key 缺省，按事件 id 收敛）：
+
+- `cx.moderation.report`：举报事件，参与 moderation 队列与 quarantine projection。
+- `cx.moderation.frank`：franking proof，参与 E2EE 滥用举报审计；不进入 capability state map。
+- `cx.audit.accessed`：auditable E2EE 解密承诺事件；详见 `crypto-media/encryption-and-audit.md` §3。
+- `cx.audit.ryw_receipt`：Read-Your-Writes receipt（可选 ephemeral 或 durable，见 §6.3 受控 deployment）。
+
 `cx.device.*` 和 `cx.session.grant` 是 principal-scoped state event。它们只在 principal control Space 的 state map 中解析；普通协作 Space MAY 通过 `auth_refs`、snapshot reference 或 policy server proof 引用该 state，但不得把另一个 principal 的设备/会话事件写入任意协作 Space history 来改变其身份状态。
 
-principal control state 的 `state_key` MUST 可从事件内容确定性导出：`cx.device.authorized` 与 `cx.device.revoked` 使用 `{principal_id}|{device_id}`，`cx.device.list_update` 使用 `{principal_id}`，`cx.session.grant` 优先使用 `grant_id`；没有 `grant_id` 的 legacy payload MUST 使用 `{subject}|{audience}|sha256(session_public_key)` 并在 normalized state 中暴露该派生 key。实现不得用本地数据库自增 ID 参与 state resolution。
+principal control state 的 `state_key` MUST 可从事件内容确定性导出。实际 wire 形态使用 `../conformance/encoding.md` §9.5 定义的 canonical hash 编码，`payload.state_key_components` 提供反向可解释信息：
+
+- `cx.device.authorized` / `cx.device.revoked`：`["cx.device.authorized" 或 "cx.device.revoked", principal_id, device_id]`
+- `cx.device.list_update`：`["cx.device.list_update", principal_id]`
+- `cx.session.grant`：`["cx.session.grant", grant_id]`；若是不含 `grant_id` 的 legacy payload，使用 `["cx.session.grant", subject, audience, sha256_hex(session_public_key_bytes)]`
+
+实现不得使用 pipe 字符串、数据库自增 ID、HTTP receive order 或其它非确定性来源参与 state resolution。
 
 State event 不等于 auth state dependency。`cx.view.*` 等投影定义事件可以使用 state resolution 形成当前 View 定义，但默认不进入 capability / membership / policy / MLS 的 auth state map；只有当某个 View 被 policy 明确声明为授权依赖、审计依赖或 materialized query contract 时，相关 View state event 才能作为对应业务事件的 `auth_refs`。非 state event 仍可影响物化 projection，但不进入 auth state map，除非具体类型声明其为 auth dependency。
 
@@ -613,33 +638,40 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 - 两者不是互相扩大权限的别名。授权仍按目标对象、目标 Event、actor 和 capability 独立判定；拥有 `cx.message.redact.own` 不等于拥有通用 `cx.redaction`。
 - 若两类 redaction 指向同一目标，reducer MUST 幂等地应用同一 redaction effect，并在审计视图保留多个 redaction event 的 event id、actor 和 reason。
 
-被 redaction 后，事件只保留：
+被 redaction 后，事件只保留以下 envelope 顶层字段（**验证性 redaction stub** 的默认集合）：
 
 - `event_id`
 - `space_id`
 - `space_version`
 - `kind`
-- `state_key`
+- `state_key`（仅 state event）
 - `actor_id`
+- `actor_seq`
 - `created_at`
 - `hlc`
 - `prev_refs`
 - `auth_refs`
-- `hashes`
+- `redacts`（若本身就是 redaction event）
 - `proofs`
 - `redacted_by`
 - `redaction_reason_code`
 
-上述保留字段是验证性 redaction stub 的默认集合。Space / reducer profile MAY 声明 `redaction_policy="anonymous"`，但该策略只影响普通 timeline、search、export preview 等用户可见 projection：这些 projection MUST 隐藏或替换原事件 `actor_id` / 物化对象 `created_by`，例如显示为 anonymous redacted sender。它不得从 canonical verification stub 中删除 `actor_id`、`proofs`、`hashes` 或因果引用，否则接收方将无法验证原始 Event chain、redaction 授权和审计责任。需要更强发送者隐私的 Space SHOULD 使用 pairwise DID / minimal-metadata E2EE；需要物理删除身份 metadata 时必须走 hard erasure receipt 和 legal-hold 边界，而不是重写已签名 Event。
+`actor_seq` 与 `prev_refs` 必须保留，否则后继事件无法验证 actor chain 因果连续性。`proofs[].payload_hash` 也必须保留，否则后续节点无法在不重新生成 canonical bytes 的情况下验证签名绑定。
 
-以下字段 MUST 清除：
+实现 MUST 在签名时刻保存原 envelope 的 canonical digest（`event_digest`），存储位置由实现决定，但在以下场景必须可重新提供：（a）通过 `auth_refs` 引用该事件时；（b）联邦 backfill 返回 redacted stub 时；（c）审计审查链验证时。`event_digest` 不出现在 redacted stub 顶层，因为它已等价于 `proofs[].payload_hash`。
 
-- `payload`
+上述保留字段是验证性 redaction stub 的默认集合。Space / reducer profile MAY 声明 `redaction_policy="anonymous"`，但该策略只影响普通 timeline、search、export preview 等用户可见 projection：这些 projection MUST 隐藏或替换原事件 `actor_id` / 物化对象 `created_by`，例如显示为 anonymous redacted sender。它不得从 canonical verification stub 中删除 `actor_id`、`proofs`、`actor_seq`、`prev_refs` 或 `auth_refs`，否则接收方将无法验证原始 Event chain、redaction 授权和审计责任。需要更强发送者隐私的 Space SHOULD 使用 pairwise DID / minimal-metadata E2EE；需要物理删除身份 metadata 时必须走 hard erasure receipt 和 legal-hold 边界，而不是重写已签名 Event。
+
+以下 envelope 顶层字段 MUST 整体清除：
+
+- `payload`（其中包括 `attachments`、`mentions`、`relations`、`client_generated`、对象正文等所有内容）
 - `unsigned`
-- `attachments`
-- `mentions`
-- `relations`
-- `client_generated`
+- `schema_profile_refs`（仅在 redaction policy 声明 minimal-metadata 时清除；普通 redaction 保留）
+- `reducer_profile_ref`（同上）
+- `required_features`（同上）
+- `critical_extensions`（同上）
+
+普通 redaction 默认保留 `schema_profile_refs` / `reducer_profile_ref` / `required_features` / `critical_extensions`，使下游能继续判断该 event 是否依赖未知 critical 语义。Minimal-metadata profile 的 redaction 才完全清除这些字段。
 
 Redaction 不保证物理删除。Blob 删除、密钥销毁和法律擦除由 `media-and-blob.md` 与 `account-lifecycle.md` 定义。
 

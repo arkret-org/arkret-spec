@@ -96,17 +96,31 @@ PBKDF2 只允许作为 fallback / constrained-platform 降级 profile；服务�
 协议中引入一个 `Push Gateway` 角色（通常由开发该客户端 App 的厂商运行，以持有苹果/谷歌的推送证书）。
 
 ### 5.2 脱敏投递工作流
-1. **Token 注册**：客户端向 `Push Gateway` 注册自己的设备 `Push Token`，并将其与自己的 DID 建立匿名映射。
-2. **事件触发**：当 Sync Service 或受托 notification service 侦测到该用户的 `@mention` 或紧急任务分配时，它无法也无权解密内容。
+
+1. **Pseudonym 注册**：客户端向 `Push Gateway` 注册自己的设备 `Push Token`，并把它绑定到一组 **per-(principal, device, push_route) pairwise pseudonym**（`push_target_id`）。`push_target_id` MUST 由设备本地随机生成或由 Push Gateway 派发；它 MUST NOT 是 principal DID、device DID URL、handle、邮箱或任何其它跨 Space 稳定标识。Pseudonym 与 principal DID 的反向映射只保留在 holder 设备 / Push Gateway 的私有存储里，禁止出现在推送 payload、analytics、日志或 collapse key 中。
+2. **事件触发**：当 Sync Service 或受托 notification service 侦测到该用户的 `@mention` 或紧急任务分配时，它无法也无权解密内容；它通过签名 `cx.notification.wakeup_request` 向 Push Gateway 发出脱敏唤醒请求，目标用 `push_target_id`，不携带 principal DID。
 3. **脱敏唤醒 (Blind Wakeup)**：该服务向 `Push Gateway` 发出一个极其简略的脱敏触发信号，例如：
    ```json
    {
-     "target_did": "did:web:alice.com",
-     "event_type": "background_sync_needed",
+     "push_target_id": "cx:pseudonym:push:01js0pu0000000000000000000",
+     "wakeup_kind": "background_sync_needed",
      "urgency": "high"
    }
    ```
+   字段规则：
+   - `push_target_id` MUST 使用 `cx:pseudonym:push:<random>` 形态；推送上游（APNs / FCM）只看到该 pseudonym 与平台 token，不会获得 DID。
+   - `wakeup_kind` 只取脱敏枚举（`background_sync_needed` / `incoming_call` / `priority_alert` / `silent_resync`）；不得携带 event kind、Space id、sender handle、附件名或正文。
+   - `urgency` 仅取 `low|normal|high|urgent`，不得借此编码内容。
 4. **静默拉取**：苹果/谷歌服务器将此唤醒信号推送到用户的手机。手机操作系统在后台短暂唤醒 App。
-5. **本地解密展示**：App 被唤醒后，直接使用本地密钥连接 P2P 网络或 Sync Service 拉取最新的加密 Payload。App 在本地完成解密，并调用本地系统的弹窗接口显示明文通知（如：“Bob 提到了你：项目已上线”）。
+5. **本地解密展示**：App 被唤醒后，直接使用本地密钥连接 P2P 网络或 Sync Service 拉取最新的加密 Payload。App 在本地完成解密，并调用本地系统的弹窗接口显示明文通知（如："Bob 提到了你：项目已上线"）。
 
-**结果**：苹果、谷歌和 Push Gateway 默认只看到脱敏唤醒信号。实现仍 MUST 避免在推送 payload、collapse key、topic、analytics tag 或第三方日志中写入正文、附件名、稳定 Space 名称、sender handle 或可长期关联的敏感标识。
+**结果**：苹果、谷歌和 Push Gateway 默认只看到 pairwise pseudonym 与脱敏唤醒信号；它们无法关联同一用户的多个 Space、多设备或与其它服务的活动。实现 MUST NOT 在推送 payload、collapse key、topic、analytics tag、URL、第三方日志或回调中写入：
+
+- principal DID、device DID URL、handle 或邮箱
+- Space id、Space 名称、Flow id、Message id 或 sender DID
+- 正文、摘要、附件名或可逆派生 hash
+- 长期稳定的非 pseudonym 标识符
+
+Push Gateway MUST 支持 pseudonym rotation：客户端 SHOULD 定期（建议 ≤ 30 天）轮换 `push_target_id`，旧 pseudonym 在 grace 期内仍可投递但不接受新 wakeup。
+
+WebRTC 信令（见 `webrtc-signaling.md`）触发的来电通知同样只能携带 `push_target_id` 与 `wakeup_kind=incoming_call`；不得在 push payload 中写入主叫 DID、call_id 或 Space id。

@@ -10,7 +10,7 @@
 
 ```json
 {
-  "device_id": "cx:device:01HV...",
+  "device_id": "cx:device:01js0dv0000000000000000000",
   "principal_id": "did:plc:...",
   "display_name": "Alice iPhone",
   "algorithms": ["cx.mls.v1", "cx.hpke_x25519_aead_xchacha20poly1305.v1"],
@@ -392,7 +392,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `policy_denied` | Space、组织或账号 policy 拒绝。 |
 | `accepted_by_other_device` | 同一请求已被另一设备接受。 |
 
-## 9. Secret Storage
+## 9. Secret Storage（client-local cache form）
 
 Secret storage 用于保存：
 
@@ -402,27 +402,18 @@ Secret storage 用于保存：
 - MLS group secrets backup key
 - applet delegated device secret
 
-Secret storage envelope：
+`cx.secret_storage.v1` 是 **client-local** envelope，仅用于设备本地或可信操作系统 keychain；**不再作为线级 (wire) 上传格式**。任何同步到 Device / Key Server 或其它远端服务的 secret，MUST 使用 §10 的 `cx.schema.key_backup.v1` envelope，并设置对应 `backup_class`：
 
-```json
-{
-  "type": "cx.secret_storage.v1",
-  "secret_id": "self_signing_key",
-  "kdf": {
-    "name": "argon2id",
-    "memory_kib": 65536,
-    "iterations": 3,
-    "salt": "base64url..."
-  },
-  "aead": "xchacha20poly1305",
-  "ciphertext": "base64url...",
-  "created_at": "2026-04-26T00:00:00Z"
-}
-```
+| Secret 类别 | `backup_class` |
+| --- | --- |
+| DID 恢复材料 | `did_recovery` |
+| `self_signing_key`、`user_signing_key`、recovery secret 等账户级 secret | `secret_storage` |
+| MLS epoch / Space history secret | `mls_history` |
+| 外部托管或 profile 自定义 secret | `external` |
 
-服务端只存密文。恢复口令、recovery key、硬件解锁材料或任何可直接解密 secret storage 的材料不得上传。
+每个 `backup_class` MUST 使用独立 HKDF info 字符串（`contrix-key-backup-{backup_class}-v1`）派生 commitment / wrap key，禁止跨 class 共享密钥材料。
 
-当 secret storage 同步到 Device / Key Server 时，MUST 使用 `cx.schema.key_backup.v1`，并设置 `backup_class="secret_storage"`。服务端 MAY 存储 backup metadata、ciphertext、ciphertext digest、retention metadata 和设备签名；不得读取、重包或替换密文中的 secret。
+Client-local secret storage 的存储格式仍可使用本节的 `cx.secret_storage.v1` envelope，但其字段不进入任何 wire / hash / 签名输入；服务端不接受该 envelope。
 
 ## 10. Key Backup
 

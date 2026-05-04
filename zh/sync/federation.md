@@ -55,15 +55,15 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 节点间的 HTTP 请求 MUST 使用 [HTTP Message Signatures (RFC 9421)](https://datatracker.ietf.org/doc/html/rfc9421) 进行签名。接收方通过发送方 DID Document 中的公钥验证请求的真实性。
 
-签名 MUST 覆盖以下 HTTP 组件：
+签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header 字段（这是与 `federation-wire.md` §2 的同一份描述）：
 - `@method`
 - `@target-uri`
-- `content-digest`（针对有 body 的请求）
 - `@authority`
-- 请求时间窗口（如 `created` / `expires`）
-- 来源 service DID
-- 目标 service DID
-- canonical request hash
+- `content-digest`（针对有 body 的请求；编码遵循 RFC 9530）
+- `source-service-did`（自定义 header `Source-Service-DID`）
+- `destination-service-did`（自定义 header `Destination-Service-DID`）
+- `request-canonical-hash`（自定义 header `Request-Canonical-Hash`）
+- 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` header 替代）
 
 签名验证规则：
 

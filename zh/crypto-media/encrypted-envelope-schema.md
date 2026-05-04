@@ -274,19 +274,30 @@ function encrypt_content(content, aad, group_context):
 
 ### 8.1 MLS KeyPackage
 
-Actor 发布 KeyPackage 用于 MLS：
+Actor 设备发布 KeyPackage 用于 MLS。Wire 形态以 [`device-crypto-verification.md` §7 KeyPackage Record](./device-crypto-verification.md) 为唯一规范来源；本节仅复述以方便阅读，发现差异时以 device-crypto-verification.md §7 为准。
 
 ```json
 {
-  "keypackage_id": "cx:mls:kp:...",
-  "actor_id": "did:web:alice.example.com",
-  "public_key": "base64url",
+  "keypackage_id": "cx:mls:kp:01js0kp0000000000000000000",
+  "principal_id": "did:web:alice.example.com",
+  "device_id": "cx:device:01js0dv0000000000000000000",
+  "public_key": "base64url...",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
-  "extensions": {...},
-  "signature": "base64url",
+  "extensions": {},
+  "device_signature": "base64url...",
+  "single_use": true,
   "expires_at": "2026-05-26T00:00:00Z"
 }
 ```
+
+字段语义：
+
+- `principal_id`：拥有该 KeyPackage 的 principal DID。Server 不得仅根据 KeyPackage 的 `device_signature` 推导 principal；必须通过有效 `cx.device.authorized` state 校验该 device 当前归属 `principal_id`。
+- `device_id`：发布 KeyPackage 的 device 的 typed ID。
+- `device_signature`：由该 device 的当前签名 key 对 canonical KeyPackage bytes（不含 `device_signature` 自身）做的 detached 签名。
+- `single_use=true` 时 KeyPackage 被消费后立即失效，不得用于第二个 Welcome。
+
+旧字段名 `actor_id` 与单字段 `signature` 已废弃，仅作为兼容性输入读取；新 KeyPackage MUST 使用 `principal_id` + `device_id` + `device_signature`。
 
 ### 8.2 Epoch 变更
 

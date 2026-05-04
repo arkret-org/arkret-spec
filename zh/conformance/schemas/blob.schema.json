@@ -23,6 +23,11 @@
     "schema": {
       "const": "cx.schema.blob.v1"
     },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$",
+      "description": "Owning Space for authorization, asset privacy policy enforcement, retention and GC. MAY be omitted only for global / cross-Space service blobs (e.g. avatar previews) explicitly authorized by the Blob Service deployment policy."
+    },
     "sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"

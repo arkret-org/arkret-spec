@@ -78,9 +78,9 @@ Schema id: `cx.schema.space.v1`
 | `policy_ref` | no | `id:policy` | 若省略，使用 create event 默认 policy。 | Space policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | 见 `discovery-directory.md`。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | `invite` 表示只允许邀请加入；canonical state MUST 使用本枚举值。 | 默认加入规则。 |
-| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 加入后可见历史范围。 | 历史可见性。 |
+| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 各取值 canonical 语义见 `authz/event-auth-state-resolution.md` §6；尤其注意 `invited` 是"stripped preview state"，不是"从被邀请时刻起全部消息"。 | 历史可见性。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置。 |
-| `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | sovereign 默认 SHOULD `closed`。 | 联邦策略。 |
+| `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | sovereign 默认 SHOULD `closed`。`kind=enclave` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 联邦策略。 |
 | `retention_policy_ref` | no | `id:policy` | 可引用 retention policy。 | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -275,7 +275,7 @@ Schema id: `cx.schema.message.v1`
 | `type` | yes | `enum(message)` | 固定为 `message`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
-| `branch` | yes | `enum(discussion)` | v1 标准 Message 只位于 discussion branch。 | 所属 Flow 分支。 |
+| `branch` | yes | `string` | 必须匹配 `^[a-z][a-z0-9_]{0,63}$`，并且必须是目标 Flow 当前 active 的 branch name。v1 reducer 默认只识别 `discussion`；profile 可声明额外 branch name 承载 Message timeline，但 v1 wire 互操作 SHOULD 使用 `discussion`。 | 所属 Flow 分支。 |
 | `content` | yes | `object` | 富文本/blocks 见 `content-types.md`。 | 消息正文。 |
 | `fields` | no | `object` | 可放 revision、visibility、client metadata。 | 扩展字段。 |
 | `created_by` | yes | `did` |  | 发送者。 |

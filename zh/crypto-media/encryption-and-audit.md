@@ -132,7 +132,8 @@ Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 
 
 | 字段 | 值 |
 |------|-----|
-| ExtensionType | `cx_app_state_ref`（profile-negotiated；private-use codepoint 只能在双方显式协商后使用） |
+| ExtensionType（IANA name） | `cx_app_state_ref` |
+| ExtensionType（数值 codepoint） | `0xCAFE` ∈ MLS GroupContext private-use range `0xF000`–`0xFFFF` 之外的 Contrix 保留私用空间。Contrix v1 wire 形态固定使用 `0xCAFE`。该 codepoint 由 Contrix specification 直接保留，不需要再向 IANA 注册；如未来与其它 MLS 用户产生冲突，将通过下一 `space_version` 升级路径切换 codepoint。`cx.profile.mls_state_binding.full.v1` MUST 使用 `0xCAFE`；deployment policy MAY 私有覆盖该 codepoint，但任何不同覆盖必须在 deployment profile 中显式声明，且不得在跨 deployment 的 federation Space 中并存。 |
 | ExtensionData | `application_state_ref` 对象的 CBOR 编码 |
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列：
@@ -336,6 +337,73 @@ Audit Agent profile MUST 满足：
    - **独立节点验证**：高保证 profile SHOULD 从至少一个与 Audit Agent 无共同控制面的验证节点获得回执；单节点部署或 software-only profile 只能使用单源回执时，MUST 在审计记录中标记 `receipt_source_count=1` 和 `receipt_independence="single_source"`。
    - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。Software-only profile MUST 按同一顺序执行并记录证明，但对恶意持钥客户端不提供密码学阻断。
+
+#### 3.3.1 RYW Receipt Schema
+
+`cx.audit.ryw_receipt` 是 receipt 对象，用于满足 §3.3 步骤 3 的"因果确权回执"要求。它由 Events API、witness 或独立验证节点签发，证明特定 `cx.audit.accessed` 已经进入接收方 accepted history（或至少其 actor frontier 已经覆盖该 event）。
+
+Schema id：`cx.schema.audit_ryw_receipt.v1`
+
+```json
+{
+  "receipt_id": "cx:receipt:01js0ry0000000000000000000",
+  "type": "audit_ryw_receipt",
+  "schema": "cx.schema.audit_ryw_receipt.v1",
+  "issuer": "did:web:witness.example.com",
+  "issuer_role": "witness",
+  "audit_event_id": "cx:event:01js0aa0000000000000000000",
+  "audit_event_digest": "sha256:...",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "audit_actor_id": "did:web:audit-agent.example.com",
+  "frontier": {
+    "space_frontier": ["cx:event:..."],
+    "actor_frontier": {
+      "did:web:audit-agent.example.com": {
+        "actor_seq": 17,
+        "event_id": "cx:event:01js0aa0000000000000000000"
+      }
+    }
+  },
+  "observed_at": "2026-04-26T00:00:00.123Z",
+  "receipt_independence": "independent",
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:witness.example.com#receipt-key-1",
+      "payload_hash": "sha256:...",
+      "created_at": "2026-04-26T00:00:00.123Z",
+      "jws": "..."
+    }
+  ]
+}
+```
+
+字段语义：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `receipt_id` | yes | `cx:receipt:<ulid>`。 |
+| `type` | yes | 固定 `audit_ryw_receipt`。 |
+| `schema` | yes | 固定 `cx.schema.audit_ryw_receipt.v1`。 |
+| `issuer` | yes | 签发方 service / witness DID。MUST 与 proof `verification_method` 同 DID。 |
+| `issuer_role` | yes | `events_api` / `witness` / `peer_node` 之一，标记 receipt 来源类型。 |
+| `audit_event_id` | yes | 对应的 `cx.audit.accessed` event 的 typed ID。 |
+| `audit_event_digest` | yes | `cx.audit.accessed` envelope 的 canonical digest（与该 envelope `proofs[].payload_hash` 一致）。 |
+| `space_id` | yes | `cx.audit.accessed` 所在 Space。 |
+| `audit_actor_id` | yes | 发起 audit 的 Audit Agent DID。 |
+| `frontier.space_frontier` | yes | 签发时 issuer 已 accepted 的 Space frontier。MUST 因果上 ≥ `audit_event_id`。 |
+| `frontier.actor_frontier` | conditional | 至少包含 `audit_actor_id` 的 frontier。其它 actor frontier 由 issuer 选择性透出。 |
+| `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
+| `receipt_independence` | yes | `independent` / `single_source`，与 §3.3 step 3 文字一致。 |
+| `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
+
+规则：
+
+- Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；高保证 profile（包括 `cx.profile.auditable_e2ee.tee_required.v1`）SHOULD 等待来自至少 2 个独立 issuer 的 receipts，且每个 `receipt_independence="independent"`。
+- Issuer 不得伪造未观测到的 receipt；任何客户端 / 审计客户端 MUST 拒绝 `audit_event_digest` 与 envelope 实际 digest 不符的 receipt，并按 `audit_receipt_invalidated`（参见 `error-code-registry.json`）处理。
+- RYW receipt 默认是 actor-private / ephemeral 在 `cx.profile.auditable_e2ee.software_only.v1` 下；在 `cx.profile.auditable_e2ee.tee_required.v1` 下 receipt 可以同时作为 durable Event 进入 audit log，便于事后调查。
+- Receipt 可被 redaction 覆盖，但 redaction 只清除 cleartext metadata；`audit_event_id` 与 `audit_event_digest` 仍保留，以便审计链可还原。
 
 ### 3.4 审查透明公示
 因为 `cx.audit.accessed` 是一条公开写入的协作事件，所有参与者的客户端都能通过 sync 实时同步到该事件。

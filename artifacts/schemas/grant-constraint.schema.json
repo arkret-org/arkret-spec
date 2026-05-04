@@ -8,6 +8,10 @@
     "effect"
   ],
   "properties": {
+    "constraint_id": {
+      "type": "string",
+      "description": "Optional stable identifier of this constraint within the grant; used for diagnostics and overrides."
+    },
     "constraint_type": {
       "type": "string",
       "enum": [
@@ -24,7 +28,8 @@
         "container_move",
         "visibility_control",
         "resource_limit",
-        "edit_window"
+        "edit_window",
+        "device_session"
       ]
     },
     "effect": {
@@ -49,6 +54,89 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "recurrence": {
+      "type": "object",
+      "description": "Recurrence rule for temporal constraints. Used by constraint-schema.md §3.1.",
+      "properties": {
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "daily",
+            "weekly",
+            "monthly",
+            "custom"
+          ]
+        },
+        "days": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "mon",
+              "tue",
+              "wed",
+              "thu",
+              "fri",
+              "sat",
+              "sun"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "window_start": {
+          "type": "string",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
+        },
+        "window_end": {
+          "type": "string",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "max_duration": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "description": "ISO 8601 duration."
+    },
+    "max_session_duration": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+    },
+    "inactivity_timeout": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+    },
+    "expires_after": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "description": "ISO 8601 duration; used by approval_workflow constraint instead of expires_after_ms."
+    },
+    "condition": {
+      "type": "object",
+      "description": "Conditional predicate for field_access and similar constraints. The `when` value is a registered DSL token from constraint-schema.md §4.1.",
+      "properties": {
+        "when": {
+          "type": "string",
+          "enum": [
+            "object_is_owned_by_actor",
+            "actor_is_assignee",
+            "actor_is_responsible",
+            "actor_is_guardian",
+            "actor_is_controller",
+            "object_in_actor_container",
+            "object_is_unencrypted",
+            "object_is_encrypted",
+            "always",
+            "never"
+          ]
+        }
+      },
+      "additionalProperties": true
     },
     "fields_write_allow": {
       "type": "array",
@@ -465,8 +553,7 @@
       "items": {
         "type": "object",
         "required": [
-          "claim_type",
-          "issuer"
+          "claim_type"
         ],
         "properties": {
           "claim_type": {
@@ -475,6 +562,23 @@
           "issuer": {
             "type": "string",
             "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+          },
+          "trusted_issuers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+            },
+            "uniqueItems": true
+          },
+          "subject_matches_actor": {
+            "type": "boolean",
+            "description": "If true, the credential subject DID MUST match the actor DID."
+          },
+          "value_constraints": {
+            "type": "object",
+            "description": "Per-field equality / membership constraints on credential claims.",
+            "additionalProperties": true
           },
           "organization": {
             "type": "string",

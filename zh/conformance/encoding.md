@@ -205,6 +205,45 @@ rank_between(left, right):
 - `cx.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST 拒绝该 rebalance。
 - Rebalance assignments MUST 覆盖 container 内全部 active edges，且不得新增、删除或跨 container 移动 edge。CAS 的 `expected_state_hash` 不匹配时，MUST 拒绝整个 operation，不得部分应用。
 
+## 9.5. Composite State Key
+
+某些 standard state event（例如 `cx.flow.branch.member`、`cx.device.authorized`、`cx.session.grant`）的 `state_key` 由多个 sub-component 组合得到。这些 composite state_key 的 canonical 形态由本节定义；reducer、`auth_refs` 比较、state map 索引、conflict detection 与 fixture 必须使用同一形态。
+
+### 9.5.1 通用规则
+
+- Composite state_key 的 wire 形态 MUST 是 base64url（无 padding）编码的 SHA-256 digest：
+
+  ```text
+  state_key = base64url_nopad(sha256(canonical_json(components_array)))
+  ```
+
+  其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array，所有 string element 已经 normalize 过（NFC、小写 typed ID、规范 DID）。
+- 实现不得直接使用 `a|b|c` 这种管道分隔字符串作为 wire state_key。早期文档中的管道形态仅作为示例可读性提示；canonical wire bytes、签名输入、state map 索引必须使用 hash 形态。
+- `components_array` 在 `payload` 中 SHOULD 同时透出 `state_key_components`，便于 indexer / 审计系统反向解释 state_key；它只是冗余字段，不参与 hash 重算。
+- 同一 standard state event 的 `components_array` schema 由本规范固定，profile 不得擅自增删字段或重新排序。
+
+### 9.5.2 标准 composite state_key
+
+| Event kind | components_array 顺序 |
+| --- | --- |
+| `cx.flow.branch.member` | `["cx.flow.branch.member", flow_id, branch, actor_id]` |
+| `cx.flow.branch.history_visibility` | `["cx.flow.branch.history_visibility", flow_id, branch]` |
+| `cx.flow.branch.policy_components` | `["cx.flow.branch.policy_components", flow_id, branch]` |
+| `cx.device.authorized` | `["cx.device.authorized", principal_id, device_id]` |
+| `cx.device.revoked` | `["cx.device.revoked", principal_id, device_id]` |
+| `cx.device.list_update` | `["cx.device.list_update", principal_id]` |
+| `cx.session.grant` | `["cx.session.grant", grant_id]`，若 legacy payload 缺 `grant_id` 则使用 `["cx.session.grant", subject, audience, sha256_hex(session_public_key_bytes)]` |
+| `cx.space.organization` | `["cx.space.organization", organization_did]` |
+
+`flow_id`、`actor_id`、`principal_id`、`device_id`、`subject`、`audience`、`organization_did`、`grant_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。`branch` MUST 与 Flow `branches[].name` 一致（`^[a-z][a-z0-9_]{0,63}$`）。
+
+非 composite state event（例如 `cx.space.create`、`cx.space.discovery`、`cx.member.state`）的 `state_key` 仍按其各自定义编码：`cx.space.create` 用空字符串、`cx.member.state` 用单个 actor DID 字符串。这些 state_key 不需要 hash 化。
+
+### 9.5.3 Backward compatibility
+
+- 早期 v1-pre 的 fixture / 例子若使用了管道分隔的 composite state_key，MUST 在 `v1-core-rc` 切换到本节定义的 hash 形态。同一文档中保留 pipe 形态展示的，必须显式标注 "informational; canonical wire form is base64url(sha256(canonical_json(...)))"。
+- 接收方收到不符合本节定义的 composite state_key 时 MUST 返回 `schema_violation`。
+
 ## 10. Encrypted Envelope Digest
 
 加密 payload 的 digest MUST 覆盖密文和明文路由元数据：

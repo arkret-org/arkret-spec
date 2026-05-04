@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/audit-ryw-receipt.schema.json",
+  "title": "Contrix Auditable E2EE RYW Receipt",
+  "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a cx.audit.accessed envelope has reached accepted state. Required by cx.profile.auditable_e2ee.* before the Audit Agent is allowed to release plaintext (see zh/crypto-media/encryption-and-audit.md §3.3.1).",
+  "type": "object",
+  "required": [
+    "receipt_id",
+    "type",
+    "schema",
+    "issuer",
+    "issuer_role",
+    "audit_event_id",
+    "audit_event_digest",
+    "space_id",
+    "audit_actor_id",
+    "frontier",
+    "observed_at",
+    "receipt_independence",
+    "proofs"
+  ],
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^cx:receipt:[0-9a-hjkmnp-z]{26}$"
+    },
+    "type": {
+      "const": "audit_ryw_receipt"
+    },
+    "schema": {
+      "const": "cx.schema.audit_ryw_receipt.v1"
+    },
+    "issuer": {
+      "$ref": "#/$defs/did"
+    },
+    "issuer_role": {
+      "type": "string",
+      "enum": [
+        "events_api",
+        "witness",
+        "peer_node"
+      ]
+    },
+    "audit_event_id": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+    },
+    "audit_event_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "audit_actor_id": {
+      "$ref": "#/$defs/did"
+    },
+    "frontier": {
+      "type": "object",
+      "required": [
+        "space_frontier"
+      ],
+      "properties": {
+        "space_frontier": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+          },
+          "minItems": 1
+        },
+        "actor_frontier": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "actor_seq",
+              "event_id"
+            ],
+            "properties": {
+              "actor_seq": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "event_id": {
+                "type": "string",
+                "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "observed_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "receipt_independence": {
+      "type": "string",
+      "enum": [
+        "independent",
+        "single_source"
+      ]
+    },
+    "proofs": {
+      "type": "array",
+      "items": {
+        "$ref": "./event-schema.json#/$defs/proof"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
+  "additionalProperties": true
+}

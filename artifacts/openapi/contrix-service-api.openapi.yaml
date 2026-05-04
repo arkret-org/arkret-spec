@@ -3,6 +3,24 @@ info:
   title: Contrix Service API
   version: "1.0.0"
   summary: Canonical Contrix service surface and admin/account bindings
+  description: |-
+    Authoritative source for operations and error codes is the contract catalog at
+    `artifacts/registry/contract-catalog.json` and the error registry at
+    `artifacts/registry/error-code-registry.json`.
+
+    Note: this v1-core-rc OpenAPI is a structural skeleton; many request bodies and
+    response bodies are placeholders pending the OpenAPI generator described in
+    `_report.md` §2 B-07. Implementations MUST consult the canonical registries
+    and the Markdown specs (notably `zh/sync/service-http-binding.md`) for full
+    request/response shapes until the generated OpenAPI is published.
+
+    Default authentication: bearer token plus HTTP Message Signature for
+    service-to-service calls (see `zh/sync/service-http-binding.md` §2.2). Public
+    metadata endpoints explicitly noted as `public_metadata` may be unauthenticated;
+    every other path requires at least one of the declared securitySchemes.
+security:
+  - bearerAuth: []
+  - httpMessageSignature: []
 servers:
   - url: https://{host}/api/v1
     variables:
@@ -54,6 +72,54 @@ components:
           properties:
             code:
               type: string
+              description: |-
+                Standard error code from artifacts/registry/error-code-registry.json.
+                The enum below is generated from that registry; clients MUST treat
+                unknown values as forward-compatible failures and SHOULD log them.
+              enum:
+                - bad_json
+                - bad_query
+                - schema_violation
+                - missing_param
+                - invalid_param
+                - unauthenticated
+                - auth_expired
+                - soft_logged_out
+                - invalid_signature
+                - capability_denied
+                - space_frozen
+                - claim_required
+                - not_found
+                - unrecognized_endpoint
+                - method_not_allowed
+                - conflict
+                - cas_conflict
+                - causal_conflict
+                - dependency_missing
+                - discussion_branch_disabled
+                - epoch_mismatch
+                - duplicate_conflict
+                - rank_exhausted
+                - hlc_logical_overflow
+                - payload_too_large
+                - digest_mismatch
+                - aad_ambiguous_kind
+                - aad_digest_mismatch
+                - payload_digest_mismatch
+                - key_unavailable
+                - state_mismatch
+                - audit_receipt_invalidated
+                - unknown_did
+                - quota_exceeded
+                - rate_limited
+                - timeout
+                - stale_frontier
+                - sync_token_expired
+                - unsupported_feature
+                - unsupported_event_kind
+                - projection_incomplete
+                - internal_error
+                - temporarily_unavailable
             message:
               type: string
             retry_after_ms:

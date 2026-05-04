@@ -6,23 +6,25 @@
 
 ## 2. Service Authentication
 
-每个 federation service MUST 拥有自己的 service DID。请求 MUST 使用 HTTP Message Signatures，并绑定：
+每个 federation service MUST 拥有自己的 service DID。请求 MUST 使用 RFC 9421 HTTP Message Signatures。签名 transcript MUST 覆盖以下 derived components 与 header / body 字段：
 
-- method
-- target URI
-- authority
-- date
-- content digest
-- source service DID
-- destination service DID
-- canonical request hash
+- `@method`
+- `@target-uri`
+- `@authority`
+- `content-digest`
+- `source-service-did`（自定义 header `Source-Service-DID`）
+- `destination-service-did`（自定义 header `Destination-Service-DID`）
+- `request-canonical-hash`（自定义 header `Request-Canonical-Hash`）
+
+Signature parameters MUST 包含 `created` 与 `expires`；不得使用 `date` header 替代它们。`alg` MUST 来自 deployment policy 允许的算法集（默认 `ed25519`）。
 
 签名规则：
 
-- `origin` 与 `destination` MUST 出现在签名 transcript 中，且 MUST 与 body 字段一致。
+- `origin` 与 `destination` MUST 出现在签名 transcript 中（通过上面两个自定义 header），且 MUST 与 body 字段 `origin` / `destination` 一致。
 - `destination` MUST 是被请求服务的 service DID，不得只使用 host、SNI、IP 或 URL 作为目的地身份。
-- 有 body 的请求 MUST 携带 `Content-Digest`，接收方 MUST 在验签前或验签过程中校验 digest 与 body 一致。
-- 签名 SHOULD 带 `created` 与 `expires` 参数；过期、未来时间漂移过大或重复 nonce / request id MUST 拒绝或进入 quarantine。
+- 有 body 的请求 MUST 携带 RFC 9530 `Content-Digest`，接收方 MUST 在验签前或验签过程中校验 digest 与 body 一致。
+- `created` MUST 是 epoch seconds；`expires` 与 `created` 之间默认不得超过 5 分钟，sovereign / 高安全 deployment SHOULD 缩短至 60–120 秒。
+- 同一 `keyid` + `created` + path + `request-canonical-hash` 在 `expires` 前重复出现 MUST 拒绝（重放保护）。
 - 联邦 endpoint MUST NOT 接受 query string 中的认证材料。
 - 签名失败、目的地不匹配和请求体 hash 不一致都 MUST 使用标准 error envelope；不得返回非 JSON 框架错误。
 

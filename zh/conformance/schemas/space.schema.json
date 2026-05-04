@@ -235,6 +235,78 @@
       "$ref": "#/$defs/timestamp"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "board",
+              "list"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "boundary_profile": {
+            "const": "container"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "collaboration",
+              "personal",
+              "project",
+              "organization",
+              "enclave"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "boundary_profile": {
+            "const": "security_boundary"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "enclave"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "federation_policy": {
+            "enum": [
+              "closed",
+              "restricted",
+              "quarantine"
+            ]
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "did": {
       "type": "string",

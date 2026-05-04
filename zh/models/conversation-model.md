@@ -301,19 +301,17 @@ message 创建是 append-only。
 
 ## 12. 历史可见性
 
-当新成员加入一个 Flow 的 `discussion` branch 时，他能看到多少历史消息是核心隐私边界。
+`history_visibility` enum 与每个值的 **canonical 语义** 由 [`authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md) 唯一定义。任何与该文件描述不一致的解读以那里为准。本节仅复述要点供阅读：
 
-| 策略值 | 含义 |
-| --- | --- |
-| `world_readable` | 任何人可见全部历史，包括非成员。 |
-| `shared` | 当前成员可见加入前的全部历史。 |
-| `joined` | 仅可见该成员正式加入之后的消息。 |
-| `invited` | 从被邀请时刻起可见。 |
-| `restricted` | 由 Flow/Space policy 与 capability 决定。 |
+- `world_readable`：任何 actor 可读取明文或已授权公开内容。
+- `shared`：当前和历史成员可读取加入前历史。
+- `invited`：被邀请 actor 可读取 stripped preview state（**不是**"从被邀请时刻起的全部消息"——前者是 preview，后者是普通成员可读范围）。
+- `joined`：仅加入后历史默认可见。
+- `restricted`：必须满足 Space policy 中 `allowed_selectors`、claim、capability 或等价 history access proof；无法验证时按 `joined` 或更严格规则 fail closed。
 
 私密 discussion branch 或通过 access override 启用 E2EE 的 discussion branch SHOULD 默认为 `joined`。
 
-Branch-scoped E2EE discussion 中，`history_visibility=joined` 时新成员 MUST NOT 收到加入前的 MLS epoch key。若允许加入前历史共享，必须通过 history sharing policy 显式声明并产生审计事件。普通客户端不得为了潜在历史共享而无限期保留先前 epoch 明文 secret；需要长期保留时必须使用显式 Archive / Audit Node、受保护 key backup 或 legal-hold 边界。
+Branch-scoped E2EE discussion 中，`history_visibility=joined` 时新成员 MUST NOT 收到加入前的 MLS epoch key。若允许加入前历史共享，必须通过 `cx.space.history_sharing_policy` 显式声明并产生审计事件（详见 event-auth-state-resolution.md §6 history sharing policy）。普通客户端不得为了潜在历史共享而无限期保留先前 epoch 明文 secret；需要长期保留时必须使用显式 Archive / Audit Node、受保护 key backup 或 legal-hold 边界。
 
 ## 13. 设计决定
 

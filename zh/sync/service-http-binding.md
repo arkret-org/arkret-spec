@@ -439,39 +439,15 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 
 ## 9. 标准错误码
 
-| 错误码 | HTTP Status | 含义 |
-| --- | --- | --- |
-| `bad_json` | 400 | JSON 无法解析。 |
-| `bad_query` | 400 | Query 参数无法解析或不符合 schema。 |
-| `missing_param` | 400 | 缺少必填参数。 |
-| `invalid_param` | 400 | 参数值非法。 |
-| `unauthenticated` | 401 | 缺少或无法验证认证材料。 |
-| `invalid_signature` | 401 | 签名校验失败。 |
-| `auth_expired` | 401 | 认证令牌或 grant 已过期。 |
-| `soft_logged_out` | 401 | 令牌被软登出；客户端应重新认证但保留本地设备密钥。 |
-| `capability_denied` | 403 | 当前 actor 无所需权限。 |
-| `space_frozen` | 403 | Space 冻结或归档。 |
-| `not_found` | 404 | 目标不存在或对请求方不可见。 |
-| `unrecognized_endpoint` | 404 | 协议命名空间下的路径未声明或未实现。 |
-| `method_not_allowed` | 405 | 已知路径不支持该 HTTP method。 |
-| `cas_conflict` | 409 | `expected_state_hash` 不匹配。 |
-| `epoch_mismatch` | 409 | MLS epoch 版本过期。 |
-| `duplicate_conflict` | 409 | 相同幂等键对应不同 canonical request body。 |
-| `rank_exhausted` | 409 | fractional rank 区间耗尽，需要 rebalance 或选择其他位置。 |
-| `stale_frontier` | 409 | 服务本地同步或授权 frontier 尚未覆盖请求要求。 |
-| `quota_exceeded` | 403 | 配额超限。 |
-| `payload_too_large` | 413 | 请求体或 blob 超限。 |
-| `hlc_logical_overflow` | 503 | 生产者当前毫秒内无法继续生成单调 HLC。 |
-| `temporarily_unavailable` | 503 | 服务暂不可用。 |
-| `rate_limited` | 429 | 请求频率超限。 |
-| `timeout` | 504 | 等待 sync frontier、长轮询或上游请求超时。 |
-| `sync_token_expired` | 410 | 客户端同步 token 已过期，需要回退到 initial sync。 |
-| `unknown_did` | 422 | DID 无法解析。 |
-| `schema_violation` | 422 | payload 不符合 schema。 |
-| `unsupported_feature` | 501 | 服务不支持请求的 feature。 |
-| `internal_error` | 500 | 节点内部错误。 |
+标准错误码、HTTP 状态码与逐项 reason_code 的 **canonical 单一来源** 是 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。本节不再在 Markdown 中维护并行表格；任何新增 / 修改 / 删除错误码 MUST 先更新 registry。
 
-客户端收到 `429` MUST 优先遵守 `Retry-After` header；若缺失再使用 body 中的 `retry_after_ms`。`503` 在带有 `Retry-After` 时也必须按该时间退避。收到 `409` SHOULD 拉取最新状态后退避重试。
+`api-conventions.md` §5.1 是该 registry 的解释性 narrative 视图（解释每个 code 的使用场景）；它本身也以 registry 为准，发现差异时以 registry 为准。
+
+实现使用规则：
+
+- 客户端收到 `429` MUST 优先遵守 `Retry-After` header；若缺失再使用 body 中的 `retry_after_ms`。`503` 在带有 `Retry-After` 时也必须按该时间退避。收到 `409` SHOULD 拉取最新状态后退避重试。
+- `unsupported_feature` 用于 `Event.required_features[]` / `critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `cx.*` Event kind；二者不得互相替代。
+- 通用 `conflict` 仅作为抽象 base code 出现在 narrative；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `duplicate_conflict` / `epoch_mismatch` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `discussion_branch_disabled` / `key_unavailable`）。
 
 ## 10. 安全与抗滥用
 

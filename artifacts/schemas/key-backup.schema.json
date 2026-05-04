@@ -32,7 +32,8 @@
       "enum": [
         "did_recovery",
         "secret_storage",
-        "mls_history"
+        "mls_history",
+        "external"
       ]
     },
     "backup_version": {
@@ -214,17 +215,41 @@
     },
     "auth_data": {
       "type": "object",
+      "required": [
+        "device_id",
+        "verification_method",
+        "signature_alg",
+        "signature",
+        "signed_fields"
+      ],
       "properties": {
         "device_id": {
           "type": "string",
           "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$"
         },
         "verification_method": {
-          "type": "string"
+          "type": "string",
+          "description": "DID URL identifying the device signing key."
+        },
+        "signature_alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256"
+          ]
         },
         "signature": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "base64url-encoded signature over canonical_json(envelope without auth_data.signature)."
+        },
+        "signed_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, encryption, contents, ciphertext_digest."
         }
       },
       "additionalProperties": true

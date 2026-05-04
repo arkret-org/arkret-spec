@@ -188,7 +188,7 @@ Content-Type: application/json
     },
     {
       "urls": ["turns:turn.example.com:5349?transport=tcp"],
-      "username": "1699999999:did_plc_alice",
+      "username": "1699999999:cx_pseudonym_call_4f7c3b2a9e1d5a6f",
       "credential": "base64url...",
       "credential_type": "password"
     }
@@ -209,6 +209,7 @@ Content-Type: application/json
 要求：
 
 - TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential。
+- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `cx_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；TURN 运营方因此只能看到一次性会话标记，无法把同一用户的多次通话或多 Space 活动关联起来。
 - ICE config response MUST 由 media service 签名，或通过已认证 TLS + service DID 绑定返回。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Space MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
@@ -460,22 +461,22 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 
 ## 14. 推送集成
 
-`cx.call.signal` 中 `kind=invite` SHOULD 触发 VoIP push。
+`cx.call.signal` 中 `kind=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/devices-and-auth.md` §5 Privacy-Preserving Push](./devices-and-auth.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Space id、call id 或 sender DID。
 
-脱敏 push payload:
+脱敏 push payload（推送上游可见部分）:
 
 ```json
 {
-  "type": "call_invite",
-  "space_id": "cx:space:...",
-  "call_id": "cx:call:01J...",
-  "sender": "did:web:alice.example.com",
-  "voip": true,
+  "push_target_id": "cx:pseudonym:push:01js0pu0000000000000000000",
+  "wakeup_kind": "incoming_call",
+  "urgency": "urgent",
   "expires_at": "2026-04-26T00:01:00Z"
 }
 ```
 
-Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential 或明文会议标题，除非 Space policy 明确允许。
+设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `cx.call.signal{kind=invite}` envelope，从签名 envelope 中获得真实 `space_id`、`call_id`、`sender` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
+
+Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Space id、call id 或明文会议标题；只允许 §14 上面 4 个脱敏字段，其它一切信息必须通过本地解密获得。
 
 ## 15. 安全与隐私
 
