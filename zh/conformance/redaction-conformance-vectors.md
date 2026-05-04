@@ -210,3 +210,24 @@ cx.vector.redaction.hard_erasure_receipt.v1
 - stub 不得额外保留已擦除明文字段的 standalone content hash、payload-only digest 或未加盐搜索 fingerprint；若审计必须保留内容承诺，必须使用每事件 salt 或 HMAC/pepper commitment，并把 secret 留在 legal-hold 边界或按 erasure policy 销毁。
 - backfill 返回 redacted / erased stub，不伪造替代事件，也不静默造成历史缺口。
 - legal hold 存在时阻止 hard erasure，但默认展示仍应用 redaction。
+
+## 5. Vector: snapshot pruning retains verification stub
+
+向量名称：
+
+```text
+cx.vector.redaction.snapshot_pruning_stub.v1
+```
+
+输入：
+
+1. target event 被 accepted。
+2. redaction event 被 accepted。
+3. 服务按 retention policy 裁剪 target payload，并生成覆盖该 frontier 的 snapshot。
+
+期望：
+
+- snapshot chunk 包含 redaction / erasure verification stub，或通过 `verification_hints` 提交该 stub 的 digest。
+- backfill 从 snapshot frontier 恢复时，默认视图仍显示 redacted / erased 占位，不显示原文，也不把 timeline 当作缺失事件。
+- audit view 能验证 target event id、原始 envelope digest / proof `payload_hash`、redaction event id、执行服务 DID、执行时间和签名 receipt。
+- 若 active legal hold 存在，pruning MUST fail closed；snapshot 仍可隐藏普通视图明文，但不得物理删除 legal-hold 边界内要求保留的 payload。

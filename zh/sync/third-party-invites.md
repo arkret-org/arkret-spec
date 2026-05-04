@@ -98,7 +98,7 @@ Space 中的其他节点（Sync Service / 客户端本地 projection）在收到
 
 ## 6. 过期、撤销与隐私要求
 
-- `cx.invite.third_party` MUST 携带 `expires_at`；默认过期时间 SHOULD 不超过 7 天，高安全 Space SHOULD 不超过 24 小时。
+- 所有可被认领或接受的 invite MUST 携带 `expires_at`；`cx.invite.third_party` 的默认过期时间 SHOULD 不超过 7 天，高安全 Space SHOULD 不超过 24 小时。
 - 邀请者、Space 管理员或 policy server MAY 发布 `cx.invite.revoke` 撤销 pending invite。撤销后任何 claim MUST reject。
 - 验证服务 MUST 对 token claim 做限速、IP / device 风险控制和重放检测；失败响应不得泄露 token 是否存在、Space 是否存在或 3PID 是否被邀请。
 - Event 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。

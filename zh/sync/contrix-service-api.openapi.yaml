@@ -131,6 +131,7 @@ components:
       type: object
       required:
         - kind
+        - expires_at
         - content
       properties:
         kind:

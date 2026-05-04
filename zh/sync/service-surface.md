@@ -137,7 +137,11 @@ GET /api/v1/server/describe
   "max_body_bytes": 1048576,
   "limits": {
     "max_body_bytes": 1048576,
-    "max_events_per_batch": 100
+    "max_events_per_batch": 100,
+    "device_message_max_ttl_seconds": 86400,
+    "read_marker_debounce_ms": 1000,
+    "dangling_redaction_min_retention_days": 30,
+    "snapshot_retention_heads": 2
   },
   "rate_limit_policy": {
     "policy_version": "2026-05-02",

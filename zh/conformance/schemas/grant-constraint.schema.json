@@ -62,6 +62,33 @@
         "type": "string"
       }
     },
+    "fields_read_allow": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "fields_read_deny": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sensitive_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "sensitive_handling": {
+      "type": "string",
+      "enum": [
+        "redact",
+        "hash",
+        "omit"
+      ]
+    },
     "object_type_allow": {
       "type": "array",
       "items": {
@@ -251,10 +278,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": [
-          "synthesis",
-          "discussion"
-        ]
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
       },
       "uniqueItems": true
     },
@@ -262,10 +286,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": [
-          "synthesis",
-          "discussion"
-        ]
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
       },
       "uniqueItems": true
     },

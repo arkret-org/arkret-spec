@@ -66,6 +66,7 @@
     },
     "branches": {
       "type": "array",
+      "description": "Active Flow branches. At most one branch may explicitly set is_primary=true; when none does, the reducer derives the primary branch by the deterministic rules in object-model-standard.md.",
       "minItems": 1,
       "items": {
         "$ref": "#/$defs/flow_branch"

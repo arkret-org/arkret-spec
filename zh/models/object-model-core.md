@@ -587,6 +587,8 @@ Invite 是加入引导对象，不等于 capability grant。
 
 接受 invite 后，相关 capability grant 才进入有效集合。
 
+Invite MUST 携带 `expires_at`。默认有效期 SHOULD 不超过 7 天，高安全 Space SHOULD 不超过 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
+
 ## 17. Read Marker
 
 `read_marker` 是 actor-private 状态。它 SHOULD 存在于私有 account data 或 ephemeral sync channel 中，而不是作为公共 durable Event 高频写入。

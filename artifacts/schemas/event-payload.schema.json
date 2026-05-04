@@ -1370,6 +1370,9 @@
         },
         "reason": {
           "type": "string"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": true

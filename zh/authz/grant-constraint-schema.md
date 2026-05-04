@@ -51,8 +51,7 @@ Scope MUST be allow-list based。未列出的动作默认拒绝。标准对象 S
   {
     "constraint_type": "field_access",
     "effect": "allow",
-    "scope": "write",
-    "fields": ["title", "fields.status"]
+    "fields_write_allow": ["title", "fields.status"]
   },
   {
     "constraint_type": "type_restriction",

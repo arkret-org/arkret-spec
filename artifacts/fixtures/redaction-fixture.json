@@ -24,6 +24,11 @@
       "name": "audit_visibility",
       "input": "redacted_content",
       "expected": "audit_view_retains_tombstone_only"
+    },
+    {
+      "name": "snapshot_pruning_stub",
+      "input": "redacted_payload_pruned_after_snapshot",
+      "expected": "snapshot_and_backfill_retain_verification_stub"
     }
   ]
 }

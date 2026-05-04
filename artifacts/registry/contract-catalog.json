@@ -907,7 +907,7 @@
       },
       {
         "event_kind": "cx.moderation.frank",
-        "category": "audit",
+        "category": "moderation",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
@@ -1294,7 +1294,7 @@
         "category": "authz",
         "status": "active",
         "wire_form": "cx:capability:<ulid>",
-        "description": "Capability object/reference ID"
+        "description": "Abstract capability definition or legacy capability reference ID; signed grant objects use cx:grant:<ulid>."
       },
       {
         "kind": "flow",
@@ -1364,7 +1364,7 @@
         "category": "authz",
         "status": "active",
         "wire_form": "cx:grant:<ulid>",
-        "description": "Capability grant ID"
+        "description": "Signed capability grant object ID used by cx.schema.capability.v1 and grant/revoke references."
       },
       {
         "kind": "invite",

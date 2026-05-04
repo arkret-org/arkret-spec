@@ -95,6 +95,8 @@ Notification 是派生 projection。
 
 Notification state SHOULD be derived from read marker + notification rule。
 
+同一 actor / scope 的 read marker 更新 MAY 在传输层批处理；接收端只需要观察最终单调位置。服务端 SHOULD 合并短窗口内的 marker、receipt 和 notification projection 更新，并在 sync response 中携带覆盖这些输入的 frontier 或 sync token。Push / notification 服务不得为每个 read marker 变化生成独立通知；它只能重新计算 unread count、badge 和 push suppression。
+
 ## 6. Cross-device Sync Semantics
 
 `cx.read.marker` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Space timeline，也不推进 Space reducer frontier。它仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`space_id`、scope、position、HLC 和 device id。

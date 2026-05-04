@@ -43,6 +43,11 @@ Authorization condition: Claim / Attestation
 
 ## 3. Grant 对象
 
+ID 语义：
+
+- `cx:grant:<ulid>` 是签名 Capability Grant object 的规范 ID，`cx.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
+- `cx:capability:<ulid>` 只表示抽象 capability definition 或 legacy capability reference；不得作为签名 grant object ID 使用。
+
 示例：
 
 ```json
@@ -83,8 +88,7 @@ Authorization condition: Claim / Attestation
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "scope": "write",
-      "fields": ["title", "description", "brief", "summary", "body", "fields.status"]
+      "fields_write_allow": ["title", "description", "brief", "summary", "body", "fields.status"]
     }
   ]
 }
@@ -264,8 +268,8 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 |----------|------------------------|----------|
 | `expires_at` | `temporal` | `expires_at` |
 | `not_before` | `temporal` | `not_before` |
-| `fields_write_allow` | `field_access` | `scope: "write"`, `effect: "allow"`, `fields` |
-| `fields_write_deny` | `field_access` | `scope: "write"`, `effect: "deny"`, `fields` |
+| `fields_write_allow` | `field_access` | `fields_write_allow` |
+| `fields_write_deny` | `field_access` | `fields_write_deny` |
 | `space_kind_allow` | `type_restriction` | `space_kind_allow` |
 | `morph_type_allow` | `type_restriction` | `morph_type_allow` |
 | `facet_allow` | `type_restriction` | `facet_allow` |

@@ -41,18 +41,21 @@
     },
     "created_at": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "pattern": "Z$"
     },
     "updated_at": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "pattern": "Z$"
     },
     "expires_at": {
       "type": [
         "string",
         "null"
       ],
-      "format": "date-time"
+      "format": "date-time",
+      "pattern": "Z$"
     },
     "encryption": {
       "type": "object",
@@ -234,7 +237,8 @@
             "string",
             "null"
           ],
-          "format": "date-time"
+          "format": "date-time",
+          "pattern": "Z$"
         },
         "legal_hold": {
           "type": "boolean"

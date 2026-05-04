@@ -927,6 +927,47 @@
       "if": {
         "properties": {
           "kind": {
+            "enum": [
+              "cx.invite.create",
+              "cx.invite.third_party"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "anyOf": [
+              {
+                "required": [
+                  "expires_at"
+                ]
+              },
+              {
+                "required": [
+                  "invite"
+                ],
+                "properties": {
+                  "invite": {
+                    "type": "object",
+                    "required": [
+                      "expires_at"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "cx.device.authorized"
           }
         },

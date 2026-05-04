@@ -881,7 +881,7 @@
     },
     {
       "event_kind": "cx.moderation.frank",
-      "category": "audit",
+      "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,

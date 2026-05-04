@@ -11,6 +11,7 @@
     "recipient_principal_id",
     "recipient_device_id",
     "sent_at",
+    "expires_at",
     "content"
   ],
   "properties": {

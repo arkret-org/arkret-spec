@@ -80,8 +80,7 @@
 {
   "constraint_type": "field_access",
   "effect": "allow",
-  "scope": "write",
-  "fields": ["title", "body", "fields.status"],
+  "fields_write_allow": ["title", "body", "fields.status"],
   "condition": {
     "when": "object_is_owned_by_actor"
   }
@@ -94,8 +93,7 @@
 {
   "constraint_type": "field_access",
   "effect": "deny",
-  "scope": "write",
-  "fields": ["id", "created_by", "created_at"]
+  "fields_write_deny": ["id", "created_by", "created_at"]
 }
 ```
 
@@ -105,8 +103,7 @@
 {
   "constraint_type": "field_access",
   "effect": "allow",
-  "scope": "read",
-  "fields": ["title", "fields.status"],
+  "fields_read_allow": ["title", "fields.status"],
   "sensitive_fields": ["fields.ssn", "fields.salary"],
   "sensitive_handling": "redact|hash|omit"
 }
@@ -151,6 +148,8 @@
 `allowed_branches` 只限制 Flow branch 范围，不自动授予对应 branch 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并满足 branch access、history visibility 和 E2EE key eligibility。
 
 `discussion` 不是独立实体或 selector kind。授权 discussion branch 应使用 `allowed_branches=["discussion"]`。`branches[].profile` 只是 branch-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、branch access、history visibility 和 E2EE key eligibility 决定。
+
+`allowed_branches` 和 `denied_branches` 的元素 MUST 使用 Flow `branches[].name` 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 branch 名；profile MAY 声明其他 branch 名，但不得用 profile 名称替代 branch name。
 
 ### 6.2 视图限制
 
@@ -490,18 +489,23 @@ function matches_temporal(operation, constraint):
 
 ```javascript
 function matches_field_access(operation, constraint):
-    if constraint.scope == "read":
+    if operation.mode == "read":
+        allow = constraint.fields_read_allow
+        deny = constraint.fields_read_deny
         fields = operation.read_fields
     else:
+        allow = constraint.fields_write_allow
+        deny = constraint.fields_write_deny
         fields = operation.write_fields
 
     for field in fields:
-        if field in constraint.fields:
-            if constraint.effect == "deny":
+        if field in deny:
+            return false
+        if allow and field not in allow:
+            return false
+        if constraint.condition:
+            if not meets_condition(operation, constraint.condition):
                 return false
-            if constraint.condition:
-                if not meets_condition(operation, constraint.condition):
-                    return false
 
     return true
 ```
@@ -600,8 +604,7 @@ function matches_field_access(operation, constraint):
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "scope": "write",
-      "fields": ["title", "fields.status", "fields.priority"]
+      "fields_write_allow": ["title", "fields.status", "fields.priority"]
     },
     {
       "constraint_type": "accountability",

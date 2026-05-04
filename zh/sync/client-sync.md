@@ -121,6 +121,8 @@ Sync 响应包含以下 stream：
 
 客户端 MUST 使用 `next_batch` 作为唯一 resume token，不得解析 token 内部结构。
 
+`receipts`、`notifications` 和高频 actor-private `read_marker` delta MAY 被服务端合并；同一 scope 在一个 sync 窗口内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`next_batch` 只承诺覆盖响应中声明的最终 stream positions。
+
 ## 4. Space Buckets
 
 `spaces` 按当前 membership 分桶：

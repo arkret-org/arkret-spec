@@ -79,11 +79,13 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 | `recipient_principal_id` | `did` | required | 接收 principal；MUST 等于投递路径中的目标 principal。 |
 | `recipient_device_id` | `id:device` | required | 接收设备；MUST 等于投递路径中的目标设备。 |
 | `sent_at` | `datetime` | required | 发送时间。 |
-| `expires_at` | `datetime` | optional | 过期时间；验证和 secret sharing 消息 SHOULD 设置短 TTL。 |
+| `expires_at` | `datetime` | required | 队列过期时间；不得晚于该 kind/profile 声明的 TTL 上限。 |
 | `content` | `object` | required | 类型相关内容；私密内容 SHOULD 端到端加密。 |
 | `device_proof` | `proof` | optional | 传输认证不能覆盖的场景 MAY 带 detached device proof。 |
 
 `recipient_principal_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口使用 `messages.{principal_id}.{device_id}` 做批量路由时，服务端在入队前 MUST 把路径目标复制进 `DeviceMessageEnvelope`，且接收端 MUST 拒绝 envelope 目标与当前登录设备不一致的消息。
+
+To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Space / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST 不晚于 `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
 
 发送接口：
 
@@ -103,6 +105,7 @@ Content-Type: application/json
 | `messages.{principal_id}` | body | `object` | required | 目标 principal DID。 |
 | `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息；`{device_id}` MUST 是完整 `id:device` wire key。 |
 | `messages.{principal_id}.{device_id}.kind` | body | `string` | required | to-device 消息 kind，例如 `cx.key.verification.request`。 |
+| `messages.{principal_id}.{device_id}.expires_at` | body | `datetime` | required | 队列过期时间；服务端物化 envelope 后必须复制到 `DeviceMessageEnvelope.expires_at`。 |
 | `messages.{principal_id}.{device_id}.content` | body | `object` | required | 消息内容；私密内容 SHOULD 端到端加密。 |
 
 响应字段：
@@ -121,9 +124,12 @@ Content-Type: application/json
     "did:web:alice.example.com": {
       "cx:device:01js0ke0000000000000000000": {
         "kind": "cx.key.verification.request",
-        "payload": {
+        "expires_at": "2026-04-26T00:10:00Z",
+        "content": {
           "transaction_id": "ver_123",
           "from_device": "cx:device:01js0kf0000000000000000000",
+          "timestamp": "2026-04-26T00:00:00Z",
+          "expires_at": "2026-04-26T00:10:00Z",
           "methods": [
             "cx.sas.v1",
             "cx.qr.v1"
@@ -137,7 +143,7 @@ Content-Type: application/json
 
 服务端 MUST 以 `(sender, txn_id)` 幂等。设备收到 sync 响应并推进 `next_batch` 后，服务端 MAY 删除已投递消息。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
-若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`txn_id`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id` 和 `sent_at`。队列服务不得重写这些字段。
+若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`txn_id`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。
 
 接收接口：
 

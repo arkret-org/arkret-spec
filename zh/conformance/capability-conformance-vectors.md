@@ -160,6 +160,7 @@ cx.vector.capability.revoke_rollback.v1
       "kind": "cx.capability.grant",
       "state_key": "cap-post-001",
       "payload": {
+        "grant_id": "cx:grant:01js0g2a000000000000000000",
         "subject": "did:web:alice.example.com",
         "actions": [
           "cx.message.create"
@@ -172,7 +173,7 @@ cx.vector.capability.revoke_rollback.v1
       "kind": "cx.capability.revoke",
       "state_key": "cap-post-001",
       "payload": {
-        "target_capability_id": "cx:capability:01js0g2a000000000000000000"
+        "grant_id": "cx:grant:01js0g2a000000000000000000"
       },
       "created_at": "2026-04-26T00:00:01Z"
     },

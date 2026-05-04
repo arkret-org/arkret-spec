@@ -65,6 +65,7 @@ Schema id: `cx.schema.space.v1`
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
 | `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
+| `schema` | yes | `cx.schema.space.v1` | 固定为 Space schema id。 | 对象 schema。 |
 | `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
@@ -560,7 +561,7 @@ Schema id: `cx.schema.invite.v1`
 | `third_party_id` | no | `object` | 见 `third-party-invites.md`。 | 邮箱/手机号等外部标识证明。 |
 | `join_rule_snapshot` | yes | `object` | 防止邀请后规则混淆。 | 邀请时 join rule。 |
 | `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效。 | 关联授权。 |
-| `expires_at` | no | `timestamp` |  | 过期时间。 |
+| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Space SHOULD 不超过 24 小时。 | 过期时间。 |
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired)` |  | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 

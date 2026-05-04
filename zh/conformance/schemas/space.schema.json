@@ -6,6 +6,7 @@
   "required": [
     "id",
     "type",
+    "schema",
     "space_version",
     "title",
     "kind",

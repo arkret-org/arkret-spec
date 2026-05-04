@@ -9,6 +9,7 @@
     "space_id",
     "inviter",
     "join_rule_snapshot",
+    "expires_at",
     "state",
     "created_at"
   ],
