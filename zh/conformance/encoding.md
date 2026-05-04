@@ -232,7 +232,7 @@ rank_between(left, right):
 | `cx.device.authorized` | `["cx.device.authorized", principal_id, device_id]` |
 | `cx.device.revoked` | `["cx.device.revoked", principal_id, device_id]` |
 | `cx.device.list_update` | `["cx.device.list_update", principal_id]` |
-| `cx.session.grant` | `["cx.session.grant", grant_id]`，若 legacy payload 缺 `grant_id` 则使用 `["cx.session.grant", subject, audience, sha256_hex(session_public_key_bytes)]` |
+| `cx.session.grant` | `["cx.session.grant", grant_id]` |
 | `cx.space.organization` | `["cx.space.organization", organization_did]` |
 
 `flow_id`、`actor_id`、`principal_id`、`device_id`、`subject`、`audience`、`organization_did`、`grant_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。`branch` MUST 与 Flow `branches[].name` 一致（`^[a-z][a-z0-9_]{0,63}$`）。

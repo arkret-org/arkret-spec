@@ -256,7 +256,7 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 
 隐私优先 Space SHOULD 使用 `hidden` 或 `routing_hash`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `application_state_ref.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
 
-加密信封的规范字段名是 `aad.event_kind`。`aad.event_type` 仅是 legacy 兼容输入；新 producer MUST NOT 生成，receiver 在计算 `aad_digest` 或 MLS authenticated data 前必须按 `encrypted-envelope-schema.md` 归一为 `event_kind`。Space policy、AAD visibility、日志和 conformance vector 不得再使用 `event_type` 作为规范字段名。
+加密信封的 Event kind 字段在 AAD 中规范名为 `aad.event_kind`；Space policy、AAD visibility、日志和 conformance vector MUST 使用该名字。
 
 ## 3. 受审计的端到端加密 (Audited E2EE)
 
@@ -292,19 +292,6 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 | --- | --- | --- |
 | `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Key material 与明文输出 MUST 在受控边界内处理。 |
 | `disclosed_policy` | `cx.profile.disclosed_audit.e2ee.v1` | 不要求 TEE。Audit Agent 仍然 MUST 执行 `cx.audit.accessed` 先写后解密流程并等待 RYW receipt，但**保证类别仅是合规与流程承诺，不是密码学强制**。Space policy MUST 在加入前可见确认该降级。 |
-
-旧字段映射（v1 pre-stable，v1.0-stable 前完成迁移）：
-
-| 已废弃字段 | 替换 |
-| --- | --- |
-| `auditable_e2ee: bool` | 删除——由 `audit_disclosure` 是否存在表达 |
-| `auditable_e2ee_profile` | 删除——由 `audit_assurance` 派生 |
-| `audit_enforcement_level: "hardware_tee"` | `audit_assurance: "attested_hardware"` |
-| `audit_enforcement_level: "software_process"` | `audit_assurance: "disclosed_policy"` |
-| `audit_enforcement_level: "none"` | 不允许；省略 `audit_disclosure` 即未启用审计 |
-| `audit_actors` 顶层 | 移入 `audit_disclosure.audit_actors` |
-
-旧 profile id `cx.profile.auditable_e2ee.tee_required` 形态在 v1 pre-stable 期间被重命名为 `cx.profile.attested_audit.e2ee.v1`；旧 profile id `cx.profile.auditable_e2ee.software_only` 形态被重命名为 `cx.profile.disclosed_audit.e2ee.v1`。所有 v1.0-stable 工件 MUST 使用新 id；conformance-profiles 不再保留旧 id。
 
 客户端在加入声明 `audit_disclosure` 的 Space 前 MUST 读取 `audit_assurance`，并按 §3.1.1 显示**正确分类**的 join warning；MUST NOT 用同一段笼统文案覆盖两种保证。
 

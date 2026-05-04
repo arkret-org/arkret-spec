@@ -13,7 +13,7 @@ Contrix 使用 DID 作为稳定身份根。Handle、邮箱、组织用户名和�
 - 组织账号绑定的 DID proof
 - `did:uuid` 不纳入 v1 协议 DID 方法集合
 
-Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 MUST 使用已有 DID method，例如 `did:plc`、`did:web`、`did:webvh`、`did:key`、`did:pkh`，或本地 trust policy 明确允许的其他公开 DID method。
+Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 MUST 使用已有 DID method，例如 `did:webvh`、`did:web`、`did:key`、`did:pkh`、`did:plc`，或本地 trust policy 明确允许的其他公开 DID method。
 
 ## 2. 核心原则
 
@@ -36,7 +36,7 @@ Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 
 
 这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现接受任何持久 Event、capability grant、federation transaction、MLS membership 或 service delegation 前，MUST 将当前会话绑定到 principal DID 与 device，并按本地 trust policy 验证该绑定。
 
-如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID。公共 Contrix 部署的默认托管 DID method 是 `did:plc`；组织或服务主体 SHOULD 使用 `did:web`，在需要可验证历史时 SHOULD 使用 `did:webvh`。托管 DID 的 controller、recovery policy、trust domain、method-specific history 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
+如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID。Contrix 部署的默认托管 DID method 是 `did:webvh`：Auth / Account Server 在自有域名（例如 `users.<org>.example`）下为用户托管 `did.jsonl` 历史，并在用户后续自托管时通过 continuity proof 平滑迁移。组织或服务主体本身 SHOULD 使用 `did:webvh`（带可验证历史）；只需要简单服务发现入口、不要求历史链的 service DID MAY 使用 `did:web`。托管 DID 的 controller、recovery policy、trust domain、method-specific history 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
 
 ### 2.2 DID 持久，密钥 SHOULD 可轮换
 
@@ -60,46 +60,50 @@ DID Document MUST NOT 被用作跨组织身份画像。邮箱、跨组织 handle
 
 ## 3. 默认 DID 方法
 
-Contrix 公共部署的默认 principal DID method 是：
+Contrix 部署的默认 principal DID method 是：
 
 ```text
-did:plc:<identifier>
+did:webvh:<scid>:<host-and-path>
 ```
 
-选择 `did:plc` 的原因：
+选择 `did:webvh` 的原因：
 
 - 它是已有 DID method，不是 Contrix 自定义方法。
-- 它适合没有自有域名的普通用户。
-- 它支持可恢复、可轮换的控制状态和 operation history。
-- 它已有 AT Protocol / Bluesky 生态的实际部署经验。
-- 它能在 DID Document 中承载服务发现入口，并可通过 resolver policy 约束可接受的 PLC directory。
+- 它**不依赖中央目录**：解析靠 HTTPS + 域名，witness 是可选增强；任何组织或个人都可以自托管，没有单一外部组织的目录治理。
+- 它通过 `did.jsonl` 提供**可验证的 DID 文档更新历史**（SCID + entry hash chain + controller proof），与 Contrix 自身的 signed-event chain 范式同构——身份控制历史和协作事实历史用同一种"链式可验证"语义。
+- 它支持密钥轮换、恢复（如 watcher / witness threshold）和 deactivation。
+- 它对没有自有域名的用户也可用：Auth / Account Server 在自己的子域名下为用户托管 `did.jsonl`，用户后续可凭 continuity proof 迁移到自有域名继续维护同一身份历史。
+- witness 不可用或退化时，resolver MAY 在 policy 允许的范围内退化为 `did:web` 等价行为（仅当前状态，不再可信历史读取）；这给了协议清晰的容错路径。
 
-默认值只表示“当系统需要为普通用户创建新 DID，且用户没有明确选择其他 method 时使用 `did:plc`”。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、历史验证和服务委托验证。
+默认值只表示"当系统需要为新用户创建 principal DID、且用户未明确选择其他 method 时使用 `did:webvh`"。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、历史验证和服务委托验证。
 
 ### 3.1 Method Selection
 
 | 场景 | 默认 / 推荐 DID method | 说明 |
 | --- | --- | --- |
-| 普通个人 principal DID | `did:plc` | 默认选择；适合无域名用户，支持控制权轮换和恢复。 |
-| 个人自带域名身份 | `did:web` 或 `did:webvh` | 用户愿意把身份绑定到域名时可选；`did:webvh` 提供可验证历史。 |
-| 组织 DID | `did:webvh` SHOULD，`did:web` MAY | 组织通常有域名；高保证组织 SHOULD 使用有历史、watcher 或 witness 的方法。 |
-| Service DID | `did:web` SHOULD，`did:webvh` MAY | 服务发现天然需要域名和 HTTPS endpoint；高风险服务可使用 `did:webvh`。 |
-| 临时主体、设备、测试、一次性邀请 | `did:key` | 本地可解析、无网络依赖；不适合默认长期身份。 |
+| 普通个人 principal DID | `did:webvh` | 默认选择。无域名用户由 Auth / Account Server 在组织子域代为托管；自有域名用户可直接自托管。 |
+| 组织 DID | `did:webvh` SHOULD | 组织通常有域名；可验证历史是组织治理材料的最低要求。`did:web` 仅作为不要求历史的简化部署。 |
+| Service DID | `did:web` SHOULD，`did:webvh` MAY | 服务发现天然需要域名和 HTTPS endpoint；只读 service endpoint 可使用 `did:web`，高风险或长生命周期服务 SHOULD 使用 `did:webvh`。 |
+| 临时主体、设备、测试、一次性邀请、bootstrap | `did:key` | 本地可解析、无网络依赖；不支持轮换 / 恢复，MUST NOT 作为默认长期身份。 |
 | 钱包 / 链上账号绑定 | `did:pkh` | 只在钱包控制权就是业务身份根时使用；不得默认要求所有用户有链上账号。 |
-| 高安全或隔离部署 | policy 指定的现有 DID method | MAY 使用私有 `did:webvh`、内网 `did:web`、KERI 或其他公开 method；MUST 明确 resolver trust roots。 |
+| AT Protocol 互通 | `did:plc` adapter | 仅作为 AT Protocol bridge / interop adapter；不是 Contrix 的默认 principal method。声明 AT 互通 profile 的实现 SHOULD 支持。 |
+| 高安全或隔离部署 | policy 指定的现有 DID method | MAY 使用 enclave 内 `did:webvh`、内网 `did:web`、KERI 或其他公开 method；MUST 明确 resolver trust roots。 |
 
 ### 3.2 支持要求
 
 Contrix v1 conformance 要求如下：
 
-- Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:web` 和 `did:key`。`did:key` 用于测试、bootstrap、设备、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料；它不改变长期 principal 的 method policy。
-- Public network identity profile MUST 支持 `did:plc`，并声明可接受的 PLC directory、mirror、audit source 和 outage 策略。
-- Organization / high-security profile SHOULD 支持 `did:webvh` 或等价 history-bearing DID method。
+- Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`。
+  - `did:webvh` 是默认 principal method，必须支持解析 `did.jsonl` 历史、SCID 派生、entry hash chain 验证和 controller proof 验证。
+  - `did:web` 用于不要求历史的 service DID。
+  - `did:key` 用于测试、bootstrap、设备、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料。
+- Organization / high-security profile MUST 支持 `did:webvh` witness / watcher evidence；不允许只跑 degraded mode。
+- AT Protocol interop profile MUST 支持 `did:plc` adapter，并声明可接受的 PLC directory、mirror、audit source 和 outage 策略。该 profile 是 interop 加项，不是 Contrix Core 强制依赖。
 - Wallet interop profile MAY 支持 `did:pkh`。
 - 实现 MAY 支持其他现有 DID method，例如 KERI 系列 method，但 MUST 保留 raw method evidence，并声明 trust profile。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Contrix 私有 DID method。
 
-因此，`did:plc` 是公共 Contrix 部署的默认托管 principal DID method，不是所有 Core 实现的强制依赖。只实现私有组织、离线测试、嵌入式或 enclave profile 的实现 MAY 不支持 `did:plc`，但必须在 service describe / conformance profile 中明确声明其 allowed methods。
+因此，`did:webvh` 是 Contrix 部署的默认托管 principal DID method。只实现私有组织、离线测试、嵌入式或 enclave profile 的实现 MAY 选择其他默认 method（例如完全本地的 `did:key`-only 测试集），但必须在 service describe / conformance profile 中明确声明其 allowed methods 与 default。
 
 ## 4. Identity Resolution Infrastructure
 
@@ -107,12 +111,12 @@ Contrix 把身份解析抽象为 `Identity Resolution Infrastructure`，而不�
 
 | DID method | 是否需要公共 Identity Registry | 需要的解析 / 验证能力 |
 | --- | --- | --- |
-| `did:plc` | 需要可接受的 PLC directory / mirror / audit source。 | 验证 PLC operation chain、genesis / previous op hash、rotation keys、recovery state、DID Document、service bindings 和 directory transparency evidence。 |
-| `did:web` | 不需要公共 registry。 | HTTPS / DNS / 域名治理、TLS / PKI、method-specific DID Document 获取与校验。 |
-| `did:webvh` | 不需要传统公共 registry。 | `did.jsonl` history、SCID、entry hash chain、controller proof、watcher / witness evidence、HTTPS / DNS 校验。 |
+| `did:webvh` | 不需要公共 registry（默认 method）。 | `did.jsonl` history、SCID、entry hash chain、controller proof、watcher / witness evidence、HTTPS / DNS 校验。 |
+| `did:web` | 不需要公共 registry。 | HTTPS / DNS / 域名治理、TLS / PKI、method-specific DID Document 获取与校验。无历史链——只能反映"当前 DID Document 状态"。 |
 | `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合临时主体、设备、测试、一次性邀请或 bootstrap key。 |
 | `did:pkh` | 不需要 Contrix registry。 | CAIP-10 / chain-specific account validation、wallet proof、chain namespace policy；通常不支持 DID document update / deactivation。 |
-| 其他现有 DID method | 取决于 method。 | 保留 raw DID Document 与 method-specific proof，并映射到 Contrix normalized principal view。 |
+| `did:plc` | 需要可接受的 PLC directory / mirror / audit source（AT Protocol interop adapter）。 | 验证 PLC operation chain、genesis / previous op hash、rotation keys、recovery state、DID Document、service bindings 和 directory transparency evidence。仅在声明 AT 互通 profile 的部署中需要。 |
+| 其他现有 DID method（KERI 等） | 取决于 method。 | 保留 raw DID Document 与 method-specific proof，并映射到 Contrix normalized principal view。 |
 
 使用 `did:key` 或 `did:pkh` 不表示“不需要身份解析”。它只表示通常不需要公共可写 registry。客户端、Auth Server、Principal Server 和 Policy / Authz 仍然必须具备对应 DID method 的 resolver / verifier，才能确认 DID 控制状态、服务委托和 method 限制。
 
@@ -121,8 +125,8 @@ Contrix 把身份解析抽象为 `Identity Resolution Infrastructure`，而不�
 Resolver policy MUST 至少定义：
 
 - allowed methods：当前部署接受哪些 DID method。
-- default principal method：公共网络 profile 默认 SHOULD 为 `did:plc`；私有组织、enclave 或测试 profile MAY 使用 `did:web`、`did:webvh`、`did:key` 或 policy 指定的其他 method，但必须在 profile 中声明。
-- trust roots：PLC directory / mirror、DNS / HTTPS trust、webvh watcher / witness、KERI watcher、chain namespace allowlist 等。
+- default principal method：默认 SHOULD 为 `did:webvh`；私有组织、enclave、本地测试或 AT 互通部署 MAY 选用其他 method，但必须在 profile 中明确声明。
+- trust roots：webvh witness / watcher、DNS / HTTPS trust、PLC directory / mirror（仅 AT 互通）、KERI watcher、chain namespace allowlist 等。
 - method capability：该 method 是否支持 rotation、recovery、deactivation、service endpoint、historical resolution、witness evidence。
 - privacy handling：是否允许公开解析、是否需要 holder-approved proof、pairwise DID 是否禁止 directory 查询。
 - cache rules：缓存 MUST 绑定 DID、method、resolver trust domain、document hash / history head、evidence set 和 expiry。
@@ -132,17 +136,23 @@ Resolver policy MUST 至少定义：
 
 ```json
 {
-  "default_principal_method": "did:plc",
-  "allowed_methods": ["did:plc", "did:web", "did:webvh", "did:key", "did:pkh"],
+  "default_principal_method": "did:webvh",
+  "allowed_methods": ["did:webvh", "did:web", "did:key", "did:pkh"],
   "method_policy": {
-    "did:plc": {
-      "role": ["principal"],
-      "directory": ["https://plc.directory"],
-      "require_operation_history": true
+    "did:webvh": {
+      "role": ["principal", "organization"],
+      "require_history_chain": true,
+      "require_witness": "recommended",
+      "witness_threshold": 1,
+      "trusted_witnesses": [
+        "did:web:witness-a.example",
+        "did:web:witness-b.example"
+      ]
     },
     "did:web": {
-      "role": ["organization", "service", "principal"],
-      "require_https": true
+      "role": ["service"],
+      "require_https": true,
+      "long_lived_principal": "deny"
     },
     "did:key": {
       "role": ["device", "test", "bootstrap"],
@@ -156,34 +166,49 @@ Resolver policy MUST 至少定义：
 }
 ```
 
+声明 AT Protocol interop profile 的部署 MAY 在同一 policy 中加入 `did:plc` 适配器：
+
+```json
+"did:plc": {
+  "role": ["interop_principal"],
+  "directory": ["https://plc.directory"],
+  "require_operation_history": true,
+  "long_lived_principal": "interop_only"
+}
+```
+
+`role: "interop_principal"` 表示该 DID 只在 AT 互通边界内被当作 principal；Contrix 自身的默认创建路径不签发 `did:plc`。
+
 ### 4.2 DID Method Continuity
 
 DID method 或 registry 不可用时，节点不得把“暂时无法解析”解释为“身份仍然有效”。Resolver MUST fail closed，但实现还必须提供可恢复的用户路径：
 
 - 缓存解析结果只能在 resolver policy 声明的 TTL、document hash、history head 和 trust domain 内使用；超过 TTL 或 evidence 断链后，不得接受新的高风险写入。
-- `did:plc` directory 不可用时，resolver MAY 使用 policy 允许的 mirror / audit source，但必须验证同一 operation chain、history head 和 directory transparency evidence；不得用 handle、DNS 或服务声明代替 DID method history。
-- 用户迁移到新 DID method 时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
+- `did:webvh` 的 hosting domain 不可用、`did.jsonl` 拉取失败或 witness evidence 断链时，resolver MAY 在 policy 允许的范围内使用本地缓存或镜像，但必须验证 SCID、entry hash chain head 与 controller proof；不得用 handle、DNS A/AAAA 记录、TLS 证书或 Auth Server 声明代替 DID method history。
+- 用户迁移到新 DID（同 method 或换 method）时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
 - 若原 DID 仍可解析，continuity proof SHOULD 由原 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Space / service 范围。
 - 若原 method 永久不可用且无法验证原控制密钥，只能走 Space / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
 - Principal Server、Directory 或 Handle 服务 MAY 帮助发现新 DID，但不得单独证明 DID continuity。
 
-#### 4.2.1 `did:plc` 健康检查与计划迁移
+#### 4.2.1 `did:webvh` 健康检查
 
-声明 public network identity profile 的实现 MUST 对 `did:plc` resolver policy 定义主动健康检查：
+实现 MUST 对 `did:webvh` resolver policy 定义主动健康检查：
 
-- 监控 primary PLC directory、至少一个 policy 允许的 mirror / audit source、最近 operation head、transparency evidence freshness 和 resolver 响应签名 / digest。
-- 健康状态 MUST 区分 `healthy`、`degraded_mirror_only`、`stale_evidence`、`write_unavailable` 和 `untrusted` 或等价状态。
-- `degraded_mirror_only` 只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待可写 directory 恢复，或走部署 policy 明确允许的替代 method。Public network profile 的 `degraded_mirror_only` 默认最长持续 24 小时；部署 policy MAY 缩短该窗口，MUST NOT 延长到超过 7 天。超过窗口后，resolver MUST 进入 `stale_evidence` 或 `write_unavailable`，并对新的高风险写入 fail closed。
-- `stale_evidence` 或 `untrusted` 时，resolver MUST fail closed；不得用缓存 handle、DNS、Principal Server 声明或用户登录态替代 PLC operation history。
-- 客户端和服务端 SHOULD 暴露 outage diagnostics，包括使用的 directory / mirror、history head、evidence age 和下一次 retry 时间。
+- 监控 hosting domain、`did.jsonl` 可达性、最近 entry head、SCID 一致性、controller proof 验证结果，以及 policy 声明的 trusted witness 的最新签名时间。
+- 健康状态 MUST 区分 `healthy`、`degraded_no_witness`、`stale_history`、`write_unavailable` 和 `untrusted` 或等价状态。
+- `degraded_no_witness`（hosting 仍可达但 witness evidence 缺失或过期）只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待 witness evidence 恢复，或走部署 policy 明确允许的替代路径。该状态默认最长持续 24 小时；部署 policy MAY 缩短，MUST NOT 延长到超过 7 天。超过窗口后，resolver MUST 进入 `stale_history` 或 `write_unavailable`，并对新的高风险写入 fail closed。
+- `stale_history` 或 `untrusted` 时，resolver MUST fail closed；不得用缓存 handle、DNS、Principal Server 声明或用户登录态替代 DID 历史链。
+- 客户端和服务端 SHOULD 暴露 outage diagnostics，包括使用的 hosting / mirror、entry head、witness 列表、evidence age 和下一次 retry 时间。
 
-公共部署 SHOULD 支持从 `did:plc` 到 `did:webvh` 或等价 history-bearing DID method 的计划迁移路径，而不是只在事故后恢复：
+#### 4.2.2 跨 method 迁移路径
 
-1. 用户在原 `did:plc` 仍可解析时创建新 DID，并发布新 method 的 genesis / witness evidence。
+实现 SHOULD 支持从其它 method（例如 `did:web` 升级、`did:plc` 互通历史、`did:key` 临时身份转长期身份）到 `did:webvh` 的计划迁移路径，而不只是在事故后恢复：
+
+1. 用户在原 DID 仍可解析时创建新 `did:webvh`，并发布 SCID、首个 `did.jsonl` entry 和（可选）witness evidence。
 2. 原 DID 当前有效控制密钥签署 continuity proof；新 DID 控制密钥反向签署 acceptance proof。
 3. Handle / service account / profile binding 指向新 DID，但历史 Event 仍保留旧 DID。
 4. Space membership、capability grant、device/session control 和 MLS identity link 通过普通 Event 或 policy 流程重新绑定到新 DID。
-5. 客户端在 UI 中显示“已计划迁移”状态和旧 DID 的验证历史，不把它当作无痕重命名。
+5. 客户端在 UI 中显示"已计划迁移"状态和原 DID 的验证历史，不把它当作无痕重命名。
 
 ## 5. Resolver、Auth Server 与组织授权
 
@@ -195,10 +220,10 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 | Auth / Account Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 DID / device。 | 不改变 DID 控制权；不替代 DID key proof；不决定所有组织授权。 |
 | Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Space、Event、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
 
-一个组织 MAY 自建 Auth / Account Server，同时接受公共 `did:plc` 用户 DID。典型流程是：
+一个组织 MAY 自建 Auth / Account Server，同时接受多种 DID method 的用户 DID。典型流程是：
 
-1. 用户提交 `did:plc:...`、handle、邀请链接或组织账号。
-2. 组织 Auth Server 按本地 trust policy 选择 resolver。普通部署可以默认解析 `did:plc`；组织或服务 DID 通常解析 `did:web` / `did:webvh`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
+1. 用户提交 `did:webvh:...`（默认）、`did:web:...`、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
+2. 组织 Auth Server 按本地 trust policy 选择 resolver。默认 principal 解析路径是 `did:webvh`（验证 `did.jsonl` 链 + witness）；service DID 通常是 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
 3. Auth Server 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
 5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Space policy 决定可访问的数据范围。
@@ -430,8 +455,8 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 Contrix v1 对 DID 实现要求如下：
 
-- 默认 principal DID 创建 MUST 使用 `did:plc`，除非部署 policy 显式选择了另一个已有 DID method。
-- Method adapter conformance tests MUST 覆盖 `did:plc`、`did:web`、`did:key`，并 SHOULD 覆盖 `did:webvh` 或其他 history-bearing method。
+- 默认 principal DID 创建 MUST 使用 `did:webvh`，除非部署 policy 显式选择了另一个已有 DID method。
+- Method adapter conformance tests MUST 覆盖 `did:webvh`、`did:web`、`did:key`；声明 AT Protocol interop profile 的实现 MUST 额外覆盖 `did:plc` adapter；声明 wallet interop profile 的实现 MUST 额外覆盖 `did:pkh`。
 - `did:uuid` MUST NOT 出现在规范示例、新 fixture、新一致性向量、服务 DID、actor DID、capability subject、federation transaction 或新写入的 Event 中。
 - DID proof JSON Schema MUST 与 `data-structures.md` 的 Proof 和 `encoding.md` 的 canonical JSON 规则一致。
 - Normalized principal view MUST 保留 raw document hash、method-specific proof、current control keys、service bindings、contrix bindings 和 evidence；不得丢弃外部 DID 的原始语义。

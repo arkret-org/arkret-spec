@@ -90,7 +90,7 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| `identity/identity-did.md` | DID、默认 `did:plc`、DID Document、method adapter、Organization ownership。 |
+| `identity/identity-did.md` | DID、默认 `did:webvh`、DID Document、method adapter、Organization ownership。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation。 |
 | `identity/progressive-disclosure.md` | 渐进披露、presentation request、disclosure policy、私有存储。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |

@@ -1,47 +1,23 @@
-# Optimization Round — Auditable E2EE Renaming + Capability/Constraint Simplification
+# 续作：上一轮 deferred 项 + 高价值 BLOCKING
 
-源自上下文中两轮设计评审：
+上一轮的 _todos.md 列出 A1–A10、B1–B5、C1–C2 全部完成；遗留 4 项延后到本轮，外加 _report.md 中 2 个易清的 BLOCKING。
 
-1. **Auditable E2EE 命名钢丝绳**：当前 `cx.profile.auditable_e2ee.{tee_required,software_only}.v1` 共享 `auditable_e2ee` 前缀，让"硬件强制"与"流程承诺"两种保证看起来等价。
-2. **Capability + Constraint 复杂度**：14 种 constraint type 共用平面 enum；`condition.when` 是个未明确的字符串字段；求值算法的 deny/quarantine/review 优先级混合阶让缓存键设计困难；evaluation 依赖图没有显式契约。
-
-本轮做 **PR 1 范围**（按之前推荐的优先级）。`auth_weight` lattice 重构与 4 个 state-resolution conformance vector 留 v1.x。
-
-## A. Auditable E2EE 命名 + 字段重构
+## D. 延后项
 
 | # | 任务 | 文件 |
 | --- | --- | --- |
-| A1 | 重命名 profile id：`cx.profile.auditable_e2ee.tee_required.v1` → `cx.profile.attested_audit.e2ee.v1`；`cx.profile.auditable_e2ee.software_only.v1` → `cx.profile.disclosed_audit.e2ee.v1` | [`artifacts/profiles/conformance-profiles.json`](artifacts/profiles/conformance-profiles.json) |
-| A2 | 同步更新 profile_groups (`e2ee_hardening`, `hardening_profiles`) 中的引用 | 同上 |
-| A3 | `audit-ryw-receipt.schema.json` 加必填 `audit_assurance_class: enum("attested_hardware","disclosed_policy")` | [artifacts](artifacts/schemas/audit-ryw-receipt.schema.json) + [zh mirror](zh/conformance/schemas/audit-ryw-receipt.schema.json) |
-| A4 | 更新 receipt schema description 引用新 profile id | 同上 |
-| A5 | 重写 `encryption-and-audit.md §3.1` policy：删 `auditable_e2ee` bool 旗标 + 把 `auditable_e2ee_profile`/`audit_enforcement_level` 拆成 `audit_disclosure` 对象 + `audit_assurance` enum | [encryption-and-audit.md](zh/crypto-media/encryption-and-audit.md) |
-| A6 | 更新 §3.2-§3.4 全部 profile id 引用 | 同上 |
-| A7 | 加禁用措辞 normative 段（`disclosed_audit` 不得在产品材料中使用 "cryptographically enforced"/"attested"/"TEE-equivalent" 等措辞） | 同上 |
-| A8 | 拆 §3.1 join warning 为 attested / disclosed 两套 MUST 文案 | 同上 |
-| A9 | 更新 [`conformance-profiles.md`](zh/conformance/conformance-profiles.md) 中 auditable_e2ee 段对应文字 | conformance-profiles.md |
-| A10 | 注册 `cx.audit.ryw_receipt` event kind（解决 _report.md B-13；attested mode 下 receipt 可作 durable Event 进入 audit log） | [`contract-catalog.json`](artifacts/registry/contract-catalog.json) |
+| D1 | `auth_weight` 11 档刻度重构为 (governance_layer, authority_kind) lattice。表改为 lattice，排序键由 lattice 偏序定义；scalar 仍可作派生字段。 | [event-auth-state-resolution.md §9.3.2](zh/authz/event-auth-state-resolution.md) |
+| D2 | 补 state-resolution conformance vector：`same_layer_direct_vs_delegated`、`cross_layer_governance_vs_space_admin`（self_vs_admin 与 grant_revoke_race 已在现 fixture 中覆盖） | [state-resolution-fixture.json](zh/conformance/fixtures/state-resolution-fixture.json) + 镜像 |
+| D3 | 拆 core / extension constraint set。`cx.profile.core_event_store.v1` 只 require core；扩展 type 由 profile gate。 | [constraint-schema.md §2.2](zh/authz/constraint-schema.md) + [conformance-profiles.json](artifacts/profiles/conformance-profiles.json) |
 
-## B. Capability + Constraint 简化
+## E. 易清 BLOCKING（从 _report.md）
 
-| # | 任务 | 文件 |
+| # | 任务 | 来源 |
 | --- | --- | --- |
-| B1 | `condition.when` 改名为 `condition.kind`（typed object key 与 constraint 系统其他部分对齐） | [grant-constraint schema](artifacts/schemas/grant-constraint.schema.json) + [zh mirror](zh/conformance/schemas/grant-constraint.schema.json) |
-| B2 | 更新 [constraint-schema.md §4.1 example](zh/authz/constraint-schema.md) 使用新字段名 | constraint-schema.md |
-| B3 | 求值算法压扁：deny/quarantine/require_review 一律 "任一命中即生效"；priority 仅用于 allow 诊断；改写 §15.1 / §15.2 / §15.3 | constraint-schema.md |
-| B4 | grant-constraint schema 加 `evaluation_class: enum("stateless","grant_local","space_state","external")` | grant-constraint schema (mirror 同步) |
-| B5 | constraint-schema.md §2.1 加 `evaluation_class` 字段说明；新增 §2.3 表格列出 14 种 constraint type 各自的 evaluation_class | constraint-schema.md |
+| E1 | `default_join_rule` 不允许 `private`（不在 enum 内的死代码 defensive reject） | _report.md B-15 |
+| E2 | `conformance-profiles.md` 中 "Flow（含 `card` / `room` kind）" 死语，Flow 当前已无 `kind` 字段 | _report.md B-20 |
 
-## C. 收尾
+## F. 不在本轮的范围
 
-| # | 任务 |
-| --- | --- |
-| C1 | 跑 `python tools/artifact_pipeline.py sync` + `check`，确保 catalog ↔ generated registries ↔ mirror 一致 |
-| C2 | 在 `CHANGELOG.md` 写入本轮变更条目（含 profile id rename 的 breaking note） |
-
-## 不在本轮的范围
-
-- `auth_weight` 11 档刻度重构为 (governance_layer, authority_kind) lattice — v1.x
-- 补 4 个 state-resolution conformance vector — v1.x（_report.md M-09/M-10）
-- core / extension constraint set 拆分（profile-gated）— 等 conformance suite 重构一并做
-- _report.md 中其他 22 个 BLOCKING 项 — 后续 PR
+- _report.md 中其余 BLOCKING（B-02、B-03、B-04、B-06、B-07、B-08、B-09、B-10、B-11、B-12、B-14、B-16、B-17、B-18、B-19、B-21、B-22、B-23）—— 多数需要更深的 schema / openapi / 跨文件重构，单独立项
+- reference validator / reducer / authz evaluator 实现 —— 离开本规范仓库

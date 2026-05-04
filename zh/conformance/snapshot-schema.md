@@ -151,7 +151,7 @@ High-assurance profiles MUST support inclusion challenge:
   "epoch": 42,
   "cleartext_metadata": {
     "object_ref": "cx:message:...",
-    "event_type": "cx.message.create"
+    "event_kind": "cx.message.create"
   },
   "ciphertext": "base64url...",
   "ciphertext_digest": "sha256:..."

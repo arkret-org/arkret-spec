@@ -103,7 +103,6 @@ components:
                 - hlc_logical_overflow
                 - payload_too_large
                 - digest_mismatch
-                - aad_ambiguous_kind
                 - aad_digest_mismatch
                 - payload_digest_mismatch
                 - key_unavailable

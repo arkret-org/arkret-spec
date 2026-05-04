@@ -28,22 +28,31 @@
 
 ### 2.2 约束类型
 
-| 约束类型 | 说明 | 版本 |
-|----------|------|------|
-| `temporal` | 基于时间的约束 | v1 |
-| `field_access` | 字段级读写控制 | v1 |
-| `type_restriction` | 对象类型限制 | v1 |
-| `scope_limitation` | Space / Flow / View / branch 范围 | v1 |
-| `delegation_control` | 委托深度和路径 | v1 |
-| `rate_limiting` | 操作频率限制 | v1 |
-| `approval_workflow` | 审批要求 | v1 |
-| `claim_based` | 声明/证明要求 | v1 |
-| `accountability` | 责任方追踪 | v1 |
-| `encryption_requirement` | 强制加密 | v1 |
-| `container_move` | 看板 / collection 移动范围 | v1 |
-| `visibility_control` | 对象/消息可见性控制 | v1 |
-| `resource_limit` | 资源大小/数量限制 | v1 |
-| `edit_window` | 编辑/撤回时间窗口 | v1 |
+约束类型分为 **core** 与 **extension** 两组：
+
+- **core**：所有声明 `cx.profile.core_event_store.v1` 的实现 MUST 支持。这些类型表达最小授权语义，且都是 `stateless` 或 `grant_local`（见 §2.3），fast path 即可裁决。
+- **extension**：profile-gated。实现声明对应 profile 时 MUST 支持；未声明 MUST fail closed（不得 silent ignore，避免 grant 在弱实现上语义放宽）。
+
+| 约束类型 | 类别 | 说明 | 启用 profile |
+|----------|------|------|------|
+| `temporal` | core | 基于时间的约束（不含 `recurrence`/`max_session_duration`） | core |
+| `field_access` | core | 字段级读写控制（不含 `condition`） | core |
+| `type_restriction` | core | 对象类型限制 | core |
+| `scope_limitation` | core | Space / Flow / View / branch 范围 | core |
+| `delegation_control` | core | 委托深度和路径 | core |
+| `rate_limiting` | core | 操作频率限制（`max_operations` + `period`） | core |
+| `temporal` 带 `recurrence` 或 `max_session_duration` | extension | 周期窗口与会话时长 | `cx.profile.constraint.temporal_recurrence.v1` |
+| `field_access` 带 `condition` | extension | 启用 `condition.kind` typed predicate | `cx.profile.constraint.field_condition.v1` |
+| `approval_workflow` | extension | 预审批 / proposal-then-approve / 监护人审批 | `cx.profile.constraint.approval_workflow.v1` |
+| `claim_based` | extension | 声明 / 证明要求 | `cx.profile.constraint.claim_based.v1` |
+| `accountability` | extension | 责任方追踪 / guardian / controller | `cx.profile.constraint.accountability.v1` |
+| `encryption_requirement` | extension | 强制加密、key 轮换 | `cx.profile.constraint.encryption_requirement.v1` |
+| `container_move` | extension | 看板 / collection 移动范围 | `cx.profile.kanban_mvp.v1` |
+| `visibility_control` | extension | 对象 / 消息可见性裁剪 | `cx.profile.constraint.visibility_control.v1` |
+| `resource_limit` | extension | 资源大小 / 数量限制 | `cx.profile.constraint.resource_limit.v1` |
+| `edit_window` | extension | 编辑 / 撤回时间窗口 | `cx.profile.chat_mvp.v1` |
+
+未注册的 `constraint_type` MUST fail closed。新增 type 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` enum 中注册。
 
 ### 2.3 evaluation_class 分类
 
@@ -123,7 +132,7 @@
 
 `condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
 
-实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段（如旧版本曾使用的 `when` 字符串）；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
+实现 MUST NOT 在 `condition` 上引入字符串 DSL 字段；新增 condition 必须先在 grant-constraint schema 的 `condition.kind` enum 中注册，并在本节文档化语义，再由实现使用。
 
 ### 4.2 字段写入拒绝
 

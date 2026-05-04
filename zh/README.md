@@ -67,11 +67,11 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - `principal_id = DID URI`，Handle 只作为可迁移的人类可读入口。
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
-- 组织/服务主体优先使用 `did:web`，高要求场景使用 `did:webvh`。
-- 临时、测试、设备、邀请与 钱包绑定可使用轻量 DID；长期主体应具备可验证历史与恢复能力。
-- DID 文档、operation history 和 method evidence 需按各自 method 的 verifier 校验。
-- 对 `did:plc`、`did:web` 等方法采用 method adapter / normalized principal view / sidecar 的统一入口。
-- `did:key`、`did:pkh` 仅用于约束场景，长期主体需避免将其作为默认主身份。
+- **默认 principal DID method 为 `did:webvh`**：自托管或由 Auth/Account Server 在组织子域代为托管，`did.jsonl` 历史 + SCID + 可选 witness 提供可验证身份历史。
+- 组织 / 高要求场景同样使用 `did:webvh`；只读 service DID MAY 使用 `did:web`。
+- 临时、测试、设备、邀请、bootstrap 使用 `did:key`；钱包绑定使用 `did:pkh`；这些不得作为默认长期主身份。
+- AT Protocol 互通通过 `did:plc` adapter 支持；该方法不是 Contrix 的默认 principal method。
+- DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。
 
 ### 4.2 对象模型
 

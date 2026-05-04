@@ -105,7 +105,7 @@
       "category": "authz",
       "status": "active",
       "wire_form": "cx:capability:<ulid>",
-      "description": "Abstract capability definition or legacy capability reference ID; signed grant objects use cx:grant:<ulid>."
+      "description": "Abstract capability definition reference ID; signed grant objects use cx:grant:<ulid>."
     },
     {
       "kind": "flow",

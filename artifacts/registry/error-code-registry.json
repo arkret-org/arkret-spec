@@ -158,12 +158,6 @@
       "description": "A declared digest does not match the transferred content."
     },
     {
-      "code": "aad_ambiguous_kind",
-      "http_status": 422,
-      "scope": "both",
-      "description": "Encrypted envelope AAD contains conflicting event_kind and legacy event_type values."
-    },
-    {
       "code": "aad_digest_mismatch",
       "http_status": 422,
       "scope": "both",

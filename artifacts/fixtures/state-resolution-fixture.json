@@ -108,6 +108,102 @@
       }
     },
     {
+      "name": "same_layer_direct_vs_delegated",
+      "comment": "Two candidates target the same Space policy state key. A is signed by a direct Space admin grant; B is signed via a delegated admin grant from the same admin tree. Both pass policy. authority_class lattice: A=(space_admin, direct) > B=(space_admin, delegated). A wins.",
+      "state_key": "cx:space:01js0sp0000000000000000000|policy",
+      "candidates": [
+        {
+          "event_id": "cx:event:01js0p10000000000000000000",
+          "kind": "cx.space.policy",
+          "actor_id": "did:web:admin-direct.example",
+          "auth_refs": [
+            "cx:event:01js0gd0000000000000000000"
+          ],
+          "authority_class": {
+            "governance_layer": "space_admin",
+            "authority_kind": "direct"
+          },
+          "auth_weight": 600,
+          "payload": {
+            "version": 17
+          },
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        },
+        {
+          "event_id": "cx:event:01js0p20000000000000000000",
+          "kind": "cx.space.policy",
+          "actor_id": "did:web:admin-delegated.example",
+          "auth_refs": [
+            "cx:event:01js0gd0000000000000000000",
+            "cx:event:01js0gx0000000000000000000"
+          ],
+          "authority_class": {
+            "governance_layer": "space_admin",
+            "authority_kind": "delegated",
+            "delegation_depth": 1
+          },
+          "auth_weight": 590,
+          "payload": {
+            "version": 18
+          },
+          "hlc": "01970e589d21-0001-a13f9c2e"
+        }
+      ],
+      "expected": {
+        "winner_event_id": "cx:event:01js0p10000000000000000000",
+        "version": 17,
+        "reason": "same_layer_direct_outranks_delegated"
+      }
+    },
+    {
+      "name": "cross_layer_governance_vs_space_admin",
+      "comment": "Two candidates target the same membership state key. A is signed by an active Organization governance DID (sponsor, scope.official=true); B is signed by direct Space admin. authority_class lattice: A=(organization, direct) > B=(space_admin, direct). A wins regardless of HLC.",
+      "state_key": "did:web:carol.example",
+      "candidates": [
+        {
+          "event_id": "cx:event:01js0r10000000000000000000",
+          "kind": "cx.member.state",
+          "actor_id": "did:web:org-governance.example",
+          "auth_refs": [
+            "cx:event:01js0rg0000000000000000000"
+          ],
+          "authority_class": {
+            "governance_layer": "organization",
+            "authority_kind": "direct"
+          },
+          "auth_weight": 650,
+          "payload": {
+            "membership": "ban",
+            "reason": "org_compliance_action"
+          },
+          "hlc": "01970e589d21-0002-a13f9c2e"
+        },
+        {
+          "event_id": "cx:event:01js0r20000000000000000000",
+          "kind": "cx.member.state",
+          "actor_id": "did:web:space-admin.example",
+          "auth_refs": [
+            "cx:event:01js0gd0000000000000000000"
+          ],
+          "authority_class": {
+            "governance_layer": "space_admin",
+            "authority_kind": "direct"
+          },
+          "auth_weight": 600,
+          "payload": {
+            "membership": "join",
+            "reason": "space_admin_invite_accept"
+          },
+          "hlc": "01970e589d21-0009-a13f9c2e"
+        }
+      ],
+      "expected": {
+        "winner_event_id": "cx:event:01js0r10000000000000000000",
+        "membership": "ban",
+        "reason": "organization_layer_outranks_space_admin"
+      }
+    },
+    {
       "name": "offline_write_concurrent_with_revoke_soft_fails_when_order_unknown",
       "grant_ref": "cx:grant:01js0gr0000000000000000000",
       "events": [

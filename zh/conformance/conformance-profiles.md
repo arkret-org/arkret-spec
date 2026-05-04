@@ -39,7 +39,7 @@ cx.profile.<name>.v<major>
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
-Core identity conformance 只要求 DID Core 解析 / 验证抽象、`did:web` 与 `did:key`。公共网络互操作实现 SHOULD 额外声明 `cx.profile.public_network_identity.v1` 并支持 `did:plc`；组织高保证实现 SHOULD 声明 `cx.profile.org_high_assurance_identity.v1` 并支持 `did:webvh` 或等价 history-bearing DID method。实现不得把 `did:plc` 作为所有 Contrix v1 Core 节点的隐式强制依赖。
+Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（默认 principal method）、`did:web` 与 `did:key`。组织高保证实现 SHOULD 声明 `cx.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence。AT Protocol 互通实现 SHOULD 额外声明 `cx.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Contrix Core 强制依赖。
 
 为避免 Core 范围过大导致实现无法启动，v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
@@ -612,12 +612,13 @@ Moderation profile MUST 额外覆盖：
 
 Identity profile MUST 额外提供：
 
-- `did:plc` method adapter vector
+- `did:webvh` method adapter vector（`did.jsonl` 解析、SCID 派生、entry hash chain 验证、controller proof、witness evidence）
 - `did:web` resolver vector
 - `did:key` local resolver vector
 - key rotation vector
 - recovery vector
 - pairwise DID unlinkability checks
+- AT Protocol interop profile MUST 额外提供 `did:plc` adapter vector
 
 Applet Service / Bridge profile MUST 额外提供：
 

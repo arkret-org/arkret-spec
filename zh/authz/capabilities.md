@@ -46,7 +46,7 @@ Authorization condition: Claim / Attestation
 ID 语义：
 
 - `cx:grant:<ulid>` 是签名 Capability Grant object 的规范 ID，`cx.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
-- `cx:capability:<ulid>` 只表示抽象 capability definition 或 legacy capability reference；不得作为签名 grant object ID 使用。
+- `cx:capability:<ulid>` 只表示抽象 capability definition 引用；不得作为签名 grant object ID 使用。
 
 示例：
 

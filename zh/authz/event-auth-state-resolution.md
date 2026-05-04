@@ -244,7 +244,7 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 - `knock_restricted`：不满足 restricted 条件者可 knock。
 - `closed`：不接受普通加入、knock 或 invite accept；只允许迁移、维护或管理员明确声明的例外流程。
 
-Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请加入。`private`、`open`、`hidden` 等不在本枚举内的取值是无效输入，接收方 MUST 按 `schema_violation` reject，不得静默映射为 `invite`、`closed` 或 `restricted`，否则会掩盖签名 payload 与 policy intent 的差异。Matrix-style legacy import 或 bridge 必须在写入前显式映射到本枚举值，并以新签名事件提交。
+Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请加入。任何不在该 enum 内的取值都是无效输入，接收方 MUST 按 `schema_violation` reject，不得静默映射为合法 enum 值，否则会掩盖签名 payload 与 policy intent 的差异。Matrix-style import 或 bridge 必须在写入前显式映射到本枚举值，并以新签名事件提交。
 
 `cx.space.history_visibility`:
 
@@ -518,7 +518,7 @@ principal control state 的 `state_key` MUST 可从事件内容确定性导出�
 
 - `cx.device.authorized` / `cx.device.revoked`：`["cx.device.authorized" 或 "cx.device.revoked", principal_id, device_id]`
 - `cx.device.list_update`：`["cx.device.list_update", principal_id]`
-- `cx.session.grant`：`["cx.session.grant", grant_id]`；若是不含 `grant_id` 的 legacy payload，使用 `["cx.session.grant", subject, audience, sha256_hex(session_public_key_bytes)]`
+- `cx.session.grant`：`["cx.session.grant", grant_id]`
 
 实现不得使用 pipe 字符串、数据库自增 ID、HTTP receive order 或其它非确定性来源参与 state resolution。
 
@@ -568,7 +568,7 @@ State resolution MUST 受 `../conformance/scalability-constraints.md` 的上限�
    - view definition
    - other state
 6. 组内排序键：
-   - `auth_weight`：按 9.3.2 的确定性函数计算。
+   - `authority_class`：按 9.3.2 的 lattice 偏序计算（高者优先）。
    - `causal_depth`：因果上更新者优先。
    - `hlc`：更大 HLC 优先。
    - `event_id`：字节序更小者作为最终 tie-breaker。
@@ -604,28 +604,60 @@ auth_difference(conflicted_events):
 
 实现 MUST 对 `diff` 中的事件按 state resolution 的 deterministic ordering 排序后再验证授权。若某个 auth event 缺失、hash 不匹配或自身不能 accepted，依赖它的候选事件 MUST soft-fail 或 fail closed，不能把缺失 auth 当作允许。
 
-### 9.3.2 Auth Weight
+### 9.3.2 Authority Class
 
-`auth_weight` 是 state resolution 的排序键，不是额外授权来源。候选事件必须先通过签名、schema、causal dependency、`auth_refs` 和 policy hard deny 检查；未通过者没有 `auth_weight`，不得进入 winner 选择。
+候选事件的授权来源在 state resolution 中表达为一个 **authority class**——两维 lattice 的一个点：
 
-实现 MUST 在候选事件自己的 causal auth state 上计算 `auth_weight`，不得使用接收节点的当前最新状态、HTTP 到达顺序、数据库行号或尚未通过授权的竞争候选。若同一候选事件可由多个 grant / role / issuer 授权，取下列权重中最高者；同权重时按 `delegation_depth` 较小、`grant_event_id` 字节序较小、`issuer_did` 字节序较小继续比较。
+```
+authority_class = (governance_layer, authority_kind)
+```
 
-权重刻度的设计目标是稳定表达授权来源层级，而不是精细概率分数。`700/650/600/550/500` 保留给根治理、组织治理、Space 管理、policy/membership 管理和对象管理，间距用于未来在相邻层级之间插入 profile-specific authority；`400/300/200/100/0` 表达委派、直接动作、自我动作和低风险默认行为。实现不得重新缩放这些数值，也不得新增会跨越上级治理层级的本地权重。
+- `governance_layer` ∈ `{ root, organization, space_admin, policy_membership, object, none }`
+  - `root`：Space create / recovery root（`cx.space.create.payload.object.initial_creators`、Space root recovery key 或治理根明确授权）
+  - `organization`：active `cx.space.organization{relationship=owner|sponsor, scope.official=true}` 绑定的 governance DID / service DID 直接签发，且 action 在声明 scope 内
+  - `space_admin`：active Space admin / creator capability，resource 精确覆盖目标 Space
+  - `policy_membership`：policy / membership / capability 管理 grant，resource 精确覆盖目标 state key
+  - `object`：Flow / Space / Morph / Relation 管理或操作 grant，resource 精确覆盖目标对象
+  - `none`：无具名治理来源；仅由基础 membership / 入场规则允许
+- `authority_kind` ∈ `{ direct, delegated, self }`
+  - `direct`：grant subject 是 actor 本人，未经过委派
+  - `delegated`：通过有效 delegation chain（未过期、未被 revoke、depth 在 profile 限制内）
+  - `self`：actor 对自身 state 的动作（leave、knock、invite accept、read marker），由 join rule / invite / history policy 允许
 
-| weight | 条件 |
-| --- | --- |
-| 700 | Space create / recovery root：由 `cx.space.create.payload.object.initial_creators`、Space root recovery key 或治理根明确授权的事件。 |
-| 650 | Active Organization governance：由 active `cx.space.organization{relationship=owner|sponsor, scope.official=true}` 绑定的 governance DID / service DID 直接签发，且 action 在声明 scope 内。 |
-| 600 | Direct Space admin：候选事件由未委派的 active Space admin / creator capability 授权，resource 精确覆盖目标 Space。 |
-| 550 | Direct policy or membership admin：候选事件由未委派的 policy / membership / capability 管理 grant 授权，resource 精确覆盖目标 state key 或对象。 |
-| 500 | Direct object admin：候选事件由未委派的 Flow / Space / Morph / Relation 管理 grant 授权，resource 精确覆盖目标对象。 |
-| 400 | Delegated admin：由 delegated admin grant 授权，且 delegation chain 有效、未过期、未被 revoke，depth 在 profile 限制内。 |
-| 300 | Delegated action：由 delegated non-admin action grant 授权，且 selector、constraint、claim、approval 均满足。 |
-| 200 | Direct action：由直接 non-admin action grant 授权。 |
-| 100 | Self / admission action：actor 自己的 leave、knock、invite accept、read marker 等自我状态或入场动作，且对应 join rule / invite / history policy 允许。 |
-| 0 | 只通过基础 membership 但没有更高 grant 的低风险 state；仅限具体 event kind 明确允许的场景。 |
+`authority_class` 是 state resolution 的排序键，不是额外授权来源。候选事件必须先通过签名、schema、causal dependency、`auth_refs` 和 policy hard deny 检查；未通过者没有 `authority_class`，不得进入 winner 选择。
 
-Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 approval、未知 critical constraint、claim revocation 无法确认且该 claim 为必要条件时，MUST 在计算权重前使候选事件 fail closed、soft fail 或 quarantine。它们不得通过高 `auth_weight` 被覆盖。
+实现 MUST 在候选事件自己的 causal auth state 上计算 `authority_class`，不得使用接收节点的当前最新状态、HTTP 到达顺序、数据库行号或尚未通过授权的竞争候选。若同一候选事件可由多个 grant / role / issuer 授权，取 lattice 上最高的一个；同 class 时按 `delegation_depth` 较小、`grant_event_id` 字节序较小、`issuer_did` 字节序较小继续比较。
+
+#### 偏序定义
+
+A `≻` B（A 严格优于 B）当且仅当：
+
+1. `governance_layer(A)` 严格高于 `governance_layer(B)`（按上面顺序，`root > organization > space_admin > policy_membership > object > none`），或
+2. `governance_layer(A) == governance_layer(B)` 且 `authority_kind(A)` 在同 layer 内严格优于 `authority_kind(B)`（`direct > delegated > self`，`none` 视作最低）。
+
+`authority_kind=self` 仅在该 event kind 明确允许的 self/admission 范围内有意义；其他 layer 上的 `self` 视作 `none`。
+
+#### 派生 scalar `auth_weight`
+
+为方便 fixture、审计视图与诊断输出，可从 lattice 派生稳定 scalar：
+
+| `governance_layer` | `direct` | `delegated` | `self` |
+| --- | --- | --- | --- |
+| `root` | 700 | — | — |
+| `organization` | 650 | 640 | — |
+| `space_admin` | 600 | 590 | — |
+| `policy_membership` | 550 | 540 | — |
+| `object` | 500 | 490 | — |
+| `none` (action surface) | 200 | 190 | 100 |
+| `none` (no grant) | — | — | 0 |
+
+注意事项：
+
+- `auth_weight` 是 lattice 的派生展示，**不是规范决策依据**。实现 MUST 用 lattice 偏序排序；当两份实现的 lattice 偏序结果一致而 scalar 不一致时，以 lattice 为准。
+- `auth_weight` 间距（10）保留给将来同 layer 的细粒度授权来源（profile-specific authority、emergency override 等），新增条目 MUST 落入既有 layer，不得跨越上级 layer。
+- 实现不得用本地权重表覆盖 lattice 偏序定义。
+
+Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 approval、未知 critical constraint、claim revocation 无法确认且该 claim 为必要条件时，MUST 在计算 `authority_class` 前使候选事件 fail closed、soft fail 或 quarantine。它们不得通过高 `authority_class` 被覆盖。
 
 ## 10. Redaction
 

@@ -47,7 +47,6 @@
 | `aad` | object | 是 | 附加认证数据 |
 | `aad.space_id` | id:space | 是 | 用于路由和授权的 Space |
 | `aad.event_kind` | string | 是 | 用于路由的 Event kind；MUST 使用标准 `kind` 命名规则，允许多段 kind。 |
-| `aad.event_type` | string | 否 | 旧字段名；不得在新 envelope 中生成。接收方 MAY 作为兼容输入读取，但 MUST 归一为 `event_kind` 后再参与 AAD digest。 |
 | `aad.event_id` | id:event | 条件 | `aad_visibility.event_id="opaque_id"` 时可见。 |
 | `aad.event_ref_hash` | hash | 条件 | `aad_visibility.event_id="routing_hash"` 时使用，hash 输入必须由 profile 固定。 |
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可用 `causal_ref_hashes` 替代。 |
@@ -55,16 +54,10 @@
 | `key_ref` | object | 条件 | 密钥材料引用（对接收方可选） |
 | `key_ref.algorithm` | string | 条件 | `mls-rfc9420` profile 中为 `MLS`；未来 profile 必须注册自己的值。 |
 | `key_ref.group_state_ref` | id:event/hash | 否 | 可指向已 accepted 的 `cx.mls.genesis`、`cx.mls.epoch` 或等价 group state proof，用于加速 lookup；不得替代 MLS transcript 验证。 |
-| `key_ref.ratchet_tree` | string | 否 | 旧兼容字段；新 `mls-rfc9420` application envelope MUST NOT 生成。Ratchet tree 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 管理，不能在每条消息中作为权威树传输。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes || encrypted_payload_bytes)`；输入定义见第 3.3 节。若 profile 拆出 `authentication_tag`，tag MUST 纳入 `encrypted_payload_bytes`。 |
 | `aad_digest` | hash | 是 | 规范 AAD 的 SHA256 |
 
-`aad.event_type` 废弃时间线：
-
-- `space_version=1` producer MUST 生成 `aad.event_kind`，MUST NOT 生成 `aad.event_type`。
-- `space_version=1` receiver MAY 在 schema validation 前接受 legacy raw AAD 中只有 `event_type` 的 envelope，但必须先归一为 `event_kind`，再计算 `aad_digest`、执行 schema validation 和 MLS authenticated data 验证。
-- raw AAD 同时包含 `event_kind` 与 `event_type` 时，若两者不同 MUST reject 为 `schema_violation` / `aad_ambiguous_kind`；若两者相同，receiver MAY 归一化时丢弃 `event_type`，但不得把 `event_type` 纳入 canonical AAD digest。
-- 自 `space_version=2` 起，任何 raw encrypted envelope 中出现 `aad.event_type` 都 MUST reject；不得继续兼容读取。
+Ratchet tree MUST 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 管理，不得在每条消息的 envelope 中重复传输。
 
 ## 3. 附加认证数据 (AAD)
 
@@ -110,9 +103,8 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 `payload_digest` 的输入必须完全确定，不得使用实现本地对象序列化结果。
 
-1. Receiver 先把 raw AAD 归一化：若只含 legacy `event_type`，按第 2.2 节转换为 `event_kind`；若同时包含二者且不同，MUST reject；归一化后的 AAD 不再包含 `event_type`。
-2. `aad_bytes = canonical_json(normalized_aad)`，`aad_digest = sha256(aad_bytes)`。
-3. `payload_metadata` 是以下对象的 canonical JSON，字段缺失时不得写入 null：
+1. `aad_bytes = canonical_json(aad)`，`aad_digest = sha256(aad_bytes)`。
+2. `payload_metadata` 是以下对象的 canonical JSON，字段缺失时不得写入 null：
 
 ```json
 {
@@ -296,8 +288,6 @@ Actor 设备发布 KeyPackage 用于 MLS。Wire 形态以 [`device-crypto-verifi
 - `device_id`：发布 KeyPackage 的 device 的 typed ID。
 - `device_signature`：由该 device 的当前签名 key 对 canonical KeyPackage bytes（不含 `device_signature` 自身）做的 detached 签名。
 - `single_use=true` 时 KeyPackage 被消费后立即失效，不得用于第二个 Welcome。
-
-旧字段名 `actor_id` 与单字段 `signature` 已废弃，仅作为兼容性输入读取；新 KeyPackage MUST 使用 `principal_id` + `device_id` + `device_signature`。
 
 ### 8.2 Epoch 变更
 
