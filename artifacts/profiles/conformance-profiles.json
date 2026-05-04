@@ -451,7 +451,11 @@
         "cx.keys.keypackages.upload",
         "cx.keys.keypackages.claim",
         "cx.keys.keypackages.consume",
-        "cx.keys.keypackages.revoke"
+        "cx.keys.keypackages.revoke",
+        "cx.keys.backups.put",
+        "cx.keys.backups.list",
+        "cx.keys.backups.get",
+        "cx.keys.backups.delete"
       ],
       "required_event_kinds": [
         "cx.device.authorized",
@@ -468,7 +472,8 @@
       ],
       "required_schemas": [
         "cx.schema.encrypted_payload.v1",
-        "cx.schema.media_metadata.v1"
+        "cx.schema.media_metadata.v1",
+        "cx.schema.key_backup.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -482,9 +487,10 @@
       ],
       "feature_discovery": {
         "required": [
-          "supported_mls_version",
-          "keypackage_lifecycle",
-          "decryption_pending"
+        "supported_mls_version",
+        "keypackage_lifecycle",
+        "decryption_pending",
+        "encrypted_key_backup"
         ],
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       }

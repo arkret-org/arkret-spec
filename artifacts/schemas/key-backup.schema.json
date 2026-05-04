@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/key-backup.schema.json",
+  "title": "Contrix Encrypted Key Backup",
+  "type": "object",
+  "required": [
+    "backup_id",
+    "actor_id",
+    "backup_class",
+    "backup_version",
+    "created_at",
+    "encryption",
+    "contents",
+    "ciphertext",
+    "ciphertext_digest"
+  ],
+  "properties": {
+    "backup_id": {
+      "type": "string",
+      "pattern": "^cx:backup:[0-9a-hjkmnp-z]{26}$"
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:.+$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$"
+    },
+    "backup_class": {
+      "type": "string",
+      "enum": [
+        "did_recovery",
+        "secret_storage",
+        "mls_history"
+      ]
+    },
+    "backup_version": {
+      "type": "string",
+      "pattern": "^kb_[A-Za-z0-9_-]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "encryption": {
+      "type": "object",
+      "required": [
+        "recipient_method",
+        "aead"
+      ],
+      "properties": {
+        "recipient_method": {
+          "type": "string",
+          "enum": [
+            "passphrase_kdf",
+            "recovery_public_key",
+            "secret_storage_key",
+            "threshold_recovery",
+            "hardware_wrapped_key"
+          ]
+        },
+        "recipient_key_ref": {
+          "type": "string"
+        },
+        "kdf": {
+          "type": "object",
+          "required": [
+            "name",
+            "salt"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "enum": [
+                "argon2id",
+                "pbkdf2"
+              ]
+            },
+            "salt": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "degraded_profile_reason": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        "aead": {
+          "type": "object",
+          "required": [
+            "name",
+            "nonce"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "enum": [
+                "xchacha20_poly1305",
+                "aes_256_gcm"
+              ]
+            },
+            "nonce": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          },
+          "additionalProperties": true
+        },
+        "key_commitment": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "recipient_method": {
+                "const": "passphrase_kdf"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "kdf"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "contents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "item_type"
+        ],
+        "properties": {
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "recovery_key_share",
+              "self_signing_key",
+              "user_signing_key",
+              "recovery_secret",
+              "mls_group_secrets_backup_key",
+              "mls_group_state",
+              "mls_epoch_secret",
+              "pending_welcome",
+              "private_account_state"
+            ]
+          },
+          "space_id": {
+            "type": "string",
+            "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+          },
+          "mls_group_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "epoch": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "first_event_id": {
+            "type": "string",
+            "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+          },
+          "last_event_id": {
+            "type": "string",
+            "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+          },
+          "secret_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "ciphertext": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "ciphertext_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "plaintext_commitment": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "auth_data": {
+      "type": "object",
+      "properties": {
+        "device_id": {
+          "type": "string",
+          "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$"
+        },
+        "verification_method": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "retention": {
+      "type": "object",
+      "properties": {
+        "delete_after": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "legal_hold": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -80,7 +80,7 @@ DID Document SHOULD 只负责：
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
-| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/keys/keypackages`, `/server` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、key backup metadata。 |
+| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/keys/keypackages`, `/keys/backups`, `/server` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
 | Authz / Policy Server | 个人可内置；共享 Space 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Space、third-party lookup。 |

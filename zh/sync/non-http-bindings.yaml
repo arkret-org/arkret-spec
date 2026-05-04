@@ -85,6 +85,10 @@ grpc:
       KeyPackagesClaim: cx.keys.keypackages.claim
       KeyPackagesConsume: cx.keys.keypackages.consume
       KeyPackagesRevoke: cx.keys.keypackages.revoke
+      BackupsPut: cx.keys.backups.put
+      BackupsList: cx.keys.backups.list
+      BackupsGet: cx.keys.backups.get
+      BackupsDelete: cx.keys.backups.delete
     Blob:
       Upload: cx.blob.upload
       Get: cx.blob.get
@@ -168,6 +172,10 @@ mq:
     keys.keypackages.claim: cx.keys.keypackages.claim
     keys.keypackages.consume: cx.keys.keypackages.consume
     keys.keypackages.revoke: cx.keys.keypackages.revoke
+    keys.backups.put: cx.keys.backups.put
+    keys.backups.list: cx.keys.backups.list
+    keys.backups.get: cx.keys.backups.get
+    keys.backups.delete: cx.keys.backups.delete
     moderation.report: cx.moderation.report
     mimi.provider_directory: cx.mimi.provider_directory
     mimi.key_material: cx.mimi.key_material

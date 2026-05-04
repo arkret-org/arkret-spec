@@ -1756,6 +1756,59 @@ paths:
       responses:
         "200":
           description: MLS KeyPackage revoke result
+  /keys/backups/{backup_id}:
+    put:
+      operationId: cx.keys.backups.put
+      parameters:
+        - in: path
+          name: backup_id
+          required: true
+          schema:
+            type: string
+            pattern: "^cx:backup:[0-9a-hjkmnp-z]{26}$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/key-backup.schema.json
+      responses:
+        "200":
+          description: Encrypted key backup stored
+    get:
+      operationId: cx.keys.backups.get
+      parameters:
+        - in: path
+          name: backup_id
+          required: true
+          schema:
+            type: string
+            pattern: "^cx:backup:[0-9a-hjkmnp-z]{26}$"
+      responses:
+        "200":
+          description: Encrypted key backup object
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/key-backup.schema.json
+    delete:
+      operationId: cx.keys.backups.delete
+      parameters:
+        - in: path
+          name: backup_id
+          required: true
+          schema:
+            type: string
+            pattern: "^cx:backup:[0-9a-hjkmnp-z]{26}$"
+      responses:
+        "200":
+          description: Encrypted key backup deleted
+  /keys/backups:
+    get:
+      operationId: cx.keys.backups.list
+      responses:
+        "200":
+          description: Encrypted key backup metadata list
   /moderation/report:
     post:
       operationId: cx.moderation.report

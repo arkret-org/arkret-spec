@@ -89,6 +89,10 @@
       "file": "schemas/encrypted-envelope.schema.json"
     },
     {
+      "schema_id": "cx.schema.key_backup.v1",
+      "file": "schemas/key-backup.schema.json"
+    },
+    {
       "schema_id": "cx.schema.notification.v1",
       "file": "schemas/notification.schema.json"
     },

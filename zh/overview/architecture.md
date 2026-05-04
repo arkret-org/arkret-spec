@@ -167,7 +167,7 @@ Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部�
 | Sync / Federation Server | `principal_server` 或 `sync_node` | client sync、Space subscription、backfill、snapshot head、跨域 federation transaction。 | 否；只传播和回补。 | 只能把非加密私有内容发给授权 Principal Server 或 `plaintext_visible_services`。 |
 | Directory Server | `directory_service` | Space / Organization / Actor / handle / Applet 的授权搜索与精确解析。 | 否；派生发现层。 | 只返回最小可发现信息，不应暴露私有拓扑。 |
 | Blob / Media Server | `blob_node` / `media_service` | blob upload、HEAD / GET authenticated download、thumbnail、preview、retention、media policy。 | 内容 hash 可验证；metadata 是服务声明。 | 私有 blob 下载、预览和缩略图必须按授权执行。 |
-| Device / Key Server | `device_key_service` | to-device message、one-time key、fallback key、device list、secret backup metadata。 | 否；设备信任来自签名链。 | 不应能解密 E2EE 正文。 |
+| Device / Key Server | `device_key_service` | to-device message、one-time key、fallback key、device list、encrypted secret/key backup metadata 和 ciphertext。 | 否；设备信任来自签名链。 | 不应能解密 E2EE 正文或备份密文。 |
 | Authz / Policy Server | `authz_service` / `policy_server` | capability 查询、grant / invite 查询、policy decision、risk score、quarantine / review。 | 否；决策必须可追溯到签名 policy / grant。 | policy preview 只能接收最小披露字段，除非显式明文授权。 |
 | Push Gateway | `push_gateway` | push device register / unregister、脱敏通知投递、移动平台适配。 | 否。 | 默认不得接收 E2EE 明文或正文摘要。 |
 | Applet Server | `applet_service` | bot、bridge、外部 SaaS、portal Space、ghost actor、Applet transaction。 | 否；写入仍需 capability 和签名。 | 只在 Space / principal 明确授权范围内可见明文。 |

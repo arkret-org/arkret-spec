@@ -233,6 +233,16 @@ paths:
   /keys/keypackages/revoke:
     post:
       operationId: cx.keys.keypackages.revoke
+  /keys/backups/{backup_id}:
+    put:
+      operationId: cx.keys.backups.put
+    get:
+      operationId: cx.keys.backups.get
+    delete:
+      operationId: cx.keys.backups.delete
+  /keys/backups:
+    get:
+      operationId: cx.keys.backups.list
 
   /auth/account/session-grants:
     post:
@@ -323,6 +333,7 @@ paths:
 | `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |
 | `cx.device_messages.put` / `cx.device_messages.get` | `PUT /device_messages/{txn_id}`, `GET /device_messages` | MQ device topic / 本地 IPC |
 | `cx.keys.upload` / `cx.keys.query` / `cx.keys.claim` | `POST /keys/upload`, `POST /keys/query`, `POST /keys/claim` | E2EE key service binding |
+| `cx.keys.backups.put` / `cx.keys.backups.list` / `cx.keys.backups.get` / `cx.keys.backups.delete` | `PUT /keys/backups/{backup_id}`, `GET /keys/backups`, `GET /keys/backups/{backup_id}`, `DELETE /keys/backups/{backup_id}` | Encrypted key backup storage binding |
 | `cx.authz.check` / `cx.authz.get_effective_grants` / `cx.authz.get_invites` | `POST /authz/check`, `GET /authz/effective-grants`, `GET /authz/invites` | gRPC / policy 插件回调 |
 | `cx.policy.check` | `POST /contrix/v1/check` | policy 本地调用 |
 | `cx.media.ice_config` | `POST /contrix/v1/ice-config` | Media service / TURN credential adapter |
@@ -385,6 +396,10 @@ paths:
 | `extension` | `device_and_keys` | `cx.keys.keypackages.claim` | `POST /keys/keypackages/claim` | `Keys/KeyPackagesClaim` | `keys.keypackages.claim` |
 | `extension` | `device_and_keys` | `cx.keys.keypackages.consume` | `POST /keys/keypackages/consume` | `Keys/KeyPackagesConsume` | `keys.keypackages.consume` |
 | `extension` | `device_and_keys` | `cx.keys.keypackages.revoke` | `POST /keys/keypackages/revoke` | `Keys/KeyPackagesRevoke` | `keys.keypackages.revoke` |
+| `extension` | `device_and_keys` | `cx.keys.backups.put` | `PUT /keys/backups/{backup_id}` | `Keys/BackupsPut` | `keys.backups.put` |
+| `extension` | `device_and_keys` | `cx.keys.backups.list` | `GET /keys/backups` | `Keys/BackupsList` | `keys.backups.list` |
+| `extension` | `device_and_keys` | `cx.keys.backups.get` | `GET /keys/backups/{backup_id}` | `Keys/BackupsGet` | `keys.backups.get` |
+| `extension` | `device_and_keys` | `cx.keys.backups.delete` | `DELETE /keys/backups/{backup_id}` | `Keys/BackupsDelete` | `keys.backups.delete` |
 | `extension` | `push` | `cx.push.register_device` | `POST /push/register-device` | `Push/RegisterDevice` | `push.register_device` |
 | `extension` | `push` | `cx.push.unregister_device` | `POST /push/unregister-device` | `Push/UnregisterDevice` | `push.unregister_device` |
 | `extension` | `push` | `cx.push.notify` | `POST /push/notify` | `Push/Notify` | `push.notify` |

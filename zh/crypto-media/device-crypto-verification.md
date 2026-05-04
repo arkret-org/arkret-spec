@@ -399,21 +399,44 @@ Secret storage envelope：
 }
 ```
 
-服务端只存密文。恢复口令、recovery key 或硬件密钥不得上传。
+服务端只存密文。恢复口令、recovery key、硬件解锁材料或任何可直接解密 secret storage 的材料不得上传。
+
+当 secret storage 同步到 Device / Key Server 时，MUST 使用 `cx.schema.key_backup.v1`，并设置 `backup_class="secret_storage"`。服务端 MAY 存储 backup metadata、ciphertext、ciphertext digest、retention metadata 和设备签名；不得读取、重包或替换密文中的 secret。
 
 ## 10. Key Backup
 
-Key backup 保存已加密的 Space / MLS 历史密钥材料。备份单元：
+Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当前 actor 已经通过 membership、history visibility 和 Space policy 获得的历史范围，不是给未来新成员预先保留历史 secret 的机制。
+
+备份单元使用 `cx.schema.key_backup.v1`，并设置 `backup_class="mls_history"`。示例：
 
 ```json
 {
+  "backup_id": "cx:backup:01js0kh0000000000000000000",
+  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "device_id": "cx:device:01js0ke0000000000000000000",
+  "backup_class": "mls_history",
   "backup_version": "kb_1",
-  "space_id": "cx:space:...",
-  "epoch": 42,
-  "session_id": "mls_epoch_42",
-  "first_event_id": "cx:event:...",
-  "last_event_id": "cx:event:...",
+  "created_at": "2026-04-26T00:00:00Z",
+  "encryption": {
+    "recipient_method": "secret_storage_key",
+    "recipient_key_ref": "mls_group_secrets_backup_key",
+    "aead": {
+      "name": "xchacha20_poly1305",
+      "nonce": "base64url..."
+    }
+  },
+  "contents": [
+    {
+      "item_type": "mls_epoch_secret",
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "mls_group_id": "base64url",
+      "epoch": 42,
+      "first_event_id": "cx:event:01js0ev0000000000000000000",
+      "last_event_id": "cx:event:01js0ew0000000000000000000"
+    }
+  ],
   "ciphertext": "base64url...",
+  "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_data": {
     "device_id": "cx:device:01js0ke0000000000000000000",
     "signature": "base64url..."
@@ -422,6 +445,30 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。备份单元：
 ```
 
 备份 MUST 加密给 recovery public key 或 secret storage key。服务端 MUST NOT 能解密。
+
+规则：
+
+- 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
+- 上传设备 MUST 对 backup metadata 与 ciphertext digest 签名，签名链必须链接到当前 principal 的 self-signing / device trust chain。
+- 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
+- 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Space membership、MLS group id 或历史范围。
+- 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Space membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
+- 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Space history visibility。
+
+### 10.1 Backup API
+
+Device / Key Server 对 encrypted backup object 提供标准操作：
+
+```http
+PUT /api/v1/keys/backups/{backup_id}
+GET /api/v1/keys/backups
+GET /api/v1/keys/backups/{backup_id}
+DELETE /api/v1/keys/backups/{backup_id}
+```
+
+`PUT` 请求体 MUST 是 `cx.schema.key_backup.v1`，且 path 中的 `backup_id` MUST 与 body 中的 `backup_id` 一致。`PUT` 按 `(actor_id, backup_id)` 幂等；同一 `backup_id` 若提交不同 canonical content MUST 返回冲突错误。
+
+`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints。`get` 返回完整 encrypted backup object。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明。
 
 ## 11. Space / Branch Key Share and Withholding
 

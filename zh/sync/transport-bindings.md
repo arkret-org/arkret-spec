@@ -73,6 +73,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.applet.describe` | 查询 Applet profile、namespace 与限制。 |
 | `cx.device_messages.put` | 发送 to-device message。 |
 | `cx.keys.upload` / `cx.keys.query` / `cx.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
+| `cx.keys.backups.put` / `cx.keys.backups.list` / `cx.keys.backups.get` / `cx.keys.backups.delete` | 加密密钥备份对象存储、枚举、读取与删除。 |
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 

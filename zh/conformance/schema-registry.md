@@ -43,6 +43,7 @@
 | `cx.schema.read_receipt.v1` | Read Receipt |
 | `cx.schema.blob.v1` | Blob Metadata |
 | `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
+| `cx.schema.key_backup.v1` | Encrypted Key Backup |
 | `cx.schema.client_sync_response.v1` | Client Sync Response |
 | `cx.schema.device_message.v1` | To-device Message Envelope |
 | `cx.schema.mimi_interop.v1` | MIMI Provider Directory / Room Binding / Mapping Receipt |

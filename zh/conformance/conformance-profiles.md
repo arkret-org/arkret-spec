@@ -191,6 +191,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - epoch mismatch recovery
 - encrypted payload envelope
 - encrypted attachment envelope
+- encrypted key backup object and backup CRUD for `did_recovery` / `secret_storage` / `mls_history`
 - device revocation handling
 - lost-device response
 - local plaintext search for encrypted content

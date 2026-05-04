@@ -246,47 +246,77 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 
 ### 7.1 备份内容
 
-备份 MAY 包含：
+Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 中声明备份域，且不得把一个域的解锁材料当作另一个域的授权证明：
 
-- recovery key share
-- device state
-- encrypted private account data cache
-- MLS group state
-- pending Welcome
-- private account state
+- `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `cx.device.authorized` 等操作。
+- `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。
+- `mls_history`：保存用户已有权读取的 Space / Flow branch 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
+
+以下材料 MAY 进入客户端加密备份，但 MUST 只以密文形式保存：
+
+- recovery key share 或门限 share。
+- `self_signing_key`、`user_signing_key` 和 recovery secret。
+- MLS group secrets backup key。
+- MLS group state、历史 epoch key material、pending Welcome。
+- encrypted private account data cache 和 private account state。
+
+以下材料 MUST NOT 进入普通在线密钥备份：
+
+- 当前设备的 device private key。新设备 MUST 本地生成新 device key，再由有效设备或 recovery policy 授权。
+- session key、refresh token 或浏览器临时会话材料。
+- 已发布或已领取的 MLS KeyPackage private key；设备 SHOULD 重新生成 KeyPackage。
+- 明文 principal signing key、inception key 或完整 recovery private key。高权限根材料只能离线保存、硬件保护或门限封装；若以备份形式存在，也必须拆分或封装为 `did_recovery` 域，且不能被服务端解密。
 
 备份 MUST NOT 以明文保存私钥。
 
 ### 7.2 Backup Envelope
 
-建议格式：
+标准备份对象使用 `cx.schema.key_backup.v1`。服务端只校验 envelope metadata、访问控制和签名，不得要求上传解锁口令、recovery private key、硬件解锁材料或任何可直接解密 ciphertext 的 secret。
+
+示例：
 
 ```json
 {
-  "type": "key_backup",
-  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "backup_id": "cx:backup:01js0ke0000000000000000000",
+  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "device_id": "cx:device:01js0ke0000000000000000000",
+  "backup_class": "secret_storage",
+  "backup_version": "kb_1",
   "created_at": "2026-04-26T00:00:00Z",
-  "kdf": {
-    "name": "argon2id",
-    "params": {
-      "memory_kib": 65536,
-      "iterations": 3,
-      "parallelism": 1
+  "encryption": {
+    "recipient_method": "passphrase_kdf",
+    "kdf": {
+      "name": "argon2id",
+      "salt": "base64url...",
+      "params": {
+        "memory_kib": 65536,
+        "iterations": 3,
+        "parallelism": 1
+      }
     },
-    "salt": "base64url..."
+    "aead": {
+      "name": "xchacha20_poly1305",
+      "nonce": "base64url..."
+    },
+    "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
   },
-  "aead": {
-    "name": "xchacha20_poly1305",
-    "nonce": "base64url..."
-  },
+  "contents": [
+    {"item_type": "self_signing_key", "secret_id": "self_signing_key"},
+    {"item_type": "user_signing_key", "secret_id": "user_signing_key"}
+  ],
   "ciphertext": "base64url...",
-  "commitment": "sha256:..."
+  "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "auth_data": {
+    "device_id": "cx:device:01js0ke0000000000000000000",
+    "signature": "base64url..."
+  }
 }
 ```
 
 实现 SHOULD 使用现代 KDF，例如 Argon2id。  
-如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 SHOULD 在 profile 中声明降级。
+如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。新创建的云保险箱不得默认使用 PBKDF2。
+
+`ciphertext_digest` 覆盖密文字节，`plaintext_commitment` 若存在只用于本地完整性或跨设备一致性检查；服务端不得要求知道明文 hash 才能存储或返回备份。
 
 ### 7.3 恢复流程
 
@@ -298,6 +328,8 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 4. 客户端验证 backup commitment。
 5. 客户端用 recovery policy 发布 `recover` 或 `cx.device.authorized`。
 6. 若涉及 E2EE Space，客户端拉取 MLS state 并处理 epoch 缺口。
+
+恢复 device key 时 MUST 生成新的 device key，不得把备份中的旧设备身份克隆到新设备。恢复出的 `self_signing_key` / `user_signing_key` 可用于重建 cross-signing 状态，但 Cross-Signing Reset 仍必须满足 `device-crypto-verification.md` 的高风险证明要求。
 
 ### 7.4 所有权证明与解密证明
 

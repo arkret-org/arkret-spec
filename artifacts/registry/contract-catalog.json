@@ -1122,6 +1122,10 @@
         "file": "schemas/encrypted-envelope.schema.json"
       },
       {
+        "schema_id": "cx.schema.key_backup.v1",
+        "file": "schemas/key-backup.schema.json"
+      },
+      {
         "schema_id": "cx.schema.notification.v1",
         "file": "schemas/notification.schema.json"
       },
@@ -1598,7 +1602,11 @@
           "cx.keys.keypackages.upload",
           "cx.keys.keypackages.claim",
           "cx.keys.keypackages.consume",
-          "cx.keys.keypackages.revoke"
+          "cx.keys.keypackages.revoke",
+          "cx.keys.backups.put",
+          "cx.keys.backups.list",
+          "cx.keys.backups.get",
+          "cx.keys.backups.delete"
         ]
       },
       {
@@ -1962,6 +1970,30 @@
         "http": "POST /keys/claim",
         "grpc": "Keys/Claim",
         "mq": "keys.claim"
+      },
+      {
+        "operation_id": "cx.keys.backups.delete",
+        "http": "DELETE /keys/backups/{backup_id}",
+        "grpc": "Keys/BackupsDelete",
+        "mq": "keys.backups.delete"
+      },
+      {
+        "operation_id": "cx.keys.backups.get",
+        "http": "GET /keys/backups/{backup_id}",
+        "grpc": "Keys/BackupsGet",
+        "mq": "keys.backups.get"
+      },
+      {
+        "operation_id": "cx.keys.backups.list",
+        "http": "GET /keys/backups",
+        "grpc": "Keys/BackupsList",
+        "mq": "keys.backups.list"
+      },
+      {
+        "operation_id": "cx.keys.backups.put",
+        "http": "PUT /keys/backups/{backup_id}",
+        "grpc": "Keys/BackupsPut",
+        "mq": "keys.backups.put"
       },
       {
         "operation_id": "cx.keys.keypackages.claim",
