@@ -245,8 +245,10 @@ Flow 通过两层语义表达差异：
   "brief": "同步 owner、决策和 blocker。",
   "summary": "内容与讨论收敛在同一个 Flow 内。",
   "body": {
+    "type": "cx.content.text",
+    "body": "Please finish the final review.",
     "format": "markdown",
-    "text": "Please finish the final review."
+    "formatted_body": "Please finish the final review."
   },
   "fields": {
     "status": "review",
@@ -347,8 +349,10 @@ Space (kind=board)/Space (kind=list) 中的 Flow 示例：
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Review launch checklist",
   "body": {
+    "type": "cx.content.text",
+    "body": "Please finish the final review.",
     "format": "markdown",
-    "text": "Please finish the final review."
+    "formatted_body": "Please finish the final review."
   },
   "fields": {
     "status": "review",
@@ -393,8 +397,10 @@ Message 是 Flow `discussion` branch 时间线中的原子消息对象。
   "branch": "discussion",
   "created_by": "did:web:alice.example",
   "content": {
+    "type": "cx.content.text",
+    "body": "@bob 请确认这个 item 的 legal 风险。",
     "format": "markdown",
-    "text": "@bob 请确认这个 item 的 legal 风险。"
+    "formatted_body": "<mention did=\"did:web:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
   "fields": {
     "revision_root": "cx:message:01js0ms0000000000000000000",

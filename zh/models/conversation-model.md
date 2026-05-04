@@ -85,8 +85,10 @@ Message 是 Flow `discussion` branch 时间线中的原子消息对象。
   "branch": "discussion",
   "created_by": "did:web:alice.example.com",
   "content": {
+    "type": "cx.content.text",
+    "body": "@bob 请确认这个 flow 的 legal 风险。",
     "format": "markdown",
-    "text": "@bob 请确认这个 flow 的 legal 风险。"
+    "formatted_body": "<mention did=\"did:web:bob.example.com\">@bob</mention> 请确认这个 flow 的 legal 风险。"
   },
   "fields": {
     "revision_root": "cx:message:01js1000000000000000000002",
@@ -101,6 +103,8 @@ message 与 flow/reply/mention 的关系使用 Relation 或 message 字段表达
 - `message --replies_to--> message`
 - `message --mentions--> actor / flow / morph`
 - `message --references--> flow / space / morph / blob`
+
+`cx.message.create` / `cx.message.revise` Event payload 中的消息正文 MUST 放在 `content` 字段内，并使用 `content-types.md` 定义的 Content Block。`flow_id`、`message_id`、`reply_to` 等字段只作为路由、目标或关系 metadata，不能替代 `content.type` / `content.body`。
 
 ## 5. Flow 默认入口与转换
 

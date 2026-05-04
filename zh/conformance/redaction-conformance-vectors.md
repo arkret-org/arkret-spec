@@ -34,7 +34,11 @@ cx.vector.redaction.preserve_fields.v1
     "prev_refs": [],
     "auth_refs": [],
     "content": {
-      "body": "private notes",
+      "flow_id": "cx:flow:01js0mrd000000000000000000",
+      "content": {
+        "type": "cx.content.text",
+        "body": "private notes"
+      },
       "mentions": ["@bob"],
       "attachments": ["hash:img1", "hash:img2"],
       "fields": {
@@ -132,7 +136,13 @@ cx.vector.redaction.policy_scope.v1
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "state_key": "tx1",
-      "content": { "body": "bad link: spam.example/phish" }
+      "content": {
+        "flow_id": "cx:flow:01js0qv1000000000000000000",
+        "content": {
+          "type": "cx.content.text",
+          "body": "bad link: spam.example/phish"
+        }
+      }
     },
     {
       "event_id": "cx:event:01js0qv2c00000000000000000",

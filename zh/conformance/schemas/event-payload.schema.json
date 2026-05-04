@@ -66,6 +66,65 @@
       "type": "string",
       "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$"
     },
+    "content_type": {
+      "type": "string",
+      "pattern": "^(cx\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
+    },
+    "content_block": {
+      "type": "object",
+      "required": [
+        "type",
+        "body"
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/content_type"
+        },
+        "body": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "plain",
+            "markdown",
+            "prosemirror_json"
+          ]
+        },
+        "formatted_body": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/content_block"
+          }
+        },
+        "reply_context": {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "$ref": "#/$defs/message_id"
+            },
+            "sender": {
+              "$ref": "#/$defs/did"
+            },
+            "excerpt": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
     "relation_id": {
       "type": "string",
       "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
@@ -117,8 +176,8 @@
     },
     "patch_path": {
       "type": "string",
-      "description": "Contrix field patch path. Segments are snake_case identifiers or backtick-quoted literals; array indexes are not part of cx.patch.v1.",
-      "pattern": "^(?:[a-z_][a-z0-9_]*|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`)(?:\\.(?:[a-z_][a-z0-9_]*|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`))*$"
+      "description": "Contrix field patch path. Segments are snake_case identifiers, optional stable-key selectors such as branches[name=discussion], or backtick-quoted literals; numeric array indexes are not part of cx.patch.v1.",
+      "pattern": "^(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`)(?:\\.(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`))*$"
     },
     "patch_operation": {
       "type": "object",
@@ -522,22 +581,12 @@
       "anyOf": [
         {
           "required": [
-            "body"
-          ]
-        },
-        {
-          "required": [
-            "blocks"
+            "content"
           ]
         },
         {
           "required": [
             "encrypted_payload"
-          ]
-        },
-        {
-          "required": [
-            "blob_refs"
           ]
         }
       ],
@@ -548,14 +597,8 @@
         "message_id": {
           "$ref": "#/$defs/message_id"
         },
-        "body": {
-          "type": "string"
-        },
-        "blocks": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
+        "content": {
+          "$ref": "#/$defs/content_block"
         },
         "encrypted_payload": {
           "type": "object"
@@ -574,20 +617,38 @@
     },
     "message_revise_content": {
       "type": "object",
-      "anyOf": [
+      "allOf": [
         {
-          "required": [
-            "message_id"
+          "anyOf": [
+            {
+              "required": [
+                "message_id"
+              ]
+            },
+            {
+              "required": [
+                "target_ref"
+              ]
+            },
+            {
+              "required": [
+                "revision_of"
+              ]
+            }
           ]
         },
         {
-          "required": [
-            "target_ref"
-          ]
-        },
-        {
-          "required": [
-            "revision_of"
+          "anyOf": [
+            {
+              "required": [
+                "content"
+              ]
+            },
+            {
+              "required": [
+                "encrypted_payload"
+              ]
+            }
           ]
         }
       ],
@@ -601,14 +662,8 @@
         "revision_of": {
           "$ref": "#/$defs/message_id"
         },
-        "body": {
-          "type": "string"
-        },
-        "blocks": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
+        "content": {
+          "$ref": "#/$defs/content_block"
         },
         "encrypted_payload": {
           "type": "object"
@@ -1670,6 +1725,9 @@
           "$ref": "#/$defs/mls_proposal_content"
         },
         {
+          "$ref": "#/$defs/mls_genesis_content"
+        },
+        {
           "$ref": "#/$defs/mls_welcome_content"
         },
         {
@@ -1731,6 +1789,96 @@
         "reducer_profile": {
           "type": "string",
           "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "mls_genesis_content": {
+      "type": "object",
+      "required": [
+        "mls_group_id",
+        "scope",
+        "epoch",
+        "creator_principal_id",
+        "creator_device_id",
+        "cipher_suite",
+        "application_state_ref",
+        "created_at"
+      ],
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "required": [
+                "group_info_ref"
+              ]
+            },
+            {
+              "required": [
+                "group_info_hash"
+              ]
+            }
+          ]
+        },
+        {
+          "anyOf": [
+            {
+              "required": [
+                "ratchet_tree_ref"
+              ]
+            },
+            {
+              "required": [
+                "ratchet_tree_hash"
+              ]
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "$ref": "#/$defs/space_key_scope"
+        },
+        "epoch": {
+          "const": 0
+        },
+        "creator_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "creator_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "cipher_suite": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "group_info_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "group_info_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "ratchet_tree_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "ratchet_tree_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "initial_keypackage_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/object_ref"
+          },
+          "uniqueItems": true
+        },
+        "application_state_ref": {
+          "$ref": "#/$defs/mls_application_state_ref"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": true

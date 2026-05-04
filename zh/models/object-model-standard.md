@@ -93,6 +93,8 @@ Flow 适合：
 - 状态推进字段
 - 结构化业务字段
 
+`body` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `fields`，不要把可归约状态只藏在富文本正文中。
+
 ### 2.3 `discussion` branch
 
 `discussion` branch 承载会话能力，而不是独立对象。它包含：
@@ -243,6 +245,8 @@ Space (kind=list) 是 `Space` 的列/泳道形态，ID 使用 `cx:space:` 格式
 - `message --references--> flow / morph / blob`
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
+
+`content` MUST 是 `content-types.md` 定义的 Content Block。`cx.message.create` / `cx.message.revise` Event payload 同样使用嵌套 `content` 字段承载该 Content Block；`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。
 
 ## 6. Morph
 

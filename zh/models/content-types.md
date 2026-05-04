@@ -12,7 +12,7 @@ Contrix 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message、Flow discussion 摘要或 Morph 内容的 `content` 字段 MUST 使用本规范定义的结构化 JSON 格式，而非依赖客户端猜测渲染方式。
+Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event payload 内的 `content` 字段、Flow 的 `body` 字段、Flow discussion 摘要以及 Morph 的 `content` 字段 MUST 使用本规范定义的结构化 JSON 格式，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 
@@ -20,6 +20,8 @@ Message、Flow discussion 摘要或 Morph 内容的 `content` 字段 MUST 使用
 - `type`：内容类型标识
 - `body`：人类可读的纯文本摘要 / fallback
 - 类型相关的专有字段
+
+`cx.message.create` / `cx.message.revise` 的 Event payload MUST 将这个对象放在 payload 的 `content` 字段中；`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
 
 ### 2.3 复合消息使用 `composite` 类型
 

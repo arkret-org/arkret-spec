@@ -45,7 +45,7 @@
       "type": "string"
     },
     "content": {
-      "type": "object"
+      "$ref": "#/$defs/content_block"
     },
     "fields": {
       "type": "object"
@@ -70,6 +70,50 @@
     }
   },
   "$defs": {
+    "content_type": {
+      "type": "string",
+      "pattern": "^(cx\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
+    },
+    "content_block": {
+      "type": "object",
+      "required": [
+        "type",
+        "body"
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/content_type"
+        },
+        "body": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "plain",
+            "markdown",
+            "prosemirror_json"
+          ]
+        },
+        "formatted_body": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/content_block"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"

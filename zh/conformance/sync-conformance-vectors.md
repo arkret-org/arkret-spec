@@ -160,7 +160,11 @@
       "kind": "cx.message.create",
       "target_ref": "cx:message:01js0me1000000000000000000",
       "content": {
-        "flow_id": "cx:flow:01js0r01000000000000000000"
+        "flow_id": "cx:flow:01js0r01000000000000000000",
+        "content": {
+          "type": "cx.content.text",
+          "body": "discussion message"
+        }
       }
     }
   ]

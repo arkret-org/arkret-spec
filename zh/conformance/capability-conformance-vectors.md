@@ -167,7 +167,13 @@ cx.vector.capability.revoke_rollback.v1
       "kind": "cx.message.create",
       "actor_id": "did:web:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
-      "content": { "body": "should_fail_if_revoke_applies" },
+      "content": {
+        "flow_id": "cx:flow:01js0rvk000000000000000000",
+        "content": {
+          "type": "cx.content.text",
+          "body": "should_fail_if_revoke_applies"
+        }
+      },
       "prev_refs": ["cx:event:01js0x2a000000000000000000"]
     }
   ],

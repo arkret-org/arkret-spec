@@ -20,7 +20,10 @@
           "auth_refs": [],
           "content": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
-            "body": "hello"
+            "content": {
+              "type": "cx.content.text",
+              "body": "hello"
+            }
           },
           "proofs": []
         }
@@ -59,7 +62,10 @@
           ],
           "content": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
-            "body": "hello"
+            "content": {
+              "type": "cx.content.text",
+              "body": "hello"
+            }
           },
           "proofs": []
         },
@@ -94,7 +100,10 @@
           ],
           "content": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
-            "body": "tampered"
+            "content": {
+              "type": "cx.content.text",
+              "body": "tampered"
+            }
           },
           "proofs": [
             {
@@ -141,7 +150,10 @@
           ],
           "content": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
-            "body": "rollback"
+            "content": {
+              "type": "cx.content.text",
+              "body": "rollback"
+            }
           },
           "proofs": []
         }
@@ -176,7 +188,10 @@
           ],
           "content": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
-            "body": "too many prev refs"
+            "content": {
+              "type": "cx.content.text",
+              "body": "too many prev refs"
+            }
           },
           "proofs": []
         }
@@ -205,7 +220,10 @@
           ],
           "content": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
-            "body": "missing auth refs"
+            "content": {
+              "type": "cx.content.text",
+              "body": "missing auth refs"
+            }
           },
           "proofs": []
         }
@@ -237,7 +255,10 @@
           ],
           "content": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
-            "body": "self ref"
+            "content": {
+              "type": "cx.content.text",
+              "body": "self ref"
+            }
           },
           "proofs": []
         }

@@ -169,7 +169,11 @@ cx.vector.encoding.event_digest.v1
   "prev_refs": [],
   "auth_refs": [],
   "content": {
-    "body": "hello"
+    "flow_id": "cx:flow:01js0ke0000000000000000000",
+    "content": {
+      "type": "cx.content.text",
+      "body": "hello"
+    }
   }
 }
 ```
@@ -177,13 +181,13 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"content":{"body":"hello"},"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000","space_version":"1"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"content":{"content":{"body":"hello","type":"cx.content.text"},"flow_id":"cx:flow:01js0ke0000000000000000000"},"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000","space_version":"1"}
 ```
 
 期望 digest：
 
 ```text
-sha256:ccc24849977b4554ec5b77a988978631f25587436ea4a5367a1d80e156b2d6ee
+sha256:146bcdb14115b2a812656d78de879d40e70e14a5160697a25abeeb6cb0252610
 ```
 
 判定规则：
