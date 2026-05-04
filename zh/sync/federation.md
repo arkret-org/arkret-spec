@@ -222,6 +222,17 @@ Host: server-alpha.com
 - 内容相同的重复推送 MUST 幂等接受
 - `event_id` 相同但内容不同的推送 MUST 拒绝
 
+### 4.4 Capability Revoke Fanout
+
+`cx.capability.revoke`、superseding grant、membership removal、ban、device/session revoke 和会使既有 allow cache 失效的 policy change 是高优先级 auth state。源 Principal Server 在接受这类 Event 后，MUST 主动推送给所有当前已知的相关 Principal Server，而不是只等待对端下一次 pull：
+
+- fanout 目标包括 Space policy / membership / service delegation 中声明的 shared Space Host、受影响 subject 的 Principal Server、grant issuer / delegatee 所在 Principal Server，以及正在服务该 Space 的 federation peer。
+- 推送 payload MUST 包含原始 Event Envelope、必要 auth refs、当前 auth frontier 或可验证 snapshot reference，便于接收方立即失效 capability cache。
+- 接收方即使暂时无法完整验证该 revoke，也 MUST 将匹配 scope 的 allow cache 标记为 stale / `revoke_freshness_unknown`，直到 backfill 完成。
+- fanout 失败时，源服务器 MUST 保留重试队列并在后续 federation transaction、frontier probe 或 pull 响应中暴露缺失诊断；不得因单个 peer 不可达而回滚已 accepted revoke。
+
+该主动推送只加速缓存一致性，不替代接收方对签名、auth refs、state resolution 和 policy 的独立验证。
+
 ## 5. 跨域加入 Space
 
 ### 5.1 邀请流程

@@ -44,7 +44,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 | --- | --- | --- | --- |
 | Connection Identifier | `alice@example.com`、手机号、通讯录用户名、外部账号 ID | 发现联系人、请求 consent、发送邀请或建立初始关系 | 否 |
 | Administrative Identifier | 组织账号、计费账号、客服账号、受管员工编号 | 组织本地管理、合规和账号恢复 | 否 |
-| Handle | `alice.example.com`、`@alice:example.org` | 人类可读入口和公开/半公开别名 | 否 |
+| Handle | `alice.example.com`、`@alice:example.org` | 人类可读入口和公开/半公开别名；包含 DNS handle 与外部体系 alias | 否 |
 | Display Name | `Alice Zhang` | UI 展示 | 否 |
 | Principal DID | `did:plc:...`、`did:web:...` | 签名、授权、事件责任主体 | 是 |
 
@@ -58,13 +58,13 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 
 ## 3. Handle 格式
 
-初版推荐 DNS 风格 handle：
+本文无修饰使用 `Handle` 时，指更宽泛的人类可读标识。`DNS handle` 是可通过 DNS / HTTPS well-known 双向验证的 handle 子类，初版推荐作为公共 persona handle：
 
 - `alice.example.com`
 - `ops.example.com`
 - `agent.release.example.com`
 
-组织内部 MAY 使用命名空间 handle，但它仍然只是属性：
+组织内部、bridge 或外部协议 MAY 使用非 DNS handle / alias，但它仍然只是属性：
 
 - `alice@google.com`
 - `alice:google.com`
@@ -73,7 +73,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 
 这些字符串本身不证明组织成员资格。
 
-Matrix-style identifier（如 `@alice:example.org`）MAY 作为用户可见 handle、登录名、联系人搜索项或 bridge alias。实现 MUST 保留其外部体系、localpart、domain / origin server 与大小写规范化规则；不得把它直接当作 DID、grant subject、Event actor 或未验证的组织成员证明。
+Matrix-style identifier（如 `@alice:example.org`）MAY 作为用户可见 handle、登录名、联系人搜索项或 bridge alias，但不是 DNS handle。实现 MUST 保留其外部体系、localpart、domain / origin server 与大小写规范化规则；不得把它直接当作 DID、grant subject、Event actor 或未验证的组织成员证明。
 
 ## 4. Handle 绑定
 

@@ -296,6 +296,7 @@ Flow 规则：
 - `synthesis` branch 与 `discussion` branch 可以共享同一标题和基础字段，branch reducer 只负责对应交互面当前态。
 - branch access 默认继承 Flow / Space；`discussion` branch 的 membership、history visibility 和 E2EE 只有在显式 override 时才独立收敛，且不得放大 `synthesis` branch 的可见字段。
 - `primary_branch` 只是默认入口，不授予读取、写入或管理权限。
+- branch-scoped E2EE group 的 scope MUST 绑定 `space_id + flow_id + branch="discussion"`。`cx.flow.convert` 只改变默认入口和 Flow kind，不得隐式重建、合并或迁移该 MLS group；只有显式 branch access / encryption policy event 才能创建、reinit、archive 或替换 group。
 
 ## 7. Flow Discussion Branch
 
@@ -309,6 +310,7 @@ Discussion branch 规则：
 - 能看 `discussion` branch 不表示能改 Flow 的字段、状态或 Board 位置。
 - branch-scoped `discussion` membership 不自动改变 Flow assignment、Flow visibility 或 Space membership。
 - Flow 从 `card` 转成 `room`，或从 `room` 转成 `card`，都不自动删除已有讨论历史。
+- 当 branch-scoped membership 与 branch-scoped E2EE 同时启用时，`cx.flow.branch.member` 的有效 frontier MUST 被对应 MLS `application_state_ref.membership_frontier` 覆盖；否则客户端只能把新 epoch 视为 `decryption_pending` / `state_mismatch`。
 
 ## 8. Space (kind=board) / Space (kind=list) / Flow
 

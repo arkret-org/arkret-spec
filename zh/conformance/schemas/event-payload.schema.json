@@ -1786,6 +1786,60 @@
       },
       "additionalProperties": true
     },
+    "mls_commit_failed_content": {
+      "type": "object",
+      "required": [
+        "mls_group_id",
+        "commit_ref",
+        "epoch",
+        "failure_stage",
+        "reporter_device_id",
+        "failed_at"
+      ],
+      "properties": {
+        "mls_group_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "welcome_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failure_stage": {
+          "enum": [
+            "welcome_decrypt",
+            "transcript_verify",
+            "application_state_ref",
+            "group_state_update",
+            "keypackage_claim",
+            "policy_root_mismatch",
+            "unsupported_cipher_suite",
+            "storage_failure",
+            "unknown_epoch",
+            "other"
+          ]
+        },
+        "reporter_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "error_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "diagnostic_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "failed_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": true
+    },
     "mls_epoch_content": {
       "type": "object",
       "required": [

@@ -169,6 +169,18 @@ Contrix v1 要求：
 
 实现 MUST NOT 把 Sync Service 到达顺序、数据库自增 ID 或 HTTP 接收顺序当作协议顺序。
 
+### 6.1 跨 Actor 依赖与确定性排序
+
+Contrix v1 将依赖关系和 winner tie-breaker 分开处理：
+
+- `prev_refs`、`auth_refs` 和具体 event kind 声明的 content-level causal refs 共同形成 accepted dependency graph。
+- 若事件 B 的 dependency closure 包含事件 A，任何 canonical replay、timeline recovery 或 reducer input normalization 都 MUST 在拓扑上令 A 先于 B；即使 `hlc(A) > hlc(B)` 也不得反转。
+- `auth_refs` 表示“B 的授权判定必须能看到 A”，不表示 A 的业务 payload 自动覆盖 B，也不额外提高 A 的 state resolution 权重。它只影响 B 是否可进入 accepted set、B 的 auth state map 和 deterministic dependency depth。
+- 只有当两个 accepted Event 在 dependency graph 中互不可达时，才使用 HLC、Actor ID、`actor_seq`、`event_id` / hash 作为 deterministic total-order tie-breaker。
+- Reducer 的 state conflict winner 仍按 `event-auth-state-resolution.md` 的 priority class、`auth_weight`、`causal_depth`、HLC 和 event id 规则执行；timeline 展示顺序不得被反向用于授权。
+
+因此，跨 actor 的 `auth_refs` 会创建可验证依赖边界，但不会引入全局共识时钟或服务端接收顺序。
+
 参考验证算法：
 
 ```
@@ -294,6 +306,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.space_key.withheld`
 - `cx.mls.proposal`
 - `cx.mls.commit`
+- `cx.mls.commit_failed`
 - `cx.mls.welcome`
 - `cx.audit.accessed`
 - `cx.redaction`
@@ -574,7 +587,7 @@ Contrix 初版不引入全网共识链。
 3. Actor ID 字典序。
 4. Event hash / `event_id` 字典序。
 
-该 winner 顺序不同于客户端 timeline 的展示顺序；timeline 通常按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
+该 winner 顺序不同于客户端 timeline 的展示顺序；timeline 通常先按 `prev_refs` / `auth_refs` / content causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
 
 ### 16.1 Reducer Contract
 

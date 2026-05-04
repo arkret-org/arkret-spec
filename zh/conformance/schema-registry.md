@@ -159,6 +159,7 @@
 | --- | --- |
 | `cx.mls.proposal` | MLS proposal |
 | `cx.mls.commit` | MLS commit |
+| `cx.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
 | `cx.mls.welcome` | MLS welcome ref |
 | `cx.mls.keypackage` | MLS KeyPackage publication |
 | `cx.mls.epoch` | MLS epoch checkpoint |

@@ -15,6 +15,11 @@
 | Actor | 主体视图 | 在 Space 中执行动作、产生 Event、持有 profile 与 membership 的可见身份表示。 |
 | Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
+| Handle | 人类可读标识 | 可迁移的人类可读入口或别名；包括 DNS handle 和外部体系 alias，不可作为协议主体或授权主键。 |
+| DNS Handle | DNS 风格标识 | `alice.example.com` 这类可通过 DNS / HTTPS well-known 双向验证到 DID 的 Handle 子类。 |
+| Connection Identifier | 连接标识 | 邮箱、手机号、通讯录用户名、外部账号 ID 等用于发现、邀请或 consent 的标识；默认关系私有，不等于 Handle 或 DID。 |
+| Administrative Identifier | 管理标识 | 组织账号、计费账号、员工编号等组织本地管理标识；不能作为协议主体。 |
+| Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
 | Space | 协作边界 | 授权、policy、membership、history visibility、同步与真相归约的作用域。 |
 | Official Space | 官方空间 | 由组织或 policy 明确确认的 Space，不等于单纯“有官方 handle 的 Space”。 |
 | Space Hierarchy | Space 层级 | Space 之间的 parent/child 组织关系，用于导航与受控继承；不默认级联权限或历史。 |

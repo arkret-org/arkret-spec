@@ -47,6 +47,28 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 
 State resolution fallback 不得选择本地接收顺序或数据库 ID。fallback snapshot 必须有签名、frontier、state hash 和 chunk digest。对缺失、不可达或高成本 `auth_refs` 的 backfill，接收方 MAY 在预算耗尽后 soft-fail / quarantine 该事件，并返回 `dependency_missing`、`temporarily_unavailable` 或等价诊断；不得在同步写入路径无界递归展开。
 
+### 4.1 Progressive Auth Chain Backfill Profile
+
+实现声称支持 `full_client`、`e2ee_client` 或 `principal_server` profile 时，MUST 支持渐进式 auth chain 恢复，而不是要求一次性拉完整历史：
+
+| 项 | v1 默认上限 / 建议 | 规则 |
+| --- | ---: | --- |
+| 单轮 targeted auth backfill page | 256 events | 客户端 SHOULD 优先拉缺失 `auth_refs` / `prev_refs` 的最小闭包，再扩大范围。 |
+| 单 Space 后台 auth dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 snapshot-assisted recovery。 |
+| snapshot-assisted recovery 触发 | 深度 64、diff 4,096 或本地预算耗尽 | 必须验证 snapshot signer authority、frontier、state hash 和 chunk digest。 |
+| 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 `partial_auth_state` + `auth_incomplete`，并继续后台恢复。 |
+| retry backoff | 指数退避，有上限 | 响应 SHOULD 带 `retry_after_ms`、`next_retry_at`、缺失 ref 和可用 source。 |
+
+渐进恢复阶段：
+
+1. **Frontier probe**：先查询 actor / Space frontier、可用 snapshot manifest 和缺失 ref 的 source。
+2. **Targeted dependency fetch**：按缺失 `auth_refs`、`prev_refs` 和 content causal refs 拉最小闭包。
+3. **Snapshot-assisted resolution**：闭包超过预算时，改用最近可验证 snapshot 作为 base，再回放 snapshot frontier 之后的事件。
+4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已 accepted 历史的只读 projection，并显式标记 `auth_incomplete`。
+5. **Write revalidation**：任何新写入必须在提交前重新验证所依赖的 auth state；不得继承 partial view 的乐观允许结果。
+
+长期离线设备重新上线时，服务端 SHOULD 支持分页返回 dependency graph 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 auth events。
+
 ## 5. Board / Relation / View 上限
 
 | 项 | v1 默认上限 | 规则 |

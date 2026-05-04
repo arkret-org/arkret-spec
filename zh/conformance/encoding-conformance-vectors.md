@@ -402,7 +402,43 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 - 实现 MUST NOT hash 明文 payload。
 - 实现 MUST NOT 省略路由和解密所需的 cleartext metadata，否则 sync service 无法安全去重和审计密文 envelope。
 
-## 12. 覆盖矩阵
+## 13. Vector: Encrypted Envelope AAD Event Type Compatibility
+
+向量名称：
+
+```text
+cx.vector.encoding.encrypted_envelope_aad_event_type_compat.v1
+```
+
+legacy raw AAD 输入：
+
+```json
+{
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "event_type": "cx.message.create"
+}
+```
+
+期望归一化 AAD：
+
+```json
+{"event_kind":"cx.message.create","space_id":"cx:space:01js0sp0000000000000000000"}
+```
+
+期望 `aad_digest`：
+
+```text
+sha256:ac98e298527e5b35be6afb7eba7e2e788922c55daa1e37eeb554d05a2cc21e7d
+```
+
+判定规则：
+
+- `space_version=1` receiver MAY 在 schema validation 前把只有 `event_type` 的 legacy raw AAD 归一为 `event_kind`。
+- canonical AAD digest MUST 使用归一化后的 `event_kind`，不得保留 `event_type`。
+- raw AAD 同时包含 `event_kind` 与不同值的 `event_type` 时 MUST reject。
+- `space_version>=2` receiver MUST reject 任何包含 `event_type` 的 raw envelope。
+
+## 14. 覆盖矩阵
 
 | 向量 | Minimal Client | Full Client | E2EE Client | Events API | Principal Server |
 | --- | --- | --- | --- | --- | --- |
@@ -417,8 +453,9 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 | `cx.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD |
 | `cx.vector.encoding.cursor_opaque.v1` | MUST | MUST | MUST | MAY | SHOULD |
 | `cx.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST |
+| `cx.vector.encoding.encrypted_envelope_aad_event_type_compat.v1` | MAY | SHOULD | MUST | MAY | MUST |
 
-## 13. Crypto Fixture 要求
+## 15. Crypto Fixture 要求
 
 自动化 conformance suite MUST 加载 `artifacts/fixtures/crypto-signature-fixture.json`（中文镜像：`zh/conformance/fixtures/crypto-signature-fixture.json`）。该 fixture 固定了 `cx.vector.encoding.crypto.ed25519_detached_jws.v1`：
 

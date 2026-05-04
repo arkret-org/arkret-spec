@@ -484,6 +484,21 @@ Contrix v1 至少区分：
 
 Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Server 的 `deny`、`quarantine`、`require_review`、rate limit、legal hold 和 abuse policy 仍 MUST 在写入接收、分发和查询返回前执行。
 
+Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定 subject/action/resource 三元组。每个 cache entry 至少包含：
+
+- `space_id`、scope / branch / object selector、subject DID、action 和 constraint profile。
+- `auth_state_hash`：由当前 accepted capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest 计算出的确定性 hash。
+- `auth_frontier`：参与该 hash 的 state event head set 或 snapshot frontier。
+- 命中的 grant event id、revoke tombstone / superseding event id（如有）、claim status evidence 和过期时间。
+
+规则：
+
+- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Space lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。
+- Cache entry 的 `auth_state_hash` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；不得继续用旧 grant 允许新写入。
+- 已被 GC 的 grant 仍必须保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现不得因为 grant payload 已压缩或归档而让旧 cache 重新生效。
+- `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态不得生成 allow cache；只能生成 deny / unknown / pending 诊断。
+- 多 Principal Server 部署中，cache TTL 只是额外保险，不得替代 revoke fanout、frontier 对账和 `auth_state_hash` 失效。
+
 ### 18.2 撤销新鲜度 (Revocation Freshness)
 
 高风险动作（例如 `cx.space.destroy`、`cx.capability.revoke`、`cx.space.admin`、E2EE key export、legal hold bypass）的授权判定 MUST 验证相关 grant 的撤销状态新鲜度：

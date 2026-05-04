@@ -46,6 +46,17 @@ sequenceDiagram
 - **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Space Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。Welcome MUST 通过 durable `cx.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付，直到被消费、撤销或过期。Sync Service 的 Ephemeral Channel 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
 
+#### 2.2.1 MLS Group Admin 推导
+
+MLS group admin 不是“第一个发 Welcome 的客户端”或“branch 的第一个成员”。Contrix v1 按当前 accepted auth state 确定管理集合：
+
+- Space-scoped MLS group 的默认 admin set 来自 `cx.space.create.initial_creators` / `created_by_principal`，以及当前有效的 `cx.space.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Space policy 声明的等价 E2EE admin capability。
+- Flow discussion branch-scoped MLS group 的 admin set 是 Space-scoped admin set，加上对该 `flow_id + branch=discussion` 具有 `cx.flow.branch.admin`、`cx.flow.branch.member` 管理权或 policy 声明 E2EE branch admin capability 的 actor。
+- `cx.flow.convert` 不改变 MLS group identity、admin set 推导规则或历史 epoch；它只改变 Flow kind / 默认入口。若转换同时改变 branch E2EE policy，必须发布独立 policy / branch access event，并通过新的 `cx.mls.proposal` / `cx.mls.commit` 推进 group。
+- Admin capability 可以通过普通 capability grant / revoke 转移或收回；转移生效点由 state resolution 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
+
+发送 `cx.mls.proposal`、`cx.mls.commit` 或 `cx.mls.welcome` 的 actor 必须在其事件自己的 causal auth state 下属于上述 admin set，或满足该 event kind 允许的普通成员 update / self-update 规则。
+
 ### 2.3 载荷加密 (Application Data)
 日常的 Message、Flow synthesis 或 Morph 内容负载在写入 Event 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
 - **可路由元数据分离**：密文信封 `encrypted_payload` 仅包裹实际的业务内容 (`body`, `content`, `attachments`)。
@@ -63,6 +74,19 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 - 被移除成员不得获取移除后 epoch 的 group secret；客户端必须 fail closed。
 
 服务端和 Sync Service 不需要解密正文，但必须保留明文 routing metadata、epoch reference、hash 和 causal refs，以便客户端后续补齐密钥后重试解密。
+
+#### 2.4.1 Membership 与 Epoch 不一致窗口
+
+Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
+
+- 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.branch.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `application_state_ref.membership_frontier` 覆盖该 membership frontier。
+- 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
+- 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
+- 发送客户端在发现 `epoch_update_required` 后 SHOULD 暂停该 scope 的新 application messages，或把发送状态标记为 `encryption_transition_pending`。高安全 profile MUST 暂停发送，直到 winner epoch 覆盖最新 membership frontier。
+- Space / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
+- 网络分区期间可以继续 backfill 旧 epoch 历史，但不得把旧 epoch 下的新消息展示为已满足最新 membership policy 的消息。
+
+该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Contrix 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
 
 ### 2.5 MLS 绑定的应用状态根
 
@@ -273,6 +297,20 @@ Auditable E2EE profile：
 - Audit Agent 从密码学上获得了当前 Epoch 的解密能力。
 - 群组内所有的普通成员都可以通过检查 MLS 树，清晰地知晓 Audit Agent 的存在。
 
+#### 3.2.1 审计节点最小权限与前向安全边界
+
+Auditable E2EE 必须明确承认其安全边界：Audit Agent 是真实 MLS 成员，因此它被移除后仍可解密其成员期间已经收到且按 retention policy 保留的历史消息；Audit Agent key 泄露会影响其可访问 epoch 的机密性。Contrix 不得把这种模式描述为“审计方不可见内容”或“对审计方仍保持完整 forward secrecy”。
+
+Audit Agent profile MUST 满足：
+
+- 只授予 `cx.audit.accessed`、必要的 key receive / decrypt capability 和 policy 明确声明的 audit query capability；不得授予普通发消息、编辑内容、管理 membership、签发 capability、推进 MLS epoch 或更改 Space policy 的权限。
+- MLS leaf credential、service DID、attestation evidence、operator DID、保留策略、允许的 audit purpose 和有效期 MUST 对成员可见，并被 Space policy / `application_state_ref.policy_root` 覆盖。
+- `hardware_tee` profile 下，MLS key material、exporter secret、历史 epoch secret 和明文输出 MUST 在 HSM、TEE、enclave 或等价硬件隔离边界内处理；remote attestation 必须绑定代码 measurement、service DID、policy version、audit purpose、created_at 和 expiry。
+- `software_process` profile 下，客户端必须向成员显示这是流程性审计保证，不是硬件强制保证。
+- Audit Agent 的本地 key retention MUST 有上限，并能被成员验证为 policy 声明的一部分；legal hold 或监管保留需要单独声明，不能由 Agent 私下延长。
+
+不需要常驻审计解密能力的 Space SHOULD 使用 franking / moderation proof profile（例如 `cx.moderation.frank` 或 profile 注册的等价 token）来证明消息可审计性，并在真正审计时由发送方、持钥成员或受控服务按 policy 解密；不得把 standing Audit Agent 作为唯一合规模式。
+
 ### 3.3 强制留痕机制 (Audit Record Mandatory)
 获得密钥并不意味着可以合规地随意查看。协议要求 Audit Agent 按声明的 auditable E2EE profile 执行以下工作流；`tee_required` profile 下该实现必须依托 TEE / enclave 或等价硬件隔离环境，并保证 MLS key、exporter secret 或解密明文不会在审计确认前离开受控边界：
 
@@ -377,6 +415,26 @@ MLS Commit 的输入和输出必须在 Event content 中可验证表达：
 - Events API MUST reject 任何无法从 winner commit 机械验证的 `cx.mls.epoch`；actor、service 或 key server 不得通过单独提交 `cx.mls.epoch` 推进 epoch。
 
 当网络分区导致节点短期看见不同 winner 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 event-auth state resolution、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Space policy 授权为普通 actor 或 service capability，不能替代上述 deterministic state resolution。
+
+### 5.4 Commit / Welcome 处理失败报告
+
+客户端本地处理 winning `cx.mls.commit`、`cx.mls.welcome` 或其 `application_state_ref` 失败时，MAY 发布 `cx.mls.commit_failed` 诊断事件。该事件用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不回滚 accepted commit，也不推进 epoch。
+
+`cx.mls.commit_failed.content` MUST 至少包含：
+
+- `mls_group_id`
+- `commit_ref`
+- `epoch`
+- `failure_stage`，例如 `welcome_decrypt`、`transcript_verify`、`application_state_ref`、`group_state_update`、`keypackage_claim`、`policy_root_mismatch`、`unsupported_cipher_suite`、`storage_failure`
+- `reporter_device_id`
+- `failed_at`
+
+规则：
+
+- 事件的 `actor_id` MUST 是报告失败的 principal 或其授权设备 / service actor；`reporter_device_id` 必须能从 principal control state 验证。
+- `content` MUST NOT 包含 MLS secret、明文、Welcome 明文、私钥、passphrase、完整 ratchet tree 或可用于离线攻击的调试 dump。
+- `auth_refs` SHOULD 包含失败的 `commit_ref`、相关 `cx.mls.welcome`、当前 membership / policy frontier 或可验证 snapshot reference。
+- 收到该事件的客户端 MAY 将相关消息保持 `decryption_pending`，并提示重新同步；服务端或管理员 MAY 重发 Welcome 或提交修复 Commit，但必须重新走普通授权和 state resolution。
 
 ## 6. 离线支持与消息延迟到达
 - 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `cx.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Sync Service 中的加密事件。

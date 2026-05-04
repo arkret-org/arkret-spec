@@ -167,6 +167,24 @@ DID method 或 registry 不可用时，节点不得把“暂时无法解析”�
 - 若原 method 永久不可用且无法验证原控制密钥，只能走 Space / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
 - Principal Server、Directory 或 Handle 服务 MAY 帮助发现新 DID，但不得单独证明 DID continuity。
 
+#### 4.2.1 `did:plc` 健康检查与计划迁移
+
+声明 public network identity profile 的实现 MUST 对 `did:plc` resolver policy 定义主动健康检查：
+
+- 监控 primary PLC directory、至少一个 policy 允许的 mirror / audit source、最近 operation head、transparency evidence freshness 和 resolver 响应签名 / digest。
+- 健康状态 MUST 区分 `healthy`、`degraded_mirror_only`、`stale_evidence`、`write_unavailable` 和 `untrusted` 或等价状态。
+- `degraded_mirror_only` 只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待可写 directory 恢复，或走部署 policy 明确允许的替代 method。
+- `stale_evidence` 或 `untrusted` 时，resolver MUST fail closed；不得用缓存 handle、DNS、Principal Server 声明或用户登录态替代 PLC operation history。
+- 客户端和服务端 SHOULD 暴露 outage diagnostics，包括使用的 directory / mirror、history head、evidence age 和下一次 retry 时间。
+
+公共部署 SHOULD 支持从 `did:plc` 到 `did:webvh` 或等价 history-bearing DID method 的计划迁移路径，而不是只在事故后恢复：
+
+1. 用户在原 `did:plc` 仍可解析时创建新 DID，并发布新 method 的 genesis / witness evidence。
+2. 原 DID 当前有效控制密钥签署 continuity proof；新 DID 控制密钥反向签署 acceptance proof。
+3. Handle / service account / profile binding 指向新 DID，但历史 Event 仍保留旧 DID。
+4. Space membership、capability grant、device/session control 和 MLS identity link 通过普通 Event 或 policy 流程重新绑定到新 DID。
+5. 客户端在 UI 中显示“已计划迁移”状态和旧 DID 的验证历史，不把它当作无痕重命名。
+
 ## 5. Resolver、Auth Server 与组织授权
 
 DID 解析、登录认证和组织数据授权是三个不同职责：
@@ -357,6 +375,41 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 3. governance policy 中的阈值或 approval 要求已满足。
 4. 若动作由 service DID 执行，该 service DID 被 organization DID 委派且 purpose 覆盖该动作。
 5. 相关 key / delegation 在事件时间未过期、未撤销。
+
+### 8.1 Threshold Governance 操作层级
+
+`threshold` 可以在不同层实现，但 DID Document / governance policy MUST 明确声明 profile：
+
+- **method-native threshold signature**：DID method 或底层 key type 原生支持阈值签名（例如 FROST 生成单一 verification method 签名）。验证方按 method history 验证一个签名，但必须能从 governance evidence 确认阈值参数和参与 key set。
+- **application-level multi-proof**：DID method 不支持阈值签名时，治理事件携带多个独立 proof；Contrix / governance service 按 `threshold.required`、eligible methods、purpose、expiry 和 history head 检查 quorum。
+- **governance service attestation**：组织 DID 委派的 service DID 聚合审批并签发 attestation。该 service 本身必须由 organization DID 委派，attestation 必须保留参与 signer、policy version、decision id 和 audit digest。
+
+实现不得仅因为 DID method 支持 witness（例如 `did:webvh` witness）就把 witness 当作 threshold signature。Witness 证明历史可见性或日志一致性；quorum 证明治理授权。
+
+### 8.2 组织治理流程示例
+
+**Key rotation**：
+
+1. 发起者构造 rotation proposal，绑定 organization DID、当前 history head、待撤销 key、待加入 key、目的、有效期和 rollback plan。
+2. 收集满足 threshold 的 method-native signature、multi-proof 或 governance service attestation。
+3. 提交 DID method operation；`did:webvh` 场景写入新的 DID log entry，并由 watcher / witness 见证。
+4. 发布或更新 Contrix governance / service delegation state，使 Principal Server、Policy Server 和 Space endorsement 使用新 key set。
+5. 客户端验证旧 history head、quorum proof、新 key 生效时间和被撤销 key 不再授权后，才接受高风险组织写入。
+
+若 3 个 governance key 中 1 个泄露，且 policy 为 2-of-3，两个未泄露 key 可以签发 rotation，移除泄露 key 并加入新 key；泄露 key 单独不能完成 rotation。若剩余可用 key 少于 threshold，必须走 policy 中预先声明的 emergency recovery，而不是临时降低 threshold。
+
+**新 service delegation**：
+
+1. proposal 绑定 service DID、service endpoint、purpose、scope、plaintext visibility、validFrom / validUntil 和 revocation path。
+2. quorum proof 覆盖完整 proposal。
+3. DID Document service entry 或 Contrix `cx.space.organization` / policy state 发布 delegation。
+4. 接收方在接受该 service 的事件、明文可见性或 federation transaction 前，验证 organization DID、quorum proof、service DID 控制权和 Space policy。
+
+**Emergency recovery**：
+
+1. recovery policy 必须在事故前写入 DID method history 或 governance profile，包含 threshold、recovery service / guardian、cooldown、通知和审计要求。
+2. 恢复事件必须绑定 incident id、旧 history head、新 key set、失效 key set、原因和生效延迟。
+3. 客户端在 cooldown 内 SHOULD 显示高风险状态；高风险 Space MAY 冻结组织 admin 动作，直到 recovery witness / approval 完成。
 
 ## 9. 验证规则
 

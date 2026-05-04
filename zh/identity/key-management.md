@@ -268,6 +268,15 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 - `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。
 - `mls_history`：保存用户已有权读取的 Space / Flow branch 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
 
+域隔离规则：
+
+- 每个 `backup_class` MUST 使用独立 salt、KDF context、HKDF info 和 AEAD associated data；一个域的 derived key、commitment key 或 wrap key 不得直接用于另一个域。
+- AEAD AAD MUST 绑定 `actor_id`、`device_id`、`backup_class`、`backup_version`、item type、created_at 和 schema/profile id，防止把 ciphertext 从一个域重放到另一个域。
+- 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="contrix-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
+- `did_recovery` 域不得和 `mls_history` 域共享 wrap key、recovery share 或 key commitment。攻破 `mls_history` backup key 不得允许 DID rotate / recover；攻破 DID recovery share 也不得直接解密 MLS 历史。
+- 新实现 SHOULD 将 `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 分成不同 backup envelope 或不同 subdomain key。高安全、组织托管和 auditable E2EE profile MUST 分离，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。
+- `secret_storage` 若为了兼容旧客户端同时包含 identity signing secret 和 MLS backup key，metadata MUST 标记 `mixed_secret_storage=true` 或等价风险标识；恢复 UI 必须提示一次口令泄露会同时影响身份信任和 E2EE 历史。
+
 以下材料 MAY 进入客户端加密备份，但 MUST 只以密文形式保存：
 
 - recovery key share 或门限 share。
@@ -341,6 +350,8 @@ key_commitment = SHA256(commitment_key)
 ```
 
 客户端 MAY 在尝试解密 `ciphertext` 前用用户输入的 passphrase 派生 key，计算 commitment 并与 envelope 中的 `key_commitment` 比对。不匹配时 MUST 拒绝解密并提示用户 passphrase 错误。`key_commitment` 只是本地快速拒绝错误口令和防止密文替换的辅助值，不是服务端认证材料；服务端不得要求用户上传 passphrase、derived key、commitment key 或使用 `key_commitment` 做在线口令检查。离线攻击者仍可对备份执行 KDF 级别的口令猜测，因此实现必须执行强口令策略、Argon2id 参数下限和速率受控的恢复 UI。
+
+域隔离 profile 的 conformance proof MUST 至少证明：不同 `backup_class` / subdomain 的 HKDF info 不同、AEAD AAD 覆盖域和 item type、key commitment 不能跨域复用、恢复流程不会把一个域的解锁成功当作另一个域的授权证明。
 
 `ciphertext_digest` 覆盖密文字节，`plaintext_commitment` 若存在只用于本地完整性或跨设备一致性检查；服务端不得要求知道明文 hash 才能存储或返回备份。
 

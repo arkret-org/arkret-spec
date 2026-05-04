@@ -56,6 +56,13 @@
 | `payload_digest` | hash | 是 | sha256(canonical_json(明文元数据) \|\| 完整加密负载字节)。若 profile 拆出 `authentication_tag`，tag MUST 纳入完整加密负载字节。 |
 | `aad_digest` | hash | 是 | 规范 AAD 的 SHA256 |
 
+`aad.event_type` 废弃时间线：
+
+- `space_version=1` producer MUST 生成 `aad.event_kind`，MUST NOT 生成 `aad.event_type`。
+- `space_version=1` receiver MAY 在 schema validation 前接受 legacy raw AAD 中只有 `event_type` 的 envelope，但必须先归一为 `event_kind`，再计算 `aad_digest`、执行 schema validation 和 MLS authenticated data 验证。
+- raw AAD 同时包含 `event_kind` 与 `event_type` 时，若两者不同 MUST reject 为 `schema_violation` / `aad_ambiguous_kind`；若两者相同，receiver MAY 归一化时丢弃 `event_type`，但不得把 `event_type` 纳入 canonical AAD digest。
+- 自 `space_version=2` 起，任何 raw encrypted envelope 中出现 `aad.event_type` 都 MUST reject；不得继续兼容读取。
+
 ## 3. 附加认证数据 (AAD)
 
 ### 3.1 用途

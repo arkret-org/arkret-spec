@@ -111,6 +111,19 @@
 
 长期 Space 中的 `cx.space.create` MAY 通过已验证 snapshot manifest、checkpoint、witness receipt 或 stripped create event 满足 bootstrap 依赖，但接收方仍必须能验证 create event digest、space id、space_version、creator authority 和 snapshot signer authority。任何 snapshot-assisted auth ref 都不得替代事件本身的签名责任，也不得允许服务端伪造 Space 起源。
 
+### 4.1 Partial Auth State 与渐进恢复
+
+当缺失 auth chain、Principal Control Event Stream 或远端 snapshot 时，节点 MAY 构造 `partial_auth_state`，但它只是本地只读恢复视图，不是 accepted state：
+
+- `partial_auth_state` MUST 只由本地已 accepted Event、已验证 snapshot / checkpoint、以及明确标记为缺口的 dependency record 组成。
+- 任何仍处于 `soft_failed` 的 Event MUST NOT 推进 accepted frontier、state hash、capability cache、membership state、MLS epoch 或普通可写 projection。
+- 客户端 MAY 在 `partial_auth_state` 下展示已经 accepted 且当前可见性已验证的历史内容，并 MUST 标记 `auth_incomplete` / `read_only` 或等价状态。
+- 客户端 MUST NOT 在 `partial_auth_state` 下提交依赖缺失 auth state 的新写入；需要写入时必须先 backfill 到可验证 frontier，或让服务端返回 `dependency_missing` / `temporarily_unavailable`。
+- 对高风险 state event（membership、capability grant/revoke、policy、MLS epoch、Space lifecycle、device/session control），缺少 auth chain 时 MUST fail closed 或保持 pending；不得用 partial view 推断允许。
+- `partial_auth_state` 的诊断输出 SHOULD 暴露缺失 event id、缺失 state key、已尝试 source、retry cursor、snapshot candidate 和本地预算耗尽原因，便于渐进 backfill。
+
+该机制的目标是让长期离线设备能够先只读打开已验证历史，再后台补齐数千个 auth events；它不得降低任何写入、授权或 state resolution 的验证要求。
+
 ## 5. Membership
 
 Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：

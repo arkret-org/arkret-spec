@@ -1019,6 +1019,25 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "cx.mls.commit_failed"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_commit_failed_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "cx.mls.epoch"
           }
         },
