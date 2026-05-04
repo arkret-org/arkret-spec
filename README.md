@@ -1,6 +1,6 @@
 # Contrix Spec
 
-- 中文版本: [zh/README.md](./zh/README.md)
+- Chinese version: [zh/README.md](./zh/README.md)
 - English version: not currently published in this repository. Until regenerated, treat `zh/` plus `artifacts/` as the only maintained v1 source.
 
 ## Structure
@@ -8,9 +8,10 @@
 Repository layout is intentionally summarized instead of duplicating a full file tree:
 
 - `artifacts/`: canonical machine-readable v1 contracts, registries, fixtures, OpenAPI, and mirror manifests。
-- `zh/`: maintained Chinese normative text plus `zh/conformance/` and `zh/sync/` mirror copies derived from `artifacts/`。
-- `.github/workflows/`: CI entrypoints for artifact lint and drift guards。
-- `tools/`: repository maintenance scripts for mirror sync、artifact checks 和 drift 检查。
+- `artifacts/`: canonical machine-readable v1 contracts, registries, fixtures, OpenAPI, and mirror manifests.
+- `zh/`: maintained Chinese normative text plus `zh/conformance/` and `zh/sync/` mirror copies derived from `artifacts/`.
+- `.github/workflows/`: CI entrypoints for artifact lint and drift guards.
+- `tools/`: repository maintenance scripts for mirror sync, artifact checks, and drift checks.
 
 The Chinese specification under `zh/` is the leading normative text for Contrix v1. `artifacts/` contains machine-readable registries, schemas, OpenAPI descriptions, and fixtures derived from that normative text.
 

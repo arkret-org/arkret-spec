@@ -115,11 +115,12 @@ Manifest MUST contain exactly one normative `signature` field. `signature` MUST 
 The signing DID MUST be one of:
 
 - Space owner
+- Space creator or active Space admin
 - trusted snapshot issuer
 - witness quorum
 - policy-approved snapshot issuer
 
-Client MUST verify signature, signer authority, `state_hash`, frontier, `event_set_commitment` and every chunk digest before using snapshot. `proof`, `signed_by`, `generator_signature` and `state_signature` are not v1 snapshot manifest fields.
+Client MUST verify signature, signer authority, `state_hash`, frontier, `event_set_commitment` and every chunk digest before using snapshot. Signer authority MUST be evaluated as of the manifest `created_at`, using accepted Space auth state that covers the snapshot frontier and all relevant admin / snapshot-issuer grant or revoke events known up to `created_at`. If the signer was revoked before `created_at`, or the verifier cannot establish revoke freshness for the signer authority, the snapshot MUST be quarantined or rejected. A later revoke does not retroactively invalidate a previously valid snapshot, but the client MUST replay events after the snapshot frontier before using current state for new writes. `proof`, `signed_by`, `generator_signature` and `state_signature` are not v1 snapshot manifest fields.
 
 ## 6. Inclusion and Omission Defense
 

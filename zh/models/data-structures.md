@@ -73,6 +73,7 @@ Schema id: `cx.schema.space.v1`
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或实现 profile。 | 启用 schema。 |
+| `relation_profiles` | no | `array<RelationProfile>` | 可由 Space schema/profile 等价声明；同一 `(relation_kind, from_type, to_type, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
 | `policy_ref` | no | `id:policy` | 若省略，使用 create event 默认 policy。 | Space policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | 见 `discovery-directory.md`。 | 默认可发现性。 |
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | `invite` 表示只允许邀请加入；canonical state MUST 使用本枚举值。 | 默认加入规则。 |
@@ -334,7 +335,51 @@ assigned_to, references, derived_from, attached_to, has_default_view,
 produced, used, triggered_by, has_log, summarized_from, promoted_from_discussion
 ```
 
-未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。声明为 multi-edge 的 relation profile MUST 显式定义去重 key、排序字段和 conflict 处理。
+标准 Relation 基数表：
+
+| `relation_kind` | 默认基数 | 作用域与去重规则 |
+| --- | --- | --- |
+| `contains`：`Space(kind=board) -> Space(kind=list)` | `one_to_many` | 一个 Board 可包含多个 List；同一 List 在同一安全边界内 MUST 至多有一个 active Board parent。冲突时 reducer MUST 关闭旧 parent edge 或确定性选择唯一 winner。 |
+| `contains`：`Space(kind=list) -> Flow` | `one_to_many` with board-exclusive target | 一个 List 可包含多个 Flow；同一 Flow 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_id, flow_id)`，与 `object-model-core.md` 的位置唯一性一致。 |
+| `contains`：其他对象组合 | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用，Space schema/profile MUST 声明更严格基数。 |
+| `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
+| `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
+| `depends_on`, `blocks` | `many_to_many` | 按 `(space_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
+| `mentions`, `references`, `derived_from`, `attached_to`, `produced`, `used`, `triggered_by`, `has_log`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。 |
+| `assigned_to` | `many_to_many` | 一个 Flow MAY 同时分配给多个 Actor；同一 Actor 只保留一条 active assignment edge。需要单负责人语义时，Space schema/profile MUST 声明 `max_to_per_from=1` 或单独的 owner relation。 |
+| `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Space 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
+
+未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
+
+Space schema、Space profile 或 `relation_profiles` MAY 对标准默认值收紧，但不得放宽会破坏互操作 projection 的标准互斥规则（例如同一 Board 内 Flow 只能处于一个 List）。`RelationProfile` 最小结构：
+
+| 字段 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `relation_kind` | yes | `string` | 被声明的 relation kind。 |
+| `from_type` | no | `string` | 起点类型约束，例如 `space:board`、`space:list`、`flow`、`message`、`morph:*` 或 `did`。 |
+| `to_type` | no | `string` | 终点类型约束。 |
+| `scope` | no | `enum(space, security_boundary, board, global)` | 基数和去重作用域；默认 `space`。 |
+| `cardinality` | yes | `enum(one_to_one, one_to_many, many_to_one, many_to_many)` | `one_to_many` 表示同一 `from_ref` 可有多个 `to_ref`，但同一 `to_ref` 在 scope 内最多一个 active `from_ref`。 |
+| `dedupe_key` | no | `array<string>` | 默认完整 tuple；可声明如 `["board_id", "to_ref"]`。 |
+| `max_to_per_from` | no | `integer` | 每个 `from_ref` 的 active `to_ref` 上限。 |
+| `max_from_per_to` | no | `integer` | 每个 `to_ref` 的 active `from_ref` 上限。 |
+| `multi_edge` | no | `boolean` | 只有 true 时允许同一 tuple 多条 active edge。 |
+| `rank_field` | no | `string` | 有序关系的 rank 字段，通常为 `fields.rank`。 |
+| `on_conflict` | no | `enum(reject, close_previous, deterministic_winner, require_review)` | 并发冲突处理；默认 `deterministic_winner`。 |
+
+```json
+{
+  "relation_kind": "assigned_to",
+  "from_type": "flow",
+  "to_type": "did",
+  "scope": "space",
+  "cardinality": "many_to_one",
+  "max_to_per_from": 1,
+  "on_conflict": "reject"
+}
+```
+
+声明为 multi-edge 的 relation profile MUST 显式定义去重 key、排序字段和 conflict 处理。
 
 ## 9. Event Envelope
 

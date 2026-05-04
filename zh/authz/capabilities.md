@@ -252,6 +252,8 @@ Contrix v1 支持：
 
 `discussion` 不是独立资源类型。需要限制 discussion branch 时，使用 `object_type_allow=["flow"]` 和 `allowed_branches=["discussion"]`；不得引入按 branch profile 名称授权的 v1 grant 字段。`branches[].profile` 只是 Flow branch 的语义/profile hint，不能单独授予读取、发送或成员权限。
 
+Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍必须命中 `cx.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `cx.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身不得成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
+
 | 扁平名称 | Typed `constraint_type` | 对应字段 |
 |----------|------------------------|----------|
 | `expires_at` | `temporal` | `expires_at` |
@@ -464,6 +466,8 @@ Contrix v1 至少区分：
 10. 判断 claim 是否有效、未过期、未撤销。
 11. 若需要 approval，校验 responsible / guardian / controller approval 证据。
 12. 应用 revoke 和 superseding 规则。
+
+Facets 不属于独立授权输入。算法不得在上述步骤之外读取 Morph facets、View renderer 或 branch profile 来授予、拒绝或升级权限。第 7 步若检查 Space schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机、RelationProfile 或 policy 条件；不得把 facets 本身当作状态机、动作或授权规则。
 
 ### 18.1 高频交互的 O(1) 快速路径
 

@@ -277,14 +277,14 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
   "state_key": "",
   "content": {
     "components": {
-      "roles": "cx:event:r01esp011cy000000000000000",
-      "preauth": "cx:event:preavthp011cy0000000000000",
-      "asset": "cx:event:assetpr1vacyp011cy00000000",
-      "logging": "cx:event:10gg1ngp011cy0000000000000",
-      "bot": "cx:event:b0tp011cy00000000000000000",
-      "message_expiration": "cx:event:exp1rat10np011cy0000000000",
-      "operational": "cx:event:0perat10na1p011cy000000000",
-      "history_sharing": "cx:event:h1st0ryshar1ngp011cy000000"
+      "roles": "cx:event:01js0r01es0000000000000000",
+      "preauth": "cx:event:01js0preav0000000000000000",
+      "asset": "cx:event:01js0asset0000000000000000",
+      "logging": "cx:event:01js010gg10000000000000000",
+      "bot": "cx:event:01js0b0tag0000000000000000",
+      "message_expiration": "cx:event:01js0expry0000000000000000",
+      "operational": "cx:event:01js0perat0000000000000000",
+      "history_sharing": "cx:event:01js0hstry0000000000000000"
     },
     "component_root": "sha256:canonical_component_set"
   }
@@ -595,6 +595,8 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 - `proofs`
 - `redacted_by`
 - `redaction_reason_code`
+
+上述保留字段是验证性 redaction stub 的默认集合。Space / reducer profile MAY 声明 `redaction_policy="anonymous"`，但该策略只影响普通 timeline、search、export preview 等用户可见 projection：这些 projection MUST 隐藏或替换原事件 `actor_id` / 物化对象 `created_by`，例如显示为 anonymous redacted sender。它不得从 canonical verification stub 中删除 `actor_id`、`proofs`、`hashes` 或因果引用，否则接收方将无法验证原始 Event chain、redaction 授权和审计责任。需要更强发送者隐私的 Space SHOULD 使用 pairwise DID / minimal-metadata E2EE；需要物理删除身份 metadata 时必须走 hard erasure receipt 和 legal-hold 边界，而不是重写已签名 Event。
 
 以下字段 MUST 清除：
 

@@ -92,6 +92,80 @@
       },
       "minItems": 1
     },
+    "relation_profiles": {
+      "type": "array",
+      "description": "Optional Relation cardinality and conflict profiles declared by this Space schema/profile.",
+      "items": {
+        "type": "object",
+        "required": [
+          "relation_kind",
+          "cardinality"
+        ],
+        "properties": {
+          "relation_kind": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,127}$"
+          },
+          "from_type": {
+            "type": "string"
+          },
+          "to_type": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "space",
+              "security_boundary",
+              "board",
+              "global"
+            ],
+            "default": "space"
+          },
+          "cardinality": {
+            "type": "string",
+            "enum": [
+              "one_to_one",
+              "one_to_many",
+              "many_to_one",
+              "many_to_many"
+            ]
+          },
+          "dedupe_key": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$"
+            }
+          },
+          "max_to_per_from": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "max_from_per_to": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "multi_edge": {
+            "type": "boolean"
+          },
+          "rank_field": {
+            "type": "string"
+          },
+          "on_conflict": {
+            "type": "string",
+            "enum": [
+              "reject",
+              "close_previous",
+              "deterministic_winner",
+              "require_review"
+            ],
+            "default": "deterministic_winner"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
     "policy_ref": {
       "type": "string",
       "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"

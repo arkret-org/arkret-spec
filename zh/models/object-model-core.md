@@ -458,6 +458,8 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询层或 schema 派生。
 
+标准 `relation_kind` 的默认基数、Board/List `contains` 互斥规则、`assigned_to` 是否允许多 assignee，以及 Space schema/profile 如何声明更严格 RelationProfile，均以 `data-structures.md` 的 Relation 基数表为准。
+
 ## 12. Event
 
 Event 是 reducer 输入和审计事实。

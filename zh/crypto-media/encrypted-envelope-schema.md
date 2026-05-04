@@ -189,9 +189,11 @@ function encrypt_content(content, aad, group_context):
 |------|------|------|
 | `aad_digest_mismatch` | AAD 被篡改 | 拒绝整个事件 |
 | `payload_digest_mismatch` | 密文损坏 | 拒绝整个事件 |
-| `key_unavailable` | 缺少 epoch | 标记为 `decryption_pending` |
-| `epoch_mismatch` | 错误的密钥 epoch | 回溯或获取 epoch |
-| `group_removed` | 不再是成员 | 关闭失败 |
+| `key_unavailable` | 缺少 epoch | 标记为 `decryption_pending`，按 `client-sync.md` 的 timeout / recovery 规则恢复 |
+| `epoch_mismatch` | 错误的密钥 epoch | 回溯或获取 epoch；无法在 timeout 内恢复时标记 `decryption_failed` |
+| `group_removed` | 不再是成员 | fail closed；不得向未授权成员请求密钥 |
+
+`decryption_pending` 是有界恢复状态，不是永久展示状态。默认 timeout 为 7 天；超时后客户端 MUST 降级为 metadata-only `decryption_failed` 占位。连续 epoch 缺口过大时，客户端 SHOULD 使用 range-based recovery，从授权 peer、key backup、Archive Node 或 policy 声明的 Key Recovery Service 获取最小必要 epoch material。
 
 ## 7. 与事件的集成
 

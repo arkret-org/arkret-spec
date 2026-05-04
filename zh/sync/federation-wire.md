@@ -80,6 +80,8 @@ PUT /api/v1/federation/transactions/{txn_id}
 - 已过期签名、重复 nonce、高频失败或来源行为异常 MAY 进入 `quarantine`，但不得把隔离队列成功写入当作 Event 已接受。
 - 单条 Event 的接受条件仍是 Actor 签名、schema、capability、Space policy、服务委托和因果依赖全部通过；transaction 签名只证明传输来源。
 
+Contrix v1 的 federation transaction 原子单元是“单个 Event 及其已接受依赖”，而不是整个 `events[]` 数组。标准模式是依赖感知的 partial accept。需要 all-or-nothing 语义的私有部署 MUST 通过 profile / critical extension 明确声明，并且不得把该语义假设强加给普通 v1 peer。
+
 `events[]` MUST 按数组顺序处理。接收方在验证第 N 项时，可以把本 transaction 中前 N-1 项已经进入 `accepted[]` 的 Event 作为可解析依赖；不得把后续项、已拒绝项或 quarantine 项当作已接受事实。部分失败不回滚已接受项；依赖同批失败或缺失 Event 的后续项 MUST 进入 `rejected[]` 或 quarantine，并给出 `dependency_missing`、`causal_conflict` 或等价 `reason_code`。
 
 响应字段：

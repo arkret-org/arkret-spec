@@ -485,11 +485,12 @@ Snapshot manifest MUST 包含：
 客户端在采用 Snapshot 前 MUST 验证：
 
 1. `signature` 是标准 detached proof，覆盖 `snapshot_ref`、`space_id`、`state_hash`、`frontier`、`event_set_commitment`、`chunks`、`reducer_profile`、`schema_profile_refs` 和 `verification_hints` 的 canonical manifest hash。
-2. `signature.verification_method` 对应的 DID 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。
+2. `signature.verification_method` 对应的 DID 必须是 Space creator、Space owner、当前有效 Space admin、Space policy 授权的 snapshot issuer 或 witness quorum 成员；该权限 MUST 按 manifest `created_at` 的 as-of auth state 验证，且该 auth state 必须覆盖 snapshot frontier 以及截至 `created_at` 可解析的相关 grant/revoke。若 signer 在 `created_at` 前已被撤销，或 revoke freshness 无法确认，客户端 MUST quarantine / reject snapshot。
 3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
 5. high-assurance profile 中，客户端 MUST 能对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要发起 inclusion / omission challenge；issuer 无法提供证明时，客户端 MUST quarantine snapshot 或回退到原始 Event 回放。
-6. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `/events/*` / `/sync/backfill` 进行原始 Event 历史回放。
+6. 后续 admin / snapshot issuer revoke 不会自动否定此前在有效权限下签名的 snapshot，但客户端在用 snapshot 恢复后 MUST 继续回放 snapshot frontier 之后的 Event，再用当前 auth state 判断新写入。
+7. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `/events/*` / `/sync/backfill` 进行原始 Event 历史回放。
 
 ## 12. 同步面
 

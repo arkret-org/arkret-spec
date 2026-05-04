@@ -337,3 +337,17 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 - 缺 MLS epoch：event MAY be accepted as encrypted event but displayed as `decryption_pending`.
 - epoch 明确已被移除成员不可访问：客户端 MUST fail closed and not request keys from unauthorized members.
 
+### 15.1 `decryption_pending` timeout and recovery
+
+客户端首次把某事件标记为 `decryption_pending` 时 MUST 记录 `first_pending_at`、缺失的 `(space_id, flow_id?, branch?, group_id, epoch)`、已尝试的恢复 source 和最近一次错误。默认 `decryption_pending_timeout` 为 7 天；Space policy 或实现 profile MAY 声明更短值，高保障 profile SHOULD 更短，但不得无限期保持无诊断 pending。
+
+在 timeout 前，客户端 SHOULD 按以下顺序恢复：
+
+1. 拉取缺失的 `cx.mls.*` state event、winner `cx.mls.commit`、Welcome 和 `application_state_ref` 依赖。
+2. 查询本 actor 授权设备的 encrypted key backup / secret storage。
+3. 在 history sharing policy 允许时，请求当前授权 peer 对指定 epoch range 发送 key share。
+4. 若 Space policy 声明 Archive Node / Audit Node / Key Recovery Service，可向该受托服务请求最小 epoch range。
+
+当连续 epoch 缺口超过 `epoch_gap_recovery_threshold`（默认 32 个 epoch）或本地 backfill 预算耗尽时，客户端 SHOULD 切换到 range-based recovery：按 epoch 区间请求 key material、MLS Commit chain 和必要 snapshot proof，而不是逐消息重试。任何 key share 都必须绑定接收 principal、device、epoch range、policy hash 和发送设备签名；不得向已被移除、未授权或无法验证的成员请求密钥。
+
+超过 `decryption_pending_timeout` 后，客户端 MUST 将用户可见投影标记为 `decryption_failed`，保留 metadata-only 占位、排序位置、引用关系和重试诊断，并向用户显示不可解密状态。若之后合法 key material 到达，客户端 MAY 重新解密并把状态从 `decryption_failed` 恢复为 verified content，但必须保留恢复审计记录。
