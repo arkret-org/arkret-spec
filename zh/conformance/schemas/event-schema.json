@@ -107,6 +107,34 @@
   },
   "allOf": [
     {
+      "not": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.account.blocklist",
+              "cx.account_data.set",
+              "cx.presence",
+              "cx.typing",
+              "cx.key.verification.request",
+              "cx.key.verification.ready",
+              "cx.key.verification.start",
+              "cx.key.verification.accept",
+              "cx.key.verification.key",
+              "cx.key.verification.mac",
+              "cx.key.verification.done",
+              "cx.key.verification.cancel",
+              "cx.read.marker",
+              "cx.receipt.read",
+              "cx.call.signal"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      }
+    },
+    {
       "if": {
         "properties": {
           "kind": {
@@ -424,12 +452,6 @@
               "cx.policy.rule",
               "cx.policy.action",
               "cx.account.status",
-              "cx.account.blocklist",
-              "cx.account_data.set",
-              "cx.presence",
-              "cx.typing",
-              "cx.read.marker",
-              "cx.receipt.read",
               "cx.flow.branch.history_visibility",
               "cx.flow.branch.policy_components",
               "cx.sovereign.did_policy"
@@ -789,16 +811,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "cx.key.verification.request",
-              "cx.key.verification.ready",
-              "cx.key.verification.start",
-              "cx.key.verification.accept",
-              "cx.key.verification.key",
-              "cx.key.verification.mac",
-              "cx.key.verification.done",
-              "cx.key.verification.cancel"
-            ]
+            "const": "cx.device.authorized"
           }
         },
         "required": [
@@ -808,7 +821,7 @@
       "then": {
         "properties": {
           "content": {
-            "$ref": "./device-message.schema.json#/$defs/key_verification_content"
+            "$ref": "./event-payload.schema.json#/$defs/device_authorized_content"
           }
         }
       }
@@ -817,7 +830,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.request"
+            "const": "cx.device.revoked"
           }
         },
         "required": [
@@ -827,13 +840,7 @@
       "then": {
         "properties": {
           "content": {
-            "required": [
-              "transaction_id",
-              "from_device",
-              "methods",
-              "timestamp",
-              "expires_at"
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/device_revoked_content"
           }
         }
       }
@@ -842,7 +849,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.ready"
+            "const": "cx.device.list_update"
           }
         },
         "required": [
@@ -852,11 +859,7 @@
       "then": {
         "properties": {
           "content": {
-            "required": [
-              "transaction_id",
-              "from_device",
-              "methods"
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/device_list_update_content"
           }
         }
       }
@@ -865,7 +868,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.start"
+            "const": "cx.mls.proposal"
           }
         },
         "required": [
@@ -875,11 +878,7 @@
       "then": {
         "properties": {
           "content": {
-            "required": [
-              "transaction_id",
-              "from_device",
-              "method"
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/mls_proposal_content"
           }
         }
       }
@@ -888,7 +887,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.accept"
+            "const": "cx.mls.welcome"
           }
         },
         "required": [
@@ -898,11 +897,7 @@
       "then": {
         "properties": {
           "content": {
-            "required": [
-              "transaction_id",
-              "from_device",
-              "commitment"
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/mls_welcome_content"
           }
         }
       }
@@ -911,7 +906,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.key"
+            "const": "cx.mls.keypackage"
           }
         },
         "required": [
@@ -921,11 +916,7 @@
       "then": {
         "properties": {
           "content": {
-            "required": [
-              "transaction_id",
-              "from_device",
-              "key"
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/mls_keypackage_content"
           }
         }
       }
@@ -934,7 +925,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.mac"
+            "const": "cx.space_key.share"
           }
         },
         "required": [
@@ -944,12 +935,7 @@
       "then": {
         "properties": {
           "content": {
-            "required": [
-              "transaction_id",
-              "from_device",
-              "mac",
-              "keys"
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/space_key_share_content"
           }
         }
       }
@@ -958,7 +944,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.key.verification.cancel"
+            "const": "cx.space_key.withheld"
           }
         },
         "required": [
@@ -968,11 +954,7 @@
       "then": {
         "properties": {
           "content": {
-            "required": [
-              "transaction_id",
-              "from_device",
-              "code"
-            ]
+            "$ref": "./event-payload.schema.json#/$defs/space_key_withheld_content"
           }
         }
       }
@@ -981,19 +963,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "cx.device.authorized",
-              "cx.device.revoked",
-              "cx.device.list_update",
-              "cx.mls.proposal",
-              "cx.mls.commit",
-              "cx.mls.welcome",
-              "cx.mls.keypackage",
-              "cx.mls.epoch",
-              "cx.space_key.share",
-              "cx.space_key.withheld",
-              "cx.space_key.share_audit"
-            ]
+            "const": "cx.space_key.share_audit"
           }
         },
         "required": [
@@ -1003,7 +973,7 @@
       "then": {
         "properties": {
           "content": {
-            "$ref": "./event-payload.schema.json#/$defs/crypto_device_content"
+            "$ref": "./event-payload.schema.json#/$defs/space_key_share_audit_content"
           }
         }
       }
@@ -1092,7 +1062,6 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.call.signal",
               "cx.call.state",
               "cx.call.recording.start"
             ]

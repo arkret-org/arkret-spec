@@ -44,16 +44,21 @@
       "type": "object",
       "required": [
         "space_id",
-        "event_type"
+        "event_kind"
       ],
       "properties": {
         "space_id": {
           "type": "string",
           "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
         },
+        "event_kind": {
+          "type": "string",
+          "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+        },
         "event_type": {
           "type": "string",
-          "pattern": "^cx\\.[a-z0-9_]+\\.[a-z0-9_]+$"
+          "deprecated": true,
+          "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
         },
         "event_id": {
           "type": "string",

@@ -313,7 +313,7 @@ Discussion branch 规则：
 
 Space (kind=board) 与 Space (kind=list) 是 `Space` 的工作流容器形态，使用 `cx:space:` ID，但默认 `boundary_profile="container"`。Space (kind=board) 是工作流容器；Space (kind=list) 是 Space (kind=board) 内的列/泳道；Space (kind=board) / Space (kind=list) 默认管理 `kind="card"` 的 Flow。
 
-Space (kind=board) 最小结构：
+Space (kind=board) 投影示例（非完整 canonical Space schema）：
 
 ```json
 {
@@ -328,7 +328,7 @@ Space (kind=board) 最小结构：
 }
 ```
 
-Space (kind=list) 最小结构：
+Space (kind=list) 投影示例（非完整 canonical Space schema）：
 
 ```json
 {
@@ -388,6 +388,7 @@ Message 是 Flow `discussion` branch 时间线中的原子消息对象。
 {
   "id": "cx:message:01js0ms0000000000000000000",
   "type": "message",
+  "schema": "cx.schema.message.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js0fk0000000000000000000",
   "branch": "discussion",

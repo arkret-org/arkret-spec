@@ -8,6 +8,8 @@
     "txn_id",
     "sender_principal_id",
     "sender_device_id",
+    "recipient_principal_id",
+    "recipient_device_id",
     "sent_at",
     "content"
   ],
@@ -23,6 +25,12 @@
       "$ref": "#/$defs/did"
     },
     "sender_device_id": {
+      "$ref": "#/$defs/device_id"
+    },
+    "recipient_principal_id": {
+      "$ref": "#/$defs/did"
+    },
+    "recipient_device_id": {
       "$ref": "#/$defs/device_id"
     },
     "sent_at": {

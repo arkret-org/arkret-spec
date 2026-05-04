@@ -174,7 +174,7 @@ Flow 使用统一 access 语义表达 branch 的 membership、permission、histo
 - 从 `room -> card` 时，不得自动删除 `discussion` branch 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.branch.disable` 或 profile 声明的 archive 语义。
 - 转换不自动移除 Space (kind=board)/Space (kind=list) 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
 
-### 2.6 常见关系
+### 2.7 常见关系
 
 - `Space (kind=list) --contains--> flow`
 - `flow --assigned_to--> actor`

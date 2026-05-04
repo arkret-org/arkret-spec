@@ -172,12 +172,11 @@ MLS KeyPackage key 用于加入加密 Space。
 5. Events API / identity registry 接受并传播该 event。
 6. 新设备开始同步 Event history、Space membership 和必要的 MLS Welcome。
 
-`cx.device.authorized` 示例：
+`cx.device.authorized.content` 示例：
 
 ```json
 {
-  "kind": "cx.device.authorized",
-  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "principal_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "device_id": "cx:device:01js0ke0000000000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [

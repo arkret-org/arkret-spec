@@ -49,13 +49,14 @@ Contrix v1 把三件事分开处理：
 1. **新设备初始化**：用户在新手机或新电脑上打开应用，本地生成一组全新的 ECDSA/Ed25519 密钥对。屏幕上显示包含公钥与临时连接信息的二维码 (QR Code)。
 2. **主设备扫码**：用户使用已登录的主设备（如已通过面容 ID 解锁的手机）扫描该二维码。
 3. **密码学授权**：
-   - 主设备验证身份后，将新设备的公钥添加到当前 DID Document 的 `verificationMethod` 列表中（若是 DID 主控端）。
-   - 或者，主设备使用自己的私钥签发一张 `cx.session.grant` 或 `cx.capability.grant`，明确把受限会话能力授予新设备的公钥；长期设备加入仍必须通过 `cx.device.authorized` 进入设备集合。
-4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过在 MLS 树中把新设备作为新叶子节点 `Add` 进去）同步给新设备。
-5. **事件广播**：主设备向网络广播 `cx.device.authorized` 事件。新设备即刻获得与网络互操作的完整能力。
+   - 主设备验证 pairing challenge 后，签发 `cx.device.authorized`、符合 DID method 的 key-log operation，或触发 recovery policy 允许的设备授权流程。
+   - DID Document SHOULD 只承载身份控制密钥和服务发现入口。普通设备列表、设备信任状态、吊销状态和算法更新 SHOULD 由 `cx.device.*` 事件、device key log 或受控 device registry 表达；只有 DID method 本身要求时，才把设备 verification method 写入 DID Document。
+   - 短期浏览器或临时执行环境 MAY 只拿到 `cx.session.grant`，但它不改变长期设备集合，也不得访问 E2EE 历史密钥，除非另有有效设备授权和密钥共享流程。
+4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过 MLS Welcome / Commit 把新设备加入合适的 group）同步给新设备。
+5. **事件广播**：主设备向网络广播 `cx.device.authorized` 事件。新设备获得的能力由该事件、session grant、Space capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
 
 ### 2.2 设备吊销
-当设备丢失时，用户可从任何其他已授权设备发起吊销操作：向网络广播 `cx.device.revoked` 事件，同时从 DID Document 中移除对应的公钥并触发 MLS 群组的 `Remove` 与 Epoch 更新。
+当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `cx.device.revoked`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
 ## 3. 企业单点登录 (SSO / OIDC Gateway)
 
@@ -67,12 +68,11 @@ Contrix v1 把三件事分开处理：
 ### 3.2 登录时序
 1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。
 2. **OIDC 重定向**：浏览器跳转至企业 Okta 完成标准的 OAuth2 / OIDC 身份认证。
-3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误，使用硬件中的根私钥签署一份 `Capability Grant`。
-   - **Grant 内容**：“特此将员工 DID 的全量操作权限，委派给临时公钥 `session_key_pub`，有效期 24 小时。”
-4. **会话生效**：浏览器拿到这份授权证书。在接下来的 24 小时内，浏览器内的所有操作直接用 `session_key` 签名，并附带该 Grant 证书。全网节点都会认可这些操作属于该员工。
-5. **平滑过期**：24小时后授权自然失效，无需人工干预。员工需要再次跳转 Okta 续期。
+3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，签发短期、受众绑定、scope 受限的 `cx.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。
+4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。资源服务器仍 MUST 重新验证 DID control state、capability、Space policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
+5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。续期需要重新验证 OIDC session，并重新检查组织 policy、设备状态和风险信号。
 
-此模式完美融合了 Web2 SSO 的企业合规性与 Web3 的分布式能力授权。
+此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `cx.device.authorized`、DID/key-log operation 或 recovery policy。
 
 ## 4. 密钥备份与恢复 (Key Backup & Recovery)
 
@@ -109,4 +109,4 @@ PBKDF2 只允许作为 fallback / constrained-platform 降级 profile；服务�
 4. **静默拉取**：苹果/谷歌服务器将此唤醒信号推送到用户的手机。手机操作系统在后台短暂唤醒 App。
 5. **本地解密展示**：App 被唤醒后，直接使用本地密钥连接 P2P 网络或 Sync Service 拉取最新的加密 Payload。App 在本地完成解密，并调用本地系统的弹窗接口显示明文通知（如：“Bob 提到了你：项目已上线”）。
 
-**结果**：无论是苹果、谷歌还是 Push Gateway，整个链路的中间节点都没有看到过一行明文，完美保护了端到端加密的纯洁性。
+**结果**：苹果、谷歌和 Push Gateway 默认只看到脱敏唤醒信号。实现仍 MUST 避免在推送 payload、collapse key、topic、analytics tag 或第三方日志中写入正文、附件名、稳定 Space 名称、sender handle 或可长期关联的敏感标识。

@@ -19,7 +19,7 @@
     "ciphertext": "base64url",
     "aad": {
       "space_id": "cx:space:...",
-      "event_type": "cx.message.create",
+      "event_kind": "cx.message.create",
       "event_ref_hash": "sha256:...",
       "causal_refs": ["cx:event:..."]
     },
@@ -46,7 +46,8 @@
 | `authentication_tag` | string | 条件 | 仅 raw AEAD / exporter-AEAD profile 使用。`mls-rfc9420` profile 的认证标签已在 MLS message 内，不应重复拆出。 |
 | `aad` | object | 是 | 附加认证数据 |
 | `aad.space_id` | id:space | 是 | 用于路由和授权的 Space |
-| `aad.event_type` | string | 是 | 用于路由的事件类型 |
+| `aad.event_kind` | string | 是 | 用于路由的 Event kind；MUST 使用标准 `kind` 命名规则，允许多段 kind。 |
+| `aad.event_type` | string | 否 | 旧字段名；不得在新 envelope 中生成。接收方 MAY 作为兼容输入读取，但 MUST 归一为 `event_kind` 后再参与 AAD digest。 |
 | `aad.event_id` | id:event | 条件 | `aad_visibility.event_id="opaque_id"` 时可见。 |
 | `aad.event_ref_hash` | hash | 条件 | `aad_visibility.event_id="routing_hash"` 时使用，hash 输入必须由 profile 固定。 |
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可用 `causal_ref_hashes` 替代。 |
@@ -82,7 +83,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 ```json
 {
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "event_type": "cx.message.create",
+  "event_kind": "cx.message.create",
   "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "causal_refs": ["cx:event:01js0et0000000000000000000"]
 }
@@ -212,7 +213,7 @@ function encrypt_content(content, aad, group_context):
 同步服务使用 AAD 字段进行路由：
 
 - `space_id`：路由到正确的 Space
-- `event_type`：确定事件处理方式
+- `event_kind`：确定事件处理方式
 - `causal_refs`：维护因果排序
 
 以上操作均不需要解密。
@@ -371,7 +372,7 @@ MLS 提供：
     "ciphertext": "SGVsbG8gV29ybGQ",
     "aad": {
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "event_type": "cx.message.create",
+      "event_kind": "cx.message.create",
       "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "causal_refs": []
     },

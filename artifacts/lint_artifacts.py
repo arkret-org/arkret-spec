@@ -526,6 +526,11 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             for row in event_by_kind.values()
             if row.get("status") == "active"
         },
+        "active_durable_event_kinds": {
+            row["event_kind"]
+            for row in event_by_kind.values()
+            if row.get("status") == "active" and row.get("wire_scope") == "durable_event"
+        },
         "schema_ids": schema_ids,
         "id_kinds": id_kinds,
         "special_id_kinds": special_id_kinds,
@@ -682,7 +687,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     }
     for token in sorted(event_schema_kinds - known["event_kinds"]):
         lint.fail(path, f"event-schema enum references unregistered Event.kind: {token}")
-    for token in sorted(known["active_event_kinds"] - event_schema_kinds):
+    for token in sorted(known["active_durable_event_kinds"] - event_schema_kinds):
         lint.fail(path, f"active Event.kind missing from event-schema enum coverage: {token}")
 
 

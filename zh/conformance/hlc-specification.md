@@ -174,7 +174,7 @@ HLC 在因果依赖之后提供第二级展示排序。该顺序不表示授权�
 ## 8. 安全考虑
 
 1. **时钟漂移攻击**：验证物理时间在 hard 上限内，并对高风险 state event 使用更小 expected drift / observed drift 检查
-2. **Node ID 碰撞**：使用完整 SHA256 空间使碰撞可忽略
+2. **Node ID 碰撞**：wire 形式只使用 SHA256 前 32 位作为 tie-break 输入；碰撞风险不作为安全假设，后续排序仍 MUST 继续使用 actor id、actor seq、event id 等稳定字段消解
 3. **重放检测**：结合 HLC 与其他因果追踪机制
 
 ## 9. 实现指南

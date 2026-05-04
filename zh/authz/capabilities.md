@@ -202,7 +202,8 @@ Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation �
 - `cx.mls.commit`
 - `cx.mls.welcome`
 - `cx.mls.keypackage`
-- `cx.mls.epoch`
+
+`cx.mls.epoch` 不是可授予的服务动作。它是从 winning `cx.mls.commit` 机械派生的 checkpoint；实现只能按 MLS epoch 验证规则发布或缓存该 checkpoint，不得用单独 capability 授权推进 epoch。
 
 ### 5.6 人类界面与个人状态动作
 
