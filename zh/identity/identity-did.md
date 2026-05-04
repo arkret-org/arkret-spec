@@ -54,7 +54,7 @@ DID Document SHOULD 只承载：
 
 DID Document MUST NOT 被用作跨组织身份画像。邮箱、跨组织 handle、第三方账号和隐私敏感属性应通过 claim / presentation 按需证明。
 
-### 2.4 不再使用 `did:uuid`
+### 2.4 `did:uuid` 不属于 v1 规范方法
 
 新实现、测试向量、fixture、规范示例和新写入的协议对象 MUST NOT 使用 `did:uuid`。`did:uuid` 不属于 Contrix v1 的主身份形式；解析与写入路径对该方法直接拒绝。
 
@@ -163,8 +163,8 @@ DID method 或 registry 不可用时，节点不得把“暂时无法解析”�
 - 缓存解析结果只能在 resolver policy 声明的 TTL、document hash、history head 和 trust domain 内使用；超过 TTL 或 evidence 断链后，不得接受新的高风险写入。
 - `did:plc` directory 不可用时，resolver MAY 使用 policy 允许的 mirror / audit source，但必须验证同一 operation chain、history head 和 directory transparency evidence；不得用 handle、DNS 或服务声明代替 DID method history。
 - 用户迁移到新 DID method 时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
-- 若旧 DID 仍可解析，continuity proof SHOULD 由旧 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Space / service 范围。
-- 若旧 method 永久不可用且无法验证旧控制密钥，只能走 Space / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
+- 若原 DID 仍可解析，continuity proof SHOULD 由原 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Space / service 范围。
+- 若原 method 永久不可用且无法验证原控制密钥，只能走 Space / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
 - Principal Server、Directory 或 Handle 服务 MAY 帮助发现新 DID，但不得单独证明 DID continuity。
 
 ## 5. Resolver、Auth Server 与组织授权
@@ -348,7 +348,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 - 高风险治理动作 SHOULD 使用阈值签名、多签 approval 或 governance service attestation。
 - 组织可委派 service DID 代表其运行 Principal Server、Policy Server、Applet、Directory 或受托 search / projection 扩展，但该委派 MUST 明确 purpose、scope 和有效期。
 - 组织 DID 的密钥轮换、恢复和停用 MUST 进入 DID method 的可验证历史。
-- 组织所有权转移 MUST 由旧控制状态授权，并生成可验证 transfer / recovery 记录；实现 MUST NOT 因域名、商标或 UI 文案变化自动认定组织所有权转移。
+- 组织所有权转移 MUST 由原控制状态授权，并生成可验证 transfer / recovery 记录；实现 MUST NOT 因域名、商标或 UI 文案变化自动认定组织所有权转移。
 
 客户端判断“谁控制该组织”时，应验证：
 

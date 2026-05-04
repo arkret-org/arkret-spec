@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文件把 `event-auth-state-resolution.md` 的 state resolution 与冲突裁决规则转成可复现向量。当前向量按 Space、Flow（含 `kind=card` / `kind=room`）、Space(kind=board/list) 容器、Message、Morph、Relation 和 View 模型定义，不包含旧 `Entity`、Subject、Room 或 Card 顶层对象兼容性要求。
+本文件把 `event-auth-state-resolution.md` 的 state resolution 与冲突裁决规则转成可复现向量。当前向量按 Space、Flow（含 `kind=card` / `kind=room`）、Space(kind=board/list) 容器、Message、Morph、Relation 和 View 模型定义。
 
 实现必须对每个向量输出：
 

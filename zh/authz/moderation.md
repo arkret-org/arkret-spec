@@ -47,7 +47,7 @@ POST /api/v1/moderation/report
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `space_id` | id | required | 被举报对象所在 Space。 |
-| `target_ref` | id | required | 被举报 Object / Event 引用；旧客户端若提交 Operation 引用，服务必须先映射到对应 `event_id`。 |
+| `target_ref` | id | required | 被举报 Object / Event 引用；若提交 Operation 引用，服务必须先映射到对应 `event_id`。 |
 | `reason` | enum | required | 举报原因，取值见 3.2。 |
 | `description` | string | optional；`reason=other` 时 required | 举报说明；服务端 MAY 限制长度。 |
 | `reporter` | did | required | 举报人 DID，MUST 与认证 session / device proof 一致。 |

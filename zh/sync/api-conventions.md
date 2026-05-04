@@ -185,7 +185,7 @@ API 调用 SHOULD 使用以下方式之一：
 | `internal_error` | 500 | 服务内部错误 |
 | `temporarily_unavailable` | 503 | 服务暂不可用 |
 
-多状态旧写法不再规范。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。`stale_frontier` 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。Malformed sync token 使用 `invalid_param` / 400；格式正确但已过期的 sync token 使用 `sync_token_expired` / 410。
+错误语义必须使用单一标准 code。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。`stale_frontier` 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。Malformed sync token 使用 `invalid_param` / 400；格式正确但已过期的 sync token 使用 `sync_token_expired` / 410。
 
 ### 5.2 未知路径与错误方法
 
@@ -196,7 +196,7 @@ API 调用 SHOULD 使用以下方式之一：
 - 未声明或未实现的路径 MUST 返回 HTTP `404` 与错误码 `unrecognized_endpoint`。
 - 已知路径但 HTTP method 不受支持时 MUST 返回 HTTP `405` 与错误码 `method_not_allowed`，并 SHOULD 设置 `Allow` header。
 - 这两类请求 MUST 在路由层终止，不得进入业务逻辑、写入队列、触发昂贵解析或产生可观察副作用。
-- 客户端和联邦对端 MUST 使用 `describe.supported_operations`、OpenAPI 文档和 feature discovery 判断 endpoint 是否可用，不得根据非标准 404 body 做兼容性推断。
+- 客户端和联邦对端 MUST 使用 `describe.supported_operations`、OpenAPI 文档和 feature discovery 判断 endpoint 是否可用，不得根据非标准 404 body 做能力推断。
 
 ## 6. 幂等
 
@@ -205,7 +205,6 @@ API 调用 SHOULD 使用以下方式之一：
 写入请求 SHOULD 携带以下之一：
 
 - `event_id`
-- `operation_id`（仅兼容层或 SDK 本地别名）
 - `request_id`
 - endpoint-specific `idempotency_key`
 

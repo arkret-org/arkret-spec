@@ -326,7 +326,7 @@ Graph projection 可展开 Flow、Morph、Message、Board 等对象之间的 Rel
 
 Contrix v1 固定：
 
-- View 投影 Flow、Message、Morph 和 Space workflow，不再以 Entity 为中心。
+- View 投影 Flow、Message、Morph 和 Space workflow。
 - Space (kind=board) 和 Space (kind=list) 是 `Space.kind`，不是 `View.kind`。
 - 看板拖拽使用 `cx.flow.move` / `cx.flow.reorder`。
 - discussion chat 使用 `flow + message`。

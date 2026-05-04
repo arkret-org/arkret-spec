@@ -189,7 +189,7 @@ Wallet SHOULD choose proof profile by privacy requirement:
 
 | Requirement | Recommended profile |
 | --- | --- |
-| Broad compatibility | `sd_jwt_vc` |
+| Broad verifier support | `sd_jwt_vc` |
 | Claim-level selective disclosure | `sd_jwt_vc` or `vc_di_bbs_2023` |
 | Unlinkable derived proof | `vc_di_bbs_2023` or another unlinkable proof suite |
 | Simple service assertion | detached JWS claim, if unlinkability is not required |

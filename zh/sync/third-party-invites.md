@@ -89,7 +89,7 @@ Space 中的其他节点（Sync Service / 客户端本地 projection）在收到
 5. 如果验证通过，该占位符邀请正式转变为针对 `did:web:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
 6. 随后 Bob 按照正常流程发送 `cx.invite.accept` 加入 Space。
 
-## 5. E2EE 场景的兼容性
+## 5. E2EE 场景处理
 
 对于端到端加密的 Space，MLS (Message Layer Security) 组无法包含一个没有公钥的邮件地址。
 

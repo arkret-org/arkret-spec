@@ -18,7 +18,7 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 - `artifacts/registry/contract-catalog.json#operation_registry` 是 operation contract 的 canonical source。
 - `artifacts/registry/operation-registry.json` 是由 canonical source 生成的机器视图，供实现、SDK、lint 与 transport adapter 直接消费。
 - `contrix-service-api.openapi.yaml` 是 HTTP binding 的规范性 shape 文档；它必须与 operation registry 对齐，但不是第二套 operation namespace。
-- 本文是说明性地图与治理说明，不再手工维护“唯一完整枚举”；若示例与生成物冲突，以 canonical source 与生成物为准。
+- 本文是说明性地图与治理说明；完整枚举以 canonical source 与生成物为准。
 
 ## 2. 统一约定
 
@@ -421,7 +421,7 @@ paths:
 
 - 任何新增、重命名或删除 `operation_id` 的提案，必须先更新 `artifacts/registry/contract-catalog.json` 中的 `operation_registry`，再生成 registry / OpenAPI / 文档视图。
 - 任何节点都应能发布一份可下载的 OpenAPI 文档（建议路径 `/.well-known/contrix/openapi.yaml`），并在 service DID metadata 中声明版本和 hash。
-- 实现必须保持 `operation_id` 在演进中稳定；若请求字段名变更，必须保留兼容版本或通过 profile 明确协商。
+- 实现必须保持 `operation_id` 在演进中稳定；若请求字段名变更，必须通过 profile、schema 版本或 feature discovery 明确协商。
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - 实现不得因为支持 core Event/Sync 就默认声称支持目录、MIMI、账户、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
 - `/contrix/v1/*` 是服务本地绝对路径，不挂在 `/api/v1` 下。生成 OpenAPI 时必须为这些 path 使用 path-level `servers` 或拆成独立文档。

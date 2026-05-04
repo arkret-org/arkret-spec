@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文定义 Client Sync、timeline ordering、pagination、snapshot、backfill 与 E2EE / MLS 同步的跨实现测试向量。当前向量已按标准对象 / Morph 模型重置，不包含旧 `Entity` 兼容性要求。
+本文定义 Client Sync、timeline ordering、pagination、snapshot、backfill 与 E2EE / MLS 同步的跨实现测试向量。当前向量覆盖标准对象 / Morph 模型。
 
 实现声称支持以下 profile 时 SHOULD 运行本文对应向量：
 
@@ -50,7 +50,7 @@
     {
       "kind": "cx.space.create",
       "target_ref": "cx:space:01js0bd0000000000000000000",
-      "content": { "kind": "board", "board_kind": "kanban" }
+      "content": { "kind": "board" }
     },
     {
       "kind": "cx.space.create",

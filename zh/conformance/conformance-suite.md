@@ -92,7 +92,7 @@ v1 新增以下必测项：
   - grant 链条（多层委派）与 selector 条件（时间、对象、速率）冲突场景。
   - 期望输出：可验证且具备时间边界的派生有效性。
 - `cx.vector.capability.revoke_rollback.v1`
-  - 撤销后旧事件在历史范围内的生效/失效行为。
+  - 撤销后既有事件在历史范围内的生效/失效行为。
 - `cx.vector.capability.approval_constraint.v1`
   - high risk action 未满足 approval 时应软拒绝或进入 proposal 流程。
 

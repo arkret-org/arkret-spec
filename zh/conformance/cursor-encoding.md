@@ -109,7 +109,7 @@ cx:cursor:eyJ2IjoiMSIsInMiOnt9fQ
 新游标版本：
 
 - MUST 使用不同的 `v` 值
-- MUST 向后兼容或提供迁移方案
+- MUST 提供明确版本过渡或迁移方案
 - SHOULD 支持优雅降级
 
 ## 6. 安全考虑

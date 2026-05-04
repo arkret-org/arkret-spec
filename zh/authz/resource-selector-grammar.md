@@ -4,7 +4,7 @@
 
 本规范定义 Contrix v1 capability 授权中的资源选择器。资源选择器只回答“授权命中哪些资源”，不单独表达动作、字段、branch、claim 或审批约束；这些约束必须由 grant 的 `actions` 与 `constraints` 表达。
 
-Contrix v1 不再使用 `entity` 作为通用资源选择器，也不再把 `subject`、`room`、`card` 作为独立 selector domain。当前 canonical 模型为：
+Contrix v1 capability 使用以下 canonical resource selector 模型：
 
 - `flow` 是统一协作主对象，`card` 与 `room` 只是 `Flow.kind`。
 - `message` 总是属于某个 Flow 的 `discussion` branch。
@@ -389,16 +389,11 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 - 要求管理员审批与审计理由。
 - `max_delegation_depth` SHOULD 为 0。
 
-### 8.2 旧 selector domain
+### 8.2 非 canonical selector domain
 
-实现 MUST reject canonical JSON 中的 `kind="subject"`、`kind="room"`、`kind="card"`、`kind="board"` 和 `kind="list"`。迁移工具 MAY 接受旧字符串 shorthand，但必须在签名前转换为 v1 JSON selector 与约束：
+实现 MUST reject canonical JSON 中的 `kind="subject"`、`kind="room"`、`kind="card"`、`kind="board"` 和 `kind="list"`。Card / room 视角必须使用 `kind="flow"` 加 `flow_kind_allow`；board / list 容器必须使用 `kind="space"` 加 `space_kind_allow`。
 
-| 旧写法 | v1 表达 |
-| --- | --- |
-| `card:<space>:<flow>` | `kind="flow"` + `flow_kind_allow=["card"]` |
-| `room:<space>:<flow>` | `kind="flow"` + `flow_kind_allow=["room"]` + `allowed_branches=["discussion"]` |
-| `board:<space>:<board>` | `kind="space"` + `space_kind_allow=["board"]` |
-| `list:<space>:<board>:<list>` | `kind="space"` + `space_kind_allow=["list"]` + container constraints |
+字符串 shorthand 也必须映射到上述 canonical domain；未声明的 selector domain MUST fail closed。
 
 ### 8.3 Facet 限制
 
@@ -432,13 +427,12 @@ Facet 是 Space schema / Morph profile 声明后的 hint 或查询标签，不�
 
 - 接受本规范定义的 JSON resource selector。
 - 支持精确 ID、Space、Flow、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema 和 Object 匹配。
-- 拒绝旧 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
+- 拒绝非 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
 - 对非法 selector 返回清晰错误。
 - 在 selector 命中后继续执行 action、constraint、claim、policy、branch access 和 E2EE 检查。
 
 实现 SHOULD：
 
-- 提供旧 shorthand 到 v1 selector 的迁移工具。
+- 提供 selector 解释 / 调试工具。
 - 缓存 selector 匹配结果。
 - 记录通配符 selector 使用。
-- 提供 selector 解释 / 调试工具。

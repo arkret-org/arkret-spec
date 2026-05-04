@@ -16,7 +16,7 @@ The Chinese specification under `zh/` is the leading normative text for Contrix 
 
 For v1 interoperability, only active entries referenced by `artifacts/registry/*` and `artifacts/profiles/*` are normative machine contracts.
 
-Any drift between `zh/` and generated artifacts is a specification bug. Until regenerated artifacts are brought back into sync, implementations MUST follow the Chinese normative text plus the active machine registries and MUST NOT treat compatibility artifacts as wire truth.
+Any drift between `zh/` and generated artifacts is a specification bug. Until regenerated artifacts are brought back into sync, implementations MUST follow the Chinese normative text plus the active machine registries and MUST NOT treat non-active generated artifacts as wire truth.
 
 Artifact maintenance pipeline:
 

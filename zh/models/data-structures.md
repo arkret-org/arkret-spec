@@ -72,10 +72,10 @@ Schema id: `cx.schema.space.v1`
 | `boundary_profile` | no | `enum(security_boundary, container)` | 省略时由 `kind` 派生：`board/list` 为 `container`，其他标准 kind 为 `security_boundary`。 | 是否形成独立 membership / policy / history / E2EE 边界。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
-| `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或兼容 profile。 | 启用 schema。 |
+| `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或实现 profile。 | 启用 schema。 |
 | `policy_ref` | no | `id:policy` | 若省略，使用 create event 默认 policy。 | Space policy 引用。 |
 | `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | 见 `discovery-directory.md`。 | 默认可发现性。 |
-| `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | `invite` 表示只允许邀请加入；旧草案中的 `private` MUST 映射为 `invite` 后再进入 v1 canonical state。 | 默认加入规则。 |
+| `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | `invite` 表示只允许邀请加入；canonical state MUST 使用本枚举值。 | 默认加入规则。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 加入后可见历史范围。 | 历史可见性。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | sovereign 默认 SHOULD `closed`。 | 联邦策略。 |
@@ -106,7 +106,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:actor_profile` | Actor Profile 是标准对象，不作为 Morph/Entity 存储。 | Profile 对象 ID。 |
+| `id` | yes | `id:actor_profile` | Actor Profile 是标准对象。 | Profile 对象 ID。 |
 | `type` | yes | `enum(actor_profile)` | 固定为 `actor_profile`。 | 对象种类。 |
 | `space_id` | no | `id:space` | 全局 profile 可省略。 | 所属 Space。 |
 | `principal_id` | yes | `did` | 权限仍以 DID/capability 为准。 | Principal DID。 |
@@ -122,7 +122,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 
 ## 6. Standard Objects
 
-Flow、Space 和 Message 是标准对象。`Board` 与 `List` 在本协议中收敛为 `Space` 的特化形态 Space (kind=board)/Space (kind=list)；`Card` 与 `Room` 为 Flow 的特化形态，不再作为独立顶层对象。
+Flow、Space 和 Message 是标准对象。Space (kind=board)/Space (kind=list) 表达工作流容器；Flow (kind=card)/Flow (kind=room) 表达协作主对象的默认交互形态。
 
 ### 6.1 Flow
 
@@ -153,7 +153,7 @@ Schema id: `cx.schema.flow.v1`
 
 ### 6.2 Space (kind=board)
 
-Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 格式。Space (kind=board) 的视图样式通过 `fields`、schema profile 或 `View.renderer` 表达，不再使用与 `kind` 平级的 `board_kind`。
+Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 格式。Space (kind=board) 的视图样式通过 `fields`、schema profile 或 `View.renderer` 表达。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |

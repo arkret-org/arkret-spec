@@ -161,7 +161,7 @@ Sync 响应包含以下 stream：
 
 服务器 SHOULD 在每个 joined Space 中返回 `state_after`，表示 `timeline.events` 应用完成后的 state delta。客户端渲染 timeline 中事件时 MUST 使用事件自己 auth state；渲染 timeline 末尾的当前 UI 时 SHOULD 使用 `state_after`。
 
-这避免客户端用新权限、新成员名或新加密 epoch 错误解释旧事件。
+这避免客户端用新权限、新成员名或新加密 epoch 错误解释先前事件。
 
 ## 6. Event Ordering
 

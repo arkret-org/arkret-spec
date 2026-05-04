@@ -5,7 +5,7 @@
 Contrix 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
 
 - 所有客户端能够以一致的方式渲染各种消息类型
-- 不认识某种内容类型的旧客户端能通过 `fallback_text` 优雅降级
+- 不支持某种内容类型的客户端能通过 `fallback_text` 优雅降级
 - E2EE 场景下加密信封只包裹 `content` 字段，不影响路由元数据
 
 ## 2. 设计原则

@@ -61,18 +61,6 @@
       ],
       "description": "Whether this Space forms an independent membership/policy/history/E2EE boundary. If omitted, board/list imply container and other standard kinds imply security_boundary."
     },
-    "board_kind": {
-      "type": "string",
-      "enum": [
-        "kanban",
-        "scrum",
-        "review_queue",
-        "intake",
-        "custom"
-      ],
-      "deprecated": true,
-      "description": "Legacy workflow sub-type for import compatibility only. v1 profiles should use fields, schema profiles, or View.renderer instead."
-    },
     "default_view_id": {
       "type": "string",
       "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$",

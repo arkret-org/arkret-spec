@@ -103,11 +103,11 @@ Receipt 可用于 read-your-writes、回放完整性检查、witness 证明或�
 
 v1 的规范性 wire fact 只有 **Event Envelope**。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `data-structures.md` 中的 `cx.schema.event.v1` Event Envelope 作为共享状态事实输入。
 
-部分 HTTP 路径或 SDK 仍可能把一批 Event 称为 `operations`，这是传输集合名，不表示存在第二套 wire object。`data-structures.md` 中的 Canonical Operation Object 只允许作为 SDK 内部 builder、离线草稿或内容寻址中间对象；它进入网络、联邦、sync 或 reducer 前 MUST 被封装成 Event Envelope。互操作 profile 不得要求对端同时理解 Canonical Operation Object 和 Event Envelope。
+Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event Envelope。`data-structures.md` 中的 Canonical Operation Object 只允许作为 SDK 内部 builder、离线草稿或内容寻址中间对象；它进入网络、联邦、sync 或 reducer 前 MUST 被封装成 Event Envelope。互操作 profile 不得要求对端同时理解 Canonical Operation Object 和 Event Envelope。
 
 Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`prev_refs` 表示 actor event chain 前序，`auth_refs` 表示授权依赖。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `content.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `content` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`auth_refs`、`actor_seq` 和签名绑定。
 
-如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event Envelope 顶层声明 `required_features` 或 `critical_extensions`。这些字段和 `schema_profile_refs`、`reducer_profile_ref` MUST 进入 canonical event bytes、event digest 和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通旧语义接受。
+如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event Envelope 顶层声明 `required_features` 或 `critical_extensions`。这些字段和 `schema_profile_refs`、`reducer_profile_ref` MUST 进入 canonical event bytes、event digest 和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
 
 ```json
 {
@@ -144,7 +144,7 @@ Event Envelope 的 `kind` 是标准事件类型，`content` 是事件负载，`p
 }
 ```
 
-`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）。Event Envelope、Canonical Operation Object、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`。若旧 SDK 兼容层仍向本地调用方暴露 `operation_id`，它只能是 `event_id` 或本地草稿 `id` 的稳定别名，且不得进入另一套排序、去重或签名规则。
+`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）。Event Envelope、Canonical Operation Object、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
 
 ## 6. 为什么需要 `prev_refs + hlc + actor_seq`
 
@@ -560,7 +560,7 @@ Reducer 输出：
 - Reducer MUST 幂等：重复输入同一 Event 不得改变输出。
 - Reducer MUST 对输入集合顺序不敏感；排序只能使用本规范声明的 deterministic ordering。
 - Reducer profile MUST 明确声明它处理的 Event kind、state key 规则、字段 merge operator、redaction preserved fields、rank/order profile、schema interpretation profile 和 critical extension 行为。
-- 两个 reducer profile 只有在 profile id、space_version、critical feature 集合、state resolution 规则和字段 merge operator 均兼容时，才可比较 state hash。否则必须声明为不同 projection，不得声称同一 canonical state。
+- 两个 reducer profile 只有在 profile id、space_version、critical feature 集合、state resolution 规则和字段 merge operator 均匹配时，才可比较 state hash。否则必须声明为不同 projection，不得声称同一 canonical state。
 - Partial reducer MAY 用于客户端视图、搜索、通知或只读 projection，但它输出的是 scoped projection frontier，不是 Space accepted reducer frontier。Partial reducer 遇到不支持但会影响其输出语义的 standard Event kind、critical extension 或 required feature 时 MUST fail closed、返回 `projection_incomplete` / `unsupported_feature`，或降级为明确标注的不完整视图；不得静默忽略后继续声称完整。
 
 ## 17. 字段级 merge 与对象级收敛

@@ -2180,7 +2180,7 @@ paths:
         - httpMessageSignature: []
       responses:
         "200":
-          description: Sodmin-compatible server admin status
+          description: Server admin status
           content:
             application/json:
               schema:

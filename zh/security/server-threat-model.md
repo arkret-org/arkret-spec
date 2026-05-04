@@ -3,7 +3,7 @@
 ## 1. 目标
 
 本文件给出服务端可直接落地的威胁与防护。
-不再复用与当前协议不一致的传统通道细节，所有条目均按 Contrix 的 Events API / Sync Service / Directory / Policy Server / Identity 平面映射到协议规则。
+所有条目均按 Contrix 的 Events API / Sync Service / Directory / Policy Server / Identity 平面映射到协议规则。
 
 ## 2. 服务端攻击面
 
@@ -64,7 +64,7 @@
     复用未及时撤销的 device/session/gateway token 继续提交高敏操作、join、invite 或读取。
 
 19. **加密状态回退与伪造（MLS Epoch Abuse）**
-    通过 epoch 回退、非法 commit 顺序、已移除成员持有旧密钥继续参与解密相关流程。
+    通过 epoch 回退、非法 commit 顺序、已移除成员持有先前密钥继续参与解密相关流程。
 
 20. **推送网关与通知元数据滥用（Push/Gateway Abuse）**
     攻击者利用未鉴权的 gateway 注册、metadata 推送接口、超频或伪造事件触发隐私侧信道或 DoS。

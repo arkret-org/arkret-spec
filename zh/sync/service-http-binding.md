@@ -51,7 +51,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 - 成功响应字段类型。
 - 认证方式：`public_metadata`、`user_session`、`device_proof`、`service_signature`、`policy_token`、`applet_signature` 等。
 - 访问限制：Space membership、history visibility、capability、service delegation、namespace、plaintext visibility、rate limit、quota。
-- 幂等键：写接口使用 `Idempotency-Key`、path 中的 `{txn_id}`、`event_id`、兼容层 `operation_id` 或 canonical request hash。
+- 幂等键：写接口使用 `Idempotency-Key`、path 中的 `{txn_id}`、`event_id`、`request_id` 或 canonical request hash。
 - 失败时使用标准 error envelope。
 
 JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST 使用字段表说明字段名、位置、类型、是否必填、含义和约束。
@@ -69,7 +69,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 ### 2.3 端点契约清单
 
-类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`events` 为 Event Envelope 数组；兼容别名字段 `operations` 只可作为 Event 数组别名。
+类型简写：`did` 为 DID URI，`id` 为协议对象 ID，`cursor` / `token` 为 opaque string，`signature` 为 `{kid, alg?, sig}`，`proof` 为 DID / HTTP message / detached JWS proof。`events` 为 Event Envelope 数组。
 
 | Endpoint | Request 类型 | Auth / 访问限制 | Success 类型 |
 | --- | --- | --- | --- |
@@ -188,7 +188,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.keys.keypackages.revoke` | `key_package_refs: id[]`; `device_id: id`; `signature: signature` | `reason: string` | `revoked: id[]`; `failures: object?` | 只能由 owning device、principal 或授权 admin 撤销。 |
 | `cx.authz.get_effective_grants` | `query.space_id: id`; `query.subject: did` | `query.at: string` | `grants: object[]`; `state_hash: string?`; `evaluated_at: datetime` | subject 本人、Space admin 或授权服务。 |
 | `cx.authz.get_invites` | `query.subject: did 或 string` | `query.space_id: id`; `query.cursor: cursor` | `invites: object[]`; `next_cursor: cursor?` | secret invite 不可枚举。 |
-| `cx.authz.check` | `actor: did`; `action: string`; `resource: object` | `context: object` | `decision: enum(allow,deny,quarantine,require_review,soft_fail)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `cache_valid_until: datetime?`; `reason_code: string?`; `obligations: object[]?` | Policy allow 不创建 capability；客户端不得把旧 `allowed` 字段作为规范字段。 |
+| `cx.authz.check` | `actor: did`; `action: string`; `resource: object` | `context: object` | `decision: enum(allow,deny,quarantine,require_review,soft_fail)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `cache_valid_until: datetime?`; `reason_code: string?`; `obligations: object[]?` | Policy allow 不创建 capability；客户端不得把非标准 `allowed` 字段作为规范字段。 |
 | `cx.policy.check` | `request_id: string`; `request_canonical_hash: string`; `action: string`; `actor: did`; `source: object` | `space_id: id`; `event_preview: object`; `auth_context: object` | `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `reason_code: string`; `expires_at: datetime`; `obligations: object[]?`; `signature: signature` | 只接收最小披露字段；decision 按 hash 缓存。 |
 | `cx.moderation.report` | `space_id: id`; `target_ref: id`; `reason: enum`; `reporter: did` | `description: string`; `evidence_refs: id[]` | `report_id: id`; `status: string`; `routed_to: did[]?` | reporter 必须可见 target；只对 moderators 可见。 |
 | `cx.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 不得泄露 private namespace。 |

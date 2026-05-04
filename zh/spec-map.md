@@ -45,9 +45,9 @@
 ### 3.2 Space / Standard Objects / Morph / View
 
 - Space 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
-- Flow、Board、List、Message 是协议标准对象，拥有明确主语义和 reducer。
+- Flow、Message 和 Space workflow 容器是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- `room` / `card` 退化为 `kind`；Flow 的 `synthesis` / `discussion` branch 分别承载正式表达与讨论能力，branch 默认继承 Flow / Space 访问规则，显式 override 才承载独立 membership、历史与 E2EE 边界。
+- Flow 通过 `kind=card` / `kind=room` 选择默认入口；`synthesis` / `discussion` branch 分别承载正式表达与讨论能力，branch 默认继承 Flow / Space 访问规则，显式 override 才承载独立 membership、历史与 E2EE 边界。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Projection

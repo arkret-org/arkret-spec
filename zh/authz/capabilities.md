@@ -460,7 +460,7 @@ Contrix v1 固定：
 
 ## 20. 规范性收敛
 
-以下授权事项在 v1 中按本节和引用文档执行，不再作为开放问题：
+以下授权事项在 v1 中按本节和引用文档执行：
 
 - Resource selector 语法由 `resource-selector-grammar.md` 和 `resource-selector.schema.json` 固定。
 - Constraint schema 由 `constraint-schema.md` 固定。

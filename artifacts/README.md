@@ -38,7 +38,7 @@ python tools/artifact_pipeline.py check
 
 - 合成生成文件
 - 同步文档镜像与机器注册表
-- 触发约束校验与兼容性检查
+- 触发约束校验与 profile 一致性检查
 
 其中 `check` 会执行三层校验：
 

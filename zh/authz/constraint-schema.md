@@ -8,7 +8,7 @@
 
 ### 2.1 基础 Schema
 
-所有约束使用同一个 typed flat object 结构。`constraint_type`、`effect` 和 `priority` 是通用字段；类型专属字段直接放在同一对象上，不再包入另一层 `parameters`。Grant、policy、proposal 和 conformance schema 都 MUST 使用这一种结构。
+所有约束使用同一个 typed flat object 结构。`constraint_type`、`effect` 和 `priority` 是通用字段；类型专属字段直接放在同一对象上。Grant、policy、proposal 和 conformance schema 都 MUST 使用这一种结构。
 
 ```json
 {

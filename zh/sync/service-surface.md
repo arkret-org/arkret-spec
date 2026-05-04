@@ -15,7 +15,7 @@
 - invite / grant 如何参与首次加入工作区
 
 本文给出 **最小可互操作服务面**。
-默认调用风格采用 HTTP/JSON binding，但协议核心不强绑定 REST API。实现也可以兼容 gRPC、GraphQL、WebSocket、SSE、message queue、libp2p 或本地 IPC，只要提供语义等价的操作、认证、授权、幂等、分页、错误和流控语义即可。详细规则见 `transport-bindings.md`。
+默认调用风格采用 HTTP/JSON binding，但协议核心不强绑定 REST API。实现也可以支持 gRPC、GraphQL、WebSocket、SSE、message queue、libp2p 或本地 IPC，只要提供语义等价的操作、认证、授权、幂等、分页、错误和流控语义即可。详细规则见 `transport-bindings.md`。
 
 本文件按服务角色说明接口语义。所有 REST endpoint 的字段级请求 / 响应 schema、认证模式、访问限制和幂等规则以 [service-http-binding.md](service-http-binding.md#24-字段级-schema-索引) 为准；本文件中的 JSON 或字段列表仅用于解释服务面，不构成完整 schema。
 
@@ -53,7 +53,7 @@ DID Document SHOULD 只负责：
 - `Idempotency-Key` 或客户端事务 ID 幂等
 - 重复提交不重复生效
 
-### 2.4 服务必须公布自己的兼容 profile
+### 2.4 服务必须公布自己的实现 profile
 
 每个服务 SHOULD 能公开：
 
@@ -178,7 +178,7 @@ GET /api/v1/identity/describe
 - `service_did`
 - `registry_mode = writer | witness | replica`
 - 支持的 receipt 类型
-- 当前软件版本与兼容 profile
+- 当前软件版本与实现 profile
 
 #### 3.1.2 获取当前 DID Document
 
@@ -245,7 +245,7 @@ Contrix v1 要求：
 
 Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/events/*`。
 
-Contrix v1 不要求实现 atprotocol/Git 式数据仓库、提交日志或旧式仓库命名接口。Principal Server 可以托管、复制或索引 Event，但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` / `auth_refs` 因果依赖和 `event_id` 幂等性。
+Contrix v1 不要求实现 atprotocol/Git 式数据仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event，但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` / `auth_refs` 因果依赖和 `event_id` 幂等性。
 
 Events API 至少应提供以下语义：
 
@@ -560,7 +560,7 @@ POST /api/v1/directory/private-contact-discovery
 
 ## 9. MIMI Provider Facade Surface
 
-MIMI Provider Facade 是 MIMI 草案兼容的互操作服务面。它不替代 Principal Server / Federation / Device Key Server；它只把被授权的 Contrix Space 或 Flow discussion branch 投影为 MIMI room。
+MIMI Provider Facade 是面向 MIMI 草案的互操作服务面。它不替代 Principal Server / Federation / Device Key Server；它只把被授权的 Contrix Space 或 Flow discussion branch 投影为 MIMI room。
 
 推荐操作：
 
@@ -681,7 +681,7 @@ Contrix v1 的首次加入流程：
 Contrix v1 固定：
 
 - 定义最小 principal server / identity registry / events / sync / blob / authz 服务面
-- HTTP/JSON 路径是默认推荐 binding，但语义等价最重要，可兼容其他调用风格
+- HTTP/JSON 路径是默认推荐 binding，但语义等价最重要，可支持其他调用风格
 - 写接口必须幂等
 - DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill
@@ -696,7 +696,7 @@ Contrix v1 固定：
 
 ## 17. 线级互操作要求
 
-以下事项是 v1 的落地要求，不再作为待定项处理：
+以下事项是 v1 的落地要求：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_valid_until`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。

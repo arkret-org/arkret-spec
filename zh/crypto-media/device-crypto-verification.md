@@ -336,7 +336,7 @@ Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送�
 - 已验证设备 quorum 签名。
 - 受信任账户恢复服务签名，且该服务在 DID document 中声明。
 
-重置后，旧设备签名链不再自动可信。客户端 MUST 将所有旧信任标记为 `needs_reverification`。
+重置后，先前设备签名链不再自动可信。客户端 MUST 将所有既有信任标记为 `needs_reverification`。
 
 ## 13. Applet Device Delegation
 

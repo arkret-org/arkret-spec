@@ -52,7 +52,7 @@ cx:<kind>:<ulid>
 
 `<kind>` 是 canonical bytes 的一部分。实现不得把 `cx:receipt:<id>` 改写成 `cx:event:<id>`，也不得因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
-v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 ULID 部分 MUST 使用小写 Crockford Base32 字符集 `[0-9a-hjkmnp-z]`，并且不得包含 `i`、`l`、`o`、`u`。旧草案或外部导入数据 MAY 使用大写 ULID；实现必须在生成 v1 Event Envelope、object id、cursor payload 或 proof `payload_hash` 前把它规范化为小写。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写。
+v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 ULID 部分 MUST 使用小写 Crockford Base32 字符集 `[0-9a-hjkmnp-z]`，并且不得包含 `i`、`l`、`o`、`u`。外部导入数据 MAY 使用大写 ULID；实现必须在生成 v1 Event Envelope、object id、cursor payload 或 proof `payload_hash` 前把它规范化为小写。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写。
 
 特殊 ID/ref 形式：
 

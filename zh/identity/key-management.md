@@ -206,7 +206,7 @@ MLS KeyPackage key 用于加入加密 Space。
 - Events API MUST 拒绝该设备的新签名写入
 - authz MUST 视相关 session grant 失效
 - 加密 Space SHOULD 通过 MLS Remove 推进 epoch
-- 客户端和受托 projection executor SHOULD 标记旧设备产生的未确认 Operation 为高风险
+- 客户端和受托 projection executor SHOULD 标记已撤销设备产生的未确认 Operation 为高风险
 
 ## 6. Session Grant
 
@@ -319,15 +319,15 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 实现 MUST NOT 把以下情况当作独立恢复依据：
 
-- 用户能解密某条历史消息、历史 Blob、旧 MLS epoch 或旧备份。
+- 用户能解密某条历史消息、历史 Blob、先前 MLS epoch 或先前备份。
 - 用户能提供某段历史明文。
 - 用户知道 service account 密码或邮箱验证码，但没有 DID / recovery proof。
-- 用户持有已经撤销、过期或不在当前 recovery policy 中的旧设备密钥。
+- 用户持有已经撤销、过期或不在当前 recovery policy 中的设备密钥。
 
 安全风险：
 
 - **密钥用途混淆**：内容解密密钥、MLS epoch key、backup key 和 DID 控制密钥不是同一种权力。
-- **旧密钥复活**：被移除成员或旧设备可能仍能解密旧内容，但不应重新获得账号控制权。
+- **失效密钥复活**：被移除成员或已撤销设备可能仍能解密既有内容，但不应重新获得账号控制权。
 - **弱口令备份被盗**：攻击者获得云端备份密文后可以离线爆破 passphrase。
 - **解密 oracle**：服务端若允许任意密文挑战，可能被滥用为私钥 oracle；challenge 必须是固定格式、短期、限速且只针对声明的 recovery key。
 - **钓鱼与中继**：攻击者可能诱导用户解密 challenge；proof 必须绑定 domain / service DID / audience，并在 UI 中展示高风险恢复意图。
@@ -364,13 +364,13 @@ Recovery policy 字段：
 当怀疑密钥泄露时，客户端 SHOULD：
 
 1. 立即发布 device revocation 或 key rotation。
-2. 停止接受旧设备/session 的新写入。
+2. 停止接受已撤销设备/session 的新写入。
 3. 对 E2EE Space 触发 MLS Remove / Update。
 4. 标记泄露窗口内的高风险 Operation。
 5. 提醒用户检查未知设备、session 和 agent grant。
 
 如果 principal signing key 泄露但 recovery key 安全，MUST 通过 recovery policy 重建当前控制密钥。  
-如果 recovery key 也泄露，SHOULD deactivate 旧 DID 并执行身份重建。
+如果 recovery key 也泄露，SHOULD deactivate 原 DID 并执行身份重建。
 
 ## 10. 实现要求
 

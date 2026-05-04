@@ -44,7 +44,6 @@ PUT /api/v1/federation/transactions/{txn_id}
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
 | `events` | body | `object[]` | required | 签名 Event Envelope 数组；每项独立验签和授权。 |
-| `operations` | body | `object[]` | optional | 旧字段名兼容别名；若同时存在，MUST 与 `events` canonical hash 一致，否则拒绝。 |
 | `receipts` | body | `object[]` | optional | 与本 transaction 相关的 receipt / witness 证明。 |
 | `frontier` | body | `object` | optional | 发送方当前 causal frontier。 |
 | `created_at` | body | `datetime` | optional | 发送方创建时间；不得作为授权依据。 |

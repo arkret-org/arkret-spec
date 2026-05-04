@@ -19,11 +19,9 @@
 | Official Space | 官方空间 | 由组织或 policy 明确确认的 Space，不等于单纯“有官方 handle 的 Space”。 |
 | Space Hierarchy | Space 层级 | Space 之间的 parent/child 组织关系，用于导航与受控继承；不默认级联权限或历史。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
-| Flow | 统一协作对象 | 替代历史 `Subject/Room/Card` 分拆的主对象，承载一个协作议题或任务。 |
+| Flow | 协作主对象 | Space 内承载协作议题、任务、正式表达与讨论分支的标准对象。 |
 | Flow kind | Flow 形态 | `flow.kind`，当前推荐值 `card` / `room`，用于定义默认入口与交互模式。 |
-| Room | 讨论型 Flow | `Flow(kind=room)` 或 Flow 的 discussion branch 的简称；v1 中 Room 不是独立顶层对象。 |
-| Subject (legacy) | 旧主体对象 | 旧模型中的议题/主题对象名；v1 中由 Flow 与 `semantic_kind` 承担，不作为 wire type 使用。 |
-| Entity (legacy) | 旧通用对象 | 旧模型中的通用业务对象类型；v1 中由标准对象和 Morph/Profile 替代，不作为 wire type 使用。 |
+| Room | 讨论型 Flow | `Flow(kind=room)` 或 Flow 的 discussion branch 的简称。 |
 | semantic_kind | 业务语义 | `Flow.semantic_kind` 指定领域语义（如 `initiative`、`decision` 等）。 |
 | synthesis branch | 正式表达分支 | Flow 的“synthesis”分支，承载正式状态、结构化字段与决策正文。 |
 | discussion branch | 讨论分支 | Flow 的“discussion”分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow / Space access，显式 override 时才 branch-scoped。 |

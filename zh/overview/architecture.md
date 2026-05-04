@@ -38,7 +38,7 @@ Space 则是协作数据边界。它定义 membership、capability scope、schem
 
 ### 2.2 Per-Actor Event Chain
 
-Contrix v1 不再把用户数据仓库作为协议一等概念。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
+Contrix v1 不把用户数据仓库作为协议一等概念。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
 
 它承担：
 

@@ -106,7 +106,7 @@ Leaf hash:
 sha256(kind || ":" || id || ":" || sha256(canonical_json(object)))
 ```
 
-Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。不同 reducer profile 产生的 `state_hash` 不保证兼容，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 compatible profile。
+Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。不同 reducer profile 产生的 `state_hash` 不保证可比较，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 equivalent profile。
 
 ## 5. Snapshot Signature
 

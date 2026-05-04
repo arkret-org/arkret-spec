@@ -85,7 +85,7 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 ### 4.1 推送模式 (Push)
 
-本文件中的联邦载荷项是 v1 规范性 Event Envelope。HTTP 路径与 wire 字段继续使用 `push-operations`、`pull-operations` 与 `operations` 作为兼容集合名；这些名称在语义上均表示 Event Envelope 集合，不引入第二套 Operation wire object。
+本文件中的联邦载荷项是 v1 规范性 Event Envelope。`push-operations` 与 `pull-operations` 是 service operation / HTTP binding 名称；请求与响应体中的共享事实字段使用 `events[]`，不引入第二套 Operation wire object。
 
 当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Event，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
 
@@ -114,7 +114,7 @@ Signature: sig1=:base64...:
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Space policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。兼容层 MAY 接受旧字段名 `operations`。 |
+| `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。 |
 
 请求示例（非完整 schema）：
 
@@ -154,7 +154,7 @@ Signature: sig1=:base64...:
 - Organization DID 或 Space policy MAY 为组织成员、受管设备或特定 Space 指定 Principal Server。
 - Space metadata 的 `sync_endpoints` 只表示 Space policy 明确委托的 shared Space Host 或组织 Principal Server，不自动授权任意第三方接收私有内容。
 - 联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
-- 当服务委托被撤销或成员被移除后，生效因果点之后不得继续向旧 service DID 推送非加密私有内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
+- 当服务委托被撤销或成员被移除后，生效因果点之后不得继续向已撤销 service DID 推送非加密私有内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
@@ -177,7 +177,7 @@ Host: server-alpha.com
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `events` | `object[]` | required | Event Envelope 数组；每项 MUST 保持原始签名信封。兼容层 MAY 接受旧字段名 `operations`，但语义仍为 Event。 |
+| `events` | `object[]` | required | Event Envelope 数组；每项 MUST 保持原始签名信封。 |
 | `snapshot_bootstrap` | `object` | optional | 可选的快照加速返回；如有则接收方 MUST 校验签名并验证 frontier 一致性后才可使用。 |
 | `next_cursor` | `cursor` | optional | 下一页 cursor。 |
 | `has_more` | `boolean` | required | 是否还有更多可见 Event。 |

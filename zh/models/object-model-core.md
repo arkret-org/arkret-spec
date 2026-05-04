@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它是一张以 Space 为边界、以标准对象和开放 Morph 共同组成的可审计协作图。
+Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和开放 Morph 共同组成的可审计协作图。
 
 核心对象：
 
@@ -54,7 +54,7 @@ Security-boundary Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成�
 
 ### 2.2 Flow 承载主语义
 
-协议不再把同一个协作主题拆成 `subject`、`room`、`card` 三个互相跳转的标准对象。
+同一个协作主题由一个 Flow 表达；`kind` 与 branch 决定默认入口和能力面。
 
 标准对象本身表达主语义：
 
@@ -222,7 +222,7 @@ Accountable actor MUST 记录责任关系，但 accountability 不等于 capabil
 
 ## 6. Flow
 
-Flow 是 Space 内统一的协作主对象。它取代 Subject / Room / Card 的三实体拆分，直接承载“这件事本身”、一组参与者和围绕它的上下文信息。
+Flow 是 Space 内统一的协作主对象，直接承载“这件事本身”、一组参与者和围绕它的上下文信息。
 
 Flow 通过三层语义表达差异：
 
@@ -434,7 +434,7 @@ Morph 是开放对象。
 }
 ```
 
-Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Flow branch projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象不应为了复用字段而退化为 Morph。
+Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Flow branch projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象的主语义必须保留在对应标准类型上。
 
 ## 11. Relation
 
@@ -556,7 +556,7 @@ Schema 约束：
 - default views
 - validation rules
 
-Schema evolution MUST be additive by default。新版本 SHOULD 保留未知字段，避免旧客户端破坏数据。
+Schema evolution MUST be additive by default。新版本 SHOULD 保留未知字段，避免不支持新字段的客户端破坏数据。
 
 ## 15. Policy
 

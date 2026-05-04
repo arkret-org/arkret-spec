@@ -2,14 +2,14 @@
 
 ## 1. 目标
 
-本文定义 Contrix 的标准对象类型。标准对象是一等协议对象，不再是 `Entity` 语义标签。
+本文定义 Contrix 的标准对象类型。标准对象是一等协议对象，拥有明确的主语义、字段约束和 reducer 行为。
 
 核心字段类型、必填性和通用约束见 `data-structures.md`。本文定义标准对象的业务语义、推荐字段、推荐关系和推荐 facets。
 
 原则：
 
 - 标准类型提供主语义。
-- `flow` 是统一协作主对象，取代 `subject`、`room`、`card` 的三实体拆分。
+- `flow` 是统一协作主对象，承载协作议题、任务、正式表达与讨论分支。
 - `morph` 提供开放扩展。
 - `facets` 是由 Space schema / Morph profile 声明的能力提示和查询标签，不替代对象类型，也不单独定义授权、状态机、排序或 reducer 语义。
 - View 只定义如何投影对象；它拥有自己的定义状态，但不发明对象能力，也不持有被投影对象的协作事实。
@@ -58,7 +58,7 @@ Flow 适合：
 
 ### 2.2 `semantic_kind`
 
-旧 Subject 模型中的语义分类收敛为 Flow 的可选字段 `semantic_kind`。它用于声明“这个 Flow 在业务上是什么”，而不是“默认以什么交互方式打开”。
+`semantic_kind` 是 Flow 的可选业务语义分类字段。它用于声明“这个 Flow 在业务上是什么”，而不是“默认以什么交互方式打开”。
 
 初版建议枚举：
 
@@ -187,7 +187,7 @@ Flow 使用统一 access 语义表达 branch 的 membership、permission、histo
 
 ## 3. Space (kind=board)
 
-Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 格式。Space (kind=board) 本身不再使用平级 `board_kind` 字段表达产品变体；看板类型、泳道策略、WIP 规则和自定义 workflow profile SHOULD 进入 `fields` 或 Space schema。
+Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 格式。看板类型、泳道策略、WIP 规则和自定义 workflow profile SHOULD 进入 `fields` 或 Space schema。
 
 推荐字段：
 
@@ -247,7 +247,7 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
 
 ## 6. Morph
 
-`morph` 是开放形态对象。它替代旧模型中承担所有业务类型的 `Entity`。
+`morph` 是开放形态对象，用于承载 schema / profile 声明的扩展业务类型。
 
 Morph 适合：
 
@@ -257,7 +257,7 @@ Morph 适合：
 - 未来标准类型的试验对象
 - 不要求强互操作的弱结构数据
 
-Morph 是扩展缓冲层，不是标准对象的替代品。Flow、Message 和 Space workflow 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象退化为 Morph。
+Morph 是扩展缓冲层，不是标准对象的替代品。Flow、Message 和 Space workflow 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象改写为 Morph。
 
 推荐字段：
 
@@ -309,7 +309,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 标准类型演进 MUST 遵守：
 
 - 新字段优先 optional。
-- 旧字段不得静默改变语义。
+- 既有字段不得静默改变语义。
 - reducer 和客户端 MUST 保留未知字段。
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
 - 标准对象不得阻止 Space 定义自定义 Morph type。

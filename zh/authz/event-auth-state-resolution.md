@@ -36,7 +36,7 @@
 - reducer conflict ordering
 - redaction preserved fields
 - membership transition rules
-- upgrade compatibility rules
+- profile transition rules
 
 实现 MUST reject 未知 `space_version` 的写事件。实现 MAY 以只读方式展示未知版本事件，但 MUST NOT 将其作为本地 accepted state。
 
@@ -191,7 +191,7 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 - `knock_restricted`：不满足 restricted 条件者可 knock。
 - `closed`：不接受普通加入、knock 或 invite accept；只允许迁移、维护或管理员明确声明的例外流程。
 
-旧草案中的 `private` 是 `invite` 的同义旧名。v1 canonical event、Space object 和 JSON Schema MUST 使用 `invite`；接收方 MAY 在导入旧数据时把 `private` 规范化为 `invite`，但不得在新的 v1 event 中继续写出 `private`。
+Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请加入。接收方 MUST reject `default_join_rule="private"`。
 
 `cx.space.history_visibility`:
 
@@ -234,10 +234,10 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 - `automatic_share=true` 只可用于 Space policy 明确允许、且接收设备已通过 device trust chain 验证的场景。
 - 共享历史密钥材料前，发送设备 MUST 检查接收 principal 的 membership、device trust、history visibility、capability 和本 state event。
 - `requires_audit_event=true` 时，发送设备必须先写入 `cx.space_key.share_audit` 或等价审计事件，并等待因果确认后再发送历史 key material。
-- 历史 key share MUST 绑定接收 principal、接收 device、epoch / range、policy hash、审计事件和发送设备签名；不得作为未限定范围的“给新成员全部旧密钥”隐式流程。
-- 普通客户端 MUST NOT 为未来可能的历史共享而无限期保留旧 epoch 明文 secret。需要本地恢复或合规保留时，旧 key material MUST 以设备受保护密钥或明确授权的 key backup 加密保存，受 retention / legal hold / erasure policy 约束，并在不再需要时销毁。
+- 历史 key share MUST 绑定接收 principal、接收 device、epoch / range、policy hash、审计事件和发送设备签名；不得作为未限定范围的“给新成员全部先前密钥”隐式流程。
+- 普通客户端 MUST NOT 为未来可能的历史共享而无限期保留先前 epoch 明文 secret。需要本地恢复或合规保留时，先前 key material MUST 以设备受保护密钥或明确授权的 key backup 加密保存，受 retention / legal hold / erasure policy 约束，并在不再需要时销毁。
 - 若 Space 使用 Archive Node / Audit Node 保存历史解密能力，该节点 MUST 是显式成员、受托 service 或 capability subject，且其保留范围、访问目的、审计义务和撤销流程必须写入 Space policy；不得把普通成员客户端伪装成隐式长期密钥仓库。
-- policy 变更只影响变更后发起的共享动作，不追溯授权已经发送给旧成员的历史解密材料。
+- policy 变更只影响变更后发起的共享动作，不追溯授权已经发送给既有成员的历史解密材料。
 
 `cx.space.policy_components`:
 
@@ -267,7 +267,7 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 
 组件语义：
 
-- `roles`：把 UI role 或 compatibility role 映射到 capability bundle；role 不能替代 capability 检查。
+- `roles`：把 UI role 或 profile role 映射到 capability bundle；role 不能替代 capability 检查。
 - `preauth`：预授权加入、邀请链接、knock 审批和一次性 join token。
 - `asset`：附件上传域、下载隐私、proxy/OHTTP 要求和媒体大小/类型限制。
 - `logging`：消息保留、导出、审计、合规可见性和删除边界。
@@ -310,7 +310,7 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 - `service_did` 必须可解析，并通过 DID service、组织背书或 Space policy 委托绑定到对应 `service_type`。
 - `visibility=private_plaintext` 表示可接收正文或附件预览；`visibility=derived_plaintext` 表示只可接收通知摘要、全文索引、embedding、报表等派生内容。
 - 未列入该 state event 的服务只能接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
-- 该 state event 的撤销或覆盖按普通 state resolution 生效；生效点之后不得继续向旧服务发送非加密私有内容。
+- 该 state event 的撤销或覆盖按普通 state resolution 生效；生效点之后不得继续向已撤销服务发送非加密私有内容。
 - 该 state event 是成员可验证的透明度机制。允许某服务看见明文但对受影响成员隐藏该事实是不合规的；高安全 Space SHOULD 使用 E2EE、minimal-metadata profile 或本地客户端索引，而不是 admin-only 隐藏明文服务清单。
 
 ### 6.1 Organization Ownership and Endorsement
@@ -600,7 +600,7 @@ Frontier 与存储语义：
 
 ## 12. Space Upgrade
 
-在 Contrix v1 中，Space 升级通过 `cx.space.upgrade` 在同一 `space_id` 上执行，不启用新 `space_version`。只增加向后兼容字段、且不改变 auth / reducer 语义的升级 MAY 直接发布 enforcement 事件；引入新 critical feature、auth 规则、reducer 规则或加密语义的升级 MUST 使用多阶段流程：
+在 Contrix v1 中，Space 升级通过 `cx.space.upgrade` 在同一 `space_id` 上执行，不启用新 `space_version`。只增加 optional 字段、且不改变 auth / reducer 语义的升级 MAY 直接发布 enforcement 事件；引入新 critical feature、auth 规则、reducer 规则或加密语义的升级 MUST 使用多阶段流程：
 
 ```json
 {
@@ -611,7 +611,7 @@ Frontier 与存储语义：
     "target_schema_profile": "cx.schema.v1",
     "target_reducer_profile": "cx.reducer.v1_1",
     "migration_policy": "copy_state_and_continue",
-    "compatibility_mode": "ignore_unknown_fields",
+    "transition_mode": "ignore_unknown_fields",
     "replacement_ref": "cx:event:01js0sp0000000000000000000",
     "earliest_enforcement_hlc": "01970e589d21-0000-a13f9c2e",
     "readiness_deadline": "2026-05-16T00:00:00Z",
@@ -623,19 +623,19 @@ Frontier 与存储语义：
 }
 ```
 
-升级 MUST 保持 `space_id` 不变。升级事件必须包含兼容声明，便于未升级节点做 fail-closed。
+升级 MUST 保持 `space_id` 不变。升级事件必须包含 transition 声明，便于未支持目标 profile 的节点做 fail-closed。
 
 升级规则：
 
 - `cx.space.upgrade` MUST 由拥有 `cx.space.upgrade`、`cx.space.admin` 或 Space policy 明确声明的等价 admin capability 的 actor 发起。
-- `phase`、`target_schema_profile`、`target_reducer_profile`、`migration_policy`、`compatibility_mode`、`replacement_ref`、activation frontier / HLC 和 readiness 条件必须被事件签名覆盖。
+- `phase`、`target_schema_profile`、`target_reducer_profile`、`migration_policy`、`transition_mode`、`replacement_ref`、activation frontier / HLC 和 readiness 条件必须被事件签名覆盖。
 - `replacement_ref` MAY 指向迁移计划、snapshot manifest 或新 profile 描述，但不能指向未签名的外部说明。
-- `phase=announcement` 只发布目标 profile、兼容模式、最早 enforcement 时间 / frontier 和迁移说明；它不得让节点开始接受依赖新语义的写入。
+- `phase=announcement` 只发布目标 profile、transition 模式、最早 enforcement 时间 / frontier 和迁移说明；它不得让节点开始接受依赖新语义的写入。
 - `phase=readiness_check` MAY 汇总 service / bridge / client family 的 signed readiness receipts 或缺席清单；receipt 只能说明能力，不替代本地 schema、auth 和 reducer 校验。
-- `phase=enforcement` 才切换 accepted target profile。它 MUST 引用 announcement，满足 readiness 条件或明确记录 admin override，并绑定 activation causal frontier；未到达该 frontier 的普通历史仍按旧 profile 解释。
+- `phase=enforcement` 才切换 accepted target profile。它 MUST 引用 announcement，满足 readiness 条件或明确记录 admin override，并绑定 activation causal frontier；未到达该 frontier 的普通历史仍按先前 profile 解释。
 - `readiness_deadline` 到达且 `min_readiness` 未满足时，升级不得自动进入 enforcement。管理员必须发布新的 `cx.space.upgrade` 事件，选择 extend deadline、cancel/rollback announcement，或带 explicit admin override 的 enforcement；这些选择都必须被签名并进入 state resolution。
-- 未支持目标 profile 的节点在 enforcement 生效后 MUST 停止接受依赖新语义的写入；MAY 继续只读展示升级前的 accepted history，并可通过兼容 projection 或代理提供降级视图。
-- 降级代理不得把新 auth / reducer 语义翻译成旧语义后重新签发为普通写入；只能提供只读 projection、迁移提示或明确标记的 compatibility write path。
+- 未支持目标 profile 的节点在 enforcement 生效后 MUST 停止接受依赖新语义的写入；MAY 继续只读展示升级前的 accepted history，并可通过只读 projection 或代理提供降级视图。
+- 降级代理不得把新 auth / reducer 语义翻译成先前语义后重新签发为普通写入；只能提供只读 projection、迁移提示或明确标记的 transition write path。
 - 升级不得重写历史 event hash；任何 state 迁移都必须表现为新的 signed event、snapshot 或 reducer profile 输出。
 
 ### 12.1 Tombstone / Replacement
@@ -660,7 +660,7 @@ Frontier 与存储语义：
 - Tombstone 只改变后续写入和默认展示，不删除历史。
 - Tombstoned Space MUST reject 新普通写入，只允许 redaction、export、legal hold、account lifecycle、migration proof 等维护类事件。
 - `replacement_space` 若存在，客户端 MUST 独立验证其 create event、owner / organization endorsement、Space policy 和历史导入证明。
-- Tombstone 不自动授予新 Space 读取旧 Space 历史的权限；历史访问仍受旧 Space 的 history visibility、capability、E2EE epoch 和 retention policy 约束。
+- Tombstone 不自动授予新 Space 读取原 Space 历史的权限；历史访问仍受原 Space 的 history visibility、capability、E2EE epoch 和 retention policy 约束。
 
 ### 12.2 Space Lifecycle State Machine
 

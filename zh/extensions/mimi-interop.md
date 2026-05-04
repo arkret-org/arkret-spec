@@ -53,7 +53,7 @@ MIMI facade 不是新的真相源。Contrix native 侧的 canonical truth 仍然
 }
 ```
 
-实现 SHOULD 同时暴露 MIMI provider directory 兼容入口：
+实现 SHOULD 同时暴露 MIMI provider directory 互操作入口：
 
 ```text
 GET /.well-known/mimi-protocol-directory
