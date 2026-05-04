@@ -68,7 +68,6 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 {
   "schema": "cx.schema.event_batch_receipt.v1",
   "receipt_id": "cx:receipt:01js0rc0000000000000000000",
-  "type": "event_batch_receipt",
   "issuer": "did:web:alice.example",
   "scope": {
     "actor_id": "did:web:alice.example"

@@ -8,7 +8,6 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
 
 ```json
 {
-  "type": "snapshot_manifest",
   "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "reducer_profile": "cx.reducer.v1",
@@ -76,7 +75,6 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
       "id": "cx:flow:01js0ca0000000000000000000",
       "object": {
         "id": "cx:flow:01js0ca0000000000000000000",
-        "type": "flow",
         "kind": "card",
         "schema": "cx.schema.flow.v1"
       },

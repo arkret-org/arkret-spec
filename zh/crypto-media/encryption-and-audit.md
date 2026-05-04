@@ -360,7 +360,6 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 ```json
 {
   "receipt_id": "cx:receipt:01js0ry0000000000000000000",
-  "type": "audit_ryw_receipt",
   "schema": "cx.schema.audit_ryw_receipt.v1",
   "issuer": "did:web:witness.example.com",
   "issuer_role": "witness",

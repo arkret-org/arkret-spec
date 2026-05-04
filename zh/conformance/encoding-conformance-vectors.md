@@ -211,7 +211,6 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 {
   "schema": "cx.schema.event_batch_receipt.v1",
   "receipt_id": "cx:receipt:01js0rc0000000000000000000",
-  "type": "event_batch_receipt",
   "issuer": "did:web:alice.example",
   "scope": {
     "actor_id": "did:web:alice.example"
@@ -230,20 +229,20 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01js0rc0000000000000000000","schema":"cx.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"},"type":"event_batch_receipt"}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01js0rc0000000000000000000","schema":"cx.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"}}
 ```
 
 期望 digest：
 
 ```text
-sha256:1a0b0bb8198a6b5adaba2e31f8aa6d9cac1fd94e2db6d41519414d6bca00162d
+sha256:8c258c3d2a10704ad0a1fa487b3046f2e76c7a7eeb32781446421d73cf9e84d3
 ```
 
 失败条件：
 
 - `events` 数组被排序或去重后再 hash。
 - proof 字段被包含进 receipt digest。
-- `issuer`、`scope`、`frontier`、`schema` 或 `type` 被排除在 digest 外。
+- `issuer`、`scope`、`frontier` 或 `schema` 被排除在 digest 外。
 - `receipt_id` 大小写被实现私自改写。
 
 ## 8. Vector: Signature Binding Payload

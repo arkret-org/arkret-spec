@@ -269,19 +269,15 @@
     "object_snapshot": {
       "type": "object",
       "required": [
-        "id",
-        "type"
+        "id"
       ],
       "properties": {
         "id": {
           "$ref": "#/$defs/object_ref"
-        },
-        "type": {
-          "type": "string",
-          "minLength": 1
         }
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "description": "Embedded object snapshot inside an Event payload. Object kind is derived from the typed-id prefix on `id`; there is no separate `type` field."
     },
     "generic_standard_payload": {
       "type": "object",

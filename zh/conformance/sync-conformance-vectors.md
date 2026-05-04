@@ -54,7 +54,6 @@
       "payload": {
         "object": {
           "id": "cx:space:01js0bd0000000000000000000",
-          "type": "space",
           "kind": "board",
           "title": "Release Board"
         }
@@ -67,7 +66,6 @@
       "payload": {
         "object": {
           "id": "cx:space:01js0111000000000000000000",
-          "type": "space",
           "kind": "list",
           "title": "Todo",
           "rank": "U"
@@ -80,7 +78,6 @@
       "payload": {
         "object": {
           "id": "cx:flow:01js0ca1000000000000000000",
-          "type": "flow",
           "space_id": "cx:space:01js0sp0000000000000000000",
           "title": "Release checklist",
           "branches": [

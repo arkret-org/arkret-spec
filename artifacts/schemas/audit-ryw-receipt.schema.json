@@ -6,7 +6,6 @@
   "type": "object",
   "required": [
     "receipt_id",
-    "type",
     "schema",
     "issuer",
     "issuer_role",
@@ -24,9 +23,6 @@
     "receipt_id": {
       "type": "string",
       "pattern": "^cx:receipt:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "audit_ryw_receipt"
     },
     "schema": {
       "const": "cx.schema.audit_ryw_receipt.v1"

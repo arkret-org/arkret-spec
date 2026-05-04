@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "schema",
     "space_id",
     "flow_id",
@@ -18,9 +17,6 @@
     "id": {
       "type": "string",
       "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "message"
     },
     "schema": {
       "const": "cx.schema.message.v1"

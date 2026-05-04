@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "space_id",
     "inviter",
     "join_rule_snapshot",
@@ -17,9 +16,6 @@
     "id": {
       "type": "string",
       "pattern": "^cx:invite:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "invite"
     },
     "schema": {
       "const": "cx.schema.invite.v1"

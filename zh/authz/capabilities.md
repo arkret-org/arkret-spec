@@ -53,7 +53,6 @@ ID 语义：
 ```json
 {
   "id": "cx:grant:01js0gr0000000000000000000",
-  "type": "capability",
   "schema": "cx.schema.capability.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "issuer": "did:web:acme.example.com",
@@ -88,7 +87,7 @@ ID 语义：
     {
       "constraint_type": "field_access",
       "effect": "allow",
-      "fields_write_allow": ["title", "description", "brief", "summary", "body", "fields.status"]
+      "fields_write_allow": ["title", "summary", "body", "fields.status"]
     }
   ]
 }

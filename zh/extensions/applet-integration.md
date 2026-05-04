@@ -192,7 +192,6 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 
 ```json
 {
-  "type": "capability",
   "issuer": "did:web:acme.example",
   "subject": "did:web:slack-bridge.example#bot",
   "scope": {
@@ -434,7 +433,6 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
     "event_id": "1714040000.000100"
   },
   "payload": {
-    "type": "message",
     "flow_id": "cx:flow:p0rta100000000000000000000:slack:T123:C456",
     "content": {
       "body": "hello from Slack"

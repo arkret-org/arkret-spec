@@ -41,30 +41,42 @@
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:*` | kind 必须匹配对象类型。 | 对象稳定 ID。 |
-| `type` | yes | `enum(space, actor_profile, flow, message, morph, relation, event, view, policy, invite, read_marker, notification, capability, operation, event_batch_receipt, blob)` | 标准类型或 profile 声明的扩展类型。`operation` 与 `event_batch_receipt` 为 SDK 内部或辅助对象，非持久化 canonical 对象。`schema` 通过 `schema_refs` 引用，不作为独立 `type`。 | 对象种类。 |
+| `id` | yes | `id:*` | typed ID 前缀决定对象种类（`cx:flow:` 即 flow 对象，依此类推）。 | 对象稳定 ID；前缀就是 type，不再单独写 `type` 字段。 |
 | `space_id` | conditional | `id:space` | Space 外对象可省略。 | 所属 Space。 |
 | `schema` | yes | `string` | SHOULD 是 `cx.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
-| `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体。 |
+| `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的 `actor_id`）。 |
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST 不早于 `created_at`。 | 最近更新时间。 |
 | `deleted_at` | no | `timestamp` | durable tombstone 可用。 | 逻辑删除时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
-| `metadata` | no | `object` | 非授权关键字段。 | 扩展元数据。 |
+| `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
-说明：`operation` 与 `event_batch_receipt` 非 v1 的标准持久化 canonical object；前者是 SDK 内部可寻址中间对象，后者为可选加速/审计对象，协议事实与 reducer 真相仍由 Event Envelope 与 Materialized State 决定。`space_id` / `schema` 字段在这些类型上仍保留可扩展性。
+v1 之前的 `type` 与 `metadata` 字段已移除：`type` 与 `id` typed-prefix 完全重复，对端读到 `cx:flow:...` 即可判定对象种类；`metadata` 是设计稿残留，没有任何 schema 实际定义它，扩展请走 `fields`。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
 
-Event Envelope 不是 Materialized Object，不继承本节 Common Object Fields 的 `type` / `schema` 语义。Event 的标准事件类型由顶层 `kind` 表达；`type` 只用于物化对象、外部标准文档或 payload schema 明确声明的对象 discriminator。
+### 3.1 主体引用字段交叉对照
+
+| 字段 | 出现对象 | 含义 |
+| --- | --- | --- |
+| `actor_id` | Event Envelope、Read Marker、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID（`actor_type` 决定它是 user / agent / service 等）。 |
+| `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
+| `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。 |
+| `issuer` | Capability Grant、Identity Receipt | 签发授权或 receipt 的 DID；必须持有签发权限。 |
+| `subject` | Capability Grant | 被授权 DID 或 selector condition。 |
+| `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
+| `created_by_principal` | Space | Space create event 的授权 principal（与该事件 `actor_id` 一致）。 |
+
+这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
 
 ## 4. Space
 
 Schema id: `cx.schema.space.v1`
 
+> Materialized Space 上以 **reducer 派生** 标注的字段（`policy_ref` / `default_discoverability` / `default_join_rule` / `history_visibility` / `federation_policy` 等）只是当前态快照。**写入路径** 必须使用对应 `cx.space.policy.set` (state_key=`<key>`) 状态事件，不得直接 PATCH Space 对象更新这些字段。`encryption_profile` 在 create event 时锁定，后续不可变。
+
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
-| `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
 | `schema` | yes | `cx.schema.space.v1` | 固定为 Space schema id。 | 对象 schema。 |
 | `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
@@ -75,12 +87,12 @@ Schema id: `cx.schema.space.v1`
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或实现 profile。 | 启用 schema。 |
 | `relation_profiles` | no | `array<RelationProfile>` | 可由 Space schema/profile 等价声明；同一 `(relation_kind, from_type, to_type, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
-| `policy_ref` | no | `id:policy` | 若省略，使用 create event 默认 policy。 | Space policy 引用。 |
-| `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | 见 `discovery-directory.md`。 | 默认可发现性。 |
-| `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | `invite` 表示只允许邀请加入；canonical state MUST 使用本枚举值。 | 默认加入规则。 |
-| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 各取值 canonical 语义见 `authz/event-auth-state-resolution.md` §6；尤其注意 `invited` 是"stripped preview state"，不是"从被邀请时刻起全部消息"。 | 历史可见性。 |
-| `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置。 |
-| `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | sovereign 默认 SHOULD `closed`。`kind=enclave` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 联邦策略。 |
+| `policy_ref` | no | `id:policy` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`access`) 维护；若 create event 未声明则为空。 | 派生：当前 Space access policy 引用。 |
+| `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`discovery`) 维护；create event 提供初值。详见 `discovery-directory.md`。 | 派生：默认可发现性。 |
+| `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`join_rule`) 维护；create event 提供初值。`invite` 表示只允许邀请加入；canonical state MUST 使用本枚举值。 | 派生：默认加入规则。 |
+| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`history_visibility`) 维护；create event 提供初值。各取值 canonical 语义见 `authz/event-auth-state-resolution.md` §6。 | 派生：历史可见性。 |
+| `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create event 锁定；后续不得通过 Space update 改变。E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置（create-locked）。 |
+| `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | **reducer 派生**，由 `cx.space.policy.set` 相关 policy_components 维护。sovereign 默认 SHOULD `closed`。`kind=enclave` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 派生：联邦策略。 |
 | `retention_policy_ref` | no | `id:policy` | 可引用 retention policy。 | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -142,7 +154,6 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:actor_profile` | Actor Profile 是标准对象。 | Profile 对象 ID。 |
-| `type` | yes | `enum(actor_profile)` | 固定为 `actor_profile`。 | 对象种类。 |
 | `space_id` | no | `id:space` | 全局 profile 可省略。 | 所属 Space。 |
 | `principal_id` | yes | `did` | 权限仍以 DID/capability 为准。 | Principal DID。 |
 | `actor_type` | yes | `enum(user, org, team, agent, service, device, integration)` |  | Actor 类型。 |
@@ -168,11 +179,10 @@ Schema id: `cx.schema.flow.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:flow` | 以 `cx:flow:` 开头。 | Flow ID。 |
-| `type` | yes | `enum(flow)` | 固定为 `flow`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `title` | yes | `string` | 1..512 chars。 | 标题。 |
-| `description` | no | `string` | SHOULD <= 8192 chars。 | 较完整说明。 |
-| `brief` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
+| `summary` | no | `string` | SHOULD <= 2048 chars。 | 一句话/一段话简介。 |
+| `body` | no | `ContentBlock` | 见 `content-types.md`。 | 富文本正文。 |
 | `branches` | yes | `array<FlowBranch>` | 至少 1 项；`name` 在同一 Flow 内唯一；至多 1 项 `is_primary=true`。 | 分支定义、默认入口与分支访问继承。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
@@ -221,48 +231,22 @@ Primary branch 解析规则：
 4. 若没有显式 primary，且 profile 声明了可验证默认 branch，使用该默认 branch。
 5. 仍无法唯一确定时，Reducer MUST fail closed，要求写入 `cx.flow.branch.set_primary` 或等价修复事件。
 
-### 6.2 Space (kind=board)
+### 6.2 Space (kind=board) / Space (kind=list)
 
-Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 格式。Space (kind=board) 的视图样式通过 `fields`、schema profile 或 `View.renderer` 表达。
+Board 与 List 都是 §4 Space 的容器形态（共享同一 `cx.schema.space.v1` schema、同一 `cx:space:` ID 前缀）。它们继承 §4 全部公共字段；安全语义字段（`history_visibility` / `encryption_profile` / `federation_policy` / `default_join_rule` 等）由最近的 `boundary_profile=security_boundary` 祖先 Space 提供，**不在 board/list 自身上重复声明**。
 
-| 字段 | 必填 | 类型 | 约束 | 说明 |
+只有以下字段是 board/list 形态特有：
+
+| 字段 | 适用 kind | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
-| `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
-| `kind` | yes | `enum(board)` | 固定为 `board`。 | Space 形态。 |
-| `boundary_profile` | no | `enum(container)` | 默认为 `container`。 | 不形成独立安全边界。 |
-| `space_id` | yes | `id:space` |  | 父 Space ID。 |
-| `title` | yes | `string` | 1..256 chars。 | 名称。 |
-| `summary` | no | `string` |  | 说明。 |
-| `default_view_id` | no | `id:view` |  | 默认 View。 |
-| `fields` | no | `object` |  | 扩展字段。 |
-| `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
-| `created_by` | yes | `did` |  | 创建者。 |
-| `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `kind` | board / list | yes | `enum(board, list)` | 选择容器形态；其他公共字段同 §4。 |
+| `default_view_id` | board | no | `id:view` | 默认 View。 |
+| `rank` | list | no | `string` | 在父 board 内的 fractional-index 排序键。 |
+| `wip_limit` | list | no | `integer` | WIP 限制。 |
 
-Space (kind=board/list) 是工作流容器，不是新的 membership、history visibility、policy、federation 或加密边界。除非明确 profile 另有规定，它们的成员、history visibility、E2EE、federation、retention 和 plaintext-visible service 规则 MUST 继承最近的 `boundary_profile=security_boundary` 祖先 Space 的有效 policy；不得仅因为创建了 Board/List 就隐式创建独立 MLS group、join rule 或 federation topology。
+Board/list 默认 `boundary_profile="container"`，省略即为该值；它们 **不形成独立 membership / history visibility / E2EE / federation / retention / plaintext-visible-service 边界**，必须解析到最近 security-boundary 祖先 Space 的有效 policy。`cx.space.child` / `cx.space.parent` 层级事件描述 board → list、parent-space → board 的从属关系。
 
-### 6.3 Space (kind=list)
-
-Space (kind=list) 是 `Space` 的列/泳道形态，ID 使用 `cx:space:` 格式。Space (kind=list) 通过 `cx.space.child`/`cx.space.parent` 层级关系挂载到 Space (kind=board) 下。
-
-| 字段 | 必填 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- | --- |
-| `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
-| `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
-| `kind` | yes | `enum(list)` | 固定为 `list`。 | Space 形态。 |
-| `boundary_profile` | no | `enum(container)` | 默认为 `container`。 | 不形成独立安全边界。 |
-| `space_id` | yes | `id:space` |  | 父 Space ID（Space (kind=board)）。 |
-| `title` | yes | `string` | 1..256 chars。 | 名称。 |
-| `summary` | no | `string` |  | 说明。 |
-| `rank` | no | `string` | Fractional indexing rank。 | Space (kind=board) 内顺序。 |
-| `wip_limit` | no | `integer` |  | WIP 限制。 |
-| `fields` | no | `object` |  | 扩展字段。 |
-| `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
-| `created_by` | yes | `did` |  | 创建者。 |
-| `created_at` | yes | `timestamp` |  | 创建时间。 |
-
-Space (kind=list) 的排序、WIP、item membership 和 card 位置必须通过 Relation / Flow move / rank 事件表达。List 本身不得被当作 Message timeline、成员房间或权限主键。
+List 内 Flow 排序、WIP enforcement、card 位置必须通过 Relation 与 `cx.flow.move` / `cx.flow.reorder` 事件表达；List 本身不得被当作 Message timeline、成员房间或权限主键。
 
 ### 6.4 Message
 
@@ -271,7 +255,6 @@ Schema id: `cx.schema.message.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:message` | 以 `cx:message:` 开头。 | Message ID。 |
-| `type` | yes | `enum(message)` | 固定为 `message`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
 | `branch` | yes | `string` | 必须匹配 `^[a-z][a-z0-9_]{0,63}$`，并且必须是目标 Flow 当前 active 的 branch name。v1 reducer 默认只识别 `discussion`；profile 可声明额外 branch name 承载 Message timeline，但 v1 wire 互操作 SHOULD 使用 `discussion`。 | 所属 Flow 分支。 |
@@ -287,7 +270,6 @@ Schema id: `cx.schema.morph.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:morph` | 以 `cx:morph:` 开头。 | Morph ID。 |
-| `type` | yes | `enum(morph)` | 固定为 `morph`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `cx.` 前缀。 | 开放类型。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Space schema / Morph profile 声明。 | Morph 暴露哪些已声明能力 hint。 |
@@ -327,7 +309,6 @@ Schema id: `cx.schema.relation.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:relation` | 以 `cx:relation:` 开头。 | Relation ID。 |
-| `type` | yes | `enum(relation)` | 固定为 `relation`。 | 对象种类。 |
 | `space_id` | yes | `id:space` | Relation 所在 Space。 | 所属 Space。 |
 | `relation_kind` | yes | `string` | 标准值见下方。 | 关系语义。 |
 | `from_ref` | yes | `string` | MUST 是 `cx:<kind>:...` 或 DID。 | 起点对象/Actor/Space 引用。 |
@@ -422,7 +403,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
-Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。State event 的 `state_key` 是顶层字段，reducer 以 `(kind, state_key)` 作为 state resolution key；`payload.state_key` 不是 v1 canonical wire 位置。`payload.type` 不得重复写入 `cx.*` Event kind；若 payload 需要引用被创建对象，使用 `payload.object.type` 等对象字段。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。State event 的 `state_key` 是顶层字段，reducer 以 `(kind, state_key)` 作为 state resolution key；`payload.state_key` 不是 v1 canonical wire 位置。`payload.type` 不得重复写入 `cx.*` Event kind。Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 `actor_seq` fork 约束：
 
@@ -456,7 +437,6 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:view` |  | View ID。 |
-| `type` | yes | `enum(view)` | 固定为 `view`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
 | `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
@@ -513,7 +493,6 @@ Schema id: `cx.schema.policy.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:policy` |  | Policy ID。 |
-| `type` | yes | `enum(policy)` | 固定为 `policy`。 | 对象种类。 |
 | `space_id` | no | `id:space` | 组织级 policy 可省略。 | 适用 Space。 |
 | `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
 | `rules` | yes | `array<object>` | 每条规则必须有 `effect`。 | 策略规则。 |
@@ -531,7 +510,6 @@ Schema id: `cx.schema.capability.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:grant` |  | Grant ID。 |
-| `type` | yes | `enum(capability)` | 固定为 `capability`。 | 对象种类。 |
 | `space_id` | no | `id:space` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
@@ -553,7 +531,6 @@ Schema id: `cx.schema.invite.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:invite` |  | Invite ID。 |
-| `type` | yes | `enum(invite)` | 固定为 `invite`。 | 对象种类。 |
 | `space_id` | yes | `id:space` |  | 目标 Space。 |
 | `inviter` | yes | `did` | 必须持有 invite capability。 | 邀请者。 |
 | `invitee` | no | `did` | 3PID 邀请可为空。 | 被邀请 DID。 |
@@ -571,7 +548,6 @@ Schema id: `cx.schema.read_marker.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `string` | SHOULD 派生自 actor + space/view。 | 私有状态 ID。 |
-| `type` | yes | `enum(read_marker)` | 固定为 `read_marker`。 | 对象种类。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `space_id` | yes | `id:space` |  | Space。 |
 | `scope` | yes | `enum(space, flow, discussion, thread, view, message, morph)` |  | 已读范围。 |
@@ -589,7 +565,6 @@ Notification 是派生 inbox projection，不是 canonical truth。
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `string` | SHOULD content-addressed 或 stable derivation。 | 通知 ID。 |
-| `type` | yes | `enum(notification)` | 固定为 `notification`。 | 对象种类。 |
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `space_id` | no | `id:space` |  | 来源 Space。 |
 | `source_event_id` | yes | `id:event` |  | 来源事件。 |
@@ -609,7 +584,6 @@ Event Batch Receipt 是可选审计/同步加速对象，不是 canonical histor
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `receipt_id` | yes | `id:receipt` |  | Receipt ID。 |
-| `type` | yes | `enum(event_batch_receipt)` | 固定为 `event_batch_receipt`。 | 对象种类。 |
 | `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Principal Server 或 witness。 |
 | `scope` | yes | `object` | SHOULD 包含 `actor_id`、`space_id` 或查询范围 hash。 | receipt 覆盖范围。 |
 | `frontier` | yes | `object` | SHOULD 包含 `actor_seq`、`event_id` / event hash、HLC 或 Space frontier。 | 签发时前沿。 |
@@ -621,7 +595,7 @@ Event Batch Receipt 是可选审计/同步加速对象，不是 canonical histor
 
 Schema id: `cx.schema.operation.v1`
 
-本节定义 SDK 内部可内容寻址的 canonical Operation object。它使用固定 `type="operation"` 与独立的 `operation_type`，适合作为 builder 输出、离线草稿或 Event Envelope 生成前的中间对象。
+本节定义 SDK 内部可内容寻址的 canonical Operation object。它通过 `cx:operation:<ulid>` typed-id 前缀标识自身种类，并以 `action_id` 唯一确定具体操作类型与 payload schema，适合作为 builder 输出、离线草稿或 Event Envelope 生成前的中间对象。
 
 v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/operations-sync.md`。Events API、Sync、Federation、Client write 和 reducer MUST 使用 Event Envelope，不得要求对端直接接收本节的 Canonical Operation Object。实现可以用 Canonical Operation Object 生成 Event Envelope，但不得把两者合并成一个含糊结构。
 
@@ -647,24 +621,14 @@ v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/oper
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:operation` 或 `hash` | 不得命名为 `operation_id`；`operation_id` 保留给服务 API canonical operation。 | Canonical Operation Object ID。 |
-| `type` | yes | `enum(operation)` | 固定为 `operation`。 | 对象种类。 |
-| `operation_type` | yes | `enum(create, update, delete, redact, grant, revoke, snapshot_ref, move, reorder, rebalance, link, unlink)` |  | operation 类型。 |
-| `action_id` | no | `string` | 标准事件 kind，例如 `cx.flow.move`。`move/reorder/rebalance/link/unlink` 必填。 | 操作 action 标识，用于校验 payload。 |
+| `action_id` | yes | `string` | 标准事件 kind，例如 `cx.flow.move`。 | 操作 action 标识；唯一决定 operation 形状与 payload schema。 |
 | `space_id` | yes | `id:space` |  | 目标 Space。 |
 | `object_id` | no | `string` | create 可由 payload 指定。 | 目标对象。 |
-| `object_type` | yes | `string` | `flow`、`space`、`message`、`morph`、`relation` 等。 | 目标对象类型。 |
-| `payload` | yes | `object` | 由 operation_type 决定。 | 操作内容。 |
+| `payload` | yes | `object` | 由 `action_id` 选定的 payload schema 决定。 | 操作内容。 |
 | `idempotency_key` | no | `string` | 重试写入 SHOULD 设置。 | 幂等键。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-Canonical Operation 与 Event Envelope 的映射：
-
-- `action_id="cx.flow.move"` MUST 使用 `operation_type="move"`、`object_type="flow"`，并使用 flow move payload schema。
-- `action_id="cx.container.move_item"` MUST 使用 `operation_type="move"`、`object_type="relation"`，并使用容器 item move payload schema。
-- `action_id="cx.flow.reorder"` MUST 使用 `operation_type="reorder"`、`object_type="flow"`，并使用 flow reorder payload schema。
-- `action_id="cx.flow.branch.enable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch enable payload schema。
-- `action_id="cx.flow.branch.disable"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow branch disable payload schema。
-- `action_id="cx.flow.convert"` MUST 使用 `operation_type="update"`、`object_type="flow"`，并使用 flow convert payload schema。
+> v1 之前的 `type`（const `operation`）、`operation_type`（create/update/move/...）和 `object_type`（flow/space/...）三个字段已移除：`type` 与 typed-id 前缀重复；`operation_type` / `object_type` 完全由 `action_id` 决定（`cx.flow.move` ⇒ move flow，`cx.container.move_item` ⇒ move relation 等），保留多个互锁字段只会引入 wire 自相矛盾的可能。SDK 直接按 `action_id` 选 payload schema 即可。
 
 ## 19. Field Patch (cx.patch.v1)
 

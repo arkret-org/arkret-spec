@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "principal_id",
     "actor_type",
     "display_name",
@@ -15,9 +14,6 @@
     "id": {
       "type": "string",
       "pattern": "^cx:actor_profile:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "actor_profile"
     },
     "schema": {
       "const": "cx.schema.actor_profile.v1"

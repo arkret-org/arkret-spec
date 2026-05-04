@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "schema",
     "space_id",
     "morph_type",
@@ -16,9 +15,6 @@
     "id": {
       "type": "string",
       "pattern": "^cx:morph:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "morph"
     },
     "schema": {
       "const": "cx.schema.morph.v1"

@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "schema",
     "space_id",
     "title",
@@ -17,9 +16,6 @@
     "id": {
       "type": "string",
       "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "flow"
     },
     "schema": {
       "const": "cx.schema.flow.v1"
@@ -33,17 +29,9 @@
       "minLength": 1,
       "maxLength": 512
     },
-    "description": {
-      "type": "string",
-      "maxLength": 4096
-    },
-    "brief": {
-      "type": "string",
-      "maxLength": 2048
-    },
     "summary": {
       "type": "string",
-      "maxLength": 8192
+      "maxLength": 2048
     },
     "body": {
       "$ref": "#/$defs/content_block"

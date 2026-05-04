@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "receipt_id",
-    "type",
     "issuer",
     "scope",
     "frontier",
@@ -17,9 +16,6 @@
     "receipt_id": {
       "type": "string",
       "pattern": "^cx:receipt:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "event_batch_receipt"
     },
     "schema": {
       "const": "cx.schema.event_batch_receipt.v1"

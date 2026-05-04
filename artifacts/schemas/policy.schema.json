@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "policy_type",
     "rules",
     "default_effect",
@@ -16,9 +15,6 @@
     "id": {
       "type": "string",
       "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "policy"
     },
     "schema": {
       "const": "cx.schema.policy.v1"

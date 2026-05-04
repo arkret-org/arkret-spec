@@ -34,7 +34,6 @@ Flow 的 `discussion` branch 适合：
 ```json
 {
   "id": "cx:flow:01js1000000000000000000000",
-  "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "release-engineering",
@@ -78,7 +77,6 @@ Message 是 Flow `discussion` branch 时间线中的原子消息对象。
 ```json
 {
   "id": "cx:message:01js1000000000000000000002",
-  "type": "message",
   "schema": "cx.schema.message.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js1000000000000000000000",

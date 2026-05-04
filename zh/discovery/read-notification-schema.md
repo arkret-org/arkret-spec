@@ -6,7 +6,6 @@ Read marker 是 actor-private 状态。
 
 ```json
 {
-  "type": "read_marker",
   "actor_id": "did:web:alice.example",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "scope": {
@@ -27,7 +26,6 @@ Receipt MAY be public or private depending on Space policy。
 
 ```json
 {
-  "type": "receipt",
   "receipt_type": "read",
   "actor_id": "did:web:alice.example",
   "target_event_id": "cx:event:...",

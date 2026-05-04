@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "schema",
     "space_id",
     "kind",
@@ -17,9 +16,6 @@
     "id": {
       "type": "string",
       "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "view"
     },
     "schema": {
       "const": "cx.schema.view.v1"

@@ -18,7 +18,6 @@
   "payload": {
     "object": {
       "id": "cx:space:01js0sp0000000000000000000",
-      "type": "space",
       "kind": "collaboration",
       "space_version": "1",
       "title": "Launch Plan",

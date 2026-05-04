@@ -187,7 +187,6 @@ Controlled Collaboration Space SHOULD 使用：
   "payload": {
     "object": {
       "id": "cx:space:01js0en0000000000000000000",
-      "type": "space",
       "kind": "enclave",
       "space_version": "1",
       "title": "Controlled Collaboration",

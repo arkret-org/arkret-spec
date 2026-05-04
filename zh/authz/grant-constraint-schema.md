@@ -9,7 +9,7 @@ Capability grant 通过 constraint 限定 subject 能做什么、在哪里做、
 - **Grant envelope（顶层结构、字段名、必填性、签名规则）**：以
   [`models/data-structures.md` §13 Capability Grant](../models/data-structures.md)
   与机器 schema [`artifacts/schemas/capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json)
-  为准。Grant 使用 `id`（`cx:grant:<ulid>`）、`type="capability"`、
+  为准。Grant 使用 `id`（`cx:grant:<ulid>`，前缀即对象种类）、
   `schema="cx.schema.capability.v1"`、`actions[]`、`resources[]`、
   `constraints[]`、`proofs[]`（**复数**）等字段。
 - **Constraint object 形态（`constraint_type` 列表、`effect` 枚举、各类 typed sub-fields）**：
@@ -37,7 +37,6 @@ Grant envelope 的字段名、必填性、签名规则与示例见 `models/data-
 ```json
 {
   "id": "cx:grant:01js0gr0000000000000000000",
-  "type": "capability",
   "schema": "cx.schema.capability.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "issuer": "did:web:acme.example",

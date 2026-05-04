@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "blob_ref",
-    "type",
     "sha256",
     "size",
     "media_type",
@@ -16,9 +15,6 @@
     "blob_ref": {
       "type": "string",
       "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$"
-    },
-    "type": {
-      "const": "blob"
     },
     "schema": {
       "const": "cx.schema.blob.v1"

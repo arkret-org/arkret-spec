@@ -5,10 +5,8 @@
   "type": "object",
   "required": [
     "id",
-    "type",
-    "operation_type",
+    "action_id",
     "space_id",
-    "object_type",
     "payload",
     "created_at"
   ],
@@ -17,32 +15,13 @@
       "type": "string",
       "pattern": "^cx:operation:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$"
     },
-    "type": {
-      "const": "operation"
-    },
     "schema": {
       "const": "cx.schema.operation.v1"
     },
-    "operation_type": {
-      "type": "string",
-      "enum": [
-        "create",
-        "update",
-        "delete",
-        "redact",
-        "grant",
-        "revoke",
-        "snapshot_ref",
-        "move",
-        "reorder",
-        "rebalance",
-        "link",
-        "unlink"
-      ]
-    },
     "action_id": {
       "type": "string",
-      "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+      "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+      "description": "Standard event kind that this operation will produce. action_id alone determines the wire shape; the prior operation_type and object_type fields were derivable from action_id and have been removed."
     },
     "space_id": {
       "type": "string",
@@ -50,18 +29,6 @@
     },
     "object_id": {
       "type": "string"
-    },
-    "object_type": {
-      "type": "string",
-      "enum": [
-        "space",
-        "flow",
-        "message",
-        "morph",
-        "relation",
-        "view",
-        "policy"
-      ]
     },
     "payload": {
       "type": "object"
@@ -89,12 +56,6 @@
       },
       "then": {
         "properties": {
-          "operation_type": {
-            "const": "move"
-          },
-          "object_type": {
-            "const": "flow"
-          },
           "payload": {
             "$ref": "#/$defs/flow_move_payload"
           }
@@ -114,12 +75,6 @@
       },
       "then": {
         "properties": {
-          "operation_type": {
-            "const": "reorder"
-          },
-          "object_type": {
-            "const": "flow"
-          },
           "payload": {
             "$ref": "#/$defs/flow_reorder_payload"
           }

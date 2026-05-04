@@ -26,7 +26,7 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 - `operation`（SDK 内部可寻址中间对象）
 - `event_batch_receipt`（可选加速/审计对象）
 
-注：`schema` 不作为独立 `type` 枚举值。Schema 约束通过 `schema_refs` 字段引用和 `cx.schema.define` / `cx.schema.update` state event 管理。`policy` 同时具有 `type` 枚举值和 state event 形态。
+注：v1 已移除 canonical object 上的 `type` 字段；对象种类由 `id` 的 typed 前缀（`cx:flow:` / `cx:space:` / ...）唯一决定。Schema 约束通过 `schema_refs` 字段引用和 `cx.schema.define` / `cx.schema.update` state event 管理。`policy` 既是 typed-id 前缀（`cx:policy:`）下的物化对象，也有对应 state event 形态。
 
 字段级结构、必填性、类型和约束见 `data-structures.md`。本文保留核心模型语义和示例，具体 JSON Schema SHOULD 从 `data-structures.md` 与 `schema-registry.md` 生成。
 
@@ -39,7 +39,7 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 - `boundary_profile="security_boundary"`：复制、权限、schema、policy、membership、history visibility、加密和索引的硬边界。
 - `boundary_profile="container"`：安全边界内的工作流容器，用于稳定 ID、排序、View / Relation anchor 和局部元数据；不形成独立 membership、join rule、history visibility、MLS group、federation topology 或 plaintext-visible service。
 
-标准 `Space.kind` 中，`collaboration` 和 `enclave` 默认是 `security_boundary`；`board` 和 `list` 默认是 `container`。实现不得仅凭 `type="space"` 或 `cx:space:` ID 前缀就假定对象一定形成新安全边界，必须按 `boundary_profile` 或由 `kind` 派生的默认值判断。任意 `cx:space:` 的处理决策树见 `data-structures.md` §4.1。
+标准 `Space.kind` 中，`collaboration` 和 `enclave` 默认是 `security_boundary`；`board` 和 `list` 默认是 `container`。实现不得仅凭 `cx:space:` ID 前缀就假定对象一定形成新安全边界，必须按 `boundary_profile` 或由 `kind` 派生的默认值判断。任意 `cx:space:` 的处理决策树见 `data-structures.md` §4.1。
 
 一个 Space 可以包含多个：
 
@@ -59,7 +59,7 @@ Security-boundary Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成�
 
 标准对象本身表达主语义：
 
-- `flow`：统一协作主对象。它承载标题、description、brief、summary 等基础字段，并通过 branch primary 解析规则决定默认进入哪个 branch。
+- `flow`：统一协作主对象。它承载 `title` / `summary` / `body` 等基础字段，并通过 branch primary 解析规则决定默认进入哪个 branch。
 - `message`：Flow `discussion` branch 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
 - Space (kind=board) 和 Space (kind=list) 通过 Space 层级表达工作流容器，并管理 Flow 位置。
@@ -152,7 +152,6 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 ```json
 {
   "id": "cx:flow:01js0ke0000000000000000000",
-  "type": "flow",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "created_by": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "created_at": "2026-04-26T00:00:00Z",
@@ -180,7 +179,6 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 ```json
 {
   "id": "cx:space:01js0sp0000000000000000000",
-  "type": "space",
   "title": "Launch Plan",
   "created_by_principal": "did:web:acme.example",
   "schema_refs": [
@@ -237,13 +235,10 @@ Flow 通过两层语义表达差异：
 ```json
 {
   "id": "cx:flow:01js0fk0000000000000000000",
-  "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "支付重构",
-  "description": "统一支付链路、风控回调和退款状态机。",
-  "brief": "同步 owner、决策和 blocker。",
-  "summary": "内容与讨论收敛在同一个 Flow 内。",
+  "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
   "body": {
     "type": "cx.content.text",
     "body": "Please finish the final review.",
@@ -312,7 +307,6 @@ Space (kind=board) 投影示例（非完整 canonical Space schema）：
 ```json
 {
   "id": "cx:space:01js0bd0000000000000000000",
-  "type": "space",
   "kind": "board",
   "boundary_profile": "container",
   "space_id": "cx:space:01js0sp0000000000000000000",
@@ -327,7 +321,6 @@ Space (kind=list) 投影示例（非完整 canonical Space schema）：
 ```json
 {
   "id": "cx:space:01js01s0000000000000000000",
-  "type": "space",
   "kind": "list",
   "boundary_profile": "container",
   "space_id": "cx:space:01js0sp0000000000000000000",
@@ -344,7 +337,6 @@ Space (kind=board)/Space (kind=list) 中的 Flow 示例：
 ```json
 {
   "id": "cx:flow:01js0cd0000000000000000000",
-  "type": "flow",
   "schema": "cx.schema.flow.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Review launch checklist",
@@ -390,7 +382,6 @@ Message 是 Flow `discussion` branch 时间线中的原子消息对象。
 ```json
 {
   "id": "cx:message:01js0ms0000000000000000000",
-  "type": "message",
   "schema": "cx.schema.message.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js0fk0000000000000000000",
@@ -419,7 +410,6 @@ Morph 是开放对象。
 ```json
 {
   "id": "cx:morph:01js0mp0000000000000000000",
-  "type": "morph",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "morph_type": "customer_risk",
   "title": "ACME procurement risk",
@@ -449,7 +439,6 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 ```json
 {
   "id": "cx:relation:01js0r00000000000000000000",
-  "type": "relation",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "relation_kind": "contains",
   "from_ref": "cx:space:01js0bd0000000000000000000",
@@ -513,7 +502,6 @@ View 示例：
 ```json
 {
   "id": "cx:view:01js0vw0000000000000000000",
-  "type": "view",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "schema": "cx.schema.view.v1",
   "kind": "collection",

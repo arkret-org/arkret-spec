@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "schema",
     "space_version",
     "title",
@@ -22,9 +21,6 @@
     "id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
-    },
-    "type": {
-      "const": "space"
     },
     "schema": {
       "const": "cx.schema.space.v1"

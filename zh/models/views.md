@@ -266,7 +266,6 @@ Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按
         {
           "object": {
             "id": "cx:flow:01task00000000000000000000",
-            "type": "flow",
             "title": "Legal review"
           },
           "position": {

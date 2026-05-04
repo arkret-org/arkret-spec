@@ -50,7 +50,6 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ```json
 {
-  "type": "morph",
   "morph_type": "call",
   "space_id": "cx:space:...",
   "title": "Design review",

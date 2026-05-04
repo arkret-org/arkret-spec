@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "id",
-    "type",
     "actor_id",
     "source_event_id",
     "notification_type",
@@ -16,9 +15,6 @@
   "properties": {
     "id": {
       "type": "string"
-    },
-    "type": {
-      "const": "notification"
     },
     "schema": {
       "const": "cx.schema.notification.v1"

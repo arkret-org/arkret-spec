@@ -4,7 +4,6 @@
   "title": "Contrix Snapshot Manifest",
   "type": "object",
   "required": [
-    "type",
     "snapshot_ref",
     "space_id",
     "reducer_profile",
@@ -16,9 +15,6 @@
     "signature"
   ],
   "properties": {
-    "type": {
-      "const": "snapshot_manifest"
-    },
     "snapshot_ref": {
       "type": "string",
       "pattern": "^cx:snapshot:[0-9a-hjkmnp-z]{26}$"
