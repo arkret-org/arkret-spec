@@ -214,7 +214,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.move`
 - `cx.flow.reorder`
 
-`cx.flow.*` 只修改 Flow 自身、branch 配置或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.branch.*` 的 reducer 产物是 Flow `branches` 当前态，而不是新的独立对象。
+`cx.flow.*` 只修改 Flow 自身、branch 配置、Flow access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.branch.*` 的 reducer 产物是 Flow `branches` 与 `access.branch_overrides` 的当前态，而不是新的独立对象。
 
 ### 7.3 Message
 
@@ -296,7 +296,11 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
     "branch": "discussion",
     "config": {
       "room_kind": "discussion",
-      "history_visibility": "joined"
+      "access_override": {
+        "membership": "branch_scoped",
+        "permissions": "branch_scoped",
+        "history_visibility": "joined"
+      }
     }
   }
 }
@@ -305,8 +309,8 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 规则：
 
 - enable/disable 不改变 Flow identity。
-- enable `discussion` branch 不自动授予 membership。
-- Flow synthesis 可见不代表 discussion 内容可读；projection 必须按 branch 自身权限裁剪。
+- enable `discussion` branch 使用 Flow / Space 默认 access；只有 config 或后续 policy state 明确声明 `branch_scoped` 时，才创建独立 membership/history/E2EE 边界。
+- Flow synthesis 可见只有在有效 access policy 继承或授予 discussion 读取时，才代表 discussion 内容可读；projection 必须按有效 branch access 裁剪。
 - 切换默认入口时应通过 `cx.flow.branch.set_primary`，Reducer MUST 保证同一 Flow 至多一个 `primary_branch`。
 - 发送 `cx.message.*` 到未启用的 discussion branch MUST 返回 `discussion_branch_disabled` 或等价 fail-closed 结果。
 
@@ -635,7 +639,7 @@ Contrix v1 固定：
 - Flow / Message、Board / List 工作流、Morph 共享同一同步协议。
 - `flow` 是统一协作主对象；`room` / `card` 只是 `kind` 与默认 branch 视角。
 - `synthesis` branch 承载整理后的正式表达与推进字段。
-- discussion branch 的 membership、history visibility 和 E2EE 独立收敛。
+- branch 默认继承 Flow / Space access；discussion branch 的 membership、history visibility 和 E2EE 只有在显式 branch-scoped override 时独立收敛。
 - invite / grant / snapshot 组成 Space bootstrap 主流程。
 - event 重试必须幂等。
 - 授权有效性由同一 reducer 顺序收敛。

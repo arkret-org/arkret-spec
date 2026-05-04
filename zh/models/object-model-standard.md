@@ -40,6 +40,7 @@ Flow 适合：
 - `fields`
 - `primary_branch`
 - `branches`
+- `access`
 - `state`
 
 ### 2.1 `kind`
@@ -99,18 +100,14 @@ Flow 适合：
 `discussion` branch 承载会话能力，而不是独立对象。它包含：
 
 - Message timeline
-- discussion membership
-- history visibility
-- 可选 E2EE group
-- 讨论相关 policy 组件
+- timeline / notification profile
+- 可选的 branch-scoped access override 引用
+- 讨论相关 branch-local fields
 
 推荐字段：
 
 - `enabled`
 - `room_kind`
-- `membership_policy_ref`
-- `history_visibility`
-- `encryption_profile`
 - `fields`
 
 `room_kind` 初版建议支持：
@@ -127,11 +124,45 @@ Flow 适合：
 - `room_kind` 是 discussion branch 的语义/profile 选择器，不是自动授权后门。
 - `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `room_kind` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
-- `discussion` branch membership 独立于 `assigned_to`、`watchers` 或其他 Flow relation。
-- `history_visibility` 与 `encryption_profile="mls_rfc9420"` 组合时，若未显式声明 history sharing policy，默认 SHOULD 等价于 `joined`。
+- Flow branch 默认继承 Flow / Space 的有效 membership、permission 与 E2EE 规则；独立 discussion membership、history visibility 或 E2EE group MUST 通过 `access.branch_overrides.discussion` 或等价 policy/capability state event 显式声明。
+- `discussion` branch membership 不从 `assigned_to`、`watchers` 或其他 Flow relation 隐式派生；若实现需要此类映射，必须在有效 access policy 中可审计地声明。
+- `access.branch_overrides.discussion.history_visibility` 与 `encryption_profile="mls_rfc9420"` 组合时，若未显式声明 history sharing policy，默认 SHOULD 等价于 `joined`。
 - 当 `discussion.enabled=false` 或 branch 不存在时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_branch_disabled` 或等价 fail-closed 结果。
 
-### 2.5 转换
+### 2.5 Branch Access
+
+Flow 使用统一 access 语义表达 branch 的 membership、permission、history visibility 与 E2EE：
+
+```json
+{
+  "access": {
+    "defaults": {
+      "membership": "inherit_flow",
+      "permissions": "inherit_flow",
+      "e2ee": "inherit_space"
+    },
+    "branch_overrides": {
+      "discussion": {
+        "membership": "branch_scoped",
+        "permissions": "branch_scoped",
+        "history_visibility": "joined",
+        "e2ee": "branch_scoped",
+        "encryption_profile": "mls_rfc9420",
+        "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
+      }
+    }
+  }
+}
+```
+
+规则：
+
+- `branches` 表达 branch 是否存在、默认入口和交互 profile；它不是另一套权限对象。
+- 缺省情况下，`synthesis` 与 `discussion` 都继承同一个 Flow / Space 授权体系。
+- 只有显式 override 的 branch 才拥有独立 membership、history visibility 或 E2EE group。
+- `synthesis` branch SHOULD 使用继承访问规则；需要字段级限制时，应优先使用 capability constraints，而不是为 `synthesis` 创建另一套成员表。
+
+### 2.6 转换
 
 `cx.flow.convert` 在 `kind="card"` 和 `kind="room"` 之间切换同一个 Flow 的主视角。
 

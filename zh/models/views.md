@@ -62,11 +62,11 @@ View 查询 SHOULD 优先使用标准对象类型：
 
 Space (kind=board) / Space (kind=list) 作为容器由 `space.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
 
-### 2.5 权限必须逐对象、逐 branch 裁剪
+### 2.5 权限必须逐对象、按有效 branch access 裁剪
 
 View 展示 Flow 讨论时，必须分别执行授权裁剪：
 
-- 用户能看 Flow synthesis，不自动能看 discussion。
+- 用户能看 Flow synthesis，只有在有效 access policy 继承或授予 discussion 读取时，才可看 discussion。
 - 用户能看 discussion，不自动能改 Flow synthesis。
 - Board projection MAY 显示 discussion locked link，但不得泄露 discussion 标题、成员、消息摘要或统计，除非 policy 明确允许。
 
@@ -225,7 +225,7 @@ View 应通过结构化 query 表达对象范围。
 }
 ```
 
-Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开不可读 discussion timeline。
+Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开未被有效 access policy 授权的 discussion timeline。
 
 ## 6. Board Projection
 
@@ -238,7 +238,7 @@ Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开不可读 disc
 | 卡片 | `flow` with `kind="card"` | 标准工作对象。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=flow_id}` | 表示 List 与 Flow 的 canonical 包含关系。 |
 | 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系。 |
-| 讨论入口 | `flow.branches.discussion` | 讨论能力属于同一个 Flow，而不是另一个 Room 对象。 |
+| 讨论入口 | `flow.branches.discussion` + `flow.access` | 讨论能力属于同一个 Flow；`branches` 表达能力存在，`access` 表达继承或 branch-scoped override。 |
 
 ### 6.2 Board 不显示全 Space 数据
 
@@ -247,7 +247,7 @@ Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按
 1. 根据 View query 找到目标 Board。
 2. 查询 `board --contains--> list` 得到列集合。
 3. 查询 `list --contains--> flow` 得到候选 Flow。
-4. 按 actor 的 Space membership、capability 和 branch 可见性裁剪不可见对象和字段。
+4. 按 actor 的 Space membership、capability 和有效 branch access 裁剪不可见对象和字段。
 5. 按 List/Flow rank 和稳定 tie-break 排序。
 
 ### 6.3 Board Projection Response

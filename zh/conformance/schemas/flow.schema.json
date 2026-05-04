@@ -133,33 +133,60 @@
                 "external"
               ]
             },
-            "membership_policy_ref": {
-              "type": "string",
-              "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
-            },
-            "history_visibility": {
-              "type": "string",
-              "enum": [
-                "world_readable",
-                "shared",
-                "invited",
-                "joined",
-                "restricted"
-              ]
-            },
-            "encryption_profile": {
-              "type": "string",
-              "enum": [
-                "none",
-                "mls_rfc9420",
-                "external"
-              ]
-            },
             "fields": {
               "type": "object"
             }
           },
           "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "access": {
+      "type": "object",
+      "properties": {
+        "defaults": {
+          "type": "object",
+          "properties": {
+            "membership": {
+              "type": "string",
+              "enum": [
+                "inherit_flow",
+                "inherit_space",
+                "branch_scoped"
+              ]
+            },
+            "permissions": {
+              "type": "string",
+              "enum": [
+                "inherit_flow",
+                "inherit_space",
+                "branch_scoped"
+              ]
+            },
+            "e2ee": {
+              "type": "string",
+              "enum": [
+                "inherit_space",
+                "inherit_flow",
+                "branch_scoped",
+                "none"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "branch_overrides": {
+          "type": "object",
+          "properties": {
+            "synthesis": {
+              "$ref": "#/$defs/branch_access_override"
+            },
+            "discussion": {
+              "$ref": "#/$defs/branch_access_override"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -228,8 +255,7 @@
             "properties": {
               "discussion": {
                 "required": [
-                  "enabled",
-                  "history_visibility"
+                  "enabled"
                 ],
                 "properties": {
                   "enabled": {
@@ -244,6 +270,62 @@
     }
   ],
   "$defs": {
+    "branch_access_override": {
+      "type": "object",
+      "properties": {
+        "membership": {
+          "type": "string",
+          "enum": [
+            "inherit_flow",
+            "inherit_space",
+            "branch_scoped"
+          ]
+        },
+        "permissions": {
+          "type": "string",
+          "enum": [
+            "inherit_flow",
+            "inherit_space",
+            "branch_scoped"
+          ]
+        },
+        "history_visibility": {
+          "type": "string",
+          "enum": [
+            "world_readable",
+            "shared",
+            "invited",
+            "joined",
+            "restricted"
+          ]
+        },
+        "e2ee": {
+          "type": "string",
+          "enum": [
+            "inherit_space",
+            "inherit_flow",
+            "branch_scoped",
+            "none"
+          ]
+        },
+        "encryption_profile": {
+          "type": "string",
+          "enum": [
+            "none",
+            "mls_rfc9420",
+            "external"
+          ]
+        },
+        "membership_policy_ref": {
+          "type": "string",
+          "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
+        },
+        "fields": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"

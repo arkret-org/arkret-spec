@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本文定义 Contrix View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Space policy、Room membership、E2EE 可见性与 capability。
+本文定义 Contrix View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Space policy、有效 branch access、E2EE 可见性与 capability。
 
 ## 2. Query 对象
 
@@ -36,7 +36,7 @@
 - `space_ids`: REQUIRED，查询范围。
 - `object_types`: OPTIONAL，限制标准对象类型，例如 `room`、`board`、`list`、`card`、`message`、`morph`。
 - `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
-- `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、Room membership 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
+- `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、有效 branch access 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
 - `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Card context 的上下文锚点对象引用。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
@@ -122,10 +122,10 @@ Relation Query 字段：
 - `target_type`: OPTIONAL，限制终点类型。
 - `depth`: OPTIONAL，关系展开深度；跨 Space 规则见 `views.md` Lazy Link。
 
-Flow synthesis 与 discussion 的 relation 查询必须遵守独立授权：
+Flow synthesis 与 discussion 的 relation 查询必须遵守有效 access 授权：
 
 - `promoted_from_discussion` 可显示 synthesis 条目来自 discussion 的沉淀关系。
-- Flow synthesis 可见不代表 discussion timeline 可读。
+- Flow synthesis 可见只有在有效 access policy 继承或授予 discussion 读取时，才代表 discussion timeline 可读。
 - Discussion 可读不代表 Flow synthesis 可写。
 
 查询执行方 MUST reject 含糊或互相矛盾的 Relation Query。
@@ -177,7 +177,7 @@ Projection 只减少返回字段，不提升权限。
 - 对 query 做 schema validation。
 - 对 Space、Subject、Room、对象和字段做 authorization filtering。
 - 把 `facets` 仅作为过滤条件和 projection hint；不得因 facet 字符串扩大授权、启用未声明 reducer 或绕过 Morph profile validation。
-- 对 Card-linked Room 做独立 Room membership / history visibility 检查。
+- 对 Card-linked Room / Flow discussion 按有效 branch access 做 membership / history visibility 检查；branch-scoped override 生效时必须独立裁剪。
 - 对高成本 full_text / relation expansion 限流。
 - 不泄露不可见对象是否存在。
 - 在 E2EE Space 中不得对密文正文做服务器全文搜索；客户端本地搜索只能覆盖本设备已解密且当前 actor 仍有权读取的内容。

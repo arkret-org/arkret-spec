@@ -74,7 +74,7 @@ MUST 支持：
 - 基础 `cx.message.create`、`cx.message.revise`、`cx.message.redact`、`cx.reaction.add`、`cx.reaction.remove`
 - 基础 capability check 结果处理和 `cx.message.*` 高频授权快路径
 - client sync、timeline pagination、backfill、`state_after`
-- Flow discussion branch 的 history_visibility、membership 与 synthesis 写权限独立裁剪规则
+- Flow discussion branch 的有效 access 裁剪规则，包括默认继承和 branch-scoped history_visibility / membership override
 
 MAY 支持 `Space(kind=board/list)`、`Flow(kind=card)`、View projection、Applet、Agent、WebRTC、MIMI 和 E2EE。未声明支持时，客户端不得把这些能力作为必需交互。
 
@@ -91,7 +91,7 @@ MUST 支持：
 - 基础 capability check 结果处理和 `cx.flow.move` / `cx.flow.reorder` 高频授权快路径
 - client sync、本地 projection、wait-for、pagination、backfill
 
-MAY 支持 Flow discussion branch / Message。若支持 discussion branch，必须按 discussion membership 独立裁剪。
+MAY 支持 Flow discussion branch / Message。若支持 discussion branch，必须按有效 branch access 裁剪；默认继承 Flow / Space，显式 branch-scoped membership override 才独立裁剪。
 
 ### `cx.profile.federation_minimal.v1`
 

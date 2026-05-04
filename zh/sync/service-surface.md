@@ -397,7 +397,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 
 ### 6.2 Flow Discussion / Context Projection
 
-Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` branch 都必须独立执行 discussion membership / history visibility 检查；不得因为 Flow synthesis 可见就展开 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Space 对象权限。
+Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` branch 都必须按有效 access policy 执行 membership / history visibility 检查：默认可继承 Flow / Space，显式 branch-scoped override 则按该 override 独立裁剪。不得因为 Flow synthesis 可见就展开未授权的 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Space 对象权限。
 
 ### 6.3 Inbox / Notification Projection
 

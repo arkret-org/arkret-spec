@@ -8,6 +8,7 @@ Contrix 的会话模型不再把 `subject`、`room`、`card` 拆成三个需要�
 
 - `flow` 是唯一主对象；`kind` 只决定默认视角。
 - `discussion` branch 是会话能力，不是独立对象。
+- Branch access 默认继承 Flow / Space；只有显式 branch-scoped override 才引入独立 membership、history visibility 或 E2EE group。
 - `message` 永远写入 `flow` 的 `discussion` branch。
 - `kind="card"` 默认走 `synthesis` branch，但 MAY 开启 `discussion` branch。
 - `kind="room"` 默认走 `discussion` branch，但仍保留统一基础字段与可选 `synthesis` branch。
@@ -50,9 +51,22 @@ Flow 的 `discussion` branch 适合：
     },
     "discussion": {
       "enabled": true,
-      "room_kind": "discussion",
-      "history_visibility": "joined",
-      "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
+      "room_kind": "discussion"
+    }
+  },
+  "access": {
+    "defaults": {
+      "membership": "inherit_flow",
+      "permissions": "inherit_flow",
+      "e2ee": "inherit_space"
+    },
+    "branch_overrides": {
+      "discussion": {
+        "membership": "branch_scoped",
+        "permissions": "branch_scoped",
+        "history_visibility": "joined",
+        "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
+      }
     }
   },
   "created_by": "did:web:alice.example"
@@ -120,7 +134,11 @@ Flow 通过 `kind` 和 `primary_branch` 表达默认交互方式：
     "branch": "discussion",
     "config": {
       "room_kind": "implementation",
-      "history_visibility": "joined"
+      "access_override": {
+        "membership": "branch_scoped",
+        "permissions": "branch_scoped",
+        "history_visibility": "joined"
+      }
     }
   }
 }
@@ -147,11 +165,11 @@ Room/Card 互转通过 `cx.flow.convert` 完成：
 - 转换不复制或迁移消息历史。
 - 转换到 `kind="room"` 时，若 `discussion` branch 尚未启用，Reducer MUST 自动启用它，或在 policy 禁止时 fail closed。
 - 已启用的 `discussion` branch 在转换后继续保留。
-- Flow 的 Space (kind=board)/Space (kind=list) 位置、字段和讨论历史由各自 reducer 独立维护。
+- Flow 的 Space (kind=board)/Space (kind=list) 位置、字段和讨论历史由对应 reducer 维护；讨论历史只有在 branch-scoped override 明确声明时，才使用独立 membership / history / E2EE 边界。
 
 ## 6. Discussion Branch Membership
 
-Discussion branch membership 是 Space 内的子范围授权。它不替代 Space membership，也不扩展 Flow `synthesis` branch 的编辑权限。
+Discussion branch membership 是 Flow access 的显式 override 形态。默认情况下，discussion 继承 Flow / Space 的有效访问规则；只有 `access.branch_overrides.discussion.membership="branch_scoped"` 或等价 policy state 生效时，`cx.flow.branch.member` 才成为该 discussion 的局部参与状态。它不替代 Space membership，也不扩展 Flow `synthesis` branch 的编辑权限。
 
 推荐状态事件：
 
@@ -171,11 +189,11 @@ Discussion branch membership 是 Space 内的子范围授权。它不替代 Spac
 
 规则：
 
-- Discussion participant MUST satisfy Space policy。高安全 Space MAY 要求所有 discussion 成员也是 Space member。
+- Branch-scoped discussion participant MUST satisfy Space policy。高安全 Space MAY 要求所有 discussion 成员也是 Space member。
 - Space policy MAY allow flow-scoped external admission，但该 admission 不授予其他 Flow、Board、Morph 或 Space directory 可见性。
-- Discussion membership 只控制该 branch 的消息读取、发送、历史和通知。
+- Branch-scoped discussion membership 只控制该 branch 的消息读取、发送、历史和通知。
 - Discussion membership 不改变 Flow assignment、Flow visibility、Board position 或 Space membership。
-- `assigned_to`、watchers 或其他 Flow relation 不自动成为 discussion member。
+- `assigned_to`、watchers 或其他 Flow relation 不自动成为 discussion member，除非有效 access policy 明确声明这种映射。
 
 ## 7. `@mention` 与引用
 
@@ -296,9 +314,9 @@ message 创建是 append-only。
 | `invited` | 从被邀请时刻起可见。 |
 | `restricted` | 由 Flow/Space policy 与 capability 决定。 |
 
-私密 discussion branch 或 E2EE discussion branch SHOULD 默认为 `joined`。
+私密 discussion branch 或通过 access override 启用 E2EE 的 discussion branch SHOULD 默认为 `joined`。
 
-E2EE discussion branch 中，`history_visibility=joined` 时新成员 MUST NOT 收到加入前的 MLS epoch key。若允许加入前历史共享，必须通过 history sharing policy 显式声明并产生审计事件。普通客户端不得为了潜在历史共享而无限期保留旧 epoch 明文 secret；需要长期保留时必须使用显式 Archive / Audit Node、受保护 key backup 或 legal-hold 边界。
+Branch-scoped E2EE discussion 中，`history_visibility=joined` 时新成员 MUST NOT 收到加入前的 MLS epoch key。若允许加入前历史共享，必须通过 history sharing policy 显式声明并产生审计事件。普通客户端不得为了潜在历史共享而无限期保留旧 epoch 明文 secret；需要长期保留时必须使用显式 Archive / Audit Node、受保护 key backup 或 legal-hold 边界。
 
 ## 13. 设计决定
 

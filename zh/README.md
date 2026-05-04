@@ -87,7 +87,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 看板定义：`Space(kind=board) -> Space(kind=list) -> Flow(kind="card")`。
 - 会话定义：`Flow(discussion branch) -> Message`。
 - `cx.flow.convert` 仅切换展示/工作流视角，不复制对象、不迁移历史。
-- discussion branch 是独立的成员、权限、历史和 E2EE 边界。
+- Branch 默认继承 Flow / Space 访问规则；discussion 只有显式声明 branch-scoped override 时，才成为独立成员、历史和 E2EE 边界。
 
 ### 4.4 同步与真相模型
 

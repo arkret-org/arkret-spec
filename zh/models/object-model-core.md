@@ -221,7 +221,8 @@ Flow 通过三层语义表达差异：
 
 - `kind`：主模式。`card` 默认主入口是 `synthesis` branch；`room` 默认主入口是 `discussion` branch。
 - `semantic_kind`：业务语义分类，例如 `initiative`、`decision`、`incident`。
-- `branches`：能力分支。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天、成员、历史和 E2EE 边界。
+- `branches`：能力分支。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天和讨论 timeline。
+- `access`：branch 默认继承与显式 override。缺省情况下 branch 使用同一 Flow / Space 授权体系；只有声明 branch-scoped override 时，才形成独立成员、历史或 E2EE 边界。
 
 由于 `room` 和 `card` 只是同一 Flow 的两种模式，实现 MAY 通过 `cx.flow.convert` 在二者之间切换。转换不会改变 Flow identity，也不要求复制或迁移消息历史。
 
@@ -255,10 +256,24 @@ Flow 通过三层语义表达差异：
     },
     "discussion": {
       "enabled": true,
-      "room_kind": "review",
-      "membership_policy_ref": "cx:policy:01js0rp0000000000000000000",
-      "history_visibility": "joined",
-      "encryption_profile": "mls_rfc9420"
+      "room_kind": "review"
+    }
+  },
+  "access": {
+    "defaults": {
+      "membership": "inherit_flow",
+      "permissions": "inherit_flow",
+      "e2ee": "inherit_space"
+    },
+    "branch_overrides": {
+      "discussion": {
+        "membership": "branch_scoped",
+        "permissions": "branch_scoped",
+        "history_visibility": "joined",
+        "e2ee": "branch_scoped",
+        "encryption_profile": "mls_rfc9420",
+        "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
+      }
     }
   },
   "state": "active",
@@ -270,21 +285,21 @@ Flow 通过三层语义表达差异：
 Flow 规则：
 
 - Flow identity 只保存一份，`kind` 和 `primary_branch` 只决定默认视角，不创建新的对象副本。
-- `synthesis` branch 与 `discussion` branch 可以共享同一标题和基础字段，但各自的 reducer 语义独立。
-- `discussion` branch 的 membership、history visibility 和 E2EE 不自动放大 `synthesis` branch 的可见字段。
+- `synthesis` branch 与 `discussion` branch 可以共享同一标题和基础字段，branch reducer 只负责对应交互面当前态。
+- branch access 默认继承 Flow / Space；`discussion` branch 的 membership、history visibility 和 E2EE 只有在显式 override 时才独立收敛，且不得放大 `synthesis` branch 的可见字段。
 - `primary_branch` 只是默认入口，不授予读取、写入或管理权限。
 
 ## 7. Flow Discussion Branch
 
-Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线、通知规则、历史可见性和可选 E2EE group。
+Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线和通知 profile；历史可见性、成员表和可选 E2EE group 通过 Flow `access` 或 policy/capability state event 显式声明。
 
 `kind="room"` SHOULD 默认创建并启用 `discussion` branch，且 `primary_branch` SHOULD 为 `discussion`。`kind="card"` MAY 初始只带 `synthesis` branch；需要讨论时再启用 `discussion` branch。
 
 Discussion branch 规则：
 
-- 能看 Flow synthesis 不表示能看 `discussion` branch。
+- 能看 Flow synthesis 只有在有效 access policy 继承或授予 discussion 读取时，才表示能看 `discussion` branch。
 - 能看 `discussion` branch 不表示能改 Flow 的字段、状态或 Board 位置。
-- `discussion` branch membership 不自动改变 Flow assignment、Flow visibility 或 Space membership。
+- branch-scoped `discussion` membership 不自动改变 Flow assignment、Flow visibility 或 Space membership。
 - Flow 从 `card` 转成 `room`，或从 `room` 转成 `card`，都不自动删除已有讨论历史。
 
 ## 8. Space (kind=board) / Space (kind=list) / Flow

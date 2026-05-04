@@ -7,7 +7,7 @@ Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系
 这样做的原因是：
 
 - `flow`、`message`、`space`、`morph`、`view` 的动作集不同。
-- Flow 的 `synthesis` 与 `discussion` branch 需要独立裁剪。
+- Flow 的 `synthesis` 与 `discussion` branch 需要按统一 access 语义裁剪：默认继承 Flow / Space，显式 branch-scoped override 才独立。
 - agent 必须被精细授权。
 - 授权变化必须可审计。
 
@@ -24,7 +24,7 @@ Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主�
 不要依赖以下隐式假设：
 
 - 进入 Space 就拥有全部能力。
-- 能编辑 Flow synthesis 就一定能在 discussion 里发消息。
+- 能编辑 Flow synthesis 就一定能在 discussion 里发消息，除非有效 access policy 明确继承并授予该动作。
 - discussion moderator 天然拥有全量 Flow 管理权。
 
 ### 2.3 权限判定基于当时有效的 capability 集
@@ -158,7 +158,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.container.rebalance`
 - `cx.view.*`
 
-Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation 管理，不自动授予 Message 正文权限。
+Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation 管理。Message 正文权限按有效 branch access 判断：默认可继承 Flow / Space；若 discussion 声明 branch-scoped override，则必须命中该 override 下的 membership / capability。
 
 ### 5.3 Discussion 与消息动作
 
@@ -375,7 +375,7 @@ Contrix v1 至少区分：
 
 - 修改 Flow synthesis。
 - 开启或关闭 discussion branch。
-- 管理 discussion membership。
+- 管理 branch-scoped discussion membership。
 - 普通发送消息。
 - 编辑自己的消息。
 - 编辑任意消息。
@@ -383,7 +383,7 @@ Contrix v1 至少区分：
 - 撤回任意消息。
 - 转换 `kind="card"` / `kind="room"`。
 
-这能避免把“能改 Flow”错误地和“能进 discussion”混成一种权限。
+这能避免把“能改 Flow”和“能进 branch-scoped discussion”混成一种权限，同时允许普通 discussion 在有效 access policy 中显式继承 Flow / Space 权限。
 
 ## 17. 决策执行位置
 
@@ -434,7 +434,7 @@ Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Serve
 Contrix v1 固定：
 
 - 权限采用 capability 模型。
-- Flow、discussion、agent 执行都使用统一 grant 体系。
+- Flow、discussion、agent 执行都使用统一 grant 体系；Flow branch 默认继承，显式 override 才形成 branch-scoped 授权边界。
 - `cx.message.revise.own` 与 `cx.message.redact` 分开。
 - invite / notification / read marker 进入统一 capability 体系。
 - 协议级语义采用 allow-grant + explicit revoke。

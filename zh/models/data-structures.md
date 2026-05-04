@@ -123,6 +123,7 @@ Schema id: `cx.schema.flow.v1`
 | `brief` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `primary_branch` | yes | `enum(synthesis, discussion)` | `card` 默认 `synthesis`，`room` 默认 `discussion`。 | 默认入口分支。 |
 | `branches` | yes | `object` | 至少包含 `synthesis`；`discussion` 可选。 | 分支状态。 |
+| `access` | no | `object` | branch 默认访问规则与显式 override。 | 统一授权/成员/E2EE 继承配置。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `version` | no | `integer` | SHOULD 单调递增，不能替代 event order。 | 物化版本。 |
@@ -131,7 +132,7 @@ Schema id: `cx.schema.flow.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-`branches.synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`branches.discussion` 在启用时承载房间式讨论能力，包括 `room_kind`、`history_visibility`、`encryption_profile`、`membership_policy_ref` 与讨论成员管理。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员。
+`branches.synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`branches.discussion` 在启用时承载房间式讨论能力，例如 `room_kind`、timeline profile 与 branch-local fields。Branch 的成员、权限和 E2EE 默认使用 `access.defaults` 继承 Flow / Space 的有效访问规则；只有 `access.branch_overrides.<branch>` 或对应 policy/capability state event 明确声明时，才形成 branch-scoped membership、history visibility 或 E2EE 边界。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非有效 access policy 明确把它们映射为授权条件。
 
 ### 6.2 Space (kind=board)
 

@@ -128,7 +128,7 @@ disjunction_selector ::= selector "," selector
 `flow:cx:space:...:*`
 
 - 匹配：该 Space 中所有 Room。
-- 注意：Room 读取和写入仍必须通过 Room membership / history visibility / E2EE 检查。
+- 注意：Room / discussion 读取和写入仍必须通过有效 branch access、history visibility 与 E2EE key eligibility 检查。
 
 `message:cx:space:...:cx:flow:...:*`
 
@@ -287,8 +287,8 @@ function matches(target, selector):
 
 1. **资源匹配**：目标资源必须匹配选择器。
 2. **动作匹配**：操作动作必须在授权的 `actions` 数组中。
-3. **Room 边界检查**：Room / Message 访问必须额外满足 Room membership、history visibility 和 E2EE key eligibility。
-4. **Card-Room link 不传播权限**：Card 可见不代表 linked Room 可读；Room 可读也不代表 linked Card 可写。
+3. **Branch access 检查**：Room / discussion / Message 访问必须额外满足有效 branch access、history visibility 和 E2EE key eligibility；默认继承 Flow / Space，显式 branch-scoped override 才独立。
+4. **Card-Room link 不传播权限**：Card 可见只有在有效 access policy 继承或授予 discussion 读取时，才代表 linked Room / discussion 可读；Room 可读也不代表 linked Card 可写。
 5. **约束**：授权中的所有 constraints 必须满足。
 
 ## 8. 安全考虑

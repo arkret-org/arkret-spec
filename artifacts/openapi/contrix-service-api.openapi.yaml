@@ -668,10 +668,10 @@ components:
           const: relation_container
         scope_container_id:
           type: string
-          pattern: "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$"
         container_id:
           type: string
-          pattern: "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$"
         relation_kind:
           type: string
           minLength: 1
@@ -738,10 +738,10 @@ components:
           const: relation
         scope_container_id:
           type: string
-          pattern: "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$"
         container_id:
           type: string
-          pattern: "^cx:(board|list|card|morph):[0-9a-hjkmnp-z]{26}$"
+          pattern: "^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$"
         relation_kind:
           type: string
           minLength: 1

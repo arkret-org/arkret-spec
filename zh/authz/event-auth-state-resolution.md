@@ -142,7 +142,7 @@ Contrix 使用 `cx.member.state` 表达 actor 在 Space 中的成员状态：
 
 ### 5.1 Flow Discussion Membership
 
-Flow discussion branch membership 是 Space membership 之下的局部参与状态，用于控制某个 Flow discussion 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予 Flow synthesis、Space (kind=board)/Space (kind=list) 或 Morph 的权限。
+Flow discussion branch membership 是 Flow access 的显式 override 形态。默认情况下，discussion branch 继承 Flow / Space 的有效访问规则；只有 `access.branch_overrides.discussion.membership="branch_scoped"` 或等价 policy state 生效时，`cx.flow.branch.member` 才作为 Space membership 之下的局部参与状态，用于控制某个 Flow discussion 的发言、阅读、通知和历史访问。它不授予 Space-wide 可见性，也不自动授予 Flow synthesis、Space (kind=board)/Space (kind=list) 或 Morph 的权限。
 
 Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch 中的成员状态：
 
@@ -163,8 +163,8 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 
 - 默认情况下，discussion member MUST 同时是所在 Space 的 member。
 - Space policy MAY 允许 discussion-scoped external admission。此时外部 actor 只获得该 discussion 的受限访问，不获得 Space directory、Space (kind=board)/Space (kind=list)、Flow synthesis 或其他 discussion 的可见性。
-- `cx.flow.branch.member` 只授予 discussion membership；它不复制 `cx.flow.update`、`cx.flow.move`、`cx.space.*` 或 grant 管理权限。
-- Flow synthesis 可见不代表 discussion timeline 可读；discussion 可读也不代表 synthesis 可写。
+- `cx.flow.branch.member` 只授予 branch-scoped discussion membership；它不复制 `cx.flow.update`、`cx.flow.move`、`cx.space.*` 或 grant 管理权限。
+- Flow synthesis 可见只有在有效 access policy 继承或授予 discussion 读取时，才代表 discussion timeline 可读；discussion 可读也不代表 synthesis 可写。
 - `promoted_from_discussion` 等 relation 只表达沉淀来源，不传播 membership、E2EE epoch 或 history visibility。
 
 ## 6. Discovery, Join Rule and History Visibility
@@ -200,11 +200,11 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 - `invited`：被邀请 actor 可读取 stripped preview state。
 - `joined`：仅加入后历史默认可见。
 
-E2EE Space 或启用 E2EE 的 Flow discussion branch 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。
+E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussion branch 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。
 
 `cx.space.history_sharing_policy`:
 
-`history_visibility` 只描述默认读取边界。E2EE Space 或启用 E2EE 的 discussion branch 若允许新成员获取加入前的解密材料，MUST 额外声明 history sharing policy：
+`history_visibility` 只描述默认读取边界。E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 discussion branch 若允许新成员获取加入前的解密材料，MUST 额外声明 history sharing policy：
 
 ```json
 {

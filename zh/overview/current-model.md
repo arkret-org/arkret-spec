@@ -44,12 +44,13 @@ Flow 在 `Space(kind=board)` / `Space(kind=list)` 中的位置通过 `contains` 
 
 ## 6. 权限与成员边界
 
-Space membership、Flow 更新权限与 discussion membership 独立裁剪：
+Space membership、Flow 更新权限与 discussion access 使用统一授权模型裁剪：
 
 - `cx.member.state` 控制 Space membership
 - `cx.flow.*` 控制 Flow 自身与工作流位置
-- `cx.flow.branch.member` 控制 discussion 成员状态
-- Flow synthesis 可见不代表 discussion 可读
+- branch 默认继承 Flow / Space access
+- `cx.flow.branch.member` 只在 branch-scoped override 生效时控制 discussion 成员状态
+- Flow synthesis 可见只有在有效 access policy 继承或授予 discussion 读取时，才代表 discussion 可读
 - discussion 可读不代表 Flow synthesis 可写
 
 ## 7. E2EE 边界
@@ -57,9 +58,9 @@ Space membership、Flow 更新权限与 discussion membership 独立裁剪：
 MLS 加密可绑定到两个层级：
 
 - Space 级：整个 Space 共用加密边界
-- Flow discussion branch 级：某个 Flow 的 `discussion` 独立作为 MLS group
+- Flow discussion branch 级：某个 Flow 的 `discussion` 通过 branch-scoped override 独立作为 MLS group
 
-当 `discussion` branch 使用 `encryption_profile="mls_rfc9420"` 时，成员、`history_visibility`、key sharing 和审计边界均以该 branch 为准。
+当 `discussion` branch 通过 `access.branch_overrides.discussion` 或等价 policy 使用 `encryption_profile="mls_rfc9420"` 时，成员、`history_visibility`、key sharing 和审计边界均以该 branch 为准。
 
 ## 8. Agent 结果落点
 

@@ -23,7 +23,7 @@
 | Flow kind | Flow 形态 | `flow.kind`，当前推荐值 `card` / `room`，用于定义默认入口与交互模式。 |
 | semantic_kind | 业务语义 | `Flow.semantic_kind` 指定领域语义（如 `initiative`、`decision` 等）。 |
 | synthesis branch | 正式表达分支 | Flow 的“synthesis”分支，承载正式状态、结构化字段与决策正文。 |
-| discussion branch | 讨论分支 | Flow 的“discussion”分支，承载成员、消息、时间线与讨论历史可见策略。 |
+| discussion branch | 讨论分支 | Flow 的“discussion”分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow / Space access，显式 override 时才 branch-scoped。 |
 | Space (kind=board) | 看板空间 | `type=space`，用于组织一组 Space (kind=list) 的工作容器空间。 |
 | Space (kind=list) | 列/泳道空间 | `type=space`，表示一列或泳道容器，可挂到 Space (kind=board) 并承载 Flow 成员。 |
 | Message | 消息对象 | 发生在 Flow discussion 分支中的即时沟通与补充记录。 |

@@ -34,7 +34,7 @@ cx.vector.state_resolution.conflict_space_membership.v1
 - 若 Candidate B 由有效 ban capability 授权，`ban` MUST win。
 - 被压制候选进入 `conflict_records`。
 
-## 3. Vector: 并发 Room Membership 冲突
+## 3. Vector: 并发 Branch-Scoped Discussion Membership 冲突
 
 向量名称：
 
@@ -51,7 +51,7 @@ cx.vector.state_resolution.conflict_room_membership.v1
 
 期望：
 
-- Room membership 只影响该 Room。
+- Branch-scoped discussion membership 只影响该 Flow discussion。
 - 结果不得改变 Space membership、Card visibility 或 Board visibility。
 - 若 `leave` 是 actor 自己发起且授权有效，`leave` wins。
 
@@ -105,7 +105,7 @@ cx.vector.state_resolution.concurrent_card_move.v1
 - 失败候选不应生成第二个 Card 副本。
 - 最终位置 key 为 `(board_id, flow_id)`，不是 `(list_id, flow_id)`。
 
-## 5. Vector: Card Linked Room 不继承权限
+## 5. Vector: Card Linked Room Branch-Scoped Override 不继承权限
 
 向量名称：
 
@@ -117,6 +117,7 @@ cx.vector.state_resolution.flow_discussion_visibility.v1
 
 - Candidate A: `cx.flow.branch.enable(flow_id, branch_kind=discussion, primary=true)`
 - Viewer has `cx.flow.read` on Flow.
+- Discussion access override sets `membership=branch_scoped`.
 - Viewer has no `cx.flow.branch.member` for the discussion branch.
 
 期望：
@@ -125,7 +126,7 @@ cx.vector.state_resolution.flow_discussion_visibility.v1
 - Viewer can see only a lazy discussion reference or locked state.
 - Viewer cannot read discussion Message events.
 
-## 6. Vector: Flow Discussion Surface 不继承权限
+## 6. Vector: Flow Discussion Surface Branch-Scoped Override 不继承权限
 
 向量名称：
 
@@ -137,6 +138,7 @@ cx.vector.state_resolution.flow_discussion_surface_auth.v1
 
 - Candidate A: `cx.flow.branch.enable(flow_id, branch_kind=discussion, primary=true)`
 - Viewer has `cx.flow.read` on Flow.
+- Discussion access override sets `membership=branch_scoped`.
 - Viewer has no `cx.flow.branch.member` for the discussion branch.
 
 期望：
@@ -144,4 +146,4 @@ cx.vector.state_resolution.flow_discussion_surface_auth.v1
 - Branch is accepted if author has the required flow branch capability.
 - Viewer can see only a locked discussion stub, authorized hidden count, or no surface entry depending on discussion discoverability.
 - Viewer cannot read discussion Message events.
-- Room membership, Card visibility, and Subject update rights are unchanged.
+- Branch-scoped discussion membership, Card visibility, and Flow update rights are unchanged.
