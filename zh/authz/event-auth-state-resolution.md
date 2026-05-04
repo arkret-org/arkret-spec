@@ -218,7 +218,7 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 - `knock_restricted`：不满足 restricted 条件者可 knock。
 - `closed`：不接受普通加入、knock 或 invite accept；只允许迁移、维护或管理员明确声明的例外流程。
 
-Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请加入。接收方 MUST reject `default_join_rule="private"`。
+Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请加入。接收方 MUST reject `default_join_rule="private"`；`private` 不是 Contrix v1 枚举值，该规则只是针对 Matrix-style legacy import、bridge payload 或旧客户端错误字段的防御性拒绝。实现不得把 `private` 静默映射为 `invite` 或 `closed`，因为这会掩盖签名 payload 与 policy intent 的差异。
 
 `cx.space.history_visibility`:
 
@@ -416,6 +416,8 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 
 授权计算 MUST 使用事件被接受时的因果 auth state，而不是接收时间的最新状态。`created_at` 只用于校验签名 key、claim、grant 有效期和时钟窗口，不得让缺少因果前序或 actor_seq 回退的事件绕过 revoke。撤销事件只影响其 causal frontier 之后的事件；若业务事件与相关 revoke 的顺序无法通过 `prev_refs`、`actor_seq` 和 HLC 确定，节点 MUST fail closed、soft fail 或进入 review。
 
+离线写入重新上线时，节点必须同时验证事件自身 `created_at` 位于 grant / session / device 的有效窗口内，以及 `auth_refs` 所声明的 grant frontier 未被该事件因果已知的 revoke 覆盖。若设备离线期间 grant 已过期，但事件 `created_at` 早于 `expires_at` 且 actor chain、HLC drift、device validity 和 revoke freshness 都可验证，事件 MAY 被接受；若无法证明该事件早于 revoke / expiry 的有效 frontier，MUST soft-fail、quarantine 或要求用户基于最新状态重新提交。实现 SHOULD 对离线队列声明最大积压窗口；public profile 默认不得超过 30 天，超过后新写入必须重新签名并重新授权。
+
 ## 8. State Events
 
 State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_key)` 最新 accepted 事件决定。
@@ -552,6 +554,8 @@ auth_difference(conflicted_events):
 `auth_weight` 是 state resolution 的排序键，不是额外授权来源。候选事件必须先通过签名、schema、causal dependency、`auth_refs` 和 policy hard deny 检查；未通过者没有 `auth_weight`，不得进入 winner 选择。
 
 实现 MUST 在候选事件自己的 causal auth state 上计算 `auth_weight`，不得使用接收节点的当前最新状态、HTTP 到达顺序、数据库行号或尚未通过授权的竞争候选。若同一候选事件可由多个 grant / role / issuer 授权，取下列权重中最高者；同权重时按 `delegation_depth` 较小、`grant_event_id` 字节序较小、`issuer_did` 字节序较小继续比较。
+
+权重刻度的设计目标是稳定表达授权来源层级，而不是精细概率分数。`700/650/600/550/500` 保留给根治理、组织治理、Space 管理、policy/membership 管理和对象管理，间距用于未来在相邻层级之间插入 profile-specific authority；`400/300/200/100/0` 表达委派、直接动作、自我动作和低风险默认行为。实现不得重新缩放这些数值，也不得新增会跨越上级治理层级的本地权重。
 
 | weight | 条件 |
 | --- | --- |

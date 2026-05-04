@@ -11,6 +11,9 @@
 - `artifacts/registry/id-kind-registry.json`
 - `artifacts/registry/event-kind-registry.json`
 - `artifacts/registry/operation-registry.json`
+- `artifacts/registry/error-code-registry.json`
+
+其中 `error-code-registry.json` 是标准 service error code 与批处理逐项 `reason_code` 的 canonical registry；本文后续 event/schema 表只提供文档视图，不重复维护错误码全集。
 
 ## 2. Standard Object Schema
 
@@ -158,6 +161,7 @@
 | event type | payload |
 | --- | --- |
 | `cx.mls.proposal` | MLS proposal |
+| `cx.mls.genesis` | MLS group genesis |
 | `cx.mls.commit` | MLS commit |
 | `cx.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
 | `cx.mls.welcome` | MLS welcome ref |

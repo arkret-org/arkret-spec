@@ -155,6 +155,8 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
+`principal_id` 是授权、签名和审计归属的根；`actor_type` 只是该 DID 在协作图中的展示和策略分类。`actor_type="device"` 表示该 DID 被作为设备级或 pairwise device principal 直接行动；若设备只是某个用户/组织 principal 的授权设备，则 Event 仍以用户/组织 DID 作为 `actor_id`，设备身份通过 proof `verification_method`、`device_id`、`cx.device.authorized` 或 session grant 表达。`team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_to` 指向控制/责任 principal；它们不会因为 `accountable_to` 自动继承权限。
+
 ## 6. Standard Objects
 
 Flow、Space 和 Message 是标准对象。Space (kind=board)/Space (kind=list) 表达工作流容器；Flow 通过 branch primary 解析规则表达协作主对象的默认入口。
@@ -202,6 +204,14 @@ Schema id: `cx.schema.flow.v1`
 | `e2ee` | no | `enum(inherit_space, inherit_flow, branch_scoped, none)` | 缺省 `inherit_space`。 | 加密继承方式。 |
 | `encryption_profile` | no | `enum(none, mls_rfc9420, external)` | `e2ee=branch_scoped` 时 SHOULD 设置。 | 加密 profile。 |
 | `membership_policy_ref` | no | `id:policy` |  | branch-scoped membership policy 引用。 |
+
+`FlowBranch.access` 继承求值规则：
+
+1. `inherit_flow` 表示先取 Flow-scoped policy/capability override；若 Flow 未声明对应规则，再回退到 Space 当前有效规则。
+2. `inherit_space` 表示跳过 Flow override，直接使用 Space membership、history visibility、permission 或 E2EE policy。
+3. `branch_scoped` 表示该 branch 必须有可验证的 branch-local state event、policy component 或 capability constraint；缺失时 reducer / authz MUST fail closed，而不是自动回退。
+4. `permissions` 与 `membership` 分开求值：成员资格只说明谁属于候选集合，具体动作仍必须命中 `capabilities.md` 中的 action、resource selector 和 constraints。若 `permissions=inherit_flow` 且 `membership=branch_scoped`，写入者必须同时满足 branch membership 和 Flow/Space 继承来的具体动作授权。
+5. `e2ee=branch_scoped` 时，MLS group 的 `application_state_ref.membership_frontier` MUST 覆盖 branch membership frontier；否则客户端只能把对应 epoch 视为 `decryption_pending` / `state_mismatch`。
 
 Primary branch 解析规则：
 
@@ -351,6 +361,8 @@ produced, used, triggered_by, has_log, summarized_from, promoted_from_discussion
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
 
+Relation conflict 的默认 winner 排序为：有效性检查通过、较高 auth weight、较新 HLC、较小 `actor_id` 字典序、较小 canonical event hash。`on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。`on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 frontier 提交修复事件。`require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
+
 Space schema、Space profile 或 `relation_profiles` MAY 对标准默认值收紧，但不得放宽会破坏互操作 projection 的标准互斥规则（例如同一 Board 内 Flow 只能处于一个 List）。`RelationProfile` 最小结构：
 
 | 字段 | 必填 | 类型 | 说明 |
@@ -410,6 +422,14 @@ Event 是 reducer 输入。它不是当前态对象。
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
 Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。`content.type` 不得重复写入 `cx.*` Event kind；若 payload 需要引用被创建对象，使用 `content.object.type` 等对象字段。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+
+`actor_seq` fork 约束：
+
+- Producer SHOULD 为同一 `actor_id` 维护单调本地链，避免主动产生同高 sibling fork。
+- 同一 `actor_id` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`，除非 profile 明确声明恢复/导入场景。
+- 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但 state resolution 和授权判断必须使用 auth state、conflict set 与 canonical hash tie-break。
+- 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_hash)` 接受的 sibling 数量设置上限；v1 public profile 的上限为 16，超过后 MUST quarantine 或要求 actor chain repair。
+- 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
 
 `required_features` 与 `critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Space schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
 
@@ -659,8 +679,9 @@ Canonical Operation 与 Event Envelope 的映射：
 patch path 规则：
 
 - path 由 `snake_case` 标识符或反引号转义字段名组成；
-- 仅支持对象路径，不支持数组下标；
+- 默认仅支持对象路径，不支持数字数组下标；
+- 对 schema 声明了唯一 key 的具名集合数组，path MAY 使用确定性 selector 段：`branches[name=discussion].access.membership`。selector 字段必须是该数组项 schema 中声明唯一的 stable key，selector 值按 canonical JSON string 解析；匹配 0 项时 `set`/`add` MUST reject，匹配多项表示对象已违反 schema，reducer MUST fail closed；
 - `unset` 不允许带 `value`；
 - `set`、`add`、`remove` 必须带 `value`。
 
-客户端不能把数组下标写入 path；如需列表元素更新，必须将对象重建为具名集合项或使用明确的 API 约束字段表示更新目标。
+客户端不能把数字数组下标写入 path；如需更新无 stable key 的列表元素，必须将对象重建为具名集合项、用 profile 注册的 move/update event，或使用明确的 API 约束字段表示更新目标。

@@ -905,6 +905,25 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "cx.mls.genesis"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "./event-payload.schema.json#/$defs/mls_genesis_content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "cx.mls.welcome"
           }
         },

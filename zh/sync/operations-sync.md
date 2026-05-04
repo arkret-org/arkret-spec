@@ -320,7 +320,9 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 ## 8. 操作体原则
 
-非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 `../models/data-structures.md#22-field-patch-cxpatchv1`；实现不得用私有 dot-path 解析规则替代该格式。
+非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 `../models/data-structures.md#19-field-patch-cxpatchv1`；实现不得用私有 dot-path 解析规则替代该格式。Event Envelope 中，patch 永远嵌入 `content.patch`，目标对象用 `content.flow_id`、`content.morph_id`、`content.relation_id`、`content.view_id` 或该 kind schema 声明的等价字段表达。
+
+对于 `branches` 这类具名集合数组，patch path MUST 使用 schema 允许的 selector 段，例如 `branches[name=discussion].access.permissions`；不得使用数字下标，因为不同副本上的数组物理顺序不是授权或 reducer 语义。
 
 例如：
 

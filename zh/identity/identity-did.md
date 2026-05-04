@@ -173,7 +173,7 @@ DID method 或 registry 不可用时，节点不得把“暂时无法解析”�
 
 - 监控 primary PLC directory、至少一个 policy 允许的 mirror / audit source、最近 operation head、transparency evidence freshness 和 resolver 响应签名 / digest。
 - 健康状态 MUST 区分 `healthy`、`degraded_mirror_only`、`stale_evidence`、`write_unavailable` 和 `untrusted` 或等价状态。
-- `degraded_mirror_only` 只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待可写 directory 恢复，或走部署 policy 明确允许的替代 method。
+- `degraded_mirror_only` 只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待可写 directory 恢复，或走部署 policy 明确允许的替代 method。Public network profile 的 `degraded_mirror_only` 默认最长持续 24 小时；部署 policy MAY 缩短该窗口，MUST NOT 延长到超过 7 天。超过窗口后，resolver MUST 进入 `stale_evidence` 或 `write_unavailable`，并对新的高风险写入 fail closed。
 - `stale_evidence` 或 `untrusted` 时，resolver MUST fail closed；不得用缓存 handle、DNS、Principal Server 声明或用户登录态替代 PLC operation history。
 - 客户端和服务端 SHOULD 暴露 outage diagnostics，包括使用的 directory / mirror、history head、evidence age 和下一次 retry 时间。
 

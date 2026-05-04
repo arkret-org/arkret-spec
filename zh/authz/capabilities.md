@@ -198,12 +198,18 @@ Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation �
 - `cx.sync.*`
 - `cx.blob.*`
 - `cx.call.configure_media_service`
+- `cx.mls.genesis`
 - `cx.mls.proposal`
 - `cx.mls.commit`
 - `cx.mls.welcome`
 - `cx.mls.keypackage`
+- `cx.audit.accessed`
+- `cx.audit.query`
+- `cx.audit.export`
 
 `cx.mls.epoch` 不是可授予的服务动作。它是从 winning `cx.mls.commit` 机械派生的 checkpoint；实现只能按 MLS epoch 验证规则发布或缓存该 checkpoint，不得用单独 capability 授权推进 epoch。
+
+Audit action 只授权受控审计代理执行“先记录后解密”、读取审计视图或导出审计材料。若 Audit Agent 已经是 MLS group 成员，持有 epoch key 本身不受 capability 系统密码学约束；Space policy 必须同时声明 auditable E2EE profile、审计代理身份、plaintext-visible service disclosure、成员可见提示和 `cx.audit.accessed` 写入要求。
 
 ### 5.6 人类界面与个人状态动作
 
@@ -376,7 +382,7 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 ```json
 {
   "kind": "cx.capability.revoke",
-  "body": {
+  "content": {
     "grant_ref": "cx:grant:01js0gr0000000000000000000",
     "reason": "contract ended"
   }

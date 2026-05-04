@@ -792,6 +792,14 @@
       "payload": "MLS proposal"
     },
     {
+      "event_kind": "cx.mls.genesis",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "MLS group genesis"
+    },
+    {
       "event_kind": "cx.mls.commit",
       "category": "e2ee",
       "status": "active",

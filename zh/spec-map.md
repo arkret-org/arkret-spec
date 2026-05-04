@@ -9,7 +9,8 @@
 ### 1.1 规范权威层级
 
 - `artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
-- `artifacts/registry/*.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
+- `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json` 和 `operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
+- `artifacts/registry/error-code-registry.json` 是标准 service error 与逐项 `reason_code` 的 canonical registry。
 - `zh/sync/contrix-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
 - `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
@@ -22,7 +23,7 @@
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、branch 模型、E2EE 边界、agent 落点）。
 4. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
-5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/progressive-disclosure.md`：理解身份、handle 和隐私披露。
+5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/progressive-disclosure.md`：理解身份、handle、设备/备份密钥和隐私披露。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
 8. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。

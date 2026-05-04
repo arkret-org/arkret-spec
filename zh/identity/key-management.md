@@ -341,6 +341,8 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 实现 SHOULD 使用现代 KDF，例如 Argon2id。
 如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。新创建的云保险箱不得默认使用 PBKDF2。
 
+FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
+
 `key_commitment` 的推荐构造：
 
 ```

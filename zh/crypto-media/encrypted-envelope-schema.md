@@ -25,7 +25,7 @@
     },
     "key_ref": {
       "algorithm": "MLS",
-      "ratchet_tree": "base64url"
+      "group_state_ref": "cx:event:01js0mg0000000000000000000"
     },
     "payload_digest": "sha256:...",
     "aad_digest": "sha256:..."
@@ -53,7 +53,10 @@
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可用 `causal_ref_hashes` 替代。 |
 | `aad.causal_ref_hashes` | array<hash> | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
 | `key_ref` | object | 条件 | 密钥材料引用（对接收方可选） |
-| `payload_digest` | hash | 是 | sha256(canonical_json(明文元数据) \|\| 完整加密负载字节)。若 profile 拆出 `authentication_tag`，tag MUST 纳入完整加密负载字节。 |
+| `key_ref.algorithm` | string | 条件 | `mls-rfc9420` profile 中为 `MLS`；未来 profile 必须注册自己的值。 |
+| `key_ref.group_state_ref` | id:event/hash | 否 | 可指向已 accepted 的 `cx.mls.genesis`、`cx.mls.epoch` 或等价 group state proof，用于加速 lookup；不得替代 MLS transcript 验证。 |
+| `key_ref.ratchet_tree` | string | 否 | 旧兼容字段；新 `mls-rfc9420` application envelope MUST NOT 生成。Ratchet tree 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 管理，不能在每条消息中作为权威树传输。 |
+| `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes || encrypted_payload_bytes)`；输入定义见第 3.3 节。若 profile 拆出 `authentication_tag`，tag MUST 纳入 `encrypted_payload_bytes`。 |
 | `aad_digest` | hash | 是 | 规范 AAD 的 SHA256 |
 
 `aad.event_type` 废弃时间线：
@@ -102,6 +105,39 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 - 无多余空白
 - 无尾随逗号
 - 字符串使用 UTF-8 编码
+
+### 3.3 `payload_digest` 输入
+
+`payload_digest` 的输入必须完全确定，不得使用实现本地对象序列化结果。
+
+1. Receiver 先把 raw AAD 归一化：若只含 legacy `event_type`，按第 2.2 节转换为 `event_kind`；若同时包含二者且不同，MUST reject；归一化后的 AAD 不再包含 `event_type`。
+2. `aad_bytes = canonical_json(normalized_aad)`，`aad_digest = sha256(aad_bytes)`。
+3. `payload_metadata` 是以下对象的 canonical JSON，字段缺失时不得写入 null：
+
+```json
+{
+  "scheme": "mls-rfc9420",
+  "version": "1.0",
+  "group_id": "base64url",
+  "epoch": 12,
+  "content_type": "application/json",
+  "aad": {
+    "space_id": "cx:space:01js0sp0000000000000000000",
+    "event_kind": "cx.message.create",
+    "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
+  "key_ref": {
+    "algorithm": "MLS",
+    "group_state_ref": "cx:event:01js0mg0000000000000000000"
+  }
+}
+```
+
+4. `payload_metadata_bytes = canonical_json(payload_metadata)`。
+5. `encrypted_payload_bytes = base64url_decode(ciphertext)`；若 envelope 含 `authentication_tag`，追加 `base64url_decode(authentication_tag)`。
+6. `payload_digest = "sha256:" + sha256(payload_metadata_bytes || encrypted_payload_bytes)`。
+
+`mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Contrix envelope 的外层完整性检查，不替代 MLS AEAD。
 
 ## 4. 加密方案
 
@@ -154,8 +190,15 @@ function encrypt_content(content, aad, group_context):
     aad_bytes = canonical_json(aad)
     private_message = mls_protect_application_message(group_context, plaintext, aad_bytes)
     ciphertext = serialize(private_message)
-    cleartext_metadata = canonical_json({encryption: scheme, epoch: epoch, content_type: content_type, aad: aad})
-    payload_digest = sha256(cleartext_metadata || ciphertext)
+    payload_metadata = canonical_json({
+        scheme: "mls-rfc9420",
+        version: "1.0",
+        group_id: group_context.id,
+        epoch: group_context.epoch,
+        content_type: "application/json",
+        aad: aad
+    })
+    payload_digest = sha256(payload_metadata || ciphertext)
     aad_digest = sha256(aad_bytes)
 
     return {
@@ -335,7 +378,7 @@ MLS 提供：
 将 Space 迁移到加密：
 
 1. 在 Space policy 中添加 `encryption_profile`
-2. 通过初始 `cx.mls.commit` / group genesis state 创建 MLS 群组，并为新成员写入 durable `cx.mls.welcome`
+2. 通过 `cx.mls.genesis` 创建 MLS 群组，并为新成员写入 durable `cx.mls.welcome`
 3. 新内容加密
 4. 既有内容保持明文
 

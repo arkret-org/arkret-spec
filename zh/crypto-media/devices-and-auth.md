@@ -79,7 +79,7 @@ Contrix v1 把三件事分开处理：
 为了防止“设备全部丢失导致永远失去账号”，协议提供以下备份标准。
 
 ### 4.1 加密云保险箱 (Encrypted Cloud Vault)
-- **机制**：客户端将核心主钥、恢复密钥与尚未备份的 MLS 会话状态，使用用户设置的 **强口令 (Passphrase)** 或 PIN 码通过 Argon2id 推导备份密钥，并使用认证加密 envelope 保护（默认 `xchacha20poly1305`；FIPS profile MAY 使用 AES-GCM，但 KDF 仍 MUST 是 Argon2id 或等价 memory-hard KDF）。
+- **机制**：客户端将核心主钥、恢复密钥与尚未备份的 MLS 会话状态，使用用户设置的 **强口令 (Passphrase)** 或 PIN 码通过 Argon2id 推导备份密钥，并使用认证加密 envelope 保护（默认 `xchacha20poly1305`）。FIPS-only profile MAY 使用 AES-GCM；若运行环境禁止 Argon2id，则必须声明 `fips_pbkdf2` 或等价降级 key backup profile，使用 FIPS 批准的 password-based KDF（例如 PBKDF2-HMAC-SHA-256）并配套更高强度 passphrase、服务端速率限制和恢复审计。该 profile 不得声称具备 Argon2id 等价的 memory-hard 离线抗爆破能力。
 - **存储**：加密后的密文 `Ciphertext Blob` 可以安全地存储在公共 Sync Service、用户的私有云网盘或 Contrix Identity Registry 中。
 - **恢复**：用户在新设备上输入相同的强口令，拉取 Blob，本地解密还原出完整身份状态。因为存储的是强加密密文，即使云存储服务商被黑客攻破也无法盗取用户身份。
 

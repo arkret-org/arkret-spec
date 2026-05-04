@@ -7,7 +7,6 @@
 
 Repository layout is intentionally summarized instead of duplicating a full file tree:
 
-- `artifacts/`: canonical machine-readable v1 contracts, registries, fixtures, OpenAPI, and mirror manifests。
 - `artifacts/`: canonical machine-readable v1 contracts, registries, fixtures, OpenAPI, and mirror manifests.
 - `zh/`: maintained Chinese normative text plus `zh/conformance/` and `zh/sync/` mirror copies derived from `artifacts/`.
 - `.github/workflows/`: CI entrypoints for artifact lint and drift guards.

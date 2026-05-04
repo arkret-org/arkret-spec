@@ -255,6 +255,8 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 
 隐私优先 Space SHOULD 使用 `hidden` 或 `routing_hash`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `application_state_ref.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
 
+加密信封的规范字段名是 `aad.event_kind`。`aad.event_type` 仅是 legacy 兼容输入；新 producer MUST NOT 生成，receiver 在计算 `aad_digest` 或 MLS authenticated data 前必须按 `encrypted-envelope-schema.md` 归一为 `event_kind`。Space policy、AAD visibility、日志和 conformance vector 不得再使用 `event_type` 作为规范字段名。
+
 ## 3. 可审查的端到端加密 (Auditable E2EE)
 
 在很多去中心化产品中，如果存在审查，往往是通过向客户端下发“旁路后门”或者弱化密钥机制实现的，这引起了极大的隐私恐慌。
@@ -290,6 +292,8 @@ Auditable E2EE profile：
 
 - `cx.profile.auditable_e2ee.tee_required.v1`：Audit Agent MUST 在声明的 TEE / enclave 或等价硬件隔离环境中运行；remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。
 - `cx.profile.auditable_e2ee.software_only.v1`：不要求 TEE，但 Space policy MUST 明确声明该降级；成员加入前必须可见确认。该 profile 仍然必须执行 `cx.audit.accessed` 先写后解密流程，但其保证属于合规和可审计流程保证，不是密码学强制保证。
+
+Conformance profile MUST 把 `software_only` 标记为 `audit_process_only` 或等价级别；它不得通过测试声明“TEE-equivalent”、“cryptographically enforced audit”或任何正式密码学审计保证。
 
 ### 3.2 审计节点的入群
 `did:web:compliance.acme.corp` 对应的合规客户端（Audit Agent）会作为一个合法的、只读的成员，由创建者通过正常的 `cx.mls.commit` 邀请加入 MLS 群组。
@@ -379,17 +383,42 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 
 在去中心化网络中，管理员踢人（或邀请人）是一个典型的容易因网络抖动而“做到一半瘫痪”的操作。为避免单点故障导致群组密钥树锁定，Contrix 严格继承了 MLS (RFC 9420) 的 **“提案与提交分离 (Proposal & Commit)”** 架构。
 
-### 5.1 意图与生效的分离
+### 5.1 MLS Group Genesis
+
+`cx.mls.genesis` 创建 Contrix 绑定的 MLS group 初始状态。它不是普通 Commit，也不消费 Proposal；它声明 epoch 0 的 group identity、初始 ratchet tree / GroupInfo proof 和被 MLS GroupContext extension 覆盖的 Contrix application state。
+
+`cx.mls.genesis.content` MUST 至少包含：
+
+- `mls_group_id`
+- `scope`：`space_id`，以及可选 `flow_id`、`branch`；branch-scoped discussion group MUST 写入 `branch="discussion"`。
+- `epoch`：MUST 为 `0`。
+- `creator_principal_id`
+- `creator_device_id`
+- `cipher_suite`
+- `group_info_ref` 或 `group_info_hash`
+- `ratchet_tree_ref` 或 `ratchet_tree_hash`
+- `application_state_ref`
+- `created_at`
+
+Genesis 接受规则：
+
+1. 创建者必须在 `application_state_ref.membership_frontier` 和 `policy_root` 覆盖的状态下有创建该 MLS group 的权限；通常需要 `cx.mls.genesis` 或包含该动作的管理 grant。
+2. `application_state_ref.next_epoch` MUST 为 `0`；若包含 `previous_epoch`，也 MUST 为 `0`。
+3. 同一 `(scope, mls_group_id)` 只能有一个 accepted genesis。并发重复 genesis 是 state conflict，按 event-auth state resolution 选择 winner；loser 的 GroupInfo / ratchet tree 不得用于解密或后续 commit。
+4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `cx.mls.commit`，其 `base_epoch=0`、`base_epoch_ref` 指向 winning `cx.mls.genesis`、`next_epoch=1`。
+5. 新加入成员的 `cx.mls.welcome` MUST 引用 accepted genesis 或后续 winning commit 派生出的 epoch state；客户端不得从未 accepted 的 welcome / ratchet tree 本地推断 group authority。
+
+### 5.2 意图与生效的分离
 组员的增删改是两阶段流程：
 1. **意图上链 (Proposal)**：管理员 A 发出 `cx.mls.proposal` (意图移除用户 D)。这只是一条明文路由加上密码学签名的操作意图。**注意：此时群组 Epoch 并没有推进，先前密钥依然有效，用户 D 依然在群内**。
 2. **正式生效 (Commit)**：必须有成员针对上述 Proposal 打包并发起一个 `cx.mls.commit` 操作。一旦 Commit 落盘，Ratchet Tree 被重新洗牌，新密钥分发给剩余成员（不包含 D），此时 D 才被真正物理隔离。
 
-### 5.2 断网接力与挂起状态 (Takeover)
+### 5.3 断网接力与挂起状态 (Takeover)
 如果管理员 A 在发出踢人 Proposal 后瞬间掉线，群组**绝对不会瘫痪**。
 - **挂起态的可用性**：在 Commit 被提交之前，群组处于“有待处理提案”的挂起状态，所有成员依然可以使用现有的 Epoch 密钥继续聊天通信。
 - **无缝接力 (Takeover)**：群组内其他具备足够权限的成员（如管理员 B 或普通成员 C）在侦测到未处理的 Proposal 后，可以主动“接手”。成员 B 的客户端会自动执行重新加密，打包移除 D 的逻辑，并广播出 `cx.mls.commit`。一旦 B 的 Commit 被接受，D 成功被踢出。
 
-### 5.3 防冲突仲裁 (Concurrency Resolution)
+### 5.4 防冲突仲裁 (Concurrency Resolution)
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
 - 节点将根据底层 Event reducer 的 **Tie-breaking 规则**（优先级排序：`Auth Weight` -> `HLC` -> `Actor_ID 字典序` -> `Event Hash`）进行无分歧的绝对仲裁。
 - 胜出者的 Commit 成为合法的下一个 Epoch。失败者的客户端发现自己的 Commit 版本过期后，会自动丢弃本地更改并拉取胜出者的状态，确保 E2EE 的强一致性。
@@ -398,7 +427,7 @@ MLS Commit 的输入和输出必须在 Event content 中可验证表达：
 
 - `group_id`：目标 MLS group。
 - `base_epoch`：Commit 构造时读取的当前 epoch。
-- `base_epoch_ref`：本地认为当前有效的 `cx.mls.epoch` event 或 genesis group state ref。
+- `base_epoch_ref`：本地认为当前有效的 `cx.mls.epoch` event 或 `cx.mls.genesis` event / genesis group state ref。
 - `proposal_refs`：被该 Commit 消费的 `cx.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
 - `commit_message_ref` / `commit_hash`：MLS Commit 消息或其 content-addressed blob。
 - `next_epoch`：必须等于 `base_epoch + 1`。
@@ -416,7 +445,7 @@ MLS Commit 的输入和输出必须在 Event content 中可验证表达：
 
 当网络分区导致节点短期看见不同 winner 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 event-auth state resolution、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Space policy 授权为普通 actor 或 service capability，不能替代上述 deterministic state resolution。
 
-### 5.4 Commit / Welcome 处理失败报告
+### 5.5 Commit / Welcome 处理失败报告
 
 客户端本地处理 winning `cx.mls.commit`、`cx.mls.welcome` 或其 `application_state_ref` 失败时，MAY 发布 `cx.mls.commit_failed` 诊断事件。该事件用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不回滚 accepted commit，也不推进 epoch。
 

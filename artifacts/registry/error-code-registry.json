@@ -158,6 +158,42 @@
       "description": "A declared digest does not match the transferred content."
     },
     {
+      "code": "aad_ambiguous_kind",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Encrypted envelope AAD contains conflicting event_kind and legacy event_type values."
+    },
+    {
+      "code": "aad_digest_mismatch",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Encrypted envelope AAD digest does not match the canonical normalized AAD."
+    },
+    {
+      "code": "payload_digest_mismatch",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Encrypted payload digest does not match the declared encrypted envelope content."
+    },
+    {
+      "code": "key_unavailable",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Required encrypted content key, MLS epoch, or authorized key share is not currently available."
+    },
+    {
+      "code": "state_mismatch",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Encrypted content or MLS epoch is bound to an application state root that cannot be verified against accepted state."
+    },
+    {
+      "code": "audit_receipt_invalidated",
+      "http_status": 409,
+      "scope": "both",
+      "description": "An auditable E2EE decrypt receipt was invalidated by backfill, witness, or state verification."
+    },
+    {
       "code": "unknown_did",
       "http_status": 422,
       "scope": "both",
