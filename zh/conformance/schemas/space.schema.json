@@ -46,13 +46,11 @@
       "type": "string",
       "enum": [
         "collaboration",
-        "personal",
-        "project",
-        "organization",
         "enclave",
         "board",
         "list"
-      ]
+      ],
+      "description": "v1 standard Space kinds. 'personal'/'project'/'organization' were removed; their reducer behaviour is identical to 'collaboration' (boundary_profile=security_boundary). Implementations needing those distinctions SHOULD encode them via Space.fields, schema_refs, or labels."
     },
     "boundary_profile": {
       "type": "string",
@@ -264,9 +262,6 @@
           "kind": {
             "enum": [
               "collaboration",
-              "personal",
-              "project",
-              "organization",
               "enclave"
             ]
           }

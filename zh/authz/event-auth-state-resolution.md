@@ -89,21 +89,9 @@
 | `cx.capability.grant` | `cx.space.create`、grantor membership、grantor 当前 grant/role/admin capability |
 | `cx.capability.revoke` | 被撤销 grant、revoker membership、revoker revoke/admin capability |
 | `cx.policy.*` | `cx.space.create`、actor membership、policy/admin capability、上一版同 key policy |
-| `cx.space.discovery` | `cx.space.create`、actor membership、discovery/policy/admin capability、上一版 discovery state |
-| `cx.space.moderation_policy` | `cx.space.create`、actor membership、moderation/policy/admin capability、上一版 moderation policy |
-| `cx.space.policy` | `cx.space.create`、actor membership、policy/admin capability、上一版同 key policy state |
-| `cx.space.join_rule` | `cx.space.create`、actor membership、join policy/admin capability、上一版 join rule state |
-| `cx.space.history_visibility` | `cx.space.create`、actor membership、history/policy/admin capability、上一版 history visibility state、当前 encryption / history sharing policy |
-| `cx.space.policy_server` | `cx.space.create`、actor membership、policy/admin capability、service DID delegation、上一版 policy server state |
-| `cx.space.policy_components` | `cx.space.create`、actor membership、policy/admin capability、上一版 policy component state |
-| `cx.space.plaintext_visible_services` | `cx.space.create`、actor membership、privacy/policy/admin capability、service DID delegation、上一版 plaintext visible service state |
-| `cx.space.schema` | `cx.space.create`、actor membership、schema/policy/admin capability、上一版 schema state、upgrade policy（如适用） |
-| `cx.space.history_sharing_policy` | `cx.space.create`、actor membership、policy/admin capability、上一版 history sharing state、当前 encryption policy |
-| `cx.space.asset_privacy_policy` | `cx.space.create`、actor membership、asset privacy / policy / admin capability、上一版 asset privacy state |
-| `cx.space.media_service` | `cx.space.create`、actor membership、media service / policy / admin capability、service DID delegation、上一版 media service state |
+| `cx.space.policy.set` | `cx.space.create`、actor membership、按 `state_key` 选择对应 capability tier（见下方 state_key 表）、上一版同 `state_key` 的 state 事件，及该 `state_key` 声明的额外依赖 |
 | `cx.space.child` | parent Space 的 `cx.space.create`、发送者 parent membership、`cx.space.hierarchy.manage` capability、目标 child Space stripped create 或可验证引用 |
 | `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`cx.space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
-| `cx.space.inheritance_policy` | child Space 的 `cx.space.create`、child policy/admin capability、confirmed parent edge |
 | `cx.space.organization` | `cx.space.create`、组织 DID 当前控制状态、组织签发或撤销该声明的 capability / service binding |
 | `cx.flow.branch.*` | actor Space membership、目标 Flow 当前状态、目标 discussion branch 当前状态、对应 flow branch capability |
 | `cx.flow.branch.member` | actor Space membership、目标 actor 当前 discussion membership、discussion join / invite / moderation policy、对应 branch membership capability |
@@ -114,16 +102,48 @@
 | `cx.mls.*` | actor membership、encryption policy、当前 epoch state、device trust state |
 | `cx.redaction` | actor membership、被 redaction 事件、redact_own 或 redact_any capability |
 | `cx.space.upgrade` | `cx.space.create`、当前 upgrade policy、creator/admin capability |
-| `cx.space.archive` | `cx.space.create`、当前 lifecycle state、actor lifecycle/admin capability、archive policy、未完成 child security-boundary Space / legal-hold / export gate |
-| `cx.space.freeze` | `cx.space.create`、当前 lifecycle state、actor lifecycle/admin capability、freeze policy、maintenance / incident response constraint |
-| `cx.space.tombstone` | `cx.space.create`、当前 lifecycle state、owner/governance/admin lifecycle capability、replacement / migration / retention policy |
-| `cx.space.destroy` | `cx.space.create`、当前 lifecycle state、owner/governance/admin lifecycle capability、tombstone / export / retention / legal-hold constraint、无活跃 child Space 和无未决 grant |
+| `cx.space.lifecycle.set` | `cx.space.create`、当前 lifecycle state、按 `state_key` 选择对应 lifecycle/admin capability tier，及该 transition 声明的额外 guard（见下方 lifecycle 矩阵） |
 | `cx.device.authorized` / `cx.device.revoked` / `cx.device.list_update` | principal control Space 的 `cx.space.create`、目标 principal 当前 DID/key-log state、授权设备或 recovery policy、上一版 device state |
 | `cx.session.grant` | principal control Space 的 `cx.space.create`、目标 principal 当前 DID/device state、issuer service binding 或组织 policy、上一版同 session / subject grant state |
 | `cx.account.status` | principal control Space 的 `cx.space.create`、actor lifecycle / admin / governance capability、上一版 `cx.account.status` state、retention / legal-hold / erasure policy（如适用） |
 | `cx.moderation.report` | actor membership、reporter capability（基础举报 capability 默认对成员开放）、被举报对象的可见性证明、上一版同 `(reporter, target)` report state（用于去重）|
 | `cx.moderation.frank` | actor membership、E2EE Space 的 encryption / audit policy、对应 `cx.moderation.report` 引用、moderation server / audit agent service binding |
-| `cx.moderation.policy_action` | actor membership、moderation / policy / admin capability、`cx.space.moderation_policy` 当前状态、政策列表 hash |
+| `cx.moderation.policy_action` | actor membership、moderation / policy / admin capability、`cx.space.policy.set` (state_key=`moderation`) 当前状态、政策列表 hash |
+
+### 4.0.1 `cx.space.policy.set` state_key 矩阵
+
+`cx.space.policy.set` 把所有 Space 级策略 / 配置赋值合并为一个 event kind，按 `state_key` 派发不同 capability tier 与额外 auth ref。State resolution key 形如 `cx:space:<id>|<state_key>`。
+
+| `state_key` | capability tier | 额外 auth refs | 说明 |
+| --- | --- | --- | --- |
+| `access` | policy/admin | 上一版 `access` state | Space 通用 access policy（替代旧 `cx.space.policy`）。 |
+| `join_rule` | join_policy/admin | 上一版 `join_rule` state | Space `join_rule`。 |
+| `history_visibility` | history/policy/admin | 上一版 `history_visibility` state、当前 encryption / `history_sharing` policy | Space history visibility。 |
+| `discovery` | discovery/policy/admin | 上一版 `discovery` state | Space discoverability；MUST NOT 授予读取/加入/解密权限。 |
+| `policy_server` | policy/admin | service DID delegation、上一版 `policy_server` state | 绑定 Policy Server。 |
+| `policy_components` | policy/admin | 上一版 `policy_components` state | 启用的 policy component 集合。 |
+| `history_sharing` | policy/admin | 上一版 `history_sharing` state、当前 encryption policy | E2EE 历史共享策略。 |
+| `asset_privacy` | asset_privacy/policy/admin | 上一版 `asset_privacy` state | 资产隐私策略。 |
+| `moderation` | moderation/policy/admin | 上一版 `moderation` state | Space 审核策略。 |
+| `plaintext_visible_services` | privacy/policy/admin | service DID delegation、上一版 `plaintext_visible_services` state | E2EE 边界外可见服务白名单。 |
+| `media_service` | media_service/policy/admin | service DID delegation、上一版 `media_service` state | 媒体服务绑定。 |
+| `schema_refs` | schema/policy/admin | 上一版 `schema_refs` state、upgrade policy（如适用） | Space `schema_refs`。 |
+| `inheritance:<parent_space_id>` | child policy/admin | child Space 的 `cx.space.create`、confirmed parent edge | 父子 Space 继承策略；`state_key` 必须是 `inheritance:` 前缀加目标 parent space id；每个 parent 一份；只在 child Space 写入。 |
+
+未识别的 `state_key` MUST fail closed（`unsupported_state_key`），不得静默 accepted。每个 `state_key` 的 payload schema 通过 `event-payload.schema.json` 中的 `cx.space.policy.set` allOf 分支按 `state_key` 选择。
+
+### 4.0.2 `cx.space.lifecycle.set` state_key 矩阵
+
+`cx.space.lifecycle.set` 把 Space 生命周期 FSM 的全部 transition 收敛到一个 event kind，按 `state_key` 选择 facet。`archive` 与 `freeze` 是可逆布尔状态，`tombstone` 与 `destroy` 是终态。
+
+| `state_key` | capability tier | 额外 auth refs / guard | 说明 |
+| --- | --- | --- | --- |
+| `archive` | lifecycle/admin | 当前 lifecycle state、archive policy、未完成 child security-boundary Space / legal-hold / export gate | payload `archived: bool`，可逆。 |
+| `freeze` | lifecycle/admin | 当前 lifecycle state、freeze policy、maintenance / incident response constraint | payload `frozen: bool`，可逆。 |
+| `tombstone` | owner/governance/admin lifecycle | 当前 lifecycle state、replacement / migration / retention policy | 终态；payload 携带 `replacement_space` / `replacement_event`。 |
+| `destroy` | owner/governance/admin lifecycle | 当前 lifecycle state、tombstone / export / retention / legal-hold constraint、无活跃 child Space 和无未决 grant | 终态；不可恢复的 decommission marker。 |
+
+未识别的 lifecycle `state_key` MUST fail closed。同一 facet 的最新 accepted event 决定该 facet 当前状态；终态 facet（`tombstone` / `destroy`）一旦写入即拒绝后续普通业务写入。
 
 如果事件缺少必需 auth ref，节点 MUST soft fail 并尝试 backfill。Backfill MUST 受 `../conformance/scalability-constraints.md` 的 `auth_chain` 深度、`auth_refs` 数量、page size、retry 和本地资源上限约束；实现不得为了验证单个事件无限递归拉取历史。若在上限内仍缺失，或只能通过未验证 snapshot / 未授权服务获得依赖，节点 MUST reject、保持 soft-failed 或 quarantine，具体取决于错误是否可恢复。
 
@@ -222,7 +242,7 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 
 ## 6. Discovery, Join Rule and History Visibility
 
-`cx.space.discovery` 控制 Space 是否能被目录、搜索、父 Space 或组织页发现。完整规则见 `discovery-directory.md`。
+`cx.space.policy.set` (state_key=`discovery`) 控制 Space 是否能被目录、搜索、父 Space 或组织页发现。完整规则见 `discovery-directory.md`。
 
 `discoverability` 取值：
 
@@ -233,9 +253,9 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 - `invite_only`：未被邀请或未持有 invite proof 的主体不得得知其存在。
 - `secret`：仅本地或端到端加密上下文中可见。
 
-`cx.space.discovery` 不授予读取、加入、写入或解密权限。节点和目录服务 MUST NOT 用 `join_rule` 或 `history_visibility` 推断 discoverability。
+`cx.space.policy.set` (state_key=`discovery`) 不授予读取、加入、写入或解密权限。节点和目录服务 MUST NOT 用 `join_rule` 或 `history_visibility` 推断 discoverability。
 
-`cx.space.join_rule`:
+`cx.space.policy.set` (state_key=`join_rule`):
 
 - `invite`：只允许 invite。
 - `public`：任何 actor 可 join，但仍需通过 policy server 和 rate limit。
@@ -246,7 +266,7 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 
 Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请加入。任何不在该 enum 内的取值都是无效输入，接收方 MUST 按 `schema_violation` reject，不得静默映射为合法 enum 值，否则会掩盖签名 payload 与 policy intent 的差异。Matrix-style import 或 bridge 必须在写入前显式映射到本枚举值，并以新签名事件提交。
 
-`cx.space.history_visibility`:
+`cx.space.policy.set` (state_key=`history_visibility`):
 
 - `world_readable`：任何 actor 可读取明文或已授权公开内容。
 - `shared`：当前和历史成员可读取加入前历史。
@@ -256,14 +276,14 @@ Canonical event、Space object 和 JSON Schema MUST 使用 `invite` 表示邀请
 
 E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussion branch 中，history visibility 只授权索引和密钥共享资格，不保证服务端能解密历史。`restricted` 不授予 discoverability、join 权限或自动密钥下发；它只让满足证明的 actor 进入 pre-join history 和 E2EE key share eligibility 的候选集合。
 
-`cx.space.history_sharing_policy`:
+`cx.space.policy.set` (state_key=`history_sharing`):
 
 `history_visibility` 只描述默认读取边界。E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 discussion branch 若允许新成员获取加入前的解密材料，MUST 额外声明 history sharing policy：
 
 ```json
 {
-  "kind": "cx.space.history_sharing_policy",
-  "state_key": "",
+  "kind": "cx.space.policy.set",
+  "state_key": "history_sharing",
   "payload": {
     "enabled": true,
     "roles_that_can_share": [
@@ -296,14 +316,14 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 - 若 Space 使用 Archive Node / Audit Node 保存历史解密能力，该节点 MUST 是显式成员、受托 service 或 capability subject，且其保留范围、访问目的、审计义务和撤销流程必须写入 Space policy；不得把普通成员客户端伪装成隐式长期密钥仓库。
 - policy 变更只影响变更后发起的共享动作，不追溯授权已经发送给既有成员的历史解密材料。
 
-`cx.space.policy_components`:
+`cx.space.policy.set` (state_key=`policy_components`):
 
 复杂 Space SHOULD 将策略拆成可独立演进的组件，而不是把所有布尔开关塞进单个 policy 对象：
 
 ```json
 {
-  "kind": "cx.space.policy_components",
-  "state_key": "",
+  "kind": "cx.space.policy.set",
+  "state_key": "policy_components",
   "payload": {
     "components": {
       "roles": "cx:event:01js0r01es0000000000000000",
@@ -335,14 +355,14 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 
 `component_root` SHOULD 被 `cx.mls.commit.application_state_ref.policy_root` 覆盖。客户端如果支持 E2EE 且无法验证组件根，MUST fail closed，至少不得接受依赖未知组件的新写入或 MLS epoch。
 
-`cx.space.plaintext_visible_services`:
+`cx.space.policy.set` (state_key=`plaintext_visible_services`):
 
 非 E2EE / 非内容加密的私有 Space 若允许服务端处理正文或可逆派生内容，必须显式声明可见服务：
 
 ```json
 {
-  "kind": "cx.space.plaintext_visible_services",
-  "state_key": "",
+  "kind": "cx.space.policy.set",
+  "state_key": "plaintext_visible_services",
   "payload": {
     "services": [
       {
@@ -465,27 +485,12 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 以下事件类型是 `space_version=1` 标准 state event：
 
 - `cx.space.create`
-- `cx.space.discovery`
-- `cx.space.moderation_policy`
-- `cx.space.policy`
-- `cx.space.join_rule`
-- `cx.space.history_visibility`
-- `cx.space.history_sharing_policy`
-- `cx.space.policy_server`
-- `cx.space.policy_components`
-- `cx.space.plaintext_visible_services`
-- `cx.space.asset_privacy_policy`
-- `cx.space.media_service`
-- `cx.space.schema`
+- `cx.space.policy.set`（按 `state_key` 区分：`access` / `join_rule` / `history_visibility` / `discovery` / `policy_server` / `policy_components` / `history_sharing` / `asset_privacy` / `moderation` / `plaintext_visible_services` / `media_service` / `schema_refs` / `inheritance`）
 - `cx.space.child`
 - `cx.space.parent`
-- `cx.space.inheritance_policy`
 - `cx.space.organization`
 - `cx.space.upgrade`
-- `cx.space.archive`
-- `cx.space.freeze`
-- `cx.space.tombstone`
-- `cx.space.destroy`
+- `cx.space.lifecycle.set`（按 `state_key` 区分：`archive` / `freeze` / `tombstone` / `destroy`）
 - `cx.member.state`
 - `cx.flow.branch.member`
 - `cx.flow.branch.history_visibility`
@@ -791,8 +796,8 @@ Frontier 与存储语义：
 
 ```json
 {
-  "kind": "cx.space.tombstone",
-  "state_key": "",
+  "kind": "cx.space.lifecycle.set",
+  "state_key": "tombstone",
   "payload": {
     "reason": "migrated",
     "replacement_space": "cx:space:01NEW...",
@@ -813,19 +818,21 @@ Frontier 与存储语义：
 
 Space lifecycle 是 reducer state，不是本地服务开关。v1 使用以下状态：
 
+所有 transition 通过单一 kind `cx.space.lifecycle.set` 写入，按 `state_key` 选择 facet：
+
 | 当前状态 | Event | 下一状态 | 是否可恢复 | 主要效果 |
 | --- | --- | --- | --- | --- |
-| `active` | `cx.space.archive{archived=true}` | `archived` | yes | 从默认 active 列表和普通 discovery 中隐藏；普通业务写入默认 SHOULD reject，除非 policy 允许 archive maintenance。 |
-| `archived` | `cx.space.archive{archived=false}` | `active` | yes | 恢复普通展示和写入。 |
-| `active` / `archived` | `cx.space.freeze{frozen=true}` | `frozen` | yes | 临时写入冻结；只允许 redaction、export、legal hold、policy/account lifecycle、unfreeze 和管理员维护事件。 |
-| `frozen` | `cx.space.freeze{frozen=false}` | `active` 或 `archived` | yes | 解除冻结，回到冻结前基础状态。 |
-| `active` / `archived` / `frozen` | `cx.space.tombstone` | `tombstoned` | no | 关闭或迁移 Space；拒绝新普通写入，只保留维护、审计和迁移证明。 |
-| `active` / `archived` / `frozen` | `cx.space.destroy` | `destroyed` | no | 不可恢复的 decommission marker；服务可按 retention / erasure policy 释放本地 payload，但仍不得伪造历史缺失。 |
-| `tombstoned` | `cx.space.destroy` | `destroyed` | no | tombstone 后的最终销毁或资源回收声明。 |
+| `active` | `cx.space.lifecycle.set` (state_key=`archive`, payload `archived=true`) | `archived` | yes | 从默认 active 列表和普通 discovery 中隐藏；普通业务写入默认 SHOULD reject，除非 policy 允许 archive maintenance。 |
+| `archived` | `cx.space.lifecycle.set` (state_key=`archive`, payload `archived=false`) | `active` | yes | 恢复普通展示和写入。 |
+| `active` / `archived` | `cx.space.lifecycle.set` (state_key=`freeze`, payload `frozen=true`) | `frozen` | yes | 临时写入冻结；只允许 redaction、export、legal hold、policy/account lifecycle、unfreeze 和管理员维护事件。 |
+| `frozen` | `cx.space.lifecycle.set` (state_key=`freeze`, payload `frozen=false`) | `active` 或 `archived` | yes | 解除冻结，回到冻结前基础状态。 |
+| `active` / `archived` / `frozen` | `cx.space.lifecycle.set` (state_key=`tombstone`) | `tombstoned` | no | 关闭或迁移 Space；拒绝新普通写入，只保留维护、审计和迁移证明。 |
+| `active` / `archived` / `frozen` | `cx.space.lifecycle.set` (state_key=`destroy`) | `destroyed` | no | 不可恢复的 decommission marker；服务可按 retention / erasure policy 释放本地 payload，但仍不得伪造历史缺失。 |
+| `tombstoned` | `cx.space.lifecycle.set` (state_key=`destroy`) | `destroyed` | no | tombstone 后的最终销毁或资源回收声明。 |
 
 规则：
 
-- `cx.space.archive` 和 `cx.space.freeze` 是 state event；同一 `state_key=""` 下的最新 accepted event 决定对应布尔状态。v1 不新增 `restore` / `unfreeze` kind。
+- `state_key=archive` / `state_key=freeze` 是可逆 state event；各自最新 accepted event 决定对应布尔状态。v1 不新增 `restore` / `unfreeze` kind 或单独 state_key。
 - `frozen` 可以叠加在 `archived` 上；解除冻结后 MUST 回到冻结前的 archived/active 基础状态。
 - `tombstoned` 和 `destroyed` 是 terminal state。后续普通业务 Event MUST reject；只允许 redaction、export、legal hold、account lifecycle、migration proof、snapshot/witness proof 和 policy 明确列出的维护类 Event。
 - `destroy` 不等于全网物理删除。它只声明该 Space 已不可恢复地 decommission；已签名 Event、verification stub、legal hold 和外部副本仍按各自 policy 处理。

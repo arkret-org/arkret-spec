@@ -69,7 +69,7 @@ Schema id: `cx.schema.space.v1`
 | `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
-| `kind` | yes | `enum(collaboration, personal, project, organization, enclave, board, list)` | `collaboration/personal/project/organization/enclave` 表示通用 Space，`board/list` 表示 Work container space。自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
+| `kind` | yes | `enum(collaboration, enclave, board, list)` | `collaboration/enclave` 表示安全边界 Space，`board/list` 表示工作流容器 Space。v1 移除了 `personal/project/organization` 三个标签——它们的 reducer 行为与 `collaboration` 完全相同，应通过 `Space.fields` / `schema_refs` / `labels` 表达；自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
 | `boundary_profile` | no | `enum(security_boundary, container)` | 省略时由 `kind` 派生：`board/list` 为 `container`，其他标准 kind 为 `security_boundary`。 | 是否形成独立 membership / policy / history / E2EE 边界。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
@@ -90,13 +90,12 @@ Space kind 语义：
 
 | kind | 语义 |
 | --- | --- |
-| `collaboration` | 默认协作 Space，适合普通团队或项目上下文。 |
-| `personal` | 个人 Space，通常由单个 principal 控制。 |
-| `project` | 项目 Space，常由组织或项目治理策略管理。 |
-| `organization` | 组织级 Space，承载组织治理、目录或跨项目协作入口。 |
-| `enclave` | 高隔离 Space，通常要求更严格的 resolver、E2EE、审计或 federation policy。 |
+| `collaboration` | 默认协作 Space，覆盖个人、团队、项目、组织等通用语义；进一步语义通过 `Space.fields` / `schema_refs` / `labels` 表达。 |
+| `enclave` | 高隔离 Space，要求更严格的 resolver、E2EE、审计或 federation policy。 |
 | `board` | 工作流容器 Space，用于组织 list 与 item 位置；默认 `boundary_profile=container`。 |
 | `list` | Board 下的列/泳道容器 Space，用于承载 Flow 的位置关系；默认 `boundary_profile=container`。 |
+
+> v1 之前的 `personal` / `project` / `organization` 三个 kind 已合入 `collaboration`：它们的 reducer / boundary 行为没有差别，仅是产品标签。对端 MUST 把仍写作 `personal` / `project` / `organization` 的旧 wire 输入按 `schema_violation` 拒绝；产品语义请使用 `Space.fields` / `schema_refs` / `labels`。
 
 `boundary_profile=security_boundary` 的 Space 是复制、授权、schema、policy、membership、history visibility、E2EE 和索引边界。`boundary_profile=container` 的 Space 只提供容器 ID、排序、View / Relation anchor 和局部工作流元数据；它不得隐式创建独立 membership、join rule、history visibility、MLS group、federation topology、retention policy 或 plaintext-visible service。Profile 若允许自定义 kind 成为容器，必须显式声明 `boundary_profile=container`，并说明父安全边界如何解析。
 
@@ -111,7 +110,7 @@ flowchart TD
     C -->|yes| D["Use declared boundary_profile"]
     C -->|no| E{"standard kind?"}
     E -->|"board/list"| F["Derive boundary_profile=container"]
-    E -->|"collaboration/personal/project/organization/enclave"| G["Derive boundary_profile=security_boundary"]
+    E -->|"collaboration/enclave"| G["Derive boundary_profile=security_boundary"]
     E -->|"custom/unknown"| H["Require profile declaration; otherwise fail closed for writes"]
     D --> I{"security_boundary?"}
     F --> J["Resolve nearest security-boundary ancestor"]

@@ -46,8 +46,6 @@
     "cx.profile.chat_mvp.v1",
     "cx.profile.kanban_mvp.v1",
     "cx.profile.minimal_client.v1",
-    "cx.profile.chat_only_client.v1",
-    "cx.profile.kanban_only_client.v1",
     "cx.profile.full_client.v1",
     "cx.profile.e2ee_client.v1",
     "cx.profile.enterprise_client.v1",
@@ -55,22 +53,24 @@
     "cx.profile.principal_server.v1",
     "cx.profile.federation_minimal.v1",
     "cx.profile.identity_registry.v1",
-    "cx.profile.public_network_identity.v1",
-    "cx.profile.org_high_assurance_identity.v1",
     "cx.profile.blob_node.v1",
     "cx.profile.push_gateway.v1",
     "cx.profile.applet_service.v1",
     "cx.profile.agent_runtime.v1",
     "cx.profile.mimi_interop.v1",
-    "cx.profile.sovereign_deployment.v1",
     "cx.profile.sovereign_client.v1"
+  ],
+  "identity_extension_profiles": [
+    "cx.profile.public_network_identity.v1",
+    "cx.profile.org_high_assurance_identity.v1"
   ],
   "deployment_profiles": [
     "cx.profile.personal_node.v1",
     "cx.profile.small_team.v1",
     "cx.profile.organization.v1",
     "cx.profile.high_security_organization.v1",
-    "cx.profile.isolated_sovereign_network.v1"
+    "cx.profile.isolated_sovereign_network.v1",
+    "cx.profile.sovereign_deployment.v1"
   ],
   "constraint_extension_profiles": [
     "cx.profile.constraint.temporal_recurrence.v1",
@@ -325,89 +325,6 @@
           "unsupported_features"
         ],
         "unsupported_optional": "render generic fallback or return unsupported_feature"
-      }
-    },
-    "cx.profile.chat_only_client.v1": {
-      "inherits": [
-        "cx.profile.chat_mvp.v1"
-      ],
-      "required_endpoints": [
-        "cx.sync.client_sync",
-        "cx.authz.check"
-      ],
-      "required_event_kinds": [
-        "cx.flow.create",
-        "cx.flow.branch.member",
-        "cx.message.create",
-        "cx.message.revise",
-        "cx.message.redact",
-        "cx.reaction.add",
-        "cx.reaction.remove"
-      ],
-      "rejected_event_kinds": [
-      ],
-      "required_schemas": [
-        "cx.schema.flow.v1",
-        "cx.schema.message.v1",
-        "cx.schema.client_sync_response.v1"
-      ],
-      "required_fixtures": [
-        "sync-fixture.json",
-        "redaction-fixture.json",
-        "privacy-security-fixture.json"
-      ],
-      "optional_extensions": [
-        "cx.profile.e2ee_client.v1",
-        "cx.profile.push_gateway.v1"
-      ],
-      "feature_discovery": {
-        "required": [
-          "chat_mvp",
-          "discussion_timeline",
-          "state_after"
-        ],
-        "unsupported_optional": "hide unsupported board/list Flow interactions"
-      }
-    },
-    "cx.profile.kanban_only_client.v1": {
-      "inherits": [
-        "cx.profile.kanban_mvp.v1"
-      ],
-      "required_endpoints": [
-        "cx.authz.check"
-      ],
-      "required_event_kinds": [
-        "cx.flow.create",
-        "cx.flow.update",
-        "cx.flow.move",
-        "cx.flow.reorder",
-        "cx.relation.create",
-        "cx.container.rebalance"
-      ],
-      "rejected_event_kinds": [
-      ],
-      "required_schemas": [
-        "cx.schema.space.v1",
-        "cx.schema.flow.v1",
-        "cx.schema.relation.v1",
-        "cx.schema.view.v1"
-      ],
-      "required_fixtures": [
-        "state-resolution-fixture.json",
-        "capability-fixture.json",
-        "sync-fixture.json"
-      ],
-      "optional_extensions": [
-        "discussion_branch",
-        "snapshot_bootstrap"
-      ],
-      "feature_discovery": {
-        "required": [
-          "collection_projection",
-          "wait_for",
-          "cas_reorder"
-        ],
-        "unsupported_optional": "disable unsupported renderer actions"
       }
     },
     "cx.profile.full_client.v1": {
@@ -803,9 +720,14 @@
         "cx.blob.head"
       ],
       "required_event_kinds": [
-        "cx.space.asset_privacy_policy",
-        "cx.space.media_service"
+        "cx.space.policy.set"
       ],
+      "required_state_keys": {
+        "cx.space.policy.set": [
+          "asset_privacy",
+          "media_service"
+        ]
+      },
       "rejected_event_kinds": [
       ],
       "required_schemas": [
@@ -983,10 +905,15 @@
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
-        "cx.space.policy",
+        "cx.space.policy.set",
         "cx.capability.grant",
         "cx.capability.revoke"
       ],
+      "required_state_keys": {
+        "cx.space.policy.set": [
+          "access"
+        ]
+      },
       "rejected_event_kinds": [
       ],
       "required_schemas": [
@@ -1021,8 +948,13 @@
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
-        "cx.space.policy"
+        "cx.space.policy.set"
       ],
+      "required_state_keys": {
+        "cx.space.policy.set": [
+          "access"
+        ]
+      },
       "rejected_event_kinds": [
       ],
       "required_schemas": [
@@ -1176,8 +1108,13 @@
         "cx.device.revoked",
         "cx.mls.commit",
         "cx.space_key.withheld",
-        "cx.space.moderation_policy"
+        "cx.space.policy.set"
       ],
+      "required_state_keys": {
+        "cx.space.policy.set": [
+          "moderation"
+        ]
+      },
       "rejected_event_kinds": [
       ],
       "required_schemas": [
@@ -1215,10 +1152,15 @@
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
-        "cx.space.policy",
+        "cx.space.policy.set",
         "cx.capability.grant",
         "cx.capability.revoke"
       ],
+      "required_state_keys": {
+        "cx.space.policy.set": [
+          "access"
+        ]
+      },
       "rejected_event_kinds": [
       ],
       "required_schemas": [

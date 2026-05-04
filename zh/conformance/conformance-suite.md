@@ -18,8 +18,6 @@
 - `cx.profile.core_event_store.v1`
 - `cx.profile.chat_mvp.v1`
 - `cx.profile.kanban_mvp.v1`
-- `cx.profile.chat_only_client.v1`
-- `cx.profile.kanban_only_client.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.principal_server_events_api.v1`
@@ -74,7 +72,7 @@ v1 新增以下必测项：
   - 输入 grant/revoke/regrant 并发链 + 依赖 auth state。
   - 期望输出：只允许 auth 通过者进入 winner；无授权候选回退到 base state。
 - `cx.vector.state_resolution.schema_update.v1`
-  - `cx.space.schema` 与 `cx.space.policy_server` 的并发写入。
+  - `cx.space.policy.set` (state_key=`schema_refs`) 与 `cx.space.policy.set` (state_key=`policy_server`) 的并发写入。
   - 期望输出：按优先级类 + tie-break 顺序稳定收敛。
 
 ### 4.3 Redaction 向量

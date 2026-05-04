@@ -237,12 +237,9 @@ rank_between(left, right):
 
 `flow_id`、`actor_id`、`principal_id`、`device_id`、`subject`、`audience`、`organization_did`、`grant_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。`branch` MUST 与 Flow `branches[].name` 一致（`^[a-z][a-z0-9_]{0,63}$`）。
 
-非 composite state event（例如 `cx.space.create`、`cx.space.discovery`、`cx.member.state`）的 `state_key` 仍按其各自定义编码：`cx.space.create` 用空字符串、`cx.member.state` 用单个 actor DID 字符串。这些 state_key 不需要 hash 化。
+非 composite state event（例如 `cx.space.create`、`cx.space.policy.set` (state_key=`discovery`)、`cx.member.state`）的 `state_key` 仍按其各自定义编码：`cx.space.create` 用空字符串、`cx.member.state` 用单个 actor DID 字符串。这些 state_key 不需要 hash 化。
 
-### 9.5.3 Backward compatibility
-
-- 早期 v1-pre 的 fixture / 例子若使用了管道分隔的 composite state_key，MUST 在 `v1-core-rc` 切换到本节定义的 hash 形态。同一文档中保留 pipe 形态展示的，必须显式标注 "informational; canonical wire form is base64url(sha256(canonical_json(...)))"。
-- 接收方收到不符合本节定义的 composite state_key 时 MUST 返回 `schema_violation`。
+接收方收到不符合本节定义的 composite state_key 时 MUST 返回 `schema_violation`。文档中若以管道分隔形态展示 composite state_key，MUST 显式标注 "informational; canonical wire form is base64url(sha256(canonical_json(...)))"。
 
 ## 10. Encrypted Envelope Digest
 

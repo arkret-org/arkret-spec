@@ -34,12 +34,12 @@ Contrix 需要明确区分三件事：
 
 ## 3. Space Discoverability
 
-Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
+Space discovery policy SHOULD 由 `cx.space.policy.set` (state_key=`discovery`) state event 表达：
 
 ```json
 {
-  "kind": "cx.space.discovery",
-  "state_key": "",
+  "kind": "cx.space.policy.set",
+  "state_key": "discovery",
   "payload": {
     "discoverability": "listed",
     "directory_visibility": {
@@ -296,7 +296,7 @@ Space hierarchy MAY aid discovery, but parent membership does not grant child me
 
 Rules:
 
-- Parent Space MAY list child Space previews only if child `cx.space.discovery.directory_visibility.parent_space_directory=true`.
+- Parent Space MAY list child Space previews only if child's `cx.space.policy.set` (state_key=`discovery`) payload has `directory_visibility.parent_space_directory=true`.
 - Organization directory MAY list Space previews only if Space discovery policy allows organization directory listing and the organization endorsement is valid.
 - Removing a Space from an organization directory does not revoke membership or delete data.
 - Revoking `cx.space.organization` endorsement MUST remove official directory badges once the directory catches up.

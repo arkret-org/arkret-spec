@@ -31,7 +31,7 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 单次授权判定展开 grant 数 | 1,024 | 超过时 MUST fail closed、使用已验证 snapshot，或返回 `soft_fail` / `temporarily_unavailable`。 |
 | 单个 grant 的 constraint 数 | 64 | 超过时 MUST reject。 |
 | 单个 resource selector AST 深度 | 16 | 超过时 MUST reject。 |
-| 高频路径 authz snapshot 最大重建延迟 | 5 秒 | `chat_only_client`、`kanban_only_client`、`full_client` 和 `principal_server` 相关服务 MUST 满足。 |
+| 高频路径 authz snapshot 最大重建延迟 | 5 秒 | `chat_mvp`、`kanban_mvp`、`full_client` 和 `principal_server` 相关服务 MUST 满足。 |
 
 当 grant / revoke / claim status / policy component / membership frontier 变化时，受影响的 capability snapshot MUST 立即标记 stale。stale snapshot 不得继续用于新的写入 allow 决策。
 

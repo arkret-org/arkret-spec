@@ -133,9 +133,10 @@ Contrix v1 支持以下 `kind`：
 - `cx.space.discover`
 - `cx.space.create`
 - `cx.space.update`
-- `cx.space.archive`
-- `cx.space.freeze`
-- `cx.space.destroy`
+- `cx.space.lifecycle.archive`
+- `cx.space.lifecycle.freeze`
+- `cx.space.lifecycle.tombstone`
+- `cx.space.lifecycle.destroy`
 - `cx.object.read`
 - `cx.object.read_metadata`
 - `cx.object.read_content`
@@ -511,7 +512,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 ### 18.2 撤销新鲜度 (Revocation Freshness)
 
-高风险动作（例如 `cx.space.destroy`、`cx.capability.revoke`、`cx.space.admin`、E2EE key export、legal hold bypass）的授权判定 MUST 验证相关 grant 的撤销状态新鲜度：
+高风险动作（例如 `cx.space.lifecycle.destroy`、`cx.capability.revoke`、`cx.space.admin`、E2EE key export、legal hold bypass）的授权判定 MUST 验证相关 grant 的撤销状态新鲜度：
 
 - 判定节点 MUST 确认其已同步到包含该 grant 最新 revoke event 的因果前沿。
 - 若判定节点无法确认前沿新鲜度（例如 sync lag、分区、frontier 不可达），MUST 按以下策略之一处理：(a) soft-fail，拒绝该操作并返回 `revocation_freshness_unknown`；(b) fail closed，拒绝操作。

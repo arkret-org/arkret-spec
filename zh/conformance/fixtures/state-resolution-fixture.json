@@ -79,7 +79,8 @@
       "candidates": [
         {
           "event_id": "cx:event:01js0jr0000000000000000000",
-          "kind": "cx.space.join_rule",
+          "kind": "cx.space.policy.set",
+          "state_key": "join_rule",
           "auth_weight": 650,
           "policy_result": "hard_deny",
           "payload": {
@@ -89,7 +90,8 @@
         },
         {
           "event_id": "cx:event:01js0j10000000000000000000",
-          "kind": "cx.space.join_rule",
+          "kind": "cx.space.policy.set",
+          "state_key": "join_rule",
           "auth_weight": 500,
           "policy_result": "allow",
           "payload": {
@@ -109,12 +111,13 @@
     },
     {
       "name": "same_layer_direct_vs_delegated",
-      "comment": "Two candidates target the same Space policy state key. A is signed by a direct Space admin grant; B is signed via a delegated admin grant from the same admin tree. Both pass policy. authority_class lattice: A=(space_admin, direct) > B=(space_admin, delegated). A wins.",
-      "state_key": "cx:space:01js0sp0000000000000000000|policy",
+      "comment": "Two candidates target the same Space policy state key (kind=cx.space.policy.set, state_key=access). A is signed by a direct Space admin grant; B is signed via a delegated admin grant from the same admin tree. Both pass policy. authority_class lattice: A=(space_admin, direct) > B=(space_admin, delegated). A wins.",
+      "state_key": "cx:space:01js0sp0000000000000000000|access",
       "candidates": [
         {
           "event_id": "cx:event:01js0p10000000000000000000",
-          "kind": "cx.space.policy",
+          "kind": "cx.space.policy.set",
+          "state_key": "access",
           "actor_id": "did:web:admin-direct.example",
           "auth_refs": [
             "cx:event:01js0gd0000000000000000000"
@@ -131,7 +134,8 @@
         },
         {
           "event_id": "cx:event:01js0p20000000000000000000",
-          "kind": "cx.space.policy",
+          "kind": "cx.space.policy.set",
+          "state_key": "access",
           "actor_id": "did:web:admin-delegated.example",
           "auth_refs": [
             "cx:event:01js0gd0000000000000000000",

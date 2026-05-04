@@ -18,9 +18,9 @@
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 
 在 E2EE 场景下，Sync Service 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
-- 推送只携带 `space_id`, `event_type`, `sender_did` 等明文元数据
-- 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容
-- 发送者客户端 MAY 在明文元数据中附加一个可选的脱敏摘要 `push_hint`（例如 "New message from Alice"），但 MUST NOT 包含实际正文
+- 推送上游（APNs / FCM / Push Gateway）只携带 **per-(principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Space id、event id、device DID URL 或任何其它跨 Space 稳定标识。具体规则见 [`crypto-media/devices-and-auth.md` §5 Privacy-Preserving Push](../crypto-media/devices-and-auth.md)。
+- 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容；本地通知文案在客户端解密后生成。
+- 受信通知服务 MAY 在 Space policy 明确列入 `plaintext_visible_services` 时附加可选 `push_hint`（如 "New message"），但 MUST NOT 包含正文、sender DID、room/Space 名称或可关联的稳定 ID。
 
 ### 2.3 用户完全控制推送规则
 
@@ -174,35 +174,27 @@ Sync Service 在触发推送规则后，向推送网关发送通知：
 POST /api/v1/push/notify
 ```
 
-请求字段：
+请求字段（默认 blind wakeup；任何识别字段只在 Space policy 把 Push Gateway 列入 `plaintext_visible_services` 时才可携带）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `notification` | object | required | 推送通知对象。 |
-| `notification.event_id` | id | optional | 触发通知的 Event ID。 |
-| `notification.space_id` | id | optional | 相关 Space ID；不得泄露不可见 Space。 |
-| `notification.type` | string | required | 通知类型或事件类型。 |
-| `notification.sender` | did | optional | 发送者 DID；E2EE 场景可省略或脱敏。 |
-| `notification.sender_display_name` | string | optional | 可显示名称；E2EE 默认不应由服务端生成。 |
-| `notification.space_name` | string | optional | Space 显示名；只有在服务端有明文可见授权时可返回。 |
-| `notification.push_hint` | string | optional | 发送方提供的脱敏提示；不得包含正文。 |
+| `notification.push_target_id` | string | required | per-(principal, device, push_route) pairwise pseudonym（见 [`crypto-media/devices-and-auth.md` §5](../crypto-media/devices-and-auth.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Space 关联的稳定 ID。 |
+| `notification.wakeup_kind` | string | required | 唤醒类别（如 `message`、`incoming_call`、`mention`）；只是粗粒度提示，不带 Space / sender 信息。 |
+| `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示；不得包含正文、sender DID 或 Space 名称。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。 |
+| `notification.event_id` / `notification.space_id` / `notification.kind` / `notification.sender` / `notification.sender_display_name` / `notification.space_name` | various | conditional | **仅当目标 Push Gateway 已被 Space policy 列入 `plaintext_visible_services` 时才可携带**。默认 blind wakeup MUST 省略全部识别字段。 |
 | `notification.devices` | object[] | required | 目标设备数组。 |
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
 
-请求示例（非完整 schema）：
+默认 blind wakeup 请求示例：
 
 ```json
 {
   "notification": {
-    "event_id": "cx:event:01js0ev0000000000000000000",
-    "space_id": "cx:space:01js0sp0000000000000000000",
-    "kind": "cx.message.create",
-    "sender": "did:web:bob.example.com",
-    "sender_display_name": "Bob",
-    "space_name": "Engineering",
-    "push_hint": "New message",
+    "push_target_id": "cx_push_pseudo_01js0pt0000000000000000000",
+    "wakeup_kind": "message",
     "counts": {
       "unread": 5,
       "missed_calls": 0

@@ -7,8 +7,8 @@
 实现声称支持以下 profile 时 SHOULD 运行本文对应向量：
 
 - `cx.profile.minimal_client.v1`
-- `cx.profile.chat_only_client.v1`
-- `cx.profile.kanban_only_client.v1`
+- `cx.profile.chat_mvp.v1`
+- `cx.profile.kanban_mvp.v1`
 - `cx.profile.full_client.v1`
 - `cx.profile.e2ee_client.v1`
 - `cx.profile.principal_server_events_api.v1`

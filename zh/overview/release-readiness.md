@@ -23,8 +23,8 @@
 | 阶段 | 必须实现 | 可暂缓 |
 | --- | --- | --- |
 | `core_event_store` | Event Envelope 验证、canonical JSON / proof、`cx.space.create`、`cx.member.state`、events submit/get/list/frontier、backfill。 | Flow UI、View projection、MLS、federation、blob、push、agent。 |
-| `chat_mvp` / `chat_only_client` | Flow discussion branch、Message create/revise/redact、reaction、redaction、client sync、history visibility、基础 capability check。 | Board/List、advanced View renderer、MIMI、auditable E2EE、agent runtime。 |
-| `kanban_mvp` / `kanban_only_client` | Flow create/update/move/reorder、Relation create、container rebalance、View collection projection、rank conflict handling。 | Discussion branch、message timeline、E2EE、push、federation。 |
+| `chat_mvp` | Flow discussion branch、Message create/revise/redact、reaction、redaction、client sync、history visibility、基础 capability check。 | Board/List、advanced View renderer、MIMI、auditable E2EE、agent runtime。 |
+| `kanban_mvp` | Flow create/update/move/reorder、Relation create、container rebalance、View collection projection、rank conflict handling。 | Discussion branch、message timeline、E2EE、push、federation。 |
 | `full_client` | chat + kanban、blob/media、account-private data、read marker、notification projection、offline queue 和 conflict records。 | Enterprise governance、MIMI、agent interop、高安全 witness。 |
 | `e2ee_client` | MLS KeyPackage lifecycle、proposal/commit/welcome/epoch、decryption_pending、encrypted payload、key withholding/share audit。 | `mls_state_binding.full`、minimal-metadata、auditable E2EE 和 MIMI E2EE interop。 |
 

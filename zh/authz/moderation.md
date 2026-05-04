@@ -212,12 +212,12 @@ Franking 信任链：
 
 ### 5.3 Space Blocklist / Filter Policy
 
-Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允许列表、内容过滤和风险处理策略。
+Space MAY 使用 `cx.space.policy.set` (state_key=`moderation`) state event 声明黑名单、允许列表、内容过滤和风险处理策略。
 
 ```json
 {
-  "kind": "cx.space.moderation_policy",
-  "state_key": "default",
+  "kind": "cx.space.policy.set",
+  "state_key": "moderation",
   "payload": {
     "version": 1,
     "targets": [
@@ -271,7 +271,7 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
 
 规则：
 
-- 修改 `cx.space.moderation_policy` MUST require `cx.space.moderate` or `cx.policy.manage` capability。
+- 修改 `cx.space.policy.set` (state_key=`moderation`) MUST require `cx.space.moderate` or `cx.policy.manage` capability。
 - Space blocklist MUST be evaluated after basic signature/DID validation and before event enters user-visible reducer state。
 - `deny_join` / `deny_write` SHOULD produce a signed moderation decision or audit record。
 - `quarantine_message` MUST keep the event out of normal user-visible views until moderator approval。

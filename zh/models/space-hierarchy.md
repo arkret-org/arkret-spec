@@ -99,12 +99,12 @@ Child 侧确认：
 
 ## 6. 显式继承策略
 
-Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
+Child Space MAY 使用 `cx.space.policy.set` (state_key=`inheritance`) 显式声明可继承项：
 
 ```json
 {
-  "kind": "cx.space.inheritance_policy",
-  "state_key": "cx:space:parent01000000000000000000",
+  "kind": "cx.space.policy.set",
+  "state_key": "inheritance:cx:space:parent01000000000000000000",
   "payload": {
     "parent_space_id": "cx:space:parent01000000000000000000",
     "inherits": {
@@ -127,8 +127,8 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 
 继承规则：
 
-- `cx.space.inheritance_policy` 的 `state_key` MUST 等于 `payload.parent_space_id`。payload `status` 默认是 `active`；`status="tombstoned"` 表示 child 停止使用该 parent 的继承策略。
-- `cx.space.inheritance_policy` 只有在目标 parent-child 边已 confirmed 后才可生效。若确认缺失、被拒绝、tombstoned 或无法在 backfill / snapshot 上限内验证，继承策略 MUST soft-fail 或视为 unset。
+- `cx.space.policy.set` (state_key=`inheritance`) 的 `state_key` MUST 等于 `payload.parent_space_id`。payload `status` 默认是 `active`；`status="tombstoned"` 表示 child 停止使用该 parent 的继承策略。
+- `cx.space.policy.set` (state_key=`inheritance`) 只有在目标 parent-child 边已 confirmed 后才可生效。若确认缺失、被拒绝、tombstoned 或无法在 backfill / snapshot 上限内验证，继承策略 MUST soft-fail 或视为 unset。
 - `mode` MUST 为 `narrow_only`。继承只能收窄或附加限制，不能绕过 child 本地 policy。
 - Child local deny / revoke / ban MUST 覆盖 inherited allow。
 - 继承 capability MUST 在 child 中物化为 derived grant，且记录 parent grant、继承策略和有效 causal frontier。
@@ -170,14 +170,14 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 `cx.capability.derived` MUST satisfy：
 
 1. target Space 存在 confirmed parent 边。
-2. child Space 有 accepted `cx.space.inheritance_policy`。
+2. child Space 有 accepted `cx.space.policy.set` (state_key=`inheritance`)。
 3. derived grant 的 action/scope/expiry 不得宽于 source grant。
 4. source grant 被 revoke 后，derived grant MUST 在其 causal 后继中失效。
 5. derived grant 不得再向下无限派生，除非下一级 child 也显式 opt-in 且未超过 `max_depth`。
 
 ## 8. Schema and Policy Cascade
 
-Schema MAY 通过继承复用，但 child MUST 记录实际生效 schema refs。父级 schema 更新不会自动改变 child 的 reducer 行为，除非 child 提交新的 `cx.space.schema` state event 接受该版本。
+Schema MAY 通过继承复用，但 child MUST 记录实际生效 schema refs。父级 schema 更新不会自动改变 child 的 reducer 行为，除非 child 提交新的 `cx.space.policy.set` (state_key=`schema_refs`) state event 接受该版本。
 
 Policy 继承只适合以下收窄型规则：
 

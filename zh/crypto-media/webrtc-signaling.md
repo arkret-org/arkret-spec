@@ -106,8 +106,8 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ```json
 {
-  "kind": "cx.space.media_service",
-  "state_key": "default",
+  "kind": "cx.space.policy.set",
+  "state_key": "media_service",
   "payload": {
     "service_id": "did:web:media.example.com",
     "modes": [
@@ -325,7 +325,7 @@ Candidate payload:
 
 ### 10.1 SFU Service
 
-SFU MUST 有 service DID，并通过 `cx.space.media_service` 或 feature discovery 声明。
+SFU MUST 有 service DID，并通过 `cx.space.policy.set` (state_key=`media_service`) 或 feature discovery 声明。
 
 SFU join request:
 

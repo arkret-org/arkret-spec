@@ -186,7 +186,7 @@ MIMI facade MUST 支持接收：
 
 ## 9. Room Policy Mapping
 
-Contrix `cx.space.policy_components` 与 MIMI room policy 组件按以下方式映射：
+Contrix `cx.space.policy.set` (state_key=`policy_components`) 与 MIMI room policy 组件按以下方式映射：
 
 | Contrix policy component | MIMI policy 语义 |
 | --- | --- |
@@ -199,7 +199,7 @@ Contrix `cx.space.policy_components` 与 MIMI room policy 组件按以下方式�
 | `message_expiration` | message expiration。 |
 | `operational` | provider fanout、limits、rate limits、failure behavior。 |
 
-MIMI role 只能作为 interop projection。Contrix 授权仍以 capability 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为 `cx.capability.*`、`cx.space.policy_components` 或具体 policy state event，并经过 Contrix auth refs 验证后才能生效。
+MIMI role 只能作为 interop projection。Contrix 授权仍以 capability 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为 `cx.capability.*`、`cx.space.policy.set` (state_key=`policy_components`) 或具体 policy state event，并经过 Contrix auth refs 验证后才能生效。
 
 ## 10. Identifiers And Consent
 
@@ -216,7 +216,7 @@ MIMI identifier MUST NOT 被直接作为 Contrix actor。映射规则：
 
 `cx.mimi.report_abuse` MUST 映射到 `cx.moderation.report`。E2EE report SHOULD 携带 message frank、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Space policy 授权的 moderation recipient 可以解密 evidence。
 
-`cx.mimi.proxy_download` MUST 遵守 `cx.space.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
+`cx.mimi.proxy_download` MUST 遵守 `cx.space.policy.set` (state_key=`asset_privacy`)。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
 
 ## 12. Conformance
 

@@ -276,13 +276,27 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.plaintext_visible_services"
+        "allOf": [
+          {
+            "properties": {
+              "kind": {
+                "const": "cx.space.policy.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          {
+            "properties": {
+              "state_key": {
+                "const": "plaintext_visible_services"
+              }
+            },
+            "required": [
+              "state_key"
+            ]
           }
-        },
-        "required": [
-          "kind"
         ]
       },
       "then": {
@@ -344,13 +358,9 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.archive"
-          }
-        },
-        "required": [
-          "kind"
+        "allOf": [
+          {"properties": {"kind": {"const": "cx.space.lifecycle.set"}}, "required": ["kind"]},
+          {"properties": {"state_key": {"const": "archive"}}, "required": ["state_key"]}
         ]
       },
       "then": {
@@ -363,13 +373,9 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.freeze"
-          }
-        },
-        "required": [
-          "kind"
+        "allOf": [
+          {"properties": {"kind": {"const": "cx.space.lifecycle.set"}}, "required": ["kind"]},
+          {"properties": {"state_key": {"const": "freeze"}}, "required": ["state_key"]}
         ]
       },
       "then": {
@@ -382,13 +388,9 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.tombstone"
-          }
-        },
-        "required": [
-          "kind"
+        "allOf": [
+          {"properties": {"kind": {"const": "cx.space.lifecycle.set"}}, "required": ["kind"]},
+          {"properties": {"state_key": {"const": "tombstone"}}, "required": ["state_key"]}
         ]
       },
       "then": {
@@ -401,13 +403,9 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.destroy"
-          }
-        },
-        "required": [
-          "kind"
+        "allOf": [
+          {"properties": {"kind": {"const": "cx.space.lifecycle.set"}}, "required": ["kind"]},
+          {"properties": {"state_key": {"const": "destroy"}}, "required": ["state_key"]}
         ]
       },
       "then": {
@@ -424,27 +422,12 @@
           "kind": {
             "enum": [
               "cx.space.create",
-              "cx.space.discovery",
-              "cx.space.moderation_policy",
-              "cx.space.policy",
-              "cx.space.join_rule",
-              "cx.space.history_visibility",
-              "cx.space.history_sharing_policy",
-              "cx.space.policy_server",
-              "cx.space.policy_components",
-              "cx.space.plaintext_visible_services",
-              "cx.space.asset_privacy_policy",
-              "cx.space.media_service",
-              "cx.space.schema",
+              "cx.space.policy.set",
               "cx.space.child",
               "cx.space.parent",
-              "cx.space.inheritance_policy",
               "cx.space.organization",
               "cx.space.upgrade",
-              "cx.space.archive",
-              "cx.space.freeze",
-              "cx.space.tombstone",
-              "cx.space.destroy",
+              "cx.space.lifecycle.set",
               "cx.member.state",
               "cx.flow.branch.member",
               "cx.flow.branch.history_visibility",
@@ -514,13 +497,27 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.inheritance_policy"
+        "allOf": [
+          {
+            "properties": {
+              "kind": {
+                "const": "cx.space.policy.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          {
+            "properties": {
+              "state_key": {
+                "const": "inheritance"
+              }
+            },
+            "required": [
+              "state_key"
+            ]
           }
-        },
-        "required": [
-          "kind"
         ]
       },
       "then": {
@@ -540,22 +537,8 @@
               "cx.space.organization",
               "cx.space.child",
               "cx.space.parent",
-              "cx.space.inheritance_policy",
-              "cx.space.join_rule",
-              "cx.space.history_visibility",
-              "cx.space.discovery",
-              "cx.space.policy",
-              "cx.space.policy_server",
-              "cx.space.policy_components",
-              "cx.space.schema",
-              "cx.space.history_sharing_policy",
-              "cx.space.asset_privacy_policy",
-              "cx.space.moderation_policy",
-              "cx.space.media_service",
-              "cx.space.tombstone",
-              "cx.space.archive",
-              "cx.space.freeze",
-              "cx.space.destroy",
+              "cx.space.policy.set",
+              "cx.space.lifecycle.set",
               "cx.organization.discovery",
               "cx.organization.moderation_policy",
               "cx.did.proof",

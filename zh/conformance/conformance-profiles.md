@@ -18,8 +18,6 @@ cx.profile.<name>.v<major>
 示例：
 
 - `cx.profile.minimal_client.v1`
-- `cx.profile.chat_only_client.v1`
-- `cx.profile.kanban_only_client.v1`
 - `cx.profile.principal_server_events_api.v1`
 - `cx.profile.principal_server.v1`
 - `cx.profile.full_client.v1`
@@ -47,7 +45,7 @@ Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（
 - `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion branch 且可设为 primary 的 Flow、`cx.flow.branch.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
 - `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 `Space(kind=board/list)`、Flow、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、客户端 Collection projection 和 wait-for query。
 
-`chat_only_client`、`kanban_only_client`、`minimal_client` 和 `principal_server` 可以组合上述闭环声明能力；未声明的闭环不得被对端视为默认可用。
+`minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
 
 `chat_mvp` 与 `kanban_mvp` 不要求实现任意 Morph renderer、任意 facet reducer 或插件 UI。它们只需要按声明 profile 保留未知 Morph / facet 字段、同步相关 Event、执行 schema/capability 校验，并在必须展示时提供 generic Morph fallback。任何依赖特定 `morph_type` 或 facet 的交互能力 MUST 由额外 profile 显式声明。
 
@@ -65,35 +63,7 @@ Profile 不支持某个标准能力时的默认行为：
 
 以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。
 
-### `cx.profile.chat_only_client.v1`
-
-适用于只实现聊天/讨论体验的客户端。
-
-MUST 支持：
-
-- DID / handle 解析和 service discovery
-- Space bootstrap、Space membership、Flow discussion branch、`cx.flow.branch.member`、Message、Reaction、Redaction
-- 基础 `cx.message.create`、`cx.message.revise`、`cx.message.redact`、`cx.reaction.add`、`cx.reaction.remove`
-- 基础 capability check 结果处理和 `cx.message.*` 高频授权快路径
-- client sync、timeline pagination、backfill、`state_after`
-- Flow discussion branch 的有效 access 裁剪规则，包括默认继承和 branch-scoped history_visibility / membership override
-
-MAY 支持 `Space(kind=board/list)`、Flow workflow positioning、View projection、Applet、Agent、WebRTC、MIMI 和 E2EE。未声明支持时，客户端不得把这些能力作为必需交互。
-
-### `cx.profile.kanban_only_client.v1`
-
-适用于只实现 `Space(kind=board/list)` / Flow 工作流的客户端。
-
-MUST 支持：
-
-- DID / handle 解析和 service discovery
-- Space bootstrap、`Space(kind=board/list)`、Flow、Relation position edge、View collection projection
-- `cx.space.*`（Board-Space / List-Space 创建、更新、层级结构）、`cx.flow.create`、`cx.flow.update`、`cx.flow.move`、`cx.flow.reorder`
-- Board position 的 CAS / stale reorder 处理和 deterministic conflict record 展示
-- 基础 capability check 结果处理和 `cx.flow.move` / `cx.flow.reorder` 高频授权快路径
-- client sync、本地 projection、wait-for、pagination、backfill
-
-MAY 支持 Flow discussion branch / Message。若支持 discussion branch，必须按有效 branch access 裁剪；默认继承 Flow / Space，显式 branch-scoped membership override 才独立裁剪。
+> v1 之前命名的 chat_only_client / kanban_only_client profile 已并入 `cx.profile.chat_mvp.v1` / `cx.profile.kanban_mvp.v1`。它们的内容是后者加上"明确不实现另一闭环"的反向声明；从 v1 起，请直接声明 `chat_mvp` 或 `kanban_mvp`，并在 `rejected_event_kinds` 中列出本实现拒绝的 wire scope。
 
 ### `cx.profile.federation_minimal.v1`
 
@@ -141,7 +111,7 @@ MUST 支持：
 - cursor 分页
 - 标准错误响应
 
-`minimal_client` 是通用解码与同步基线，不要求实现完整聊天 UI、完整看板 UI、E2EE、Applet、Agent、WebRTC 或 MIMI。实现若只提供聊天或看板产品体验，SHOULD 额外声明 `chat_only_client` 或 `kanban_only_client`，避免把未实现对象误标为可用交互。
+`minimal_client` 是通用解码与同步基线，不要求实现完整聊天 UI、完整看板 UI、E2EE、Applet、Agent、WebRTC 或 MIMI。实现若只提供聊天或看板产品体验，SHOULD 直接声明 `chat_mvp` 或 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝未实现的 wire scope，避免把未实现对象误标为可用交互。
 
 MAY 支持：
 
@@ -668,8 +638,8 @@ MIMI Interop profile MUST 额外提供：
 首个互操作目标 SHOULD 是：
 
 - `minimal_client`
-- `chat_only_client`
-- `kanban_only_client`
+- `chat_mvp`
+- `kanban_mvp`
 - `principal_server_events_api`
 - `principal_server`
 - `federation_minimal`
