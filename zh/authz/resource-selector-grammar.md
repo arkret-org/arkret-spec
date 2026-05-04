@@ -28,6 +28,11 @@ selector_term        ::= wildcard_selector
                       | morph_selector
                       | relation_selector
                       | view_selector
+                      | event_selector
+                      | actor_selector
+                      | schema_selector
+                      | policy_selector
+                      | invite_selector
                       | object_selector
                       | blob_selector
                       | notification_selector
@@ -46,6 +51,16 @@ morph_selector       ::= "morph" ":" space_part ":" (morph_id | morph_type | "*"
 relation_selector    ::= "relation" ":" space_part ":" (relation_id | relation_kind | "*")
 
 view_selector        ::= "view" ":" space_part ":" (view_id | "*")
+
+event_selector       ::= "event" ":" space_part ":" (event_id | "*")
+
+actor_selector       ::= "actor" ":" (did | "*")
+
+schema_selector      ::= "schema" ":" (schema_id | "*")
+
+policy_selector      ::= "policy" ":" space_part ":" (policy_id | "*")
+
+invite_selector      ::= "invite" ":" space_part ":" (invite_id | "*")
 
 object_selector      ::= "object" ":" space_part ":" (object_ref | object_type | "*")
 
@@ -67,7 +82,12 @@ flow_part            ::= flow_id | "*"
 - `morph_id`：`cx:morph:` 后接 ULID。
 - `relation_id`：`cx:relation:` 后接 ULID。
 - `view_id`：`cx:view:` 后接 ULID。
-- `blob_ref`：`cx:blob:<ulid>` 或 `cx:blob:sha256:<hex>`。
+- `event_id`：`cx:event:` 后接 ULID。
+- `policy_id`：`cx:policy:` 后接 ULID。
+- `invite_id`：`cx:invite:` 后接 ULID。
+- `schema_id`：schema registry id，例如 `cx.schema.flow.v1` 或反向域名 schema id。
+- `did`：DID URI。
+- `blob_ref`：Blob typed ID，wire form 为 `cx` blob 前缀后接 ULID，或 content-addressed sha256 blob ref。
 - `morph_type`：Space schema 中注册的开放对象类型。
 - `relation_kind`：关系类型，例如 `contains`、`assigned_to`、`promoted_from_discussion`、`summarized_from`。
 - `object_type`：标准对象类型或 `morph`。
@@ -88,7 +108,7 @@ Capability grant 的 canonical 表示必须使用 JSON resource selector。字�
     {
       "kind": "flow",
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "flow_id": "cx:flow:01js0fl0000000000000000000"
+      "flow_id": "cx:flow:01js0ca1000000000000000000"
     },
     {
       "kind": "morph",
@@ -131,9 +151,9 @@ Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind �
 
 List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`relation_kind_allow` 或对应 flow move payload 字段。
 
-### 3.2 Card/Room 选择
+### 3.2 Flow kind 选择
 
-Card 与 Room 使用 `kind="flow"` 选择器，再用 `flow_kind_allow` 限制 `Flow.kind`。实现 MUST NOT 接受 `kind="card"` 或 `kind="room"` 作为 canonical resource selector kind。
+Card-like 与 room-like 视角使用 `kind="flow"` 选择器，再用 `flow_kind_allow` 限制 `Flow.kind`。实现 MUST NOT 接受 `kind="card"` 或 `kind="room"` 作为 canonical resource selector kind。
 
 ```json
 {
@@ -141,7 +161,7 @@ Card 与 Room 使用 `kind="flow"` 选择器，再用 `flow_kind_allow` 限制 `
     {
       "kind": "flow",
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "flow_id": "cx:flow:01js0fl0000000000000000000"
+      "flow_id": "cx:flow:01js0ca1000000000000000000"
     }
   ],
   "constraints": [
@@ -179,7 +199,7 @@ Card 与 Room 使用 `kind="flow"` 选择器，再用 `flow_kind_allow` 限制 `
 - 匹配：该 Space 中所有 Flow，不区分 `Flow.kind`。
 - 若只允许 card-like 或 room-like 视角，必须使用 `flow_kind_allow`。
 
-`flow:cx:space:...:cx:flow:01js0fl0000000000000000000`
+`flow:cx:space:...:cx:flow:01js0ca1000000000000000000`
 
 - 匹配：特定 Flow。
 - 不匹配：Message、Morph、Relation、View 或 Board/List 容器。
@@ -212,7 +232,7 @@ Card 与 Room 使用 `kind="flow"` 选择器，再用 `flow_kind_allow` 限制 `
 - 匹配：该 Space 中所有 `type=flow` 的对象。
 - 若只允许 `Flow.kind="card"`，必须额外使用 `flow_kind_allow`。
 
-`object:cx:space:...:cx:flow:01js0fl0000000000000000000`
+`object:cx:space:...:cx:flow:01js0ca1000000000000000000`
 
 - 匹配：给定对象引用。
 
@@ -227,6 +247,15 @@ Card 与 Room 使用 `kind="flow"` 选择器，再用 `flow_kind_allow` 限制 `
 
 - 匹配：特定 View 定义。
 - 查询结果仍按底层对象授权裁剪。
+
+### 4.7 Event、Actor、Policy、Invite 与 Schema 选择器
+
+这些 selector 主要用于管理、审计、schema / policy 更新、邀请和 actor-private 状态：
+
+- `event:<space>:<event_id>` 匹配特定 Event；`event:<space>:*` 匹配 Space 内 Event metadata。读取 Event payload 仍受对象、branch、history、redaction 和 E2EE 约束。
+- `actor:<did>` 匹配 principal / service / agent DID；不得匹配 handle、邮箱或 OAuth subject。
+- `policy:<space>:<policy_id>` 与 `schema:<schema_id>` 用于 policy / schema 管理授权。
+- `invite:<space>:<invite_id>` 用于邀请创建、查看、撤销或接受。
 
 ## 5. 选择器组合
 
@@ -308,6 +337,31 @@ function matches(target, selector):
             not selector.view_id or selector.view_id == target.id
         )
 
+    if selector.kind == "event":
+        return target.type == "event" and (
+            not selector.event_id or selector.event_id == target.id
+        )
+
+    if selector.kind == "actor":
+        return target.type == "actor" and (
+            selector.actor_id == "*" or selector.actor_id == target.did
+        )
+
+    if selector.kind == "policy":
+        return target.type == "policy" and (
+            not selector.policy_id or selector.policy_id == target.id
+        )
+
+    if selector.kind == "invite":
+        return target.type == "invite" and (
+            not selector.invite_id or selector.invite_id == target.id
+        )
+
+    if selector.kind == "schema":
+        return target.type == "schema" and (
+            selector.schema_ref == "*" or selector.schema_ref == target.schema
+        )
+
     return false
 ```
 
@@ -377,7 +431,7 @@ Facet 是 Space schema / Morph profile 声明后的 hint 或查询标签，不�
 实现 MUST：
 
 - 接受本规范定义的 JSON resource selector。
-- 支持精确 ID、Space、Flow、Message、Morph、Relation、View 和 Object 匹配。
+- 支持精确 ID、Space、Flow、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema 和 Object 匹配。
 - 拒绝旧 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
 - 对非法 selector 返回清晰错误。
 - 在 selector 命中后继续执行 action、constraint、claim、policy、branch access 和 E2EE 检查。

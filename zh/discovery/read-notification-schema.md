@@ -10,7 +10,7 @@ Read marker 是 actor-private 状态。
   "actor_id": "did:web:alice.example",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "scope": {
-    "kind": "room",
+    "kind": "flow_discussion",
     "ref": "cx:flow:01js0r00m00000000000000000"
   },
   "position": {

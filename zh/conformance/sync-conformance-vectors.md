@@ -79,7 +79,7 @@
 - 返回项 MUST 位于 `cx:space:01js0111000000000000000000`。
 - View cursor MUST 绑定 projection、view、frontier 与权限上下文。
 
-## 4. Vector: Card Move Read-Your-Writes
+## 4. Vector: Flow Card Move Read-Your-Writes
 
 输入：
 
@@ -108,16 +108,15 @@
 期望：
 
 - Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
-- 查询结果中该 Card 的 `list_id` MUST 为 `cx:space:01js0112000000000000000000`。
+- 查询结果中该 Flow item 的 `list_id` MUST 为 `cx:space:01js0112000000000000000000`。
 
-## 5. Vector: Linked Room Visibility
+## 5. Vector: Flow Discussion Branch Visibility
 
 输入：
 
 ```json
 {
   "flow_id": "cx:flow:01js0ca1000000000000000000",
-  "linked_flow_id": "cx:flow:01js0r01000000000000000000",
   "viewer": "did:web:viewer.example.com",
   "viewer_can_read_flow": true,
   "viewer_is_branch_member": false
@@ -137,9 +136,9 @@
 ```json
 {
   "flow_id": "cx:flow:01js0sb1000000000000000000",
-  "surface_flow_id": "cx:flow:01js0r02000000000000000000",
+  "branch": "discussion",
   "viewer_grants": ["cx.flow.read"],
-  "viewer_room_membership": "none"
+  "viewer_branch_membership": "none"
 }
 ```
 
@@ -149,7 +148,7 @@
 - Flow activity MUST NOT include hidden discussion messages.
 - Flow context MUST NOT leak hidden discussion message bodies through previews, summaries, notifications, search snippets, embeddings, or decision summaries.
 
-## 6. Vector: Room Timeline
+## 6. Vector: Flow Discussion Timeline
 
 输入：
 
@@ -170,5 +169,5 @@
 
 期望：
 
-- `room-timeline` MUST return the message when viewer is a Room member.
-- `card-discussions` MUST only include this message if the Room is linked to the Card and viewer can read the Room.
+- `flow-discussion-timeline` MUST return the message when viewer can read the Flow discussion branch.
+- `flow-discussions` MUST only include this message if viewer can read the Flow discussion branch; Flow synthesis visibility alone is not sufficient when branch-scoped override applies.

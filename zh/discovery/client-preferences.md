@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-在 Contrix 网络中，绝大部分数据是跨节点共享的协作对象（Space、Subject、Room、Board、List、Card、Message、Morph）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
+在 Contrix 网络中，绝大部分数据是跨节点共享的协作对象（Space、Flow、Space(kind=board/list)、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
 
 本规范定义了这些**客户端偏好与账户数据 (Account Data)** 的存储、同步与标准 Schema。
 

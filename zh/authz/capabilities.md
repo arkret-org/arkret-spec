@@ -112,14 +112,11 @@ Contrix v1 支持以下 `kind`：
 - `schema`
 - `policy`
 - `invite`
+- `notification`
 - `read_marker`
-- `space_kind:<kind>`
-- `flow_kind:<kind>`
-- `flow_semantic_kind:<kind>`
-- `morph_type:<type>`
-- `relation_kind:<type>`
+- `blob`
 
-资源选择器应把 Space (kind=board) / Space (kind=list) 表达为 `space` + `kind` 约束，而不是把它们当成独立主对象域。
+资源选择器应把 Space(kind=board/list)、Flow(kind=card/room)、Flow semantic kind、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。
 
 ## 5. 动作集合
 

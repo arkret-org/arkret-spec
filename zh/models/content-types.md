@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix 的 `message` 标准对象和可讨论的 Card / Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
+Contrix 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不认识某种内容类型的旧客户端能通过 `fallback_text` 优雅降级
@@ -12,7 +12,7 @@ Contrix 的 `message` 标准对象和可讨论的 Card / Morph 需要承载远�
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message、Card 评论摘要或 Morph 内容的 `content` 字段 MUST 使用本规范定义的结构化 JSON 格式，而非依赖客户端猜测渲染方式。
+Message、Flow discussion 摘要或 Morph 内容的 `content` 字段 MUST 使用本规范定义的结构化 JSON 格式，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 

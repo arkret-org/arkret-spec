@@ -530,7 +530,7 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 
 `cx.message.redact` 与 `cx.redaction` 的边界如下：
 
-- `cx.message.redact` 是 Message 专用 redaction。生产者在撤回 Room Message、Message revision 或 Message reaction projection 时 SHOULD 使用它；content MUST 指向 `message_id`、`target_ref` 或目标 `event_id`，并携带可审计原因。
+- `cx.message.redact` 是 Message 专用 redaction。生产者在撤回 Flow discussion Message、Message revision 或 Message reaction projection 时 SHOULD 使用它；content MUST 指向 `message_id`、`target_ref` 或目标 `event_id`，并携带可审计原因。
 - `cx.redaction` 是通用 redaction envelope，用于非 Message 对象、任意 Event payload、附件引用或 profile 声明的内容裁剪。
 - 两者不是互相扩大权限的别名。授权仍按目标对象、目标 Event、actor 和 capability 独立判定；拥有 `cx.message.redact.own` 不等于拥有通用 `cx.redaction`。
 - 若两类 redaction 指向同一目标，reducer MUST 幂等地应用同一 redaction effect，并在审计视图保留多个 redaction event 的 event id、actor 和 reason。

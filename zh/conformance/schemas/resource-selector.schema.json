@@ -17,6 +17,11 @@
         "object",
         "relation",
         "view",
+        "event",
+        "actor",
+        "schema",
+        "policy",
+        "invite",
         "notification",
         "read_marker",
         "blob",
@@ -32,7 +37,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:(space|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-hjkmnp-z]{26}$"
     },
     "flow_id": {
       "type": "string",
@@ -67,6 +72,25 @@
     "view_id": {
       "type": "string",
       "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "schema_ref": {
+      "type": "string"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
+    },
+    "invite_id": {
+      "type": "string",
+      "pattern": "^cx:invite:[0-9a-hjkmnp-z]{26}$"
     },
     "blob_ref": {
       "type": "string",

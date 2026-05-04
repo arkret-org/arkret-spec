@@ -36,7 +36,7 @@ Contrix 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过
 
 ### 3.1 举报操作
 
-用户可以举报 Space 中的任何可见对象（Message、Card、Morph、Relation 等）：
+用户可以举报 Space 中的任何可见对象（Message、Flow、Morph、Relation 等）：
 
 ```
 POST /api/v1/moderation/report

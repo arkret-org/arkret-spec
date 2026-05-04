@@ -97,7 +97,7 @@ DID Document SHOULD 只负责：
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Events/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_service`：Applet Server + Event writer + Authz precheck，只在授权 namespace 和 capability 内工作。
-- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Room。
+- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Flow discussion branch。
 - `agent_runtime`：Agent Runtime + Event writer，所有写入仍通过 principal / agent DID 签名。
 
 客户端选择服务时 MUST 先解析 DID Document 与 Space policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
@@ -384,7 +384,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 
 若客户端、SDK 或可选受托服务对外暴露可互操作查询语义，SHOULD 复用 `query-schema.md` 中的 Query 形状：
 
-- `object_types`：标准对象类型，例如 `space`、`flow`、`message`、`morph`（Board/List 通过 `space.kind` 标识；Room/Card 通过 `flow.kind` 标识）
+- `object_types`：标准对象类型，例如 `space`、`flow`、`message`、`morph`（Space(kind=board/list) 通过 `space.kind` 标识；Flow(kind=room/card) 通过 `flow.kind` 标识）
 - `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
 - `facets`：schema-declared capability hint 选择器，只用于 Morph 或声明支持 facets 的标准对象；不得作为授权、状态机、排序或 reducer 语义的唯一来源
 - `relation`
@@ -560,7 +560,7 @@ POST /api/v1/directory/private-contact-discovery
 
 ## 9. MIMI Provider Facade Surface
 
-MIMI Provider Facade 是 MIMI 草案兼容的互操作服务面。它不替代 Principal Server / Federation / Device Key Server；它只把被授权的 Contrix Space / Room 投影为 MIMI room。
+MIMI Provider Facade 是 MIMI 草案兼容的互操作服务面。它不替代 Principal Server / Federation / Device Key Server；它只把被授权的 Contrix Space 或 Flow discussion branch 投影为 MIMI room。
 
 推荐操作：
 
@@ -580,7 +580,7 @@ POST /api/v1/mimi/proxy-download
 
 规则：
 
-- 只有存在 accepted `cx.mimi.room_binding` 的 Space / Room 可以通过该 surface 暴露为 MIMI room。
+- 只有存在 accepted `cx.mimi.room_binding` 的 Space 或 Flow discussion branch 可以通过该 surface 暴露为 MIMI room。
 - MIMI 写请求 MUST 使用 provider service DID 的 HTTP Message Signature，并绑定 source / destination / room id / request hash。
 - Facade MUST 将 MIMI 写入转换为 Contrix Event，并执行 DID、device、MLS、capability、auth refs 和 Space policy 校验。
 - MIMI provider timestamp、room id、user id 和 role 只能作为互操作 metadata，不得替代 Contrix event id、HLC、DID 或 capability。

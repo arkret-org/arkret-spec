@@ -144,7 +144,7 @@ Flow 通过 `kind` 和 `primary_branch` 表达默认交互方式：
 }
 ```
 
-Room/Card 互转通过 `cx.flow.convert` 完成：
+Flow kind 互转通过 `cx.flow.convert` 完成：
 
 ```json
 {
@@ -227,7 +227,7 @@ Discussion branch membership 是 Flow access 的显式 override 形态。默认�
 
 ### 8.3 Reaction
 
-reaction 建议通过独立 Operation 表达：
+reaction 建议通过独立 Event 表达：
 
 - `cx.reaction.add`
 - `cx.reaction.remove`
@@ -250,7 +250,7 @@ reaction 建议通过独立 Operation 表达：
 - live message/reaction/redaction 增量
 - read marker / notification 派生状态
 
-### 9.2 Card 上下文模式
+### 9.2 Flow synthesis 上下文模式
 
 推荐同步：
 

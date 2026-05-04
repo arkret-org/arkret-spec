@@ -309,7 +309,7 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。备份单元：
 
 备份 MUST 加密给 recovery public key 或 secret storage key。服务端 MUST NOT 能解密。
 
-## 11. Room-Key Equivalent and Withholding
+## 11. Space / Branch Key Share and Withholding
 
 Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送设备 MUST 检查：
 

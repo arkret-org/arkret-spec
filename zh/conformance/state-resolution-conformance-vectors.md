@@ -39,7 +39,7 @@ cx.vector.state_resolution.conflict_space_membership.v1
 向量名称：
 
 ```text
-cx.vector.state_resolution.conflict_room_membership.v1
+cx.vector.state_resolution.conflict_flow_discussion_membership.v1
 ```
 
 输入：
@@ -52,15 +52,15 @@ cx.vector.state_resolution.conflict_room_membership.v1
 期望：
 
 - Branch-scoped discussion membership 只影响该 Flow discussion。
-- 结果不得改变 Space membership、Card visibility 或 Board visibility。
+- 结果不得改变 Space membership、Flow synthesis visibility 或 Space(kind=board) visibility。
 - 若 `leave` 是 actor 自己发起且授权有效，`leave` wins。
 
-## 4. Vector: 并发 Card Move
+## 4. Vector: 并发 Flow Card Move
 
 向量名称：
 
 ```text
-cx.vector.state_resolution.concurrent_card_move.v1
+cx.vector.state_resolution.concurrent_flow_card_move.v1
 ```
 
 输入：
@@ -101,11 +101,11 @@ cx.vector.state_resolution.concurrent_card_move.v1
 
 期望：
 
-- 授权都有效时，reducer MUST 使用 deterministic tie-breaker 选择一个最终 Card position。
-- 失败候选不应生成第二个 Card 副本。
+- 授权都有效时，reducer MUST 使用 deterministic tie-breaker 选择一个最终 Flow item position。
+- 失败候选不应生成第二个 Flow 副本。
 - 最终位置 key 为 `(board_id, flow_id)`，不是 `(list_id, flow_id)`。
 
-## 5. Vector: Card Linked Room Branch-Scoped Override 不继承权限
+## 5. Vector: Flow Discussion Branch-Scoped Override 不继承权限
 
 向量名称：
 
@@ -146,4 +146,4 @@ cx.vector.state_resolution.flow_discussion_surface_auth.v1
 - Branch is accepted if author has the required flow branch capability.
 - Viewer can see only a locked discussion stub, authorized hidden count, or no surface entry depending on discussion discoverability.
 - Viewer cannot read discussion Message events.
-- Branch-scoped discussion membership, Card visibility, and Flow update rights are unchanged.
+- Branch-scoped discussion membership, Flow synthesis visibility, and Flow update rights are unchanged.

@@ -92,11 +92,14 @@ did:plc:<identifier>
 
 Contrix v1 conformance 要求如下：
 
-- Core resolver / verifier MUST 支持 `did:plc`、`did:web` 和 `did:key`。`did:key` 用于测试、bootstrap、设备、一次性邀请和 registry outage 时的本地可验证身份材料；它不改变长期 principal 的 method policy。
+- Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:web` 和 `did:key`。`did:key` 用于测试、bootstrap、设备、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料；它不改变长期 principal 的 method policy。
+- Public network identity profile MUST 支持 `did:plc`，并声明可接受的 PLC directory、mirror、audit source 和 outage 策略。
 - Organization / high-security profile SHOULD 支持 `did:webvh` 或等价 history-bearing DID method。
 - Wallet interop profile MAY 支持 `did:pkh`。
 - 实现 MAY 支持其他现有 DID method，例如 KERI 系列 method，但 MUST 保留 raw method evidence，并声明 trust profile。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Contrix 私有 DID method。
+
+因此，`did:plc` 是公共 Contrix 部署的默认托管 principal DID method，不是所有 Core 实现的强制依赖。只实现私有组织、离线测试、嵌入式或 enclave profile 的实现 MAY 不支持 `did:plc`，但必须在 service describe / conformance profile 中明确声明其 allowed methods。
 
 ## 4. Identity Resolution Infrastructure
 
@@ -118,7 +121,7 @@ Contrix 把身份解析抽象为 `Identity Resolution Infrastructure`，而不�
 Resolver policy MUST 至少定义：
 
 - allowed methods：当前部署接受哪些 DID method。
-- default principal method：默认 MUST 为 `did:plc`，除非部署 profile 明确覆盖。
+- default principal method：公共网络 profile 默认 SHOULD 为 `did:plc`；私有组织、enclave 或测试 profile MAY 使用 `did:web`、`did:webvh`、`did:key` 或 policy 指定的其他 method，但必须在 profile 中声明。
 - trust roots：PLC directory / mirror、DNS / HTTPS trust、webvh watcher / witness、KERI watcher、chain namespace allowlist 等。
 - method capability：该 method 是否支持 rotation、recovery、deactivation、service endpoint、historical resolution、witness evidence。
 - privacy handling：是否允许公开解析、是否需要 holder-approved proof、pairwise DID 是否禁止 directory 查询。

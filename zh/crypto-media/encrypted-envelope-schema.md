@@ -27,10 +27,8 @@
       "algorithm": "MLS",
       "ratchet_tree": "base64url"
     },
-    "digests": {
-      "payload_digest": "sha256:...",
-      "aad_digest": "sha256:..."
-    }
+    "payload_digest": "sha256:...",
+    "aad_digest": "sha256:..."
   }
 }
 ```
@@ -54,9 +52,8 @@
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可用 `causal_ref_hashes` 替代。 |
 | `aad.causal_ref_hashes` | array<hash> | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
 | `key_ref` | object | 条件 | 密钥材料引用（对接收方可选） |
-| `digests` | object | 是 | 密码学摘要 |
-| `digests.payload_digest` | hash | 是 | sha256(canonical_json(明文元数据) \|\| 完整加密负载字节)。若 profile 拆出 `authentication_tag`，tag MUST 纳入完整加密负载字节。 |
-| `digests.aad_digest` | hash | 是 | 规范 AAD 的 SHA256 |
+| `payload_digest` | hash | 是 | sha256(canonical_json(明文元数据) \|\| 完整加密负载字节)。若 profile 拆出 `authentication_tag`，tag MUST 纳入完整加密负载字节。 |
+| `aad_digest` | hash | 是 | 规范 AAD 的 SHA256 |
 
 ## 3. 附加认证数据 (AAD)
 
@@ -160,10 +157,8 @@ function encrypt_content(content, aad, group_context):
         content_type: "application/json",
         ciphertext: base64url_encode(ciphertext),
         aad: aad,
-        digests: {
-            payload_digest: "sha256:" + payload_digest,
-            aad_digest: "sha256:" + aad_digest
-        }
+        payload_digest: "sha256:" + payload_digest,
+        aad_digest: "sha256:" + aad_digest
     }
 ```
 
@@ -380,10 +375,8 @@ MLS 提供：
       "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "causal_refs": []
     },
-    "digests": {
-      "payload_digest": "sha256:abc123...",
-      "aad_digest": "sha256:def456..."
-    }
+    "payload_digest": "sha256:abc123...",
+    "aad_digest": "sha256:def456..."
   }
 }
 ```

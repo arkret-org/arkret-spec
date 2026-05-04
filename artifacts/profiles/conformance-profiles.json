@@ -55,6 +55,8 @@
     "cx.profile.principal_server.v1",
     "cx.profile.federation_minimal.v1",
     "cx.profile.identity_registry.v1",
+    "cx.profile.public_network_identity.v1",
+    "cx.profile.org_high_assurance_identity.v1",
     "cx.profile.blob_node.v1",
     "cx.profile.push_gateway.v1",
     "cx.profile.applet_service.v1",
@@ -699,6 +701,67 @@
           "supported_did_methods",
           "resolver_policy",
           "registry_visibility"
+        ],
+        "unsupported_optional": "return unsupported_did_method"
+      }
+    },
+    "cx.profile.public_network_identity.v1": {
+      "required_endpoints": [
+        "cx.identity.resolve",
+        "cx.identity.get_document"
+      ],
+      "required_event_kinds": [
+      ],
+      "rejected_event_kinds": [
+      ],
+      "required_schemas": [
+        "cx.schema.identity_receipt.v1",
+        "cx.schema.handle_claim.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json"
+      ],
+      "optional_extensions": [
+        "did:plc_directory_mirror",
+        "did:plc_transparency_audit"
+      ],
+      "feature_discovery": {
+        "required": [
+          "did:plc",
+          "plc_directory_policy",
+          "resolver_cache_policy"
+        ],
+        "unsupported_optional": "return unsupported_did_method"
+      }
+    },
+    "cx.profile.org_high_assurance_identity.v1": {
+      "required_endpoints": [
+        "cx.identity.resolve",
+        "cx.identity.get_document",
+        "cx.identity.get_log"
+      ],
+      "required_event_kinds": [
+      ],
+      "rejected_event_kinds": [
+      ],
+      "required_schemas": [
+        "cx.schema.did_key_log_entry.v1",
+        "cx.schema.identity_receipt.v1",
+        "cx.schema.handle_claim.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json"
+      ],
+      "optional_extensions": [
+        "did:webvh_witness",
+        "did:webvh_watcher",
+        "keri_adapter"
+      ],
+      "feature_discovery": {
+        "required": [
+          "history_bearing_did_method",
+          "witness_or_watcher_policy",
+          "resolver_cache_policy"
         ],
         "unsupported_optional": "return unsupported_did_method"
       }
