@@ -155,10 +155,11 @@ cx.vector.encoding.reject_malformed_json.v1
 cx.vector.encoding.event_digest.v1
 ```
 
-输入事件，不含 `event_id` 和 `proofs`：
+输入事件，不含 `proofs` 和 `unsigned`，但包含稳定 `event_id`：
 
 ```json
 {
+  "event_id": "cx:event:01js0ev0000000000000000000",
   "kind": "cx.message.create",
   "space_version": "1",
   "space_id": "cx:space:01js0ke0000000000000000000",
@@ -181,18 +182,18 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"created_at":"2026-04-26T00:00:00Z","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","type":"cx.content.text"},"flow_id":"cx:flow:01js0ke0000000000000000000"},"prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000","space_version":"1"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:01js0ev0000000000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","type":"cx.content.text"},"flow_id":"cx:flow:01js0ke0000000000000000000"},"prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000","space_version":"1"}
 ```
 
 期望 digest：
 
 ```text
-sha256:2ed66dde7fd973e7fa52215e5da99d2765ceb5efaea4c74bf9f408112a2f2881
+sha256:d43b763f81bfe512bd7077701b7ee5e98fea54b756fb495556a98617ac00ff7d
 ```
 
 判定规则：
 
-- event digest / proof `payload_hash` MUST 从 redaction 前、去除 `proofs` 后的 canonical event bytes 派生；`event_id` 是稳定 `cx:event:*` typed ID，不替代 digest。
+- event digest / proof `payload_hash` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `cx:event:*` typed ID，必须进入 digest，但不替代 digest。
 - 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
 - 同一事件在不同 Events API 或 Sync Service 上 MUST 得到相同 digest。
 

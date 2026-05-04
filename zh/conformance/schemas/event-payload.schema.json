@@ -385,9 +385,6 @@
       "type": "object",
       "minProperties": 1,
       "properties": {
-        "state_key": {
-          "type": "string"
-        },
         "value": {},
         "status": {
           "type": "string"

@@ -50,7 +50,7 @@ sequenceDiagram
 
 MLS group admin 不是“第一个发 Welcome 的客户端”或“branch 的第一个成员”。Contrix v1 按当前 accepted auth state 确定管理集合：
 
-- Space-scoped MLS group 的默认 admin set 来自 `cx.space.create.initial_creators` / `created_by_principal`，以及当前有效的 `cx.space.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Space policy 声明的等价 E2EE admin capability。
+- Space-scoped MLS group 的默认 admin set 来自 `cx.space.create.payload.object.initial_creators` / `created_by_principal`，以及当前有效的 `cx.space.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Space policy 声明的等价 E2EE admin capability。
 - Flow discussion branch-scoped MLS group 的 admin set 是 Space-scoped admin set，加上对该 `flow_id + branch=discussion` 具有 `cx.flow.branch.admin`、`cx.flow.branch.member` 管理权或 policy 声明 E2EE branch admin capability 的 actor。
 - `cx.flow.convert` 不改变 MLS group identity、admin set 推导规则或历史 epoch；它只改变哪个 branch 标记为 primary。若转换同时改变 branch E2EE policy，必须发布独立 policy / branch access event，并通过新的 `cx.mls.proposal` / `cx.mls.commit` 推进 group。
 - Admin capability 可以通过普通 capability grant / revoke 转移或收回；转移生效点由 state resolution 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。

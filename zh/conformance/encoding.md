@@ -18,7 +18,7 @@ Contrix canonical JSON MUST 使用：
 - timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入不得接受本地时区、隐式时区或 leap-second 变体。
 - 字段名使用 snake_case。
 
-签名和 hash 输入 MUST 是去除 `proofs` 后的 canonical JSON bytes。实现不得对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。
+Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，不得影响 event digest 或 proof `payload_hash`。实现不得对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。
 
 生产者 SHOULD 避免在高风险签名对象中使用非整数 number。若 schema 允许 `confidence`、`progress` 等小数值，生产者 MUST 输出 canonical decimal；消费者 MUST 在 canonicalization 后再验证签名。无法提供确定性 number canonicalization 的实现不得声明通过包含 number 字段的 profile。
 

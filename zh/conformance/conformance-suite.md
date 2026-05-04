@@ -128,4 +128,6 @@ v1 新增以下必测项：
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
 | `v1.0-stable` | 对外宣称稳定协议版本。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、state resolution、capability、privacy/security、sync 和 snapshot vectors 均由 CI 执行；英文或其他翻译不得作为 stale source of truth 发布。 |
 
+当前仓库若未同时发布上述 reference validator / reducer / authz evaluator / runner，并在 CI 执行核心 vectors，只能声明为 `v1-core-rc` 候选或更低等级，不得声明 `v1.0-stable`。
+
 若某 profile 的 payload schema 仍使用宽泛结构（例如 `state_content` 或 `generic_standard_content`），该 profile 的 stable 声明必须额外依赖 reference reducer / validator 中的语义校验，不能只依赖 JSON Schema 通过。

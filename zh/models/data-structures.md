@@ -403,6 +403,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `encoding-conformance-vectors.md`。 | 事件 ID。 |
 | `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。 | 事件 kind。 |
+| `state_key` | conditional | `string` | 标准 state event MUST 设置；非 state event MUST 省略，除非 profile 明确声明。 | state resolution 使用的顶层 key。 |
 | `schema` | no | `string` | 若存在，MUST 为 `cx.schema.event.v1` 并进入 canonical bytes；不得替代 `kind` 或 payload schema selection。 | Envelope schema 标记。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
 | `space_version` | yes | `string` | 初版 `1`。 | 授权/状态版本。 |
@@ -421,7 +422,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
-Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。`payload.type` 不得重复写入 `cx.*` Event kind；若 payload 需要引用被创建对象，使用 `payload.object.type` 等对象字段。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。State event 的 `state_key` 是顶层字段，reducer 以 `(kind, state_key)` 作为 state resolution key；`payload.state_key` 不是 v1 canonical wire 位置。`payload.type` 不得重复写入 `cx.*` Event kind；若 payload 需要引用被创建对象，使用 `payload.object.type` 等对象字段。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 `actor_seq` fork 约束：
 

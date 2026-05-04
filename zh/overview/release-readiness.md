@@ -14,6 +14,8 @@
 - 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry
 - OpenAPI、非 HTTP binding、fixture 与中文规范均可回指这些 registry
 
+当前仓库的发布状态是 `v1-core-rc` 候选基线：`zh/` 与 `artifacts/` 的 registry / schema / mirror lint 必须通过，核心 profile、schema 和 fixture 可用于实现者启动互操作开发。除非同一仓库或正式发布包同时提供 reference validator、reference reducer、reference authz evaluator、conformance runner，并在 CI 中执行核心 vectors，否则不得标记或宣传为 `v1.0-stable`。
+
 ## 2.1 最小实现路径
 
 实现者不需要一次实现全部 v1 surface。推荐按以下 profile 递进，每一阶段只声明自己实际支持的 profile、event kind、schema 和服务 operation：

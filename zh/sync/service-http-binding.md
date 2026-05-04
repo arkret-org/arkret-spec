@@ -458,14 +458,14 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 | `epoch_mismatch` | 409 | MLS epoch 版本过期。 |
 | `duplicate_conflict` | 409 | 相同幂等键对应不同 canonical request body。 |
 | `rank_exhausted` | 409 | fractional rank 区间耗尽，需要 rebalance 或选择其他位置。 |
-| `stale_frontier` | 409 / 503 | 服务本地同步或授权 frontier 尚未覆盖请求要求。 |
+| `stale_frontier` | 409 | 服务本地同步或授权 frontier 尚未覆盖请求要求。 |
 | `quota_exceeded` | 403 | 配额超限。 |
 | `payload_too_large` | 413 | 请求体或 blob 超限。 |
 | `hlc_logical_overflow` | 503 | 生产者当前毫秒内无法继续生成单调 HLC。 |
 | `temporarily_unavailable` | 503 | 服务暂不可用。 |
 | `rate_limited` | 429 | 请求频率超限。 |
-| `timeout` | 408 / 504 | 等待 sync frontier、长轮询或上游请求超时。 |
-| `sync_token_expired` | 400 / 410 | 客户端同步 token 已过期，需要回退到 initial sync。 |
+| `timeout` | 504 | 等待 sync frontier、长轮询或上游请求超时。 |
+| `sync_token_expired` | 410 | 客户端同步 token 已过期，需要回退到 initial sync。 |
 | `unknown_did` | 422 | DID 无法解析。 |
 | `schema_violation` | 422 | payload 不符合 schema。 |
 | `unsupported_feature` | 501 | 服务不支持请求的 feature。 |

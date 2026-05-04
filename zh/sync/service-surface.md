@@ -395,7 +395,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
 - `sync_token`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Space frontier。
 
-`sync_token` 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 `next_batch` / `since` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`space_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 token 时，应等待本地可验证 frontier 覆盖目标事件，或返回 `stale_frontier` / `temporarily_unavailable` / `read_your_writes_timeout`。Client Sync 仍必须只使用 `client-sync.md` 定义的 `next_batch` 作为 `since`。
+`sync_token` 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 `next_batch` / `since` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`space_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 token 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 `client-sync.md` 定义的 `next_batch` 作为 `since`。
 
 ### 6.2 Flow Discussion / Context Projection
 

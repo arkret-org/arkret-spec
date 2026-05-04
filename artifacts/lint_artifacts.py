@@ -838,7 +838,9 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
 
         event = vector.get("event_without_proofs")
         if isinstance(event, dict):
-            expected_canonical = canonical_json(event)
+            signed_event = dict(event)
+            signed_event.pop("unsigned", None)
+            expected_canonical = canonical_json(signed_event)
             if vector.get("canonical_event_payload") != expected_canonical:
                 lint.fail(path, f"vectors[{index}] canonical_event_payload does not match canonical JSON")
             expected_payload_hash = sha256_text(expected_canonical)
@@ -849,7 +851,8 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
             if isinstance(event_with_proof, dict):
                 unsigned = dict(event_with_proof)
                 unsigned.pop("proofs", None)
-                if unsigned != event:
+                unsigned.pop("unsigned", None)
+                if unsigned != signed_event:
                     lint.fail(path, f"vectors[{index}] event_with_proof without proofs differs from event_without_proofs")
 
         binding = vector.get("binding_object")

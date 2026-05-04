@@ -37,7 +37,7 @@
 - `event_id` 是内容寻址或签名绑定后的稳定 ID。
 - `actor_seq` 在同一 actor 的单条因果路径上严格递增；并发 sibling fork 可出现相同高度。
 - `hlc` 是 Hybrid Logical Clock，不能单独决定因果顺序。
-- `target_ref` MUST 指向标准对象、Morph、Relation、View 或 Space。
+- `target_ref` MUST 指向标准对象、Morph、Relation、View 或 Space。对于 `*.create` 向量，`target_ref` 只是测试向量的阅读辅助；规范性 Event payload 仍使用 `payload.object.id`。
 
 ## 3. Vector: Board Collection Projection
 
@@ -49,26 +49,58 @@
   "events": [
     {
       "kind": "cx.space.create",
+      "state_key": "",
       "target_ref": "cx:space:01js0bd0000000000000000000",
       "payload": {
-        "kind": "board"
+        "object": {
+          "id": "cx:space:01js0bd0000000000000000000",
+          "type": "space",
+          "kind": "board",
+          "title": "Release Board"
+        }
       }
     },
     {
       "kind": "cx.space.create",
+      "state_key": "",
       "target_ref": "cx:space:01js0111000000000000000000",
       "payload": {
-        "kind": "list",
-        "rank": "U"
+        "object": {
+          "id": "cx:space:01js0111000000000000000000",
+          "type": "space",
+          "kind": "list",
+          "title": "Todo",
+          "rank": "U"
+        }
       }
     },
     {
       "kind": "cx.flow.create",
       "target_ref": "cx:flow:01js0ca1000000000000000000",
       "payload": {
-        "board_id": "cx:space:01js0bd0000000000000000000",
-        "list_id": "cx:space:01js0111000000000000000000",
-        "rank": "U"
+        "object": {
+          "id": "cx:flow:01js0ca1000000000000000000",
+          "type": "flow",
+          "space_id": "cx:space:01js0sp0000000000000000000",
+          "title": "Release checklist",
+          "branches": [
+            {
+              "name": "synthesis",
+              "is_primary": true
+            }
+          ]
+        },
+        "initial_relations": [
+          {
+            "relation_kind": "contains",
+            "from_ref": "cx:space:01js0111000000000000000000",
+            "to_ref": "cx:flow:01js0ca1000000000000000000",
+            "fields": {
+              "board_id": "cx:space:01js0bd0000000000000000000",
+              "rank": "U"
+            }
+          }
+        ]
       }
     }
   ]

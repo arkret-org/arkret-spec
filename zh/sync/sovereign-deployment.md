@@ -182,16 +182,28 @@ Controlled Collaboration Space SHOULD 使用：
 ```json
 {
   "kind": "cx.space.create",
+  "state_key": "",
   "space_version": "1",
   "payload": {
-    "kind": "enclave",
-    "created_by_principal": "did:web:defense.example",
-    "owning_organizations": [
-      "did:web:defense.example"
-    ],
-    "default_discoverability": "unlisted",
-    "default_join_rule": "restricted",
-    "history_visibility": "joined"
+    "object": {
+      "id": "cx:space:01js0en0000000000000000000",
+      "type": "space",
+      "kind": "enclave",
+      "space_version": "1",
+      "title": "Controlled Collaboration",
+      "created_by_principal": "did:web:defense.example",
+      "owning_organizations": [
+        "did:web:defense.example"
+      ],
+      "schema_refs": [
+        "cx.schema.space.v1"
+      ],
+      "default_discoverability": "unlisted",
+      "default_join_rule": "restricted",
+      "history_visibility": "joined",
+      "encryption_profile": "mls_rfc9420",
+      "created_at": "2026-04-26T00:00:00Z"
+    }
   }
 }
 ```

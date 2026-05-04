@@ -13,17 +13,29 @@
 ```json
 {
   "kind": "cx.space.create",
+  "state_key": "",
   "space_version": "1",
   "payload": {
-    "kind": "collaboration",
-    "initial_creators": [
-      "did:plc:..."
-    ],
-    "created_by_principal": "did:plc:...",
-    "owning_organizations": [],
-    "default_discoverability": "invite_only",
-    "default_join_rule": "invite",
-    "history_visibility": "joined"
+    "object": {
+      "id": "cx:space:01js0sp0000000000000000000",
+      "type": "space",
+      "kind": "collaboration",
+      "space_version": "1",
+      "title": "Launch Plan",
+      "initial_creators": [
+        "did:plc:..."
+      ],
+      "created_by_principal": "did:plc:...",
+      "owning_organizations": [],
+      "schema_refs": [
+        "cx.schema.space.v1"
+      ],
+      "default_discoverability": "invite_only",
+      "default_join_rule": "invite",
+      "history_visibility": "joined",
+      "encryption_profile": "none",
+      "created_at": "2026-04-26T00:00:00Z"
+    }
   }
 }
 ```
@@ -47,7 +59,7 @@
 收到事件后，节点 MUST 按以下顺序验证：
 
 1. Parse canonical JSON，不接受重复 key、非规范 number、无效 UTF-8 或超过 profile 限制的对象。
-2. 验证 `event_id` 是合法 `cx:event:*` typed ID，并验证事件 redaction 前、去除 `proofs` 后 canonical bytes 的 digest 与 proof `payload_hash` / event digest 一致。
+2. 验证 `event_id` 是合法 `cx:event:*` typed ID，并验证事件 redaction 前、去除 `proofs` 与 `unsigned` 后 canonical bytes 的 digest 与 proof `payload_hash` / event digest 一致。
 3. 验证 `proofs` 中 actor/device/service 签名。
 4. 验证 `space_id`、`space_version`、`kind`、`created_at`、`hlc` 与 schema。
 5. 拉取并验证 `prev_refs` 和 `auth_refs` 指向事件的 hash。
@@ -360,7 +372,7 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 
 组织所有权不是服务器本地配置，也不是 Space 名称、域名、图标或 UI 文案。组织所有权 MUST 由组织 principal 的可验证声明表达。
 
-`cx.space.create` MAY 包含：
+`cx.space.create.payload.object` MAY 包含：
 
 - `created_by_principal`：实际创建 Space 的 principal DID，可能是组织 DID、员工 DID、agent DID 或托管服务 DID。
 - `owning_organizations`：创建时已由组织 DID 背书的 organization DID 列表。该字段为空时，Space 不得被展示为任何组织的 official Space。
@@ -404,7 +416,7 @@ E2EE Space 或通过 branch-scoped access override 启用 E2EE 的 Flow discussi
 客户端判断一个 Space 是否为某 Organization 官方创建或官方认可时，MUST 同时验证：
 
 1. Organization DID 可解析，且 DID Document / key log 在事件时间有效。
-2. `cx.space.create.created_by_principal` 是该 organization DID，或存在 active 的 `cx.space.organization` event。
+2. `cx.space.create.payload.object.created_by_principal` 是该 organization DID，或存在 active 的 `cx.space.organization` event。
 3. `cx.space.organization` 的签名 key 属于 organization DID 的当前或事件时点有效控制链，或属于 organization DID 明确绑定的 governance service DID。
 4. `relationship` 为 `owner` 或 `sponsor`，且 `scope.official=true`。
 5. 该声明未过期、未被 `status=revoked` 或后续同 `state_key` state event 覆盖。
@@ -577,7 +589,7 @@ auth_difference(conflicted_events):
 
 | weight | 条件 |
 | --- | --- |
-| 700 | Space create / recovery root：由 `cx.space.create.initial_creators`、Space root recovery key 或治理根明确授权的事件。 |
+| 700 | Space create / recovery root：由 `cx.space.create.payload.object.initial_creators`、Space root recovery key 或治理根明确授权的事件。 |
 | 650 | Active Organization governance：由 active `cx.space.organization{relationship=owner|sponsor, scope.official=true}` 绑定的 governance DID / service DID 直接签发，且 action 在声明 scope 内。 |
 | 600 | Direct Space admin：候选事件由未委派的 active Space admin / creator capability 授权，resource 精确覆盖目标 Space。 |
 | 550 | Direct policy or membership admin：候选事件由未委派的 policy / membership / capability 管理 grant 授权，resource 精确覆盖目标 state key 或对象。 |
