@@ -148,7 +148,7 @@ POST /api/v1/push/unregister-device
 
 | Condition Kind | 说明 |
 |---------------|------|
-| `field_match` | Operation 的指定字段匹配给定 pattern（支持 glob） |
+| `field_match` | Event 明文元数据或授权可见 payload 字段匹配给定 pattern（支持 glob） |
 | `contains_keyword` | 消息 `body` 中包含指定关键词（仅限明文部分） |
 | `mentions_actor` | 消息中提及当前 Actor |
 | `is_direct_message` | 来自 1 对 1 私聊 Space |
@@ -179,7 +179,7 @@ POST /api/v1/push/notify
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `notification` | object | required | 推送通知对象。 |
-| `notification.event_id` | id | optional | 触发通知的事件或 Operation ID。 |
+| `notification.event_id` | id | optional | 触发通知的 Event ID。 |
 | `notification.space_id` | id | optional | 相关 Space ID；不得泄露不可见 Space。 |
 | `notification.type` | string | required | 通知类型或事件类型。 |
 | `notification.sender` | did | optional | 发送者 DID；E2EE 场景可省略或脱敏。 |
@@ -198,7 +198,7 @@ POST /api/v1/push/notify
   "notification": {
     "event_id": "cx:event:01js0ev0000000000000000000",
     "space_id": "cx:space:01js0sp0000000000000000000",
-    "type": "cx.message.create",
+    "kind": "cx.message.create",
     "sender": "did:web:bob.example.com",
     "sender_display_name": "Bob",
     "space_name": "Engineering",
@@ -238,11 +238,11 @@ POST /api/v1/push/notify
 ### 6.1 脱敏推送流程
 
 1. Alice 发送加密消息到 Space S
-2. Alice 的客户端在 Operation 的明文元数据中附加 `push_hint: "New message from Alice"`
-3. Sync Service 收到 Operation，匹配推送规则
+2. Alice 的客户端在 Event 明文元数据中附加 `push_hint: "New message from Alice"`
+3. Sync Service 收到 Event，匹配推送规则
 4. Sync Service 向 Bob 的推送网关发送脱敏通知（只含 `space_id`, `type`, `push_hint`）
 5. Bob 的设备收到推送，唤醒客户端
-6. 客户端从 Sync Service 拉取加密 Operation 并解密
+6. 客户端从 Sync Service 拉取加密 Event 并解密
 7. 客户端在本地展示完整的消息内容
 
 ### 6.2 安全约束

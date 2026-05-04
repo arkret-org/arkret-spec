@@ -20,7 +20,7 @@
 
 ```json
 {
-  "type": "cx.account_data.set",
+  "kind": "cx.account_data.set",
   "key": "cx.client.theme",
   "body": {
     "mode": "dark",

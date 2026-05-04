@@ -58,6 +58,9 @@ Scope MUST be allow-list based。未列出的动作默认拒绝。标准对象 S
     "constraint_type": "type_restriction",
     "effect": "allow",
     "object_type_allow": ["flow", "morph"],
+    "space_kind_allow": ["board", "list"],
+    "flow_kind_allow": ["card"],
+    "flow_semantic_kind_allow": ["task_cluster", "customer_case"],
     "morph_type_allow": ["document", "customer_case"],
     "facet_allow": ["stateful", "replyable"]
   }
@@ -126,10 +129,11 @@ Delegated grant MUST be equal or narrower than parent grant.
 6. time validity
 7. revocation status
 8. field constraints
-9. relation / container move constraints
-10. claim constraints
-11. approval constraints
-12. delegation chain
+9. object type、Space kind、Flow kind、branch 与 Morph type constraints
+10. relation / container move constraints
+11. claim constraints
+12. approval constraints
+13. delegation chain
 
 任何一步失败 MUST 拒绝。
 

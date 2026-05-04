@@ -76,7 +76,7 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
 
 ```json
 {
-  "type": "cx.applet.registration",
+  "kind": "cx.applet.registration",
   "applet_id": "cx:applet:s1ack000000000000000000000-bridge",
   "service_did": "did:web:slack-bridge.example",
   "controller_did": "did:web:acme.example",
@@ -283,7 +283,7 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
     {
       "event_id": "cx:event:01js0ev0000000000000000000",
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "type": "cx.message.create",
+      "kind": "cx.message.create",
       "actor_id": "did:web:alice.example",
       "payload": {}
     }
@@ -426,7 +426,7 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
   "event_id": "cx:event:01js0ev0000000000000000000",
   "space_id": "cx:space:p0rta100000000000000000000:slack:T123:C456",
   "actor_id": "did:web:slack-bridge.example#ghost-u123",
-  "type": "cx.message.create",
+  "kind": "cx.message.create",
   "applet_id": "cx:applet:s1ack000000000000000000000-bridge",
   "external_ref": {
     "protocol": "slack",

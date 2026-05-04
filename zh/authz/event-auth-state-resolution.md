@@ -79,8 +79,8 @@
 | `cx.space.moderation_policy` | `cx.space.create`、actor membership、moderation/policy/admin capability、上一版 moderation policy |
 | `cx.space.policy_components` | `cx.space.create`、actor membership、policy/admin capability、上一版 policy component state |
 | `cx.space.history_sharing_policy` | `cx.space.create`、actor membership、policy/admin capability、上一版 history sharing state、当前 encryption policy |
-| `cx.space.child` | parent Space 的 `cx.space.create`、发送者 parent membership、`space.hierarchy.manage` capability、目标 child Space stripped create 或可验证引用 |
-| `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
+| `cx.space.child` | parent Space 的 `cx.space.create`、发送者 parent membership、`cx.space.hierarchy.manage` capability、目标 child Space stripped create 或可验证引用 |
+| `cx.space.parent` | child Space 的 `cx.space.create`、发送者 child membership、`cx.space.hierarchy.manage` capability、目标 parent Space stripped create 或可验证引用 |
 | `cx.space.inheritance_policy` | child Space 的 `cx.space.create`、child policy/admin capability、confirmed parent edge |
 | `cx.space.organization` | `cx.space.create`、组织 DID 当前控制状态、组织签发或撤销该声明的 capability / service binding |
 | `cx.flow.branch.*` | actor Space membership、目标 Flow 当前状态、目标 discussion branch 当前状态、对应 flow branch capability |
@@ -421,7 +421,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.view.update`
 - `cx.view.reconcile`
 
-非 state event 仍可影响物化 projection，但不进入 auth state map，除非具体类型声明其为 auth dependency。
+State event 不等于 auth state dependency。`cx.view.*` 等投影定义事件可以使用 state resolution 形成当前 View 定义，但默认不进入 capability / membership / policy / MLS 的 auth state map；只有当某个 View 被 policy 明确声明为授权依赖、审计依赖或 materialized query contract 时，相关 View state event 才能作为对应业务事件的 `auth_refs`。非 state event 仍可影响物化 projection，但不进入 auth state map，除非具体类型声明其为 auth dependency。
 
 `cx.mls.epoch` 在 state map 中表示当前 MLS epoch checkpoint，但它不得作为独立授权事实推进 epoch。验证规则见 `../crypto-media/encryption-and-audit.md` 第 5.3 节：checkpoint 必须能从同一 conflict set 的 winning `cx.mls.commit` 机械验证，无法验证时 MUST reject 或 soft-fail。
 
@@ -627,12 +627,13 @@ Frontier 与存储语义：
 
 升级规则：
 
-- `cx.space.upgrade` MUST 由拥有 `space.upgrade` 或等价 admin capability 的 actor 发起。
+- `cx.space.upgrade` MUST 由拥有 `cx.space.upgrade`、`cx.space.admin` 或 Space policy 明确声明的等价 admin capability 的 actor 发起。
 - `phase`、`target_schema_profile`、`target_reducer_profile`、`migration_policy`、`compatibility_mode`、`replacement_ref`、activation frontier / HLC 和 readiness 条件必须被事件签名覆盖。
 - `replacement_ref` MAY 指向迁移计划、snapshot manifest 或新 profile 描述，但不能指向未签名的外部说明。
 - `phase=announcement` 只发布目标 profile、兼容模式、最早 enforcement 时间 / frontier 和迁移说明；它不得让节点开始接受依赖新语义的写入。
 - `phase=readiness_check` MAY 汇总 service / bridge / client family 的 signed readiness receipts 或缺席清单；receipt 只能说明能力，不替代本地 schema、auth 和 reducer 校验。
 - `phase=enforcement` 才切换 accepted target profile。它 MUST 引用 announcement，满足 readiness 条件或明确记录 admin override，并绑定 activation causal frontier；未到达该 frontier 的普通历史仍按旧 profile 解释。
+- `readiness_deadline` 到达且 `min_readiness` 未满足时，升级不得自动进入 enforcement。管理员必须发布新的 `cx.space.upgrade` 事件，选择 extend deadline、cancel/rollback announcement，或带 explicit admin override 的 enforcement；这些选择都必须被签名并进入 state resolution。
 - 未支持目标 profile 的节点在 enforcement 生效后 MUST 停止接受依赖新语义的写入；MAY 继续只读展示升级前的 accepted history，并可通过兼容 projection 或代理提供降级视图。
 - 降级代理不得把新 auth / reducer 语义翻译成旧语义后重新签发为普通写入；只能提供只读 projection、迁移提示或明确标记的 compatibility write path。
 - 升级不得重写历史 event hash；任何 state 迁移都必须表现为新的 signed event、snapshot 或 reducer profile 输出。

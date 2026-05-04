@@ -24,7 +24,7 @@
 
 ```json
 {
-  "type": "cx.invite.third_party",
+  "kind": "cx.invite.third_party",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "display_name_hint": "external invite",
   "token_commitment": "sha256:<hash(token_salt || invite_token)>",
@@ -61,7 +61,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Sp
 
 ```json
 {
-  "type": "cx.invite.claim",
+  "kind": "cx.invite.claim",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "subject_did": "did:web:bob.example.com",
   "token_commitment": "sha256:<hash(token_salt || invite_token)>",

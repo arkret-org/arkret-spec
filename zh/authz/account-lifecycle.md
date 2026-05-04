@@ -64,7 +64,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 
 ```json
 {
-  "type": "cx.account.status",
+  "kind": "cx.account.status",
   "account_id": "acct_...",
   "principal_id": "did:plc:...",
   "status": "suspended",

@@ -42,9 +42,10 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 单个 state key 的 conflict candidate 数 | 256 | 超过时 MUST 使用最近可验证 snapshot 作为 base，并把超阈值候选进入 review / quarantine。 |
 | `auth_chain` 闭包深度 | 64 | 超过时 MUST soft-fail 依赖事件或 fail closed。 |
 | `auth_difference` 事件数 | 4,096 | 超过时 MUST fallback to verified snapshot-assisted resolution。 |
+| 单次 resolution CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；交互式 profile SHOULD 使用不超过 2 秒的默认预算，超出时返回可恢复错误或使用已验证 snapshot-assisted resolution。 |
 | 单次 resolution 内存预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露，超出时返回可恢复错误而不是 OOM。 |
 
-State resolution fallback 不得选择本地接收顺序或数据库 ID。fallback snapshot 必须有签名、frontier、state hash 和 chunk digest。
+State resolution fallback 不得选择本地接收顺序或数据库 ID。fallback snapshot 必须有签名、frontier、state hash 和 chunk digest。对缺失、不可达或高成本 `auth_refs` 的 backfill，接收方 MAY 在预算耗尽后 soft-fail / quarantine 该事件，并返回 `dependency_missing`、`temporarily_unavailable` 或等价诊断；不得在同步写入路径无界递归展开。
 
 ## 5. Board / Relation / View 上限
 

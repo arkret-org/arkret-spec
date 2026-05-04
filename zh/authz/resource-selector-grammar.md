@@ -2,220 +2,81 @@
 
 ## 1. 概述
 
-本规范定义 Contrix v1 capability 授权中的资源选择器。资源选择器定义能力授权适用的目标对象范围。
+本规范定义 Contrix v1 capability 授权中的资源选择器。资源选择器只回答“授权命中哪些资源”，不单独表达动作、字段、branch、claim 或审批约束；这些约束必须由 grant 的 `actions` 与 `constraints` 表达。
 
-Contrix v1 不再使用 `entity` 作为通用资源选择器。标准对象使用明确类型选择器；开放扩展对象使用 `morph` 选择器；需要跨对象类型表达时使用 `object` 选择器。
+Contrix v1 不再使用 `entity` 作为通用资源选择器，也不再把 `subject`、`room`、`card` 作为独立 selector domain。当前 canonical 模型为：
+
+- `flow` 是统一协作主对象，`card` 与 `room` 只是 `Flow.kind`。
+- `message` 总是属于某个 Flow 的 `discussion` branch。
+- `Space(kind=board)` 与 `Space(kind=list)` 是 Space 的工作流容器形态，不是独立 selector domain。
+- `morph` 用于开放扩展对象。
+- 跨对象类型授权才使用 `object` selector。
 
 ## 2. 语法定义
 
 ### 2.1 EBNF 语法
 
+字符串 selector 是 JSON canonical selector 的可读 shorthand。协议签名、hash、registry schema 和 wire grant 以 JSON 表示为准。
+
 ```ebnf
-selector             ::= space_selector
-                      | flow_selector
-                      | flow_selector
-                      | board_selector
-                      | list_selector
+selector             ::= selector_term (("+" | ",") selector_term)*
+
+selector_term        ::= wildcard_selector
+                      | space_selector
                       | flow_selector
                       | message_selector
                       | morph_selector
                       | relation_selector
                       | view_selector
                       | object_selector
-                      | wildflow_selector
-                      | conjunction_selector
-                      | disjunction_selector
+                      | blob_selector
+                      | notification_selector
+                      | read_marker_selector
 
-space_selector       ::= "space" ":" space_id
-                      | "space" ":" "*"
+wildcard_selector    ::= "*"
 
-flow_selector     ::= "subject" ":" space_id ":" flow_id
-                      | "subject" ":" space_id ":*"
-                      | "subject" ":" "*" ":" flow_id
-                      | "subject" ":" "*"
+space_selector       ::= "space" ":" (space_id | "*")
 
-flow_selector        ::= "room" ":" space_id ":" flow_id
-                      | "room" ":" space_id ":*"
-                      | "room" ":" "*"
+flow_selector        ::= "flow" ":" space_part ":" (flow_id | "*")
 
-board_selector       ::= "board" ":" space_id ":" board_id
-                      | "board" ":" space_id ":*"
-                      | "board" ":" "*"
+message_selector     ::= "message" ":" space_part ":" flow_part ":" (message_id | "*")
 
-list_selector        ::= "list" ":" space_id ":" board_id ":" list_id
-                      | "list" ":" space_id ":" board_id ":*"
-                      | "list" ":" space_id ":*"
+morph_selector       ::= "morph" ":" space_part ":" (morph_id | morph_type | "*")
 
-flow_selector        ::= "card" ":" space_id ":" flow_id
-                      | "card" ":" space_id ":*"
-                      | "card" ":" "*" ":" flow_id
-                      | "card" ":" "*"
+relation_selector    ::= "relation" ":" space_part ":" (relation_id | relation_kind | "*")
 
-message_selector     ::= "message" ":" space_id ":" flow_id ":" message_id
-                      | "message" ":" space_id ":" flow_id ":*"
-                      | "message" ":" space_id ":*"
+view_selector        ::= "view" ":" space_part ":" (view_id | "*")
 
-morph_selector       ::= "morph" ":" space_id ":" morph_type
-                      | "morph" ":" space_id ":" morph_id
-                      | "morph" ":" "*" ":" morph_type
-                      | "morph" ":" space_id ":*"
+object_selector      ::= "object" ":" space_part ":" (object_ref | object_type | "*")
 
-relation_selector    ::= "relation" ":" space_id ":" relation_kind
-                      | "relation" ":" "*" ":" relation_kind
+blob_selector        ::= "blob" ":" (blob_ref | "*")
 
-view_selector        ::= "view" ":" space_id ":" view_id
-                      | "view" ":" space_id ":*"
+notification_selector ::= "notification" ":" space_part ":" "*"
 
-object_selector      ::= "object" ":" space_id ":" object_type
-                      | "object" ":" space_id ":" object_ref
-                      | "object" ":" "*" ":" object_type
-                      | "object" ":" space_id ":*"
+read_marker_selector ::= "read_marker" ":" space_part ":" "*"
 
-wildflow_selector    ::= "*"
-                      | "space" ":" "*"
-
-conjunction_selector ::= selector "+" selector
-
-disjunction_selector ::= selector "," selector
+space_part           ::= space_id | "*"
+flow_part            ::= flow_id | "*"
 ```
 
 ### 2.2 词法规则
 
 - `space_id`：`cx:space:` 后接 ULID。
 - `flow_id`：`cx:flow:` 后接 ULID。
-- `board_id`：`cx:space:` 后接 ULID（Space (kind=board)）。
-- `list_id`：`cx:space:` 后接 ULID（Space (kind=list)）。
 - `message_id`：`cx:message:` 后接 ULID。
 - `morph_id`：`cx:morph:` 后接 ULID。
+- `relation_id`：`cx:relation:` 后接 ULID。
+- `view_id`：`cx:view:` 后接 ULID。
+- `blob_ref`：`cx:blob:<ulid>` 或 `cx:blob:sha256:<hex>`。
 - `morph_type`：Space schema 中注册的开放对象类型。
+- `relation_kind`：关系类型，例如 `contains`、`assigned_to`、`promoted_from_discussion`、`summarized_from`。
 - `object_type`：标准对象类型或 `morph`。
 - `object_ref`：任一 canonical object id。
-- `relation_kind`：字符串标识符，例如 `contains`、`assigned_to`、`promoted_from_discussion`、`summarized_from`。
-- `view_id`：`cx:view:` 后接 ULID。
-- 空白字符被忽略（引号内字符串除外）。
+- 空白字符被忽略，引号内字符串除外。
 
-## 3. 选择器求值
+## 3. Canonical JSON 表示
 
-### 3.1 Space 选择器
-
-`space:cx:space:01js0sp0000000000000000000`
-
-- 匹配：特定 Space。
-- 适用：该 Space 中的所有标准对象、Morph、Relation、Event 和 View。
-
-`space:*`
-
-- 匹配：所有 Space。
-- 配合：`max_delegation_depth=0`、短有效期和审批约束，防止意外扩展。
-
-### 3.2 标准对象选择器
-
-`flow:cx:space:...:*`
-
-- 匹配：该 Space 中所有 Subject。
-- 注意：Subject 读取不授予 surface 内容读取；Room、Card、Morph 等 surface 仍按自身权限裁剪。
-
-`flow:cx:space:...:*`
-
-- 匹配：该 Space 中所有 Card。
-- 不匹配：Room、Message、Morph 或其他对象。
-
-`flow:cx:space:...:cx:flow:01js0card00000000000000000`
-
-- 匹配：特定 Card。
-- 最高特异性。
-
-`flow:cx:space:...:*`
-
-- 匹配：该 Space 中所有 Room。
-- 注意：Room / discussion 读取和写入仍必须通过有效 branch access、history visibility 与 E2EE key eligibility 检查。
-
-`message:cx:space:...:cx:flow:...:*`
-
-- 匹配：某个 Room 内所有 Message。
-- 不授予 Card 权限，即使该 Room 被某 Card 链接。
-
-### 3.3 Morph 选择器
-
-`morph:cx:space:...:customer_case`
-
-- 匹配：该 Space 中所有 `morph_type=customer_case` 的 Morph。
-- 不匹配：标准 Message 或 Card。
-
-`morph:cx:space:...:cx:morph:01js0m00000000000000000000`
-
-- 匹配：特定 Morph。
-
-`morph:*:document`
-
-- 匹配：所有可访问 Space 中的所有 `document` Morph。
-- 要求：`space:*` 或明确的 Space policy 委托。
-
-### 3.4 Object 选择器
-
-`object` 是跨对象类型的通用选择器，用于授权面确实需要同时覆盖多类对象的情况。实现 SHOULD 优先使用更具体的 `flow`、`message` 或 `morph` 选择器。
-
-`object:cx:space:...:card`
-
-- 匹配：该 Space 中所有 `type=card` 的对象。
-
-`object:cx:space:...:cx:flow:01js0card00000000000000000`
-
-- 匹配：给定对象引用。
-
-### 3.5 Relation 选择器
-
-`relation:cx:space:...:promoted_from_discussion`
-
-- 匹配：该 Space 中所有 `promoted_from_discussion` 关系。
-- 注意：读取 discussion 到 synthesis 的沉淀关系不授予 discussion 内容访问权。
-
-`relation:*:assigned_to`
-
-- 匹配：所有可访问 Space 中的所有 `assigned_to` 关系。
-
-### 3.6 View 选择器
-
-`view:cx:space:...:cx:view:01js0vw0000000000000000000`
-
-- 匹配：特定 View。
-- 权限：`read` 允许读取 View 定义，但查询结果仍按底层对象授权裁剪。
-
-`view:cx:space:...:*`
-
-- 匹配：该 Space 中的所有 View。
-
-### 3.7 通配符选择器
-
-`*`
-
-- 匹配：所有可访问上下文中的所有资源。
-- 使用：需极其谨慎并设置时间限制。
-- 要求：SHOULD 始终包含 `expires_at`、approval constraint 和审计理由。
-
-## 4. 选择器组合
-
-### 4.1 合取 (+)
-
-`space:cx:space:...+flow:cx:space:...:*`
-
-- 匹配：特定 Space 中的所有 Card。
-- 冗余：Space 已由 Card 选择器隐含。
-- 有用：组合不同资源类型或额外环境条件时。
-
-### 4.2 析取 (,)
-
-`space:cx:space:01js0sa0000000000000000000,space:cx:space:01js0sb0000000000000000000`
-
-- 匹配：Space A 或 Space B。
-
-`flow:cx:space:...:*,flow:cx:space:...:*`
-
-- 匹配：该 Space 中的 Card 或 Room。
-
-## 5. JSON 表示
-
-虽然语法定义了字符串选择器，但能力授权的 canonical 表示是 JSON：
+Capability grant 的 canonical 表示必须使用 JSON resource selector。字符串 selector 只能用于 UI、CLI、日志和测试说明。
 
 ```json
 {
@@ -225,216 +86,305 @@ disjunction_selector ::= selector "," selector
       "space_id": "cx:space:01js0sp0000000000000000000"
     },
     {
-      "kind": "card",
+      "kind": "flow",
       "space_id": "cx:space:01js0sp0000000000000000000",
-      "flow_id": "cx:flow:01js0card00000000000000000"
+      "flow_id": "cx:flow:01js0fl0000000000000000000"
     },
     {
       "kind": "morph",
       "space_id": "cx:space:01js0sp0000000000000000000",
       "morph_type": "customer_case"
     }
-  ]
-}
-```
-
-## 6. 匹配算法
-
-给定目标资源和选择器：
-
-```text
-function matches(target, selector):
-    if selector.kind == "space":
-        return target.space_id == selector.space_id or selector.space_id == "*"
-
-    if selector.kind in ["space", "flow", "message", "morph"]:
-        if target.space_id != selector.space_id and selector.space_id != "*":
-            return false
-        if target.type != selector.kind:
-            return false
-        if selector.object_id and target.id != selector.object_id:
-            return false
-        if selector.morph_type and target.morph_type != selector.morph_type:
-            return false
-        if selector.board_id and target.board_id != selector.board_id:
-            return false
-        if selector.flow_id and target.flow_id != selector.flow_id:
-            return false
-        return true
-
-    if selector.kind == "object":
-        if target.space_id != selector.space_id and selector.space_id != "*":
-            return false
-        if selector.object_ref and target.id != selector.object_ref:
-            return false
-        if selector.object_type and target.type != selector.object_type:
-            return false
-        return true
-
-    if selector.kind == "relation":
-        if target.space_id != selector.space_id and selector.space_id != "*":
-            return false
-        if selector.relation_kind and target.relation_kind != selector.relation_kind:
-            return false
-        return true
-
-    # 其他 kind 的类似逻辑...
-```
-
-## 7. 授权范围
-
-选择器定义授权的资源范围。完整授权需要：
-
-1. **资源匹配**：目标资源必须匹配选择器。
-2. **动作匹配**：操作动作必须在授权的 `actions` 数组中。
-3. **Branch access 检查**：Room / discussion / Message 访问必须额外满足有效 branch access、history visibility 和 E2EE key eligibility；默认继承 Flow / Space，显式 branch-scoped override 才独立。
-4. **Card-Room link 不传播权限**：Card 可见只有在有效 access policy 继承或授予 discussion 读取时，才代表 linked Room / discussion 可读；Room 可读也不代表 linked Card 可写。
-5. **约束**：授权中的所有 constraints 必须满足。
-
-## 8. 安全考虑
-
-### 8.1 通配符扩展
-
-`*` 和 `object:*:*` 选择器可能匹配非预期资源。缓解措施：
-
-- 始终配合 `expires_at` 使用。
-- 与 `object_type_allow`、`morph_type_allow`、`facet_allow` 约束组合。
-- 通配符授权要求管理员审批。
-- 审计通配符授权使用。
-
-### 8.2 Facet 限制
-
-Facet 是 Space schema / Morph profile 声明后的 hint / 查询标签，不是对象身份，也不是 capability action。实现不得只因为对象声明了 `replyable`、`assignable` 或 `rankable` facet 就绕过标准对象授权规则，或自动获得回复、分配、排序等写入能力。
-
-Facet 选择适合：
-
-- 限定 Morph 类型族的已声明 hint 范围。
-- 在确有需要时为标准对象增加附加过滤约束。
-
-### 8.3 选择器注入
-
-验证选择器输入以防止注入攻击：
-
-- 使用定义的语法进行严格解析。
-- 拒绝格式错误的选择器。
-- 限制选择器复杂度深度。
-
-### 8.4 隐私泄露
-
-过于宽泛的选择器可能暴露私有信息：
-
-- `space:*` 可能暴露非预期 Space。
-- `room:*` 可能误授会话历史读取能力。
-- 在多租户环境中避免使用全局选择器。
-- 使用 Space 和 Room 级别隔离。
-
-## 9. 性能考虑
-
-### 9.1 选择器索引
-
-为高效匹配：
-
-- 按 `space_id` 索引授权（最常见过滤器）。
-- 按标准对象 `type` 索引。
-- 按 `flow_id`、`space_id`、`morph_type` 建立局部索引。
-- 单独缓存通配符授权。
-
-### 9.2 求值顺序
-
-按以下顺序求值选择器以优化性能：
-
-1. 精确 `space_id` 匹配。
-2. 精确对象 ID 匹配。
-3. Subject / Room / Board / Card 局部范围匹配。
-4. 基于对象类型或 Morph 类型的匹配。
-5. Facet 约束匹配。
-6. 通配符匹配。
-
-## 10. 示例
-
-### 10.1 基本 Card 授权
-
-```json
-{
-  "grant_id": "cx:grant:...",
-  "subject": "did:web:alice.example.com",
-  "actions": ["cx.flow.read", "cx.flow.update"],
-  "resources": [
-    {
-      "kind": "card",
-      "space_id": "cx:space:...",
-      "flow_id": "cx:flow:01js0card00000000000000000"
-    }
   ],
   "constraints": [
     {
-      "constraint_type": "field_access",
+      "constraint_type": "type_restriction",
       "effect": "allow",
-      "scope": "write",
-      "fields": ["title", "status"]
+      "flow_kind_allow": ["card"],
+      "allowed_branches": ["synthesis"]
     }
   ]
 }
 ```
 
-### 10.2 Room Message 授权
+### 3.1 Board/List 选择
+
+Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind 或具体容器引用。实现 MUST NOT 接受 `kind="board"` 或 `kind="list"` 作为 canonical resource selector kind。
 
 ```json
 {
-  "grant_id": "cx:grant:...",
-  "subject": "did:web:bob.example.com",
-  "actions": ["cx.message.create"],
   "resources": [
     {
-      "kind": "room",
-      "space_id": "cx:space:...",
-      "flow_id": "cx:flow:01js0r00m00000000000000000"
-    }
-  ]
-}
-```
-
-该授权只允许在目标 Room 内发消息，不授予 linked Card 的编辑能力。
-
-### 10.3 Morph 类型授权
-
-```json
-{
-  "grant_id": "cx:grant:...",
-  "subject": "did:web:agent.example.com",
-  "actions": ["cx.morph.create", "cx.morph.update"],
-  "resources": [
-    {
-      "kind": "morph",
-      "space_id": "cx:space:...",
-      "morph_type": "document"
+      "kind": "space",
+      "space_id": "cx:space:01js0bd0000000000000000000"
     }
   ],
   "constraints": [
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "facet_allow": ["reviewable", "documentable"]
+      "space_kind_allow": ["board"]
     }
   ]
 }
 ```
 
-## 11. 一致性
+List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`relation_kind_allow` 或对应 flow move payload 字段。
+
+### 3.2 Card/Room 选择
+
+Card 与 Room 使用 `kind="flow"` 选择器，再用 `flow_kind_allow` 限制 `Flow.kind`。实现 MUST NOT 接受 `kind="card"` 或 `kind="room"` 作为 canonical resource selector kind。
+
+```json
+{
+  "resources": [
+    {
+      "kind": "flow",
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "flow_id": "cx:flow:01js0fl0000000000000000000"
+    }
+  ],
+  "constraints": [
+    {
+      "constraint_type": "type_restriction",
+      "effect": "allow",
+      "flow_kind_allow": ["room"],
+      "allowed_branches": ["discussion"]
+    }
+  ]
+}
+```
+
+`flow_kind_allow=["room"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并满足有效 branch access、history visibility 和 E2EE key eligibility。
+
+## 4. 选择器求值
+
+### 4.1 Space 选择器
+
+`space:cx:space:01js0sp0000000000000000000`
+
+- 匹配：特定 Space。
+- 适用：该 Space 中的对象、Event、View、policy、invite、read marker、notification 和 Blob 引用。
+- 不含义：不自动匹配 child Space 的内容，除非 selector 或继承策略明确声明。
+
+`space:*`
+
+- 匹配：所有可评估 Space。
+- 要求：SHOULD 始终配合短有效期、`max_delegation_depth=0`、审批和审计理由。
+
+### 4.2 Flow 选择器
+
+`flow:cx:space:...:*`
+
+- 匹配：该 Space 中所有 Flow，不区分 `Flow.kind`。
+- 若只允许 card-like 或 room-like 视角，必须使用 `flow_kind_allow`。
+
+`flow:cx:space:...:cx:flow:01js0fl0000000000000000000`
+
+- 匹配：特定 Flow。
+- 不匹配：Message、Morph、Relation、View 或 Board/List 容器。
+
+### 4.3 Message 选择器
+
+`message:cx:space:...:cx:flow:...:*`
+
+- 匹配：某个 Flow `discussion` branch 内的所有 Message。
+- 不授予 Flow synthesis 字段写入权限。
+- 不绕过 branch-scoped membership、history visibility、redaction 或 E2EE key eligibility。
+
+### 4.4 Morph 选择器
+
+`morph:cx:space:...:customer_case`
+
+- 匹配：该 Space 中所有 `morph_type=customer_case` 的 Morph。
+- 不匹配：标准 Flow、Message 或 Relation。
+
+`morph:cx:space:...:cx:morph:01js0m00000000000000000000`
+
+- 匹配：特定 Morph。
+
+### 4.5 Object 选择器
+
+`object` 是跨对象类型的通用选择器，只应在授权面确实需要同时覆盖多类对象时使用。实现 SHOULD 优先使用更具体的 `space`、`flow`、`message`、`morph`、`relation` 或 `view` selector。
+
+`object:cx:space:...:flow`
+
+- 匹配：该 Space 中所有 `type=flow` 的对象。
+- 若只允许 `Flow.kind="card"`，必须额外使用 `flow_kind_allow`。
+
+`object:cx:space:...:cx:flow:01js0fl0000000000000000000`
+
+- 匹配：给定对象引用。
+
+### 4.6 Relation 与 View 选择器
+
+`relation:cx:space:...:contains`
+
+- 匹配：该 Space 中所有 `contains` 关系。
+- 不授予被 relation 指向对象的读取权；跨 Space 展开必须重新执行目标 Space 授权。
+
+`view:cx:space:...:cx:view:01js0vw0000000000000000000`
+
+- 匹配：特定 View 定义。
+- 查询结果仍按底层对象授权裁剪。
+
+## 5. 选择器组合
+
+### 5.1 合取 (+)
+
+`space:cx:space:...+flow:cx:space:...:*`
+
+- 表示两个 selector 同时命中时才授权。
+- 常用于把宽泛 selector 与额外资源范围或环境约束组合。
+
+### 5.2 析取 (,)
+
+`space:cx:space:01js0sa0000000000000000000,space:cx:space:01js0sb0000000000000000000`
+
+- 表示任一 selector 命中即可。
+
+Canonical JSON 中，多个 `resources[]` 的默认语义是 OR；同一 grant 内 constraints 按各自定义求交或 fail-closed。
+
+## 6. 匹配算法
+
+给定目标资源和 selector：
+
+```text
+function matches(target, selector):
+    if selector.kind == "*":
+        return true
+
+    if selector.space_id and selector.space_id != "*" and target.space_id != selector.space_id:
+        return false
+
+    if selector.kind == "space":
+        return target.type == "space" and (
+            selector.space_id == "*" or target.id == selector.space_id or target.space_id == selector.space_id
+        )
+
+    if selector.kind == "flow":
+        if target.type != "flow":
+            return false
+        if selector.flow_id and selector.flow_id != target.id:
+            return false
+        return true
+
+    if selector.kind == "message":
+        if target.type != "message":
+            return false
+        if selector.flow_id and selector.flow_id != "*" and target.flow_id != selector.flow_id:
+            return false
+        if selector.message_id and selector.message_id != target.id:
+            return false
+        return true
+
+    if selector.kind == "morph":
+        if target.type != "morph":
+            return false
+        if selector.morph_id and selector.morph_id != target.id:
+            return false
+        if selector.morph_type and selector.morph_type != target.morph_type:
+            return false
+        return true
+
+    if selector.kind == "object":
+        if selector.object_ref and selector.object_ref != target.id:
+            return false
+        if selector.object_type and selector.object_type != target.type:
+            return false
+        return true
+
+    if selector.kind == "relation":
+        if target.type != "relation":
+            return false
+        if selector.relation_id and selector.relation_id != target.id:
+            return false
+        if selector.relation_kind and selector.relation_kind != target.relation_kind:
+            return false
+        return true
+
+    if selector.kind == "view":
+        return target.type == "view" and (
+            not selector.view_id or selector.view_id == target.id
+        )
+
+    return false
+```
+
+Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、branch access、history visibility 和 E2EE key eligibility 检查。
+
+## 7. 授权范围
+
+完整授权需要同时满足：
+
+1. **资源匹配**：目标资源必须匹配 selector。
+2. **动作匹配**：操作动作必须在授权 `actions` 中，或被明确的通配动作覆盖。
+3. **约束匹配**：`flow_kind_allow`、`flow_semantic_kind_allow`、`space_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_branches` 等约束必须满足。
+4. **Branch access 检查**：Message 和 discussion branch 访问必须满足有效 branch access、history visibility 和 E2EE key eligibility。
+5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
+6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
+
+## 8. 安全考虑
+
+### 8.1 通配符扩展
+
+`*`、`space:*` 和 `object:*:*` 可能匹配非预期资源。缓解措施：
+
+- 始终配合 `expires_at` 使用。
+- 与 `object_type_allow`、`flow_kind_allow`、`morph_type_allow`、`facet_allow` 等约束组合。
+- 要求管理员审批与审计理由。
+- `max_delegation_depth` SHOULD 为 0。
+
+### 8.2 旧 selector domain
+
+实现 MUST reject canonical JSON 中的 `kind="subject"`、`kind="room"`、`kind="card"`、`kind="board"` 和 `kind="list"`。迁移工具 MAY 接受旧字符串 shorthand，但必须在签名前转换为 v1 JSON selector 与约束：
+
+| 旧写法 | v1 表达 |
+| --- | --- |
+| `card:<space>:<flow>` | `kind="flow"` + `flow_kind_allow=["card"]` |
+| `room:<space>:<flow>` | `kind="flow"` + `flow_kind_allow=["room"]` + `allowed_branches=["discussion"]` |
+| `board:<space>:<board>` | `kind="space"` + `space_kind_allow=["board"]` |
+| `list:<space>:<board>:<list>` | `kind="space"` + `space_kind_allow=["list"]` + container constraints |
+
+### 8.3 Facet 限制
+
+Facet 是 Space schema / Morph profile 声明后的 hint 或查询标签，不是对象身份，也不是 capability action。实现不得只因为对象声明了 `replyable`、`assignable` 或 `rankable` facet 就绕过标准对象授权规则。
+
+### 8.4 隐私泄露
+
+过宽 selector 可能暴露私有信息：
+
+- `space:*` 可能暴露非预期 Space。
+- `flow:*:*` 可能暴露对象存在性。
+- `message:*:*:*` 可能误授讨论历史读取能力。
+- 在多租户环境中避免使用全局 selector。
+- 对 Board/List 容器的授权不得自动升级为父 Space 或 child Space 授权。
+
+## 9. 性能考虑
+
+实现 SHOULD 按以下维度建立 selector 索引：
+
+1. `space_id`
+2. `kind`
+3. 精确对象 ID，例如 `flow_id`、`message_id`、`morph_id`
+4. `morph_type`、`relation_kind`
+5. 通配符授权缓存
+
+求值顺序 SHOULD 先做精确 ID 和 `space_id` 裁剪，再执行对象类型、kind、constraint 和 policy 检查。
+
+## 10. 一致性
 
 实现 MUST：
 
-- 接受本规范定义的 JSON 资源选择器。
-- 支持精确 ID 匹配。
-- 支持标准对象类型匹配。
-- 支持 Morph 类型匹配。
-- 支持 Space 级别通配符。
-- 验证选择器结构。
-- 对非法选择器返回清晰错误。
+- 接受本规范定义的 JSON resource selector。
+- 支持精确 ID、Space、Flow、Message、Morph、Relation、View 和 Object 匹配。
+- 拒绝旧 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
+- 对非法 selector 返回清晰错误。
+- 在 selector 命中后继续执行 action、constraint、claim、policy、branch access 和 E2EE 检查。
 
 实现 SHOULD：
 
-- 优化选择器求值。
-- 缓存选择器匹配结果。
-- 记录通配符选择器使用。
-- 提供选择器解释 / 调试工具。
+- 提供旧 shorthand 到 v1 selector 的迁移工具。
+- 缓存 selector 匹配结果。
+- 记录通配符 selector 使用。
+- 提供 selector 解释 / 调试工具。

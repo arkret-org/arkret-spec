@@ -4,12 +4,14 @@
 
 Contrix 支持 Space 之间形成层级或图状组织，用于表达组织、项目、频道、子项目、私有讨论、门户空间和知识库之间的关系。
 
-但 Space 仍然是复制、授权、schema、policy、membership、history visibility、加密和索引的硬边界。层级关系默认只表示导航和可发现性，不表示自动权限继承。
+本文件中的“Space hierarchy”默认讨论 `boundary_profile="security_boundary"` 的 Space。Security-boundary Space 是复制、授权、schema、policy、membership、history visibility、加密和索引的硬边界。层级关系默认只表示导航和可发现性，不表示自动权限继承。
+
+`Space(kind=board)` 与 `Space(kind=list)` 默认是 `boundary_profile="container"` 的工作流容器。它们可被层级或 relation projection 展示为父子关系，但不会因为使用 `cx:space:` ID 就形成新的 membership、history visibility、E2EE、federation 或 policy 边界。容器 Space 的授权解析回最近的 security-boundary 祖先 Space，除非 profile 明确声明更严格的局部约束。
 
 ## 2. 设计原则
 
 1. Space hierarchy 是有向图，不强制是树。一个 Space MAY 有多个 parent。
-2. Child Space 是独立 Space，拥有自己的 `space_id`、membership、policy、schema、history visibility 和 encryption epoch。
+2. Child security-boundary Space 是独立 Space，拥有自己的 `space_id`、membership、policy、schema、history visibility 和 encryption epoch。
 3. Parent 不得单方面把任意 Space 声明为 child。有效 parent-child edge MUST 由双方确认，除非 edge 被标记为 `unconfirmed_link`。
 4. 权限、成员、历史可见性、加密密钥和配额默认不级联。
 5. 任何级联都必须由 child Space 显式 opt-in，并且只能收窄，不能扩大 child 的本地安全边界。
@@ -17,13 +19,15 @@ Contrix 支持 Space 之间形成层级或图状组织，用于表达组织、�
 
 ## 3. 标准关系
 
+以下 `cx.space.child` / `cx.space.parent` 关系对 security-boundary Space 具有边界语义。对 `boundary_profile="container"` 的 Board/List，关系只表达导航、包含或工作流投影；不得触发 membership、capability、history visibility、E2EE key share 或 federation 拓扑继承。
+
 Space 层级使用 state event 表达，而不是普通对象 Relation。
 
 Parent 侧声明：
 
 ```json
 {
-  "type": "cx.space.child",
+  "kind": "cx.space.child",
   "state_key": "cx:space:ch11d010000000000000000000",
   "content": {
     "child_space_id": "cx:space:ch11d010000000000000000000",
@@ -39,7 +43,7 @@ Child 侧确认：
 
 ```json
 {
-  "type": "cx.space.parent",
+  "kind": "cx.space.parent",
   "state_key": "cx:space:parent01000000000000000000",
   "content": {
     "parent_space_id": "cx:space:parent01000000000000000000",
@@ -89,7 +93,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 
 ```json
 {
-  "type": "cx.space.inheritance_policy",
+  "kind": "cx.space.inheritance_policy",
   "state_key": "cx:space:parent01000000000000000000",
   "content": {
     "parent_space_id": "cx:space:parent01000000000000000000",
@@ -120,7 +124,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项：
 
 ```json
 {
-  "type": "cx.capability.derived",
+  "kind": "cx.capability.derived",
   "state_key": "cx:grant:der1ved0100000000000000000",
   "content": {
     "source_grant": "cx:grant:parentv1ewer00000000000000",
@@ -174,7 +178,7 @@ Policy 继承只适合以下收窄型规则：
 
 ## 9. History and Encryption
 
-Child Space 的历史可见性独立计算。Parent 成员不因层级关系获得 child 历史。
+Child security-boundary Space 的历史可见性独立计算。Parent 成员不因层级关系获得 child 历史。Container Space 没有独立历史可见性；其对象历史按最近 security-boundary 祖先 Space 与具体 Flow branch policy 计算。
 
 E2EE 要求：
 
@@ -182,6 +186,7 @@ E2EE 要求：
 - Parent MLS group key MUST NOT 用于解密 child。
 - Child MAY 通过 invite / welcome flow 把 parent 成员加入 child MLS group，但这是显式 membership 变化。
 - Archive/export 可以按 hierarchy 批量发起，但每个 Space 的 key、policy 和 authorization 独立验证。
+- Container Space MUST NOT 单独创建 MLS group；Board/List 内 Flow 或 Message 的 E2EE 由最近 security-boundary Space 或显式 branch-scoped E2EE policy 决定。
 
 ## 10. Query and Sync
 
@@ -232,7 +237,7 @@ Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求�
 规则：
 
 - Projection executor MUST 对每个 child 独立检查 read capability。
-- 无权限 child 只能返回 `space_id`、`edge_state` 和 `lazy_link=true`，不得泄露名称、成员、Room/Card 摘要、消息摘要或统计。
+- 无权限 child 只能返回 `space_id`、`edge_state` 和 `lazy_link=true`，不得泄露名称、成员、Flow 摘要、Message 摘要或统计。
 - `depth` MUST 有服务端上限。
 - 遍历时发现 cycle，MUST 截断并返回 `cycle_detected=true`。
 - Sync 不得默认订阅所有 descendants。客户端必须显式设置 `include_descendants` 或列出 child space ids。
@@ -260,7 +265,7 @@ Parent archive / tombstone 不自动 archive child。Child archive / tombstone �
 
 ## 13. Applet and Portal Spaces
 
-Portal Space MAY 被挂在组织、项目或 Room-oriented Space 下。Applet registration 的 namespace 命中不等于 parent Space 权限。
+Portal Space MAY 被挂在组织、项目或 discussion-oriented Flow 所在 Space 下。Applet registration 的 namespace 命中不等于 parent Space 权限。
 
 Applet 对 child Portal Space 写入仍需：
 
@@ -273,7 +278,7 @@ Applet 对 child Portal Space 写入仍需：
 
 Contrix 的 Space hierarchy 借鉴 Matrix `m.space.child` / `m.space.parent` 的双向确认经验，但区别是：
 
-- Contrix Space 是权限和对象图边界，不只是 room directory。
-- Subject / Room / Flow / Space (kind=board) / Space (kind=list) / Message / Morph / Relation 仍然承载业务对象层级，不应把所有对象拆成子 Space。
+- Contrix security-boundary Space 是权限和对象图边界，不只是 room directory。
+- Flow / Space (kind=board) / Space (kind=list) / Message / Morph / Relation 仍然承载业务对象层级，不应把所有对象拆成 child security-boundary Space。
 - 权限和加密默认不继承。
 - 跨 Space 深度查询必须 Lazy Link，不能自动拼接泄露。

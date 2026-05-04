@@ -10,7 +10,7 @@ Space 可通过 state event 声明策略服务：
 
 ```json
 {
-  "type": "cx.space.policy_server",
+  "kind": "cx.space.policy_server",
   "state_key": "primary",
   "content": {
     "server_id": "did:web:policy.example.com",
@@ -74,7 +74,7 @@ Content-Type: application/json
     "signed_transport": true
   },
   "event_preview": {
-    "type": "cx.message.create",
+    "kind": "cx.message.create",
     "content_hash": "sha256:...",
     "redacted_content": {
       "mentions": ["did:web:bob.example.com"],

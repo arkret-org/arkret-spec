@@ -92,8 +92,7 @@ did:plc:<identifier>
 
 Contrix v1 conformance 要求如下：
 
-- Core resolver / verifier MUST 支持 `did:plc` 和 `did:web`。
-- Core resolver / verifier SHOULD 支持 `did:key`，用于测试、bootstrap、设备和邀请流程。
+- Core resolver / verifier MUST 支持 `did:plc`、`did:web` 和 `did:key`。`did:key` 用于测试、bootstrap、设备、一次性邀请和 registry outage 时的本地可验证身份材料；它不改变长期 principal 的 method policy。
 - Organization / high-security profile SHOULD 支持 `did:webvh` 或等价 history-bearing DID method。
 - Wallet interop profile MAY 支持 `did:pkh`。
 - 实现 MAY 支持其他现有 DID method，例如 KERI 系列 method，但 MUST 保留 raw method evidence，并声明 trust profile。
@@ -154,6 +153,17 @@ Resolver policy MUST 至少定义：
 }
 ```
 
+### 4.2 DID Method Continuity
+
+DID method 或 registry 不可用时，节点不得把“暂时无法解析”解释为“身份仍然有效”。Resolver MUST fail closed，但实现还必须提供可恢复的用户路径：
+
+- 缓存解析结果只能在 resolver policy 声明的 TTL、document hash、history head 和 trust domain 内使用；超过 TTL 或 evidence 断链后，不得接受新的高风险写入。
+- `did:plc` directory 不可用时，resolver MAY 使用 policy 允许的 mirror / audit source，但必须验证同一 operation chain、history head 和 directory transparency evidence；不得用 handle、DNS 或服务声明代替 DID method history。
+- 用户迁移到新 DID method 时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
+- 若旧 DID 仍可解析，continuity proof SHOULD 由旧 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Space / service 范围。
+- 若旧 method 永久不可用且无法验证旧控制密钥，只能走 Space / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
+- Principal Server、Directory 或 Handle 服务 MAY 帮助发现新 DID，但不得单独证明 DID continuity。
+
 ## 5. Resolver、Auth Server 与组织授权
 
 DID 解析、登录认证和组织数据授权是三个不同职责：
@@ -189,7 +199,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 ```json
 {
-  "type": "cx.did.proof",
+  "kind": "cx.did.proof",
   "purpose": "account_binding",
   "did": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "audience": "did:web:auth.acme.example",

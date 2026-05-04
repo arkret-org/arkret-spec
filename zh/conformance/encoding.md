@@ -125,6 +125,8 @@ Hybrid Logical Clock 编码：
 - `unix_ms_hex` MUST 是 12 位小写十六进制毫秒时间戳。
 - `logical_hex` MUST 是 4 位小写十六进制逻辑计数器，取值范围 `0000..ffff`。
 - `node_id_hash` MUST 是 8 位小写十六进制稳定节点哈希；它只用于同一 `(unix_ms, logical)` 下的确定性 tie-break，不得替代因果关系或授权判断。
+- 用户客户端的 `node_id_hash` MUST 从 Space-scoped 或 deployment-scoped 的本地 node secret 派生，例如 `SHA256("contrix-hlc-v1" || space_id || device_id || local_node_secret)[0:8]`。不得直接使用 principal DID、公开 handle、长期 device id 或跨 Space 稳定标识作为 hash 输入。
+- 服务 DID 产生的公开服务事件 MAY 使用 service-scoped node id，但服务若代表用户或 minimal-metadata Space 转发/生成事件，MUST 使用 Space-scoped pseudonymous node id，避免跨 Space 关联。
 
 排序按 `(unix_ms, logical, node_id_hash)` 字典序。
 
@@ -136,6 +138,8 @@ Hybrid Logical Clock 编码：
   - 在生成 canonical bytes 之前以本地临时错误终止该次写入，例如 `hlc_logical_overflow`，由调用方稍后重试。
 - 生产者在等待或重试期间 MUST 保留原有 `prev_refs`、`auth_refs` 和 `actor_seq` 约束，不得仅为了逃避 overflow 而伪造更大的 wall clock skew。
 - 消费者若观察到同一 producer 出现 `unix_ms` 不变、`logical_hex` 从 `ffff` 回绕到更小值且没有更大 `unix_ms`，MUST 将其视为无效 HLC，并以 `schema_violation`、`causal_conflict`、`soft_fail` 或 quarantine 处理；不得把它当作正常排序值接受。
+
+v1 固定使用 4 位 `logical_hex`。该上限等价于单个 producer 每毫秒 65,536 个有序 HLC；超过该速率的批量写入应拆分到多个 actor/device producer、等待下一毫秒，或使用服务端批量入口排队。不得在 v1 中把 `logical_hex` 私自扩展到 6/8 位；需要更宽计数器时必须声明新的 HLC version 与 schema profile。
 
 ## 8. Cursor
 

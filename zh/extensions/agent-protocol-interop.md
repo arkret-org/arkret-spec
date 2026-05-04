@@ -56,7 +56,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ```json
 {
-  "type": "cx.agent.endpoint",
+  "kind": "cx.agent.endpoint",
   "agent_id": "did:web:agent.example.com",
   "endpoints": [
     {
@@ -84,7 +84,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ```json
 {
-  "type": "cx.agent.protocol_session.start",
+  "kind": "cx.agent.protocol_session.start",
   "space_id": "cx:space:...",
   "actor_id": "did:web:requesting-agent.example.com",
   "content": {
@@ -110,7 +110,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ```json
 {
-  "type": "cx.agent.protocol_session.status",
+  "kind": "cx.agent.protocol_session.status",
   "space_id": "cx:space:...",
   "content": {
     "session_id": "cx:agent_session:01J...",
@@ -141,7 +141,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ```json
 {
-  "type": "cx.agent.protocol_session.result",
+  "kind": "cx.agent.protocol_session.result",
   "space_id": "cx:space:...",
   "content": {
     "session_id": "cx:agent_session:01J...",

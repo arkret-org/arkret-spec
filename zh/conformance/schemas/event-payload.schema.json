@@ -1150,7 +1150,7 @@
         "capability_root": {
           "$ref": "#/$defs/hash"
         },
-        "room_metadata_hash": {
+        "discussion_metadata_hash": {
           "$ref": "#/$defs/hash"
         },
         "binding_profile": {

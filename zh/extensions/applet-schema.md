@@ -4,7 +4,7 @@
 
 ```json
 {
-  "type": "cx.applet.registration",
+  "kind": "cx.applet.registration",
   "applet_id": "cx:applet:examp1e0000000000000000000",
   "service_did": "did:web:applet.example",
   "controller_did": "did:web:acme.example",
@@ -140,7 +140,7 @@ GET /api/v1/applet/protocols/{protocol}
 
 ```json
 {
-  "type": "cx.applet.bridge_error",
+  "kind": "cx.applet.bridge_error",
   "applet_id": "cx:applet:examp1e0000000000000000000",
   "external_ref": {},
   "error_code": "external_rate_limited",

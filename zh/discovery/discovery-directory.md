@@ -38,7 +38,7 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 
 ```json
 {
-  "type": "cx.space.discovery",
+  "kind": "cx.space.discovery",
   "state_key": "",
   "content": {
     "discoverability": "listed",
@@ -97,7 +97,7 @@ Organization discovery policy SHOULD be represented by organization profile stat
 
 ```json
 {
-  "type": "cx.organization.discovery",
+  "kind": "cx.organization.discovery",
   "organization_did": "did:web:acme.example",
   "discoverability": "public",
   "profile_visibility": {

@@ -88,10 +88,12 @@ else:
 ### 4.4 Node ID 计算
 
 ```
-node_hex = SHA256(node_identifier)[0:8]
+node_hex = SHA256("contrix-hlc-v1" || scope_id || device_id || local_node_secret)[0:8]
 ```
 
-其中 `node_identifier` 是 principal DID 或 service DID。
+`scope_id` 通常是 `space_id`；branch-scoped E2EE 或 minimal-metadata profile MAY 使用更窄的 `flow_id + branch`。`local_node_secret` 是本地生成并可轮换的节点秘密，不能是 principal DID、handle 或可公开枚举的长期 device id。服务 DID 产生的公开服务事件 MAY 使用 service-scoped node id；代表用户或隐私 Space 生成事件时，仍应使用 scope-scoped pseudonymous node id。
+
+该字段只用于 tie-break，不是身份标识。接收方不得把 `node_hex` 反向关联为 principal、device 或服务，也不得把相同 `node_hex` 跨 Space 出现作为授权、反滥用或身份聚类依据。
 
 ## 5. 比较规则
 

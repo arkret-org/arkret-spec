@@ -55,6 +55,8 @@
 
 说明：`operation` 与 `event_batch_receipt` 非 v1 的标准持久化 canonical object；前者是 SDK 内部可寻址中间对象，后者为可选加速/审计对象，协议事实与 reducer 真相仍由 Event Envelope 与 Materialized State 决定。`space_id` / `schema` 字段在这些类型上仍保留可扩展性。
 
+Event Envelope 不是 Materialized Object，不继承本节 Common Object Fields 的 `type` / `schema` 语义。Event 的标准事件类型由顶层 `kind` 表达；`type` 只用于物化对象、外部标准文档或 payload schema 明确声明的对象 discriminator。
+
 ## 4. Space
 
 Schema id: `cx.schema.space.v1`
@@ -67,6 +69,7 @@ Schema id: `cx.schema.space.v1`
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `kind` | yes | `enum(collaboration, personal, project, organization, enclave, board, list)` | `collaboration/personal/project/organization/enclave` 表示通用 Space，`board/list` 表示 Work container space。自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
+| `boundary_profile` | no | `enum(security_boundary, container)` | 省略时由 `kind` 派生：`board/list` 为 `container`，其他标准 kind 为 `security_boundary`。 | 是否形成独立 membership / policy / history / E2EE 边界。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或兼容 profile。 | 启用 schema。 |
@@ -80,6 +83,20 @@ Schema id: `cx.schema.space.v1`
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
+
+Space kind 语义：
+
+| kind | 语义 |
+| --- | --- |
+| `collaboration` | 默认协作 Space，适合普通团队或项目上下文。 |
+| `personal` | 个人 Space，通常由单个 principal 控制。 |
+| `project` | 项目 Space，常由组织或项目治理策略管理。 |
+| `organization` | 组织级 Space，承载组织治理、目录或跨项目协作入口。 |
+| `enclave` | 高隔离 Space，通常要求更严格的 resolver、E2EE、审计或 federation policy。 |
+| `board` | 工作流容器 Space，用于组织 list 与 item 位置；默认 `boundary_profile=container`。 |
+| `list` | Board 下的列/泳道容器 Space，用于承载 Flow 的位置关系；默认 `boundary_profile=container`。 |
+
+`boundary_profile=security_boundary` 的 Space 是复制、授权、schema、policy、membership、history visibility、E2EE 和索引边界。`boundary_profile=container` 的 Space 只提供容器 ID、排序、View / Relation anchor 和局部工作流元数据；它不得隐式创建独立 membership、join rule、history visibility、MLS group、federation topology、retention policy 或 plaintext-visible service。Profile 若允许自定义 kind 成为容器，必须显式声明 `boundary_profile=container`，并说明父安全边界如何解析。
 
 ## 5. Actor Profile
 
@@ -143,6 +160,7 @@ Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
 | `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
 | `kind` | yes | `enum(board)` | 固定为 `board`。 | Space 形态。 |
+| `boundary_profile` | no | `enum(container)` | 默认为 `container`。 | 不形成独立安全边界。 |
 | `space_id` | yes | `id:space` |  | 父 Space ID。 |
 | `title` | yes | `string` | 1..256 chars。 | 名称。 |
 | `summary` | no | `string` |  | 说明。 |
@@ -151,6 +169,8 @@ Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 
 | `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+Space (kind=board/list) 是工作流容器，不是新的 membership、history visibility、policy、federation 或加密边界。除非明确 profile 另有规定，它们的成员、history visibility、E2EE、federation、retention 和 plaintext-visible service 规则 MUST 继承最近的 `boundary_profile=security_boundary` 祖先 Space 的有效 policy；不得仅因为创建了 Board/List 就隐式创建独立 MLS group、join rule 或 federation topology。
 
 ### 6.3 Space (kind=list)
 
@@ -161,6 +181,7 @@ Space (kind=list) 是 `Space` 的列/泳道形态，ID 使用 `cx:space:` 格式
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
 | `type` | yes | `enum(space)` | 固定为 `space`。 | 对象种类。 |
 | `kind` | yes | `enum(list)` | 固定为 `list`。 | Space 形态。 |
+| `boundary_profile` | no | `enum(container)` | 默认为 `container`。 | 不形成独立安全边界。 |
 | `space_id` | yes | `id:space` |  | 父 Space ID（Space (kind=board)）。 |
 | `title` | yes | `string` | 1..256 chars。 | 名称。 |
 | `summary` | no | `string` |  | 说明。 |
@@ -170,6 +191,8 @@ Space (kind=list) 是 `Space` 的列/泳道形态，ID 使用 `cx:space:` 格式
 | `state` | no | `enum(active, archived, deleted)` |  | 状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+Space (kind=list) 的排序、WIP、item membership 和 card 位置必须通过 Relation / Flow move / rank 事件表达。List 本身不得被当作 Message timeline、成员房间或权限主键。
 
 ### 6.4 Message
 
@@ -252,6 +275,8 @@ assigned_to, references, derived_from, attached_to, has_default_view,
 produced, used, triggered_by, has_log, summarized_from, promoted_from_discussion
 ```
 
+未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。声明为 multi-edge 的 relation profile MUST 显式定义去重 key、排序字段和 conflict 处理。
+
 ## 9. Event Envelope
 
 Schema id: `cx.schema.event.v1`
@@ -262,6 +287,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `encoding-conformance-vectors.md`。 | 事件 ID。 |
 | `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。 | 事件 kind。 |
+| `schema` | no | `string` | 若存在，MUST 为 `cx.schema.event.v1` 并进入 canonical bytes；不得替代 `kind` 或 payload schema selection。 | Envelope schema 标记。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
 | `space_version` | yes | `string` | 初版 `1`。 | 授权/状态版本。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
@@ -278,6 +304,10 @@ Event 是 reducer 输入。它不是当前态对象。
 | `content` | yes | `object` | 由 event kind schema 定义。 | 事件内容。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
+
+Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。`content.type` 不得重复写入 `cx.*` Event kind；若 payload 需要引用被创建对象，使用 `content.object.type` 等对象字段。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+
+`required_features` 与 `critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Space schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
 
 ## 10. Proof
 

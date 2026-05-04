@@ -21,6 +21,9 @@
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
 | Flow | 统一协作对象 | 替代历史 `Subject/Room/Card` 分拆的主对象，承载一个协作议题或任务。 |
 | Flow kind | Flow 形态 | `flow.kind`，当前推荐值 `card` / `room`，用于定义默认入口与交互模式。 |
+| Room | 讨论型 Flow | `Flow(kind=room)` 或 Flow 的 discussion branch 的简称；v1 中 Room 不是独立顶层对象。 |
+| Subject (legacy) | 旧主体对象 | 旧模型中的议题/主题对象名；v1 中由 Flow 与 `semantic_kind` 承担，不作为 wire type 使用。 |
+| Entity (legacy) | 旧通用对象 | 旧模型中的通用业务对象类型；v1 中由标准对象和 Morph/Profile 替代，不作为 wire type 使用。 |
 | semantic_kind | 业务语义 | `Flow.semantic_kind` 指定领域语义（如 `initiative`、`decision` 等）。 |
 | synthesis branch | 正式表达分支 | Flow 的“synthesis”分支，承载正式状态、结构化字段与决策正文。 |
 | discussion branch | 讨论分支 | Flow 的“discussion”分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow / Space access，显式 override 时才 branch-scoped。 |
@@ -36,7 +39,7 @@
 | Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 frontier。 |
 | HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，形如 `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 |
 | Cursor | 同步游标 | 指定 frontier 的 `scope:space|actor|query` 编码，用于增量同步与重放。 |
-| Canonical JSON | 规范 JSON | 确定性序列化格式，所有签名/哈希/对账输入必须使用。 |
+| Canonical JSON | 规范 JSON | 确定性 JSON 序列化格式，所有签名/哈希/对账输入必须使用；要求 UTF-8、key 排序、无空白、唯一 number 表示。 |
 | View | 投影定义 | 查询 + kind + renderer + config 的共享可签名对象，定义“怎么看”。 |
 | View.kind | 投影族类 | `collection / timeline / graph / document / composite`。 |
 | Capability | 能力 | 授权语义与对象的绑定关系，授予 subject 执行特定 action。 |
@@ -60,11 +63,9 @@
 | State Resolution | 状态收敛 | 多分支对同一 `(kind, state_key)` 给出不同 accepted state event 时，按确定性算法选择唯一 winner。 |
 | Reducer | 归约器 | 确定性纯函数，将 accepted Event 集合归约为当前态、state hash 和 conflict records。 |
 | Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Flow、Relation、View。 |
-| Canonical JSON | 规范 JSON | 确定性 JSON 序列化格式，用于签名和哈希输入；要求 UTF-8、key 排序、无空白、唯一 number 表示。 |
 | Frontier | 前沿 | Actor 或 Space 已接受事件的最远同步边界，用 event_id / HLC / actor_seq 表示。 |
 | Inception Key | 起源密钥 | DID 创建时的初始控制密钥，锚定在 DID 的 method history 中。 |
 | Plaintext Visible Service | 明文可见服务 | Space policy 显式声明可接收非加密私有内容或可逆派生摘要的服务。 |
 | History Visibility | 历史可见性 | 控制加入 Space 后能看到多少历史事件的范围规则。 |
 | Join Rule | 加入规则 | 控制 Actor 如何加入 Space 的策略（public、invite、knock、restricted 等）。 |
-| Discoverability | 可发现性 | 控制资源能否被目录、搜索、邀请或精确链接发现的分级策略。 |
 | MLS Bound State | MLS 绑定状态 | E2EE Space 中由 MLS application state root 覆盖的 membership、policy 等关键状态。 |

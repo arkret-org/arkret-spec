@@ -40,7 +40,7 @@ Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根�
 2. **主设备扫码**：用户使用已登录的主设备（如已通过面容 ID 解锁的手机）扫描该二维码。
 3. **密码学授权**：
    - 主设备验证身份后，将新设备的公钥添加到当前 DID Document 的 `verificationMethod` 列表中（若是 DID 主控端）。
-   - 或者，主设备使用自己的私钥签发一张 `cx.grant` 能力委派证书，明确将该账户的操作权限授予新设备的公钥。
+   - 或者，主设备使用自己的私钥签发一张 `cx.session.grant` 或 `cx.capability.grant`，明确把受限会话能力授予新设备的公钥；长期设备加入仍必须通过 `cx.device.authorized` 进入设备集合。
 4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过在 MLS 树中把新设备作为新叶子节点 `Add` 进去）同步给新设备。
 5. **事件广播**：主设备向网络广播 `cx.device.authorized` 事件。新设备即刻获得与网络互操作的完整能力。
 

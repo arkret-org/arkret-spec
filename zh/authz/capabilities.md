@@ -123,11 +123,18 @@ Contrix v1 支持以下 `kind`：
 
 ## 5. 动作集合
 
-动作名称与 `operations-sync.md` 中的事件 kind 对齐，使用 `cx.<domain>.<action>` 点分记法。通配符 `cx.<domain>.*` 表示该域的管理权限。
+动作名称与标准 event kind / operation id 的语义对齐，使用 `cx.<domain>.<action>` 点分记法。通配符 `cx.<domain>.*` 表示该域下已注册动作的管理权限。
+
+实现 MUST 把本节作为 capability action 的 canonical 词表。其他文档不得使用裸名动作（例如 `space.upgrade` 或 `space.hierarchy.manage`）；若需要新增动作，必须先在本节登记，再由相关 event / operation 文档引用。`cx.<domain>.*` 是否覆盖高风险动作由 Space policy 决定；policy 未声明时，`cx.space.admin` 覆盖普通 Space 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级。
 
 ### 5.1 通用动作
 
 - `cx.space.discover`
+- `cx.space.create`
+- `cx.space.update`
+- `cx.space.archive`
+- `cx.space.freeze`
+- `cx.space.destroy`
 - `cx.object.read`
 - `cx.object.read_metadata`
 - `cx.object.read_content`
@@ -176,9 +183,13 @@ Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation �
 ### 5.4 管理动作
 
 - `cx.space.admin`
+- `cx.space.hierarchy.manage`
+- `cx.space.upgrade`
+- `cx.space.moderate`
 - `cx.flow.admin`
 - `cx.schema.*`
 - `cx.capability.*`
+- `cx.policy.manage`
 - `cx.policy.*`
 - `cx.invite.create`
 - `cx.invite.revoke`
@@ -189,6 +200,12 @@ Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation �
 
 - `cx.sync.*`
 - `cx.blob.*`
+- `cx.call.configure_media_service`
+- `cx.mls.proposal`
+- `cx.mls.commit`
+- `cx.mls.welcome`
+- `cx.mls.keypackage`
+- `cx.mls.epoch`
 
 ### 5.6 人类界面与个人状态动作
 
@@ -205,6 +222,7 @@ Contrix v1 支持：
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
+- `space_kind_allow`
 - `flow_kind_allow`
 - `flow_semantic_kind_allow`
 - `morph_type_allow`
@@ -322,7 +340,7 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 
 ```json
 {
-  "type": "cx.capability.revoke",
+  "kind": "cx.capability.revoke",
   "body": {
     "grant_ref": "cx:grant:01js0gr0000000000000000000",
     "reason": "contract ended"

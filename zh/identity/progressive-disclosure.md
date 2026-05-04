@@ -36,7 +36,7 @@
 
 ```json
 {
-  "type": "cx.identity.presentation_request",
+  "kind": "cx.identity.presentation_request",
   "request_id": "cx:req:pres01j0000000000000000000",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
@@ -78,7 +78,7 @@ Verifier MUST sign the request or send it through an authenticated relationship.
 
 ```json
 {
-  "type": "cx.identity.disclosure_policy",
+  "kind": "cx.identity.disclosure_policy",
   "policy_id": "cx:policy:d1sc01j0000000000000000000",
   "holder_did": "did:web:holder.example.com",
   "audience": {
@@ -115,7 +115,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Space�
 
 ```json
 {
-  "type": "cx.identity.presentation_response",
+  "kind": "cx.identity.presentation_response",
   "request_id": "cx:req:pres01j0000000000000000000",
   "holder_subject": "did:key:z6Mkgpairwise...",
   "proof_profile": "vc_di_bbs_2023",
@@ -136,7 +136,7 @@ Response MUST NOT contain undisclosed fields, base proof, unrelated credential i
 
 ```json
 {
-  "type": "cx.identity.disclosure_receipt",
+  "kind": "cx.identity.disclosure_receipt",
   "receipt_id": "cx:receipt:d1sc01j0000000000000000000",
   "request_id": "cx:req:pres01j0000000000000000000",
   "holder_did": "did:key:z6Mkgpairwise...",

@@ -34,7 +34,7 @@
 字段：
 
 - `space_ids`: REQUIRED，查询范围。
-- `object_types`: OPTIONAL，限制标准对象类型，例如 `room`、`board`、`list`、`card`、`message`、`morph`。
+- `object_types`: OPTIONAL，限制标准对象类型，例如 `space`、`flow`、`message`、`morph`、`relation`、`view`。`card` / `room` 必须表达为 `object_types=["flow"]` + `filters` 限制 `kind`；Board/List 必须表达为 `object_types=["space"]` + `filters` 限制 `kind`。
 - `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
 - `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、有效 branch access 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
 - `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Card context 的上下文锚点对象引用。
@@ -82,7 +82,8 @@
 ```json
 {
   "and": [
-    { "field": "type", "op": "eq", "value": "card" },
+    { "field": "type", "op": "eq", "value": "flow" },
+    { "field": "kind", "op": "eq", "value": "card" },
     { "field": "fields.status", "op": "neq", "value": "done" }
   ]
 }
@@ -118,7 +119,7 @@ Relation Query 字段：
 - `direction`: REQUIRED，`out` / `in` / `both`。
 - `source_ref`: OPTIONAL，限制 relation 起点对象、Actor 或 Space。
 - `target_ref`: OPTIONAL，限制 relation 终点对象、Actor 或 Space。
-- `source_type`: OPTIONAL，限制起点类型，例如 `card`、`room`、`actor`、`space`。
+- `source_type`: OPTIONAL，限制起点类型，例如 `flow`、`actor`、`space`。需要区分 `card` / `room` 时使用 Flow `kind` 过滤。
 - `target_type`: OPTIONAL，限制终点类型。
 - `depth`: OPTIONAL，关系展开深度；跨 Space 规则见 `views.md` Lazy Link。
 

@@ -11,7 +11,7 @@
 
 ## 2. Read Receipt (已读回执)
 
-已读回执是向同一个 Room 的其他成员广播“我已经看到这条消息了”。
+已读回执是向同一个 Flow `discussion` branch 的可见成员广播“我已经看到这条消息了”。
 
 ### 2.1 临时性与高频特征
 
@@ -24,7 +24,7 @@
 
 ```json
 {
-  "type": "cx.receipt.read",
+  "kind": "cx.receipt.read",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js1000000000000000000001",
   "actor": "did:web:alice.example.com",
@@ -35,7 +35,7 @@
 
 | 字段 | 说明 |
 |------|------|
-| `event_id` | 用户已读的最新那条 Operation 的 ID。由于因果性，表示该 Operation 及其因果前驱均已读。 |
+| `event_id` | 用户已读的最新那条 Event 的 ID。由于因果性，表示该 Event 及其因果前驱均已读。 |
 
 ### 2.3 隐私控制
 
@@ -54,7 +54,7 @@ Read Marker 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 ```json
 {
-  "type": "cx.read.marker",
+  "kind": "cx.read.marker",
   "body": {
     "space_id": "cx:space:01js0sp0000000000000000000",
     "flow_id": "cx:flow:01js1000000000000000000001",
@@ -71,10 +71,10 @@ Read Marker 作为一种持久化的个人状态，MUST 作为加密 account dat
 未读计数是客户端本地或受托 notification service 维护的派生数据。
 
 1. 客户端同步用户的 account data 拿到最新的 `cx.read.marker`。
-2. 客户端计算 `cx.read.marker` 指向的 `event_id` 之后，该 Room 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
+2. 客户端计算 `cx.read.marker` 指向的 `event_id` 之后，该 Flow discussion branch 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
 3. 若部署使用受托 notification service，该服务必须按调用者权限和 `plaintext_visible_services` 规则生成最小化结果。
 
 ## 5. Thread (子线程) 的已读隔离
 
-在 Thread 模式下，Room timeline 和子 Thread 的阅读进度是分离的。
-如果 `cx.receipt.read` 或 `cx.read.marker` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Room timeline 的游标，反之亦然。
+在 Thread 模式下，Flow discussion timeline 和子 Thread 的阅读进度是分离的。
+如果 `cx.receipt.read` 或 `cx.read.marker` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Flow discussion timeline 的游标，反之亦然。

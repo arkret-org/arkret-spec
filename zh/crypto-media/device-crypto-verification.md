@@ -46,7 +46,7 @@ Contrix 使用三层签名链：
 
 ```json
 {
-  "type": "cx.device.list_update",
+  "kind": "cx.device.list_update",
   "content": {
     "principal_id": "did:plc:...",
     "changed": ["cx:device:01js0ke0000000000000000000"],
@@ -97,7 +97,7 @@ Content-Type: application/json
   "messages": {
     "did:web:alice.example.com": {
       "cx:device:01js0ke0000000000000000000": {
-        "type": "cx.key.verification.request",
+        "kind": "cx.key.verification.request",
         "content": {
           "transaction_id": "ver_123",
           "from_device": "cx:device:01js0kf0000000000000000000",

@@ -62,6 +62,12 @@
       "description": "Capability, policy, or visibility rules deny the request."
     },
     {
+      "code": "space_frozen",
+      "http_status": 403,
+      "scope": "both",
+      "description": "The target Space is frozen, archived, tombstoned, or otherwise closed to ordinary writes."
+    },
+    {
       "code": "claim_required",
       "http_status": 403,
       "scope": "both",
@@ -128,6 +134,18 @@
       "description": "The same idempotency key or stable identifier was reused with different canonical content."
     },
     {
+      "code": "rank_exhausted",
+      "http_status": 409,
+      "scope": "both",
+      "description": "No valid fractional rank exists between the requested bounds; a rebalance or different position is required."
+    },
+    {
+      "code": "hlc_logical_overflow",
+      "http_status": 503,
+      "scope": "both",
+      "description": "The producer cannot allocate a fresh HLC logical counter in the current millisecond without violating monotonicity."
+    },
+    {
       "code": "payload_too_large",
       "http_status": 413,
       "scope": "both",
@@ -138,6 +156,12 @@
       "http_status": 422,
       "scope": "both",
       "description": "A declared digest does not match the transferred content."
+    },
+    {
+      "code": "unknown_did",
+      "http_status": 422,
+      "scope": "both",
+      "description": "A DID cannot be resolved or validated under the active resolver policy."
     },
     {
       "code": "quota_exceeded",

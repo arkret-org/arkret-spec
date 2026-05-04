@@ -176,7 +176,7 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ```json
 {
-  "type": "cx.device.authorized",
+  "kind": "cx.device.authorized",
   "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "device_id": "cx:device:01js0ke0000000000000000000",
   "device_public_key": "z6Mks...",
@@ -217,7 +217,7 @@ Contrix v1 使用 `cx.session.grant` 作为标准可见事件类型。
 
 ```json
 {
-  "type": "cx.session.grant",
+  "kind": "cx.session.grant",
   "issuer": "did:web:auth-gateway.example.com",
   "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
   "session_public_key": "z6Mss...",
@@ -370,7 +370,7 @@ Recovery policy 字段：
 5. 提醒用户检查未知设备、session 和 agent grant。
 
 如果 principal signing key 泄露但 recovery key 安全，MUST 通过 recovery policy 重建当前控制密钥。  
-如果 recovery key 也泄露，SHOULD deactive 旧 DID 并执行身份重建。
+如果 recovery key 也泄露，SHOULD deactivate 旧 DID 并执行身份重建。
 
 ## 10. 实现要求
 

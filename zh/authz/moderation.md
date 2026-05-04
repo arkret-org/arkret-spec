@@ -100,7 +100,7 @@ POST /api/v1/moderation/report
 
 ```json
 {
-  "type": "cx.moderation.frank",
+  "kind": "cx.moderation.frank",
   "frank_id": "cx:frank:01JS...",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "event_id": "cx:event:01JS...",
@@ -144,7 +144,7 @@ Franking 信任链：
 
 ```json
 {
-  "type": "cx.account.blocklist",
+  "kind": "cx.account.blocklist",
   "owner": "did:web:alice.example.com",
   "entries": [
     {
@@ -216,7 +216,7 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
 
 ```json
 {
-  "type": "cx.space.moderation_policy",
+  "kind": "cx.space.moderation_policy",
   "state_key": "default",
   "content": {
     "version": 1,
@@ -343,7 +343,7 @@ Recommended object:
 
 ```json
 {
-  "type": "cx.organization.moderation_policy",
+  "kind": "cx.organization.moderation_policy",
   "organization_did": "did:web:acme.example",
   "policy_id": "cx:org-policy:abuse-v1",
   "scope": {

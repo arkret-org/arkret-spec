@@ -71,6 +71,74 @@
         "type": "string"
       }
     },
+    "space_kind_allow": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "collaboration",
+          "personal",
+          "project",
+          "organization",
+          "enclave",
+          "board",
+          "list"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "space_kind_deny": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "collaboration",
+          "personal",
+          "project",
+          "organization",
+          "enclave",
+          "board",
+          "list"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "flow_kind_allow": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "card",
+          "room"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "flow_kind_deny": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "card",
+          "room"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "flow_semantic_kind_allow": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "flow_semantic_kind_deny": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
     "morph_type_allow": {
       "type": "array",
       "items": {
@@ -157,6 +225,28 @@
       "items": {
         "type": "string"
       }
+    },
+    "allowed_branches": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "synthesis",
+          "discussion"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "denied_branches": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "synthesis",
+          "discussion"
+        ]
+      },
+      "uniqueItems": true
     },
     "max_delegation_depth": {
       "type": "integer",

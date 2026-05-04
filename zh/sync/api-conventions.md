@@ -157,6 +157,7 @@ API 调用 SHOULD 使用以下方式之一：
 | `soft_logged_out` | 401 | session 被软登出；客户端应重新认证但保留本地设备密钥 |
 | `invalid_signature` | 401 | 签名不成立 |
 | `capability_denied` | 403 | capability 或 policy 不允许 |
+| `space_frozen` | 403 | Space 冻结、归档、tombstone 或关闭，拒绝普通写入 |
 | `claim_required` | 403 | 缺少必要 claim / presentation |
 | `not_found` | 404 | 目标不存在或对请求方不可见 |
 | `unrecognized_endpoint` | 404 | 路径位于协议命名空间下但未被该服务实现或声明 |
@@ -168,8 +169,11 @@ API 调用 SHOULD 使用以下方式之一：
 | `discussion_branch_disabled` | 409 | 目标 Flow discussion branch 未启用，不能接收 `cx.message.*` |
 | `epoch_mismatch` | 409 | 加密 epoch 过期 |
 | `duplicate_conflict` | 409 | 相同幂等键对应不同内容 |
+| `rank_exhausted` | 409 | fractional rank 区间耗尽，需要 rebalance 或选择其他位置 |
+| `hlc_logical_overflow` | 503 | 生产者当前毫秒内无法继续生成单调 HLC，应稍后重试 |
 | `payload_too_large` | 413 | 请求体或 blob 超限 |
 | `digest_mismatch` | 422 | 上传、下载、代理或镜像内容摘要与声明不一致 |
+| `unknown_did` | 422 | DID 无法按当前 resolver policy 解析或验证 |
 | `quota_exceeded` | 403 | 存储、带宽或计算配额超限 |
 | `rate_limited` | 429 | 请求频率超限 |
 | `timeout` | 504 | 长轮询、等待 frontier 或上游请求超时 |

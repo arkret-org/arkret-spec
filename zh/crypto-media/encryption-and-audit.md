@@ -7,7 +7,7 @@
 本规范定义了 Contrix 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
 - 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)
-- 独创的 **可审查加密 (Auditable E2EE)**，确保合规解密必定留下透明不可抵赖的密码学记录。
+- **可审查加密 (Auditable E2EE)**，在 TEE / HSM / 等价受控执行 profile 下把合规解密绑定到可验证审计记录；在 software-only profile 下提供透明审计流程，但不声称具备同等密码学强制力。
 
 ## 2. 基础加密架构：MLS 与 Contrix 的融合
 
@@ -44,7 +44,7 @@ sequenceDiagram
 ```
 
 - **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Space Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
-- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。由于其仅面向特定新成员解密，该消息可通过 Sync Service 的 Ephemeral Channel 发送，或通过私信 `message` 投递。
+- **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。Welcome MUST 通过 durable `cx.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付，直到被消费、撤销或过期。Sync Service 的 Ephemeral Channel 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
 
 ### 2.3 载荷加密 (Application Data)
 日常的 Message、Flow synthesis 或 Morph 内容负载在写入 Event 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
@@ -118,7 +118,7 @@ published -> claimed -> consumed
 
 ```json
 {
-  "type": "cx.mls.keypackage",
+  "kind": "cx.mls.keypackage",
   "keypackage_id": "cx:mls:kp:01JS...",
   "principal_id": "did:web:alice.example.com",
   "device_id": "cx:device:01js0ke0000000000000000000",
@@ -154,14 +154,15 @@ Claim 成功后：
 
 Profile 规则：
 
-- MLS leaf credential MAY 使用 room-scoped pseudonymous credential，例如 `cx:pseudonym:<space_id>:<random>`。
+- Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 room-scoped pairwise DID，例如成员为该 Space / Flow branch 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
+- MLS leaf credential SHOULD 绑定同一个 room-scoped pairwise DID，或绑定可由该 pairwise DID 验证的 credential。
 - 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `cx.identity_link` application message 或 MLS private extension 中，只对当前 room members 可见。
-- `cx.identity_link` MUST 绑定 pseudonym、principal DID、device id、room id、MLS leaf index、effective time 和签名证明。
-- Sync / Federation 服务只可按 pseudonym、space id、epoch、event id 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
+- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、room id / flow branch id、MLS leaf index、effective time 和签名证明；该证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。
+- Sync / Federation 服务只可按 pairwise DID、space id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
 - Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Space policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Space。
-- 任何从 pseudonym 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Space history。
+- 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Space history。
 
-Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pseudonymous sender，但不得被提升为已验证 DID 发送者。
+Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pairwise sender，但不得被提升为已验证 principal DID 发送者。
 
 ### 2.8 Message ID AAD 可见性
 
@@ -190,20 +191,26 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 
 在很多去中心化产品中，如果存在审查，往往是通过向客户端下发“旁路后门”或者弱化密钥机制实现的，这引起了极大的隐私恐慌。
 
-Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：既满足组织的强制合规要求，又向所有参与者提供 100% 透明的审计记录。没有隐秘监控，所有的解密审查都被置于阳光之下。
+Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：既满足组织的强制合规要求，又向所有参与者提供可验证的审计记录。TEE / HSM / 等价受控执行 profile 可以把 key release 或明文输出绑定到先写审计记录；software-only profile 只能提供协议级流程和审计要求，不能密码学阻止持钥客户端绕过日志。
 
 ### 3.1 Auditable Policy 声明
 要启用此机制，Space 的 `schema/policy` 必须显式声明：
 ```json
 {
-  "encryption_profile": "mls-rfc9420",
+  "encryption_profile": "mls_rfc9420",
   "auditable_e2ee": true,
+  "auditable_e2ee_profile": "cx.profile.auditable_e2ee.tee_required.v1",
   "audit_actors": [
     "did:web:compliance.acme.corp"
   ]
 }
 ```
 客户端在加入此类 Space 前，**UI 必须向人类用户明确警告**：“这是一个受审核的加密空间，内容对合规员可见，但任何审查都会被记录并在群内公示。”
+
+Auditable E2EE profile：
+
+- `cx.profile.auditable_e2ee.tee_required.v1`：Audit Agent MUST 在声明的 TEE / enclave 或等价硬件隔离环境中运行；remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。
+- `cx.profile.auditable_e2ee.software_only.v1`：不要求 TEE，但 Space policy MUST 明确声明该降级；成员加入前必须可见确认。该 profile 仍然必须执行 `cx.audit.accessed` 先写后解密流程，但其保证属于合规和可审计流程保证，不是密码学强制保证。
 
 ### 3.2 审计节点的入群
 `did:web:compliance.acme.corp` 对应的合规客户端（Audit Agent）会作为一个合法的、只读的成员，由创建者通过正常的 `cx.mls.commit` 邀请加入 MLS 群组。
@@ -212,25 +219,29 @@ Contrix 引入 **“透明留痕审计 (Transparent Audit Trail)”** 机制：�
 - 群组内所有的普通成员都可以通过检查 MLS 树，清晰地知晓 Audit Agent 的存在。
 
 ### 3.3 强制留痕机制 (Audit Record Mandatory)
-获得密钥并不意味着可以随意“暗中偷看”。协议要求 Audit Agent 的实现（强烈建议依托于 TEE / SGX enclave 技术）必须执行以下硬性工作流：
+获得密钥并不意味着可以合规地随意查看。协议要求 Audit Agent 按声明的 auditable E2EE profile 执行以下工作流；`tee_required` profile 下该实现必须依托 TEE / enclave 或等价硬件隔离环境，并保证 MLS key、exporter secret 或解密明文不会在审计确认前离开受控边界：
 
 1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:message:msg12300000000000000000000`）。
-2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条类型为 `cx.audit.accessed` 的不可撤销 Event，并提交给该 Space：
+2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条 `kind="cx.audit.accessed"` 的不可撤销 Event，并提交给该 Space：
    ```json
    {
-     "type": "cx.audit.accessed",
-     "target_ref": "cx:message:msg12300000000000000000000",
-     "reason": "Internal legal compliance request #8801",
-     "actor": "did:web:compliance.acme.corp"
+     "kind": "cx.audit.accessed",
+     "space_id": "cx:space:01js0sp0000000000000000000",
+     "actor_id": "did:web:compliance.acme.corp",
+     "content": {
+       "target_ref": "cx:message:msg12300000000000000000000",
+       "purpose": "Internal legal compliance request #8801",
+       "accessed_at": "2026-04-30T00:00:00Z"
+     }
    }
    ```
 3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的“假动作死锁”（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Events API 或至少一个独立验证节点的 `sync_token`（或因果确权回执），确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。
-4. **完成解密**：只有在接收到确权回执后，硬件飞地（或受控合规服务）才被允许利用持有的 MLS 密钥将对应的明文吐出给合规人员。
+4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。Software-only profile MUST 按同一顺序执行并记录证明，但对恶意持钥客户端不提供密码学阻断。
 
 ### 3.4 审查透明公示
 因为 `cx.audit.accessed` 是一条公开写入的协作事件，所有参与者的客户端都能通过 sync 实时同步到该事件。
 - **用户端 UI**：客户端检测到自己发送的消息被附加了 `cx.audit.accessed` 后，应在界面上（如气泡旁边）显示明显的标识（例如一个带警告色的“合规审查”眼睛图标），并允许用户点击查看审查事由与时间。
-- **不可抵赖性**：合规员无法悄无声息地查看信息；一旦查看，全群组所有成员都能看到透明的访问足迹。
+- **不可抵赖性范围**：在 TEE / HSM / 等价受控执行 profile 中，合规输出必须绑定到 `cx.audit.accessed` 的确权回执；在 software-only profile 中，成员可审计合规客户端是否按流程记录访问，但协议不能阻止恶意持钥实现绕过日志。
 
 ## 4. 受控账号的通信穿透 (Master-Agent Control)
 
@@ -318,5 +329,5 @@ MLS Commit 的输入和输出必须在 Event content 中可验证表达：
 ## 7. v1 集成要求
 
 - KeyPackage 在 DID Document 或 Device / Key Server 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
-- TEE / Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `cx.audit.accessed` 先写后解密要求。
+- 当 auditable E2EE profile 要求 TEE 时，Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `cx.audit.accessed` 先写后解密要求。`software_only` profile 不得伪造或暗示存在 TEE attestation。
 - Signal / Double Ratchet 私信兼容只能作为 profile-specific fallback。fallback 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和迁移边界；不得在 MLS Space 内静默降级。

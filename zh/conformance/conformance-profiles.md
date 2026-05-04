@@ -195,6 +195,8 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 声明 `cx.profile.mls_state_binding.full.v1` 时，客户端和服务端 MUST 额外验证 MLS application state root 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier。无法验证该 root 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
 
+声明 `cx.profile.auditable_e2ee.tee_required.v1` 时，Audit Agent MUST 提供可验证 remote attestation，并执行 `cx.audit.accessed` 先写后解密、RYW receipt 等待和成员可见 disclosure。声明 `cx.profile.auditable_e2ee.software_only.v1` 时，不要求 TEE attestation，但 Space policy 和加入 UI MUST 明确展示该降级；同样不得绕过 `cx.audit.accessed` 留痕流程。
+
 MUST NOT：
 
 - 把明文消息发送给未授权 sync service 或受托 search / projection 服务

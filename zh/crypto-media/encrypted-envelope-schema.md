@@ -17,11 +17,10 @@
     "epoch": "integer",
     "content_type": "string",
     "ciphertext": "base64url",
-    "authentication_tag": "base64url",
     "aad": {
       "space_id": "cx:space:...",
       "event_type": "cx.message.create",
-      "event_id": "cx:event:...",
+      "event_ref_hash": "sha256:...",
       "causal_refs": ["cx:event:..."]
     },
     "key_ref": {
@@ -45,16 +44,18 @@
 | `group_id` | string | 是 | MLS 群组 ID (Base64URL) |
 | `epoch` | integer | 是 | MLS epoch 编号 |
 | `content_type` | string | 是 | 解密内容的 MIME 类型 |
-| `ciphertext` | string | 是 | 加密负载 (Base64URL) |
-| `authentication_tag` | string | 是 | AEAD 认证标签 (Base64URL) |
+| `ciphertext` | string | 是 | 加密负载 (Base64URL)。`mls-rfc9420` profile 中为 MLS PrivateMessage / application message 的序列化字节。 |
+| `authentication_tag` | string | 条件 | 仅 raw AEAD / exporter-AEAD profile 使用。`mls-rfc9420` profile 的认证标签已在 MLS message 内，不应重复拆出。 |
 | `aad` | object | 是 | 附加认证数据 |
 | `aad.space_id` | id:space | 是 | 用于路由和授权的 Space |
 | `aad.event_type` | string | 是 | 用于路由的事件类型 |
-| `aad.event_id` | id:event | 是 | 用于去重的事件 ID |
-| `aad.causal_refs` | array | 是 | 因果依赖 |
+| `aad.event_id` | id:event | 条件 | `aad_visibility.event_id="opaque_id"` 时可见。 |
+| `aad.event_ref_hash` | hash | 条件 | `aad_visibility.event_id="routing_hash"` 时使用，hash 输入必须由 profile 固定。 |
+| `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可用 `causal_ref_hashes` 替代。 |
+| `aad.causal_ref_hashes` | array<hash> | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
 | `key_ref` | object | 条件 | 密钥材料引用（对接收方可选） |
 | `digests` | object | 是 | 密码学摘要 |
-| `digests.payload_digest` | hash | 是 | sha256(canonical_json(明文元数据) \|\| 密文字节) |
+| `digests.payload_digest` | hash | 是 | sha256(canonical_json(明文元数据) \|\| 完整加密负载字节)。若 profile 拆出 `authentication_tag`，tag MUST 纳入完整加密负载字节。 |
 | `digests.aad_digest` | hash | 是 | 规范 AAD 的 SHA256 |
 
 ## 3. 附加认证数据 (AAD)
@@ -69,6 +70,14 @@ AAD 包含路由元数据，具有以下特性：
 
 AAD 字段集合受 Space 的 `aad_visibility` policy 约束。隐私优先 Space SHOULD 只保留路由所需的 `space_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 调试或投递确认的 Space MAY 暴露 opaque `event_id` / `message_id`，但该选择 MUST 在 Space policy 中声明并纳入 MLS-bound `policy_root`。
 
+`aad.event_id` 与 `aad.event_ref_hash` 是互斥 profile 字段：
+
+- `opaque_id`：AAD MAY 包含 `event_id`，用于跨 provider 投递确认和精确去重。
+- `routing_hash`：AAD MUST 使用 `event_ref_hash`，不得暴露稳定 `event_id`。hash 输入 SHOULD 为 `sha256("cx-aad-event-ref-v1" || event_id || space_id || policy_nonce)`。
+- `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_hash`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
+
+`aad.causal_refs` 在高隐私 profile 中 MAY 替换为 `causal_ref_hashes`，但该 profile 必须声明 backfill 和 conflict diagnostic 如何工作。
+
 ### 3.2 规范 AAD 序列化
 
 AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
@@ -77,7 +86,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 {
   "space_id": "cx:space:01js0sp0000000000000000000",
   "event_type": "cx.message.create",
-  "event_id": "cx:event:01js0ev0000000000000000000",
+  "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "causal_refs": ["cx:event:01js0et0000000000000000000"]
 }
 ```
@@ -99,13 +108,13 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 - `group_id`：MLS 群组标识符
 - `epoch`：当前 MLS epoch
-- `ciphertext`：MLS 加密的应用消息
-- `authentication_tag`：包含在 MLS 消息中
+- `ciphertext`：MLS 加密的应用消息，具体为 MLS PrivateMessage / application message 的序列化字节
+- `authentication_tag`：不单独出现；认证标签、sender data、generation 和 nonce 由 MLS message framing 管理
 
 **密钥材料**：
 
-- 发送者使用当前 MLS epoch 密钥
-- 接收者从 MLS ratchet tree 派生
+- 发送者使用 MLS secret tree 为每条 application message 派生的 key / nonce
+- 接收者按 MLS epoch、sender 和 generation 从本地 group state 解密
 - 密钥分发通过 MLS Welcome/Commit
 
 ### 4.2 未来方案
@@ -126,8 +135,8 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 1. 收集待加密内容
 2. 序列化为字节（如 JSON UTF-8 字符串）
 3. 从事件元数据生成 AAD
-4. 获取当前 MLS epoch 密钥
-5. 使用 AEAD 加密内容
+4. 调用 MLS library 构造 application PrivateMessage，并把规范 AAD 作为 MLS authenticated data 或 profile 声明的等价 authenticated input
+5. 序列化 MLS PrivateMessage 为 `ciphertext`
 6. 计算摘要
 7. 组装信封
 ```
@@ -138,8 +147,8 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 function encrypt_content(content, aad, group_context):
     plaintext = serialize(content)
     aad_bytes = canonical_json(aad)
-    key = derive_epoch_key(group_context)
-    (ciphertext, tag) = aead_encrypt(key, plaintext, aad_bytes)
+    private_message = mls_protect_application_message(group_context, plaintext, aad_bytes)
+    ciphertext = serialize(private_message)
     cleartext_metadata = canonical_json({encryption: scheme, epoch: epoch, content_type: content_type, aad: aad})
     payload_digest = sha256(cleartext_metadata || ciphertext)
     aad_digest = sha256(aad_bytes)
@@ -150,7 +159,6 @@ function encrypt_content(content, aad, group_context):
         epoch: group_context.epoch,
         content_type: "application/json",
         ciphertext: base64url_encode(ciphertext),
-        authentication_tag: base64url_encode(tag),
         aad: aad,
         digests: {
             payload_digest: "sha256:" + payload_digest,
@@ -167,8 +175,8 @@ function encrypt_content(content, aad, group_context):
 1. 提取信封字段
 2. 使用 aad_digest 验证 AAD 完整性
 3. 使用 payload_digest 验证负载完整性
-4. 获取 group_id/epoch 对应的 MLS epoch 密钥
-5. 使用 AEAD 和 AAD 解密密文
+4. 获取 group_id/epoch 对应的 MLS group state
+5. 使用 MLS library 和 AAD 解密 PrivateMessage
 6. 将明文反序列化为内容
 ```
 
@@ -322,7 +330,7 @@ MLS 提供：
 将 Space 迁移到加密：
 
 1. 在 Space policy 中添加 `encryption_profile`
-2. 通过 `cx.mls.create` 创建 MLS 群组
+2. 通过初始 `cx.mls.commit` / group genesis state 创建 MLS 群组，并为新成员写入 durable `cx.mls.welcome`
 3. 新内容加密
 4. 旧内容保持明文
 
@@ -366,11 +374,10 @@ MLS 提供：
     "epoch": 42,
     "content_type": "application/json",
     "ciphertext": "SGVsbG8gV29ybGQ",
-    "authentication_tag": "dGhpcyBpcyBhIHRhZw",
     "aad": {
       "space_id": "cx:space:01js0sp0000000000000000000",
       "event_type": "cx.message.create",
-      "event_id": "cx:event:01js0ev0000000000000000000",
+      "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "causal_refs": []
     },
     "digests": {

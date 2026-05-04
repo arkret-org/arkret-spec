@@ -31,9 +31,14 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 
 ## 2. 基本原则
 
-### 2.1 Space 是协作边界
+### 2.1 Space 边界与容器
 
-`space` 是复制、权限、schema、policy、membership、history visibility、加密和索引的边界。
+`space` 有两种规范性 profile：
+
+- `boundary_profile="security_boundary"`：复制、权限、schema、policy、membership、history visibility、加密和索引的硬边界。
+- `boundary_profile="container"`：安全边界内的工作流容器，用于稳定 ID、排序、View / Relation anchor 和局部元数据；不形成独立 membership、join rule、history visibility、MLS group、federation topology 或 plaintext-visible service。
+
+标准 `Space.kind` 中，`collaboration`、`personal`、`project`、`organization` 和 `enclave` 默认是 `security_boundary`；`board` 和 `list` 默认是 `container`。实现不得仅凭 `type="space"` 就假定对象一定形成新安全边界，必须按 `boundary_profile` 或由 `kind` 派生的默认值判断。
 
 一个 Space 可以包含多个：
 
@@ -43,7 +48,9 @@ Contrix 的核心数据模型不是 room-first，也不是万能 `Entity`。它�
 - Document
 - Morph
 
-Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组织，但 child Space 仍然是独立边界。membership、capability、history visibility、schema、policy 和 encryption key 默认不从 parent 级联到 child；任何继承都必须由 child Space 显式声明。详细规则见 `space-hierarchy.md`。
+Security-boundary Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组织，但 child security-boundary Space 仍然是独立边界。membership、capability、history visibility、schema、policy 和 encryption key 默认不从 parent 级联到 child；任何继承都必须由 child Space 显式声明。详细规则见 `space-hierarchy.md`。
+
+`boundary_profile="container"` 的 Board/List 不是这里所说的独立 child security boundary。它们可以使用 `cx.space.child` / `cx.space.parent` 或 Relation 表达导航和包含关系，但授权、history、E2EE 和 federation 解析回最近的 security-boundary Space。
 
 ### 2.2 Flow 承载主语义
 
@@ -304,7 +311,7 @@ Discussion branch 规则：
 
 ## 8. Space (kind=board) / Space (kind=list) / Flow
 
-Space (kind=board) 与 Space (kind=list) 是 `Space` 的工作流容器形态，使用 `cx:space:` ID。Space (kind=board) 是工作流容器；Space (kind=list) 是 Space (kind=board) 内的列/泳道；Space (kind=board) / Space (kind=list) 默认管理 `kind="card"` 的 Flow。
+Space (kind=board) 与 Space (kind=list) 是 `Space` 的工作流容器形态，使用 `cx:space:` ID，但默认 `boundary_profile="container"`。Space (kind=board) 是工作流容器；Space (kind=list) 是 Space (kind=board) 内的列/泳道；Space (kind=board) / Space (kind=list) 默认管理 `kind="card"` 的 Flow。
 
 Space (kind=board) 最小结构：
 
@@ -313,6 +320,7 @@ Space (kind=board) 最小结构：
   "id": "cx:space:01js0bd0000000000000000000",
   "type": "space",
   "kind": "board",
+  "boundary_profile": "container",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Release Board",
   "created_by": "did:web:alice.example",
@@ -327,6 +335,7 @@ Space (kind=list) 最小结构：
   "id": "cx:space:01js01s0000000000000000000",
   "type": "space",
   "kind": "list",
+  "boundary_profile": "container",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Review",
   "rank": "mV",
@@ -496,7 +505,9 @@ View 示例：
 ```json
 {
   "id": "cx:view:01js0vw0000000000000000000",
+  "type": "view",
   "space_id": "cx:space:01js0sp0000000000000000000",
+  "schema": "cx.schema.view.v1",
   "kind": "collection",
   "renderer": "board",
   "query": {
@@ -510,11 +521,26 @@ View 示例：
       "depth": 2
     }
   },
+  "collection": {
+    "item_object_types": ["flow"],
+    "item_render": "card",
+    "item_order_by": [
+      { "field": "fields.rank", "direction": "asc" }
+    ],
+    "grouping": {
+      "mode": "relation_container",
+      "board_id": "cx:space:01js0bd0000000000000000000",
+      "container_relation_kind": "contains",
+      "item_relation_kind": "contains"
+    }
+  },
   "visible_fields": [
     "title",
     "fields.priority",
     "fields.due_at"
-  ]
+  ],
+  "created_by": "did:web:alice.example",
+  "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 

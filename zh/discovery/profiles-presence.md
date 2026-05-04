@@ -54,7 +54,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 
 ```json
 {
-  "type": "cx.profile.update",
+  "kind": "cx.profile.update",
   "actor": "did:web:alice.example.com",
   "body": {
     "display_name": "Alice C.",
@@ -73,7 +73,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 
 ```json
 {
-  "type": "cx.profile.space_override",
+  "kind": "cx.profile.space_override",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "body": {
     "display_name": "alice-oss",
@@ -106,7 +106,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 
 ```json
 {
-  "type": "cx.presence",
+  "kind": "cx.presence",
   "actor": "did:web:alice.example.com",
   "state": "online",
   "last_active_at": "2026-04-26T08:30:00Z",
@@ -144,7 +144,7 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 
 ```json
 {
-  "type": "cx.typing",
+  "kind": "cx.typing",
   "actor": "did:web:alice.example.com",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js1000000000000000000001",

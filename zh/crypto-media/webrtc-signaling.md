@@ -106,7 +106,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ```json
 {
-  "type": "cx.space.media_service",
+  "kind": "cx.space.media_service",
   "state_key": "default",
   "content": {
     "service_id": "did:web:media.example.com",
@@ -213,7 +213,7 @@ Content-Type: application/json
 
 ```json
 {
-  "type": "cx.call.signal",
+  "kind": "cx.call.signal",
   "call_id": "cx:call:01J...",
   "space_id": "cx:space:...",
   "sender": "did:web:alice.example.com",
@@ -378,7 +378,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 
 ```json
 {
-  "type": "cx.call.state",
+  "kind": "cx.call.state",
   "space_id": "cx:space:...",
   "content": {
     "call_id": "cx:call:01J...",
@@ -429,7 +429,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 
 ```json
 {
-  "type": "cx.call.recording.start",
+  "kind": "cx.call.recording.start",
   "space_id": "cx:space:...",
   "content": {
     "call_id": "cx:call:01J...",

@@ -435,7 +435,7 @@ components:
           type: string
           enum: [visible, redacted, partial]
       additionalProperties: false
-    RoomTimelineResponse:
+    FlowDiscussionTimelineResponse:
       type: object
       required: [entries]
       properties:
@@ -452,7 +452,7 @@ components:
         state_after:
           $ref: "#/components/schemas/StateFrontier"
       additionalProperties: false
-    CardDiscussion:
+    FlowDiscussionSummary:
       type: object
       required: [flow]
       properties:
@@ -466,14 +466,14 @@ components:
           type: integer
           minimum: 0
       additionalProperties: false
-    CardDiscussionsResponse:
+    FlowDiscussionsResponse:
       type: object
       required: [flows]
       properties:
         flows:
           type: array
           items:
-            $ref: "#/components/schemas/CardDiscussion"
+            $ref: "#/components/schemas/FlowDiscussionSummary"
         summaries:
           type: object
         next_cursor:
@@ -695,13 +695,13 @@ components:
           type: string
           minLength: 1
       additionalProperties: false
-    CollectionMatrixGroupSource:
+    CollectionCrosstabGroupSource:
       type: object
       required: [model, row_key, column_key]
       properties:
         model:
           type: string
-          const: matrix_cell
+          const: crosstab_cell
         row_key:
           type: string
           minLength: 1
@@ -714,7 +714,7 @@ components:
         - $ref: "#/components/schemas/CollectionFieldValueGroupSource"
         - $ref: "#/components/schemas/CollectionRelationGroupSource"
         - $ref: "#/components/schemas/CollectionTimeBucketGroupSource"
-        - $ref: "#/components/schemas/CollectionMatrixGroupSource"
+        - $ref: "#/components/schemas/CollectionCrosstabGroupSource"
     CollectionFieldValuePosition:
       type: object
       required: [model, container_id, rank]
@@ -775,13 +775,13 @@ components:
           type: string
           minLength: 1
       additionalProperties: false
-    CollectionMatrixPosition:
+    CollectionCrosstabPosition:
       type: object
       required: [model, row_key, column_key, sort_key]
       properties:
         model:
           type: string
-          const: matrix_cell
+          const: crosstab_cell
         row_key:
           type: string
           minLength: 1
@@ -890,7 +890,7 @@ components:
               source:
                 properties:
                   model:
-                    const: matrix_cell
+                    const: crosstab_cell
                 required: [model]
             required: [source]
           then:
@@ -904,7 +904,7 @@ components:
                       required: [position]
                       properties:
                         position:
-                          $ref: "#/components/schemas/CollectionMatrixPosition"
+                          $ref: "#/components/schemas/CollectionCrosstabPosition"
       additionalProperties: false
     CollectionProjectionResponse:
       type: object
@@ -983,7 +983,7 @@ components:
             - $ref: "#/components/schemas/CollectionFieldValuePosition"
             - $ref: "#/components/schemas/CollectionRelationPosition"
             - $ref: "#/components/schemas/CollectionTimeWindowPosition"
-            - $ref: "#/components/schemas/CollectionMatrixPosition"
+            - $ref: "#/components/schemas/CollectionCrosstabPosition"
             - type: object
               required: [sort_key]
               properties:
