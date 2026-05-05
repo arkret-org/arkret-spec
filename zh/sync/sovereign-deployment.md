@@ -187,7 +187,8 @@ Controlled Collaboration Space SHOULD 使用：
   "payload": {
     "object": {
       "id": "cx:space:01js0en0000000000000000000",
-      "kind": "enclave",
+      "kind": "collaboration",
+      "security_class": "high_assurance",
       "space_version": "1",
       "title": "Controlled Collaboration",
       "created_by_principal": "did:web:defense.example",

@@ -42,11 +42,18 @@
       "type": "string",
       "enum": [
         "collaboration",
-        "enclave",
         "board",
         "list"
       ],
-      "description": "v1 standard Space kinds. 'personal'/'project'/'organization' were removed; their reducer behaviour is identical to 'collaboration' (boundary_profile=security_boundary). Implementations needing those distinctions SHOULD encode them via Space.fields, schema_refs, or labels."
+      "description": "v1 standard Space kinds. 'personal'/'project'/'organization'/'enclave' were removed in v1. The first three's reducer behaviour was identical to 'collaboration'; 'enclave' was a high-assurance variant whose only normative difference (federation_policy MUST NOT be open) now lives on the security_class field. Encode product-level distinctions via Space.fields, schema_refs, labels, or security_class."
+    },
+    "security_class": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "high_assurance"
+      ],
+      "description": "Optional security class. 'high_assurance' replaces v1's removed kind=enclave: it forbids federation_policy=open and SHOULD use stricter resolver/E2EE/audit defaults. Omitted = 'standard'."
     },
     "boundary_profile": {
       "type": "string",
@@ -256,10 +263,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "collaboration",
-              "enclave"
-            ]
+            "const": "collaboration"
           }
         },
         "required": [
@@ -277,12 +281,12 @@
     {
       "if": {
         "properties": {
-          "kind": {
-            "const": "enclave"
+          "security_class": {
+            "const": "high_assurance"
           }
         },
         "required": [
-          "kind"
+          "security_class"
         ]
       },
       "then": {

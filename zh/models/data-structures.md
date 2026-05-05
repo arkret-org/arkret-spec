@@ -81,7 +81,8 @@ Schema id: `cx.schema.space.v1`
 | `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
-| `kind` | yes | `enum(collaboration, enclave, board, list)` | `collaboration/enclave` 表示安全边界 Space，`board/list` 表示工作流容器 Space。v1 移除了 `personal/project/organization` 三个标签——它们的 reducer 行为与 `collaboration` 完全相同，应通过 `Space.fields` / `schema_refs` / `labels` 表达；自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
+| `kind` | yes | `enum(collaboration, board, list)` | `collaboration` 表示安全边界 Space，`board/list` 表示工作流容器 Space。v1 移除了 `personal/project/organization/enclave` 四个标签——`personal/project/organization` 的 reducer 行为与 `collaboration` 完全相同；`enclave` 的唯一规范差异（federation_policy 不得 open）已迁移到 `security_class` 字段。产品语义请通过 `Space.fields` / `schema_refs` / `labels` / `security_class` 表达；自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
+| `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` 替代旧 `kind=enclave`：MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`，并 SHOULD 使用更严的 resolver / E2EE / 审计默认值。schema enforce 见 `space.schema.json`。 | 安全等级标签。 |
 | `boundary_profile` | no | `enum(security_boundary, container)` | 省略时由 `kind` 派生：`board/list` 为 `container`，其他标准 kind 为 `security_boundary`。 | 是否形成独立 membership / policy / history / E2EE 边界。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
@@ -92,7 +93,7 @@ Schema id: `cx.schema.space.v1`
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`join_rule`) 维护；create event 提供初值。`invite` 表示只允许邀请加入；canonical state MUST 使用本枚举值。 | 派生：默认加入规则。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`history_visibility`) 维护；create event 提供初值。各取值 canonical 语义见 `authz/event-auth-state-resolution.md` §6。 | 派生：历史可见性。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create event 锁定；后续不得通过 Space update 改变。E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置（create-locked）。 |
-| `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | **reducer 派生**，由 `cx.space.policy.set` 相关 policy_components 维护。sovereign 默认 SHOULD `closed`。`kind=enclave` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 派生：联邦策略。 |
+| `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | **reducer 派生**，由 `cx.space.policy.set` 相关 policy_components 维护。sovereign 默认 SHOULD `closed`。`security_class=high_assurance` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 派生：联邦策略。 |
 | `retention_policy_ref` | no | `id:policy` | 可引用 retention policy。 | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -102,12 +103,11 @@ Space kind 语义：
 
 | kind | 语义 |
 | --- | --- |
-| `collaboration` | 默认协作 Space，覆盖个人、团队、项目、组织等通用语义；进一步语义通过 `Space.fields` / `schema_refs` / `labels` 表达。 |
-| `enclave` | 高隔离 Space，要求更严格的 resolver、E2EE、审计或 federation policy。 |
+| `collaboration` | 默认协作 Space，覆盖个人、团队、项目、组织等通用语义；进一步语义通过 `Space.fields` / `schema_refs` / `labels` / `security_class` 表达。 |
 | `board` | 工作流容器 Space，用于组织 list 与 item 位置；默认 `boundary_profile=container`。 |
 | `list` | Board 下的列/泳道容器 Space，用于承载 Flow 的位置关系；默认 `boundary_profile=container`。 |
 
-> v1 之前的 `personal` / `project` / `organization` 三个 kind 已合入 `collaboration`：它们的 reducer / boundary 行为没有差别，仅是产品标签。对端 MUST 把仍写作 `personal` / `project` / `organization` 的旧 wire 输入按 `schema_violation` 拒绝；产品语义请使用 `Space.fields` / `schema_refs` / `labels`。
+> v1 之前的 `personal` / `project` / `organization` / `enclave` 四个 kind 已移除。前三个 reducer / boundary 行为与 `collaboration` 没有差别，仅是产品标签；`enclave` 的唯一规范差异（federation_policy 不得 `open`）已迁移到 `security_class=high_assurance` 字段。对端 MUST 把仍写作 `personal` / `project` / `organization` / `enclave` 的旧 wire 输入按 `schema_violation` 拒绝；产品语义请使用 `Space.fields` / `schema_refs` / `labels`，安全等级请使用 `security_class`。
 
 `boundary_profile=security_boundary` 的 Space 是复制、授权、schema、policy、membership、history visibility、E2EE 和索引边界。`boundary_profile=container` 的 Space 只提供容器 ID、排序、View / Relation anchor 和局部工作流元数据；它不得隐式创建独立 membership、join rule、history visibility、MLS group、federation topology、retention policy 或 plaintext-visible service。Profile 若允许自定义 kind 成为容器，必须显式声明 `boundary_profile=container`，并说明父安全边界如何解析。
 
@@ -122,7 +122,7 @@ flowchart TD
     C -->|yes| D["Use declared boundary_profile"]
     C -->|no| E{"standard kind?"}
     E -->|"board/list"| F["Derive boundary_profile=container"]
-    E -->|"collaboration/enclave"| G["Derive boundary_profile=security_boundary"]
+    E -->|"collaboration"| G["Derive boundary_profile=security_boundary"]
     E -->|"custom/unknown"| H["Require profile declaration; otherwise fail closed for writes"]
     D --> I{"security_boundary?"}
     F --> J["Resolve nearest security-boundary ancestor"]

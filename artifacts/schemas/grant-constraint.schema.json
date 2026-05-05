@@ -209,10 +209,6 @@
         "type": "string",
         "enum": [
           "collaboration",
-          "personal",
-          "project",
-          "organization",
-          "enclave",
           "board",
           "list"
         ]
@@ -225,10 +221,6 @@
         "type": "string",
         "enum": [
           "collaboration",
-          "personal",
-          "project",
-          "organization",
-          "enclave",
           "board",
           "list"
         ]

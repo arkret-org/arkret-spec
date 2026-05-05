@@ -39,7 +39,7 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 - `boundary_profile="security_boundary"`：复制、权限、schema、policy、membership、history visibility、加密和索引的硬边界。
 - `boundary_profile="container"`：安全边界内的工作流容器，用于稳定 ID、排序、View / Relation anchor 和局部元数据；不形成独立 membership、join rule、history visibility、MLS group、federation topology 或 plaintext-visible service。
 
-标准 `Space.kind` 中，`collaboration` 和 `enclave` 默认是 `security_boundary`；`board` 和 `list` 默认是 `container`。实现不得仅凭 `cx:space:` ID 前缀就假定对象一定形成新安全边界，必须按 `boundary_profile` 或由 `kind` 派生的默认值判断。任意 `cx:space:` 的处理决策树见 `data-structures.md` §4.1。
+标准 `Space.kind` 中，`collaboration` 默认是 `security_boundary`；`board` 和 `list` 默认是 `container`。`security_class=high_assurance` 是 `collaboration` Space 的可选标签，进一步收紧 federation policy 与默认审计/E2EE 选项。实现不得仅凭 `cx:space:` ID 前缀就假定对象一定形成新安全边界，必须按 `boundary_profile` 或由 `kind` 派生的默认值判断。任意 `cx:space:` 的处理决策树见 `data-structures.md` §4.1。
 
 一个 Space 可以包含多个：
 
