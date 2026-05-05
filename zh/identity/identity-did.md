@@ -75,7 +75,7 @@ did:web:<host-and-path>
 
 `did:web` 的局限是 **没有可验证的 DID 文档历史**——只能反映当前状态。需要可审计身份控制历史的部署（组织治理、合规、长期可追溯）SHOULD 选择 `did:webvh` profile（见 §3.3），它在 `did:web` 之上叠加了 `did.jsonl` history + SCID + 可选 witness 证据。
 
-> **从 v1-pre-rc 演进的兼容性**：早期文档将 `did:webvh` 列为默认 method。v1-core-rc 把 v1 core
+> **从 v1-pre-rc 演进的兼容性**：早期文档将 `did:webvh` 列为默认 method。v1 把 v1 core
 > 的默认值收紧为 `did:web` 以降低对仍在演进规范的依赖；既有部署若已经使用 `did:webvh` 可以
 > 把它作为 high-trust profile 继续运行，无需迁移。
 

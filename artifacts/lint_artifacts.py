@@ -380,12 +380,14 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     id_path = ARTIFACTS / "registry" / "id-kind-registry.json"
     operation_path = ARTIFACTS / "registry" / "operation-registry.json"
     profile_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    constraint_schema_path = ARTIFACTS / "schemas" / "grant-constraint.schema.json"
 
     event_registry = load_json(lint, event_path) or {}
     schema_registry = load_json(lint, schema_path) or {}
     id_registry = load_json(lint, id_path) or {}
     operation_registry = load_json(lint, operation_path) or {}
     profile_registry = load_json(lint, profile_path) or {}
+    constraint_schema = load_json(lint, constraint_schema_path) or {}
 
     event_rows = event_registry.get("event_kinds", [])
     event_kinds = unique_values(lint, event_path, event_rows, "event_kind")
@@ -519,6 +521,18 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             if not PROFILE_ID_RE.fullmatch(value):
                 lint.fail(profile_path, f"profile id has invalid format: {value}")
 
+    constraint_types: set[str] = set()
+    constraint_type_schema = (
+        constraint_schema.get("properties", {})
+        if isinstance(constraint_schema, dict)
+        else {}
+    ).get("constraint_type", {})
+    enum_values = constraint_type_schema.get("enum") if isinstance(constraint_type_schema, dict) else None
+    if isinstance(enum_values, list):
+        constraint_types = {item for item in enum_values if isinstance(item, str)}
+    if not constraint_types:
+        lint.fail(constraint_schema_path, "constraint_type enum must be non-empty")
+
     return {
         "event_kinds": event_kinds,
         "active_event_kinds": {
@@ -539,6 +553,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "operation_grpc_map": operation_grpc_map,
         "operation_mq_map": operation_mq_map,
         "profiles": profiles,
+        "constraint_types": constraint_types,
     }
 
 
@@ -638,6 +653,10 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
             if schema_id not in known["schema_ids"]:
                 lint.fail(path, f"{profile_id} requires unknown schema: {schema_id}")
 
+        for constraint_type in requirement.get("required_constraint_types", []):
+            if constraint_type not in known["constraint_types"]:
+                lint.fail(path, f"{profile_id} requires invalid constraint_type: {constraint_type}")
+
         for fixture in requirement.get("required_fixtures", []):
             if fixture not in fixture_files:
                 lint.fail(path, f"{profile_id} requires missing fixture: {fixture}")
@@ -732,9 +751,67 @@ def parse_openapi_operation_http_map(text: str) -> tuple[dict[str, str], list[st
     return mapping, errors
 
 
+def check_openapi_contract_shape(lint: Lint, path: Path, text: str) -> None:
+    for forbidden in ("structural skeleton", "placeholders", "placeholder", "_report.md"):
+        if forbidden in text:
+            lint.fail(path, f"OpenAPI must not reference unpublished or placeholder contract text: {forbidden}")
+
+    in_paths = False
+    current_path: str | None = None
+    current_method: str | None = None
+    current_operation_id: str | None = None
+    has_request_body = False
+
+    def finish_operation(line_no: int) -> None:
+        if current_method in {"post", "put", "patch"} and not has_request_body:
+            label = current_operation_id or f"{current_method.upper()} {current_path}"
+            lint.fail(path, f"line {line_no}: write operation missing requestBody: {label}")
+
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        if not in_paths:
+            if line.strip() == "paths:":
+                in_paths = True
+            continue
+        if line and not line.startswith(" "):
+            finish_operation(line_no)
+            break
+
+        path_match = re.match(r"^  (/[^:]+):\s*$", line)
+        if path_match:
+            finish_operation(line_no)
+            current_path = path_match.group(1)
+            current_method = None
+            current_operation_id = None
+            has_request_body = False
+            continue
+
+        method_match = re.match(r"^    (get|post|put|patch|delete|head|options|trace):\s*$", line)
+        if method_match and current_path is not None:
+            finish_operation(line_no)
+            current_method = method_match.group(1)
+            current_operation_id = None
+            has_request_body = False
+            continue
+
+        if current_method is None:
+            continue
+        operation_match = re.match(r"^      operationId:\s*([A-Za-z0-9_.-]+)\s*$", line)
+        if operation_match:
+            current_operation_id = operation_match.group(1)
+        if re.match(r"^      requestBody:\s*$", line):
+            has_request_body = True
+        if re.match(r"^      headers:\s*$", line):
+            label = current_operation_id or f"{current_method.upper()} {current_path}"
+            lint.fail(path, f"line {line_no}: operation-level headers are invalid OpenAPI: {label}")
+
+    if in_paths:
+        finish_operation(line_no if "line_no" in locals() else 0)
+
+
 def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
     openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
     openapi_text = openapi_path.read_text(encoding="utf-8")
+    check_openapi_contract_shape(lint, openapi_path, openapi_text)
     openapi_operation_ids = OPENAPI_OPERATION_ID_RE.findall(openapi_text)
     openapi_set = set(openapi_operation_ids)
     if len(openapi_operation_ids) != len(openapi_set):
@@ -794,6 +871,9 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
         if data is None:
             continue
         for json_path, value, key in walk_json(data):
+            if key in {"auth_weight", "authority_class"}:
+                lint.fail(path, f"{json_path} uses removed state-resolution authority field: {key}")
+
             if not isinstance(value, str):
                 continue
 
@@ -815,6 +895,8 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
             if key == "call" and ".recovery.call" in json_path and value.startswith("cx."):
                 if value not in known["operation_ids"]:
                     lint.fail(path, f"{json_path} references unregistered recovery operation_id: {value}")
+            if key == "constraint_type" and value not in known["constraint_types"]:
+                lint.fail(path, f"{json_path} uses invalid constraint_type: {value}")
 
             for match in TYPED_ID_TOKEN_RE.finditer(value):
                 check_typed_id_token(lint, path, json_path, match.group(1), match.group(2), known)
@@ -888,6 +970,9 @@ def is_placeholder_typed_id(rest: str) -> bool:
 
 
 def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any, key: str | None, known: dict[str, set[str]]) -> None:
+    if key in {"auth_weight", "authority_class"}:
+        lint.fail(path, f"{json_path} markdown JSON uses removed state-resolution authority field: {key}")
+
     if isinstance(value, str):
         for schema_id in SCHEMA_ID_TOKEN_RE.findall(value):
             if schema_id not in known["schema_ids"]:
@@ -904,6 +989,9 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
             if value not in known["operation_ids"]:
                 lint.fail(path, f"{json_path} markdown JSON references unregistered operation_id: {value}")
 
+        if key == "constraint_type" and value not in known["constraint_types"]:
+            lint.fail(path, f"{json_path} markdown JSON uses invalid constraint_type: {value}")
+
         for match in TYPED_ID_TOKEN_RE.finditer(value):
             kind, rest = match.group(1), match.group(2)
             if is_placeholder_typed_id(rest):
@@ -916,6 +1004,9 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
 def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
     for path in markdown_files():
         text = path.read_text(encoding="utf-8")
+
+        if "cx.moderation.policy_action" in text:
+            lint.fail(path, "markdown references removed Event.kind cx.moderation.policy_action; use cx.policy.action")
 
         for schema_id in SCHEMA_ID_TOKEN_RE.findall(text):
             if schema_id not in known["schema_ids"]:

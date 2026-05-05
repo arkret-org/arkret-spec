@@ -14,7 +14,9 @@
 - 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry
 - OpenAPI、非 HTTP binding、fixture 与中文规范均可回指这些 registry
 
-当前仓库的发布状态是 `v1-core-rc` 候选基线：`zh/` 与 `artifacts/` 的 registry / schema / mirror lint 必须通过，核心 profile、schema 和 fixture 可用于实现者启动互操作开发。除非同一仓库或正式发布包同时提供 reference validator、reference reducer、reference authz evaluator、conformance runner，并在 CI 中执行核心 vectors，否则不得标记或宣传为 `v1.0-stable`。
+当前仓库的发布状态是 `v1.0.0` 规范稳定基线：`zh/` 与 `artifacts/` 的 registry / schema / mirror lint 必须通过，核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。历史候选标签不得用于描述当前正式发布包。
+
+规范稳定不等于任一实现已经获得完全互操作认证。实现若宣称通过某个 profile，仍必须通过对应 reference validator、reference reducer、reference authz evaluator 与 conformance runner；这些工具和测试结果属于实现认证门槛，而不是降低或替代本规范的 wire contract。
 
 ## 2.1 最小实现路径
 
@@ -57,17 +59,19 @@
 
 ## 5. 发布门槛
 
-### 5.1 `v1-core-rc`
+### 5.1 `v1.0.0` 规范稳定基线
 
 - `zh/` 与 `artifacts/` registry lint 通过
 - `core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema、fixture、profile 已冻结
+- OpenAPI 不得包含未发布生成器报告、占位 body 说明或 operation-level 非法字段
+- fixture 与 Markdown JSON 示例不得使用已移除的 wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`
 
-### 5.2 `v1-interop-preview`
+### 5.2 `v1-interop-preview` 实现互操作预览
 
 - 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量
 - 能重放官方 sync / state / capability fixture
 
-### 5.3 `v1.0-stable`
+### 5.3 `v1-conformance-certified` 实现认证
 
 - reference validator、reference reducer、reference authz evaluator 与 conformance runner 已发布
 - canonical JSON、Event Envelope negative vectors、state resolution、capability、privacy/security、sync 与 snapshot vectors 由 CI 执行
@@ -75,7 +79,7 @@
 
 ## 6. 工程交付要求
 
-- 提供官方 reference validator / reducer / authz 包
+- 为实现认证提供官方 reference validator / reducer / authz 包
 - 用 CI 自动校验 Markdown 示例、OpenAPI、registry、schema 与 fixture 一致性
 - 从 OpenAPI / JSON Schema 生成 SDK 类型与 contract tests
 - 对宽泛 payload schema 提供 reference validator 中的语义校验，不能只凭 JSON Schema 宣称完全互操作

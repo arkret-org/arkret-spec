@@ -13,7 +13,6 @@
         {
           "event_id": "cx:event:01js0ev1000000000000000000",
           "kind": "cx.flow.move",
-          "auth_weight": 200,
           "payload": {
             "board_id": "cx:space:01js0bd0000000000000000000",
             "flow_id": "cx:flow:01js0ca0000000000000000000",
@@ -25,7 +24,6 @@
         {
           "event_id": "cx:event:01js0ev2000000000000000000",
           "kind": "cx.flow.move",
-          "auth_weight": 200,
           "payload": {
             "board_id": "cx:space:01js0bd0000000000000000000",
             "flow_id": "cx:flow:01js0ca0000000000000000000",
@@ -43,13 +41,14 @@
       }
     },
     {
-      "name": "conflict_space_membership_ban_wins_over_join",
+      "name": "conflict_space_membership_quarantine_with_actor_tiebreak",
       "state_key": "did:web:bob.example",
       "candidates": [
         {
           "event_id": "cx:event:01js0mj0000000000000000000",
           "kind": "cx.member.state",
-          "auth_weight": 200,
+          "actor_id": "did:web:member.example",
+          "causal_depth": 9,
           "payload": {
             "membership": "join",
             "reason": "accepted_invite"
@@ -59,7 +58,8 @@
         {
           "event_id": "cx:event:01js0mb0000000000000000000",
           "kind": "cx.member.state",
-          "auth_weight": 500,
+          "actor_id": "did:web:admin.example",
+          "causal_depth": 9,
           "payload": {
             "membership": "ban",
             "reason": "abuse"
@@ -70,18 +70,20 @@
       "expected": {
         "winner_event_id": "cx:event:01js0mb0000000000000000000",
         "membership": "ban",
-        "reason": "higher_auth_weight"
+        "quarantined": [
+          "cx:event:01js0mj0000000000000000000"
+        ],
+        "reason": "concurrent_fork_quarantined_actor_tiebreak"
       }
     },
     {
-      "name": "policy_hard_deny_precedes_auth_weight",
+      "name": "policy_hard_deny_precedes_tiebreak",
       "state_key": "cx:space:01js0sp0000000000000000000|join_rule",
       "candidates": [
         {
           "event_id": "cx:event:01js0jr0000000000000000000",
           "kind": "cx.space.policy.set",
           "state_key": "join_rule",
-          "auth_weight": 650,
           "policy_result": "hard_deny",
           "payload": {
             "join_rule": "public"
@@ -92,7 +94,6 @@
           "event_id": "cx:event:01js0j10000000000000000000",
           "kind": "cx.space.policy.set",
           "state_key": "join_rule",
-          "auth_weight": 500,
           "policy_result": "allow",
           "payload": {
             "join_rule": "invite"
@@ -106,12 +107,12 @@
         "rejected": [
           "cx:event:01js0jr0000000000000000000"
         ],
-        "reason": "policy_hard_deny_before_weight"
+        "reason": "policy_hard_deny_before_tiebreak"
       }
     },
     {
-      "name": "same_layer_direct_vs_delegated",
-      "comment": "Two candidates target the same Space policy state key (kind=cx.space.policy.set, state_key=access). A is signed by a direct Space admin grant; B is signed via a delegated admin grant from the same admin tree. Both pass policy. authority_class lattice: A=(space_admin, direct) > B=(space_admin, delegated). A wins.",
+      "name": "concurrent_policy_access_quarantine_with_hlc_tiebreak",
+      "comment": "Two candidates target the same Space policy state key (kind=cx.space.policy.set, state_key=access). Both pass signature, schema, causal dependency, auth_refs, and policy checks. v1 does not use direct/delegated authority scoring; the reducer chooses a provisional winner by deterministic tiebreak and quarantines the non-winner until admin review.",
       "state_key": "cx:space:01js0sp0000000000000000000|access",
       "candidates": [
         {
@@ -122,15 +123,11 @@
           "auth_refs": [
             "cx:event:01js0gd0000000000000000000"
           ],
-          "authority_class": {
-            "governance_layer": "space_admin",
-            "authority_kind": "direct"
-          },
-          "auth_weight": 600,
+          "causal_depth": 11,
           "payload": {
             "version": 17
           },
-          "hlc": "01970e589d21-0001-a13f9c2e"
+          "hlc": "01970e589d21-0002-a13f9c2e"
         },
         {
           "event_id": "cx:event:01js0p20000000000000000000",
@@ -141,12 +138,7 @@
             "cx:event:01js0gd0000000000000000000",
             "cx:event:01js0gx0000000000000000000"
           ],
-          "authority_class": {
-            "governance_layer": "space_admin",
-            "authority_kind": "delegated",
-            "delegation_depth": 1
-          },
-          "auth_weight": 590,
+          "causal_depth": 11,
           "payload": {
             "version": 18
           },
@@ -156,12 +148,15 @@
       "expected": {
         "winner_event_id": "cx:event:01js0p10000000000000000000",
         "version": 17,
-        "reason": "same_layer_direct_outranks_delegated"
+        "quarantined": [
+          "cx:event:01js0p20000000000000000000"
+        ],
+        "reason": "concurrent_fork_quarantined_hlc_tiebreak"
       }
     },
     {
-      "name": "cross_layer_governance_vs_space_admin",
-      "comment": "Two candidates target the same membership state key. A is signed by an active Organization governance DID (sponsor, scope.official=true); B is signed by direct Space admin. authority_class lattice: A=(organization, direct) > B=(space_admin, direct). A wins regardless of HLC.",
+      "name": "membership_concurrent_quarantine_with_hlc_tiebreak",
+      "comment": "Two candidates target the same membership state key and both pass auth checks. Organization sponsorship may be part of the auth_refs proof, but v1 state resolution does not add a governance-layer winner lattice. The later HLC wins provisionally and the other candidate remains quarantined for review.",
       "state_key": "did:web:carol.example",
       "candidates": [
         {
@@ -171,16 +166,12 @@
           "auth_refs": [
             "cx:event:01js0rg0000000000000000000"
           ],
-          "authority_class": {
-            "governance_layer": "organization",
-            "authority_kind": "direct"
-          },
-          "auth_weight": 650,
+          "causal_depth": 14,
           "payload": {
             "membership": "ban",
             "reason": "org_compliance_action"
           },
-          "hlc": "01970e589d21-0002-a13f9c2e"
+          "hlc": "01970e589d21-000a-a13f9c2e"
         },
         {
           "event_id": "cx:event:01js0r20000000000000000000",
@@ -189,11 +180,7 @@
           "auth_refs": [
             "cx:event:01js0gd0000000000000000000"
           ],
-          "authority_class": {
-            "governance_layer": "space_admin",
-            "authority_kind": "direct"
-          },
-          "auth_weight": 600,
+          "causal_depth": 14,
           "payload": {
             "membership": "join",
             "reason": "space_admin_invite_accept"
@@ -204,7 +191,10 @@
       "expected": {
         "winner_event_id": "cx:event:01js0r10000000000000000000",
         "membership": "ban",
-        "reason": "organization_layer_outranks_space_admin"
+        "quarantined": [
+          "cx:event:01js0r20000000000000000000"
+        ],
+        "reason": "concurrent_fork_quarantined_hlc_tiebreak"
       }
     },
     {

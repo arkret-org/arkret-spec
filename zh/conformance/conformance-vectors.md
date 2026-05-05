@@ -899,7 +899,8 @@ cx.vector.capability.delegate_chain.v1
             "expires_at": "2026-05-20T00:00:00Z"
           },
           {
-            "constraint_type": "rate_limiting",
+            "constraint_type": "quota",
+            "subtype": "rate",
             "effect": "allow",
             "rate_limit": "5/hour"
           }
@@ -924,7 +925,8 @@ cx.vector.capability.delegate_chain.v1
         ],
         "constraints": [
           {
-            "constraint_type": "rate_limiting",
+            "constraint_type": "quota",
+            "subtype": "rate",
             "effect": "allow",
             "rate_limit": "2/day"
           },

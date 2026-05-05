@@ -19,7 +19,7 @@ libp2p）属于 **v1.1+ extension binding profile**，core 实现 **不要求** 
 
 > Rationale: 早期文档把"transport-agnostic"作为 normative claim，但仓库里 `contrix-service-api.openapi.yaml`
 > 已展开 ~70 KB HTTP/JSON 细节，而 gRPC / WebSocket / MQ / libp2p 各自只有几行说明。这种状况
-> 下声称对等 transport 会误导实现者。v1-core-rc 直接承认 HTTP/JSON 是 core，把其他 transport
+> 下声称对等 transport 会误导实现者。v1 直接承认 HTTP/JSON 是 core，把其他 transport
 > 留作 extension。Sync stream / events feed 的事件驱动语义可由后续 AsyncAPI 描述补充，但不
 > 改变 core 锁定。
 

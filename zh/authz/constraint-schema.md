@@ -13,9 +13,9 @@
 ```json
 {
   "constraint_id": "string",
-  "constraint_type": "enum",
-  "effect": "allow|deny|quarantine|require_review",
-  "evaluation_class": "stateless|grant_local|space_state|external"
+  "constraint_type": "temporal",
+  "effect": "allow",
+  "evaluation_class": "stateless"
 }
 ```
 
@@ -59,7 +59,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 
 未注册的 `constraint_type` 或未注册的 `(constraint_type, subtype)` 组合 MUST fail closed。新增 family / subtype 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` 与 `subtype` enum 中注册。
 
-> v1 之前曾有 14 个独立 `constraint_type`（`approval_workflow` / `accountability` / `encryption_requirement` / `container_move` / `visibility_control` / `resource_limit` / `edit_window` / `device_session` 各自独立）。它们在 v1-core-rc 被吸收到上面的 8 family 中，通过 subtype 或现有字段表达。这一收敛去掉了"types 13–15 之间互相耦合但没有清晰分界"的问题，也让 evaluation_class 表从 19 行变成 11 行。
+> v1 之前曾有 14 个独立 `constraint_type`（`approval_workflow` / `accountability` / `encryption_requirement` / `container_move` / `visibility_control` / `resource_limit` / `edit_window` / `device_session` 各自独立）。它们在 v1 被吸收到上面的 8 family 中，通过 subtype 或现有字段表达。这一收敛去掉了"types 13–15 之间互相耦合但没有清晰分界"的问题，也让 evaluation_class 表从 19 行变成 11 行。
 
 ### 2.3 evaluation_class 分类
 
@@ -233,7 +233,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 }
 ```
 
-`container_move` MUST 在授权判定中早于 operation 生效。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
+`scope_limitation` 约束中的容器移动字段 MUST 在授权判定中早于 operation 生效。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
 
 ## 7. 委托控制
 
@@ -796,9 +796,9 @@ Grant envelope 字段、签名规则与必填性以
 Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
 `delegation_path`、`prohibit_subdelegation` 见 §7.1。
 
-#### 20.3.5 Container Move Constraint
+#### 20.3.5 Container Move Scope Constraint
 
-看板拖拽和有序集合移动 SHOULD 使用 `container_move` constraint 限定范围。完整字段
+看板拖拽和有序集合移动 SHOULD 使用 `scope_limitation` constraint 的容器移动字段限定范围。完整字段
 见 §6.3；下例展示 grant 上下文中的常见组合：
 
 ```json

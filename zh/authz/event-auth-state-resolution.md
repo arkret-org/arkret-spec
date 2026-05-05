@@ -75,7 +75,7 @@ v1 reducer 的 auth refs 选择规则：
 | `cx.account.status` | principal control Space 的 `cx.space.create`、actor lifecycle / admin / governance capability、上一版 `cx.account.status` state、retention / legal-hold / erasure policy（如适用） |
 | `cx.moderation.report` | actor membership、reporter capability（基础举报 capability 默认对成员开放）、被举报对象的可见性证明、上一版同 `(reporter, target)` report state（用于去重）|
 | `cx.moderation.frank` | actor membership、E2EE Space 的 encryption / audit policy、对应 `cx.moderation.report` 引用、moderation server / audit agent service binding |
-| `cx.moderation.policy_action` | actor membership、moderation / policy / admin capability、`cx.space.policy.set` (state_key=`moderation`) 当前状态、政策列表 hash |
+| `cx.policy.action` | actor membership、moderation / policy / admin capability、`cx.space.policy.set` (state_key=`moderation`) 当前状态、政策列表 hash |
 
 如果事件缺少必需 auth ref，节点 MUST soft fail 并尝试 backfill。Backfill MUST 受 `../conformance/scalability-constraints.md` 的 `auth_chain` 深度、`auth_refs` 数量、page size、retry 和本地资源上限约束；实现不得为了验证单个事件无限递归拉取历史。若在上限内仍缺失，或只能通过未验证 snapshot / 未授权服务获得依赖，节点 MUST reject、保持 soft-failed 或 quarantine，具体取决于错误是否可恢复。
 
@@ -134,7 +134,7 @@ v1 已注册的 state_key（如 `access`、`join_rule`、`archive`、`freeze` �
 
 ### 4.4 离线写入与 frontier 重新校验
 
-v1-core-rc 不再要求实现支持长期 `partial_auth_state` 与 `soft_failed` 复活机制。设备或 actor 长时间离线后回归时，规则简化为：
+v1 不再要求实现支持长期 `partial_auth_state` 与 `soft_failed` 复活机制。设备或 actor 长时间离线后回归时，规则简化为：
 
 - 设备离线超过 reducer profile 声明的 `max_offline_backlog_ms`（v1 默认 30 天）后，提交新 Event 前 MUST 先重新拉取目标 Space 的 frontier、auth state 与最近 grant/revoke 事件。
 - 缺少 auth chain、grant 已被撤销、device authorization 已过期、或 actor frontier 已分叉时，新 Event MUST soft-fail 或 quarantine，不得作为 accepted。
@@ -396,7 +396,6 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.device.list_update`
 - `cx.session.grant`
 - `cx.account.status`
-- `cx.moderation.policy_action`
 - `cx.view.create`
 - `cx.view.update`
 - `cx.view.reconcile`
@@ -405,6 +404,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 
 - `cx.moderation.report`：举报事件，参与 moderation 队列与 quarantine projection。
 - `cx.moderation.frank`：franking proof，参与 E2EE 滥用举报审计；不进入 capability state map。
+- `cx.policy.action`：policy / governance action proposal or execution，可用于解除 state conflict quarantine；不默认进入 capability state map，除非具体 Space policy 把它声明为某业务事件的 auth dependency。
 - `cx.audit.accessed`：auditable E2EE 解密承诺事件；详见 `crypto-media/encryption-and-audit.md` §3。
 - `cx.audit.ryw_receipt`：Read-Your-Writes receipt（可选 ephemeral 或 durable）。
 
@@ -470,13 +470,13 @@ State resolution MUST 受 `../conformance/scalability-constraints.md` 的上限�
      - quarantine winner 的展示必须附带 conflict 诊断和被压制候选 id；客户端 UI MUST 显示 "state conflict pending review" 或等价标记。
    - **零候选** 通过授权：回退到 `base_state`，若无 base 则该 key unset；候选作为 `rejected` 记入 conflict_records。
 6. 输出 conflict_records。索引器 SHOULD 暴露给审计视图。
-7. quarantine 状态由后续 admin 写入的 `cx.moderation.policy_action` (state_key=`state_conflict_resolution`) 或等价管理事件解除；解除后被选中的 winner 进入 normal projection，其余候选保留为审计记录。
+7. quarantine 状态由后续 admin 写入的 `cx.policy.action`（`payload.action="state_conflict_resolution"`，并绑定目标 `(kind, state_key)` 与被采纳 `event_id`）或等价管理事件解除；解除后被选中的 winner 进入 normal projection，其余候选保留为审计记录。
 
 该算法 MUST deterministic。任何实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
 
 HLC 只能在候选事件已通过格式、签名、授权、时钟窗口和 causal dependency 检查后参与排序。`created_at`、HTTP receive time、provider timestamp 或外部桥接时间戳不得替代 HLC，也不得单独作为授权或 winner 依据。
 
-> Rationale: v1 之前曾使用一个二维 lattice (governance_layer × authority_kind) 选择 winner，并引入 `auth_weight` scalar 派生表。这是 Matrix room state v2/v11 风格的复杂性继承。Contrix 已经通过 capability + revoke + actor signature 表达了授权权威；在 (kind, state_key) 同时被多份合法签名的并发 fork 上自动选边并不能正确反映组织治理意图（admin 应当显式介入），还增加了所有实现的测试矩阵。v1-core-rc 选择 quarantine-on-concurrent-fork 替代该 lattice：审计透明、决定性、便于实现、保留 admin 治理 hook。需要更复杂决策权重的部署 MAY 在未来通过 hardening profile 单独引入加权 lattice；它不再属于 core 互操作。
+> Rationale: v1 之前曾使用一个二维 lattice (governance_layer × authority_kind) 选择 winner，并引入 `auth_weight` scalar 派生表。这是 Matrix room state v2/v11 风格的复杂性继承。Contrix 已经通过 capability + revoke + actor signature 表达了授权权威；在 (kind, state_key) 同时被多份合法签名的并发 fork 上自动选边并不能正确反映组织治理意图（admin 应当显式介入），还增加了所有实现的测试矩阵。v1 选择 quarantine-on-concurrent-fork 替代该 lattice：审计透明、决定性、便于实现、保留 admin 治理 hook。需要更复杂决策权重的部署 MAY 在未来通过 hardening profile 单独引入加权 lattice；它不再属于 core 互操作。
 
 ### 9.4 Auth Difference
 

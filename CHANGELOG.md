@@ -5,10 +5,10 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/) 与
 [Semantic Versioning](https://semver.org/)。
 
-本仓库尚未发布任何版本。下方条目描述的是 `v1-core-rc` 候选基线的当前内容，
-而不是相对任何先前公开版本的差异。
+本仓库当前发布 `v1.0.0` 规范稳定基线。下方条目描述的是该基线相对内部候选稿的收敛内容，
+而不是相对任何先前公开稳定版本的差异。
 
-## [Unreleased] — `v1-core-rc`
+## [1.0.0] — 2026-05-05
 
 ### 协议评审驱动的简化（2026-05-05，第四批：constraint 14→8 collapse + encoding 合并 + federation dedup）
 
@@ -224,18 +224,13 @@
 - 机器约束（`artifacts/registry/`、`artifacts/schemas/`、`artifacts/profiles/`）保持向前
   兼容：v1 readers 必须容忍 deprecated 字段；既有 fixture 不要求重写。
 
-### 发布候选状态
+### 发布状态
 
-- 仓库当前发布状态为 `v1-core-rc`（候选基线）。详见
+- 仓库当前发布状态为 `v1.0.0` 规范稳定基线。详见
   [`zh/overview/release-readiness.md`](./zh/overview/release-readiness.md).
-- 在以下条件全部满足前，仓库 / 标签不得宣称 `v1.0-stable`：
-  1. 至少两个独立实现通过同一 reference validator 的
-     `cx.profile.core_event_store.v1` 向量；
-  2. reference validator / reference reducer / reference authz evaluator /
-     conformance runner 已发布；
-  3. canonical JSON、Event Envelope negative vectors、state resolution、
-     capability、privacy/security、sync 与 snapshot vectors 由 CI 执行；
-  4. 公开发布的翻译与附属文档不偏离同一 registry / fixture 基线。
+- 实现若要宣称 `v1-conformance-certified`，仍必须通过 reference validator /
+  reference reducer / reference authz evaluator / conformance runner 及对应核心 vectors；
+  未认证实现只能声明自己支持的具体 profile。
 
 ### 当前基线内容
 
@@ -261,4 +256,4 @@
   conformance profile registry。
 - `tools/artifact_pipeline.py` 流水线作为 registry / mirror 的唯一权威入口。
 
-[Unreleased]: ./
+[1.0.0]: ./

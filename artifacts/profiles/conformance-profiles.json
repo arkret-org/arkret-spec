@@ -196,7 +196,10 @@
         "type_restriction",
         "scope_limitation",
         "delegation_control",
-        "rate_limiting"
+        "quota"
+      ],
+      "required_constraint_subtypes": [
+        "rate"
       ],
       "required_fixtures": [
         "encoding-fixture.json",
@@ -249,6 +252,9 @@
         "cx.schema.client_sync_response.v1"
       ],
       "required_constraint_types": [
+        "temporal"
+      ],
+      "required_constraint_subtypes": [
         "edit_window"
       ],
       "required_fixtures": [
@@ -297,7 +303,7 @@
         "cx.schema.view.v1"
       ],
       "required_constraint_types": [
-        "container_move"
+        "scope_limitation"
       ],
       "required_fixtures": [
         "sync-fixture.json",

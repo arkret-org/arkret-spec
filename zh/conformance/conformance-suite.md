@@ -122,10 +122,10 @@ v1 新增以下必测项：
 
 | 标签 | 允许用途 | 必须满足 |
 | --- | --- | --- |
-| `v1-core-rc` | 面向实现者启动互操作开发。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结。 |
+| `v1.0.0` | 对外发布稳定规范基线。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结；OpenAPI、fixture 和 Markdown JSON 示例不得包含未发布占位、已移除 wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`。 |
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
-| `v1.0-stable` | 对外宣称稳定协议版本。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、state resolution、capability、privacy/security、sync 和 snapshot vectors 均由 CI 执行；英文或其他翻译不得作为 stale source of truth 发布。 |
+| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、state resolution、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；英文或其他翻译不得作为 stale source of truth 发布。 |
 
-当前仓库若未同时发布上述 reference validator / reducer / authz evaluator / runner，并在 CI 执行核心 vectors，只能声明为 `v1-core-rc` 候选或更低等级，不得声明 `v1.0-stable`。
+当前仓库发布的是 `v1.0.0` 规范稳定基线。实现若未同时通过 reference validator / reducer / authz evaluator / runner 及核心 vectors，只能声明为“支持某些 v1 profile”，不得声明为 `v1-conformance-certified`。
 
 若某 profile 的 payload schema 仍使用宽泛结构（例如 `state_content` 或 `generic_standard_content`），该 profile 的 stable 声明必须额外依赖 reference reducer / validator 中的语义校验，不能只依赖 JSON Schema 通过。

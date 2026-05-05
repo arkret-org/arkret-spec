@@ -263,39 +263,39 @@ Contrix v1 支持：
 
 Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍必须命中 `cx.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `cx.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身不得成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
 
-| 扁平名称 | Typed `constraint_type` | 对应字段 |
-|----------|------------------------|----------|
-| `expires_at` | `temporal` | `expires_at` |
-| `not_before` | `temporal` | `not_before` |
-| `fields_write_allow` | `field_access` | `fields_write_allow` |
-| `fields_write_deny` | `field_access` | `fields_write_deny` |
-| `space_kind_allow` | `type_restriction` | `space_kind_allow` |
-| `morph_type_allow` | `type_restriction` | `morph_type_allow` |
-| `facet_allow` | `type_restriction` | `facet_allow` |
-| `allowed_flow_refs` | `scope_limitation` | `allowed_flow_refs` |
-| `allowed_space_refs` | `scope_limitation` | `allowed_space_refs` |
-| `allowed_view_refs` | `scope_limitation` | `allowed_view_refs` |
-| `allowed_branches` | `scope_limitation` | `allowed_branches` |
-| `relation_kind_allow` | `scope_limitation` | `relation_kind_allow` |
-| `allowed_from_container_refs` | `container_move` | `allowed_from_container_refs` |
-| `allowed_to_container_refs` | `container_move` | `allowed_to_container_refs` |
-| `visibility_allow` | `visibility_control` | `visibility_allow` |
-| `blob_max_bytes` | `resource_limit` | `blob_max_bytes` |
-| `encryption_required` | `encryption_requirement` | `encryption_required` |
-| `message_edit_window` | `edit_window` | `message_edit_window` |
-| `max_delegation_depth` | `delegation_control` | `max_delegation_depth` |
-| `rate_limit` | `rate_limiting` | `max_operations`, `period` |
-| `approval_required` | `approval_workflow` | `approval_required` |
-| `approval_mode` | `approval_workflow` | `approval_mode` |
-| `approval_actor_refs` | `approval_workflow` | `approval_actor_refs` |
-| `approval_relation` | `approval_workflow` | `approval_relation` |
-| `accountability_required` | `accountability` | `accountability_required` |
-| `guardian_approval_required` | `accountability` | `guardian_approval_required` |
-| `controller_approval_required` | `accountability` | `controller_approval_required` |
-| `requires_claims` | `claim_based` | `requires_claims` |
-| `trusted_claim_issuers` | `claim_based` | `trusted_claim_issuers` |
-| `claim_refresh_required` | `claim_based` | `claim_refresh_required` |
-| `claim_max_age` | `claim_based` | `claim_max_age` |
+| 扁平名称 | Typed `constraint_type` | `subtype` | 对应字段 |
+|----------|------------------------|----------|----------|
+| `expires_at` | `temporal` | — | `expires_at` |
+| `not_before` | `temporal` | — | `not_before` |
+| `fields_write_allow` | `field_access` | — | `fields_write_allow` |
+| `fields_write_deny` | `field_access` | — | `fields_write_deny` |
+| `space_kind_allow` | `type_restriction` | — | `space_kind_allow` |
+| `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
+| `facet_allow` | `type_restriction` | — | `facet_allow` |
+| `allowed_flow_refs` | `scope_limitation` | — | `allowed_flow_refs` |
+| `allowed_space_refs` | `scope_limitation` | — | `allowed_space_refs` |
+| `allowed_view_refs` | `scope_limitation` | — | `allowed_view_refs` |
+| `allowed_branches` | `scope_limitation` | — | `allowed_branches` |
+| `relation_kind_allow` | `scope_limitation` | — | `relation_kind_allow` |
+| `allowed_from_container_refs` | `scope_limitation` | — | `allowed_from_container_refs` |
+| `allowed_to_container_refs` | `scope_limitation` | — | `allowed_to_container_refs` |
+| `visibility_allow` | `confidentiality` | `visibility` | `visibility_allow` |
+| `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
+| `encryption_required` | `confidentiality` | `encryption` | `encryption_required` |
+| `message_edit_window` | `temporal` | `edit_window` | `message_edit_window` |
+| `max_delegation_depth` | `delegation_control` | — | `max_delegation_depth` |
+| `rate_limit` | `quota` | `rate` | `max_operations`, `period` |
+| `approval_required` | `claim_based` | `approval` | `approval_required` |
+| `approval_mode` | `claim_based` | `approval` | `approval_mode` |
+| `approval_actor_refs` | `claim_based` | `approval` | `approval_actor_refs` |
+| `approval_relation` | `claim_based` | `approval` | `approval_relation` |
+| `accountability_required` | `claim_based` | `accountability` | `accountability_required` |
+| `guardian_approval_required` | `claim_based` | `accountability` | `guardian_approval_required` |
+| `controller_approval_required` | `claim_based` | `accountability` | `controller_approval_required` |
+| `requires_claims` | `claim_based` | `claim` | `requires_claims` |
+| `trusted_claim_issuers` | `claim_based` | `claim` | `trusted_claim_issuers` |
+| `claim_refresh_required` | `claim_based` | `claim` | `claim_refresh_required` |
+| `claim_max_age` | `claim_based` | `claim` | `claim_max_age` |
 
 ## 7. Claim / Attestation
 
