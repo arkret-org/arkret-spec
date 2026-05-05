@@ -31,9 +31,6 @@
       "type": "string",
       "description": "Top-level state key for standard state events. State resolution keys state events by (kind, state_key); payload.state_key is not the canonical wire location."
     },
-    "schema": {
-      "const": "cx.schema.event.v1"
-    },
     "space_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"

@@ -7,7 +7,6 @@
       "name": "reject_bare_event_kind",
       "input": {
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9na00000000000000000000",
           "kind": "message.create",
           "space_id": "cx:space:01k9sp00000000000000000000",
@@ -38,7 +37,6 @@
       "name": "reject_unknown_critical_feature",
       "input": {
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9nb00000000000000000000",
           "kind": "cx.message.create",
           "space_id": "cx:space:01k9sp00000000000000000000",
@@ -83,7 +81,6 @@
       "name": "reject_signature_payload_hash_mismatch",
       "input": {
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9nc00000000000000000000",
           "kind": "cx.message.create",
           "space_id": "cx:space:01k9sp00000000000000000000",
@@ -133,7 +130,6 @@
           "event_id": "cx:event:01k9nf00000000000000000000"
         },
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9nd00000000000000000000",
           "kind": "cx.message.create",
           "space_id": "cx:space:01k9sp00000000000000000000",
@@ -168,7 +164,6 @@
       "name": "reject_prev_refs_over_limit",
       "input": {
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9ne00000000000000000000",
           "kind": "cx.message.create",
           "space_id": "cx:space:01k9sp00000000000000000000",
@@ -206,7 +201,6 @@
       "name": "reject_missing_auth_refs",
       "input": {
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9ng00000000000000000000",
           "kind": "cx.message.create",
           "space_id": "cx:space:01k9sp00000000000000000000",
@@ -238,7 +232,6 @@
       "name": "reject_self_referential_prev_ref",
       "input": {
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9nx00000000000000000000",
           "kind": "cx.message.create",
           "space_id": "cx:space:01k9sp00000000000000000000",
@@ -292,7 +285,6 @@
       "input": {
         "wire_scope": "durable_history",
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9nk00000000000000000000",
           "kind": "cx.read.marker",
           "space_id": "cx:space:01k9sp00000000000000000000",
@@ -324,7 +316,6 @@
       "input": {
         "wire_scope": "durable_history",
         "event": {
-          "schema": "cx.schema.event.v1",
           "event_id": "cx:event:01k9nm00000000000000000000",
           "kind": "cx.typing",
           "space_id": "cx:space:01k9sp00000000000000000000",

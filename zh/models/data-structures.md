@@ -385,7 +385,6 @@ Event 是 reducer 输入。它不是当前态对象。
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `encoding-conformance-vectors.md`。 | 事件 ID。 |
 | `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。 | 事件 kind。 |
 | `state_key` | conditional | `string` | 标准 state event MUST 设置；非 state event MUST 省略，除非 profile 明确声明。 | state resolution 使用的顶层 key。 |
-| `schema` | no | `string` | 若存在，MUST 为 `cx.schema.event.v1` 并进入 canonical bytes；不得替代 `kind` 或 payload schema selection。 | Envelope schema 标记。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
 | `space_version` | yes | `string` | 初版 `1`。 | 授权/状态版本。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |

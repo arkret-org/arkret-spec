@@ -23,17 +23,9 @@ cx:cursor:<base64url>
 
 ### 2.2 服务器内部结构
 
-服务器在 Base64URL 编码之前将游标内部结构编码为规范 JSON。内部结构由服务器定义，MAY 包含：
+服务器在 Base64URL 编码之前将游标内部结构编码为 canonical JSON（按 `encoding.md` §2 规则）。**v1 cursor 内部结构 MUST 遵循下方 canonical schema**，目的是让客户端在 Principal Server 之间迁移时，目标服务器有能力解析旧 cursor 并生成等价的本地 cursor（见 §10 cursor 可迁移性）。客户端 MUST NOT 解析或修改 cursor，但**服务器侧不再是任意私有结构**。
 
-- 查询哈希或过滤器指纹
-- 最后排序键 (HLC)
-- 最后事件 ID
-- 因果前沿（事件 ID 集合）
-- 状态哈希
-- 过期时间戳
-- Space 位置
-
-以下是**推荐的**内部 schema，用于互操作性 — 服务器 MAY 使用任何结构，只要传输格式为 `cx:cursor:<base64url>`：
+服务器 MAY 添加以 `_` 开头的私有字段（如 `_compression`、`_mac`）用于本地优化或签名，这些字段不参与 §10 cursor 翻译并 MUST 在 Base64URL 之前进入 canonical bytes。`cx.schema.cursor.v1` 之外的 cursor 版本 MUST 通过 `v` 字段升级。
 
 ```json
 {
@@ -150,10 +142,21 @@ cx:cursor:eyJ2IjoiMSIsInMiOnt9fQ
 
 - 以不透明字符串形式接受和传输版本 1 游标
 - 服务器 MUST 在接收时验证所有游标字段
+- 服务器 MUST 按 §2.2 canonical schema 编码 cursor 内部结构（私有字段限于 `_` 前缀）
 - 客户端 MUST NOT 解析游标内容
 - 支持每个游标至少 50 个 space
 - 支持最长 7 天的过期时间
 - 以适当错误拒绝非法游标
+
+## 10. Cursor 可迁移性
+
+Cursor 对客户端不透明，但服务器之间不再不透明。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下其中一种 cursor 迁移路径：
+
+1. **直接 reparse**：B 收到 `since=cx:cursor:<base64url_from_A>` 时，按 §2.2 canonical schema 解码，提取 `s.<space_id>.{p,o,h}` 与 `d` 信息，将这些 frontier 翻译成 B 本地 cursor 内部表示，继续增量同步。前提是 A 和 B 看见相同 Space 历史。
+2. **重置兜底**：B 不支持直接 reparse 时，MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；不得静默丢失因果对齐。
+3. **可选 translate 端点**：未来 profile 可能在 `cx.profile.principal_server.v1` 之上引入 `POST /api/v1/sync/translate-cursor`，由源服务器签发可被目标服务器验证的 cursor migration token。该端点不属于 v1 强制范围；若未来注册，将通过新的 profile id 引入。
+
+`_` 前缀的服务器私有字段（compression flag、MAC、签名）在迁移时可被丢弃；canonical 字段（`v` `t` `s` `d` `x`）足以恢复 frontier。
 
 ## 9. 示例
 

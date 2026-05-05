@@ -65,5 +65,10 @@
       "minimum": 0
     }
   },
+  "patternProperties": {
+    "^_[A-Za-z0-9_]*$": {
+      "description": "Server-private fields (compression flags, MACs, signatures). Names MUST start with underscore. Excluded from cursor migration translation; included in canonical bytes for the local server's MAC/integrity check."
+    }
+  },
   "additionalProperties": false
 }

@@ -56,6 +56,7 @@
 | `key_ref.group_state_ref` | id:event/hash | 否 | 可指向已 accepted 的 `cx.mls.genesis`、winner `cx.mls.commit` 或等价 group state proof，用于加速 lookup；不得替代 MLS transcript 验证。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes || encrypted_payload_bytes)`；输入定义见第 3.3 节。若 profile 拆出 `authentication_tag`，tag MUST 纳入 `encrypted_payload_bytes`。 |
 | `aad_digest` | hash | 是 | 规范 AAD 的 SHA256 |
+| `cleartext_commitment` | hash | 否（v1 预留） | `sha256` 覆盖明文规范字节（每个 scheme 由自己的 Cleartext Commitment Profile 定义；`mls-rfc9420` 的规则见 `encryption-and-audit.md` §4 的 commitment profile）。提供后允许接收方在不暴露明文的前提下检测 ciphertext malleability：发送方"承诺密文对应这一份明文"。v1 字段为可选，目的是预留 wire 兼容空间，避免 v2 引入 cleartext binding 时再做破坏性升级；v1 实现 MAY 忽略，v2 MAY 对新 scheme 设为必填。 |
 
 Ratchet tree MUST 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 管理，不得在每条消息的 envelope 中重复传输。
 
