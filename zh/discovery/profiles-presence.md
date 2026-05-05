@@ -12,26 +12,27 @@
 
 ### 2.1 Profile 对象
 
-每个 Actor DID 关联一个标准化的 Profile，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。
+每个 Actor DID MAY 关联一个标准化的 `actor_profile` 对象，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。对象字段以 `artifacts/schemas/actor-profile.schema.json` 为准；权限仍以 `principal_id` 指向的 DID / capability 为准。
 
 ```json
 {
-  "did": "did:web:alice.example.com",
+  "id": "cx:actor_profile:01js0ap0000000000000000000",
+  "schema": "cx.schema.actor_profile.v1",
+  "principal_id": "did:web:alice.example.com",
+  "actor_type": "user",
   "display_name": "Alice Chen",
-  "avatar": {
-    "blob_ref": "cx:blob:sha256:a1b2c3...",
-    "mime_type": "image/webp",
-    "width": 256,
-    "height": 256
-  },
-  "status_message": "On vacation until May 5th 🏖️",
-  "pronouns": "she/her",
-  "timezone": "Asia/Shanghai",
-  "locale": "zh-CN",
-  "custom_fields": {
+  "handle": "alice",
+  "avatar_blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "active",
+  "profile_fields": {
+    "status_message": "On vacation until May 5",
+    "pronouns": "she/her",
+    "timezone": "Asia/Shanghai",
+    "locale": "zh-CN",
     "title": "Senior Engineer",
     "organization": "Acme Corp"
-  }
+  },
+  "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
@@ -39,35 +40,104 @@
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `did` | string | MUST | Actor 的 DID |
-| `display_name` | string | SHOULD | 人类可读的显示名（最大 128 字符） |
-| `avatar` | object | 可选 | 头像图片的 Blob 引用 |
-| `status_message` | string | 可选 | 自定义状态消息（最大 256 字符） |
-| `pronouns` | string | 可选 | 代词偏好 |
-| `timezone` | string | 可选 | IANA 时区标识 |
-| `locale` | string | 可选 | 语言偏好 (BCP 47) |
-| `custom_fields` | object | 可选 | 自定义键值对（用于组织特有的字段如职位、部门等） |
+| `id` | id:actor_profile | MUST | Profile 对象 ID。 |
+| `schema` | string | SHOULD | `cx.schema.actor_profile.v1`。 |
+| `principal_id` | did | MUST | Actor / Principal DID。 |
+| `actor_type` | enum | MUST | `user`、`org`、`team`、`agent`、`service`、`device` 或 `integration`。 |
+| `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
+| `handle` | string | 可选 | 本地或目录展示 handle。 |
+| `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
+| `status` | enum | 可选 | `active`、`suspended`、`deactivated` 或 `deleted`。 |
+| `accountable_to` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
+| `profile_fields` | object | 可选 | 代词、时区、locale、状态消息、组织自定义字段等扩展展示字段。 |
+| `created_at` | timestamp | MUST | 创建时间。 |
+| `updated_at` | timestamp | 可选 | 最近更新时间。 |
 
-### 2.3 Profile 更新
+### 2.3 Profile 创建与更新
 
-Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API：
+Profile 初始状态通过 `cx.profile.create` Event 提交到 actor 的 principal control Space。该 event 使用标准 Event Envelope；顶层 `state_key` MUST 等于 `payload.object.id`。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
 
 ```json
 {
-  "kind": "cx.profile.update",
-  "actor": "did:web:alice.example.com",
-  "body": {
-    "display_name": "Alice C.",
-    "status_message": "Back at work!"
-  }
+  "event_id": "cx:event:01js0ev0000000000000000000",
+  "kind": "cx.profile.create",
+  "space_id": "cx:space:01js0pc0000000000000000000",
+  "actor_id": "did:web:alice.example.com",
+  "actor_seq": 1,
+  "created_at": "2026-04-26T00:00:00Z",
+  "hlc": "01970e589d21-0001-a13f9c2e",
+  "prev_refs": [],
+  "auth_refs": [],
+  "state_key": "cx:actor_profile:01js0ap0000000000000000000",
+  "payload": {
+    "object": {
+      "id": "cx:actor_profile:01js0ap0000000000000000000",
+      "schema": "cx.schema.actor_profile.v1",
+      "principal_id": "did:web:alice.example.com",
+      "actor_type": "user",
+      "display_name": "Alice Chen",
+      "handle": "alice",
+      "avatar_blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "status": "active",
+      "profile_fields": {
+        "timezone": "Asia/Shanghai",
+        "locale": "zh-CN"
+      },
+      "created_at": "2026-04-26T00:00:00Z"
+    }
+  },
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example.com#key-1",
+      "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "created_at": "2026-04-26T00:00:00Z",
+      "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+    }
+  ]
 }
 ```
 
-- 仅携带发生变化的字段（delta 更新）
+Profile 后续变更通过 `cx.profile.update` Event 提交。该 event 使用 `object_patch_payload`；顶层 `state_key` MUST 等于目标 `actor_profile` id，变更字段放在 `payload.patch`，不得使用旧的顶层 `actor` / `body` 形态：
+
+```json
+{
+  "event_id": "cx:event:01js0ev1000000000000000000",
+  "kind": "cx.profile.update",
+  "space_id": "cx:space:01js0pc0000000000000000000",
+  "actor_id": "did:web:alice.example.com",
+  "actor_seq": 2,
+  "created_at": "2026-04-26T00:01:00Z",
+  "hlc": "01970e598d21-0001-a13f9c2e",
+  "prev_refs": ["cx:event:01js0ev0000000000000000000"],
+  "auth_refs": ["cx:event:01js0ev0000000000000000000"],
+  "state_key": "cx:actor_profile:01js0ap0000000000000000000",
+  "payload": {
+    "target_ref": "cx:actor_profile:01js0ap0000000000000000000",
+    "patch": {
+      "display_name": "Alice C.",
+      "profile_fields.status_message": "Back at work!"
+    }
+  },
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example.com#key-1",
+      "payload_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "created_at": "2026-04-26T00:01:00Z",
+      "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+    }
+  ]
+}
+```
+
+- `cx.profile.create` 初始化完整对象；`cx.profile.update` 仅携带发生变化的字段（delta 更新）
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
-`cx.profile.update` 是 principal-scoped profile state。若封装为 `cx.schema.event.v1` Event Envelope，顶层 `space_id` MUST 是该 actor 的 `principal_control_space_id`；不得把全局 profile 更新写入任意协作 Space history。
+`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `space_id` MUST 是该 actor 的 `principal_control_space_id`；不得把全局 profile 更新写入任意协作 Space history。`state_key` MUST 绑定目标 `actor_profile` id，payload 中也必须保留 `payload.object.id` 或 `payload.target_ref`。
 
 ### 2.4 Per-Space Profile 覆写
 
@@ -75,12 +145,36 @@ Profile 的变更通过 `cx.profile.update` Event 提交到 Actor 的 Events API
 
 ```json
 {
+  "event_id": "cx:event:01js0ev2000000000000000000",
   "kind": "cx.profile.space_override",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "body": {
-    "display_name": "alice-oss",
-    "avatar": null
-  }
+  "actor_id": "did:web:alice.example.com",
+  "actor_seq": 3,
+  "created_at": "2026-04-26T00:02:00Z",
+  "hlc": "01970e5a8d21-0001-a13f9c2e",
+  "prev_refs": ["cx:event:01js0ev1000000000000000000"],
+  "auth_refs": ["cx:event:01js0ev1000000000000000000"],
+  "state_key": "cx:actor_profile:01js0ap0000000000000000000",
+  "payload": {
+    "target_ref": "cx:actor_profile:01js0ap0000000000000000000",
+    "target_space_id": "cx:space:01js0sp0000000000000000000",
+    "patch": {
+      "display_name": "alice-oss",
+      "avatar_blob_ref": {
+        "$op": "unset"
+      }
+    }
+  },
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:alice.example.com#key-1",
+      "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "created_at": "2026-04-26T00:02:00Z",
+      "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+    }
+  ]
 }
 ```
 
@@ -216,6 +310,6 @@ GET /api/v1/directory/search-users?q=alice&space_id=cx:space:...&limit=10
 ## 5. v1 规则
 
 - 头像若公开可见，必须使用公开 blob 或公开缩略图；私有或 E2EE Space 的头像/图标应使用 authenticated media 或加密 blob，服务端不得因头像请求泄露 Space 存在性。
-- Profile 字段 MUST 受 schema 验证。组织可通过 Organization policy 限定 `custom_fields` 的字段名、类型、最大长度、敏感性和披露范围。
+- Profile 字段 MUST 受 schema 验证。组织可通过 Organization policy 限定 `profile_fields` 的字段名、类型、最大长度、敏感性和披露范围。
 - Presence 跨域联邦默认 opt-in，必须短 TTL、最小字段、按关系或 Space policy 授权；不得用 presence 推断 pairwise DID、私有组织成员资格或隐藏 Space 拓扑。
 - 群组 Profile 是 Space metadata 的投影；Space 名称、图标、描述、公告和可发现性必须受 Space policy、history visibility 和 directory filtering 控制。

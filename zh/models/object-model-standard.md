@@ -246,7 +246,7 @@ Space (kind=list) 是 `Space` 的列/泳道形态，ID 使用 `cx:space:` 格式
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-`content` MUST 是 `content-types.md` 定义的 Content Block。`cx.message.create` / `cx.message.revise` 的 Event Envelope 使用 `payload.content` 承载该 Content Block；`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。
+未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。E2EE 消息使用 `payload.encrypted_payload` 承载同一 Content Block 的 canonical encrypted envelope；`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。
 
 ### 5.1 Chat 模式示例
 
@@ -259,12 +259,16 @@ discussion branch override（如需要 branch-scoped membership）→ 加入成�
   {
     "kind": "cx.flow.create",
     "payload": {
-      "flow": {
+      "object": {
         "id": "cx:flow:01js0fk0000000000000000000",
+        "schema": "cx.schema.flow.v1",
+        "space_id": "cx:space:01js0sp0000000000000000000",
         "title": "项目同步",
         "branches": [
           { "name": "discussion", "is_primary": true }
-        ]
+        ],
+        "created_by": "did:web:alice.example",
+        "created_at": "2026-04-26T00:00:00Z"
       }
     }
   },

@@ -125,6 +125,9 @@
       },
       "additionalProperties": true
     },
+    "encrypted_payload": {
+      "$ref": "./encrypted-envelope.schema.json"
+    },
     "relation_id": {
       "type": "string",
       "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
@@ -147,7 +150,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(cx:(space|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-hjkmnp-z]{26}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(cx:(space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-hjkmnp-z]{26}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
     "device_or_principal_ref": {
       "oneOf": [
@@ -297,6 +300,76 @@
           "items": {
             "type": "object"
           }
+        }
+      },
+      "additionalProperties": true
+    },
+    "space_create_payload": {
+      "type": "object",
+      "description": "Create payload uses the full Space object schema for wire validation. Semantic validation MUST require payload.object.created_by_principal to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "./space.schema.json"
+        },
+        "initial_relations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "flow_create_payload": {
+      "type": "object",
+      "description": "Create payload uses the full Flow object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "./flow.schema.json"
+        },
+        "initial_relations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "morph_create_payload": {
+      "type": "object",
+      "description": "Create payload uses the full Morph object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "./morph.schema.json"
+        },
+        "initial_relations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "actor_profile_create_payload": {
+      "type": "object",
+      "description": "Initial actor profile state. Semantic validation MUST require payload.object.id to match top-level state_key, payload.object.principal_id to match the actor principal or an authorized controller, and payload.object.created_at to match top-level created_at before acceptance.",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "./actor-profile.schema.json"
         }
       },
       "additionalProperties": true
@@ -725,16 +798,26 @@
       "required": [
         "flow_id"
       ],
-      "anyOf": [
+      "oneOf": [
         {
           "required": [
             "content"
-          ]
+          ],
+          "not": {
+            "required": [
+              "encrypted_payload"
+            ]
+          }
         },
         {
           "required": [
             "encrypted_payload"
-          ]
+          ],
+          "not": {
+            "required": [
+              "content"
+            ]
+          }
         }
       ],
       "properties": {
@@ -748,7 +831,7 @@
           "$ref": "#/$defs/content_block"
         },
         "encrypted_payload": {
-          "type": "object"
+          "$ref": "#/$defs/encrypted_payload"
         },
         "blob_refs": {
           "type": "array",
@@ -785,16 +868,26 @@
           ]
         },
         {
-          "anyOf": [
+          "oneOf": [
             {
               "required": [
                 "content"
-              ]
+              ],
+              "not": {
+                "required": [
+                  "encrypted_payload"
+                ]
+              }
             },
             {
               "required": [
                 "encrypted_payload"
-              ]
+              ],
+              "not": {
+                "required": [
+                  "content"
+                ]
+              }
             }
           ]
         }
@@ -813,7 +906,7 @@
           "$ref": "#/$defs/content_block"
         },
         "encrypted_payload": {
-          "type": "object"
+          "$ref": "#/$defs/encrypted_payload"
         },
         "reason": {
           "type": "string"

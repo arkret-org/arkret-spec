@@ -1183,8 +1183,16 @@ cx.vector.capability.approval_constraint.v1
       "payload": {
         "object": {
           "id": "cx:space:01js0bd0000000000000000000",
+          "schema": "cx.schema.space.v1",
           "kind": "board",
-          "title": "Release Board"
+          "title": "Release Board",
+          "created_by_principal": "did:web:alice.example.com",
+          "schema_refs": ["cx.schema.space.v1"],
+          "default_discoverability": "restricted",
+          "default_join_rule": "restricted",
+          "history_visibility": "joined",
+          "encryption_profile": "none",
+          "created_at": "2026-04-26T00:00:00Z"
         }
       }
     },
@@ -1195,9 +1203,17 @@ cx.vector.capability.approval_constraint.v1
       "payload": {
         "object": {
           "id": "cx:space:01js0111000000000000000000",
+          "schema": "cx.schema.space.v1",
           "kind": "list",
           "title": "Todo",
-          "rank": "U"
+          "rank": "U",
+          "created_by_principal": "did:web:alice.example.com",
+          "schema_refs": ["cx.schema.space.v1"],
+          "default_discoverability": "restricted",
+          "default_join_rule": "restricted",
+          "history_visibility": "joined",
+          "encryption_profile": "none",
+          "created_at": "2026-04-26T00:00:00Z"
         }
       }
     },
@@ -1207,6 +1223,7 @@ cx.vector.capability.approval_constraint.v1
       "payload": {
         "object": {
           "id": "cx:flow:01js0ca1000000000000000000",
+          "schema": "cx.schema.flow.v1",
           "space_id": "cx:space:01js0sp0000000000000000000",
           "title": "Release checklist",
           "branches": [
@@ -1214,7 +1231,9 @@ cx.vector.capability.approval_constraint.v1
               "name": "synthesis",
               "is_primary": true
             }
-          ]
+          ],
+          "created_by": "did:web:alice.example.com",
+          "created_at": "2026-04-26T00:00:00Z"
         },
         "initial_relations": [
           {

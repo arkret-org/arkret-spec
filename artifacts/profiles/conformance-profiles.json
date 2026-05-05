@@ -61,7 +61,7 @@
     "cx.profile.sovereign_client.v1"
   ],
   "profile_tiers": {
-    "v1_core_implementation": [
+    "v1_profile_catalog": [
       "cx.profile.core_event_store.v1",
       "cx.profile.chat_mvp.v1",
       "cx.profile.kanban_mvp.v1",
@@ -77,13 +77,17 @@
       "cx.profile.push_gateway.v1",
       "cx.profile.sovereign_client.v1"
     ],
+    "v1_minimal_interop_floor": [
+      "cx.profile.core_event_store.v1"
+    ],
     "v1_1_extension_implementation": [
       "cx.profile.applet_service.v1",
       "cx.profile.agent_runtime.v1",
       "cx.profile.mimi_interop.v1"
     ],
     "tier_rules": {
-      "v1_core_implementation": "Required for any implementation that claims v1 core interop. Conformance suite MUST include these.",
+      "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
+      "v1_minimal_interop_floor": "Minimum profile for claiming v1 Event Store interop. Higher-level client, service, federation, blob, push, identity, and sovereign profiles remain independently claimable.",
       "v1_1_extension_implementation": "Optional. Tracks evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA). Implementations claiming v1 core MAY omit these entirely. When the underlying external standards mature, replacement profiles with stable version pinning will supersede these entries."
     }
   },

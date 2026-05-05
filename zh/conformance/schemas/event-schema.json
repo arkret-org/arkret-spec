@@ -295,11 +295,7 @@
       "if": {
         "properties": {
           "kind": {
-            "enum": [
-              "cx.space.create",
-              "cx.flow.create",
-              "cx.morph.create"
-            ]
+            "const": "cx.space.create"
           }
         },
         "required": [
@@ -309,7 +305,45 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/object_create_payload"
+            "$ref": "./event-payload.schema.json#/$defs/space_create_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.flow.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/flow_create_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.morph.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/morph_create_payload"
           }
         }
       }
@@ -336,6 +370,98 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/object_patch_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.profile.create"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "state_key"
+        ],
+        "properties": {
+          "state_key": {
+            "type": "string",
+            "pattern": "^cx:actor_profile:[0-9a-hjkmnp-z]{26}$"
+          },
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/actor_profile_create_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.profile.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "state_key"
+        ],
+        "properties": {
+          "state_key": {
+            "type": "string",
+            "pattern": "^cx:actor_profile:[0-9a-hjkmnp-z]{26}$"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.space.policy.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "state_key"
+        ],
+        "properties": {
+          "state_key": {
+            "oneOf": [
+              {
+                "enum": [
+                  "access",
+                  "join_rule",
+                  "history_visibility",
+                  "discovery",
+                  "policy_server",
+                  "policy_components",
+                  "history_sharing",
+                  "asset_privacy",
+                  "moderation",
+                  "plaintext_visible_services",
+                  "media_service",
+                  "schema_refs"
+                ]
+              },
+              {
+                "type": "string",
+                "pattern": "^inheritance:cx:space:[0-9a-hjkmnp-z]{26}$"
+              }
+            ]
           }
         }
       }
@@ -496,6 +622,8 @@
               "cx.device.revoked",
               "cx.device.list_update",
               "cx.session.grant",
+              "cx.profile.create",
+              "cx.profile.update",
               "cx.view.create",
               "cx.view.update",
               "cx.view.reconcile"
@@ -566,7 +694,8 @@
           {
             "properties": {
               "state_key": {
-                "const": "inheritance"
+                "type": "string",
+                "pattern": "^inheritance:cx:space:[0-9a-hjkmnp-z]{26}$"
               }
             },
             "required": [
@@ -585,6 +714,52 @@
     },
     {
       "if": {
+        "allOf": [
+          {
+            "properties": {
+              "kind": {
+                "const": "cx.space.policy.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          {
+            "properties": {
+              "state_key": {
+                "enum": [
+                  "access",
+                  "join_rule",
+                  "history_visibility",
+                  "discovery",
+                  "policy_server",
+                  "policy_components",
+                  "history_sharing",
+                  "asset_privacy",
+                  "moderation",
+                  "plaintext_visible_services",
+                  "media_service",
+                  "schema_refs"
+                ]
+              }
+            },
+            "required": [
+              "state_key"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/state_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
         "properties": {
           "kind": {
             "enum": [
@@ -592,7 +767,6 @@
               "cx.space.organization",
               "cx.space.child",
               "cx.space.parent",
-              "cx.space.policy.set",
               "cx.space.lifecycle.set",
               "cx.organization.discovery",
               "cx.organization.moderation_policy",

@@ -84,7 +84,7 @@
 | `cx.space.organization` | Space official sponsor statement |
 | `cx.space.child` | Child space link |
 | `cx.space.parent` | Parent space link |
-| `cx.space.policy.set` (state_key=`inheritance`) | Policy inheritance declaration |
+| `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`) | Policy inheritance declaration |
 | `cx.space.policy.set` (state_key=`join_rule`) | Join rule state |
 | `cx.space.policy.set` (state_key=`history_visibility`) | History visibility state |
 | `cx.space.policy.set` (state_key=`discovery`) | Discoverability state |
@@ -138,6 +138,9 @@
 | `cx.capability.revoke` | Revocation |
 | `cx.capability.derived` | Derived capability state |
 | `cx.account.status` | Signed account lifecycle status |
+| `cx.profile.create` | Actor profile create |
+| `cx.profile.update` | Actor profile patch |
+| `cx.profile.space_override` | Space-scoped profile override |
 | `cx.audit.accessed` | Auditable access |
 | `cx.moderation.report` | Moderation report |
 | `cx.key.verification.request` | Device key verification request |

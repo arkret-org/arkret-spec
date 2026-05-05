@@ -320,6 +320,8 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 `../models/data-structures.md#19-field-patch-cxpatchv1`；实现不得用私有 dot-path 解析规则替代该格式。Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。
 
+Create 类操作若在 `payload.object` 中携带完整 materialized object schema，接收方 MUST 在 schema validation 后执行 cross-field validation：对象创建者字段必须与顶层 `actor_id` / 授权 controller 一致，对象 `created_at` 必须与顶层 Event `created_at` 一致。任何不一致都不得进入 reducer；返回标准 `schema_violation`，或在 controller/guardian 授权缺失时返回 `capability_denied`。
+
 对于 `branches` 这类具名集合数组，patch path MUST 使用 schema 允许的 selector 段，例如 `branches[name=discussion].access.permissions`；不得使用数字下标，因为不同副本上的数组物理顺序不是授权或 reducer 语义。
 
 例如：
@@ -589,14 +591,11 @@ Contrix 初版不引入全网共识链。
 
 最终收敛到相同当前态。
 
-并发操作 tie-breaker 依次为：
+并发 state conflict 的 winner 与 quarantine 规则以 `event-auth-state-resolution.md` 为准：候选事件通过格式、签名、授权、时钟窗口和 causal dependency 检查后，严格因果后继 supersede 前驱；互不可达候选使用 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 作确定性 provisional winner，并将非 winner 标记为 `quarantined` 等待治理处理。v1 core 不使用 `auth_weight` 或 governance lattice 自动消化并发 fork。
 
-1. 授权权重。
-2. HLC（作为 winner 选择时取较大的已验证 HLC）。
-3. Actor ID 字典序。
-4. Event hash / `event_id` 字典序。
+非 state 的并发对象操作也必须使用确定性顺序归约。除各对象规则另有更具体定义外，reducer 应先按依赖图验证候选可用性，再用 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 选择唯一候选并记录 losers / conflict records。
 
-该 winner 顺序不同于客户端 timeline 的展示顺序；timeline 通常先按 `prev_refs` / `auth_refs` / payload causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
+该 reducer 顺序不同于客户端 timeline 的展示顺序；timeline 通常先按 `prev_refs` / `auth_refs` / payload causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
 
 ### 16.1 Reducer Contract
 

@@ -31,9 +31,7 @@
         "timeline",
         "graph",
         "document",
-        "composite",
-        "board",
-        "list"
+        "composite"
       ]
     },
     "renderer": {

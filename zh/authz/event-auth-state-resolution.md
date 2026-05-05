@@ -101,7 +101,7 @@ v1 reducer 的 auth refs 选择规则：
 | `schema_refs` | schema/policy/admin | 上一版 `schema_refs` state、upgrade policy（如适用） | Space `schema_refs`。 |
 | `inheritance:<parent_space_id>` | child policy/admin | child Space 的 `cx.space.create`、confirmed parent edge | 父子 Space 继承策略；`state_key` 必须是 `inheritance:` 前缀加目标 parent space id；每个 parent 一份；只在 child Space 写入。 |
 
-未识别的 `state_key` MUST fail closed（`unsupported_state_key`），不得静默 accepted。每个 `state_key` 的 payload schema 通过 `event-payload.schema.json` 中的 `cx.space.policy.set` allOf 分支按 `state_key` 选择。
+未识别的 `state_key` MUST fail closed（标准错误 `schema_violation`；诊断详情可包含 `details.reason="unsupported_state_key"`），不得静默 accepted。每个 `state_key` 的 payload schema 通过 `event-schema.json` 的 kind/state_key 条件分支选择，并引用 `event-payload.schema.json` 中对应 payload 定义。
 
 ### 4.2 `cx.space.lifecycle.set` state_key 矩阵
 
@@ -377,7 +377,7 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 以下事件类型是 v1 标准 state event：
 
 - `cx.space.create`
-- `cx.space.policy.set`（按 `state_key` 区分：`access` / `join_rule` / `history_visibility` / `discovery` / `policy_server` / `policy_components` / `history_sharing` / `asset_privacy` / `moderation` / `plaintext_visible_services` / `media_service` / `schema_refs` / `inheritance`）
+- `cx.space.policy.set`（按 `state_key` 区分：`access` / `join_rule` / `history_visibility` / `discovery` / `policy_server` / `policy_components` / `history_sharing` / `asset_privacy` / `moderation` / `plaintext_visible_services` / `media_service` / `schema_refs` / `inheritance:<parent_space_id>`）
 - `cx.space.child`
 - `cx.space.parent`
 - `cx.space.organization`

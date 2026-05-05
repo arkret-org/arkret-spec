@@ -6,13 +6,13 @@ Contrix 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不支持某种内容类型的客户端能通过 `fallback_text` 优雅降级
-- E2EE 场景下加密信封只包裹 `content` 字段，不影响路由元数据
+- E2EE 场景下加密信封只包裹 `content` / `body` / `attachments` 等业务内容，不影响路由元数据
 
 ## 2. 设计原则
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event Envelope 的 `payload.content` 字段、Flow 的 `body` 字段、Flow discussion 摘要以及 Morph 的 `content` 字段 MUST 使用本规范定义的结构化 JSON 格式，而非依赖客户端猜测渲染方式。
+Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_payload` 字段、Flow 的 `body` / `encrypted_payload` 字段、Flow discussion 摘要以及 Morph 的 `content` / `encrypted_payload` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 
@@ -21,7 +21,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 - `body`：人类可读的纯文本摘要 / fallback
 - 类型相关的专有字段
 
-`cx.message.create` / `cx.message.revise` 的 Event payload MUST 将这个对象放在 `payload.content` 字段中；`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
+`cx.message.create` / `cx.message.revise` 的未加密 Event payload MUST 将这个对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_payload`。`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
 
 ### 2.3 复合消息使用 `composite` 类型
 
@@ -325,6 +325,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 在端到端加密场景下：
 - `content` 字段的完整 JSON 对象被加密为 `encrypted_payload`
+- `encrypted_payload` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`cx.message.create` / `cx.message.revise`、Flow synthesis `body` 和 Morph `content` 使用同一 canonical envelope
 - `body` 字段在密文信封中**不保留明文副本**（防止元数据泄露）
 - 用于推送通知的脱敏摘要由发送者的客户端单独生成并附在明文元数据中（参见 `push-notifications.md`）
 

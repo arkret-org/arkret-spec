@@ -182,6 +182,7 @@ Schema id: `cx.schema.flow.v1`
 | `title` | yes | `string` | 1..512 chars。 | 标题。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 一句话/一段话简介。 |
 | `body` | no | `ContentBlock` | 见 `content-types.md`。 | 富文本正文。 |
+| `encrypted_payload` | conditional | `EncryptedPayload` | 与 `body` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
 | `branches` | yes | `array<FlowBranch>` | 至少 1 项；`name` 在同一 Flow 内唯一；至多 1 项 `is_primary=true`。 | 分支定义、默认入口与分支访问继承。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
@@ -257,7 +258,8 @@ Schema id: `cx.schema.message.v1`
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
 | `branch` | yes | `string` | 必须匹配 `^[a-z][a-z0-9_]{0,63}$`，并且必须是目标 Flow 当前 active 的 branch name。v1 reducer 默认只识别 `discussion`；profile 可声明额外 branch name 承载 Message timeline，但 v1 wire 互操作 SHOULD 使用 `discussion`。 | 所属 Flow 分支。 |
-| `content` | yes | `object` | 富文本/blocks 见 `content-types.md`。 | 消息正文。 |
+| `content` | conditional | `object` | 富文本/blocks 见 `content-types.md`；未加密且未 redacted 时必填。 | 消息正文。 |
+| `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
 | `fields` | no | `object` | 可放 revision、visibility、client metadata。 | 扩展字段。 |
 | `created_by` | yes | `did` |  | 发送者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -275,6 +277,7 @@ Schema id: `cx.schema.morph.v1`
 | `title` | no | `string` | SHOULD <= 512 chars。 | 标题。 |
 | `summary` | no | `string` |  | 摘要。 |
 | `content` | no | `object` | 富文本/blocks 见 `content-types.md`。 | 正文内容。 |
+| `encrypted_payload` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
@@ -341,7 +344,7 @@ produced, used, triggered_by, has_log, summarized_from, promoted_from_discussion
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
 
-Relation conflict 的默认 winner 排序为：有效性检查通过、较高 auth weight、较新 HLC、较小 `actor_id` 字典序、较小 canonical event hash。`on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。`on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 frontier 提交修复事件。`require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
+Relation conflict 的默认 winner 排序为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选使用 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 选择 deterministic provisional winner，并把 loser 记录为 conflict / quarantined diagnostic。Relation reducer 不得使用已废弃的 `auth_weight`、本地接收顺序、数据库 ID 或服务端插入顺序作为 winner 输入。`on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。`on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 frontier 提交修复事件。`require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
 
 Space schema、Space profile 或 `relation_profiles` MAY 对标准默认值收紧，但不得放宽会破坏互操作 projection 的标准互斥规则（例如同一 Board 内 Flow 只能处于一个 List）。`RelationProfile` 最小结构：
 
@@ -398,6 +401,8 @@ Event 是 reducer 输入。它不是当前态对象。
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
 Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。State event 的 `state_key` 是顶层字段，reducer 以 `(kind, state_key)` 作为 state resolution key；`payload.state_key` 不是 v1 canonical wire 位置。`payload.type` 不得重复写入 `cx.*` Event kind。Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+
+Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：`cx.space.create.payload.object.created_by_principal` MUST 等于顶层 `actor_id`，`cx.flow.create` / `cx.morph.create` / `cx.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller，且 `payload.object.created_at` MUST 等于顶层 `created_at`。校验失败 MUST `schema_violation` 或 `capability_denied`，不得把 payload 中的创建者字段当作 proof、capability 或审计归属的替代来源。
 
 `actor_seq` fork 约束：
 

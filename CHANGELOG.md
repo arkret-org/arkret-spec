@@ -192,10 +192,11 @@
   core 不要求实现。
 - `zh/sync/service-surface.md` §9 (MIMI Provider Facade) 缩为单段指针，详细路径下沉到 extension。
 - `artifacts/profiles/conformance-profiles.json` 增加 `profile_tiers` 顶级字段：
-  - `v1_core_implementation` 列出 14 个 v1 core 必需 implementation profile。
+  - `v1_profile_catalog` 列出 v1 stable catalog 中可独立声明的 implementation profile。
+  - `v1_minimal_interop_floor` 列出声称 v1 Event Store interop 的最小 profile。
   - `v1_1_extension_implementation` 列出 `applet_service` / `agent_runtime` / `mimi_interop`
     三个 v1.1+ extension。
-  - `tier_rules` 解释 v1 core 与 extension 的 conformance 边界。
+  - `tier_rules` 解释 profile catalog、最小互操作地板与 extension 的 conformance 边界。
 
 #### Round 4 — DID method 默认值收敛
 

@@ -201,12 +201,15 @@ function compare_hlc(hlc1, hlc2):
 causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 ```
 
-reducer winner 选择（无因果关系的并发事件）：
+reducer winner 选择（无因果关系的并发 state event）：
 
-1. 按该 reducer / auth-state profile 的授权权重 / domain-specific priority 比较（若定义）
-2. HLC 较大者胜出
-3. HLC 相等时按 `actor_id` 字典序
-4. 仍相等时按 `event_id` / event hash 字典序
+1. 仅在候选事件已通过格式、签名、授权、时钟窗口和 causal dependency 检查后参与排序
+2. 按 `causal_depth DESC` 比较
+3. `causal_depth` 相等时按 `HLC DESC` 比较
+4. HLC 相等时按 `actor_id ASC` 比较
+5. 仍相等时按 `event_id ASC` / event hash 字典序比较
+
+并发 fork 的非 winner 候选 MUST 进入 `quarantined` / conflict records，等待 admin / governance / policy server 显式处理。v1 core 不使用 `auth_weight` 或 governance lattice 作为 winner 输入。
 
 Timeline 展示顺序与 state winner 是两种不同 projection：前者排历史，后者选当前态。实现 MUST 在 profile 中明确使用哪一个，不得把 timeline 中最后出现的 Event 直接当作状态 winner。
 

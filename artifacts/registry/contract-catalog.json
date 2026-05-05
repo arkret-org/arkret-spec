@@ -625,6 +625,14 @@
         "payload": "Typing ephemeral event"
       },
       {
+        "event_kind": "cx.profile.create",
+        "category": "profile",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Actor profile create"
+      },
+      {
         "event_kind": "cx.profile.update",
         "category": "profile",
         "status": "active",

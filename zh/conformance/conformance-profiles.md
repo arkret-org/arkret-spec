@@ -27,19 +27,19 @@ cx.profile.<name>.v<major>
 
 ## 2.1 v1 MVP 分层
 
-为降低实现复杂度，v1 profile 分为三层：
+为降低实现复杂度，v1 profile 分为三个声明层。`artifacts/profiles/conformance-profiles.json.profile_tiers` 是机器可读来源；`v1_profile_catalog` 不是 bundle requirement，实现只声明自己实际支持的 profile、event kind、schema 和 operation。
 
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
-| Core | 声称支持 Contrix v1 的实现必须支持，或在 profile 中明确声明不支持对应角色。 | DID/handle resolver、Event Envelope、per-actor event chain、Space（含 `board` / `list` kind）、Flow（含 `synthesis` / `discussion` branch）、Message、Morph、Relation、Capability、View query shape、Sync cursor、Blob hash 校验、标准错误。 |
-| Recommended | 主客户端和 Principal Server SHOULD 支持，但轻量实现可以不支持。 | E2EE、push、presence、read receipt、snapshot bootstrap、local full-text search、moderation report。 |
-| Extension | 不属于 v1 MVP core，必须以独立 profile 声明。 | MIMI interop、WebRTC call、Applet integration、Agent protocol bridge、sovereign deployment。 |
+| Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `cx.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/frontier/backfill、标准错误。 |
+| Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`principal_server`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
+| Extension | 不属于 v1 core interop floor，必须以独立 profile 声明。 | MIMI interop、Applet integration、Agent protocol bridge、特定 high-assurance / sovereign deployment 能力。 |
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
 Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:web`（v1 core 默认 principal method）、`did:webvh`（high-trust profile 默认）与 `did:key`。组织高保证实现 SHOULD 声明 `cx.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence。AT Protocol 互通实现 SHOULD 额外声明 `cx.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Contrix Core 强制依赖。
 
-为避免 Core 范围过大导致实现无法启动，v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
+v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `cx.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
 - `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion branch 且可设为 primary 的 Flow、`cx.flow.branch.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。

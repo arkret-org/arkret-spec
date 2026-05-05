@@ -9,9 +9,68 @@
     "space_id",
     "flow_id",
     "branch",
-    "content",
     "created_by",
     "created_at"
+  ],
+  "oneOf": [
+    {
+      "required": [
+        "content"
+      ],
+      "not": {
+        "required": [
+          "encrypted_payload"
+        ]
+      },
+      "properties": {
+        "redacted": {
+          "not": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "required": [
+        "encrypted_payload"
+      ],
+      "not": {
+        "required": [
+          "content"
+        ]
+      },
+      "properties": {
+        "redacted": {
+          "not": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "redacted": {
+          "const": true
+        }
+      },
+      "required": [
+        "redacted"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_payload"
+            ]
+          }
+        ]
+      }
+    }
   ],
   "properties": {
     "id": {
@@ -36,6 +95,9 @@
     },
     "content": {
       "$ref": "#/$defs/content_block"
+    },
+    "encrypted_payload": {
+      "$ref": "./encrypted-envelope.schema.json"
     },
     "fields": {
       "type": "object"

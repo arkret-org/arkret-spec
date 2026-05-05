@@ -12,6 +12,12 @@
     "created_by",
     "created_at"
   ],
+  "not": {
+    "required": [
+      "body",
+      "encrypted_payload"
+    ]
+  },
   "properties": {
     "id": {
       "type": "string",
@@ -35,6 +41,9 @@
     },
     "body": {
       "$ref": "#/$defs/content_block"
+    },
+    "encrypted_payload": {
+      "$ref": "./encrypted-envelope.schema.json"
     },
     "fields": {
       "type": "object"
