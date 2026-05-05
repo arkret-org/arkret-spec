@@ -55,7 +55,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 节点间的 HTTP 请求 MUST 使用 [HTTP Message Signatures (RFC 9421)](https://datatracker.ietf.org/doc/html/rfc9421) 进行签名。接收方通过发送方 DID Document 中的公钥验证请求的真实性。
 
-签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header 字段（这是与 `federation-wire.md` §2 的同一份描述）：
+签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header 字段：
 - `@method`
 - `@target-uri`
 - `@authority`
@@ -164,7 +164,7 @@ Contrix v1 定义两个联邦推送 endpoint：
 
 | 特性 | `PUT /federation/transactions/{txn_id}` | `POST /federation/push-operations` |
 |------|----------------------------------------|-------------------------------------|
-| 定义文件 | `federation-wire.md` | `federation.md` |
+| 定义文件 | `federation.md` | `federation.md` |
 | 幂等机制 | `(origin, destination, txn_id)` 显式事务 ID | `(origin, destination, event_id)` 逐事件去重 |
 | 适用场景 | 有状态联邦：两个互信 Principal Server 之间的持续同步 | 无状态/单次推送：一次性事件投递或无事务管理能力的轻量客户端 |
 | 额外字段 | `receipts[]`、`frontier`、`request_canonical_hash` | `space_id` |
@@ -234,6 +234,28 @@ Host: server-alpha.com
 - fanout 失败时，源服务器 MUST 保留重试队列并在后续 federation transaction、frontier probe 或 pull 响应中暴露缺失诊断；不得因单个 peer 不可达而回滚已 accepted revoke。
 
 该主动推送只加速缓存一致性，不替代接收方对签名、auth refs、state resolution 和 policy 的独立验证。
+
+### 4.5 Fork Detection / Frontier Exchange
+
+参与同一 Space 的 federation peer SHOULD 周期性交换 frontier，确保未发生 silent fork：
+
+```json
+{
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "heads": ["sha256:..."],
+  "max_hlc": "01970e589d21-0004-a13f9c2e",
+  "witness_receipts": []
+}
+```
+
+规则：
+
+- `heads[]` 是当前 accepted frontier 的稳定 event hash；接收方比较两端 heads 集合发现差异。
+- `max_hlc` 是 issuer 在 frontier 处观察到的最大 HLC；用于检测时钟严重偏移。
+- `witness_receipts[]` 可选，包含 witness / receipt service 对 frontier 的 attestation。
+- 若两端历史包含相同 `event_id` 但不同 hash，接收方 MUST quarantine 并以 `duplicate_conflict` 报告。
+- 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
+- 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
 
 ## 5. 跨域加入 Space
 

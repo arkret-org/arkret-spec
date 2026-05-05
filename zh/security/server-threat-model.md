@@ -174,7 +174,7 @@
 
 - `policy-server.md`（风险决策与 `reason_code`）
 - `moderation.md`（blocklist / allowlist / quarantine）
-- `federation.md` 与 `federation-wire.md`（联邦放行与签名验证）
+- `federation.md` 与 `federation.md`（联邦放行与签名验证）
 - `api-conventions.md`（统一错误码与重放控制）
 - `discovery-directory.md`（发现防枚举）
 - `identity-did.md`（resolver trust）

@@ -10,6 +10,43 @@
 
 ## [Unreleased] — `v1-core-rc`
 
+### 协议评审驱动的简化（2026-05-05，第四批：constraint 14→8 collapse + encoding 合并 + federation dedup）
+
+#### Round 9 — Constraint 类型 14 → 8 family + subtype discriminator
+
+- `grant-constraint.schema.json` `constraint_type` enum 从 15 收敛为 8（`temporal`, `field_access`,
+  `type_restriction`, `scope_limitation`, `delegation_control`, `quota`, `claim_based`,
+  `confidentiality`），新增 `subtype` 字段保留原 14 类型的子语义。
+- 新增 `applies_to_actions[]` 让 `temporal` 吸收 v0 的 `edit_window` / `redact_window`。
+- `constraint-schema.md` §2.2 表从 14 行 + 2 例外行重构为 8 family + subtype 表；§2.3 evaluation_class
+  表从 19 行简化为 17 行（按 `(family, subtype)` 索引）；新增 v0→v1 family 命名映射 table 用于翻译既有
+  grant；§6.3、§8、§9、§10、§11、§12、§13、§14 章节标题更新以反映 family/subtype 归属。
+- 16 处 JSON 示例迁移到新形态：`approval_workflow` → `claim_based{subtype=approval}`；
+  `accountability` → `claim_based{subtype=accountability}`；`encryption_requirement` →
+  `confidentiality{subtype=encryption}`；`visibility_control` → `confidentiality{subtype=visibility}`；
+  `container_move` → `scope_limitation`；`rate_limiting` → `quota{subtype=rate}`；`resource_limit` →
+  `quota{subtype=resource}`；`edit_window` → `temporal{subtype=edit_window}`。
+- conformance-profiles.json 增加 `cx.profile.constraint.device_session.v1`。
+
+#### Round 10 — Encoding 文档收敛
+
+- 删除 `zh/conformance/hlc-specification.md`：操作伪代码（send / receive / compare）与验证规则
+  并入 `encoding.md` §7.1-§7.3。
+- 删除 `zh/conformance/cursor-encoding.md`：客户端契约 / canonical 内部结构 / 验证规则 /
+  cursor 可迁移性 (服务器之间 reparse) / 一致性要求 并入 `encoding.md` §8.1-§8.6。
+- `encoding.md` §2.1 新增 "备用 canonical encoding (profile-gated)"：注册 `cx.profile.encoding.cbor.v1`
+  作为未来 CBOR (RFC 8949) deterministic encoding 的扩展点；引入 `encoding_extension_profiles`
+  顶级字段到 conformance-profiles.json。
+- conformance/README.md 更新文件清单。
+
+#### federation.md ⇌ federation-wire.md 去重
+
+- 删除 `zh/sync/federation-wire.md`（原 170 行）。federation.md §3.2 删除自指 `federation-wire.md §2`
+  的注释，新增 §4.5 Fork Detection / Frontier Exchange（来自原 federation-wire.md §6 的 frontier
+  exchange shape `{space_id, heads[], max_hlc, witness_receipts[]}` 与 duplicate_conflict 处理规则）。
+- 4 处跨文件引用 (`security/server-threat-model`, `spec-map`, `service-http-binding`, `federation`
+  本身) 重定向到 federation.md。spec-map 中重复行去重。
+
 ### 协议评审驱动的简化（2026-05-05，第三批：真删 + Event Envelope requirements 合并 + plane 重组 + conformance-vectors 合一）
 
 #### 真删之前仅标 deprecated 的字段 / 注册表项

@@ -28,60 +28,68 @@
 
 ### 2.2 约束类型
 
+v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分子语义；当 family + subtype 共同决定 evaluation_class 或 wire shape 时，subtype 必须显式声明。
+
 约束类型分为 **core** 与 **extension** 两组：
 
-- **core**：所有声明 `cx.profile.core_event_store.v1` 的实现 MUST 支持。这些类型表达最小授权语义，且都是 `stateless` 或 `grant_local`（见 §2.3），fast path 即可裁决。
+- **core**：所有声明 `cx.profile.core_event_store.v1` 的实现 MUST 支持。这些类型表达最小授权语义。
 - **extension**：profile-gated。实现声明对应 profile 时 MUST 支持；未声明 MUST fail closed（不得 silent ignore，避免 grant 在弱实现上语义放宽）。
 
-| 约束类型 | 类别 | 说明 | 启用 profile |
-|----------|------|------|------|
-| `temporal` | core | 基于时间的约束（不含 `recurrence`/`max_session_duration`） | core |
-| `field_access` | core | 字段级读写控制（不含 `condition`） | core |
-| `type_restriction` | core | 对象类型限制 | core |
-| `scope_limitation` | core | Space / Flow / View / branch 范围 | core |
-| `delegation_control` | core | 委托深度和路径 | core |
-| `rate_limiting` | core | 操作频率限制（`max_operations` + `period`） | core |
-| `temporal` 带 `recurrence` 或 `max_session_duration` | extension | 周期窗口与会话时长 | `cx.profile.constraint.temporal_recurrence.v1` |
-| `field_access` 带 `condition` | extension | 启用 `condition.kind` typed predicate | `cx.profile.constraint.field_condition.v1` |
-| `approval_workflow` | extension | 预审批 / proposal-then-approve / 监护人审批 | `cx.profile.constraint.approval_workflow.v1` |
-| `claim_based` | extension | 声明 / 证明要求 | `cx.profile.constraint.claim_based.v1` |
-| `accountability` | extension | 责任方追踪 / guardian / controller | `cx.profile.constraint.accountability.v1` |
-| `encryption_requirement` | extension | 强制加密、key 轮换 | `cx.profile.constraint.encryption_requirement.v1` |
-| `container_move` | extension | 看板 / collection 移动范围 | `cx.profile.kanban_mvp.v1` |
-| `visibility_control` | extension | 对象 / 消息可见性裁剪 | `cx.profile.constraint.visibility_control.v1` |
-| `resource_limit` | extension | 资源大小 / 数量限制 | `cx.profile.constraint.resource_limit.v1` |
-| `edit_window` | extension | 编辑 / 撤回时间窗口 | `cx.profile.chat_mvp.v1` |
+| 约束 family | subtype（可选） | 类别 | 说明 | 启用 profile |
+|-------------|---------------|------|------|------|
+| `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
+| `temporal` | `edit_window` | extension | `applies_to_actions=["cx.message.revise"]` + `message_edit_window` 限定编辑窗口。 | `cx.profile.chat_mvp.v1` |
+| `temporal` | `redact_window` | extension | `applies_to_actions=["cx.message.redact"]` + `message_redact_window` 限定撤回窗口。 | `cx.profile.chat_mvp.v1` |
+| `temporal` | `session` | extension | `max_session_duration` / `inactivity_timeout` 会话时长。 | `cx.profile.constraint.temporal_recurrence.v1` |
+| `temporal` 带 `recurrence` | （任意 subtype） | extension | 周期窗口。 | `cx.profile.constraint.temporal_recurrence.v1` |
+| `field_access` | （省略 = 列表比较） | core | `fields_write_allow` / `fields_write_deny` 等。 | core |
+| `field_access` 带 `condition` | （任意 subtype） | extension | 启用 `condition.kind` typed predicate。 | `cx.profile.constraint.field_condition.v1` |
+| `type_restriction` | — | core | 对象类型 / Space kind / Morph type / facet 限制。 | core |
+| `scope_limitation` | （省略 = 普通 scope） | core | Space / Flow / View / branch 范围。 | core |
+| `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围（吸收 v0 的 `container_move`）。 | `cx.profile.kanban_mvp.v1` |
+| `delegation_control` | — | core | 委托深度、路径、subset_only 等。 | core |
+| `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
+| `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `cx.profile.constraint.resource_limit.v1` |
+| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求。 | `cx.profile.constraint.claim_based.v1` |
+| `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `cx.profile.constraint.approval_workflow.v1` |
+| `claim_based` | `accountability` | extension | 责任方 / guardian / controller 追踪。 | `cx.profile.constraint.accountability.v1` |
+| `claim_based` | `device_session` | extension | 强 device 绑定 / session 控制。 | `cx.profile.constraint.device_session.v1` |
+| `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `cx.profile.constraint.encryption_requirement.v1` |
+| `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `cx.profile.constraint.visibility_control.v1` |
 
-未注册的 `constraint_type` MUST fail closed。新增 type 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` enum 中注册。
+未注册的 `constraint_type` 或未注册的 `(constraint_type, subtype)` 组合 MUST fail closed。新增 family / subtype 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` 与 `subtype` enum 中注册。
+
+> v1 之前曾有 14 个独立 `constraint_type`（`approval_workflow` / `accountability` / `encryption_requirement` / `container_move` / `visibility_control` / `resource_limit` / `edit_window` / `device_session` 各自独立）。它们在 v1-core-rc 被吸收到上面的 8 family 中，通过 subtype 或现有字段表达。这一收敛去掉了"types 13–15 之间互相耦合但没有清晰分界"的问题，也让 evaluation_class 表从 19 行变成 11 行。
 
 ### 2.3 evaluation_class 分类
 
 每个 `constraint_type` 的 canonical `evaluation_class`。授权评估器 MUST 按此分类决定缓存键；实现声明的 `evaluation_class` 与 canonical 不一致时 MUST 视作不一致 conformance 错误。
 
-| constraint_type | canonical evaluation_class | 缓存键建议 | 备注 |
+| (constraint_type, subtype) | canonical evaluation_class | 缓存键建议 | 备注 |
 | --- | --- | --- | --- |
-| `temporal`（不含 `recurrence`/`max_session_duration`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
-| `temporal` 带 `recurrence` 或 `max_session_duration` | `stateless` | TTL ≤ 下一个 recurrence 边界 | 仍是纯函数，但 TTL 必须缩短 |
+| `temporal`（无 subtype、无 `recurrence`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
+| `temporal` 带 `recurrence`、`subtype=session` 或 `applies_to_actions` | `stateless` | TTL ≤ 下一个 recurrence 边界或 window 剩余时间 | 仍是纯函数，但 TTL 必须缩短 |
 | `field_access`（无 `condition`） | `stateless` | (constraint_hash, op_kind) | 仅 allow / deny 列表比较 |
 | `field_access` 带 `condition.kind` | `space_state` | (space_id, frontier_hash, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
 | `type_restriction` | `stateless` | (constraint_hash, op_target_type) | |
-| `scope_limitation` | `stateless` | (constraint_hash, op_target) | |
+| `scope_limitation`（普通 scope） | `stateless` | (constraint_hash, op_target) | |
+| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `space_state` | (space_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
 | `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
-| `rate_limiting` | `external` | 不可缓存 | 必须查 actor 历史计数 |
-| `approval_workflow` | `external` | 不可缓存 | 等待 approval event |
-| `claim_based` | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
-| `accountability` | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
-| `encryption_requirement` | `space_state` | (space_id, frontier_hash) | 取 Space `encryption_profile` / `audit_assurance` |
-| `container_move` | `space_state` | (space_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
-| `visibility_control` | `space_state` | (space_id, frontier_hash) | 看 Space `history_visibility` |
-| `resource_limit`（`blob_max_bytes` 单次） | `stateless` | 单次操作的字节计数无需历史 | |
-| `resource_limit`（`max_total_blob_bytes` 累计） | `external` | 不可缓存 | 必须查 scope 内累计 |
-| `edit_window` | `stateless` | TTL ≤ window 剩余时间 | 时间预算 |
+| `quota` (`subtype=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
+| `quota` (`subtype=resource`，`blob_max_bytes` 单次) | `stateless` | 单次操作的字节计数无需历史 | |
+| `quota` (`subtype=resource`，`max_total_blob_bytes` 累计) | `external` | 不可缓存 | 必须查 scope 内累计 |
+| `claim_based` (`subtype=claim`) | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
+| `claim_based` (`subtype=approval`) | `external` | 不可缓存 | 等待 approval event |
+| `claim_based` (`subtype=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
+| `claim_based` (`subtype=device_session`) | `space_state` | (space_id, frontier_hash, actor_device_id) | 设备 / session 状态来自 principal control stream |
+| `confidentiality` (`subtype=encryption`) | `space_state` | (space_id, frontier_hash) | 取 Space `encryption_profile` / `audit_assurance` |
+| `confidentiality` (`subtype=visibility`) | `space_state` | (space_id, frontier_hash) | 看 Space `history_visibility` |
 
 落地要点：
 
-- 14 种 constraint type 中有 7 种属于 `external` / `space_state`——这是大型授权图不可整体缓存的根因。fast path（仅 `stateless` + `grant_local`）SHOULD 用于读取 marker、reaction 等低风险动作；写入与高风险动作 MUST 跑完整集合。
+- 8 family（按 subtype 展开后约 14 行）中接近一半是 `external` / `space_state`——这是大型授权图不可整体缓存的根因。fast path（仅 `stateless` + `grant_local`）SHOULD 用于读取 marker、reaction 等低风险动作；写入与高风险动作 MUST 跑完整集合。
 - `evaluation_class` 同时承担 lint 锚点：实现声明的依赖与 canonical 不一致时，conformance lint MUST 报错。
+- v0 → v1 family 命名映射（用于翻译既有 grant）：`approval_workflow` → `claim_based{subtype=approval}`；`accountability` → `claim_based{subtype=accountability}`；`device_session` → `claim_based{subtype=device_session}`；`encryption_requirement` → `confidentiality{subtype=encryption}`；`visibility_control` → `confidentiality{subtype=visibility}`；`container_move` → `scope_limitation`（保留 `relation_kind_allow` / `allowed_from_container_refs` / `allowed_to_container_refs` / `wip_limit_override`）；`rate_limiting` → `quota{subtype=rate}`；`resource_limit` → `quota{subtype=resource}`；`edit_window` → `temporal{subtype=edit_window, applies_to_actions=["cx.message.revise"]}`。
 
 ## 3. 时间约束
 
@@ -211,11 +219,11 @@
 }
 ```
 
-### 6.3 看板移动限制
+### 6.3 容器移动范围（scope_limitation 含 container 字段）
 
 ```json
 {
-  "constraint_type": "container_move",
+  "constraint_type": "scope_limitation",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw0000000000000000000"],
@@ -253,13 +261,14 @@
 }
 ```
 
-## 8. 频率限制
+## 8. 配额 (Quota)
 
-### 8.1 操作频率
+### 8.1 操作频率（subtype=rate）
 
 ```json
 {
-  "constraint_type": "rate_limiting",
+  "constraint_type": "quota",
+  "subtype": "rate",
   "effect": "allow",
   "max_operations": 100,
   "period": "1h",
@@ -268,11 +277,12 @@
 }
 ```
 
-### 8.2 资源频率
+### 8.2 资源限制（subtype=resource）
 
 ```json
 {
-  "constraint_type": "rate_limiting",
+  "constraint_type": "quota",
+  "subtype": "rate",
   "effect": "allow",
   "max_resources": 1000,
   "resource_type": "object",
@@ -281,13 +291,14 @@
 }
 ```
 
-## 9. 审批工作流
+## 9. 审批工作流（claim_based, subtype=approval）
 
 ### 9.1 预审批
 
 ```json
 {
-  "constraint_type": "approval_workflow",
+  "constraint_type": "claim_based",
+  "subtype": "approval",
   "effect": "require_review",
   "approval_required": true,
   "approval_mode": "before_commit",
@@ -304,7 +315,8 @@
 
 ```json
 {
-  "constraint_type": "approval_workflow",
+  "constraint_type": "claim_based",
+  "subtype": "approval",
   "effect": "require_review",
   "approval_mode": "proposal_then_approve",
   "proposal_morph_type": "proposal",
@@ -316,7 +328,7 @@
 }
 ```
 
-## 10. 基于声明的约束
+## 10. 基于声明的约束（claim_based, subtype=claim）
 
 ### 10.1 声明要求
 
@@ -354,13 +366,14 @@
 }
 ```
 
-## 11. 责任约束
+## 11. 责任约束（claim_based, subtype=accountability）
 
 ### 11.1 责任方
 
 ```json
 {
-  "constraint_type": "accountability",
+  "constraint_type": "claim_based",
+  "subtype": "accountability",
   "effect": "allow",
   "accountability_required": true,
   "responsible_actor": "did:web:guardian.example.com",
@@ -374,7 +387,8 @@
 
 ```json
 {
-  "constraint_type": "accountability",
+  "constraint_type": "claim_based",
+  "subtype": "accountability",
   "effect": "require_review",
   "guardian_approval_required": true,
   "guardian_actor_refs": [
@@ -385,13 +399,14 @@
 }
 ```
 
-## 12. 加密要求
+## 12. 加密要求（confidentiality, subtype=encryption）
 
 ### 12.1 强制加密
 
 ```json
 {
-  "constraint_type": "encryption_requirement",
+  "constraint_type": "confidentiality",
+  "subtype": "encryption",
   "effect": "allow",
   "encryption_required": true,
   "min_encryption_level": "mls_rfc9420",
@@ -404,7 +419,8 @@
 
 ```json
 {
-  "constraint_type": "encryption_requirement",
+  "constraint_type": "confidentiality",
+  "subtype": "encryption",
   "effect": "allow",
   "key_rotation_period": "7d",
   "max_key_age": "30d",
@@ -415,13 +431,14 @@
 }
 ```
 
-## 13. 可见性控制
+## 13. 可见性控制（confidentiality, subtype=visibility）
 
 ### 13.1 对象可见性
 
 ```json
 {
-  "constraint_type": "visibility_control",
+  "constraint_type": "confidentiality",
+  "subtype": "visibility",
   "effect": "allow",
   "visibility_allow": ["world_readable", "shared", "joined"],
   "deny_redacted_history": true
@@ -430,13 +447,14 @@
 
 `visibility_allow` 限制 actor 可访问的对象/消息可见性级别。取值与 `history_visibility` 枚举一致：`world_readable`、`shared`、`invited`、`joined`、`restricted`。
 
-## 14. 资源限制
+## 14. 历史规则示例（已合并到上述 family）
 
 ### 14.1 Blob 大小限制
 
 ```json
 {
-  "constraint_type": "resource_limit",
+  "constraint_type": "quota",
+  "subtype": "resource",
   "effect": "allow",
   "blob_max_bytes": 10485760,
   "max_total_blob_bytes": 104857600,
@@ -450,7 +468,9 @@
 
 ```json
 {
-  "constraint_type": "edit_window",
+  "constraint_type": "temporal",
+  "subtype": "edit_window",
+  "applies_to_actions": ["cx.message.revise"],
   "effect": "allow",
   "message_edit_window": "15m",
   "message_redact_window": "24h",
@@ -646,13 +666,15 @@ function matches_field_access(operation, constraint):
       "fields_write_allow": ["title", "fields.status", "fields.priority"]
     },
     {
-      "constraint_type": "accountability",
+      "constraint_type": "claim_based",
+  "subtype": "accountability",
       "effect": "allow",
       "accountability_required": true,
       "responsible_actor": "did:web:owner.example.com"
     },
     {
-      "constraint_type": "approval_workflow",
+      "constraint_type": "claim_based",
+  "subtype": "approval",
       "effect": "require_review",
       "approval_required": true,
       "approval_mode": "after_commit_review"
@@ -749,7 +771,8 @@ Grant envelope 字段、签名规则与必填性以
 
 ```json
 {
-  "constraint_type": "approval_workflow",
+  "constraint_type": "claim_based",
+  "subtype": "approval",
   "effect": "require_review",
   "mode": "before_commit",
   "approvers": ["did:web:manager.example"],
@@ -780,7 +803,7 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
 
 ```json
 {
-  "constraint_type": "container_move",
+  "constraint_type": "scope_limitation",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw0000000000000000000"],

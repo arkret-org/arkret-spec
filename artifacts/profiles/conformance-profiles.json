@@ -105,9 +105,13 @@
     "cx.profile.constraint.approval_workflow.v1",
     "cx.profile.constraint.claim_based.v1",
     "cx.profile.constraint.accountability.v1",
+    "cx.profile.constraint.device_session.v1",
     "cx.profile.constraint.encryption_requirement.v1",
     "cx.profile.constraint.visibility_control.v1",
     "cx.profile.constraint.resource_limit.v1"
+  ],
+  "encoding_extension_profiles": [
+    "cx.profile.encoding.cbor.v1"
   ],
   "federation_hardening": [
     "service_did_authentication",

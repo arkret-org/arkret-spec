@@ -120,15 +120,22 @@ batches 5-9 总计：
 
 ## 仍未完成 / 留给下一次 PR
 
-**Round 9 — Constraint 类型 14→8 collapse**：是真正的设计问题（每个合并对都需要为新的"宽类型"重新设计 sub-discriminator + 相应字段集合，并迁移所有 fixture 的具体 constraint 实例），不是简单的 enum 改名。建议做法：
+**v1.1+ profile 登记**：`cx.profile.did_webvh.v1` / `cx.profile.tsp_binding.v1` / `cx.profile.audited_e2ee.v1` / `cx.profile.binding.grpc.v1` 等都已在 prose 中引用但未在 conformance-profiles.json 正式登记 `profile_requirements` 块（required_endpoints / required_event_kinds / required_schemas / required_fixtures / optional_extensions / feature_discovery）。下次正式做 v1.1 schedule 时统一登记并补齐。
 
-- 设计新的 8 个类型每个的内部 schema，定义 `subtype` 字段表达原 14 类型的 sub-shape。
-- 写一个 fixture migration 脚本：把所有 `{constraint_type: "approval_workflow", approval_threshold: 2}` 翻译成 `{constraint_type: "claim_based", subtype: "approval", approval_threshold: 2}` 等。
-- 重新 lint 与跑向量。
-- 同时把 capability / grant 的 `constraint_extension_profiles` 注册项与文档章节重新组织。
+## ✅ batch 5-10 已落地
 
-**Round 10 — encoding 演进**：CBOR profile / HLC 并入 encoding.md / cursor-encoding 并入 encoding.md。低优先级。
-
-**v1.1+ profile 登记**：`cx.profile.did_webvh.v1` / `cx.profile.tsp_binding.v1` / `cx.profile.audited_e2ee.v1` / `cx.profile.binding.grpc.v1` 等都已在 prose 中引用但未在 conformance-profiles.json 正式登记。下次正式做 v1.1 schedule 时统一登记并补齐 `profile_requirements` 块。
-
-**federation.md ↔ federation-wire.md 去重**（评审建议但未落地）：两个文件 service DID 认证 / 签名规则部分重叠。
+- Round 1 文件级合并（7 文件删除）
+- Round 2 state resolution 重写（lattice 替换 quarantine-on-fork、`space_version` 真删）
+- Round 3 MIMI / A2A / Applet 下沉为 v1.1+ extension
+- Round 4 DID default 从 webvh 改 web；webvh / plc / pkh / keri / tsp 全部 v1.1+ profile
+- Round 5 v1 transport 锁定 HTTP/JSON
+- Round 6 audited E2EE 拆出独立 hardening profile (audited-e2ee.md)
+- Round 7 plane 重组（governance/, identity/account-lifecycle, crypto-media/device-lifecycle 合并）
+- Round 8（subset）字段层 deprecation：cx.flow.convert / cx:operation: / constraint.priority
+- Round 8 真删：space_version / cx.flow.convert / Operation / priority
+- Round 8 R8.5 Event Envelope 4 字段 → requirements{} 单一对象
+- Round 8 R8.4+R8.6+R8.7：Read Marker.timeline_order_key 删除、Relation.state 简化、notification/read_marker 移出 canonical 列表
+- R1.8 5 个 conformance-vector 合并为单一 conformance-vectors.md
+- **Round 9 constraint 14 → 8 family + subtype discriminator（schema + 16 处 prose 示例迁移）**
+- **Round 10 HLC + cursor 并入 encoding.md，CBOR profile 注册**
+- **federation.md ⇌ federation-wire.md 去重（删除 federation-wire，frontier-exchange 并入 federation.md §4.5）**

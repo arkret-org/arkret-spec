@@ -22,6 +22,15 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` �
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何 v1 schema 不得新增 `type: number`（非整数）字段；遗留字段 MUST 在下一个 schema profile 升级时迁移到整数 + scale。
 
+### 2.1 备用 canonical encoding (profile-gated)
+
+v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设备的 binding 时，profile MAY 引入备用 canonical encoding：
+
+- **CBOR (RFC 8949) deterministic encoding** — 与 IETF MLS / COSE / WebAuthn 同源；适合 IoT、嵌入式与高密度 wire 场景。引入 CBOR profile 时 MUST 同时定义 JSON ↔ CBOR 等价规则，并在 conformance vector 中给出双向 digest 一致性测试。
+- 其他 binary encoding（如 protobuf、msgpack）SHOULD 通过 profile 单独引入，不得静默替换 v1 canonical JSON。
+
+引入备用 encoding 的 profile id 形如 `cx.profile.encoding.cbor.v1`；事件 envelope 中通过 `requirements.features[]` 声明使用该 encoding，否则接收方按 canonical JSON 解析。
+
 ## 3. Hash
 
 默认 hash:
@@ -140,6 +149,67 @@ Hybrid Logical Clock 编码：
 
 v1 固定使用 4 位 `logical_hex`。该上限等价于单个 producer 每毫秒 65,536 个有序 HLC；超过该速率的批量写入应拆分到多个 actor/device producer、等待下一毫秒，或使用服务端批量入口排队。不得在 v1 中把 `logical_hex` 私自扩展到 6/8 位；需要更宽计数器时必须声明新的 HLC version 与 schema profile。
 
+### 7.1 操作伪代码
+
+发送事件：
+
+```text
+hlc = max(current_hlc, current_physical_ms)
+if hlc.physical == current_physical_ms:
+    hlc.logical += 1
+else:
+    hlc.physical = current_physical_ms
+    hlc.logical = 0
+```
+
+接收带 HLC `hlc_remote` 的事件：
+
+```text
+hlc = max(current_hlc, current_physical_ms, hlc_remote)
+if hlc.physical == current_physical_ms or hlc.physical == hlc_remote.physical:
+    hlc.logical += 1
+else:
+    hlc.logical = 0
+```
+
+比较：
+
+```text
+function compare_hlc(hlc1, hlc2):
+    if hlc1.physical_hex != hlc2.physical_hex:
+        return parse_hex(hlc1.physical_hex) - parse_hex(hlc2.physical_hex)
+    if hlc1.logical_hex != hlc2.logical_hex:
+        return parse_hex(hlc1.logical_hex) - parse_hex(hlc2.logical_hex)
+    return strcmp(hlc1.node_hex, hlc2.node_hex)
+```
+
+### 7.2 验证规则
+
+实现 MUST：
+
+- 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。
+- 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的两层 drift 模型验证物理时间：超 `hard_future_skew_ms`（默认 300_000）MUST reject / quarantine；超 `expected_future_skew_ms`（默认 30_000）SHOULD soft-fail / quarantine。
+- profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Space upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
+- 拒绝 `physical_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需 v2 HLC profile 才可使用）。
+- 维护本地单调性；本地时钟落后远端时推进到远端时间，超前时限制推进速率。
+
+### 7.3 Timeline 排序与 winner 选择
+
+客户端 timeline / backfill / 展示层默认事件排序：
+
+```text
+causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
+```
+
+reducer winner 选择（无因果关系的并发事件）：
+
+1. 按该 reducer / auth-state profile 的授权权重 / domain-specific priority 比较（若定义）
+2. HLC 较大者胜出
+3. HLC 相等时按 `actor_id` 字典序
+4. 仍相等时按 `event_id` / event hash 字典序
+
+Timeline 展示顺序与 state winner 是两种不同 projection：前者排历史，后者选当前态。实现 MUST 在 profile 中明确使用哪一个，不得把 timeline 中最后出现的 Event 直接当作状态 winner。
+
 ## 8. Cursor
 
 Cursor 是不透明字符串：
@@ -148,15 +218,93 @@ Cursor 是不透明字符串：
 cx:cursor:<base64url>
 ```
 
-Cursor 内容 MAY 包含：
+### 8.1 客户端契约
 
-- query hash
-- last sort key
-- last event id
-- frontier
-- expiry
+- 客户端 MUST 把 cursor 当作不透明字符串。
+- 客户端 MUST NOT 解码、解析或修改 cursor 内容。
+- 客户端 MUST 存储最新 `next_batch` cursor 用于恢复。
+- 客户端 MUST 在下次同步请求中按原样使用 cursor。
 
-客户端 MUST NOT 解析 cursor。
+### 8.2 服务端 canonical 内部结构
+
+服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 cursor 内部结构 MUST 遵循下方 schema**，目的是让客户端在 Principal Server 之间迁移时目标服务器有能力解析旧 cursor 并生成等价本地 cursor。客户端 MUST NOT 解析或修改 cursor，但**服务器侧不再是任意私有结构**。
+
+```json
+{
+  "v": "1",
+  "t": "2026-04-26T00:00:00.000Z",
+  "s": {
+    "cx:space:01js0sp0000000000000000000": {
+      "p": ["cx:event:01js0ev0000000000000000000"],
+      "o": "01970e589d21-0004-a13f9c2e",
+      "h": "sha256:abc123..."
+    }
+  },
+  "d": {
+    "cx:device:01js0dm0000000000000000000": "cx:devmsg:01js0dm0000000000000000000"
+  },
+  "x": 1714080000000
+}
+```
+
+| 字段 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
+| `t` | timestamp | 是 | 生成时间戳 |
+| `s` | object | 是 | Space 位置映射 |
+| `s.<space_id>.p` | array | 是 | 因果前沿（事件 ID 集合） |
+| `s.<space_id>.o` | string | 是 | timeline 排序 HLC |
+| `s.<space_id>.h` | hash | 是 | 该位置的 state hash |
+| `d` | object | 否 | 设备位置映射 |
+| `x` | integer | 是 | 过期时间戳（Unix ms） |
+
+服务端 MAY 添加 `_` 开头的私有字段（如 `_compression`、`_mac`）用于本地优化或签名；这些字段不参与 §8.4 cursor 翻译，必须先于 base64url 编码进入 canonical bytes。
+
+### 8.3 验证规则
+
+服务端接收 cursor 时 MUST 验证：
+
+1. 前缀以 `cx:cursor:` 开头。
+2. 其余部分是合法 base64url。
+3. 解码后 `v` 是支持的版本。
+4. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
+5. 解码后是合法 JSON。
+6. 所有 `space_id` 是合法 `cx:space:*` 格式。
+7. 因果前沿中的所有 event id 合法。
+8. timeline 排序是合法 HLC 格式。
+
+非法 cursor MUST reject，错误 `invalid_cursor`。
+
+### 8.4 Cursor 可迁移性
+
+Cursor 对客户端不透明，但**服务器之间不再不透明**。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下迁移路径之一：
+
+1. **直接 reparse**：B 收到 `since=cx:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<space_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Space 历史。
+2. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；不得静默丢失因果对齐。
+3. **可选 translate 端点**：未来 profile 可能在 `cx.profile.principal_server.v1` 之上引入 `POST /api/v1/sync/translate-cursor`；该端点不属于 v1 强制范围。
+
+`_` 前缀的服务器私有字段（compression flag、MAC、签名）在迁移时可被丢弃；canonical 字段（`v` `t` `s` `d` `x`）足以恢复 frontier。
+
+### 8.5 测试向量入口
+
+可执行向量位于：
+
+- [`artifacts/fixtures/encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)
+- [`fixtures/encoding-fixture.json`](./fixtures/encoding-fixture.json)
+
+向量覆盖点：cursor 版本字段与过期、per-space frontier 编码、device message 位置、过期 token 回退、非法额外字段拒绝。
+
+### 8.6 一致性
+
+声明支持 Contrix v1 同步的实现 MUST：
+
+- 以不透明字符串形式接受和传输版本 1 cursor。
+- 服务端 MUST 接收时验证所有 cursor 字段。
+- 服务端 MUST 按 §8.2 canonical schema 编码 cursor 内部结构（私有字段限于 `_` 前缀）。
+- 客户端 MUST NOT 解析 cursor 内容。
+- 支持每个 cursor 至少 50 个 space。
+- 支持最长 7 天的过期时间。
+- 以适当错误拒绝非法 cursor。
 
 ## 9. Rank
 
