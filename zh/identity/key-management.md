@@ -367,7 +367,7 @@ key_commitment = SHA256(commitment_key)
 5. 客户端用 recovery policy 发布 `recover` 或 `cx.device.authorized`。
 6. 若涉及 E2EE Space，客户端拉取 MLS state 并处理 epoch 缺口。
 
-恢复 device key 时 MUST 生成新的 device key，不得把备份中的旧设备身份克隆到新设备。恢复出的 `self_signing_key` / `user_signing_key` 可用于重建 cross-signing 状态，但 Cross-Signing Reset 仍必须满足 `device-crypto-verification.md` 的高风险证明要求。
+恢复 device key 时 MUST 生成新的 device key，不得把备份中的旧设备身份克隆到新设备。恢复出的 `self_signing_key` / `user_signing_key` 可用于重建 cross-signing 状态，但 Cross-Signing Reset 仍必须满足 `device-lifecycle.md` 的高风险证明要求。
 
 ### 7.4 所有权证明与解密证明
 
@@ -463,7 +463,7 @@ Recovery policy 字段：
 
 Contrix v1 对设备、会话和恢复要求如下：
 
-- Device record JSON Schema 由 `data-structures.md`、`devices-and-auth.md` 和 `device-crypto-verification.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
+- Device record JSON Schema 由 `data-structures.md`、`device-lifecycle.md` 和 `device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
 - `cx.device.authorized` 与 `cx.device.revoked` MUST 进入 schema registry，并按 event auth 规则验证。撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
 - Session grant MUST 绑定 principal DID、device id、service DID / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
 - Backup envelope test vector MUST 覆盖加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定和服务端不可解密要求。

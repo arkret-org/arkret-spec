@@ -49,13 +49,6 @@
           "auth_refs": [
             "cx:event:01k9au00000000000000000000"
           ],
-          "critical_extensions": [
-            {
-              "id": "cx.feature.future_required.v1",
-              "scope": "reducer",
-              "fail_closed": true
-            }
-          ],
           "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
@@ -63,7 +56,16 @@
               "body": "hello"
             }
           },
-          "proofs": []
+          "proofs": [],
+          "requirements": {
+            "critical_extensions": [
+              {
+                "id": "cx.feature.future_required.v1",
+                "scope": "reducer",
+                "fail_closed": true
+              }
+            ]
+          }
         },
         "supported_features": [
           "cx.feature.detached_jws.v1"

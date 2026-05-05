@@ -151,7 +151,7 @@ API 调用 SHOULD 使用以下方式之一：
 - 错误语义必须使用单一标准 code。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。
 - `stale_frontier` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
 - 格式错误的 sync token 使用 `invalid_param` / 400；格式正确但已过期的 sync token 使用 `sync_token_expired` / 410。
-- `unsupported_feature` 用于 `Event.required_features[]` 与 `critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `cx.*` Event kind。二者不得互相替代。
+- `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `cx.*` Event kind。二者不得互相替代。
 - `conflict` / 409 是抽象 base code；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `discussion_branch_disabled` / `duplicate_conflict` / `epoch_mismatch` / `key_unavailable` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `audit_receipt_invalidated`）。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 

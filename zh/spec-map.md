@@ -90,7 +90,7 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| `identity/identity-did.md` | DID、默认 `did:webvh`、DID Document、method adapter、Organization ownership。 |
+| `identity/identity-did.md` | DID、v1 core 默认 `did:web`、`did:webvh` high-trust profile、DID Document、Organization ownership。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
@@ -110,11 +110,11 @@
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/event-auth-state-resolution.md` | Space version、auth refs、membership、policy components、history sharing、state resolution。 |
+| `authz/event-auth-state-resolution.md` | reducer/schema profile 版本、auth refs、membership、policy components、history sharing、state resolution（quarantine-on-fork）。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
-| `authz/moderation.md` | 举报、E2EE franking、Space/Organization 审核策略、个人屏蔽入口。 |
+| `governance/content-moderation.md` | 举报、E2EE franking、Space/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
-| `authz/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
+| `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
 
 ### 4.5 同步、服务与联邦
 
@@ -145,8 +145,7 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| `crypto-media/device-crypto-verification.md` | 设备身份、cross-signing、to-device、secret storage、key backup。 |
-| `crypto-media/devices-and-auth.md` | 多设备、登录、认证、SSO。 |
+| `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、cross-signing、secret storage、key backup。 |
 | `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS-bound state、KeyPackage lifecycle、minimal-metadata Space 与 master-agent control 边界（核心机制）。 |
 | `crypto-media/audited-e2ee.md` | 可选 hardening profile：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 的 audit policy、join warning、强制留痕、RYW receipt、forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |

@@ -137,7 +137,7 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Contrix Event
 
 ## 6. Key Material
 
-`cx.mimi.key_material` MUST 使用 `device-crypto-verification.md` 的 KeyPackage claim API。请求必须包含：
+`cx.mimi.key_material` MUST 使用 `device-lifecycle.md` 的 KeyPackage claim API。请求必须包含：
 
 - target MIMI identifier 或 DID / pairwise DID。
 - intended MIMI room URI 和 Contrix `space_id`。

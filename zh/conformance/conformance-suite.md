@@ -10,7 +10,7 @@
 - capability 与授权派生规则
 - Principal Server Events API / sync service / E2EE / applet / policy-server 关键接口
 
-所有 schema / profile 变更通过 `reducer_profile_ref` / `schema_refs` 与 `cx.space.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
+所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `cx.space.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
 
 ## 2. 测试角色（Profile）
 

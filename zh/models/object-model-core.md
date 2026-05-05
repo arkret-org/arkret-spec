@@ -16,15 +16,17 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 - `view`
 - `policy`
 - `invite`
-- `read_marker`
-- `notification`
 - `capability`
 - `blob`（内容层对象，由 Blob Store 管理，不参与协作图归约）
 
-辅助对象（SDK 内部或非持久化 canonical 对象）：
+派生对象（不是 canonical truth，由 client / SDK 从 Event 集合本地计算；schema 仅用于 wire 表示）：
 
-- `operation`（SDK 内部可寻址中间对象）
-- `event_batch_receipt`（可选加速/审计对象）
+- `read_marker`（actor-private 状态；详见 `discovery/read-receipts.md`）
+- `notification`（inbox projection；详见 `discovery/read-receipts.md`）
+
+辅助对象（可选加速 / 审计）：
+
+- `event_batch_receipt`（可选 batch 签名 receipt）
 
 注：v1 已移除 canonical object 上的 `type` 字段；对象种类由 `id` 的 typed 前缀（`cx:flow:` / `cx:space:` / ...）唯一决定。Schema 约束通过 `schema_refs` 字段引用和 `cx.schema.define` / `cx.schema.update` state event 管理。`policy` 既是 typed-id 前缀（`cx:policy:`）下的物化对象，也有对应 state event 形态。
 

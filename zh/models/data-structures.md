@@ -313,7 +313,7 @@ Schema id: `cx.schema.relation.v1`
 | `from_ref` | yes | `string` | MUST 是 `cx:<kind>:...` 或 DID。 | 起点对象/Actor/Space 引用。 |
 | `to_ref` | yes | `string` | MUST 是 `cx:<kind>:...` 或 DID。 | 终点对象/Actor/Space 引用。 |
 | `fields` | no | `object` | 可放 rank、role、edge metadata。 | 关系属性。 |
-| `state` | no | `enum(active, deleted, redacted)` |  | 关系状态。 |
+| `state` | no | `enum(active, tombstone)` | `tombstone` 同时覆盖删除与 redaction；原因保存在对应 `cx.relation.delete` / `cx.redaction` event 上，不再写入物化对象。 | 关系状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
@@ -391,10 +391,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | `hlc` | yes | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 | HLC。 |
 | `prev_refs` | yes | `array<id:event>` | 可为空。 | Actor event chain 前序。 |
 | `auth_refs` | yes | `array<id:event>` | create event 可为空；必须引用授权状态事件，不能直接引用 grant / policy object ID。 | 授权依赖。 |
-| `schema_profile_refs` | no | `array<string>` | MUST 进入 event digest。 | 事件声明依赖的 schema profile。 |
-| `reducer_profile_ref` | no | `string` | MUST 进入 event digest。 | 事件声明依赖的 reducer profile。 |
-| `required_features` | no | `array<string>` | 未支持时 MUST fail closed。 | 事件依赖的 feature/profile。 |
-| `critical_extensions` | no | `array<object>` | 每项必须有 `id`、`scope`、`fail_closed=true`。 | 事件内 critical extension 声明。 |
+| `requirements` | no | `object` | `requirements.{schema[], reducer, features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`scope`、`fail_closed=true`。 | 事件依赖声明（schema profile / reducer profile / feature / critical extension）。 |
 | `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
@@ -410,7 +407,7 @@ Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。State even
 - 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_hash)` 接受的 sibling 数量设置上限；v1 public profile 的上限为 16，超过后 MUST quarantine 或要求 actor chain repair。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
 
-`required_features` 与 `critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Space schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
+`requirements.features[]` 与 `requirements.critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Space schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
 
 ## 10. Proof
 
@@ -550,7 +547,6 @@ Schema id: `cx.schema.read_marker.v1`
 | `scope` | yes | `enum(space, flow, discussion, thread, view, message, morph)` |  | 已读范围。 |
 | `scope_id` | no | `string` | scope 不是 space 时必填。 | 范围对象。 |
 | `event_id` | yes | `id:event` |  | 已读到的事件。 |
-| `timeline_order_key` | no | `object` | 可加速比较。 | 已读排序键。 |
 | `updated_at` | yes | `timestamp` |  | 更新时间。 |
 
 ## 16. Notification

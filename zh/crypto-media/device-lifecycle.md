@@ -1,10 +1,83 @@
-# Device Crypto and Verification
+# Device Lifecycle
 
-## 1. 目标
+## 1. Login & Authorization Boundaries
 
-本文件定义 Contrix 多设备身份、设备信任、设备间消息、密钥验证、密钥备份和 E2EE 历史共享。它补足 `devices-and-auth.md` 与 `key-management.md` 的线级协议要求。
+去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Contrix 把以下三件事分开处理：
 
-## 2. Device Identity
+- **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
+- **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorized`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
+- **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Space capability。
+
+### 1.1 认证服务器验证什么
+
+Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根。它验证的是“某个登录会话是否可以被绑定到某个 DID principal / device”，而不是用用户名、密码、邮箱或 OIDC subject 直接定义主体所有权。
+
+实现 MAY 支持以下登录因子：
+
+- 用户名 + 密码，用于传统 service account 登录。
+- Passkey / WebAuthn，用于强认证或无密码登录。
+- OIDC / SSO，用于企业或组织管理账号。
+- 已授权设备配对，用于普通多设备加入。
+- Recovery key、门限恢复或受信恢复服务，用于全部设备丢失后的恢复。
+
+认证成功后，Auth Service MUST 产出以下至少一种可验证绑定：
+
+- `cx.session.grant`：把短期 `session_public_key` 委托给 DID principal / device。
+- `cx.device.authorized`：把新设备公钥加入当前设备集合。
+- 满足 `recovery_policy` 的 `recover` / key-log event。
+
+资源服务器验证的是 session grant、device authorization、DID proof、capability 和 Space policy，而不是“用户刚刚输入了正确密码”。密码、SSO session 和 service account id 都不能直接作为 `actor_id`、event sender 或 capability subject。
+
+服务账号密码重置只改变服务账号登录凭据；除非同时存在有效 DID 控制证明或 recovery policy 事件，否则不得自动授予 DID 控制权、不得签发长期 device grant、不得访问 E2EE 密钥备份。
+
+### 1.2 登录、设备授权与设备验证的边界
+
+Contrix v1 把三件事分开处理：
+
+- **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
+- **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorized`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
+- **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Space capability。
+
+因此“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `cx.device.authorized` 或短期 `cx.session.grant`。短期 Web/OIDC 登录可以只使用 `cx.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须走设备授权和设备密钥验证。
+
+
+## 2. 多设备配对 (Device Pairing)
+
+在 Contrix 中，用户的每个物理/逻辑设备都应该拥有本地独立生成的设备级密钥对 (Device Key)。
+多设备登录的过程，本质上是“已授权设备将新设备加入身份控制网”的密码学授权过程。
+
+### 2.1 配对流程 (无密码登录)
+1. **新设备初始化**：用户在新手机或新电脑上打开应用，本地生成一组全新的 ECDSA/Ed25519 密钥对。屏幕上显示包含公钥与临时连接信息的二维码 (QR Code)。
+2. **主设备扫码**：用户使用已登录的主设备（如已通过面容 ID 解锁的手机）扫描该二维码。
+3. **密码学授权**：
+   - 主设备验证 pairing challenge 后，签发 `cx.device.authorized`、符合 DID method 的 key-log operation，或触发 recovery policy 允许的设备授权流程。
+   - DID Document SHOULD 只承载身份控制密钥和服务发现入口。普通设备列表、设备信任状态、吊销状态和算法更新 SHOULD 由 `cx.device.*` 事件、device key log 或受控 device registry 表达；只有 DID method 本身要求时，才把设备 verification method 写入 DID Document。
+   - 短期浏览器或临时执行环境 MAY 只拿到 `cx.session.grant`，但它不改变长期设备集合，也不得访问 E2EE 历史密钥，除非另有有效设备授权和密钥共享流程。
+4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过 MLS Welcome / Commit 把新设备加入合适的 group）同步给新设备。
+5. **事件广播**：主设备向 principal control stream 广播 `cx.device.authorized` 事件；若封装为 Event Envelope，其 `space_id` 是目标 principal 的 `principal_control_space_id`。新设备获得的能力由该事件、session grant、Space capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
+
+### 2.2 设备吊销
+当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `cx.device.revoked`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
+
+
+## 3. 企业单点登录 (SSO / OIDC Gateway)
+
+企业通常强制要求使用 Okta、Google Workspace 等中心化身份提供商 (IdP) 进行认证。在不破坏去中心化端到端加密前提下，本协议引入 **Auth Gateway (认证网关)** 模式。
+
+### 3.1 架构角色
+- **Auth Gateway**：部署在企业内网或受控云端的高安全级别服务器。它通常是组织 DID 明确声明的 session grant issuer 或设备授权服务。只有在企业托管账号场景中，它才 MAY 托管员工 DID 的高权限签发材料；对普通个人 DID，网关 SHOULD 只签发短期 session grant，不应托管用户 principal signing key 或 recovery key。
+
+### 3.2 登录时序
+1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。
+2. **OIDC 重定向**：浏览器跳转至企业 Okta 完成标准的 OAuth2 / OIDC 身份认证。
+3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，签发短期、受众绑定、scope 受限的 `cx.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。
+4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。资源服务器仍 MUST 重新验证 DID control state、capability、Space policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
+5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。续期需要重新验证 OIDC session，并重新检查组织 policy、设备状态和风险信号。
+
+此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `cx.device.authorized`、DID/key-log operation 或 recovery policy。
+
+
+## 4. Device Identity
 
 每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `cx:device:<ulid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
 
@@ -30,7 +103,7 @@
 
 设备记录 MUST 由 principal 当前控制密钥或已信任的 self-signing key 签名。服务端不得伪造 device identity。
 
-## 3. Signing Hierarchy
+## 5. Signing Hierarchy
 
 Contrix 使用三层签名链：
 
@@ -40,7 +113,7 @@ Contrix 使用三层签名链：
 
 `self_signing_key` 和 `user_signing_key` SHOULD 存入加密 secret storage，并通过新设备验证后共享。
 
-## 4. Device List Sync
+## 6. Device List Sync
 
 任何设备新增、撤销、签名更新或算法更新，MUST 产生 `cx.device.list_update` event。该 event 是 principal control stream 中的 durable identity state；若使用 Event Envelope，顶层 `space_id` MUST 是目标 principal 的 `principal_control_space_id`：
 
@@ -62,7 +135,7 @@ Contrix 使用三层签名链：
 
 客户端 sync MUST 暴露 device list delta。E2EE 客户端在向 principal 发送新加密内容前，MUST 查询或同步其最新 device list。
 
-## 5. To-Device Messages
+## 7. To-Device Messages
 
 To-device message 是面向具体 principal/device 的非 Space 持久消息，用于密钥交换、验证、secret sharing 和通知。
 
@@ -168,7 +241,7 @@ Authorization: Bearer <token>
 | `next_batch` | `token` | optional | 下一次读取 token。 |
 | `limited` | `boolean` | optional | 是否因 limit 被截断。 |
 
-## 6. One-Time and Fallback Keys
+## 8. One-Time and Fallback Keys
 
 设备支持非 MLS 加密或引导 MLS 时，MUST 发布 one-time / fallback prekey：
 
@@ -213,7 +286,7 @@ POST /api/v1/keys/claim
 - 服务端返回 key 时 MUST 附带 device signature。
 - 客户端 MUST 拒绝未被 self-signing key 或 principal key 链接的 device key，除非用户明确接受未验证设备。
 
-## 7. MLS KeyPackage Claim API
+## 9. MLS KeyPackage Claim API
 
 MLS KeyPackage 使用独立的 single-use claim API，而不是复用 one-time prekey 语义。
 
@@ -266,7 +339,7 @@ POST /api/v1/keys/keypackages/revoke
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码 SHOULD 合并为单一不透明错误码 `claim_failed`，不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
 - claim record SHOULD 被 Principal Server / Device Key Server 保留到 Welcome 过期后的一段短 TTL，用于重试、诊断和滥用审计；不得长期保留可关联 private room 的明文目标信息。
 
-## 8. Verification Flows
+## 10. Verification Flows
 
 设备密钥验证用于确认“这个 principal/device/key 是否是用户想信任的对象”。验证成功本身不授予登录态、Space 权限或长期设备权力：
 
@@ -274,7 +347,7 @@ POST /api/v1/keys/keypackages/revoke
 - 跨 principal 验证只表达人工信任；通常由本地 `user_signing_key` 签名对方 identity key 或设备 key，不得改变对方设备授权状态。
 - `cx.session.grant` 只授予短期会话能力；不得因 SAS/QR 成功而自动升级为长期设备授权。
 
-### 8.1 标准消息类型
+### 10.1 标准消息类型
 
 Contrix 标准验证消息通过 to-device 通道发送：
 
@@ -307,7 +380,7 @@ Contrix 标准验证消息通过 to-device 通道发送：
 | `cx.key.verification.done` | none | 双方 MAC 验证通过后完成。MAY 带本地生成的签名摘要。 |
 | `cx.key.verification.cancel` | `code` | 任意阶段取消；`reason` MAY 给出面向用户的短说明。 |
 
-### 8.2 状态机、超时与并发
+### 10.2 状态机、超时与并发
 
 标准交互状态机为：
 
@@ -330,7 +403,7 @@ request -> ready -> start -> accept -> key -> mac -> done
 - 一台接收设备接受后，发起方 SHOULD 向其他待处理设备发送 `cancel`，`code=accepted_by_other_device`。
 - 交易完成或取消后，`transaction_id` MUST NOT 在相同 principal/device 组合中重用。
 
-### 8.3 SAS 验证
+### 10.3 SAS 验证
 
 SAS 验证 MUST 绑定：
 
@@ -348,7 +421,7 @@ Transcript 中的双方 principal/device MUST 与 `DeviceMessageEnvelope` 的 se
 
 SAS 展示值 MUST 从同一 transcript 派生。用户确认前，客户端不得把对方 device key 标记为 verified。
 
-### 8.4 QR 验证
+### 10.4 QR 验证
 
 QR 验证 MUST 使用一次性 secret 或 public commitment，且 QR 内容 MUST 有过期时间和 intended verifier。
 
@@ -363,7 +436,7 @@ QR payload MUST 至少绑定：
 
 QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret 或 MLS group secret。扫码后，客户端仍 MUST 通过 to-device transcript 完成 `mac` / `done`，不能只凭扫码动作直接信任设备。
 
-### 8.5 成功后的动作
+### 10.5 成功后的动作
 
 同一 principal 的新设备配对完成后，已授权设备 MAY：
 
@@ -373,7 +446,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 
 跨 principal 验证完成后，客户端 MAY 使用 `user_signing_key` 对对方 principal identity key 或 device key 生成信任签名。该签名只影响本 principal 的信任视图，不授予对方 Space capability。
 
-### 8.6 Cancel Code Registry
+### 10.6 Cancel Code Registry
 
 标准 cancel code：
 
@@ -392,7 +465,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `policy_denied` | Space、组织或账号 policy 拒绝。 |
 | `accepted_by_other_device` | 同一请求已被另一设备接受。 |
 
-## 9. Secret Storage（client-local cache form）
+## 11. Secret Storage（client-local cache form）
 
 Secret storage 用于保存：
 
@@ -415,7 +488,7 @@ Secret storage 用于保存：
 
 Client-local secret storage 的存储格式仍可使用本节的 `cx.secret_storage.v1` envelope，但其字段不进入任何 wire / hash / 签名输入；服务端不接受该 envelope。
 
-## 10. Key Backup
+## 12. Key Backup
 
 Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当前 actor 已经通过 membership、history visibility 和 Space policy 获得的历史范围，不是给未来新成员预先保留历史 secret 的机制。
 
@@ -467,7 +540,7 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当�
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Space membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
 - 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Space history visibility。
 
-### 10.1 Backup API
+### 12.1 Backup API
 
 Device / Key Server 对 encrypted backup object 提供标准操作：
 
@@ -482,7 +555,7 @@ DELETE /api/v1/keys/backups/{backup_id}
 
 `list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints。`get` 返回完整 encrypted backup object。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明。
 
-## 11. Space / Branch Key Share and Withholding
+## 13. Space / Branch Key Share and Withholding
 
 Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送设备 MUST 检查：
 
@@ -500,7 +573,7 @@ Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送�
 - `policy_denied`
 - `unknown_session`
 
-## 12. Cross-Signing Reset
+## 14. Cross-Signing Reset
 
 重置 `self_signing_key` 或 `user_signing_key` 是高风险操作。实现 MUST 要求以下至少一种证明：
 
@@ -511,7 +584,7 @@ Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送�
 
 重置后，先前设备签名链不再自动可信。客户端 MUST 将所有既有信任标记为 `needs_reverification`。
 
-## 13. Applet Device Delegation
+## 15. Applet Device Delegation
 
 Applet 如需代表 ghost actor 或桥接用户参与 E2EE，MUST 使用受限 delegated device：
 

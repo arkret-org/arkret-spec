@@ -41,9 +41,9 @@
       "type": "string",
       "enum": [
         "active",
-        "deleted",
-        "redacted"
-      ]
+        "tombstone"
+      ],
+      "description": "Relation state. 'tombstone' covers both deletion and redaction; the originating reason is preserved on the cx.relation.delete / cx.redaction event, not on the materialized object."
     },
     "created_by": {
       "$ref": "#/$defs/did"

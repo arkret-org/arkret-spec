@@ -44,9 +44,6 @@
       "type": "string",
       "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$"
     },
-    "timeline_order_key": {
-      "type": "object"
-    },
     "updated_at": {
       "type": "string",
       "format": "date-time",

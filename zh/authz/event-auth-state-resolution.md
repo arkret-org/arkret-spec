@@ -11,10 +11,10 @@
 Contrix v1 通过以下三个机器约束表达版本演进，**不**使用顶层 `space_version` wire 字段：
 
 - `Space.schema_refs`：声明 Space 启用的 schema id 集合（例如 `cx.schema.space.v1`、`cx.schema.flow.v1`）。
-- `Event.schema_profile_refs`、`Event.reducer_profile_ref`：每个 Event 显式声明它所依赖的 schema 与 reducer profile id；这些字段进入 event digest，参与签名绑定。
+- `Event.requirements.{schema[], reducer, features[], critical_extensions[]}`：每个 Event 显式声明它依赖的 schema profile / reducer profile / feature / critical extension；整个 `requirements` 对象进入 event digest，参与签名绑定。
 - `cx.space.upgrade` state event：把 Space 当前态从一个 reducer/schema profile 切换到另一个（见 §11）。
 
-实现 MUST reject 自己未支持的 `reducer_profile_ref` 或 `schema_profile_refs[]` 中的 critical profile id（按 `required_features` / `critical_extensions` 规则 fail closed）。实现 MAY 以只读方式展示未支持 profile 下的事件，但 MUST NOT 将其作为本地 accepted state。
+实现 MUST reject 自己未支持的 `requirements.reducer` 或 `requirements.schema[]` 中的 critical profile id（按 `requirements.features` / `requirements.critical_extensions` 规则 fail closed）。实现 MAY 以只读方式展示未支持 profile 下的事件，但 MUST NOT 将其作为本地 accepted state。
 
 ## 3. Event Validation Pipeline
 
@@ -23,7 +23,7 @@ Contrix v1 通过以下三个机器约束表达版本演进，**不**使用顶�
 1. Parse canonical JSON，不接受重复 key、非规范 number、无效 UTF-8 或超过 profile 限制的对象。
 2. 验证 `event_id` 是合法 `cx:event:*` typed ID，并验证事件 redaction 前、去除 `proofs` 与 `unsigned` 后 canonical bytes 的 digest 与 proof `payload_hash` / event digest 一致。
 3. 验证 `proofs` 中 actor/device/service 签名。
-4. 验证 `space_id`、`kind`、`created_at`、`hlc` 与 schema (`schema_profile_refs`、`reducer_profile_ref` 在内)。
+4. 验证 `space_id`、`kind`、`created_at`、`hlc` 与 schema（含 `requirements.schema[]` 与 `requirements.reducer`）。
 5. 拉取并验证 `prev_refs` 和 `auth_refs` 指向事件的 hash。
 6. 对 `auth_refs` 运行授权算法。
 7. 对 `payload` 运行类型级 schema validation。
@@ -542,12 +542,9 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 
 - `payload`（其中包括 `attachments`、`mentions`、`relations`、`client_generated`、对象正文等所有内容）
 - `unsigned`
-- `schema_profile_refs`（仅在 redaction policy 声明 minimal-metadata 时清除；普通 redaction 保留）
-- `reducer_profile_ref`（同上）
-- `required_features`（同上）
-- `critical_extensions`（同上）
+- `requirements`（仅在 redaction policy 声明 minimal-metadata 时清除；普通 redaction 保留整个 `requirements` 对象）
 
-普通 redaction 默认保留 `schema_profile_refs` / `reducer_profile_ref` / `required_features` / `critical_extensions`，使下游能继续判断该 event 是否依赖未知 critical 语义。Minimal-metadata profile 的 redaction 才完全清除这些字段。
+普通 redaction 默认保留 `requirements`，使下游能继续判断该 event 是否依赖未知 critical 语义。Minimal-metadata profile 的 redaction 才完全清除该字段。
 
 Redaction 不保证物理删除。Blob 删除、密钥销毁和法律擦除由 `media-and-blob.md` 与 `account-lifecycle.md` 定义。
 

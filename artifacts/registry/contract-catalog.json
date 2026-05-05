@@ -46,7 +46,7 @@
       "payload_schema_file": "schemas/event-payload.schema.json",
       "coverage_required": true,
       "validation_rule": "Every active standard cx.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
-      "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.critical_extensions and fail closed when unsupported."
+      "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported."
     },
     "event_kinds": [
       {

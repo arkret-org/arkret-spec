@@ -60,30 +60,6 @@
         "$ref": "#/$defs/eventRef"
       }
     },
-    "schema_profile_refs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/profileRef"
-      },
-      "uniqueItems": true
-    },
-    "reducer_profile_ref": {
-      "$ref": "#/$defs/profileRef"
-    },
-    "required_features": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/featureRef"
-      },
-      "uniqueItems": true
-    },
-    "critical_extensions": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/criticalExtension"
-      },
-      "uniqueItems": true
-    },
     "redacts": {
       "$ref": "#/$defs/eventRef"
     },
@@ -99,6 +75,41 @@
         "$ref": "#/$defs/proof"
       },
       "minItems": 1
+    },
+    "requirements": {
+      "type": "object",
+      "description": "Schema/reducer/feature/critical-extension requirements declared by this event. All sub-fields enter the canonical event bytes and the proof payload_hash. Receivers MUST fail closed on any unknown critical entry. Replaces v1-pre-rc fields schema_profile_refs / reducer_profile_ref / required_features / critical_extensions.",
+      "properties": {
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/profileRef"
+          },
+          "uniqueItems": true,
+          "description": "Schema profile ids this event depends on."
+        },
+        "reducer": {
+          "$ref": "#/$defs/profileRef",
+          "description": "Reducer profile id this event depends on."
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/featureRef"
+          },
+          "uniqueItems": true,
+          "description": "Features this event requires; receiver MUST fail closed if any is unknown."
+        },
+        "critical_extensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/criticalExtension"
+          },
+          "uniqueItems": true,
+          "description": "Critical extension declarations; each entry MUST have id, scope, fail_closed=true."
+        }
+      },
+      "additionalProperties": false
     }
   },
   "allOf": [
