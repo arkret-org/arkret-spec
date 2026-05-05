@@ -56,7 +56,7 @@
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID 文档、method resolver、密钥材料与验证链路。 |
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
-| Auth Weight | 授权权重 | State resolution 中候选事件的排序键，由授权来源的层级决定（700=Space root，0=基础 membership）。 |
+| Auth Weight | 授权权重 | **历史概念**（v1 之前的 lattice state-resolution 派生表）。v1-core-rc 已用 quarantine-on-concurrent-fork 替代；详见 `authz/event-auth-state-resolution.md` §9.3。新实现 MUST NOT 依赖 `auth_weight`。 |
 | Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值，用于 deterministic timeline 排序。 |
 | Soft Fail | 软失败 | 事件格式和签名有效但缺少上下文或暂时无法授权的中间状态；可在上下文补齐后重新评估。 |
 | Quarantine | 隔离 | 基础授权可通过但被策略标记为高风险的事件状态；不自动展示，需管理员审查。 |

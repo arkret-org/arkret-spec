@@ -36,7 +36,7 @@ Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 
 
 这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现接受任何持久 Event、capability grant、federation transaction、MLS membership 或 service delegation 前，MUST 将当前会话绑定到 principal DID 与 device，并按本地 trust policy 验证该绑定。
 
-如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID。Contrix 部署的默认托管 DID method 是 `did:webvh`：Auth / Account Server 在自有域名（例如 `users.<org>.example`）下为用户托管 `did.jsonl` 历史，并在用户后续自托管时通过 continuity proof 平滑迁移。组织或服务主体本身 SHOULD 使用 `did:webvh`（带可验证历史）；只需要简单服务发现入口、不要求历史链的 service DID MAY 使用 `did:web`。托管 DID 的 controller、recovery policy、trust domain、method-specific history 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
+如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID。Contrix v1 core 部署的默认托管 DID method 是 `did:web`（详见 §3）：Auth / Account Server 在自有域名（例如 `users.<org>.example`）下托管该用户的 DID Document。需要可验证身份历史的部署（组织治理、合规、long-lived principal）SHOULD 升级到 `did:webvh` high-trust profile（§3.3），由 Auth / Account Server 维护 `did.jsonl` 历史，并在用户后续自托管时通过 continuity proof 平滑迁移。只需要简单服务发现入口、不要求历史链的 service DID 通常使用 `did:web`。托管 DID 的 controller、recovery policy、trust domain、method-specific history 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
 
 ### 2.2 DID 持久，密钥 SHOULD 可轮换
 
@@ -136,7 +136,7 @@ Contrix 把身份解析抽象为 `Identity Resolution Infrastructure`，而不�
 
 | DID method | 是否需要公共 Identity Registry | 需要的解析 / 验证能力 |
 | --- | --- | --- |
-| `did:webvh` | 不需要公共 registry（默认 method）。 | `did.jsonl` history、SCID、entry hash chain、controller proof、watcher / witness evidence、HTTPS / DNS 校验。 |
+| `did:webvh` | 不需要公共 registry（high-trust profile 默认 method）。 | `did.jsonl` history、SCID、entry hash chain、controller proof、watcher / witness evidence、HTTPS / DNS 校验。 |
 | `did:web` | 不需要公共 registry。 | HTTPS / DNS / 域名治理、TLS / PKI、method-specific DID Document 获取与校验。无历史链——只能反映"当前 DID Document 状态"。 |
 | `did:key` | 不需要。 | 本地 method resolver 从 DID 字符串展开 DID Document；适合临时主体、设备、测试、一次性邀请或 bootstrap key。 |
 | `did:pkh` | 不需要 Contrix registry。 | CAIP-10 / chain-specific account validation、wallet proof、chain namespace policy；通常不支持 DID document update / deactivation。 |
@@ -242,8 +242,8 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 一个组织 MAY 自建 Auth / Account Server，同时接受多种 DID method 的用户 DID。典型流程是：
 
-1. 用户提交 `did:webvh:...`（默认）、`did:web:...`、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
-2. 组织 Auth Server 按本地 trust policy 选择 resolver。默认 principal 解析路径是 `did:webvh`（验证 `did.jsonl` 链 + witness）；service DID 通常是 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
+1. 用户提交 `did:web:...`（v1 core 默认）、`did:webvh:...`（high-trust profile 默认）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
+2. 组织 Auth Server 按本地 trust policy 选择 resolver。v1 core 默认 principal 解析路径是 `did:web`（HTTPS + 域名验证）；声明 high-trust profile 的部署 SHOULD 把 principal 解析路径升级为 `did:webvh`（验证 `did.jsonl` 链 + witness）；service DID 通常是 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
 3. Auth Server 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
 5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Space policy 决定可访问的数据范围。
@@ -475,7 +475,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 Contrix v1 对 DID 实现要求如下：
 
-- 默认 principal DID 创建 MUST 使用 `did:webvh`，除非部署 policy 显式选择了另一个已有 DID method。
+- v1 core 默认 principal DID 创建 MUST 使用 `did:web`，除非部署 policy 显式选择了另一个已有 DID method；声明 organization high-assurance / high-trust profile 的部署 MUST 升级到 `did:webvh`（见 §3.3）。
 - Method adapter conformance tests MUST 覆盖 `did:webvh`、`did:web`、`did:key`；声明 AT Protocol interop profile 的实现 MUST 额外覆盖 `did:plc` adapter；声明 wallet interop profile 的实现 MUST 额外覆盖 `did:pkh`。
 - `did:uuid` MUST NOT 出现在规范示例、新 fixture、新一致性向量、服务 DID、actor DID、capability subject、federation transaction 或新写入的 Event 中。
 - DID proof JSON Schema MUST 与 `data-structures.md` 的 Proof 和 `encoding.md` 的 canonical JSON 规则一致。

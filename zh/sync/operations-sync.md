@@ -176,7 +176,7 @@ Contrix v1 将依赖关系和 winner tie-breaker 分开处理：
 - 若事件 B 的 dependency closure 包含事件 A，任何 canonical replay、timeline recovery 或 reducer input normalization 都 MUST 在拓扑上令 A 先于 B；即使 `hlc(A) > hlc(B)` 也不得反转。
 - `auth_refs` 表示“B 的授权判定必须能看到 A”，不表示 A 的业务 payload 自动覆盖 B，也不额外提高 A 的 state resolution 权重。它只影响 B 是否可进入 accepted set、B 的 auth state map 和 deterministic dependency depth。
 - 只有当两个 accepted Event 在 dependency graph 中互不可达时，才使用 HLC、Actor ID、`actor_seq`、`event_id` / hash 作为 deterministic total-order tie-breaker。
-- Reducer 的 state conflict winner 仍按 `event-auth-state-resolution.md` 的 priority class、`auth_weight`、`causal_depth`、HLC 和 event id 规则执行；timeline 展示顺序不得被反向用于授权。
+- Reducer 的 state conflict winner 仍按 `event-auth-state-resolution.md` 的 quarantine-on-concurrent-fork、auth-difference re-validation、`causal_depth`、HLC 和 event id 规则执行；不再使用已废弃的 `auth_weight` lattice。timeline 展示顺序不得被反向用于授权。
 
 因此，跨 actor 的 `auth_refs` 会创建可验证依赖边界，但不会引入全局共识时钟或服务端接收顺序。
 

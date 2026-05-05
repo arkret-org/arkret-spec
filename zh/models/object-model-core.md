@@ -22,7 +22,7 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 派生对象（不是 canonical truth，由 client / SDK 从 Event 集合本地计算；schema 仅用于 wire 表示）：
 
 - `read_marker`（actor-private 状态；详见 `discovery/read-receipts.md`）
-- `notification`（inbox projection；详见 `discovery/read-receipts.md`）
+- `notification`（inbox projection；详见 `discovery/push-notifications.md`）
 
 辅助对象（可选加速 / 审计）：
 
@@ -601,6 +601,6 @@ Reducer MUST：
 ## 20. 规范性引用
 
 - 标准 event type 注册表见 `../conformance/schema-registry.md`。
-- Reducer conformance vector 见 `../conformance/conformance-vectors.md`、`../conformance/conformance-vectors.md` 和 `../conformance/conformance-vectors.md`。
+- Reducer conformance vector 见 `../conformance/conformance-vectors.md`。
 - Relation cardinality 规则由 `data-structures.md`、`object-model-standard.md` 和各业务 profile 共同定义；未声明可多重的关系 MUST 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。
 - Schema evolution 测试见 `../conformance/conformance-profiles.md`。未知字段必须保留，但不得绕过 schema、capability、policy 或 encryption 约束。
