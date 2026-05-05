@@ -10,6 +10,35 @@
 
 ## [Unreleased] — `v1-core-rc`
 
+### 协议评审驱动的简化（2026-05-05，第二批：Round 6 + Round 8 子集）
+
+#### Round 6 — Audited E2EE 拆出独立 hardening profile
+
+- 新建 [`zh/crypto-media/audited-e2ee.md`](zh/crypto-media/audited-e2ee.md)：承载
+  `cx.profile.attested_audit.e2ee.v1` 与 `cx.profile.disclosed_audit.e2ee.v1` 两类
+  audited E2EE profile 的完整 normative：audit policy declaration、join warning canonical
+  文案、audit agent entry、强制留痕 (`cx.audit.accessed`)、RYW receipt schema、transparency
+  surface、forbidden marketing terms。
+- `zh/crypto-media/encryption-and-audit.md` §3 缩为概览 stub 指向 audited-e2ee.md；文件从
+  708 行 → 538 行（−24%）。Core E2EE / MLS 内容（§2 / §4-§7）完全保留，与 audit profile
+  正交。
+- `zh/spec-map.md` 增加 audited-e2ee.md 入口。
+
+#### Round 8（子集）— 字段层 deprecation 标记
+
+- `cx.flow.convert` event kind：在 `zh/sync/operations-sync.md` §9.4 与（已存在的）多处
+  prose 中加 deprecation note，建议新写入方使用 `cx.flow.branch.set_primary` +
+  `cx.flow.branch.enable`。registry 条目保持 active 以兼容现有实现，目标 v1.1+ 移除。
+- `cx.schema.operation.v1` / `cx:operation:` typed-id：在 `zh/models/data-structures.md`
+  §18 加 deprecation note，明确 Operation 是 SDK 内部 builder 中间对象，从未上 wire；
+  v1.1+ 将移到 SDK guidance（不再作为 protocol normative 对象）。
+- `constraint.priority` 字段：在 `zh/authz/constraint-schema.md` §2.1 标记为
+  deprecated diagnostic，仅对 `effect=allow` 有诊断意义；新写入方 SHOULD 省略，可能在
+  v1.1+ 从 schema 完全移除。
+
+这三处 deprecation 都是 **prose-only**（注册表与 schema 保持向后兼容），目标是在 v1.1+
+正式移除时不会破坏既有实现。
+
 ### 协议评审驱动的简化（2026-05-05）
 
 基于全仓评审，本轮收敛掉了一批与 Matrix room state 风格继承的复杂性预算与对仍在演进外部

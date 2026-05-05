@@ -594,6 +594,12 @@ Event Batch Receipt 是可选审计/同步加速对象，不是 canonical histor
 
 Schema id: `cx.schema.operation.v1`
 
+> **Deprecation note (v1-core-rc)**：Canonical Operation Object 是 SDK 内部 builder 中间对象，
+> **从未上 wire**。`cx.schema.operation.v1` 与 `cx:operation:<ulid>` typed-id 在 v1 注册表中
+> 保留为 active 以兼容已经引用它们的 SDK；下一版本（v1.1+）将把 Operation 完全移到 SDK
+> guidance 文档（不再作为 protocol normative 对象），并从注册表中移除 typed-id 与 schema id。
+> 实现 MAY 继续使用 Operation 作为本地草稿对象，但**不要把它当作 wire 协议层面的发布单位**。
+
 本节定义 SDK 内部可内容寻址的 canonical Operation object。它通过 `cx:operation:<ulid>` typed-id 前缀标识自身种类，并以 `action_id` 唯一确定具体操作类型与 payload schema，适合作为 builder 输出、离线草稿或 Event Envelope 生成前的中间对象。
 
 v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/operations-sync.md`。Events API、Sync、Federation、Client write 和 reducer MUST 使用 Event Envelope，不得要求对端直接接收本节的 Canonical Operation Object。实现可以用 Canonical Operation Object 生成 Event Envelope，但不得把两者合并成一个含糊结构。

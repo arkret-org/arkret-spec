@@ -24,7 +24,7 @@
 
 - `constraint_id`：可选稳定标识，用于审计、UI diff 和局部更新；未提供时，评估器可用 constraint 在 grant 内的数组位置和 canonical hash 作为诊断标识。
 - `evaluation_class`：可缓存性/依赖范围 hint，决定授权评估器能否走 fast path。每个 `constraint_type` 在 §2.3 有 canonical evaluation_class；实现 MAY 在不破坏正确性的前提下收紧（如把声明的 `grant_local` 实际当 `stateless` 缓存），但 MUST NOT 放宽（不得把 `external` 当 `stateless` 缓存）。
-- `priority`：仅对 `effect=allow` 有效，且仅用于诊断（"是哪条 allow 让本次操作 ALLOWED"）。MUST NOT 影响 `deny` / `quarantine` / `require_review` 的判定——这三种 effect 一律"任一命中即生效"（§15）。
+- `priority`：**deprecated diagnostic field**（v1-core-rc）。仅对 `effect=allow` 有效，且仅用于诊断（"是哪条 allow 让本次操作 ALLOWED"）。MUST NOT 影响 `deny` / `quarantine` / `require_review` 的判定——这三种 effect 一律"任一命中即生效"（§15）。新写入方 SHOULD 省略 `priority`；它在评估算法中没有规范性作用，只在审计日志里可能出现。`priority` 可能在 v1.1+ 从 schema 中完全移除。
 
 ### 2.2 约束类型
 

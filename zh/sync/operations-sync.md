@@ -431,6 +431,11 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 
 ### 9.4 `cx.flow.convert`
 
+> **Deprecation note (v1-core-rc)**：`cx.flow.convert` 与 `cx.flow.branch.set_primary` +
+> `cx.flow.branch.enable` 组合在语义上完全等价。新写入方 SHOULD 优先使用
+> `cx.flow.branch.set_primary`（必要时配合 `cx.flow.branch.enable`）；`cx.flow.convert` 在 v1
+> 注册表中保留为 active 以保障向后兼容，将在 v1.1+ 移除或转为 profile-only。
+
 `cx.flow.convert` 将同一个 Flow 的目标 branch 标记为唯一 primary，并可确保目标 branch 存在。
 
 ```json

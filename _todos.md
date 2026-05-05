@@ -60,12 +60,11 @@
 - [ ] R5.3 sync stream / events feed 增加 AsyncAPI 描述指针。**deferred** 到独立 binding profile PR。
 - [ ] R5.4 federation.md ↔ federation-wire.md 去重。**deferred** 到 Round 6+。
 
-## Round 6 — Audit / MLS hardening 拆分（P2）— deferred
+## Round 6 — Audit / MLS hardening 拆分（P2）— ✅ 完成（部分）
 
-- [ ] R6.1 `crypto-media/encryption-and-audit.md` §3-§3.5 (audited E2EE RYW receipt) 拆出到独立 hardening profile。
-- [ ] R6.2 MLS `application_state_ref` + `0xCAFE` GroupContext extension 拆出到 hardening profile。
-- [ ] R6.3 conformance-profiles.json 同步登记。
-- [ ] R6.4 目标：encryption-and-audit.md 50 KB → ~30 KB。
+- [x] R6.1 `crypto-media/encryption-and-audit.md` §3-§3.5 (audited E2EE RYW receipt) 拆出到 `audited-e2ee.md` 独立 profile 文档；core 文件 §3 改为概览 stub。文件从 708 行 → 538 行（−24%）。
+- [ ] R6.2 MLS `application_state_ref` + `0xCAFE` GroupContext extension 拆出到 hardening profile。**deferred**：§2.5 已经把 base profile 与 `cx.profile.mls_state_binding.full.v1` 区分清楚，进一步抽离 prose 收益有限。
+- [x] R6.3 conformance-profiles.json 中两个 audit profile（`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1`）已存在于 `e2ee_hardening` 与 `hardening_profiles` 数组中；本轮通过 prose 把它们升级为独立 profile 文档。
 
 ## Round 7 — Plane 重组（P2）— deferred
 
@@ -74,15 +73,15 @@
 - [ ] R7.3 `identity/key-management.md` 设备相关章节 → `crypto-media/`。
 - [ ] R7.4 合并 `crypto-media/devices-and-auth.md` + `device-crypto-verification.md` → 单一 `device-lifecycle.md`。
 
-## Round 8 — 字段层精简（P2）— deferred
+## Round 8 — 字段层精简（P2）— ✅ 部分完成（v1-core-rc 仅做向后兼容的 prose 标记，硬移除留 v1.1+）
 
-- [ ] R8.1 删除 `cx:operation:` typed-id 和 `cx.schema.operation.v1`；Operation 改为 SDK 文档。
-- [ ] R8.2 删除 `cx.flow.convert` event kind；统一用 `cx.flow.branch.set_primary`。
-- [ ] R8.3 删除 capability constraint 上的 `priority` 字段。
-- [ ] R8.4 `Read Marker.timeline_order_key` 移到 actor-private account data。
-- [ ] R8.5 合并 Event Envelope 上的 4 个 profile/feature 字段为单一 `requirements` 对象。
-- [ ] R8.6 `Relation.state` enum 简化为 `active / tombstone`。
-- [ ] R8.7 评估把 `notification` / `read_marker` 从 canonical objects 列表移除。
+- [x] R8.1 `cx:operation:` typed-id 和 `cx.schema.operation.v1` 在 `data-structures.md` §18 加 deprecation note；registry 条目保留以兼容已有 SDK。v1.1+ 将完全移除。
+- [x] R8.2 `cx.flow.convert` event kind 在 `operations-sync.md` §9.4 加 deprecation note；新写入方 SHOULD 用 `cx.flow.branch.set_primary` + `cx.flow.branch.enable`。registry 条目保留为 active；v1.1+ 移除或转 profile-only。
+- [x] R8.3 `constraint.priority` 字段在 `constraint-schema.md` §2.1 标记为 deprecated diagnostic；新写入方 SHOULD 省略；v1.1+ 可能从 schema 移除。
+- [ ] R8.4 `Read Marker.timeline_order_key` 移到 actor-private account data。**deferred** 到下次 read-receipts profile pass。
+- [ ] R8.5 合并 Event Envelope 上的 4 个 profile/feature 字段为单一 `requirements` 对象。**deferred**：影响 schema 层，需要 fixture 协调。
+- [ ] R8.6 `Relation.state` enum 简化为 `active / tombstone`。**deferred**：影响 redaction & tombstone 与 Relation 的双重交互，留下次专项 PR。
+- [ ] R8.7 评估把 `notification` / `read_marker` 从 canonical objects 列表移除。**deferred**：与 R8.4 一起做。
 
 ## Round 9 — Constraint 类型合并（P2）— deferred
 

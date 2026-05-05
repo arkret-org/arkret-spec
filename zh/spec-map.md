@@ -147,7 +147,8 @@
 | --- | --- |
 | `crypto-media/device-crypto-verification.md` | 设备身份、cross-signing、to-device、secret storage、key backup。 |
 | `crypto-media/devices-and-auth.md` | 多设备、登录、认证、SSO。 |
-| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS-bound state、KeyPackage lifecycle、minimal metadata Space 与可审查留痕。 |
+| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS-bound state、KeyPackage lifecycle、minimal-metadata Space 与 master-agent control 边界（核心机制）。 |
+| `crypto-media/audited-e2ee.md` | 可选 hardening profile：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 的 audit policy、join warning、强制留痕、RYW receipt、forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话、会议、TURN/STUN/ICE、SFU/MCU。 |
 
