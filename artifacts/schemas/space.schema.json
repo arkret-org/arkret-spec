@@ -6,7 +6,6 @@
   "required": [
     "id",
     "schema",
-    "space_version",
     "title",
     "kind",
     "created_by_principal",
@@ -27,7 +26,8 @@
     },
     "space_version": {
       "type": "string",
-      "pattern": "^\\d+$"
+      "pattern": "^\\d+$",
+      "description": "Deprecated in v1-core-rc. Use reducer_profile_ref + cx.space.upgrade for versioning. Tolerated on the wire for backward compatibility but no longer canonical."
     },
     "title": {
       "type": "string",

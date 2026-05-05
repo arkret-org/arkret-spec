@@ -50,6 +50,22 @@ HLC 值编码为以下格式的字符串：
 - `01970e589d21-0004`（缺少 node 部分）
 - `xyz-0004-a13f9c2e`（非法十六进制）
 
+### 3.4 测试向量入口
+
+可执行向量位于：
+
+- [`artifacts/fixtures/encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)
+- [`zh/conformance/fixtures/encoding-fixture.json`](./fixtures/encoding-fixture.json)
+
+向量覆盖点：
+
+- 文本编码格式 `<unix_ms_hex>-<logical_hex>-<node_id_hash>`
+- 同毫秒下 logical counter 增长
+- 字典序与时间/逻辑序一致
+- 本地时钟回拨下的单调性
+- tie-break 依赖稳定 node id hash
+- `hard_future_skew_ms` / `expected_future_skew_ms` 边界处的 soft-fail / quarantine 行为
+
 ## 4. HLC 操作
 
 ### 4.1 初始化

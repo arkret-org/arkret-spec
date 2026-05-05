@@ -331,6 +331,6 @@ Contrix v1 固定：
 ## 11. 规范性引用
 
 - Query JSON schema 见 `../conformance/query-schema.md`。
-- Flow / Message 规则见 `conversation-model.md`。
+- Flow / Message 规则见 `object-model-core.md` 与 `object-model-standard.md` §5。
 - Flow / Space / Morph 标准对象见 `object-model-standard.md`。
 - View 展示字段只是 UI hint，不能扩大读取权限。

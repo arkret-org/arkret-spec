@@ -23,7 +23,7 @@
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、branch 模型、E2EE 边界、agent 落点）。
 4. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
-5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/progressive-disclosure.md`：理解身份、handle、设备/备份密钥和隐私披露。
+5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`：理解身份、handle、设备/备份密钥和隐私披露（progressive disclosure 在 `identity-handles.md` §16）。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
 8. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
@@ -92,7 +92,6 @@
 | --- | --- |
 | `identity/identity-did.md` | DID、默认 `did:webvh`、DID Document、method adapter、Organization ownership。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation。 |
-| `identity/progressive-disclosure.md` | 渐进披露、presentation request、disclosure policy、私有存储。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
 
@@ -103,7 +102,6 @@
 | `models/object-model-core.md` | Space、Actor、Flow、Board、List、Message、Morph、Relation、Event、View 核心对象。 |
 | `models/object-model-standard.md` | 标准对象、Morph 类型、标准 facets 与 schema evolution。 |
 | `models/data-structures.md` | 核心对象字段级定义：必填性、类型、枚举、约束和说明。 |
-| `models/conversation-model.md` | Flow discussion branch、Message、Mention、Reaction。 |
 | `models/views.md` | Board/List/Flow、Table、Timeline、Graph 等投影。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
 
@@ -112,7 +110,6 @@
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/grant-constraint-schema.md` | Grant constraint 示例（envelope/约束权威以 `data-structures.md` §13、`constraint-schema.md` 与 `capabilities.md` §18 为准）。 |
 | `authz/event-auth-state-resolution.md` | Space version、auth refs、membership、policy components、history sharing、state resolution。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `authz/moderation.md` | 举报、E2EE franking、Space/Organization 审核策略、个人屏蔽入口。 |
@@ -143,7 +140,6 @@
 | `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist。 |
 | `discovery/push-notifications.md` | 推送规则、推送网关、E2EE 脱敏推送。 |
 | `discovery/read-receipts.md` | Read receipt 与 read marker。 |
-| `discovery/read-notification-schema.md` | read / notification schema。 |
 
 ### 4.7 加密、设备与媒体
 

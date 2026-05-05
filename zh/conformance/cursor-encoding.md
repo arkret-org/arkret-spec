@@ -75,6 +75,21 @@ cx:cursor:<base64url>
 cx:cursor:eyJ2IjoiMSIsInMiOnt9fQ
 ```
 
+### 3.2 测试向量入口
+
+可执行向量位于：
+
+- [`artifacts/fixtures/encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)
+- [`zh/conformance/fixtures/encoding-fixture.json`](./fixtures/encoding-fixture.json)
+
+向量覆盖点：
+
+- cursor 版本字段与过期时间
+- per-space frontier 编码
+- device message 位置
+- 过期 token 回退
+- 非法额外字段拒绝
+
 ## 4. 验证规则
 
 服务器 MUST 在接收时验证游标：

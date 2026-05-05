@@ -1,5 +1,12 @@
 # Agent Protocol Interop and Upgrade
 
+> **状态：v1.1+ extension（非 core 互操作）**。本文档涉及的外部 agent 协议（A2A / ACP /
+> MCP bridge 等）目前都未标准化（IBM Research 已宣布 ACP 并入 Linux Foundation 旗下的
+> A2A）。Contrix v1 core 互操作 **不要求** 实现 agent-protocol upgrade；core v1 中 agent
+> 仅作为 actor + capability 出现，外协议升级在标准成熟前由 `cx.profile.agent_runtime.v1`
+> 单独承载，且视为可选 interop staging（见 `artifacts/profiles/conformance-profiles.json`
+> 的 `profile_tiers.v1_1_extension_implementation`）。
+
 ## 1. 目标
 
 Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Contrix Event / Space 模型内。

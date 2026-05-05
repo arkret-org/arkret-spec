@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-Contrix 协议核心不绑定 REST API。协议核心定义的是：
+Contrix 协议核心定义的是：
 
 - canonical object / event schema
 - DID identity and service discovery
@@ -11,7 +11,17 @@ Contrix 协议核心不绑定 REST API。协议核心定义的是：
 - sync / federation / applet / agent session semantics
 - error, pagination, idempotency and stream message envelopes
 
-HTTP/JSON REST 是默认互操作 binding，用于浏览器、普通服务端和调试工具。实现 MAY 使用 gRPC、WebSocket、SSE、GraphQL、QUIC、libp2p、message queue 或本地 IPC，只要它们提供语义等价的操作，并满足同样的签名、授权、幂等、分页、流控和错误语义。
+**v1 core 互操作 transport 锁定为 HTTP/JSON**：默认 binding 由 [`service-http-binding.md`](./service-http-binding.md) 与
+[`contrix-service-api.openapi.yaml`](./contrix-service-api.openapi.yaml) 规定。声称
+`cx.profile.principal_server.v1` / `cx.profile.full_client.v1` 等 v1 core profile 的实现
+**MUST** 提供 HTTP/JSON binding；其他 transport（gRPC、WebSocket-frame、SSE、message queue、
+libp2p）属于 **v1.1+ extension binding profile**，core 实现 **不要求** 提供。
+
+> Rationale: 早期文档把"transport-agnostic"作为 normative claim，但仓库里 `contrix-service-api.openapi.yaml`
+> 已展开 ~70 KB HTTP/JSON 细节，而 gRPC / WebSocket / MQ / libp2p 各自只有几行说明。这种状况
+> 下声称对等 transport 会误导实现者。v1-core-rc 直接承认 HTTP/JSON 是 core，把其他 transport
+> 留作 extension。Sync stream / events feed 的事件驱动语义可由后续 AsyncAPI 描述补充，但不
+> 改变 core 锁定。
 
 ## 2. 分层
 
@@ -20,10 +30,11 @@ HTTP/JSON REST 是默认互操作 binding，用于浏览器、普通服务端和
 | Semantic operation | 是 | `submit_event`, `get_events`, `sync`, `backfill`, `authz_check`, `applet_transaction` |
 | Message envelope | 是 | request id、actor、device、capability refs、idempotency key、cursor、error code |
 | Encoding profile | 是 | canonical JSON、hash、signature、CBOR profile 可选 |
-| Transport binding | 否，除非实现声明 | HTTP/REST、gRPC、WebSocket、SSE、GraphQL、libp2p |
+| Transport binding (HTTP/JSON) | 是（v1 core） | `/api/v1/...` 路径、Idempotency-Key header、错误 JSON。 |
+| Transport binding (gRPC / WS / SSE / MQ / libp2p) | 否（v1.1+ extension） | 仅在显式声明 binding profile 时启用。 |
 | Product SDK | 否 | TypeScript SDK、Python SDK、CLI |
 
-规范中的 `/api/v1/...` 路径是 HTTP binding 示例和默认 profile，不是唯一合法接口形态。
+规范中的 `/api/v1/...` 路径是 v1 core HTTP binding 的 normative 形态；非 HTTP binding 是 extension。
 
 ## 3. Binding Requirements
 
@@ -91,7 +102,12 @@ HTTP/JSON 是默认 profile：
 
 HTTP binding 的路径 SHOULD 遵循 `service-api-schema.md`，但实现 MAY 使用 XRPC、RPC style 或版本化路径，只要 feature discovery 暴露实际 binding。
 
-## 6. gRPC Binding
+## 6. gRPC Binding（v1.1+ extension）
+
+> 以下章节描述的 gRPC / WebSocket / SSE / MQ / libp2p binding 都是 **v1.1+ extension**。
+> v1 core 实现 **不要求** 提供这些 binding；只有显式声明对应 binding profile 的部署才需要
+> 实现。这些章节保留为部署设计参考，不构成 v1 core 互操作要求。
+
 
 gRPC binding SHOULD：
 
@@ -171,11 +187,13 @@ P2P binding MAY 用于离线、边缘或本地优先场景。要求：
 
 ## 11. Normative Wording
 
-当其他文档写 `GET /api/...`、`POST /api/...` 或 “endpoint” 时，除非明确说“HTTP binding MUST”，都应理解为 HTTP/JSON binding 的示例或默认 profile。
+当其他文档写 `GET /api/...`、`POST /api/...` 或 "endpoint" 时，**v1 core 互操作以 HTTP/JSON binding 为
+normative 形态**。其他 transport 是 extension，需要显式声明对应 binding profile。
 
-协议一致性测试 SHOULD 同时包含：
+v1 core conformance 测试 MUST 包含：
 
 - semantic operation test
 - HTTP binding test
-- 至少一个非 HTTP binding mapping test
+
+声明非 HTTP binding profile 的实现额外提供该 binding 的 mapping test。
 

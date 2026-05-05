@@ -63,6 +63,132 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“branch 的第
 - **明文元数据保留**：用于网络路由和客户端本地 projection 的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
 - Sync Service 可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。客户端在解密后 MAY 建立本地搜索索引；受托 search / projection 服务只有在 `plaintext_visible_services` 授权下才能接收明文或可逆摘要。
 
+#### 2.3.1 Envelope Wire 结构
+
+加密信封的 wire 形态是 [`artifacts/schemas/encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json) 的 canonical 表达。最小示例：
+
+```json
+{
+  "envelope": {
+    "scheme": "mls-rfc9420",
+    "version": "1.0",
+    "group_id": "base64url",
+    "epoch": 12,
+    "content_type": "application/json",
+    "ciphertext": "base64url",
+    "aad": {
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "event_kind": "cx.message.create",
+      "event_ref_hash": "sha256:..."
+    },
+    "key_ref": {
+      "algorithm": "MLS",
+      "group_state_ref": "cx:event:01js0mg0000000000000000000"
+    },
+    "payload_digest": "sha256:...",
+    "aad_digest": "sha256:..."
+  }
+}
+```
+
+字段约束：
+
+| 字段 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `scheme` | string | 是 | 加密方案标识符 |
+| `version` | string | 是 | 方案版本 |
+| `group_id` | base64url | 是 | MLS 群组 ID |
+| `epoch` | integer | 是 | MLS epoch 编号 |
+| `content_type` | string | 是 | 解密后内容的 MIME 类型 |
+| `ciphertext` | base64url | 是 | `mls-rfc9420` profile 为 MLS PrivateMessage / application message 序列化字节。 |
+| `authentication_tag` | base64url | 条件 | 仅 raw AEAD / exporter-AEAD profile 使用；MLS profile 的 tag 已在 MLS message 内，不重复拆出。 |
+| `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
+| `aad.space_id` | id:space | 是 | 路由与授权的 Space。 |
+| `aad.event_kind` | string | 是 | 路由 event kind。 |
+| `aad.event_id` | id:event | 条件 | `aad_visibility.event_id="opaque_id"` 时可见。 |
+| `aad.event_ref_hash` | hash | 条件 | `aad_visibility.event_id="routing_hash"` 时使用；hash 输入由 profile 固定（推荐 `sha256("cx-aad-event-ref-v1" \|\| event_id \|\| space_id \|\| policy_nonce)`）。 |
+| `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_hashes`。 |
+| `aad.causal_ref_hashes` | array&lt;hash&gt; | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
+| `key_ref.algorithm` | string | 条件 | `mls-rfc9420` profile 为 `MLS`；其他 profile 必须注册自己的值。 |
+| `key_ref.group_state_ref` | id:event 或 hash | 否 | 指向 accepted `cx.mls.genesis` / winner `cx.mls.commit` / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
+| `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes \|\| encrypted_payload_bytes)`；输入定义见 §2.3.3。 |
+| `aad_digest` | hash | 是 | canonical AAD 的 SHA-256。 |
+| `cleartext_commitment` | hash | 否 (v1 预留) | 每个 scheme 由 Cleartext Commitment Profile 定义；v1 实现 MAY 忽略，v2 MAY 对新 scheme 设为必填。 |
+
+Ratchet tree MUST 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 管理，不得在每条消息的 envelope 中重复传输。
+
+#### 2.3.2 AAD 可见性 Profile 与 canonical 序列化
+
+AAD 字段集合受 Space 的 `aad_visibility` policy 约束。隐私优先 Space SHOULD 只保留路由所需的 `space_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Space MAY 暴露 opaque `event_id` / `message_id`，但该选择 MUST 在 Space policy 中声明并纳入 MLS-bound `policy_root`。
+
+`aad.event_id` 与 `aad.event_ref_hash` 是互斥 profile 字段：
+
+- `opaque_id`：AAD MAY 包含 `event_id`，用于跨 provider 投递确认和精确去重。
+- `routing_hash`：AAD MUST 使用 `event_ref_hash`，不得暴露稳定 `event_id`。
+- `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_hash`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
+
+AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
+
+```json
+{
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "event_kind": "cx.message.create",
+  "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "causal_refs": ["cx:event:01js0et0000000000000000000"]
+}
+```
+
+规则：
+
+- 键按字典序排序
+- 无多余空白
+- 无尾随逗号
+- 字符串使用 UTF-8 编码
+
+#### 2.3.3 `payload_digest` 计算
+
+`payload_digest` 的输入必须完全确定，不得使用实现本地对象序列化结果。
+
+1. `aad_bytes = canonical_json(aad)`，`aad_digest = sha256(aad_bytes)`。
+2. `payload_metadata` 是以下对象的 canonical JSON，字段缺失时不得写入 null：
+
+```json
+{
+  "scheme": "mls-rfc9420",
+  "version": "1.0",
+  "group_id": "base64url",
+  "epoch": 12,
+  "content_type": "application/json",
+  "aad": {
+    "space_id": "cx:space:01js0sp0000000000000000000",
+    "event_kind": "cx.message.create",
+    "event_ref_hash": "sha256:..."
+  },
+  "key_ref": {
+    "algorithm": "MLS",
+    "group_state_ref": "cx:event:01js0mg0000000000000000000"
+  }
+}
+```
+
+3. `payload_metadata_bytes = canonical_json(payload_metadata)`。
+4. `encrypted_payload_bytes = base64url_decode(ciphertext)`；若 envelope 含 `authentication_tag`，追加 `base64url_decode(authentication_tag)`。
+5. `payload_digest = "sha256:" + sha256(payload_metadata_bytes || encrypted_payload_bytes)`。
+
+`mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Contrix envelope 的外层完整性检查，不替代 MLS AEAD。
+
+#### 2.3.4 解密错误处理
+
+| 错误 | 原因 | 响应 |
+|------|------|------|
+| `aad_digest_mismatch` | AAD 被篡改 | 拒绝整个事件 |
+| `payload_digest_mismatch` | 密文损坏 | 拒绝整个事件 |
+| `key_unavailable` | 缺少 epoch | 标记为 `decryption_pending`，按 `client-sync.md` 的 timeout / recovery 规则恢复 |
+| `epoch_mismatch` | 错误的密钥 epoch | 回溯或获取 epoch；无法在 timeout 内恢复时标记 `decryption_failed` |
+| `group_removed` | 不再是成员 | fail closed；不得向未授权成员请求密钥 |
+
+`decryption_pending` 是有界恢复状态，不是永久展示状态。默认 timeout 为 7 天；超时后客户端 MUST 降级为 metadata-only `decryption_failed` 占位。连续 epoch 缺口过大时，客户端 SHOULD 使用 range-based recovery，从授权 peer、key backup、Archive Node 或 policy 声明的 Key Recovery Service 获取最小必要 epoch material。
+
 ### 2.4 Sync 与 MLS Epoch
 
 Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密事件和 MLS epoch state MUST 作为相关但可独立到达的 stream 处理：

@@ -42,7 +42,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ## 3. Encrypted Attachment
 
-加密附件的 `key_ref` MUST 使用与 `crypto-media/encrypted-envelope-schema.md` §2.1 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。不再使用 `"mls_epoch:42"` 等字符串简写。
+加密附件的 `key_ref` MUST 使用与 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md) 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。不再使用 `"mls_epoch:42"` 等字符串简写。
 
 ```json
 {

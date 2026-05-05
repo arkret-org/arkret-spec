@@ -1,5 +1,10 @@
 # TSP Integration
 
+> **状态：v1.1+ interop extension（非 core 互操作）**。Contrix v1 core 默认使用
+> HTTPS JWE / MLS DM 进行跨主体可信传输。Trust Spanning Protocol 是可选的 metadata-privacy
+> 增强 transport；core v1 实现 **不要求** 实现本文档。当 TSP 实现成熟后将以独立 interop
+> profile 承载稳定 wire 形态。
+
 ## 1. 目标
 
 Contrix MAY 集成 Trust over IP 的 Trust Spanning Protocol (TSP)，用于跨 DID、KERI AID、`did:webs`、`did:x509`、`did:peer`、X.509/URN 等 Verifiable Identifier (VID) 体系建立可信消息关系。

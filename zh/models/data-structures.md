@@ -78,7 +78,7 @@ Schema id: `cx.schema.space.v1`
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
 | `schema` | yes | `cx.schema.space.v1` | 固定为 Space schema id。 | 对象 schema。 |
-| `space_version` | yes | `string` | 初版为 `1`。 | 事件授权和状态收敛版本。 |
+| `space_version` | no (deprecated) | `string` | v1-core-rc 标记为 deprecated。MUST 容忍 `"1"` 兼容旧实现，但不再作为版本 discriminator；canonical 版本演进通过 `schema_refs` + `cx.space.upgrade` 表达。详见 [`authz/event-auth-state-resolution.md` §2](../authz/event-auth-state-resolution.md)。 | 兼容字段（已弃用）。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `kind` | yes | `enum(collaboration, board, list)` | `collaboration` 表示安全边界 Space，`board/list` 表示工作流容器 Space。v1 移除了 `personal/project/organization/enclave` 四个标签——`personal/project/organization` 的 reducer 行为与 `collaboration` 完全相同；`enclave` 的唯一规范差异（federation_policy 不得 open）已迁移到 `security_class` 字段。产品语义请通过 `Space.fields` / `schema_refs` / `labels` / `security_class` 表达；自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
@@ -386,7 +386,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。 | 事件 kind。 |
 | `state_key` | conditional | `string` | 标准 state event MUST 设置；非 state event MUST 省略，除非 profile 明确声明。 | state resolution 使用的顶层 key。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
-| `space_version` | yes | `string` | 初版 `1`。 | 授权/状态版本。 |
+| `space_version` | no (deprecated) | `string` | v1-core-rc 标记为 deprecated；接收方 MUST 容忍但不得作为版本 discriminator。版本演进通过 `reducer_profile_ref` + `cx.space.upgrade`。详见 [`authz/event-auth-state-resolution.md` §2](../authz/event-auth-state-resolution.md)。 | 兼容字段（已弃用）。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
@@ -514,7 +514,7 @@ Schema id: `cx.schema.capability.v1`
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
 | `actions` | yes | `array<string>` | 例如 `cx.flow.update`、`cx.message.create`。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
-| `constraints` | no | `array<object>` | 见 `grant-constraint-schema.md`。 | 约束条件。 |
+| `constraints` | no | `array<object>` | 见 [`authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。 | 约束条件。 |
 | `delegable` | no | `boolean` | 默认 false。 | 是否可转授。 |
 | `parent_grant_id` | no | `id:grant` | derived grant 必填。 | 父授权。 |
 | `valid_from` | no | `timestamp` |  | 生效时间。 |

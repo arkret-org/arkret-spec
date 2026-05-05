@@ -248,6 +248,99 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
 
 `content` MUST 是 `content-types.md` 定义的 Content Block。`cx.message.create` / `cx.message.revise` 的 Event Envelope 使用 `payload.content` 承载该 Content Block；`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。
 
+### 5.1 Chat 模式示例
+
+讨论型 Space 的最小实施序列：创建 Flow（`discussion` 默认 primary）→ 启用
+discussion branch override（如需要 branch-scoped membership）→ 加入成员 →
+发消息 → 编辑 / 撤回 / reaction。
+
+```json
+[
+  {
+    "kind": "cx.flow.create",
+    "payload": {
+      "flow": {
+        "id": "cx:flow:01js0fk0000000000000000000",
+        "title": "项目同步",
+        "branches": [
+          { "name": "discussion", "is_primary": true }
+        ]
+      }
+    }
+  },
+  {
+    "kind": "cx.flow.branch.enable",
+    "target_ref": "cx:flow:01js0fk0000000000000000000",
+    "payload": {
+      "flow_id": "cx:flow:01js0fk0000000000000000000",
+      "branch": "discussion",
+      "config": {
+        "profile": "implementation",
+        "access": {
+          "membership": "branch_scoped",
+          "permissions": "branch_scoped",
+          "history_visibility": "joined"
+        }
+      }
+    }
+  },
+  {
+    "kind": "cx.flow.branch.member",
+    "state_key": "cx:flow:01js0fk0000000000000000000|discussion|did:web:bob.example",
+    "payload": {
+      "flow_id": "cx:flow:01js0fk0000000000000000000",
+      "branch": "discussion",
+      "member": "did:web:bob.example",
+      "membership": "join"
+    }
+  },
+  {
+    "kind": "cx.message.create",
+    "payload": {
+      "flow_id": "cx:flow:01js0fk0000000000000000000",
+      "branch": "discussion",
+      "content": {
+        "type": "cx.content.text",
+        "body": "@bob 请确认这个 flow 的 legal 风险。",
+        "format": "markdown"
+      }
+    }
+  }
+]
+```
+
+`@mention` 与 reference：消息正文 SHOULD 使用结构化 AST 或带 DID/object ref 的
+Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention 关系和通知，
+但派生关系不得扩大权限。跨 Space 引用按 `object-model-core.md` 的跨 Space
+规则处理：源消息可暴露 ref 与最小 metadata，目标对象内容与 preview 必须重新按
+目标 Space policy 授权。
+
+### 5.2 冲突与收敛规则
+
+Message timeline 的同步与 reducer 行为：
+
+| 场景 | 收敛规则 |
+| --- | --- |
+| Message 创建 | append-only。Timeline 排序 = causal_depth → HLC → actor_id → actor_seq → event_id。 |
+| Message 编辑 | 并发 revision 共存于 revision chain；默认视图显示最新可见 revision。 |
+| Message 撤回 | 若 revision 与 redaction 并发，默认视图 redaction 优先；审计视图保留完整历史。 |
+| 撤回先到、原消息后到 | 接收方 SHOULD 保留 dangling redaction，待原消息到达后再应用。 |
+| Reaction | OR-Set 收敛；同一 actor 对同一 emoji 的 add/remove 由因果关系决定最终成员。 |
+
+历史可见性枚举与 canonical 语义见 [`authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
+
+### 5.3 Ephemeral 信号
+
+以下高频交互状态 MUST NOT 作为持久化共享对象写入 Event 链：
+
+- typing
+- 当前输入草稿
+- 临时在线状态
+- 高频 read marker
+
+它们 SHOULD 作为 Sync Service 上的 ephemeral signal，或由各端本地缓存。Read
+receipt / read marker 的具体规则见 [`discovery/read-receipts.md`](../discovery/read-receipts.md)。
+
 ## 6. Morph
 
 `morph` 是开放形态对象，用于承载 schema / profile 声明的扩展业务类型。
@@ -319,7 +412,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 
 ## 11. 规范性引用
 
-- Flow / Message / branch 规则见 `conversation-model.md`。
+- Flow / Message / branch 规则见 §5.1-§5.3 与 `object-model-core.md` §6-§9。
 - Flow / Space / Message 的核心字段见 `data-structures.md`。
 - View 投影规则见 `views.md`。
 - 授权规则见 `../authz/capabilities.md` 与 `../authz/event-auth-state-resolution.md`。

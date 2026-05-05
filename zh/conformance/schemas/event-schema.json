@@ -7,7 +7,6 @@
     "event_id",
     "kind",
     "space_id",
-    "space_version",
     "actor_id",
     "actor_seq",
     "created_at",
@@ -37,7 +36,8 @@
     },
     "space_version": {
       "type": "string",
-      "pattern": "^\\d+$"
+      "pattern": "^\\d+$",
+      "description": "Deprecated in v1-core-rc. Versioning canonically goes through reducer_profile_ref and cx.space.upgrade. v1 readers MUST still tolerate the field on the wire; writers MAY continue to emit \"1\" for backward compatibility but no longer use it as the discriminator for envelope schema, auth algorithm, or reducer profile."
     },
     "actor_id": {
       "$ref": "#/$defs/did"

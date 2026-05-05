@@ -564,34 +564,9 @@ POST /api/v1/directory/private-contact-discovery
 
 该操作用于 `cx.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 time-bound reachability proof 或 invite/consent 引导，不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。
 
-## 9. MIMI Provider Facade Surface
+## 9. MIMI Provider Facade Surface（v1.1+ extension）
 
-MIMI Provider Facade 是面向 MIMI 草案的互操作服务面。它不替代 Principal Server / Federation / Device Key Server；它只把被授权的 Contrix Space 或 Flow discussion branch 投影为 MIMI room。
-
-推荐操作：
-
-```text
-GET /api/v1/mimi/provider-directory
-POST /api/v1/mimi/key-material
-PUT /api/v1/mimi/rooms/{flow_id}/update
-POST /api/v1/mimi/rooms/{flow_id}/notify
-POST /api/v1/mimi/rooms/{flow_id}/messages
-GET /api/v1/mimi/rooms/{flow_id}/group-info
-POST /api/v1/mimi/consent/request
-POST /api/v1/mimi/consent/update
-POST /api/v1/mimi/identifiers/query
-POST /api/v1/mimi/report-abuse
-POST /api/v1/mimi/proxy-download
-```
-
-规则：
-
-- 只有存在 accepted `cx.mimi.room_binding` 的 Space 或 Flow discussion branch 可以通过该 surface 暴露为 MIMI room。
-- MIMI 写请求 MUST 使用 provider service DID 的 HTTP Message Signature，并绑定 source / destination / room id / request hash。
-- Facade MUST 将 MIMI 写入转换为 Contrix Event，并执行 DID、device、MLS、capability、auth refs 和 Space policy 校验。
-- MIMI provider timestamp、room id、user id 和 role 只能作为互操作 metadata，不得替代 Contrix event id、HLC、DID 或 capability。
-
-完整语义见 `../extensions/mimi-interop.md`。
+MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)（标记为 v1.1+ extension profile）。声称 v1 core 的实现 **不要求** 提供 `/api/v1/mimi/*` 路径；只有显式声明 `cx.profile.mimi_interop.v1` 的部署才暴露该子面。
 
 ## 10. Capability / Invite Surface
 

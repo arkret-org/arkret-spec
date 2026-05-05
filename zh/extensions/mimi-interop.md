@@ -1,5 +1,11 @@
 # MIMI Interoperability
 
+> **状态：v1.1+ extension（非 core 互操作）**。本文档描述的 MIMI Provider Facade 跟踪的
+> 是仍在演进的 IETF MIMI Internet-Draft。Contrix v1 core 互操作 **不要求** 实现 MIMI
+> facade；声称 `cx.profile.principal_server.v1` 或 `cx.profile.full_client.v1` 的实现
+> 可以完全不实现本 profile。当 MIMI 升级为 RFC 后，将以新的 `cx.profile.mimi_interop_<rfc>.v1`
+> 引入稳定 profile；当前 `cx.profile.mimi_interop.v1` 视为实验性 / interop staging。
+
 ## 1. 目标
 
 本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Space / Event / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Space 或 Flow discussion branch 可以与 MIMI provider 互通。
@@ -11,7 +17,7 @@
 - `draft-ietf-mimi-room-policy-03`
 - `draft-kohbrok-mimi-identifiers-01`
 
-这些草案仍是 Internet-Draft。实现 MUST 在 `server/describe` 和 MIMI provider directory 中声明实际支持的 draft version。草案更新导致 wire 语义变化时，Contrix MUST 通过新的 interop profile 版本处理，不得改变 `space_version=1` 的核心状态语义。
+这些草案仍是 Internet-Draft。实现 MUST 在 `server/describe` 和 MIMI provider directory 中声明实际支持的 draft version。草案更新导致 wire 语义变化时，Contrix MUST 通过新的 interop profile 版本处理，不得改变 v1 核心状态语义。
 
 ## 2. 角色
 

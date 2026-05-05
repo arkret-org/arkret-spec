@@ -60,6 +60,33 @@
     "cx.profile.mimi_interop.v1",
     "cx.profile.sovereign_client.v1"
   ],
+  "profile_tiers": {
+    "v1_core_implementation": [
+      "cx.profile.core_event_store.v1",
+      "cx.profile.chat_mvp.v1",
+      "cx.profile.kanban_mvp.v1",
+      "cx.profile.minimal_client.v1",
+      "cx.profile.full_client.v1",
+      "cx.profile.e2ee_client.v1",
+      "cx.profile.enterprise_client.v1",
+      "cx.profile.principal_server_events_api.v1",
+      "cx.profile.principal_server.v1",
+      "cx.profile.federation_minimal.v1",
+      "cx.profile.identity_registry.v1",
+      "cx.profile.blob_node.v1",
+      "cx.profile.push_gateway.v1",
+      "cx.profile.sovereign_client.v1"
+    ],
+    "v1_1_extension_implementation": [
+      "cx.profile.applet_service.v1",
+      "cx.profile.agent_runtime.v1",
+      "cx.profile.mimi_interop.v1"
+    ],
+    "tier_rules": {
+      "v1_core_implementation": "Required for any implementation that claims v1 core interop. Conformance suite MUST include these.",
+      "v1_1_extension_implementation": "Optional. Tracks evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA). Implementations claiming v1 core MAY omit these entirely. When the underlying external standards mature, replacement profiles with stable version pinning will supersede these entries."
+    }
+  },
   "identity_extension_profiles": [
     "cx.profile.public_network_identity.v1",
     "cx.profile.org_high_assurance_identity.v1"

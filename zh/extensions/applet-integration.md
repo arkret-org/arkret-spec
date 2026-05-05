@@ -1,5 +1,11 @@
 # Applet Integration
 
+> **状态：v1.1+ extension（非 core 互操作）**。Applet registry、审核 SLA 与 capability
+> 注入流程仍在演进。Contrix v1 core 互操作 **不要求** 实现本 profile；声称 v1 core 的
+> 实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。
+> `cx.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json`
+> 的 `profile_tiers.v1_1_extension_implementation`）。
+
 ## 1. 目标
 
 Matrix 有 Application Service / Appservice，用于桥接 IRC、Slack、Discord 等外部网络，也用于 bot 和自动化集成。Contrix 需要类似能力，但不能继承 homeserver 中心化和 user_id namespace 的假设。

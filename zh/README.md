@@ -43,7 +43,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - `overview/glossary.md`：Principal / Actor / Organization / Space / Event / Principal Server 等术语。
 - `models/object-model-core.md`、`models/object-model-standard.md`：核心对象与标准类型。
 - `models/data-structures.md`：字段级结构。
-- `identity/identity-did.md`、`identity/identity-handles.md`、`identity/progressive-disclosure.md`：身份与披露。
+- `identity/identity-did.md`、`identity/identity-handles.md`：身份、handle、渐进披露（progressive disclosure 在 `identity-handles.md` §16）。
 - `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：授权与状态。
 - `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：同步与服务。
 - `security/server-threat-model.md`：安全边界与抗滥用。
@@ -67,10 +67,10 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - `principal_id = DID URI`，Handle 只作为可迁移的人类可读入口。
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
-- **默认 principal DID method 为 `did:webvh`**：自托管或由 Auth/Account Server 在组织子域代为托管，`did.jsonl` 历史 + SCID + 可选 witness 提供可验证身份历史。
-- 组织 / 高要求场景同样使用 `did:webvh`；只读 service DID MAY 使用 `did:web`。
-- 临时、测试、设备、邀请、bootstrap 使用 `did:key`；钱包绑定使用 `did:pkh`；这些不得作为默认长期主身份。
-- AT Protocol 互通通过 `did:plc` adapter 支持；该方法不是 Contrix 的默认 principal method。
+- **v1 core 默认 principal DID method 为 `did:web`**：HTTPS + 域名，部署门槛低，与现有 PKI 兼容。需要可审计身份历史的部署 SHOULD 升级为 `did:webvh` (high-trust profile)。
+- 组织 / 高要求场景 SHOULD 使用 `did:webvh` 提供可验证身份历史（high-trust profile）；service DID 使用 `did:web`。
+- 临时、测试、设备、邀请、bootstrap 使用 `did:key`；不得作为默认长期主身份。
+- 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 v1.1+ extension interop profile，不属于 v1 core 互操作。
 - DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。
 
 ### 4.2 对象模型
