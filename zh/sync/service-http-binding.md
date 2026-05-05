@@ -242,7 +242,6 @@ POST /api/v1/events
   "event": {
     "event_id": "cx:event:01js0ev0000000000000000000",
     "space_id": "cx:space:01js0sp0000000000000000000",
-    "space_version": "1",
     "actor_id": "did:web:alice.example.com",
     "actor_seq": 42,
     "kind": "cx.flow.update",

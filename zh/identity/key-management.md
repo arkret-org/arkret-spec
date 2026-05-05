@@ -166,7 +166,6 @@ MLS KeyPackage key 用于加入加密 Space。
 当 `cx.device.authorized`、`cx.device.revoked`、`cx.device.list_update` 或 `cx.session.grant` 以 `cx.schema.event.v1` Event Envelope 传播时：
 
 - `space_id` MUST 是该 principal 的专用 `principal_control_space_id`，不得使用任意协作 Space 的 `space_id`。
-- `space_version` MUST 使用 control stream 支持的版本；v1 默认 `"1"`。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
 - `content.principal_id` / `content.subject` MUST 与该 control Space 绑定的 principal DID 一致；不一致时 MUST reject。
 - control Space 的 `cx.space.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。

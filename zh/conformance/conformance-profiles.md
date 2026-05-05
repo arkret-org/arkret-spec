@@ -88,8 +88,8 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 - 事件名必须符合 `cx.` 命名规则，且标准 `cx.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
 - Event Envelope MUST 先通过 `cx.schema.event.v1`，再按 `Event.kind` 通过 `cx.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
-- 事件/关系/对象/View 的 `type`、`created_at`、`space_id`、`space_version`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `auth_refs` 在 reducer 与验证逻辑中不能被跳过。
-- `space_version` 与 `auth` 约束必须执行，不得通过客户端配置豁免。
+- 事件/关系/对象/View 的 `created_at`、`space_id`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `auth_refs` 在 reducer 与验证逻辑中不能被跳过；版本通过 `reducer_profile_ref` / `schema_profile_refs` 表达。
+- `auth` 约束必须执行，不得通过客户端配置豁免。
 - State frontier、snapshot frontier、projection frontier 和 wait-for token MUST 以 `event_id` / actor frontier 为语义单位；`operation_id` 只可表示服务 canonical operation。
 - Snapshot manifest MUST 包含 `event_set_commitment`；high-assurance profile MUST 支持 inclusion / omission challenge 或 witness quorum 校验。
 - 裸名事件（如 `space.create`）MUST 被拒绝，不能作为新增标准互操作行为。

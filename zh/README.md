@@ -29,7 +29,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 ### 3.1 一分钟实施链路（实现导向）
 
 1. 完成 DID 与服务发现，建立 principal/service 绑定。
-2. Space 创建后锁定 `space_version` 与策略基线。
+2. Space 创建后锁定 schema 与策略基线。
 3. Event-first 写入并做初始 auth state 校验。
 4. 客户端执行 `event-auth-state-resolution` 收敛。
 5. 使用 snapshot / frontier 建立快速重建路径。
@@ -86,7 +86,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - 看板定义：`Space(kind=board) -> Space(kind=list) -> Flow`。
 - 会话定义：`Flow(discussion branch) -> Message`。
-- `cx.flow.convert` 仅切换默认 branch，不复制对象、不迁移历史。
+- `cx.flow.branch.set_primary` 仅切换默认 branch，不复制对象、不迁移历史。
 - Branch 默认继承 Flow / Space 访问规则；discussion 只有显式声明 branch-scoped override 时，才成为独立成员、历史和 E2EE 边界。
 
 ### 4.4 同步与真相模型

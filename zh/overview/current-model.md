@@ -22,7 +22,7 @@
 分支规则：
 
 - `discussion` 可独立启用或关闭
-- `cx.flow.convert` 切换显式 primary branch，不改变 `flow_id`
+- `cx.flow.branch.set_primary` 切换显式 primary branch，不改变 `flow_id`
 - `cx.flow.branch.enable`、`cx.flow.branch.disable`、`cx.flow.branch.set_primary` 管理 branch 生命周期与默认入口
 
 ## 4. 工作流容器

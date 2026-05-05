@@ -149,7 +149,6 @@ Contrix v1 支持以下 `kind`：
 - `cx.flow.update`
 - `cx.flow.archive`
 - `cx.flow.restore`
-- `cx.flow.convert`
 - `cx.flow.move`
 - `cx.flow.reorder`
 - `cx.flow.branch.enable`
@@ -490,7 +489,6 @@ Facets 不属于独立授权输入。算法不得在上述步骤之外读取 Mor
 - `cx.flow.update`
 - `cx.flow.move`
 - `cx.flow.reorder`
-- `cx.flow.convert`
 
 Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Server 的 `deny`、`quarantine`、`require_review`、rate limit、legal hold 和 abuse policy 仍 MUST 在写入接收、分发和查询返回前执行。
 

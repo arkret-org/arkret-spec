@@ -24,11 +24,6 @@
     "schema": {
       "const": "cx.schema.space.v1"
     },
-    "space_version": {
-      "type": "string",
-      "pattern": "^\\d+$",
-      "description": "Deprecated in v1-core-rc. Use reducer_profile_ref + cx.space.upgrade for versioning. Tolerated on the wire for backward compatibility but no longer canonical."
-    },
     "title": {
       "type": "string",
       "minLength": 1,

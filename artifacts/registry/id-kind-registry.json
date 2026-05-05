@@ -213,13 +213,6 @@
       "description": "Notification projection ID"
     },
     {
-      "kind": "operation",
-      "category": "sdk_internal",
-      "status": "active",
-      "wire_form": "cx:operation:<ulid>",
-      "description": "Canonical Operation builder/object ID before Event wrapping"
-    },
-    {
       "kind": "policy",
       "category": "policy",
       "status": "active",

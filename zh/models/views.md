@@ -79,7 +79,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 | Flow 拖到另一个 List | `cx.flow.move` |
 | Flow 在同一 List 内排序 | `cx.flow.reorder` |
 | 修改 Flow 标题、状态、负责人、截止时间 | `cx.flow.update` |
-| 切换 Flow 默认 branch | `cx.flow.convert` / `cx.flow.branch.set_primary` |
+| 切换 Flow 默认 branch | `cx.flow.branch.set_primary` |
 | 开启/关闭 discussion branch | `cx.flow.branch.enable` / `cx.flow.branch.disable` |
 | 修改 Space (kind=board) / Space (kind=list) 元数据 | `cx.space.update` |
 | 发送、编辑、撤回 discussion 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |

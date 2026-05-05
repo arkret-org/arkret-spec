@@ -8,18 +8,11 @@
 
 ## 2. 版本与 Profile
 
-Contrix v1-core-rc 不再使用顶层 `space_version` wire 字段作为 envelope schema、auth 算法或 reducer 行为的 discriminator。版本演进通过以下三个机器约束表达：
+Contrix v1 通过以下三个机器约束表达版本演进，**不**使用顶层 `space_version` wire 字段：
 
 - `Space.schema_refs`：声明 Space 启用的 schema id 集合（例如 `cx.schema.space.v1`、`cx.schema.flow.v1`）。
 - `Event.schema_profile_refs`、`Event.reducer_profile_ref`：每个 Event 显式声明它所依赖的 schema 与 reducer profile id；这些字段进入 event digest，参与签名绑定。
 - `cx.space.upgrade` state event：把 Space 当前态从一个 reducer/schema profile 切换到另一个（见 §11）。
-
-`space_version` 顶层字段在 v1-core-rc 标记为 **deprecated**：
-
-- v1 读取方 MUST 继续容忍 `space_version` 字段出现，不得因其存在或值不同而拒绝事件。
-- v1 写入方 MAY 继续填 `"1"` 以兼容旧实现，但不得用它作为决定 envelope schema、授权算法或 reducer 行为的依据。
-- 新写入方 SHOULD 省略该字段，并依赖 `reducer_profile_ref` / `schema_profile_refs` 表达版本。
-- v2+ profile MAY 完全移除该字段。
 
 实现 MUST reject 自己未支持的 `reducer_profile_ref` 或 `schema_profile_refs[]` 中的 critical profile id（按 `required_features` / `critical_extensions` 规则 fail closed）。实现 MAY 以只读方式展示未支持 profile 下的事件，但 MUST NOT 将其作为本地 accepted state。
 
@@ -543,8 +536,6 @@ Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 ap
 
 实现 MUST 在签名时刻保存原 envelope 的 canonical digest（`event_digest`），存储位置由实现决定，但在以下场景必须可重新提供：（a）通过 `auth_refs` 引用该事件时；（b）联邦 backfill 返回 redacted stub 时；（c）审计审查链验证时。`event_digest` 不出现在 redacted stub 顶层，因为它已等价于 `proofs[].payload_hash`。
 
-> v1-core-rc 不再保留 `space_version` 字段在 redaction stub 中。`reducer_profile_ref` / `schema_profile_refs` 在普通 redaction 中 MUST 保留（见下方"清除"列表的 minimal-metadata 例外）。
-
 上述保留字段是验证性 redaction stub 的默认集合。Space / reducer profile MAY 声明 `redaction_policy="anonymous"`，但该策略只影响普通 timeline、search、export preview 等用户可见 projection：这些 projection MUST 隐藏或替换原事件 `actor_id` / 物化对象 `created_by`。它不得从 canonical verification stub 中删除 `actor_id`、`proofs`、`actor_seq`、`prev_refs` 或 `auth_refs`，否则接收方将无法验证原始 Event chain、redaction 授权和审计责任。需要更强发送者隐私的 Space SHOULD 使用 pairwise DID / minimal-metadata E2EE；需要物理删除身份 metadata 时必须走 hard erasure receipt 和 legal-hold 边界，而不是重写已签名 Event。
 
 以下 envelope 顶层字段 MUST 整体清除：
@@ -599,7 +590,7 @@ Frontier 与存储语义：
 
 ### 12.1 Profile Upgrade
 
-Contrix v1 通过 `cx.space.upgrade` 在同一 `space_id` 上切换 reducer / schema profile。**v1 不再使用顶层 `space_version` 字段表达此切换**；profile id 本身就是版本。只增加 optional 字段、且不改变 auth / reducer 语义的升级 MAY 直接发布 enforcement 事件；引入新 critical feature、auth 规则、reducer 规则或加密语义的升级 MUST 使用多阶段流程：
+Contrix v1 通过 `cx.space.upgrade` 在同一 `space_id` 上切换 reducer / schema profile。Profile id 本身就是版本（v1 不使用顶层 `space_version` wire 字段）。只增加 optional 字段、且不改变 auth / reducer 语义的升级 MAY 直接发布 enforcement 事件；引入新 critical feature、auth 规则、reducer 规则或加密语义的升级 MUST 使用多阶段流程：
 
 ```json
 {

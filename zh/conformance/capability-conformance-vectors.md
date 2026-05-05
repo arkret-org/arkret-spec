@@ -44,7 +44,6 @@ cx.vector.capability.delegate_chain.v1
       "kind": "cx.capability.delegate",
       "state_key": "space-admin-delegate-a",
       "space_id": "cx:space:01js0ms0000000000000000000",
-      "space_version": "1",
       "actor_id": "did:web:root-admin.example.com",
       "payload": {
         "source_capability": "space-admin",
@@ -77,7 +76,6 @@ cx.vector.capability.delegate_chain.v1
       "kind": "cx.capability.delegate",
       "state_key": "invite-ops",
       "space_id": "cx:space:01js0ms0000000000000000000",
-      "space_version": "1",
       "actor_id": "did:web:ops.example.com",
       "payload": {
         "source_capability": "space-admin-delegate-a",
@@ -238,7 +236,6 @@ cx.vector.capability.approval_constraint.v1
     "kind": "cx.policy.action",
     "actor_id": "did:web:contractor.example",
     "space_id": "cx:space:01js0ms0000000000000000000",
-    "space_version": "1",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
       "action": "cx.space.admin",

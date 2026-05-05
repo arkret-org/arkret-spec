@@ -78,7 +78,6 @@ Schema id: `cx.schema.space.v1`
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:space` | 以 `cx:space:` 开头。 | Space ID。 |
 | `schema` | yes | `cx.schema.space.v1` | 固定为 Space schema id。 | 对象 schema。 |
-| `space_version` | no (deprecated) | `string` | v1-core-rc 标记为 deprecated。MUST 容忍 `"1"` 兼容旧实现，但不再作为版本 discriminator；canonical 版本演进通过 `schema_refs` + `cx.space.upgrade` 表达。详见 [`authz/event-auth-state-resolution.md` §2](../authz/event-auth-state-resolution.md)。 | 兼容字段（已弃用）。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `kind` | yes | `enum(collaboration, board, list)` | `collaboration` 表示安全边界 Space，`board/list` 表示工作流容器 Space。v1 移除了 `personal/project/organization/enclave` 四个标签——`personal/project/organization` 的 reducer 行为与 `collaboration` 完全相同；`enclave` 的唯一规范差异（federation_policy 不得 open）已迁移到 `security_class` 字段。产品语义请通过 `Space.fields` / `schema_refs` / `labels` / `security_class` 表达；自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
@@ -386,7 +385,6 @@ Event 是 reducer 输入。它不是当前态对象。
 | `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。 | 事件 kind。 |
 | `state_key` | conditional | `string` | 标准 state event MUST 设置；非 state event MUST 省略，除非 profile 明确声明。 | state resolution 使用的顶层 key。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
-| `space_version` | no (deprecated) | `string` | v1-core-rc 标记为 deprecated；接收方 MUST 容忍但不得作为版本 discriminator。版本演进通过 `reducer_profile_ref` + `cx.space.upgrade`。详见 [`authz/event-auth-state-resolution.md` §2](../authz/event-auth-state-resolution.md)。 | 兼容字段（已弃用）。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
@@ -590,52 +588,7 @@ Event Batch Receipt 是可选审计/同步加速对象，不是 canonical histor
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Receipt proof。 |
 
-## 18. Canonical Operation Object
-
-Schema id: `cx.schema.operation.v1`
-
-> **Deprecation note (v1-core-rc)**：Canonical Operation Object 是 SDK 内部 builder 中间对象，
-> **从未上 wire**。`cx.schema.operation.v1` 与 `cx:operation:<ulid>` typed-id 在 v1 注册表中
-> 保留为 active 以兼容已经引用它们的 SDK；下一版本（v1.1+）将把 Operation 完全移到 SDK
-> guidance 文档（不再作为 protocol normative 对象），并从注册表中移除 typed-id 与 schema id。
-> 实现 MAY 继续使用 Operation 作为本地草稿对象，但**不要把它当作 wire 协议层面的发布单位**。
-
-本节定义 SDK 内部可内容寻址的 canonical Operation object。它通过 `cx:operation:<ulid>` typed-id 前缀标识自身种类，并以 `action_id` 唯一确定具体操作类型与 payload schema，适合作为 builder 输出、离线草稿或 Event Envelope 生成前的中间对象。
-
-v1 的规范性 wire fact 是 **Event Envelope**，见第 9 节和 `../sync/operations-sync.md`。Events API、Sync、Federation、Client write 和 reducer MUST 使用 Event Envelope，不得要求对端直接接收本节的 Canonical Operation Object。实现可以用 Canonical Operation Object 生成 Event Envelope，但不得把两者合并成一个含糊结构。
-
-三层边界：
-
-| 层 | 用途 | 是否 wire format | 是否 reducer input |
-| --- | --- | --- | --- |
-| Canonical Operation Object | SDK builder 输出、离线草稿或本地内容寻址对象。 | 否，除非 profile 明确声明私有传输。 | 否，必须先包入 Event Envelope。 |
-| Event Envelope | Events API、Sync、Federation、Client write 的签名承载，也是唯一规范事实。 | 是。 | 是，reducer 读取其 `kind`、`payload`、`auth_refs`、`prev_refs`、proof 和 causal metadata。 |
-| Materialized Object | reducer 输出的当前态对象，例如 Flow、Relation、View。 | 否。 | 否，不能反向替代事件历史。 |
-
-字段映射：
-
-| Canonical Operation | Event Envelope |
-| --- | --- |
-| `id` | 本地草稿 / builder 对象 ID；进入 wire 后必须能稳定映射到 `event_id` 或被 `event_id` 取代。 |
-| `action_id` | `kind`。 |
-| `object_id` | `payload` 内的目标对象字段，例如 `flow_id`、`space_id`、`target_ref`。 |
-| `payload` | Event Envelope 的 `payload`。 |
-| `created_at` | `created_at`，但 envelope 还必须包含 `hlc`、`actor_seq`、`prev_refs` 和 `auth_refs`。 |
-| `idempotency_key` | 传输请求 idempotency metadata；不得进入 event digest，除非 profile 明确声明。 |
-
-| 字段 | 必填 | 类型 | 约束 | 说明 |
-| --- | --- | --- | --- | --- |
-| `id` | yes | `id:operation` 或 `hash` | 不得命名为 `operation_id`；`operation_id` 保留给服务 API canonical operation。 | Canonical Operation Object ID。 |
-| `action_id` | yes | `string` | 标准事件 kind，例如 `cx.flow.move`。 | 操作 action 标识；唯一决定 operation 形状与 payload schema。 |
-| `space_id` | yes | `id:space` |  | 目标 Space。 |
-| `object_id` | no | `string` | create 可由 payload 指定。 | 目标对象。 |
-| `payload` | yes | `object` | 由 `action_id` 选定的 payload schema 决定。 | 操作内容。 |
-| `idempotency_key` | no | `string` | 重试写入 SHOULD 设置。 | 幂等键。 |
-| `created_at` | yes | `timestamp` |  | 创建时间。 |
-
-> v1 之前的 `type`（const `operation`）、`operation_type`（create/update/move/...）和 `object_type`（flow/space/...）三个字段已移除：`type` 与 typed-id 前缀重复；`operation_type` / `object_type` 完全由 `action_id` 决定（`cx.flow.move` ⇒ move flow，`cx.container.move_item` ⇒ move relation 等），保留多个互锁字段只会引入 wire 自相矛盾的可能。SDK 直接按 `action_id` 选 payload schema 即可。
-
-## 19. Field Patch (cx.patch.v1)
+## 18. Field Patch (cx.patch.v1)
 
 非 create 类更新建议使用 `cx.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。
 

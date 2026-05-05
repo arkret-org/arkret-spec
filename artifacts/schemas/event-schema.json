@@ -34,11 +34,6 @@
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
     },
-    "space_version": {
-      "type": "string",
-      "pattern": "^\\d+$",
-      "description": "Deprecated in v1-core-rc. Versioning canonically goes through reducer_profile_ref and cx.space.upgrade. v1 readers MUST still tolerate the field on the wire; writers MAY continue to emit \"1\" for backward compatibility but no longer use it as the discriminator for envelope schema, auth algorithm, or reducer profile."
-    },
     "actor_id": {
       "$ref": "#/$defs/did"
     },
@@ -234,25 +229,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.flow.convert"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "#/$defs/flow_convert_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "enum": [
               "cx.member.state",
               "cx.flow.branch.member"
@@ -356,8 +332,26 @@
     {
       "if": {
         "allOf": [
-          {"properties": {"kind": {"const": "cx.space.lifecycle.set"}}, "required": ["kind"]},
-          {"properties": {"state_key": {"const": "archive"}}, "required": ["state_key"]}
+          {
+            "properties": {
+              "kind": {
+                "const": "cx.space.lifecycle.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          {
+            "properties": {
+              "state_key": {
+                "const": "archive"
+              }
+            },
+            "required": [
+              "state_key"
+            ]
+          }
         ]
       },
       "then": {
@@ -371,8 +365,26 @@
     {
       "if": {
         "allOf": [
-          {"properties": {"kind": {"const": "cx.space.lifecycle.set"}}, "required": ["kind"]},
-          {"properties": {"state_key": {"const": "freeze"}}, "required": ["state_key"]}
+          {
+            "properties": {
+              "kind": {
+                "const": "cx.space.lifecycle.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          {
+            "properties": {
+              "state_key": {
+                "const": "freeze"
+              }
+            },
+            "required": [
+              "state_key"
+            ]
+          }
         ]
       },
       "then": {
@@ -386,8 +398,26 @@
     {
       "if": {
         "allOf": [
-          {"properties": {"kind": {"const": "cx.space.lifecycle.set"}}, "required": ["kind"]},
-          {"properties": {"state_key": {"const": "tombstone"}}, "required": ["state_key"]}
+          {
+            "properties": {
+              "kind": {
+                "const": "cx.space.lifecycle.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          {
+            "properties": {
+              "state_key": {
+                "const": "tombstone"
+              }
+            },
+            "required": [
+              "state_key"
+            ]
+          }
         ]
       },
       "then": {
@@ -401,8 +431,26 @@
     {
       "if": {
         "allOf": [
-          {"properties": {"kind": {"const": "cx.space.lifecycle.set"}}, "required": ["kind"]},
-          {"properties": {"state_key": {"const": "destroy"}}, "required": ["state_key"]}
+          {
+            "properties": {
+              "kind": {
+                "const": "cx.space.lifecycle.set"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          {
+            "properties": {
+              "state_key": {
+                "const": "destroy"
+              }
+            },
+            "required": [
+              "state_key"
+            ]
+          }
         ]
       },
       "then": {
@@ -1551,31 +1599,6 @@
         },
         "branch": {
           "$ref": "#/$defs/branch_name"
-        }
-      },
-      "additionalProperties": false
-    },
-    "flow_convert_payload": {
-      "type": "object",
-      "required": [
-        "flow_id",
-        "branch"
-      ],
-      "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "branch": {
-          "$ref": "#/$defs/branch_name"
-        },
-        "ensure_branches": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/branch_name"
-          }
-        },
-        "reason": {
-          "type": "string"
         }
       },
       "additionalProperties": false

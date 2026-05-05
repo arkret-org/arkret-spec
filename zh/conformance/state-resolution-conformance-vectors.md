@@ -12,7 +12,7 @@
 - `conflict_records`
 - `transcript_order`
 
-除另有说明，测试均在 `space_version = "1"` 下执行。
+除另有说明，测试均在 v1 reducer profile 下执行。
 
 ## 2. Vector: 并发 Space Membership 冲突
 

@@ -271,14 +271,6 @@
       "payload": "Flow restore"
     },
     {
-      "event_kind": "cx.flow.convert",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Flow primary branch convert"
-    },
-    {
       "event_kind": "cx.flow.branch.enable",
       "category": "flow",
       "status": "active",

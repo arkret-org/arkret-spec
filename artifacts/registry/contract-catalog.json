@@ -297,14 +297,6 @@
         "payload": "Flow restore"
       },
       {
-        "event_kind": "cx.flow.convert",
-        "category": "flow",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Flow primary branch convert"
-      },
-      {
         "event_kind": "cx.flow.branch.enable",
         "category": "flow",
         "status": "active",
@@ -1025,10 +1017,6 @@
         "file": "schemas/event-payload.schema.json"
       },
       {
-        "schema_id": "cx.schema.operation.v1",
-        "file": "schemas/operation.schema.json"
-      },
-      {
         "schema_id": "cx.schema.event_batch_receipt.v1",
         "file": "schemas/event-batch-receipt.schema.json"
       },
@@ -1331,13 +1319,6 @@
         "status": "active",
         "wire_form": "cx:notif:<ulid>",
         "description": "Notification projection ID"
-      },
-      {
-        "kind": "operation",
-        "category": "sdk_internal",
-        "status": "active",
-        "wire_form": "cx:operation:<ulid>",
-        "description": "Canonical Operation builder/object ID before Event wrapping"
       },
       {
         "kind": "policy",

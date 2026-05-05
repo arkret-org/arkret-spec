@@ -103,7 +103,7 @@ Receipt 可用于 read-your-writes、回放完整性检查、witness 证明或�
 
 v1 的规范性 wire fact 只有 **Event Envelope**。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `data-structures.md` 中的 `cx.schema.event.v1` Event Envelope 作为共享状态事实输入。
 
-Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event Envelope。`data-structures.md` 中的 Canonical Operation Object 只允许作为 SDK 内部 builder、离线草稿或内容寻址中间对象；它进入网络、联邦、sync 或 reducer 前 MUST 被封装成 Event Envelope。互操作 profile 不得要求对端同时理解 Canonical Operation Object 和 Event Envelope。
+Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event Envelope。SDK 可以定义本地 builder / draft 对象作为生成 Event Envelope 前的中间结构，但这种 builder 不进入协议 wire format，也不出现在 registry / schema 中——它属于 SDK 实现细节，不是 protocol normative 对象。
 
 Event Envelope 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs` 表示 actor event chain 前序，`auth_refs` 表示授权依赖。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `payload.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `payload` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`auth_refs`、`actor_seq` 和签名绑定。
 
@@ -113,7 +113,6 @@ Event Envelope 的 `kind` 是标准事件类型，`payload` 是事件负载，`p
 {
   "event_id": "cx:event:01js0ev0000000000000000000",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "space_version": "1",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 42,
   "kind": "cx.flow.update",
@@ -144,7 +143,7 @@ Event Envelope 的 `kind` 是标准事件类型，`payload` 是事件负载，`p
 }
 ```
 
-`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）。Event Envelope、Canonical Operation Object、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
+`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）。Event Envelope、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
 
 ## 6. 为什么需要 `prev_refs + hlc + actor_seq`
 
@@ -246,7 +245,6 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.update`
 - `cx.flow.archive`
 - `cx.flow.restore`
-- `cx.flow.convert`
 - `cx.flow.branch.enable`
 - `cx.flow.branch.disable`
 - `cx.flow.branch.update`
@@ -429,38 +427,40 @@ CAS 语义：`expected_position` 描述的是移动前源 List 中 Flow 的当�
 
 List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Space 的 `rank` 字段来改变。它不得移动 Flow。
 
-### 9.4 `cx.flow.convert`
+### 9.4 切换 Flow 默认 branch
 
-> **Deprecation note (v1-core-rc)**：`cx.flow.convert` 与 `cx.flow.branch.set_primary` +
-> `cx.flow.branch.enable` 组合在语义上完全等价。新写入方 SHOULD 优先使用
-> `cx.flow.branch.set_primary`（必要时配合 `cx.flow.branch.enable`）；`cx.flow.convert` 在 v1
-> 注册表中保留为 active 以保障向后兼容，将在 v1.1+ 移除或转为 profile-only。
-
-`cx.flow.convert` 将同一个 Flow 的目标 branch 标记为唯一 primary，并可确保目标 branch 存在。
+切换默认 branch 使用 `cx.flow.branch.set_primary`；若目标 branch 尚未启用，先用 `cx.flow.branch.enable` 创建：
 
 ```json
 {
-  "kind": "cx.flow.convert",
+  "kind": "cx.flow.branch.enable",
   "target_ref": "cx:flow:01js0tk0000000000000000000",
   "payload": {
     "flow_id": "cx:flow:01js0tk0000000000000000000",
-    "branch": "discussion",
-    "ensure_branches": [
-      "discussion"
-    ]
+    "branch": "discussion"
+  }
+}
+```
+
+```json
+{
+  "kind": "cx.flow.branch.set_primary",
+  "target_ref": "cx:flow:01js0tk0000000000000000000",
+  "payload": {
+    "flow_id": "cx:flow:01js0tk0000000000000000000",
+    "branch": "discussion"
   }
 }
 ```
 
 规则：
 
-- convert 要求独立 capability action `cx.flow.convert`。
-- convert 不改变 `flow_id`。
-- convert 不自动删除已有 discussion 历史或 synthesis 字段。
-- 设置 `branch="discussion"` 时，Reducer MUST 保证 `discussion` branch 存在；若当前不存在，则 MUST 自动创建它，或在 policy 禁止时 reject。
+- 这两类事件各自要求对应 capability action。
+- 它们不改变 `flow_id`，不删除已有 discussion 历史或 synthesis 字段。
+- `set_primary` 之前目标 branch MUST 已经 enable 或在同一批次内被 enable；否则 reducer MUST reject。
 - 切换到其他 branch 时不得自动 archive discussion branch；若要关闭讨论，必须显式写入 `cx.flow.branch.disable` 或等价 policy 动作。
 - Reducer MUST 把目标 branch 的 `is_primary` 设为 true，并清除同一 Flow 其他 active branch 的 primary 标记。
-- convert 不自动移除 Board/List 位置；是否移除由后续 `cx.flow.move` / profile policy 决定。
+- 默认 branch 切换不自动移除 Board/List 位置；是否移除由后续 `cx.flow.move` / profile policy 决定。
 
 ## 10. 验证流程
 
@@ -600,13 +600,13 @@ Contrix 初版不引入全网共识链。
 
 ### 16.1 Reducer Contract
 
-Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一 `space_id`、同一 accepted Event 集合、同一 `space_version` 和同一 reducer profile，正确实现 MUST 产生相同的 `state_hash`、materialized object state、conflict records 和 reducer frontier。
+Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一 `space_id`、同一 accepted Event 集合和同一 reducer profile，正确实现 MUST 产生相同的 `state_hash`、materialized object state、conflict records 和 reducer frontier。
 
 Reducer 输入：
 
 - accepted Event Envelope 集合及其 canonical bytes / digest。
 - 每个 Event 的 `prev_refs`、`auth_refs`、`actor_seq`、HLC、kind、payload、proof validation result 和 authorization result。
-- `space_version`、schema profile refs、reducer profile ref、Space policy state 和必要 snapshot base。
+- schema profile refs、reducer profile ref、Space policy state 和必要 snapshot base。
 
 Reducer 输出：
 
@@ -619,7 +619,7 @@ Reducer 输出：
 - Reducer MUST 幂等：重复输入同一 Event 不得改变输出。
 - Reducer MUST 对输入集合顺序不敏感；排序只能使用本规范声明的 deterministic ordering。
 - Reducer profile MUST 明确声明它处理的 Event kind、state key 规则、字段 merge operator、redaction preserved fields、rank/order profile、schema interpretation profile 和 critical extension 行为。
-- 两个 reducer profile 只有在 profile id、space_version、critical feature 集合、state resolution 规则和字段 merge operator 均匹配时，才可比较 state hash。否则必须声明为不同 projection，不得声称同一 canonical state。
+- 两个 reducer profile 只有在 profile id、critical feature 集合、state resolution 规则和字段 merge operator 均匹配时，才可比较 state hash。否则必须声明为不同 projection，不得声称同一 canonical state。
 - Partial reducer MAY 用于客户端视图、搜索、通知或只读 projection，但它输出的是 scoped projection frontier，不是 Space accepted reducer frontier。Partial reducer 遇到不支持但会影响其输出语义的 standard Event kind、critical extension 或 required feature 时 MUST fail closed、返回 `projection_incomplete` / `unsupported_feature`，或降级为明确标注的不完整视图；不得静默忽略后继续声称完整。
 
 ## 17. 字段级 merge 与对象级收敛

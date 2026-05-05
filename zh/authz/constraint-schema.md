@@ -8,15 +8,14 @@
 
 ### 2.1 基础 Schema
 
-所有约束使用同一个 typed flat object 结构。`constraint_type`、`effect`、`evaluation_class` 和 `priority` 是通用字段；类型专属字段直接放在同一对象上。Grant、policy、proposal 和 conformance schema 都 MUST 使用这一种结构。
+所有约束使用同一个 typed flat object 结构。`constraint_type`、`effect`、`evaluation_class` 是通用字段；类型专属字段直接放在同一对象上。Grant、policy、proposal 和 conformance schema 都 MUST 使用这一种结构。
 
 ```json
 {
   "constraint_id": "string",
   "constraint_type": "enum",
   "effect": "allow|deny|quarantine|require_review",
-  "evaluation_class": "stateless|grant_local|space_state|external",
-  "priority": 0
+  "evaluation_class": "stateless|grant_local|space_state|external"
 }
 ```
 
@@ -24,7 +23,8 @@
 
 - `constraint_id`：可选稳定标识，用于审计、UI diff 和局部更新；未提供时，评估器可用 constraint 在 grant 内的数组位置和 canonical hash 作为诊断标识。
 - `evaluation_class`：可缓存性/依赖范围 hint，决定授权评估器能否走 fast path。每个 `constraint_type` 在 §2.3 有 canonical evaluation_class；实现 MAY 在不破坏正确性的前提下收紧（如把声明的 `grant_local` 实际当 `stateless` 缓存），但 MUST NOT 放宽（不得把 `external` 当 `stateless` 缓存）。
-- `priority`：**deprecated diagnostic field**（v1-core-rc）。仅对 `effect=allow` 有效，且仅用于诊断（"是哪条 allow 让本次操作 ALLOWED"）。MUST NOT 影响 `deny` / `quarantine` / `require_review` 的判定——这三种 effect 一律"任一命中即生效"（§15）。新写入方 SHOULD 省略 `priority`；它在评估算法中没有规范性作用，只在审计日志里可能出现。`priority` 可能在 v1.1+ 从 schema 中完全移除。
+
+> v1 之前曾包含 `priority` 字段（仅对 `effect=allow` 起诊断作用），现在已从 wire schema 移除。授权评估按 §15 的"任一 deny / quarantine / require_review 命中即生效"规则裁决；多条 allow 同时通过时，审计 UI 可基于 constraint id / 数组位置归因，不再需要专门的 priority 字段。
 
 ### 2.2 约束类型
 
@@ -474,15 +474,15 @@
 5. 否则                      → DENIED (default deny)
 ```
 
-`priority` 字段对 `deny` / `quarantine` / `require_review` **没有意义**，实现 MUST NOT 用其影响判定结果。`priority` 仅在 `effect=allow` 上承担诊断用途，用于在多条 allow 同时通过时标识"是哪条 allow 解释了 ALLOWED"，便于审计 UI 展示与日志归因；它不参与裁决，也不能让一条 allow 抑制另一条 allow。
+所有 effect 都按集合命中检查，没有"权重"或"优先级"参与裁决。审计 UI 可按 constraint id 或 grant 内数组位置归因。
 
 ### 15.2 约束组合
 
 当多个约束适用时：
 
 - 所有 `allow` 约束必须同时满足（AND 逻辑）才得出 ALLOWED；任一不满足即 DENIED。
-- `deny` / `quarantine` / `require_review` 三类彼此不通过 priority 排序——它们之间的 precedence 由 §15.1 的步骤顺序决定（deny 优于 quarantine 优于 require_review）。
-- 这种全或无模型让授权评估器可以把每个 effect 类别当作集合命中检查，缓存键无需按 priority 编排。
+- `deny` / `quarantine` / `require_review` 三类之间的 precedence 由 §15.1 的步骤顺序决定（deny 优于 quarantine 优于 require_review）。
+- 这种全或无模型让授权评估器可以把每个 effect 类别当作集合命中检查，缓存键无需按权重编排。
 
 ### 15.3 求值算法
 
@@ -500,7 +500,7 @@ function evaluate_constraints(operation, grant_constraints):
     if any(matches(operation, c) for c in review):
         return REQUIRES_REVIEW
     if all(matches(operation, c) for c in allow):
-        return ALLOWED  # diagnostic: max(c.priority for matching allows) explains the outcome
+        return ALLOWED  # diagnostic: matching constraint_id/array index explains the outcome
     return DENIED
 ```
 
@@ -782,7 +782,6 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
 {
   "constraint_type": "container_move",
   "effect": "allow",
-  "priority": 0,
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:01js0vw0000000000000000000"],
   "allowed_from_container_refs": ["cx:space:01js0c10000000000000000000"],

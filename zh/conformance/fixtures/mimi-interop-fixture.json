@@ -98,7 +98,7 @@
       "input": {
         "protocol_draft": "draft-ietf-mimi-protocol-99"
       },
-      "expected": "reject_or_negotiate_new_profile_without_mutating_space_version_1"
+      "expected": "reject_or_negotiate_new_profile_without_mutating_reducer_profile"
     }
   ]
 }

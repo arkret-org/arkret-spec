@@ -51,11 +51,6 @@
       ],
       "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; space_state = depends on Space frontier (membership, policy_version, etc.); external = depends on data outside the Space causal frontier (claim revocation status, rate-limit history counts, async approval). Each constraint_type has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
     },
-    "priority": {
-      "type": "integer",
-      "default": 0,
-      "description": "Allow-only diagnostic ordering. Effective ONLY for effect=allow and only used to identify which allow constraint explained an ALLOWED outcome. MUST NOT influence deny/quarantine/require_review evaluation; those effects are any-hit-wins per constraint-schema.md §15."
-    },
     "not_before": {
       "type": "string",
       "format": "date-time",

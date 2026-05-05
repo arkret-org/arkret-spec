@@ -34,7 +34,6 @@
 | `cx.schema.event.v1` | Event Envelope |
 | `cx.schema.event_payload.v1` | Standard Event Payload Classes |
 | `cx.schema.event_batch_receipt.v1` | Event Batch Receipt |
-| `cx.schema.operation.v1` | Operation |
 | `cx.schema.cursor.v1` | Cursor |
 | `cx.schema.snapshot.v1` | Snapshot Manifest |
 | `cx.schema.grant_constraint.v1` | Grant Constraint |
@@ -99,7 +98,6 @@
 | `cx.flow.update` | Flow patch |
 | `cx.flow.archive` | Flow archive |
 | `cx.flow.restore` | Flow restore |
-| `cx.flow.convert` | Flow primary branch convert |
 | `cx.flow.move` | Flow move between Lists |
 | `cx.flow.reorder` | Flow reorder within List |
 | `cx.flow.branch.enable` | Enable Flow branch |

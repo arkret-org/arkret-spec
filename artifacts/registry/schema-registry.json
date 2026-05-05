@@ -49,10 +49,6 @@
       "file": "schemas/event-payload.schema.json"
     },
     {
-      "schema_id": "cx.schema.operation.v1",
-      "file": "schemas/operation.schema.json"
-    },
-    {
       "schema_id": "cx.schema.event_batch_receipt.v1",
       "file": "schemas/event-batch-receipt.schema.json"
     },

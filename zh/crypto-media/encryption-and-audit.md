@@ -52,7 +52,6 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“branch 的第
 
 - Space-scoped MLS group 的默认 admin set 来自 `cx.space.create.payload.object.initial_creators` / `created_by_principal`，以及当前有效的 `cx.space.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Space policy 声明的等价 E2EE admin capability。
 - Flow discussion branch-scoped MLS group 的 admin set 是 Space-scoped admin set，加上对该 `flow_id + branch=discussion` 具有 `cx.flow.branch.admin`、`cx.flow.branch.member` 管理权或 policy 声明 E2EE branch admin capability 的 actor。
-- `cx.flow.convert` 不改变 MLS group identity、admin set 推导规则或历史 epoch；它只改变哪个 branch 标记为 primary。若转换同时改变 branch E2EE policy，必须发布独立 policy / branch access event，并通过新的 `cx.mls.proposal` / `cx.mls.commit` 推进 group。
 - Admin capability 可以通过普通 capability grant / revoke 转移或收回；转移生效点由 state resolution 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
 
 发送 `cx.mls.proposal`、`cx.mls.commit` 或 `cx.mls.welcome` 的 actor 必须在其事件自己的 causal auth state 下属于上述 admin set，或满足该 event kind 允许的普通成员 update / self-update 规则。
@@ -259,7 +258,7 @@ Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 
 | 字段 | 值 |
 |------|-----|
 | ExtensionType（IANA name） | `cx_app_state_ref` |
-| ExtensionType（数值 codepoint） | `0xCAFE` ∈ MLS GroupContext private-use range `0xF000`–`0xFFFF` 之外的 Contrix 保留私用空间。Contrix v1 wire 形态固定使用 `0xCAFE`。该 codepoint 由 Contrix specification 直接保留，不需要再向 IANA 注册；如未来与其它 MLS 用户产生冲突，将通过下一 `space_version` 升级路径切换 codepoint。`cx.profile.mls_state_binding.full.v1` MUST 使用 `0xCAFE`；deployment policy MAY 私有覆盖该 codepoint，但任何不同覆盖必须在 deployment profile 中显式声明，且不得在跨 deployment 的 federation Space 中并存。 |
+| ExtensionType（数值 codepoint） | `0xCAFE` ∈ MLS GroupContext private-use range `0xF000`–`0xFFFF` 之外的 Contrix 保留私用空间。Contrix v1 wire 形态固定使用 `0xCAFE`。该 codepoint 由 Contrix specification 直接保留，不需要再向 IANA 注册；如未来与其它 MLS 用户产生冲突，将通过 `cx.space.upgrade` 切换到新 codepoint。`cx.profile.mls_state_binding.full.v1` MUST 使用 `0xCAFE`；deployment policy MAY 私有覆盖该 codepoint，但任何不同覆盖必须在 deployment profile 中显式声明，且不得在跨 deployment 的 federation Space 中并存。 |
 | ExtensionData | `application_state_ref` 对象的 CBOR 编码 |
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列：

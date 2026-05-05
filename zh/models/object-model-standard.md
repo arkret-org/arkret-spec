@@ -165,7 +165,7 @@ Flow 在每个 branch 定义内使用 `access` 表达 membership、permission、
 
 ### 2.5 转换
 
-`cx.flow.convert` 在同一个 Flow 内把目标 `branch` 标记为唯一 primary，并可要求 reducer 确保目标 branch 存在。它不再携带模式字段。
+`cx.flow.branch.set_primary` 在同一个 Flow 内把目标 `branch` 标记为唯一 primary；若目标 branch 尚未启用，先用 `cx.flow.branch.enable` 创建。
 
 规则：
 

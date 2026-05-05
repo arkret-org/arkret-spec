@@ -228,7 +228,7 @@ Flow 通过两层语义表达差异：
 - `branches`：能力分支数组。`name` 标识 branch，`is_primary=true` 可显式标识默认入口；未显式标记时按确定性规则派生。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天和讨论 timeline。
 - `branches[].access`：branch 默认继承与显式 override。缺省情况下 branch 使用同一 Flow / Space 授权体系；只有声明 branch-scoped override 时，才形成独立成员、历史或 E2EE 边界。
 
-业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Space schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。`cx.flow.convert` 只切换 `branches[].is_primary` 或确保目标 branch 存在；转换不会改变 Flow identity，也不要求复制或迁移消息历史。
+业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Space schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。切换默认 branch 使用 `cx.flow.branch.set_primary`（必要时配合 `cx.flow.branch.enable`）；切换不会改变 Flow identity，也不要求复制或迁移消息历史。
 
 最小结构：
 
@@ -282,7 +282,7 @@ Flow 规则：
 - `synthesis` branch 与 `discussion` branch 可以共享同一标题和基础字段，branch reducer 只负责对应交互面当前态。
 - branch access 默认继承 Flow / Space；`discussion` branch 的 membership、history visibility 和 E2EE 只有在显式 override 时才独立收敛，且不得放大 `synthesis` branch 的可见字段。
 - `is_primary` 只是默认入口标记，不授予读取、写入或管理权限。
-- branch-scoped E2EE group 的 scope MUST 绑定 `space_id + flow_id + branch="discussion"`。`cx.flow.convert` 只改变默认入口或 branch 启用状态，不得隐式重建、合并或迁移该 MLS group；只有显式 branch access / encryption policy event 才能创建、reinit、archive 或替换 group。
+- branch-scoped E2EE group 的 scope MUST 绑定 `space_id + flow_id + branch="discussion"`。`cx.flow.branch.set_primary` / `cx.flow.branch.enable` 只改变默认入口或 branch 启用状态，不得隐式重建、合并或迁移该 MLS group；只有显式 branch access / encryption policy event 才能创建、reinit、archive 或替换 group。
 
 ## 7. Flow Discussion Branch
 
@@ -468,7 +468,6 @@ Event 是 reducer 输入和审计事实。
   "actor_id": "did:web:alice.example",
   "kind": "cx.flow.update",
   "created_at": "2026-04-26T00:00:00Z",
-  "space_version": "1",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
     "cx:event:01js0et0000000000000000000"
