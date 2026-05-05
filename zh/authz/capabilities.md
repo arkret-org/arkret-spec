@@ -211,7 +211,7 @@ Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation �
 - `cx.audit.query`
 - `cx.audit.export`
 
-`cx.mls.epoch` 不是可授予的服务动作。它是从 winning `cx.mls.commit` 机械派生的 checkpoint；实现只能按 MLS epoch 验证规则发布或缓存该 checkpoint，不得用单独 capability 授权推进 epoch。
+v1 不再注册独立的 `cx.mls.epoch` event；每个 group 的当前 epoch 由 winner `cx.mls.commit.next_epoch` 直接表达，没有"推进 epoch"这个独立可授权动作。
 
 Audit action 只授权受控审计代理执行“先记录后解密”、读取审计视图或导出审计材料。若 Audit Agent 已经是 MLS group 成员，持有 epoch key 本身不受 capability 系统密码学约束；Space policy 必须同时声明 auditable E2EE profile、审计代理身份、plaintext-visible service disclosure、成员可见提示和 `cx.audit.accessed` 写入要求。
 

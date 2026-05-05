@@ -166,7 +166,6 @@
 | `cx.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
 | `cx.mls.welcome` | MLS welcome ref |
 | `cx.mls.keypackage` | MLS KeyPackage publication |
-| `cx.mls.epoch` | MLS epoch checkpoint |
 | `cx.space_key.share` | Space key share |
 | `cx.space_key.withheld` | Space key withheld notice |
 | `cx.space_key.share_audit` | Auditable history key share marker |

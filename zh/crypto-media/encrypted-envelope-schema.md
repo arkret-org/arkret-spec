@@ -53,7 +53,7 @@
 | `aad.causal_ref_hashes` | array<hash> | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
 | `key_ref` | object | 条件 | 密钥材料引用（对接收方可选） |
 | `key_ref.algorithm` | string | 条件 | `mls-rfc9420` profile 中为 `MLS`；未来 profile 必须注册自己的值。 |
-| `key_ref.group_state_ref` | id:event/hash | 否 | 可指向已 accepted 的 `cx.mls.genesis`、`cx.mls.epoch` 或等价 group state proof，用于加速 lookup；不得替代 MLS transcript 验证。 |
+| `key_ref.group_state_ref` | id:event/hash | 否 | 可指向已 accepted 的 `cx.mls.genesis`、winner `cx.mls.commit` 或等价 group state proof，用于加速 lookup；不得替代 MLS transcript 验证。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes || encrypted_payload_bytes)`；输入定义见第 3.3 节。若 profile 拆出 `authentication_tag`，tag MUST 纳入 `encrypted_payload_bytes`。 |
 | `aad_digest` | hash | 是 | 规范 AAD 的 SHA256 |
 

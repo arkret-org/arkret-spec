@@ -498,7 +498,6 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.capability.derived`
 - `cx.capability.revoke`
 - `cx.policy.rule`
-- `cx.mls.epoch`
 - `cx.device.authorized`
 - `cx.device.revoked`
 - `cx.device.list_update`
@@ -528,7 +527,7 @@ principal control state 的 `state_key` MUST 可从事件内容确定性导出�
 
 State event 不等于 auth state dependency。`cx.view.*` 等投影定义事件可以使用 state resolution 形成当前 View 定义，但默认不进入 capability / membership / policy / MLS 的 auth state map；只有当某个 View 被 policy 明确声明为授权依赖、审计依赖或 materialized query contract 时，相关 View state event 才能作为对应业务事件的 `auth_refs`。非 state event 仍可影响物化 projection，但不进入 auth state map，除非具体类型声明其为 auth dependency。
 
-`cx.mls.epoch` 在 state map 中表示当前 MLS epoch checkpoint，但它不得作为独立授权事实推进 epoch。验证规则见 `../crypto-media/encryption-and-audit.md` 第 5.3 节：checkpoint 必须能从同一 conflict set 的 winning `cx.mls.commit` 机械验证，无法验证时 MUST reject 或 soft-fail。
+每个 MLS group 的当前 epoch 由 winner `cx.mls.commit` 的 `next_epoch` 字段直接表达；v1 不再注册独立的 `cx.mls.epoch` event 或单独 epoch state key。具体推导规则见 `../crypto-media/encryption-and-audit.md` 第 2.4 / 2.5 节。
 
 ## 9. State Resolution
 

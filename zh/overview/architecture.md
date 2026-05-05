@@ -125,12 +125,13 @@ Contrix 的协议文档按“服务角色”定义能力；实际落地时可以
 
 面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
-| 部署层级 | 必须自建 | 通常使用公共或托管服务 | 适合对象 |
-| --- | --- | --- | --- |
-| 个人 / 小团队 | Principal Server | Identity Resolver、Directory、Push Gateway、TURN / Media Relay | 个人、家庭、小项目、小团队。 |
-| 普通组织 | 组织委托的 Principal Server、Auth / Account Server；需要统一授权和审计时增加 Admin / Policy Server | Identity Resolver、Directory、Push Gateway、TURN / Media Relay | 公司、学校、社区、普通协作组织。 |
-| 高安全组织 | 一个或多个组织委托的 Principal Server、Auth / Account Server、Identity Resolution Infrastructure、Policy / Authz Server、Blob / Media Server | 可选使用公共 Directory、Push Gateway 或外部互联入口 | 政企、医疗、金融、强合规组织。 |
-| 涉密 / 隔离网络 | Principal Server、Identity Resolution Infrastructure、Auth / Account Server、Directory Server、Policy / Authz Server、Events / Blob Server、Sync / Federation Server、Audit / Compliance Server | 原则上不依赖公共服务；跨域协作必须经受控网关、邀请包或 trust bundle 明确解析上下文 | 军方、内网、完全隔离或强管控网络。 |
+部署 profile 与服务角色契约的权威定义：
+
+- 部署 profile（`personal_node` / `small_team` / `organization` / `high_security_organization` / `isolated_sovereign_network` / `sovereign_deployment`）：见 [`artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) `deployment_profiles`。
+- 服务角色与 `service_type` / 真相源 / 明文边界矩阵：见 [`sync/service-surface.md` §2.5](../sync/service-surface.md)。
+- 高安全自建网络的额外约束：见 [`sync/sovereign-deployment.md`](../sync/sovereign-deployment.md)。
+
+本节只保留无法机器化的信任边界叙述、最小拓扑示意和 identity resolver 的部署常识；任何"哪种规模需要哪些服务"的列举请直接读上面三处源。
 
 最小个人或小团队部署只有一个 Principal Server：
 
@@ -144,39 +145,16 @@ Principal Server
 └─ basic app view / inbox
 ```
 
-它可以默认使用公共基础设施：
+默认可使用的公共基础设施：Identity Resolver、Directory Server、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署 Directory、Push、Identity Resolution Infrastructure、TURN / Media Relay 或 Moderation / Compliance；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些基础设施收回自建。
 
-- Identity Resolver：公共 DID / handle 解析；默认按 `did:webvh` 解析（HTTPS hosting + `did.jsonl` history + 可选 witness），同时支持 `did:web` method resolver、`did:key` 本地 resolver、`did:keri` witness / watcher / resolver；声明 AT Protocol interop 的部署额外加挂 `did:plc` directory / mirror adapter。
-- Directory Server：公共 Space、Organization、Actor、Applet 发现。
-- Push Gateway：移动或桌面脱敏通知投递。
-- TURN / Media Relay：音视频中继和 NAT 穿透。
+Identity 部署常识（无法在 deployment profile 表中表达）：
 
-Auth / Account Server 与 Identity Resolution Infrastructure 不要求同源部署。普通组织可以自建自己的登录入口、SSO、设备配对和 session 管理，同时使用 `did:webvh` resolver 解析用户 DID（其中无域名用户的 `did.jsonl` 由 Auth/Account Server 在自有子域代为托管），加上 `did:web` resolver 处理 service DID、`did:key` 本地 resolver、`did:keri` resolver / witness / watcher，AT 互通部署再加 `did:plc` adapter。登录服务器负责证明“这个服务账户 / 设备当前绑定到哪个 DID”，identity resolver 只负责返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托证据；组织 Policy / Authz 再决定该 DID 是否能访问组织 Space、Event 或管理动作。
+- 默认 principal DID method 为 `did:webvh`：HTTPS hosting + `did.jsonl` history + 可选 witness。无域名用户的 `did.jsonl` 由 Auth/Account Server 在自有子域代为托管。
+- 服务 DID 通常使用 `did:web`；临时 / 测试 / 设备 / bootstrap 使用 `did:key`；KERI 部署使用 `did:keri`；AT Protocol interop 部署额外挂 `did:plc` adapter。
+- Auth / Account Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
+- 客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 
-`did:web`、`did:webvh` 等 method-specific DID MAY 按各自方法从域名、DID log 或外部网络解析；组织私有部署 MAY 只允许 allowlist 中的 resolver trust domain。客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验。
-
-普通用户不应被要求单独部署 Directory Server、Push Gateway、Identity Resolution Infrastructure、TURN / Media Relay 或 Moderation / Compliance Server。搜索、inbox、notification 和 View projection 默认可在客户端本地完成。若使用 `did:key`，identity resolution 可以完全本地完成；若使用 `did:keri`，通常需要 KERI log / witness / watcher / OOBI 基础设施，但不需要传统中心化 registry。只有当组织需要身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 时，才应把这些基础设施收回自建。
-
-高级实现仍应按以下服务角色声明能力和安全边界。多个角色可以合并在同一部署中，但必须在 service DID、`service_type`、capability、Space policy、plaintext visibility 和 endpoint 契约上保持可区分。
-
-| 服务角色 | 常见 `service_type` | 主要服务 | 是否真相源 | 明文边界 |
-| --- | --- | --- | --- | --- |
-| Principal Server | `principal_server` | principal 的受控入口；可聚合 Events API、sync、federation、device message、policy、blob 等受托能力。 | 否；真相来自 signed Event。 | 可以接收该 principal 或 Space policy 授权范围内的非加密内容。 |
-| Identity Resolution Infrastructure | `identity_registry` 或 method-specific resolver | DID Document、DID key log、KERI event log、handle binding、receipt / witness、watcher、OOBI、service discovery。 | 是身份控制链的可验证来源之一；`did:key` 可由本地算法解析。 | 不应接收 Space 正文。 |
-| Auth / Account Server | `auth_server` 或部署私有名 | passkey、OIDC、SSO、设备配对、session grant、账户恢复与 soft logout。 | 否；只证明服务账户登录，并绑定到 DID / device。 | 不应因密码恢复获得 E2EE 明文或 DID 控制权。 |
-| Sync / Federation Server | `principal_server` 或 `sync_node` | client sync、Space subscription、backfill、snapshot head、跨域 federation transaction。 | 否；只传播和回补。 | 只能把非加密私有内容发给授权 Principal Server 或 `plaintext_visible_services`。 |
-| Directory Server | `directory_service` | Space / Organization / Actor / handle / Applet 的授权搜索与精确解析。 | 否；派生发现层。 | 只返回最小可发现信息，不应暴露私有拓扑。 |
-| Blob / Media Server | `blob_node` / `media_service` | blob upload、HEAD / GET authenticated download、thumbnail、preview、retention、media policy。 | 内容 hash 可验证；metadata 是服务声明。 | 私有 blob 下载、预览和缩略图必须按授权执行。 |
-| Device / Key Server | `device_key_service` | to-device message、one-time key、fallback key、device list、encrypted secret/key backup metadata 和 ciphertext。 | 否；设备信任来自签名链。 | 不应能解密 E2EE 正文或备份密文。 |
-| Authz / Policy Server | `authz_service` / `policy_server` | capability 查询、grant / invite 查询、policy decision、risk score、quarantine / review。 | 否；决策必须可追溯到签名 policy / grant。 | policy preview 只能接收最小披露字段，除非显式明文授权。 |
-| Push Gateway | `push_gateway` | push device register / unregister、脱敏通知投递、移动平台适配。 | 否。 | 默认不得接收 E2EE 明文或正文摘要。 |
-| Applet Server | `applet_service` | bot、bridge、外部 SaaS、portal Space、ghost actor、Applet transaction。 | 否；写入仍需 capability 和签名。 | 只在 Space / principal 明确授权范围内可见明文。 |
-| MIMI Provider Facade | `mimi_provider_facade` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 | 否；MIMI room state 是 Contrix Space/Room 的互操作投影。 | 只能处理 `cx.mimi.room_binding` 和 Space policy 授权范围内的密文、metadata 或明文。 |
-| Agent Runtime Server | `agent_runtime` | agent execution、tool execution、A2A / ACP / MCP handoff。 | 否；输出必须写成 signed Event 才成为协议事实。 | agent 可见范围由 capability、device / session 和 Space policy 限定。 |
-| Realtime Media Server | `media_service` / `sfu_service` / `turn_service` | WebRTC signaling 辅助、ICE config、TURN / STUN、SFU / MCU、录制。 | 否。 | SFU / TURN 通常不应接触明文；MCU / 录制必须显式授权。 |
-| Moderation / Compliance Server | `moderation_service` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 | 否；处理结果必须落成可审计 policy / moderation Event。 | 只能接收审核所需的最小证据或授权明文。 |
-
-协议不要求公开部署所有服务器。某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /api/v1/server/describe`、`supported_operations`、conformance profile 和 Space policy 共同声明。
+某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /api/v1/server/describe`、`supported_operations`、conformance profile 和 Space policy 共同声明。
 
 ## 3. 架构平面
 

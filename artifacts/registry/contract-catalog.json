@@ -785,14 +785,6 @@
         "payload": "MLS KeyPackage publication"
       },
       {
-        "event_kind": "cx.mls.epoch",
-        "category": "e2ee",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "MLS epoch checkpoint derived from winning commit; not an independent epoch authority"
-      },
-      {
         "event_kind": "cx.space_key.share",
         "category": "e2ee",
         "status": "active",

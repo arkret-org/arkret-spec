@@ -301,7 +301,6 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.device.authorized`
 - `cx.device.revoked`
 - `cx.device.list_update`
-- `cx.mls.epoch`（由 winning `cx.mls.commit` 派生的 epoch checkpoint）
 - `cx.mls.keypackage`
 - `cx.space_key.share`
 - `cx.space_key.withheld`

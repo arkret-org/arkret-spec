@@ -112,7 +112,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/grant-constraint-schema.md` | Grant constraint schema。 |
+| `authz/grant-constraint-schema.md` | Grant constraint 示例（envelope/约束权威以 `data-structures.md` §13、`constraint-schema.md` 与 `capabilities.md` §18 为准）。 |
 | `authz/event-auth-state-resolution.md` | Space version、auth refs、membership、policy components、history sharing、state resolution。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `authz/moderation.md` | 举报、E2EE franking、Space/Organization 审核策略、个人屏蔽入口。 |

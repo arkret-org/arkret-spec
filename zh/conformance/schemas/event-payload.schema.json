@@ -2138,36 +2138,6 @@
       },
       "additionalProperties": true
     },
-    "mls_epoch_payload": {
-      "type": "object",
-      "required": [
-        "mls_group_id",
-        "epoch",
-        "commit_ref",
-        "application_state_ref",
-        "source"
-      ],
-      "properties": {
-        "mls_group_id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "epoch": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "commit_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "application_state_ref": {
-          "$ref": "#/$defs/mls_application_state_ref"
-        },
-        "source": {
-          "const": "commit_winner_checkpoint"
-        }
-      },
-      "additionalProperties": true
-    },
     "moderation_report_payload": {
       "type": "object",
       "required": [

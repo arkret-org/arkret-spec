@@ -524,7 +524,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 - `group_id`：目标 MLS group。
 - `base_epoch`：Commit 构造时读取的当前 epoch。
-- `base_epoch_ref`：本地认为当前有效的 `cx.mls.epoch` event 或 `cx.mls.genesis` event / genesis group state ref。
+- `base_epoch_ref`：本地认为当前有效的 winner `cx.mls.commit` event 或 `cx.mls.genesis` event / genesis group state ref（v1 不再有独立的 `cx.mls.epoch` checkpoint event；epoch 由 winner commit 机械派生）。
 - `proposal_refs`：被该 Commit 消费的 `cx.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
 - `commit_message_ref` / `commit_hash`：MLS Commit 消息或其 content-addressed blob。
 - `next_epoch`：必须等于 `base_epoch + 1`。
@@ -532,13 +532,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 同一 `(group_id, base_epoch)` 上多个 accepted `cx.mls.commit` 候选是 state conflict，而不是并存的多个有效 epoch。Reducer MUST 只选择一个 winner 生成当前 MLS epoch state；loser commit 的 MLS transcript 不得被用于解密或继续提交后续 epoch。客户端发现自己提交的 commit 失败后，必须以 winner epoch 为 base 重新生成 Commit；原 loser commit 中未被 winner 消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
 
-`cx.mls.epoch` 是从 winner `cx.mls.commit` 机械派生的 epoch checkpoint，不是独立的成员操作。若实现把该 checkpoint 作为 durable Event Envelope 传播或缓存，必须满足：
-
-- `payload.source` MUST 为 `commit_winner_checkpoint`。
-- `payload.commit_ref` MUST 指向已 accepted 且在同一 `(group_id, base_epoch)` conflict set 中胜出的 `cx.mls.commit`。
-- `payload.epoch` MUST 等于 winner commit 的 `next_epoch`，`application_state_ref` MUST 与 winner commit 中被 MLS transcript 覆盖的引用一致。
-- `auth_refs` MUST 包含 winner commit 或其已验证 checkpoint / snapshot 证明。
-- Events API MUST reject 任何无法从 winner commit 机械验证的 `cx.mls.epoch`；actor、service 或 key server 不得通过单独提交 `cx.mls.epoch` 推进 epoch。
+v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epoch 由 winner `cx.mls.commit` 的 `next_epoch` 字段直接表达；checkpoint 是 reducer / snapshot 派生视图，不进入 wire history。任何来自旧版本的 `cx.mls.epoch` event MUST 被拒绝，发送方应改为引用 winner commit。
 
 当网络分区导致节点短期看见不同 winner 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 event-auth state resolution、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Space policy 授权为普通 actor 或 service capability，不能替代上述 deterministic state resolution。
 

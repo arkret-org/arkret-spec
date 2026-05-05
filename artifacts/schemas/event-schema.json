@@ -436,7 +436,6 @@
               "cx.capability.derived",
               "cx.capability.revoke",
               "cx.policy.rule",
-              "cx.mls.epoch",
               "cx.device.authorized",
               "cx.device.revoked",
               "cx.device.list_update",
@@ -1190,25 +1189,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/mls_commit_failed_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.mls.epoch"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_epoch_payload"
           }
         }
       }

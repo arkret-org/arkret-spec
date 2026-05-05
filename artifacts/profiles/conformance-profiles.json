@@ -404,7 +404,6 @@
         "cx.mls.proposal",
         "cx.mls.commit",
         "cx.mls.welcome",
-        "cx.mls.epoch",
         "cx.space_key.share",
         "cx.space_key.withheld",
         "cx.space_key.share_audit"
@@ -1197,7 +1196,6 @@
       ],
       "required_event_kinds": [
         "cx.mls.commit",
-        "cx.mls.epoch",
         "cx.space_key.share",
         "cx.space_key.withheld"
       ],
