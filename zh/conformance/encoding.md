@@ -14,13 +14,13 @@ Contrix canonical JSON MUST 使用：
 - object key 按 Unicode code point 升序排序，并在每一层独立排序。
 - 无 insignificant whitespace。
 - JSON object 中的重复 key MUST reject，不得采用“最后一个 wins”或“第一个 wins”。
-- number MUST 使用 RFC 8785 / JCS 等价的唯一 decimal serialization；NaN、Infinity、-Infinity、`-0`、无法精确往返的 number、超出实现声明精度范围的 number MUST reject。
+- number MUST 使用 RFC 8785 / JCS 等价的唯一 decimal serialization；NaN、Infinity、-Infinity、`-0`、无法精确往返的 number、超出实现声明精度范围的 number MUST reject。**v1 wire MUST NOT 使用非整数 number**：所有签名 canonical object 的 number 字段 MUST 是 JSON integer。比例、置信度、进度等小数值 MUST 编码为整数 + 显式 scale（推荐字段后缀 `_basis_points` 表示万分数 0..10000，或 `_x1000`、`_x1000000` 等明确比例）；`confidence_basis_points: 7500` 表示 75.00%。这条收紧规则取消了"何时允许 number canonicalization"的可选语义，使签名输入 100% 确定。
 - timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入不得接受本地时区、隐式时区或 leap-second 变体。
 - 字段名使用 snake_case。
 
 Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，不得影响 event digest 或 proof `payload_hash`。实现不得对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。
 
-生产者 SHOULD 避免在高风险签名对象中使用非整数 number。若 schema 允许 `confidence`、`progress` 等小数值，生产者 MUST 输出 canonical decimal；消费者 MUST 在 canonicalization 后再验证签名。无法提供确定性 number canonicalization 的实现不得声明通过包含 number 字段的 profile。
+生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何 v1 schema 不得新增 `type: number`（非整数）字段；遗留字段 MUST 在下一个 schema profile 升级时迁移到整数 + scale。
 
 ## 3. Hash
 

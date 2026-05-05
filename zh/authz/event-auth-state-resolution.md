@@ -69,11 +69,16 @@
 
 节点 MUST NOT 因为事件来自可信 Sync Service 就跳过任何步骤。
 
-接收方在进入授权和 state resolution 前 MUST 验证 HLC 格式和时钟窗口。Contrix v1 的 `5 分钟` 是默认 hard future-skew 上限，用于识别明显错误或伪造的未来时间；它不是高风险 state event 的默认排序信任窗口。HLC 物理时间超过 hard future-skew 的事件 MUST reject 或 quarantine；被 quarantine 的事件不得参与 winner 选择。
+接收方在进入授权和 state resolution 前 MUST 验证 HLC 格式和时钟窗口。Contrix v1 的 HLC drift 模型只有两个语义层级，外加 profile 覆盖：
 
-实现和 Space / reducer profile SHOULD 声明更小的 `expected_future_skew_ms`。未声明时，普通服务端写入 SHOULD 以 30 秒作为 expected drift，高风险 state event（`cx.capability.*`、membership、policy、MLS epoch、service binding、Space upgrade）SHOULD 以 10 秒或本地运维可证明的更小窗口作为 expected drift。移动端、离线端或弱同步环境 MAY 使用更宽 expected drift，但必须在 profile / policy 中声明，并且不得让 HLC 单独覆盖缺失的 causal dependency、`actor_seq` 回退或 revoke freshness。
+| 字段 | 默认值 | 语义 |
+| --- | ---: | --- |
+| `hard_future_skew_ms` | 300_000（5 分钟） | 物理时间超出该窗口的 HLC MUST reject 或 quarantine。被 quarantine 的事件不得参与 winner 选择。 |
+| `expected_future_skew_ms` | 30_000（30 秒） | 物理时间超出该窗口但在 hard 窗口内的 HLC SHOULD soft-fail / quarantine 并请求 backfill / policy check。 |
 
-若候选事件的 HLC 未超过 hard future-skew 但明显超出该 actor / service 最近观测 drift 或 profile expected drift，节点 SHOULD soft-fail 或 quarantine 并请求 backfill / policy check。对于高风险 state event，节点不得仅因更大的 HLC 让其胜出；必须先满足签名、授权、`prev_refs`、`auth_refs`、`actor_seq` 和 revoke freshness 检查。
+实现 / Space / reducer profile MAY 在 `server/describe.limits` 或 reducer profile 中显式声明更紧或更宽的 `hard_future_skew_ms` 与 `expected_future_skew_ms`。**v1 不再隐式区分"普通事件"与"高风险事件"的不同 expected drift**；如果某 reducer profile 想对 state event（capability、membership、policy、service binding、Space upgrade、MLS commit 等）施加更严的窗口，MUST 在 profile 中显式声明 `state_event_expected_future_skew_ms`，否则一律按 `expected_future_skew_ms` 执行。
+
+无论窗口配置如何，HLC 不得单独覆盖缺失的 causal dependency、`actor_seq` 回退或 revoke freshness 检查；高风险 state event 即使 HLC 更大，也必须先满足签名、授权、`prev_refs`、`auth_refs`、`actor_seq` 和 revoke freshness。
 
 ## 4. Auth Refs
 
@@ -143,6 +148,22 @@
 | `destroy` | owner/governance/admin lifecycle | 当前 lifecycle state、tombstone / export / retention / legal-hold constraint、无活跃 child Space 和无未决 grant | 终态；不可恢复的 decommission marker。 |
 
 未识别的 lifecycle `state_key` MUST fail closed。同一 facet 的最新 accepted event 决定该 facet 当前状态；终态 facet（`tombstone` / `destroy`）一旦写入即拒绝后续普通业务写入。
+
+### 4.0.3 state_key 命名约定（forward-only）
+
+v1 已注册的 state_key（如 `access`、`join_rule`、`archive`、`freeze` 等）保持原有扁平名称。**新增** facet event 或扩展 profile 引入新 state_key 时 MUST 使用 `<namespace>:<facet>` 形式，避免命名空间在未来膨胀到几十项时发生冲突或语义漂移：
+
+| namespace | 适用范围 | 示例 |
+| --- | --- | --- |
+| `policy:` | 普通 Space 策略（access、join、history visibility、moderation 等同类） | `policy:retention`, `policy:quota`, `policy:notification` |
+| `bind:` | 服务绑定（指定哪个服务 DID 提供某能力） | `bind:archive_service`, `bind:audit_service` |
+| `config:` | 非策略性结构化配置 | `config:schema_refs_v2`, `config:default_view` |
+| `inherit:` | 继承自其他 Space 的策略片段 | `inherit:cx:space:<parent_id>`（已使用） |
+| `lifecycle:` | 生命周期 FSM facet（archive / freeze 之外的新增） | `lifecycle:soft_delete` |
+
+未带 namespace 前缀的新 state_key 在 lint 期 SHOULD 被警告；已注册的扁平名（v1 `access`、`join_rule`、`history_visibility`、`discovery`、`policy_server`、`policy_components`、`history_sharing`、`asset_privacy`、`moderation`、`plaintext_visible_services`、`media_service`、`schema_refs` 与 lifecycle `archive`/`freeze`/`tombstone`/`destroy`）作为历史例外保留，未来版本 MAY 增加同义 `policy:<name>` / `lifecycle:<name>` 别名。
+
+实现读取 state_key 时 MUST 按完整字符串匹配，不得只匹配前缀；命名空间约定只用于规划新条目，不改变现有事件的解析或 state resolution 行为。
 
 如果事件缺少必需 auth ref，节点 MUST soft fail 并尝试 backfill。Backfill MUST 受 `../conformance/scalability-constraints.md` 的 `auth_chain` 深度、`auth_refs` 数量、page size、retry 和本地资源上限约束；实现不得为了验证单个事件无限递归拉取历史。若在上限内仍缺失，或只能通过未验证 snapshot / 未授权服务获得依赖，节点 MUST reject、保持 soft-failed 或 quarantine，具体取决于错误是否可恢复。
 
@@ -253,6 +274,30 @@ Contrix 使用 `cx.flow.branch.member` 表达 actor 在 Flow discussion branch �
 - `secret`：仅本地或端到端加密上下文中可见。
 
 `cx.space.policy.set` (state_key=`discovery`) 不授予读取、加入、写入或解密权限。节点和目录服务 MUST NOT 用 `join_rule` 或 `history_visibility` 推断 discoverability。
+
+### 6.0.1 Discoverability × Join Rule 兼容性矩阵
+
+`discoverability` 与 `join_rule` 是正交决策（"能否被发现"独立于"如何加入"），但不是任意组合都有意义。Reducer 接受 Space create / `cx.space.policy.set` 时 MUST 在两者收敛后按下表校验有效组合；对 `forbidden` 组合 MUST `schema_violation` reject，不得静默规范化或暗中提升 join_rule。
+
+`✓` = 允许；`-` = 不允许（reject）；`!` = 允许但语义低效（reducer 只警告，profile MAY 收紧为 reject）。
+
+| ↓ discoverability \ join_rule → | `public` | `invite` | `knock` | `restricted` | `knock_restricted` | `closed` |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: |
+| `public` | ✓ | ! | ✓ | ✓ | ✓ | - |
+| `listed` | ✓ | ✓ | ✓ | ✓ | ✓ | ! |
+| `restricted` | ! | ✓ | ✓ | ✓ | ✓ | ! |
+| `unlisted` | ! | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `invite_only` | - | ✓ | - | - | - | ✓ |
+| `secret` | - | ✓ | - | - | - | ✓ |
+
+规则解释：
+
+- `public` join_rule + 非 `public/listed` discoverability：`public` join 意味着任何 actor 可 join，与"主体不可被发现"自相矛盾；只有 `restricted/unlisted` 在 reducer 警告语义下允许（用于过渡迁移），`invite_only/secret` 必须 reject。
+- `invite_only` / `secret` discoverability + `public/knock/restricted/knock_restricted` join_rule：被邀请前不能得知 Space 存在，因此不能允许 knock 或 selector-based 加入；只允许 `invite` 或 `closed`。
+- `closed` join_rule：不接受任何普通加入。配合 `public` discoverability 矛盾（"能搜索到但永远进不去"），MUST reject；配合 `listed` 是低效（warning）；其他组合允许（用于归档、维护或迁移已结束的 Space）。
+- `restricted` / `knock_restricted` join_rule 需要 selector 证明，前提是 actor 知道 Space 存在；因此与 `invite_only/secret` 不兼容。
+
+实现 SHOULD 在 Space create 与每次 `cx.space.policy.set` (state_key=`discovery` 或 `join_rule`) 收敛后立即校验，避免在后续操作中才发现非法组合；reducer 在历史 backfill 中遇到 `forbidden` 组合 MUST 把对应 policy event 标记为 `rejected` 而非静默接受。
 
 `cx.space.policy.set` (state_key=`join_rule`):
 

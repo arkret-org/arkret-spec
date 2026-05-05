@@ -1149,10 +1149,11 @@
             "expired"
           ]
         },
-        "progress": {
-          "type": "number",
+        "progress_basis_points": {
+          "type": "integer",
           "minimum": 0,
-          "maximum": 1
+          "maximum": 10000,
+          "description": "Progress in basis points (0..10000 = 0%..100%). v1 wire forbids non-integer numbers; producers MUST use integer scaled forms."
         },
         "summary": {
           "type": "string"

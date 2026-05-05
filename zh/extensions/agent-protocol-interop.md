@@ -120,7 +120,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
     "session_id": "cx:agent_session:01J...",
     "external_task_id": "a2a-task-123",
     "status": "working",
-    "progress": 0.42,
+    "progress_basis_points": 4200,
     "last_update_at": "2026-04-26T00:00:00Z",
     "summary": "Remote agent is generating implementation plan."
   }
