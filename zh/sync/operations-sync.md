@@ -709,8 +709,8 @@ Contrix v1 固定：
 
 ## 23. 规范性引用
 
-- Cursor 编码与 opaque 语义见 `encoding.md`、`data-structures.md` 和 `encoding-conformance-vectors.md`。
-- HLC 文本格式固定为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，排序向量见 `encoding-conformance-vectors.md`。
+- Cursor 编码与 opaque 语义见 `encoding.md`、`data-structures.md` 和 `conformance-vectors.md`。
+- HLC 文本格式固定为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，排序向量见 `conformance-vectors.md`。
 - Snapshot manifest、chunk digest、`state_hash` 和签名规则见 `snapshot-schema.md`。
 - Flow discussion branch / Message 语义见 `../models/object-model-core.md` §6-§9 与 `../models/object-model-standard.md` §5。
 - Flow / Board / List / Morph 语义见 `../models/object-model-standard.md` 和 `../models/views.md`。

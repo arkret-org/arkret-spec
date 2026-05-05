@@ -601,6 +601,6 @@ Reducer MUST：
 ## 20. 规范性引用
 
 - 标准 event type 注册表见 `../conformance/schema-registry.md`。
-- Reducer conformance vector 见 `../conformance/state-resolution-conformance-vectors.md`、`../conformance/redaction-conformance-vectors.md` 和 `../conformance/sync-conformance-vectors.md`。
+- Reducer conformance vector 见 `../conformance/conformance-vectors.md`、`../conformance/conformance-vectors.md` 和 `../conformance/conformance-vectors.md`。
 - Relation cardinality 规则由 `data-structures.md`、`object-model-standard.md` 和各业务 profile 共同定义；未声明可多重的关系 MUST 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。
 - Schema evolution 测试见 `../conformance/conformance-profiles.md`。未知字段必须保留，但不得绕过 schema、capability、policy 或 encryption 约束。

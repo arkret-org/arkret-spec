@@ -10,6 +10,74 @@
 
 ## [Unreleased] — `v1-core-rc`
 
+### 协议评审驱动的简化（2026-05-05，第三批：真删 + Event Envelope requirements 合并 + plane 重组 + conformance-vectors 合一）
+
+#### 真删之前仅标 deprecated 的字段 / 注册表项
+
+- `space_version`：从 `event-schema.json` / `space.schema.json` 完全删除（不仅是 required 列表）；
+  `crypto-signature-fixture` 重新生成 canonical bytes / payload_hash / binding_hash / signed JWS（用
+  test private key 重新签名并验证通过）；`event-envelope-negative-fixture` 11 个 event 全部清理；
+  `encoding-conformance-vectors` 中的 canonical bytes vector + digest 重算。所有 .md 中 `space_version`
+  提法删除或改写为指向 `reducer_profile_ref`。
+- `cx.flow.convert`：从 `contract-catalog.json` event_kind_registry 删除（110 → 109 active kinds）；
+  `event-schema.json` 移除对应 if/then 分支与 `flow_convert_payload` $def；prose 全部改为
+  `cx.flow.branch.set_primary` + `cx.flow.branch.enable` 组合。
+- `cx:operation:` typed-id：从 `id_kind_registry` 删除（37 → 36）；`cx.schema.operation.v1` 从 schema_registry
+  删除（35 → 34）；`operation.schema.json` 与 zh 镜像完全删除；data-structures.md §18（Canonical
+  Operation Object）删除，§19 Field Patch 重新编号为 §18。
+- `constraint.priority`：从 `grant-constraint.schema.json` properties 删除；§2.1 base schema 不再列
+  priority；§15 求值伪代码不再使用 priority；§6.3 container_move 示例移除 priority。
+
+#### Event Envelope 4 个 profile/feature 字段 → 单一 requirements{} 对象
+
+- `schema_profile_refs[]` / `reducer_profile_ref` / `required_features[]` / `critical_extensions[]`
+  四个顶级字段从 wire schema 移除，合并为单一 `requirements: {schema[], reducer, features[],
+  critical_extensions[]}`。
+- `crypto-signature-fixture` 重新生成（canonical bytes、digest、签名全部更新；用 test private key
+  重新签名并 Ed25519 公钥验证通过）。`event-envelope-negative-fixture` 11 个 event 收敛。所有 prose
+  reference 更新（data-structures, operations-sync, api-conventions, service-http-binding,
+  schema-registry, conformance-profiles, conformance-suite, event-auth-state-resolution,
+  contract-catalog 描述文本）。
+
+#### Read Marker / Relation.state / Notification
+
+- Read Marker：删除 `timeline_order_key`（"may speed up comparison" — 不是 wire 必要，比较顺序
+  应由客户端按 HLC 实现）。schema + prose 同步。
+- `Relation.state` enum：`active|deleted|redacted` → `active|tombstone`；删除/撤回原因仅记录在
+  `cx.relation.delete` / `cx.redaction` 事件上。
+- `object-model-core.md` 核心对象列表：`notification` / `read_marker` 从 canonical 列表降级为
+  "派生对象（不是 canonical truth，由 client / SDK 从 Event 集合本地计算）"。
+
+#### Round 7 plane 重组
+
+- 新 `zh/governance/` 目录，`authz/moderation.md` → `governance/content-moderation.md`。
+- `authz/account-lifecycle.md` → `identity/account-lifecycle.md`（账号生命周期是 identity 概念，不是
+  capability authorization）。
+- 合并 `crypto-media/devices-and-auth.md` + `device-crypto-verification.md` → 单一 `device-lifecycle.md`
+  （13 + 26 KB → 26 KB merged，重复内容被消除；§1-§3 来自 devices-and-auth 的 login/auth boundaries +
+  pairing + SSO，§4-§15 来自 device-crypto-verification 的 device identity / signing / list sync /
+  to-device / OTKs / KeyPackage claim / verification / secret storage / key backup / cross-signing /
+  applet device delegation）。
+- 全部跨文件引用更新。spec-map 中两条 device-lifecycle.md 重复条目去重；过期描述（identity-did
+  默认值、event-auth-state-resolution scope）刷新。
+
+#### Round 6 (audited E2EE) — 已在 batch 6 完成，本批不重做
+
+#### R1.8 conformance-vectors 合并
+
+- 5 个 `*-conformance-vectors.md`（encoding / state-resolution / redaction / capability / sync）合并为
+  单一 `conformance-vectors.md`，按 §1-§5 分组。约 1,300 行整合。
+- 所有跨文件引用全部更新（11 处 .md / .json）。
+- 删除原 5 个文件。
+
+#### 待 v1.1+ 的工作（写入 _todos.md）
+
+- Round 9 constraint 类型 14→8 collapse：每个合并对需要新的 subtype discriminator 设计 + 全部
+  fixture 迁移；不能简单的 rename。
+- Round 10 encoding 演进（CBOR profile / HLC 并入 encoding.md）。
+- v1.1+ profile id 正式登记到 conformance-profiles.json（webvh / tsp / audited_e2ee / binding 系列）。
+- federation.md ↔ federation-wire.md 去重。
+
 ### 协议评审驱动的简化（2026-05-05，第二批：Round 6 + Round 8 子集）
 
 #### Round 6 — Audited E2EE 拆出独立 hardening profile

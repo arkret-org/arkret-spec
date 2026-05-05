@@ -53,11 +53,11 @@
 
 ### 4.1 Sync / encoding 向量（已在现有文件）
 
-- `sync-conformance-vectors.md` 与 `sync-fixture.json`：timeline 顺序、分页缺口、snapshot frontier、`event_set_commitment`、MLS 回填、decryption_pending。
-- `encoding-conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
-- `state-resolution-conformance-vectors.md` 与 `state-resolution-fixture.json`：state 冲突、policy hard deny 优先级、离线写入与 revoke freshness 的收敛向量。
-- `redaction-conformance-vectors.md`：redaction 保留与审计可见性向量。
-- `capability-conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Flow discussion branch 不继承 Flow synthesis 权限与审批约束向量。
+- `conformance-vectors.md` 与 `sync-fixture.json`：timeline 顺序、分页缺口、snapshot frontier、`event_set_commitment`、MLS 回填、decryption_pending。
+- `conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
+- `conformance-vectors.md` 与 `state-resolution-fixture.json`：state 冲突、policy hard deny 优先级、离线写入与 revoke freshness 的收敛向量。
+- `conformance-vectors.md`：redaction 保留与审计可见性向量。
+- `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Flow discussion branch 不继承 Flow synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
 - `mimi-interop-fixture.json`：MIMI provider directory、room binding、content mapping、identifier query、consent、proxy download 与 unsupported draft 向量。
 

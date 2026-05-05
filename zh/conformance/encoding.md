@@ -6,7 +6,7 @@
 
 ## 2. Canonical JSON
 
-Contrix canonical JSON 是签名、hash、event digest、receipt digest、snapshot commitment 和 cursor 内部状态的唯一编码 profile。实现 MAY 复用 RFC 8785 / JCS 类库，但最终输出必须满足本节的收窄规则和 `encoding-conformance-vectors.md` 的测试向量。
+Contrix canonical JSON 是签名、hash、event digest、receipt digest、snapshot commitment 和 cursor 内部状态的唯一编码 profile。实现 MAY 复用 RFC 8785 / JCS 类库，但最终输出必须满足本节的收窄规则和 `conformance-vectors.md` 的测试向量。
 
 Contrix canonical JSON MUST 使用：
 

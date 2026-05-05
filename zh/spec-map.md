@@ -167,17 +167,13 @@
 | 文档 | 内容 |
 | --- | --- |
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
-| `conformance/encoding-conformance-vectors.md` | Canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 的一致性测试向量。 |
+| `conformance/conformance-vectors.md` | 合并的一致性测试向量：§1 Encoding & crypto（canonical JSON / digest / signature binding / HLC / cursor / encrypted envelope）、§2 State resolution（并发 membership / capability / governance）、§3 Redaction（约束与可见性）、§4 Capability（delegation / revoke / approval）、§5 Sync（client sync / pagination / snapshot / MLS epoch backfill）。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
-| `conformance/state-resolution-conformance-vectors.md` | 并发 membership/capability/governance state resolution 向量。 |
-| `conformance/redaction-conformance-vectors.md` | redaction 约束与可见性向量。 |
-| `conformance/capability-conformance-vectors.md` | delegated capability、revoke 回滚、approval 约束向量。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
 | `conformance/snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
 | `conformance/scalability-constraints.md` | v1 wire、授权、state resolution、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
-| `conformance/sync-conformance-vectors.md` | Client Sync、pagination、snapshot、MLS epoch backfill 的一致性测试向量。 |
 
 ## 5. 拆分原则
 

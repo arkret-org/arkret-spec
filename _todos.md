@@ -98,16 +98,37 @@
 
 ## 已完成轮次的累计效果（2026-05-05 落地）
 
-- 删除文件：7 个（R1.1-R1.7）。
-- 重写文件 1 个，行数 882 → 685（−197 行 / −22%）。
-- normative 文本累计减少约 2,500 行。
-- 顶层架构变更：去除 lattice authority、收敛 DID default、HTTP-only v1 core transport、MIMI/A2A/Applet 全部下沉。
-- 机器约束：`profile_tiers` 顶级字段引入；2 个核心 schema 的 `space_version` 解除 required。
-- pipeline 持续保持 `check pass`：110 event kinds, 35 schemas, 37 typed ID kinds, 83 operations, 46 profiles。
+batches 5-9 总计：
+- 已删除文件：12 个
+- 新建文件：3 个（`audited-e2ee.md` / `governance/content-moderation.md` / `conformance-vectors.md`，后两个为搬运/合并）
+- 重命名 / 移动：3 个（`device-crypto-verification.md` → `device-lifecycle.md`，`authz/moderation.md` → `governance/content-moderation.md`，`authz/account-lifecycle.md` → `identity/account-lifecycle.md`）
+- 单文件最大瘦身：`event-auth-state-resolution.md` 882 → 685（−22%），`encryption-and-audit.md` 708 → 538（−24%）
+- normative 文本净减少：约 −3,500 行
+- 顶层架构变更：
+  - 去除 lattice authority + governance layer scoring，改为 quarantine-on-fork
+  - 真删 `space_version` / `cx.flow.convert` / `cx:operation:` / `cx.schema.operation.v1` / `constraint.priority`
+  - Event Envelope 4 个 profile/feature 字段合并为单一 `requirements{}` 对象
+  - Read Marker 移除 `timeline_order_key`；Relation.state 简化为 `active|tombstone`；`notification` / `read_marker` 从 canonical 列表降级为 derived projection
+  - DID default 从 `did:webvh` 收敛到 `did:web`（webvh 转 high-trust profile）
+  - v1 core transport 锁定 HTTP/JSON
+  - MIMI / A2A / Applet 全部下沉为 v1.1+ extension
+  - 5 个 conformance-vector 文件合并为单一 `conformance-vectors.md`
+  - plane 重组：`governance/`、`identity/account-lifecycle.md`、`crypto-media/device-lifecycle.md`
+  - Audit E2EE 拆出独立 hardening profile `audited-e2ee.md`
+- 机器约束：`profile_tiers` 顶级字段；schema 实际删除字段（不再仅 deprecated）；fixture 全部重新签名
+- pipeline 持续保持 `check pass`：109 event kinds, 34 schemas, 36 typed ID kinds, 83 operations, 46 profiles。
 
-## 后续推进建议
+## 仍未完成 / 留给下一次 PR
 
-1. **Round 6**（audit/MLS hardening 拆分）和 **Round 8**（字段层精简）能带来下一阶段最大可读性改进，建议作为下次专项 PR。
-2. **R1.8**（5 个 conformance-vectors 合一）影响面在引用扩散，建议与 Round 6/8 同期一并做。
-3. **Round 7**（plane 重组）涉及目录改动，建议在 v1.1 release branch 上做以避免和 v1-core-rc CI 冲突。
-4. v1.1+ profile id（`cx.profile.did_webvh.v1`、`cx.profile.tsp_binding.v1` 等）暂未在 conformance-profiles.json 注册；下次需要正式登记时一并 generate registry 入口。
+**Round 9 — Constraint 类型 14→8 collapse**：是真正的设计问题（每个合并对都需要为新的"宽类型"重新设计 sub-discriminator + 相应字段集合，并迁移所有 fixture 的具体 constraint 实例），不是简单的 enum 改名。建议做法：
+
+- 设计新的 8 个类型每个的内部 schema，定义 `subtype` 字段表达原 14 类型的 sub-shape。
+- 写一个 fixture migration 脚本：把所有 `{constraint_type: "approval_workflow", approval_threshold: 2}` 翻译成 `{constraint_type: "claim_based", subtype: "approval", approval_threshold: 2}` 等。
+- 重新 lint 与跑向量。
+- 同时把 capability / grant 的 `constraint_extension_profiles` 注册项与文档章节重新组织。
+
+**Round 10 — encoding 演进**：CBOR profile / HLC 并入 encoding.md / cursor-encoding 并入 encoding.md。低优先级。
+
+**v1.1+ profile 登记**：`cx.profile.did_webvh.v1` / `cx.profile.tsp_binding.v1` / `cx.profile.audited_e2ee.v1` / `cx.profile.binding.grpc.v1` 等都已在 prose 中引用但未在 conformance-profiles.json 正式登记。下次正式做 v1.1 schedule 时统一登记并补齐 `profile_requirements` 块。
+
+**federation.md ↔ federation-wire.md 去重**（评审建议但未落地）：两个文件 service DID 认证 / 签名规则部分重叠。
