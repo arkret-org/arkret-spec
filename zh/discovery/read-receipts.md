@@ -20,22 +20,27 @@
 
 ### 2.2 广播格式
 
-客户端在用户视线停留或明确确认后，向 Sync Service 发送：
+客户端在用户视线停留或明确确认后，以 ephemeral receipt 形式（schema：`cx.schema.read_receipt.v1`）向 Sync Service 发送：
 
 ```json
 {
-  "kind": "cx.receipt.read",
+  "receipt_type": "read",
+  "schema": "cx.schema.read_receipt.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js1000000000000000000001",
-  "actor": "did:web:alice.example.com",
+  "branch": "discussion",
+  "actor_id": "did:web:alice.example",
   "event_id": "cx:event:01js1read00000000000000000",
-  "timestamp": "2026-04-26T10:00:00Z"
+  "hlc": "01970e589d21-0004-a13f9c2e",
+  "created_at": "2026-04-26T10:00:00Z"
 }
 ```
 
 | 字段 | 说明 |
 |------|------|
 | `event_id` | 用户已读的最新那条 Event 的 ID。由于因果性，表示该 Event 及其因果前驱均已读。 |
+| `actor_id` | 阅读者 DID。该字段名与协议中其它 actor-引用字段一致；旧草稿使用过 `actor` / `reader`，已统一弃用。 |
+| `hlc` | 可选；当 Sync Service 需要按 HLC 合并 / 去重多个 receipts 时由客户端附带。 |
 
 ### 2.3 防雪崩与合并
 
@@ -60,19 +65,30 @@ Read Marker 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 ### 3.2 格式
 
+Read marker schema：`cx.schema.read_marker.v1`。Marker 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中，因此其 `id` 字段是 actor 控制下的标识符（例如 account-data key），不属于 typed-id-registry 的 wire object kind：按 §6.1 / §6.6 绑定 `(actor_id, space_id, scope, position, hlc, device_id)`：
+
 ```json
 {
-  "kind": "cx.read.marker",
-  "body": {
-    "space_id": "cx:space:01js0sp0000000000000000000",
-    "flow_id": "cx:flow:01js1000000000000000000001",
-    "event_id": "cx:event:01js1read00000000000000000"
-  }
+  "id": "read_marker_alice_flow_discussion_01",
+  "schema": "cx.schema.read_marker.v1",
+  "actor_id": "did:web:alice.example",
+  "device_id": "cx:device:01js0ke0000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "scope": {
+    "kind": "flow_discussion",
+    "ref": "cx:flow:01js1000000000000000000001"
+  },
+  "position": {
+    "event_id": "cx:event:01js1rd0000000000000000000",
+    "hlc": "01970e589d21-0004-a13f9c2e"
+  },
+  "updated_at": "2026-04-26T10:00:00Z"
 }
 ```
 
-- 该状态被加密存储在用户的 account data 中。
+- 该状态被加密存储在用户的 account data 中或单独 actor-private stream 中。
 - 用户的其他设备通过同步 account data 的变更，获取最新的游标位置，从而清除本地未读红点。
+- 多设备并发 marker 收敛 = HLC 取大；HLC 相等时按 device_id 字典序确定的顺序作为 actor-internal tiebreaker。
 
 ### 3.3 写入合并
 
@@ -121,29 +137,36 @@ Read marker 是 actor-private 状态。最小结构示例：
 
 ### 6.2 Receipt 公开形态
 
-Receipt 可以公开或私有，取决于 Space policy：
+Receipt 可以公开或私有，取决于 Space policy。schema：`cx.schema.read_receipt.v1`：
 
 ```json
 {
   "receipt_type": "read",
+  "schema": "cx.schema.read_receipt.v1",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "flow_id": "cx:flow:01js1000000000000000000001",
+  "branch": "discussion",
   "actor_id": "did:web:alice.example",
-  "target_event_id": "cx:event:...",
+  "event_id": "cx:event:01js1read00000000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
 ### 6.3 Notification 派生 projection
 
-Notification 是派生 projection，不是 canonical truth。
+Notification 是派生 projection，不是 canonical truth。schema：`cx.schema.notification.v1`：
 
 ```json
 {
-  "notification_id": "cx:notif:01js0nf0000000000000000000",
+  "id": "cx:notif:01js0nf0000000000000000000",
+  "schema": "cx.schema.notification.v1",
   "actor_id": "did:web:alice.example",
-  "space_id": "cx:space:...",
-  "source_event_id": "cx:event:...",
-  "source_ref": "cx:message:...",
-  "kind": "mention",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "flow_id": "cx:flow:01js1000000000000000000001",
+  "branch": "discussion",
+  "source_event_id": "cx:event:01js1mn0000000000000000000",
+  "source_ref": "cx:message:01js1msg000000000000000000",
+  "notification_type": "mention",
   "state": "unread",
   "priority": "normal",
   "created_at": "2026-04-26T00:00:00Z"

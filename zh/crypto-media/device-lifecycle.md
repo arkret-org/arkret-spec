@@ -113,6 +113,41 @@ Contrix 使用三层签名链：
 
 `self_signing_key` 和 `user_signing_key` SHOULD 存入加密 secret storage，并通过新设备验证后共享。
 
+## 5a. Privacy-Preserving Push
+
+Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 Sync Service、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。
+
+### 5a.1 `push_target_id` 派生与作用域
+
+- 作用域：`per (principal_id, device_id, push_route)`。`push_route` 标识同一设备上不同 push 通道（如 `apns_main`, `fcm_voip`, `webpush_default`），允许同一设备针对不同通道发布相互不可链接的伪名。
+- 长度：`push_target_id` MUST 至少 128 bit 熵，编码为 base64url（最少 22 字符）；推荐 256 bit。
+- 不可推导性：`push_target_id` MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码可推导。生成方式 SHOULD 是 device-local 随机；设备 MAY 用本地 secret 与 `push_route` 派生，前提是源 secret 不可被服务端取回。
+- 标识形态：典型 wire 形态为 typed ID `cx:pseudonym:push:<base64url>`，由 `id-kind-registry.json` 中 `pseudonym` 项授权使用；也可作为 raw base64url 字符串出现在 `cx.device.push_route` 等 actor-private state event payload 中。
+
+### 5a.2 注册与撤销
+
+- 设备 MUST 通过 `cx.device.push_route` actor-private state event 把 `(push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入 principal control stream，state_key = `["cx.device.push_route", principal_id, device_id, push_route]`。
+- 撤销：设备 MUST 通过同 state_key 上的后继事件设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 frontier 收敛后停止接受旧伪名。
+- 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
+- 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 (principal, device) 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。
+
+### 5a.3 不可链接性要求
+
+- 同一 `principal_id` 在两台设备上的 `push_target_id` MUST 不可由 push gateway / Sync Service / 第三方 transport 关联（除非两侧自愿持有相同源 secret）。
+- 同一设备的两条 `push_route` 的伪名 MUST 互相独立；其中一条被泄露不得让攻击者推导另一条。
+- 跨 Space 投递 MUST 使用同一 `push_target_id`（按 device 而非按 Space），但 push payload 内不得携带 plaintext `space_id`/`flow_id`/`message_id`；目标拆分由 device 端解 envelope 后完成。
+
+### 5a.4 Push Payload 形态
+
+- 协议层 push payload MUST 视作 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob。AAD MUST 不包含可链接 wire 字段，仅可携带 routing-only `wakeup_kind`（参见 `discovery/push-notifications.md`）。
+- gateway / vendor MUST NOT 解密 payload。任何"丰富推送"扩展（如显示发件人）都属于 vendor-side 行为，需要 Space 与 device 双方明确 opt-in，并对应单独的 plaintext-visible service profile，不在 v1 默认互操作范围。
+
+### 5a.5 与其它子系统的边界
+
+- Sync Service：以 `push_target_id` 作为 push fanout 索引，但不得保留 `push_target_id ↔ principal/device` 的可逆映射；服务重启 / 数据导出 / 法定披露场景 MUST 失效化导出该索引。
+- WebRTC 通话邀请（`webrtc-signaling.md` §13 incoming-call wakeup）通过同一 `push_target_id` 触发；payload 仍走 §5a.4 加密通道。
+- 推送规则（`push-notifications.md` §4 keyword / member_count 等）以 `push_target_id` 为目标但 MUST 在不解密 payload 的前提下完成评估，或在 E2EE Space 中由设备本地评估，详见对应文档。
+
 ## 6. Device List Sync
 
 任何设备新增、撤销、签名更新或算法更新，MUST 产生 `cx.device.list_update` event。该 event 是 principal control stream 中的 durable identity state；若使用 Event Envelope，顶层 `space_id` MUST 是目标 principal 的 `principal_control_space_id`：

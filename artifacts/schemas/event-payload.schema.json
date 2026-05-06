@@ -66,6 +66,11 @@
       "type": "string",
       "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$"
     },
+    "branch": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "description": "Active branch name on the target Flow. Mirrors message.schema.json#/properties/branch. v1 reducers only recognise 'discussion' for Message timeline; profiles MAY declare additional branch names but v1 interop SHOULD use 'discussion'."
+    },
     "content_type": {
       "type": "string",
       "pattern": "^(cx\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
@@ -796,7 +801,8 @@
     "message_create_payload": {
       "type": "object",
       "required": [
-        "flow_id"
+        "flow_id",
+        "branch"
       ],
       "oneOf": [
         {
@@ -826,6 +832,9 @@
         },
         "message_id": {
           "$ref": "#/$defs/message_id"
+        },
+        "branch": {
+          "$ref": "#/$defs/branch"
         },
         "content": {
           "$ref": "#/$defs/content_block"
@@ -902,6 +911,10 @@
         "revision_of": {
           "$ref": "#/$defs/message_id"
         },
+        "branch": {
+          "$ref": "#/$defs/branch",
+          "description": "Active branch of the target Flow. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id / target_ref / revision_of. When present, MUST equal that resolved branch."
+        },
         "content": {
           "$ref": "#/$defs/content_block"
         },
@@ -942,6 +955,10 @@
         },
         "event_id": {
           "$ref": "#/$defs/event_ref"
+        },
+        "branch": {
+          "$ref": "#/$defs/branch",
+          "description": "Active branch of the redacted message's parent Flow. Optional: when omitted, reducers MUST resolve from the existing message. When present, MUST equal that resolved branch."
         },
         "reason": {
           "type": "string"

@@ -2,13 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/read-marker.schema.json",
   "title": "Contrix Read Marker",
+  "description": "Actor-private multi-device read cursor. Stored in encrypted account data or actor-private stream; NEVER published into a shared Space Event history. Bound to (actor_id, space_id, scope, position, HLC, device_id) per zh/discovery/read-receipts.md §6.6 so that concurrent updates from multiple devices converge by HLC max.",
   "type": "object",
   "required": [
     "id",
+    "schema",
     "actor_id",
     "space_id",
     "scope",
-    "event_id",
+    "position",
     "updated_at"
   ],
   "properties": {
@@ -22,27 +24,59 @@
       "type": "string",
       "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
     },
+    "device_id": {
+      "type": "string",
+      "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$",
+      "description": "Originating device. Required for multi-device convergence: when two devices race on the same (actor_id, space_id, scope) the receiver picks the entry with greater HLC; device_id provides a deterministic actor_id-scoped tiebreaker when HLCs are equal."
+    },
     "space_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
     },
     "scope": {
-      "type": "string",
-      "enum": [
-        "space",
-        "flow",
-        "thread",
-        "view",
-        "message",
-        "morph"
-      ]
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "space",
+            "flow",
+            "flow_discussion",
+            "flow_synthesis",
+            "thread",
+            "view",
+            "message",
+            "morph"
+          ]
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^cx:(space|flow|message|morph|view):[0-9a-hjkmnp-z]{26}$",
+          "description": "Required when kind is anything other than 'space'. Identifies the target object whose timeline this marker tracks."
+        },
+        "branch": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Optional active branch when kind references a Flow. 'flow_discussion' / 'flow_synthesis' implicitly fix the branch; explicit branch overrides default."
+        }
+      },
+      "additionalProperties": false
     },
-    "scope_id": {
-      "type": "string"
-    },
-    "event_id": {
-      "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$|^sha256:[0-9a-f]{64}$"
+    "position": {
+      "type": "object",
+      "required": ["event_id", "hlc"],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+        },
+        "hlc": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+        }
+      },
+      "additionalProperties": false
     },
     "updated_at": {
       "type": "string",

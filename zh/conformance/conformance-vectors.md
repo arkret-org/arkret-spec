@@ -371,22 +371,30 @@ cx.vector.encoding.hlc_logical_overflow.v1
 cx.vector.encoding.cursor_opaque.v1
 ```
 
-输入 cursor：
+输入 cursor（合法 v1 wire 形态，遵循 `encoding.md` §8.2 的 `{v, t, s, d?, x}` payload 结构）：
 
 ```text
-cx:cursor:eyJxdWVyeV9oYXNoIjoic2hhMjU2OmFiYyIsImxhc3RfZXZlbnRfaWQiOiJldnRfMSJ9
+cx:cursor:eyJzIjp7ImN4OnNwYWNlOjAxanMwc3AwMDAwMDAwMDAwMDAwMDAwMDAwIjpbImN4OmV2ZW50OjAxanMwZXYwMDAwMDAwMDAwMDAwMDAwMDAwIl19LCJ0IjoiY2xpZW50X3N5bmMiLCJ2IjoxLCJ4IjoiMjAyNi0xMi0zMVQyMzo1OTo1OVoifQ
+```
+
+cursor base64url 解码后对应 canonical JSON：
+
+```text
+{"s":{"cx:space:01js0sp0000000000000000000":["cx:event:01js0ev0000000000000000000"]},"t":"client_sync","v":1,"x":"2026-12-31T23:59:59Z"}
 ```
 
 期望客户端行为：
 
-- 客户端 MUST 把 cursor 当作不透明字符串保存和回传。
-- 客户端 MUST NOT 依赖 base64url 解码后的内部字段。
-- 服务端 MAY 改变 cursor 内部编码，只要同一 query/session 下 cursor 仍按 API contract 可用。
+- 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 `{v, t, s, d?, x}` 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
+- 客户端 MUST NOT 依赖 base64url 解码后的 `s.<space_id>` frontier 或 `x` 过期字段构造下一页请求；这些字段的存在只是为了让服务端可以无状态地恢复同步进度。
+- 服务端 MAY 改变 cursor 内部编码或字段集合，只要同一 query/session 下 cursor 仍按 API contract 可用。
+- 服务端 MUST 在收到该 cursor 时，按 §8.3 校验 `v ∈ supported_versions`、`x` 未过期、所有 frontier event 引用合法；任何校验失败 MUST 返回 `invalid_cursor` reason_code（见 `error-code-registry.json`）。
 
 失败条件：
 
-- 客户端解析 `last_event_id` 后自行构造下一页请求。
+- 客户端解析 `s` / `x` 后自行构造下一页请求或修改 cursor 内容。
 - 客户端在 cursor 解码失败时拒绝整个协议，而不是按 opaque token 处理。
+- 服务端使用违反 `{v, t, s, d?, x}` 结构的 cursor 内部 payload（例如旧草稿中出现过的 `{query_hash, last_event_id}` 形式）。
 
 ### 1.12 Vector: Encrypted Envelope Digest
 

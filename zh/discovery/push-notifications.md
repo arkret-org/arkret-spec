@@ -18,7 +18,7 @@
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 
 在 E2EE 场景下，Sync Service 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
-- 推送上游（APNs / FCM / Push Gateway）只携带 **per-(principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Space id、event id、device DID URL 或任何其它跨 Space 稳定标识。具体规则见 [`crypto-media/device-lifecycle.md` §5 Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。
+- 推送上游（APNs / FCM / Push Gateway）只携带 **per-(principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Space id、event id、device DID URL 或任何其它跨 Space 稳定标识。具体规则见 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。
 - 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容；本地通知文案在客户端解密后生成。
 - 受信通知服务 MAY 在 Space policy 明确列入 `plaintext_visible_services` 时附加可选 `push_hint`（如 "New message"），但 MUST NOT 包含正文、sender DID、room/Space 名称或可关联的稳定 ID。
 
@@ -179,7 +179,7 @@ POST /api/v1/push/notify
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `notification` | object | required | 推送通知对象。 |
-| `notification.push_target_id` | string | required | per-(principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Space 关联的稳定 ID。 |
+| `notification.push_target_id` | string | required | per-(principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Space 关联的稳定 ID。 |
 | `notification.wakeup_kind` | string | required | 唤醒类别（如 `message`、`incoming_call`、`mention`）；只是粗粒度提示，不带 Space / sender 信息。 |
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示；不得包含正文、sender DID 或 Space 名称。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。 |

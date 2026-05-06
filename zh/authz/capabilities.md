@@ -89,6 +89,16 @@ ID 语义：
       "effect": "allow",
       "fields_write_allow": ["title", "summary", "body", "fields.status"]
     }
+  ],
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:acme.example.com#device-1",
+      "payload_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "created_at": "2026-04-26T00:00:00Z",
+      "jws": "..."
+    }
   ]
 }
 ```

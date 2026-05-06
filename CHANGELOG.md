@@ -54,8 +54,8 @@
 - `space_version`：从 `event-schema.json` / `space.schema.json` 完全删除（不仅是 required 列表）；
   `crypto-signature-fixture` 重新生成 canonical bytes / payload_hash / binding_hash / signed JWS（用
   test private key 重新签名并验证通过）；`event-envelope-negative-fixture` 11 个 event 全部清理；
-  `encoding-conformance-vectors` 中的 canonical bytes vector + digest 重算。所有 .md 中 `space_version`
-  提法删除或改写为指向 `reducer_profile_ref`。
+  `encoding-conformance-vectors` 中的 canonical bytes vector + digest 重算。规范文本中的版本演进
+  提法统一改写为 Event `requirements` 与 profile id / `cx.space.upgrade` 语义。
 - `cx.flow.convert`：从 `contract-catalog.json` event_kind_registry 删除（110 → 109 active kinds）；
   `event-schema.json` 移除对应 if/then 分支与 `flow_convert_payload` $def；prose 全部改为
   `cx.flow.branch.set_primary` + `cx.flow.branch.enable` 组合。
@@ -107,13 +107,11 @@
 - 所有跨文件引用全部更新（11 处 .md / .json）。
 - 删除原 5 个文件。
 
-#### 待 v1.1+ 的工作（写入 _todos.md）
+#### v1.0.0 发布边界
 
-- Round 9 constraint 类型 14→8 collapse：每个合并对需要新的 subtype discriminator 设计 + 全部
-  fixture 迁移；不能简单的 rename。
-- Round 10 encoding 演进（CBOR profile / HLC 并入 encoding.md）。
-- v1.1+ profile id 正式登记到 conformance-profiles.json（webvh / tsp / audited_e2ee / binding 系列）。
-- federation.md ↔ federation-wire.md 去重。
+本发布包不依赖仓库外待办文档作为 normative 输入。constraint collapse、encoding/HLC 合并、profile
+登记和 federation wire 去重均已纳入当前 v1.0.0 文本、schema、registry、fixture 或 profile catalog；
+后续 v1.1+ 工作必须以新的 changelog 条目和 profile/registry 变更单独登记。
 
 ### 协议评审驱动的简化（2026-05-05，第二批：Round 6 + Round 8 子集）
 
@@ -129,25 +127,17 @@
   正交。
 - `zh/spec-map.md` 增加 audited-e2ee.md 入口。
 
-#### Round 8（子集）— 字段层 deprecation 标记
+#### Round 8（历史中间态，已由第三批完成真删）
 
-- `cx.flow.convert` event kind：在 `zh/sync/operations-sync.md` §9.4 与（已存在的）多处
-  prose 中加 deprecation note，建议新写入方使用 `cx.flow.branch.set_primary` +
-  `cx.flow.branch.enable`。registry 条目保持 active 以兼容现有实现，目标 v1.1+ 移除。
-- `cx.schema.operation.v1` / `cx:operation:` typed-id：在 `zh/models/data-structures.md`
-  §18 加 deprecation note，明确 Operation 是 SDK 内部 builder 中间对象，从未上 wire；
-  v1.1+ 将移到 SDK guidance（不再作为 protocol normative 对象）。
-- `constraint.priority` 字段：在 `zh/authz/constraint-schema.md` §2.1 标记为
-  deprecated diagnostic，仅对 `effect=allow` 有诊断意义；新写入方 SHOULD 省略，可能在
-  v1.1+ 从 schema 完全移除。
-
-这三处 deprecation 都是 **prose-only**（注册表与 schema 保持向后兼容），目标是在 v1.1+
-正式移除时不会破坏既有实现。
+- `cx.flow.convert`、`cx.schema.operation.v1` / `cx:operation:`、`constraint.priority` 最初以
+  deprecation-only 方式标记；第三批已经完成 wire contract 真删。
+- 正式 v1.0.0 以当前 `artifacts/registry/contract-catalog.json`、schema 与对应中文规范为准，不再把
+  这些字段或注册表项声明为 active 兼容项。
 
 ### 协议评审驱动的简化（2026-05-05）
 
 基于全仓评审，本轮收敛掉了一批与 Matrix room state 风格继承的复杂性预算与对仍在演进外部
-标准的 normative 绑定。详细任务清单见仓库根目录的 `_todos.md`。
+标准的 normative 绑定；已完成事项以本文和机器工件为准。
 
 #### Round 1 — 文件级合并（删除冗余文件）
 

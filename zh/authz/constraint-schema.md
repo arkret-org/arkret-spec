@@ -282,7 +282,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 ```json
 {
   "constraint_type": "quota",
-  "subtype": "rate",
+  "subtype": "resource",
   "effect": "allow",
   "max_resources": 1000,
   "resource_type": "object",
@@ -619,7 +619,7 @@ function matches_field_access(operation, constraint):
 
 实现 MUST：
 
-- 支持所有 v1 约束类型
+- 支持所有 core v1 约束类型，以及本实现声明的 profile 所要求的 extension 约束类型；未声明对应 profile 时遇到 extension 约束 MUST fail closed，不得 silent ignore
 - 按正确顺序求值约束
 - 返回正确的拒绝原因
 - 记录约束违规

@@ -181,12 +181,17 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 ```json
 {
   "id": "cx:space:01js0sp0000000000000000000",
+  "schema": "cx.schema.space.v1",
   "title": "Launch Plan",
+  "kind": "collaboration",
   "created_by_principal": "did:web:acme.example",
   "schema_refs": [
     "cx.schema.space.v1"
   ],
   "policy_ref": "cx:policy:01js0p10000000000000000000",
+  "default_discoverability": "invite_only",
+  "default_join_rule": "invite",
+  "history_visibility": "joined",
   "encryption_profile": "mls_rfc9420",
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -304,32 +309,43 @@ Discussion branch 规则：
 
 Space (kind=board) 与 Space (kind=list) 是 `Space` 的工作流容器形态，使用 `cx:space:` ID，但默认 `boundary_profile="container"`。Space (kind=board) 是工作流容器；Space (kind=list) 是 Space (kind=board) 内的列/泳道；Space (kind=board) / Space (kind=list) 默认管理 Flow 的位置关系。
 
-Space (kind=board) 投影示例（非完整 canonical Space schema）：
+容器层级表达：board / list 与父 Space（或 board 与其内 list）之间的从属关系**不**通过 Space 对象上的字段表达，而是通过 `cx.space.child` / `cx.space.parent` 状态事件。`space.schema.json` 不定义 `space_id` / `parent_space_id` 字段；客户端 / reducer 派生层级时 MUST 解析这两个状态事件，并按 `models/space-hierarchy.md` 处理循环、惰性链接与 lifecycle。
+
+Space (kind=board) canonical 对象示例（独立的 Space 对象；其作为子 Space 的从属关系由父 Space 的 `cx.space.child` 状态事件表达）：
 
 ```json
 {
   "id": "cx:space:01js0bd0000000000000000000",
+  "schema": "cx.schema.space.v1",
   "kind": "board",
   "boundary_profile": "container",
-  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Release Board",
-  "created_by": "did:web:alice.example",
+  "schema_refs": ["cx.schema.space.v1"],
+  "default_discoverability": "members",
+  "default_join_rule": "invite_only",
+  "history_visibility": "joined",
+  "encryption_profile": "none",
+  "created_by_principal": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
-Space (kind=list) 投影示例（非完整 canonical Space schema）：
+Space (kind=list) canonical 对象示例（在父 board Space 中的位置由父 board 的 `cx.space.child` 事件 + List 内的 `rank` 字段共同决定）：
 
 ```json
 {
   "id": "cx:space:01js01s0000000000000000000",
+  "schema": "cx.schema.space.v1",
   "kind": "list",
   "boundary_profile": "container",
-  "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Review",
   "rank": "mV",
-  "state": "active",
-  "created_by": "did:web:alice.example",
+  "schema_refs": ["cx.schema.space.v1"],
+  "default_discoverability": "members",
+  "default_join_rule": "invite_only",
+  "history_visibility": "joined",
+  "encryption_profile": "none",
+  "created_by_principal": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -412,6 +428,7 @@ Morph 是开放对象。
 ```json
 {
   "id": "cx:morph:01js0mp0000000000000000000",
+  "schema": "cx.schema.morph.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "morph_type": "customer_risk",
   "title": "ACME procurement risk",
@@ -441,6 +458,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 ```json
 {
   "id": "cx:relation:01js0r00000000000000000000",
+  "schema": "cx.schema.relation.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "relation_kind": "contains",
   "from_ref": "cx:space:01js0bd0000000000000000000",
@@ -468,6 +486,7 @@ Event 是 reducer 输入和审计事实。
   "event_id": "cx:event:01js0ev0000000000000000000",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "actor_id": "did:web:alice.example",
+  "actor_seq": 4,
   "kind": "cx.flow.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
@@ -487,7 +506,10 @@ Event 是 reducer 输入和审计事实。
   "proofs": [
     {
       "kind": "detached_jws",
+      "alg": "EdDSA",
       "verification_method": "did:web:alice.example#device-1",
+      "payload_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "created_at": "2026-04-26T00:00:00Z",
       "jws": "..."
     }
   ]

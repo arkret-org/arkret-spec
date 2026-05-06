@@ -247,7 +247,7 @@ MLS group 的绑定层级取决于启用位置：若 Space 级 policy 声明 `en
 - v1 base E2EE profile 只要求 `membership_frontier` 与 `policy_root`。这两个字段缺失或无法验证时，客户端 MUST 标记 epoch 为 `state_mismatch` 或 `decryption_pending`。
 - `capability_root` 与 `discussion_metadata_hash` 属于 `cx.profile.mls_state_binding.full.v1` hardening profile。实现声明该 profile 时，它们 MUST 覆盖与本次成员或策略变化相关的 effective grant / revoke / claim 状态，以及成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
 - 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix state 已经按 `event-auth-state-resolution.md` accepted。无法回补或 hash 不匹配时 MUST 标记该 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
-- 并发 Commit 仍按 Contrix 的 auth weight / HLC / actor / event hash 规则裁决；失败 Commit 的 MLS transcript 不得被接受为当前 epoch。
+- 并发 Commit 只能在其承载 Event 已按 `event-auth-state-resolution.md` 通过格式、签名、授权、时钟窗口和因果检查并进入 accepted state 后推进 MLS epoch；互不可达的合法并发 Commit 按 v1 state-resolution 进入 deterministic provisional winner + quarantine 诊断，非 accepted Commit 的 MLS transcript 不得被接受为当前 epoch。
 
 实现 SHOULD 将 `application_state_ref` 纳入 MLS GroupContext extension，使其被 `confirmed_transcript_hash` 覆盖。声明 `cx.profile.mls_state_binding.full.v1` 或更高保证 profile 的实现 MUST 支持该绑定方式，或声明等价 transcript-authenticated binding profile。
 
@@ -486,8 +486,8 @@ Genesis 接受规则：
 
 ### 5.4 防冲突仲裁 (Concurrency Resolution)
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
-- 节点将根据底层 Event reducer 的 **Tie-breaking 规则**（优先级排序：`Auth Weight` -> `HLC` -> `Actor_ID 字典序` -> `Event Hash`）进行无分歧的绝对仲裁。
-- 胜出者的 Commit 成为合法的下一个 Epoch。失败者的客户端发现自己的 Commit 版本过期后，会自动丢弃本地更改并拉取胜出者的状态，确保 E2EE 的强一致性。
+- 节点 MUST 以底层 Event reducer 的 accepted / quarantined 结果为准。互不可达候选在通过格式、签名、授权、时钟窗口和因果检查后，按 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 选择 deterministic provisional winner，并把非 winner 标记为 quarantined，等待治理或修复事件处理；v1 core 不使用 `auth_weight` 或 governance lattice。
+- 只有 accepted Commit 能成为合法的下一个 Epoch。quarantined / rejected Commit 的客户端发现自己的 Commit 未被接受后，MUST 丢弃本地 epoch 变更并拉取 accepted state。
 
 MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 

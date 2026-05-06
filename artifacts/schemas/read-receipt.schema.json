@@ -2,11 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/read-receipt.schema.json",
   "title": "Contrix Read Receipt",
+  "description": "Public/shared read receipt for Flow timeline UI hint. NOT canonical truth, NOT a multi-device cursor (see read-marker.schema.json for that). MUST NOT generate push notifications. Privacy is governed by Space policy: Spaces MAY allow public, members-only, or actor-private receipt sharing.",
   "type": "object",
   "required": [
     "receipt_type",
+    "schema",
     "space_id",
-    "reader",
+    "actor_id",
     "event_id",
     "created_at"
   ],
@@ -14,17 +16,37 @@
     "receipt_type": {
       "const": "read"
     },
+    "schema": {
+      "const": "cx.schema.read_receipt.v1"
+    },
     "space_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
     },
-    "reader": {
+    "flow_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$",
+      "description": "Required when receipt scopes to a Flow timeline (the common case). Omitted only for whole-Space receipt forms when explicitly allowed by Space policy."
+    },
+    "branch": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "description": "Active branch on the target Flow. Defaults to 'discussion' when omitted. Threads / synthesis branches MUST set explicitly."
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "DID of the reader. Aligned with the rest of the spec; older drafts used 'reader' / 'actor'."
     },
     "event_id": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$",
+      "description": "ID of the most recent Event the actor has read. Causality implies all causal predecessors are also read."
+    },
+    "hlc": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$",
+      "description": "Optional. HLC of the read position; required when Sync Service must compare receipts under merge / debounce rules across devices for the same actor."
     },
     "scope": {
       "type": "string",

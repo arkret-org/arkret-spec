@@ -388,8 +388,8 @@ State event 是具有 `state_key` 的事件。其当前状态由 `(kind, state_k
 - `cx.flow.branch.history_visibility`
 - `cx.flow.branch.policy_components`
 - `cx.capability.grant`
-- `cx.capability.derived`
 - `cx.capability.revoke`
+- `cx.capability.derived`
 - `cx.policy.rule`
 - `cx.device.authorized`
 - `cx.device.revoked`
@@ -415,6 +415,18 @@ principal control state 的 `state_key` MUST 可从事件内容确定性导出�
 - `cx.device.authorized` / `cx.device.revoked`：`["cx.device.authorized" 或 "cx.device.revoked", principal_id, device_id]`
 - `cx.device.list_update`：`["cx.device.list_update", principal_id]`
 - `cx.session.grant`：`["cx.session.grant", grant_id]`
+
+capability 相关 state event 的 `state_key` 推导规则同样确定性导出：
+
+- `cx.capability.grant`：`["cx.capability.grant", grant_id]`。`grant_id` 是 grant payload 的 `cx:grant:<ulid>`。后续 grant lifecycle 事件（含 condition refresh、approval recording 等）若 reuse 同一 `grant_id`，会按 §9 state resolution 与该条目收敛。
+- `cx.capability.revoke`：`["cx.capability.grant", grant_id]`。撤销与对应 grant **共用同一 state_key**，从而把 revoke 表达为对 grant slot 的 supersede（payload `revoked: true` / `revoked_at`）。reducer 在解析 `(kind=cx.capability.grant, state_key)` 时，MUST 取该 slot 上的最新 accepted 事件，无论其 `kind` 是 grant 还是 revoke。
+- `cx.capability.derived`：`["cx.capability.derived", derived_grant_id]`。`derived_grant_id` 是 derived grant 自身的 `cx:grant:<ulid>`（与 source grant 不同的独立 ID）。derived event 是物化继承授权的协议事件，详见 `models/space-hierarchy.md` §7。auth_refs MUST 包含：source grant 的 accepted `cx.capability.grant` 事件、target child Space 的 confirmed parent 边、child 的 `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`)。
+
+委托链 / 派生链 revocation 传播规则：
+
+- 撤销某 grant `G_parent`（即在 `["cx.capability.grant", G_parent.grant_id]` 上写入 `cx.capability.revoke`）后，所有 `parent_grant_id == G_parent.grant_id` 的子 grant **自动失效**，无需逐条额外写入 `cx.capability.revoke`。reducer 在评估子 grant 时 MUST 沿 `parent_grant_id` 反向追溯，若链上任一祖先的 grant slot 当前为 revoked 状态，则该子 grant 视为不可用。
+- 同样，被任一 `cx.capability.derived` 事件引用的 source grant 一旦 revoke，在 source grant 的 revoke 事件因果后继中，所有引用它的 derived state slot MUST 视为失效；reducer MAY 通过显式发布带 `revoked: true` 的 `cx.capability.derived` 事件把该失效物化进 child 历史，但即使没有显式事件，cache 与评估器 MUST 把它视作不可用。
+- 子 / derived grant 的 cache entry MUST 同步标记 stale。若某子 grant 需要在父被撤销后继续生效，签发方 MUST 重新发布一条不依赖该父 grant 的 grant，而不是依赖派生计算保持兼容。
 
 实现不得使用 pipe 字符串、数据库自增 ID、HTTP receive order 或其它非确定性来源参与 state resolution。
 

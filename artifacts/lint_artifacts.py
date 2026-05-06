@@ -36,6 +36,20 @@ JSON_FENCE_RE = re.compile(r"```json\s*(.*?)```", re.IGNORECASE | re.DOTALL)
 TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 
+FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
+    "zh/models/object-model-core.md": {
+        2: "schemas/space.schema.json",
+        3: "schemas/flow.schema.json",
+        7: "schemas/message.schema.json",
+        8: "schemas/morph.schema.json",
+        9: "schemas/relation.schema.json",
+        10: "schemas/event-schema.json",
+    },
+    "zh/authz/capabilities.md": {
+        1: "schemas/capability-grant.schema.json",
+    },
+}
+
 
 class Lint:
     def __init__(self) -> None:
@@ -1001,6 +1015,62 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
             check_typed_id_token(lint, path, json_path, kind, rest, known)
 
 
+def required_fields_from_schema(lint: Lint, schema_ref: str) -> list[str]:
+    schema_path = ARTIFACTS / schema_ref
+    schema = load_json(lint, schema_path)
+    if not isinstance(schema, dict):
+        return []
+    required = schema.get("required", [])
+    if not isinstance(required, list):
+        lint.fail(schema_path, "schema required must be an array")
+        return []
+    return [field for field in required if isinstance(field, str)]
+
+
+def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int, data: Any) -> None:
+    if not isinstance(data, dict):
+        return
+
+    schema_ref = FULL_MARKDOWN_EXAMPLE_SCHEMAS.get(lint.rel(path), {}).get(block_index)
+    if not schema_ref:
+        return
+
+    missing = [field for field in required_fields_from_schema(lint, schema_ref) if field not in data]
+    if missing:
+        lint.fail(
+            path,
+            f"json_block[{block_index}] full object example for {schema_ref} missing required field(s): "
+            + ", ".join(missing),
+        )
+
+    if schema_ref not in {"schemas/event-schema.json", "schemas/capability-grant.schema.json"}:
+        return
+
+    proofs = data.get("proofs")
+    if not isinstance(proofs, list) or not proofs:
+        lint.fail(path, f"json_block[{block_index}] proof-bearing object must include non-empty proofs[]")
+        return
+
+    proof_required: list[str] = []
+    event_schema = load_json(lint, ARTIFACTS / "schemas/event-schema.json")
+    if isinstance(event_schema, dict):
+        proof_schema = event_schema.get("$defs", {}).get("proof", {})
+        required = proof_schema.get("required", []) if isinstance(proof_schema, dict) else []
+        proof_required = [field for field in required if isinstance(field, str)]
+
+    for proof_index, proof in enumerate(proofs):
+        if not isinstance(proof, dict):
+            lint.fail(path, f"json_block[{block_index}].proofs[{proof_index}] must be an object")
+            continue
+        missing_proof = [field for field in proof_required if field not in proof]
+        if missing_proof:
+            lint.fail(
+                path,
+                f"json_block[{block_index}].proofs[{proof_index}] missing required field(s): "
+                + ", ".join(missing_proof),
+            )
+
+
 def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
     for path in markdown_files():
         text = path.read_text(encoding="utf-8")
@@ -1036,6 +1106,7 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
             except Exception as exc:
                 lint.fail(path, f"json_block[{block_index}] invalid canonical JSON: {exc}")
                 continue
+            check_markdown_full_object_example(lint, path, block_index, data)
             check_event_ref_invariants_in_value(lint, path, f"json_block[{block_index}]", data)
             for json_path, value, key in walk_json(data):
                 check_markdown_json_value(lint, path, f"json_block[{block_index}]{json_path[1:]}", value, key, known)

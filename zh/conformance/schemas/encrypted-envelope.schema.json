@@ -5,11 +5,13 @@
   "type": "object",
   "required": [
     "scheme",
+    "version",
     "group_id",
     "epoch",
     "content_type",
     "ciphertext",
     "aad",
+    "aad_digest",
     "payload_digest"
   ],
   "properties": {
@@ -88,16 +90,31 @@
     },
     "key_ref": {
       "type": "object",
+      "required": [
+        "algorithm"
+      ],
       "properties": {
         "algorithm": {
           "const": "MLS"
         },
-        "ratchet_tree": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
+        "group_state_ref": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$",
+              "description": "Reference to accepted cx.mls.genesis / winning cx.mls.commit event."
+            },
+            {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "description": "Equivalent group state proof hash."
+            }
+          ],
+          "description": "v1 MLS group state lookup hint. MUST point to accepted cx.mls.genesis / winning cx.mls.commit / equivalent group state proof. Does NOT replace MLS transcript verification. See encryption-and-audit.md §4. Ratchet tree material MUST NOT be carried in the per-message envelope; group state changes flow through cx.mls.genesis / Welcome / Commit events."
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false,
+      "description": "MLS group binding hints. Closed object: privacy-sensitive AAD must not be smuggled through here. Forbidden in v1: ratchet_tree, leaf_node, group_info (these MUST NOT be replicated per-message)."
     },
     "payload_digest": {
       "type": "string",

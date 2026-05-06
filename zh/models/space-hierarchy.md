@@ -137,13 +137,17 @@ Child Space MAY 使用 `cx.space.policy.set` (state_key=`inheritance:<parent_spa
 
 ## 7. Capability 继承
 
-继承授权使用 `cx.capability.derived`：
+继承授权使用 `cx.capability.derived`。其 `state_key` 由 derived grant id 经 `conformance/encoding.md` §9.5 canonical hash 编码（`payload.state_key_components = ["cx.capability.derived", derived_grant_id]`）：
 
 ```json
 {
   "kind": "cx.capability.derived",
-  "state_key": "cx:grant:der1ved0100000000000000000",
   "payload": {
+    "derived_grant_id": "cx:grant:der1ved0100000000000000000",
+    "state_key_components": [
+      "cx.capability.derived",
+      "cx:grant:der1ved0100000000000000000"
+    ],
     "source_grant": "cx:grant:parentv1ewer00000000000000",
     "source_space_id": "cx:space:parent01000000000000000000",
     "target_space_id": "cx:space:ch11d010000000000000000000",
@@ -172,8 +176,9 @@ Child Space MAY 使用 `cx.space.policy.set` (state_key=`inheritance:<parent_spa
 1. target Space 存在 confirmed parent 边。
 2. child Space 有 accepted `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`)。
 3. derived grant 的 action/scope/expiry 不得宽于 source grant。
-4. source grant 被 revoke 后，derived grant MUST 在其 causal 后继中失效。
+4. source grant 被 revoke 后，derived grant MUST 在其 causal 后继中失效（参见 `authz/event-auth-state-resolution.md` §8 委托链 revocation 传播规则）。
 5. derived grant 不得再向下无限派生，除非下一级 child 也显式 opt-in 且未超过 `max_depth`。
+6. `auth_refs` MUST 同时包含 source grant 的 accepted `cx.capability.grant` 事件 id 与 target child 的 `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`) 事件 id。
 
 ## 8. Schema and Policy Cascade
 

@@ -43,7 +43,7 @@ python tools/artifact_pipeline.py check
 其中 `check` 会执行三层校验：
 
 - 与 `contract-catalog.json` 的 drift 检测
-- 基于 `artifacts/lint_artifacts.py` 的 registry-first 校验（包括镜像漂移与 Markdown 链接完整性）
+- 基于 `artifacts/lint_artifacts.py` 的 registry-first 校验（包括镜像漂移、Markdown 链接完整性与选定完整对象示例的 schema required-field 漂移）
 - Profile 与 registry 变化摘要输出
 
 ## 3. CI 要求

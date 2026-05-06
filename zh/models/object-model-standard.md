@@ -165,13 +165,13 @@ Flow 在每个 branch 定义内使用 `access` 表达 membership、permission、
 
 ### 2.5 转换
 
-`cx.flow.branch.set_primary` 在同一个 Flow 内把目标 `branch` 标记为唯一 primary；若目标 branch 尚未启用，先用 `cx.flow.branch.enable` 创建。
+`cx.flow.branch.set_primary` 在同一个 Flow 内把目标 `branch` 标记为唯一 primary；目标 branch 在该事件生效前 MUST 已启用，或与同一批次中的 `cx.flow.branch.enable` 一起生效。
 
 规则：
 
 - 转换不改变 `flow_id`。
 - 转换不复制或迁移消息历史。
-- 切换到 `branch="discussion"` 时，若 `discussion` branch 尚不存在，Reducer MUST 自动创建它，或在 policy 禁止时 fail closed。
+- 切换到 `branch="discussion"` 时，若 `discussion` branch 尚不存在，必须先写入 `cx.flow.branch.enable`；单独的 `set_primary` MUST fail closed / reject，不得隐式创建 branch。
 - 切换到其他 branch 时，不得自动删除 `discussion` branch 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.branch.disable` 或 profile 声明的 archive 语义。
 - 转换不自动移除 Space (kind=board)/Space (kind=list) 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
 

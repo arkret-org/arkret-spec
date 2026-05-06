@@ -37,19 +37,12 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^cx:(space|actor_profile|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:(space|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-hjkmnp-z]{26}$",
+      "description": "Canonical object reference. Acceptable typed-id kinds match the v1 resource selector kind enum (see resource-selector-grammar.md §3.1). Notably MUST NOT include 'actor_profile' (use the 'actor' selector with did pattern), nor non-canonical 'board' / 'list' / 'card' / 'subject' / 'room' kinds — board/list are Spaces and MUST use the 'space' kind."
     },
     "flow_id": {
       "type": "string",
       "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
-    },
-    "board_id": {
-      "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
-    },
-    "list_id": {
-      "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
     },
     "message_id": {
       "type": "string",

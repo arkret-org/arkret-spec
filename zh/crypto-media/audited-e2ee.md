@@ -146,8 +146,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `receipt_id` | yes | `cx:receipt:<ulid>`。 |
-| `type` | yes | 固定 `audit_ryw_receipt`。 |
-| `schema` | yes | 固定 `cx.schema.audit_ryw_receipt.v1`。 |
+| `schema` | yes | 固定 `cx.schema.audit_ryw_receipt.v1`。该字段同时充当类型鉴别器，与 `cx.schema.flow.v1` / `cx.schema.message.v1` 等其它标准对象保持同一约定，receipt 不再额外携带 `type` 字段。 |
 | `issuer` | yes | 签发方 service / witness DID。MUST 与 proof `verification_method` 同 DID。 |
 | `issuer_role` | yes | `events_api` / `witness` / `peer_node` 之一，标记 receipt 来源类型。 |
 | `audit_event_id` | yes | 对应的 `cx.audit.accessed` event 的 typed ID。 |

@@ -55,7 +55,8 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^[a-z0-9_.]+$"
+        "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+        "description": "Canonical action vocabulary. MUST be of the form cx.<segment>.<segment>... matching capabilities.md §5. Bare names without the cx. prefix are not permitted; consult capabilities.md before introducing new action names. Wildcards within a segment are not permitted in this schema; the resource selector controls scope, not action expansion."
       },
       "minItems": 1
     },
