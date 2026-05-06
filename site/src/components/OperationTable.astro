@@ -1,0 +1,54 @@
+---
+import { surfaceGroups, capabilityTiers, getOperation } from "~/lib/artifacts";
+
+interface Props {
+  /** Filter to a specific tier (core / extension / deployment_local). */
+  tier?: string;
+  /** Filter to a specific surface (events_sync / federation / blob_media / ...). */
+  surface?: string;
+}
+const { tier, surface } = Astro.props;
+
+const groups = surfaceGroups
+  .filter((g) => (tier ? g.tier === tier : true))
+  .filter((g) => (surface ? g.surface === surface : true));
+---
+
+{
+  groups.map((group) => (
+    <section>
+      <h3>
+        <code>{group.surface}</code>{" "}
+        <small>· tier {group.tier}</small>
+      </h3>
+      <p>{capabilityTiers[group.tier]}</p>
+      <table class="cx-table">
+        <thead>
+          <tr>
+            <th>operation_id</th>
+            <th>HTTP</th>
+            <th>gRPC</th>
+            <th>MQ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {group.operations.map((id) => {
+            const op = getOperation(id)!;
+            return (
+              <tr>
+                <td>
+                  <a href={`/catalog/operations/${encodeURIComponent(id)}/`}>
+                    <code>{id}</code>
+                  </a>
+                </td>
+                <td><code>{op.http}</code></td>
+                <td><code>{op.grpc}</code></td>
+                <td><code>{op.mq}</code></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
+  ))
+}

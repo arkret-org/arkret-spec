@@ -1,0 +1,46 @@
+---
+import { readOpenApiYaml } from "~/lib/artifacts";
+
+interface Props {
+  /** Initial layout. `modern` = three-column; `classic` = single column. */
+  layout?: "modern" | "classic";
+  /** Hide the "client snippets" panel for read-only viewing. */
+  hideClientButton?: boolean;
+}
+
+const { layout = "modern", hideClientButton = false } = Astro.props;
+
+// Inline the OpenAPI YAML at build time so there is no runtime fetch and
+// so the page works on any host (including offline GitHub Pages mirrors).
+const yaml = readOpenApiYaml();
+
+// Scalar's stable declarative entry-point: <script id="api-reference"
+// type="application/json" data-configuration='{"spec": {"content": "..."}}'>
+// followed by the Scalar bundle. This contract has been stable across
+// Scalar majors, so we are not coupled to a specific JS API surface.
+const config = {
+  spec: { content: yaml },
+  layout,
+  hideClientButton,
+  hideDownloadButton: false,
+  theme: "default",
+  darkMode: false,
+};
+---
+
+<script
+  id="api-reference"
+  type="application/json"
+  set:html={JSON.stringify(config).replace(/<\/script/gi, "<\\/script")}
+></script>
+<script
+  is:inline
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+
+<style>
+  /* Give Scalar room to lay out its three-column shell. */
+  :root {
+    --scalar-radius: 0.5rem;
+  }
+</style>

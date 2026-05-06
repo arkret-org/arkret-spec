@@ -1,0 +1,58 @@
+---
+import { profileMatrix } from "~/lib/artifacts";
+
+interface Props {
+  /** Which profile family to render. */
+  kind?: "implementation" | "deployment" | "vector" | "hardening";
+}
+const { kind = "implementation" } = Astro.props;
+
+const sourceMap = {
+  implementation: profileMatrix.implementation_profiles,
+  deployment: profileMatrix.deployment_profiles,
+  vector: profileMatrix.vector_profiles,
+  hardening: profileMatrix.hardening_profiles,
+} as const;
+
+const items = sourceMap[kind] ?? [];
+const requirements = (profileMatrix.profile_requirements ?? {}) as Record<
+  string,
+  Record<string, unknown> | undefined
+>;
+
+const rows = items.map((id) => {
+  const req = requirements[id];
+  return { id, blockNames: req ? Object.keys(req) : [] };
+});
+---
+
+<table class="cx-table">
+  <thead>
+    <tr>
+      <th>profile</th>
+      <th>requirement blocks</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((row) => (
+        <tr>
+          <td>
+            <a href={`/catalog/profiles/${encodeURIComponent(row.id)}/`}>
+              <code>{row.id}</code>
+            </a>
+          </td>
+          <td>
+            {row.blockNames.length === 0 ? (
+              <em>no requirement blocks</em>
+            ) : (
+              row.blockNames.map((name) => (
+                <code style="margin-right:0.4rem">{name}</code>
+              ))
+            )}
+          </td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>

@@ -1,0 +1,14 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import OperationTable from "~/components/OperationTable.astro";
+import { catalogVersion } from "~/lib/artifacts";
+---
+
+<StarlightPage frontmatter={{ title: "Operations" }}>
+  <p>
+    canonical: <code>spec/v1/artifacts/registry/contract-catalog.json#operation_registry</code>
+    · catalog version <code>{catalogVersion}</code>
+    · interactive HTTP shape: <a href="/openapi/">/openapi/</a>
+  </p>
+  <OperationTable />
+</StarlightPage>

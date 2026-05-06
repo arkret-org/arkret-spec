@@ -1,0 +1,49 @@
+---
+import { eventKinds } from "~/lib/artifacts";
+
+interface Props {
+  /** Filter to a specific category (e.g. "space", "flow"). */
+  category?: string;
+  /** Filter by status; defaults to active only. Pass `null` to disable. */
+  status?: string | null;
+  /** Filter by wire_scope (durable_event / actor_private_event / ephemeral_event). */
+  wireScope?: string;
+}
+
+const { category, status = "active", wireScope } = Astro.props;
+const rows = eventKinds.filter((row) => {
+  if (category && row.category !== category) return false;
+  if (status !== null && row.status !== status) return false;
+  if (wireScope && row.wire_scope !== wireScope) return false;
+  return true;
+});
+---
+
+<table class="cx-table">
+  <thead>
+    <tr>
+      <th>event_kind</th>
+      <th>category</th>
+      <th>wire scope</th>
+      <th>reducer input</th>
+      <th>payload</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((row) => (
+        <tr>
+          <td>
+            <a href={`/catalog/event-kinds/${encodeURIComponent(row.event_kind)}/`}>
+              <code>{row.event_kind}</code>
+            </a>
+          </td>
+          <td>{row.category}</td>
+          <td><code>{row.wire_scope}</code></td>
+          <td>{row.reducer_input ? "yes" : "no"}</td>
+          <td>{row.payload ?? ""}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>

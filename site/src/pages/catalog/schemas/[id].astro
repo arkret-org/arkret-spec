@@ -1,0 +1,15 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import SchemaViewer from "~/components/SchemaViewer.astro";
+import { schemaEntries } from "~/lib/artifacts";
+
+export function getStaticPaths() {
+  return schemaEntries.map((row) => ({ params: { id: row.schema_id } }));
+}
+
+const { id } = Astro.params as { id: string };
+---
+
+<StarlightPage frontmatter={{ title: id }}>
+  <SchemaViewer schema={id} expand={2} />
+</StarlightPage>

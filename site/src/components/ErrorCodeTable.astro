@@ -1,0 +1,43 @@
+---
+import { errorCodes } from "~/lib/artifacts";
+
+interface Props {
+  /** Filter by scope: "service" | "item" | "both". */
+  scope?: string;
+  /** Filter by HTTP status. */
+  status?: number;
+}
+const { scope, status } = Astro.props;
+const rows = errorCodes.filter((row) => {
+  if (scope && row.scope !== scope) return false;
+  if (status && row.http_status !== status) return false;
+  return true;
+});
+---
+
+<table class="cx-table">
+  <thead>
+    <tr>
+      <th>code</th>
+      <th>HTTP</th>
+      <th>scope</th>
+      <th>description</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((row) => (
+        <tr>
+          <td>
+            <a href={`/catalog/errors/${encodeURIComponent(row.code)}/`}>
+              <code>{row.code}</code>
+            </a>
+          </td>
+          <td>{row.http_status}</td>
+          <td>{row.scope}</td>
+          <td>{row.description}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>

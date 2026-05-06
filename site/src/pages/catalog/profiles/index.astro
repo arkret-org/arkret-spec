@@ -1,0 +1,20 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ProfileMatrix from "~/components/ProfileMatrix.astro";
+import { catalogVersion } from "~/lib/artifacts";
+---
+
+<StarlightPage frontmatter={{ title: "Conformance profiles" }}>
+  <p>
+    canonical: <code>spec/v1/artifacts/profiles/conformance-profiles.json</code>
+    · catalog version <code>{catalogVersion}</code>
+  </p>
+  <h2>Implementation</h2>
+  <ProfileMatrix kind="implementation" />
+  <h2>Deployment</h2>
+  <ProfileMatrix kind="deployment" />
+  <h2>Vector</h2>
+  <ProfileMatrix kind="vector" />
+  <h2>Hardening</h2>
+  <ProfileMatrix kind="hardening" />
+</StarlightPage>

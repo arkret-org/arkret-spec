@@ -1,0 +1,25 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import { schemaEntries, catalogVersion } from "~/lib/artifacts";
+---
+
+<StarlightPage frontmatter={{ title: "Schemas" }}>
+  <p>
+    canonical: <code>spec/v1/artifacts/registry/schema-registry.json</code> +
+    <code>spec/v1/artifacts/schemas/*.schema.json</code>
+    · catalog version <code>{catalogVersion}</code>
+  </p>
+  <table class="cx-table">
+    <thead><tr><th>schema_id</th><th>file</th></tr></thead>
+    <tbody>
+      {
+        schemaEntries.map((row) => (
+          <tr>
+            <td><a href={`/catalog/schemas/${encodeURIComponent(row.schema_id)}/`}><code>{row.schema_id}</code></a></td>
+            <td><code>{row.file}</code></td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</StarlightPage>

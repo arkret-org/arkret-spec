@@ -1,0 +1,42 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import { profileMatrix } from "~/lib/artifacts";
+
+export function getStaticPaths() {
+  const ids = new Set<string>([
+    ...profileMatrix.implementation_profiles,
+    ...profileMatrix.deployment_profiles,
+    ...profileMatrix.vector_profiles,
+    ...profileMatrix.hardening_profiles,
+  ]);
+  return Array.from(ids).map((id) => ({ params: { id } }));
+}
+
+const { id } = Astro.params as { id: string };
+const requirements = (profileMatrix.profile_requirements as Record<string, unknown>)[id] as
+  | Record<string, unknown>
+  | undefined;
+
+const blocks = requirements ? Object.entries(requirements) : [];
+---
+
+<StarlightPage frontmatter={{ title: id }}>
+  <p><code>{id}</code></p>
+  {
+    blocks.length === 0 ? (
+      <p><em>No requirement blocks declared in conformance-profiles.json.</em></p>
+    ) : (
+      blocks.map(([name, body]) => (
+        <section>
+          <h2><code>{name}</code></h2>
+          <pre><code class="language-json">{JSON.stringify(body, null, 2)}</code></pre>
+        </section>
+      ))
+    )
+  }
+  <h2>Source</h2>
+  <p>
+    canonical:
+    <code>spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements/{id}</code>
+  </p>
+</StarlightPage>

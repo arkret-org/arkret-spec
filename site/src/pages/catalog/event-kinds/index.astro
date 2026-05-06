@@ -1,0 +1,14 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import EventKindTable from "~/components/EventKindTable.astro";
+import { catalogVersion } from "~/lib/artifacts";
+---
+
+<StarlightPage frontmatter={{ title: "Event kinds" }}>
+  <p>
+    canonical: <code>spec/v1/artifacts/registry/contract-catalog.json#event_kind_registry</code>
+    · catalog version <code>{catalogVersion}</code>
+  </p>
+  <p>所有 active <code>cx.*</code> Event.kind。点击任意条目进入详情页。</p>
+  <EventKindTable />
+</StarlightPage>

@@ -1,0 +1,13 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ErrorCodeTable from "~/components/ErrorCodeTable.astro";
+import { catalogVersion } from "~/lib/artifacts";
+---
+
+<StarlightPage frontmatter={{ title: "Error codes" }}>
+  <p>
+    canonical: <code>spec/v1/artifacts/registry/error-code-registry.json</code>
+    · catalog version <code>{catalogVersion}</code>
+  </p>
+  <ErrorCodeTable />
+</StarlightPage>

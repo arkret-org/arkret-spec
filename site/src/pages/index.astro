@@ -1,0 +1,37 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import {
+  catalogVersion,
+  eventKinds,
+  errorCodes,
+  operations,
+  schemaEntries,
+  profileMatrix,
+} from "~/lib/artifacts";
+---
+
+<StarlightPage frontmatter={{ title: "Contrix Spec" }}>
+  <p>
+    Contrix v1 — 去中心化协作协议规范。catalog 版本
+    <code>{catalogVersion}</code>。
+  </p>
+  <ul>
+    <li><a href="/zh/v1/">中文规范本体（zh / v1）</a></li>
+    <li><a href="/en/v1/">English (placeholder)</a></li>
+    <li><a href="/openapi/">Service API · OpenAPI</a></li>
+  </ul>
+  <h2>Catalog snapshot</h2>
+  <ul>
+    <li><a href="/catalog/event-kinds/">Event kinds</a> · {eventKinds.length}</li>
+    <li><a href="/catalog/errors/">Error codes</a> · {errorCodes.length}</li>
+    <li><a href="/catalog/operations/">Operations</a> · {operations.length}</li>
+    <li><a href="/catalog/schemas/">Schemas</a> · {schemaEntries.length}</li>
+    <li>
+      <a href="/catalog/profiles/">Profiles</a> ·
+      {profileMatrix.implementation_profiles.length} impl /
+      {profileMatrix.deployment_profiles.length} deploy /
+      {profileMatrix.vector_profiles.length} vector /
+      {profileMatrix.hardening_profiles.length} hardening
+    </li>
+  </ul>
+</StarlightPage>

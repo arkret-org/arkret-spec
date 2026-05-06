@@ -1,0 +1,48 @@
+---
+import { getOperation, getOperationSurface } from "~/lib/artifacts";
+
+interface Props {
+  id: string;
+  inline?: boolean;
+}
+const { id, inline = false } = Astro.props;
+const row = getOperation(id);
+if (!row) {
+  throw new Error(
+    `<OperationRef id="${id}"> does not exist in operation-registry.json.`
+  );
+}
+const surface = getOperationSurface(id);
+const href = `/catalog/operations/${encodeURIComponent(id)}/`;
+---
+
+{
+  inline ? (
+    <a class="cx-tag" data-kind="operation" href={href}>
+      <code>{id}</code>
+    </a>
+  ) : (
+    <article class="cx-card">
+      <header>
+        <span class="cx-tag" data-kind="operation">op</span>
+        <a class="cx-card-title" href={href}>
+          <code>{id}</code>
+        </a>
+        {surface && (
+          <>
+            <span>· tier {surface.tier}</span>
+            <span>· surface {surface.surface}</span>
+          </>
+        )}
+      </header>
+      <dl>
+        <dt>HTTP</dt>
+        <dd><code>{row.http}</code></dd>
+        <dt>gRPC</dt>
+        <dd><code>{row.grpc}</code></dd>
+        <dt>MQ</dt>
+        <dd><code>{row.mq}</code></dd>
+      </dl>
+    </article>
+  )
+}

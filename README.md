@@ -1,26 +1,60 @@
 # Contrix Spec
 
-- Chinese version: [zh/README.md](./zh/README.md)
-- English version: not currently published in this repository. Until regenerated, treat `zh/` plus `artifacts/` as the only maintained v1 source.
+Contrix v1 去中心化协作协议规范。仓库同时承载 **规范本体** 和 **协议站源码**。
 
-## Structure
+- 规范本体：[`spec/v1/`](./spec/v1/)
+  - 中文 normative 正文：[`spec/v1/zh/index.md`](./spec/v1/zh/index.md)
+  - 英文 normative：占位（未发布）
+  - 机器构件：[`spec/v1/artifacts/`](./spec/v1/artifacts/)
+- 协议站源码：[`site/`](./site/) — Astro Starlight + Scalar(OpenAPI) + 自定义 JSON Schema 渲染器
+- 工具：[`tools/`](./tools/) — registry 生成 / lint 流水线
 
-Repository layout is intentionally summarized instead of duplicating a full file tree:
+## Layout
 
-- `artifacts/`: canonical machine-readable v1 contracts, registries, fixtures, OpenAPI, and mirror manifests.
-- `zh/`: maintained Chinese normative text plus `zh/conformance/` and `zh/sync/` mirror copies derived from `artifacts/`.
-- `.github/workflows/`: CI entrypoints for artifact lint and drift guards.
-- `tools/`: repository maintenance scripts for mirror sync, artifact checks, and drift checks.
+```
+spec/v1/
+├── zh/   en/                      # 规范正文（normative prose）
+└── artifacts/
+    ├── registry/                  # contract-catalog (canonical) + 派生 view
+    ├── profiles/                  # conformance-profiles.json
+    ├── schemas/                   # JSON Schema *.schema.json
+    ├── openapi/                   # contrix-service-api.openapi.yaml
+    ├── bindings/                  # 非 HTTP transport binding
+    └── fixtures/                  # conformance fixtures
+site/
+└── ...                            # 协议站（npm 项目）
+tools/
+├── artifact_pipeline.py           # registry 生成 / drift check
+└── lint_artifacts.py              # 跨构件 + markdown 引用一致性 lint
+```
 
-The Chinese specification under `zh/` is the leading human-readable normative text for Contrix v1. For machine-verifiable contracts, `artifacts/registry/contract-catalog.json`, the active generated registries, `artifacts/registry/error-code-registry.json`, `artifacts/profiles/conformance-profiles.json`, JSON Schemas, OpenAPI, bindings, and fixtures are the canonical machine-readable sources listed in `zh/spec-map.md`.
+## 规范权威层级
 
-For v1 interoperability, only active entries referenced by `artifacts/registry/*` and `artifacts/profiles/*` are normative machine contracts.
+- `spec/v1/artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
+- `spec/v1/artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`、`operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK、lint 应消费这些生成物，不要手抄 Markdown。
+- `spec/v1/artifacts/registry/error-code-registry.json` 是标准 service error 的 canonical registry。
+- `spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape。
+- `spec/v1/artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵。
+- `spec/v1/zh/**/*.md` 主要承担解释、边界说明和阅读路径；除明确标注"生成视图"外，不再手工维护穷尽清单——这部分由协议站组件运行时从 catalog 渲染。
 
-Any drift between `zh/` and generated artifacts is a specification bug. For event/schema/id/operation/error/profile wire contracts, implementations MUST follow the active machine registries and schemas. For reducer, authorization, privacy, security, and deployment semantics not fully expressible in machine artifacts, implementations MUST follow the Chinese normative text. Non-active generated artifacts MUST NOT be treated as wire truth.
+任何 `spec/v1/zh/` 与 canonical artifact 的漂移都是规范 bug。对 event / schema / id / operation / error / profile wire contract，实现 MUST 跟随 active 机器 registry / schema；对 reducer、authorization、privacy、security、deployment 语义，实现 MUST 跟随中文 normative 文本。
 
-Artifact maintenance pipeline:
+## Maintenance pipeline
 
-- `python tools/artifact_pipeline.py generate`
-- `python tools/artifact_pipeline.py sync`
-- `python tools/artifact_pipeline.py check`
-- `.github/workflows/artifact-lint.yml`
+```
+python tools/artifact_pipeline.py generate   # 重新生成派生 registry view
+python tools/artifact_pipeline.py check      # drift 检查 + lint
+```
+
+CI: [`.github/workflows/artifact-lint.yml`](./.github/workflows/artifact-lint.yml)
+
+## 站点
+
+```
+cd site
+npm install
+npm run dev          # http://localhost:4321
+npm run build        # 静态产物 site/dist/
+```
+
+详见 [`site/README.md`](./site/README.md)。

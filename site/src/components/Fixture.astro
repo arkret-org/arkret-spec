@@ -1,0 +1,46 @@
+---
+import { fixtures } from "~/lib/artifacts";
+
+interface Props {
+  /** Fixture filename without `.json`, e.g. `encoding-fixture`. */
+  name: string;
+  /** Pretty-print indent. Set to 0 for compact JSON. */
+  indent?: number;
+  /** Optional dotted JSON pointer subtree to display, e.g. "vectors[0]". */
+  path?: string;
+}
+
+const { name, indent = 2, path } = Astro.props;
+const fixture = fixtures.find((f) => f.name === name);
+if (!fixture) {
+  throw new Error(`<Fixture name="${name}"> not found under spec/v1/artifacts/fixtures/`);
+}
+
+function pickPath(data: unknown, dotted: string | undefined): unknown {
+  if (!dotted) return data;
+  const tokens = dotted
+    .replace(/\[(\d+)\]/g, ".$1")
+    .split(".")
+    .filter(Boolean);
+  let cur: unknown = data;
+  for (const t of tokens) {
+    if (cur && typeof cur === "object" && t in (cur as Record<string, unknown>)) {
+      cur = (cur as Record<string, unknown>)[t];
+    } else {
+      return undefined;
+    }
+  }
+  return cur;
+}
+
+const slice = pickPath(fixture.data, path);
+const formatted = JSON.stringify(slice, null, indent);
+---
+
+<details class="cx-fixture" open>
+  <summary>
+    fixture <code>{name}</code>
+    {path && <code>· {path}</code>}
+  </summary>
+  <pre><code class="language-json">{formatted}</code></pre>
+</details>

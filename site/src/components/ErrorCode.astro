@@ -1,0 +1,36 @@
+---
+import { getErrorCode } from "~/lib/artifacts";
+
+interface Props {
+  code: string;
+  inline?: boolean;
+}
+const { code, inline = false } = Astro.props;
+const row = getErrorCode(code);
+if (!row) {
+  throw new Error(
+    `<ErrorCode code="${code}"> does not exist in error-code-registry.json.`
+  );
+}
+const href = `/catalog/errors/${encodeURIComponent(code)}/`;
+---
+
+{
+  inline ? (
+    <a class="cx-tag" data-kind="error" href={href}>
+      <code>{code}</code>
+    </a>
+  ) : (
+    <article class="cx-card">
+      <header>
+        <span class="cx-tag" data-kind="error">error</span>
+        <a class="cx-card-title" href={href}>
+          <code>{code}</code>
+        </a>
+        <span>· HTTP {row.http_status}</span>
+        <span>· scope {row.scope}</span>
+      </header>
+      <p>{row.description}</p>
+    </article>
+  )
+}

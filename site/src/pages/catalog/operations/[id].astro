@@ -1,0 +1,20 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import OperationRef from "~/components/OperationRef.astro";
+import { operations } from "~/lib/artifacts";
+
+export function getStaticPaths() {
+  return operations.map((row) => ({ params: { id: row.operation_id } }));
+}
+
+const { id } = Astro.params as { id: string };
+---
+
+<StarlightPage frontmatter={{ title: id }}>
+  <OperationRef id={id} />
+  <p>
+    OpenAPI 中的 <code>operationId</code> 与本 ID 完全一致。打开
+    <a href={`/openapi/#operation/${encodeURIComponent(id)}`}>/openapi/#operation/{id}</a>
+    查看请求/响应 schema 与示例。
+  </p>
+</StarlightPage>

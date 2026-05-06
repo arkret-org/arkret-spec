@@ -1,0 +1,40 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import EventKind from "~/components/EventKind.astro";
+import { eventKinds, getEventKind } from "~/lib/artifacts";
+
+export function getStaticPaths() {
+  return eventKinds.map((row) => ({ params: { kind: row.event_kind } }));
+}
+
+const { kind } = Astro.params as { kind: string };
+const row = getEventKind(kind);
+// getStaticPaths above only emits known kinds, so this is unreachable.
+// Throwing here gives a clear build-time error if the registry is mutated
+// between getStaticPaths and the render pass.
+if (!row) throw new Error(`event_kind not found in registry: ${kind}`);
+---
+
+<StarlightPage frontmatter={{ title: kind }}>
+  <EventKind name={kind} />
+  <h2>Wire scope</h2>
+  <p>
+    <code>{row.wire_scope}</code> ·
+    {row.wire_scope === "durable_event" && "Persisted canonical history & reducer input."}
+    {row.wire_scope === "actor_private_event" && "Persisted actor-private/account-data; not Space history."}
+    {row.wire_scope === "ephemeral_event" && "Transient sync/federation/app signal; MUST NOT persist."}
+  </p>
+  <h2>Source</h2>
+  <ul>
+    <li>
+      catalog row:
+      <a href="https://github.com/your-org/contrix-spec/blob/main/spec/v1/artifacts/registry/contract-catalog.json">
+        <code>contract-catalog.json#event_kind_registry</code>
+      </a>
+    </li>
+    <li>
+      generated view:
+      <code>spec/v1/artifacts/registry/event-kind-registry.json</code>
+    </li>
+  </ul>
+</StarlightPage>

@@ -1,0 +1,152 @@
+---
+title: Applet Schema and OpenAPI
+---
+
+## 1. Applet Registration Schema
+
+```json
+{
+  "kind": "cx.applet.registration",
+  "applet_id": "cx:applet:examp1e0000000000000000000",
+  "service_did": "did:web:applet.example",
+  "controller_did": "did:web:acme.example",
+  "base_url": "https://applet.example/api/v1/applet",
+  "bot_actor_id": "did:web:applet.example#bot",
+  "protocols": ["slack"],
+  "namespaces": {
+    "actors": [],
+    "spaces": [],
+    "handles": []
+  },
+  "receive_events": true,
+  "receive_ephemeral": false,
+  "rate_limited": true,
+  "requested_scopes": [],
+  "proof": {}
+}
+```
+
+## 2. Namespace Pattern
+
+```json
+{
+  "exclusive": true,
+  "pattern": "did:web:applet.example#ghost-*"
+}
+```
+
+Pattern grammar:
+
+- `*` matches a single suffix segment
+- `**` matches multiple path-like segments
+- literal `*` MUST be escaped as `\\*`
+
+## 3. Transaction Endpoint
+
+```text
+PUT /api/v1/applet/transactions/{txn_id}
+```
+
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `txn_id` | path | `id` | required | 幂等 transaction ID；path 值 MUST 与 body 中 `txn_id` 一致。 |
+| `source_service_did` | body | `did` | required | 推送来源 service DID。 |
+| `events` | body | `object[]` | required | 推送给 Applet 的事件数组。 |
+| `ephemeral` | body | `object[]` | optional | 非持久临时事件数组。 |
+
+请求示例（非完整 schema）：
+
+```json
+{
+  "txn_id": "cx:txn:...",
+  "source_service_did": "did:web:server.example",
+  "events": [],
+  "ephemeral": []
+}
+```
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `ok` | `boolean` | required | transaction 是否被处理。 |
+| `rejected` | `object[]` | optional | 被拒绝事件摘要。 |
+| `retry_after_ms` | `int` | optional | 建议重试延迟。 |
+
+响应示例：
+
+```json
+{ "ok": true }
+```
+
+## 4. Query Actor
+
+```text
+GET /api/v1/applet/actors/{actor_id}
+```
+
+响应字段：`exists: boolean` required；`actor_id: did` optional；`display_name: string` optional；`external_ref: object` optional。
+
+响应示例（非完整 schema）：
+
+```json
+{
+  "exists": true,
+  "actor_id": "did:web:applet.example#ghost-u123",
+  "display_name": "Alice",
+  "external_ref": {}
+}
+```
+
+## 5. Query Space
+
+```text
+GET /api/v1/applet/spaces/{space_id_or_alias}
+```
+
+响应字段：`exists: boolean` required；`space_id: id` optional；`title: string` optional；`external_ref: object` optional。
+
+响应示例（非完整 schema）：
+
+```json
+{
+  "exists": true,
+  "space_id": "cx:space:p0rta100000000000000000000:slack:T:C",
+  "title": "#general",
+  "external_ref": {}
+}
+```
+
+## 6. Protocol Metadata
+
+```text
+GET /api/v1/applet/protocols/{protocol}
+```
+
+响应字段：`protocol: string` required；`display_name: string` required；`icon_blob: string` optional；`field_types: object` required；`instances: object[]` optional。
+
+响应示例（非完整 schema）：
+
+```json
+{
+  "protocol": "slack",
+  "display_name": "Slack",
+  "field_types": {},
+  "instances": []
+}
+```
+
+## 7. Bridge Error Event
+
+```json
+{
+  "kind": "cx.applet.bridge_error",
+  "applet_id": "cx:applet:examp1e0000000000000000000",
+  "external_ref": {},
+  "error_code": "external_rate_limited",
+  "message": "external network rejected the message",
+  "retry_after_ms": 1000
+}
+```

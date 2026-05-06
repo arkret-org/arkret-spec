@@ -1,26 +1,45 @@
 #!/usr/bin/env python3
-"""Unified artifact maintenance pipeline for Contrix spec."""
+"""Unified artifact maintenance pipeline for Contrix spec.
+
+Layout (post-restructure):
+
+  spec/v1/zh/                          normative Chinese prose
+  spec/v1/en/                          normative English prose (placeholder)
+  spec/v1/artifacts/registry/          canonical + generated registry views
+  spec/v1/artifacts/profiles/          conformance profiles
+  spec/v1/artifacts/schemas/           JSON Schemas
+  spec/v1/artifacts/openapi/           OpenAPI document(s)
+  spec/v1/artifacts/bindings/          non-HTTP bindings
+  spec/v1/artifacts/fixtures/          conformance fixtures
+
+This pipeline owns two responsibilities only:
+
+  generate   regenerate derived registry views from contract-catalog.json
+  check      verify no drift, then run lint_artifacts.py
+
+The legacy "sync canonical files into zh/ mirrors" and "rewrite generated
+markdown tables inside zh/sync/service-api-schema.md" responsibilities are
+gone. The site renders machine artifacts directly via MDX components
+(<EventKindTable/>, <OperationTable/>, <SchemaViewer/>, ...), so duplicating
+them inside Markdown or under zh/ is no longer needed.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACTS = ROOT / "artifacts"
+SPEC_ROOT = ROOT / "spec" / "v1"
+ARTIFACTS = SPEC_ROOT / "artifacts"
 REGISTRY = ARTIFACTS / "registry"
 CONTRACT_CATALOG_PATH = REGISTRY / "contract-catalog.json"
-MIRROR_MANIFEST_PATH = REGISTRY / "mirror-manifest.json"
-LINT_SCRIPT = ARTIFACTS / "lint_artifacts.py"
 PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
-SERVICE_API_SCHEMA_PATH = ROOT / "zh" / "sync" / "service-api-schema.md"
-GENERATED_OPERATION_INVENTORY_START = "<!-- BEGIN GENERATED OPERATION INVENTORY -->"
-GENERATED_OPERATION_INVENTORY_END = "<!-- END GENERATED OPERATION INVENTORY -->"
+LINT_SCRIPT = Path(__file__).with_name("lint_artifacts.py")
 
 
 def load_json(path: Path) -> Any:
@@ -69,123 +88,6 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
     return payloads
 
 
-def generated_operation_inventory_markdown(catalog: dict[str, Any]) -> str:
-    operation_registry = catalog.get("operation_registry")
-    if not isinstance(operation_registry, dict):
-        raise SystemExit("contract catalog missing operation_registry")
-
-    operations = operation_registry.get("operations")
-    surface_groups = operation_registry.get("surface_groups")
-    capability_tiers = operation_registry.get("capability_tiers")
-    if not isinstance(operations, list) or not operations:
-        raise SystemExit("operation_registry missing operations")
-    if not isinstance(surface_groups, list) or not surface_groups:
-        raise SystemExit("operation_registry missing surface_groups")
-    if not isinstance(capability_tiers, dict) or not capability_tiers:
-        raise SystemExit("operation_registry missing capability_tiers")
-
-    rows_by_id: dict[str, dict[str, str]] = {}
-    for index, row in enumerate(operations):
-        if not isinstance(row, dict):
-            raise SystemExit(f"operation_registry.operations[{index}] must be an object")
-        operation_id = row.get("operation_id")
-        if not isinstance(operation_id, str) or not operation_id:
-            raise SystemExit(f"operation_registry.operations[{index}] missing operation_id")
-        if operation_id in rows_by_id:
-            raise SystemExit(f"duplicate operation_id in operation_registry: {operation_id}")
-        rows_by_id[operation_id] = row
-
-    rendered_rows: list[str] = []
-    assigned: set[str] = set()
-    for index, group in enumerate(surface_groups):
-        if not isinstance(group, dict):
-            raise SystemExit(f"operation_registry.surface_groups[{index}] must be an object")
-        surface = group.get("surface")
-        tier = group.get("tier")
-        group_operations = group.get("operations")
-        if not isinstance(surface, str) or not surface:
-            raise SystemExit(f"operation_registry.surface_groups[{index}] missing surface")
-        if not isinstance(tier, str) or tier not in capability_tiers:
-            raise SystemExit(f"operation_registry.surface_groups[{index}] has unknown tier {tier!r}")
-        if not isinstance(group_operations, list) or not group_operations:
-            raise SystemExit(f"operation_registry.surface_groups[{index}] missing operations")
-        for operation_id in group_operations:
-            if not isinstance(operation_id, str) or not operation_id:
-                raise SystemExit(f"operation_registry.surface_groups[{index}] contains invalid operation_id")
-            row = rows_by_id.get(operation_id)
-            if row is None:
-                raise SystemExit(f"surface group {surface!r} references unknown operation_id {operation_id}")
-            if operation_id in assigned:
-                raise SystemExit(f"operation_id assigned to multiple surface_groups: {operation_id}")
-            assigned.add(operation_id)
-            rendered_rows.append(
-                "| "
-                + " | ".join(
-                    [
-                        f"`{tier}`",
-                        f"`{surface}`",
-                        f"`{operation_id}`",
-                        f"`{row.get('http', '')}`",
-                        f"`{row.get('grpc', '')}`",
-                        f"`{row.get('mq', '')}`",
-                    ]
-                )
-                + " |"
-            )
-
-    missing = sorted(set(rows_by_id) - assigned)
-    if missing:
-        raise SystemExit(
-            "operation_registry.surface_groups missing operation assignments: " + ", ".join(missing)
-        )
-
-    return "\n".join(
-        [
-            "| Tier | Surface | `operation_id` | HTTP | gRPC | MQ |",
-            "| --- | --- | --- | --- | --- | --- |",
-            *rendered_rows,
-            "",
-        ]
-    )
-
-
-def replace_generated_block(text: str, start_marker: str, end_marker: str, content: str) -> str:
-    start = text.find(start_marker)
-    end = text.find(end_marker)
-    if start == -1 or end == -1 or end < start:
-        raise SystemExit(f"missing generated block markers: {start_marker} / {end_marker}")
-    block_start = start + len(start_marker)
-    return text[:block_start] + "\n" + content + text[end:]
-
-
-def generated_service_api_schema_text() -> str:
-    text = SERVICE_API_SCHEMA_PATH.read_text(encoding="utf-8")
-    content = generated_operation_inventory_markdown(load_contract_catalog())
-    return replace_generated_block(
-        text,
-        GENERATED_OPERATION_INVENTORY_START,
-        GENERATED_OPERATION_INVENTORY_END,
-        content,
-    )
-
-
-def write_generated_service_api_schema() -> None:
-    SERVICE_API_SCHEMA_PATH.write_text(generated_service_api_schema_text(), encoding="utf-8")
-    print(f"updated {SERVICE_API_SCHEMA_PATH.relative_to(ROOT).as_posix()}")
-
-
-def check_generated_service_api_schema() -> list[str]:
-    expected = generated_service_api_schema_text()
-    actual = SERVICE_API_SCHEMA_PATH.read_text(encoding="utf-8")
-    if actual == expected:
-        return []
-    return [
-        "generated markdown drift: "
-        + SERVICE_API_SCHEMA_PATH.relative_to(ROOT).as_posix()
-        + " (run python tools/artifact_pipeline.py generate)"
-    ]
-
-
 def profile_summary_text() -> str:
     data = load_json(PROFILE_REGISTRY_PATH)
     if not isinstance(data, dict):
@@ -205,19 +107,15 @@ def profile_summary_text() -> str:
     )
 
 
-def forbidden_pattern_summary_text() -> str:
-    return "contract policy: active-contract checks only"
-
-
 def registry_diff_summary_text() -> str:
-    drifts = check_generated_registries() + check_generated_service_api_schema()
+    drifts = check_generated_registries()
     if not drifts:
         return "registry diff: clean"
     return f"registry diff: {len(drifts)} generated artifact drift(s)"
 
 
 def print_contract_status() -> None:
-    print(forbidden_pattern_summary_text())
+    print("contract policy: active-contract checks only")
     print(profile_summary_text())
     print(registry_diff_summary_text())
 
@@ -243,96 +141,6 @@ def check_generated_registries() -> list[str]:
     return errors
 
 
-def load_mirror_manifest() -> list[dict[str, str]]:
-    data = load_json(MIRROR_MANIFEST_PATH)
-    mirrors = data.get("mirrors")
-    if not isinstance(mirrors, list) or not mirrors:
-        raise SystemExit("mirror-manifest.json missing mirrors")
-    return mirrors
-
-
-def sync_file(canonical: Path, mirror: Path) -> None:
-    mirror.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(canonical, mirror)
-
-
-def sync_tree(canonical: Path, mirror: Path) -> None:
-    mirror.mkdir(parents=True, exist_ok=True)
-    canonical_entries: set[Path] = set()
-    for source in sorted(canonical.rglob("*")):
-        rel = source.relative_to(canonical)
-        dest = mirror / rel
-        canonical_entries.add(dest.resolve())
-        if source.is_dir():
-            dest.mkdir(parents=True, exist_ok=True)
-        else:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, dest)
-    if mirror.exists():
-        for candidate in sorted(mirror.rglob("*"), reverse=True):
-            resolved = candidate.resolve()
-            if resolved in canonical_entries:
-                continue
-            if candidate.is_file():
-                candidate.unlink()
-            elif candidate.is_dir():
-                try:
-                    candidate.rmdir()
-                except OSError:
-                    pass
-
-
-def sync_mirrors() -> None:
-    for row in load_mirror_manifest():
-        canonical = ROOT / row["canonical"]
-        mirror = ROOT / row["mirror"]
-        mode = row["mode"]
-        if mode == "tree":
-            sync_tree(canonical, mirror)
-        else:
-            sync_file(canonical, mirror)
-        print(f"synced {mirror.relative_to(ROOT).as_posix()}")
-
-
-def compare_tree(canonical: Path, mirror: Path, label: str) -> list[str]:
-    errors: list[str] = []
-    canonical_files = {
-        path.relative_to(canonical).as_posix(): path
-        for path in canonical.rglob("*")
-        if path.is_file()
-    }
-    mirror_files = {
-        path.relative_to(mirror).as_posix(): path
-        for path in mirror.rglob("*")
-        if path.is_file()
-    }
-    for name in sorted(canonical_files.keys() - mirror_files.keys()):
-        errors.append(f"{label} mirror missing {name}")
-    for name in sorted(mirror_files.keys() - canonical_files.keys()):
-        errors.append(f"{label} mirror has extra file {name}")
-    for name in sorted(canonical_files.keys() & mirror_files.keys()):
-        if canonical_files[name].read_bytes() != mirror_files[name].read_bytes():
-            errors.append(f"{label} mirror differs for {name}")
-    return errors
-
-
-def check_mirrors() -> list[str]:
-    errors: list[str] = []
-    for row in load_mirror_manifest():
-        canonical = ROOT / row["canonical"]
-        mirror = ROOT / row["mirror"]
-        label = row["label"]
-        mode = row["mode"]
-        if not mirror.exists():
-            errors.append(f"{label} mirror missing: {row['mirror']}")
-            continue
-        if mode == "tree":
-            errors.extend(compare_tree(canonical, mirror, label))
-        elif canonical.read_bytes() != mirror.read_bytes():
-            errors.append(f"{label} mirror differs: {row['mirror']}")
-    return errors
-
-
 def run_lint() -> int:
     result = subprocess.run([sys.executable, str(LINT_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -340,26 +148,16 @@ def run_lint() -> int:
 
 def cmd_generate(_: argparse.Namespace) -> int:
     write_generated_registries()
-    write_generated_service_api_schema()
-    print_contract_status()
-    return 0
-
-
-def cmd_sync(_: argparse.Namespace) -> int:
-    sync_mirrors()
     print_contract_status()
     return 0
 
 
 def cmd_check(_: argparse.Namespace) -> int:
-    errors: list[str] = []
-    errors.extend(check_generated_registries())
-    errors.extend(check_generated_service_api_schema())
-    errors.extend(check_mirrors())
+    errors = check_generated_registries()
     if errors:
         for error in errors:
             print(error, file=sys.stderr)
-        print(forbidden_pattern_summary_text())
+        print("contract policy: active-contract checks only")
         print(profile_summary_text())
         print(f"registry diff: {len(errors)} pre-lint pipeline error(s)")
         return 1
@@ -373,16 +171,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     generate_parser = subparsers.add_parser(
         "generate",
-        help="regenerate derived registries and generated markdown inventories from contract-catalog.json",
+        help="regenerate derived registry views from contract-catalog.json",
     )
     generate_parser.set_defaults(func=cmd_generate)
 
-    sync_parser = subparsers.add_parser("sync", help="sync canonical artifacts into zh/ mirrors")
-    sync_parser.set_defaults(func=cmd_sync)
-
     check_parser = subparsers.add_parser(
         "check",
-        help="check generated registries, generated markdown inventories, mirrors, and artifact lint",
+        help="check generated registries and run artifact lint",
     )
     check_parser.set_defaults(func=cmd_check)
 

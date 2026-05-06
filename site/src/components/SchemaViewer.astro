@@ -1,0 +1,94 @@
+---
+import { loadSchemaDocument, getSchemaEntry } from "~/lib/artifacts";
+import { walkSchema } from "~/lib/schema/walk";
+import type { JsonSchema, SchemaRow } from "~/lib/schema/types";
+
+interface Props {
+  /** Either a registered schema id (`cx.schema.space.v1`) or a file path
+   *  relative to spec/v1/artifacts/, e.g. `schemas/space.schema.json`. */
+  schema: string;
+  /** Show top-level metadata header. */
+  showHeader?: boolean;
+  /** Initial expand depth for the field tree. */
+  expand?: number;
+}
+
+const { schema: schemaRef, showHeader = true, expand = 1 } = Astro.props;
+const doc = loadSchemaDocument(schemaRef);
+const file = getSchemaEntry(schemaRef)?.file ?? schemaRef;
+
+// loadFile resolves sibling references like `./event-schema.json`.
+const root = walkSchema(doc as JsonSchema, {
+  doc: doc as JsonSchema,
+  docId: file,
+  loadFile: (rel) => {
+    try {
+      const tail = rel.replace(/^\.\//, "").replace(/^schemas\//, "");
+      return loadSchemaDocument(`schemas/${tail}`) as JsonSchema;
+    } catch {
+      return undefined;
+    }
+  },
+});
+
+function render(row: SchemaRow, depth: number): string {
+  const open = depth < expand ? " open" : "";
+  const required = row.required ? '<span class="cx-required" title="required">*</span> ' : "";
+  const composition = row.composition ? `<em>${row.composition}</em> · ` : "";
+  const ref = row.ref ? `<small> · $ref ${escapeHtml(row.ref)}</small>` : "";
+  const typeBadge = `<code>${escapeHtml(row.type)}</code>`;
+  const desc = row.description
+    ? `<div style="margin:.25rem 0; opacity:.85">${escapeHtml(row.description)}</div>`
+    : "";
+  const enums =
+    row.enumValues && row.enumValues.length
+      ? `<div><small>enum:</small> ${row.enumValues
+          .map((v) => `<code>${escapeHtml(JSON.stringify(v))}</code>`)
+          .join(" ")}</div>`
+      : "";
+  const format = row.format ? `<small> · format=${row.format}</small>` : "";
+  const pattern = row.pattern
+    ? `<div><small>pattern:</small> <code>${escapeHtml(row.pattern)}</code></div>`
+    : "";
+  const example =
+    row.example !== undefined
+      ? `<div><small>example:</small> <code>${escapeHtml(JSON.stringify(row.example))}</code></div>`
+      : "";
+
+  const summary = `${required}${composition}<strong>${escapeHtml(row.name)}</strong> · ${typeBadge}${format}${ref}`;
+
+  if (!row.children || row.children.length === 0) {
+    return `<div style="padding:.25rem 0">${summary}${desc}${enums}${pattern}${example}</div>`;
+  }
+  const inner = row.children.map((c) => render(c, depth + 1)).join("");
+  return `<details${open}><summary>${summary}</summary>${desc}${enums}${pattern}${example}<div>${inner}</div></details>`;
+}
+
+function escapeHtml(value: unknown): string {
+  if (value === undefined || value === null) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+const html = render(root, 0);
+const title = (doc as JsonSchema).title ?? schemaRef;
+---
+
+<section class="cx-schema-viewer">
+  {
+    showHeader && (
+      <header class="cx-card" style="margin:0 0 .5rem 0">
+        <strong>{title}</strong>
+        <div>
+          <code>{schemaRef}</code>
+          <small> · file: <code>{file}</code></small>
+        </div>
+        {(doc as JsonSchema).description && <p>{(doc as JsonSchema).description}</p>}
+      </header>
+    )
+  }
+  <div set:html={html} />
+</section>

@@ -1,0 +1,53 @@
+---
+import { getEventKind } from "~/lib/artifacts";
+
+interface Props {
+  /** Fully-qualified event kind, e.g. `cx.message.send`. */
+  name: string;
+  /** When true, renders a compact inline tag instead of a card. */
+  inline?: boolean;
+}
+
+const { name, inline = false } = Astro.props;
+const row = getEventKind(name);
+
+if (!row) {
+  throw new Error(
+    `<EventKind name="${name}"> does not exist in event-kind-registry.json. ` +
+      `Update spec/v1/artifacts/registry/contract-catalog.json or fix the reference.`
+  );
+}
+
+const href = `/catalog/event-kinds/${encodeURIComponent(name)}/`;
+---
+
+{
+  inline ? (
+    <a class="cx-tag" data-kind="event" href={href}>
+      <code>{name}</code>
+    </a>
+  ) : (
+    <article class="cx-card">
+      <header>
+        <span class="cx-tag" data-kind="event">event</span>
+        <a class="cx-card-title" href={href}>
+          <code>{name}</code>
+        </a>
+        <span>· {row.category}</span>
+        <span>· {row.status}</span>
+      </header>
+      <dl>
+        <dt>wire scope</dt>
+        <dd>{row.wire_scope}</dd>
+        <dt>reducer input</dt>
+        <dd>{row.reducer_input ? "yes" : "no"}</dd>
+        {row.payload && (
+          <>
+            <dt>payload</dt>
+            <dd>{row.payload}</dd>
+          </>
+        )}
+      </dl>
+    </article>
+  )
+}

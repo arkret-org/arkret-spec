@@ -17,3 +17,13 @@ jobs:
           python-version: "3.x"
       - name: Run unified artifact pipeline
         run: python tools/artifact_pipeline.py check
+
+  crossref:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Spec ↔ registry crossref check
+        run: node site/scripts/crossref-check.mjs

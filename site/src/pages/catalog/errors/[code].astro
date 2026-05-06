@@ -1,0 +1,20 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import ErrorCode from "~/components/ErrorCode.astro";
+import { errorCodes } from "~/lib/artifacts";
+
+export function getStaticPaths() {
+  return errorCodes.map((row) => ({ params: { code: row.code } }));
+}
+
+const { code } = Astro.params as { code: string };
+---
+
+<StarlightPage frontmatter={{ title: code }}>
+  <ErrorCode code={code} />
+  <h2>Source</h2>
+  <p>
+    canonical row:
+    <code>spec/v1/artifacts/registry/error-code-registry.json#codes</code>
+  </p>
+</StarlightPage>

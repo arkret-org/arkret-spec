@@ -1,2 +1,11 @@
 **/__pycache__
 .claude
+
+# site/ build & dependency artifacts
+site/node_modules
+site/dist
+site/.astro
+site/.cache
+site/.vite
+site/.output
+.DS_Store
