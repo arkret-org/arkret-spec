@@ -208,6 +208,149 @@ Lattice `join()` 输入是 Move set，而不是本地接收序列。需要顺序
 
 若某 lattice type 对同一输入 set 不能给出 deterministic value / bottom，则该 type 的实现不符合 v1。
 
+### 5.3 Lattice 参考实现
+
+下列伪代码为各核心 Lattice type 的 normative `join()` 与 `validate_op()` 行为；参考向量在 [`conformance-vectors.md`](../conformance/conformance-vectors.md) §2。
+
+#### 5.3.1 `or-set`
+
+Observed-remove set。每个 add op 必须携带唯一 `tag`；remove op 引用同 `tag`。Tag 由提交方按 `cell_subject` 内规则确定性派生（如 `<grant_kind>:<peer>:<scope>`），允许同一 (cell, semantics) 上不同 Move 共享 tag 自动幂等。
+
+```text
+join(moves) -> Set<{tag, value}>:
+  adds   = { (eff.tag, eff.value) | M ∈ moves, eff ∈ M.effects, eff.op.type=="add" }
+  removes = { eff.tag | M ∈ moves, eff ∈ M.effects, eff.op.type=="remove" }
+  return  { (t, v) ∈ adds | t ∉ removes }
+
+validate_op(op):
+  op.type ∈ {add, remove}
+  op.tag matches schema tag pattern (non-empty, deterministic)
+  if add: op.value satisfies schema
+```
+
+`bottom` 永远不出现（or-set 总有合法 join 值）。`bottom=expose` 仅用于 projection 在多 head 场景把 add/remove 并发可视化，不影响协议授权判断。
+
+#### 5.3.2 `mv-register`
+
+Multi-value register。所有未被后续 set 取代的并发值都暴露。
+
+```text
+join(moves) -> Set<value>:
+  candidates = { (M.id, eff.value) | M ∈ moves, eff ∈ M.effects, eff.op.type=="set" }
+  // 取因果最大集：去掉被任何后继 Move 偏序覆盖的 candidate
+  return  { v | (m, v) ∈ candidates, ¬∃(m', _) ∈ candidates: m' > m via Move.refs("after") }
+
+validate_op(op):
+  op.type == "set"
+  op.value satisfies schema
+```
+
+`bottom=expose` 是 mv-register 的常态：projection 以 `{status:"conflict", heads:[...]}` 暴露多值。授权路径不得用 mv-register 表达。
+
+#### 5.3.3 `cas-register`
+
+Compare-and-swap register。Move 通过 precondition `head_eq` 声明 basis；并发不同值返回 `⊥`。
+
+```text
+join(moves) -> value | ⊥:
+  ordered  = topological_sort(moves, by Move.refs and head_eq preconditions)
+  current  = null
+  for M in ordered:
+    pre = find precondition on this cell in M
+    if pre is None: continue   // first set
+    if pre.op == head_eq and pre.value != current: return ⊥
+    if M has set effect: current = effect.value
+  // 同一 anchor batch 内多个 set 共享 same basis → 冲突
+  if ∃ siblings M1, M2 with identical head_eq basis but different new value:
+      return ⊥
+  return current
+
+validate_op(op):
+  op.type == "set"
+  op.value satisfies schema
+```
+
+`bottom=reject` 是 cas-register 的标准配置：依赖该 cell 的 Move MUST `fail_bottom`（spec 状态码 `failed_bottom`）。anchorer cell、关键 singleton policy 与 host 指针均使用此组合。
+
+#### 5.3.4 `fsm`
+
+有限状态机。每个 transition op 声明 `from` / `to`；Schema 在 `parameters` 中声明合法 transition 表。
+
+```text
+join(moves) -> state | ⊥:
+  ordered  = topological_sort(moves)
+  state    = parameters.initial_state
+  for M in ordered:
+    eff = find transition effect for this cell
+    if eff.op.from != state: return ⊥          // 非法 transition
+    if eff.op.(from,to) ∉ parameters.allowed_transitions: return ⊥
+    state = eff.op.to
+  // 并发 sibling Move 在同 state 上选择不同 to，且都不可合并 → ⊥
+  if siblings produce divergent next_state:
+    return ⊥
+  return state
+
+validate_op(op):
+  op.type == "transition"
+  op.from, op.to ∈ parameters.states
+  (op.from, op.to) ∈ parameters.allowed_transitions
+```
+
+membership / lifecycle / invite-approval 多用 `bottom=reject`。
+
+#### 5.3.5 `counter`
+
+PN-counter（positive/negative split counter）。每个 (issuer, tag) 维护独立的 inc / dec 计数。
+
+```text
+join(moves) -> integer:
+  per_issuer = empty map<issuer, (pos, neg)>
+  for M in moves:
+    for eff in M.effects on this cell:
+      (pos, neg) = per_issuer.get(M.issuer, (0,0))
+      if eff.op.type == "inc": pos += eff.op.n
+      if eff.op.type == "dec": neg += eff.op.n
+      per_issuer[M.issuer] = (pos, neg)
+  return  Σ (pos - neg) for all issuers
+
+validate_op(op):
+  op.type ∈ {inc, dec}
+  op.n is a non-negative integer (overflow guard at parameters.max)
+  op.tag is optional but, when present, MUST match schema tag pattern
+```
+
+`bottom` 永远不出现。`bottom=expose` 仅在配额跨界等场景下作为诊断（actual value still defined）。
+
+#### 5.3.6 `ordered-log`
+
+Append-only log。按 (issuer, issuer_seq) 链接 + 全局 entry hash 去重。
+
+```text
+join(moves) -> List<entry>:
+  // 收集 append entries
+  entries = { (M.id, eff.entry, M.issuer, eff.op.issuer_seq) |
+              M ∈ moves, eff ∈ M.effects, eff.op.type=="append" }
+  // 每 issuer 形成独立子链；同一 (issuer, issuer_seq) 重复 → 取 entry hash 较小者（去重）
+  per_issuer = group_by(entries, key=issuer)
+  for issuer, items in per_issuer:
+    items = dedupe_by_hash(items)
+    items = sort_by(issuer_seq)
+    items MUST 形成连续链：item[i].parent_entry == hash(item[i-1])
+  // 跨 issuer 不强制全局序；projection 可按 (anchor_index, hlc, issuer, seq) 展示
+  return concat(per_issuer.values())
+
+validate_op(op):
+  op.type == "append"
+  op.issuer_seq is monotonic per (cell, issuer)
+  op.entry satisfies schema; entry hash is canonical-bytes derived
+```
+
+`bottom` 永远不出现。审计、消息历史、不可变操作日志均使用 `bottom=expose`，并发 append 不阻塞协议判断。
+
+### 5.4 Profile 不得引入新 Lattice type
+
+接收方不识别核心 Lattice type MUST fail closed；扩展 cell family MUST 通过 schema/profile 显式声明并声明 fall-back 行为；任何引入新 lattice type 的 profile 必须先经过 v1 protocol-amendment 流程才能被 normative 集成（避免 implicit 协议分叉）。
+
 ## 6. Move 验证
 
 ```text

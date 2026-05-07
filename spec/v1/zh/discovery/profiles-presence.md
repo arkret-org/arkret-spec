@@ -137,7 +137,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
-`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `space_id` MUST 是该 actor 的 `principal_control_space_id`；不得把全局 profile 更新写入任意协作 Space history。两 kind 共用同一 state slot（`(space_id, "cx.profile", target_actor_profile_id)`），subject 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
+`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `space_id` MUST 是该 actor 的 `principal_control_space_id`；不得把全局 profile 更新写入任意协作 Space history。两 kind 共写入同一 cell `cx:cell:cx.component.profile.v1:<target_actor_profile_id>`（cas-register, bottom=reject），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
 
 ### 2.4 Per-Space Profile 覆写
 

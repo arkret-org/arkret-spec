@@ -25,6 +25,12 @@
 | # | 状态 | 任务 | 文件 | 说明 |
 |---|---|---|---|---|
 | Q1 🅿 | `[~]` | 英文 normative 发布策略 | `spec/v1/en/index.md`、site | 现状: `spec/v1/en/index.md` 声明英文 normative "not yet published"，请读者回退到中文 + artifacts。仍需正式决定: 隐藏 `/en/` 路由、保留 placeholder + preview 标签，或安排 v1.0 英文版翻译。决定后再更新本条。 |
+| MAL-1 ⚠ | `[x]` | consent-model.md §3-§9 重写为 Move/Anchor/Lattice 表述 | `spec/v1/zh/identity/consent-model.md` | grant=add tag / revoke=remove tag on consent cell or-set；invite gate 改为 cell join 查询；MIMI interop 改为 Move 构造。保留 holder-private、不进入协作 Space、与 capability 正交三条不变量。 |
+| MAL-2 🅿 | `[x]` | sync / federation / operations-sync / service-surface 二轮 reread | `spec/v1/zh/sync/*` | 已确认主线文档无 "host writer / writer_model / host endorsement" 漏网；旧 "state slot" 表述在 space-hierarchy.md / device-lifecycle.md / profiles-presence.md / matrix-core-differences.md / consent-model.md 已统一改为 cell + lattice 措辞。 |
+| MAL-3 🅿 | `[x]` | conformance-vectors.md 加入 move-anchor-lattice-fixture 4 vector 显式枚举 | `spec/v1/zh/conformance/conformance-vectors.md` | 已加入 §2.2-2.5 normative 枚举（multi_cell_ban_revoke / cas_bottom / anchor_batch_pre_state / mls_covered_frontier）。 |
+| MAL-4 🅿 | `[x]` | 为每个核心 Lattice type 补参考实现章节 | `spec/v1/zh/authz/event-auth-state-resolution.md` §5.3 | or-set / mv-register / cas-register / fsm / counter / ordered-log 各 normative join + validate_op 伪代码；§5.4 禁止 profile 引入新 lattice type。 |
+| MAL-5 🅿 | `[x]` | Bottom diagnostics typed schema + sync/events/state API 暴露 | `spec/v1/artifacts/schemas/bottom.schema.json`、`spec/v1/zh/sync/service-surface.md` §5.5 | 新增 `cx.schema.bottom.v1` typed schema（kind 6 种、cells/move_ids/anchor_view/heads/details/escalated_at 字段）；service-surface §5.5 documented Move state 字段 + Bottom 暴露规则。registry/lint 通过：127 event kinds、37 schemas、52 profiles。 |
+| MAL-6 🅿 | `[x]` | Anchor compaction / recovery Anchor conformance vectors | `spec/v1/artifacts/fixtures/move-anchor-lattice-fixture.json`、`spec/v1/zh/conformance/conformance-vectors.md` §2.6-2.8 | 新增 4 vector：anchorer_cell_bottom_pauses_space_until_recovery / signed_compaction_anchor_equals_effective_view / anchor_dag_genesis_and_multi_leaf_join（含 4 case 矩阵） |
 
 ## 已完成（changelog）
 

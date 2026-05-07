@@ -16,7 +16,7 @@ Contrix 的访问授权由 **capability + invite** 两条路径承担。但二�
 
 它是 invite / direct contact 路径上的**前置 gate**：在"是否给 Alice 发出 invite"之前，先看"Alice 是否同意接收来自 Bob 的 invite"。
 
-本规范定义 Contrix 的 consent state machine，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol`](https://datatracker.ietf.org/doc/draft-ietf-mimi-protocol/) 的 consent 概念，并完整融入 Contrix 的 signed Event + state slot 架构。
+本规范定义 Contrix 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol`](https://datatracker.ietf.org/doc/draft-ietf-mimi-protocol/) 的 consent 概念，并完整落在 Contrix 的 Move / Anchor / Lattice 三原语之上：consent 是 holder 控制的 Space 内某个 consent cell（or-set lattice）的当前 join 值，由签名 Move 维护。
 
 ## 2. 设计原则
 
@@ -44,56 +44,90 @@ Consent 表达"我接受联系"，但加入 Space、写入 Space、解密 E2EE �
 
 二者可独立存在：peer 持有"对 Alice 的 invite capability"，但 Alice 没 consent → invite 路径仍被 gate；Alice consent 给了 Bob，但 Bob 没 capability → invite 不能执行。
 
-## 3. Event Family
+## 3. Consent Cell 与 Move 形态
 
-### 3.1 `cx.consent.grant`
+### 3.1 Consent Cell
 
-```json
-{
-  "kind": "cx.consent.grant",
-  "space_id": "cx:space:01js0aps000000000000000000",
-  "actor_id": "did:web:alice.example.com",
-  "payload": {
-    "consent_id": "cs-2026-05-07-bob-invite",
-    "peer": "did:web:bob.example.com",
-    "scope": "invite",
-    "not_before": "2026-05-07T00:00:00Z",
-    "valid_until": "2026-12-31T00:00:00Z",
-    "evidence_ref": "cx:event:01js0pres000000000000000000",
-    "reason": "Bob completed verified contact discovery"
-  }
+Consent state 写入 holder 控制的 Space（默认是 holder 的 principal control Space）内一个 or-set lattice cell：
+
+```text
+cell_id  = cx:cell:cx.component.consent.v1:<consent_id>
+lattice  = or-set
+bottom   = expose
+```
+
+- `consent_id` 是 consent 槽的 subject。同一 holder 对同一 peer 的不同 scope 用不同 consent_id；同 consent_id 上所有 add / remove tag op 收敛于同一 cell。
+- `bottom = expose` 表示 holder 同时持有多个并发 grant / revoke 时 query 暴露多值诊断而非 hard-reject；实际授权判断仍以"当前 or-set 含未被 remove 的 grant tag"为准。
+
+### 3.2 `cx.consent.grant` Move
+
+```text
+Move(cx.consent.grant) {
+  issuer    = holder DID（或 holder DID Document 显式授权的 controller / agent）
+  space_id  = holder principal control Space
+  preconditions = []          // grant 不依赖 cell 既有状态
+  effects   = [
+    (cx:cell:cx.component.consent.v1:<consent_id>,
+     {type: "add",
+      tag:  "grant:<consent_id>:<peer>:<scope>",
+      value: {
+        consent_id:   <consent_id>,
+        peer:         "did:web:bob.example.com",
+        scope:        "invite",
+        not_before:   "2026-05-07T00:00:00Z",
+        valid_until:  "2026-12-31T00:00:00Z",
+        evidence_ref: "cx:move:sha256:01js0pres...",
+        reason:       "Bob completed verified contact discovery"
+      }})
+  ]
+  refs       = [
+    (id="cx:grant:01js0hsc000000000000000000",
+     role="authorized_by")
+  ]
+  anchor_ref = <holder principal control Space 的最新 Anchor>
 }
 ```
 
-字段：
+字段语义：
 
-- `consent_id`：consent cell subject。同一 holder 对同一 peer 的不同 scope 用不同 consent_id；同 consent_id 的 grant/revoke 写入同一 consent cell。
+- `consent_id`：consent cell subject。同一 holder 对同一 peer 的不同 scope 用不同 consent_id。
 - `peer`：counterparty DID 或 pairwise DID。
 - `scope`：详见 §4。
-- `not_before` / `valid_until`：时间窗口（可选）。窗口外 consent 不生效，相当于 implicit revoke。
-- `evidence_ref`：可选审计链——指向引发此 consent 的 claim disclosure / presentation response / invite proof event。
+- `not_before` / `valid_until`：时间窗口（可选）。窗口外 consent 不生效，相当于 implicit revoke（不需要单独的 revoke Move）。
+- `evidence_ref`：可选审计链——指向引发此 consent 的 claim disclosure / presentation response / invite proof Move。
 - `reason`：人类可读理由（仅审计，不参与授权）。
 
-`actor_id` MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。其他 actor 提交的 `cx.consent.grant` 在 holder 的 principal control Space MUST `capability_denied` reject。
+Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。其他 actor 提交的 grant Move 在 holder 的 principal control Space MUST `unauthorized` reject。
 
-### 3.2 `cx.consent.revoke`
+`tag` 内容要求确定性可复现。推荐编码 `grant:<consent_id>:<peer>:<scope>`；同样 (consent_id, peer, scope) 的两个 grant Move 共享同一 tag，or-set 自动幂等去重。
 
-```json
-{
-  "kind": "cx.consent.revoke",
-  "space_id": "cx:space:01js0aps000000000000000000",
-  "actor_id": "did:web:alice.example.com",
-  "payload": {
-    "consent_id": "cs-2026-05-07-bob-invite",
-    "revoked_at": "2026-06-15T10:00:00Z",
-    "reason": "Bob harassment incident #4711"
-  }
+### 3.3 `cx.consent.revoke` Move
+
+```text
+Move(cx.consent.revoke) {
+  issuer    = holder DID
+  space_id  = holder principal control Space
+  preconditions = [
+    (cx:cell:cx.component.consent.v1:<consent_id>,
+     {op: "contains", value: "grant:<consent_id>:<peer>:<scope>"})
+  ]
+  effects   = [
+    (cx:cell:cx.component.consent.v1:<consent_id>,
+     {type: "remove",
+      tag:  "grant:<consent_id>:<peer>:<scope>",
+      value: {
+        revoked_at: "2026-06-15T10:00:00Z",
+        reason:     "Bob harassment incident #4711"
+      }})
+  ]
+  refs       = [(id="cx:grant:01js0hsc000000000000000000", role="authorized_by")]
+  anchor_ref = <holder principal control Space 的最新 Anchor>
 }
 ```
 
-`payload.consent_id` MUST 等于被撤销 grant 的 consent_id。reducer 把 revoke 当作对该 consent slot 的 supersede（与 `cx.capability.grant` ↔ `cx.capability.revoke` 同一模式）。
+或 grant Move 写一个单 tag、revoke Move 在同一 tag 上 remove。precondition `contains` 仅用于诊断（缺失时 Move fail_precondition，避免无意义 revoke）；or-set 的去重语义保证多 issuer 重复 revoke 收敛。
 
-撤销在 frontier 后立即生效；frontier 之前已经被 peer 凭借 consent 发出的 invite / contact 不会被追溯失效（已经发出的 invite 由 invite revoke 单独处理）。
+撤销在该 revoke Move 进入 Anchor frontier 后立即生效——consent cell 的 or-set join 值不再含该 grant tag。frontier 之前 peer 凭借 consent 发出的 invite / contact 不会被追溯失效（已经发出的 invite 由 invite revoke 单独处理）。
 
 ## 4. Scope 枚举
 
@@ -108,29 +142,32 @@ Consent 表达"我接受联系"，但加入 Space、写入 Space、解密 E2EE �
 
 `scope=any` 是便利值，等价于显式 grant 所有具体 scope。撤销 `any` consent 同时撤销所有具体 scope；撤销具体 scope 不影响其他 scope。
 
-## 5. Reducer 与 State Slot
+## 5. Cell Join 与 Effective Consent
 
-`cx.consent.grant` 与 `cx.consent.revoke` 共享 state slot，主键 `(space_id, "cx.consent.grant", consent_id)`：
+Consent cell 是 or-set lattice。Effective consent 由当前 Anchor view 下 cell 的 or-set join 派生：
 
-- slot 上最新 accepted event 决定该 consent 当前状态：
-  - `cx.consent.grant`：grant 生效（在 `not_before` / `valid_until` 窗口内）。
-  - `cx.consent.revoke`：revoke 生效；slot effective state = revoked。
-- consent slot 的派生 effective state 由 reducer 物化为 `Consent` 对象（详见 [`models/data-structures.md`](../models/data-structures.md)，本节定义事件层面）。
-- 不同 consent_id 是独立 slot；查询 `(holder, peer, scope)` 时 reducer 遍历该 holder 全部 consent slot 匹配。
+- `effective_grants(cell) = { grant_value | tag in or-set.add_tags - or-set.remove_tags }`
+- 一个 grant 当前生效（即 invite / contact 路径上 gate 放行）当且仅当：
+  - 存在对应 tag 在 or-set add 集合且未被 remove；
+  - 当前时间 ∈ `[not_before, valid_until]`（窗口字段缺省视为 `(-∞, +∞)`）。
+- 不同 consent_id 是独立 cell；查询 `(holder, peer, scope)` 时 invite / contact service 遍历该 holder 全部 consent cell 匹配。
+- 因 `bottom = expose`，并发 grant 与 revoke 在 Anchor 内同批处理时 cell 可能短暂显示多值；invite gate 评估时 conservative 取"任意当前活跃 grant tag 即视为同意"，但在审计 / sodmin 视图上展示 `{status:"conflict", heads:[...]}`。
+
+物化 `Consent` 对象（详见 [`models/data-structures.md`](../models/data-structures.md)）由 holder client / sodmin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。
 
 ## 6. 与 Invite / Contact 流程的整合
 
 ### 6.1 Invite 前置 gate
 
-Peer 发送 `cx.invite.create` / `cx.invite.third_party` 时，invite service / facade SHOULD 在投递前查询 holder 的 consent state：
+Peer 发送 invite Move 时，invite service / facade SHOULD 在 Move 接受 / 投递前查询 holder 的 consent cell：
 
-1. 调用 holder 的 principal control Space（或受托 contact discovery service）查询 `(peer=requester, scope="invite" OR scope="any")` 的最新 accepted consent event。
-2. 若当前 effective state 不存在或为 revoked：
-   - **`require_explicit_consent` profile**：invite MUST `consent_required` reject。Peer SHOULD 通过 `cx.private_contact_discovery.v1` 等机制请求 holder 显式授权后重试。
-   - **default profile**：invite MAY 进入 holder 的 quarantine inbox（"陌生人邀请"），由 holder 在 UI 上 review 后转为 grant 或 reject。
-3. 若 effective state 是 grant 且未过期：invite 正常处理。
+1. 调用 holder 的 principal control Space（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 or-set join 后筛选 `(peer=requester, scope="invite" OR scope="any")` 当前活跃的 grant tag。
+2. 若没有匹配的活跃 grant：
+   - **`require_explicit_consent` profile**：invite Move MUST `failed_precondition` reject（consent gate 可表达为 invite Move 的 precondition：`contains("grant:*:requester:invite|any")`）。Peer SHOULD 通过 `cx.private_contact_discovery.v1` 等机制请求 holder 显式授权后重试。
+   - **default profile**：invite MAY 进入 holder 的 quarantine inbox（"陌生人邀请"），由 holder 在 UI 上 review 后构造 grant Move 或丢弃。
+3. 若有匹配活跃 grant 且当前时间在 `[not_before, valid_until]`：invite Move 正常 anchor。
 
-policy MAY 声明 `cx.space.policy_components` 中的 `preauth` component 包含 `require_consent: true`，对该 Space 的所有 invite 强制走显式 consent 路径。
+policy MAY 声明 `cx.space.policy_components` 中的 `preauth` component 包含 `require_consent: true`，对该 Space 的所有 invite Move 强制以 consent cell precondition 表达。
 
 ### 6.2 Contact / DM 前置 gate
 
@@ -142,8 +179,8 @@ policy MAY 声明 `cx.space.policy_components` 中的 `preauth` component 包含
 
 MIMI 协议有 `request_consent` / `update_consent` 操作（`cx.mimi.request_consent` / `cx.mimi.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
-- 接收 MIMI consent update：facade MUST 先验证 actor 是声明 holder 或受授权 controller，然后归约为 holder principal control Space 的 `cx.consent.grant` 或 `cx.consent.revoke`。
-- 发送 Contrix consent state 到 MIMI：facade MUST 把当前 consent slot effective state 翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
+- 接收 MIMI consent update：facade MUST 先验证 actor 是声明 holder 或受授权 controller，然后构造 grant 或 revoke Move 写入 holder principal control Space 的 consent cell。
+- 发送 Contrix consent state 到 MIMI：facade MUST 把当前 consent cell or-set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
 - consent state 不暴露具体 evidence_ref / reason 跨 provider；只暴露最小 `(peer, scope, granted/revoked)` 三元组。
 
 ## 8. 隐私与审计
@@ -155,4 +192,4 @@ MIMI 协议有 `request_consent` / `update_consent` 操作（`cx.mimi.request_co
 
 ## 9. 与未来 Capability Constraint 的关系
 
-未来 v1.x profile MAY 引入 capability constraint type `consent_required`，使某些 capability grant 在执行时 runtime check holder consent。本规范定义的 consent state machine 是该 constraint 的查询源。在引入该 constraint 前，consent gate 在 invite / contact service 层实现，不参与 reducer 授权计算。
+未来 v1.x profile MAY 引入 capability constraint type `consent_required`，使某些 capability grant 在 Move 验证时 runtime check holder consent。本规范定义的 consent cell 是该 constraint 的查询源。在引入该 constraint 前，consent gate 由 invite / contact service 在投递前查询 cell join 值实现，不直接出现在 Move precondition 上。

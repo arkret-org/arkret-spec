@@ -369,7 +369,43 @@ GET /api/v1/sync/snapshot-head?space_id=<id>
 
 用于拿到当前推荐 snapshot manifest。
 
-### 5.5 明文与服务信任
+### 5.5 Move / Anchor 状态与 Bottom 暴露
+
+Sync 响应 MUST 在每条 Move 上携带其当前协议状态字段（`move_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`pending_anchor` / `effective` / `failed_precondition` / `failed_bottom` / `rejected_anchor` / `anchorer_paused`。
+
+State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回结构化 Bottom 诊断，schema 参见 [`schemas/bottom.schema.json`](../../artifacts/schemas/bottom.schema.json) 与 `cx.schema.bottom.v1`：
+
+```json
+{
+  "cell": "cx:cell:cx.component.space.policy.v1:cx.space.01j…",
+  "status": "bottom",
+  "bottom": {
+    "kind": "conflict",
+    "cells": ["cx:cell:cx.component.space.policy.v1:cx.space.01j…"],
+    "move_ids": [
+      "cx:move:sha256:4444…",
+      "cx:move:sha256:5555…"
+    ],
+    "anchor_view": {
+      "leaves": ["cx:anchor:sha256:dddd…"],
+      "state_root": "sha256:eeee…"
+    },
+    "heads": [{"…": "candidate-A"}, {"…": "candidate-B"}],
+    "details": {}
+  }
+}
+```
+
+规则：
+
+- `bottom=reject` cell 的 query MUST 返回 `status:"bottom"` 与诊断；客户端 / 授权路径 MUST NOT 把 `heads` 当作 allow。
+- `bottom=expose` cell 的 query MAY 返回 `status:"conflict"` 暴露多 head 给 projection / UI；同样不得用作授权 allow。
+- `move_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.3）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Space-wide pause。
+- `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
+
+`/sync` / `/events` / `/api/v1/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（位置与精确 wire 形态见 [`service-api-schema.mdx`](service-api-schema.mdx) `cx.schema.bottom.v1` 引用）。
+
+### 5.6 明文与服务信任
 
 如果 Space 未启用 E2EE 或内容层加密：
 

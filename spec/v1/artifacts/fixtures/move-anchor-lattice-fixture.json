@@ -162,6 +162,101 @@
         "verify_move": "fail_precondition",
         "normal_governance_moves_continue": true
       }
+    },
+    {
+      "name": "anchorer_cell_bottom_pauses_space_until_recovery",
+      "description": "When the anchorer cell resolves to ⊥ (concurrent set on cas-register), the Space enters anchorer_paused. Only recovery_members declared at genesis MAY sign a recovery Anchor that re-anchors the anchorer cell to a new value.",
+      "anchor_profile": "mixed",
+      "genesis_anchorer": {
+        "type": "mixed",
+        "primary": "did:web:host-a.example",
+        "recovery_members": [
+          "did:web:recovery-1.example",
+          "did:web:recovery-2.example"
+        ]
+      },
+      "concurrent_anchorer_moves": [
+        "cx:move:sha256:1010101010101010101010101010101010101010101010101010101010101010",
+        "cx:move:sha256:2020202020202020202020202020202020202020202020202020202020202020"
+      ],
+      "expected": {
+        "anchorer_cell_value": "bottom",
+        "space_state": "anchorer_paused",
+        "normal_anchor_emission": "blocked",
+        "recovery_anchor_emission": "allowed_only_for_recovery_members",
+        "post_recovery_state": "effective"
+      }
+    },
+    {
+      "name": "signed_compaction_anchor_equals_effective_view",
+      "description": "Signed compaction Anchor MUST be equivalent to the deterministic effective_anchor_view of its predecessors: same predecessor_refs (sorted), frontier (union), and recomputed state_root. It MUST NOT drop bottom diagnostics observable from the prior Anchor leaves.",
+      "predecessor_leaves": [
+        "cx:anchor:sha256:3030303030303030303030303030303030303030303030303030303030303030",
+        "cx:anchor:sha256:4040404040404040404040404040404040404040404040404040404040404040"
+      ],
+      "compaction_anchor": {
+        "id": "cx:anchor:sha256:5050505050505050505050505050505050505050505050505050505050505050",
+        "predecessor_refs_sorted": [
+          "cx:anchor:sha256:3030303030303030303030303030303030303030303030303030303030303030",
+          "cx:anchor:sha256:4040404040404040404040404040404040404040404040404040404040404040"
+        ],
+        "frontier_must_equal": "union(predecessor.frontier)",
+        "state_root_must_equal": "recompute(joined_state(predecessor_leaves))"
+      },
+      "expected": {
+        "anchor_result": "accept_when_equivalent_else_reject",
+        "preserves_bottom_diagnostics": true,
+        "preserves_signature_chain": true,
+        "compaction_without_signature": "reject"
+      }
+    },
+    {
+      "name": "anchor_dag_genesis_and_multi_leaf_join",
+      "description": "Genesis Anchor MUST have predecessor_refs=[]. Multi-leaf Anchor view computes effective_anchor_view as a pure local function; it is NOT itself a new Anchor object until signed.",
+      "vectors": [
+        {
+          "case": "genesis_with_empty_predecessor_refs",
+          "anchor": {
+            "predecessor_refs": [],
+            "frontier": [],
+            "anchorer_sig_kind": "single"
+          },
+          "expected": "accept"
+        },
+        {
+          "case": "non_genesis_with_empty_predecessor_refs",
+          "anchor": {
+            "predecessor_refs": [],
+            "frontier": [
+              "cx:move:sha256:6060606060606060606060606060606060606060606060606060606060606060"
+            ]
+          },
+          "expected": "reject"
+        },
+        {
+          "case": "multi_leaf_effective_view_is_pure_function",
+          "leaves": [
+            "cx:anchor:sha256:7070707070707070707070707070707070707070707070707070707070707070",
+            "cx:anchor:sha256:8080808080808080808080808080808080808080808080808080808080808080"
+          ],
+          "expected": {
+            "needs_signature": false,
+            "is_new_anchor_object": false,
+            "deterministic": true
+          }
+        },
+        {
+          "case": "signed_compaction_required_for_persistent_compression",
+          "leaves": [
+            "cx:anchor:sha256:7070707070707070707070707070707070707070707070707070707070707070",
+            "cx:anchor:sha256:8080808080808080808080808080808080808080808080808080808080808080"
+          ],
+          "expected": {
+            "needs_signature": true,
+            "anchorer_sig_required": true
+          }
+        }
+      ]
     }
   ]
 }

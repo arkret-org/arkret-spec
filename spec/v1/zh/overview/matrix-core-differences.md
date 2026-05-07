@@ -177,9 +177,9 @@ Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Contrix v1 �
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Contrix v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`cx.consent.grant` / `cx.consent.revoke` 是 holder principal control Space 中的 state event，作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Contrix v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`cx.consent.grant` / `cx.consent.revoke` 是 holder principal control Space 中的 Move，写入 `cx:cell:cx.component.consent.v1:<consent_id>` cell（or-set, bottom=expose），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
 
-**理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为 wire-level state event 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
+**理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent cell 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 
 ## 7. Matrix 仍然更强的地方
 
@@ -195,7 +195,7 @@ Contrix 不应忽略 Matrix 的成熟度：
 
 - [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — Move、Anchor、Lattice、bottom diagnostics、E2EE MLS Move
 - [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS application state binding 与 covered frontier cell
-- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent state machine
+- [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or-set lattice）
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)
 - [`extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)

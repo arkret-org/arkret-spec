@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/bottom.schema.json",
+  "title": "Contrix Bottom Diagnostics",
+  "description": "Structured diagnostic for cell join values that resolve to bottom (⊥). Surfaced on /sync, /events, and state query responses when a cell's effective Lattice value is undefined under the current Anchor view. See spec/v1/zh/authz/event-auth-state-resolution.md §5.1.",
+  "type": "object",
+  "required": [
+    "kind",
+    "cells"
+  ],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "conflict",
+        "invalid_transition",
+        "missing_dependency",
+        "unauthorized",
+        "anchorer_split",
+        "schema_error"
+      ],
+      "description": "Why the join produced bottom. 'conflict' = concurrent cas-register / fsm divergence on safety-critical cell. 'invalid_transition' = fsm op violates allowed_transitions. 'missing_dependency' = Move ref to absent / failed prior Move. 'unauthorized' = Move issuer lacks capability for the op (verifier-side). 'anchorer_split' = multiple anchorer cell Anchor leaves diverge on next-batch authority. 'schema_error' = lattice op or value violates declared cell schema."
+    },
+    "cells": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+      },
+      "description": "Cell ids participating in the bottom diagnostic. Multi-cell when a multi-cell Move atomically failed across linked cells."
+    },
+    "move_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^cx:move:sha256:[0-9a-f]{64}$"
+      },
+      "description": "Anchored Move ids whose effects (or precondition checks) produced this bottom. Empty allowed when the cell's bottom is structural (e.g. anchorer cell schema_error) and not tied to a specific Move."
+    },
+    "anchor_view": {
+      "type": "object",
+      "description": "Anchor leaves and frontier under which this bottom was observed. Diagnostics MUST pin this so the receiver can reproduce the join without ambiguity.",
+      "required": [
+        "leaves"
+      ],
+      "properties": {
+        "leaves": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^cx:anchor:sha256:[0-9a-f]{64}$"
+          }
+        },
+        "state_root": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Effective anchor view state_root at observation time (recompute from leaves). Optional when the diagnostic is emitted before state_root is computable."
+        }
+      },
+      "additionalProperties": false
+    },
+    "heads": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "When kind=conflict and the cell's lattice exposes multiple candidate heads (mv-register, or-set with conflicting tag values), the candidate values. Implementations MUST NOT pick a winner from this array; it is for UI / audit only.",
+      "items": true
+    },
+    "details": {
+      "type": "object",
+      "description": "Free-form structured details specific to the diagnostic kind. Producers SHOULD use stable keys per kind (e.g. invalid_transition: from/to/expected_transitions; schema_error: schema_id/violation_path). Receivers MAY display but MUST NOT use for authorization decisions.",
+      "additionalProperties": true
+    },
+    "escalated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "When the cell first crossed Space.bottom_escalation_after_ms. Absent when within the grace window. Implementations SHOULD raise an out-of-band notification to admins / recovery governance once set."
+    }
+  },
+  "additionalProperties": false
+}

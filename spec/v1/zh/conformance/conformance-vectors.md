@@ -550,6 +550,60 @@ cx.vector.move_anchor_lattice.mls_covered_frontier.v1
 - MLS Commit Move `fail_precondition`。
 - 普通 governance / recovery Move 不依赖 `covered_frontier_cell`，仍可被 Anchor 推进。
 
+### 2.6 Vector: Anchorer Cell ⊥ → Recovery Anchorer 上位
+
+向量名称：
+
+```text
+cx.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1
+```
+
+输入：
+
+- Space 以 `anchor_profile=mixed` 起始；`primary=did:web:host-a.example`，`recovery_members=[did:web:recovery-1.example, did:web:recovery-2.example]`。
+- 两条并发 Move 在 anchorer cell（cas-register, bottom=reject）上提交不同 value。
+
+期望：
+
+- anchorer cell join → ⊥；Space 状态 `anchorer_paused`。
+- 普通 Anchor 推进 MUST 阻塞。
+- 仅 `recovery_members` 中 DID 签发的 recovery Anchor 才能重置 anchorer cell。
+- 恢复后 Space 状态回到 `effective`。
+
+### 2.7 Vector: Signed Compaction Anchor 等价 Effective View
+
+向量名称：
+
+```text
+cx.vector.move_anchor_lattice.signed_compaction_equivalent.v1
+```
+
+输入：
+
+- 两个并存 Anchor leaves L1、L2（同 Space）。
+- 一条由 anchorer 签发的 compaction Anchor C 试图替代 (L1, L2)。
+
+期望：
+
+- C 的 `predecessor_refs == sorted([L1.id, L2.id])`、`frontier == union(L1.frontier, L2.frontier)`、`state_root == recompute(joined_state(L1, L2))`。
+- 任一不满足 MUST reject（包括缺签名）。
+- 接受后保留 bottom diagnostics 与签名验证链；不得丢失原 leaves 上可观察到的诊断结构。
+
+### 2.8 Vector: Anchor DAG Genesis 与多 Leaf 计算
+
+向量名称：
+
+```text
+cx.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1
+```
+
+输入与期望（多 case 矩阵）：
+
+1. **Genesis case**：`predecessor_refs=[]` 仅在 genesis Anchor 上合法。
+2. **Non-genesis empty predecessors**：`predecessor_refs=[]` 但 frontier 非空 MUST reject。
+3. **Multi-leaf effective view**：`effective_anchor_view(leaves)` 是纯本地函数（不需签名、不是新 Anchor object、deterministic）。
+4. **Signed compaction**：要把多 leaf 持久压缩成单 Anchor 必须由 anchorer 签发；否则只能作为 view 使用。
+
 ## 3. Redaction Vectors
 
 > 来源：原 `conformance-vectors.md`（已合并）

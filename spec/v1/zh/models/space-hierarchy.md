@@ -126,7 +126,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（
 
 继承规则：
 
-- `cx.space.inheritance_policy` 的 state slot 由 `payload.parent_space_id` 派生（每个 parent 独立 slot）。payload `status` 默认是 `active`；`status="tombstoned"` 表示 child 停止使用该 parent 的继承策略。
+- `cx.space.inheritance_policy` 写入 `cx:cell:cx.component.space.inheritance_policy.v1:<parent_space_id>` 的 cell（cas-register, bottom=reject）；`cell_subject` 由 `payload.parent_space_id` 派生（每个 parent 独立 cell）。payload `status` 默认是 `active`；`status="tombstoned"` 表示 child 停止使用该 parent 的继承策略。
 - `cx.space.inheritance_policy` 只有在目标 parent-child 边已 confirmed 后才可生效。若确认缺失、被拒绝、tombstoned 或无法在 backfill / snapshot 上限内验证，继承策略 MUST soft-fail 或视为 unset。
 - `mode` MUST 为 `narrow_only`。继承只能收窄或附加限制，不能绕过 child 本地 policy。
 - Child local deny / revoke / ban MUST 覆盖 inherited allow。

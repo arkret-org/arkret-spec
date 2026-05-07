@@ -151,6 +151,12 @@
       "file": "schemas/anchor.schema.json",
       "status": "active",
       "description": "Anchor DAG finality commitment schema"
+    },
+    {
+      "schema_id": "cx.schema.bottom.v1",
+      "file": "schemas/bottom.schema.json",
+      "status": "active",
+      "description": "Structured Bottom (⊥) diagnostic surfaced on /sync, /events, and state query responses when a cell's effective Lattice value is undefined"
     }
   ]
 }
