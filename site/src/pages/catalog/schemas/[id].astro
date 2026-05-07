@@ -1,15 +1,31 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import SchemaViewer from "~/components/SchemaViewer.astro";
-import { schemaEntries } from "~/lib/artifacts";
+import CatalogBreadcrumb from "~/components/CatalogBreadcrumb.astro";
+import CatalogSource from "~/components/CatalogSource.astro";
+import { schemaEntries, getSchemaEntry } from "~/lib/artifacts";
 
 export function getStaticPaths() {
   return schemaEntries.map((row) => ({ params: { id: row.schema_id } }));
 }
 
 const { id } = Astro.params as { id: string };
+const entry = getSchemaEntry(id);
+const schemaFile = entry ? `artifacts/${entry.file}` : undefined;
 ---
 
 <StarlightPage frontmatter={{ title: id }}>
+  <CatalogBreadcrumb label="Schemas" href="/catalog/schemas/" />
   <SchemaViewer schema={id} expand={2} />
+  <CatalogSource
+    entries={[
+      {
+        label: "registry row",
+        path: "artifacts/registry/schema-registry.json",
+      },
+      ...(schemaFile
+        ? [{ label: "schema document", path: schemaFile }]
+        : []),
+    ]}
+  />
 </StarlightPage>

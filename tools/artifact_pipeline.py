@@ -18,8 +18,8 @@ This pipeline owns two responsibilities only:
   check      verify no drift, then run lint_artifacts.py
 
 The legacy "sync canonical files into zh/ mirrors" and "rewrite generated
-markdown tables inside zh/sync/service-api-schema.md" responsibilities are
-gone. The site renders machine artifacts directly via MDX components
+markdown tables inside zh/sync/service-api-schema.{md,mdx}" responsibilities
+are gone. The site renders machine artifacts directly via MDX components
 (<EventKindTable/>, <OperationTable/>, <SchemaViewer/>, ...), so duplicating
 them inside Markdown or under zh/ is no longer needed.
 """

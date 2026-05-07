@@ -166,7 +166,6 @@ Contrix v1 定义两个联邦推送 endpoint：
 
 | 特性 | `PUT /federation/transactions/{txn_id}` | `POST /federation/push-operations` |
 |------|----------------------------------------|-------------------------------------|
-| 定义文件 | `federation.md` | `federation.md` |
 | 幂等机制 | `(origin, destination, txn_id)` 显式事务 ID | `(origin, destination, event_id)` 逐事件去重 |
 | 适用场景 | 有状态联邦：两个互信 Principal Server 之间的持续同步 | 无状态/单次推送：一次性事件投递或无事务管理能力的轻量客户端 |
 | 额外字段 | `receipts[]`、`frontier`、`request_canonical_hash` | `space_id` |

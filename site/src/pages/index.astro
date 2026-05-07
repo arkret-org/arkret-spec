@@ -6,21 +6,15 @@ import {
   errorCodes,
   operations,
   schemaEntries,
-  profileMatrix,
+  totalProfileCount,
 } from "~/lib/artifacts";
+import { specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
 
 const stats = [
   { value: eventKinds.length, label: "Event kinds" },
   { value: schemaEntries.length, label: "Schemas" },
   { value: operations.length, label: "Operations" },
-  {
-    value:
-      profileMatrix.implementation_profiles.length +
-      profileMatrix.deployment_profiles.length +
-      profileMatrix.hardening_profiles.length +
-      profileMatrix.vector_profiles.length,
-    label: "Profiles",
-  },
+  { value: totalProfileCount, label: "Profiles" },
   { value: errorCodes.length, label: "Error codes" },
 ];
 
@@ -101,7 +95,7 @@ const resources = [
     <div class="cx-shell cx-hero-inner">
       <span class="cx-eyebrow">
         <span class="cx-eyebrow-dot" aria-hidden="true"></span>
-        v1.0.0 stable baseline · catalog {catalogVersion}
+        {specReleaseTag} {specReleaseLabel} · catalog {catalogVersion}
       </span>
       <h1>
         去中心化协作的<br />
@@ -112,7 +106,7 @@ const resources = [
         Event 流，让多个独立实现能共享同一份事实模型。
       </p>
       <div class="cx-cta-row">
-        <a class="cx-btn cx-btn-primary" href="/zh/v1/">阅读规范</a>
+        <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">阅读规范</a>
         <a class="cx-btn cx-btn-ghost" href="/zh/v1/overview/architecture/"
           >从架构入门</a
         >

@@ -1,13 +1,16 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import OpenAPIRef from "~/components/OpenAPIRef.astro";
+import { specFileUrl } from "~/lib/site-meta";
+
+const openapiPath = "artifacts/openapi/contrix-service-api.openapi.yaml";
 ---
 
 <StarlightPage frontmatter={{ title: "Service API (OpenAPI)" }}>
   <p>
     交互式 OpenAPI 视图。canonical 文档为
-    <a href="https://github.com/your-org/contrix-spec/blob/main/spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml">
-      <code>spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml</code>
+    <a href={specFileUrl(openapiPath)} rel="noopener">
+      <code>spec/v1/{openapiPath}</code>
     </a>
     。每个 operation 的 catalog 视图在 <a href="/catalog/operations/">/catalog/operations/</a>。
   </p>

@@ -1,6 +1,8 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import EventKind from "~/components/EventKind.astro";
+import CatalogBreadcrumb from "~/components/CatalogBreadcrumb.astro";
+import CatalogSource from "~/components/CatalogSource.astro";
 import { eventKinds, getEventKind } from "~/lib/artifacts";
 
 export function getStaticPaths() {
@@ -16,6 +18,7 @@ if (!row) throw new Error(`event_kind not found in registry: ${kind}`);
 ---
 
 <StarlightPage frontmatter={{ title: kind }}>
+  <CatalogBreadcrumb label="Event kinds" href="/catalog/event-kinds/" />
   <EventKind name={kind} />
   <h2>Wire scope</h2>
   <p>
@@ -24,17 +27,17 @@ if (!row) throw new Error(`event_kind not found in registry: ${kind}`);
     {row.wire_scope === "actor_private_event" && "Persisted actor-private/account-data; not Space history."}
     {row.wire_scope === "ephemeral_event" && "Transient sync/federation/app signal; MUST NOT persist."}
   </p>
-  <h2>Source</h2>
-  <ul>
-    <li>
-      catalog row:
-      <a href="https://github.com/your-org/contrix-spec/blob/main/spec/v1/artifacts/registry/contract-catalog.json">
-        <code>contract-catalog.json#event_kind_registry</code>
-      </a>
-    </li>
-    <li>
-      generated view:
-      <code>spec/v1/artifacts/registry/event-kind-registry.json</code>
-    </li>
-  </ul>
+  <CatalogSource
+    entries={[
+      {
+        label: "catalog row",
+        path: "artifacts/registry/contract-catalog.json",
+        pointer: "#event_kind_registry",
+      },
+      {
+        label: "generated view",
+        path: "artifacts/registry/event-kind-registry.json",
+      },
+    ]}
+  />
 </StarlightPage>

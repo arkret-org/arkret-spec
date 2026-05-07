@@ -1,0 +1,42 @@
+---
+/**
+ * Renders a uniform "Source" footer for catalog detail pages
+ * (event-kinds, errors, operations, profiles, schemas).
+ *
+ * Each catalog item is backed by exactly one canonical row (in
+ * contract-catalog.json, error-code-registry.json, or
+ * conformance-profiles.json) and zero or more generated views (file
+ * + JSON pointer). `entries` accepts either kind so individual pages
+ * can describe their own provenance.
+ */
+import { specFileUrl } from "~/lib/site-meta";
+
+export interface SourceEntry {
+  /** Human-readable label, e.g. "catalog row" or "generated view". */
+  label: string;
+  /** Path under `spec/v1/`, e.g. `artifacts/registry/...`. */
+  path: string;
+  /** Optional fragment / JSON pointer fragment. Appended to path verbatim. */
+  pointer?: string;
+}
+
+interface Props {
+  entries: SourceEntry[];
+}
+
+const { entries } = Astro.props;
+---
+
+<h2>Source</h2>
+<ul>
+  {
+    entries.map((entry) => (
+      <li>
+        {entry.label}: {" "}
+        <a href={specFileUrl(entry.path)} rel="noopener">
+          <code>{`spec/v1/${entry.path}`}{entry.pointer ?? ""}</code>
+        </a>
+      </li>
+    ))
+  }
+</ul>

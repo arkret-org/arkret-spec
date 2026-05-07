@@ -91,6 +91,8 @@ export interface ConformanceProfileMatrix {
   deployment_profiles: string[];
   vector_profiles: string[];
   hardening_profiles: string[];
+  encoding_extension_profiles?: string[];
+  identity_extension_profiles?: string[];
   profile_requirements: Record<string, unknown>;
   default_unsupported_behavior?: Record<string, unknown>;
 }
@@ -159,6 +161,32 @@ export const schemaEntries: SchemaEntry[] = schemaRegistry.schemas.slice().sort(
 );
 
 export const profileMatrix = conformanceProfiles;
+
+/**
+ * Distinct `cx.profile.*` ids declared anywhere in conformance-profiles.json.
+ * Mirrors what `tools/lint_artifacts.py` reports as "N profiles" so the
+ * homepage stat and release-readiness numbers stay in sync.
+ */
+export const totalProfileCount: number = (() => {
+  const seen = new Set<string>();
+  const walk = (value: unknown): void => {
+    if (typeof value === "string") {
+      if (value.startsWith("cx.profile.")) seen.add(value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) walk(item);
+      return;
+    }
+    if (value && typeof value === "object") {
+      for (const item of Object.values(value as Record<string, unknown>)) {
+        walk(item);
+      }
+    }
+  };
+  walk(conformanceProfiles as unknown);
+  return seen.size;
+})();
 
 export const catalogVersion: string =
   (contractCatalog.version as string | undefined) ?? "unknown";

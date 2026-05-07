@@ -30,7 +30,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
 | `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Space 历史回填、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
 | `/sync/*` | 客户端、Principal Server | 客户端聚合同步、Space 增量订阅、backfill、snapshot head。 | `client-sync.md`、`service-surface.md` |
-| `/federation/*` | Principal Server 之间 | 跨域 transaction、Event 推送/拉取、成员查询、actor 验证。 | `federation.md`、`federation.md` |
+| `/federation/*` | Principal Server 之间 | 跨域 transaction、Event 推送/拉取、成员查询、actor 验证。 | `federation.md` |
 | `/directory/*` | 客户端、服务 | Space / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
@@ -42,7 +42,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 
 客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/sync`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/federation`、`/events`、`/sync`、`/authz`、`/contrix/v1/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
 
-新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.md`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
+新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.mdx`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
 ### 2.2 端点契约规则
 

@@ -22,7 +22,7 @@
 - **变更类型**: add | modify | deprecate | remove
 - **影响 artifact**: <registry / schema / profile / fixture / openapi / non-http binding>
 - **canonical 变更**: <在 `contract-catalog.json` 等 canonical 源中实际改了什么>
-- **派生 artifact 同步**: <生成视图、镜像、fixture、OpenAPI 是否已通过 `tools/artifact_pipeline.py sync` 同步>
+- **派生 artifact 同步**: <生成视图、fixture、OpenAPI 是否已通过 `python tools/artifact_pipeline.py generate` 重新生成；drift 由 `python tools/artifact_pipeline.py check` 在 CI 中验证>
 - **conformance impact**:
   - 受影响 profile: <e.g. `core_event_store`, `chat_mvp`, ...>
   - profile tier 变化: <在 `conformance-profiles.json#profile_tiers` 中加入 / 移出 / 改 tier>

@@ -16,8 +16,12 @@ export interface Props {
 
 const { variant = "marketing" } = Astro.props;
 
-const navItems = [
-  { label: "Docs", href: "/zh/v1/" },
+type NavItem =
+  | { label: string; href: string; soon?: undefined }
+  | { label: string; href?: undefined; soon: true };
+
+const navItems: NavItem[] = [
+  { label: "Docs", href: "/zh/v1/spec-map/" },
   { label: "Catalog", href: "/catalog/event-kinds/" },
   { label: "OpenAPI", href: "/openapi/" },
   { label: "Ecosystem", soon: true },
@@ -40,7 +44,7 @@ function isActive(href: string): boolean {
     <ul class="cx-nav-links">
       {
         navItems.map((item) =>
-          item.soon ? (
+          item.href === undefined ? (
             <li>
               <span aria-disabled="true">
                 {item.label}

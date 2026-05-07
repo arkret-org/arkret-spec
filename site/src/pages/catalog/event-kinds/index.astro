@@ -1,7 +1,23 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import EventKindTable from "~/components/EventKindTable.astro";
-import { catalogVersion } from "~/lib/artifacts";
+import { catalogVersion, eventKinds } from "~/lib/artifacts";
+
+// Build the unique, sorted category list for the in-page jump nav. The
+// EventKindTable already supports a `category` filter, so we render one
+// section per category instead of one giant 110-row table.
+const categories = Array.from(
+  new Set(
+    eventKinds
+      .filter((row) => row.status === "active")
+      .map((row) => row.category),
+  ),
+).sort();
+
+function categoryLabel(name: string): string {
+  // Lightweight pretty-print: "core_object" -> "core object"
+  return name.replace(/_/g, " ");
+}
 ---
 
 <StarlightPage frontmatter={{ title: "Event kinds" }}>
@@ -10,5 +26,66 @@ import { catalogVersion } from "~/lib/artifacts";
     · catalog version <code>{catalogVersion}</code>
   </p>
   <p>所有 active <code>cx.*</code> Event.kind。点击任意条目进入详情页。</p>
-  <EventKindTable />
+
+  <nav class="cx-category-jump" aria-label="Event categories">
+    <strong>Jump to category:</strong>
+    <ul>
+      {
+        categories.map((category) => (
+          <li>
+            <a href={`#category-${category}`}>
+              <code>{categoryLabel(category)}</code>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  {
+    categories.map((category) => (
+      <section id={`category-${category}`}>
+        <h2>
+          <code>{category}</code>
+        </h2>
+        <EventKindTable category={category} />
+      </section>
+    ))
+  }
 </StarlightPage>
+
+<style is:global>
+  .cx-category-jump {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--sl-color-bg-nav);
+    margin: 0.75rem 0 1.5rem;
+    font-size: 0.9rem;
+  }
+  .cx-category-jump strong {
+    margin-right: 0.5rem;
+  }
+  .cx-category-jump ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.6rem;
+    list-style: none;
+    padding: 0;
+    margin: 0.4rem 0 0;
+  }
+  .cx-category-jump a {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.3rem;
+    background: var(--sl-color-bg);
+    border: 1px solid var(--sl-color-gray-5);
+    text-decoration: none;
+    color: var(--sl-color-text);
+  }
+  .cx-category-jump a:hover {
+    border-color: var(--sl-color-text-accent);
+    color: var(--sl-color-text-accent);
+  }
+</style>

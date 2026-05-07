@@ -531,10 +531,10 @@ SHOULD 支持：
 - idempotency tests
 - reducer convergence tests（含 state resolution 向量）
 - state resolution state vectors（见 `conformance-vectors.md`）
-- Event Envelope negative vectors（见 `artifacts/fixtures/event-envelope-negative-fixture.json` 与中文镜像）
+- Event Envelope negative vectors（见 `artifacts/fixtures/event-envelope-negative-fixture.json`）
 - redaction vectors（见 `conformance-vectors.md`）
 - capability vectors（见 `conformance-vectors.md`）
-- sync fixture、state-resolution fixture、capability fixture 和 privacy/security fixture（见 `artifacts/fixtures/*.json` 与中文镜像）
+- sync fixture、state-resolution fixture、capability fixture 和 privacy/security fixture（见 `artifacts/fixtures/*.json`）
 - authorization tests
 - privacy regression tests
 - error response tests

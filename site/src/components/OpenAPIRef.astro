@@ -18,13 +18,16 @@ const yaml = readOpenApiYaml();
 // type="application/json" data-configuration='{"spec": {"content": "..."}}'>
 // followed by the Scalar bundle. This contract has been stable across
 // Scalar majors, so we are not coupled to a specific JS API surface.
+//
+// `darkMode` is set later by the inline script so that the Scalar UI
+// follows the site-wide dark/light toggle (Starlight's `data-theme`)
+// instead of being permanently locked.
 const config = {
   spec: { content: yaml },
   layout,
   hideClientButton,
   hideDownloadButton: false,
   theme: "default",
-  darkMode: false,
 };
 ---
 
@@ -38,6 +41,45 @@ const config = {
   is:inline
   type="module"
   src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+<script is:inline>
+  // Sync Scalar's darkMode with the site theme. Scalar reads its
+  // configuration once at boot, so we patch the JSON before the
+  // bundle initializes, then keep it in sync via storage events.
+  (function () {
+    function currentTheme() {
+      var stored;
+      try {
+        stored = localStorage.getItem("starlight-theme");
+      } catch (e) {
+        stored = null;
+      }
+      if (stored === "dark" || stored === "light") return stored;
+      var attr = document.documentElement.dataset.theme;
+      if (attr === "dark" || attr === "light") return attr;
+      return window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark";
+    }
+    function patchConfig(dark) {
+      var el = document.getElementById("api-reference");
+      if (!el) return;
+      try {
+        var cfg = JSON.parse(el.textContent || "{}");
+        cfg.darkMode = dark;
+        el.textContent = JSON.stringify(cfg).replace(/<\/script/gi, "<\\/script");
+      } catch (e) {
+        /* ignore */
+      }
+    }
+    patchConfig(currentTheme() === "dark");
+    window.addEventListener("storage", function (e) {
+      if (e.key === "starlight-theme") {
+        // Reload so Scalar re-reads its config under the new theme.
+        location.reload();
+      }
+    });
+  })();
+</script>
 
 <style>
   /* Give Scalar room to lay out its three-column shell. */

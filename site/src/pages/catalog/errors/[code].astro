@@ -1,6 +1,8 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import ErrorCode from "~/components/ErrorCode.astro";
+import CatalogBreadcrumb from "~/components/CatalogBreadcrumb.astro";
+import CatalogSource from "~/components/CatalogSource.astro";
 import { errorCodes } from "~/lib/artifacts";
 
 export function getStaticPaths() {
@@ -11,10 +13,15 @@ const { code } = Astro.params as { code: string };
 ---
 
 <StarlightPage frontmatter={{ title: code }}>
+  <CatalogBreadcrumb label="Error codes" href="/catalog/errors/" />
   <ErrorCode code={code} />
-  <h2>Source</h2>
-  <p>
-    canonical row:
-    <code>spec/v1/artifacts/registry/error-code-registry.json#codes</code>
-  </p>
+  <CatalogSource
+    entries={[
+      {
+        label: "canonical row",
+        path: "artifacts/registry/error-code-registry.json",
+        pointer: "#codes",
+      },
+    ]}
+  />
 </StarlightPage>

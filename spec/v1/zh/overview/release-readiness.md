@@ -16,7 +16,7 @@ title: 实现就绪与发布门槛
 - 标准 Event kind、服务 operation、schema id、typed ID prefix 均有机器 registry
 - OpenAPI、非 HTTP binding、fixture 与中文规范均可回指这些 registry
 
-当前仓库的发布状态是 `v1.0.0` 规范稳定基线：`zh/` 与 `artifacts/` 的 registry / schema / mirror lint 必须通过，核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。历史候选标签不得用于描述当前正式发布包。
+当前仓库的发布状态是 `v1.0.0` 规范稳定基线：`spec/v1/artifacts/` 与 `spec/v1/zh/` 必须同时通过 `python tools/artifact_pipeline.py check`（registry drift 检查 + `tools/lint_artifacts.py` 注册表交叉引用 / Markdown 链接 / OpenAPI 形状 lint），核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。历史候选标签不得用于描述当前正式发布包。
 
 `v1.0.0` 基线下，机器 registry 的当前覆盖范围为：
 

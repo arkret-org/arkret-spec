@@ -102,7 +102,7 @@ HTTP/JSON 是默认 profile：
 - 流式结果 MAY 使用 SSE、WebSocket 或 newline-delimited JSON。
 - 错误使用统一 JSON error object，并映射到 HTTP status。
 
-HTTP binding 的路径 SHOULD 遵循 `service-api-schema.md`，但实现 MAY 使用 XRPC、RPC style 或版本化路径，只要 feature discovery 暴露实际 binding。
+HTTP binding 的路径 SHOULD 遵循 `service-api-schema.mdx`，但实现 MAY 使用 XRPC、RPC style 或版本化路径，只要 feature discovery 暴露实际 binding。
 
 ## 6. gRPC Binding（v1.1+ extension）
 

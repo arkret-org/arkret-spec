@@ -1,0 +1,34 @@
+---
+/**
+ * Top-of-page "← back to <catalog>" link for catalog detail pages.
+ * Keeps the catalog detail pages out of dead-end navigation: the user
+ * always sees how to get back to the listing of the same artifact kind.
+ */
+interface Props {
+  /** Display label for the parent catalog index. */
+  label: string;
+  /** Absolute href to the catalog index page. */
+  href: string;
+}
+
+const { label, href } = Astro.props;
+---
+
+<p class="cx-breadcrumb">
+  <a href={href}>← {label}</a>
+</p>
+
+<style>
+  .cx-breadcrumb {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+  }
+  .cx-breadcrumb a {
+    color: var(--sl-color-gray-3);
+    text-decoration: none;
+  }
+  .cx-breadcrumb a:hover {
+    color: var(--sl-color-text-accent);
+    text-decoration: underline;
+  }
+</style>

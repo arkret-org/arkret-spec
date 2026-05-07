@@ -1,6 +1,8 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import OperationRef from "~/components/OperationRef.astro";
+import CatalogBreadcrumb from "~/components/CatalogBreadcrumb.astro";
+import CatalogSource from "~/components/CatalogSource.astro";
 import { operations } from "~/lib/artifacts";
 
 export function getStaticPaths() {
@@ -11,10 +13,28 @@ const { id } = Astro.params as { id: string };
 ---
 
 <StarlightPage frontmatter={{ title: id }}>
+  <CatalogBreadcrumb label="Operations" href="/catalog/operations/" />
   <OperationRef id={id} />
   <p>
     OpenAPI 中的 <code>operationId</code> 与本 ID 完全一致。打开
     <a href={`/openapi/#operation/${encodeURIComponent(id)}`}>/openapi/#operation/{id}</a>
     查看请求/响应 schema 与示例。
   </p>
+  <CatalogSource
+    entries={[
+      {
+        label: "catalog row",
+        path: "artifacts/registry/contract-catalog.json",
+        pointer: "#operation_registry",
+      },
+      {
+        label: "generated view",
+        path: "artifacts/registry/operation-registry.json",
+      },
+      {
+        label: "HTTP binding",
+        path: "artifacts/openapi/contrix-service-api.openapi.yaml",
+      },
+    ]}
+  />
 </StarlightPage>

@@ -6,6 +6,7 @@
  * gives docs pages the same site-level navigation as the marketing
  * landing page without stacking two fixed-height nav bars.
  */
+import type { Props } from "@astrojs/starlight/props";
 import SiteNav from "./SiteNav.astro";
 import config from "virtual:starlight/user-config";
 import LanguageSelect from "virtual:starlight/components/LanguageSelect";
@@ -15,6 +16,11 @@ import ThemeSelect from "virtual:starlight/components/ThemeSelect";
 
 import "../styles/marketing.css";
 
+// Starlight passes the route data as `Astro.props` to overridden header
+// components. Forwarding it to the bundled Search/Theme/Lang/Social
+// components requires the same type so each child sees its full route data.
+const props = Astro.props as Props;
+
 const shouldRenderSearch =
   config.pagefind ||
   config.components.Search !== "@astrojs/starlight/components/Search.astro";
@@ -22,11 +28,11 @@ const shouldRenderSearch =
 
 <SiteNav variant="docs">
   <Fragment slot="tools">
-    {shouldRenderSearch && <Search {...Astro.props} />}
+    {shouldRenderSearch && <Search {...props} />}
     <div class="cx-docs-tools">
-      <SocialIcons {...Astro.props} />
-      <ThemeSelect {...Astro.props} />
-      <LanguageSelect {...Astro.props} />
+      <SocialIcons {...props} />
+      <ThemeSelect {...props} />
+      <LanguageSelect {...props} />
     </div>
   </Fragment>
 </SiteNav>
@@ -40,14 +46,38 @@ const shouldRenderSearch =
     display: block !important;
   }
 
-  /* Push Starlight's mobile menu toggle out of overlap with the nav links. */
+  /* Cancel Starlight's nav padding and span the full bar so the SiteNav's
+   * brand can align with the left sidebar edge and the tools cluster can
+   * align with the right page edge — not float in the middle (which is
+   * what happens when the inner `.cx-shell` clamps to 1180px). */
   .cx-nav--docs {
     margin: calc(-1 * var(--sl-nav-pad-y)) calc(-1 * var(--sl-nav-pad-x));
     padding: 0;
     height: var(--sl-nav-height);
   }
   .cx-nav--docs .cx-nav-row {
+    /* Override the marketing layout's centered max-width so the docs nav
+     * fills the entire header bar above the sidebar + content + TOC grid. */
+    max-width: none;
+    width: 100%;
     height: 100%;
+    /* Match Starlight's own nav padding so the brand left-aligns with the
+     * sidebar's left edge and the tools cluster right-aligns with the
+     * page padding. */
+    padding-left: var(--sl-nav-pad-x);
+    padding-right: var(--sl-nav-pad-x);
+  }
+
+  /* Make the brand cell occupy exactly one sidebar width on wide screens so
+   * the boundary between brand and nav-links is the same vertical line as
+   * the boundary between sidebar and main content. */
+  @media (min-width: 50rem) {
+    .cx-nav--docs .cx-brand {
+      width: calc(
+        var(--sl-sidebar-width) - var(--sl-nav-pad-x) - var(--sl-sidebar-pad-x)
+      );
+      flex-shrink: 0;
+    }
   }
 
   /* On wide screens, ensure the right-side tools (search, theme, lang)

@@ -1,5 +1,7 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import CatalogBreadcrumb from "~/components/CatalogBreadcrumb.astro";
+import CatalogSource from "~/components/CatalogSource.astro";
 import { profileMatrix } from "~/lib/artifacts";
 
 export function getStaticPaths() {
@@ -21,6 +23,7 @@ const blocks = requirements ? Object.entries(requirements) : [];
 ---
 
 <StarlightPage frontmatter={{ title: id }}>
+  <CatalogBreadcrumb label="Profiles" href="/catalog/profiles/" />
   <p><code>{id}</code></p>
   {
     blocks.length === 0 ? (
@@ -34,9 +37,13 @@ const blocks = requirements ? Object.entries(requirements) : [];
       ))
     )
   }
-  <h2>Source</h2>
-  <p>
-    canonical:
-    <code>spec/v1/artifacts/profiles/conformance-profiles.json#profile_requirements/{id}</code>
-  </p>
+  <CatalogSource
+    entries={[
+      {
+        label: "canonical row",
+        path: "artifacts/profiles/conformance-profiles.json",
+        pointer: `#profile_requirements/${id}`,
+      },
+    ]}
+  />
 </StarlightPage>

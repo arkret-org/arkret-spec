@@ -11,11 +11,11 @@
       "role": "Generated machine-readable operation registry view."
     },
     {
-      "file": "../zh/sync/contrix-service-api.openapi.yaml",
+      "file": "openapi/contrix-service-api.openapi.yaml",
       "role": "HTTP/OpenAPI binding shape aligned to the catalog; not a second operation namespace."
     },
     {
-      "file": "../zh/sync/service-api-schema.md",
+      "file": "../zh/sync/service-api-schema.mdx",
       "role": "Descriptive operation map and governance notes; excerpt-only unless explicitly marked generated."
     }
   ],
