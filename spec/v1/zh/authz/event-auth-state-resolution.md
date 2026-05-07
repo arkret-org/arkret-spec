@@ -30,7 +30,8 @@ Contrix v1 通过以下三个机器约束表达版本演进，**不**使用顶�
 6. 对 `auth_refs` 运行授权算法。
 7. 对 `payload` 运行类型级 schema validation。
 8. 对策略服务、capability constraint、rate limit 和 abuse policy 运行本地检查。
-9. 输出 `accepted`、`soft_failed`、`rejected` 或 `quarantined`。
+9. **若目标 Space 是 hub-writer 模型**（`Space.space_writer_model="hub"`），按 §3.3 验证 host endorsement proof。
+10. 输出 `accepted`、`soft_failed`、`rejected` 或 `quarantined`。
 
 节点 MUST NOT 因为事件来自可信 Sync Service 就跳过任何步骤。
 
@@ -44,6 +45,45 @@ Contrix v1 通过以下三个机器约束表达版本演进，**不**使用顶�
 实现 / Space / reducer profile MAY 在 `server/describe.limits` 或 reducer profile 中显式声明更紧或更宽的 `hard_future_skew_ms` 与 `expected_future_skew_ms`。**v1 不再隐式区分"普通事件"与"高风险事件"的不同 expected drift**；如果某 reducer profile 想对 state event（capability、membership、policy、service binding、reducer profile 升级、MLS commit 等）施加更严的窗口，MUST 在 profile 中显式声明 `state_event_expected_future_skew_ms`，否则一律按 `expected_future_skew_ms` 执行。
 
 无论窗口配置如何，HLC 不得单独覆盖缺失的 causal dependency、`actor_seq` 回退或 revoke freshness 检查；高风险 state event 即使 HLC 更大，也必须先满足签名、授权、`prev_refs`、`auth_refs`、`actor_seq` 和 revoke freshness。
+
+### 3.3 Hub Writer Endorsement
+
+声明 `space_writer_model="hub"`（参见 [`models/data-structures.md`](../models/data-structures.md) Space 表）的 Space 实施 **single ordering authority** 模型。所有 durable state event MUST 在 `proofs[]` 中携带恰好一个 `kind="host_endorsement"` proof，覆盖与 actor / device proof 相同的 canonical event bytes：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `kind` | `"host_endorsement"` | 区分自普通 actor / device proof |
+| `verification_method` | DID URL | host service DID 控制的签名 key |
+| `host_did` | DID | endorsing host 的 service DID；MUST 等于该 Space 当前 accepted `cx.space.host.payload.host_did`，或在 active `cx.space.host.transfer.activation_frontier` 之后由 `payload.new_host` 指定 |
+| `payload_hash` | sha256 | 与 actor proof 相同的 canonical bytes digest |
+| `endorsed_at` | timestamp | host 本地时钟（advisory，HLC 仍是排序权威） |
+
+**适用范围**：
+
+- **必须** endorsement：所有 `wire_scope=durable_event` 的 state event（包括 `cx.space.host` 自身——genesis host 在 `cx.space.create.payload.object.space_host` 中声明，并由 create event 的 actor proof 间接背书；后续 `cx.space.host` 更新由当前 host endorsement 背书）。
+- **不要求** endorsement：`wire_scope=ephemeral_event` 与 `wire_scope=actor_private_event`（hub 模型不影响临时通道与 actor 私有流）。
+- **bootstrap 例外**：`cx.space.create` 自身不需要 host endorsement（host 由 create event 内的 `payload.object.space_host` 字段确立，写入路径上还没有可背书的 host）。create event 的 actor proof + `created_by_principal` 与 `space_host` 的关系由 §4 auth ref 规则验证。
+
+**接收方规则**：
+
+- hub-writer Space 的 durable state event 缺 `host_endorsement` proof MUST `proof_missing` reject（不得 soft-fail；这是协议级别的硬条件）。
+- `host_endorsement.host_did` 不等于该 event 的因果 auth state 下当前 host MUST `host_mismatch` reject。
+- `host_endorsement` 出现在 `space_writer_model="peer_mesh"` Space 的 event 上 MUST `schema_violation` reject（peer-mesh 不允许 host endorsement，防写错或攻击伪造单一 ordering authority）。
+- host 自身被 ban、撤销、host service DID 被吊销，或 `cx.space.host.transfer` activation 后该 host 已不再是当前 host：endorsement 在 frontier 后的事件 MUST reject。
+
+**Writer Model Kind Constraints**：contract-catalog 中带 `writer_model_constraint` 字段的 kind（v1 中的 `cx.space.host` 与 `cx.space.host.transfer`，约束值均为 `hub`）只能出现在该 writer_model 的 Space。接收方 MUST：
+
+- `cx.space.host` / `cx.space.host.transfer` 出现在 `space_writer_model="peer_mesh"` Space MUST `schema_violation` reject。
+- 未来引入的 peer_mesh-only kind 同样按 `writer_model_constraint` 字段 reject 不匹配的 Space。
+
+**Genesis Host 引导**：hub-writer Space 的初始 host 由 `cx.space.create.payload.object.space_host` 字段确立。create event 处理时：
+
+1. 接收方记录 `space_host = cx.space.create.payload.object.space_host` 为该 Space 的 implicit cx.space.host genesis state。
+2. 在第一个显式 `cx.space.host` event 被 accepted 之前，所有其它 durable state event 的 host endorsement MUST 来自 genesis host_did（否则 reject）。
+3. 第一个显式 `cx.space.host` event 自身的 endorsement MUST 来自 genesis host（即创建时声明的 host endorsing 自己更新 standby_hosts / activation_timeout 等元字段）。
+4. host_did 本身的转移必须走 `cx.space.host.transfer`（§13），不得通过普通 `cx.space.host` 更新替换 host_did。
+
+**与 §3 验证流程的关系**：host endorsement 校验在 actor / device 签名校验（步骤 3）之后、`auth_refs` 授权（步骤 6）之前；它不替代 actor 授权（actor 仍需有写入 capability），只附加"host 已确认接受该事件入序"。
 
 ## 4. Auth Refs
 
@@ -134,7 +174,7 @@ Reducer state slot 主键由 schema registry 中每个 kind 声明的 `state_car
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `component_type` | URI（`cx.component.<facet-path>.v<n>`） | 稳定标识"这个 state slot 维护的是哪个逻辑状态机"。多个 kind 操作同一逻辑 slot 时 MAY 共享 component_type（例如 `cx.capability.grant` 与 `cx.capability.revoke` 共享同一 grant slot；`cx.profile.create` 与 `cx.profile.update` 共享同一 profile slot）；共享关系 MUST 在 registry 文档中明确。 |
+| `component_type` | URI（`cx.component.<facet-path>.v<n>`） | 稳定标识"这个 state slot 维护的是哪个逻辑状态机"。多个 kind 操作同一逻辑 slot 时 MUST 共享 component_type；secondary kind 在 registry 中通过 `component_slot_alias_of` 字段显式指向 primary kind。v1 中已声明的共享关系：`cx.capability.revoke` / `cx.capability.grant` 共享 `cx.component.capability.grant.v1`（revoke 是 grant slot 的 supersede）；`cx.profile.update` / `cx.profile.create` 共享 `cx.component.profile.create.v1`；`cx.device.revoked` / `cx.device.authorized` 共享 `cx.component.device.authorized.v1`；`cx.consent.revoke` / `cx.consent.grant` 共享 `cx.component.consent.grant.v1`。reducer 在解析 `(component_type, component_version)` slot 的最新 accepted event 时 MUST 把 alias 与 primary kind 视作同一逻辑序列。 |
 | `component_version` | int | 同一 `component_type` 内部的版本号；语义变化 MUST 升版本。版本不同的 event 不共享 reducer slot；reducer MUST 按 `(component_type, component_version)` 完整匹配。 |
 | `criticality` | enum(`required`, `optional`, `ignore`) | 受方在不识别 `component_type` 或 `component_version` 时的默认行为。 |
 
@@ -464,7 +504,12 @@ State event 不等于 auth state dependency。`cx.view.*` 等投影定义事件�
 
 ## 9. State Resolution
 
-当多个分支对同一 state slot 给出不同 accepted state event 时，节点 MUST 运行 deterministic state resolution。
+State resolution 行为按 `Space.space_writer_model` 分流：
+
+- **`peer_mesh`**（默认 `federation_policy=open` 时）：任何持有 capability 的 actor 可写入；并发 fork 是合法协议状态，由 §9.3 quarantine-on-concurrent-fork 处理。详见 §9.1–§9.4。
+- **`hub`**（默认 `federation_policy ∈ {closed, restricted, quarantine}` 时）：Space Host 是单一 ordering authority；§3.3 host endorsement 机制保证 protocol-layer 0 fork。任何 fork 都视为 host 故障 / 网络分裂 / 攻击诊断（见 §9.5）。
+
+无论何种模型，当多个分支对同一 state slot 给出不同 accepted state event 时，节点 MUST 运行 deterministic state resolution。
 
 Contrix 的 state resolution 设计前提与 Matrix 不同：
 
@@ -543,6 +588,24 @@ auth_difference(conflicted_events):
 实现 MUST 对 `diff` 中的事件按 state resolution 的 deterministic ordering 排序后再验证授权。若某个 auth event 缺失、hash 不匹配或自身不能 accepted，依赖它的候选事件 MUST soft-fail 或 fail closed，不能把缺失 auth 当作允许。
 
 Policy hard deny、ban、quarantine、unknown critical feature、缺失必要 approval、未知 critical constraint、claim revocation 无法确认且该 claim 为必要条件时，候选事件 MUST 在 §9.3 的授权检查阶段 fail closed、soft fail 或 quarantine。它们不得通过任何"权重"或"优先级"被覆盖。
+
+### 9.5 Hub Writer 模型下的 Fork 诊断
+
+`Space.space_writer_model="hub"` 的 Space 中，host endorsement (§3.3) 保证 protocol-layer 不可能产生并发 fork——同一 state slot 的两个互斥事件只能在 host 故意签发时才会出现，这违反 host 的 single-ordering 协议责任。
+
+接收方在 hub Space 中检测到 §9.3 算法上同一 state slot 出现 ≥2 个通过 host endorsement 验证的并发候选时，MUST：
+
+1. **整 state slot quarantine**：不选 winner，整个 slot 进入 `state_slot_host_fault` 状态；后续读取该 slot 时 MUST 返回 quarantine 诊断而非任一候选。
+2. **生成 host fault 报告**：报告 MUST 绑定冲突候选 event ids、冲突 host endorsement、冲突 HLC、检测节点 service DID 与诊断时间。可选 deliver 到 `cx.policy.action`、moderation server、organization governance audit channel。
+3. **暂停推进 covered frontier**（若 Space 是 E2EE）：`cx.mls.commit` 不应基于 quarantined slot 的任一候选构造新 epoch，直到 host 故障解除。
+4. **触发 emergency host transfer 候选条件**：若 host 在 `activation_timeout_ms` 内未发布修正（例如 `cx.policy.action` 撤销其中一个分叉），符合 `cx.space.host.standby_hosts` 的 standby 可发起 emergency transfer (`cx.space.host.transfer.mode="emergency"`，见 §4.D 与 [`models/data-structures.md`](../models/data-structures.md)）。
+
+诊断接触不是删除：原冲突 event 仍保留为审计记录，host fault report 进入审计 projection。状态恢复路径有两条：
+
+- **host 自我修正**：当前 host 发布 `cx.policy.action` 撤销其中一个分叉作为协议错误，slot 解除 quarantine 并采纳保留的候选。
+- **emergency transfer**：standby 接管 host 角色后，新 host 在 activation_frontier 之后重新写入该 slot 的 canonical 值。
+
+**peer_mesh Space 不适用本节**：在 peer_mesh Space 中并发 fork 是常态，按 §9.3 quarantine-on-concurrent-fork 处理；不进入 `state_slot_host_fault` 状态。
 
 ## 10. Redaction
 
@@ -710,3 +773,90 @@ Space lifecycle 是 reducer state，不是本地服务开关。每个 transition
 - `tombstoned` 和 `destroyed` 是 terminal state。后续普通业务 Event MUST reject；只允许 redaction、export、legal hold、account lifecycle、migration proof、snapshot/witness proof 和 policy 明确列出的维护类 Event。
 - `destroy` 不等于全网物理删除。它只声明该 Space 已不可恢复地 decommission；已签名 Event、verification stub、legal hold 和外部副本仍按各自 policy 处理。
 - 这些转换均需要 Space admin / owner / governance root 或 policy 声明的 lifecycle capability；policy hard deny 优先于其它授权来源。
+
+## 13. Space Host Transfer（仅 hub 模型）
+
+`Space.space_writer_model="hub"` 的 Space 中，host 控制权通过 `cx.space.host.transfer` event 显式转移。该 event 是 per_subject state（slot key = `payload.transfer_id`），有两种 mode：
+
+### 13.1 Smooth Transfer
+
+```json
+{
+  "kind": "cx.space.host.transfer",
+  "payload": {
+    "transfer_id": "transfer-2026-05-07-01",
+    "mode": "smooth",
+    "previous_host": "did:web:host1.example",
+    "new_host": "did:web:host2.example",
+    "activation_frontier": ["cx:event:01js0xfy0000000000000000000"],
+    "smooth_dual_signature": {
+      "previous_host_proof": { "...": "..." },
+      "new_host_proof": { "...": "..." }
+    },
+    "reason": "scheduled host migration"
+  },
+  "proofs": [
+    { "kind": "host_endorsement", "host_did": "did:web:host1.example", "...": "..." }
+  ]
+}
+```
+
+规则：
+
+- `mode="smooth"` 要求 `previous_host` 与 `new_host` 都签名 `smooth_dual_signature`，证明双方同意移交。
+- `previous_host` MUST 等于该 event 之 causal frontier 上当前 accepted `cx.space.host.payload.host_did`。
+- `new_host` MUST 是 DID 可解析、有 active service 入口兼容 `cx.profile.space.hub_writer.v1` 的 service DID；MAY 是当前 `cx.space.host.payload.standby_hosts` 中之一，但不限于此。
+- `activation_frontier` 之前（包含）的事件继续接受 `previous_host` endorsement；`activation_frontier` 之后写入的事件 MUST 由 `new_host` endorsement 背书。
+- transfer event 自身需要 host endorsement，由 `previous_host`（保留 ordering authority 直到 activation）签发。
+- 客户端在收到 transfer event 后 SHOULD 缓存 `new_host` service entry，并在 activation_frontier 之后切换 endorsement 验证 key。
+- 同一 `transfer_id` 的并发候选按普通 §9.3 quarantine-on-fork 处理；不同 transfer_id 的并发 transfer 在 §9.5 host fault 诊断下进入 quarantine。
+
+### 13.2 Emergency Transfer
+
+```json
+{
+  "kind": "cx.space.host.transfer",
+  "payload": {
+    "transfer_id": "transfer-2026-05-07-02",
+    "mode": "emergency",
+    "previous_host": "did:web:host1.example",
+    "new_host": "did:web:standby.example",
+    "activation_frontier": ["cx:event:01js0xfy0000000000000000000"],
+    "incident_ref": "incident:host_unreachable_72h",
+    "governance_quorum_proof": {
+      "policy_version": "cx.governance.v1",
+      "signers": [
+        "did:web:org1.example",
+        "did:web:org2.example"
+      ],
+      "decision_id": "gov-2026-05-07-01",
+      "audit_digest": "sha256:..."
+    },
+    "reason": "host unreachable for 72h; standby activation per Space.space_host.activation_timeout_ms"
+  },
+  "proofs": [
+    { "kind": "detached_jws", "verification_method": "did:web:org1.example#key-1", "...": "..." }
+  ]
+}
+```
+
+规则：
+
+- `mode="emergency"` 在以下条件之一成立时启用：
+  - `previous_host` 在 `Space.space_host.activation_timeout_ms` 时长内未发布任何 host endorsement（按接收方本地 frontier 与 HLC 估算）；
+  - 因 §9.5 host fault 诊断 quarantine 后未在 timeout 内自我修正；
+  - `previous_host` 的 DID Document / service entry 被吊销或证明丧失控制权。
+- emergency transfer 不需要 `previous_host` 签名（前提就是 host 失联）。它要求 `governance_quorum_proof` 中 `signers` 来自 `Space.owning_organizations` 集合，且数量 ≥ `floor(|owning_organizations|/2) + 1`（即多数）。
+- `incident_ref` MUST 引用一个可独立审计的 incident / governance proceeding；不得只填 `"emergency"` 这种空字符串。
+- emergency transfer event 不需要 host endorsement（host 已失联）；reducer 仍按 actor + governance quorum proof 验证授权。
+- 多个 emergency transfer 候选按 §9.3 + §9.5 处理；正确流程是 `owning_organizations` 在 transfer 前先达成 quorum 再统一发布单一 transfer event。
+- emergency 路径下 `new_host` SHOULD 是当前 `cx.space.host.payload.standby_hosts` 中之一；选 standby 之外的 DID 时 receiver MAY warning 但不 reject（quorum 已经显式授权）。
+
+### 13.3 Activation 边界
+
+- transfer event accepted 后，receiver MUST 同时：
+  1. 在 `cx.space.host` slot 上把 host 切换到 `new_host`（reducer 派生 effective host = transfer 链上最新 accepted transfer 的 `new_host`，若无则回退到 `cx.space.host.payload.host_did`）。
+  2. 拒绝 `activation_frontier` 之后由 `previous_host` endorsement 签发的事件（旧 host 的写入权限在 frontier 后失效）。
+  3. 拒绝 `activation_frontier` 之前由 `new_host` endorsement 签发的事件（新 host 不能追溯背书未来 frontier）。
+- transfer event 与 frontier 的关系类似 `cx.space.upgrade` 的 enforcement 边界（参见 §12.1），但只影响 endorsement key 切换，不影响 schema / reducer profile。
+- `cx.space.host` 的更新（修改 standby_hosts、activation_timeout_ms 等）不需要走 transfer 仪式；普通 `cx.space.host` event + 当前 host endorsement 即可。只有 host_did 本身的转移必须走 `cx.space.host.transfer`。

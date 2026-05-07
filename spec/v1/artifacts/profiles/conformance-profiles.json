@@ -156,6 +156,10 @@
     "cx.profile.attested_audit.e2ee.v1",
     "cx.profile.disclosed_audit.e2ee.v1"
   ],
+  "writer_model_profiles": [
+    "cx.profile.space.hub_writer.v1",
+    "cx.profile.space.peer_mesh.v1"
+  ],
   "vector_profiles": [
     "cx.profile.capability_vectors.v1",
     "cx.profile.crypto_signature_vectors.v1",
@@ -1225,7 +1229,6 @@
       "capability_root_required_components": [
         "cx.component.capability.grant.v1",
         "cx.component.capability.delegate.v1",
-        "cx.component.capability.revoke.v1",
         "cx.component.capability.derived.v1"
       ],
       "feature_discovery": {
@@ -1559,6 +1562,56 @@
           "mimi_vector_runner"
         ],
         "unsupported_optional": "not applicable"
+      }
+    },
+    "cx.profile.space.hub_writer.v1": {
+      "inherits": [],
+      "description": "Space-level profile declaring hub-writer model: Space has a single canonical Space Host (cx.space.host); all durable state events MUST carry host endorsement proof; state resolution expects 0 concurrent forks (forks indicate host malfunction or attempted attack and trigger quarantine of the entire state slot pending host clarification). Default for Spaces with federation_policy in {closed, restricted, quarantine}.",
+      "required_endpoints": [],
+      "required_event_kinds": [
+        "cx.space.host",
+        "cx.space.host.transfer"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.space.v1"
+      ],
+      "required_fixtures": [
+        "state-resolution-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "host_endorsement_proof",
+          "host_transfer_smooth",
+          "host_transfer_emergency",
+          "writer_model_locked"
+        ],
+        "unsupported_optional": "reject events lacking host endorsement"
+      }
+    },
+    "cx.profile.space.peer_mesh.v1": {
+      "inherits": [],
+      "description": "Space-level profile declaring peer-mesh writer model: any actor with capability MAY write state events; concurrent forks resolved by §9.3 quarantine-on-concurrent-fork algorithm. Default for Spaces with federation_policy=open. cx.space.host and cx.space.host.transfer events MUST be rejected (writer_model is locked at create).",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [
+        "cx.space.host",
+        "cx.space.host.transfer"
+      ],
+      "required_schemas": [
+        "cx.schema.space.v1"
+      ],
+      "required_fixtures": [
+        "state-resolution-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "concurrent_fork_quarantine",
+          "writer_model_locked"
+        ],
+        "unsupported_optional": "fall back to single-writer simulation under host endorsement absence"
       }
     }
   }

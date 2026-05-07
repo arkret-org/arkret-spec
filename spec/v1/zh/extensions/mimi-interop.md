@@ -220,6 +220,8 @@ Facade 在 MIMI room policy 与 Contrix state event 之间转换时按下表映�
 | `cx.component.space.destroy.v1` | `cx.space.destroy` | 同上 |
 | `cx.component.member.state.v1` | `cx.member.state` | MLS GroupContext 的 leaf node + roster；Contrix membership 不进入 MIMI policy components |
 | `cx.component.flow.branch.policy_components.v1` | `cx.flow.branch.policy_components` | MIMI room policy component 集合（用于 discussion branch 投影时） |
+| `cx.component.space.host.v1` | `cx.space.host` | 与 MIMI hub provider 概念相邻但不等价：Contrix Space Host 是 wire-level 单一 ordering authority（hub-writer 模型，见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3.3），MIMI hub provider 是 provider-level 的 room owner。映射时 facade 把 Contrix host 同步为 MIMI hub provider 声明。Contrix peer-mesh Space 没有 host，对应 MIMI 的 multi-hub / federated room（暂未在 MIMI 草案中标准化）。 |
+| `cx.component.space.host.transfer.v1` | `cx.space.host.transfer` | Contrix 专属仪式（smooth dual-sign / emergency governance-quorum）。MIMI 草案未规范 hub provider 转移；facade 暂不映射，记录为审计 metadata。 |
 
 > 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Contrix 中是 `cx.space.policy_components` 的子组件（通过 `payload.components`），而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `cx.space.policy_components` payload 的对应字段。
 
@@ -249,7 +251,7 @@ MIMI identifier MUST NOT 被直接作为 Contrix actor。映射规则：
 - connection identifier 仅用于 discovery / consent，不进入 Space history，除非 holder 明确作为 handle / claim 披露。
 - display name 只用于 UI，不参与授权。
 
-`cx.mimi.identifier_query` SHOULD 调用 `cx.private_contact_discovery.v1`，并返回 time-bound reachability proof。`cx.mimi.request_consent` / `cx.mimi.update_consent` MUST 映射为 holder-private consent state、invite、presentation request 或 claim proof。Consent 不授予 Space read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。
+`cx.mimi.identifier_query` SHOULD 调用 `cx.private_contact_discovery.v1`，并返回 time-bound reachability proof。`cx.mimi.request_consent` / `cx.mimi.update_consent` MUST 映射为 Contrix 的 holder-private consent state（`cx.consent.grant` / `cx.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Space read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
 
 ## 11. Abuse Report And Proxy Download
 

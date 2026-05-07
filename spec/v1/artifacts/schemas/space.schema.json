@@ -216,6 +216,18 @@
         "quarantine"
       ]
     },
+    "space_writer_model": {
+      "type": "string",
+      "enum": [
+        "hub",
+        "peer_mesh"
+      ],
+      "description": "Authoritative-writer model for this Space. Create-locked (cannot change after create). 'hub' = single canonical Space Host (declared via cx.space.host) endorses every durable state event; state slots have at most one accepted event per slot key (no concurrent forks at protocol layer). 'peer_mesh' = any actor with capability may write; concurrent forks resolved by §9.3 quarantine-on-concurrent-fork. Default derived from federation_policy when omitted: closed/restricted/quarantine -> hub, open -> peer_mesh."
+    },
+    "space_host": {
+      "$ref": "#/$defs/did",
+      "description": "Service DID of the canonical Space Host. REQUIRED when space_writer_model=hub. The reducer materialises this from the latest accepted cx.space.host state event; the create event provides the initial value."
+    },
     "retention_policy_ref": {
       "type": "string",
       "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
@@ -293,6 +305,42 @@
               "quarantine"
             ]
           }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "space_writer_model": {
+            "const": "hub"
+          }
+        },
+        "required": [
+          "space_writer_model"
+        ]
+      },
+      "then": {
+        "required": [
+          "space_host"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "space_writer_model": {
+            "const": "peer_mesh"
+          }
+        },
+        "required": [
+          "space_writer_model"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "space_host"
+          ]
         }
       }
     }

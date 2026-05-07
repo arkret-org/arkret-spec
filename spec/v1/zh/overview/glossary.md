@@ -74,6 +74,14 @@ title: 术语表
 | Application State Ref | 应用状态引用 | E2EE Space 中每个 `cx.mls.commit` 携带的引用，绑定本次 commit 覆盖的 Contrix 应用 state（policy_root / membership_frontier / capability_root / discussion_metadata_hash）。通过 MLS GroupContext extension `cx_app_state_ref` 进入 `confirmed_transcript_hash`，使全体 group 成员对 state 视图达成一致。详见 `crypto-media/encryption-and-audit.md` §2.5。 |
 | Covered Frontier | 已绑定前沿 | E2EE Space 中被某个 winning `cx.mls.commit` 的 `application_state_ref` 覆盖的 accepted state event 子集；与 accepted frontier 区别在于：covered 才是 E2EE 加密路径的权威 state 边界。 |
 | Pending MLS Binding | 待 MLS 绑定 | E2EE Space 中 state event 的中间状态：协议层 accepted、推进 reducer frontier，但尚未被任一 winning `cx.mls.commit` 覆盖。在该状态下 MUST NOT 影响 E2EE 解密 / key share / 新 application message 加密 epoch。 |
+| Space Writer Model | 写入模型 | Space create 时锁定的 enum(`hub`, `peer_mesh`)，决定该 Space 是单一 ordering authority 还是 peer-mesh 并发写入。默认按 `federation_policy` 派生（closed/restricted/quarantine → hub；open → peer_mesh）。 |
+| Space Host | 空间主机 | hub-writer Space 的单一 ordering authority service DID（由 `cx.space.host` state event 维护）。所有 durable state event 必须经 host endorsement。 |
+| Host Endorsement | 主机背书 | hub-writer Space 中 Space Host 对 event canonical bytes 的 `kind="host_endorsement"` proof，证明 host 已接受该事件入序。与 actor / device proof 并存于 `proofs[]`。 |
+| Hub Writer Model | 单写者模型 | hub-fanout 写入与传播形态：唯一 Space Host 是 ordering authority，follower Principal Server 验证 host endorsement 后写入本地 replica。state slot fork 在协议层不可能；fork 即 host fault。 |
+| Peer Mesh Model | 对等网模型 | peer-to-peer 写入与传播形态：任何持有 capability 的 actor 可写入；并发 fork 由 quarantine-on-concurrent-fork 算法处理。Contrix v1 早期默认行为，现作为 `federation_policy=open` 的派生默认。 |
+| Host Transfer | 主机转移 | hub-writer Space 中 host 控制权转移仪式。`smooth` mode 由当前与新 host 双签；`emergency` mode 在 host 失联超 `activation_timeout_ms` 时由 owning_organizations 多数签名启动。详见 `authz/event-auth-state-resolution.md` §13。 |
+| Consent | 同意 | Holder-private 决策："我同意接收来自 X 的某种联系"。表达为 `cx.consent.grant` / `cx.consent.revoke` state event，写入 holder principal control Space。是 invite / contact 路径的前置 gate，独立于 capability 与 invite。详见 `identity/consent-model.md`。 |
+| Consent Scope | 同意范围 | Consent grant 适用的联系类型枚举：`invite` / `direct_message` / `voice_call` / `video_call` / `presence` / `any`。每种 scope 是独立 consent slot。 |
 | Reducer | 归约器 | 确定性纯函数，将 accepted Event 集合归约为当前态、state hash 和 conflict records。 |
 | Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Flow、Relation、View。 |
 | Frontier | 前沿 | Actor 或 Space 已接受事件的最远同步边界，用 event_id / HLC / actor_seq 表示。 |

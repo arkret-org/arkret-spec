@@ -99,7 +99,7 @@
 | 1.E.1 | `[x]` | 全仓 grep 确认 `state_key` 仅在描述性 "envelope 不携带 state_key" 段落出现 |
 | 1.E.2 | `[x]` | `python tools/artifact_pipeline.py check` 通过：125 event kinds (+15)、34 schemas、36 typed IDs、83 operations、48 profiles |
 | 1.E.3 | `[x]` | event_kinds count 110 → 125 = +17 新 facet kinds − 2 旧聚合 kind |
-| 1.E.4 | `[ ]` | `matrix-core-differences.md` 增加偏离说明（待办：留给 Phase 2 一起做） |
+| 1.E.4 | `[x]` | `matrix-core-differences.md` 新增 §6 "State Model 与 Writer Model 的明确偏离"，覆盖 6 大偏离：state_key 移除 / 聚合 kind 拆分 / 双轨 state resolution / component-typed state / E2EE MLS state binding / holder-private consent |
 
 ## Phase 2 🔒 — Component-typed policy + criticality（吸收 MIMI Room Policy Components）✅
 
@@ -123,27 +123,86 @@
 | 3.4 | `[x]` | `glossary.md` 新增 4 条：Application State Ref / Covered Frontier / Pending MLS Binding |
 | 3.5 | `[x]` | `python tools/artifact_pipeline.py check` 通过 |
 
-## Phase 4 [!] ⚠ — Space Host 单 writer 模型（**等决策**）
+## Phase 4 ⚠ 🔒 — Hybrid Writer Model（决策：c — 混合 profile）✅
 
-> **决策点**：(a) 保持 peer-mesh + state resolution；(b) 切到 hub-writer；(c) 混合 profile（sovereign 默认 hub，open federation 允许 mesh）。
-> 决策前不开始本阶段任何子任务。
+> **决策**：每个 Space 在 create 时锁定 `space_writer_model ∈ {hub, peer_mesh}`，与 `encryption_profile` 同等地位（create-locked，不可后续 PATCH）。默认按 `federation_policy` 派生：`closed` / `restricted` / `quarantine` → `hub`；`open` → `peer_mesh`。两套语义共存，由 Space-level 选择。
 
-| # | 状态 | 任务（仅等待决策后启动） |
-|---|---|---|
-| 4.0 | `[!]` | **等待 (a)/(b)/(c) 选择** |
-| 4.1 | `[ ]` | 视决策修改 `sync/federation.md`、`sync/sovereign-deployment.md` |
-| 4.2 | `[ ]` | 视决策修改 state resolution 规则 |
-| 4.3 | `[ ]` | 视决策定义 host migration 仪式 |
+### 设计原则
 
-## Phase 5 🅿 — Consent state machine
+- `hub` 模型：每个 Space 有唯一 `space_host`（service DID）；所有 durable state event MUST 携带 host endorsement proof；state resolution fork 在协议层不可能（host 是单一 ordering authority）。fork = host 故障或攻击，按异常处理。
+- `peer_mesh` 模型：当前 v1 行为不变；任何持有 capability 的 actor 可写入任意 state slot；并发 fork 由 §9.3 quarantine-on-concurrent-fork 算法处理。
+- `host` 转移有显式仪式：smooth transfer = 现任 host + 新 host 双签；emergency transfer = `owning_organizations` 多数签名 + cooldown。
+- 两个 profile：`cx.profile.space.hub_writer.v1` 与 `cx.profile.space.peer_mesh.v1`，作为 Space-level 强制 profile。
+
+### 4.A 数据结构 + 注册（核心 wire 改动）
 
 | # | 状态 | 任务 |
 |---|---|---|
-| 5.1 | `[ ]` | 新增目录 `spec/v1/zh/consent/`，写一篇 `consent-model.md` |
-| 5.2 | `[ ]` | 新增 event kinds：`cx.consent.grant`、`cx.consent.revoke`、`cx.consent.query` |
-| 5.3 | `[ ]` | 在 invite / capability 流程中显式标注 consent 作为前置 gate |
-| 5.4 | `[ ]` | 在 `mimi-interop.md` §10 把 MIMI consent 映射到这套 event family |
-| 5.5 | `[ ]` | 验证 pipeline lint 通过 |
+| 4.A.1 | `[x]` | `space.schema.json` + `data-structures.md` Space 表新增 `space_writer_model: enum(hub, peer_mesh)`，create-locked |
+| 4.A.2 | `[x]` | `space_create_payload` 新增可选字段 `space_writer_model` 与 `space_host`（hub 必填）；缺省时按 `federation_policy` 派生 |
+| 4.A.3 | `[x]` | event-kind-registry 新增 `cx.space.host`（singleton state，subject=null，hub-only）和 `cx.space.host.transfer`（per_subject by `payload.transfer_id`，hub-only） |
+| 4.A.4 | `[x]` | event-payload schema 新增 `space_host_payload`、`space_host_transfer_payload`；包含 host service DID、standby_hosts、activation_timeout、transfer 双签证据等字段 |
+
+### 4.B Host Endorsement Proof（新 proof 类型）
+
+| # | 状态 | 任务 |
+|---|---|---|
+| 4.B.1 | `[x]` | `event-envelope.schema.json` proof 数组允许多 proof；定义 `proof.kind=host_endorsement` 类型，覆盖与 actor proof 相同的 canonical bytes，但 verification_method 是 host service DID |
+| 4.B.2 | `[x]` | `event-auth-state-resolution.md` 新增 §3.3「Hub Writer Endorsement」：列出哪些 event kind 必须有 host endorsement（所有 durable state event 在 hub Space 中必须；ephemeral 与 actor_private 不要求） |
+| 4.B.3 | `[x]` | reducer 规则：hub Space 中缺 host endorsement 的 state event MUST `proof_missing` reject；endorsement 是 reducer 接受的硬条件 |
+
+### 4.C State Resolution 行为
+
+| # | 状态 | 任务 |
+|---|---|---|
+| 4.C.1 | `[x]` | `event-auth-state-resolution.md` §9 增加分支：hub Space 的 state resolution 期望 0 fork；fork 出现 = host 故障/分裂，整个 state slot quarantine 直到 host 状态澄清 |
+| 4.C.2 | `[x]` | hub Space 的 §9.3 quarantine-on-fork 仍执行，但语义从"协议常态"转为"host 异常诊断" |
+| 4.C.3 | `[x]` | peer_mesh Space 行为无变化 |
+
+### 4.D Host 转移仪式
+
+| # | 状态 | 任务 |
+|---|---|---|
+| 4.D.1 | `[x]` | `cx.space.host.transfer` 定义两种 mode：`smooth`（current host + new host 双签 + replacement_at frontier） |
+| 4.D.2 | `[x]` | `emergency` mode：current host 失联超 `activation_timeout_ms`，由 `owning_organizations` ≥1/2 签名启动；附带 incident_ref |
+| 4.D.3 | `[x]` | activation frontier 后所有新 endorsement 由 new host 签发；旧 host 的 endorsement 在 frontier 后无效 |
+| 4.D.4 | `[x]` | `cx.space.host.transfer` 必须 ≥1 个 host endorsement（smooth：双方；emergency：governance quorum） |
+
+### 4.E Profile + 默认派生
+
+| # | 状态 | 任务 |
+|---|---|---|
+| 4.E.1 | `[x]` | `conformance-profiles.json` 新增 `cx.profile.space.hub_writer.v1` 与 `cx.profile.space.peer_mesh.v1`（Space-level profile，进 `Space.schema_refs`） |
+| 4.E.2 | `[x]` | hub_writer profile：required `cx.space.host` 已 accepted；required host endorsement on state events |
+| 4.E.3 | `[x]` | peer_mesh profile：禁止 host endorsement（防写错）；保持现有 peer-mesh 语义 |
+| 4.E.4 | `[x]` | `data-structures.md` Space 表说明 federation_policy → space_writer_model 默认派生表 |
+
+### 4.F 联邦语义
+
+| # | 状态 | 任务 |
+|---|---|---|
+| 4.F.1 | `[x]` | `sync/federation.md`：hub Space 联邦传播变成 host fanout（host 是 source of truth；follower 接收并验证签名后写入本地 replica） |
+| 4.F.2 | `[x]` | hub Space 的写入必须经 host：客户端通过 host 提交事件，host endorsement 后传播 |
+| 4.F.3 | `[x]` | peer_mesh Space 联邦传播保持 peer-mesh + auth-chain bootstrap |
+| 4.F.4 | `[x]` | `sync/sovereign-deployment.md`：sovereign 部署默认 hub_writer，并明确组织 server 担任 host 的语义 |
+
+### 4.G Glossary + 交叉引用 + lint
+
+| # | 状态 | 任务 |
+|---|---|---|
+| 4.G.1 | `[x]` | `glossary.md` 新增 Space Writer Model / Space Host / Host Endorsement / Hub Writer / Peer Mesh / Host Transfer 6 条 |
+| 4.G.2 | `[x]` | `overview/architecture.md` 增加一段说明双轨 writer 模型 |
+| 4.G.3 | `[x]` | `python tools/artifact_pipeline.py check` 通过 |
+
+## Phase 5 🅿 — Consent state machine ✅
+
+| # | 状态 | 任务 |
+|---|---|---|
+| 5.1 | `[x]` | 新增 `spec/v1/zh/identity/consent-model.md`：完整定义 holder-private consent 模型、设计原则、与 capability/invite 正交、scope 枚举、reducer 行为、invite/contact 前置 gate 整合、MIMI interop、隐私审计、未来 capability constraint 扩展点 |
+| 5.2 | `[x]` | 新增 2 个 event kinds：`cx.consent.grant` 与 `cx.consent.revoke`（共享 state slot by `payload.consent_id`）。`cx.consent.query` 不作为 durable event 注册（属于 service operation）。Component_type=`cx.component.consent.grant.v1`，criticality=`required` |
+| 5.3 | `[x]` | consent 作为 invite/contact 前置 gate 在 §6 文档化；与 `cx.space.policy_components` 中 `preauth` component 的 `require_consent` 互动写明 |
+| 5.4 | `[x]` | `mimi-interop.md` §10 引用更新：MIMI `request_consent` / `update_consent` 显式映射到 `cx.consent.grant` / `cx.consent.revoke`，保留 `consent_id` 作为 inter-protocol correlation |
+| 5.5 | `[x]` | `python tools/artifact_pipeline.py check` 通过：129 event kinds（+2）、34 schemas、50 profiles |
 
 ## 执行规则
 
@@ -153,7 +212,69 @@
 4. Phase 4 阻塞，等显式决策。
 5. 每完成一个 sub-task 标 `[x]`，并在末尾追加该 sub-task 简短说明（一行）。
 
+## 审计发现与修补（2026-05-07）
+
+完成 5 个 Phase 后做的一致性审计与设计 polish：
+
+| # | 发现 | 修补 |
+|---|---|---|
+| A1 | `consent-model.md` 自身引用了已移除的 `cx.space.policy.set (state_key=policy_components)` | 改为 `cx.space.policy_components` |
+| A2 | 共享 state slot 的 paired kinds（capability.grant/revoke、profile.create/update、device.authorized/revoked）有不同 `component_type`，与 consent.grant/revoke 共享模式不一致 | secondary kind `component_type` 对齐 primary，并新增 `component_slot_alias_of` registry 字段；§4.4 文本说明此关系 |
+| A3 | `writer_model_constraint: hub` 仅在 registry 声明，spec 无明文 reject 规则 | §3.3 加 "Writer Model Kind Constraints" 段：peer_mesh Space 出现 `cx.space.host` / `cx.space.host.transfer` MUST `schema_violation` reject |
+| A4 | hub Space 的 genesis host bootstrap 流程不明确 | §3.3 加 "Genesis Host 引导" 段：4 步明确 create event 的 space_host 充当 implicit cx.space.host genesis、初始事件 endorsement 来源、host_did 转移必须走 §13 |
+| A5 | encryption-and-audit.md §2.5.1 没指向 event-auth-state-resolution.md §8.1 / §11 | 加交叉引用 |
+| A6 | mimi-interop.md §9.1 表缺少 `cx.space.host` / `cx.space.host.transfer` | 加 2 行说明这是 Contrix 专属（MIMI hub provider 概念相邻但不等价） |
+| A7 | `mls_state_binding.full.v1` 的 `capability_root_required_components` 包含已 alias 掉的 `cx.component.capability.revoke.v1` | 移除（grant slot 已覆盖 revoke） |
+| A8 | `space.schema.json` 没强制 peer_mesh Space 不能有 `space_host` | 加 if/then 反向约束：`peer_mesh` MUST NOT 声明 `space_host` |
+| A9 | `matrix-core-differences.md` 缺 v1 偏离声明（Phase 1.E.4 遗留） | 新增 §6 详细列 6 大偏离 + 理由 |
+
+审计自动检查通过：
+
+- 46 个 state kind 全部完整声明 cardinality / subject_field / component_type / criticality
+- `mls_state_binding.full.v1` 的 3 个 component 列表（policy_root / membership_frontier / capability_root）全部引用 registry 中实际存在的 component_type
+- `python tools/artifact_pipeline.py check` 通过：129 event kinds、34 schemas、50 profiles
+
+**仍未做的可选改进**（不影响 wire 合约 / lint 通过；列在此处供后续追踪）：
+
+- 新 kinds（`cx.space.host`、`cx.space.host.transfer`、`cx.consent.*`）的 conformance fixture 覆盖：state-resolution-fixture.json 应增加 hub fork diagnostic vector；新增 host-transfer-fixture.json / consent-fixture.json
+- `cx.consent.query` 作为 service operation 的 OpenAPI binding（暂仅在 spec 文本提及）
+- 把 `policy_root_required_components` 从 profile 元信息提升为机器可校验的 lint 规则（"E2EE Space 的 cx.mls.commit 必须列出全部 required components"）
+
 ## 完成 changelog
+
+### 2026-05-07：Phase 5 完成（Consent state machine）
+
+- 新文件 [`spec/v1/zh/identity/consent-model.md`](spec/v1/zh/identity/consent-model.md) 详细定义 holder-private consent 协议层：与 capability + invite 正交的"我同意接收来自 X 的某种联系"语义。
+- 新增 2 个 event kinds：`cx.consent.grant` / `cx.consent.revoke`（共享 state slot by `payload.consent_id`，与 capability.grant/revoke 同一 supersede 模式）。
+- 新增 2 个 payload schemas：`consent_grant_payload`（含 `peer`、`scope`、`not_before`/`valid_until`、`evidence_ref`），`consent_revoke_payload`。
+- Scope 枚举：`invite` / `direct_message` / `voice_call` / `video_call` / `presence` / `any`（每种 scope 是独立 consent slot）。
+- Consent 写入位置约束：MUST 在 holder 的 principal control Space，不暴露给协作 Space。
+- Invite / contact 流程整合：consent 作为前置 gate；`cx.space.policy_components.preauth` 可声明 `require_consent: true` 强制走显式 consent 路径。
+- MIMI 互译映射：`cx.mimi.request_consent` / `cx.mimi.update_consent` 显式映射到 Contrix consent event family，保留 `consent_id` 作为 inter-protocol correlation。
+- glossary 新增 2 条：Consent / Consent Scope。
+- event_kinds 127 → 129。
+- `python tools/artifact_pipeline.py check` 通过。
+
+### 2026-05-07：Phase 4 完成（Hybrid Writer Model：hub vs peer_mesh）
+
+- **Space 层 wire-breaking**：`Space.space_writer_model: enum(hub, peer_mesh)` 与 `space_host: did` 加入 space.schema.json，create-locked。默认按 federation_policy 派生（closed/restricted/quarantine → hub；open → peer_mesh）。
+- **2 个新 event kind**：
+  - `cx.space.host`（singleton state，hub-only）—— 声明 host service DID、standby_hosts、activation_timeout_ms、host_endpoint
+  - `cx.space.host.transfer`（per_subject by transfer_id，hub-only）—— smooth dual-sign / emergency governance-quorum 双 mode
+- **新 proof type**：`proof.kind="host_endorsement"`（与 `detached_jws` 并列）。hub Space 的 durable state event 必须携带恰好一个 host endorsement proof，覆盖与 actor proof 相同的 canonical bytes。peer_mesh Space 出现 host_endorsement MUST schema_violation reject。
+- **2 个新 conformance profile**：`cx.profile.space.hub_writer.v1`（required `cx.space.host` accepted + host endorsement on state events）、`cx.profile.space.peer_mesh.v1`（rejected_event_kinds: `cx.space.host`, `cx.space.host.transfer`）。
+- **event-auth-state-resolution.md** 新增三大块：
+  - §3.3 Hub Writer Endorsement：endorsement 验证规则、bootstrap 例外、与现有 §3 验证流程的关系
+  - §9.5 Hub Writer 模型下的 Fork 诊断：hub Space 的 fork = host fault；整 state slot quarantine + host fault report；触发 emergency transfer 候选条件
+  - §13 Space Host Transfer：smooth / emergency 两 mode 详细规则、activation_frontier 边界
+- **federation.md §2.4**：双模型传播形态——peer_mesh 走 §4 mesh 协议；hub 走 actor → host → fanout 路径。跨域 Space 的 writer_model 由 create event 锁定，不存在 split-brain 状态。
+- **sovereign-deployment.md**：sovereign 部署默认 hub-writer，组织自己的 Principal Server 担任 Space Host；可通过 §13 host transfer 仪式在组织间转移。
+- **glossary.md** 新增 6 条：Space Writer Model / Space Host / Host Endorsement / Hub Writer Model / Peer Mesh Model / Host Transfer。
+- **data-structures.md** Space 表增加 space_writer_model + space_host 两行。
+- **event_kinds count**：125 → 127（+`cx.space.host` + `cx.space.host.transfer`）。
+- **profiles count**：48 → 50（+ hub_writer + peer_mesh）。
+- `python tools/artifact_pipeline.py check` 通过。
+- 协议层得到："sovereign 部署用单 writer + MLS state binding，跨组织 federation 用 peer-mesh + state resolution"——每种工作流用最适合的形态，且选择是显式 wire-level 决策，不是隐式默认。
 
 ### 2026-05-07：Phase 3 完成（E2EE state 绑定 MLS GroupContextExtensions）
 

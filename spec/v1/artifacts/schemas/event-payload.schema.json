@@ -705,6 +705,174 @@
       },
       "additionalProperties": false
     },
+    "space_host_payload": {
+      "type": "object",
+      "description": "Singleton state event declaring the canonical Space Host service DID for hub-writer Spaces. Only valid when Space.space_writer_model = 'hub'.",
+      "required": [
+        "host_did"
+      ],
+      "properties": {
+        "host_did": {
+          "$ref": "#/$defs/did",
+          "description": "Service DID of the canonical Space Host. MUST be resolvable; MUST have an active service entry compatible with cx.profile.space.hub_writer.v1."
+        },
+        "standby_hosts": {
+          "type": "array",
+          "description": "Pre-declared failover candidates eligible to assume host role via emergency transfer ceremony after activation_timeout_ms.",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "activation_timeout_ms": {
+          "type": "integer",
+          "minimum": 60000,
+          "default": 86400000,
+          "description": "Milliseconds without host endorsement activity required before standby_hosts may initiate emergency transfer. Default 24h."
+        },
+        "endorsement_method": {
+          "type": "string",
+          "enum": [
+            "service_proof_jws"
+          ],
+          "default": "service_proof_jws",
+          "description": "Signature method host uses to endorse durable state events. v1 only registers detached JWS (cx_app_state_ref-style proof binding to canonical event bytes)."
+        },
+        "host_endpoint": {
+          "type": "string",
+          "format": "uri",
+          "description": "HTTP endpoint for clients to submit events for host endorsement; resolved against host_did's DID Document service entries."
+        }
+      },
+      "additionalProperties": false
+    },
+    "space_host_transfer_payload": {
+      "type": "object",
+      "description": "Host transfer ceremony. mode='smooth' requires dual-signature from current and new host; mode='emergency' requires governance quorum after activation_timeout_ms of host inactivity.",
+      "required": [
+        "transfer_id",
+        "mode",
+        "previous_host",
+        "new_host",
+        "activation_frontier"
+      ],
+      "properties": {
+        "transfer_id": {
+          "type": "string",
+          "description": "Stable transfer identifier; reducer keys this state slot by transfer_id so retries within same ceremony coalesce."
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "smooth",
+            "emergency"
+          ]
+        },
+        "previous_host": {
+          "$ref": "#/$defs/did"
+        },
+        "new_host": {
+          "$ref": "#/$defs/did"
+        },
+        "activation_frontier": {
+          "type": "array",
+          "description": "Causal frontier (event refs) at which the new host's endorsements become authoritative. State events with prev_refs preceding activation_frontier accept old host endorsement; events at or after activation_frontier require new host endorsement.",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "minItems": 1
+        },
+        "incident_ref": {
+          "type": "string",
+          "description": "Required when mode='emergency'; references the incident / governance proceeding triggering transfer."
+        },
+        "governance_quorum_proof": {
+          "type": "object",
+          "description": "Required when mode='emergency'; proof that at least majority of owning_organizations endorsed transfer.",
+          "required": [
+            "policy_version",
+            "signers"
+          ],
+          "properties": {
+            "policy_version": {
+              "type": "string"
+            },
+            "signers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/did"
+              },
+              "minItems": 1
+            },
+            "decision_id": {
+              "type": "string"
+            },
+            "audit_digest": {
+              "$ref": "#/$defs/hash"
+            }
+          },
+          "additionalProperties": true
+        },
+        "smooth_dual_signature": {
+          "type": "object",
+          "description": "Required when mode='smooth'; both previous and new host attested to the transfer.",
+          "required": [
+            "previous_host_proof",
+            "new_host_proof"
+          ],
+          "properties": {
+            "previous_host_proof": {
+              "type": "object"
+            },
+            "new_host_proof": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": true
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "emergency"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "incident_ref",
+              "governance_quorum_proof"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "smooth"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "smooth_dual_signature"
+            ]
+          }
+        }
+      ]
+    },
     "membership_payload": {
       "type": "object",
       "required": [
@@ -1346,6 +1514,79 @@
         }
       },
       "additionalProperties": true
+    },
+    "consent_grant_payload": {
+      "type": "object",
+      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. State slot keyed by consent_id; cx.consent.revoke shares the same slot. Lives in the holder's principal control Space (or holder-private actor stream); MUST NOT be written to a shared collaboration Space.",
+      "required": [
+        "consent_id",
+        "peer",
+        "scope"
+      ],
+      "properties": {
+        "consent_id": {
+          "type": "string",
+          "description": "Stable identifier for this consent slot; cx.consent.revoke MUST reference the same consent_id."
+        },
+        "peer": {
+          "$ref": "#/$defs/did",
+          "description": "Counterparty DID (or pairwise DID) that this consent applies to."
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "invite",
+            "direct_message",
+            "voice_call",
+            "video_call",
+            "presence",
+            "any"
+          ],
+          "description": "What kind of contact is consented to. 'invite' = peer may send Space / Flow invites; 'direct_message' = peer may initiate 1:1 message; 'voice_call' / 'video_call' = peer may initiate WebRTC call; 'presence' = peer may observe presence; 'any' = full consent across all scopes."
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "valid_until": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "description": "Optional consent-specific constraints (rate limits, time-of-day windows, device restrictions). v1 does not standardise constraint types beyond capability constraint vocabulary."
+        },
+        "evidence_ref": {
+          "type": "string",
+          "description": "Optional reference to claim disclosure, presentation response, or invite proof that triggered this consent (audit trail)."
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_revoke_payload": {
+      "type": "object",
+      "description": "Revoke a previously granted consent. Shares the cx.consent.grant state slot keyed by consent_id; reducer treats this as supersede on the consent slot.",
+      "required": [
+        "consent_id"
+      ],
+      "properties": {
+        "consent_id": {
+          "type": "string",
+          "description": "MUST equal the consent_id of the cx.consent.grant being revoked."
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "session_grant_payload": {
       "type": "object",

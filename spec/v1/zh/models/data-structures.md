@@ -95,6 +95,8 @@ Schema id: `cx.schema.space.v1`
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | **reducer 派生**，由 `cx.space.history_visibility` 维护；create event 提供初值。各取值 canonical 语义见 `authz/event-auth-state-resolution.md` §6。 | 派生：历史可见性。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create event 锁定；后续不得通过 Space update 改变。E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置（create-locked）。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | **reducer 派生**，由 `cx.space.policy_components` 中相关组件维护。sovereign 默认 SHOULD `closed`。`security_class=high_assurance` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 派生：联邦策略。 |
+| `space_writer_model` | yes | `enum(hub, peer_mesh)` | **create-locked**（与 `encryption_profile` 同等地位，不可后续 PATCH）。create event 省略时按 `federation_policy` 派生：`closed` / `restricted` / `quarantine` → `hub`；`open` → `peer_mesh`。`hub` MUST 同时声明 `space_host`。详见 `authz/event-auth-state-resolution.md` §3.3 / §9 / §13。 | 写入与传播模型（create-locked）。 |
+| `space_host` | conditional | `did` | `space_writer_model="hub"` 时 MUST 指定 service DID；reducer 从最新 accepted `cx.space.host` 派生当前值。peer_mesh Space MUST NOT 声明此字段。 | 派生：当前 Space Host service DID。 |
 | `retention_policy_ref` | no | `id:policy` | 可引用 retention policy。 | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

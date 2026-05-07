@@ -306,6 +306,34 @@
       "criticality": "required"
     },
     {
+      "event_kind": "cx.space.host",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Canonical Space Host service DID + standby hosts (hub-writer model only)",
+      "state_cardinality": "singleton",
+      "component_type": "cx.component.space.host.v1",
+      "component_version": 1,
+      "criticality": "required",
+      "writer_model_constraint": "hub"
+    },
+    {
+      "event_kind": "cx.space.host.transfer",
+      "category": "space",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Space Host transfer ceremony (smooth dual-sign or emergency governance-quorum)",
+      "state_cardinality": "per_subject",
+      "state_subject_field": "payload.transfer_id",
+      "state_subject_type": "string",
+      "component_type": "cx.component.space.host.transfer.v1",
+      "component_version": 1,
+      "criticality": "required",
+      "writer_model_constraint": "hub"
+    },
+    {
       "event_kind": "cx.organization.discovery",
       "category": "organization",
       "status": "active",
@@ -785,9 +813,10 @@
       "state_cardinality": "per_subject",
       "state_subject_field": "payload.grant_id",
       "state_subject_type": "string",
-      "component_type": "cx.component.capability.revoke.v1",
+      "component_type": "cx.component.capability.grant.v1",
       "component_version": 1,
-      "criticality": "required"
+      "criticality": "required",
+      "component_slot_alias_of": "cx.capability.grant"
     },
     {
       "event_kind": "cx.capability.derived",
@@ -814,6 +843,34 @@
       "state_subject_field": "payload.grant_id",
       "state_subject_type": "string",
       "component_type": "cx.component.session.grant.v1",
+      "component_version": 1,
+      "criticality": "required"
+    },
+    {
+      "event_kind": "cx.consent.grant",
+      "category": "consent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Holder-private consent declaration: 'I consent to receive <scope> from <peer>'",
+      "state_cardinality": "per_subject",
+      "state_subject_field": "payload.consent_id",
+      "state_subject_type": "string",
+      "component_type": "cx.component.consent.grant.v1",
+      "component_version": 1,
+      "criticality": "required"
+    },
+    {
+      "event_kind": "cx.consent.revoke",
+      "category": "consent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Revoke a previously granted consent (shares state slot with cx.consent.grant)",
+      "state_cardinality": "per_subject",
+      "state_subject_field": "payload.consent_id",
+      "state_subject_type": "string",
+      "component_type": "cx.component.consent.grant.v1",
       "component_version": 1,
       "criticality": "required"
     },
@@ -887,9 +944,10 @@
       "state_cardinality": "per_subject",
       "state_subject_field": "payload.object.id",
       "state_subject_type": "id:actor_profile",
-      "component_type": "cx.component.profile.update.v1",
+      "component_type": "cx.component.profile.create.v1",
       "component_version": 1,
-      "criticality": "required"
+      "criticality": "required",
+      "component_slot_alias_of": "cx.profile.create"
     },
     {
       "event_kind": "cx.profile.space_override",
@@ -931,9 +989,10 @@
         "payload.device_id"
       ],
       "state_subject_type": "composite",
-      "component_type": "cx.component.device.revoked.v1",
+      "component_type": "cx.component.device.authorized.v1",
       "component_version": 1,
-      "criticality": "required"
+      "criticality": "required",
+      "component_slot_alias_of": "cx.device.authorized"
     },
     {
       "event_kind": "cx.device.list_update",

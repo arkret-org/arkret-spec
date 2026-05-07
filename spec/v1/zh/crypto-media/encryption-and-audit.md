@@ -255,7 +255,7 @@ MLS group 的绑定层级取决于启用位置：若 Space 级 policy 声明 `en
 
 #### 2.5.1 Covered Frontier 与 Pending MLS Binding
 
-E2EE Space 中，state event 在 `event-auth-state-resolution.md` 验证通过后只是 **协议层 accepted**；它必须再被某个 `cx.mls.commit` 的 `application_state_ref` 覆盖，才进入 **MLS-bound accepted**。两个状态形成一条 frontier：
+E2EE Space 中，state event 在 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 验证通过（含 §3.3 host endorsement，若 hub-writer）后只是 **协议层 accepted**；它必须再被某个 `cx.mls.commit` 的 `application_state_ref` 覆盖，才进入 **MLS-bound accepted**。两个状态形成一条 frontier（同步定义见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §8.1 与 §11 `pending_mls_binding` 状态）：
 
 - **Accepted frontier**：reducer 已接受的所有 state event 集合（按 §4.4 component cardinality 算 slot）。
 - **Covered frontier**：被某个 winning `cx.mls.commit` 的 `application_state_ref` 覆盖的 accepted state event 子集。

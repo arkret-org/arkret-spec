@@ -25,6 +25,19 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 跨域网络延迟不可预测。联邦协议不追求全局共识或全局排序，而是依赖已有的因果排序 (`prev_refs` / `auth_refs` + `hlc`) 和确定性 Reducer 实现**最终一致性收敛**。
 
+### 2.4 Writer Model 决定传播形态
+
+联邦传播按目标 Space 的 `space_writer_model`（参见 [`models/data-structures.md`](../models/data-structures.md) Space 表）走两种形态：
+
+- **`peer_mesh`**（默认 `federation_policy=open` 时）：peer-to-peer mesh 传播。任何持有 capability 的 actor 在自己的 Principal Server 提交事件，Principal Server 之间互相 push / pull；并发 fork 由 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3 的 quarantine-on-concurrent-fork 处理。本文 §4 描述这种模型的事件交换协议。
+- **`hub`**（默认 `federation_policy ∈ {closed, restricted, quarantine}` 时）：hub-fanout 传播。Space Host（`cx.space.host.payload.host_did` 指向的 service DID）是该 Space 的单一写入与 ordering authority。其它 Principal Server 是 follower / replica：
+  - **Actor 提交路径**：non-host actor 不直接把 durable state event 写入本地 Principal Server，而是先经 host 提交 endorsement。Actor 客户端 SHOULD 通过 `cx.space.host.payload.host_endpoint` 提交事件；host 验证 actor 签名、capability、policy 后追加 host_endorsement 并写入 host Principal Server。
+  - **传播路径**：host Principal Server 把 endorsed event fanout 给 follower Principal Server。follower 收到后按 §3.3 验证 host endorsement 后写入本地 replica。
+  - **跨域场景**：当 actor 的 Principal Server ≠ host Principal Server（例如 Alice@org-a.example 加入 Bob 的 Space，host 是 org-b.example），actor 提交流程是 actor PrincipalServer A → host PrincipalServer B → host endorsement → fanout 回 A 与其他 follower。
+  - host 故障时按 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13.2 emergency transfer 流程处理。
+
+跨域 Space 跨过两个 deployment（A 与 B）时，writer_model 由该 Space 的 create event 决定，所有参与 deployment 都遵循同一 model；不存在 "A 把它当 hub、B 把它当 peer_mesh" 的分裂状态。
+
 ## 3. 节点间认证
 
 ### 3.1 基于 DID 的服务器身份

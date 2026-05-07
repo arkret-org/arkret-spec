@@ -474,6 +474,44 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "cx.space.host"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_host_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.space.host.transfer"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_host_transfer_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "cx.space.child"
           }
         },
@@ -998,6 +1036,44 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "cx.consent.grant"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "cx.consent.revoke"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/consent_revoke_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "cx.device.revoked"
           }
         },
@@ -1387,7 +1463,12 @@
       ],
       "properties": {
         "kind": {
-          "const": "detached_jws"
+          "type": "string",
+          "enum": [
+            "detached_jws",
+            "host_endorsement"
+          ],
+          "description": "detached_jws = actor / device / service signature over canonical event bytes (default). host_endorsement = signature by the Space Host's service DID asserting ordering authority for hub-writer Spaces; covers the same canonical bytes as the actor proof. A hub-writer Space's durable state event MUST carry exactly one host_endorsement proof in addition to the actor / device proof."
         },
         "alg": {
           "type": "string",
@@ -1428,9 +1509,37 @@
         "jws": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        },
+        "host_did": {
+          "$ref": "#/$defs/did",
+          "description": "Required when kind=host_endorsement; canonical service DID of the endorsing Space Host (MUST equal the Space's current cx.space.host.payload.host_did, or a host designated by an active cx.space.host.transfer activation_frontier)."
+        },
+        "endorsed_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Required when kind=host_endorsement; the host's local clock time at endorsement (advisory; HLC remains the canonical ordering signal)."
         }
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "host_endorsement"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "host_did",
+              "endorsed_at"
+            ]
+          }
+        }
+      ]
     },
     "flow_move_payload": {
       "type": "object",

@@ -202,11 +202,16 @@ Controlled Collaboration Space SHOULD 使用：
       "default_join_rule": "restricted",
       "history_visibility": "joined",
       "encryption_profile": "mls_rfc9420",
+      "federation_policy": "closed",
+      "space_writer_model": "hub",
+      "space_host": "did:web:server.defense.example",
       "created_at": "2026-04-26T00:00:00Z"
     }
   }
 }
 ```
+
+Sovereign 部署默认采用 **hub-writer 模型**：每个 Space 由组织自己的 Principal Server（service DID）担任 Space Host，所有 durable state event 必须经 host endorsement（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3.3）。这与 sovereign 部署"组织拥有自己的服务器，且服务器是 Space 的真相源"的事实结构一致；省略 `space_writer_model` 时，`federation_policy ∈ {closed, restricted, quarantine}` 的 Space 自动派生为 `hub`。组织间共享 Space（多个 `owning_organizations`）也走 hub 模型，host 由 create event 显式指定，可通过 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 的 host transfer 仪式在组织间转移。需要 peer-mesh 协作（例如开放 federated discussion Space）时，create event 显式声明 `federation_policy="open"` 与 `space_writer_model="peer_mesh"`。
 
 Recommended policy:
 
