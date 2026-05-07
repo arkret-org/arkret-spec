@@ -974,9 +974,21 @@
     },
     "reaction_payload": {
       "type": "object",
+      "description": "Reducer input for cx.reaction.add and cx.reaction.remove. OR-Set membership is keyed on (actor_id, target_ref, key); a remove tombstones every prior add from the same actor with the same key in the causal past. See zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
       "required": [
-        "target_ref",
-        "key"
+        "target_ref"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "key"
+          ]
+        },
+        {
+          "required": [
+            "encrypted_payload"
+          ]
+        }
       ],
       "properties": {
         "target_ref": {
@@ -984,10 +996,18 @@
         },
         "key": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Reaction key. Plaintext spaces SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted spaces with `aad_visibility != opaque_id` SHOULD carry a deterministic routing hash here (`sha256(\"cx-reaction-key-v1\" || mls_group_id || epoch || canonical_emoji)`) so that OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
         },
         "annotation": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 2048,
+          "description": "Optional free-form annotation (e.g. issue triage label). MUST be omitted when `encrypted_payload` is present; in E2EE spaces the annotation MUST instead be carried inside `encrypted_payload`."
+        },
+        "encrypted_payload": {
+          "$ref": "#/$defs/encrypted_payload",
+          "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE spaces. When present, plaintext `key` (if any) MUST be a routing hash and `annotation` MUST be omitted; OR-Set convergence runs after client-side decryption."
         }
       },
       "additionalProperties": true

@@ -400,6 +400,29 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 
 加密信封的 Event kind 字段在 AAD 中规范名为 `aad.event_kind`；Space policy、AAD visibility、日志和 conformance vector MUST 使用该名字。
 
+### 2.9 Reaction 与短轻量事件的可见性
+
+`cx.reaction.add` / `cx.reaction.remove`、`cx.read.marker`、`cx.receipt.read`、`cx.typing` 等高频小载荷事件需要明确 plaintext 与 ciphertext 的边界，否则即便消息正文加密，元数据通道仍可能泄露交互模式。
+
+Reaction 事件 (`cx.reaction.*`) 的可见性规则：
+
+- 非 E2EE Space：`reaction_payload.key` 直接携带 emoji（单 Unicode cluster 或 profile 注册的短 tag），可选 `annotation` 同样为明文。这与 Matrix `m.reaction` 行为一致。
+- E2EE Space (`audit_assurance ∈ {disclosed_policy, attested_hardware}` 或任何 `aad_visibility != opaque_id` 的 profile)：
+  - 真正的 emoji / annotation MUST 通过 `reaction_payload.encrypted_payload` 携带，envelope 复用 §2.3 的 MLS application key 流程。
+  - 明文 `reaction_payload.key` MUST 为长度固定的路由 hash，定义为 `sha256("cx-reaction-key-v1" || mls_group_id || epoch || canonical_emoji)`，其中 `canonical_emoji` 为 NFC 归一化后的 Unicode 字节串。该 hash 仅供服务端做 OR-Set dedup、rate-limit、push fanout 和 reducer 聚合。
+  - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
+  - Routing hash 的构造 MUST 绑定 `mls_group_id` 与当前 `epoch`,以阻止跨 Space / 跨 epoch 的重放和频次相关攻击。同 epoch 内同一 emoji 的 routing hash 相同,跨 epoch 必然不同；这与 OR-Set 在 epoch 切换时按因果重新评估成员的行为一致。
+- Minimal-metadata Space (`cx.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 room-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
+- `cx.reaction.remove` 走相同规则；`encrypted_payload` 内 MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛,但不得将该 id 暴露在明文。
+
+服务端 / sync service 处理 reaction 时:
+
+- 在 routing hash 模式下,聚合层 MUST 仍能给出 `(target_ref, key, count)` 摘要 (其中 `key` 即 routing hash),客户端解密后将 hash 替换为真实 emoji 再渲染。
+- 不得将 routing hash 与历史 plaintext emoji 跨 Space 关联 (例如缓存全局 `emoji ↔ hash` 表),Space policy 如声明 `aad_visibility=hidden` MUST 拒绝此类全局关联。
+- `cx.receipt.read` / `cx.typing` 等 ephemeral 事件不进入 reducer state, 但其 actor_id、target_ref 仍是元数据通道；高隐私 Space SHOULD 同样使用 pairwise DID 与 routing hash,详细规则随对应章节给出。
+
+Reaction 事件的 `aad.event_kind` 始终为明文 (`cx.reaction.add` / `cx.reaction.remove`),以便服务端做 capability fast path 与限流；该明文 kind 不暴露具体 emoji。
+
 ## 3. 受审计的端到端加密 (Audited E2EE) — 可选 hardening profile
 
 > **完整规范见 [`audited-e2ee.md`](./audited-e2ee.md)**。本节只提供概览；详细 schema、

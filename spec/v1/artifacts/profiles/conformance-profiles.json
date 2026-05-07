@@ -163,6 +163,7 @@
     "cx.profile.event_envelope_negative_vectors.v1",
     "cx.profile.federation_vectors.v1",
     "cx.profile.privacy_security_vectors.v1",
+    "cx.profile.reaction_vectors.v1",
     "cx.profile.redaction_vectors.v1",
     "cx.profile.move_anchor_lattice_vectors.v1",
     "cx.profile.sync_vectors.v1",
@@ -265,6 +266,7 @@
       "required_fixtures": [
         "sync-fixture.json",
         "redaction-fixture.json",
+        "reaction-fixture.json",
         "move-anchor-lattice-fixture.json",
         "privacy-security-fixture.json"
       ],
@@ -1451,6 +1453,36 @@
       "feature_discovery": {
         "required": [
           "privacy_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "cx.profile.reaction_vectors.v1": {
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.sync.backfill"
+      ],
+      "required_event_kinds": [
+        "cx.message.create",
+        "cx.message.redact",
+        "cx.reaction.add",
+        "cx.reaction.remove",
+        "cx.capability.revoke"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "reaction-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.profile.e2ee_client.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "reaction_or_set_runner"
         ],
         "unsupported_optional": "not applicable"
       }

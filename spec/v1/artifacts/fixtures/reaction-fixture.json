@@ -1,0 +1,442 @@
+{
+  "suite": "reaction",
+  "profile": "cx.profile.reaction_vectors.v1",
+  "version": "2026-05-08",
+  "notes": "Reducer-level vectors for cx.reaction.add / cx.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/object-model-standard.md §5.2 and zh/crypto-media/encryption-and-audit.md §2.9.",
+  "cases": [
+    {
+      "name": "or_set_basic_add_then_remove",
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra1000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "👍"
+          }
+        },
+        {
+          "event_id": "cx:event:01js0rr1000000000000000000",
+          "kind": "cx.reaction.remove",
+          "actor_id": "did:web:alice.example",
+          "causal_refs": [
+            "cx:event:01js0ra1000000000000000000"
+          ],
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "👍"
+          }
+        }
+      ],
+      "expected": {
+        "summary": [
+          {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "👍",
+            "members": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "or_set_dedup_double_add_same_actor",
+      "notes": "Two add events from the same actor with the same key collapse to one OR-Set membership entry; the per-event audit log retains both.",
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra2000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "🎉"
+          }
+        },
+        {
+          "event_id": "cx:event:01js0ra2000000000000000001",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "🎉"
+          }
+        }
+      ],
+      "expected": {
+        "summary": [
+          {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "🎉",
+            "members": [
+              "did:web:alice.example"
+            ],
+            "count": 1
+          }
+        ],
+        "audit_event_ids": [
+          "cx:event:01js0ra2000000000000000000",
+          "cx:event:01js0ra2000000000000000001"
+        ]
+      }
+    },
+    {
+      "name": "or_set_concurrent_add_remove_remove_wins_in_default_view",
+      "notes": "Two events from the same actor with no causal_refs between them; default view applies per-actor causal closure — concurrent (add, remove) collapses to the remove because the remove is itself a tombstone for the actor's adds in the concurrent past per OR-Set semantics chosen for cx.reaction.",
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra3000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:bob.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "🚀"
+          }
+        },
+        {
+          "event_id": "cx:event:01js0rr3000000000000000000",
+          "kind": "cx.reaction.remove",
+          "actor_id": "did:web:bob.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "🚀"
+          }
+        }
+      ],
+      "expected": {
+        "summary": [
+          {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "🚀",
+            "members": []
+          }
+        ],
+        "audit_view_retains_both": true
+      }
+    },
+    {
+      "name": "different_actors_independent_or_set",
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra4000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "👍"
+          }
+        },
+        {
+          "event_id": "cx:event:01js0ra4000000000000000001",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:bob.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "👍"
+          }
+        }
+      ],
+      "expected": {
+        "summary": [
+          {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "👍",
+            "members": [
+              "did:web:alice.example",
+              "did:web:bob.example"
+            ],
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "name": "dangling_reaction_before_target_arrives",
+      "notes": "Reaction whose target_ref has not been observed yet MUST be held in pending; reducer materialises the OR-Set entry only after the target message becomes available.",
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra5000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0fu0000000000000000000",
+            "key": "👀"
+          }
+        }
+      ],
+      "expected": {
+        "pending_reactions": [
+          {
+            "target_ref": "cx:message:01js0fu0000000000000000000",
+            "event_id": "cx:event:01js0ra5000000000000000000",
+            "reason": "dependency_missing"
+          }
+        ],
+        "summary": []
+      }
+    },
+    {
+      "name": "target_redacted_drops_default_view_keeps_audit",
+      "notes": "When the target message is redacted, the default view summary MUST NOT expose reaction members; the audit view retains the reaction events under the redaction stub.",
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra6000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "❤"
+          }
+        },
+        {
+          "event_id": "cx:event:01js0me0000000000000000099",
+          "kind": "cx.message.redact",
+          "actor_id": "did:web:owner.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000"
+          }
+        }
+      ],
+      "expected": {
+        "default_view_summary": [],
+        "audit_view_event_ids": [
+          "cx:event:01js0ra6000000000000000000",
+          "cx:event:01js0me0000000000000000099"
+        ]
+      }
+    },
+    {
+      "name": "e2ee_routing_hash_dedup",
+      "notes": "In an E2EE space the plaintext key is sha256(\"cx-reaction-key-v1\" || mls_group_id || epoch || canonical_emoji). Two adds with the same routing hash from the same actor in the same epoch collapse to one OR-Set membership; routing hash differs in a different epoch and so does not dedup across epochs.",
+      "context": {
+        "space_id": "cx:space:01js0sp0000000000000000099",
+        "aad_visibility": "hidden",
+        "mls_group_id": "Zm9vYmFy",
+        "epoch": 7
+      },
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra7000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000010",
+            "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
+            "encrypted_payload": {
+              "scheme": "mls-rfc9420",
+              "version": "1.0",
+              "group_id": "Zm9vYmFy",
+              "epoch": 7,
+              "content_type": "application/json",
+              "ciphertext": "reactionAlpha",
+              "aad": {
+                "space_id": "cx:space:01js0sp0000000000000000099",
+                "event_kind": "cx.reaction.add",
+                "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+              },
+              "key_ref": {
+                "algorithm": "MLS",
+                "group_state_ref": "cx:event:01js0mg0000000000000000000"
+              },
+              "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+              "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+            }
+          }
+        },
+        {
+          "event_id": "cx:event:01js0ra7000000000000000001",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000010",
+            "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
+            "encrypted_payload": {
+              "scheme": "mls-rfc9420",
+              "version": "1.0",
+              "group_id": "Zm9vYmFy",
+              "epoch": 7,
+              "content_type": "application/json",
+              "ciphertext": "reactionAlphaDup",
+              "aad": {
+                "space_id": "cx:space:01js0sp0000000000000000099",
+                "event_kind": "cx.reaction.add",
+                "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+              },
+              "key_ref": {
+                "algorithm": "MLS",
+                "group_state_ref": "cx:event:01js0mg0000000000000000000"
+              },
+              "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
+              "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "server_side_summary": [
+          {
+            "target_ref": "cx:message:01js0me0000000000000000010",
+            "routing_hash_key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
+            "members": [
+              "did:web:alice.example"
+            ],
+            "count": 1
+          }
+        ],
+        "must_not_correlate_routing_hash_across_spaces": true,
+        "must_not_persist_global_emoji_to_hash_table": true
+      }
+    },
+    {
+      "name": "e2ee_epoch_rotation_breaks_dedup",
+      "notes": "Same canonical emoji yields a different routing hash after MLS epoch rotation; the new add is a fresh OR-Set entry, not a duplicate of the pre-rotation one.",
+      "context": {
+        "space_id": "cx:space:01js0sp0000000000000000099",
+        "aad_visibility": "hidden",
+        "mls_group_id": "Zm9vYmFy",
+        "old_epoch": 7,
+        "new_epoch": 8
+      },
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra8000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000010",
+            "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
+            "encrypted_payload": {
+              "scheme": "mls-rfc9420",
+              "version": "1.0",
+              "group_id": "Zm9vYmFy",
+              "epoch": 7,
+              "content_type": "application/json",
+              "ciphertext": "reactionEpoch7",
+              "aad": {
+                "space_id": "cx:space:01js0sp0000000000000000099",
+                "event_kind": "cx.reaction.add"
+              },
+              "key_ref": {
+                "algorithm": "MLS",
+                "group_state_ref": "cx:event:01js0mg0000000000000000000"
+              },
+              "payload_digest": "sha256:cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333",
+              "aad_digest": "sha256:dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444"
+            }
+          }
+        },
+        {
+          "event_id": "cx:event:01js0ra8000000000000000001",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000010",
+            "key": "sha256:222222222222222222222222222222222222222222222222222222222222222b",
+            "encrypted_payload": {
+              "scheme": "mls-rfc9420",
+              "version": "1.0",
+              "group_id": "Zm9vYmFy",
+              "epoch": 8,
+              "content_type": "application/json",
+              "ciphertext": "reactionEpoch8",
+              "aad": {
+                "space_id": "cx:space:01js0sp0000000000000000099",
+                "event_kind": "cx.reaction.add"
+              },
+              "key_ref": {
+                "algorithm": "MLS",
+                "group_state_ref": "cx:event:01js0mg0000000000000000001"
+              },
+              "payload_digest": "sha256:eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555",
+              "aad_digest": "sha256:ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666"
+            }
+          }
+        }
+      ],
+      "expected": {
+        "server_side_summary_distinct_keys": 2,
+        "after_client_decryption_summary": [
+          {
+            "target_ref": "cx:message:01js0me0000000000000000010",
+            "decrypted_key": "👍",
+            "members": [
+              "did:web:alice.example"
+            ],
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "capability_revoked_blocks_subsequent_add",
+      "notes": "After cx.capability.revoke removes the actor's cx.reaction.add capability, the next add MUST be rejected before reducer state changes; in-flight events accepted before the revoke causal frontier remain in OR-Set state.",
+      "events": [
+        {
+          "event_id": "cx:event:01js0ra9000000000000000000",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "👍"
+          }
+        },
+        {
+          "event_id": "cx:event:01js0rv9000000000000000000",
+          "kind": "cx.capability.revoke",
+          "actor_id": "did:web:owner.example",
+          "payload": {
+            "target_ref": "did:web:alice.example",
+            "actions": [
+              "cx.reaction.add"
+            ]
+          }
+        },
+        {
+          "event_id": "cx:event:01js0ra9000000000000000001",
+          "kind": "cx.reaction.add",
+          "actor_id": "did:web:alice.example",
+          "causal_refs": [
+            "cx:event:01js0rv9000000000000000000"
+          ],
+          "payload": {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "🎉"
+          }
+        }
+      ],
+      "expected": {
+        "rejected_event_ids": [
+          "cx:event:01js0ra9000000000000000001"
+        ],
+        "rejection_code": "capability_denied",
+        "summary": [
+          {
+            "target_ref": "cx:message:01js0me0000000000000000000",
+            "key": "👍",
+            "members": [
+              "did:web:alice.example"
+            ],
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "rate_limit_high_rate_reaction_burst",
+      "notes": "Servers MAY rate-limit cx.reaction.add per actor; the reducer MUST treat rate-limited events as either rate_limited or quarantine, never as accepted-then-silently-dropped.",
+      "events_meta": {
+        "actor_id": "did:web:bot.example",
+        "rate_per_second_observed": 200,
+        "policy_limit_per_second": 20
+      },
+      "expected": {
+        "error_code_one_of": [
+          "rate_limited",
+          "quota_exceeded",
+          "quarantine"
+        ],
+        "must_not_advance_or_set": true,
+        "fast_path_cache_still_authoritative_until_ttl": true
+      }
+    }
+  ]
+}
