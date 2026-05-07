@@ -1,6 +1,11 @@
 {
   "profile": "cx.profile.move_anchor_lattice_vectors.v1",
   "version": "2026-05-07",
+  "notes": [
+    "Move objects in these vectors describe protocol-level semantics. Wire-required Move fields space_id, hlc, and sig are elided for readability; conformance runners that re-emit these vectors as wire bytes MUST fill them in (any valid space_id/hlc/sig that does not change the precondition-effect-anchor_ref triple).",
+    "Anchor objects similarly elide hlc, anchorer_sig, and (when not material) state_root.",
+    "Cell ids follow cx:cell:<component>:<subject>; subject in fixtures uses safe placeholder ULIDs and dotted DID forms (did.web.alice.example) rather than colon-bearing DIDs to keep cell ids unambiguous."
+  ],
   "vectors": [
     {
       "name": "multi_cell_ban_revokes_grants_atomically",
@@ -213,7 +218,7 @@
     {
       "name": "anchor_dag_genesis_and_multi_leaf_join",
       "description": "Genesis Anchor MUST have predecessor_refs=[]. Multi-leaf Anchor view computes effective_anchor_view as a pure local function; it is NOT itself a new Anchor object until signed.",
-      "vectors": [
+      "cases": [
         {
           "case": "genesis_with_empty_predecessor_refs",
           "anchor": {

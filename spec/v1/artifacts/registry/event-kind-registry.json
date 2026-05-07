@@ -853,7 +853,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Revoke a previously granted consent (shares state slot with cx.consent.grant)",
+      "payload": "Revoke a previously granted consent (shares the cx.consent.grant cell; semantically a remove on the consent or-set)",
       "cell_family": "cx.component.consent.grant.v1",
       "cell_subject": {
         "type": "string",

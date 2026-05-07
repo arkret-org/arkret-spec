@@ -34,13 +34,13 @@ Move 的 wire schema 见 [`move.schema.json`](../../artifacts/schemas/move.schem
 
 ```text
 Move {
-  id              = H(canonical bytes)
+  id              = H(canonical bytes excluding sig)
   issuer          DID
   space_id        Space id
   preconditions   [(cell_id, predicate)]
   effects         [(cell_id, lattice_op)]
   anchor_ref      Anchor.id
-  refs            [(claim_id, role)]
+  refs            [(ref_id, role)]
   hlc             advisory timestamp
   sig             issuer signature over canonical bytes
 }
@@ -48,38 +48,41 @@ Move {
 
 规则：
 
-1. `id` 由 canonical bytes 派生，MUST 覆盖 `anchor_ref`、`preconditions`、`effects`、`refs`、`hlc` 与 `issuer`。
-2. `preconditions[]` 与 `effects[]` 是 set；同一 Move 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Move FAIL，不能部分应用 effects。
+1. `id` 由 canonical bytes 派生，MUST 覆盖 `issuer`、`space_id`、`preconditions`、`effects`、`anchor_ref`、`refs` 与 `hlc`。`sig` 本身 MUST NOT 进入 canonical bytes（它是对 canonical bytes 的签名）。`space_id` 必须进入以防止跨 Space 重放。
+2. `preconditions[]` 与 `effects[]` 是 set；同一 Move 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Move FAIL，不能部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 Move 不存在）。
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Space 声明的 `max_anchor_staleness_ms`。
-4. `refs[]` 是语义依赖，元素必须带 role。常见 role 包括 `authorized_by`、`attestation`、`parent_move`、`after`、`recovery_capability`。未识别的 critical role MUST fail closed。
+4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_move`、`after`、`recovery_capability`。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
 6. Move 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Move issuer 层表达。
 
 ### 3.1 Predicate
 
-核心 predicate：
+核心 predicate（wire 字段 `{op, value?, values?, predicate_id?}`，schema 见 [`move.schema.json`](../../artifacts/schemas/move.schema.json) `predicate`）：
 
-| Predicate | 语义 |
-| --- | --- |
-| `head_eq` | 当前 cell value / head 必须等于指定值。单 cell basis 是该 predicate 的特例。 |
-| `head_in` | 当前 cell value / exposed heads 必须属于集合。用于冲突修复 Move。 |
-| `satisfies` | 当前 cell value 必须满足 schema 注册的 deterministic predicate。仅允许引用封闭 Lattice 可验证的字段。 |
-| `contains` | 当前 set / OR-set / covered frontier 必须包含指定元素或 frontier subset。 |
+| `op` | 必填字段 | 语义 |
+| --- | --- | --- |
+| `head_eq` | `value` | 当前 cell value / head 必须等于指定值。单 cell basis 是该 predicate 的特例。 |
+| `head_in` | `values` | 当前 cell value / exposed heads 必须属于集合。用于冲突修复 Move。 |
+| `satisfies` | `predicate_id` | 当前 cell value 必须满足 schema 注册的 deterministic predicate（按 `predicate_id` 派发到该 cell schema 声明的可验证 predicate 实现）。仅允许引用封闭 Lattice 可验证的字段。 |
+| `contains` | `value`（单元素）或 `values`（子集检查） | 当前 set / OR-set / covered frontier 必须包含指定元素或 frontier subset。 |
 
 Predicate 不得读取本地数据库顺序、HTTP 到达时间、未签名服务端状态或外部 wall clock。
 
 ### 3.2 Effect
 
-Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容：
+Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容。`lattice_op` 的 wire 字段为 `{type, tag?, value?, from?, to?, reason?, issuer_seq?}`（schema 见 [`move.schema.json`](../../artifacts/schemas/move.schema.json) `lattice_op`）：
 
-| Lattice type | 常见 op |
-| --- | --- |
-| `or-set` | `add(tag,value)`、`remove(tag)` |
-| `mv-register` | `set(value)` |
-| `cas-register` | `set(value)` |
-| `fsm` | `transition(from,to,reason)` |
-| `counter` | `inc(tag,n)`、`dec(tag,n)` |
-| `ordered-log` | `append(entry, issuer_seq)` |
+| Lattice type | `op.type` | 必填字段 | 可选字段 |
+| --- | --- | --- | --- |
+| `or-set` | `add` | `tag`、`value` | — |
+| `or-set` | `remove` | `tag` | `reason` |
+| `mv-register` | `set` | `value` | — |
+| `cas-register` | `set` | `value` | — |
+| `fsm` | `transition` | `from`、`to` | `reason` |
+| `counter` | `inc` / `dec` | `value`（非负整数增量） | `tag`（per-counter 维度） |
+| `ordered-log` | `append` | `value`（entry payload）、`issuer_seq` | — |
+
+`op.value` 与 entry payload 必须满足该 cell schema；接收方 MUST 拒绝多余字段（`additionalProperties=false`）。
 
 同一 Move MAY 写多个 cell。Space schema MAY 声明 `co_write_policy` 限制哪些 cell family 可以同 Move 写入；违反时 Move MUST `schema_violation` reject。
 
@@ -185,18 +188,24 @@ v1 封闭核心集：
 
 ### 5.1 Bottom Diagnostics
 
-协议判断只区分 value 与 `⊥`，但实现 MUST 保留结构化诊断：
+协议判断只区分 value 与 `⊥`，但实现 MUST 保留结构化诊断（wire schema 见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json) `cx.schema.bottom.v1`）：
 
 ```text
 Bottom {
-  kind: conflict | invalid_transition | missing_dependency | unauthorized | anchorer_split | schema_error
-  cells[]
-  move_ids[]
-  details
+  kind         ∈ {conflict, invalid_transition, missing_dependency,
+                  unauthorized, anchorer_split, schema_error}
+  cells[]      cell_ids 参与诊断（多 cell 原子 Move 失败时 >1）
+  move_ids[]   anchored Move ids 触发该诊断（结构性 ⊥ 可为空）
+  anchor_view? {leaves[], state_root?} 观察该 ⊥ 的 Anchor view，便于复算
+  heads[]?     kind=conflict 时候选 head 值；UI / 审计可见，授权 MUST NOT 据此选 winner
+  details?     kind-specific structured details
+  escalated_at? 跨过 Space.bottom_escalation_after_ms 时的时间戳
 }
 ```
 
-`bottom=reject` 的 cell 被 Move precondition 读取时，Move MUST fail closed，错误至少包含 `upstream_bottom`、cell id 与相关 Move ids。`bottom=expose` 的 cell MAY 返回 `{status:"conflict", heads:[...]}` 给 projection；它不得被授权路径当作 allow。
+`bottom=reject` 的 cell 被 Move precondition 读取时，Move MUST fail closed（state code `failed_bottom`），错误至少包含 `cells[]` 与 `move_ids[]`。`bottom=expose` 的 cell MAY 返回 `{status:"conflict", heads:[...]}` 给 projection；它不得被授权路径当作 allow。
+
+`anchorer_split` 是特殊 kind：当 anchorer cell（cas-register, bottom=reject）出现并发 set 时该诊断生效；它对应 §13 的 `anchorer_paused` Space 状态，仅 recovery anchorer / emergency quorum 签发的 Anchor 可恢复推进。
 
 ### 5.2 序内因果
 
@@ -249,20 +258,28 @@ validate_op(op):
 
 #### 5.3.3 `cas-register`
 
-Compare-and-swap register。Move 通过 precondition `head_eq` 声明 basis；并发不同值返回 `⊥`。
+Compare-and-swap register。Move 通过 precondition `head_eq` 声明 basis；并发不同 set 返回 `⊥`。Move 的因果序由 (a) Anchor batch 包含关系，与 (b) 跨 batch 时 `Move.refs(role="after")` 显式声明给出；同 Anchor batch 内的 sibling Moves 视为并发。
 
 ```text
 join(moves) -> value | ⊥:
-  ordered  = topological_sort(moves, by Move.refs and head_eq preconditions)
-  current  = null
-  for M in ordered:
-    pre = find precondition on this cell in M
-    if pre is None: continue   // first set
-    if pre.op == head_eq and pre.value != current: return ⊥
-    if M has set effect: current = effect.value
-  // 同一 anchor batch 内多个 set 共享 same basis → 冲突
-  if ∃ siblings M1, M2 with identical head_eq basis but different new value:
+  // 按 Anchor batch index 升序 + 同 batch 内按 head_eq 链化（pre-state value → effect value）
+  // 跨 batch 时若需要绕过 head_eq 链化，使用 Move.refs(role="after")
+  current = null
+  for batch in moves grouped by anchor_ref ordered by anchor index:
+    settled = current
+    siblings = []
+    for M in batch with effect on this cell:
+      pre = find precondition(head_eq) on this cell in M
+      basis = pre.value if pre else null   // null = 允许 first set
+      siblings.append((basis, M.effect.value))
+    if ∃ siblings (b1, v1), (b2, v2) with b1==b2 and v1!=v2:
       return ⊥
+    if siblings is non-empty:
+      // 取共享 basis 后唯一新 value（已在上一步保证唯一）
+      basis_required = unique(siblings.map(b))
+      if basis_required != settled and basis_required is not null:
+        return ⊥                  // basis 不匹配 pre-state
+      current = unique(siblings.map(v))
   return current
 
 validate_op(op):
@@ -300,22 +317,23 @@ membership / lifecycle / invite-approval 多用 `bottom=reject`。
 
 #### 5.3.5 `counter`
 
-PN-counter（positive/negative split counter）。每个 (issuer, tag) 维护独立的 inc / dec 计数。
+PN-counter（positive/negative split counter）。每个 (issuer, tag) 维护独立的 inc / dec 计数。`op.value` 是非负整数增量；`op.tag` 可选（per-counter 维度）。
 
 ```text
 join(moves) -> integer:
-  per_issuer = empty map<issuer, (pos, neg)>
+  per_issuer_tag = empty map<(issuer, tag?), (pos, neg)>
   for M in moves:
     for eff in M.effects on this cell:
-      (pos, neg) = per_issuer.get(M.issuer, (0,0))
-      if eff.op.type == "inc": pos += eff.op.n
-      if eff.op.type == "dec": neg += eff.op.n
-      per_issuer[M.issuer] = (pos, neg)
-  return  Σ (pos - neg) for all issuers
+      key = (M.issuer, eff.op.tag)            // tag absent → null sentinel
+      (pos, neg) = per_issuer_tag.get(key, (0,0))
+      if eff.op.type == "inc": pos += eff.op.value
+      if eff.op.type == "dec": neg += eff.op.value
+      per_issuer_tag[key] = (pos, neg)
+  return  Σ (pos - neg) over all keys
 
 validate_op(op):
   op.type ∈ {inc, dec}
-  op.n is a non-negative integer (overflow guard at parameters.max)
+  op.value is a non-negative integer (overflow guard at parameters.max)
   op.tag is optional but, when present, MUST match schema tag pattern
 ```
 
@@ -323,26 +341,32 @@ validate_op(op):
 
 #### 5.3.6 `ordered-log`
 
-Append-only log。按 (issuer, issuer_seq) 链接 + 全局 entry hash 去重。
+Append-only log。Entry payload 通过 `op.value` 承载；每 issuer 子链由 `op.issuer_seq` 单调推进；跨 Move 全局去重依赖 `cell schema` 在 entry 内声明的稳定 entry id（如 `value.entry_id` 或 canonical-bytes-derived hash），具体由 cell schema `parameters.entry_id_field` 指定。
 
 ```text
-join(moves) -> List<entry>:
-  // 收集 append entries
-  entries = { (M.id, eff.entry, M.issuer, eff.op.issuer_seq) |
-              M ∈ moves, eff ∈ M.effects, eff.op.type=="append" }
-  // 每 issuer 形成独立子链；同一 (issuer, issuer_seq) 重复 → 取 entry hash 较小者（去重）
+join(moves) -> List<entry_record>:
+  entries = []
+  for M in moves:
+    for eff in M.effects on this cell:
+      if eff.op.type != "append": continue
+      eid = canonical_entry_id(eff.op.value, schema.parameters.entry_id_field)
+      entries.append({
+        move_id: M.id, issuer: M.issuer,
+        seq: eff.op.issuer_seq, value: eff.op.value, entry_id: eid
+      })
+  // 每 issuer 形成独立子链；同一 (issuer, seq) 重复 → 取最小 entry_id
   per_issuer = group_by(entries, key=issuer)
   for issuer, items in per_issuer:
-    items = dedupe_by_hash(items)
-    items = sort_by(issuer_seq)
-    items MUST 形成连续链：item[i].parent_entry == hash(item[i-1])
+    items = dedupe_by_entry_id(items)
+    items = sort_by(seq)
+    items MUST form a contiguous chain：item[i].seq == item[i-1].seq + 1
   // 跨 issuer 不强制全局序；projection 可按 (anchor_index, hlc, issuer, seq) 展示
   return concat(per_issuer.values())
 
 validate_op(op):
   op.type == "append"
-  op.issuer_seq is monotonic per (cell, issuer)
-  op.entry satisfies schema; entry hash is canonical-bytes derived
+  op.issuer_seq is non-negative integer; monotonic per (cell, issuer)
+  op.value satisfies entry schema declared by cell parameters
 ```
 
 `bottom` 永远不出现。审计、消息历史、不可变操作日志均使用 `bottom=expose`，并发 append 不阻塞协议判断。
@@ -422,23 +446,25 @@ Space create MUST 固定 genesis anchorer 与 recovery anchorer。后续变更�
 
 ## 10. E2EE 与 MLS
 
-MLS commit 是 Move，不是 Anchor。它写入普通 cell：
+MLS commit 是 Move，不是 Anchor。它写入三个 well-known cell（cell family 由 `cx.component.mls_epoch.v1` / `cx.component.key_schedule.v1` / `cx.component.covered_frontier.v1` 给出，cell_subject 为 MLS group id 或 space id）：
 
 ```text
 Move(MLS commit) {
   preconditions: [
-    (mls_epoch_cell, head_eq prev_epoch),
-    (covered_frontier_cell, contains governance_frontier_required_by_message)
+    (mls_epoch_cell,        head_eq prev_epoch),                  // cas-register
+    (covered_frontier_cell, contains governance_frontier_required) // or-set / set semantics
   ],
   effects: [
-    (mls_epoch_cell, set new_epoch),
-    (key_schedule_cell, set new_schedule),
-    (covered_frontier_cell, set attested_governance_frontier)
+    (mls_epoch_cell,        set new_epoch),
+    (key_schedule_cell,     set new_schedule),
+    (covered_frontier_cell, add attested_governance_frontier)
   ]
 }
 ```
 
-E2EE message Move 若依赖 `mls_bound` cell，MUST 在 preconditions 中证明 `covered_frontier_cell` 覆盖其 `anchor_ref` 所需 governance frontier。MLS 滞后只阻塞 E2EE message / key schedule Move，不阻塞 governance recovery Move。
+`covered_frontier_cell` 是声明"该 MLS group 当前已绑定的 governance Anchor frontier"的 cell（`or-set`，bottom=expose）：每个 MLS commit 把它绑定到的 governance Anchor 加入；E2EE message Move 在 preconditions 中要求 `contains` 自身 `anchor_ref` 所代表的 governance frontier。
+
+E2EE message Move（即在加密 payload 上下文中提交的 Move，例如 `cx.message.create` 在 E2EE Space）MUST 在 preconditions 中证明 `covered_frontier_cell` 覆盖其 `anchor_ref` 所需 governance frontier。MLS 滞后只阻塞 E2EE message / key schedule Move（它们引用 `covered_frontier_cell`），不阻塞 governance / recovery Move（它们不引用该 cell）。
 
 Move 在 Anchor 前是 pending；被 Anchor 后是否可用于 E2EE 由 `covered_frontier_cell` precondition 决定。
 
@@ -457,16 +483,16 @@ Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须�
 
 ## 13. 失败状态
 
-| 状态 | 语义 |
-| --- | --- |
-| `pending_anchor` | Move 已通过本地初检，等待 Anchor。 |
-| `effective` | Move 被已接受 Anchor frontier 覆盖，并已进入 state_root。 |
-| `failed_precondition` | Move 在 Anchor batch pre-state 下 precondition 不成立。 |
-| `failed_bottom` | Move 依赖 `bottom=reject` 的 cell。 |
-| `rejected_anchor` | Anchor 签名、单调性、Move batch 或 state_root 校验失败。 |
-| `anchorer_paused` | anchorer cell 为 `⊥`；Space-wide Anchor 推进暂停，只允许 recovery Anchor。 |
+| 状态 | 语义 | 关联 Bottom kind |
+| --- | --- | --- |
+| `pending_anchor` | Move 已通过本地初检，等待 Anchor。 | — |
+| `effective` | Move 被已接受 Anchor frontier 覆盖，并已进入 state_root。 | — |
+| `failed_precondition` | Move 在 Anchor batch pre-state 下 precondition 不成立。 | — |
+| `failed_bottom` | Move 依赖 `bottom=reject` 的 cell。 | 由 §5.1 中对应的 kind 触发（如 `conflict`、`invalid_transition`、`schema_error`）。 |
+| `rejected_anchor` | Anchor 签名、单调性、Move batch 或 state_root 校验失败。 | — |
+| `anchorer_paused` | anchorer cell 为 `⊥`；Space-wide Anchor 推进暂停，只允许 recovery Anchor。 | `anchorer_split`（§5.1）。 |
 
-实现 MAY 在 API 层继续使用兼容错误码，但必须映射到本表语义。
+实现 MAY 在 API 层继续使用兼容错误码，但必须映射到本表语义。Move 的当前状态字段在 sync wire 上以 `move_state` 暴露（见 [`sync/service-surface.md`](../sync/service-surface.md) §5.5）。
 
 ## 14. 规模上限
 

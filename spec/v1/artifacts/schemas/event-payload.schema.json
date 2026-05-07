@@ -1349,7 +1349,7 @@
     },
     "consent_grant_payload": {
       "type": "object",
-      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. State slot keyed by consent_id; cx.consent.revoke shares the same slot. Lives in the holder's principal control Space (or holder-private actor stream); MUST NOT be written to a shared collaboration Space.",
+      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell cx:cell:cx.component.consent.grant.v1:<consent_id> (or-set lattice); cx.consent.revoke writes a remove on the same cell. Lives in the holder's principal control Space (or holder-private actor stream); MUST NOT be written to a shared collaboration Space.",
       "required": [
         "consent_id",
         "peer",
@@ -1358,7 +1358,7 @@
       "properties": {
         "consent_id": {
           "type": "string",
-          "description": "Stable identifier for this consent slot; cx.consent.revoke MUST reference the same consent_id."
+          "description": "Stable identifier; used as the cell_subject of the consent cell. cx.consent.revoke MUST reference the same consent_id."
         },
         "peer": {
           "$ref": "#/$defs/did",
@@ -1402,7 +1402,7 @@
     },
     "consent_revoke_payload": {
       "type": "object",
-      "description": "Revoke a previously granted consent. Shares the cx.consent.grant state slot keyed by consent_id; reducer treats this as supersede on the consent slot.",
+      "description": "Revoke a previously granted consent. Wire-equivalent to a Move whose effect is remove(tag) on the consent cell cx:cell:cx.component.consent.grant.v1:<consent_id> (the same cell written by cx.consent.grant).",
       "required": [
         "consent_id"
       ],

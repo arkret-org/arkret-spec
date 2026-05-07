@@ -51,13 +51,13 @@ Consent 表达"我接受联系"，但加入 Space、写入 Space、解密 E2EE �
 Consent state 写入 holder 控制的 Space（默认是 holder 的 principal control Space）内一个 or-set lattice cell：
 
 ```text
-cell_id  = cx:cell:cx.component.consent.v1:<consent_id>
+cell_id  = cx:cell:cx.component.consent.grant.v1:<consent_id>
 lattice  = or-set
-bottom   = expose
+bottom   = reject  // or-set never produces ⊥; declared value follows registry
 ```
 
 - `consent_id` 是 consent 槽的 subject。同一 holder 对同一 peer 的不同 scope 用不同 consent_id；同 consent_id 上所有 add / remove tag op 收敛于同一 cell。
-- `bottom = expose` 表示 holder 同时持有多个并发 grant / revoke 时 query 暴露多值诊断而非 hard-reject；实际授权判断仍以"当前 or-set 含未被 remove 的 grant tag"为准。
+- 因 or-set 不会产生 ⊥，`bottom` 字段的 wire 值（registry 中为 `reject`）对 consent 行为不构成约束；effective consent 始终由 or-set join 决定。
 
 ### 3.2 `cx.consent.grant` Move
 
@@ -67,7 +67,7 @@ Move(cx.consent.grant) {
   space_id  = holder principal control Space
   preconditions = []          // grant 不依赖 cell 既有状态
   effects   = [
-    (cx:cell:cx.component.consent.v1:<consent_id>,
+    (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "add",
       tag:  "grant:<consent_id>:<peer>:<scope>",
       value: {
@@ -108,11 +108,11 @@ Move(cx.consent.revoke) {
   issuer    = holder DID
   space_id  = holder principal control Space
   preconditions = [
-    (cx:cell:cx.component.consent.v1:<consent_id>,
+    (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {op: "contains", value: "grant:<consent_id>:<peer>:<scope>"})
   ]
   effects   = [
-    (cx:cell:cx.component.consent.v1:<consent_id>,
+    (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "remove",
       tag:  "grant:<consent_id>:<peer>:<scope>",
       value: {
@@ -151,7 +151,7 @@ Consent cell 是 or-set lattice。Effective consent 由当前 Anchor view 下 ce
   - 存在对应 tag 在 or-set add 集合且未被 remove；
   - 当前时间 ∈ `[not_before, valid_until]`（窗口字段缺省视为 `(-∞, +∞)`）。
 - 不同 consent_id 是独立 cell；查询 `(holder, peer, scope)` 时 invite / contact service 遍历该 holder 全部 consent cell 匹配。
-- 因 `bottom = expose`，并发 grant 与 revoke 在 Anchor 内同批处理时 cell 可能短暂显示多值；invite gate 评估时 conservative 取"任意当前活跃 grant tag 即视为同意"，但在审计 / sodmin 视图上展示 `{status:"conflict", heads:[...]}`。
+- 同 Anchor 批内并发 grant 与 revoke 在 or-set join 后唯一确定（add tag 和 remove tag 各自集合化收敛），不产生 ⊥。审计 / sodmin 视图可暴露并发的 add / remove 序列以提示决策不连续，但 invite gate 仍按"当前 add tag 集合 - remove tag 集合"判定。
 
 物化 `Consent` 对象（详见 [`models/data-structures.md`](../models/data-structures.md)）由 holder client / sodmin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。
 
