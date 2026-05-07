@@ -137,6 +137,67 @@
         },
         "unread_notifications": {
           "type": "object"
+        },
+        "move_states": {
+          "type": "array",
+          "description": "Per-Move protocol-state views (move_id + move_state + optional bottom diagnostic) for Moves carried by this entry. See zh/sync/service-surface.md §5.5.",
+          "items": {
+            "type": "object",
+            "required": [
+              "move_id",
+              "move_state"
+            ],
+            "properties": {
+              "move_id": {
+                "type": "string",
+                "pattern": "^cx:move:sha256:[0-9a-f]{64}$"
+              },
+              "move_state": {
+                "type": "string",
+                "enum": [
+                  "pending_anchor",
+                  "effective",
+                  "failed_precondition",
+                  "failed_bottom",
+                  "rejected_anchor",
+                  "anchorer_paused"
+                ]
+              },
+              "bottom": {
+                "$ref": "./bottom.schema.json"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "bottoms": {
+          "type": "array",
+          "description": "Structured Bottom diagnostics for cells whose effective Lattice join resolved to ⊥ under the current Anchor view. Each entry pins (cell, status, bottom). See zh/sync/service-surface.md §5.5.",
+          "items": {
+            "type": "object",
+            "required": [
+              "cell",
+              "status",
+              "bottom"
+            ],
+            "properties": {
+              "cell": {
+                "type": "string",
+                "pattern": "^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "bottom",
+                  "conflict"
+                ]
+              },
+              "bottom": {
+                "$ref": "./bottom.schema.json"
+              }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": true

@@ -201,6 +201,87 @@ components:
             $ref: ../schemas/identity-receipt.schema.json
     SyncResponse:
       $ref: ../schemas/client-sync-response.schema.json
+    BottomDiagnostic:
+      $ref: ../schemas/bottom.schema.json
+    CellQueryEnvelope:
+      type: object
+      description: 'Wire envelope for state-query / projection responses on a single
+        cell. `status` MUST be `value` when the join is defined, `bottom` when the
+        cell resolved to ⊥ on a `bottom=reject` lattice (caller MUST treat as
+        fail-closed), and `conflict` when a `bottom=expose` lattice surfaces
+        candidate heads to the projection / UI without selecting a winner. See
+        zh/sync/service-surface.md §5.5 and zh/authz/event-auth-state-resolution.md
+        §5.1.'
+      required:
+      - cell
+      - status
+      properties:
+        cell:
+          type: string
+          pattern: ^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$
+        status:
+          type: string
+          enum:
+          - value
+          - bottom
+          - conflict
+        value:
+          description: 'Effective Lattice value when status=value. Shape is
+            cell-type specific (or-set members, mv-register tuple, cas-register
+            atom, fsm state, counter integer, ordered-log tail).'
+        heads:
+          type: array
+          uniqueItems: true
+          description: Candidate heads when status=conflict on a `bottom=expose`
+            cell. Receivers MUST NOT use this for authorization decisions.
+          items: true
+        bottom:
+          $ref: '#/components/schemas/BottomDiagnostic'
+        anchor_view:
+          type: object
+          description: Anchor leaves / state_root the value or bottom was
+            observed under. Mirrors `bottom.anchor_view` when status≠value.
+          required:
+          - leaves
+          properties:
+            leaves:
+              type: array
+              minItems: 1
+              uniqueItems: true
+              items:
+                type: string
+                pattern: ^cx:anchor:sha256:[0-9a-f]{64}$
+            state_root:
+              type: string
+              pattern: ^sha256:[0-9a-f]{64}$
+          additionalProperties: false
+      additionalProperties: true
+    MoveStateView:
+      type: object
+      description: Per-Move protocol-state field surfaced on /sync and /events
+        responses (zh/sync/service-surface.md §5.5, zh/authz/event-auth-state-resolution.md
+        §13). Implementations MUST attach this on every Move included in a
+        timeline/state response so clients can render fail-closed UI without
+        recomputing the join.
+      required:
+      - move_id
+      - move_state
+      properties:
+        move_id:
+          type: string
+          pattern: ^cx:move:sha256:[0-9a-f]{64}$
+        move_state:
+          type: string
+          enum:
+          - pending_anchor
+          - effective
+          - failed_precondition
+          - failed_bottom
+          - rejected_anchor
+          - anchorer_paused
+        bottom:
+          $ref: '#/components/schemas/BottomDiagnostic'
+      additionalProperties: false
     DeviceMessageEnvelope:
       $ref: ../schemas/device-message.schema.json
     DeviceMessageTarget:
