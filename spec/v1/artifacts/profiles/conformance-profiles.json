@@ -156,10 +156,6 @@
     "cx.profile.attested_audit.e2ee.v1",
     "cx.profile.disclosed_audit.e2ee.v1"
   ],
-  "writer_model_profiles": [
-    "cx.profile.space.hub_writer.v1",
-    "cx.profile.space.peer_mesh.v1"
-  ],
   "vector_profiles": [
     "cx.profile.capability_vectors.v1",
     "cx.profile.crypto_signature_vectors.v1",
@@ -168,7 +164,7 @@
     "cx.profile.federation_vectors.v1",
     "cx.profile.privacy_security_vectors.v1",
     "cx.profile.redaction_vectors.v1",
-    "cx.profile.state_resolution_vectors.v1",
+    "cx.profile.move_anchor_lattice_vectors.v1",
     "cx.profile.sync_vectors.v1",
     "cx.profile.mimi_interop_vectors.v1"
   ],
@@ -196,7 +192,9 @@
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1",
         "cx.schema.event_batch_receipt.v1",
-        "cx.schema.cursor.v1"
+        "cx.schema.cursor.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_constraint_types": [
         "temporal",
@@ -267,7 +265,7 @@
       "required_fixtures": [
         "sync-fixture.json",
         "redaction-fixture.json",
-        "state-resolution-fixture.json",
+        "move-anchor-lattice-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
@@ -313,7 +311,7 @@
       ],
       "required_fixtures": [
         "sync-fixture.json",
-        "state-resolution-fixture.json",
+        "move-anchor-lattice-fixture.json",
         "capability-fixture.json"
       ],
       "optional_extensions": [
@@ -404,7 +402,7 @@
       "required_fixtures": [
         "encoding-fixture.json",
         "sync-fixture.json",
-        "state-resolution-fixture.json",
+        "move-anchor-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
@@ -535,7 +533,9 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1",
-        "cx.schema.cursor.v1"
+        "cx.schema.cursor.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -589,7 +589,7 @@
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
         "sync-fixture.json",
-        "state-resolution-fixture.json",
+        "move-anchor-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
@@ -628,7 +628,9 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1",
-        "cx.schema.event_batch_receipt.v1"
+        "cx.schema.event_batch_receipt.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -824,7 +826,9 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "cx.schema.event_payload.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -1004,7 +1008,9 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.client_sync_response.v1"
+        "cx.schema.client_sync_response.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -1047,7 +1053,7 @@
       ],
       "required_fixtures": [
         "sync-fixture.json",
-        "state-resolution-fixture.json",
+        "move-anchor-lattice-fixture.json",
         "capability-fixture.json"
       ],
       "optional_extensions": [
@@ -1183,7 +1189,7 @@
     },
     "cx.profile.mls_state_binding.full.v1": {
       "inherits": [],
-      "description": "Required hardening profile for E2EE Spaces. Binds Contrix application state to MLS GroupContext via the cx_app_state_ref extension; MLS confirmed_transcript_hash covers application_state_ref so all members verify the same membership/policy/capability state. Inherited by cx.profile.e2ee_client.v1 (and thus by attested_audit.e2ee, sovereign_client, high_security_organization, isolated_sovereign_network).",
+      "description": "Required hardening profile for E2EE Spaces. MLS commits are Moves that update mls_epoch, key_schedule, and covered_frontier cells; E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier.",
       "required_endpoints": [
         "cx.keys.keypackages.claim",
         "cx.keys.keypackages.consume",
@@ -1207,41 +1213,19 @@
         "aad_visibility_policy",
         "minimal_metadata_space"
       ],
-      "policy_root_required_components": [
-        "cx.component.space.policy.v1",
-        "cx.component.space.join_rule.v1",
-        "cx.component.space.history_visibility.v1",
-        "cx.component.space.history_sharing_policy.v1",
-        "cx.component.space.policy_components.v1",
-        "cx.component.space.media_service.v1",
-        "cx.component.space.plaintext_visible_services.v1",
-        "cx.component.space.moderation_policy.v1",
-        "cx.component.space.asset_privacy_policy.v1",
-        "cx.component.space.archive.v1",
-        "cx.component.space.freeze.v1",
-        "cx.component.space.tombstone.v1",
-        "cx.component.space.destroy.v1"
-      ],
-      "membership_frontier_required_components": [
-        "cx.component.member.state.v1",
-        "cx.component.flow.branch.member.v1"
-      ],
-      "capability_root_required_components": [
-        "cx.component.capability.grant.v1",
-        "cx.component.capability.delegate.v1",
-        "cx.component.capability.derived.v1"
-      ],
       "feature_discovery": {
         "required": [
-          "application_state_root",
-          "covered_frontier",
-          "policy_root_components",
-          "membership_frontier_components",
-          "capability_root_components",
-          "pending_mls_binding_state"
+          "move_based_mls_commit",
+          "covered_frontier_cell",
+          "mls_epoch_cell"
         ],
         "unsupported_optional": "fail closed on root mismatch"
-      }
+      },
+      "required_cells": [
+        "cx:cell:cx.component.covered_frontier.v1:<space_id>",
+        "cx:cell:cx.component.mls_epoch.v1:<mls_group_id>",
+        "cx:cell:cx.component.key_schedule.v1:<mls_group_id>"
+      ]
     },
     "cx.profile.attested_audit.e2ee.v1": {
       "inherits": [
@@ -1260,7 +1244,9 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.encrypted_payload.v1",
-        "cx.schema.audit_ryw_receipt.v1"
+        "cx.schema.audit_ryw_receipt.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -1294,7 +1280,9 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.encrypted_payload.v1",
-        "cx.schema.audit_ryw_receipt.v1"
+        "cx.schema.audit_ryw_receipt.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1344,7 +1332,9 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1"
+        "cx.schema.event.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json"
@@ -1366,7 +1356,9 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.cursor.v1",
-        "cx.schema.event_batch_receipt.v1"
+        "cx.schema.event_batch_receipt.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json"
@@ -1396,7 +1388,9 @@
       ],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "cx.schema.event_payload.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json"
@@ -1419,7 +1413,9 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.event.v1"
+        "cx.schema.event.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json"
@@ -1472,7 +1468,9 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
+        "cx.schema.event_payload.v1",
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
         "redaction-fixture.json"
@@ -1481,33 +1479,6 @@
       "feature_discovery": {
         "required": [
           "redaction_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "cx.profile.state_resolution_vectors.v1": {
-      "required_endpoints": [
-        "cx.events.submit"
-      ],
-      "required_event_kinds": [
-        "cx.member.state",
-        "cx.flow.branch.member",
-        "cx.flow.move",
-        "cx.flow.reorder",
-        "cx.policy.set"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "cx.schema.event.v1",
-        "cx.schema.event_payload.v1"
-      ],
-      "required_fixtures": [
-        "state-resolution-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "state_resolution_vector_runner"
         ],
         "unsupported_optional": "not applicable"
       }
@@ -1564,55 +1535,144 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.space.hub_writer.v1": {
-      "inherits": [],
-      "description": "Space-level profile declaring hub-writer model: Space has a single canonical Space Host (cx.space.host); all durable state events MUST carry host endorsement proof; state resolution expects 0 concurrent forks (forks indicate host malfunction or attempted attack and trigger quarantine of the entire state slot pending host clarification). Default for Spaces with federation_policy in {closed, restricted, quarantine}.",
-      "required_endpoints": [],
+    "cx.profile.move_anchor_lattice_vectors.v1": {
+      "required_endpoints": [
+        "cx.events.submit"
+      ],
       "required_event_kinds": [
-        "cx.space.host",
-        "cx.space.host.transfer"
+        "cx.member.state",
+        "cx.flow.branch.member",
+        "cx.flow.move",
+        "cx.flow.reorder",
+        "cx.policy.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.space.v1"
+        "cx.schema.anchor.v1",
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1",
+        "cx.schema.move.v1"
       ],
       "required_fixtures": [
-        "state-resolution-fixture.json"
+        "move-anchor-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "host_endorsement_proof",
-          "host_transfer_smooth",
-          "host_transfer_emergency",
-          "writer_model_locked"
+          "move_anchor_lattice_vector_runner"
         ],
-        "unsupported_optional": "reject events lacking host endorsement"
+        "unsupported_optional": "not applicable"
       }
     },
-    "cx.profile.space.peer_mesh.v1": {
+    "cx.profile.anchor.single_did.v1": {
       "inherits": [],
-      "description": "Space-level profile declaring peer-mesh writer model: any actor with capability MAY write state events; concurrent forks resolved by §9.3 quarantine-on-concurrent-fork algorithm. Default for Spaces with federation_policy=open. cx.space.host and cx.space.host.transfer events MUST be rejected (writer_model is locked at create).",
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [
-        "cx.space.host",
-        "cx.space.host.transfer"
+      "description": "Anchor profile using one DID/service key as anchorer.",
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.sync.get_snapshot_head"
       ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.space.v1"
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1",
+        "cx.schema.snapshot.v1"
       ],
       "required_fixtures": [
-        "state-resolution-fixture.json"
+        "move-anchor-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "concurrent_fork_quarantine",
-          "writer_model_locked"
+          "single_did_anchorer",
+          "anchor_compaction"
         ],
-        "unsupported_optional": "fall back to single-writer simulation under host endorsement absence"
+        "unsupported_optional": "fail closed or omit profile claim"
+      }
+    },
+    "cx.profile.anchor.threshold.v1": {
+      "inherits": [],
+      "description": "Anchor profile using k-of-n threshold signatures.",
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.sync.get_snapshot_head"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1",
+        "cx.schema.snapshot.v1"
+      ],
+      "required_fixtures": [
+        "move-anchor-lattice-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "threshold_anchorer",
+          "anchor_compaction"
+        ],
+        "unsupported_optional": "fail closed or omit profile claim"
+      }
+    },
+    "cx.profile.anchor.open_set.v1": {
+      "inherits": [],
+      "description": "Anchor profile allowing multiple leaf anchors and deterministic anchor view joins.",
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.sync.get_snapshot_head"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1",
+        "cx.schema.snapshot.v1"
+      ],
+      "required_fixtures": [
+        "move-anchor-lattice-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "anchor_dag_join",
+          "bottom_diagnostics"
+        ],
+        "unsupported_optional": "fail closed or omit profile claim"
+      }
+    },
+    "cx.profile.anchor.mixed_recovery.v1": {
+      "inherits": [],
+      "description": "Anchor profile with primary anchorer and fallback recovery anchorer.",
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.sync.get_snapshot_head"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.move.v1",
+        "cx.schema.anchor.v1",
+        "cx.schema.snapshot.v1"
+      ],
+      "required_fixtures": [
+        "move-anchor-lattice-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "recovery_anchorer",
+          "anchorer_bottom_pause"
+        ],
+        "unsupported_optional": "fail closed or omit profile claim"
       }
     }
-  }
+  },
+  "anchor_profiles": [
+    "cx.profile.anchor.single_did.v1",
+    "cx.profile.anchor.threshold.v1",
+    "cx.profile.anchor.open_set.v1",
+    "cx.profile.anchor.mixed_recovery.v1"
+  ]
 }

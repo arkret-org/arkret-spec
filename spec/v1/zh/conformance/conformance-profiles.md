@@ -529,8 +529,8 @@ SHOULD 支持：
 - schema validation tests
 - signature verification tests
 - idempotency tests
-- reducer convergence tests（含 state resolution 向量）
-- state resolution state vectors（见 `conformance-vectors.md`）
+- reducer convergence tests（含 Move/Anchor/Lattice 向量）
+- Move/Anchor/Lattice vectors（见 `conformance-vectors.md`）
 - Event Envelope negative vectors（见 `artifacts/fixtures/event-envelope-negative-fixture.json`）
 - redaction vectors（见 `conformance-vectors.md`）
 - capability vectors（见 `conformance-vectors.md`）

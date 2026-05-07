@@ -172,13 +172,13 @@ Contrix v1 要求：
 
 ### 6.1 跨 Actor 依赖与确定性排序
 
-Contrix v1 将依赖关系和 winner tie-breaker 分开处理：
+Contrix v1 将 Move 依赖关系和 Anchor/Lattice 生效分开处理：
 
-- `prev_refs`、`auth_refs` 和具体 event kind 声明的 payload-level causal refs 共同形成 accepted dependency graph。
+- `prev_refs`、`auth_refs` 和具体 event kind 声明的 payload-level causal refs 仍可用于 legacy Event Envelope 兼容；新状态收敛以 Move `preconditions[]`、`effects[]`、`refs[]` 和 Anchor frontier 为准。
 - 若事件 B 的 dependency closure 包含事件 A，任何 canonical replay、timeline recovery 或 reducer input normalization 都 MUST 在拓扑上令 A 先于 B；即使 `hlc(A) > hlc(B)` 也不得反转。
-- `auth_refs` 表示“B 的授权判定必须能看到 A”，不表示 A 的业务 payload 自动覆盖 B，也不额外提高 A 的 state resolution 权重。它只影响 B 是否可进入 accepted set、B 的 auth state map 和 deterministic dependency depth。
+- `auth_refs` / Move `refs(role="authorized_by")` 表示授权判定必须能看到对应凭证，不表示被引用 payload 自动覆盖引用者，也不额外提高任何冲突权重。
 - 只有当两个 accepted Event 在 dependency graph 中互不可达时，才使用 HLC、Actor ID、`actor_seq`、`event_id` / hash 作为 deterministic total-order tie-breaker。
-- Reducer 的 state conflict winner 仍按 `event-auth-state-resolution.md` 的 quarantine-on-concurrent-fork、auth-difference re-validation、`causal_depth`、HLC 和 event id 规则执行；不再使用已废弃的 `auth_weight` lattice。timeline 展示顺序不得被反向用于授权。
+- 协议状态不再由 reducer 选择 conflict winner。Move precondition 不成立则失败；Anchor 提供 finality；Lattice 对 cell 返回 value 或 `⊥`。Timeline 展示顺序不得被反向用于授权。
 
 因此，跨 actor 的 `auth_refs` 会创建可验证依赖边界，但不会引入全局共识时钟或服务端接收顺序。
 
@@ -593,7 +593,7 @@ Contrix 初版不引入全网共识链。
 
 最终收敛到相同当前态。
 
-并发 state conflict 的 winner 与 quarantine 规则以 `event-auth-state-resolution.md` 为准：候选事件通过格式、签名、授权、时钟窗口和 causal dependency 检查后，严格因果后继 supersede 前驱；互不可达候选使用 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 作确定性 provisional winner，并将非 winner 标记为 `quarantined` 等待治理处理。v1 core 不使用 `auth_weight` 或 governance lattice 自动消化并发 fork。
+协议状态收敛以 `event-auth-state-resolution.md` 的 Move/Anchor/Lattice 规则为准：Move precondition 不成立则失败，Anchor frontier 决定 effective set，cell Lattice 返回 value 或 bottom。实现不得用 timeline tie-breaker、HLC、actor id 或本地接收顺序替代 Lattice 结果。
 
 非 state 的并发对象操作也必须使用确定性顺序归约。除各对象规则另有更具体定义外，reducer 应先按依赖图验证候选可用性，再用 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 选择唯一候选并记录 losers / conflict records。
 
@@ -601,7 +601,7 @@ Contrix 初版不引入全网共识链。
 
 ### 16.1 Reducer Contract
 
-Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一 `space_id`、同一 accepted Event 集合和同一 reducer profile，正确实现 MUST 产生相同的 `state_hash`、materialized object state、conflict records 和 reducer frontier。
+Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一 `space_id`、同一 Anchor frontier、同一 Move set 和同一 reducer profile，正确实现 MUST 产生相同的 `state_hash`、materialized object state、bottom diagnostics 和 reducer frontier。
 
 Reducer 输入：
 
@@ -619,8 +619,8 @@ Reducer 输出：
 
 - Reducer MUST 幂等：重复输入同一 Event 不得改变输出。
 - Reducer MUST 对输入集合顺序不敏感；排序只能使用本规范声明的 deterministic ordering。
-- Reducer profile MUST 明确声明它处理的 Event kind、state key 规则、字段 merge operator、redaction preserved fields、rank/order profile、schema interpretation profile 和 critical extension 行为。
-- 两个 reducer profile 只有在 profile id、critical feature 集合、state resolution 规则和字段 merge operator 均匹配时，才可比较 state hash。否则必须声明为不同 projection，不得声称同一 canonical state。
+- Reducer profile MUST 明确声明它处理的 Event kind / Move effect kind、cell family、lattice type、redaction preserved fields、rank/order profile、schema interpretation profile 和 critical extension 行为。
+- 两个 reducer profile 只有在 profile id、critical feature 集合、Lattice 规则和字段 merge operator 均匹配时，才可比较 state hash。否则必须声明为不同 projection，不得声称同一 canonical state。
 - Partial reducer MAY 用于客户端视图、搜索、通知或只读 projection，但它输出的是 scoped projection frontier，不是 Space accepted reducer frontier。Partial reducer 遇到不支持但会影响其输出语义的 standard Event kind、critical extension 或 required feature 时 MUST fail closed、返回 `projection_incomplete` / `unsupported_feature`，或降级为明确标注的不完整视图；不得静默忽略后继续声称完整。
 
 ## 17. 字段级 merge 与对象级收敛

@@ -128,7 +128,7 @@ Contrix 的目标是协作图：任务依赖、对象引用、结构化 mention�
 
 ## 6. State Model 与 Writer Model 的明确偏离
 
-Matrix v1/v11 room state model 是 Contrix 早期最重要的参考之一。Contrix v1 在多处显式偏离 Matrix 的 state 模型设计；本节列出这些偏离，使实现者在迁移概念时不被相似命名误导。
+Matrix v1/v11 room state model 是 Contrix 早期最重要的参考之一。Contrix v1 已经改为 **Move · Anchor · Lattice** 模型；本节列出这些偏离，使实现者在迁移概念时不被相似命名误导。
 
 ### 6.1 没有 `state_key` 字段
 
@@ -136,12 +136,12 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 替代设计：
 
-- 每个 state event kind 在 [`artifacts/registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 显式声明 `state_cardinality`（`singleton` / `per_subject`）。
-- `per_subject` kind 同时声明 `state_subject_field`（payload 字段路径）和 `state_subject_type`（`id:space` / `did` / `string` / `mimi_uri` / `composite` 等）。
-- Reducer state slot 主键派生：singleton = `(space_id, kind)`；per_subject = `(space_id, kind, value-of-state_subject_field)`。
-- Subject 信息存在于 payload 具名字段（`payload.actor_id`、`payload.parent_space_id`、`payload.grant_id` 等），不是 metadata 字段。
+- 协议状态写入由 Move 的 `effects[(cell_id, lattice_op)]` 表达。
+- `cell_id` 是显式 canonical cell，例如 `cx:cell:cx.component.member.state.v1:<actor-did>`。
+- 每个 cell family 在 registry / Space schema 中声明 `lattice` 与 `bottom`。
+- Subject 信息仍存在于 payload 或 Move effect value 中，并由 explicit cell id 承载。
 
-**理由**：Matrix `state_key` 在实际使用中过载了多种语义——facet selector（`m.room.power_levels` 一份 vs. `m.room.member` 多份）、subject identifier（`m.room.member` 用 user_id）、singleton marker（用空字符串）、复合 key（用字符串拼接）。Contrix 把这些拆解为独立维度（kind + cardinality + typed payload field），使每个语义有清晰归属，并允许 schema 校验 subject 类型与值。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3。
+**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Contrix 把这些语义移动到 cell id 与 lattice schema，使多 cell 原子写、冲突 bottom、Anchor finality 和轻客户端 state_root 验证可以共用同一模型。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
 
 ### 6.2 没有 `cx.space.policy.set` 这种聚合 kind
 
@@ -149,30 +149,31 @@ Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 
 
 **理由**：聚合 kind 没有真实共享：每个 facet 有不同的 capability tier、auth refs、payload schema、reducer 行为。把它们绑成一个 kind 只是 Matrix wire 字段限制的产物，不反映任何模型上的共性。Contrix 的 per-facet kind 让 schema 路由更直、capability 矩阵更清楚、未来 facet 演进可独立版本化。
 
-### 6.3 State Resolution 的双轨设计
+### 6.3 没有 Matrix 式 Winner Reconstruction
 
-Matrix room state v2/v11 用一个统一的 lattice authority + governance layer scoring 算法在每个 (type, state_key) 上选出 winner。Contrix v1 不接受这个模型有两个理由：
+Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain difference 并自动选出 winner。Contrix v1 不再有全局 winner 算法：
 
-1. **没有 governance layer 评分**：Contrix 已经通过 capability + revoke + DID signature 表达授权权威。给同一 state slot 的多份合法签名按"权重"排序自动选边，并不能正确反映组织治理意图——这是该交给 admin 显式介入的事。Contrix 用 quarantine-on-concurrent-fork（[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3）替代 lattice 评分。
-2. **双轨写入模型**：Contrix v1 的 Space 在 create 时锁定 `space_writer_model` ∈ `{hub, peer_mesh}`。`peer_mesh` 走类 Matrix 的 quarantine-on-concurrent-fork；`hub` 走 single ordering authority + host endorsement（§9.5 host fault diagnostic）。Sovereign 部署默认 `hub`（贴合"组织 server 是 Space 真相源"的事实结构），open federation 默认 `peer_mesh`。Matrix 全局只有 peer-mesh 一种模型。
+- Move 是多 cell 原子 CAS，precondition 不成立则整个 Move 失败。
+- Anchor 是 ordering authority 对 Move frontier 的承诺，Hub、threshold、peer mesh 都只是 anchorer cell 的不同 value。
+- Lattice `join()` 对每个 cell 返回 value 或 `⊥`；安全关键 cell 使用 `bottom=reject` fail closed，不自动猜 winner。
+- 冲突修复是普通 Move（例如 `head_in [A,B]` + recovery capability），不是特殊裁决路径。
 
-### 6.4 Component-Typed State
+### 6.4 Component Lattice
 
-Matrix state event 没有显式的 component 类型与 criticality 概念——unknown event type 行为由 client 自己决定。Contrix v1 借鉴 [`draft-ietf-mimi-room-policy`](https://datatracker.ietf.org/doc/draft-ietf-mimi-room-policy/) 模型，每个 state event kind 显式声明：
+Matrix state event 没有显式的 cell 代数。Contrix v1 的 registry / Space schema 为 reducer-input kind 声明：
 
-- `component_type`（URI `cx.component.<facet-path>.v<n>`）
-- `component_version`（int）
-- `criticality`（`required` / `optional` / `ignore`）
+- `cell_family`（稳定 `cx.component.*.v<n>` URI）
+- `cell_subject`（null、payload field 或 composite descriptor）
+- `lattice`（`or-set` / `mv-register` / `cas-register` / `fsm` / `counter` / `ordered-log`）
+- `bottom`（`reject` / `expose`）
 
-Receiver 不识别 component 时按声明的 criticality 处理（fail closed / warn-and-skip / silently-drop），不再是"由实现自定"。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.4。
+Receiver 不识别核心 lattice type MUST fail closed；扩展 cell family 必须通过 schema/profile 显式 opt-in。
 
 ### 6.5 E2EE Space 的 MLS State Binding
 
-Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨：state event 用普通签名验证，加密内容由独立 ratchet 管理。Contrix v1 的 E2EE Space 把两轨绑定：每个 `cx.mls.commit` 携带 `application_state_ref`，覆盖该 epoch 的 `policy_root` / `membership_frontier` / `capability_root`，通过 MLS GroupContext extension `cx_app_state_ref` 进入 `confirmed_transcript_hash`。
+Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Contrix v1 把 MLS commit 建模为普通 Move：它读取 governance Anchor frontier，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_frontier_cell`。E2EE message Move 必须证明 `covered_frontier_cell` 覆盖所需 governance frontier。
 
-后果：E2EE Space 中 state event 在协议层 accepted 后还要被 MLS commit 覆盖才进入 **covered frontier**；中间状态是 `pending_mls_binding`（[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §11）。撤销 / ban / policy 收紧的实际生效点是 covered frontier，而不是协议层 accepted。
-
-**理由**：在 Matrix 模型下，被 ban 的成员在 `cx.member.state` accepted 后立即理论上失去权限，但 Megolm session key 已经 leak 给该成员的设备，新消息的"前向安全"是社会工程级保证，不是密码学级。Contrix 通过 MLS commit 把 state 变化与 epoch 推进绑死，使授权变化与解密能力失去同步发生。
+**理由**：撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch/key schedule 覆盖后才能影响新消息解密能力。治理恢复 Move 不依赖 MLS，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 
@@ -188,12 +189,12 @@ Contrix 不应忽略 Matrix 的成熟度：
 - Matrix room federation、state resolution、E2EE 客户端实现、bridge 生态有多年生产经验。
 - Matrix 对聊天、公开房间、桥接传统 IM 网络仍是强参考。
 
-因此 Contrix 应继续吸收 Matrix 的稳定经验，尤其是 room version / auth rules / state resolution、device trust、client sync、policy server、appservice transaction、authenticated media 等，但不继承 Matrix 的抽象根。
+因此 Contrix 应继续吸收 Matrix 的稳定经验，尤其是 room version / auth rules、device trust、client sync、policy server、appservice transaction、authenticated media 等，但不继承 Matrix 的抽象根或 state winner 算法。
 
 ## 8. 相关文档
 
-- [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — state slot 主键派生 (§4.3)、component 元信息 (§4.4)、E2EE state binding (§8.1)、hub fork 诊断 (§9.5)、host transfer (§13)
-- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS application state binding (§2.5)、covered frontier (§2.5.1)
+- [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — Move、Anchor、Lattice、bottom diagnostics、E2EE MLS Move
+- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS application state binding 与 covered frontier cell
 - [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent state machine
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)

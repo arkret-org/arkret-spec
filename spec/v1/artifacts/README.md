@@ -23,7 +23,7 @@ title: Artifacts
 - `artifacts/bindings/non-http-bindings.yaml`
   - gRPC / WS / SSE / MQ / libp2p 等 v1.1+ extension binding 概要。
 - `artifacts/fixtures/*.json`
-  - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、state resolution、capability、sync、privacy/security、federation、MIMI 等）。
+  - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、Move/Anchor/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
 
 ### 1.2 生成视图（Generated）
 

@@ -112,7 +112,7 @@ title: Spec Map
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
-| `authz/event-auth-state-resolution.md` | reducer/schema profile 版本、auth refs、membership、policy components、history sharing、state resolution（quarantine-on-fork）。 |
+| `authz/event-auth-state-resolution.md` | Move、Anchor、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered frontier。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Space/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
@@ -172,7 +172,7 @@ title: Spec Map
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
 | `conformance/snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |
-| `conformance/scalability-constraints.md` | v1 wire、授权、state resolution、Board/Relation/View 和 E2EE 的规模上限。 |
+| `conformance/scalability-constraints.md` | v1 wire、授权、Move/Anchor/Lattice、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
 
@@ -185,6 +185,5 @@ title: Spec Map
 - 改变服务 API 或 transport 的内容，放入同步、服务与联邦组。
 - 新业务能力优先做 profile，例如 agent、applet、webrtc。
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。
-
 
 

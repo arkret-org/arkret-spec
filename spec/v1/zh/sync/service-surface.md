@@ -86,7 +86,7 @@ DID Document SHOULD 只负责：
 | Authz / Policy Server | 个人可内置；共享 Space 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Space、third-party lookup。 |
-| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、Space Host 或 Applet Bridge 承载 | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
+| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、anchorer service 或 Applet Bridge 承载 | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
 | Moderation / Compliance Server | 公共或组织部署建议独立 | `/moderation`, `/server` | report、审核队列、server ACL、policy list、appeal、legal hold / erasure workflow。 |
@@ -325,7 +325,7 @@ GET /api/v1/events/frontier?space_id=<id>
 
 ## 5. Sync Surface
 
-Sync Surface 是 Principal Server 提供的 Space 增量同步能力。它不是独立第三方服务器角色。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared Space Host。
+Sync Surface 是 Principal Server 提供的 Space 增量同步能力。它不是独立第三方服务器角色。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared anchorer / sync service。
 
 本节定义三个不同操作：
 
@@ -376,7 +376,7 @@ GET /api/v1/sync/snapshot-head?space_id=<id>
 - 客户端 MUST NOT 将 message body、comment body、附件明文或可逆派生摘要提交给未授权第三方服务。
 - `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Space policy 明确委托的 Principal Server。
 - Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Space policy 中声明为 `plaintext_visible_services`。
-- shared Space Host 若可见明文，必须在 Space policy 中作为明文可见方列出。
+- shared anchorer / sync service 若可见明文，必须在 Space policy 中作为明文可见方列出。
 - 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Space policy MUST 把这视为内容可见边界，而不是透明中继。
 - 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
@@ -686,5 +686,4 @@ Contrix v1 固定：
 - Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref`、`plaintext_visibility` 和 `binding`。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。
-
 

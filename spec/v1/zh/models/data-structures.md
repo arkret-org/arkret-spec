@@ -95,8 +95,11 @@ Schema id: `cx.schema.space.v1`
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | **reducer 派生**，由 `cx.space.history_visibility` 维护；create event 提供初值。各取值 canonical 语义见 `authz/event-auth-state-resolution.md` §6。 | 派生：历史可见性。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create event 锁定；后续不得通过 Space update 改变。E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置（create-locked）。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | **reducer 派生**，由 `cx.space.policy_components` 中相关组件维护。sovereign 默认 SHOULD `closed`。`security_class=high_assurance` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 派生：联邦策略。 |
-| `space_writer_model` | yes | `enum(hub, peer_mesh)` | **create-locked**（与 `encryption_profile` 同等地位，不可后续 PATCH）。create event 省略时按 `federation_policy` 派生：`closed` / `restricted` / `quarantine` → `hub`；`open` → `peer_mesh`。`hub` MUST 同时声明 `space_host`。详见 `authz/event-auth-state-resolution.md` §3.3 / §9 / §13。 | 写入与传播模型（create-locked）。 |
-| `space_host` | conditional | `did` | `space_writer_model="hub"` 时 MUST 指定 service DID；reducer 从最新 accepted `cx.space.host` 派生当前值。peer_mesh Space MUST NOT 声明此字段。 | 派生：当前 Space Host service DID。 |
+| `anchor_profile` | no | `enum(single_did, threshold, open_set, mixed)` | **create-locked**。省略时 sovereign / closed deployment SHOULD 使用 `single_did`，开放联邦 SHOULD 使用 `open_set`。详见 `authz/event-auth-state-resolution.md`。 | Anchor finality profile。 |
+| `anchorer` | conditional | `object` | Genesis anchorer cell 的初值；`anchor_profile` 存在时 SHOULD 指定。支持 `single_did`、`threshold`、`open_set`、`mixed`。 | 派生：当前 Anchor 授权规则。 |
+| `max_anchor_staleness_ms` | no | `integer` | Move `anchor_ref` 的 freshness 窗口。离线超过窗口的客户端必须 rebase 并重新签名。默认 24h。 | Move freshness。 |
+| `cell_lattices` | no | `array<CellLattice>` | Space-specific 扩展 cell family 的 lattice 声明；核心 cell family 由 registry 声明。 | Lattice 扩展。 |
+| `co_write_policy` | no | `array<array<component>>` | 限制哪些 cell family 可以在同一 Move 中共同写入，避免跨域原子写滥用。 | Move 原子写约束。 |
 | `retention_policy_ref` | no | `id:policy` | 可引用 retention policy。 | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -144,7 +147,7 @@ flowchart TD
 
 - 授权、membership、history visibility、E2EE、federation、retention、plaintext-visible service 和 policy server 解析必须落到 `boundary_profile=security_boundary` 的 Space。Container Space 不得单独成为这些安全决策的根。
 - Board/List 的 `space_id` 指向其父容器或父安全边界，但实现不能只跟随一跳就停止；List 的最近安全边界通常是 `Space(collaboration/project/...) -> Board -> List` 链上的第一个 security-boundary ancestor。
-- `cx.space.child` / `cx.space.parent`、Relation 或 snapshot proof 都可以帮助解析容器层级；解析结果必须验证事件签名、state resolution、frontier 和权限。
+- `cx.space.child` / `cx.space.parent`、Relation 或 snapshot proof 都可以帮助解析容器层级；解析结果必须验证 Move/Event 签名、Anchor frontier、Lattice state_root 和权限。
 - 若某个 `cx:space:` 缺少可验证 Space object / stripped state，客户端 MAY 显示 opaque locked reference，但 MUST NOT 推断它是 board、list 或安全边界。
 - 写入路径中，`cx.flow.move`、`cx.container.move_item`、board/list rank 更新等容器操作仍必须在最近 security-boundary Space 的 auth state 下授权，再验证目标 container 的存在、状态和关系约束。
 
@@ -348,7 +351,7 @@ produced, used, triggered_by, has_log, summarized_from, promoted_from_discussion
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
 
-Relation conflict 的默认 winner 排序为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选使用 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 选择 deterministic provisional winner，并把 loser 记录为 conflict / quarantined diagnostic。Relation reducer 不得使用已废弃的 `auth_weight`、本地接收顺序、数据库 ID 或服务端插入顺序作为 winner 输入。`on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。`on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 frontier 提交修复事件。`require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
+Relation conflict 的默认处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。若 relation profile 能用业务 lattice 合并则合并；否则输出 conflict bottom / diagnostic。`on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。`on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 Anchor frontier 提交修复 Move。`require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
 
 Space schema、Space profile 或 `relation_profiles` MAY 对标准默认值收紧，但不得放宽会破坏互操作 projection 的标准互斥规则（例如同一 Board 内 Flow 只能处于一个 List）。`RelationProfile` 最小结构：
 
@@ -380,16 +383,16 @@ Space schema、Space profile 或 `relation_profiles` MAY 对标准默认值收�
 
 声明为 multi-edge 的 relation profile MUST 显式定义去重 key、排序字段和 conflict 处理。
 
-## 9. Event Envelope
+## 9. Event Envelope（兼容层） 
 
 Schema id: `cx.schema.event.v1`
 
-Event 是 reducer 输入。它不是当前态对象。
+Event Envelope 是 kind-routed payload 兼容层。v1 的协议状态收敛以 Move / Anchor / Lattice 为准；Event kind 可以作为 Move effect kind 与现有 Events API payload router 的稳定命名。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
-| `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。Reducer 按 schema registry 中该 kind 的 `state_cardinality`（singleton / per_subject / none）决定 state slot 形态；envelope 不携带 state_key 字段。 | 事件 kind。 |
+| `kind` | yes | `string` | 标准 effect kind SHOULD 使用 `cx.` 前缀。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 Move effect / 兼容 reducer 使用。 | 事件 kind。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
@@ -403,7 +406,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
-Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。State event 不再使用 envelope 顶层 `state_key`；reducer 按 schema registry（`spec/v1/artifacts/registry/event-kind-registry.json`）中每个 kind 的 `state_cardinality` 与 `state_subject_field` 派生 state slot 主键：singleton kind 为 `(space_id, kind)`，per_subject kind 为 `(space_id, kind, value-of-state_subject_field)`。`payload.type` 不得重复写入 `cx.*` Event kind。Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 不再从 envelope 推导 state slot；Move effect 必须显式给出 cell id 与 lattice op。`payload.type` 不得重复写入 `cx.*` Event kind。Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 Move refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：`cx.space.create.payload.object.created_by_principal` MUST 等于顶层 `actor_id`，`cx.flow.create` / `cx.morph.create` / `cx.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller，且 `payload.object.created_at` MUST 等于顶层 `created_at`。校验失败 MUST `schema_violation` 或 `capability_denied`，不得把 payload 中的创建者字段当作 proof、capability 或审计归属的替代来源。
 
@@ -411,7 +414,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 - Producer SHOULD 为同一 `actor_id` 维护单调本地链，避免主动产生同高 sibling fork。
 - 同一 `actor_id` 的非 genesis event MUST 在 `prev_refs` 中引用至少一个该 actor 的 accepted predecessor；该 predecessor 的最大 `actor_seq` 必须是当前 `actor_seq - 1`，除非 profile 明确声明恢复/导入场景。
-- 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但 state resolution 和授权判断必须使用 auth state、conflict set 与 canonical hash tie-break。
+- 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 Move preconditions、Anchor frontier 与 Lattice join。
 - 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_hash)` 接受的 sibling 数量设置上限；v1 public profile 的上限为 16，超过后 MUST quarantine 或要求 actor chain repair。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
 

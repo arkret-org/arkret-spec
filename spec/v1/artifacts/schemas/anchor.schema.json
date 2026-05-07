@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/anchor.schema.json",
+  "title": "Contrix Anchor",
+  "type": "object",
+  "required": [
+    "id",
+    "space_id",
+    "predecessor_refs",
+    "frontier",
+    "state_root",
+    "anchorer_sig",
+    "hlc"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/anchor_ref"
+    },
+    "space_id": {
+      "$ref": "#/$defs/space_ref"
+    },
+    "predecessor_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/anchor_ref"
+      },
+      "uniqueItems": true
+    },
+    "frontier": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/move_ref"
+      },
+      "uniqueItems": true
+    },
+    "state_root": {
+      "$ref": "#/$defs/hash"
+    },
+    "anchorer_sig": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/signature"
+        },
+        {
+          "$ref": "#/$defs/multi_signature"
+        },
+        {
+          "$ref": "#/$defs/threshold_signature"
+        }
+      ]
+    },
+    "hlc": {
+      "$ref": "#/$defs/hlc"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "anchor_ref": {
+      "type": "string",
+      "pattern": "^cx:anchor:sha256:[0-9a-f]{64}$"
+    },
+    "move_ref": {
+      "type": "string",
+      "pattern": "^cx:move:sha256:[0-9a-f]{64}$"
+    },
+    "space_ref": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "hlc": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "alg",
+        "verification_method",
+        "payload_hash",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ES384",
+            "ES512"
+          ]
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+(#.+)?$"
+        },
+        "payload_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "multi_signature": {
+      "type": "object",
+      "required": [
+        "kind",
+        "signatures"
+      ],
+      "properties": {
+        "kind": {
+          "const": "multi_sig"
+        },
+        "signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signature"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "threshold_signature": {
+      "type": "object",
+      "required": [
+        "kind",
+        "threshold",
+        "signers",
+        "proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "threshold_sig"
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "signers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "proof": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -138,7 +138,7 @@
     },
     "room_binding": {
       "type": "object",
-      "description": "MIMI room binding state event. The reducer keys this state event by payload.mimi_room_uri (state_subject_field declared in event-kind-registry.json).",
+      "description": "MIMI room binding effect payload. In Move/Anchor/Lattice state, the cell subject is payload.mimi_room_uri for cx.component.mimi.room_binding.v1.",
       "required": [
         "kind",
         "payload"

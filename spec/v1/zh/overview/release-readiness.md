@@ -58,7 +58,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 | Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 对象、Event、snapshot、moderation、Agent Authority、MIMI 等 schema 已注册。 |
 | Typed ID prefix | `artifacts/registry/id-kind-registry.json` | 标准 `cx:<kind>:` prefix 以机器注册表为准。 |
 | Profile 矩阵 | `zh/conformance/conformance-profiles.md`, `artifacts/profiles/conformance-profiles.json` | `core_event_store`、`chat_mvp`、`kanban_mvp` 与客户端/服务角色可独立声明。 |
-| Conformance vectors | `artifacts/fixtures/*.json` | encoding、crypto、state resolution、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
+| Conformance vectors | `artifacts/fixtures/*.json` | encoding、crypto、Move/Anchor/Lattice、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
 | Snapshot 约束 | `artifacts/schemas/snapshot.schema.json`, `zh/conformance/snapshot-schema.md`, `zh/sync/operations-sync.md` | manifest 必须包含 `event_set_commitment`；高保障 profile 支持 inclusion / omission challenge。 |
 | Moderation / abuse | `artifacts/schemas/moderation-report.schema.json`, `artifacts/schemas/moderation-queue-item.schema.json`, OpenAPI moderation endpoints | report、queue item、E2EE evidence / franking 边界有 schema 与服务绑定。 |
 | Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `zh/conformance/conformance-profiles.md` | hidden resource、private contact discovery、plaintext-visible service、private blob、blind push 有回归向量。 |
@@ -90,7 +90,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 ### 5.3 `v1-conformance-certified` 实现认证
 
 - reference validator、reference reducer、reference authz evaluator 与 conformance runner 已发布
-- canonical JSON、Event Envelope negative vectors、state resolution、capability、privacy/security、sync 与 snapshot vectors 由 CI 执行
+- canonical JSON、Event Envelope negative vectors、Move/Anchor/Lattice、capability、privacy/security、sync 与 snapshot vectors 由 CI 执行
 - 公开发布的翻译与附属文档不得偏离同一 registry 与 fixture 基线
 
 ## 6. 工程交付要求

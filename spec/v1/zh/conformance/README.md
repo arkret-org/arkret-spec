@@ -10,8 +10,8 @@ title: Contrix v1 一致性工件索引
 ## 文档清单
 
 - `encoding.md`：canonical JSON、hash、proof、HLC（§7）、cursor（§8）、rank、composite state key 的 wire 编码与操作伪代码。
-- `conformance-vectors.md`：合并的一致性测试向量（encoding & crypto / state resolution / redaction / capability / sync 共 5 个域）。
-- `scalability-constraints.md`：v1 wire、授权、state resolution、Board/Relation/View 和 E2EE 的规模上限。
+- `conformance-vectors.md`：合并的一致性测试向量（encoding & crypto / Move-Anchor-Lattice / redaction / capability / sync 共 5 个域）。
+- `scalability-constraints.md`：v1 wire、授权、Move/Anchor/Lattice、Board/Relation/View 和 E2EE 的规模上限。
 - `schema-registry.md`：标准 schema / event type registry 的说明视图。
 - `conformance-profiles.md`：实现 profile 与一致性测试范围。
 - `conformance-suite.md`：自动化互操作 suite、向量优先级、组件测试矩阵。

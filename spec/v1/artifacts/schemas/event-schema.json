@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/event-schema.json",
-  "title": "Contrix Event Schema",
+  "title": "Contrix Effect Event Compatibility Schema",
   "type": "object",
   "required": [
     "event_id",
@@ -24,7 +24,7 @@
     "kind": {
       "type": "string",
       "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-      "description": "Standard cx.* kinds MUST appear in artifacts/registry/event-kind-registry.json. Each kind has its own state cardinality: singleton (one slot per Space), per_subject (one slot per typed subject declared in the registry's state_subject_field), or none (non-state event). Durable Event Envelope history accepts only active entries with wire_scope=durable_event unless a profile defines a private actor channel."
+      "description": "Standard cx.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. New v1 state convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join; this compatibility envelope preserves the kind-routed payload contract used by existing service APIs."
     },
     "space_id": {
       "type": "string",
@@ -466,44 +466,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/space_destroy_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.host"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_host_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.host.transfer"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_host_transfer_payload"
           }
         }
       }
@@ -1465,10 +1427,9 @@
         "kind": {
           "type": "string",
           "enum": [
-            "detached_jws",
-            "host_endorsement"
+            "detached_jws"
           ],
-          "description": "detached_jws = actor / device / service signature over canonical event bytes (default). host_endorsement = signature by the Space Host's service DID asserting ordering authority for hub-writer Spaces; covers the same canonical bytes as the actor proof. A hub-writer Space's durable state event MUST carry exactly one host_endorsement proof in addition to the actor / device proof."
+          "description": "detached_jws = actor / device / service signature over canonical event bytes. Ordering authority signatures are carried by Anchor."
         },
         "alg": {
           "type": "string",
@@ -1509,37 +1470,9 @@
         "jws": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
-        },
-        "host_did": {
-          "$ref": "#/$defs/did",
-          "description": "Required when kind=host_endorsement; canonical service DID of the endorsing Space Host (MUST equal the Space's current cx.space.host.payload.host_did, or a host designated by an active cx.space.host.transfer activation_frontier)."
-        },
-        "endorsed_at": {
-          "$ref": "#/$defs/timestamp",
-          "description": "Required when kind=host_endorsement; the host's local clock time at endorsement (advisory; HLC remains the canonical ordering signal)."
         }
       },
-      "additionalProperties": true,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "kind": {
-                "const": "host_endorsement"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          "then": {
-            "required": [
-              "host_did",
-              "endorsed_at"
-            ]
-          }
-        }
-      ]
+      "additionalProperties": true
     },
     "flow_move_payload": {
       "type": "object",

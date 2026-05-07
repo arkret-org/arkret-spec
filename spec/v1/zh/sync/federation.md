@@ -21,22 +21,20 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 联邦场景中没有独立第三方分发服务器角色。Space 范围传播由参与方 Principal Server 之间的 federation transaction 完成。Principal Server 不能伪造、篡改或选择性隐藏已签名的 Event Envelope；任何参与者都可以通过直接查询源 Events API、witness receipt、snapshot frontier 或其他受信 Principal Server 交叉验证历史。
 
-### 2.3 最终一致性优于强一致性
+### 2.3 Anchor Finality 优于全局同步共识
 
-跨域网络延迟不可预测。联邦协议不追求全局共识或全局排序，而是依赖已有的因果排序 (`prev_refs` / `auth_refs` + `hlc`) 和确定性 Reducer 实现**最终一致性收敛**。
+跨域网络延迟不可预测。联邦协议不要求所有 Principal Server 同步参与一个全局共识组；每个 Space 通过 Anchor DAG 表达 ordering commitment。Hub、threshold、open peer mesh 和 sovereign fallback 只是 `anchorer` cell value 与 Anchor profile 的不同配置。
 
-### 2.4 Writer Model 决定传播形态
+### 2.4 Anchor Profile 决定传播形态
 
-联邦传播按目标 Space 的 `space_writer_model`（参见 [`models/data-structures.md`](../models/data-structures.md) Space 表）走两种形态：
+联邦传播按目标 Space 的 `anchor_profile`（参见 [`models/data-structures.md`](../models/data-structures.md) Space 表）走几种形态：
 
-- **`peer_mesh`**（默认 `federation_policy=open` 时）：peer-to-peer mesh 传播。任何持有 capability 的 actor 在自己的 Principal Server 提交事件，Principal Server 之间互相 push / pull；并发 fork 由 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3 的 quarantine-on-concurrent-fork 处理。本文 §4 描述这种模型的事件交换协议。
-- **`hub`**（默认 `federation_policy ∈ {closed, restricted, quarantine}` 时）：hub-fanout 传播。Space Host（`cx.space.host.payload.host_did` 指向的 service DID）是该 Space 的单一写入与 ordering authority。其它 Principal Server 是 follower / replica：
-  - **Actor 提交路径**：non-host actor 不直接把 durable state event 写入本地 Principal Server，而是先经 host 提交 endorsement。Actor 客户端 SHOULD 通过 `cx.space.host.payload.host_endpoint` 提交事件；host 验证 actor 签名、capability、policy 后追加 host_endorsement 并写入 host Principal Server。
-  - **传播路径**：host Principal Server 把 endorsed event fanout 给 follower Principal Server。follower 收到后按 §3.3 验证 host endorsement 后写入本地 replica。
-  - **跨域场景**：当 actor 的 Principal Server ≠ host Principal Server（例如 Alice@org-a.example 加入 Bob 的 Space，host 是 org-b.example），actor 提交流程是 actor PrincipalServer A → host PrincipalServer B → host endorsement → fanout 回 A 与其他 follower。
-  - host 故障时按 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13.2 emergency transfer 流程处理。
+- **`single_did`**：单一 service DID 签发持久 Anchor。Actor 可以向自己的 Principal Server 提交 Move，但 Move 只有被该 DID 签发的 Anchor frontier 覆盖后才 effective。传播形态是 actor/server → anchorer → fanout。
+- **`threshold`**：k-of-n committee 签发 Anchor。提交路径与 `single_did` 类似，但 Anchor 验证 threshold signature。
+- **`open_set`**：多个 federation peer / admin DID 可以签发 leaf Anchor。Principal Server 之间 push / pull pending Move 与 Anchor leaf；查询时使用 deterministic effective anchor view join。
+- **`mixed`**：正常由主 anchorer 签发 Anchor；主 anchorer 故障、签发矛盾 Anchor 或 anchorer cell 变成 `⊥` 时，fallback recovery anchorer 可以签发恢复 Anchor。
 
-跨域 Space 跨过两个 deployment（A 与 B）时，writer_model 由该 Space 的 create event 决定，所有参与 deployment 都遵循同一 model；不存在 "A 把它当 hub、B 把它当 peer_mesh" 的分裂状态。
+跨域 Space 跨过两个 deployment（A 与 B）时，`anchor_profile` 与 genesis anchorer 由 Space create 固定，所有参与 deployment 都按同一 Anchor 验证规则处理；不存在 "A 当 hub、B 当 peer mesh" 的分裂状态。
 
 ## 3. 节点间认证
 
@@ -169,7 +167,7 @@ Contrix v1 的联邦批量传播采用依赖感知的 partial accept：最小原
 
 - Actor DID 的当前 DID Document MAY 声明其受控或委托的 `ContrixPrincipalServer` endpoint。
 - Organization DID 或 Space policy MAY 为组织成员、受管设备或特定 Space 指定 Principal Server。
-- Space metadata 的 `sync_endpoints` 只表示 Space policy 明确委托的 shared Space Host 或组织 Principal Server，不自动授权任意第三方接收私有内容。
+- Space metadata 的 `sync_endpoints` 只表示 Space policy 明确委托的 shared anchorer / sync service 或组织 Principal Server，不自动授权任意第三方接收私有内容。
 - 联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
 - 当服务委托被撤销或成员被移除后，生效因果点之后不得继续向已撤销 service DID 推送非加密私有内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
 
@@ -242,12 +240,12 @@ Host: server-alpha.com
 
 `cx.capability.revoke`、superseding grant、membership removal、ban、device/session revoke 和会使既有 allow cache 失效的 policy change 是高优先级 auth state。源 Principal Server 在接受这类 Event 后，MUST 主动推送给所有当前已知的相关 Principal Server，而不是只等待对端下一次 pull：
 
-- fanout 目标包括 Space policy / membership / service delegation 中声明的 shared Space Host、受影响 subject 的 Principal Server、grant issuer / delegatee 所在 Principal Server，以及正在服务该 Space 的 federation peer。
+- fanout 目标包括 Space policy / membership / service delegation 中声明的 shared anchorer / sync service、受影响 subject 的 Principal Server、grant issuer / delegatee 所在 Principal Server，以及正在服务该 Space 的 federation peer。
 - 推送 payload MUST 包含原始 Event Envelope、必要 auth refs、当前 auth frontier 或可验证 snapshot reference，便于接收方立即失效 capability cache。
 - 接收方即使暂时无法完整验证该 revoke，也 MUST 将匹配 scope 的 allow cache 标记为 stale / `revoke_freshness_unknown`，直到 backfill 完成。
 - fanout 失败时，源服务器 MUST 保留重试队列并在后续 federation transaction、frontier probe 或 pull 响应中暴露缺失诊断；不得因单个 peer 不可达而回滚已 accepted revoke。
 
-该主动推送只加速缓存一致性，不替代接收方对签名、auth refs、state resolution 和 policy 的独立验证。
+该主动推送只加速缓存一致性，不替代接收方对签名、Move refs、Anchor frontier、Lattice state_root 和 policy 的独立验证。
 
 ### 4.5 Fork Detection / Frontier Exchange
 
@@ -290,15 +288,15 @@ Host: server-alpha.com
 Bob 也可以主动申请加入：
 
 1. Bob 发现 Space S 的元数据（通过公开的 Space Directory 或链接）
-2. Bob 提交 `cx.member.state{membership="knock"}` Event，推送给 Space S 的 shared Space Host 或管理员 Principal Server
+2. Bob 提交 `cx.member.state{membership="knock"}` Move / compatible Event，推送给 Space S 的 shared anchorer、sync service 或管理员 Principal Server
 3. 接收方验证 knock 的签名有效后，转发给 Space 管理员
 4. 管理员审批后提交 `cx.invite.create` + Bob 提交 `cx.invite.accept`
 
 ## 6. 联邦级服务发现
 
-### 6.1 Space Host / Sync Endpoint 列表
+### 6.1 Anchorer / Sync Endpoint 列表
 
-每个 Space 的 metadata MAY 包含一个 `sync_endpoints` 列表，用于列出被 Space policy 明确委托的 shared Space Host 或组织 Principal Server。该列表不是公开分发节点列表；列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
+每个 Space 的 metadata MAY 包含一个 `sync_endpoints` 列表，用于列出被 Space policy 明确委托的 shared anchorer、sync service 或组织 Principal Server。该列表不是公开分发节点列表；列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
 
 ```json
 {
@@ -461,7 +459,7 @@ POST /api/v1/federation/verify-actor
 
 - 请求 MUST 使用来源 service DID 的 HTTP Message Signature。
 - `purpose` MUST 是 `event_source`、`federation_join`、`device_binding` 或 Space policy 明确允许的等价目的。
-- 请求方 MUST 是该 Space 的参与方 Principal Server、被委托 Space Host，或拥有相关 federation / join 处理权限的服务。
+- 请求方 MUST 是该 Space 的参与方 Principal Server、被委托 anchorer / sync service，或拥有相关 federation / join 处理权限的服务。
 - 服务端 MUST 限流，并对不可见 actor 返回统一 `not_found` / `capability_denied` 语义，避免批量枚举 DID。
 - 响应只能作为缓存加速或诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Space policy。
 

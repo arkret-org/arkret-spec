@@ -54,7 +54,7 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“branch 的第
 
 - Space-scoped MLS group 的默认 admin set 来自 `cx.space.create.payload.object.initial_creators` / `created_by_principal`，以及当前有效的 `cx.space.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Space policy 声明的等价 E2EE admin capability。
 - Flow discussion branch-scoped MLS group 的 admin set 是 Space-scoped admin set，加上对该 `flow_id + branch=discussion` 具有 `cx.flow.branch.admin`、`cx.flow.branch.member` 管理权或 policy 声明 E2EE branch admin capability 的 actor。
-- Admin capability 可以通过普通 capability grant / revoke 转移或收回；转移生效点由 state resolution 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
+- Admin capability 可以通过普通 capability grant / revoke Move 转移或收回；转移生效点由 Anchor finality、Lattice value 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
 
 发送 `cx.mls.proposal`、`cx.mls.commit` 或 `cx.mls.welcome` 的 actor 必须在其事件自己的 causal auth state 下属于上述 admin set，或满足该 event kind 允许的普通成员 update / self-update 规则。
 
@@ -111,7 +111,7 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“branch 的第
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_hashes`。 |
 | `aad.causal_ref_hashes` | array&lt;hash&gt; | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
 | `key_ref.algorithm` | string | 条件 | `mls-rfc9420` profile 为 `MLS`；其他 profile 必须注册自己的值。 |
-| `key_ref.group_state_ref` | id:event 或 hash | 否 | 指向 accepted `cx.mls.genesis` / winner `cx.mls.commit` / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
+| `key_ref.group_state_ref` | id:move 或 hash | 否 | 指向 effective `cx.mls.genesis` / `cx.mls.commit` Move / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes \|\| encrypted_payload_bytes)`；输入定义见 §2.3.3。 |
 | `aad_digest` | hash | 是 | canonical AAD 的 SHA-256。 |
 | `cleartext_commitment` | hash | 否 (v1 预留) | 每个 scheme 由 Cleartext Commitment Profile 定义；v1 实现 MAY 忽略，v2 MAY 对新 scheme 设为必填。 |
@@ -209,7 +209,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 - 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.branch.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `application_state_ref.membership_frontier` 覆盖该 membership frontier。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
-- 发送客户端在发现 `epoch_update_required` 后 SHOULD 暂停该 scope 的新 application messages，或把发送状态标记为 `encryption_transition_pending`。高安全 profile MUST 暂停发送，直到 winner epoch 覆盖最新 membership frontier。
+- 发送客户端在发现 `epoch_update_required` 后 SHOULD 暂停该 scope 的新 application messages，或把发送状态标记为 `encryption_transition_pending`。高安全 profile MUST 暂停发送，直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。
 - Space / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
 - 网络分区期间可以继续 backfill 旧 epoch 历史，但不得把旧 epoch 下的新消息展示为已满足最新 membership policy 的消息。
 
@@ -244,32 +244,29 @@ MLS group 的绑定层级取决于启用位置：若 Space 级 policy 声明 `en
 
 **E2EE Space MUST 声明 `cx.profile.mls_state_binding.full.v1`**：v1 中所有声明 `encryption_profile="mls_rfc9420"` 的 Space 均隐式继承该 profile（`cx.profile.e2ee_client.v1` 已直接 `inherits` 它）。**该 profile 不再是 optional extension**，所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `application_state_ref`。基础 E2EE profile（仅 transcript-authenticated 而无 GroupContext extension 的实现）已废弃；早期 base profile 实现 MUST 升级。
 
-规则：
-
-- `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员状态、invite/leave/ban 变化和设备信任变化。具体覆盖的 component_types 由 `cx.profile.mls_state_binding.full.v1` 的 `membership_frontier_required_components` 字段声明（v1 默认包含 `cx.component.member.state.v1`、`cx.component.flow.branch.member.v1`）。
-- `policy_root` MUST 覆盖 `cx.profile.mls_state_binding.full.v1` 的 `policy_root_required_components` 列出的所有 component_types：access policy、join rule、history visibility、history sharing、policy components、media service、plaintext-visible services、moderation、asset privacy、lifecycle facets。这些字段缺失或无法验证时，客户端 MUST 标记 epoch 为 `state_mismatch` 或 `decryption_pending`。
-- `capability_root` MUST 覆盖 `cx.profile.mls_state_binding.full.v1` 的 `capability_root_required_components` 列出的所有 component_types：所有 `cx.capability.*` 派生的 grant/revoke/delegate/derived state slot。它必须反映本次成员或策略变化相关的 effective grant / revoke / claim 状态。
+- `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员、invite/leave/ban 和设备信任 cell。
+- `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
+- `capability_root` MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell。
 - `discussion_metadata_hash` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
-- 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix state 已经按 `event-auth-state-resolution.md` accepted。无法回补或 hash 不匹配时 MUST 标记该 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
-- 并发 Commit 只能在其承载 Event 已按 `event-auth-state-resolution.md` 通过格式、签名、授权、时钟窗口和因果检查并进入 accepted state 后推进 MLS epoch；互不可达的合法并发 Commit 按 v1 state-resolution 进入 deterministic provisional winner + quarantine 诊断，非 accepted Commit 的 MLS transcript 不得被接受为当前 epoch。
+- 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix Anchor view 与 state_root。无法回补 Move/Anchor inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
+- 并发 Commit 是并发 Move。它们只有被有效 Anchor frontier 覆盖、且其 preconditions 在 Anchor batch pre-state 下成立时，才能推进 `mls_epoch_cell`。
 
-#### 2.5.1 Covered Frontier 与 Pending MLS Binding
+#### 2.5.1 Covered Frontier Cell
 
-E2EE Space 中，state event 在 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 验证通过（含 §3.3 host endorsement，若 hub-writer）后只是 **协议层 accepted**；它必须再被某个 `cx.mls.commit` 的 `application_state_ref` 覆盖，才进入 **MLS-bound accepted**。两个状态形成一条 frontier（同步定义见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §8.1 与 §11 `pending_mls_binding` 状态）：
+E2EE Space 中，MLS Commit 被建模为 Move。它读取 governance Anchor frontier，写入：
 
-- **Accepted frontier**：reducer 已接受的所有 state event 集合（按 §4.4 component cardinality 算 slot）。
-- **Covered frontier**：被某个 winning `cx.mls.commit` 的 `application_state_ref` 覆盖的 accepted state event 子集。
+- `mls_epoch_cell`
+- `key_schedule_cell`
+- `covered_frontier_cell`
 
 规则：
 
-- 一个 state event 在 `accepted` 但 `not yet covered` 时处于 **`pending_mls_binding`** 状态。该状态对客户端 UI 与同步语义的影响：
-  - 客户端 MAY 在 metadata 层面展示该 state（例如显示 ban 即将生效），但 MUST NOT 让该 state 影响 E2EE 解密、key share、新 application message 加密 epoch。
-  - 服务端 SHOULD 把 `pending_mls_binding` state 计入 sync frontier，但要求客户端确认 covered 状态后才能展示给最终用户作为权威。
-- 客户端在 `cx.mls.proposal` / `cx.mls.commit` 链未跟上 accepted state 超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并暂停发送新 application messages（`high_assurance` security_class 是 MUST，其他是 SHOULD）。
-- 撤销与失效（如 ban、revoke）只在 covered frontier 上才能阻止后续 application messages 解密；在 `pending_mls_binding` 期间发送的旧 epoch 消息 MAY 仍能被本来就持有 epoch key 的 actor 解密——这就是为什么 covered frontier 必须及时推进。
-- 服务端 SHOULD 在 `application_state_ref.policy_root_components` 中显式列出本次 commit 覆盖的 component_types，使接收方能精确判断哪些 state slot 进入了 covered frontier。该列表 MUST 是 `cx.profile.mls_state_binding.full.v1` 声明的 required components 的子集，缺失任一 required component 时 commit MUST reject。
+- E2EE application message Move 的 preconditions MUST 证明 `covered_frontier_cell` 包含该消息依赖的 governance Anchor frontier。
+- 客户端在 MLS Commit Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并暂停发送新 application messages（`high_assurance` security_class 是 MUST，其他是 SHOULD）。
+- 撤销与失效（如 ban、revoke）只有被 `covered_frontier_cell` 覆盖后，才能阻止后续 application messages 解密；旧 epoch 中已分发的 key material 仍可能被原持有者使用。
+- Governance / recovery Move 不依赖 `covered_frontier_cell`，因此 MLS epoch 卡住时仍可提交修复 Move 并由 Anchor finalization 生效。
 
-实现 MUST 暴露 `pending_mls_binding` 状态作为可枚举诊断；MUST 区分 `accepted` 与 `covered`，不得把"协议层 accepted 但 MLS 未覆盖"的 state event 当作 fully effective 状态展示给最终用户。
+Move 在 Anchor 前是 pending；被 Anchor 后是否可用于 E2EE 由 `covered_frontier_cell` precondition 决定。
 
 #### 2.5.2 GroupContext Extension 定义
 
@@ -357,7 +354,7 @@ Claim 成功后：
 
 ### 2.7 Minimal-Metadata E2EE Space
 
-高隐私 Space MAY 启用 `cx.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared Space Host 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
+高隐私 Space MAY 启用 `cx.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
 
 Profile 规则：
 
@@ -490,9 +487,9 @@ Genesis 接受规则：
 
 1. 创建者必须在 `application_state_ref.membership_frontier` 和 `policy_root` 覆盖的状态下有创建该 MLS group 的权限；通常需要 `cx.mls.genesis` 或包含该动作的管理 grant。
 2. `application_state_ref.next_epoch` MUST 为 `0`；若包含 `previous_epoch`，也 MUST 为 `0`。
-3. 同一 `(scope, mls_group_id)` 只能有一个 accepted genesis。并发重复 genesis 是 state conflict，按 event-auth state resolution 选择 winner；loser 的 GroupInfo / ratchet tree 不得用于解密或后续 commit。
-4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `cx.mls.commit`，其 `base_epoch=0`、`base_epoch_ref` 指向 winning `cx.mls.genesis`、`next_epoch=1`。
-5. 新加入成员的 `cx.mls.welcome` MUST 引用 accepted genesis 或后续 winning commit 派生出的 epoch state；客户端不得从未 accepted 的 welcome / ratchet tree 本地推断 group authority。
+3. 同一 `(scope, mls_group_id)` 的 genesis cell 使用 `cas-register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Move 必须 fail closed，直到 recovery Move 修复。
+4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `cx.mls.commit` Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `cx.mls.genesis`、`next_epoch=1`。
+5. 新加入成员的 `cx.mls.welcome` MUST 引用 effective genesis 或后续 effective commit 派生出的 epoch state；客户端不得从未被 Anchor 覆盖的 welcome / ratchet tree 本地推断 group authority。
 
 ### 5.2 意图与生效的分离
 组员的增删改是两阶段流程：
@@ -504,26 +501,27 @@ Genesis 接受规则：
 - **挂起态的可用性**：在 Commit 被提交之前，群组处于“有待处理提案”的挂起状态，所有成员依然可以使用现有的 Epoch 密钥继续聊天通信。
 - **无缝接力 (Takeover)**：群组内其他具备足够权限的成员（如管理员 B 或普通成员 C）在侦测到未处理的 Proposal 后，可以主动“接手”。成员 B 的客户端会自动执行重新加密，打包移除 D 的逻辑，并广播出 `cx.mls.commit`。一旦 B 的 Commit 被接受，D 成功被踢出。
 
-### 5.4 防冲突仲裁 (Concurrency Resolution)
+### 5.4 并发 Commit
 如果 A 和 B 同时发起不同的 Commit，或者 A 发送缓慢导致与 B 的接力 Commit 在网络中发生竞态碰撞：
-- 节点 MUST 以底层 Event reducer 的 accepted / quarantined 结果为准。互不可达候选在通过格式、签名、授权、时钟窗口和因果检查后，按 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 选择 deterministic provisional winner，并把非 winner 标记为 quarantined，等待治理或修复事件处理；v1 core 不使用 `auth_weight` 或 governance lattice。
-- 只有 accepted Commit 能成为合法的下一个 Epoch。quarantined / rejected Commit 的客户端发现自己的 Commit 未被接受后，MUST 丢弃本地 epoch 变更并拉取 accepted state。
+- 节点 MUST 以 Anchor frontier 下的 `mls_epoch_cell` / `key_schedule_cell` Lattice 结果为准。互不可达候选不会按时间或 actor 自动选 winner。
+- 若并发 Commit Move 都满足各自 precondition 但写入同一 `cas-register` epoch cell 的不同值，该 cell 返回 `⊥`；后续 E2EE message Move fail closed，直到 recovery Move 或后续有效 Commit 修复。
+- 只有 effective Commit Move 能成为合法的下一个 Epoch。未被 Anchor 覆盖或导致 bottom 的 Commit 客户端 MUST 丢弃本地 epoch 变更并拉取当前 Anchor view。
 
 MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 - `group_id`：目标 MLS group。
 - `base_epoch`：Commit 构造时读取的当前 epoch。
-- `base_epoch_ref`：本地认为当前有效的 winner `cx.mls.commit` event 或 `cx.mls.genesis` event / genesis group state ref（v1 不再有独立的 `cx.mls.epoch` checkpoint event；epoch 由 winner commit 机械派生）。
+- `base_epoch_ref`：本地认为当前 effective 的 `cx.mls.commit` Move 或 `cx.mls.genesis` Move / genesis group state ref（v1 不再有独立的 `cx.mls.epoch` checkpoint event；epoch 由 effective commit 机械派生）。
 - `proposal_refs`：被该 Commit 消费的 `cx.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
 - `commit_message_ref` / `commit_hash`：MLS Commit 消息或其 content-addressed blob。
 - `next_epoch`：必须等于 `base_epoch + 1`。
 - `application_state_ref`：见第 2.5 节。
 
-同一 `(group_id, base_epoch)` 上多个 accepted `cx.mls.commit` 候选是 state conflict，而不是并存的多个有效 epoch。Reducer MUST 只选择一个 winner 生成当前 MLS epoch state；loser commit 的 MLS transcript 不得被用于解密或继续提交后续 epoch。客户端发现自己提交的 commit 失败后，必须以 winner epoch 为 base 重新生成 Commit；原 loser commit 中未被 winner 消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
+同一 `(group_id, base_epoch)` 上多个 effective `cx.mls.commit` 候选如果无法由 Lattice 合并，会产生 `⊥`，而不是并存的多个有效 epoch。客户端发现自己提交的 commit 未成为 effective state 后，必须以当前 Anchor view 为 base 重新生成 Commit；原失败 commit 中未被消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
 
-v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epoch 由 winner `cx.mls.commit` 的 `next_epoch` 字段直接表达；checkpoint 是 reducer / snapshot 派生视图，不进入 wire history。任何来自旧版本的 `cx.mls.epoch` event MUST 被拒绝，发送方应改为引用 winner commit。
+v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epoch 由 effective `cx.mls.commit` Move 的 `next_epoch` 字段直接表达；checkpoint 是 Lattice / snapshot 派生视图，不进入 wire history。任何来自旧版本的 `cx.mls.epoch` event MUST 被拒绝，发送方应改为引用 effective commit。
 
-当网络分区导致节点短期看见不同 winner 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 event-auth state resolution、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Space policy 授权为普通 actor 或 service capability，不能替代上述 deterministic state resolution。
+当网络分区导致节点短期看见不同 Anchor leaf 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 Anchor view、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Space policy 授权为普通 actor 或 service capability，不能替代 Anchor/Lattice 验证。
 
 ### 5.5 Commit / Welcome 处理失败报告
 
@@ -543,7 +541,7 @@ v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epo
 - 事件的 `actor_id` MUST 是报告失败的 principal 或其授权设备 / service actor；`reporter_device_id` 必须能从 principal control state 验证。
 - `payload` MUST NOT 包含 MLS secret、明文、Welcome 明文、私钥、passphrase、完整 ratchet tree 或可用于离线攻击的调试 dump。
 - `auth_refs` SHOULD 包含失败的 `commit_ref`、相关 `cx.mls.welcome`、当前 membership / policy frontier 或可验证 snapshot reference。
-- 收到该事件的客户端 MAY 将相关消息保持 `decryption_pending`，并提示重新同步；服务端或管理员 MAY 重发 Welcome 或提交修复 Commit，但必须重新走普通授权和 state resolution。
+- 收到该事件的客户端 MAY 将相关消息保持 `decryption_pending`，并提示重新同步；服务端或管理员 MAY 重发 Welcome 或提交修复 Commit Move，但必须重新走普通授权、Move precondition 和 Anchor finalization。
 
 ## 6. 离线支持与消息延迟到达
 - 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `cx.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Sync Service 中的加密事件。

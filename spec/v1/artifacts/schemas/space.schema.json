@@ -216,17 +216,88 @@
         "quarantine"
       ]
     },
-    "space_writer_model": {
+    "anchor_profile": {
       "type": "string",
       "enum": [
-        "hub",
-        "peer_mesh"
+        "single_did",
+        "threshold",
+        "open_set",
+        "mixed"
       ],
-      "description": "Authoritative-writer model for this Space. Create-locked (cannot change after create). 'hub' = single canonical Space Host (declared via cx.space.host) endorses every durable state event; state slots have at most one accepted event per slot key (no concurrent forks at protocol layer). 'peer_mesh' = any actor with capability may write; concurrent forks resolved by §9.3 quarantine-on-concurrent-fork. Default derived from federation_policy when omitted: closed/restricted/quarantine -> hub, open -> peer_mesh."
+      "description": "Create-locked Anchor finality profile. single_did and threshold deployments may require signed Anchor single-chain uniqueness; open_set deployments allow multiple Anchor leaves and deterministic joined views; mixed deployments use a primary anchorer plus fallback recovery anchorer."
     },
-    "space_host": {
-      "$ref": "#/$defs/did",
-      "description": "Service DID of the canonical Space Host. REQUIRED when space_writer_model=hub. The reducer materialises this from the latest accepted cx.space.host state event; the create event provides the initial value."
+    "anchorer": {
+      "type": "object",
+      "description": "Genesis value for the Space anchorer cell. Subsequent changes are ordinary Moves finalized by the previous anchorer.",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "single_did",
+            "threshold",
+            "open_set",
+            "mixed"
+          ]
+        },
+        "did": {
+          "$ref": "#/$defs/did"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recovery_members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "max_anchor_staleness_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 86400000,
+      "description": "Maximum age of a Move.anchor_ref relative to the current Anchor view. Offline clients exceeding this window must rebase and re-sign."
+    },
+    "bottom_escalation_after_ms": {
+      "type": "integer",
+      "minimum": 60000,
+      "description": "Optional timeout after which unresolved bottom diagnostics should be escalated to recovery governance. Expiry does not choose a winner automatically."
+    },
+    "cell_lattices": {
+      "type": "array",
+      "description": "Optional Space-specific lattice declarations for extension cell families.",
+      "items": {
+        "$ref": "#/$defs/cell_lattice"
+      },
+      "uniqueItems": true
+    },
+    "co_write_policy": {
+      "type": "array",
+      "description": "Optional whitelist constraining which cell families may be written by the same Move.",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^cx\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+        },
+        "minItems": 1,
+        "uniqueItems": true
+      }
     },
     "retention_policy_ref": {
       "type": "string",
@@ -307,42 +378,6 @@
           }
         }
       }
-    },
-    {
-      "if": {
-        "properties": {
-          "space_writer_model": {
-            "const": "hub"
-          }
-        },
-        "required": [
-          "space_writer_model"
-        ]
-      },
-      "then": {
-        "required": [
-          "space_host"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "space_writer_model": {
-            "const": "peer_mesh"
-          }
-        },
-        "required": [
-          "space_writer_model"
-        ]
-      },
-      "then": {
-        "not": {
-          "required": [
-            "space_host"
-          ]
-        }
-      }
     }
   ],
   "$defs": {
@@ -354,6 +389,42 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "cell_lattice": {
+      "type": "object",
+      "required": [
+        "cell_family",
+        "type",
+        "bottom"
+      ],
+      "properties": {
+        "cell_family": {
+          "type": "string",
+          "pattern": "^cx\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "or-set",
+            "mv-register",
+            "cas-register",
+            "fsm",
+            "counter",
+            "ordered-log"
+          ]
+        },
+        "bottom": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "expose"
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

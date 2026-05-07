@@ -1,0 +1,167 @@
+{
+  "profile": "cx.profile.move_anchor_lattice_vectors.v1",
+  "version": "2026-05-07",
+  "vectors": [
+    {
+      "name": "multi_cell_ban_revokes_grants_atomically",
+      "description": "A single Move bans Alice and revokes two grants. The Anchor batch pre-state must satisfy all preconditions; otherwise none of the effects become effective.",
+      "pre_state": {
+        "anchor": "cx:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "cells": {
+          "cx:cell:cx.component.member.state.v1:did.web.alice.example": {
+            "membership": "join",
+            "head": "cx:move:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gr0000000000000000000": {
+            "status": "active",
+            "head": "cx:move:sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gs0000000000000000000": {
+            "status": "active",
+            "head": "cx:move:sha256:3333333333333333333333333333333333333333333333333333333333333333"
+          }
+        }
+      },
+      "move": {
+        "id": "cx:move:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "issuer": "did:web:admin.example",
+        "anchor_ref": "cx:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "preconditions": [
+          {
+            "cell": "cx:cell:cx.component.member.state.v1:did.web.alice.example",
+            "predicate": {
+              "op": "head_eq",
+              "value": "cx:move:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            }
+          },
+          {
+            "cell": "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gr0000000000000000000",
+            "predicate": {
+              "op": "head_eq",
+              "value": "cx:move:sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            }
+          },
+          {
+            "cell": "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gs0000000000000000000",
+            "predicate": {
+              "op": "head_eq",
+              "value": "cx:move:sha256:3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "cell": "cx:cell:cx.component.member.state.v1:did.web.alice.example",
+            "op": {
+              "type": "transition",
+              "from": "join",
+              "to": "ban",
+              "reason": "abuse"
+            }
+          },
+          {
+            "cell": "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gr0000000000000000000",
+            "op": {
+              "type": "remove",
+              "tag": "grant-tag-a"
+            }
+          },
+          {
+            "cell": "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gs0000000000000000000",
+            "op": {
+              "type": "remove",
+              "tag": "grant-tag-b"
+            }
+          }
+        ],
+        "refs": [
+          {
+            "id": "cx:grant:01js0ga0000000000000000000",
+            "role": "authorized_by"
+          }
+        ]
+      },
+      "expected": {
+        "verify_move": "pass",
+        "atomicity": "all_effects_or_none"
+      }
+    },
+    {
+      "name": "cas_register_conflict_returns_bottom",
+      "description": "Two anchored Moves concurrently set the same cas-register cell. Query returns structured bottom rather than choosing a winner.",
+      "cell": "cx:cell:cx.component.space.policy.v1:cx.space.01js0sp0000000000000000000",
+      "lattice": {
+        "type": "cas-register",
+        "bottom": "reject"
+      },
+      "anchored_moves": [
+        "cx:move:sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "cx:move:sha256:5555555555555555555555555555555555555555555555555555555555555555"
+      ],
+      "expected": {
+        "query": {
+          "status": "bottom",
+          "bottom": {
+            "kind": "conflict",
+            "cells": [
+              "cx:cell:cx.component.space.policy.v1:cx.space.01js0sp0000000000000000000"
+            ],
+            "move_ids": [
+              "cx:move:sha256:4444444444444444444444444444444444444444444444444444444444444444",
+              "cx:move:sha256:5555555555555555555555555555555555555555555555555555555555555555"
+            ]
+          }
+        },
+        "dependent_move_result": "fail_bottom"
+      }
+    },
+    {
+      "name": "anchor_batch_pre_state_prevents_self_satisfaction",
+      "description": "Two Moves in the same Anchor batch are verified against predecessor state. M2 cannot satisfy its precondition from M1 unless M1 was already in a predecessor Anchor.",
+      "predecessor_anchor": "cx:anchor:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "anchor": {
+        "id": "cx:anchor:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "predecessor_refs": [
+          "cx:anchor:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        ],
+        "frontier": [
+          "cx:move:sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "cx:move:sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        ]
+      },
+      "expected": {
+        "anchor_result": "reject",
+        "reason": "batch_preconditions_use_predecessor_state"
+      }
+    },
+    {
+      "name": "mls_commit_move_requires_covered_frontier",
+      "description": "MLS commit is a Move. It fails when covered_frontier_cell does not contain the governance frontier required by the encrypted message path.",
+      "move": {
+        "id": "cx:move:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "effects": [
+          {
+            "cell": "cx:cell:cx.component.mls_epoch.v1:group.01js0mls0000000000000000",
+            "op": {
+              "type": "set",
+              "value": "epoch-42"
+            }
+          }
+        ],
+        "preconditions": [
+          {
+            "cell": "cx:cell:cx.component.covered_frontier.v1:cx.space.01js0sp0000000000000000000",
+            "predicate": {
+              "op": "contains",
+              "value": "cx:anchor:sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "verify_move": "fail_precondition",
+        "normal_governance_moves_continue": true
+      }
+    }
+  ]
+}

@@ -58,33 +58,26 @@ title: 术语表
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID 文档、method resolver、密钥材料与验证链路。 |
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
-| Auth Weight | 授权权重 | **历史概念**（v1 之前的 lattice state-resolution 派生表）。v1 已用 quarantine-on-concurrent-fork 替代；详见 `authz/event-auth-state-resolution.md` §9.3。新实现 MUST NOT 依赖 `auth_weight`。 |
-| Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值，用于 deterministic timeline 排序。 |
-| Soft Fail | 软失败 | 事件格式和签名有效但缺少上下文或暂时无法授权的中间状态；可在上下文补齐后重新评估。 |
-| Quarantine | 隔离 | 基础授权可通过但被策略标记为高风险的事件状态；不自动展示，需管理员审查。 |
-| Accepted | 已接受 | 事件通过全部校验后的最终状态；可推进 frontier 和 reducer。 |
-| Rejected | 已拒绝 | 事件在格式、签名、schema 或授权上确定失败；不得进入 reducer。 |
-| State Resolution | 状态收敛 | 多分支对同一 state slot（singleton 为 `(space_id, kind)`，per_subject 为 `(space_id, kind, subject)`）给出不同 accepted state event 时，按确定性算法选择唯一 winner。 |
-| State Slot | 状态分量 | reducer 维护的状态键，由 schema registry 中 kind 的 `state_cardinality` 与 `state_subject_field` 共同派生；envelope 不携带 `state_key` 字段。 |
-| State Subject | 状态主体 | per_subject state event 的 subject 值，从 payload 中按 `state_subject_field` 路径派生（DID / typed id / URI 等），与 kind 一起组成 state slot 主键。 |
-| Component | 策略组件 | 一个独立的 state 状态机；每个 state event kind 是一个 component。Contract-catalog 为每个 component 声明 `component_type`、`component_version` 和 `criticality`；多 kind 操作同一逻辑 slot 时可共享 `component_type`（吸收自 [`draft-ietf-mimi-room-policy`](https://datatracker.ietf.org/doc/draft-ietf-mimi-room-policy/) 的 policy component model）。 |
-| Component Type | 组件类型 | 跨协议版本稳定的 component 标识符，URI 形式 `cx.component.<facet-path>.v<n>`；MIMI facade 按 `extensions/mimi-interop.md` §9 的映射表互译。 |
-| Component Version | 组件版本 | 同一 `component_type` 内单调递增的整数版本号；语义变化 MUST 升版本，receiver MUST 按 `(component_type, component_version)` 完整匹配，不得跨版本静默兼容。 |
-| Criticality | 关键度 | Component 在 receiver 不识别时的默认行为：`required`（fail closed）、`optional`（warn + skip）、`ignore`（silently drop）。Per-event 的 `requirements.critical_extensions` 优先级高于 registry 默认。 |
-| Application State Ref | 应用状态引用 | E2EE Space 中每个 `cx.mls.commit` 携带的引用，绑定本次 commit 覆盖的 Contrix 应用 state（policy_root / membership_frontier / capability_root / discussion_metadata_hash）。通过 MLS GroupContext extension `cx_app_state_ref` 进入 `confirmed_transcript_hash`，使全体 group 成员对 state 视图达成一致。详见 `crypto-media/encryption-and-audit.md` §2.5。 |
-| Covered Frontier | 已绑定前沿 | E2EE Space 中被某个 winning `cx.mls.commit` 的 `application_state_ref` 覆盖的 accepted state event 子集；与 accepted frontier 区别在于：covered 才是 E2EE 加密路径的权威 state 边界。 |
-| Pending MLS Binding | 待 MLS 绑定 | E2EE Space 中 state event 的中间状态：协议层 accepted、推进 reducer frontier，但尚未被任一 winning `cx.mls.commit` 覆盖。在该状态下 MUST NOT 影响 E2EE 解密 / key share / 新 application message 加密 epoch。 |
-| Space Writer Model | 写入模型 | Space create 时锁定的 enum(`hub`, `peer_mesh`)，决定该 Space 是单一 ordering authority 还是 peer-mesh 并发写入。默认按 `federation_policy` 派生（closed/restricted/quarantine → hub；open → peer_mesh）。 |
-| Space Host | 空间主机 | hub-writer Space 的单一 ordering authority service DID（由 `cx.space.host` state event 维护）。所有 durable state event 必须经 host endorsement。 |
-| Host Endorsement | 主机背书 | hub-writer Space 中 Space Host 对 event canonical bytes 的 `kind="host_endorsement"` proof，证明 host 已接受该事件入序。与 actor / device proof 并存于 `proofs[]`。 |
-| Hub Writer Model | 单写者模型 | hub-fanout 写入与传播形态：唯一 Space Host 是 ordering authority，follower Principal Server 验证 host endorsement 后写入本地 replica。state slot fork 在协议层不可能；fork 即 host fault。 |
-| Peer Mesh Model | 对等网模型 | peer-to-peer 写入与传播形态：任何持有 capability 的 actor 可写入；并发 fork 由 quarantine-on-concurrent-fork 算法处理。Contrix v1 早期默认行为，现作为 `federation_policy=open` 的派生默认。 |
-| Host Transfer | 主机转移 | hub-writer Space 中 host 控制权转移仪式。`smooth` mode 由当前与新 host 双签；`emergency` mode 在 host 失联超 `activation_timeout_ms` 时由 owning_organizations 多数签名启动。详见 `authz/event-auth-state-resolution.md` §13。 |
-| Consent | 同意 | Holder-private 决策："我同意接收来自 X 的某种联系"。表达为 `cx.consent.grant` / `cx.consent.revoke` state event，写入 holder principal control Space。是 invite / contact 路径的前置 gate，独立于 capability 与 invite。详见 `identity/consent-model.md`。 |
-| Consent Scope | 同意范围 | Consent grant 适用的联系类型枚举：`invite` / `direct_message` / `voice_call` / `video_call` / `presence` / `any`。每种 scope 是独立 consent slot。 |
-| Reducer | 归约器 | 确定性纯函数，将 accepted Event 集合归约为当前态、state hash 和 conflict records。 |
+| Causal Depth | 因果深度 | 事件在已知 DAG / prev_refs 中的深度值；只可用于 timeline 诊断或兼容投影，不参与协议状态 winner。 |
+| Pending Move | 待锚定动作 | Move 已通过本地格式/签名初检，但尚未被 Anchor frontier 覆盖；不影响 effective state。 |
+| Effective | 已生效 | Move 被有效 Anchor frontier 覆盖，并已进入对应 Anchor view 的 state_root。 |
+| Rejected | 已拒绝 | Move / Anchor 在格式、签名、schema、precondition、授权或 state_root 校验上确定失败。 |
+| Move | 动作 | 多 cell 原子条件写；包含 `preconditions[]`、`effects[]`、`anchor_ref`、`refs[]` 与 issuer 签名。 |
+| Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。 |
+| Anchor DAG | 锚点图 | 某个 Space 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
+| Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `cx:cell:<component>:<subject>`。 |
+| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or-set`、`mv-register`、`cas-register`、`fsm`、`counter`、`ordered-log`。 |
+| Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的 Move fail closed，`bottom=expose` 时可投影为冲突诊断。 |
+| Component / Cell Family | 组件 / Cell 族 | 跨协议版本稳定的 cell family 标识符，URI 形式 `cx.component.<facet-path>.v<n>`；registry 为 reducer-input kind 声明 `cell_family`、`lattice` 与 `bottom`。 |
+| Application State Ref | 应用状态引用 | E2EE Space 中 MLS Commit Move 引用的应用状态证明，绑定 Anchor frontier、policy/capability/membership cells 与 discussion metadata。 |
+| Covered Frontier | 已覆盖前沿 | `covered_frontier_cell` 当前值；E2EE message Move 必须证明该 cell 覆盖所需 governance Anchor frontier。 |
+| Anchor Profile | 锚点 Profile | Space create 时固定的 Anchor finality profile：`single_did`、`threshold`、`open_set` 或 `mixed`。 |
+| Anchorer Cell | 锚定者 Cell | 定义下一批 Anchor 由谁授权的 `cas-register + bottom=reject` cell；冲突时产生 Space-wide Anchor pause。 |
+| Consent | 同意 | Holder-private 决策："我同意接收来自 X 的某种联系"。表达为 consent cell 上的 Move effect，是 invite / contact 路径的前置 gate。 |
+| Consent Scope | 同意范围 | Consent grant 适用的联系类型枚举：`invite` / `direct_message` / `voice_call` / `video_call` / `presence` / `any`。 |
+| Reducer | 归约器 | 确定性纯函数，将 Anchor frontier 中的 Move effects 归约为 cell values、state_root、bottom diagnostics 与产品 projection。 |
 | Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Flow、Relation、View。 |
-| Frontier | 前沿 | Actor 或 Space 已接受事件的最远同步边界，用 event_id / HLC / actor_seq 表示。 |
+| Frontier | 前沿 | Move / Anchor / Actor / Space 已验证的最远同步边界。 |
 | Inception Key | 起源密钥 | DID 创建时的初始控制密钥，锚定在 DID 的 method history 中。 |
 | Plaintext Visible Service | 明文可见服务 | Space policy 显式声明可接收非加密私有内容或可逆派生摘要的服务。 |
 | History Visibility | 历史可见性 | 控制加入 Space 后能看到多少历史事件的范围规则。 |

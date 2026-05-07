@@ -37,39 +37,40 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 
 当 grant / revoke / claim status / policy component / membership frontier 变化时，受影响的 capability snapshot MUST 立即标记 stale。stale snapshot 不得继续用于新的写入 allow 决策。
 
-## 4. State Resolution 上限
+## 4. Move / Anchor / Lattice 上限
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| 单个 state key 的 conflict candidate 数 | 256 | 超过时 MUST 使用最近可验证 snapshot 作为 base，并把超阈值候选进入 review / quarantine。 |
-| `auth_chain` 闭包深度 | 64 | 超过时 MUST soft-fail 依赖事件或 fail closed。 |
-| `auth_difference` 事件数 | 4,096 | 超过时 MUST fallback to verified snapshot-assisted resolution。 |
-| 单次 resolution CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；交互式 profile SHOULD 使用不超过 2 秒的默认预算，超出时返回可恢复错误或使用已验证 snapshot-assisted resolution。 |
-| 单次 resolution 内存预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露，超出时返回可恢复错误而不是 OOM。 |
+| 单个 Move canonical size | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。 |
+| 单个 Move 的 `preconditions + effects` 数 | 256 | 超过时 MUST reject；需要拆成多个 Move 或使用 higher-level batch operation。 |
+| 单个 Anchor 新增 Move 数 | 1,000 | 超过时 MUST 拆分 Anchor；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
+| Anchor DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Anchor；查询可使用 deterministic effective anchor view。 |
+| 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
+| 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
 
-State resolution fallback 不得选择本地接收顺序或数据库 ID。fallback snapshot 必须有签名、frontier、state hash 和 chunk digest。对缺失、不可达或高成本 `auth_refs` 的 backfill，接收方 MAY 在预算耗尽后 soft-fail / quarantine 该事件，并返回 `dependency_missing`、`temporarily_unavailable` 或等价诊断；不得在同步写入路径无界递归展开。
+Move / Anchor fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Anchor inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 Move 保持 pending 或返回 `dependency_missing`、`temporarily_unavailable`；不得在同步写入路径无界递归展开。
 
-### 4.1 Progressive Auth Chain Backfill Profile
+### 4.1 Progressive Move / Anchor Backfill Profile
 
-实现声称支持 `full_client`、`e2ee_client` 或 `principal_server` profile 时，MUST 支持渐进式 auth chain 恢复，而不是要求一次性拉完整历史：
+实现声称支持 `full_client`、`e2ee_client` 或 `principal_server` profile 时，MUST 支持渐进式 Move / Anchor 恢复，而不是要求一次性拉完整历史：
 
 | 项 | v1 默认上限 / 建议 | 规则 |
 | --- | ---: | --- |
-| 单轮 targeted auth backfill page | 256 events | 客户端 SHOULD 优先拉缺失 `auth_refs` / `prev_refs` 的最小闭包，再扩大范围。 |
-| 单 Space 后台 auth dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 snapshot-assisted recovery。 |
-| snapshot-assisted recovery 触发 | 深度 64、diff 4,096 或本地预算耗尽 | 必须验证 snapshot signer authority、frontier、state hash 和 chunk digest。 |
-| 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 `partial_auth_state` + `auth_incomplete`，并继续后台恢复。 |
+| 单轮 targeted backfill page | 256 objects | 客户端 SHOULD 优先拉缺失 Move、Anchor predecessor、critical `refs` 的最小闭包，再扩大范围。 |
+| 单 Space 后台 dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 state_root-assisted recovery。 |
+| snapshot-assisted recovery 触发 | DAG leaf 过多、join 预算耗尽或本地预算耗尽 | 必须验证 Anchor signer authority、frontier、state_root 和 chunk digest。 |
+| 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 read-only partial view + `anchor_incomplete`，并继续后台恢复。 |
 | retry backoff | 指数退避，有上限 | 响应 SHOULD 带 `retry_after_ms`、`next_retry_at`、缺失 ref 和可用 source。 |
 
 渐进恢复阶段：
 
-1. **Frontier probe**：先查询 actor / Space frontier、可用 snapshot manifest 和缺失 ref 的 source。
-2. **Targeted dependency fetch**：按缺失 `auth_refs`、`prev_refs` 和 payload causal refs 拉最小闭包。
-3. **Snapshot-assisted resolution**：闭包超过预算时，改用最近可验证 snapshot 作为 base，再回放 snapshot frontier 之后的事件。
-4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已 accepted 历史的只读 projection，并显式标记 `auth_incomplete`。
-5. **Write revalidation**：任何新写入必须在提交前重新验证所依赖的 auth state；不得继承 partial view 的乐观允许结果。
+1. **Anchor probe**：先查询 Space Anchor leaves、可用 snapshot manifest 和缺失 ref 的 source。
+2. **Targeted dependency fetch**：按缺失 Move、Anchor predecessor 与 critical refs 拉最小闭包。
+3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 Move。
+4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 Anchor view 的只读 projection，并显式标记 `anchor_incomplete`。
+5. **Write revalidation**：任何新 Move 必须在提交前以最新 Anchor view 重新验证 preconditions；不得继承 partial view 的乐观允许结果。
 
-长期离线设备重新上线时，服务端 SHOULD 支持分页返回 dependency graph 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 auth events。
+长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Anchor DAG 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Move / Anchor。
 
 ## 5. Board / Relation / View 上限
 

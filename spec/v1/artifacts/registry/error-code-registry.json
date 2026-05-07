@@ -257,147 +257,215 @@
   "reason_codes": [
     {
       "code": "ok",
-      "applies_to": ["batch_item", "auth_decision", "policy_decision"],
+      "applies_to": [
+        "batch_item",
+        "auth_decision",
+        "policy_decision"
+      ],
       "description": "Sentinel value indicating an item or decision succeeded with no further reason."
     },
     {
       "code": "approval_required",
-      "applies_to": ["event_envelope", "auth_decision"],
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
       "description": "Event was rejected because the active capability constraint requires approval evidence (per zh/authz/capabilities.md §6 / §8) and none was supplied."
     },
     {
       "code": "no_flow_branch_message_grant",
-      "applies_to": ["auth_decision"],
+      "applies_to": [
+        "auth_decision"
+      ],
       "description": "No active capability grant authorises cx.message.create on the targeted Flow branch for the actor."
     },
     {
       "code": "grant_revoked_before_event_frontier",
-      "applies_to": ["auth_decision"],
+      "applies_to": [
+        "auth_decision"
+      ],
       "description": "The capability grant cited as authority was revoked at a frontier causally preceding this event; reducer rejects."
     },
     {
       "code": "revoke_order_unknown_requires_backfill_or_review",
-      "applies_to": ["state_resolution"],
+      "applies_to": [
+        "state_resolution"
+      ],
       "description": "Concurrent grant/revoke ordering cannot be deterministically resolved with currently available history; recipient SHOULD backfill or escalate to manual review rather than picking a winner."
     },
     {
       "code": "service_not_plaintext_visible",
-      "applies_to": ["service_call", "auth_decision"],
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
       "description": "Service is not in the Space's plaintext_visible_services policy; plaintext-bound operation refused."
     },
     {
       "code": "audit_receipt_invalidated",
-      "applies_to": ["audit_decision"],
+      "applies_to": [
+        "audit_decision"
+      ],
       "description": "A previously valid Read-Your-Writes receipt has been invalidated by subsequent backfill, witness disagreement, or audit_assurance mismatch (see zh/crypto-media/audited-e2ee.md §4)."
     },
     {
       "code": "duplicate_conflict",
-      "applies_to": ["event_envelope"],
+      "applies_to": [
+        "event_envelope"
+      ],
       "description": "Two distinct canonical-byte events share the same event_id; reducer MUST quarantine and require operator action (see event-auth-state-resolution.md §11)."
     },
     {
       "code": "state_mismatch",
-      "applies_to": ["client_sync", "state_resolution"],
+      "applies_to": [
+        "client_sync",
+        "state_resolution"
+      ],
       "description": "Local state does not match the authoritative frontier; client SHOULD reconcile via backfill or snapshot before continuing."
     },
     {
       "code": "quarantined",
-      "applies_to": ["state_resolution", "federation_transaction"],
+      "applies_to": [
+        "state_resolution",
+        "federation_transaction"
+      ],
       "description": "Item was placed in quarantine pending operator decision (state_conflict_resolution); not finalized."
     },
     {
       "code": "partial_auth_state",
-      "applies_to": ["state_resolution"],
+      "applies_to": [
+        "state_resolution"
+      ],
       "description": "Auth state for the event could not be fully resolved within the implementation's auth_chain backfill bound; treat as soft-fail per scalability-constraints.md."
     },
     {
       "code": "auth_incomplete",
-      "applies_to": ["auth_decision"],
+      "applies_to": [
+        "auth_decision"
+      ],
       "description": "Required auth_refs are not yet accepted at the local frontier; the event MUST be parked until the missing refs converge."
     },
     {
       "code": "projection_incomplete",
-      "applies_to": ["client_sync", "view_projection"],
+      "applies_to": [
+        "client_sync",
+        "view_projection"
+      ],
       "description": "Projection cannot be materialized because of missing reducer inputs, decryption_pending epochs, or out-of-window backfill."
     },
     {
       "code": "decryption_pending",
-      "applies_to": ["client_sync"],
+      "applies_to": [
+        "client_sync"
+      ],
       "description": "Recipient cannot decrypt the targeted MLS epoch yet; client MUST surface a placeholder and continue retrying within the configured window."
     },
     {
       "code": "decryption_failed",
-      "applies_to": ["client_sync"],
+      "applies_to": [
+        "client_sync"
+      ],
       "description": "Recipient permanently cannot decrypt; epoch is unrecoverable on this device under current keys."
     },
     {
       "code": "unsupported_feature",
-      "applies_to": ["service_call", "feature_discovery"],
+      "applies_to": [
+        "service_call",
+        "feature_discovery"
+      ],
       "description": "Implementation does not advertise the feature requested; caller SHOULD downgrade or pick another peer."
     },
     {
       "code": "unsupported_event_kind",
-      "applies_to": ["event_envelope"],
+      "applies_to": [
+        "event_envelope"
+      ],
       "description": "Event kind is not active in the receiver's profile or registry; receiver MUST NOT silently drop, MUST report this code."
     },
     {
       "code": "unknown_event_kind",
-      "applies_to": ["event_envelope"],
+      "applies_to": [
+        "event_envelope"
+      ],
       "description": "Event kind does not appear in any known registry entry; treat per non_critical_extension_rule (preserve canonical bytes, ignore in reducer) unless declared in critical_extensions."
     },
     {
       "code": "invalid_canonical_json",
-      "applies_to": ["encoding"],
+      "applies_to": [
+        "encoding"
+      ],
       "description": "Bytes are not valid Contrix canonical JSON (sorted keys, integer-only numbers, escape rules per encoding.md §1)."
     },
     {
       "code": "invalid_encoding",
-      "applies_to": ["encoding"],
+      "applies_to": [
+        "encoding"
+      ],
       "description": "Generic encoding violation (HLC format, ULID format, base64url alphabet, etc.) not otherwise classified."
     },
     {
       "code": "invalid_cursor",
-      "applies_to": ["client_sync", "encoding"],
+      "applies_to": [
+        "client_sync",
+        "encoding"
+      ],
       "description": "Cursor payload fails the §8.2 / §8.3 cursor schema or expires (`x` past now). Includes cursor_unrecognized and cursor_expired sub-cases."
     },
     {
       "code": "cursor_unrecognized",
-      "applies_to": ["client_sync"],
+      "applies_to": [
+        "client_sync"
+      ],
       "description": "Cursor decoded successfully but its session / query binding is unknown to this server; caller MUST restart sync from a fresh cursor."
     },
     {
       "code": "cursor_expired",
-      "applies_to": ["client_sync"],
+      "applies_to": [
+        "client_sync"
+      ],
       "description": "Cursor's `x` expiry is in the past; caller MUST request a fresh cursor."
     },
     {
       "code": "spam",
-      "applies_to": ["moderation_report"],
+      "applies_to": [
+        "moderation_report"
+      ],
       "description": "Standard moderation reason: spam content."
     },
     {
       "code": "harassment",
-      "applies_to": ["moderation_report"],
+      "applies_to": [
+        "moderation_report"
+      ],
       "description": "Standard moderation reason: harassment."
     },
     {
       "code": "abuse_cluster",
-      "applies_to": ["moderation_decision"],
+      "applies_to": [
+        "moderation_decision"
+      ],
       "description": "Multiple reports clustered together for triage; not finalized."
     },
     {
       "code": "abuse_network",
-      "applies_to": ["moderation_decision"],
+      "applies_to": [
+        "moderation_decision"
+      ],
       "description": "Cross-Space abuse network signal aggregated by moderation server."
     },
     {
       "code": "abuse_review",
-      "applies_to": ["moderation_decision"],
+      "applies_to": [
+        "moderation_decision"
+      ],
       "description": "Awaiting moderator review."
     },
     {
       "code": "policy_recall",
-      "applies_to": ["moderation_decision", "auth_decision"],
+      "applies_to": [
+        "moderation_decision",
+        "auth_decision"
+      ],
       "description": "A policy-server-issued recall of a previous allow decision; corresponding action MUST be reversed if still reversible."
     }
   ]

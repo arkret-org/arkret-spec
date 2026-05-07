@@ -57,7 +57,7 @@ Child 侧确认：
 }
 ```
 
-`cx.space.child` 与 `cx.space.parent` 都是 per_subject state event：reducer 按 schema registry 声明的 `state_subject_field`（分别为 `payload.child_space_id` 和 `payload.parent_space_id`）派生 state slot 主键。两类 payload 的 `status` 默认是 `active`；后续同 slot 的 state event 可用 `status="tombstoned"` 撤销该侧声明，或用 `status="rejected"` 表达该侧明确拒绝。`via` 只表示推荐的发现 / backfill 路由，不授予读取或写入能力。
+`cx.space.child` 与 `cx.space.parent` 是兼容 Event kind；在 Move/Anchor/Lattice 状态中分别写入对应 cell family，subject 来自 `payload.child_space_id` 或 `payload.parent_space_id`。两类 payload 的 `status` 默认是 `active`；后续同 cell 的 Move 可用 `status="tombstoned"` 撤销该侧声明，或用 `status="rejected"` 表达该侧明确拒绝。`via` 只表示推荐的发现 / backfill 路由，不授予读取或写入能力。
 
 如果同一操作者同时拥有 parent Space 与 child Space 的 `cx.space.hierarchy.manage` capability，客户端 MAY 在一个用户动作中连续提交两侧 state event。此时 UI 不需要额外的人工确认步骤；协议上的“双方确认”由 parent Space 中 accepted 的 `cx.space.child` 与 child Space 中 accepted 的 `cx.space.parent` 共同满足。若操作者只具备 parent 侧权限，客户端只能创建 `unconfirmed_link`，并等待 child 侧有权限 actor 接受或拒绝。
 
@@ -99,7 +99,7 @@ Child 侧确认：
 
 ## 6. 显式继承策略
 
-Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（reducer 按 `state_subject_field=payload.parent_space_id` 派生 state slot，每个 parent 独立 slot）：
+Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（Move 写入以 `payload.parent_space_id` 为 subject 的 inheritance policy cell，每个 parent 独立 cell）：
 
 ```json
 {
@@ -136,7 +136,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（
 
 ## 7. Capability 继承
 
-继承授权使用 `cx.capability.derived`。reducer 按 schema registry 声明的 `state_subject_field=payload.grant_id` 派生 state slot 主键：
+继承授权使用 `cx.capability.derived`。Move 写入以 `payload.grant_id` 为 subject 的 derived capability cell：
 
 ```json
 {

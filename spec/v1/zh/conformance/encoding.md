@@ -203,17 +203,7 @@ function compare_hlc(hlc1, hlc2):
 causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 ```
 
-reducer winner 选择（无因果关系的并发 state event）：
-
-1. 仅在候选事件已通过格式、签名、授权、时钟窗口和 causal dependency 检查后参与排序
-2. 按 `causal_depth DESC` 比较
-3. `causal_depth` 相等时按 `HLC DESC` 比较
-4. HLC 相等时按 `actor_id ASC` 比较
-5. 仍相等时按 `event_id ASC` / event hash 字典序比较
-
-并发 fork 的非 winner 候选 MUST 进入 `quarantined` / conflict records，等待 admin / governance / policy server 显式处理。v1 core 不使用 `auth_weight` 或 governance lattice 作为 winner 输入。
-
-Timeline 展示顺序与 state winner 是两种不同 projection：前者排历史，后者选当前态。实现 MUST 在 profile 中明确使用哪一个，不得把 timeline 中最后出现的 Event 直接当作状态 winner。
+协议状态不再使用 timeline 排序选择 winner。Move precondition、Anchor frontier 与 Lattice join 决定当前 cell value；并发不可合并时返回 structured bottom。Timeline 展示顺序与 cell value 是两种不同 projection：前者排历史，后者由 Lattice 计算。实现 MUST 在 profile 中明确使用哪一个，不得把 timeline 中最后出现的 Event 直接当作状态 value。
 
 ## 8. Cursor
 
@@ -356,38 +346,38 @@ rank_between(left, right):
 - `cx.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST 拒绝该 rebalance。
 - Rebalance assignments MUST 覆盖 container 内全部 active edges，且不得新增、删除或跨 container 移动 edge。CAS 的 `expected_state_hash` 不匹配时，MUST 拒绝整个 operation，不得部分应用。
 
-## 9.5. Composite State Subject
+## 9.5. Composite Cell Subject
 
-部分 state event 的 reducer state slot 主键由多个 sub-component 复合派生（例如 `cx.flow.branch.member` 的 `(flow_id, branch, actor_id)`、`cx.device.authorized` 的 `(principal_id, device_id)`）。复合主键的 canonical 形态由本节定义；reducer state slot 索引、`auth_refs` 比较、conflict detection 与 fixture 必须使用同一形态。
+部分 cell 的 subject 由多个 sub-component 复合派生（例如 `cx.flow.branch.member` 的 `(flow_id, branch, actor_id)`、`cx.device.authorized` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Move precondition、Lattice join 和 fixture 必须使用同一形态。
 
 ### 9.5.1 通用规则
 
-- 复合主键的 canonical wire 形态 MUST 是 base64url（无 padding）编码的 SHA-256 digest：
+- 复合 subject 的 canonical wire 形态 MUST 是 base64url（无 padding）编码的 SHA-256 digest：
 
   ```text
-  state_subject = base64url_nopad(sha256(canonical_json(components_array)))
+  cell_subject = base64url_nopad(sha256(canonical_json(components_array)))
   ```
 
   其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array，所有 string element 已经 normalize 过（NFC、小写 typed ID、规范 DID）。
-- 实现不得直接使用 `a|b|c` 这种管道分隔字符串作为复合主键。早期文档中的管道形态仅作为示例可读性提示；canonical state slot key、签名输入、state map 索引必须使用 hash 形态。
-- 复合主键的 sub-component 必须存在于 payload 的具名字段中（参见 schema registry 的 `state_subject_field`）。reducer 派生主键时直接读取 payload 字段，不依赖额外冗余字段。
-- 同一 standard state event 的 `components_array` schema 由本规范固定，profile 不得擅自增删字段或重新排序。
+- 实现不得直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。早期文档中的管道形态仅作为示例可读性提示；canonical cell id、签名输入、state map 索引必须使用 hash 形态。
+- 复合 subject 的 sub-component 必须存在于 Move effect value 或兼容 Event payload 的具名字段中。
+- 同一 standard cell family 的 `components_array` schema 由本规范固定，profile 不得擅自增删字段或重新排序。
 
-### 9.5.2 标准复合主键
+### 9.5.2 标准复合 Subject
 
-| Event kind | components_array 顺序（来源 payload 字段） |
+| Cell family / Event kind | components_array 顺序（来源字段） |
 | --- | --- |
-| `cx.flow.branch.member` | `[flow_id, branch, actor_id]` |
-| `cx.flow.branch.history_visibility` | `[flow_id, branch]` |
-| `cx.flow.branch.policy_components` | `[flow_id, branch]` |
-| `cx.device.authorized` | `[principal_id, device_id]` |
-| `cx.device.revoked` | `[principal_id, device_id]` |
+| `cx.component.flow.branch.member.v1` / `cx.flow.branch.member` | `[flow_id, branch, actor_id]` |
+| `cx.component.flow.branch.history_visibility.v1` / `cx.flow.branch.history_visibility` | `[flow_id, branch]` |
+| `cx.component.flow.branch.policy_components.v1` / `cx.flow.branch.policy_components` | `[flow_id, branch]` |
+| `cx.component.device.authorized.v1` / `cx.device.authorized` | `[principal_id, device_id]` |
+| `cx.component.device.authorized.v1` / `cx.device.revoked` | `[principal_id, device_id]` |
 
 `flow_id`、`actor_id`、`principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。`branch` MUST 与 Flow `branches[].name` 一致（`^[a-z][a-z0-9_]{0,63}$`）。
 
-非复合 state event（例如 `cx.member.state` 用 `payload.actor_id`、`cx.capability.grant` 用 `payload.grant_id`、`cx.space.discovery` 是 singleton 无 subject）按 schema registry 中各自的 `state_subject_field` / `state_cardinality` 处理，不需要 hash 化。
+非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Space policy 用 Space id）直接把规范化 subject 放入 `cx:cell:<component>:<subject>`，不需要 hash 化。
 
-接收方收到不符合本节定义的复合主键 components_array 时 MUST 返回 `schema_violation`。文档中若以管道分隔形态展示复合主键，MUST 显式标注 "informational; canonical state slot key is base64url(sha256(canonical_json(...)))"。
+接收方收到不符合本节定义的复合 subject components_array 时 MUST 返回 `schema_violation`。文档中若以管道分隔形态展示复合 subject，MUST 显式标注 "informational; canonical cell subject is base64url(sha256(canonical_json(...)))"。
 
 ## 10. Encrypted Envelope Digest
 

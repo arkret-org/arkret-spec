@@ -57,7 +57,7 @@ title: Profiles And Presence
 
 ### 2.3 Profile 创建与更新
 
-Profile 初始状态通过 `cx.profile.create` Event 提交到 actor 的 principal control Space。该 event 使用标准 Event Envelope；reducer 按 schema registry 声明的 `state_subject_field=payload.object.id` 派生 state slot 主键。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
+Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到 actor 的 principal control Space。Move 写入以 `payload.object.id` 为 subject 的 profile cell。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
 
 ```json
 {
@@ -100,7 +100,7 @@ Profile 初始状态通过 `cx.profile.create` Event 提交到 actor 的 princip
 }
 ```
 
-Profile 后续变更通过 `cx.profile.update` Event 提交。该 event 使用 `object_patch_payload`；reducer 用 schema 声明的 `state_subject_field=payload.target_ref` 与 `cx.profile.create` 共用同一 state slot。变更字段放在 `payload.patch`，不得使用旧的顶层 `actor` / `body` 形态：
+Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。该 payload 使用 `object_patch_payload`；Move 使用 `payload.target_ref` 与 `cx.profile.create` 共用同一 profile cell。变更字段放在 `payload.patch`，不得使用旧的顶层 `actor` / `body` 形态：
 
 ```json
 {

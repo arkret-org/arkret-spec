@@ -67,7 +67,7 @@ Consent 表达"我接受联系"，但加入 Space、写入 Space、解密 E2EE �
 
 字段：
 
-- `consent_id`：state slot 主键（`state_subject_field=payload.consent_id`）。同一 holder 对同一 peer 的不同 scope 用不同 consent_id；同 consent_id 的 grant/revoke 共享 slot。
+- `consent_id`：consent cell subject。同一 holder 对同一 peer 的不同 scope 用不同 consent_id；同 consent_id 的 grant/revoke 写入同一 consent cell。
 - `peer`：counterparty DID 或 pairwise DID。
 - `scope`：详见 §4。
 - `not_before` / `valid_until`：时间窗口（可选）。窗口外 consent 不生效，相当于 implicit revoke。

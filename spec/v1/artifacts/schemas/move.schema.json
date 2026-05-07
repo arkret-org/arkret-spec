@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/move.schema.json",
+  "title": "Contrix Move",
+  "type": "object",
+  "required": [
+    "id",
+    "issuer",
+    "space_id",
+    "preconditions",
+    "effects",
+    "anchor_ref",
+    "refs",
+    "hlc",
+    "sig"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/move_ref"
+    },
+    "issuer": {
+      "$ref": "#/$defs/did"
+    },
+    "space_id": {
+      "$ref": "#/$defs/space_ref"
+    },
+    "preconditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/precondition"
+      },
+      "uniqueItems": true,
+      "maxItems": 256
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/effect"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "maxItems": 256
+    },
+    "anchor_ref": {
+      "$ref": "#/$defs/anchor_ref"
+    },
+    "refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/semantic_ref"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "hlc": {
+      "$ref": "#/$defs/hlc"
+    },
+    "sig": {
+      "$ref": "#/$defs/signature"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "move_ref": {
+      "type": "string",
+      "pattern": "^cx:move:sha256:[0-9a-f]{64}$"
+    },
+    "anchor_ref": {
+      "type": "string",
+      "pattern": "^cx:anchor:sha256:[0-9a-f]{64}$"
+    },
+    "cell_ref": {
+      "type": "string",
+      "pattern": "^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+    },
+    "space_ref": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "hlc": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "precondition": {
+      "type": "object",
+      "required": [
+        "cell",
+        "predicate"
+      ],
+      "properties": {
+        "cell": {
+          "$ref": "#/$defs/cell_ref"
+        },
+        "predicate": {
+          "$ref": "#/$defs/predicate"
+        }
+      },
+      "additionalProperties": false
+    },
+    "predicate": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "head_eq",
+            "head_in",
+            "satisfies",
+            "contains"
+          ]
+        },
+        "value": true,
+        "values": {
+          "type": "array",
+          "items": true,
+          "uniqueItems": true
+        },
+        "predicate_id": {
+          "type": "string",
+          "pattern": "^cx\\.predicate\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "effect": {
+      "type": "object",
+      "required": [
+        "cell",
+        "op"
+      ],
+      "properties": {
+        "cell": {
+          "$ref": "#/$defs/cell_ref"
+        },
+        "op": {
+          "$ref": "#/$defs/lattice_op"
+        }
+      },
+      "additionalProperties": false
+    },
+    "lattice_op": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "add",
+            "remove",
+            "set",
+            "transition",
+            "inc",
+            "dec",
+            "append"
+          ]
+        },
+        "tag": {
+          "type": "string"
+        },
+        "value": true,
+        "from": true,
+        "to": true,
+        "reason": {
+          "type": "string"
+        },
+        "issuer_seq": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "semantic_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "role"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "critical": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "alg",
+        "verification_method",
+        "payload_hash",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ES384",
+            "ES512"
+          ]
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+(#.+)?$"
+        },
+        "payload_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

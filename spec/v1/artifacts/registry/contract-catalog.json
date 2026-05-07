@@ -36,12 +36,12 @@
       "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history."
     },
     "registry_rules": [
-      "Standard cx.* Event.kind values MUST appear in this registry.",
+      "Standard cx.* effect kinds MUST appear in this registry when used by a Move effect or legacy Event Envelope payload router.",
       "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
-      "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance actor_seq, prev_refs, state_hash, or reducer frontier.",
-      "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Event history.",
-      "State events declare state_cardinality (singleton | per_subject); per_subject entries MUST also declare state_subject_field (a payload field path or 'composite' with state_subject_components) and state_subject_type. Reducer state slot key is (space_id, kind) for singleton or (space_id, kind, value-of-state_subject_field) for per_subject. There is no envelope-level state_key field.",
-      "Each state event kind declares a component_type (stable URI in the cx.component.*.v<n> namespace), component_version (integer, monotonically increasing within a component_type), and criticality (required | optional | ignore). component_type identifies the logical state machine; multiple kinds operating on the same logical state MAY share a component_type, in which case the registry MUST document the relationship. Receivers that do not recognize a component_type or component_version MUST handle the event by the declared criticality: required = fail closed (schema_violation, soft_fail, or quarantine depending on context); optional = warn and ignore; ignore = silently drop. Per-event override via Event.requirements.critical_extensions still takes precedence when present."
+      "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
+      "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Move/Anchor history.",
+      "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, and bottom. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; lattice is one of or-set, mv-register, cas-register, fsm, counter, ordered-log; bottom is reject or expose.",
+      "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority."
     ],
     "payload_schema_contract": {
       "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -58,10 +58,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space create",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.create.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.create.v1",
+        "cell_subject": null,
+        "lattice": "ordered-log",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.space.update",
@@ -78,12 +78,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space version upgrade",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.target_reducer_profile",
-        "state_subject_type": "profile_ref",
-        "component_type": "cx.component.space.upgrade.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.upgrade.v1",
+        "cell_subject": {
+          "type": "profile_ref",
+          "field": "payload.target_reducer_profile"
+        },
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.organization",
@@ -92,10 +93,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space official or sponsoring organization statement",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.organization.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.organization.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.child",
@@ -104,12 +105,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Child Space link",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.child_space_id",
-        "state_subject_type": "id:space",
-        "component_type": "cx.component.space.child.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.child.v1",
+        "cell_subject": {
+          "type": "id:space",
+          "field": "payload.child_space_id"
+        },
+        "lattice": "ordered-log",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.space.parent",
@@ -118,12 +120,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Parent Space link",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.parent_space_id",
-        "state_subject_type": "id:space",
-        "component_type": "cx.component.space.parent.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.parent.v1",
+        "cell_subject": {
+          "type": "id:space",
+          "field": "payload.parent_space_id"
+        },
+        "lattice": "ordered-log",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.space.policy",
@@ -132,10 +135,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space access policy reference (policy_ref)",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.policy.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.policy.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.join_rule",
@@ -144,10 +147,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space join rule (public/invite/knock/restricted/closed)",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.join_rule.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.join_rule.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.history_visibility",
@@ -156,10 +159,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space history visibility scope",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.history_visibility.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.history_visibility.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.discovery",
@@ -168,10 +171,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space discoverability state",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.discovery.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.discovery.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.policy_server",
@@ -180,10 +183,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space Policy Server binding",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.policy_server.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.policy_server.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.policy_components",
@@ -192,10 +195,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Enabled Space policy components set",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.policy_components.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.policy_components.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.history_sharing_policy",
@@ -204,10 +207,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "E2EE history sharing policy",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.history_sharing_policy.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.history_sharing_policy.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.asset_privacy_policy",
@@ -216,10 +219,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space asset privacy policy",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.asset_privacy_policy.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.asset_privacy_policy.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.moderation_policy",
@@ -228,10 +231,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space moderation policy (blocklists, allowlists, content filters)",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.moderation_policy.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.moderation_policy.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.plaintext_visible_services",
@@ -240,10 +243,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Plaintext-visible services declaration outside E2EE boundary",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.plaintext_visible_services.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.plaintext_visible_services.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.media_service",
@@ -252,10 +255,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.media_service.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.media_service.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.schema",
@@ -264,10 +267,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space schema_refs declaration",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.schema.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.schema.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.inheritance_policy",
@@ -276,12 +279,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Per-parent inheritance policy; one entry per parent Space",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.parent_space_id",
-        "state_subject_type": "id:space",
-        "component_type": "cx.component.space.inheritance_policy.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.inheritance_policy.v1",
+        "cell_subject": {
+          "type": "id:space",
+          "field": "payload.parent_space_id"
+        },
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.archive",
@@ -290,10 +294,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space archive lifecycle facet (reversible boolean)",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.archive.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.archive.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.freeze",
@@ -302,10 +306,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space freeze lifecycle facet (reversible boolean)",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.freeze.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.freeze.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.tombstone",
@@ -314,10 +318,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space tombstone lifecycle facet (terminal pointer to successor)",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.tombstone.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.space.tombstone.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.space.destroy",
@@ -326,38 +330,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space destroy lifecycle facet (terminal decommission marker)",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.destroy.v1",
-        "component_version": 1,
-        "criticality": "required"
-      },
-      {
-        "event_kind": "cx.space.host",
-        "category": "space",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Canonical Space Host service DID + standby hosts (hub-writer model only)",
-        "state_cardinality": "singleton",
-        "component_type": "cx.component.space.host.v1",
-        "component_version": 1,
-        "criticality": "required",
-        "writer_model_constraint": "hub"
-      },
-      {
-        "event_kind": "cx.space.host.transfer",
-        "category": "space",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Space Host transfer ceremony (smooth dual-sign or emergency governance-quorum)",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.transfer_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.space.host.transfer.v1",
-        "component_version": 1,
-        "criticality": "required",
-        "writer_model_constraint": "hub"
+        "cell_family": "cx.component.space.destroy.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.organization.discovery",
@@ -446,12 +422,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Policy rule state",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.rule_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.policy.rule.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.policy.rule.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.rule_id"
+        },
+        "lattice": "ordered-log",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.policy.action",
@@ -468,12 +445,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Space membership state",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.actor_id",
-        "state_subject_type": "did",
-        "component_type": "cx.component.member.state.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.member.state.v1",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.actor_id"
+        },
+        "lattice": "fsm",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.flow.create",
@@ -546,14 +524,15 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Flow discussion branch membership state",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.actor_id",
-        "state_subject_type": "did",
         "state_subject_scope": "flow_id+branch+actor_id",
         "state_subject_scope_note": "Reducer slot key combines envelope-level flow_id, payload.branch, and payload.actor_id; see flow-branch documentation.",
-        "component_type": "cx.component.flow.branch.member.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.flow.branch.member.v1",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.actor_id"
+        },
+        "lattice": "fsm",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.flow.branch.history_visibility",
@@ -562,16 +541,16 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Flow discussion branch history visibility state",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "composite",
-        "state_subject_components": [
-          "envelope.flow_id",
-          "payload.branch"
-        ],
-        "state_subject_type": "composite",
-        "component_type": "cx.component.flow.branch.history_visibility.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.flow.branch.history_visibility.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "envelope.flow_id",
+            "payload.branch"
+          ]
+        },
+        "lattice": "ordered-log",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.flow.branch.policy_components",
@@ -580,16 +559,16 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Flow discussion branch policy component state",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "composite",
-        "state_subject_components": [
-          "envelope.flow_id",
-          "payload.branch"
-        ],
-        "state_subject_type": "composite",
-        "component_type": "cx.component.flow.branch.policy_components.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.flow.branch.policy_components.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "envelope.flow_id",
+            "payload.branch"
+          ]
+        },
+        "lattice": "ordered-log",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.flow.move",
@@ -734,12 +713,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "View create",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.view_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.view.create.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.view.create.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.view_id"
+        },
+        "lattice": "mv-register",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.view.update",
@@ -748,12 +728,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "View update",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.view_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.view.update.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.view.update.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.view_id"
+        },
+        "lattice": "mv-register",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.view.reconcile",
@@ -762,12 +743,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "View schema or definition sync",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.view_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.view.reconcile.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.view.reconcile.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.view_id"
+        },
+        "lattice": "mv-register",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.agent.endpoint",
@@ -808,12 +790,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Capability grant",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.grant_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.capability.grant.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.capability.grant.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.grant_id"
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.capability.delegate",
@@ -822,12 +805,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Capability delegation",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.grant_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.capability.delegate.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.capability.delegate.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.grant_id"
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.capability.revoke",
@@ -836,13 +820,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Capability revocation",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.grant_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.capability.grant.v1",
-        "component_version": 1,
-        "criticality": "required",
-        "component_slot_alias_of": "cx.capability.grant"
+        "cell_family": "cx.component.capability.grant.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.grant_id"
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.capability.derived",
@@ -851,12 +835,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Derived capability state",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.grant_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.capability.derived.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.capability.derived.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.grant_id"
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.session.grant",
@@ -865,12 +850,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Session grant",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.grant_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.session.grant.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.session.grant.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.grant_id"
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.consent.grant",
@@ -879,12 +865,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Holder-private consent declaration: 'I consent to receive <scope> from <peer>'",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.consent_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.consent.grant.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.consent.grant.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.consent_id"
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.consent.revoke",
@@ -893,12 +880,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Revoke a previously granted consent (shares state slot with cx.consent.grant)",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.consent_id",
-        "state_subject_type": "string",
-        "component_type": "cx.component.consent.grant.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.consent.grant.v1",
+        "cell_subject": {
+          "type": "string",
+          "field": "payload.consent_id"
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.account.status",
@@ -907,12 +895,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Signed account lifecycle status",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.principal_id",
-        "state_subject_type": "did",
-        "component_type": "cx.component.account.status.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.account.status.v1",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.principal_id"
+        },
+        "lattice": "ordered-log",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.account.blocklist",
@@ -953,12 +942,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Actor profile create",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.object.id",
-        "state_subject_type": "id:actor_profile",
-        "component_type": "cx.component.profile.create.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.profile.create.v1",
+        "cell_subject": {
+          "type": "id:actor_profile",
+          "field": "payload.object.id"
+        },
+        "lattice": "mv-register",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.profile.update",
@@ -967,13 +957,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Actor profile update",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.object.id",
-        "state_subject_type": "id:actor_profile",
-        "component_type": "cx.component.profile.create.v1",
-        "component_version": 1,
-        "criticality": "required",
-        "component_slot_alias_of": "cx.profile.create"
+        "cell_family": "cx.component.profile.create.v1",
+        "cell_subject": {
+          "type": "id:actor_profile",
+          "field": "payload.object.id"
+        },
+        "lattice": "mv-register",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.profile.space_override",
@@ -990,16 +980,16 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Device authorization",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "composite",
-        "state_subject_components": [
-          "payload.principal_id",
-          "payload.device_id"
-        ],
-        "state_subject_type": "composite",
-        "component_type": "cx.component.device.authorized.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.device.authorized.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "payload.principal_id",
+            "payload.device_id"
+          ]
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.device.revoked",
@@ -1008,17 +998,16 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Device revocation",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "composite",
-        "state_subject_components": [
-          "payload.principal_id",
-          "payload.device_id"
-        ],
-        "state_subject_type": "composite",
-        "component_type": "cx.component.device.authorized.v1",
-        "component_version": 1,
-        "criticality": "required",
-        "component_slot_alias_of": "cx.device.authorized"
+        "cell_family": "cx.component.device.authorized.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "payload.principal_id",
+            "payload.device_id"
+          ]
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.device.list_update",
@@ -1027,12 +1016,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Device list update",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.principal_id",
-        "state_subject_type": "did",
-        "component_type": "cx.component.device.list_update.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.device.list_update.v1",
+        "cell_subject": {
+          "type": "did",
+          "field": "payload.principal_id"
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.key.verification.request",
@@ -1305,12 +1295,13 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "MIMI room binding state",
-        "state_cardinality": "per_subject",
-        "state_subject_field": "payload.mimi_room_uri",
-        "state_subject_type": "mimi_uri",
-        "component_type": "cx.component.mimi.room_binding.v1",
-        "component_version": 1,
-        "criticality": "required"
+        "cell_family": "cx.component.mimi.room_binding.v1",
+        "cell_subject": {
+          "type": "mimi_uri",
+          "field": "payload.mimi_room_uri"
+        },
+        "lattice": "mv-register",
+        "bottom": "expose"
       },
       {
         "event_kind": "cx.call.signal",
@@ -1483,6 +1474,18 @@
       {
         "schema_id": "cx.schema.audit_ryw_receipt.v1",
         "file": "schemas/audit-ryw-receipt.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.move.v1",
+        "file": "schemas/move.schema.json",
+        "status": "active",
+        "description": "Move transaction intent schema"
+      },
+      {
+        "schema_id": "cx.schema.anchor.v1",
+        "file": "schemas/anchor.schema.json",
+        "status": "active",
+        "description": "Anchor DAG finality commitment schema"
       }
     ]
   },
@@ -1525,6 +1528,27 @@
         "status": "profile_extension",
         "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
         "description": "Room/Space-scoped pseudonymous credential reference; validated by the E2EE profile."
+      },
+      {
+        "kind": "move",
+        "wire_form": "cx:move:sha256:<digest>",
+        "status": "active",
+        "storage_recommendation": "Store as a content-addressed canonical Move hash.",
+        "description": "Content-addressed Move identifier."
+      },
+      {
+        "kind": "anchor",
+        "wire_form": "cx:anchor:sha256:<digest>",
+        "status": "active",
+        "storage_recommendation": "Store as a content-addressed canonical Anchor hash.",
+        "description": "Content-addressed Anchor identifier."
+      },
+      {
+        "kind": "cell",
+        "wire_form": "cx:cell:<component>:<subject>",
+        "status": "active",
+        "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
+        "description": "Canonical protocol cell identifier."
       }
     ],
     "id_kinds": [

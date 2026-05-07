@@ -57,7 +57,7 @@ title: Conformance Suite（自动化互操作测试）
 
 - `conformance-vectors.md` 与 `sync-fixture.json`：timeline 顺序、分页缺口、snapshot frontier、`event_set_commitment`、MLS 回填、decryption_pending。
 - `conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
-- `conformance-vectors.md` 与 `state-resolution-fixture.json`：state 冲突、policy hard deny 优先级、离线写入与 revoke freshness 的收敛向量。
+- `conformance-vectors.md` 与 `move-anchor-lattice-fixture.json`：Move 原子性、Anchor batch、Lattice bottom、离线 rebase 与 covered frontier 的收敛向量。
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Flow discussion branch 不继承 Flow synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
@@ -67,13 +67,13 @@ title: Conformance Suite（自动化互操作测试）
 
 v1 新增以下必测项：
 
-- `cx.vector.state_resolution.conflict_membership.v1`
+- `cx.vector.move_anchor_lattice.cas_bottom.v1`
   - 输入同一成员 state key 的并发冲突事件（join/invite/leave/ban）。
   - 期望 reducer 输出：授权链可解释、冲突记录完整、最终 state 可重建且可再现。
-- `cx.vector.state_resolution.capability_rebind.v1`
+- `cx.vector.move_anchor_lattice.multi_cell_ban_revoke.v1`
   - 输入 grant/revoke/regrant 并发链 + 依赖 auth state。
   - 期望输出：只允许 auth 通过者进入 winner；无授权候选回退到 base state。
-- `cx.vector.state_resolution.schema_update.v1`
+- `cx.vector.move_anchor_lattice.anchor_batch_pre_state.v1`
   - `cx.space.schema` 与 `cx.space.policy_server` 的并发写入。
   - 期望输出：按优先级类 + tie-break 顺序稳定收敛。
 
@@ -126,7 +126,7 @@ v1 新增以下必测项：
 | --- | --- | --- |
 | `v1.0.0` | 对外发布稳定规范基线。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结；OpenAPI、fixture 和 Markdown JSON 示例不得包含未发布占位、已移除 wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`。 |
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
-| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、state resolution、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；英文或其他翻译不得作为 stale source of truth 发布。 |
+| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、Move/Anchor/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；英文或其他翻译不得作为 stale source of truth 发布。 |
 
 当前仓库发布的是 `v1.0.0` 规范稳定基线。实现若未同时通过 reference validator / reducer / authz evaluator / runner 及核心 vectors，只能声明为“支持某些 v1 profile”，不得声明为 `v1-conformance-certified`。
 
