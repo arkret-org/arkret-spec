@@ -9,9 +9,9 @@ Contrix 的顶层架构要同时满足四件事：
 - 去中心化身份与发布
 - 多主体协作对象共享
 - 对人类友好的工作界面
-- 对 AI agent 友好的执行与记忆模型
+- 对 AI agent 友好的执行与可审计沉淀模型
 
-这要求协议在一开始就把“身份、写入、传播、展示、记忆”和可选查询体验拆成不同平面，而不是把所有能力都塞进一个服务角色里。
+这要求协议在一开始就把“身份、写入、传播、展示”和可选查询体验拆成不同平面，而不是把所有能力都塞进一个服务角色里。
 
 ## 2. 总体模型
 
@@ -436,6 +436,13 @@ Contrix 不打算做“两套系统”：
 - 人类创建的对象能被 AI 理解和引用
 - 卡片型 Flow、Message、Relation 和其他 Morph 对象可以互相链接
 - 所有沉淀都能投影成可操作界面
+
+因此协议**不**定义统一的 agent memory subsystem。Agent 的运行时上下文（prompt、scratchpad、向量索引、缓存等）由各 agent runtime 自行管理，协议不约束其形式。协议只负责两件事：
+
+- **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Flow / Message / Morph / Blob，进入 Space 账本，与人类协作沉淀共用同一份事实层。
+- **受控外部知识访问**：agent 可读取的 Space、对象或派生摘要 MUST 通过 `cx.schema.agent_authority.v1` 的 `knowledge_sources[]` 显式声明 `scope`、`grant_ref`、`visibility` 与 `max_retention_seconds`，受 capability 与 Space policy 约束。
+
+这意味着不存在协议层面的"agent 私有记忆库"。任何需要被审阅、引用或撤回的 agent 记忆都必须以标准对象形式落账；不需要被审阅的运行时状态留在 agent runtime 内部，不进入协议视野。
 
 ## 8. 架构决定
 

@@ -3,6 +3,69 @@
 :root {
   --cx-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
     monospace;
+
+  /* Docs layout outer cap. The SiteNav is centered at `--cx-max` (1180px),
+   * but Starlight's docs grid (sidebar + content + TOC) is wider than the
+   * nav, so we cap the docs grid separately at a slightly larger value
+   * and center it the same way. Anything over 100rem (1600px) gets
+   * symmetric gutters left and right. */
+  --cx-docs-max: 100rem;
+
+  /* Widen the readable column inside the docs grid. Starlight's default
+   * 45rem leaves big empty space on both sides at our cap; bumping it to
+   * ~58rem gives the prose room without breaking long-line readability
+   * for normal paragraphs. */
+  --sl-content-width: 58rem;
+}
+
+/* ---------- Docs layout centering ---------------------------------------
+ *
+ * Goal: on wide monitors, the docs grid (left sidebar + main content +
+ * right TOC) is a single horizontally-centered block, with symmetric
+ * left/right gutters. On narrow viewports the layout falls back to
+ * Starlight's default flush-left behaviour automatically because the
+ * gutter clamps to 0.
+ *
+ * The header is intentionally left alone: SiteNav self-centers at
+ * `--cx-max` (1180px), so the docs nav sits in the same place as the
+ * homepage nav.
+ *
+ * Starlight uses `position: fixed` on the sidebar pane and computes the
+ * main content's start padding from `--sl-content-inline-start`, which
+ * defaults to one sidebar width. Shifting the fixed sidebar inward by
+ * `gutter` MUST be paired with extending the main content's start
+ * padding by the same `gutter`, otherwise the content slides under the
+ * sidebar.
+ */
+@media (min-width: 50rem) {
+  :root {
+    /* Half of the gutter that would appear left and right of a centered
+     * docs grid clamped at --cx-docs-max. Negative results clamp to 0. */
+    --cx-docs-gutter: max(0px, calc((100vw - var(--cx-docs-max)) / 2));
+  }
+
+  /* Shift the fixed sidebar inward to the left edge of the centered
+   * docs grid. */
+  nav.sidebar .sidebar-pane {
+    inset-inline-start: var(--cx-docs-gutter);
+  }
+
+  /* Match the main content's left offset to the new sidebar position and
+   * pull its right edge inward by the same gutter so the right TOC ends
+   * at the right edge of the centered grid.
+   *
+   * We target `.main-frame` directly (not Starlight's
+   * `--sl-content-inline-start` variable) because Page.astro's
+   * Astro-scoped `[data-has-sidebar]` rule has higher specificity than
+   * a plain `[data-has-sidebar]` override here, so the variable approach
+   * leaves the padding stuck at one bare sidebar width and the content
+   * slides under the shifted sidebar. */
+  .main-frame {
+    padding-inline-start: calc(
+      var(--sl-sidebar-width) + var(--cx-docs-gutter)
+    );
+    padding-inline-end: var(--cx-docs-gutter);
+  }
 }
 
 .cx-tag {
