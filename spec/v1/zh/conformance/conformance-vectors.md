@@ -491,7 +491,7 @@ cx.vector.state_resolution.conflict_space_membership.v1
 输入：
 
 - Space: `cx:space:01js0ms0000000000000000000`
-- State key: `did:web:bob.example.com`
+- State slot: `(cx.member.state, payload.actor_id="did:web:bob.example.com")`
 - Candidate A: `cx.member.state` -> `join`
 - Candidate B: `cx.member.state` -> `ban`
 
@@ -758,7 +758,6 @@ cx.vector.redaction.policy_scope.v1
       "space_id": "cx:space:01js0ms0000000000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
-      "state_key": "tx1",
       "payload": {
         "flow_id": "cx:flow:01js0qv1000000000000000000",
         "content": {
@@ -879,7 +878,6 @@ cx.vector.capability.delegate_chain.v1
 {
   "base": {
     "kind": "cx.capability.grant",
-    "state_key": "space-admin",
     "subject": "did:web:root-admin.example.com",
     "actions": [
       "cx.space.admin"
@@ -890,7 +888,6 @@ cx.vector.capability.delegate_chain.v1
     {
       "event_id": "cx:event:01js0d1g000000000000000000",
       "kind": "cx.capability.delegate",
-      "state_key": "space-admin-delegate-a",
       "space_id": "cx:space:01js0ms0000000000000000000",
       "actor_id": "did:web:root-admin.example.com",
       "payload": {
@@ -923,7 +920,6 @@ cx.vector.capability.delegate_chain.v1
     {
       "event_id": "cx:event:01js0d1h000000000000000000",
       "kind": "cx.capability.delegate",
-      "state_key": "invite-ops",
       "space_id": "cx:space:01js0ms0000000000000000000",
       "actor_id": "did:web:ops.example.com",
       "payload": {
@@ -1006,7 +1002,6 @@ cx.vector.capability.revoke_rollback.v1
     {
       "event_id": "cx:event:01js0g2a000000000000000000",
       "kind": "cx.capability.grant",
-      "state_key": "cap-post-001",
       "payload": {
         "grant_id": "cx:grant:01js0g2a000000000000000000",
         "subject": "did:web:alice.example.com",
@@ -1019,7 +1014,6 @@ cx.vector.capability.revoke_rollback.v1
     {
       "event_id": "cx:event:01js0r2a000000000000000000",
       "kind": "cx.capability.revoke",
-      "state_key": "cap-post-001",
       "payload": {
         "grant_id": "cx:grant:01js0g2a000000000000000000"
       },
@@ -1028,8 +1022,8 @@ cx.vector.capability.revoke_rollback.v1
     {
       "event_id": "cx:event:01js0x2a000000000000000000",
       "kind": "cx.member.state",
-      "state_key": "did:web:alice.example.com",
       "payload": {
+        "actor_id": "did:web:alice.example.com",
         "membership": "leave"
       },
       "created_at": "2026-04-26T00:00:02Z"
@@ -1052,7 +1046,7 @@ cx.vector.capability.revoke_rollback.v1
     }
   ],
   "rollback": {
-    "target_state_key": "cx.event:01js0r2a000000000000000000",
+    "target_event_id": "cx.event:01js0r2a000000000000000000",
     "reason": "revoke_undo_invalid_signature"
   }
 }
@@ -1100,7 +1094,6 @@ cx.vector.capability.approval_constraint.v1
   "capabilities": [
     {
       "kind": "cx.capability.grant",
-      "state_key": "admin-delete",
       "subject": "did:web:contractor.example",
       "actions": [
         "cx.space.admin"
@@ -1108,7 +1101,6 @@ cx.vector.capability.approval_constraint.v1
     },
     {
       "kind": "cx.capability.grant",
-      "state_key": "evidence",
       "subject": "did:web:approver-1.example.com",
       "actions": [
         "cx.approval.vote"
@@ -1188,7 +1180,6 @@ cx.vector.capability.approval_constraint.v1
   "events": [
     {
       "kind": "cx.space.create",
-      "state_key": "",
       "target_ref": "cx:space:01js0bd0000000000000000000",
       "payload": {
         "object": {
@@ -1208,7 +1199,6 @@ cx.vector.capability.approval_constraint.v1
     },
     {
       "kind": "cx.space.create",
-      "state_key": "",
       "target_ref": "cx:space:01js0111000000000000000000",
       "payload": {
         "object": {

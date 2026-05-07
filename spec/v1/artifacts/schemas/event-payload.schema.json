@@ -368,7 +368,7 @@
     },
     "actor_profile_create_payload": {
       "type": "object",
-      "description": "Initial actor profile state. Semantic validation MUST require payload.object.id to match top-level state_key, payload.object.principal_id to match the actor principal or an authorized controller, and payload.object.created_at to match top-level created_at before acceptance.",
+      "description": "Initial actor profile state. The reducer keys this state event by payload.object.id (the state_subject_field declared in event-kind-registry.json). Semantic validation MUST require payload.object.principal_id to match the actor principal or an authorized controller, and payload.object.created_at to match top-level created_at before acceptance.",
       "required": [
         "object"
       ],

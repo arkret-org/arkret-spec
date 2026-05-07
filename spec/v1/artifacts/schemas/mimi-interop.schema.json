@@ -138,9 +138,9 @@
     },
     "room_binding": {
       "type": "object",
+      "description": "MIMI room binding state event. The reducer keys this state event by payload.mimi_room_uri (state_subject_field declared in event-kind-registry.json).",
       "required": [
         "kind",
-        "state_key",
         "payload"
       ],
       "properties": {
@@ -149,9 +149,6 @@
         },
         "kind": {
           "const": "cx.mimi.room_binding"
-        },
-        "state_key": {
-          "$ref": "#/$defs/mimi_uri"
         },
         "payload": {
           "type": "object",

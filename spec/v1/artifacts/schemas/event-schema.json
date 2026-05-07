@@ -24,11 +24,7 @@
     "kind": {
       "type": "string",
       "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-      "description": "Standard cx.* kinds MUST appear in artifacts/registry/event-kind-registry.json. Durable Event Envelope history accepts only active entries with wire_scope=durable_event unless a profile defines a private actor channel."
-    },
-    "state_key": {
-      "type": "string",
-      "description": "Top-level state key for standard state events. State resolution keys state events by (kind, state_key); payload.state_key is not the canonical wire location."
+      "description": "Standard cx.* kinds MUST appear in artifacts/registry/event-kind-registry.json. Each kind has its own state cardinality: singleton (one slot per Space), per_subject (one slot per typed subject declared in the registry's state_subject_field), or none (non-state event). Durable Event Envelope history accepts only active entries with wire_scope=durable_event unless a profile defines a private actor channel."
     },
     "space_id": {
       "type": "string",
@@ -260,27 +256,13 @@
     },
     {
       "if": {
-        "allOf": [
-          {
-            "properties": {
-              "kind": {
-                "const": "cx.space.policy.set"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          {
-            "properties": {
-              "state_key": {
-                "const": "plaintext_visible_services"
-              }
-            },
-            "required": [
-              "state_key"
-            ]
+        "properties": {
+          "kind": {
+            "const": "cx.space.plaintext_visible_services"
           }
+        },
+        "required": [
+          "kind"
         ]
       },
       "then": {
@@ -386,14 +368,7 @@
         ]
       },
       "then": {
-        "required": [
-          "state_key"
-        ],
         "properties": {
-          "state_key": {
-            "type": "string",
-            "pattern": "^cx:actor_profile:[0-9a-hjkmnp-z]{26}$"
-          },
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/actor_profile_create_payload"
           }
@@ -404,7 +379,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.profile.update"
+            "const": "cx.space.inheritance_policy"
           }
         },
         "required": [
@@ -412,13 +387,9 @@
         ]
       },
       "then": {
-        "required": [
-          "state_key"
-        ],
         "properties": {
-          "state_key": {
-            "type": "string",
-            "pattern": "^cx:actor_profile:[0-9a-hjkmnp-z]{26}$"
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/space_inheritance_policy_payload"
           }
         }
       }
@@ -427,68 +398,11 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "cx.space.policy.set"
+            "const": "cx.space.archive"
           }
         },
         "required": [
           "kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "state_key"
-        ],
-        "properties": {
-          "state_key": {
-            "oneOf": [
-              {
-                "enum": [
-                  "access",
-                  "join_rule",
-                  "history_visibility",
-                  "discovery",
-                  "policy_server",
-                  "policy_components",
-                  "history_sharing",
-                  "asset_privacy",
-                  "moderation",
-                  "plaintext_visible_services",
-                  "media_service",
-                  "schema_refs"
-                ]
-              },
-              {
-                "type": "string",
-                "pattern": "^inheritance:cx:space:[0-9a-hjkmnp-z]{26}$"
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "allOf": [
-          {
-            "properties": {
-              "kind": {
-                "const": "cx.space.lifecycle.set"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          {
-            "properties": {
-              "state_key": {
-                "const": "archive"
-              }
-            },
-            "required": [
-              "state_key"
-            ]
-          }
         ]
       },
       "then": {
@@ -501,27 +415,13 @@
     },
     {
       "if": {
-        "allOf": [
-          {
-            "properties": {
-              "kind": {
-                "const": "cx.space.lifecycle.set"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          {
-            "properties": {
-              "state_key": {
-                "const": "freeze"
-              }
-            },
-            "required": [
-              "state_key"
-            ]
+        "properties": {
+          "kind": {
+            "const": "cx.space.freeze"
           }
+        },
+        "required": [
+          "kind"
         ]
       },
       "then": {
@@ -534,27 +434,13 @@
     },
     {
       "if": {
-        "allOf": [
-          {
-            "properties": {
-              "kind": {
-                "const": "cx.space.lifecycle.set"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          {
-            "properties": {
-              "state_key": {
-                "const": "tombstone"
-              }
-            },
-            "required": [
-              "state_key"
-            ]
+        "properties": {
+          "kind": {
+            "const": "cx.space.tombstone"
           }
+        },
+        "required": [
+          "kind"
         ]
       },
       "then": {
@@ -567,27 +453,13 @@
     },
     {
       "if": {
-        "allOf": [
-          {
-            "properties": {
-              "kind": {
-                "const": "cx.space.lifecycle.set"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          {
-            "properties": {
-              "state_key": {
-                "const": "destroy"
-              }
-            },
-            "required": [
-              "state_key"
-            ]
+        "properties": {
+          "kind": {
+            "const": "cx.space.destroy"
           }
+        },
+        "required": [
+          "kind"
         ]
       },
       "then": {
@@ -596,48 +468,6 @@
             "$ref": "./event-payload.schema.json#/$defs/space_destroy_payload"
           }
         }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "cx.space.create",
-              "cx.space.policy.set",
-              "cx.space.child",
-              "cx.space.parent",
-              "cx.space.organization",
-              "cx.space.upgrade",
-              "cx.space.lifecycle.set",
-              "cx.member.state",
-              "cx.flow.branch.member",
-              "cx.flow.branch.history_visibility",
-              "cx.flow.branch.policy_components",
-              "cx.capability.grant",
-              "cx.capability.derived",
-              "cx.capability.revoke",
-              "cx.policy.rule",
-              "cx.device.authorized",
-              "cx.device.revoked",
-              "cx.device.list_update",
-              "cx.session.grant",
-              "cx.profile.create",
-              "cx.profile.update",
-              "cx.view.create",
-              "cx.view.update",
-              "cx.view.reconcile"
-            ]
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "required": [
-          "state_key"
-        ]
       }
     },
     {
@@ -680,74 +510,25 @@
     },
     {
       "if": {
-        "allOf": [
-          {
-            "properties": {
-              "kind": {
-                "const": "cx.space.policy.set"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          {
-            "properties": {
-              "state_key": {
-                "type": "string",
-                "pattern": "^inheritance:cx:space:[0-9a-hjkmnp-z]{26}$"
-              }
-            },
-            "required": [
-              "state_key"
-            ]
-          }
-        ]
-      },
-      "then": {
         "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_inheritance_policy_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "allOf": [
-          {
-            "properties": {
-              "kind": {
-                "const": "cx.space.policy.set"
-              }
-            },
-            "required": [
-              "kind"
-            ]
-          },
-          {
-            "properties": {
-              "state_key": {
-                "enum": [
-                  "access",
-                  "join_rule",
-                  "history_visibility",
-                  "discovery",
-                  "policy_server",
-                  "policy_components",
-                  "history_sharing",
-                  "asset_privacy",
-                  "moderation",
-                  "plaintext_visible_services",
-                  "media_service",
-                  "schema_refs"
-                ]
-              }
-            },
-            "required": [
-              "state_key"
+          "kind": {
+            "enum": [
+              "cx.space.policy",
+              "cx.space.join_rule",
+              "cx.space.history_visibility",
+              "cx.space.discovery",
+              "cx.space.policy_server",
+              "cx.space.policy_components",
+              "cx.space.history_sharing_policy",
+              "cx.space.asset_privacy_policy",
+              "cx.space.moderation_policy",
+              "cx.space.media_service",
+              "cx.space.schema"
             ]
           }
+        },
+        "required": [
+          "kind"
         ]
       },
       "then": {
@@ -767,7 +548,6 @@
               "cx.space.organization",
               "cx.space.child",
               "cx.space.parent",
-              "cx.space.lifecycle.set",
               "cx.organization.discovery",
               "cx.organization.moderation_policy",
               "cx.did.proof",

@@ -4,18 +4,18 @@
   --cx-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
     monospace;
 
-  /* Docs layout outer cap. The SiteNav is centered at `--cx-max` (1180px),
-   * but Starlight's docs grid (sidebar + content + TOC) is wider than the
-   * nav, so we cap the docs grid separately at a slightly larger value
-   * and center it the same way. Anything over 100rem (1600px) gets
-   * symmetric gutters left and right. */
-  --cx-docs-max: 100rem;
+  /* Match the prose column to the SiteNav width so the main reading
+   * area on docs pages spans the same horizontal band as the header
+   * menu — `--cx-max` is defined in marketing.css. */
+  --sl-content-width: var(--cx-max, 73.75rem);
 
-  /* Widen the readable column inside the docs grid. Starlight's default
-   * 45rem leaves big empty space on both sides at our cap; bumping it to
-   * ~58rem gives the prose room without breaking long-line readability
-   * for normal paragraphs. */
-  --sl-content-width: 58rem;
+  /* Cap the entire docs grid at "left sidebar + prose + right TOC" so
+   * the prose column lands centered between two equally-wide columns
+   * and aligns horizontally with the SiteNav above. With sidebar/TOC
+   * each = `--sl-sidebar-width` (18.75rem) and prose = `--cx-max`,
+   * total = cx-max + 2 * sidebar-width = 1780px on the default theme.
+   * Beyond that, symmetric outer gutters absorb the remaining viewport. */
+  --cx-docs-max: calc(var(--cx-max, 73.75rem) + 2 * var(--sl-sidebar-width));
 }
 
 /* ---------- Docs layout centering ---------------------------------------

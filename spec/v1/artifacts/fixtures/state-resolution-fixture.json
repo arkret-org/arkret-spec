@@ -1,6 +1,6 @@
 {
   "profile": "cx.profile.state_resolution_vectors.v1",
-  "version": "2026-05-02",
+  "version": "2026-05-07",
   "vectors": [
     {
       "name": "concurrent_flow_move_hlc_tiebreak",
@@ -42,7 +42,11 @@
     },
     {
       "name": "conflict_space_membership_quarantine_with_actor_tiebreak",
-      "state_key": "did:web:bob.example",
+      "comment": "State slot is (space_id, cx.member.state, payload.actor_id). Both candidates target the same actor.",
+      "state_slot": {
+        "kind": "cx.member.state",
+        "subject": "did:web:bob.example"
+      },
       "candidates": [
         {
           "event_id": "cx:event:01js0mj0000000000000000000",
@@ -50,6 +54,7 @@
           "actor_id": "did:web:member.example",
           "causal_depth": 9,
           "payload": {
+            "actor_id": "did:web:bob.example",
             "membership": "join",
             "reason": "accepted_invite"
           },
@@ -61,6 +66,7 @@
           "actor_id": "did:web:admin.example",
           "causal_depth": 9,
           "payload": {
+            "actor_id": "did:web:bob.example",
             "membership": "ban",
             "reason": "abuse"
           },
@@ -78,12 +84,15 @@
     },
     {
       "name": "policy_hard_deny_precedes_tiebreak",
-      "state_key": "cx:space:01js0sp0000000000000000000|join_rule",
+      "comment": "State slot is (space_id, cx.space.join_rule). Singleton — no subject.",
+      "state_slot": {
+        "kind": "cx.space.join_rule",
+        "space_id": "cx:space:01js0sp0000000000000000000"
+      },
       "candidates": [
         {
           "event_id": "cx:event:01js0jr0000000000000000000",
-          "kind": "cx.space.policy.set",
-          "state_key": "join_rule",
+          "kind": "cx.space.join_rule",
           "policy_result": "hard_deny",
           "payload": {
             "join_rule": "public"
@@ -92,8 +101,7 @@
         },
         {
           "event_id": "cx:event:01js0j10000000000000000000",
-          "kind": "cx.space.policy.set",
-          "state_key": "join_rule",
+          "kind": "cx.space.join_rule",
           "policy_result": "allow",
           "payload": {
             "join_rule": "invite"
@@ -112,13 +120,15 @@
     },
     {
       "name": "concurrent_policy_access_quarantine_with_hlc_tiebreak",
-      "comment": "Two candidates target the same Space policy state key (kind=cx.space.policy.set, state_key=access). Both pass signature, schema, causal dependency, auth_refs, and policy checks. v1 does not use direct/delegated authority scoring; the reducer chooses a provisional winner by deterministic tiebreak and quarantines the non-winner until admin review.",
-      "state_key": "cx:space:01js0sp0000000000000000000|access",
+      "comment": "Two candidates target the same Space access policy state slot (singleton kind=cx.space.policy). Both pass signature, schema, causal dependency, auth_refs, and policy checks. v1 does not use direct/delegated authority scoring; the reducer chooses a provisional winner by deterministic tiebreak and quarantines the non-winner until admin review.",
+      "state_slot": {
+        "kind": "cx.space.policy",
+        "space_id": "cx:space:01js0sp0000000000000000000"
+      },
       "candidates": [
         {
           "event_id": "cx:event:01js0p10000000000000000000",
-          "kind": "cx.space.policy.set",
-          "state_key": "access",
+          "kind": "cx.space.policy",
           "actor_id": "did:web:admin-direct.example",
           "auth_refs": [
             "cx:event:01js0gd0000000000000000000"
@@ -131,8 +141,7 @@
         },
         {
           "event_id": "cx:event:01js0p20000000000000000000",
-          "kind": "cx.space.policy.set",
-          "state_key": "access",
+          "kind": "cx.space.policy",
           "actor_id": "did:web:admin-delegated.example",
           "auth_refs": [
             "cx:event:01js0gd0000000000000000000",
@@ -156,8 +165,11 @@
     },
     {
       "name": "membership_concurrent_quarantine_with_hlc_tiebreak",
-      "comment": "Two candidates target the same membership state key and both pass auth checks. Organization sponsorship may be part of the auth_refs proof, but v1 state resolution does not add a governance-layer winner lattice. The later HLC wins provisionally and the other candidate remains quarantined for review.",
-      "state_key": "did:web:carol.example",
+      "comment": "Two candidates target the same membership state slot (cx.member.state, payload.actor_id) and both pass auth checks. Organization sponsorship may be part of the auth_refs proof, but v1 state resolution does not add a governance-layer winner lattice. The later HLC wins provisionally and the other candidate remains quarantined for review.",
+      "state_slot": {
+        "kind": "cx.member.state",
+        "subject": "did:web:carol.example"
+      },
       "candidates": [
         {
           "event_id": "cx:event:01js0r10000000000000000000",
@@ -168,6 +180,7 @@
           ],
           "causal_depth": 14,
           "payload": {
+            "actor_id": "did:web:carol.example",
             "membership": "ban",
             "reason": "org_compliance_action"
           },
@@ -182,6 +195,7 @@
           ],
           "causal_depth": 14,
           "payload": {
+            "actor_id": "did:web:carol.example",
             "membership": "join",
             "reason": "space_admin_invite_accept"
           },
@@ -210,6 +224,7 @@
             "cx:event:01js0ra0000000000000000000"
           ],
           "payload": {
+            "grant_id": "cx:grant:01js0gr0000000000000000000",
             "grant_ref": "cx:grant:01js0gr0000000000000000000"
           },
           "hlc": "01970e589d22-0001-a13f9c2e"

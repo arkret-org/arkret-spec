@@ -292,11 +292,10 @@ discussion branch override（如需要 branch-scoped membership）→ 加入成�
   },
   {
     "kind": "cx.flow.branch.member",
-    "state_key": "cx:flow:01js0fk0000000000000000000|discussion|did:web:bob.example",
     "payload": {
       "flow_id": "cx:flow:01js0fk0000000000000000000",
       "branch": "discussion",
-      "member": "did:web:bob.example",
+      "actor_id": "did:web:bob.example",
       "membership": "join"
     }
   },

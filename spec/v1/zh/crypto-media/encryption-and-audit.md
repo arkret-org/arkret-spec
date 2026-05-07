@@ -242,18 +242,36 @@ MLS group 的绑定层级取决于启用位置：若 Space 级 policy 声明 `en
 
 当 MLS group 绑定到 Flow discussion branch 时，`application_state_ref` MUST 同时覆盖 `flow_id` 与 `branch="discussion"`，并以有效 branch access、membership、history visibility 和 policy state 作为验证边界。
 
+**E2EE Space MUST 声明 `cx.profile.mls_state_binding.full.v1`**：v1 中所有声明 `encryption_profile="mls_rfc9420"` 的 Space 均隐式继承该 profile（`cx.profile.e2ee_client.v1` 已直接 `inherits` 它）。**该 profile 不再是 optional extension**，所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `application_state_ref`。基础 E2EE profile（仅 transcript-authenticated 而无 GroupContext extension 的实现）已废弃；早期 base profile 实现 MUST 升级。
+
 规则：
 
-- `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员状态、invite/leave/ban 变化和设备信任变化。
-- `policy_root` MUST 覆盖影响加密、history visibility、asset privacy、logging、bot、moderation 和 plaintext-visible service 的 Space policy state。
-- v1 base E2EE profile 只要求 `membership_frontier` 与 `policy_root`。这两个字段缺失或无法验证时，客户端 MUST 标记 epoch 为 `state_mismatch` 或 `decryption_pending`。
-- `capability_root` 与 `discussion_metadata_hash` 属于 `cx.profile.mls_state_binding.full.v1` hardening profile。实现声明该 profile 时，它们 MUST 覆盖与本次成员或策略变化相关的 effective grant / revoke / claim 状态，以及成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
+- `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员状态、invite/leave/ban 变化和设备信任变化。具体覆盖的 component_types 由 `cx.profile.mls_state_binding.full.v1` 的 `membership_frontier_required_components` 字段声明（v1 默认包含 `cx.component.member.state.v1`、`cx.component.flow.branch.member.v1`）。
+- `policy_root` MUST 覆盖 `cx.profile.mls_state_binding.full.v1` 的 `policy_root_required_components` 列出的所有 component_types：access policy、join rule、history visibility、history sharing、policy components、media service、plaintext-visible services、moderation、asset privacy、lifecycle facets。这些字段缺失或无法验证时，客户端 MUST 标记 epoch 为 `state_mismatch` 或 `decryption_pending`。
+- `capability_root` MUST 覆盖 `cx.profile.mls_state_binding.full.v1` 的 `capability_root_required_components` 列出的所有 component_types：所有 `cx.capability.*` 派生的 grant/revoke/delegate/derived state slot。它必须反映本次成员或策略变化相关的 effective grant / revoke / claim 状态。
+- `discussion_metadata_hash` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
 - 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix state 已经按 `event-auth-state-resolution.md` accepted。无法回补或 hash 不匹配时 MUST 标记该 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 只能在其承载 Event 已按 `event-auth-state-resolution.md` 通过格式、签名、授权、时钟窗口和因果检查并进入 accepted state 后推进 MLS epoch；互不可达的合法并发 Commit 按 v1 state-resolution 进入 deterministic provisional winner + quarantine 诊断，非 accepted Commit 的 MLS transcript 不得被接受为当前 epoch。
 
-实现 SHOULD 将 `application_state_ref` 纳入 MLS GroupContext extension，使其被 `confirmed_transcript_hash` 覆盖。声明 `cx.profile.mls_state_binding.full.v1` 或更高保证 profile 的实现 MUST 支持该绑定方式，或声明等价 transcript-authenticated binding profile。
+#### 2.5.1 Covered Frontier 与 Pending MLS Binding
 
-#### 2.5.1 GroupContext Extension 定义
+E2EE Space 中，state event 在 `event-auth-state-resolution.md` 验证通过后只是 **协议层 accepted**；它必须再被某个 `cx.mls.commit` 的 `application_state_ref` 覆盖，才进入 **MLS-bound accepted**。两个状态形成一条 frontier：
+
+- **Accepted frontier**：reducer 已接受的所有 state event 集合（按 §4.4 component cardinality 算 slot）。
+- **Covered frontier**：被某个 winning `cx.mls.commit` 的 `application_state_ref` 覆盖的 accepted state event 子集。
+
+规则：
+
+- 一个 state event 在 `accepted` 但 `not yet covered` 时处于 **`pending_mls_binding`** 状态。该状态对客户端 UI 与同步语义的影响：
+  - 客户端 MAY 在 metadata 层面展示该 state（例如显示 ban 即将生效），但 MUST NOT 让该 state 影响 E2EE 解密、key share、新 application message 加密 epoch。
+  - 服务端 SHOULD 把 `pending_mls_binding` state 计入 sync frontier，但要求客户端确认 covered 状态后才能展示给最终用户作为权威。
+- 客户端在 `cx.mls.proposal` / `cx.mls.commit` 链未跟上 accepted state 超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并暂停发送新 application messages（`high_assurance` security_class 是 MUST，其他是 SHOULD）。
+- 撤销与失效（如 ban、revoke）只在 covered frontier 上才能阻止后续 application messages 解密；在 `pending_mls_binding` 期间发送的旧 epoch 消息 MAY 仍能被本来就持有 epoch key 的 actor 解密——这就是为什么 covered frontier 必须及时推进。
+- 服务端 SHOULD 在 `application_state_ref.policy_root_components` 中显式列出本次 commit 覆盖的 component_types，使接收方能精确判断哪些 state slot 进入了 covered frontier。该列表 MUST 是 `cx.profile.mls_state_binding.full.v1` 声明的 required components 的子集，缺失任一 required component 时 commit MUST reject。
+
+实现 MUST 暴露 `pending_mls_binding` 状态作为可枚举诊断；MUST 区分 `accepted` 与 `covered`，不得把"协议层 accepted 但 MLS 未覆盖"的 state event 当作 fully effective 状态展示给最终用户。
+
+#### 2.5.2 GroupContext Extension 定义
 
 Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 必须通过实现 profile、部署 profile 或未来 registry 协商，不能静默占用未声明的公共 codepoint。
 

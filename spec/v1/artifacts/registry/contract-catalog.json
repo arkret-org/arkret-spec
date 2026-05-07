@@ -39,7 +39,9 @@
       "Standard cx.* Event.kind values MUST appear in this registry.",
       "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
       "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance actor_seq, prev_refs, state_hash, or reducer frontier.",
-      "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Event history."
+      "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Event history.",
+      "State events declare state_cardinality (singleton | per_subject); per_subject entries MUST also declare state_subject_field (a payload field path or 'composite' with state_subject_components) and state_subject_type. Reducer state slot key is (space_id, kind) for singleton or (space_id, kind, value-of-state_subject_field) for per_subject. There is no envelope-level state_key field.",
+      "Each state event kind declares a component_type (stable URI in the cx.component.*.v<n> namespace), component_version (integer, monotonically increasing within a component_type), and criticality (required | optional | ignore). component_type identifies the logical state machine; multiple kinds operating on the same logical state MAY share a component_type, in which case the registry MUST document the relationship. Receivers that do not recognize a component_type or component_version MUST handle the event by the declared criticality: required = fail closed (schema_violation, soft_fail, or quarantine depending on context); optional = warn and ignore; ignore = silently drop. Per-event override via Event.requirements.critical_extensions still takes precedence when present."
     ],
     "payload_schema_contract": {
       "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -55,7 +57,11 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space create"
+        "payload": "Space create",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.create.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.space.update",
@@ -71,7 +77,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space version upgrade"
+        "payload": "Space version upgrade",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.target_reducer_profile",
+        "state_subject_type": "profile_ref",
+        "component_type": "cx.component.space.upgrade.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.space.organization",
@@ -79,7 +91,11 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space official or sponsoring organization statement"
+        "payload": "Space official or sponsoring organization statement",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.organization.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.space.child",
@@ -87,7 +103,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Child Space link"
+        "payload": "Child Space link",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.child_space_id",
+        "state_subject_type": "id:space",
+        "component_type": "cx.component.space.child.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.space.parent",
@@ -95,70 +117,219 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Parent Space link"
+        "payload": "Parent Space link",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.parent_space_id",
+        "state_subject_type": "id:space",
+        "component_type": "cx.component.space.parent.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
-        "event_kind": "cx.space.policy.set",
+        "event_kind": "cx.space.policy",
         "category": "space",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space policy/configuration state assignment, dispatched by state_key",
-        "state_keys": [
-          "join_rule",
-          "history_visibility",
-          "discovery",
-          "access",
-          "policy_server",
-          "policy_components",
-          "history_sharing",
-          "asset_privacy",
-          "moderation",
-          "plaintext_visible_services",
-          "media_service",
-          "schema_refs"
-        ],
-        "state_key_prefixes": [
-          "inheritance:"
-        ],
-        "state_key_prefix_notes": {
-          "inheritance:": "Parent inheritance policy: state_key is `inheritance:<parent_space_id>`; one entry per parent Space."
-        },
-        "state_key_replaces": {
-          "join_rule": "cx.space.join_rule",
-          "history_visibility": "cx.space.history_visibility",
-          "discovery": "cx.space.discovery",
-          "access": "cx.space.policy",
-          "policy_server": "cx.space.policy_server",
-          "policy_components": "cx.space.policy_components",
-          "history_sharing": "cx.space.history_sharing_policy",
-          "asset_privacy": "cx.space.asset_privacy_policy",
-          "moderation": "cx.space.moderation_policy",
-          "plaintext_visible_services": "cx.space.plaintext_visible_services",
-          "media_service": "cx.space.media_service",
-          "schema_refs": "cx.space.schema",
-          "inheritance": "cx.space.inheritance_policy"
-        }
+        "payload": "Space access policy reference (policy_ref)",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.policy.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
-        "event_kind": "cx.space.lifecycle.set",
+        "event_kind": "cx.space.join_rule",
         "category": "space",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space lifecycle FSM transition (archive/freeze reversible, tombstone/destroy terminal); per-facet state_key",
-        "state_keys": [
-          "archive",
-          "freeze",
-          "tombstone",
-          "destroy"
-        ],
-        "state_key_replaces": {
-          "archive": "cx.space.archive",
-          "freeze": "cx.space.freeze",
-          "tombstone": "cx.space.tombstone",
-          "destroy": "cx.space.destroy"
-        }
+        "payload": "Space join rule (public/invite/knock/restricted/closed)",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.join_rule.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.history_visibility",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space history visibility scope",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.history_visibility.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.discovery",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space discoverability state",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.discovery.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.policy_server",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space Policy Server binding",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.policy_server.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.policy_components",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Enabled Space policy components set",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.policy_components.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.history_sharing_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "E2EE history sharing policy",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.history_sharing_policy.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.asset_privacy_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space asset privacy policy",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.asset_privacy_policy.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.moderation_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space moderation policy (blocklists, allowlists, content filters)",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.moderation_policy.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.plaintext_visible_services",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Plaintext-visible services declaration outside E2EE boundary",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.plaintext_visible_services.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.media_service",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.media_service.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.schema",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space schema_refs declaration",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.schema.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.inheritance_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Per-parent inheritance policy; one entry per parent Space",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.parent_space_id",
+        "state_subject_type": "id:space",
+        "component_type": "cx.component.space.inheritance_policy.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.archive",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space archive lifecycle facet (reversible boolean)",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.archive.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.freeze",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space freeze lifecycle facet (reversible boolean)",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.freeze.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.tombstone",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space tombstone lifecycle facet (terminal pointer to successor)",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.tombstone.v1",
+        "component_version": 1,
+        "criticality": "required"
+      },
+      {
+        "event_kind": "cx.space.destroy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space destroy lifecycle facet (terminal decommission marker)",
+        "state_cardinality": "singleton",
+        "component_type": "cx.component.space.destroy.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.organization.discovery",
@@ -246,7 +417,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Policy rule state"
+        "payload": "Policy rule state",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.rule_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.policy.rule.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.policy.action",
@@ -262,7 +439,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space membership state"
+        "payload": "Space membership state",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.actor_id",
+        "state_subject_type": "did",
+        "component_type": "cx.component.member.state.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.flow.create",
@@ -334,7 +517,15 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow discussion branch membership state"
+        "payload": "Flow discussion branch membership state",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.actor_id",
+        "state_subject_type": "did",
+        "state_subject_scope": "flow_id+branch+actor_id",
+        "state_subject_scope_note": "Reducer slot key combines envelope-level flow_id, payload.branch, and payload.actor_id; see flow-branch documentation.",
+        "component_type": "cx.component.flow.branch.member.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.flow.branch.history_visibility",
@@ -342,7 +533,17 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow discussion branch history visibility state"
+        "payload": "Flow discussion branch history visibility state",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "composite",
+        "state_subject_components": [
+          "envelope.flow_id",
+          "payload.branch"
+        ],
+        "state_subject_type": "composite",
+        "component_type": "cx.component.flow.branch.history_visibility.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.flow.branch.policy_components",
@@ -350,7 +551,17 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow discussion branch policy component state"
+        "payload": "Flow discussion branch policy component state",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "composite",
+        "state_subject_components": [
+          "envelope.flow_id",
+          "payload.branch"
+        ],
+        "state_subject_type": "composite",
+        "component_type": "cx.component.flow.branch.policy_components.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.flow.move",
@@ -494,7 +705,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "View create"
+        "payload": "View create",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.view_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.view.create.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.view.update",
@@ -502,7 +719,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "View update"
+        "payload": "View update",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.view_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.view.update.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.view.reconcile",
@@ -510,7 +733,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "View schema or definition sync"
+        "payload": "View schema or definition sync",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.view_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.view.reconcile.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.agent.endpoint",
@@ -550,7 +779,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Capability grant"
+        "payload": "Capability grant",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.grant_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.capability.grant.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.capability.delegate",
@@ -558,7 +793,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Capability delegation"
+        "payload": "Capability delegation",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.grant_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.capability.delegate.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.capability.revoke",
@@ -566,7 +807,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Capability revocation"
+        "payload": "Capability revocation",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.grant_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.capability.revoke.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.capability.derived",
@@ -574,7 +821,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Derived capability state"
+        "payload": "Derived capability state",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.grant_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.capability.derived.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.session.grant",
@@ -582,7 +835,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Session grant"
+        "payload": "Session grant",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.grant_id",
+        "state_subject_type": "string",
+        "component_type": "cx.component.session.grant.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.account.status",
@@ -590,7 +849,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Signed account lifecycle status"
+        "payload": "Signed account lifecycle status",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.principal_id",
+        "state_subject_type": "did",
+        "component_type": "cx.component.account.status.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.account.blocklist",
@@ -630,7 +895,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Actor profile create"
+        "payload": "Actor profile create",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.object.id",
+        "state_subject_type": "id:actor_profile",
+        "component_type": "cx.component.profile.create.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.profile.update",
@@ -638,7 +909,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Actor profile update"
+        "payload": "Actor profile update",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.object.id",
+        "state_subject_type": "id:actor_profile",
+        "component_type": "cx.component.profile.update.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.profile.space_override",
@@ -654,7 +931,17 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Device authorization"
+        "payload": "Device authorization",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "composite",
+        "state_subject_components": [
+          "payload.principal_id",
+          "payload.device_id"
+        ],
+        "state_subject_type": "composite",
+        "component_type": "cx.component.device.authorized.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.device.revoked",
@@ -662,7 +949,17 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Device revocation"
+        "payload": "Device revocation",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "composite",
+        "state_subject_components": [
+          "payload.principal_id",
+          "payload.device_id"
+        ],
+        "state_subject_type": "composite",
+        "component_type": "cx.component.device.revoked.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.device.list_update",
@@ -670,7 +967,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Device list update"
+        "payload": "Device list update",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.principal_id",
+        "state_subject_type": "did",
+        "component_type": "cx.component.device.list_update.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.key.verification.request",
@@ -942,7 +1245,13 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "MIMI room binding state"
+        "payload": "MIMI room binding state",
+        "state_cardinality": "per_subject",
+        "state_subject_field": "payload.mimi_room_uri",
+        "state_subject_type": "mimi_uri",
+        "component_type": "cx.component.mimi.room_binding.v1",
+        "component_version": 1,
+        "criticality": "required"
       },
       {
         "event_kind": "cx.call.signal",

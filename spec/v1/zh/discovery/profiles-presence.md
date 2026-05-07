@@ -57,7 +57,7 @@ title: Profiles And Presence
 
 ### 2.3 Profile 创建与更新
 
-Profile 初始状态通过 `cx.profile.create` Event 提交到 actor 的 principal control Space。该 event 使用标准 Event Envelope；顶层 `state_key` MUST 等于 `payload.object.id`。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
+Profile 初始状态通过 `cx.profile.create` Event 提交到 actor 的 principal control Space。该 event 使用标准 Event Envelope；reducer 按 schema registry 声明的 `state_subject_field=payload.object.id` 派生 state slot 主键。`payload.object.principal_id` MUST 等于提交者 `actor_id`，或等于由 capability / controller policy 明确授权的目标 principal：
 
 ```json
 {
@@ -70,7 +70,6 @@ Profile 初始状态通过 `cx.profile.create` Event 提交到 actor 的 princip
   "hlc": "01970e589d21-0001-a13f9c2e",
   "prev_refs": [],
   "auth_refs": [],
-  "state_key": "cx:actor_profile:01js0ap0000000000000000000",
   "payload": {
     "object": {
       "id": "cx:actor_profile:01js0ap0000000000000000000",
@@ -101,7 +100,7 @@ Profile 初始状态通过 `cx.profile.create` Event 提交到 actor 的 princip
 }
 ```
 
-Profile 后续变更通过 `cx.profile.update` Event 提交。该 event 使用 `object_patch_payload`；顶层 `state_key` MUST 等于目标 `actor_profile` id，变更字段放在 `payload.patch`，不得使用旧的顶层 `actor` / `body` 形态：
+Profile 后续变更通过 `cx.profile.update` Event 提交。该 event 使用 `object_patch_payload`；reducer 用 schema 声明的 `state_subject_field=payload.target_ref` 与 `cx.profile.create` 共用同一 state slot。变更字段放在 `payload.patch`，不得使用旧的顶层 `actor` / `body` 形态：
 
 ```json
 {
@@ -114,7 +113,6 @@ Profile 后续变更通过 `cx.profile.update` Event 提交。该 event 使用 `
   "hlc": "01970e598d21-0001-a13f9c2e",
   "prev_refs": ["cx:event:01js0ev0000000000000000000"],
   "auth_refs": ["cx:event:01js0ev0000000000000000000"],
-  "state_key": "cx:actor_profile:01js0ap0000000000000000000",
   "payload": {
     "target_ref": "cx:actor_profile:01js0ap0000000000000000000",
     "patch": {
@@ -139,7 +137,7 @@ Profile 后续变更通过 `cx.profile.update` Event 提交。该 event 使用 `
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
-`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `space_id` MUST 是该 actor 的 `principal_control_space_id`；不得把全局 profile 更新写入任意协作 Space history。`state_key` MUST 绑定目标 `actor_profile` id，payload 中也必须保留 `payload.object.id` 或 `payload.target_ref`。
+`cx.profile.create` 与 `cx.profile.update` 是 principal-scoped profile state。顶层 `space_id` MUST 是该 actor 的 `principal_control_space_id`；不得把全局 profile 更新写入任意协作 Space history。两 kind 共用同一 state slot（`(space_id, "cx.profile", target_actor_profile_id)`），subject 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
 
 ### 2.4 Per-Space Profile 覆写
 
@@ -156,7 +154,6 @@ Profile 后续变更通过 `cx.profile.update` Event 提交。该 event 使用 `
   "hlc": "01970e5a8d21-0001-a13f9c2e",
   "prev_refs": ["cx:event:01js0ev1000000000000000000"],
   "auth_refs": ["cx:event:01js0ev1000000000000000000"],
-  "state_key": "cx:actor_profile:01js0ap0000000000000000000",
   "payload": {
     "target_ref": "cx:actor_profile:01js0ap0000000000000000000",
     "target_space_id": "cx:space:01js0sp0000000000000000000",

@@ -64,7 +64,16 @@ title: 术语表
 | Quarantine | 隔离 | 基础授权可通过但被策略标记为高风险的事件状态；不自动展示，需管理员审查。 |
 | Accepted | 已接受 | 事件通过全部校验后的最终状态；可推进 frontier 和 reducer。 |
 | Rejected | 已拒绝 | 事件在格式、签名、schema 或授权上确定失败；不得进入 reducer。 |
-| State Resolution | 状态收敛 | 多分支对同一 `(kind, state_key)` 给出不同 accepted state event 时，按确定性算法选择唯一 winner。 |
+| State Resolution | 状态收敛 | 多分支对同一 state slot（singleton 为 `(space_id, kind)`，per_subject 为 `(space_id, kind, subject)`）给出不同 accepted state event 时，按确定性算法选择唯一 winner。 |
+| State Slot | 状态分量 | reducer 维护的状态键，由 schema registry 中 kind 的 `state_cardinality` 与 `state_subject_field` 共同派生；envelope 不携带 `state_key` 字段。 |
+| State Subject | 状态主体 | per_subject state event 的 subject 值，从 payload 中按 `state_subject_field` 路径派生（DID / typed id / URI 等），与 kind 一起组成 state slot 主键。 |
+| Component | 策略组件 | 一个独立的 state 状态机；每个 state event kind 是一个 component。Contract-catalog 为每个 component 声明 `component_type`、`component_version` 和 `criticality`；多 kind 操作同一逻辑 slot 时可共享 `component_type`（吸收自 [`draft-ietf-mimi-room-policy`](https://datatracker.ietf.org/doc/draft-ietf-mimi-room-policy/) 的 policy component model）。 |
+| Component Type | 组件类型 | 跨协议版本稳定的 component 标识符，URI 形式 `cx.component.<facet-path>.v<n>`；MIMI facade 按 `extensions/mimi-interop.md` §9 的映射表互译。 |
+| Component Version | 组件版本 | 同一 `component_type` 内单调递增的整数版本号；语义变化 MUST 升版本，receiver MUST 按 `(component_type, component_version)` 完整匹配，不得跨版本静默兼容。 |
+| Criticality | 关键度 | Component 在 receiver 不识别时的默认行为：`required`（fail closed）、`optional`（warn + skip）、`ignore`（silently drop）。Per-event 的 `requirements.critical_extensions` 优先级高于 registry 默认。 |
+| Application State Ref | 应用状态引用 | E2EE Space 中每个 `cx.mls.commit` 携带的引用，绑定本次 commit 覆盖的 Contrix 应用 state（policy_root / membership_frontier / capability_root / discussion_metadata_hash）。通过 MLS GroupContext extension `cx_app_state_ref` 进入 `confirmed_transcript_hash`，使全体 group 成员对 state 视图达成一致。详见 `crypto-media/encryption-and-audit.md` §2.5。 |
+| Covered Frontier | 已绑定前沿 | E2EE Space 中被某个 winning `cx.mls.commit` 的 `application_state_ref` 覆盖的 accepted state event 子集；与 accepted frontier 区别在于：covered 才是 E2EE 加密路径的权威 state 边界。 |
+| Pending MLS Binding | 待 MLS 绑定 | E2EE Space 中 state event 的中间状态：协议层 accepted、推进 reducer frontier，但尚未被任一 winning `cx.mls.commit` 覆盖。在该状态下 MUST NOT 影响 E2EE 解密 / key share / 新 application message 加密 epoch。 |
 | Reducer | 归约器 | 确定性纯函数，将 accepted Event 集合归约为当前态、state hash 和 conflict records。 |
 | Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Flow、Relation、View。 |
 | Frontier | 前沿 | Actor 或 Space 已接受事件的最远同步边界，用 event_id / HLC / actor_seq 表示。 |

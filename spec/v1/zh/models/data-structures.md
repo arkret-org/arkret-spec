@@ -74,7 +74,7 @@ v1 之前的 `type` 与 `metadata` 字段已移除：`type` 与 `id` typed-prefi
 
 Schema id: `cx.schema.space.v1`
 
-> Materialized Space 上以 **reducer 派生** 标注的字段（`policy_ref` / `default_discoverability` / `default_join_rule` / `history_visibility` / `federation_policy` 等）只是当前态快照。**写入路径** 必须使用对应 `cx.space.policy.set` (state_key=`<key>`) 状态事件，不得直接 PATCH Space 对象更新这些字段。`encryption_profile` 在 create event 时锁定，后续不可变。
+> Materialized Space 上以 **reducer 派生** 标注的字段（`policy_ref` / `default_discoverability` / `default_join_rule` / `history_visibility` / `federation_policy` 等）只是当前态快照。**写入路径** 必须使用对应 per-facet state event（`cx.space.policy` / `cx.space.join_rule` / `cx.space.history_visibility` / `cx.space.discovery` / `cx.space.policy_components` / ...），不得直接 PATCH Space 对象更新这些字段。`encryption_profile` 在 create event 时锁定，后续不可变。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -89,12 +89,12 @@ Schema id: `cx.schema.space.v1`
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或实现 profile。 | 启用 schema。 |
 | `relation_profiles` | no | `array<RelationProfile>` | 可由 Space schema/profile 等价声明；同一 `(relation_kind, from_type, to_type, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
-| `policy_ref` | no | `id:policy` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`access`) 维护；若 create event 未声明则为空。 | 派生：当前 Space access policy 引用。 |
-| `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`discovery`) 维护；create event 提供初值。详见 `discovery-directory.md`。 | 派生：默认可发现性。 |
-| `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`join_rule`) 维护；create event 提供初值。`invite` 表示只允许邀请加入；canonical state MUST 使用本枚举值。 | 派生：默认加入规则。 |
-| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | **reducer 派生**，由 `cx.space.policy.set` (state_key=`history_visibility`) 维护；create event 提供初值。各取值 canonical 语义见 `authz/event-auth-state-resolution.md` §6。 | 派生：历史可见性。 |
+| `policy_ref` | no | `id:policy` | **reducer 派生**，由 `cx.space.policy` 维护；若 create event 未声明则为空。 | 派生：当前 Space access policy 引用。 |
+| `default_discoverability` | yes | `enum(public, listed, restricted, unlisted, invite_only, secret)` | **reducer 派生**，由 `cx.space.discovery` 维护；create event 提供初值。详见 `discovery-directory.md`。 | 派生：默认可发现性。 |
+| `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | **reducer 派生**，由 `cx.space.join_rule` 维护；create event 提供初值。`invite` 表示只允许邀请加入；canonical state MUST 使用本枚举值。 | 派生：默认加入规则。 |
+| `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | **reducer 派生**，由 `cx.space.history_visibility` 维护；create event 提供初值。各取值 canonical 语义见 `authz/event-auth-state-resolution.md` §6。 | 派生：历史可见性。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create event 锁定；后续不得通过 Space update 改变。E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置（create-locked）。 |
-| `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | **reducer 派生**，由 `cx.space.policy.set` 相关 policy_components 维护。sovereign 默认 SHOULD `closed`。`security_class=high_assurance` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 派生：联邦策略。 |
+| `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | **reducer 派生**，由 `cx.space.policy_components` 中相关组件维护。sovereign 默认 SHOULD `closed`。`security_class=high_assurance` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 派生：联邦策略。 |
 | `retention_policy_ref` | no | `id:policy` | 可引用 retention policy。 | 保留策略。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -387,8 +387,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
-| `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。 | 事件 kind。 |
-| `state_key` | conditional | `string` | 标准 state event MUST 设置；非 state event MUST 省略，除非 profile 明确声明。 | state resolution 使用的顶层 key。 |
+| `kind` | yes | `string` | 标准 event kind SHOULD 使用 `cx.` 前缀。Reducer 按 schema registry 中该 kind 的 `state_cardinality`（singleton / per_subject / none）决定 state slot 形态；envelope 不携带 state_key 字段。 | 事件 kind。 |
 | `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
@@ -402,7 +401,7 @@ Event 是 reducer 输入。它不是当前态对象。
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
-Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。State event 的 `state_key` 是顶层字段，reducer 以 `(kind, state_key)` 作为 state resolution key；`payload.state_key` 不是 v1 canonical wire 位置。`payload.type` 不得重复写入 `cx.*` Event kind。Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+Event Envelope 的顶层 `kind` 是唯一事件类型 discriminator。State event 不再使用 envelope 顶层 `state_key`；reducer 按 schema registry（`spec/v1/artifacts/registry/event-kind-registry.json`）中每个 kind 的 `state_cardinality` 与 `state_subject_field` 派生 state slot 主键：singleton kind 为 `(space_id, kind)`，per_subject kind 为 `(space_id, kind, value-of-state_subject_field)`。`payload.type` 不得重复写入 `cx.*` Event kind。Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 auth_refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：`cx.space.create.payload.object.created_by_principal` MUST 等于顶层 `actor_id`，`cx.flow.create` / `cx.morph.create` / `cx.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller，且 `payload.object.created_at` MUST 等于顶层 `created_at`。校验失败 MUST `schema_violation` 或 `capability_denied`，不得把 payload 中的创建者字段当作 proof、capability 或审计归属的替代来源。
 

@@ -12,8 +12,7 @@ Space 可通过 state event 声明策略服务：
 
 ```json
 {
-  "kind": "cx.space.policy.set",
-  "state_key": "policy_server",
+  "kind": "cx.space.policy_server",
   "payload": {
     "server_id": "did:web:policy.example.com",
     "endpoint": "https://policy.example.com/contrix/v1/check",
@@ -31,7 +30,7 @@ Space 可通过 state event 声明策略服务：
       "federation"
     ],
     "policy_sources": [
-      {"kind": "cx.space.policy.set", "state_key": "moderation"},
+      {"kind": "cx.space.moderation_policy"},
       "cx.organization.moderation_policy"
     ],
     "abuse_profile_ref": "cx.policy:abuse-v1",

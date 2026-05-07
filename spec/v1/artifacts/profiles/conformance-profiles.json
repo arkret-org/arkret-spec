@@ -247,8 +247,7 @@
         "cx.reaction.remove",
         "cx.redaction"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.space.v1",
         "cx.schema.flow.v1",
@@ -298,8 +297,7 @@
         "cx.relation.create",
         "cx.container.rebalance"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.space.v1",
         "cx.schema.flow.v1",
@@ -341,8 +339,7 @@
         "cx.space.create",
         "cx.member.state"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.space.v1",
         "cx.schema.flow.v1",
@@ -393,8 +390,7 @@
         "cx.account_data.set",
         "cx.read.marker"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.client_sync_response.v1",
         "cx.schema.blob.v1",
@@ -424,7 +420,8 @@
     },
     "cx.profile.e2ee_client.v1": {
       "inherits": [
-        "cx.profile.full_client.v1"
+        "cx.profile.full_client.v1",
+        "cx.profile.mls_state_binding.full.v1"
       ],
       "required_endpoints": [
         "cx.keys.upload",
@@ -449,8 +446,7 @@
         "cx.space_key.withheld",
         "cx.space_key.share_audit"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.encrypted_payload.v1",
         "cx.schema.media_metadata.v1",
@@ -462,16 +458,15 @@
         "sync-fixture.json"
       ],
       "optional_extensions": [
-        "cx.profile.mls_state_binding.full.v1",
         "minimal_metadata_space",
         "aad_visibility_policy"
       ],
       "feature_discovery": {
         "required": [
-        "supported_mls_version",
-        "keypackage_lifecycle",
-        "decryption_pending",
-        "encrypted_key_backup"
+          "supported_mls_version",
+          "keypackage_lifecycle",
+          "decryption_pending",
+          "encrypted_key_backup"
         ],
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       }
@@ -491,8 +486,7 @@
         "cx.policy.set",
         "cx.policy.rule"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.policy.v1",
         "cx.schema.handle_claim.v1",
@@ -581,8 +575,7 @@
         "cx.capability.grant",
         "cx.capability.revoke"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.client_sync_response.v1",
         "cx.schema.snapshot.v1",
@@ -667,8 +660,7 @@
         "cx.identity.presentation_request",
         "cx.identity.presentation_response"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.did_key_log_entry.v1",
         "cx.schema.identity_receipt.v1",
@@ -697,10 +689,8 @@
         "cx.identity.resolve",
         "cx.identity.get_document"
       ],
-      "required_event_kinds": [
-      ],
-      "rejected_event_kinds": [
-      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.identity_receipt.v1",
         "cx.schema.handle_claim.v1"
@@ -727,10 +717,8 @@
         "cx.identity.get_document",
         "cx.identity.get_log"
       ],
-      "required_event_kinds": [
-      ],
-      "rejected_event_kinds": [
-      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.did_key_log_entry.v1",
         "cx.schema.identity_receipt.v1",
@@ -760,16 +748,10 @@
         "cx.blob.head"
       ],
       "required_event_kinds": [
-        "cx.space.policy.set"
+        "cx.space.asset_privacy_policy",
+        "cx.space.media_service"
       ],
-      "required_state_keys": {
-        "cx.space.policy.set": [
-          "asset_privacy",
-          "media_service"
-        ]
-      },
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.blob.v1",
         "cx.schema.media_metadata.v1"
@@ -801,8 +783,7 @@
         "cx.device.revoked",
         "cx.account_data.set"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.notification.v1"
       ],
@@ -836,8 +817,7 @@
         "cx.applet.protocol_session.status",
         "cx.applet.bridge_error"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1"
@@ -872,8 +852,7 @@
         "cx.agent.protocol_session.status",
         "cx.agent.protocol_session.result"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.agent_authority.v1",
         "cx.schema.capability.v1"
@@ -909,8 +888,7 @@
         "cx.mls.keypackage",
         "cx.mls.commit"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.mimi_interop.v1",
         "cx.schema.encrypted_payload.v1"
@@ -945,17 +923,11 @@
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
-        "cx.space.policy.set",
         "cx.capability.grant",
-        "cx.capability.revoke"
+        "cx.capability.revoke",
+        "cx.space.policy"
       ],
-      "required_state_keys": {
-        "cx.space.policy.set": [
-          "access"
-        ]
-      },
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.policy.v1",
         "cx.schema.capability.v1"
@@ -988,15 +960,9 @@
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
-        "cx.space.policy.set"
+        "cx.space.policy"
       ],
-      "required_state_keys": {
-        "cx.space.policy.set": [
-          "access"
-        ]
-      },
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.policy.v1",
         "cx.schema.identity_receipt.v1"
@@ -1031,8 +997,7 @@
         "cx.member.state",
         "cx.account_data.set"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.client_sync_response.v1"
@@ -1070,8 +1035,7 @@
         "cx.flow.create",
         "cx.message.create"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.space.v1",
         "cx.schema.flow.v1",
@@ -1110,8 +1074,7 @@
         "cx.policy.set",
         "cx.account.status"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.policy.v1",
         "cx.schema.handle_claim.v1",
@@ -1148,15 +1111,9 @@
         "cx.device.revoked",
         "cx.mls.commit",
         "cx.space_key.withheld",
-        "cx.space.policy.set"
+        "cx.space.moderation_policy"
       ],
-      "required_state_keys": {
-        "cx.space.policy.set": [
-          "moderation"
-        ]
-      },
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.snapshot.v1",
         "cx.schema.encrypted_payload.v1",
@@ -1192,17 +1149,11 @@
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
-        "cx.space.policy.set",
         "cx.capability.grant",
-        "cx.capability.revoke"
+        "cx.capability.revoke",
+        "cx.space.policy"
       ],
-      "required_state_keys": {
-        "cx.space.policy.set": [
-          "access"
-        ]
-      },
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.policy.v1",
         "cx.schema.capability.v1",
@@ -1227,9 +1178,8 @@
       }
     },
     "cx.profile.mls_state_binding.full.v1": {
-      "inherits": [
-        "cx.profile.e2ee_client.v1"
-      ],
+      "inherits": [],
+      "description": "Required hardening profile for E2EE Spaces. Binds Contrix application state to MLS GroupContext via the cx_app_state_ref extension; MLS confirmed_transcript_hash covers application_state_ref so all members verify the same membership/policy/capability state. Inherited by cx.profile.e2ee_client.v1 (and thus by attested_audit.e2ee, sovereign_client, high_security_organization, isolated_sovereign_network).",
       "required_endpoints": [
         "cx.keys.keypackages.claim",
         "cx.keys.keypackages.consume",
@@ -1240,8 +1190,7 @@
         "cx.space_key.share",
         "cx.space_key.withheld"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.encrypted_payload.v1",
         "cx.schema.snapshot.v1"
@@ -1254,10 +1203,39 @@
         "aad_visibility_policy",
         "minimal_metadata_space"
       ],
+      "policy_root_required_components": [
+        "cx.component.space.policy.v1",
+        "cx.component.space.join_rule.v1",
+        "cx.component.space.history_visibility.v1",
+        "cx.component.space.history_sharing_policy.v1",
+        "cx.component.space.policy_components.v1",
+        "cx.component.space.media_service.v1",
+        "cx.component.space.plaintext_visible_services.v1",
+        "cx.component.space.moderation_policy.v1",
+        "cx.component.space.asset_privacy_policy.v1",
+        "cx.component.space.archive.v1",
+        "cx.component.space.freeze.v1",
+        "cx.component.space.tombstone.v1",
+        "cx.component.space.destroy.v1"
+      ],
+      "membership_frontier_required_components": [
+        "cx.component.member.state.v1",
+        "cx.component.flow.branch.member.v1"
+      ],
+      "capability_root_required_components": [
+        "cx.component.capability.grant.v1",
+        "cx.component.capability.delegate.v1",
+        "cx.component.capability.revoke.v1",
+        "cx.component.capability.derived.v1"
+      ],
       "feature_discovery": {
         "required": [
           "application_state_root",
-          "covered_frontier"
+          "covered_frontier",
+          "policy_root_components",
+          "membership_frontier_components",
+          "capability_root_components",
+          "pending_mls_binding_state"
         ],
         "unsupported_optional": "fail closed on root mismatch"
       }
@@ -1275,8 +1253,7 @@
         "cx.audit.ryw_receipt",
         "cx.mls.commit"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.encrypted_payload.v1",
@@ -1286,8 +1263,7 @@
         "privacy-security-fixture.json",
         "crypto-signature-fixture.json"
       ],
-      "optional_extensions": [
-      ],
+      "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "audit_agent_attestation",
@@ -1311,8 +1287,7 @@
         "cx.audit.ryw_receipt",
         "cx.mls.commit"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.encrypted_payload.v1",
@@ -1321,8 +1296,7 @@
       "required_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "optional_extensions": [
-      ],
+      "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "audit_profile_disclosure",
@@ -1343,8 +1317,7 @@
         "cx.capability.revoke",
         "cx.member.state"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.capability.v1",
         "cx.schema.grant_constraint.v1",
@@ -1366,8 +1339,7 @@
       "required_event_kinds": [
         "cx.message.create"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1"
       ],
@@ -1387,8 +1359,7 @@
       "required_event_kinds": [
         "cx.message.create"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.cursor.v1",
@@ -1443,8 +1414,7 @@
         "cx.space.create",
         "cx.member.state"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1"
       ],
@@ -1470,8 +1440,7 @@
       "required_event_kinds": [
         "cx.message.create"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.notification.v1",
         "cx.schema.blob.v1"
@@ -1497,8 +1466,7 @@
         "cx.message.redact",
         "cx.redaction"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1"
@@ -1525,8 +1493,7 @@
         "cx.flow.reorder",
         "cx.policy.set"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1"
@@ -1552,8 +1519,7 @@
         "cx.message.create",
         "cx.member.state"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.client_sync_response.v1",
         "cx.schema.cursor.v1",
@@ -1580,8 +1546,7 @@
         "cx.mimi.room_binding",
         "cx.mls.keypackage"
       ],
-      "rejected_event_kinds": [
-      ],
+      "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.mimi_interop.v1"
       ],
@@ -1598,4 +1563,3 @@
     }
   }
 }
-

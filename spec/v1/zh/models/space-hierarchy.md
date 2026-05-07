@@ -30,7 +30,6 @@ Parent 侧声明：
 ```json
 {
   "kind": "cx.space.child",
-  "state_key": "cx:space:ch11d010000000000000000000",
   "payload": {
     "child_space_id": "cx:space:ch11d010000000000000000000",
     "via": [
@@ -48,7 +47,6 @@ Child 侧确认：
 ```json
 {
   "kind": "cx.space.parent",
-  "state_key": "cx:space:parent01000000000000000000",
   "payload": {
     "parent_space_id": "cx:space:parent01000000000000000000",
     "via": [
@@ -59,7 +57,7 @@ Child 侧确认：
 }
 ```
 
-`cx.space.child` 的 `state_key` MUST 等于 `payload.child_space_id`；`cx.space.parent` 的 `state_key` MUST 等于 `payload.parent_space_id`。两类 payload 的 `status` 默认是 `active`；后续同 `(kind, state_key)` state event 可用 `status="tombstoned"` 撤销该侧声明，或用 `status="rejected"` 表达该侧明确拒绝。`via` 只表示推荐的发现 / backfill 路由，不授予读取或写入能力。
+`cx.space.child` 与 `cx.space.parent` 都是 per_subject state event：reducer 按 schema registry 声明的 `state_subject_field`（分别为 `payload.child_space_id` 和 `payload.parent_space_id`）派生 state slot 主键。两类 payload 的 `status` 默认是 `active`；后续同 slot 的 state event 可用 `status="tombstoned"` 撤销该侧声明，或用 `status="rejected"` 表达该侧明确拒绝。`via` 只表示推荐的发现 / backfill 路由，不授予读取或写入能力。
 
 如果同一操作者同时拥有 parent Space 与 child Space 的 `cx.space.hierarchy.manage` capability，客户端 MAY 在一个用户动作中连续提交两侧 state event。此时 UI 不需要额外的人工确认步骤；协议上的“双方确认”由 parent Space 中 accepted 的 `cx.space.child` 与 child Space 中 accepted 的 `cx.space.parent` 共同满足。若操作者只具备 parent 侧权限，客户端只能创建 `unconfirmed_link`，并等待 child 侧有权限 actor 接受或拒绝。
 
@@ -101,12 +99,11 @@ Child 侧确认：
 
 ## 6. 显式继承策略
 
-Child Space MAY 使用 `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`) 显式声明可继承项：
+Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（reducer 按 `state_subject_field=payload.parent_space_id` 派生 state slot，每个 parent 独立 slot）：
 
 ```json
 {
-  "kind": "cx.space.policy.set",
-  "state_key": "inheritance:cx:space:parent01000000000000000000",
+  "kind": "cx.space.inheritance_policy",
   "payload": {
     "parent_space_id": "cx:space:parent01000000000000000000",
     "inherits": {
@@ -129,8 +126,8 @@ Child Space MAY 使用 `cx.space.policy.set` (state_key=`inheritance:<parent_spa
 
 继承规则：
 
-- `cx.space.policy.set` 的 `state_key` MUST 等于 `"inheritance:" + payload.parent_space_id`。payload `status` 默认是 `active`；`status="tombstoned"` 表示 child 停止使用该 parent 的继承策略。
-- `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`) 只有在目标 parent-child 边已 confirmed 后才可生效。若确认缺失、被拒绝、tombstoned 或无法在 backfill / snapshot 上限内验证，继承策略 MUST soft-fail 或视为 unset。
+- `cx.space.inheritance_policy` 的 state slot 由 `payload.parent_space_id` 派生（每个 parent 独立 slot）。payload `status` 默认是 `active`；`status="tombstoned"` 表示 child 停止使用该 parent 的继承策略。
+- `cx.space.inheritance_policy` 只有在目标 parent-child 边已 confirmed 后才可生效。若确认缺失、被拒绝、tombstoned 或无法在 backfill / snapshot 上限内验证，继承策略 MUST soft-fail 或视为 unset。
 - `mode` MUST 为 `narrow_only`。继承只能收窄或附加限制，不能绕过 child 本地 policy。
 - Child local deny / revoke / ban MUST 覆盖 inherited allow。
 - 继承 capability MUST 在 child 中物化为 derived grant，且记录 parent grant、继承策略和有效 causal frontier。
@@ -139,17 +136,13 @@ Child Space MAY 使用 `cx.space.policy.set` (state_key=`inheritance:<parent_spa
 
 ## 7. Capability 继承
 
-继承授权使用 `cx.capability.derived`。其 `state_key` 由 derived grant id 经 `conformance/encoding.md` §9.5 canonical hash 编码（`payload.state_key_components = ["cx.capability.derived", derived_grant_id]`）：
+继承授权使用 `cx.capability.derived`。reducer 按 schema registry 声明的 `state_subject_field=payload.grant_id` 派生 state slot 主键：
 
 ```json
 {
   "kind": "cx.capability.derived",
   "payload": {
-    "derived_grant_id": "cx:grant:der1ved0100000000000000000",
-    "state_key_components": [
-      "cx.capability.derived",
-      "cx:grant:der1ved0100000000000000000"
-    ],
+    "grant_id": "cx:grant:der1ved0100000000000000000",
     "source_grant": "cx:grant:parentv1ewer00000000000000",
     "source_space_id": "cx:space:parent01000000000000000000",
     "target_space_id": "cx:space:ch11d010000000000000000000",
@@ -176,15 +169,15 @@ Child Space MAY 使用 `cx.space.policy.set` (state_key=`inheritance:<parent_spa
 `cx.capability.derived` MUST satisfy：
 
 1. target Space 存在 confirmed parent 边。
-2. child Space 有 accepted `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`)。
+2. child Space 有 accepted `cx.space.inheritance_policy`（subject=该 parent space id）。
 3. derived grant 的 action/scope/expiry 不得宽于 source grant。
 4. source grant 被 revoke 后，derived grant MUST 在其 causal 后继中失效（参见 `authz/event-auth-state-resolution.md` §8 委托链 revocation 传播规则）。
 5. derived grant 不得再向下无限派生，除非下一级 child 也显式 opt-in 且未超过 `max_depth`。
-6. `auth_refs` MUST 同时包含 source grant 的 accepted `cx.capability.grant` 事件 id 与 target child 的 `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`) 事件 id。
+6. `auth_refs` MUST 同时包含 source grant 的 accepted `cx.capability.grant` 事件 id 与 target child 的 `cx.space.inheritance_policy`（subject=parent space id）事件 id。
 
 ## 8. Schema and Policy Cascade
 
-Schema MAY 通过继承复用，但 child MUST 记录实际生效 schema refs。父级 schema 更新不会自动改变 child 的 reducer 行为，除非 child 提交新的 `cx.space.policy.set` (state_key=`schema_refs`) state event 接受该版本。
+Schema MAY 通过继承复用，但 child MUST 记录实际生效 schema refs。父级 schema 更新不会自动改变 child 的 reducer 行为，除非 child 提交新的 `cx.space.schema` state event 接受该版本。
 
 Policy 继承只适合以下收窄型规则：
 

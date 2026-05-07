@@ -226,12 +226,11 @@ Cache-Control: public, immutable, max-age=31536000
 
 ## 6. Asset Privacy Policy
 
-私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Space SHOULD 使用 `cx.space.policy.set` (state_key=`asset_privacy`) 声明媒体上传、下载和代理隐私要求：
+私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Space SHOULD 使用 `cx.space.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求：
 
 ```json
 {
-  "kind": "cx.space.policy.set",
-  "state_key": "asset_privacy",
+  "kind": "cx.space.asset_privacy_policy",
   "payload": {
     "download_mode": "provider_proxy",
     "allowed_modes": [
@@ -273,7 +272,7 @@ Cache-Control: public, immutable, max-age=31536000
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Space SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
-- `cx.space.policy.set` (state_key=`asset_privacy`) SHOULD 被 `cx.space.policy.set` (state_key=`policy_components`) payload 中的 `components.asset` 引用，并纳入 MLS-bound `policy_root`。
+- `cx.space.asset_privacy_policy` SHOULD 被 `cx.space.policy_components` payload 中的 `components.asset` 引用，并纳入 MLS-bound `policy_root`。
 
 ## 7. Safety
 

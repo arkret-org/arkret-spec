@@ -128,8 +128,8 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 
 ### 5a.2 注册与撤销
 
-- 设备 MUST 通过 `cx.device.push_route` actor-private state event 把 `(push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入 principal control stream，state_key = `["cx.device.push_route", principal_id, device_id, push_route]`。
-- 撤销：设备 MUST 通过同 state_key 上的后继事件设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 frontier 收敛后停止接受旧伪名。
+- 设备 MUST 通过 `cx.device.push_route` actor-private state event 把 `(push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入 principal control stream；state slot 的 subject 由 schema registry 声明的 composite `(payload.principal_id, payload.device_id, payload.push_route)` 派生。
+- 撤销：设备 MUST 在同一 state slot 上写后继事件设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 frontier 收敛后停止接受旧伪名。
 - 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 (principal, device) 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。
 

@@ -184,7 +184,6 @@ Controlled Collaboration Space SHOULD 使用：
 ```json
 {
   "kind": "cx.space.create",
-  "state_key": "",
   "payload": {
     "object": {
       "id": "cx:space:01js0en0000000000000000000",

@@ -41,7 +41,6 @@
       "name": "room_binding_projection",
       "input": {
         "kind": "cx.mimi.room_binding",
-        "state_key": "mimi://mimi.example.com/rooms/01JSMIMI",
         "payload": {
           "profile": "cx.profile.mimi_interop.v1",
           "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",

@@ -530,7 +530,7 @@ POST /api/v1/directory/search-spaces
 - `limit`
 - `cursor`
 
-Directory MUST 对每个结果应用 `cx.space.policy.set` (state_key=`discovery`)、Space policy、organization endorsement 和 requester proof 过滤。
+Directory MUST 对每个结果应用 `cx.space.discovery`、Space policy、organization endorsement 和 requester proof 过滤。
 
 ### 8.3 精确解析 Space
 

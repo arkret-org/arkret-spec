@@ -224,18 +224,18 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 - `cx.space.create`
 - `cx.space.update`
-- `cx.space.lifecycle.set` (state_key=`archive`)
-- `cx.space.lifecycle.set` (state_key=`freeze`)
-- `cx.space.lifecycle.set` (state_key=`tombstone`)
-- `cx.space.lifecycle.set` (state_key=`destroy`)
-- `cx.space.policy.set` (state_key=`schema_refs`)
-- `cx.space.policy.set` (state_key=`access`)
-- `cx.space.policy.set` (state_key=`policy_server`)
-- `cx.space.policy.set` (state_key=`policy_components`)
-- `cx.space.policy.set` (state_key=`plaintext_visible_services`)
-- `cx.space.policy.set` (state_key=`history_visibility`)
-- `cx.space.policy.set` (state_key=`join_rule`)
-- `cx.space.policy.set` (state_key=`discovery`)
+- `cx.space.archive`
+- `cx.space.freeze`
+- `cx.space.tombstone`
+- `cx.space.destroy`
+- `cx.space.schema`
+- `cx.space.policy`
+- `cx.space.policy_server`
+- `cx.space.policy_components`
+- `cx.space.plaintext_visible_services`
+- `cx.space.history_visibility`
+- `cx.space.join_rule`
+- `cx.space.discovery`
 - `cx.organization.discovery`
 - `cx.schema.define`
 - `cx.schema.update`

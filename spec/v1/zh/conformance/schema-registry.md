@@ -86,15 +86,15 @@ title: Standard Event and Object Schema Registry
 | `cx.space.organization` | Space official sponsor statement |
 | `cx.space.child` | Child space link |
 | `cx.space.parent` | Parent space link |
-| `cx.space.policy.set` (state_key=`inheritance:<parent_space_id>`) | Policy inheritance declaration |
-| `cx.space.policy.set` (state_key=`join_rule`) | Join rule state |
-| `cx.space.policy.set` (state_key=`history_visibility`) | History visibility state |
-| `cx.space.policy.set` (state_key=`discovery`) | Discoverability state |
-| `cx.space.policy.set` (state_key=`access`) | Space policy state |
-| `cx.space.lifecycle.set` (state_key=`tombstone`) | Terminal Space tombstone or replacement marker |
-| `cx.space.lifecycle.set` (state_key=`archive`) | Reversible archive state |
-| `cx.space.lifecycle.set` (state_key=`freeze`) | Temporary freeze state |
-| `cx.space.lifecycle.set` (state_key=`destroy`) | Terminal decommission marker |
+| `cx.space.inheritance_policy` | Per-parent policy inheritance declaration (subject=`payload.parent_space_id`) |
+| `cx.space.join_rule` | Join rule state |
+| `cx.space.history_visibility` | History visibility state |
+| `cx.space.discovery` | Discoverability state |
+| `cx.space.policy` | Space policy state |
+| `cx.space.tombstone` | Terminal Space tombstone or replacement marker |
+| `cx.space.archive` | Reversible archive state |
+| `cx.space.freeze` | Temporary freeze state |
+| `cx.space.destroy` | Terminal decommission marker |
 | `cx.member.state` | Membership state |
 | `cx.flow.create` | Flow create |
 | `cx.flow.update` | Flow patch |
