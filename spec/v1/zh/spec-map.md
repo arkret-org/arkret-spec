@@ -13,7 +13,7 @@ title: Spec Map
 - `artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
 - `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json` 和 `operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
 - `artifacts/registry/error-code-registry.json` 是标准 service error 与逐项 `reason_code` 的 canonical registry。
-- `zh/sync/contrix-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
+- `artifacts/openapi/contrix-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
 - `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
 

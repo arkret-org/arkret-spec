@@ -18,6 +18,20 @@ title: 实现就绪与发布门槛
 
 当前仓库的发布状态是 `v1.0.0` 规范稳定基线：`zh/` 与 `artifacts/` 的 registry / schema / mirror lint 必须通过，核心 profile、schema、fixture、OpenAPI 与中文规范共同构成正式发布契约。历史候选标签不得用于描述当前正式发布包。
 
+`v1.0.0` 基线下，机器 registry 的当前覆盖范围为：
+
+| Registry | 计数 | Canonical 文件 |
+| --- | --- | --- |
+| Event kind（active） | 110 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 34 | `artifacts/registry/schema-registry.json` |
+| Typed ID kind | 36 | `artifacts/registry/id-kind-registry.json` |
+| Service operation | 83 | `artifacts/registry/operation-registry.json` |
+| Conformance profile（含 profile tier 与 requirement block） | 48 | `artifacts/profiles/conformance-profiles.json` |
+
+执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明
+canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或退役 registry 项，MUST 同时
+按 `CHANGELOG.md` "v1.1+ 变更登记模板" 记录条目并更新本表。
+
 规范稳定不等于任一实现已经获得完全互操作认证。实现若宣称通过某个 profile，仍必须通过对应 reference validator、reference reducer、reference authz evaluator 与 conformance runner；这些工具和测试结果属于实现认证门槛，而不是降低或替代本规范的 wire contract。
 
 ## 2.1 最小实现路径
@@ -44,7 +58,7 @@ title: 实现就绪与发布门槛
 | Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 对象、Event、snapshot、moderation、Agent Authority、MIMI 等 schema 已注册。 |
 | Typed ID prefix | `artifacts/registry/id-kind-registry.json` | 标准 `cx:<kind>:` prefix 以机器注册表为准。 |
 | Profile 矩阵 | `zh/conformance/conformance-profiles.md`, `artifacts/profiles/conformance-profiles.json` | `core_event_store`、`chat_mvp`、`kanban_mvp` 与客户端/服务角色可独立声明。 |
-| Conformance vectors | `artifacts/fixtures/*.json`, `zh/conformance/fixtures/*.json` | encoding、crypto、state resolution、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
+| Conformance vectors | `artifacts/fixtures/*.json` | encoding、crypto、state resolution、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
 | Snapshot 约束 | `artifacts/schemas/snapshot.schema.json`, `zh/conformance/snapshot-schema.md`, `zh/sync/operations-sync.md` | manifest 必须包含 `event_set_commitment`；高保障 profile 支持 inclusion / omission challenge。 |
 | Moderation / abuse | `artifacts/schemas/moderation-report.schema.json`, `artifacts/schemas/moderation-queue-item.schema.json`, OpenAPI moderation endpoints | report、queue item、E2EE evidence / franking 边界有 schema 与服务绑定。 |
 | Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `zh/conformance/conformance-profiles.md` | hidden resource、private contact discovery、plaintext-visible service、private blob、blind push 有回归向量。 |

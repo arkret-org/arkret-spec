@@ -8,6 +8,38 @@
 本仓库当前发布 `v1.0.0` 规范稳定基线。下方条目描述的是该基线相对内部候选稿的收敛内容，
 而不是相对任何先前公开稳定版本的差异。
 
+## v1.1+ 变更登记模板
+
+`v1.0.0` 之后，对 `event_kind_registry` / `schema_registry` / `id_kind_registry` /
+`operation_registry` / `error_code_registry` / `conformance-profiles.json` 中任意一项的
+有意变更都 MUST 在本 changelog 增加条目。每条条目按下方模板填写：
+
+```
+### [<version>] — <YYYY-MM-DD>
+
+#### <一句话主题>
+
+- **变更类型**: add | modify | deprecate | remove
+- **影响 artifact**: <registry / schema / profile / fixture / openapi / non-http binding>
+- **canonical 变更**: <在 `contract-catalog.json` 等 canonical 源中实际改了什么>
+- **派生 artifact 同步**: <生成视图、镜像、fixture、OpenAPI 是否已通过 `tools/artifact_pipeline.py sync` 同步>
+- **conformance impact**:
+  - 受影响 profile: <e.g. `core_event_store`, `chat_mvp`, ...>
+  - profile tier 变化: <在 `conformance-profiles.json#profile_tiers` 中加入 / 移出 / 改 tier>
+  - wire 兼容性: backward-compatible | breaking | deprecation-only
+  - reader / writer 行为要求: <MUST tolerate / MUST emit / MAY ignore 等>
+- **fixture / vector 变化**: <`event-envelope-negative-fixture`、`crypto-signature-fixture`、
+  `*-conformance-vectors` 等是否需要重生成>
+- **prose 同步**: <列出与该 artifact 对齐的 `spec/v1/zh/**/*.md` 段落>
+- **迁移指南**: <对下游实现的最小变更清单；deprecation-only 时必须给出弃用窗口>
+```
+
+如果一次变更跨多个 artifact（例如同时新增 event kind + payload schema + profile gating），
+单一条目中 MUST 把每个 artifact 列在 "影响 artifact" 字段中并保持原子。
+
+只有在 changelog、profile tier 与 conformance 影响三项同时落定后，相应 PR 才被认为
+满足 v1.1+ 的发布门槛 — 这与 `spec/v1/zh/overview/release-readiness.md` §5.1 保持一致。
+
 ## [1.0.0] — 2026-05-05
 
 ### 协议评审驱动的简化（2026-05-05，第四批：constraint 14→8 collapse + encoding 合并 + federation dedup）
@@ -56,8 +88,9 @@
   test private key 重新签名并验证通过）；`event-envelope-negative-fixture` 11 个 event 全部清理；
   `encoding-conformance-vectors` 中的 canonical bytes vector + digest 重算。规范文本中的版本演进
   提法统一改写为 Event `requirements` 与 profile id / `cx.space.upgrade` 语义。
-- `cx.flow.convert`：从 `contract-catalog.json` event_kind_registry 删除（110 → 109 active kinds）；
-  `event-schema.json` 移除对应 if/then 分支与 `flow_convert_payload` $def；prose 全部改为
+- `cx.flow.convert`：从 `contract-catalog.json` event_kind_registry 删除（本批 110 → 109 active kinds，
+  之后 actor_profile 评审新增 `cx.profile.create` 把总数加回 110，参见下方 "actor_profile + gatekeeper
+  收尾" 一节）；`event-schema.json` 移除对应 if/then 分支与 `flow_convert_payload` $def；prose 全部改为
   `cx.flow.branch.set_primary` + `cx.flow.branch.enable` 组合。
 - `cx:operation:` typed-id：从 `id_kind_registry` 删除（37 → 36）；`cx.schema.operation.v1` 从 schema_registry
   删除（35 → 34）；`operation.schema.json` 与 zh 镜像完全删除；data-structures.md §18（Canonical
@@ -106,6 +139,29 @@
   单一 `conformance-vectors.md`，按 §1-§5 分组。约 1,300 行整合。
 - 所有跨文件引用全部更新（11 处 .md / .json）。
 - 删除原 5 个文件。
+
+#### actor_profile + gatekeeper 收尾（2026-05-06，v1.0.0 release 锁定前的最后批次）
+
+- **actor_profile object & `cx.profile.create`**：新增 `cx:actor_profile:` typed-id 和 `cx.profile.create`
+  / `cx.profile.update` / `cx.profile.space_override` 三个 event kind；event_kind_registry 由 109 回到
+  110 active kinds（id_kind_registry 由 36 → 36 仍保持，因为同批未删除其他 typed id 但 actor_profile
+  以独立 kind 进入）。create payload 不再共享 `object_create_payload`：`cx.space.create` /
+  `cx.flow.create` / `cx.morph.create` 各自指向完整对象 schema，wire 校验直接走对象 schema。
+- **state_key 形态**：`cx.space.policy.set` 的 `state_key=inheritance` 由常量改为
+  `inheritance:cx:space:<ulid>` 模式（每个父 space 一条），并把 `plaintext_visible_services` 显式纳入
+  state_payload enum 以保留 schema 强校验。
+- **encrypted_payload mutual exclusion**：message / flow / morph schemas 增加 `encrypted_payload` 字段，
+  与 `content` / `body` 互斥；`message_create_payload` / `message_redact_payload` 由 anyOf 收紧到
+  oneOf+not。
+- **18 BLOCKER 修复（"Final gatekeeper review"）**：encrypted-envelope schema (`ratchet_tree` →
+  `group_state_ref`、强制 `version` + `aad_digest`、`key_ref` 锁 `additionalProperties:false`)；
+  read-receipt (`reader` → `actor_id`，新增 `flow_id`、`branch`、`hlc`、`schema`)；read-marker
+  (`scope` 改为 `{kind, ref, branch?}`，新增 `device_id` 与 `position{event_id, hlc}` 满足多设备汇聚)；
+  notification (新增 `source_ref` / `flow_id` / `branch`)；resource-selector (移除 `board_id` /
+  `list_id`)；capability-grant (`actions[]` pattern 强制 `cx.<segment>...` canonical 词表)；event-payload
+  (`message_create` 必须带 `branch`，新增共享 `$defs/branch`)；以及对应的 `cx.capability.{grant,revoke,
+  derived}` state_key 推导规则、derive/revoke supersede 语义、push privacy `push_target_id` 推导
+  (`device-lifecycle.md` §5a) 与跨文件引用修复。
 
 #### v1.0.0 发布边界
 
