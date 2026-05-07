@@ -20,7 +20,7 @@ Contrix v1 capability 使用以下 canonical resource selector 模型：
 
 字符串 selector 是 JSON canonical selector 的可读 shorthand。协议签名、hash、registry schema 和 wire grant 以 JSON 表示为准。
 
-```ebnf
+```text
 selector             ::= disjunction
 disjunction          ::= conjunction ("," conjunction)*
 conjunction          ::= selector_term ("+" selector_term)*

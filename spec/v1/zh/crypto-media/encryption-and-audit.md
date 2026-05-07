@@ -265,7 +265,7 @@ Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列：
 
-```cbor
+```text
 {
   "binding_profile":     tstr,
   "capability_root":     bstr,    ; optional, full profile only
