@@ -52,6 +52,13 @@ function planeItems(plane) {
 export default defineConfig({
   site: "https://contrix.io",
   trailingSlash: "always",
+  redirects: {
+    // Locale roots have no normative prose entry; send visitors to the
+    // current spec version. /zh/ and /en/ would otherwise 404 because
+    // our content collection only exposes v1 docs (slug `<locale>/v1/...`).
+    "/zh/": "/zh/v1/",
+    "/en/": "/en/v1/",
+  },
   vite: {
     server: {
       fs: {
@@ -103,7 +110,10 @@ export default defineConfig({
         },
       ],
       components: {
-        // future: PageTitle override to render artifact badges
+        // Site-level nav (brand + Docs/Catalog/OpenAPI/Ecosystem/Blog) above
+        // Starlight's default header chrome, so docs pages share the same
+        // top nav as the marketing landing page.
+        Header: "./src/components/Header.astro",
       },
       customCss: ["./src/styles/spec.css"],
     }),

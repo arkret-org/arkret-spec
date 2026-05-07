@@ -1,0 +1,67 @@
+---
+/**
+ * Shared top-level site navigation. Used by both the marketing layout
+ * (homepage, future ecosystem/blog) and the Starlight docs Header
+ * override so the brand + section links stay consistent everywhere.
+ *
+ * The right-side slot lets each layout drop in its own tools — the
+ * marketing layout supplies a theme toggle + GitHub link, the docs
+ * Header supplies Starlight's Search / ThemeSelect / LanguageSelect.
+ */
+
+export interface Props {
+  /** Variant — `marketing` keeps standalone padding; `docs` aligns with Starlight's nav row height. */
+  variant?: "marketing" | "docs";
+}
+
+const { variant = "marketing" } = Astro.props;
+
+const navItems = [
+  { label: "Docs", href: "/zh/v1/" },
+  { label: "Catalog", href: "/catalog/event-kinds/" },
+  { label: "OpenAPI", href: "/openapi/" },
+  { label: "Ecosystem", soon: true },
+  { label: "Blog", soon: true },
+];
+
+const pathname = Astro.url.pathname;
+function isActive(href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(href);
+}
+---
+
+<nav class={`cx-nav cx-nav--${variant}`} aria-label="Site">
+  <div class="cx-shell cx-nav-row">
+    <a href="/" class="cx-brand">
+      <span class="cx-brand-mark" aria-hidden="true"></span>
+      <span>Contrix</span>
+    </a>
+    <ul class="cx-nav-links">
+      {
+        navItems.map((item) =>
+          item.soon ? (
+            <li>
+              <span aria-disabled="true">
+                {item.label}
+                <span class="cx-soon">soon</span>
+              </span>
+            </li>
+          ) : (
+            <li>
+              <a
+                href={item.href}
+                aria-current={isActive(item.href) ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ),
+        )
+      }
+    </ul>
+    <div class="cx-nav-tools">
+      <slot name="tools" />
+    </div>
+  </div>
+</nav>

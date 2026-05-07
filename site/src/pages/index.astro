@@ -1,5 +1,5 @@
 ---
-import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import MarketingLayout from "~/layouts/MarketingLayout.astro";
 import {
   catalogVersion,
   eventKinds,
@@ -8,30 +8,199 @@ import {
   schemaEntries,
   profileMatrix,
 } from "~/lib/artifacts";
+
+const stats = [
+  { value: eventKinds.length, label: "Event kinds" },
+  { value: schemaEntries.length, label: "Schemas" },
+  { value: operations.length, label: "Operations" },
+  {
+    value:
+      profileMatrix.implementation_profiles.length +
+      profileMatrix.deployment_profiles.length +
+      profileMatrix.hardening_profiles.length +
+      profileMatrix.vector_profiles.length,
+    label: "Profiles",
+  },
+  { value: errorCodes.length, label: "Error codes" },
+];
+
+const pillars = [
+  {
+    title: "可验证的协作事实",
+    body: "每条变更都是签名 Event；空间状态由 reducer 从 Event 集合派生。无需信任服务端，也能复现一致的对象世界。",
+  },
+  {
+    title: "对象语义可投影",
+    body: "Space / Flow / Message / Relation / View / Capability 是规范固定的对象图；视图与渲染由客户端按需投影，避免锁死单一 UI 模型。",
+  },
+  {
+    title: "扩展不破坏互操作",
+    body: "Morph + schema / profile 让企业、IM、Kanban、Agent、E2EE 在同一 wire 上叠加；conformance profile 明确每个实现宣称的能力。",
+  },
+];
+
+const concepts = [
+  {
+    tag: "identity",
+    title: "DID-rooted principal",
+    body: "actor / org / service 都用 DID 作为长期身份根，密钥可轮换。v1 core 默认 did:web，治理/合规部署可升级到 did:webvh high-trust profile。",
+  },
+  {
+    tag: "object",
+    title: "Space, Flow, Relation",
+    body: "Space 是协作容器；Flow 统一 chat / kanban / doc thread；Relation 表达跨对象关联，所有图都可被 capability 与 history visibility 约束。",
+  },
+  {
+    tag: "wire",
+    title: "Event Envelope",
+    body: "唯一 wire fact：canonical JSON、Ed25519 签名、HLC 排序、payload_hash + binding_hash，envelope 与 payload schema 双层校验后再进入 reducer。",
+  },
+  {
+    tag: "authz",
+    title: "Capability + constraint",
+    body: "授权用 capability grant + 8 family constraint 描述。求值规则统一“deny / quarantine / require_review 任一命中即生效”，每个 constraint 在 schema 中有 evaluation_class。",
+  },
+  {
+    tag: "crypto",
+    title: "MLS + audited E2EE",
+    body: "群组 E2EE 走 MLS RFC 9420。audited E2EE 拆出 attested / disclosed 双 hardening profile，强制留痕、UI 警示与禁用措辞均为 normative。",
+  },
+  {
+    tag: "conformance",
+    title: "Profile 矩阵",
+    body: "core_event_store / chat_mvp / kanban_mvp / e2ee_client 等独立可声明；v1 core 不要求 MIMI / Agent / Applet，外部标准成熟后再以 v1.1+ extension profile 接入。",
+  },
+];
+
+const resources = [
+  {
+    title: "中文规范本体 →",
+    desc: "spec/v1/zh — 12 个协议平面的 normative 文本",
+    href: "/zh/v1/",
+  },
+  {
+    title: "Catalog →",
+    desc: "Event kinds、Schemas、Operations、Profiles、Errors",
+    href: "/catalog/event-kinds/",
+  },
+  {
+    title: "OpenAPI →",
+    desc: "HTTP/JSON service binding，可直接在 Scalar 中浏览",
+    href: "/openapi/",
+  },
+  {
+    title: "Spec map →",
+    desc: "按阅读路径定位每个文件的角色与边界",
+    href: "/zh/v1/spec-map/",
+  },
+];
 ---
 
-<StarlightPage frontmatter={{ title: "Contrix Spec" }}>
-  <p>
-    Contrix v1 — 去中心化协作协议规范。catalog 版本
-    <code>{catalogVersion}</code>。
-  </p>
-  <ul>
-    <li><a href="/zh/v1/">中文规范本体（zh / v1）</a></li>
-    <li><a href="/en/v1/">English (placeholder)</a></li>
-    <li><a href="/openapi/">Service API · OpenAPI</a></li>
-  </ul>
-  <h2>Catalog snapshot</h2>
-  <ul>
-    <li><a href="/catalog/event-kinds/">Event kinds</a> · {eventKinds.length}</li>
-    <li><a href="/catalog/errors/">Error codes</a> · {errorCodes.length}</li>
-    <li><a href="/catalog/operations/">Operations</a> · {operations.length}</li>
-    <li><a href="/catalog/schemas/">Schemas</a> · {schemaEntries.length}</li>
-    <li>
-      <a href="/catalog/profiles/">Profiles</a> ·
-      {profileMatrix.implementation_profiles.length} impl /
-      {profileMatrix.deployment_profiles.length} deploy /
-      {profileMatrix.vector_profiles.length} vector /
-      {profileMatrix.hardening_profiles.length} hardening
-    </li>
-  </ul>
-</StarlightPage>
+<MarketingLayout>
+  <section class="cx-hero">
+    <div class="cx-shell cx-hero-inner">
+      <span class="cx-eyebrow">
+        <span class="cx-eyebrow-dot" aria-hidden="true"></span>
+        v1.0.0 stable baseline · catalog {catalogVersion}
+      </span>
+      <h1>
+        去中心化协作的<br />
+        <span class="cx-h1-accent">可验证协议层</span>
+      </h1>
+      <p class="cx-lead">
+        Contrix 是一套面向团队 / 组织 / Agent 协作的开放协议规范。它把消息、看板、文档、容器、权限和身份统一成可审计的
+        Event 流，让多个独立实现能共享同一份事实模型。
+      </p>
+      <div class="cx-cta-row">
+        <a class="cx-btn cx-btn-primary" href="/zh/v1/">阅读规范</a>
+        <a class="cx-btn cx-btn-ghost" href="/zh/v1/overview/architecture/"
+          >从架构入门</a
+        >
+        <a class="cx-btn cx-btn-ghost" href="/openapi/">查看 OpenAPI</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cx-section">
+    <div class="cx-shell">
+      <div class="cx-section-head">
+        <h2>它解决什么</h2>
+        <p>
+          协议关注互操作 wire 与对象语义；UI、存储引擎、加密原语下放给实现选择。
+        </p>
+      </div>
+      <div class="cx-pillars">
+        {
+          pillars.map((p) => (
+            <article class="cx-pillar">
+              <h3>{p.title}</h3>
+              <p>{p.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="cx-section">
+    <div class="cx-shell">
+      <div class="cx-section-head">
+        <h2>关键概念</h2>
+        <p>每个概念都有 normative 文本 + 机器 schema 双重锁定。</p>
+      </div>
+      <div class="cx-concepts">
+        {
+          concepts.map((c) => (
+            <article class="cx-concept">
+              <div class="cx-concept-tag">{c.tag}</div>
+              <h3>{c.title}</h3>
+              <p>{c.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="cx-section">
+    <div class="cx-shell">
+      <div class="cx-section-head">
+        <h2>当前发布</h2>
+        <p>
+          所有计数与 <code>tools/artifact_pipeline.py check</code> 输出一致；任一漂移都会让 CI 阻塞合并。
+        </p>
+      </div>
+      <div class="cx-stats">
+        {
+          stats.map((s) => (
+            <div class="cx-stat">
+              <div class="cx-stat-value">{s.value}</div>
+              <div class="cx-stat-label">{s.label}</div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="cx-section">
+    <div class="cx-shell">
+      <div class="cx-section-head">
+        <h2>从哪里开始</h2>
+        <p>
+          不需要一次实现全部 surface — 任意 profile 可独立声明。
+        </p>
+      </div>
+      <div class="cx-resources">
+        {
+          resources.map((r) => (
+            <a class="cx-resource" href={r.href}>
+              <span class="cx-resource-title">{r.title}</span>
+              <span class="cx-resource-desc">{r.desc}</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</MarketingLayout>

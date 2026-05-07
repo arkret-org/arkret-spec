@@ -1,0 +1,560 @@
+/* Contrix marketing pages — homepage, ecosystem, blog. Independent of
+ * Starlight docs chrome but shares the `data-theme` toggle and the
+ * `starlight-theme` localStorage key so dark/light preference syncs
+ * across the whole site.
+ *
+ * Theme variables are split into [data-theme="dark"] and [data-theme="light"]
+ * so toggling on docs or marketing pages updates both. The `:root` block
+ * holds non-theme tokens (fonts, sizing) only. */
+
+:root {
+  --cx-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
+    monospace;
+  --cx-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, "Helvetica Neue",
+    Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --cx-max: 1180px;
+}
+
+:root[data-theme="dark"],
+:root:not([data-theme]) {
+  color-scheme: dark;
+  --cx-bg: #0d1117;
+  --cx-bg-elevated: #131a26;
+  --cx-bg-overlay: rgba(255, 255, 255, 0.03);
+  --cx-bg-nav: rgba(13, 17, 23, 0.78);
+  --cx-border: rgba(255, 255, 255, 0.08);
+  --cx-border-strong: rgba(255, 255, 255, 0.16);
+  --cx-fg: #e6edf3;
+  --cx-fg-muted: #8b949e;
+  --cx-accent: #a78bfa;
+  --cx-accent-strong: #c4b5fd;
+  --cx-accent-soft: rgba(167, 139, 250, 0.12);
+  --cx-success: #4ade80;
+  --cx-hero-glow: rgba(167, 139, 250, 0.18);
+  --cx-on-accent: #0d1117;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --cx-bg: #ffffff;
+  --cx-bg-elevated: #fafbfc;
+  --cx-bg-overlay: rgba(0, 0, 0, 0.03);
+  --cx-bg-nav: rgba(255, 255, 255, 0.82);
+  --cx-border: rgba(15, 23, 42, 0.1);
+  --cx-border-strong: rgba(15, 23, 42, 0.18);
+  --cx-fg: #0f172a;
+  --cx-fg-muted: #5b6675;
+  --cx-accent: #6d28d9;
+  --cx-accent-strong: #5b21b6;
+  --cx-accent-soft: rgba(109, 40, 217, 0.08);
+  --cx-success: #16a34a;
+  --cx-hero-glow: rgba(109, 40, 217, 0.12);
+  --cx-on-accent: #ffffff;
+}
+
+/* Scope marketing chrome resets to the marketing pages only. The Starlight
+ * Header override renders SiteNav inside Starlight's own document, where the
+ * Starlight stylesheet already controls `body` margin / font.  */
+body.cx-marketing {
+  margin: 0;
+  background: var(--cx-bg);
+  color: var(--cx-fg);
+  font-family: var(--cx-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.cx-marketing * {
+  box-sizing: border-box;
+}
+
+body.cx-marketing a {
+  color: var(--cx-accent);
+  text-decoration: none;
+}
+body.cx-marketing a:hover {
+  color: var(--cx-accent-strong);
+}
+
+body.cx-marketing code,
+body.cx-marketing .cx-mono {
+  font-family: var(--cx-mono);
+}
+
+.cx-shell {
+  max-width: var(--cx-max);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ---------- Top nav ----------------------------------------------------- */
+
+.cx-nav {
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  background: var(--cx-bg-nav);
+  border-bottom: 1px solid var(--cx-border);
+}
+
+.cx-nav--marketing {
+  position: sticky;
+  top: 0;
+}
+
+/* When rendered inside Starlight's fixed-height `<header class="header">`,
+ * we want SiteNav to look flush with Starlight's nav background and span
+ * the full bar height (no double border, no double backdrop blur). */
+.cx-nav--docs {
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: none;
+}
+
+.cx-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  height: 60px;
+}
+
+.cx-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--cx-fg);
+  letter-spacing: 0.01em;
+}
+.cx-brand:hover {
+  color: var(--cx-fg);
+}
+
+.cx-brand-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--cx-accent) 0%, #6366f1 100%);
+  display: inline-block;
+}
+
+.cx-nav-links {
+  display: flex;
+  gap: 1.4rem;
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+.cx-nav-links a,
+.cx-nav-links span {
+  color: var(--cx-fg-muted);
+  transition: color 0.15s ease;
+}
+.cx-nav-links a:hover,
+.cx-nav-links a[aria-current="page"] {
+  color: var(--cx-fg);
+}
+.cx-nav-links span[aria-disabled="true"] {
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cx-nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.cx-soon {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  background: var(--cx-bg-elevated);
+  color: var(--cx-fg-muted);
+  border: 1px solid var(--cx-border);
+}
+
+/* ---------- Theme toggle ----------------------------------------------- */
+
+.cx-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--cx-border-strong);
+  background: transparent;
+  color: var(--cx-fg-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.cx-theme-toggle:hover {
+  color: var(--cx-fg);
+  background: var(--cx-bg-overlay);
+}
+
+.cx-theme-icon {
+  width: 18px;
+  height: 18px;
+}
+
+:root[data-theme="dark"] .cx-theme-icon--sun,
+:root:not([data-theme]) .cx-theme-icon--sun {
+  display: block;
+}
+:root[data-theme="dark"] .cx-theme-icon--moon,
+:root:not([data-theme]) .cx-theme-icon--moon {
+  display: none;
+}
+:root[data-theme="light"] .cx-theme-icon--sun {
+  display: none;
+}
+:root[data-theme="light"] .cx-theme-icon--moon {
+  display: block;
+}
+
+/* ---------- Hero -------------------------------------------------------- */
+
+.cx-hero {
+  padding: 6rem 0 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.cx-hero::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto auto;
+  width: 720px;
+  height: 720px;
+  background: radial-gradient(
+    closest-side,
+    var(--cx-hero-glow),
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cx-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+}
+
+.cx-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--cx-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--cx-accent) 25%, transparent);
+  color: var(--cx-accent);
+  font-size: 0.82rem;
+  font-family: var(--cx-mono);
+  margin-bottom: 1.4rem;
+}
+
+.cx-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cx-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cx-success) 25%, transparent);
+}
+
+.cx-hero h1 {
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  line-height: 1.1;
+  margin: 0 0 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.cx-hero h1 .cx-h1-accent {
+  background: linear-gradient(135deg, var(--cx-accent) 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cx-hero p.cx-lead {
+  font-size: 1.18rem;
+  color: var(--cx-fg-muted);
+  max-width: 640px;
+  margin: 0 0 2rem;
+  line-height: 1.55;
+}
+
+.cx-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.cx-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.cx-btn:hover {
+  transform: translateY(-1px);
+}
+
+.cx-btn-primary {
+  background: var(--cx-accent);
+  color: var(--cx-on-accent);
+}
+.cx-btn-primary:hover {
+  background: var(--cx-accent-strong);
+  color: var(--cx-on-accent);
+}
+
+.cx-btn-ghost {
+  background: transparent;
+  color: var(--cx-fg);
+  border-color: var(--cx-border-strong);
+}
+.cx-btn-ghost:hover {
+  background: var(--cx-bg-overlay);
+  color: var(--cx-fg);
+}
+
+/* ---------- Sections ---------------------------------------------------- */
+
+section.cx-section {
+  padding: 4rem 0;
+  border-top: 1px solid var(--cx-border);
+}
+
+.cx-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.cx-section-head h2 {
+  font-size: 1.7rem;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.cx-section-head p {
+  margin: 0;
+  color: var(--cx-fg-muted);
+  font-size: 0.95rem;
+}
+
+/* ---------- Intro three-column ----------------------------------------- */
+
+.cx-pillars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.cx-pillar {
+  padding: 1.5rem;
+  background: var(--cx-bg-elevated);
+  border: 1px solid var(--cx-border);
+  border-radius: 12px;
+}
+
+.cx-pillar h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.cx-pillar p {
+  margin: 0;
+  color: var(--cx-fg-muted);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+/* ---------- Concept grid ----------------------------------------------- */
+
+.cx-concepts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.cx-concept {
+  padding: 1.25rem 1.4rem;
+  background: var(--cx-bg-elevated);
+  border: 1px solid var(--cx-border);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.cx-concept:hover {
+  border-color: var(--cx-border-strong);
+  transform: translateY(-2px);
+}
+
+.cx-concept-tag {
+  font-family: var(--cx-mono);
+  font-size: 0.75rem;
+  color: var(--cx-accent);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.4rem;
+}
+
+.cx-concept h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.cx-concept p {
+  margin: 0;
+  color: var(--cx-fg-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* ---------- Stats ------------------------------------------------------- */
+
+.cx-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.cx-stat {
+  padding: 1rem 1.2rem;
+  background: var(--cx-bg-elevated);
+  border: 1px solid var(--cx-border);
+  border-radius: 10px;
+}
+
+.cx-stat-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-family: var(--cx-mono);
+  color: var(--cx-fg);
+  line-height: 1.1;
+}
+
+.cx-stat-label {
+  font-size: 0.82rem;
+  color: var(--cx-fg-muted);
+  margin-top: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Resource links --------------------------------------------- */
+
+.cx-resources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.cx-resource {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.2rem;
+  background: var(--cx-bg-elevated);
+  border: 1px solid var(--cx-border);
+  border-radius: 10px;
+  color: var(--cx-fg);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cx-resource:hover {
+  border-color: var(--cx-accent);
+  background: var(--cx-accent-soft);
+  color: var(--cx-fg);
+}
+
+.cx-resource-title {
+  font-weight: 600;
+  font-size: 0.98rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cx-resource-desc {
+  color: var(--cx-fg-muted);
+  font-size: 0.86rem;
+}
+
+/* ---------- Footer ------------------------------------------------------ */
+
+.cx-foot {
+  border-top: 1px solid var(--cx-border);
+  padding: 2.5rem 0 3rem;
+  margin-top: 4rem;
+  color: var(--cx-fg-muted);
+  font-size: 0.88rem;
+}
+
+.cx-foot-row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cx-foot a {
+  color: var(--cx-fg-muted);
+}
+.cx-foot a:hover {
+  color: var(--cx-fg);
+}
+
+/* ---------- Responsive -------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .cx-nav-row {
+    gap: 1rem;
+  }
+  .cx-nav-links {
+    gap: 0.9rem;
+  }
+  .cx-nav-tools {
+    /* Keep theme toggle visible even on small screens; hide GitHub label only. */
+    gap: 0.4rem;
+  }
+  .cx-nav-links li:nth-last-child(-n + 2) span[aria-disabled="true"] .cx-soon {
+    display: none;
+  }
+  .cx-hero {
+    padding: 3.5rem 0 2.5rem;
+  }
+  section.cx-section {
+    padding: 3rem 0;
+  }
+}

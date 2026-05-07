@@ -1,0 +1,82 @@
+---
+import "../styles/marketing.css";
+import SiteNav from "../components/SiteNav.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Contrix · 去中心化协作协议",
+  description = "Contrix v1 — 可验证协作事实 + 可投影对象语义。",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    {/* Resolve dark/light theme before paint to avoid FOUC, using the same
+        key as Starlight's ThemeSelect so docs ↔ marketing stay in sync. */}
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem("starlight-theme");
+          var theme;
+          if (stored === "dark" || stored === "light") {
+            theme = stored;
+          } else {
+            theme = window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+          }
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+  </head>
+  <body class="cx-marketing">
+    <SiteNav variant="marketing">
+      <Fragment slot="tools">
+        <ThemeToggle />
+        <a href="https://github.com/contrix-dev/contrix-spec" rel="noopener">
+          GitHub
+        </a>
+      </Fragment>
+    </SiteNav>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="cx-foot">
+      <div class="cx-shell cx-foot-row">
+        <div>
+          <strong style="color: var(--cx-fg);">Contrix Spec</strong> ·
+          v1.0.0 stable baseline · canonical source 在 <code>spec/v1/</code>
+        </div>
+        <div>
+          <a href="/zh/v1/">Docs</a>
+          &nbsp;·&nbsp;
+          <a href="/openapi/">OpenAPI</a>
+          &nbsp;·&nbsp;
+          <a href="https://github.com/contrix-dev/contrix-spec" rel="noopener"
+            >GitHub</a
+          >
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,83 @@
+---
+/**
+ * Starlight Header override. Replaces Starlight's default header chrome
+ * with the shared SiteNav, while keeping Starlight's tooling (search,
+ * social icons, theme select, language select) on the right side. This
+ * gives docs pages the same site-level navigation as the marketing
+ * landing page without stacking two fixed-height nav bars.
+ */
+import SiteNav from "./SiteNav.astro";
+import config from "virtual:starlight/user-config";
+import LanguageSelect from "virtual:starlight/components/LanguageSelect";
+import Search from "virtual:starlight/components/Search";
+import SocialIcons from "virtual:starlight/components/SocialIcons";
+import ThemeSelect from "virtual:starlight/components/ThemeSelect";
+
+import "../styles/marketing.css";
+
+const shouldRenderSearch =
+  config.pagefind ||
+  config.components.Search !== "@astrojs/starlight/components/Search.astro";
+---
+
+<SiteNav variant="docs">
+  <Fragment slot="tools">
+    {shouldRenderSearch && <Search {...Astro.props} />}
+    <div class="cx-docs-tools">
+      <SocialIcons {...Astro.props} />
+      <ThemeSelect {...Astro.props} />
+      <LanguageSelect {...Astro.props} />
+    </div>
+  </Fragment>
+</SiteNav>
+
+<style is:global>
+  /* Starlight wraps the header slot in `<header class="header">` with
+   * fixed positioning + grid layout intended for its default 3-cell
+   * structure. We're replacing that content with a single SiteNav row,
+   * so neutralize the grid and let the nav span the full bar. */
+  header.header {
+    display: block !important;
+  }
+
+  /* Push Starlight's mobile menu toggle out of overlap with the nav links. */
+  .cx-nav--docs {
+    margin: calc(-1 * var(--sl-nav-pad-y)) calc(-1 * var(--sl-nav-pad-x));
+    padding: 0;
+    height: var(--sl-nav-height);
+  }
+  .cx-nav--docs .cx-nav-row {
+    height: 100%;
+  }
+
+  /* On wide screens, ensure the right-side tools (search, theme, lang)
+   * don't get squeezed by the nav-links list. */
+  .cx-nav--docs .cx-nav-tools {
+    gap: 0.75rem;
+  }
+
+  /* Search input from Starlight has its own styles; make sure it still
+   * fits. */
+  .cx-nav--docs .cx-nav-tools :global([data-open-modal]) {
+    color: var(--cx-fg-muted);
+  }
+
+  .cx-docs-tools {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 50rem) {
+    .cx-docs-tools {
+      display: flex;
+    }
+  }
+
+  .cx-docs-tools::before {
+    content: "";
+    width: 1px;
+    height: 1.4rem;
+    background: var(--cx-border);
+  }
+</style>
