@@ -36,11 +36,9 @@
     "kind": {
       "type": "string",
       "enum": [
-        "collaboration",
-        "board",
-        "list"
+        "collaboration"
       ],
-      "description": "v1 standard Space kinds. 'personal'/'project'/'organization'/'enclave' were removed in v1. The first three's reducer behaviour was identical to 'collaboration'; 'enclave' was a high-assurance variant whose only normative difference (federation_policy MUST NOT be open) now lives on the security_class field. Encode product-level distinctions via Space.fields, schema_refs, labels, or security_class."
+      "description": "v1 Space kind. Always 'collaboration'. A Space is always a security/sync/auth/E2EE boundary; structural groupings (board, list, swimlane, calendar bucket, etc.) are separate Place objects (cx:place:) — see place.schema.json. Product-level distinctions encoded via Space.fields / schema_refs / labels / security_class."
     },
     "security_class": {
       "type": "string",
@@ -48,30 +46,7 @@
         "standard",
         "high_assurance"
       ],
-      "description": "Optional security class. 'high_assurance' replaces v1's removed kind=enclave: it forbids federation_policy=open and SHOULD use stricter resolver/E2EE/audit defaults. Omitted = 'standard'."
-    },
-    "boundary_profile": {
-      "type": "string",
-      "enum": [
-        "security_boundary",
-        "container"
-      ],
-      "description": "Whether this Space forms an independent membership/policy/history/E2EE boundary. If omitted, board/list imply container and other standard kinds imply security_boundary."
-    },
-    "default_view_id": {
-      "type": "string",
-      "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$",
-      "description": "Default view for kind=board spaces"
-    },
-    "rank": {
-      "type": "string",
-      "pattern": "^[0-9A-Za-z]{1,128}$",
-      "description": "Fractional-index rank within parent board space; only meaningful when kind=list"
-    },
-    "wip_limit": {
-      "type": "integer",
-      "minimum": 0,
-      "description": "Work-in-progress limit; only meaningful when kind=list"
+      "description": "Optional security class. 'high_assurance' forbids federation_policy=open and SHOULD use stricter resolver/E2EE/audit defaults. Omitted = 'standard'."
     },
     "created_by_principal": {
       "$ref": "#/$defs/did"
@@ -226,6 +201,17 @@
       ],
       "description": "Create-locked Anchor finality profile. single_did and threshold deployments may require signed Anchor single-chain uniqueness; open_set deployments allow multiple Anchor leaves and deterministic joined views; mixed deployments use a primary anchorer plus fallback recovery anchorer."
     },
+    "hash_profile": {
+      "type": "string",
+      "enum": [
+        "sha256",
+        "sha512",
+        "sha3_256",
+        "blake3"
+      ],
+      "default": "sha256",
+      "description": "Create-locked hash algorithm used for Move/Anchor ids, state_root, and Merkle leaves within this Space. Defaults to sha256. Migration via hash-transition Anchor; see event-auth-state-resolution.md §4.2.5."
+    },
     "anchorer": {
       "type": "object",
       "description": "Genesis value for the Space anchorer cell. Subsequent changes are ordinary Moves finalized by the previous anchorer.",
@@ -318,47 +304,6 @@
     {
       "if": {
         "properties": {
-          "kind": {
-            "enum": [
-              "board",
-              "list"
-            ]
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "boundary_profile": {
-            "const": "container"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "collaboration"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "boundary_profile": {
-            "const": "security_boundary"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
           "security_class": {
             "const": "high_assurance"
           }
@@ -410,7 +355,9 @@
             "cas-register",
             "fsm",
             "counter",
-            "ordered-log"
+            "ordered-log",
+            "lww-register",
+            "rga"
           ]
         },
         "bottom": {

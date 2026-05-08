@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/place.schema.json",
+  "title": "Contrix Place",
+  "description": "A Place is a structural grouping object inside a Space. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Places. Authorization-transparent: never carries its own membership/policy/E2EE group; resolves to the containing Space.",
+  "type": "object",
+  "required": [
+    "id",
+    "schema",
+    "space_id",
+    "kind",
+    "title",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+    },
+    "schema": {
+      "const": "cx.schema.place.v1"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$",
+      "description": "Owning Space (security boundary). MUST point to a cx:space: id; MUST NOT point to another cx:place: id."
+    },
+    "parent_ref": {
+      "type": "string",
+      "pattern": "^cx:(place|space):[0-9a-hjkmnp-z]{26}$",
+      "description": "Optional parent in the structural hierarchy. May be a cx:place: (e.g., a list whose parent is a board) or the same cx:space: as space_id when this Place is at the Space root. If omitted, the Place is at Space root."
+    },
+    "kind": {
+      "type": "string",
+      "description": "Place kind. v1 standard kinds include 'board', 'list'. Profile-defined kinds (e.g., 'swimlane', 'calendar_bucket', 'page_group') MAY be added via Space schema/profile and MUST be registered. Unknown kind MUST schema_violation.",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "rank": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z]{1,128}$",
+      "description": "Fractional-index rank within parent. See encoding.md §9."
+    },
+    "schema_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "description": "Optional schema/profile references that further constrain this Place's contained Flow types, fields, or position invariants."
+    },
+    "fields": {
+      "type": "object",
+      "description": "Place kind-specific fields, e.g., { 'wip_limit': 5 } for kind=list, { 'view_id': 'cx:view:...' } for kind=board's default view."
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "avatar_blob_ref": {
+      "type": "string",
+      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$"
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Set by cx.place.archive reducer. Archived Places are hidden in default views; contained Flows MUST be relocated or follow archive."
+    },
+    "tombstoned_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Set by cx.place.tombstone reducer. Irreversible. Tombstoning a Place that still has live Flow references MUST schema_violation; relocation MUST happen first."
+    },
+    "created_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "updated_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
+  "additionalProperties": true
+}

@@ -175,11 +175,11 @@ Flow 在每个 branch 定义内使用 `access` 表达 membership、permission、
 - 转换不复制或迁移消息历史。
 - 切换到 `branch="discussion"` 时，若 `discussion` branch 尚不存在，必须先写入 `cx.flow.branch.enable`；单独的 `set_primary` MUST fail closed / reject，不得隐式创建 branch。
 - 切换到其他 branch 时，不得自动删除 `discussion` branch 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.branch.disable` 或 profile 声明的 archive 语义。
-- 转换不自动移除 Space (kind=board)/Space (kind=list) 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
+- 转换不自动移除 Board Place/List Place 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
 
 ### 2.6 常见关系
 
-- `Space (kind=list) --contains--> flow`
+- `List Place --contains--> flow`
 - `flow --assigned_to--> actor`
 - `flow --depends_on--> flow`
 - `flow --blocks--> flow`
@@ -188,41 +188,39 @@ Flow 在每个 branch 定义内使用 `access` 表达 membership、permission、
 - `flow --summarized_from--> message`
 - `flow --promoted_from_discussion--> message`
 
-## 3. Space (kind=board)
+## 3. Board Place
 
-Space (kind=board) 是 `Space` 的工作流容器形态，ID 使用 `cx:space:` 格式。看板类型、泳道策略、WIP 规则和自定义 workflow profile SHOULD 进入 `fields` 或 Space schema。
-
-推荐字段：
-
-- `title`
-- `summary`
-- `rank`
-- `fields`
-- `default_view_id`
-- `state`
-
-常见关系：
-
-- `Space (kind=board) --contains--> Space (kind=list)`
-- `Space (kind=board) --has_default_view--> view`
-
-## 4. Space (kind=list)
-
-Space (kind=list) 是 `Space` 的列/泳道形态，ID 使用 `cx:space:` 格式。Space (kind=list) 通过 `contains` relation 挂载到 Space (kind=board) 下。
+Board Place 是 `Place` 的看板形态，ID 使用 `cx:place:` 格式（`kind=board`）。Place 永远住在某 Space 内，不形成自己的 membership / E2EE / federation 边界——授权透明回退到 `space_id` 指向的 Space。看板类型、泳道策略、WIP 规则和自定义 workflow profile SHOULD 进入 `fields` 或 Place schema。
 
 推荐字段：
 
 - `title`
 - `summary`
 - `rank`
-- `wip_limit`
-- `fields`
-- `state`
+- `fields`（包含 `default_view_id` 等）
+- `archived_at` / `tombstoned_at`
 
 常见关系：
 
-- `Space (kind=board) --contains--> Space (kind=list)`
-- `Space (kind=list) --contains--> flow`
+- `Board Place --contains--> List Place`
+- `Board Place --has_default_view--> view`
+
+## 4. List Place
+
+List Place 是 `Place` 的列/泳道形态，ID 使用 `cx:place:` 格式（`kind=list`）。List Place 通过 `parent_ref` 挂载到 Board Place（或同 Space 内的其他 Place）下，由 `cx.place.parent` reducer-input 管理（cas-register, bottom=reject）。
+
+推荐字段：
+
+- `title`
+- `summary`
+- `rank`
+- `fields`（包含 `wip_limit` 等）
+- `archived_at` / `tombstoned_at`
+
+常见关系：
+
+- `Board Place --contains--> List Place`
+- `List Place --contains--> flow`
 
 ## 5. Message
 

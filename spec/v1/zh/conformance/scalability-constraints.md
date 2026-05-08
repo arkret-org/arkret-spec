@@ -72,17 +72,19 @@ Move / Anchor fallback 不得选择本地接收顺序或数据库 ID。Snapshot 
 
 长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Anchor DAG 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Move / Anchor。
 
-## 5. Board / Relation / View 上限
+## 5. Place / Relation / View 上限
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| 单个 Board active List 数 | 500 | 超过时 Board projection MUST paginate 或 require filtered View。 |
-| 单个 List active Flow item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
+| 单 Space active Place 数 | 5,000 | 超过时 Space projection MUST paginate；建议拆分为多个 Space 或使用嵌套 Place。 |
+| 单个 Board Place active List Place 数 | 500 | 超过时 Board projection MUST paginate 或 require filtered View。 |
+| 单个 List Place active Flow item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
+| Place 嵌套深度 | 8 | 超过时 reducer MUST reject `cx.place.parent`；防止任意深度的容器树拖累查询性能。 |
 | 单个对象 active Relation 数 | 10,000 | Projection executor MUST paginate，不能要求客户端一次性拉全。 |
 | 单个 View projection page | 1,000 items | View cursor MUST 绑定 authorization context 和 frontier。 |
 | rank 长度 | 128 chars | 超过时 MUST reject，见 `encoding.md`。 |
 
-Board position edge 的 canonical key 是 `(board_id, flow_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；View projection MAY 暴露 loser conflict records，但不得把同一 Flow 渲染成多个主位置。
+Board position edge 的 canonical key 是 `(board_place_id, flow_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；View projection MAY 暴露 loser conflict records，但不得把同一 Flow 渲染成多个主位置。
 
 ## 6. E2EE 与设备上限
 

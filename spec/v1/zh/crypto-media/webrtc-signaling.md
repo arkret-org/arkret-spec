@@ -210,11 +210,34 @@ Content-Type: application/json
 
 要求：
 
-- TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential。
+- TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC(turn_shared_secret, username)`）。
 - TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `cx_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；TURN 运营方因此只能看到一次性会话标记，无法把同一用户的多次通话或多 Space 活动关联起来。
 - ICE config response MUST 由 media service 签名，或通过已认证 TLS + service DID 绑定返回。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Space MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
+
+### 6.3 In-call Credential Refresh
+
+通话进行中 TURN credential 可能在 `ttl_seconds` 之前到期或被 server 主动撤销。客户端 MUST 实现在通话期间的 credential refresh，避免 mid-call 失联：
+
+| 触发条件 | 客户端行为 |
+| --- | --- |
+| 当前剩余有效期 ≤ `ttl_seconds * 0.25`（推荐阈值 `refresh_lead_seconds=60`，可被服务在响应中覆写） | 在不中断通话的情况下重新调用 ICE config endpoint，获取新一组 `ice_servers[]` 与 credential。 |
+| ICE agent 报告 TURN allocation refresh 失败、收到 `441 Wrong Credentials`、`438 Stale Nonce` 或等价错误 | 立即调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.kind = renegotiate`）。 |
+| ICE config endpoint 返回 `turn_credential_expired` | 客户端按服务器返回的 `next_retry_at` / `Retry-After` 退避；超过 30 秒仍无新 credential 时通过 `cx.call.signal` 发出 `error` payload 并以 graceful hangup 收尾。 |
+
+新 credential 应用规则：
+
+- 客户端 MUST 在新 credential 生效后 **保留旧 allocation 直到所有现有 RTP 会话迁移完成**，然后再 `CREATE-PERMISSION` 释放旧通道；不得在 candidate 切换中途让媒体丢包。
+- 多对多会议中，客户端 MUST 周期检查 `ttl_seconds`（默认每 30 秒），不得依赖单一 timer。
+- Refresh 流程不重放 user-facing UI 提示；通话状态保持 `active`。
+- Refresh 请求 MUST 与原 ICE config 请求一致地携带 per-call pairwise pseudonym（同一通话内 pseudonym 可保持不变，避免 TURN 运营方误判为不同呼叫）。
+
+服务端规则：
+
+- ICE config endpoint MUST 在响应中携带 `refresh_lead_seconds`（推荐 60、可调），让客户端按统一节奏 refresh。
+- TURN shared secret MUST 周期轮换（默认 ≤ 24 小时）；轮换时 server MUST 同时接受新旧 secret 一段时间（grace ≥ `ttl_seconds`）以避免 in-call 集体失败。
+- `turn_credential_expired` 响应 MUST 包含 `next_retry_at`；不得让客户端进入 tight retry loop。
 
 ## 7. Signaling Envelope
 

@@ -129,6 +129,8 @@ effective_anchor_view(leaves):
 
 §4 rule 5 要求 `state_root` 是该 Anchor view 下所有 cell value / bottom 的 canonical Merkle root。本节锁定具体编码以保证不同实现互通。
 
+State root 使用的 hash 算法由 Space 的 `hash_profile`（create-locked，默认 `sha256`）决定。本节伪代码以 `H(...)` 表示该 algo 的哈希函数；wire 上 hash value 形如 `<algo>:<hex>`，详见 [`encoding.md`](../conformance/encoding.md) §3。
+
 #### 4.2.1 Leaf 编码
 
 每个有过 effect 的 cell 一条 leaf：
@@ -138,7 +140,7 @@ leaf_input = canonical_json({
   "cell":  "<CellRef wire string>",
   "state": <state_object>
 })
-leaf_hash  = sha256(leaf_input)
+leaf_hash  = H(leaf_input)
 ```
 
 `<state_object>` 取决于 cell 当前 join 结果：
@@ -160,11 +162,11 @@ Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定
 2. 对每个 cell 计算 `leaf_hash`（4.2.1）。
 3. 把 `(cell_wire, leaf_hash)` 元组按 `cell_wire` Unicode code point 升序排序。
 4. 把排序后的 `leaf_hash` 列表按 RFC 6962-style binary Merkle tree 算 root：
-   - 偶数个：两两配对 `parent = sha256(left || right)`，逐层向上。
+   - 偶数个：两两配对 `parent = H(left || right)`，逐层向上。
    - 奇数个：最后一个 leaf 直接提升到上一层（**不复制**）。
    - 单个 leaf：root = leaf_hash。
-   - 空列表：root = `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`（空字节 SHA-256）。
-5. wire 形式：`state_root = "sha256:" + lower_hex(root)`。
+   - 空列表：root = `H("")` 用 algo 的空字节摘要值。
+5. wire 形式：`state_root = "<algo>:" + lower_hex(root)`，`<algo>` 即 Space `hash_profile`。
 
 #### 4.2.3 增量重算
 
@@ -175,8 +177,19 @@ Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定
 #### 4.2.4 跨实现互通
 
 不同 conformant 实现处理同一 Move/Anchor 历史 MUST 产出相同 state_root。
-偏离上述编码（不同 leaf shape、不同 tree 形、不同空 list 处理）即视为
+偏离上述编码（不同 leaf shape、不同 tree 形、不同空 list 处理、错误的 hash algo）即视为
 v1 wire-incompatible，必须用独立 profile 声明。
+
+#### 4.2.5 Hash Algorithm Transition
+
+Space 一旦在 create event 中固定 `hash_profile`，所有后续 Anchor / Move / state_root MUST 用同一 algo。需要切换 hash algo（例如 sha256 → blake3 性能升级，或 sha256 → 抗量子 hash family v2）时：
+
+1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `legacy_state_root`（旧 algo）和 `state_root`（新 algo）。Receiver 用旧 algo 重算 frontier 验证 `legacy_state_root` 与本地一致；用新 algo 重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
+2. **`hash_profile` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Space 的 `hash_profile` cell（`cas-register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
+3. **后续 Anchor**：新 anchor 只用新 algo。客户端做长历史 inclusion proof 时，跨 transition Anchor 的 proof 由 transition Anchor 的双 root 桥接——proof 在 transition 之前用旧 algo 验证，之后用新 algo 验证。
+4. **降级禁止**：`hash_profile` 只允许从更弱 algo 升级到更强 algo（按 v1 hash registry 中声明的 strength order），不允许降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
+
+实现不强制支持 hash transition；声明 `cx.profile.hash_transition.v1` 的实现 MUST 支持。这条机制保证了 v1 → v2 的 hash 升级路径不需要硬分叉。
 
 ### 4.3 Anchor Batch 语义
 
@@ -230,16 +243,18 @@ Lattice {
 
 v1 封闭核心集：
 
-| Type | Join 语义 | 用途 |
-| --- | --- | --- |
-| `or-set` | observed-remove set；add/remove 通过唯一 tag 收敛。 | capability grant set、device list、凭证撤销集合。 |
-| `mv-register` | 并发 set 暴露多值；无单一 winner。 | 非安全草稿、可人工选择的偏好。 |
-| `cas-register` | 严格 CAS；并发不同值返回 `⊥`。 | anchorer、关键 singleton policy、host 指针类状态。 |
-| `fsm` | 状态机迁移；非法迁移或并发不可合并迁移返回 `⊥`。 | membership、lifecycle、invite/approval。 |
-| `counter` | PN-counter 求和。 | 配额、审计计数。 |
-| `ordered-log` | append-only log；按 issuer chain 与 entry id 去重。 | 审计、消息历史、不可变操作日志。 |
+| Type | Join 语义 | 用途 | 授权层禁用 |
+| --- | --- | --- | --- |
+| `or-set` | observed-remove set；add/remove 通过唯一 tag 收敛。 | capability grant set、device list、凭证撤销集合。 | — |
+| `mv-register` | 并发 set 暴露多值；无单一 winner。 | 非安全草稿、可人工选择的偏好。 | 不得作授权根 |
+| `cas-register` | 严格 CAS；并发不同值返回 `⊥`。 | anchorer、关键 singleton policy、host 指针类状态。 | — |
+| `fsm` | 状态机迁移；非法迁移或并发不可合并迁移返回 `⊥`。 | membership、lifecycle、invite/approval。 | — |
+| `counter` | PN-counter 求和。 | 配额、审计计数。 | — |
+| `ordered-log` | append-only log；按 issuer chain 与 entry id 去重。 | 审计、消息历史、不可变操作日志。 | — |
+| `lww-register` | 按 anchor-derived order 选最近 set；同 anchor batch 并发用 deterministic tiebreaker。 | UI affordance：Flow.title / summary、Morph 非关键字段、 emoji shortcuts、cosmetic preferences。 | **MUST NOT 作授权、policy、membership、anchorer、capability cell**。schema 静态拒绝。|
+| `rga` | Replicated Growable Array：插入 op 携带 `(predecessor_id, element_id=issuer:seq)`，删除 op 写 tombstone；按 (anchor index, issuer, seq) 全序确定性合并。 | 协作文本编辑（Flow.body 富文本、Morph 文档段、Markdown 块的字符级编辑）、可插入的有序列表。 | **MUST NOT 作授权根**；只用于 content cell。|
 
-`lww-register`、依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均不得进入协议授权根。
+依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均不得进入协议授权根。`lww-register` 与 `rga` 的"时间"由 Anchor 批次索引与批次内确定性 tiebreaker 提供，**不**读取 actor 自报 HLC 或外部 wall clock，这是它们能被纳入封闭核心集的前提。
 
 ### 5.1 Bottom Diagnostics
 
@@ -425,6 +440,93 @@ validate_op(op):
 ```
 
 `bottom` 永远不出现。审计、消息历史、不可变操作日志均使用 `bottom=expose`，并发 append 不阻塞协议判断。
+
+#### 5.3.7 `lww-register`
+
+Last-write-wins register。"时间"由 Anchor 批次索引提供，**不**读 actor HLC：
+
+- 跨 Anchor batch：后批次 effect 覆盖前批次。
+- 同 Anchor batch（sibling Move）并发不同 set：用 deterministic tiebreaker `(issuer DID lex order, move_id lex order)` 选 winner；记录 lost siblings 进 bottom diagnostics 但不影响最终 value。
+
+```text
+join(moves) -> value:
+  current = parameters.initial_value   // schema 声明的初值，可为 null
+  for batch in moves grouped by anchor_ref ordered by anchor index:
+    siblings = [M for M in batch if M has set effect on this cell]
+    if siblings is empty: continue
+    if len(siblings) == 1:
+      current = siblings[0].effect.value
+    else:
+      // 同批内并发：deterministic tiebreaker
+      winner = min(siblings, key=(M.issuer, M.id))
+      current = winner.effect.value
+      // 其它 siblings 进入 bottom_diagnostics（kind=conflict）但 value 已确定
+  return current
+
+validate_op(op):
+  op.type == "set"
+  op.value satisfies schema
+  cell schema MUST NOT 列入 authorization_root / policy_root / anchorer_root
+```
+
+`bottom` 不出现于 value path。`bottom=expose` 仅当并发 sibling 出现时由诊断层暴露 lost values；授权层 MUST NOT 据此选 winner（cell 已被 schema 静态禁止作授权根）。
+
+Schema 声明 cell 为 `lww-register` 时 MUST 同时声明 `cell_role ∈ {ui_affordance, content, draft, cosmetic}`；声明 `cell_role` 为 authorization-related 值时 schema_violation。这是把 lww-register 关在协议安全圈外的硬约束。
+
+#### 5.3.8 `rga` (Replicated Growable Array)
+
+Replicated Growable Array — 协作文本与有序列表插入。每个 element 由 `(issuer, issuer_seq)` 二元组确定性命名；插入 op 携带 predecessor element id；删除 op 写 tombstone。
+
+```text
+op shape:
+  insert: {type: "insert", predecessor: <element_id | "head">, element_id: "<issuer>:<seq>", value: <atom>}
+  delete: {type: "delete", element_id: <element_id>}
+
+element_id 形态：`<issuer-did>:<seq>`，issuer 即 Move issuer，seq 由 issuer 在该 cell 上单调递增（每次 insert 递增）。
+
+join(moves) -> List<{element_id, value, deleted}>:
+  inserts = {}    // element_id → {predecessor, value, anchor_index, issuer_lex}
+  tombs   = set() // element_ids deleted
+  for batch_index, batch in enumerate(moves grouped by anchor_ref):
+    for M in batch with effect on this cell:
+      for eff in M.effects:
+        if eff.op.type == "insert":
+          inserts[eff.op.element_id] = {
+            predecessor: eff.op.predecessor,
+            value:       eff.op.value,
+            anchor_index: batch_index,
+            issuer:      M.issuer,
+          }
+        elif eff.op.type == "delete":
+          tombs.add(eff.op.element_id)
+
+  // 构建 forest：每个 element 挂在它的 predecessor 下
+  // 同一 predecessor 下多个 child 按 (anchor_index, issuer, seq) 升序排列
+  result = []
+  walk(predecessor="head"):
+    children = [eid for eid, meta in inserts if meta.predecessor == predecessor]
+    children.sort by (inserts[eid].anchor_index, inserts[eid].issuer, eid_seq(eid))
+    for c in children:
+      if c not in tombs:
+        result.append({element_id: c, value: inserts[c].value, deleted: false})
+      else:
+        result.append({element_id: c, value: inserts[c].value, deleted: true})  // tombstone
+      walk(c)
+  walk("head")
+  return result
+
+validate_op(op):
+  op.type ∈ {insert, delete}
+  if insert: op.element_id = "<M.issuer>:<seq>", seq monotonic per (cell, issuer)
+             op.predecessor 在已知 inserts 集合中，或 == "head"
+             op.value satisfies element schema (atom: char | block | list_item)
+  if delete: op.element_id 必须曾被某个 insert 引入
+  cell schema MUST NOT 列入 authorization_root / policy_root / anchorer_root
+```
+
+`bottom` 不出现：RGA 总有合法 deterministic order。Tombstone 不被物理删除（保留以让长后到的 reference 能正确 walk）；redaction 通过 `delete` op + `cx.message.redact` 类规则实现 metadata-level 隐藏。
+
+RGA 的开销：每个未 GC 的 element 持续占空间。Space 可声明 `rga_compaction_after_anchors`（默认 10000）触发 compaction Anchor，把 fully-deleted、无后继 reference 的 tombstone 物理移除并签入压缩 state_root。
 
 ### 5.4 Profile 不得引入新 Lattice type
 

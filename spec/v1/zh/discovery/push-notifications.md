@@ -148,13 +148,41 @@ POST /api/v1/push/unregister-device
 
 ### 4.3 条件类型 (Condition Kinds)
 
-| Condition Kind | 说明 |
-|---------------|------|
-| `field_match` | Event 明文元数据或授权可见 payload 字段匹配给定 pattern（支持 glob） |
-| `contains_keyword` | 消息 `body` 中包含指定关键词（仅限明文部分） |
-| `mentions_actor` | 消息中提及当前 Actor |
-| `is_direct_message` | 来自 1 对 1 私聊 Space |
-| `member_count` | Space 成员数满足条件（如 `<= 5`） |
+| Condition Kind | 评估位置 | 说明 |
+|---------------|---------|------|
+| `field_match` | server-side | Event 明文元数据或授权可见 payload 字段匹配给定 pattern（支持 glob） |
+| `contains_keyword` | client-side（E2EE）/ server-side（cleartext Space）| 消息 `body` 中包含指定关键词。E2EE Space 中 server 不能解密正文 → 必须降级，见 §4.5 |
+| `mentions_actor` | client-side（E2EE）/ server-side（cleartext Space）| 消息中提及当前 Actor。E2EE Space 中 mention relation 通常嵌入密文 → 见 §4.5 |
+| `is_direct_message` | server-side | 来自 1 对 1 私聊 Space（可由 Space metadata 或成员数判断，不需要解密）|
+| `member_count` | server-side | Space 成员数满足条件（如 `<= 5`），可由 metadata 判断 |
+
+每条 rule MUST 在 wire 上声明其 `evaluation_locus` 为 `server` 或 `client`。Sync Service 只在 `server` rule 上做匹配；`client` rule 的语义由本节 §4.5 定义的降级流程承担。
+
+### 4.4 动作类型 (Actions)
+
+| Action | 说明 |
+|--------|------|
+| `notify` | 发送推送通知 |
+| `dont_notify` | 不发送推送（静音） |
+| `sound_default` | 使用默认提示音 |
+| `sound_critical` | 使用紧急提示音 |
+| `highlight` | 在客户端标记为高亮 |
+
+### 4.5 E2EE Space 中的规则降级
+
+E2EE Space 中，Sync Service 不持有正文密钥，无法在 server 端评估 `contains_keyword` 或基于 mention 文本 / mention relation 嵌入密文时的 `mentions_actor`。**实现 MUST NOT** 在 E2EE Space 静默把这类规则视为不匹配（这会让被 mention 的人收不到推送，造成 UX 退化），也 MUST NOT 把它视为匹配（这会变成无差别推送，泄露元数据）。降级路径如下：
+
+1. **明确分类**：每条 push rule 在创建时 MUST 通过 `evaluation_locus ∈ {server, client}` 声明评估位置。client-side rule 在 E2EE Space 中由本机已解密 Event 的 client 评估，并在本地决定是否触发本机通知通道（系统 banner、桌面提示、声音）。Sync Service 不参与 client-side rule 的匹配。
+2. **Server fallback notify**：E2EE Space 中，针对 client-side rule，Sync Service MUST 走"保守 wakeup"策略——按 Space 级 `wakeup_default`（默认 `wakeup_for_all_messages`）触发 blind wakeup，不附带任何识别字段。客户端被唤醒后本地解密、本地评估 client-side rule，再决定显示哪个通知 surface（普通 banner / 高亮 banner / 静默处理）。
+3. **降级标记**：Sync Service 在 push payload 中携带 `evaluation_locus_unresolved=true`，让客户端知道"我已经被 wakeup 但匹配尚未在 server 端确定"。客户端 MUST 完成本地评估后才决定是否进入用户感知的通知 surface；不得仅凭 wakeup 就在 system tray 弹出。
+4. **明文 hint 限制**：E2EE Space 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。具体来说：除非 Space policy 把 push gateway 列入 `plaintext_visible_services`，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`），不能携带匹配到的具体内容。
+5. **限速降级**：E2EE Space + client-side rule 多的 client 在高消息量场景会被持续 wakeup，电池负担显著。客户端 MUST 暴露 `aggressive_wakeup_threshold`（默认每 60 秒 ≤ 30 次）；超过阈值后切换到批量 wakeup 模式，Sync Service 把多个 wakeup 合并为单个 batch wakeup（仍携带 `evaluation_locus_unresolved=true`），客户端醒来一次评估全部待处理 Event。
+6. **`mentions_actor` 通过 mention sidecar 提示**（可选）：发送者的客户端在加密时 MAY 把 mention 列表的 hash（per-recipient blinded `H("contrix-mention-v1" || mls_group_id || epoch || mentioned_did)`）作为明文 sidecar 字段附在 Event 元数据上。Sync Service 比较 hash 即可在 server 端做 `mentions_actor` 匹配，而无需解密正文，且 hash 绑定 epoch 后跨 epoch 自然失效。这是 E2EE 下 `mentions_actor` 的可选 server-side 路径；启用与否由 Space policy 中 `mention_routing_hint` 决定，默认开启（与 reaction routing hash §2.9 同种机制）。
+
+明确禁止：
+
+- 实现 MUST NOT 在 E2EE Space 中把 `contains_keyword` rule 提示让 Sync Service 持有 keyword 列表（即使加 hash）。Keyword 比 mention 高熵——hash 可被字典爆破。
+- 实现 MUST NOT 通过"让客户端把解密结果回传 Sync Service 完成匹配后再发推送"的形式实现 server-side rule。这条路径等于把客户端解密能力委托给 Sync Service，违反 E2EE 边界。
 
 ### 4.4 动作类型 (Actions)
 

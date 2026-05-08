@@ -20,7 +20,7 @@ Contrix 必须对人类友好，因此协议必须允许对象自然投影为：
 
 View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `cx.view.create` / `cx.view.update` 修改、签名、审计和同步。
 
-View 不承载被投影对象的 canonical state。Space (kind=board) / Space (kind=list) / Flow / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和 causal frontier。
+View 不承载被投影对象的 canonical state。Board Place / List Place / Flow / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和 causal frontier。
 
 这些对象事实必须从同一套底层结构产生：
 
@@ -40,19 +40,19 @@ Space + Actor + Flow + Message + Morph + Relation + Event
 
 `board`、`list`、`table`、`calendar`、`gantt`、`chat`、`thread`、`forum`、`dashboard` 都是 renderer，而不是新的 `View.kind`。
 
-### 2.3 Space (kind=board) / Space (kind=list) 是 Space 形态，不是 View.kind
+### 2.3 Board Place / List Place 是 Space 形态，不是 View.kind
 
-Space (kind=board) 与 Space (kind=list) 是 `Space` 的形态：
+Board Place 与 List Place 是 `Space` 的形态：
 
-- `Space (kind=board)`
-- `Space (kind=list)`
+- `Board Place`
+- `List Place`
 
 看板和列表投影应表达为：
 
 - `kind="collection" + renderer="board"`
 - `kind="collection" + renderer="row"` 或 `renderer="list"`
 
-View 负责“如何看”，Space (kind=board) / Space (kind=list) 负责“对象如何被组织”。
+View 负责“如何看”，Board Place / List Place 负责“对象如何被组织”。
 
 ### 2.4 Query SHOULD 优先面向 Flow / Message / Morph
 
@@ -62,7 +62,7 @@ View 查询 SHOULD 优先使用标准对象类型：
 - `message`
 - `morph`
 
-Space (kind=board) / Space (kind=list) 作为容器由 `space.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
+Board Place / List Place 作为容器由 `place.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
 
 ### 2.5 权限必须逐对象、按有效 branch access 裁剪
 
@@ -83,7 +83,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 | 修改 Flow 标题、状态、负责人、截止时间 | `cx.flow.update` |
 | 切换 Flow 默认 branch | `cx.flow.branch.set_primary` |
 | 开启/关闭 discussion branch | `cx.flow.branch.enable` / `cx.flow.branch.disable` |
-| 修改 Space (kind=board) / Space (kind=list) 元数据 | `cx.space.update` |
+| 修改 Board Place / List Place 元数据 | `cx.place.update` |
 | 发送、编辑、撤回 discussion 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
 | 改变共享 View filter / sort / group / columns / layout | `cx.view.update` |
 | 改变个人 View 偏好、临时 filter、列宽、折叠状态 | actor-private account data |
@@ -109,7 +109,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_ref": "cx:space:01js0bd0000000000000000000",
+      "source_ref": "cx:place:01js0bd0000000000000000000",
       "depth": 2
     }
   },
@@ -121,7 +121,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_id": "cx:space:01js0bd0000000000000000000",
+      "board_id": "cx:place:01js0bd0000000000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
@@ -232,8 +232,8 @@ Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开未被有效 a
 
 | 产品概念 | 协议对象 | 说明 |
 | --- | --- | --- |
-| 看板 | Space (kind=board) | 标准 Space 对象，可被引用、授权、讨论和审计。 |
-| 列/泳道 | Space (kind=list) | Space (kind=board) 内有序容器。 |
+| 看板 | Board Place | 标准 Space 对象，可被引用、授权、讨论和审计。 |
+| 列/泳道 | List Place | Board Place 内有序容器。 |
 | 卡片 | `flow` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=flow_id}` | 表示 List 与 Flow 的 canonical 包含关系。 |
 | 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系。 |
@@ -324,7 +324,7 @@ Graph projection 可展开 Flow、Morph、Message、Board 等对象之间的 Rel
 Contrix v1 固定：
 
 - View 投影 Flow、Message、Morph 和 Space workflow。
-- Space (kind=board) 和 Space (kind=list) 是 `Space.kind`，不是 `View.kind`。
+- Board Place 和 List Place 是 `Space.kind`，不是 `View.kind`。
 - 看板拖拽使用 `cx.flow.move` / `cx.flow.reorder`。
 - discussion chat 使用 `flow + message`。
 - Graph / Tree 遇到跨 Space 必须 lazy link。

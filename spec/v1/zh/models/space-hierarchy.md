@@ -6,9 +6,9 @@ title: Space Hierarchy
 
 Contrix 支持 Space 之间形成层级或图状组织，用于表达组织、项目、频道、子项目、私有讨论、门户空间和知识库之间的关系。
 
-本文件中的“Space hierarchy”默认讨论 `boundary_profile="security_boundary"` 的 Space。Security-boundary Space 是复制、授权、schema、policy、membership、history visibility、加密和索引的硬边界。层级关系默认只表示导航和可发现性，不表示自动权限继承。
+本文件讨论 **Space-Space 层级**：Space 之间通过 `cx.space.child` / `cx.space.parent` 形成的父子关系。每个 Space 都是 security/sync/auth/E2EE 硬边界；层级只表示导航和可发现性，不表示自动权限继承。
 
-`Space(kind=board)` 与 `Space(kind=list)` 默认是 `boundary_profile="container"` 的工作流容器。它们可被层级或 relation projection 展示为父子关系，但不会因为使用 `cx:space:` ID 就形成新的 membership、history visibility、E2EE、federation 或 policy 边界。容器 Space 的授权解析回最近的 security-boundary 祖先 Space，除非 profile 明确声明更严格的局部约束。
+**Place 层级不在本文范围内**。Place（Board / List / 等结构容器，`cx:place:`）是 Space 内部的轻量分组对象，永远不形成自己的 boundary。Place 之间嵌套（Board 包含 List）通过 Place 自身的 `parent_ref` + `cx.place.parent` reducer-input 表达，与 Space-Space 层级完全独立——见 [`models/data-structures.md`](./data-structures.md) §4a 和 [`object-model-core.md`](./object-model-core.md) §8。Place 嵌套必须在同一 Space 内；跨 Space 的引用走 Relation。
 
 ## 2. 设计原则
 
@@ -21,7 +21,7 @@ Contrix 支持 Space 之间形成层级或图状组织，用于表达组织、�
 
 ## 3. 标准关系
 
-以下 `cx.space.child` / `cx.space.parent` 关系对 security-boundary Space 具有边界语义。对 `boundary_profile="container"` 的 Board/List，关系只表达导航、包含或工作流投影；不得触发 membership、capability、history visibility、E2EE key share 或 federation 拓扑继承。
+以下 `cx.space.child` / `cx.space.parent` 关系仅用于 Space-Space 层级。Place 之间的父子嵌套不使用本文 schema，而是用 `cx.place.parent`（cas-register, bottom=reject）。
 
 Space 层级使用 state event 表达，而不是普通对象 Relation。本文使用“边（edge）”表示有向图中的 parent-child 连接关系；对外 projection 字段统一使用 `edge_status` 表示该边的派生状态。
 
@@ -302,6 +302,6 @@ Applet 对 child Portal Space 写入仍需：
 Contrix 的 Space hierarchy 借鉴 Matrix `m.space.child` / `m.space.parent` 的双向确认经验，但区别是：
 
 - Contrix security-boundary Space 是权限和对象图边界，不只是 room directory。
-- Flow / Space (kind=board) / Space (kind=list) / Message / Morph / Relation 仍然承载业务对象层级，不应把所有对象拆成 child security-boundary Space。
+- Flow / Board Place / List Place / Message / Morph / Relation 仍然承载业务对象层级，不应把所有对象拆成 child security-boundary Space。
 - 权限和加密默认不继承。
 - 跨 Space 深度查询必须 Lazy Link，不能自动拼接泄露。

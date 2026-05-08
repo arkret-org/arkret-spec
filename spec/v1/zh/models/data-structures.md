@@ -82,9 +82,8 @@ Schema id: `cx.schema.space.v1`
 | `schema` | yes | `cx.schema.space.v1` | 固定为 Space schema id。 | 对象 schema。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
-| `kind` | yes | `enum(collaboration, board, list)` | `collaboration` 表示安全边界 Space，`board/list` 表示工作流容器 Space。v1 移除了 `personal/project/organization/enclave` 四个标签——`personal/project/organization` 的 reducer 行为与 `collaboration` 完全相同；`enclave` 的唯一规范差异（federation_policy 不得 open）已迁移到 `security_class` 字段。产品语义请通过 `Space.fields` / `schema_refs` / `labels` / `security_class` 表达；自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
-| `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` 替代旧 `kind=enclave`：MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`，并 SHOULD 使用更严的 resolver / E2EE / 审计默认值。schema enforce 见 `space.schema.json`。 | 安全等级标签。 |
-| `boundary_profile` | no | `enum(security_boundary, container)` | 省略时由 `kind` 派生：`board/list` 为 `container`，其他标准 kind 为 `security_boundary`。 | 是否形成独立 membership / policy / history / E2EE 边界。 |
+| `kind` | yes | `enum(collaboration)` | v1 唯一标准 kind。`cx:space:` **永远是** security/sync/auth/E2EE 边界——结构性分组（board / list / swimlane / 等）由独立的 Place 对象（`cx:place:`）承担，见 §4a。产品语义通过 `Space.fields` / `schema_refs` / `labels` / `security_class` 表达；自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
+| `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`，并 SHOULD 使用更严的 resolver / E2EE / 审计默认值。schema enforce 见 `space.schema.json`。 | 安全等级标签。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 registry 中的对象 schema，例如 `cx.schema.space.v1`，或实现 profile。 | 启用 schema。 |
@@ -96,6 +95,7 @@ Schema id: `cx.schema.space.v1`
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create event 锁定；后续不得通过 Space update 改变。E2EE Space SHOULD 使用 `mls_rfc9420`。 | 加密配置（create-locked）。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | **reducer 派生**，由 `cx.space.policy_components` 中相关组件维护。sovereign 默认 SHOULD `closed`。`security_class=high_assurance` MUST 使用 `closed`、`restricted` 或 `quarantine`，禁止 `open`；schema enforce 见 `space.schema.json`。 | 派生：联邦策略。 |
 | `anchor_profile` | no | `enum(single_did, threshold, open_set, mixed)` | **create-locked**。省略时 sovereign / closed deployment SHOULD 使用 `single_did`，开放联邦 SHOULD 使用 `open_set`。详见 `authz/event-auth-state-resolution.md`。 | Anchor finality profile。 |
+| `hash_profile` | no | `enum(sha256, sha512, sha3_256, blake3)` | **create-locked**。Space 内 Anchor / Move id、state_root、Merkle leaf 等核心承诺字段使用的 hash 算法。默认 `sha256`。切换需要走 hash transition Anchor，详见 `authz/event-auth-state-resolution.md` §4.2.5。各算法 wire 形态见 `conformance/encoding.md` §3。 | Hash 算法 profile。 |
 | `anchorer` | conditional | `object` | Genesis anchorer cell 的初值；`anchor_profile` 存在时 SHOULD 指定。支持 `single_did`、`threshold`、`open_set`、`mixed`。 | 派生：当前 Anchor 授权规则。 |
 | `max_anchor_staleness_ms` | no | `integer` | Move `anchor_ref` 的 freshness 窗口。离线超过窗口的客户端必须 rebase 并重新签名。默认 24h。 | Move freshness。 |
 | `cell_lattices` | no | `array<CellLattice>` | Space-specific 扩展 cell family 的 lattice 声明；核心 cell family 由 registry 声明。 | Lattice 扩展。 |
@@ -105,51 +105,62 @@ Schema id: `cx.schema.space.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-Space kind 语义：
+产品语义（个人 / 项目 / 组织 / enclave 等）使用 `Space.fields` / `schema_refs` / `labels` 表达；安全等级使用 `security_class` 字段（`standard` / `high_assurance`，后者强制 `federation_policy != open`）。
 
-| kind | 语义 |
-| --- | --- |
-| `collaboration` | 默认协作 Space，覆盖个人、团队、项目、组织等通用语义；进一步语义通过 `Space.fields` / `schema_refs` / `labels` / `security_class` 表达。 |
-| `board` | 工作流容器 Space，用于组织 list 与 item 位置；默认 `boundary_profile=container`。 |
-| `list` | Board 下的列/泳道容器 Space，用于承载 Flow 的位置关系；默认 `boundary_profile=container`。 |
+每个 `cx:space:` ID 都直接是 security/sync/auth/E2EE 边界。授权、membership、history visibility、E2EE、federation、retention、plaintext-visible service 和 policy server 解析全部以该 Space 为根，无需运行时 dispatch。结构性容器（看板、列、泳道、calendar bucket 等）使用独立的 `cx:place:` 对象表达，不再复用 `cx:space:` 类型；详见 §4a。
 
-产品语义（个人 / 项目 / 组织 / enclave 等）使用 `Space.fields` / `schema_refs` / `labels` 表达；安全等级使用 `security_class` 字段（`standard` / `high_assurance`，后者强制 `federation_policy != open`）。未注册 `Space.kind` 值 MUST `schema_violation` 拒绝。
+## 4a. Place
 
-`boundary_profile=security_boundary` 的 Space 是复制、授权、schema、policy、membership、history visibility、E2EE 和索引边界。`boundary_profile=container` 的 Space 只提供容器 ID、排序、View / Relation anchor 和局部工作流元数据；它不得隐式创建独立 membership、join rule、history visibility、MLS group、federation topology、retention policy 或 plaintext-visible service。Profile 若允许自定义 kind 成为容器，必须显式声明 `boundary_profile=container`，并说明父安全边界如何解析。
+Schema id: `cx.schema.place.v1`
 
-### 4.1 `cx:space:` ID 处理决策树
+Place 是 Space 内部的**结构性分组对象**——看板、列、泳道、calendar bucket、document outline group 等都是 Place。Place **永远不是**安全边界：它没有自己的 membership、policy、history visibility、E2EE group 或 federation policy；授权解析透明回退到所属 Space。
 
-`cx:space:` 前缀只表示对象类型为 Space，不表示它一定是安全边界。实现收到任意 `id:space` 时，MUST 先解析该 Space 的 `kind` / `boundary_profile`，再决定授权、同步、加密和投影行为。
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:place` | 以 `cx:place:` 开头。 | Place ID。 |
+| `schema` | yes | `cx.schema.place.v1` | 固定。 | 对象 schema。 |
+| `space_id` | yes | `id:space` | MUST 指向 `cx:space:`，**MUST NOT** 指向另一个 `cx:place:`。 | 所属 Space（安全边界）。 |
+| `parent_ref` | no | `id:place` 或 `id:space` | 在结构层级中的父；可以是 `cx:place:`（如列的父是看板）或同 `space_id` 的 `cx:space:`（Place 在 Space 根）。省略表示 Space 根。 | 结构层级父。 |
+| `kind` | yes | `string` | v1 标准 kind 包括 `board`、`list`。Profile 可注册新 kind（如 `swimlane`、`calendar_bucket`、`page_group`），未注册 kind MUST `schema_violation`。 | Place 类型。 |
+| `title` | yes | `string` | 1..256 chars。 | 显示名。 |
+| `summary` | no | `string` | <= 2048 chars。 | 简短说明。 |
+| `rank` | no | `string` | 见 `encoding.md` §9。 | 在 parent 内的位置。 |
+| `schema_refs` | no | `array<string>` | 可选 schema/profile 引用，进一步约束本 Place 容纳的 Flow 类型 / fields。 | Place schema 扩展。 |
+| `fields` | no | `object` | kind-specific 字段：例如 `kind=list` 的 `wip_limit`，`kind=board` 的默认 view ref。 | 扩展字段。 |
+| `labels` | no | `array<string>` |  | 用户/系统标签。 |
+| `avatar_blob_ref` | no | `id:blob` |  | Place 图标。 |
+| `archived_at` | no | `timestamp` | 由 `cx.place.archive` reducer 设置。 | 归档时间（UI 含义）。 |
+| `tombstoned_at` | no | `timestamp` | 由 `cx.place.tombstone` reducer 设置；不可逆。tombstone 一个仍含 active Flow 引用的 Place MUST schema_violation；relocation 必须先做。 | 不可逆删除时间。 |
+| `created_by` | yes | `did` |  | 创建者。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+| `updated_by` | no | `did` |  | 最近更新者。 |
+| `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-```mermaid
-flowchart TD
-    A["Input: cx:space:*"] --> B["Load Space object or stripped/snapshot proof"]
-    B --> C{"boundary_profile present?"}
-    C -->|yes| D["Use declared boundary_profile"]
-    C -->|no| E{"standard kind?"}
-    E -->|"board/list"| F["Derive boundary_profile=container"]
-    E -->|"collaboration"| G["Derive boundary_profile=security_boundary"]
-    E -->|"custom/unknown"| H["Require profile declaration; otherwise fail closed for writes"]
-    D --> I{"security_boundary?"}
-    F --> J["Resolve nearest security-boundary ancestor"]
-    G --> K["Treat this Space as security boundary"]
-    H --> I
-    I -->|yes| K
-    I -->|container| J
-    J --> L{"ancestor verified?"}
-    L -->|yes| M["Use ancestor membership/policy/history/E2EE/federation"]
-    L -->|no| N["read-only/locked or dependency_missing"]
-    K --> O["Use this Space membership/policy/history/E2EE/federation"]
-    M --> P["Use container only for View/Relation/rank/local workflow metadata"]
+### 4a.1 Place 行为
+
+- **授权**：Place 自身不持有 capability、membership 或 policy。任何对 Place 的写入（`cx.place.create` / `cx.place.update` / `cx.place.archive` / `cx.place.tombstone` / `cx.place.parent`）的授权检查 MUST 落到所属 `space_id` 的 Space membership + capability。Place 上 `cx.flow.move` 类操作的授权检查仍由 Space 决定。
+- **同步与联邦**：Place 跟随所属 Space 同步；它**不**形成独立 federation transaction 单位。Place 的 Move 与 Anchor 共享 Space 的 anchor pipeline。
+- **加密**：Place **永远没有**自己的 MLS group。E2EE Space 中 Place 元数据（title、rank 等）按 Space 的 encryption_profile 处理。
+- **生命周期**：archive Place = UI 隐藏；tombstone Place = 不可逆删除（但 Space 与已被关联 Flow 都仍存在）。这与 archive/tombstone Space（影响成员、E2EE、history）的语义截然不同——Place lifecycle 仅影响 UI 分组。
+- **嵌套**：Place 之间可以嵌套（看板里的列），通过 `parent_ref` 表达；`cx.place.parent` event 是该字段的 reducer-input。Place 之间嵌套不得跨 Space——`parent_ref` 引用的 Place 必须 `space_id` 相同。
+- **位置**：Flow 在 Place 中的位置由 active `contains` Relation + Flow position event（`cx.flow.move` / `cx.flow.reorder`）维护，不由 Flow canonical object 自带 `place_id` 表达。`cx.flow.move` payload 使用 `target_place_id` 字段。
+
+### 4a.2 与 cx:flow:、cx:space: 的关系
+
+```text
+cx:space:01...  ← security boundary
+├─ cx:place:01...  kind=board     ← 看板（Place）
+│  ├─ cx:place:01...  kind=list   ← 列（Place）
+│  │  └─ contains → cx:flow:01...  ← Flow 通过 Relation/position event 入列
+│  └─ cx:place:01...  kind=list
+└─ cx:place:01...  kind=calendar_bucket  ← 未来扩展
 ```
 
-处理规则：
+每条 typed ID 一眼即知其角色：
 
-- 授权、membership、history visibility、E2EE、federation、retention、plaintext-visible service 和 policy server 解析必须落到 `boundary_profile=security_boundary` 的 Space。Container Space 不得单独成为这些安全决策的根。
-- Board/List 的 `space_id` 指向其父容器或父安全边界，但实现不能只跟随一跳就停止；List 的最近安全边界通常是 `Space(collaboration/project/...) -> Board -> List` 链上的第一个 security-boundary ancestor。
-- `cx.space.child` / `cx.space.parent`、Relation 或 snapshot proof 都可以帮助解析容器层级；解析结果必须验证 Move/Event 签名、Anchor frontier、Lattice state_root 和权限。
-- 若某个 `cx:space:` 缺少可验证 Space object / stripped state，客户端 MAY 显示 opaque locked reference，但 MUST NOT 推断它是 board、list 或安全边界。
-- 写入路径中，`cx.flow.move`、`cx.container.move_item`、board/list rank 更新等容器操作仍必须在最近 security-boundary Space 的 auth state 下授权，再验证目标 container 的存在、状态和关系约束。
+- `cx:space:` → 安全边界，永远是授权/E2EE/federation 决策终点。
+- `cx:place:` → 结构容器，永远透明回退到 `space_id`。
+- `cx:flow:` → 协作主对象，永远在某 `space_id` 内；位置由 Place + position relation 决定。
 
 ## 5. Actor Profile
 
@@ -176,7 +187,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 
 ## 6. Standard Objects
 
-Flow、Space 和 Message 是标准对象。Space (kind=board)/Space (kind=list) 表达工作流容器；Flow 通过 branch primary 解析规则表达协作主对象的默认入口。
+Space、Place、Flow、Message 是标准对象。Place（`kind=board` / `kind=list` / 其他 profile 注册形态）表达 Space 内部的结构容器；Flow 通过 branch primary 解析规则表达协作主对象的默认入口。
 
 ### 6.1 Flow
 
@@ -238,22 +249,16 @@ Primary branch 解析规则：
 4. 若没有显式 primary，且 profile 声明了可验证默认 branch，使用该默认 branch。
 5. 仍无法唯一确定时，Reducer MUST fail closed，要求写入 `cx.flow.branch.set_primary` 或等价修复事件。
 
-### 6.2 Space (kind=board) / Space (kind=list)
+### 6.2 Place（看板 / 列 / 泳道 / Calendar Bucket / …）
 
-Board 与 List 都是 §4 Space 的容器形态（共享同一 `cx.schema.space.v1` schema、同一 `cx:space:` ID 前缀）。它们继承 §4 全部公共字段；安全语义字段（`history_visibility` / `encryption_profile` / `federation_policy` / `default_join_rule` 等）由最近的 `boundary_profile=security_boundary` 祖先 Space 提供，**不在 board/list 自身上重复声明**。
+Place 详细定义见 §4a。这里仅提示与 Flow 的关系：
 
-只有以下字段是 board/list 形态特有：
-
-| 字段 | 适用 kind | 必填 | 类型 | 说明 |
-| --- | --- | --- | --- | --- |
-| `kind` | board / list | yes | `enum(board, list)` | 选择容器形态；其他公共字段同 §4。 |
-| `default_view_id` | board | no | `id:view` | 默认 View。 |
-| `rank` | list | no | `string` | 在父 board 内的 fractional-index 排序键。 |
-| `wip_limit` | list | no | `integer` | WIP 限制。 |
-
-Board/list 默认 `boundary_profile="container"`，省略即为该值；它们 **不形成独立 membership / history visibility / E2EE / federation / retention / plaintext-visible-service 边界**，必须解析到最近 security-boundary 祖先 Space 的有效 policy。`cx.space.child` / `cx.space.parent` 层级事件描述 board → list、parent-space → board 的从属关系。
-
-List 内 Flow 排序、WIP enforcement、card 位置必须通过 Relation 与 `cx.flow.move` / `cx.flow.reorder` 事件表达；List 本身不得被当作 Message timeline、成员房间或权限主键。
+- 看板 = `cx:place: kind=board`；列 = `cx:place: kind=list`；其他结构容器（`swimlane`、`calendar_bucket`、`page_group` 等）由 profile 注册。
+- Place 通过 `space_id` 绑定到所属 Space（安全边界），通过 `parent_ref` 表达 board → list 嵌套。
+- Place **不**继承或叠加 Space 的安全语义字段——它没有自己的 `history_visibility` / `encryption_profile` / `federation_policy` / `default_join_rule`；这些字段一律由所属 Space 提供。
+- `cx.place.parent` 是 Place 父子关系的 reducer-input event（`cas-register, bottom=reject`），保证一个 Place 至多一个 active parent。
+- List 内 Flow 排序、WIP enforcement、card 位置通过 Relation 与 `cx.flow.move` / `cx.flow.reorder` 事件表达；Place 本身不得被当作 Message timeline、成员房间或权限主键。
+- `cx.flow.move` payload 字段 `target_place_id` 指向目标 List Place；不再使用 `target_list_id`。
 
 ### 6.4 Message
 
@@ -339,8 +344,8 @@ produced, used, triggered_by, has_log, summarized_from, promoted_from_discussion
 
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
-| `contains`：`Space(kind=board) -> Space(kind=list)` | `one_to_many` | 一个 Board 可包含多个 List；同一 List 在同一安全边界内 MUST 至多有一个 active Board parent。冲突时 reducer MUST 关闭旧 parent edge 或确定性选择唯一 winner。 |
-| `contains`：`Space(kind=list) -> Flow` | `one_to_many` with board-exclusive target | 一个 List 可包含多个 Flow；同一 Flow 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_id, flow_id)`，与 `object-model-core.md` 的位置唯一性一致。 |
+| `contains`：`Place(kind=board) -> Place(kind=list)` | `one_to_many` | 一个 Board 可包含多个 List；同一 List 在同一 Space 内 MUST 至多有一个 active Board parent（由 `cx.place.parent` cas-register 保证）。 |
+| `contains`：`Place(kind=list) -> Flow` | `one_to_many` with board-exclusive target | 一个 List 可包含多个 Flow；同一 Flow 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_place_id, flow_id)`，与 `object-model-core.md` 的位置唯一性一致。 |
 | `contains`：其他对象组合 | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用，Space schema/profile MUST 声明更严格基数。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
@@ -358,11 +363,11 @@ Space schema、Space profile 或 `relation_profiles` MAY 对标准默认值收�
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `relation_kind` | yes | `string` | 被声明的 relation kind。 |
-| `from_type` | no | `string` | 起点类型约束，例如 `space:board`、`space:list`、`flow`、`message`、`morph:*` 或 `did`。 |
+| `from_type` | no | `string` | 起点类型约束，例如 `space`、`place:board`、`place:list`、`flow`、`message`、`morph:*` 或 `did`。 |
 | `to_type` | no | `string` | 终点类型约束。 |
-| `scope` | no | `enum(space, security_boundary, board, global)` | 基数和去重作用域；默认 `space`。 |
+| `scope` | no | `enum(space, place, board, global)` | 基数和去重作用域；默认 `space`。`place` 表示在某 Place 内、`board` 是 `kind=board` Place 的简写。 |
 | `cardinality` | yes | `enum(one_to_one, one_to_many, many_to_one, many_to_many)` | `one_to_many` 表示同一 `from_ref` 可有多个 `to_ref`，但同一 `to_ref` 在 scope 内最多一个 active `from_ref`。 |
-| `dedupe_key` | no | `array<string>` | 默认完整 tuple；可声明如 `["board_id", "to_ref"]`。 |
+| `dedupe_key` | no | `array<string>` | 默认完整 tuple；可声明如 `["board_place_id", "to_ref"]`。 |
 | `max_to_per_from` | no | `integer` | 每个 `from_ref` 的 active `to_ref` 上限。 |
 | `max_from_per_to` | no | `integer` | 每个 `to_ref` 的 active `from_ref` 上限。 |
 | `multi_edge` | no | `boolean` | 只有 true 时允许同一 tuple 多条 active edge。 |
@@ -482,7 +487,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
 | `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
 | `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
-| `board_id` | conditional | `id:space` | `mode="relation_container"` 时必填。 | Space (kind=board)。 |
+| `board_id` | conditional | `id:place` | `mode="relation_container"` 时必填，指向一个 `cx:place: kind=board`。 | Board Place。 |
 | `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
 | `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
 | `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |

@@ -10,7 +10,7 @@ Contrix v1 capability 使用以下 canonical resource selector 模型：
 
 - `flow` 是统一协作主对象，默认入口由 branch primary 解析规则得到，不是 selector domain。
 - `message` 总是属于某个 Flow 的 `discussion` branch。
-- `Space(kind=board)` 与 `Space(kind=list)` 是 Space 的工作流容器形态，不是独立 selector domain。
+- `Board Place` 与 `List Place` 是 Space 的工作流容器形态，不是独立 selector domain。
 - `morph` 用于开放扩展对象。
 - 跨对象类型授权才使用 `object` selector。
 

@@ -58,7 +58,9 @@
     "cx.profile.applet_service.v1",
     "cx.profile.agent_runtime.v1",
     "cx.profile.mimi_interop.v1",
-    "cx.profile.sovereign_client.v1"
+    "cx.profile.sovereign_client.v1",
+    "cx.profile.franking.v1",
+    "cx.profile.webrtc_media.v1"
   ],
   "profile_tiers": {
     "v1_profile_catalog": [
@@ -75,7 +77,9 @@
       "cx.profile.identity_registry.v1",
       "cx.profile.blob_node.v1",
       "cx.profile.push_gateway.v1",
-      "cx.profile.sovereign_client.v1"
+      "cx.profile.sovereign_client.v1",
+      "cx.profile.franking.v1",
+      "cx.profile.webrtc_media.v1"
     ],
     "v1_minimal_interop_floor": [
       "cx.profile.core_event_store.v1"
@@ -115,7 +119,14 @@
     "cx.profile.constraint.resource_limit.v1"
   ],
   "encoding_extension_profiles": [
-    "cx.profile.encoding.cbor.v1"
+    "cx.profile.encoding.cbor.v1",
+    "cx.profile.encoding.multihash.v1"
+  ],
+  "hash_extension_profiles": [
+    "cx.profile.hash.sha512.v1",
+    "cx.profile.hash.sha3.v1",
+    "cx.profile.hash.blake3.v1",
+    "cx.profile.hash_transition.v1"
   ],
   "federation_hardening": [
     "service_did_authentication",
@@ -957,6 +968,66 @@
           "audit_policy"
         ],
         "unsupported_optional": "deny bridge until explicit policy exists"
+      }
+    },
+    "cx.profile.franking.v1": {
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.sync.client_sync"
+      ],
+      "required_event_kinds": [
+        "cx.moderation.frank",
+        "cx.moderation.report"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "frank_inclusion_proof",
+        "frank_batch_endpoint"
+      ],
+      "feature_discovery": {
+        "required": [
+          "service_did",
+          "frank_signature_alg",
+          "frank_canonical_fields"
+        ],
+        "unsupported_optional": "return frank_unavailable rather than silently dropping"
+      }
+    },
+    "cx.profile.webrtc_media.v1": {
+      "required_endpoints": [
+        "cx.server.describe"
+      ],
+      "required_event_kinds": [
+        "cx.call.signal",
+        "cx.call.state"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.event.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "sfu_sframe",
+        "force_turn",
+        "per_tenant_turn_isolation"
+      ],
+      "feature_discovery": {
+        "required": [
+          "ice_servers",
+          "ttl_seconds",
+          "refresh_lead_seconds",
+          "turn_secret_rotation_window"
+        ],
+        "unsupported_optional": "return turn_credential_expired with next_retry_at"
       }
     },
     "cx.profile.sovereign_client.v1": {

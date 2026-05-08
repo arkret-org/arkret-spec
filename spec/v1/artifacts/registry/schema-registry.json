@@ -9,6 +9,10 @@
       "file": "schemas/space.schema.json"
     },
     {
+      "schema_id": "cx.schema.place.v1",
+      "file": "schemas/place.schema.json"
+    },
+    {
       "schema_id": "cx.schema.actor_profile.v1",
       "file": "schemas/actor-profile.schema.json"
     },

@@ -21,7 +21,7 @@ Contrix 采用 **principal server + signed Event + identity registry + client-si
 
 Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
-协作数据层使用 Space 作为复制与授权边界，在 Space 内直接建模 Flow、Space、Message 等标准对象；看板与列容器通过 `Space (kind=board)` / `Space (kind=list)` 表达。Morph 只承担开放扩展对象角色；其可选能力由 Space schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
+协作数据层使用 Space 作为复制与授权边界，在 Space 内直接建模 Flow、Place、Message 等标准对象；看板与列容器是独立的 Place（`cx:place:`），住在 Space 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Space schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
 
 ### 2.1 Organization / Space 边界
 

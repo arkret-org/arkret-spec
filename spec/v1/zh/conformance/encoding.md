@@ -14,7 +14,7 @@ Contrix canonical JSON 是签名、hash、event digest、receipt digest、snapsh
 
 Contrix canonical JSON MUST 使用：
 
-- UTF-8；输入若包含 malformed UTF-8、孤立 surrogate 或无法被 JSON parser 唯一解释的字符串，MUST reject。
+- UTF-8 不带 BOM；输入若包含 UTF-8 BOM（`U+FEFF` 编码 `EF BB BF`，无论出现在 stream 起始还是 string value 内部）、malformed UTF-8、孤立 surrogate 或无法被 JSON parser 唯一解释的字符串，MUST reject。`U+FEFF` 在 string value 中只允许作为 zero-width no-break space 的语义存在，但 v1 canonical JSON 不允许此用法——任何 `U+FEFF` 出现都按 schema_violation 拒绝。
 - object key 按 Unicode code point 升序排序，并在每一层独立排序。
 - 无 insignificant whitespace。
 - JSON object 中的重复 key MUST reject，不得采用“最后一个 wins”或“第一个 wins”。
@@ -26,7 +26,33 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` �
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何 v1 schema 不得新增 `type: number`（非整数）字段；遗留字段 MUST 在下一个 schema profile 升级时迁移到整数 + scale。
 
-### 2.1 备用 canonical encoding (profile-gated)
+### 2.1 String 字段的 Unicode 收紧
+
+字符串 field 的 wire 形态 MUST 满足以下约束，否则 receiver MUST `schema_violation` 拒绝：
+
+- **NFC 正规化**：所有 string value MUST 在写入 canonical JSON 前完成 Unicode NFC（Canonical Composition）正规化。生产者发送已 NFC 化字节；receiver 不得在 verify 阶段做隐式 NFC 化——若收到非 NFC 字符串，按 schema_violation 拒绝。这一条避免"看起来一样的字符串"在 hash / signature 比较时出现 false positive 或 false negative（同一可见字符可能由 precomposed 或 decomposed 序列表示）。
+- **身份相关字段进一步走 NFKC**：DID URI、handle、connection identifier、display name 用于精确匹配 / blocklist / capability subject 解析的字段 MUST 在比较前归约为 NFKC（Compatibility Composition），并对结果再做 case folding（`toCaseFold` / Unicode default case folding）。NFKC 把 compatibility-equivalent 字符（如 `ｄｉｄ：` 全角 vs `did:` 半角，`Ⅰ` vs `I`，`℗` vs `(P)`）合并到同一表示。比较 / 索引 / 黑名单匹配 MUST 在 NFKC + case folding 之后进行；wire 上仍传 NFC 原始字节。
+- **Confusables 拒绝**：handle、DID method-specific identifier、organization handle 这类与品牌 / 身份相关的 string field MUST 拒绝包含 Unicode TR 39 高风险 confusable 字符的输入。受规范的字段 MUST 使用 `IdentifierStatus=Restricted` 或更严策略：
+  - 拒绝 mixed-script identifier（拉丁 + 西里尔 + 希腊 + …）；只允许 single-script，或 single-script + ASCII digit 组合。
+  - 拒绝 TR 39 §5.1.1 列出的高风险 confusable 字符（如 `а`(U+0430 西里尔) 与 `a`(U+0061 拉丁) 同形）。
+  - 拒绝纯不可见或控制字符序列（`U+200B…U+200F`、`U+202A…U+202E`、`U+2066…U+2069` 等 zero-width / bidi override）。
+  - 实现 MUST 暴露 confusable check 为可调用 utility（见 `conformance-vectors.md` confusable test set），让客户端在创建 handle / 显示名前预检。
+
+什么字段需要走 NFKC + confusable check：
+
+| 字段 | NFC（必）| NFKC + case fold（比较时）| Confusable 拒绝 |
+| --- | --- | --- | --- |
+| DID URI | ✓ | ✓ | ✓（method-specific identifier 部分）|
+| Handle / DNS handle | ✓ | ✓ | ✓ |
+| Connection identifier（email / phone canonical 形态） | ✓ | ✓ | ✓（local part）|
+| Organization name | ✓ | ✓ | ✓ |
+| Display name | ✓ | ✓ | 仅 SHOULD（默认开启 confusable warning，用户 opt-out）|
+| Title / summary / body 等正文字段 | ✓ | — | — |
+| Schema id / event kind / cell family 等 protocol identifier | ✓ | ASCII-only（schema 已 enforce） | — |
+
+为什么把 NFKC + confusable 限定在身份相关字段而不是全字段：正文（Flow.body、Message.content）允许任何脚本混排是合理的（中文夹拉丁、阿拉伯夹希伯来），不能强制 single-script。但身份相关字段是 trust UI 决策点，必须 reject 同形字攻击。
+
+### 2.2 备用 canonical encoding (profile-gated)
 
 v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设备的 binding 时，profile MAY 引入备用 canonical encoding：
 
@@ -37,13 +63,44 @@ v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设�
 
 ## 3. Hash
 
-默认 hash:
+### 3.1 Wire 形态
+
+Contrix 所有 hash wire value MUST 形如：
 
 ```text
-sha256:<lowercase_hex_digest>
+<algo>:<lowercase_hex_digest>
 ```
 
-未来 MAY 支持 multihash，但初版 conformance MUST 支持 SHA-256。
+- `<algo>` 是 hash 算法标识符，取自下表的 v1 registered set。
+- `<lowercase_hex_digest>` 是该算法的 raw digest 的小写 hex 编码，长度由算法决定。
+- 算法、长度、编码三者**任何一项**与算法 spec 不一致 → schema_violation。
+
+### 3.2 Hash Agility Set
+
+v1 conformance 锁定的 hash 算法集合：
+
+| Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
+| --- | ---: | --- | --- |
+| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、payload_hash、Merkle leaf、state_root、blob CID、receipt hash 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；适合 v1 → v2 过渡。 |
+| `sha512` | 64 bytes（128 hex） | v1 optional；声明 `cx.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Space 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
+| `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
+| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
+
+未来 v1.x MAY 通过新的 profile 加入抗量子 hash（如 SLH-DSA hash family、SHAKE256 派生），但 v1 wire 形态 `<algo>:<hex>` 已经为这种加法准备好——**无需重写 wire**。
+
+实现 MUST：
+
+- 默认按 `sha256:` 解析；遇到未识别的 algo prefix → 若位于 critical field（payload_hash、state_root、prev_refs blob hash）→ fail closed (`unsupported_hash`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
+- 在 `server/describe.crypto` 暴露支持的 hash algo 集合；client 可据此选择写入算法。
+- 不得"算法升级"已签名的 canonical bytes：一旦 Event 用 `sha256:` 发布，verify 路径永远按 sha256 重算；不能因为本地默认换成 blake3 就重算并替换。
+
+### 3.3 State Root 与 Anchor Hash 编码
+
+`state_root`、Anchor `id`、Move `id`、receipt hash 这几条核心承诺字段的 wire 形态由所属 Space 在 create event 中通过 `hash_profile` 字段固定（默认 `sha256`）。Space 内所有后续 Anchor / Move / state_root MUST 使用同一 algo；切换需要通过 v1 → v1.x snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
+
+### 3.4 Multihash 兼容（profile-gated）
+
+声明 `cx.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<algo>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。
 
 ## 4. ID
 

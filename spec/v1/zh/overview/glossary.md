@@ -22,17 +22,19 @@ title: 术语表
 | Connection Identifier | 连接标识 | 邮箱、手机号、通讯录用户名、外部账号 ID 等用于发现、邀请或 consent 的标识；默认关系私有，不等于 Handle 或 DID。 |
 | Administrative Identifier | 管理标识 | 组织账号、计费账号、员工编号等组织本地管理标识；不能作为协议主体。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
-| Space | 协作边界 | 授权、policy、membership、history visibility、同步与真相归约的作用域。 |
-| Official Space | 官方空间 | 由组织或 policy 明确确认的 Space，不等于单纯“有官方 handle 的 Space”。 |
-| Space Hierarchy | Space 层级 | Space 之间的 parent/child 组织关系，用于导航与受控继承；不默认级联权限或历史。 |
+| Space | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Space 为根。`cx:space:` 永远是边界，不再承担结构容器角色。 |
+| Official Space | 官方空间 | 由组织或 policy 明确确认的 Space，不等于单纯"有官方 handle 的 Space"。 |
+| Space Hierarchy | Space 层级 | Space 之间的 parent/child 组织关系（通过 `cx.space.child` / `cx.space.parent` 表达），用于导航与受控继承；不默认级联权限或历史。 |
+| Place | 结构性分组对象 | Space 内部的结构容器（看板、列、泳道、calendar bucket、page group 等），ID 形如 `cx:place:`。永远没有自己的 membership / policy / E2EE group / federation policy，授权透明回退到所属 Space。 |
+| Place Hierarchy | Place 层级 | Place 之间通过 `parent_ref` + `cx.place.parent` 表达父子关系；嵌套不得跨 Space。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
 | Flow | 协作主对象 | Space 内承载协作议题、任务、正式表达与讨论分支的标准对象。 |
 | Flow primary branch | Flow 默认入口 | 按 branch primary 解析规则得到的默认 branch；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
 | Room | 讨论分支视图 | Flow 的 discussion branch 或以 discussion 为默认入口的会话视图简称。 |
-| synthesis branch | 正式表达分支 | Flow 的“synthesis”分支，承载正式状态、结构化字段与决策正文。 |
-| discussion branch | 讨论分支 | Flow 的“discussion”分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow / Space access，显式 override 时才 branch-scoped。 |
-| Space (kind=board) | 看板空间 | `type=space`，用于组织一组 Space (kind=list) 的工作容器空间。 |
-| Space (kind=list) | 列/泳道空间 | `type=space`，表示一列或泳道容器，可挂到 Space (kind=board) 并承载 Flow 成员。 |
+| synthesis branch | 正式表达分支 | Flow 的"synthesis"分支，承载正式状态、结构化字段与决策正文。 |
+| discussion branch | 讨论分支 | Flow 的"discussion"分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow / Space access，显式 override 时才 branch-scoped。 |
+| Board | 看板 | `cx:place: kind=board`，组织一组 List Place 与其他 Place 的工作流容器。 |
+| List | 列 / 泳道 | `cx:place: kind=list`，挂到 Board Place 下、承载 Flow 位置关系的列容器。 |
 | Message | 消息对象 | 发生在 Flow discussion 分支中的即时沟通与补充记录。 |
 | Morph | 开放对象 | 标准对象扩展框架，承载非固定业务类型的可声明对象。 |
 | Facet | 能力标签 | Morph/Profile 的能力提示（如 container/schedulable/renderable）。 |
@@ -66,7 +68,7 @@ title: 术语表
 | Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。 |
 | Anchor DAG | 锚点图 | 某个 Space 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `cx:cell:<component>:<subject>`。 |
-| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or-set`、`mv-register`、`cas-register`、`fsm`、`counter`、`ordered-log`。 |
+| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or-set`、`mv-register`、`cas-register`、`fsm`、`counter`、`ordered-log`、`lww-register`（仅 UI affordance）、`rga`（协作文本与有序列表）。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的 Move fail closed，`bottom=expose` 时可投影为冲突诊断。 |
 | Component / Cell Family | 组件 / Cell 族 | 跨协议版本稳定的 cell family 标识符，URI 形式 `cx.component.<facet-path>.v<n>`；registry 为 reducer-input kind 声明 `cell_family`、`lattice` 与 `bottom`。 |
 | Application State Ref | 应用状态引用 | E2EE Space 中 MLS Commit Move 引用的应用状态证明，绑定 Anchor frontier、policy/capability/membership cells 与 discussion metadata。 |

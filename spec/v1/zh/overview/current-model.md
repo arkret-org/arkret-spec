@@ -29,12 +29,13 @@ title: 当前模型说明
 
 ## 4. 工作流容器
 
-工作流容器由 `Space` 的形态承担：
+工作流容器是独立的 `Place` 对象（`cx:place:`），住在 Space 内但不形成自己的 boundary：
 
-- `Space(kind=board)`
-- `Space(kind=list)`
+- `Board Place`（`kind=board`）
+- `List Place`（`kind=list`）
+- 未来可扩展：`swimlane` / `calendar_bucket` / `page_group` / …（profile 注册）
 
-Flow 在 `Space(kind=board)` / `Space(kind=list)` 中的位置通过 `contains` relation 与 `cx.flow.move` / `cx.flow.reorder` 维护。
+Flow 在 `Board Place` / `List Place` 中的位置通过 `contains` relation 与 `cx.flow.move` / `cx.flow.reorder` 维护。Place 之间的层级用 Place 自己的 `parent_ref` + `cx.place.parent` 表达。
 
 ## 5. View 的职责
 
@@ -42,7 +43,7 @@ Flow 在 `Space(kind=board)` / `Space(kind=list)` 中的位置通过 `contains` 
 
 - 看板/列表使用 `View.kind="collection"`，再通过 renderer 表达 `board` / `list` 视图样式
 - View filter / columns / layout 变化写入 `cx.view.update`
-- 拖拽 Flow、切换 List、修改 rank 写入真实对象事件：`cx.flow.move` / `cx.flow.reorder` / `cx.space.update`
+- 拖拽 Flow、切换 List、修改 rank 写入真实对象事件：`cx.flow.move` / `cx.flow.reorder` / `cx.place.update`
 
 ## 6. 权限与成员边界
 
@@ -81,5 +82,5 @@ Contrix v1 的统一读法是：
 1. `Space` 是协作边界。
 2. `Flow` 是统一协作对象。
 3. `synthesis` / `discussion` 是 Flow 的两个标准 branch。
-4. `Space(kind=board)` / `Space(kind=list)` 是工作流形态。
+4. `Board Place` / `List Place` 是工作流形态。
 5. `View` 只做投影，不持有真实对象语义。

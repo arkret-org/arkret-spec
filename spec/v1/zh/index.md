@@ -7,7 +7,7 @@ title: Contrix Protocol
 `contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。其核心不是界面，而是“可验证协作事实 + 可投影的对象语义”：
 
 - 身份主键：DID principal
-- 数据主语：Space（含 Board/List）/ Flow / Message / Relation / Event / View / Capability
+- 数据主语：Space / Place（含 Board/List）/ Flow / Message / Relation / Event / View / Capability
 - 审计主语：signed Event + per-actor event chain
 - 权限主语：capability
 - 呈现主语：views / projection
@@ -86,7 +86,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 ### 4.3 看板与会话
 
-- 看板定义：`Space(kind=board) -> Space(kind=list) -> Flow`。
+- 看板定义：`Board Place -> List Place -> Flow`。
 - 会话定义：`Flow(discussion branch) -> Message`。
 - `cx.flow.branch.set_primary` 仅切换默认 branch，不复制对象、不迁移历史。
 - Branch 默认继承 Flow / Space 访问规则；discussion 只有显式声明 branch-scoped override 时，才成为独立成员、历史和 E2EE 边界。

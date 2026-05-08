@@ -8,7 +8,8 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 
 核心对象：
 
-- `space`（包含 Space (kind=board) 与 Space (kind=list) 子类型）
+- `space`（security / sync / auth / E2EE 边界）
+- `place`（Space 内部结构容器：board / list / 其他 profile 注册的形态）
 - `actor_profile`
 - `flow`
 - `message`
@@ -36,26 +37,22 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 
 ## 2. 基本原则
 
-### 2.1 Space 边界与容器
+### 2.1 Space 边界与 Place 容器
 
-`space` 有两种规范性 profile：
+每个 `cx:space:` 都是 security/sync/auth/E2EE 硬边界——复制、权限、schema、policy、membership、history visibility、加密、federation policy 都以它为根。Space 没有"容器形态"分支：结构性分组（看板、列、泳道、calendar bucket 等）由独立的 **Place** 对象（`cx:place:`）承担。
 
-- `boundary_profile="security_boundary"`：复制、权限、schema、policy、membership、history visibility、加密和索引的硬边界。
-- `boundary_profile="container"`：安全边界内的工作流容器，用于稳定 ID、排序、View / Relation anchor 和局部元数据；不形成独立 membership、join rule、history visibility、MLS group、federation topology 或 plaintext-visible service。
-
-标准 `Space.kind` 中，`collaboration` 默认是 `security_boundary`；`board` 和 `list` 默认是 `container`。`security_class=high_assurance` 是 `collaboration` Space 的可选标签，进一步收紧 federation policy 与默认审计/E2EE 选项。实现不得仅凭 `cx:space:` ID 前缀就假定对象一定形成新安全边界，必须按 `boundary_profile` 或由 `kind` 派生的默认值判断。任意 `cx:space:` 的处理决策树见 `data-structures.md` §4.1。
+`security_class=high_assurance` 是 Space 的可选标签，进一步收紧 federation policy 与默认审计/E2EE 选项。
 
 一个 Space 可以包含多个：
 
 - Flow
-- Board
-- List
+- Place（包括 board / list / 其他 profile 注册的结构容器）
 - Document
 - Morph
 
-Security-boundary Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成层级或图状组织，但 child security-boundary Space 仍然是独立边界。membership、capability、history visibility、schema、policy 和 encryption key 默认不从 parent 级联到 child；任何继承都必须由 child Space 显式声明。详细规则见 `space-hierarchy.md`。
+Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成 **Space-Space 层级**（每个 child 仍是独立边界）。membership、capability、history visibility、schema、policy 和 encryption key 默认不从 parent 级联到 child；任何继承都必须由 child Space 显式声明。详细规则见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
-`boundary_profile="container"` 的 Board/List 不是这里所说的独立 child security boundary。它们可以使用 `cx.space.child` / `cx.space.parent` 或 Relation 表达导航和包含关系，但授权、history、E2EE 和 federation 解析回最近的 security-boundary Space。
+Place 层级（看板嵌套、列在板内）通过 Place 自己的 `parent_ref` + `cx.place.parent` 表达，**不**与 Space-Space 层级混用。Place 嵌套必须在同一 Space 内；跨 Space 的引用走 Relation。授权、history visibility、E2EE 和 federation 解析始终回到 Place 所属 Space，**Place 永远不形成独立边界**。
 
 ### 2.2 Flow 承载主语义
 
@@ -66,9 +63,9 @@ Security-boundary Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成�
 - `flow`：统一协作主对象。它承载 `title` / `summary` / `body` 等基础字段，并通过 branch primary 解析规则决定默认进入哪个 branch。
 - `message`：Flow `discussion` branch 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
-- Space (kind=board) 和 Space (kind=list) 通过 Space 层级表达工作流容器，并管理 Flow 位置。
+- `place`：Space 内部的结构容器（`kind=board` / `kind=list` / 其他 profile 注册的形态）。Place 通过 `cx.place.parent` 表达层级，通过 `cx.flow.move` / `cx.flow.reorder` 管理 Flow 位置；Place 自身没有 membership / E2EE / federation。
 
-标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；启用 `synthesis` 的 Flow 可作为 Space (kind=board)/Space (kind=list) 管理的工作对象；启用 `discussion` 的 Flow 可作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才能承认其主语义。
+标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；启用 `synthesis` 的 Flow 可作为 Place 管理的工作对象；启用 `discussion` 的 Flow 可作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才能承认其主语义。
 
 ### 2.3 Morph 是开放对象
 
@@ -101,7 +98,7 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 - `summarized_from`
 - `promoted_from_discussion`
 
-Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `flow`、`message`、`morph`、`actor` 或 `space`（包括 Space (kind=board) 和 Space (kind=list)）。
+Relation 连接的是对象引用。标准字段使用 `from_ref` / `to_ref`，其值可以指向 `flow`、`message`、`morph`、`actor`、`place` 或 `space`。
 
 #### 2.4.1 跨 Space 引用
 
@@ -143,9 +140,9 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 - flow activity
 - review queue
 
-View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Space (kind=board) 包含 Space (kind=list)、Space (kind=list) 包含 Flow、Flow 的字段与位置、Flow `discussion` branch 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
+View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Board Place 包含 List Place、List Place 包含 Flow、Flow 的字段与位置、Flow `discussion` branch 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
 
-当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Flow 跨 List 拖拽写为 `cx.flow.move`，同 List 排序写为 `cx.flow.reorder`，修改列顺序写为 `cx.space.update`（更新 Space (kind=list) 的 `rank` 字段），改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
+当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Flow 跨 List 拖拽写为 `cx.flow.move`，同 List 排序写为 `cx.flow.reorder`，修改列顺序写为 `cx.place.update`（更新 List Place 的 `rank` 字段），改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
 
 ## 3. 通用字段规则
 
@@ -168,6 +165,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 对象 ID SHOULD 使用带类型前缀的稳定字符串：
 
 - `cx:space:<ulid>`
+- `cx:place:<ulid>`
 - `cx:flow:<ulid>`
 - `cx:message:<ulid>`
 - `cx:morph:<ulid>`
@@ -307,52 +305,49 @@ Discussion branch 规则：
 - 切换 primary branch 不会自动删除已有讨论历史。
 - 当 branch-scoped membership 与 branch-scoped E2EE 同时启用时，`cx.flow.branch.member` 的有效 frontier MUST 被对应 MLS `application_state_ref.membership_frontier` 覆盖；否则客户端只能把新 epoch 视为 `decryption_pending` / `state_mismatch`。
 
-## 8. Space (kind=board) / Space (kind=list) / Flow
+## 8. Place（看板 / 列 / 泳道 / …）与 Flow 位置
 
-Space (kind=board) 与 Space (kind=list) 是 `Space` 的工作流容器形态，使用 `cx:space:` ID，但默认 `boundary_profile="container"`。Space (kind=board) 是工作流容器；Space (kind=list) 是 Space (kind=board) 内的列/泳道；Space (kind=board) / Space (kind=list) 默认管理 Flow 的位置关系。
+Place 是 Space 内部的结构容器对象，ID 形如 `cx:place:`。看板（`kind=board`）、列（`kind=list`）、泳道、calendar bucket、page group 等都是 Place。Place 永远不形成独立 membership / policy / E2EE / federation 边界——授权、E2EE group 解析始终回到所属 Space。完整字段定义见 [`data-structures.md`](./data-structures.md) §4a；schema 见 [`place.schema.json`](../../artifacts/schemas/place.schema.json)。
 
-容器层级表达：board / list 与父 Space（或 board 与其内 list）之间的从属关系**不**通过 Space 对象上的字段表达，而是通过 `cx.space.child` / `cx.space.parent` 状态事件。`space.schema.json` 不定义 `space_id` / `parent_space_id` 字段；客户端 / reducer 派生层级时 MUST 解析这两个状态事件，并按 `models/space-hierarchy.md` 处理循环、惰性链接与 lifecycle。
+Place 层级表达：Place 之间的父子关系通过 Place 对象的 `parent_ref` 字段 + `cx.place.parent` reducer-input event 表达（cas-register, bottom=reject）。Place 嵌套不得跨 Space：`parent_ref` 引用的对象 MUST 与该 Place 的 `space_id` 相同。
 
-Space (kind=board) canonical 对象示例（独立的 Space 对象；其作为子 Space 的从属关系由父 Space 的 `cx.space.child` 状态事件表达）：
+Board Place canonical 对象示例：
 
 ```json
 {
-  "id": "cx:space:01js0bd0000000000000000000",
-  "schema": "cx.schema.space.v1",
+  "id": "cx:place:01js0bd0000000000000000000",
+  "schema": "cx.schema.place.v1",
+  "space_id": "cx:space:01js0sp0000000000000000000",
   "kind": "board",
-  "boundary_profile": "container",
   "title": "Release Board",
-  "schema_refs": ["cx.schema.space.v1"],
-  "default_discoverability": "members",
-  "default_join_rule": "invite_only",
-  "history_visibility": "joined",
-  "encryption_profile": "none",
-  "created_by_principal": "did:web:alice.example",
+  "fields": {
+    "default_view_id": "cx:view:01js0vw0000000000000000000"
+  },
+  "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
-Space (kind=list) canonical 对象示例（在父 board Space 中的位置由父 board 的 `cx.space.child` 事件 + List 内的 `rank` 字段共同决定）：
+List Place canonical 对象示例（在父 Board 内的位置由 `parent_ref` + `rank` 共同决定）：
 
 ```json
 {
-  "id": "cx:space:01js01s0000000000000000000",
-  "schema": "cx.schema.space.v1",
+  "id": "cx:place:01js01s0000000000000000000",
+  "schema": "cx.schema.place.v1",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "parent_ref": "cx:place:01js0bd0000000000000000000",
   "kind": "list",
-  "boundary_profile": "container",
   "title": "Review",
   "rank": "mV",
-  "schema_refs": ["cx.schema.space.v1"],
-  "default_discoverability": "members",
-  "default_join_rule": "invite_only",
-  "history_visibility": "joined",
-  "encryption_profile": "none",
-  "created_by_principal": "did:web:alice.example",
+  "fields": {
+    "wip_limit": 5
+  },
+  "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
 
-Space (kind=board)/Space (kind=list) 中的 Flow 示例：
+Board / List 中的 Flow 示例：
 
 ```json
 {
@@ -383,13 +378,20 @@ Space (kind=board)/Space (kind=list) 中的 Flow 示例：
 }
 ```
 
-Flow 在 Space (kind=board) / Space (kind=list) 中的位置通过 active `contains` Relation / flow position event 表达，不由 branch 决定，也不要求 Flow canonical object 自带 `board_id` 或 `list_id`。View projection 返回的 `board_id`、`list_id`、`rank` 是投影派生字段。
+Flow 在 Place 中的位置通过 active `contains` Relation / flow position event 表达，不由 branch 决定，也不要求 Flow canonical object 自带 `place_id` 字段。View projection 返回的 `board_place_id` / `list_place_id` / `rank` 是投影派生字段。
 
-**位置唯一性**：一个 Flow 在同一个 Board-Space 内 MUST NOT 同时占据多个 List-Space 的 active position edge。`(board_id, flow_id)` 是 active position edge 的去重 key。`cx.flow.move` reducer 在创建新 position edge 前 MUST 关闭同一 `(board_id, flow_id)` 下的其他 active position edge。这保证了看板视图中每个 Flow item 只出现在一个列中。
+**位置唯一性**：一个 Flow 在同一个 Board Place 内 MUST NOT 同时占据多个 List Place 的 active position edge。`(board_place_id, flow_id)` 是 active position edge 的去重 key。`cx.flow.move` reducer 在创建新 position edge 前 MUST 关闭同一 `(board_place_id, flow_id)` 下的其他 active position edge。这保证了看板视图中每个 Flow item 只出现在一个列中。
+
+`cx.flow.move` payload 字段：
+
+- `flow_id`：被移动的 Flow。
+- `target_place_id`：目标 List Place（`cx:place: kind=list`）。
+- `board_place_id`（可选）：明确目标所属 Board Place，便于 reducer 校验 `(board_place_id, flow_id)` 唯一性。
+- `rank`：移动后在目标 List 内的 rank。
 
 常见关系：
 
-- `board --contains--> list`
+- `board --contains--> list`（两端均为 Place）
 - `list --contains--> flow`
 - `flow --assigned_to--> actor`
 - `flow --depends_on--> flow`
@@ -463,7 +465,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
   "schema": "cx.schema.relation.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "relation_kind": "contains",
-  "from_ref": "cx:space:01js0bd0000000000000000000",
+  "from_ref": "cx:place:01js0bd0000000000000000000",
   "to_ref": "cx:flow:01js0cd0000000000000000000",
   "fields": {
     "rank": "mV"
@@ -550,7 +552,7 @@ View 示例：
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_id": "cx:space:01js0bd0000000000000000000",
+      "board_id": "cx:place:01js0bd0000000000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains"
     }

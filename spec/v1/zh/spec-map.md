@@ -101,7 +101,7 @@ title: Spec Map
 
 | 文档 | 内容 |
 | --- | --- |
-| `models/object-model-core.md` | Space（含 `kind=board` / `kind=list` 两种 container Space）、Actor、Flow、Message、Morph、Relation、Event、View 核心对象。 |
+| `models/object-model-core.md` | Space（security boundary）、Place（结构容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、Actor、Flow、Message、Morph、Relation、Event、View 核心对象。 |
 | `models/object-model-standard.md` | 标准对象、Morph 类型、标准 facets 与 schema evolution。 |
 | `models/data-structures.md` | 核心对象字段级定义：必填性、类型、枚举、约束和说明。 |
 | `models/views.md` | Board/List/Flow、Table、Timeline、Graph 等投影。 |

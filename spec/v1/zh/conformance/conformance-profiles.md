@@ -47,7 +47,7 @@ v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `cx.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
 - `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion branch 且可设为 primary 的 Flow、`cx.flow.branch.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
-- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 `Space(kind=board/list)`、Flow、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、客户端 Collection projection 和 wait-for query。
+- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Place（`kind=board/list`）、Flow、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、`cx.place.create`、`cx.place.update`、`cx.place.parent`、客户端 Collection projection 和 wait-for query。
 
 `minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
 
@@ -521,6 +521,62 @@ SHOULD 支持：
 - admin revoke / pause
 - per-Space bridge policy
 - Applet health and lag metrics
+
+## 19a. Franking (E2EE Abuse Reporting)
+
+`cx.profile.franking.v1` 适用于在 E2EE Space 中提供可验证投递证明的服务（典型为 Sync Service / MIMI provider facade / Principal Server）。
+
+参考：`governance/content-moderation.md` §3.4 与 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) franking 段落。
+
+MUST 支持：
+
+- 在接收 E2EE Event Envelope 时签发 `cx.moderation.frank` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim` (含 mls_group_id + epoch)、`received_by` (service DID)、`received_at`、`replay_nonce`。
+- frank `signature` 由 service DID 当前有效 verification method 签发，覆盖 frank canonical bytes。
+- 每条 frank 必须可被独立 verify：service DID Document 解析 + verification method 有效期 + Space service binding 校验 + payload hash 重算。
+- 接收 reporter 提交的 `cx.moderation.report` 时，把 frank ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
+- frank cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 frank 仍可历史验证（用历史 key state），但不签发新 frank。
+
+MUST NOT：
+
+- 在 frank 中包含明文正文、附件文件名、reply 摘录、mention 列表、私有 handle 或解密内容 hash，除非 Space policy 显式允许该字段。
+- 用 frank 单独证明明文含义——frank 只证明"该密文事件被该 service 在该时间收到"。
+- 跨 Space 复用同一 frank（`replay_nonce` 与 `space_id` 必须进 frank 签名）。
+- 在没有有效 service DID 绑定的情况下签发 frank。
+
+SHOULD 支持：
+
+- frank batch endpoint（一次 fetch 多条 frank）以减少 audit traffic。
+- frank inclusion proof：frank 可被签入定期 frank-log Merkle tree，向举报者证明"该 frank 不是后补的"。该 inclusion proof 与 Anchor state_root 独立，因为 frank 不进入 Space anchor frontier（frank 是 service-side audit material，不改变协作状态）。
+- 显式 `frank_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 frank（如 service downgrade / outage），而不是误以为消息根本未投递。
+
+## 19b. WebRTC Media Service
+
+`cx.profile.webrtc_media.v1` 适用于提供 ICE config / TURN / SFU 等 RTC 基础设施的服务。
+
+参考：[`crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md) §6–§13。
+
+MUST 支持：
+
+- ICE config endpoint，返回包含 `ttl_seconds`、`refresh_lead_seconds`、`ice_servers[]`（含 STUN / TURN）、签名的响应。
+- per-call pairwise pseudonym 作 TURN `username` 身份段；不得使用 principal DID / handle / 跨呼叫稳定 ID。
+- TURN credential REST-style ephemeral 形态（`username = <expiry-unix>:<pseudonym>`，`password = HMAC(turn_shared_secret, username)`）。
+- TURN shared secret 周期轮换（默认 ≤ 24 小时）；轮换时同时接受新旧 secret，grace ≥ `ttl_seconds`，避免 in-call 集体失败。
+- in-call credential refresh：客户端在剩余有效期 ≤ `ttl_seconds * 0.25` 时调用 refresh；server 必须在不中断现有 allocation 的前提下下发新 credential。
+- `turn_credential_expired` / `441 Wrong Credentials` / `438 Stale Nonce` 等错误的 `next_retry_at` 响应。
+- 高隐私 Space 的 `force_turn=true` mode（禁止 host/srflx candidate 泄露 IP）。
+- ICE config 响应签名（service DID detached signature 或 authenticated TLS + service DID 绑定）。
+
+MUST NOT：
+
+- 把 principal DID、handle、邮箱或跨呼叫稳定 ID 作为 TURN username。
+- 在响应中暴露除 `ice_servers[]` 之外的 Space metadata（成员数、Space ID、call topic）。
+- 在 SFU 路径透明转发未加密媒体——E2EE 通话的 audio/video 必须使用 SFrame 或等价 frame-level 加密，SFU 只看 cipher frames。
+
+SHOULD 支持：
+
+- per-tenant TURN credential 隔离。
+- 多 region failover：refresh 时返回 region-aware `ice_servers[]`。
+- credential issuance audit log（仅记录 expiry + pseudonym hash，不记录 principal binding）。
 
 ## 20. Conformance 测试要求
 

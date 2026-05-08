@@ -104,7 +104,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Child Space link",
+        "payload": "Child Space link (Space-Space hierarchy only; security boundary nesting). For Space-Place hierarchy use cx.place.parent.",
         "cell_family": "cx.component.space.child.v1",
         "cell_subject": {
           "type": "id:space",
@@ -119,7 +119,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Parent Space link",
+        "payload": "Parent Space link (Space-Space hierarchy only; security boundary nesting). For Space-Place hierarchy use cx.place.parent.",
         "cell_family": "cx.component.space.parent.v1",
         "cell_subject": {
           "type": "id:space",
@@ -606,7 +606,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow move between Lists"
+        "payload": "Flow move between Places (target_place_id in payload)"
       },
       {
         "event_kind": "cx.flow.reorder",
@@ -614,7 +614,54 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow reorder within List"
+        "payload": "Flow reorder within Place"
+      },
+      {
+        "event_kind": "cx.place.create",
+        "category": "place",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Place create (board / list / swimlane / calendar bucket / etc.)"
+      },
+      {
+        "event_kind": "cx.place.update",
+        "category": "place",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Place metadata update (title, rank, kind-specific fields)"
+      },
+      {
+        "event_kind": "cx.place.parent",
+        "category": "place",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Place parent declaration (parent is cx:space: or cx:place: within same Space)",
+        "cell_family": "cx.component.place.parent.v1",
+        "cell_subject": {
+          "type": "id:place",
+          "field": "envelope.place_id"
+        },
+        "lattice": "cas-register",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.place.archive",
+        "category": "place",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Place archive (UI-level grouping archive; contained Flows MUST be relocated or follow archive)"
+      },
+      {
+        "event_kind": "cx.place.tombstone",
+        "category": "place",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Place tombstone (irreversible; contained Flows MUST be relocated before)"
       },
       {
         "event_kind": "cx.message.create",
@@ -1390,6 +1437,10 @@
         "file": "schemas/space.schema.json"
       },
       {
+        "schema_id": "cx.schema.place.v1",
+        "file": "schemas/place.schema.json"
+      },
+      {
         "schema_id": "cx.schema.actor_profile.v1",
         "file": "schemas/actor-profile.schema.json"
       },
@@ -1829,11 +1880,18 @@
         "description": "Snapshot manifest ID"
       },
       {
+        "kind": "place",
+        "category": "core_object",
+        "status": "active",
+        "wire_form": "cx:place:<ulid>",
+        "description": "Place object ID — structural grouping object inside a Space (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Space."
+      },
+      {
         "kind": "space",
         "category": "core_object",
         "status": "active",
         "wire_form": "cx:space:<ulid>",
-        "description": "Space object ID"
+        "description": "Space object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
       },
       {
         "kind": "sync",

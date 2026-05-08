@@ -78,7 +78,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Child Space link",
+      "payload": "Child Space link (Space-Space hierarchy only; security boundary nesting). For Space-Place hierarchy use cx.place.parent.",
       "cell_family": "cx.component.space.child.v1",
       "cell_subject": {
         "type": "id:space",
@@ -93,7 +93,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Parent Space link",
+      "payload": "Parent Space link (Space-Space hierarchy only; security boundary nesting). For Space-Place hierarchy use cx.place.parent.",
       "cell_family": "cx.component.space.parent.v1",
       "cell_subject": {
         "type": "id:space",
@@ -580,7 +580,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow move between Lists"
+      "payload": "Flow move between Places (target_place_id in payload)"
     },
     {
       "event_kind": "cx.flow.reorder",
@@ -588,7 +588,54 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow reorder within List"
+      "payload": "Flow reorder within Place"
+    },
+    {
+      "event_kind": "cx.place.create",
+      "category": "place",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Place create (board / list / swimlane / calendar bucket / etc.)"
+    },
+    {
+      "event_kind": "cx.place.update",
+      "category": "place",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Place metadata update (title, rank, kind-specific fields)"
+    },
+    {
+      "event_kind": "cx.place.parent",
+      "category": "place",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Place parent declaration (parent is cx:space: or cx:place: within same Space)",
+      "cell_family": "cx.component.place.parent.v1",
+      "cell_subject": {
+        "type": "id:place",
+        "field": "envelope.place_id"
+      },
+      "lattice": "cas-register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "cx.place.archive",
+      "category": "place",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Place archive (UI-level grouping archive; contained Flows MUST be relocated or follow archive)"
+    },
+    {
+      "event_kind": "cx.place.tombstone",
+      "category": "place",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Place tombstone (irreversible; contained Flows MUST be relocated before)"
     },
     {
       "event_kind": "cx.message.create",

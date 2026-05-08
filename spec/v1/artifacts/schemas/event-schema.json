@@ -160,6 +160,31 @@
       "if": {
         "properties": {
           "kind": {
+            "enum": [
+              "cx.place.create",
+              "cx.place.update",
+              "cx.place.parent",
+              "cx.place.archive",
+              "cx.place.tombstone"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "cx.flow.reorder"
           }
         },

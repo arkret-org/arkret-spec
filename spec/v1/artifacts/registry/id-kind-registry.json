@@ -290,11 +290,18 @@
       "description": "Snapshot manifest ID"
     },
     {
+      "kind": "place",
+      "category": "core_object",
+      "status": "active",
+      "wire_form": "cx:place:<ulid>",
+      "description": "Place object ID — structural grouping object inside a Space (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Space."
+    },
+    {
       "kind": "space",
       "category": "core_object",
       "status": "active",
       "wire_form": "cx:space:<ulid>",
-      "description": "Space object ID"
+      "description": "Space object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
     },
     {
       "kind": "sync",

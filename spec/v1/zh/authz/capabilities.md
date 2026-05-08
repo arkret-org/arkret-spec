@@ -116,6 +116,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 Contrix v1 支持以下 `kind`：
 
 - `space`
+- `place`
 - `flow`
 - `message`
 - `morph`
@@ -131,7 +132,7 @@ Contrix v1 支持以下 `kind`：
 - `read_marker`
 - `blob`
 
-资源选择器应把 Space(kind=board/list)、Flow branch、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
+资源选择器应把 Place（`kind=board/list/...`）、Flow branch、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
 
 ## 5. 动作集合
 
@@ -173,6 +174,11 @@ Contrix v1 支持以下 `kind`：
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
+- `cx.place.create`
+- `cx.place.update`
+- `cx.place.parent`
+- `cx.place.archive`
+- `cx.place.tombstone`
 - `cx.container.move_item`
 - `cx.container.rebalance`
 - `cx.view.*`
