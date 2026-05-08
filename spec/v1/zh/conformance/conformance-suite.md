@@ -124,7 +124,7 @@ v1 新增以下必测项：
 
 | 标签 | 允许用途 | 必须满足 |
 | --- | --- | --- |
-| `v1.0.0` | 对外发布稳定规范基线。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结；OpenAPI、fixture 和 Markdown JSON 示例不得包含未发布占位、已移除 wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`。 |
+| `v1.0.0` | 对外发布稳定规范基线。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结；OpenAPI、fixture 和 Markdown JSON 示例不得包含未发布占位、非 active wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`。 |
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
 | `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、Move/Anchor/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；英文或其他翻译不得作为 stale source of truth 发布。 |
 

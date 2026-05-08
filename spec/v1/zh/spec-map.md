@@ -42,7 +42,7 @@ title: Spec Map
 ### 3.1 Principal / Actor / Organization
 
 - Principal 是身份根，通常由 DID 表示。
-- Actor 是 Principal 在 Space 或协作图中的行为者视图。
+- Actor 是 Principal 在 Space 或协作图中的参与身份——拥有独立的 event chain、profile 与 membership，并以该 Principal 的 key 签名行为；不是只读派生投影。
 - Organization 是一种 Principal，负责治理、签发、服务委派和官方背书。
 - Organization 不是 Space；Space 是协作数据边界。
 
@@ -101,7 +101,7 @@ title: Spec Map
 
 | 文档 | 内容 |
 | --- | --- |
-| `models/object-model-core.md` | Space、Actor、Flow、Board、List、Message、Morph、Relation、Event、View 核心对象。 |
+| `models/object-model-core.md` | Space（含 `kind=board` / `kind=list` 两种 container Space）、Actor、Flow、Message、Morph、Relation、Event、View 核心对象。 |
 | `models/object-model-standard.md` | 标准对象、Morph 类型、标准 facets 与 schema evolution。 |
 | `models/data-structures.md` | 核心对象字段级定义：必填性、类型、枚举、约束和说明。 |
 | `models/views.md` | Board/List/Flow、Table、Timeline、Graph 等投影。 |

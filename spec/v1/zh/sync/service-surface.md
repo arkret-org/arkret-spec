@@ -400,7 +400,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 - `bottom=reject` cell 的 query MUST 返回 `status:"bottom"` 与诊断；客户端 / 授权路径 MUST NOT 把 `heads` 当作 allow。
 - `bottom=expose` cell 的 query MAY 返回 `status:"conflict"` 暴露多 head 给 projection / UI；同样不得用作授权 allow。
-- `move_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.3）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Space-wide pause。
+- `move_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Space-wide pause。
 - `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
 
 `/sync` / `/events` / `/api/v1/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（位置与精确 wire 形态见 [`service-api-schema.mdx`](service-api-schema.mdx) `cx.schema.bottom.v1` 引用）。

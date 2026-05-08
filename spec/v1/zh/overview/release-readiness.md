@@ -80,7 +80,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 - `zh/` 与 `artifacts/` registry lint 通过
 - `core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema、fixture、profile 已冻结
 - OpenAPI 不得包含未发布生成器报告、占位 body 说明或 operation-level 非法字段
-- fixture 与 Markdown JSON 示例不得使用已移除的 wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`
+- fixture 与 Markdown JSON 示例不得使用非 active wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`
 
 ### 5.2 `v1-interop-preview` 实现互操作预览
 

@@ -26,7 +26,7 @@ title: 授权约束 Schema
 - `constraint_id`：可选稳定标识，用于审计、UI diff 和局部更新；未提供时，评估器可用 constraint 在 grant 内的数组位置和 canonical hash 作为诊断标识。
 - `evaluation_class`：可缓存性/依赖范围 hint，决定授权评估器能否走 fast path。每个 `constraint_type` 在 §2.3 有 canonical evaluation_class；实现 MAY 在不破坏正确性的前提下收紧（如把声明的 `grant_local` 实际当 `stateless` 缓存），但 MUST NOT 放宽（不得把 `external` 当 `stateless` 缓存）。
 
-> v1 之前曾包含 `priority` 字段（仅对 `effect=allow` 起诊断作用），现在已从 wire schema 移除。授权评估按 §15 的"任一 deny / quarantine / require_review 命中即生效"规则裁决；多条 allow 同时通过时，审计 UI 可基于 constraint id / 数组位置归因，不再需要专门的 priority 字段。
+授权评估按 §15 "任一 deny / quarantine / require_review 命中即生效" 裁决；多条 allow 同时通过时，审计 UI 基于 constraint id / 数组位置归因。
 
 ### 2.2 约束类型
 
@@ -48,7 +48,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `field_access` 带 `condition` | （任意 subtype） | extension | 启用 `condition.kind` typed predicate。 | `cx.profile.constraint.field_condition.v1` |
 | `type_restriction` | — | core | 对象类型 / Space kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Space / Flow / View / branch 范围。 | core |
-| `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围（吸收 v0 的 `container_move`）。 | `cx.profile.kanban_mvp.v1` |
+| `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `cx.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、subset_only 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `cx.profile.constraint.resource_limit.v1` |
@@ -60,8 +60,6 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `cx.profile.constraint.visibility_control.v1` |
 
 未注册的 `constraint_type` 或未注册的 `(constraint_type, subtype)` 组合 MUST fail closed。新增 family / subtype 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` 与 `subtype` enum 中注册。
-
-> v1 之前曾有 14 个独立 `constraint_type`（`approval_workflow` / `accountability` / `encryption_requirement` / `container_move` / `visibility_control` / `resource_limit` / `edit_window` / `device_session` 各自独立）。它们在 v1 被吸收到上面的 8 family 中，通过 subtype 或现有字段表达。这一收敛去掉了"types 13–15 之间互相耦合但没有清晰分界"的问题，也让 evaluation_class 表从 19 行变成 11 行。
 
 ### 2.3 evaluation_class 分类
 
@@ -91,7 +89,6 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 
 - 8 family（按 subtype 展开后约 14 行）中接近一半是 `external` / `space_state`——这是大型授权图不可整体缓存的根因。fast path（仅 `stateless` + `grant_local`）SHOULD 用于读取 marker、reaction 等低风险动作；写入与高风险动作 MUST 跑完整集合。
 - `evaluation_class` 同时承担 lint 锚点：实现声明的依赖与 canonical 不一致时，conformance lint MUST 报错。
-- v0 → v1 family 命名映射（用于翻译既有 grant）：`approval_workflow` → `claim_based{subtype=approval}`；`accountability` → `claim_based{subtype=accountability}`；`device_session` → `claim_based{subtype=device_session}`；`encryption_requirement` → `confidentiality{subtype=encryption}`；`visibility_control` → `confidentiality{subtype=visibility}`；`container_move` → `scope_limitation`（保留 `relation_kind_allow` / `allowed_from_container_refs` / `allowed_to_container_refs` / `wip_limit_override`）；`rate_limiting` → `quota{subtype=rate}`；`resource_limit` → `quota{subtype=resource}`；`edit_window` → `temporal{subtype=edit_window, applies_to_actions=["cx.message.revise"]}`。
 
 ## 3. 时间约束
 

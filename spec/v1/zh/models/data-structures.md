@@ -54,7 +54,7 @@ title: Data Structures
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
-v1 之前的 `type` 与 `metadata` 字段已移除：`type` 与 `id` typed-prefix 完全重复，对端读到 `cx:flow:...` 即可判定对象种类；`metadata` 是设计稿残留，没有任何 schema 实际定义它，扩展请走 `fields`。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
+对象种类由 `id` 的 typed prefix（`cx:flow:` / `cx:space:` / ...）唯一决定；扩展字段统一走 `fields`，由对象 `schema_refs` 约束。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
 
 ### 3.1 主体引用字段交叉对照
 
@@ -113,7 +113,7 @@ Space kind 语义：
 | `board` | 工作流容器 Space，用于组织 list 与 item 位置；默认 `boundary_profile=container`。 |
 | `list` | Board 下的列/泳道容器 Space，用于承载 Flow 的位置关系；默认 `boundary_profile=container`。 |
 
-> v1 之前的 `personal` / `project` / `organization` / `enclave` 四个 kind 已移除。前三个 reducer / boundary 行为与 `collaboration` 没有差别，仅是产品标签；`enclave` 的唯一规范差异（federation_policy 不得 `open`）已迁移到 `security_class=high_assurance` 字段。对端 MUST 把仍写作 `personal` / `project` / `organization` / `enclave` 的旧 wire 输入按 `schema_violation` 拒绝；产品语义请使用 `Space.fields` / `schema_refs` / `labels`，安全等级请使用 `security_class`。
+产品语义（个人 / 项目 / 组织 / enclave 等）使用 `Space.fields` / `schema_refs` / `labels` 表达；安全等级使用 `security_class` 字段（`standard` / `high_assurance`，后者强制 `federation_policy != open`）。未注册 `Space.kind` 值 MUST `schema_violation` 拒绝。
 
 `boundary_profile=security_boundary` 的 Space 是复制、授权、schema、policy、membership、history visibility、E2EE 和索引边界。`boundary_profile=container` 的 Space 只提供容器 ID、排序、View / Relation anchor 和局部工作流元数据；它不得隐式创建独立 membership、join rule、history visibility、MLS group、federation topology、retention policy 或 plaintext-visible service。Profile 若允许自定义 kind 成为容器，必须显式声明 `boundary_profile=container`，并说明父安全边界如何解析。
 

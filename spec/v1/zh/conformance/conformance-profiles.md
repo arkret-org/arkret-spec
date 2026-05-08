@@ -63,9 +63,7 @@ Profile 不支持某个标准能力时的默认行为：
 
 ## 2.2 场景化 Profile
 
-以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。
-
-> v1 之前命名的 chat_only_client / kanban_only_client profile 已并入 `cx.profile.chat_mvp.v1` / `cx.profile.kanban_mvp.v1`。它们的内容是后者加上"明确不实现另一闭环"的反向声明；从 v1 起，请直接声明 `chat_mvp` 或 `kanban_mvp`，并在 `rejected_event_kinds` 中列出本实现拒绝的 wire scope。
+以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。声明 `cx.profile.chat_mvp.v1` 或 `cx.profile.kanban_mvp.v1` 时，仅实现一个闭环的实现 SHOULD 在 `rejected_event_kinds` 中列出本实现拒绝的另一闭环 wire scope。
 
 ### `cx.profile.federation_minimal.v1`
 

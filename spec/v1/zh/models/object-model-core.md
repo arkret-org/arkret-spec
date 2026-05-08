@@ -30,7 +30,7 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 
 - `event_batch_receipt`（可选 batch 签名 receipt）
 
-注：v1 已移除 canonical object 上的 `type` 字段；对象种类由 `id` 的 typed 前缀（`cx:flow:` / `cx:space:` / ...）唯一决定。Schema 约束通过 `schema_refs` 字段引用和 `cx.schema.define` / `cx.schema.update` state event 管理。`policy` 既是 typed-id 前缀（`cx:policy:`）下的物化对象，也有对应 state event 形态。
+对象种类由 `id` 的 typed 前缀（`cx:flow:` / `cx:space:` / ...）唯一决定，canonical object 上没有独立 `type` 字段。Schema 约束通过 `schema_refs` 字段引用和 `cx.schema.define` / `cx.schema.update` state event 管理。`policy` 既是 typed-id 前缀（`cx:policy:`）下的物化对象，也有对应 state event 形态。
 
 字段级结构、必填性、类型和约束见 `data-structures.md`。本文保留核心模型语义和示例，具体 JSON Schema SHOULD 从 `data-structures.md` 与 `schema-registry.md` 生成。
 

@@ -14,7 +14,7 @@ title: 术语表
 | --- | --- | --- |
 | Contrix | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
 | Principal | 主体 | 协议中的稳定行为者身份；通常由 DID 标识，包含个人主体、组织、agent、Applet 等。 |
-| Actor | 主体视图 | 在 Space 中执行动作、产生 Event、持有 profile 与 membership 的可见身份表示。 |
+| Actor | 参与身份 | Principal 在 Space 内的行为身份：执行动作、产生 Event、持有 profile 与 membership；可在不同 Space 表现为 pairwise pseudonym。 |
 | Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
 | Handle | 人类可读标识 | 可迁移的人类可读入口或别名；包括 DNS handle 和外部体系 alias，不可作为协议主体或授权主键。 |

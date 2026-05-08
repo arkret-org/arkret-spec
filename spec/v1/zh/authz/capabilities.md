@@ -131,7 +131,7 @@ Contrix v1 支持以下 `kind`：
 - `read_marker`
 - `blob`
 
-资源选择器应把 Space(kind=board/list)、Flow branch、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义不再是顶层字段，应该通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。
+资源选择器应把 Space(kind=board/list)、Flow branch、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
 
 ## 5. 动作集合
 

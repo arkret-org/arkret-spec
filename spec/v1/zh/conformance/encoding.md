@@ -222,7 +222,7 @@ cx:cursor:<base64url>
 
 ### 8.2 服务端 canonical 内部结构
 
-服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 cursor 内部结构 MUST 遵循下方 schema**，目的是让客户端在 Principal Server 之间迁移时目标服务器有能力解析旧 cursor 并生成等价本地 cursor。客户端 MUST NOT 解析或修改 cursor，但**服务器侧不再是任意私有结构**。
+服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 cursor 内部结构 MUST 遵循下方 schema**，目的是让客户端在 Principal Server 之间迁移时目标服务器有能力解析旧 cursor 并生成等价本地 cursor。客户端 MUST NOT 解析或修改 cursor；**服务器侧的 cursor 内部结构必须遵循本节 schema，不得使用私有形态**。
 
 ```json
 {

@@ -123,7 +123,60 @@ effective_anchor_view(leaves):
 
 该 view 是本地纯函数，不需要签名，也不是新的 Anchor object。只有当 anchorer / committee 想压缩 Anchor DAG 时，才签发一个持久 compaction Anchor。Compaction Anchor 的 `frontier` 与 deterministic view 等价，并带有效 `anchorer_sig`。
 
-### 4.2 Anchor Batch 语义
+### 4.2 `state_root` Canonical Merkle 编码
+
+§4 rule 5 要求 `state_root` 是该 Anchor view 下所有 cell value / bottom 的 canonical Merkle root。本节锁定具体编码以保证不同实现互通。
+
+#### 4.2.1 Leaf 编码
+
+每个有过 effect 的 cell 一条 leaf：
+
+```text
+leaf_input = canonical_json({
+  "cell":  "<CellRef wire string>",
+  "state": <state_object>
+})
+leaf_hash  = sha256(leaf_input)
+```
+
+`<state_object>` 取决于 cell 当前 join 结果：
+
+| Lattice 结果 | `state_object` |
+| --- | --- |
+| `Value(v)` | `{ "value": v }` |
+| `Bottom(b)` | `{ "bottom": <Bottom canonical JSON, **省略 `anchor_view` 字段**> }` |
+
+`bottom.anchor_view` 必须省略，因为 state_root 自身已经定义于一个具体的
+Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定性。
+`bottom` 的其他字段（`kind` / `cells[]` / `move_ids[]` / `heads[]` / `details` /
+`escalated_at`）保留进 leaf——它们是该 cell 在该 view 下状态的一部分，跨 view
+可能不同，是 state_root 必须捕获的差异。
+
+#### 4.2.2 树形
+
+1. 收集该 Anchor view 下所有有过至少一次 effect 的 cell。
+2. 对每个 cell 计算 `leaf_hash`（4.2.1）。
+3. 把 `(cell_wire, leaf_hash)` 元组按 `cell_wire` Unicode code point 升序排序。
+4. 把排序后的 `leaf_hash` 列表按 RFC 6962-style binary Merkle tree 算 root：
+   - 偶数个：两两配对 `parent = sha256(left || right)`，逐层向上。
+   - 奇数个：最后一个 leaf 直接提升到上一层（**不复制**）。
+   - 单个 leaf：root = leaf_hash。
+   - 空列表：root = `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`（空字节 SHA-256）。
+5. wire 形式：`state_root = "sha256:" + lower_hex(root)`。
+
+#### 4.2.3 增量重算
+
+实现 SHOULD 缓存 cell → leaf_hash 表，在 `apply_anchor` 接受新 Anchor 后只
+重算受影响 cell 的 leaf 与所属 Merkle 分支；wire 上的 `state_root` 必须等于
+全量重算结果。
+
+#### 4.2.4 跨实现互通
+
+不同 conformant 实现处理同一 Move/Anchor 历史 MUST 产出相同 state_root。
+偏离上述编码（不同 leaf shape、不同 tree 形、不同空 list 处理）即视为
+v1 wire-incompatible，必须用独立 profile 声明。
+
+### 4.3 Anchor Batch 语义
 
 `apply_anchor(A)` MUST 按批处理语义执行：
 
@@ -140,7 +193,7 @@ assert merkle_root(post_state) == A.state_root
 
 同一 Anchor 内的 `new_moves` 视为并发批。一个 Move 不得通过读取同批另一个 Move 的 effect 满足 precondition。若需要顺序，提交方 MUST 分成多个 Anchor，或在 `refs(role="after")` 中声明并由 anchorer 按下一 Anchor 处理。
 
-### 4.3 Anchorer Cell
+### 4.4 Anchorer Cell
 
 每个 Space 有一个 anchorer cell：
 

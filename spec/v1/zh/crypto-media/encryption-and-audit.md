@@ -242,7 +242,7 @@ MLS group 的绑定层级取决于启用位置：若 Space 级 policy 声明 `en
 
 当 MLS group 绑定到 Flow discussion branch 时，`application_state_ref` MUST 同时覆盖 `flow_id` 与 `branch="discussion"`，并以有效 branch access、membership、history visibility 和 policy state 作为验证边界。
 
-**E2EE Space MUST 声明 `cx.profile.mls_state_binding.full.v1`**：v1 中所有声明 `encryption_profile="mls_rfc9420"` 的 Space 均隐式继承该 profile（`cx.profile.e2ee_client.v1` 已直接 `inherits` 它）。**该 profile 不再是 optional extension**，所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `application_state_ref`。基础 E2EE profile（仅 transcript-authenticated 而无 GroupContext extension 的实现）已废弃；早期 base profile 实现 MUST 升级。
+**E2EE Space MUST 声明 `cx.profile.mls_state_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Space 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `application_state_ref`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
 - `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员、invite/leave/ban 和设备信任 cell。
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
