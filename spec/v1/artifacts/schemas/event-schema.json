@@ -521,6 +521,7 @@
               "cx.space.policy_components",
               "cx.space.history_sharing_policy",
               "cx.space.asset_privacy_policy",
+              "cx.space.read_receipt_policy",
               "cx.space.moderation_policy",
               "cx.space.media_service",
               "cx.space.schema"
@@ -563,6 +564,7 @@
               "cx.account.status",
               "cx.flow.branch.history_visibility",
               "cx.flow.branch.policy_components",
+              "cx.flow.branch.read_receipt_policy",
               "cx.sovereign.did_policy"
             ]
           }

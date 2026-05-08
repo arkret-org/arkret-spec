@@ -6,7 +6,7 @@
 
 ## 当前状态摘要
 
-- `python tools/artifact_pipeline.py check` 当前通过: 127 event kinds、37 schemas、36 typed ID kinds、83 operations、53 profiles。
+- `python tools/artifact_pipeline.py check` 当前通过: 129 event kinds、37 schemas、36 typed ID kinds、83 operations、53 profiles。
 - `v1.0.0` 已作为稳定基线写入 `CHANGELOG.md`，active wire contract 以 `spec/v1/artifacts/registry/contract-catalog.json` 和派生 registry 为准。
 - 规范文本已迁到 `spec/v1/zh/`；根目录和下游仓库中的协议源引用已经同步到当前路径。
 - P0（规范源一致性）、P1（协议站改进）、P2（v1.1+ profile）、Move·Anchor·Lattice 重构（MAL-1..6）全部完成。Bottom diagnostics OpenAPI DTO 已落入 `contrix-service-api.openapi.yaml`。
@@ -33,6 +33,7 @@
 | MAL-5 🅿 | `[x]` | Bottom diagnostics typed schema + sync/events/state API 暴露 | `spec/v1/artifacts/schemas/bottom.schema.json`、`spec/v1/zh/sync/service-surface.md` §5.5 | 新增 `cx.schema.bottom.v1` typed schema（kind 6 种、cells/move_ids/anchor_view/heads/details/escalated_at 字段）；service-surface §5.5 documented Move state 字段 + Bottom 暴露规则。registry/lint 通过：127 event kinds、37 schemas、52 profiles。 |
 | MAL-6 🅿 | `[x]` | Anchor compaction / recovery Anchor conformance vectors | `spec/v1/artifacts/fixtures/move-anchor-lattice-fixture.json`、`spec/v1/zh/conformance/conformance-vectors.md` §2.6-2.8 | 新增 4 vector：anchorer_cell_bottom_pauses_space_until_recovery / signed_compaction_anchor_equals_effective_view / anchor_dag_genesis_and_multi_leaf_join（含 4 case 矩阵） |
 | MAL-7 🅿 | `[x]` | Bottom diagnostics OpenAPI DTO | `spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml`、`spec/v1/artifacts/schemas/client-sync-response.schema.json` | 在 OpenAPI components 加入 `BottomDiagnostic`（$ref bottom.schema.json）、`MoveStateView`（move_id+move_state+bottom 枚举）、`CellQueryEnvelope`（cell/status/value/heads/bottom）三个 typed DTO；client-sync-response 增补 `move_states[]` / `bottoms[]` 两个 typed 字段，使 §5.5 wire 形态对 codegen 可见。 |
+| RR-1 ⚠ 🔒 | `[x]` | Read Receipt policy 机器 registry 对齐 | `spec/v1/artifacts/registry/contract-catalog.json`、`spec/v1/artifacts/schemas/event-schema.json`、`spec/v1/zh/conformance/schema-registry.md` | (2026-05-08) `cx.space.read_receipt_policy`（cas-register / bottom=reject / cell_subject=null）与 `cx.flow.branch.read_receipt_policy`（cas-register / bottom=reject / composite cell_subject `envelope.flow_id`+`payload.branch`）已在 `contract-catalog.json` 登记，`event-schema.json` enum 跟进，doc registry 表追加 2 行。`python tools/artifact_pipeline.py generate` 重写 `event-kind-registry.json` / `schema-registry.json` / `id-kind-registry.json` / `operation-registry.json`，`check` 全绿：129 event kinds（127→129）、37 schemas、36 typed ID kinds、83 operations、53 profiles。仍需 SDK / soland / yougen / cotest 端的 typed model 与 fanout 行为，见根 `_todos.md` C14.B-E。 |
 
 ## 已完成（changelog）
 

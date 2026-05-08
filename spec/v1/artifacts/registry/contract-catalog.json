@@ -225,6 +225,18 @@
         "bottom": "reject"
       },
       {
+        "event_kind": "cx.space.read_receipt_policy",
+        "category": "space",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Space read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed)",
+        "cell_family": "cx.component.space.read_receipt_policy.v1",
+        "cell_subject": null,
+        "lattice": "cas-register",
+        "bottom": "reject"
+      },
+      {
         "event_kind": "cx.space.moderation_policy",
         "category": "space",
         "status": "active",
@@ -569,6 +581,24 @@
         },
         "lattice": "ordered-log",
         "bottom": "expose"
+      },
+      {
+        "event_kind": "cx.flow.branch.read_receipt_policy",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Flow discussion branch read receipt disclosure policy override (tightens parent Space policy)",
+        "cell_family": "cx.component.flow.branch.read_receipt_policy.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "envelope.flow_id",
+            "payload.branch"
+          ]
+        },
+        "lattice": "cas-register",
+        "bottom": "reject"
       },
       {
         "event_kind": "cx.flow.move",

@@ -91,6 +91,7 @@ title: Standard Event and Object Schema Registry
 | `cx.space.history_visibility` | History visibility state |
 | `cx.space.discovery` | Discoverability state |
 | `cx.space.policy` | Space policy state |
+| `cx.space.read_receipt_policy` | Space read receipt disclosure policy state |
 | `cx.space.tombstone` | Terminal Space tombstone or replacement marker |
 | `cx.space.archive` | Reversible archive state |
 | `cx.space.freeze` | Temporary freeze state |
@@ -109,6 +110,7 @@ title: Standard Event and Object Schema Registry
 | `cx.flow.branch.member` | Flow discussion branch membership |
 | `cx.flow.branch.history_visibility` | Flow discussion branch history visibility |
 | `cx.flow.branch.policy_components` | Flow discussion branch policy components |
+| `cx.flow.branch.read_receipt_policy` | Flow discussion branch read receipt disclosure policy override |
 
 ### 4.2 消息与关系
 
