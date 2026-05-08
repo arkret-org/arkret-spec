@@ -1,5 +1,7 @@
 ---
 title: 实现 Profile 与一致性要求
+sidebar:
+  label: 实现 Profile
 ---
 
 ## 1. 目标
@@ -39,7 +41,7 @@ cx.profile.<name>.v<major>
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
-Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:web`（v1 core 默认 principal method）、`did:webvh`（high-trust profile 默认）与 `did:key`。组织高保证实现 SHOULD 声明 `cx.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence。AT Protocol 互通实现 SHOULD 额外声明 `cx.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Contrix Core 强制依赖。
+Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（v1 core 默认 principal method）、`did:web`（service DID / `personal_node` profile principal）与 `did:key`。所有声明 `cx.profile.principal_server.v1` / `cx.profile.full_client.v1` / `cx.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh` witness / SCID / entry hash chain 验证。组织高保证实现 SHOULD 声明 `cx.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence 强制 threshold ≥ 1。AT Protocol 互通实现 SHOULD 额外声明 `cx.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Contrix Core 强制依赖。
 
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 

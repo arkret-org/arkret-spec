@@ -38,7 +38,7 @@ Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 
 
 这些标识是 user-facing identifier、service account id、handle、3PID 或 bridge alias；它们不是协议主键。实现接受任何持久 Event、capability grant、federation transaction、MLS membership 或 service delegation 前，MUST 将当前会话绑定到 principal DID 与 device，并按本地 trust policy 验证该绑定。
 
-如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID。Contrix v1 core 部署的默认托管 DID method 是 `did:web`（详见 §3）：Auth / Account Server 在自有域名（例如 `users.<org>.example`）下托管该用户的 DID Document。需要可验证身份历史的部署（组织治理、合规、long-lived principal）SHOULD 升级到 `did:webvh` high-trust profile（§3.3），由 Auth / Account Server 维护 `did.jsonl` 历史，并在用户后续自托管时通过 continuity proof 平滑迁移。只需要简单服务发现入口、不要求历史链的 service DID 通常使用 `did:web`。托管 DID 的 controller、recovery policy、trust domain、method-specific history 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
+如果用户尚无显式 DID，Auth / Account Server MAY 在注册、邀请认领或首次写入前为其创建受支持的托管 DID。Contrix v1 core 部署的默认 principal DID method 是 `did:webvh`（详见 §3）：Auth / Account Server 在自有域名（例如 `users.<org>.example`）下托管 `did.jsonl` 历史，并 SHOULD 接入至少一个 trusted witness。`did:web`（无历史链）仅作为 service DID 默认 method、`personal_node` deployment profile 的可选 principal method、以及 `did:webvh` hosting domain 暂时不可达时的策略允许 fallback；详见 §3.1。`did:web` 之所以不能作为 v1 core 默认 principal method，是因为它没有可审计 DID Document 历史——DNS 劫持或 TLS 证书失窃即可静默改写主体控制权而不留痕迹。托管 DID 的 controller、recovery policy、trust domain、method-specific history 和 service-account 绑定 MUST 可审计；后续协议对象仍然以 DID 作为 `actor_id`、grant `subject`、service DID 或 `verification_method` 的根。
 
 ### 2.2 DID 持久，密钥 SHOULD 可轮换
 
@@ -62,53 +62,75 @@ DID Document MUST NOT 被用作跨组织身份画像。邮箱、跨组织 handle
 
 ## 3. 默认 DID 方法
 
-Contrix v1 core 部署的 **default principal DID method 是 `did:web`**：
+Contrix v1 core 部署的 **default principal DID method 是 `did:webvh`**：
 
 ```text
-did:web:<host-and-path>
+did:webvh:<scid>:<host-and-path>
 ```
 
-选择 `did:web` 作为 v1 core 默认的原因：
+`did:web` 仅作为 **service DID 默认 method** 与 **`personal_node` deployment profile 的可选 principal method**；不得作为 `small_team` / `organization` / `high_security_organization` / `sovereign_deployment` profile 的默认 principal method。
 
-- 它是已经被 W3C DID Core 工作组广泛部署、生态成熟的 DID method。
-- 它依赖 HTTPS + 域名，部署门槛低，与现有 PKI / DNS 复用。
-- 它与 Contrix 的 service DID（service endpoint 一律有 HTTPS host）天然同构。
-- 它没有"仍在演进"的 SCID / witness / watcher 子规范带来的 wire 形态变动风险。
+选择 `did:webvh` 作为 v1 core principal 默认的原因：
 
-`did:web` 的局限是 **没有可验证的 DID 文档历史**——只能反映当前状态。需要可审计身份控制历史的部署（组织治理、合规、长期可追溯）SHOULD 选择 `did:webvh` profile（见 §3.3），它在 `did:web` 之上叠加了 `did.jsonl` history + SCID + 可选 witness 证据。
+- 它在 `did:web` 之上叠加了 `did.jsonl` 历史链 + SCID + 可选 witness 证据，提供了 **可审计的 DID 控制历史**。
+- DNS 劫持、TLS 证书失窃或域名转移在 `did:web` 上是静默的——攻击者可以替换 DID Document 而不留任何可被 verifier 检测的证据。`did:webvh` 通过 entry hash chain + controller proof + witness 让任何身份控制权变更都进入可验证账本，与 Contrix 自身 signed-event chain 范式同构。
+- 它与 Contrix 的 service DID（service endpoint 仍可使用 `did:web`）兼容，部署门槛仅比 `did:web` 多一份 `did.jsonl` 文件。
 
-> **从 v1-pre-rc 演进的兼容性**：早期文档将 `did:webvh` 列为默认 method。v1 把 v1 core
-> 的默认值收紧为 `did:web` 以降低对仍在演进规范的依赖；既有部署若已经使用 `did:webvh` 可以
-> 把它作为 high-trust profile 继续运行，无需迁移。
+为什么 `did:web` 不再是 v1 core principal 默认：`did:web` 没有可验证 DID 文档历史，攻击者控制 hosting domain 后可以把 DID Document 替换成自己的 `verificationMethod` 而 verifier 无从检测。把它作为长期 principal 默认会让协议安全模型整体退化到 DNS+TLS 强度。
 
-默认值只表示"当系统需要为新用户创建 principal DID、且用户未明确选择其他 method 时使用 `did:web`"。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、（可选的）历史验证和服务委托验证。
+> **从 v1-pre-rc 演进的兼容性**：早期 v1 草案曾把 v1 core 默认收紧为 `did:web` 以降低
+> 对仍在演进规范的依赖；该决定在威胁建模复审后被反转。现行 v1 把 principal 默认重新设定
+> 为 `did:webvh`，并把 v1 core MUST-support 范围扩展到 `did:webvh`。已经使用 `did:web`
+> 的 v1-pre-rc principal SHOULD 通过 §4.2.2 的跨 method 迁移路径升级到 `did:webvh`；在
+> 升级窗口内（默认不超过 90 天），part of v1 core compliance gate MAY 接受 `did:web`
+> principal，但 conformance 报告 MUST 标记为 `pending_webvh_migration`。
+
+默认值只表示"当系统需要为新用户创建 principal DID、且用户未明确选择其他 method 时使用 `did:webvh`"。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、（可选的）历史验证和服务委托验证。
 
 ### 3.1 Method Selection
 
 | 场景 | 默认 / 推荐 DID method | 说明 |
 | --- | --- | --- |
-| 普通个人 principal DID | `did:web` | v1 core 默认。无域名用户由 Auth / Account Server 在组织子域代为托管。需要可验证身份历史时升级到 `did:webvh`。 |
-| 组织 DID | `did:web` MUST，`did:webvh` SHOULD（high-trust） | 组织通常有域名；治理用途 SHOULD 使用 `did:webvh` 提供可验证 history chain。 |
-| Service DID | `did:web` | 服务发现天然依赖域名和 HTTPS endpoint。 |
+| 普通个人 principal DID（`small_team` / `organization` / 更高 profile） | `did:webvh` | v1 core 默认 principal method。无域名用户由 Auth / Account Server 在组织子域代为托管 `did.jsonl`。 |
+| `personal_node` profile principal DID（单人节点、低 stakes） | `did:webvh` SHOULD，`did:web` MAY | 单人自托管可降级为 `did:web`，但 deployment profile MUST 显式声明 `principal_method=did:web`。 |
+| 组织 DID | `did:webvh` | v1 core MUST-support；治理 / 合规部署强制可验证 history chain。 |
+| Service DID | `did:web` | 服务发现天然依赖域名和 HTTPS endpoint；可选升级到 `did:webvh`。 |
 | 临时主体、设备、测试、一次性邀请、bootstrap | `did:key` | 本地可解析、无网络依赖；不支持轮换 / 恢复，MUST NOT 作为默认长期身份。 |
 | 钱包 / 链上账号绑定（v1.1+ interop） | `did:pkh` | 只在钱包控制权就是业务身份根时使用；将由 chain-binding interop profile 承载，目前不属于 v1 core。 |
 | AT Protocol 互通（v1.1+ interop） | `did:plc` adapter | 仅作为 AT Protocol bridge / interop adapter；将由独立 interop profile 承载，目前不属于 v1 core。 |
-| 高可审计身份历史 | `did:webvh` | high-trust profile（见 §3.3）；适合组织治理、合规审计与长期可追溯部署。 |
-| 高安全或隔离部署 | policy 指定的现有 DID method | MAY 使用 enclave 内 `did:web`、内网 PKI、KERI 等；MUST 明确 resolver trust roots。 |
+| 高安全或隔离部署 | `did:webvh`（默认） + policy 指定的额外 method | sovereign / enclave / 内网 PKI / KERI 等可作为辅助；MUST 明确 resolver trust roots 与 witness 集合。 |
 
-### 3.2 支持要求
+### 3.2 标识域名与服务域名的解耦
+
+DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独立的标识层**，可以分别属于不同的域名甚至不同的运营方。实现 MUST NOT 假设这三者必须一致，也不得用其中一个直接推导另一个。
+
+| 标识层 | 由谁决定 | 解析/验证通道 | 示例 |
+| --- | --- | --- | --- |
+| DID 历史托管域名 | DID method 与 SCID（一旦签发即写入历史链） | `did:webvh` `did.jsonl` + entry hash chain + witness | `did:webvh:<scid>:users.acme.example` |
+| Principal Server 服务域名 | DID Document 中 `service` entry 的 `serviceEndpoint`，受组织/用户 service delegation 控制 | DID Document service binding + service DID 解析 + describe 响应 + `destination` 绑定（见 [federation.md §6](../sync/federation.md)） | `https://principal-7.cluster.acme.example:8443/api/v1` |
+| Handle 域名 | Holder 选择并通过双向验证发布 | DNS TXT / HTTPS well-known + DID Document `alsoKnownAs` 双向验证（见 [identity-handles.md §5–§6](./identity-handles.md)） | `alice.example.com`、`@alice:example.org` |
+
+要点：
+
+- DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Principal Server，也**不**是用户公开 handle。
+- 用户/组织搬迁 Principal Server、变更端口、增加 mirror、切换到第三方 host 时，正确路径是更新 DID Document 中的 service entry 并重新签发 service delegation；这条路径会进入可验证历史，不依赖 DNS+TLS 的现时强度。
+- Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `alice.example.com` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 well-known 双向验证一致。
+- [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/contrix/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；权威服务发现源仍然是 DID Document 的 service entry。
+- 实现 MUST NOT 引入"DID 字符串 → 实际服务地址"的额外带外重定向（例如类 Matrix `.well-known/matrix/server` 的间接），因为这会把信任根退化到 DNS+TLS 即时强度，与选择 `did:webvh` 而不是 `did:web` 作为 v1 core 默认 principal method 的初衷冲突（见 §3.4）。
+
+### 3.3 支持要求
 
 Contrix v1 core conformance 要求如下：
 
-- Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:web` 和 `did:key`。
-  - `did:web` 是 v1 core 默认 principal / service method。
+- Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`。
+  - `did:webvh` 是 v1 core 默认 principal method（`personal_node` profile 例外，见 §3.1）。
+  - `did:web` 是 v1 core 默认 service method；同时是 `personal_node` profile 的可选 principal method 与 `did:webvh` hosting 暂不可达时的 policy 允许 fallback。
   - `did:key` 用于测试、bootstrap、设备、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料。
-- 实现 SHOULD 支持 `did:webvh`（high-trust profile）；组织 / high-security profile MUST 支持。
 - AT Protocol interop（`did:plc` adapter）、wallet binding（`did:pkh`）、KERI 等 method 是 **v1.1+ extension interop profile**；core 实现 MAY 不支持，profile 化承载的好处是把仍在演进的子规范隔离在 core 互操作之外。
 - 实现 MAY 支持其他现有 DID method，但 MUST 保留 raw method evidence，并声明 trust profile。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Contrix 私有 DID method。
 
-### 3.3 `did:webvh` High-Trust Profile
+### 3.4 `did:webvh` 作为 v1 core 默认
 
 `did:webvh` 在 `did:web` 之上提供：
 
@@ -116,12 +138,18 @@ Contrix v1 core conformance 要求如下：
 - 可选 witness / watcher 证据
 - 与 Contrix signed-event chain 范式同构的"链式可验证"语义
 
-声称组织治理 / 高安全 profile 的部署 MUST 支持 `did:webvh` witness 验证、SCID 派生、entry hash chain 验证和 controller proof 验证。witness 不可用时 resolver MAY 在 policy 允许的范围内退化为 `did:web` 等价行为（仅当前状态，不再可信历史读取）。
+所有声称 v1 core principal_server / full_client / e2ee_client conformance 的实现 MUST 支持 `did:webvh` witness 验证、SCID 派生、entry hash chain 验证和 controller proof 验证。
+
+`did:webvh` hosting domain 暂时不可达时 resolver MAY 在 policy 允许的范围内退化为 `did:web` 等价行为（仅当前状态，不再可信历史读取），但：
+
+- 该 fallback MUST 仅用于低风险读取（已缓存对象的派生展示、本地搜索）。
+- 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation——MUST fail closed 直到 hosting 或 mirror 恢复，或走部署 policy 明确允许的替代路径。
+- Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记，让客户端 UI 显式提示用户而不是无声继续。
 
 完整 method-specific 操作（创建、轮换、恢复、deactivation、history validation）的规范见
 W3C `did:webvh` specification 与 §7.2；core v1 文档不再展开。
 
-### 3.4 v1.1+ Interop Adapters
+### 3.5 v1.1+ Interop Adapters
 
 下列 method 在 v1 core 中**不要求**实现，仅作为 interop staging profile 提供：
 
@@ -152,7 +180,7 @@ Contrix 把身份解析抽象为 `Identity Resolution Infrastructure`，而不�
 Resolver policy MUST 至少定义：
 
 - allowed methods：当前部署接受哪些 DID method。
-- default principal method：v1 core 默认 SHOULD 为 `did:web`；需要可审计身份历史的部署 SHOULD 升级为 `did:webvh`（high-trust profile）。私有组织、enclave、本地测试或 AT 互通部署 MAY 选用其他 method，但必须在 profile 中明确声明。
+- default principal method：v1 core 默认 SHOULD 为 `did:webvh`；`personal_node` profile MAY 降级为 `did:web` 但必须在 deployment profile 中显式声明 `principal_method=did:web`。私有组织、enclave、本地测试或 AT 互通部署 MAY 选用其他 method，但必须在 profile 中明确声明。
 - trust roots：webvh witness / watcher、DNS / HTTPS trust、PLC directory / mirror（仅 AT 互通）、KERI watcher、chain namespace allowlist 等。
 - method capability：该 method 是否支持 rotation、recovery、deactivation、service endpoint、historical resolution、witness evidence。
 - privacy handling：是否允许公开解析、是否需要 holder-approved proof、pairwise DID 是否禁止 directory 查询。
@@ -163,22 +191,24 @@ Resolver policy MUST 至少定义：
 
 ```json
 {
-  "default_principal_method": "did:web",
-  "allowed_methods": ["did:web", "did:webvh", "did:key"],
+  "default_principal_method": "did:webvh",
+  "allowed_methods": ["did:webvh", "did:web", "did:key"],
   "method_policy": {
-    "did:web": {
-      "role": ["principal", "organization", "service"],
-      "require_https": true
-    },
     "did:webvh": {
       "role": ["principal", "organization"],
       "require_history_chain": true,
-      "require_witness": "recommended",
+      "require_witness": "required",
       "witness_threshold": 1,
       "trusted_witnesses": [
         "did:web:witness-a.example",
         "did:web:witness-b.example"
-      ]
+      ],
+      "fallback_to_did_web": "low_risk_read_only"
+    },
+    "did:web": {
+      "role": ["service", "personal_node_principal_optional"],
+      "require_https": true,
+      "allow_principal_for_profiles": ["personal_node"]
     },
     "did:key": {
       "role": ["device", "test", "bootstrap"],
@@ -244,8 +274,8 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 一个组织 MAY 自建 Auth / Account Server，同时接受多种 DID method 的用户 DID。典型流程是：
 
-1. 用户提交 `did:web:...`（v1 core 默认）、`did:webvh:...`（high-trust profile 默认）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
-2. 组织 Auth Server 按本地 trust policy 选择 resolver。v1 core 默认 principal 解析路径是 `did:web`（HTTPS + 域名验证）；声明 high-trust profile 的部署 SHOULD 把 principal 解析路径升级为 `did:webvh`（验证 `did.jsonl` 链 + witness）；service DID 通常是 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
+1. 用户提交 `did:webvh:...`（v1 core 默认）、`did:web:...`（service DID 或 `personal_node` profile principal）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
+2. 组织 Auth Server 按本地 trust policy 选择 resolver。v1 core 默认 principal 解析路径是 `did:webvh`（验证 `did.jsonl` 链 + SCID + entry hash chain + witness）；service DID 通常是 `did:web`；`personal_node` profile MAY 降级 principal 解析路径为 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
 3. Auth Server 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
 5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Space policy 决定可访问的数据范围。
@@ -477,7 +507,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 Contrix v1 对 DID 实现要求如下：
 
-- v1 core 默认 principal DID 创建 MUST 使用 `did:web`，除非部署 policy 显式选择了另一个已有 DID method；声明 organization high-assurance / high-trust profile 的部署 MUST 升级到 `did:webvh`（见 §3.3）。
+- v1 core 默认 principal DID 创建 MUST 使用 `did:web`，除非部署 policy 显式选择了另一个已有 DID method；声明 organization high-assurance / high-trust profile 的部署 MUST 升级到 `did:webvh`（见 §3.4）。
 - Method adapter conformance tests MUST 覆盖 `did:webvh`、`did:web`、`did:key`；声明 AT Protocol interop profile 的实现 MUST 额外覆盖 `did:plc` adapter；声明 wallet interop profile 的实现 MUST 额外覆盖 `did:pkh`。
 - `did:uuid` MUST NOT 出现在规范示例、新 fixture、新一致性向量、服务 DID、actor DID、capability subject、federation transaction 或新写入的 Event 中。
 - DID proof JSON Schema MUST 与 `data-structures.md` 的 Proof 和 `encoding.md` 的 canonical JSON 规则一致。

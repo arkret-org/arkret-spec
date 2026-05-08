@@ -202,6 +202,43 @@ Policy server 不创建权限。事件必须先通过 capability authorization�
 
 Policy server MAY enforce Space-level and Organization-level blocklists, allowlists, rate limits, abuse reputation and content risk labels. It MUST NOT inspect personal blocklists unless the holder explicitly uses a private policy service under their control.
 
+### 7.1 Moderation State 必须进入 Anchor Frontier
+
+Policy server decision 是 out-of-band 的签名决策，本身不进入 Space anchor frontier。只有 `allow` 与 `soft_deny`（仅阻止 default client 提交）可以仅在本地或 fast path 上生效；任何会改变其他 peer 对事件可见性、可写性、可分发性判断的 decision——`hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入协议状态。否则不同 Principal Server 在同一 Space 上对同一事件作出不一致决策，会形成跨 peer 的 split-brain：A 把消息 quarantine 隐藏，B 直接 allow，两边客户端看到的 Space 状态从此分叉。
+
+为此 v1 引入 `cx.component.moderation_state.v1` cell family：
+
+- `cell_family = cx.component.moderation_state.v1`
+- `cell_subject` = `target_event_id` 或 `target_object_id` 的 canonical 字符串。
+- `lattice = or-set`，`bottom = expose`。每个 add tag 形如 `<decision_kind>:<issuer_did>:<request_canonical_hash>`，确保不同 issuer 的同类决策可以并存且幂等。
+
+对应 wire event：
+
+- `cx.moderation.decision` — 由持有 `cx.space.moderate` 或 `cx.policy.manage` 的 actor 签发的 Move，在 `cx.component.moderation_state.v1:<target>` cell 上写一个 `or-set add` effect。
+- `cx.moderation.decision.lift` — 在同一 cell 上写 `or-set remove` effect，针对此前 add 的 tag。
+- 两者的 `auth_refs` SHOULD 引用对应 policy server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。policy server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `cx.space.moderate` 或 `cx.policy.manage`。
+
+Reducer 与所有读路径 MUST：
+
+- 在 reducer 的 `apply_anchor` 阶段把 moderation state cell 的当前 value 暴露给后续 Move 的 precondition 与 query / projection executor。
+- 对包含 `quarantine` / `hard_deny` 决策的目标，禁止派生层（search、inbox、notification、view）按未 quarantine 处理；命中时返回 `moderated_hidden` 占位符或省略，并保留 audit trail。
+- 对包含 `require_review` 决策的目标，按 review proposal 状态机展示，不允许默认渲染。
+- `cx.moderation.decision.lift` 解除决策时，受影响的 search / projection cache MUST 立即重算。
+
+Policy server fast path 与 anchored decision 的关系：
+
+- Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `cx.moderation.decision` Move 到该 Space 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
+- 若 origin 节点 24 小时内（或 Space policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `cx.space.moderate` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
+- Receiver 节点收到 fast-path quarantine signaling（policy server 签名）但无对应 anchored Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_pending_anchor` 并在 anchored decision 抵达后切换显示。
+
+### 7.2 错误码与 reason_code 扩展
+
+引入 anchored moderation state 后，`reason_code` 集合扩展：
+
+- `moderation_anchor_pending` — fast-path quarantine 已记录，但 anchored Move 未到达。
+- `moderation_anchor_lifted` — 此前 anchored quarantine 已被 `cx.moderation.decision.lift` 解除。
+- `moderation_anchor_split` — moderation cell 在当前 anchor view 下出现 ⊥（或 expose 多 head）；UI 应显式提示而不是默默选 winner。
+
 ## 8. Antifraud Mapping from Server Abuse Practice
 
 服务端中对“开放联邦入口”“垃圾泛滥”“地址枚举”“内容扫描”“重放放大”的常见防护可直接映射到策略服务：

@@ -1,5 +1,7 @@
 ---
 title: Sovereign Deployment and Controlled Collaboration
+sidebar:
+  label: Sovereign Deployment
 ---
 
 ## 1. 目标

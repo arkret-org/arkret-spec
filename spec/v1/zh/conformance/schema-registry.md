@@ -1,5 +1,7 @@
 ---
 title: Standard Event and Object Schema Registry
+sidebar:
+  label: Schema Registry
 ---
 
 ## 1. 目标与真源

@@ -1,5 +1,7 @@
 ---
 title: WebRTC Calls and Meetings
+sidebar:
+  label: WebRTC Calls
 ---
 
 ## 1. 目标

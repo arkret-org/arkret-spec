@@ -4,6 +4,12 @@
   --cx-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
     monospace;
 
+  /* Roomier docs sidebar than Starlight's default 18.75rem so multi-word
+   * item labels (e.g. "Encoding, IDs, Hashes, Signatures") fit on one
+   * line. Mobile sidebar fills the viewport so this only affects desktop
+   * (>= 50rem) where the sidebar is permanently visible. */
+  --sl-sidebar-width: 22rem;
+
   /* Match the prose column to the SiteNav width so the main reading
    * area on docs pages spans the same horizontal band as the header
    * menu — `--cx-max` is defined in marketing.css. */
@@ -11,10 +17,8 @@
 
   /* Cap the entire docs grid at "left sidebar + prose + right TOC" so
    * the prose column lands centered between two equally-wide columns
-   * and aligns horizontally with the SiteNav above. With sidebar/TOC
-   * each = `--sl-sidebar-width` (18.75rem) and prose = `--cx-max`,
-   * total = cx-max + 2 * sidebar-width = 1780px on the default theme.
-   * Beyond that, symmetric outer gutters absorb the remaining viewport. */
+   * and aligns horizontally with the SiteNav above. Beyond that,
+   * symmetric outer gutters absorb the remaining viewport. */
   --cx-docs-max: calc(var(--cx-max, 73.75rem) + 2 * var(--sl-sidebar-width));
 }
 

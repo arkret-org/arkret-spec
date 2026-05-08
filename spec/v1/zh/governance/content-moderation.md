@@ -34,6 +34,10 @@ Contrix 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过
 - 有 capability 时，Space / Organization / Service policy MAY deny、quarantine 或 require review。
 - 个人 block 只影响个人客户端体验，不能替 Space 删除其他成员可见的事实。
 
+### 2.5 Moderation 决策 MUST Anchored
+
+任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入 `cx.component.moderation_state.v1` cell，详细规则见 [`authz/policy-server.md` §7.1](../authz/policy-server.md)。Policy server signed decision 与个人 blocklist 仍是 out-of-band，不进入该 cell。这避免不同 Principal Server 对同一事件做出不一致 quarantine / allow 决策导致跨 peer 视图分叉。
+
 ## 3. 内容举报 (Report)
 
 ### 3.1 举报操作

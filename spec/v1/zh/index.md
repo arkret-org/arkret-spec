@@ -69,8 +69,8 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - `principal_id = DID URI`，Handle 只作为可迁移的人类可读入口。
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
-- **v1 core 默认 principal DID method 为 `did:web`**：HTTPS + 域名，部署门槛低，与现有 PKI 兼容。需要可审计身份历史的部署 SHOULD 升级为 `did:webvh` (high-trust profile)。
-- 组织 / 高要求场景 SHOULD 使用 `did:webvh` 提供可验证身份历史（high-trust profile）；service DID 使用 `did:web`。
+- **v1 core 默认 principal DID method 为 `did:webvh`**：在 `did:web` 之上叠加 `did.jsonl` 历史链 + SCID + witness evidence，提供可审计的 DID 控制历史，抵御 DNS / TLS 单点失陷。
+- `did:web` 仅作为 **service DID 默认 method**、**`personal_node` deployment profile 的可选 principal method**、以及 `did:webvh` hosting 暂时不可达时的策略允许 fallback；不得作为 `small_team` / `organization` / 更高 profile 的默认 principal method。
 - 临时、测试、设备、邀请、bootstrap 使用 `did:key`；不得作为默认长期主身份。
 - 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 v1.1+ extension interop profile，不属于 v1 core 互操作。
 - DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。

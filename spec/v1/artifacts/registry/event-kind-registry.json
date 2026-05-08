@@ -1197,6 +1197,22 @@
       "payload": "Moderation franking proof"
     },
     {
+      "event_kind": "cx.moderation.decision",
+      "category": "moderation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Anchored moderation decision (writes cx.component.moderation_state.v1 cell)"
+    },
+    {
+      "event_kind": "cx.moderation.decision.lift",
+      "category": "moderation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Lift a previously anchored moderation decision"
+    },
+    {
       "event_kind": "cx.read.marker",
       "category": "read",
       "status": "active",

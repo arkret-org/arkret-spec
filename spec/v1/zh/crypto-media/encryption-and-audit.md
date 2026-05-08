@@ -1,5 +1,7 @@
 ---
 title: Encryption and Auditability
+sidebar:
+  label: Encryption & Audit
 ---
 
 ## 1. 目标

@@ -1,5 +1,7 @@
 ---
 title: Snapshot, Chunk, and Encrypted Envelope Schema
+sidebar:
+  label: Snapshot & Envelope
 ---
 
 ## 1. 目标

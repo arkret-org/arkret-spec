@@ -1,5 +1,7 @@
 ---
 title: Encoding, IDs, Hashes, Signatures
+sidebar:
+  label: Encoding & IDs
 ---
 
 ## 1. 目标

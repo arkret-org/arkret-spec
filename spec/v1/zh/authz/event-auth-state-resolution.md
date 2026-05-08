@@ -1,5 +1,7 @@
 ---
 title: Event Auth、Move/Anchor/Lattice 与状态收敛
+sidebar:
+  label: Event Auth & State
 ---
 
 ## 1. 目标
@@ -51,7 +53,7 @@ Move {
 1. `id` 由 canonical bytes 派生，MUST 覆盖 `issuer`、`space_id`、`preconditions`、`effects`、`anchor_ref`、`refs` 与 `hlc`。`sig` 本身 MUST NOT 进入 canonical bytes（它是对 canonical bytes 的签名）。`space_id` 必须进入以防止跨 Space 重放。
 2. `preconditions[]` 与 `effects[]` 是 set；同一 Move 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Move FAIL，不能部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 Move 不存在）。
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Space 声明的 `max_anchor_staleness_ms`。
-4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_move`、`after`、`recovery_capability`。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。
+4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_move`、`after`、`recovery_capability`、`state_witness`（§8.1，conflict recovery Move 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Move 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
 6. Move 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Move issuer 层表达。
 
@@ -475,14 +477,43 @@ Move {
     (cell, set decision)
   ],
   refs: [
-    (recovery_capability, role="authorized_by")
+    (recovery_capability,        role="authorized_by"),
+    (pre_conflict_state_witness, role="state_witness", critical=true),
+    (snapshot_inclusion_proof,   role="inclusion_proof", critical=true)
   ]
 }
 ```
 
 修复权威来自冲突前 effective state 中的 governance / recovery capability。不得用冲突候选本身声明的新 policy、new anchorer 或 new admin 来授权修复。
 
-长时间未修复的 `⊥` 不会自动选 winner。Space MAY 声明 `bottom_escalation_after_ms`；超时后，客户端和服务端应提示 emergency recovery quorum，但仍需普通 Move + Anchor 生效。
+### 8.1 Pre-conflict State Witness 强制要求
+
+`open_set` 与 `threshold` Anchor profile 下，多个 verifier 在 ⊥ 发生瞬间持有的"冲突前 effective state"可能不同——peer A 的 state_root 与 peer B 的 state_root 可能源自不同的 Anchor leaf 子集。如果允许 recovery Move 仅口头引用"冲突前 effective state"，攻击者就可以选择对自己有利的 anchor view 子集来"证明"自己持有 recovery_capability，于是同一 ⊥ 出现两条互斥的修复 Move。这种攻击在 v1.0 之前的 §8 设计下没有防护手段。
+
+为此，conflict-recovery Move MUST 显式提供两条 critical refs，否则 receiver MUST `failed_precondition` 拒绝：
+
+1. **`pre_conflict_state_witness`** — 一个签名 snapshot 或 signed compaction Anchor 的 id，满足：
+   - 它来自冲突 cell 进入 ⊥ 之前的 Anchor view（即该 witness 所引用 frontier 不包含触发冲突的任一 sibling Move）。
+   - 它由 Space 当前 anchorer cell value 授权的签名者签发（`single_did` / `threshold` / `open_set` 的 anchorer rule）。
+   - 它的 `state_root` 中包含 recovery_capability 所授权的 cell value。
+
+2. **`snapshot_inclusion_proof`** — 一个 RFC 6962 风格的 Merkle inclusion proof，证明：
+   - 引用的 `recovery_capability` grant cell value 真实属于 `pre_conflict_state_witness.state_root`（而不是攻击者本地伪造的 effective view）。
+   - Inclusion proof 的 leaf 编码 MUST 按 §4.2.1 锁定的 leaf shape 计算（`canonical_json({"cell": "<CellRef>", "state": <state_object>})`）。
+   - Proof path 的 sibling hash 序列 MUST 能重算出与 `pre_conflict_state_witness.state_root` 完全相同的 root。
+
+Receiver 在 verify_move(M) 时，对 critical role ∈ {`state_witness`, `inclusion_proof`}：
+
+- 若 ref 缺失或签名无效 → `failed_precondition`（`reason="recovery_witness_missing"`）。
+- 若 inclusion proof 不能重算出 witness 的 `state_root` → `failed_precondition`（`reason="recovery_witness_invalid"`）。
+- 若 witness frontier 与触发 ⊥ 的 sibling Move 之一存在因果路径（即 witness 不在冲突前）→ `failed_precondition`（`reason="recovery_witness_post_conflict"`）。
+- 若 witness 的 state_root 不包含 recovery_capability cell 或包含的 cell value 与 grant 引用不一致 → `failed_precondition`（`reason="recovery_capability_not_anchored"`）。
+
+`single_did` Anchor profile 下，由于 anchor view 全网唯一，该机制等价于自然成立——但 wire 上仍 MUST 携带 witness ref，便于审计回放。这避免实现因为"现在用的是 single_did 就跳过校验"而在未来 anchorer 升级到 `open_set` 时无声留下盲区。
+
+### 8.2 ⊥ 升级与 emergency recovery
+
+长时间未修复的 `⊥` 不会自动选 winner。Space MAY 声明 `bottom_escalation_after_ms`；超时后，客户端和服务端应提示 emergency recovery quorum，但仍需普通 Move + Anchor 生效，并仍 MUST 满足 §8.1 的 witness + inclusion proof 要求。emergency recovery quorum 的特殊之处仅在于 capability `subject` 由 genesis 声明的 emergency role 担任，而不在于跳过证据要求。
 
 ## 9. 部署 Profile
 
@@ -540,7 +571,7 @@ Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须�
 | --- | --- | --- |
 | `pending_anchor` | Move 已通过本地初检，等待 Anchor。 | — |
 | `effective` | Move 被已接受 Anchor frontier 覆盖，并已进入 state_root。 | — |
-| `failed_precondition` | Move 在 Anchor batch pre-state 下 precondition 不成立。 | — |
+| `failed_precondition` | Move 在 Anchor batch pre-state 下 precondition 不成立；包括 conflict-recovery Move 缺失或无效的 `state_witness` / `inclusion_proof` ref（§8.1）。`reason` 字段细分 `recovery_witness_missing` / `recovery_witness_invalid` / `recovery_witness_post_conflict` / `recovery_capability_not_anchored`。 | — |
 | `failed_bottom` | Move 依赖 `bottom=reject` 的 cell。 | 由 §5.1 中对应的 kind 触发（如 `conflict`、`invalid_transition`、`schema_error`）。 |
 | `rejected_anchor` | Anchor 签名、单调性、Move batch 或 state_root 校验失败。 | — |
 | `anchorer_paused` | anchorer cell 为 `⊥`；Space-wide Anchor 推进暂停，只允许 recovery Anchor。 | `anchorer_split`（§5.1）。 |

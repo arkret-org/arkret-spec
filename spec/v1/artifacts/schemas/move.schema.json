@@ -196,11 +196,42 @@
         },
         "role": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Common roles include authorized_by, attestation, parent_move, after, recovery_capability, state_witness, inclusion_proof. state_witness/inclusion_proof are critical for conflict-recovery Moves; see event-auth-state-resolution.md §8.1."
         },
         "critical": {
           "type": "boolean",
           "default": true
+        },
+        "proof": {
+          "type": "object",
+          "description": "Optional inline proof material. Used for inclusion_proof role: carries the RFC 6962-style Merkle audit path that proves a leaf belongs to a witness state_root. May be omitted when id alone is a content-addressed reference to a separately stored proof object.",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "rfc6962_merkle"
+              ]
+            },
+            "leaf_hash": {
+              "$ref": "#/$defs/hash"
+            },
+            "audit_path": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/hash"
+              }
+            },
+            "leaf_index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "tree_size": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

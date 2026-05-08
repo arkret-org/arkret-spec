@@ -207,6 +207,8 @@ Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation �
 - `cx.invite.revoke`
 - `cx.invite.*`
 - `cx.approval.vote`
+- `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
+- `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）
 
 ### 5.5 服务动作
 
@@ -513,7 +515,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 规则：
 
-- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Space lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。
+- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Space lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点本地 reducer 在 `apply_anchor` 完成的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**不得**作为延迟标记 stale 的理由。
 - Cache entry 的 `auth_state_hash` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；不得继续用旧 grant 允许新写入。
 - 已被 GC 的 grant 仍必须保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现不得因为 grant payload 已压缩或归档而让旧 cache 重新生效。
 - `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态不得生成 allow cache；只能生成 deny / unknown / pending 诊断。
@@ -521,11 +523,32 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 ### 18.2 撤销新鲜度 (Revocation Freshness)
 
-高风险动作（例如 `cx.space.lifecycle.destroy`、`cx.capability.revoke`、`cx.space.admin`、E2EE key export、legal hold bypass）的授权判定 MUST 验证相关 grant 的撤销状态新鲜度：
+授权判定要回答两个问题：①当前已同步的 frontier 下，subject 是否被 grant？②该 frontier 是否足够新，以至于"还没看到的 revoke"概率足够低？open_set / threshold anchor profile 下 ②不能凭单节点状态独立断言——必须显式建模 freshness 不确定性。
 
-- 判定节点 MUST 确认其已同步到包含该 grant 最新 revoke event 的因果前沿。
-- 若判定节点无法确认前沿新鲜度（例如 sync lag、分区、frontier 不可达），MUST 按以下策略之一处理：(a) soft-fail，拒绝该操作并返回 `revocation_freshness_unknown`；(b) fail closed，拒绝操作。
-- 低风险高频动作（`cx.message.create`、`cx.reaction.add`）的 revoke freshness 由 fast path 缓存 TTL 保证；缓存过期时 MUST 回退到完整判定链路。
+**Freshness 状态分级**：节点对自己当前 frontier 的新鲜度判定 MUST 落入以下三个状态之一：
+
+- `fresh`：节点已观察到 anchor frontier 更新时间在 `freshness_required_ms` 窗口内，或持有 ≥1 受信 anchorer / witness 在该窗口内签发的 frontier attestation。
+- `stale`：上一次 anchor frontier 更新或受信 attestation 超出 `freshness_required_ms` 窗口，但仍小于 `freshness_hard_limit_ms`。
+- `unknown`：节点处于网络分区、frontier 来源不可达、anchorer 长时间无新签发，或本地时钟与受信时间源 drift 超出 `clock_skew_tolerance_ms`。
+
+**`freshness_unknown` ≠ allow**：当判定的状态是 `stale` 或 `unknown` 时，节点 MUST 按动作风险等级强制降级，绝不能因"找不到 revoke 证据"就默认为"未撤销"：
+
+| 动作风险等级 | `fresh` | `stale` | `unknown` |
+| --- | --- | --- | --- |
+| 高风险（`cx.space.lifecycle.destroy`、`cx.capability.revoke`、`cx.space.admin`、`cx.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
+| 中风险（`cx.flow.update`、`cx.member.state`、`cx.invite.create`、跨 Space relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
+| 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read.marker`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | allow（fast path），但 MUST 在恢复 fresh 时重放校验最近 `unknown` 窗口期内的写入；任何被发现 invalid 的写入 MUST 通过 redaction / tombstone 收敛 |
+
+实现 MUST：
+
+- 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。默认值：高风险 `freshness_required_ms = 30_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`；clock_skew_tolerance_ms = 60_000。
+- 在 `unknown` / `stale` 拒绝响应中返回 `freshness_state`、`last_known_frontier_age_ms`、`anchorer_status`、`retry_after_ms`，让客户端 UI 区分"被拒绝"和"暂时不能确认"。
+- 不得用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_hash` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
+- 不得通过把高风险动作降级为中风险（例如把 `cx.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 capability action canonical registry 声明，不接受 grant-side override。
+
+**默认 fail closed**：当实现无法确定动作风险等级、或动作来自尚未注册的 capability action 时，freshness 判定 MUST 默认按高风险处理（`stale` / `unknown` 即拒绝），而不是按低风险放行。这条 default 是为了让任何未来引入的高风险动作在进入 capability registry 前不会被旧实现误判为低风险路径。
+
+低风险高频动作的 `unknown` 重放规则不得被滥用：实现 MUST 限制单个分区窗口内允许的 `unknown`-allowed 写入数量（默认 ≤ 1000 / Space / 5 minutes），超过后整体降级为 `stale`-rules（即低风险也开始 fail closed）。这避免了攻击者通过故意制造网络分区来累积大量"无人能 revoke 的写入"。
 
 ## 19. 设计决定
 

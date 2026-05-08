@@ -142,44 +142,73 @@ Unknown actor profile lookup in a shared Space is allowed only to the extent req
 
 ## 6. Private Contact Discovery
 
-通讯录式发现比普通目录搜索更敏感。实现 MAY 支持 `cx.private_contact_discovery.v1`，用于在不上传明文通讯录、不让目录服务同时看到 requester DID 与目标 connection identifier 的前提下发现可联系主体。
+通讯录式发现比普通目录搜索更敏感。实现 MAY 支持 `cx.private_contact_discovery.v1`，用于在不上传明文通讯录、不让目录服务同时获得 requester DID 与目标 connection identifier 的前提下发现可联系主体。
 
-Profile 目标：
+### 6.1 Profile 目标
 
 - Discovery Provider 不应同时获得 requester 的稳定 DID 和原始邮箱/手机号/用户名。
 - 请求应使用 batch、padding、rate limit 和 time-bound proof，避免逐个枚举。
 - 发现结果应返回最小可联系材料，而不是完整 profile 或关系图谱。
+- 协议 MUST 定义"private discovery 能回答什么"——并显式声明不能回答什么——避免实现私自扩展导致隐私退化。
 
-推荐流程：
+### 6.2 v1 core 形态：Set-Membership PSI（双轮 OPRF）
 
-1. 客户端本地规范化 connection identifier，并计算 blinded token。
-2. 客户端通过匿名化传输、代理或与身份分离的 session 向 Discovery Provider 提交 blinded batch。
-3. Provider 对可发现条目返回 time-bound signed reachability proof。
-4. 客户端只在用户确认联系或发起邀请时，才向目标 provider 披露自己的 DID、pairwise DID 或 presentation。
+v1 core `cx.private_contact_discovery.v1` profile 明确限定为 **set-membership PSI**：客户端只能问"我已知的 connection identifier 集合中，哪些在 provider 的可联系集合内？"，回答严格是布尔位图，不附带任何额外 reachability claim、profile 或 metadata。
 
-请求形态（非完整 schema）：
+实现 MUST 使用基于 OPRF（Oblivious Pseudorandom Function）的两轮协议（推荐 RFC 9497 VOPRF 或 Signal CDSI 风格）：
+
+1. **Round 1 — Blind**：客户端按 RFC 9497 OPRF 流程对每个本地 connection identifier 计算 `blind = OPRF.Blind(identifier_canonical_bytes)`；提交 `{batch_id, blinded[]}` 给 provider。Provider 对每个 `blinded[i]` 用其 OPRF secret key 计算 `evaluation[i] = OPRF.BlindEvaluate(sk, blinded[i])` 并返回。Provider 看不到 raw identifier；客户端 unblind 后得到 `derived[i]`。
+2. **Round 2 — Match**：客户端在第二个独立请求中提交 `{batch_id, derived_hash_prefix[]}`（每条发送 derived 的固定前缀，长度由 provider 在第一轮响应中声明）。Provider 仅在自己的 OPRF-evaluated 可联系集合中按前缀比较，返回固定基数（dummy padding 到 batch size）的命中位图。
+3. **披露**：客户端只在 user 在 UI 中显式确认联系或发起邀请时，才向目标 principal 的 provider 披露自己的 DID、pairwise DID、presentation 或 connection identifier 原文。该披露走 §6 / consent-model 的 invite + consent 流程，不在 PSI 协议范围内。
+
+OPRF 选择：
+
+- v1 core 强制要求 RFC 9497 VOPRF（验证 OPRF），ciphersuite 至少包含 `OPRF(ristretto255, SHA-512)`。
+- Provider OPRF secret key MUST 周期轮换（默认 ≥ 7 天 / ≤ 90 天）；轮换后客户端持有的 derived 缓存自动失效，避免长期跨域关联。
+- Provider MUST 在 `server/describe.discovery` 暴露当前 ciphersuite、key epoch、batch size / padding 上限。
+
+### 6.3 请求形态（非完整 schema）
+
+第一轮（blind）：
 
 ```json
 {
   "profile": "cx.private_contact_discovery.v1",
+  "phase": "blind",
   "batch_id": "cx:batch:01JS...",
-  "blinded_identifiers": ["base64url...", "base64url..."],
-  "padding_count": 128,
-  "accepted_result_types": ["reachable", "invite_only"],
-  "proof_request": {
-    "audience": "did:web:directory.example",
-    "expires_at": "2026-04-30T00:10:00Z"
-  }
+  "ciphersuite": "OPRF-ristretto255-SHA512",
+  "key_epoch": 14,
+  "blinded_elements": ["base64url...", "base64url..."],
+  "padding_count": 128
 }
 ```
 
-规则：
+第二轮（match）：
 
-- Raw email、phone number、address-book label、local contact name 和未加盐低熵 hash MUST NOT 被发送给公共 Directory。
-- Provider 返回的 proof MUST 绑定 blinded identifier、issuer service DID、expiry、result type 和 anti-replay nonce。
-- Private discovery 结果只证明“可尝试联系”或“可发起 consent/invite”，不得自动证明 handle verified、组织成员资格、Space membership 或读取权限。
-- Provider MUST 对 batch 大小、失败响应、计时和 result cardinality 做反枚举处理；不存在、不可发现和 policy-denied SHOULD 保持相同响应形态。
+```json
+{
+  "profile": "cx.private_contact_discovery.v1",
+  "phase": "match",
+  "batch_id": "cx:batch:01JS...",
+  "key_epoch": 14,
+  "derived_prefixes": ["base64url-16bytes...", "base64url-16bytes..."]
+}
+```
+
+### 6.4 规则
+
+- Raw email、phone number、address-book label、local contact name 和未加盐低熵 hash MUST NOT 被发送给公共 Directory，包括第一轮的 OPRF input（OPRF Blind 已经做了 unlinkable 化，但实现仍 MUST 在客户端先做 normalization + canonical encoding，杜绝把明文写入 audit log）。
+- Provider MUST 对 batch 大小、padding count、失败响应、计时和 result cardinality 做反枚举处理；不存在、不可发现、policy-denied 和 OPRF mismatch 在 wire 上 SHOULD 保持相同响应形态与延迟分布。
+- Provider MUST NOT 在第二轮返回 reachability proof、handle verified claim、组织成员资格、Space membership 或读取权限。这些声明只能通过后续 invite + consent 流程获得。
+- Private discovery 结果**仅** 证明"在 provider 当前可联系集合中存在 OPRF derived 与某项匹配的条目"——不证明该条目对应的真实身份、handle、活跃度或意愿。客户端 UI MUST 把它表述为"可能可联系"而不是"已确认存在"。
 - 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
+- 实现 MUST NOT 在同一 OPRF key epoch 内允许同一 client 提交超过 `max_psi_queries_per_epoch`（默认 1）次 batch；超过后 provider 返回 `psi_quota_exhausted`。这避免攻击者用同一 OPRF key 对大量 identifier 做枚举；新 key epoch 自动重置。
+
+### 6.5 v1 不再使用 "Reachability Proof"
+
+早期草案使用 provider 返回的 time-bound signed reachability proof 作为客户端对外披露的凭据。该设计要求 provider 对每个 blinded identifier 单独签发 proof 才能让对方 verify，但若让 verifier 验证 proof，verifier 必须知道 proof 绑定到哪个 identifier——这把"谁向谁披露过什么"的隐私收益又交回去了。v1 移除该机制；私域披露统一走 invite + consent 流程，invite 自身的 commitment + 唯一性由 [`sync/third-party-invites.md`](../sync/third-party-invites.md) 保证。
+
+支持旧 reachability proof 的实现 MUST 在 `server/describe.discovery` 中标记 `legacy_reachability_proof=true`，并 MUST 在 v1 conformance 报告中标记为 `pending_psi_migration`；core conformance 不再以 reachability proof 作为输出形态。
 
 ## 7. Directory Service
 

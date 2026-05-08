@@ -179,7 +179,54 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ## 5. 设备授权流程
 
-### 5.1 新设备加入
+### 5.0 First-Device Inception Bootstrap
+
+§5.1 假设新设备由"已授权设备"签发 `cx.device.authorized` 才能加入。但 principal 第一次激活时只有一台设备，没有任何已授权 peer 可以扮演这个角色。如果不为这种"无 peer 设备"的初始情形定义协议路径，§5.1 的链条永远无法启动，§4.1 的 control stream 也无法获得 genesis record。
+
+Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信任根，把"第一台设备的 device key"和"DID 的 inception controller key"建立可验证绑定。Contrix 不发明新的 DID inception 操作；它把已有 DID method 的 inception 证据**重用**为 principal control stream 的 genesis record 授权依据。
+
+#### 5.0.1 标准 Inception 路径（v1 core 默认 `did:webvh` principal）
+
+1. **Inception key 生成**：客户端在用户首次注册或自主权恢复时本地生成一个 `inception_keypair`（Ed25519 / ECDSA-P256）。该密钥既是 `did:webvh` 第 0 条 `did.jsonl` entry 的 `updateKeys[0]` / `nextKeyHashes[0]`，也是首台设备的 device key 之一。
+2. **`did:webvh` genesis 写入**：客户端按 `did:webvh` specification 计算 SCID，将 `did.jsonl` entry 0 写入 hosting domain（自有 / Auth Server 托管子域）。Entry 0 的 `versionId`、SCID、controller proof MUST 由 inception key 签发。可选 witness MAY 在 entry 0 之后补签，不阻塞 bootstrap。
+3. **Principal control space genesis**：客户端构造 `cx.space.create` Event 创建 principal control space（`space_id` 即 `principal_control_space_id`，绑定到 principal DID 并标记 `kind=principal_control`，`encryption_profile=none`，`history_visibility=joined`，`anchor_profile=single_did`，`anchorer=<principal DID>`）。Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`auth_refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（role=`did_inception`，critical=true）。
+4. **首台设备自授权**：客户端构造 `cx.device.authorized` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`auth_refs[]` 引用 control space 的 genesis Event 与 `did:webvh` entry 0 的 `versionId`。
+5. **Inception key 的归宿**：完成步骤 4 后，inception key MAY 被立即写入 `did:webvh` entry 1 的 `updateKeys` 轮换链中并从首台设备销毁；也 MAY 作为 recovery key 之一存入 secret storage（§7）。它 MUST NOT 长期作为日常 device signing key——它的暴露面应被限制到 inception bootstrap 与 recovery。
+6. **后续设备**：第二台及以后设备走 §5.1 标准流程，由首台已授权设备签发 `cx.device.authorized`。
+
+#### 5.0.2 `personal_node` Profile 降级路径（principal_method=`did:web`）
+
+`personal_node` deployment profile 选择 `did:web` 作为 principal method 时，没有 entry-0 controller proof 可供引用。降级路径：
+
+1. 客户端本地生成 `inception_keypair`，并以它构造一个临时 `did:key:<inception_pub>`。
+2. 客户端把 `did:key:<inception_pub>` 作为 `cx.did.proof.continuity` 的 `old_did` 签发 continuity proof，绑定到目标 `did:web:<host>` 作为 `new_did`。该 continuity proof 由 inception key 单方签署即生效（personal_node profile 接受这种"自我升级"，因为 stake 低）。
+3. 客户端将 `did:web` DID Document（含 inception public key 作为 `verificationMethod` / `assertionMethod`）写入 hosting domain，并发布该 continuity proof。
+4. Principal control space genesis、首台设备自授权按 §5.0.1 步骤 3-5 执行；`auth_refs[]` 引用 continuity proof + DID Document hash，而不是 `did:webvh` entry 0。
+5. `personal_node` profile 升级到 `small_team` 或更高 profile 时，MUST 走 §4.2.2 的跨 method 迁移路径切换到 `did:webvh`，期间历史 Event 保留 `did:web` `actor_id`。
+
+#### 5.0.3 验证规则
+
+Receiver 接受 principal 的首批 control stream Event 时，MUST：
+
+- 解析 control space genesis Event 的 `auth_refs`，找到 `did_inception` role 引用。
+- 按 DID method 验证该引用：
+  - `did:webvh`：拉取 `did.jsonl` entry 0，校验 SCID、entry hash、controller proof，确认 inception key 与 genesis Event `proofs[].verification_method` 一致。
+  - `did:web` (personal_node)：拉取当前 DID Document，校验 inception public key 出现在 `verificationMethod` 中，并校验 continuity proof 由 `did:key:<inception_pub>` 签发。
+  - 其他 method：按对应 method evidence 验证 inception 控制权。
+- 校验首台 `cx.device.authorized` Event 的 `authorized_by` 引用与 inception key 一致；不接受 `authorized_by` 引用任何尚未 anchored 的 device。
+- Inception bootstrap 成功后，receiver MUST 标记该 control space 已通过 inception；后续 §5.1 的 `cx.device.authorized` Event MUST `authorized_by` 一台已 anchored 的 device，不得再次自授权。
+
+#### 5.0.4 攻击模型
+
+Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 证据：
+
+- `did:webvh` 提供 SCID + entry hash + controller proof，并可叠加 witness——攻击者需要同时控制 hosting domain 和 ≥1 trusted witness 才能伪造 inception。
+- `did:web` 仅提供"hosting domain 当前内容"——攻击者控制 DNS/TLS 即可静默替换 inception。这正是 `personal_node` profile 之外不允许 `did:web` 作为 principal method 的根本原因（H1 / §3）。
+- `did:key` inception **MUST NOT** 直接作为长期 principal——它必须在 §5.0.1 / §5.0.2 中升级为 `did:webvh` 或 `did:web`。
+
+实现 MUST 在 UI 中向用户清楚展示 inception 路径的密钥学强度（"已 witness 的 did:webvh 链" vs "仅 hosting domain"），不得在 onboarding 中把两者展示为等强度。
+
+### 5.1 新设备加入（首台设备已存在）
 
 推荐流程：
 

@@ -1,5 +1,7 @@
 ---
 title: Agent Protocol Interop and Upgrade
+sidebar:
+  label: Agent Protocol Interop
 ---
 
 > **状态：v1.1+ extension（非 core 互操作）**。本文档涉及的外部 agent 协议（A2A / ACP /

@@ -1267,6 +1267,28 @@
         "properties": {
           "kind": {
             "enum": [
+              "cx.moderation.decision",
+              "cx.moderation.decision.lift"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
               "cx.audit.accessed",
               "cx.audit.ryw_receipt",
               "cx.moderation.frank"

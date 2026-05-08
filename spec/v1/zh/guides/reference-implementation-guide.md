@@ -1,5 +1,7 @@
 ---
 title: Reference Implementation Guide
+sidebar:
+  label: Reference Impl
 ---
 
 本指南描述实现方如何消费本仓库的 canonical 输出。

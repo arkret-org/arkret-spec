@@ -1,5 +1,7 @@
 ---
 title: Audited End-to-End Encryption (Profile)
+sidebar:
+  label: Audited E2EE
 ---
 
 > **状态：可选 hardening profile**。本文档定义 `cx.profile.attested_audit.e2ee.v1` 与

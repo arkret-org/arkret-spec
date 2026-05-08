@@ -1,5 +1,7 @@
 ---
 title: Conformance Suite（自动化互操作测试）
+sidebar:
+  label: Conformance Suite
 ---
 
 ## 1. 目标
