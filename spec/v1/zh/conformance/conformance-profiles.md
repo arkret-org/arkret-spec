@@ -64,6 +64,17 @@ Profile 不支持某个标准能力时的默认行为：
 
 机器可读默认行为见 `artifacts/profiles/conformance-profiles.json.default_unsupported_behavior`。其中 `must_not_accept`、`must_fail_closed`、`allowed_results` 等字段用于 conformance lint / test，而不是自由文本提示。
 
+### 2.1.1 Profile 数量约束与 Composition 路线（normative for new profiles）
+
+v1 stable + extension catalog 已包含 19 implementation + 6 deployment + 11 vector + 3 hardening profile，组合矩阵已经较大。为防止 profile 数量进一步爆炸，**新增 v1.x 实现 profile MUST 满足**以下条件之一：
+
+1. **Capability composition**：新 profile 仅是 "base profile + 一组明确 facet（通过 `requirement_blocks` 引用现有 capability、event_kind、schema、operation 集合）"，不引入未见过的能力。其 `inherits` 字段 MUST 指向已存在的 base profile，`adds` 字段 MUST 是 base 之外明确列出的最小 delta。这种 profile 无需独立 conformance vector，复用 base profile vectors + delta vectors。
+2. **新能力闭环**：引入全新能力（例如新对象类型、新 lattice family、新 transport binding），同时提交至少一个独立 conformance vector 与 fixture。
+
+不满足两条之一的 profile 提案 MUST 被 reviewer 拒绝；现有 profile 在 v1.x 内不重组，但新 profile 必须按 composition 形态提出。`requirement_blocks` 已经支持声明引用，未来 v2 可形式化为 `compose: { base: <id>, adds: [<requirement_block_ref>...] }` 字段——v1 留出该 reserved slot，但不强制现有 profile 迁移。
+
+实现侧：客户端 SHOULD 在 conformance 声明中暴露 `inherits` 与 `adds` 信息，让对端能在 fast path 中按继承关系做能力命中判断，避免逐 profile 列举。
+
 ## 2.2 场景化 Profile
 
 以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。声明 `cx.profile.chat_mvp.v1` 或 `cx.profile.kanban_mvp.v1` 时，仅实现一个闭环的实现 SHOULD 在 `rejected_event_kinds` 中列出本实现拒绝的另一闭环 wire scope。

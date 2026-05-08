@@ -138,6 +138,26 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 自定义 profile 若新增 `cx:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `cx:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
+### 4.1 Field Naming: `<noun>_id` vs `<noun>_ref`（normative for new fields）
+
+v1 wire 中已存在两种"指向另一个对象"的字段命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<ulid>`）的字段。早期 v1 草案在不同对象上选用了不同后缀（如 `space_id` / `flow_id` / `target_place_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `discussion_space_ref` / `policy_ref` 用 `_ref`），形成了已固化的混用。
+
+**v1 现状（不变）**：所有现有字段名锁定在当前 wire 形态，重命名是 breaking change，不在 v1 范围内执行。下表列出**已定型**的字段命名约定，实现 MUST 按现有命名解析；不得依赖前缀做字段类型推断。
+
+**新字段命名规则（normative，对 v1.x 增量与 v2 适用）**：v1.x 引入的新字段、新 schema、新 profile MUST 遵循以下规则，避免不一致进一步扩散：
+
+| 用途 | 命名后缀 | 说明 |
+| --- | --- | --- |
+| 对象自身 ID（primary key） | `id` | canonical object 的主 ID，无下划线前缀。例：`id`。 |
+| 对象的 *primary parent* ID（同类对象自然父子）| `<noun>_id` | 例：`space_id`（所属 Space）、`flow_id`（所属 Flow）。仅用于该对象的"出生地"绑定。 |
+| 任何其它跨对象引用（pointer to another typed object） | `<noun>_ref` | 例：`from_ref` / `to_ref` / `parent_ref` / `discussion_space_ref` / `policy_ref`。新字段 MUST 使用 `_ref`。 |
+| Content-addressed 引用（hash-based） | `<noun>_ref` | 例：`blob_ref`、`event_digest`（hash form）。 |
+| Cell 引用（cell id 字符串） | `<noun>_cell` 或 `<noun>_ref` | 例：`anchor_cell`、`mls_epoch_cell`。 |
+
+判别规则：**当字段同时具备"主从语义 + 指向同一 schema 的对象 + 该对象是 wire 接收方的命名上下文"时使用 `_id`；其余一律 `_ref`**。例如新增 "morph 引用某 Flow" 的字段：用 `flow_ref`，因为 Morph 与 Flow 不构成 primary parent 关系；但 Message 引用所属 Flow 仍是 `flow_id`，因为 Message **必须**属于一个 Flow（出生地绑定）。
+
+任何 new field 在 PR review 中违反上述规则 MUST 被 lint 标记 `naming_convention_violation`（warning 级，不阻塞合并）；conformance 测试不强制旧字段重命名。v2 主版本可统一为 `_ref`。
+
 ## 5. Event Batch Receipt Hash
 
 ```json
@@ -363,6 +383,7 @@ Barrier 形态：
 9. timeline 排序是合法 HLC 格式。
 10. `purpose=barrier` 时 `target.event_id` 与 `target.event_digest` 必填。
 11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `since` / `prev_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Contrix-Wait-For` 上下文 MUST `invalid_param`）。
+12. **TTL 硬上限**：以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 
 非法 cursor MUST reject，错误 `invalid_param`；已过期 cursor MUST reject，错误 `cursor_expired`。
 
@@ -393,7 +414,9 @@ Cursor 对客户端不透明，但**服务器之间不再不透明**。当用户
 - 服务端 MUST 按 §8.2 canonical schema 编码 cursor 内部结构（私有字段限于 `_` 前缀）。
 - 客户端 MUST NOT 解析 cursor 内容。
 - 支持每个 cursor 至少 50 个 space。
-- 支持最长 7 天的过期时间。
+- **每 Space 的 frontier (`s.<space>.p`) 长度 MUST ≤ 1000 个 event_id**：超出时 issuing 服务 MUST 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再嵌入 cursor。该上限避免大并发 actor Space (≥ 1000 active actor 各自有 head event) 让单个 cursor 膨胀到 MB 级。Receiver 收到超长 frontier 的 cursor MUST `invalid_param`。
+- **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，不得直接产出超大 cursor；receiver 收到超大 cursor MUST `invalid_param`。
+- 支持最长 7 天（604,800,000 ms）的 stream cursor 过期时间；barrier cursor 上限 1 小时（3,600,000 ms），见 §8.3 规则 12。
 - 以适当错误拒绝非法 cursor。
 
 ## 9. Rank

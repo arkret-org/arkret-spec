@@ -9,3 +9,4 @@ site/.cache
 site/.vite
 site/.output
 .DS_Store
+_*.md

@@ -54,7 +54,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `cx.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `cx.profile.constraint.visibility_control.v1` |
 
-> v1 已删除 `temporal.session` / `temporal.recurrence` / `field_access.condition` / `claim_based.accountability` / `claim_based.device_session` 这些原 v1 草案中独立的扩展 subtype。其语义由更通用的 `claim_based.claim` + `temporal.{not_before, expires_at}` 表达：会话时长通过 session token claim 的 `expires_at` 表达；周期窗口通过 issuer 颁发短期 claim 表达；字段条件通过 schema-defined deterministic predicate 表达；责任 / device 通过 claim issuer 表达。删除目的是把 constraint family 数从 23 alias 收敛到 7 个核心 typed family（temporal / field_access / type_restriction / scope_limitation / delegation_control / quota / claim_based / confidentiality）。
+> v1 把原草案中 15 个独立 `constraint_type` alias 折叠进 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 保留：`edit_window` / `redact_window` → `temporal` (subtype 标记)；`container_move` → `scope_limitation`；`rate_limiting` + `resource_limit` → `quota` (`subtype=rate` / `resource`)；`approval_workflow` + `accountability` + `device_session` → `claim_based` (`subtype=approval` / `accountability` / `device_session`)；`encryption_requirement` + `visibility_control` → `confidentiality` (`subtype=encryption` / `visibility`)。删除的是独立 constraint_type 名字，不是底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等仍然是合法的字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 
 未注册的 `constraint_type` 或未注册的 `(constraint_type, subtype)` 组合 MUST fail closed。新增 family / subtype 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` 与 `subtype` enum 中注册。
 
@@ -86,6 +86,19 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 
 - 8 family（按 subtype 展开后约 14 行）中接近一半是 `external` / `space_state`——这是大型授权图不可整体缓存的根因。fast path（仅 `stateless` + `grant_local`）SHOULD 用于读取 marker、reaction 等低风险动作；写入与高风险动作 MUST 跑完整集合。
 - `evaluation_class` 同时承担 lint 锚点：实现声明的依赖与 canonical 不一致时，conformance lint MUST 报错。
+
+### 2.4 字段扁平化与未来嵌套化（normative for new fields）
+
+v1 constraint object 上 approval / accountability / claim 相关字段是扁平结构（`approval_required` / `approval_mode` / `approval_actor_refs` / `approval_relation` / `accountability_required` / `guardian_approval_required` / `controller_approval_required` 等）。这种扁平化是 v1 早期为简化 schema 验证而保留的结构，wire 兼容性已经固化。
+
+**v1 现状（不变）**：现有扁平字段名保留，schema 与实现不强制迁移。
+
+**新字段命名规则（normative，对 v1.x 增量与 v2 适用）**：v1.x 引入新的 approval / claim / accountability 子字段（例如 `approval_threshold`、`approval_timeout` 已经存在）时，应避免继续展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
+
+1. **在 `condition` / `requires_claims[]` 中携带**：approval workflow 的额外配置（如 reviewer roster、escalation policy）可写入 `requires_claims[].value_constraints` 或新增 `approval_extension` 嵌套对象（仅 v1.x 引入的 extension profile 使用，core profile 不引入新顶层 flat field）。
+2. **以新 `subtype` 区分**：若新字段语义无法通过既有 subtype 覆盖，应注册新 subtype（如 `claim_based.subtype=quorum_approval`）而不是继续在 flat namespace 加字段。
+
+v2 主版本 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: { required, mode, actor_refs, relation, threshold, timeout, ... }`、`accountability: { required, guardian_required, controller_required }`），保留扁平字段作为 deprecated alias 一个 minor version 后移除。当前 v1 不引入这种结构以避免 wire 兼容性破坏。
 
 ## 3. 时间约束
 

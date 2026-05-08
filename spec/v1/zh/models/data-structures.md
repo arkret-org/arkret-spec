@@ -51,6 +51,7 @@ title: Data Structures
 | `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST 不早于 `created_at`。 | 最近更新时间。 |
 | `deleted_at` | no | `timestamp` | durable tombstone 可用。 | 逻辑删除时间。 |
+| `state_changed_at` | conditional | `timestamp` | 所有具有 `state` 字段的对象（Flow / Place / Message / Morph / Relation）当 `state != active` 时 MUST 写入；reducer 派生为对应 state-transition Event 的 `created_at`。MUST 不早于 `created_at`，MUST ≤ `updated_at`（当后者存在时）。 | 最近一次 state 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
@@ -69,6 +70,25 @@ title: Data Structures
 | `created_by_principal` | Space | Space create event 的授权 principal（与该事件 `actor_id` 一致）。 |
 
 这些不是同一字段的别名，每条都有独立语义角色；该表用于读 spec 时快速建立对应关系。
+
+### 3.2 State 枚举对齐表
+
+各对象的 `state` 字段值不完全相同（部分名字承载了已稳定的 `cx.*.tombstone` event 命名约定），但在 reducer / projection 语义层等价于以下规范状态机：
+
+| 规范状态 | 语义 | Flow | Place | Message | Morph | Relation | Space |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` |
+| `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | — | `archived` | — | `archived` |
+| `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | `redacted` | `redacted` | `tombstone`（合并 deleted+redacted） | — |
+| `deleted` | 不可逆删除：content / encrypted_payload 清空，仅保留 envelope 用于审计 | `deleted` | `tombstoned` | `deleted` | `deleted` | `tombstone` | `tombstoned` |
+
+约定：
+- 写入路径 MUST 来自对应 reducer-input event（`cx.<kind>.archive` / `cx.<kind>.tombstone` / `cx.<kind>.redact` 或等价命名）；不得直接 PATCH 对象顶层 state。
+- `state != active` 时 MUST 写入 `state_changed_at`（见 §3 公共字段）。
+- "Place 没有 redacted"：Place 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `cx.place.tombstone` 或 `cx.redaction` 一并完成。
+- "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
+- "Relation 用 `tombstone` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故合并为单一 `tombstone`；具体 reason 在对应 `cx.relation.delete` / `cx.redaction` event 中保留。
+- Reducer 与 projection MUST 把 `tombstoned` / `tombstone` / `deleted` 视为语义等价的"不可逆删除"状态；UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。
 
 ## 4. Space
 
@@ -260,6 +280,7 @@ Schema id: `cx.schema.flow.v1`
 | `tracks` | yes | `array<FlowTrack>` | 至少 1 项；`name` 在同一 Flow 内唯一；至多 1 项 `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
+| `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
@@ -326,6 +347,7 @@ Schema id: `cx.schema.message.v1`
 | `content` | conditional | `object` | 富文本/blocks 见 `content-types.md`；`state=active` 且未加密时必填。 | 消息正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
 | `state` | yes | `enum(active, redacted, deleted)` | 默认 `active`。`redacted` 由 `cx.message.redact` reducer 设置（content 被替换为 redaction tombstone 但消息槽保留）；`deleted` 表示消息整体被治理或 retention 清除（content / encrypted_payload MUST 被清空，仅保留 envelope 元数据用于审计）。**与 Flow.state / Place.state 在顶层 schema 上对齐**，不再用 `fields.visible_state` 表达可见性。 | 消息生命周期状态。 |
+| `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `revision_root` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root` 下的 revision 形成有序 chain，由 `cx.message.revise` reducer 维护。 | revision chain 起点（顶层 schema-validated）。 |
 | `edited_at` | no | `timestamp` | revision chain 中 latest revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST 不早于 `created_at`。 | 最近一次编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `cx.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
@@ -351,6 +373,7 @@ Schema id: `cx.schema.morph.v1`
 | `encrypted_payload` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
+| `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
@@ -389,6 +412,7 @@ Schema id: `cx.schema.relation.v1`
 | `rank` | no | `string` | 见 `encoding.md` §9。**与 Place.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> flow`）的稳定 rank。 |
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
 | `state` | no | `enum(active, tombstone)` | `tombstone` 同时覆盖删除与 redaction；原因保存在对应 `cx.relation.delete` / `cx.redaction` event 上，不再写入物化对象。 | 关系状态。 |
+| `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
@@ -397,8 +421,10 @@ Schema id: `cx.schema.relation.v1`
 ```text
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
 assigned_to, references, derived_from, attached_to, has_default_view,
-produced, used, triggered_by, has_log, summarized_from, promoted_from_discussion
+summarized_from, promoted_from_discussion
 ```
+
+> **Reserved for extension profiles**：早期草案曾把 `produced` / `used` / `triggered_by` / `has_log` 列为标准 kind，但 v1 没有任何 schema/profile/fixture 定义其 from/to 类型、基数或 capability action，无法支撑互操作。这些名字在 v1 wire 上视为**未注册的 relation_kind**——实现遇到时 SHOULD 保留为不透明边并在 projection 层标记 `unknown_relation_kind`，**MUST NOT** 据此自动推断容器、依赖或可见性语义。它们保留为未来 agent workflow extension profile 的候选名，profile 注册前 producer 不应使用。
 
 标准 Relation 基数表：
 
@@ -410,11 +436,17 @@ produced, used, triggered_by, has_log, summarized_from, promoted_from_discussion
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
 | `depends_on`, `blocks` | `many_to_many` | 按 `(space_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
-| `mentions`, `references`, `derived_from`, `attached_to`, `produced`, `used`, `triggered_by`, `has_log`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。 |
+| `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。 |
 | `assigned_to` | `many_to_many` | 一个 Flow MAY 同时分配给多个 Actor；同一 Actor 只保留一条 active assignment edge。需要单负责人语义时，Space schema/profile MUST 声明 `max_to_per_from=1` 或单独的 owner relation。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Space 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
+
+**跨 Space 强约束（reducer 必检）**：
+
+- `contains` 与 `belongs_to` MUST NOT 跨 Space——reducer MUST 解析 `from_ref` / `to_ref` 指向的对象（Place / Flow / Message / Morph 等），确认其 `space_id` 与 Relation 自身 `space_id` 一致；任一不一致 MUST `failed_precondition`（`reason="cross_space_structural_relation"`）。`object-model-core.md §2.4.1` 给出的两端 enforce 责任表是这条规则的语义来源。
+- 弱语义 `references` / `mentions` / `derived_from` / `summarized_from` / `depends_on` / `blocks` / `assigned_to` / `has_default_view` / `replies_to` 等 MAY 跨 Space，需走 §2.4.1 的"两次独立 capability check"路径，并按目标 Space policy 在 projection 层降级为 `lazy_link` / `locked` / `accessible` 状态。
+- JSON Schema 层面无法在不引入冗余字段的前提下完整表达该约束（需要解析 typed reference 后再比 Space），因此 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `relation_kind` description 把该约束标记为 reducer-enforced；schema validation 通过仅代表线路形态合法，不代表 cross-Space 约束已通过。
 
 Relation conflict 的默认处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。若 relation profile 能用业务 lattice 合并则合并；否则输出 conflict bottom / diagnostic。`on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。`on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 Anchor frontier 提交修复 Move。`require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
 
@@ -585,8 +617,7 @@ Schema id: `cx.schema.capability.v1`
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
 | `actions` | yes | `array<string>` | 例如 `cx.flow.update`、`cx.message.create`。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
-| `constraints` | no | `array<object>` | 见 [`authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。 | 约束条件。 |
-| `delegable` | no | `boolean` | 默认 false。 | 是否可转授。 |
+| `constraints` | no | `array<object>` | 见 [`authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
 | `parent_grant_id` | no | `id:grant` | derived grant 必填。 | 父授权。 |
 | `valid_from` | no | `timestamp` |  | 生效时间。 |
 | `valid_until` | no | `timestamp` |  | 过期时间。 |

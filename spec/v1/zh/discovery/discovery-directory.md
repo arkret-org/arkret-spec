@@ -88,6 +88,16 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 - `invite_only` and `secret` Space queries by unauthorized subjects MUST return `not_found` or an indistinguishable response.
 - Directory result MUST NOT include event history, member list, raw policy, MLS state, hidden parent/child edges, or full organization governance chain unless separately authorized.
 
+`anti_enumeration.member_count_mode` 取值 normative：
+
+| 模式 | 行为 |
+| --- | --- |
+| `exact` | 返回精确成员数；仅在 `discoverability ∈ {public, listed}` 时允许。 |
+| `bucketed` | 返回**封闭 bucket** 之一：`1-10` / `11-50` / `51-100` / `101-500` / `501-2000` / `2000+`。Directory 实现 MUST 使用本 bucket grid，不得自定义粒度（防止粒度差异成为枚举侧信道）。请求方收到不在此枚举的 bucket 字符串 MUST 视作 `invalid_response` 并丢弃。 |
+| `omit` | 不返回成员数；任何隐含的 hint（如返回组员数组的 length）也 MUST 被裁剪。 |
+
+`unlisted` / `invite_only` / `secret` Space 的 `member_count_mode` 默认 `omit`；显式声明 `bucketed` 时必须遵守上述 bucket grid。
+
 `join_rule` 只控制加入流程。公开可发现的 Space MAY still require invite、knock 或 restricted join。不可发现的 Space MAY still have `join_rule=public` for holders of a private link, but this is discouraged unless anti-spam policy is strong.
 
 `history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT imply `history_visibility=world_readable`。

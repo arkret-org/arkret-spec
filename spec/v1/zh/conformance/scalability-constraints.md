@@ -24,6 +24,8 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 单个 Event 的 `auth_refs` 数量 | 64 | 超过时 MUST reject；auth refs 必须是最小授权状态集合。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。 |
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Space 引用必须按 Lazy Link 截断。 |
+| 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内提交超过 65,536 个 event 时 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，不得 wrap 或复用相同 HLC。换算约 65 M events/s 单 actor 上限。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。v2 SHOULD 评估扩展 logical 段宽度。 |
+| 单 actor 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和 HLC logical 段或下游 reducer。超过该建议持续吞吐时，actor SHOULD 拆分为多 device / 多 actor 并行，或考虑使用 batch event。 |
 
 ## 3. 授权与 Capability 上限
 

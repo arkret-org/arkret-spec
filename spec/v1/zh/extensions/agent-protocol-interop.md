@@ -191,7 +191,11 @@ Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Space 
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
 2. Requesting agent 在 Contrix 中创建或选择任务 Flow，或选择可承载任务语义的 Morph。
 3. Requesting agent 检查自己是否拥有 `cx.agent.protocol_session.start` capability。
-4. Policy server MAY 检查目标 endpoint、数据分类、跨域、E2EE 边界和外发风险。
+4. **Endpoint validation（normative MUST）**：Policy server MUST 验证目标 endpoint 与目标 agent DID 的 service binding 一致性，至少完成以下检查（任一失败 MUST 拒绝 session start）：
+   - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
+   - 验证目标 endpoint 的 TLS 证书 / mutual TLS / HTTP Message Signature 与 DID Document 中声明的 verificationMethod 绑定（与 `federation.md` §3.1-§3.2 destination host pinning 同等强度）。
+   - 校验目标数据分类、跨域路由、E2EE 边界与外发风险，并依 `allowed_endpoints` constraint 收敛。
+   早期草案此处为 MAY，已升级为 MUST——MAY 默认是漏洞窗口，恶意中间人可在不被任何节点验证的情况下劫持 A2A handoff。
 5. Requesting agent 提交 `cx.agent.protocol_session.start`。
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。

@@ -328,8 +328,8 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 - AEAD AAD MUST 绑定 `actor_id`、`device_id`、`backup_class`、`backup_version`、item type、created_at 和 schema/profile id，防止把 ciphertext 从一个域重放到另一个域。
 - 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="contrix-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
 - `did_recovery` 域不得和 `mls_history` 域共享 wrap key、recovery share 或 key commitment。攻破 `mls_history` backup key 不得允许 DID rotate / recover；攻破 DID recovery share 也不得直接解密 MLS 历史。
-- 新实现 SHOULD 将 `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 分成不同 backup envelope 或不同 subdomain key。高安全、组织托管和 auditable E2EE profile MUST 分离，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。
-- `secret_storage` 若为了兼容旧客户端同时包含 identity signing secret 和 MLS backup key，metadata MUST 标记 `mixed_secret_storage=true` 或等价风险标识；恢复 UI 必须提示一次口令泄露会同时影响身份信任和 E2EE 历史。
+- **默认 MUST 分离**：`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。早期草案默认允许 `personal_node` profile 复用单一 envelope，v1 已收紧——**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。
+- 仅 `personal_node` deployment profile MAY 在 Space schema 显式声明 `mixed_secret_storage=true` 退化为兼容模式（兼容旧客户端、单一 passphrase）；该字段 MUST 出现在 deployment profile manifest 与 backup metadata 中，并触发 UI 强制提示"一次口令泄露会同时影响身份信任和 E2EE 历史"。`small_team` / `organization` / `high_security_organization` / `sovereign_deployment` profile MUST NOT 启用混合模式；接收方在导入声明 `mixed_secret_storage=true` 的备份到这些 profile 时 MUST 拒绝（`schema_violation`，附 `reason="mixed_secret_storage_disallowed_by_profile"`）。
 
 以下材料 MAY 进入客户端加密备份，但 MUST 只以密文形式保存：
 

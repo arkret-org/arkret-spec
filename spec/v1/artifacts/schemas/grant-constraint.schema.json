@@ -618,6 +618,10 @@
       "type": "string",
       "pattern": "^[0-9]+(ms|s|m|h|d)$"
     },
+    "depends_on_moderation_state": {
+      "type": "boolean",
+      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the cx.component.moderation_state.v1 cell (see policy-server.md §7.1 and capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that cell changes. Default false: ordinary grants (cx.flow.update / cx.message.create / org membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / cell). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint."
+    },
     "subtype": {
       "type": "string",
       "description": "Optional discriminator within a constraint_type. Standard values: claim_based.{claim,approval,accountability,device_session}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Implementations MAY require subtype for these families and fail closed on unknown values.",

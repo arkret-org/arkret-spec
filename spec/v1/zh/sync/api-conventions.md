@@ -203,6 +203,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 - 客户端 MUST 把 cursor 当作不透明字符串，禁止解析以推断排序、权限或服务身份。
 - 任何接受 cursor 的接口 MUST 把无效 cursor 返回 `invalid_param`，把已过期 cursor 返回 `cursor_expired`。
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
+- TTL 硬上限：barrier cursor `expires_at - issued_at` MUST ≤ 1 小时；stream cursor MUST ≤ 7 天。详见 [`encoding.md` §8.3 规则 12](../conformance/encoding.md)。
 
 ### 7.1 列表分页
 

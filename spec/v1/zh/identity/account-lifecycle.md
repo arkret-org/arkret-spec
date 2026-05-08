@@ -53,7 +53,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 
 ## 3. Account States
 
-服务账户状态：
+服务账户状态（封闭枚举，v1 wire MUST 仅使用以下值）：
 
 - `active`
 - `soft_logged_out`
@@ -61,6 +61,19 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 - `suspended`
 - `deactivated`
 - `erasure_pending`
+
+**正交性矩阵**：六个状态各自承载独立 lifecycle 行为，不能合并。下表给出关键正交维度，新状态提案 MUST 论证它在该矩阵中占据未覆盖的格子，否则用 `reason_code` 表达即可：
+
+| 状态 | 触发方 | Access token | Refresh token | Device trust | E2EE secret storage | Event history | 详细规则 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `active` | — | 有效 | 有效 | 保留 | 保留 | 保留 | — |
+| `soft_logged_out` | auth service / 用户 logout | 已撤销 | 可 refresh | 保留 | 保留 | 保留 | §4 |
+| `locked` | 安全风险检测 | 已撤销 | SHOULD 撤销 | 保留 | 保留 | 保留 | §5 |
+| `suspended` | 治理 / 合规 | 拒新发 | 拒新发 | 保留 | 保留 | 保留 | §6 |
+| `deactivated` | 用户 / 管理员关账 | 已撤销 | 已撤销 | 标记 revoked | 客户端可清除 | 保留 | §7 |
+| `erasure_pending` | 用户擦除请求 / GDPR | 已撤销 | 已撤销 | 已撤销 | 必删 | 按 redaction policy 最小化 | §8 |
+
+`reason_code` 表达**为什么**进入该状态（如 `abuse_review` / `gdpr_request` / `password_compromise`）；状态本身表达**当前所处阶段的协议行为契约**。两者不可替代。
 
 状态发布为服务侧 signed account status：
 

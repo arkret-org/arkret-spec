@@ -96,7 +96,8 @@
     },
     "x": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Expiration timestamp (Unix ms). MUST be in the future when the cursor is issued. TTL upper bounds (cursor lifetime = x - t_ms): barrier cursors MUST have TTL ≤ 3,600,000 ms (1 hour); stream cursors MUST have TTL ≤ 604,800,000 ms (7 days). Issuing a cursor exceeding these caps is a producer error; receivers MUST reject with `invalid_param`. Reasoning: barrier cursors only gate read-your-writes wait latency and become meaningless once the global frontier has long covered the target event. Stream cursors lose causal alignment value over weeks of activity."
     }
   },
   "allOf": [

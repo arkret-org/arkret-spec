@@ -211,7 +211,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 - 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.track.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
-- 发送客户端在发现 `epoch_update_required` 后 SHOULD 暂停该 scope 的新 application messages，或把发送状态标记为 `encryption_transition_pending`。高安全 profile MUST 暂停发送，直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。
+- 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新 application messages 并标记 `encryption_transition_pending`，直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Space，无论 `security_class`；早期草案曾允许 `standard` security_class 仅 SHOULD 暂停，已升级为 MUST，因为忽略 governance frontier 的发送会让 ban / revoke 在新消息上失效——这正是引入 MLS Governance Binding 要消除的风险。Deployment policy MAY 在 Space schema 中显式声明 `mls_send_pause="advisory"` 把该规则降级为 SHOULD，但该字段必须出现在 `cx.space.policy_components` 的明文 audit log 中，且部署 profile 自身 MUST 在 conformance 声明中标记接受该降级；客户端 UI 在该 Space 中 MUST 展示明确的"未强制暂停"指示。
 - Space / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
 - 网络分区期间可以继续 backfill 旧 epoch 历史，但不得把旧 epoch 下的新消息展示为已满足最新 membership policy 的消息。
 
@@ -275,7 +275,7 @@ MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `e
 规则：
 
 - E2EE application message Move 的 preconditions MUST 证明 `covered_frontier_cell` `contains` 该消息依赖的 governance Anchor frontier。
-- 客户端在 MLS Commit Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并暂停发送新 application messages（`high_assurance` security_class 是 MUST，其他是 SHOULD）。
+- 客户端在 MLS Commit Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并 MUST 暂停发送新 application messages，直到 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。所有 `encryption_profile="mls_rfc9420"` 的 Space 均适用，无论 `security_class`；仅 Space schema 显式声明 `mls_send_pause="advisory"`（详见 §2.4.1）的部署可降级为 SHOULD。
 - 撤销与失效（如 ban、revoke）只有被 `covered_frontier_cell` 覆盖后，才能阻止后续 application messages 解密；旧 epoch 中已分发的 key material 仍可能被原持有者使用。
 - Governance / recovery Move 不依赖 `covered_frontier_cell`，因此 MLS epoch 卡住时仍可提交修复 Move 并由 Anchor finalization 生效。
 
@@ -307,6 +307,18 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
   "space_id":            tstr
 }
 ```
+
+**字段冗余说明（normative rationale）**：
+
+| 字段 | 是否在 MLS GroupContext 已被绑定 | 保留理由 |
+|------|------------------------------|---------|
+| `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
+| `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_frontier_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
+| `space_id` | **否**（Contrix-specific，MLS 不知道 Space 概念） | **必须**：space_id 是把 MLS group 锚定到 Contrix governance state 的核心绑定；缺失则 governance_binding 可能被错误重绑定到不同 Space 的 commit。 |
+| `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_hash` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
+| `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
+
+简言之：MLS-redundant 字段（`mls_group_id` / `previous_epoch` / `next_epoch`）以约 ~50 字节的 wire 代价换取 binding payload 的离线自含性，这是有意识设计而不是 leftover；非冗余字段是 governance binding 真正承载的事实。Wire-size 进一步优化（如把 redundant 字段折叠成单个 commit_anchor hash）属于未来 hardening profile，不进入 v1 core。
 
 当 MLS group 绑定到 Flow discussion track 时，CBOR map MUST 包含额外键 `"flow_id"` (tstr) 和 `"track"` (tstr, 值为 `"discussion"`)。
 
@@ -383,10 +395,12 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 
 **Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(space_id, pairwise_did)`。缓存 MUST 包含验证时间、MLS epoch、principal DID、device id 和签名证明摘要。缓存失效规则：
 
-- MLS epoch 变更（成员被移除或主动离开）时，MUST 失效对应成员的缓存条目。
+- **Eager invalidation on member leave / ban / remove（normative MUST）**：当客户端处理一个 `cx.member.state` event（或等价的 ban / leave / remove governance Move）时，MUST **立即**（在该 event accepted 进入本地 frontier 的同一事务边界内）失效缓存中所有 `(space_id == this_space, pairwise_did → leaving_principal)` 的条目。**不得**等待 TTL 过期或 MLS epoch 推进——否则被移除成员的 pairwise→principal 映射会在其它成员客户端中残留至 TTL 末尾，泄露"X 在 T 时刻离开此 Space"的时间侧信道，违反 minimal-metadata Space 的核心隐私目标。
+- MLS epoch 变更（任何 commit）时，MUST 检查并失效任何 epoch 匹配旧 epoch 的 stale 条目。
 - `cx.identity_link` 被更新或撤销时，MUST 替换旧条目。
-- 缓存 TTL SHOULD 不超过 7 天；过期后 MUST 重新验证。
+- 缓存 TTL SHOULD 不超过 7 天；过期后 MUST 重新验证。该 TTL 仅是**最坏兜底**，不能替代 eager invalidation。
 - 设备丢失或恢复后，MUST 清除所有 identity_link 缓存。
+- conformance vector `cx.vector.identity_link.eager_invalidation.v1`（参见 `conformance-vectors.md`）覆盖 ban / leave / remove 三种触发条件下的 eager invalidation 行为。
 
 ### 2.8 Message ID AAD 可见性
 
@@ -422,9 +436,10 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
 - 非 E2EE Space：`reaction_payload.key` 直接携带 emoji（单 Unicode cluster 或 profile 注册的短 tag），可选 `annotation` 同样为明文。这与 Matrix `m.reaction` 行为一致。
 - E2EE Space (`audit_assurance ∈ {disclosed_policy, attested_hardware}` 或任何 `aad_visibility != opaque_id` 的 profile)：
   - 真正的 emoji / annotation MUST 通过 `reaction_payload.encrypted_payload` 携带，envelope 复用 §2.3 的 MLS application key 流程。
-  - 明文 `reaction_payload.key` MUST 为长度固定的路由 hash，定义为 `sha256("cx-reaction-key-v1" || mls_group_id || epoch || canonical_emoji)`，其中 `canonical_emoji` 为 NFC 归一化后的 Unicode 字节串。该 hash 仅供服务端做 OR-Set dedup、rate-limit、push fanout 和 reducer 聚合。
+  - 明文 `reaction_payload.key` MUST 为长度固定的路由 hash，定义为 `sha256("cx-reaction-key-v1" || space_id || mls_group_id || epoch || canonical_emoji)`，其中 `canonical_emoji` 为 NFC 归一化后的 Unicode 字节串。该 hash 仅供服务端做 OR-Set dedup、rate-limit、push fanout 和 reducer 聚合。`space_id` 是 v1 在 `mls_group_id || epoch` 之外加入的 defense-in-depth 字段——即便未来 MLS 库或部署出现 group_id 重用 / 碰撞情况，space_id 绑定仍能阻止跨 Space 重放；接收方 MUST 在路由层校验 routing hash 与当前 Space 一致。
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
-  - Routing hash 的构造 MUST 绑定 `mls_group_id` 与当前 `epoch`,以阻止跨 Space / 跨 epoch 的重放和频次相关攻击。同 epoch 内同一 emoji 的 routing hash 相同,跨 epoch 必然不同；这与 OR-Set 在 epoch 切换时按因果重新评估成员的行为一致。
+  - Routing hash 的构造 MUST 绑定 `space_id`、`mls_group_id` 与当前 `epoch`,以阻止跨 Space / 跨 epoch 的重放。同 epoch 内同一 emoji 的 routing hash 相同（这是 OR-Set dedup 的前提），跨 epoch 必然不同；这与 OR-Set 在 epoch 切换时按因果重新评估成员的行为一致。
+  - **Within-epoch 频次分析的已知 tradeoff**：deterministic routing hash 让服务端能在不解密的情况下做 OR-set 聚合，但代价是同一 epoch 内"emoji X 被使用过 N 次"的频次对服务端可见。要消除该侧信道需要 per-message 随机 salt，但会破坏 OR-set dedup 与去重幂等。v1 接受此 tradeoff；隐私优先 Space SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。
 - Minimal-metadata Space (`cx.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 room-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
 - `cx.reaction.remove` 走相同规则；`encrypted_payload` 内 MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛,但不得将该 id 暴露在明文。
 

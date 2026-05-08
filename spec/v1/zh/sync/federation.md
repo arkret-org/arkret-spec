@@ -127,6 +127,7 @@ Signature: sig1=:base64...:
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Space policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
+| `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Space 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。 |
 
 请求示例（非完整 schema）：
@@ -139,7 +140,8 @@ Signature: sig1=:base64...:
   "service_binding_ref": {
     "space_policy_hash": "sha256:...",
     "membership_frontier": ["cx:event:..."],
-    "destination_service_type": "principal_server"
+    "destination_service_type": "principal_server",
+    "reducer_profile_hash": "sha256:..."
   },
   "events": [
     { /* 完整的 Event Envelope，含签名 */ }

@@ -485,6 +485,38 @@
         "auth_decision"
       ],
       "description": "A policy-server-issued recall of a previous allow decision; corresponding action MUST be reversed if still reversible."
+    },
+    {
+      "code": "inclusion_proof_failed",
+      "applies_to": [
+        "client_sync",
+        "snapshot_verification"
+      ],
+      "description": "Snapshot inclusion / omission challenge failed: issuer could not produce a valid Merkle branch or ordered-set slice for a sampled Event ID / actor sequence range against the manifest's event_set_commitment.root, OR the proof's root differs, OR an actor sequence gap is not reflected in soft_failed/quarantined digests. Client MUST quarantine or reject the snapshot and fall back to raw Event replay."
+    },
+    {
+      "code": "snapshot_issuer_revoked",
+      "applies_to": [
+        "client_sync",
+        "snapshot_verification"
+      ],
+      "description": "Snapshot signer's authority (Space owner / admin / trusted snapshot issuer / witness quorum membership) was revoked at or before the manifest's `created_at`, or revoke freshness cannot be confirmed within the verifier's max_anchor_staleness_ms. Client MUST quarantine or reject the snapshot. A revoke that takes effect strictly after `created_at` does not retroactively invalidate a previously valid snapshot."
+    },
+    {
+      "code": "reducer_profile_mismatch",
+      "applies_to": [
+        "federation_transaction",
+        "service_call"
+      ],
+      "description": "Federation push / pull body's service_binding_ref.reducer_profile_hash differs from the receiver's reducer profile for the target Space. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and covered_frontier — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Space policy update or terminate federation for this Space."
+    },
+    {
+      "code": "selector_too_complex",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, requires_claims item count, constraint nesting). Distinct from invalid_param so audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors."
     }
   ]
 }

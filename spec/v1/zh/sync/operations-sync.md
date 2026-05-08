@@ -279,6 +279,27 @@ function validate_actor_seq(event, known_frontiers):
 
 该算法只验证 `actor_seq` 语义。完整的 Event 验证还必须包括签名、schema、capability、Space policy、因果依赖（`prev_refs` / `refs[]` 存在性）和 HLC 合理性检查。
 
+### 6.1 Soft-fail Event Reconciliation
+
+一个 Event 被 soft-failed（受 backfill 等候、causal 上下文未到、frontier 暂时落后）时，本地 reducer / projection 在等待期间 MAY 已经把它的 effects 应用到推测态。当后续 backfill 完成、或 capability / policy 后续发现该 Event 不应通过时，本地状态需要按下表确定性地 reconcile：
+
+| Soft-fail 原因 | 后续判定 | 对本地推测态的处理 |
+| --- | --- | --- |
+| 缺前序（`prev_refs` 未到） | backfill 完成且签名 / schema / causal 全过 → **upgrade to accepted**；upgrade 后 reducer / projection 不需要重新计算（推测态与最终态一致） | 推测应用 → 标记 `accepted` |
+| 缺前序，但 backfill 完成后发现 `actor_seq` 与已知 chain 冲突（`actor_seq` collision、prev hash 不一致） | reject | reducer MUST **回滚** 该 Event 在推测态下产生的所有 cell effects；projection MUST 在下次重算时排除该 Event |
+| capability 暂时未知（grant 尚未到达） | grant backfill 后通过 → upgrade；grant 仍缺 / 已 revoke / 已过期 → reject | 同上：通过则升级，reject 则回滚 |
+| Anchor 未覆盖（`anchor_ref` 引用未到 Anchor） | Anchor 到达且覆盖该 Move → upgrade；超出 `max_anchor_staleness_ms` 仍未到 → quarantine | quarantine 时不进入 effective state；超时后 reject 走回滚路径 |
+| Move precondition 暂时不可解（依赖 cell 处于 ⊥） | ⊥ 修复（conflict-recovery Move）后 precondition 重检通过 → upgrade；precondition 永久 fail → reject | 同上 |
+
+**回滚正确性要求**：
+
+- Reducer 实现 MUST 把"应用 soft-failed Move 的推测 effects"与"应用 accepted Move 的 effects"区分开。最简实现是 **per-cell two-phase materialization**：speculative cells 与 accepted cells 分别计算，最终 effective state 只暴露 accepted。projection 层从 effective state 派生。
+- 任何在推测期间产生的副作用（client UI 提示、本地 search index、本地 notification）SHOULD 标注 `pending_event_id` 以便 reconcile 时撤回。重要业务副作用（外发邮件、第三方 webhook、外部 API 调用）MUST NOT 在 soft-failed 状态下触发。
+- 同一个 `event_id` 从 `soft_failed` → `accepted` 是单调升级；从 `soft_failed` → `rejected` 触发回滚。**MUST NOT** 出现 `accepted` → `rejected` 的状态退化（除非走 redaction / governance 显式撤回路径，那是新的 Event，不是同一个 Event 状态变化）。
+- reconcile 完成后，reducer MUST 重算受影响 cell 的 state_root 并更新本地 frontier；client SHOULD 通过 sync stream 通知 UI 刷新。
+
+合规客户端 MUST 实现该 reconciliation 流程；conformance vector `cx.vector.sync.soft_fail_reconcile.v1`（参见 `conformance-vectors.md`）覆盖 backfill→accepted 与 backfill→rejected 两条路径。
+
 ## 7. 标准 Event Kind
 
 标准 `Event.kind` 的机器可读 source of truth 是 `artifacts/registry/event-kind-registry.json`；`schema-registry.md` 只是文档视图。实现必须拒绝未注册、未带 `cx.` 前缀或未在服务端能力清单中声明的标准事件类型。自定义事件不得使用 `cx.` 前缀，除非已纳入标准 registry。
@@ -571,7 +592,7 @@ Snapshot manifest MUST 包含：
 2. `signature.verification_method` 对应的 DID 必须是 Space creator、Space owner、当前有效 Space admin、Space policy 授权的 snapshot issuer 或 witness quorum 成员；该权限 MUST 按 manifest `created_at` 的 as-of auth state 验证，且该 auth state 必须覆盖 snapshot frontier 以及截至 `created_at` 可解析的相关 grant/revoke。若 signer 在 `created_at` 前已被撤销，或 revoke freshness 无法确认，客户端 MUST quarantine / reject snapshot。
 3. 每个 chunk 的实际 SHA-256 与 manifest 中声明的 digest 一致。
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
-5. high-assurance profile 中，客户端 MUST 能对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要发起 inclusion / omission challenge；issuer 无法提供证明时，客户端 MUST quarantine snapshot 或回退到原始 Event 回放。
+5. **Inclusion challenge**：`security_class=high_assurance` 的 Space MUST 在采用 snapshot 前对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要执行 inclusion / omission challenge（wire 形态、抽样规则与失败处理见 [`conformance/snapshot-schema.md` §6](../conformance/snapshot-schema.md)）；其他 profile SHOULD。issuer 无法提供合规证明时，客户端 MUST 返回 `inclusion_proof_failed` 并 quarantine snapshot 或回退到原始 Event 回放。Issuer 在 `created_at` 之前已被 revoke 时 MUST 返回 `snapshot_issuer_revoked`。
 6. 后续 admin / snapshot issuer revoke 不会自动否定此前在有效权限下签名的 snapshot，但客户端在用 snapshot 恢复后 MUST 继续回放 snapshot frontier 之后的 Event，再用当前 auth state 判断新写入。
 7. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?direction=backward`（`cx.events.query`）进行原始 Event 历史回放。
 

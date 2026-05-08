@@ -162,6 +162,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
 | `receipt_independence` | yes | `independent` / `single_source`。`independent` MUST 表示 receipt 由 ≥2 个**独立控制面**（不同 service DID、不同运营组织、不同密钥保管方）签发并被 Audit Agent 同时持有；单签发者声称 `independent` MUST 被接收方拒绝（`audit_receipt_invalidated`）。`single_source` 是单源回执，仅在显式同意降级（部署声明）时使用。详细聚合规则见 §4.1.1。 |
 | `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Space `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
+| `audit_policy_version_hash` | yes | `(audit_disclosure, audit_assurance)` 在 receipt frontier 处的 canonical hash（`sha256` over canonical JSON `{audit_disclosure: <object>, audit_assurance: <string>}`）。让接收方 O(1) 校验"receipt 声明的 policy class 与 frontier 处实际 policy 一致"，无需重放事件。MUST 与 receipt frontier 处的 policy state 一致；不一致 fail closed (`audit_receipt_invalidated`)。 |
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
 
 规则：

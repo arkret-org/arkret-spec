@@ -71,11 +71,8 @@
       "type": "array",
       "items": {
         "$ref": "./grant-constraint.schema.json"
-      }
-    },
-    "delegable": {
-      "type": "boolean",
-      "default": false
+      },
+      "description": "Constraints applied to this grant. Delegation control MUST be expressed via a constraint with constraint_type='delegation_control' and 'max_delegation_depth' (canonical, see capabilities.md §10). The early-draft top-level 'delegable' boolean is removed — it duplicated max_delegation_depth=0 semantics with no precedence rule. Implementations MUST reject grants carrying a top-level 'delegable' field as schema_violation. Default when no delegation_control constraint is present: not delegable (equivalent to max_delegation_depth=0)."
     },
     "parent_grant_id": {
       "type": "string",
@@ -108,5 +105,54 @@
       "minItems": 1
     }
   },
+  "not": {
+    "required": [
+      "delegable"
+    ]
+  },
+  "allOf": [
+    {
+      "$comment": "Lint condition (2) from capabilities.md §18.1: grants whose actions[] include moderator-role actions MUST carry a constraint with depends_on_moderation_state=true. Conditions (1) and (3) (subject condition selector referencing moderation state, constraints referencing moderation queue/cell) are reducer-side lint and not enforced here.",
+      "if": {
+        "properties": {
+          "actions": {
+            "type": "array",
+            "contains": {
+              "type": "string",
+              "enum": [
+                "cx.moderation.decision",
+                "cx.moderation.decision.lift",
+                "cx.space.moderate"
+              ]
+            }
+          }
+        },
+        "required": [
+          "actions"
+        ]
+      },
+      "then": {
+        "required": [
+          "constraints"
+        ],
+        "properties": {
+          "constraints": {
+            "type": "array",
+            "contains": {
+              "type": "object",
+              "required": [
+                "depends_on_moderation_state"
+              ],
+              "properties": {
+                "depends_on_moderation_state": {
+                  "const": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": true
 }

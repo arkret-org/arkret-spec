@@ -26,7 +26,8 @@
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
     },
     "relation_kind": {
-      "type": "string"
+      "type": "string",
+      "description": "Relation semantic. Cross-Space constraint: structural relations 'contains' and 'belongs_to' MUST NOT cross Space (resolved from_ref and to_ref MUST share the same space_id). Reducer-enforced — see object-model-core.md §2.4.1 and data-structures.md §8 cardinality table. Weak-semantic kinds (references, mentions, derived_from, summarized_from, depends_on, blocks, assigned_to, has_default_view) MAY cross Space subject to two-sided authorization."
     },
     "from_ref": {
       "$ref": "#/$defs/ref"
@@ -55,6 +56,10 @@
       ],
       "description": "Relation state. 'tombstone' covers both deletion and redaction; the originating reason is preserved on the cx.relation.delete / cx.redaction event, not on the materialized object."
     },
+    "state_changed_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.relation.delete / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in data-structures.md §3."
+    },
     "created_by": {
       "$ref": "#/$defs/did"
     },
@@ -65,7 +70,8 @@
   "$defs": {
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(space|actor_profile|flow|space|message|morph|relation|event|view):[0-9a-hjkmnp-z]{26}|did:.+)$"
+      "pattern": "^(cx:(space|place|actor_profile|flow|message|morph|relation|event|view):[0-9a-hjkmnp-z]{26}|did:.+)$",
+      "description": "Typed canonical reference. Allowed kinds: space, place, actor_profile, flow, message, morph, relation, event, view, or DID. Place was previously missing from this pattern (v1 wire bug fix); Place is a valid Relation endpoint as of v1 standard structure (board/list containers, e.g. board --contains--> list)."
     },
     "did": {
       "type": "string",

@@ -124,7 +124,15 @@ The signing DID MUST be one of:
 - witness quorum
 - policy-approved snapshot issuer
 
-Client MUST verify signature, signer authority, `state_hash`, frontier, `event_set_commitment` and every chunk digest before using snapshot. Signer authority MUST be evaluated as of the manifest `created_at`, using accepted Space auth state that covers the snapshot frontier and all relevant admin / snapshot-issuer grant or revoke events known up to `created_at`. If the signer was revoked before `created_at`, or the verifier cannot establish revoke freshness for the signer authority, the snapshot MUST be quarantined or rejected. A later revoke does not retroactively invalidate a previously valid snapshot, but the client MUST replay events after the snapshot frontier before using current state for new writes. `proof`, `signed_by`, `generator_signature` and `state_signature` are not v1 snapshot manifest fields.
+Client MUST verify signature, signer authority, `state_hash`, frontier, `event_set_commitment` and every chunk digest before using snapshot. Signer authority MUST be evaluated as of the manifest `created_at`, using accepted Space auth state that covers the snapshot frontier and all relevant admin / snapshot-issuer grant or revoke events known up to `created_at`. If the signer was revoked before `created_at`, or the verifier cannot establish revoke freshness for the signer authority, the snapshot MUST be quarantined or rejected with `snapshot_issuer_revoked`.
+
+**Maximum acceptance window (normative)**: a manifest is acceptable for snapshot bootstrap only if **all** of the following hold at adoption time:
+
+- `(now - manifest.created_at) ≤ snapshot_max_acceptance_age_ms`. Default `snapshot_max_acceptance_age_ms = 2_592_000_000` (30 days). `security_class=high_assurance` Spaces MUST tighten to ≤ `604_800_000` (7 days). Beyond the window, even a previously valid snapshot MUST be rejected — the client MUST request a fresh manifest, since auth state and policy will have drifted enough that even a legitimate old snapshot cannot represent current state safely.
+- The signer's authority chain (Space owner / admin / trusted issuer / witness quorum membership) is still **resolvable** under current auth state. If the chain has been pruned (e.g. by Space tombstone, governance reset, or auth-chain compaction beyond the manifest era) the snapshot MUST be rejected.
+- `(now - signer.revoked_at) < 0` if the signer has been revoked at all. A revoke effective strictly **after** `created_at` does NOT retroactively invalidate the manifest, but the client MUST always replay events after the snapshot frontier before using current state for new writes.
+
+`proof`, `signed_by`, `generator_signature` and `state_signature` are not v1 snapshot manifest fields.
 
 ## 6. Inclusion and Omission Defense
 
@@ -135,11 +143,87 @@ Snapshot signer authority only proves who signed the reduced state; it does not 
 - `ordered_event_id_sha256_v1`: SHA-256 over canonical JSON array entries `{event_id,event_hash,actor_id,actor_seq,hlc}` sorted by `(actor_id, actor_seq, event_id)`.
 - `merkle_event_set_v1`: Merkle root over the same canonical entries.
 
-High-assurance profiles MUST support inclusion challenge:
+High-assurance profiles MUST support inclusion challenge. Spaces with `security_class=high_assurance` MUST execute it before adopting any snapshot; other profiles SHOULD.
 
-1. Client asks the snapshot issuer or witness for inclusion proofs for sampled Event IDs and actor sequence ranges.
-2. Issuer returns Merkle branches or ordered-set slices bound to `event_set_commitment.root`.
-3. Client rejects or quarantines the snapshot if any sampled accepted Event is missing, if an actor sequence range has a gap not represented in `soft_failed` / `quarantined`, or if the proof root differs.
+The challenge wire shape (POSTed to `verification_hints.inclusion_proof_url`):
+
+Request body:
+
+```json
+{
+  "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
+  "challenge_id": "cx:txn:01js0ch0000000000000000000",
+  "samples": [
+    {
+      "kind": "event_id",
+      "event_ids": ["cx:event:01js0ev0000000000000000000", "cx:event:01js0ev0000000000000000001"]
+    },
+    {
+      "kind": "actor_seq_range",
+      "actor_id": "did:webvh:...:alice.example",
+      "from_seq": 100,
+      "to_seq": 199
+    }
+  ],
+  "issued_at": "2026-04-26T00:00:00Z"
+}
+```
+
+Response body:
+
+```json
+{
+  "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
+  "challenge_id": "cx:txn:01js0ch0000000000000000000",
+  "commitment_algorithm": "merkle_event_set_v1",
+  "commitment_root": "sha256:...",
+  "proofs": [
+    {
+      "kind": "event_id",
+      "event_id": "cx:event:01js0ev0000000000000000000",
+      "merkle_branch": ["sha256:...", "sha256:..."],
+      "leaf_canonical_entry": {
+        "event_id": "cx:event:01js0ev0000000000000000000",
+        "event_hash": "sha256:...",
+        "actor_id": "did:webvh:...:alice.example",
+        "actor_seq": 100,
+        "hlc": "01970e589d21-0004-a13f9c2e"
+      }
+    },
+    {
+      "kind": "actor_seq_range",
+      "actor_id": "did:webvh:...:alice.example",
+      "from_seq": 100,
+      "to_seq": 199,
+      "ordered_set_slice": [
+        {"event_id": "cx:event:...", "event_hash": "sha256:...", "actor_seq": 100, "hlc": "..."},
+        "..."
+      ],
+      "gap_attribution": [
+        {"actor_seq": 142, "category": "soft_failed", "digest_index": 7},
+        {"actor_seq": 167, "category": "quarantined", "digest_index": 3}
+      ]
+    }
+  ],
+  "issuer_signature": {
+    "kind": "detached_jws",
+    "alg": "EdDSA",
+    "verification_method": "did:web:server.example#snapshot-key-1",
+    "payload_hash": "sha256:...",
+    "created_at": "2026-04-26T00:00:00Z",
+    "jws": "..."
+  }
+}
+```
+
+Sampling and verification rules (normative):
+
+1. **Random sampling**: client MUST draw samples independent of issuer hints. For event_id samples, draw `n ≥ max(20, ceil(log2(covered_event_count)))` distinct IDs uniformly from the client's local Event set in the snapshot frontier. For actor_seq_range samples, draw at least 3 ranges of length 100 each from distinct actors known to be active in the snapshot.
+2. **Branch verification**: each `proofs[i].merkle_branch` MUST verify under `commitment_algorithm` against `commitment_root`; `commitment_root` MUST equal the manifest's `event_set_commitment.root` (no rebinding allowed).
+3. **Gap attribution**: for each missing `actor_seq` within a sampled range, the response MUST cite an entry in `verification_hints.{soft_failed_digest, quarantined_digest, conflict_records_digest}` (`digest_index` is the position in the digest's commitment list) — silent gaps are forbidden.
+4. **Signature**: `issuer_signature` MUST be from a DID listed in §5 (Space owner / creator / admin / trusted snapshot issuer / witness quorum) and verifiable as of manifest `created_at`.
+5. **Failure**: if any sampled accepted Event is absent, any branch fails verification, any gap lacks attribution, or signature verification fails, client MUST reject with error `inclusion_proof_failed` (see [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)). If the signer's authority is revoked at or before `created_at`, client MUST reject with `snapshot_issuer_revoked`.
+6. **Freshness**: response MUST be received within the manifest's `verification_hints.challenge_window_seconds`; expired responses MUST be retried, not silently accepted.
 
 `verification_hints.conflict_records_digest`, `soft_failed_digest` and `quarantined_digest` commit to non-accepted or unresolved inputs. A snapshot MUST NOT silently hide conflict, soft-fail or quarantine records that affect authorization, visibility, E2EE epoch or object state.
 

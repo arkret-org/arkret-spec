@@ -189,7 +189,23 @@ flow_part            ::= flow_id | "*"
 - `object_ref`：任一 canonical object id。
 - 空白字符被忽略，引号内字符串除外。
 
-## 4. 选择器求值
+### 3.3 Parser 硬上限（normative，DoS 防护）
+
+资源选择器在 capability evaluation 路径中被频繁解析，恶意构造的嵌套表达式可触发指数级 parser 行为。所有 selector parser（无论是 §2 JSON 形态还是 §3 shorthand 形态）MUST 强制以下硬上限；任何超限输入 MUST fail closed 并返回 `selector_too_complex` error code：
+
+| 限制项 | 上限 | 说明 |
+| --- | --- | --- |
+| Selector 字符串总长度（shorthand） | 4096 字节 | 超长 shorthand MUST 直接拒绝，不进入 tokenizer。|
+| `resources[]` 数组长度（JSON） | 256 项 | 单个 grant 的 resource 集合上限。|
+| Disjunction(`,`) / conjunction(`+`) 总 token 数（shorthand） | 256 token | 包括 selector_term + 运算符。|
+| 嵌套深度（任意 selector 树） | 8 层 | 包括逗号 / 加号 / 引用 / 子 selector 嵌套。|
+| 单个 `selector_term` 字段值长度 | 1024 字节 | DID、URL、ULID、复合 id 都包含在内。|
+| `requires_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限。|
+| Constraint object 内嵌套层级 | 4 层 | approval / claim object 内部最多 4 层嵌套。|
+
+实现 MUST 在解析入口先验证 byte-size 与 token-count 上限，再做语法解析；不得让恶意输入进入 EBNF 递归下降。`selector_too_complex` error 必须独立于 `invalid_param`，以便审计层将疑似 DoS 攻击与普通格式错误区分。
+
+`additionalProperties` / 未注册字段不计入嵌套深度，但实现 MUST 对未知字段总数同样设上限（建议同 selector_term 上限 256）以防止 schema 旁路放大攻击面。
 
 ### 4.1 Space 选择器
 

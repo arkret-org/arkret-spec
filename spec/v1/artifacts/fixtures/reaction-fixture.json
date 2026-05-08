@@ -206,7 +206,7 @@
     },
     {
       "name": "e2ee_routing_hash_dedup",
-      "notes": "In an E2EE space the plaintext key is sha256(\"cx-reaction-key-v1\" || mls_group_id || epoch || canonical_emoji). Two adds with the same routing hash from the same actor in the same epoch collapse to one OR-Set membership; routing hash differs in a different epoch and so does not dedup across epochs.",
+      "notes": "In an E2EE space the plaintext key is sha256(\"cx-reaction-key-v1\" || space_id || mls_group_id || epoch || canonical_emoji). Two adds with the same routing hash from the same actor in the same epoch collapse to one OR-Set membership; routing hash differs in a different epoch and so does not dedup across epochs. The space_id binding (added in v1) provides defense-in-depth even if mls_group_id is reused across deployments.",
       "context": {
         "space_id": "cx:space:01js0sp0000000000000000099",
         "aad_visibility": "hidden",

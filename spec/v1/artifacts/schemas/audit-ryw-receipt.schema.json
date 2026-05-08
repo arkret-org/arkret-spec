@@ -17,6 +17,7 @@
     "observed_at",
     "receipt_independence",
     "audit_assurance_class",
+    "audit_policy_version_hash",
     "proofs"
   ],
   "properties": {
@@ -109,6 +110,11 @@
         "disclosed_policy"
       ],
       "description": "Audit assurance class propagated from the Space audit_assurance policy field. attested_hardware = cx.profile.attested_audit.e2ee.v1 (TEE/HSM/enclave attestation required). disclosed_policy = cx.profile.disclosed_audit.e2ee.v1 (process-only disclosure, NOT cryptographically enforced). Audit Agents MUST propagate the Space-declared value verbatim; receivers MUST fail closed when this field disagrees with the Space audit_assurance at the receipt's frontier."
+    },
+    "audit_policy_version_hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+      "description": "Canonical hash of the (audit_disclosure, audit_assurance) tuple from cx.space.policy_components at the receipt's frontier. Computed as sha256 over canonical JSON {audit_disclosure: <object>, audit_assurance: <string>}. Lets verifiers atomically check 'receipt's claim matches Space-declared policy at this frontier' without replaying events. MUST match the receipt frontier's policy state; mismatch MUST fail closed (audit_receipt_invalidated). Required field — missing receipts MUST be rejected to prevent silent policy drift."
     },
     "proofs": {
       "type": "array",
