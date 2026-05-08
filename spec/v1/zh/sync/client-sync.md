@@ -150,7 +150,7 @@ Sync 响应包含以下 stream：
   "summary": {
     "joined_member_count": 12,
     "invited_member_count": 1,
-    "heroes": ["did:plc:..."]
+    "heroes": ["did:webvh:..."]
   },
   "unread_notifications": {
     "notification_count": 3,

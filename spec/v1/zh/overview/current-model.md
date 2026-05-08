@@ -51,19 +51,18 @@ Space membership、Flow 更新权限与 discussion access 使用统一授权模�
 
 - `cx.member.state` 控制 Space membership
 - `cx.flow.*` 控制 Flow 自身与工作流位置
-- branch 默认继承 Flow / Space access
-- `cx.flow.branch.member` 只在 branch-scoped override 生效时控制 discussion 成员状态
-- Flow synthesis 可见只有在有效 access policy 继承或授予 discussion 读取时，才代表 discussion 可读
-- discussion 可读不代表 Flow synthesis 可写
+- Branch 不携带独立 access；discussion 时间线默认完全继承父 Space。
+- 需要让 discussion 拥有独立 membership / history visibility / E2EE 时，必须创建 child Space 并通过 `Flow.discussion_space_ref` 引用；child Space 上的 `cx.member.state` 控制 discussion 成员状态。
+- Flow synthesis 可见性 ≠ discussion 可见性：未设置 `discussion_space_ref` 时按父 Space history visibility 判断；设置时按 child Space policy 独立判断。
+- discussion 可读不代表 Flow synthesis 可写。
 
 ## 7. E2EE 边界
 
-MLS 加密可绑定到两个层级：
+MLS 加密绑定到 Space：
 
-- Space 级：整个 Space 共用加密边界
-- Flow discussion branch 级：某个 Flow 的 `discussion` 通过 branch-scoped override 独立作为 MLS group
-
-当 `discussion` branch 通过 `branches[].access` 或等价 policy 使用 `encryption_profile="mls_rfc9420"` 时，成员、`history_visibility`、key sharing 和审计边界均以该 branch 为准。
+- 默认（未设 `discussion_space_ref`）：整个父 Space 共用一个加密边界，Flow synthesis 与 discussion 共享同一 MLS group。
+- 独立 discussion access：父 Space 与 `discussion_space_ref` child Space 是两个独立 Space，各自拥有独立 MLS group、独立成员、独立 history sharing。
+- 不存在 "branch-internal MLS group"：MLS group 的 scope 永远绑定到某个具体 `space_id`。
 
 ## 8. Agent 结果落点
 

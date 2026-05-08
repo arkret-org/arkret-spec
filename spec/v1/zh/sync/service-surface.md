@@ -441,7 +441,7 @@ barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不�
 
 ### 6.2 Flow Discussion / Context Projection
 
-Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` branch 都必须按有效 access policy 执行 membership / history visibility 检查：默认可继承 Flow / Space，显式 branch-scoped override 则按该 override 独立裁剪。不得因为 Flow synthesis 可见就展开未授权的 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Space 对象权限。
+Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` branch 都必须按所属 Space 执行 membership / history visibility 检查：未设 `Flow.discussion_space_ref` 时按父 Space；设了时按 child Space 独立裁剪。不得因为 Flow synthesis 可见就展开未授权的 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Space 对象权限。
 
 ### 6.3 Inbox / Notification Projection
 
@@ -602,9 +602,9 @@ POST /api/v1/directory/private-contact-discovery
 
 该操作用于 `cx.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 time-bound reachability proof 或 invite/consent 引导，不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。
 
-## 9. MIMI Provider Facade Surface（v1.1+ extension）
+## 9. MIMI Provider Facade Surface（extension profile）
 
-MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)（标记为 v1.1+ extension profile）。声称 v1 core 的实现 **不要求** 提供 `/api/v1/mimi/*` 路径；只有显式声明 `cx.profile.mimi_interop.v1` 的部署才暴露该子面。
+MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)（标记为 interop extension profile）。声称 v1 core 的实现 **不要求** 提供 `/api/v1/mimi/*` 路径；只有显式声明 `cx.profile.mimi_interop.v1` 的部署才暴露该子面。
 
 ## 10. Capability / Invite Surface
 

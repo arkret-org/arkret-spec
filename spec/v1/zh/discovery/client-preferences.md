@@ -146,7 +146,56 @@ Rules:
 - Clients MUST NOT publish the blocklist to public Space state or directory services.
 - Blocking an organization or domain MUST be evaluated through verified DID / claim bindings when possible; clients SHOULD warn when only a weak string match is available.
 
-### 3.6 已读回执偏好 (Read Receipt Preferences)
+### 3.6 联系人备注 (Contact Remarks)
+
+用户可以为已知联系人（其他 Actor / Organization / 设备）保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Space history、mention、sender attribution 或任何协议主体字段。
+
+**Key:** `cx.contacts.actor.<did>`
+
+```json
+{
+  "version": 1,
+  "subject": {
+    "kind": "actor",
+    "did": "did:web:wang.example.com"
+  },
+  "local_name": "老王（前同事）",
+  "note": "2024 年 ContrixCon 认识",
+  "tags": ["work", "favorite"],
+  "pinned": true,
+  "verified_handle_at_save": "wang.example.com",
+  "saved_at": "2026-05-08T10:00:00Z",
+  "updated_at": "2026-05-08T10:00:00Z"
+}
+```
+
+字段：
+
+| 字段 | 类型 | 必需 | 说明 |
+| --- | --- | --- | --- |
+| `version` | `int` | yes | schema 版本，当前为 `1`。 |
+| `subject.kind` | `enum(actor, organization, device, service)` | yes | 备注对象类型，命名空间与 §3.5 blocklist `target.kind` 子集一致。 |
+| `subject.did` | `did` | yes | 备注对象 DID；MUST 与 key 中 `<did>` 完全一致。 |
+| `local_name` | `string` | no | 本地备注名，最大 128 字符；规范化与 confusable 处理与 display name 一致（见 [`conformance/encoding.md`](../conformance/encoding.md) §2）。 |
+| `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
+| `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Space tags（`cx.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
+| `pinned` | `bool` | no | 是否置顶。 |
+| `verified_handle_at_save` | `string` | no | 保存或最近一次更新时该 DID 的 verified handle 快照，用于反冒充比对。 |
+| `saved_at` | `timestamp` | yes | 首次保存时间。 |
+| `updated_at` | `timestamp` | no | 最近修改时间。 |
+
+规则：
+
+- 该 key 是 actor-private，MUST 与 §3.5 blocklist 一样以加密 account data 形式同步，Sync Service 不得读取明文。
+- `local_name` 与 `note` MUST NOT 通过 mention、quote、forward、profile、Space state 或 directory 泄露给备注对象本人或其他成员。客户端构造引用、转发或导出时 MUST 使用对方公开的 display name / handle，不得替换为本地备注。
+- 本地备注 MUST NOT 参与 ACL、grant subject、policy condition、audit attribution、sender verification 或 MLS credential 判定，约束与 [`identity/identity-handles.md`](../identity/identity-handles.md) §2.3 中 display name 一致。
+- UI 显示本地备注时 SHOULD 同时呈现对方 verified handle 或 DID 短摘要，使用户可识别"备注名相同但 DID 不同"的冒充尝试；安全敏感 UI（DM 邀请、approval、转账类操作）MUST 能直接显示对方 DID。
+- 当对方当前 verified handle 与 `verified_handle_at_save` 不一致时，客户端 SHOULD 在该联系人的渲染处显示 handle changed / transferred 标记，并提示用户复核备注，与 [`identity/identity-handles.md`](../identity/identity-handles.md) §6.1 的缓存失效语义一致。
+- 当对方公开 display name 与本地 `local_name` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先显示本地备注并加可识别的"备注"角标，避免对方通过改名伪装成用户给他取的备注。
+- 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
+- 删除联系人备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理。
+
+### 3.7 已读回执偏好 (Read Receipt Preferences)
 
 控制是否向其他成员发送 `cx.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Space 或 Flow / discussion branch 单独重写。
 

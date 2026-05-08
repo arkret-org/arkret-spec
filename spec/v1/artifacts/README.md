@@ -21,7 +21,7 @@ title: Artifacts
 - `artifacts/openapi/contrix-service-api.openapi.yaml`
   - HTTP/JSON binding shape；与 operation registry 对齐，不构成第二套 operation namespace。
 - `artifacts/bindings/non-http-bindings.yaml`
-  - gRPC / WS / SSE / MQ / libp2p 等 v1.1+ extension binding 概要。
+  - gRPC / WS / SSE / MQ / libp2p 等 binding extension profile 概要。
 - `artifacts/fixtures/*.json`
   - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、Move/Anchor/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
 

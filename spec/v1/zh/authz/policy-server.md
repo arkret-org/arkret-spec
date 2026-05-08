@@ -77,7 +77,7 @@ Content-Type: application/json
   "space_id": "cx:space:01js0sp0000000000000000000",
   "request_canonical_hash": "sha256:...",
   "action": "cx.message.create",
-  "actor": "did:plc:...",
+  "actor": "did:webvh:...",
   "device_id": "cx:device:01js0ke0000000000000000000",
   "source": {
     "service_did": "did:web:server.example",

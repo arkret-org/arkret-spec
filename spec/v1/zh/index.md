@@ -72,7 +72,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - **v1 core 默认 principal DID method 为 `did:webvh`**：在 `did:web` 之上叠加 `did.jsonl` 历史链 + SCID + witness evidence，提供可审计的 DID 控制历史，抵御 DNS / TLS 单点失陷。
 - `did:web` 仅作为 **service DID 默认 method**、**`personal_node` deployment profile 的可选 principal method**、以及 `did:webvh` hosting 暂时不可达时的策略允许 fallback；不得作为 `small_team` / `organization` / 更高 profile 的默认 principal method。
 - 临时、测试、设备、邀请、bootstrap 使用 `did:key`；不得作为默认长期主身份。
-- 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 v1.1+ extension interop profile，不属于 v1 core 互操作。
+- 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 interop extension profile，不属于 v1 core 互操作必需。
 - DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。
 
 ### 4.2 对象模型
@@ -89,7 +89,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 看板定义：`Board Place -> List Place -> Flow`。
 - 会话定义：`Flow(discussion branch) -> Message`。
 - `cx.flow.branch.set_primary` 仅切换默认 branch，不复制对象、不迁移历史。
-- Branch 默认继承 Flow / Space 访问规则；discussion 只有显式声明 branch-scoped override 时，才成为独立成员、历史和 E2EE 边界。
+- Branch 不携带独立 access；discussion 完全继承父 Space。需要独立成员、历史或 E2EE 边界时，必须升级为 child Space 并通过 `Flow.discussion_space_ref` 引用。
 
 ### 4.4 同步与真相模型
 

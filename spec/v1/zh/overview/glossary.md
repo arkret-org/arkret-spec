@@ -19,8 +19,8 @@ title: 术语表
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
 | Handle | 人类可读标识 | 可迁移的人类可读入口或别名；包括 DNS handle 和外部体系 alias，不可作为协议主体或授权主键。 |
 | DNS Handle | DNS 风格标识 | `alice.example.com` 这类可通过 DNS / HTTPS well-known 双向验证到 DID 的 Handle 子类。 |
-| Connection Identifier | 连接标识 | 邮箱、手机号、通讯录用户名、外部账号 ID 等用于发现、邀请或 consent 的标识；默认关系私有，不等于 Handle 或 DID。 |
-| Administrative Identifier | 管理标识 | 组织账号、计费账号、员工编号等组织本地管理标识；不能作为协议主体。 |
+| Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Space history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
+| Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
 | Space | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Space 为根。`cx:space:` 永远是边界，不再承担结构容器角色。 |
 | Official Space | 官方空间 | 由组织或 policy 明确确认的 Space，不等于单纯"有官方 handle 的 Space"。 |
@@ -32,7 +32,7 @@ title: 术语表
 | Flow primary branch | Flow 默认入口 | 按 branch primary 解析规则得到的默认 branch；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
 | Room | 讨论分支视图 | Flow 的 discussion branch 或以 discussion 为默认入口的会话视图简称。 |
 | synthesis branch | 正式表达分支 | Flow 的"synthesis"分支，承载正式状态、结构化字段与决策正文。 |
-| discussion branch | 讨论分支 | Flow 的"discussion"分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow / Space access，显式 override 时才 branch-scoped。 |
+| discussion branch | 讨论分支 | Flow 的"discussion"分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 完全继承父 Space，需要独立访问域时通过 `Flow.discussion_space_ref` 升级到 child Space。 |
 | Board | 看板 | `cx:place: kind=board`，组织一组 List Place 与其他 Place 的工作流容器。 |
 | List | 列 / 泳道 | `cx:place: kind=list`，挂到 Board Place 下、承载 Flow 位置关系的列容器。 |
 | Message | 消息对象 | 发生在 Flow discussion 分支中的即时沟通与补充记录。 |

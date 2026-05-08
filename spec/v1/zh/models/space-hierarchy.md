@@ -206,7 +206,7 @@ E2EE 要求：
 - Parent MLS group key MUST NOT 用于解密 child。
 - Child MAY 通过 invite / welcome flow 把 parent 成员加入 child MLS group，但这是显式 membership 变化。
 - Archive/export 可以按 hierarchy 批量发起，但每个 Space 的 key、policy 和 authorization 独立验证。
-- Container Space MUST NOT 单独创建 MLS group；Board/List 内 Flow 或 Message 的 E2EE 由最近 security-boundary Space 或显式 branch-scoped E2EE policy 决定。
+- Place（Board / List 等结构容器）永远不创建 MLS group；Flow / Message 的 E2EE 永远绑定到所属 Space。Flow 通过 `discussion_space_ref` 引用 child Space 时，该 child Space 拥有独立 MLS group。
 
 ## 10. Query and Sync
 

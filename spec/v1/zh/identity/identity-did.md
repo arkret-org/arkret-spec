@@ -89,8 +89,8 @@ did:webvh:<scid>:<host-and-path>
 | 组织 DID | `did:webvh` | v1 core MUST-support；治理 / 合规部署强制可验证 history chain。 |
 | Service DID | `did:web` | 服务发现天然依赖域名和 HTTPS endpoint；可选升级到 `did:webvh`。 |
 | 临时主体、设备、测试、一次性邀请、bootstrap | `did:key` | 本地可解析、无网络依赖；不支持轮换 / 恢复，MUST NOT 作为默认长期身份。 |
-| 钱包 / 链上账号绑定（v1.1+ interop） | `did:pkh` | 只在钱包控制权就是业务身份根时使用；将由 chain-binding interop profile 承载，目前不属于 v1 core。 |
-| AT Protocol 互通（v1.1+ interop） | `did:plc` adapter | 仅作为 AT Protocol bridge / interop adapter；将由独立 interop profile 承载，目前不属于 v1 core。 |
+| 钱包 / 链上账号绑定（interop extension） | `did:pkh` | 只在钱包控制权就是业务身份根时使用；由 chain-binding interop extension profile 承载，不属于 v1 core 互操作必需。 |
+| AT Protocol 互通（interop extension） | `did:plc` adapter | 仅作为 AT Protocol bridge / interop adapter；由独立 interop extension profile 承载，不属于 v1 core 互操作必需。 |
 | 高安全或隔离部署 | `did:webvh`（默认） + policy 指定的额外 method | sovereign / enclave / 内网 PKI / KERI 等可作为辅助；MUST 明确 resolver trust roots 与 witness 集合。 |
 
 ### 3.2 标识域名与服务域名的解耦
@@ -119,7 +119,7 @@ Contrix v1 core conformance 要求如下：
   - `did:webvh` 是 v1 core 默认 principal method（`personal_node` profile 例外，见 §3.1）。
   - `did:web` 是 v1 core 默认 service method；同时是 `personal_node` profile 的可选 principal method 与 `did:webvh` hosting 暂不可达时的 policy 允许 fallback。
   - `did:key` 用于测试、bootstrap、设备、一次性邀请、pairwise DID 和 registry outage 时的本地可验证身份材料。
-- AT Protocol interop（`did:plc` adapter）、wallet binding（`did:pkh`）、KERI 等 method 是 **v1.1+ extension interop profile**；core 实现 MAY 不支持，profile 化承载的好处是把仍在演进的子规范隔离在 core 互操作之外。
+- AT Protocol interop（`did:plc` adapter）、wallet binding（`did:pkh`）、KERI 等 method 是 **interop extension profile**；core 实现 MAY 不支持，profile 化承载的好处是把仍在演进的子规范隔离在 core 互操作之外。
 - 实现 MAY 支持其他现有 DID method，但 MUST 保留 raw method evidence，并声明 trust profile。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Contrix 私有 DID method。
 
@@ -152,14 +152,14 @@ Contrix v1 core conformance 要求如下：
 完整 method-specific 操作（创建、轮换、恢复、deactivation、history validation）的规范见
 W3C `did:webvh` specification 与 §7.2；core v1 文档不再展开。
 
-### 3.5 v1.1+ Interop Adapters
+### 3.5 Interop Adapter Extension Profiles
 
-下列 method 在 v1 core 中**不要求**实现，仅作为 interop staging profile 提供：
+下列 method 在 v1 core 中**不要求**实现，作为可选 interop extension profile 提供：
 
 - **`did:plc` adapter** — AT Protocol 互通；需要 PLC directory / mirror / audit source。
 - **`did:pkh`** — 钱包 / 链上账号绑定；需要 chain-specific verification。
 - **`did:keri` 与其他 KERI 系列** — KERI 部署的 raw evidence 保留与 normalized view 映射。
-- **TSP transport** — 见 [`identity/tsp-integration.md`](./tsp-integration.md)（v1.1+ extension；core v1 不要求实现）。
+- **TSP transport** — 见 [`identity/tsp-integration.md`](./tsp-integration.md)（extension profile；v1 core 不要求实现）。
 
 声明这些 adapter 的部署 MUST 在 `service/describe.identity_methods` 中显式列出，并在 conformance profile 中说明 trust roots、outage 策略与 mirror 来源。
 
@@ -302,7 +302,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 {
   "kind": "cx.did.proof",
   "purpose": "account_binding",
-  "did": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "did": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "audience": "did:web:auth.acme.example",
   "origin": "https://auth.acme.example",
   "challenge": "base64url-random",

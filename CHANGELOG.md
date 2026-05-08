@@ -8,7 +8,7 @@
 本仓库当前发布 `v1.0.0` 规范稳定基线。下方条目描述的是该基线相对内部候选稿的收敛内容，
 而不是相对任何先前公开稳定版本的差异。
 
-## v1.1+ 变更登记模板
+## 变更登记模板
 
 `v1.0.0` 之后，对 `event_kind_registry` / `schema_registry` / `id_kind_registry` /
 `operation_registry` / `error_code_registry` / `conformance-profiles.json` 中任意一项的
@@ -38,7 +38,7 @@
 单一条目中 MUST 把每个 artifact 列在 "影响 artifact" 字段中并保持原子。
 
 只有在 changelog、profile tier 与 conformance 影响三项同时落定后，相应 PR 才被认为
-满足 v1.1+ 的发布门槛 — 这与 `spec/v1/zh/overview/release-readiness.md` §5.1 保持一致。
+满足发布门槛 — 这与 `spec/v1/zh/overview/release-readiness.md` §5.1 保持一致。
 
 ## [1.0.0] — 2026-05-05
 
@@ -167,7 +167,7 @@
 
 本发布包不依赖仓库外待办文档作为 normative 输入。constraint collapse、encoding/HLC 合并、profile
 登记和 federation wire 去重均已纳入当前 v1.0.0 文本、schema、registry、fixture 或 profile catalog；
-后续 v1.1+ 工作必须以新的 changelog 条目和 profile/registry 变更单独登记。
+后续工作必须以新的 changelog 条目和 profile/registry 变更单独登记。
 
 ### 协议评审驱动的简化（2026-05-05，第二批：Round 6 + Round 8 子集）
 
@@ -228,9 +228,9 @@
 - 同步更新 `zh/models/data-structures.md`：Space §4 与 Event Envelope §9 的 `space_version`
   改为 `no (deprecated)` 必填性。
 
-#### Round 3 — 外部互操作下沉为 v1.1+ extension
+#### Round 3 — 外部互操作下沉为 interop extension profile
 
-- `zh/extensions/mimi-interop.md` 顶部增加 v1.1+ extension banner：MIMI 仍是 IETF
+- `zh/extensions/mimi-interop.md` 顶部增加 extension profile banner：MIMI 仍是 IETF
   Internet-Draft；v1 core 不要求实现 MIMI provider facade。
 - `zh/extensions/agent-protocol-interop.md` banner：A2A / ACP / MCP bridge 都未标准化（IBM
   Research 已宣布 ACP 并入 A2A）；v1 core 不要求实现 agent-protocol upgrade。
@@ -240,8 +240,8 @@
 - `artifacts/profiles/conformance-profiles.json` 增加 `profile_tiers` 顶级字段：
   - `v1_profile_catalog` 列出 v1 stable catalog 中可独立声明的 implementation profile。
   - `v1_minimal_interop_floor` 列出声称 v1 Event Store interop 的最小 profile。
-  - `v1_1_extension_implementation` 列出 `applet_service` / `agent_runtime` / `mimi_interop`
-    三个 v1.1+ extension。
+  - `extension_profile_implementation` 列出 `applet_service` / `agent_runtime` / `mimi_interop`
+    三个 extension profile。
   - `tier_rules` 解释 profile catalog、最小互操作地板与 extension 的 conformance 边界。
 
 #### Round 4 — DID method 默认值收敛
@@ -250,7 +250,7 @@
   生态成熟、HTTPS + 域名部署门槛低；`did:webvh` 仍在 W3C CCG 演进中。需要可审计身份历史的部署
   SHOULD 升级为 `did:webvh`（high-trust profile）。
 - `did:plc`（AT Protocol interop）、`did:pkh`（钱包绑定）、KERI 系列、TSP transport 全部下沉为
-  **v1.1+ interop extension**；v1 core 实现不要求支持。
+  **interop extension profile**；v1 core 实现不要求支持。
 - 同步更新：`zh/identity/identity-did.md` §3-§3.4、`zh/identity/tsp-integration.md` 顶部 banner、
   `zh/README.md`、`zh/overview/architecture.md` §2.8、`zh/overview/matrix-core-differences.md`。
 
@@ -258,9 +258,9 @@
 
 - v1 core 互操作 transport **锁定为 HTTP/JSON**。`zh/sync/transport-bindings.md` 顶部声明
   HTTP/JSON 是 normative，gRPC / WebSocket / SSE / message queue / libp2p binding 全部
-  下沉为 v1.1+ extension binding profile。
-- `artifacts/bindings/non-http-bindings.yaml` 顶部增加 v1.1+ extension 状态注释；文件保留
-  作为 extension binding 设计参考。
+  下沉为 binding extension profile。
+- `artifacts/bindings/non-http-bindings.yaml` 顶部增加 binding extension profile 状态注释；
+  文件保留作为 extension binding 设计参考。
 
 #### 仓库结构变更
 

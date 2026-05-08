@@ -86,18 +86,18 @@ Contrix v1 把三件事分开处理：
 ```json
 {
   "device_id": "cx:device:01js0dv0000000000000000000",
-  "principal_id": "did:plc:...",
+  "principal_id": "did:webvh:...",
   "display_name": "Alice iPhone",
   "algorithms": ["cx.mls.v1", "cx.hpke_x25519_aead_xchacha20poly1305.v1"],
   "verify_key": {
     "kty": "OKP",
     "crv": "Ed25519",
-    "kid": "did:plc:...#cx_device_01HV_verify"
+    "kid": "did:webvh:...#cx_device_01HV_verify"
   },
   "hpke_key": {
     "kty": "OKP",
     "crv": "X25519",
-    "kid": "did:plc:...#cx_device_01HV_hpke"
+    "kid": "did:webvh:...#cx_device_01HV_hpke"
   },
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -158,7 +158,7 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 {
   "kind": "cx.device.list_update",
   "payload": {
-    "principal_id": "did:plc:...",
+    "principal_id": "did:webvh:...",
     "changed": [
       "cx:device:01js0ke0000000000000000000"
     ],
@@ -534,7 +534,7 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当�
 ```json
 {
   "backup_id": "cx:backup:01js0kh0000000000000000000",
-  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_id": "cx:device:01js0ke0000000000000000000",
   "backup_class": "mls_history",
   "backup_version": "kb_1",

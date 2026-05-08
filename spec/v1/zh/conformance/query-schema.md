@@ -182,7 +182,7 @@ Projection 只减少返回字段，不提升权限。
 - 对 query 做 schema validation。
 - 对 Space、Flow、Message、Morph、Relation、View 和字段做 authorization filtering。
 - 把 `facets` 仅作为过滤条件和 projection hint；不得因 facet 字符串扩大授权、启用未声明 reducer 或绕过 Morph profile validation。
-- 对 Flow discussion branch 按有效 branch access 做 membership / history visibility 检查；branch-scoped override 生效时必须独立裁剪。
+- 对 Flow discussion branch 按所属 Space 做 membership / history visibility 检查：未设 `Flow.discussion_space_ref` 时按父 Space；设了时按 child Space 独立裁剪。
 - 对高成本 full_text / relation expansion 限流。
 - 不泄露不可见对象是否存在。
 - 在 E2EE Space 中不得对密文正文做服务器全文搜索；客户端本地搜索只能覆盖本设备已解密且当前 actor 仍有权读取的内容。

@@ -73,7 +73,7 @@ Contrix 的身份与发布模型借鉴 atprotocol 的几个方向：
 但 Contrix 不等同于 atprotocol：
 
 - atprotocol 主要面向公开 record 与 PDS；Contrix 面向多方协作 Space、授权状态、私有内容、E2EE 和企业治理。
-- Contrix v1 core 默认普通用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷），同时支持 `did:web`（service DID / `personal_node` profile）和 `did:key`（bootstrap / 设备）。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 作为 v1.1+ extension interop profile 提供，不属于 v1 core 互操作必需。
+- Contrix v1 core 默认普通用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷），同时支持 `did:web`（service DID / `personal_node` profile）和 `did:key`（bootstrap / 设备）。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 作为 interop extension profile 提供，不属于 v1 core 互操作必需。
 - Contrix 的 Event 记录协作事实，不是公开内容分发 record。
 - Contrix 把 Space policy、capability、Applet、Agent、MLS 和受托明文服务边界都纳入同一协作协议边界。
 

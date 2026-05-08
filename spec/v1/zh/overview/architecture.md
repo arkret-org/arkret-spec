@@ -152,7 +152,7 @@ Principal Server
 Identity 部署常识（无法在 deployment profile 表中表达）：
 
 - v1 core 默认 principal DID method 为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth/Account Server 在自有子域代为托管。`did:web`（无历史链）只能作为 service DID 默认 method、`personal_node` profile 的可选 principal method、以及 `did:webvh` hosting 暂不可达时的低风险只读 fallback。
-- 服务 DID 使用 `did:web`；临时 / 测试 / 设备 / bootstrap 使用 `did:key`；KERI 部署使用 `did:keri`（v1.1+ extension）；AT Protocol interop 部署额外挂 `did:plc` adapter（v1.1+ extension）。
+- 服务 DID 使用 `did:web`；临时 / 测试 / 设备 / bootstrap 使用 `did:key`；KERI 部署使用 `did:keri`（interop extension profile）；AT Protocol interop 部署额外挂 `did:plc` adapter（interop extension profile）。
 - Auth / Account Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 

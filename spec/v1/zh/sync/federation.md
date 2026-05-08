@@ -431,13 +431,13 @@ Authorization: <service_signature>
 
 ```json
 {
-  "actor_id": "did:plc:...",
+  "actor_id": "did:webvh:...",
   "purpose": "event_source",
   "space_id": "cx:space:...",
   "challenge": "base64url...",
   "signed_payload_hash": "sha256:...",
   "signature": {
-    "kid": "did:plc:...#device-a",
+    "kid": "did:webvh:...#device-a",
     "alg": "Ed25519",
     "sig": "base64url..."
   }
@@ -461,8 +461,8 @@ Authorization: <service_signature>
 ```json
 {
   "valid": true,
-  "actor_id": "did:plc:...",
-  "verified_key_id": "did:plc:...#device-a",
+  "actor_id": "did:webvh:...",
+  "verified_key_id": "did:webvh:...#device-a",
   "key_log_head": "cx:keyevt:...",
   "did_document_ref": "sha256:...",
   "expires_at": "2026-04-26T00:05:00Z",

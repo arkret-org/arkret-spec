@@ -26,7 +26,7 @@ title: Contrix v1 一致性工件索引
 | JSON Schema | [`spec/v1/artifacts/schemas/`](../../artifacts/schemas/) |
 | Conformance fixture | [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/) |
 | OpenAPI HTTP binding | [`spec/v1/artifacts/openapi/contrix-service-api.openapi.yaml`](../../artifacts/openapi/contrix-service-api.openapi.yaml) |
-| 非 HTTP transport binding（v1.1+ extension） | [`spec/v1/artifacts/bindings/non-http-bindings.yaml`](../../artifacts/bindings/non-http-bindings.yaml) |
+| 非 HTTP transport binding（extension profile） | [`spec/v1/artifacts/bindings/non-http-bindings.yaml`](../../artifacts/bindings/non-http-bindings.yaml) |
 | Conformance profile 矩阵 | [`spec/v1/artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) |
 
 修改 canonical machine artifact 时，先改 [`spec/v1/artifacts/`](../../artifacts/) 下的 canonical 源，

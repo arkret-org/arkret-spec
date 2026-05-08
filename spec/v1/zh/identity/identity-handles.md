@@ -38,24 +38,34 @@ authorization condition = verified claim / attestation
 Handle MAY 变更、冻结、迁移或重新绑定。  
 历史 Event 仍然保留原 DID 作为 actor，因此 handle 被回收不会改变历史责任主体。
 
-### 2.3 Connection Identifier 与显示名分离
+### 2.3 标识角色与可见性
 
-实现 MUST 区分以下标识层：
+实现 MUST 区分以下标识**角色**。这些角色不是按字符串形态划分的：同一字符串可以在不同上下文中扮演不同角色（例如 `alice@example.com` 在通讯录发现阶段是 Connection Identifier；若 holder 主动通过 `alsoKnownAs` 公布则升格为 Handle）。区分点是 **holder 意图、可见性默认与验证路径**，不在字符串本身。实现 MAY 用同一存储承载，但 MUST 在协议输出（DID Document、Space history、grant subject、MLS credential、directory query 响应）中按角色应用对应可见性规则。
 
-| 层 | 示例 | 用途 | 是否可作为协议主体 |
+| 角色 | 可见性默认 | 验证路径 | 协议主体 |
 | --- | --- | --- | --- |
-| Connection Identifier | `alice@example.com`、手机号、通讯录用户名、外部账号 ID | 发现联系人、请求 consent、发送邀请或建立初始关系 | 否 |
-| Administrative Identifier | 组织账号、计费账号、客服账号、受管员工编号 | 组织本地管理、合规和账号恢复 | 否 |
-| Handle | `alice.example.com`、`@alice:example.org` | 人类可读入口和公开/半公开别名；包含 DNS handle 与外部体系 alias | 否 |
-| Display Name | `Alice Zhang` | UI 展示 | 否 |
-| Principal DID | `did:plc:...`、`did:web:...` | 签名、授权、事件责任主体 | 是 |
+| Connection Identifier | 关系私有；仅在发现 / 邀请 / consent 阶段使用 | provider 可达性证明 + invite / consent 流程 | 否 |
+| Handle | 可发布；公开或半公开别名 | DNS / HTTPS well-known 双向绑定 + DID Document `alsoKnownAs` 或受信 issuer claim | 否 |
+| Administrative Identifier | 组织本地；不出协议线 | 组织 governance / 内部 Directory | 否 |
+| Display Name | UI 展示 | 无 | 否 |
+| Principal DID | 公开或 pairwise；按 disclosure policy 控制 | DID resolver + 签名 | 是 |
+
+示例字符串与可能扮演的角色：
+
+- `alice@example.com`、`+86 138...`、通讯录用户名、外部账号 ID → Connection Identifier；若 holder 主动公布可升格为 Handle。
+- `alice.example.com`、`@alice:example.org`、`google.example/users/alice` → Handle（DNS handle 或外部体系 alias）。
+- 组织账号、计费账号、客服账号、受管员工编号 → Administrative Identifier。
+- `Alice Zhang`、昵称 → Display Name。
+- `did:webvh:...`、`did:web:...`、`did:key:...` → Principal DID。
 
 规则：
 
 - Connection Identifier 只用于发现、consent、邀请或一次性绑定证明。它不得自动写入 DID Document、Space history、membership event、grant subject 或 MLS credential。
 - Provider、Directory 或 Auth Server 证明某个 connection identifier 可达时，输出仍 MUST 归约为 DID 或 pending invite proof，并带有 purpose、audience、expiry 和 issuer proof。
-- 同一个 principal 可以为不同 provider、组织或 Space 使用不同 connection identifier 和 pairwise DID。实现不得要求全局唯一 connection identifier。
+- 同一 principal 可以为不同 provider、组织或 Space 使用不同 connection identifier 和 pairwise DID。实现不得要求全局唯一 connection identifier。
 - Connection identifier 与 DID 的绑定默认是关系私有状态。除非 holder 明确发布为 handle 或 VC claim，其他 Space 成员和 federation peer 不得获得该映射。
+- 同一字符串从 Connection Identifier 升格为 Handle MUST 经过 holder 显式 disclosure（写入 `alsoKnownAs`、签发 VC claim、或发布到 Directory）；实现不得在用户未授权时自动升格，也不得仅凭 provider 可达性证明把 connection identifier 公开为 handle。
+- Administrative Identifier 是组织本地概念。协议层只规定它不得作为协议主体、不得作为 grant subject、不得作为 Event actor、不得在跨组织 federation 输出中泄露；其内部分配、回收和绑定规则由组织 governance 决定，超出本规范范围。
 - Display name 是可变 metadata，不得被用于 ACL、grant、audit attribution 或 sender verification。
 
 ## 3. Handle 格式
@@ -104,7 +114,7 @@ Well-known 示例：
 
 ```json
 {
-  "did": "did:plc:ewvi7nxzyoun6zhxrhs64oiz"
+  "did": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example"
 }
 ```
 

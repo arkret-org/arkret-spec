@@ -30,7 +30,7 @@ title: 实现就绪与发布门槛
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明
 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或退役 registry 项，MUST 同时
-按 `CHANGELOG.md` "v1.1+ 变更登记模板" 记录条目并更新本表。
+按 `CHANGELOG.md` "extension profile 变更登记模板" 记录条目并更新本表。
 
 规范稳定不等于任一实现已经获得完全互操作认证。实现若宣称通过某个 profile，仍必须通过对应 reference validator、reference reducer、reference authz evaluator 与 conformance runner；这些工具和测试结果属于实现认证门槛，而不是降低或替代本规范的 wire contract。
 

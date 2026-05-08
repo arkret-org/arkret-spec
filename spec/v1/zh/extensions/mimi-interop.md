@@ -2,11 +2,11 @@
 title: MIMI Interoperability
 ---
 
-> **状态：v1.1+ extension（非 core 互操作）**。本文档描述的 MIMI Provider Facade 跟踪的
+> **状态：interop extension profile（非 v1 core 互操作必需）**。本文档描述的 MIMI Provider Facade 跟踪的
 > 是仍在演进的 IETF MIMI Internet-Draft。Contrix v1 core 互操作 **不要求** 实现 MIMI
 > facade；声称 `cx.profile.principal_server.v1` 或 `cx.profile.full_client.v1` 的实现
 > 可以完全不实现本 profile。当 MIMI 升级为 RFC 后，将以新的 `cx.profile.mimi_interop_<rfc>.v1`
-> 引入稳定 profile；当前 `cx.profile.mimi_interop.v1` 视为实验性 / interop staging。
+> 引入稳定 profile；当前 `cx.profile.mimi_interop.v1` 视为实验性 interop extension profile。
 
 ## 1. 目标
 

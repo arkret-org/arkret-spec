@@ -1,7 +1,7 @@
-# Status: v1.1+ extension binding reference.
-# v1 core互操作锁定 HTTP/JSON binding (artifacts/openapi/contrix-service-api.openapi.yaml)。
+# Status: binding extension profile reference.
+# v1 core 互操作锁定 HTTP/JSON binding (artifacts/openapi/contrix-service-api.openapi.yaml)。
 # 本文件描述 WebSocket / SSE / gRPC / message queue / libp2p binding 的 frame / topic 形态，
-# 仅在显式声明对应 binding profile 的部署中适用；core v1 实现不要求实现这些 binding。
+# 仅在显式声明对应 binding profile 的部署中适用；v1 core 实现不要求实现这些 binding。
 version: "2026-05-02"
 operation_registry: ../registry/operation-registry.json
 frame_schemas:

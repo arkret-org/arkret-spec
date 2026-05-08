@@ -414,12 +414,7 @@ Create 类操作若在 `payload.object` 中携带完整 materialized object sche
     "flow_id": "cx:flow:01js0sb0000000000000000000",
     "branch": "discussion",
     "config": {
-      "profile": "discussion",
-      "access": {
-        "membership": "branch_scoped",
-        "permissions": "branch_scoped",
-        "history_visibility": "joined"
-      }
+      "profile": "discussion"
     }
   }
 }
@@ -428,8 +423,8 @@ Create 类操作若在 `payload.object` 中携带完整 materialized object sche
 规则：
 
 - enable/disable 不改变 Flow identity。
-- enable `discussion` branch 使用 Flow / Space 默认 access；只有 config 或后续 policy state 明确声明 `branch_scoped` 时，才创建独立 membership/history/E2EE 边界。
-- Flow synthesis 可见只有在有效 access policy 继承或授予 discussion 读取时，才代表 discussion 内容可读；projection 必须按有效 branch access 裁剪。
+- enable `discussion` branch 时，access 完全继承父 Space。需要让 discussion 拥有独立 membership / history visibility / E2EE 时，必须创建 child Space 并通过 `Flow.discussion_space_ref` 引用——`cx.flow.branch.enable` payload 不再支持 `access` 子对象。
+- Flow synthesis 可见性 ≠ discussion 可见性：未设 `discussion_space_ref` 时，按父 Space history visibility；设了 `discussion_space_ref` 时，按 child Space policy 独立判断。projection 必须按有效 Space access 裁剪。
 - 切换默认入口时应通过 `cx.flow.branch.set_primary`，Reducer MUST 保证同一 Flow 至多一个 active branch 设置 `is_primary=true`。若没有显式 primary，且 `synthesis` 与 `discussion` 同时存在，默认入口 MUST 派生为 `synthesis`。
 - 发送 `cx.message.*` 到未启用的 discussion branch MUST 返回 `discussion_branch_disabled` 或等价 fail-closed 结果。
 
@@ -766,7 +761,7 @@ Contrix v1 固定：
 - Flow / Message、Board / List 工作流、Morph 共享同一同步协议。
 - `flow` 是统一协作主对象；默认 branch 由 branch primary 解析规则表达。
 - `synthesis` branch 承载整理后的正式表达与推进字段。
-- branch 默认继承 Flow / Space access；discussion branch 的 membership、history visibility 和 E2EE 只有在显式 branch-scoped override 时独立收敛。
+- Branch 不携带独立 access；discussion 默认完全继承父 Space。独立 access 域通过 `Flow.discussion_space_ref` 升级到 child Space。
 - invite / grant / snapshot 组成 Space bootstrap 主流程。
 - event 重试必须幂等。
 - 授权有效性由同一 reducer 顺序收敛。

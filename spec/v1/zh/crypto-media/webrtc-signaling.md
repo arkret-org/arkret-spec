@@ -156,7 +156,7 @@ Content-Type: application/json
 {
   "space_id": "cx:space:...",
   "call_id": "cx:call:01J...",
-  "actor_id": "did:plc:...",
+  "actor_id": "did:webvh:...",
   "device_id": "cx:device:01js0ke0000000000000000000",
   "mode": "p2p"
 }

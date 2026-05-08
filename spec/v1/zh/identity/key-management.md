@@ -148,7 +148,7 @@ MLS KeyPackage key 用于加入加密 Space。
 ```json
 {
   "id": "cx:device:01js0ke0000000000000000000",
-  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_label": "Alice MacBook Pro",
   "device_public_key": "z6Mks...",
   "device_key_type": "Multikey",
@@ -247,7 +247,7 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
 
 ```json
 {
-  "principal_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_id": "cx:device:01js0ke0000000000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
@@ -261,7 +261,7 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
   "authorized_by": "cx:device:01js0kd0000000000000000000",
   "proof": {
     "kind": "detached_jws",
-    "verification_method": "did:plc:ewvi7nxzyoun6zhxrhs64oiz#device-old",
+    "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#device-old",
     "jws": "..."
   }
 }
@@ -289,7 +289,7 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 {
   "grant_id": "cx:grant:01js0sg0000000000000000000",
   "issuer": "did:web:auth-gateway.example.com",
-  "subject": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "subject": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
   "scopes": [
@@ -357,7 +357,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 ```json
 {
   "backup_id": "cx:backup:01js0ke0000000000000000000",
-  "actor_id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_id": "cx:device:01js0ke0000000000000000000",
   "backup_class": "secret_storage",
   "backup_version": "kb_1",

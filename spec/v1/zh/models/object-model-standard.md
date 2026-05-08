@@ -103,13 +103,11 @@ Flow 适合：
 
 - Message timeline
 - timeline / notification profile
-- 可选的 branch-scoped access override 引用
-- 讨论相关 branch-local fields
+- 讨论相关 branch-local UI hint fields
 
 推荐字段：
 
 - `profile`
-- `access`
 - `fields`
 
 `profile` 初版建议支持：
@@ -123,47 +121,38 @@ Flow 适合：
 
 规则：
 
-- `profile` 是 discussion branch 的语义/profile 选择器，不是自动授权后门。
+- `profile` 是 discussion branch 的 UI / 语义 hint，不是自动授权后门。
 - `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `profile` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
-- Flow branch 默认继承 Flow / Space 的有效 membership、permission 与 E2EE 规则；独立 discussion membership、history visibility 或 E2EE group MUST 通过 `branches[].access` 或等价 policy/capability state event 显式声明。
-- `discussion` branch membership 不从 `assigned_to`、`watchers` 或其他 Flow relation 隐式派生；若实现需要此类映射，必须在有效 access policy 中可审计地声明。
-- `branches[].access.history_visibility` 与 `encryption_profile="mls_rfc9420"` 组合时，若未显式声明 history sharing policy，默认 SHOULD 等价于 `joined`。
+- Branch 不携带独立 access：membership、permission、history visibility 与 E2EE 完全继承父 Space。需要让 discussion 拥有独立访问域时，必须升级到 child Space 并通过 `Flow.discussion_space_ref` 引用（详见 [`data-structures.md`](./data-structures.md) §6.1.1）。
+- `discussion` branch membership 不从 `assigned_to`、`watchers` 或其他 Flow relation 隐式派生；若实现需要此类映射，必须在父 Space（或 `discussion_space_ref` Space）的 capability / policy 中可审计地声明。
 - 当 `discussion` branch 不存在或不处于 active 状态时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_branch_disabled` 或等价 fail-closed 结果。
 
-### 2.4 Branch Access
+### 2.4 Branch 与 Access 模型
 
-Flow 在每个 branch 定义内使用 `access` 表达 membership、permission、history visibility 与 E2EE 的继承或 override：
+`branches[]` **只**表达 branch 是否存在、哪个 branch 是默认入口、以及 branch 的 UI / 时间线 profile。它不携带 access、membership、history visibility 或 E2EE 字段——早期 v1 草案曾允许 `branches[].access` 子对象表达 `branch_scoped` 的 hybrid 模型，该机制已被移除。
+
+Access 模型现在只有两种形态：
+
+| 形态 | 触发 | 语义 |
+| --- | --- | --- |
+| 继承父 Space（默认） | `Flow.discussion_space_ref` 未设置 | discussion 时间线、成员、history visibility、E2EE 完全继承父 Space。 |
+| 独立 child Space | `Flow.discussion_space_ref = cx:space:...` | 所有 discussion 写入 child Space；child Space 是独立安全边界，按其自身 policy 收敛。 |
 
 ```json
 {
   "branches": [
-    {
-      "name": "synthesis",
-      "is_primary": true
-    },
-    {
-      "name": "discussion",
-      "profile": "review",
-      "access": {
-        "membership": "branch_scoped",
-        "permissions": "branch_scoped",
-        "history_visibility": "joined",
-        "e2ee": "branch_scoped",
-        "encryption_profile": "mls_rfc9420",
-        "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
-      }
-    }
-  ]
+    { "name": "synthesis", "is_primary": true },
+    { "name": "discussion", "profile": "review" }
+  ],
+  "discussion_space_ref": "cx:space:01js0ds0000000000000000000"
 }
 ```
 
 规则：
 
-- `branches` 表达 branch 是否存在、哪个 branch 是默认入口、以及 branch 的交互 profile 和访问继承方式。
-- 缺省情况下，branch 等价于 `membership="inherit_flow"`、`permissions="inherit_flow"`、`e2ee="inherit_space"`。
-- 只有 `access` 显式声明 `branch_scoped` 的 branch 才拥有独立 membership、history visibility 或 E2EE group。
-- `synthesis` branch SHOULD 使用继承访问规则；需要字段级限制时，应优先使用 capability constraints，而不是为 `synthesis` 创建另一套成员表。
+- `synthesis` branch 字段级限制使用 capability constraints；不为 `synthesis` 单独创建成员表或 access 域。
+- `discussion_space_ref` 的生命周期由独立 `cx.space.*` event 管理；Flow 不能通过修改自身字段间接 reinit / archive child Space。
 
 ### 2.5 转换
 
@@ -250,9 +239,9 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
 
 ### 5.1 Chat 模式示例
 
-讨论型 Space 的最小实施序列：创建 Flow（`discussion` 默认 primary）→ 启用
-discussion branch override（如需要 branch-scoped membership）→ 加入成员 →
-发消息 → 编辑 / 撤回 / reaction。
+讨论型 Space 的最小实施序列：创建 Flow（`discussion` 默认 primary）→
+（如需要独立访问域）创建 child Space 并设置 `Flow.discussion_space_ref` →
+加入成员 → 发消息 → 编辑 / 撤回 / reaction。
 
 ```json
 [
@@ -350,11 +339,7 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Flow、Message 和 S
 - `fields`
 - `facets`
 
-## 7. Document and File
-
-`document` 与 `file` 在 v1 Core 中仍是 Morph profile，不是独立标准对象。后续版本若提升为标准对象，必须通过新的 schema/profile 版本声明迁移规则。
-
-## 8. Actor Profile
+## 7. Actor Profile
 
 `actor_profile` 是 Actor 在协作图中的展示镜像。
 
@@ -367,7 +352,7 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Flow、Message 和 S
 
 Actor Profile 不替代 DID，也不成为权限主键。
 
-## 9. 标准 Facets
+## 8. 标准 Facets
 
 Facets 是 schema-declared capability hints，不是对象身份。标准对象 MAY 暴露 schema/profile 已声明的 facets 来辅助展示或查询，但标准对象的核心语义不依赖 facets 才成立；Morph MAY 使用 facets 帮助 View、本地搜索、UI 和插件做过滤、降级展示和默认 renderer 选择。
 
@@ -386,7 +371,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 | `documentable` | 可作为文档或 section root。 |
 | `renderable` | 声明允许的默认展示面。 |
 
-## 10. Schema Evolution
+## 9. Schema Evolution
 
 标准类型演进 MUST 遵守：
 
@@ -396,7 +381,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
 - 标准对象不得阻止 Space 定义自定义 Morph type。
 
-## 11. 规范性引用
+## 10. 规范性引用
 
 - Flow / Message / branch 规则见 §5.1-§5.3 与 `object-model-core.md` §6-§9。
 - Flow / Space / Message 的核心字段见 `data-structures.md`。

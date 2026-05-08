@@ -17,7 +17,7 @@ Contrix 协议核心定义的是：
 [`contrix-service-api.openapi.yaml`](../../artifacts/openapi/contrix-service-api.openapi.yaml) 规定。声称
 `cx.profile.principal_server.v1` / `cx.profile.full_client.v1` 等 v1 core profile 的实现
 **MUST** 提供 HTTP/JSON binding；其他 transport（gRPC、WebSocket-frame、SSE、message queue、
-libp2p）属于 **v1.1+ extension binding profile**，core 实现 **不要求** 提供。
+libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供。
 
 > Rationale: 早期文档把"transport-agnostic"作为 normative claim，但仓库里 `contrix-service-api.openapi.yaml`
 > 已展开 ~70 KB HTTP/JSON 细节，而 gRPC / WebSocket / MQ / libp2p 各自只有几行说明。这种状况
@@ -33,7 +33,7 @@ libp2p）属于 **v1.1+ extension binding profile**，core 实现 **不要求** 
 | Message envelope | 是 | request id、actor、device、capability refs、idempotency key、cursor、error code |
 | Encoding profile | 是 | canonical JSON、hash、signature、CBOR profile 可选 |
 | Transport binding (HTTP/JSON) | 是（v1 core） | `/api/v1/...` 路径、Idempotency-Key header、错误 JSON。 |
-| Transport binding (gRPC / WS / SSE / MQ / libp2p) | 否（v1.1+ extension） | 仅在显式声明 binding profile 时启用。 |
+| Transport binding (gRPC / WS / SSE / MQ / libp2p) | 否（binding extension profile） | 仅在显式声明 binding profile 时启用。 |
 | Product SDK | 否 | TypeScript SDK、Python SDK、CLI |
 
 规范中的 `/api/v1/...` 路径是 v1 core HTTP binding 的 normative 形态；非 HTTP binding 是 extension。
@@ -103,9 +103,9 @@ HTTP/JSON 是默认 profile：
 
 HTTP binding 的路径 SHOULD 遵循 `service-api-schema.mdx`，但实现 MAY 使用 XRPC、RPC style 或版本化路径，只要 feature discovery 暴露实际 binding。
 
-## 6. gRPC Binding（v1.1+ extension）
+## 6. gRPC Binding（extension profile）
 
-> 以下章节描述的 gRPC / WebSocket / SSE / MQ / libp2p binding 都是 **v1.1+ extension**。
+> 以下章节描述的 gRPC / WebSocket / SSE / MQ / libp2p binding 都是 **binding extension profile**。
 > v1 core 实现 **不要求** 提供这些 binding；只有显式声明对应 binding profile 的部署才需要
 > 实现。这些章节保留为部署设计参考，不构成 v1 core 互操作要求。
 

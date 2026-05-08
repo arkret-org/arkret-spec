@@ -1345,4 +1345,4 @@ cx.vector.capability.approval_constraint.v1
 期望：
 
 - `flow-discussion-timeline` MUST return the message when viewer can read the Flow discussion branch.
-- `flow-discussions` MUST only include this message if viewer can read the Flow discussion branch; Flow synthesis visibility alone is not sufficient when branch-scoped override applies.
+- `flow-discussions` MUST only include this message if viewer can read the Flow discussion branch; Flow synthesis visibility alone is not sufficient when discussion lives in a separate `discussion_space_ref` child Space.

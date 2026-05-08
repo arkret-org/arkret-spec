@@ -215,7 +215,7 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
 
 - 匹配：某个 Flow `discussion` branch 内的所有 Message。
 - 不授予 Flow synthesis 字段写入权限。
-- 不绕过 branch-scoped membership、history visibility、redaction 或 E2EE key eligibility。
+- 不绕过 discussion 所属 Space（父 Space 或 `discussion_space_ref` child Space）的 membership、history visibility、redaction 或 E2EE key eligibility。
 
 ### 4.4 Morph 选择器
 

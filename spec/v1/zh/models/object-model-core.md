@@ -170,9 +170,9 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 {
   "id": "cx:flow:01js0ke0000000000000000000",
   "space_id": "cx:space:01js0sp0000000000000000000",
-  "created_by": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "created_by": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+  "updated_by": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "updated_at": "2026-04-26T00:00:00Z",
   "schema": "cx.schema.flow.v1"
 }
@@ -245,10 +245,9 @@ Accountable actor MUST 记录责任关系，但 accountability 不等于 capabil
 
 Flow 是 Space 内统一的协作主对象，直接承载“这件事本身”、一组参与者和围绕它的上下文信息。
 
-Flow 通过两层语义表达差异：
+Flow 通过 `branches` 数组表达能力分支：每个 branch 至少声明 `name`；`is_primary=true` 可显式标识默认入口，未显式标记时按确定性规则派生。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天和讨论 timeline。
 
-- `branches`：能力分支数组。`name` 标识 branch，`is_primary=true` 可显式标识默认入口；未显式标记时按确定性规则派生。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天和讨论 timeline。
-- `branches[].access`：branch 默认继承与显式 override。缺省情况下 branch 使用同一 Flow / Space 授权体系；只有声明 branch-scoped override 时，才形成独立成员、历史或 E2EE 边界。
+**Branch 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Branch access 完全等于所属 Space 的 access。需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，必须创建一个 child Space 并通过 `discussion_space_ref` 引用（详见 [`data-structures.md`](./data-structures.md) §6.1.1）；不存在 branch-internal "branch_scoped" 模式。
 
 业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Space schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。切换默认 branch 使用 `cx.flow.branch.set_primary`（必要时配合 `cx.flow.branch.enable`）；切换不会改变 Flow identity，也不要求复制或迁移消息历史。
 
@@ -273,23 +272,10 @@ Flow 通过两层语义表达差异：
     "due_at": "2026-05-01T00:00:00Z"
   },
   "branches": [
-    {
-      "name": "synthesis",
-      "is_primary": true
-    },
-    {
-      "name": "discussion",
-      "profile": "review",
-      "access": {
-        "membership": "branch_scoped",
-        "permissions": "branch_scoped",
-        "history_visibility": "joined",
-        "e2ee": "branch_scoped",
-        "encryption_profile": "mls_rfc9420",
-        "membership_policy_ref": "cx:policy:01js0rp0000000000000000000"
-      }
-    }
+    { "name": "synthesis", "is_primary": true },
+    { "name": "discussion", "profile": "review" }
   ],
+  "discussion_space_ref": "cx:space:01js0ds0000000000000000000",
   "state": "active",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -301,24 +287,25 @@ Flow 规则：
 - Flow identity 只保存一份，resolved primary branch 只决定默认视角，不创建新的对象副本。
 - 同一 Flow 的 `branches[].name` MUST 唯一，且至多一个 active branch MAY 设置 `is_primary=true`。
 - 若没有显式 `is_primary=true`，Reducer MUST 派生 primary：`synthesis` 存在时优先选择 `synthesis`；否则单 branch Flow 选择唯一 branch；否则按 profile 默认 branch 选择；仍无法唯一确定时 fail closed。
-- `synthesis` branch 与 `discussion` branch 可以共享同一标题和基础字段，branch reducer 只负责对应交互面当前态。
-- branch access 默认继承 Flow / Space；`discussion` branch 的 membership、history visibility 和 E2EE 只有在显式 override 时才独立收敛，且不得放大 `synthesis` branch 的可见字段。
+- `synthesis` branch 与 `discussion` branch 共享同一标题和基础字段；branch 不存在独立 access 域。
+- 未设置 `discussion_space_ref` 时，discussion 时间线、成员、history visibility、E2EE 完全继承父 Space。
+- 设置 `discussion_space_ref` 时，所有 `cx.message.*` / `cx.reaction.*` / 成员管理写入 MUST 使用该 child Space 的 `space_id`；child Space 是独立的安全边界，按其自身 policy 收敛。
 - `is_primary` 只是默认入口标记，不授予读取、写入或管理权限。
-- branch-scoped E2EE group 的 scope MUST 绑定 `space_id + flow_id + branch="discussion"`。`cx.flow.branch.set_primary` / `cx.flow.branch.enable` 只改变默认入口或 branch 启用状态，不得隐式重建、合并或迁移该 MLS group；只有显式 branch access / encryption policy event 才能创建、reinit、archive 或替换 group。
+- `cx.flow.branch.set_primary` / `cx.flow.branch.enable` 只改变默认入口或 branch 启用状态，不得隐式创建或迁移 child Space；child Space 的生命周期由独立 `cx.space.*` event 管理。
 
 ## 7. Flow Discussion Branch
 
-Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线和通知 profile；历史可见性、成员表和可选 E2EE group 通过 `branches[].access` 或 policy/capability state event 显式声明。
+Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线和通知 profile；access 完全继承父 Space，或通过 `Flow.discussion_space_ref` 升级到独立 child Space 承载。
 
 若 `discussion` branch 设置 `is_primary=true`，该 branch MUST 存在于 active `branches` 数组中。Flow MAY 初始只带 `synthesis` branch；需要讨论时再启用 `discussion` branch。
 
 Discussion branch 规则：
 
-- 能看 Flow synthesis 只有在有效 access policy 继承或授予 discussion 读取时，才表示能看 `discussion` branch。
-- 能看 `discussion` branch 不表示能改 Flow 的字段、状态或 Board 位置。
-- branch-scoped `discussion` membership 不自动改变 Flow assignment、Flow visibility 或 Space membership。
+- 未设置 `discussion_space_ref` 时，能看父 Space 的 actor 即可看 discussion 时间线（按父 Space history visibility）。
+- 设置 `discussion_space_ref` 时，能否看 discussion 由 child Space 自身 access policy 决定，与父 Space 的 Flow synthesis 可见性无关。
+- 能看 `discussion` 不表示能改 Flow 的字段、状态或 Board 位置（这些仍按父 Space capability 判断）。
 - 切换 primary branch 不会自动删除已有讨论历史。
-- 当 branch-scoped membership 与 branch-scoped E2EE 同时启用时，`cx.flow.branch.member` 的有效 frontier MUST 被对应 MLS `application_state_ref.membership_frontier` 覆盖；否则客户端只能把新 epoch 视为 `decryption_pending` / `state_mismatch`。
+- `discussion_space_ref` 启用 MLS 时，对应 MLS group 绑定该 child Space；E2EE 边界、membership frontier、`covered_frontier_cell` 都按 child Space 自身收敛。
 
 ## 8. Place（看板 / 列 / 泳道 / …）与 Flow 位置
 

@@ -55,7 +55,7 @@ sequenceDiagram
 MLS group admin 不是“第一个发 Welcome 的客户端”或“branch 的第一个成员”。Contrix v1 按当前 accepted auth state 确定管理集合：
 
 - Space-scoped MLS group 的默认 admin set 来自 `cx.space.create.payload.object.initial_creators` / `created_by_principal`，以及当前有效的 `cx.space.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Space policy 声明的等价 E2EE admin capability。
-- Flow discussion branch-scoped MLS group 的 admin set 是 Space-scoped admin set，加上对该 `flow_id + branch=discussion` 具有 `cx.flow.branch.admin`、`cx.flow.branch.member` 管理权或 policy 声明 E2EE branch admin capability 的 actor。
+- Discussion 独立 child Space（`Flow.discussion_space_ref`）的 MLS group admin set 由该 child Space 的 `cx.space.create` / `cx.space.admin` / `cx.mls.commit` / `cx.mls.welcome` 等事件按 child Space 自身的 capability 体系收敛，与父 Space admin set 独立。
 - Admin capability 可以通过普通 capability grant / revoke Move 转移或收回；转移生效点由 Anchor finality、Lattice value 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
 
 发送 `cx.mls.proposal`、`cx.mls.commit` 或 `cx.mls.welcome` 的 actor 必须在其事件自己的 causal auth state 下属于上述 admin set，或满足该 event kind 允许的普通成员 update / self-update 规则。
@@ -221,7 +221,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据。
 
-MLS group 的绑定层级取决于启用位置：若 Space 级 policy 声明 `encryption_profile="mls_rfc9420"`，group 可以覆盖整个 Space；若某个 Flow 的 `discussion` branch 通过 `branches[].access.e2ee="branch_scoped"` 或等价 policy 独立启用 E2EE，则 MLS group MUST 绑定到 `flow_id + branch=discussion`，不得隐式扩展到整个 Space。Space 级与 branch 级 group 可以并存，但必须通过 policy 明确区分成员范围、history sharing 和审计边界。
+MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `encryption_profile="mls_rfc9420"` 时，group 覆盖父 Space；某个 Flow 通过 `discussion_space_ref` 升级到 child Space 后，child Space 拥有自己的 MLS group，与父 Space group 完全独立。两个 group 通过 child Space 的 `space_id` 区分，不再依赖 branch-scoped fallback。
 
 每个 `cx.mls.commit` MUST 绑定一个 `application_state_ref`，并把该引用纳入 MLS transcript 或等价的 commit-authenticated data：
 
@@ -498,7 +498,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 `cx.mls.genesis.content` MUST 至少包含：
 
 - `mls_group_id`
-- `scope`：`space_id`，以及可选 `flow_id`、`branch`；branch-scoped discussion group MUST 写入 `branch="discussion"`。
+- `scope`：`space_id`。MLS group 的 scope 永远绑定到一个 `space_id`；独立 discussion 通过 `Flow.discussion_space_ref` child Space 表达，该 child Space 拥有自己的 `space_id`。
 - `epoch`：MUST 为 `0`。
 - `creator_principal_id`
 - `creator_device_id`
