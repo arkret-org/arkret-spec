@@ -71,8 +71,9 @@ title: 术语表
 | Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or-set`、`mv-register`、`cas-register`、`fsm`、`counter`、`ordered-log`、`lww-register`（仅 UI affordance）、`rga`（协作文本与有序列表）。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的 Move fail closed，`bottom=expose` 时可投影为冲突诊断。 |
 | Component / Cell Family | 组件 / Cell 族 | 跨协议版本稳定的 cell family 标识符，URI 形式 `cx.component.<facet-path>.v<n>`；registry 为 reducer-input kind 声明 `cell_family`、`lattice` 与 `bottom`。 |
-| Application State Ref | 应用状态引用 | E2EE Space 中 MLS Commit Move 引用的应用状态证明，绑定 Anchor frontier、policy/capability/membership cells 与 discussion metadata。 |
-| Covered Frontier | 已覆盖前沿 | `covered_frontier_cell` 当前值；E2EE message Move 必须证明该 cell 覆盖所需 governance Anchor frontier。 |
+| MLS Governance Binding | MLS 治理绑定 | E2EE Space 中把 MLS epoch 与 governance state（membership / policy / capability / Anchor frontier）强绑定的机制（profile `cx.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`）。由两层 artifact 组成：commit 侧的 *Governance Binding Payload* (`governance_binding`) 提供证据，lattice 侧的 *Covered Frontier Cell* (`covered_frontier_cell`) 沉淀状态。 |
+| Governance Binding Payload | 治理绑定 payload | MLS Governance Binding 的 **commit-side proof**：每个 `cx.mls.commit` 携带的 `governance_binding` payload（MLS GroupContext extension `cx_governance_binding`，codepoint `0xF1C0`），哈希进 MLS transcript，覆盖 `membership_frontier`、`policy_root`、`capability_root`、`discussion_metadata_hash`。 |
+| Covered Frontier | 已覆盖前沿 | MLS Governance Binding 的 **lattice-side accumulator**：`covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or-set，bottom=expose）当前值，累积已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier。 |
 | Anchor Profile | 锚点 Profile | Space create 时固定的 Anchor finality profile：`single_did`、`threshold`、`open_set` 或 `mixed`。 |
 | Anchorer Cell | 锚定者 Cell | 定义下一批 Anchor 由谁授权的 `cas-register + bottom=reject` cell；冲突时产生 Space-wide Anchor pause。 |
 | Consent | 同意 | Holder-private 决策："我同意接收来自 X 的某种联系"。表达为 consent cell 上的 Move effect，是 invite / contact 路径的前置 gate。 |
@@ -84,4 +85,3 @@ title: 术语表
 | Plaintext Visible Service | 明文可见服务 | Space policy 显式声明可接收非加密私有内容或可逆派生摘要的服务。 |
 | History Visibility | 历史可见性 | 控制加入 Space 后能看到多少历史事件的范围规则。 |
 | Join Rule | 加入规则 | 控制 Actor 如何加入 Space 的策略（public、invite、knock、restricted 等）。 |
-| MLS Bound State | MLS 绑定状态 | E2EE Space 中由 MLS application state root 覆盖的 membership、policy 等关键状态。 |

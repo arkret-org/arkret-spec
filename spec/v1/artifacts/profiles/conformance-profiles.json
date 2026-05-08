@@ -138,8 +138,7 @@
     "quarantine_appeal_audit"
   ],
   "e2ee_hardening": [
-    "mls_bound_application_state_root",
-    "cx.profile.mls_state_binding.full.v1",
+    "cx.profile.mls_governance_binding.full.v1",
     "keypackage_claim_lifecycle",
     "minimal_metadata_space",
     "aad_visibility_policy",
@@ -166,7 +165,7 @@
     "unsupported_draft_fail_closed"
   ],
   "hardening_profiles": [
-    "cx.profile.mls_state_binding.full.v1",
+    "cx.profile.mls_governance_binding.full.v1",
     "cx.profile.attested_audit.e2ee.v1",
     "cx.profile.disclosed_audit.e2ee.v1"
   ],
@@ -191,9 +190,8 @@
         "cx.events.submit",
         "cx.events.get",
         "cx.events.batch_get",
-        "cx.events.list",
-        "cx.events.frontier",
-        "cx.sync.backfill"
+        "cx.events.query",
+        "cx.events.frontier"
       ],
       "required_event_kinds": [
         "cx.space.create",
@@ -246,8 +244,8 @@
         "cx.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "cx.sync.client_sync",
-        "cx.sync.backfill"
+        "cx.sync.account",
+        "cx.events.query"
       ],
       "required_event_kinds": [
         "cx.space.create",
@@ -299,7 +297,7 @@
         "cx.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "cx.sync.backfill"
+        "cx.events.query"
       ],
       "required_event_kinds": [
         "cx.space.create",
@@ -346,8 +344,7 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.events.get",
-        "cx.events.list",
-        "cx.sync.backfill"
+        "cx.events.query"
       ],
       "required_event_kinds": [
         "cx.space.create",
@@ -387,8 +384,8 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.events.submit",
-        "cx.sync.client_sync",
-        "cx.sync.subscribe",
+        "cx.sync.account",
+        "cx.events.subscribe",
         "cx.blob.upload",
         "cx.blob.get",
         "cx.authz.check"
@@ -434,7 +431,7 @@
     "cx.profile.e2ee_client.v1": {
       "inherits": [
         "cx.profile.full_client.v1",
-        "cx.profile.mls_state_binding.full.v1"
+        "cx.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
         "cx.keys.upload",
@@ -530,7 +527,7 @@
         "cx.events.submit",
         "cx.events.get",
         "cx.events.batch_get",
-        "cx.events.list",
+        "cx.events.query",
         "cx.events.frontier"
       ],
       "required_event_kinds": [
@@ -574,9 +571,9 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.sync.describe",
-        "cx.sync.client_sync",
-        "cx.sync.subscribe",
-        "cx.sync.backfill",
+        "cx.sync.account",
+        "cx.events.subscribe",
+        "cx.events.query",
         "cx.sync.get_snapshot_head",
         "cx.authz.check"
       ],
@@ -853,7 +850,7 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.events.submit",
-        "cx.events.list",
+        "cx.events.query",
         "cx.authz.check"
       ],
       "required_event_kinds": [
@@ -961,7 +958,7 @@
     "cx.profile.franking.v1": {
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.client_sync"
+        "cx.sync.account"
       ],
       "required_event_kinds": [
         "cx.moderation.frank",
@@ -1058,7 +1055,7 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.events.submit",
-        "cx.sync.client_sync"
+        "cx.sync.account"
       ],
       "required_event_kinds": [
         "cx.space.create",
@@ -1106,7 +1103,7 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.events.submit",
-        "cx.sync.client_sync"
+        "cx.sync.account"
       ],
       "required_event_kinds": [
         "cx.space.create",
@@ -1197,7 +1194,7 @@
       "inherits": [
         "cx.profile.organization.v1",
         "cx.profile.e2ee_client.v1",
-        "cx.profile.mls_state_binding.full.v1"
+        "cx.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
         "cx.sync.get_snapshot_head",
@@ -1228,7 +1225,7 @@
       "feature_discovery": {
         "required": [
           "snapshot_witness",
-          "mls_state_binding",
+          "mls_governance_binding",
           "revocation_freshness"
         ],
         "unsupported_optional": "fail closed for high-risk action"
@@ -1283,13 +1280,13 @@
         "unsupported_optional": "deny cross-boundary operation"
       }
     },
-    "cx.profile.mls_state_binding.full.v1": {
+    "cx.profile.mls_governance_binding.full.v1": {
       "inherits": [],
-      "description": "Required hardening profile for E2EE Spaces. MLS commits are Moves that update mls_epoch, key_schedule, and covered_frontier cells; E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier.",
+      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Spaces. MLS commits are Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the cx_governance_binding GroupContext extension) and update three cells (mls_epoch, key_schedule, covered_frontier). E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier; governance / recovery Moves do not depend on it.",
       "required_endpoints": [
         "cx.keys.keypackages.claim",
         "cx.keys.keypackages.consume",
-        "cx.sync.backfill"
+        "cx.events.query"
       ],
       "required_event_kinds": [
         "cx.mls.commit",
@@ -1329,7 +1326,7 @@
       ],
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.client_sync"
+        "cx.sync.account"
       ],
       "required_event_kinds": [
         "cx.audit.accessed",
@@ -1364,7 +1361,7 @@
       ],
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.client_sync"
+        "cx.sync.account"
       ],
       "required_event_kinds": [
         "cx.audit.accessed",
@@ -1546,7 +1543,7 @@
     "cx.profile.reaction_vectors.v1": {
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.backfill"
+        "cx.events.query"
       ],
       "required_event_kinds": [
         "cx.message.create",
@@ -1576,7 +1573,7 @@
     "cx.profile.redaction_vectors.v1": {
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.backfill"
+        "cx.events.query"
       ],
       "required_event_kinds": [
         "cx.message.create",
@@ -1602,8 +1599,8 @@
     },
     "cx.profile.sync_vectors.v1": {
       "required_endpoints": [
-        "cx.sync.client_sync",
-        "cx.sync.backfill",
+        "cx.sync.account",
+        "cx.events.query",
         "cx.sync.get_snapshot_head"
       ],
       "required_event_kinds": [
@@ -1802,7 +1799,7 @@
       "inherits": [],
       "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the directly Matrix-derived surfaces: /sync (since/next_batch + lazy_load_members), to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Implementations claiming this profile MUST treat the cx.* names of these surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence.",
       "required_endpoints": [
-        "cx.sync.client_sync",
+        "cx.sync.account",
         "cx.device_messages.put",
         "cx.device_messages.get",
         "cx.keys.upload",

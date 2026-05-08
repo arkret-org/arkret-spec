@@ -46,15 +46,15 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | `effects[]` | reducer-input only：`[(cell, lattice_op)]`。原子多 cell CAS。 |
 | `anchor_ref` | reducer-input only：本 event 提交时所对应的 Anchor DAG 节点。 |
 | `payload` | kind-specific 业务载荷（`cx.message.create.payload.content`、`cx.flow.update.payload.patch` 等）；它们是 effect 写入值的源数据，不替代 effects[]。 |
-| `proofs[]` | 至少一条 detached JWS，覆盖 canonical event bytes（不含 `proofs`、`unsigned`、`hlc`）。 |
-| `hlc` | advisory tie-breaker，**不进入 canonical bytes**（不被签名覆盖）。仅用于 timeline 展示。 |
+| `proofs[]` | 至少一条 detached JWS，覆盖 canonical event bytes（不含 `proofs` 与 `unsigned`）。 |
+| `hlc` | advisory tie-breaker。**进入 canonical event bytes 与 proof `payload_hash`**（与 [encoding.md](../conformance/encoding.md) §7、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3 rule 1 一致），因此被生产者签名锁定、relay 不得改写；但语义上仅用于 timeline 展示与 freshness 诊断，MUST NOT 进授权决策、Lattice 收敛、Move precondition 比较或 Anchor finality 判断。 |
 
 非 reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.notification.read`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。它们只是 actor 私有或 ephemeral 信号，不进 anchor frontier、不写 cell、不参与 state_root。schema 已用 allOf if/then 静态强制此约束。
 
 接收方 MUST 按以下顺序验证 reducer-input event：
 
 1. Envelope schema validation（`cx.schema.event.v1`，含 canonical bytes / proofs[]）。
-2. 至少一条 `proofs[]` 由 `actor_id` 控制密钥签发；签名 payload 覆盖 canonical event bytes（不含 proofs/unsigned/hlc）。
+2. 至少一条 `proofs[]` 由 `actor_id` 控制密钥签发；签名 payload 覆盖 canonical event bytes（不含 `proofs` 与 `unsigned`；`hlc` 包含在内但仅作 advisory）。
 3. `verify_event()`（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6）在该 event 的 `anchor_ref` 对应 pre-state 下成立。
 4. 写入 Anchor pipeline。
 
@@ -212,7 +212,7 @@ Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例�
 }
 ```
 
-`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
+`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.account`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
 
 ## 6. 为什么需要 `prev_refs + hlc + actor_seq`
 
@@ -565,7 +565,7 @@ Snapshot manifest MUST 包含：
 4. `event_set_commitment` 的 root 必须与 manifest 声称覆盖的 Event frontier、actor sequence range 和 canonical event hash 集合一致。
 5. high-assurance profile 中，客户端 MUST 能对抽样 Event ID、actor sequence range、soft-failed / quarantined 摘要发起 inclusion / omission challenge；issuer 无法提供证明时，客户端 MUST quarantine snapshot 或回退到原始 Event 回放。
 6. 后续 admin / snapshot issuer revoke 不会自动否定此前在有效权限下签名的 snapshot，但客户端在用 snapshot 恢复后 MUST 继续回放 snapshot frontier 之后的 Event，再用当前 auth state 判断新写入。
-7. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `/events/*` / `/sync/backfill` 进行原始 Event 历史回放。
+7. 若任何校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?direction=backward`（`cx.events.query`）进行原始 Event 历史回放。
 
 ## 12. 同步面
 

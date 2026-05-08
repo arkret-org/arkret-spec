@@ -707,7 +707,7 @@
       "profile": null
     },
     {
-      "action": "cx.sync.subscribe",
+      "action": "cx.events.query",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -715,7 +715,7 @@
       "profile": null
     },
     {
-      "action": "cx.sync.client_sync",
+      "action": "cx.events.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -723,7 +723,7 @@
       "profile": null
     },
     {
-      "action": "cx.sync.backfill",
+      "action": "cx.sync.account",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],

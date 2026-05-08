@@ -721,6 +721,8 @@ Space create MUST 固定 genesis anchorer 与 recovery anchorer。后续变更�
 
 ## 10. E2EE 与 MLS
 
+E2EE Space 通过 **MLS Governance Binding**（profile `cx.profile.mls_governance_binding.full.v1`，规范定义见 `crypto-media/encryption-and-audit.md §2.5`）把 MLS epoch 与 governance state 强绑定。本节只描述其在 Move / Anchor / Lattice 层的语义；commit-side `governance_binding` 的字段、profile 与 GroupContext extension 编码不重复，见上述规范文档。
+
 MLS commit 是 Move，不是 Anchor。它写入三个 well-known cell（cell family 由 `cx.component.mls_epoch.v1` / `cx.component.key_schedule.v1` / `cx.component.covered_frontier.v1` 给出，cell_subject 为 MLS group id 或 space id）：
 
 ```text

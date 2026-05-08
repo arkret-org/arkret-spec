@@ -169,11 +169,14 @@ Matrix state event 没有显式的 cell 代数。Contrix v1 的 registry / Space
 
 Receiver 不识别核心 lattice type MUST fail closed；扩展 cell family 必须通过 schema/profile 显式 opt-in。
 
-### 6.5 E2EE Space 的 MLS State Binding
+### 6.5 E2EE Space 的 MLS Governance Binding
 
-Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Contrix v1 把 MLS commit 建模为普通 Move：它读取 governance Anchor frontier，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_frontier_cell`。E2EE message Move 必须证明 `covered_frontier_cell` 覆盖所需 governance frontier。
+Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Contrix v1 引入 **MLS Governance Binding**（profile `cx.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
-**理由**：撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch/key schedule 覆盖后才能影响新消息解密能力。治理恢复 Move 不依赖 MLS，因此 MLS 卡住不会阻止冲突修复。
+- **Commit 侧** —— 每个 `cx.mls.commit` 携带 `governance_binding`（GroupContext extension `cx_governance_binding`），把 membership / policy / capability / discussion-metadata roots 哈希进 MLS transcript。
+- **Lattice 侧** —— MLS commit 是 Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_frontier_cell`（or-set）。E2EE message Move 用 `contains` precondition 证明 `covered_frontier_cell` 覆盖自身 `anchor_ref` 所需 governance frontier。
+
+**理由**：撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。`covered_frontier_cell` 让这条 "governance state 已被 commit attest 覆盖" 的事实变成可被 reducer 确定性查询的 lattice cell，而不是隐含在 transcript hash 里的 ad-hoc 检查。governance / recovery Move 不引用 `covered_frontier_cell`，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 
@@ -194,7 +197,7 @@ Contrix 不应忽略 Matrix 的成熟度：
 ## 8. 相关文档
 
 - [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — Move、Anchor、Lattice、bottom diagnostics、E2EE MLS Move
-- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS application state binding 与 covered frontier cell
+- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Governance Binding：`governance_binding` 与 `covered_frontier_cell`
 - [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or-set lattice）
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)

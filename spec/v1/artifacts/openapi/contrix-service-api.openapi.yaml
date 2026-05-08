@@ -1852,14 +1852,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationResult'
     get:
-      operationId: cx.events.list
+      operationId: cx.events.query
       responses:
         '200':
-          description: Event history page
+          description: Event query page (forward or backward)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
+  /events/subscribe:
+    get:
+      operationId: cx.events.subscribe
+      responses:
+        '200':
+          description: Streaming event subscription with optional history catchup
+          content:
+            text/event-stream:
+              schema:
+                type: string
   /events/describe:
     get:
       operationId: cx.events.describe
@@ -1914,10 +1924,10 @@ paths:
                 $ref: '#/components/schemas/OperationResult'
   /sync:
     post:
-      operationId: cx.sync.client_sync
+      operationId: cx.sync.account
       responses:
         '200':
-          description: Client sync response
+          description: Account-aggregated sync response
           content:
             application/json:
               schema:
@@ -1936,26 +1946,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /sync/subscribe:
-    get:
-      operationId: cx.sync.subscribe
-      responses:
-        '200':
-          description: Streaming sync subscription
-          content:
-            text/event-stream:
-              schema:
-                type: string
-  /sync/backfill:
-    get:
-      operationId: cx.sync.backfill
-      responses:
-        '200':
-          description: Historical backfill
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
   /sync/snapshot-head:
     get:
       operationId: cx.sync.get_snapshot_head

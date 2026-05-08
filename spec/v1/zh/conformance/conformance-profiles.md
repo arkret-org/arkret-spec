@@ -158,7 +158,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - KeyPackage publish / fetch / verify
 - KeyPackage claim / consume / revoke lifecycle
 - Welcome / Commit / Proposal event
-- MLS-bound application state root verification
+- MLS Governance Binding：`governance_binding` 的 GroupContext extension 验证 + `covered_frontier_cell` 的 reducer 累积
 - minimal-metadata pseudonymous credential handling when profile is advertised
 - AAD visibility policy handling
 - epoch mismatch recovery
@@ -169,7 +169,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `cx.profile.mls_state_binding.full.v1` 时，客户端和服务端 MUST 额外验证 MLS application state root 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier。无法验证该 root 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
+声明 `cx.profile.mls_governance_binding.full.v1`（即 MLS Governance Binding 的 full 形态，见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 额外验证 commit 携带的 `governance_binding` 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier，并 MUST 通过 `covered_frontier_cell` precondition gate E2EE message Move。无法验证 `governance_binding` 指向的 Anchor view 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
 
 声明 `cx.profile.attested_audit.e2ee.v1` 时，Audit Agent MUST 提供可验证 remote attestation，并执行 `cx.audit.accessed` 先写后解密、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `cx.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Space policy 和加入 UI MUST 明确展示该降级（按 `encryption-and-audit.md §3.1.1` 的 disclosed 文案）；同样不得绕过 `cx.audit.accessed` 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3.5` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
@@ -178,7 +178,7 @@ MUST NOT：
 - 把明文消息发送给未授权 sync service 或受托 search / projection 服务
 - 把解密密钥上传给不受信服务
 - 在未验证 KeyPackage 所属 DID 的情况下加密给对方
-- 在 MLS-bound policy / membership root 不匹配时继续解密正文
+- 在 `governance_binding` 的 policy / membership root 不匹配时继续解密正文（违反 MLS Governance Binding）
 
 ## 7. Principal Server Events API
 
@@ -606,7 +606,7 @@ E2EE profile MUST 额外提供：
 
 - KeyPackage verification vector
 - KeyPackage claim single-use vector
-- MLS-bound state root mismatch vector
+- MLS Governance Binding root mismatch vector（`governance_binding` 任一 root 不匹配 Anchor view）
 - minimal-metadata identity link vector
 - AAD visibility vector
 - MLS epoch transition vector

@@ -40,6 +40,148 @@
 只有在 changelog、profile tier 与 conformance 影响三项同时落定后，相应 PR 才被认为
 满足发布门槛 — 这与 `spec/v1/zh/overview/release-readiness.md` §5.1 保持一致。
 
+## [Unreleased]
+
+### Sync / Events 读取 surface 重构（2026-05-08）
+
+把按 selector / cursor 取事件序列的三个旧 operation 收敛为按 delivery 形态拆分的两个新 operation，并把 client_sync 改名为 account 同步以澄清它"账号视角聚合"的真实定位。重构思路：selector（actor / space）、range（forward / backward / window）和 delivery（unary / stream）三个维度被旧 surface 切错了——`cx.events.list`（actor or space, 单向, unary）、`cx.sync.backfill`（space, 双向, unary）、`cx.sync.subscribe`（space, 实时, stream）的差别本质是 selector 和 cursor 方向，不是不同操作；只有 streaming 与 unary 才是真正的 delivery 差别。
+
+- **变更类型**: modify（重命名 + 合并 — wire breaking）
+- **影响 artifact**: `operation_registry`、`capability_action_registry`、
+  `contrix-service-api.openapi.yaml`、`non-http-bindings.yaml`、
+  `conformance-profiles.json`
+- **canonical 变更**（`contract-catalog.json`）:
+  - **新增** `cx.events.query`（HTTP `GET /events`、gRPC `Events/Query`、mq
+    `events.query`）。selector 是 `spaces[]` ∪ `actors[]` ∩ 组合；range 是
+    `from?` + `until?` + `direction: forward|backward`；返回 `events[]` +
+    `next_cursor?` + `prev_cursor?`。合并旧 `cx.events.list` 与
+    `cx.sync.backfill` 的双向语义。
+  - **新增** `cx.events.subscribe`（HTTP `GET /events/subscribe`、gRPC
+    `Events/Subscribe`、mq `events.subscribe`）。多 space / actor 一次订阅；
+    `include_history: bool=true` 时先吐历史再以 `catchup_complete` 帧切到实时。
+    新增 `dropped` / `epoch_rotation` / `unauthorized` / `resync_required` /
+    `frontier` / `heartbeat` / `catchup_complete` 帧类型。
+  - **新增** `cx.sync.account`（HTTP `POST /sync`、gRPC `Sync/Account`、mq
+    `sync.account`）。语义不变，是旧 `cx.sync.client_sync` 的改名——这个 op
+    的真实定位是 to_device / account_data / device_lists / presence / 跨
+    Space delta 的 **账号视角聚合**，不是裸事件读。
+  - **移除** `cx.events.list`、`cx.sync.backfill`、`cx.sync.subscribe`、
+    `cx.sync.client_sync`。
+  - capability_action_registry 同步：移除三条旧 sync 服务动作，新增
+    `cx.events.query` / `cx.events.subscribe` / `cx.sync.account`，三者均
+    `service` 类别、`low` risk_tier。
+- **派生 artifact 同步**: 已直接同步 `operation-registry.json`、
+  `capability-action-registry.json`；OpenAPI、non-http binding、conformance
+  profile 都已手工对齐。如运行 `python tools/artifact_pipeline.py generate`
+  应得到等价结果。
+- **conformance impact**:
+  - 受影响 profile: `core_event_store`, `chat_mvp`, `kanban_mvp`,
+    `minimal_client`, `full_client`, `principal_server_events_api`,
+    `principal_server`, `agent_runtime`, `franking`, `personal_node`,
+    `small_team`, `mls_governance_binding.full`, `attested_audit.e2ee`,
+    `disclosed_audit.e2ee`, `reaction_vectors`, `redaction_vectors`,
+    `sync_vectors`, `matrix_compat`
+  - profile tier 变化: 无（profile 仍在原 tier，只是 required_endpoints
+    重命名）
+  - wire 兼容性: **breaking**（HTTP 路径与 operation_id 同步变更）
+  - reader / writer 行为要求:
+    - 客户端 MUST 把双向历史读切到 `GET /events?direction=...`，不再用
+      `/sync/backfill`
+    - 客户端 MUST 把 Space 流订阅切到 `GET /events/subscribe`，不再用
+      `/sync/subscribe`；并按 `catchup_complete` / `dropped` /
+      `resync_required` 帧调整恢复逻辑
+    - 客户端 MUST 把 account 同步的 operation_id 改为 `cx.sync.account`；
+      路径 `POST /sync` 不变
+    - 服务实现 MUST 在 `events.query` 上对每个 selector 元素逐项做
+      visibility 判定（actor scope 用 actor history visibility；space
+      scope 用 membership frontier + history visibility + E2EE epoch
+      policy）
+- **fixture / vector 变化**: `sync-fixture.json` 现在覆盖
+  `cx.events.query` / `cx.events.subscribe` / `cx.sync.account`；旧名称
+  应被替换。
+- **prose 同步**: `service-http-binding.md` §2.1/§2.3/§2.4/§3.3/§3.4/§5、
+  `service-api-schema.mdx`、`transport-bindings.md` §4、`client-sync.md`
+  §1/§2、`federation.md` §7、`authz/capabilities.md` §5.5、
+  `identity/key-management.md` §device.authorized.content.scopes。
+- **迁移指南**:
+  - rename `operation_id` 引用：`cx.events.list` → `cx.events.query`；
+    `cx.sync.backfill` → `cx.events.query`（带 `direction=backward`）；
+    `cx.sync.subscribe` → `cx.events.subscribe`；
+    `cx.sync.client_sync` → `cx.sync.account`
+  - rename HTTP 路径：`GET /sync/subscribe` → `GET /events/subscribe`；
+    `GET /sync/backfill` → `GET /events?direction=backward`；
+    `POST /sync` 路径不变但 operation_id 改名
+  - query 参数：`actor_id` / `space_id` 改成 `actors[]` / `spaces[]`；
+    `cursor` 改成 `from`（再叠 `until?` + `direction`）
+  - `events.subscribe` 帧 schema 改名：`type` → `kind`，新增多种
+    `kind` 值；客户端 MUST 处理新帧类型而不是把未知 kind 当 `event`
+
+### `branches[]` → `tracks[]`（2026-05-08，Flow 能力面命名重构）
+
+把 Flow 的能力面字段从 `branch` 改名为 `track`。原命名暗含 git 风格的"版本派生"心智模型，与 Contrix
+中 Flow 多面共同推进的语义不符；`track`（多轨录音 / PM workstream tracks）更准确地表达"同一议题
+沿多条并行轨道演进"的设计意图。Synthesis 与 discussion 仍是 v1 标准 track name，profile 仍可声明
+更多 track name；只是承载它们的字段、event kind、schema $defs、constraint key 全部统一改名。
+
+- **变更类型**: modify（重命名 — wire breaking）
+- **影响 artifact**: `event_kind_registry`、`capability_action_registry`、`schema_registry`、
+  `error_code_registry`、`flow.schema.json`、`message.schema.json`、`event-schema.json`、
+  `event-payload.schema.json`、`grant-constraint.schema.json`、`notification.schema.json`、
+  `read-receipt.schema.json`、`read-marker.schema.json`、`contrix-service-api.openapi.yaml`、
+  `conformance-profiles.json`、`capability-fixture.json`
+- **canonical 变更**:
+  - 字段重命名：`branches` → `tracks`、`branch` → `track`（在 Flow / Message / ReadReceipt /
+    ReadMarker / Notification / event payload 中各自对应字段）。
+  - Event kind 重命名：`cx.flow.branch.{enable,disable,update,set_primary,read,admin,member,
+    history_visibility,policy_components}` → `cx.flow.track.*`。
+  - Cell family 重命名：`cx.component.flow.branch.{member,history_visibility,policy_components}.v1`
+    → `cx.component.flow.track.*`。
+  - Constraint key 重命名：`allowed_branches` / `denied_branches` → `allowed_tracks` /
+    `denied_tracks`。
+  - Schema `$defs` 重命名：`branch_name` → `track_name`、`flow_branch` → `flow_track`、
+    `flow_branch_{enable,disable,set_primary}_payload` → `flow_track_*_payload`、event-payload
+    `$defs/branch` → `$defs/track`。
+  - Error code 重命名：`discussion_branch_disabled` → `discussion_track_disabled`、
+    `no_flow_branch_message_grant` → `no_flow_track_message_grant`。
+  - Conformance optional extension 重命名：`discussion_branch` → `discussion_track`。
+  - Patch path stable-key 选择段重命名：`branches[name=...]` → `tracks[name=...]`。
+  - Legacy hybrid 名重命名：`branch_scoped` → `track_scoped`（仅出现在 schema description /
+    historical note，已在 v1 之前移除）。
+- **派生 artifact 同步**: 已通过 `python tools/artifact_pipeline.py generate` 重生成派生 registry 视图；
+  `python tools/artifact_pipeline.py check` 全绿（132 event kinds、38 schemas、36 typed ID kinds、
+  78 operations、59 profiles）。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.core_event_store.v1`、`cx.profile.chat_mvp.v1`、
+    `cx.profile.kanban_mvp.v1`、`cx.profile.full_client.v1`、`cx.profile.e2ee_client.v1`、
+    `cx.profile.mimi_interop.v1`、`cx.profile.principal_server.v1`。所有承载 Flow 能力面 / message
+    track / track-scoped capability constraint 的 profile 都受影响。
+  - profile tier 变化: 无；profile 集合不变，只更换内部引用的字段 / event kind 名。
+  - wire 兼容性: **breaking**。所有 Flow / Message / event payload / capability constraint /
+    notification / read-receipt / read-marker 上原本写 `branch` / `branches` / `cx.flow.branch.*`
+    的 wire 数据需要换成新名。
+  - reader / writer 行为要求: 升级后的实现 MUST emit 新名；MUST 拒绝（schema validation 阶段）
+    带旧字段名的 wire 数据，不得执行同义解释。同时维护两套命名的实现 MAY 在迁移窗口期内 tolerate
+    旧名，但 SHOULD 同时写出新名并在描述里标记 deprecation。
+- **fixture / vector 变化**: `capability-fixture.json` 中 `no_flow_branch_message_grant` 已改名；
+  `event-envelope-negative-fixture` / `crypto-signature-fixture` / `move-anchor-lattice-fixture` 不
+  涉及 branch 字段，无需重新签名。`conformance-vectors.md` §5.5 / §5.5.1 / §5.6 已同步使用 track 字段。
+- **prose 同步**: 已更新 33 个 `spec/v1/zh/**/*.md` 文件，包括 overview / models / sync / authz /
+  conformance / discovery / crypto-media / extensions / identity 全部 plane。中文 prose 中"分支"
+  在 Flow 能力面语境一律改为"轨道"；保留场景：Merkle 分支、sibling fork 历史分支、JSON Schema
+  if/then 分支、状态机 quarantine/rate_limited 分支、policy 决策分支、"容器形态"变体义。
+- **迁移指南**:
+  1. 所有发出 `cx.flow.branch.*` event 的客户端 / 服务端 MUST 改用 `cx.flow.track.*`，并把 payload
+     字段 `branch` 改为 `track`。
+  2. Capability grant 中 `allowed_branches` / `denied_branches` MUST 改为 `allowed_tracks` /
+     `denied_tracks`。
+  3. Read receipt / read marker / notification 写入 MUST 把 `branch` 字段改为 `track`。
+  4. 所有 wire-emitting code path 跑一遍重新签名（detached JWS over canonical bytes）；payload 字段
+     改名属于 canonical bytes 变更，原签名失效。
+  5. 错误码消费者把 `discussion_branch_disabled` / `no_flow_branch_message_grant` 替换为
+     `_track_` 形式。
+  6. SDK / 服务实现可在 transition 期内 tolerate 旧名 wire（推荐 reject 但允许警告），同时
+     `server/describe.profiles_supported` 中只声明新 profile id；不得为旧名重新登记 event kind。
+
 ## [1.0.0] — 2026-05-05
 
 ### 协议评审驱动的简化（2026-05-05，第四批：constraint 14→8 collapse + encoding 合并 + federation dedup）

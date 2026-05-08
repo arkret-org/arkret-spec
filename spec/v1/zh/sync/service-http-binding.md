@@ -28,8 +28,8 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | --- | --- | --- | --- |
 | `/server/*` | 客户端与服务 | 服务描述、feature discovery、auth metadata。 | `service-surface.md`、`api-conventions.md` |
 | `/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
-| `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Space 历史回填、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
-| `/sync/*` | 客户端、Principal Server | 客户端聚合同步、Space 增量订阅、backfill、snapshot head。 | `client-sync.md`、`service-surface.md` |
+| `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Space 双向历史查询(query)、流式订阅(subscribe，含历史 catchup)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
+| `/sync/*` | 客户端、Principal Server | account 聚合同步(`POST /sync`)、describe、snapshot head。事件流读取已收敛到 `/events/*`。 | `client-sync.md`、`service-surface.md` |
 | `/directory/*` | 客户端、服务 | Space / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
@@ -85,12 +85,11 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/events` | body `EventEnvelope` 或 `{events: EventEnvelope[]}` | `user_session` / `device_proof` / `service_signature`；MUST 验证 actor DID、签名、capability、Space policy、`actor_seq`、`prev_refs`、`auth_refs`。 | `{status, accepted[], duplicate[]?, rejected[]?, actor_frontier?, space_frontier?, cursor?}` |
 | `GET /api/v1/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Space policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
 | `POST /api/v1/events/batch-get` | body `{event_ids?: id[], event_hashes?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Space policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
-| `GET /api/v1/events` | query `{actor_id?: did, space_id?: id, cursor?: cursor, limit?: int, filters?: object}` | 调用方必须有对应 actor/Space 历史可见权限。 | `{events[], next_cursor?, has_more}` |
+| `GET /api/v1/events` | query `{spaces?: id[], actors?: did[], from?: cursor, until?: cursor, direction?: forward\|backward, limit?: int, filters?: object}` | 调用方必须对每个 selector 元素满足读取约束：actor scope 走 actor history visibility；space scope 走 membership frontier + history visibility + E2EE epoch policy。`spaces[]` ∪ 内部、`actors[]` ∪ 内部、二者组合为交集。 | `{events[], next_cursor?, prev_cursor?, has_more}` |
+| `GET /api/v1/events/subscribe` | query `{spaces?: id[], actors?: did[], from?: cursor, include_history?: boolean}` | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-space `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, space_id?: id, cursor?: cursor, payload?: object}` |
 | `GET /api/v1/events/frontier` | query `{actor_id?: did, space_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Space 或 private DID。 | `{frontier, receipts?}` |
-| `POST /api/v1/sync` | body `{since?: cursor, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device。 | Client Sync response `{cursor, spaces?, to_device?, account_data?, device_lists?}` |
+| `POST /api/v1/sync` | body `{since?: cursor, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device。聚合账号视角 delta（跨 Space frontier、to_device、account_data、device_lists、presence、unread / notification counts），不是裸事件读。 | Account sync response `{cursor, spaces?, to_device?, account_data?, device_lists?}` |
 | `GET /api/v1/sync/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `{service_did, supported_sync_profiles[], limits, frontier?}` |
-| `GET /api/v1/sync/subscribe` | query `{space_id: id, cursor?: cursor}` | Space read + service delegation；非 E2EE 私有内容只能给 principal / plaintext-visible service。 | event stream frames `{type, seq, cursor?, payload}` |
-| `GET /api/v1/sync/backfill` | query `{space_id: id, cursor?: cursor, limit?: int}` | history visibility + membership frontier + E2EE epoch policy。 | `{events[], prev_cursor?, next_cursor?, limited?}` |
 | `GET /api/v1/sync/snapshot-head` | query `{space_id: id}` | Space read；snapshot manifest 必须签名，并包含 `event_set_commitment`。 | `{snapshot_ref, state_hash, frontier, event_set_commitment, verification_hints?, signature}` |
 <!-- Federation 端点已删除 — 跨域操作复用 /events/*、/sync/*、/identity/* 端点 + service_signature 认证。详见 federation.md §7。 -->
 | `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `{service_did, resource_types[], discovery_profiles[], restricted_query_proof?: boolean}` |
@@ -151,12 +150,11 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.events.submit` | `event: object` 或 `events: object[]` | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `space_frontier: object?`; `cursor: cursor?` | MUST 验证 Event signature、DID、capability、Space policy、`actor_seq`、`prev_refs` 和 `auth_refs`。`cursor` 是 barrier purpose（read-your-writes）。 |
 | `cx.events.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | 不可见时返回 `not_found`。 |
 | `cx.events.batch_get` | 至少一个：`event_ids: id[]` 或 `event_hashes: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Space policy / E2EE envelope 判断。 |
-| `cx.events.list` | 至少一个：`query.actor_id: did` 或 `query.space_id: id` | `query.cursor: cursor`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 受 actor/Space history visibility 和 Space policy 限制。 |
+| `cx.events.query` | 至少一个：`query.spaces: id[]` 或 `query.actors: did[]` | `query.from: cursor`; `query.until: cursor`; `query.direction: enum(forward,backward)=forward`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `prev_cursor: cursor?`; `has_more: boolean` | `spaces[]` 内部 union、`actors[]` 内部 union、二者组合为 intersection。每个 selector 元素都按对应可见性约束逐项检查：actor scope 走 actor history visibility；space scope 走 membership frontier + history visibility + E2EE epoch policy。`from`/`until` 可定义闭区间；`direction=backward` 时返回向更早 cursor 走的页。 |
+| `cx.events.subscribe` | 至少一个：`query.spaces: id[]` 或 `query.actors: did[]` | `query.from: cursor`; `query.include_history: boolean=true` | stream frame: `kind: enum(event,frontier,heartbeat,catchup_complete,epoch_rotation,dropped,resync_required,unauthorized)`; `space_id: id?`; `cursor: cursor?`; `payload: object?` | 同 `cx.events.query` 逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性。`include_history=true` 时先吐历史再以 `catchup_complete` 帧切到实时；某 space 中途授权丢失发出 `unauthorized` 帧并继续其他 space；服务端因容量丢弃发出 `dropped` 帧，客户端必须 reconcile。 |
 | `cx.events.frontier` | 至少一个：`query.actor_id: did` 或 `query.space_id: id` | 无 | `frontier: object`; `receipts: object[]?` | 不得泄露不可见 Space 或 private DID。 |
-| `cx.sync.client_sync` | 无 | `since: cursor`; `filter: object`; `set_presence: enum(online,offline,unavailable)`; `timeout_ms: int` | `cursor: cursor`; `spaces: object?`; `to_device: object?`; `account_data: object?`; `device_lists: object?` | `user_session` 必须绑定 principal/device。`cursor` 是 stream purpose。 |
+| `cx.sync.account` | 无 | `since: cursor`; `filter: object`; `set_presence: enum(online,offline,unavailable)`; `timeout_ms: int` | `cursor: cursor`; `spaces: object?`; `to_device: object?`; `account_data: object?`; `device_lists: object?` | `user_session` 必须绑定 principal/device。聚合账号视角 delta（跨 Space frontier、to_device、account_data、device_lists、presence），不是裸事件读；裸事件读用 `cx.events.query` / `cx.events.subscribe`。`cursor` 是 stream purpose。 |
 | `cx.sync.describe` | 无 | 无 | `service_did: did`; `supported_sync_profiles: string[]`; `limits: object`; `frontier: object?` | 私有 frontier 可认证后返回。 |
-| `cx.sync.subscribe` | `query.space_id: id` | `query.cursor: cursor` | stream frame: `type: string`; `seq: int`; `cursor: cursor?`; `payload: object` | Space read + service delegation；明文私有内容只给授权边界。 |
-| `cx.sync.backfill` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `prev_cursor: cursor?`; `next_cursor: cursor?`; `limited: boolean?` | history visibility、membership frontier、E2EE epoch policy。 |
 | `cx.sync.get_snapshot_head` | `query.space_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `event_set_commitment: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
 <!-- Federation 复用现有 Sync / Events / Identity API；v1 已移除 /federation/* 独立 endpoints。详见 federation.md §7。-->
 | `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?` | `public_metadata`; 可限流。 |
@@ -296,12 +294,15 @@ POST /api/v1/events/batch-get
 }
 ```
 
-### 3.3 列出 / 回填 Event
+### 3.3 查询 / 回填 Event（`cx.events.query`）
 
 ```text
-GET /api/v1/events?space_id=<id>&cursor=<cursor>&limit=500
-GET /api/v1/events?actor_id=<did>&cursor=<cursor>&limit=500
+GET /api/v1/events?spaces=<id>&from=<cursor>&direction=forward&limit=500
+GET /api/v1/events?actors=<did>&from=<cursor>&direction=backward&limit=500
+GET /api/v1/events?spaces=<id>&actors=<did>&from=<cursor>&until=<cursor>
 ```
+
+`spaces`/`actors` 都是数组（`spaces=A&spaces=B`）；同一参数的多个值之间是 union，跨参数（spaces × actors）是 intersection。`direction=forward` 是默认值；`direction=backward` 用来回填历史。`from` 和 `until` 可同时给出形成闭区间。
 
 响应示例（非完整 schema）：
 
@@ -309,9 +310,35 @@ GET /api/v1/events?actor_id=<did>&cursor=<cursor>&limit=500
 {
   "events": [],
   "next_cursor": "opaque",
+  "prev_cursor": "opaque",
   "has_more": true
 }
 ```
+
+`next_cursor` 在请求方向上继续走；`prev_cursor` 允许客户端反向继续（替代旧 `cx.sync.backfill` 的双向语义）。
+
+### 3.4 流式订阅 Event（`cx.events.subscribe`）
+
+```text
+GET /api/v1/events/subscribe?spaces=<id>&from=<cursor>&include_history=true
+```
+
+支持多 space / actor 一次订阅；`include_history=true` 时服务端先吐历史，再发出 `catchup_complete` 帧切到实时尾部。
+
+Frame:
+
+```json
+{ "kind": "event", "space_id": "cx:space:01...", "cursor": "opaque", "payload": {} }
+{ "kind": "catchup_complete", "space_id": "cx:space:01...", "cursor": "opaque" }
+{ "kind": "frontier", "space_id": "cx:space:01...", "cursor": "opaque" }
+{ "kind": "heartbeat" }
+{ "kind": "epoch_rotation", "space_id": "cx:space:01...", "payload": {"new_epoch": 17} }
+{ "kind": "dropped", "space_id": "cx:space:01...", "cursor": "opaque" }
+{ "kind": "unauthorized", "space_id": "cx:space:01..." }
+{ "kind": "resync_required", "space_id": "cx:space:01..." }
+```
+
+同一语义流 MAY 通过 WebSocket、SSE 或长轮询承载，但 HTTP/JSON 默认参考路径是 `/api/v1/events/subscribe`。`/sync/stream` 仅用于具体 transport 的内部帧名，不定义为新的 canonical operation。客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `cx.events.query` 补齐，后者要求重建本地状态。
 
 ## 4. Identity API
 
@@ -345,31 +372,15 @@ Resolver MUST return enough method-specific evidence for clients to verify contr
 
 ## 5. Sync API
 
-### 5.1 客户端增量同步
+`/sync/*` 在 v1 只承载 **account 聚合**（跨 Space frontier、to_device、account_data、device_lists、presence、unread / notification counts）和 snapshot manifest。逐 Space 的事件读取与流式订阅已收敛到 `/events/*`（`cx.events.query`、`cx.events.subscribe`），见 §3.3 / §3.4。
+
+### 5.1 账号聚合同步（`cx.sync.account`）
 
 ```text
 POST /api/v1/sync
 ```
 
-该端点对应 `cx.sync.client_sync`，用于客户端按 account / Space filter 拉取稳定增量视图。请求与响应形状见 `client-sync.md`。
-
-### 5.2 Space 增量流订阅
-
-```text
-GET /api/v1/sync/subscribe?space_id=<space_id>&cursor=<cursor>
-```
-
-Frame:
-
-```json
-{
-  "type": "event",
-  "seq": 106,
-  "payload": {}
-}
-```
-
-同一语义流 MAY 通过 WebSocket、SSE 或长轮询承载，但 HTTP/JSON 默认参考路径是 `/api/v1/sync/subscribe`。`/sync/stream` 仅用于具体 transport 的内部帧名，不定义为新的 canonical operation。
+该端点对应 `cx.sync.account`，用于客户端按 account / Space filter 拉取稳定的跨 Space delta 视图（含 to_device、account_data、device_lists、presence）。请求与响应形状见 `client-sync.md`。它不是裸事件读取——裸事件读取请使用 `cx.events.query` / `cx.events.subscribe`。
 
 ## 6. Directory API
 

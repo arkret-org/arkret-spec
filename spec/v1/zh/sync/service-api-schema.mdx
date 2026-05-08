@@ -116,7 +116,10 @@ paths:
     post:
       operationId: cx.events.submit
     get:
-      operationId: cx.events.list
+      operationId: cx.events.query
+  /events/subscribe:
+    get:
+      operationId: cx.events.subscribe
   /events/{event_id}:
     get:
       operationId: cx.events.get
@@ -129,16 +132,10 @@ paths:
 
   /sync:
     post:
-      operationId: cx.sync.client_sync
+      operationId: cx.sync.account
   /sync/describe:
     get:
       operationId: cx.sync.describe
-  /sync/subscribe:
-    get:
-      operationId: cx.sync.subscribe
-  /sync/backfill:
-    get:
-      operationId: cx.sync.backfill
   /sync/snapshot-head:
     get:
       operationId: cx.sync.get_snapshot_head
@@ -307,10 +304,10 @@ paths:
 | `cx.identity.submit_did_operation` | `POST /identity/submit-did-operation` | gRPC `SubmitDidOperation` / libp2p stream |
 | `cx.identity.get_document` / `cx.identity.get_log` / `cx.identity.get_receipts` | `GET /identity/document`, `GET /identity/log`, `GET /identity/receipts` | gRPC Identity Registry / witness query |
 | `cx.events.submit` | `POST /events` | gRPC `Events/Submit` / 队列 `events.submit` |
-| `cx.events.get` / `cx.events.batch_get` / `cx.events.list` / `cx.events.frontier` | `GET /events/{event_id}`, `POST /events/batch-get`, `GET /events`, `GET /events/frontier` | gRPC `Events/Get` / `Events/BatchGet` / `Events/List` / `Events/Frontier` |
-| `cx.sync.client_sync` | `POST /sync` | WebSocket/SSE client sync channel / `/sync?since...` |
-| `cx.sync.subscribe` | `GET /sync/subscribe` | WebSocket/SSE stream / pubsub topic |
-| `cx.sync.backfill` / `cx.sync.get_snapshot_head` | `GET /sync/backfill`, `GET /sync/snapshot-head` | gRPC `BackfillSync` / snapshot pointer |
+| `cx.events.get` / `cx.events.batch_get` / `cx.events.query` / `cx.events.frontier` | `GET /events/{event_id}`, `POST /events/batch-get`, `GET /events`, `GET /events/frontier` | gRPC `Events/Get` / `Events/BatchGet` / `Events/Query` / `Events/Frontier` |
+| `cx.events.subscribe` | `GET /events/subscribe` | WebSocket/SSE stream / pubsub topic |
+| `cx.sync.account` | `POST /sync` | WebSocket/SSE account sync channel / `/sync?since...` |
+| `cx.sync.get_snapshot_head` | `GET /sync/snapshot-head` | snapshot pointer |
 | `cx.federation.transaction` / `cx.federation.push_operations` / `cx.federation.pull_operations` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-operations`, `GET /federation/pull-operations` | gRPC Federation Service / signed MQ transaction |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC Discovery Service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |

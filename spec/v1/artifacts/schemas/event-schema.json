@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/event-schema.json",
   "title": "Contrix Event",
-  "description": "Single canonical wire object. Reducer-input events carry top-level preconditions / effects / anchor_ref (formerly the embedded Move object — that double layer is gone). Non-reducer events (read marker, typing, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). The former auth_refs[] field is dropped — its contents moved to refs[role=authorized_by]. Signing covers canonical bytes minus proofs, unsigned, and hlc.",
+  "description": "Single canonical wire object. Reducer-input events carry top-level preconditions / effects / anchor_ref (formerly the embedded Move object — that double layer is gone). Non-reducer events (read marker, typing, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). The former auth_refs[] field is dropped — its contents moved to refs[role=authorized_by]. Signing covers canonical bytes minus proofs and unsigned; hlc IS included in canonical bytes (signed and integrity-protected) but is semantically advisory — see encoding.md §7.",
   "type": "object",
   "required": [
     "event_id",
@@ -43,7 +43,7 @@
     "hlc": {
       "type": "string",
       "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$",
-      "description": "Advisory hybrid logical clock. NOT included in canonical bytes for signing or event digest. Used only as a deterministic tiebreaker for timeline display when two events are causally unreachable. MUST NOT influence authorization, lattice join, or anchor finality. See encoding.md §7."
+      "description": "Advisory hybrid logical clock. INCLUDED in canonical bytes for signing and event digest (so it is integrity-protected and cannot be rewritten by relays), but semantically advisory: used only as a deterministic tiebreaker for timeline display when two events are causally unreachable. MUST NOT influence authorization, lattice join, Move precondition comparison, or anchor finality. See encoding.md §7 and event-auth-state-resolution.md §3 rule 1."
     },
     "prev_refs": {
       "type": "array",
@@ -96,7 +96,7 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Detached signatures over canonical event bytes (excluding proofs, unsigned, and hlc). The actor / device / service signature lives here. Anchor signatures live on the Anchor object, not on the event.",
+      "description": "Detached signatures over canonical event bytes (excluding only proofs and unsigned; hlc IS covered as advisory metadata — see hlc field description). The actor / device / service signature lives here. Anchor signatures live on the Anchor object, not on the event.",
       "items": {
         "$ref": "#/$defs/proof"
       },
@@ -1181,7 +1181,7 @@
         "kind": {
           "type": "string",
           "enum": ["detached_jws"],
-          "description": "detached_jws = actor / device / service signature over canonical event bytes (excluding proofs, unsigned, and hlc). Ordering authority signatures are carried by Anchor."
+          "description": "detached_jws = actor / device / service signature over canonical event bytes (excluding only proofs and unsigned; hlc IS covered as advisory signed metadata). Ordering authority signatures are carried by Anchor."
         },
         "alg": {
           "type": "string",

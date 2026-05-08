@@ -147,7 +147,7 @@ title: Spec Map
 | 文档 | 内容 |
 | --- | --- |
 | `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、cross-signing、secret storage、key backup。 |
-| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS-bound state、KeyPackage lifecycle、minimal-metadata Space 与 master-agent control 边界（核心机制）。 |
+| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Governance Binding（`governance_binding` payload + `covered_frontier_cell`）、KeyPackage lifecycle、minimal-metadata Space 与 master-agent control 边界（核心机制）。 |
 | `crypto-media/audited-e2ee.md` | 可选 hardening profile：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 的 audit policy、join warning、强制留痕、RYW receipt、forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话、会议、TURN/STUN/ICE、SFU/MCU。 |

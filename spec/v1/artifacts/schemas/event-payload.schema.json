@@ -1774,8 +1774,8 @@
         "target_device_id": {
           "$ref": "#/$defs/device_id"
         },
-        "application_state_ref": {
-          "$ref": "#/$defs/mls_application_state_ref"
+        "governance_binding": {
+          "$ref": "#/$defs/mls_governance_binding"
         }
       },
       "additionalProperties": true
@@ -1843,8 +1843,8 @@
         "commit_ref": {
           "$ref": "#/$defs/event_ref"
         },
-        "application_state_ref": {
-          "$ref": "#/$defs/mls_application_state_ref"
+        "governance_binding": {
+          "$ref": "#/$defs/mls_governance_binding"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -2104,7 +2104,7 @@
         }
       ]
     },
-    "mls_application_state_ref": {
+    "mls_governance_binding": {
       "type": "object",
       "required": [
         "membership_frontier",
@@ -2162,7 +2162,7 @@
         "creator_principal_id",
         "creator_device_id",
         "cipher_suite",
-        "application_state_ref",
+        "governance_binding",
         "created_at"
       ],
       "allOf": [
@@ -2234,8 +2234,8 @@
           },
           "uniqueItems": true
         },
-        "application_state_ref": {
-          "$ref": "#/$defs/mls_application_state_ref"
+        "governance_binding": {
+          "$ref": "#/$defs/mls_governance_binding"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -2252,7 +2252,7 @@
         "proposal_refs",
         "next_epoch",
         "commit_hash",
-        "application_state_ref"
+        "governance_binding"
       ],
       "not": {
         "required": [
@@ -2288,8 +2288,8 @@
         "commit_hash": {
           "$ref": "#/$defs/hash"
         },
-        "application_state_ref": {
-          "$ref": "#/$defs/mls_application_state_ref"
+        "governance_binding": {
+          "$ref": "#/$defs/mls_governance_binding"
         }
       },
       "additionalProperties": true
@@ -2323,7 +2323,7 @@
           "enum": [
             "welcome_decrypt",
             "transcript_verify",
-            "application_state_ref",
+            "governance_binding",
             "group_state_update",
             "keypackage_claim",
             "policy_root_mismatch",

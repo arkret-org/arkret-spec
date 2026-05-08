@@ -355,8 +355,8 @@ v1 已合并联邦 API 与 Sync / Events API：联邦对端不再需要独立 `/
 | 联邦行为 | 复用端点 | 认证模式差异 |
 | --- | --- | --- |
 | 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` header；Space policy 必须列出 source service DID 为合法 federation peer。 |
-| 跨域 backfill / 拉取缺失历史 | `GET /api/v1/sync/backfill`（`cx.sync.backfill`） | 同上。 |
-| 跨域 Space 成员视图 | `GET /api/v1/events`（`cx.events.list`） + `cx.member.state` 过滤 | 同上；服务端按 Space policy 决定哪些成员对该 service DID 可见。 |
+| 跨域 backfill / 拉取缺失历史 | `GET /api/v1/events?direction=backward`（`cx.events.query`） | 同上。 |
+| 跨域 Space 成员视图 | `GET /api/v1/events`（`cx.events.query`） + `cx.member.state` 过滤 | 同上；服务端按 Space policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 actor / DID 验证 | `POST /api/v1/identity/resolve`（`cx.identity.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
 ### 7.1 跨域 Event 推送
@@ -374,18 +374,18 @@ Request-Canonical-Hash: sha256:...
 ### 7.2 跨域 Backfill
 
 ```
-GET /api/v1/sync/backfill?space_id=<id>&since_cursor=<cursor>&limit=<n>
+GET /api/v1/events?spaces=<id>&direction=backward&from=<cursor>&limit=<n>
 Authorization: <service_signature>
 ```
 
-字段定义见 4.2 节；service operation id 为 `cx.sync.backfill`。空间历史按 Space policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/sync/snapshot-head` 单独获取。
+字段定义见 4.2 节；service operation id 为 `cx.events.query`，`direction=backward` 用于回填历史。空间历史按 Space policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/sync/snapshot-head` 单独获取。
 
 ### 7.3 查询 Space 成员
 
-跨域参与方查询某 Space 成员视图时，使用 `cx.events.list` 并过滤 `kind=cx.member.state`：
+跨域参与方查询某 Space 成员视图时，使用 `cx.events.query` 并过滤 `kind=cx.member.state`：
 
 ```
-GET /api/v1/events?space_id=<id>&kind=cx.member.state&cursor=<cursor>&limit=<n>
+GET /api/v1/events?spaces=<id>&kinds=cx.member.state&from=<cursor>&limit=<n>
 Authorization: <service_signature>
 ```
 
@@ -393,8 +393,9 @@ Authorization: <service_signature>
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `space_id` | query | `id` | required | 要查询成员的 Space。 |
-| `cursor` | query | `cursor` | optional | 分页 cursor。 |
+| `spaces` | query | `id[]` | required | 要查询成员的 Space。 |
+| `kinds` | query | `string[]` | optional | 事件类型过滤；此处固定 `cx.member.state`。 |
+| `from` | query | `cursor` | optional | 分页 cursor。 |
 | `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
 
 响应字段：

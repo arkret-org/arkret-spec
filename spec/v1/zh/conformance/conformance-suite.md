@@ -35,7 +35,7 @@ sidebar:
 - `cx.profile.mimi_interop.v1`
 - `cx.profile.sovereign_deployment.v1`
 - `cx.profile.sovereign_client.v1`
-- `cx.profile.mls_state_binding.full.v1`
+- `cx.profile.mls_governance_binding.full.v1`
 
 ## 3. OpenAPI 与 Transport 一致性
 

@@ -325,15 +325,19 @@ GET /api/v1/events/frontier?space_id=<id>
 
 ## 5. Sync Surface
 
-Sync Surface 是 Principal Server 提供的 Space 增量同步能力。它不是独立第三方服务器角色。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared anchorer / sync service。
+Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Space 的事件查询和实时订阅已收敛到 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。Sync Surface 不是独立第三方服务器角色。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared anchorer / sync service。
 
-本节定义三个不同操作：
+本节定义两个 sync namespace 操作（事件流读取请到 Events Surface）：
 
-- `POST /api/v1/sync`：客户端聚合增量同步，见 `client-sync.md`。
-- `GET /api/v1/sync/subscribe`：Space Event 增量流订阅。
-- `GET /api/v1/sync/backfill`：按 cursor 回补历史 Event。
+- `POST /api/v1/sync`：客户端账号视角聚合同步（`cx.sync.account`），见 `client-sync.md`。
+- `GET /api/v1/sync/snapshot-head`：snapshot manifest 入口。
 
-实现不得把这三个操作合并成语义不明的单一“stream”接口。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
+事件流读取统一在：
+
+- `GET /api/v1/events?spaces=...&direction=...&from=...`（`cx.events.query`，双向 cursor）
+- `GET /api/v1/events/subscribe?spaces=...&include_history=...`（`cx.events.subscribe`，含历史 catchup 与多 space 一次订阅）
+
+实现不得把账号聚合 (`/sync`) 和裸事件读 (`/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
 
 ### 5.1 描述 sync service
 
@@ -341,27 +345,7 @@ Sync Surface 是 Principal Server 提供的 Space 增量同步能力。它不是
 GET /api/v1/sync/describe
 ```
 
-### 5.2 Space sync stream 订阅
-
-```text
-GET /api/v1/sync/subscribe?space_id=<id>&cursor=<cursor>
-```
-
-实现可用：
-
-- SSE
-- WebSocket
-- 长轮询
-
-但必须提供稳定 cursor 语义。
-
-### 5.3 增量回补
-
-```text
-GET /api/v1/sync/backfill?space_id=<id>&cursor=<cursor>&limit=<n>
-```
-
-### 5.4 snapshot 入口
+### 5.2 snapshot 入口
 
 ```text
 GET /api/v1/sync/snapshot-head?space_id=<id>
@@ -639,7 +623,7 @@ Contrix v1 的首次加入流程：
 3. 从 DID Document 和 Space policy 发现 Principal Server / identity registry / events / sync / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Space metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `/events/*` 或 `/sync/backfill` 进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?direction=backward`（`cx.events.query`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态

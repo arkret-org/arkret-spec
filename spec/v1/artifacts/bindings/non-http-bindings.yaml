@@ -57,13 +57,12 @@ grpc:
       Submit: cx.events.submit
       Get: cx.events.get
       BatchGet: cx.events.batch_get
-      List: cx.events.list
+      Query: cx.events.query
+      Subscribe: cx.events.subscribe
       Frontier: cx.events.frontier
     Sync:
       Describe: cx.sync.describe
-      ClientSync: cx.sync.client_sync
-      Subscribe: cx.sync.subscribe
-      Backfill: cx.sync.backfill
+      Account: cx.sync.account
       GetSnapshotHead: cx.sync.get_snapshot_head
     Directory:
       Describe: cx.directory.describe
@@ -162,8 +161,9 @@ mq:
   topics:
     events.submit: cx.events.submit
     events.batch_get: cx.events.batch_get
-    events.list: cx.events.list
-    sync.client_sync: cx.sync.client_sync
+    events.query: cx.events.query
+    events.subscribe: cx.events.subscribe
+    sync.account: cx.sync.account
     directory.private_contact_discovery: cx.directory.private_contact_discovery
     keys.keypackages.upload: cx.keys.keypackages.upload
     keys.keypackages.claim: cx.keys.keypackages.claim

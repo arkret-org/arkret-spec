@@ -208,7 +208,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
 
-- 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.track.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `application_state_ref.membership_frontier` 覆盖该 membership frontier。
+- 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.track.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
 - 发送客户端在发现 `epoch_update_required` 后 SHOULD 暂停该 scope 的新 application messages，或把发送状态标记为 `encryption_transition_pending`。高安全 profile MUST 暂停发送，直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。
@@ -217,17 +217,28 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Contrix 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
 
-### 2.5 MLS 绑定的应用状态根
+### 2.5 MLS Governance Binding
 
-E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据。
+**MLS Governance Binding** 是 Contrix v1 把 **MLS epoch 与 governance state（membership / policy / capability / Anchor frontier）强绑定** 的机制，相对于 Matrix 把 Olm/Megolm 与 room state 当作两条并行轨而言，它是 v1 的核心新增层。该机制由两个 wire-level artifact 组成，分工固定：
+
+| 层 | 名称（wire-level） | 角色 |
+|---|---|---|
+| **Commit-side proof** | `governance_binding`（GroupContext extension `cx_governance_binding`，定义见 §2.5.1，CBOR 编码见 §2.5.3） | 每个 `cx.mls.commit` 携带的 binding payload，把本次 epoch 推进所**断言覆盖**的 governance roots（`membership_frontier` / `policy_root` / `capability_root` / `discussion_metadata_hash`）哈希进 MLS transcript |
+| **Lattice-side accumulator** | `covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or-set，bottom=expose，见 §2.5.2） | MLS Commit Move 的 effect cell，**累计**已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier |
+
+两层缺一不可：`governance_binding` 提供 per-commit 的不可伪造证据并由 MLS transcript hash 覆盖，`covered_frontier_cell` 沉淀 reducer 可查询的累计状态供 message Move precondition 引用。
+
+MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据 —— 这是引入 MLS Governance Binding 的根本动机。撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。
 
 MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `encryption_profile="mls_rfc9420"` 时，group 覆盖父 Space；某个 Flow 通过 `discussion_space_ref` 升级到 child Space 后，child Space 拥有自己的 MLS group，与父 Space group 完全独立。两个 group 通过 child Space 的 `space_id` 区分，不再依赖 track-scoped fallback。
 
-每个 `cx.mls.commit` MUST 绑定一个 `application_state_ref`，并把该引用纳入 MLS transcript 或等价的 commit-authenticated data：
+#### 2.5.1 Governance Binding Payload (`governance_binding`)
+
+每个 `cx.mls.commit` MUST 绑定一个 `governance_binding`，并把该引用纳入 MLS transcript 或等价的 commit-authenticated data：
 
 ```json
 {
-  "application_state_ref": {
+  "governance_binding": {
     "space_id": "cx:space:01js0sp0000000000000000000",
     "mls_group_id": "base64url...",
     "previous_epoch": 41,
@@ -236,49 +247,49 @@ MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `e
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
     "discussion_metadata_hash": "sha256:canonical_discussion_metadata",
-    "binding_profile": "cx.profile.mls_state_binding.full.v1",
+    "binding_profile": "cx.profile.mls_governance_binding.full.v1",
     "reducer_profile": "cx.reducer.v1"
   }
 }
 ```
 
-当 MLS group 绑定到 Flow discussion track 时，`application_state_ref` MUST 同时覆盖 `flow_id` 与 `track="discussion"`，并以有效 track access、membership、history visibility 和 policy state 作为验证边界。
+当 MLS group 绑定到 Flow discussion track 时，`governance_binding` MUST 同时覆盖 `flow_id` 与 `track="discussion"`，并以有效 track access、membership、history visibility 和 policy state 作为验证边界。
 
-**E2EE Space MUST 声明 `cx.profile.mls_state_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Space 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `application_state_ref`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
+**E2EE Space MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Space 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
 - `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员、invite/leave/ban 和设备信任 cell。
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
 - `capability_root` MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell。
 - `discussion_metadata_hash` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
-- 客户端在接受 MLS epoch 前 MUST 独立验证 `application_state_ref` 指向的 Contrix Anchor view 与 state_root。无法回补 Move/Anchor inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
+- 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Contrix Anchor view 与 state_root。无法回补 Move/Anchor inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 是并发 Move。它们只有被有效 Anchor frontier 覆盖、且其 preconditions 在 Anchor batch pre-state 下成立时，才能推进 `mls_epoch_cell`。
 
-#### 2.5.1 Covered Frontier Cell
+#### 2.5.2 Covered Frontier Cell (`covered_frontier_cell`)
 
-E2EE Space 中，MLS Commit 被建模为 Move。它读取 governance Anchor frontier，写入：
+`covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or-set，bottom=expose）是 MLS Governance Binding 的 lattice 侧累加器。它声明 "本 MLS group 已由 commit attest 覆盖的 governance Anchor frontier 集合"；MLS Commit 被建模为 Move，读取 governance Anchor frontier，写入：
 
 - `mls_epoch_cell`
 - `key_schedule_cell`
-- `covered_frontier_cell`
+- `covered_frontier_cell`（把本次 commit 的 `governance_binding` 所断言的 governance frontier 加入或-set）
 
 规则：
 
-- E2EE application message Move 的 preconditions MUST 证明 `covered_frontier_cell` 包含该消息依赖的 governance Anchor frontier。
+- E2EE application message Move 的 preconditions MUST 证明 `covered_frontier_cell` `contains` 该消息依赖的 governance Anchor frontier。
 - 客户端在 MLS Commit Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并暂停发送新 application messages（`high_assurance` security_class 是 MUST，其他是 SHOULD）。
 - 撤销与失效（如 ban、revoke）只有被 `covered_frontier_cell` 覆盖后，才能阻止后续 application messages 解密；旧 epoch 中已分发的 key material 仍可能被原持有者使用。
 - Governance / recovery Move 不依赖 `covered_frontier_cell`，因此 MLS epoch 卡住时仍可提交修复 Move 并由 Anchor finalization 生效。
 
 Move 在 Anchor 前是 pending；被 Anchor 后是否可用于 E2EE 由 `covered_frontier_cell` precondition 决定。
 
-#### 2.5.2 GroupContext Extension 定义
+#### 2.5.3 GroupContext Extension 定义
 
 Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 必须通过实现 profile、部署 profile 或未来 registry 协商，不能静默占用未声明的公共 codepoint。
 
 | 字段 | 值 |
 |------|-----|
-| ExtensionType（IANA name） | `cx_app_state_ref` |
-| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。Contrix v1 wire 形态固定使用 `0xF1C0`，并明确停留在 IANA 私用段——不占用、不申请 standard-action 或 specification-required 段的 codepoint。`cx.profile.mls_state_binding.full.v1` MUST 使用 `0xF1C0`；deployment policy MAY 在自身 deployment 内私有覆盖到 private-use range 内的另一个 codepoint，但任何不同覆盖必须在 deployment profile 中显式声明，且不得在跨 deployment 的 federation Space 中并存。未来若需要全网注册，可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint，并在新 hardening profile 中声明。 |
-| ExtensionData | `application_state_ref` 对象的 CBOR 编码 |
+| ExtensionType（IANA name） | `cx_governance_binding` |
+| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。Contrix v1 wire 形态固定使用 `0xF1C0`，并明确停留在 IANA 私用段——不占用、不申请 standard-action 或 specification-required 段的 codepoint。`cx.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`；deployment policy MAY 在自身 deployment 内私有覆盖到 private-use range 内的另一个 codepoint，但任何不同覆盖必须在 deployment profile 中显式声明，且不得在跨 deployment 的 federation Space 中并存。未来若需要全网注册，可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint，并在新 hardening profile 中声明。 |
+| ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列：
 
@@ -301,10 +312,10 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 规则：
 
-- 声明 full binding profile 时，`cx_app_state_ref` extension MUST 出现在每次 `cx.mls.commit` 对应的 GroupContext `extensions` 字段中。
+- 声明 full binding profile 时，`cx_governance_binding` extension MUST 出现在每次 `cx.mls.commit` 对应的 GroupContext `extensions` 字段中。
 - `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Contrix 应用状态绑定到 MLS transcript。
-- 若底层 MLS 库暂不支持 GroupContext extension，base E2EE profile MUST 至少把 `application_state_ref` 放入签名 Event 和 Commit transcript hash 可验证覆盖的字段中，并在实现文档中声明降级原因；不得声称支持 full binding profile。
-- 接收方验证 Commit 时 MUST 解码 `cx_app_state_ref` extension 并执行 section 2.5 中的 `application_state_ref` 验证规则。
+- 若底层 MLS 库暂不支持 GroupContext extension，base E2EE profile MUST 至少把 `governance_binding` 放入签名 Event 和 Commit transcript hash 可验证覆盖的字段中，并在实现文档中声明降级原因；不得声称支持 full binding profile。
+- 接收方验证 Commit 时 MUST 解码 `cx_governance_binding` extension 并执行 section 2.5 中的 `governance_binding` 验证规则。
 
 ### 2.6 KeyPackage Claim 生命周期
 
@@ -398,7 +409,7 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 - `opaque_id`：暴露 opaque event/message id，用于跨 provider 投递确认。
 - `debug`：仅限短期调试或受控企业 profile；MUST 有过期时间、审计和用户/管理员可见声明。
 
-隐私优先 Space SHOULD 使用 `hidden` 或 `routing_hash`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `application_state_ref.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
+隐私优先 Space SHOULD 使用 `hidden` 或 `routing_hash`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `governance_binding.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
 
 加密信封的 Event kind 字段在 AAD 中规范名为 `aad.event_kind`；Space policy、AAD visibility、日志和 conformance vector MUST 使用该名字。
 
@@ -505,13 +516,13 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 - `cipher_suite`
 - `group_info_ref` 或 `group_info_hash`
 - `ratchet_tree_ref` 或 `ratchet_tree_hash`
-- `application_state_ref`
+- `governance_binding`
 - `created_at`
 
 Genesis 接受规则：
 
-1. 创建者必须在 `application_state_ref.membership_frontier` 和 `policy_root` 覆盖的状态下有创建该 MLS group 的权限；通常需要 `cx.mls.genesis` 或包含该动作的管理 grant。
-2. `application_state_ref.next_epoch` MUST 为 `0`；若包含 `previous_epoch`，也 MUST 为 `0`。
+1. 创建者必须在 `governance_binding.membership_frontier` 和 `policy_root` 覆盖的状态下有创建该 MLS group 的权限；通常需要 `cx.mls.genesis` 或包含该动作的管理 grant。
+2. `governance_binding.next_epoch` MUST 为 `0`；若包含 `previous_epoch`，也 MUST 为 `0`。
 3. 同一 `(scope, mls_group_id)` 的 genesis cell 使用 `cas-register + bottom=reject`。并发重复 genesis 会使该 cell 返回 `⊥`，后续 MLS Commit Move 必须 fail closed，直到 recovery Move 修复。
 4. Genesis 后即可发送 epoch 0 application message。第一次成员变动或 group context extension 更新必须使用 `cx.mls.commit` Move，其 `base_epoch=0`、`base_epoch_ref` 指向 effective `cx.mls.genesis`、`next_epoch=1`。
 5. 新加入成员的 `cx.mls.welcome` MUST 引用 effective genesis 或后续 effective commit 派生出的 epoch state；客户端不得从未被 Anchor 覆盖的 welcome / ratchet tree 本地推断 group authority。
@@ -540,7 +551,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 - `proposal_refs`：被该 Commit 消费的 `cx.mls.proposal` events；即使只有一个 proposal，也 MUST 使用长度为 1 的数组，生产者不得使用单数 `proposal_ref`。
 - `commit_message_ref` / `commit_hash`：MLS Commit 消息或其 content-addressed blob。
 - `next_epoch`：必须等于 `base_epoch + 1`。
-- `application_state_ref`：见第 2.5 节。
+- `governance_binding`：见第 2.5 节。
 
 同一 `(group_id, base_epoch)` 上多个 effective `cx.mls.commit` 候选如果无法由 Lattice 合并，会产生 `⊥`，而不是并存的多个有效 epoch。客户端发现自己提交的 commit 未成为 effective state 后，必须以当前 Anchor view 为 base 重新生成 Commit；原失败 commit 中未被消费且仍满足授权、membership、policy 和 freshness 的 proposal MAY 重新发布为 proposal，或被后续 Commit 重新引用，但不得自动视为已生效。
 
@@ -550,14 +561,14 @@ v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epo
 
 ### 5.5 Commit / Welcome 处理失败报告
 
-客户端本地处理 winning `cx.mls.commit`、`cx.mls.welcome` 或其 `application_state_ref` 失败时，MAY 发布 `cx.mls.commit_failed` 诊断事件。该事件用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不回滚 accepted commit，也不推进 epoch。
+客户端本地处理 winning `cx.mls.commit`、`cx.mls.welcome` 或其 `governance_binding` 失败时，MAY 发布 `cx.mls.commit_failed` 诊断事件。该事件用于让管理员、key service 或发送方重新发 Welcome、重新提交 Commit 或调查 state mismatch；它不回滚 accepted commit，也不推进 epoch。
 
 `cx.mls.commit_failed.content` MUST 至少包含：
 
 - `mls_group_id`
 - `commit_ref`
 - `epoch`
-- `failure_stage`，例如 `welcome_decrypt`、`transcript_verify`、`application_state_ref`、`group_state_update`、`keypackage_claim`、`policy_root_mismatch`、`unsupported_cipher_suite`、`storage_failure`
+- `failure_stage`，例如 `welcome_decrypt`、`transcript_verify`、`governance_binding`、`group_state_update`、`keypackage_claim`、`policy_root_mismatch`、`unsupported_cipher_suite`、`storage_failure`
 - `reporter_device_id`
 - `failed_at`
 

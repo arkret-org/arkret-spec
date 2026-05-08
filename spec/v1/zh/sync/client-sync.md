@@ -4,9 +4,9 @@ title: Client Sync
 
 ## 1. 目标
 
-Client Sync 是客户端稳定增量同步协议。它不替代 Events API / Event history backfill，而是在 Events API / sync service 之上提供低延迟、可恢复、可分页、可过滤的客户端视图。
+Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API / sync service 之上提供跨 Space 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），不是裸事件读取——逐 Space 的事件查询和实时订阅请使用 `cx.events.query` / `cx.events.subscribe`。
 
-本文定义 Contrix v1 的客户端同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
+本文定义 Contrix v1 的客户端账号同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
 
 所有 full client 和 E2EE client MUST 支持本文件。
 
@@ -18,7 +18,7 @@ Authorization: Bearer <session_token>
 Content-Type: application/json
 ```
 
-该端点对应 `cx.sync.client_sync`，用于客户端聚合增量同步。它不同于 `GET /api/v1/sync/subscribe` 的 Space Event 流订阅，也不同于 `GET /api/v1/sync/backfill` 的历史回补；三者共享 cursor 与授权规则，但 `operation_id` 和响应语义不同。
+该端点对应 `cx.sync.account`。它聚合跨 Space delta、to_device、account_data、device_lists、presence；不同于 `GET /api/v1/events/subscribe`（按 selector 的事件流订阅）和 `GET /api/v1/events?direction=...`（按 selector 的双向历史查询）。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `cx.sync.*`，事件读取在 `cx.events.*`。
 
 请求字段：
 
@@ -349,7 +349,7 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 在 timeout 前，客户端 SHOULD 按以下顺序恢复：
 
-1. 拉取缺失的 `cx.mls.*` state event、winner `cx.mls.commit`、Welcome 和 `application_state_ref` 依赖。
+1. 拉取缺失的 `cx.mls.*` state event、winner `cx.mls.commit`、Welcome 和 `governance_binding` 依赖。
 2. 查询本 actor 授权设备的 encrypted key backup / secret storage。
 3. 在 history sharing policy 允许时，请求当前授权 peer 对指定 epoch range 发送 key share。
 4. 若 Space policy 声明 Archive Node / Audit Node / Key Recovery Service，可向该受托服务请求最小 epoch range。

@@ -31,7 +31,7 @@ title: MIMI Interoperability
 | User / client | Contrix principal DID + device id，可按 Space policy 使用 pairwise DID 或 room-scoped pseudonym。 |
 | Room | Contrix Flow discussion track 的 MIMI room 投影，可附带所在 Space 的最小上下文。 |
 
-MIMI facade 不是新的真相源。Contrix native 侧的 canonical truth 是 signed Move、Anchor frontier、Lattice cell state、capability refs 与 MLS covered frontier cell。MIMI room state 是对这些状态的互操作投影。
+MIMI facade 不是新的真相源。Contrix native 侧的 canonical truth 是 signed Move、Anchor frontier、Lattice cell state、capability refs 与 MLS Governance Binding（`governance_binding` + `covered_frontier_cell`）。MIMI room state 是对这些状态的互操作投影。
 
 ## 3. Provider Discovery
 
@@ -103,7 +103,7 @@ GET /api/v1/mimi/provider-directory
 - `hub_provider` MUST 是 Space policy、Organization DID 或 participant DID 明确委托的 service DID。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `bridge_only`。
 - `cx.mimi.room_binding` 的创建、更新和撤销 MUST require `cx.policy.manage`、`cx.space.admin` 或等价 interop capability。
-- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 `encryption-and-audit.md` 的 covered frontier cell 校验 membership、policy 和 capability。
+- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 `encryption-and-audit.md §2.5`（MLS Governance Binding）的 `covered_frontier_cell` precondition 校验 membership、policy 和 capability。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。
 
 ## 5. Endpoint Surface
@@ -154,7 +154,7 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Contrix Move 
 
 1. 验证 provider signature、room binding、destination、body digest 和重放窗口。
 2. 验证 MLS epoch 与 `cx.mimi.room_binding.mls_group_id` 匹配。
-3. 验证 `application_state_ref` / covered frontier cell 对应的 Contrix Anchor view。
+3. 按 MLS Governance Binding 验证：commit 携带的 `governance_binding` 解析到的 Contrix Anchor view 与 state_root，且 `covered_frontier_cell` 覆盖该消息所需 governance frontier。
 4. 将 MIMI content container 映射为 `cx.message.create`、`cx.message.revise`、`cx.message.redact`、`cx.reaction.add`、`cx.reaction.remove` 或 `cx.relation.*`。
 5. 保留原始 MIMI envelope hash、provider id、message id 和 accepted timestamp 作为 interop metadata。
 6. 对无法确认授权、epoch、content 或 policy 的消息返回 `temporarily_unavailable`、`dependency_missing`、`capability_denied` 或 `quarantine`。

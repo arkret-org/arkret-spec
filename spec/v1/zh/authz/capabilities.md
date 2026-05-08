@@ -227,9 +227,9 @@ Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管
 
 ### 5.5 服务动作
 
-- `cx.sync.subscribe`
-- `cx.sync.client_sync`
-- `cx.sync.backfill`
+- `cx.events.query`
+- `cx.events.subscribe`
+- `cx.sync.account`
 - `cx.sync.describe`
 - `cx.sync.get_snapshot_head`
 - `cx.blob.upload`

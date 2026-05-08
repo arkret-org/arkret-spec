@@ -65,13 +65,12 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.events.submit` | 提交 signed Event Envelope。 |
 | `cx.events.get` | 按 ID 读取单个 Event。 |
 | `cx.events.batch_get` | 批量读取 Event。 |
-| `cx.events.list` | 按 actor / Space / cursor 列出 Event。 |
+| `cx.events.query` | 按 actor / Space / cursor 双向查询 Event（替代旧 `cx.events.list` + `cx.sync.backfill`）。 |
+| `cx.events.subscribe` | 订阅 Space / actor 增量流，可选历史 catchup（替代旧 `cx.sync.subscribe`）。 |
 | `cx.events.frontier` | 获取 actor 或 Space 的可见 Event frontier。 |
-| `cx.sync.subscribe` | 订阅 Space 增量流。 |
-| `cx.sync.backfill` | 回填历史事件。 |
-| `cx.sync.client_sync` | 客户端增量同步。 |
+| `cx.sync.account` | 客户端账号视角聚合同步（替代旧 `cx.sync.client_sync`）。 |
 | Federation push（复用 `cx.events.submit` + service_signature） | v1 已移除 `/federation/*` 独立 API surface；联邦推送复用 `/events/submit`，认证从 user_session 切换为 HTTP Message Signature + Source/Destination service DID header。详见 [`federation.md`](./federation.md)。 |
-| Federation pull / backfill（复用 `cx.sync.backfill` + service_signature） | 同上，跨域历史回补复用 `/sync/backfill`。 |
+| Federation pull / backfill（复用 `cx.events.query` + service_signature） | 同上，跨域历史回补复用 `/events?direction=backward`。 |
 | `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Space / Organization / Actor / User。 |
 | `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Space / Organization / handle。 |
 | `cx.blob.upload` | 上传 blob。 |

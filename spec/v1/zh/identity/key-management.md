@@ -253,7 +253,7 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
   "scopes": [
     "cx.events.describe",
     "cx.events.submit",
-    "cx.sync.client_sync",
+    "cx.sync.account",
     "cx.keys.keypackages.upload"
   ],
   "not_before": "2026-04-26T00:00:00Z",

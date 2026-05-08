@@ -59,12 +59,11 @@
         "cx.events.submit",
         "cx.events.get",
         "cx.events.batch_get",
-        "cx.events.list",
+        "cx.events.query",
+        "cx.events.subscribe",
         "cx.events.frontier",
-        "cx.sync.client_sync",
         "cx.sync.describe",
-        "cx.sync.subscribe",
-        "cx.sync.backfill",
+        "cx.sync.account",
         "cx.sync.get_snapshot_head"
       ]
     },
@@ -401,10 +400,16 @@
       "mq": "events.get"
     },
     {
-      "operation_id": "cx.events.list",
+      "operation_id": "cx.events.query",
       "http": "GET /events",
-      "grpc": "Events/List",
-      "mq": "events.list"
+      "grpc": "Events/Query",
+      "mq": "events.query"
+    },
+    {
+      "operation_id": "cx.events.subscribe",
+      "http": "GET /events/subscribe",
+      "grpc": "Events/Subscribe",
+      "mq": "events.subscribe"
     },
     {
       "operation_id": "cx.events.submit",
@@ -623,16 +628,10 @@
       "mq": "server.describe"
     },
     {
-      "operation_id": "cx.sync.backfill",
-      "http": "GET /sync/backfill",
-      "grpc": "Sync/Backfill",
-      "mq": "sync.backfill"
-    },
-    {
-      "operation_id": "cx.sync.client_sync",
+      "operation_id": "cx.sync.account",
       "http": "POST /sync",
-      "grpc": "Sync/ClientSync",
-      "mq": "sync.client_sync"
+      "grpc": "Sync/Account",
+      "mq": "sync.account"
     },
     {
       "operation_id": "cx.sync.describe",
@@ -645,12 +644,6 @@
       "http": "GET /sync/snapshot-head",
       "grpc": "Sync/GetSnapshotHead",
       "mq": "sync.get_snapshot_head"
-    },
-    {
-      "operation_id": "cx.sync.subscribe",
-      "http": "GET /sync/subscribe",
-      "grpc": "Sync/Subscribe",
-      "mq": "sync.subscribe"
     }
   ]
 }
