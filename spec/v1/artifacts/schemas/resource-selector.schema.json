@@ -11,6 +11,7 @@
       "type": "string",
       "enum": [
         "space",
+        "place",
         "flow",
         "message",
         "morph",
@@ -32,12 +33,16 @@
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
     },
+    "place_id": {
+      "type": "string",
+      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+    },
     "object_type": {
       "type": "string"
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^cx:(space|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-hjkmnp-z]{26}$",
+      "pattern": "^cx:(space|place|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-hjkmnp-z]{26}$",
       "description": "Canonical object reference. Acceptable typed-id kinds match the v1 resource selector kind enum (see resource-selector-grammar.md §3.1). Notably MUST NOT include 'actor_profile' (use the 'actor' selector with did pattern), nor non-canonical 'board' / 'list' / 'card' / 'subject' / 'room' kinds — board/list are Spaces and MUST use the 'space' kind."
     },
     "flow_id": {
@@ -87,7 +92,7 @@
     },
     "blob_ref": {
       "type": "string",
-      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$"
+      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "scope": {
       "type": "string",

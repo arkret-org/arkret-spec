@@ -92,6 +92,28 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 
 `history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT imply `history_visibility=world_readable`。
 
+### 3.x `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
+
+下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Space create 时显示警告；`✗` = MUST 拒绝（reducer 在 `cx.space.policy_components` accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
+
+| discoverability ↓ \ join_rule → | `public` | `invite` | `knock` | `restricted` | `knock_restricted` | `closed` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `public` | ✓ | ✓ | ✓ | ✓ | ✓ | ! |
+| `listed` | ! | ✓ | ✓ | ✓ | ✓ | ! |
+| `restricted` | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `unlisted` | ✗ | ✓ | ! | ✓ | ✓ | ✓ |
+| `invite_only` | ✗ | ✓ | ✗ | ✓ | ✗ | ✓ |
+| `secret` | ✗ | ✓ | ✗ | ✗ | ✗ | ✓ |
+
+`history_visibility` 与上述任一组合搭配时的额外约束：
+
+- `world_readable` MUST NOT 与 `discoverability ∈ {invite_only, secret}` 同时声明（拒绝）。
+- `world_readable` 与 `discoverability ∈ {unlisted, restricted}` 同时声明 MUST 在 join warning 显式告知（"任何持有 link 的方都可读取全部历史"）。
+- `shared` / `invited` / `joined` 与所有 discoverability 组合兼容。
+- `restricted` 历史可见性 MUST 与显式 history-sharing policy 一致；与 `discoverability=public` 组合时仍 SHOULD 限制 lazy member preview 防止枚举。
+
+实现 MUST 在 `cx.space.policy_components` reducer 接受前用本表校验当前 effective 状态；变更任一字段使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留旧值。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
+
 ## 4. Organization Discoverability
 
 Organization discovery policy SHOULD be represented by organization profile state or governance registry record:

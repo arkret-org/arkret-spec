@@ -60,14 +60,69 @@
     }
   },
   "additionalProperties": false,
+  "allOf": [
+    {
+      "$comment": "Conflict-recovery Move detection: any precondition with op=head_in implies conflict recovery semantics. When triggered, refs[] MUST contain BOTH a state_witness and an inclusion_proof (event-auth-state-resolution.md §8.1). Schema-level enforcement; reducer-level verify_move re-checks.",
+      "if": {
+        "properties": {
+          "preconditions": {
+            "type": "array",
+            "contains": {
+              "type": "object",
+              "properties": {
+                "predicate": {
+                  "type": "object",
+                  "properties": {
+                    "op": { "const": "head_in" }
+                  },
+                  "required": ["op"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "refs": {
+            "type": "array",
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "role": { "const": "state_witness" },
+                    "critical": { "const": true }
+                  },
+                  "required": ["role"]
+                },
+                "$comment": "MUST contain at least one state_witness ref"
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "role": { "const": "inclusion_proof" },
+                    "critical": { "const": true }
+                  },
+                  "required": ["role"]
+                },
+                "$comment": "MUST contain at least one inclusion_proof ref"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "move_ref": {
       "type": "string",
-      "pattern": "^cx:move:sha256:[0-9a-f]{64}$"
+      "pattern": "^cx:move:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "anchor_ref": {
       "type": "string",
-      "pattern": "^cx:anchor:sha256:[0-9a-f]{64}$"
+      "pattern": "^cx:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "cell_ref": {
       "type": "string",
@@ -87,7 +142,7 @@
     },
     "hash": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "precondition": {
       "type": "object",

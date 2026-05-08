@@ -291,7 +291,7 @@
     },
     "avatar_blob_ref": {
       "type": "string",
-      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$"
+      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
@@ -340,7 +340,8 @@
       "required": [
         "cell_family",
         "type",
-        "bottom"
+        "bottom",
+        "cell_role"
       ],
       "properties": {
         "cell_family": {
@@ -367,11 +368,57 @@
             "expose"
           ]
         },
+        "cell_role": {
+          "type": "string",
+          "enum": [
+            "authorization_root",
+            "policy_root",
+            "anchorer_root",
+            "membership",
+            "lifecycle",
+            "ui_affordance",
+            "content",
+            "draft",
+            "cosmetic",
+            "audit",
+            "telemetry"
+          ],
+          "description": "Semantic role declared by Space schema. authorization_root / policy_root / anchorer_root / membership / lifecycle MUST NOT use lattice types lww-register or rga (enforced by allOf below). ui_affordance / content / draft / cosmetic MAY use lww-register or rga."
+        },
         "parameters": {
           "type": "object"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "lww-register",
+                  "rga"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "cell_role": {
+                "enum": [
+                  "ui_affordance",
+                  "content",
+                  "draft",
+                  "cosmetic"
+                ]
+              }
+            }
+          }
+        }
+      ]
     }
   },
   "additionalProperties": true

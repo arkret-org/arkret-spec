@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/ice-config-response.schema.json",
+  "title": "Contrix ICE Config Response",
+  "description": "Response shape for the WebRTC media service ICE config endpoint. Used by cx.profile.webrtc_media.v1; see crypto-media/webrtc-signaling.md §6.",
+  "type": "object",
+  "required": [
+    "ice_servers",
+    "ttl_seconds",
+    "refresh_lead_seconds",
+    "issued_at",
+    "signature"
+  ],
+  "properties": {
+    "ice_servers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/ice_server"
+      },
+      "description": "STUN / TURN server entries the client may use during this call."
+    },
+    "ttl_seconds": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 86400,
+      "description": "Validity window for the issued credentials in seconds. Clients MUST refresh before this expires; servers SHOULD pick a value <= 1 hour for normal calls."
+    },
+    "refresh_lead_seconds": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 1800,
+      "description": "Minimum lead time before ttl expiry at which the client SHOULD initiate refresh. Defaults SHOULD be ttl_seconds / 4 (recommended floor 60s, ceiling 1800s). Required so all clients refresh at consistent cadence and servers can plan secret rotation grace windows."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Server-issued timestamp (RFC 3339 UTC). Bound into the ICE config signature."
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Convenience field equal to issued_at + ttl_seconds. MUST match within signature validation."
+    },
+    "force_turn": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, clients MUST disable host/srflx ICE candidates and only relay through TURN. Used by high-privacy Spaces to prevent IP leakage."
+    },
+    "constraints": {
+      "type": "object",
+      "description": "Optional server-suggested ICE policy.",
+      "properties": {
+        "allow_udp": {
+          "type": "boolean",
+          "default": true
+        },
+        "allow_tcp": {
+          "type": "boolean",
+          "default": true
+        },
+        "allow_ipv6": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "next_retry_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Set when the response is a soft failure (e.g. turn_credential_expired). Clients MUST NOT retry before this time."
+    },
+    "signature": {
+      "$ref": "#/$defs/signature",
+      "description": "Detached signature by the media service DID over the canonical bytes of this response (excluding `signature`)."
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "ice_server": {
+      "type": "object",
+      "required": [
+        "urls"
+      ],
+      "properties": {
+        "urls": {
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1
+            }
+          ],
+          "description": "STUN/TURN server URL(s). Schemes: stun:, stuns:, turn:, turns:."
+        },
+        "username": {
+          "type": "string",
+          "description": "TURN ephemeral credential username. v1: <expiry-unix>:<per-call-pseudonym>. MUST NOT contain principal DID, handle, email, or any cross-call stable identifier."
+        },
+        "credential": {
+          "type": "string",
+          "description": "TURN ephemeral credential password (HMAC-SHA1 of username with per-tenant turn shared secret in REST-style)."
+        },
+        "credential_type": {
+          "type": "string",
+          "enum": [
+            "password",
+            "oauth"
+          ],
+          "default": "password"
+        }
+      },
+      "additionalProperties": true
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "alg",
+        "kid",
+        "sig"
+      ],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ES384",
+            "ES512"
+          ]
+        },
+        "kid": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+(#.+)?$",
+          "description": "Verification method id, typically <media_service_did>#<key-id>."
+        },
+        "sig": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+={0,2}$",
+          "description": "base64url-encoded detached signature over canonical response bytes."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

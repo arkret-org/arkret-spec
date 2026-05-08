@@ -252,6 +252,24 @@
       "http_status": 503,
       "scope": "endpoint",
       "description": "The service is temporarily unavailable or cannot currently satisfy the request."
+    },
+    {
+      "code": "policy_combination_invalid",
+      "http_status": 422,
+      "scope": "both",
+      "description": "The submitted Space policy combination (discoverability × join_rule × history_visibility) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.x. Reducer keeps the prior accepted state."
+    },
+    {
+      "code": "anchorer_recovery_missing",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Space create rejected: anchor_profile=single_did was declared without a recovery_anchorer in a different controlling organization, in violation of zh/authz/event-auth-state-resolution.md §9.3."
+    },
+    {
+      "code": "unsupported_lattice_type",
+      "http_status": 422,
+      "scope": "both",
+      "description": "The implementation does not support a lattice type referenced by the Space schema (e.g., lww-register or rga without cx.profile.collaborative_text.v1). Receivers fail closed."
     }
   ],
   "reason_codes": [

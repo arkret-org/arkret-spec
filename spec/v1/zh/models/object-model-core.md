@@ -116,6 +116,22 @@ Relation 的 `space_id` 表示关系事实所在的源 Space；`from_ref` / `to_
 - 公共 Space 引用私有 Space 对象时，默认只能展示 opaque ref 或 Lazy Link；除非目标 Space policy 明确允许 preview，不得泄露目标内容、成员、计数或存在性细节。
 - Sync / projection 层不得因为源 Space 可见就自动 backfill 目标 Space；跨 Space 展开必须重新执行目标 Space 授权，并在响应 metadata 中标记 `lazy_link`、`locked`、`accessible` 或等价可见性状态。
 
+授权拆分规则（明确两端 enforce 责任）：
+
+| 授权检查类型 | 在哪一边 enforce | 原因 |
+| --- | --- | --- |
+| Relation **创建**（`cx.relation.create`、`cx.relation.update`、`cx.relation.delete`） | **源 Space**（Relation `space_id`） | Relation 是源 Space 的 reducer-input；reducer 在源 Space 验证 actor 在源 Space 的 capability 是否覆盖 `cx.relation.*`。 |
+| 引用目标的 **discover / reference 能力** | **目标 Space**（`from_ref` 或 `to_ref` 指向的 Space） | 目标 Space policy 决定是否允许该 Relation 引用自身；典型 capability `cx.object.read_metadata` 或 `cx.space.discover`。源 Space reducer 在 accept Relation 前 SHOULD 验证目标 Space 的 reference 许可（通过 cached attestation / capability grant ref 等）；缺失证据时 Relation 仍可写入源 Space，但 projection 层在展开时 MUST 重新校验目标授权，校验失败的 Relation 显示为 `locked`。 |
+| 目标对象**内容展开**（标题、字段、preview） | **目标 Space**（read 时） | 每次展开都用 reader 在目标 Space 的 capability 重新校验；源 Space 的可见性不传染到目标。 |
+| **位置 / structural 关系**（如 `contains` 跨 Space） | **源 Space + 强制源 == 目标** | `contains` 这类强结构关系在 v1 **MUST NOT 跨 Space**——结构容器（Place）必须与所属 Flow 同 Space。跨 Space 的引用只能用 `references`、`mentions`、`derived_from`、`summarized_from` 等弱语义关系。 |
+
+实现 MUST：
+
+- 在源 Space 接收 Relation 时验证 `from_ref` / `to_ref` 的 typed prefix 与目标 Space 一致性（`space_id` 字段或 typed ref 解析）。
+- 不得把"源 Space 写权限"误当成"目标 Space 引用权限"——两者是**两次独立 capability check**。
+- 目标 Space policy 拒绝引用时（例如 `discoverability=secret` + 不在 trusted issuer 列表），源 Space 仍 MAY 接受 Relation 但**MUST**在 projection 层把它降级为 `locked`，并不得泄露目标 Space 的存在性细节。
+- **存在性反枚举（normative）**：`locked` 降级状态与"目标 Space 不存在 / 未发现"对外 MUST 不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 字段、相同 metadata 集合、相同 timing 类（差距 ≤ 50ms）、相同 error 字符串。MUST NOT 在 `locked` 响应中泄露目标 `space_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Space reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Space `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。
+
 ### 2.5 Event 是事实
 
 所有协作变化最终都落为签名 `event`。
@@ -552,7 +568,7 @@ View 示例：
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_id": "cx:place:01js0bd0000000000000000000",
+      "board_place_id": "cx:place:01js0bd0000000000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains"
     }

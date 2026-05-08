@@ -38,7 +38,7 @@
     },
     "state_hash": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "frontier": {
       "type": "object",
@@ -78,7 +78,7 @@
         },
         "root": {
           "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
         },
         "covered_event_count": {
           "type": "integer",
@@ -116,7 +116,7 @@
               },
               "root": {
                 "type": "string",
-                "pattern": "^sha256:[0-9a-f]{64}$"
+                "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
               }
             },
             "additionalProperties": false
@@ -141,15 +141,15 @@
         },
         "conflict_records_digest": {
           "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
         },
         "soft_failed_digest": {
           "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
         },
         "quarantined_digest": {
           "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
         }
       },
       "additionalProperties": true
@@ -166,7 +166,7 @@
         "properties": {
           "chunk_ref": {
             "type": "string",
-            "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$"
+            "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
           },
           "sha256": {
             "type": "string",

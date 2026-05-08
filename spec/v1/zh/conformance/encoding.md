@@ -177,6 +177,8 @@ Proof MUST bind:
 
 ## 7. HLC
 
+> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Move precondition 比较、或 Anchor finality 判断；这些都由 Move `preconditions[]`、Anchor frontier 与 Lattice `join` 决定。HLC 在 v1 的唯一规范用途是 **timeline 派生层**——当两个事件在 `prev_refs` / `auth_refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。即便 HLC 进入 canonical event bytes 与 proof `payload_hash`（出于 wire 兼容），实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.2 与 [`sync/operations-sync.md`](../sync/operations-sync.md) §6。
+
 Hybrid Logical Clock 编码：
 
 ```text

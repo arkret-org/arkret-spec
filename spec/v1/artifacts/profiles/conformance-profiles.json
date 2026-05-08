@@ -97,7 +97,8 @@
   },
   "identity_extension_profiles": [
     "cx.profile.public_network_identity.v1",
-    "cx.profile.org_high_assurance_identity.v1"
+    "cx.profile.org_high_assurance_identity.v1",
+    "cx.profile.principal_control_space.v1"
   ],
   "deployment_profiles": [
     "cx.profile.personal_node.v1",
@@ -117,6 +118,12 @@
     "cx.profile.constraint.encryption_requirement.v1",
     "cx.profile.constraint.visibility_control.v1",
     "cx.profile.constraint.resource_limit.v1"
+  ],
+  "lattice_extension_profiles": [
+    "cx.profile.collaborative_text.v1"
+  ],
+  "interop_compat_profiles": [
+    "cx.profile.matrix_compat.v1"
   ],
   "encoding_extension_profiles": [
     "cx.profile.encoding.cbor.v1",
@@ -1099,6 +1106,16 @@
           "supported_profiles"
         ],
         "unsupported_optional": "omit unsupported service binding"
+      },
+      "identity": {
+        "principal_method_default": "did:webvh",
+        "allowed_principal_methods": [
+          "did:webvh",
+          "did:web"
+        ],
+        "service_method_default": "did:web",
+        "principal_method_downgrade_allowed": true,
+        "downgrade_note": "Personal node MAY use did:web as principal method when explicitly declared. Upgrade to small_team or higher MUST migrate to did:webvh per identity-did.md §4.2.2."
       }
     },
     "cx.profile.small_team.v1": {
@@ -1121,6 +1138,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.space.v1",
+        "cx.schema.place.v1",
         "cx.schema.flow.v1",
         "cx.schema.message.v1"
       ],
@@ -1139,6 +1157,14 @@
           "supported_profiles"
         ],
         "unsupported_optional": "return unsupported_feature"
+      },
+      "identity": {
+        "principal_method_default": "did:webvh",
+        "allowed_principal_methods": [
+          "did:webvh"
+        ],
+        "service_method_default": "did:web",
+        "principal_method_downgrade_allowed": false
       }
     },
     "cx.profile.organization.v1": {
@@ -1177,6 +1203,15 @@
           "claim_issuer_registry"
         ],
         "unsupported_optional": "deny managed action without support"
+      },
+      "identity": {
+        "principal_method_default": "did:webvh",
+        "allowed_principal_methods": [
+          "did:webvh"
+        ],
+        "service_method_default": "did:web",
+        "principal_method_downgrade_allowed": false,
+        "witness_threshold_minimum": 1
       }
     },
     "cx.profile.high_security_organization.v1": {
@@ -1218,6 +1253,16 @@
           "revocation_freshness"
         ],
         "unsupported_optional": "fail closed for high-risk action"
+      },
+      "identity": {
+        "principal_method_default": "did:webvh",
+        "allowed_principal_methods": [
+          "did:webvh"
+        ],
+        "service_method_default": "did:web",
+        "principal_method_downgrade_allowed": false,
+        "witness_threshold_minimum": 2,
+        "require_witness_evidence": true
       }
     },
     "cx.profile.isolated_sovereign_network.v1": {
@@ -1769,6 +1814,58 @@
           "anchorer_bottom_pause"
         ],
         "unsupported_optional": "fail closed or omit profile claim"
+      }
+    },
+    "cx.profile.collaborative_text.v1": {
+      "inherits": [],
+      "description": "Lattice extension profile that registers lww-register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww-register and rga MUST NOT be used for authorization_root / policy_root / anchorer_root / membership / lifecycle cells (statically rejected by space.schema.json).",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.move.v1",
+        "cx.schema.space.v1"
+      ],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "lattice.lww_register",
+          "lattice.rga"
+        ],
+        "unsupported_optional": "fail closed or omit profile claim"
+      }
+    },
+    "cx.profile.matrix_compat.v1": {
+      "inherits": [],
+      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the directly Matrix-derived surfaces: /sync (since/next_batch + lazy_load_members), to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Implementations claiming this profile MUST treat the cx.* names of these surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence.",
+      "required_endpoints": [
+        "cx.sync.client_sync",
+        "cx.device_messages.put",
+        "cx.device_messages.get",
+        "cx.keys.upload",
+        "cx.keys.query",
+        "cx.keys.claim",
+        "cx.push.notify"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.client_sync_response.v1",
+        "cx.schema.device_message.v1"
+      ],
+      "required_fixtures": [],
+      "optional_extensions": [
+        "matrix_push_gateway_passthrough"
+      ],
+      "feature_discovery": {
+        "required": [
+          "lazy_load_members",
+          "to_device_queue",
+          "prekey_distribution",
+          "cross_signing"
+        ],
+        "unsupported_optional": "omit profile claim"
       }
     }
   },

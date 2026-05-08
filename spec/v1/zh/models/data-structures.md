@@ -129,8 +129,8 @@ Place 是 Space 内部的**结构性分组对象**——看板、列、泳道、
 | `fields` | no | `object` | kind-specific 字段：例如 `kind=list` 的 `wip_limit`，`kind=board` 的默认 view ref。 | 扩展字段。 |
 | `labels` | no | `array<string>` |  | 用户/系统标签。 |
 | `avatar_blob_ref` | no | `id:blob` |  | Place 图标。 |
-| `archived_at` | no | `timestamp` | 由 `cx.place.archive` reducer 设置。 | 归档时间（UI 含义）。 |
-| `tombstoned_at` | no | `timestamp` | 由 `cx.place.tombstone` reducer 设置；不可逆。tombstone 一个仍含 active Flow 引用的 Place MUST schema_violation；relocation 必须先做。 | 不可逆删除时间。 |
+| `state` | no | `enum(active, archived, tombstoned)` | 默认 `active`。`archived` 由 `cx.place.archive` reducer 设置（可逆 UI 隐藏）；`tombstoned` 由 `cx.place.tombstone` reducer 设置（不可逆，引用尚存的 active Flow 时 MUST schema_violation）。 | Place 生命周期状态。 |
+| `state_changed_at` | no | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
@@ -145,7 +145,39 @@ Place 是 Space 内部的**结构性分组对象**——看板、列、泳道、
 - **嵌套**：Place 之间可以嵌套（看板里的列），通过 `parent_ref` 表达；`cx.place.parent` event 是该字段的 reducer-input。Place 之间嵌套不得跨 Space——`parent_ref` 引用的 Place 必须 `space_id` 相同。
 - **位置**：Flow 在 Place 中的位置由 active `contains` Relation + Flow position event（`cx.flow.move` / `cx.flow.reorder`）维护，不由 Flow canonical object 自带 `place_id` 表达。`cx.flow.move` payload 使用 `target_place_id` 字段。
 
-### 4a.2 与 cx:flow:、cx:space: 的关系
+### 4a.2 Lifecycle 与 Cascade 规则
+
+**Archive Place**：
+
+- 由 `cx.place.archive` 把 `state` 设为 `archived` 并写入 `state_changed_at`；该 Place 在默认 view 中被隐藏。
+- Archive **不**自动级联到内部 Flow 或 child Place。具体级联策略由 Place schema/profile 声明，缺省策略：
+  - 内部 Flow 的 `contains` Relation 保留（Flow 仍在该 Place，但不可见）；用户在 unarchive 后看到的位置一致。
+  - Child Place（List 在 Board 内）保留，跟随 parent 一起被默认 view 隐藏。
+  - 客户端 SHOULD 在 archive 前提示用户 "X 个 Flow / Place 将一起隐藏"；reducer 不强制 relocate。
+
+**Tombstone Place**：
+
+- 由 `cx.place.tombstone` 把 `state` 设为 `tombstoned` 并写入 `state_changed_at`；不可逆。
+- Reducer 在接受 `cx.place.tombstone` 前 **MUST** 校验：
+  - 不存在指向该 Place 的 active `contains` Relation（即所有 Flow 已被 relocate 或它们也在被同批次 tombstone）。
+  - 不存在 `parent_ref = <this_place>` 且未 tombstone 的 child Place。
+  - 校验失败时返回 `failed_precondition` (`reason="place_has_live_dependents"`)，附带未清空的依赖列表。
+- Tombstone 一个引用了**已 tombstone Place** 的 child（即 `parent_ref` 指向 dangling Place）：reducer SHOULD 接受（这是依赖清理路径），但 MUST 同时把该 child 标记为 `parent_ref_dangling=true` 投影 hint，让 UI 显示孤立状态。
+- Tombstone 后 Place 元数据本身保留（用于 audit），但 `title` / `summary` 等用户内容 SHOULD 通过 redaction Move 清理。
+
+### 4a.3 `cx.place.parent` cas-register basis
+
+`cx.place.parent` 写入 cell `cx:cell:cx.component.place.parent.v1:<place_id>`（`cas-register, bottom=reject`）。Move 的 precondition `head_eq` 表达期望的 pre-state：
+
+- **首次 set**（Place 刚 create，尚无 parent 记录）：precondition 使用 `head_eq null`。Reducer 在 cell pre-state 为初始（无任何 add/set）时只接受 `head_eq null` 的 Move；任何带具体 value 的 `head_eq` 在初始 cell 上 `failed_precondition`。
+- **从 A 改为 B**：precondition 使用 `head_eq <A_place_id>`，effect 是 `set <B_place_id>`。
+- **并发 reparent**：两个 Move 都用 `head_eq <A>` 但 set 不同 target，Anchor batch 内被识别为 sibling → cas-register 返回 `⊥`（kind=conflict）；依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery（带 state_witness + inclusion_proof）。
+- **不允许 self-loop**：`cx.place.parent.set value == this_place_id` MUST schema_violation。
+- **不允许跨 Space**：effect value MUST `space_id` 与 cell subject Place 的 `space_id` 相同；reducer 校验失败 `failed_precondition`。
+
+Conformance fixture `move-anchor-lattice-fixture.json` SHOULD 覆盖三种场景：first-set、change-from-A-to-B、并发 reparent。
+
+### 4a.4 与 cx:flow:、cx:space: 的关系
 
 ```text
 cx:space:01...  ← security boundary
@@ -204,7 +236,6 @@ Schema id: `cx.schema.flow.v1`
 | `branches` | yes | `array<FlowBranch>` | 至少 1 项；`name` 在同一 Flow 内唯一；至多 1 项 `is_primary=true`。 | 分支定义、默认入口与分支访问继承。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
-| `version` | no | `integer` | SHOULD 单调递增，不能替代 event order。 | 物化版本。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
@@ -229,7 +260,7 @@ Schema id: `cx.schema.flow.v1`
 | `membership` | no | `enum(inherit_flow, inherit_space, branch_scoped)` | 缺省 `inherit_flow`。 | 成员继承方式。 |
 | `permissions` | no | `enum(inherit_flow, inherit_space, branch_scoped)` | 缺省 `inherit_flow`。 | 权限继承方式。 |
 | `history_visibility` | no | `enum(world_readable, shared, invited, joined, restricted)` | branch-scoped discussion + E2EE 缺省 SHOULD 为 `joined`。 | 历史可见性。 |
-| `e2ee` | no | `enum(inherit_space, inherit_flow, branch_scoped, none)` | 缺省 `inherit_space`。 | 加密继承方式。 |
+| `e2ee` | no | `enum(inherit_space, inherit_flow, branch_scoped, none)` | 缺省 `inherit_space`。`none` **仅**当所属 Space `encryption_profile == "none"` 时合法；E2EE Space（`encryption_profile ∈ {mls_rfc9420, external}`）下 branch MUST NOT 声明 `e2ee="none"`，否则 `schema_violation`。 | 加密继承方式。 |
 | `encryption_profile` | no | `enum(none, mls_rfc9420, external)` | `e2ee=branch_scoped` 时 SHOULD 设置。 | 加密 profile。 |
 | `membership_policy_ref` | no | `id:policy` |  | branch-scoped membership policy 引用。 |
 
@@ -487,7 +518,7 @@ View 是投影定义对象。它的 canonical state 只覆盖“如何看”：q
 | `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
 | `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
 | `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
-| `board_id` | conditional | `id:place` | `mode="relation_container"` 时必填，指向一个 `cx:place: kind=board`。 | Board Place。 |
+| `board_place_id` | conditional | `id:place` | `mode="relation_container"` 时必填，指向一个 `cx:place: kind=board`。 | Board Place。（旧名 `board_id` 已替换为 `board_place_id` 以避免与 Space ID 误读）|
 | `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
 | `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
 | `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |

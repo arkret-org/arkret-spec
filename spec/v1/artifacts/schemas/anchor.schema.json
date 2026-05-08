@@ -57,11 +57,11 @@
   "$defs": {
     "anchor_ref": {
       "type": "string",
-      "pattern": "^cx:anchor:sha256:[0-9a-f]{64}$"
+      "pattern": "^cx:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "move_ref": {
       "type": "string",
-      "pattern": "^cx:move:sha256:[0-9a-f]{64}$"
+      "pattern": "^cx:move:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "space_ref": {
       "type": "string",
@@ -77,7 +77,7 @@
     },
     "hash": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "signature": {
       "type": "object",

@@ -241,7 +241,7 @@ Lattice {
 }
 ```
 
-v1 封闭核心集：
+v1 封闭核心集（core）：
 
 | Type | Join 语义 | 用途 | 授权层禁用 |
 | --- | --- | --- | --- |
@@ -251,10 +251,19 @@ v1 封闭核心集：
 | `fsm` | 状态机迁移；非法迁移或并发不可合并迁移返回 `⊥`。 | membership、lifecycle、invite/approval。 | — |
 | `counter` | PN-counter 求和。 | 配额、审计计数。 | — |
 | `ordered-log` | append-only log；按 issuer chain 与 entry id 去重。 | 审计、消息历史、不可变操作日志。 | — |
+
+依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均不得进入协议授权根。
+
+#### 5.0.1 扩展 Lattice：`lww-register` / `rga`
+
+`lww-register` 与 `rga` **不属于** v1 core 封闭集；它们由扩展 profile [`cx.profile.collaborative_text.v1`](../conformance/conformance-profiles.md) 引入，目的是支持协作文本与 cosmetic 字段。声明该 profile 的实现 MUST 完整实现下列 §5.3.7 / §5.3.8 中的 join 与 validate 语义；未声明的实现遇到使用这两种 type 的 cell schema MUST fail closed（`unsupported_lattice_type`）。
+
+| Type | Join 语义 | 用途 | 授权层禁用 |
+| --- | --- | --- | --- |
 | `lww-register` | 按 anchor-derived order 选最近 set；同 anchor batch 并发用 deterministic tiebreaker。 | UI affordance：Flow.title / summary、Morph 非关键字段、 emoji shortcuts、cosmetic preferences。 | **MUST NOT 作授权、policy、membership、anchorer、capability cell**。schema 静态拒绝。|
 | `rga` | Replicated Growable Array：插入 op 携带 `(predecessor_id, element_id=issuer:seq)`，删除 op 写 tombstone；按 (anchor index, issuer, seq) 全序确定性合并。 | 协作文本编辑（Flow.body 富文本、Morph 文档段、Markdown 块的字符级编辑）、可插入的有序列表。 | **MUST NOT 作授权根**；只用于 content cell。|
 
-依赖 actor 自报 timestamp 排序的 join、HTTP receive order、数据库自增 ID 均不得进入协议授权根。`lww-register` 与 `rga` 的"时间"由 Anchor 批次索引与批次内确定性 tiebreaker 提供，**不**读取 actor 自报 HLC 或外部 wall clock，这是它们能被纳入封闭核心集的前提。
+`lww-register` 与 `rga` 的"时间"由 Anchor 批次索引与批次内确定性 tiebreaker 提供，**不**读取 actor 自报 HLC 或外部 wall clock。这是它们被允许出现在 conformance core 之外但仍是封闭代数的前提。
 
 ### 5.1 Bottom Diagnostics
 
@@ -276,6 +285,19 @@ Bottom {
 `bottom=reject` 的 cell 被 Move precondition 读取时，Move MUST fail closed（state code `failed_bottom`），错误至少包含 `cells[]` 与 `move_ids[]`。`bottom=expose` 的 cell MAY 返回 `{status:"conflict", heads:[...]}` 给 projection；它不得被授权路径当作 allow。
 
 `anchorer_split` 是特殊 kind：当 anchorer cell（cas-register, bottom=reject）出现并发 set 时该诊断生效；它对应 §13 的 `anchorer_paused` Space 状态，仅 recovery anchorer / emergency quorum 签发的 Anchor 可恢复推进。
+
+**Lattice type 与 bottom 行为对照**：
+
+| Lattice type | bottom 是否出现 | bottom 配置语义 |
+| --- | --- | --- |
+| `or-set` | 永不 | bottom=expose 仅用于多 head 场景的 add/remove 并发可视化 |
+| `mv-register` | 永不 reject；多值即 expose | bottom=expose 是常态：projection 暴露多个 head 给 UI，授权路径不得据此选 winner |
+| `cas-register` | 出现：并发不同 set + 不同 basis 时返回 ⊥ | bottom=reject 是标准（anchorer / 关键 singleton）；依赖该 cell 的 Move fail closed |
+| `fsm` | 出现：非法 transition / 并发 divergent next_state 时返回 ⊥ | bottom=reject 是标准（membership / lifecycle / invite-approval）|
+| `counter` | 永不 | bottom=expose 仅在配额跨界等场景作诊断 |
+| `ordered-log` | 永不 | bottom=expose 用于审计、消息历史；并发 append 不阻塞 |
+| `lww-register` | **永不出现于 value path**——并发 sibling 由 §5.3.7 deterministic tiebreaker 选 winner | bottom=expose 仅由诊断层暴露 lost siblings；**授权层不得据此选 winner**（schema 已静态禁止 lww-register 作授权根）|
+| `rga` | **永不**——RGA 总有合法 deterministic order | bottom=expose 用于把并发 insert/delete 多值反馈给 projection，不阻塞协议判断 |
 
 ### 5.2 序内因果
 
@@ -441,24 +463,33 @@ validate_op(op):
 
 `bottom` 永远不出现。审计、消息历史、不可变操作日志均使用 `bottom=expose`，并发 append 不阻塞协议判断。
 
-#### 5.3.7 `lww-register`
+#### 5.3.7 `lww-register`（扩展：`cx.profile.collaborative_text.v1`）
 
-Last-write-wins register。"时间"由 Anchor 批次索引提供，**不**读 actor HLC：
+Last-write-wins register。本节是该 lattice type 的 normative 行为，但**仅在实现声明 `cx.profile.collaborative_text.v1` 时启用**——未声明的实现遇到使用 `lww-register` 的 cell schema MUST 按 §5.4 fail closed。"时间"由 Anchor 批次索引提供，**不**读 actor HLC：
 
 - 跨 Anchor batch：后批次 effect 覆盖前批次。
 - 同 Anchor batch（sibling Move）并发不同 set：用 deterministic tiebreaker `(issuer DID lex order, move_id lex order)` 选 winner；记录 lost siblings 进 bottom diagnostics 但不影响最终 value。
 
+**Open_set anchor profile 下的全序保证**：当 anchor profile 是 `open_set`、effective anchor view 由多个 leaf 的 `union` 构成时，sibling Move 集合 MUST 按 deterministic effective anchor view（§4.1）的 canonical join 计算，**而不是**基于任意单 leaf 的局部观察：
+
+- 输入 sibling 集合 = `union(all leaves' frontier) ∩ {moves with effect on this cell within the same logical batch_index}`。这里的 `batch_index` 等于 anchor view 中所有 leaf 共同的 predecessor depth；不同 leaf 给出不同 sibling 集合的情况由 join 强制统一。
+- Tiebreaker key `(issuer DID lex order, move_id lex order)` 的比较 MUST 按 NFC + ASCII byte order；两个 Move 的 `(issuer, id)` 不可能完全相等（id 是 content-addressed hash），所以 winner 永远唯一。
+- 不同 conformant 节点对同一 anchor view 计算 sibling 集合 + tiebreaker MUST 产出相同 winner；任何偏差视为 reducer 实现 bug，conformance vector `cx.vector.lattice.lww_open_set.v1` 验证此性质。
+
 ```text
 join(moves) -> value:
   current = parameters.initial_value   // schema 声明的初值，可为 null
-  for batch in moves grouped by anchor_ref ordered by anchor index:
-    siblings = [M for M in batch if M has set effect on this cell]
+  // 关键：moves 已经是 effective anchor view 全 union 的结果，不是单 leaf
+  for batch_index in sorted(unique batch indices via anchor view union):
+    siblings = [M for M in moves
+                if anchor_index_of(M, view) == batch_index
+                and M has set effect on this cell]
     if siblings is empty: continue
     if len(siblings) == 1:
       current = siblings[0].effect.value
     else:
-      // 同批内并发：deterministic tiebreaker
-      winner = min(siblings, key=(M.issuer, M.id))
+      // 多节点对同一 view 必须计算同一 winner
+      winner = min(siblings, key=(M.issuer, M.id))   // canonical lex order
       current = winner.effect.value
       // 其它 siblings 进入 bottom_diagnostics（kind=conflict）但 value 已确定
   return current
@@ -471,11 +502,11 @@ validate_op(op):
 
 `bottom` 不出现于 value path。`bottom=expose` 仅当并发 sibling 出现时由诊断层暴露 lost values；授权层 MUST NOT 据此选 winner（cell 已被 schema 静态禁止作授权根）。
 
-Schema 声明 cell 为 `lww-register` 时 MUST 同时声明 `cell_role ∈ {ui_affordance, content, draft, cosmetic}`；声明 `cell_role` 为 authorization-related 值时 schema_violation。这是把 lww-register 关在协议安全圈外的硬约束。
+Schema 声明 cell 为 `lww-register` 时 MUST 同时声明 `cell_role ∈ {ui_affordance, content, draft, cosmetic}`；声明 `cell_role` 为 authorization-related 值时 schema_violation。这是把 lww-register 关在协议安全圈外的硬约束。space.schema.json 在 `cell_lattice` 上有 `allOf` 条件强制此规则。
 
-#### 5.3.8 `rga` (Replicated Growable Array)
+#### 5.3.8 `rga` (Replicated Growable Array，扩展：`cx.profile.collaborative_text.v1`)
 
-Replicated Growable Array — 协作文本与有序列表插入。每个 element 由 `(issuer, issuer_seq)` 二元组确定性命名；插入 op 携带 predecessor element id；删除 op 写 tombstone。
+Replicated Growable Array — 协作文本与有序列表插入。本节同 §5.3.7 一样**仅在实现声明 `cx.profile.collaborative_text.v1` 时启用**；未声明者按 §5.4 fail closed。每个 element 由 `(issuer, issuer_seq)` 二元组确定性命名；插入 op 携带 predecessor element id；删除 op 写 tombstone。
 
 ```text
 op shape:
@@ -530,7 +561,13 @@ RGA 的开销：每个未 GC 的 element 持续占空间。Space 可声明 `rga_
 
 ### 5.4 Profile 不得引入新 Lattice type
 
-接收方不识别核心 Lattice type MUST fail closed；扩展 cell family MUST 通过 schema/profile 显式声明并声明 fall-back 行为；任何引入新 lattice type 的 profile 必须先经过 v1 protocol-amendment 流程才能被 normative 集成（避免 implicit 协议分叉）。
+接收方不识别核心或已注册扩展 Lattice type MUST fail closed；扩展 cell family MUST 通过 schema/profile 显式声明并声明 fall-back 行为；任何引入新 lattice type 的 profile 必须先经过 v1 protocol-amendment 流程才能被 normative 集成（避免 implicit 协议分叉）。
+
+v1 已注册扩展 Lattice type：
+
+- `lww-register` / `rga` — `cx.profile.collaborative_text.v1`（§5.0.1、§5.3.7、§5.3.8）。
+
+未声明 `cx.profile.collaborative_text.v1` 的实现遇到使用这两种 type 的 cell schema 时 MUST 返回 `unsupported_lattice_type` 并拒绝写入对应 cell；既有 Move 已被 anchored 的 RGA / lww 历史 SHOULD 仍能 backfill 但只能透出诊断态，不得参与新 Move 的 reducer 决策。
 
 ## 6. Move 验证
 
@@ -629,6 +666,41 @@ Hub、threshold、open federation、sovereign federation 和 E2EE 只是 anchore
 | `mixed` | 主 anchorer + fallback recovery anchorer。 | 正常单链；anchorer fault / bottom 时 fallback 可签 recovery Anchor。 |
 
 Space create MUST 固定 genesis anchorer 与 recovery anchorer。后续变更走 anchorer cell 的普通 Move。
+
+### 9.1 Anchor Profile 威胁与可用性矩阵
+
+每种 anchor profile 在审查抗性、可用性、recovery 流畅度与 federation 复杂度上有不同 trade-off。Space create 选择 profile 时 MUST 与 deployment / governance 团队对照本表评估。
+
+| Profile | 审查抗性（anchorer 单方拒签） | 可用性（anchorer 故障） | Recovery 复杂度 | Federation 拓扑 | 主要威胁 |
+| --- | --- | --- | --- | --- | --- |
+| `single_did` | 弱：anchorer 可静默不签 → Space 整体写入卡住，无法仲裁 | 弱：单点故障 = 全 Space 写阻塞，必须等 anchorer 恢复 | 简单：anchorer 自己签即可 | 星型，所有 peer push 给单一 anchorer | **审查与 DOS**：anchorer 单方拒签某 actor / 某类 Move 是协议层无法防御的——必须由 governance / legal 层补偿；适合企业内可信 hub 与 personal_node，**不适合**对抗审查的开放协作 |
+| `threshold` | 中：k 个签名者合谋才能审查 | 中：n-k 个签名者可继续推进 | 中：合谋抗性靠 threshold sig；恢复需要 ≥ k 个签名者重新组队 | 星型 + 多签名委员会 | **委员会 churn**：n-k 个签名者长时间离线 → 推进卡死；**recovery anchor 需要门限组重新签发** → 不能由单一 admin 解锁 |
+| `open_set` | 强：任何 peer 都可签 leaf anchor → 单一审查者无法阻塞 | 强：peer 子集 outage 不影响其他 peer 推进 | 复杂：多 leaf join 形成 deterministic view；compaction Anchor cadence 决定查询性能 | mesh，所有 peer 互相交换 leaf anchor | **协调成本**：peer 间频繁交换 leaf anchor 与 compaction；**witness liveness 风险**：若没有定期 compaction Anchor，long-tail leaf 可能卡查询；conflict-recovery Move 需要的 state_witness 必须是 compaction Anchor 而非任意 leaf |
+| `mixed` | 强（主 anchorer 健康时） + 强（fallback 时） | 强：主 anchorer 故障 → fallback recovery anchorer 接管 | 中：fallback 切换由 anchorer cell ⊥ 触发 + recovery quorum 签发 | 取决于主/fallback 各自类型 | **fallback 误触发**：主 anchorer 暂时不可达但仍健康时被错误判 fault → fallback 接管造成短暂双 leader；**recovery anchorer 选择**必须独立于主 anchorer，否则同一 outage 同时影响两者 |
+
+### 9.2 Recovery Witness Liveness Profile
+
+`open_set` 与 `threshold` profile 必须保证 conflict-recovery（§8.1）所需的 `state_witness` 与 `inclusion_proof` 可获得。这要求 **compaction Anchor 必须周期性签发**，否则 recovery Move 无 witness 可引用，⊥ 状态会无限期卡死。
+
+| Profile | Compaction cadence 要求 | Snapshot witness liveness 要求 |
+| --- | --- | --- |
+| `single_did` | SHOULD 每 ≤ 1 周签发 compaction Anchor | SHOULD 每 ≤ 24h 发布 signed snapshot frontier |
+| `threshold` | MUST 每 ≤ 7 天签发 compaction Anchor；超时 receiver SHOULD 提示 governance health alarm | MUST 每 ≤ 24h 发布 threshold-signed snapshot |
+| `open_set` | MUST 每 ≤ 24h 由任一 peer 签发 compaction Anchor 收敛 leaf；超时所有 leaf 视为可恢复但不可作为 conflict-recovery witness（receiver fail closed for recovery Move） | MUST 每 ≤ 24h 至少有一个 peer 发布 signed snapshot |
+| `mixed` | 主 anchorer 健康时同 single_did；fallback 期间 SHOULD 每 ≤ 24h | 同主 anchorer profile 要求 |
+
+部署 profile（[`conformance-profiles.json` deployment_profiles](../../artifacts/profiles/conformance-profiles.json)）SHOULD 通过 `anchor_compaction_max_interval_ms` 与 `snapshot_witness_max_interval_ms` 字段表达上述硬上限；conformance test 验证实现暴露该 metric。
+
+### 9.3 不可由协议防御的威胁（必须显式声明）
+
+以下威胁 MUST 在 Space create 时由 deployment 与 governance 层声明缓解措施，**协议层无法替代**：
+
+- **`single_did` anchorer 审查与 DOS**：anchorer 拒签 = Space 写阻塞。`single_did` profile MUST 在 Space create 时同时声明非空 `recovery_anchorer`，且 recovery_anchorer 的 controller MUST 与主 anchorer 在不同的 controlling organization；不满足者 reducer MUST 在 `cx.space.create` 步骤返回 `anchorer_recovery_missing` 并拒绝创建。声称对抗审查能力的部署 MUST NOT 选择 `single_did`，应使用 `threshold` 或 `open_set`。
+- **`threshold` 委员会合谋**：k 个签名者可以联合审查特定 actor。Space MUST 在 governance policy 中声明委员会成员选拔、轮换与 quorum recovery 流程。
+- **`open_set` peer 集合污染**：若 anchorer cell 中加入了恶意 peer，它可签发恶意 leaf。anchorer cell 是 cas-register + bottom=reject，所以新增 peer 必须由当前合法 anchorer 签发的 Move 加入；但**初始 genesis anchorer 设置错误是不可恢复的**——MUST 在 genesis 时审慎选择并多方签名 verify。
+- **签名 key 失窃与 anchorer key rotation**：anchorer 签名 key 失窃 → 攻击者可签发任意 Anchor。Recovery 路径必须是 genesis 时声明的 recovery_anchorer 通过 ⊥ + recovery Move 替换被泄露的 anchorer cell；deployment SHOULD 强制 anchorer key 用 HSM / threshold key 而非软件 key。
+
+`server-threat-model.md` §2.1 已涵盖对应通用攻击面；本节专门点出**不可由协议层规避、必须由 governance 与 deployment 主动设防的部分**。
 
 ## 10. E2EE 与 MLS
 

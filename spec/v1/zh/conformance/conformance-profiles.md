@@ -37,7 +37,8 @@ cx.profile.<name>.v<major>
 | --- | --- | --- |
 | Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `cx.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/frontier/backfill、标准错误。 |
 | Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`principal_server`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
-| Extension | 不属于 v1 core interop floor，必须以独立 profile 声明。 | MIMI interop、Applet integration、Agent protocol bridge、特定 high-assurance / sovereign deployment 能力。 |
+| Extension（v1 lattice / interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `cx.profile.collaborative_text.v1`（lww-register / rga lattice 扩展）、`cx.profile.matrix_compat.v1`（Matrix 兼容声明：`/sync` token / to-device / `/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义）。 |
+| v1.1+ extension | **不属于 v1 core interop floor**，跟踪外部演进标准；声明 v1 core 的实现 MAY 完全省略。 | MIMI interop、Applet integration、Agent protocol bridge、TSP integration 等；这些 profile 在外部标准定型后将被稳定版本固定取代。 |
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 

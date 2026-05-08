@@ -231,6 +231,15 @@ Policy server fast path 与 anchored decision 的关系：
 - 若 origin 节点 24 小时内（或 Space policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `cx.space.moderate` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
 - Receiver 节点收到 fast-path quarantine signaling（policy server 签名）但无对应 anchored Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_pending_anchor` 并在 anchored decision 抵达后切换显示。
 
+**Fast-path 退回的 UX 规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：
+
+- 通过 ephemeral signal（client_sync extension）通知所有当前 viewing 该 Space 的客户端，附带 `reason_code=moderation_anchor_lifted` 与 `affected_event_id` 列表。
+- 客户端 UI MUST 显式提示用户内容重新可见（避免用户误以为自己看错），不得静默切换显示。形态可以是:
+  - 该 Space 顶部 banner: "X 条内容因审核未达成共识已恢复显示"
+  - 在 audit log / moderation history view 中保留 `quarantine_attempted_at` + `lifted_at` + `reason` 三段 trail（不是普通 message redaction history，而是独立的 moderation history）。
+- 已发出的 push notification SHOULD 由 push gateway 通过 silent update 收回（Apple/Google 平台的 silent push），但**不得**重新发送通知（避免双倍打扰）。
+- audit / search / projection 应从那一刻起按 anchored frontier 重建受影响 view；缓存中曾被 fast-path 隐藏的 entry MUST 立即失效。
+
 ### 7.2 错误码与 reason_code 扩展
 
 引入 anchored moderation state 后，`reason_code` 集合扩展：

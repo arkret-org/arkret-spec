@@ -1485,6 +1485,10 @@
         "file": "schemas/event-batch-receipt.schema.json"
       },
       {
+        "schema_id": "cx.schema.ice_config_response.v1",
+        "file": "schemas/ice-config-response.schema.json"
+      },
+      {
         "schema_id": "cx.schema.capability.v1",
         "file": "schemas/capability-grant.schema.json"
       },

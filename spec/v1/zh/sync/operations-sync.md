@@ -28,20 +28,54 @@ Contrix v1 区分：
 - `sync_service`
 - `blob store`
 
-### 2.1 Event Store
+### 2.1 Event Store 与 Event/Move 关系
 
-Contrix v1 不把用户数据仓库作为协议一等概念。协议的唯一 canonical fact 是 **signed Event Envelope**。
+Contrix v1 的唯一 wire / 传输单位是 **signed Event Envelope**。状态收敛的 reducer-input 语义是 **Move**（详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3）。两者不是并行的两套真相源——它们的关系是：
+
+> **每个 reducer-input 的 Event Envelope 的 `payload` MUST 是一个有效 Move（按 `move.schema.json`）。Event Envelope 是 wire/transport 与 actor chain 的载体，Move 是 reducer 看到的语义。**
+
+Wire / canonical 字段的对应关系（这条映射是 normative；偏离视为 v1 wire 不兼容）：
+
+| Event Envelope 字段 | Move 字段 | 关系 |
+| --- | --- | --- |
+| `event_id` (`cx:event:<ulid>`) | `id` (`cx:move:<algo>:<hash>`) | 不同空间——`event_id` 是 transport-level 标识；`id` 是 Move 的 content-addressed hash。两者 MUST 同时出现在 Envelope 中（`event_id` 在外、`payload.move.id` 在 payload 内），并通过 `event_id ≡ canonical_hash(envelope_without_proofs)` 与 `move.id ≡ canonical_hash(move_without_sig)` 各自定义。 |
+| `actor_id` | `issuer` | MUST 字符串相等。reducer 与 verify_move 共用同一签名验证。 |
+| `space_id` | `space_id` | MUST 字符串相等。 |
+| `hlc` | `hlc` | MUST 字符串相等。HLC 是 advisory；Move 收敛由 Anchor + Lattice 决定，不读 HLC。 |
+| `prev_refs[]` | — | Envelope-only：actor chain 因果。Move 不引用 prev_refs 做收敛。 |
+| `auth_refs[]` | `refs[]` 中 `role="authorized_by"` 子集 | `auth_refs` 是 Envelope 视角的授权 Event 引用；Move `refs` 用 typed role 表达同一概念。Receiver MUST 至少把 `auth_refs[]` 中的每条对应 Move id 出现在 Move `refs[role="authorized_by"]` 中。 |
+| `proofs[]` (≥1) | `sig` | MUST 至少有一条 proof 由 Move `issuer` 控制密钥签发，且签名 payload 覆盖 canonical Move bytes。Envelope-level proof 与 Move sig 可以是同一签名材料的两种引用（推荐：proof.kind=`detached_jws`，jws 覆盖 `move.id` + outer envelope hash）。 |
+| `payload.move` | 整个 Move 对象 | reducer-input 事件的 payload `MUST` 包含 `move` 字段，其值是合法 `cx.schema.move.v1` Move 对象。 |
+| `payload.<other_fields>` | — | non-Move payload 字段（例如 `cx.message.create.payload.content`、`cx.flow.update.payload.patch`）由对应 event-payload schema 定义；它们是 Move `effects[].op.value` 的源数据。reducer SHOULD 从 Move effects 读取规范状态写入；payload 其他字段是 UI / projection / search 数据载体。 |
+
+非 reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.notification.read`、`cx.typing`、`cx.receipt.read`）**不**含 `payload.move`。它们只是 actor 私有或 ephemeral 信号，不进 anchor frontier、不写 cell、不参与 state_root。
+
+接收方 MUST 按以下顺序验证 reducer-input Event：
+
+1. Envelope schema validation（`cx.schema.event.v1`，含 canonical bytes / proofs[]）。
+2. `payload.move` 通过 `move.schema.json` validation。
+3. Envelope ↔ Move 字段对应（上表）成立。
+4. Envelope `proofs[]` 与 Move `sig` 至少有一条等价签名验证通过。
+5. `verify_move()`（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6）在该 Move 的 `anchor_ref` 对应 pre-state 下成立。
+6. 写入 Anchor pipeline。
+
+任一步骤失败，整个 Event 被 reject 并回退原因（`schema_violation` / `signature_invalid` / `failed_precondition` / `failed_bottom` / etc.）。
+
+非 reducer 事件只走步骤 1（schema validation + Envelope hash + 签名验证），不走 Move pipeline。
+
+### 2.1.1 Event Store
 
 Event Store 是 Principal Server、客户端、本地节点或授权副本保存 Event 的服务/存储能力。它不是独立权威对象，也不要求实现 atprotocol/Git 式数据仓库。实现可以用数据库、append-only file、Merkle log、object store、content-addressed block store 或其他存储引擎保存 Event；协议只要求下列语义可验证：
 
-- event store：保存 signed Event Envelope。
+- event store：保存 signed Event Envelope（reducer-input 事件的 payload 内嵌 Move）。
 - per-actor event chain：由 `actor_id`、`actor_seq` 和 `prev_refs` 表达 actor 自己的发布顺序。
 - frontier / cursor：按 actor、Space 或查询范围暴露调用方可见的同步前沿。
 - proof material：签名、hash、DID key 状态引用和可选 witness receipt。
+- Move/Anchor view：reducer-input 事件提取的 Move 集合 + 当前 Anchor DAG + state_root 视图。
 
-网络上的 `/events/*` 是 Event 提交、读取、回填和前沿查询 API surface。接收方验证 Event 时 MUST 校验 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增约束、`prev_refs` 因果约束、`auth_refs` 授权依赖和 `event_id` 幂等性。
+网络上的 `/events/*` 是 Event 提交、读取、回填和前沿查询 API surface。接收方验证 Event 时 MUST 按 §2.1 顺序校验 Envelope + 嵌入 Move + verify_move。
 
-实现 MAY 发布 Event batch receipt、checkpoint、snapshot 或 witness receipt 加速恢复和审计，但这些对象不得成为 canonical history 的必经层，也不得替代 Event Envelope 本身的签名责任。
+实现 MAY 发布 Event batch receipt、checkpoint、snapshot 或 witness receipt 加速恢复和审计，但这些对象不得成为 canonical history 的必经层，也不得替代 Event Envelope（含其内嵌 Move）本身的签名责任。
 
 ### 2.2 Principal Server / Sync Service
 
@@ -61,15 +95,15 @@ Principal Server / Sync Service MUST NOT：
 
 Contrix 采用 Event-first 模型：
 
-1. actor/device/service 生成 signed Event Envelope。
-2. `/events/*` 或等价 transport 接收、校验、幂等保存 Event。
-3. Principal Server / Sync Service 同步调用方授权可见的 Space Event。
-4. client reducer 将 accepted Event 集合归约为当前态；客户端可选择生成本地搜索索引和 View projection。
+1. actor/device/service 生成 signed Event Envelope。reducer-input 事件的 payload 内嵌一个合法 Move（§2.1）。
+2. `/events/*` 或等价 transport 接收 Envelope，校验 Envelope schema、签名、actor chain；对 reducer-input 事件额外提取 `payload.move` 走 verify_move + Anchor pipeline。
+3. Principal Server / Sync Service 同步调用方授权可见的 Space Event。Move 与 Anchor 的当前态 (`move_state` / `anchor view` / `state_root`) 通过同步 surface 暴露给客户端 reducer。
+4. client reducer 将 accepted Move 集合按 Lattice + Anchor frontier 归约为当前态；non-reducer Event（read marker / notification / typing 等）不进 cell。客户端可选择生成本地搜索索引和 View projection。
 
 这套模型同时适用于：
 
 - Flow / Message
-- Board-Space / List-Space / Flow
+- Space / Place / Flow（看板与列容器是 Place）
 - Morph
 
 ## 4. Event Batch Receipt / Checkpoint
@@ -111,6 +145,8 @@ Event Envelope 的 `kind` 是标准事件类型，`payload` 是事件负载，`p
 
 如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event Envelope 顶层 `requirements` 对象中声明对应 `features` 或 `critical_extensions`。`requirements.{schema, reducer, features, critical_extensions}` 全部 MUST 进入 canonical event bytes、event digest 和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
 
+Reducer-input Event Envelope 示例（payload 内嵌 Move）：
+
 ```json
 {
   "event_id": "cx:event:01js0ev0000000000000000000",
@@ -130,6 +166,35 @@ Event Envelope 的 `kind` 是标准事件类型，`payload` 是事件负载，`p
     "flow_id": "cx:flow:01js0cd0000000000000000000",
     "patch": {
       "fields.status": "review"
+    },
+    "move": {
+      "id": "cx:move:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "issuer": "did:web:alice.example.com",
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "preconditions": [
+        {
+          "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+          "predicate": { "op": "head_eq", "value": { "fields.status": "in_progress" } }
+        }
+      ],
+      "effects": [
+        {
+          "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+          "op": { "type": "set", "value": { "fields.status": "review" } }
+        }
+      ],
+      "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "refs": [
+        { "id": "cx:grant:01js0gr0000000000000000000", "role": "authorized_by", "critical": true }
+      ],
+      "hlc": "01970e589d21-0007-a13f9c2e",
+      "sig": {
+        "alg": "EdDSA",
+        "verification_method": "did:web:alice.example.com#device-laptop",
+        "payload_hash": "sha256:...",
+        "created_at": "2026-04-22T08:30:00Z",
+        "jws": "base64url..."
+      }
     }
   },
   "proofs": [
@@ -142,6 +207,27 @@ Event Envelope 的 `kind` 是标准事件类型，`payload` 是事件负载，`p
       "jws": "base64url..."
     }
   ]
+}
+```
+
+Non-reducer Event Envelope 示例（无 `payload.move`，例如 `cx.read.marker`）：
+
+```json
+{
+  "event_id": "cx:event:01js0rm0000000000000000000",
+  "space_id": "cx:space:01js0sp0000000000000000000",
+  "actor_id": "did:web:alice.example.com",
+  "actor_seq": 43,
+  "kind": "cx.read.marker",
+  "created_at": "2026-04-22T08:30:00Z",
+  "hlc": "01970e589d21-0008-a13f9c2e",
+  "prev_refs": ["cx:event:01js0ev0000000000000000000"],
+  "payload": {
+    "flow_id": "cx:flow:01js0cd0000000000000000000",
+    "branch": "discussion",
+    "marker_event_id": "cx:event:01js0me0000000000000000000"
+  },
+  "proofs": [...]
 }
 ```
 
@@ -377,13 +463,13 @@ Create 类操作若在 `payload.object` 中携带完整 materialized object sche
   "kind": "cx.flow.move",
   "target_ref": "cx:flow:01js0tk0000000000000000000",
   "payload": {
-    "board_id": "cx:space:01js0bd0000000000000000000",
+    "board_place_id": "cx:place:01js0bd0000000000000000000",
     "flow_id": "cx:flow:01js0tk0000000000000000000",
-    "from_list_id": "cx:space:01t0d000000000000000000000",
-    "to_list_id": "cx:space:01rev1ew000000000000000000",
+    "from_place_id": "cx:place:01t0d000000000000000000000",
+    "target_place_id": "cx:place:01rev1ew000000000000000000",
     "rank": "mV",
     "expected_position": {
-      "list_id": "cx:space:01t0d000000000000000000000",
+      "place_id": "cx:place:01t0d000000000000000000000",
       "rank": "h0",
       "relation_id": "cx:relation:0101d000000000000000000000"
     }
@@ -393,28 +479,28 @@ Create 类操作若在 `payload.object` 中携带完整 materialized object sche
 
 Reducer 语义：
 
-1. 验证 actor 对 `board_id`、`flow_id`、`from_list_id` 和 `to_list_id` 的 move/reorder 权限。
-2. 验证 `to_list_id` 是 `board_id` 下的 active List-Space（`kind="list"` 且为其 child space）。
-3. 验证目标 Flow 所属 Space schema/profile 允许它进入该 Board。
-4. 在 reduced state 中关闭同一 `(board_id, flow_id)` 下其他 active position edge。
-5. 创建或更新 `to_list_id --contains--> flow_id` 的 active Relation，并把 rank 设置为 `rank`。
+1. 验证 actor 对 `board_place_id`、`flow_id`、`from_place_id` 和 `target_place_id` 的 move/reorder 权限（落到 Flow 所属 Space）。
+2. 验证 `target_place_id` 是 `board_place_id` 下的 active List Place（`kind="list"` 且 `parent_ref` 为 board）。
+3. 验证目标 Flow 所属 Space schema/profile 允许它进入该 Board Place。
+4. 在 reduced state 中关闭同一 `(board_place_id, flow_id)` 下其他 active position edge。
+5. 创建或更新 `target_place_id --contains--> flow_id` 的 active Relation，并把 rank 设置为 `rank`。
 6. 对相同 Event 保持幂等。
 
-`cx.flow.move` 不得把 `board_id`、`list_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源。View projection MAY 返回这些派生字段，但必须能追溯到 active position edge 和 reducer frontier。
+`cx.flow.move` 不得把 `board_place_id`、`place_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源。View projection MAY 返回这些派生字段，但必须能追溯到 active position edge 和 reducer frontier。
 
-CAS 语义：`expected_position` 描述的是移动前源 List 中 Flow 的当前位置。Reducer MUST 验证 `expected_position.list_id`、`expected_position.rank` 和 `expected_position.relation_id` 与当前 reduced state 一致；不一致时 SHOULD 返回 `cas_conflict`，除非 policy 明确允许 non-CAS move。目标 List 的 rank 不要求 CAS（由 reducer 按目标 List 当前内容计算或接受客户端提供的 rank）。`cx.flow.move` 不要求源侧 CAS 的场景：若 `expected_position` 缺失或为空，reducer SHOULD 接受移动但 MUST 在目标侧执行 `(board_id, flow_id)` 去重（关闭旧 position edge）。
+CAS 语义：`expected_position` 描述的是移动前源 Place 中 Flow 的当前位置。Reducer MUST 验证 `expected_position.place_id`、`expected_position.rank` 和 `expected_position.relation_id` 与当前 reduced state 一致；不一致时 SHOULD 返回 `cas_conflict`，除非 policy 明确允许 non-CAS move。目标 Place 的 rank 不要求 CAS（由 reducer 按目标 Place 当前内容计算或接受客户端提供的 rank）。`cx.flow.move` 不要求源侧 CAS 的场景：若 `expected_position` 缺失或为空，reducer SHOULD 接受移动但 MUST 在目标侧执行 `(board_place_id, flow_id)` 去重（关闭旧 position edge）。
 
 ### 9.2 `cx.flow.reorder`
 
-`cx.flow.reorder` 只改变同一 List-Space 内的 rank，不改变 List-Space membership。
+`cx.flow.reorder` 只改变同一 List Place 内的 rank，不改变 List Place membership。
 
 ```json
 {
   "kind": "cx.flow.reorder",
   "target_ref": "cx:flow:01js0tk0000000000000000000",
   "payload": {
-    "board_id": "cx:space:01js0bd0000000000000000000",
-    "list_id": "cx:space:01rev1ew000000000000000000",
+    "board_place_id": "cx:place:01js0bd0000000000000000000",
+    "place_id": "cx:place:01rev1ew000000000000000000",
     "flow_id": "cx:flow:01js0tk0000000000000000000",
     "rank": "mV",
     "expected_position": {
@@ -425,7 +511,7 @@ CAS 语义：`expected_position` 描述的是移动前源 List 中 Flow 的当�
 }
 ```
 
-`cx.flow.reorder` 不得改变 List-Space。若当前 List-Space 与 `expected_position` 不一致，除非 policy 明确允许 non-CAS reorder，否则实现 SHOULD 返回 `cas_conflict` 或标记为 stale reorder。
+`cx.flow.reorder` 不得改变 List Place。若当前 List Place 与 `expected_position` 不一致，除非 policy 明确允许 non-CAS reorder，否则实现 SHOULD 返回 `cas_conflict` 或标记为 stale reorder。
 
 ### 9.3 List-Space 排序
 

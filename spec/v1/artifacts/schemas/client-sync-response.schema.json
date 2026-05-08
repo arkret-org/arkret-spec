@@ -150,7 +150,7 @@
             "properties": {
               "move_id": {
                 "type": "string",
-                "pattern": "^cx:move:sha256:[0-9a-f]{64}$"
+                "pattern": "^cx:move:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
               },
               "move_state": {
                 "type": "string",

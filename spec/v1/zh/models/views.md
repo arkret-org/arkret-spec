@@ -121,7 +121,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_id": "cx:place:01js0bd0000000000000000000",
+      "board_place_id": "cx:place:01js0bd0000000000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"

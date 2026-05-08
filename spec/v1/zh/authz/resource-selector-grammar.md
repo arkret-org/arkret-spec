@@ -141,15 +141,15 @@ Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind �
 {
   "resources": [
     {
-      "kind": "space",
-      "space_id": "cx:space:01js0bd0000000000000000000"
+      "kind": "place",
+      "place_id": "cx:place:01js0bd0000000000000000000"
     }
   ],
   "constraints": [
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "space_kind_allow": ["board"]
+      "place_kind_allow": ["board"]
     }
   ]
 }
@@ -378,7 +378,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须在授权 `actions` 中，或被明确的通配动作覆盖。
-3. **约束匹配**：`space_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_branches` 等约束必须满足。
+3. **约束匹配**：`space_kind_allow`、`place_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_branches` 等约束必须满足。
 4. **Branch access 检查**：Message 和 discussion branch 访问必须满足有效 branch access、history visibility 和 E2EE key eligibility。
 5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
@@ -390,13 +390,13 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 `*`、`space:*` 和 `object:*:*` 可能匹配非预期资源。缓解措施：
 
 - 始终配合 `expires_at` 使用。
-- 与 `object_type_allow`、`space_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_branches` 等约束组合。
+- 与 `object_type_allow`、`space_kind_allow`、`place_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_branches` 等约束组合。
 - 要求管理员审批与审计理由。
 - `max_delegation_depth` SHOULD 为 0。
 
 ### 8.2 非 canonical selector domain
 
-实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card、board 和 list。Flow branch 范围必须使用 `kind="flow"` 加 `allowed_branches`；board / list 容器必须使用 `kind="space"` 加 `space_kind_allow`。
+实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card 等。Flow branch 范围必须使用 `kind="flow"` 加 `allowed_branches`；board / list / 其他结构容器必须使用 `kind="place"` 加 `place_kind_allow`（或在需要 Space-级范围时用 `kind="space"`）。
 
 字符串 shorthand 也必须映射到上述 canonical domain；未声明的 selector domain MUST fail closed。
 

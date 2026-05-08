@@ -63,7 +63,7 @@
         },
         "event_ref_hash": {
           "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
         },
         "causal_refs": {
           "type": "array",
@@ -76,7 +76,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^sha256:[0-9a-f]{64}$"
+            "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
           }
         }
       },
@@ -106,7 +106,7 @@
             },
             {
               "type": "string",
-              "pattern": "^sha256:[0-9a-f]{64}$",
+              "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
               "description": "Equivalent group state proof hash."
             }
           ],
@@ -118,15 +118,15 @@
     },
     "payload_digest": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "aad_digest": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "cleartext_commitment": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
       "description": "Reserved (v1: optional, default absent). When present, MUST be sha256 over canonical cleartext bytes derived under the scheme's Cleartext Commitment Profile (`scheme=mls-rfc9420` defines the canonicalization in encryption-and-audit.md §4). Lets recipients detect ciphertext malleability where the producer commits to a specific plaintext without revealing it. v1 implementations MAY ignore this field; v2 MAY make it required for new schemes."
     }
   },

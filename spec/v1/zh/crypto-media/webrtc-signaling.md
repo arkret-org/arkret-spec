@@ -162,22 +162,23 @@ Content-Type: application/json
 }
 ```
 
-响应字段：
+响应字段（schema 见 [`ice-config-response.schema.json`](../../artifacts/schemas/ice-config-response.schema.json)，schema id `cx.schema.ice_config_response.v1`）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `ttl_seconds` | `int` | required | ICE 配置有效期。 |
+| `ttl_seconds` | `int` | required | ICE 配置有效期（秒）。建议 ≤ 1 小时。 |
+| `refresh_lead_seconds` | `int` | required | 客户端在剩余有效期 ≤ 此值时 SHOULD 提前刷新；建议 `ttl_seconds / 4`，下限 60s 上限 1800s。让所有客户端按统一节奏 refresh，server 也据此设计 secret rotation grace 窗口。 |
+| `issued_at` | `timestamp` | required | 服务端签发时间，进入签名 canonical bytes。 |
+| `expires_at` | `timestamp` | optional | 等于 `issued_at + ttl_seconds`；冗余字段，便于客户端判定。 |
 | `ice_servers` | `object[]` | required | STUN/TURN server 配置数组。 |
 | `ice_servers[].urls` | `string[]` | required | STUN/TURN URL。 |
-| `ice_servers[].username` | `string` | TURN 时 required | TURN 用户名。 |
-| `ice_servers[].credential` | `string` | TURN 时 required | 短期 TURN credential。 |
+| `ice_servers[].username` | `string` | TURN 时 required | TURN 用户名（per-call pairwise pseudonym，REST-style: `<expiry-unix>:<pseudonym>`）。 |
+| `ice_servers[].credential` | `string` | TURN 时 required | 短期 TURN credential（HMAC of username）。 |
 | `ice_servers[].credential_type` | `string` | optional | credential 类型，例如 `password`。 |
-| `policy` | `object` | required | 候选地址与传输策略。 |
-| `policy.force_turn` | `boolean` | required | 是否强制 TURN。 |
-| `policy.allow_udp` | `boolean` | required | 是否允许 UDP。 |
-| `policy.allow_tcp` | `boolean` | required | 是否允许 TCP。 |
-| `policy.allow_ipv6` | `boolean` | required | 是否允许 IPv6。 |
-| `signature` | `signature` | required | Media Service 对响应的签名。 |
+| `force_turn` | `boolean` | optional | 是否强制 TURN（高隐私 Space）。 |
+| `constraints` | `object` | optional | 候选地址与传输策略（`allow_udp` / `allow_tcp` / `allow_ipv6`）。 |
+| `next_retry_at` | `timestamp` | optional | 软失败（如 `turn_credential_expired`）时返回；客户端 MUST NOT 在此前重试。 |
+| `signature` | `signature` | required | Media Service DID 对 canonical bytes（去除 `signature` 自身）的 detached 签名。 |
 
 响应示例（非完整 schema）：
 

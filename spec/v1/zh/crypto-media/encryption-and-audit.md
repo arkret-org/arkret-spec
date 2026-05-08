@@ -277,7 +277,7 @@ Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 
 | 字段 | 值 |
 |------|-----|
 | ExtensionType（IANA name） | `cx_app_state_ref` |
-| ExtensionType（数值 codepoint） | `0xCAFE` ∈ MLS GroupContext private-use range `0xF000`–`0xFFFF` 之外的 Contrix 保留私用空间。Contrix v1 wire 形态固定使用 `0xCAFE`。该 codepoint 由 Contrix specification 直接保留，不需要再向 IANA 注册；如未来与其它 MLS 用户产生冲突，将通过 `cx.space.upgrade` 切换到新 codepoint。`cx.profile.mls_state_binding.full.v1` MUST 使用 `0xCAFE`；deployment policy MAY 私有覆盖该 codepoint，但任何不同覆盖必须在 deployment profile 中显式声明，且不得在跨 deployment 的 federation Space 中并存。 |
+| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。Contrix v1 wire 形态固定使用 `0xF1C0`，并明确停留在 IANA 私用段——不占用、不申请 standard-action 或 specification-required 段的 codepoint。`cx.profile.mls_state_binding.full.v1` MUST 使用 `0xF1C0`；deployment policy MAY 在自身 deployment 内私有覆盖到 private-use range 内的另一个 codepoint，但任何不同覆盖必须在 deployment profile 中显式声明，且不得在跨 deployment 的 federation Space 中并存。**早期 v1-pre-rc 草案曾使用 `0xCAFE`，该值不在 MLS private-use range 内，是规范错误**；任何 v1-pre-rc 实现 MUST 在升级到 v1 时通过 `cx.space.upgrade` 切换到 `0xF1C0`。未来若需要全网注册，可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint，并在新 hardening profile 中声明。 |
 | ExtensionData | `application_state_ref` 对象的 CBOR 编码 |
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列：

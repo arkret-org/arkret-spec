@@ -99,8 +99,8 @@ Audit Agent profile MUST 满足：
      }
    }
    ```
-3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的"假动作死锁"（即记录没发出去但明文已吐出），合规飞地 MUST 等待来自底层 Events API、witness receipt 或至少一个独立验证节点的因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。回执 MUST 携带 `audit_assurance_class` 字段，且其值 MUST 与 Space policy 声明的 `audit_assurance` 一致；不一致时接收方 MUST fail closed。
-   - **独立节点验证**：`cx.profile.attested_audit.e2ee.v1` SHOULD 从至少一个与 Audit Agent 无共同控制面的验证节点获得回执；单节点部署或 `cx.profile.disclosed_audit.e2ee.v1` 只能使用单源回执时，MUST 在审计记录中标记 `receipt_source_count=1` 和 `receipt_independence="single_source"`。
+3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的"假动作死锁"（即记录没发出去但明文已吐出），合规飞地 MUST 等待因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。回执 MUST 携带 `audit_assurance_class` 字段，且其值 MUST 与 Space policy 声明的 `audit_assurance` 一致；不一致时接收方 MUST fail closed。
+   - **回执数量与独立性**：`cx.profile.attested_audit.e2ee.v1` MUST 在解密前获得 ≥2 条满足 §4.1.1 的独立 RYW receipt（这条要求由 §4.1 规则与 §4.1.1 共同强制；早期草案的"SHOULD ≥2"已升级为 MUST）。`cx.profile.disclosed_audit.e2ee.v1` 在单签发者部署下 MAY 使用单源回执，但 receipt 的 `receipt_independence` MUST 写为 `single_source`，部署声明也 MUST 公开承认此降级。
    - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、`audit_assurance_class` 与 Space `audit_assurance` 不一致、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。`cx.profile.disclosed_audit.e2ee.v1` MUST 按同一顺序执行并记录证明，但**对恶意持钥客户端不提供密码学阻断**——这是该 profile 的本质局限，不是实现缺陷。
 
@@ -160,16 +160,30 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `frontier.space_frontier` | yes | 签发时 issuer 已 accepted 的 Space frontier。MUST 因果上 ≥ `audit_event_id`。 |
 | `frontier.actor_frontier` | conditional | 至少包含 `audit_actor_id` 的 frontier。其它 actor frontier 由 issuer 选择性透出。 |
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
-| `receipt_independence` | yes | `independent` / `single_source`，与 §4 step 3 文字一致。 |
+| `receipt_independence` | yes | `independent` / `single_source`。`independent` MUST 表示 receipt 由 ≥2 个**独立控制面**（不同 service DID、不同运营组织、不同密钥保管方）签发并被 Audit Agent 同时持有；单签发者声称 `independent` MUST 被接收方拒绝（`audit_receipt_invalidated`）。`single_source` 是单源回执，仅在显式同意降级（部署声明）时使用。详细聚合规则见 §4.1.1。 |
 | `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Space `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
 
 规则：
 
-- Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；`cx.profile.attested_audit.e2ee.v1` SHOULD 等待来自至少 2 个独立 issuer 的 receipts，且每个 `receipt_independence="independent"`。
+- Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；`cx.profile.attested_audit.e2ee.v1` MUST 等待来自至少 2 个独立 issuer 的 receipts，且每个 `receipt_independence="independent"`。
 - Issuer 不得伪造未观测到的 receipt；任何客户端 / 审计客户端 MUST 拒绝 `audit_event_digest` 与 envelope 实际 digest 不符的 receipt，并按 `audit_receipt_invalidated`（参见 `error-code-registry.json`）处理。
 - RYW receipt 默认是 actor-private / ephemeral 在 `cx.profile.disclosed_audit.e2ee.v1` 下；在 `cx.profile.attested_audit.e2ee.v1` 下 receipt 可以同时作为 durable Event（`cx.audit.ryw_receipt`）进入 audit log，便于事后调查。
 - Receipt 可被 redaction 覆盖，但 redaction 只清除 cleartext metadata；`audit_event_id`、`audit_event_digest` 与 `audit_assurance_class` 仍保留，以便审计链可还原。
+
+### 4.1.1 `receipt_independence="independent"` 的密码学聚合规则（normative）
+
+`receipt_independence` 字段不是审计代理的"自报"声明，而是**接收方可独立验证的属性**。声明 `independent` 时 MUST 满足下列全部条件，任一不成立 MUST 触发 `audit_receipt_invalidated`：
+
+1. **多签发**：至少 2 条 RYW receipt（每条 `cx.audit.ryw_receipt` 对象有自己的 `proofs[]`）覆盖**同一** `audit_event_id` + `audit_event_digest`。Audit Agent 在解密前 MUST 同时持有这两条 receipt。
+2. **签发方独立性**：两条 receipt 的 `issuer` MUST 满足下列**全部**条件：
+   - 不同 service DID（字符串不相等）；
+   - 不同 controlling organization（DID Document `controller` 字段或 Space policy 声明的运营方不交叉）；
+   - 不同 `verification_method` 控制密钥（不能是同一私钥不同 `kid`）。
+3. **frontier 一致性**：两条 receipt 的 `frontier.space_frontier` 在 `audit_event_id` 上 MUST 因果一致；frontier 不一致时 receipt 不能聚合为 `independent`，只能视作两条独立 `single_source` receipt。
+4. **签发方授权**：两条 receipt 的 `issuer` MUST 都被 Space policy 声明为合法 RYW witness（`cx.space.policy_components` 下 `audit.ryw_witnesses[]`）。Policy 未列出的 issuer 即使签出有效 receipt 也不计入聚合。
+
+单签发者跨多 receipt 持续声称 `independent` 是误用；接收方 MUST 把这种情况视为 `single_source`。本规则不依赖任何 receipt 内部字段的"自报值"，只看签发证据。
 
 ## 5. 审查透明公示
 
@@ -178,17 +192,8 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 - **用户端 UI**：客户端检测到自己发送的消息被附加了 `cx.audit.accessed` 后，应在界面上（如气泡旁边）显示明显的标识（例如一个带警告色的"合规审查"眼睛图标），并允许用户点击查看审查事由、时间与 `audit_assurance_class`。
 - **不可抵赖性范围**：在 `cx.profile.attested_audit.e2ee.v1` 下，合规输出必须绑定到 `cx.audit.accessed` 的确权回执；在 `cx.profile.disclosed_audit.e2ee.v1` 下，成员可审计合规客户端是否按流程记录访问，但协议不能阻止恶意持钥实现绕过日志。
 
-## 6. 禁止误导性营销措辞 (normative)
+## 6. 保证类别与对外描述（governance hand-off）
 
-`cx.profile.disclosed_audit.e2ee.v1` 提供的是流程性披露，不是密码学/硬件强制保证。该 profile 的产品文档、UI 标签、合规材料、营销材料、销售对外材料和向监管/采购方提交的合规说明 **MUST NOT** 使用以下措辞或它们在其他语言下的等价含义：
+`cx.profile.disclosed_audit.e2ee.v1` 是**流程性披露**，`cx.profile.attested_audit.e2ee.v1` 是**硬件强制审计**——两者不是同一保证的强弱级别，是不同 family 的保证。本规范的 normative 责任到 §2.1 join warning 与 §4 工作流为止：客户端 MUST 区分文案，receipt MUST 透出 `audit_assurance_class`，接收方 MUST 在两者不一致时 fail closed。
 
-- "cryptographically enforced audit"
-- "hardware-bound audit" / "TEE-equivalent audit"
-- "attested audit"（除非该部署同时声明并实现了 `cx.profile.attested_audit.e2ee.v1`，且 attestation evidence 当前有效）
-- "tamper-proof audit log"
-- "end-to-end encrypted with audit"（暗示加密强度等同于 audit 强度）
-- "auditable encryption"（v1 弃用统称——必须明确二选一）
-
-`cx.profile.attested_audit.e2ee.v1` 的对外材料 MAY 使用 "hardware-attested" / "TEE-bound" / "enclave-enforced" 等措辞，**但仅限 attestation evidence 当前在有效期内、measurement 与已发布 reference value 一致、且 service DID 仍为 Space policy 声明的 audit_actors 之一**。Attestation 失效或撤销期间，对外材料 MUST 暂停使用上述措辞。
-
-实现声明对本规范一致时，conformance suite SHOULD 包含一条 documentation lint vector（`forbidden_marketing_terms_check`），扫描产品材料语料并对违规命中 fail closed；该 lint 不替代但补充审计员对真实 attestation evidence 的人工核验。
+产品文档、UI 标签、营销材料、合规说明等"对外描述"是否准确反映保证类别，属于实现方/部署方的 governance、合规与品牌职责，不在本协议规范的 normative 范围内。审计员、监管方与采购方 SHOULD 直接核验 §2 / §2.1 / §4 / §4.1 的 normative 行为以及 attestation evidence 是否当前有效，而不是依赖措辞自查。

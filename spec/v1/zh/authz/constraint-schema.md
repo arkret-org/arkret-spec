@@ -171,15 +171,15 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 {
   "constraint_type": "type_restriction",
   "effect": "allow",
-  "object_type_allow": ["flow", "message", "morph"],
-  "space_kind_allow": ["board", "list"],
+  "object_type_allow": ["flow", "message", "morph", "place"],
+  "place_kind_allow": ["board", "list"],
   "morph_type_allow": ["document", "customer_case"],
   "facet_allow": ["stateful", "replyable", "documentable"],
   "morph_type_deny": ["credential"]
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 只用于区分 `Space.kind`，例如 `board` / `list` 工作流容器；它不得把容器 Space 升级为独立 membership 或 E2EE 边界。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 在 v1 仅有意义值 `collaboration`（Space 唯一标准 kind）。**结构容器（看板、列、泳道、calendar bucket 等）由 Place 对象承担**——使用 `place_kind_allow` 收窄到 Place.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；place_kind_allow 不会把 Place 升级为独立 membership 或 E2EE 边界（Place 永远透明回退到所属 Space）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
@@ -738,8 +738,8 @@ Grant envelope 字段、签名规则与必填性以
   {
     "constraint_type": "type_restriction",
     "effect": "allow",
-    "object_type_allow": ["flow", "morph"],
-    "space_kind_allow": ["board", "list"],
+    "object_type_allow": ["flow", "morph", "place"],
+    "place_kind_allow": ["board", "list"],
     "morph_type_allow": ["document", "customer_case"],
     "facet_allow": ["stateful", "replyable"]
   }

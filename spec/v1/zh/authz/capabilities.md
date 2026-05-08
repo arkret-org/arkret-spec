@@ -250,6 +250,7 @@ Contrix v1 支持：
 - `fields_write_allow`
 - `fields_write_deny`
 - `space_kind_allow`
+- `place_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
 - `allowed_flow_refs`
@@ -290,6 +291,7 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `fields_write_allow` | `field_access` | — | `fields_write_allow` |
 | `fields_write_deny` | `field_access` | — | `fields_write_deny` |
 | `space_kind_allow` | `type_restriction` | — | `space_kind_allow` |
+| `place_kind_allow` | `type_restriction` | — | `place_kind_allow`（限定 Place 的 kind，例如 board / list / swimlane）|
 | `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
 | `facet_allow` | `type_restriction` | — | `facet_allow` |
 | `allowed_flow_refs` | `scope_limitation` | — | `allowed_flow_refs` |
@@ -522,6 +524,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 规则：
 
 - 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Space lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点本地 reducer 在 `apply_anchor` 完成的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**不得**作为延迟标记 stale 的理由。
+- **Moderation state cell 与 cache 的关系**：anchored moderation decision（写入 `cx.component.moderation_state.v1`，见 [`policy-server.md` §7.1](./policy-server.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation cell 标记的 actor 不在其中），则该 cell 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
 - Cache entry 的 `auth_state_hash` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；不得继续用旧 grant 允许新写入。
 - 已被 GC 的 grant 仍必须保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现不得因为 grant payload 已压缩或归档而让旧 cache 重新生效。
 - `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态不得生成 allow cache；只能生成 deny / unknown / pending 诊断。
@@ -543,18 +546,20 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 | --- | --- | --- | --- |
 | 高风险（`cx.space.lifecycle.destroy`、`cx.capability.revoke`、`cx.space.admin`、`cx.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
 | 中风险（`cx.flow.update`、`cx.member.state`、`cx.invite.create`、跨 Space relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
-| 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read.marker`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | allow（fast path），但 MUST 在恢复 fresh 时重放校验最近 `unknown` 窗口期内的写入；任何被发现 invalid 的写入 MUST 通过 redaction / tombstone 收敛 |
+| 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read.marker`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
+
+设计取舍：早期草案允许低风险 `unknown` allow + 后续重放校验。该设计在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 改为本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Move 直接丢弃，无副作用。
 
 实现 MUST：
 
 - 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。默认值：高风险 `freshness_required_ms = 30_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`；clock_skew_tolerance_ms = 60_000。
 - 在 `unknown` / `stale` 拒绝响应中返回 `freshness_state`、`last_known_frontier_age_ms`、`anchorer_status`、`retry_after_ms`，让客户端 UI 区分"被拒绝"和"暂时不能确认"。
+- 客户端在低风险 `unknown` 模式下 MUST 在 UI 中标记本地 pending 写入为 `pending_local`（例如灰色发送中状态），并暴露"分区恢复后可能丢弃"的提示。
 - 不得用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_hash` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
 - 不得通过把高风险动作降级为中风险（例如把 `cx.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 capability action canonical registry 声明，不接受 grant-side override。
+- 单个分区窗口内允许的本地 pending 数量 MUST 限制（默认 ≤ 1000 / Space / 5 minutes），超过后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
 
 **默认 fail closed**：当实现无法确定动作风险等级、或动作来自尚未注册的 capability action 时，freshness 判定 MUST 默认按高风险处理（`stale` / `unknown` 即拒绝），而不是按低风险放行。这条 default 是为了让任何未来引入的高风险动作在进入 capability registry 前不会被旧实现误判为低风险路径。
-
-低风险高频动作的 `unknown` 重放规则不得被滥用：实现 MUST 限制单个分区窗口内允许的 `unknown`-allowed 写入数量（默认 ≤ 1000 / Space / 5 minutes），超过后整体降级为 `stale`-rules（即低风险也开始 fail closed）。这避免了攻击者通过故意制造网络分区来累积大量"无人能 revoke 的写入"。
 
 ## 19. 设计决定
 

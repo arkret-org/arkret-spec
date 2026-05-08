@@ -1392,7 +1392,7 @@
     },
     "hash": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "profileRef": {
       "type": "string",
@@ -1438,9 +1438,17 @@
       "type": "string",
       "pattern": "^[0-9A-Za-z]{1,128}$"
     },
-    "board_id": {
+    "place_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+    },
+    "board_place_id": {
+      "type": "string",
+      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+    },
+    "list_place_id": {
+      "type": "string",
+      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
     },
     "flow_id": {
       "type": "string",
@@ -1449,10 +1457,6 @@
     "branch_name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$"
-    },
-    "list_id": {
-      "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
     },
     "relation_id": {
       "type": "string",
@@ -1495,7 +1499,7 @@
         },
         "payload_hash": {
           "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -1526,23 +1530,23 @@
     "flow_move_payload": {
       "type": "object",
       "required": [
-        "board_id",
+        "board_place_id",
         "flow_id",
-        "to_list_id",
+        "target_place_id",
         "rank"
       ],
       "properties": {
-        "board_id": {
-          "$ref": "#/$defs/board_id"
+        "board_place_id": {
+          "$ref": "#/$defs/board_place_id"
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "from_list_id": {
-          "$ref": "#/$defs/list_id"
+        "from_place_id": {
+          "$ref": "#/$defs/list_place_id"
         },
-        "to_list_id": {
-          "$ref": "#/$defs/list_id"
+        "target_place_id": {
+          "$ref": "#/$defs/list_place_id"
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -1550,8 +1554,8 @@
         "expected_position": {
           "type": "object",
           "properties": {
-            "list_id": {
-              "$ref": "#/$defs/list_id"
+            "place_id": {
+              "$ref": "#/$defs/list_place_id"
             },
             "rank": {
               "$ref": "#/$defs/rank"
@@ -1561,6 +1565,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "move": {
+          "$ref": "./move.schema.json"
         }
       },
       "additionalProperties": false
@@ -1568,20 +1575,20 @@
     "flow_reorder_payload": {
       "type": "object",
       "required": [
-        "board_id",
+        "board_place_id",
         "flow_id",
-        "list_id",
+        "place_id",
         "rank"
       ],
       "properties": {
-        "board_id": {
-          "$ref": "#/$defs/board_id"
+        "board_place_id": {
+          "$ref": "#/$defs/board_place_id"
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "list_id": {
-          "$ref": "#/$defs/list_id"
+        "place_id": {
+          "$ref": "#/$defs/list_place_id"
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -1597,6 +1604,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "move": {
+          "$ref": "./move.schema.json"
         }
       },
       "additionalProperties": false

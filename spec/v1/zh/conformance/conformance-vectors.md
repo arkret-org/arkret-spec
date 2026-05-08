@@ -1228,10 +1228,10 @@ cx.vector.capability.approval_constraint.v1
         "initial_relations": [
           {
             "relation_kind": "contains",
-            "from_ref": "cx:space:01js0111000000000000000000",
+            "from_ref": "cx:place:01js0111000000000000000000",
             "to_ref": "cx:flow:01js0ca1000000000000000000",
             "fields": {
-              "board_id": "cx:space:01js0bd0000000000000000000",
+              "board_place_id": "cx:place:01js0bd0000000000000000000",
               "rank": "U"
             }
           }
@@ -1258,10 +1258,10 @@ cx.vector.capability.approval_constraint.v1
     "kind": "cx.flow.move",
     "target_ref": "cx:flow:01js0ca1000000000000000000",
     "payload": {
-      "board_id": "cx:space:01js0bd0000000000000000000",
+      "board_place_id": "cx:place:01js0bd0000000000000000000",
       "flow_id": "cx:flow:01js0ca1000000000000000000",
-      "from_list_id": "cx:space:01js0111000000000000000000",
-      "to_list_id": "cx:space:01js0112000000000000000000",
+      "from_place_id": "cx:place:01js0111000000000000000000",
+      "target_place_id": "cx:place:01js0112000000000000000000",
       "rank": "U"
     }
   },

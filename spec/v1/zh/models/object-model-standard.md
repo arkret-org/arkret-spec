@@ -198,7 +198,7 @@ Board Place 是 `Place` 的看板形态，ID 使用 `cx:place:` 格式（`kind=b
 - `summary`
 - `rank`
 - `fields`（包含 `default_view_id` 等）
-- `archived_at` / `tombstoned_at`
+- `state` / `state_changed_at`（统一生命周期字段，详见 [`data-structures.md`](./data-structures.md) §4a）
 
 常见关系：
 
@@ -215,7 +215,7 @@ List Place 是 `Place` 的列/泳道形态，ID 使用 `cx:place:` 格式（`kin
 - `summary`
 - `rank`
 - `fields`（包含 `wip_limit` 等）
-- `archived_at` / `tombstoned_at`
+- `state` / `state_changed_at`（统一生命周期字段，详见 [`data-structures.md`](./data-structures.md) §4a）
 
 常见关系：
 

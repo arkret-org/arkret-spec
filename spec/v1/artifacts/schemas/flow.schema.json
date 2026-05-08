@@ -57,10 +57,6 @@
         "redacted"
       ]
     },
-    "version": {
-      "type": "integer",
-      "minimum": 0
-    },
     "branches": {
       "type": "array",
       "description": "Active Flow branches. At most one branch may explicitly set is_primary=true; when none does, the reducer derives the primary branch by the deterministic rules in object-model-standard.md.",
@@ -209,7 +205,8 @@
             "inherit_flow",
             "branch_scoped",
             "none"
-          ]
+          ],
+          "description": "Branch E2EE policy. 'inherit_space' / 'inherit_flow' follow the parent's encryption profile. 'branch_scoped' allocates an independent MLS group bound to (space_id, flow_id, branch). 'none' is ONLY valid when the owning Space has encryption_profile='none'; in an E2EE Space (encryption_profile='mls_rfc9420' or 'external') a branch MUST NOT declare e2ee='none' — receivers MUST schema_violation."
         },
         "encryption_profile": {
           "type": "string",

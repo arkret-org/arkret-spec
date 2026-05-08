@@ -44,7 +44,7 @@
     },
     "audit_event_digest": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "space_id": {
       "type": "string",
@@ -99,7 +99,8 @@
       "enum": [
         "independent",
         "single_source"
-      ]
+      ],
+      "description": "Independence claim. 'independent' is a receiver-verifiable property: the Audit Agent MUST hold ≥2 RYW receipts covering the same audit_event_id+audit_event_digest, signed by issuers with distinct service DID, distinct controlling organization, and distinct verification_method keys, AND each issuer MUST be listed by Space policy under audit.ryw_witnesses[]. Self-claimed 'independent' from a single signer MUST be rejected (audit_receipt_invalidated). 'single_source' is the honest declaration when only one issuer exists. See zh/crypto-media/audited-e2ee.md §4.1.1."
     },
     "audit_assurance_class": {
       "type": "string",

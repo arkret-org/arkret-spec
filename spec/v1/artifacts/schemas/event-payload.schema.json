@@ -40,7 +40,7 @@
     },
     "hash": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "event_ref": {
       "type": "string",
@@ -54,13 +54,19 @@
       "type": "string",
       "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
     },
-    "board_id": {
+    "place_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
     },
-    "list_id": {
+    "board_place_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$",
+      "description": "A Place with kind=board. Pattern matches any cx:place:; kind invariant enforced by reducer/profile."
+    },
+    "list_place_id": {
+      "type": "string",
+      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$",
+      "description": "A Place with kind=list."
     },
     "message_id": {
       "type": "string",
@@ -1015,16 +1021,16 @@
     "list_reorder_payload": {
       "type": "object",
       "required": [
-        "board_id",
-        "list_id",
+        "board_place_id",
+        "place_id",
         "rank"
       ],
       "properties": {
-        "board_id": {
-          "$ref": "#/$defs/board_id"
+        "board_place_id": {
+          "$ref": "#/$defs/board_place_id"
         },
-        "list_id": {
-          "$ref": "#/$defs/list_id"
+        "place_id": {
+          "$ref": "#/$defs/list_place_id"
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -2432,23 +2438,26 @@
     "flow_move_payload": {
       "type": "object",
       "required": [
-        "board_id",
+        "board_place_id",
         "flow_id",
-        "to_list_id",
+        "target_place_id",
         "rank"
       ],
       "properties": {
-        "board_id": {
-          "$ref": "#/$defs/board_id"
+        "board_place_id": {
+          "$ref": "#/$defs/board_place_id",
+          "description": "Board Place that owns the position edge; deduplication key (board_place_id, flow_id) MUST be unique among active edges."
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "from_list_id": {
-          "$ref": "#/$defs/list_id"
+        "from_place_id": {
+          "$ref": "#/$defs/list_place_id",
+          "description": "Source List Place (optional; reducer infers from current active edge if omitted)."
         },
-        "to_list_id": {
-          "$ref": "#/$defs/list_id"
+        "target_place_id": {
+          "$ref": "#/$defs/list_place_id",
+          "description": "Target List Place after move."
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -2456,8 +2465,8 @@
         "expected_position": {
           "type": "object",
           "properties": {
-            "list_id": {
-              "$ref": "#/$defs/list_id"
+            "place_id": {
+              "$ref": "#/$defs/list_place_id"
             },
             "rank": {
               "$ref": "#/$defs/rank"
@@ -2467,6 +2476,10 @@
             }
           },
           "additionalProperties": false
+        },
+        "move": {
+          "$ref": "./move.schema.json",
+          "description": "Embedded Move object — reducer-input semantic for cx.flow.move."
         }
       },
       "additionalProperties": false
@@ -2474,20 +2487,21 @@
     "flow_reorder_payload": {
       "type": "object",
       "required": [
-        "board_id",
+        "board_place_id",
         "flow_id",
-        "list_id",
+        "place_id",
         "rank"
       ],
       "properties": {
-        "board_id": {
-          "$ref": "#/$defs/board_id"
+        "board_place_id": {
+          "$ref": "#/$defs/board_place_id"
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "list_id": {
-          "$ref": "#/$defs/list_id"
+        "place_id": {
+          "$ref": "#/$defs/list_place_id",
+          "description": "List Place within which the reorder happens."
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -2503,6 +2517,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "move": {
+          "$ref": "./move.schema.json"
         }
       },
       "additionalProperties": false

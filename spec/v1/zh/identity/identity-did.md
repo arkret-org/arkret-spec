@@ -142,9 +142,19 @@ Contrix v1 core conformance 要求如下：
 
 `did:webvh` hosting domain 暂时不可达时 resolver MAY 在 policy 允许的范围内退化为 `did:web` 等价行为（仅当前状态，不再可信历史读取），但：
 
-- 该 fallback MUST 仅用于低风险读取（已缓存对象的派生展示、本地搜索）。
-- 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation——MUST fail closed 直到 hosting 或 mirror 恢复，或走部署 policy 明确允许的替代路径。
-- Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记，让客户端 UI 显式提示用户而不是无声继续。
+- 该 fallback **仅**适用于**低风险只读**操作。本规范定义的"低风险只读"集合是**封闭的**：
+  - ✅ 已缓存对象的本地展示（已存在的 Flow / Message / Place / Morph 渲染）
+  - ✅ 已缓存对象的本地搜索 / 本地索引查询
+  - ✅ 已收到 snapshot / Anchor 的 state_root 重算（用于本地一致性自检）
+  - ❌ 接收新到达的 Event Envelope / Move / Anchor 并写入本地 store（即使是只读 store）
+  - ❌ 联邦 transaction 接收（`/api/v1/federation/push-operations`）
+  - ❌ Push notification wakeup 后的 client sync 拉取
+  - ❌ 任何 capability cache 重建或 freshness check
+  - ❌ 任何 `cx.session.grant` 验证或登录态续期
+  - ❌ Snapshot witness 接收
+- 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Space、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复，或走部署 policy 明确允许的替代路径。
+- Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`，让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示（"身份历史链暂不可达，仅显示本地缓存内容"），不得静默继续。
+- Fallback 总时长 MUST ≤ 24 小时（与 §4.2.1 `degraded_no_witness` 状态硬上限对齐）；超时后即使是低风险只读也 MUST fail closed，强制用户等待恢复或切换 resolver。
 
 完整 method-specific 操作（创建、轮换、恢复、deactivation、history validation）的规范见
 W3C `did:webvh` specification 与 §7.2；core v1 文档不再展开。
@@ -254,7 +264,7 @@ DID method 或 registry 不可用时，节点不得把“暂时无法解析”�
 
 #### 4.2.2 跨 method 迁移路径
 
-实现 SHOULD 支持从其它 method（例如 `did:web` 升级、`did:plc` 互通历史、`did:key` 临时身份转长期身份）到 `did:webvh` 的计划迁移路径，而不只是在事故后恢复：
+实现 MUST 支持从其它 method（例如 `did:web` 升级、`did:plc` 互通历史、`did:key` 临时身份转长期身份）到 `did:webvh` 的计划迁移路径，而不只是在事故后恢复——这是 conformance 必备能力（`personal_node` profile 升级到 `small_team` 必经此路径，见 [`key-management.md` §5.0.2](./key-management.md)）：
 
 1. 用户在原 DID 仍可解析时创建新 `did:webvh`，并发布 SCID、首个 `did.jsonl` entry 和（可选）witness evidence。
 2. 原 DID 当前有效控制密钥签署 continuity proof；新 DID 控制密钥反向签署 acceptance proof。
@@ -507,7 +517,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 Contrix v1 对 DID 实现要求如下：
 
-- v1 core 默认 principal DID 创建 MUST 使用 `did:web`，除非部署 policy 显式选择了另一个已有 DID method；声明 organization high-assurance / high-trust profile 的部署 MUST 升级到 `did:webvh`（见 §3.4）。
+- v1 core 默认 principal DID 创建 MUST 使用 `did:webvh`（见 §3 / §3.4），除非部署 policy 显式选择了另一个已有 DID method。`personal_node` deployment profile MAY 把 principal method 降级为 `did:web`，但 MUST 在 deployment profile 中显式声明 `principal_method=did:web`；其他 deployment profile（`small_team` / `organization` / `high_security_organization` / `sovereign_deployment`）MUST 使用 `did:webvh` 或更强 method 作为长期 principal。`did:web` 仅作为 service DID 默认 method 与 `did:webvh` hosting 暂不可达时的低风险只读 fallback。
 - Method adapter conformance tests MUST 覆盖 `did:webvh`、`did:web`、`did:key`；声明 AT Protocol interop profile 的实现 MUST 额外覆盖 `did:plc` adapter；声明 wallet interop profile 的实现 MUST 额外覆盖 `did:pkh`。
 - `did:uuid` MUST NOT 出现在规范示例、新 fixture、新一致性向量、服务 DID、actor DID、capability subject、federation transaction 或新写入的 Event 中。
 - DID proof JSON Schema MUST 与 `data-structures.md` 的 Proof 和 `encoding.md` 的 canonical JSON 规则一致。

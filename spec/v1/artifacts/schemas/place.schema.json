@@ -71,19 +71,22 @@
     },
     "avatar_blob_ref": {
       "type": "string",
-      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|sha256:[0-9a-f]{64})$"
+      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
-    "archived_at": {
+    "state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "tombstoned"
+      ],
+      "description": "Place lifecycle state. 'active' is the default; 'archived' is set by cx.place.archive (reversible UI hide); 'tombstoned' is set by cx.place.tombstone (irreversible; tombstoning a Place that still has live Flow references MUST schema_violation, relocation MUST happen first). This field replaces the v1-pre-rc archived_at / tombstoned_at timestamp pair; the timestamp lives on the writing Move and on state_changed_at."
+    },
+    "state_changed_at": {
       "type": "string",
       "format": "date-time",
       "pattern": "Z$",
-      "description": "Set by cx.place.archive reducer. Archived Places are hidden in default views; contained Flows MUST be relocated or follow archive."
-    },
-    "tombstoned_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$",
-      "description": "Set by cx.place.tombstone reducer. Irreversible. Tombstoning a Place that still has live Flow references MUST schema_violation; relocation MUST happen first."
+      "description": "Timestamp of the most recent state transition. Required when state != 'active'."
     },
     "created_by": {
       "type": "string",
