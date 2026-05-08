@@ -152,7 +152,7 @@ API 调用 SHOULD 使用以下方式之一：
 
 - 错误语义必须使用单一标准 code。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。
 - `stale_frontier` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
-- 格式错误的 sync token 使用 `invalid_param` / 400；格式正确但已过期的 sync token 使用 `sync_token_expired` / 410。
+- 格式错误的 cursor 使用 `invalid_param` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
 - `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `cx.*` Event kind。二者不得互相替代。
 - `conflict` / 409 是抽象 base code；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `discussion_branch_disabled` / `duplicate_conflict` / `epoch_mismatch` / `key_unavailable` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `audit_receipt_invalidated`）。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
@@ -187,9 +187,26 @@ CI（`tools/artifact_pipeline.py check`）SHOULD 校验仓库内所有出现的�
 - 服务端 SHOULD 记录幂等键与 canonical request hash；联邦与服务间写入 MUST 将该 hash 纳入签名 transcript 或 transaction replay cache。
 - 服务端 SHOULD 记录幂等结果至少到相关 Event 被最终同步或过期。
 
-## 7. 分页与 cursor
+## 7. Cursor（统一不透明 token）
 
-列表接口 SHOULD 使用 cursor 分页：
+Contrix v1 在所有需要不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `cx:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它统一承担增量同步、列表分页和写后读屏障所有用途。
+
+cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing 服务自检）：
+
+| `purpose` | 用途 | 出现位置 |
+| --- | --- | --- |
+| `stream` | 增量同步 / 列表分页的位置承诺。可作为 `since` / `prev_cursor` / `after_cursor` / `next_cursor` 回传。 | `/sync` 响应顶层 `cursor`、`timeline.prev_cursor`、列表分页 `next_cursor`、`/federation/pull-operations` 的 `after_cursor`。 |
+| `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Contrix-Wait-For` header。 |
+
+规则：
+
+- 客户端 MUST 把 cursor 当作不透明字符串，禁止解析以推断排序、权限或服务身份。
+- 任何接受 cursor 的接口 MUST 把无效 cursor 返回 `invalid_param`，把已过期 cursor 返回 `cursor_expired`。
+- 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
+
+### 7.1 列表分页
+
+列表接口 SHOULD 使用 stream cursor 分页：
 
 ```json
 {
@@ -199,29 +216,27 @@ CI（`tools/artifact_pipeline.py check`）SHOULD 校验仓库内所有出现的�
 }
 ```
 
-`cursor` MUST 是不透明字符串。客户端 MUST NOT 解析 cursor 内容来推断排序或权限。
-
 服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `invalid_param`。
 
 ## 8. 读己之所写
 
-写接口成功后 SHOULD 返回 `sync_token`：
+写接口成功后 SHOULD 在响应中返回一个 barrier cursor：
 
 ```json
 {
   "status": "accepted",
   "event_id": "cx:event:01js0ev0000000000000000000",
-  "sync_token": "cx:sync:..."
+  "cursor": "cx:cursor:..."
 }
 ```
 
-查询接口 SHOULD 接受：
+该 cursor 内部 `purpose=barrier`、`target.event_id` 与 `target.event_digest` 绑定到刚提交事件。后续读接口 SHOULD 接受：
 
 ```text
-X-Contrix-Wait-For: <sync_token>
+X-Contrix-Wait-For: <cursor>
 ```
 
-如果服务在超时前达到该 causal frontier，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 frontier。
+如果服务在超时前到达该 cursor 描述的 causal frontier，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 frontier。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `invalid_param`。
 
 ## 9. Rate Limit
 

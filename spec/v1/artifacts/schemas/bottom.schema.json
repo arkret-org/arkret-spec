@@ -31,14 +31,14 @@
       },
       "description": "Cell ids participating in the bottom diagnostic. Multi-cell when a multi-cell Move atomically failed across linked cells."
     },
-    "move_ids": {
+    "event_ids": {
       "type": "array",
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^cx:move:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+        "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
       },
-      "description": "Anchored Move ids whose effects (or precondition checks) produced this bottom. Empty allowed when the cell's bottom is structural (e.g. anchorer cell schema_error) and not tied to a specific Move."
+      "description": "Anchored reducer-input event ids whose effects (or precondition checks) produced this bottom. Empty allowed when the cell's bottom is structural (e.g. anchorer cell schema_error) and not tied to a specific event."
     },
     "anchor_view": {
       "type": "object",

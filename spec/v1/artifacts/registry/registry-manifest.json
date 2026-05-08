@@ -46,6 +46,15 @@
       "description": "Generated registry view for service operation IDs across HTTP, gRPC, and message-queue surfaces."
     },
     {
+      "name": "capability_actions",
+      "file": "registry/capability-action-registry.json",
+      "kind": "capability_action_registry",
+      "source_role": "generated",
+      "source_of_truth": false,
+      "generated_from": "registry/contract-catalog.json",
+      "description": "Generated registry view for canonical capability action vocabulary, risk tiers, required constraints, and event_kind targets."
+    },
+    {
       "name": "registry_manifest",
       "file": "registry/registry-manifest.json",
       "kind": "registry_index",

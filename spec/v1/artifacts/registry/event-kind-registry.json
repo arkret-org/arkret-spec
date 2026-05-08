@@ -14,7 +14,8 @@
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Move/Anchor history.",
-    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, and bottom. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; lattice is one of or-set, mv-register, cas-register, fsm, counter, ordered-log; bottom is reject or expose.",
+    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, and bottom. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose.",
+    "Lattice MUST be one of: core types or-set, mv-register, cas-register, fsm, counter, ordered-log; or extension types lww-register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement cx.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww-register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww-register or rga.",
     "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority."
   ],
   "payload_schema_contract": {
@@ -502,77 +503,6 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Set Flow primary branch"
-    },
-    {
-      "event_kind": "cx.flow.branch.member",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Flow discussion branch membership state",
-      "state_subject_scope": "flow_id+branch+actor_id",
-      "state_subject_scope_note": "Reducer slot key combines envelope-level flow_id, payload.branch, and payload.actor_id; see flow-branch documentation.",
-      "cell_family": "cx.component.flow.branch.member.v1",
-      "cell_subject": {
-        "type": "did",
-        "field": "payload.actor_id"
-      },
-      "lattice": "fsm",
-      "bottom": "reject"
-    },
-    {
-      "event_kind": "cx.flow.branch.history_visibility",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Flow discussion branch history visibility state",
-      "cell_family": "cx.component.flow.branch.history_visibility.v1",
-      "cell_subject": {
-        "type": "composite",
-        "components": [
-          "envelope.flow_id",
-          "payload.branch"
-        ]
-      },
-      "lattice": "ordered-log",
-      "bottom": "expose"
-    },
-    {
-      "event_kind": "cx.flow.branch.policy_components",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Flow discussion branch policy component state",
-      "cell_family": "cx.component.flow.branch.policy_components.v1",
-      "cell_subject": {
-        "type": "composite",
-        "components": [
-          "envelope.flow_id",
-          "payload.branch"
-        ]
-      },
-      "lattice": "ordered-log",
-      "bottom": "expose"
-    },
-    {
-      "event_kind": "cx.flow.branch.read_receipt_policy",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Flow discussion branch read receipt disclosure policy override (tightens parent Space policy)",
-      "cell_family": "cx.component.flow.branch.read_receipt_policy.v1",
-      "cell_subject": {
-        "type": "composite",
-        "components": [
-          "envelope.flow_id",
-          "payload.branch"
-        ]
-      },
-      "lattice": "cas-register",
-      "bottom": "reject"
     },
     {
       "event_kind": "cx.flow.move",

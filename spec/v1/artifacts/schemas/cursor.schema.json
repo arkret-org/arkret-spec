@@ -2,16 +2,25 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/cursor.schema.json",
   "title": "Contrix Cursor",
+  "description": "Single opaque cursor type. Used as both stream continuation token (incremental sync, list pagination — 'since', 'after_cursor', 'prev_cursor', 'next_cursor') and barrier token (read-your-writes wait — 'X-Contrix-Wait-For'). The wire form is always cx:cursor:<base64url(canonical_json)>. Clients MUST treat the wire form as opaque; only the issuing server reads the inner structure. The 'purpose' field discriminates how the cursor is consumed.",
   "type": "object",
   "required": [
     "v",
+    "purpose",
     "t",
-    "s",
     "x"
   ],
   "properties": {
     "v": {
       "const": "1"
+    },
+    "purpose": {
+      "type": "string",
+      "enum": [
+        "stream",
+        "barrier"
+      ],
+      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync (use as 'since' on /sync, 'after_cursor' on /federation/pull-operations, etc.). 'barrier' = read-your-writes / wait-for-event cursor (use in X-Contrix-Wait-For header to block until local frontier covers target.event_id). 'stream' cursors MAY include 's' (Space frontiers) and 'd' (device positions). 'barrier' cursors MUST include 'target'."
     },
     "t": {
       "type": "string",
@@ -20,6 +29,7 @@
     },
     "s": {
       "type": "object",
+      "description": "Per-Space frontier (stream cursors). Key is space_id; value pins the frontier this cursor describes for that Space.",
       "patternProperties": {
         "^cx:space:[0-9a-hjkmnp-z]{26}$": {
           "type": "object",
@@ -52,10 +62,34 @@
     },
     "d": {
       "type": "object",
+      "description": "Device-message stream positions (stream cursors).",
       "patternProperties": {
         "^.+$": {
           "type": "string",
           "pattern": "^cx:devmsg:[0-9a-hjkmnp-z]{26}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "description": "Required when purpose='barrier'. Identifies the specific event whose causal frontier the consumer must reach before answering.",
+      "required": [
+        "event_id",
+        "event_digest"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+        },
+        "event_digest": {
+          "type": "string",
+          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+        },
+        "space_id": {
+          "type": "string",
+          "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
         }
       },
       "additionalProperties": false
@@ -65,6 +99,25 @@
       "minimum": 0
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "purpose": {
+            "const": "barrier"
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "then": {
+        "required": [
+          "target"
+        ]
+      }
+    }
+  ],
   "patternProperties": {
     "^_[A-Za-z0-9_]*$": {
       "description": "Server-private fields (compression flags, MACs, signatures). Names MUST start with underscore. Excluded from cursor migration translation; included in canonical bytes for the local server's MAC/integrity check."

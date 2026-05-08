@@ -82,7 +82,6 @@ Schema id: `cx.schema.space.v1`
 | `schema` | yes | `cx.schema.space.v1` | 固定为 Space schema id。 | 对象 schema。 |
 | `title` | yes | `string` | 1..256 UTF-8 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
-| `kind` | yes | `enum(collaboration)` | v1 唯一标准 kind。`cx:space:` **永远是** security/sync/auth/E2EE 边界——结构性分组（board / list / swimlane / 等）由独立的 Place 对象（`cx:place:`）承担，见 §4a。产品语义通过 `Space.fields` / `schema_refs` / `labels` / `security_class` 表达；自定义 kind SHOULD 放在 `fields`。 | Space 语义类别。 |
 | `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`，并 SHOULD 使用更严的 resolver / E2EE / 审计默认值。schema enforce 见 `space.schema.json`。 | 安全等级标签。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
@@ -241,7 +240,9 @@ Schema id: `cx.schema.flow.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-`branches` 是 active branch 定义数组。标准 branch name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 branch name。`synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`discussion` 在启用时承载讨论能力，例如 `profile`、timeline profile 与 branch-local fields。Branch 的成员、权限和 E2EE 默认继承 Flow / Space 的有效访问规则；只有 `branches[].access` 或对应 policy/capability state event 明确声明 `branch_scoped` 时，才形成 branch-scoped membership、history visibility 或 E2EE 边界。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非有效 access policy 明确把它们映射为授权条件。
+`branches` 是 active branch 定义数组。标准 branch name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 branch name。`synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`discussion` 在启用时承载讨论能力，例如 `profile`、timeline profile 与 branch-local fields。
+
+**Branch 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Branch 的访问语义完全继承自所属 Space（或 `discussion_space_ref` 指向的 child Space，见下文）。早期 v1 草案曾允许 `branches[].access` 子对象表达 `branch_scoped` 的 hybrid 模型，该机制已被移除——任何需要独立访问域的 discussion 必须升级为 child Space。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非 Space policy 明确把它们映射为授权条件。
 
 `FlowBranch` 字段：
 
@@ -249,28 +250,24 @@ Schema id: `cx.schema.flow.v1`
 | --- | --- | --- | --- | --- |
 | `name` | yes | `string` | `^[a-z][a-z0-9_]{0,63}$`；同一 Flow 内唯一。 | Branch 稳定名。 |
 | `is_primary` | no | `boolean` | 同一 Flow 至多一个 branch 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
-| `profile` | no | `string` | 由 Space schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | branch 交互 profile。 |
-| `access` | no | `object` | 缺省继承 Flow / Space；显式值见下表。 | 分支访问继承或 override。 |
-| `fields` | no | `object` |  | branch-local 扩展字段。 |
+| `profile` | no | `string` | 由 Space schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | branch 交互 profile（pure UI hint）。 |
+| `template` | no | `string` | branch profile 可声明结构模板。 | 模板引用。 |
+| `fields` | no | `object` |  | branch-local 扩展字段（pure UI hint，不影响访问）。 |
 
-`FlowBranch.access` 字段：
+#### 6.1.1 Discussion 独立 Space（替代 branch_scoped）
+
+需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，**不再**通过 branch hybrid 表达，而是创建一个 child Space 并通过 Flow.discussion_space_ref 引用：
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `membership` | no | `enum(inherit_flow, inherit_space, branch_scoped)` | 缺省 `inherit_flow`。 | 成员继承方式。 |
-| `permissions` | no | `enum(inherit_flow, inherit_space, branch_scoped)` | 缺省 `inherit_flow`。 | 权限继承方式。 |
-| `history_visibility` | no | `enum(world_readable, shared, invited, joined, restricted)` | branch-scoped discussion + E2EE 缺省 SHOULD 为 `joined`。 | 历史可见性。 |
-| `e2ee` | no | `enum(inherit_space, inherit_flow, branch_scoped, none)` | 缺省 `inherit_space`。`none` **仅**当所属 Space `encryption_profile == "none"` 时合法；E2EE Space（`encryption_profile ∈ {mls_rfc9420, external}`）下 branch MUST NOT 声明 `e2ee="none"`，否则 `schema_violation`。 | 加密继承方式。 |
-| `encryption_profile` | no | `enum(none, mls_rfc9420, external)` | `e2ee=branch_scoped` 时 SHOULD 设置。 | 加密 profile。 |
-| `membership_policy_ref` | no | `id:policy` |  | branch-scoped membership policy 引用。 |
+| `discussion_space_ref` | no | `id:space` | 必须是同 organization / federation 范围内的 Space。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该子 Space 承载。 |
 
-`FlowBranch.access` 继承求值规则：
+规则：
 
-1. `inherit_flow` 表示先取 Flow-scoped policy/capability override；若 Flow 未声明对应规则，再回退到 Space 当前有效规则。
-2. `inherit_space` 表示跳过 Flow override，直接使用 Space membership、history visibility、permission 或 E2EE policy。
-3. `branch_scoped` 表示该 branch 必须有可验证的 branch-local state event、policy component 或 capability constraint；缺失时 reducer / authz MUST fail closed，而不是自动回退。
-4. `permissions` 与 `membership` 分开求值：成员资格只说明谁属于候选集合，具体动作仍必须命中 `capabilities.md` 中的 action、resource selector 和 constraints。若 `permissions=inherit_flow` 且 `membership=branch_scoped`，写入者必须同时满足 branch membership 和 Flow/Space 继承来的具体动作授权。
-5. `e2ee=branch_scoped` 时，MLS group 的 `application_state_ref.membership_frontier` MUST 覆盖 branch membership frontier；否则客户端只能把对应 epoch 视为 `decryption_pending` / `state_mismatch`。
+- 未设置 `discussion_space_ref` 时，discussion 时间线事件直接写在 Flow 所属 Space，访问规则完全等于父 Space。
+- 设置 `discussion_space_ref` 时，所有 discussion-side `cx.message.*` / `cx.reaction.*` / branch membership 写入 MUST 使用该 child Space 的 `space_id`；Flow synthesis 和 discussion 是两个独立 reducer 视图，不共享 cell。
+- 同一 Flow MUST NOT 同时存在 branch hybrid（不存在）+ child Space 引用——hybrid 已废弃，只有 child Space 一种方式。
+- Flow 的 parent Space 与 `discussion_space_ref` Space 之间的关系建议用 `cx.space.parent` / `cx.space.child` 或独立的 governance 关系表达；reducer 不强制 hierarchy，授权仍按各自 Space policy 独立判断。
 
 Primary branch 解析规则：
 

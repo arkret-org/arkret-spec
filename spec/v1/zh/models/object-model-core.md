@@ -199,7 +199,6 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
   "id": "cx:space:01js0sp0000000000000000000",
   "schema": "cx.schema.space.v1",
   "title": "Launch Plan",
-  "kind": "collaboration",
   "created_by_principal": "did:web:acme.example",
   "schema_refs": [
     "cx.schema.space.v1"
@@ -497,9 +496,9 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 
 ## 12. Event
 
-Event 是 reducer 输入和审计事实。
+Event 是 reducer 输入和审计事实。Reducer-input event 在顶层带 `preconditions[]` / `effects[]` / `anchor_ref`；非 reducer event 不带这三个字段。
 
-最小 envelope：
+最小 reducer-input event：
 
 ```json
 {
@@ -513,10 +512,22 @@ Event 是 reducer 输入和审计事实。
   "prev_refs": [
     "cx:event:01js0et0000000000000000000"
   ],
-  "auth_refs": [
-    "cx:event:01js0sp0000000000000000000",
-    "cx:event:01js0ms0000000000000000000"
+  "refs": [
+    { "id": "cx:grant:01js0gr0000000000000000000", "role": "authorized_by", "critical": true }
   ],
+  "preconditions": [
+    {
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+      "predicate": { "op": "head_eq", "value": { "fields.status": "in_progress" } }
+    }
+  ],
+  "effects": [
+    {
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+      "op": { "type": "set", "value": { "fields.status": "done" } }
+    }
+  ],
+  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "flow_id": "cx:flow:01js0cd0000000000000000000",
     "patch": {

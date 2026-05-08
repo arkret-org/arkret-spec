@@ -4,11 +4,12 @@
   "title": "Contrix Client Sync Response",
   "type": "object",
   "required": [
-    "next_batch"
+    "cursor"
   ],
   "properties": {
-    "next_batch": {
-      "$ref": "#/$defs/cursor_value"
+    "cursor": {
+      "$ref": "#/$defs/cursor_value",
+      "description": "Stream cursor (purpose='stream') describing the frontier covered by this response. Pass it back as the 'since' field on the next /sync call."
     },
     "spaces": {
       "type": "object",
@@ -108,8 +109,9 @@
         "limited": {
           "type": "boolean"
         },
-        "prev_batch": {
-          "$ref": "#/$defs/cursor_value"
+        "prev_cursor": {
+          "$ref": "#/$defs/cursor_value",
+          "description": "Stream cursor pointing backward in the timeline for backfilling history before this batch."
         }
       },
       "additionalProperties": true
@@ -138,21 +140,21 @@
         "unread_notifications": {
           "type": "object"
         },
-        "move_states": {
+        "event_states": {
           "type": "array",
-          "description": "Per-Move protocol-state views (move_id + move_state + optional bottom diagnostic) for Moves carried by this entry. See zh/sync/service-surface.md §5.5.",
+          "description": "Per-event protocol-state views (event_id + event_state) for reducer-input events carried by this entry. The 'bottom' detail object lives separately in 'bottoms' below — keyed by cell, not duplicated per event — so wire body is not doubled. Receivers correlate event_state=failed_bottom with the cell-level bottom diagnostic via the cells listed in bottom.cells[]. See zh/sync/service-surface.md §5.5.",
           "items": {
             "type": "object",
             "required": [
-              "move_id",
-              "move_state"
+              "event_id",
+              "event_state"
             ],
             "properties": {
-              "move_id": {
+              "event_id": {
                 "type": "string",
-                "pattern": "^cx:move:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+                "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
               },
-              "move_state": {
+              "event_state": {
                 "type": "string",
                 "enum": [
                   "pending_anchor",
@@ -163,8 +165,9 @@
                   "anchorer_paused"
                 ]
               },
-              "bottom": {
-                "$ref": "./bottom.schema.json"
+              "reason": {
+                "type": "string",
+                "description": "Optional short reason code (e.g., 'recovery_witness_missing'). For failure detail beyond the enum."
               }
             },
             "additionalProperties": false

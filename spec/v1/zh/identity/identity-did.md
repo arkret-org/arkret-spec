@@ -76,14 +76,7 @@ did:webvh:<scid>:<host-and-path>
 - DNS 劫持、TLS 证书失窃或域名转移在 `did:web` 上是静默的——攻击者可以替换 DID Document 而不留任何可被 verifier 检测的证据。`did:webvh` 通过 entry hash chain + controller proof + witness 让任何身份控制权变更都进入可验证账本，与 Contrix 自身 signed-event chain 范式同构。
 - 它与 Contrix 的 service DID（service endpoint 仍可使用 `did:web`）兼容，部署门槛仅比 `did:web` 多一份 `did.jsonl` 文件。
 
-为什么 `did:web` 不再是 v1 core principal 默认：`did:web` 没有可验证 DID 文档历史，攻击者控制 hosting domain 后可以把 DID Document 替换成自己的 `verificationMethod` 而 verifier 无从检测。把它作为长期 principal 默认会让协议安全模型整体退化到 DNS+TLS 强度。
-
-> **从 v1-pre-rc 演进的兼容性**：早期 v1 草案曾把 v1 core 默认收紧为 `did:web` 以降低
-> 对仍在演进规范的依赖；该决定在威胁建模复审后被反转。现行 v1 把 principal 默认重新设定
-> 为 `did:webvh`，并把 v1 core MUST-support 范围扩展到 `did:webvh`。已经使用 `did:web`
-> 的 v1-pre-rc principal SHOULD 通过 §4.2.2 的跨 method 迁移路径升级到 `did:webvh`；在
-> 升级窗口内（默认不超过 90 天），part of v1 core compliance gate MAY 接受 `did:web`
-> principal，但 conformance 报告 MUST 标记为 `pending_webvh_migration`。
+为什么 `did:web` 不能是 v1 core principal 默认：`did:web` 没有可验证 DID 文档历史，攻击者控制 hosting domain 后可以把 DID Document 替换成自己的 `verificationMethod` 而 verifier 无从检测。把它作为长期 principal 默认会让协议安全模型整体退化到 DNS+TLS 强度。
 
 默认值只表示"当系统需要为新用户创建 principal DID、且用户未明确选择其他 method 时使用 `did:webvh`"。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、（可选的）历史验证和服务委托验证。
 

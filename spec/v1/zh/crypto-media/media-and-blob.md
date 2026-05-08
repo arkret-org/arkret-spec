@@ -96,7 +96,7 @@ GET /api/v1/blob/get?blob_ref=<ref>
 | `blob_ref` | query | `string` | required | 内容寻址 blob 引用。 |
 | `Authorization` | header | `bearer token` 或 `device proof` | 私有 blob required | 调用者认证。 |
 | `Range` | header | `string` | optional | Range 下载范围。 |
-| `X-Contrix-Wait-For` | header | `token` | optional | 等待授权物化到指定 sync token。 |
+| `X-Contrix-Wait-For` | header | `cursor` | optional | barrier cursor（`purpose=barrier`）；服务端在 frontier 覆盖该 cursor 描述的 target event 前阻塞响应。 |
 
 响应字段 / header：
 
@@ -133,13 +133,13 @@ Retention 与 erasure 规则：
 
 ```text
 Authorization: Bearer <session_token>
-X-Contrix-Wait-For: <sync_token>
+X-Contrix-Wait-For: <cursor>
 Range: bytes=<start>-<end>
 ```
 
 规则：
 
-- `X-Contrix-Wait-For` 用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 token，超时返回 `stale_frontier` 或 `temporarily_unavailable`。
+- `X-Contrix-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `stale_frontier` 或 `temporarily_unavailable`。
 - 下载授权 MUST 绑定 actor DID、device/session、Space id、blob ref、purpose 和过期时间。服务端不得只凭 URL 随机串放行私有媒体。
 - 受保护下载 MUST NOT 接受 query string 中的 session、access token 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。

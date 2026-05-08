@@ -32,7 +32,7 @@ Contrix v1 的 canonical history 由 signed Move、Anchor DAG 与 per-cell Latti
 
 ## 3. Move
 
-Move 的 wire schema 见 [`move.schema.json`](../../artifacts/schemas/move.schema.json)。Normative 形态：
+Reducer-input event 的 wire schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) — Move 语义已并入顶层 event。Normative 形态：
 
 ```text
 Move {
@@ -59,7 +59,7 @@ Move {
 
 ### 3.1 Predicate
 
-核心 predicate（wire 字段 `{op, value?, values?, predicate_id?}`，schema 见 [`move.schema.json`](../../artifacts/schemas/move.schema.json) `predicate`）：
+核心 predicate（wire 字段 `{op, value?, values?, predicate_id?}`，schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) `predicate`）：
 
 | `op` | 必填字段 | 语义 |
 | --- | --- | --- |
@@ -72,7 +72,7 @@ Predicate 不得读取本地数据库顺序、HTTP 到达时间、未签名服�
 
 ### 3.2 Effect
 
-Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容。`lattice_op` 的 wire 字段为 `{type, tag?, value?, from?, to?, reason?, issuer_seq?}`（schema 见 [`move.schema.json`](../../artifacts/schemas/move.schema.json) `lattice_op`）：
+Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容。`lattice_op` 的 wire 字段为 `{type, tag?, value?, from?, to?, reason?, issuer_seq?}`（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) `lattice_op`）：
 
 | Lattice type | `op.type` | 必填字段 | 可选字段 |
 | --- | --- | --- | --- |
@@ -152,7 +152,7 @@ leaf_hash  = H(leaf_input)
 
 `bottom.anchor_view` 必须省略，因为 state_root 自身已经定义于一个具体的
 Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定性。
-`bottom` 的其他字段（`kind` / `cells[]` / `move_ids[]` / `heads[]` / `details` /
+`bottom` 的其他字段（`kind` / `cells[]` / `event_ids[]` / `heads[]` / `details` /
 `escalated_at`）保留进 leaf——它们是该 cell 在该 view 下状态的一部分，跨 view
 可能不同，是 state_root 必须捕获的差异。
 
@@ -274,7 +274,7 @@ Bottom {
   kind         ∈ {conflict, invalid_transition, missing_dependency,
                   unauthorized, anchorer_split, schema_error}
   cells[]      cell_ids 参与诊断（多 cell 原子 Move 失败时 >1）
-  move_ids[]   anchored Move ids 触发该诊断（结构性 ⊥ 可为空）
+  event_ids[]   anchored Move ids 触发该诊断（结构性 ⊥ 可为空）
   anchor_view? {leaves[], state_root?} 观察该 ⊥ 的 Anchor view，便于复算
   heads[]?     kind=conflict 时候选 head 值；UI / 审计可见，授权 MUST NOT 据此选 winner
   details?     kind-specific structured details
@@ -282,7 +282,7 @@ Bottom {
 }
 ```
 
-`bottom=reject` 的 cell 被 Move precondition 读取时，Move MUST fail closed（state code `failed_bottom`），错误至少包含 `cells[]` 与 `move_ids[]`。`bottom=expose` 的 cell MAY 返回 `{status:"conflict", heads:[...]}` 给 projection；它不得被授权路径当作 allow。
+`bottom=reject` 的 cell 被 Move precondition 读取时，Move MUST fail closed（state code `failed_bottom`），错误至少包含 `cells[]` 与 `event_ids[]`。`bottom=expose` 的 cell MAY 返回 `{status:"conflict", heads:[...]}` 给 projection；它不得被授权路径当作 allow。
 
 `anchorer_split` 是特殊 kind：当 anchorer cell（cas-register, bottom=reject）出现并发 set 时该诊断生效；它对应 §13 的 `anchorer_paused` Space 状态，仅 recovery anchorer / emergency quorum 签发的 Anchor 可恢复推进。
 
@@ -315,19 +315,36 @@ Lattice `join()` 输入是 Move set，而不是本地接收序列。需要顺序
 
 #### 5.3.1 `or-set`
 
-Observed-remove set。每个 add op 必须携带唯一 `tag`；remove op 引用同 `tag`。Tag 由提交方按 `cell_subject` 内规则确定性派生（如 `<grant_kind>:<peer>:<scope>`），允许同一 (cell, semantics) 上不同 Move 共享 tag 自动幂等。
+真正的 observed-remove set，按 **dot** 收敛。
+
+- 每个 add op MUST 携带 `dot = "<move.id>:<effect_index>"`，由 add op 所在 Move 的 content-addressed `move.id` 与该 effect 在 `effects[]` 中的 0-based 下标拼接而成。`move.id` 已经全局唯一，dot 因此天然唯一。
+- 每个 remove op MUST 携带 `observed_dots: [dot, ...]`——它枚举 remove issuer 在 `Move.anchor_ref` 对应 pre-state 下能看到的、想要撤销的具体 add dot。`observed_dots` MUST 升序去重，且每条 dot 必须能在该 anchor view 下解析为合法 add op。
+- Add op MAY 在 `value` 内嵌入 schema-defined `intent` 字段（例如 consent 的 `(consent_id, peer, scope)` 元组）。`intent` 不参与 lattice join；它只是 projection 层把同 intent 的多 dot 折叠成一条 UI/审计行的辅助数据。
 
 ```text
-join(moves) -> Set<{tag, value}>:
-  adds   = { (eff.tag, eff.value) | M ∈ moves, eff ∈ M.effects, eff.op.type=="add" }
-  removes = { eff.tag | M ∈ moves, eff ∈ M.effects, eff.op.type=="remove" }
-  return  { (t, v) ∈ adds | t ∉ removes }
+join(moves) -> Set<(dot, value)>:
+  adds          = { (eff.dot, eff.value)
+                    | M ∈ moves, eff ∈ M.effects, eff.op.type=="add" }
+  observed_dots = ⋃ { set(eff.observed_dots)
+                      | M ∈ moves, eff ∈ M.effects, eff.op.type=="remove" }
+  return        { (d, v) ∈ adds | d ∉ observed_dots }
 
 validate_op(op):
   op.type ∈ {add, remove}
-  op.tag matches schema tag pattern (non-empty, deterministic)
-  if add: op.value satisfies schema
+  if add:
+    op.dot      == "<enclosing_move.id>:<effect_index>"
+    op.value satisfies schema
+  if remove:
+    op.observed_dots is a finite, sorted, deduplicated list of dot strings
+    each dot in op.observed_dots resolves to an add effect
+      visible at enclosing Move's anchor_ref pre-state
 ```
+
+**Regrant 语义**：先 add(d1)、再 remove(observed=[d1])、再 add(d2) 是合法序列；d2 的 dot 不在任何 `observed_dots` 中，因此 join 后 d2 仍 active。这与 v1-pre-rc 草案中"deterministic tag → add 后 remove 永久无法 regrant"的副作用相反；新规范明确支持 regrant。
+
+**Idempotency**：dot 由 `move.id` 派生，因此相同 add op 跨节点重放不产生重复 dot，但不同 issuer 对同一 intent 的并发 add 会产生不同 dot——这是 OR-Set 的预期行为，去重落在 projection / 授权判定（"intent 是否当前 active = 该 intent 下 ≥1 dot 仍在 join 集合"）。
+
+**部分撤销**：remove op 只 invalidates 它枚举的 dots。撤销整个 intent 需要 issuer 列出该 intent 下当前所有 active dots；missing 一些就只是部分撤销，剩余 dot 仍 active。这是 OR-Set 的 normative 语义，不是 bug。
 
 `bottom` 永远不出现（or-set 总有合法 join 值）。`bottom=expose` 仅用于 projection 在多 head 场景把 add/remove 并发可视化，不影响协议授权判断。
 
@@ -750,7 +767,7 @@ Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须�
 | `rejected_anchor` | Anchor 签名、单调性、Move batch 或 state_root 校验失败。 | — |
 | `anchorer_paused` | anchorer cell 为 `⊥`；Space-wide Anchor 推进暂停，只允许 recovery Anchor。 | `anchorer_split`（§5.1）。 |
 
-实现 MAY 在 API 层继续使用兼容错误码，但必须映射到本表语义。Move 的当前状态字段在 sync wire 上以 `move_state` 暴露（见 [`sync/service-surface.md`](../sync/service-surface.md) §5.5）。
+实现 MAY 在 API 层继续使用兼容错误码，但必须映射到本表语义。Move 的当前状态字段在 sync wire 上以 `event_state` 暴露（见 [`sync/service-surface.md`](../sync/service-surface.md) §5.5）。
 
 ## 14. 规模上限
 

@@ -106,9 +106,9 @@
           "event_id": "cx:event:01js0ew0000000000000000000",
           "kind": "cx.flow.update",
           "hlc": "01970e589d23-0001-a13f9c2e",
-          "auth_refs": [
-            "cx:event:01js0eg0000000000000000000"
-          ],
+          "refs": [
+          { "id": "cx:event:01js0eg0000000000000000000", "role": "authorized_by", "critical": true }
+        ],
           "payload": {
             "target_ref": "cx:flow:01js0ca0000000000000000000",
             "patch": {

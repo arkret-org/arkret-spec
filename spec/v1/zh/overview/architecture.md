@@ -406,7 +406,7 @@ Principal Server 不可以：
 - 给出当前态
 - 提供搜索
 - 给出看板/列表/图投影
-- 依据 `sync_token` 提供强一致性屏障
+- 依据 barrier `cursor` 提供强一致性屏障（read-your-writes）
 
 这些派生输出不能作为唯一可验证来源。
 

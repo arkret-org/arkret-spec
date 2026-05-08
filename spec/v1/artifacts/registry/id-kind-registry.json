@@ -43,13 +43,6 @@
       "description": "Room/Space-scoped pseudonymous credential reference; validated by the E2EE profile."
     },
     {
-      "kind": "move",
-      "wire_form": "cx:move:sha256:<digest>",
-      "status": "active",
-      "storage_recommendation": "Store as a content-addressed canonical Move hash.",
-      "description": "Content-addressed Move identifier."
-    },
-    {
       "kind": "anchor",
       "wire_form": "cx:anchor:sha256:<digest>",
       "status": "active",
@@ -302,13 +295,6 @@
       "status": "active",
       "wire_form": "cx:space:<ulid>",
       "description": "Space object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
-    },
-    {
-      "kind": "sync",
-      "category": "transport",
-      "status": "active",
-      "wire_form": "cx:sync:<ulid>",
-      "description": "Sync token/checkpoint ID when not using opaque cursor form"
     },
     {
       "kind": "txn",

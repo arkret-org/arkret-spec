@@ -25,7 +25,7 @@ Content-Type: application/json
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
-| `since` | body | `token` | optional | 上次 `next_batch`；缺省表示初始同步。 |
+| `since` | body | `cursor` | optional | 上次响应中的 `cursor`（purpose=`stream`）；缺省表示初始同步。 |
 | `timeout_ms` | body | `int` | optional | 长轮询等待时间上限。 |
 | `set_presence` | body | `enum(online,offline,unavailable)` | optional | 同步时设置当前设备 presence。 |
 | `filter` | body | `object` | optional | 过滤条件。 |
@@ -41,7 +41,7 @@ Content-Type: application/json
 
 ```json
 {
-  "since": "sync_opaque_token",
+  "since": "cx:cursor:eyJ2IjoxfQ",
   "timeout_ms": 30000,
   "set_presence": "online",
   "filter": {
@@ -69,7 +69,7 @@ Content-Type: application/json
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `next_batch` | `token` | required | 下次同步使用的 opaque token。 |
+| `cursor` | `cursor` | required | 下次同步使用的 opaque stream cursor（`cx:cursor:<base64url>`，purpose=`stream`）。客户端 MUST 直接作为 `since` 回传，不得解析。 |
 | `spaces` | `object` | optional | Contrix 原生 Space 聚合同步结果，按 `join` / `invite` / `knock` / `leave` 分桶；每个 bucket 以 `cx:space:*` 为 key。 |
 | `to_device` | `object` | optional | 当前设备 to-device 消息。 |
 | `device_lists` | `object` | optional | 设备列表变化。 |
@@ -81,7 +81,7 @@ Content-Type: application/json
 
 ```json
 {
-  "next_batch": "sync_opaque_token_2",
+  "cursor": "cx:cursor:eyJ2IjoxLCJwIjoic3RyZWFtIn0",
   "spaces": {
     "join": {},
     "invite": {},
@@ -121,9 +121,9 @@ Sync 响应包含以下 stream：
 | `applet` | 持久/短暂 | Applet delivery receipt、bridge health |
 | `blob_status` | 派生 | upload scan、thumbnail、retention 状态 |
 
-客户端 MUST 使用 `next_batch` 作为唯一 resume token，不得解析 token 内部结构。
+客户端 MUST 使用 `cursor` 作为唯一 resume token，不得解析 token 内部结构。
 
-`receipts`、`notifications` 和高频 actor-private `read_marker` delta MAY 被服务端合并；同一 scope 在一个 sync 窗口内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`next_batch` 只承诺覆盖响应中声明的最终 stream positions。
+`receipts`、`notifications` 和高频 actor-private `read_marker` delta MAY 被服务端合并；同一 scope 在一个 sync 窗口内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖响应中声明的最终 stream positions。
 
 ## 4. Space Buckets
 
@@ -141,7 +141,7 @@ Sync 响应包含以下 stream：
   "timeline": {
     "events": [],
     "limited": false,
-    "prev_batch": "page_token"
+    "prev_cursor": "cx:cursor:eyJ2IjoxLCJwIjoic3RyZWFtIn0"
   },
   "state": {"events": []},
   "state_after": {"events": []},
@@ -159,7 +159,7 @@ Sync 响应包含以下 stream：
 }
 ```
 
-如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_batch`、`next_batch`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `sync_token_expired`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。
+如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `cursor_expired`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。
 
 ## 5. State After
 
@@ -216,14 +216,14 @@ event_id ASC
 
 ```json
 {
-  "next_batch": "sync_opaque_token",
+  "cursor": "cx:cursor:eyJ2IjoxLCJwIjoic3RyZWFtIn0",
   "partial": true,
   "priority": "active_view",
   "spaces": {}
 }
 ```
 
-客户端 MUST treat `next_batch` as the only resume token. 如果某个 Space 的 timeline 返回 `limited=true`，客户端不得把当前窗口视为完整历史。
+客户端 MUST treat `cursor` as the only resume token. 如果某个 Space 的 timeline 返回 `limited=true`，客户端不得把当前窗口视为完整历史。
 
 ## 8. Lazy Loading Members
 
@@ -248,12 +248,12 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 ## 10. To-Device Delivery
 
-`to_device.events` MUST 只包含当前 access token 对应 device 的消息。服务器在发送某个 `next_batch` 后 MAY 认为其中 to-device 已投递；客户端如果未处理成功，必须通过本地事务日志恢复。
+`to_device.events` MUST 只包含当前 access token 对应 device 的消息。服务器在发送某个 `cursor` 后 MAY 认为其中 to-device 已投递；客户端如果未处理成功，必须通过本地事务日志恢复。
 
 To-device 队列过长时，服务器 MAY 返回 `limited=true` 并要求客户端调用：
 
 ```http
-GET /api/v1/device_messages?from=<token>&limit=...
+GET /api/v1/device_messages?from=<cursor>&limit=...
 ```
 
 ## 11. Filters
@@ -268,9 +268,9 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 超限返回 `rate_limited`、`payload_too_large` 或 `invalid_param`，并在 `Retry-After`、`retry_after_ms` 或 `limits` 中说明。
 
-## 12. Token Semantics
+## 12. Cursor Semantics
 
-`next_batch` MUST 绑定：
+`cursor`（purpose=`stream`）MUST 绑定：
 
 - principal id
 - device id
@@ -279,12 +279,14 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - stream positions
 - expiry
 
-服务端 MAY 拒绝过期 token，并返回 `sync_token_expired`。客户端应回退到 initial sync 或 snapshot-assisted initial sync，同时保留本地未确认写入队列。
+服务端 MAY 拒绝过期 cursor，并返回 `cursor_expired`。客户端应回退到 initial sync 或 snapshot-assisted initial sync，同时保留本地未确认写入队列。
+
+`cursor`（purpose=`barrier`）由写接口在响应中返回（见 [`api-conventions.md` §8](./api-conventions.md)），用于 `X-Contrix-Wait-For` header；它和 stream cursor 共享 wire 形态 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分。客户端不需要分辨，只需把"写响应里的 cursor"作为 wait-for header、把"`/sync` 响应里的 cursor"作为 `since` 即可。
 
 过期或缺口恢复流程：
 
-1. 客户端保留本地 `next_batch`、filter hash、未确认写入和最后可验证 frontier。
-2. 收到 `sync_token_expired` / `stale_frontier` 后，先调用 `sync/describe` 或 `sync/snapshot-head` 获取当前 frontier 与推荐 snapshot。
+1. 客户端保留本地 `cursor`、filter hash、未确认写入和最后可验证 frontier。
+2. 收到 `cursor_expired` / `stale_frontier` 后，先调用 `sync/describe` 或 `sync/snapshot-head` 获取当前 frontier 与推荐 snapshot。
 3. 若 snapshot 可用，客户端 MUST 验证签名、签名者授权、state hash、frontier 和 chunk digest 后再采用。
 4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `sync/backfill`，补齐缺口后再恢复 `sync/subscribe` 或 `POST /sync`。
 5. 若 snapshot 校验失败，客户端 MUST 回退到 Event history replay 或 Event-only backfill，并可将来源标记为 degraded。

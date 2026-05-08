@@ -36,6 +36,15 @@
     "state_root": {
       "$ref": "#/$defs/hash"
     },
+    "legacy_state_root": {
+      "$ref": "#/$defs/hash",
+      "description": "Hash-algorithm transition only: present iff this Anchor is a Transition Anchor under cx.profile.hash_transition.v1. When present, MUST be computed with the previous hash_profile algorithm over the same frontier as state_root, and MUST equal the receiver-recomputed legacy root before the new state_root is accepted. See event-auth-state-resolution.md §4.2.5."
+    },
+    "legacy_hash_profile": {
+      "type": "string",
+      "pattern": "^cx\\.profile\\.hash\\.[a-z0-9_]+\\.v[0-9]+$",
+      "description": "Profile id of the previous hash algorithm. Required iff legacy_state_root is present; absent on non-transition Anchors."
+    },
     "anchorer_sig": {
       "oneOf": [
         {
@@ -54,6 +63,24 @@
     }
   },
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "required": ["legacy_state_root"]
+      },
+      "then": {
+        "required": ["legacy_hash_profile"]
+      }
+    },
+    {
+      "if": {
+        "required": ["legacy_hash_profile"]
+      },
+      "then": {
+        "required": ["legacy_state_root"]
+      }
+    }
+  ],
   "$defs": {
     "anchor_ref": {
       "type": "string",

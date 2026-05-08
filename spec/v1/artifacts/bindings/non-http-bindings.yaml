@@ -65,12 +65,6 @@ grpc:
       Subscribe: cx.sync.subscribe
       Backfill: cx.sync.backfill
       GetSnapshotHead: cx.sync.get_snapshot_head
-    Federation:
-      Transaction: cx.federation.transaction
-      PushOperations: cx.federation.push_operations
-      PullOperations: cx.federation.pull_operations
-      SpaceMembers: cx.federation.space_members
-      VerifyActor: cx.federation.verify_actor
     Directory:
       Describe: cx.directory.describe
       SearchSpaces: cx.directory.search_spaces
@@ -170,7 +164,6 @@ mq:
     events.batch_get: cx.events.batch_get
     events.list: cx.events.list
     sync.client_sync: cx.sync.client_sync
-    federation.transaction: cx.federation.transaction
     directory.private_contact_discovery: cx.directory.private_contact_discovery
     keys.keypackages.upload: cx.keys.keypackages.upload
     keys.keypackages.claim: cx.keys.keypackages.claim

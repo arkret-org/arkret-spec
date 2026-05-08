@@ -2476,10 +2476,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "move": {
-          "$ref": "./move.schema.json",
-          "description": "Embedded Move object — reducer-input semantic for cx.flow.move."
         }
       },
       "additionalProperties": false
@@ -2517,9 +2513,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "move": {
-          "$ref": "./move.schema.json"
         }
       },
       "additionalProperties": false

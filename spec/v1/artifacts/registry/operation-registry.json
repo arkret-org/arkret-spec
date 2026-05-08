@@ -69,17 +69,6 @@
       ]
     },
     {
-      "surface": "federation",
-      "tier": "extension",
-      "operations": [
-        "cx.federation.transaction",
-        "cx.federation.push_operations",
-        "cx.federation.pull_operations",
-        "cx.federation.space_members",
-        "cx.federation.verify_actor"
-      ]
-    },
-    {
       "surface": "directory_discovery",
       "tier": "extension",
       "operations": [
@@ -422,36 +411,6 @@
       "http": "POST /events",
       "grpc": "Events/Submit",
       "mq": "events.submit"
-    },
-    {
-      "operation_id": "cx.federation.pull_operations",
-      "http": "GET /federation/pull-operations",
-      "grpc": "Federation/PullOperations",
-      "mq": "federation.pull_operations"
-    },
-    {
-      "operation_id": "cx.federation.push_operations",
-      "http": "POST /federation/push-operations",
-      "grpc": "Federation/PushOperations",
-      "mq": "federation.push_operations"
-    },
-    {
-      "operation_id": "cx.federation.space_members",
-      "http": "GET /federation/space-members",
-      "grpc": "Federation/SpaceMembers",
-      "mq": "federation.space_members"
-    },
-    {
-      "operation_id": "cx.federation.transaction",
-      "http": "PUT /federation/transactions/{txn_id}",
-      "grpc": "Federation/Transaction",
-      "mq": "federation.transaction"
-    },
-    {
-      "operation_id": "cx.federation.verify_actor",
-      "http": "POST /federation/verify-actor",
-      "grpc": "Federation/VerifyActor",
-      "mq": "federation.verify_actor"
     },
     {
       "operation_id": "cx.identity.describe_registry",

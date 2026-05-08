@@ -124,7 +124,7 @@ components:
               - rate_limited
               - timeout
               - stale_frontier
-              - sync_token_expired
+              - cursor_expired
               - unsupported_feature
               - unsupported_event_kind
               - projection_incomplete
@@ -265,12 +265,12 @@ components:
         recomputing the join.
       required:
       - move_id
-      - move_state
+      - event_state
       properties:
         move_id:
           type: string
           pattern: ^cx:move:sha256:[0-9a-f]{64}$
-        move_state:
+        event_state:
           type: string
           enum:
           - pending_anchor
@@ -334,7 +334,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DeviceMessageEnvelope'
-        next_batch:
+        next_cursor:
           type: string
         limited:
           type: boolean
@@ -1927,8 +1927,10 @@ paths:
       - in: header
         name: X-Contrix-Wait-For
         required: false
+        description: Barrier cursor (purpose=barrier) returned from a prior write. Server blocks the response until the local frontier covers target.event_id, or returns timeout / stale_frontier / temporarily_unavailable.
         schema:
           type: string
+          pattern: '^cx:cursor:.+$'
       requestBody:
         required: true
         content:
@@ -1965,31 +1967,6 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/snapshot.schema.json
-  /federation/transactions/{txn_id}:
-    put:
-      operationId: cx.federation.transaction
-      security:
-      - httpMessageSignature: []
-      - mutualTls: []
-      parameters:
-      - in: path
-        name: txn_id
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Federation transaction result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OperationRequest'
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle
@@ -2610,58 +2587,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /federation/push-operations:
-    post:
-      operationId: cx.federation.push_operations
-      responses:
-        '200':
-          description: Federation event push transaction
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OperationRequest'
-  /federation/pull-operations:
-    get:
-      operationId: cx.federation.pull_operations
-      responses:
-        '200':
-          description: Federation event pull or backfill
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
-  /federation/space-members:
-    get:
-      operationId: cx.federation.space_members
-      responses:
-        '200':
-          description: Federation-visible Space members
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
-  /federation/verify-actor:
-    post:
-      operationId: cx.federation.verify_actor
-      responses:
-        '200':
-          description: Actor verification cache hint
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OperationRequest'
   /directory/describe:
     get:
       operationId: cx.directory.describe

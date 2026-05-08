@@ -28,54 +28,51 @@ Contrix v1 区分：
 - `sync_service`
 - `blob store`
 
-### 2.1 Event Store 与 Event/Move 关系
+### 2.1 Event Store 与 reducer-input Event
 
-Contrix v1 的唯一 wire / 传输单位是 **signed Event Envelope**。状态收敛的 reducer-input 语义是 **Move**（详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3）。两者不是并行的两套真相源——它们的关系是：
+Contrix v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）。早期草案分离的 "Envelope + 嵌入 Move" 双层结构已经合并：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read marker、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
 
-> **每个 reducer-input 的 Event Envelope 的 `payload` MUST 是一个有效 Move（按 `move.schema.json`）。Event Envelope 是 wire/transport 与 actor chain 的载体，Move 是 reducer 看到的语义。**
+Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3）：
 
-Wire / canonical 字段的对应关系（这条映射是 normative；偏离视为 v1 wire 不兼容）：
+| 字段 | 含义 |
+| --- | --- |
+| `event_id` (`cx:event:<ulid>`) | producer 在签名前分配的 typed ULID。被纳入 canonical bytes 由 `proof.payload_hash` 覆盖。 |
+| `actor_id` | 签发者 DID。 |
+| `space_id` | 所属 Space。 |
+| `actor_seq` | actor chain 单调序号。 |
+| `prev_refs[]` | actor chain 因果前序。 |
+| `refs[]` | 语义引用集合，每条 `{id, role, critical?}`；`role="authorized_by"` 是从前 v1 草案 `auth_refs[]` 迁移过来的字段；其他 role 包括 `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof`。 |
+| `preconditions[]` | reducer-input only：`[(cell, predicate)]`。任一不成立则整个 event FAIL。 |
+| `effects[]` | reducer-input only：`[(cell, lattice_op)]`。原子多 cell CAS。 |
+| `anchor_ref` | reducer-input only：本 event 提交时所对应的 Anchor DAG 节点。 |
+| `payload` | kind-specific 业务载荷（`cx.message.create.payload.content`、`cx.flow.update.payload.patch` 等）；它们是 effect 写入值的源数据，不替代 effects[]。 |
+| `proofs[]` | 至少一条 detached JWS，覆盖 canonical event bytes（不含 `proofs`、`unsigned`、`hlc`）。 |
+| `hlc` | advisory tie-breaker，**不进入 canonical bytes**（不被签名覆盖）。仅用于 timeline 展示。 |
 
-| Event Envelope 字段 | Move 字段 | 关系 |
-| --- | --- | --- |
-| `event_id` (`cx:event:<ulid>`) | `id` (`cx:move:<algo>:<hash>`) | 不同空间——`event_id` 是 transport-level 标识；`id` 是 Move 的 content-addressed hash。两者 MUST 同时出现在 Envelope 中（`event_id` 在外、`payload.move.id` 在 payload 内），并通过 `event_id ≡ canonical_hash(envelope_without_proofs)` 与 `move.id ≡ canonical_hash(move_without_sig)` 各自定义。 |
-| `actor_id` | `issuer` | MUST 字符串相等。reducer 与 verify_move 共用同一签名验证。 |
-| `space_id` | `space_id` | MUST 字符串相等。 |
-| `hlc` | `hlc` | MUST 字符串相等。HLC 是 advisory；Move 收敛由 Anchor + Lattice 决定，不读 HLC。 |
-| `prev_refs[]` | — | Envelope-only：actor chain 因果。Move 不引用 prev_refs 做收敛。 |
-| `auth_refs[]` | `refs[]` 中 `role="authorized_by"` 子集 | `auth_refs` 是 Envelope 视角的授权 Event 引用；Move `refs` 用 typed role 表达同一概念。Receiver MUST 至少把 `auth_refs[]` 中的每条对应 Move id 出现在 Move `refs[role="authorized_by"]` 中。 |
-| `proofs[]` (≥1) | `sig` | MUST 至少有一条 proof 由 Move `issuer` 控制密钥签发，且签名 payload 覆盖 canonical Move bytes。Envelope-level proof 与 Move sig 可以是同一签名材料的两种引用（推荐：proof.kind=`detached_jws`，jws 覆盖 `move.id` + outer envelope hash）。 |
-| `payload.move` | 整个 Move 对象 | reducer-input 事件的 payload `MUST` 包含 `move` 字段，其值是合法 `cx.schema.move.v1` Move 对象。 |
-| `payload.<other_fields>` | — | non-Move payload 字段（例如 `cx.message.create.payload.content`、`cx.flow.update.payload.patch`）由对应 event-payload schema 定义；它们是 Move `effects[].op.value` 的源数据。reducer SHOULD 从 Move effects 读取规范状态写入；payload 其他字段是 UI / projection / search 数据载体。 |
+非 reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.notification.read`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。它们只是 actor 私有或 ephemeral 信号，不进 anchor frontier、不写 cell、不参与 state_root。schema 已用 allOf if/then 静态强制此约束。
 
-非 reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.notification.read`、`cx.typing`、`cx.receipt.read`）**不**含 `payload.move`。它们只是 actor 私有或 ephemeral 信号，不进 anchor frontier、不写 cell、不参与 state_root。
-
-接收方 MUST 按以下顺序验证 reducer-input Event：
+接收方 MUST 按以下顺序验证 reducer-input event：
 
 1. Envelope schema validation（`cx.schema.event.v1`，含 canonical bytes / proofs[]）。
-2. `payload.move` 通过 `move.schema.json` validation。
-3. Envelope ↔ Move 字段对应（上表）成立。
-4. Envelope `proofs[]` 与 Move `sig` 至少有一条等价签名验证通过。
-5. `verify_move()`（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6）在该 Move 的 `anchor_ref` 对应 pre-state 下成立。
-6. 写入 Anchor pipeline。
+2. 至少一条 `proofs[]` 由 `actor_id` 控制密钥签发；签名 payload 覆盖 canonical event bytes（不含 proofs/unsigned/hlc）。
+3. `verify_event()`（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6）在该 event 的 `anchor_ref` 对应 pre-state 下成立。
+4. 写入 Anchor pipeline。
 
-任一步骤失败，整个 Event 被 reject 并回退原因（`schema_violation` / `signature_invalid` / `failed_precondition` / `failed_bottom` / etc.）。
-
-非 reducer 事件只走步骤 1（schema validation + Envelope hash + 签名验证），不走 Move pipeline。
+任一步骤失败，整个 event 被 reject 并回退原因（`schema_violation` / `signature_invalid` / `failed_precondition` / `failed_bottom` / etc.）。非 reducer 事件只走步骤 1+2。
 
 ### 2.1.1 Event Store
 
 Event Store 是 Principal Server、客户端、本地节点或授权副本保存 Event 的服务/存储能力。它不是独立权威对象，也不要求实现 atprotocol/Git 式数据仓库。实现可以用数据库、append-only file、Merkle log、object store、content-addressed block store 或其他存储引擎保存 Event；协议只要求下列语义可验证：
 
-- event store：保存 signed Event Envelope（reducer-input 事件的 payload 内嵌 Move）。
+- event store：保存 signed Event。
 - per-actor event chain：由 `actor_id`、`actor_seq` 和 `prev_refs` 表达 actor 自己的发布顺序。
 - frontier / cursor：按 actor、Space 或查询范围暴露调用方可见的同步前沿。
 - proof material：签名、hash、DID key 状态引用和可选 witness receipt。
-- Move/Anchor view：reducer-input 事件提取的 Move 集合 + 当前 Anchor DAG + state_root 视图。
+- Anchor view：reducer-input event 集合 + 当前 Anchor DAG + state_root 视图。
 
-网络上的 `/events/*` 是 Event 提交、读取、回填和前沿查询 API surface。接收方验证 Event 时 MUST 按 §2.1 顺序校验 Envelope + 嵌入 Move + verify_move。
+网络上的 `/events/*` 是 Event 提交、读取、回填和前沿查询 API surface。接收方验证 Event 时 MUST 按 §2.1 顺序校验。
 
-实现 MAY 发布 Event batch receipt、checkpoint、snapshot 或 witness receipt 加速恢复和审计，但这些对象不得成为 canonical history 的必经层，也不得替代 Event Envelope（含其内嵌 Move）本身的签名责任。
+实现 MAY 发布 Event batch receipt、checkpoint、snapshot 或 witness receipt 加速恢复和审计，但这些对象不得成为 canonical history 的必经层，也不得替代 Event 本身的签名责任。
 
 ### 2.2 Principal Server / Sync Service
 
@@ -95,10 +92,10 @@ Principal Server / Sync Service MUST NOT：
 
 Contrix 采用 Event-first 模型：
 
-1. actor/device/service 生成 signed Event Envelope。reducer-input 事件的 payload 内嵌一个合法 Move（§2.1）。
-2. `/events/*` 或等价 transport 接收 Envelope，校验 Envelope schema、签名、actor chain；对 reducer-input 事件额外提取 `payload.move` 走 verify_move + Anchor pipeline。
-3. Principal Server / Sync Service 同步调用方授权可见的 Space Event。Move 与 Anchor 的当前态 (`move_state` / `anchor view` / `state_root`) 通过同步 surface 暴露给客户端 reducer。
-4. client reducer 将 accepted Move 集合按 Lattice + Anchor frontier 归约为当前态；non-reducer Event（read marker / notification / typing 等）不进 cell。客户端可选择生成本地搜索索引和 View projection。
+1. actor/device/service 生成 signed Event。reducer-input event 在顶层带 `preconditions[]` / `effects[]` / `anchor_ref`（§2.1）。
+2. `/events/*` 或等价 transport 接收 event，校验 schema、签名、actor chain；对 reducer-input event 走 `verify_event` + Anchor pipeline。
+3. Principal Server / Sync Service 同步调用方授权可见的 Space Event。每个 reducer-input event 与 Anchor 的当前态 (`event_state` / `anchor view` / `state_root`) 通过同步 surface 暴露给客户端 reducer。
+4. client reducer 将 accepted reducer-input event 集合按 Lattice + Anchor frontier 归约为当前态；non-reducer event（read marker / notification / typing 等）不进 cell。客户端可选择生成本地搜索索引和 View projection。
 
 这套模型同时适用于：
 
@@ -135,17 +132,17 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
 
 Receipt 可用于 read-your-writes、回放完整性检查、witness 证明或跨服务 backfill 对账。接收方 MUST 能在没有 receipt 的情况下验证单个 Event；也 MUST NOT 因缺少 batch receipt 而拒绝格式、签名、授权和因果均有效的 Event，除非某个高安全 deployment profile 明确要求额外 witness。
 
-## 5. Wire Event Envelope
+## 5. Wire Event
 
-v1 的规范性 wire fact 只有 **Event Envelope**。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `data-structures.md` 中的 `cx.schema.event.v1` Event Envelope 作为共享状态事实输入。
+v1 的规范性 wire fact 只有 **Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。早期草案的 Envelope+Move 双层已经合并为单层 Event。
 
-Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event Envelope。SDK 可以定义本地 builder / draft 对象作为生成 Event Envelope 前的中间结构，但这种 builder 不进入协议 wire format，也不出现在 registry / schema 中——它属于 SDK 实现细节，不是 protocol normative 对象。
+Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event。SDK 可以定义本地 builder / draft 对象作为生成 Event 前的中间结构，但这种 builder 不进入协议 wire format，也不出现在 registry / schema 中——它属于 SDK 实现细节，不是 protocol normative 对象。
 
-Event Envelope 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs` 表示 actor event chain 前序，`auth_refs` 表示授权依赖。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `payload.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `payload` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`auth_refs`、`actor_seq` 和签名绑定。
+Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs` 表示 actor event chain 前序，`refs[]` 表示语义依赖（含授权 `role="authorized_by"`）。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `payload.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `payload` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
 
-如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event Envelope 顶层 `requirements` 对象中声明对应 `features` 或 `critical_extensions`。`requirements.{schema, reducer, features, critical_extensions}` 全部 MUST 进入 canonical event bytes、event digest 和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
+如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event 顶层 `requirements` 对象中声明对应 `features` 或 `critical_extensions`。`requirements.{schema, reducer, features, critical_extensions}` 全部 MUST 进入 canonical event bytes、event digest 和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
 
-Reducer-input Event Envelope 示例（payload 内嵌 Move）：
+Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）：
 
 ```json
 {
@@ -159,42 +156,26 @@ Reducer-input Event Envelope 示例（payload 内嵌 Move）：
   "prev_refs": [
     "cx:event:01js0et0000000000000000000"
   ],
-  "auth_refs": [
-    "cx:event:01js0gr0000000000000000000"
+  "refs": [
+    { "id": "cx:grant:01js0gr0000000000000000000", "role": "authorized_by", "critical": true }
   ],
+  "preconditions": [
+    {
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+      "predicate": { "op": "head_eq", "value": { "fields.status": "in_progress" } }
+    }
+  ],
+  "effects": [
+    {
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+      "op": { "type": "set", "value": { "fields.status": "review" } }
+    }
+  ],
+  "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
     "flow_id": "cx:flow:01js0cd0000000000000000000",
     "patch": {
       "fields.status": "review"
-    },
-    "move": {
-      "id": "cx:move:sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "issuer": "did:web:alice.example.com",
-      "space_id": "cx:space:01js0sp0000000000000000000",
-      "preconditions": [
-        {
-          "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
-          "predicate": { "op": "head_eq", "value": { "fields.status": "in_progress" } }
-        }
-      ],
-      "effects": [
-        {
-          "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
-          "op": { "type": "set", "value": { "fields.status": "review" } }
-        }
-      ],
-      "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
-      "refs": [
-        { "id": "cx:grant:01js0gr0000000000000000000", "role": "authorized_by", "critical": true }
-      ],
-      "hlc": "01970e589d21-0007-a13f9c2e",
-      "sig": {
-        "alg": "EdDSA",
-        "verification_method": "did:web:alice.example.com#device-laptop",
-        "payload_hash": "sha256:...",
-        "created_at": "2026-04-22T08:30:00Z",
-        "jws": "base64url..."
-      }
     }
   },
   "proofs": [
@@ -210,7 +191,7 @@ Reducer-input Event Envelope 示例（payload 内嵌 Move）：
 }
 ```
 
-Non-reducer Event Envelope 示例（无 `payload.move`，例如 `cx.read.marker`）：
+Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例如 `cx.read.marker`）：
 
 ```json
 {
@@ -231,7 +212,7 @@ Non-reducer Event Envelope 示例（无 `payload.move`，例如 `cx.read.marker`
 }
 ```
 
-`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）。Event Envelope、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
+`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.client_sync`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
 
 ## 6. 为什么需要 `prev_refs + hlc + actor_seq`
 
@@ -245,12 +226,12 @@ Contrix v1 要求：
 
 三者的职责边界固定如下：
 
-- `prev_refs` / `auth_refs` 是因果事实。HLC 更大不得覆盖缺失或相反的因果依赖。
+- `prev_refs` / `refs[role=authorized_by]` 是因果事实。HLC 更大不得覆盖缺失或相反的因果依赖。
 - `actor_seq` 在同一 actor 的任一因果路径上 MUST 严格递增；它不是 device-local sequence，也不是全局 total order。生产者 SHOULD 令新事件的 `actor_seq` 大于其同 actor 直接 `prev_refs` 的最大 `actor_seq`。
 - 同一 actor 的多个设备或离线写入 MAY 产生同一高度的 sibling fork。接收方若已接受同 actor 更高 `actor_seq`，不得仅因新事件的 `actor_seq` 较低或相同而拒绝；只有当该事件不能从任何已知 frontier 回填为有效历史分支、违反直接前序递增规则、或与同一 `event_id` 的 canonical hash 冲突时，才 MUST reject 或 quarantine。
 - 同一高度的 sibling fork 只允许出现在互不因果依赖的分支上。若事件 B 的 `prev_refs` 包含同 actor 事件 A，B 的 `actor_seq` MUST 大于 A；两个同 actor、同 `actor_seq` 的事件 MUST NOT 把对方作为直接或间接前序。
 - 同一 actor 发布的新 durable Event SHOULD 以其上一个 accepted durable Event 为唯一直接 `prev_refs`。多设备或离线分叉导致多个 actor frontier head 时，生产者 MAY 使用多个同 actor `prev_refs` 合并分支，并 SHOULD 设置 `actor_seq = max(prev_actor_seq) + 1`；接收方 MUST 把 actor frontier 表达为 head set，而不是单个最大序号，并保留 fork / merge 证据按 reducer 规则收敛。
-- `prev_refs` 或 `auth_refs` MUST NOT 包含当前 `event_id`。任何自引用事件 MUST 以 `causal_conflict` reject。
+- `prev_refs` 或 `refs[]` MUST NOT 包含当前 `event_id`。任何自引用事件 MUST 以 `causal_conflict` reject。
 - 当 `prev_refs` 表示 A 因果先于 B，但 `hlc(A) > hlc(B)` 时，因果顺序仍为 A -> B；实现 MAY 记录 clock skew warning，但不得用 HLC 反转因果。
 - 当两个事件之间没有因果路径时，reducer 才可使用 deterministic ordering 中的 HLC / actor / event hash 作为 tie-breaker。
 
@@ -260,13 +241,13 @@ Contrix v1 要求：
 
 Contrix v1 将 Move 依赖关系和 Anchor/Lattice 生效分开处理：
 
-- `prev_refs`、`auth_refs` 和具体 event kind 声明的 payload-level causal refs 仍可用于 legacy Event Envelope 兼容；新状态收敛以 Move `preconditions[]`、`effects[]`、`refs[]` 和 Anchor frontier 为准。
+- `prev_refs` 表示 actor chain 因果；`refs[]` 表示语义依赖（authorized_by / attestation / state_witness / ...）。状态收敛以顶层 `preconditions[]`、`effects[]`、`refs[]` 和 Anchor frontier 为准。
 - 若事件 B 的 dependency closure 包含事件 A，任何 canonical replay、timeline recovery 或 reducer input normalization 都 MUST 在拓扑上令 A 先于 B；即使 `hlc(A) > hlc(B)` 也不得反转。
-- `auth_refs` / Move `refs(role="authorized_by")` 表示授权判定必须能看到对应凭证，不表示被引用 payload 自动覆盖引用者，也不额外提高任何冲突权重。
+- `refs[role="authorized_by"]` 表示授权判定必须能看到对应凭证，不表示被引用 payload 自动覆盖引用者，也不额外提高任何冲突权重。
 - 只有当两个 accepted Event 在 dependency graph 中互不可达时，才使用 HLC、Actor ID、`actor_seq`、`event_id` / hash 作为 deterministic total-order tie-breaker。
 - 协议状态不再由 reducer 选择 conflict winner。Move precondition 不成立则失败；Anchor 提供 finality；Lattice 对 cell 返回 value 或 `⊥`。Timeline 展示顺序不得被反向用于授权。
 
-因此，跨 actor 的 `auth_refs` 会创建可验证依赖边界，但不会引入全局共识时钟或服务端接收顺序。
+因此，跨 actor 的 `refs[role="authorized_by"]` 会创建可验证依赖边界，但不会引入全局共识时钟或服务端接收顺序。
 
 参考验证算法：
 
@@ -288,7 +269,7 @@ function validate_actor_seq(event, known_frontiers):
             soft_fail("actor_seq below known heads; backfill required")
 
     // 规则 3: 无自引用
-    if event.event_id in event.prev_refs or event.event_id in event.auth_refs:
+    if event.event_id in event.prev_refs or any(r["id"] == event.event_id for r in event.refs):
         reject("self-referential event")
 
     accept()
@@ -296,7 +277,7 @@ function validate_actor_seq(event, known_frontiers):
 
 低于所有已知 frontier head 的事件不应被立即永久拒绝，因为它可能是稍后回补到达的合法历史分支。接收方 MUST 先尝试 backfill 或用可验证 snapshot 证明该事件能连接到某个有效分支；只有在确认无法连接、直接前序递增规则被破坏、或同 `event_id` hash 冲突时，才 reject / quarantine。
 
-该算法只验证 `actor_seq` 语义。完整的 Event 验证还必须包括签名、schema、capability、Space policy、因果依赖（`prev_refs` / `auth_refs` 存在性）和 HLC 合理性检查。
+该算法只验证 `actor_seq` 语义。完整的 Event 验证还必须包括签名、schema、capability、Space policy、因果依赖（`prev_refs` / `refs[]` 存在性）和 HLC 合理性检查。
 
 ## 7. 标准 Event Kind
 
@@ -397,7 +378,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.audit.accessed`
 - `cx.redaction`
 
-`cx.profile.update`、`cx.device.*` 与 `cx.session.grant` 是 durable Event Envelope kind，但其规范作用域是 principal control Space。生产者 MUST 使用目标 principal 的 `principal_control_space_id` 作为 `space_id`；普通协作 Space 只能通过 `auth_refs`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入协作 Space history。`cx.profile.space_override` 若作为共享 Space history 传播，MUST 使用目标 Space 的 `space_id` 并通过该 Space policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Space。
+`cx.profile.update`、`cx.device.*` 与 `cx.session.grant` 是 durable Event Envelope kind，但其规范作用域是 principal control Space。生产者 MUST 使用目标 principal 的 `principal_control_space_id` 作为 `space_id`；普通协作 Space 只能通过 `refs[role="authorized_by"]`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入协作 Space history。`cx.profile.space_override` 若作为共享 Space history 传播，MUST 使用目标 Space 的 `space_id` 并通过该 Space policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Space。
 
 以下标准 kind 不属于共享 durable Space history，不能列入本节 durable 写路径：
 
@@ -561,7 +542,7 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 3. key 在操作时点有效。
 4. `space_id` 与 target object 所属 Space 一致。
 5. capability 在操作时点有效。
-6. `prev_refs` / `auth_refs` 因果依赖不违反基本约束。
+6. `prev_refs` / `refs[]` 因果依赖不违反基本约束。
 7. 对 Flow / Message / Morph 执行对象类型 schema validation；Board-Space 和 List-Space 按 Space schema 验证。
 
 ## 11. Snapshot

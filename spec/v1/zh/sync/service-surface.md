@@ -149,7 +149,7 @@ GET /api/v1/server/describe
     "policy_version": "2026-05-02",
     "entries": [
       {
-        "operation_id": "cx.federation.push_operations",
+        "operation_id": "cx.events.submit",
         "scope": ["service_did", "space_id"],
         "window_seconds": 60,
         "max_requests": 120,
@@ -281,7 +281,7 @@ POST /api/v1/events
 - 同一个 `event_id` 重复提交相同 canonical bytes MUST 幂等成功。
 - 同一个 `event_id` 若内容不同 MUST 拒绝并记录冲突。
 - 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Space policy、`actor_seq` 和因果依赖。
-- 服务 SHOULD 返回 accepted event、当前 actor frontier、Space frontier 以及 read-your-writes `sync_token`。
+- 服务 SHOULD 返回 accepted event、当前 actor frontier、Space frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 
 当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 `prev_refs` / `auth_refs` / payload-level causal reference；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
 
@@ -371,7 +371,7 @@ GET /api/v1/sync/snapshot-head?space_id=<id>
 
 ### 5.5 Move / Anchor 状态与 Bottom 暴露
 
-Sync 响应 MUST 在每条 Move 上携带其当前协议状态字段（`move_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`pending_anchor` / `effective` / `failed_precondition` / `failed_bottom` / `rejected_anchor` / `anchorer_paused`。
+Sync 响应 MUST 在每条 Move 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`pending_anchor` / `effective` / `failed_precondition` / `failed_bottom` / `rejected_anchor` / `anchorer_paused`。
 
 State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回结构化 Bottom 诊断，schema 参见 [`schemas/bottom.schema.json`](../../artifacts/schemas/bottom.schema.json) 与 `cx.schema.bottom.v1`：
 
@@ -382,9 +382,9 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
   "bottom": {
     "kind": "conflict",
     "cells": ["cx:cell:cx.component.space.policy.v1:cx.space.01j…"],
-    "move_ids": [
-      "cx:move:sha256:4444…",
-      "cx:move:sha256:5555…"
+    "event_ids": [
+      "cx:event:44440000000000000000000000…",
+      "cx:event:55550000000000000000000000…"
     ],
     "anchor_view": {
       "leaves": ["cx:anchor:sha256:dddd…"],
@@ -400,7 +400,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 - `bottom=reject` cell 的 query MUST 返回 `status:"bottom"` 与诊断；客户端 / 授权路径 MUST NOT 把 `heads` 当作 allow。
 - `bottom=expose` cell 的 query MAY 返回 `status:"conflict"` 暴露多 head 给 projection / UI；同样不得用作授权 allow。
-- `move_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Space-wide pause。
+- `event_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Space-wide pause。
 - `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
 
 `/sync` / `/events` / `/api/v1/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（位置与精确 wire 形态见 [`service-api-schema.mdx`](service-api-schema.mdx) `cx.schema.bottom.v1` 引用）。
@@ -435,9 +435,9 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 - cursor
 - limit
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
-- `sync_token`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Space frontier。
+- barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Space frontier。Wire 形态与 stream cursor 共享 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
 
-`sync_token` 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 `next_batch` / `since` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`space_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 token 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 `client-sync.md` 定义的 `next_batch` 作为 `since`。
+barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `since` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`space_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `since`。
 
 ### 6.2 Flow Discussion / Context Projection
 

@@ -149,12 +149,6 @@
       "file": "schemas/audit-ryw-receipt.schema.json"
     },
     {
-      "schema_id": "cx.schema.move.v1",
-      "file": "schemas/move.schema.json",
-      "status": "active",
-      "description": "Move transaction intent schema"
-    },
-    {
       "schema_id": "cx.schema.anchor.v1",
       "file": "schemas/anchor.schema.json",
       "status": "active",

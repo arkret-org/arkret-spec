@@ -190,7 +190,6 @@ Controlled Collaboration Space SHOULD 使用：
     "object": {
       "id": "cx:space:01js0en0000000000000000000",
       "schema": "cx.schema.space.v1",
-      "kind": "collaboration",
       "security_class": "high_assurance",
       "title": "Controlled Collaboration",
       "created_by_principal": "did:web:defense.example",

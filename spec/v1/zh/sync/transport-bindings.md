@@ -70,9 +70,8 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.sync.subscribe` | 订阅 Space 增量流。 |
 | `cx.sync.backfill` | 回填历史事件。 |
 | `cx.sync.client_sync` | 客户端增量同步。 |
-| `cx.federation.transaction` | Principal Server 之间交换签名 transaction。 |
-| `cx.federation.push_operations` | 跨域推送 Space Event。 |
-| `cx.federation.pull_operations` | 跨域拉取缺失 Event / backfill。 |
+| Federation push（复用 `cx.events.submit` + service_signature） | v1 已移除 `/federation/*` 独立 API surface；联邦推送复用 `/events/submit`，认证从 user_session 切换为 HTTP Message Signature + Source/Destination service DID header。详见 [`federation.md`](./federation.md)。 |
+| Federation pull / backfill（复用 `cx.sync.backfill` + service_signature） | 同上，跨域历史回补复用 `/sync/backfill`。 |
 | `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Space / Organization / Actor / User。 |
 | `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Space / Organization / handle。 |
 | `cx.blob.upload` | 上传 blob。 |

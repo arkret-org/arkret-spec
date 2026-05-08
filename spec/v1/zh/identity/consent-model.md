@@ -63,20 +63,23 @@ bottom   = reject  // or-set never produces ⊥; declared value follows registry
 
 ```text
 Move(cx.consent.grant) {
+  id        = cx:event:01000000000000000000000000js0gr0...   // content-addressed Move id
   issuer    = holder DID（或 holder DID Document 显式授权的 controller / agent）
   space_id  = holder principal control Space
   preconditions = []          // grant 不依赖 cell 既有状态
   effects   = [
     (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "add",
-      tag:  "grant:<consent_id>:<peer>:<scope>",
+      dot:  "cx:event:01000000000000000000000000js0gr0...:0",   // = "<this Move.id>:<effect_index>"
       value: {
-        consent_id:   <consent_id>,
-        peer:         "did:web:bob.example.com",
-        scope:        "invite",
+        intent: {                          // projection-level dedupe key
+          consent_id: <consent_id>,
+          peer:       "did:web:bob.example.com",
+          scope:      "invite"
+        },
         not_before:   "2026-05-07T00:00:00Z",
         valid_until:  "2026-12-31T00:00:00Z",
-        evidence_ref: "cx:move:sha256:01js0pres...",
+        evidence_ref: "cx:event:01000000000000000000000000js0pres...",
         reason:       "Bob completed verified contact discovery"
       }})
   ]
@@ -90,31 +93,37 @@ Move(cx.consent.grant) {
 
 字段语义：
 
-- `consent_id`：consent cell subject。同一 holder 对同一 peer 的不同 scope 用不同 consent_id。
-- `peer`：counterparty DID 或 pairwise DID。
-- `scope`：详见 §4。
+- `intent.consent_id`：consent cell subject。同一 holder 对同一 peer 的不同 scope 用不同 consent_id。
+- `intent.peer`：counterparty DID 或 pairwise DID。
+- `intent.scope`：详见 §4。
 - `not_before` / `valid_until`：时间窗口（可选）。窗口外 consent 不生效，相当于 implicit revoke（不需要单独的 revoke Move）。
 - `evidence_ref`：可选审计链——指向引发此 consent 的 claim disclosure / presentation response / invite proof Move。
 - `reason`：人类可读理由（仅审计，不参与授权）。
 
 Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。其他 actor 提交的 grant Move 在 holder 的 principal control Space MUST `unauthorized` reject。
 
-`tag` 内容要求确定性可复现。推荐编码 `grant:<consent_id>:<peer>:<scope>`；同样 (consent_id, peer, scope) 的两个 grant Move 共享同一 tag，or-set 自动幂等去重。
+`dot` 由 `<enclosing_move.id>:<effect_index>` 派生，全局唯一，不再使用 deterministic tag。Projection 层按 `intent` 把同一 (consent_id, peer, scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or-set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
 ### 3.3 `cx.consent.revoke` Move
 
 ```text
 Move(cx.consent.revoke) {
+  id        = cx:event:01000000000000000000000000js0rv0...
   issuer    = holder DID
   space_id  = holder principal control Space
   preconditions = [
     (cx:cell:cx.component.consent.grant.v1:<consent_id>,
-     {op: "contains", value: "grant:<consent_id>:<peer>:<scope>"})
+     {op: "contains_dots",
+      dots: [
+        "cx:event:01000000000000000000000000js0gr0...:0"   // anchor_ref pre-state 下该 intent 全部 active dots
+      ]})
   ]
   effects   = [
     (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "remove",
-      tag:  "grant:<consent_id>:<peer>:<scope>",
+      observed_dots: [
+        "cx:event:01000000000000000000000000js0gr0...:0"
+      ],
       value: {
         revoked_at: "2026-06-15T10:00:00Z",
         reason:     "Bob harassment incident #4711"
@@ -125,9 +134,13 @@ Move(cx.consent.revoke) {
 }
 ```
 
-或 grant Move 写一个单 tag、revoke Move 在同一 tag 上 remove。precondition `contains` 仅用于诊断（缺失时 Move fail_precondition，避免无意义 revoke）；or-set 的去重语义保证多 issuer 重复 revoke 收敛。
+`observed_dots` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在 `Move.anchor_ref` 对应 pre-state 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 并发 revoke 同一 dot 收敛于 or-set 的去重语义。`observed_dots` 之外的 dot 不受影响——这是 OR-Set 的 normative 行为。
 
-撤销在该 revoke Move 进入 Anchor frontier 后立即生效——consent cell 的 or-set join 值不再含该 grant tag。frontier 之前 peer 凭借 consent 发出的 invite / contact 不会被追溯失效（已经发出的 invite 由 invite revoke 单独处理）。
+**Regrant**：撤销后 holder 可以再次发出 `cx.consent.grant` Move；新 Move 产生新的 `dot`（来自不同 `move.id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。这一行为是 v1 normative 支持的；v1-pre-rc 草案中"deterministic tag → revoke 后无法 regrant"的副作用已经被 dot 模型消除。
+
+**完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, scope) intent 需要 client 在构造 revoke Move 前先查询当前 cell 的 or-set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——sodmin / UI MUST 把这种状态明确提示为 "partial revoke"。
+
+撤销在该 revoke Move 进入 Anchor frontier 后立即生效——consent cell 的 or-set join 值不再含被 observed 的 grant dot。frontier 之前 peer 凭借 consent 发出的 invite / contact 不会被追溯失效（已经发出的 invite 由 invite revoke 单独处理）。
 
 ## 4. Scope 枚举
 
@@ -144,14 +157,15 @@ Move(cx.consent.revoke) {
 
 ## 5. Cell Join 与 Effective Consent
 
-Consent cell 是 or-set lattice。Effective consent 由当前 Anchor view 下 cell 的 or-set join 派生：
+Consent cell 是 or-set lattice（dot-based observed-remove，详见 [`event-auth-state-resolution.md` §5.3.1](../authz/event-auth-state-resolution.md)）。Effective consent 由当前 Anchor view 下 cell 的 or-set join 派生：
 
-- `effective_grants(cell) = { grant_value | tag in or-set.add_tags - or-set.remove_tags }`
-- 一个 grant 当前生效（即 invite / contact 路径上 gate 放行）当且仅当：
-  - 存在对应 tag 在 or-set add 集合且未被 remove；
+- `active_dots(cell) = { (dot, value) ∈ or-set.adds | dot ∉ or-set.observed_dots }`
+- `effective_grants(cell) = group active_dots(cell) by value.intent` —— projection 把同 intent 的多 active dot 折叠成一条 effective consent。
+- 一个 (consent_id, peer, scope) 的 grant 当前生效（即 invite / contact 路径上 gate 放行）当且仅当：
+  - `active_dots(cell)` 中存在 ≥1 条 `value.intent == (consent_id, peer, scope)` 的 dot；
   - 当前时间 ∈ `[not_before, valid_until]`（窗口字段缺省视为 `(-∞, +∞)`）。
 - 不同 consent_id 是独立 cell；查询 `(holder, peer, scope)` 时 invite / contact service 遍历该 holder 全部 consent cell 匹配。
-- 同 Anchor 批内并发 grant 与 revoke 在 or-set join 后唯一确定（add tag 和 remove tag 各自集合化收敛），不产生 ⊥。审计 / sodmin 视图可暴露并发的 add / remove 序列以提示决策不连续，但 invite gate 仍按"当前 add tag 集合 - remove tag 集合"判定。
+- 同 Anchor 批内并发 grant 与 revoke 在 or-set join 后唯一确定（add dot 集合与 observed_dots 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / sodmin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
 
 物化 `Consent` 对象（详见 [`models/data-structures.md`](../models/data-structures.md)）由 holder client / sodmin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。
 
@@ -161,9 +175,9 @@ Consent cell 是 or-set lattice。Effective consent 由当前 Anchor view 下 ce
 
 Peer 发送 invite Move 时，invite service / facade SHOULD 在 Move 接受 / 投递前查询 holder 的 consent cell：
 
-1. 调用 holder 的 principal control Space（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 or-set join 后筛选 `(peer=requester, scope="invite" OR scope="any")` 当前活跃的 grant tag。
+1. 调用 holder 的 principal control Space（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 or-set join 后筛选 `value.intent` 匹配 `(peer=requester, scope="invite" OR scope="any")` 当前 active 的 dot 集合。
 2. 若没有匹配的活跃 grant：
-   - **`require_explicit_consent` profile**：invite Move MUST `failed_precondition` reject（consent gate 可表达为 invite Move 的 precondition：`contains("grant:*:requester:invite|any")`）。Peer SHOULD 通过 `cx.private_contact_discovery.v1` 等机制请求 holder 显式授权后重试。
+   - **`require_explicit_consent` profile**：invite Move MUST `failed_precondition` reject（consent gate 可表达为 invite Move 的 precondition：`active_intent_exists((requester, "invite"|"any"))`，由 reducer 把它编译为对 cell `active_dots` 的过滤）。Peer SHOULD 通过 `cx.private_contact_discovery.v1` 等机制请求 holder 显式授权后重试。
    - **default profile**：invite MAY 进入 holder 的 quarantine inbox（"陌生人邀请"），由 holder 在 UI 上 review 后构造 grant Move 或丢弃。
 3. 若有匹配活跃 grant 且当前时间在 `[not_before, valid_until]`：invite Move 正常 anchor。
 

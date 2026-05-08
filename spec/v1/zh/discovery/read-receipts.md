@@ -61,9 +61,9 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 - 客户端收到他人的 `cx.receipt.read` 时，SHOULD 在 UI 上更新已读头像的小图标位置；接收行为不依赖发送偏好。
 - 当目标 scope 由 §2.5 声明 `disclosure="required"` 或 `disclosure="disabled"` 时，合规客户端 MUST 按该声明覆盖用户偏好（详见 §2.5）。
 
-### 2.5 Space / Flow 披露策略 (Disclosure Policy)
+### 2.5 Space 披露策略 (Disclosure Policy)
 
-Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 `cx.receipt.read` 的披露要求；Flow 的 discussion branch MAY 通过 `cx.flow.branch.read_receipt_policy` 单独声明，缺省继承 Space。两者 SHOULD 由 `cx.space.policy_components.components.read_receipt` 与 `cx.flow.branch.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
+Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 `cx.receipt.read` 的披露要求。需要让 discussion 时间线与父 Space 在 read receipt policy 上分离时，**不**通过 branch 级别 override（v1 已删除该 hybrid），而是把 discussion 升级为独立 child Space（参见 `Flow.discussion_space_ref`，[`models/data-structures.md` §6.1.1](../models/data-structures.md)），由 child Space 自己声明 `cx.space.read_receipt_policy`。该 policy SHOULD 由 `cx.space.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
 
 ```json
 {
@@ -82,7 +82,7 @@ Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
 | `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Space 可见性允许的全部观察者；`members` = 仅 branch 成员；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
-| `scope_overrides_allowed` | `bool` | `true` | 是否允许 Flow branch 的 `cx.flow.branch.read_receipt_policy` 收紧（不放宽）该 Space 声明。 |
+| `scope_overrides_allowed` | `bool` | `true` | 是否允许 child Space（如 `Flow.discussion_space_ref` 指向的子 Space）声明独立、收紧（不放宽）的 read receipt policy。父 Space 设为 `false` 时，所有 child Space 的 receipt policy MUST 等于或宽松于父策略；reducer 拒绝违规声明。 |
 
 规则：
 
@@ -91,7 +91,7 @@ Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 
 - `disclosure="required"`：合规客户端 MUST 不允许用户在该 scope 把 `cx.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 branch 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `cx.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Marker 不受影响。
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
-- Flow branch policy 收紧 Space policy 的方向一律允许（`required` → `disabled`、`public` → `private` 等更严方向）；放宽方向（如 Space `disabled` → branch `required`）SHOULD 被 reducer 拒绝，除非 Space 声明了 `scope_overrides_allowed=true` 且明确允许。
+- Child Space policy 收紧父 Space policy 的方向一律允许（`required` → `disabled`、`public` → `private` 等更严方向）；放宽方向（如父 `disabled` → 子 `required`）SHOULD 被 reducer 拒绝，除非父声明了 `scope_overrides_allowed=true` 且明确允许。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
 ## 3. Read Marker (私有游标)

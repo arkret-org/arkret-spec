@@ -7,7 +7,6 @@
     "id",
     "schema",
     "title",
-    "kind",
     "created_by_principal",
     "schema_refs",
     "default_discoverability",
@@ -32,13 +31,6 @@
     "summary": {
       "type": "string",
       "maxLength": 2048
-    },
-    "kind": {
-      "type": "string",
-      "enum": [
-        "collaboration"
-      ],
-      "description": "v1 Space kind. Always 'collaboration'. A Space is always a security/sync/auth/E2EE boundary; structural groupings (board, list, swimlane, calendar bucket, etc.) are separate Place objects (cx:place:) — see place.schema.json. Product-level distinctions encoded via Space.fields / schema_refs / labels / security_class."
     },
     "security_class": {
       "type": "string",

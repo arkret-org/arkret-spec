@@ -30,7 +30,6 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
 | `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Space 历史回填、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
 | `/sync/*` | 客户端、Principal Server | 客户端聚合同步、Space 增量订阅、backfill、snapshot head。 | `client-sync.md`、`service-surface.md` |
-| `/federation/*` | Principal Server 之间 | 跨域 transaction、Event 推送/拉取、成员查询、actor 验证。 | `federation.md` |
 | `/directory/*` | 客户端、服务 | Space / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
@@ -83,21 +82,17 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/identity/submit-did-operation` | body `{did: did, seq: int, prev_event_hash?: string, patch: object, proofs: proof[]}` | `device_proof` 或 recovery proof；MUST 满足 DID method / key-log 授权。 | `{status, head_event_hash, seq, receipts?}` |
 | `GET /api/v1/identity/receipts` | query `{did: did, head: string}` | 同 DID 可见性；witness 可公开最小 receipt。 | `{receipts[], threshold_met?: boolean}` |
 | `GET /api/v1/events/describe` | query none 或 `{actor_id?: did, space_id?: id}` | `public_metadata` 或 `user_session`；私有 frontier 需认证。 | `{service_did, supported_event_schemas[], supported_reducer_profiles[], supported_signatures[], limits}` |
-| `POST /api/v1/events` | body `EventEnvelope` 或 `{events: EventEnvelope[]}` | `user_session` / `device_proof` / `service_signature`；MUST 验证 actor DID、签名、capability、Space policy、`actor_seq`、`prev_refs`、`auth_refs`。 | `{status, accepted[], duplicate[]?, rejected[]?, actor_frontier?, space_frontier?, sync_token?}` |
+| `POST /api/v1/events` | body `EventEnvelope` 或 `{events: EventEnvelope[]}` | `user_session` / `device_proof` / `service_signature`；MUST 验证 actor DID、签名、capability、Space policy、`actor_seq`、`prev_refs`、`auth_refs`。 | `{status, accepted[], duplicate[]?, rejected[]?, actor_frontier?, space_frontier?, cursor?}` |
 | `GET /api/v1/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Space policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
 | `POST /api/v1/events/batch-get` | body `{event_ids?: id[], event_hashes?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Space policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
 | `GET /api/v1/events` | query `{actor_id?: did, space_id?: id, cursor?: cursor, limit?: int, filters?: object}` | 调用方必须有对应 actor/Space 历史可见权限。 | `{events[], next_cursor?, has_more}` |
 | `GET /api/v1/events/frontier` | query `{actor_id?: did, space_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Space 或 private DID。 | `{frontier, receipts?}` |
-| `POST /api/v1/sync` | body `{since?: token, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device。 | Client Sync response `{next_batch, spaces?, to_device?, account_data?, device_lists?}` |
+| `POST /api/v1/sync` | body `{since?: cursor, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device。 | Client Sync response `{cursor, spaces?, to_device?, account_data?, device_lists?}` |
 | `GET /api/v1/sync/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `{service_did, supported_sync_profiles[], limits, frontier?}` |
 | `GET /api/v1/sync/subscribe` | query `{space_id: id, cursor?: cursor}` | Space read + service delegation；非 E2EE 私有内容只能给 principal / plaintext-visible service。 | event stream frames `{type, seq, cursor?, payload}` |
 | `GET /api/v1/sync/backfill` | query `{space_id: id, cursor?: cursor, limit?: int}` | history visibility + membership frontier + E2EE epoch policy。 | `{events[], prev_cursor?, next_cursor?, limited?}` |
 | `GET /api/v1/sync/snapshot-head` | query `{space_id: id}` | Space read；snapshot manifest 必须签名，并包含 `event_set_commitment`。 | `{snapshot_ref, state_hash, frontier, event_set_commitment, verification_hints?, signature}` |
-| `PUT /api/v1/federation/transactions/{txn_id}` | path `{txn_id}` body `{origin: did, destination: did, service_binding_ref, events[], receipts?, frontier?}` | `service_signature`; destination service DID、URL、Space policy 和 service binding 必须一致。 | `{ok: true, accepted[], rejected[], next_retry_at?}` |
-| `POST /api/v1/federation/push-operations` | body `{origin: did, destination: did, space_id: id, service_binding_ref, events[]}` | `service_signature`; origin 必须可接收于该 Space federation policy；每个 Event 独立验签。 | `{accepted[], rejected[], quarantine[]?}` |
-| `GET /api/v1/federation/pull-operations` | query `{space_id: id, after_cursor?: cursor, limit?: int}` | `service_signature`; requester 必须有 backfill 权限和明文可见资格。 | `{events[], snapshot_bootstrap?, next_cursor?, has_more}` |
-| `GET /api/v1/federation/space-members` | query `{space_id: id, cursor?: cursor, limit?: int}` | `service_signature`; 仅对参与方 Principal Server 或 policy 允许服务开放。 | `{members[], membership_frontier, next_cursor?}` |
-| `POST /api/v1/federation/verify-actor` | body `{actor_id: did, challenge?: string, signed_payload_hash?: string, signature: signature, purpose: string, space_id?: id}` | `service_signature`; 不得作为公开 DID oracle；requester 必须有 federation、join、event-source 或 shared-Space 相关目的。 | `{valid: boolean, actor_id, verified_key_id?, key_log_head?, did_document_ref?, expires_at?, warnings[]}` |
+<!-- Federation 端点已删除 — 跨域操作复用 /events/*、/sync/*、/identity/* 端点 + service_signature 认证。详见 federation.md §7。 -->
 | `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `{service_did, resource_types[], discovery_profiles[], restricted_query_proof?: boolean}` |
 | `POST /api/v1/directory/search-spaces` | body `{query?: string, organization_did?: did, parent_space_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?}` |
 | `POST /api/v1/directory/resolve-space` | body `{space_id?: id, alias?: string, invite_token?: string, signed_link?: string, requester?: did, proofs?: proof[]}` | invite / restricted / secret Space 按统一 `not_found` 失败。 | `{space_preview, stripped_state?, join_rule?, via_services?}` |
@@ -112,7 +107,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
 | `POST /api/v1/push/notify` | body `{notification: {event_id?, space_id?, type, sender?, push_hint?, counts?, devices[]}}` | `service_signature` from authorized Sync or notification service；MUST be blind/minimized for E2EE。 | `{rejected[]}` |
 | `PUT /api/v1/device_messages/{txn_id}` | path `{txn_id}` body `DeviceMessagesPutRequest {messages: {principal_id: {device_id: DeviceMessageTarget {kind, content, expires_at}}}}` | sender `user_session` / device key；目标必须是授权 device；服务端入队前 MUST materialize `DeviceMessageEnvelope` 并绑定 `recipient_principal_id` / `recipient_device_id` / `expires_at`；按 `(sender, txn_id)` 幂等。验证消息使用 `cx.key.verification.*` kind，且不得作为持久 Event history；缺失、已过期或超过 TTL 上限的消息 MUST reject。 | `{ok: true, delivered?, unknown_devices?}` |
-| `GET /api/v1/device_messages` | query `{from?: token, limit?: int}` | `user_session` bound to current device；只返回该 device 队列。 | `{events: DeviceMessageEnvelope[], next_batch?, limited?}` |
+| `GET /api/v1/device_messages` | query `{from?: cursor, limit?: int}` | `user_session` bound to current device；只返回该 device 队列。 | `{events: DeviceMessageEnvelope[], next_cursor?, limited?}` |
 | `POST /api/v1/keys/upload` | body `{device_id: id, one_time_keys?: object, fallback_keys?: object, device_signature: signature}` | current device proof；key 必须链接 self-signing / principal key。 | `{one_time_key_counts, fallback_keys?}` |
 | `POST /api/v1/keys/query` | body `{device_keys: {principal_id: string[]}, timeout_ms?: int}` | `user_session`; 查询范围可按关系 / Space 限制。 | `{device_keys, failures?}` |
 | `POST /api/v1/keys/claim` | body `{one_time_keys: {principal_id: {device_id: algorithm}}}` | `user_session`; one-time key MUST 原子消费。 | `{one_time_keys, failures?}` |
@@ -135,7 +130,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/applet/third_party/locations` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 portal namespace 内。 | `{space_id?, exists, external_ref?}` |
 | `POST /contrix/v1/ice-config` | body `{space_id: id, call_id: id, actor_id: did, device_id: id, mode: string}` | `user_session`; actor 必须有 call/media capability，Media Service 必须被 Space policy 委托。 | `{ttl_seconds, ice_servers[], policy, signature}` |
 
-`POST /api/v1/federation/verify-actor` 的响应只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Space policy；不得把对端“验证通过”当成最终授权依据。
+跨域 actor 验证响应（通过 `/api/v1/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Space policy；不得把对端"验证通过"当成最终授权依据。
 
 ### 2.4 字段级 Schema 索引
 
@@ -153,21 +148,17 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.identity.submit_did_operation` | `did: did`; `seq: int`; `patch: object`; `proofs: proof[]` | `prev_event_hash: string` | `status: enum(accepted,duplicate)`; `head_event_hash: string`; `seq: int`; `receipts: object[]?` | MUST 满足 DID method / key-log 授权；`did+seq` 幂等。 |
 | `cx.identity.get_receipts` | `query.did: did`; `query.head: string` | 无 | `receipts: object[]`; `threshold_met: boolean?` | 只公开最小 witness receipt。 |
 | `cx.events.describe` | 无 | `query.actor_id: did`; `query.space_id: id` | `service_did: did`; `supported_event_schemas: string[]`; `supported_reducer_profiles: string[]`; `supported_signatures: string[]`; `limits: object?` | public metadata 可公开；私有 frontier 需认证。 |
-| `cx.events.submit` | `event: object` 或 `events: object[]` | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `space_frontier: object?`; `sync_token: token?` | MUST 验证 Event signature、DID、capability、Space policy、`actor_seq`、`prev_refs` 和 `auth_refs`。 |
+| `cx.events.submit` | `event: object` 或 `events: object[]` | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `space_frontier: object?`; `cursor: cursor?` | MUST 验证 Event signature、DID、capability、Space policy、`actor_seq`、`prev_refs` 和 `auth_refs`。`cursor` 是 barrier purpose（read-your-writes）。 |
 | `cx.events.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | 不可见时返回 `not_found`。 |
 | `cx.events.batch_get` | 至少一个：`event_ids: id[]` 或 `event_hashes: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Space policy / E2EE envelope 判断。 |
 | `cx.events.list` | 至少一个：`query.actor_id: did` 或 `query.space_id: id` | `query.cursor: cursor`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 受 actor/Space history visibility 和 Space policy 限制。 |
 | `cx.events.frontier` | 至少一个：`query.actor_id: did` 或 `query.space_id: id` | 无 | `frontier: object`; `receipts: object[]?` | 不得泄露不可见 Space 或 private DID。 |
-| `cx.sync.client_sync` | 无 | `since: token`; `filter: object`; `set_presence: enum(online,offline,unavailable)`; `timeout_ms: int` | `next_batch: token`; `spaces: object?`; `to_device: object?`; `account_data: object?`; `device_lists: object?` | `user_session` 必须绑定 principal/device。 |
+| `cx.sync.client_sync` | 无 | `since: cursor`; `filter: object`; `set_presence: enum(online,offline,unavailable)`; `timeout_ms: int` | `cursor: cursor`; `spaces: object?`; `to_device: object?`; `account_data: object?`; `device_lists: object?` | `user_session` 必须绑定 principal/device。`cursor` 是 stream purpose。 |
 | `cx.sync.describe` | 无 | 无 | `service_did: did`; `supported_sync_profiles: string[]`; `limits: object`; `frontier: object?` | 私有 frontier 可认证后返回。 |
 | `cx.sync.subscribe` | `query.space_id: id` | `query.cursor: cursor` | stream frame: `type: string`; `seq: int`; `cursor: cursor?`; `payload: object` | Space read + service delegation；明文私有内容只给授权边界。 |
 | `cx.sync.backfill` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `events: object[]`; `prev_cursor: cursor?`; `next_cursor: cursor?`; `limited: boolean?` | history visibility、membership frontier、E2EE epoch policy。 |
 | `cx.sync.get_snapshot_head` | `query.space_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `event_set_commitment: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
-| `cx.federation.transaction` | `path.txn_id: id`; `origin: did`; `destination: did`; `service_binding_ref: object`; `events: object[]` | `receipts: object[]`; `frontier: object` | `ok: boolean`; `accepted: id[]`; `rejected: object[]`; `next_retry_at: datetime?` | `service_signature`; destination DID、URL、policy 和 binding 必须一致。 |
-| `cx.federation.push_operations` | `origin: did`; `destination: did`; `space_id: id`; `service_binding_ref: object`; `events: object[]` | 无 | `accepted: id[]`; `rejected: object[]`; `quarantine: id[]?` | 每个 Event 独立验签和授权。 |
-| `cx.federation.pull_operations` | `query.space_id: id` | `query.after_cursor: cursor`; `query.limit: int` | `events: object[]`; `snapshot_bootstrap?: object`; `next_cursor: cursor?`; `has_more: boolean` | requester 必须有 backfill 权限和明文可见资格。 |
-| `cx.federation.space_members` | `query.space_id: id` | `query.cursor: cursor`; `query.limit: int` | `members: object[]`; `membership_frontier: object`; `next_cursor: cursor?` | 仅参与方 Principal Server 或 policy 允许服务。 |
-| `cx.federation.verify_actor` | `actor_id: did`; `purpose: enum(event_source,federation_join,device_binding)`; `signature: signature` | `space_id: id`; `challenge: string`; `signed_payload_hash: string` | `valid: boolean`; `actor_id: did`; `verified_key_id: string?`; `key_log_head: id?`; `did_document_ref: string?`; `expires_at: datetime?`; `warnings: string[]` | 只作缓存/诊断；不得替代本地 DID、key log、capability 和 Space policy 验证。 |
+<!-- Federation 复用现有 Sync / Events / Identity API；v1 已移除 /federation/* 独立 endpoints。详见 federation.md §7。-->
 | `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?` | `public_metadata`; 可限流。 |
 | `cx.directory.search_spaces` | 无 | `query: string`; `organization_did: did`; `parent_space_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | hidden resource 不泄露存在性。 |
 | `cx.directory.resolve_space` | 至少一个：`space_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]?` | secret/restricted Space 使用统一 `not_found`。 |
@@ -178,13 +169,13 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | private handle 需要 presentation。 |
 | `cx.directory.private_contact_discovery` | `requester: did`; `contacts: object[]` | `proofs: proof[]`; `privacy_profile: string`; `padding: object` | `matches: object[]`; `proofs: object[]?`; `retry_after_ms: int?` | MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `media_type: string`; `filename: string`; `purpose: string`; binary/multipart body; `header.Content-Type: string` | `blob_ref: string`; `size: int`; `media_type: string?`; `sha256: string`; `upload_receipt: object?` | upload capability、quota、media policy；`Content-Type` 缺省为 `application/octet-stream`。 |
-| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: token` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；不得通过 header 泄露不可见资源。 |
-| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: token` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；Range 和 redirect 不得泄露不可见资源。 |
+| `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: cursor` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；不得通过 header 泄露不可见资源。 |
+| `cx.blob.get` | `query.blob_ref: string` | `header.Authorization: token`; `header.Range: string`; `header.X-Contrix-Wait-For: cursor` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；Range 和 redirect 不得泄露不可见资源。 |
 | `cx.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | 只能注册当前 principal/device。 |
 | `cx.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | same device/principal 或 device revocation path。 |
 | `cx.push.notify` | `notification: object` | `notification.event_id: id`; `notification.space_id: id`; `notification.sender: did`; `notification.push_hint: string`; `notification.counts: object`; `notification.devices: object[]` | `rejected: object[]` | 来自授权 Sync 或 notification service；E2EE 必须脱敏。 |
 | `cx.device_messages.put` | `path.txn_id: id`; `messages: object` | 每个 target 必须含 `kind`、`content`、`expires_at` | `ok: boolean`; `delivered: object?`; `unknown_devices: object?` | sender + txn_id 幂等；目标必须是授权 device；过期或超过 TTL 上限的消息必须拒绝或逐项 reject。 |
-| `cx.device_messages.get` | 无 | `query.from: token`; `query.limit: int` | `events: object[]`; `next_batch: token?`; `limited: boolean?` | 只返回当前 device 队列。 |
+| `cx.device_messages.get` | 无 | `query.from: cursor`; `query.limit: int` | `events: object[]`; `next_cursor: cursor?`; `limited: boolean?` | 只返回当前 device 队列。 |
 | `cx.keys.upload` | `device_id: id`; `device_signature: signature` | `one_time_keys: object`; `fallback_keys: object` | `one_time_key_counts: object`; `fallback_keys: object?` | key 必须链接 self-signing / principal key。 |
 | `cx.keys.query` | `device_keys: object` | `timeout_ms: int` | `device_keys: object`; `failures: object?` | 查询范围可按关系 / Space 限制。 |
 | `cx.keys.claim` | `one_time_keys: object` | 无 | `one_time_keys: object`; `failures: object?` | one-time key MUST 原子消费。 |
@@ -272,7 +263,7 @@ POST /api/v1/events
     "actor_seq": 42,
     "event_id": "cx:event:01js0ev0000000000000000000"
   },
-  "sync_token": "opaque"
+  "cursor": "cx:cursor:eyJ2IjoxLCJwIjoiYmFycmllciJ9"
 }
 ```
 

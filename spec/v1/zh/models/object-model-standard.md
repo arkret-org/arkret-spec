@@ -277,24 +277,7 @@ discussion branch override（如需要 branch-scoped membership）→ 加入成�
     "target_ref": "cx:flow:01js0fk0000000000000000000",
     "payload": {
       "flow_id": "cx:flow:01js0fk0000000000000000000",
-      "branch": "discussion",
-      "config": {
-        "profile": "implementation",
-        "access": {
-          "membership": "branch_scoped",
-          "permissions": "branch_scoped",
-          "history_visibility": "joined"
-        }
-      }
-    }
-  },
-  {
-    "kind": "cx.flow.branch.member",
-    "payload": {
-      "flow_id": "cx:flow:01js0fk0000000000000000000",
-      "branch": "discussion",
-      "actor_id": "did:web:bob.example",
-      "membership": "join"
+      "branch": "discussion"
     }
   },
   {

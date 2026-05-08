@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/event-schema.json",
-  "title": "Contrix Effect Event Compatibility Schema",
+  "title": "Contrix Event",
+  "description": "Single canonical wire object. Reducer-input events carry top-level preconditions / effects / anchor_ref (formerly the embedded Move object — that double layer is gone). Non-reducer events (read marker, typing, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). The former auth_refs[] field is dropped — its contents moved to refs[role=authorized_by]. Signing covers canonical bytes minus proofs, unsigned, and hlc.",
   "type": "object",
   "required": [
     "event_id",
@@ -10,9 +11,8 @@
     "actor_id",
     "actor_seq",
     "created_at",
-    "hlc",
     "prev_refs",
-    "auth_refs",
+    "refs",
     "payload",
     "proofs"
   ],
@@ -24,7 +24,7 @@
     "kind": {
       "type": "string",
       "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-      "description": "Standard cx.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. New v1 state convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join; this compatibility envelope preserves the kind-routed payload contract used by existing service APIs."
+      "description": "Standard cx.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by event preconditions/effects, Anchor DAG finality, and per-cell Lattice join."
     },
     "space_id": {
       "type": "string",
@@ -42,19 +42,47 @@
     },
     "hlc": {
       "type": "string",
-      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$",
+      "description": "Advisory hybrid logical clock. NOT included in canonical bytes for signing or event digest. Used only as a deterministic tiebreaker for timeline display when two events are causally unreachable. MUST NOT influence authorization, lattice join, or anchor finality. See encoding.md §7."
     },
     "prev_refs": {
       "type": "array",
+      "description": "Actor-chain causal predecessors (envelope-level). For semantic refs (authorized_by, after, state_witness, inclusion_proof, ...), use refs[].",
       "items": {
         "$ref": "#/$defs/eventRef"
       }
     },
-    "auth_refs": {
+    "refs": {
       "type": "array",
+      "description": "Semantic refs with role. Roles include: authorized_by (replaces v1's auth_refs[]), attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof. state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1.",
       "items": {
-        "$ref": "#/$defs/eventRef"
-      }
+        "$ref": "#/$defs/semantic_ref"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "preconditions": {
+      "type": "array",
+      "description": "Reducer-input only. Pre-state predicates that must hold under the anchor_ref view; if any fails, the entire event fails (no partial application of effects).",
+      "items": {
+        "$ref": "#/$defs/precondition"
+      },
+      "uniqueItems": true,
+      "maxItems": 256
+    },
+    "effects": {
+      "type": "array",
+      "description": "Reducer-input only. Atomic multi-cell CAS writes. MUST contain at least one effect when present.",
+      "items": {
+        "$ref": "#/$defs/effect"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "maxItems": 256
+    },
+    "anchor_ref": {
+      "$ref": "#/$defs/anchor_ref",
+      "description": "Reducer-input only. Anchor DAG node this event is submitted against. Receivers MUST verify it is within the Space's max_anchor_staleness_ms window."
     },
     "redacts": {
       "$ref": "#/$defs/eventRef"
@@ -63,10 +91,12 @@
       "type": "object"
     },
     "unsigned": {
-      "type": "object"
+      "type": "object",
+      "description": "Local / transport-only metadata (server-derived hints, redaction reason, age). NOT covered by signature or event digest."
     },
     "proofs": {
       "type": "array",
+      "description": "Detached signatures over canonical event bytes (excluding proofs, unsigned, and hlc). The actor / device / service signature lives here. Anchor signatures live on the Anchor object, not on the event.",
       "items": {
         "$ref": "#/$defs/proof"
       },
@@ -74,7 +104,7 @@
     },
     "requirements": {
       "type": "object",
-      "description": "Schema/reducer/feature/critical-extension requirements declared by this event. All sub-fields enter the canonical event bytes and the proof payload_hash. Receivers MUST fail closed on any unknown critical entry. Replaces v1-pre-rc fields schema_profile_refs / reducer_profile_ref / required_features / critical_extensions.",
+      "description": "Schema/reducer/feature/critical-extension requirements declared by this event. All sub-fields enter the canonical event bytes and the proof payload_hash. Receivers MUST fail closed on any unknown critical entry.",
       "properties": {
         "schema": {
           "type": "array",
@@ -110,7 +140,8 @@
   },
   "allOf": [
     {
-      "not": {
+      "$comment": "Non-reducer event kinds MUST NOT carry preconditions/effects/anchor_ref. Reducer-input kinds MUST carry all three (enforced at registry level via wire_scope).",
+      "if": {
         "properties": {
           "kind": {
             "enum": [
@@ -132,28 +163,78 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            { "required": ["preconditions"] },
+            { "required": ["effects"] },
+            { "required": ["anchor_ref"] }
+          ]
+        }
+      }
+    },
+    {
+      "$comment": "Conflict-recovery event detection: any precondition with op=head_in implies conflict recovery semantics. When triggered, refs[] MUST contain BOTH a state_witness and an inclusion_proof (event-auth-state-resolution.md §8.1). Schema-level enforcement; reducer-level verify re-checks.",
+      "if": {
+        "properties": {
+          "preconditions": {
+            "type": "array",
+            "contains": {
+              "type": "object",
+              "properties": {
+                "predicate": {
+                  "type": "object",
+                  "properties": {
+                    "op": { "const": "head_in" }
+                  },
+                  "required": ["op"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "refs": {
+            "type": "array",
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "role": { "const": "state_witness" },
+                    "critical": { "const": true }
+                  },
+                  "required": ["role"]
+                },
+                "$comment": "MUST contain at least one state_witness ref"
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "role": { "const": "inclusion_proof" },
+                    "critical": { "const": true }
+                  },
+                  "required": ["role"]
+                },
+                "$comment": "MUST contain at least one inclusion_proof ref"
+              }
+            ]
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.flow.move"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.flow.move" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "#/$defs/flow_move_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "#/$defs/flow_move_payload" } }
       }
     },
     {
@@ -169,190 +250,91 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.flow.reorder"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.flow.reorder" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "#/$defs/flow_reorder_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "#/$defs/flow_reorder_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.flow.branch.enable"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.flow.branch.enable" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "#/$defs/flow_branch_enable_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "#/$defs/flow_branch_enable_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.flow.branch.disable"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.flow.branch.disable" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "#/$defs/flow_branch_disable_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "#/$defs/flow_branch_disable_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.flow.branch.set_primary"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.flow.branch.set_primary" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "#/$defs/flow_branch_set_primary_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "#/$defs/flow_branch_set_primary_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "cx.member.state",
-              "cx.flow.branch.member"
-            ]
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.member.state" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/membership_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/membership_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.plaintext_visible_services"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.plaintext_visible_services" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.create"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.create" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_create_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_create_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.flow.create"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.flow.create" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_create_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/flow_create_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.morph.create"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.morph.create" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/morph_create_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/morph_create_payload" } }
       }
     },
     {
@@ -369,168 +351,82 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/object_patch_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/object_patch_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.profile.create"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.profile.create" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/actor_profile_create_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/actor_profile_create_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.inheritance_policy"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.inheritance_policy" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_inheritance_policy_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_inheritance_policy_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.archive"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.archive" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_archive_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_archive_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.freeze"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.freeze" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_freeze_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_freeze_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.tombstone"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.tombstone" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_tombstone_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_tombstone_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.destroy"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.destroy" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_destroy_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_destroy_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.child"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.child" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_child_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_child_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space.parent"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space.parent" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_parent_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_parent_payload" } }
       }
     },
     {
@@ -553,16 +449,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/state_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/state_payload" } }
       }
     },
     {
@@ -587,23 +477,14 @@
               "cx.policy.rule",
               "cx.policy.action",
               "cx.account.status",
-              "cx.flow.branch.history_visibility",
-              "cx.flow.branch.policy_components",
-              "cx.flow.branch.read_receipt_policy",
               "cx.sovereign.did_policy"
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/state_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/state_payload" } }
       }
     },
     {
@@ -618,54 +499,28 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/object_lifecycle_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.message.create"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.message.create" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/message_create_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/message_create_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.message.revise"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.message.revise" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/message_revise_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/message_revise_payload" } }
       }
     },
     {
@@ -678,16 +533,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/message_redact_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/message_redact_payload" } }
       }
     },
     {
@@ -700,35 +549,19 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/reaction_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/reaction_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.relation.create"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.relation.create" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/relation_create_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/relation_create_payload" } }
       }
     },
     {
@@ -741,16 +574,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/relation_update_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/relation_update_payload" } }
       }
     },
     {
@@ -763,16 +590,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/container_position_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/container_position_payload" } }
       }
     },
     {
@@ -786,92 +607,46 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/view_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/view_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.agent.endpoint"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.agent.endpoint" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_endpoint_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.agent.protocol_session.start"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.agent.protocol_session.start" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_start_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_session_start_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.agent.protocol_session.status"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.agent.protocol_session.status" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_status_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_session_status_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.agent.protocol_session.result"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.agent.protocol_session.result" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/agent_session_result_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_session_result_payload" } }
       }
     },
     {
@@ -885,35 +660,19 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/capability_grant_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/capability_grant_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.capability.revoke"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.capability.revoke" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/capability_revoke_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/capability_revoke_payload" } }
       }
     },
     {
@@ -930,16 +689,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/invite_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/invite_payload" } }
       }
     },
     {
@@ -952,29 +705,19 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
         "properties": {
           "payload": {
             "anyOf": [
+              { "required": ["expires_at"] },
               {
-                "required": [
-                  "expires_at"
-                ]
-              },
-              {
-                "required": [
-                  "invite"
-                ],
+                "required": ["invite"],
                 "properties": {
                   "invite": {
                     "type": "object",
-                    "required": [
-                      "expires_at"
-                    ]
+                    "required": ["expires_at"]
                   }
                 }
               }
@@ -985,306 +728,146 @@
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.device.authorized"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.device.authorized" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/device_authorized_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_authorized_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.session.grant"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.session.grant" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/session_grant_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/session_grant_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.consent.grant"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.consent.grant" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.consent.revoke"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.consent.revoke" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/consent_revoke_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/consent_revoke_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.device.revoked"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.device.revoked" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/device_revoked_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_revoked_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.device.list_update"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.device.list_update" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/device_list_update_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/device_list_update_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.mls.proposal"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.mls.proposal" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_proposal_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_proposal_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.mls.genesis"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.mls.genesis" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_genesis_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_genesis_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.mls.welcome"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.mls.welcome" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_welcome_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_welcome_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.mls.keypackage"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.mls.keypackage" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_keypackage_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_keypackage_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space_key.share"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space_key.share" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_key_share_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_key_share_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space_key.withheld"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space_key.withheld" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_key_withheld_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_key_withheld_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.space_key.share_audit"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.space_key.share_audit" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/space_key_share_audit_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_key_share_audit_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.mls.commit"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.mls.commit" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_commit_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_commit_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.mls.commit_failed"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.mls.commit_failed" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/mls_commit_failed_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/mls_commit_failed_payload" } }
       }
     },
     {
       "if": {
-        "properties": {
-          "kind": {
-            "const": "cx.moderation.report"
-          }
-        },
-        "required": [
-          "kind"
-        ]
+        "properties": { "kind": { "const": "cx.moderation.report" } },
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload" } }
       }
     },
     {
@@ -1297,16 +880,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload" } }
       }
     },
     {
@@ -1320,16 +897,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/audit_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_payload" } }
       }
     },
     {
@@ -1342,16 +913,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/call_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/call_payload" } }
       }
     },
     {
@@ -1367,16 +932,10 @@
             ]
           }
         },
-        "required": [
-          "kind"
-        ]
+        "required": ["kind"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload"
-          }
-        }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload" } }
       }
     }
   ],
@@ -1410,9 +969,7 @@
         "fail_closed"
       ],
       "properties": {
-        "id": {
-          "$ref": "#/$defs/featureRef"
-        },
+        "id": { "$ref": "#/$defs/featureRef" },
         "scope": {
           "type": "string",
           "enum": [
@@ -1425,12 +982,8 @@
             "encryption"
           ]
         },
-        "schema_ref": {
-          "$ref": "#/$defs/profileRef"
-        },
-        "fail_closed": {
-          "const": true
-        }
+        "schema_ref": { "$ref": "#/$defs/profileRef" },
+        "fail_closed": { "const": true }
       },
       "additionalProperties": true
     },
@@ -1466,6 +1019,154 @@
       "type": "string",
       "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
     },
+    "anchor_ref": {
+      "type": "string",
+      "pattern": "^cx:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+    },
+    "cell_ref": {
+      "type": "string",
+      "pattern": "^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+    },
+    "precondition": {
+      "type": "object",
+      "required": [
+        "cell",
+        "predicate"
+      ],
+      "properties": {
+        "cell": { "$ref": "#/$defs/cell_ref" },
+        "predicate": { "$ref": "#/$defs/predicate" }
+      },
+      "additionalProperties": false
+    },
+    "predicate": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "head_eq",
+            "head_in",
+            "satisfies",
+            "contains"
+          ]
+        },
+        "value": true,
+        "values": {
+          "type": "array",
+          "items": true,
+          "uniqueItems": true
+        },
+        "predicate_id": {
+          "type": "string",
+          "pattern": "^cx\\.predicate\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "effect": {
+      "type": "object",
+      "required": [
+        "cell",
+        "op"
+      ],
+      "properties": {
+        "cell": { "$ref": "#/$defs/cell_ref" },
+        "op": { "$ref": "#/$defs/lattice_op" }
+      },
+      "additionalProperties": false
+    },
+    "lattice_op": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "add",
+            "remove",
+            "set",
+            "transition",
+            "inc",
+            "dec",
+            "append",
+            "insert",
+            "delete"
+          ],
+          "description": "add/remove → or-set; set → mv-register/cas-register/lww-register; transition → fsm; inc/dec → counter; append → ordered-log; insert/delete → rga (rga + lww-register require cx.profile.collaborative_text.v1)."
+        },
+        "tag": { "type": "string" },
+        "value": true,
+        "from": true,
+        "to": true,
+        "reason": { "type": "string" },
+        "issuer_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "element_id": {
+          "type": "string",
+          "description": "RGA element id, format: \"<issuer-did>:<seq>\". Required for insert/delete ops on rga lattice cells."
+        },
+        "predecessor": {
+          "type": "string",
+          "description": "RGA insert: predecessor element id, or the literal \"head\" for list start."
+        }
+      },
+      "additionalProperties": false
+    },
+    "semantic_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "role"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Common roles include authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof. state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1."
+        },
+        "critical": {
+          "type": "boolean",
+          "default": true
+        },
+        "proof": {
+          "type": "object",
+          "description": "Optional inline proof material. Used for inclusion_proof role: carries the RFC 6962-style Merkle audit path that proves a leaf belongs to a witness state_root. May be omitted when id alone is a content-addressed reference to a separately stored proof object.",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["rfc6962_merkle"]
+            },
+            "leaf_hash": { "$ref": "#/$defs/hash" },
+            "audit_path": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/hash" }
+            },
+            "leaf_index": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "tree_size": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "proof": {
       "type": "object",
       "required": [
@@ -1479,45 +1180,24 @@
       "properties": {
         "kind": {
           "type": "string",
-          "enum": [
-            "detached_jws"
-          ],
-          "description": "detached_jws = actor / device / service signature over canonical event bytes. Ordering authority signatures are carried by Anchor."
+          "enum": ["detached_jws"],
+          "description": "detached_jws = actor / device / service signature over canonical event bytes (excluding proofs, unsigned, and hlc). Ordering authority signatures are carried by Anchor."
         },
         "alg": {
           "type": "string",
-          "enum": [
-            "EdDSA",
-            "ES256",
-            "ES384",
-            "ES512"
-          ]
+          "enum": ["EdDSA", "ES256", "ES384", "ES512"]
         },
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+(#.+)?$"
         },
-        "payload_hash": {
-          "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
-        },
-        "created_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "domain": {
-          "type": "string"
-        },
+        "payload_hash": { "$ref": "#/$defs/hash" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "domain": { "type": "string" },
         "audience": {
           "oneOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
           ]
         },
         "jws": {
@@ -1536,38 +1216,19 @@
         "rank"
       ],
       "properties": {
-        "board_place_id": {
-          "$ref": "#/$defs/board_place_id"
-        },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "from_place_id": {
-          "$ref": "#/$defs/list_place_id"
-        },
-        "target_place_id": {
-          "$ref": "#/$defs/list_place_id"
-        },
-        "rank": {
-          "$ref": "#/$defs/rank"
-        },
+        "board_place_id": { "$ref": "#/$defs/board_place_id" },
+        "flow_id": { "$ref": "#/$defs/flow_id" },
+        "from_place_id": { "$ref": "#/$defs/list_place_id" },
+        "target_place_id": { "$ref": "#/$defs/list_place_id" },
+        "rank": { "$ref": "#/$defs/rank" },
         "expected_position": {
           "type": "object",
           "properties": {
-            "place_id": {
-              "$ref": "#/$defs/list_place_id"
-            },
-            "rank": {
-              "$ref": "#/$defs/rank"
-            },
-            "relation_id": {
-              "$ref": "#/$defs/relation_id"
-            }
+            "place_id": { "$ref": "#/$defs/list_place_id" },
+            "rank": { "$ref": "#/$defs/rank" },
+            "relation_id": { "$ref": "#/$defs/relation_id" }
           },
           "additionalProperties": false
-        },
-        "move": {
-          "$ref": "./move.schema.json"
         }
       },
       "additionalProperties": false
@@ -1581,32 +1242,17 @@
         "rank"
       ],
       "properties": {
-        "board_place_id": {
-          "$ref": "#/$defs/board_place_id"
-        },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "place_id": {
-          "$ref": "#/$defs/list_place_id"
-        },
-        "rank": {
-          "$ref": "#/$defs/rank"
-        },
+        "board_place_id": { "$ref": "#/$defs/board_place_id" },
+        "flow_id": { "$ref": "#/$defs/flow_id" },
+        "place_id": { "$ref": "#/$defs/list_place_id" },
+        "rank": { "$ref": "#/$defs/rank" },
         "expected_position": {
           "type": "object",
           "properties": {
-            "rank": {
-              "$ref": "#/$defs/rank"
-            },
-            "relation_id": {
-              "$ref": "#/$defs/relation_id"
-            }
+            "rank": { "$ref": "#/$defs/rank" },
+            "relation_id": { "$ref": "#/$defs/relation_id" }
           },
           "additionalProperties": false
-        },
-        "move": {
-          "$ref": "./move.schema.json"
         }
       },
       "additionalProperties": false
@@ -1618,12 +1264,8 @@
         "branch"
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "branch": {
-          "$ref": "#/$defs/branch_name"
-        },
+        "flow_id": { "$ref": "#/$defs/flow_id" },
+        "branch": { "$ref": "#/$defs/branch_name" },
         "config": {
           "type": "object",
           "additionalProperties": true
@@ -1638,18 +1280,10 @@
         "branch"
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "branch": {
-          "$ref": "#/$defs/branch_name"
-        },
-        "reason": {
-          "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
-        }
+        "flow_id": { "$ref": "#/$defs/flow_id" },
+        "branch": { "$ref": "#/$defs/branch_name" },
+        "reason": { "type": "string" },
+        "effective_at": { "$ref": "#/$defs/timestamp" }
       },
       "additionalProperties": false
     },
@@ -1660,12 +1294,8 @@
         "branch"
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
-        },
-        "branch": {
-          "$ref": "#/$defs/branch_name"
-        }
+        "flow_id": { "$ref": "#/$defs/flow_id" },
+        "branch": { "$ref": "#/$defs/branch_name" }
       },
       "additionalProperties": false
     }

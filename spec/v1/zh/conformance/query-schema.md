@@ -27,7 +27,7 @@ title: Query JSON Schema
   "cursor": null,
   "limit": 50,
   "consistency": {
-    "wait_for": "cx:sync:...",
+    "wait_for": "cx:cursor:...",
     "timeout_ms": 5000
   }
 }
@@ -167,11 +167,13 @@ Projection 只减少返回字段，不提升权限。
   "next_cursor": "cx:cursor:...",
   "has_more": true,
   "frontier": {
-    "sync_token": "cx:sync:...",
+    "barrier_cursor": "cx:cursor:...",
     "max_hlc": "01JS0KE000000000000000000"
   }
 }
 ```
+
+`barrier_cursor` 是 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 中 `purpose=barrier` 的 cursor，可作为后续读接口的 `X-Contrix-Wait-For` 来等待 frontier 覆盖目标 event。
 
 ## 9. 安全规则
 

@@ -109,10 +109,6 @@ sidebar:
 | `cx.flow.branch.disable` | Disable Flow branch |
 | `cx.flow.branch.update` | Flow branch patch |
 | `cx.flow.branch.set_primary` | Set Flow primary branch |
-| `cx.flow.branch.member` | Flow discussion branch membership |
-| `cx.flow.branch.history_visibility` | Flow discussion branch history visibility |
-| `cx.flow.branch.policy_components` | Flow discussion branch policy components |
-| `cx.flow.branch.read_receipt_policy` | Flow discussion branch read receipt disclosure policy override |
 
 ### 4.2 消息与关系
 

@@ -348,28 +348,45 @@ GET https://<domain>/.well-known/contrix/server
 - 失败缓存必须短 TTL 或指数退避，避免一次临时故障长期破坏跨域同步。
 - service delegation 被撤销、DID Document key log 更新或 Space policy 变更时，本地缓存必须按版本 / hash 失效。
 
-## 7. 联邦 API 端点
+## 7. 联邦请求复用 Sync / Events API
 
-### 7.1 推送 Event
+v1 已合并联邦 API 与 Sync / Events API：联邦对端不再需要独立 `/federation/*` 端点，所有联邦行为通过现有 Sync / Events 端点 + service-level 认证完成。
+
+| 联邦行为 | 复用端点 | 认证模式差异 |
+| --- | --- | --- |
+| 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` header；Space policy 必须列出 source service DID 为合法 federation peer。 |
+| 跨域 backfill / 拉取缺失历史 | `GET /api/v1/sync/backfill`（`cx.sync.backfill`） | 同上。 |
+| 跨域 Space 成员视图 | `GET /api/v1/events`（`cx.events.list`） + `cx.member.state` 过滤 | 同上；服务端按 Space policy 决定哪些成员对该 service DID 可见。 |
+| 跨域 actor / DID 验证 | `POST /api/v1/identity/resolve`（`cx.identity.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
+
+### 7.1 跨域 Event 推送
 
 ```
-POST /api/v1/federation/push-operations
+POST /api/v1/events
+Authorization: <service_signature>
+Source-Service-DID: did:web:server.acme.example
+Destination-Service-DID: did:web:server.beta.example
+Request-Canonical-Hash: sha256:...
 ```
 
-字段定义见 4.1 节；service operation id 为 `cx.federation.push_operations`。
+字段、签名 transcript、绑定与重放保护按 §3.2、§4.1 与 [`api-conventions.md` §3](./api-conventions.md) 与 [`service-http-binding.md` §3](./service-http-binding.md) 执行。事件以普通 reducer-input event 提交（preconditions / effects / anchor_ref 在顶层），与单域 client write 共享同一 schema（`cx.schema.event.v1`）。
 
-### 7.2 拉取 Event
+### 7.2 跨域 Backfill
 
 ```
-GET /api/v1/federation/pull-operations?space_id=<id>&after_cursor=<cursor>&limit=<n>
+GET /api/v1/sync/backfill?space_id=<id>&since_cursor=<cursor>&limit=<n>
+Authorization: <service_signature>
 ```
 
-字段定义见 4.2 节；service operation id 为 `cx.federation.pull_operations`。
+字段定义见 4.2 节；service operation id 为 `cx.sync.backfill`。空间历史按 Space policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/sync/snapshot-head` 单独获取。
 
 ### 7.3 查询 Space 成员
 
+跨域参与方查询某 Space 成员视图时，使用 `cx.events.list` 并过滤 `kind=cx.member.state`：
+
 ```
-GET /api/v1/federation/space-members?space_id=<id>
+GET /api/v1/events?space_id=<id>&kind=cx.member.state&cursor=<cursor>&limit=<n>
+Authorization: <service_signature>
 ```
 
 请求字段：
@@ -390,11 +407,9 @@ GET /api/v1/federation/space-members?space_id=<id>
 
 ### 7.4 验证 Actor
 
-```
-POST /api/v1/federation/verify-actor
-```
+跨域 actor 验证复用 `POST /api/v1/identity/resolve` 公共服务面（`cx.identity.resolve`）。该端点本就是公共 DID 解析入口，但 Contrix 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
 
-该接口用于联邦参与方在缺少本地 DID / key-log 缓存时请求对端提供验证辅助信息。它不是公开 DID oracle，也不是最终授权来源。
+下面保留的是 v1 之前定义的 `verify-actor` 单独端点的字段集——它现在是 `/api/v1/identity/resolve` 的高级 query 形态（"holder-approved proof challenge"），不是独立 operation。
 
 请求字段：
 

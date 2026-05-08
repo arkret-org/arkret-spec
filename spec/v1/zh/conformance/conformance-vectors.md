@@ -184,7 +184,7 @@ cx.vector.encoding.event_digest.v1
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [],
-  "auth_refs": [],
+  "refs": [],
   "payload": {
     "flow_id": "cx:flow:01js0ke0000000000000000000",
     "content": {
@@ -198,7 +198,7 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_refs":[],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:01js0ev0000000000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","type":"cx.content.text"},"flow_id":"cx:flow:01js0ke0000000000000000000"},"prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"refs": [],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:01js0ev0000000000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","type":"cx.content.text"},"flow_id":"cx:flow:01js0ke0000000000000000000"},"prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000"}
 ```
 
 期望 digest：
@@ -357,7 +357,7 @@ cx.vector.encoding.hlc_logical_overflow.v1
 - 生产者 MUST 选择以下两种结果之一：
   - 等待到更大的 `unix_ms_hex`，然后生成形如 `01970e589d22-0000-a13f9c2e` 的 HLC。
   - 在 canonical bytes 生成前返回本地临时错误，例如 `hlc_logical_overflow`，由调用方重试。
-- 重试或等待期间，事件的 `prev_refs`、`auth_refs` 与 `actor_seq` 约束不得被放松。
+- 重试或等待期间，事件的 `prev_refs`、`refs[role=authorized_by]` 与 `actor_seq` 约束不得被放松。
 
 失败条件：
 
@@ -639,7 +639,7 @@ cx.vector.redaction.preserve_fields.v1
     "created_at": "2026-04-26T00:00:00Z",
     "hlc": "01970e589d24-0001-aaaaaaaa",
     "prev_refs": [],
-    "auth_refs": [],
+    "refs": [],
     "payload": {
       "flow_id": "cx:flow:01js0mrd000000000000000000",
       "content": {
@@ -672,8 +672,8 @@ cx.vector.redaction.preserve_fields.v1
     "prev_refs": [
       "cx:event:01js0mrc000000000000000000"
     ],
-    "auth_refs": [
-      "cx:event:01js0cap000000000000000000"
+    "refs": [
+      { "id": "cx:event:01js0cap000000000000000000", "role": "authorized_by", "critical": true }
     ],
     "payload": {
       "redacts": "cx:event:01js0mrc000000000000000000",
@@ -697,7 +697,7 @@ cx.vector.redaction.preserve_fields.v1
     "created_at",
     "hlc",
     "prev_refs",
-    "auth_refs",
+    "refs",
     "proofs",
     "hashes",
     "redacted_by",
@@ -903,9 +903,9 @@ cx.vector.capability.delegate_chain.v1
           }
         ]
       },
-      "auth_refs": [
-        "cx:event:01js0r00tgrant000000000000"
-      ]
+      "refs": [
+      { "id": "cx:event:01js0r00tgrant000000000000", "role": "authorized_by", "critical": true }
+    ]
     },
     {
       "event_id": "cx:event:01js0d1h000000000000000000",
@@ -936,9 +936,9 @@ cx.vector.capability.delegate_chain.v1
           }
         ]
       },
-      "auth_refs": [
-        "cx:event:01js0d1g000000000000000000"
-      ]
+      "refs": [
+      { "id": "cx:event:01js0d1g000000000000000000", "role": "authorized_by", "critical": true }
+    ]
     }
   ],
   "action_query": {
@@ -1077,8 +1077,8 @@ cx.vector.capability.approval_constraint.v1
       "approval_quorum": 2,
       "scope": "space:01js0ms000000000000000000"
     },
-    "auth_refs": [
-      "cx:event:01js0spaceadm1n00000000000"
+    "refs": [
+      { "id": "cx:event:01js0spaceadm1n00000000000", "role": "authorized_by", "critical": true }
     ]
   },
   "capabilities": [
@@ -1146,7 +1146,7 @@ cx.vector.capability.approval_constraint.v1
   "actor_seq": 1,
   "hlc": "019b76daa800-0000-a0000000",
   "prev_refs": [],
-  "auth_refs": [],
+  "refs": [],
   "kind": "cx.flow.update",
   "target_ref": "cx:flow:01js0ca0000000000000000000",
   "content_hash": "sha256:..."
@@ -1270,7 +1270,7 @@ cx.vector.capability.approval_constraint.v1
       "flow"
     ],
     "consistency": {
-      "wait_for": "sync_token_from_write"
+      "wait_for": "barrier_cursor_from_write"
     }
   }
 }

@@ -136,9 +136,11 @@ Contrix v1 支持以下 `kind`：
 
 ## 5. 动作集合
 
-动作名称与标准 event kind / operation id 的语义对齐，使用 `cx.<domain>.<action>` 点分记法。通配符 `cx.<domain>.*` 表示该域下已注册动作的管理权限。
+动作名称与标准 event kind / operation id 的语义对齐，使用 `cx.<domain>.<action>` 点分记法。Wire 层 `actions[]` 字段 MUST 是具体动作字符串；**不接受任何 wildcard / segment 通配**（含 `*`、`cx.<domain>.*`、`cx.<domain>.<sub>.*`）。`capability-grant.schema.json` 已用 pattern 静态拒绝 wildcard。
 
-实现 MUST 把本节作为 capability action 的 canonical 词表。其他文档不得使用裸名动作（例如 `space.upgrade` 或 `space.hierarchy.manage`）；若需要新增动作，必须先在本节登记，再由相关 event / operation 文档引用。`cx.<domain>.*` 是否覆盖高风险动作由 Space policy 决定；policy 未声明时，`cx.space.admin` 覆盖普通 Space 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级。
+机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`target_event_kinds`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
+
+裸名动作（例如 `space.upgrade` 或 `space.hierarchy.manage`）一律不接受。`cx.space.admin` 覆盖普通 Space 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者必须在 grant `actions[]` 中显式列出对应 high-risk 动作。
 
 ### 5.1 通用动作
 
@@ -168,9 +170,6 @@ Contrix v1 支持以下 `kind`：
 - `cx.flow.branch.disable`
 - `cx.flow.branch.update`
 - `cx.flow.branch.set_primary`
-- `cx.flow.branch.member`
-- `cx.flow.branch.history_visibility`
-- `cx.flow.branch.policy_components`
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
@@ -181,7 +180,9 @@ Contrix v1 支持以下 `kind`：
 - `cx.place.tombstone`
 - `cx.container.move_item`
 - `cx.container.rebalance`
-- `cx.view.*`
+- `cx.view.create`
+- `cx.view.update`
+- `cx.view.reconcile`
 
 Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation 管理。Message 正文权限按有效 branch access 判断：默认可继承 Flow / Space；若 discussion 声明 branch-scoped override，则必须命中该 override 下的 membership / capability。
 
@@ -205,21 +206,35 @@ Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation �
 - `cx.space.upgrade`
 - `cx.space.moderate`
 - `cx.flow.admin`
-- `cx.schema.*`
-- `cx.capability.*`
+- `cx.schema.define`
+- `cx.schema.update`
+- `cx.capability.grant`
+- `cx.capability.delegate`
+- `cx.capability.derived`
+- `cx.capability.revoke`
 - `cx.policy.manage`
-- `cx.policy.*`
+- `cx.policy.set`
+- `cx.policy.rule`
+- `cx.policy.action`
 - `cx.invite.create`
+- `cx.invite.cancel`
+- `cx.invite.third_party`
+- `cx.invite.claim`
 - `cx.invite.revoke`
-- `cx.invite.*`
 - `cx.approval.vote`
 - `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）
 
 ### 5.5 服务动作
 
-- `cx.sync.*`
-- `cx.blob.*`
+- `cx.sync.subscribe`
+- `cx.sync.client_sync`
+- `cx.sync.backfill`
+- `cx.sync.describe`
+- `cx.sync.get_snapshot_head`
+- `cx.blob.upload`
+- `cx.blob.get`
+- `cx.blob.head`
 - `cx.call.configure_media_service`
 - `cx.mls.genesis`
 - `cx.mls.proposal`
@@ -556,7 +571,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - 在 `unknown` / `stale` 拒绝响应中返回 `freshness_state`、`last_known_frontier_age_ms`、`anchorer_status`、`retry_after_ms`，让客户端 UI 区分"被拒绝"和"暂时不能确认"。
 - 客户端在低风险 `unknown` 模式下 MUST 在 UI 中标记本地 pending 写入为 `pending_local`（例如灰色发送中状态），并暴露"分区恢复后可能丢弃"的提示。
 - 不得用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_hash` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
-- 不得通过把高风险动作降级为中风险（例如把 `cx.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 capability action canonical registry 声明，不接受 grant-side override。
+- 不得通过把高风险动作降级为中风险（例如把 `cx.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 字段声明，不接受 grant-side override。
 - 单个分区窗口内允许的本地 pending 数量 MUST 限制（默认 ≤ 1000 / Space / 5 minutes），超过后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
 
 **默认 fail closed**：当实现无法确定动作风险等级、或动作来自尚未注册的 capability action 时，freshness 判定 MUST 默认按高风险处理（`stale` / `unknown` 即拒绝），而不是按低风险放行。这条 default 是为了让任何未来引入的高风险动作在进入 capability registry 前不会被旧实现误判为低风险路径。

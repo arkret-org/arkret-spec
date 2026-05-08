@@ -251,14 +251,14 @@ Content-Type: application/json
 }
 ```
 
-服务端 MUST 以 `(sender, txn_id)` 幂等。设备收到 sync 响应并推进 `next_batch` 后，服务端 MAY 删除已投递消息。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
+服务端 MUST 以 `(sender, txn_id)` 幂等。设备收到 sync 响应并推进 `cursor` 后，服务端 MAY 删除已投递消息。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
 若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`txn_id`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。
 
 接收接口：
 
 ```http
-GET /api/v1/device_messages?from=<token>&limit=<n>
+GET /api/v1/device_messages?from=<cursor>&limit=<n>
 Authorization: Bearer <token>
 ```
 
@@ -267,7 +267,7 @@ Authorization: Bearer <token>
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前接收设备。 |
-| `from` | query | `token` | optional | 上次同步位置。 |
+| `from` | query | `cursor` | optional | 上次同步位置（stream cursor）。 |
 | `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
 
 响应字段：
@@ -275,7 +275,7 @@ Authorization: Bearer <token>
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `events` | `object[]` | required | 当前设备可见的 to-device 消息。 |
-| `next_batch` | `token` | optional | 下一次读取 token。 |
+| `next_cursor` | `cursor` | optional | 下一次读取 stream cursor。 |
 | `limited` | `boolean` | optional | 是否因 limit 被截断。 |
 
 ## 8. One-Time and Fallback Keys

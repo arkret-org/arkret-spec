@@ -70,7 +70,7 @@
       }
     },
     "expected_error": {
-      "code": "sync_token_expired",
+      "code": "cursor_expired",
       "http_status": 410,
       "recovery": {
         "call": "cx.sync.get_snapshot_head",

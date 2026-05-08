@@ -47,7 +47,7 @@ Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `cx.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
-- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion branch 且可设为 primary 的 Flow、`cx.flow.branch.member`、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
+- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion branch 且可设为 primary 的 Flow、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
 - `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Place（`kind=board/list`）、Flow、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、`cx.place.create`、`cx.place.update`、`cx.place.parent`、客户端 Collection projection 和 wait-for query。
 
 `minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
@@ -91,7 +91,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 - 事件名必须符合 `cx.` 命名规则，且标准 `cx.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
 - Event Envelope MUST 先通过 `cx.schema.event.v1`，再按 `Event.kind` 通过 `cx.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
-- 事件/关系/对象/View 的 `created_at`、`space_id`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `auth_refs` 在 reducer 与验证逻辑中不能被跳过；版本通过 `Event.requirements.{schema, reducer}` 表达。
+- 事件/关系/对象/View 的 `created_at`、`space_id`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；版本通过 `Event.requirements.{schema, reducer}` 表达。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
 - State frontier、snapshot frontier、projection frontier 和 wait-for token MUST 以 `event_id` / actor frontier 为语义单位；`operation_id` 只可表示服务 canonical operation。
 - Snapshot manifest MUST 包含 `event_set_commitment`；high-assurance profile MUST 支持 inclusion / omission challenge 或 witness quorum 校验。

@@ -107,7 +107,7 @@
       "code": "causal_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "Causal dependencies, prev_refs, auth_refs, or actor-chain constraints are violated."
+      "description": "Causal dependencies, prev_refs, refs[role=authorized_by], or actor-chain constraints are violated."
     },
     {
       "code": "dependency_missing",
@@ -218,10 +218,10 @@
       "description": "The service frontier is behind the causal frontier required by the request."
     },
     {
-      "code": "sync_token_expired",
+      "code": "cursor_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "The client sync resume token has expired and must be refreshed."
+      "description": "The opaque cursor (cx:cursor:...) has expired or is no longer parseable by this server. Client MUST request a fresh cursor (initial /sync, /sync/snapshot-head, or new write barrier)."
     },
     {
       "code": "unsupported_feature",
@@ -361,7 +361,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "Required auth_refs are not yet accepted at the local frontier; the event MUST be parked until the missing refs converge."
+      "description": "Required refs[role=authorized_by] are not yet accepted at the local frontier; the event MUST be parked until the missing refs converge."
     },
     {
       "code": "projection_incomplete",

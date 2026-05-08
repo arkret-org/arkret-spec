@@ -15,20 +15,20 @@
         "cells": {
           "cx:cell:cx.component.member.state.v1:did.web.alice.example": {
             "membership": "join",
-            "head": "cx:move:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            "head": "cx:event:11111111111111111111111111"
           },
           "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gr0000000000000000000": {
             "status": "active",
-            "head": "cx:move:sha256:2222222222222222222222222222222222222222222222222222222222222222"
+            "head": "cx:event:22222222222222222222222222"
           },
           "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gs0000000000000000000": {
             "status": "active",
-            "head": "cx:move:sha256:3333333333333333333333333333333333333333333333333333333333333333"
+            "head": "cx:event:33333333333333333333333333"
           }
         }
       },
       "move": {
-        "id": "cx:move:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "id": "cx:event:bbbbbbbbbbbbbbbbbbbbbbbbbb",
         "issuer": "did:web:admin.example",
         "anchor_ref": "cx:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "preconditions": [
@@ -36,21 +36,21 @@
             "cell": "cx:cell:cx.component.member.state.v1:did.web.alice.example",
             "predicate": {
               "op": "head_eq",
-              "value": "cx:move:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              "value": "cx:event:11111111111111111111111111"
             }
           },
           {
             "cell": "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gr0000000000000000000",
             "predicate": {
               "op": "head_eq",
-              "value": "cx:move:sha256:2222222222222222222222222222222222222222222222222222222222222222"
+              "value": "cx:event:22222222222222222222222222"
             }
           },
           {
             "cell": "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gs0000000000000000000",
             "predicate": {
               "op": "head_eq",
-              "value": "cx:move:sha256:3333333333333333333333333333333333333333333333333333333333333333"
+              "value": "cx:event:33333333333333333333333333"
             }
           }
         ],
@@ -100,8 +100,8 @@
         "bottom": "reject"
       },
       "anchored_moves": [
-        "cx:move:sha256:4444444444444444444444444444444444444444444444444444444444444444",
-        "cx:move:sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        "cx:event:44444444444444444444444444",
+        "cx:event:55555555555555555555555555"
       ],
       "expected": {
         "query": {
@@ -111,9 +111,9 @@
             "cells": [
               "cx:cell:cx.component.space.policy.v1:cx.space.01js0sp0000000000000000000"
             ],
-            "move_ids": [
-              "cx:move:sha256:4444444444444444444444444444444444444444444444444444444444444444",
-              "cx:move:sha256:5555555555555555555555555555555555555555555555555555555555555555"
+            "event_ids": [
+              "cx:event:44444444444444444444444444",
+              "cx:event:55555555555555555555555555"
             ]
           }
         },
@@ -130,8 +130,8 @@
           "cx:anchor:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
         ],
         "frontier": [
-          "cx:move:sha256:6666666666666666666666666666666666666666666666666666666666666666",
-          "cx:move:sha256:7777777777777777777777777777777777777777777777777777777777777777"
+          "cx:event:66666666666666666666666666",
+          "cx:event:77777777777777777777777777"
         ]
       },
       "expected": {
@@ -143,7 +143,7 @@
       "name": "mls_commit_move_requires_covered_frontier",
       "description": "MLS commit is a Move. It fails when covered_frontier_cell does not contain the governance frontier required by the encrypted message path.",
       "move": {
-        "id": "cx:move:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "id": "cx:event:eeeeeeeeeeeeeeeeeeeeeeeeee",
         "effects": [
           {
             "cell": "cx:cell:cx.component.mls_epoch.v1:group.01js0mls0000000000000000",
@@ -181,8 +181,8 @@
         ]
       },
       "concurrent_anchorer_moves": [
-        "cx:move:sha256:1010101010101010101010101010101010101010101010101010101010101010",
-        "cx:move:sha256:2020202020202020202020202020202020202020202020202020202020202020"
+        "cx:event:10101010101010101010101010",
+        "cx:event:20202020202020202020202020"
       ],
       "expected": {
         "anchorer_cell_value": "bottom",
@@ -233,7 +233,7 @@
           "anchor": {
             "predecessor_refs": [],
             "frontier": [
-              "cx:move:sha256:6060606060606060606060606060606060606060606060606060606060606060"
+              "cx:event:60606060606060606060606060"
             ]
           },
           "expected": "reject"

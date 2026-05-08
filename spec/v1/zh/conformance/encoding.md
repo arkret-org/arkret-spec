@@ -124,6 +124,12 @@ cx:<kind>:<ulid>
 
 v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 ULID 部分 MUST 使用小写 Crockford Base32 字符集 `[0-9a-hjkmnp-z]`，并且不得包含 `i`、`l`、`o`、`u`。外部导入数据 MAY 使用大写 ULID；实现必须在生成 v1 Event Envelope、object id、cursor payload 或 proof `payload_hash` 前把它规范化为小写。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写。
 
+`<ulid>` 段 MUST 是 [ULID](https://github.com/ulid/spec)（48-bit 大端 Unix-millisecond timestamp + 80-bit 单调或随机尾部），按上述小写 Crockford Base32 编码为 26 字符。同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 ULID monotonic 模式（保持时间戳不变、随机段单调递增），用于稳定本地 actor chain 顺序。**v1 wire MUST NOT 接受其他结构等价 ID 替代**——UUID（含 RFC 9562 v7）、KSUID、Snowflake、TSID、CUID 等，即使长度恰为 26 字符或经过 Crockford 重编码，也不得作为 typed `cx:<kind>:<ulid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / auth_refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验仅以正则 + 长度为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
+
+`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed ULID。Envelope 的内容指纹由 `proof.payload_hash`（≡ `canonical_hash(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
+
+本节定义的 ULID 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `space`、`flow`、`place`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`txn` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / move / anchor、canonical cell tuple、MLS profile-scoped 引用、Space-scoped pseudonym）才允许偏离 typed-ULID pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-ULID 前缀形态 MUST 按未知 critical wire type 拒绝。
+
 特殊 ID/ref 形式：
 
 - `cx:cursor:<base64url>` 是 opaque token，不是 typed ULID object ID。
@@ -278,16 +284,21 @@ cx:cursor:<base64url>
 
 - 客户端 MUST 把 cursor 当作不透明字符串。
 - 客户端 MUST NOT 解码、解析或修改 cursor 内容。
-- 客户端 MUST 存储最新 `next_batch` cursor 用于恢复。
+- 客户端 MUST 存储最新 stream `cursor`（来自 `/sync` 响应）用于恢复。
 - 客户端 MUST 在下次同步请求中按原样使用 cursor。
 
 ### 8.2 服务端 canonical 内部结构
 
-服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 cursor 内部结构 MUST 遵循下方 schema**，目的是让客户端在 Principal Server 之间迁移时目标服务器有能力解析旧 cursor 并生成等价本地 cursor。客户端 MUST NOT 解析或修改 cursor；**服务器侧的 cursor 内部结构必须遵循本节 schema，不得使用私有形态**。
+服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 cursor 内部结构 MUST 遵循下方 schema**，与 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 一致；目的是让客户端在 Principal Server 之间迁移时目标服务器有能力解析旧 cursor 并生成等价本地 cursor。客户端 MUST NOT 解析或修改 cursor；**服务器侧的 cursor 内部结构必须遵循本节 schema，不得使用私有形态**。
+
+cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步、列表分页、写后读屏障所有用途。`purpose` 字段区分两个语义：`stream`（增量同步与列表分页，出现位置：`since` / `prev_cursor` / `next_cursor` / `after_cursor`）与 `barrier`（写后读屏障，出现位置：写接口响应中的 `cursor` 字段、`X-Contrix-Wait-For` header）。
+
+Stream 形态：
 
 ```json
 {
   "v": "1",
+  "purpose": "stream",
   "t": "2026-04-26T00:00:00.000Z",
   "s": {
     "cx:space:01js0sp0000000000000000000": {
@@ -303,15 +314,36 @@ cx:cursor:<base64url>
 }
 ```
 
+Barrier 形态：
+
+```json
+{
+  "v": "1",
+  "purpose": "barrier",
+  "t": "2026-04-26T00:00:00.000Z",
+  "target": {
+    "event_id": "cx:event:01js0ev0000000000000000000",
+    "event_digest": "sha256:abc123...",
+    "space_id": "cx:space:01js0sp0000000000000000000"
+  },
+  "x": 1714080000000
+}
+```
+
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
+| `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
 | `t` | timestamp | 是 | 生成时间戳 |
-| `s` | object | 是 | Space 位置映射 |
-| `s.<space_id>.p` | array | 是 | 因果前沿（事件 ID 集合） |
-| `s.<space_id>.o` | string | 是 | timeline 排序 HLC |
-| `s.<space_id>.h` | hash | 是 | 该位置的 state hash |
-| `d` | object | 否 | 设备位置映射 |
+| `s` | object | stream 时可有 | Space 位置映射 |
+| `s.<space_id>.p` | array | 是（每条 entry） | 因果前沿（事件 ID 集合） |
+| `s.<space_id>.o` | string | 是（每条 entry） | timeline 排序 HLC |
+| `s.<space_id>.h` | hash | 是（每条 entry） | 该位置的 state hash |
+| `d` | object | stream 时可有 | 设备位置映射 |
+| `target` | object | `purpose=barrier` 必填 | 等待目标 event |
+| `target.event_id` | id:event | 是（barrier） | 目标事件 ID |
+| `target.event_digest` | hash | 是（barrier） | 目标事件 canonical digest |
+| `target.space_id` | id:space | 否 | 目标事件所在 Space（可选 hint） |
 | `x` | integer | 是 | 过期时间戳（Unix ms） |
 
 服务端 MAY 添加 `_` 开头的私有字段（如 `_compression`、`_mac`）用于本地优化或签名；这些字段不参与 §8.4 cursor 翻译，必须先于 base64url 编码进入 canonical bytes。
@@ -323,19 +355,22 @@ cx:cursor:<base64url>
 1. 前缀以 `cx:cursor:` 开头。
 2. 其余部分是合法 base64url。
 3. 解码后 `v` 是支持的版本。
-4. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
-5. 解码后是合法 JSON。
-6. 所有 `space_id` 是合法 `cx:space:*` 格式。
-7. 因果前沿中的所有 event id 合法。
-8. timeline 排序是合法 HLC 格式。
+4. 解码后 `purpose` 是 `stream` 或 `barrier`。
+5. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
+6. 解码后是合法 JSON。
+7. 所有 `space_id` 是合法 `cx:space:*` 格式。
+8. 因果前沿中的所有 event id 合法。
+9. timeline 排序是合法 HLC 格式。
+10. `purpose=barrier` 时 `target.event_id` 与 `target.event_digest` 必填。
+11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `since` / `prev_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Contrix-Wait-For` 上下文 MUST `invalid_param`）。
 
-非法 cursor MUST reject，错误 `invalid_cursor`。
+非法 cursor MUST reject，错误 `invalid_param`；已过期 cursor MUST reject，错误 `cursor_expired`。
 
 ### 8.4 Cursor 可迁移性
 
 Cursor 对客户端不透明，但**服务器之间不再不透明**。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下迁移路径之一：
 
-1. **直接 reparse**：B 收到 `since=cx:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<space_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Space 历史。
+1. **直接 reparse**：B 收到 `since=cx:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<space_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Space 历史，且 `purpose=stream`；barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
 2. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；不得静默丢失因果对齐。
 3. **可选 translate 端点**：未来 profile 可能在 `cx.profile.principal_server.v1` 之上引入 `POST /api/v1/sync/translate-cursor`；该端点不属于 v1 强制范围。
 

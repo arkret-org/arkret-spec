@@ -109,12 +109,8 @@
     "cx.profile.sovereign_deployment.v1"
   ],
   "constraint_extension_profiles": [
-    "cx.profile.constraint.temporal_recurrence.v1",
-    "cx.profile.constraint.field_condition.v1",
     "cx.profile.constraint.approval_workflow.v1",
     "cx.profile.constraint.claim_based.v1",
-    "cx.profile.constraint.accountability.v1",
-    "cx.profile.constraint.device_session.v1",
     "cx.profile.constraint.encryption_requirement.v1",
     "cx.profile.constraint.visibility_control.v1",
     "cx.profile.constraint.resource_limit.v1"
@@ -212,7 +208,6 @@
         "cx.schema.event_payload.v1",
         "cx.schema.event_batch_receipt.v1",
         "cx.schema.cursor.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_constraint_types": [
@@ -258,9 +253,6 @@
         "cx.space.create",
         "cx.member.state",
         "cx.flow.create",
-        "cx.flow.branch.member",
-        "cx.flow.branch.history_visibility",
-        "cx.flow.branch.policy_components",
         "cx.message.create",
         "cx.message.revise",
         "cx.message.redact",
@@ -405,7 +397,6 @@
         "cx.space.create",
         "cx.member.state",
         "cx.flow.create",
-        "cx.flow.branch.member",
         "cx.message.create",
         "cx.reaction.add",
         "cx.redaction",
@@ -554,7 +545,6 @@
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1",
         "cx.schema.cursor.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -588,7 +578,6 @@
         "cx.sync.subscribe",
         "cx.sync.backfill",
         "cx.sync.get_snapshot_head",
-        "cx.federation.transaction",
         "cx.authz.check"
       ],
       "required_event_kinds": [
@@ -631,12 +620,7 @@
       "inherits": [
         "cx.profile.core_event_store.v1"
       ],
-      "required_endpoints": [
-        "cx.federation.transaction",
-        "cx.federation.pull_operations",
-        "cx.federation.verify_actor",
-        "cx.federation.space_members"
-      ],
+      "required_endpoints": [],
       "required_event_kinds": [
         "cx.space.create",
         "cx.member.state"
@@ -649,7 +633,6 @@
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1",
         "cx.schema.event_batch_receipt.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -847,7 +830,6 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -946,7 +928,6 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.identity.resolve",
-        "cx.federation.transaction",
         "cx.authz.check"
       ],
       "required_event_kinds": [
@@ -1043,8 +1024,7 @@
       ],
       "required_endpoints": [
         "cx.server.describe",
-        "cx.identity.resolve",
-        "cx.federation.transaction"
+        "cx.identity.resolve"
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
@@ -1089,7 +1069,6 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.client_sync_response.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1272,8 +1251,7 @@
       ],
       "required_endpoints": [
         "cx.server.describe",
-        "cx.identity.resolve",
-        "cx.federation.transaction"
+        "cx.identity.resolve"
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
@@ -1363,7 +1341,6 @@
         "cx.schema.event.v1",
         "cx.schema.encrypted_payload.v1",
         "cx.schema.audit_ryw_receipt.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1399,7 +1376,6 @@
         "cx.schema.event.v1",
         "cx.schema.encrypted_payload.v1",
         "cx.schema.audit_ryw_receipt.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1451,7 +1427,6 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1475,7 +1450,6 @@
         "cx.schema.event.v1",
         "cx.schema.cursor.v1",
         "cx.schema.event_batch_receipt.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1507,7 +1481,6 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1522,9 +1495,7 @@
       }
     },
     "cx.profile.federation_vectors.v1": {
-      "required_endpoints": [
-        "cx.federation.transaction"
-      ],
+      "required_endpoints": [],
       "required_event_kinds": [
         "cx.space.create",
         "cx.member.state"
@@ -1532,7 +1503,6 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1617,7 +1587,6 @@
       "required_schemas": [
         "cx.schema.event.v1",
         "cx.schema.event_payload.v1",
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1689,7 +1658,6 @@
       ],
       "required_event_kinds": [
         "cx.member.state",
-        "cx.flow.branch.member",
         "cx.flow.move",
         "cx.flow.reorder",
         "cx.policy.set"
@@ -1698,8 +1666,7 @@
       "required_schemas": [
         "cx.schema.anchor.v1",
         "cx.schema.event.v1",
-        "cx.schema.event_payload.v1",
-        "cx.schema.move.v1"
+        "cx.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "move-anchor-lattice-fixture.json"
@@ -1722,7 +1689,6 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1",
         "cx.schema.snapshot.v1"
       ],
@@ -1748,7 +1714,6 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1",
         "cx.schema.snapshot.v1"
       ],
@@ -1774,7 +1739,6 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1",
         "cx.schema.snapshot.v1"
       ],
@@ -1800,7 +1764,6 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.move.v1",
         "cx.schema.anchor.v1",
         "cx.schema.snapshot.v1"
       ],
@@ -1823,7 +1786,6 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.move.v1",
         "cx.schema.space.v1"
       ],
       "required_fixtures": [],

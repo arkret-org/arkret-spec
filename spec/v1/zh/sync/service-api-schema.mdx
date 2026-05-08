@@ -49,7 +49,6 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | 身份与 registry | `cx.identity.*` | `/identity/*` |
 | Events | `cx.events.*` | `/events/*` |
 | 客户端同步与 Space 同步 | `cx.sync.*` | `/sync/*` |
-| 联邦 | `cx.federation.*` | `/federation/*` |
 | 目录发现 | `cx.directory.*` | `/directory/*` |
 | Blob / media | `cx.blob.*` | `/blob/*` |
 | 推送 | `cx.push.*` | `/push/*` |
@@ -79,10 +78,6 @@ servers:
 
 components:
   parameters:
-    SyncToken:
-      name: next_batch
-      in: query
-      schema: { type: string }
     CXCursor:
       name: cursor
       in: query
@@ -147,22 +142,6 @@ paths:
   /sync/snapshot-head:
     get:
       operationId: cx.sync.get_snapshot_head
-
-  /federation/transactions/{txn_id}:
-    put:
-      operationId: cx.federation.transaction
-  /federation/push-operations:
-    post:
-      operationId: cx.federation.push_operations
-  /federation/pull-operations:
-    get:
-      operationId: cx.federation.pull_operations
-  /federation/space-members:
-    get:
-      operationId: cx.federation.space_members
-  /federation/verify-actor:
-    post:
-      operationId: cx.federation.verify_actor
 
   /directory/describe:
     get:

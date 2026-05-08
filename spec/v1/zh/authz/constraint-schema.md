@@ -42,22 +42,19 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
 | `temporal` | `edit_window` | extension | `applies_to_actions=["cx.message.revise"]` + `message_edit_window` 限定编辑窗口。 | `cx.profile.chat_mvp.v1` |
 | `temporal` | `redact_window` | extension | `applies_to_actions=["cx.message.redact"]` + `message_redact_window` 限定撤回窗口。 | `cx.profile.chat_mvp.v1` |
-| `temporal` | `session` | extension | `max_session_duration` / `inactivity_timeout` 会话时长。 | `cx.profile.constraint.temporal_recurrence.v1` |
-| `temporal` 带 `recurrence` | （任意 subtype） | extension | 周期窗口。 | `cx.profile.constraint.temporal_recurrence.v1` |
 | `field_access` | （省略 = 列表比较） | core | `fields_write_allow` / `fields_write_deny` 等。 | core |
-| `field_access` 带 `condition` | （任意 subtype） | extension | 启用 `condition.kind` typed predicate。 | `cx.profile.constraint.field_condition.v1` |
 | `type_restriction` | — | core | 对象类型 / Space kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Space / Flow / View / branch 范围。 | core |
 | `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `cx.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、subset_only 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `cx.profile.constraint.resource_limit.v1` |
-| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求。 | `cx.profile.constraint.claim_based.v1` |
+| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；包含原 `accountability`（responsible / guardian / controller 通过 claim 表达）和原 `device_session`（device binding 通过 claim issuer = device cross-signing key 表达）。 | `cx.profile.constraint.claim_based.v1` |
 | `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `cx.profile.constraint.approval_workflow.v1` |
-| `claim_based` | `accountability` | extension | 责任方 / guardian / controller 追踪。 | `cx.profile.constraint.accountability.v1` |
-| `claim_based` | `device_session` | extension | 强 device 绑定 / session 控制。 | `cx.profile.constraint.device_session.v1` |
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `cx.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `cx.profile.constraint.visibility_control.v1` |
+
+> v1 已删除 `temporal.session` / `temporal.recurrence` / `field_access.condition` / `claim_based.accountability` / `claim_based.device_session` 这些原 v1 草案中独立的扩展 subtype。其语义由更通用的 `claim_based.claim` + `temporal.{not_before, expires_at}` 表达：会话时长通过 session token claim 的 `expires_at` 表达；周期窗口通过 issuer 颁发短期 claim 表达；字段条件通过 schema-defined deterministic predicate 表达；责任 / device 通过 claim issuer 表达。删除目的是把 constraint family 数从 23 alias 收敛到 7 个核心 typed family（temporal / field_access / type_restriction / scope_limitation / delegation_control / quota / claim_based / confidentiality）。
 
 未注册的 `constraint_type` 或未注册的 `(constraint_type, subtype)` 组合 MUST fail closed。新增 family / subtype 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` 与 `subtype` enum 中注册。
 
@@ -179,7 +176,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 在 v1 仅有意义值 `collaboration`（Space 唯一标准 kind）。**结构容器（看板、列、泳道、calendar bucket 等）由 Place 对象承担**——使用 `place_kind_allow` 收窄到 Place.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；place_kind_allow 不会把 Place 升级为独立 membership 或 E2EE 边界（Place 永远透明回退到所属 Space）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 在 v1 已无规范用途——Space 顶层 `kind` 字段已删除（v1 中所有 Space 都是同一种安全边界，无 kind 区分）。该约束保留 schema 字段是为了未来扩展 profile 注册新 Space kind 时可重新启用；当前 v1 实现 SHOULD 把它视为 no-op。**结构容器（看板、列、泳道、calendar bucket 等）由 Place 对象承担**——使用 `place_kind_allow` 收窄到 Place.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；place_kind_allow 不会把 Place 升级为独立 membership 或 E2EE 边界（Place 永远透明回退到所属 Space）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
