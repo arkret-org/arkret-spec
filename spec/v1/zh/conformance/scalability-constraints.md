@@ -105,7 +105,7 @@ Contrix 的真相源仍是 signed Event Envelope；GC 只能释放某个存储�
 | tombstone / redaction verification stub 保留 | 不短于 raw event retention | 删除 payload 或压缩历史后仍 MUST 保留足以验证 causal refs、payload hash / proof、redaction / tombstone 授权和 erasure receipt 的最小 stub。 |
 | snapshot cadence | 实现声明 | 大型 Space SHOULD 周期性生成可验证 snapshot；当 replay 成本超过第 4 节预算时 MUST 提供 snapshot-assisted recovery、可分页 backfill 或明确的可恢复错误。 |
 | snapshot 保留数量 | 至少 2 个有效 head SHOULD | 服务 SHOULD 保留当前推荐 snapshot 和至少一个前代 snapshot，便于 cursor 过期、移动端恢复和 snapshot 校验失败时回退。 |
-| branch-disabled / archived materialized state | snapshot 中保留 stub | `cx.flow.branch.disable`、Space tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 branch 不活跃而从 state hash 中静默消失。 |
+| track-disabled / archived materialized state | snapshot 中保留 stub | `cx.flow.track.disable`、Space tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 track 不活跃而从 state hash 中静默消失。 |
 
 Pruning 前置条件：
 
@@ -113,7 +113,7 @@ Pruning 前置条件：
 2. 没有 active legal hold、audit hold、unexpired invite / grant、pending redaction、未结算 claim、未完成 device verification transaction 或 Space policy 明确要求保留的依赖。
 3. 裁剪后，客户端仍能通过 snapshot frontier、backfill 起点、event-set commitment、verification stub 或可恢复错误理解缺口。
 
-服务端 MAY 对机器人高速创建 branch、Message、Reaction、read marker 或 notification projection 的行为实施 quota 和限流。超过上限时应使用 `rate_limited`、`quota_exceeded`、`payload_too_large`、`dependency_missing` 或 `temporarily_unavailable`，也可将可疑输入 `quarantine`；不得在 reducer 内无界展开或把被裁剪历史当作 accepted absent fact。
+服务端 MAY 对机器人高速创建 track、Message、Reaction、read marker 或 notification projection 的行为实施 quota 和限流。超过上限时应使用 `rate_limited`、`quota_exceeded`、`payload_too_large`、`dependency_missing` 或 `temporarily_unavailable`，也可将可疑输入 `quarantine`；不得在 reducer 内无界展开或把被裁剪历史当作 accepted absent fact。
 
 ## 8. 错误语义
 

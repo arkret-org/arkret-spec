@@ -197,7 +197,7 @@ Rules:
 
 ### 3.7 已读回执偏好 (Read Receipt Preferences)
 
-控制是否向其他成员发送 `cx.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Space 或 Flow / discussion branch 单独重写。
+控制是否向其他成员发送 `cx.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Space 或 Flow / discussion track 单独重写。
 
 **Key:** `cx.read_receipt.preferences`
 
@@ -225,7 +225,7 @@ Rules:
 | --- | --- | --- | --- |
 | `default.send` | `bool` | `true` | 全局是否发送 `cx.receipt.read`。 |
 | `spaces.<space_id>.send` | `bool` |  | 针对单个 Space 的覆盖，优先于 `default`。 |
-| `flows.<flow_id>.send` | `bool` |  | 针对单个 Flow / discussion branch 的覆盖，优先于 `spaces.<space_id>`。 |
+| `flows.<flow_id>.send` | `bool` |  | 针对单个 Flow / discussion track 的覆盖，优先于 `spaces.<space_id>`。 |
 
 规则：
 

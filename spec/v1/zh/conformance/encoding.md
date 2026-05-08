@@ -444,7 +444,7 @@ rank_between(left, right):
 
 ## 9.5. Composite Cell Subject
 
-部分 cell 的 subject 由多个 sub-component 复合派生（例如 `cx.flow.branch.member` 的 `(flow_id, branch, actor_id)`、`cx.device.authorized` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Move precondition、Lattice join 和 fixture 必须使用同一形态。
+部分 cell 的 subject 由多个 sub-component 复合派生（例如 `cx.flow.track.member` 的 `(flow_id, track, actor_id)`、`cx.device.authorized` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Move precondition、Lattice join 和 fixture 必须使用同一形态。
 
 ### 9.5.1 通用规则
 
@@ -463,13 +463,13 @@ rank_between(left, right):
 
 | Cell family / Event kind | components_array 顺序（来源字段） |
 | --- | --- |
-| `cx.component.flow.branch.member.v1` / `cx.flow.branch.member` | `[flow_id, branch, actor_id]` |
-| `cx.component.flow.branch.history_visibility.v1` / `cx.flow.branch.history_visibility` | `[flow_id, branch]` |
-| `cx.component.flow.branch.policy_components.v1` / `cx.flow.branch.policy_components` | `[flow_id, branch]` |
+| `cx.component.flow.track.member.v1` / `cx.flow.track.member` | `[flow_id, track, actor_id]` |
+| `cx.component.flow.track.history_visibility.v1` / `cx.flow.track.history_visibility` | `[flow_id, track]` |
+| `cx.component.flow.track.policy_components.v1` / `cx.flow.track.policy_components` | `[flow_id, track]` |
 | `cx.component.device.authorized.v1` / `cx.device.authorized` | `[principal_id, device_id]` |
 | `cx.component.device.authorized.v1` / `cx.device.revoked` | `[principal_id, device_id]` |
 
-`flow_id`、`actor_id`、`principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。`branch` MUST 与 Flow `branches[].name` 一致（`^[a-z][a-z0-9_]{0,63}$`）。
+`flow_id`、`actor_id`、`principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。`track` MUST 与 Flow `tracks[].name` 一致（`^[a-z][a-z0-9_]{0,63}$`）。
 
 非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Space policy 用 Space id）直接把规范化 subject 放入 `cx:cell:<component>:<subject>`，不需要 hash 化。
 

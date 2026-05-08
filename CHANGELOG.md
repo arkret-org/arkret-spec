@@ -91,7 +91,7 @@
 - `cx.flow.convert`：从 `contract-catalog.json` event_kind_registry 删除（本批 110 → 109 active kinds，
   之后 actor_profile 评审新增 `cx.profile.create` 把总数加回 110，参见下方 "actor_profile + gatekeeper
   收尾" 一节）；`event-schema.json` 移除对应 if/then 分支与 `flow_convert_payload` $def；prose 全部改为
-  `cx.flow.branch.set_primary` + `cx.flow.branch.enable` 组合。
+  `cx.flow.track.set_primary` + `cx.flow.track.enable` 组合。
 - `cx:operation:` typed-id：从 `id_kind_registry` 删除（37 → 36）；`cx.schema.operation.v1` 从 schema_registry
   删除（35 → 34）；`operation.schema.json` 与 zh 镜像完全删除；data-structures.md §18（Canonical
   Operation Object）删除，§19 Field Patch 重新编号为 §18。
@@ -155,11 +155,11 @@
   oneOf+not。
 - **18 BLOCKER 修复（"Final gatekeeper review"）**：encrypted-envelope schema (`ratchet_tree` →
   `group_state_ref`、强制 `version` + `aad_digest`、`key_ref` 锁 `additionalProperties:false`)；
-  read-receipt (`reader` → `actor_id`，新增 `flow_id`、`branch`、`hlc`、`schema`)；read-marker
-  (`scope` 改为 `{kind, ref, branch?}`，新增 `device_id` 与 `position{event_id, hlc}` 满足多设备汇聚)；
-  notification (新增 `source_ref` / `flow_id` / `branch`)；resource-selector (移除 `board_id` /
+  read-receipt (`reader` → `actor_id`，新增 `flow_id`、`track`、`hlc`、`schema`)；read-marker
+  (`scope` 改为 `{kind, ref, track?}`，新增 `device_id` 与 `position{event_id, hlc}` 满足多设备汇聚)；
+  notification (新增 `source_ref` / `flow_id` / `track`)；resource-selector (移除 `board_id` /
   `list_id`)；capability-grant (`actions[]` pattern 强制 `cx.<segment>...` canonical 词表)；event-payload
-  (`message_create` 必须带 `branch`，新增共享 `$defs/branch`)；以及对应的 `cx.capability.{grant,revoke,
+  (`message_create` 必须带 `track`，新增共享 `$defs/track`)；以及对应的 `cx.capability.{grant,revoke,
   derived}` state_key 推导规则、derive/revoke supersede 语义、push privacy `push_target_id` 推导
   (`device-lifecycle.md` §5a) 与跨文件引用修复。
 

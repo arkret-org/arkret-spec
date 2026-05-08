@@ -105,10 +105,10 @@ sidebar:
 | `cx.flow.restore` | Flow restore |
 | `cx.flow.move` | Flow move between Lists |
 | `cx.flow.reorder` | Flow reorder within List |
-| `cx.flow.branch.enable` | Enable Flow branch |
-| `cx.flow.branch.disable` | Disable Flow branch |
-| `cx.flow.branch.update` | Flow branch patch |
-| `cx.flow.branch.set_primary` | Set Flow primary branch |
+| `cx.flow.track.enable` | Enable Flow track |
+| `cx.flow.track.disable` | Disable Flow track |
+| `cx.flow.track.update` | Flow track patch |
+| `cx.flow.track.set_primary` | Set Flow primary track |
 
 ### 4.2 消息与关系
 

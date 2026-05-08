@@ -589,8 +589,7 @@ components:
       type: string
       enum:
       - board
-      - card
-      - row
+      - list
       - table
       - calendar
       - gantt

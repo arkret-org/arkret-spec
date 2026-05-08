@@ -61,7 +61,7 @@ sidebar:
 - `conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
 - `conformance-vectors.md` 与 `move-anchor-lattice-fixture.json`：Move 原子性、Anchor batch、Lattice bottom、离线 rebase 与 covered frontier 的收敛向量。
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
-- `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Flow discussion branch 不继承 Flow synthesis 权限与审批约束向量。
+- `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Flow discussion track 不继承 Flow synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
 - `mimi-interop-fixture.json`：MIMI provider directory、room binding、content mapping、identifier query、consent、proxy download 与 unsupported draft 向量。
 

@@ -56,7 +56,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
     "group_state_ref": {
       "space_id": "cx:space:01js0sp0000000000000000000",
       "flow_id": null,
-      "branch": null,
+      "track": null,
       "epoch": 42
     }
   },

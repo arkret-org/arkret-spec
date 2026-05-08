@@ -1216,7 +1216,7 @@ cx.vector.capability.approval_constraint.v1
           "schema": "cx.schema.flow.v1",
           "space_id": "cx:space:01js0sp0000000000000000000",
           "title": "Release checklist",
-          "branches": [
+          "tracks": [
             {
               "name": "synthesis",
               "is_primary": true
@@ -1281,7 +1281,7 @@ cx.vector.capability.approval_constraint.v1
 - Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
 - 查询结果中该 Flow item 的 `list_id` MUST 为 `cx:space:01js0112000000000000000000`。
 
-### 5.5 Vector: Flow Discussion Branch Visibility
+### 5.5 Vector: Flow Discussion Track Visibility
 
 输入：
 
@@ -1290,13 +1290,13 @@ cx.vector.capability.approval_constraint.v1
   "flow_id": "cx:flow:01js0ca1000000000000000000",
   "viewer": "did:web:viewer.example.com",
   "viewer_can_read_flow": true,
-  "viewer_is_branch_member": false
+  "viewer_is_track_member": false
 }
 ```
 
 期望：
 
-- Flow projection MAY show a lazy discussion-branch reference.
+- Flow projection MAY show a lazy discussion-track reference.
 - Flow discussion timeline MUST NOT be expanded.
 - Notification/search results MUST NOT reveal hidden discussion messages.
 
@@ -1307,9 +1307,9 @@ cx.vector.capability.approval_constraint.v1
 ```json
 {
   "flow_id": "cx:flow:01js0sb1000000000000000000",
-  "branch": "discussion",
+  "track": "discussion",
   "viewer_grants": ["cx.flow.read"],
-  "viewer_branch_membership": "none"
+  "viewer_track_membership": "none"
 }
 ```
 
@@ -1344,5 +1344,5 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- `flow-discussion-timeline` MUST return the message when viewer can read the Flow discussion branch.
-- `flow-discussions` MUST only include this message if viewer can read the Flow discussion branch; Flow synthesis visibility alone is not sufficient when discussion lives in a separate `discussion_space_ref` child Space.
+- `flow-discussion-timeline` MUST return the message when viewer can read the Flow discussion track.
+- `flow-discussions` MUST only include this message if viewer can read the Flow discussion track; Flow synthesis visibility alone is not sufficient when discussion lives in a separate `discussion_space_ref` child Space.

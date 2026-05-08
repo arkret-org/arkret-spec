@@ -155,8 +155,52 @@ POST /api/v1/push/unregister-device
 | `mentions_actor` | client-side（E2EE）/ server-side（cleartext Space）| 消息中提及当前 Actor。E2EE Space 中 mention relation 通常嵌入密文 → 见 §4.5 |
 | `is_direct_message` | server-side | 来自 1 对 1 私聊 Space（可由 Space metadata 或成员数判断，不需要解密）|
 | `member_count` | server-side | Space 成员数满足条件（如 `<= 5`），可由 metadata 判断 |
+| `flow_track` | server-side | Event 关联的 Flow track 名匹配给定 pattern（如 `synthesis`、`discussion`，支持 glob）。Track 名是 Flow 的公开配置 metadata，不属于 E2EE 正文 → server 端可在不解密内容的前提下评估 |
 
 每条 rule MUST 在 wire 上声明其 `evaluation_locus` 为 `server` 或 `client`。Sync Service 只在 `server` rule 上做匹配；`client` rule 的语义由本节 §4.5 定义的降级流程承担。
+
+#### 4.3.1 `flow_track` 与 per-track 通知
+
+Track 不持有独立 membership / 权限（见 [`models/object-model-core.md` §6](../models/object-model-core.md)），但用户对不同 track 的关注度不同——例如想接收某个 Flow 的 `synthesis` 全部更新，但 `discussion` 只关心 @ 自己。`flow_track` condition 用于在通知层表达这种偏好，不影响访问控制。
+
+**`track_name` 的派生**（server-side，由 Sync Service 在规则匹配前从 Event 推导，**不是** 一个客户端在 wire 上自由设置的字段）：
+
+- Event payload 显式引用 Flow（如 `cx.message.create` 携带 `flow_id`，或 `cx.flow.field.update` 直接作用于 Flow）→ 按 Event 类型映射：
+  - `cx.message.*` / `cx.reaction.*` / `cx.thread.*` 在 Flow 的 discussion timeline 中产生 → `track_name = "discussion"`
+  - `cx.flow.update` / `cx.flow.field.update` / `cx.flow.state.*` 等修改 Flow synthesis 字段的事件 → `track_name = "synthesis"`
+  - 其它 `cx.flow.track.*` 配置事件按其 `track_name` 字段直接映射
+- Event 不属于任何 Flow（普通 Space 消息）→ `flow_track` condition 视为不匹配（既不为真，也不报错）；用户希望覆盖普通 Space 消息时应使用 `field_match` on `space_id` 而非 `flow_track`
+- Flow 设置了 `discussion_space_ref` → discussion track 的消息发到 child Space；该 child Space 上的 `cx.message.*` 仍由 server 通过 `discussion_space_ref ↔ flow_id` 反查后映射为 `track_name = "discussion"`
+
+`flow_track` MUST NOT 携带任何正文或 mention 信息进入推送 payload；它只参与 server-side 规则匹配并影响 `notify` / `dont_notify` 的最终决定。在 E2EE Space 中，由于 track name 是公开 Flow 配置（非密文），此条件不需要 §4.5 的降级流程，仍按 `evaluation_locus: server` 评估。
+
+示例（synthesis 全收，discussion 仅 mention 自己）：
+
+```json
+{
+  "rule_id": "underride.flow-synthesis-all",
+  "kind": "underride",
+  "enabled": true,
+  "evaluation_locus": "server",
+  "conditions": [
+    { "kind": "flow_track", "pattern": "synthesis" }
+  ],
+  "actions": ["notify"]
+},
+{
+  "rule_id": "underride.flow-discussion-mention-only",
+  "kind": "underride",
+  "enabled": true,
+  "evaluation_locus": "client",
+  "conditions": [
+    { "kind": "flow_track", "pattern": "discussion" },
+    { "kind": "mentions_actor" }
+  ],
+  "actions": ["notify", "highlight"]
+}
+```
+
+第二条规则把 `mentions_actor` 与 `flow_track` 复合：在 cleartext Space 中 server 直接评估；在 E2EE Space 中 server 看到 `flow_track=discussion` 但无法解密 mention，按 §4.5 走 client-side 降级——即先按 Space 级 `wakeup_default` 唤醒，client 解密后再决定是否进入用户感知通知 surface。规则书写者无需手动区分两种 Space，`evaluation_locus: client` 已经声明了降级路径。
 
 ### 4.4 动作类型 (Actions)
 

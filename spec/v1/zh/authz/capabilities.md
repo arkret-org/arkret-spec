@@ -9,7 +9,7 @@ Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系
 这样做的原因是：
 
 - `flow`、`message`、`space`、`morph`、`view` 的动作集不同。
-- Flow 的 `synthesis` 与 `discussion` branch 共享父 Space 的 access；需要让 discussion 拥有独立 access 域时升级到 child Space (`Flow.discussion_space_ref`)。
+- Flow 的 `synthesis` 与 `discussion` track 共享父 Space 的 access；需要让 discussion 拥有独立 access 域时升级到 child Space (`Flow.discussion_space_ref`)。
 - agent 必须被精细授权。
 - 授权变化必须可审计。
 
@@ -132,7 +132,7 @@ Contrix v1 支持以下 `kind`：
 - `read_marker`
 - `blob`
 
-资源选择器应把 Place（`kind=board/list/...`）、Flow branch、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
+资源选择器应把 Place（`kind=board/list/...`）、Flow track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
 
 ## 5. 动作集合
 
@@ -166,10 +166,10 @@ Contrix v1 支持以下 `kind`：
 - `cx.flow.restore`
 - `cx.flow.move`
 - `cx.flow.reorder`
-- `cx.flow.branch.enable`
-- `cx.flow.branch.disable`
-- `cx.flow.branch.update`
-- `cx.flow.branch.set_primary`
+- `cx.flow.track.enable`
+- `cx.flow.track.disable`
+- `cx.flow.track.update`
+- `cx.flow.track.set_primary`
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
@@ -184,7 +184,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.view.update`
 - `cx.view.reconcile`
 
-Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation 管理。Message 正文权限按有效 Space 判断：未设 `discussion_space_ref` 时使用父 Space 的 capability；设了 `discussion_space_ref` 时使用 child Space 的 capability，与父 Space 独立。
+Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按有效 Space 判断：未设 `discussion_space_ref` 时使用父 Space 的 capability；设了 `discussion_space_ref` 时使用 child Space 的 capability，与父 Space 独立。
 
 ### 5.3 Discussion 与消息动作
 
@@ -196,8 +196,8 @@ Flow 权限只覆盖 Flow 自身字段、branch 配置和 position / relation �
 - `cx.message.redact.own`
 - `cx.reaction.add`
 - `cx.reaction.remove`
-- `cx.flow.branch.read`
-- `cx.flow.branch.admin`
+- `cx.flow.track.read`
+- `cx.flow.track.admin`
 
 ### 5.4 管理动作
 
@@ -271,7 +271,7 @@ Contrix v1 支持：
 - `allowed_flow_refs`
 - `allowed_space_refs`
 - `allowed_view_refs`
-- `allowed_branches`
+- `allowed_tracks`
 - `relation_kind_allow`
 - `allowed_from_container_refs`
 - `allowed_to_container_refs`
@@ -295,7 +295,7 @@ Contrix v1 支持：
 
 上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准。
 
-`discussion` 不是独立资源类型。需要限制 discussion branch 时，使用 `object_type_allow=["flow"]` 和 `allowed_branches=["discussion"]`；不得引入按 branch profile 名称授权的 v1 grant 字段。`branches[].profile` 只是 Flow branch 的语义/profile hint，不能单独授予读取、发送或成员权限。
+`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `object_type_allow=["flow"]` 和 `allowed_tracks=["discussion"]`；不得引入按 track profile 名称授权的 v1 grant 字段。`tracks[].profile` 只是 Flow track 的语义/profile hint，不能单独授予读取、发送或成员权限。
 
 Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍必须命中 `cx.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `cx.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身不得成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
 
@@ -312,7 +312,7 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `allowed_flow_refs` | `scope_limitation` | — | `allowed_flow_refs` |
 | `allowed_space_refs` | `scope_limitation` | — | `allowed_space_refs` |
 | `allowed_view_refs` | `scope_limitation` | — | `allowed_view_refs` |
-| `allowed_branches` | `scope_limitation` | — | `allowed_branches` |
+| `allowed_tracks` | `scope_limitation` | — | `allowed_tracks` |
 | `relation_kind_allow` | `scope_limitation` | — | `relation_kind_allow` |
 | `allowed_from_container_refs` | `scope_limitation` | — | `allowed_from_container_refs` |
 | `allowed_to_container_refs` | `scope_limitation` | — | `allowed_to_container_refs` |
@@ -381,7 +381,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 - 只授予明确 Space / Flow / Message / Morph / View 范围。
 - 只授予所需动作。
 - 只授予有限时效。
-- 尽量限制可写字段、可写 branch 和可写 Morph 类型。
+- 尽量限制可写字段、可写 track 和可写 Morph 类型。
 - 需要时要求 controller / responsible actor approval。
 
 高风险模式包括：
@@ -473,14 +473,14 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 Contrix v1 至少区分：
 
 - 修改 Flow synthesis。
-- 开启或关闭 discussion branch。
+- 开启或关闭 discussion track。
 - 管理父 Space 或 `discussion_space_ref` child Space 的成员。
 - 普通发送消息。
 - 编辑自己的消息。
 - 编辑任意消息。
 - 撤回自己的消息。
 - 撤回任意消息。
-- 切换 primary branch。
+- 切换 primary track。
 
 这能避免把"能改 Flow"和"能进入 discussion"混成一种权限——普通 discussion 时按父 Space capability 判断，独立 child Space 时按 child Space capability 判断。
 
@@ -513,7 +513,7 @@ Contrix v1 至少区分：
 11. 若需要 approval，校验 responsible / guardian / controller approval 证据。
 12. 应用 revoke 和 superseding 规则。
 
-Facets 不属于独立授权输入。算法不得在上述步骤之外读取 Morph facets、View renderer 或 branch profile 来授予、拒绝或升级权限。第 7 步若检查 Space schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机、RelationProfile 或 policy 条件；不得把 facets 本身当作状态机、动作或授权规则。
+Facets 不属于独立授权输入。算法不得在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Space schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机、RelationProfile 或 policy 条件；不得把 facets 本身当作状态机、动作或授权规则。
 
 ### 18.1 高频交互的 O(1) 快速路径
 
@@ -531,7 +531,7 @@ Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Serve
 
 Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定 subject/action/resource 三元组。每个 cache entry 至少包含：
 
-- `space_id`、scope / branch / object selector、subject DID、action 和 constraint profile。
+- `space_id`、scope / track / object selector、subject DID、action 和 constraint profile。
 - `auth_state_hash`：由当前 accepted capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest 计算出的确定性 hash。
 - `auth_frontier`：参与该 hash 的 state event head set 或 snapshot frontier。
 - 命中的 grant event id、revoke tombstone / superseding event id（如有）、claim status evidence 和过期时间。
@@ -581,7 +581,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 Contrix v1 固定：
 
 - 权限采用 capability 模型。
-- Flow、discussion、agent 执行都使用统一 grant 体系；Flow branch 完全继承父 Space access，独立访问域升级到 child Space。
+- Flow、discussion、agent 执行都使用统一 grant 体系；Flow track 完全继承父 Space access，独立访问域升级到 child Space。
 - `cx.message.revise.own` 与 `cx.message.redact` 分开。
 - invite / notification / read marker 进入统一 capability 体系。
 - 协议级语义采用 allow-grant + explicit revoke。

@@ -320,7 +320,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 
 - `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `cx.device.authorized` 等操作。
 - `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。
-- `mls_history`：保存用户已有权读取的 Space / Flow branch 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
+- `mls_history`：保存用户已有权读取的 Space / Flow track 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
 
 域隔离规则：
 

@@ -50,7 +50,7 @@ Board Place 与 List Place 是 `Space` 的形态：
 看板和列表投影应表达为：
 
 - `kind="collection" + renderer="board"`
-- `kind="collection" + renderer="row"` 或 `renderer="list"`
+- `kind="collection" + renderer="list"`
 
 View 负责“如何看”，Board Place / List Place 负责“对象如何被组织”。
 
@@ -141,7 +141,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 
 | Core kind | 常用 renderer | 必填配置 | 标准投影响应 |
 | --- | --- | --- | --- |
-| `collection` | `board`, `row`, `list`, `table`, `calendar`, `gantt`, `custom` | `collection` | `CollectionProjectionResponse` |
+| `collection` | `board`, `list`, `table`, `calendar`, `gantt`, `custom` | `collection` | `CollectionProjectionResponse` |
 | `timeline` | `timeline`, `chat`, `thread`, `forum`, `custom` | `timeline` | `TimelineProjectionResponse` |
 | `graph` | `graph`, `tree` | `graph` | `GraphProjectionResponse` |
 | `document` | `document` | `document` | `DocumentProjectionResponse` |

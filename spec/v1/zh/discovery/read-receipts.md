@@ -13,7 +13,7 @@ title: "Read Receipts & Markers"
 
 ## 2. Read Receipt (已读回执)
 
-已读回执是向同一个 Flow `discussion` branch 的可见成员广播“我已经看到这条消息了”。
+已读回执是向同一个 Flow `discussion` track 的可见成员广播“我已经看到这条消息了”。
 
 ### 2.1 临时性与高频特征
 
@@ -30,7 +30,7 @@ title: "Read Receipts & Markers"
   "schema": "cx.schema.read_receipt.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js1000000000000000000001",
-  "branch": "discussion",
+  "track": "discussion",
   "actor_id": "did:web:alice.example",
   "event_id": "cx:event:01js1read00000000000000000",
   "hlc": "01970e589d21-0004-a13f9c2e",
@@ -46,7 +46,7 @@ title: "Read Receipts & Markers"
 
 ### 2.3 防雪崩与合并
 
-Read Receipt 是高频信号，发送方和 Sync Service 都 MUST 支持合并。客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(space_id, flow_id, branch/thread, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
+Read Receipt 是高频信号，发送方和 Sync Service 都 MUST 支持合并。客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(space_id, flow_id, track/thread, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
 
 Sync Service MAY 丢弃同一 scope 下较旧的 receipt，只向订阅方广播单调前进的最新位置；不得把每一次滚动增量都 fanout 成独立推送。公开或共享 receipt 的服务端限流维度至少应包含 actor、device、Space 和 Flow。超过频率时 SHOULD 返回或广播 `rate_limited` / `retry_after_ms` 语义，客户端 MUST 按退避合并后重试。
 
@@ -63,7 +63,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 ### 2.5 Space 披露策略 (Disclosure Policy)
 
-Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 `cx.receipt.read` 的披露要求。需要让 discussion 时间线与父 Space 在 read receipt policy 上分离时，**不**通过 branch 级别 override（v1 已删除该 hybrid），而是把 discussion 升级为独立 child Space（参见 `Flow.discussion_space_ref`，[`models/data-structures.md` §6.1.1](../models/data-structures.md)），由 child Space 自己声明 `cx.space.read_receipt_policy`。该 policy SHOULD 由 `cx.space.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
+Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 `cx.receipt.read` 的披露要求。需要让 discussion 时间线与父 Space 在 read receipt policy 上分离时，**不**通过 track 级别 override（v1 已删除该 hybrid），而是把 discussion 升级为独立 child Space（参见 `Flow.discussion_space_ref`，[`models/data-structures.md` §6.1.1](../models/data-structures.md)），由 child Space 自己声明 `cx.space.read_receipt_policy`。该 policy SHOULD 由 `cx.space.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
 
 ```json
 {
@@ -81,14 +81,14 @@ Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
-| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Space 可见性允许的全部观察者；`members` = 仅 branch 成员；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
+| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Space 可见性允许的全部观察者；`members` = 仅 track 成员；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
 | `scope_overrides_allowed` | `bool` | `true` | 是否允许 child Space（如 `Flow.discussion_space_ref` 指向的子 Space）声明独立、收紧（不放宽）的 read receipt policy。父 Space 设为 `false` 时，所有 child Space 的 receipt policy MUST 等于或宽松于父策略；reducer 拒绝违规声明。 |
 
 规则：
 
 - 该策略是**软声明 / 合规承诺**，不是密码学强制。`cx.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。Space policy MUST NOT 把 `cx.receipt.read` 当作密码学审计回执使用。
 - 客户端 MUST 在 join Space / 进入 Flow 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
-- `disclosure="required"`：合规客户端 MUST 不允许用户在该 scope 把 `cx.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 branch 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
+- `disclosure="required"`：合规客户端 MUST 不允许用户在该 scope 把 `cx.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `cx.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Marker 不受影响。
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
 - Child Space policy 收紧父 Space policy 的方向一律允许（`required` → `disabled`、`public` → `private` 等更严方向）；放宽方向（如父 `disabled` → 子 `required`）SHOULD 被 reducer 拒绝，除非父声明了 `scope_overrides_allowed=true` 且明确允许。
@@ -140,7 +140,7 @@ Read Marker 是 actor-private 持久状态，但仍然是高频更新。客户�
 未读计数是客户端本地或受托 notification service 维护的派生数据。
 
 1. 客户端同步用户的 account data 拿到最新的 `cx.read.marker`。
-2. 客户端计算 `cx.read.marker` 指向的 `event_id` 之后，该 Flow discussion branch 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
+2. 客户端计算 `cx.read.marker` 指向的 `event_id` 之后，该 Flow discussion track 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
 3. 若部署使用受托 notification service，该服务必须按调用者权限和 `plaintext_visible_services` 规则生成最小化结果。
 
 Notification / unread count 是派生状态。服务 MAY 在一个 sync response 中合并多次 marker、receipt 和 notification rule 变化，只返回最终 count 与必要 frontier；客户端不得把中间 badge 抖动当作协议事件缺失。
@@ -184,7 +184,7 @@ Receipt 可以公开或私有，取决于 Space policy。schema：`cx.schema.rea
   "schema": "cx.schema.read_receipt.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js1000000000000000000001",
-  "branch": "discussion",
+  "track": "discussion",
   "actor_id": "did:web:alice.example",
   "event_id": "cx:event:01js1read00000000000000000",
   "created_at": "2026-04-26T00:00:00Z"
@@ -202,7 +202,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`cx.schema
   "actor_id": "did:web:alice.example",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js1000000000000000000001",
-  "branch": "discussion",
+  "track": "discussion",
   "source_event_id": "cx:event:01js1mn0000000000000000000",
   "source_ref": "cx:message:01js1msg000000000000000000",
   "notification_type": "mention",

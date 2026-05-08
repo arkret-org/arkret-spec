@@ -47,7 +47,7 @@ Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `cx.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
-- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion branch 且可设为 primary 的 Flow、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
+- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion track 且可设为 primary 的 Flow、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
 - `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Place（`kind=board/list`）、Flow、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、`cx.place.create`、`cx.place.update`、`cx.place.parent`、客户端 Collection projection 和 wait-for query。
 
 `minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。

@@ -16,7 +16,7 @@ sidebar:
 ## 2. 基础加密架构：MLS 与 Contrix 的融合
 
 Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf.org/doc/html/rfc9420) 作为官方的群组加密标准。
-不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 discussion branch 或大型协作 Space 中，双棘轮会导致巨大的性能开销与并发处理难题。
+不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 discussion track 或大型协作 Space 中，双棘轮会导致巨大的性能开销与并发处理难题。
 
 ### 2.1 KeyPackage 与服务发现
 在参与 MLS 加密前，用户必须公布自己的 `KeyPackage`。
@@ -52,7 +52,7 @@ sequenceDiagram
 
 #### 2.2.1 MLS Group Admin 推导
 
-MLS group admin 不是“第一个发 Welcome 的客户端”或“branch 的第一个成员”。Contrix v1 按当前 accepted auth state 确定管理集合：
+MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第一个成员”。Contrix v1 按当前 accepted auth state 确定管理集合：
 
 - Space-scoped MLS group 的默认 admin set 来自 `cx.space.create.payload.object.initial_creators` / `created_by_principal`，以及当前有效的 `cx.space.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Space policy 声明的等价 E2EE admin capability。
 - Discussion 独立 child Space（`Flow.discussion_space_ref`）的 MLS group admin set 由该 child Space 的 `cx.space.create` / `cx.space.admin` / `cx.mls.commit` / `cx.mls.welcome` 等事件按 child Space 自身的 capability 体系收敛，与父 Space admin set 独立。
@@ -208,7 +208,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
 
-- 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.branch.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `application_state_ref.membership_frontier` 覆盖该 membership frontier。
+- 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.track.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `application_state_ref.membership_frontier` 覆盖该 membership frontier。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
 - 发送客户端在发现 `epoch_update_required` 后 SHOULD 暂停该 scope 的新 application messages，或把发送状态标记为 `encryption_transition_pending`。高安全 profile MUST 暂停发送，直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。
@@ -221,7 +221,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 E2EE Space 中，MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据。
 
-MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `encryption_profile="mls_rfc9420"` 时，group 覆盖父 Space；某个 Flow 通过 `discussion_space_ref` 升级到 child Space 后，child Space 拥有自己的 MLS group，与父 Space group 完全独立。两个 group 通过 child Space 的 `space_id` 区分，不再依赖 branch-scoped fallback。
+MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `encryption_profile="mls_rfc9420"` 时，group 覆盖父 Space；某个 Flow 通过 `discussion_space_ref` 升级到 child Space 后，child Space 拥有自己的 MLS group，与父 Space group 完全独立。两个 group 通过 child Space 的 `space_id` 区分，不再依赖 track-scoped fallback。
 
 每个 `cx.mls.commit` MUST 绑定一个 `application_state_ref`，并把该引用纳入 MLS transcript 或等价的 commit-authenticated data：
 
@@ -242,7 +242,7 @@ MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `e
 }
 ```
 
-当 MLS group 绑定到 Flow discussion branch 时，`application_state_ref` MUST 同时覆盖 `flow_id` 与 `branch="discussion"`，并以有效 branch access、membership、history visibility 和 policy state 作为验证边界。
+当 MLS group 绑定到 Flow discussion track 时，`application_state_ref` MUST 同时覆盖 `flow_id` 与 `track="discussion"`，并以有效 track access、membership、history visibility 和 policy state 作为验证边界。
 
 **E2EE Space MUST 声明 `cx.profile.mls_state_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Space 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `application_state_ref`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
@@ -297,7 +297,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 }
 ```
 
-当 MLS group 绑定到 Flow discussion branch 时，CBOR map MUST 包含额外键 `"flow_id"` (tstr) 和 `"branch"` (tstr, 值为 `"discussion"`)。
+当 MLS group 绑定到 Flow discussion track 时，CBOR map MUST 包含额外键 `"flow_id"` (tstr) 和 `"track"` (tstr, 值为 `"discussion"`)。
 
 规则：
 
@@ -360,10 +360,10 @@ Claim 成功后：
 
 Profile 规则：
 
-- Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 room-scoped pairwise DID，例如成员为该 Space / Flow branch 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
+- Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 room-scoped pairwise DID，例如成员为该 Space / Flow track 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
 - MLS leaf credential SHOULD 绑定同一个 room-scoped pairwise DID，或绑定可由该 pairwise DID 验证的 credential。
 - 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `cx.identity_link` application message 或 MLS private extension 中，只对当前 room members 可见。
-- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、room id / flow branch id、MLS leaf index、effective time 和签名证明；该证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。
+- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、room id / flow track id、MLS leaf index、effective time 和签名证明；该证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。
 - Sync / Federation 服务只可按 pairwise DID、space id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
 - Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Space policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Space。
 - 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Space history。
@@ -468,7 +468,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 规则：
 
 - Agent 私钥、Controller 主体私钥、Controller recovery key 和 Controller backup key MUST 是不同密钥域。
-- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Space / Flow discussion branch、读取 owner-private 知识源、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
+- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Space / Flow discussion track、读取 owner-private 知识源、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
 - Agent Authority Panel MUST 能解释 Controller、responsible actor、effective grant、presence policy、knowledge source、join policy 和 expiry。
 - 撤销 Controller 对 Agent 的控制通道时，必须使相关 session grant、owner-private 知识源 grant、presence trigger 和 tool / protocol session grant 失效。
 

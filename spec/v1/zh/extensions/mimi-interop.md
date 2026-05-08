@@ -10,7 +10,7 @@ title: MIMI Interoperability
 
 ## 1. 目标
 
-本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Space / Event / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Space 或 Flow discussion branch 可以与 MIMI provider 互通。
+本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Space / Event / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Space 或 Flow discussion track 可以与 MIMI provider 互通。
 
 `cx.profile.mimi_interop.v1` 固定参考以下草案版本：
 
@@ -29,7 +29,7 @@ title: MIMI Interoperability
 | Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Contrix 侧通常映射为 Principal Server 或 anchorer service，负责 MIMI room fanout 和 groupInfo。 |
 | Follower provider | 参与 MIMI room 的远端 provider；在 Contrix 中表现为 federation peer 或 Applet bridge peer。 |
 | User / client | Contrix principal DID + device id，可按 Space policy 使用 pairwise DID 或 room-scoped pseudonym。 |
-| Room | Contrix Flow discussion branch 的 MIMI room 投影，可附带所在 Space 的最小上下文。 |
+| Room | Contrix Flow discussion track 的 MIMI room 投影，可附带所在 Space 的最小上下文。 |
 
 MIMI facade 不是新的真相源。Contrix native 侧的 canonical truth 是 signed Move、Anchor frontier、Lattice cell state、capability refs 与 MLS covered frontier cell。MIMI room state 是对这些状态的互操作投影。
 
@@ -99,7 +99,7 @@ GET /api/v1/mimi/provider-directory
 
 规则：
 
-- `binding_scope.space_id` MUST 指向一个 accepted Space。`flow_id` MUST 指向该 Space 内启用 discussion branch 的 accepted Flow；MIMI room timeline 只投影该 Flow discussion branch 的消息。
+- `binding_scope.space_id` MUST 指向一个 accepted Space。`flow_id` MUST 指向该 Space 内启用 discussion track 的 accepted Flow；MIMI room timeline 只投影该 Flow discussion track 的消息。
 - `hub_provider` MUST 是 Space policy、Organization DID 或 participant DID 明确委托的 service DID。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `bridge_only`。
 - `cx.mimi.room_binding` 的创建、更新和撤销 MUST require `cx.policy.manage`、`cx.space.admin` 或等价 interop capability。
@@ -217,7 +217,7 @@ Contrix v1 把 Space-level policy 映射为 Move effects on cell families。Faca
 | `cx.component.space.tombstone.v1` | `cx.space.tombstone` | 同上 |
 | `cx.component.space.destroy.v1` | `cx.space.destroy` | 同上 |
 | `cx.component.member.state.v1` | `cx.member.state` | MLS GroupContext 的 leaf node + roster；Contrix membership 不进入 MIMI policy components |
-| `cx.component.flow.branch.policy_components.v1` | `cx.flow.branch.policy_components` | MIMI room policy component 集合（用于 discussion branch 投影时） |
+| `cx.component.flow.track.policy_components.v1` | `cx.flow.track.policy_components` | MIMI room policy component 集合（用于 discussion track 投影时） |
 
 > 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Contrix 中是 `cx.space.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `cx.space.policy_components` Move effect。
 

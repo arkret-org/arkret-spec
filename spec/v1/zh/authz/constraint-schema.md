@@ -44,7 +44,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal` | `redact_window` | extension | `applies_to_actions=["cx.message.redact"]` + `message_redact_window` 限定撤回窗口。 | `cx.profile.chat_mvp.v1` |
 | `field_access` | （省略 = 列表比较） | core | `fields_write_allow` / `fields_write_deny` 等。 | core |
 | `type_restriction` | — | core | 对象类型 / Space kind / Morph type / facet 限制。 | core |
-| `scope_limitation` | （省略 = 普通 scope） | core | Space / Flow / View / branch 范围。 | core |
+| `scope_limitation` | （省略 = 普通 scope） | core | Space / Flow / View / track 范围。 | core |
 | `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `cx.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、subset_only 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
@@ -189,18 +189,18 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
   "allowed_flow_refs": [
     "cx:flow:01js0r00m00000000000000000"
   ],
-  "allowed_branches": ["discussion"],
+  "allowed_tracks": ["discussion"],
   "denied_flow_refs": [
     "cx:flow:01js0r00m99999999999999900"
   ]
 }
 ```
 
-`allowed_branches` 只限制 Flow branch 范围，不自动授予对应 branch 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并满足 branch access、history visibility 和 E2EE key eligibility。
+`allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并满足 track access、history visibility 和 E2EE key eligibility。
 
-`discussion` 不是独立实体或 selector kind。授权 discussion branch 应使用 `allowed_branches=["discussion"]`。`branches[].profile` 只是 branch-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、branch access、history visibility 和 E2EE key eligibility 决定。
+`discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks[].profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、track access、history visibility 和 E2EE key eligibility 决定。
 
-`allowed_branches` 和 `denied_branches` 的元素 MUST 使用 Flow `branches[].name` 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 branch 名；profile MAY 声明其他 branch 名，但不得用 profile 名称替代 branch name。
+`allowed_tracks` 和 `denied_tracks` 的元素 MUST 使用 Flow `tracks[].name` 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明其他 track 名，但不得用 profile 名称替代 track name。
 
 ### 6.2 视图限制
 

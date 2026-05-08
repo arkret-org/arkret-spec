@@ -4,12 +4,12 @@ title: 资源选择器语法
 
 ## 1. 概述
 
-本规范定义 Contrix v1 capability 授权中的资源选择器。资源选择器只回答“授权命中哪些资源”，不单独表达动作、字段、branch、claim 或审批约束；这些约束必须由 grant 的 `actions` 与 `constraints` 表达。
+本规范定义 Contrix v1 capability 授权中的资源选择器。资源选择器只回答“授权命中哪些资源”，不单独表达动作、字段、track、claim 或审批约束；这些约束必须由 grant 的 `actions` 与 `constraints` 表达。
 
 Contrix v1 capability 使用以下 canonical resource selector 模型：
 
-- `flow` 是统一协作主对象，默认入口由 branch primary 解析规则得到，不是 selector domain。
-- `message` 总是属于某个 Flow 的 `discussion` branch。
+- `flow` 是统一协作主对象，默认入口由 track primary 解析规则得到，不是 selector domain。
+- `message` 总是属于某个 Flow 的 `discussion` track。
 - `Board Place` 与 `List Place` 是 Space 的工作流容器形态，不是独立 selector domain。
 - `morph` 用于开放扩展对象。
 - 跨对象类型授权才使用 `object` selector。
@@ -127,7 +127,7 @@ Capability grant 的 canonical 表示必须使用 JSON resource selector。字�
       "constraint_type": "type_restriction",
       "effect": "allow",
       "object_type_allow": ["flow"],
-      "allowed_branches": ["synthesis"]
+      "allowed_tracks": ["synthesis"]
     }
   ]
 }
@@ -157,9 +157,9 @@ Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind �
 
 List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`relation_kind_allow` 或对应 flow move payload 字段。
 
-### 3.2 Flow branch 选择
+### 3.2 Flow track 选择
 
-Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用 `allowed_branches` 限制 branch 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
+Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用 `allowed_tracks` 限制 track 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
 
 ```json
 {
@@ -174,13 +174,13 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "allowed_branches": ["discussion"]
+      "allowed_tracks": ["discussion"]
     }
   ]
 }
 ```
 
-`allowed_branches=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并满足有效 branch access、history visibility 和 E2EE key eligibility。
+`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并满足有效 track access、history visibility 和 E2EE key eligibility。
 
 ## 4. 选择器求值
 
@@ -202,7 +202,7 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
 `flow:cx:space:...:*`
 
 - 匹配：该 Space 中所有 Flow。
-- 若只允许某个 branch 范围，必须使用 `allowed_branches`。
+- 若只允许某个 track 范围，必须使用 `allowed_tracks`。
 
 `flow:cx:space:...:cx:flow:01js0ca1000000000000000000`
 
@@ -213,7 +213,7 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
 
 `message:cx:space:...:cx:flow:...:*`
 
-- 匹配：某个 Flow `discussion` branch 内的所有 Message。
+- 匹配：某个 Flow `discussion` track 内的所有 Message。
 - 不授予 Flow synthesis 字段写入权限。
 - 不绕过 discussion 所属 Space（父 Space 或 `discussion_space_ref` child Space）的 membership、history visibility、redaction 或 E2EE key eligibility。
 
@@ -235,7 +235,7 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
 `object:cx:space:...:flow`
 
 - 匹配：该 Space 中所有 `type=flow` 的对象。
-- 若只允许某个 branch 范围，必须额外使用 `allowed_branches`。
+- 若只允许某个 track 范围，必须额外使用 `allowed_tracks`。
 
 `object:cx:space:...:cx:flow:01js0ca1000000000000000000`
 
@@ -257,7 +257,7 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
 
 这些 selector 主要用于管理、审计、schema / policy 更新、邀请和 actor-private 状态：
 
-- `event:<space>:<event_id>` 匹配特定 Event；`event:<space>:*` 匹配 Space 内 Event metadata。读取 Event payload 仍受对象、branch、history、redaction 和 E2EE 约束。
+- `event:<space>:<event_id>` 匹配特定 Event；`event:<space>:*` 匹配 Space 内 Event metadata。读取 Event payload 仍受对象、track、history、redaction 和 E2EE 约束。
 - `actor:<did>` 匹配 principal / service / agent DID；不得匹配 handle、邮箱或 OAuth subject。
 - `policy:<space>:<policy_id>` 与 `schema:<schema_id>` 用于 policy / schema 管理授权。
 - `invite:<space>:<invite_id>` 用于邀请创建、查看、撤销或接受。
@@ -370,7 +370,7 @@ function matches(target, selector):
     return false
 ```
 
-Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、branch access、history visibility 和 E2EE key eligibility 检查。
+Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、track access、history visibility 和 E2EE key eligibility 检查。
 
 ## 7. 授权范围
 
@@ -378,8 +378,8 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须在授权 `actions` 中，或被明确的通配动作覆盖。
-3. **约束匹配**：`space_kind_allow`、`place_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_branches` 等约束必须满足。
-4. **Branch access 检查**：Message 和 discussion branch 访问必须满足有效 branch access、history visibility 和 E2EE key eligibility。
+3. **约束匹配**：`space_kind_allow`、`place_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。
+4. **Track access 检查**：Message 和 discussion track 访问必须满足有效 track access、history visibility 和 E2EE key eligibility。
 5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
 
@@ -390,13 +390,13 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 `*`、`space:*` 和 `object:*:*` 可能匹配非预期资源。缓解措施：
 
 - 始终配合 `expires_at` 使用。
-- 与 `object_type_allow`、`space_kind_allow`、`place_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_branches` 等约束组合。
+- 与 `object_type_allow`、`space_kind_allow`、`place_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_tracks` 等约束组合。
 - 要求管理员审批与审计理由。
 - `max_delegation_depth` SHOULD 为 0。
 
 ### 8.2 非 canonical selector domain
 
-实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card 等。Flow branch 范围必须使用 `kind="flow"` 加 `allowed_branches`；board / list / 其他结构容器必须使用 `kind="place"` 加 `place_kind_allow`（或在需要 Space-级范围时用 `kind="space"`）。
+实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card 等。Flow track 范围必须使用 `kind="flow"` 加 `allowed_tracks`；board / list / 其他结构容器必须使用 `kind="place"` 加 `place_kind_allow`（或在需要 Space-级范围时用 `kind="space"`）。
 
 字符串 shorthand 也必须映射到上述 canonical domain；未声明的 selector domain MUST fail closed。
 
@@ -434,7 +434,7 @@ Facet 是 Space schema / Morph profile 声明后的 hint 或查询标签，不�
 - 支持精确 ID、Space、Flow、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema 和 Object 匹配。
 - 拒绝非 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
 - 对非法 selector 返回清晰错误。
-- 在 selector 命中后继续执行 action、constraint、claim、policy、branch access 和 E2EE 检查。
+- 在 selector 命中后继续执行 action、constraint、claim、policy、track access 和 E2EE 检查。
 
 实现 SHOULD：
 

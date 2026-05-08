@@ -165,7 +165,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
       {
         "object_type": "flow",
         "object_ref": "cx:flow:task0100000000000000000000",
-        "branch": "synthesis",
+        "track": "synthesis",
         "role": "primary_result"
       }
     ],
