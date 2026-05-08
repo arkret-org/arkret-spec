@@ -306,10 +306,10 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 
 规则：
 
-- session grant MUST be signed by trusted issuer
-- session key MUST NOT outlive grant
-- session grant SHOULD be audience-bound
-- session grant SHOULD be non-exportable in WebCrypto / platform keystore where available
+- session grant MUST 由可信 issuer 签名
+- session key MUST NOT 超过 grant 的有效期
+- session grant SHOULD 绑定 audience
+- 在条件允许时，session grant SHOULD 在 WebCrypto / 平台 keystore 中以不可导出方式存储
 - session grant 撤销 MUST 由 accepted `cx.session.grant` 状态更新、device/account revoke、或 profile 注册的 credential status mechanism 表达；不得使用未注册的 `cx:revocation-list:*` typed ID。
 
 ## 7. 密钥备份

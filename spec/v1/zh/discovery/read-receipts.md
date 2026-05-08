@@ -254,7 +254,7 @@ state=unread, cursor=<cursor>, limit=<int>
 - 并发 marker 取 HLC 最大
 - HLC 相同按 device id tie-break
 
-Notification state SHOULD be derived from read marker + notification rule。
+通知状态 SHOULD 由 read marker 与 notification rule 共同推导而来。
 
 同一 actor / scope 的 read marker 更新 MAY 在传输层批处理；接收端只需要观察最终单调位置。服务端 SHOULD 合并短窗口内的 marker、receipt 和 notification projection 更新，并在 sync response 中携带覆盖这些输入的 frontier 或 sync token。Push / notification 服务不得为每个 read marker 变化生成独立通知；它只能重新计算 unread count、badge 和 push suppression。
 

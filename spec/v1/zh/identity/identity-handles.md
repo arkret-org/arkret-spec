@@ -382,7 +382,7 @@ grant subject = alice@google.com
 }
 ```
 
-Verifier MUST sign the request or send it through an authenticated relationship. Wallet MUST bind response proofs to `challenge`, `domain`, `verifier_did`, and `represented_org`.
+Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wallet MUST 把响应中的 proof 绑定到 `challenge`、`domain`、`verifier_did` 和 `represented_org`。
 
 #### 16.2.2 Disclosure Policy
 
@@ -440,7 +440,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Space�
 }
 ```
 
-Response MUST NOT contain undisclosed fields, base proof, unrelated credential identifiers, other organization handles, or global subject identifiers.
+Response MUST NOT 包含未披露字段、base proof、无关的 credential identifier、其他组织的 handle 或全局 subject identifier。
 
 #### 16.2.4 Disclosure Receipt
 
@@ -468,20 +468,20 @@ Response MUST NOT contain undisclosed fields, base proof, unrelated credential i
 }
 ```
 
-Receipt 是 holder-private audit record。Receipt MUST NOT contain withheld values.
+Receipt 是 holder 私域 audit record。Receipt MUST NOT 包含未披露字段的具体值。
 
 ### 16.3 组织和 Verifier 确认
 
 Wallet MUST NOT 只凭域名、邮箱后缀、TLS 证书或 UI 文案确定组织。
 
-Verifier MUST prove authority by one of:
+Verifier MUST 通过以下任一方式证明其代表权限：
 
-- represented organization DID signs the presentation request directly.
-- represented organization signs a service authorization claim for verifier DID.
-- trust registry / governance registry maps verifier VID to represented organization.
-- Space policy lists verifier DID as trusted issuer/verifier for the requested purpose.
+- 由 represented organization DID 直接对 presentation request 签名。
+- 由 represented organization 为 verifier DID 签发 service authorization claim。
+- 由 trust registry / governance registry 将 verifier VID 映射到 represented organization。
+- 目标 Space policy 将 verifier DID 列为对应 purpose 的可信 issuer / verifier。
 
-Service authorization claim:
+Service authorization claim 示例：
 
 ```json
 {
@@ -493,90 +493,90 @@ Service authorization claim:
 }
 ```
 
-### 16.4 Proof Profile Selection
+### 16.4 Proof Profile 选择
 
-Wallet SHOULD choose proof profile by privacy requirement:
+Wallet SHOULD 根据隐私需求选择 proof profile：
 
-| Requirement | Recommended profile |
+| 需求 | 推荐 profile |
 | --- | --- |
-| Broad verifier support | `sd_jwt_vc` |
-| Claim-level selective disclosure | `sd_jwt_vc` or `vc_di_bbs_2023` |
-| Unlinkable derived proof | `vc_di_bbs_2023` or another unlinkable proof suite |
-| Simple service assertion | detached JWS claim, if unlinkability is not required |
+| 广泛 verifier 互操作 | `sd_jwt_vc` |
+| Claim 级选择性披露 | `sd_jwt_vc` 或 `vc_di_bbs_2023` |
+| 不可链接的 derived proof | `vc_di_bbs_2023` 或其他可证明 unlinkability 的 proof suite |
+| 简单服务断言 | 在不要求 unlinkability 时使用 detached JWS claim |
 
-Implementations MUST NOT claim zero-knowledge or unlinkability unless the selected proof suite actually provides it and the presentation omits stable correlators.
+实现 MUST NOT 在所选 proof suite 实际不提供零知识 / 不可链接性、或 presentation 仍包含稳定关联标识符时，声称具备 zero-knowledge 或 unlinkability。
 
-### 16.5 Storage Model
+### 16.5 存储模型
 
-| Data | Location | Encryption |
+| 数据 | 位置 | 加密 |
 | --- | --- | --- |
-| raw credential / base proof | wallet local encrypted store or holder private account data | device key / recovery key |
-| pairwise DID private keys | device secret storage | hardware-backed when available |
-| disclosure policy | holder private account data | E2EE to holder devices |
-| presentation request | temporary inbox or encrypted private account data | verifier-holder transport encryption |
-| presentation response | sent only to verifier; optional local encrypted copy | TSP / JWE / DIDComm-like / MLS DM |
-| disclosure receipt | holder private account data | E2EE to holder devices |
-| status / revocation cache | wallet cache or holder private account data | E2EE to holder devices |
+| 原始 credential / base proof | wallet 本地加密存储或 holder private account data | 设备密钥 / 恢复密钥 |
+| pairwise DID 私钥 | 设备安全存储 | 优先使用硬件支持的 keystore |
+| disclosure policy | holder private account data | 向 holder 设备 E2EE |
+| presentation request | 临时 inbox 或加密的 private account data | verifier 与 holder 间的传输层加密 |
+| presentation response | 仅发送给 verifier；本地副本可选并加密 | TSP / JWE / DIDComm-like / MLS DM |
+| disclosure receipt | holder private account data | 向 holder 设备 E2EE |
+| status / 撤销缓存 | wallet 缓存或 holder private account data | 向 holder 设备 E2EE |
 
-Sync Service / service operator MUST NOT learn raw credential contents, base proofs, full disclosure policies, or undisclosed handles.
+Sync Service 与服务运营方 MUST NOT 获得原始 credential 内容、base proof、完整 disclosure policy 或未披露 handle。
 
-### 16.6 Transport Selection
+### 16.6 传输方式选择
 
-Transport selection order:
+传输方式的优先级：
 
-1. `tsp` if both parties support it and policy requires metadata privacy.
-2. `http_jwe` using verifier DID/service key.
-3. `didcomm_like` envelope if supported by both parties.
-4. `to_device` if verifier is a known Contrix device/service endpoint.
-5. `mls_dm` if holder and verifier share an encrypted DM Space.
+1. 双方都支持且 policy 要求元数据隐私时使用 `tsp`。
+2. 使用 verifier DID / 服务密钥的 `http_jwe`。
+3. 双方都支持时使用 `didcomm_like` envelope。
+4. verifier 是已知 Contrix 设备 / 服务端点时使用 `to_device`。
+5. holder 与 verifier 共享加密 DM Space 时使用 `mls_dm`。
 
-If policy requires nested/routed metadata privacy and verifier lacks TSP or equivalent, wallet MUST reject or request explicit user override.
+若 policy 要求嵌套 / 路由级元数据隐私，而 verifier 不支持 TSP 或等价能力，wallet MUST 拒绝或请求用户显式覆盖。
 
-### 16.7 End-to-End Flow
+### 16.7 端到端流程
 
-1. Verifier sends signed `cx.identity.presentation_request`.
-2. Wallet verifies verifier DID/VID and represented organization authority.
-3. Wallet checks request against disclosure policy.
-4. Wallet prompts holder if `requires_user_consent=true` or request exceeds known policy.
-5. Wallet selects pairwise DID and matching credential.
-6. Wallet checks status using privacy-preserving status material.
-7. Wallet derives proof using selected proof profile.
-8. Wallet sends response over selected transport.
-9. Verifier validates proof, issuer, status, challenge, domain, audience and freshness.
-10. Wallet writes disclosure receipt to holder private account data.
+1. Verifier 发送已签名的 `cx.identity.presentation_request`。
+2. Wallet 验证 verifier DID / VID 与 represented organization 的授权关系。
+3. Wallet 根据 disclosure policy 校验该请求。
+4. 当 `requires_user_consent=true` 或请求超出既有 policy 范围时，Wallet 向 holder 提示确认。
+5. Wallet 选择匹配的 pairwise DID 与 credential。
+6. Wallet 使用 privacy-preserving status material 检查 credential 状态。
+7. Wallet 按所选 proof profile 派生 proof。
+8. Wallet 通过所选 transport 发送响应。
+9. Verifier 验证 proof、issuer、status、challenge、domain、audience 与新鲜度。
+10. Wallet 把 disclosure receipt 写入 holder private account data。
 
-### 16.8 Failure Codes
+### 16.8 失败码
 
-| code | Meaning |
+| code | 含义 |
 | --- | --- |
-| `verifier_not_authorized` | Verifier cannot prove authority for represented organization. |
-| `policy_denied` | Holder disclosure policy denies the request. |
-| `consent_required` | User approval is required before disclosure. |
-| `unsupported_proof_profile` | No mutually acceptable proof profile. |
-| `transport_privacy_required` | Policy requires TSP/nested/routed or equivalent but unavailable. |
-| `credential_not_found` | Holder has no matching credential. |
-| `credential_expired` | Matching credential expired. |
-| `status_unavailable` | Revocation/status material unavailable. |
-| `overbroad_request` | Request asks for unrelated handles, credential ids or global identifiers. |
+| `verifier_not_authorized` | Verifier 无法证明其代表 represented organization 的权限。 |
+| `policy_denied` | Holder disclosure policy 拒绝该请求。 |
+| `consent_required` | 披露前需要用户显式同意。 |
+| `unsupported_proof_profile` | 双方无可接受的 proof profile。 |
+| `transport_privacy_required` | Policy 要求 TSP / 嵌套 / 路由或等价隐私传输，但当前不可用。 |
+| `credential_not_found` | Holder 没有匹配的 credential。 |
+| `credential_expired` | 匹配的 credential 已过期。 |
+| `status_unavailable` | 撤销 / 状态材料不可用。 |
+| `overbroad_request` | 请求要求无关 handle、credential id 或全局标识符。 |
 
-### 16.9 Security Requirements
+### 16.9 安全要求
 
-Wallet MUST:
+Wallet MUST：
 
-- default to minimum disclosure.
-- reject request for all handles / all aliases.
-- reject unrelated organization handles.
-- bind proof to verifier challenge, domain and audience.
-- avoid online status checks that reveal holder identity to a central service.
-- store receipts without undisclosed values.
-- separate pairwise DID keys and service endpoints across organizations.
+- 默认采用最小披露。
+- 拒绝"所有 handle / 所有 alias"的请求。
+- 拒绝与当前关系无关的组织 handle。
+- 把 proof 绑定到 verifier 的 challenge、domain 与 audience。
+- 避免向中心化服务上报 holder 身份的在线 status check。
+- 在 receipt 中不保存未披露字段的具体值。
+- 在不同组织间隔离 pairwise DID 密钥与服务端点。
 
-Verifier MUST:
+Verifier MUST：
 
-- request only necessary claims.
-- not require global subject identifier unless policy explicitly permits and holder consents.
-- not request credential id if unlinkability is required.
-- treat different pairwise DID presentations as separate subjects unless holder provides linking proof.
+- 只请求必要 claim。
+- 除非 policy 明确允许且 holder 同意，否则不要求全局 subject identifier。
+- 在要求 unlinkability 时不索取 credential id。
+- 把不同 pairwise DID 的 presentation 视为独立 subject，除非 holder 提供 linking proof。
 
 ## 17. v1 互操作要求
 

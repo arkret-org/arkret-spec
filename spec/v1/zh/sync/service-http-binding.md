@@ -104,7 +104,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `HEAD/GET /api/v1/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Contrix-Wait-For?` | 公开 blob 可匿名；私有 blob 必须验证 actor/device/Space/purpose/expiry；不得 query string 认证。 | bytes 或 headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
 | `POST /api/v1/push/register-device` | body `{device_id: id, push_gateway: url, push_key: string, platform?: string, app_id?: string, display_name?: string}` | `user_session` for same principal/device；push_key 必须被加密或最小披露存储。 | `{ok: true, registration_id?, expires_at?}` |
 | `POST /api/v1/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
-| `POST /api/v1/push/notify` | body `{notification: {event_id?, space_id?, type, sender?, push_hint?, counts?, devices[]}}` | `service_signature` from authorized Sync or notification service；MUST be blind/minimized for E2EE。 | `{rejected[]}` |
+| `POST /api/v1/push/notify` | body `{notification: {event_id?, space_id?, type, sender?, push_hint?, counts?, devices[]}}` | 来自被授权 Sync 或通知服务的 `service_signature`；E2EE 时 MUST 做 blind / 最小化处理。 | `{rejected[]}` |
 | `PUT /api/v1/device_messages/{txn_id}` | path `{txn_id}` body `DeviceMessagesPutRequest {messages: {principal_id: {device_id: DeviceMessageTarget {kind, content, expires_at}}}}` | sender `user_session` / device key；目标必须是授权 device；服务端入队前 MUST materialize `DeviceMessageEnvelope` 并绑定 `recipient_principal_id` / `recipient_device_id` / `expires_at`；按 `(sender, txn_id)` 幂等。验证消息使用 `cx.key.verification.*` kind，且不得作为持久 Event history；缺失、已过期或超过 TTL 上限的消息 MUST reject。 | `{ok: true, delivered?, unknown_devices?}` |
 | `GET /api/v1/device_messages` | query `{from?: cursor, limit?: int}` | `user_session` bound to current device；只返回该 device 队列。 | `{events: DeviceMessageEnvelope[], next_cursor?, limited?}` |
 | `POST /api/v1/keys/upload` | body `{device_id: id, one_time_keys?: object, fallback_keys?: object, device_signature: signature}` | current device proof；key 必须链接 self-signing / principal key。 | `{one_time_key_counts, fallback_keys?}` |
@@ -368,7 +368,7 @@ POST /api/v1/identity/resolve
 }
 ```
 
-Resolver MUST return enough method-specific evidence for clients to verify control history.
+Resolver MUST 返回足够的方法相关证据，使客户端能够验证 control history。
 
 ## 5. Sync API
 
@@ -393,9 +393,9 @@ POST /api/v1/directory/search-actors
 POST /api/v1/directory/resolve-handle
 ```
 
-Directory endpoints MUST apply resource discoverability, requester proof, moderation policy and authorization filtering per result.
+Directory 端点 MUST 在每个结果上分别应用资源可发现性、请求方证明、审核策略与授权过滤。
 
-For hidden or unauthorized resources, `resolve-*` SHOULD return an indistinguishable `not_found`.
+对于隐藏或未授权访问的资源，`resolve-*` SHOULD 返回与"不存在"不可区分的 `not_found`。
 
 ## 7. Blob API
 
@@ -405,7 +405,7 @@ For hidden or unauthorized resources, `resolve-*` SHOULD return an indistinguish
 POST /api/v1/blob/upload
 ```
 
-Content type MAY be `application/octet-stream` or `multipart/form-data`.
+Content type MAY 取 `application/octet-stream` 或 `multipart/form-data`。
 
 响应示例（非完整 schema）：
 

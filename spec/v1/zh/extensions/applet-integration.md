@@ -225,7 +225,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 }
 ```
 
-Applet MUST NOT write into a Space unless it has an effective grant or is explicitly acting as an already-authorized actor through delegated authority.
+除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事，否则 Applet MUST NOT 向 Space 写入。
 
 ## 7. Applet API
 
@@ -456,9 +456,9 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
 
 ## 9. Ghost Actor
 
-Ghost Actor MUST be distinguishable from native human Actor.
+Ghost Actor MUST 与原生人类 Actor 在协议层可区分。
 
-Ghost Actor profile SHOULD include:
+Ghost Actor profile SHOULD 包含：
 
 ```json
 {
@@ -481,32 +481,32 @@ Ghost Actor profile SHOULD include:
 }
 ```
 
-Ghost Actor MUST NOT be silently merged with a native DID unless the native holder explicitly claims and links it.
+Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式声明并完成绑定。
 
 ## 10. Portal Space
 
-Portal Space maps an external location to Contrix.
+Portal Space 把外部 location 映射到 Contrix。
 
-Portal Space SHOULD record:
+Portal Space SHOULD 记录：
 
-- external protocol
-- external network id
-- external location id
+- 外部协议
+- 外部网络 id
+- 外部 location id
 - bridge Applet id
-- creator / controller
-- visibility
-- membership mapping policy
+- 创建者 / 控制者
+- 可见性
+- 成员映射策略
 
-Portal Space MUST still enforce normal Space policy and capability rules.
+Portal Space MUST 仍然执行常规的 Space policy 与 capability 规则。
 
 ## 11. Masquerading 与 Delegated Agent
 
-Applet MAY act on behalf of a native user only when the user or organization has granted explicit delegated authority.
+只有当用户或组织显式授予委托权限时，Applet MAY 代表 native 用户行事。
 
-The resulting Event MUST show both:
+由此产生的 Event MUST 同时呈现：
 
-- accountable actor: the native actor
-- executing applet / delegated key
+- accountable actor：native actor
+- executing applet / 委托密钥
 
 示例 UI 语义：
 

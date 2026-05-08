@@ -200,7 +200,7 @@ Policy server 不创建权限。事件必须先通过 capability authorization�
 - 有 capability + policy hard_deny = reject 或 quarantine。
 - 有 capability + policy unavailable = 按 fail_mode。
 
-Policy server MAY enforce Space-level and Organization-level blocklists, allowlists, rate limits, abuse reputation and content risk labels. It MUST NOT inspect personal blocklists unless the holder explicitly uses a private policy service under their control.
+Policy server MAY 执行 Space 级与组织级的 blocklist、allowlist、rate limit、滥用声誉与内容风险标签。除非 holder 明确使用其自控的私有 policy 服务，Policy server MUST NOT 检查个人 blocklist。
 
 ### 7.1 Moderation State 必须进入 Anchor Frontier
 

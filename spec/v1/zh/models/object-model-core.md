@@ -531,7 +531,7 @@ Event 是 reducer 输入和审计事实。Reducer-input event 在顶层带 `prec
 }
 ```
 
-Event MUST be signed。Reducer MUST reject events that fail signature, schema, capability, or causal validation.
+Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability 或 causal 校验失败的事件。
 
 ## 13. View
 

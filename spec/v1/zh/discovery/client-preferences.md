@@ -127,7 +127,7 @@ title: "Client Preferences & Account Data"
 }
 ```
 
-`target.kind` MAY be:
+`target.kind` 取值：
 
 - `actor`
 - `device`
@@ -138,13 +138,13 @@ title: "Client Preferences & Account Data"
 - `applet`
 - `keyword`
 
-Rules:
+规则：
 
-- Account blocklist MUST be encrypted for the holder's own devices when synchronized through untrusted services.
-- Clients SHOULD suppress notifications, contact requests, call invites and DM requests from blocked targets.
-- Clients MAY hide or collapse blocked content in shared Space views.
-- Clients MUST NOT publish the blocklist to public Space state or directory services.
-- Blocking an organization or domain MUST be evaluated through verified DID / claim bindings when possible; clients SHOULD warn when only a weak string match is available.
+- 通过非可信服务同步时，account blocklist MUST 仅为 holder 自己的设备加密。
+- 客户端 SHOULD 抑制来自被屏蔽对象的通知、联系人请求、通话邀请与 DM 请求。
+- 客户端 MAY 在共享 Space 视图中隐藏或折叠被屏蔽内容。
+- 客户端 MUST NOT 把 blocklist 发布到公共 Space 状态或目录服务。
+- 屏蔽组织或域 MUST 在可能时通过已验证的 DID / claim 绑定评估；仅有弱字符串匹配时，客户端 SHOULD 给出警告。
 
 ### 3.6 联系人备注 (Contact Remarks)
 

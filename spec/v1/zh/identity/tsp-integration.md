@@ -40,14 +40,14 @@ TSP 的 VID 可映射到 Contrix：
 
 | TSP | Contrix |
 | --- | --- |
-| VID | principal DID / service DID / pairwise DID / supported external identifier |
-| TSP Endpoint | actor device、service node、Applet、policy server、agent runtime |
-| TSP Relationship | pairwise trusted channel between two principals/services |
+| VID | principal DID / service DID / pairwise DID / 受支持的外部 identifier |
+| TSP Endpoint | actor 设备、service 节点、Applet、policy server、agent runtime |
+| TSP Relationship | 两个 principal / service 之间的 pairwise 可信通道 |
 | TSP Support System | identity registry、DID method adapter、witness、governance registry |
-| TSP Intermediary | Sync Service、privacy router、store-and-forward service |
-| TSP Message | signed/encrypted transport envelope carrying Contrix operation or control payload |
+| TSP Intermediary | Sync Service、privacy router、store-and-forward 服务 |
+| TSP Message | 承载 Contrix operation 或控制 payload 的已签名 / 加密 transport envelope |
 
-Contrix DID method adapter SHOULD expose whether a principal or service supports TSP.
+Contrix DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TSP。
 
 ## 4. TSP Binding Discovery
 
@@ -72,7 +72,7 @@ Contrix DID method adapter SHOULD expose whether a principal or service supports
 }
 ```
 
-Feature discovery SHOULD also list `tsp` as a supported transport binding when available.
+在可用时，feature discovery SHOULD 把 `tsp` 列为支持的 transport binding。
 
 ## 5. Contrix over TSP
 
@@ -113,12 +113,12 @@ Contrix operation 可作为 TSP application payload：
 
 Contrix SHOULD 采用以下组合：
 
-- Pairwise service / identity control messages：MAY use TSP。
-- Federation bootstrap：MAY use TSP to verify service VID and establish secure channel。
-- Space durable events：MUST still use Contrix event signature / hash / reducer。
-- Encrypted Space content：SHOULD use MLS。
-- Agent handoff：MAY use TSP to authenticate endpoint, then use A2A / ACP / custom transport as negotiated。
-- WebRTC media：MUST NOT use TSP for RTP media encryption; use WebRTC SRTP plus SFrame/Insertable Streams where needed。
+- Pairwise 服务 / 身份控制消息：MAY 使用 TSP。
+- Federation bootstrap：MAY 使用 TSP 验证 service VID 并建立安全通道。
+- Space 持久事件：MUST 仍使用 Contrix event signature / hash / reducer。
+- 加密 Space 内容：SHOULD 使用 MLS。
+- Agent handoff：MAY 使用 TSP 认证 endpoint，再按协商使用 A2A / ACP / 自定义 transport。
+- WebRTC 媒体：MUST NOT 用 TSP 加密 RTP 媒体；按需使用 WebRTC SRTP 与 SFrame / Insertable Streams。
 
 ### 7.1 渐进披露中的 TSP
 
@@ -151,4 +151,4 @@ TSP 不能单独解决“披露什么”的问题。披露决策仍由 holder wa
 - TSP direct message carrying Contrix payload vector。
 - TSP routed/nested privacy vector。
 - TSP relationship to Contrix service DID binding vector。
-- negative tests: valid TSP message without Contrix capability MUST be rejected at operation layer。
+- 负向测试：合法的 TSP 消息在缺少 Contrix capability 时 MUST 在 operation 层被拒绝。

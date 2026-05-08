@@ -81,12 +81,12 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 
 规则：
 
-- `discoverability=public` MAY be indexed by public directory services.
-- `listed` Space MUST only be listed in directories explicitly allowed by `directory_visibility` or `directory_services`.
-- `restricted` Space MUST require directory query authorization before returning search results.
-- `unlisted` Space MUST NOT appear in keyword search, but MAY resolve by exact id / alias / signed invite / parent edge if policy allows.
-- `invite_only` and `secret` Space queries by unauthorized subjects MUST return `not_found` or an indistinguishable response.
-- Directory result MUST NOT include event history, member list, raw policy, MLS state, hidden parent/child edges, or full organization governance chain unless separately authorized.
+- `discoverability=public` 的 Space MAY 被公共目录服务索引。
+- `listed` Space MUST 仅出现在 `directory_visibility` 或 `directory_services` 明确允许的目录中。
+- `restricted` Space MUST 在返回搜索结果前要求目录查询授权。
+- `unlisted` Space MUST NOT 出现在关键字搜索，但在 policy 允许时 MAY 通过精确 id / alias / 签名 invite / parent edge 解析。
+- 未授权 subject 对 `invite_only` 与 `secret` Space 的查询 MUST 返回 `not_found` 或与其不可区分的响应。
+- 在未单独授权时，目录结果 MUST NOT 包含事件历史、成员列表、policy 原文、MLS 状态、隐藏 parent/child edge 或完整组织治理链。
 
 `anti_enumeration.member_count_mode` 取值 normative：
 
@@ -98,9 +98,9 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 
 `unlisted` / `invite_only` / `secret` Space 的 `member_count_mode` 默认 `omit`；显式声明 `bucketed` 时必须遵守上述 bucket grid。
 
-`join_rule` 只控制加入流程。公开可发现的 Space MAY still require invite、knock 或 restricted join。不可发现的 Space MAY still have `join_rule=public` for holders of a private link, but this is discouraged unless anti-spam policy is strong.
+`join_rule` 只控制加入流程。公开可发现的 Space MAY 仍要求 invite、knock 或 restricted join。不可发现的 Space MAY 对持有私有链接的成员保持 `join_rule=public`，但除非配套强反垃圾策略，否则不推荐。
 
-`history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT imply `history_visibility=world_readable`。
+`history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT 隐含 `history_visibility=world_readable`。
 
 ### 3.x `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
 
@@ -124,9 +124,9 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 
 实现 MUST 在 `cx.space.policy_components` reducer 接受前用本表校验当前 effective 状态；变更任一字段使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留旧值。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
 
-## 4. Organization Discoverability
+## 4. Organization 可发现性
 
-Organization discovery policy SHOULD be represented by organization profile state or governance registry record:
+Organization discovery policy SHOULD 通过组织 profile 状态或 governance registry 记录表达：
 
 ```json
 {
@@ -161,16 +161,16 @@ Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 
 3. 如果结果声称包含 official Space，仍需验证每个 Space 的 `cx.space.organization` 背书。
 4. 目录服务 DID 被组织 DID 声明或被本地 trust policy 接受。
 
-## 5. Actor and Handle Discoverability
+## 5. Actor 与 Handle 可发现性
 
-Actor / Principal discovery MUST respect holder privacy:
+Actor / Principal 发现 MUST 尊重 holder 隐私：
 
-- Public persona MAY appear in public user directory.
-- Pairwise DID, private DID, device DID and sensitive agent DID MUST NOT appear in public directory by default.
-- Handle search MUST return only handles whose binding is public or whose holder granted disclosure.
-- Presence, common Space, organization membership and contact graph MUST NOT be leaked through search ranking or autocomplete.
+- 公开 persona MAY 出现在公共用户目录中。
+- Pairwise DID、私有 DID、设备 DID 与隐私敏感的 agent DID 默认 MUST NOT 出现在公共目录中。
+- Handle 搜索 MUST 仅返回绑定公开或 holder 已显式授权披露的 handle。
+- Presence、common Space、组织成员与联系人图谱 MUST NOT 通过搜索排序或自动补全泄露。
 
-Unknown actor profile lookup in a shared Space is allowed only to the extent required for rendering authorized content, for example display name and avatar. It must not reveal unrelated handles or organization accounts.
+在共享 Space 中查询未知 actor profile，仅允许在渲染已授权内容（如显示名、头像）所必需的范围内进行；MUST NOT 借此泄露无关 handle 或组织账号。
 
 ## 6. Private Contact Discovery
 
@@ -338,7 +338,7 @@ Result:
 }
 ```
 
-Unauthorized exact resolve of hidden resources SHOULD return:
+未授权对隐藏资源的精确 resolve SHOULD 返回：
 
 ```json
 {
@@ -350,22 +350,22 @@ Unauthorized exact resolve of hidden resources SHOULD return:
 }
 ```
 
-Implementations SHOULD use the same status, timing class and response shape for nonexistent and unauthorized hidden resources.
+实现 SHOULD 对"不存在"与"未授权访问的隐藏资源"使用相同的 status、相同时延等级与相同响应结构。
 
-## 9. Parent Space and Organization Directory
+## 9. Parent Space 与 Organization Directory
 
-Space hierarchy MAY aid discovery, but parent membership does not grant child membership or child read access.
+Space 层级 MAY 协助发现，但 parent 成员资格不授予 child 成员资格或 child 读权限。
 
-Rules:
+规则：
 
-- Parent Space MAY list child Space previews only if child's `cx.space.discovery` payload has `directory_visibility.parent_space_directory=true`.
-- Organization directory MAY list Space previews only if Space discovery policy allows organization directory listing and the organization endorsement is valid.
-- Removing a Space from an organization directory does not revoke membership or delete data.
-- Revoking `cx.space.organization` endorsement MUST remove official directory badges once the directory catches up.
+- Parent Space MAY 列出 child Space 预览，仅当 child 的 `cx.space.discovery` payload 中 `directory_visibility.parent_space_directory=true` 时成立。
+- Organization 目录 MAY 列出 Space 预览，仅当 Space discovery policy 允许组织目录列出且组织背书有效时成立。
+- 把 Space 从组织目录中移除不会撤销成员资格或删除数据。
+- 撤销 `cx.space.organization` 背书 MUST 使官方目录徽章在目录刷新后被移除。
 
-## 10. Security Requirements
+## 10. 安全要求
 
-Directory and discovery implementations MUST defend against:
+目录与发现实现 MUST 防御：
 
 - Space id enumeration
 - alias guessing
@@ -378,7 +378,7 @@ Directory and discovery implementations MUST defend against:
 - timing side channels that reveal hidden existence
 - stale official badge after organization endorsement revocation
 
-For high privacy deployments, clients SHOULD prefer invite links or encrypted out-of-band invitations over directory search.
+在高隐私部署中，客户端 SHOULD 优先使用 invite 链接或加密的带外邀请，而不是目录搜索。
 
 ## 11. Conformance
 

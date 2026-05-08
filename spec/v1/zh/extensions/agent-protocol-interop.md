@@ -117,7 +117,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 }
 ```
 
-`cx.agent.protocol_session.start` MUST pass normal Space authorization and policy checks.
+`cx.agent.protocol_session.start` MUST 通过常规的 Space 授权与 policy 校验。
 
 ### 5.3 Status 回流
 

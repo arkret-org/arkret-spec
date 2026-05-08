@@ -330,12 +330,12 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 为降低大规模 E2EE 同步成本：
 
-- MLS epoch state SHOULD be returned as required state when encrypted timeline includes events from unknown epochs.
-- 客户端 SHOULD cache epoch state and ratchet tree by `(space_id, epoch)`.
-- 历史 backfill SHOULD request encrypted payload and MLS epoch material in separate ranges.
+- 当加密 timeline 中包含未知 epoch 的事件时，MLS epoch state SHOULD 作为 required state 返回。
+- 客户端 SHOULD 按 `(space_id, epoch)` 缓存 epoch state 与 ratchet tree。
+- 历史 backfill SHOULD 把加密 payload 与 MLS epoch 材料分成不同的范围请求。
 - 新设备恢复 SHOULD 优先使用加密密钥备份 / secret storage，而非向其他成员逐条重发历史密钥。
-- 加密附件 SHOULD be lazy-loaded by blob ref and content hash.
-- 服务端全文搜索 MUST NOT require plaintext. 加密 Space 搜索应使用本地索引或受控 TEE profile。
+- 加密附件 SHOULD 通过 blob ref 与 content hash 进行懒加载。
+- 服务端全文搜索 MUST NOT 要求 plaintext；加密 Space 的搜索应使用本地索引或受控的 TEE profile。
 
 如果密钥状态与事件状态出现缺口：
 

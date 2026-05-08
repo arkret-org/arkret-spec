@@ -241,8 +241,8 @@ SHOULD 支持：
 - witness receipt
 - snapshot pointer distribution
 
-Principal Server MUST NOT become the canonical truth source for Space state.
-Principal Server MUST NOT forward non-E2EE private content or reversible derived plaintext to services absent from the relevant DID delegation or Space policy `plaintext_visible_services`.
+Principal Server MUST NOT 成为 Space 状态的 canonical 真相源。
+Principal Server MUST NOT 将非 E2EE 的私有内容或可还原的派生明文转发给未列入相应 DID 委托或 Space policy `plaintext_visible_services` 的服务。
 
 ## 9. Identity Registry Node
 

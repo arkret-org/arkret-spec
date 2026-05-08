@@ -126,8 +126,8 @@ POST /api/v1/moderation/report
 
 规则：
 
-- Frank MUST be generated over canonical event routing metadata, ciphertext digest, AAD digest, sender claim, receiving service DID and received time.
-- Frank MUST NOT contain plaintext body, attachment filename, reply excerpt, mention list, private handle or decrypted content hash unless Space policy explicitly allows that field.
+- Frank MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID 与接收时间之上生成。
+- Frank MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash，除非 Space policy 明确允许该字段。
 - 接收方客户端在解密消息后 SHOULD 保存 frank 与明文的本地绑定证明；该绑定默认只在本地或 E2EE 私有报告中保存。
 - 举报 E2EE 内容时，`cx.moderation.report` MAY 携带 `plaintext_evidence` 的加密副本、原始 encrypted envelope、frank 和 reporter 对明文/evidence package 的签名。
 - 审核方验证时 MUST 检查：frank 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
@@ -276,12 +276,12 @@ Space MAY 使用 `cx.space.moderation_policy` state event 声明黑名单、允�
 
 规则：
 
-- 修改 `cx.space.moderation_policy` MUST require `cx.space.moderate` or `cx.policy.manage` capability。
-- Space blocklist MUST be evaluated after basic signature/DID validation and before event enters user-visible reducer state。
-- `deny_join` / `deny_write` SHOULD produce a signed moderation decision or audit record。
-- `quarantine_message` MUST keep the event out of normal user-visible views until moderator approval。
-- Content filters SHOULD use hashes, labels or local classification where possible; E2EE Space MUST NOT require plaintext upload to a server-side filter。
-- Space blocklist MUST NOT silently override cryptographic history. Existing accepted events require redaction/tombstone/quarantine event to change presentation.
+- 修改 `cx.space.moderation_policy` MUST 持有 `cx.space.moderate` 或 `cx.policy.manage` capability。
+- Space blocklist MUST 在 signature / DID 基础校验之后、事件进入用户可见 reducer 状态之前进行评估。
+- `deny_join` / `deny_write` SHOULD 产出已签名的 moderation decision 或 audit record。
+- `quarantine_message` MUST 在审核通过前阻止事件进入普通用户可见视图。
+- 内容过滤 SHOULD 优先使用 hash、label 或本地分类；E2EE Space MUST NOT 要求向服务端过滤器上传明文。
+- Space blocklist MUST NOT 静默覆盖密码学历史。要改变已 accepted 事件的呈现，需通过 redaction / tombstone / quarantine 事件实现。
 
 ### 5.4 消息审核队列
 
@@ -340,11 +340,11 @@ Principal Server 可以配置服务器级别的 ACL，控制哪些域的联邦�
 
 Server ACL 在联邦层（参见 `federation.md`）起作用。当 Principal Server 收到来自被 deny 的域的 `push-operations` 请求时，SHOULD 立即返回 `403 capability_denied`。
 
-## 7. Organization-level Moderation
+## 7. 组织级审核策略
 
-Organization MAY publish organization-level moderation policy for Spaces and services it controls or endorses. This policy applies through explicit references, not by global magic.
+Organization MAY 为其控制或背书的 Space 与服务发布组织级审核策略。该策略仅通过显式引用生效，不会通过任何全局魔法自动适用。
 
-Recommended object:
+推荐对象：
 
 ```json
 {
@@ -387,17 +387,17 @@ Recommended object:
 }
 ```
 
-Rules:
+规则：
 
-- Organization policy is authoritative only for Spaces/services that explicitly reference it, or for official Spaces whose `cx.space.organization` endorsement states that the organization policy applies.
-- A Space MAY override organization defaults only if its policy says override is allowed.
-- Organization-level deny SHOULD be enforced by Policy Server, Principal Server ACL, Directory filtering and Space moderation policy together.
-- Organization policy MUST be signed by Organization DID or delegated governance service DID.
-- Organization policy MUST NOT reveal private user blocklists, private handles or undisclosed organization memberships.
+- 组织策略只对显式引用它的 Space / 服务有权威；对官方 Space 也仅当其 `cx.space.organization` 背书声明组织策略适用时才生效。
+- 仅当组织策略允许覆盖时，Space MAY 覆盖组织默认值。
+- 组织级 deny SHOULD 由 Policy Server、Principal Server ACL、Directory 过滤与 Space moderation policy 共同执行。
+- 组织策略 MUST 由 Organization DID 或受授权的 governance service DID 签名。
+- 组织策略 MUST NOT 暴露用户私有 blocklist、私有 handle 或未披露的组织成员关系。
 
-## 8. Policy Server Integration
+## 8. Policy Server 集成
 
-Space and Organization moderation policies SHOULD be evaluated through Policy Server for dynamic checks:
+Space 与 Organization 的审核策略 SHOULD 通过 Policy Server 进行动态评估，覆盖以下场景：
 
 - invite / join request
 - knock request
@@ -408,7 +408,7 @@ Space and Organization moderation policies SHOULD be evaluated through Policy Se
 - directory listing
 - call invite
 
-Policy Server MAY return `hard_deny`, `quarantine`, `require_review` or `soft_deny`, but it MUST NOT grant capability by itself.
+Policy Server MAY 返回 `hard_deny`、`quarantine`、`require_review` 或 `soft_deny`，但 MUST NOT 自行授予 capability。
 
 ## 9. 服务端威胁借鉴
 

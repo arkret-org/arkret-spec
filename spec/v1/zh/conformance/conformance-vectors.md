@@ -1334,9 +1334,9 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- Flow projection MAY show a lazy discussion-track reference.
-- Flow discussion timeline MUST NOT be expanded.
-- Notification/search results MUST NOT reveal hidden discussion messages.
+- Flow projection MAY 显示 lazy 的 discussion-track 引用。
+- Flow discussion timeline MUST NOT 展开。
+- 通知 / 搜索结果 MUST NOT 泄露隐藏的 discussion 消息。
 
 #### 5.5.1 Vector: Flow Discussion Surface Visibility
 
@@ -1353,9 +1353,9 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- Flow projection MAY show a lazy/locked discussion surface reference if discussion discoverability permits.
-- Flow activity MUST NOT include hidden discussion messages.
-- Flow context MUST NOT leak hidden discussion message bodies through previews, summaries, notifications, search snippets, embeddings, or decision summaries.
+- 当 discussion 可发现性允许时，Flow projection MAY 显示 lazy / locked 的 discussion surface 引用。
+- Flow activity MUST NOT 包含隐藏的 discussion 消息。
+- Flow context MUST NOT 通过预览、摘要、通知、搜索片段、embedding 或 decision summary 泄露隐藏的 discussion 消息正文。
 
 ### 5.6 Vector: Flow Discussion Timeline
 
@@ -1382,5 +1382,5 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- `flow-discussion-timeline` MUST return the message when viewer can read the Flow discussion track.
-- `flow-discussions` MUST only include this message if viewer can read the Flow discussion track; Flow synthesis visibility alone is not sufficient when discussion lives in a separate `discussion_space_ref` child Space.
+- 当 viewer 可读取 Flow discussion track 时，`flow-discussion-timeline` MUST 返回该消息。
+- 仅当 viewer 可读取 Flow discussion track 时，`flow-discussions` MUST 才包含该消息；当 discussion 位于独立的 `discussion_space_ref` child Space 时，仅有 Flow synthesis 可见性是不够的。

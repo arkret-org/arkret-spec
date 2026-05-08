@@ -103,8 +103,8 @@ Snapshot-assisted pruning 只能删除或压缩某个存储边界内的 raw payl
 
 ## 4. State Hash
 
-`state_hash` MUST be Merkle root over canonical reducer output.  
-Leaf hash:
+`state_hash` MUST 是 canonical reducer 输出之上的 Merkle root。  
+Leaf hash：
 
 ```text
 sha256(kind || ":" || id || ":" || sha256(canonical_json(object)))
@@ -114,9 +114,9 @@ Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排
 
 ## 5. Snapshot Signature
 
-Manifest MUST contain exactly one normative `signature` field. `signature` MUST use the same detached proof shape as Event proof and MUST cover the canonical manifest payload excluding `signature`.
+Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST 使用与 Event proof 相同的 detached proof 结构，并 MUST 覆盖 manifest payload（排除 `signature` 自身）的 canonical 编码。
 
-The signing DID MUST be one of:
+签名 DID MUST 属于以下之一：
 
 - Space owner
 - Space creator or active Space admin
@@ -124,30 +124,30 @@ The signing DID MUST be one of:
 - witness quorum
 - policy-approved snapshot issuer
 
-Client MUST verify signature, signer authority, `state_hash`, frontier, `event_set_commitment` and every chunk digest before using snapshot. Signer authority MUST be evaluated as of the manifest `created_at`, using accepted Space auth state that covers the snapshot frontier and all relevant admin / snapshot-issuer grant or revoke events known up to `created_at`. If the signer was revoked before `created_at`, or the verifier cannot establish revoke freshness for the signer authority, the snapshot MUST be quarantined or rejected with `snapshot_issuer_revoked`.
+Client 在使用 snapshot 之前 MUST 校验 signature、签名者权限、`state_hash`、frontier、`event_set_commitment` 与每个 chunk 的 digest。签名者权限 MUST 以 manifest `created_at` 为时点进行评估，依据是覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Space auth state。如果签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
 
-**Maximum acceptance window (normative)**: a manifest is acceptable for snapshot bootstrap only if **all** of the following hold at adoption time:
+**最大接受窗口（normative）**：仅当采纳时同时满足以下**全部**条件，manifest 才可用于 snapshot bootstrap：
 
-- `(now - manifest.created_at) ≤ snapshot_max_acceptance_age_ms`. Default `snapshot_max_acceptance_age_ms = 2_592_000_000` (30 days). `security_class=high_assurance` Spaces MUST tighten to ≤ `604_800_000` (7 days). Beyond the window, even a previously valid snapshot MUST be rejected — the client MUST request a fresh manifest, since auth state and policy will have drifted enough that even a legitimate old snapshot cannot represent current state safely.
-- The signer's authority chain (Space owner / admin / trusted issuer / witness quorum membership) is still **resolvable** under current auth state. If the chain has been pruned (e.g. by Space tombstone, governance reset, or auth-chain compaction beyond the manifest era) the snapshot MUST be rejected.
-- `(now - signer.revoked_at) < 0` if the signer has been revoked at all. A revoke effective strictly **after** `created_at` does NOT retroactively invalidate the manifest, but the client MUST always replay events after the snapshot frontier before using current state for new writes.
+- `(now - manifest.created_at) ≤ snapshot_max_acceptance_age_ms`。默认 `snapshot_max_acceptance_age_ms = 2_592_000_000`（30 天）；`security_class=high_assurance` 的 Space MUST 收紧到 ≤ `604_800_000`（7 天）。超出该窗口后，即使曾经有效的 snapshot 也 MUST 被拒绝——client MUST 请求新的 manifest，因为 auth state 与 policy 的漂移已使旧 snapshot 无法安全代表当前状态。
+- 签名者的权限链（Space owner / admin / trusted issuer / witness quorum membership）在当前 auth state 下仍**可解析**。如果该链已被裁剪（例如 Space tombstone、governance reset 或越过 manifest 时代的 auth-chain compaction），snapshot MUST 被拒绝。
+- 若签名者曾被撤销，则 `(now - signer.revoked_at) < 0`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但 client 在用当前状态写入新 Event 前 MUST 先重放 snapshot frontier 之后的事件。
 
-`proof`, `signed_by`, `generator_signature` and `state_signature` are not v1 snapshot manifest fields.
+`proof`、`signed_by`、`generator_signature` 与 `state_signature` 不是 v1 snapshot manifest 字段。
 
-## 6. Inclusion and Omission Defense
+## 6. Inclusion 与 Omission 防御
 
-Snapshot signer authority only proves who signed the reduced state; it does not by itself prove the signer included every accepted Event it should have included. For that reason v1 snapshot manifests MUST carry `event_set_commitment`.
+Snapshot signer authority 只能证明谁签发了 reduced state；它不能证明签名者已包含本应包含的全部 accepted Event。因此 v1 snapshot manifest MUST 携带 `event_set_commitment`。
 
-`event_set_commitment.root` commits to the ordered set of Event Envelope IDs and canonical event hashes covered by the snapshot frontier. Implementations MUST support one of:
+`event_set_commitment.root` 承诺 snapshot frontier 覆盖的 Event Envelope ID 与 canonical event hash 的有序集合。实现 MUST 至少支持以下一种算法：
 
-- `ordered_event_id_sha256_v1`: SHA-256 over canonical JSON array entries `{event_id,event_hash,actor_id,actor_seq,hlc}` sorted by `(actor_id, actor_seq, event_id)`.
-- `merkle_event_set_v1`: Merkle root over the same canonical entries.
+- `ordered_event_id_sha256_v1`：对按 `(actor_id, actor_seq, event_id)` 排序的 canonical JSON 条目 `{event_id,event_hash,actor_id,actor_seq,hlc}` 计算 SHA-256。
+- `merkle_event_set_v1`：基于同样的 canonical 条目构造 Merkle root。
 
-High-assurance profiles MUST support inclusion challenge. Spaces with `security_class=high_assurance` MUST execute it before adopting any snapshot; other profiles SHOULD.
+High-assurance profile MUST 支持 inclusion challenge。`security_class=high_assurance` 的 Space MUST 在采纳任何 snapshot 之前执行该挑战；其他 profile SHOULD 执行。
 
-The challenge wire shape (POSTed to `verification_hints.inclusion_proof_url`):
+挑战 wire 格式（POST 到 `verification_hints.inclusion_proof_url`）：
 
-Request body:
+请求体：
 
 ```json
 {
@@ -169,7 +169,7 @@ Request body:
 }
 ```
 
-Response body:
+响应体：
 
 ```json
 {
@@ -216,16 +216,16 @@ Response body:
 }
 ```
 
-Sampling and verification rules (normative):
+采样与验证规则（normative）：
 
-1. **Random sampling**: client MUST draw samples independent of issuer hints. For event_id samples, draw `n ≥ max(20, ceil(log2(covered_event_count)))` distinct IDs uniformly from the client's local Event set in the snapshot frontier. For actor_seq_range samples, draw at least 3 ranges of length 100 each from distinct actors known to be active in the snapshot.
-2. **Branch verification**: each `proofs[i].merkle_branch` MUST verify under `commitment_algorithm` against `commitment_root`; `commitment_root` MUST equal the manifest's `event_set_commitment.root` (no rebinding allowed).
-3. **Gap attribution**: for each missing `actor_seq` within a sampled range, the response MUST cite an entry in `verification_hints.{soft_failed_digest, quarantined_digest, conflict_records_digest}` (`digest_index` is the position in the digest's commitment list) — silent gaps are forbidden.
-4. **Signature**: `issuer_signature` MUST be from a DID listed in §5 (Space owner / creator / admin / trusted snapshot issuer / witness quorum) and verifiable as of manifest `created_at`.
-5. **Failure**: if any sampled accepted Event is absent, any branch fails verification, any gap lacks attribution, or signature verification fails, client MUST reject with error `inclusion_proof_failed` (see [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)). If the signer's authority is revoked at or before `created_at`, client MUST reject with `snapshot_issuer_revoked`.
-6. **Freshness**: response MUST be received within the manifest's `verification_hints.challenge_window_seconds`; expired responses MUST be retried, not silently accepted.
+1. **随机采样**：client MUST 独立于 issuer 提示进行采样。event_id 样本 MUST 从 client 本地位于 snapshot frontier 内的 Event 集合中均匀抽取 `n ≥ max(20, ceil(log2(covered_event_count)))` 个不同 ID。actor_seq_range 样本 MUST 来自该 snapshot 已知活跃的不同 actor，每个长度 100，至少 3 段。
+2. **分支验证**：每个 `proofs[i].merkle_branch` MUST 在 `commitment_algorithm` 下针对 `commitment_root` 验证通过；`commitment_root` MUST 等于 manifest 的 `event_set_commitment.root`（不允许重新绑定）。
+3. **缺口归因**：对于采样范围内每个缺失的 `actor_seq`，响应 MUST 在 `verification_hints.{soft_failed_digest, quarantined_digest, conflict_records_digest}` 之一中给出对应条目（`digest_index` 是该 digest 承诺列表中的位置）——禁止静默缺口。
+4. **签名**：`issuer_signature` MUST 来自 §5 列出的 DID（Space owner / creator / admin / trusted snapshot issuer / witness quorum），并 MUST 以 manifest `created_at` 为时点可验证。
+5. **失败处理**：若任一采样到的 accepted Event 缺失、任一分支验证失败、任一缺口缺少归因，或签名验证失败，client MUST 以错误 `inclusion_proof_failed` 拒绝（见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；若签名者在 `created_at` 当时或之前已被撤销，client MUST 以 `snapshot_issuer_revoked` 拒绝。
+6. **新鲜度**：响应 MUST 在 manifest 的 `verification_hints.challenge_window_seconds` 内收到；过期响应 MUST 重试，不得静默接受。
 
-`verification_hints.conflict_records_digest`, `soft_failed_digest` and `quarantined_digest` commit to non-accepted or unresolved inputs. A snapshot MUST NOT silently hide conflict, soft-fail or quarantine records that affect authorization, visibility, E2EE epoch or object state.
+`verification_hints.conflict_records_digest`、`soft_failed_digest` 与 `quarantined_digest` 承诺非 accepted 或未决输入的集合。snapshot MUST NOT 静默隐藏会影响授权、可见性、E2EE epoch 或对象状态的 conflict、soft-fail 或 quarantine 记录。
 
 ## 7. Encrypted Envelope
 
@@ -244,4 +244,4 @@ Sampling and verification rules (normative):
 }
 ```
 
-Sync Service MAY route by `cleartext_metadata` but MUST NOT require plaintext content.
+Sync Service MAY 依据 `cleartext_metadata` 路由，但 MUST NOT 要求 plaintext content。
