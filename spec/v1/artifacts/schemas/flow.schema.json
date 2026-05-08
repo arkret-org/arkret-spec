@@ -8,7 +8,7 @@
     "schema",
     "space_id",
     "title",
-    "branches",
+    "tracks",
     "created_by",
     "created_at"
   ],
@@ -57,12 +57,12 @@
         "redacted"
       ]
     },
-    "branches": {
+    "tracks": {
       "type": "array",
-      "description": "Active Flow branches. Branches are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. Any sub-Space-level access scoping MUST be modelled as a child Space referenced via 'discussion_space_ref'. At most one branch may explicitly set is_primary=true; when none does, the reducer derives the primary branch by the deterministic rules in object-model-standard.md.",
+      "description": "Active Flow tracks. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. Any sub-Space-level access scoping MUST be modelled as a child Space referenced via 'discussion_space_ref'. At most one track may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in object-model-standard.md.",
       "minItems": 1,
       "items": {
-        "$ref": "#/$defs/flow_branch"
+        "$ref": "#/$defs/flow_track"
       },
       "contains": {
         "type": "object",
@@ -82,7 +82,7 @@
     "discussion_space_ref": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$",
-      "description": "Optional reference to a child Space that hosts this Flow's discussion-side membership, history visibility, and (if E2EE) MLS group. Setting this fields means the discussion lives in its own security boundary distinct from the Flow's parent Space. When unset, discussion timeline events live in the parent Space and inherit its access. This replaces the v1 pre-rc 'branch_scoped' hybrid (membership / permissions / history_visibility / e2ee scope fields)."
+      "description": "Optional reference to a child Space that hosts this Flow's discussion-side membership, history visibility, and (if E2EE) MLS group. Setting this fields means the discussion lives in its own security boundary distinct from the Flow's parent Space. When unset, discussion timeline events live in the parent Space and inherit its access. This replaces the v1 pre-rc 'track_scoped' hybrid (membership / permissions / history_visibility / e2ee scope fields)."
     },
     "created_by": {
       "$ref": "#/$defs/did"
@@ -142,19 +142,19 @@
       },
       "additionalProperties": true
     },
-    "branch_name": {
+    "track_name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$"
     },
-    "flow_branch": {
+    "flow_track": {
       "type": "object",
-      "description": "Flow branch — a pure section pointer (synthesis vs discussion timeline). Branches do NOT carry independent membership / permissions / history visibility / E2EE. To give the discussion side its own security boundary, set Flow.discussion_space_ref to a child Space.",
+      "description": "Flow track — a pure section pointer (synthesis vs discussion timeline). Tracks do NOT carry independent membership / permissions / history visibility / E2EE. To give the discussion side its own security boundary, set Flow.discussion_space_ref to a child Space.",
       "required": [
         "name"
       ],
       "properties": {
         "name": {
-          "$ref": "#/$defs/branch_name"
+          "$ref": "#/$defs/track_name"
         },
         "is_primary": {
           "type": "boolean"

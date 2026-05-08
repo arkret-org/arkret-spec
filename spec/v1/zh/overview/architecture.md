@@ -89,7 +89,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 协议只约束以下边界：
 
 - View 是可同步的投影定义，不拥有被投影对象的事实。
-- 查询、搜索和 projection 不得绕过 Space policy、有效 branch access、history visibility、E2EE 可见性或 capability。
+- 查询、搜索和 projection 不得绕过 Space policy、有效 track access、history visibility、E2EE 可见性或 capability。
 - 任何受托 search / projection 服务若接收私有明文、正文摘要、embedding、通知摘要或可逆派生内容，MUST 被 Space policy 列入 `plaintext_visible_services`。
 - 派生输出不得成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和 causal frontier 重新计算。
 

@@ -23,7 +23,7 @@ title: Spec Map
 
 1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
-3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、branch 模型、E2EE 边界、agent 落点）。
+3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 4. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`：理解身份、handle、设备/备份密钥和隐私披露（progressive disclosure 在 `identity-handles.md` §16）。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
@@ -51,7 +51,7 @@ title: Spec Map
 - Space 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
 - Flow、Message 和 Space workflow 容器是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- Flow 通过 branch primary 解析规则选择默认入口；`synthesis` / `discussion` branch 分别承载正式表达与讨论能力，branch 默认继承 Flow / Space 访问规则，显式 override 才承载独立 membership、历史与 E2EE 边界。
+- Flow 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力，track 默认继承 Flow / Space 访问规则，显式 override 才承载独立 membership、历史与 E2EE 边界。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Projection
@@ -84,7 +84,7 @@ title: Spec Map
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
 | `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
 | `overview/matrix-core-differences.md` | 与 Matrix 的核心区别、边界和取舍。 |
-| `overview/current-model.md` | Flow / branch / board / list / view 的统一模型说明。 |
+| `overview/current-model.md` | Flow / track / board / list / view 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
 

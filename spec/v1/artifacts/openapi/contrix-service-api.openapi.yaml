@@ -107,7 +107,7 @@ components:
               - cas_conflict
               - causal_conflict
               - dependency_missing
-              - discussion_branch_disabled
+              - discussion_track_disabled
               - epoch_mismatch
               - duplicate_conflict
               - rank_exhausted

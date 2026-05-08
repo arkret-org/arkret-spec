@@ -56,16 +56,16 @@ Place 层级（看板嵌套、列在板内）通过 Place 自己的 `parent_ref`
 
 ### 2.2 Flow 承载主语义
 
-同一个协作主题由一个 Flow 表达；branch primary 解析规则与 branch 配置决定默认入口和能力面。
+同一个协作主题由一个 Flow 表达；track primary 解析规则与 track 配置决定默认入口和能力面。
 
 标准对象本身表达主语义：
 
-- `flow`：统一协作主对象。它承载 `title` / `summary` / `body` 等基础字段，并通过 branch primary 解析规则决定默认进入哪个 branch。
-- `message`：Flow `discussion` branch 中的消息。
+- `flow`：统一协作主对象。它承载 `title` / `summary` / `body` 等基础字段，并通过 track primary 解析规则决定默认进入哪个 track。
+- `message`：Flow `discussion` track 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
 - `place`：Space 内部的结构容器（`kind=board` / `kind=list` / 其他 profile 注册的形态）。Place 通过 `cx.place.parent` 表达层级，通过 `cx.flow.move` / `cx.flow.reorder` 管理 Flow 位置；Place 自身没有 membership / E2EE / federation。
 
-标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；启用 `synthesis` 的 Flow 可作为 Place 管理的工作对象；启用 `discussion` 的 Flow 可作为讨论入口；`message` 天然属于 Flow `discussion` branch。实现不得要求标准对象先声明 facet 才能承认其主语义。
+标准对象 MAY 暴露 schema/profile 已声明的 `facets` 来辅助展示或查询，但它的核心职责不依赖 facets 才成立。例如 `flow` 天然是共享上下文容器；启用 `synthesis` 的 Flow 可作为 Place 管理的工作对象；启用 `discussion` 的 Flow 可作为讨论入口；`message` 天然属于 Flow `discussion` track。实现不得要求标准对象先声明 facet 才能承认其主语义。
 
 ### 2.3 Morph 是开放对象
 
@@ -156,7 +156,7 @@ Event 是审计根和 reducer 输入。当前态只是 Event 集合在某个 red
 - flow activity
 - review queue
 
-View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Board Place 包含 List Place、List Place 包含 Flow、Flow 的字段与位置、Flow `discussion` branch 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
+View 不得发明对象能力，也不得持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。Board Place 包含 List Place、List Place 包含 Flow、Flow 的字段与位置、Flow `discussion` track 的消息与成员，都必须由对应标准对象、Relation 和 Event 归约得到。
 
 当用户通过 View 修改协作对象时，写入必须落到真实对象操作。例如 Flow 跨 List 拖拽写为 `cx.flow.move`，同 List 排序写为 `cx.flow.reorder`，修改列顺序写为 `cx.place.update`（更新 List Place 的 `rank` 字段），改变 View 的 filter / columns / layout 才写为 `cx.view.update` 或 actor-private account data。
 
@@ -215,7 +215,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 Space policy 决定：
 
 - 谁能加入 Space
-- 哪些 Flow / Morph 类型与 branch profile 可用
+- 哪些 Flow / Morph 类型与 track profile 可用
 - 哪些服务可同步、索引或看见明文
 - 是否加密
 - 是否允许外部联邦
@@ -245,11 +245,11 @@ Accountable actor MUST 记录责任关系，但 accountability 不等于 capabil
 
 Flow 是 Space 内统一的协作主对象，直接承载“这件事本身”、一组参与者和围绕它的上下文信息。
 
-Flow 通过 `branches` 数组表达能力分支：每个 branch 至少声明 `name`；`is_primary=true` 可显式标识默认入口，未显式标记时按确定性规则派生。`synthesis` branch 承载整理后的正式表达、结构化字段和推进信息；`discussion` branch 承载聊天和讨论 timeline。
+Flow 通过 `tracks` 数组表达能力轨道：每个 track 至少声明 `name`；`is_primary=true` 可显式标识默认入口，未显式标记时按确定性规则派生。`synthesis` track 承载整理后的正式表达、结构化字段和推进信息；`discussion` track 承载聊天和讨论 timeline。
 
-**Branch 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Branch access 完全等于所属 Space 的 access。需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，必须创建一个 child Space 并通过 `discussion_space_ref` 引用（详见 [`data-structures.md`](./data-structures.md) §6.1.1）；不存在 branch-internal "branch_scoped" 模式。
+**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track access 完全等于所属 Space 的 access。需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，必须创建一个 child Space 并通过 `discussion_space_ref` 引用（详见 [`data-structures.md`](./data-structures.md) §6.1.1）；不存在 track-internal "track_scoped" 模式。
 
-业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Space schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。切换默认 branch 使用 `cx.flow.branch.set_primary`（必要时配合 `cx.flow.branch.enable`）；切换不会改变 Flow identity，也不要求复制或迁移消息历史。
+业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Space schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。切换默认 track 使用 `cx.flow.track.set_primary`（必要时配合 `cx.flow.track.enable`）；切换不会改变 Flow identity，也不要求复制或迁移消息历史。
 
 最小结构：
 
@@ -271,7 +271,7 @@ Flow 通过 `branches` 数组表达能力分支：每个 branch 至少声明 `na
     "priority": "high",
     "due_at": "2026-05-01T00:00:00Z"
   },
-  "branches": [
+  "tracks": [
     { "name": "synthesis", "is_primary": true },
     { "name": "discussion", "profile": "review" }
   ],
@@ -284,27 +284,27 @@ Flow 通过 `branches` 数组表达能力分支：每个 branch 至少声明 `na
 
 Flow 规则：
 
-- Flow identity 只保存一份，resolved primary branch 只决定默认视角，不创建新的对象副本。
-- 同一 Flow 的 `branches[].name` MUST 唯一，且至多一个 active branch MAY 设置 `is_primary=true`。
-- 若没有显式 `is_primary=true`，Reducer MUST 派生 primary：`synthesis` 存在时优先选择 `synthesis`；否则单 branch Flow 选择唯一 branch；否则按 profile 默认 branch 选择；仍无法唯一确定时 fail closed。
-- `synthesis` branch 与 `discussion` branch 共享同一标题和基础字段；branch 不存在独立 access 域。
+- Flow identity 只保存一份，resolved primary track 只决定默认视角，不创建新的对象副本。
+- 同一 Flow 的 `tracks[].name` MUST 唯一，且至多一个 active track MAY 设置 `is_primary=true`。
+- 若没有显式 `is_primary=true`，Reducer MUST 派生 primary：`synthesis` 存在时优先选择 `synthesis`；否则单 track Flow 选择唯一 track；否则按 profile 默认 track 选择；仍无法唯一确定时 fail closed。
+- `synthesis` track 与 `discussion` track 共享同一标题和基础字段；track 不存在独立 access 域。
 - 未设置 `discussion_space_ref` 时，discussion 时间线、成员、history visibility、E2EE 完全继承父 Space。
 - 设置 `discussion_space_ref` 时，所有 `cx.message.*` / `cx.reaction.*` / 成员管理写入 MUST 使用该 child Space 的 `space_id`；child Space 是独立的安全边界，按其自身 policy 收敛。
 - `is_primary` 只是默认入口标记，不授予读取、写入或管理权限。
-- `cx.flow.branch.set_primary` / `cx.flow.branch.enable` 只改变默认入口或 branch 启用状态，不得隐式创建或迁移 child Space；child Space 的生命周期由独立 `cx.space.*` event 管理。
+- `cx.flow.track.set_primary` / `cx.flow.track.enable` 只改变默认入口或 track 启用状态，不得隐式创建或迁移 child Space；child Space 的生命周期由独立 `cx.space.*` event 管理。
 
-## 7. Flow Discussion Branch
+## 7. Flow Discussion Track
 
-Flow 的 `discussion` branch 是会话能力，而不是独立对象。它承载消息时间线和通知 profile；access 完全继承父 Space，或通过 `Flow.discussion_space_ref` 升级到独立 child Space 承载。
+Flow 的 `discussion` track 是会话能力，而不是独立对象。它承载消息时间线和通知 profile；access 完全继承父 Space，或通过 `Flow.discussion_space_ref` 升级到独立 child Space 承载。
 
-若 `discussion` branch 设置 `is_primary=true`，该 branch MUST 存在于 active `branches` 数组中。Flow MAY 初始只带 `synthesis` branch；需要讨论时再启用 `discussion` branch。
+若 `discussion` track 设置 `is_primary=true`，该 track MUST 存在于 active `tracks` 数组中。Flow MAY 初始只带 `synthesis` track；需要讨论时再启用 `discussion` track。
 
-Discussion branch 规则：
+Discussion track 规则：
 
 - 未设置 `discussion_space_ref` 时，能看父 Space 的 actor 即可看 discussion 时间线（按父 Space history visibility）。
 - 设置 `discussion_space_ref` 时，能否看 discussion 由 child Space 自身 access policy 决定，与父 Space 的 Flow synthesis 可见性无关。
 - 能看 `discussion` 不表示能改 Flow 的字段、状态或 Board 位置（这些仍按父 Space capability 判断）。
-- 切换 primary branch 不会自动删除已有讨论历史。
+- 切换 primary track 不会自动删除已有讨论历史。
 - `discussion_space_ref` 启用 MLS 时，对应 MLS group 绑定该 child Space；E2EE 边界、membership frontier、`covered_frontier_cell` 都按 child Space 自身收敛。
 
 ## 8. Place（看板 / 列 / 泳道 / …）与 Flow 位置
@@ -368,7 +368,7 @@ Board / List 中的 Flow 示例：
     "priority": "high",
     "due_at": "2026-05-01T00:00:00Z"
   },
-  "branches": [
+  "tracks": [
     {
       "name": "synthesis",
       "is_primary": true
@@ -380,7 +380,7 @@ Board / List 中的 Flow 示例：
 }
 ```
 
-Flow 在 Place 中的位置通过 active `contains` Relation / flow position event 表达，不由 branch 决定，也不要求 Flow canonical object 自带 `place_id` 字段。View projection 返回的 `board_place_id` / `list_place_id` / `rank` 是投影派生字段。
+Flow 在 Place 中的位置通过 active `contains` Relation / flow position event 表达，不由 track 决定，也不要求 Flow canonical object 自带 `place_id` 字段。View projection 返回的 `board_place_id` / `list_place_id` / `rank` 是投影派生字段。
 
 **位置唯一性**：一个 Flow 在同一个 Board Place 内 MUST NOT 同时占据多个 List Place 的 active position edge。`(board_place_id, flow_id)` 是 active position edge 的去重 key。`cx.flow.move` reducer 在创建新 position edge 前 MUST 关闭同一 `(board_place_id, flow_id)` 下的其他 active position edge。这保证了看板视图中每个 Flow item 只出现在一个列中。
 
@@ -401,7 +401,7 @@ Flow 在 Place 中的位置通过 active `contains` Relation / flow position eve
 
 ## 9. Message
 
-Message 是 Flow `discussion` branch 时间线中的原子消息对象。
+Message 是 Flow `discussion` track 时间线中的原子消息对象。
 
 ```json
 {
@@ -409,7 +409,7 @@ Message 是 Flow `discussion` branch 时间线中的原子消息对象。
   "schema": "cx.schema.message.v1",
   "space_id": "cx:space:01js0sp0000000000000000000",
   "flow_id": "cx:flow:01js0fk0000000000000000000",
-  "branch": "discussion",
+  "track": "discussion",
   "created_by": "did:web:alice.example",
   "content": {
     "type": "cx.content.text",
@@ -455,7 +455,7 @@ Morph 是开放对象。
 }
 ```
 
-Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Flow branch projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象的主语义必须保留在对应标准类型上。
+Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Flow track projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象的主语义必须保留在对应标准类型上。
 
 ## 11. Relation
 

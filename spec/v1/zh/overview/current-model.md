@@ -10,22 +10,22 @@ title: 当前模型说明
 
 `Flow` 承载同一事项的正式表达与讨论过程：
 
-- `branches[].name`：定义 Flow 当前启用的能力分支
-- `branches[].is_primary=true`：可显式定义默认主入口；若未显式设置且存在 `synthesis`，默认主入口派生为 `synthesis`
+- `tracks[].name`：定义 Flow 当前启用的能力轨道
+- `tracks[].is_primary=true`：可显式定义默认主入口；若未显式设置且存在 `synthesis`，默认主入口派生为 `synthesis`
 - 业务语义通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 表达
 
-## 3. Flow 的标准 Branch
+## 3. Flow 的标准 Track
 
-`Flow.branches` 是 branch 定义数组。v1 标准化两个 branch name：
+`Flow.tracks` 是 track 定义数组。v1 标准化两个 track name：
 
 - `synthesis`：正式表达、结构化字段、状态推进、标题、摘要、正文
 - `discussion`：成员、消息、历史可见性、通知与可选 E2EE
 
-分支规则：
+轨道规则：
 
 - `discussion` 可独立启用或关闭
-- `cx.flow.branch.set_primary` 切换显式 primary branch，不改变 `flow_id`
-- `cx.flow.branch.enable`、`cx.flow.branch.disable`、`cx.flow.branch.set_primary` 管理 branch 生命周期与默认入口
+- `cx.flow.track.set_primary` 切换显式 primary track，不改变 `flow_id`
+- `cx.flow.track.enable`、`cx.flow.track.disable`、`cx.flow.track.set_primary` 管理 track 生命周期与默认入口
 
 ## 4. 工作流容器
 
@@ -45,13 +45,14 @@ Flow 在 `Board Place` / `List Place` 中的位置通过 `contains` relation 与
 - View filter / columns / layout 变化写入 `cx.view.update`
 - 拖拽 Flow、切换 List、修改 rank 写入真实对象事件：`cx.flow.move` / `cx.flow.reorder` / `cx.place.update`
 
+
 ## 6. 权限与成员边界
 
 Space membership、Flow 更新权限与 discussion access 使用统一授权模型裁剪：
 
 - `cx.member.state` 控制 Space membership
 - `cx.flow.*` 控制 Flow 自身与工作流位置
-- Branch 不携带独立 access；discussion 时间线默认完全继承父 Space。
+- Track 不携带独立 access；discussion 时间线默认完全继承父 Space。
 - 需要让 discussion 拥有独立 membership / history visibility / E2EE 时，必须创建 child Space 并通过 `Flow.discussion_space_ref` 引用；child Space 上的 `cx.member.state` 控制 discussion 成员状态。
 - Flow synthesis 可见性 ≠ discussion 可见性：未设置 `discussion_space_ref` 时按父 Space history visibility 判断；设置时按 child Space policy 独立判断。
 - discussion 可读不代表 Flow synthesis 可写。
@@ -62,7 +63,7 @@ MLS 加密绑定到 Space：
 
 - 默认（未设 `discussion_space_ref`）：整个父 Space 共用一个加密边界，Flow synthesis 与 discussion 共享同一 MLS group。
 - 独立 discussion access：父 Space 与 `discussion_space_ref` child Space 是两个独立 Space，各自拥有独立 MLS group、独立成员、独立 history sharing。
-- 不存在 "branch-internal MLS group"：MLS group 的 scope 永远绑定到某个具体 `space_id`。
+- 不存在 "track-internal MLS group"：MLS group 的 scope 永远绑定到某个具体 `space_id`。
 
 ## 8. Agent 结果落点
 
@@ -80,6 +81,6 @@ Contrix v1 的统一读法是：
 
 1. `Space` 是协作边界。
 2. `Flow` 是统一协作对象。
-3. `synthesis` / `discussion` 是 Flow 的两个标准 branch。
+3. `synthesis` / `discussion` 是 Flow 的两个标准 track。
 4. `Board Place` / `List Place` 是工作流形态。
 5. `View` 只做投影，不持有真实对象语义。

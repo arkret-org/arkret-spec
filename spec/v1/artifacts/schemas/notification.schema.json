@@ -41,10 +41,10 @@
       "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$",
       "description": "Optional Flow context for routing the notification."
     },
-    "branch": {
+    "track": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Optional branch on the source Flow."
+      "description": "Optional track on the source Flow."
     },
     "notification_type": {
       "type": "string",

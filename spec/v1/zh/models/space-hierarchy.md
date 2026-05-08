@@ -198,7 +198,7 @@ Policy 继承只适合以下收窄型规则：
 
 ## 9. History and Encryption
 
-Child security-boundary Space 的历史可见性独立计算。Parent 成员不因层级关系获得 child 历史。Container Space 没有独立历史可见性；其对象历史按最近 security-boundary 祖先 Space 与具体 Flow branch policy 计算。
+Child security-boundary Space 的历史可见性独立计算。Parent 成员不因层级关系获得 child 历史。Container Space 没有独立历史可见性；其对象历史按最近 security-boundary 祖先 Space 与具体 Flow track policy 计算。
 
 E2EE 要求：
 

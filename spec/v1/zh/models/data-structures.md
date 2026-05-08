@@ -218,7 +218,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 
 ## 6. Standard Objects
 
-Space、Place、Flow、Message 是标准对象。Place（`kind=board` / `kind=list` / 其他 profile 注册形态）表达 Space 内部的结构容器；Flow 通过 branch primary 解析规则表达协作主对象的默认入口。
+Space、Place、Flow、Message 是标准对象。Place（`kind=board` / `kind=list` / 其他 profile 注册形态）表达 Space 内部的结构容器；Flow 通过 track primary 解析规则表达协作主对象的默认入口。
 
 ### 6.1 Flow
 
@@ -232,7 +232,7 @@ Schema id: `cx.schema.flow.v1`
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 一句话/一段话简介。 |
 | `body` | no | `ContentBlock` | 见 `content-types.md`。 | 富文本正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `body` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
-| `branches` | yes | `array<FlowBranch>` | 至少 1 项；`name` 在同一 Flow 内唯一；至多 1 项 `is_primary=true`。 | 分支定义、默认入口与分支访问继承。 |
+| `tracks` | yes | `array<FlowTrack>` | 至少 1 项；`name` 在同一 Flow 内唯一；至多 1 项 `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
@@ -240,23 +240,23 @@ Schema id: `cx.schema.flow.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-`branches` 是 active branch 定义数组。标准 branch name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 branch name。`synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`discussion` 在启用时承载讨论能力，例如 `profile`、timeline profile 与 branch-local fields。
+`tracks` 是 active track 定义数组。标准 track name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 track name。`synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`discussion` 在启用时承载讨论能力，例如 `profile`、timeline profile 与 track-local fields。
 
-**Branch 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Branch 的访问语义完全继承自所属 Space（或 `discussion_space_ref` 指向的 child Space，见下文）。早期 v1 草案曾允许 `branches[].access` 子对象表达 `branch_scoped` 的 hybrid 模型，该机制已被移除——任何需要独立访问域的 discussion 必须升级为 child Space。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非 Space policy 明确把它们映射为授权条件。
+**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自所属 Space（或 `discussion_space_ref` 指向的 child Space，见下文）。早期 v1 草案曾允许 `tracks[].access` 子对象表达 `track_scoped` 的 hybrid 模型，该机制已被移除——任何需要独立访问域的 discussion 必须升级为 child Space。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非 Space policy 明确把它们映射为授权条件。
 
-`FlowBranch` 字段：
+`FlowTrack` 字段：
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `name` | yes | `string` | `^[a-z][a-z0-9_]{0,63}$`；同一 Flow 内唯一。 | Branch 稳定名。 |
-| `is_primary` | no | `boolean` | 同一 Flow 至多一个 branch 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
-| `profile` | no | `string` | 由 Space schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | branch 交互 profile（pure UI hint）。 |
-| `template` | no | `string` | branch profile 可声明结构模板。 | 模板引用。 |
-| `fields` | no | `object` |  | branch-local 扩展字段（pure UI hint，不影响访问）。 |
+| `name` | yes | `string` | `^[a-z][a-z0-9_]{0,63}$`；同一 Flow 内唯一。 | Track 稳定名。 |
+| `is_primary` | no | `boolean` | 同一 Flow 至多一个 track 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
+| `profile` | no | `string` | 由 Space schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | track 交互 profile（pure UI hint）。 |
+| `template` | no | `string` | track profile 可声明结构模板。 | 模板引用。 |
+| `fields` | no | `object` |  | track-local 扩展字段（pure UI hint，不影响访问）。 |
 
-#### 6.1.1 Discussion 独立 Space（替代 branch_scoped）
+#### 6.1.1 Discussion 独立 Space（替代 track_scoped）
 
-需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，**不再**通过 branch hybrid 表达，而是创建一个 child Space 并通过 Flow.discussion_space_ref 引用：
+需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，**不再**通过 track hybrid 表达，而是创建一个 child Space 并通过 Flow.discussion_space_ref 引用：
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -265,17 +265,17 @@ Schema id: `cx.schema.flow.v1`
 规则：
 
 - 未设置 `discussion_space_ref` 时，discussion 时间线事件直接写在 Flow 所属 Space，访问规则完全等于父 Space。
-- 设置 `discussion_space_ref` 时，所有 discussion-side `cx.message.*` / `cx.reaction.*` / branch membership 写入 MUST 使用该 child Space 的 `space_id`；Flow synthesis 和 discussion 是两个独立 reducer 视图，不共享 cell。
-- 同一 Flow MUST NOT 同时存在 branch hybrid（不存在）+ child Space 引用——hybrid 已废弃，只有 child Space 一种方式。
+- 设置 `discussion_space_ref` 时，所有 discussion-side `cx.message.*` / `cx.reaction.*` / track membership 写入 MUST 使用该 child Space 的 `space_id`；Flow synthesis 和 discussion 是两个独立 reducer 视图，不共享 cell。
+- 同一 Flow MUST NOT 同时存在 track hybrid（不存在）+ child Space 引用——hybrid 已废弃，只有 child Space 一种方式。
 - Flow 的 parent Space 与 `discussion_space_ref` Space 之间的关系建议用 `cx.space.parent` / `cx.space.child` 或独立的 governance 关系表达；reducer 不强制 hierarchy，授权仍按各自 Space policy 独立判断。
 
-Primary branch 解析规则：
+Primary track 解析规则：
 
-1. 若恰好一个 branch 设置 `is_primary=true`，它是 primary。
+1. 若恰好一个 track 设置 `is_primary=true`，它是 primary。
 2. 若没有显式 primary 且存在 `name="synthesis"`，`synthesis` 是 primary。
-3. 若没有显式 primary 且只有一个 branch，该唯一 branch 是 primary。
-4. 若没有显式 primary，且 profile 声明了可验证默认 branch，使用该默认 branch。
-5. 仍无法唯一确定时，Reducer MUST fail closed，要求写入 `cx.flow.branch.set_primary` 或等价修复事件。
+3. 若没有显式 primary 且只有一个 track，该唯一 track 是 primary。
+4. 若没有显式 primary，且 profile 声明了可验证默认 track，使用该默认 track。
+5. 仍无法唯一确定时，Reducer MUST fail closed，要求写入 `cx.flow.track.set_primary` 或等价修复事件。
 
 ### 6.2 Place（看板 / 列 / 泳道 / Calendar Bucket / …）
 
@@ -297,7 +297,7 @@ Schema id: `cx.schema.message.v1`
 | `id` | yes | `id:message` | 以 `cx:message:` 开头。 | Message ID。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
-| `branch` | yes | `string` | 必须匹配 `^[a-z][a-z0-9_]{0,63}$`，并且必须是目标 Flow 当前 active 的 branch name。v1 reducer 默认只识别 `discussion`；profile 可声明额外 branch name 承载 Message timeline，但 v1 wire 互操作 SHOULD 使用 `discussion`。 | 所属 Flow 分支。 |
+| `track` | yes | `string` | 必须匹配 `^[a-z][a-z0-9_]{0,63}$`，并且必须是目标 Flow 当前 active 的 track name。v1 reducer 默认只识别 `discussion`；profile 可声明额外 track name 承载 Message timeline，但 v1 wire 互操作 SHOULD 使用 `discussion`。 | 所属 Flow 轨道。 |
 | `content` | conditional | `object` | 富文本/blocks 见 `content-types.md`；未加密且未 redacted 时必填。 | 消息正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
 | `fields` | no | `object` | 可放 revision、visibility、client metadata。 | 扩展字段。 |
@@ -439,7 +439,7 @@ Event Envelope 是 kind-routed payload 兼容层。v1 的协议状态收敛以 M
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
 
-Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 不再从 envelope 推导 state slot；Move effect 必须显式给出 cell id 与 lattice op。`payload.type` 不得重复写入 `cx.*` Event kind。Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 Move refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow branch scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 不再从 envelope 推导 state slot；Move effect 必须显式给出 cell id 与 lattice op。`payload.type` 不得重复写入 `cx.*` Event kind。Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。`actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 Move refs 校验。启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：`cx.space.create.payload.object.created_by_principal` MUST 等于顶层 `actor_id`，`cx.flow.create` / `cx.morph.create` / `cx.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller，且 `payload.object.created_at` MUST 等于顶层 `created_at`。校验失败 MUST `schema_violation` 或 `capability_denied`，不得把 payload 中的创建者字段当作 proof、capability 或审计归属的替代来源。
 
@@ -643,7 +643,7 @@ patch path 规则：
 
 - path 由 `snake_case` 标识符或反引号转义字段名组成；
 - 默认仅支持对象路径，不支持数字数组下标；
-- 对 schema 声明了唯一 key 的具名集合数组，path MAY 使用确定性 selector 段：`branches[name=discussion].access.membership`。selector 字段必须是该数组项 schema 中声明唯一的 stable key，selector 值按 canonical JSON string 解析；匹配 0 项时 `set`/`add` MUST reject，匹配多项表示对象已违反 schema，reducer MUST fail closed；
+- 对 schema 声明了唯一 key 的具名集合数组，path MAY 使用确定性 selector 段：`tracks[name=discussion].access.membership`。selector 字段必须是该数组项 schema 中声明唯一的 stable key，selector 值按 canonical JSON string 解析；匹配 0 项时 `set`/`add` MUST reject，匹配多项表示对象已违反 schema，reducer MUST fail closed；
 - `unset` 不允许带 `value`；
 - `set`、`add`、`remove` 必须带 `value`。
 

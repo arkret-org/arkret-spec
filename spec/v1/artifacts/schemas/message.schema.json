@@ -8,7 +8,7 @@
     "schema",
     "space_id",
     "flow_id",
-    "branch",
+    "track",
     "created_by",
     "created_at"
   ],
@@ -88,10 +88,10 @@
       "type": "string",
       "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
     },
-    "branch": {
+    "track": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Active branch name on the target Flow. v1 reducers only recognise 'discussion' for Message timeline; profiles MAY declare additional branch names carrying Message timelines but v1 interop SHOULD use 'discussion'."
+      "description": "Active track name on the target Flow. v1 reducers only recognise 'discussion' for Message timeline; profiles MAY declare additional track names carrying Message timelines but v1 interop SHOULD use 'discussion'."
     },
     "content": {
       "$ref": "#/$defs/content_block"

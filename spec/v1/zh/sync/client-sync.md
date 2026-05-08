@@ -345,7 +345,7 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 ### 15.1 `decryption_pending` timeout and recovery
 
-客户端首次把某事件标记为 `decryption_pending` 时 MUST 记录 `first_pending_at`、缺失的 `(space_id, flow_id?, branch?, group_id, epoch)`、已尝试的恢复 source 和最近一次错误。默认 `decryption_pending_timeout` 为 7 天；Space policy 或实现 profile MAY 声明更短值，高保障 profile SHOULD 更短，但不得无限期保持无诊断 pending。
+客户端首次把某事件标记为 `decryption_pending` 时 MUST 记录 `first_pending_at`、缺失的 `(space_id, flow_id?, track?, group_id, epoch)`、已尝试的恢复 source 和最近一次错误。默认 `decryption_pending_timeout` 为 7 天；Space policy 或实现 profile MAY 声明更短值，高保障 profile SHOULD 更短，但不得无限期保持无诊断 pending。
 
 在 timeout 前，客户端 SHOULD 按以下顺序恢复：
 

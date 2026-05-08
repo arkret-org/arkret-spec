@@ -99,7 +99,7 @@ DID Document SHOULD 只负责：
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Events/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_service`：Applet Server + Event writer + Authz precheck，只在授权 namespace 和 capability 内工作。
-- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Flow discussion branch。
+- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Flow discussion track。
 - `agent_runtime`：Agent Runtime + Event writer，所有写入仍通过 principal / agent DID 签名。
 
 客户端选择服务时 MUST 先解析 DID Document 与 Space policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
@@ -426,7 +426,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 
 若客户端、SDK 或可选受托服务对外暴露可互操作查询语义，SHOULD 复用 `query-schema.md` 中的 Query 形状：
 
-- `object_types`：标准对象类型，例如 `space`、`place`、`flow`、`message`、`morph`（Place 通过 `place.kind` 区分 board/list/...；Flow 默认入口通过 branch primary 解析规则得到）
+- `object_types`：标准对象类型，例如 `space`、`place`、`flow`、`message`、`morph`（Place 通过 `place.kind` 区分 board/list/...；Flow 默认入口通过 track primary 解析规则得到）
 - `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
 - `facets`：schema-declared capability hint 选择器，只用于 Morph 或声明支持 facets 的标准对象；不得作为授权、状态机、排序或 reducer 语义的唯一来源
 - `relation`
@@ -441,7 +441,7 @@ barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不�
 
 ### 6.2 Flow Discussion / Context Projection
 
-Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` branch 都必须按所属 Space 执行 membership / history visibility 检查：未设 `Flow.discussion_space_ref` 时按父 Space；设了时按 child Space 独立裁剪。不得因为 Flow synthesis 可见就展开未授权的 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Space 对象权限。
+Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` track 都必须按所属 Space 执行 membership / history visibility 检查：未设 `Flow.discussion_space_ref` 时按父 Space；设了时按 child Space 独立裁剪。不得因为 Flow synthesis 可见就展开未授权的 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Space 对象权限。
 
 ### 6.3 Inbox / Notification Projection
 

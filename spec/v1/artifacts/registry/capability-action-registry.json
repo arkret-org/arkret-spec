@@ -204,61 +204,61 @@
       "profile": null
     },
     {
-      "action": "cx.flow.branch.enable",
+      "action": "cx.flow.track.enable",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.branch.enable"
+        "cx.flow.track.enable"
       ],
       "profile": null
     },
     {
-      "action": "cx.flow.branch.disable",
+      "action": "cx.flow.track.disable",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.branch.disable"
+        "cx.flow.track.disable"
       ],
       "profile": null
     },
     {
-      "action": "cx.flow.branch.update",
+      "action": "cx.flow.track.update",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.branch.update"
+        "cx.flow.track.update"
       ],
       "profile": null
     },
     {
-      "action": "cx.flow.branch.set_primary",
+      "action": "cx.flow.track.set_primary",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.branch.set_primary"
+        "cx.flow.track.set_primary"
       ],
       "profile": null
     },
     {
-      "action": "cx.flow.branch.read",
+      "action": "cx.flow.track.read",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [
-        "allowed_branches"
+        "allowed_tracks"
       ],
       "target_event_kinds": [],
       "profile": null
     },
     {
-      "action": "cx.flow.branch.admin",
+      "action": "cx.flow.track.admin",
       "category": "discussion",
       "risk_tier": "high",
       "required_constraints": [
-        "allowed_branches"
+        "allowed_tracks"
       ],
       "target_event_kinds": [],
       "profile": null

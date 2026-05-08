@@ -116,10 +116,10 @@
       "description": "A required dependency is missing and may be recoverable via backfill or retry."
     },
     {
-      "code": "discussion_branch_disabled",
+      "code": "discussion_track_disabled",
       "http_status": 409,
       "scope": "both",
-      "description": "The target Flow discussion branch is disabled."
+      "description": "The target Flow discussion track is disabled."
     },
     {
       "code": "epoch_mismatch",
@@ -291,11 +291,11 @@
       "description": "Event was rejected because the active capability constraint requires approval evidence (per zh/authz/capabilities.md §6 / §8) and none was supplied."
     },
     {
-      "code": "no_flow_branch_message_grant",
+      "code": "no_flow_track_message_grant",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "No active capability grant authorises cx.message.create on the targeted Flow branch for the actor."
+      "description": "No active capability grant authorises cx.message.create on the targeted Flow track for the actor."
     },
     {
       "code": "grant_revoked_before_event_frontier",

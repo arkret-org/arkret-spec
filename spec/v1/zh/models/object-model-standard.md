@@ -11,14 +11,14 @@ title: Standard Object Types
 原则：
 
 - 标准类型提供主语义。
-- `flow` 是统一协作主对象，承载协作议题、任务、正式表达与讨论分支。
+- `flow` 是统一协作主对象，承载协作议题、任务、正式表达与讨论轨道。
 - `morph` 提供开放扩展。
 - `facets` 是由 Space schema / Morph profile 声明的能力提示和查询标签，不替代对象类型，也不单独定义授权、状态机、排序或 reducer 语义。
 - View 只定义如何投影对象；它拥有自己的定义状态，但不发明对象能力，也不持有被投影对象的协作事实。
 
 ## 2. Flow
 
-`flow` 表示 Space 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。Flow 不再定义额外的顶层模式或分类字段；默认入口由 branch primary 解析规则决定，业务语义由 Space schema、profile、`fields`、Relation 或 Morph 扩展表达。
+`flow` 表示 Space 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。Flow 不再定义额外的顶层模式或分类字段；默认入口由 track primary 解析规则决定，业务语义由 Space schema、profile、`fields`、Relation 或 Morph 扩展表达。
 
 Flow 适合：
 
@@ -38,18 +38,18 @@ Flow 适合：
 - `summary`
 - `body`
 - `fields`
-- `branches`
+- `tracks`
 - `state`
 
-### 2.1 `branches`
+### 2.1 `tracks`
 
-`branches` 是 Flow 的 branch 定义数组。每个元素至少包含 `name`；`is_primary=true` 是可选显式 primary 标记。
+`tracks` 是 Flow 的 track 定义数组。每个元素至少包含 `name`；`is_primary=true` 是可选显式 primary 标记。
 
 示例：
 
 ```json
 {
-  "branches": [
+  "tracks": [
     {
       "name": "synthesis",
       "is_primary": true
@@ -70,19 +70,19 @@ Flow 适合：
 
 规则：
 
-- 每个 Flow MUST 至少有一个 active branch。
-- `branches[].name` 在同一个 Flow 内 MUST 唯一。`synthesis` 与 `discussion` 是 v1 标准 branch 名；profile MAY 声明更多 branch 名。
-- 同一个 Flow 中至多一个 branch MAY 设置 `is_primary=true`。多个显式 primary MUST 被 schema / reducer 拒绝。
-- 若没有 branch 显式设置 `is_primary=true`，Reducer MUST 按确定性规则派生 primary：若存在 `name="synthesis"`，选择 `synthesis`；否则若只有一个 branch，选择该 branch；否则若 profile 声明了默认 branch 且该 branch 存在，选择该 branch；仍无法唯一确定时 MUST fail closed，要求写入 `cx.flow.branch.set_primary` 或等价修复事件。
+- 每个 Flow MUST 至少有一个 active track。
+- `tracks[].name` 在同一个 Flow 内 MUST 唯一。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明更多 track 名。
+- 同一个 Flow 中至多一个 track MAY 设置 `is_primary=true`。多个显式 primary MUST 被 schema / reducer 拒绝。
+- 若没有 track 显式设置 `is_primary=true`，Reducer MUST 按确定性规则派生 primary：若存在 `name="synthesis"`，选择 `synthesis`；否则若只有一个 track，选择该 track；否则若 profile 声明了默认 track 且该 track 存在，选择该 track；仍无法唯一确定时 MUST fail closed，要求写入 `cx.flow.track.set_primary` 或等价修复事件。
 - `is_primary=false` 与省略 `is_primary` 等价；它不是阻止默认派生的 veto。
 - resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，不授予读取、写入或管理权限。
-- branch 存在即表示 active；禁用 branch 应通过 `cx.flow.branch.disable` 从 active branch 集合移除或标记为 profile 声明的 archived state，不得留下可写入的 disabled 分支。
-- View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Space schema/profile、branch config 和可见字段；不得要求 Flow 额外声明模式字段。
+- track 存在即表示 active；禁用 track 应通过 `cx.flow.track.disable` 从 active track 集合移除或标记为 profile 声明的 archived state，不得留下可写入的 disabled track。
+- View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Space schema/profile、track config 和可见字段；不得要求 Flow 额外声明模式字段。
 - 业务语义过滤 SHOULD 使用 Space schema/profile、`fields`、Relation、labels 或 Morph profile；不得通过 Flow 顶层分类字段形成核心协议语义。
 
-### 2.2 `synthesis` branch
+### 2.2 `synthesis` track
 
-`synthesis` branch 承载 Flow 的整理后正式表达。它不是“摘要专栏”，而是 Flow 当前可被编辑、被引用、被推进的主数据面。
+`synthesis` track 承载 Flow 的整理后正式表达。它不是“摘要专栏”，而是 Flow 当前可被编辑、被引用、被推进的主数据面。
 
 适合放入：
 
@@ -97,13 +97,13 @@ Flow 适合：
 
 `body` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `fields`，不要把可归约状态只藏在富文本正文中。
 
-### 2.3 `discussion` branch
+### 2.3 `discussion` track
 
-`discussion` branch 承载会话能力，而不是独立对象。它包含：
+`discussion` track 承载会话能力，而不是独立对象。它包含：
 
 - Message timeline
 - timeline / notification profile
-- 讨论相关 branch-local UI hint fields
+- 讨论相关 track-local UI hint fields
 
 推荐字段：
 
@@ -121,16 +121,16 @@ Flow 适合：
 
 规则：
 
-- `profile` 是 discussion branch 的 UI / 语义 hint，不是自动授权后门。
+- `profile` 是 discussion track 的 UI / 语义 hint，不是自动授权后门。
 - `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `profile` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
-- Branch 不携带独立 access：membership、permission、history visibility 与 E2EE 完全继承父 Space。需要让 discussion 拥有独立访问域时，必须升级到 child Space 并通过 `Flow.discussion_space_ref` 引用（详见 [`data-structures.md`](./data-structures.md) §6.1.1）。
-- `discussion` branch membership 不从 `assigned_to`、`watchers` 或其他 Flow relation 隐式派生；若实现需要此类映射，必须在父 Space（或 `discussion_space_ref` Space）的 capability / policy 中可审计地声明。
-- 当 `discussion` branch 不存在或不处于 active 状态时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_branch_disabled` 或等价 fail-closed 结果。
+- Track 不携带独立 access：membership、permission、history visibility 与 E2EE 完全继承父 Space。需要让 discussion 拥有独立访问域时，必须升级到 child Space 并通过 `Flow.discussion_space_ref` 引用（详见 [`data-structures.md`](./data-structures.md) §6.1.1）。
+- `discussion` track membership 不从 `assigned_to`、`watchers` 或其他 Flow relation 隐式派生；若实现需要此类映射，必须在父 Space（或 `discussion_space_ref` Space）的 capability / policy 中可审计地声明。
+- 当 `discussion` track 不存在或不处于 active 状态时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_track_disabled` 或等价 fail-closed 结果。
 
-### 2.4 Branch 与 Access 模型
+### 2.4 Track 与 Access 模型
 
-`branches[]` **只**表达 branch 是否存在、哪个 branch 是默认入口、以及 branch 的 UI / 时间线 profile。它不携带 access、membership、history visibility 或 E2EE 字段——早期 v1 草案曾允许 `branches[].access` 子对象表达 `branch_scoped` 的 hybrid 模型，该机制已被移除。
+`tracks[]` **只**表达 track 是否存在、哪个 track 是默认入口、以及 track 的 UI / 时间线 profile。它不携带 access、membership、history visibility 或 E2EE 字段——早期 v1 草案曾允许 `tracks[].access` 子对象表达 `track_scoped` 的 hybrid 模型，该机制已被移除。
 
 Access 模型现在只有两种形态：
 
@@ -141,7 +141,7 @@ Access 模型现在只有两种形态：
 
 ```json
 {
-  "branches": [
+  "tracks": [
     { "name": "synthesis", "is_primary": true },
     { "name": "discussion", "profile": "review" }
   ],
@@ -151,19 +151,19 @@ Access 模型现在只有两种形态：
 
 规则：
 
-- `synthesis` branch 字段级限制使用 capability constraints；不为 `synthesis` 单独创建成员表或 access 域。
+- `synthesis` track 字段级限制使用 capability constraints；不为 `synthesis` 单独创建成员表或 access 域。
 - `discussion_space_ref` 的生命周期由独立 `cx.space.*` event 管理；Flow 不能通过修改自身字段间接 reinit / archive child Space。
 
 ### 2.5 转换
 
-`cx.flow.branch.set_primary` 在同一个 Flow 内把目标 `branch` 标记为唯一 primary；目标 branch 在该事件生效前 MUST 已启用，或与同一批次中的 `cx.flow.branch.enable` 一起生效。
+`cx.flow.track.set_primary` 在同一个 Flow 内把目标 `track` 标记为唯一 primary；目标 track 在该事件生效前 MUST 已启用，或与同一批次中的 `cx.flow.track.enable` 一起生效。
 
 规则：
 
 - 转换不改变 `flow_id`。
 - 转换不复制或迁移消息历史。
-- 切换到 `branch="discussion"` 时，若 `discussion` branch 尚不存在，必须先写入 `cx.flow.branch.enable`；单独的 `set_primary` MUST fail closed / reject，不得隐式创建 branch。
-- 切换到其他 branch 时，不得自动删除 `discussion` branch 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.branch.disable` 或 profile 声明的 archive 语义。
+- 切换到 `track="discussion"` 时，若 `discussion` track 尚不存在，必须先写入 `cx.flow.track.enable`；单独的 `set_primary` MUST fail closed / reject，不得隐式创建 track。
+- 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.track.disable` 或 profile 声明的 archive 语义。
 - 转换不自动移除 Board Place/List Place 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
 
 ### 2.6 常见关系
@@ -213,12 +213,12 @@ List Place 是 `Place` 的列/泳道形态，ID 使用 `cx:place:` 格式（`kin
 
 ## 5. Message
 
-`message` 表示 Flow `discussion` branch 时间线中的原子消息。
+`message` 表示 Flow `discussion` track 时间线中的原子消息。
 
 推荐字段：
 
 - `flow_id`
-- `branch`
+- `track`
 - `content`
 - `attachments`
 - `revision_root`
@@ -253,7 +253,7 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
         "schema": "cx.schema.flow.v1",
         "space_id": "cx:space:01js0sp0000000000000000000",
         "title": "项目同步",
-        "branches": [
+        "tracks": [
           { "name": "discussion", "is_primary": true }
         ],
         "created_by": "did:web:alice.example",
@@ -262,18 +262,18 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
     }
   },
   {
-    "kind": "cx.flow.branch.enable",
+    "kind": "cx.flow.track.enable",
     "target_ref": "cx:flow:01js0fk0000000000000000000",
     "payload": {
       "flow_id": "cx:flow:01js0fk0000000000000000000",
-      "branch": "discussion"
+      "track": "discussion"
     }
   },
   {
     "kind": "cx.message.create",
     "payload": {
       "flow_id": "cx:flow:01js0fk0000000000000000000",
-      "branch": "discussion",
+      "track": "discussion",
       "content": {
         "type": "cx.content.text",
         "body": "@bob 请确认这个 flow 的 legal 风险。",
@@ -383,7 +383,7 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 
 ## 10. 规范性引用
 
-- Flow / Message / branch 规则见 §5.1-§5.3 与 `object-model-core.md` §6-§9。
+- Flow / Message / track 规则见 §5.1-§5.3 与 `object-model-core.md` §6-§9。
 - Flow / Space / Message 的核心字段见 `data-structures.md`。
 - View 投影规则见 `views.md`。
 - 授权规则见 `../authz/capabilities.md` 与 `../authz/event-auth-state-resolution.md`。

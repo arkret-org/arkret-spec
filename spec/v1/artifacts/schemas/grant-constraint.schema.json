@@ -369,7 +369,7 @@
       },
       "uniqueItems": true
     },
-    "allowed_branches": {
+    "allowed_tracks": {
       "type": "array",
       "items": {
         "type": "string",
@@ -377,7 +377,7 @@
       },
       "uniqueItems": true
     },
-    "denied_branches": {
+    "denied_tracks": {
       "type": "array",
       "items": {
         "type": "string",

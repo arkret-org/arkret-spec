@@ -267,29 +267,29 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.branch.enable" } },
+        "properties": { "kind": { "const": "cx.flow.track.enable" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_branch_enable_payload" } }
+        "properties": { "payload": { "$ref": "#/$defs/flow_track_enable_payload" } }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.branch.disable" } },
+        "properties": { "kind": { "const": "cx.flow.track.disable" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_branch_disable_payload" } }
+        "properties": { "payload": { "$ref": "#/$defs/flow_track_disable_payload" } }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.branch.set_primary" } },
+        "properties": { "kind": { "const": "cx.flow.track.set_primary" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_branch_set_primary_payload" } }
+        "properties": { "payload": { "$ref": "#/$defs/flow_track_set_primary_payload" } }
       }
     },
     {
@@ -344,7 +344,7 @@
             "enum": [
               "cx.space.update",
               "cx.flow.update",
-              "cx.flow.branch.update",
+              "cx.flow.track.update",
               "cx.morph.update",
               "cx.profile.update",
               "cx.profile.space_override"
@@ -1007,7 +1007,7 @@
       "type": "string",
       "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
     },
-    "branch_name": {
+    "track_name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$"
     },
@@ -1257,15 +1257,15 @@
       },
       "additionalProperties": false
     },
-    "flow_branch_enable_payload": {
+    "flow_track_enable_payload": {
       "type": "object",
       "required": [
         "flow_id",
-        "branch"
+        "track"
       ],
       "properties": {
         "flow_id": { "$ref": "#/$defs/flow_id" },
-        "branch": { "$ref": "#/$defs/branch_name" },
+        "track": { "$ref": "#/$defs/track_name" },
         "config": {
           "type": "object",
           "additionalProperties": true
@@ -1273,29 +1273,29 @@
       },
       "additionalProperties": false
     },
-    "flow_branch_disable_payload": {
+    "flow_track_disable_payload": {
       "type": "object",
       "required": [
         "flow_id",
-        "branch"
+        "track"
       ],
       "properties": {
         "flow_id": { "$ref": "#/$defs/flow_id" },
-        "branch": { "$ref": "#/$defs/branch_name" },
+        "track": { "$ref": "#/$defs/track_name" },
         "reason": { "type": "string" },
         "effective_at": { "$ref": "#/$defs/timestamp" }
       },
       "additionalProperties": false
     },
-    "flow_branch_set_primary_payload": {
+    "flow_track_set_primary_payload": {
       "type": "object",
       "required": [
         "flow_id",
-        "branch"
+        "track"
       ],
       "properties": {
         "flow_id": { "$ref": "#/$defs/flow_id" },
-        "branch": { "$ref": "#/$defs/branch_name" }
+        "track": { "$ref": "#/$defs/track_name" }
       },
       "additionalProperties": false
     }

@@ -28,10 +28,10 @@
       "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$",
       "description": "Required when receipt scopes to a Flow timeline (the common case). Omitted only for whole-Space receipt forms when explicitly allowed by Space policy."
     },
-    "branch": {
+    "track": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Active branch on the target Flow. Defaults to 'discussion' when omitted. Threads / synthesis branches MUST set explicitly."
+      "description": "Active track on the target Flow. Defaults to 'discussion' when omitted. Threads / synthesis tracks MUST set explicitly."
     },
     "actor_id": {
       "type": "string",

@@ -473,36 +473,36 @@
       "payload": "Flow restore"
     },
     {
-      "event_kind": "cx.flow.branch.enable",
+      "event_kind": "cx.flow.track.enable",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Enable Flow branch"
+      "payload": "Enable Flow track"
     },
     {
-      "event_kind": "cx.flow.branch.disable",
+      "event_kind": "cx.flow.track.disable",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Disable Flow branch"
+      "payload": "Disable Flow track"
     },
     {
-      "event_kind": "cx.flow.branch.update",
+      "event_kind": "cx.flow.track.update",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow branch patch"
+      "payload": "Flow track patch"
     },
     {
-      "event_kind": "cx.flow.branch.set_primary",
+      "event_kind": "cx.flow.track.set_primary",
       "category": "flow",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Set Flow primary branch"
+      "payload": "Set Flow primary track"
     },
     {
       "event_kind": "cx.flow.move",

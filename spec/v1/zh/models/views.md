@@ -64,7 +64,7 @@ View 查询 SHOULD 优先使用标准对象类型：
 
 Board Place / List Place 作为容器由 `place.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
 
-### 2.5 权限必须逐对象、按有效 branch access 裁剪
+### 2.5 权限必须逐对象、按有效 track access 裁剪
 
 View 展示 Flow 讨论时，必须分别执行授权裁剪：
 
@@ -81,8 +81,8 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 | Flow 拖到另一个 List | `cx.flow.move` |
 | Flow 在同一 List 内排序 | `cx.flow.reorder` |
 | 修改 Flow 标题、状态、负责人、截止时间 | `cx.flow.update` |
-| 切换 Flow 默认 branch | `cx.flow.branch.set_primary` |
-| 开启/关闭 discussion branch | `cx.flow.branch.enable` / `cx.flow.branch.disable` |
+| 切换 Flow 默认 track | `cx.flow.track.set_primary` |
+| 开启/关闭 discussion track | `cx.flow.track.enable` / `cx.flow.track.disable` |
 | 修改 Board Place / List Place 元数据 | `cx.place.update` |
 | 发送、编辑、撤回 discussion 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
 | 改变共享 View filter / sort / group / columns / layout | `cx.view.update` |
@@ -198,7 +198,7 @@ View 应通过结构化 query 表达对象范围。
   "filters": [
     { "field": "fields.visible_state", "op": "eq", "value": "active" },
     { "field": "flow_id", "op": "eq", "value": "cx:flow:01js1000000000000000000000" },
-    { "field": "branch", "op": "eq", "value": "discussion" }
+    { "field": "track", "op": "eq", "value": "discussion" }
   ],
   "order_by": [
     { "field": "created_at", "direction": "asc" }
@@ -237,7 +237,7 @@ Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开未被有效 a
 | 卡片 | `flow` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=flow_id}` | 表示 List 与 Flow 的 canonical 包含关系。 |
 | 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系。 |
-| 讨论入口 | `branches[]` 中 `name="discussion"` 的 branch | 讨论能力属于同一个 Flow；access 完全继承父 Space，独立访问域通过 `Flow.discussion_space_ref` 升级到 child Space。 |
+| 讨论入口 | `tracks[]` 中 `name="discussion"` 的 track | 讨论能力属于同一个 Flow；access 完全继承父 Space，独立访问域通过 `Flow.discussion_space_ref` 升级到 child Space。 |
 
 ### 6.2 Board 不显示全 Space 数据
 
@@ -246,7 +246,7 @@ Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按
 1. 根据 View query 找到目标 Board。
 2. 查询 `board --contains--> list` 得到列集合。
 3. 查询 `list --contains--> flow` 得到候选 Flow。
-4. 按 actor 的 Space membership、capability 和有效 branch access 裁剪不可见对象和字段。
+4. 按 actor 的 Space membership、capability 和有效 track access 裁剪不可见对象和字段。
 5. 按 List/Flow rank 和稳定 tie-break 排序。
 
 ### 6.3 Board Projection Response
@@ -288,7 +288,7 @@ Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按
 
 ## 7. Timeline / Chat Projection
 
-Discussion chat projection 以 `flow_id + branch=discussion` 为时间线根，主要返回 Message。
+Discussion chat projection 以 `flow_id + track=discussion` 为时间线根，主要返回 Message。
 
 Flow context timeline 可以混合：
 

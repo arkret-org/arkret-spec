@@ -72,10 +72,10 @@
       "type": "string",
       "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$"
     },
-    "branch": {
+    "track": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Active branch name on the target Flow. Mirrors message.schema.json#/properties/branch. v1 reducers only recognise 'discussion' for Message timeline; profiles MAY declare additional branch names but v1 interop SHOULD use 'discussion'."
+      "description": "Active track name on the target Flow. Mirrors message.schema.json#/properties/track. v1 reducers only recognise 'discussion' for Message timeline; profiles MAY declare additional track names but v1 interop SHOULD use 'discussion'."
     },
     "content_type": {
       "type": "string",
@@ -190,7 +190,7 @@
     },
     "patch_path": {
       "type": "string",
-      "description": "Contrix field patch path. Segments are snake_case identifiers, optional stable-key selectors such as branches[name=discussion], or backtick-quoted literals; numeric array indexes are not part of cx.patch.v1.",
+      "description": "Contrix field patch path. Segments are snake_case identifiers, optional stable-key selectors such as tracks[name=discussion], or backtick-quoted literals; numeric array indexes are not part of cx.patch.v1.",
       "pattern": "^(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`)(?:\\.(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`))*$"
     },
     "patch_operation": {
@@ -808,7 +808,7 @@
       "type": "object",
       "required": [
         "flow_id",
-        "branch"
+        "track"
       ],
       "oneOf": [
         {
@@ -839,8 +839,8 @@
         "message_id": {
           "$ref": "#/$defs/message_id"
         },
-        "branch": {
-          "$ref": "#/$defs/branch"
+        "track": {
+          "$ref": "#/$defs/track"
         },
         "content": {
           "$ref": "#/$defs/content_block"
@@ -917,9 +917,9 @@
         "revision_of": {
           "$ref": "#/$defs/message_id"
         },
-        "branch": {
-          "$ref": "#/$defs/branch",
-          "description": "Active branch of the target Flow. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id / target_ref / revision_of. When present, MUST equal that resolved branch."
+        "track": {
+          "$ref": "#/$defs/track",
+          "description": "Active track of the target Flow. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id / target_ref / revision_of. When present, MUST equal that resolved track."
         },
         "content": {
           "$ref": "#/$defs/content_block"
@@ -962,9 +962,9 @@
         "event_id": {
           "$ref": "#/$defs/event_ref"
         },
-        "branch": {
-          "$ref": "#/$defs/branch",
-          "description": "Active branch of the redacted message's parent Flow. Optional: when omitted, reducers MUST resolve from the existing message. When present, MUST equal that resolved branch."
+        "track": {
+          "$ref": "#/$defs/track",
+          "description": "Active track of the redacted message's parent Flow. Optional: when omitted, reducers MUST resolve from the existing message. When present, MUST equal that resolved track."
         },
         "reason": {
           "type": "string"
@@ -2048,7 +2048,7 @@
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "branch": {
+        "track": {
           "enum": [
             "discussion",
             "synthesis"

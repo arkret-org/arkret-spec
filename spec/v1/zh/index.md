@@ -80,16 +80,16 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 - 所有持久协作修改必须是 signed Event。
 - 所有共享状态由授权 Event 集合 reducer 收敛后生成。
 - Space 是权限、成员、schema、policy 的边界。
-- Flow 为统一协作对象，默认入口由 branch primary 解析规则表达，同一 `flow_id` 下可切换默认 branch。
+- Flow 为统一协作对象，默认入口由 track primary 解析规则表达，同一 `flow_id` 下可切换默认 track。
 - Morph 是扩展载体，不单独定义核心能力和排序语义。
 - `notification` 是投影用途，不是 canonical truth。
 
 ### 4.3 看板与会话
 
 - 看板定义：`Board Place -> List Place -> Flow`。
-- 会话定义：`Flow(discussion branch) -> Message`。
-- `cx.flow.branch.set_primary` 仅切换默认 branch，不复制对象、不迁移历史。
-- Branch 不携带独立 access；discussion 完全继承父 Space。需要独立成员、历史或 E2EE 边界时，必须升级为 child Space 并通过 `Flow.discussion_space_ref` 引用。
+- 会话定义：`Flow(discussion track) -> Message`。
+- `cx.flow.track.set_primary` 仅切换默认 track，不复制对象、不迁移历史。
+- Track 不携带独立 access；discussion 完全继承父 Space。需要独立成员、历史或 E2EE 边界时，必须升级为 child Space 并通过 `Flow.discussion_space_ref` 引用。
 
 ### 4.4 同步与真相模型
 

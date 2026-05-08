@@ -28,14 +28,14 @@ title: 术语表
 | Place | 结构性分组对象 | Space 内部的结构容器（看板、列、泳道、calendar bucket、page group 等），ID 形如 `cx:place:`。永远没有自己的 membership / policy / E2EE group / federation policy，授权透明回退到所属 Space。 |
 | Place Hierarchy | Place 层级 | Place 之间通过 `parent_ref` + `cx.place.parent` 表达父子关系；嵌套不得跨 Space。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
-| Flow | 协作主对象 | Space 内承载协作议题、任务、正式表达与讨论分支的标准对象。 |
-| Flow primary branch | Flow 默认入口 | 按 branch primary 解析规则得到的默认 branch；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
-| Room | 讨论分支视图 | Flow 的 discussion branch 或以 discussion 为默认入口的会话视图简称。 |
-| synthesis branch | 正式表达分支 | Flow 的"synthesis"分支，承载正式状态、结构化字段与决策正文。 |
-| discussion branch | 讨论分支 | Flow 的"discussion"分支，承载消息与讨论时间线；成员、历史可见性和 E2EE 完全继承父 Space，需要独立访问域时通过 `Flow.discussion_space_ref` 升级到 child Space。 |
+| Flow | 协作主对象 | Space 内承载协作议题、任务、正式表达与讨论轨道的标准对象。 |
+| Flow primary track | Flow 默认入口 | 按 track primary 解析规则得到的默认 track；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
+| Room | 讨论轨道视图 | Flow 的 discussion track 或以 discussion 为默认入口的会话视图简称。 |
+| synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。 |
+| discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 完全继承父 Space，需要独立访问域时通过 `Flow.discussion_space_ref` 升级到 child Space。 |
 | Board | 看板 | `cx:place: kind=board`，组织一组 List Place 与其他 Place 的工作流容器。 |
 | List | 列 / 泳道 | `cx:place: kind=list`，挂到 Board Place 下、承载 Flow 位置关系的列容器。 |
-| Message | 消息对象 | 发生在 Flow discussion 分支中的即时沟通与补充记录。 |
+| Message | 消息对象 | 发生在 Flow discussion 轨道中的即时沟通与补充记录。 |
 | Morph | 开放对象 | 标准对象扩展框架，承载非固定业务类型的可声明对象。 |
 | Facet | 能力标签 | Morph/Profile 的能力提示（如 container/schedulable/renderable）。 |
 | Relation | 关系边 | 对象间有向关系定义，如 `contains`、`mentions`、`depends_on`。 |

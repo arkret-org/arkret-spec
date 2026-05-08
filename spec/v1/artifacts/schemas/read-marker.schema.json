@@ -55,10 +55,10 @@
           "pattern": "^cx:(space|flow|message|morph|view):[0-9a-hjkmnp-z]{26}$",
           "description": "Required when kind is anything other than 'space'. Identifies the target object whose timeline this marker tracks."
         },
-        "branch": {
+        "track": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Optional active branch when kind references a Flow. 'flow_discussion' / 'flow_synthesis' implicitly fix the branch; explicit branch overrides default."
+          "description": "Optional active track when kind references a Flow. 'flow_discussion' / 'flow_synthesis' implicitly fix the track; explicit track overrides default."
         }
       },
       "additionalProperties": false

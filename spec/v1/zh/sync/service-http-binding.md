@@ -202,7 +202,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.applet.third_party_locations` | `query.protocol: string`; external ids | 无 | `space_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
 | `cx.mimi.provider_directory` | 无 | `query.provider_id: string`; `query.features: string[]` | `providers: object[]`; `features: object`; `expires_at: datetime?` | 只返回公开 provider capability，不泄露 Space membership。 |
 | `cx.mimi.key_material` | `requester: did`; `flow_id: id`; `device_id: id` | `mls_group_id: string`; `epoch: int`; `proofs: proof[]` | `key_packages: object[]?`; `group_info: object?`; `failures: object?` | 必须存在 accepted `cx.mimi.room_binding` 且 requester 有对应 room / device 权限。 |
-| `cx.mimi.room_update` | `path.flow_id: id`; `mls_group_id: string`; `update: object` | `epoch: int`; `transcript_hash: string`; `sender: did` | `accepted: boolean`; `room_state_ref: id?`; `rejected: object[]?` | 更新必须映射到 Contrix Flow discussion branch / Space policy 授权范围内。 |
+| `cx.mimi.room_update` | `path.flow_id: id`; `mls_group_id: string`; `update: object` | `epoch: int`; `transcript_hash: string`; `sender: did` | `accepted: boolean`; `room_state_ref: id?`; `rejected: object[]?` | 更新必须映射到 Contrix Flow discussion track / Space policy 授权范围内。 |
 | `cx.mimi.notify` | `path.flow_id: id`; `notification: object` | `origin_provider: string`; `routing: object` | `accepted: boolean`; `retry_after_ms: int?` | 只可传递最小 fanout / delivery signal，不得携带未授权明文。 |
 | `cx.mimi.submit_message` | `path.flow_id: id`; `sender: did`; `device_id: id`; `ciphertext: object` | `mls_group_id: string`; `epoch: int`; `associated_data: object` | `event_ref: id?`; `delivery: object`; `rejected: object[]?` | 必须校验 MLS epoch、有效 discussion access、capability 和 `cx.mimi.room_binding`。 |
 | `cx.mimi.group_info` | `path.flow_id: id` | `query.epoch: int`; `query.include_proof: boolean` | `group_info: object`; `room_binding_ref: id?`; `proofs: object[]?` | 只能返回 requester 授权可见的 MLS groupInfo / room projection。 |
@@ -439,7 +439,7 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 
 - 客户端收到 `429` MUST 优先遵守 `Retry-After` header；若缺失再使用 body 中的 `retry_after_ms`。`503` 在带有 `Retry-After` 时也必须按该时间退避。收到 `409` SHOULD 拉取最新状态后退避重试。
 - `unsupported_feature` 用于 `Event.requirements.features[]` / `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `cx.*` Event kind；二者不得互相替代。
-- 通用 `conflict` 仅作为抽象 base code 出现在 narrative；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `duplicate_conflict` / `epoch_mismatch` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `discussion_branch_disabled` / `key_unavailable`）。
+- 通用 `conflict` 仅作为抽象 base code 出现在 narrative；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `duplicate_conflict` / `epoch_mismatch` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `discussion_track_disabled` / `key_unavailable`）。
 
 ## 10. 安全与抗滥用
 

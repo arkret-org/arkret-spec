@@ -505,36 +505,36 @@
         "payload": "Flow restore"
       },
       {
-        "event_kind": "cx.flow.branch.enable",
+        "event_kind": "cx.flow.track.enable",
         "category": "flow",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Enable Flow branch"
+        "payload": "Enable Flow track"
       },
       {
-        "event_kind": "cx.flow.branch.disable",
+        "event_kind": "cx.flow.track.disable",
         "category": "flow",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Disable Flow branch"
+        "payload": "Disable Flow track"
       },
       {
-        "event_kind": "cx.flow.branch.update",
+        "event_kind": "cx.flow.track.update",
         "category": "flow",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow branch patch"
+        "payload": "Flow track patch"
       },
       {
-        "event_kind": "cx.flow.branch.set_primary",
+        "event_kind": "cx.flow.track.set_primary",
         "category": "flow",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set Flow primary branch"
+        "payload": "Set Flow primary track"
       },
       {
         "event_kind": "cx.flow.move",
@@ -2522,12 +2522,12 @@
       {"action": "cx.flow.restore", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.restore"], "profile": null},
       {"action": "cx.flow.move", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.move"], "profile": null},
       {"action": "cx.flow.reorder", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.reorder"], "profile": null},
-      {"action": "cx.flow.branch.enable", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.branch.enable"], "profile": null},
-      {"action": "cx.flow.branch.disable", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.branch.disable"], "profile": null},
-      {"action": "cx.flow.branch.update", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.branch.update"], "profile": null},
-      {"action": "cx.flow.branch.set_primary", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.branch.set_primary"], "profile": null},
-      {"action": "cx.flow.branch.read", "category": "discussion", "risk_tier": "low", "required_constraints": ["allowed_branches"], "target_event_kinds": [], "profile": null},
-      {"action": "cx.flow.branch.admin", "category": "discussion", "risk_tier": "high", "required_constraints": ["allowed_branches"], "target_event_kinds": [], "profile": null},
+      {"action": "cx.flow.track.enable", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.track.enable"], "profile": null},
+      {"action": "cx.flow.track.disable", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.track.disable"], "profile": null},
+      {"action": "cx.flow.track.update", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.track.update"], "profile": null},
+      {"action": "cx.flow.track.set_primary", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.track.set_primary"], "profile": null},
+      {"action": "cx.flow.track.read", "category": "discussion", "risk_tier": "low", "required_constraints": ["allowed_tracks"], "target_event_kinds": [], "profile": null},
+      {"action": "cx.flow.track.admin", "category": "discussion", "risk_tier": "high", "required_constraints": ["allowed_tracks"], "target_event_kinds": [], "profile": null},
       {"action": "cx.relation.create", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.relation.create"], "profile": null},
       {"action": "cx.relation.update", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.relation.update"], "profile": null},
       {"action": "cx.relation.delete", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.relation.delete"], "profile": null},
