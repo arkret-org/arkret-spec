@@ -54,8 +54,45 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 ### 2.4 隐私控制
 
-用户可以随时关闭发送已读回执。此配置属于 Client Preference。
-客户端收到他人的 `cx.receipt.read` 时，SHOULD 在 UI 上更新已读头像的小图标位置。
+用户可以随时关闭发送已读回执。此配置属于 Client Preference，按 (flow, space, default) 顺序解析有效偏好；标准 Key 与字段定义见 [`discovery/client-preferences.md`](./client-preferences.md) §3.6。
+
+- 该偏好同步在用户的加密 account data 中，不公开广播。
+- 关闭只影响"是否发送 `cx.receipt.read`"，不影响 §3 私有 Read Marker，也不影响接收他人 receipt 的渲染。
+- 客户端收到他人的 `cx.receipt.read` 时，SHOULD 在 UI 上更新已读头像的小图标位置；接收行为不依赖发送偏好。
+- 当目标 scope 由 §2.5 声明 `disclosure="required"` 或 `disclosure="disabled"` 时，合规客户端 MUST 按该声明覆盖用户偏好（详见 §2.5）。
+
+### 2.5 Space / Flow 披露策略 (Disclosure Policy)
+
+Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 `cx.receipt.read` 的披露要求；Flow 的 discussion branch MAY 通过 `cx.flow.branch.read_receipt_policy` 单独声明，缺省继承 Space。两者 SHOULD 由 `cx.space.policy_components.components.read_receipt` 与 `cx.flow.branch.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
+
+```json
+{
+  "kind": "cx.space.read_receipt_policy",
+  "payload": {
+    "disclosure": "optional",
+    "visibility": "members",
+    "scope_overrides_allowed": true
+  }
+}
+```
+
+字段：
+
+| 字段 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
+| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Space 可见性允许的全部观察者；`members` = 仅 branch 成员；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
+| `scope_overrides_allowed` | `bool` | `true` | 是否允许 Flow branch 的 `cx.flow.branch.read_receipt_policy` 收紧（不放宽）该 Space 声明。 |
+
+规则：
+
+- 该策略是**软声明 / 合规承诺**，不是密码学强制。`cx.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。Space policy MUST NOT 把 `cx.receipt.read` 当作密码学审计回执使用。
+- 客户端 MUST 在 join Space / 进入 Flow 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
+- `disclosure="required"`：合规客户端 MUST 不允许用户在该 scope 把 `cx.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 branch 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
+- `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `cx.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Marker 不受影响。
+- `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
+- Flow branch policy 收紧 Space policy 的方向一律允许（`required` → `disabled`、`public` → `private` 等更严方向）；放宽方向（如 Space `disabled` → branch `required`）SHOULD 被 reducer 拒绝，除非 Space 声明了 `scope_overrides_allowed=true` 且明确允许。
+- 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
 ## 3. Read Marker (私有游标)
 

@@ -146,6 +146,46 @@ Rules:
 - Clients MUST NOT publish the blocklist to public Space state or directory services.
 - Blocking an organization or domain MUST be evaluated through verified DID / claim bindings when possible; clients SHOULD warn when only a weak string match is available.
 
+### 3.6 已读回执偏好 (Read Receipt Preferences)
+
+控制是否向其他成员发送 `cx.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Space 或 Flow / discussion branch 单独重写。
+
+**Key:** `cx.read_receipt.preferences`
+
+```json
+{
+  "default": {
+    "send": true
+  },
+  "spaces": {
+    "cx:space:01js0sp0000000000000000000": {
+      "send": false
+    }
+  },
+  "flows": {
+    "cx:flow:01js1000000000000000000001": {
+      "send": true
+    }
+  }
+}
+```
+
+字段：
+
+| 字段 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `default.send` | `bool` | `true` | 全局是否发送 `cx.receipt.read`。 |
+| `spaces.<space_id>.send` | `bool` |  | 针对单个 Space 的覆盖，优先于 `default`。 |
+| `flows.<flow_id>.send` | `bool` |  | 针对单个 Flow / discussion branch 的覆盖，优先于 `spaces.<space_id>`。 |
+
+规则：
+
+- 该 key 是 actor-private，加密存储于 account data；其他成员或 Sync Service 不得读取明文。
+- 客户端在生成 `cx.receipt.read` 前 MUST 按 (flow, space, default) 顺序解析有效 `send`，最先命中的非空值生效。
+- 该偏好 MUST NOT 影响 §3 中 actor-private 的 Read Marker（`cx.read.marker`）发送或多端同步。
+- 当目标 Space / Flow 声明 `cx.space.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST 不允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Space / Flow 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
+- 客户端 MAY 在 UI 上将常用过滤维度（按 Space 标签、按 Organization）做成批量编辑入口，但实际 canonical state 仍以本 key 中的逐 ID 覆盖为准。
+
 ## 4. 与本地投影的交互
 
 虽然 account data 对外不公开，但用户自己的客户端或可信端侧节点会拉取并解密这些数据，并合并到本地查询结果中。
