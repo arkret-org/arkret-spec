@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-03",
+  "version": "2026-05-08",
   "source_of_truth": false,
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
@@ -510,7 +510,25 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow move between Places (target_place_id in payload)"
+      "payload": "Flow move between Places (target_place_id in payload). Writes a cas-register cell keyed by (board_place_id, flow_id); the contains Relation list_place_id->flow_id is derived from cell value, not a separate truth source.",
+      "cell_family": "cx.component.flow.position.v1",
+      "cell_subject": {
+        "type": "tuple",
+        "components": [
+          {
+            "name": "board_place_id",
+            "type": "id:place",
+            "field": "payload.board_place_id"
+          },
+          {
+            "name": "flow_id",
+            "type": "id:flow",
+            "field": "payload.flow_id"
+          }
+        ]
+      },
+      "lattice": "cas-register",
+      "bottom": "reject"
     },
     {
       "event_kind": "cx.flow.reorder",
@@ -518,7 +536,25 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow reorder within Place"
+      "payload": "Flow reorder within Place. Writes the same cell as cx.flow.move; effect.list_place_id MUST equal head_eq.list_place_id (rank-only update).",
+      "cell_family": "cx.component.flow.position.v1",
+      "cell_subject": {
+        "type": "tuple",
+        "components": [
+          {
+            "name": "board_place_id",
+            "type": "id:place",
+            "field": "payload.board_place_id"
+          },
+          {
+            "name": "flow_id",
+            "type": "id:flow",
+            "field": "payload.flow_id"
+          }
+        ]
+      },
+      "lattice": "cas-register",
+      "bottom": "reject"
     },
     {
       "event_kind": "cx.place.create",

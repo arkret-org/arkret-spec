@@ -6,9 +6,13 @@ sidebar:
 
 ## 1. 目标与真源
 
-本文定义 Contrix v1 的 schema 与 event kind 文档视图。字段级结构定义见 `data-structures.md`。
+> **本文是 generated documentation view,不是 schema/event 真源。**
+> 下方的 schema id 表与 event kind 表由 `artifacts/registry/*.json` 渲染得到;两者不一致时 **JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。
+> 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 各 `*-registry.json` 与本文表格一并刷新;不得只手工编辑本文表格。
 
-机器可读真源为：
+字段级结构定义见 `data-structures.md`。
+
+机器可读真源(authoritative,本文表格只是其投影):
 
 - `artifacts/registry/contract-catalog.json`
 - `artifacts/registry/schema-registry.json`

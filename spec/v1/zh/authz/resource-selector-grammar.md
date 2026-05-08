@@ -14,11 +14,100 @@ Contrix v1 capability 使用以下 canonical resource selector 模型：
 - `morph` 用于开放扩展对象。
 - 跨对象类型授权才使用 `object` selector。
 
-## 2. 语法定义
+## 2. Canonical JSON Resource Selector
 
-### 2.1 EBNF 语法
+**Capability grant 的 canonical / normative 表示是 JSON resource selector**。协议签名、hash、registry
+schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态为准。字符串 shorthand（§3）只是
+为 CLI、日志、UI 和文档辅助提供的非 normative 派生形态，不进入签名输入，也不参与一致性判定。
 
-字符串 selector 是 JSON canonical selector 的可读 shorthand。协议签名、hash、registry schema 和 wire grant 以 JSON 表示为准。
+```json
+{
+  "resources": [
+    {
+      "kind": "space",
+      "space_id": "cx:space:01js0sp0000000000000000000"
+    },
+    {
+      "kind": "flow",
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "flow_id": "cx:flow:01js0ca1000000000000000000"
+    },
+    {
+      "kind": "morph",
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "morph_type": "customer_case"
+    }
+  ],
+  "constraints": [
+    {
+      "constraint_type": "type_restriction",
+      "effect": "allow",
+      "object_type_allow": ["flow"],
+      "allowed_tracks": ["synthesis"]
+    }
+  ]
+}
+```
+
+### 2.1 Board/List 选择
+
+Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind 或具体容器引用。实现 MUST NOT 接受 `kind="board"` 或 `kind="list"` 作为 canonical resource selector kind。
+
+```json
+{
+  "resources": [
+    {
+      "kind": "place",
+      "place_id": "cx:place:01js0bd0000000000000000000"
+    }
+  ],
+  "constraints": [
+    {
+      "constraint_type": "type_restriction",
+      "effect": "allow",
+      "place_kind_allow": ["board"]
+    }
+  ]
+}
+```
+
+List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`relation_kind_allow` 或对应 flow move payload 字段。
+
+### 2.2 Flow track 选择
+
+Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用 `allowed_tracks` 限制 track 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
+
+```json
+{
+  "resources": [
+    {
+      "kind": "flow",
+      "space_id": "cx:space:01js0sp0000000000000000000",
+      "flow_id": "cx:flow:01js0ca1000000000000000000"
+    }
+  ],
+  "constraints": [
+    {
+      "constraint_type": "type_restriction",
+      "effect": "allow",
+      "allowed_tracks": ["discussion"]
+    }
+  ]
+}
+```
+
+`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并满足有效 track access、history visibility 和 E2EE key eligibility。
+
+## 3. 字符串 Shorthand（可选 CLI / 日志形态，non-normative）
+
+字符串 shorthand 不进入 signature、hash、registry 或 wire grant；它只是把 §2 的 JSON selector 折叠成
+单行 ASCII，方便 CLI、admin tool、debug 日志、文档示例与人工 review 阅读。任何 shorthand 解析器的
+输出 MUST 等价于一个合法 §2 JSON selector；无法等价映射的 shorthand MUST fail closed。
+
+实现 MAY 完全不实现 shorthand，仅消费 JSON selector；此时 shorthand 仅为人类阅读形态，不构成
+互操作要求。下面给出一份 reference EBNF 与词法规则供 CLI 工具实现参考。
+
+### 3.1 EBNF 语法（reference）
 
 ```text
 selector             ::= disjunction
@@ -78,9 +167,9 @@ space_part           ::= space_id | "*"
 flow_part            ::= flow_id | "*"
 ```
 
-**运算符优先级**：`+`（合取/AND）优先级高于 `,`（析取/OR）。即 `a+b,c` 解析为 `(a AND b) OR c`。需要表达 `a AND (b OR c)` 时，MUST 使用 JSON canonical selector 或在字符串 shorthand 中拆分为独立 selector。
+**运算符优先级**：`+`（合取/AND）优先级高于 `,`（析取/OR）。即 `a+b,c` 解析为 `(a AND b) OR c`。需要表达 `a AND (b OR c)` 时，MUST 使用 §2 JSON canonical selector，不得仅用 shorthand 表达。
 
-### 2.2 词法规则
+### 3.2 词法规则（reference）
 
 - `space_id`：`cx:space:` 后接 ULID。
 - `flow_id`：`cx:flow:` 后接 ULID。
@@ -99,88 +188,6 @@ flow_part            ::= flow_id | "*"
 - `object_type`：标准对象类型或 `morph`。
 - `object_ref`：任一 canonical object id。
 - 空白字符被忽略，引号内字符串除外。
-
-## 3. Canonical JSON 表示
-
-Capability grant 的 canonical 表示必须使用 JSON resource selector。字符串 selector 只能用于 UI、CLI、日志和测试说明。
-
-```json
-{
-  "resources": [
-    {
-      "kind": "space",
-      "space_id": "cx:space:01js0sp0000000000000000000"
-    },
-    {
-      "kind": "flow",
-      "space_id": "cx:space:01js0sp0000000000000000000",
-      "flow_id": "cx:flow:01js0ca1000000000000000000"
-    },
-    {
-      "kind": "morph",
-      "space_id": "cx:space:01js0sp0000000000000000000",
-      "morph_type": "customer_case"
-    }
-  ],
-  "constraints": [
-    {
-      "constraint_type": "type_restriction",
-      "effect": "allow",
-      "object_type_allow": ["flow"],
-      "allowed_tracks": ["synthesis"]
-    }
-  ]
-}
-```
-
-### 3.1 Board/List 选择
-
-Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind 或具体容器引用。实现 MUST NOT 接受 `kind="board"` 或 `kind="list"` 作为 canonical resource selector kind。
-
-```json
-{
-  "resources": [
-    {
-      "kind": "place",
-      "place_id": "cx:place:01js0bd0000000000000000000"
-    }
-  ],
-  "constraints": [
-    {
-      "constraint_type": "type_restriction",
-      "effect": "allow",
-      "place_kind_allow": ["board"]
-    }
-  ]
-}
-```
-
-List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`relation_kind_allow` 或对应 flow move payload 字段。
-
-### 3.2 Flow track 选择
-
-Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用 `allowed_tracks` 限制 track 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
-
-```json
-{
-  "resources": [
-    {
-      "kind": "flow",
-      "space_id": "cx:space:01js0sp0000000000000000000",
-      "flow_id": "cx:flow:01js0ca1000000000000000000"
-    }
-  ],
-  "constraints": [
-    {
-      "constraint_type": "type_restriction",
-      "effect": "allow",
-      "allowed_tracks": ["discussion"]
-    }
-  ]
-}
-```
-
-`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并满足有效 track access、history visibility 和 E2EE key eligibility。
 
 ## 4. 选择器求值
 

@@ -432,7 +432,9 @@ Create 类操作若在 `payload.object` 中携带完整 materialized object sche
 
 ### 9.1 `cx.flow.move`
 
-`cx.flow.move` 用于跨 List-Space 移动 Flow。它移动的是 Flow 在一个 Board-Space 内的主位置，而不是修改 track 定义。
+`cx.flow.move` 用于跨 List-Place 移动 Flow。它移动的是 Flow 在一个 Board Place 内的主位置，而不是修改 track 定义。
+
+写入路径是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>`（详见 [`models/data-structures.md`](../models/data-structures.md) §4a.4）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_place_id` + `rank` 编译为 `set { list_place_id, rank }` effect。这与 Place-parent 的 cas-register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
 
 ```json
 {
@@ -458,17 +460,23 @@ Reducer 语义：
 1. 验证 actor 对 `board_place_id`、`flow_id`、`from_place_id` 和 `target_place_id` 的 move/reorder 权限（落到 Flow 所属 Space）。
 2. 验证 `target_place_id` 是 `board_place_id` 下的 active List Place（`kind="list"` 且 `parent_ref` 为 board）。
 3. 验证目标 Flow 所属 Space schema/profile 允许它进入该 Board Place。
-4. 在 reduced state 中关闭同一 `(board_place_id, flow_id)` 下其他 active position edge。
-5. 创建或更新 `target_place_id --contains--> flow_id` 的 active Relation，并把 rank 设置为 `rank`。
-6. 对相同 Event 保持幂等。
+4. 把 `expected_position` 编译为 cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>` 的 `head_eq` precondition；把 `target_place_id` + `rank` 编译为 `set { list_place_id: target_place_id, rank }` effect。
+5. cas-register lattice 在该 cell 上 join：成功则 `target_place_id --contains--> flow_id` 派生 Relation 由 cell value 自动投影出来（旧 list 的派生 Relation 自动失效）；并发不同 set 返回 `⊥`（kind=conflict），依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery。
+6. 对相同 Event 保持幂等（同一 Move id 的重放是 cell 的恒等 set，不产生新 ⊥）。
 
-`cx.flow.move` 不得把 `board_place_id`、`place_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源。View projection MAY 返回这些派生字段，但必须能追溯到 active position edge 和 reducer frontier。
+`cx.flow.move` 不得把 `board_place_id`、`place_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源；真相是 cell value。View projection MAY 返回这些派生字段，但必须能追溯到该 cell 的 anchored value 和 reducer frontier。
 
-CAS 语义：`expected_position` 描述的是移动前源 Place 中 Flow 的当前位置。Reducer MUST 验证 `expected_position.place_id`、`expected_position.rank` 和 `expected_position.relation_id` 与当前 reduced state 一致；不一致时 SHOULD 返回 `cas_conflict`，除非 policy 明确允许 non-CAS move。目标 Place 的 rank 不要求 CAS（由 reducer 按目标 Place 当前内容计算或接受客户端提供的 rank）。`cx.flow.move` 不要求源侧 CAS 的场景：若 `expected_position` 缺失或为空，reducer SHOULD 接受移动但 MUST 在目标侧执行 `(board_place_id, flow_id)` 去重（关闭旧 position edge）。
+CAS 语义：`expected_position` 描述的是移动前源 Place 中 Flow 的当前位置，编译为 cell 的 `head_eq`：
+
+- `expected_position.place_id` → `head_eq.list_place_id`
+- `expected_position.rank` → `head_eq.rank`
+- `expected_position.relation_id` 仅作为客户端 hint，不参与 cell join（派生 Relation 的 id 由 reducer 计算）。
+
+不一致时 cas-register 直接返回 `failed_precondition`（与早期 `cas_conflict` 错误码语义等价，但路径走标准 lattice）。`expected_position` 缺失 / 为空 → 等价 `head_eq null`，仅在 cell 真正处于初始态（Flow 尚未进入该 Board）时通过；非初始态下省略 `expected_position` MUST `failed_precondition`，不接受"无 CAS 强制写"。policy 明确允许"无条件覆盖"的特殊场景（如管理员强制重置）必须使用专门的高权限 event kind，而不是省略 `cx.flow.move` 的 `expected_position`。
 
 ### 9.2 `cx.flow.reorder`
 
-`cx.flow.reorder` 只改变同一 List Place 内的 rank，不改变 List Place membership。
+`cx.flow.reorder` 只改变同一 List Place 内的 rank，不改变 List Place membership。它写入与 `cx.flow.move` 相同的 cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>`，但 effect 的 `list_place_id` MUST 与 `head_eq.list_place_id` 相同（即只更新 rank）；试图通过 reorder 改变 list 的 effect MUST `schema_violation`，必须使用 `cx.flow.move`。
 
 ```json
 {
@@ -487,7 +495,7 @@ CAS 语义：`expected_position` 描述的是移动前源 Place 中 Flow 的当�
 }
 ```
 
-`cx.flow.reorder` 不得改变 List Place。若当前 List Place 与 `expected_position` 不一致，除非 policy 明确允许 non-CAS reorder，否则实现 SHOULD 返回 `cas_conflict` 或标记为 stale reorder。
+`cx.flow.reorder` 不得改变 List Place。`expected_position` 编译为 cell `head_eq`；不一致时 cas-register 返回 `failed_precondition`，不再走单独的 `cas_conflict` 旁路。`expected_position` 缺失只在 Flow 尚未进入该 Board 的初始态合法（理论上此时也不该用 reorder），其他情况 MUST `failed_precondition`。
 
 ### 9.3 List-Space 排序
 

@@ -33,8 +33,6 @@ Flow 适合：
 推荐字段：
 
 - `title`
-- `description`
-- `brief`
 - `summary`
 - `body`
 - `fields`
@@ -56,13 +54,7 @@ Flow 适合：
     },
     {
       "name": "discussion",
-      "profile": "discussion",
-      "access": {
-        "membership": "inherit_flow",
-        "permissions": "inherit_flow",
-        "history_visibility": "joined",
-        "e2ee": "inherit_space"
-      }
+      "profile": "discussion"
     }
   ]
 }
@@ -87,8 +79,6 @@ Flow 适合：
 适合放入：
 
 - `title`
-- `description`
-- `brief`
 - `summary`
 - `body`
 - `fields`
@@ -215,16 +205,16 @@ List Place 是 `Place` 的列/泳道形态，ID 使用 `cx:place:` 格式（`kin
 
 `message` 表示 Flow `discussion` track 时间线中的原子消息。
 
-推荐字段：
+推荐字段（顶层 schema-validated；详见 [`data-structures.md`](./data-structures.md) §6.4）：
 
 - `flow_id`
 - `track`
 - `content`
-- `attachments`
+- `state`（`active` / `redacted` / `deleted`，与 Flow / Place 顶层 lifecycle 字段对齐）
 - `revision_root`
 - `edited_at`
-- `visible_state`
 - `redaction_ref`
+- `attachments`（按 profile 声明，通常通过 Relation `attached_to` 表达）
 
 常见关系：
 
@@ -338,6 +328,30 @@ Morph 是扩展缓冲层，不是标准对象的替代品。Flow、Message 和 S
 - `content`
 - `fields`
 - `facets`
+
+### 6.1 Morph 类型系统合并优先级
+
+同一 Morph 对象的"类型"信息可能来自四个声明源；任意 reducer / projection / capability 路径在求"该 Morph 是什么 / 允许什么"时必须按下表合并，不得自行选边。优先级数字越低越优先，冲突时高优先级值整体替换低优先级值（不部分混合）：
+
+| 顺序 | 来源 | 作用 | 谁可写 |
+| --- | --- | --- | --- |
+| 1 | Morph object 的 `schema_refs[]` | **结构 / 验证真源**：决定 `fields` 的 schema、必填性、类型与 transition 规则。 | Morph create / `cx.morph.update` |
+| 2 | Space schema `morph_type_profiles[<morph_type>]` | **Space-scoped 收紧**：声明该 `morph_type` 在本 Space 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | Space schema / Space profile |
+| 3 | Morph object 的 `morph_type` (string) | **业务标签 / discoverability key**：用于 query / view / capability `morph_type_allow` 匹配；不引入 reducer 行为。 | Morph create（**create-locked**，禁止后续修改） |
+| 4 | Morph object 的 `facets` (map) | **UI / projection hint**：选择默认 renderer、查询过滤、降级展示；MUST NOT 影响授权、状态机、reducer、wire 互操作。 | Morph create / `cx.morph.update` |
+
+合并规则：
+
+- **结构验证**只读取顺序 1 + 2：reducer / schema 校验 `fields` 时合并 §1 声明的字段集合与 §2 在该 Space 中收紧后的子集；§3 / §4 不参与字段验证。
+- **类型匹配（capability 的 `morph_type_allow`、resource selector）**只读取顺序 3：`morph_type` 是 wire-stable 字符串 key。它 create-locked 是为了避免授权错位（一旦改 `morph_type`，旧 grant 的 selector 立即失效，是常见漏洞源）。
+- **Facets**只在以下三处生效：默认 renderer / view 选择、查询 `item_facets` / `node_facets` 过滤、降级 UI 提示。任何 reducer 行为、状态机、授权判定 MUST NOT 读取 §4。
+- **冲突处理**：
+  - §1 与 §2 字段集冲突 → §2 胜（Space-scoped 收紧）；§2 试图放宽 §1 → `schema_violation`，Space schema accept 时静态拒绝。
+  - `facets` 声明的 hint 字段在 §1/§2 中不存在 → 该 facet 在该 Morph 上 inactive，但 Morph 本身仍合法（facet 是 hint，不是 contract）。
+  - `morph_type` 在 Space schema `morph_type_profiles` 中未声明 → §2 取空收紧（即纯 §1）；不得自动放宽到 "all fields allowed"。
+  - 同一信息（例如 "可被分配"）同时由 §1 schema field、§2 必需 capability、§4 `assignable` facet 表达 → §1+§2 是真相，§4 仅作为查询提示；UI MUST NOT 仅凭 §4 决定能否调用 assign 操作。
+
+声明者须在四层之间保持一致；只有顺序 1 与 2 是规范来源，§3/§4 的存在不构成"已声明能力"。Reducer / capability / wire 验证路径如违反本表（例如读取 §4 facet 决定授权），即为实现 bug，conformance 套件 MUST 覆盖。
 
 ## 7. Actor Profile
 

@@ -9,53 +9,70 @@
     "space_id",
     "flow_id",
     "track",
+    "state",
     "created_by",
     "created_at"
   ],
   "oneOf": [
     {
-      "required": [
-        "content"
-      ],
-      "not": {
-        "required": [
-          "encrypted_payload"
-        ]
-      },
       "properties": {
-        "redacted": {
+        "state": {
+          "const": "active"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "content"
+          ],
           "not": {
-            "const": true
+            "required": [
+              "encrypted_payload"
+            ]
+          }
+        },
+        {
+          "required": [
+            "encrypted_payload"
+          ],
+          "not": {
+            "required": [
+              "content"
+            ]
           }
         }
-      }
-    },
-    {
-      "required": [
-        "encrypted_payload"
-      ],
-      "not": {
-        "required": [
-          "content"
-        ]
-      },
-      "properties": {
-        "redacted": {
-          "not": {
-            "const": true
-          }
-        }
-      }
+      ]
     },
     {
       "properties": {
-        "redacted": {
-          "const": true
+        "state": {
+          "const": "redacted"
         }
       },
       "required": [
-        "redacted"
+        "redaction_ref"
       ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "content"
+            ]
+          },
+          {
+            "required": [
+              "encrypted_payload"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "state": {
+          "const": "deleted"
+        }
+      },
       "not": {
         "anyOf": [
           {
@@ -99,17 +116,66 @@
     "encrypted_payload": {
       "$ref": "./encrypted-envelope.schema.json"
     },
+    "state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "redacted",
+        "deleted"
+      ],
+      "description": "Top-level lifecycle state, aligned with Flow.state / Place.state. Replaces the legacy fields.visible_state / fields.redacted blackbox shape."
+    },
+    "revision_root": {
+      "type": "string",
+      "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$",
+      "description": "First revision in this message's edit chain. The first revision MUST have revision_root == id. Maintained by cx.message.revise reducer."
+    },
+    "edited_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "redaction_ref": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$",
+      "description": "Required when state=redacted; references the cx.message.redact event that produced this state. MUST be absent for other states."
+    },
     "fields": {
-      "type": "object"
+      "type": "object",
+      "description": "Client metadata, reaction summaries, etc. MUST NOT contain revision_root, visible_state, redacted, edited_at or redaction_ref — those moved to top-level fields in v1.",
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "revision_root"
+            ]
+          },
+          {
+            "required": [
+              "visible_state"
+            ]
+          },
+          {
+            "required": [
+              "redacted"
+            ]
+          },
+          {
+            "required": [
+              "edited_at"
+            ]
+          },
+          {
+            "required": [
+              "redaction_ref"
+            ]
+          }
+        ]
+      }
     },
     "created_by": {
       "$ref": "#/$defs/did"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
-    },
-    "redacted": {
-      "type": "boolean"
     }
   },
   "$defs": {

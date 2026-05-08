@@ -172,7 +172,10 @@ Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定
 
 实现 SHOULD 缓存 cell → leaf_hash 表，在 `apply_anchor` 接受新 Anchor 后只
 重算受影响 cell 的 leaf 与所属 Merkle 分支；wire 上的 `state_root` 必须等于
-全量重算结果。
+全量重算结果。等价性由 conformance vector
+[`cx.vector.state_root.incremental.v1`](../conformance/conformance-vectors.md)
+（§2.9）固定，覆盖单 cell 修改、半数修改、全量修改、空 frontier 与 schema-evolution
+（新增 cell + 删除旧 effect）共四个 case；增量结果与全量重算 MUST bit-exact 一致。
 
 #### 4.2.4 跨实现互通
 

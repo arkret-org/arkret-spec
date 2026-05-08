@@ -382,14 +382,15 @@ Board / List 中的 Flow 示例：
 
 Flow 在 Place 中的位置通过 active `contains` Relation / flow position event 表达，不由 track 决定，也不要求 Flow canonical object 自带 `place_id` 字段。View projection 返回的 `board_place_id` / `list_place_id` / `rank` 是投影派生字段。
 
-**位置唯一性**：一个 Flow 在同一个 Board Place 内 MUST NOT 同时占据多个 List Place 的 active position edge。`(board_place_id, flow_id)` 是 active position edge 的去重 key。`cx.flow.move` reducer 在创建新 position edge 前 MUST 关闭同一 `(board_place_id, flow_id)` 下的其他 active position edge。这保证了看板视图中每个 Flow item 只出现在一个列中。
+**位置唯一性**：一个 Flow 在同一个 Board Place 内 MUST NOT 同时占据多个 List Place 的 active position。位置真相由 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>` 提供（详见 [`data-structures.md`](./data-structures.md) §4a.4）；`(board_place_id, flow_id)` 是 cell key，cell value `{ list_place_id, rank }` 决定当前 active list。派生 `contains` Relation 由 cell value 投影出来，不存在"reducer 关闭旧 position edge"的旁路：并发不同 set 直接由 cas-register 返回 `⊥`，单 active list 由 lattice 单 value 语义自动保证。
 
 `cx.flow.move` payload 字段：
 
-- `flow_id`：被移动的 Flow。
-- `target_place_id`：目标 List Place（`cx:place: kind=list`）。
-- `board_place_id`（可选）：明确目标所属 Board Place，便于 reducer 校验 `(board_place_id, flow_id)` 唯一性。
-- `rank`：移动后在目标 List 内的 rank。
+- `flow_id`：被移动的 Flow（与 `board_place_id` 共同决定 cell key）。
+- `target_place_id`：目标 List Place（`cx:place: kind=list`），编入 effect `set { list_place_id }`。
+- `board_place_id`：必填，cell key 的另一组成部分；早期版本曾允许省略由 reducer 推断，cas-register 模型下 MUST 显式提供。
+- `rank`：移动后在目标 List 内的 rank，编入 effect `set { rank }`。
+- `expected_position`：编译为 cell `head_eq`（详见 [`sync/operations-sync.md`](../sync/operations-sync.md) §9.1）。
 
 常见关系：
 
@@ -417,10 +418,8 @@ Message 是 Flow `discussion` track 时间线中的原子消息对象。
     "format": "markdown",
     "formatted_body": "<mention did=\"did:web:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
-  "fields": {
-    "revision_root": "cx:message:01js0ms0000000000000000000",
-    "visible_state": "active"
-  },
+  "state": "active",
+  "revision_root": "cx:message:01js0ms0000000000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -469,9 +468,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
   "relation_kind": "contains",
   "from_ref": "cx:place:01js0bd0000000000000000000",
   "to_ref": "cx:flow:01js0cd0000000000000000000",
-  "fields": {
-    "rank": "mV"
-  },
+  "rank": "mV",
   "created_by": "did:web:bob.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -562,7 +559,7 @@ View 示例：
     "item_object_types": ["flow"],
     "item_render": "card",
     "item_order_by": [
-      { "field": "fields.rank", "direction": "asc" }
+      { "field": "position.rank", "direction": "asc" }
     ],
     "grouping": {
       "mode": "relation_container",

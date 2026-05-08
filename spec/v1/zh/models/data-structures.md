@@ -176,7 +176,32 @@ Place 是 Space 内部的**结构性分组对象**——看板、列、泳道、
 
 Conformance fixture `move-anchor-lattice-fixture.json` SHOULD 覆盖三种场景：first-set、change-from-A-to-B、并发 reparent。
 
-### 4a.4 与 cx:flow:、cx:space: 的关系
+### 4a.4 `cx.flow.move` / `cx.flow.reorder` cas-register basis
+
+为与 §4a.3 的 lattice 模型对称，Flow 在 Board 内的位置由 cas-register cell 而**不是** reducer-side dedup tuple 决定。一个 Flow 在某个 Board 内的 active 位置占用一个 cell：
+
+```text
+cell_id     := cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>
+lattice     := cas-register
+bottom      := reject
+value shape := { "list_place_id": id:place, "rank": string } | null
+```
+
+写入语义：
+
+- `cx.flow.move` 的 effect 是 `set { list_place_id, rank }`，precondition `head_eq` 表达 Move 提交者期望的 pre-state（即 §9.1 中 `expected_position`）：
+  - **首次进入 Board**：`head_eq null`，effect `set { <target_list>, <rank> }`；
+  - **跨 List 移动**：`head_eq { <from_list>, <from_rank> }`，effect `set { <target_list>, <new_rank> }`；
+  - **从 Board 移除**：`head_eq { <from_list>, <from_rank> }`，effect `set null`（reducer 同步删除对应 `contains` Relation）。
+- `cx.flow.reorder` 写同一 cell，但要求 effect 的 `list_place_id` 与 pre-state 的 `list_place_id` 相同；改 list 必须走 `cx.flow.move`，reducer 在写入 cell 前静态拒绝试图通过 reorder 改 list 的 effect。
+- **并发 move/reorder**：两个 Move 都用同一 `head_eq` 但 set 不同 value，cas-register 返回 `⊥`（kind=conflict）；依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery。这取代了早期"reducer 关闭旧 position edge + tuple dedup"的分流：tuple dedup 仍是 projection 不变量，但**真相由 cell 决定**，并发竞态收敛到正式的 cas-register 冲突而非"先到先赢的接收顺序"。
+- **跨 Board**：每个 `(board_place_id, flow_id)` 对应独立 cell；Flow 同时出现在不同 Board 是合法的（看板视图各自独立），所以 reducer **不**跨 Board 执行 cell join；仅在同一 Board 内强制单 active list。
+- **`contains` Relation 是派生投影**：`list_place_id --contains--> flow_id` Relation 由 cell value 派生；客户端不得通过 `cx.relation.create/delete` 直接编辑该 Relation 来移动 Flow，必须使用 `cx.flow.move`。reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`。
+- **Self-loop / 跨 Space**：effect value 的 `list_place_id` MUST 与 cell subject 的 `board_place_id` 共享同一 Space；不一致即 `failed_precondition`。
+
+Conformance fixture `move-anchor-lattice-fixture.json` SHOULD 覆盖：first-move-into-board、cross-list-move、in-list-reorder、并发 move-to-different-list（产生 ⊥）、cross-board-independent-cells。
+
+### 4a.5 与 cx:flow:、cx:space: 的关系
 
 ```text
 cx:space:01...  ← security boundary
@@ -298,11 +323,17 @@ Schema id: `cx.schema.message.v1`
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
 | `track` | yes | `string` | 必须匹配 `^[a-z][a-z0-9_]{0,63}$`，并且必须是目标 Flow 当前 active 的 track name。v1 reducer 默认只识别 `discussion`；profile 可声明额外 track name 承载 Message timeline，但 v1 wire 互操作 SHOULD 使用 `discussion`。 | 所属 Flow 轨道。 |
-| `content` | conditional | `object` | 富文本/blocks 见 `content-types.md`；未加密且未 redacted 时必填。 | 消息正文。 |
+| `content` | conditional | `object` | 富文本/blocks 见 `content-types.md`；`state=active` 且未加密时必填。 | 消息正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
-| `fields` | no | `object` | 可放 revision、visibility、client metadata。 | 扩展字段。 |
+| `state` | yes | `enum(active, redacted, deleted)` | 默认 `active`。`redacted` 由 `cx.message.redact` reducer 设置（content 被替换为 redaction tombstone 但消息槽保留）；`deleted` 表示消息整体被治理或 retention 清除（content / encrypted_payload MUST 被清空，仅保留 envelope 元数据用于审计）。**与 Flow.state / Place.state 在顶层 schema 上对齐**，不再用 `fields.visible_state` 表达可见性。 | 消息生命周期状态。 |
+| `revision_root` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root` 下的 revision 形成有序 chain，由 `cx.message.revise` reducer 维护。 | revision chain 起点（顶层 schema-validated）。 |
+| `edited_at` | no | `timestamp` | revision chain 中 latest revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST 不早于 `created_at`。 | 最近一次编辑时间。 |
+| `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `cx.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
+| `fields` | no | `object` | 客户端 metadata、reaction summary 等扩展字段；不再承载 revision / visibility 状态。 | 扩展字段。 |
 | `created_by` | yes | `did` |  | 发送者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+> **schema 迁移说明**：早期草案把 `revision_root` / `visible_state` 藏在 `fields` 黑盒中，缺乏 schema 验证、易被实现各自命名。v1 把这些字段提升到顶层；同时用 `state` 顶层枚举替代 `fields.visible_state`、用 `redacted: true` 单一 boolean。`fields.revision_root` / `fields.visible_state` / `fields.redacted` 在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 
 ## 7. Morph and Facets
 
@@ -355,7 +386,8 @@ Schema id: `cx.schema.relation.v1`
 | `relation_kind` | yes | `string` | 标准值见下方。 | 关系语义。 |
 | `from_ref` | yes | `string` | MUST 是 `cx:<kind>:...` 或 DID。 | 起点对象/Actor/Space 引用。 |
 | `to_ref` | yes | `string` | MUST 是 `cx:<kind>:...` 或 DID。 | 终点对象/Actor/Space 引用。 |
-| `fields` | no | `object` | 可放 rank、role、edge metadata。 | 关系属性。 |
+| `rank` | no | `string` | 见 `encoding.md` §9。**与 Place.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> flow`）的稳定 rank。 |
+| `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
 | `state` | no | `enum(active, tombstone)` | `tombstone` 同时覆盖删除与 redaction；原因保存在对应 `cx.relation.delete` / `cx.redaction` event 上，不再写入物化对象。 | 关系状态。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -399,7 +431,7 @@ Space schema、Space profile 或 `relation_profiles` MAY 对标准默认值收�
 | `max_to_per_from` | no | `integer` | 每个 `from_ref` 的 active `to_ref` 上限。 |
 | `max_from_per_to` | no | `integer` | 每个 `to_ref` 的 active `from_ref` 上限。 |
 | `multi_edge` | no | `boolean` | 只有 true 时允许同一 tuple 多条 active edge。 |
-| `rank_field` | no | `string` | 有序关系的 rank 字段，通常为 `fields.rank`。 |
+| `rank_field` | no | `string` | 有序关系的 rank 字段，默认 `rank`（顶层）。仅当 profile 把 rank 显式放在另一字段时声明；MUST NOT 指向 `fields.rank`，该路径已废弃。 |
 | `on_conflict` | no | `enum(reject, close_previous, deterministic_winner, require_review)` | 并发冲突处理；默认 `deterministic_winner`。 |
 
 ```json
@@ -643,7 +675,7 @@ patch path 规则：
 
 - path 由 `snake_case` 标识符或反引号转义字段名组成；
 - 默认仅支持对象路径，不支持数字数组下标；
-- 对 schema 声明了唯一 key 的具名集合数组，path MAY 使用确定性 selector 段：`tracks[name=discussion].access.membership`。selector 字段必须是该数组项 schema 中声明唯一的 stable key，selector 值按 canonical JSON string 解析；匹配 0 项时 `set`/`add` MUST reject，匹配多项表示对象已违反 schema，reducer MUST fail closed；
+- 对 schema 声明了唯一 key 的具名集合数组，path MAY 使用确定性 selector 段：`tracks[name=discussion].profile`。selector 字段必须是该数组项 schema 中声明唯一的 stable key，selector 值按 canonical JSON string 解析；匹配 0 项时 `set`/`add` MUST reject，匹配多项表示对象已违反 schema，reducer MUST fail closed；
 - `unset` 不允许带 `value`；
 - `set`、`add`、`remove` 必须带 `value`。
 

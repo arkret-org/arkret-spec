@@ -604,6 +604,44 @@ cx.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1
 3. **Multi-leaf effective view**：`effective_anchor_view(leaves)` 是纯本地函数（不需签名、不是新 Anchor object、deterministic）。
 4. **Signed compaction**：要把多 leaf 持久压缩成单 Anchor 必须由 anchorer 签发；否则只能作为 view 使用。
 
+### 2.9 Vector: state_root 增量重算等价于全量重算
+
+向量名称：
+
+```text
+cx.vector.state_root.incremental.v1
+```
+
+输入：
+
+- 一个已被接受的 Anchor `A0`，其 frontier 写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 §4.2.1 缓存 `cell → leaf_hash` 表。
+- 一个新的 Anchor `A1`（`predecessor_refs=[A0]`），frontier 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
+- 一个 corner-case Anchor `A2`：frontier 是空 set（无新 effect）。
+- 一个 schema-evolution case `A3`：frontier 包含一个新 cell（之前从未有过 effect），并删除一个旧 cell 的 effect（通过 lattice 的 ⊥/tombstone 机制）。
+
+期望：
+
+每个 case MUST 同时计算：
+
+- `state_root_incremental`：仅对受影响 cell 重算 leaf_hash 与 Merkle 分支，复用 `A0` 缓存。
+- `state_root_full`：丢弃缓存，按 §4.2.2 从 frontier 全量重算所有 cell 的 leaf_hash 与 Merkle root。
+
+判定要求：
+
+- `state_root_incremental == state_root_full` 在所有四个 case 上 MUST 成立，bit-exact。
+- 缓存的 `leaf_hash` 表 MUST 在 `apply_anchor` 接受 Anchor 后更新；保留旧 leaf_hash 导致 next-anchor 增量重算偏离全量结果即视为实现 bug。
+- A2（空 frontier）情况下 `state_root_incremental` MUST 直接复用 `A0.state_root`；不得因为"没有 cell 可重算"而错误地返回空 Merkle root（`H("")`）或 null。
+- A3（新增 cell + 删除旧 cell effect）case 验证两点：(a) 新 cell 的 leaf_hash 进入 sorted leaf 列表（按 `cell_wire` Unicode 升序）；(b) 删除 effect 的 cell 仍以其 `Bottom` 或 tombstone 后的 lattice value 编码 leaf_hash，不被简单从 leaf 列表移除。
+
+失败条件：
+
+- 增量分支只重算到内部 Merkle 节点而不向上传播至 root → root 与 full 不匹配。
+- 偶数/奇数边界处理在 incremental 与 full 之间不一致（例如 incremental 路径错误复制最后 leaf 而 full 路径正确"提升"）。
+- 受影响 cell 集合按 receive order 而非 `cell_wire` lex order 排序。
+- A2 case 下错把 `state_root` 重置为空摘要。
+
+实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.3 中"增量与全量必须等价"的要求。
+
 ## 3. Redaction Vectors
 
 > 来源：原 `conformance-vectors.md`（已合并）

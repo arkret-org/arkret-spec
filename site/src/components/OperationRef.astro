@@ -42,6 +42,16 @@ const href = `/catalog/operations/${encodeURIComponent(id)}/`;
         <dd><code>{row.grpc}</code></dd>
         <dt>MQ</dt>
         <dd><code>{row.mq}</code></dd>
+        {row.bridges_to && (
+          <>
+            <dt>bridges to</dt>
+            <dd>
+              <a href={`/catalog/operations/${encodeURIComponent(row.bridges_to)}/`}>
+                <code>{row.bridges_to}</code>
+              </a>
+            </dd>
+          </>
+        )}
       </dl>
     </article>
   )

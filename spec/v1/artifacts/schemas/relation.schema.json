@@ -34,8 +34,18 @@
     "to_ref": {
       "$ref": "#/$defs/ref"
     },
+    "rank": {
+      "type": "string",
+      "description": "Top-level rank string for ordered relations (e.g. contains-list-flow position). Encoding follows conformance/encoding.md §9. Aligned with Place.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
+    },
     "fields": {
-      "type": "object"
+      "type": "object",
+      "description": "Edge metadata. MUST NOT contain a 'rank' key — rank moved to the top level in v1 to align with Place.rank.",
+      "not": {
+        "required": [
+          "rank"
+        ]
+      }
     },
     "state": {
       "type": "string",

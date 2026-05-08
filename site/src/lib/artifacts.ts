@@ -73,6 +73,8 @@ export interface Operation {
   http: string;
   grpc: string;
   mq: string;
+  /** For interop_bridge tier ops, the in-spec operation this bridge mirrors. */
+  bridges_to?: string;
 }
 
 export interface SurfaceGroup {

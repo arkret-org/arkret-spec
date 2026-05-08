@@ -102,65 +102,25 @@ HTTP/JSON 是默认 profile：
 
 HTTP binding 的路径 SHOULD 遵循 `service-api-schema.mdx`，但实现 MAY 使用 XRPC、RPC style 或版本化路径，只要 feature discovery 暴露实际 binding。
 
-## 6. gRPC Binding（extension profile）
+## 6. Non-HTTP Binding Extensions（v1.1+ Placeholder）
 
-> 以下章节描述的 gRPC / WebSocket / SSE / MQ / libp2p binding 都是 **binding extension profile**。
-> v1 core 实现 **不要求** 提供这些 binding；只有显式声明对应 binding profile 的部署才需要
-> 实现。这些章节保留为部署设计参考，不构成 v1 core 互操作要求。
+gRPC、WebSocket / SSE、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / libp2p binding **不是 v1 core
+互操作 surface**。本规范不为它们定义 normative wire format、operation mapping、stream framing
+或 discovery 字段；当前版本仅保留这些 transport 名称作为 future extension profile slot。
 
+任何声明此类 binding 的部署 MUST 自行发布独立 binding profile 文档（profile id 形如
+`cx.profile.binding.<transport>.v1.1`），并在该文档中至少明确：
 
-gRPC binding SHOULD：
+- canonical `operation_id` → transport-specific 调用形态的映射；
+- envelope / frame schema、签名绑定、idempotency key 与 cursor 处理；
+- 错误码到 transport native status 的映射；
+- 服务发现如何在 `supported_bindings` 中声明该 binding 与其能力。
 
-- 使用 protobuf message 表达 request / response。
-- 保留 canonical `operation_id`。
-- 对写操作携带 `idempotency_key`。
-- 对 streaming sync 使用 server streaming。
-- 在 metadata 中携带 authentication 和 request id。
-- 将 Contrix error code 映射到 gRPC status details，而不是只使用 generic status。
+未声明对应 binding profile 的实现 MUST NOT 接受非 HTTP/JSON 流量，也不得要求对端支持。
+v1.0 conformance suite 不测试任何非 HTTP binding；早期草案中曾出现的 gRPC / WS / MQ / libp2p
+"SHOULD" 列表已被撤回，避免被误读为 core 要求。
 
-## 7. WebSocket / SSE Binding
-
-WebSocket / SSE 适合：
-
-- sync subscription
-- sync streaming
-- typing / presence / ephemeral signals
-- agent protocol session status
-- applet transaction ack
-
-每个 frame SHOULD 是独立 envelope：
-
-```json
-{
-  "frame_id": "cx:frame:01J...",
-  "operation": "sync.subscribe",
-  "cursor": "cx:cursor:...",
-  "payload": {},
-  "error": null
-}
-```
-
-Frame MUST 可独立验证其 stream context，且不得依赖不受保护的连接状态绕过 capability 检查。
-
-## 8. Message Queue Binding
-
-企业或高吞吐部署 MAY 使用 Kafka、NATS、Pulsar、AMQP 等消息队列。要求：
-
-- topic 命名不得成为授权依据。
-- message body MUST 包含 signed envelope。
-- consumer MUST 对每条消息独立做 schema、signature、capability 和 replay 检查。
-- offset 不得作为 canonical cursor；必须映射为 Contrix opaque cursor。
-
-## 9. P2P / libp2p Binding
-
-P2P binding MAY 用于离线、边缘或本地优先场景。要求：
-
-- peer identity MUST 绑定 service DID 或 device DID。
-- gossip 只传播 signed events、event batch receipts、snapshots 或 transactions。
-- 接收方 MUST 独立验证，不得信任 peer routing。
-- backfill 和 snapshot MUST 通过 hash 校验。
-
-## 10. Binding Discovery
+## 7. Binding Discovery
 
 服务描述 SHOULD 返回：
 
@@ -185,7 +145,7 @@ P2P binding MAY 用于离线、边缘或本地优先场景。要求：
 
 客户端 MUST 根据 `supported_bindings` 选择 transport，不得假设所有服务都有 REST path。
 
-## 11. Normative Wording
+## 8. Normative Wording
 
 当其他文档写 `GET /api/...`、`POST /api/...` 或 "endpoint" 时，**v1 core 互操作以 HTTP/JSON binding 为
 normative 形态**。其他 transport 是 extension，需要显式声明对应 binding profile。

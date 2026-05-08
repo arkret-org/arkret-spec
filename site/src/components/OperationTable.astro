@@ -2,9 +2,9 @@
 import { surfaceGroups, capabilityTiers, getOperation } from "~/lib/artifacts";
 
 interface Props {
-  /** Filter to a specific tier (core / extension / deployment_local). */
+  /** Filter to a specific tier (core / extension / interop_bridge / deployment_local). */
   tier?: string;
-  /** Filter to a specific surface (events_sync / federation / blob_media / ...). */
+  /** Filter to a specific surface (events_sync / blob_storage / mimi_interop / ...). */
   surface?: string;
 }
 const { tier, surface } = Astro.props;

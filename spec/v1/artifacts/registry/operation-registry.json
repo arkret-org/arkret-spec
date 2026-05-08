@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-03",
+  "version": "2026-05-08",
   "source_of_truth": false,
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
@@ -23,12 +23,13 @@
     "New operation_id values MUST be added here before any OpenAPI, HTTP binding table, SDK generator, or alternative transport binding references them.",
     "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
     "Supporting Contrix core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
-    "Account, admin, applet, MIMI, media, moderation, directory, push, and key-management surfaces are optional or deployment-specific unless required by an advertised conformance profile.",
+    "Each surface_groups entry carries a tier (see capability_tiers); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
     "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint."
   ],
   "capability_tiers": {
-    "core": "Base interoperable surfaces commonly needed by Events API, Principal Server, and clients.",
-    "extension": "Optional interoperable surfaces that require explicit discovery/profile advertisement.",
+    "core": "Base interoperable surfaces implied by claiming Contrix v1 protocol support (service discovery, identity registry, events/sync).",
+    "extension": "Optional interoperable surfaces that are part of the Contrix specification but require explicit discovery/profile advertisement.",
+    "interop_bridge": "Adapter surfaces that bridge Contrix to external protocols (MIMI Internet-Drafts, third-party Applet hosts). Implementations advertise these only when the external protocol is supported; bridge operations are not part of any core or extension profile and frequently mirror an in-spec operation via bridges_to.",
     "deployment_local": "Deployment-specific, operator, or product-local surfaces that MUST NOT be assumed from core protocol support alone."
   },
   "surface_groups": [
@@ -83,12 +84,18 @@
       ]
     },
     {
-      "surface": "blob_media",
+      "surface": "blob_storage",
       "tier": "extension",
       "operations": [
         "cx.blob.upload",
         "cx.blob.head",
-        "cx.blob.get",
+        "cx.blob.get"
+      ]
+    },
+    {
+      "surface": "realtime_media",
+      "tier": "extension",
+      "operations": [
         "cx.media.ice_config"
       ]
     },
@@ -100,6 +107,13 @@
         "cx.authz.get_effective_grants",
         "cx.authz.get_invites",
         "cx.policy.check"
+      ]
+    },
+    {
+      "surface": "moderation_reports",
+      "tier": "extension",
+      "operations": [
+        "cx.moderation.report"
       ]
     },
     {
@@ -132,7 +146,7 @@
     },
     {
       "surface": "applet",
-      "tier": "extension",
+      "tier": "interop_bridge",
       "operations": [
         "cx.applet.ping",
         "cx.applet.describe",
@@ -146,7 +160,7 @@
     },
     {
       "surface": "mimi_interop",
-      "tier": "extension",
+      "tier": "interop_bridge",
       "operations": [
         "cx.mimi.provider_directory",
         "cx.mimi.group_info",
@@ -177,8 +191,7 @@
         "cx.admin.get_moderation_queue",
         "cx.admin.get_server_status",
         "cx.admin.revoke_device",
-        "cx.admin.update_account_status",
-        "cx.moderation.report"
+        "cx.admin.update_account_status"
       ]
     }
   ],
@@ -559,13 +572,15 @@
       "operation_id": "cx.mimi.proxy_download",
       "http": "POST /mimi/proxy-download",
       "grpc": "Mimi/ProxyDownload",
-      "mq": "mimi.proxy_download"
+      "mq": "mimi.proxy_download",
+      "bridges_to": "cx.blob.get"
     },
     {
       "operation_id": "cx.mimi.report_abuse",
       "http": "POST /mimi/report-abuse",
       "grpc": "Mimi/ReportAbuse",
-      "mq": "mimi.report_abuse"
+      "mq": "mimi.report_abuse",
+      "bridges_to": "cx.moderation.report"
     },
     {
       "operation_id": "cx.mimi.request_consent",

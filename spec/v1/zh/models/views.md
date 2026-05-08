@@ -196,7 +196,7 @@ View 应通过结构化 query 表达对象范围。
 {
   "object_types": ["message"],
   "filters": [
-    { "field": "fields.visible_state", "op": "eq", "value": "active" },
+    { "field": "state", "op": "eq", "value": "active" },
     { "field": "flow_id", "op": "eq", "value": "cx:flow:01js1000000000000000000000" },
     { "field": "track", "op": "eq", "value": "discussion" }
   ],

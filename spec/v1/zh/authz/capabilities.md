@@ -540,6 +540,12 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 - 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Space lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点本地 reducer 在 `apply_anchor` 完成的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**不得**作为延迟标记 stale 的理由。
 - **Moderation state cell 与 cache 的关系**：anchored moderation decision（写入 `cx.component.moderation_state.v1`，见 [`policy-server.md` §7.1](./policy-server.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation cell 标记的 actor 不在其中），则该 cell 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
+  - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
+    1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
+    2. `actions[]` 包含 `cx.moderation.decision` / `cx.moderation.decision.lift` / `cx.space.moderate` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；
+    3. `constraints[]` 中存在任何 typed constraint 引用 moderation state cell、moderation queue、moderation report 或 moderation tag。
+  - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；不接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
+  - 不在上述条件内的普通 grant（典型如 `cx.flow.update`、`cx.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。
 - Cache entry 的 `auth_state_hash` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；不得继续用旧 grant 允许新写入。
 - 已被 GC 的 grant 仍必须保留足以验证 revoke 的 tombstone、revocation index、snapshot witness 或 state root 证据。实现不得因为 grant payload 已压缩或归档而让旧 cache 重新生效。
 - `partial_auth_state`、soft-failed auth chain 或无法确认 revoke freshness 的状态不得生成 allow cache；只能生成 deny / unknown / pending 诊断。
