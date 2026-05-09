@@ -7,7 +7,7 @@ title: Applet Schema and OpenAPI
 ```json
 {
   "kind": "cx.applet.registration",
-  "applet_id": "cx:applet:examp1e0000000000000000000",
+  "applet_id": "cx:applet:dd552c17-0000-7000-8000-000000000000",
   "service_did": "did:web:applet.example",
   "controller_did": "did:web:acme.example",
   "base_url": "https://applet.example/api/v1/applet",
@@ -115,7 +115,7 @@ GET /api/v1/applet/spaces/{space_id_or_alias}
 ```json
 {
   "exists": true,
-  "space_id": "cx:space:p0rta100000000000000000000:slack:T:C",
+  "space_id": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:T:C",
   "title": "#general",
   "external_ref": {}
 }
@@ -145,7 +145,7 @@ GET /api/v1/applet/protocols/{protocol}
 ```json
 {
   "kind": "cx.applet.bridge_error",
-  "applet_id": "cx:applet:examp1e0000000000000000000",
+  "applet_id": "cx:applet:dd552c17-0000-7000-8000-000000000000",
   "external_ref": {},
   "error_code": "external_rate_limited",
   "message": "external network rejected the message",

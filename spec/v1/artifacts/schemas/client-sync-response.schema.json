@@ -152,7 +152,7 @@
             "properties": {
               "event_id": {
                 "type": "string",
-                "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+                "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               },
               "event_state": {
                 "type": "string",
@@ -208,7 +208,7 @@
     "space_bucket": {
       "type": "object",
       "patternProperties": {
-        "^cx:space:[0-9a-hjkmnp-z]{26}$": {
+        "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
           "$ref": "#/$defs/space_entry"
         }
       },

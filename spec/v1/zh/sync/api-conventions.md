@@ -117,7 +117,7 @@ API 调用 SHOULD 使用以下方式之一：
 ```json
 {
   "ok": true,
-  "request_id": "cx:req:01js0ke0000000000000000000",
+  "request_id": "cx:req:01964137-0000-7000-8000-000000000000",
   "result": {}
 }
 ```
@@ -137,7 +137,7 @@ API 调用 SHOULD 使用以下方式之一：
     "retry_after_ms": null,
     "details": {}
   },
-  "request_id": "cx:req:01js0ke0000000000000000000"
+  "request_id": "cx:req:01964137-0000-7000-8000-000000000000"
 }
 ```
 
@@ -226,7 +226,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 ```json
 {
   "status": "accepted",
-  "event_id": "cx:event:01js0ev0000000000000000000",
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "cursor": "cx:cursor:..."
 }
 ```

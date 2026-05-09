@@ -2,7 +2,7 @@
   "suite": "federation",
   "profile": "cx.profile.federation_vectors.v1",
   "topology": {
-    "space_id": "cx:space:01js0sp0000000000000000000",
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "principal_servers": [
       {
         "service_did": "did:web:server-alpha.example",
@@ -26,7 +26,7 @@
     "service_binding_ref": {
       "space_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "membership_frontier": [
-        "cx:event:01js0mb0000000000000000000"
+        "cx:event:01964145-8000-7000-8000-000000000000"
       ],
       "destination_service_type": "principal_server"
     }
@@ -55,7 +55,7 @@
     {
       "name": "replay_protection",
       "input": {
-        "txn_id": "cx:req:01js0rq0000000000000000000",
+        "txn_id": "cx:req:0196418b-8000-7000-8000-000000000000",
         "first_body_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "second_body_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       },
@@ -64,7 +64,7 @@
     {
       "name": "fork_quarantine",
       "input": {
-        "event_id": "cx:event:01js0fk0000000000000000000",
+        "event_id": "cx:event:019640f9-8000-7000-8000-000000000000",
         "alpha_event_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "beta_event_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
       },
@@ -75,7 +75,7 @@
       "input": {
         "requester": "did:web:server-beta.example",
         "source": "did:web:server-alpha.example",
-        "space_id": "cx:space:01js0sp0000000000000000000",
+        "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
         "requested_visibility": "private_plaintext",
         "requester_plaintext_visible": false
       },

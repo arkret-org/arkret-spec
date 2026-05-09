@@ -100,7 +100,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "actor_id": "did:web:requesting-agent.example.com",
   "payload": {
     "session_id": "cx:agent_session:01J...",
-    "task_flow_id": "cx:flow:task0100000000000000000000",
+    "task_flow_id": "cx:flow:4accc010-0000-7000-8000-000000000000",
     "counterparty_agent": "did:web:remote-agent.example.com",
     "protocol": "a2a",
     "protocol_version": "1.x",
@@ -164,7 +164,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
     "result_objects": [
       {
         "object_type": "flow",
-        "object_ref": "cx:flow:task0100000000000000000000",
+        "object_ref": "cx:flow:4accc010-0000-7000-8000-000000000000",
         "track": "synthesis",
         "role": "primary_result"
       }
@@ -172,7 +172,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
     "artifacts": [
       {
         "artifact_type": "text",
-        "object_ref": "cx:morph:resv1td0c00000000000000000",
+        "object_ref": "cx:morph:0ecec3a6-8180-7000-8000-000000000000",
         "hash": "sha256:..."
       }
     ],

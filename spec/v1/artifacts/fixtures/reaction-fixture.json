@@ -8,23 +8,23 @@
       "name": "or_set_basic_add_then_remove",
       "events": [
         {
-          "event_id": "cx:event:01js0ra1000000000000000000",
+          "event_id": "cx:event:01964185-0400-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
           }
         },
         {
-          "event_id": "cx:event:01js0rr1000000000000000000",
+          "event_id": "cx:event:0196418c-0400-7000-8000-000000000000",
           "kind": "cx.reaction.remove",
           "actor_id": "did:web:alice.example",
           "causal_refs": [
-            "cx:event:01js0ra1000000000000000000"
+            "cx:event:01964185-0400-7000-8000-000000000000"
           ],
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
           }
         }
@@ -32,7 +32,7 @@
       "expected": {
         "summary": [
           {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "👍",
             "members": []
           }
@@ -44,20 +44,20 @@
       "notes": "Two add events from the same actor with the same key collapse to one OR-Set membership entry; the per-event audit log retains both.",
       "events": [
         {
-          "event_id": "cx:event:01js0ra2000000000000000000",
+          "event_id": "cx:event:01964185-0800-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "🎉"
           }
         },
         {
-          "event_id": "cx:event:01js0ra2000000000000000001",
+          "event_id": "cx:event:01964185-0800-7000-8000-000000000001",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "🎉"
           }
         }
@@ -65,7 +65,7 @@
       "expected": {
         "summary": [
           {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "🎉",
             "members": [
               "did:web:alice.example"
@@ -74,8 +74,8 @@
           }
         ],
         "audit_event_ids": [
-          "cx:event:01js0ra2000000000000000000",
-          "cx:event:01js0ra2000000000000000001"
+          "cx:event:01964185-0800-7000-8000-000000000000",
+          "cx:event:01964185-0800-7000-8000-000000000001"
         ]
       }
     },
@@ -84,20 +84,20 @@
       "notes": "Two events from the same actor with no causal_refs between them; default view applies per-actor causal closure — concurrent (add, remove) collapses to the remove because the remove is itself a tombstone for the actor's adds in the concurrent past per OR-Set semantics chosen for cx.reaction.",
       "events": [
         {
-          "event_id": "cx:event:01js0ra3000000000000000000",
+          "event_id": "cx:event:01964185-0c00-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:bob.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "🚀"
           }
         },
         {
-          "event_id": "cx:event:01js0rr3000000000000000000",
+          "event_id": "cx:event:0196418c-0c00-7000-8000-000000000000",
           "kind": "cx.reaction.remove",
           "actor_id": "did:web:bob.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "🚀"
           }
         }
@@ -105,7 +105,7 @@
       "expected": {
         "summary": [
           {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "🚀",
             "members": []
           }
@@ -117,20 +117,20 @@
       "name": "different_actors_independent_or_set",
       "events": [
         {
-          "event_id": "cx:event:01js0ra4000000000000000000",
+          "event_id": "cx:event:01964185-1000-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
           }
         },
         {
-          "event_id": "cx:event:01js0ra4000000000000000001",
+          "event_id": "cx:event:01964185-1000-7000-8000-000000000001",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:bob.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
           }
         }
@@ -138,7 +138,7 @@
       "expected": {
         "summary": [
           {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "👍",
             "members": [
               "did:web:alice.example",
@@ -154,11 +154,11 @@
       "notes": "Reaction whose target_ref has not been observed yet MUST be held in pending; reducer materialises the OR-Set entry only after the target message becomes available.",
       "events": [
         {
-          "event_id": "cx:event:01js0ra5000000000000000000",
+          "event_id": "cx:event:01964185-1400-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0fu0000000000000000000",
+            "target_ref": "cx:message:8238ad61-2055-7c9d-a502-b4e7844047ce",
             "key": "👀"
           }
         }
@@ -166,8 +166,8 @@
       "expected": {
         "pending_reactions": [
           {
-            "target_ref": "cx:message:01js0fu0000000000000000000",
-            "event_id": "cx:event:01js0ra5000000000000000000",
+            "target_ref": "cx:message:8238ad61-2055-7c9d-a502-b4e7844047ce",
+            "event_id": "cx:event:01964185-1400-7000-8000-000000000000",
             "reason": "dependency_missing"
           }
         ],
@@ -179,28 +179,28 @@
       "notes": "When the target message is redacted, the default view summary MUST NOT expose reaction members; the audit view retains the reaction events under the redaction stub.",
       "events": [
         {
-          "event_id": "cx:event:01js0ra6000000000000000000",
+          "event_id": "cx:event:01964185-1800-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "❤"
           }
         },
         {
-          "event_id": "cx:event:01js0me0000000000000000099",
+          "event_id": "cx:event:01964147-0000-7000-8000-000000000129",
           "kind": "cx.message.redact",
           "actor_id": "did:web:owner.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000"
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000"
           }
         }
       ],
       "expected": {
         "default_view_summary": [],
         "audit_view_event_ids": [
-          "cx:event:01js0ra6000000000000000000",
-          "cx:event:01js0me0000000000000000099"
+          "cx:event:01964185-1800-7000-8000-000000000000",
+          "cx:event:01964147-0000-7000-8000-000000000129"
         ]
       }
     },
@@ -208,18 +208,18 @@
       "name": "e2ee_routing_hash_dedup",
       "notes": "In an E2EE space the plaintext key is sha256(\"cx-reaction-key-v1\" || space_id || mls_group_id || epoch || canonical_emoji). Two adds with the same routing hash from the same actor in the same epoch collapse to one OR-Set membership; routing hash differs in a different epoch and so does not dedup across epochs. The space_id binding (added in v1) provides defense-in-depth even if mls_group_id is reused across deployments.",
       "context": {
-        "space_id": "cx:space:01js0sp0000000000000000099",
+        "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
         "aad_visibility": "hidden",
         "mls_group_id": "Zm9vYmFy",
         "epoch": 7
       },
       "events": [
         {
-          "event_id": "cx:event:01js0ra7000000000000000000",
+          "event_id": "cx:event:01964185-1c00-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000010",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
               "scheme": "mls-rfc9420",
@@ -229,13 +229,13 @@
               "content_type": "application/json",
               "ciphertext": "reactionAlpha",
               "aad": {
-                "space_id": "cx:space:01js0sp0000000000000000099",
+                "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add",
                 "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
                 "algorithm": "MLS",
-                "group_state_ref": "cx:event:01js0mg0000000000000000000"
+                "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
               },
               "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
               "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
@@ -243,11 +243,11 @@
           }
         },
         {
-          "event_id": "cx:event:01js0ra7000000000000000001",
+          "event_id": "cx:event:01964185-1c00-7000-8000-000000000001",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000010",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
               "scheme": "mls-rfc9420",
@@ -257,13 +257,13 @@
               "content_type": "application/json",
               "ciphertext": "reactionAlphaDup",
               "aad": {
-                "space_id": "cx:space:01js0sp0000000000000000099",
+                "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add",
                 "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
                 "algorithm": "MLS",
-                "group_state_ref": "cx:event:01js0mg0000000000000000000"
+                "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
               },
               "payload_digest": "sha256:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111",
               "aad_digest": "sha256:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
@@ -274,7 +274,7 @@
       "expected": {
         "server_side_summary": [
           {
-            "target_ref": "cx:message:01js0me0000000000000000010",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000020",
             "routing_hash_key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "members": [
               "did:web:alice.example"
@@ -290,7 +290,7 @@
       "name": "e2ee_epoch_rotation_breaks_dedup",
       "notes": "Same canonical emoji yields a different routing hash after MLS epoch rotation; the new add is a fresh OR-Set entry, not a duplicate of the pre-rotation one.",
       "context": {
-        "space_id": "cx:space:01js0sp0000000000000000099",
+        "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
         "aad_visibility": "hidden",
         "mls_group_id": "Zm9vYmFy",
         "old_epoch": 7,
@@ -298,11 +298,11 @@
       },
       "events": [
         {
-          "event_id": "cx:event:01js0ra8000000000000000000",
+          "event_id": "cx:event:01964185-2000-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000010",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "encrypted_payload": {
               "scheme": "mls-rfc9420",
@@ -312,12 +312,12 @@
               "content_type": "application/json",
               "ciphertext": "reactionEpoch7",
               "aad": {
-                "space_id": "cx:space:01js0sp0000000000000000099",
+                "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add"
               },
               "key_ref": {
                 "algorithm": "MLS",
-                "group_state_ref": "cx:event:01js0mg0000000000000000000"
+                "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
               },
               "payload_digest": "sha256:cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333",
               "aad_digest": "sha256:dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444"
@@ -325,11 +325,11 @@
           }
         },
         {
-          "event_id": "cx:event:01js0ra8000000000000000001",
+          "event_id": "cx:event:01964185-2000-7000-8000-000000000001",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000010",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:222222222222222222222222222222222222222222222222222222222222222b",
             "encrypted_payload": {
               "scheme": "mls-rfc9420",
@@ -339,12 +339,12 @@
               "content_type": "application/json",
               "ciphertext": "reactionEpoch8",
               "aad": {
-                "space_id": "cx:space:01js0sp0000000000000000099",
+                "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add"
               },
               "key_ref": {
                 "algorithm": "MLS",
-                "group_state_ref": "cx:event:01js0mg0000000000000000001"
+                "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000001"
               },
               "payload_digest": "sha256:eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555",
               "aad_digest": "sha256:ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666"
@@ -356,7 +356,7 @@
         "server_side_summary_distinct_keys": 2,
         "after_client_decryption_summary": [
           {
-            "target_ref": "cx:message:01js0me0000000000000000010",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000020",
             "decrypted_key": "👍",
             "members": [
               "did:web:alice.example"
@@ -371,16 +371,16 @@
       "notes": "After cx.capability.revoke removes the actor's cx.reaction.add capability, the next add MUST be rejected before reducer state changes; in-flight events accepted before the revoke causal frontier remain in OR-Set state.",
       "events": [
         {
-          "event_id": "cx:event:01js0ra9000000000000000000",
+          "event_id": "cx:event:01964185-2400-7000-8000-000000000000",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
           }
         },
         {
-          "event_id": "cx:event:01js0rv9000000000000000000",
+          "event_id": "cx:event:0196418d-a400-7000-8000-000000000000",
           "kind": "cx.capability.revoke",
           "actor_id": "did:web:owner.example",
           "payload": {
@@ -391,26 +391,26 @@
           }
         },
         {
-          "event_id": "cx:event:01js0ra9000000000000000001",
+          "event_id": "cx:event:01964185-2400-7000-8000-000000000001",
           "kind": "cx.reaction.add",
           "actor_id": "did:web:alice.example",
           "causal_refs": [
-            "cx:event:01js0rv9000000000000000000"
+            "cx:event:0196418d-a400-7000-8000-000000000000"
           ],
           "payload": {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "🎉"
           }
         }
       ],
       "expected": {
         "rejected_event_ids": [
-          "cx:event:01js0ra9000000000000000001"
+          "cx:event:01964185-2400-7000-8000-000000000001"
         ],
         "rejection_code": "capability_denied",
         "summary": [
           {
-            "target_ref": "cx:message:01js0me0000000000000000000",
+            "target_ref": "cx:message:01964147-0000-7000-8000-000000000000",
             "key": "👍",
             "members": [
               "did:web:alice.example"

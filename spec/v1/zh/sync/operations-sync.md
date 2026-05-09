@@ -36,7 +36,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 
 | 字段 | 含义 |
 | --- | --- |
-| `event_id` (`cx:event:<ulid>`) | producer 在签名前分配的 typed ULID。被纳入 canonical bytes 由 `proof.payload_hash` 覆盖。 |
+| `event_id` (`cx:event:<uuid>`) | producer 在签名前分配的 typed-UUIDv7。被纳入 canonical bytes 由 `proof.payload_hash` 覆盖。 |
 | `actor_id` | 签发者 DID。 |
 | `space_id` | 所属 Space。 |
 | `actor_seq` | actor chain 单调序号。 |
@@ -111,19 +111,19 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
 
 ```json
 {
-  "receipt_id": "cx:receipt:01js0rcp000000000000000000",
+  "receipt_id": "cx:receipt:01964186-5800-7000-8000-000000000000",
   "issuer": "did:web:alice.example.net",
   "scope": {
     "actor_id": "did:web:alice.example.com",
-    "space_id": "cx:space:01js0sp0000000000000000000"
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000"
   },
   "frontier": {
     "actor_seq": 144,
     "event_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "events": [
-    "cx:event:01js0ev0000000000000000000",
-    "cx:event:01js0ew0000000000000000000"
+    "cx:event:019640ed-8000-7000-8000-000000000000",
+    "cx:event:019640ee-0000-7000-8000-000000000000"
   ],
   "created_at": "2026-04-22T08:30:00Z",
   "proofs": []
@@ -146,34 +146,34 @@ Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）�
 
 ```json
 {
-  "event_id": "cx:event:01js0ev0000000000000000000",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 42,
   "kind": "cx.flow.update",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0007-a13f9c2e",
   "prev_refs": [
-    "cx:event:01js0et0000000000000000000"
+    "cx:event:019640ed-0000-7000-8000-000000000000"
   ],
   "refs": [
-    { "id": "cx:grant:01js0gr0000000000000000000", "role": "authorized_by", "critical": true }
+    { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "preconditions": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
       "predicate": { "op": "head_eq", "value": { "fields.status": "in_progress" } }
     }
   ],
   "effects": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "fields.status": "review" } }
     }
   ],
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
-    "flow_id": "cx:flow:01js0cd0000000000000000000",
+    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "fields.status": "review"
     }
@@ -195,18 +195,18 @@ Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例�
 
 ```json
 {
-  "event_id": "cx:event:01js0rm0000000000000000000",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "event_id": "cx:event:0196418a-0000-7000-8000-000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 43,
   "kind": "cx.read.marker",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0008-a13f9c2e",
-  "prev_refs": ["cx:event:01js0ev0000000000000000000"],
+  "prev_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
   "payload": {
-    "flow_id": "cx:flow:01js0cd0000000000000000000",
+    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
     "track": "discussion",
-    "marker_event_id": "cx:event:01js0me0000000000000000000"
+    "marker_event_id": "cx:event:01964147-0000-7000-8000-000000000000"
   },
   "proofs": [...]
 }
@@ -430,9 +430,9 @@ Create 类操作若在 `payload.object` 中携带完整 materialized object sche
 ```json
 {
   "kind": "cx.flow.track.enable",
-  "target_ref": "cx:flow:01js0sb0000000000000000000",
+  "target_ref": "cx:flow:01964195-8000-7000-8000-000000000000",
   "payload": {
-    "flow_id": "cx:flow:01js0sb0000000000000000000",
+    "flow_id": "cx:flow:01964195-8000-7000-8000-000000000000",
     "track": "discussion",
     "config": {
       "profile": "discussion"
@@ -460,17 +460,17 @@ Create 类操作若在 `payload.object` 中携带完整 materialized object sche
 ```json
 {
   "kind": "cx.flow.move",
-  "target_ref": "cx:flow:01js0tk0000000000000000000",
+  "target_ref": "cx:flow:019641a9-8000-7000-8000-000000000000",
   "payload": {
-    "board_place_id": "cx:place:01js0bd0000000000000000000",
-    "flow_id": "cx:flow:01js0tk0000000000000000000",
-    "from_place_id": "cx:place:01t0d000000000000000000000",
-    "target_place_id": "cx:place:01rev1ew000000000000000000",
+    "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
+    "from_place_id": "cx:place:01d01a00-0000-7000-8000-000000000000",
+    "target_place_id": "cx:place:01c3b617-7000-7000-8000-000000000000",
     "rank": "mV",
     "expected_position": {
-      "place_id": "cx:place:01t0d000000000000000000000",
+      "place_id": "cx:place:01d01a00-0000-7000-8000-000000000000",
       "rank": "h0",
-      "relation_id": "cx:relation:0101d000000000000000000000"
+      "relation_id": "cx:relation:01005a00-0000-7000-8000-000000000000"
     }
   }
 }
@@ -502,15 +502,15 @@ CAS 语义：`expected_position` 描述的是移动前源 Place 中 Flow 的当�
 ```json
 {
   "kind": "cx.flow.reorder",
-  "target_ref": "cx:flow:01js0tk0000000000000000000",
+  "target_ref": "cx:flow:019641a9-8000-7000-8000-000000000000",
   "payload": {
-    "board_place_id": "cx:place:01js0bd0000000000000000000",
-    "place_id": "cx:place:01rev1ew000000000000000000",
-    "flow_id": "cx:flow:01js0tk0000000000000000000",
+    "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "place_id": "cx:place:01c3b617-7000-7000-8000-000000000000",
+    "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
     "rank": "mV",
     "expected_position": {
       "rank": "h0",
-      "relation_id": "cx:relation:01p0s000000000000000000000"
+      "relation_id": "cx:relation:01b03200-0000-7000-8000-000000000000"
     }
   }
 }
@@ -529,9 +529,9 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 ```json
 {
   "kind": "cx.flow.track.enable",
-  "target_ref": "cx:flow:01js0tk0000000000000000000",
+  "target_ref": "cx:flow:019641a9-8000-7000-8000-000000000000",
   "payload": {
-    "flow_id": "cx:flow:01js0tk0000000000000000000",
+    "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
     "track": "discussion"
   }
 }
@@ -540,9 +540,9 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 ```json
 {
   "kind": "cx.flow.track.set_primary",
-  "target_ref": "cx:flow:01js0tk0000000000000000000",
+  "target_ref": "cx:flow:019641a9-8000-7000-8000-000000000000",
   "payload": {
-    "flow_id": "cx:flow:01js0tk0000000000000000000",
+    "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
     "track": "discussion"
   }
 }

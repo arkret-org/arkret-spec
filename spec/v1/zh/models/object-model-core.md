@@ -168,8 +168,8 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 
 ```json
 {
-  "id": "cx:flow:01js0ke0000000000000000000",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "id": "cx:flow:01964137-0000-7000-8000-000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_by": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
@@ -180,15 +180,15 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 
 对象 ID SHOULD 使用带类型前缀的稳定字符串：
 
-- `cx:space:<ulid>`
-- `cx:place:<ulid>`
-- `cx:flow:<ulid>`
-- `cx:message:<ulid>`
-- `cx:morph:<ulid>`
-- `cx:relation:<ulid>`
-- `cx:event:<ulid>`
-- `cx:view:<ulid>`
-- `cx:grant:<ulid>`
+- `cx:space:<uuid>`
+- `cx:place:<uuid>`
+- `cx:flow:<uuid>`
+- `cx:message:<uuid>`
+- `cx:morph:<uuid>`
+- `cx:relation:<uuid>`
+- `cx:event:<uuid>`
+- `cx:view:<uuid>`
+- `cx:grant:<uuid>`
 
 ## 4. Space
 
@@ -196,14 +196,14 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 
 ```json
 {
-  "id": "cx:space:01js0sp0000000000000000000",
+  "id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "schema": "cx.schema.space.v1",
   "title": "Launch Plan",
   "created_by_principal": "did:web:acme.example",
   "schema_refs": [
     "cx.schema.space.v1"
   ],
-  "policy_ref": "cx:policy:01js0p10000000000000000000",
+  "policy_ref": "cx:policy:01964160-8000-7000-8000-000000000000",
   "default_discoverability": "invite_only",
   "default_join_rule": "invite",
   "history_visibility": "joined",
@@ -255,9 +255,9 @@ Flow 通过 `tracks` 数组表达能力轨道：每个 track 至少声明 `name`
 
 ```json
 {
-  "id": "cx:flow:01js0fk0000000000000000000",
+  "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
   "schema": "cx.schema.flow.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "title": "支付重构",
   "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
   "body": {
@@ -275,7 +275,7 @@ Flow 通过 `tracks` 数组表达能力轨道：每个 track 至少声明 `name`
     { "name": "synthesis", "is_primary": true },
     { "name": "discussion", "profile": "review" }
   ],
-  "discussion_space_ref": "cx:space:01js0ds0000000000000000000",
+  "discussion_space_ref": "cx:space:019640dc-8000-7000-8000-000000000000",
   "state": "active",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -317,13 +317,13 @@ Board Place canonical 对象示例：
 
 ```json
 {
-  "id": "cx:place:01js0bd0000000000000000000",
+  "id": "cx:place:019640b6-8000-7000-8000-000000000000",
   "schema": "cx.schema.place.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "kind": "board",
   "title": "Release Board",
   "fields": {
-    "default_view_id": "cx:view:01js0vw0000000000000000000"
+    "default_view_id": "cx:view:019641be-0000-7000-8000-000000000000"
   },
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -334,10 +334,10 @@ List Place canonical 对象示例（在父 Board 内的位置由 `parent_ref` + 
 
 ```json
 {
-  "id": "cx:place:01js01s0000000000000000000",
+  "id": "cx:place:0196401c-8000-7000-8000-000000000000",
   "schema": "cx.schema.place.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
-  "parent_ref": "cx:place:01js0bd0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "parent_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
   "kind": "list",
   "title": "Review",
   "rank": "mV",
@@ -353,9 +353,9 @@ Board / List 中的 Flow 示例：
 
 ```json
 {
-  "id": "cx:flow:01js0cd0000000000000000000",
+  "id": "cx:flow:019640c6-8000-7000-8000-000000000000",
   "schema": "cx.schema.flow.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "title": "Review launch checklist",
   "body": {
     "kind": "cx.content.text",
@@ -406,10 +406,10 @@ Message 是 Flow `discussion` track 时间线中的原子消息对象。
 
 ```json
 {
-  "id": "cx:message:01js0ms0000000000000000000",
+  "id": "cx:message:0196414c-8000-7000-8000-000000000000",
   "schema": "cx.schema.message.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_id": "cx:flow:01js0fk0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
   "track": "discussion",
   "created_by": "did:web:alice.example",
   "content": {
@@ -419,7 +419,7 @@ Message 是 Flow `discussion` track 时间线中的原子消息对象。
     "formatted_body": "<mention did=\"did:web:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
   "state": "active",
-  "revision_root": "cx:message:01js0ms0000000000000000000",
+  "revision_root": "cx:message:0196414c-8000-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -432,9 +432,9 @@ Morph 是开放对象。
 
 ```json
 {
-  "id": "cx:morph:01js0mp0000000000000000000",
+  "id": "cx:morph:0196414b-0000-7000-8000-000000000000",
   "schema": "cx.schema.morph.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "morph_type": "customer_risk",
   "title": "ACME procurement risk",
   "facets": {
@@ -462,12 +462,12 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 ```json
 {
-  "id": "cx:relation:01js0r00000000000000000000",
+  "id": "cx:relation:01964180-0000-7000-8000-000000000000",
   "schema": "cx.schema.relation.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "relation_kind": "contains",
-  "from_ref": "cx:place:01js0bd0000000000000000000",
-  "to_ref": "cx:flow:01js0cd0000000000000000000",
+  "from_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+  "to_ref": "cx:flow:019640c6-8000-7000-8000-000000000000",
   "rank": "mV",
   "created_by": "did:web:bob.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -486,34 +486,34 @@ Event 是 reducer 输入和审计事实。Reducer-input event 在顶层带 `prec
 
 ```json
 {
-  "event_id": "cx:event:01js0ev0000000000000000000",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 4,
   "kind": "cx.flow.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
-    "cx:event:01js0et0000000000000000000"
+    "cx:event:019640ed-0000-7000-8000-000000000000"
   ],
   "refs": [
-    { "id": "cx:grant:01js0gr0000000000000000000", "role": "authorized_by", "critical": true }
+    { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "preconditions": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
       "predicate": { "op": "head_eq", "value": { "fields.status": "in_progress" } }
     }
   ],
   "effects": [
     {
-      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
+      "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "fields.status": "done" } }
     }
   ],
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "payload": {
-    "flow_id": "cx:flow:01js0cd0000000000000000000",
+    "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "fields.status": "done"
     }
@@ -539,8 +539,8 @@ View 示例：
 
 ```json
 {
-  "id": "cx:view:01js0vw0000000000000000000",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "id": "cx:view:019641be-0000-7000-8000-000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "schema": "cx.schema.view.v1",
   "kind": "collection",
   "renderer": "board",
@@ -551,7 +551,7 @@ View 示例：
     ],
     "relation": {
       "kind": "contains",
-      "source_ref": "cx:space:01js0bd0000000000000000000",
+      "source_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
       "depth": 2
     }
   },
@@ -563,7 +563,7 @@ View 示例：
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_place_id": "cx:place:01js0bd0000000000000000000",
+      "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains"
     }

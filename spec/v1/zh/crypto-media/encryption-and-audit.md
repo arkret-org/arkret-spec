@@ -80,13 +80,13 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
     "content_type": "application/json",
     "ciphertext": "base64url",
     "aad": {
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "event_kind": "cx.message.create",
       "event_ref_hash": "sha256:..."
     },
     "key_ref": {
       "algorithm": "MLS",
-      "group_state_ref": "cx:event:01js0mg0000000000000000000"
+      "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
     },
     "payload_digest": "sha256:...",
     "aad_digest": "sha256:..."
@@ -134,10 +134,10 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 ```json
 {
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "event_kind": "cx.message.create",
   "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-  "causal_refs": ["cx:event:01js0et0000000000000000000"]
+  "causal_refs": ["cx:event:019640ed-0000-7000-8000-000000000000"]
 }
 ```
 
@@ -163,13 +163,13 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "epoch": 12,
   "content_type": "application/json",
   "aad": {
-    "space_id": "cx:space:01js0sp0000000000000000000",
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "event_kind": "cx.message.create",
     "event_ref_hash": "sha256:..."
   },
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "cx:event:01js0mg0000000000000000000"
+    "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
   }
 }
 ```
@@ -239,11 +239,11 @@ MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `e
 ```json
 {
   "governance_binding": {
-    "space_id": "cx:space:01js0sp0000000000000000000",
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "mls_group_id": "base64url...",
     "previous_epoch": 41,
     "next_epoch": 42,
-    "membership_frontier": ["cx:event:membersh1phead000000000000"],
+    "membership_frontier": ["cx:event:8ea2dd8c-c436-7b94-9000-000000000000"],
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
     "discussion_metadata_hash": "sha256:canonical_discussion_metadata",
@@ -350,7 +350,7 @@ published -> claimed -> consumed
   "kind": "cx.mls.keypackage",
   "keypackage_id": "cx:mls:kp:01JS...",
   "principal_id": "did:web:alice.example.com",
-  "device_id": "cx:device:01js0ke0000000000000000000",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "keypackage_ref": "sha256:...",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
   "capabilities": ["mimi.content.v1", "cx.content.v1"],

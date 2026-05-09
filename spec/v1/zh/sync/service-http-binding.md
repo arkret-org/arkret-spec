@@ -231,18 +231,18 @@ POST /api/v1/events
 ```json
 {
   "event": {
-    "event_id": "cx:event:01js0ev0000000000000000000",
-    "space_id": "cx:space:01js0sp0000000000000000000",
+    "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "actor_seq": 42,
     "kind": "cx.flow.update",
     "created_at": "2026-04-22T08:30:00Z",
     "hlc": "01970e589d21-0007-a13f9c2e",
     "prev_refs": [
-      "cx:event:01js0et0000000000000000000"
+      "cx:event:019640ed-0000-7000-8000-000000000000"
     ],
     "auth_refs": [
-      "cx:event:01js0gr0000000000000000000"
+      "cx:event:0196410c-0000-7000-8000-000000000000"
     ],
     "payload": {},
     "proofs": []
@@ -255,11 +255,11 @@ POST /api/v1/events
 ```json
 {
   "status": "accepted",
-  "accepted": ["cx:event:01js0ev0000000000000000000"],
+  "accepted": ["cx:event:019640ed-8000-7000-8000-000000000000"],
   "actor_frontier": {
     "actor_id": "did:web:alice.example.com",
     "actor_seq": 42,
-    "event_id": "cx:event:01js0ev0000000000000000000"
+    "event_id": "cx:event:019640ed-8000-7000-8000-000000000000"
   },
   "cursor": "cx:cursor:eyJ2IjoxLCJwIjoiYmFycmllciJ9"
 }
@@ -279,7 +279,7 @@ POST /api/v1/events/batch-get
 
 ```json
 {
-  "event_ids": ["cx:event:01js0ev0000000000000000000"],
+  "event_ids": ["cx:event:019640ed-8000-7000-8000-000000000000"],
   "include_payload": true
 }
 ```

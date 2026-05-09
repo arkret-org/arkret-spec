@@ -25,16 +25,16 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
   "resources": [
     {
       "kind": "space",
-      "space_id": "cx:space:01js0sp0000000000000000000"
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000"
     },
     {
       "kind": "flow",
-      "space_id": "cx:space:01js0sp0000000000000000000",
-      "flow_id": "cx:flow:01js0ca1000000000000000000"
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000"
     },
     {
       "kind": "morph",
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "morph_type": "customer_case"
     }
   ],
@@ -58,7 +58,7 @@ Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind �
   "resources": [
     {
       "kind": "place",
-      "place_id": "cx:place:01js0bd0000000000000000000"
+      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
     }
   ],
   "constraints": [
@@ -82,8 +82,8 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
   "resources": [
     {
       "kind": "flow",
-      "space_id": "cx:space:01js0sp0000000000000000000",
-      "flow_id": "cx:flow:01js0ca1000000000000000000"
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000"
     }
   ],
   "constraints": [
@@ -171,18 +171,18 @@ flow_part            ::= flow_id | "*"
 
 ### 3.2 词法规则（reference）
 
-- `space_id`：`cx:space:` 后接 ULID。
-- `flow_id`：`cx:flow:` 后接 ULID。
-- `message_id`：`cx:message:` 后接 ULID。
-- `morph_id`：`cx:morph:` 后接 ULID。
-- `relation_id`：`cx:relation:` 后接 ULID。
-- `view_id`：`cx:view:` 后接 ULID。
-- `event_id`：`cx:event:` 后接 ULID。
-- `policy_id`：`cx:policy:` 后接 ULID。
-- `invite_id`：`cx:invite:` 后接 ULID。
+- `space_id`：`cx:space:` 后接 UUIDv7。
+- `flow_id`：`cx:flow:` 后接 UUIDv7。
+- `message_id`：`cx:message:` 后接 UUIDv7。
+- `morph_id`：`cx:morph:` 后接 UUIDv7。
+- `relation_id`：`cx:relation:` 后接 UUIDv7。
+- `view_id`：`cx:view:` 后接 UUIDv7。
+- `event_id`：`cx:event:` 后接 UUIDv7。
+- `policy_id`：`cx:policy:` 后接 UUIDv7。
+- `invite_id`：`cx:invite:` 后接 UUIDv7。
 - `schema_id`：schema registry id，例如 `cx.schema.flow.v1` 或反向域名 schema id。
 - `did`：DID URI。
-- `blob_ref`：Blob typed ID，wire form 为 `cx` blob 前缀后接 ULID，或 content-addressed sha256 blob ref。
+- `blob_ref`：Blob typed ID，wire form 为 `cx` blob 前缀后接 UUIDv7，或 content-addressed sha256 blob ref。
 - `morph_type`：Space schema 中注册的开放对象类型。
 - `relation_kind`：关系类型，例如 `contains`、`assigned_to`、`promoted_from_discussion`、`summarized_from`。
 - `object_type`：标准对象类型或 `morph`。
@@ -199,7 +199,7 @@ flow_part            ::= flow_id | "*"
 | `resources[]` 数组长度（JSON） | 256 项 | 单个 grant 的 resource 集合上限。|
 | Disjunction(`,`) / conjunction(`+`) 总 token 数（shorthand） | 256 token | 包括 selector_term + 运算符。|
 | 嵌套深度（任意 selector 树） | 8 层 | 包括逗号 / 加号 / 引用 / 子 selector 嵌套。|
-| 单个 `selector_term` 字段值长度 | 1024 字节 | DID、URL、ULID、复合 id 都包含在内。|
+| 单个 `selector_term` 字段值长度 | 1024 字节 | DID、URL、UUIDv7、复合 id 都包含在内。|
 | `requires_claims[]` 在 subject selector 中的项数 | 32 项 | 每个 claim object 内部字段亦受单字段上限。|
 | Constraint object 内嵌套层级 | 4 层 | approval / claim object 内部最多 4 层嵌套。|
 
@@ -209,7 +209,7 @@ flow_part            ::= flow_id | "*"
 
 ### 4.1 Space 选择器
 
-`space:cx:space:01js0sp0000000000000000000`
+`space:cx:space:0196419b-0000-7000-8000-000000000000`
 
 - 匹配：特定 Space。
 - 适用：该 Space 中的对象、Event、View、policy、invite、read marker、notification 和 Blob 引用。
@@ -227,7 +227,7 @@ flow_part            ::= flow_id | "*"
 - 匹配：该 Space 中所有 Flow。
 - 若只允许某个 track 范围，必须使用 `allowed_tracks`。
 
-`flow:cx:space:...:cx:flow:01js0ca1000000000000000000`
+`flow:cx:space:...:cx:flow:019640c5-0400-7000-8000-000000000000`
 
 - 匹配：特定 Flow。
 - 不匹配：Message、Morph、Relation、View 或 Board/List 容器。
@@ -247,7 +247,7 @@ flow_part            ::= flow_id | "*"
 - 匹配：该 Space 中所有 `morph_type=customer_case` 的 Morph。
 - 不匹配：标准 Flow、Message 或 Relation。
 
-`morph:cx:space:...:cx:morph:01js0m00000000000000000000`
+`morph:cx:space:...:cx:morph:01964140-0000-7000-8000-000000000000`
 
 - 匹配：特定 Morph。
 
@@ -260,7 +260,7 @@ flow_part            ::= flow_id | "*"
 - 匹配：该 Space 中所有 `type=flow` 的对象。
 - 若只允许某个 track 范围，必须额外使用 `allowed_tracks`。
 
-`object:cx:space:...:cx:flow:01js0ca1000000000000000000`
+`object:cx:space:...:cx:flow:019640c5-0400-7000-8000-000000000000`
 
 - 匹配：给定对象引用。
 
@@ -271,7 +271,7 @@ flow_part            ::= flow_id | "*"
 - 匹配：该 Space 中所有 `contains` 关系。
 - 不授予被 relation 指向对象的读取权；跨 Space 展开必须重新执行目标 Space 授权。
 
-`view:cx:space:...:cx:view:01js0vw0000000000000000000`
+`view:cx:space:...:cx:view:019641be-0000-7000-8000-000000000000`
 
 - 匹配：特定 View 定义。
 - 查询结果仍按底层对象授权裁剪。
@@ -296,7 +296,7 @@ flow_part            ::= flow_id | "*"
 
 ### 5.2 析取 (,)
 
-`space:cx:space:01js0sa0000000000000000000,space:cx:space:01js0sb0000000000000000000`
+`space:cx:space:01964195-0000-7000-8000-000000000000,space:cx:space:01964195-8000-7000-8000-000000000000`
 
 - 表示任一 selector 命中即可。
 

@@ -25,20 +25,20 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "source_event_id": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "source_ref": {
       "type": "string",
-      "pattern": "^cx:(message|flow|morph|relation|view|blob):[0-9a-hjkmnp-z]{26}$",
+      "pattern": "^cx:(message|flow|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional canonical-object reference for clients that want to render the notification target without resolving source_event_id. Reducers MUST treat source_event_id as authoritative; source_ref is a render-only hint."
     },
     "flow_id": {
       "type": "string",
-      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$",
+      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional Flow context for routing the notification."
     },
     "track": {

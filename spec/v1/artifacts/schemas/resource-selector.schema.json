@@ -31,31 +31,31 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "place_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "object_type": {
       "type": "string"
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^cx:(space|place|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-hjkmnp-z]{26}$",
+      "pattern": "^cx:(space|place|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Canonical object reference. Acceptable typed-id kinds match the v1 resource selector kind enum (see resource-selector-grammar.md §3.1). Notably MUST NOT include 'actor_profile' (use the 'actor' selector with did pattern), nor non-canonical 'board' / 'list' / 'card' / 'subject' / 'room' kinds — board / list / swimlane / calendar bucket are Place objects and MUST use the 'place' kind together with the 'place_kind_allow' constraint to restrict which Place kinds the grant covers."
     },
     "flow_id": {
       "type": "string",
-      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "message_id": {
       "type": "string",
-      "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "morph_id": {
       "type": "string",
-      "pattern": "^cx:morph:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "morph_type": {
       "type": "string"
@@ -65,15 +65,15 @@
     },
     "relation_id": {
       "type": "string",
-      "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "view_id": {
       "type": "string",
-      "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_id": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
       "type": "string",
@@ -84,15 +84,15 @@
     },
     "policy_id": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "invite_id": {
       "type": "string",
-      "pattern": "^cx:invite:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:invite:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "blob_ref": {
       "type": "string",
-      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "scope": {
       "type": "string",

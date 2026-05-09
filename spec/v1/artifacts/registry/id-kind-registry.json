@@ -4,14 +4,12 @@
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "cx",
-  "ulid_pattern": "^[0-9a-hjkmnp-z]{26}$",
-  "typed_ulid_pattern": "^cx:<kind>:[0-9a-hjkmnp-z]{26}$",
   "storage_rules": [
-    "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form cx:<kind>:<id> unless a special form below applies.",
-    "Storage implementations MAY store raw IDs without the cx:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
+    "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form cx:<kind>:<uuid> unless a special form below applies.",
+    "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the cx:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
     "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
     "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-    "The raw ULID segment MUST use lowercase Crockford Base32 and MUST NOT contain i, l, o, or u."
+    "The UUID segment MUST be RFC 9562 UUID version 7 (48-bit Unix-millisecond timestamp + 4-bit version=7 + 12-bit rand_a + 2-bit variant=10b + 62-bit rand_b), serialized as the canonical 36-character lowercase hex form `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` where N ∈ {8,9,a,b}."
   ],
   "special_forms": [
     {
@@ -19,21 +17,21 @@
       "wire_form": "cx:cursor:<base64url>",
       "status": "active",
       "storage_recommendation": "Store as an opaque token or store server-private cursor state keyed by a raw token.",
-      "description": "Opaque sync/query cursor; not a typed ULID object ID."
+      "description": "Opaque sync/query cursor; not a typed-UUIDv7 object ID."
     },
     {
       "kind": "blob",
       "wire_form": "cx:blob:sha256:<digest>",
       "status": "active",
       "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
-      "description": "Content-addressed blob reference; distinct from cx:blob:<ulid> blob metadata IDs."
+      "description": "Content-addressed blob reference; distinct from cx:blob:<uuid> blob metadata IDs."
     },
     {
       "kind": "mls",
       "wire_form": "cx:mls:<profile>:<profile_id>",
       "status": "profile_extension",
       "storage_recommendation": "Store profile and raw profile_id separately.",
-      "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed ULID pattern."
+      "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed-UUIDv7."
     },
     {
       "kind": "pseudonym",
@@ -62,253 +60,255 @@
       "kind": "actor_profile",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:actor_profile:<ulid>",
+      "wire_form": "cx:actor_profile:<uuid>",
       "description": "Actor profile object ID"
     },
     {
       "kind": "agent_session",
       "category": "extension",
       "status": "active",
-      "wire_form": "cx:agent_session:<ulid>",
+      "wire_form": "cx:agent_session:<uuid>",
       "description": "Agent protocol session ID"
     },
     {
       "kind": "applet",
       "category": "extension",
       "status": "active",
-      "wire_form": "cx:applet:<ulid>",
+      "wire_form": "cx:applet:<uuid>",
       "description": "Applet registration/service ID"
     },
     {
       "kind": "backup",
       "category": "identity",
       "status": "active",
-      "wire_form": "cx:backup:<ulid>",
+      "wire_form": "cx:backup:<uuid>",
       "description": "Encrypted backup object ID"
     },
     {
       "kind": "batch",
       "category": "discovery",
       "status": "active",
-      "wire_form": "cx:batch:<ulid>",
+      "wire_form": "cx:batch:<uuid>",
       "description": "Discovery/private-contact batch ID"
     },
     {
       "kind": "blob",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:blob:<ulid>",
+      "wire_form": "cx:blob:<uuid>",
       "description": "Blob metadata row ID; content-addressed blobs use the special digest form"
     },
     {
       "kind": "block",
       "category": "account_private",
       "status": "active",
-      "wire_form": "cx:block:<ulid>",
+      "wire_form": "cx:block:<uuid>",
       "description": "Actor-private blocklist entry ID"
     },
     {
       "kind": "call",
       "category": "media",
       "status": "active",
-      "wire_form": "cx:call:<ulid>",
+      "wire_form": "cx:call:<uuid>",
       "description": "Call/session ID"
     },
     {
       "kind": "capability",
       "category": "authz",
       "status": "active",
-      "wire_form": "cx:capability:<ulid>",
-      "description": "Abstract capability definition reference ID; signed grant objects use cx:grant:<ulid>."
+      "wire_form": "cx:capability:<uuid>",
+      "description": "Abstract capability definition reference ID; signed grant objects use cx:grant:<uuid>."
     },
     {
       "kind": "flow",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:flow:<ulid>",
+      "wire_form": "cx:flow:<uuid>",
       "description": "Flow object ID"
     },
     {
       "kind": "chunk",
       "category": "snapshot",
       "status": "active",
-      "wire_form": "cx:chunk:<ulid>",
+      "wire_form": "cx:chunk:<uuid>",
       "description": "Snapshot/blob chunk ID"
     },
     {
       "kind": "claim",
       "category": "identity_authz",
       "status": "active",
-      "wire_form": "cx:claim:<ulid>",
+      "wire_form": "cx:claim:<uuid>",
       "description": "Claim or attestation ID"
     },
     {
       "kind": "device",
       "category": "identity",
       "status": "active",
-      "wire_form": "cx:device:<ulid>",
+      "wire_form": "cx:device:<uuid>",
       "description": "Device ID"
     },
     {
       "kind": "devmsg",
       "category": "sync",
       "status": "active",
-      "wire_form": "cx:devmsg:<ulid>",
+      "wire_form": "cx:devmsg:<uuid>",
       "description": "To-device message queue ID"
     },
     {
       "kind": "event",
       "category": "event_history",
       "status": "active",
-      "wire_form": "cx:event:<ulid>",
+      "wire_form": "cx:event:<uuid>",
       "description": "Event Envelope ID"
     },
     {
       "kind": "filter",
       "category": "policy",
       "status": "active",
-      "wire_form": "cx:filter:<ulid>",
+      "wire_form": "cx:filter:<uuid>",
       "description": "Moderation/filter rule ID"
     },
     {
       "kind": "frame",
       "category": "transport",
       "status": "active",
-      "wire_form": "cx:frame:<ulid>",
+      "wire_form": "cx:frame:<uuid>",
       "description": "Non-HTTP stream frame ID"
     },
     {
       "kind": "frank",
       "category": "moderation",
       "status": "active",
-      "wire_form": "cx:frank:<ulid>",
+      "wire_form": "cx:frank:<uuid>",
       "description": "Message franking proof ID"
     },
     {
       "kind": "grant",
       "category": "authz",
       "status": "active",
-      "wire_form": "cx:grant:<ulid>",
+      "wire_form": "cx:grant:<uuid>",
       "description": "Signed capability grant object ID used by cx.schema.capability.v1 and grant/revoke references."
     },
     {
       "kind": "invite",
       "category": "authz",
       "status": "active",
-      "wire_form": "cx:invite:<ulid>",
+      "wire_form": "cx:invite:<uuid>",
       "description": "Invite object ID"
     },
     {
       "kind": "keyevt",
       "category": "identity",
       "status": "active",
-      "wire_form": "cx:keyevt:<ulid>",
+      "wire_form": "cx:keyevt:<uuid>",
       "description": "DID/key log event ID"
     },
     {
       "kind": "message",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:message:<ulid>",
+      "wire_form": "cx:message:<uuid>",
       "description": "Message object ID"
     },
     {
       "kind": "morph",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:morph:<ulid>",
+      "wire_form": "cx:morph:<uuid>",
       "description": "Morph object ID"
     },
     {
       "kind": "notif",
       "category": "derived_projection",
       "status": "active",
-      "wire_form": "cx:notif:<ulid>",
+      "wire_form": "cx:notif:<uuid>",
       "description": "Notification projection ID"
     },
     {
       "kind": "policy",
       "category": "policy",
       "status": "active",
-      "wire_form": "cx:policy:<ulid>",
+      "wire_form": "cx:policy:<uuid>",
       "description": "Policy object ID"
     },
     {
       "kind": "presentation",
       "category": "identity",
       "status": "active",
-      "wire_form": "cx:presentation:<ulid>",
+      "wire_form": "cx:presentation:<uuid>",
       "description": "Presentation/proof exchange ID"
     },
     {
       "kind": "receipt",
       "category": "receipt",
       "status": "active",
-      "wire_form": "cx:receipt:<ulid>",
+      "wire_form": "cx:receipt:<uuid>",
       "description": "Receipt object ID"
     },
     {
       "kind": "relation",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:relation:<ulid>",
+      "wire_form": "cx:relation:<uuid>",
       "description": "Relation object ID"
     },
     {
       "kind": "report",
       "category": "moderation",
       "status": "active",
-      "wire_form": "cx:report:<ulid>",
+      "wire_form": "cx:report:<uuid>",
       "description": "Moderation report ID"
     },
     {
       "kind": "modq",
       "category": "moderation",
       "status": "active",
-      "wire_form": "cx:modq:<ulid>",
+      "wire_form": "cx:modq:<uuid>",
       "description": "Moderation queue item ID"
     },
     {
       "kind": "req",
       "category": "transport",
       "status": "active",
-      "wire_form": "cx:req:<ulid>",
+      "wire_form": "cx:req:<uuid>",
       "description": "Request/correlation ID"
     },
     {
       "kind": "snapshot",
       "category": "snapshot",
       "status": "active",
-      "wire_form": "cx:snapshot:<ulid>",
+      "wire_form": "cx:snapshot:<uuid>",
       "description": "Snapshot manifest ID"
     },
     {
       "kind": "place",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:place:<ulid>",
+      "wire_form": "cx:place:<uuid>",
       "description": "Place object ID — structural grouping object inside a Space (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Space."
     },
     {
       "kind": "space",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:space:<ulid>",
+      "wire_form": "cx:space:<uuid>",
       "description": "Space object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
     },
     {
       "kind": "txn",
       "category": "transport",
       "status": "active",
-      "wire_form": "cx:txn:<ulid>",
+      "wire_form": "cx:txn:<uuid>",
       "description": "Federation/applet transaction ID"
     },
     {
       "kind": "view",
       "category": "core_object",
       "status": "active",
-      "wire_form": "cx:view:<ulid>",
+      "wire_form": "cx:view:<uuid>",
       "description": "View object ID"
     }
-  ]
+  ],
+  "uuid_pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+  "typed_uuid_pattern": "^cx:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 }

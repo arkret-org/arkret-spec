@@ -136,7 +136,7 @@ Signature: sig1=:base64...:
 {
   "origin": "did:web:server-alpha.com",
   "destination": "did:web:server-beta.com",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "service_binding_ref": {
     "space_policy_hash": "sha256:...",
     "membership_frontier": ["cx:event:..."],
@@ -255,7 +255,7 @@ Host: server-alpha.com
 
 ```json
 {
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "heads": ["sha256:..."],
   "max_hlc": "01970e589d21-0004-a13f9c2e",
   "witness_receipts": []
@@ -302,7 +302,7 @@ Bob 也可以主动申请加入：
 
 ```json
 {
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "sync_endpoints": [
     {
       "did": "did:web:server-alpha.com",

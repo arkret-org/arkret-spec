@@ -1564,14 +1564,12 @@
   },
   "id_kind_registry": {
     "namespace": "cx",
-    "ulid_pattern": "^[0-9a-hjkmnp-z]{26}$",
-    "typed_ulid_pattern": "^cx:<kind>:[0-9a-hjkmnp-z]{26}$",
     "storage_rules": [
-      "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form cx:<kind>:<id> unless a special form below applies.",
-      "Storage implementations MAY store raw IDs without the cx:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
+      "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form cx:<kind>:<uuid> unless a special form below applies.",
+      "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the cx:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
       "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
       "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
-      "The raw ULID segment MUST use lowercase Crockford Base32 and MUST NOT contain i, l, o, or u."
+      "The UUID segment MUST be RFC 9562 UUID version 7 (48-bit Unix-millisecond timestamp + 4-bit version=7 + 12-bit rand_a + 2-bit variant=10b + 62-bit rand_b), serialized as the canonical 36-character lowercase hex form `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` where N ∈ {8,9,a,b}."
     ],
     "special_forms": [
       {
@@ -1579,21 +1577,21 @@
         "wire_form": "cx:cursor:<base64url>",
         "status": "active",
         "storage_recommendation": "Store as an opaque token or store server-private cursor state keyed by a raw token.",
-        "description": "Opaque sync/query cursor; not a typed ULID object ID."
+        "description": "Opaque sync/query cursor; not a typed-UUIDv7 object ID."
       },
       {
         "kind": "blob",
         "wire_form": "cx:blob:sha256:<digest>",
         "status": "active",
         "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
-        "description": "Content-addressed blob reference; distinct from cx:blob:<ulid> blob metadata IDs."
+        "description": "Content-addressed blob reference; distinct from cx:blob:<uuid> blob metadata IDs."
       },
       {
         "kind": "mls",
         "wire_form": "cx:mls:<profile>:<profile_id>",
         "status": "profile_extension",
         "storage_recommendation": "Store profile and raw profile_id separately.",
-        "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed ULID pattern."
+        "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed-UUIDv7."
       },
       {
         "kind": "pseudonym",
@@ -1622,255 +1620,257 @@
         "kind": "actor_profile",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:actor_profile:<ulid>",
+        "wire_form": "cx:actor_profile:<uuid>",
         "description": "Actor profile object ID"
       },
       {
         "kind": "agent_session",
         "category": "extension",
         "status": "active",
-        "wire_form": "cx:agent_session:<ulid>",
+        "wire_form": "cx:agent_session:<uuid>",
         "description": "Agent protocol session ID"
       },
       {
         "kind": "applet",
         "category": "extension",
         "status": "active",
-        "wire_form": "cx:applet:<ulid>",
+        "wire_form": "cx:applet:<uuid>",
         "description": "Applet registration/service ID"
       },
       {
         "kind": "backup",
         "category": "identity",
         "status": "active",
-        "wire_form": "cx:backup:<ulid>",
+        "wire_form": "cx:backup:<uuid>",
         "description": "Encrypted backup object ID"
       },
       {
         "kind": "batch",
         "category": "discovery",
         "status": "active",
-        "wire_form": "cx:batch:<ulid>",
+        "wire_form": "cx:batch:<uuid>",
         "description": "Discovery/private-contact batch ID"
       },
       {
         "kind": "blob",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:blob:<ulid>",
+        "wire_form": "cx:blob:<uuid>",
         "description": "Blob metadata row ID; content-addressed blobs use the special digest form"
       },
       {
         "kind": "block",
         "category": "account_private",
         "status": "active",
-        "wire_form": "cx:block:<ulid>",
+        "wire_form": "cx:block:<uuid>",
         "description": "Actor-private blocklist entry ID"
       },
       {
         "kind": "call",
         "category": "media",
         "status": "active",
-        "wire_form": "cx:call:<ulid>",
+        "wire_form": "cx:call:<uuid>",
         "description": "Call/session ID"
       },
       {
         "kind": "capability",
         "category": "authz",
         "status": "active",
-        "wire_form": "cx:capability:<ulid>",
-        "description": "Abstract capability definition reference ID; signed grant objects use cx:grant:<ulid>."
+        "wire_form": "cx:capability:<uuid>",
+        "description": "Abstract capability definition reference ID; signed grant objects use cx:grant:<uuid>."
       },
       {
         "kind": "flow",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:flow:<ulid>",
+        "wire_form": "cx:flow:<uuid>",
         "description": "Flow object ID"
       },
       {
         "kind": "chunk",
         "category": "snapshot",
         "status": "active",
-        "wire_form": "cx:chunk:<ulid>",
+        "wire_form": "cx:chunk:<uuid>",
         "description": "Snapshot/blob chunk ID"
       },
       {
         "kind": "claim",
         "category": "identity_authz",
         "status": "active",
-        "wire_form": "cx:claim:<ulid>",
+        "wire_form": "cx:claim:<uuid>",
         "description": "Claim or attestation ID"
       },
       {
         "kind": "device",
         "category": "identity",
         "status": "active",
-        "wire_form": "cx:device:<ulid>",
+        "wire_form": "cx:device:<uuid>",
         "description": "Device ID"
       },
       {
         "kind": "devmsg",
         "category": "sync",
         "status": "active",
-        "wire_form": "cx:devmsg:<ulid>",
+        "wire_form": "cx:devmsg:<uuid>",
         "description": "To-device message queue ID"
       },
       {
         "kind": "event",
         "category": "event_history",
         "status": "active",
-        "wire_form": "cx:event:<ulid>",
+        "wire_form": "cx:event:<uuid>",
         "description": "Event Envelope ID"
       },
       {
         "kind": "filter",
         "category": "policy",
         "status": "active",
-        "wire_form": "cx:filter:<ulid>",
+        "wire_form": "cx:filter:<uuid>",
         "description": "Moderation/filter rule ID"
       },
       {
         "kind": "frame",
         "category": "transport",
         "status": "active",
-        "wire_form": "cx:frame:<ulid>",
+        "wire_form": "cx:frame:<uuid>",
         "description": "Non-HTTP stream frame ID"
       },
       {
         "kind": "frank",
         "category": "moderation",
         "status": "active",
-        "wire_form": "cx:frank:<ulid>",
+        "wire_form": "cx:frank:<uuid>",
         "description": "Message franking proof ID"
       },
       {
         "kind": "grant",
         "category": "authz",
         "status": "active",
-        "wire_form": "cx:grant:<ulid>",
+        "wire_form": "cx:grant:<uuid>",
         "description": "Signed capability grant object ID used by cx.schema.capability.v1 and grant/revoke references."
       },
       {
         "kind": "invite",
         "category": "authz",
         "status": "active",
-        "wire_form": "cx:invite:<ulid>",
+        "wire_form": "cx:invite:<uuid>",
         "description": "Invite object ID"
       },
       {
         "kind": "keyevt",
         "category": "identity",
         "status": "active",
-        "wire_form": "cx:keyevt:<ulid>",
+        "wire_form": "cx:keyevt:<uuid>",
         "description": "DID/key log event ID"
       },
       {
         "kind": "message",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:message:<ulid>",
+        "wire_form": "cx:message:<uuid>",
         "description": "Message object ID"
       },
       {
         "kind": "morph",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:morph:<ulid>",
+        "wire_form": "cx:morph:<uuid>",
         "description": "Morph object ID"
       },
       {
         "kind": "notif",
         "category": "derived_projection",
         "status": "active",
-        "wire_form": "cx:notif:<ulid>",
+        "wire_form": "cx:notif:<uuid>",
         "description": "Notification projection ID"
       },
       {
         "kind": "policy",
         "category": "policy",
         "status": "active",
-        "wire_form": "cx:policy:<ulid>",
+        "wire_form": "cx:policy:<uuid>",
         "description": "Policy object ID"
       },
       {
         "kind": "presentation",
         "category": "identity",
         "status": "active",
-        "wire_form": "cx:presentation:<ulid>",
+        "wire_form": "cx:presentation:<uuid>",
         "description": "Presentation/proof exchange ID"
       },
       {
         "kind": "receipt",
         "category": "receipt",
         "status": "active",
-        "wire_form": "cx:receipt:<ulid>",
+        "wire_form": "cx:receipt:<uuid>",
         "description": "Receipt object ID"
       },
       {
         "kind": "relation",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:relation:<ulid>",
+        "wire_form": "cx:relation:<uuid>",
         "description": "Relation object ID"
       },
       {
         "kind": "report",
         "category": "moderation",
         "status": "active",
-        "wire_form": "cx:report:<ulid>",
+        "wire_form": "cx:report:<uuid>",
         "description": "Moderation report ID"
       },
       {
         "kind": "modq",
         "category": "moderation",
         "status": "active",
-        "wire_form": "cx:modq:<ulid>",
+        "wire_form": "cx:modq:<uuid>",
         "description": "Moderation queue item ID"
       },
       {
         "kind": "req",
         "category": "transport",
         "status": "active",
-        "wire_form": "cx:req:<ulid>",
+        "wire_form": "cx:req:<uuid>",
         "description": "Request/correlation ID"
       },
       {
         "kind": "snapshot",
         "category": "snapshot",
         "status": "active",
-        "wire_form": "cx:snapshot:<ulid>",
+        "wire_form": "cx:snapshot:<uuid>",
         "description": "Snapshot manifest ID"
       },
       {
         "kind": "place",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:place:<ulid>",
+        "wire_form": "cx:place:<uuid>",
         "description": "Place object ID — structural grouping object inside a Space (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Space."
       },
       {
         "kind": "space",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:space:<ulid>",
+        "wire_form": "cx:space:<uuid>",
         "description": "Space object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
       },
       {
         "kind": "txn",
         "category": "transport",
         "status": "active",
-        "wire_form": "cx:txn:<ulid>",
+        "wire_form": "cx:txn:<uuid>",
         "description": "Federation/applet transaction ID"
       },
       {
         "kind": "view",
         "category": "core_object",
         "status": "active",
-        "wire_form": "cx:view:<ulid>",
+        "wire_form": "cx:view:<uuid>",
         "description": "View object ID"
       }
-    ]
+    ],
+    "uuid_pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+    "typed_uuid_pattern": "^cx:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
   },
   "operation_registry": {
     "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2547,96 +2547,884 @@
       "profile is null for v1 core actions, or a cx.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)."
     ],
     "actions": [
-      {"action": "cx.space.discover", "category": "general", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.space.create", "category": "general", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.space.create"], "profile": null},
-      {"action": "cx.space.update", "category": "general", "risk_tier": "medium", "required_constraints": ["fields_write_allow"], "target_event_kinds": ["cx.space.update"], "profile": null},
-      {"action": "cx.space.lifecycle.archive", "category": "general", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.space.archive"], "profile": null},
-      {"action": "cx.space.lifecycle.freeze", "category": "general", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.space.freeze"], "profile": null},
-      {"action": "cx.space.lifecycle.tombstone", "category": "general", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.space.tombstone"], "profile": null},
-      {"action": "cx.space.lifecycle.destroy", "category": "general", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.space.destroy"], "profile": null},
-      {"action": "cx.object.read", "category": "general", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.object.read_metadata", "category": "general", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.object.read_content", "category": "general", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.object.archive", "category": "general", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.archive", "cx.morph.archive"], "profile": null},
-      {"action": "cx.object.restore", "category": "general", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.restore", "cx.morph.restore"], "profile": null},
-      {"action": "cx.flow.create", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.create"], "profile": null},
-      {"action": "cx.flow.read", "category": "flow", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.flow.update", "category": "flow", "risk_tier": "medium", "required_constraints": ["fields_write_allow"], "target_event_kinds": ["cx.flow.update"], "profile": null},
-      {"action": "cx.flow.archive", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.archive"], "profile": null},
-      {"action": "cx.flow.restore", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.restore"], "profile": null},
-      {"action": "cx.flow.move", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.move"], "profile": null},
-      {"action": "cx.flow.reorder", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.reorder"], "profile": null},
-      {"action": "cx.flow.track.enable", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.track.enable"], "profile": null},
-      {"action": "cx.flow.track.disable", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.track.disable"], "profile": null},
-      {"action": "cx.flow.track.update", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.track.update"], "profile": null},
-      {"action": "cx.flow.track.set_primary", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.flow.track.set_primary"], "profile": null},
-      {"action": "cx.flow.track.read", "category": "discussion", "risk_tier": "low", "required_constraints": ["allowed_tracks"], "target_event_kinds": [], "profile": null},
-      {"action": "cx.flow.track.admin", "category": "discussion", "risk_tier": "high", "required_constraints": ["allowed_tracks"], "target_event_kinds": [], "profile": null},
-      {"action": "cx.relation.create", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.relation.create"], "profile": null},
-      {"action": "cx.relation.update", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.relation.update"], "profile": null},
-      {"action": "cx.relation.delete", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.relation.delete"], "profile": null},
-      {"action": "cx.place.create", "category": "flow", "risk_tier": "medium", "required_constraints": ["place_kind_allow"], "target_event_kinds": ["cx.place.create"], "profile": null},
-      {"action": "cx.place.update", "category": "flow", "risk_tier": "medium", "required_constraints": ["place_kind_allow"], "target_event_kinds": ["cx.place.update"], "profile": null},
-      {"action": "cx.place.parent", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.place.parent"], "profile": null},
-      {"action": "cx.place.archive", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.place.archive"], "profile": null},
-      {"action": "cx.place.tombstone", "category": "flow", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.place.tombstone"], "profile": null},
-      {"action": "cx.container.move_item", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.container.move_item"], "profile": null},
-      {"action": "cx.container.rebalance", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.container.rebalance"], "profile": null},
-      {"action": "cx.view.create", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.view.create"], "profile": null},
-      {"action": "cx.view.update", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.view.update"], "profile": null},
-      {"action": "cx.view.reconcile", "category": "flow", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.view.reconcile"], "profile": null},
-      {"action": "cx.event.read", "category": "discussion", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.message.create", "category": "discussion", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.message.create"], "profile": null},
-      {"action": "cx.message.revise", "category": "discussion", "risk_tier": "medium", "required_constraints": ["message_edit_window"], "target_event_kinds": ["cx.message.revise"], "profile": null},
-      {"action": "cx.message.revise.own", "category": "discussion", "risk_tier": "low", "required_constraints": ["message_edit_window"], "target_event_kinds": ["cx.message.revise"], "profile": null},
-      {"action": "cx.message.redact", "category": "discussion", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.message.redact", "cx.redaction"], "profile": null},
-      {"action": "cx.message.redact.own", "category": "discussion", "risk_tier": "low", "required_constraints": [], "target_event_kinds": ["cx.message.redact", "cx.redaction"], "profile": null},
-      {"action": "cx.reaction.add", "category": "discussion", "risk_tier": "low", "required_constraints": [], "target_event_kinds": ["cx.reaction.add"], "profile": null},
-      {"action": "cx.reaction.remove", "category": "discussion", "risk_tier": "low", "required_constraints": [], "target_event_kinds": ["cx.reaction.remove"], "profile": null},
-      {"action": "cx.space.admin", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.space.hierarchy.manage", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.space.parent", "cx.space.child"], "profile": null},
-      {"action": "cx.space.upgrade", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.space.upgrade"], "profile": null},
-      {"action": "cx.space.moderate", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.space.moderation_policy"], "profile": null},
-      {"action": "cx.flow.admin", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.schema.define", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.schema.define"], "profile": null},
-      {"action": "cx.schema.update", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.schema.update"], "profile": null},
-      {"action": "cx.capability.grant", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.capability.grant"], "profile": null},
-      {"action": "cx.capability.delegate", "category": "management", "risk_tier": "high", "required_constraints": ["max_delegation_depth"], "target_event_kinds": ["cx.capability.delegate"], "profile": null},
-      {"action": "cx.capability.derived", "category": "management", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.capability.derived"], "profile": null},
-      {"action": "cx.capability.revoke", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.capability.revoke"], "profile": null},
-      {"action": "cx.policy.manage", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.policy.set", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.policy.set"], "profile": null},
-      {"action": "cx.policy.rule", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.policy.rule"], "profile": null},
-      {"action": "cx.policy.action", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.policy.action"], "profile": null},
-      {"action": "cx.invite.create", "category": "management", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.invite.create"], "profile": null},
-      {"action": "cx.invite.cancel", "category": "management", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.invite.cancel"], "profile": null},
-      {"action": "cx.invite.third_party", "category": "management", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.invite.third_party"], "profile": null},
-      {"action": "cx.invite.claim", "category": "management", "risk_tier": "low", "required_constraints": [], "target_event_kinds": ["cx.invite.claim"], "profile": null},
-      {"action": "cx.invite.revoke", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.invite.revoke"], "profile": null},
-      {"action": "cx.approval.vote", "category": "management", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.moderation.decision", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.moderation.decision"], "profile": null},
-      {"action": "cx.moderation.decision.lift", "category": "management", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.moderation.decision.lift"], "profile": null},
-      {"action": "cx.events.query", "category": "service", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.events.subscribe", "category": "service", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.sync.account", "category": "service", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.sync.describe", "category": "service", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.sync.get_snapshot_head", "category": "service", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.blob.upload", "category": "service", "risk_tier": "medium", "required_constraints": ["blob_max_bytes"], "target_event_kinds": [], "profile": null},
-      {"action": "cx.blob.get", "category": "service", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.blob.head", "category": "service", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.call.configure_media_service", "category": "service", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.space.media_service"], "profile": null},
-      {"action": "cx.mls.genesis", "category": "service", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.mls.genesis"], "profile": null},
-      {"action": "cx.mls.proposal", "category": "service", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.mls.proposal"], "profile": null},
-      {"action": "cx.mls.commit", "category": "service", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.mls.commit", "cx.mls.commit_failed"], "profile": null},
-      {"action": "cx.mls.welcome", "category": "service", "risk_tier": "high", "required_constraints": [], "target_event_kinds": ["cx.mls.welcome"], "profile": null},
-      {"action": "cx.mls.keypackage", "category": "service", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.mls.keypackage"], "profile": null},
-      {"action": "cx.audit.accessed", "category": "service", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": ["cx.audit.accessed"], "profile": null},
-      {"action": "cx.audit.query", "category": "service", "risk_tier": "medium", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.audit.export", "category": "service", "risk_tier": "high", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.read.marker", "category": "personal", "risk_tier": "low", "required_constraints": [], "target_event_kinds": ["cx.read.marker"], "profile": null},
-      {"action": "cx.notification.read", "category": "personal", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.notification.ack", "category": "personal", "risk_tier": "low", "required_constraints": [], "target_event_kinds": [], "profile": null},
-      {"action": "cx.invite.accept", "category": "personal", "risk_tier": "low", "required_constraints": [], "target_event_kinds": ["cx.invite.accept"], "profile": null}
+      {
+        "action": "cx.space.discover",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.space.create",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.create"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.update",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "fields_write_allow"
+        ],
+        "target_event_kinds": [
+          "cx.space.update"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.lifecycle.archive",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.archive"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.lifecycle.freeze",
+        "category": "general",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.freeze"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.lifecycle.tombstone",
+        "category": "general",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.tombstone"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.lifecycle.destroy",
+        "category": "general",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.destroy"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.object.read",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.object.read_metadata",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.object.read_content",
+        "category": "general",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.object.archive",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.archive",
+          "cx.morph.archive"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.object.restore",
+        "category": "general",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.restore",
+          "cx.morph.restore"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.create",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.create"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.read",
+        "category": "flow",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.update",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "fields_write_allow"
+        ],
+        "target_event_kinds": [
+          "cx.flow.update"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.archive",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.archive"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.restore",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.restore"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.move",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.move"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.reorder",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.reorder"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.track.enable",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.track.enable"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.track.disable",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.track.disable"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.track.update",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.track.update"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.track.set_primary",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.track.set_primary"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.track.read",
+        "category": "discussion",
+        "risk_tier": "low",
+        "required_constraints": [
+          "allowed_tracks"
+        ],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.track.admin",
+        "category": "discussion",
+        "risk_tier": "high",
+        "required_constraints": [
+          "allowed_tracks"
+        ],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.relation.create",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.relation.create"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.relation.update",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.relation.update"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.relation.delete",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.relation.delete"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.place.create",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "place_kind_allow"
+        ],
+        "target_event_kinds": [
+          "cx.place.create"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.place.update",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "place_kind_allow"
+        ],
+        "target_event_kinds": [
+          "cx.place.update"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.place.parent",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.place.parent"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.place.archive",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.place.archive"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.place.tombstone",
+        "category": "flow",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.place.tombstone"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.container.move_item",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.container.move_item"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.container.rebalance",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.container.rebalance"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.view.create",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.view.create"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.view.update",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.view.update"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.view.reconcile",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.view.reconcile"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.event.read",
+        "category": "discussion",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.message.create",
+        "category": "discussion",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.message.create"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.message.revise",
+        "category": "discussion",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "message_edit_window"
+        ],
+        "target_event_kinds": [
+          "cx.message.revise"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.message.revise.own",
+        "category": "discussion",
+        "risk_tier": "low",
+        "required_constraints": [
+          "message_edit_window"
+        ],
+        "target_event_kinds": [
+          "cx.message.revise"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.message.redact",
+        "category": "discussion",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.message.redact",
+          "cx.redaction"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.message.redact.own",
+        "category": "discussion",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.message.redact",
+          "cx.redaction"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.reaction.add",
+        "category": "discussion",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.reaction.add"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.reaction.remove",
+        "category": "discussion",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.reaction.remove"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.admin",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.space.hierarchy.manage",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.parent",
+          "cx.space.child"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.upgrade",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.upgrade"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.moderate",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.moderation_policy"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.admin",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.schema.define",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.schema.define"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.schema.update",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.schema.update"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.capability.grant",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.capability.grant"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.capability.delegate",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [
+          "max_delegation_depth"
+        ],
+        "target_event_kinds": [
+          "cx.capability.delegate"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.capability.derived",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.capability.derived"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.capability.revoke",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.capability.revoke"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.policy.manage",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.policy.set",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.policy.set"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.policy.rule",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.policy.rule"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.policy.action",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.policy.action"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.invite.create",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.invite.create"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.invite.cancel",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.invite.cancel"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.invite.third_party",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.invite.third_party"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.invite.claim",
+        "category": "management",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.invite.claim"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.invite.revoke",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.invite.revoke"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.approval.vote",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.moderation.decision",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.moderation.decision"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.moderation.decision.lift",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.moderation.decision.lift"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.events.query",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.events.subscribe",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.sync.account",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.sync.describe",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.sync.get_snapshot_head",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.blob.upload",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "blob_max_bytes"
+        ],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.blob.get",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.blob.head",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.call.configure_media_service",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.space.media_service"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.mls.genesis",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.mls.genesis"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.mls.proposal",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.mls.proposal"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.mls.commit",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.mls.commit",
+          "cx.mls.commit_failed"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.mls.welcome",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.mls.welcome"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.mls.keypackage",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.mls.keypackage"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.audit.accessed",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.audit.accessed"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.audit.query",
+        "category": "service",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.audit.export",
+        "category": "service",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.read.marker",
+        "category": "personal",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.read.marker"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.notification.read",
+        "category": "personal",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.notification.ack",
+        "category": "personal",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.invite.accept",
+        "category": "personal",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.invite.accept"
+        ],
+        "profile": null
+      }
     ]
   }
 }

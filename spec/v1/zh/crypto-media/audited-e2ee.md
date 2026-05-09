@@ -85,15 +85,15 @@ Audit Agent profile MUST 满足：
 
 获得密钥并不意味着可以合规地随意查看。协议要求 Audit Agent 按声明的 audit profile 执行以下工作流；`cx.profile.attested_audit.e2ee.v1` 下该实现必须依托 TEE / enclave 或等价硬件隔离环境，并保证 MLS key、exporter secret 或解密明文不会在审计确认前离开受控边界：
 
-1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:message:msg12300000000000000000000`）。
+1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:message:99804430-0000-7000-8000-000000000000`）。
 2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条 `kind="cx.audit.accessed"` 的不可撤销 Event，并提交给该 Space：
    ```json
    {
      "kind": "cx.audit.accessed",
-     "space_id": "cx:space:01js0sp0000000000000000000",
+     "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
      "actor_id": "did:web:compliance.acme.corp",
      "payload": {
-       "target_ref": "cx:message:msg12300000000000000000000",
+       "target_ref": "cx:message:99804430-0000-7000-8000-000000000000",
        "purpose": "Internal legal compliance request #8801",
        "accessed_at": "2026-04-30T00:00:00Z"
      }
@@ -112,20 +112,20 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 
 ```json
 {
-  "receipt_id": "cx:receipt:01js0ry0000000000000000000",
+  "receipt_id": "cx:receipt:0196418f-0000-7000-8000-000000000000",
   "schema": "cx.schema.audit_ryw_receipt.v1",
   "issuer": "did:web:witness.example.com",
   "issuer_role": "witness",
-  "audit_event_id": "cx:event:01js0aa0000000000000000000",
+  "audit_event_id": "cx:event:019640a5-0000-7000-8000-000000000000",
   "audit_event_digest": "sha256:...",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "audit_actor_id": "did:web:audit-agent.example.com",
   "frontier": {
     "space_frontier": ["cx:event:..."],
     "actor_frontier": {
       "did:web:audit-agent.example.com": {
         "actor_seq": 17,
-        "event_id": "cx:event:01js0aa0000000000000000000"
+        "event_id": "cx:event:019640a5-0000-7000-8000-000000000000"
       }
     }
   },
@@ -149,7 +149,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `receipt_id` | yes | `cx:receipt:<ulid>`。 |
+| `receipt_id` | yes | `cx:receipt:<uuid>`。 |
 | `schema` | yes | 固定 `cx.schema.audit_ryw_receipt.v1`。该字段同时充当类型鉴别器，与 `cx.schema.flow.v1` / `cx.schema.message.v1` 等其它标准对象保持同一约定，receipt 不再额外携带 `type` 字段。 |
 | `issuer` | yes | 签发方 service / witness DID。MUST 与 proof `verification_method` 同 DID。 |
 | `issuer_role` | yes | `events_api` / `witness` / `peer_node` 之一，标记 receipt 来源类型。 |

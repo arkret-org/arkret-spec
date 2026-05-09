@@ -175,11 +175,11 @@
               "properties": {
                 "space_id": {
                   "type": "string",
-                  "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+                  "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
                 },
                 "flow_id": {
                   "type": "string",
-                  "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+                  "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
                 }
               },
               "additionalProperties": true
@@ -273,7 +273,7 @@
         },
         "contrix_event_id": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "accepted_at": {
           "type": "string",

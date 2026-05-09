@@ -81,11 +81,11 @@ Contrix v1 把三件事分开处理：
 
 ## 4. Device Identity
 
-每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `cx:device:<ulid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
+每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `cx:device:<uuid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
 
 ```json
 {
-  "device_id": "cx:device:01js0dv0000000000000000000",
+  "device_id": "cx:device:019640dd-8000-7000-8000-000000000000",
   "principal_id": "did:webvh:...",
   "display_name": "Alice iPhone",
   "algorithms": ["cx.mls.v1", "cx.hpke_x25519_aead_xchacha20poly1305.v1"],
@@ -160,10 +160,10 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
   "payload": {
     "principal_id": "did:webvh:...",
     "changed": [
-      "cx:device:01js0ke0000000000000000000"
+      "cx:device:01964137-0000-7000-8000-000000000000"
     ],
     "left": [
-      "cx:device:01js0kg0000000000000000000"
+      "cx:device:01964138-0000-7000-8000-000000000000"
     ],
     "stream_id": "devstream_42"
   }
@@ -232,12 +232,12 @@ Content-Type: application/json
 {
   "messages": {
     "did:web:alice.example.com": {
-      "cx:device:01js0ke0000000000000000000": {
+      "cx:device:01964137-0000-7000-8000-000000000000": {
         "kind": "cx.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
           "transaction_id": "ver_123",
-          "from_device": "cx:device:01js0kf0000000000000000000",
+          "from_device": "cx:device:01964137-8000-7000-8000-000000000000",
           "timestamp": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:10:00Z",
           "methods": [
@@ -534,9 +534,9 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当�
 
 ```json
 {
-  "backup_id": "cx:backup:01js0kh0000000000000000000",
+  "backup_id": "cx:backup:01964138-8000-7000-8000-000000000000",
   "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "cx:device:01js0ke0000000000000000000",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "mls_history",
   "backup_version": "kb_1",
   "created_at": "2026-04-26T00:00:00Z",
@@ -551,17 +551,17 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当�
   "contents": [
     {
       "item_type": "mls_epoch_secret",
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "mls_group_id": "base64url",
       "epoch": 42,
-      "first_event_id": "cx:event:01js0ev0000000000000000000",
-      "last_event_id": "cx:event:01js0ew0000000000000000000"
+      "first_event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+      "last_event_id": "cx:event:019640ee-0000-7000-8000-000000000000"
     }
   ],
   "ciphertext": "base64url...",
-  "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "ciphertext_digest": "sha256:42108421-0842-7084-a108-42108421084242108421-0842-7084-a108-421084210842222222222222",
   "auth_data": {
-    "device_id": "cx:device:01js0ke0000000000000000000",
+    "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
     "signature": "base64url..."
   }
 }

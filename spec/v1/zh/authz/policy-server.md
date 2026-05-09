@@ -74,11 +74,11 @@ Content-Type: application/json
 ```json
 {
   "request_id": "polreq_01",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "request_canonical_hash": "sha256:...",
   "action": "cx.message.create",
   "actor": "did:webvh:...",
-  "device_id": "cx:device:01js0ke0000000000000000000",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "source": {
     "service_did": "did:web:server.example",
     "service_type": "principal_server",

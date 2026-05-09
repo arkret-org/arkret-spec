@@ -102,7 +102,7 @@ POST /api/v1/push/unregister-device
       "kind": "override",
       "enabled": true,
       "conditions": [
-        { "kind": "field_match", "field": "space_id", "pattern": "cx:space:mvted000000000000000000000..." }
+        { "kind": "field_match", "field": "space_id", "pattern": "cx:space:9bd39a00-0000-7000-8000-000000000000..." }
       ],
       "actions": ["dont_notify"]
     },

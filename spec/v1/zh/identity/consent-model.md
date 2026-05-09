@@ -84,7 +84,7 @@ Move(cx.consent.grant) {
       }})
   ]
   refs       = [
-    (id="cx:grant:01js0hsc000000000000000000",
+    (id="cx:grant:0196411c-b000-7000-8000-000000000000",
      role="authorized_by")
   ]
   anchor_ref = <holder principal control Space 的最新 Anchor>
@@ -129,7 +129,7 @@ Move(cx.consent.revoke) {
         reason:     "Bob harassment incident #4711"
       }})
   ]
-  refs       = [(id="cx:grant:01js0hsc000000000000000000", role="authorized_by")]
+  refs       = [(id="cx:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
   anchor_ref = <holder principal control Space 的最新 Anchor>
 }
 ```

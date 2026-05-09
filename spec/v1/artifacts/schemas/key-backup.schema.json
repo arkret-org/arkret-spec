@@ -17,7 +17,7 @@
   "properties": {
     "backup_id": {
       "type": "string",
-      "pattern": "^cx:backup:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
       "type": "string",
@@ -25,7 +25,7 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "backup_class": {
       "type": "string",
@@ -175,7 +175,7 @@
           },
           "space_id": {
             "type": "string",
-            "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "mls_group_id": {
             "type": "string",
@@ -187,11 +187,11 @@
           },
           "first_event_id": {
             "type": "string",
-            "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "last_event_id": {
             "type": "string",
-            "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "secret_id": {
             "type": "string",
@@ -225,7 +225,7 @@
       "properties": {
         "device_id": {
           "type": "string",
-          "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$"
+          "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "verification_method": {
           "type": "string",

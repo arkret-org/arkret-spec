@@ -19,7 +19,7 @@
   "properties": {
     "event_id": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "kind": {
       "type": "string",
@@ -28,7 +28,7 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
       "$ref": "#/$defs/did"
@@ -993,19 +993,19 @@
     },
     "place_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "board_place_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "list_place_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
-      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "track_name": {
       "type": "string",
@@ -1013,11 +1013,11 @@
     },
     "relation_id": {
       "type": "string",
-      "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "eventRef": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "anchor_ref": {
       "type": "string",

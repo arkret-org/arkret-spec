@@ -147,14 +147,14 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ```json
 {
-  "id": "cx:device:01js0ke0000000000000000000",
+  "id": "cx:device:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "device_label": "Alice MacBook Pro",
   "device_public_key": "z6Mks...",
   "device_key_type": "Multikey",
   "created_at": "2026-04-26T00:00:00Z",
-  "authorized_by": "cx:device:01js0kd0000000000000000000",
-  "authorization_ref": "cx:event:01js0kf0000000000000000000",
+  "authorized_by": "cx:device:01964136-8000-7000-8000-000000000000",
+  "authorization_ref": "cx:event:01964137-8000-7000-8000-000000000000",
   "status": "active",
   "last_seen_at": "2026-04-26T08:00:00Z",
   "revocation_ref": null
@@ -248,7 +248,7 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
 ```json
 {
   "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "cx:device:01js0ke0000000000000000000",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
     "cx.events.describe",
@@ -258,7 +258,7 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": null,
-  "authorized_by": "cx:device:01js0kd0000000000000000000",
+  "authorized_by": "cx:device:01964136-8000-7000-8000-000000000000",
   "proof": {
     "kind": "detached_jws",
     "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#device-old",
@@ -287,7 +287,7 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 
 ```json
 {
-  "grant_id": "cx:grant:01js0sg0000000000000000000",
+  "grant_id": "cx:grant:01964198-0000-7000-8000-000000000000",
   "issuer": "did:web:auth-gateway.example.com",
   "subject": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
@@ -356,9 +356,9 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 
 ```json
 {
-  "backup_id": "cx:backup:01js0ke0000000000000000000",
+  "backup_id": "cx:backup:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "cx:device:01js0ke0000000000000000000",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "secret_storage",
   "backup_version": "kb_1",
   "created_at": "2026-04-26T00:00:00Z",
@@ -384,9 +384,9 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
     {"item_type": "user_signing_key", "secret_id": "user_signing_key"}
   ],
   "ciphertext": "base64url...",
-  "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "ciphertext_digest": "sha256:21084210-8421-7842-9084-21084210842121084210-8421-7842-9084-210842108421111111111111",
   "auth_data": {
-    "device_id": "cx:device:01js0ke0000000000000000000",
+    "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
     "signature": "base64url..."
   }
 }

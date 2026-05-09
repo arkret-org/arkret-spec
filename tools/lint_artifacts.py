@@ -32,7 +32,7 @@ SCHEMA_ID_TOKEN_RE = re.compile(r"\bcx\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0
 PROFILE_ID_RE = re.compile(r"^cx\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
 PROFILE_ID_TOKEN_RE = re.compile(r"\bcx\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+\b")
 TYPED_ID_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
-ULID_RE = re.compile(r"^[0-9a-hjkmnp-z]{26}$")
+UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$", re.MULTILINE)
 YAML_REF_RE = re.compile(r"\$ref:\s*['\"]?([^'\"\s#]+(?:#[^'\"\s]+)?)")
@@ -813,9 +813,9 @@ def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str
             lint.fail(path, f"{json_path} has invalid cx:blob:sha256 reference")
         return
     if token_kind in known["id_kinds"]:
-        candidate = rest[:26]
-        if not ULID_RE.fullmatch(candidate):
-            lint.fail(path, f"{json_path} has invalid cx:{token_kind}: typed ULID reference")
+        candidate = rest[:36]
+        if not UUID7_RE.fullmatch(candidate):
+            lint.fail(path, f"{json_path} has invalid cx:{token_kind}: typed UUIDv7 reference")
         return
     if token_kind in known["special_id_kinds"]:
         if not rest:
@@ -927,7 +927,7 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
 def is_placeholder_typed_id(rest: str) -> bool:
     return (
         "..." in rest
-        or rest in {"id", "ulid", "example", "A", "B"}
+        or rest in {"id", "uuid", "example", "A", "B"}
         or rest.startswith("<")
         or rest.endswith(">")
     )

@@ -85,7 +85,7 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
 ```json
 {
   "kind": "cx.applet.registration",
-  "applet_id": "cx:applet:s1ack000000000000000000000-bridge",
+  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
   "service_did": "did:web:slack-bridge.example",
   "controller_did": "did:web:acme.example",
   "base_url": "https://slack-bridge.example/api/v1/applet",
@@ -103,7 +103,7 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
     "spaces": [
       {
         "exclusive": true,
-        "pattern": "cx:space:p0rta100000000000000000000:slack:*"
+        "pattern": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:*"
       }
     ],
     "handles": [
@@ -177,7 +177,7 @@ Space namespace 适用于 portal Space。
 ```json
 {
   "exclusive": true,
-  "pattern": "cx:space:p0rta100000000000000000000:slack:*"
+  "pattern": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:*"
 }
 ```
 
@@ -204,7 +204,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
   "subject": "did:web:slack-bridge.example#bot",
   "scope": {
     "space_ids": [
-      "cx:space:01js0sp0000000000000000000"
+      "cx:space:0196419b-0000-7000-8000-000000000000"
     ],
     "actions": [
       "cx.flow.create",
@@ -217,7 +217,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
     {
       "constraint_type": "scope_limitation",
       "effect": "allow",
-      "via_applet_id": "cx:applet:s1ack000000000000000000000-bridge",
+      "via_applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
       "allowed_actor_namespace": "did:web:slack-bridge.example#ghost-*"
     }
   ],
@@ -258,7 +258,7 @@ GET /api/v1/applet/ping
 ```json
 {
   "ok": true,
-  "applet_id": "cx:applet:s1ack000000000000000000000-bridge",
+  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
   "service_did": "did:web:slack-bridge.example",
   "protocol_version": "1.0"
 }
@@ -284,12 +284,12 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
 
 ```json
 {
-  "txn_id": "cx:txn:01js0tx0000000000000000000",
+  "txn_id": "cx:txn:019641ae-8000-7000-8000-000000000000",
   "source_service_did": "did:web:server.example",
   "events": [
     {
-      "event_id": "cx:event:01js0ev0000000000000000000",
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "kind": "cx.message.create",
       "actor_id": "did:web:alice.example",
       "payload": {}
@@ -298,7 +298,7 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
   "ephemeral": [
     {
       "type": "typing",
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:web:alice.example"
     }
   ]
@@ -360,7 +360,7 @@ GET /api/v1/applet/spaces/{space_id_or_alias}
 ```json
 {
   "exists": true,
-  "space_id": "cx:space:p0rta100000000000000000000:slack:T123:C456",
+  "space_id": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
   "title": "#release on Slack",
   "external_ref": {
     "protocol": "slack",
@@ -430,18 +430,18 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
 
 ```json
 {
-  "event_id": "cx:event:01js0ev0000000000000000000",
-  "space_id": "cx:space:p0rta100000000000000000000:slack:T123:C456",
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+  "space_id": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
   "actor_id": "did:web:slack-bridge.example#ghost-u123",
   "kind": "cx.message.create",
-  "applet_id": "cx:applet:s1ack000000000000000000000-bridge",
+  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",
     "event_id": "1714040000.000100"
   },
   "payload": {
-    "flow_id": "cx:flow:p0rta100000000000000000000:slack:T123:C456",
+    "flow_id": "cx:flow:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
     "content": {
       "body": "hello from Slack"
     }
@@ -465,7 +465,7 @@ Ghost Actor profile SHOULD 包含：
   "actor_id": "did:web:slack-bridge.example#ghost-u123",
   "actor_kind": "ghost",
   "display_name": "Alice on Slack",
-  "managed_by_applet": "cx:applet:s1ack000000000000000000000-bridge",
+  "managed_by_applet": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",
@@ -520,8 +520,8 @@ Alice via Calendar Applet
 {
   "actor_id": "did:web:alice.example",
   "executed_by": "did:web:calendar-applet.example#agent",
-  "authorization_ref": "cx:grant:01js0gr0000000000000000000",
-  "applet_id": "cx:applet:ca1endar000000000000000000"
+  "authorization_ref": "cx:grant:0196410c-0000-7000-8000-000000000000",
+  "applet_id": "cx:applet:8a0baad5-6000-7000-8000-000000000000"
 }
 ```
 

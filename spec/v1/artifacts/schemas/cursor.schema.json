@@ -31,7 +31,7 @@
       "type": "object",
       "description": "Per-Space frontier (stream cursors). Key is space_id; value pins the frontier this cursor describes for that Space.",
       "patternProperties": {
-        "^cx:space:[0-9a-hjkmnp-z]{26}$": {
+        "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
           "type": "object",
           "required": [
             "p",
@@ -43,7 +43,7 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+                "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             },
             "o": {
@@ -66,7 +66,7 @@
       "patternProperties": {
         "^.+$": {
           "type": "string",
-          "pattern": "^cx:devmsg:[0-9a-hjkmnp-z]{26}$"
+          "pattern": "^cx:devmsg:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       },
       "additionalProperties": false
@@ -81,7 +81,7 @@
       "properties": {
         "event_id": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "event_digest": {
           "type": "string",
@@ -89,7 +89,7 @@
         },
         "space_id": {
           "type": "string",
-          "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+          "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       },
       "additionalProperties": false

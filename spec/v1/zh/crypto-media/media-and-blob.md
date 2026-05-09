@@ -11,7 +11,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 ```json
 {
   "blob_ref": "cx:blob:sha256:...",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "sha256": "hex...",
   "size": 1234,
   "media_type": "image/png",
@@ -54,7 +54,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "key_ref": {
     "algorithm": "MLS",
     "group_state_ref": {
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "flow_id": null,
       "track": null,
       "epoch": 42

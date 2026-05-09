@@ -176,9 +176,9 @@ cx.vector.encoding.event_digest.v1
 
 ```json
 {
-  "event_id": "cx:event:01js0ev0000000000000000000",
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "kind": "cx.message.create",
-  "space_id": "cx:space:01js0ke0000000000000000000",
+  "space_id": "cx:space:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -186,7 +186,7 @@ cx.vector.encoding.event_digest.v1
   "prev_refs": [],
   "refs": [],
   "payload": {
-    "flow_id": "cx:flow:01js0ke0000000000000000000",
+    "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
     "content": {
       "kind": "cx.content.text",
       "body": "hello"
@@ -198,7 +198,7 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"refs": [],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:01js0ev0000000000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01js0ke0000000000000000000"},"prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"refs": [],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000"},"prev_refs":[],"space_id":"cx:space:01964137-0000-7000-8000-000000000000"}
 ```
 
 期望 digest：
@@ -226,17 +226,17 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 ```json
 {
   "schema": "cx.schema.event_batch_receipt.v1",
-  "receipt_id": "cx:receipt:01js0rc0000000000000000000",
+  "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
   "scope": {
     "actor_id": "did:web:alice.example"
   },
   "frontier": {
     "actor_seq": 1,
-    "event_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    "event_hash": "sha256:21084210-8421-7842-9084-21084210842121084210-8421-7842-9084-210842108421111111111111"
   },
   "events": [
-    "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    "sha256:21084210-8421-7842-9084-21084210842121084210-8421-7842-9084-210842108421111111111111"
   ],
   "created_at": "2026-04-26T00:00:00Z"
 }
@@ -245,7 +245,7 @@ cx.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01js0rc0000000000000000000","schema":"cx.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"}}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:21084210-8421-7842-9084-21084210842121084210-8421-7842-9084-210842108421111111111111"],"frontier":{"actor_seq":1,"event_hash":"sha256:21084210-8421-7842-9084-21084210842121084210-8421-7842-9084-210842108421111111111111"},"issuer":"did:web:alice.example","receipt_id":"cx:receipt:01964186-0000-7000-8000-000000000000","schema":"cx.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"}}
 ```
 
 期望 digest：
@@ -382,7 +382,7 @@ cx:cursor:eyJzIjp7ImN4OnNwYWNlOjAxanMwc3AwMDAwMDAwMDAwMDAwMDAwMDAwIjpbImN4OmV2ZW
 cursor base64url 解码后对应 canonical JSON：
 
 ```text
-{"s":{"cx:space:01js0sp0000000000000000000":["cx:event:01js0ev0000000000000000000"]},"t":"client_sync","v":1,"x":"2026-12-31T23:59:59Z"}
+{"s":{"cx:space:0196419b-0000-7000-8000-000000000000":["cx:event:019640ed-8000-7000-8000-000000000000"]},"t":"client_sync","v":1,"x":"2026-12-31T23:59:59Z"}
 ```
 
 期望客户端行为：
@@ -670,16 +670,16 @@ cx.vector.redaction.preserve_fields.v1
 ```json
 {
   "target_event": {
-    "event_id": "cx:event:01js0mrc000000000000000000",
+    "event_id": "cx:event:0196414c-3000-7000-8000-000000000000",
     "kind": "cx.message.create",
-    "space_id": "cx:space:01js0ms0000000000000000000",
+    "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:00Z",
     "hlc": "01970e589d24-0001-aaaaaaaa",
     "prev_refs": [],
     "refs": [],
     "payload": {
-      "flow_id": "cx:flow:01js0mrd000000000000000000",
+      "flow_id": "cx:flow:0196414c-3400-7000-8000-000000000000",
       "content": {
         "kind": "cx.content.text",
         "body": "private notes"
@@ -701,20 +701,20 @@ cx.vector.redaction.preserve_fields.v1
     }
   },
   "redaction_event": {
-    "event_id": "cx:event:01js0rm0v00000000000000000",
+    "event_id": "cx:event:0196418a-0360-7000-8000-000000000000",
     "kind": "cx.redaction",
-    "space_id": "cx:space:01js0ms0000000000000000000",
+    "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:02Z",
     "hlc": "01970e589d24-0002-bbbbbbbb",
     "prev_refs": [
-      "cx:event:01js0mrc000000000000000000"
+      "cx:event:0196414c-3000-7000-8000-000000000000"
     ],
     "refs": [
-      { "id": "cx:event:01js0cap000000000000000000", "role": "authorized_by", "critical": true }
+      { "id": "cx:event:019640c5-5800-7000-8000-000000000000", "role": "authorized_by", "critical": true }
     ],
     "payload": {
-      "redacts": "cx:event:01js0mrc000000000000000000",
+      "redacts": "cx:event:0196414c-3000-7000-8000-000000000000",
       "reason_code": "policy_recall"
     }
   }
@@ -725,7 +725,7 @@ cx.vector.redaction.preserve_fields.v1
 
 ```json
 {
-  "event_id": "cx:event:01js0mrc000000000000000000",
+  "event_id": "cx:event:0196414c-3000-7000-8000-000000000000",
   "state": "redacted",
   "kept_envelope_fields": [
     "event_id",
@@ -781,13 +781,13 @@ cx.vector.redaction.policy_scope.v1
 {
   "timeline": [
     {
-      "event_id": "cx:event:01js0qv1000000000000000000",
+      "event_id": "cx:event:0196417d-8400-7000-8000-000000000000",
       "kind": "cx.message.create",
-      "space_id": "cx:space:01js0ms0000000000000000000",
+      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "payload": {
-        "flow_id": "cx:flow:01js0qv1000000000000000000",
+        "flow_id": "cx:flow:0196417d-8400-7000-8000-000000000000",
         "content": {
           "kind": "cx.content.text",
           "body": "bad link: spam.example/phish"
@@ -795,25 +795,25 @@ cx.vector.redaction.policy_scope.v1
       }
     },
     {
-      "event_id": "cx:event:01js0qv2c00000000000000000",
+      "event_id": "cx:event:0196417d-8980-7000-8000-000000000000",
       "kind": "cx.policy.action",
-      "space_id": "cx:space:01js0ms0000000000000000000",
+      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
       "actor_id": "did:web:policy-bot.example.com",
       "payload": {
-        "target_id": "cx:event:01js0qv1000000000000000000",
+        "target_id": "cx:event:0196417d-8400-7000-8000-000000000000",
         "scope": "public",
         "decision": "quarantine"
       }
     },
     {
-      "event_id": "cx:event:01js0qv3r00000000000000000",
+      "event_id": "cx:event:0196417d-8f00-7000-8000-000000000000",
       "kind": "cx.redaction",
-      "space_id": "cx:space:01js0ms0000000000000000000",
+      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:policy-admin.example",
       "payload": {
-        "redacts": "cx:event:01js0qv1000000000000000000",
+        "redacts": "cx:event:0196417d-8400-7000-8000-000000000000",
         "reason_code": "policy_recall"
       }
     }
@@ -914,9 +914,9 @@ cx.vector.capability.delegate_chain.v1
   },
   "delegations": [
     {
-      "event_id": "cx:event:01js0d1g000000000000000000",
+      "event_id": "cx:event:019640d0-c000-7000-8000-000000000000",
       "kind": "cx.capability.delegate",
-      "space_id": "cx:space:01js0ms0000000000000000000",
+      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:root-admin.example.com",
       "payload": {
         "source_capability": "space-admin",
@@ -942,13 +942,13 @@ cx.vector.capability.delegate_chain.v1
         ]
       },
       "refs": [
-      { "id": "cx:event:01js0r00tgrant000000000000", "role": "authorized_by", "critical": true }
+      { "id": "cx:event:01964180-0350-72ab-a000-000000000000", "role": "authorized_by", "critical": true }
     ]
     },
     {
-      "event_id": "cx:event:01js0d1h000000000000000000",
+      "event_id": "cx:event:019640d0-c400-7000-8000-000000000000",
       "kind": "cx.capability.delegate",
-      "space_id": "cx:space:01js0ms0000000000000000000",
+      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:ops.example.com",
       "payload": {
         "source_capability": "space-admin-delegate-a",
@@ -975,14 +975,14 @@ cx.vector.capability.delegate_chain.v1
         ]
       },
       "refs": [
-      { "id": "cx:event:01js0d1g000000000000000000", "role": "authorized_by", "critical": true }
+      { "id": "cx:event:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
     ]
     }
   ],
   "action_query": {
     "actor_id": "did:web:intern.example.com",
     "action": "cx.invite.create",
-    "resource": "cx:space:01js0ms0000000000000000000",
+    "resource": "cx:space:0196414c-8000-7000-8000-000000000000",
     "request_time": "2026-04-26T01:00:00Z",
     "request_audience": "did:web:vendor.example"
   }
@@ -995,9 +995,9 @@ cx.vector.capability.delegate_chain.v1
 {
   "authorized": true,
   "valid_chain": [
-    "cx:event:01js0r00tgrant000000000000",
-    "cx:event:01js0d1g000000000000000000",
-    "cx:event:01js0d1h000000000000000000"
+    "cx:event:01964180-0350-72ab-a000-000000000000",
+    "cx:event:019640d0-c000-7000-8000-000000000000",
+    "cx:event:019640d0-c400-7000-8000-000000000000"
   ],
   "constraints_checked": {
     "time": true,
@@ -1028,10 +1028,10 @@ cx.vector.capability.revoke_rollback.v1
 {
   "events": [
     {
-      "event_id": "cx:event:01js0g2a000000000000000000",
+      "event_id": "cx:event:01964101-2800-7000-8000-000000000000",
       "kind": "cx.capability.grant",
       "payload": {
-        "grant_id": "cx:grant:01js0g2a000000000000000000",
+        "grant_id": "cx:grant:01964101-2800-7000-8000-000000000000",
         "subject": "did:web:alice.example.com",
         "actions": [
           "cx.message.create"
@@ -1040,15 +1040,15 @@ cx.vector.capability.revoke_rollback.v1
       "created_at": "2026-04-26T00:00:00Z"
     },
     {
-      "event_id": "cx:event:01js0r2a000000000000000000",
+      "event_id": "cx:event:01964181-2800-7000-8000-000000000000",
       "kind": "cx.capability.revoke",
       "payload": {
-        "grant_id": "cx:grant:01js0g2a000000000000000000"
+        "grant_id": "cx:grant:01964101-2800-7000-8000-000000000000"
       },
       "created_at": "2026-04-26T00:00:01Z"
     },
     {
-      "event_id": "cx:event:01js0x2a000000000000000000",
+      "event_id": "cx:event:019641d1-2800-7000-8000-000000000000",
       "kind": "cx.member.state",
       "payload": {
         "actor_id": "did:web:alice.example.com",
@@ -1057,24 +1057,24 @@ cx.vector.capability.revoke_rollback.v1
       "created_at": "2026-04-26T00:00:02Z"
     },
     {
-      "event_id": "cx:event:01js0msg2a0000000000000000",
+      "event_id": "cx:event:0196414c-c04a-7000-8000-000000000000",
       "kind": "cx.message.create",
       "actor_id": "did:web:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
       "payload": {
-        "flow_id": "cx:flow:01js0rvk000000000000000000",
+        "flow_id": "cx:flow:0196418d-cc00-7000-8000-000000000000",
         "content": {
           "kind": "cx.content.text",
           "body": "should_fail_if_revoke_applies"
         }
       },
       "prev_refs": [
-        "cx:event:01js0x2a000000000000000000"
+        "cx:event:019641d1-2800-7000-8000-000000000000"
       ]
     }
   ],
   "rollback": {
-    "target_event_id": "cx.event:01js0r2a000000000000000000",
+    "target_event_id": "cx.event:01964181-2800-7000-8000-000000000000",
     "reason": "revoke_undo_invalid_signature"
   }
 }
@@ -1082,7 +1082,7 @@ cx.vector.capability.revoke_rollback.v1
 
 期望输出：
 
-- 初始解析：`cx:event:01js0msg2a0000000000000000` 因 revoke 生效应拒绝或标记 soft-fail/rejected（取决于实现策略）。
+- 初始解析：`cx:event:0196414c-c04a-7000-8000-000000000000` 因 revoke 生效应拒绝或标记 soft-fail/rejected（取决于实现策略）。
 - 回滚 revoke 后重算：同一事件在回滚前瞻分析中应变为 authorized。
 - 回滚必须产生独立可审计结果，不可直接修改历史事件链的 event_id。
 
@@ -1104,10 +1104,10 @@ cx.vector.capability.approval_constraint.v1
 ```json
 {
   "event": {
-    "event_id": "cx:event:01js0mha000000000000000000",
+    "event_id": "cx:event:01964148-a800-7000-8000-000000000000",
     "kind": "cx.policy.action",
     "actor_id": "did:web:contractor.example",
-    "space_id": "cx:space:01js0ms0000000000000000000",
+    "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
       "action": "cx.space.admin",
@@ -1116,7 +1116,7 @@ cx.vector.capability.approval_constraint.v1
       "scope": "space:01js0ms000000000000000000"
     },
     "refs": [
-      { "id": "cx:event:01js0spaceadm1n00000000000", "role": "authorized_by", "critical": true }
+      { "id": "cx:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
     ]
   },
   "capabilities": [
@@ -1179,14 +1179,14 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "event_id": "cx:event:01js0ev0000000000000000000",
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "actor_id": "did:web:actor-a.example.com",
   "actor_seq": 1,
   "hlc": "019b76daa800-0000-a0000000",
   "prev_refs": [],
   "refs": [],
   "kind": "cx.flow.update",
-  "target_ref": "cx:flow:01js0ca0000000000000000000",
+  "target_ref": "cx:flow:019640c5-0000-7000-8000-000000000000",
   "content_hash": "sha256:..."
 }
 ```
@@ -1204,14 +1204,14 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
       "kind": "cx.space.create",
-      "target_ref": "cx:space:01js0bd0000000000000000000",
+      "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
       "payload": {
         "object": {
-          "id": "cx:space:01js0bd0000000000000000000",
+          "id": "cx:space:019640b6-8000-7000-8000-000000000000",
           "schema": "cx.schema.space.v1",
           "kind": "board",
           "title": "Release Board",
@@ -1227,10 +1227,10 @@ cx.vector.capability.approval_constraint.v1
     },
     {
       "kind": "cx.space.create",
-      "target_ref": "cx:space:01js0111000000000000000000",
+      "target_ref": "cx:space:01964010-8400-7000-8000-000000000000",
       "payload": {
         "object": {
-          "id": "cx:space:01js0111000000000000000000",
+          "id": "cx:space:01964010-8400-7000-8000-000000000000",
           "schema": "cx.schema.space.v1",
           "kind": "list",
           "title": "Todo",
@@ -1247,12 +1247,12 @@ cx.vector.capability.approval_constraint.v1
     },
     {
       "kind": "cx.flow.create",
-      "target_ref": "cx:flow:01js0ca1000000000000000000",
+      "target_ref": "cx:flow:019640c5-0400-7000-8000-000000000000",
       "payload": {
         "object": {
-          "id": "cx:flow:01js0ca1000000000000000000",
+          "id": "cx:flow:019640c5-0400-7000-8000-000000000000",
           "schema": "cx.schema.flow.v1",
-          "space_id": "cx:space:01js0sp0000000000000000000",
+          "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
           "title": "Release checklist",
           "tracks": [
             {
@@ -1266,10 +1266,10 @@ cx.vector.capability.approval_constraint.v1
         "initial_relations": [
           {
             "relation_kind": "contains",
-            "from_ref": "cx:place:01js0111000000000000000000",
-            "to_ref": "cx:flow:01js0ca1000000000000000000",
+            "from_ref": "cx:place:01964010-8400-7000-8000-000000000000",
+            "to_ref": "cx:flow:019640c5-0400-7000-8000-000000000000",
             "fields": {
-              "board_place_id": "cx:place:01js0bd0000000000000000000",
+              "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
               "rank": "U"
             }
           }
@@ -1282,8 +1282,8 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- Collection projection MUST 返回 `object.id = cx:flow:01js0ca1000000000000000000`。
-- 返回项 MUST 位于 `cx:space:01js0111000000000000000000`。
+- Collection projection MUST 返回 `object.id = cx:flow:019640c5-0400-7000-8000-000000000000`。
+- 返回项 MUST 位于 `cx:space:01964010-8400-7000-8000-000000000000`。
 - View cursor MUST 绑定 projection、view、frontier 与权限上下文。
 
 ### 5.4 Vector: Flow Card Move Read-Your-Writes
@@ -1294,12 +1294,12 @@ cx.vector.capability.approval_constraint.v1
 {
   "write": {
     "kind": "cx.flow.move",
-    "target_ref": "cx:flow:01js0ca1000000000000000000",
+    "target_ref": "cx:flow:019640c5-0400-7000-8000-000000000000",
     "payload": {
-      "board_place_id": "cx:place:01js0bd0000000000000000000",
-      "flow_id": "cx:flow:01js0ca1000000000000000000",
-      "from_place_id": "cx:place:01js0111000000000000000000",
-      "target_place_id": "cx:place:01js0112000000000000000000",
+      "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000",
+      "from_place_id": "cx:place:01964010-8400-7000-8000-000000000000",
+      "target_place_id": "cx:place:01964010-8800-7000-8000-000000000000",
       "rank": "U"
     }
   },
@@ -1317,7 +1317,7 @@ cx.vector.capability.approval_constraint.v1
 期望：
 
 - Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
-- 查询结果中该 Flow item 的 `list_id` MUST 为 `cx:space:01js0112000000000000000000`。
+- 查询结果中该 Flow item 的 `list_id` MUST 为 `cx:space:01964010-8800-7000-8000-000000000000`。
 
 ### 5.5 Vector: Flow Discussion Track Visibility
 
@@ -1325,7 +1325,7 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "flow_id": "cx:flow:01js0ca1000000000000000000",
+  "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000",
   "viewer": "did:web:viewer.example.com",
   "viewer_can_read_flow": true,
   "viewer_is_track_member": false
@@ -1344,7 +1344,7 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "flow_id": "cx:flow:01js0sb1000000000000000000",
+  "flow_id": "cx:flow:01964195-8400-7000-8000-000000000000",
   "track": "discussion",
   "viewer_grants": ["cx.flow.read"],
   "viewer_track_membership": "none"
@@ -1363,13 +1363,13 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "flow_id": "cx:flow:01js0r01000000000000000000",
+  "flow_id": "cx:flow:01964180-0400-7000-8000-000000000000",
   "events": [
     {
       "kind": "cx.message.create",
-      "target_ref": "cx:message:01js0me1000000000000000000",
+      "target_ref": "cx:message:01964147-0400-7000-8000-000000000000",
       "payload": {
-        "flow_id": "cx:flow:01js0r01000000000000000000",
+        "flow_id": "cx:flow:01964180-0400-7000-8000-000000000000",
         "content": {
           "kind": "cx.content.text",
           "body": "discussion message"

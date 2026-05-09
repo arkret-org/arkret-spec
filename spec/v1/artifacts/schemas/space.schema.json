@@ -18,7 +18,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.space.v1"
@@ -132,7 +132,7 @@
     },
     "policy_ref": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "default_discoverability": {
       "type": "string",
@@ -279,11 +279,11 @@
     },
     "retention_policy_ref": {
       "type": "string",
-      "pattern": "^cx:policy:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "avatar_blob_ref": {
       "type": "string",
-      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"

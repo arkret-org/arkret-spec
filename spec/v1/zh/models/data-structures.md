@@ -22,11 +22,11 @@ title: Data Structures
 | `enum(...)` | 枚举字符串。 |
 | `timestamp` | RFC 3339 UTC string，必须以 `Z` 结尾。 |
 | `did` | DID URI string。 |
-| `id:<kind>` | `cx:<kind>:<ulid>` typed ID，或该 kind 在 `id-kind-registry.json` 声明的特殊 wire form。 |
+| `id:<kind>` | `cx:<kind>:<uuid>` typed ID，或该 kind 在 `id-kind-registry.json` 声明的特殊 wire form。 |
 | `hash` | `sha256:<lowercase_hex_digest>`。 |
 | `cursor` | `cx:cursor:<base64url>` opaque string。 |
 
-注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `cx:device:<ulid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `cx:<kind>:<ulid>` 格式。这些标识符的编码规则由各自所在章节定义。
+注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `cx:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `cx:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。
 
 字段默认规则：
 
@@ -35,7 +35,7 @@ title: Data Structures
 - 实现 MUST 保留未知字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `cx:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
-- 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<ulid>`，不得写成局部别名如 `dev_a` 或 `a`。
+- 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<uuid>`，不得写成局部别名如 `dev_a` 或 `a`。
 
 ## 3. Common Object Fields
 

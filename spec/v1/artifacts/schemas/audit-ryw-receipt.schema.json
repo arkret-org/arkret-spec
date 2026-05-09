@@ -23,7 +23,7 @@
   "properties": {
     "receipt_id": {
       "type": "string",
-      "pattern": "^cx:receipt:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.audit_ryw_receipt.v1"
@@ -41,7 +41,7 @@
     },
     "audit_event_id": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "audit_event_digest": {
       "type": "string",
@@ -49,7 +49,7 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "audit_actor_id": {
       "$ref": "#/$defs/did"
@@ -64,7 +64,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "minItems": 1
         },
@@ -83,7 +83,7 @@
               },
               "event_id": {
                 "type": "string",
-                "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+                "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             },
             "additionalProperties": true

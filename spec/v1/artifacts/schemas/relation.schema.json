@@ -16,14 +16,14 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:relation:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.relation.v1"
     },
     "space_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "relation_kind": {
       "type": "string",
@@ -70,7 +70,7 @@
   "$defs": {
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(space|place|actor_profile|flow|message|morph|relation|event|view):[0-9a-hjkmnp-z]{26}|did:.+)$",
+      "pattern": "^(cx:(space|place|actor_profile|flow|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$",
       "description": "Typed canonical reference. Allowed kinds: space, place, actor_profile, flow, message, morph, relation, event, view, or DID. Place was previously missing from this pattern (v1 wire bug fix); Place is a valid Relation endpoint as of v1 standard structure (board/list containers, e.g. board --contains--> list)."
     },
     "did": {

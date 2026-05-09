@@ -51,7 +51,7 @@
       "properties": {
         "space_id": {
           "type": "string",
-          "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+          "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "event_kind": {
           "type": "string",
@@ -59,7 +59,7 @@
         },
         "event_id": {
           "type": "string",
-          "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "event_ref_hash": {
           "type": "string",
@@ -69,7 +69,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "causal_ref_hashes": {
@@ -101,7 +101,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$",
+              "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
               "description": "Reference to accepted cx.mls.genesis / winning cx.mls.commit event."
             },
             {

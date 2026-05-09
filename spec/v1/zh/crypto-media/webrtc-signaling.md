@@ -157,7 +157,7 @@ Content-Type: application/json
   "space_id": "cx:space:...",
   "call_id": "cx:call:01J...",
   "actor_id": "did:webvh:...",
-  "device_id": "cx:device:01js0ke0000000000000000000",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "mode": "p2p"
 }
 ```
@@ -250,7 +250,7 @@ Content-Type: application/json
   "call_id": "cx:call:01J...",
   "space_id": "cx:space:...",
   "sender": "did:web:alice.example.com",
-  "sender_device": "cx:device:01js0ke0000000000000000000",
+  "sender_device": "cx:device:01964137-0000-7000-8000-000000000000",
   "seq": 12,
   "sent_at": "2026-04-26T00:00:00Z",
   "payload": {
@@ -360,7 +360,7 @@ SFU join request:
   "call_id": "cx:call:01J...",
   "space_id": "cx:space:...",
   "actor_id": "did:web:alice.example.com",
-  "device_id": "cx:device:01js0ke0000000000000000000",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "capability_refs": ["cx:grant:..."],
   "desired_media": {
     "audio": true,
@@ -420,7 +420,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
     "participants": [
       {
         "actor_id": "did:web:alice.example.com",
-        "device_id": "cx:device:01js0ke0000000000000000000",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
         "media": {
           "audio": true,

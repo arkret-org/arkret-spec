@@ -86,8 +86,8 @@ title: "Client Preferences & Account Data"
 {
   "sidebar_collapsed": false,
   "recent_spaces": [
-    "cx:space:01js0sa0000000000000000000",
-    "cx:space:01js0sb0000000000000000000"
+    "cx:space:01964195-0000-7000-8000-000000000000",
+    "cx:space:01964195-8000-7000-8000-000000000000"
   ],
   "language": "zh-CN"
 }
@@ -104,7 +104,7 @@ title: "Client Preferences & Account Data"
   "version": 1,
   "entries": [
     {
-      "entry_id": "cx:block:01js0b7k000000000000000000",
+      "entry_id": "cx:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
         "did": "did:web:spammer.example.com"
@@ -207,12 +207,12 @@ title: "Client Preferences & Account Data"
     "send": true
   },
   "spaces": {
-    "cx:space:01js0sp0000000000000000000": {
+    "cx:space:0196419b-0000-7000-8000-000000000000": {
       "send": false
     }
   },
   "flows": {
-    "cx:flow:01js1000000000000000000001": {
+    "cx:flow:01964200-0000-7000-8000-000000000001": {
       "send": true
     }
   }

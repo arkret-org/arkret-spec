@@ -31,7 +31,7 @@ Parent 侧声明：
 {
   "kind": "cx.space.child",
   "payload": {
-    "child_space_id": "cx:space:ch11d010000000000000000000",
+    "child_space_id": "cx:space:91085a00-8000-7000-8000-000000000000",
     "via": [
       "did:web:server.example"
     ],
@@ -48,7 +48,7 @@ Child 侧确认：
 {
   "kind": "cx.space.parent",
   "payload": {
-    "parent_space_id": "cx:space:parent01000000000000000000",
+    "parent_space_id": "cx:space:cac3aba0-0400-7000-8000-000000000000",
     "via": [
       "did:web:server.example"
     ],
@@ -105,7 +105,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（
 {
   "kind": "cx.space.inheritance_policy",
   "payload": {
-    "parent_space_id": "cx:space:parent01000000000000000000",
+    "parent_space_id": "cx:space:cac3aba0-0400-7000-8000-000000000000",
     "inherits": {
       "membership": false,
       "capability_bundles": [
@@ -142,10 +142,10 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（
 {
   "kind": "cx.capability.derived",
   "payload": {
-    "grant_id": "cx:grant:der1ved0100000000000000000",
-    "source_grant": "cx:grant:parentv1ewer00000000000000",
-    "source_space_id": "cx:space:parent01000000000000000000",
-    "target_space_id": "cx:space:ch11d010000000000000000000",
+    "grant_id": "cx:grant:aec076e6-8020-7000-8000-000000000000",
+    "source_grant": "cx:grant:cac3abad-85dc-7600-8000-000000000000",
+    "source_space_id": "cx:space:cac3aba0-0400-7000-8000-000000000000",
+    "target_space_id": "cx:space:91085a00-8000-7000-8000-000000000000",
     "actions": [
       "cx.space.discover",
       "cx.object.read"
@@ -236,10 +236,10 @@ Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求�
 
 ```json
 {
-  "root_space_id": "cx:space:parent01000000000000000000",
+  "root_space_id": "cx:space:cac3aba0-0400-7000-8000-000000000000",
   "children": [
     {
-      "space_id": "cx:space:ch11d010000000000000000000",
+      "space_id": "cx:space:91085a00-8000-7000-8000-000000000000",
       "edge_status": "confirmed",
       "accessible": true,
       "summary": {
@@ -248,7 +248,7 @@ Hierarchy 查询是客户端本地或可选受托 projection 语义，不要求�
       }
     },
     {
-      "space_id": "cx:space:ch11dpr1vate00000000000000",
+      "space_id": "cx:space:91085b6c-076a-7380-8000-000000000000",
       "edge_status": "confirmed",
       "accessible": false,
       "lazy_link": true

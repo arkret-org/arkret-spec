@@ -367,8 +367,8 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
     "kind": "conflict",
     "cells": ["cx:cell:cx.component.space.policy.v1:cx.space.01j…"],
     "event_ids": [
-      "cx:event:44440000000000000000000000…",
-      "cx:event:55550000000000000000000000…"
+      "cx:event:84210000-0000-7000-8000-000000000000…",
+      "cx:event:a5294000-0000-7000-8000-000000000000…"
     ],
     "anchor_view": {
       "leaves": ["cx:anchor:sha256:dddd…"],
@@ -438,7 +438,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read marker、mention
 ```json
 {
   "query": "legal review",
-  "space_ids": ["cx:space:01js0sp0000000000000000000"],
+  "space_ids": ["cx:space:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["message", "flow", "morph"],
   "morph_types": ["comment"],
   "sender": "did:web:alice.example.com",

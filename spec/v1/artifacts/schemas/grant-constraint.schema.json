@@ -282,14 +282,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "allowed_flow_refs": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -297,7 +297,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -305,7 +305,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -313,7 +313,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -341,14 +341,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:(space|flow|morph):[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:(space|flow|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "allowed_to_container_refs": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:(space|flow|morph):[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:(space|flow|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "wip_limit_override": {

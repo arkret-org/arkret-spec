@@ -1,7 +1,7 @@
 {
   "profile": "cx.profile.encoding_vectors.v1",
   "version": "2026-05-06",
-  "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.12. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers Crockford-Base32 rank string ordering (LIST item placement).",
+  "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.12. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers hex-Base32 rank string ordering (LIST item placement).",
   "vectors": [
     {
       "vector_id": "cx.vector.encoding.canonical_json.basic.v1",
@@ -69,9 +69,9 @@
       "vector_id": "cx.vector.encoding.event_digest.v1",
       "kind": "canonical_json_digest",
       "input": {
-        "event_id": "cx:event:01js0ev0000000000000000000",
+        "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
         "kind": "cx.message.create",
-        "space_id": "cx:space:01js0ke0000000000000000000",
+        "space_id": "cx:space:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:web:alice.example",
         "actor_seq": 1,
         "created_at": "2026-04-26T00:00:00Z",
@@ -79,14 +79,14 @@
         "prev_refs": [],
         "refs": [],
         "payload": {
-          "flow_id": "cx:flow:01js0ke0000000000000000000",
+          "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
           "content": {
             "kind": "cx.content.text",
             "body": "hello"
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"refs\":[],\"created_at\":\"2026-04-26T00:00:00Z\",\"event_id\":\"cx:event:01js0ev0000000000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"cx.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"cx.content.text\"},\"flow_id\":\"cx:flow:01js0ke0000000000000000000\"},\"prev_refs\":[],\"space_id\":\"cx:space:01js0ke0000000000000000000\"}",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"refs\":[],\"created_at\":\"2026-04-26T00:00:00Z\",\"event_id\":\"cx:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"cx.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"cx.content.text\"},\"flow_id\":\"cx:flow:01964137-0000-7000-8000-000000000000\"},\"prev_refs\":[],\"space_id\":\"cx:space:01964137-0000-7000-8000-000000000000\"}",
       "expected_digest": "sha256:c1464e4b8c7fde01326521ca7ba6a1c88e5b0847ad37a5a9ec5f1a101a791264",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
@@ -100,7 +100,7 @@
       "kind": "canonical_json_digest",
       "input": {
         "schema": "cx.schema.event_batch_receipt.v1",
-        "receipt_id": "cx:receipt:01js0rc0000000000000000000",
+        "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
         "issuer": "did:web:alice.example",
         "scope": {
           "actor_id": "did:web:alice.example"
@@ -114,7 +114,7 @@
         ],
         "created_at": "2026-04-26T00:00:00Z"
       },
-      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_hash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"cx:receipt:01js0rc0000000000000000000\",\"schema\":\"cx.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:web:alice.example\"}}",
+      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_hash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"cx:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"cx.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:web:alice.example\"}}",
       "expected_digest": "sha256:8c258c3d2a10704ad0a1fa487b3046f2e76c7a7eeb32781446421d73cf9e84d3",
       "fail_conditions": [
         "events array sorted or deduplicated before hashing",
@@ -182,7 +182,7 @@
       "vector_id": "cx.vector.encoding.cursor_opaque.v1",
       "kind": "cursor_opaqueness",
       "input_cursor": "cx:cursor:eyJzIjp7ImN4OnNwYWNlOjAxanMwc3AwMDAwMDAwMDAwMDAwMDAwMDAwIjpbImN4OmV2ZW50OjAxanMwZXYwMDAwMDAwMDAwMDAwMDAwMDAwIl19LCJ0IjoiY2xpZW50X3N5bmMiLCJ2IjoxLCJ4IjoiMjAyNi0xMi0zMVQyMzo1OTo1OVoifQ",
-      "decoded_payload_canonical_bytes_utf8": "{\"s\":{\"cx:space:01js0sp0000000000000000000\":[\"cx:event:01js0ev0000000000000000000\"]},\"t\":\"client_sync\",\"v\":1,\"x\":\"2026-12-31T23:59:59Z\"}",
+      "decoded_payload_canonical_bytes_utf8": "{\"s\":{\"cx:space:0196419b-0000-7000-8000-000000000000\":[\"cx:event:019640ed-8000-7000-8000-000000000000\"]},\"t\":\"client_sync\",\"v\":1,\"x\":\"2026-12-31T23:59:59Z\"}",
       "client_rules": [
         "MUST treat cursor as an opaque string and round-trip it verbatim",
         "MUST NOT parse v / t / s / x to construct the next page request",
@@ -190,7 +190,7 @@
       ],
       "server_rules": [
         "MUST validate v in supported_versions and x not expired before honouring cursor",
-        "MUST validate every event id under s.<space_id> matches cx:event:<ulid>",
+        "MUST validate every event id under s.<space_id> matches cx:event:<uuid>",
         "any validation failure MUST return reason_code invalid_cursor (or cursor_unrecognized / cursor_expired sub-cases)"
       ],
       "fail_conditions": [
@@ -218,24 +218,24 @@
   ],
   "rank_order": [
     {
-      "flow_id": "cx:flow:01js0ca1000000000000000000",
-      "list_id": "cx:space:01js0110000000000000000000",
+      "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000",
+      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
       "rank": "U"
     },
     {
-      "flow_id": "cx:flow:01js0ca2000000000000000000",
-      "list_id": "cx:space:01js0110000000000000000000",
+      "flow_id": "cx:flow:019640c5-0800-7000-8000-000000000000",
+      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
       "rank": "j"
     },
     {
-      "flow_id": "cx:flow:01js0ca3000000000000000000",
-      "list_id": "cx:space:01js0110000000000000000000",
+      "flow_id": "cx:flow:019640c5-0c00-7000-8000-000000000000",
+      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
       "rank": "t"
     }
   ],
   "expected_order": [
-    "cx:flow:01js0ca1000000000000000000",
-    "cx:flow:01js0ca2000000000000000000",
-    "cx:flow:01js0ca3000000000000000000"
+    "cx:flow:019640c5-0400-7000-8000-000000000000",
+    "cx:flow:019640c5-0800-7000-8000-000000000000",
+    "cx:flow:019640c5-0c00-7000-8000-000000000000"
   ]
 }

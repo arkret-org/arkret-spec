@@ -16,19 +16,19 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.place.v1"
     },
     "space_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$",
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Owning Space (security boundary). MUST point to a cx:space: id; MUST NOT point to another cx:place: id."
     },
     "parent_ref": {
       "type": "string",
-      "pattern": "^cx:(place|space):[0-9a-hjkmnp-z]{26}$",
+      "pattern": "^cx:(place|space):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional parent in the structural hierarchy. May be a cx:place: (e.g., a list whose parent is a board) or the same cx:space: as space_id when this Place is at the Space root. If omitted, the Place is at Space root."
     },
     "kind": {
@@ -71,7 +71,7 @@
     },
     "avatar_blob_ref": {
       "type": "string",
-      "pattern": "^cx:blob:(?:[0-9a-hjkmnp-z]{26}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
     "state": {
       "type": "string",

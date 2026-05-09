@@ -12,19 +12,19 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
 
 ```json
 {
-  "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "reducer_profile": "cx.reducer.v1",
   "schema_profile_refs": ["cx.profile.core_event_store.v1"],
   "frontier": {
-    "event_ids": ["cx:event:01js0ev0000000000000000000"],
+    "event_ids": ["cx:event:019640ed-8000-7000-8000-000000000000"],
     "timeline_hlc": "01970e589d21-0004-a13f9c2e"
   },
   "event_set_commitment": {
     "algorithm": "merkle_event_set_v1",
     "root": "sha256:...",
     "covered_event_count": 42000,
-    "covered_frontier": ["cx:event:01js0ev0000000000000000000"]
+    "covered_frontier": ["cx:event:019640ed-8000-7000-8000-000000000000"]
   },
   "state_hash": "sha256:...",
   "chunks": [
@@ -70,19 +70,19 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 ```json
 {
   "type": "snapshot_chunk",
-  "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
+  "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
   "index": 0,
   "reducer_profile": "cx.reducer.v1",
   "items": [
     {
       "kind": "card",
-      "id": "cx:flow:01js0ca0000000000000000000",
+      "id": "cx:flow:019640c5-0000-7000-8000-000000000000",
       "object": {
-        "id": "cx:flow:01js0ca0000000000000000000",
+        "id": "cx:flow:019640c5-0000-7000-8000-000000000000",
         "kind": "card",
         "schema": "cx.schema.flow.v1"
       },
-      "source_event_id": "cx:event:01js0ev0000000000000000000"
+      "source_event_id": "cx:event:019640ed-8000-7000-8000-000000000000"
     }
   ],
   "conflict_records": [],
@@ -151,12 +151,12 @@ High-assurance profile MUST 支持 inclusion challenge。`security_class=high_as
 
 ```json
 {
-  "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
-  "challenge_id": "cx:txn:01js0ch0000000000000000000",
+  "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
+  "challenge_id": "cx:txn:019640c8-8000-7000-8000-000000000000",
   "samples": [
     {
       "kind": "event_id",
-      "event_ids": ["cx:event:01js0ev0000000000000000000", "cx:event:01js0ev0000000000000000001"]
+      "event_ids": ["cx:event:019640ed-8000-7000-8000-000000000000", "cx:event:019640ed-8000-7000-8000-000000000001"]
     },
     {
       "kind": "actor_seq_range",
@@ -173,17 +173,17 @@ High-assurance profile MUST 支持 inclusion challenge。`security_class=high_as
 
 ```json
 {
-  "snapshot_ref": "cx:snapshot:01js0sn0000000000000000000",
-  "challenge_id": "cx:txn:01js0ch0000000000000000000",
+  "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
+  "challenge_id": "cx:txn:019640c8-8000-7000-8000-000000000000",
   "commitment_algorithm": "merkle_event_set_v1",
   "commitment_root": "sha256:...",
   "proofs": [
     {
       "kind": "event_id",
-      "event_id": "cx:event:01js0ev0000000000000000000",
+      "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
       "merkle_branch": ["sha256:...", "sha256:..."],
       "leaf_canonical_entry": {
-        "event_id": "cx:event:01js0ev0000000000000000000",
+        "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
         "event_hash": "sha256:...",
         "actor_id": "did:webvh:...:alice.example",
         "actor_seq": 100,
@@ -233,7 +233,7 @@ High-assurance profile MUST 支持 inclusion challenge。`security_class=high_as
 {
   "type": "encrypted_envelope",
   "encryption_profile": "mls_rfc9420",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "epoch": 42,
   "cleartext_metadata": {
     "object_ref": "cx:message:...",

@@ -10,11 +10,11 @@ title: Query JSON Schema
 
 ```json
 {
-  "space_ids": ["cx:space:01js0sp0000000000000000000"],
+  "space_ids": ["cx:space:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["flow", "message", "morph"],
   "morph_types": ["customer_case"],
   "facets": ["assignable"],
-  "anchor_ref": "cx:flow:01js0card00000000000000000",
+  "anchor_ref": "cx:flow:019640c5-61a0-7000-8000-000000000000",
   "filters": [],
   "relation": null,
   "context": {

@@ -45,8 +45,8 @@
           "profile": "cx.profile.mimi_interop.v1",
           "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
           "binding_scope": {
-            "space_id": "cx:space:01234567890123456789012345",
-            "flow_id": "cx:flow:01234567890123456789012345"
+            "space_id": "cx:space:0110c853-1d09-7044-b214-c74240110c85",
+            "flow_id": "cx:flow:0110c853-1d09-7044-b214-c74240110c85"
           },
           "hub_provider": "did:web:mimi.example.com",
           "local_provider_role": "hub",
@@ -80,14 +80,14 @@
       "input": {
         "consent_state": "accepted",
         "target_identifier": "mimi://remote.example/alice",
-        "space_id": "cx:space:01234567890123456789012345"
+        "space_id": "cx:space:0110c853-1d09-7044-b214-c74240110c85"
       },
       "expected": "consent_does_not_grant_space_read_or_write_capability"
     },
     {
       "name": "proxy_download_policy",
       "input": {
-        "blob_ref": "cx:blob:01234567890123456789012345",
+        "blob_ref": "cx:blob:0110c853-1d09-7044-b214-c74240110c85",
         "asset_privacy_policy": "provider_proxy"
       },
       "expected": "direct_object_store_url_is_not_returned"

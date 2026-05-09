@@ -252,7 +252,7 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^cx:device:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
       "type": "string",

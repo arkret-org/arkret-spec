@@ -10,21 +10,21 @@
         {
           "label": "missing",
           "body": {
-            "space_id": "cx:space:01js0aa0000000000000000000",
+            "space_id": "cx:space:019640a5-0000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         },
         {
           "label": "hidden",
           "body": {
-            "space_id": "cx:space:01js0bb0000000000000000000",
+            "space_id": "cx:space:019640b5-8000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         },
         {
           "label": "invite_only_without_proof",
           "body": {
-            "space_id": "cx:space:01js0cc0000000000000000000",
+            "space_id": "cx:space:019640c6-0000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         }
@@ -132,8 +132,8 @@
       "operation_id": "cx.push.notify",
       "input": {
         "notification": {
-          "event_id": "cx:event:01js0ev0000000000000000000",
-          "space_id": "cx:space:01js0sp0000000000000000000",
+          "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
+          "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
           "type": "mention",
           "push_hint": "wakeup"
         }

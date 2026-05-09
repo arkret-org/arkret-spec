@@ -92,18 +92,18 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.message.v1"
     },
     "space_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
-      "pattern": "^cx:flow:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "track": {
       "type": "string",
@@ -131,7 +131,7 @@
     },
     "revision_root": {
       "type": "string",
-      "pattern": "^cx:message:[0-9a-hjkmnp-z]{26}$",
+      "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "First revision in this message's edit chain. The first revision MUST have revision_root == id. Maintained by cx.message.revise reducer."
     },
     "edited_at": {
@@ -139,7 +139,7 @@
     },
     "redaction_ref": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Required when state=redacted; references the cx.message.redact event that produced this state. MUST be absent for other states."
     },
     "fields": {
@@ -229,7 +229,7 @@
           "properties": {
             "ref": {
               "type": "string",
-              "pattern": "^cx:(message|event):[0-9a-hjkmnp-z]{26}$"
+              "pattern": "^cx:(message|event):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "sender": {
               "$ref": "#/$defs/did"

@@ -94,8 +94,8 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 
 ```json
 {
-  "id": "cx:view:01js0vw0000000000000000000",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "id": "cx:view:019641be-0000-7000-8000-000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:web:acme.example.com",
   "kind": "collection",
   "renderer": "board",
@@ -109,7 +109,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_ref": "cx:place:01js0bd0000000000000000000",
+      "source_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
       "depth": 2
     }
   },
@@ -121,7 +121,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_place_id": "cx:place:01js0bd0000000000000000000",
+      "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
@@ -184,7 +184,7 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_ref": "cx:space:01js0bd0000000000000000000",
+    "source_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
     "depth": 2
   }
 }
@@ -197,7 +197,7 @@ View 应通过结构化 query 表达对象范围。
   "object_types": ["message"],
   "filters": [
     { "field": "state", "op": "eq", "value": "active" },
-    { "field": "flow_id", "op": "eq", "value": "cx:flow:01js1000000000000000000000" },
+    { "field": "flow_id", "op": "eq", "value": "cx:flow:01964200-0000-7000-8000-000000000000" },
     { "field": "track", "op": "eq", "value": "discussion" }
   ],
   "order_by": [
@@ -210,7 +210,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "anchor_ref": "cx:flow:01js0fk0000000000000000000",
+  "anchor_ref": "cx:flow:019640f9-8000-7000-8000-000000000000",
   "include": [
     "relations",
     "synthesis",
@@ -257,21 +257,21 @@ Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按
 {
   "kind": "collection",
   "renderer": "board",
-  "view_id": "cx:view:01js0vw0000000000000000000",
+  "view_id": "cx:view:019641be-0000-7000-8000-000000000000",
   "frontier": ["cx:event:..."],
   "groups": [
     {
-      "group_id": "cx:space:01rev1ew000000000000000000",
+      "group_id": "cx:space:01c3b617-7000-7000-8000-000000000000",
       "title": "Review",
       "rank": "mV",
       "items": [
         {
           "object": {
-            "id": "cx:flow:01task00000000000000000000",
+            "id": "cx:flow:01d2b330-0000-7000-8000-000000000000",
             "title": "Legal review"
           },
           "position": {
-            "relation_id": "cx:relation:01p0s000000000000000000000",
+            "relation_id": "cx:relation:01b03200-0000-7000-8000-000000000000",
             "rank": "mV"
           },
           "discussion": {

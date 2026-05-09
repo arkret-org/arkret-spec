@@ -425,7 +425,7 @@
       "applies_to": [
         "encoding"
       ],
-      "description": "Generic encoding violation (HLC format, ULID format, base64url alphabet, etc.) not otherwise classified."
+      "description": "Generic encoding violation (HLC format, UUIDv7 format, base64url alphabet, etc.) not otherwise classified."
     },
     {
       "code": "invalid_cursor",

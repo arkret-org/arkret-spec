@@ -42,7 +42,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "minItems": 1,
       "uniqueItems": true
@@ -113,15 +113,15 @@
           },
           "space_id": {
             "type": "string",
-            "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "object_ref": {
             "type": "string",
-            "pattern": "^(cx:(flow|space|message|morph|relation|view):[0-9a-hjkmnp-z]{26})$"
+            "pattern": "^(cx:(flow|space|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
           },
           "grant_ref": {
             "type": "string",
-            "pattern": "^cx:grant:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "visibility": {
             "type": "string",
@@ -157,7 +157,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "uniqueItems": true
         },
@@ -191,7 +191,7 @@
     },
     "last_audit_event_ref": {
       "type": "string",
-      "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "frontier": {
       "type": "object"

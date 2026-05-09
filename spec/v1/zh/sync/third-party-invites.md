@@ -27,7 +27,7 @@ title: Third-Party Invites
 ```json
 {
   "kind": "cx.invite.third_party",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "display_name_hint": "external invite",
   "token_commitment": "sha256:<hash(token_salt || invite_token)>",
   "token_salt_id": "salt:2026-04-28:invite-001",
@@ -64,7 +64,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Sp
 ```json
 {
   "kind": "cx.invite.claim",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "subject_did": "did:web:bob.example.com",
   "token_commitment": "sha256:<hash(token_salt || invite_token)>",
   "claim_nonce": "01JX...",
@@ -72,7 +72,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Sp
     "verification_service_did": "did:web:identity.alice.example",
     "verification_method": "did:web:identity.alice.example#invite-001",
     "subject_did": "did:web:bob.example.com",
-    "space_id": "cx:space:01js0sp0000000000000000000",
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "audience": "contrix.invite.claim",
     "expires_at": "2026-05-05T00:00:00Z",
     "signature": "<身份验证服务的签名>"

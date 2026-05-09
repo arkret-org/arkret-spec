@@ -107,40 +107,40 @@ v1 conformance 锁定的 hash 算法集合：
 协议 wire / canonical object 层的 typed ID 格式：
 
 ```text
-cx:<kind>:<ulid>
+cx:<kind>:<uuid>
 ```
 
 标准 `kind` 的机器可读 source of truth 是 `artifacts/registry/id-kind-registry.json`。本文只定义通用规则。
 
-`cx:` 前缀表示 Contrix 协议命名空间；`<kind>` 表示对象或引用类型；`<ulid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
+`cx:` 前缀表示 Contrix 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
 
 - Event Envelope、canonical object、receipt、snapshot、fixture 和 OpenAPI / non-HTTP DTO。
 - canonical JSON、签名 payload、`payload_hash`、event digest、cursor 内部 state、federation payload、audit log。
 - 跨服务引用、日志和错误响应中需要自描述对象类型的字段。
 
-数据库或本地索引实现 MAY 不把 `cx:<kind>:` 前缀作为主键的一部分存储。例如 `receipts` 表可以只存 `d1sc01j0000000000000000000`，因为表名或显式 `kind` 列已经提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，不得用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
+数据库或本地索引实现 MAY 不把 `cx:<kind>:` 前缀作为主键的一部分存储——例如直接用 PostgreSQL `uuid` / `BYTEA(16)` 列存 16 字节 raw value，由表名或显式 `kind` 列提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，不得用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
 
 `<kind>` 是 canonical bytes 的一部分。实现不得把 `cx:receipt:<id>` 改写成 `cx:event:<id>`，也不得因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
-v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 ULID 部分 MUST 使用小写 Crockford Base32 字符集 `[0-9a-hjkmnp-z]`，并且不得包含 `i`、`l`、`o`、`u`。外部导入数据 MAY 使用大写 ULID；实现必须在生成 v1 Event Envelope、object id、cursor payload 或 proof `payload_hash` 前把它规范化为小写。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写。
+v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 `<uuid>` 段 MUST 是 [RFC 9562](https://www.rfc-editor.org/rfc/rfc9562) UUID **version 7**：48-bit Unix-millisecond timestamp（big-endian）+ 4-bit version=`0111` + 12-bit `rand_a` + 2-bit variant=`10` + 62-bit `rand_b`，按 RFC 9562 §4 的 canonical 36-character lowercase hex 形式 `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` 序列化（其中 `N ∈ {8, 9, a, b}`，对应 RFC 4122 variant 1）。外部导入数据若是大写或带 URN/Microsoft braces 等变体形式，MUST 在生成 v1 Event Envelope、object id、cursor payload 或 proof `payload_hash` 前规范化为小写无前缀的 36-char hyphen-separated 形式。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写或形式。
 
-`<ulid>` 段 MUST 是 [ULID](https://github.com/ulid/spec)（48-bit 大端 Unix-millisecond timestamp + 80-bit 单调或随机尾部），按上述小写 Crockford Base32 编码为 26 字符。同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 ULID monotonic 模式（保持时间戳不变、随机段单调递增），用于稳定本地 actor chain 顺序。**v1 wire MUST NOT 接受其他结构等价 ID 替代**——UUID（含 RFC 9562 v7）、KSUID、Snowflake、TSID、CUID 等，即使长度恰为 26 字符或经过 Crockford 重编码，也不得作为 typed `cx:<kind>:<ulid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / auth_refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验仅以正则 + 长度为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
+同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也不得作为 typed `cx:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / auth_refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
 
-`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed ULID。Envelope 的内容指纹由 `proof.payload_hash`（≡ `canonical_hash(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
+`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.payload_hash`（≡ `canonical_hash(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
 
-本节定义的 ULID 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `space`、`flow`、`place`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`txn` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / move / anchor、canonical cell tuple、MLS profile-scoped 引用、Space-scoped pseudonym）才允许偏离 typed-ULID pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-ULID 前缀形态 MUST 按未知 critical wire type 拒绝。
+本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `space`、`flow`、`place`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`txn` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / move / anchor、canonical cell tuple、MLS profile-scoped 引用、Space-scoped pseudonym）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
 
 特殊 ID/ref 形式：
 
-- `cx:cursor:<base64url>` 是 opaque token，不是 typed ULID object ID。
-- `cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`cx:blob:01js0bm0000000000000000000` 是 Blob metadata ID。二者不得混用。
+- `cx:cursor:<base64url>` 是 opaque token，不是 typed UUIDv7 object ID。
+- `cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`cx:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者不得混用。
 - `cx:mls:<profile>:<profile_id>`、`cx:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 
 自定义 profile 若新增 `cx:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `cx:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
 ### 4.1 Field Naming: `<noun>_id` vs `<noun>_ref`（normative for new fields）
 
-v1 wire 中已存在两种"指向另一个对象"的字段命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<ulid>`）的字段。早期 v1 草案在不同对象上选用了不同后缀（如 `space_id` / `flow_id` / `target_place_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `discussion_space_ref` / `policy_ref` 用 `_ref`），形成了已固化的混用。
+v1 wire 中已存在两种"指向另一个对象"的字段命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<uuid>`）的字段。早期 v1 草案在不同对象上选用了不同后缀（如 `space_id` / `flow_id` / `target_place_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `discussion_space_ref` / `policy_ref` 用 `_ref`），形成了已固化的混用。
 
 **v1 现状（不变）**：所有现有字段名锁定在当前 wire 形态，重命名是 breaking change，不在 v1 范围内执行。下表列出**已定型**的字段命名约定，实现 MUST 按现有命名解析；不得依赖前缀做字段类型推断。
 
@@ -163,7 +163,7 @@ v1 wire 中已存在两种"指向另一个对象"的字段命名 convention：`<
 ```json
 {
   "schema": "cx.schema.event_batch_receipt.v1",
-  "receipt_id": "cx:receipt:01js0rc0000000000000000000",
+  "receipt_id": "cx:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
   "scope": {
     "actor_id": "did:web:alice.example"
@@ -321,14 +321,14 @@ Stream 形态：
   "purpose": "stream",
   "t": "2026-04-26T00:00:00.000Z",
   "s": {
-    "cx:space:01js0sp0000000000000000000": {
-      "p": ["cx:event:01js0ev0000000000000000000"],
+    "cx:space:0196419b-0000-7000-8000-000000000000": {
+      "p": ["cx:event:019640ed-8000-7000-8000-000000000000"],
       "o": "01970e589d21-0004-a13f9c2e",
       "h": "sha256:abc123..."
     }
   },
   "d": {
-    "cx:device:01js0dm0000000000000000000": "cx:devmsg:01js0dm0000000000000000000"
+    "cx:device:019640da-0000-7000-8000-000000000000": "cx:devmsg:019640da-0000-7000-8000-000000000000"
   },
   "x": 1714080000000
 }
@@ -342,9 +342,9 @@ Barrier 形态：
   "purpose": "barrier",
   "t": "2026-04-26T00:00:00.000Z",
   "target": {
-    "event_id": "cx:event:01js0ev0000000000000000000",
+    "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
     "event_digest": "sha256:abc123...",
-    "space_id": "cx:space:01js0sp0000000000000000000"
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000"
   },
   "x": 1714080000000
 }

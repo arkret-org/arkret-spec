@@ -28,11 +28,11 @@ title: "Read Receipts & Markers"
 {
   "receipt_type": "read",
   "schema": "cx.schema.read_receipt.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_id": "cx:flow:01js1000000000000000000001",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "track": "discussion",
   "actor_id": "did:web:alice.example",
-  "event_id": "cx:event:01js1read00000000000000000",
+  "event_id": "cx:event:01964387-29a0-7000-8000-000000000000",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "created_at": "2026-04-26T10:00:00Z"
 }
@@ -111,14 +111,14 @@ Read marker schema：`cx.schema.read_marker.v1`。Marker 是 actor-private 持�
   "id": "read_marker_alice_flow_discussion_01",
   "schema": "cx.schema.read_marker.v1",
   "actor_id": "did:web:alice.example",
-  "device_id": "cx:device:01js0ke0000000000000000000",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "scope": {
     "kind": "flow_discussion",
-    "ref": "cx:flow:01js1000000000000000000001"
+    "ref": "cx:flow:01964200-0000-7000-8000-000000000001"
   },
   "position": {
-    "event_id": "cx:event:01js1rd0000000000000000000",
+    "event_id": "cx:event:01964386-8000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T10:00:00Z"
@@ -159,13 +159,13 @@ Read marker 是 actor-private 状态。最小结构示例：
 ```json
 {
   "actor_id": "did:web:alice.example",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "scope": {
     "kind": "flow_discussion",
-    "ref": "cx:flow:01js0r00m00000000000000000"
+    "ref": "cx:flow:01964180-0280-7000-8000-000000000000"
   },
   "position": {
-    "event_id": "cx:event:01js0ev0000000000000000000",
+    "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T00:00:00Z"
@@ -182,11 +182,11 @@ Receipt 可以公开或私有，取决于 Space policy。schema：`cx.schema.rea
 {
   "receipt_type": "read",
   "schema": "cx.schema.read_receipt.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_id": "cx:flow:01js1000000000000000000001",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "track": "discussion",
   "actor_id": "did:web:alice.example",
-  "event_id": "cx:event:01js1read00000000000000000",
+  "event_id": "cx:event:01964387-29a0-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -197,14 +197,14 @@ Notification 是派生 projection，不是 canonical truth。schema：`cx.schema
 
 ```json
 {
-  "id": "cx:notif:01js0nf0000000000000000000",
+  "id": "cx:notif:01964157-8000-7000-8000-000000000000",
   "schema": "cx.schema.notification.v1",
   "actor_id": "did:web:alice.example",
-  "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_id": "cx:flow:01js1000000000000000000001",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "track": "discussion",
-  "source_event_id": "cx:event:01js1mn0000000000000000000",
-  "source_ref": "cx:message:01js1msg000000000000000000",
+  "source_event_id": "cx:event:0196434a-8000-7000-8000-000000000000",
+  "source_ref": "cx:message:0196434c-c000-7000-8000-000000000000",
   "notification_type": "mention",
   "state": "unread",
   "priority": "normal",

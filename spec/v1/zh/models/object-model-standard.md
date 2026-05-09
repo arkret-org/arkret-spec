@@ -135,7 +135,7 @@ Access 模型现在只有两种形态：
     { "name": "synthesis", "is_primary": true },
     { "name": "discussion", "profile": "review" }
   ],
-  "discussion_space_ref": "cx:space:01js0ds0000000000000000000"
+  "discussion_space_ref": "cx:space:019640dc-8000-7000-8000-000000000000"
 }
 ```
 
@@ -239,9 +239,9 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
     "kind": "cx.flow.create",
     "payload": {
       "object": {
-        "id": "cx:flow:01js0fk0000000000000000000",
+        "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
         "schema": "cx.schema.flow.v1",
-        "space_id": "cx:space:01js0sp0000000000000000000",
+        "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
         "title": "项目同步",
         "tracks": [
           { "name": "discussion", "is_primary": true }
@@ -253,16 +253,16 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
   },
   {
     "kind": "cx.flow.track.enable",
-    "target_ref": "cx:flow:01js0fk0000000000000000000",
+    "target_ref": "cx:flow:019640f9-8000-7000-8000-000000000000",
     "payload": {
-      "flow_id": "cx:flow:01js0fk0000000000000000000",
+      "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
       "track": "discussion"
     }
   },
   {
     "kind": "cx.message.create",
     "payload": {
-      "flow_id": "cx:flow:01js0fk0000000000000000000",
+      "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
       "track": "discussion",
       "content": {
         "kind": "cx.content.text",

@@ -188,7 +188,7 @@ Controlled Collaboration Space SHOULD 使用：
   "kind": "cx.space.create",
   "payload": {
     "object": {
-      "id": "cx:space:01js0en0000000000000000000",
+      "id": "cx:space:019640ea-8000-7000-8000-000000000000",
       "schema": "cx.schema.space.v1",
       "security_class": "high_assurance",
       "title": "Controlled Collaboration",
@@ -259,7 +259,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
   "issuer": "did:web:defense.example",
   "subject": "did:web:contractor.example",
   "scope": {
-    "space_id": "cx:space:j01nt000000000000000000000-operation",
+    "space_id": "cx:space:400d7400-0000-7000-8000-000000000000-operation",
     "roles": ["contractor_reviewer"],
     "max_members": 20
   },

@@ -317,7 +317,7 @@ Result:
 {
   "results": [
     {
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "name": "Release Coordination",
       "summary": "Public release coordination",
       "discoverability": "listed",
@@ -328,9 +328,9 @@ Result:
       ],
       "preview_ref": "cx:event:01JS0PV...",
       "source_refs": [
-        "cx:event:spacecreatehash00000000000",
-        "cx:event:spaced1sc0veryhash00000000",
-        "cx:event:space0rgan1zat10nhash00000"
+        "cx:event:36531ccc-395a-7455-9880-000000000000",
+        "cx:event:36531cd0-e580-7bb1-a8ab-310000000000",
+        "cx:event:36531c0c-4155-7fd5-a082-b15662000000"
       ]
     }
   ],

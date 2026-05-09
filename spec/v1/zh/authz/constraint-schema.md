@@ -200,11 +200,11 @@ v2 主版本 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: 
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "allowed_flow_refs": [
-    "cx:flow:01js0r00m00000000000000000"
+    "cx:flow:01964180-0280-7000-8000-000000000000"
   ],
   "allowed_tracks": ["discussion"],
   "denied_flow_refs": [
-    "cx:flow:01js0r00m99999999999999900"
+    "cx:flow:01964180-0289-7a52-94a5-294a5294a400"
   ]
 }
 ```
@@ -235,9 +235,9 @@ v2 主版本 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: 
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
-  "allowed_view_refs": ["cx:view:01js0vw0000000000000000000"],
-  "allowed_from_container_refs": ["cx:space:01js0c10000000000000000000"],
-  "allowed_to_container_refs": ["cx:space:01js0c20000000000000000000"],
+  "allowed_view_refs": ["cx:view:019641be-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```
@@ -727,7 +727,7 @@ Grant envelope 字段、签名规则与必填性以
 [`artifacts/schemas/capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json)
 为准；下述示例展示 grant 上下文中的典型 typed constraint 组合，不引入新规则。
 
-> Grant 撤销 MUST 表达为 accepted `cx.capability.revoke` Event 指向 `cx:grant:<ulid>`；
+> Grant 撤销 MUST 表达为 accepted `cx.capability.revoke` Event 指向 `cx:grant:<uuid>`；
 > Contrix v1 不注册 `cx:revocation-list:*` typed ID。
 
 #### 20.3.1 Field-level 与 Type 限制
@@ -815,9 +815,9 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "relation_kind_allow": ["contains"],
-  "allowed_view_refs": ["cx:view:01js0vw0000000000000000000"],
-  "allowed_from_container_refs": ["cx:space:01js0c10000000000000000000"],
-  "allowed_to_container_refs": ["cx:space:01js0c20000000000000000000"],
+  "allowed_view_refs": ["cx:view:019641be-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```

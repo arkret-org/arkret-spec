@@ -18,7 +18,7 @@ title: Profiles And Presence
 
 ```json
 {
-  "id": "cx:actor_profile:01js0ap0000000000000000000",
+  "id": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
   "schema": "cx.schema.actor_profile.v1",
   "principal_id": "did:web:alice.example.com",
   "actor_kind": "user",
@@ -61,9 +61,9 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
 
 ```json
 {
-  "event_id": "cx:event:01js0ev0000000000000000000",
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "kind": "cx.profile.create",
-  "space_id": "cx:space:01js0pc0000000000000000000",
+  "space_id": "cx:space:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -72,7 +72,7 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
   "auth_refs": [],
   "payload": {
     "object": {
-      "id": "cx:actor_profile:01js0ap0000000000000000000",
+      "id": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
       "schema": "cx.schema.actor_profile.v1",
       "principal_id": "did:web:alice.example.com",
       "actor_kind": "user",
@@ -104,17 +104,17 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "event_id": "cx:event:01js0ev1000000000000000000",
+  "event_id": "cx:event:019640ed-8400-7000-8000-000000000000",
   "kind": "cx.profile.update",
-  "space_id": "cx:space:01js0pc0000000000000000000",
+  "space_id": "cx:space:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 2,
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
-  "prev_refs": ["cx:event:01js0ev0000000000000000000"],
-  "auth_refs": ["cx:event:01js0ev0000000000000000000"],
+  "prev_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
+  "auth_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
   "payload": {
-    "target_ref": "cx:actor_profile:01js0ap0000000000000000000",
+    "target_ref": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
     "patch": {
       "display_name": "Alice C.",
       "profile_fields.status_message": "Back at work!"
@@ -125,7 +125,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:alice.example.com#key-1",
-      "payload_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "payload_hash": "sha256:6b5ad6b5-ad6b-7ad6-b5ad-6b5ad6b5ad6b6b5ad6b5-ad6b-7ad6-b5ad-6b5ad6b5ad6bbbbbbbbbbbbb",
       "created_at": "2026-04-26T00:01:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
     }
@@ -145,18 +145,18 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "event_id": "cx:event:01js0ev2000000000000000000",
+  "event_id": "cx:event:019640ed-8800-7000-8000-000000000000",
   "kind": "cx.profile.space_override",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "actor_seq": 3,
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",
-  "prev_refs": ["cx:event:01js0ev1000000000000000000"],
-  "auth_refs": ["cx:event:01js0ev1000000000000000000"],
+  "prev_refs": ["cx:event:019640ed-8400-7000-8000-000000000000"],
+  "auth_refs": ["cx:event:019640ed-8400-7000-8000-000000000000"],
   "payload": {
-    "target_ref": "cx:actor_profile:01js0ap0000000000000000000",
-    "target_space_id": "cx:space:01js0sp0000000000000000000",
+    "target_ref": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
+    "target_space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "patch": {
       "display_name": "alice-oss",
       "avatar_blob_ref": {
@@ -242,8 +242,8 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 {
   "kind": "cx.typing",
   "actor": "did:web:alice.example.com",
-  "space_id": "cx:space:01js0sp0000000000000000000",
-  "flow_id": "cx:flow:01js1000000000000000000001",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "typing": true,
   "ttl_ms": 5000
 }

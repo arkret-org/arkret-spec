@@ -36,7 +36,7 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^cx:event:[0-9a-hjkmnp-z]{26}$"
+        "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "description": "Anchored reducer-input event ids whose effects (or precondition checks) produced this bottom. Empty allowed when the cell's bottom is structural (e.g. anchorer cell schema_error) and not tied to a specific event."
     },

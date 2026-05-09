@@ -347,7 +347,7 @@ grant subject = alice@google.com
 ```json
 {
   "kind": "cx.identity.presentation_request",
-  "request_id": "cx:req:pres01j0000000000000000000",
+  "request_id": "cx:req:d8764019-0000-7000-8000-000000000000",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",
   "domain": "google.example",
@@ -389,7 +389,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 ```json
 {
   "kind": "cx.identity.disclosure_policy",
-  "policy_id": "cx:policy:d1sc01j0000000000000000000",
+  "policy_id": "cx:policy:a1cb0019-0000-7000-8000-000000000000",
   "holder_did": "did:web:holder.example.com",
   "audience": {
     "org_did": "did:web:google.example",
@@ -426,7 +426,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Space�
 ```json
 {
   "kind": "cx.identity.presentation_response",
-  "request_id": "cx:req:pres01j0000000000000000000",
+  "request_id": "cx:req:d8764019-0000-7000-8000-000000000000",
   "holder_subject": "did:key:z6Mkgpairwise...",
   "proof_profile": "vc_di_bbs_2023",
   "presentation": {},
@@ -447,8 +447,8 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 ```json
 {
   "kind": "cx.identity.disclosure_receipt",
-  "receipt_id": "cx:receipt:d1sc01j0000000000000000000",
-  "request_id": "cx:req:pres01j0000000000000000000",
+  "receipt_id": "cx:receipt:a1cb0019-0000-7000-8000-000000000000",
+  "request_id": "cx:req:d8764019-0000-7000-8000-000000000000",
   "holder_did": "did:key:z6Mkgpairwise...",
   "verifier_did": "did:web:login.google.example",
   "represented_org": "did:web:google.example",

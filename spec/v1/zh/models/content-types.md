@@ -296,7 +296,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
   "body": "> Alice: 这个方案可行吗？\n\n我觉得需要再评估一下风险。",
   "format": "markdown",
   "reply_context": {
-    "ref": "cx:message:01js1000000000000000000099",
+    "ref": "cx:message:01964200-0000-7000-8000-000000000129",
     "sender": "did:web:alice.example.com",
     "excerpt": "这个方案可行吗？"
   }

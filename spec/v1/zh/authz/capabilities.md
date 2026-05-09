@@ -47,16 +47,16 @@ Authorization condition: Claim / Attestation
 
 ID 语义：
 
-- `cx:grant:<ulid>` 是签名 Capability Grant object 的规范 ID，`cx.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
-- `cx:capability:<ulid>` 只表示抽象 capability definition 引用；不得作为签名 grant object ID 使用。
+- `cx:grant:<uuid>` 是签名 Capability Grant object 的规范 ID，`cx.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
+- `cx:capability:<uuid>` 只表示抽象 capability definition 引用；不得作为签名 grant object ID 使用。
 
 示例：
 
 ```json
 {
-  "id": "cx:grant:01js0gr0000000000000000000",
+  "id": "cx:grant:0196410c-0000-7000-8000-000000000000",
   "schema": "cx.schema.capability.v1",
-  "space_id": "cx:space:01js0sp0000000000000000000",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
   "actions": [
@@ -69,13 +69,13 @@ ID 语义：
   "resources": [
     {
       "kind": "object",
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "object_type": "flow",
       "scope": "space_wide"
     },
     {
       "kind": "morph",
-      "space_id": "cx:space:01js0sp0000000000000000000",
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "morph_type": "document",
       "scope": "space_wide"
     }
@@ -423,7 +423,7 @@ Contrix v1 采用 allow-grant + explicit revoke 模型。
 {
   "kind": "cx.capability.revoke",
   "payload": {
-    "grant_ref": "cx:grant:01js0gr0000000000000000000",
+    "grant_ref": "cx:grant:0196410c-0000-7000-8000-000000000000",
     "reason": "contract ended"
   }
 }

@@ -430,7 +430,7 @@ components:
       properties:
         report_id:
           type: string
-          pattern: ^cx:report:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:report:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         status:
           type: string
           enum:
@@ -532,20 +532,20 @@ components:
           - both
         source_ref:
           type: string
-          pattern: ^(cx:(space|flow|message|morph|relation):[0-9a-hjkmnp-z]{26}|did:.+)$
+          pattern: ^(cx:(space|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         source_actor_id:
           type: string
         source_space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         target_ref:
           type: string
-          pattern: ^(cx:(space|flow|message|morph|relation):[0-9a-hjkmnp-z]{26}|did:.+)$
+          pattern: ^(cx:(space|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         target_actor_id:
           type: string
         target_space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         depth:
           type: integer
           minimum: 0
@@ -609,11 +609,11 @@ components:
           type: array
           items:
             type: string
-            pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+            pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           minItems: 1
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         projection:
           type: string
           enum:
@@ -695,7 +695,7 @@ components:
           - view_id
     ObjectRef:
       type: string
-      pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$
+      pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     ObjectLookupResponse:
       type: object
       required:
@@ -802,7 +802,7 @@ components:
           type: array
           items:
             type: string
-            pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+            pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         object_types:
           type: array
           items:
@@ -857,7 +857,7 @@ components:
       properties:
         root_space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         root:
           $ref: '#/components/schemas/ProjectionObject'
         children:
@@ -889,7 +889,7 @@ components:
       properties:
         space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         accessible:
@@ -908,10 +908,10 @@ components:
       properties:
         parent_ref:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         child_ref:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         relation_kind:
@@ -929,7 +929,7 @@ components:
           type: array
           items:
             type: string
-            pattern: ^cx:event:[0-9a-hjkmnp-z]{26}$
+            pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         actor_frontiers:
           type: array
           items:
@@ -947,7 +947,7 @@ components:
                 minimum: 0
               event_id:
                 type: string
-                pattern: ^cx:event:[0-9a-hjkmnp-z]{26}$
+                pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
               hlc:
                 type: string
                 pattern: ^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$
@@ -1010,10 +1010,10 @@ components:
           const: relation_container
         scope_container_id:
           type: string
-          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
@@ -1096,16 +1096,16 @@ components:
           const: relation
         scope_container_id:
           type: string
-          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
         relation_id:
           type: string
-          pattern: ^cx:relation:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -1305,10 +1305,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         groups:
@@ -1343,7 +1343,7 @@ components:
       properties:
         id:
           type: string
-          pattern: ^cx:(space|flow|message|morph):[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:(space|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         type:
           type: string
           enum:
@@ -1418,7 +1418,7 @@ components:
           - tombstone
         event_id:
           type: string
-          pattern: ^cx:(evt|event):[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:(evt|event):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         object:
           $ref: '#/components/schemas/ProjectionObject'
         actor_id:
@@ -1432,7 +1432,7 @@ components:
           minLength: 1
         thread_id:
           type: string
-          pattern: ^cx:(flow|message):[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:(flow|message):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         body:
           type: object
         redacted:
@@ -1453,10 +1453,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         entries:
@@ -1499,16 +1499,16 @@ components:
       properties:
         relation_id:
           type: string
-          pattern: ^cx:relation:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
         from_ref:
           type: string
-          pattern: ^(cx:(space|flow|message|morph):[0-9a-hjkmnp-z]{26}|did:.+)$
+          pattern: ^(cx:(space|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         to_ref:
           type: string
-          pattern: ^(cx:(space|flow|message|morph):[0-9a-hjkmnp-z]{26}|did:.+)$
+          pattern: ^(cx:(space|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -1531,10 +1531,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         nodes:
@@ -1589,10 +1589,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         sections:
@@ -1653,10 +1653,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^cx:view:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         space_id:
           type: string
-          pattern: ^cx:space:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         widgets:
@@ -2274,7 +2274,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:backup:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       requestBody:
         required: true
         content:
@@ -2296,7 +2296,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:backup:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       responses:
         '200':
           description: Encrypted key backup object
@@ -2312,7 +2312,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^cx:backup:[0-9a-hjkmnp-z]{26}$
+          pattern: ^cx:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       responses:
         '200':
           description: Encrypted key backup deleted

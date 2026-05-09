@@ -15,14 +15,14 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^cx:view:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.view.v1"
     },
     "space_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "kind": {
       "type": "string",
@@ -120,7 +120,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^cx:space:[0-9a-hjkmnp-z]{26}$"
+            "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "object_types": {
@@ -259,7 +259,7 @@
     },
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(space|flow|message|morph|relation|event|view):[0-9a-hjkmnp-z]{26}|did:.+)$"
+      "pattern": "^(cx:(space|flow|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
     }
   },
   "additionalProperties": true
