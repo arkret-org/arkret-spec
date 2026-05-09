@@ -30,6 +30,43 @@ Contrix v1 的 canonical history 由 signed Move、Anchor DAG 与 per-cell Latti
 | Effective State | 某个 Anchor view 的 `frontier` 中所有 Move 经 Lattice join 后得到的 cell map。 |
 | Pending Move | 通过本地格式/签名初检但尚未被 Anchor frontier 覆盖的 Move。Pending Move 不影响 effective state。 |
 
+### 2.1 三原语关系总览
+
+下图把 Move / Anchor / Lattice 三个原语的协作关系画成一张图。**Move 提交意图、Anchor 给出 finality、Lattice 决定 per-cell 收敛值或 ⊥**——三层缺一不可。
+
+```mermaid
+flowchart LR
+    subgraph M ["Move（actor / service DID 单签）"]
+        direction TB
+        Mbox["preconditions[] (cell, predicate)<br/>effects[] (cell, lattice_op)<br/>anchor_ref<br/>refs[] (authorized_by / state_witness / ...)"]
+    end
+
+    subgraph A ["Anchor DAG（ordering / finality）"]
+        direction TB
+        A1["Anchor N-1<br/>frontier / state_root"]
+        A2["Anchor N<br/>frontier ⊇ N-1<br/>state_root = H(per-cell join)<br/>anchorer_sig"]
+        A1 --> A2
+    end
+
+    subgraph L ["Cell × Lattice（per-cell deterministic join）"]
+        direction TB
+        Cells["cas-register / or-set / mv-register<br/>fsm / counter / ordered-log"]
+        Bot["⊥ bottom<br/>bottom=reject → 依赖 Move fail closed<br/>bottom=expose → 暴露多值诊断 + 等待 conflict-recovery"]
+        Cells -. "并发冲突 / 非法状态" .-> Bot
+    end
+
+    Mbox -- "anchor_ref（提交基线，受 max_anchor_staleness_ms 限制）" --> A
+    Mbox -- "preconditions 校验" --> Cells
+    A -- "frontier 覆盖后 effects 才进 effective state" --> Cells
+```
+
+读图要点：
+
+- Move 的 issuer 永远是单签；委员会 / 多签 / threshold 在 Anchor 层表达，不在 Move 层。
+- Anchor 是持久承诺，**不修改 cell**——cell 变化只来自 frontier 内 Move 的 effects 经 Lattice join 后产生。
+- Pending Move（已签名但 anchor_ref 未被覆盖）不进 effective state；超出 `max_anchor_staleness_ms` 后必须 rebase 重签。
+- ⊥ 不是错误终态：`bottom=expose` 的 cell 可由带 `state_witness` + `inclusion_proof` 的 conflict-recovery Move 收回。
+
 ## 3. Move
 
 Reducer-input event 的 wire schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) — Move 语义已并入顶层 event。Normative 形态：

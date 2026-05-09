@@ -173,6 +173,33 @@ Contrix v1 的联邦批量传播采用依赖感知的 partial accept：最小原
 - 联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
 - 当服务委托被撤销或成员被移除后，生效因果点之后不得继续向已撤销 service DID 推送非加密私有内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
 
+### 4.1.0 推送时序
+
+下图把 push transaction 的握手画成时序图。**信任根是签名 Event 本身 + RFC 9421 HTTP Message Signature + 接收方服务绑定快照，不是任何一方服务器的本地数据库。**
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Cli as Actor 客户端
+    participant Alpha as server-alpha 发送方
+    participant Pol as Space S policy
+    participant Beta as server-beta 接收方
+
+    Cli->>Alpha: 提交 signed Event 到 Space S
+    Alpha->>Pol: 解析应接收的 Principal Server
+    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(space_policy_hash / membership_frontier / reducer_profile_hash)
+    Alpha->>Beta: POST /federation/push-operations<br>HTTP Message Sig (RFC 9421)<br>Source-Service-DID / Destination-Service-DID<br>Content-Digest / events 数组
+    note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. anchor_ref / Lattice precondition
+    Beta-->>Alpha: 200 + accepted / rejected / quarantine
+    note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
+```
+
+读图要点：
+
+- 接收方独立验证每个 Event 的签名与因果链，不信任发送方服务器；服务器之间的握手只是传输面认证。
+- `service_binding_ref.reducer_profile_hash` 不一致时整批拒绝（`reducer_profile_mismatch`），避免同 Event 在两端 reducer 下产生不同 cell 状态的隐性失败。
+- 批内单 Event 失败 **不**回滚同批已接受 Event；依赖同批失败项的后续 Event 必须 `dependency_missing` / `causal_conflict` 拒绝或 quarantine。
+
 ### 4.1.1 批量推送与幂等
 
 Contrix v1 联邦推送只定义 `POST /federation/push-operations` 一个 endpoint：

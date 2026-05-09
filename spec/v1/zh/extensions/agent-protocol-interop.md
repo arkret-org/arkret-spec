@@ -188,6 +188,39 @@ Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Space 
 
 ## 6. 协商流程
 
+下图把一次升级到外部 agent protocol 的握手画成时序图。**Contrix 始终持有身份 / capability / 任务登记 / 审计**，外部协议只承担高频实时执行通道。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant LocalAg as Local Agent
+    participant Cx as Contrix Space<br>(capability + Anchor)
+    participant Pol as Policy Server
+    participant Remote as Remote Agent<br>(A2A / ACP endpoint)
+
+    LocalAg->>Cx: 创建或选择任务 Flow
+    LocalAg->>Cx: 检查 cx.agent.protocol_session.start capability
+    Cx->>Pol: endpoint validation<br>(目标 DID Document service binding<br> + TLS / HTTP Sig pinning)
+    Pol-->>Cx: 通过 / 拒绝 (拒绝则中止)
+    LocalAg->>Cx: cx.agent.protocol_session.start<br>(session_id / counterparty / protocol /<br> capability_grant / allowed_artifact_types /<br> max_duration_seconds / audit_mode)
+    note over Cx: anchored 后 session 生效
+
+    LocalAg->>Remote: 通过外部协议建立 session
+    Remote-->>LocalAg: streaming status / tool call / artifact (高频)
+    LocalAg->>Cx: 节流回写 cx.agent.protocol_session.status<br>(working / input_required / blocked / ...)
+
+    Remote-->>LocalAg: 终态 (completed / failed / cancelled)
+    LocalAg->>Cx: cx.agent.protocol_session.result<br>(result_objects / artifacts /<br> external_transcript_hash)
+    note over Cx: reducer 更新 Flow / Morph / Relation<br>外部状态在 result 被 accepted 前不改变 canonical task
+```
+
+读图要点：
+
+- 步骤 3-4 的 endpoint validation 是 v1 normative MUST（早期为 MAY）：必须把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
+- 节流回写 `status` 不要求每个 token 都进 durable Event；具体频率由 `audit_mode` 决定（`status_only` / `summary_and_artifacts` / `full_transcript_hash` / `full_transcript`）。
+- Contrix 不信任外部 task status：只有 `cx.agent.protocol_session.result` event 被 reducer accept 后才改变 canonical task 状态。
+
+
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
 2. Requesting agent 在 Contrix 中创建或选择任务 Flow，或选择可承载任务语义的 Morph。
 3. Requesting agent 检查自己是否拥有 `cx.agent.protocol_session.start` capability。

@@ -93,6 +93,37 @@ did:webvh:<scid>:<host-and-path>
 | AT Protocol 互通（interop extension） | `did:plc` adapter | 仅作为 AT Protocol bridge / interop adapter；由独立 interop extension profile 承载，不属于 v1 core 互操作必需。 |
 | 高安全或隔离部署 | `did:webvh`（默认） + policy 指定的额外 method | sovereign / enclave / 内网 PKI / KERI 等可作为辅助；MUST 明确 resolver trust roots 与 witness 集合。 |
 
+### 3.1.1 DID method 选择决策树
+
+下图把 §3.1 的选择矩阵画成决策流。先按 **用途**（principal / service / 临时 / interop）分支，再按 deployment profile 与 stakes 决定 method。
+
+```mermaid
+flowchart TB
+    Q1{"DID 用途？"}
+
+    Q1 -- "service endpoint<br/>(Principal Server / Policy / Media)" --> SVC["did:web<br/>(v1 core 默认 service method)<br/>可选升级 did:webvh"]
+
+    Q1 -- "principal<br/>(用户 / 组织)" --> Q2{"deployment profile？"}
+
+    Q1 -- "临时 / 设备 / 邀请<br/>bootstrap / 测试" --> KEY["did:key<br/>本地可解析 / 无网络依赖<br/>不支持轮换 / 恢复<br/>MUST NOT 作为长期主体"]
+
+    Q1 -- "钱包 / 链上账号绑定<br/>(interop extension)" --> PKH["did:pkh<br/>仅当钱包控制权就是业务身份根"]
+
+    Q1 -- "AT Protocol 互通<br/>(interop extension)" --> PLC["did:plc adapter<br/>独立 interop extension profile"]
+
+    Q2 -- "personal_node<br/>(单人节点 / 低 stakes)" --> PN["did:webvh SHOULD<br/>did:web MAY<br/>(profile 必须显式声明 principal_method=did:web)"]
+
+    Q2 -- "small_team / organization<br/>high_security_organization<br/>sovereign_deployment" --> ORG["did:webvh<br/>(v1 core 默认 principal method)<br/>did.jsonl 历史链 + SCID + witness"]
+
+    Q2 -- "高安全 / 隔离部署<br/>额外辅助" --> EXTRA["did:webvh + policy 指定<br/>(KERI / 内网 PKI / sovereign 注册)<br/>MUST 明确 resolver trust roots"]
+```
+
+读图要点：
+
+- `did:web` 不能作为 v1 core principal 默认（`personal_node` profile 例外）：没有可验证文档历史，DNS 劫持 / TLS 失窃即可静默改写控制权。
+- `did:webvh` hosting 暂时不可达时 MAY 临时 fallback 到 `did:web`，但 fallback 是 policy 显式允许的低风险只读路径，不是默认。
+- `did:pkh` / `did:plc` 是 interop extension profile，不属于 v1 core 互操作必需。
+
 ### 3.2 标识域名与服务域名的解耦
 
 DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独立的标识层**，可以分别属于不同的域名甚至不同的运营方。实现 MUST NOT 假设这三者必须一致，也不得用其中一个直接推导另一个。

@@ -43,7 +43,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - `overview/architecture.md`：架构、服务角色、部署与信任边界。
 - `overview/glossary.md`：Principal / Actor / Organization / Space / Event / Principal Server 等术语。
-- `models/index.md`：对象总览、typed-id 一览、设计原则。
+- `models/overview.md`：对象总览、typed-id 一览、设计原则。
 - `models/common-fields.md`、`models/space-and-place.md`、`models/flow-and-message.md`：公共字段、Space/Place、Flow/Message 等核心对象。
 - `models/relation.md`、`models/morph.md`、`models/event-and-patch.md`：关系、Morph 扩展、事件与字段增量。
 - `identity/identity-did.md`、`identity/identity-handles.md`：身份、handle、渐进披露（progressive disclosure 在 `identity-handles.md` §16）。

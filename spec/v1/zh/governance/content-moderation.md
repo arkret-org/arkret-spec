@@ -34,6 +34,34 @@ Contrix 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过
 - 有 capability 时，Space / Organization / Service policy MAY deny、quarantine 或 require review。
 - 个人 block 只影响个人客户端体验，不能替 Space 删除其他成员可见的事实。
 
+### 2.5.0 Capability / Moderation / Personal Blocklist 三层判定
+
+下图把动作从提交到呈现要穿过的三层 gate 画在一起。**Capability 是唯一的"能不能做"判定**，Moderation 只能在 capability 之上叠加 deny / quarantine / require_review，Personal Blocklist 完全是接收方本地行为。
+
+```mermaid
+flowchart TB
+    Action["actor 提交动作<br>(写消息 / Move / grant / ...)"]
+
+    Cap{"1. Capability<br>有 grant 且未 revoke<br>且 constraint 满足?"}
+    Cap -- "否" --> DenyCap["拒绝 (missing_capability)<br>没有任何 deny 层能补救"]
+    Cap -- "是" --> Mod{"2. Moderation Policy<br>(Space / Organization / Service)"}
+
+    Mod -- "deny / hard_deny" --> DenyMod["拒绝并写入<br>cx.component.moderation_state.v1<br>(anchored Move，跨 peer 一致)"]
+    Mod -- "quarantine" --> Quar["事件进 quarantine 队列<br>不进 effective state<br>(anchored)"]
+    Mod -- "require_review" --> Rev["进 review 队列<br>等待 moderator 决策"]
+    Mod -- "allow" --> Stored["写入 Space 历史<br>(canonical fact)"]
+
+    Stored --> View{"3. 接收方个人 blocklist / mute"}
+    View -- "命中" --> Hidden["本地 UI 隐藏 / 折叠<br>纯客户端，不影响其他成员视图"]
+    View -- "未命中" --> Show["正常展示"]
+```
+
+读图要点：
+
+- **Capability 是唯一 allow 来源**：黑名单 / moderation policy / personal blocklist 都不能凭空创造权限。
+- **Moderation 决策 MUST anchored**（见 §2.5）：`hard_deny` / `quarantine` / `require_review` 必须通过 anchored Move 写入 `cx.component.moderation_state.v1` cell，避免不同 Principal Server 给出不一致判定导致跨 peer 视图分叉。
+- **Personal Blocklist 不进 cell**：它只是接收方本地客户端 view 过滤，不广播、不共享、不替 Space 删除其他人可见的事实。
+
 ### 2.5 Moderation 决策 MUST Anchored
 
 任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入 `cx.component.moderation_state.v1` cell，详细规则见 [`authz/policy-server.md` §7.1](../authz/policy-server.md)。Policy server signed decision 与个人 blocklist 仍是 out-of-band，不进入该 cell。这避免不同 Principal Server 对同一事件做出不一致 quarantine / allow 决策导致跨 peer 视图分叉。

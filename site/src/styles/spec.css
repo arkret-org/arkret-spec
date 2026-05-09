@@ -13,13 +13,36 @@
   /* Match the prose column to the SiteNav width so the main reading
    * area on docs pages spans the same horizontal band as the header
    * menu — `--cx-max` is defined in marketing.css. */
-  --sl-content-width: var(--cx-max, 73.75rem);
+  --sl-content-width: var(--cx-max, 87.5rem);
 
   /* Cap the entire docs grid at "left sidebar + prose + right TOC" so
    * the prose column lands centered between two equally-wide columns
    * and aligns horizontally with the SiteNav above. Beyond that,
    * symmetric outer gutters absorb the remaining viewport. */
-  --cx-docs-max: calc(var(--cx-max, 73.75rem) + 2 * var(--sl-sidebar-width));
+  --cx-docs-max: calc(var(--cx-max, 87.5rem) + 2 * var(--sl-sidebar-width));
+
+  /* Tone down Starlight's default heading scale — the defaults
+   * (h1 2.488rem / h2 2.074rem / h3 1.728rem / h4 1.44rem) read as
+   * shouty for CJK prose where every glyph is full-width. These values
+   * keep a clear hierarchy while letting the body copy breathe. */
+  --sl-text-h1: 2rem;
+  --sl-text-h2: 1.5rem;
+  --sl-text-h3: 1.2rem;
+  --sl-text-h4: 1.05rem;
+  --sl-text-h5: 1rem;
+
+  /* Starlight's prev/next pagination uses --sl-text-2xl (1.5rem) for
+   * the page title, which feels louder than the surrounding body now
+   * that headings are smaller. Match it to the body so the cards read
+   * as navigation, not as section titles. */
+  --sl-text-2xl: 1rem;
+}
+
+/* Pagination link title — pin weight to semibold so the page name
+ * still stands out from the "上一页/下一页" eyebrow now that the size
+ * is matched to body copy. */
+.pagination-links .link-title {
+  font-weight: 600;
 }
 
 /* ---------- Docs layout centering ---------------------------------------

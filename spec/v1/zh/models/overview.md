@@ -1,5 +1,7 @@
 ---
-title: Object Model
+title: Overview
+sidebar:
+  order: 0
 ---
 
 ## 1. 目标
@@ -64,6 +66,50 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 | `cx:cell:`、`cx:cursor:`、`cx:anchor:` | 状态 / 同步原语 | 不是协作图对象；语义见 `authz/event-auth-state-resolution.md`、`sync/operations-sync.md` 与 `conformance/encoding.md` |
 
 字段级、必填性、枚举值与 wire 约束统一以 [`common-fields.md`](./common-fields.md) 与各对象文件中的字段表为准。Schema 引用见 `artifacts/schemas/`，event/operation registry 见 `artifacts/registry/`。
+
+### 2.6 对象关系总览
+
+下图把核心 typed-id 之间的归属、容纳、引用、投影关系画成一张图。`cx:event:` 是事实根，所有共享对象都是 Event 集合在某个 reducer profile 下的物化结果。
+
+```mermaid
+flowchart TB
+    Event["cx:event:<br/>签名事件（事实根）"]
+
+    subgraph SP ["cx:space: — security / sync / auth / E2EE 边界"]
+        direction TB
+        Place["cx:place:<br/>kind=board / list / ..."]
+        Flow["cx:flow:"]
+        Morph["cx:morph:"]
+        Msg["cx:message:<br/>(discussion 时间线)"]
+        Rel["cx:relation:"]
+
+        Place -- "contains" --> Flow
+        Place -- "parent_ref（同 Space）" --> Place
+        Flow -- "tracks.discussion" --> Msg
+        Rel -. "from_ref / to_ref" .-> Flow
+        Rel -. "from_ref / to_ref" .-> Morph
+        Rel -. "from_ref / to_ref" .-> Place
+    end
+
+    ChildSP["cx:space:<br/>(child Space)"]
+    Flow -. "discussion_space_ref<br/>（升级独立边界）" .-> ChildSP
+
+    View["cx:view:<br/>投影定义（不持有真相）"]
+    View -. "投影" .-> Flow
+    View -. "投影" .-> Place
+    View -. "投影" .-> Msg
+
+    Event ==> SP
+    Event ==> ChildSP
+```
+
+读图要点：
+
+- 实线箭头是结构归属或容纳关系；虚线是引用 / 投影 / 升级到独立边界。
+- `cx:space:` 是硬边界——授权、E2EE、history visibility、federation 都以它为根。`cx:place:` 永远不是边界，授权透明回退到所属 Space。
+- `cx:relation:` 是一等对象，跨对象语义 MUST 通过 Relation 表达，不藏在字段里。
+- `cx:view:` 拥有投影定义的真相，但不持有被投影对象的协作事实。
+- Discussion 想要独立 membership / E2EE / history visibility 时，必须升级为 child Space 并通过 `Flow.discussion_space_ref` 引用，而不是在 track 内部表达。
 
 ## 3. 设计原则
 

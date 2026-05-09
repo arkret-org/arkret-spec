@@ -1,0 +1,301 @@
+---
+import MarketingLayout from "~/layouts/MarketingLayout.astro";
+import { specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
+
+type Status = "stable" | "wip" | "planned";
+
+interface Project {
+  name: string;
+  tag: string;
+  status: Status;
+  body: string;
+  href?: string;
+}
+
+interface Tier {
+  id: string;
+  title: string;
+  blurb: string;
+  projects: Project[];
+}
+
+const statusLabel: Record<Status, string> = {
+  stable: "stable",
+  wip: "in development",
+  planned: "planned",
+};
+
+const tiers: Tier[] = [
+  {
+    id: "protocol",
+    title: "协议与 SDK",
+    blurb:
+      "互操作的 wire 与对象语义在 contrix-spec 收敛；rust-sdk 把它转成可复用的数据结构与算法，供其他实现直接依赖。",
+    projects: [
+      {
+        name: "contrix-spec",
+        tag: "protocol · this site",
+        status: "stable",
+        body:
+          "协议规范本体。`spec/v1/` 是 normative 文本，`spec/v1/artifacts/` 是机器可读的 registry / schema / profile / OpenAPI。本站点直接由 spec 与 artifact 派生。",
+        href: "/zh/v1/spec-map/",
+      },
+      {
+        name: "contrix-rust-sdk",
+        tag: "sdk · rust",
+        status: "wip",
+        body:
+          "协议基础 SDK。提供 envelope 签名 / 校验、canonical JSON、HLC 时钟、schema 验证、capability constraint 求值等核心数据结构与工具，多数 Rust 端服务都基于它构建。",
+      },
+    ],
+  },
+  {
+    id: "principal",
+    title: "Principal Server 部署栈",
+    blurb:
+      "组织 / 个人自托管时使用的服务端组件：状态机本体、与企业身份系统的桥接、运维管理面、推送出口。",
+    projects: [
+      {
+        name: "soland",
+        tag: "server · principal",
+        status: "wip",
+        body:
+          "Principal server 的参考实现。负责 actor / org / space 状态、event ingestion 与 reducer、authz 求值，以及与其他 principal server 的 federation。",
+      },
+      {
+        name: "coauth",
+        tag: "server · auth-bridge",
+        status: "wip",
+        body:
+          "组织部署 principal server 时的内部账号桥。把企业 OIDC / SSO 与 Contrix DID 绑定，统一管理账号、密钥轮换、内部权限策略。",
+      },
+      {
+        name: "sodmin",
+        tag: "ops · admin-ui",
+        status: "wip",
+        body:
+          "服务器管理员控制台。基于 soland + coauth 的接口，提供空间审计、capability 管理、用户绑定与 federation 健康监控。",
+      },
+      {
+        name: "floria",
+        tag: "server · push-gateway",
+        status: "wip",
+        body:
+          "Contrix push gateway 的实现。把客户端订阅的事件流分发到 APNs / FCM / WebPush，并保留 audited E2EE 所要求的最小元数据约束。",
+      },
+    ],
+  },
+  {
+    id: "client",
+    title: "客户端栈",
+    blurb:
+      "终端用户体验：跨平台 GUI 客户端，加上配套的推送接收 SDK。客户端只投影协议对象图，不持有协议状态。",
+    projects: [
+      {
+        name: "yougen",
+        tag: "client · cross-platform",
+        status: "wip",
+        body:
+          "跨平台参考客户端。同一份 Contrix 协议核心，运行在 macOS / Windows / Linux / iOS / Android。",
+      },
+      {
+        name: "chime",
+        tag: "sdk · client-push",
+        status: "wip",
+        body:
+          "客户端使用的 push SDK。负责与 floria 建立长连接、解码通知 envelope、调度本地系统通知。yougen 等客户端通过它接收推送。",
+      },
+    ],
+  },
+  {
+    id: "identity",
+    title: "可选身份与信任服务",
+    blurb:
+      "v1 core 默认走 did:web / did:key 等公共 resolver；下面这些组件在你需要可迁移身份、watcher / mirror、企业级密钥审计时启用。",
+    projects: [
+      {
+        name: "starid",
+        tag: "identity · did:webvh",
+        status: "planned",
+        body:
+          "可选的公共 DID / `did:webvh` high-trust 服务实现。启用后可以获得 portable migration、watcher / mirror、handle 绑定与密钥轮换审计；v1 core 不强依赖它。",
+      },
+    ],
+  },
+  {
+    id: "conformance",
+    title: "一致性与测试",
+    blurb:
+      "把 wire / state / authz / E2EE 的合规性变成可执行用例，让多实现并行开发时仍能保证互操作。",
+    projects: [
+      {
+        name: "cotest",
+        tag: "conformance · test-suite",
+        status: "wip",
+        body:
+          "协议级一致性测试套件。模拟单服务器 / 多服务器场景，对 reducer、federation、authz 求值、E2EE profile 做端到端验证；定位类似 Matrix 的 Complement。",
+      },
+    ],
+  },
+];
+
+const totalProjects = tiers.reduce((sum, t) => sum + t.projects.length, 0);
+---
+
+<MarketingLayout
+  title="Contrix 生态 · Ecosystem"
+  description="Contrix 协议生态：spec、SDK、principal server、客户端、push gateway、conformance 测试套件等参考实现的总览。"
+>
+  <section class="cx-hero">
+    <div class="cx-shell cx-hero-inner">
+      <span class="cx-eyebrow">
+        <span class="cx-eyebrow-dot" aria-hidden="true"></span>
+        ecosystem · {specReleaseTag} {specReleaseLabel}
+      </span>
+      <h1>
+        一套协议，<br />
+        <span class="cx-h1-accent">多个互操作实现</span>
+      </h1>
+      <p class="cx-lead">
+        Contrix 不是单一产品。围绕 <code>contrix-spec</code> 这份开放协议，正在并行开发的有
+        SDK、principal server、push gateway、跨平台客户端与一致性测试套件 —— 任何项目都可以独立替换为另一种实现，只要它通过相应的 conformance profile。
+      </p>
+      <div class="cx-cta-row">
+        <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">阅读规范</a>
+        <a class="cx-btn cx-btn-ghost" href="/zh/v1/conformance/profiles/"
+          >看 conformance profile</a
+        >
+      </div>
+    </div>
+  </section>
+
+  <section class="cx-section">
+    <div class="cx-shell">
+      <div class="cx-section-head">
+        <h2>分层概览</h2>
+        <p>
+          {totalProjects} 个项目按部署位置分成 5 层；上层依赖下层暴露的接口与 schema，但每一层都允许第三方独立实现。
+        </p>
+      </div>
+
+      <div class="cx-eco-arch" aria-label="Architecture overview">
+        <div class="cx-eco-arch-row">
+          <span class="cx-eco-arch-label">Client</span>
+          <span class="cx-eco-arch-cells">
+            <code>yougen</code> · <code>chime</code>
+          </span>
+        </div>
+        <div class="cx-eco-arch-row">
+          <span class="cx-eco-arch-label">Push</span>
+          <span class="cx-eco-arch-cells">
+            <code>floria</code>
+          </span>
+        </div>
+        <div class="cx-eco-arch-row">
+          <span class="cx-eco-arch-label">Server</span>
+          <span class="cx-eco-arch-cells">
+            <code>soland</code> · <code>coauth</code> · <code>sodmin</code>
+          </span>
+        </div>
+        <div class="cx-eco-arch-row">
+          <span class="cx-eco-arch-label">Identity</span>
+          <span class="cx-eco-arch-cells">
+            <code>starid</code>
+            <span class="cx-eco-arch-note">（可选 high-trust）</span>
+          </span>
+        </div>
+        <div class="cx-eco-arch-row">
+          <span class="cx-eco-arch-label">Protocol</span>
+          <span class="cx-eco-arch-cells">
+            <code>contrix-spec</code> · <code>contrix-rust-sdk</code> ·
+            <code>cotest</code>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {
+    tiers.map((tier) => (
+      <section class="cx-section" id={tier.id}>
+        <div class="cx-shell">
+          <div class="cx-section-head">
+            <h2>{tier.title}</h2>
+            <p>{tier.blurb}</p>
+          </div>
+          <div class="cx-eco-grid">
+            {tier.projects.map((p) =>
+              p.href ? (
+                <a class="cx-eco-card cx-eco-card--link" href={p.href}>
+                  <header class="cx-eco-card-head">
+                    <span class="cx-eco-name">{p.name}</span>
+                    <span
+                      class={`cx-eco-status cx-eco-status--${p.status}`}
+                      title={statusLabel[p.status]}
+                    >
+                      <span class="cx-eco-status-dot" aria-hidden="true" />
+                      {statusLabel[p.status]}
+                    </span>
+                  </header>
+                  <div class="cx-eco-tag">{p.tag}</div>
+                  <p class="cx-eco-body">{p.body}</p>
+                  <span class="cx-eco-more" aria-hidden="true">
+                    浏览 →
+                  </span>
+                </a>
+              ) : (
+                <article class="cx-eco-card">
+                  <header class="cx-eco-card-head">
+                    <span class="cx-eco-name">{p.name}</span>
+                    <span
+                      class={`cx-eco-status cx-eco-status--${p.status}`}
+                      title={statusLabel[p.status]}
+                    >
+                      <span class="cx-eco-status-dot" aria-hidden="true" />
+                      {statusLabel[p.status]}
+                    </span>
+                  </header>
+                  <div class="cx-eco-tag">{p.tag}</div>
+                  <p class="cx-eco-body">{p.body}</p>
+                </article>
+              ),
+            )}
+          </div>
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="cx-section">
+    <div class="cx-shell">
+      <div class="cx-section-head">
+        <h2>参与</h2>
+        <p>
+          想做新的实现、把企业系统接进来、或者写一个新平台的客户端？协议本身、registry 与 schema、profile 表都是公开的。
+        </p>
+      </div>
+      <div class="cx-resources">
+        <a class="cx-resource" href="/zh/v1/spec-map/">
+          <span class="cx-resource-title">Spec map →</span>
+          <span class="cx-resource-desc"
+            >按阅读路径定位每个文件的角色与边界</span
+          >
+        </a>
+        <a class="cx-resource" href="/catalog/profiles/">
+          <span class="cx-resource-title">Profiles →</span>
+          <span class="cx-resource-desc"
+            >可独立声明的 conformance profile 列表</span
+          >
+        </a>
+        <a class="cx-resource" href="/openapi/">
+          <span class="cx-resource-title">OpenAPI →</span>
+          <span class="cx-resource-desc">HTTP/JSON service binding</span>
+        </a>
+        <a class="cx-resource" href="/catalog/event-kinds/">
+          <span class="cx-resource-title">Event kinds →</span>
+          <span class="cx-resource-desc">所有 wire 上的 event 类型</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</MarketingLayout>

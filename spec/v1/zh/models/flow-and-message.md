@@ -213,6 +213,42 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 - Flow 的 parent Space 与 `discussion_space_ref` Space 之间的关系建议用 `cx.space.parent` / `cx.space.child` 或独立的 governance 关系表达；reducer 不强制 hierarchy，授权仍按各自 Space policy 独立判断。
 - 切换 primary track 不会自动删除已有讨论历史。
 
+### 5.1 Track / discussion_space_ref 关系图
+
+下图把 Flow 的 track 模型和 child Space 升级路径画在一起。Flow 只有一份 identity，`tracks` map 的 key 决定可用协作面，是否设置 `discussion_space_ref` 决定 discussion 的访问域落在哪个 Space。
+
+```mermaid
+flowchart LR
+    subgraph Parent ["cx:space: — Parent Space（capability / E2EE 边界）"]
+        direction TB
+        Flow["cx:flow:<br/>title / summary / body / fields"]
+        Syn["tracks.synthesis<br/>（正式表达，默认 primary）"]
+        Dis["tracks.discussion<br/>（会话能力面，纯展示标识）"]
+        ParentMsgs["cx:message: ×N<br/>（默认：写在 Parent Space）"]
+
+        Flow -- "tracks 配置" --> Syn
+        Flow -- "tracks 配置" --> Dis
+        Dis -- "未设 discussion_space_ref" --> ParentMsgs
+    end
+
+    subgraph Child ["cx:space: — Child Space（独立 capability / E2EE 边界）"]
+        direction TB
+        ChildMsgs["cx:message: ×N<br/>（按 child Space policy）"]
+        ChildMLS["独立 MLS group / membership / history visibility"]
+        ChildMsgs --- ChildMLS
+    end
+
+    Flow -. "discussion_space_ref（一旦设置）" .-> Child
+    Dis -- "设 discussion_space_ref" --> ChildMsgs
+```
+
+读图要点：
+
+- Track 是纯展示 / 时间线分段标识，不携带独立 access；`synthesis` 与 `discussion` 都继承 Parent Space 的 capability。
+- `cx.flow.track.set_primary` 只切换默认入口，不复制对象、不迁移历史；切到 `discussion` 必须先 enable 该 track。
+- 想给 discussion 独立 membership / E2EE / history 时，**必须**升级为 child Space 并通过 `discussion_space_ref` 引用——hybrid 模式（早期草案的 track 内嵌 access）已废弃。
+- 能看 discussion 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 Parent Space capability 判断。
+
 ## 6. Flow 行为规则
 
 - Flow identity 只保存一份，resolved primary track 只决定默认视角，不创建新的对象副本。

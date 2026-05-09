@@ -5,6 +5,8 @@ import mdx from "@astrojs/mdx";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { readdirSync } from "node:fs";
+import remarkMermaid from "./plugins/remark-mermaid.mjs";
+import remarkRelMdLinks from "./plugins/remark-rel-md-links.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const specRoot = resolve(here, "../spec/v1");
@@ -35,7 +37,18 @@ function planeItems(plane) {
     .map((e) => ({
       slug: `v1/${plane}/${e.name.replace(/\.(md|mdx)$/, "")}`,
     }))
-    .sort((a, b) => a.slug.localeCompare(b.slug));
+    .sort((a, b) => {
+      // Convention: a file named `overview` (or `index`) is the plane's entry
+      // page and SHOULD appear at the top of the sidebar group regardless of
+      // alphabetical order. Avoid `index.md` though — Starlight routes it as
+      // the directory landing page, which conflicts with explicit slug items.
+      const isEntry = (s) => /\/(overview|index)$/.test(s);
+      const aEntry = isEntry(a.slug);
+      const bEntry = isEntry(b.slug);
+      if (aEntry && !bEntry) return -1;
+      if (!aEntry && bEntry) return 1;
+      return a.slug.localeCompare(b.slug);
+    });
 }
 
 /**
@@ -58,6 +71,26 @@ export default defineConfig({
     // our content collection only exposes v1 docs (slug `<locale>/v1/...`).
     "/zh/": "/zh/v1/",
     "/en/": "/en/v1/",
+    // Starlight 0.39+ auto-prepends the active locale to any non-absolute
+    // sidebar link, so the Catalog/OpenAPI sidebar entries resolve to
+    // `/zh/catalog/…` and `/en/catalog/…` even though the underlying pages
+    // live at `/catalog/…` (locale-agnostic, generated from the artifact
+    // registry). Redirect the localized variants of the index pages
+    // (the only catalog URLs the sidebar emits) back to the canonical
+    // un-localized path. Detail pages like `/catalog/schemas/<id>/` are
+    // reached by clicking from the index and are not locale-prefixed.
+    "/zh/catalog/event-kinds/": "/catalog/event-kinds/",
+    "/zh/catalog/errors/": "/catalog/errors/",
+    "/zh/catalog/operations/": "/catalog/operations/",
+    "/zh/catalog/profiles/": "/catalog/profiles/",
+    "/zh/catalog/schemas/": "/catalog/schemas/",
+    "/zh/openapi/": "/openapi/",
+    "/en/catalog/event-kinds/": "/catalog/event-kinds/",
+    "/en/catalog/errors/": "/catalog/errors/",
+    "/en/catalog/operations/": "/catalog/operations/",
+    "/en/catalog/profiles/": "/catalog/profiles/",
+    "/en/catalog/schemas/": "/catalog/schemas/",
+    "/en/openapi/": "/openapi/",
   },
   vite: {
     server: {
@@ -67,12 +100,84 @@ export default defineConfig({
       },
     },
   },
+  markdown: {
+    // ```mermaid blocks → <pre class="mermaid">; client-side mermaid.js
+    // (loaded via the starlight head injection below) renders them on page
+    // load. Keeps the build pipeline pure-JS — no playwright/puppeteer.
+    remarkPlugins: [remarkMermaid, remarkRelMdLinks],
+  },
   integrations: [
     starlight({
       title: "Contrix Spec",
       description:
         "Contrix v1 — decentralized collaboration protocol specification.",
       defaultLocale: "zh",
+      head: [
+        {
+          tag: "script",
+          attrs: { type: "module" },
+          content: `
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+const pickTheme = () =>
+  document.documentElement.dataset.theme === "dark" ? "dark" : "default";
+
+let initialised = false;
+function render() {
+  const nodes = document.querySelectorAll("pre.mermaid:not([data-processed])");
+  if (!nodes.length) return;
+  if (!initialised) {
+    mermaid.initialize({ startOnLoad: false, theme: pickTheme() });
+    initialised = true;
+  }
+  mermaid.run({ nodes });
+}
+
+// Re-theme on Starlight light/dark toggle. Mermaid v11 has no live retheme,
+// so we wipe processed nodes back to their source and re-run.
+const sources = new WeakMap();
+function captureSources() {
+  for (const el of document.querySelectorAll("pre.mermaid")) {
+    if (!sources.has(el)) sources.set(el, el.textContent);
+  }
+}
+function rerenderForTheme() {
+  const theme = pickTheme();
+  for (const el of document.querySelectorAll("pre.mermaid")) {
+    const src = sources.get(el);
+    if (!src) continue;
+    el.removeAttribute("data-processed");
+    el.innerHTML = "";
+    el.textContent = src;
+  }
+  mermaid.initialize({ startOnLoad: false, theme });
+  initialised = true;
+  render();
+}
+
+const themeObserver = new MutationObserver((records) => {
+  for (const r of records) {
+    if (r.attributeName === "data-theme") {
+      rerenderForTheme();
+      break;
+    }
+  }
+});
+themeObserver.observe(document.documentElement, { attributes: true });
+
+// Run on first load, after Astro view-transition swaps, and after
+// Starlight client-side nav.
+const boot = () => { captureSources(); render(); };
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot, { once: true });
+} else {
+  boot();
+}
+document.addEventListener("astro:page-load", boot);
+document.addEventListener("astro:after-swap", boot);
+`.trim(),
+        },
+      ],
       locales: {
         zh: { label: "简体中文", lang: "zh" },
         en: { label: "English", lang: "en" },

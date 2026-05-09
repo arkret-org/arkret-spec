@@ -269,20 +269,56 @@ List Place（`kind=list`）：
 
 ## 4. Space-Place-Flow 关系示意
 
-```text
-cx:space:01...                                ← security boundary
-├─ cx:place:01...  kind=board                 ← 看板（Place）
-│  ├─ cx:place:01...  kind=list               ← 列（Place）
-│  │  └─ contains → cx:flow:01...             ← Flow 通过 Relation/position event 入列
-│  └─ cx:place:01...  kind=list
-└─ cx:place:01...  kind=calendar_bucket       ← 未来扩展
+```mermaid
+flowchart TB
+    subgraph SP ["cx:space: ← security boundary（capability / E2EE / federation 决策终点）"]
+        direction TB
+        Board["cx:place:<br/>kind=board"]
+        List1["cx:place:<br/>kind=list"]
+        List2["cx:place:<br/>kind=list"]
+        Cal["cx:place:<br/>kind=calendar_bucket（profile 扩展）"]
+        Flow1["cx:flow:"]
+        Flow2["cx:flow:"]
+
+        Board -- "parent_ref" --> List1
+        Board -- "parent_ref" --> List2
+        List1 -- "contains（Relation + cx.flow.move cell）" --> Flow1
+        List2 -- "contains" --> Flow2
+    end
 ```
 
 每条 typed ID 一眼即知其角色：
 
 - `cx:space:` → 安全边界，永远是授权/E2EE/federation 决策终点。
-- `cx:place:` → 结构容器，永远透明回退到 `space_id`。
-- `cx:flow:` → 协作主对象，永远在某 `space_id` 内；位置由 Place + position relation 决定。
+- `cx:place:` → 结构容器（看板 / 列 / 泳道 / calendar bucket / page group ...），永远透明回退到 `space_id`，没有自己的 membership / policy / E2EE。
+- `cx:flow:` → 协作主对象，永远在某 `space_id` 内；位置由 Place + `cx.flow.move` cas-register cell 决定。
+
+### 4.1 Place 嵌套 vs Space-Space 层级
+
+Place 嵌套（板里有列）和 Space-Space 层级（child Space）是两条**不混用**的层级路径：Place 嵌套通过 `parent_ref` 表达，必须落在同一 Space；Space-Space 层级通过 `cx.space.child` / `cx.space.parent` 表达，**不级联**授权 / membership / E2EE。
+
+```mermaid
+flowchart TB
+    subgraph SA ["cx:space: A（独立边界）"]
+        direction TB
+        BA["cx:place: kind=board"]
+        LA["cx:place: kind=list"]
+        FA["cx:flow:"]
+        BA -- "parent_ref（同 Space）" --> LA
+        LA -- "contains" --> FA
+    end
+
+    subgraph SB ["cx:space: B（child of A，仍是独立边界）"]
+        direction TB
+        BB["cx:place: kind=board"]
+        FB["cx:flow:"]
+        BB -- "contains" --> FB
+    end
+
+    SA -. "cx.space.child<br/>不级联 capability / E2EE / history visibility" .-> SB
+```
+
+跨 Space 引用（如 Flow 引用另一 Space 的 Flow）走 Relation；结构性 Relation `contains` / `belongs_to` MUST NOT 跨 Space。详见 [`relation.md`](./relation.md) §3、[`space-hierarchy.md`](./space-hierarchy.md)。
 
 ## 5. 通用对象 ID 规则
 

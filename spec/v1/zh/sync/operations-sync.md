@@ -103,6 +103,50 @@ Contrix 采用 Event-first 模型：
 - Space / Place / Flow（看板与列容器是 Place）
 - Morph
 
+### 3.1 写入流水线
+
+下图把 Event 从生成到呈现的完整链路画成三段：Producer 生成签名 Event，Principal Server / Sync Service 校验并通过 Anchor pipeline 给出 finality，Consumer 增量同步并本地 reduce + project。Soft-fail 是这条链路上唯一的可逆退化路径。
+
+```mermaid
+flowchart TB
+    subgraph P ["Producer（Actor / Device / Client）"]
+        direction LR
+        P1["build event<br/>reducer-input: preconditions / effects / anchor_ref"]
+        P2["sign canonical bytes<br/>proofs[] detached JWS"]
+        P1 --> P2
+    end
+
+    subgraph S ["Principal Server / Sync Service"]
+        direction LR
+        S1["/events/* 接收<br/>schema + signature + actor_seq + prev_refs"]
+        S2["verify_event()<br/>capability / policy / Move precondition"]
+        S3["Anchor pipeline<br/>frontier 覆盖 → state_root"]
+        S4["fanout / 订阅<br/>cursor / 增量"]
+        S1 --> S2 --> S3 --> S4
+    end
+
+    subgraph C ["Consumer（Client / Agent SDK）"]
+        direction LR
+        C1["sync stream<br/>events + state_after"]
+        C2["reducer<br/>per-cell Lattice join"]
+        C3["projection<br/>view / search / inbox / notification"]
+        C4["UI / Agent timeline"]
+        C1 --> C2 --> C3 --> C4
+    end
+
+    P --> S --> C
+
+    SF["soft-fail / quarantine<br/>缺前序 / capability 未到 / Anchor 未覆盖 / cell ⊥"]
+    S2 -. "校验受阻（推测态可应用）" .-> SF
+    SF -. "backfill → upgrade（保留推测态）<br/>或 reject → 回滚 effects" .-> S2
+```
+
+读图要点：
+
+- Sync Service 与 Anchor pipeline 不是真相源，只是按 Anchor finality 暴露 `events + state_after` 的传输面；Producer 与 Consumer 的客户端都可以重算同样的 effective state。
+- Consumer 端 reducer 的输入是 accepted reducer-input event 集合 + Anchor frontier；non-reducer event（read marker / typing 等）不进 cell、不进 state_root。
+- soft-fail 路径是 §6.1 的 reconciliation 主题：推测态会被标记，最终升级或回滚都必须确定性。
+
 ## 4. Event Batch Receipt / Checkpoint
 
 Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只是加速层或审计证明，不是 reducer 输入的替代物。

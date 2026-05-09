@@ -42,6 +42,18 @@ function buildRow(
       description: `recursion truncated at depth ${MAX_DEPTH}; see source schema for full shape`,
     };
   }
+  // JSON Schema 2020-12 allows a boolean in any sub-schema slot:
+  // `true` accepts anything, `false` rejects everything. They aren't
+  // objects, so the rest of this function — `.$ref`, `'default' in node`,
+  // composition keys — would crash on them.
+  if (typeof node !== "object" || node === null) {
+    return {
+      path,
+      name,
+      required,
+      type: node === false ? "never" : "any",
+    };
+  }
   const refTarget = node.$ref;
   const resolved = deref(node, ctx);
   const description = resolved.description ?? node.description;

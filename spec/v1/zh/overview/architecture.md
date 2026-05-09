@@ -160,6 +160,38 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 
 ## 3. 架构平面
 
+七个平面按职责分层：Identity / Write / Distribution / Local Query / Presentation 形成自下而上的核心栈，Confidentiality 与 Portability 是横切关注点。
+
+```mermaid
+flowchart TB
+    subgraph Stack ["核心栈（自上而下：从用户视角到信任根）"]
+        direction TB
+        Pres["Presentation Plane<br/>kanban / table / timeline / graph<br/>人类审阅 / agent timeline"]
+        Proj["Local Query / Projection Plane<br/>当前态 / 视图 / 搜索 / read-your-writes barrier"]
+        Dist["Distribution Plane<br/>sync stream / 增量 / cursor / federation"]
+        Write["Write Plane<br/>Event 生成 / 签名 / Events API 提交"]
+        Id["Identity Plane<br/>DID / handle / key rotation / witness / 服务发现"]
+
+        Pres --> Proj --> Dist --> Write --> Id
+    end
+
+    Conf["Confidentiality Plane<br/>envelope / key distribution / E2EE 可见性<br/>（让 Sync 不解密也能转发）"]
+    Conf -. "包裹" .-> Proj
+    Conf -. "包裹" .-> Dist
+    Conf -. "包裹" .-> Write
+
+    Port["Portability Plane<br/>export / import / snapshot replay / 服务替换"]
+    Port -. "横切" .-> Write
+    Port -. "横切" .-> Id
+    Port -. "横切" .-> Dist
+```
+
+读图要点：
+
+- Presentation 永远消费 Projection 的输出，不持有真相副本；Projection 永远是派生层，可重算。
+- Confidentiality 是包裹层，决定 Distribution / Write / Projection 各自能看到什么；Sync Service 不解密正文也能继续转发。
+- Portability 在 export / import 时把多个平面的状态打包并重放，是协议平面而不是部署细节。
+
 ### 3.1 Identity Plane
 
 负责：

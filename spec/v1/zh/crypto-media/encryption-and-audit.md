@@ -228,6 +228,51 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 两层缺一不可：`governance_binding` 提供 per-commit 的不可伪造证据并由 MLS transcript hash 覆盖，`covered_frontier_cell` 沉淀 reducer 可查询的累计状态供 message Move precondition 引用。
 
+下图把两层结构和 application message 如何被 gate 画在一起：
+
+```mermaid
+flowchart TB
+    subgraph GS ["Contrix Governance State (per Space / child Space)"]
+        direction TB
+        Memb["membership cells"]
+        Pol["policy cells (join_rule / history_visibility / plaintext-visible / moderation / lifecycle)"]
+        Cap["capability cells (grant / revoke / delegate)"]
+        Disc["discussion metadata (名称 / 头像 / 主题 / federation 元数据)"]
+        Anc["governance Anchor frontier"]
+        Memb --> Anc
+        Pol --> Anc
+        Cap --> Anc
+        Disc --> Anc
+    end
+
+    subgraph CS ["Commit-side proof (per cx.mls.commit)"]
+        direction TB
+        GB["governance_binding<br/>membership_frontier / policy_root<br/>capability_root / discussion_metadata_hash<br/>previous_epoch → next_epoch"]
+        Trans["MLS GroupContext extension<br/>cx_governance_binding (0xF1C0, deterministic CBOR)<br/>→ 进入 MLS transcript hash"]
+        GB --> Trans
+    end
+
+    subgraph LS ["Lattice-side accumulator"]
+        direction TB
+        CFC["covered_frontier_cell<br/>(or-set, bottom=expose)<br/>累加已被 commit attest 的 governance frontier"]
+        EpC["mls_epoch_cell / key_schedule_cell"]
+    end
+
+    Anc -- "Commit 读取并断言" --> GB
+    GB -- "MLS Commit Move effects" --> CFC
+    GB -- "推进 epoch" --> EpC
+
+    Msg["E2EE application message Move<br/>precondition: covered_frontier_cell contains 自身 governance frontier"]
+    CFC -. "未覆盖 → fail closed<br/>暂停发送 / epoch_update_required" .-> Msg
+    CFC -- "覆盖 → 允许发送" --> Msg
+```
+
+读图要点：
+
+- 撤销 / ban / device revoke / policy 收紧只在 governance state 里 accepted **不够**——必须有后续 `cx.mls.commit` 把对应 governance frontier 写进 `covered_frontier_cell`，新 application message 才会被 gate 阻止使用旧 epoch key。
+- Governance / recovery Move 不依赖 `covered_frontier_cell`，因此 MLS epoch 卡住时仍可提交修复 Move 并由 Anchor finalization 生效。
+- 客户端验证 `governance_binding` 时无法回补 inclusion proof 或 hash 不匹配 → epoch 标记 `decryption_pending` / `state_mismatch`，禁用该 epoch 解密新正文。
+
 MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据 —— 这是引入 MLS Governance Binding 的根本动机。撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。
 
 MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `encryption_profile="mls_rfc9420"` 时，group 覆盖父 Space；某个 Flow 通过 `discussion_space_ref` 升级到 child Space 后，child Space 拥有自己的 MLS group，与父 Space group 完全独立。两个 group 通过 child Space 的 `space_id` 区分，不再依赖 track-scoped fallback。

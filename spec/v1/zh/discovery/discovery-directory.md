@@ -102,6 +102,43 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 
 `history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT 隐含 `history_visibility=world_readable`。
 
+### 3.0 三个独立 Gate（先于矩阵理解）
+
+`discoverability`、`join_rule`、`history_visibility` 是三条**独立判定**的 gate，作用面互不替代：
+
+```mermaid
+flowchart TB
+    subgraph Q ["三个独立 gate（实现 MUST 分开判断）"]
+        direction LR
+        D["1. Discoverability<br>能不能发现?<br>public / listed / restricted<br>unlisted / invite_only / secret"]
+        J["2. Join Rule<br>能不能加入?<br>public / invite / knock<br>restricted / knock_restricted / closed"]
+        H["3. History Visibility<br>加入后能看多少历史?<br>world_readable / shared<br>invited / joined / restricted"]
+    end
+
+    Search["Directory / 搜索 / preview<br>受 Discoverability 决定"]
+    Join["加入 / knock / invite<br>受 Join Rule 决定"]
+    Read["历史读取范围<br>受 History Visibility 决定"]
+
+    D --> Search
+    J --> Join
+    H --> Read
+
+    R1["不可发现 ≠ 不可加入<br>unlisted + 已知 invite link → 仍可加入"]
+    R2["可加入 ≠ 可见全部历史<br>history_visibility 独立收窄"]
+    R3["可发现 ≠ 全网可读<br>discoverability=public 不隐含 world_readable"]
+
+    D -. 与 J 独立 .-> R1
+    J -. 与 H 独立 .-> R2
+    D -. 与 H 独立 .-> R3
+```
+
+读图要点：
+
+- **Discoverability** 只控制资源是否能在搜索 / Directory / preview 里出现；不决定加入资格，也不决定历史读取范围。
+- **Join Rule** 只控制加入流程；不可发现的 Space 也可以是 `join_rule=public`（持有私链接即可加入），公开 Space 也可以是 `join_rule=invite`。
+- **History Visibility** 只控制加入后能看多少历史；与前两者完全正交。
+- 任何把 `discoverability` 当作 `join_rule` 或 `history_visibility` 简写的实现都是错误——下表 §3.x 锁定了允许的组合。
+
 ### 3.x `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
 
 下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Space create 时显示警告；`✗` = MUST 拒绝（reducer 在 `cx.space.policy_components` accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。

@@ -24,7 +24,7 @@ title: Spec Map
 1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
-4. `models/index.md` 起步，按需进入 `models/space-and-place.md`、`models/flow-and-message.md` 等专项文件，理解协作图和标准对象。
+4. `models/overview.md` 起步，按需进入 `models/space-and-place.md`、`models/flow-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`：理解身份、handle、设备/备份密钥和隐私披露（progressive disclosure 在 `identity-handles.md` §16）。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
@@ -33,7 +33,7 @@ title: Spec Map
 ### 2.1 快速收敛链路（先读）
 
 1. `overview/glossary.md`
-2. `models/index.md` + `models/space-and-place.md` + `models/flow-and-message.md`
+2. `models/overview.md` + `models/space-and-place.md` + `models/flow-and-message.md`
 3. `authz/event-auth-state-resolution.md` + `crypto-media/encryption-and-audit.md`
 4. `sync/client-sync.md` + `sync/operations-sync.md`（含 snapshot、fork、decryption_pending）
 
@@ -103,7 +103,7 @@ title: Spec Map
 
 | 文档 | 内容 |
 | --- | --- |
-| `models/index.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
+| `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/space-and-place.md` | Space（security boundary）、Place（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Place lifecycle / cas-register / cascade。 |
 | `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`discussion_space_ref`、Message、chat 模式、冲突收敛、ephemeral 信号。 |
