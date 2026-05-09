@@ -72,9 +72,9 @@ Predicate 不得读取本地数据库顺序、HTTP 到达时间、未签名服�
 
 ### 3.2 Effect
 
-Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容。`lattice_op` 的 wire 字段为 `{type, tag?, value?, from?, to?, reason?, issuer_seq?}`（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) `lattice_op`）：
+Effect 的 `lattice_op` 必须与目标 cell 的 Lattice type 兼容。`lattice_op` 的 wire 字段为 `{kind, tag?, value?, from?, to?, reason?, issuer_seq?}`（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) `lattice_op`）：
 
-| Lattice type | `op.type` | 必填字段 | 可选字段 |
+| Lattice type | `op.kind` | 必填字段 | 可选字段 |
 | --- | --- | --- | --- |
 | `or-set` | `add` | `tag`、`value` | — |
 | `or-set` | `remove` | `tag` | `reason` |

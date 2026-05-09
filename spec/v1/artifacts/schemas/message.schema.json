@@ -183,19 +183,19 @@
     }
   },
   "$defs": {
-    "content_type": {
+    "content_kind": {
       "type": "string",
       "pattern": "^(cx\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
     "content_block": {
       "type": "object",
       "required": [
-        "type",
+        "kind",
         "body"
       ],
       "properties": {
-        "type": {
-          "$ref": "#/$defs/content_type"
+        "kind": {
+          "$ref": "#/$defs/content_kind"
         },
         "body": {
           "type": "string"

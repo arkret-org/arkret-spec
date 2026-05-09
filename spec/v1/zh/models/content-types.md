@@ -19,7 +19,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 ### 2.2 单一 Content Block 架构
 
 每条消息的 `content` 字段是一个 **Content Block** 对象，包含：
-- `type`：内容类型标识
+- `kind`：内容类型标识
 - `body`：人类可读的纯文本摘要 / fallback
 - 类型相关的专有字段
 
@@ -33,7 +33,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.<type_name>",
+  "kind": "cx.content.<kind_name>",
   "body": "纯文本 fallback，用于通知、搜索索引和不支持该类型的客户端",
   // ... 类型专有字段
 }
@@ -41,7 +41,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `type` | string | MUST | 内容类型标识符 |
+| `kind` | string | MUST | 内容类型标识符 |
 | `body` | string | MUST | 纯文本 fallback |
 
 ## 4. 标准内容类型
@@ -52,7 +52,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.text",
+  "kind": "cx.content.text",
   "body": "@bob 请确认这个 item 的 legal 风险。",
   "format": "markdown",
   "formatted_body": "<mention did=\"did:web:bob.example.com\">@bob</mention> 请确认这个 item 的 legal 风险。"
@@ -68,7 +68,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.image",
+  "kind": "cx.content.image",
   "body": "screenshot.png",
   "blob_ref": "cx:blob:sha256:a1b2c3...",
   "mime_type": "image/png",
@@ -100,7 +100,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.video",
+  "kind": "cx.content.video",
   "body": "demo-recording.mp4",
   "blob_ref": "cx:blob:sha256:b2c3d4...",
   "mime_type": "video/mp4",
@@ -125,7 +125,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.audio",
+  "kind": "cx.content.audio",
   "body": "voice-memo.ogg",
   "blob_ref": "cx:blob:sha256:c3d4e5...",
   "mime_type": "audio/ogg",
@@ -143,7 +143,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.file",
+  "kind": "cx.content.file",
   "body": "Q2-financial-report.pdf",
   "blob_ref": "cx:blob:sha256:d4e5f6...",
   "mime_type": "application/pdf",
@@ -160,7 +160,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.location",
+  "kind": "cx.content.location",
   "body": "Meeting point: 37.7749° N, 122.4194° W",
   "geo_uri": "geo:37.7749,-122.4194",
   "label": "San Francisco Office",
@@ -180,7 +180,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.code",
+  "kind": "cx.content.code",
   "body": "fn main() { println!(\"hello\"); }",
   "language": "rust",
   "code": "fn main() {\n    println!(\"hello\");\n}"
@@ -198,7 +198,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.notice",
+  "kind": "cx.content.notice",
   "body": "Agent completed task: Review legal docs",
   "format": "markdown",
   "formatted_body": "Agent completed task: **Review legal docs** ✅"
@@ -211,18 +211,18 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.poll",
+  "kind": "cx.content.poll",
   "body": "What should we order for the party?",
   "poll": {
     "kind": "disclosed",
     "max_selections": 1,
     "question": {
-      "type": "cx.content.text",
+      "kind": "cx.content.text",
       "body": "What should we order for the party?"
     },
     "answers": [
-      { "id": "pizza", "text": { "type": "cx.content.text", "body": "Pizza 🍕" } },
-      { "id": "poutine", "text": { "type": "cx.content.text", "body": "Poutine 🍟" } }
+      { "id": "pizza", "text": { "kind": "cx.content.text", "body": "Pizza 🍕" } },
+      { "id": "poutine", "text": { "kind": "cx.content.text", "body": "Poutine 🍟" } }
     ]
   }
 }
@@ -236,16 +236,16 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.composite",
+  "kind": "cx.content.composite",
   "body": "Here's the updated design with the spec PDF attached.",
   "parts": [
     {
-      "type": "cx.content.text",
+      "kind": "cx.content.text",
       "body": "Here's the updated design with the spec PDF attached.",
       "format": "markdown"
     },
     {
-      "type": "cx.content.image",
+      "kind": "cx.content.image",
       "body": "design-v3.png",
       "blob_ref": "cx:blob:sha256:aaa...",
       "mime_type": "image/png",
@@ -253,7 +253,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
       "height": 1080
     },
     {
-      "type": "cx.content.file",
+      "kind": "cx.content.file",
       "body": "spec-v3.pdf",
       "blob_ref": "cx:blob:sha256:bbb...",
       "mime_type": "application/pdf",
@@ -276,7 +276,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.text",
+  "kind": "cx.content.text",
   "body": "Daily build succeeded.",
   "mixins": {
     "cx.automated": true
@@ -292,7 +292,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ```json
 {
-  "type": "cx.content.text",
+  "kind": "cx.content.text",
   "body": "> Alice: 这个方案可行吗？\n\n我觉得需要再评估一下风险。",
   "format": "markdown",
   "reply_context": {
@@ -318,7 +318,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ### 7.2 未知类型的处理
 
-客户端遇到不认识的 `type` 时：
+客户端遇到不认识的 `kind` 时：
 1. MUST NOT 丢弃该消息
 2. SHOULD 使用 `body` 字段做纯文本降级展示
 3. MAY 显示"不支持的消息类型"提示

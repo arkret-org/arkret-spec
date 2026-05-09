@@ -58,7 +58,7 @@
           {
             "cell": "cx:cell:cx.component.member.state.v1:did.web.alice.example",
             "op": {
-              "type": "transition",
+              "kind": "transition",
               "from": "join",
               "to": "ban",
               "reason": "abuse"
@@ -67,14 +67,14 @@
           {
             "cell": "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gr0000000000000000000",
             "op": {
-              "type": "remove",
+              "kind": "remove",
               "tag": "grant-tag-a"
             }
           },
           {
             "cell": "cx:cell:cx.component.capability.grant.v1:cx.grant.01js0gs0000000000000000000",
             "op": {
-              "type": "remove",
+              "kind": "remove",
               "tag": "grant-tag-b"
             }
           }
@@ -148,7 +148,7 @@
           {
             "cell": "cx:cell:cx.component.mls_epoch.v1:group.01js0mls0000000000000000",
             "op": {
-              "type": "set",
+              "kind": "set",
               "value": "epoch-42"
             }
           }

@@ -261,7 +261,7 @@ Flow 通过 `tracks` 数组表达能力轨道：每个 track 至少声明 `name`
   "title": "支付重构",
   "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
   "body": {
-    "type": "cx.content.text",
+    "kind": "cx.content.text",
     "body": "Please finish the final review.",
     "format": "markdown",
     "formatted_body": "Please finish the final review."
@@ -358,7 +358,7 @@ Board / List 中的 Flow 示例：
   "space_id": "cx:space:01js0sp0000000000000000000",
   "title": "Review launch checklist",
   "body": {
-    "type": "cx.content.text",
+    "kind": "cx.content.text",
     "body": "Please finish the final review.",
     "format": "markdown",
     "formatted_body": "Please finish the final review."
@@ -413,7 +413,7 @@ Message 是 Flow `discussion` track 时间线中的原子消息对象。
   "track": "discussion",
   "created_by": "did:web:alice.example",
   "content": {
-    "type": "cx.content.text",
+    "kind": "cx.content.text",
     "body": "@bob 请确认这个 item 的 legal 风险。",
     "format": "markdown",
     "formatted_body": "<mention did=\"did:web:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
@@ -508,7 +508,7 @@ Event 是 reducer 输入和审计事实。Reducer-input event 在顶层带 `prec
   "effects": [
     {
       "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
-      "op": { "type": "set", "value": { "fields.status": "done" } }
+      "op": { "kind": "set", "value": { "fields.status": "done" } }
     }
   ],
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",

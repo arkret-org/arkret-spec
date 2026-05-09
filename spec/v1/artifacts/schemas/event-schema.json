@@ -1082,10 +1082,10 @@
     "lattice_op": {
       "type": "object",
       "required": [
-        "type"
+        "kind"
       ],
       "properties": {
-        "type": {
+        "kind": {
           "type": "string",
           "enum": [
             "add",

@@ -188,7 +188,7 @@ cx.vector.encoding.event_digest.v1
   "payload": {
     "flow_id": "cx:flow:01js0ke0000000000000000000",
     "content": {
-      "type": "cx.content.text",
+      "kind": "cx.content.text",
       "body": "hello"
     }
   }
@@ -198,13 +198,13 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"refs": [],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:01js0ev0000000000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","type":"cx.content.text"},"flow_id":"cx:flow:01js0ke0000000000000000000"},"prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"refs": [],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:01js0ev0000000000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01js0ke0000000000000000000"},"prev_refs":[],"space_id":"cx:space:01js0ke0000000000000000000"}
 ```
 
 期望 digest：
 
 ```text
-sha256:37eb534e16becc3637a78ea7477dbc250b600c01d6d7bdce56a13d383868f02c
+sha256:9b433da4c86ef3f07c7eba6bf02e42f623d9eb4117d90408d8f89715302412be
 ```
 
 判定规则：
@@ -681,7 +681,7 @@ cx.vector.redaction.preserve_fields.v1
     "payload": {
       "flow_id": "cx:flow:01js0mrd000000000000000000",
       "content": {
-        "type": "cx.content.text",
+        "kind": "cx.content.text",
         "body": "private notes"
       },
       "mentions": [
@@ -789,7 +789,7 @@ cx.vector.redaction.policy_scope.v1
       "payload": {
         "flow_id": "cx:flow:01js0qv1000000000000000000",
         "content": {
-          "type": "cx.content.text",
+          "kind": "cx.content.text",
           "body": "bad link: spam.example/phish"
         }
       }
@@ -1064,7 +1064,7 @@ cx.vector.capability.revoke_rollback.v1
       "payload": {
         "flow_id": "cx:flow:01js0rvk000000000000000000",
         "content": {
-          "type": "cx.content.text",
+          "kind": "cx.content.text",
           "body": "should_fail_if_revoke_applies"
         }
       },
@@ -1371,7 +1371,7 @@ cx.vector.capability.approval_constraint.v1
       "payload": {
         "flow_id": "cx:flow:01js0r01000000000000000000",
         "content": {
-          "type": "cx.content.text",
+          "kind": "cx.content.text",
           "body": "discussion message"
         }
       }

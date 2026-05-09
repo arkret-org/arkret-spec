@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-03",
+  "version": "2026-05-09",
   "codes": [
     {
       "code": "bad_json",
@@ -72,6 +72,12 @@
       "http_status": 403,
       "scope": "both",
       "description": "A required claim, attestation, or presentation is missing."
+    },
+    {
+      "code": "policy_violation",
+      "http_status": 403,
+      "scope": "both",
+      "description": "A space-level policy refuses the requested write or fanout (read-receipts §2.5: cx.receipt.read drops when disclosure='disabled'; retry_after_ms is null because retry will not change the outcome)."
     },
     {
       "code": "not_found",

@@ -265,7 +265,7 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
       "flow_id": "cx:flow:01js0fk0000000000000000000",
       "track": "discussion",
       "content": {
-        "type": "cx.content.text",
+        "kind": "cx.content.text",
         "body": "@bob 请确认这个 flow 的 legal 风险。",
         "format": "markdown"
       }

@@ -168,7 +168,7 @@ Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）�
   "effects": [
     {
       "cell": "cx:cell:cx.component.flow.fields.v1:cx:flow:01js0cd0000000000000000000",
-      "op": { "type": "set", "value": { "fields.status": "review" } }
+      "op": { "kind": "set", "value": { "fields.status": "review" } }
     }
   ],
   "anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",

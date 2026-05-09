@@ -19,7 +19,7 @@
           "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
-              "type": "cx.content.text",
+              "kind": "cx.content.text",
               "body": "hello"
             }
           },
@@ -52,7 +52,7 @@
           "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
-              "type": "cx.content.text",
+              "kind": "cx.content.text",
               "body": "hello"
             }
           },
@@ -97,7 +97,7 @@
           "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
-              "type": "cx.content.text",
+              "kind": "cx.content.text",
               "body": "tampered"
             }
           },
@@ -145,7 +145,7 @@
           "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
-              "type": "cx.content.text",
+              "kind": "cx.content.text",
               "body": "rollback"
             }
           },
@@ -306,7 +306,7 @@
           "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
-              "type": "cx.content.text",
+              "kind": "cx.content.text",
               "body": "too many prev refs"
             }
           },
@@ -336,7 +336,7 @@
           "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
-              "type": "cx.content.text",
+              "kind": "cx.content.text",
               "body": "missing auth refs"
             }
           },
@@ -369,7 +369,7 @@
           "payload": {
             "flow_id": "cx:flow:01k9rm00000000000000000000",
             "content": {
-              "type": "cx.content.text",
+              "kind": "cx.content.text",
               "body": "self ref"
             }
           },
