@@ -41,34 +41,32 @@ Flow 适合：
 
 ### 2.1 `tracks`
 
-`tracks` 是 Flow 的 track 定义数组。每个元素至少包含 `name`；`is_primary=true` 是可选显式 primary 标记。
+`tracks` 是 Flow 的 track 定义 map：key 是 track 稳定名（`^[a-z][a-z0-9_]{0,63}$`），value 是该 track 的配置对象（不重复 `name` 字段）；`is_primary=true` 是可选显式 primary 标记。
 
 示例：
 
 ```json
 {
-  "tracks": [
-    {
-      "name": "synthesis",
+  "tracks": {
+    "synthesis": {
       "is_primary": true
     },
-    {
-      "name": "discussion",
+    "discussion": {
       "profile": "discussion"
     }
-  ]
+  }
 }
 ```
 
 规则：
 
-- 每个 Flow MUST 至少有一个 active track。
-- `tracks[].name` 在同一个 Flow 内 MUST 唯一。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明更多 track 名。
-- 同一个 Flow 中至多一个 track MAY 设置 `is_primary=true`。多个显式 primary MUST 被 schema / reducer 拒绝。
-- 若没有 track 显式设置 `is_primary=true`，Reducer MUST 按确定性规则派生 primary：若存在 `name="synthesis"`，选择 `synthesis`；否则若只有一个 track，选择该 track；否则若 profile 声明了默认 track 且该 track 存在，选择该 track；仍无法唯一确定时 MUST fail closed，要求写入 `cx.flow.track.set_primary` 或等价修复事件。
+- 每个 Flow MUST 至少有一个 active track（`tracks` map MUST 至少包含一个 key）。
+- `synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明更多 track 名。track 名在同一 Flow 内的唯一性由 map 结构本身保证，不再需要显式约束。
+- 同一个 Flow 中至多一个 track MAY 设置 `is_primary=true`。多个显式 primary MUST 被 reducer 拒绝（schema 不再单独表达此约束，因为 map 形态下需逐 key 检查）。
+- 若没有 track 显式设置 `is_primary=true`，Reducer MUST 按确定性规则派生 primary：若 `tracks` 中存在 key `synthesis`，选择 `synthesis`；否则若只有一个 track，选择该 track；否则若 profile 声明了默认 track 且该 track 存在，选择该 track；仍无法唯一确定时 MUST fail closed，要求写入 `cx.flow.track.set_primary` 或等价修复事件。
 - `is_primary=false` 与省略 `is_primary` 等价；它不是阻止默认派生的 veto。
 - resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，不授予读取、写入或管理权限。
-- track 存在即表示 active；禁用 track 应通过 `cx.flow.track.disable` 从 active track 集合移除或标记为 profile 声明的 archived state，不得留下可写入的 disabled track。
+- track 在 map 中存在即表示 active；禁用 track 应通过 `cx.flow.track.disable` 从 `tracks` map 中移除该 key 或标记为 profile 声明的 archived state，不得留下可写入的 disabled track。
 - View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Space schema/profile、track config 和可见字段；不得要求 Flow 额外声明模式字段。
 - 业务语义过滤 SHOULD 使用 Space schema/profile、`fields`、Relation、labels 或 Morph profile；不得通过 Flow 顶层分类字段形成核心协议语义。
 
@@ -120,7 +118,7 @@ Flow 适合：
 
 ### 2.4 Track 与 Access 模型
 
-`tracks[]` **只**表达 track 是否存在、哪个 track 是默认入口、以及 track 的 UI / 时间线 profile。它不携带 access、membership、history visibility 或 E2EE 字段——早期 v1 草案曾允许 `tracks[].access` 子对象表达 `track_scoped` 的 hybrid 模型，该机制已被移除。
+`tracks` **只**表达 track 是否存在、哪个 track 是默认入口、以及 track 的 UI / 时间线 profile。它不携带 access、membership、history visibility 或 E2EE 字段——早期 v1 草案曾允许 track 配置内嵌 `access` 子对象表达 `track_scoped` 的 hybrid 模型，该机制已被移除。
 
 Access 模型现在只有两种形态：
 
@@ -131,10 +129,10 @@ Access 模型现在只有两种形态：
 
 ```json
 {
-  "tracks": [
-    { "name": "synthesis", "is_primary": true },
-    { "name": "discussion", "profile": "review" }
-  ],
+  "tracks": {
+    "synthesis": { "is_primary": true },
+    "discussion": { "profile": "review" }
+  },
   "discussion_space_ref": "cx:space:019640dc-8000-7000-8000-000000000000"
 }
 ```
@@ -243,9 +241,9 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
         "schema": "cx.schema.flow.v1",
         "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
         "title": "项目同步",
-        "tracks": [
-          { "name": "discussion", "is_primary": true }
-        ],
+        "tracks": {
+          "discussion": { "is_primary": true }
+        },
         "created_by": "did:web:alice.example",
         "created_at": "2026-04-26T00:00:00Z"
       }

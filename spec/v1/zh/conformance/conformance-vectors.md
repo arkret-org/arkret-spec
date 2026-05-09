@@ -1254,12 +1254,11 @@ cx.vector.capability.approval_constraint.v1
           "schema": "cx.schema.flow.v1",
           "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
           "title": "Release checklist",
-          "tracks": [
-            {
-              "name": "synthesis",
+          "tracks": {
+            "synthesis": {
               "is_primary": true
             }
-          ],
+          },
           "created_by": "did:web:alice.example.com",
           "created_at": "2026-04-26T00:00:00Z"
         },

@@ -282,7 +282,7 @@
     },
     {
       "operation_id": "cx.applet.transaction",
-      "http": "PUT /applet/transactions/{txn_id}",
+      "http": "POST /applet/transactions",
       "grpc": "Applet/Transaction",
       "mq": "applet.transaction"
     },
@@ -330,7 +330,7 @@
     },
     {
       "operation_id": "cx.device_messages.put",
-      "http": "PUT /device_messages/{txn_id}",
+      "http": "POST /device_messages",
       "grpc": "DeviceMessages/Put",
       "mq": "device_messages.put"
     },

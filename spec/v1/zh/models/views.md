@@ -237,7 +237,7 @@ Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开未被有效 a
 | 卡片 | `flow` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=flow_id}` | 表示 List 与 Flow 的 canonical 包含关系。 |
 | 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系。 |
-| 讨论入口 | `tracks[]` 中 `name="discussion"` 的 track | 讨论能力属于同一个 Flow；access 完全继承父 Space，独立访问域通过 `Flow.discussion_space_ref` 升级到 child Space。 |
+| 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Flow；access 完全继承父 Space，独立访问域通过 `Flow.discussion_space_ref` 升级到 child Space。 |
 
 ### 6.2 Board 不显示全 Space 数据
 

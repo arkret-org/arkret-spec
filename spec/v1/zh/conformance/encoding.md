@@ -492,7 +492,7 @@ rank_between(left, right):
 | `cx.component.device.authorized.v1` / `cx.device.authorized` | `[principal_id, device_id]` |
 | `cx.component.device.authorized.v1` / `cx.device.revoked` | `[principal_id, device_id]` |
 
-`flow_id`、`actor_id`、`principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。`track` MUST 与 Flow `tracks[].name` 一致（`^[a-z][a-z0-9_]{0,63}$`）。
+`flow_id`、`actor_id`、`principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。`track` MUST 是目标 Flow `tracks` map 中存在的 key，命名规则 `^[a-z][a-z0-9_]{0,63}$`。
 
 非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Space policy 用 Space id）直接把规范化 subject 放入 `cx:cell:<component>:<subject>`，不需要 hash 化。
 

@@ -61,7 +61,7 @@ Contrix DID method adapter SHOULD 暴露某个 principal 或服务是否支持 T
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [
-    "cx.federation.transaction",
+    "cx.federation.push_operations",
     "cx.identity.presentation",
     "cx.agent.protocol_session.start"
   ],
@@ -80,7 +80,7 @@ Contrix operation 可作为 TSP application payload：
 
 ```json
 {
-  "operation": "federation.transaction",
+  "operation": "federation.push_operations",
   "content_type": "application/contrix+json",
   "space_id": "cx:space:...",
   "payload_hash": "sha256:...",

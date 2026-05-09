@@ -55,11 +55,11 @@
     {
       "name": "replay_protection",
       "input": {
-        "txn_id": "cx:req:0196418b-8000-7000-8000-000000000000",
+        "idempotency_key": "0196418b-8000-7000-8000-000000000000",
         "first_body_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "second_body_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       },
-      "expected": "duplicate_txn_id_or_replay_key_rejected"
+      "expected": "duplicate_idempotency_key_or_replay_key_rejected"
     },
     {
       "name": "fork_quarantine",

@@ -90,7 +90,7 @@ sidebar:
 
 - **身份与来源前置验签**：服务来源先做服务 DID 绑定、签名验证、trust policy 检查，再执行业务授权。
 - **分层限速与退避**：按来源、source service、space、IP hash、tenant、endpoint 限速，超过阈值退避或拒绝。
-- **幂等与重放防护**：`request_id`、`txn_id`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
+- **幂等与重放防护**：`request_id`、`Idempotency-Key`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
 - **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
 - **多源交叉校验**：snapshot / resolver / frontier / policy decision / DID 头部状态引入二次验证。
@@ -132,7 +132,7 @@ sidebar:
 - 所有服务入口区分 `authenticated`、`trusted_service`、`anonymous_forwarded`。
 - `anonymous_forwarded` 来源不直通写入；默认进入 `rate_limited` 或 `quarantine` 流程。
 - 所有统一错误语义在未认证/未授权/不可见场景保持不可区分。
-- `request_id`、`request_canonical_hash`、`txn_id` 必须参与防重放判定；不同内容不得复用同一签名或请求键。
+- `request_id`、`request_canonical_hash`、`Idempotency-Key` 必须参与防重放判定；不同内容不得复用同一签名或请求键。
 - 受保护 endpoint 不得接受 URL 中的认证材料；反向代理、应用日志和安全审计日志必须对敏感 query 做脱敏或拒绝记录。
 
 ### 4.2 Policy Server 侧
@@ -154,7 +154,7 @@ sidebar:
 
 ### 4.3 联邦与传播
 
-- `txn_id` 与 `canonical hash` 一致后才可幂等接受。
+- `Idempotency-Key` 与 `canonical hash` 一致后才可幂等接受；单事件级别仍以 `event_id` 去重。
 - 连续失败率升高的来源逐层下调优先级并退避；HTTP response 优先用 `Retry-After`，body 可附带 `retry_after_ms`。
 - fork / frontier 异常进入 `quarantine` 并执行本地再校验，不直接进入主 reducer。
 

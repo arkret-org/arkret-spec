@@ -42,6 +42,30 @@
 
 ## [Unreleased]
 
+### Flow `tracks` 由数组改为 map（2026-05-09）
+
+把 Flow `tracks` 从 `array<{ name, ... }>` 改为 `map<TrackName, FlowTrackConfig>`，key 即 track 稳定名。动机：track 名是封闭词汇表（`synthesis` / `discussion` 及 profile 声明的扩展名），不是用户自由 ID；map 形态把"同一 Flow 内 name 唯一"从一条显式约束变成结构本身保证，并且去掉 `name` 字段冗余、消除 patch path stable-key selector 段（`tracks[name=discussion].profile` → `tracks.discussion.profile`）。`is_primary=true` 仍然在每个 track entry 上；"至多一个" 由 reducer 校验，schema 不再单独表达此约束（map 形态下需逐 key 检查）。
+
+- **变更类型**: modify（schema 形状变化 — wire breaking）
+- **影响 artifact**: `flow.schema.json`、`event-payload.schema.json`（patch_path 描述）、`conformance-vectors`
+- **canonical 变更**:
+  - `flow.schema.json#/properties/tracks`：`type=array, items=$ref flow_track, minItems=1, contains/maxContains=1, uniqueItems=true` → `type=object, minProperties=1, propertyNames=$ref track_name, additionalProperties=$ref flow_track`。
+  - `flow.schema.json#/$defs/flow_track`：移除 `required: ["name"]` 与 `properties.name`；其余字段（`is_primary` / `profile` / `template` / `fields`）不变。
+  - `event-payload.schema.json#/$defs/patch_path`：regex 不变，描述更新——v1 标准 schema 不再使用 stable-key selector 段，`tracks` 走普通对象段。Profile / 扩展若引入具名集合数组仍可用 selector 段。
+- **派生 artifact 同步**: 无 generated artifact 改动；`conformance-vectors.md` 中 Flow create 例子已改为 map 形态。
+- **conformance impact**:
+  - 受影响 profile: 任何接受/产生 Flow object 的实现（即所有 `core_event_store` / `chat_mvp` 及以上 profile）。
+  - profile tier 变化: 无。
+  - wire 兼容性: **breaking**。旧 array 形态 MUST 被 reducer 拒绝（schema validation 即触发）。
+  - reader / writer 行为要求: writer MUST emit map；reader MUST reject array 形态为 `schema_violation`。`cx.flow.track.enable` / `disable` / `set_primary` 三个 event payload 不变（它们一直按 track name 字符串寻址）。
+- **fixture / vector 变化**: `conformance-vectors.md` Flow create 向量已更新；其他 fixture 不含 Flow tracks 例子。
+- **prose 同步**: `spec/v1/zh/models/object-model-core.md`（§6 / §7）、`object-model-standard.md`（§2.1 / §2.4 / §5.1）、`data-structures.md`（§6.1 / §19 patch path 说明）、`overview/current-model.md`（§2 / §3）、`models/views.md`（§6.1 概念映射）、`sync/operations-sync.md`（§7.2 / §8 patch path）、`conformance/encoding.md`（§9.5.2）、`authz/capabilities.md`（§7）、`authz/constraint-schema.md`（§6.1）。
+- **迁移指南**:
+  1. Writer：把 `tracks: [{ name: "synthesis", is_primary: true }, { name: "discussion" }]` 重写为 `tracks: { synthesis: { is_primary: true }, discussion: {} }`；从 entry 中删除 `name` 字段。
+  2. Reducer：把 `tracks[].name` 唯一性从显式校验改为依赖 map 结构；保留"至多一个 `is_primary=true`"的 reducer-level 校验。
+  3. Patch path：把 `tracks[name=<x>].<field>` 改写为 `tracks.<x>.<field>`。
+  4. SDK / projection：所有按 `tracks.find(t => t.name === ...)` 的查找改为 `tracks[name]` 直接索引；按 `Object.entries(tracks)` 迭代时记得 entry 已不含 `name`。
+
 ### Operation registry tier 分类与 surface 错位整理（2026-05-08）
 
 把 `operation_registry.capability_tiers` 从三档（core / extension / deployment_local）扩到四档,新增 `interop_bridge` tier 用来标记"对外部协议（MIMI、Applet 等）的 adapter surface",并修复几处 surface 错位分组。动机:此前 `mimi_interop`、`applet` 与 `directory_discovery`、`blob_media` 等同被打上 `extension`,把"协议内可选 surface"与"对外部协议的桥接"压成同一类,导致 30% 操作看着像 extension —— 实际上前者属于 Contrix 规范本体的可选项,后者是独立外部规范的 adapter,生命周期/治理/profile 语义都不一样。本次只动 metadata,无 wire 变化、无 op 增删。

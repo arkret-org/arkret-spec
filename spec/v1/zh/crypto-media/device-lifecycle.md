@@ -183,7 +183,6 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `kind` | `string` | required | 消息 kind，例如 `cx.key.verification.request`。标准 `cx.*` to-device kind MUST 在 registry 中登记为 `ephemeral_event` 或由扩展 profile 声明。 |
-| `txn_id` | `id` | required | 发送方幂等 ID，MUST 与 PUT path `{txn_id}` 一致。 |
 | `sender_principal_id` | `did` | required | 发送 principal。 |
 | `sender_device_id` | `id:device` | required | 发送设备。 |
 | `recipient_principal_id` | `did` | required | 接收 principal；MUST 等于投递路径中的目标 principal。 |
@@ -200,8 +199,9 @@ To-device 消息是短期队列对象，不是长期 Event history。发送方 M
 发送接口：
 
 ```http
-PUT /api/v1/device_messages/{txn_id}
+POST /api/v1/device_messages
 Authorization: Bearer <token>
+Idempotency-Key: <opaque-string>
 Content-Type: application/json
 ```
 
@@ -209,7 +209,7 @@ Content-Type: application/json
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `txn_id` | path | `id` | required | 发送方生成的幂等 ID；服务端 MUST 以 `(sender, txn_id)` 去重。 |
+| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等键，长度 1..128；服务端 MUST 以 `(sender, Idempotency-Key)` 去重，重复键但 body canonical hash 不同 MUST 拒绝。 |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal 与发送设备。 |
 | `messages` | body | `object` | required | 收件人 principal 到 device 消息的映射。 |
 | `messages.{principal_id}` | body | `object` | required | 目标 principal DID。 |
@@ -251,9 +251,9 @@ Content-Type: application/json
 }
 ```
 
-服务端 MUST 以 `(sender, txn_id)` 幂等。设备收到 sync 响应并推进 `cursor` 后，服务端 MAY 删除已投递消息。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
+服务端 MUST 以 `(sender, Idempotency-Key)` 幂等。设备收到 sync 响应并推进 `cursor` 后，服务端 MAY 删除已投递消息。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
-若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`txn_id`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。
+若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
 
 接收接口：
 

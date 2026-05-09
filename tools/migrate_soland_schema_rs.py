@@ -21,7 +21,7 @@ UUID_COLUMNS_CONTRIX = {
     "device_id", "backup_id",
     "grant_id", "capability_id", "policy_id", "decision_id",
     "invite_id", "report_id", "modq_id", "action_id",
-    "txn_id", "request_id",
+    "request_id",
     "notification_id",
     "applet_id", "agent_session_id", "call_id",
     "frame_id", "devmsg_id",

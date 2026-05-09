@@ -5,7 +5,6 @@
   "type": "object",
   "required": [
     "kind",
-    "txn_id",
     "sender_principal_id",
     "sender_device_id",
     "recipient_principal_id",
@@ -18,9 +17,6 @@
     "kind": {
       "type": "string",
       "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-    },
-    "txn_id": {
-      "$ref": "#/$defs/transaction_id"
     },
     "sender_principal_id": {
       "$ref": "#/$defs/did"

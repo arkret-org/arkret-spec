@@ -187,10 +187,9 @@ paths:
     post:
       operationId: cx.push.notify
 
-  /device_messages/{txn_id}:
-    put:
-      operationId: cx.device_messages.put
   /device_messages:
+    post:
+      operationId: cx.device_messages.put
     get:
       operationId: cx.device_messages.get
   /keys/upload:
@@ -276,8 +275,8 @@ paths:
   /applet/describe:
     get:
       operationId: cx.applet.describe
-  /applet/transactions/{txn_id}:
-    put:
+  /applet/transactions:
+    post:
       operationId: cx.applet.transaction
   /applet/actors/{actor_id}:
     get:
@@ -308,18 +307,18 @@ paths:
 | `cx.events.subscribe` | `GET /events/subscribe` | WebSocket/SSE stream / pubsub topic |
 | `cx.sync.account` | `POST /sync` | WebSocket/SSE account sync channel / `/sync?since...` |
 | `cx.sync.get_snapshot_head` | `GET /sync/snapshot-head` | snapshot pointer |
-| `cx.federation.transaction` / `cx.federation.push_operations` / `cx.federation.pull_operations` | `PUT /federation/transactions/{txn_id}`, `POST /federation/push-operations`, `GET /federation/pull-operations` | gRPC Federation Service / signed MQ transaction |
+| `cx.federation.push_operations` / `cx.federation.pull_operations` | `POST /federation/push-operations`, `GET /federation/pull-operations` | gRPC Federation Service / signed MQ transaction |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC Discovery Service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
 | `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |
-| `cx.device_messages.put` / `cx.device_messages.get` | `PUT /device_messages/{txn_id}`, `GET /device_messages` | MQ device topic / 本地 IPC |
+| `cx.device_messages.put` / `cx.device_messages.get` | `POST /device_messages`, `GET /device_messages` | MQ device topic / 本地 IPC |
 | `cx.keys.upload` / `cx.keys.query` / `cx.keys.claim` | `POST /keys/upload`, `POST /keys/query`, `POST /keys/claim` | E2EE key service binding |
 | `cx.keys.backups.put` / `cx.keys.backups.list` / `cx.keys.backups.get` / `cx.keys.backups.delete` | `PUT /keys/backups/{backup_id}`, `GET /keys/backups`, `GET /keys/backups/{backup_id}`, `DELETE /keys/backups/{backup_id}` | Encrypted key backup storage binding |
 | `cx.authz.check` / `cx.authz.get_effective_grants` / `cx.authz.get_invites` | `POST /authz/check`, `GET /authz/effective-grants`, `GET /authz/invites` | gRPC / policy 插件回调 |
 | `cx.policy.check` | `POST /contrix/v1/check` | policy 本地调用 |
 | `cx.media.ice_config` | `POST /contrix/v1/ice-config` | Media service / TURN credential adapter |
 | `cx.moderation.report` | `POST /moderation/report` | Moderation queue / local compliance workflow |
-| `cx.applet.transaction` / `cx.applet.query_actor` / `cx.applet.query_space` | `PUT /applet/transactions/{txn_id}`, `GET /applet/actors/{actor_id}`, `GET /applet/spaces/{space_id_or_alias}` | Applet webhook / bridge adapter |
+| `cx.applet.transaction` / `cx.applet.query_actor` / `cx.applet.query_space` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/spaces/{space_id_or_alias}` | Applet webhook / bridge adapter |
 
 ### 4.1 Generated Full Inventory
 

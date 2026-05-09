@@ -190,7 +190,7 @@
     },
     "patch_path": {
       "type": "string",
-      "description": "Contrix field patch path. Segments are snake_case identifiers, optional stable-key selectors such as tracks[name=discussion], or backtick-quoted literals; numeric array indexes are not part of cx.patch.v1.",
+      "description": "Contrix field patch path. Segments are snake_case identifiers, optional stable-key selectors (such as profile-declared named-collection arrays of the form `<field>[<key>=<value>]`), or backtick-quoted literals; numeric array indexes are not part of cx.patch.v1. v1 standard schemas no longer use stable-key selectors — Flow tracks is now a map keyed by track name, so paths like `tracks.discussion.profile` are plain object segments.",
       "pattern": "^(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`)(?:\\.(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`))*$"
     },
     "patch_operation": {

@@ -2131,12 +2131,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GrantListResponse'
-  /device_messages/{txn_id}:
-    put:
+  /device_messages:
+    post:
       operationId: cx.device_messages.put
       parameters:
-      - in: path
-        name: txn_id
+      - in: header
+        name: Idempotency-Key
         required: true
         schema:
           type: string
@@ -2153,6 +2153,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesPutResponse'
+    get:
+      operationId: cx.device_messages.get
+      responses:
+        '200':
+          description: Device message fetch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceMessagesGetResponse'
   /keys/upload:
     post:
       operationId: cx.keys.upload
@@ -2686,16 +2695,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /device_messages:
-    get:
-      operationId: cx.device_messages.get
-      responses:
-        '200':
-          description: Device message fetch
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeviceMessagesGetResponse'
   /applet/ping:
     get:
       operationId: cx.applet.ping
@@ -2716,12 +2715,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /applet/transactions/{txn_id}:
-    put:
+  /applet/transactions:
+    post:
       operationId: cx.applet.transaction
       parameters:
-      - in: path
-        name: txn_id
+      - in: header
+        name: Idempotency-Key
         required: true
         schema:
           type: string

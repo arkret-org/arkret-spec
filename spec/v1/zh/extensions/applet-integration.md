@@ -33,7 +33,7 @@ Applet 是一个受注册、受授权、可审计的集成服务。它可以：
 | user namespace regex | actor namespace claim / DID namespace |
 | room namespace regex | Space / portal namespace |
 | alias namespace regex | handle / portal alias namespace |
-| `/transactions/{txn_id}` | `/api/v1/applet/transactions/{txn_id}` |
+| `/transactions/{txn_id}` | `POST /api/v1/applet/transactions` + `Idempotency-Key` header |
 | `/users/{user_id}` | `/api/v1/applet/actors/{actor_id}` |
 | `/rooms/{room_alias}` | `/api/v1/applet/spaces/{space_id_or_alias}` |
 | third-party protocols | external protocol metadata |
@@ -240,7 +240,7 @@ Base URL 来自 registration 的 `base_url`。
 | --- | --- | --- | --- | --- |
 | `cx.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
 | `cx.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
-| `cx.applet.transaction` | `path.txn_id: id`; `source_service_did: did`; `events: object[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
+| `cx.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: object[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
 | `cx.applet.query_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
 | `cx.applet.query_space` | `path.space_id_or_alias: string` | 无 | `exists: boolean`; `space_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob: string?`; `field_types: object`; `instances: object[]?` | instance list 可要求授权。 |
@@ -275,7 +275,8 @@ GET /api/v1/applet/describe
 ### 7.3 Transaction Push
 
 ```text
-PUT /api/v1/applet/transactions/{txn_id}
+POST /api/v1/applet/transactions
+Idempotency-Key: <opaque-string>
 ```
 
 Contrix sync service / Events API 向 Applet 推送事件批次。
@@ -284,7 +285,6 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
 
 ```json
 {
-  "txn_id": "cx:txn:019641ae-8000-7000-8000-000000000000",
   "source_service_did": "did:web:server.example",
   "events": [
     {
@@ -315,10 +315,11 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
 
 规则：
 
-- `txn_id` MUST 幂等。
-- 相同 `txn_id` 和相同 body 重复投递 MUST 成功。
-- 相同 `txn_id` 但 body 不同 MUST 返回 `duplicate_conflict`。
-- Applet SHOULD 先持久化 txn，再执行外部副作用。
+- `Idempotency-Key` MUST 幂等。
+- 相同 `(source_service_did, Idempotency-Key)` 和相同 body canonical hash 重复投递 MUST 成功。
+- 相同 `(source_service_did, Idempotency-Key)` 但 body 不同 MUST 返回 `duplicate_conflict`。
+- 单事件级别仍以 `event_id` 去重；重复 `event_id` 且内容一致 MUST `accepted`，内容不一致 MUST 拒绝。
+- Applet SHOULD 先持久化幂等记录，再执行外部副作用。
 - Applet MUST 验证 source service DID 和 HTTP message signature。
 - Applet MUST 独立验证 event signature，不得只信任推送方。
 
@@ -567,7 +568,7 @@ Applet 实现 MUST NOT：
 
 Transaction push 失败时：
 
-- 5xx / timeout：发送方 SHOULD 重试相同 `txn_id`
+- 5xx / timeout：发送方 SHOULD 重试相同 `Idempotency-Key`
 - 4xx：发送方 SHOULD 停止重试，除非错误是 `rate_limited`
 - `rate_limited`：发送方 MUST 优先遵守 `Retry-After`，非 HTTP binding 或无 header 时再使用 `retry_after_ms`
 - `duplicate_conflict`：发送方 MUST 停止并告警
@@ -593,7 +594,7 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 
 - `applet_registration` JSON Schema 由 `applet-schema.md` 和 `schema-registry.md` 固定，必须包含 service DID、endpoint、namespace、protocol、capability refs、signing method 和 expiry。
 - Namespace pattern grammar MUST 明确 actor、space、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
-- Transaction schema MUST 包含 `txn_id`、source network、external event id、mapped actor、target Space、operation refs、idempotency key、signature 和 received_at。
+- Transaction schema MUST 包含 source network、external event id、mapped actor、target Space、operation refs、`Idempotency-Key`、signature 和 received_at。
 - Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `cx.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。

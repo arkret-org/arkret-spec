@@ -62,26 +62,15 @@
       "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.flow.archive / cx.flow.tombstone / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in data-structures.md §3."
     },
     "tracks": {
-      "type": "array",
-      "description": "Active Flow tracks. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. Any sub-Space-level access scoping MUST be modelled as a child Space referenced via 'discussion_space_ref'. At most one track may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in object-model-standard.md.",
-      "minItems": 1,
-      "items": {
+      "type": "object",
+      "description": "Active Flow tracks, keyed by track name. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. Any sub-Space-level access scoping MUST be modelled as a child Space referenced via 'discussion_space_ref'. At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in object-model-standard.md. The map MUST contain at least one entry; track names are validated by propertyNames.",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/track_name"
+      },
+      "additionalProperties": {
         "$ref": "#/$defs/flow_track"
-      },
-      "contains": {
-        "type": "object",
-        "required": [
-          "is_primary"
-        ],
-        "properties": {
-          "is_primary": {
-            "const": true
-          }
-        }
-      },
-      "minContains": 0,
-      "maxContains": 1,
-      "uniqueItems": true
+      }
     },
     "discussion_space_ref": {
       "type": "string",
@@ -152,14 +141,8 @@
     },
     "flow_track": {
       "type": "object",
-      "description": "Flow track — a pure section pointer (synthesis vs discussion timeline). Tracks do NOT carry independent membership / permissions / history visibility / E2EE. To give the discussion side its own security boundary, set Flow.discussion_space_ref to a child Space.",
-      "required": [
-        "name"
-      ],
+      "description": "Flow track entry — a pure section pointer (synthesis vs discussion timeline). The track's stable name is the map key in Flow.tracks; this object holds the track's per-entry config. Tracks do NOT carry independent membership / permissions / history visibility / E2EE. To give the discussion side its own security boundary, set Flow.discussion_space_ref to a child Space.",
       "properties": {
-        "name": {
-          "$ref": "#/$defs/track_name"
-        },
         "is_primary": {
           "type": "boolean"
         },

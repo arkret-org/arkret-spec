@@ -10,13 +10,13 @@ title: 当前模型说明
 
 `Flow` 承载同一事项的正式表达与讨论过程：
 
-- `tracks[].name`：定义 Flow 当前启用的能力轨道
-- `tracks[].is_primary=true`：可显式定义默认主入口；若未显式设置且存在 `synthesis`，默认主入口派生为 `synthesis`
+- `tracks` 的 key：定义 Flow 当前启用的能力轨道（key 是 track 稳定名）
+- `tracks.<name>.is_primary=true`：可显式定义默认主入口；若未显式设置且存在 key `synthesis`，默认主入口派生为 `synthesis`
 - 业务语义通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 表达
 
 ## 3. Flow 的标准 Track
 
-`Flow.tracks` 是 track 定义数组。v1 标准化两个 track name：
+`Flow.tracks` 是 track 定义 map（key 是 track 稳定名）。v1 标准化两个 track name：
 
 - `synthesis`：正式表达、结构化字段、状态推进、标题、摘要、正文
 - `discussion`：成员、消息、历史可见性、通知与可选 E2EE

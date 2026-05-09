@@ -211,9 +211,9 @@ v2 主版本 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: 
 
 `allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并满足 track access、history visibility 和 E2EE key eligibility。
 
-`discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks[].profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、track access、history visibility 和 E2EE key eligibility 决定。
+`discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、track access、history visibility 和 E2EE key eligibility 决定。
 
-`allowed_tracks` 和 `denied_tracks` 的元素 MUST 使用 Flow `tracks[].name` 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明其他 track 名，但不得用 profile 名称替代 track name。
+`allowed_tracks` 和 `denied_tracks` 的元素 MUST 使用 Flow `tracks` map key 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明其他 track 名，但不得用 profile 名称替代 track name。
 
 ### 6.2 视图限制
 

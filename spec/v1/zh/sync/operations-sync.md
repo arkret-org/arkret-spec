@@ -345,7 +345,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.move`
 - `cx.flow.reorder`
 
-`cx.flow.*` 只修改 Flow 自身、track 配置、track access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.track.*` 的 reducer 产物是 Flow `tracks[]` 的当前态，而不是新的独立对象。
+`cx.flow.*` 只修改 Flow 自身、track 配置、track access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.track.*` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。
 
 ### 7.3 Message
 
@@ -412,7 +412,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 Create 类操作若在 `payload.object` 中携带完整 materialized object schema，接收方 MUST 在 schema validation 后执行 cross-field validation：对象创建者字段必须与顶层 `actor_id` / 授权 controller 一致，对象 `created_at` 必须与顶层 Event `created_at` 一致。任何不一致都不得进入 reducer；返回标准 `schema_violation`，或在 controller/guardian 授权缺失时返回 `capability_denied`。
 
-对于 `tracks` 这类具名集合数组，patch path MUST 使用 schema 允许的 selector 段，例如 `tracks[name=discussion].access.permissions`；不得使用数字下标，因为不同副本上的数组物理顺序不是授权或 reducer 语义。
+Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对象段，例如 `tracks.discussion.profile` 或 `tracks.synthesis.is_primary`；不再需要 stable-key selector。对于 profile / 扩展引入的具名集合数组，patch path MUST 使用 schema 允许的 selector 段（`<field>[<key>=<value>]`），不得使用数字下标，因为不同副本上的数组物理顺序不是授权或 reducer 语义。
 
 例如：
 

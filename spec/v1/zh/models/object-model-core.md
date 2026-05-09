@@ -245,7 +245,7 @@ Accountable actor MUST 记录责任关系，但 accountability 不等于 capabil
 
 Flow 是 Space 内统一的协作主对象，直接承载“这件事本身”、一组参与者和围绕它的上下文信息。
 
-Flow 通过 `tracks` 数组表达能力轨道：每个 track 至少声明 `name`；`is_primary=true` 可显式标识默认入口，未显式标记时按确定性规则派生。`synthesis` track 承载整理后的正式表达、结构化字段和推进信息；`discussion` track 承载聊天和讨论 timeline。
+Flow 通过 `tracks` map 表达能力轨道：key 是 track 稳定名（`^[a-z][a-z0-9_]{0,63}$`），value 是该 track 的配置对象；`is_primary=true` 可显式标识默认入口，未显式标记时按确定性规则派生。`synthesis` track 承载整理后的正式表达、结构化字段和推进信息；`discussion` track 承载聊天和讨论 timeline。
 
 **Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track access 完全等于所属 Space 的 access。需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，必须创建一个 child Space 并通过 `discussion_space_ref` 引用（详见 [`data-structures.md`](./data-structures.md) §6.1.1）；不存在 track-internal "track_scoped" 模式。
 
@@ -271,10 +271,10 @@ Flow 通过 `tracks` 数组表达能力轨道：每个 track 至少声明 `name`
     "priority": "high",
     "due_at": "2026-05-01T00:00:00Z"
   },
-  "tracks": [
-    { "name": "synthesis", "is_primary": true },
-    { "name": "discussion", "profile": "review" }
-  ],
+  "tracks": {
+    "synthesis": { "is_primary": true },
+    "discussion": { "profile": "review" }
+  },
   "discussion_space_ref": "cx:space:019640dc-8000-7000-8000-000000000000",
   "state": "active",
   "created_by": "did:web:alice.example",
@@ -285,7 +285,7 @@ Flow 通过 `tracks` 数组表达能力轨道：每个 track 至少声明 `name`
 Flow 规则：
 
 - Flow identity 只保存一份，resolved primary track 只决定默认视角，不创建新的对象副本。
-- 同一 Flow 的 `tracks[].name` MUST 唯一，且至多一个 active track MAY 设置 `is_primary=true`。
+- `tracks` 是 map，key 唯一性由结构保证；至多一个 active track MAY 设置 `is_primary=true`。
 - 若没有显式 `is_primary=true`，Reducer MUST 派生 primary：`synthesis` 存在时优先选择 `synthesis`；否则单 track Flow 选择唯一 track；否则按 profile 默认 track 选择；仍无法唯一确定时 fail closed。
 - `synthesis` track 与 `discussion` track 共享同一标题和基础字段；track 不存在独立 access 域。
 - 未设置 `discussion_space_ref` 时，discussion 时间线、成员、history visibility、E2EE 完全继承父 Space。
@@ -297,7 +297,7 @@ Flow 规则：
 
 Flow 的 `discussion` track 是会话能力，而不是独立对象。它承载消息时间线和通知 profile；access 完全继承父 Space，或通过 `Flow.discussion_space_ref` 升级到独立 child Space 承载。
 
-若 `discussion` track 设置 `is_primary=true`，该 track MUST 存在于 active `tracks` 数组中。Flow MAY 初始只带 `synthesis` track；需要讨论时再启用 `discussion` track。
+若 `discussion` track 设置 `is_primary=true`，该 track MUST 存在于 active `tracks` map 中。Flow MAY 初始只带 `synthesis` track；需要讨论时再启用 `discussion` track。
 
 Discussion track 规则：
 
@@ -368,12 +368,11 @@ Board / List 中的 Flow 示例：
     "priority": "high",
     "due_at": "2026-05-01T00:00:00Z"
   },
-  "tracks": [
-    {
-      "name": "synthesis",
+  "tracks": {
+    "synthesis": {
       "is_primary": true
     }
-  ],
+  },
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_at": "2026-04-26T00:00:00Z"

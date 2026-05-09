@@ -277,7 +277,7 @@ Schema id: `cx.schema.flow.v1`
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 一句话/一段话简介。 |
 | `body` | no | `ContentBlock` | 见 `content-types.md`。 | 富文本正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `body` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
-| `tracks` | yes | `array<FlowTrack>` | 至少 1 项；`name` 在同一 Flow 内唯一；至多 1 项 `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
+| `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。 | 物化状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
@@ -286,15 +286,14 @@ Schema id: `cx.schema.flow.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-`tracks` 是 active track 定义数组。标准 track name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 track name。`synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`discussion` 在启用时承载讨论能力，例如 `profile`、timeline profile 与 track-local fields。
+`tracks` 是 active track 定义 map：key 是 track 稳定名（`TrackName = ^[a-z][a-z0-9_]{0,63}$`），value 是该 track 的配置对象。标准 track name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 track name。`synthesis` 承载标题、摘要、正文、结构化字段和状态等正式表达。`discussion` 在启用时承载讨论能力，例如 `profile`、timeline profile 与 track-local fields。
 
-**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自所属 Space（或 `discussion_space_ref` 指向的 child Space，见下文）。早期 v1 草案曾允许 `tracks[].access` 子对象表达 `track_scoped` 的 hybrid 模型，该机制已被移除——任何需要独立访问域的 discussion 必须升级为 child Space。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非 Space policy 明确把它们映射为授权条件。
+**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自所属 Space（或 `discussion_space_ref` 指向的 child Space，见下文）。早期 v1 草案曾允许 track 配置内嵌 `access` 子对象表达 `track_scoped` 的 hybrid 模型，该机制已被移除——任何需要独立访问域的 discussion 必须升级为 child Space。`assigned_to`、watchers 或其他业务关系不会自动成为 discussion 成员，除非 Space policy 明确把它们映射为授权条件。
 
-`FlowTrack` 字段：
+`FlowTrack` 字段（track 名是 `tracks` map 的 key，不重复在 value 中）：
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `name` | yes | `string` | `^[a-z][a-z0-9_]{0,63}$`；同一 Flow 内唯一。 | Track 稳定名。 |
 | `is_primary` | no | `boolean` | 同一 Flow 至多一个 track 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
 | `profile` | no | `string` | 由 Space schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | track 交互 profile（pure UI hint）。 |
 | `template` | no | `string` | track profile 可声明结构模板。 | 模板引用。 |
@@ -317,10 +316,10 @@ Schema id: `cx.schema.flow.v1`
 
 Primary track 解析规则：
 
-1. 若恰好一个 track 设置 `is_primary=true`，它是 primary。
-2. 若没有显式 primary 且存在 `name="synthesis"`，`synthesis` 是 primary。
-3. 若没有显式 primary 且只有一个 track，该唯一 track 是 primary。
-4. 若没有显式 primary，且 profile 声明了可验证默认 track，使用该默认 track。
+1. 若恰好一个 track entry 设置 `is_primary=true`，对应 key 是 primary。
+2. 若没有显式 primary 且 `tracks` 中存在 key `synthesis`，`synthesis` 是 primary。
+3. 若没有显式 primary 且 map 只有一个 key，该唯一 key 是 primary。
+4. 若没有显式 primary，且 profile 声明了可验证默认 track 且该 key 存在于 `tracks`，使用该默认 track。
 5. 仍无法唯一确定时，Reducer MUST fail closed，要求写入 `cx.flow.track.set_primary` 或等价修复事件。
 
 ### 6.2 Place（看板 / 列 / 泳道 / Calendar Bucket / …）
@@ -706,7 +705,7 @@ patch path 规则：
 
 - path 由 `snake_case` 标识符或反引号转义字段名组成；
 - 默认仅支持对象路径，不支持数字数组下标；
-- 对 schema 声明了唯一 key 的具名集合数组，path MAY 使用确定性 selector 段：`tracks[name=discussion].profile`。selector 字段必须是该数组项 schema 中声明唯一的 stable key，selector 值按 canonical JSON string 解析；匹配 0 项时 `set`/`add` MUST reject，匹配多项表示对象已违反 schema，reducer MUST fail closed；
+- 对 schema 声明了唯一 key 的具名集合数组（仅由 profile / 扩展引入；v1 标准 schema 不再含此类数组），path MAY 使用确定性 selector 段：`<field>[<key>=<value>]`。selector 字段必须是该数组项 schema 中声明唯一的 stable key，selector 值按 canonical JSON string 解析；匹配 0 项时 `set`/`add` MUST reject，匹配多项表示对象已违反 schema，reducer MUST fail closed。Flow `tracks` 在 v1 是 map（key 即 track 名），patch path 直接使用普通对象段，例如 `tracks.discussion.profile`，不需要 selector；
 - `unset` 不允许带 `value`；
 - `set`、`add`、`remove` 必须带 `value`。
 

@@ -173,25 +173,14 @@ Contrix v1 的联邦批量传播采用依赖感知的 partial accept：最小原
 - 联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
 - 当服务委托被撤销或成员被移除后，生效因果点之后不得继续向已撤销 service DID 推送非加密私有内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
 
-### 4.1.1 Transaction 与 Push-Operations 的关系
+### 4.1.1 批量推送与幂等
 
-Contrix v1 定义两个联邦推送 endpoint：
+Contrix v1 联邦推送只定义 `POST /federation/push-operations` 一个 endpoint：
 
-| 特性 | `PUT /federation/transactions/{txn_id}` | `POST /federation/push-operations` |
-|------|----------------------------------------|-------------------------------------|
-| 幂等机制 | `(origin, destination, txn_id)` 显式事务 ID | `(origin, destination, event_id)` 逐事件去重 |
-| 适用场景 | 有状态联邦：两个互信 Principal Server 之间的持续同步 | 无状态/单次推送：一次性事件投递或无事务管理能力的轻量客户端 |
-| 额外字段 | `receipts[]`、`frontier`、`request_canonical_hash` | `space_id` |
-| 响应差异 | `{ok, accepted[], rejected[], next_retry_at?}` | `{accepted[], rejected[], quarantine[]?}` |
-
-规则：
-
-- 实现 MUST 至少支持其中一个 endpoint。声称 `cx.profile.principal_server.v1` 的实现 SHOULD 两个都支持。
-- `transactions/{txn_id}` 是有状态联邦的首选 endpoint，适用于持续同步、批量重试和 frontier 交换场景。
-- `push-operations` 是无状态推送的便捷 endpoint，适用于单次事件投递或不需要事务管理的场景。
-- 两个 endpoint 的 `events[]` 处理规则（有序处理、部分失败、因果依赖解析）完全一致。
-- `push-operations` 的幂等依赖 event-level 去重（`event_id` + `space_id`），不要求发送方管理事务 ID。接收方 MUST 对重复 `event_id` 返回 `accepted[]` 而非报错。
-- `quarantine[]` 响应字段在两个 endpoint 中均可用：`transactions/{txn_id}` 的 quarantine 项 SHOULD 放入 `rejected[]` 并附 `reason_code=quarantined`，或由实现扩展响应 schema。
+- 幂等以 `(origin, destination, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 返回 `accepted[]` 而非报错，内容不一致 MUST 拒绝（参见 4.3 节）。
+- 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Hash` 与 `Idempotency-Key` header（详见 8.5 节），不引入额外的 path 事务 ID。
+- `quarantine[]` 项 SHOULD 放入 `rejected[]` 并附 `reason_code=quarantined`，或由实现扩展响应 schema。
+- 持续同步、批量重试和 frontier 交换通过组合 `push-operations`、`pull-operations`（4.2 节）与 frontier exchange（4.5 节）完成；无需额外的有状态事务 endpoint。
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
@@ -510,10 +499,11 @@ Authorization: <service_signature>
 
 ### 8.5 重放与异常模式防护
 
-节点 MUST 将 `txn_id` 与请求 canonical hash 绑定后执行幂等和重放检查：
+节点 MUST 将 `Idempotency-Key` 与请求 canonical hash 绑定后执行幂等和重放检查：
 
-- `txn_id` 相同但 hash 不同 MUST 拒绝；
-- `txn_id` 相同且 hash 相同 MAY 幂等接受；
+- 相同 `(origin, destination, Idempotency-Key)` 但 canonical hash 不同 MUST 拒绝；
+- 相同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同 MAY 幂等接受；
+- 单事件级别仍以 `event_id` 去重，规则见 4.3 节；
 - 同源短时重复失败、失败率异常上升时 MUST 暂停该源并返回 `rate_limited`/`temporarily_unavailable`。
 
 ### 8.6 威胁映射落地

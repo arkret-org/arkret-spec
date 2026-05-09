@@ -45,7 +45,7 @@ UUID_COLUMNS_CONTRIX = {
     # invite / moderation
     "invite_id", "report_id", "modq_id", "action_id",
     # transport / sync
-    "txn_id", "request_id",
+    "request_id",
     # notification
     "notification_id",
     # extension

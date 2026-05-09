@@ -170,6 +170,32 @@ table.cx-table code {
   font-size: 0.95em;
 }
 
+/* ---------- Markdown table tweaks --------------------------------------
+ *
+ * Default markdown tables in Starlight squeeze code-heavy first columns
+ * and break identifiers mid-word (e.g. "creat\ned_by", "time\nstamp").
+ * Two fixes:
+ *  1. Inline `<code>` uses default word-break — identifiers like
+ *     `created_by` stay whole (no internal whitespace, no break point),
+ *     while multi-token expressions like `enum(active, redacted,
+ *     deleted)` wrap naturally at internal whitespace. Starlight's
+ *     default sets `overflow-wrap: anywhere`, hence the explicit reset.
+ *  2. Tables become horizontally scrollable so columns size to content
+ *     instead of fighting for a 100% width budget. Sticky `<th>` keeps
+ *     working because `overflow-x: auto` is on the table itself, which
+ *     is also the sticky containing block.
+ */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.sl-markdown-content table code {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
 .cx-schema-viewer {
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0.5rem;
