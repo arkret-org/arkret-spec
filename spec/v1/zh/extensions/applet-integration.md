@@ -463,7 +463,7 @@ Ghost Actor profile SHOULD 包含：
 ```json
 {
   "actor_id": "did:web:slack-bridge.example#ghost-u123",
-  "actor_type": "ghost",
+  "actor_kind": "ghost",
   "display_name": "Alice on Slack",
   "managed_by_applet": "cx:applet:s1ack000000000000000000000-bridge",
   "external_ref": {

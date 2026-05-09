@@ -845,7 +845,11 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
                 if profile_id not in known["profiles"]:
                     lint.fail(path, f"{json_path} references unknown profile: {profile_id}")
 
-            if key in {"kind", "event_kind", "target_format"} and value.startswith("cx."):
+            if (
+                key in {"kind", "event_kind", "target_format"}
+                and value.startswith("cx.")
+                and not value.startswith("cx.content.")
+            ):
                 if value not in known["event_kinds"]:
                     lint.fail(path, f"{json_path} references unregistered Event.kind: {value}")
 
@@ -941,7 +945,11 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
             if profile_id not in known["profiles"]:
                 lint.fail(path, f"{json_path} markdown JSON references unknown profile: {profile_id}")
 
-        if key in {"kind", "event_kind", "target_format"} and value.startswith("cx."):
+        if (
+            key in {"kind", "event_kind", "target_format"}
+            and value.startswith("cx.")
+            and not value.startswith("cx.content.")
+        ):
             if value not in known["event_kinds"]:
                 lint.fail(path, f"{json_path} markdown JSON references unregistered Event.kind: {value}")
 

@@ -21,7 +21,7 @@ title: Profiles And Presence
   "id": "cx:actor_profile:01js0ap0000000000000000000",
   "schema": "cx.schema.actor_profile.v1",
   "principal_id": "did:web:alice.example.com",
-  "actor_type": "user",
+  "actor_kind": "user",
   "display_name": "Alice Chen",
   "handle": "alice",
   "avatar_blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -45,7 +45,7 @@ title: Profiles And Presence
 | `id` | id:actor_profile | MUST | Profile 对象 ID。 |
 | `schema` | string | SHOULD | `cx.schema.actor_profile.v1`。 |
 | `principal_id` | did | MUST | Actor / Principal DID。 |
-| `actor_type` | enum | MUST | `user`、`org`、`team`、`agent`、`service`、`device` 或 `integration`。 |
+| `actor_kind` | enum | MUST | `user`、`org`、`team`、`agent`、`service`、`device` 或 `integration`。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
 | `handle` | string | 可选 | 本地或目录展示 handle。 |
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
@@ -75,7 +75,7 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
       "id": "cx:actor_profile:01js0ap0000000000000000000",
       "schema": "cx.schema.actor_profile.v1",
       "principal_id": "did:web:alice.example.com",
-      "actor_type": "user",
+      "actor_kind": "user",
       "display_name": "Alice Chen",
       "handle": "alice",
       "avatar_blob_ref": "cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

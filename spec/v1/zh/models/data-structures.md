@@ -61,7 +61,7 @@ title: Data Structures
 
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
-| `actor_id` | Event Envelope、Read Marker、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID（`actor_type` 决定它是 user / agent / service 等）。 |
+| `actor_id` | Event Envelope、Read Marker、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID（`actor_kind` 决定它是 user / agent / service 等）。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。 |
 | `issuer` | Capability Grant、Identity Receipt | 签发授权或 receipt 的 DID；必须持有签发权限。 |
@@ -249,7 +249,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 | `id` | yes | `id:actor_profile` | Actor Profile 是标准对象。 | Profile 对象 ID。 |
 | `space_id` | no | `id:space` | 全局 profile 可省略。 | 所属 Space。 |
 | `principal_id` | yes | `did` | 权限仍以 DID/capability 为准。 | Principal DID。 |
-| `actor_type` | yes | `enum(user, org, team, agent, service, device, integration)` |  | Actor 类型。 |
+| `actor_kind` | yes | `enum(user, org, team, agent, service, device, integration)` |  | Actor 类型。 |
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
 | `avatar_blob_ref` | no | `id:blob` |  | 头像。 |
@@ -259,7 +259,7 @@ Actor Profile 是 Actor 在协作图中的展示镜像，不是权限主键。
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
-`principal_id` 是授权、签名和审计归属的根；`actor_type` 只是该 DID 在协作图中的展示和策略分类。`actor_type="device"` 表示该 DID 被作为设备级或 pairwise device principal 直接行动；若设备只是某个用户/组织 principal 的授权设备，则 Event 仍以用户/组织 DID 作为 `actor_id`，设备身份通过 proof `verification_method`、`device_id`、`cx.device.authorized` 或 session grant 表达。`team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_to` 指向控制/责任 principal；它们不会因为 `accountable_to` 自动继承权限。
+`principal_id` 是授权、签名和审计归属的根；`actor_kind` 只是该 DID 在协作图中的展示和策略分类。`actor_kind="device"` 表示该 DID 被作为设备级或 pairwise device principal 直接行动；若设备只是某个用户/组织 principal 的授权设备，则 Event 仍以用户/组织 DID 作为 `actor_id`，设备身份通过 proof `verification_method`、`device_id`、`cx.device.authorized` 或 session grant 表达。`team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_to` 指向控制/责任 principal；它们不会因为 `accountable_to` 自动继承权限。
 
 ## 6. Standard Objects
 

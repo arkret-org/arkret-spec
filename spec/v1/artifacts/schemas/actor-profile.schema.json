@@ -6,7 +6,7 @@
   "required": [
     "id",
     "principal_id",
-    "actor_type",
+    "actor_kind",
     "display_name",
     "created_at"
   ],
@@ -25,7 +25,7 @@
     "principal_id": {
       "$ref": "#/$defs/did"
     },
-    "actor_type": {
+    "actor_kind": {
       "type": "string",
       "enum": [
         "user",
