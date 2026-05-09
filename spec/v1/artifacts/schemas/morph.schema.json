@@ -69,7 +69,7 @@
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.morph.archive / cx.morph.tombstone / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in data-structures.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.morph.archive / cx.morph.tombstone / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "created_by": {
       "$ref": "#/$defs/did"

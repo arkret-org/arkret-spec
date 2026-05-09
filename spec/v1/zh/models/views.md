@@ -40,19 +40,19 @@ Space + Actor + Flow + Message + Morph + Relation + Event
 
 `board`、`list`、`table`、`calendar`、`gantt`、`chat`、`thread`、`forum`、`dashboard` 都是 renderer，而不是新的 `View.kind`。
 
-### 2.3 Board Place / List Place 是 Space 形态，不是 View.kind
+### 2.3 Board Place / List Place 是 Place.kind，不是 View.kind
 
-Board Place 与 List Place 是 `Space` 的形态：
+Board Place 与 List Place 是 `Place` 的 `kind`（详见 [space-and-place.md](./space-and-place.md)）：
 
-- `Board Place`
-- `List Place`
+- `Place(kind=board)`
+- `Place(kind=list)`
 
 看板和列表投影应表达为：
 
-- `kind="collection" + renderer="board"`
-- `kind="collection" + renderer="list"`
+- `kind=”collection” + renderer=”board”`
+- `kind=”collection” + renderer=”list”`
 
-View 负责“如何看”，Board Place / List Place 负责“对象如何被组织”。
+View 负责”如何看”，Board Place / List Place 负责”对象如何被组织”。
 
 ### 2.4 Query SHOULD 优先面向 Flow / Message / Morph
 
@@ -90,7 +90,65 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 
 ## 3. View 对象
 
-建议字段：
+### 3.1 Schema 与字段
+
+Schema id: `cx.schema.view.v1`
+
+View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query、kind、renderer、typed config、visible fields、layout 和共享配置。它不得作为被投影对象的状态、位置、关系、权限或消息历史的唯一来源。
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:view` |  | View ID。 |
+| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
+| `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
+| `title` | no | `string` |  | View 名称。 |
+| `query` | yes | `Query` | 见 [`../conformance/query-schema.md`](../conformance/query-schema.md)。 | 数据查询。 |
+| `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
+| `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
+| `collection` | conditional | `CollectionConfig` | `kind="collection"` 时 MUST 设置。 | 集合投影配置；看板、表格、日历、甘特、队列、矩阵都由该配置表达。 |
+| `timeline` | conditional | `TimelineConfig` | `kind="timeline"` 时 MUST 设置。 | 时间线配置。 |
+| `conversation` | conditional | `ConversationConfig` | 会话/讨论类 renderer SHOULD 设置，或 query 必须提供 anchor/relation。 | 会话配置。 |
+| `graph` | conditional | `GraphConfig` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
+| `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
+| `dashboard` | conditional | `DashboardConfig` | `kind="composite"` 时 MUST 设置。 | 仪表盘 widget 配置。 |
+| `sort` | no | `array<SortSpec>` | 与 query sort 等价或补充。 | 排序。 |
+| `created_by` | yes | `did` |  | 创建者。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+若某个 UI 操作改变 Flow 所属 List、Flow rank、List rank、Flow discussion Message、Relation 或对象字段，必须使用对应对象 Event；只有改变共享 filter、sort、grouping、visible fields、renderer 或 layout 时才修改 View。个人偏好、临时排序、列宽、折叠状态和本地 pin MUST 使用 actor-private account data 或等价私有 Event。
+
+### 3.2 `CollectionConfig`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `item_object_types` | conditional | `array<string>` | 可由 `item_facets` 替代；至少 1 项。 | 按对象类型过滤可投影为 item/card/row/message 的对象。 |
+| `item_facets` | conditional | `array<FacetName>` | 可替代 `item_object_types`；至少 1 项。 | 按声明 hint 选择 item，例如 `rankable`、`reviewable`、`replyable`。 |
+| `item_render` | yes | `enum(card, row, tile, compact, badge, message)` | 看板式展示 SHOULD 为 `card`。 | 默认展示面。 |
+| `item_order_by` | yes | `array<SortSpec>` | 至少 1 项。 | item 稳定排序；拖拽类 collection SHOULD 使用 rank。 |
+| `display_fields` | no | `array<DisplayColumn>` | dot path。 | 展示字段与格式。 |
+| `grouping` | yes | `CollectionGrouping` |  | 分组/列/时间桶/矩阵配置。 |
+| `selection_policy` | no | `enum(none, single, multiple)` | 默认 `multiple`。 | UI 选择策略。 |
+| `count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 集合级计数策略。 |
+| `page_size` | no | `integer` | 1..1000。 | 默认分页大小。 |
+
+### 3.3 `CollectionGrouping`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
+| `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
+| `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
+| `board_place_id` | conditional | `id:place` | `mode="relation_container"` 时必填，指向一个 `cx:place: kind=board`。 | Board Place。（旧名 `board_id` 已替换为 `board_place_id` 以避免与 Space ID 误读）|
+| `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
+| `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
+| `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |
+| `end_field` | no | `string` |  | 时间窗口终点字段。 |
+| `rows_by` / `columns_by` | conditional | `string` | `mode="matrix"` 时必填。 | 矩阵双轴字段。 |
+| `hidden_count_policy` | no | `enum(omit, authorized_estimate, authorized_exact)` | 默认 `omit`。 | 分组计数授权策略。 |
+| `wip_limit_enforcement` | no | `enum(warn, reject, require_review)` | 默认 `warn`。 | 分组 WIP enforcement；只影响 reducer / review policy，不由 renderer 决定。 |
+
+### 3.4 完整示例
 
 ```json
 {
@@ -324,7 +382,7 @@ Graph projection 可展开 Flow、Morph、Message、Board 等对象之间的 Rel
 Contrix v1 固定：
 
 - View 投影 Flow、Message、Morph 和 Space workflow。
-- Board Place 和 List Place 是 `Space.kind`，不是 `View.kind`。
+- Board Place 和 List Place 是 `Place.kind`，不是 `View.kind`。
 - 看板拖拽使用 `cx.flow.move` / `cx.flow.reorder`。
 - discussion chat 使用 `flow + message`。
 - Graph / Tree 遇到跨 Space 必须 lazy link。
@@ -333,6 +391,8 @@ Contrix v1 固定：
 ## 11. 规范性引用
 
 - Query JSON schema 见 `../conformance/query-schema.md`。
-- Flow / Message 规则见 `object-model-core.md` 与 `object-model-standard.md` §5。
-- Flow / Space / Morph 标准对象见 `object-model-standard.md`。
+- Flow / Message 规则见 [flow-and-message.md](./flow-and-message.md)。
+- Space / Place 语义见 [space-and-place.md](./space-and-place.md)。
+- Morph / facets 见 [morph.md](./morph.md)。
+- Relation 基数与跨 Space 见 [relation.md](./relation.md)。
 - View 展示字段只是 UI hint，不能扩大读取权限。

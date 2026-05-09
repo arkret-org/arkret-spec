@@ -605,4 +605,4 @@ Contrix v1 固定：
 - 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交。
 - Moderation policy 不得凭空授予 capability。
 - Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
-- Claim / attestation envelope 使用 `data-structures.md` 的 Proof、`identity-handles.md` 的 claim / VC 规则与 §16 的 presentation 规则。
+- Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 §16 的 presentation 规则。

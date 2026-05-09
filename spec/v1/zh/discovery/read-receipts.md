@@ -63,7 +63,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 ### 2.5 Space 披露策略 (Disclosure Policy)
 
-Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 `cx.receipt.read` 的披露要求。需要让 discussion 时间线与父 Space 在 read receipt policy 上分离时，**不**通过 track 级别 override（v1 已删除该 hybrid），而是把 discussion 升级为独立 child Space（参见 `Flow.discussion_space_ref`，[`models/data-structures.md` §6.1.1](../models/data-structures.md)），由 child Space 自己声明 `cx.space.read_receipt_policy`。该 policy SHOULD 由 `cx.space.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
+Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 `cx.receipt.read` 的披露要求。需要让 discussion 时间线与父 Space 在 read receipt policy 上分离时，**不**通过 track 级别 override（v1 已删除该 hybrid），而是把 discussion 升级为独立 child Space（参见 `Flow.discussion_space_ref`，[`../models/flow-and-message.md` §5](../models/flow-and-message.md)），由 child Space 自己声明 `cx.space.read_receipt_policy`。该 policy SHOULD 由 `cx.space.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
 
 ```json
 {
@@ -172,7 +172,7 @@ Read marker 是 actor-private 状态。最小结构示例：
 }
 ```
 
-字段层级约束以 [`models/data-structures.md`](../models/data-structures.md) §15 为准。
+字段层级约束以 [`../models/private-objects.md` §2](../models/private-objects.md) 为准。
 
 ### 6.2 Receipt 公开形态
 

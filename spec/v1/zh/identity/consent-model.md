@@ -167,7 +167,7 @@ Consent cell 是 or-set lattice（dot-based observed-remove，详见 [`event-aut
 - 不同 consent_id 是独立 cell；查询 `(holder, peer, scope)` 时 invite / contact service 遍历该 holder 全部 consent cell 匹配。
 - 同 Anchor 批内并发 grant 与 revoke 在 or-set join 后唯一确定（add dot 集合与 observed_dots 集合各自取并集，dot 之间没有先后），不产生 ⊥。审计 / sodmin 视图可暴露并发的 add / remove dot 序列以提示决策不连续，但 invite gate 仍按 `active_dots` 集合判定。
 
-物化 `Consent` 对象（详见 [`models/data-structures.md`](../models/data-structures.md)）由 holder client / sodmin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。
+物化 `Consent` 对象由 holder client / sodmin 从该 cell 当前 join 值生成；它不是协议授权根，而是 UX / 审计辅助视图。Consent cell 的 schema 由本文与 [`identity-handles.md`](./identity-handles.md) 定义，未在 `models/` 提供 canonical-object schema。
 
 ## 6. 与 Invite / Contact 流程的整合
 

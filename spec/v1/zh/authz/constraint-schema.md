@@ -723,7 +723,7 @@ function matches_field_access(operation, constraint):
 ### 20.3 Grant 上下文常见组合
 
 Grant envelope 字段、签名规则与必填性以
-[`models/data-structures.md` §13](../models/data-structures.md) 与
+[`../models/governance-objects.md` §4](../models/governance-objects.md) 与
 [`artifacts/schemas/capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json)
 为准；下述示例展示 grant 上下文中的典型 typed constraint 组合，不引入新规则。
 

@@ -27,7 +27,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 ### 2.4 Anchor Profile 决定传播形态
 
-联邦传播按目标 Space 的 `anchor_profile`（参见 [`models/data-structures.md`](../models/data-structures.md) Space 表）走几种形态：
+联邦传播按目标 Space 的 `anchor_profile`（参见 [`../models/space-and-place.md` §2.2](../models/space-and-place.md)）走几种形态：
 
 - **`single_did`**：单一 service DID 签发持久 Anchor。Actor 可以向自己的 Principal Server 提交 Move，但 Move 只有被该 DID 签发的 Anchor frontier 覆盖后才 effective。传播形态是 actor/server → anchorer → fanout。
 - **`threshold`**：k-of-n committee 签发 Anchor。提交路径与 `single_did` 类似，但 Anchor 验证 threshold signature。

@@ -1,0 +1,165 @@
+---
+title: Governance Objects
+---
+
+## 1. 目标
+
+本文集中定义 Contrix 协作图中的**治理对象**：
+
+- **Schema**：标准对象 / Morph type / facet / event 的结构与约束。
+- **Policy**（`cx:policy:`）：access / encryption / retention / federation / moderation 等运行时策略。
+- **Capability Grant**（`cx:grant:`）：授权委派。
+- **Invite**（`cx:invite:`）：Space 加入引导。
+
+这些对象都不直接承载协作内容，但决定了协作内容的合法范围、可见性和权限路径。完整 capability 模型、policy server 决策、anchor finality profile 等运行时语义在 `authz/`、`governance/` 和 `security/` 章节展开；本文聚焦对象级 schema、字段和生命周期。
+
+公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
+
+## 2. Schema
+
+### 2.1 概念
+
+Schema 约束：
+
+- 标准对象类型
+- Morph type 和 facets
+- `fields`
+- relation type
+- allowed actions
+- default views
+- validation rules
+
+Schema 在 wire 上以 schema id（如 `cx.schema.flow.v1`、`cx.schema.message.v1`）引用。Schema 文件本身在 [`artifacts/schemas/`](../../artifacts/schemas/) 维护，schema registry 在 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/registry/schema-registry.json`。
+
+### 2.2 Schema Evolution
+
+Schema evolution MUST be additive by default：
+
+- 新版本 SHOULD 保留未知字段，避免不支持新字段的客户端破坏数据。
+- 既有字段不得静默改变语义。
+- reducer 和客户端 MUST 保留未知字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。
+- UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
+- 标准对象不得阻止 Space 定义自定义 Morph type。
+
+详见 [morph.md §6](./morph.md) 与 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)。
+
+### 2.3 Schema 在 Space 中的应用
+
+Space 通过 `schema_refs` 字段引用启用的 schema 集合。`policy` 既是 typed-id 前缀（`cx:policy:`）下的物化对象，也有对应 state event 形态。
+
+Schema 引用的写入路径：
+
+- Space create：通过 `cx.space.create.payload.object.schema_refs` 设置初值。
+- Space update：通过 `cx.space.schema` state event 更新引用集合。
+- Morph：通过 `morph.schema_refs[]` 引用具体类型 schema（详见 [morph.md §4](./morph.md) 顺序 1）。
+
+## 3. Policy
+
+### 3.1 概念
+
+Policy 约束：
+
+- capability requirement
+- object type / facet requirement
+- encryption profile
+- retention
+- visibility
+- federation
+- moderation
+- quota
+
+Policy 是 reducer 和服务节点判断请求是否可接受的输入。
+
+### 3.2 Schema 与字段
+
+Schema id: `cx.schema.policy.v1`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:policy` |  | Policy ID。 |
+| `space_id` | no | `id:space` | 组织级 policy 可省略。 | 适用 Space。 |
+| `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
+| `rules` | yes | `array<object>` | 每条规则必须有 `effect`。 | 策略规则。 |
+| `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
+| `priority` | no | `integer` | 数值大者优先。 | 策略优先级。 |
+| `valid_from` | no | `timestamp` |  | 生效时间。 |
+| `valid_until` | no | `timestamp` |  | 过期时间。 |
+| `created_by` | yes | `did` | 必须有 policy/admin capability。 | 创建者。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+### 3.3 Policy Server 与决策
+
+Policy server 风险判断与签名决策见 [`../authz/policy-server.md`](../authz/policy-server.md)；moderation policy（举报、franking、审核流程）见 [`../governance/content-moderation.md`](../governance/content-moderation.md)。Policy 决策与 capability 决策的关系：capability 决定基础动作权限，policy 可以 deny / quarantine / require review，但**不能授予权限**。
+
+## 4. Capability Grant
+
+### 4.1 概念
+
+Capability Grant 是显式授权委派对象。它表达"谁（subject）可以在哪些资源（resources）上执行哪些动作（actions），在什么约束（constraints）下"。
+
+Grant 体系总览、derivation chain、revocation 传播见 [`../authz/capabilities.md`](../authz/capabilities.md) 与 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §8。
+
+### 4.2 Schema 与字段
+
+Schema id: `cx.schema.capability.v1`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:grant` |  | Grant ID。 |
+| `space_id` | no | `id:space` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
+| `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
+| `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
+| `actions` | yes | `array<string>` | 例如 `cx.flow.update`、`cx.message.create`。 | 允许动作。 |
+| `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
+| `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
+| `parent_grant_id` | no | `id:grant` | derived grant 必填。 | 父授权。 |
+| `valid_from` | no | `timestamp` |  | 生效时间。 |
+| `valid_until` | no | `timestamp` |  | 过期时间。 |
+| `revoked_by` | no | `did` | 撤销后设置。 | 撤销者。 |
+| `revoked_at` | no | `timestamp` |  | 撤销时间。 |
+| `proofs` | yes | `array<Proof>` |  | 授权签名。 |
+
+### 4.3 Capability 派生与 Space 层级继承
+
+Space-Space 层级中的 derived capability grant 通过 `cx.capability.derived` event 表达，必须满足 source grant、target Space 的 `cx.space.inheritance_policy`、`max_depth` 等约束，并在 source grant 被 revoke 时按因果传播失效。完整规则见 [`space-hierarchy.md` §7](./space-hierarchy.md) 与 [`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)。
+
+## 5. Invite
+
+### 5.1 概念
+
+Invite 是加入引导对象，**不等于 capability grant**。接受 invite 后，相关 capability grant 才进入有效集合。
+
+### 5.2 Schema 与字段
+
+Schema id: `cx.schema.invite.v1`
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | yes | `id:invite` |  | Invite ID。 |
+| `space_id` | yes | `id:space` |  | 目标 Space。 |
+| `inviter` | yes | `did` | 必须持有 invite capability。 | 邀请者。 |
+| `invitee` | no | `did` | 3PID 邀请可为空。 | 被邀请 DID。 |
+| `third_party_id` | no | `object` | 见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 | 邮箱/手机号等外部标识证明。 |
+| `join_rule_snapshot` | yes | `object` | 防止邀请后规则混淆。 | 邀请时 join rule。 |
+| `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效。 | 关联授权。 |
+| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Space SHOULD 不超过 24 小时。 | 过期时间。 |
+| `state` | yes | `enum(pending, accepted, rejected, revoked, expired)` |  | 邀请状态。 |
+| `created_at` | yes | `timestamp` |  | 创建时间。 |
+
+### 5.3 行为规则
+
+- Invite MUST 携带 `expires_at`。默认有效期 SHOULD 不超过 7 天，高安全 Space SHOULD 不超过 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
+- 接受 invite 后，相关 capability grant 才进入有效集合。
+- 3PID 邀请（邮箱、手机号等）的认领流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。
+
+## 6. 规范性引用
+
+- 公共字段：[common-fields.md](./common-fields.md)。
+- Capability 详细模型：[`../authz/capabilities.md`](../authz/capabilities.md)。
+- Constraint schema：[`../authz/constraint-schema.md`](../authz/constraint-schema.md)。
+- Policy server 决策：[`../authz/policy-server.md`](../authz/policy-server.md)。
+- Moderation policy：[`../governance/content-moderation.md`](../governance/content-moderation.md)。
+- Space-Space 继承：[`space-hierarchy.md`](./space-hierarchy.md)。
+- Schema registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
+- 3PID 邀请：[`../sync/third-party-invites.md`](../sync/third-party-invites.md)。
+- Schemas：`artifacts/schemas/policy.schema.json`、`artifacts/schemas/capability-grant.schema.json`、`artifacts/schemas/invite.schema.json`。

@@ -41,13 +41,21 @@ TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
-    "spec/v1/zh/models/object-model-core.md": {
-        2: "schemas/space.schema.json",
-        3: "schemas/flow.schema.json",
-        7: "schemas/message.schema.json",
-        8: "schemas/morph.schema.json",
-        9: "schemas/relation.schema.json",
-        10: "schemas/event-schema.json",
+    "spec/v1/zh/models/space-and-place.md": {
+        1: "schemas/space.schema.json",
+    },
+    "spec/v1/zh/models/flow-and-message.md": {
+        1: "schemas/flow.schema.json",
+        3: "schemas/message.schema.json",
+    },
+    "spec/v1/zh/models/morph.md": {
+        1: "schemas/morph.schema.json",
+    },
+    "spec/v1/zh/models/relation.md": {
+        1: "schemas/relation.schema.json",
+    },
+    "spec/v1/zh/models/event-and-patch.md": {
+        1: "schemas/event-schema.json",
     },
     "spec/v1/zh/authz/capabilities.md": {
         1: "schemas/capability-grant.schema.json",

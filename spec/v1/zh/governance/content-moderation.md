@@ -210,7 +210,7 @@ Franking 信任链：
 
 ### 5.2 用户封禁
 
-管理员通过 `cx.member.state{membership="ban"}` Event 封禁用户（详见 `object-model-core.md` 的成员与 policy 语义）。封禁后：
+管理员通过 `cx.member.state{membership="ban"}` Event 封禁用户（成员状态机详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)，policy 对象详见 [`../models/governance-objects.md` §3](../models/governance-objects.md)）。封禁后：
 
 - 被封禁用户无法重新加入该 Space
 - 其未来的 Operation 提交将被 Sync Service 拒绝

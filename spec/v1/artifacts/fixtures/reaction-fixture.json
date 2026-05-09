@@ -2,7 +2,7 @@
   "suite": "reaction",
   "profile": "cx.profile.reaction_vectors.v1",
   "version": "2026-05-08",
-  "notes": "Reducer-level vectors for cx.reaction.add / cx.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/object-model-standard.md §5.2 and zh/crypto-media/encryption-and-audit.md §2.9.",
+  "notes": "Reducer-level vectors for cx.reaction.add / cx.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/flow-and-message.md §8.5 and zh/crypto-media/encryption-and-audit.md §2.9.",
   "cases": [
     {
       "name": "or_set_basic_add_then_remove",

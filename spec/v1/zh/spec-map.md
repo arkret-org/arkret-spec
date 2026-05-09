@@ -24,7 +24,7 @@ title: Spec Map
 1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
-4. `models/object-model-core.md` 与 `models/object-model-standard.md`：理解协作图和标准对象。
+4. `models/index.md` 起步，按需进入 `models/space-and-place.md`、`models/flow-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`：理解身份、handle、设备/备份密钥和隐私披露（progressive disclosure 在 `identity-handles.md` §16）。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
@@ -33,7 +33,7 @@ title: Spec Map
 ### 2.1 快速收敛链路（先读）
 
 1. `overview/glossary.md`
-2. `models/object-model-core.md` + `models/object-model-standard.md`
+2. `models/index.md` + `models/space-and-place.md` + `models/flow-and-message.md`
 3. `authz/event-auth-state-resolution.md` + `crypto-media/encryption-and-audit.md`
 4. `sync/client-sync.md` + `sync/operations-sync.md`（含 snapshot、fork、decryption_pending）
 
@@ -99,13 +99,24 @@ title: Spec Map
 
 ### 4.3 对象模型与交互
 
+`models/` 目录按对象类别组织，每个对象只在一个文件里讲完语义、字段、行为和示例；index.md 是入口与 typed-id 索引。
+
 | 文档 | 内容 |
 | --- | --- |
-| `models/object-model-core.md` | Space（security boundary）、Place（结构容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、Actor、Flow、Message、Morph、Relation、Event、View 核心对象。 |
-| `models/object-model-standard.md` | 标准对象、Morph 类型、标准 facets 与 schema evolution。 |
-| `models/data-structures.md` | 核心对象字段级定义：必填性、类型、枚举、约束和说明。 |
-| `models/views.md` | Board/List/Flow、Table、Timeline、Graph 等投影。 |
+| `models/index.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
+| `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
+| `models/space-and-place.md` | Space（security boundary）、Place（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Place lifecycle / cas-register / cascade。 |
+| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`discussion_space_ref`、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
+| `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Space 规则、RelationProfile、冲突处理。 |
+| `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |
+| `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
+| `models/private-objects.md` | Read Marker、Notification、actor-private account data 引导。 |
+| `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`cx.patch.v1`)、Event Batch Receipt、reducer 总则。 |
+| `models/extension-objects.md` | Applet、Agent、Blob 等通过 extension profile 接入的对象（指向 `extensions/` 与 `crypto-media/`）。 |
+| `models/views.md` | View kind / renderer、Query、Board / Timeline / Graph / Document projection。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
+| `models/space-hierarchy.md` | Space-Space 层级、继承、lazy link、循环处理（已不在本组主入口，但仍属 models 目录）。 |
 
 ### 4.4 授权、治理与状态
 
@@ -162,6 +173,7 @@ title: Spec Map
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领。 |
 | `models/space-hierarchy.md` | Space parent/child、继承、lazy link、循环处理。 |
+| `models/extension-objects.md` | Applet / Agent / Blob 等扩展对象在 models 层的入口与跳转。 |
 
 ### 4.9 Schema、编码与一致性
 

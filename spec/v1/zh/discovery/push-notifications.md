@@ -161,7 +161,7 @@ POST /api/v1/push/unregister-device
 
 #### 4.3.1 `flow_track` 与 per-track 通知
 
-Track 不持有独立 membership / 权限（见 [`models/object-model-core.md` §6](../models/object-model-core.md)），但用户对不同 track 的关注度不同——例如想接收某个 Flow 的 `synthesis` 全部更新，但 `discussion` 只关心 @ 自己。`flow_track` condition 用于在通知层表达这种偏好，不影响访问控制。
+Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md` §4](../models/flow-and-message.md)），但用户对不同 track 的关注度不同——例如想接收某个 Flow 的 `synthesis` 全部更新，但 `discussion` 只关心 @ 自己。`flow_track` condition 用于在通知层表达这种偏好，不影响访问控制。
 
 **`track_name` 的派生**（server-side，由 Sync Service 在规则匹配前从 Event 推导，**不是** 一个客户端在 wire 上自由设置的字段）：
 

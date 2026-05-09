@@ -408,7 +408,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 ## 8. 操作体原则
 
-非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 `../models/data-structures.md#19-field-patch-cxpatchv1`；实现不得用私有 dot-path 解析规则替代该格式。Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。
+非 create 类操作 SHOULD 只携带 delta，而不是完整对象快照。对象字段更新的标准 delta 格式是 `cx.patch.v1`，定义见 [`../models/event-and-patch.md` §4](../models/event-and-patch.md)；实现不得用私有 dot-path 解析规则替代该格式。Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。
 
 Create 类操作若在 `payload.object` 中携带完整 materialized object schema，接收方 MUST 在 schema validation 后执行 cross-field validation：对象创建者字段必须与顶层 `actor_id` / 授权 controller 一致，对象 `created_at` 必须与顶层 Event `created_at` 一致。任何不一致都不得进入 reducer；返回标准 `schema_violation`，或在 controller/guardian 授权缺失时返回 `capability_denied`。
 
@@ -455,7 +455,7 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 
 `cx.flow.move` 用于跨 List-Place 移动 Flow。它移动的是 Flow 在一个 Board Place 内的主位置，而不是修改 track 定义。
 
-写入路径是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>`（详见 [`models/data-structures.md`](../models/data-structures.md) §4a.4）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_place_id` + `rank` 编译为 `set { list_place_id, rank }` effect。这与 Place-parent 的 cas-register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
+写入路径是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>`（详见 [`../models/space-and-place.md` §3.6](../models/space-and-place.md)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_place_id` + `rank` 编译为 `set { list_place_id, rank }` effect。这与 Place-parent 的 cas-register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
 
 ```json
 {
@@ -801,8 +801,8 @@ Contrix v1 固定：
 
 ## 23. 规范性引用
 
-- Cursor 编码与 opaque 语义见 `encoding.md`、`data-structures.md` 和 `conformance-vectors.md`。
+- Cursor 编码与 opaque 语义见 `encoding.md`、`../models/common-fields.md` 和 `conformance-vectors.md`。
 - HLC 文本格式固定为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，排序向量见 `conformance-vectors.md`。
 - Snapshot manifest、chunk digest、`state_hash` 和签名规则见 `snapshot-schema.md`。
-- Flow discussion track / Message 语义见 `../models/object-model-core.md` §6-§9 与 `../models/object-model-standard.md` §5。
-- Flow / Board / List / Morph 语义见 `../models/object-model-standard.md` 和 `../models/views.md`。
+- Flow discussion track / Message 语义见 [`../models/flow-and-message.md`](../models/flow-and-message.md)。
+- Flow / Board / List / Morph 语义见 [`../models/space-and-place.md`](../models/space-and-place.md)、[`../models/morph.md`](../models/morph.md) 和 [`../models/views.md`](../models/views.md)。
