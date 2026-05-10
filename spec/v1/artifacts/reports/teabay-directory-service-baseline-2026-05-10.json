@@ -15,7 +15,7 @@
   },
   "summary": {
     "status": "baseline_passed",
-    "passed_checks": 5,
+    "passed_checks": 6,
     "skipped_checks": 1,
     "partial_areas": 2
   },
@@ -53,6 +53,15 @@
       "status": "passed",
       "covers": [
         "Dioxus operator console compile check"
+      ]
+    },
+    {
+      "id": "teabay-testing-fixtures",
+      "cwd": "../teabay",
+      "command": "cargo check --manifest-path teabay-testing/Cargo.toml",
+      "status": "passed",
+      "covers": [
+        "shared Directory fixture crate"
       ]
     },
     {
@@ -130,6 +139,6 @@
     "cotest attached-service execution requires TEABAY_BASE_URL or a built teabay binary plus DATABASE_URL.",
     "pull-mode mock Principal Server coverage is not yet part of tests/it.",
     "full ingest negative replay and rollback matrix is covered outside this baseline report.",
-    "fixtures are still local to teabay; teabay-testing extraction remains tracked as C-2."
+    "shared Directory fixtures now live in ../teabay/teabay-testing; cotest can path-depend on that crate when it needs seeded Directory rows."
   ]
 }

@@ -1,22 +1,76 @@
 ---
 import MarketingLayout from "~/layouts/MarketingLayout.astro";
+import { repoUrl, specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
+
+const heroStats = [
+  { value: "MLS E2EE", label: "端到端加密内建" },
+  { value: "did:webvh", label: "去中心化身份" },
+  { value: "Event-first", label: "可验证事实链" },
+];
+
+const painPoints = [
+  {
+    tag: "数据控制权",
+    title: "协作数据被锁在飞书 / 钉钉里",
+    body:
+      "组织的消息、文档、看板都驻留在 SaaS 平台数据库中,一旦平台改政策、提价或下线服务,几乎没有迁移路径。Contrix 把事实源放回组织自己的 principal server。",
+  },
+  {
+    tag: "隐私边界",
+    title: "平台可读取你的私域内容",
+    body:
+      "中心化平台天然能解码、索引、训练你的私有数据。Contrix v1 内建 MLS 端到端加密 profile——讨论类空间先验 MLS state,未授权第三方拿不到明文。",
+  },
+  {
+    tag: "供应商锁定",
+    title: "界面绑死了对象模型",
+    body:
+      "SaaS 的对象语义被产品形态决定,跨实现无法互通。Contrix 把 Space / Flow / Message / Relation 抽到协议层,实现可互换,数据可在多客户端投影。",
+  },
+  {
+    tag: "AI Agent 时代",
+    title: "Agent 需要可签名的协作底座",
+    body:
+      "LLM agent 直接驱动中心化 SaaS 没有可验证轨迹,也没有有界权限。Contrix 的 signed event + capability 授权,天然给 agent 提供受限能力和可重放的行为链。",
+  },
+];
 
 const protocolPillars = [
   {
-    title: "事实先行",
-    body: "每一次行为都转成可验证 Event；应用状态不再依赖数据库私有逻辑，而由可复现 reducer 从事实链计算。",
+    mark: "Event",
+    title: "Event-first 真相源",
+    body:
+      "所有持久协作修改都是 signed Event;per-actor event chain 是重放与审计的基础。应用状态由授权事件集合 reducer 收敛,而不是某个数据库的私有解释。",
   },
   {
-    title: "对象可投影",
-    body: "Space / Flow / Message / Relation 统一成对象语义图，不同客户端可按需求构建视图，不被底层实现锁死。",
+    mark: "DID",
+    title: "去中心化身份",
+    body:
+      "v1 core 默认 principal 使用 did:webvh,叠加 history chain + SCID + witness evidence,抵御 DNS / TLS 单点失陷;Handle 仅作可迁移的人类入口。",
   },
   {
-    title: "能力分层",
-    body: "Profile 明确实现范围；constraint 和 capability 让每个 surface 的权限与合规模型可逐步启用。",
+    mark: "Cap",
+    title: "Capability 授权层",
+    body:
+      "权限以 capability 模型表达——显式、可验证、可撤销;高风险动作支持 approval constraint 与治理式审批,handle 不承担权限主键作用。",
   },
   {
-    title: "生态可扩展",
-    body: "Registry 与 schema 机制保证新语义在不破坏历史兼容的前提下持续演进。",
+    mark: "MLS",
+    title: "端到端加密内建",
+    body:
+      "讨论类空间默认先验 MLS state 再决定是否解密展示;未授权第三方服务收不到未加密的私有正文。E2EE 与设备验证内建于 profile,不是事后补丁。",
+  },
+  {
+    mark: "Obj",
+    title: "可投影对象语义",
+    body:
+      "Space / Place / Flow / Message / Relation / Morph 统一成对象语义图;看板、会话、文档、关系是同一图上不同 track 的投影,UI 只消费 projection。",
+  },
+  {
+    mark: "Agent",
+    title: "AI Agent 一等公民",
+    body:
+      "Agent 作为 DID principal 直接参与协作,每条行为都被签名、被 capability 限定边界。Multi-agent 协作的可审计性与人类协作对齐。",
   },
 ];
 
@@ -24,104 +78,141 @@ const engineFlow = [
   {
     step: "01",
     title: "签名事件",
-    body: "客户端用 DID/密钥对事件进行签名，产出可核验的提交单元。",
+    body: "客户端用 DID 私钥签名 event envelope,产出可核验的提交单元。",
   },
   {
     step: "02",
     title: "约束校验",
-    body: "Payload 与 schema 验证通过后，进入 capability / constraint 判定，确保边界满足业务与安全规则。",
+    body: "Schema 校验通过后,进入 capability / constraint 判定,确保边界满足业务与安全规则。",
   },
   {
     step: "03",
     title: "统一归约",
-    body: "所有实现按同一 reducer 语义更新对象状态，避免“各写各的解释器”导致的分叉。",
+    body: "所有实现按同一 reducer 语义更新对象状态,避免各写各的解释器导致分叉。",
   },
   {
     step: "04",
     title: "视图投影",
-    body: "协作对象被投影为消息、看板、文档、关系等形态，供 UI、搜索或策略层消费。",
+    body: "对象图被投影为消息、看板、文档、关系等形态,供 UI、搜索或策略层消费。",
   },
 ];
 
 const entryPoints = [
   {
     title: "中文规范",
-    description: "从总览、对象定义到治理约束，一条线读完整体结构。",
+    description: "从架构总览、对象模型到治理约束,一条线读完整体结构。",
     href: "/zh/v1/",
+    badge: "normative",
   },
   {
     title: "规范导览",
     description: "按阅读路径快速定位每个章节在实现中的职责。",
     href: "/zh/v1/spec-map/",
+    badge: "map",
   },
   {
     title: "OpenAPI",
-    description: "服务端绑定与请求响应契约，帮助快速搭建交付流程。",
+    description: "服务端 HTTP binding 与请求响应契约,Scalar 渲染。",
     href: "/openapi/",
+    badge: "wire",
   },
   {
     title: "Catalog",
-    description: "事件类型、Schema、操作与错误码一目了然，便于跨系统联调。",
+    description: "事件类型、Schema、操作与错误码一目了然,便于跨系统联调。",
     href: "/catalog/event-kinds/",
+    badge: "registry",
   },
 ];
 
 const useCases = [
-  "企业协作平台",
-  "IM 团队与项目管理",
-  "跨组织文档协作",
-  "Agent to Agent 的可验证协同",
-  "高合规 E2EE 场景",
-  "教育与金融行业的多方审计",
+  {
+    title: "替代飞书 / 钉钉的自托管协作",
+    body: "事实源回到组织自己的 principal server,不再依赖供应商策略。",
+  },
+  {
+    title: "跨组织 / 跨企业协作",
+    body: "通过 federation 互操作,SDK 与 wire 在协议层定义,不被某个产品锁死。",
+  },
+  {
+    title: "高合规 E2EE 场景",
+    body: "金融、医疗、法律、教育——MLS 端到端加密 + 可审计事件链。",
+  },
+  {
+    title: "AI Agent 协同的可验证底座",
+    body: "Multi-agent 行为被签名、被 capability 限权,可被审计与回放。",
+  },
+  {
+    title: "Sovereign deployment",
+    body: "主权部署 profile,完全控制密钥、数据驻地与运维边界。",
+  },
+  {
+    title: "Agent ↔ Human 混合工作流",
+    body: "同一个 Space 里 agent 与人通过 capability 协同,无 prompt 风险面。",
+  },
 ];
 ---
 
 <MarketingLayout>
   <section class="cx-hero">
     <div class="cx-shell cx-hero-inner cx-home-hero">
-      <p class="cx-kicker">Decentralized Collaboration Protocol</p>
+      <div class="cx-hero-eyebrow">
+        <span class="cx-pill cx-pill--accent">
+          <span class="cx-pill-dot" aria-hidden="true"></span>
+          {specReleaseTag} · {specReleaseLabel}
+        </span>
+        <span class="cx-pill cx-pill--license">
+          <span class="cx-pill-mono">Apache 2.0</span>
+          全栈开源 · 商业友好
+        </span>
+      </div>
       <h1>
-        让协作成为可证明的事实网络，<br />
-        而不是“状态同步猜测”
+        让协作成为<span class="cx-h1-accent">可证明的事实网络</span>,<br />
+        而不是状态同步猜测
       </h1>
       <p class="cx-lead">
-        Contrix 通过统一事件与对象语义，把消息、文档、看板、关系和权限放到一套可复现的数据模型中。不同实现可以
-        在同一事实来源上独立开发，但始终得出一致的协作世界。
+        Contrix 是面向去中心化协作的下一代协议——以签名事件为真相,以 capability 表达权限,
+        以 MLS 实现端到端加密。让企业、个人与 AI agent 在同一个可验证的对象语义之上协作,
+        而不是被困在中心化 SaaS 的数据墙里。
       </p>
-      <div class="cx-hero-highlights">
-        <article class="cx-hero-highlight">
-          <h3>目标</h3>
-          <p>把协作从“界面行为”抽到“规范事实”。</p>
-        </article>
-        <article class="cx-hero-highlight">
-          <h3>方法</h3>
-          <p>以 Event、Reducer 和签名为核心，构建确定性可审计链。</p>
-        </article>
-        <article class="cx-hero-highlight">
-          <h3>结果</h3>
-          <p>减少互操作摩擦，提高长期可维护性与跨系统可验证性。</p>
-        </article>
-      </div>
       <div class="cx-cta-row">
-        <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">开始阅读</a>
-        <a class="cx-btn cx-btn-ghost" href="/zh/v1/overview/architecture/">协议架构</a>
-        <a class="cx-btn cx-btn-ghost" href="/openapi/">查看 OpenAPI</a>
+        <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">
+          开始阅读规范
+          <span aria-hidden="true">→</span>
+        </a>
+        <a class="cx-btn cx-btn-ghost" href="/ecosystem/">浏览参考实现</a>
+        <a class="cx-btn cx-btn-ghost" href={repoUrl} rel="noopener">GitHub</a>
       </div>
+      <dl class="cx-hero-stats">
+        {
+          heroStats.map((stat) => (
+            <div class="cx-hero-stat">
+              <dt>{stat.value}</dt>
+              <dd>{stat.label}</dd>
+            </div>
+          ))
+        }
+      </dl>
     </div>
   </section>
 
-  <section class="cx-section">
+  <section class="cx-section cx-section-tight">
     <div class="cx-shell">
       <div class="cx-section-head">
-        <h2>Contrix 的核心约束</h2>
-        <p>协议优先定义事实，接口与行为只围绕事实变更展开。</p>
+        <div>
+          <span class="cx-section-tag">为什么 Contrix</span>
+          <h2>当前协作工具栈正在挤压组织的数据自主权</h2>
+        </div>
+        <p class="cx-section-sub">
+          中心化平台、明文数据、供应商锁定、AI agent 缺乏可信轨迹——这些问题只能在协议层解决。
+        </p>
       </div>
-      <div class="cx-feature-grid">
+      <div class="cx-pain-grid">
         {
-          protocolPillars.map((pillar) => (
-            <article class="cx-feature-card">
-              <h3>{pillar.title}</h3>
-              <p>{pillar.body}</p>
+          painPoints.map((p) => (
+            <article class="cx-pain-card">
+              <span class="cx-pain-tag">{p.tag}</span>
+              <h3>{p.title}</h3>
+              <p>{p.body}</p>
             </article>
           ))
         }
@@ -132,18 +223,21 @@ const useCases = [
   <section class="cx-section cx-section-elevated">
     <div class="cx-shell">
       <div class="cx-section-head">
-        <h2>运行时模型（1 到 4）</h2>
-        <p>从事件提交到可见状态，协议定义的是一条最小闭环。</p>
+        <div>
+          <span class="cx-section-tag">设计原则</span>
+          <h2>协议优先定义事实,接口与行为只围绕事实变更展开</h2>
+        </div>
+        <p class="cx-section-sub">
+          六根支柱共同定义边界:事件、身份、授权、加密、对象、Agent。
+        </p>
       </div>
-      <div class="cx-flow">
+      <div class="cx-pillar-grid">
         {
-          engineFlow.map((item) => (
-            <article class="cx-flow-step">
-              <span class="cx-flow-step-no">{item.step}</span>
-              <div class="cx-flow-body">
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-              </div>
+          protocolPillars.map((pillar) => (
+            <article class="cx-pillar-card">
+              <span class="cx-pillar-mark">{pillar.mark}</span>
+              <h3>{pillar.title}</h3>
+              <p>{pillar.body}</p>
             </article>
           ))
         }
@@ -151,33 +245,94 @@ const useCases = [
     </div>
   </section>
 
+  <section class="cx-section cx-section-tight">
+    <div class="cx-shell">
+      <div class="cx-section-head">
+        <div>
+          <span class="cx-section-tag">运行时</span>
+          <h2>从签名事件到可见状态的最小闭环</h2>
+        </div>
+        <p class="cx-section-sub">协议定义的不是 UI,而是 1 → 4 的确定性路径。</p>
+      </div>
+      <ol class="cx-flow-rail">
+        {
+          engineFlow.map((item, i) => (
+            <li class="cx-flow-node">
+              <div class="cx-flow-node-head">
+                <span class="cx-flow-step-no">{item.step}</span>
+                {i < engineFlow.length - 1 && (
+                  <span class="cx-flow-connector" aria-hidden="true" />
+                )}
+              </div>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="cx-section cx-section-os">
+    <div class="cx-shell">
+      <a class="cx-os-banner" href="/ecosystem/">
+        <div class="cx-os-banner-text">
+          <span class="cx-section-tag">官方实现</span>
+          <h2>协议、SDK、服务端、客户端、一致性测试——全部开源</h2>
+          <p>
+            spec / rust-sdk / soland (principal server) / coauth / sodmin / floria
+            (push gateway) / yougen (跨平台客户端) / chime / cotest——开箱即用的完整参考栈。
+          </p>
+        </div>
+        <span class="cx-os-banner-cta">
+          浏览生态
+          <span aria-hidden="true">→</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
   <section class="cx-section">
     <div class="cx-shell cx-home-grid-2">
       <div>
-        <div class="cx-section-head">
-          <h2>从规范到实现的入口</h2>
-          <p>选择最适合的阅读路径，直接进入你的开发节奏。</p>
+        <div class="cx-section-head cx-section-head--stack">
+          <span class="cx-section-tag">入口</span>
+          <h2>从规范到实现</h2>
+          <p class="cx-section-sub">选择最适合的阅读路径,直接进入你的开发节奏。</p>
         </div>
         <div class="cx-entry-grid">
           {
             entryPoints.map((entry) => (
               <a class="cx-resource" href={entry.href}>
-                <span class="cx-resource-title">{entry.title}</span>
+                <div class="cx-resource-row">
+                  <span class="cx-resource-title">{entry.title}</span>
+                  <span class="cx-resource-badge">{entry.badge}</span>
+                </div>
                 <span class="cx-resource-desc">{entry.description}</span>
+                <span class="cx-resource-arrow" aria-hidden="true">→</span>
               </a>
             ))
           }
         </div>
       </div>
       <div>
-        <div class="cx-section-head">
-          <h2>优先场景</h2>
-          <p>适合对一致性、权限和可审计性有明确要求的协作系统。</p>
+        <div class="cx-section-head cx-section-head--stack">
+          <span class="cx-section-tag">场景</span>
+          <h2>已经在被验证的真实需求</h2>
+          <p class="cx-section-sub">
+            把控制权、隐私和 agent 协同放回组织手里。
+          </p>
         </div>
-        <ul class="cx-case-list">
+        <ul class="cx-case-grid">
           {
-            useCases.map((item) => (
-              <li>{item}</li>
+            useCases.map((u) => (
+              <li>
+                <span class="cx-case-mark" aria-hidden="true">✦</span>
+                <div>
+                  <strong>{u.title}</strong>
+                  <span>{u.body}</span>
+                </div>
+              </li>
             ))
           }
         </ul>

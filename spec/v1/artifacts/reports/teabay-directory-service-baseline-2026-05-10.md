@@ -13,6 +13,7 @@
 | teabay unit + local integration | `cargo test` | passed |
 | Docker-backed conformance | `TEABAY_RUN_DOCKER_TESTS=1 cargo test --test it -- --nocapture` | passed |
 | Admin wasm compile | `cargo check --manifest-path teabay-admin/Cargo.toml --target wasm32-unknown-unknown` | passed |
+| Shared fixtures crate | `cargo check --manifest-path teabay-testing/Cargo.toml` | passed |
 | cotest compile | `cargo test --test directory_service --no-run` | passed |
 | cotest skip path | `cargo test --test directory_service -- --nocapture` | passed with skip when no Directory service is attached |
 
@@ -33,3 +34,5 @@
 ## Notes
 
 The cotest hook now includes `cx.profile.directory_service.v1` and a `teabay_directory_service_profile_is_discoverable` scenario. The scenario can attach to a running Directory with `TEABAY_BASE_URL` or spawn `../teabay/target/debug/teabay` when `DATABASE_URL` is supplied.
+
+Shared Directory SQL fixtures live in `../teabay/teabay-testing` so cotest can reuse seeded resource rows without copying them.
