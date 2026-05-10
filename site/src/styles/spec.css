@@ -219,6 +219,25 @@ table.cx-table code {
   overflow-wrap: normal;
 }
 
+/* ---------- Mermaid diagram chrome -------------------------------------
+ *
+ * Keep Mermaid blocks visually aligned with other callout-like embeds and
+ * preserve horizontal scrolling as a fallback when a diagram still exceeds
+ * the prose column after layout tuning in the source document itself.
+ */
+.sl-markdown-content pre.mermaid {
+  overflow-x: auto;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  background: var(--sl-color-bg-nav);
+}
+
+.sl-markdown-content pre.mermaid svg {
+  display: block;
+  height: auto;
+}
+
 .cx-schema-viewer {
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0.5rem;

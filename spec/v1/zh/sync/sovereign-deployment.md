@@ -34,66 +34,61 @@ Sovereign deployment 是由单一组织或联盟控制的 Contrix 服务域。�
 
 ### 2.1 网络拓扑图
 
+域内结构（简化视图）：
+
 ```mermaid
 flowchart TB
     subgraph "Sovereign Main Domain"
-        ORG["Organization DID / Governance"]
-        REG["Private Identity Registry"]
-        WIT["Private Witness Set"]
-        STORE["Internal Event Store"]
-        SYNC["Internal Principal Server / Sync Service"]
-        DIR["Private Directory"]
-        BLOB["Private Blob Store"]
-        POL["Policy Server"]
-        MEDIA["TURN / SFU / Media Service"]
-        INTCLIENT["Managed Internal Clients"]
+        ORG["Organization DID /<br/>Governance"]
+        TRUST["Identity / Witness<br/>Services"]
+        CORE["Internal Sync Plane<br/>(Principal / Event / Policy)"]
+        SUPPORT["Private Support Services<br/>(Directory / Blob / Media)"]
+        INTCLIENT["Managed Internal<br/>Clients"]
+
+        ORG --> TRUST
+        ORG --> CORE
+        ORG --> SUPPORT
+        INTCLIENT --> CORE
     end
 
     subgraph "Controlled Collaboration Enclave"
-        ESPACE["Controlled Collaboration Space"]
-        ESYNC["Enclave Principal Server / Sync Service"]
-        EDIR["Enclave Directory"]
-        EBLOB["Enclave Blob Store"]
-        EPOL["Enclave Policy Server"]
+        ESPACE["Controlled Collaboration<br/>Space"]
+        ESVC["Enclave Service Plane<br/>(Principal / Directory / Blob / Policy)"]
+
+        ESPACE --> ESVC
     end
-
-    subgraph "External Organization Domain"
-        EXTORG["External Organization DID"]
-        EXTCLIENT["External Managed Client"]
-        EXTAPI["External Principal Server / Events API"]
-        EXTSYNC["External Principal Server / Sync Service"]
-    end
-
-    ORG --> REG
-    ORG --> WIT
-    ORG --> SYNC
-    SYNC --> STORE
-    ORG --> DIR
-    ORG --> BLOB
-    ORG --> POL
-    ORG --> MEDIA
-
-    INTCLIENT --> STORE
-    STORE --> SYNC
-    SYNC --> POL
 
     ORG -->|"creates / endorses"| ESPACE
-    ESPACE --> ESYNC
-    ESPACE --> EDIR
-    ESPACE --> EBLOB
-    ESPACE --> EPOL
-
     INTCLIENT -->|"approved membership"| ESPACE
-    EXTORG -->|"authority chain / VC"| EPOL
+    CORE -. "no default bridge" .- ESVC
+    SUPPORT -. "not exposed" .- ESVC
+```
+
+为保持可读性，域内图将 `Directory` / `Blob` / `Media` / `Policy` 等次级组件折叠为 service plane；细项仍以上文服务清单与后续章节为准。
+
+跨域协作路径：
+
+```mermaid
+flowchart TB
+    subgraph "External Organization Domain"
+        EXTORG["External Organization<br/>DID"]
+        EXTCLIENT["External Managed<br/>Client"]
+        EXTAPI["External Principal Server /<br/>Events API"]
+        EXTSYNC["External Principal Server /<br/>Sync Service"]
+    end
+
+    subgraph "Controlled Collaboration Enclave"
+        ESPACE["Controlled Collaboration<br/>Space"]
+        EPOL["Enclave Policy<br/>Server"]
+        ESYNC["Enclave Principal Server /<br/>Sync Service"]
+    end
+
     EXTCLIENT -->|"invite + restricted join"| ESPACE
+    EXTORG -->|"authority chain / VC"| EPOL
     EXTCLIENT --> EXTAPI
     EXTAPI -->|"signed Events"| ESYNC
     EXTSYNC -. "optional allowlisted federation" .-> ESYNC
-
     EPOL -->|"allow / deny / quarantine"| ESYNC
-
-    SYNC -. "no default bridge" .- ESYNC
-    DIR -. "not exposed" .- EDIR
 ```
 
 拓扑含义：

@@ -123,14 +123,16 @@ const pickTheme = () =>
   document.documentElement.dataset.theme === "dark" ? "dark" : "default";
 
 let initialised = false;
-function render() {
-  const nodes = document.querySelectorAll("pre.mermaid:not([data-processed])");
+async function render() {
+  const nodes = Array.from(
+    document.querySelectorAll("pre.mermaid:not([data-processed])"),
+  );
   if (!nodes.length) return;
   if (!initialised) {
     mermaid.initialize({ startOnLoad: false, theme: pickTheme() });
     initialised = true;
   }
-  mermaid.run({ nodes });
+  await mermaid.run({ nodes });
 }
 
 // Re-theme on Starlight light/dark toggle. Mermaid v11 has no live retheme,
@@ -141,7 +143,7 @@ function captureSources() {
     if (!sources.has(el)) sources.set(el, el.textContent);
   }
 }
-function rerenderForTheme() {
+async function rerenderForTheme() {
   const theme = pickTheme();
   for (const el of document.querySelectorAll("pre.mermaid")) {
     const src = sources.get(el);
@@ -152,13 +154,13 @@ function rerenderForTheme() {
   }
   mermaid.initialize({ startOnLoad: false, theme });
   initialised = true;
-  render();
+  await render();
 }
 
 const themeObserver = new MutationObserver((records) => {
   for (const r of records) {
     if (r.attributeName === "data-theme") {
-      rerenderForTheme();
+      void rerenderForTheme();
       break;
     }
   }
@@ -167,7 +169,7 @@ themeObserver.observe(document.documentElement, { attributes: true });
 
 // Run on first load, after Astro view-transition swaps, and after
 // Starlight client-side nav.
-const boot = () => { captureSources(); render(); };
+const boot = () => { captureSources(); void render(); };
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", boot, { once: true });
 } else {
