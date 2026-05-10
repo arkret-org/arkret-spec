@@ -99,6 +99,12 @@ Space 层级关系不改变上述边界。Parent Space 可以帮助发现和组�
 
 ### 3.1 目标与范围
 
+本节描述 Join Policy 的目标模型。当前 v1 core 的 active 机器 contract 仍以
+`cx.space.join_rule`、`cx.space.policy_components`、capability 与 invite 状态机为准；
+独立 join-policy Event.kind / schema 尚未进入 registry。实现若做实验，MUST 使用自有
+extension namespace，并且不得在 describe/profile discovery 中把它声明为 active `cx.*`
+标准 contract。
+
 `default_join_rule` 枚举（§2.2）只表达粗粒度的入口模式：`public` 直接进、`invite` 必须有人邀、`knock` 可申请、`restricted` / `knock_restricted` 有附加条件、`closed` 不收新人。但是 `restricted` 的"条件"是什么、`knock` 申请里能否带结构化材料、人工审批的决策是否上链审计、CAPTCHA / proof-of-work 等运行时挑战如何接入——这些都需要本节统一定义。
 
 本节定义的 **Join Policy** 与 §2.2 `default_join_rule` 正交又互补：
@@ -119,15 +125,15 @@ Space 层级关系不改变上述边界。Parent Space 可以帮助发现和组�
 ### 3.3 Cell Family 与 State Event
 
 ```text
-cell_id     := cx:cell:cx.component.space.join_policy.v1:<space_id>
+cell_id     := cx:cell:space.join_policy.v1:<space_id>
 lattice     := cas-register
 bottom      := reject
 value shape := JoinPolicy（见下）
 ```
 
-写入 cell 的事件：`cx.space.join_policy`，需要 `cx.policy.manage` capability（与 `cx.space.policy_server` / `cx.space.policy_components` 同等级）。`cx.space.create` 时 SHOULD 通过 `cx.space.policy_components.set` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
+写入 cell 的候选事件在正式登记前记为 `space.join_policy`（无 `cx.` 标准前缀），需要 `cx.policy.manage` capability（与 `cx.space.policy_server` / `cx.space.policy_components` 同等级）。`cx.space.create` 时 SHOULD 通过 `cx.space.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
 
-JoinPolicy schema（schema id `cx.schema.space.join_policy.v1`）：
+JoinPolicy 候选 schema 名：`space.join_policy.v1`。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -159,7 +165,7 @@ JoinPolicy schema（schema id `cx.schema.space.join_policy.v1`）：
 | `claim_required` | `requires_claims[]`（见 [`../authz/constraint-schema.md` §10](../authz/constraint-schema.md)） | applicant MUST 提交满足声明集合的 VC / claim presentation。 | `true` |
 | `parent_membership` | `parent_space_refs: id:space[]`、`require_min_membership: enum(invite, join)` | applicant MUST 已是任一 parent space 的指定成员。reducer 在 join Move 校验时必须能够独立验证（snapshot 或 backfill）。等价于 Matrix MSC3083 `m.room_membership` 条件。 | `true` |
 | `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §3.10。 | `true` |
-| `application_form` | `questions[]`（见 §3.3.3） | applicant MUST 在 `cx.member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
+| `application_form` | `questions[]`（见 §3.3.3） | applicant MUST 在 `member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
 | `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
 | `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `cx.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估）。 | `true` |
 
@@ -216,7 +222,7 @@ JoinPolicy schema（schema id `cx.schema.space.join_policy.v1`）：
 | `knock_restricted` | 生效（OR 合成） | `combinator` SHOULD 为 `any`；典型组合：`[claim_required(auto), application_form(manual)]`，凭证持有者直接进，否则走问卷申请。 |
 | `closed` | 不生效 | reducer 拒绝任何 join / knock / application Move。 |
 
-reducer 在 `cx.space.join_rule` 与 `cx.space.join_policy` 任一变更时 MUST 重新评估上述一致性约束；不一致 MUST `failed_precondition` 拒绝写入，并附带 `reason="join_rule_policy_mismatch"`。
+reducer 在 `cx.space.join_rule` 与 join-policy cell 任一变更时 MUST 重新评估上述一致性约束；不一致 MUST `failed_precondition` 拒绝写入，并附带 `reason="join_rule_policy_mismatch"`。
 
 ### 3.5 自动解析路径
 
@@ -251,7 +257,7 @@ applicant 直接提交：
 
 reducer MUST：
 
-1. 加载当前 `cx.space.join_policy` cell value；
+1. 加载当前 join-policy cell value；
 2. 按 `combinator` 选取需满足的 gate 子集；
 3. 对每个引用的 gate 调用对应 verifier（claim issuer revocation check、challenge provider signature check、parent membership snapshot 查询）；
 4. `cooldown` gate 独立评估，命中即拒绝（无视 `combinator`）；
@@ -268,22 +274,22 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Move�
 | 阶段 | Move | 写入方 |
 | --- | --- | --- |
 | 1. 敲门 | `cx.member.state{membership=knock}` | applicant |
-| 2. 提交申请 | `cx.member.application` | applicant |
-| 3. 审核决策 | `cx.member.application.review` | reviewer（持 `review_capability`） |
+| 2. 提交申请 | `member.application` | applicant |
+| 3. 审核决策 | `member.application.review` | reviewer（持 `review_capability`） |
 | 4. 接受邀请（隐式） | `cx.invite.create` + `cx.invite.accept` | reviewer 与 applicant |
 
 reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOULD 把它们打包到同一 Anchor request 以减少 round trip。
 
-#### 3.6.2 `cx.member.application`
+#### 3.6.2 `member.application`
 
-durable Event，schema id `cx.schema.member.application.v1`。
+候选 durable Event；schema 名 `member.application.v1`，正式进入 v1 registry 前不得使用 `cx.*` 标准前缀。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `space_id` | yes | `id:space` | 申请目标 Space。 |
 | `applicant_did` | yes | `did` | 等于 envelope `actor`。 |
 | `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `cx.member.state{knock}` event id。 |
-| `policy_version` | yes | `sha256` | 提交时 `cx.space.join_policy` cell value 的 canonical hash；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
+| `policy_version` | yes | `sha256` | 提交时 `space.join_policy` cell value 的 canonical hash；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
 | `answers` | conditional | `array<Answer>` | 任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
 | `gate_proofs` | conditional | `array<GateProof>` | 任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
 | `applicant_note` | no | `string` | 1..2000 chars 自由文本备注。 |
@@ -291,7 +297,7 @@ durable Event，schema id `cx.schema.member.application.v1`。
 
 `Answer` 形态：`{question_id, value: string|string[]|boolean}`；reducer 仅做存在性 / shape 校验，语义评估留给 reviewer。
 
-#### 3.6.3 `cx.member.application.review`
+#### 3.6.3 `member.application.review`
 
 durable Event，需要 `review_capability`。
 
@@ -307,7 +313,7 @@ durable Event，需要 `review_capability`。
 
 `reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。
 
-#### 3.6.4 `cx.member.application.cancel`
+#### 3.6.4 `member.application.cancel`
 
 applicant 可主动撤回；写入 `decision=canceled`，不计 cooldown。
 
@@ -315,7 +321,7 @@ applicant 可主动撤回；写入 `decision=canceled`，不计 cooldown。
 
 application 进入 `accepted` 状态后：
 
-1. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `cx.member.application.review{accept}` event；
+1. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` event；
 2. applicant 提交 `cx.invite.accept`；
 3. reducer 在写入 `cx.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、reviewer 在当前 frontier 仍持有 `review_capability`、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖。
 
@@ -325,7 +331,7 @@ application 进入 `accepted` 状态后：
 
 #### 3.7.1 非 E2EE Space
 
-`cx.member.application` payload 在 wire 上保持明文，但 Sync Service / Principal Server MUST：
+`member.application` payload 在 wire 上保持明文，但 Sync Service / Principal Server MUST：
 
 - 仅向 reviewer set（`review_capability` 持有方）与 applicant 自身投影 application 正文；
 - 对其它 Space 成员投影占位（`{application_pending: true}`）；
@@ -337,7 +343,7 @@ application 进入 `accepted` 状态后：
 
 Space 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不能直接走 Space MLS group。MUST 使用以下机制之一：
 
-1. **Reviewer Sub-Group MLS**：Space 维护一个独立 MLS group `cx:mls_group:<space_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `cx.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
+1. **Reviewer Sub-Group MLS**：Space 维护一个独立 MLS group `cx:mls:reviewer_subgroup:<space_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `cx.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
 2. **Envelope Encryption to Reviewer Devices**：当 reviewer 数小于阈值（默认 `<=5`）或 sub-group 维护成本不可接受时，applicant 可使用 `encryption_envelope` 字段对 reviewer 当前已 published `cx.mls.keypackage` 的接收方公钥逐一封装：
 
 ```json
@@ -353,14 +359,14 @@ Space 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
 
 reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applicant 重提。
 
-申请正文 MUST NOT 进入 `cx.member.state{knock}` Move（该 Move 公开），所有自由文本仅出现在受加密保护的 `cx.member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Contrix 通过结构上禁止 knock Move 携带正文规避该缺陷。
+申请正文 MUST NOT 进入 `cx.member.state{knock}` Move（该 Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Contrix 通过结构上禁止 knock Move 携带正文规避该缺陷。
 
 ### 3.8 Membership 状态机扩展
 
 复用既有 `cx.member.state` 枚举（`invite / join / leave / knock / ban`），不引入新值。状态转换补充：
 
 ```text
-        knock ──submit cx.member.application──▶ knock (with application_ref projection)
+        knock ──submit member.application──▶ knock (with application_ref projection)
             │
             ├─ review.accept ──▶ invite (via cx.invite.create) ──▶ join (via cx.invite.accept)
             ├─ review.reject ──▶ leave  (with rejected_at + cooldown_until projection)
@@ -379,14 +385,14 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 跨域加入流程在 [`../sync/federation.md` §5.2](../sync/federation.md) 详述。本节仅说明 Join Policy 引入的不变量：
 
-- `cx.member.application` 与 `cx.member.application.review` 都是 durable Event，参与正常 federation push / pull；
+- `member.application` 与 `member.application.review` 都是候选 durable Event，参与正常 federation push / pull；
 - `policy_version` 字段使 reviewer 与 applicant 显式承认评估时所用的 policy 快照，避免 reviewer 在不同 policy frontier 下决策导致争议；
 - E2EE 场景下 reviewer sub-group MLS commit 通过既有 `cx.mls.*` 联邦机制传播；envelope encryption 由 origin Principal Server 投递到目标 reviewer 的 device list（参见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md)）。
 - `parent_membership` gate 评估需要其它 Space 的成员 snapshot；origin reducer MAY 通过 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的 verified snapshot 接口或直接 backfill；snapshot 不可达时 fail closed。
 
 ### 3.10 Policy Server 运行时挑战
 
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `cx.member.state{join}` / `cx.member.application` Move 调用 `/contrix/v1/check`。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `cx.member.state{join}` / `member.application` Move 调用 `/contrix/v1/check`。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
 ```json
 {
@@ -413,14 +419,14 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 | 控制项 | 默认 | 强制要求 |
 | --- | --- | --- |
 | `application_ttl` | 168h | reducer 到期自动转 `rejected_reason="ttl_expired"`；不计 cooldown。 |
-| `cooldown_after_reject` | 72h | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `cx.member.application`。`request_changes` 不触发 cooldown。 |
+| `cooldown_after_reject` | 72h | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
 | Quota constraint | 由 Space `cx.space.policy_components` 声明 | 推荐对 `cx.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
 | Policy Server `challenge` | 高风险 Space 推荐 | Sync Service 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
 
 ### 3.12 与 MIMI 的映射
 
-[`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 MUST 由 facade 在 Contrix `cx.component.space.join_policy.v1` 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Contrix 专属 component 标记 `application/vnd.contrix.component+json`。MIMI facade 接收外部 join 请求时 MUST 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Contrix 原生客户端完成。
+[`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 SHOULD 由 facade 在 Contrix `space.join_policy` component 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Contrix 专属 component 标记 `application/vnd.contrix.component+json`。MIMI facade 接收外部 join 请求时 SHOULD 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Contrix 原生客户端完成。
 
 ### 3.13 完整示例
 
@@ -428,7 +434,7 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 
 ```json
 {
-  "kind": "cx.space.join_policy",
+  "kind": "space.join_policy",
   "payload": {
     "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "value": {

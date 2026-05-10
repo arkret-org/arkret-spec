@@ -403,7 +403,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (subscribe)** 两种 ingest
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `announce_id` | `id` | 本次 ingest 记录 id，形如 `cx:announce:01J...` ULID。 |
+| `announce_id` | `string` | 本次 ingest 记录 id，形如 `ann_0196419b000070008000000000000000`。这是 Directory 本地 ingest 记录，不是全局 typed object id。 |
 | `indexed_at` | `timestamp` | Directory 完成索引的服务器时间。 |
 | `effective_ttl_seconds` | `int` | Directory 实际授予的 TTL。 |
 | `next_revalidation_after` | `timestamp` | 下一次 re-announce 或 pull-refresh 的最早时间。 |
@@ -421,7 +421,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (subscribe)** 两种 ingest
   "as_of": "2026-05-10T08:00:00Z",
   "ttl_seconds": 86400,
   "source_refs": [
-    "cx:event:01JTV0KQ7K5ZP4VN6C9WEZK2X1"
+    "cx:event:0196419b-0000-7000-8000-000000000000"
   ],
   "discovery_state": {
     "kind": "cx.organization.discovery",
@@ -506,7 +506,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 
 v1 core **不**定义 Directory 之间的 replication / federation 协议。每个 Directory 独立 ingest；同一资源 opt-in 多家 Directory 时分别 announce。
 
-跨 directory mirror、ranking 共享、reputation 交换属于 extension profile（候选 `cx.profile.directory_mesh.v1`），不在 v1 互操作 floor。Directory MUST NOT 接受其他 directory 转发的索引内容作为权威；MAY 把其他 directory 的存在性作为 hint，但仍 MUST 通过 §8.2 模式独立 ingest。
+跨 directory mirror、ranking 共享、reputation 交换属于未来 extension profile（工作名 `directory_mesh.v1`），不在 v1 互操作 floor。Directory MUST NOT 接受其他 directory 转发的索引内容作为权威；MAY 把其他 directory 的存在性作为 hint，但仍 MUST 通过 §8.2 模式独立 ingest。
 
 ### 8.9 `cx.directory.describe` 扩展
 
@@ -514,7 +514,7 @@ Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `ingest_modes` | `enum[](push, pull)` | 本 directory 支持的模式，至少一个。 |
+| `ingest_modes` | `array<push \| pull>` | 本 directory 支持的模式，至少一个。 |
 | `accept_policy_kind` | `enum(open, allowlist, trust_root_signed, operator_review)` | `open` = 任意签名资源；`allowlist` = 资源 DID 在显式白名单；`trust_root_signed` = 需要 trust anchor 背书；`operator_review` = 人工审核。 |
 | `accept_policy_ref` | `object?` | 描述如何获得接入资格的可读 ref（URL / DID / governance contact）。 |
 | `default_ttl_seconds` | `int` | 默认 TTL。 |
@@ -628,7 +628,7 @@ Result：
       "official_organizations": [
         "did:web:acme.example"
       ],
-      "preview_ref": "cx:event:01JS0PV...",
+      "preview_ref": "cx:event:<uuid>",
       "via_services": [
         "did:web:principal.acme.example"
       ],
