@@ -331,6 +331,30 @@
       "payload": "Organization discoverability state"
     },
     {
+      "event_kind": "cx.actor.discovery",
+      "category": "actor",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Actor discoverability state"
+    },
+    {
+      "event_kind": "cx.applet.discovery",
+      "category": "applet",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Applet discoverability state"
+    },
+    {
+      "event_kind": "cx.handle.discovery",
+      "category": "handle",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Handle discoverability state"
+    },
+    {
       "event_kind": "cx.organization.moderation_policy",
       "category": "organization",
       "status": "active",

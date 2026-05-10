@@ -80,7 +80,9 @@
         "cx.directory.search_actors",
         "cx.directory.search_users",
         "cx.directory.resolve_handle",
-        "cx.directory.private_contact_discovery"
+        "cx.directory.private_contact_discovery",
+        "cx.directory.announce",
+        "cx.directory.withdraw"
       ]
     },
     {
@@ -335,6 +337,12 @@
       "mq": "device_messages.put"
     },
     {
+      "operation_id": "cx.directory.announce",
+      "http": "POST /directory/announce",
+      "grpc": "Directory/Announce",
+      "mq": "directory.announce"
+    },
+    {
       "operation_id": "cx.directory.describe",
       "http": "GET /directory/describe",
       "grpc": "Directory/Describe",
@@ -387,6 +395,12 @@
       "http": "GET /directory/search-users",
       "grpc": "Directory/SearchUsers",
       "mq": "directory.search_users"
+    },
+    {
+      "operation_id": "cx.directory.withdraw",
+      "http": "POST /directory/withdraw",
+      "grpc": "Directory/Withdraw",
+      "mq": "directory.withdraw"
     },
     {
       "operation_id": "cx.events.batch_get",

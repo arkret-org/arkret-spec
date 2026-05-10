@@ -24,6 +24,8 @@ title: Artifacts
   - gRPC / WS / SSE / MQ / libp2p 等 binding extension profile 概要。
 - `artifacts/fixtures/*.json`
   - 一致性测试向量（encoding、crypto signature、Event Envelope 负向、Move/Anchor/Lattice、capability、sync、privacy/security、federation、MIMI 等）。
+- `artifacts/reports/*`
+  - 具体实现的本地 / CI conformance baseline 报告；不作为协议规范来源，但用于发布前审计和实现成熟度追踪。
 
 ### 1.2 生成视图（Generated）
 

@@ -51,6 +51,7 @@
     "cx.profile.enterprise_client.v1",
     "cx.profile.principal_server_events_api.v1",
     "cx.profile.principal_server.v1",
+    "cx.profile.directory_service.v1",
     "cx.profile.federation_minimal.v1",
     "cx.profile.identity_registry.v1",
     "cx.profile.blob_node.v1",
@@ -73,6 +74,7 @@
       "cx.profile.enterprise_client.v1",
       "cx.profile.principal_server_events_api.v1",
       "cx.profile.principal_server.v1",
+      "cx.profile.directory_service.v1",
       "cx.profile.federation_minimal.v1",
       "cx.profile.identity_registry.v1",
       "cx.profile.blob_node.v1",
@@ -516,6 +518,60 @@
           "admin_policy"
         ],
         "unsupported_optional": "return unsupported_feature for managed-only action"
+      }
+    },
+    "cx.profile.directory_service.v1": {
+      "inherits": [],
+      "description": "Contrix v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
+      "required_endpoints": [
+        "cx.directory.describe",
+        "cx.directory.search_spaces",
+        "cx.directory.resolve_space",
+        "cx.directory.search_organizations",
+        "cx.directory.resolve_organization",
+        "cx.directory.search_actors",
+        "cx.directory.search_users",
+        "cx.directory.resolve_handle",
+        "cx.directory.announce",
+        "cx.directory.withdraw"
+      ],
+      "required_event_kinds": [
+        "cx.space.discovery",
+        "cx.organization.discovery",
+        "cx.actor.discovery",
+        "cx.applet.discovery",
+        "cx.handle.discovery"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:actor_private_event"
+      ],
+      "required_schemas": [
+        "cx.schema.actor_profile.v1",
+        "cx.schema.handle_claim.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json",
+        "crypto-signature-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.private_contact_discovery.v1",
+        "pull_mode_ingest",
+        "webhook_fanout",
+        "restricted_query_proofs",
+        "operator_console"
+      ],
+      "feature_discovery": {
+        "required": [
+          "service_did",
+          "resource_types",
+          "discovery_profiles",
+          "ingest_modes",
+          "accept_policy_kind",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "rate_limits"
+        ],
+        "unsupported_optional": "omit optional profile or return unsupported_feature without leaking hidden resources"
       }
     },
     "cx.profile.principal_server_events_api.v1": {

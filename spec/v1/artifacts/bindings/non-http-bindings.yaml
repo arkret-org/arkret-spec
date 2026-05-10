@@ -74,6 +74,8 @@ grpc:
       SearchUsers: cx.directory.search_users
       ResolveHandle: cx.directory.resolve_handle
       PrivateContactDiscovery: cx.directory.private_contact_discovery
+      Announce: cx.directory.announce
+      Withdraw: cx.directory.withdraw
     Keys:
       Upload: cx.keys.upload
       Query: cx.keys.query
@@ -165,6 +167,8 @@ mq:
     events.subscribe: cx.events.subscribe
     sync.account: cx.sync.account
     directory.private_contact_discovery: cx.directory.private_contact_discovery
+    directory.announce: cx.directory.announce
+    directory.withdraw: cx.directory.withdraw
     keys.keypackages.upload: cx.keys.keypackages.upload
     keys.keypackages.claim: cx.keys.keypackages.claim
     keys.keypackages.consume: cx.keys.keypackages.consume

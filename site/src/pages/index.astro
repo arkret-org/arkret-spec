@@ -1,115 +1,110 @@
 ---
 import MarketingLayout from "~/layouts/MarketingLayout.astro";
-import {
-  catalogVersion,
-  eventKinds,
-  errorCodes,
-  operations,
-  schemaEntries,
-  totalProfileCount,
-} from "~/lib/artifacts";
-import { specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
 
-const stats = [
-  { value: eventKinds.length, label: "Event kinds" },
-  { value: schemaEntries.length, label: "Schemas" },
-  { value: operations.length, label: "Operations" },
-  { value: totalProfileCount, label: "Profiles" },
-  { value: errorCodes.length, label: "Error codes" },
-];
-
-const pillars = [
+const protocolPillars = [
   {
-    title: "可验证的协作事实",
-    body: "每条变更都是签名 Event；空间状态由 reducer 从 Event 集合派生。无需信任服务端，也能复现一致的对象世界。",
+    title: "事实先行",
+    body: "每一次行为都转成可验证 Event；应用状态不再依赖数据库私有逻辑，而由可复现 reducer 从事实链计算。",
   },
   {
-    title: "对象语义可投影",
-    body: "Space / Flow / Message / Relation / View / Capability 是规范固定的对象图；视图与渲染由客户端按需投影，避免锁死单一 UI 模型。",
+    title: "对象可投影",
+    body: "Space / Flow / Message / Relation 统一成对象语义图，不同客户端可按需求构建视图，不被底层实现锁死。",
   },
   {
-    title: "扩展不破坏互操作",
-    body: "Morph + schema / profile 让企业、IM、Kanban、Agent、E2EE 在同一 wire 上叠加；conformance profile 明确每个实现宣称的能力。",
+    title: "能力分层",
+    body: "Profile 明确实现范围；constraint 和 capability 让每个 surface 的权限与合规模型可逐步启用。",
+  },
+  {
+    title: "生态可扩展",
+    body: "Registry 与 schema 机制保证新语义在不破坏历史兼容的前提下持续演进。",
   },
 ];
 
-const concepts = [
+const engineFlow = [
   {
-    tag: "identity",
-    title: "DID-rooted principal",
-    body: "actor / org / service 都用 DID 作为长期身份根，密钥可轮换。v1 core 默认 did:web，治理/合规部署可升级到 did:webvh high-trust profile。",
+    step: "01",
+    title: "签名事件",
+    body: "客户端用 DID/密钥对事件进行签名，产出可核验的提交单元。",
   },
   {
-    tag: "object",
-    title: "Space, Flow, Relation",
-    body: "Space 是协作容器；Flow 统一 chat / kanban / doc thread；Relation 表达跨对象关联，所有图都可被 capability 与 history visibility 约束。",
+    step: "02",
+    title: "约束校验",
+    body: "Payload 与 schema 验证通过后，进入 capability / constraint 判定，确保边界满足业务与安全规则。",
   },
   {
-    tag: "wire",
-    title: "Event Envelope",
-    body: "唯一 wire fact：canonical JSON、Ed25519 签名、HLC 排序、payload_hash + binding_hash，envelope 与 payload schema 双层校验后再进入 reducer。",
+    step: "03",
+    title: "统一归约",
+    body: "所有实现按同一 reducer 语义更新对象状态，避免“各写各的解释器”导致的分叉。",
   },
   {
-    tag: "authz",
-    title: "Capability + constraint",
-    body: "授权用 capability grant + 8 family constraint 描述。求值规则统一“deny / quarantine / require_review 任一命中即生效”，每个 constraint 在 schema 中有 evaluation_class。",
-  },
-  {
-    tag: "crypto",
-    title: "MLS + audited E2EE",
-    body: "群组 E2EE 走 MLS RFC 9420。audited E2EE 拆出 attested / disclosed 双 hardening profile，强制留痕、UI 警示与禁用措辞均为 normative。",
-  },
-  {
-    tag: "conformance",
-    title: "Profile 矩阵",
-    body: "core_event_store / chat_mvp / kanban_mvp / e2ee_client 等独立可声明；v1 core 不要求 MIMI / Agent / Applet，由 interop extension profile 单独承载。",
+    step: "04",
+    title: "视图投影",
+    body: "协作对象被投影为消息、看板、文档、关系等形态，供 UI、搜索或策略层消费。",
   },
 ];
 
-const resources = [
+const entryPoints = [
   {
-    title: "中文规范本体 →",
-    desc: "spec/v1/zh — 12 个协议平面的 normative 文本",
+    title: "中文规范",
+    description: "从总览、对象定义到治理约束，一条线读完整体结构。",
     href: "/zh/v1/",
   },
   {
-    title: "Catalog →",
-    desc: "Event kinds、Schemas、Operations、Profiles、Errors",
-    href: "/catalog/event-kinds/",
+    title: "规范导览",
+    description: "按阅读路径快速定位每个章节在实现中的职责。",
+    href: "/zh/v1/spec-map/",
   },
   {
-    title: "OpenAPI →",
-    desc: "HTTP/JSON service binding，可直接在 Scalar 中浏览",
+    title: "OpenAPI",
+    description: "服务端绑定与请求响应契约，帮助快速搭建交付流程。",
     href: "/openapi/",
   },
   {
-    title: "Spec map →",
-    desc: "按阅读路径定位每个文件的角色与边界",
-    href: "/zh/v1/spec-map/",
+    title: "Catalog",
+    description: "事件类型、Schema、操作与错误码一目了然，便于跨系统联调。",
+    href: "/catalog/event-kinds/",
   },
+];
+
+const useCases = [
+  "企业协作平台",
+  "IM 团队与项目管理",
+  "跨组织文档协作",
+  "Agent to Agent 的可验证协同",
+  "高合规 E2EE 场景",
+  "教育与金融行业的多方审计",
 ];
 ---
 
 <MarketingLayout>
   <section class="cx-hero">
-    <div class="cx-shell cx-hero-inner">
-      <span class="cx-eyebrow">
-        <span class="cx-eyebrow-dot" aria-hidden="true"></span>
-        {specReleaseTag} {specReleaseLabel} · catalog {catalogVersion}
-      </span>
+    <div class="cx-shell cx-hero-inner cx-home-hero">
+      <p class="cx-kicker">Decentralized Collaboration Protocol</p>
       <h1>
-        去中心化协作的<br />
-        <span class="cx-h1-accent">可验证协议层</span>
+        让协作成为可证明的事实网络，<br />
+        而不是“状态同步猜测”
       </h1>
       <p class="cx-lead">
-        Contrix 是一套面向团队 / 组织 / Agent 协作的开放协议规范。它把消息、看板、文档、容器、权限和身份统一成可审计的
-        Event 流，让多个独立实现能共享同一份事实模型。
+        Contrix 通过统一事件与对象语义，把消息、文档、看板、关系和权限放到一套可复现的数据模型中。不同实现可以
+        在同一事实来源上独立开发，但始终得出一致的协作世界。
       </p>
+      <div class="cx-hero-highlights">
+        <article class="cx-hero-highlight">
+          <h3>目标</h3>
+          <p>把协作从“界面行为”抽到“规范事实”。</p>
+        </article>
+        <article class="cx-hero-highlight">
+          <h3>方法</h3>
+          <p>以 Event、Reducer 和签名为核心，构建确定性可审计链。</p>
+        </article>
+        <article class="cx-hero-highlight">
+          <h3>结果</h3>
+          <p>减少互操作摩擦，提高长期可维护性与跨系统可验证性。</p>
+        </article>
+      </div>
       <div class="cx-cta-row">
-        <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">阅读规范</a>
-        <a class="cx-btn cx-btn-ghost" href="/zh/v1/overview/architecture/"
-          >从架构入门</a
-        >
+        <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">开始阅读</a>
+        <a class="cx-btn cx-btn-ghost" href="/zh/v1/overview/architecture/">协议架构</a>
         <a class="cx-btn cx-btn-ghost" href="/openapi/">查看 OpenAPI</a>
       </div>
     </div>
@@ -118,17 +113,37 @@ const resources = [
   <section class="cx-section">
     <div class="cx-shell">
       <div class="cx-section-head">
-        <h2>它解决什么</h2>
-        <p>
-          协议关注互操作 wire 与对象语义；UI、存储引擎、加密原语下放给实现选择。
-        </p>
+        <h2>Contrix 的核心约束</h2>
+        <p>协议优先定义事实，接口与行为只围绕事实变更展开。</p>
       </div>
-      <div class="cx-pillars">
+      <div class="cx-feature-grid">
         {
-          pillars.map((p) => (
-            <article class="cx-pillar">
-              <h3>{p.title}</h3>
-              <p>{p.body}</p>
+          protocolPillars.map((pillar) => (
+            <article class="cx-feature-card">
+              <h3>{pillar.title}</h3>
+              <p>{pillar.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="cx-section cx-section-elevated">
+    <div class="cx-shell">
+      <div class="cx-section-head">
+        <h2>运行时模型（1 到 4）</h2>
+        <p>从事件提交到可见状态，协议定义的是一条最小闭环。</p>
+      </div>
+      <div class="cx-flow">
+        {
+          engineFlow.map((item) => (
+            <article class="cx-flow-step">
+              <span class="cx-flow-step-no">{item.step}</span>
+              <div class="cx-flow-body">
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </div>
             </article>
           ))
         }
@@ -137,63 +152,35 @@ const resources = [
   </section>
 
   <section class="cx-section">
-    <div class="cx-shell">
-      <div class="cx-section-head">
-        <h2>关键概念</h2>
-        <p>每个概念都有 normative 文本 + 机器 schema 双重锁定。</p>
+    <div class="cx-shell cx-home-grid-2">
+      <div>
+        <div class="cx-section-head">
+          <h2>从规范到实现的入口</h2>
+          <p>选择最适合的阅读路径，直接进入你的开发节奏。</p>
+        </div>
+        <div class="cx-entry-grid">
+          {
+            entryPoints.map((entry) => (
+              <a class="cx-resource" href={entry.href}>
+                <span class="cx-resource-title">{entry.title}</span>
+                <span class="cx-resource-desc">{entry.description}</span>
+              </a>
+            ))
+          }
+        </div>
       </div>
-      <div class="cx-concepts">
-        {
-          concepts.map((c) => (
-            <article class="cx-concept">
-              <div class="cx-concept-tag">{c.tag}</div>
-              <h3>{c.title}</h3>
-              <p>{c.body}</p>
-            </article>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <section class="cx-section">
-    <div class="cx-shell">
-      <div class="cx-section-head">
-        <h2>当前发布</h2>
-        <p>
-          所有计数与 <code>tools/artifact_pipeline.py check</code> 输出一致；任一漂移都会让 CI 阻塞合并。
-        </p>
-      </div>
-      <div class="cx-stats">
-        {
-          stats.map((s) => (
-            <div class="cx-stat">
-              <div class="cx-stat-value">{s.value}</div>
-              <div class="cx-stat-label">{s.label}</div>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <section class="cx-section">
-    <div class="cx-shell">
-      <div class="cx-section-head">
-        <h2>从哪里开始</h2>
-        <p>
-          不需要一次实现全部 surface — 任意 profile 可独立声明。
-        </p>
-      </div>
-      <div class="cx-resources">
-        {
-          resources.map((r) => (
-            <a class="cx-resource" href={r.href}>
-              <span class="cx-resource-title">{r.title}</span>
-              <span class="cx-resource-desc">{r.desc}</span>
-            </a>
-          ))
-        }
+      <div>
+        <div class="cx-section-head">
+          <h2>优先场景</h2>
+          <p>适合对一致性、权限和可审计性有明确要求的协作系统。</p>
+        </div>
+        <ul class="cx-case-list">
+          {
+            useCases.map((item) => (
+              <li>{item}</li>
+            ))
+          }
+        </ul>
       </div>
     </div>
   </section>

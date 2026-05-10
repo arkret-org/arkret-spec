@@ -2595,6 +2595,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
+  /directory/announce:
+    post:
+      operationId: cx.directory.announce
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+      responses:
+        '200':
+          description: Directory ingest acknowledgement (push mode)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /directory/withdraw:
+    post:
+      operationId: cx.directory.withdraw
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+      responses:
+        '200':
+          description: Directory entry withdrawal acknowledgement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
   /directory/search-spaces:
     post:
       operationId: cx.directory.search_spaces
