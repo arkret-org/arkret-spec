@@ -324,20 +324,28 @@ body.cx-marketing .cx-mono {
   transform: translateY(-1px);
 }
 
+/* Selectors are scoped through `body.cx-marketing` so they out-specify the
+ * global `body.cx-marketing a { color: var(--cx-accent) }` link rule. Without
+ * the extra class on the body selector, the link color wins and the primary
+ * button text becomes invisible (text color === background). */
+body.cx-marketing a.cx-btn-primary,
 .cx-btn-primary {
   background: var(--cx-accent);
   color: var(--cx-on-accent);
 }
+body.cx-marketing a.cx-btn-primary:hover,
 .cx-btn-primary:hover {
   background: var(--cx-accent-strong);
   color: var(--cx-on-accent);
 }
 
+body.cx-marketing a.cx-btn-ghost,
 .cx-btn-ghost {
   background: transparent;
   color: var(--cx-fg);
   border-color: var(--cx-border-strong);
 }
+body.cx-marketing a.cx-btn-ghost:hover,
 .cx-btn-ghost:hover {
   background: var(--cx-bg-overlay);
   color: var(--cx-fg);
@@ -516,59 +524,6 @@ section.cx-section {
 }
 
 /* ---------- Ecosystem page --------------------------------------------- */
-
-.cx-eco-arch {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--cx-bg-elevated);
-  border: 1px solid var(--cx-border);
-  border-radius: 12px;
-}
-
-.cx-eco-arch-row {
-  display: flex;
-  align-items: baseline;
-  gap: 1.25rem;
-  padding: 0.55rem 0;
-  border-bottom: 1px dashed var(--cx-border);
-}
-
-.cx-eco-arch-row:last-child {
-  border-bottom: none;
-}
-
-.cx-eco-arch-label {
-  flex: 0 0 5.5rem;
-  font-family: var(--cx-mono);
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--cx-fg-muted);
-}
-
-.cx-eco-arch-cells {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0.6rem;
-  color: var(--cx-fg);
-  font-size: 0.95rem;
-}
-
-.cx-eco-arch-cells code {
-  background: var(--cx-bg-overlay);
-  padding: 0.1rem 0.45rem;
-  border-radius: 5px;
-  border: 1px solid var(--cx-border);
-  color: var(--cx-fg);
-}
-
-.cx-eco-arch-note {
-  color: var(--cx-fg-muted);
-  font-size: 0.85rem;
-}
 
 .cx-eco-grid {
   display: grid;

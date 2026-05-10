@@ -95,15 +95,403 @@ Schema id: `cx.schema.space.v1`
 
 Space 层级关系不改变上述边界。Parent Space 可以帮助发现和组织 child Space，但不能单方面授予 child Space 的读取、写入、审核或解密能力。详见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
-## 3. Place
+## 3. Join Policy
 
-### 3.1 概念
+### 3.1 目标与范围
+
+`default_join_rule` 枚举（§2.2）只表达粗粒度的入口模式：`public` 直接进、`invite` 必须有人邀、`knock` 可申请、`restricted` / `knock_restricted` 有附加条件、`closed` 不收新人。但是 `restricted` 的"条件"是什么、`knock` 申请里能否带结构化材料、人工审批的决策是否上链审计、CAPTCHA / proof-of-work 等运行时挑战如何接入——这些都需要本节统一定义。
+
+本节定义的 **Join Policy** 与 §2.2 `default_join_rule` 正交又互补：
+
+- `default_join_rule` 决定**入口模式**（`public` / `invite` / `knock` / `restricted` / `knock_restricted` / `closed`）。
+- Join Policy 决定**入口模式选定后，到 `membership=join` 必须穿越的 gate 集合**（凭证、问卷、挑战、人工审批等）的组合、解析顺序、加密语义和反滥用约束。
+- `default_join_rule=public` 与 `default_join_rule=closed` 不消耗 Join Policy（前者无 gate，后者无入口）；其余四个枚举值的精确语义由 §3.4 与 Join Policy 交叉决定。
+
+### 3.2 设计原则
+
+1. **Gate 是组合的，不是命名的。** 不再以新 enum 区分"附加条件类型"。Space 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
+2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。Contrix 申请正文 MUST 仅对 `cx.space.join.review` capability 持有方可见：E2EE Space 中通过 reviewer-only encryption envelope；非 E2EE Space 中由 Sync Service 强制访问控制并审计读取（`cx.audit.accessed`）。
+3. **审核决策必须上链。** 所有审核接受 / 拒绝 MUST 是签名的 anchored Move，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`../governance/content-moderation.md` §6](../governance/content-moderation.md)）依赖该 trail。
+4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：随后的 `cx.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 review accept Move。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
+5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `cx.member.state{membership=join}`，由 reducer 内联校验，无需 application / review Move。这条路径替代既有 `restricted` 入口模式的实质语义。
+6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Move 的 capability。Policy Server `obligations[]`（§3.10）只能在 capability 之上叠加额外要求（如 challenge），不能凭空创造权限。
+
+### 3.3 Cell Family 与 State Event
+
+```text
+cell_id     := cx:cell:cx.component.space.join_policy.v1:<space_id>
+lattice     := cas-register
+bottom      := reject
+value shape := JoinPolicy（见下）
+```
+
+写入 cell 的事件：`cx.space.join_policy`，需要 `cx.policy.manage` capability（与 `cx.space.policy_server` / `cx.space.policy_components` 同等级）。`cx.space.create` 时 SHOULD 通过 `cx.space.policy_components.set` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
+
+JoinPolicy schema（schema id `cx.schema.space.join_policy.v1`）：
+
+| 字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `gates` | yes | `array<Gate>` | 1..16 项；空数组 MUST schema_violation。 | 必须穿越的 gate 列表。 |
+| `combinator` | yes | `enum(all, any)` | 默认 `all`。 | gate 之间的组合语义。 |
+| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `cx.space.join.review`。 | 审核所需 capability。 |
+| `reviewer_quorum` | no | `enum(any, majority, all) | object` | 默认 `any`。`object` 形式 `{ threshold: int, of: did[] }` 表达 N-of-M。 | 审核法定人数。 |
+| `application_ttl` | no | `duration` | 默认 `168h`，最小 `1h`，最大 `8760h`（1y）。 | 申请未决超时即失效。 |
+| `cooldown_after_reject` | no | `duration` | 默认 `72h`。 | 拒绝后同一 actor 重新申请的最短间隔。 |
+| `max_open_applications_per_actor` | no | `integer` | 默认 `1`，最大 `5`。 | 同一 actor 在本 Space 同时未决申请上限。 |
+| `applicant_visibility` | no | `enum(reviewer_only, members_after_join, public)` | 默认 `reviewer_only`。 | 申请正文谁可见；`members_after_join` 表示 join 成功后开放给 Space 成员（用于自我介绍场景）。 |
+| `directory_hint` | no | `object` | 见 §3.3.2。 | Discovery Directory 公开投影所需 hint。 |
+
+#### 3.3.1 Gate 类型
+
+每个 Gate 是 typed flat object，复用 [`../authz/constraint-schema.md` §2.1](../authz/constraint-schema.md) 的扁平结构传统：
+
+```json
+{
+  "gate_id": "string",          // 稳定 id，用于审计、application 中的 proof 关联
+  "kind": "claim_required | application_form | challenge_response | manual_review | parent_membership | cooldown",
+  "auto_resolve": true,         // 该 gate 能否仅靠 applicant 提交的材料解析；manual_review/application_form 必为 false
+  // ... kind-specific 字段
+}
+```
+
+| `kind` | 必带字段 | 语义 | `auto_resolve` |
+| --- | --- | --- | --- |
+| `claim_required` | `requires_claims[]`（见 [`../authz/constraint-schema.md` §10](../authz/constraint-schema.md)） | applicant MUST 提交满足声明集合的 VC / claim presentation。 | `true` |
+| `parent_membership` | `parent_space_refs: id:space[]`、`require_min_membership: enum(invite, join)` | applicant MUST 已是任一 parent space 的指定成员。reducer 在 join Move 校验时必须能够独立验证（snapshot 或 backfill）。等价于 Matrix MSC3083 `m.room_membership` 条件。 | `true` |
+| `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §3.10。 | `true` |
+| `application_form` | `questions[]`（见 §3.3.3） | applicant MUST 在 `cx.member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
+| `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
+| `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `cx.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估）。 | `true` |
+
+未注册 `kind` MUST schema_violation；未注册的 `(kind, subfield)` 组合按 lattice `bottom=reject` 处理。
+
+##### 3.3.2 `directory_hint`
+
+为帮助 Discovery Directory（[`../discovery/discovery-directory.md`](../discovery/discovery-directory.md)）告知 applicant "进入这个 Space 大概要做什么"，Space MAY 声明 directory hint。该 hint 是公开投影，**不得**包含敏感问卷正文：
+
+```json
+{
+  "directory_hint": {
+    "summary": "Members must hold an Acme employee VC and complete a brief intro form.",
+    "expected_review_time": "PT24H",
+    "requires_human_review": true,
+    "challenge_kinds_displayed": ["captcha"]
+  }
+}
+```
+
+`questions[]` 正文 MUST NOT 出现在 hint 中；公开 question prompt 是 opt-in（每个 question 独立 `disclosed_in_directory: bool`）。
+
+##### 3.3.3 `application_form.questions[]`
+
+```json
+{
+  "questions": [
+    {
+      "question_id": "q1",
+      "prompt_canonical": "Why do you want to join?",
+      "prompt_locales": {"en": "Why do you want to join?", "zh": "为什么想加入？"},
+      "answer_kind": "text | single_choice | multi_choice | boolean",
+      "required": true,
+      "min_chars": 20,
+      "max_chars": 500,
+      "choices": [{"id": "yes", "label": "Yes"}, {"id": "no", "label": "No"}],
+      "auto_reject_if_choice_in": ["no"],
+      "disclosed_in_directory": false
+    }
+  ]
+}
+```
+
+`auto_reject_if_choice_in` 让 reducer / 审核服务对明显错误答案直接生成 `decision=reject`，不进入人工队列。
+
+### 3.4 与 `default_join_rule` 的交叉表
+
+| `default_join_rule` | Join Policy 是否生效 | 等价 gate 组合 |
+| --- | --- | --- |
+| `public` | 不生效 | applicant 提交 `cx.member.state{join}` 即被接受。 |
+| `invite` | 不生效 | 必须有 `cx.invite.create`；Join Policy 不可绕过 invite。 |
+| `restricted` | 生效（自动解析路径） | `gates[*].auto_resolve == true` MUST 全为 true；含 `manual_review` 或 `application_form` MUST schema_violation。 |
+| `knock` | 生效（任一路径） | gate 集合可包含人工审核；申请-审核路径必走。 |
+| `knock_restricted` | 生效（OR 合成） | `combinator` SHOULD 为 `any`；典型组合：`[claim_required(auto), application_form(manual)]`，凭证持有者直接进，否则走问卷申请。 |
+| `closed` | 不生效 | reducer 拒绝任何 join / knock / application Move。 |
+
+reducer 在 `cx.space.join_rule` 与 `cx.space.join_policy` 任一变更时 MUST 重新评估上述一致性约束；不一致 MUST `failed_precondition` 拒绝写入，并附带 `reason="join_rule_policy_mismatch"`。
+
+### 3.5 自动解析路径
+
+适用条件：`default_join_rule ∈ {public, restricted, knock_restricted}` 且 applicant 拟使用的 gate 子集全部 `auto_resolve=true`。
+
+applicant 直接提交：
+
+```json
+{
+  "kind": "cx.member.state",
+  "payload": {
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "subject_did": "did:webvh:bob",
+    "membership": "join",
+    "gate_proofs": [
+      {
+        "gate_id": "g-org-vc",
+        "claim_presentation": "jws-vc:eyJhbGciOiJFZERTQSJ9..."
+      },
+      {
+        "gate_id": "g-captcha",
+        "challenge_proof": {
+          "challenge_id": "chg_01HXXXX",
+          "issued_by": "did:web:captcha.example",
+          "proof": "base64url:..."
+        }
+      }
+    ]
+  }
+}
+```
+
+reducer MUST：
+
+1. 加载当前 `cx.space.join_policy` cell value；
+2. 按 `combinator` 选取需满足的 gate 子集；
+3. 对每个引用的 gate 调用对应 verifier（claim issuer revocation check、challenge provider signature check、parent membership snapshot 查询）；
+4. `cooldown` gate 独立评估，命中即拒绝（无视 `combinator`）；
+5. 全部通过则接受 `membership=join`；任一失败 `failed_precondition`，附带 `reason_code` 指明哪个 gate fail 与原因。
+
+reducer MUST NOT 在自动解析路径上隐式生成 application / review Move——此路径绕过申请-审核状态机。
+
+### 3.6 申请-审核路径
+
+适用条件：`default_join_rule ∈ {knock, knock_restricted}` 且至少一个 gate `auto_resolve=false`。
+
+#### 3.6.1 阶段
+
+| 阶段 | Move | 写入方 |
+| --- | --- | --- |
+| 1. 敲门 | `cx.member.state{membership=knock}` | applicant |
+| 2. 提交申请 | `cx.member.application` | applicant |
+| 3. 审核决策 | `cx.member.application.review` | reviewer（持 `review_capability`） |
+| 4. 接受邀请（隐式） | `cx.invite.create` + `cx.invite.accept` | reviewer 与 applicant |
+
+reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOULD 把它们打包到同一 Anchor request 以减少 round trip。
+
+#### 3.6.2 `cx.member.application`
+
+durable Event，schema id `cx.schema.member.application.v1`。
+
+| 字段 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `space_id` | yes | `id:space` | 申请目标 Space。 |
+| `applicant_did` | yes | `did` | 等于 envelope `actor`。 |
+| `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `cx.member.state{knock}` event id。 |
+| `policy_version` | yes | `sha256` | 提交时 `cx.space.join_policy` cell value 的 canonical hash；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
+| `answers` | conditional | `array<Answer>` | 任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
+| `gate_proofs` | conditional | `array<GateProof>` | 任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
+| `applicant_note` | no | `string` | 1..2000 chars 自由文本备注。 |
+| `encryption_envelope` | conditional | `object` | E2EE Space 必填；见 §3.7。 |
+
+`Answer` 形态：`{question_id, value: string|string[]|boolean}`；reducer 仅做存在性 / shape 校验，语义评估留给 reviewer。
+
+#### 3.6.3 `cx.member.application.review`
+
+durable Event，需要 `review_capability`。
+
+| 字段 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `space_id` | yes | `id:space` |  |
+| `application_ref` | yes | `event_ref` | 指向 §3.6.2 的 application event。 |
+| `decision` | yes | `enum(accept, reject, request_changes)` | `request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
+| `reason_code` | yes | `string` | 稳定原因码：`ok` / `incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `other`。 |
+| `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
+| `evidence_refs` | no | `event_ref[]` | 评审依据的其它 event（如 `cx.audit.*` 风险记录）。 |
+| `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability` 的 grant id 与当时 frontier hash；reducer 必须在写入时再校验一次。 |
+
+`reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。
+
+#### 3.6.4 `cx.member.application.cancel`
+
+applicant 可主动撤回；写入 `decision=canceled`，不计 cooldown。
+
+#### 3.6.5 接受后的 invite
+
+application 进入 `accepted` 状态后：
+
+1. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `cx.member.application.review{accept}` event；
+2. applicant 提交 `cx.invite.accept`；
+3. reducer 在写入 `cx.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、reviewer 在当前 frontier 仍持有 `review_capability`、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖。
+
+校验失败 `failed_precondition`，`reason_code="join_authorisation_invalid"`。
+
+### 3.7 加密与隐私
+
+#### 3.7.1 非 E2EE Space
+
+`cx.member.application` payload 在 wire 上保持明文，但 Sync Service / Principal Server MUST：
+
+- 仅向 reviewer set（`review_capability` 持有方）与 applicant 自身投影 application 正文；
+- 对其它 Space 成员投影占位（`{application_pending: true}`）；
+- 对每次 reviewer 读取写一条 `cx.audit.accessed`（payload 包含 application event id 与读取者 DID）。
+
+`applicant_visibility=members_after_join` 仅在 application 进入 `accepted` 且对应 `cx.invite.accept` 已落入 frontier 后，才允许向 Space 成员投影正文。
+
+#### 3.7.2 E2EE Space（`encryption_profile=mls_rfc9420`）
+
+Space 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不能直接走 Space MLS group。MUST 使用以下机制之一：
+
+1. **Reviewer Sub-Group MLS**：Space 维护一个独立 MLS group `cx:mls_group:<space_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `cx.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
+2. **Envelope Encryption to Reviewer Devices**：当 reviewer 数小于阈值（默认 `<=5`）或 sub-group 维护成本不可接受时，applicant 可使用 `encryption_envelope` 字段对 reviewer 当前已 published `cx.mls.keypackage` 的接收方公钥逐一封装：
+
+```json
+"encryption_envelope": {
+  "scheme": "hpke-base-x25519-aes256gcm",
+  "ciphertext": "base64url:...",
+  "recipients": [
+    {"reviewer_did": "did:webvh:alice", "device_id": "cx:device:...", "wrapped_key": "base64url:..."},
+    {"reviewer_did": "did:webvh:carol", "device_id": "cx:device:...", "wrapped_key": "base64url:..."}
+  ]
+}
+```
+
+reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applicant 重提。
+
+申请正文 MUST NOT 进入 `cx.member.state{knock}` Move（该 Move 公开），所有自由文本仅出现在受加密保护的 `cx.member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Contrix 通过结构上禁止 knock Move 携带正文规避该缺陷。
+
+### 3.8 Membership 状态机扩展
+
+复用既有 `cx.member.state` 枚举（`invite / join / leave / knock / ban`），不引入新值。状态转换补充：
+
+```text
+        knock ──submit cx.member.application──▶ knock (with application_ref projection)
+            │
+            ├─ review.accept ──▶ invite (via cx.invite.create) ──▶ join (via cx.invite.accept)
+            ├─ review.reject ──▶ leave  (with rejected_at + cooldown_until projection)
+            ├─ application.cancel ──▶ leave
+            └─ application_ttl 到期 ──▶ leave (reducer 自动转换，rejected_reason="ttl_expired")
+```
+
+派生 view `cx.view.space.applications.v1`（[`./views.md`](./views.md)）SHOULD 提供：
+
+- `pending`: 未决申请；
+- `awaiting_review`: 已提交但 reviewer 未决；
+- `accepted_pending_invite`: 审核通过但 `cx.invite.create` 尚未签发；
+- `recently_decided`: 7 日内的 accept/reject 决策。
+
+### 3.9 联邦语义
+
+跨域加入流程在 [`../sync/federation.md` §5.2](../sync/federation.md) 详述。本节仅说明 Join Policy 引入的不变量：
+
+- `cx.member.application` 与 `cx.member.application.review` 都是 durable Event，参与正常 federation push / pull；
+- `policy_version` 字段使 reviewer 与 applicant 显式承认评估时所用的 policy 快照，避免 reviewer 在不同 policy frontier 下决策导致争议；
+- E2EE 场景下 reviewer sub-group MLS commit 通过既有 `cx.mls.*` 联邦机制传播；envelope encryption 由 origin Principal Server 投递到目标 reviewer 的 device list（参见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md)）。
+- `parent_membership` gate 评估需要其它 Space 的成员 snapshot；origin reducer MAY 通过 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的 verified snapshot 接口或直接 backfill；snapshot 不可达时 fail closed。
+
+### 3.10 Policy Server 运行时挑战
+
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `cx.member.state{join}` / `cx.member.application` Move 调用 `/contrix/v1/check`。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+
+```json
+{
+  "obligations": [
+    {
+      "type": "challenge",
+      "challenge_id": "chg_01HXXXX",
+      "kinds": ["captcha", "pow"],
+      "issuer": "did:web:captcha.example",
+      "endpoint": "https://captcha.example/challenge/01HXXXX",
+      "max_proof_age": "PT5M",
+      "must_satisfy_before_resubmit": true
+    }
+  ]
+}
+```
+
+applicant 完成挑战后，重新提交 join / application Move，在 `gate_proofs[]` 中追加 `{gate_id: "_runtime", challenge_proof: {...}}`（保留 `gate_id="_runtime"` 作为运行时挑战的占位）。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 challenge_proof 的重提。
+
+`obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `cx.message.create`）若使用 `challenge` 必须遵循同一 envelope。
+
+### 3.11 反滥用约束
+
+| 控制项 | 默认 | 强制要求 |
+| --- | --- | --- |
+| `application_ttl` | 168h | reducer 到期自动转 `rejected_reason="ttl_expired"`；不计 cooldown。 |
+| `cooldown_after_reject` | 72h | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `cx.member.application`。`request_changes` 不触发 cooldown。 |
+| `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
+| Quota constraint | 由 Space `cx.space.policy_components` 声明 | 推荐对 `cx.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
+| Policy Server `challenge` | 高风险 Space 推荐 | Sync Service 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
+
+### 3.12 与 MIMI 的映射
+
+[`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 MUST 由 facade 在 Contrix `cx.component.space.join_policy.v1` 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Contrix 专属 component 标记 `application/vnd.contrix.component+json`。MIMI facade 接收外部 join 请求时 MUST 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Contrix 原生客户端完成。
+
+### 3.13 完整示例
+
+公开知识社群，凭证持有者直通、否则走 5 道问卷 + CAPTCHA：
+
+```json
+{
+  "kind": "cx.space.join_policy",
+  "payload": {
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "value": {
+      "combinator": "any",
+      "gates": [
+        {
+          "gate_id": "g-vc",
+          "kind": "claim_required",
+          "auto_resolve": true,
+          "requires_claims": [
+            {"claim_type": "membership", "issuer": "did:web:openresearch.org", "status": "active"}
+          ]
+        },
+        {
+          "gate_id": "g-form",
+          "kind": "application_form",
+          "auto_resolve": false,
+          "questions": [
+            {"question_id": "q1", "answer_kind": "text", "required": true, "min_chars": 50, "max_chars": 500,
+             "prompt_canonical": "Briefly describe your interest in this community."},
+            {"question_id": "q2", "answer_kind": "single_choice", "required": true,
+             "choices": [{"id": "yes", "label": "Yes"}, {"id": "no", "label": "No"}],
+             "auto_reject_if_choice_in": ["no"],
+             "prompt_canonical": "Do you agree to follow the community code of conduct?"}
+          ]
+        },
+        {
+          "gate_id": "g-captcha",
+          "kind": "challenge_response",
+          "auto_resolve": true,
+          "provider_did": "did:web:captcha.example",
+          "challenge_kinds": ["captcha"],
+          "max_proof_age": "PT5M"
+        }
+      ],
+      "review_capability": "cx.space.join.review",
+      "reviewer_quorum": "any",
+      "application_ttl": "168h",
+      "cooldown_after_reject": "168h",
+      "max_open_applications_per_actor": 1,
+      "applicant_visibility": "reviewer_only",
+      "directory_hint": {
+        "summary": "Members hold an OpenResearch credential, OR complete a brief application + CAPTCHA.",
+        "expected_review_time": "PT24H",
+        "requires_human_review": true,
+        "challenge_kinds_displayed": ["captcha"]
+      }
+    }
+  }
+}
+```
+
+对应 `cx.space.join_rule.value="knock_restricted"`：凭 VC 自动通过的走自动解析路径，其余走申请-审核路径。
+
+## 4. Place
+
+### 4.1 概念
 
 Place 是 Space 内部的**结构性分组对象**——看板、列、泳道、calendar bucket、document outline group 等都是 Place。Place **永远不是**安全边界：它没有自己的 membership、policy、history visibility、E2EE group 或 federation policy；授权解析透明回退到所属 Space。
 
 看板（`kind=board`）、列（`kind=list`）是 v1 标准 kind；profile 可注册新 kind（如 `swimlane`、`calendar_bucket`、`page_group`）。
 
-### 3.2 Schema id 与字段
+### 4.2 Schema id 与字段
 
 Schema id: `cx.schema.place.v1`
 
@@ -128,7 +516,7 @@ Schema id: `cx.schema.place.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-### 3.3 行为规则
+### 4.3 行为规则
 
 - **授权**：Place 自身不持有 capability、membership 或 policy。任何对 Place 的写入（`cx.place.create` / `cx.place.update` / `cx.place.archive` / `cx.place.tombstone` / `cx.place.parent`）的授权检查 MUST 落到所属 `space_id` 的 Space membership + capability。Place 上 `cx.flow.move` 类操作的授权检查仍由 Space 决定。
 - **同步与联邦**：Place 跟随所属 Space 同步；它**不**形成独立 federation transaction 单位。Place 的 Move 与 Anchor 共享 Space 的 anchor pipeline。
@@ -137,7 +525,7 @@ Schema id: `cx.schema.place.v1`
 - **嵌套**：Place 之间可以嵌套（看板里的列），通过 `parent_ref` 表达；`cx.place.parent` event 是该字段的 reducer-input。Place 之间嵌套**不得跨 Space**——`parent_ref` 引用的 Place 必须 `space_id` 相同。
 - **位置**：Flow 在 Place 中的位置由 active `contains` Relation + Flow position event（`cx.flow.move` / `cx.flow.reorder`）维护，不由 Flow canonical object 自带 `place_id` 表达。`cx.flow.move` payload 使用 `target_place_id` 字段。
 
-### 3.4 Lifecycle 与 Cascade 规则
+### 4.4 Lifecycle 与 Cascade 规则
 
 **Archive Place**：
 
@@ -157,7 +545,7 @@ Schema id: `cx.schema.place.v1`
 - Tombstone 一个引用了**已 tombstone Place** 的 child（即 `parent_ref` 指向 dangling Place）：reducer SHOULD 接受（这是依赖清理路径），但 MUST 同时把该 child 标记为 `parent_ref_dangling=true` 投影 hint，让 UI 显示孤立状态。
 - Tombstone 后 Place 元数据本身保留（用于 audit），但 `title` / `summary` 等用户内容 SHOULD 通过 redaction Move 清理。
 
-### 3.5 `cx.place.parent` cas-register basis
+### 4.5 `cx.place.parent` cas-register basis
 
 `cx.place.parent` 写入 cell `cx:cell:cx.component.place.parent.v1:<place_id>`（`cas-register, bottom=reject`）。Move 的 precondition `head_eq` 表达期望的 pre-state：
 
@@ -169,9 +557,9 @@ Schema id: `cx.schema.place.v1`
 
 Conformance fixture `move-anchor-lattice-fixture.json` SHOULD 覆盖三种场景：first-set、change-from-A-to-B、并发 reparent。
 
-### 3.6 `cx.flow.move` / `cx.flow.reorder` cas-register basis
+### 4.6 `cx.flow.move` / `cx.flow.reorder` cas-register basis
 
-为与 §3.5 的 lattice 模型对称，Flow 在 Board 内的位置由 cas-register cell 而**不是** reducer-side dedup tuple 决定。一个 Flow 在某个 Board 内的 active 位置占用一个 cell：
+为与 §4.5 的 lattice 模型对称，Flow 在 Board 内的位置由 cas-register cell 而**不是** reducer-side dedup tuple 决定。一个 Flow 在某个 Board 内的 active 位置占用一个 cell：
 
 ```text
 cell_id     := cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>
@@ -202,7 +590,7 @@ value shape := { "list_place_id": id:place, "rank": string } | null
 
 Conformance fixture `move-anchor-lattice-fixture.json` SHOULD 覆盖：first-move-into-board、cross-list-move、in-list-reorder、并发 move-to-different-list（产生 ⊥）、cross-board-independent-cells。
 
-### 3.7 Board / List 示例
+### 4.7 Board / List 示例
 
 Board Place canonical 对象：
 
@@ -240,7 +628,7 @@ List Place canonical 对象（在父 Board 内的位置由 `parent_ref` + `rank`
 }
 ```
 
-### 3.8 推荐字段（业务 hint）
+### 4.8 推荐字段（业务 hint）
 
 Board Place（`kind=board`）：
 
@@ -256,7 +644,7 @@ List Place（`kind=list`）：
 
 业务工作流 profile（看板类型、泳道策略、WIP 规则等）SHOULD 进入 `fields` 或由 Place schema 声明，不进入顶层字段。
 
-### 3.9 常见关系
+### 4.9 常见关系
 
 - `Board Place --contains--> List Place`
 - `Board Place --has_default_view--> view`
@@ -267,7 +655,7 @@ List Place（`kind=list`）：
 
 `contains` 的基数与跨 Space 互斥规则见 [relation.md](./relation.md) §3。
 
-## 4. Space-Place-Flow 关系示意
+## 5. Space-Place-Flow 关系示意
 
 ```mermaid
 flowchart TB
@@ -293,7 +681,7 @@ flowchart TB
 - `cx:place:` → 结构容器（看板 / 列 / 泳道 / calendar bucket / page group ...），永远透明回退到 `space_id`，没有自己的 membership / policy / E2EE。
 - `cx:flow:` → 协作主对象，永远在某 `space_id` 内；位置由 Place + `cx.flow.move` cas-register cell 决定。
 
-### 4.1 Place 嵌套 vs Space-Space 层级
+### 5.1 Place 嵌套 vs Space-Space 层级
 
 Place 嵌套（板里有列）和 Space-Space 层级（child Space）是两条**不混用**的层级路径：Place 嵌套通过 `parent_ref` 表达，必须落在同一 Space；Space-Space 层级通过 `cx.space.child` / `cx.space.parent` 表达，**不级联**授权 / membership / E2EE。
 
@@ -320,20 +708,20 @@ flowchart TB
 
 跨 Space 引用（如 Flow 引用另一 Space 的 Flow）走 Relation；结构性 Relation `contains` / `belongs_to` MUST NOT 跨 Space。详见 [`relation.md`](./relation.md) §3、[`space-hierarchy.md`](./space-hierarchy.md)。
 
-## 5. 通用对象 ID 规则
+## 6. 通用对象 ID 规则
 
 完整 ID 列表与 ID kind registry 见 [common-fields.md](./common-fields.md) §6。Space / Place 相关：
 
 - `cx:space:<uuid>`
 - `cx:place:<uuid>`
 
-## 6. Space-Space 层级（摘要）
+## 7. Space-Space 层级（摘要）
 
 Space MAY 通过 `cx.space.child` / `cx.space.parent` 形成 Space-Space 层级。每个 child 仍是独立边界，membership / capability / history visibility / schema / policy / encryption key 默认不级联到 child；任何继承都必须由 child Space 显式声明 `cx.space.inheritance_policy`，且只能收窄。
 
 完整规则见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
-## 7. 规范性引用
+## 8. 规范性引用
 
 - 公共字段：[common-fields.md](./common-fields.md)。
 - Flow / Message / track 语义：[flow-and-message.md](./flow-and-message.md)。

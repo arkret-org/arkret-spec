@@ -418,7 +418,7 @@ receipt / read marker 的具体规则见 [`../discovery/read-receipts.md`](../di
 ## 9. 规范性引用
 
 - 公共字段：[common-fields.md](./common-fields.md)。
-- Place / Flow 位置语义：[space-and-place.md](./space-and-place.md) §3.6。
+- Place / Flow 位置语义：[space-and-place.md](./space-and-place.md) §4.6。
 - Relation 基数与跨 Space：[relation.md](./relation.md)。
 - Content Block：[content-types.md](./content-types.md)。
 - Read receipts / read markers：[`../discovery/read-receipts.md`](../discovery/read-receipts.md)。

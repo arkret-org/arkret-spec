@@ -167,6 +167,61 @@ Content-Type: application/json
 `obligations` 可用于返回风控动作（例如 `rate_limit`、`challenge`、`review_hold`、`drop_attachment`）。  
 `next_retry_at` SHOULD 仅在限流/退避路径返回。
 
+#### 4.1 Obligation `challenge` Wire Schema
+
+`type=challenge` 是 join、message、media 路径上通用的运行时挑战 obligation。客户端按下表组装 `gate_proofs[]` 或 envelope-级 challenge proof 后重提原始 Move：
+
+| 字段 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `type` | yes | `"challenge"` |  |
+| `challenge_id` | yes | `string` | 由 issuer 生成的 unique id；客户端在重提 Move 时回填到 `challenge_proof.challenge_id`。 |
+| `kinds` | yes | `enum(captcha, pow, attested_human, idp_oidc)[]` | 客户端 MAY 任选其一完成。 |
+| `issuer` | yes | `did` | 颁发挑战的服务 DID；客户端 MUST 校验 proof signature 来自该 DID。 |
+| `endpoint` | yes | `url` | 客户端获取挑战物料 / 提交解答的 HTTPS endpoint。 |
+| `max_proof_age` | yes | `duration` | proof 自签发起的有效期；reducer 拒绝过期 proof。 |
+| `must_satisfy_before_resubmit` | no | `boolean` | 默认 `true`。`false` 时客户端可跳过 challenge 一次（用于 graceful degradation 实验）。 |
+| `bound_to` | no | `object` | 见下；显式绑定 challenge 到具体 Move / actor / device，防止 proof 复用。 |
+
+`bound_to` 子字段：
+
+```json
+{
+  "actor": "did:webvh:bob",
+  "action": "cx.member.application",
+  "request_canonical_hash": "sha256:...",
+  "device_id": "cx:device:..."
+}
+```
+
+provider 颁发的 challenge proof 形态：
+
+```json
+{
+  "challenge_id": "chg_01HXXXX",
+  "issued_by": "did:web:captcha.example",
+  "issued_at": "2026-04-26T00:00:00Z",
+  "expires_at": "2026-04-26T00:05:00Z",
+  "bound_to": { "...": "echo of obligation.bound_to" },
+  "proof_method": "captcha-v1 | pow-sha256 | webauthn-attestation | oidc-id-token",
+  "proof_value": "base64url:...",
+  "signature": {
+    "kid": "did:web:captcha.example#key-1",
+    "sig": "base64url:..."
+  }
+}
+```
+
+reducer 校验顺序：
+
+1. provider signature 有效，`kid` 与 obligation `issuer` 匹配；
+2. `expires_at > now`；
+3. `bound_to.actor` 等于 Move envelope `actor`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_hash` 等于本次重提 Move 的 canonical hash；
+4. `challenge_id` 在 reducer 的 nonce 缓存中尚未消费；写入成功后入缓存（最少缓存到 `expires_at`）。
+
+任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。
+
+Join 路径上 `challenge` proof 进入 `cx.member.state{join}.gate_proofs[]` 或 `cx.member.application.gate_proofs[]`，使用占位 `gate_id="_runtime"`，与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../models/space-and-place.md` §3.10](../models/space-and-place.md)。
+
 ## 5. Signature and Replay Protection
 
 Policy decision 签名输入 MUST 包含：

@@ -301,14 +301,29 @@ Host: server-alpha.com
 6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
 7. 若 Space 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
 
-### 5.2 Knock 流程
+### 5.2 Knock / Restricted 跨域加入流程
 
-Bob 也可以主动申请加入：
+Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join_rule` 与 `cx.space.join_policy`（见 [`../models/space-and-place.md` §3](../models/space-and-place.md)）。
 
-1. Bob 发现 Space S 的元数据（通过公开的 Space Directory 或链接）
-2. Bob 提交 `cx.member.state{membership="knock"}` Move / compatible Event，推送给 Space S 的 shared anchorer、sync service 或管理员 Principal Server
-3. 接收方验证 knock 的签名有效后，转发给 Space 管理员
-4. 管理员审批后提交 `cx.invite.create` + Bob 提交 `cx.invite.accept`
+**自动解析路径**（`join_rule ∈ {restricted, knock_restricted}`，且 Bob 拟使用的 gate 子集均 `auto_resolve=true`）：
+
+1. Bob 发现 Space S 的元数据（通过公开的 Space Directory、链接或 `directory_hint`）
+2. Bob 直接提交 `cx.member.state{membership="join", gate_proofs=[...]}` Move，附带 claim presentation / challenge proof
+3. Bob 的 Principal Server 推送至 Space S 的 shared anchorer 或参与方 Principal Server
+4. 各参与方 reducer 加载当前 `cx.component.space.join_policy.v1` cell value，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
+5. 若 Space 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
+
+**申请-审核路径**（`join_rule ∈ {knock, knock_restricted}`，且至少一个 gate `auto_resolve=false`）：
+
+1. Bob 发现 Space S 的元数据
+2. Bob 提交 `cx.member.state{membership="knock"}` Move（不携带正文）以及 `cx.member.application` Move（携带 answers / claim presentation / challenge proof，E2EE Space 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）
+3. 两条 Move 推送到 Space S 的 shared anchorer 或管理员 Principal Server；接收方验证签名后扇出至 reviewer 的设备列表
+4. 持有 `cx.space.join.review` capability 的 reviewer 评估申请，提交 `cx.member.application.review{decision=accept|reject|request_changes}` Move；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
+5. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` 引用对应 review accept Move
+6. Bob 提交 `cx.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
+7. 若 Space 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
+
+> 申请正文 MUST NOT 出现在公开可见的 `cx.member.state{knock}` payload 中（参见 [`../models/space-and-place.md` §3.7](../models/space-and-place.md)）；只能进入受加密保护的 `cx.member.application`。这避免 Matrix `m.room.member{knock}.reason` 因默认可见而成为外部 spam 通道的设计缺陷。
 
 ## 6. 联邦级服务发现
 

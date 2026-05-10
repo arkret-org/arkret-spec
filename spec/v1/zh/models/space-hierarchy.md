@@ -8,7 +8,7 @@ Contrix 支持 Space 之间形成层级或图状组织，用于表达组织、�
 
 本文件讨论 **Space-Space 层级**：Space 之间通过 `cx.space.child` / `cx.space.parent` 形成的父子关系。每个 Space 都是 security/sync/auth/E2EE 硬边界；层级只表示导航和可发现性，不表示自动权限继承。
 
-**Place 层级不在本文范围内**。Place（Board / List / 等结构容器，`cx:place:`）是 Space 内部的轻量分组对象，永远不形成自己的 boundary。Place 之间嵌套（Board 包含 List）通过 Place 自身的 `parent_ref` + `cx.place.parent` reducer-input 表达，与 Space-Space 层级完全独立——见 [`space-and-place.md` §3](./space-and-place.md)。Place 嵌套必须在同一 Space 内；跨 Space 的引用走 Relation。
+**Place 层级不在本文范围内**。Place（Board / List / 等结构容器，`cx:place:`）是 Space 内部的轻量分组对象，永远不形成自己的 boundary。Place 之间嵌套（Board 包含 List）通过 Place 自身的 `parent_ref` + `cx.place.parent` reducer-input 表达，与 Space-Space 层级完全独立——见 [`space-and-place.md` §4](./space-and-place.md)。Place 嵌套必须在同一 Space 内；跨 Space 的引用走 Relation。
 
 ## 2. 设计原则
 

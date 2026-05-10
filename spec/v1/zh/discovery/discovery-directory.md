@@ -279,9 +279,19 @@ OPRF 选择：
 
 支持旧 reachability proof 的实现 MUST 在 `server/describe.discovery` 中标记 `legacy_reachability_proof=true`，并 MUST 在 v1 conformance 报告中标记为 `pending_psi_migration`；core conformance 不再以 reachability proof 作为输出形态。
 
-## 7. Directory Service
+## 7. Directory Service Role
 
-Directory Service 是派生索引服务，不是真相源。它 MAY index:
+Directory Service 是 Contrix 的**发现入口层**：让任意 subject 在不预先知道精确 id / alias / invite 的前提下，从其 trust 范围内**已 opt-in 暴露**的资源中找到目标，并取得**足以独立发起下一步 action（resolve / preview / knock / join / invite / verify / contact）的最小可验证元数据**。
+
+它的职责面 normative 限定为三件事，超出以下范围的能力 MUST NOT 被实现为 Directory 的内置职责：
+
+1. **Ingest**：按 §8 接入资源（Space / Organization / Actor / Applet / Handle）的签名 discovery state，建立**可重建、可替换、可撤销**的索引。
+2. **Query**：向 subject 提供 search / resolve（§9），返回最小可验证元数据 + `source_refs`，让客户端能独立回真相源验签。
+3. **Filter & 防枚举**：执行 §3 / §11 的 discoverability 过滤、bucket 聚合、blinded `not_found`，杜绝侧信道。
+
+### 7.1 索引内容
+
+Directory MAY index：
 
 - public / listed Space preview metadata
 - organization public profile
@@ -289,48 +299,303 @@ Directory Service 是派生索引服务，不是真相源。它 MAY index:
 - applet protocol metadata
 - verified handle records that are intended to be public
 
-Directory Service MUST:
+Directory MUST NOT 索引任何**未通过 §8 ingest protocol opt-in 的**资源；MUST NOT 通过爬取 DID 命名空间、扫描 well-known endpoint、或被动嗅探 federation traffic 自行发现资源。
 
-- expose its service DID and feature profile
+### 7.2 Directory 不是
+
+| 不是 | 真正责任方 |
+| --- | --- |
+| 真相源 | 资源各自的 Principal Server 上的签名 state event |
+| 授权决策点 | Space policy / Organization governance / capability evaluator |
+| Join 执行点 | host Principal Server 按 `join_rule` + Space policy |
+| 身份解析器 | DID resolver / identity registry / witness |
+| 消息或历史镜像 | Events API / Sync stream |
+| Service topology 权威 | DID Document `service` entry + `cx.organization.service_binding` |
+| 全网爬虫 | 不存在；ingest 仅按 §8 双向 opt-in |
+
+特别地：**Directory 不执行 join、不签发 invite token、不签发 capability grant**。Directory 的 join-side 责任到"产出 `space_id + via_services` 让客户端能向正确的 Principal Server 发起 `cx.space.join`"为止。能否实际加入由 Space 的 `join_rule` 与 policy 决定（见 §3.0 三个独立 gate）。
+
+### 7.3 不变量（normative）
+
+任何符合 v1 的 Directory 实现 MUST 满足：
+
+1. **Rebuildable**：丢失全部本地索引后，Directory 必须能仅凭 `directory_services` 列出本 DID 的资源 + ingest protocol 重建索引内容。Directory 不得持有任何不可从真相源恢复的"权威"数据。
+2. **Pluralizable**：同一资源 opt-in 多家 Directory 时，针对同一 `(resource_id, source_refs frontier, policy_revision)` 的查询结果 MUST 在 §9.1 normative 字段上一致；不一致 MUST 标记为 `stale=true` 或 `divergent=true`。
+3. **Freshness-tagged**：每条返回结果 MUST 携带 `as_of`、`source_refs`、`policy_revision`；TTL 过期未续约的 entry MUST 标记 `stale=true` 或被移除（见 §8.6）。
+4. **Withdrawable**：资源 governance 通过 §8.7 撤销 opt-in 后，Directory MUST 在 ≤ 1h 内停止披露该资源。
+5. **Plaintext-free**：Directory MUST NOT 持有或转发 Space 内 plaintext content、E2EE 密文 payload、私 persona DID、pairwise DID 或 governance 密钥材料。
+6. **No-shadow-grant**：Directory MUST NOT 签发 invite token、capability grant、session credential 或任何能绕过 Space / Organization policy 的认证材料。
+
+### 7.4 行为契约
+
+Directory Service MUST：
+
+- expose its service DID and feature profile（`cx.directory.describe`，含 §8.9 ingest 字段）
+- accept ingest only via §8 with verified governance signature and bidirectional opt-in
 - apply authorization filtering before returning each result
 - return stable pagination cursors
-- indicate result freshness and source refs
+- indicate result freshness（§9.1 字段）
 - avoid leaking existence through distinct errors for hidden resources
 
-Directory Service MUST NOT:
+Directory Service MUST NOT：
 
 - list `invite_only` or `secret` resources to unauthorized subjects
 - expose full member lists unless explicitly allowed
 - expose private handles, pairwise DID, disclosure policy or credential contents
 - rank hidden resources in a way that reveals their existence
+- ingest resources whose signed discovery state does not list this Directory's DID
+- alter, re-sign, or substitute discovery state on behalf of resources
+- accept indexed content forwarded from another Directory as authoritative
 
-## 8. Service Surface
+## 8. Discovery Ingest Protocol
 
-Recommended operations:
+Directory 不是真相源（§7）。Directory 持有的索引内容 MUST 来自资源自身签名的 discovery state，并通过本节定义的 ingest protocol 接入。本节是 v1 公共发现互操作的契约层；任何符合 v1 的 Directory MUST 至少实现 §8.2 中的一种 ingest 模式。
+
+### 8.1 双向 opt-in
+
+ingest 是**双向 opt-in**，缺一不可：
+
+| 方向 | 资源端表达 | Directory 端表达 |
+| --- | --- | --- |
+| 资源 → Directory | 在 `cx.{space,organization,actor,applet,handle}.discovery.directory_services` 列出本 Directory 的 service DID + governance key 签名整份 payload | — |
+| Directory → 资源 | — | 在 `cx.directory.describe.accept_policy_kind` 中声明可接受的资源类别、trust root、配额（§8.9） |
+
+Directory 接受 ingest 的前置条件：
+
+- 资源签名声明中**未列出**本 Directory DID → MUST 拒绝并返回 `directory_not_authorized`。
+- 资源不在 Directory `accept_policy` 范围内 → MUST 拒绝并返回 `accept_policy_denied`。
+- 资源端 governance key 在 ingest 时刻不在 DID document 当前 epoch → MUST 拒绝并返回 `governance_key_invalid`。
+
+### 8.2 两种 ingest 模式
+
+Directory MUST 支持 **push (announce)** 与 **pull (subscribe)** 两种 ingest 模式之一，且 MUST 在 `cx.directory.describe.ingest_modes` 中显式声明本实例支持的模式。
+
+| 模式 | 触发方 | 适用场景 |
+| --- | --- | --- |
+| push（announce） | 资源 Principal Server 主动提交签名 discovery state | 公开 / 社区 directory；资源希望尽快上线或撤销 |
+| pull（subscribe） | Directory 按已知资源 DID 周期性拉取最新签名 discovery state | 高安全部署、白名单 directory、与 federation 复用 |
+
+资源端 MAY 任选支持的一种使用；Directory MAY 同时支持两种以提高可用性。两模式产生的索引条目 normative 等价。
+
+### 8.3 Push 模式：`cx.directory.announce`
+
+**Endpoint**：`POST /api/v1/directory/announce`
+
+**认证**：
+
+- Transport 层：HTTP Message Signature（RFC 9421）由资源所在 Principal Server 的 service DID 签发，绑定 `Source-Service-DID` header。
+- Payload 层：`discovery_state.proof.detached_jws` 由资源 governance key（按资源 DID document 解析）签发，与 `cx.organization.discovery` / `cx.space.discovery` 的 effective signer 一致。
+
+**请求字段**：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `resource_kind` | `enum(space, organization, actor, applet, handle)` | required | 资源类别。 |
+| `resource_id` | `id \| did \| handle` | required | 资源主键：Space 用 `cx:space:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
+| `discovery_state` | `object` | required | 完整签名 `cx.{kind}.discovery` payload（含 `proof`）。MUST 与真相源 byte-for-byte 一致。 |
+| `source_refs` | `id[]` | required | 真相源 event id 列表，至少包含产生当前 effective discovery state 的 anchor / state event id。 |
+| `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
+| `principal_server_did` | `did` | required | 当前资源真相源所在的 Principal Server service DID（用于 Directory 在需要时 pull 验证）。 |
+| `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
+| `supersedes_announce_id` | `id` | optional | 上一次 announce id；用于幂等替换与 audit 链接。 |
+
+**响应**：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `announce_id` | `id` | 本次 ingest 记录 id，形如 `cx:announce:01J...` ULID。 |
+| `indexed_at` | `timestamp` | Directory 完成索引的服务器时间。 |
+| `effective_ttl_seconds` | `int` | Directory 实际授予的 TTL。 |
+| `next_revalidation_after` | `timestamp` | 下一次 re-announce 或 pull-refresh 的最早时间。 |
+| `warnings` | `string[]?` | 非阻塞警告，例如 `truncated_member_count`、`policy_revision_drift`。 |
+
+**典型错误码**：`directory_not_authorized`、`accept_policy_denied`、`signature_invalid`、`signature_stale`、`source_refs_unverifiable`、`governance_key_invalid`、`ttl_out_of_range`、`rate_limited`、`takedown_in_force`。
+
+请求示例（非完整 schema）：
+
+```json
+{
+  "resource_kind": "organization",
+  "resource_id": "did:web:acme.example",
+  "principal_server_did": "did:web:principal.acme.example",
+  "as_of": "2026-05-10T08:00:00Z",
+  "ttl_seconds": 86400,
+  "source_refs": [
+    "cx:event:01JTV0KQ7K5ZP4VN6C9WEZK2X1"
+  ],
+  "discovery_state": {
+    "kind": "cx.organization.discovery",
+    "organization_did": "did:web:acme.example",
+    "discoverability": "public",
+    "directory_services": [
+      "did:web:directory.example",
+      "did:web:directory.acme.example"
+    ],
+    "profile_visibility": { "...": "..." },
+    "proof": {
+      "kind": "detached_jws",
+      "verification_method": "did:web:acme.example#governance-key-1",
+      "jws": "..."
+    }
+  }
+}
+```
+
+### 8.4 Pull 模式：`cx.directory.subscribe`
+
+Pull 模式复用资源 Principal Server 既有的 `cx.events.query`：
+
+```
+GET /api/v1/events
+  ?subject={resource_id}
+  &kind=cx.{space,organization,actor,applet}.discovery
+  &state_only=true
+  &after_revision={last_known_revision}
+```
+
+Directory 拉取流程：
+
+1. 按本地 trust root / 已配对资源列表，定期向资源 Principal Server 发 state-only query。
+2. Principal Server 返回最新 effective discovery state（含 `proof`）。
+3. Directory 按 §8.5 验签后写入或更新本地索引。
+
+可选的订阅辅助：Directory MAY 调用 `cx.directory.subscribe`（§9）让资源 Principal Server 在 discovery state 变更时主动 webhook 通知（fan-out 优化），但**协议级 freshness 仍以 §8.6 为准**——通知缺失或迟到不得使 stale 条目复活。
+
+### 8.5 验签与接受规则
+
+Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
+
+1. **Transport layer**：验证 HTTP Message Signature（push）或 service binding + TLS（pull）。
+2. **Discovery proof**：验证 `discovery_state.proof.detached_jws` 由资源 governance key 有效签发，签发时间在 key 当前 epoch 内（按 DID document key history）。
+3. **Directory authorization**：确认 `discovery_state.directory_services` 数组包含本 Directory 的 service DID。
+4. **Source refs sanity**：MAY 通过 pull 抽查 `source_refs` 中至少一个 anchor 在资源 Principal Server 上可解析、frontier 一致。Directory MUST 对**首次 ingest** 的资源至少抽查一次。
+5. **Accept policy**：对照本地 `accept_policy` 检查资源 DID method、trust root、配额、abuse 黑名单。
+
+任一步失败 MUST 拒绝并返回对应错误码；Directory MUST NOT 部分接受或"先索引后审核"。
+
+### 8.6 Freshness、TTL 与续约
+
+| 参数 | 默认 | 上限 | 说明 |
+| --- | --- | --- | --- |
+| `default_ttl_seconds` | `86400`（24h） | — | Directory describe 中声明 |
+| `max_ttl_seconds` | `604800`（7d） | `2592000`（30d） | TTL 不得超过此值 |
+| `revalidation_grace_seconds` | `3600`（1h） | — | TTL 到期后允许的宽限期 |
+
+规则：
+
+- 资源 MUST 在 `next_revalidation_after` 之前发起 re-announce 或允许 Directory pull-refresh。
+- TTL + grace 过期后未续约的 entry MUST 在查询结果中标记 `stale=true`；Directory MAY 在再延迟 24h 后从索引中移除。
+- 资源 governance key 在 ingest 期间发生 rotation：MUST 在下一次 announce 中携带新 key 的签名；Directory MUST 在验证 DID document key history 后接受。
+- Discovery state 内容未变但需要续约时，资源 MAY 重新提交相同 `discovery_state` + 新 `as_of`，Directory MUST 视为有效续约（按 `(resource_id, as_of)` 幂等）。
+- Directory MUST 拒绝 `as_of` 早于已存 entry `as_of` 的 announce（`policy_revision_rollback`）。
+
+### 8.7 撤销
+
+撤销 opt-in 有三条等价路径，Directory MUST 全部支持：
+
+1. **资源端发布新 state**：`cx.{kind}.discovery` 中将 `directory_services` 移除本 Directory DID，或将 `discoverability` 改为 `secret` / `unlisted`。Directory 在下一次 ingest 周期内 MUST 移除条目；push-only 部署中资源 SHOULD 同时调用路径 2 加速生效。
+2. **资源端主动 withdraw**：`POST /api/v1/directory/withdraw`，body 含 `resource_id`、`reason`、governance key 签名（与 announce 同等强度）。Directory MUST 在 ≤ 1h 内停止披露。
+3. **Directory operator takedown**：单方面下架（policy 违规、abuse、法律）。Directory MUST：
+   - 在内部 audit log 记录 `takedown_id`、operator、reason、生效时间；
+   - 通过 `cx.directory.describe.takedown_contact` 暴露的入口或 DID document `service` entry 中声明的 governance contact 通知资源端；
+   - 不得伪装为"资源主动撤销"——audit log 与资源端通知 MUST 标记为 `operator_takedown`。
+
+撤销后，Directory MUST 对该 `resource_id` 的精确 resolve 返回与 `unlisted` / `not_found` 不可区分的响应（参见 §3 防枚举）；对正在分页的 search 响应，MUST 在下一次 cursor 推进时停止披露。
+
+### 8.8 Cross-Directory Replication（out of scope）
+
+v1 core **不**定义 Directory 之间的 replication / federation 协议。每个 Directory 独立 ingest；同一资源 opt-in 多家 Directory 时分别 announce。
+
+跨 directory mirror、ranking 共享、reputation 交换属于 extension profile（候选 `cx.profile.directory_mesh.v1`），不在 v1 互操作 floor。Directory MUST NOT 接受其他 directory 转发的索引内容作为权威；MAY 把其他 directory 的存在性作为 hint，但仍 MUST 通过 §8.2 模式独立 ingest。
+
+### 8.9 `cx.directory.describe` 扩展
+
+Directory MUST 在 `describe` 响应中暴露 ingest 能力：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `ingest_modes` | `enum[](push, pull)` | 本 directory 支持的模式，至少一个。 |
+| `accept_policy_kind` | `enum(open, allowlist, trust_root_signed, operator_review)` | `open` = 任意签名资源；`allowlist` = 资源 DID 在显式白名单；`trust_root_signed` = 需要 trust anchor 背书；`operator_review` = 人工审核。 |
+| `accept_policy_ref` | `object?` | 描述如何获得接入资格的可读 ref（URL / DID / governance contact）。 |
+| `default_ttl_seconds` | `int` | 默认 TTL。 |
+| `max_ttl_seconds` | `int` | TTL 上限，MUST ≤ 2,592,000。 |
+| `revalidation_grace_seconds` | `int` | TTL 到期宽限。 |
+| `accepted_resource_kinds` | `enum[]` | 本 directory 接受的资源类别子集。 |
+| `accepted_did_methods` | `string[]` | 接受的 principal/governance DID method。 |
+| `takedown_contact` | `did \| url?` | operator takedown 时的通知 / 申诉入口。 |
+| `rate_limits` | `object?` | per-DID / per-org / per-IP 配额上限的可读描述。 |
+
+### 8.10 Anti-abuse
+
+ingest 通道 MUST 防御：
+
+- **Replay**：同一 `(resource_id, as_of)` 重复 announce MUST 幂等（返回原 `announce_id`）；过期 timestamp 的 announce MUST 拒绝（`signature_stale`，`as_of` 与服务端时间偏差 > 5 min）。
+- **DID 抢占**：首次 ingest 某 DID 时 MUST 全量验证 DID document + governance key history；不允许仅凭 `did:web` 域名解析跳过 webvh history / witness 校验。
+- **Quota burning**：Directory MUST 对 per-resource、per-Principal Server、per-IP 限流；超限返回 `rate_limited`。
+- **Source-ref 伪造**：Directory MUST 拒绝 `source_refs` 中包含本 Directory 不能从声明的 Principal Server 解析得到的 event id 的 announce。
+- **撤销规避**：Directory MUST NOT 接受 `as_of` 早于已记录 withdraw 时间的 announce（`takedown_in_force`）。
+- **Policy rollback**：Directory MUST 拒绝 `discovery_state` 的 `policy_revision` 严格小于当前已索引版本的 announce（`policy_revision_rollback`）。
+
+Directory operator MAY 维护资源黑名单（abuse、垃圾、法律）；命中黑名单时 MUST 直接返回 `accept_policy_denied`，不得进入 ingest 流程后再静默丢弃。
+
+## 9. Service Surface
+
+Recommended operations：
 
 ```text
-GET /api/v1/directory/describe
+GET  /api/v1/directory/describe
 POST /api/v1/directory/search-spaces
 POST /api/v1/directory/resolve-space
 POST /api/v1/directory/search-organizations
 POST /api/v1/directory/resolve-organization
 POST /api/v1/directory/search-actors
+GET  /api/v1/directory/search-users
 POST /api/v1/directory/resolve-handle
+POST /api/v1/directory/private-contact-discovery
+POST /api/v1/directory/announce
+POST /api/v1/directory/withdraw
+POST /api/v1/directory/subscribe
 ```
 
 字段级定义：
 
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
-| `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?` | `public_metadata`; 可限流。 |
-| `cx.directory.search_spaces` | 无 | `query: string`; `organization_did: did`; `parent_space_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | MUST 按 discoverability、requester proof 和 Space policy 逐项过滤；隐藏资源不得泄露存在性。 |
-| `cx.directory.resolve_space` | 至少一个：`space_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]?` | invite / restricted / secret Space 对未授权请求使用统一 `not_found`。 |
+| `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
+| `cx.directory.search_spaces` | 无 | `query: string`; `organization_did: did`; `parent_space_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
+| `cx.directory.resolve_space` | 至少一个：`space_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | `via_services` 在 v1 normative，MUST 给出 host Principal Server service DID 让客户端能发起 join；invite / restricted / secret Space 对未授权请求使用统一 `not_found`。 |
 | `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 仅返回公开或授权可发现组织。 |
 | `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Space 列表或服务拓扑。 |
 | `cx.directory.search_actors` | 无 | `query: string`; `space_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
+| `cx.directory.search_users` | `query.q: string` | `query.space_id: id`; `query.limit: int` | `results: object[]` | mention autocomplete；受共同 Space / directory policy 限制。 |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | private handle 需要 presentation。 |
+| `cx.directory.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
+| `cx.directory.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
+| `cx.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdraw_id: id`; `acked_at: timestamp` | 见 §8.7。 |
+| `cx.directory.subscribe` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
 
-`search-spaces` 请求示例（非完整 schema）：
+### 9.1 通用结果字段（normative）
+
+每条 search / resolve 结果 MUST 包含：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `as_of` | `timestamp` | Directory 上次刷新该条目的时间。 |
+| `source_refs` | `id[]` | 真相源 event id；客户端可据此回 Principal Server 验签。 |
+| `policy_revision` | `string?` | discovery state 的 effective revision；便于跨 Directory 对账。 |
+| `stale` | `boolean?` | TTL 过期且未续约时为 `true`，客户端 SHOULD 仅作参考。 |
+| `divergent` | `boolean?` | 与同一资源的另一 Directory 视图不一致时为 `true`（实现可选检测）。 |
+| `via_services` | `did[]?` | 资源对应 Principal Server / 真相源 service DID 列表。Space / Organization 结果 MUST 给出；handle / actor 可选。 |
+
+客户端在以下情况 MUST 回真相源验签后再 act：
+
+- 准备执行 join、capability 请求或 invite 接受
+- 跨 Directory 看到 `policy_revision` 不一致或 `divergent=true`
+- 收到 `stale=true` 的关键条目（policy / membership / endorsement）
+
+### 9.2 Search / Resolve 示例
+
+`search-spaces` 请求（非完整 schema）：
 
 ```json
 {
@@ -348,7 +613,7 @@ POST /api/v1/directory/resolve-handle
 }
 ```
 
-Result:
+Result：
 
 ```json
 {
@@ -364,6 +629,11 @@ Result:
         "did:web:acme.example"
       ],
       "preview_ref": "cx:event:01JS0PV...",
+      "via_services": [
+        "did:web:principal.acme.example"
+      ],
+      "as_of": "2026-05-10T07:55:12Z",
+      "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
       "source_refs": [
         "cx:event:36531ccc-395a-7455-9880-000000000000",
         "cx:event:36531cd0-e580-7bb1-a8ab-310000000000",
@@ -389,7 +659,7 @@ Result:
 
 实现 SHOULD 对"不存在"与"未授权访问的隐藏资源"使用相同的 status、相同时延等级与相同响应结构。
 
-## 9. Parent Space 与 Organization Directory
+## 10. Parent Space 与 Organization Directory
 
 Space 层级 MAY 协助发现，但 parent 成员资格不授予 child 成员资格或 child 读权限。
 
@@ -400,7 +670,7 @@ Space 层级 MAY 协助发现，但 parent 成员资格不授予 child 成员资
 - 把 Space 从组织目录中移除不会撤销成员资格或删除数据。
 - 撤销 `cx.space.organization` 背书 MUST 使官方目录徽章在目录刷新后被移除。
 
-## 10. 安全要求
+## 11. 安全要求
 
 目录与发现实现 MUST 防御：
 
@@ -414,12 +684,20 @@ Space 层级 MAY 协助发现，但 parent 成员资格不授予 child 成员资
 - private contact graph reconstruction
 - timing side channels that reveal hidden existence
 - stale official badge after organization endorsement revocation
+- announce replay 与 timestamp skew（§8.10）
+- DID hijack via announce（首次 ingest 必须全量验证 DID method history / governance key）
+- takedown spoofing（仅 Directory operator 与 governance key 持有方有撤销权；audit log 必须区分两者）
+- policy revision rollback（拒绝 `as_of` / `policy_revision` 早于已索引值的 announce）
+- cross-directory poisoning（每个 Directory 独立验签；不接受其他 directory 转发的索引内容作为权威）
+- shadow grant（Directory MUST NOT 签发 invite / capability / session credential）
 
 在高隐私部署中，客户端 SHOULD 优先使用 invite 链接或加密的带外邀请，而不是目录搜索。
 
-## 11. Conformance
+## 12. Conformance
 
-Directory-capable implementations MUST test:
+Directory-capable implementations MUST test：
+
+**Query 面**
 
 - public Space search
 - listed organization directory search
@@ -430,3 +708,19 @@ Directory-capable implementations MUST test:
 - hidden pairwise DID exclusion
 - stale result rejection after discovery policy update
 - private contact discovery does not disclose raw connection identifiers
+- search / resolve result MUST carry §9.1 normative 字段（`as_of`、`source_refs`、`policy_revision`、Space/Org 必含 `via_services`）
+
+**Ingest 面**
+
+- announce accepted when directory DID listed in `directory_services` and signature valid
+- announce rejected with `directory_not_authorized` when directory DID NOT listed
+- announce rejected with `signature_invalid` on bad `discovery_state.proof`
+- announce rejected with `signature_stale` when `as_of` skew > 5 min
+- announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry
+- announce rejected with `accept_policy_denied` when resource outside policy
+- re-announce idempotent on `(resource_id, as_of)`，TTL 正确续约
+- pull-mode ingest verifies signed discovery state on every refresh
+- TTL expiry marks entries `stale=true`，after grace + 24h removed
+- withdraw stops disclosure within ≤ 1h，subsequent resolve returns indistinguishable `not_found`
+- operator takedown writes audit log with `operator_takedown` marker and notifies governance contact
+- subsequent announce after takedown rejected with `takedown_in_force`

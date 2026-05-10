@@ -73,6 +73,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | Federation pull / backfill（复用 `cx.events.query` + service_signature） | 同上，跨域历史回补复用 `/events?direction=backward`。 |
 | `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Space / Organization / Actor / User。 |
 | `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Space / Organization / handle。 |
+| `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
 | `cx.blob.upload` | 上传 blob。 |
 | `cx.blob.get` | 获取 blob 或下载授权。 |
 | `cx.push.register_device` | 注册推送设备和推送网关。 |

@@ -167,6 +167,15 @@ paths:
   /directory/private-contact-discovery:
     post:
       operationId: cx.directory.private_contact_discovery
+  /directory/announce:
+    post:
+      operationId: cx.directory.announce
+  /directory/withdraw:
+    post:
+      operationId: cx.directory.withdraw
+  /directory/subscribe:
+    post:
+      operationId: cx.directory.subscribe
 
   /blob/upload:
     post:
@@ -309,6 +318,7 @@ paths:
 | `cx.sync.get_snapshot_head` | `GET /sync/snapshot-head` | snapshot pointer |
 | `cx.federation.push_operations` / `cx.federation.pull_operations` | `POST /federation/push-operations`, `GET /federation/pull-operations` | gRPC Federation Service / signed MQ transaction |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC Discovery Service |
+| `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | `POST /directory/announce`, `POST /directory/withdraw`, `POST /directory/subscribe` | gRPC Discovery Ingest Service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
 | `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |
 | `cx.device_messages.put` / `cx.device_messages.get` | `POST /device_messages`, `GET /device_messages` | MQ device topic / 本地 IPC |

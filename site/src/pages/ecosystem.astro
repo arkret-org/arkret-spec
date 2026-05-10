@@ -1,6 +1,5 @@
 ---
 import MarketingLayout from "~/layouts/MarketingLayout.astro";
-import { specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
 
 type Status = "stable" | "wip" | "planned";
 
@@ -138,83 +137,12 @@ const tiers: Tier[] = [
     ],
   },
 ];
-
-const totalProjects = tiers.reduce((sum, t) => sum + t.projects.length, 0);
 ---
 
 <MarketingLayout
   title="Contrix 生态 · Ecosystem"
   description="Contrix 协议生态：spec、SDK、principal server、客户端、push gateway、conformance 测试套件等参考实现的总览。"
 >
-  <section class="cx-hero">
-    <div class="cx-shell cx-hero-inner">
-      <span class="cx-eyebrow">
-        <span class="cx-eyebrow-dot" aria-hidden="true"></span>
-        ecosystem · {specReleaseTag} {specReleaseLabel}
-      </span>
-      <h1>
-        一套协议，<br />
-        <span class="cx-h1-accent">多个互操作实现</span>
-      </h1>
-      <p class="cx-lead">
-        Contrix 不是单一产品。围绕 <code>contrix-spec</code> 这份开放协议，正在并行开发的有
-        SDK、principal server、push gateway、跨平台客户端与一致性测试套件 —— 任何项目都可以独立替换为另一种实现，只要它通过相应的 conformance profile。
-      </p>
-      <div class="cx-cta-row">
-        <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">阅读规范</a>
-        <a class="cx-btn cx-btn-ghost" href="/zh/v1/conformance/profiles/"
-          >看 conformance profile</a
-        >
-      </div>
-    </div>
-  </section>
-
-  <section class="cx-section">
-    <div class="cx-shell">
-      <div class="cx-section-head">
-        <h2>分层概览</h2>
-        <p>
-          {totalProjects} 个项目按部署位置分成 5 层；上层依赖下层暴露的接口与 schema，但每一层都允许第三方独立实现。
-        </p>
-      </div>
-
-      <div class="cx-eco-arch" aria-label="Architecture overview">
-        <div class="cx-eco-arch-row">
-          <span class="cx-eco-arch-label">Client</span>
-          <span class="cx-eco-arch-cells">
-            <code>yougen</code> · <code>chime</code>
-          </span>
-        </div>
-        <div class="cx-eco-arch-row">
-          <span class="cx-eco-arch-label">Push</span>
-          <span class="cx-eco-arch-cells">
-            <code>floria</code>
-          </span>
-        </div>
-        <div class="cx-eco-arch-row">
-          <span class="cx-eco-arch-label">Server</span>
-          <span class="cx-eco-arch-cells">
-            <code>soland</code> · <code>coauth</code> · <code>sodmin</code>
-          </span>
-        </div>
-        <div class="cx-eco-arch-row">
-          <span class="cx-eco-arch-label">Identity</span>
-          <span class="cx-eco-arch-cells">
-            <code>starid</code>
-            <span class="cx-eco-arch-note">（可选 high-trust）</span>
-          </span>
-        </div>
-        <div class="cx-eco-arch-row">
-          <span class="cx-eco-arch-label">Protocol</span>
-          <span class="cx-eco-arch-cells">
-            <code>contrix-spec</code> · <code>contrix-rust-sdk</code> ·
-            <code>cotest</code>
-          </span>
-        </div>
-      </div>
-    </div>
-  </section>
-
   {
     tiers.map((tier) => (
       <section class="cx-section" id={tier.id}>
@@ -266,36 +194,16 @@ const totalProjects = tiers.reduce((sum, t) => sum + t.projects.length, 0);
     ))
   }
 
-  <section class="cx-section">
-    <div class="cx-shell">
-      <div class="cx-section-head">
-        <h2>参与</h2>
-        <p>
-          想做新的实现、把企业系统接进来、或者写一个新平台的客户端？协议本身、registry 与 schema、profile 表都是公开的。
-        </p>
-      </div>
-      <div class="cx-resources">
-        <a class="cx-resource" href="/zh/v1/spec-map/">
-          <span class="cx-resource-title">Spec map →</span>
-          <span class="cx-resource-desc"
-            >按阅读路径定位每个文件的角色与边界</span
-          >
-        </a>
-        <a class="cx-resource" href="/catalog/profiles/">
-          <span class="cx-resource-title">Profiles →</span>
-          <span class="cx-resource-desc"
-            >可独立声明的 conformance profile 列表</span
-          >
-        </a>
-        <a class="cx-resource" href="/openapi/">
-          <span class="cx-resource-title">OpenAPI →</span>
-          <span class="cx-resource-desc">HTTP/JSON service binding</span>
-        </a>
-        <a class="cx-resource" href="/catalog/event-kinds/">
-          <span class="cx-resource-title">Event kinds →</span>
-          <span class="cx-resource-desc">所有 wire 上的 event 类型</span>
-        </a>
-      </div>
-    </div>
-  </section>
 </MarketingLayout>
+
+<style is:global>
+  /* The first tier section now sits directly under the site nav. Drop the
+   * `.cx-section` border-top on it (otherwise we get a thin line right under
+   * the nav's own border) and trim its top padding to a comfortable lead-in.
+   * `is:global` because the `main` element lives in MarketingLayout, outside
+   * this component's scope. */
+  body.cx-marketing main > section.cx-section:first-of-type {
+    border-top: none;
+    padding-top: 3rem;
+  }
+</style>

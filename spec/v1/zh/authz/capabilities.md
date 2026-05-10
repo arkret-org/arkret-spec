@@ -221,6 +221,7 @@ Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管
 - `cx.invite.third_party`
 - `cx.invite.claim`
 - `cx.invite.revoke`
+- `cx.space.join.review`（审核 `cx.member.application`，签发 `cx.member.application.review`；详见 [`../models/space-and-place.md` §3.6](../models/space-and-place.md)）
 - `cx.approval.vote`
 - `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）

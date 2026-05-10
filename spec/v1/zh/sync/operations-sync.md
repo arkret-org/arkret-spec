@@ -367,6 +367,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.space.plaintext_visible_services`
 - `cx.space.history_visibility`
 - `cx.space.join_rule`
+- `cx.space.join_policy`
 - `cx.space.discovery`
 - `cx.organization.discovery`
 - `cx.schema.define`
@@ -419,6 +420,9 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 ### 7.5 Membership / Invite / Capability
 
 - `cx.member.state`
+- `cx.member.application`
+- `cx.member.application.review`
+- `cx.member.application.cancel`
 - `cx.invite.create`
 - `cx.invite.cancel`
 - `cx.invite.accept`
@@ -499,7 +503,7 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 
 `cx.flow.move` 用于跨 List-Place 移动 Flow。它移动的是 Flow 在一个 Board Place 内的主位置，而不是修改 track 定义。
 
-写入路径是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>`（详见 [`../models/space-and-place.md` §3.6](../models/space-and-place.md)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_place_id` + `rank` 编译为 `set { list_place_id, rank }` effect。这与 Place-parent 的 cas-register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
+写入路径是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>`（详见 [`../models/space-and-place.md` §4.6](../models/space-and-place.md)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_place_id` + `rank` 编译为 `set { list_place_id, rank }` effect。这与 Place-parent 的 cas-register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
 
 ```json
 {

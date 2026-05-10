@@ -63,7 +63,7 @@ summarized_from, promoted_from_discussion
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
 | `contains`：`Place(kind=board) -> Place(kind=list)` | `one_to_many` | 一个 Board 可包含多个 List；同一 List 在同一 Space 内 MUST 至多有一个 active Board parent（由 `cx.place.parent` cas-register 保证）。 |
-| `contains`：`Place(kind=list) -> Flow` | `one_to_many` with board-exclusive target | 一个 List 可包含多个 Flow；同一 Flow 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_place_id, flow_id)`，与 [space-and-place.md §3.6](./space-and-place.md) 的位置唯一性一致。 |
+| `contains`：`Place(kind=list) -> Flow` | `one_to_many` with board-exclusive target | 一个 List 可包含多个 Flow；同一 Flow 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_place_id, flow_id)`，与 [space-and-place.md §4.6](./space-and-place.md) 的位置唯一性一致。 |
 | `contains`：其他对象组合 | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用，Space schema/profile MUST 声明更严格基数。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
@@ -164,13 +164,13 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 ## 7. 常见关系（按对象）
 
 - **Flow**：见 [flow-and-message.md §7](./flow-and-message.md)。
-- **Place**（Board / List）：见 [space-and-place.md §3.9](./space-and-place.md)。
+- **Place**（Board / List）：见 [space-and-place.md §4.9](./space-and-place.md)。
 - **Message**：见 [flow-and-message.md §8.7](./flow-and-message.md)。
 - **Morph**：业务自定义关系，由 Space schema / Morph profile 声明。
 
 ## 8. 规范性引用
 
 - 公共字段：[common-fields.md](./common-fields.md)。
-- Place 位置语义：[space-and-place.md §3.6](./space-and-place.md)。
+- Place 位置语义：[space-and-place.md §4.6](./space-and-place.md)。
 - Move / Anchor / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Relation schema：`artifacts/schemas/relation.schema.json`。
