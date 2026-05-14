@@ -115,6 +115,150 @@ Contrix 使用三层签名链：
 
 `self_signing_key` 和 `user_signing_key` SHOULD 存入加密 secret storage，并通过新设备验证后共享。
 
+### 5.1 Cross-Signing Publish Envelope
+
+`self_signing_key` (SSK) 与 `user_signing_key` (USK) 的公钥 MUST 通过 `cx.cross_signing.publish.v1` 事件公布到 principal control stream。该事件确立"PSK → {SSK, USK}"绑定，是后续 device trust chain 与人工信任签名得以验证的根。
+
+Schema id：`cx.schema.cross_signing_publish.v1`
+
+```json
+{
+  "kind": "cx.cross_signing.publish.v1",
+  "space_id": "<principal_control_space_id>",
+  "actor_id": "did:webvh:...",
+  "content": {
+    "principal_id": "did:webvh:...",
+    "principal_signing_key": {
+      "kid": "did:webvh:...#cx_principal_signing_v1",
+      "alg": "EdDSA",
+      "public_key": "z6Mk...",
+      "key_format": "multibase"
+    },
+    "self_signing_key": {
+      "kid": "did:webvh:...#cx_self_signing_v1",
+      "alg": "EdDSA",
+      "public_key": "z6Mk...",
+      "key_format": "multibase",
+      "binding": {
+        "signed_by": "did:webvh:...#cx_principal_signing_v1",
+        "alg": "EdDSA",
+        "signature": "base64url..."
+      }
+    },
+    "user_signing_key": {
+      "kid": "did:webvh:...#cx_user_signing_v1",
+      "alg": "EdDSA",
+      "public_key": "z6Mk...",
+      "key_format": "multibase",
+      "binding": {
+        "signed_by": "did:webvh:...#cx_principal_signing_v1",
+        "alg": "EdDSA",
+        "signature": "base64url..."
+      }
+    },
+    "generation": 1,
+    "issued_at": "2026-04-26T00:00:00Z"
+  }
+}
+```
+
+字段规则：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `principal_signing_key` | required | PSK 当前公钥引用。`kid` MUST 出现在该 principal 当前 DID document 或 key-log head 的 verification methods 中；服务端不接受 `kid` 不在当前控制集中的 publish。 |
+| `self_signing_key` | required | SSK 公钥 + 由 PSK 对 canonical SSK record 的签名。`binding.signed_by` MUST 与 `principal_signing_key.kid` 相同 DID 控制集。 |
+| `user_signing_key` | required | USK 公钥 + 由 PSK 对 canonical USK record 的签名；MUST 与 `self_signing_key` 不同 `public_key`。 |
+| `generation` | required | 单调递增整数。每次 cross-signing reset（§14）MUST `generation += 1`。Receiver 见到 `generation` 比已 accepted 状态低的 publish MUST 拒绝。 |
+| `issued_at` | required | 发布时间；MUST 不晚于接收方本地时钟 + protocol skew。 |
+
+`binding` 的 canonical signing input：
+
+```text
+"cx-cross-signing-bind-v1\n"
++ canonical_json({
+    "principal_id": <did>,
+    "subordinate_key_kind": "self_signing" | "user_signing",
+    "subordinate_kid": <kid>,
+    "subordinate_alg": <alg>,
+    "subordinate_public_key": <public_key>,
+    "generation": <generation>
+  })
+```
+
+服务端 MUST 拒绝 `subordinate_alg` 不在协议算法 registry 中、或 `subordinate_public_key` 与 binding 输入声明不一致的 publish。
+
+### 5.2 Device Trust Chain
+
+设备 trust state 由以下链推导，**不允许跳层**：
+
+```text
+DID-method history → principal_signing_key (PSK)
+                       ├── self_signing_key (SSK)   ── signs ──► device.verify_key
+                       └── user_signing_key (USK)   ── signs ──► other principal's verify_key
+```
+
+每条 `cx.device.authorized` 事件 MUST 在 `content.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key` 的签名：
+
+```json
+{
+  "kind": "cx.device.authorized",
+  "content": {
+    "principal_id": "did:webvh:...",
+    "device_id": "cx:device:...",
+    "device_public_key": "z6Mk...",
+    "cross_signing_binding": {
+      "signed_by": "did:webvh:...#cx_self_signing_v1",
+      "alg": "EdDSA",
+      "ssk_generation": 1,
+      "signature": "base64url..."
+    },
+    "...": "..."
+  }
+}
+```
+
+`cross_signing_binding` 的 canonical signing input：
+
+```text
+"cx-device-trust-bind-v1\n"
++ canonical_json({
+    "principal_id": <did>,
+    "device_id": <id:device>,
+    "device_public_key": <public_key>,
+    "ssk_generation": <ssk_generation>
+  })
+```
+
+#### 5.2.1 验证算法（normative）
+
+接收方判定 `device` 是否 cross-signed 时 MUST 执行：
+
+1. 解析 principal control stream 中 `accepted_generation = max(publish.generation)` 的 `cx.cross_signing.publish.v1` 事件作为当前 PSK / SSK / USK。
+2. 校验 `publish.principal_signing_key.kid` 出现在该 principal DID method 当前控制集中。
+3. 校验 `publish.self_signing_key.binding.signature` 由 PSK 对 §5.1 canonical 输入签名。
+4. 在该设备的最新 `cx.device.authorized` 事件中读取 `cross_signing_binding`；若缺失 MUST 视为 `unverified`，不得回退到"已授权 ⇒ cross-signed"。
+5. 比较 `cross_signing_binding.ssk_generation` 与 `accepted_generation`：
+   - 相等：用当前 SSK 公钥校验签名；通过则 `cross_signed`，失败则 `unverified`。
+   - 小于：cross-signing 在该设备签发后已重置；设备 trust state MUST 强制降为 `needs_reverification`（见 §14）。
+   - 大于：未来 generation；MUST 视为 `unverified` 并触发 stream re-sync。
+6. 跨 principal 信任（USK 签对方 PSK / device key）按对称流程执行：本端 USK binding 必须签发对方 PSK 的 `(kid, generation)` 元组而不是裸公钥，避免对方静默轮换 PSK 后仍继承信任。
+
+实现 MUST 把"未携带 `cross_signing_binding` 的 `cx.device.authorized`"与"binding 校验失败"区分上报，因为前者属于 legacy / bootstrap 兼容（仅 §5.0.1 inception 路径允许），后者属于密码学异常。
+
+### 5.3 Bootstrap 例外
+
+§5.0.1 中首台设备由 inception key 自授权时，`cx.device.authorized.content.cross_signing_binding` MUST 省略 `signed_by` 引用，并改用 `bootstrap_binding`：
+
+```json
+"bootstrap_binding": {
+  "kind": "inception_self_authorized",
+  "did_method_evidence_ref": "did:webvh:.../entry-0"
+}
+```
+
+receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream 中尚无任何 `cx.cross_signing.publish.v1` 事件。首次 publish 写入后，所有后续 `cx.device.authorized` MUST 使用 §5.2 形式的 `cross_signing_binding`。
+
 ## 5a. Privacy-Preserving Push
 
 Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 Sync Service、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。
@@ -502,6 +646,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `untrusted_device` | policy 要求验证设备，但设备信任链不满足。 |
 | `policy_denied` | Space、组织或账号 policy 拒绝。 |
 | `accepted_by_other_device` | 同一请求已被另一设备接受。 |
+| `cross_signing_reset` | 验证过程中检测到 cross-signing reset，旧 SSK generation 已废止；详见 §14.3。 |
 
 ## 11. Secret Storage（client-local cache form）
 
@@ -621,6 +766,58 @@ Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送�
 - 受信任账户恢复服务签名，且该服务在 DID document 中声明。
 
 重置后，先前设备签名链不再自动可信。客户端 MUST 将所有既有信任标记为 `needs_reverification`。
+
+### 14.1 Reset Envelope
+
+Reset 操作 MUST 写入一条 `cx.cross_signing.reset.v1` 事件到 principal control stream，并在其后**立即**发布新的 `cx.cross_signing.publish.v1`（§5.1）以使协议状态可恢复。
+
+Schema id：`cx.schema.cross_signing_reset.v1`
+
+```json
+{
+  "kind": "cx.cross_signing.reset.v1",
+  "space_id": "<principal_control_space_id>",
+  "actor_id": "did:webvh:...",
+  "content": {
+    "principal_id": "did:webvh:...",
+    "previous_generation": 1,
+    "new_generation": 2,
+    "reset_reason": "rotation",
+    "proof": {
+      "kind": "principal_signing" | "recovery_unlock" | "device_quorum" | "trusted_recovery_service",
+      "...": "kind-specific evidence"
+    },
+    "issued_at": "2026-04-26T00:00:00Z"
+  }
+}
+```
+
+字段规则：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `previous_generation` | required | 被重置前的 `generation`；MUST 等于当前 accepted publish 的 `generation`。 |
+| `new_generation` | required | 后续 publish 将使用的 `generation`；MUST = `previous_generation + 1`。 |
+| `reset_reason` | required | 自由字符串，但 SHOULD 来自 `{"rotation", "compromise", "device_loss", "policy_required"}`。 |
+| `proof` | required | 四类高风险证明之一，详见 §14；接收方 MUST 拒绝缺失 / 无效的 proof。 |
+
+### 14.2 `needs_reverification` 扩散规则
+
+Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
+
+1. **本 principal 名下所有设备**的 trust state 强制从 `cross_signed` / `verified` 降为 `needs_reverification`。设备本身不被撤销，可以继续读写已经获得 capability 的 Space；但 sender-side trust UI MUST 显示警告，且任何要求 cross-signed 的策略（例如 `cx.space.policy.require_cross_signed`）MUST 重新计算。
+2. **本 principal USK 签发的跨 principal 信任**全部进入 `needs_reverification`：对方在自己视图里看到的"由 X 验证过我"提示 MUST 消失，需要等待新一轮 USK publish 与人工再确认。
+3. **MLS leaf credential** 不直接因 reset 失效——MLS credential 由 device key 与 KeyPackage 单独签名。但发送方 SHOULD 在 reset 后尽快发起一次 Empty Commit，让 epoch transcript 在新 SSK generation 下重新被覆盖；接收方 MUST 允许该 commit 推进。
+4. **in-flight verification transaction**（§10 状态机里仍在 `request` / `ready` / `start` / `accept` / `key` / `mac` 阶段的）MUST 以 `code=cross_signing_reset` cancel，禁止把基于旧 SSK 的 SAS / QR transcript 用旧 generation 完成。
+5. **新的 `cx.cross_signing.publish.v1`** MUST 在 reset 接受后 24h 内发布到 control stream；超时未发布的 reset 会让该 principal 进入"无可用 SSK / USK"窗口，接收方在此窗口内 MUST 拒绝任何 `cx.device.authorized.cross_signing_binding.ssk_generation == new_generation` 的事件，避免静默接受未公布的 SSK。
+
+### 14.3 Cancel Code
+
+§10.6 的 cancel code registry 增补一项：
+
+| code | 含义 |
+| --- | --- |
+| `cross_signing_reset` | 本端或对端在验证过程中检测到 cross-signing reset；transcript 已绑定的 SSK generation 已被废止，必须放弃当前 transaction 并以新 generation 重启。 |
 
 ## 15. Applet Device Delegation
 

@@ -88,6 +88,111 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 
 因此，Contrix 选择了 **更现代、标准化、适合动态群组协作治理的 MLS 基础**，而不是沿用 Matrix 的 Olm / Megolm。
 
+### 4.5 Device 密钥层级与生命周期
+
+§4.4 只覆盖了群组 E2EE 算法的选择。但 device-key 是一整套包含身份密钥、prekey、群组密钥、cross-signing、备份、推送、验证状态机的体系。Matrix 在这套体系上有成熟实践（参见 [Matrix E2EE guide](https://matrix.org/docs/matrix-concepts/end-to-end-encryption/) 与 [Megolm spec](https://spec.matrix.org/unstable/olm-megolm/megolm/)），Contrix 在保留多数原语形状的同时，把身份根换到 DID method、把 E2EE 换到 MLS、并把若干在 Matrix 中相对耦合的语义拆开规范化。本节按原语逐项对照。
+
+#### 4.5.1 设备级身份密钥与信任根
+
+| Matrix | Contrix | 说明 |
+| --- | --- | --- |
+| Device Ed25519 fingerprint key | `cx:device:` 记录里的 `verify_key` (Ed25519) | Contrix 把 device 公钥写进 `cx:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `cx.device.authorized` Event 锚定到 principal DID，而非 homeserver 账号。 |
+| Device Curve25519 identity key | `cx:device:` 记录里的 `hpke_key` (X25519) | 用于 HPKE-based to-device 通道、KeyPackage init key 来源、加密 backup envelope 接收。Matrix Curve25519 用于 Olm 长期 DH，语义对等但用途窄一些。 |
+| (homeserver 账号绑定) | DID method controller / inception key | Contrix 在 master 密钥之上多一层：DID method 的初始控制材料（`did:webvh` entry-0 controller、`did:plc` rotation key、KERI inception 等）是身份根。principal signing key 必须进入 DID method history / key log，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §5.0。 |
+
+#### 4.5.2 Prekey 与会话引导
+
+| Matrix | Contrix | 说明 |
+| --- | --- | --- |
+| `/keys/upload` Curve25519 OTK | `POST /api/v1/keys/upload` 的 `one_time_keys` | 语义一致，用于非 MLS 加密或 MLS 引导。`claim` MUST 原子消费一次性 key。 |
+| Fallback key | `fallback_keys` 字段，`fallback=true` 标记 | Contrix 规范要求成功建立会话后尽快轮换；Matrix 行为类似但描述较弱。 |
+| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Contrix 把 MLS KeyPackage 从 OTK 池里拆出来：`/api/v1/keys/keypackages/{upload, claim, consume, revoke}`，新增 **`required_capabilities ⊆ keypackage.capabilities` normative subset rule**，并对 claim 失败做反枚举（统一返回 `claim_failed`）。Matrix 无对应概念。 |
+
+#### 4.5.3 群组消息密钥
+
+| Matrix | Contrix | 说明 |
+| --- | --- | --- |
+| Megolm outbound session（per-sender ratchet） | MLS exporter / application key per epoch | Contrix 没有 per-sender Megolm session；群组密钥状态由 MLS group state、epoch、KeyPackage 演进。 |
+| Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_cell`、`key_schedule_cell`、`covered_frontier_cell` | epoch 被 lattice cell 显式承载，governance 状态通过 §6.5 的 MLS Governance Binding 与 MLS transcript 哈希绑定。 |
+| Megolm Ed25519 签名（per-message） | MLS application message 内嵌签名 + MLS transcript | 完整性来自 MLS 标准；不再额外维护 per-message Megolm 签名链。 |
+
+#### 4.5.4 Cross-Signing 与信任视图
+
+Contrix 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5）：
+
+| 角色 | Matrix | Contrix |
+| --- | --- | --- |
+| 用户身份根 | Master key | `principal_signing_key`，轮换 MUST 进入 DID method history / key log |
+| 签名本账号所有设备 | Self-signing key | `self_signing_key`（存 secret storage，跨设备共享） |
+| 签名其他用户身份 key | User-signing key | `user_signing_key`（同上） |
+
+差异：Contrix `principal_signing_key` 的演进绑定到 DID method 链（`did:webvh` entry、`did:plc` operation 等），不是 homeserver 内部状态；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`，并需要 DID 控制证明、recovery 解锁、设备 quorum 签名或受信账户恢复服务签名之一。
+
+线级形态：SSK / USK 公钥与 PSK 绑定通过 `cx.cross_signing.publish.v1`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `cx.device.authorized` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `cx.cross_signing.reset.v1`（§14.1），`new_generation = previous_generation + 1`，并在 24h 内必须发布对应 publish，否则接收方对该 `new_generation` 的 device authorization MUST 拒绝。验证 transaction 检测到 reset 时以 `code=cross_signing_reset` 取消，对应 §10.6 / §14.3 cancel code。
+
+#### 4.5.5 Secret Storage 与 Key Backup
+
+| Matrix | Contrix | 说明 |
+| --- | --- | --- |
+| Secure Secret Storage（SSSS）统一保管 cross-signing / megolm backup 等 | `cx.secret_storage.v1`（**client-local only**）+ wire 上传走 `cx.schema.key_backup.v1` | Contrix v1 不再把 secret storage envelope 作为 wire 格式；服务端只接受 `cx.schema.key_backup.v1`，每条 backup MUST 声明 `backup_class`。 |
+| 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`did_recovery` / `secret_storage` / `mls_history` / `external` 四类 `backup_class`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"。默认 `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 必须分到不同 envelope；只有 `personal_node` profile MAY 通过 `mixed_secret_storage=true` 退化为兼容模式。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
+| 一把 recovery key 解锁 SSSS | recovery key + 门限 / 社交恢复 share | Contrix 把 recovery 表达为 `recovery_policy`，可声明 threshold、share holder、有效期、approval 条件；share holder 不自动获得读取内容能力。 |
+| (Matrix 未明确约束) | "能解密某段历史" MUST NOT 单独作为账号所有权证明 | Contrix 显式禁止把解密 oracle 当成 DID 控制证明，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
+
+#### 4.5.6 Push 通道密钥
+
+Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Space 的不可链接性规范。Contrix 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a 引入 `push_target_id`：
+
+- per `(principal, device, push_route)` 伪名；至少 128 bit 熵，推荐 256 bit。
+- MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码推导。
+- 同一 principal 在两台设备上的 `push_target_id`、同一 device 的两条 push_route 之间，对 push gateway / Sync Service / 第三方 transport MUST 不可关联。
+- gateway / Sync Service 不得保留可逆映射；轮换或失效后旧伪名不得被服务端链接回当前 (principal, device)。
+- 推送 payload 必须是 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob；gateway / vendor 不得解密。
+
+#### 4.5.7 Contrix 新增的密钥类别
+
+以下密钥类别在 Matrix 中没有显式协议层定义（属于实现侧或 appservice 侧约定），Contrix 在 [`identity/key-management.md`](../identity/key-management.md) §3 中作为一等协议原语：
+
+- **Session key（`cx.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。MUST 绑定 audience / origin / service / scope / 过期时间；不得签发长期 device grant、不得访问 E2EE 历史密钥。资源服务器仍 MUST 重新验证 DID control state，而不是把 OIDC 成功视为 DID 控制证明。
+- **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，MUST 有 scope、`expires_at`、accountable actor 绑定，SHOULD 用 proposal / approval 约束高风险动作。Matrix bot 复用 user / appservice token，没有这一层 scope/审计要求。
+- **Applet delegated device key**：Applet 代表 ghost actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` MUST 标记 `applet_id`，capability MUST 限定 Space / 协议 / 动作 / 有效期，**且 delegated device 不得签发新的人类 device**。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
+- **Inception key**：DID method 层的初始控制密钥，是 principal control space genesis 与首台 `cx.device.authorized` 的信任根。使用后 SHOULD 立即写入 DID method 轮换链中并从首台设备销毁，或作为 recovery share 存入 secret storage；MUST NOT 长期作为日常 device signing key。
+
+#### 4.5.8 验证 / 登录 / 设备授权的语义解耦
+
+Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把设备视为"已信任、已授权"，登录与设备授权也较多耦合在 homeserver 的 `/login` 路径上。Contrix MUST 严格分开三件事（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §1.2）：
+
+| 操作 | Contrix 允许产出 | Contrix MUST NOT 自动产出 |
+| --- | --- | --- |
+| 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `cx.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`cx.device.authorized`、E2EE 历史密钥访问 |
+| 设备授权 | `cx.device.authorized`、DID key-log operation、`cx.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
+| 设备密钥验证（SAS / QR） | `user_signing_key` 签名（跨 principal）、本地信任标记 | 长期 device grant、Space capability、登录态 |
+
+验证消息形状（`cx.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Contrix 进一步规范化：
+
+- `request.expires_at` MUST 不晚于 `timestamp + 10m`；用户 2 分钟未交互 SHOULD 本地取消。
+- SAS transcript MUST 绑定双方 principal id、device id、verify key、transaction id、method、算法选择、双方 ephemeral key 与待验证 key id。
+- QR payload MUST 至少绑定 transaction id、展示端 principal/device、intended verifier、一次性 secret 或 commitment、`expires_at`、supported method；MUST NOT 包含长期私钥、secret storage key、recovery secret 或 MLS group secret。
+- 跨 principal 验证只表达人工信任；本端 `user_signing_key` 签名对方 identity key，不改变对方设备授权状态。
+- cancel code 由 §10.6 给出固定 registry（`user_cancelled` / `timeout` / `mismatched_commitment` / `mismatched_mac` / `device_revoked` / `untrusted_device` / `policy_denied` / `accepted_by_other_device` / …）。
+
+#### 4.5.9 完整性评估
+
+按 Matrix device-key 模型逐项比对，Contrix v1 已经覆盖：
+
+- ✅ device identity key（Ed25519 / X25519）
+- ✅ OTK / fallback key
+- ✅ cross-signing 三层
+- ✅ to-device 验证状态机 + cancel code
+- ✅ server-side key backup（并增加域隔离）
+- ✅ device list sync + 撤销
+- ✅ secret storage（降为 client-local，wire 走 backup envelope）
+- ✅ 群组加密（以 MLS 取代 Megolm，绑定 governance lattice）
+
+Contrix 比 Matrix 多覆盖的：DID-rooted inception、principal control event stream、`cx.session.grant`、agent key、applet delegated device、push 伪名（`push_target_id`）、KeyPackage capability-subset rule、域隔离 backup、解密能力 ≠ 所有权证明的明确禁令。
+
+因此本节认为 Contrix 在 device 密钥这一层已经完善，且与 Matrix 在关键点上的差异都已在协议中规范化定义。未来若出现新的 attack model 或 Matrix 引入新原语（如 MSC 中的 MLS / Olm hybrid），应在本节继续追加对比。
+
 ## 5. 其他关键区别
 
 ### 5.1 Room-first 与 object-first
@@ -198,6 +303,8 @@ Contrix 不应忽略 Matrix 的成熟度：
 
 - [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — Move、Anchor、Lattice、bottom diagnostics、E2EE MLS Move
 - [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Governance Binding：`governance_binding` 与 `covered_frontier_cell`
+- [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) — device 密钥记录、prekey / fallback / KeyPackage claim、to-device 验证状态机、`push_target_id`、key backup envelope
+- [`identity/key-management.md`](../identity/key-management.md) — inception / principal / recovery / device / session / agent / KeyPackage 密钥层级，`backup_class` 域隔离，社交恢复
 - [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or-set lattice）
 - [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) — MIMI policy component / consent 互译
 - [`extensions/applet-integration.md`](../extensions/applet-integration.md)
