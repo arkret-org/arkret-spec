@@ -60,8 +60,6 @@ UUID_COLUMNS_CONTRIX = {
 UUID_COLUMNS_SOLAND_INTERNAL = {
     # Versioned-entity model
     "entity_id", "version_id", "current_version",
-    # Repo abstraction
-    "commit_id", "prev_commit", "repo_id", "head_commit",
     # Threading (event roots)
     "thread_id",
     # Soland-internal generators

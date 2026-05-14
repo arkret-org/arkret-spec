@@ -28,7 +28,6 @@ UUID_COLUMNS_CONTRIX = {
 }
 UUID_COLUMNS_SOLAND_INTERNAL = {
     "entity_id", "version_id", "current_version",
-    "commit_id", "prev_commit", "repo_id", "head_commit",
     "thread_id",
     "fallback_key_id", "package_id", "portal_id", "session_id",
     "registration_id", "operation_id",

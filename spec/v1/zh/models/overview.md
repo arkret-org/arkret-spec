@@ -18,6 +18,8 @@ Contrix 的核心数据模型是一张以 Space 为边界、以标准对象和�
 
 每个 Contrix 对象的种类由 `id` 的 typed-id 前缀（`cx:<kind>:`）唯一决定，canonical object 上不再单独写 `type` 字段。下表是对象到详细文档的索引。
 
+DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)：DID 标识 actor / principal / issuer / service / device 等主体，不替代 `cx:<kind>:` 对象 ID。
+
 ### 2.1 协作图核心对象
 
 | Typed ID | 对象 | 说明 | 详情 |

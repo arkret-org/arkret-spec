@@ -236,9 +236,9 @@
 
 ## [1.0.0] — 2026-05-05
 
-### 协议评审驱动的简化（2026-05-05，第四批：constraint 14→8 collapse + encoding 合并 + federation dedup）
+### 协议评审驱动的简化（2026-05-05：constraint 14→8 collapse + encoding 合并 + federation dedup）
 
-#### Round 9 — Constraint 类型 14 → 8 family + subtype discriminator
+#### Constraint 类型 14 → 8 family + subtype discriminator
 
 - `grant-constraint.schema.json` `constraint_type` enum 从 15 收敛为 8（`temporal`, `field_access`,
   `type_restriction`, `scope_limitation`, `delegation_control`, `quota`, `claim_based`,
@@ -254,7 +254,7 @@
   `quota{subtype=resource}`；`edit_window` → `temporal{subtype=edit_window}`。
 - conformance-profiles.json 增加 `cx.profile.constraint.device_session.v1`。
 
-#### Round 10 — Encoding 文档收敛
+#### Encoding 文档收敛
 
 - 删除 `zh/conformance/hlc-specification.md`：操作伪代码（send / receive / compare）与验证规则
   并入 `encoding.md` §7.1-§7.3。
@@ -273,7 +273,7 @@
 - 4 处跨文件引用 (`security/server-threat-model`, `spec-map`, `service-http-binding`, `federation`
   本身) 重定向到 federation.md。spec-map 中重复行去重。
 
-### 协议评审驱动的简化（2026-05-05，第三批：真删 + Event Envelope requirements 合并 + plane 重组 + conformance-vectors 合一）
+### 协议评审驱动的简化（2026-05-05：真删 + Event Envelope requirements 合并 + plane 重组 + conformance-vectors 合一）
 
 #### 真删之前仅标 deprecated 的字段 / 注册表项
 
@@ -282,10 +282,10 @@
   test private key 重新签名并验证通过）；`event-envelope-negative-fixture` 11 个 event 全部清理；
   `encoding-conformance-vectors` 中的 canonical bytes vector + digest 重算。规范文本中的版本演进
   提法统一改写为 Event `requirements` 与 profile id / `cx.space.upgrade` 语义。
-- `cx.flow.convert`：从 `contract-catalog.json` event_kind_registry 删除（本批 110 → 109 active kinds，
-  之后 actor_profile 评审新增 `cx.profile.create` 把总数加回 110，参见下方 "actor_profile + gatekeeper
-  收尾" 一节）；`event-schema.json` 移除对应 if/then 分支与 `flow_convert_payload` $def；prose 全部改为
-  `cx.flow.track.set_primary` + `cx.flow.track.enable` 组合。
+- `cx.flow.convert`：从 `contract-catalog.json` event_kind_registry 删除（删除后 110 → 109 active
+  kinds，之后 actor_profile 评审新增 `cx.profile.create` 把总数加回 110，参见下方 "actor_profile +
+  gatekeeper 收尾" 一节）；`event-schema.json` 移除对应 if/then 分支与 `flow_convert_payload` $def；
+  prose 全部改为 `cx.flow.track.set_primary` + `cx.flow.track.enable` 组合。
 - `cx:operation:` typed-id：从 `id_kind_registry` 删除（37 → 36）；`cx.schema.operation.v1` 从 schema_registry
   删除（35 → 34）；`operation.schema.json` 与 zh 镜像完全删除；data-structures.md §18（Canonical
   Operation Object）删除，§19 Field Patch 重新编号为 §18。
@@ -312,7 +312,7 @@
 - `object-model-core.md` 核心对象列表：`notification` / `read_marker` 从 canonical 列表降级为
   "派生对象（不是 canonical truth，由 client / SDK 从 Event 集合本地计算）"。
 
-#### Round 7 plane 重组
+#### plane 重组
 
 - 新 `zh/governance/` 目录，`authz/moderation.md` → `governance/content-moderation.md`。
 - `authz/account-lifecycle.md` → `identity/account-lifecycle.md`（账号生命周期是 identity 概念，不是
@@ -325,7 +325,7 @@
 - 全部跨文件引用更新。spec-map 中两条 device-lifecycle.md 重复条目去重；过期描述（identity-did
   默认值、event-auth-state-resolution scope）刷新。
 
-#### Round 6 (audited E2EE) — 已在 batch 6 完成，本批不重做
+#### Audited E2EE 相关改动已在更早条目完成，此处不重复登记
 
 #### R1.8 conformance-vectors 合并
 
@@ -334,13 +334,13 @@
 - 所有跨文件引用全部更新（11 处 .md / .json）。
 - 删除原 5 个文件。
 
-#### actor_profile + gatekeeper 收尾（2026-05-06，v1.0.0 release 锁定前的最后批次）
+#### actor_profile + gatekeeper 收尾（2026-05-06，v1.0.0 release 锁定前）
 
 - **actor_profile object & `cx.profile.create`**：新增 `cx:actor_profile:` typed-id 和 `cx.profile.create`
   / `cx.profile.update` / `cx.profile.space_override` 三个 event kind；event_kind_registry 由 109 回到
-  110 active kinds（id_kind_registry 由 36 → 36 仍保持，因为同批未删除其他 typed id 但 actor_profile
-  以独立 kind 进入）。create payload 不再共享 `object_create_payload`：`cx.space.create` /
-  `cx.flow.create` / `cx.morph.create` 各自指向完整对象 schema，wire 校验直接走对象 schema。
+  110 active kinds（id_kind_registry 仍保持 36，因为这次未删除其他 typed id，而 actor_profile 以独立
+  kind 进入）。create payload 不再共享 `object_create_payload`：`cx.space.create` / `cx.flow.create`
+  / `cx.morph.create` 各自指向完整对象 schema，wire 校验直接走对象 schema。
 - **state_key 形态**：`cx.space.policy.set` 的 `state_key=inheritance` 由常量改为
   `inheritance:cx:space:<ulid>` 模式（每个父 space 一条），并把 `plaintext_visible_services` 显式纳入
   state_payload enum 以保留 schema 强校验。
@@ -363,9 +363,9 @@
 登记和 federation wire 去重均已纳入当前 v1.0.0 文本、schema、registry、fixture 或 profile catalog；
 后续工作必须以新的 changelog 条目和 profile/registry 变更单独登记。
 
-### 协议评审驱动的简化（2026-05-05，第二批：Round 6 + Round 8 子集）
+### 协议评审驱动的简化（2026-05-05：Audited E2EE hardening profile + 已废弃条目收尾）
 
-#### Round 6 — Audited E2EE 拆出独立 hardening profile
+#### Audited E2EE 拆出独立 hardening profile
 
 - 新建 [`zh/crypto-media/audited-e2ee.md`](zh/crypto-media/audited-e2ee.md)：承载
   `cx.profile.attested_audit.e2ee.v1` 与 `cx.profile.disclosed_audit.e2ee.v1` 两类
@@ -377,19 +377,19 @@
   正交。
 - `zh/spec-map.md` 增加 audited-e2ee.md 入口。
 
-#### Round 8（历史中间态，已由第三批完成真删）
+#### 已废弃条目的 deprecation-only 过渡说明
 
 - `cx.flow.convert`、`cx.schema.operation.v1` / `cx:operation:`、`constraint.priority` 最初以
-  deprecation-only 方式标记；第三批已经完成 wire contract 真删。
+  deprecation-only 方式标记；后续条目已经完成 wire contract 真删。
 - 正式 v1.0.0 以当前 `artifacts/registry/contract-catalog.json`、schema 与对应中文规范为准，不再把
   这些字段或注册表项声明为 active 兼容项。
 
 ### 协议评审驱动的简化（2026-05-05）
 
-基于全仓评审，本轮收敛掉了一批与 Matrix room state 风格继承的复杂性预算与对仍在演进外部
+基于全仓评审，此条目收敛掉与 Matrix room state 风格继承相关的复杂性预算，以及对仍在演进外部
 标准的 normative 绑定；已完成事项以本文和机器工件为准。
 
-#### Round 1 — 文件级合并（删除冗余文件）
+#### 文件级合并（删除冗余文件）
 
 - 删除 `zh/conformance/cursor-test-vectors.md`，向量入口并入 `cursor-encoding.md` §3.2。
 - 删除 `zh/conformance/hlc-test-vectors.md`，向量入口并入 `hlc-specification.md` §3.4。
@@ -401,7 +401,7 @@
   payload_digest 计算与解密错误码并入 `encryption-and-audit.md` §2.3.1-§2.3.4；schema 仍由
   `artifacts/schemas/encrypted-envelope.schema.json` 承载。
 
-#### Round 2 — 状态解析与 Matrix 包袱去除（核心语义变更）
+#### 状态解析与 Matrix 包袱去除（核心语义变更）
 
 - **重写 `zh/authz/event-auth-state-resolution.md`**（882 行 → 685 行，约 −22%）：
   - **Lattice authority 替换为 quarantine-on-fork**：去除 §9.3.2 的 `governance_layer × authority_kind`
@@ -422,7 +422,7 @@
 - 同步更新 `zh/models/data-structures.md`：Space §4 与 Event Envelope §9 的 `space_version`
   改为 `no (deprecated)` 必填性。
 
-#### Round 3 — 外部互操作下沉为 interop extension profile
+#### 外部互操作下沉为 interop extension profile
 
 - `zh/extensions/mimi-interop.md` 顶部增加 extension profile banner：MIMI 仍是 IETF
   Internet-Draft；v1 core 不要求实现 MIMI provider facade。
@@ -438,7 +438,7 @@
     三个 extension profile。
   - `tier_rules` 解释 profile catalog、最小互操作地板与 extension 的 conformance 边界。
 
-#### Round 4 — DID method 默认值收敛
+#### DID method 默认值收敛
 
 - v1 core 默认 principal DID method 从 `did:webvh` 改为 **`did:web`**。理由：`did:web`
   生态成熟、HTTPS + 域名部署门槛低；`did:webvh` 仍在 W3C CCG 演进中。需要可审计身份历史的部署
@@ -448,7 +448,7 @@
 - 同步更新：`zh/identity/identity-did.md` §3-§3.4、`zh/identity/tsp-integration.md` 顶部 banner、
   `zh/README.md`、`zh/overview/architecture.md` §2.8、`zh/overview/matrix-core-differences.md`。
 
-#### Round 5 — Transport 路径锁定
+#### Transport 路径锁定
 
 - v1 core 互操作 transport **锁定为 HTTP/JSON**。`zh/sync/transport-bindings.md` 顶部声明
   HTTP/JSON 是 normative，gRPC / WebSocket / SSE / message queue / libp2p binding 全部
