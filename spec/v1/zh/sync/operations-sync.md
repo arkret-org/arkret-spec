@@ -392,7 +392,18 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 `cx.flow.*` 只修改 Flow 自身、track 配置、track access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.track.*` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。
 
-### 7.3 Message
+### 7.3 Place
+
+- `cx.place.create`
+- `cx.place.update`
+- `cx.place.parent`
+- `cx.place.archive`
+- `cx.place.restore`
+- `cx.place.tombstone`
+
+`cx.place.*` 只修改 Place 自身的元数据与生命周期；`archive -> active` 的反向转换由 `cx.place.restore` 承担，不得通过 `cx.place.update` 直接 PATCH 顶层 `state`。`tombstoned` 是不可逆终态，MUST NOT 被 restore。Flow 在 Place 中的位置由 `cx.flow.move` / `cx.flow.reorder` 维护，不写入 `cx.place.*`。
+
+### 7.4 Message
 
 - `cx.message.create`
 - `cx.message.revise`
@@ -400,7 +411,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.reaction.add`
 - `cx.reaction.remove`
 
-### 7.4 Morph / Relation / View
+### 7.5 Morph / Relation / View
 
 - `cx.morph.create`
 - `cx.morph.update`
@@ -417,7 +428,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 `cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Flow 所属 List-Space、Flow rank、List-Space rank、discussion membership、Message timeline、Relation active state 或对象字段的唯一真相。
 
-### 7.5 Membership / Invite / Capability
+### 7.6 Membership / Invite / Capability
 
 - `cx.member.state`
 - `cx.member.application`
@@ -430,7 +441,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-### 7.6 Profile / Device / Space Key
+### 7.7 Profile / Device / Space Key
 
 - `cx.profile.update`
 - `cx.profile.space_override`

@@ -246,6 +246,7 @@
               "cx.place.update",
               "cx.place.parent",
               "cx.place.archive",
+              "cx.place.restore",
               "cx.place.tombstone"
             ]
           }

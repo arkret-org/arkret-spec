@@ -515,7 +515,7 @@ Schema id: `cx.schema.place.v1`
 | `fields` | no | `object` | kind-specific 字段：例如 `kind=list` 的 `wip_limit`，`kind=board` 的默认 view ref。 | 扩展字段。 |
 | `labels` | no | `array<string>` |  | 用户/系统标签。 |
 | `avatar_blob_ref` | no | `id:blob` |  | Place 图标。 |
-| `state` | no | `enum(active, archived, tombstoned)` | 默认 `active`。`archived` 由 `cx.place.archive` reducer 设置（可逆 UI 隐藏）；`tombstoned` 由 `cx.place.tombstone` reducer 设置（不可逆，引用尚存的 active Flow 时 MUST schema_violation）。 | Place 生命周期状态。 |
+| `state` | no | `enum(active, archived, tombstoned)` | 默认 `active`。`archived` 由 `cx.place.archive` reducer 设置（可逆 UI 隐藏），由 `cx.place.restore` 还原到 `active`；`tombstoned` 由 `cx.place.tombstone` reducer 设置（不可逆，引用尚存的 active Flow 时 MUST schema_violation；tombstoned 状态 MUST NOT 被 restore）。 | Place 生命周期状态。 |
 | `state_changed_at` | no | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -524,7 +524,7 @@ Schema id: `cx.schema.place.v1`
 
 ### 4.3 行为规则
 
-- **授权**：Place 自身不持有 capability、membership 或 policy。任何对 Place 的写入（`cx.place.create` / `cx.place.update` / `cx.place.archive` / `cx.place.tombstone` / `cx.place.parent`）的授权检查 MUST 落到所属 `space_id` 的 Space membership + capability。Place 上 `cx.flow.move` 类操作的授权检查仍由 Space 决定。
+- **授权**：Place 自身不持有 capability、membership 或 policy。任何对 Place 的写入（`cx.place.create` / `cx.place.update` / `cx.place.archive` / `cx.place.restore` / `cx.place.tombstone` / `cx.place.parent`）的授权检查 MUST 落到所属 `space_id` 的 Space membership + capability。Place 上 `cx.flow.move` 类操作的授权检查仍由 Space 决定。
 - **同步与联邦**：Place 跟随所属 Space 同步；它**不**形成独立 federation transaction 单位。Place 的 Move 与 Anchor 共享 Space 的 anchor pipeline。
 - **加密**：Place **永远没有**自己的 MLS group。E2EE Space 中 Place 元数据（title、rank 等）按 Space 的 encryption_profile 处理。
 - **生命周期**：archive Place = UI 隐藏；tombstone Place = 不可逆删除（但 Space 与已被关联 Flow 都仍存在）。这与 archive/tombstone Space（影响成员、E2EE、history）的语义截然不同——Place lifecycle 仅影响 UI 分组。
@@ -540,6 +540,16 @@ Schema id: `cx.schema.place.v1`
   - 内部 Flow 的 `contains` Relation 保留（Flow 仍在该 Place，但不可见）；用户在 unarchive 后看到的位置一致。
   - Child Place（List 在 Board 内）保留，跟随 parent 一起被默认 view 隐藏。
   - 客户端 SHOULD 在 archive 前提示用户 "X 个 Flow / Place 将一起隐藏"；reducer 不强制 relocate。
+
+**Restore Place**（archive 的反向操作）：
+
+- 由 `cx.place.restore` 把 `state` 从 `archived` 还原到 `active` 并写入 `state_changed_at`。
+- Reducer 在接受 `cx.place.restore` 前 **MUST** 校验：
+  - 当前 `state == "archived"`；其他状态（`active` / `tombstoned`）MUST `failed_precondition`（`reason="place_not_archived"`）。`tombstoned` 是不可逆终态，**绝不能**通过 restore 复活。
+  - 这是与 [common-fields.md](./common-fields.md) §5 状态机一致的 canonical `archived -> active` 写入路径——客户端 MUST NOT 通过 `cx.place.update` 直接 PATCH 顶层 `state` 字段。
+- Restore **不**级联——若 archive 时同时隐藏的 child Place / 内部 Flow 仍处于自身的 `archived` 状态，restore parent 不会改变 children 的状态；UI 需独立 restore 它们。
+- Restore 后 `contains` Relation、Flow position cell 与 `parent_ref` cell 都保持 archive 前的值（archive 不级联即意味着这些数据从未被擦除），用户看到的内容与 archive 之前一致。
+- 容量 / 授权：与 `cx.place.archive` 共享同一 risk tier（medium）与同一 Space-level capability category，但 capability action 是独立的 `cx.place.restore`，需要单独 grant 或由 admin 默认 bundle 涵盖。
 
 **Tombstone Place**：
 

@@ -129,7 +129,8 @@
       "required_constraints": [],
       "target_event_kinds": [
         "cx.flow.restore",
-        "cx.morph.restore"
+        "cx.morph.restore",
+        "cx.place.restore"
       ],
       "profile": null
     },
@@ -334,6 +335,16 @@
       "required_constraints": [],
       "target_event_kinds": [
         "cx.place.archive"
+      ],
+      "profile": null
+    },
+    {
+      "action": "cx.place.restore",
+      "category": "flow",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.place.restore"
       ],
       "profile": null
     },

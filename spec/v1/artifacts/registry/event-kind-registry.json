@@ -620,6 +620,14 @@
       "payload": "Place archive (UI-level grouping archive; contained Flows MUST be relocated or follow archive)"
     },
     {
+      "event_kind": "cx.place.restore",
+      "category": "place",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Place restore (transition state archived -> active; only valid when current state == archived; tombstoned Places MUST NOT be restored)"
+    },
+    {
       "event_kind": "cx.place.tombstone",
       "category": "place",
       "status": "active",

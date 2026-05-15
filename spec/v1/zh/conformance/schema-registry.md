@@ -117,6 +117,12 @@ sidebar:
 | `cx.flow.track.disable` | Disable Flow track |
 | `cx.flow.track.update` | Flow track patch |
 | `cx.flow.track.set_primary` | Set Flow primary track |
+| `cx.place.create` | Place create (board / list / swimlane / calendar bucket / ...) |
+| `cx.place.update` | Place metadata patch |
+| `cx.place.parent` | Place parent declaration (cas-register cell) |
+| `cx.place.archive` | Place archive (reversible UI hide) |
+| `cx.place.restore` | Place restore (archived -> active; only valid when current state == archived) |
+| `cx.place.tombstone` | Place tombstone (irreversible; contained Flows MUST be relocated first) |
 
 ### 4.2 消息与关系
 

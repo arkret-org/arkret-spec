@@ -1383,3 +1383,128 @@ cx.vector.capability.approval_constraint.v1
 
 - 当 viewer 可读取 Flow discussion track 时，`flow-discussion-timeline` MUST 返回该消息。
 - 仅当 viewer 可读取 Flow discussion track 时，`flow-discussions` MUST 才包含该消息；当 discussion 位于独立的 `discussion_space_ref` child Space 时，仅有 Flow synthesis 可见性是不够的。
+
+## 6. Place Lifecycle Vectors
+
+### 6.1 目标
+
+本节定义 Place（看板 / 列 / 泳道 / calendar bucket / page group ...）`active` ↔ `archived` ↔ `tombstoned` 状态机的跨实现测试向量。canonical 写入路径见 [`../models/space-and-place.md` §4.4](../models/space-and-place.md)；canonical 状态机对齐见 [`../models/common-fields.md` §5](../models/common-fields.md)。
+
+实现声称支持以下 profile 时 SHOULD 运行本节向量：
+
+- `cx.profile.kanban_mvp.v1`
+- `cx.profile.full_client.v1`
+- `cx.profile.principal_server.v1`
+
+### 6.2 Vector: Place Archive 然后 Restore（happy path）
+
+输入（按 causal order 应用）：
+
+```json
+{
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "events": [
+    {
+      "kind": "cx.place.create",
+      "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "payload": {
+        "object": {
+          "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+          "schema": "cx.schema.place.v1",
+          "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+          "kind": "board",
+          "title": "Release Board",
+          "created_by": "did:web:alice.example.com",
+          "created_at": "2026-05-15T10:00:00Z"
+        }
+      }
+    },
+    {
+      "kind": "cx.place.archive",
+      "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "created_at": "2026-05-15T10:05:00Z",
+      "payload": {
+        "place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+        "reason": "release_cycle_complete"
+      }
+    },
+    {
+      "kind": "cx.place.restore",
+      "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "created_at": "2026-05-15T10:10:00Z",
+      "payload": {
+        "place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+        "reason": "release_reopened"
+      }
+    }
+  ]
+}
+```
+
+期望：
+
+- 应用 `cx.place.archive` 后，Place 物化对象 MUST 有 `state == "archived"` 且 `state_changed_at == "2026-05-15T10:05:00Z"`。默认 collection projection（不显式包含 archived items）MUST NOT 返回该 Place；显式带 `include_states=["archived"]` 的查询 MUST 仍可返回它。
+- 应用 `cx.place.restore` 后，Place 物化对象 MUST 有 `state == "active"` 且 `state_changed_at == "2026-05-15T10:10:00Z"`。默认 projection MUST 重新展示该 Place。
+- Restore **不**级联——若该 Place 包含 child Place（如 List 在 Board 内）或内部 Flow 且它们各自处于 `archived`，restore parent MUST NOT 改变 children 的 state。
+- archive 期间未被擦除的 `contains` Relation、Flow position cell 与 `parent_ref` cell MUST 在 restore 后保持原值；用户看到的内容与 archive 之前一致。
+
+### 6.3 Vector: Place Restore 在 `active` 状态被拒绝
+
+输入：
+
+```json
+{
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "pre_state": {
+    "place": {
+      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "state": "active"
+    }
+  },
+  "event": {
+    "kind": "cx.place.restore",
+    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "created_at": "2026-05-15T11:00:00Z",
+    "payload": {
+      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
+    }
+  }
+}
+```
+
+期望：
+
+- Reducer MUST 返回 `failed_precondition`，`reason == "place_not_archived"`。
+- Place 物化对象 MUST 不被修改；`state_changed_at` MUST 保持 archive 之前的值或缺省。
+- Event 不进入 reducer，但 envelope 本身签名/schema 合法时 MAY 仍被持久化为 envelope 历史（按各实现的 envelope-vs-state 边界处理）；reducer state 不得反映本次写入。
+
+### 6.4 Vector: Place Restore 在 `tombstoned` 状态被拒绝（不可复活）
+
+输入：
+
+```json
+{
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "pre_state": {
+    "place": {
+      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "state": "tombstoned",
+      "state_changed_at": "2026-05-15T09:00:00Z"
+    }
+  },
+  "event": {
+    "kind": "cx.place.restore",
+    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "created_at": "2026-05-15T12:00:00Z",
+    "payload": {
+      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
+    }
+  }
+}
+```
+
+期望：
+
+- Reducer MUST 返回 `failed_precondition`，`reason == "place_not_archived"`（与 §6.3 同 reason；tombstoned 在状态机中不属于 `archived`，复活路径不存在）。
+- Place 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
+- 该向量是 `tombstoned` 不可逆终态约束（[`space-and-place.md` §4.4](../models/space-and-place.md)、[`place.schema.json#/properties/state`](../../artifacts/schemas/place.schema.json)）的 wire 级证据：实现 MUST NOT 提供任何"先 restore 再写入"的 tombstoned 复活路径。需要重新启用一个等价容器时，正确的做法是 `cx.place.create` 一个新 Place。

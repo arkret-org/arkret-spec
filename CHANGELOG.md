@@ -42,6 +42,36 @@
 
 ## [Unreleased]
 
+### 新增 `cx.place.restore` 修正 Place 生命周期对称性（2026-05-15）
+
+补齐 Place 的 `archived -> active` 反向转换。此前 Place schema 的 `state` 枚举包含 `archived`（[`common-fields.md` §5](spec/v1/zh/models/common-fields.md) 也明示其为"可撤销"软隐藏），但 event_kind_registry 中只有 `cx.place.archive` 与 `cx.place.tombstone`——既没有 `cx.place.restore`，common-fields §5 又禁止直接 PATCH 顶层 `state`。这把"unarchive 一个看板/列"变成 wire-level 无解的操作：与 Flow / Morph 的 `*.restore` 形成不对称。本变更对齐到 `cx.flow.restore` / `cx.morph.restore` 的现有模式，不改 Place schema 形状。
+
+- **变更类型**: add
+- **影响 artifact**: `event_kind_registry`、`capability_action_registry`、`event-schema.json`、`place.schema.json`
+- **canonical 变更**（`contract-catalog.json`）:
+  - `event_kind_registry.event_kinds[]` 新增 `cx.place.restore`（`wire_scope=durable_event`、`reducer_input=true`、`category=place`、payload 与 `cx.place.archive` 同属 generic_standard_payload 组）。
+  - `capability_action_registry.actions[]` 新增 `cx.place.restore`（category=`flow`、`risk_tier=medium`、`required_constraints=[]`、`target_event_kinds=["cx.place.restore"]`），与 `cx.place.archive` 对称。
+  - 现有 bundle action `cx.object.restore` 的 `target_event_kinds` 追加 `cx.place.restore`（此前只覆盖 `cx.flow.restore` 与 `cx.morph.restore`）；持有该 bundle 的 admin grant 自动覆盖 Place restore，无需重新签发。
+- **派生 artifact 同步**: 已通过 `python tools/artifact_pipeline.py generate` 重新生成 `event-kind-registry.json` 与 `capability-action-registry.json`；diff 干净。
+- **schema 变更**:
+  - `event-schema.json` 在 Place generic_standard_payload 分支的 `if.enum` 中加入 `cx.place.restore`，与现有 `cx.place.archive` / `cx.place.tombstone` 共享同一 payload 校验。
+  - `place.schema.json#/properties/state` description 补充：`archived` 由 `cx.place.restore` 还原到 `active`，仅当当前 `state == "archived"` 时合法；`tombstoned` MUST NOT 被 restore。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.kanban_mvp.v1`（Place lifecycle 是 kanban_mvp 已覆盖的能力路径）；`minimal_client` / `full_client` 等通过 kanban_mvp 间接受影响。`chat_mvp` 不涉及 Place。
+  - profile tier 变化: 无。
+  - wire 兼容性: **backward-compatible**。新增 event kind 与 capability action，旧 writer 不发送即可；旧 reader 收到未知 kind 时按既有未知-kind 处理规则（reject 或 ignore by profile 声明）即可，没有现有 wire 被收紧。
+  - reader / writer 行为要求:
+    - Writer：从 `archived` 还原 Place MUST 发送 `cx.place.restore`；MUST NOT 通过 `cx.place.update` PATCH 顶层 `state`。
+    - Reducer：MUST 校验当前 `state == "archived"`；其他状态 MUST `failed_precondition`（`reason="place_not_archived"`）。Tombstoned Place MUST NOT 被 restore。校验通过后 set `state="active"` 并写入 `state_changed_at`。
+    - Restore **不**级联：archive 时同时隐藏的 child Place / 内部 Flow 仍处于自身 `archived` 状态时，restore parent 不会改变 children；UI 需独立 restore（与 archive 不级联对称）。
+- **fixture / vector 变化**: `spec/v1/zh/conformance/conformance-vectors.md` 新增 §6 "Place Lifecycle Vectors"，覆盖三条向量：§6.2 archive→restore happy path（验证 `state` 与 `state_changed_at` 转换、默认 projection 隐藏 / 还原、不级联到 children）、§6.3 在 `state == active` 时 restore 被拒（`failed_precondition` / `place_not_archived`）、§6.4 在 `state == tombstoned` 时 restore 被拒（同 reason；明确 tombstoned 不可复活，正确路径是新建 Place）。
+- **prose 同步**: `spec/v1/zh/models/space-and-place.md`（§4.2 state 行、§4.3 授权列表、§4.4 新增 "Restore Place" 子节）、`spec/v1/zh/models/common-fields.md`（§5 约定第一条加入 `*.restore` 命名）、`spec/v1/zh/conformance/schema-registry.md`（§4.1 新增 Place 行块，同时补齐此前缺失的 `cx.place.create/update/parent/archive/tombstone` 行——pre-existing 文档视图 gap）、`spec/v1/zh/sync/operations-sync.md`（§7 新增 7.3 Place 段，其后段落自然顺延为 7.4/7.5/7.6/7.7）、`spec/v1/zh/authz/capabilities.md`（§5.2 加入 `cx.place.restore`）、`spec/v1/zh/conformance/conformance-vectors.md`（新增 §6）。
+- **迁移指南**:
+  1. 客户端 unarchive Place 的代码若此前通过 `cx.place.update` 设 `state="active"` 绕开 archive/restore 对称缺口，应迁移到 `cx.place.restore`；reducer 收紧后该绕路 PATCH 已不合法。
+  2. Reducer 实现新增 `cx.place.restore` 入口；状态机分支沿用 archive 的 capability 校验路径，只是写入 `state="active"` 而非 `"archived"`。
+  3. Capability 评估器对 `cx.object.restore` bundle 的 `target_event_kinds` 重新加载即可——bundle 已在 source-of-truth 中追加 `cx.place.restore`。
+  4. 不需要 fixture 迁移；既有 archive-then-tombstone 路径不变。
+
 ### Flow `tracks` 由数组改为 map（2026-05-09）
 
 把 Flow `tracks` 从 `array<{ name, ... }>` 改为 `map<TrackName, FlowTrackConfig>`，key 即 track 稳定名。动机：track 名是封闭词汇表（`synthesis` / `discussion` 及 profile 声明的扩展名），不是用户自由 ID；map 形态把"同一 Flow 内 name 唯一"从一条显式约束变成结构本身保证，并且去掉 `name` 字段冗余、消除 patch path stable-key selector 段（`tracks[name=discussion].profile` → `tracks.discussion.profile`）。`is_primary=true` 仍然在每个 track entry 上；"至多一个" 由 reducer 校验，schema 不再单独表达此约束（map 形态下需逐 key 检查）。

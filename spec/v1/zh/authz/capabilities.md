@@ -177,6 +177,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.place.update`
 - `cx.place.parent`
 - `cx.place.archive`
+- `cx.place.restore`
 - `cx.place.tombstone`
 - `cx.container.move_item`
 - `cx.container.rebalance`
