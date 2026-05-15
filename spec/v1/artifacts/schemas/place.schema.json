@@ -80,7 +80,7 @@
         "archived",
         "tombstoned"
       ],
-      "description": "Place lifecycle state. 'active' is the default; 'archived' is set by cx.place.archive (reversible UI hide) and reverted to 'active' by cx.place.restore (only valid when current state == 'archived'); 'tombstoned' is set by cx.place.tombstone (irreversible; tombstoning a Place that still has live Flow references MUST schema_violation, relocation MUST happen first; tombstoned Places MUST NOT be restored). The transition timestamp lives on the writing Move and on state_changed_at."
+      "description": "Place lifecycle state. 'active' is the default. State transitions are reducer-enforced per common-fields.md §5.1: cx.place.archive MUST come from state=='active' (else failed_precondition reason=place_not_active); cx.place.restore MUST come from state=='archived' (else failed_precondition reason=place_not_archived); cx.place.tombstone MUST come from {'active','archived'} AND must have no live dependents (failed_precondition reason=place_already_terminal for terminal source, place_has_live_dependents for live refs). Same-state self-transitions (archive on archived, etc.) MUST fail — clients re-archive by restore-then-archive. Tombstoned is irreversible (MUST NOT be restored). The transition timestamp lives on the writing Move and on state_changed_at."
     },
     "state_changed_at": {
       "type": "string",

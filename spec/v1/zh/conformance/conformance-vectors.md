@@ -1508,3 +1508,102 @@ cx.vector.capability.approval_constraint.v1
 - Reducer MUST 返回 `failed_precondition`，`reason == "place_not_archived"`（与 §6.3 同 reason；tombstoned 在状态机中不属于 `archived`，复活路径不存在）。
 - Place 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
 - 该向量是 `tombstoned` 不可逆终态约束（[`space-and-place.md` §4.4](../models/space-and-place.md)、[`place.schema.json#/properties/state`](../../artifacts/schemas/place.schema.json)）的 wire 级证据：实现 MUST NOT 提供任何"先 restore 再写入"的 tombstoned 复活路径。需要重新启用一个等价容器时，正确的做法是 `cx.place.create` 一个新 Place。
+
+### 6.5 Vector: Archive 在非 `active` 状态被拒绝
+
+输入：
+
+```json
+{
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "pre_state": {
+    "place": {
+      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "state": "archived",
+      "state_changed_at": "2026-05-15T10:05:00Z"
+    }
+  },
+  "event": {
+    "kind": "cx.place.archive",
+    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "created_at": "2026-05-15T11:30:00Z",
+    "payload": {
+      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
+    }
+  }
+}
+```
+
+期望：
+
+- Reducer MUST 返回 `failed_precondition`，`reason == "place_not_active"`（[common-fields.md §5.1](../models/common-fields.md) state-transition 表）。
+- Place 物化对象 MUST 保持 `state == "archived"` 与原 `state_changed_at`；same-state self-transition 不被当作 idempotent no-op。
+- 客户端如果意图是"重新 archive"，正确路径是先 `cx.place.restore` 再 `cx.place.archive`。
+- 该向量对 Flow / Morph 等价同形：`cx.flow.archive` 在 `state != "active"` 时 `flow_not_active`；`cx.morph.archive` 同理 `morph_not_active`。
+
+### 6.6 Vector: Tombstone 在已 tombstoned 状态被拒绝
+
+输入：
+
+```json
+{
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "pre_state": {
+    "place": {
+      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "state": "tombstoned",
+      "state_changed_at": "2026-05-15T09:00:00Z"
+    }
+  },
+  "event": {
+    "kind": "cx.place.tombstone",
+    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "created_at": "2026-05-15T12:00:00Z",
+    "payload": {
+      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
+    }
+  }
+}
+```
+
+期望：
+
+- Reducer MUST 返回 `failed_precondition`，`reason == "place_already_terminal"`（[common-fields.md §5.1](../models/common-fields.md) 终态等价规则）。
+- Place 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
+- 该向量对 Flow / Morph 等价同形：`cx.flow.tombstone` / `cx.redaction` 指向已 `deleted` / `redacted` Flow 或 Morph 时同样返回 `<kind>_already_terminal`。终态进入是单向、单次操作。
+
+### 6.7 Vector: Update 在非 `active` 状态被拒绝
+
+输入：
+
+```json
+{
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "pre_state": {
+    "place": {
+      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "state": "archived",
+      "state_changed_at": "2026-05-15T10:05:00Z",
+      "title": "Release Board"
+    }
+  },
+  "event": {
+    "kind": "cx.place.update",
+    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "created_at": "2026-05-15T11:45:00Z",
+    "payload": {
+      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "patch": {
+        "title": "Renamed while archived"
+      }
+    }
+  }
+}
+```
+
+期望：
+
+- Reducer MUST 返回 `failed_precondition`，`reason == "place_not_active"`（"update on non-active object" invariant，[common-fields.md §5.1](../models/common-fields.md)）。
+- Place 物化对象 MUST 保持原 `title="Release Board"` 与 `state == "archived"`；update **不**作为隐式 restore。
+- 客户端正确路径：先 `cx.place.restore`，update 通过后再决定是否 `cx.place.archive`。
+- 该向量对 Flow / Morph `*.update` 等价同形。

@@ -42,6 +42,34 @@
 
 ## [Unreleased]
 
+### Lifecycle state machine — 显式补齐 archive / update / tombstone 源状态 MUST（2026-05-15）
+
+把 `common-fields.md §5` 从只规定 `*.restore` 来源升级到完整的 archive / restore / tombstone / update 状态机表。原来只有 restore 一条显式 MUST(spec round 之前补的),archive / tombstone / update 的源状态校验在 prose 里隐含但没有 wire-级 MUST,导致 SDK / 服务端实现各异。本轮把所有 lifecycle transition 的允许源状态 + reason_code 列成统一表,并下推到 Flow / Place / Morph 三套对象 schema 与 prose;新增 3 条 conformance vector 验 wire 行为。
+
+- **变更类型**: add(状态机 MUST + reason_code 注册)
+- **影响 artifact**: `common-fields.md`、`flow.schema.json`、`place.schema.json`、`morph.schema.json`、对应 zh prose、`conformance-vectors.md`
+- **canonical 变更**:
+  - `common-fields.md §5.1` 新增"Canonical state-transition table",列出 `cx.<kind>.archive` / `.restore` / `.tombstone` / `.update` 的允许源、目标、`failed_precondition` reason_code,以及"未知对象容忍 / 终态等价 / 不允许 same-state self-transition / update on non-active MUST fail" 四条附加规则。
+  - reason_code 命名:`<kind>_not_active`(archive / update 错源)、`<kind>_not_archived`(restore 错源)、`<kind>_already_terminal`(tombstone / redaction 进入已终态);`<kind>` 取 `flow` / `place` / `morph` / `message`,所有实现 MUST 用相同 reason_code 串。
+  - 三套对象 schema(`flow.schema.json` / `place.schema.json` / `morph.schema.json`)的 `state` 字段 description 加 reducer 强制契约,引用 common-fields §5.1。
+  - 三套对象 prose(`flow-and-message.md` / `space-and-place.md §4.4` Archive Place + Tombstone Place / `morph.md`)的 `state` 行 / archive 子节 / tombstone 子节同步补齐 MUST 文字。
+- **派生 artifact 同步**: 无 generated artifact 需重新生成(本次只动 normative prose + schema description + 新 fixture)。`registry diff: clean`。
+- **schema 变更**:
+  - 三套 `state` 字段 description 加详细 transition 规则;`state_changed_at` description 把 `cx.<kind>.restore` 加进"由何 event 写入"列表。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.kanban_mvp.v1`、`cx.profile.chat_mvp.v1`(因覆盖 Flow lifecycle)、所有支持 Morph 的 profile。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible —— 新规则只收紧 reject 路径,well-behaved 客户端(emit archive 前确认 state=active 等)不受影响。pre-existing 在错源状态发 lifecycle event 的实现需要修(SDK 已在 round 9 收紧 restore,archive/tombstone 还在 follow-up)。
+  - reader / writer 行为要求:
+    - Writer: emit lifecycle event 前 MUST 确认 pre-state 满足表;失败时 reducer 会用 `failed_precondition` 拒绝。
+    - Reducer: 按 §5.1 表实现源状态校验;未知对象(create 尚未到达)不报错。错源 MUST 用表里 reason_code,不允许自创。
+- **fixture / vector 变化**: `conformance-vectors.md §6.5-6.7` 新增三条向量(archive-on-archived rejected / tombstone-on-tombstoned rejected / update-on-archived rejected),都用 Place 举例并明示"Flow / Morph 等价同形"。
+- **prose 同步**: `common-fields.md §5` 段加 §5.1 子节、`space-and-place.md §4.4` Archive Place + Tombstone Place 子节加 MUST 文字、`flow-and-message.md §3` table state 行扩、`morph.md §2.2` table state 行扩。
+- **迁移指南**:
+  - SDK 实现:需要把 archive / update / tombstone 的源状态校验加上(类似 SDK round 9 给 restore 加 guard 的模式);失败时返 `Error::Protocol("<kind>_not_active" | "<kind>_already_terminal")`。SDK round 10 任务。
+  - 服务端实现:envelope 形态不变;若服务端做了 projection state 追踪(soland Place 待做),lifecycle event 提交前可做 state-machine 预校验,直接返 HTTP 412 而不是先存后被 reducer reject。
+  - 客户端 UI:archive / restore 按钮做 capability gate 时也应 disable 当前 state 不满足前提的按钮(例如已 archived 的 list 不显示 "Archive" 而显示 "Restore")。
+
 ### 新增 `cx.place.restore` 修正 Place 生命周期对称性（2026-05-15）
 
 补齐 Place 的 `archived -> active` 反向转换。此前 Place schema 的 `state` 枚举包含 `archived`（[`common-fields.md` §5](spec/v1/zh/models/common-fields.md) 也明示其为"可撤销"软隐藏），但 event_kind_registry 中只有 `cx.place.archive` 与 `cx.place.tombstone`——既没有 `cx.place.restore`，common-fields §5 又禁止直接 PATCH 顶层 `state`。这把"unarchive 一个看板/列"变成 wire-level 无解的操作：与 Flow / Morph 的 `*.restore` 形成不对称。本变更对齐到 `cx.flow.restore` / `cx.morph.restore` 的现有模式，不改 Place schema 形状。

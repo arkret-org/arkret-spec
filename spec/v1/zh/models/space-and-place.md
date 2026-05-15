@@ -536,6 +536,7 @@ Schema id: `cx.schema.place.v1`
 **Archive Place**：
 
 - 由 `cx.place.archive` 把 `state` 设为 `archived` 并写入 `state_changed_at`；该 Place 在默认 view 中被隐藏。
+- Reducer 在接受 `cx.place.archive` 前 **MUST** 校验当前 `state == "active"`（或缺省，缺省语义等价于 `active`）；其他状态（`archived` / `tombstoned`）MUST `failed_precondition` 且 `reason="place_not_active"`，**不**改写任何字段。same-state self-transition（archive 一个已 archived 的 Place）也算违反；客户端要"重新 archive"应先 `cx.place.restore` 再发新 archive。详见 [common-fields.md §5.1](./common-fields.md)。
 - Archive **不**自动级联到内部 Flow 或 child Place。具体级联策略由 Place schema/profile 声明，缺省策略：
   - 内部 Flow 的 `contains` Relation 保留（Flow 仍在该 Place，但不可见）；用户在 unarchive 后看到的位置一致。
   - Child Place（List 在 Board 内）保留，跟随 parent 一起被默认 view 隐藏。
@@ -555,9 +556,10 @@ Schema id: `cx.schema.place.v1`
 
 - 由 `cx.place.tombstone` 把 `state` 设为 `tombstoned` 并写入 `state_changed_at`；不可逆。
 - Reducer 在接受 `cx.place.tombstone` 前 **MUST** 校验：
+  - 当前 `state` 在 {`active`, `archived`} 之内（包括缺省视为 `active`）;`tombstoned` 状态 MUST `failed_precondition` 且 `reason="place_already_terminal"`(终态不可重复进入,与 [common-fields.md §5.1](./common-fields.md) 一致)。
   - 不存在指向该 Place 的 active `contains` Relation（即所有 Flow 已被 relocate 或它们也在被同批次 tombstone）。
   - 不存在 `parent_ref = <this_place>` 且未 tombstone 的 child Place。
-  - 校验失败时返回 `failed_precondition` (`reason="place_has_live_dependents"`)，附带未清空的依赖列表。
+  - 任一校验失败时返回 `failed_precondition`，依赖类用 `reason="place_has_live_dependents"`(附带未清空的依赖列表),终态类用 `reason="place_already_terminal"`。
 - Tombstone 一个引用了**已 tombstone Place** 的 child（即 `parent_ref` 指向 dangling Place）：reducer SHOULD 接受（这是依赖清理路径），但 MUST 同时把该 child 标记为 `parent_ref_dangling=true` 投影 hint，让 UI 显示孤立状态。
 - Tombstone 后 Place 元数据本身保留（用于 audit），但 `title` / `summary` 等用户内容 SHOULD 通过 redaction Move 清理。
 

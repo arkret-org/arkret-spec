@@ -107,6 +107,27 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 - 写入路径 MUST 来自对应 reducer-input event（`cx.<kind>.archive` / `cx.<kind>.restore` / `cx.<kind>.tombstone` / `cx.<kind>.redact` 或等价命名）；不得直接 PATCH 对象顶层 state。`archived -> active` 是显式的可逆转换，由 `cx.<kind>.restore`（Flow、Place、Morph 均已注册对应 restore event）承担；`tombstoned` / `deleted` / `redacted` 是不可逆终态，MUST NOT 被 restore。
 - `state != active` 时 MUST 写入 `state_changed_at`（见 §3 公共字段）。
+
+#### 5.1 Canonical state-transition table
+
+每个 reducer-input lifecycle event 都 MUST 校验**当前 state**(reducer 视角下的 pre-state)落在下表"合法源"集合内,否则 MUST 返回 `failed_precondition`,`reason` 取下表 `reason_code` 列。
+
+| event family | 允许的源 state | 目标 state | `failed_precondition` reason_code |
+| --- | --- | --- | --- |
+| `cx.<kind>.archive` | `active` | `archived` | `<kind>_not_active` |
+| `cx.<kind>.restore` | `archived` | `active` | `<kind>_not_archived` |
+| `cx.<kind>.tombstone` | `active`、`archived` | `tombstoned` / `deleted`(各对象 schema 自命名) | `<kind>_already_terminal` |
+| `cx.<kind>.redact` 或 `cx.redaction` 指向该对象 | `active`、`archived` | `redacted`(如对象支持),或合并到 `tombstoned` | `<kind>_already_terminal` |
+
+`<kind>` 是 schema 类型短名(`flow`、`place`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`place_not_active` / `place_not_archived` / `place_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
+
+附加规则:
+
+- **未知对象容忍**:reducer 若收到的 event 指向尚未在本地物化的对象(create event 尚未通过 causal / backfill 到达),MUST 不返回 `failed_precondition` 也不改写任何状态——直接 `Ok` 跳过本次副作用。这是 causal-order 安全性,与"对已知对象的 state 校验"不冲突:校验只在物化对象存在时执行。Conformance 实现 MAY 把这种 event 标记为 `pending_causal_apply` 等内部 hint。
+- **终态等价**:`tombstoned` / `deleted` 在 state-machine 中等价,都属于"不可逆终态";`redacted` 单独占一格但对 archive / restore / tombstone 而言同样是"不可逆终态"(MUST NOT 被这些 event 修改)。
+- **不允许 same-state self-transition**:`cx.<kind>.archive` 在 `state == "archived"` 时 MUST 返回 `<kind>_not_active`,**不能**当作 idempotent no-op。这保证 reducer 路径上每个 state transition 都对应一次 audit-able 状态变化;客户端如果想"重新 archive"应当先 restore 再 archive,或确认目标对象 state 后跳过事件提交。
+
+`*.create` 与 `*.update` 永远 set state 为 `active`(或保持当前 active);对一个非 active 对象提交 update MUST 失败(`failed_precondition`,reason 同 `archive_not_active` 家族),否则编辑会偷偷复活已 archive/tombstone 的对象——这与 `*.restore` 的语义冲突。Conformance 实现 MUST 把"update on non-active object"视为 invariant 违反。
 - "Place 没有 redacted"：Place 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `cx.place.tombstone` 或 `cx.redaction` 一并完成。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
 - "Relation 用 `tombstone` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故合并为单一 `tombstone`；具体 reason 在对应 `cx.relation.delete` / `cx.redaction` event 中保留。
