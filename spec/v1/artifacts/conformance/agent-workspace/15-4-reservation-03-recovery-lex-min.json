@@ -1,0 +1,39 @@
+{
+  "vector_id": "15-4-reservation-03",
+  "spec_section": "§15.4.23",
+  "title": "Recovery Move resolves ⊥ via lex-min winner",
+  "preconditions": {
+    "cell": "mirror_space_by_source:cx:space:01964200-0000-7000-8000-000000000010",
+    "current_state": "⊥",
+    "bottom_diagnostic": {
+      "heads": [
+        "cx:space:01964200-0000-7000-8000-0000000000a1",
+        "cx:space:01964200-0000-7000-8000-0000000000b2"
+      ]
+    }
+  },
+  "input_move": {
+    "lattice_op": {
+      "kind": "set",
+      "value": "cx:space:01964200-0000-7000-8000-0000000000a1",
+      "comment": "lex-min(heads) = '...0000000000a1'"
+    },
+    "predicate": {
+      "op": "head_in",
+      "values": [
+        "cx:space:01964200-0000-7000-8000-0000000000a1",
+        "cx:space:01964200-0000-7000-8000-0000000000b2"
+      ]
+    },
+    "refs": [
+      { "id": "cx:grant:01964200-0000-7000-8000-recover00grant", "role": "authorized_by" },
+      { "id": "cx:event:01964200-0000-7000-8000-stateWitness0", "role": "state_witness", "critical": true },
+      { "id": "cx:event:01964200-0000-7000-8000-inclusionProof", "role": "inclusion_proof", "critical": true }
+    ]
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "cell_state_after": "cx:space:01964200-0000-7000-8000-0000000000a1",
+    "design_note": "Recovery Move follows §8 冲突修复: head_in [conflict_heads] + recovery_capability + state_witness + inclusion_proof. Deterministic winner = lex-min."
+  }
+}

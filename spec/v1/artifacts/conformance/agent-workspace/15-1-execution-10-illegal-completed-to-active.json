@@ -1,0 +1,28 @@
+{
+  "vector_id": "15-1-execution-10",
+  "spec_section": "§15.1.10",
+  "title": "completed → active MUST fail (terminal exit)",
+  "negative": true,
+  "preconditions": {
+    "task_state": {
+      "execution_state": "completed"
+    }
+  },
+  "input_event": {
+    "kind": "cx.agent_task.execution.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+      "op": "transition",
+      "from": "completed",
+      "to": "active"
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "failed_precondition",
+    "reason": "invalid_task_fsm_transition",
+    "response_includes": {
+      "current_state": "completed"
+    }
+  }
+}

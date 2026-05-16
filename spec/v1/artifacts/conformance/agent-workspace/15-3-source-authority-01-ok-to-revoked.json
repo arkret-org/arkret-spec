@@ -1,0 +1,38 @@
+{
+  "vector_id": "15-3-source-authority-01",
+  "spec_section": "§15.3.17",
+  "title": "source_authority: ok → revoked (watcher observed grant revoke)",
+  "preconditions": {
+    "task_state": {
+      "execution_state": "active",
+      "transparency": "ok",
+      "source_authority": "ok"
+    },
+    "source_revoke_event": "cx:event:01964200-0000-7000-8000-000000000040"
+  },
+  "input_event": {
+    "kind": "cx.agent_task.source_authority.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.source_authority",
+      "op": "transition",
+      "from": "ok",
+      "to": "revoked",
+      "reason": "source_grant_revoked",
+      "evidence_refs": [
+        "cx:event:01964200-0000-7000-8000-000000000040"
+      ]
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "cell_changes": [
+      {
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.source_authority",
+        "before": "ok",
+        "after": "revoked"
+      }
+    ],
+    "runtime_gate_after": "blocked"
+  }
+}

@@ -409,11 +409,13 @@ validate_op(op):
 
 Compare-and-swap register。Move 通过 precondition `head_eq` 声明 basis；并发不同 set 返回 `⊥`。Move 的因果序由 (a) Anchor batch 包含关系，与 (b) 跨 batch 时 `Move.refs(role="after")` 显式声明给出；同 Anchor batch 内的 sibling Moves 视为并发。
 
+**Cell schema 可选参数 `initial_value`**（v1.1 引入，由 `cx.profile.agent_workspace.v1` 触发）：cas-register cell schema MAY 声明 `initial_value`，该值在 cell 未被任何 Move 写过时作为 `current` 的初值。算法第一行原本 `current = null`，schema 声明 `initial_value` 时改为 `current = initial_value`。**单例 cell 模式**：schema 声明 `initial_value = "<sentinel>"` 时，配合 `head_eq: "<sentinel>"` predicate 的第一次 set Move 才能成功；后续 Move 因 `basis ≠ settled and basis is not null` 触发 `⊥`，从而强制 singleton 语义。详见 [extensions/agent-workspace-profile.md §6.1](../extensions/agent-workspace-profile.md)。
+
 ```text
-join(moves) -> value | ⊥:
+join(moves, cell_schema) -> value | ⊥:
   // 按 Anchor batch index 升序 + 同 batch 内按 head_eq 链化（pre-state value → effect value）
   // 跨 batch 时若需要绕过 head_eq 链化，使用 Move.refs(role="after")
-  current = null
+  current = cell_schema.initial_value if defined else null   // v1.1 修订
   for batch in moves grouped by anchor_ref ordered by anchor index:
     settled = current
     siblings = []
@@ -431,9 +433,15 @@ join(moves) -> value | ⊥:
       current = unique(siblings.map(v))
   return current
 
-validate_op(op):
+validate_op(op, cell_schema):
   op.type == "set"
   op.value satisfies schema
+  // v1.1: when initial_value is declared, reject set ops whose effect equals
+  // the sentinel (sentinel is reserved for the "unset" state; only cleanup
+  // Moves explicitly resetting via cleanup capability MAY write it).
+  if cell_schema.initial_value is defined:
+    if op.value == cell_schema.initial_value and not op.from_cleanup_path:
+      return SCHEMA_VIOLATION(reason=initial_value_reserved)
 ```
 
 `bottom=reject` 是 cas-register 的标准配置：依赖该 cell 的 Move MUST `fail_bottom`（spec 状态码 `failed_bottom`）。anchorer cell、关键 singleton policy 与 host 指针均使用此组合。

@@ -103,6 +103,66 @@
         "$ref": "./event-schema.json#/$defs/proof"
       },
       "minItems": 1
+    },
+    "attached_authority": {
+      "type": "object",
+      "description": "Optional binding to a cx.schema.agent_authority.v1 attestation. REQUIRED (reducer-enforced) when grant subject is an agent DID whose agent_authority.acting_mode == 'delegated_assistant'. Two evidence shapes are supported in v1: anchored_event_ref (preferred, verifiable inclusion proof) and state_witness (issuer-signed snapshot, TTL-bound). The Rev 7 inline_copy variant is reserved for v2 air-gapped scenarios. See extensions/agent-workspace-profile.md §5.",
+      "required": ["evidence_kind"],
+      "oneOf": [
+        {
+          "properties": {
+            "evidence_kind": { "const": "anchored_event_ref" },
+            "authority_event_ref": {
+              "type": "string",
+              "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "authority_event_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "anchor_inclusion_proof": { "type": "object" }
+          },
+          "required": ["evidence_kind", "authority_event_ref", "authority_event_hash"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "evidence_kind": { "const": "state_witness" },
+            "witness_issuer": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+            },
+            "witness_signature": { "type": "string" },
+            "agent_id": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+            },
+            "controller": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+            },
+            "responsible_actor": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+            },
+            "acting_mode": { "type": "string" },
+            "valid_until": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            }
+          },
+          "required": [
+            "evidence_kind",
+            "witness_issuer",
+            "witness_signature",
+            "agent_id",
+            "controller",
+            "valid_until"
+          ],
+          "additionalProperties": false
+        }
+      ]
     }
   },
   "not": {

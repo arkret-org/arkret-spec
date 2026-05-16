@@ -1,0 +1,26 @@
+{
+  "vector_id": "15-2-transparency-03",
+  "spec_section": "§15.2.15",
+  "title": "transparency: reconfirmed_after_loss → lost MUST fail (unreachable edge, Message redaction is terminal)",
+  "negative": true,
+  "preconditions": {
+    "task_state": {
+      "transparency": "reconfirmed_after_loss"
+    }
+  },
+  "input_event": {
+    "kind": "cx.agent_task.transparency.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.transparency",
+      "op": "transition",
+      "from": "reconfirmed_after_loss",
+      "to": "lost"
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "failed_precondition",
+    "reason": "invalid_task_fsm_transition",
+    "design_note": "Rev 7 removed this edge: source Message redaction is a terminal state (cannot un-redact then re-redact)."
+  }
+}

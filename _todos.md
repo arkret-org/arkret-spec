@@ -48,4 +48,113 @@
 
 ## 跨项目登记
 
-跨项目执行项不在本文件展开，统一放根 [`../_todos.md`](../_todos.md)。本文件只保留协议源自身需要完成的工作。
+跨项目执行项常态化放根 [`../_todos.md`](../_todos.md)。下面一节是为新 land 的 `cx.profile.agent_workspace.v1` 下游集成做的一次性专项任务清单（2026-05-17 加入；执行完后内容迁移到 `../_todos.md` 的常规更新流），保留在本文件是因为它紧耦合于本次 spec 改动。
+
+---
+
+## AW-1..AW-3 — Agent Workspace 下游集成（2026-05-17 专项）
+
+Spec entry: [`spec/v1/zh/extensions/agent-workspace-profile.md`](spec/v1/zh/extensions/agent-workspace-profile.md)（`cx.profile.agent_workspace.v1`）
+Artifact pipeline 待办（spec 内）：[`_agent_workspace_artifact_todos.md`](_agent_workspace_artifact_todos.md)
+
+执行顺序保证依赖：`AW-1 contrix-rust-sdk → AW-2 soland → AW-3 yougen`。SDK 提供 wire 类型 + helpers → soland 提供 reducer + service ops → yougen 调 SDK + soland API 提供 UI。
+
+### AW-1 `contrix-rust-sdk`（wire types + helpers）
+
+新增 `crates/sdk/src/agent_workspace.rs`，参考既有 `agent.rs` / `applet.rs` 结构。
+
+- [ ] AW-1.1 Schema types：`AgentTask` / `ContextAnchor` / `ExecutionState` / `TransparencyState` / `SourceAuthorityState` / `MentionRedirectContent` / `ImportAttestationContent` / `SourceExportPolicyAttestation`
+- [ ] AW-1.2 `agent_task` typed ID（`crates/identifiers`）+ `TypedId<AgentTask>`
+- [ ] AW-1.3 Event payload helpers：`AgentTaskCreatePayload` / `AgentTaskTransitionPayload` / `AgentTaskCancelPayload` + `to_event_envelope()`；mention_redirect 注入 `requirements.critical_extensions[]`
+- [ ] AW-1.4 FSM 校验：`legal_transition` 3 cell 各一个 + `agent_runtime_may_execute` gate + 单元测试覆盖合法/非法 transition
+- [ ] AW-1.5 Reservation / recovery helpers：`compute_reservation_move`（`head_eq:"__unset__"`）/ `compute_recovery_move`（lex-min + §8 refs）/ `compute_orphan_cleanup_move`（含 anchor-based `ttl_evidence`）
+- [ ] AW-1.6 import_attestation signing：`compute_canonical_signing_input` / `sign_import_attestation` / `verify_import_attestation` / `compute_content_hash`（JCS+SHA-256）/ `compute_export_policy_canonical_input`（domain separator）/ `sign_export_policy_attestation` / `verify_export_policy_attestation`
+- [ ] AW-1.7 `attached_authority` 字段加到 `CapabilityGrant`（`crates/sdk/src/authz/capability.rs`）；`AttachedAuthority` enum（`anchored_event_ref` / `state_witness`）
+- [ ] AW-1.8 HTTP client：`agent_workspace_resolve_mirror_flow` + `agent_workspace_list_pending_tasks`（`crates/http-client`）；401/403 不暴露存在性
+- [ ] AW-1.9 Conformance hooks placeholder：`crates/testing::agent_workspace::vectors()` 返回 §15 的 43 vector enum
+- [ ] AW-1.10 Module doc + CHANGELOG entry
+
+Acceptance：`cargo test -p contrix` 全绿；新增 module 有 ≥80% line coverage。
+
+### AW-2 `soland`（reducer + service ops）
+
+- [ ] AW-2.1 Event kinds：`src/kinds.rs` 加 5 个 const；`src/reducer/registry.rs` 注册（profile_gate=`cx.profile.agent_workspace.v1`）
+- [ ] AW-2.2 Reducer 实现 `src/reducer/agent_task.rs`：`reduce_agent_task_create` / 3 个 `_transition` / `_cancel`；含 schema validation、authz check、singleton enforcement、idempotent on illegal from
+- [ ] AW-2.3 mention_redirect 拦截：critical_extension check（未支持 server reject）+ `authority_grant_ref` 校验（grant active + subject 匹配 + attached_authority.controller == sender_principal）
+- [ ] AW-2.4 Reservation cell schema：2 个 reservation namespace（cas-register + bottom=reject + initial_value `"__unset__"`）+ 3 个 agent_task FSM namespace
+- [ ] AW-2.5 HTTP service ops：`src/routing/agent_workspace/mod.rs`，2 个 GET endpoint；auth = DID-signed 或 session token；非 owner/未鉴权 返回 401/403
+- [ ] AW-2.6 Notification 推送：源 Space `cx.member.state` / `cx.capability.grant` / `cx.capability.revoke` 后置 hook → 推 `agent_membership_change` 到 controller workspace
+- [ ] AW-2.7 集成测试 `tests/agent_workspace/`：reservation_singleton / reservation_concurrent_bottom / recovery_move / fsm_transition / mention_redirect_validation / orphan_cleanup / resolve_api_filtering
+- [ ] AW-2.8 OpenAPI contract 测试同步
+
+Acceptance：`cargo test` 全绿；conformance 至少 7 个集成 test 跑通。
+
+### AW-3 `yougen`（UI + UX）
+
+⭐ **重点**：用户应能直觉发现"agent workspace"入口、清晰理解"我的 agent 在干嘛"、流畅完成 publish-back 决策。
+
+**信息架构**：顶级 nav 加 `Agents`（mirror Space 入口）；原 `agents.rs`（agent protocol session 监控）改名为 `Agent Protocol`，降级到 Settings 子项。
+
+**主要页面**：
+1. Agents Dashboard（概览）—— 待处理项 sticky + 进行中 + 最近完成 + 我的 agents 列表
+2. AgentTask Detail（单 task）—— 三 cell 状态可视化 + 指令 + agent 草稿 + 对话 + publish modal + audit trail
+3. Agent Settings —— per-agent + workspace teardown
+
+**Compose 改造**：
+- 输入 `@` 候选列表"我的 agent"加锁图标 + "私下发送 (Private)" 标签
+- 选中 my-agent → compose 紫色边框 + lock icon + private banner
+- Send 按钮文本："发送 (Private to Agent)"
+- `body` 摘要可编辑，二次确认 "此摘要对源 Flow 所有人可见"
+
+**Routes**：
+- [ ] AW-3.1 `src/routes.rs` 加 `Agents` / `AgentTask { task_id }` / `AgentSettings { section }`；原 `Agents` 改名 `AgentProtocol`
+
+**Views**：
+- [ ] AW-3.2 `src/views/agent_workspace_dashboard.rs`
+- [ ] AW-3.3 `src/views/agent_task_detail.rs`（含 publish-to-source modal + read-then-write）
+- [ ] AW-3.4 `src/views/agent_workspace_settings.rs`
+
+**Components**：
+- [ ] AW-3.5 `src/components/agent_task_card.rs`
+- [ ] AW-3.6 `src/components/fsm_state_chip.rs`（3 cell 状态 chip + transition history popover）
+- [ ] AW-3.7 `src/components/publish_to_source_modal.rs`
+- [ ] AW-3.8 `src/components/add_agent_modal.rs`
+- [ ] AW-3.9 `src/components/private_compose_indicator.rs`
+
+**Chat / Discussion compose 改造**：
+- [ ] AW-3.10 `src/views/chat.rs` + `src/views/timeline.rs` mention 候选加 "我的 agent" 分组 + private routing 模式 + send 路径调用 SDK `compose_mention_redirect_pair`
+
+**Watcher**：
+- [ ] AW-3.11 `src/agent_workspace_watcher.rs`：监听本地 source Space 事件流 → 探测 `cx.redaction(target=mention_redirect)` / `cx.capability.revoke` / `cx.member.state(removed)` → read-then-write 写 transparency/source_authority transition
+
+**Notification**：
+- [ ] AW-3.12 `src/views/notifications.rs` 加 `agent_membership_change` renderer，click 跳 Agents Dashboard 或 task detail
+
+**i18n**：
+- [ ] AW-3.13 所有新文案进 `src/i18n.rs`（agents.dashboard / agents.pending / agents.task.transparency_lost_banner / agents.compose.private_routing_notice 等）
+
+**测试**：
+- [ ] AW-3.14 `tests/agent_workspace_dashboard.rs`（Playwright，mock soland）
+- [ ] AW-3.15 `tests/private_compose.rs`（@my-agent 切换 + send 触发双侧）
+- [ ] AW-3.16 `tests/publish_to_source.rs`（read-then-write，cancelled task abort modal）
+
+**UX checklist**：
+- [ ] AW-3.17 顶部 nav `Agents` 图标 + 红点（有 pending 时）
+- [ ] AW-3.18 dashboard 待处理项 sticky on top
+- [ ] AW-3.19 task 详情页 3 cell chip 用一致 palette；dark mode 兼容
+- [ ] AW-3.20 publish modal 默认 = 我 + 仅文字（最小披露）
+- [ ] AW-3.21 empty state：无 agent / 无 task 各引导
+- [ ] AW-3.22 移动端 single column；3 cell chip 横向 scroll
+- [ ] AW-3.23 keyboard shortcut Cmd/Ctrl+K agent task quick switcher
+
+Acceptance：`cargo test -p yougen` 全绿；Playwright 3 个新 test 通过；浏览器开发者实际跑一次手动 smoke 包含 dashboard + compose + publish flow。
+
+### AW-4 协议补完（执行中发现）
+
+执行中如发现下列任一回 contrix-spec 提 PR：
+- Cell schema `initial_value` 字段（已知，`_agent_workspace_artifact_todos.md §1.1`）
+- `attached_authority` 加到 capability-grant schema（已知，§1.2）
+- 跨 deployment watcher 投递 SLA（federation.md 章节）
+- `cx.agent_task.cancel` 便捷事件 reducer 等价语义注
+
+发现其他原地在该任务下加 ⚠ note，最终汇总。
