@@ -258,6 +258,27 @@ Audit action 只授权受控审计代理执行“先记录后解密”、读取�
 - `cx.notification.ack`
 - `cx.invite.accept`
 
+### 5.7 Agent Workspace 动作
+
+由 `cx.profile.agent_workspace.v1` 引入；详见 [`extensions/agent-workspace-profile.md`](../extensions/agent-workspace-profile.md)。
+
+- `cx.capability.agent_workspace.reserve`——写 mirror Space / Flow reservation Move 到唯一性 cell（`mirror_space_by_source` / `mirror_flow_by_source`）。MUST 由 workspace owner（controller principal）持有。
+- `cx.capability.agent_workspace.recover`——写 recovery Move 修复 reservation cell `⊥` 状态。MUST 由 controller principal 持有；不可委托给 agent 或外部 actor（防止攻击者篡改 winner）。
+- `cx.capability.agent_workspace.cleanup`——写 orphan cleanup Move 将 stale reservation cell 重置为 `"__unset__"` sentinel。MUST 由 controller principal 持有，MAY 通过标准 capability delegation 委托给 controller 的 sync node system actor。Cleanup Move 的 event payload 必须携带 Anchor-based TTL 证据 `ttl_evidence: { reservation_anchor_ref, reservation_anchor_index, current_anchor_ref, current_anchor_index, ttl_anchor_distance }`；reducer 验证 `current_anchor_index >= reservation_anchor_index + ttl_anchor_distance`。**不**接受自报 wall clock。详见 [`extensions/agent-workspace-profile.md §6.4`](../extensions/agent-workspace-profile.md)。
+
+### 5.8 标准 Agent Member Profile
+
+由 `cx.profile.agent_workspace.v1` 引入，作为客户端层声明性 sugar。Reducer 不依赖 preset name，依赖展开后的标准 grant。
+
+| Preset name | 展开动作集 |
+|---|---|
+| `cx.agent_member.observer` | `read_history` + `read_messages` |
+| `cx.agent_member.read_only` | observer + `react` |
+| `cx.agent_member.mention_respond_only` | read_only + `message.create` constrained by `mention_respond_only` constraint kind |
+| `cx.agent_member.full_collaborator` | 标准 member capability set |
+
+`agent_member_profile` 是声明性 sugar，**不**绕过 Space-level "agents disabled" policy（源 Space 通过拒绝向 agent DID 颁发任何 grant 即可全局禁用 agent）。
+
 ## 6. Constraints
 
 Contrix v1 支持：
@@ -294,6 +315,8 @@ Contrix v1 支持：
 - `trusted_claim_issuers`
 - `claim_refresh_required`
 - `claim_max_age`
+- `mention_respond_only`（由 `cx.profile.agent_workspace.v1` 引入；限定 actor 仅能写入 `cx.message.create` 当且仅当 `in_reply_to` 指向 mention sender 为 self 的消息。Reducer-evaluable）
+- `import_to_external_space`（由 `cx.profile.agent_workspace.v1` 引入；source-side policy 声明是否允许成员把内容跨 Space 导入。合法值 `allow` | `deny` | `require_attestation`。仅影响 source-side agent runtime 行为，不穿透到 mirror reducer）
 
 上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准。
 

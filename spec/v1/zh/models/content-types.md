@@ -268,6 +268,39 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 |------|------|------|------|
 | `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组 |
 
+### 4.11 私密 agent 调用 `cx.content.mention_redirect`
+
+由 `cx.profile.agent_workspace.v1` 引入，详见 [extensions/agent-workspace-profile.md §8.1](../extensions/agent-workspace-profile.md)。Source Space 中的 @-mention-my-agent 不携带指令正文，只携带"我把指令送到了我的私人 workspace"的透明 stub。
+
+承载 Event 顶层 MUST 携带 critical_extension `cx.feature.mention_redirect.v1`（`scope=payload`, `fail_closed=true`）；未实现该 feature 的接收方 MUST reject 整条 event（不存在 fallback 路径，保护隐私 invariant）。
+
+```json
+{
+  "kind": "cx.content.mention_redirect",
+  "body": "Alice asked her agent privately",
+  "target_actor_id": "did:web:alice-agent.example",
+  "authority_grant_ref": "cx:grant:...",
+  "redirect_pair_id": "..."
+}
+```
+
+字段规则、reducer 校验、conformance 见 agent-workspace-profile.md。
+
+### 4.12 跨 Space 重加密引用 `cx.content.import_attestation`
+
+由 `cx.profile.agent_workspace.v1` 引入，详见 [extensions/agent-workspace-profile.md §8.2](../extensions/agent-workspace-profile.md)。Importer（通常是 primary agent）把源 Space 内容重加密引入到 mirror Space。性质是 "importer 声称"——`import_signature` 证明 importer 自己的声明，不证明原作者明文确实如此。reader UI MUST 显著区分"原作者直接发言"vs"由 X importer 声称引自"。
+
+```json
+{
+  "kind": "cx.content.import_attestation",
+  "body": "...",
+  "claimed_origin": { "...": "..." },
+  "importer": { "actor_id": "did:web:...", "imported_at": "..." },
+  "import_signature": "...",
+  "content": { "kind": "cx.content.text", "body": "..." }
+}
+```
+
 ## 5. Mixin 机制 (附加属性)
 
 参考 Matrix 的 Extensible Events (MSC1767) 理念，某些修饰性状态（Mixins）可以附加到任何 `Content Block` 上，改变其渲染或处理行为，但不改变其核心类型。

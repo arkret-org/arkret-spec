@@ -655,6 +655,51 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.agent_task.create" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_task_create_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.agent_task.execution.transition" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_task_transition_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.agent_task.transparency.transition" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_task_transition_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.agent_task.source_authority.transition" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_task_transition_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.agent_task.cancel" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_task_cancel_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": {
           "kind": {
             "enum": [

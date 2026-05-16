@@ -833,6 +833,72 @@
       "payload": "Agent protocol session result"
     },
     {
+      "event_kind": "cx.agent_task.create",
+      "category": "agent_workspace",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent task create",
+      "profile_gate": "cx.profile.agent_workspace.v1"
+    },
+    {
+      "event_kind": "cx.agent_task.execution.transition",
+      "category": "agent_workspace",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent task FSM transition",
+      "cell_family": "cx.component.agent_task.execution_state.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.task_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "profile_gate": "cx.profile.agent_workspace.v1"
+    },
+    {
+      "event_kind": "cx.agent_task.transparency.transition",
+      "category": "agent_workspace",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent task FSM transition",
+      "cell_family": "cx.component.agent_task.transparency.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.task_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "profile_gate": "cx.profile.agent_workspace.v1"
+    },
+    {
+      "event_kind": "cx.agent_task.source_authority.transition",
+      "category": "agent_workspace",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent task FSM transition",
+      "cell_family": "cx.component.agent_task.source_authority.v1",
+      "cell_subject": {
+        "type": "string",
+        "field": "payload.task_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "profile_gate": "cx.profile.agent_workspace.v1"
+    },
+    {
+      "event_kind": "cx.agent_task.cancel",
+      "category": "agent_workspace",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent task cancel (alias for execution.transition to cancelled_by_controller)",
+      "profile_gate": "cx.profile.agent_workspace.v1"
+    },
+    {
       "event_kind": "cx.capability.grant",
       "category": "authz",
       "status": "active",

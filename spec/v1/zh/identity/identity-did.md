@@ -479,6 +479,13 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 - 组织 DID 的密钥轮换、恢复和停用 MUST 进入 DID method 的可验证历史。
 - 组织所有权转移 MUST 由原控制状态授权，并生成可验证 transfer / recovery 记录；实现 MUST NOT 因域名、商标或 UI 文案变化自动认定组织所有权转移。
 
+#### 标准 service entry 类型
+
+| `type` | 适用 DID 主体 | 用途 | 引用规范 |
+| --- | --- | --- | --- |
+| `ContrixGovernanceService` | Organization | 组织治理 endpoint | 本节示例 |
+| `ContrixAgentWorkspaceService` | User principal | 用户私人 agent workspace 入口。MUST 仅发布 HTTPS endpoint；workspace root Space ID 通过鉴权后 resolve API 取得 | [`extensions/agent-workspace-profile.md §12`](../extensions/agent-workspace-profile.md)（`cx.profile.agent_workspace.v1`）|
+
 客户端判断“谁控制该组织”时，应验证：
 
 1. Organization DID 解析结果有效。

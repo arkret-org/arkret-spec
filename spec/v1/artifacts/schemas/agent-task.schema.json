@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/agent-task.schema.json",
+  "title": "Contrix Agent Task",
+  "description": "Object schema for cx.schema.agent_task.v1 (mirror Space task). State lives in three orthogonal FSM cells (execution_state / transparency / source_authority), NOT in object schema fields. See spec/v1/zh/extensions/agent-workspace-profile.md §7.",
+  "type": "object",
+  "required": [
+    "id",
+    "schema",
+    "space_id",
+    "flow_id",
+    "target_agent_id",
+    "instruction",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^cx:agent_task:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "schema": {
+      "const": "cx.schema.agent_task.v1"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Mirror Space ID. MUST be a Space declaring cx.profile.agent_workspace.v1."
+    },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "target_agent_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Agent DID that will execute this task. MUST be a controller-owned agent (cx.schema.agent_authority.v1 controller == workspace owner)."
+    },
+    "instruction": {
+      "type": "object",
+      "description": "Content block describing the task. Same shape as cx.content.* block."
+    },
+    "encrypted_payload": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "./encrypted-envelope.schema.json" }
+      ]
+    },
+    "context_anchor": {
+      "type": "object",
+      "description": "Optional binding to a source Space frontier when this task is triggered by a mention_redirect in source Space.",
+      "required": [
+        "source_space_id",
+        "source_flow_id",
+        "source_anchor_ref",
+        "source_frontier_hash",
+        "trigger_redirect_pair_id"
+      ],
+      "properties": {
+        "source_space_id": {
+          "type": "string",
+          "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "source_flow_id": {
+          "type": "string",
+          "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "source_anchor_ref": {
+          "type": "string",
+          "pattern": "^cx:anchor:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "source_frontier_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "trigger_redirect_pair_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "source_stub_event_ref": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      ],
+      "description": "Set after Phase 3 reconcile to reference the source Space mention_redirect event. Single-sided audit anchor; source Space does not store reverse reference."
+    },
+    "created_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false,
+  "$comment": "State is NOT stored as object fields. Read execution_state / transparency / source_authority FSM cells via lattice query. Schema validation only checks shape; reducer enforces FSM transitions per spec/v1/zh/extensions/agent-workspace-profile.md §7."
+}

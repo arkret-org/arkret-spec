@@ -139,6 +139,9 @@ grpc:
       UpdateAccountStatus: cx.admin.update_account_status
       RevokeDevice: cx.admin.revoke_device
       GetModerationQueue: cx.admin.get_moderation_queue
+    AgentWorkspace:
+      ResolveMirrorFlow: cx.agent_workspace.resolve_mirror_flow
+      ListPendingTasks: cx.agent_workspace.list_pending_tasks
 mq:
   envelope:
     required:
@@ -191,6 +194,8 @@ mq:
     mimi.proxy_download: cx.mimi.proxy_download
     push.notify: cx.push.notify
     authz.check: cx.authz.check
+    agent_workspace.resolve_mirror_flow: cx.agent_workspace.resolve_mirror_flow
+    agent_workspace.list_pending_tasks: cx.agent_workspace.list_pending_tasks
 libp2p:
   envelope:
     required:

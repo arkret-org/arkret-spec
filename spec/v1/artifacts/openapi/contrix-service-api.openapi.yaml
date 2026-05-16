@@ -3006,3 +3006,84 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModerationQueueResponse'
+  /api/v1/agent_workspace/mirror_flow:
+    get:
+      operationId: cx.agent_workspace.resolve_mirror_flow
+      summary: Resolve mirror Flow ID for a given source Flow.
+      description: |
+        Controller-only resolve. Returns mapping only when reservation + create
+        both completed. Unauthenticated MUST return 401/403, not 404
+        (workspace existence is not enumerable). See
+        spec/v1/zh/extensions/agent-workspace-profile.md §11.1.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: source_flow_id
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Existing mirror Flow mapping
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [mirror_flow_id, mirror_space_id]
+                properties:
+                  mirror_flow_id:
+                    type: string
+                  mirror_space_id:
+                    type: string
+        '401':
+          description: Unauthenticated. MUST NOT distinguish from 'workspace not provisioned'.
+        '403':
+          description: Authenticated but not workspace owner. MUST NOT distinguish from 'workspace not provisioned'.
+        '404':
+          description: Workspace exists but mirror Flow not provisioned for that source.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reason:
+                    type: string
+                    enum: [not_provisioned]
+  /api/v1/agent_workspace/pending_tasks:
+    get:
+      operationId: cx.agent_workspace.list_pending_tasks
+      summary: List in-flight agent_task objects awaiting client reconcile.
+      description: |
+        Controller-only. Returns agent_task objects whose execution_state cell
+        head is in {pending_source_stub, active}. Used by clients to reconcile
+        unfinished Phase 2/3 after offline. See agent-workspace-profile.md §11.2.
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: List of pending tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tasks]
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+                      required: [agent_task_id, execution_state]
+                      properties:
+                        agent_task_id:
+                          type: string
+                        execution_state:
+                          type: string
+                        transparency:
+                          type: string
+                        source_authority:
+                          type: string
+        '401':
+          description: Unauthenticated.
+        '403':
+          description: Not workspace owner.

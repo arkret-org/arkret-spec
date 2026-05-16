@@ -58,6 +58,7 @@
     "cx.profile.push_gateway.v1",
     "cx.profile.applet_service.v1",
     "cx.profile.agent_runtime.v1",
+    "cx.profile.agent_workspace.v1",
     "cx.profile.mimi_interop.v1",
     "cx.profile.sovereign_client.v1",
     "cx.profile.franking.v1",
@@ -89,6 +90,7 @@
     "extension_profile_implementation": [
       "cx.profile.applet_service.v1",
       "cx.profile.agent_runtime.v1",
+      "cx.profile.agent_workspace.v1",
       "cx.profile.mimi_interop.v1"
     ],
     "tier_rules": {
@@ -935,6 +937,71 @@
           "grant_scope"
         ],
         "unsupported_optional": "require explicit grant before join or tool use"
+      }
+    },
+    "cx.profile.agent_workspace.v1": {
+      "tier": "extension_profile_implementation",
+      "depends_on": [],
+      "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md",
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.events.submit",
+        "cx.events.query",
+        "cx.agent_workspace.resolve_mirror_flow",
+        "cx.agent_workspace.list_pending_tasks"
+      ],
+      "required_event_kinds": [
+        "cx.agent_task.create",
+        "cx.agent_task.execution.transition",
+        "cx.agent_task.transparency.transition",
+        "cx.agent_task.source_authority.transition",
+        "cx.agent_task.cancel"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.agent_task.v1",
+        "cx.schema.content.mention_redirect.v1",
+        "cx.schema.content.import_attestation.v1",
+        "cx.schema.content.source_export_policy_attestation.v1",
+        "cx.schema.agent_authority.v1",
+        "cx.schema.capability.v1"
+      ],
+      "required_capability_actions": [
+        "cx.capability.agent_workspace.reserve",
+        "cx.capability.agent_workspace.recover",
+        "cx.capability.agent_workspace.cleanup"
+      ],
+      "required_features": [
+        "cx.feature.mention_redirect.v1",
+        "cx.feature.import_attestation.v1"
+      ],
+      "required_constraint_kinds": [
+        "mention_respond_only",
+        "import_to_external_space"
+      ],
+      "required_cell_namespaces": [
+        "mirror_space_by_source",
+        "mirror_flow_by_source",
+        "agent_task.<task_id>.execution_state",
+        "agent_task.<task_id>.transparency",
+        "agent_task.<task_id>.source_authority"
+      ],
+      "required_fixtures": [
+        "agent-workspace-fixture.json"
+      ],
+      "optional_extensions": [
+        "source_export_policy_attestation",
+        "inline_authority_evidence"
+      ],
+      "feature_discovery": {
+        "required": [
+          "agent_workspace",
+          "mention_redirect",
+          "import_attestation",
+          "reservation_cell_singleton",
+          "watcher_observe_then_write"
+        ],
+        "unsupported_optional": "Servers not declaring this profile MUST reject cx.agent_task.* and cx.content.import_attestation writes targeting a Space declaring cx.profile.agent_workspace.v1 (profile_unsupported). Source-Space mention_redirect acceptance is governed independently by the cx.feature.mention_redirect.v1 critical_extension check."
       }
     },
     "cx.profile.mimi_interop.v1": {

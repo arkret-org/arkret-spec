@@ -53,6 +53,8 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `cx.profile.constraint.approval_workflow.v1` |
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `cx.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `cx.profile.constraint.visibility_control.v1` |
+| `scope_limitation` | `mention_respond_only` | extension | actor 仅能写入 `cx.message.create` 当且仅当 `in_reply_to` 指向 mention sender 为 self 的消息。Reducer-evaluable。 | `cx.profile.agent_workspace.v1` |
+| `confidentiality` | `export_policy` | extension | source-side policy：`import_to_external_space` ∈ `{allow, deny, require_attestation}`，控制 source Space 成员是否允许 import_attestation 写出。**仅指导 source-side agent runtime 行为**，不穿透 mirror reducer。 | `cx.profile.agent_workspace.v1` |
 
 > v1 把原草案中 15 个独立 `constraint_type` alias 折叠进 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 保留：`edit_window` / `redact_window` → `temporal` (subtype 标记)；`container_move` → `scope_limitation`；`rate_limiting` + `resource_limit` → `quota` (`subtype=rate` / `resource`)；`approval_workflow` + `accountability` + `device_session` → `claim_based` (`subtype=approval` / `accountability` / `device_session`)；`encryption_requirement` + `visibility_control` → `confidentiality` (`subtype=encryption` / `visibility`)。删除的是独立 constraint_type 名字，不是底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等仍然是合法的字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 

@@ -170,6 +170,7 @@ title: Spec Map
 | `extensions/applet-integration.md` | Applet / bridge / bot / ghost actor / portal Space。 |
 | `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
 | `extensions/agent-protocol-interop.md` | A2A / ACP / external agent protocol handoff。 |
+| `extensions/agent-workspace-profile.md` | 用户私人 agent workspace（mirror Space + agent_task FSM + mention_redirect / import_attestation 跨 Space 协作模式）。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领。 |
 | `models/space-hierarchy.md` | Space parent/child、继承、lazy link、循环处理。 |

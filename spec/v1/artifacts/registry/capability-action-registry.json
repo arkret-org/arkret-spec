@@ -18,6 +18,33 @@
   ],
   "actions": [
     {
+      "action": "cx.capability.agent_workspace.reserve",
+      "category": "agent_workspace",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": "cx.profile.agent_workspace.v1",
+      "notes": "Write reservation set Move to mirror_space_by_source / mirror_flow_by_source cells. Holder MUST be workspace controller principal."
+    },
+    {
+      "action": "cx.capability.agent_workspace.recover",
+      "category": "agent_workspace",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": "cx.profile.agent_workspace.v1",
+      "notes": "Write recovery Move resolving cell ⊥ on reservation cell. MUST be controller principal; non-delegable."
+    },
+    {
+      "action": "cx.capability.agent_workspace.cleanup",
+      "category": "agent_workspace",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": "cx.profile.agent_workspace.v1",
+      "notes": "Write orphan cleanup Move resetting stale reservation to '__unset__' sentinel. Held by controller; MAY be delegated to controller's sync node system actor. Cleanup event payload MUST carry anchor-based ttl_evidence."
+    },
+    {
       "action": "cx.space.discover",
       "category": "general",
       "risk_tier": "low",

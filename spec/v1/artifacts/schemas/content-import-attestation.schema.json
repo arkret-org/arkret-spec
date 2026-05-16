@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/content-import-attestation.schema.json",
+  "title": "Contrix Import Attestation Content Block",
+  "description": "cx.content.import_attestation. Importer-signed re-encryption of source-Space content into mirror Space. Signature proves importer's claim ONLY; does NOT prove original author's plaintext. Reader UI MUST distinguish 'original author direct utterance' vs 'claimed by importer X to be from another Space'. See spec/v1/zh/extensions/agent-workspace-profile.md §8.2.",
+  "type": "object",
+  "required": [
+    "kind",
+    "body",
+    "claimed_origin",
+    "importer",
+    "import_signature",
+    "content"
+  ],
+  "properties": {
+    "kind": {
+      "const": "cx.content.import_attestation"
+    },
+    "body": {
+      "type": "string",
+      "description": "Plain-text fallback for clients that don't render import_attestation. Render with 'imported by X from another Space' prefix; do NOT show claimed_origin IDs to avoid existence enumeration."
+    },
+    "claimed_origin": {
+      "type": "object",
+      "required": ["space_id", "flow_id", "message_id", "actor_id", "created_at"],
+      "properties": {
+        "space_id": { "type": "string", "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+        "flow_id":  { "type": "string", "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+        "message_id": { "type": "string", "pattern": "^cx:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+        "actor_id": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "importer": {
+      "type": "object",
+      "required": ["actor_id", "imported_at"],
+      "properties": {
+        "actor_id": { "type": "string", "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$" },
+        "imported_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "import_signature": {
+      "type": "string",
+      "description": "Importer's signature over canonical signing input = JCS(claimed_origin || content_hash || importer.actor_id || importer.imported_at). Proves importer's claim, NOT original author's plaintext."
+    },
+    "optional_proofs": {
+      "type": "object",
+      "properties": {
+        "origin_event_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "origin_author_proof_ref": { "type": "string", "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+        "source_frontier_ref": { "type": "string", "pattern": "^cx:anchor:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" }
+      },
+      "additionalProperties": false
+    },
+    "source_export_policy_attestation": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "./content-source-export-policy-attestation.schema.json" }
+      ],
+      "description": "Optional source-side policy authority attestation. If absent or invalid, mirror reducer accepts event but marks audit status (export_attestation_{missing,invalid,verified}). Mirror reducer does NOT reject based on this field."
+    },
+    "content": {
+      "type": "object",
+      "description": "Re-encrypted source content as a standard Content Block (e.g., cx.content.text)."
+    }
+  },
+  "additionalProperties": false
+}

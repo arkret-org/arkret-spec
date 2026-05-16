@@ -1331,6 +1331,78 @@
       },
       "additionalProperties": true
     },
+    "agent_task_id": {
+      "type": "string",
+      "pattern": "^cx:agent_task:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "agent_task_create_payload": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "target_agent_id",
+        "instruction"
+      ],
+      "properties": {
+        "task_id": { "$ref": "#/$defs/agent_task_id" },
+        "target_agent_id": { "$ref": "#/$defs/did" },
+        "instruction": { "type": "object" },
+        "context_anchor": { "type": "object" },
+        "reservation_ttl_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Optional TTL (seconds) for reservation cell tied to this task; default 600. See agent-workspace-profile.md §6.4."
+        }
+      },
+      "additionalProperties": true
+    },
+    "agent_task_transition_payload": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "cell",
+        "op",
+        "from",
+        "to"
+      ],
+      "properties": {
+        "task_id": { "$ref": "#/$defs/agent_task_id" },
+        "cell": {
+          "type": "string",
+          "description": "Cell key in form 'agent_task.<task_id>.execution_state|transparency|source_authority'."
+        },
+        "op": { "const": "transition" },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "reason": { "type": "string" },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ttl_evidence": {
+          "type": "object",
+          "description": "Anchor-based TTL evidence (cleanup transitions only). See agent-workspace-profile.md §6.4.",
+          "properties": {
+            "reservation_anchor_ref": { "type": "string" },
+            "reservation_anchor_index": { "type": "integer", "minimum": 0 },
+            "current_anchor_ref": { "type": "string" },
+            "current_anchor_index": { "type": "integer", "minimum": 0 },
+            "ttl_anchor_distance": { "type": "integer", "minimum": 1 }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "agent_task_cancel_payload": {
+      "type": "object",
+      "required": [
+        "task_id"
+      ],
+      "properties": {
+        "task_id": { "$ref": "#/$defs/agent_task_id" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
     "capability_grant_payload": {
       "type": "object",
       "anyOf": [

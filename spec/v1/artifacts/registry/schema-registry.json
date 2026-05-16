@@ -5,6 +5,22 @@
   "generated_by": "tools/artifact_pipeline.py",
   "schemas": [
     {
+      "schema_id": "cx.schema.agent_task.v1",
+      "file": "schemas/agent-task.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.content.mention_redirect.v1",
+      "file": "schemas/content-mention-redirect.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.content.import_attestation.v1",
+      "file": "schemas/content-import-attestation.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.content.source_export_policy_attestation.v1",
+      "file": "schemas/content-source-export-policy-attestation.schema.json"
+    },
+    {
       "schema_id": "cx.schema.space.v1",
       "file": "schemas/space.schema.json"
     },

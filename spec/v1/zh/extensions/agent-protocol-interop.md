@@ -46,6 +46,17 @@ Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 
 
 Contrix 原生模式更适合作为“协作事实层”和“治理层”。
 
+### 3.1 与 Agent Workspace Profile 的关系
+
+`cx.profile.agent_workspace.v1`（详见 [`agent-workspace-profile.md`](./agent-workspace-profile.md)）覆盖的是另一类用例：**单一 controller 在源协作 Space 中调用自己的 agent 干活，但工作过程私密化到 controller 自己的 mirror Space**。它不涉及外部 agent protocol 升级，全部基于 Contrix 原生 Move/Anchor/Lattice。两个 profile 正交：
+
+| 场景 | 选 agent_workspace | 选 agent-protocol-interop |
+|---|---|---|
+| 单 controller × 自己 agent，结果可能回源 Flow | ✅ | — |
+| 跨框架 agent ↔ agent 高频流式协作 | — | ✅ |
+| 跨组织、对端 agent 不在 Contrix 内 | — | ✅ |
+| 需要 mirror Space 维护任务 audit + 多专长 agent 协作 | ✅ | — |
+
 ## 4. 什么时候升级到外部 Agent Protocol
 
 以下场景 MAY 升级到 A2A / ACP / 其他 agent protocol：
