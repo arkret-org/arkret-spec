@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/applet.schema.json",
+  "title": "Contrix Applet Protocol Envelope",
+  "description": "Wire shape for the cx.applet.* event family (registration, discovery, protocol_session.start/status, bridge_error). Distinct from cx.schema.event.v1 so reducers and audit can fan out by family without sniffing the kind string. See spec/v1/extensions/applet-integration.md.",
+  "type": "object",
+  "required": [
+    "applet_id"
+  ],
+  "properties": {
+    "applet_id": {
+      "type": "string",
+      "description": "Stable applet identifier. Accepts a DID (did:web:applet.example), a cx:applet:<id> URI, or an arbitrary opaque string the registration row keys by — different bridge transports key by different forms and the registry is the source of truth.",
+      "minLength": 1
+    },
+    "service_did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "DID of the service that hosts the applet runtime (used by registration / discovery)."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Per-invocation correlation id used by protocol_session.start / .status to pair request/response.",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "description": "Lifecycle state for cx.applet.protocol_session.status events."
+    },
+    "params": {
+      "description": "Caller-supplied parameters for protocol_session.start. Opaque to soland — bridge implementations interpret per applet manifest."
+    },
+    "detail": {
+      "type": "object",
+      "description": "Bridge-side detail surface (echo response payload, error context, bridge identifier, etc.). Free-form object; bridges document their own schema.",
+      "additionalProperties": true
+    },
+    "error": {
+      "type": "object",
+      "description": "Bridge-error context for cx.applet.bridge_error events.",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "manifest": {
+      "type": "object",
+      "description": "Applet manifest snapshot at registration time (capability requirements, supported intents, etc.).",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

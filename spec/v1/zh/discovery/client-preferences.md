@@ -195,7 +195,61 @@ title: "Client Preferences & Account Data"
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
 - 删除联系人备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理。
 
-### 3.7 已读回执偏好 (Read Receipt Preferences)
+### 3.7 Space 备注 (Space Remarks)
+
+用户可以为已加入或已收藏的 Space 保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改 Space 公开的 `title` / `summary`，**不**写入 Space history、invite 文案、directory 投影或任何协议主体字段。
+
+典型场景：用户加入多个 `title` 相同的 Space（例如多个 "Engineering"、多家客户都用 "项目 A"），需要在本地侧栏稳定区分而无需向其他成员暴露区分依据。
+
+**Key:** `cx.contacts.space.<space_id>`
+
+```json
+{
+  "version": 1,
+  "subject": {
+    "kind": "space",
+    "id": "cx:space:0196419b-0000-7000-8000-000000000000"
+  },
+  "local_name": "Acme 内部 · 工程",
+  "note": "和外包侧 Engineering Space 同名，注意区分",
+  "tags": ["work", "high_signal"],
+  "pinned": true,
+  "verified_title_at_save": "Engineering",
+  "verified_owning_organizations_at_save": ["did:web:acme.example"],
+  "saved_at": "2026-05-08T10:00:00Z",
+  "updated_at": "2026-05-08T10:00:00Z"
+}
+```
+
+字段：
+
+| 字段 | 类型 | 必需 | 说明 |
+| --- | --- | --- | --- |
+| `version` | `int` | yes | schema 版本，当前为 `1`。 |
+| `subject.kind` | `enum(space)` | yes | 固定 `space`，与 §3.6 联系人备注（actor/organization/device/service）正交。 |
+| `subject.id` | `id:space` | yes | 备注对象 Space ID；MUST 与 key 中 `<space_id>` 完全一致。 |
+| `local_name` | `string` | no | 本地备注名，最大 128 字符；规范化与 confusable 处理与 §3.6 `local_name` 一致（见 [`conformance/encoding.md`](../conformance/encoding.md) §2）。 |
+| `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
+| `tags` | `string[]` | no | 私有分组标签，命名空间与 §3.1 `cx.tags.space.<space_id>.tags` 互通（同名 tag 视为同一分组）；`cx.*` 保留给本规范，`<vendor>.*` 用于客户端扩展。 |
+| `pinned` | `bool` | no | 是否置顶。 |
+| `verified_title_at_save` | `string` | no | 保存或最近一次更新时 Space 公开 `title` 的快照，用于反"改名混淆"。 |
+| `verified_owning_organizations_at_save` | `did[]` | no | 保存时 `owning_organizations` 快照，用于在组织漂移 / takeover 时给出复核提示。 |
+| `saved_at` | `timestamp` | yes | 首次保存时间。 |
+| `updated_at` | `timestamp` | no | 最近修改时间。 |
+
+规则：
+
+- 该 key 是 actor-private，MUST 与 §3.5、§3.6 一样以加密 account data 形式同步，Sync Service 不得读取明文。
+- `local_name` 与 `note` MUST NOT 通过 invite 文案、mention、quote、forward、directory 投影、shared link preview 或任何 Space state 字段泄露给其他 Space 成员；客户端构造邀请、跨端 share sheet、跨 Space 引用或导出时 MUST 使用 Space 公开 `title`，不得替换为本地备注。
+- 本地备注 MUST NOT 参与 ACL、capability subject、policy condition、audit attribution、MLS credential 或 federation routing 判定，约束与 §3.6 中本地联系人备注一致。
+- UI 显示本地备注时 SHOULD 同时呈现 Space 公开 `title` 或 `cx:space:` 短摘要（uuid 前 8 位），使用户可识别"备注相同但 Space 不同"的误判；安全敏感 UI（删除 / archive / tombstone Space、跨 Space 邀请确认、转账类 applet 调用）MUST 能直接显示完整 `space_id` 与 `owning_organizations`。
+- 当 Space 公开 `title` 与 `verified_title_at_save` 不一致，或 `owning_organizations` 与 `verified_owning_organizations_at_save` 不一致时，客户端 SHOULD 在该 Space 渲染处显示 title changed / org changed 标记，并提示用户复核备注；该机制与 §3.6 `verified_handle_at_save` 对称。
+- 当用户已加入的多个 Space 的公开 `title` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / parent Space / `cx:space:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
+- 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
+- 删除 Space 备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理；用户离开或被踢出 Space MAY 触发自动 tombstone（客户端策略，规范不强制）。
+- `cx.contacts.space.<space_id>` 与 §3.1 `cx.tags.space.<space_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `space_id` join 二者，规范上互不替代。
+
+### 3.8 已读回执偏好 (Read Receipt Preferences)
 
 控制是否向其他成员发送 `cx.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Space 或 Flow / discussion track 单独重写。
 
@@ -239,7 +293,7 @@ title: "Client Preferences & Account Data"
 
 虽然 account data 对外不公开，但用户自己的客户端或可信端侧节点会拉取并解密这些数据，并合并到本地查询结果中。
 
-例如：当客户端以 `object_types=["space"]` 查询加入的 Space 列表时，本地 projection 可以将 `cx.tags.space.*` 数据 Join 进去，得到带私有标签的 Space 列表。
+例如：当客户端以 `object_types=["space"]` 查询加入的 Space 列表时，本地 projection 可以按 `space_id` 同时 join `cx.tags.space.*`（私有标签与排序）与 `cx.contacts.space.*`（本地备注名、笔记、置顶），得到带 `local_name` 与 tag 的 Space 列表，并在 `title` 重复时优先按 `local_name` 区分。
 
 ## 5. 安全与隐私
 

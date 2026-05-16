@@ -149,7 +149,7 @@ title: Spec Map
 | --- | --- |
 | `discovery/discovery-directory.md` | Space / Organization / Actor / Applet discoverability、私密联系人发现与目录服务。 |
 | `discovery/profiles-presence.md` | Actor profile、presence、typing、用户目录。 |
-| `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist。 |
+| `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist、联系人 / Space 本地备注。 |
 | `discovery/push-notifications.md` | 推送规则、推送网关、E2EE 脱敏推送。 |
 | `discovery/read-receipts.md` | Read receipt 与 read marker。 |
 

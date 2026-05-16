@@ -1577,6 +1577,18 @@
         "file": "schemas/agent-authority.schema.json"
       },
       {
+        "schema_id": "cx.schema.applet.v1",
+        "file": "schemas/applet.schema.json",
+        "status": "active",
+        "description": "Wire envelope schema for the cx.applet.* protocol family (registration / discovery / protocol_session.start|status / bridge_error). See spec/v1/extensions/applet-integration.md."
+      },
+      {
+        "schema_id": "cx.schema.agent.v1",
+        "file": "schemas/agent.schema.json",
+        "status": "active",
+        "description": "Wire envelope schema for the cx.agent.* protocol family (endpoint / protocol_session.start|status|result). Distinct from cx.schema.agent_authority.v1 (panel projection). See spec/v1/extensions/agent-integration.md."
+      },
+      {
         "schema_id": "cx.schema.audit_ryw_receipt.v1",
         "file": "schemas/audit-ryw-receipt.schema.json"
       },

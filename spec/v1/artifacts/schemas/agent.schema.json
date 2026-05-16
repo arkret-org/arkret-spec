@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/agent.schema.json",
+  "title": "Contrix Agent Protocol Envelope",
+  "description": "Wire shape for the cx.agent.* protocol family (endpoint, protocol_session.start/status/result). Mirrors cx.schema.applet.v1 but terminates in a *.result event carrying the signed audit binding. See spec/v1/extensions/agent-integration.md. Note: cx.schema.agent_authority.v1 is a different schema covering the agent-authority panel projection, not the protocol envelope.",
+  "type": "object",
+  "required": [
+    "agent_id"
+  ],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "description": "Stable agent identifier. Typically a DID (did:web:agent.example) or a cx:agent:<id> URI.",
+      "minLength": 1
+    },
+    "endpoint_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "HTTPS endpoint advertised by cx.agent.endpoint events."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Per-invocation correlation id used by protocol_session.start / .status / .result to pair request/response.",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "description": "Lifecycle state for cx.agent.protocol_session.status events."
+    },
+    "params": {
+      "description": "Caller-supplied parameters for protocol_session.start. Opaque to soland — agent runtimes interpret per agent manifest."
+    },
+    "result": {
+      "description": "Terminal payload for cx.agent.protocol_session.result. Free-form; agents document the shape."
+    },
+    "detail": {
+      "type": "object",
+      "description": "Runtime-side detail surface (intermediate progress, bridge identifier, error context, etc.).",
+      "additionalProperties": true
+    },
+    "audit_binding": {
+      "type": "object",
+      "description": "Signed audit binding emitted with the terminal *.result event so callers can prove the agent runtime executed under a specific capability grant.",
+      "properties": {
+        "grant_ref": {
+          "type": "string",
+          "pattern": "^cx:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "actor": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        },
+        "signature": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

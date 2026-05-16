@@ -54,7 +54,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 ### 2.4 隐私控制
 
-用户可以随时关闭发送已读回执。此配置属于 Client Preference，按 (flow, space, default) 顺序解析有效偏好；标准 Key 与字段定义见 [`discovery/client-preferences.md`](./client-preferences.md) §3.7。
+用户可以随时关闭发送已读回执。此配置属于 Client Preference，按 (flow, space, default) 顺序解析有效偏好；标准 Key 与字段定义见 [`discovery/client-preferences.md`](./client-preferences.md) §3.8。
 
 - 该偏好同步在用户的加密 account data 中，不公开广播。
 - 关闭只影响"是否发送 `cx.receipt.read`"，不影响 §3 私有 Read Marker，也不影响接收他人 receipt 的渲染。
