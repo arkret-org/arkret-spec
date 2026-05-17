@@ -16,8 +16,8 @@
       "step": 1,
       "actor": "source-flow-member",
       "kind": "cx.message.redact",
-      "event_id": "cx:event:01964200-0000-7000-8000-redactSrc0001",
-      "target_event_id": "cx:event:01964200-0000-7000-8000-stubEvent001",
+      "event_id": "cx:event:01964200-0000-7000-8000-a0000000000e",
+      "target_event_id": "cx:event:01964200-0000-7000-8000-a00000000018",
       "expected": "accepted"
     },
     {
@@ -31,7 +31,7 @@
         "from": "ok",
         "to": "lost",
         "reason": "source_stub_redacted",
-        "evidence_refs": ["cx:event:01964200-0000-7000-8000-redactSrc0001"]
+        "evidence_refs": ["cx:event:01964200-0000-7000-8000-a0000000000e"]
       },
       "expected": "accepted"
     }

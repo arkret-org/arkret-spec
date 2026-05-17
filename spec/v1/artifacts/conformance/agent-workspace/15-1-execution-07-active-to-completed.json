@@ -19,7 +19,7 @@
       "to": "completed",
       "reason": "agent_finished",
       "completion_summary": {
-        "result_anchor_ref": "cx:anchor:01964200-0000-7000-8000-000000000099"
+        "result_anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000011"
       }
     }
   },

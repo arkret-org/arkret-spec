@@ -4,20 +4,20 @@
   "title": "Second mirror Flow for same source Flow → cardinality_violation",
   "negative": true,
   "preconditions": {
-    "mirror_space_id": "cx:space:01964200-0000-7000-8000-mirrorSpace01",
+    "mirror_space_id": "cx:space:01964200-0000-7000-8000-a00000000008",
     "existing_mirror_flow": {
-      "id": "cx:flow:01964200-0000-7000-8000-mirrorFlow001",
-      "derived_from_source_flow_id": "cx:flow:01964200-0000-7000-8000-sourceFlow001"
+      "id": "cx:flow:01964200-0000-7000-8000-a00000000006",
+      "derived_from_source_flow_id": "cx:flow:01964200-0000-7000-8000-a00000000013"
     },
     "comment": "mirror_flow_by_source cell already set; profile invariant: at most one mirror Flow per source Flow per workspace."
   },
   "input_event": {
     "kind": "cx.flow.create",
     "payload": {
-      "space_id": "cx:space:01964200-0000-7000-8000-mirrorSpace01",
-      "flow_id": "cx:flow:01964200-0000-7000-8000-mirrorFlow002",
+      "space_id": "cx:space:01964200-0000-7000-8000-a00000000008",
+      "flow_id": "cx:flow:01964200-0000-7000-8000-a00000000007",
       "profile_attrs": {
-        "derived_from_source_flow_id": "cx:flow:01964200-0000-7000-8000-sourceFlow001"
+        "derived_from_source_flow_id": "cx:flow:01964200-0000-7000-8000-a00000000013"
       }
     }
   },
@@ -26,7 +26,7 @@
     "reason": "cardinality_violation",
     "response_includes": {
       "rule": "mirror_flow_by_source.cardinality == singleton",
-      "existing_mirror_flow_id": "cx:flow:01964200-0000-7000-8000-mirrorFlow001"
+      "existing_mirror_flow_id": "cx:flow:01964200-0000-7000-8000-a00000000006"
     },
     "design_note": "Enforced by cas-register on mirror_flow_by_source cell (initial_value=__unset__, sentinel_writers=[cleanup]); second flow.create predicate `head_eq=__unset__` fails."
   }

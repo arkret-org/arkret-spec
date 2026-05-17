@@ -433,6 +433,18 @@
             },
             "required": ["type"]
           }
+        },
+        {
+          "$comment": "v1.1 sentinel_writers is the companion of initial_value; it only makes sense on a cas-register cell that has declared initial_value. Reject declarations on other lattices, and reject declarations on cas-register cells that lack initial_value (since there is no sentinel to authorise writing back).",
+          "if": {
+            "required": ["sentinel_writers"]
+          },
+          "then": {
+            "properties": {
+              "type": { "const": "cas-register" }
+            },
+            "required": ["type", "initial_value"]
+          }
         }
       ]
     }

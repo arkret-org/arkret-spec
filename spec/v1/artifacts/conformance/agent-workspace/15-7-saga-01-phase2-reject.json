@@ -21,7 +21,7 @@
       "to": "cancelled_stub_rejected",
       "reason": "source_stub_rejected",
       "evidence_refs": [
-        "cx:event:01964200-0000-7000-8000-stubRejectErr01"
+        "cx:event:01964200-0000-7000-8000-a00000000019"
       ]
     }
   },

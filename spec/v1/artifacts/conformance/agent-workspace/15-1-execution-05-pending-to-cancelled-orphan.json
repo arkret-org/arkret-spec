@@ -1,17 +1,20 @@
 {
   "vector_id": "15-1-execution-05",
   "spec_section": "§15.1.5",
-  "title": "pending_source_stub → cancelled_orphan (TTL expired before stub appeared)",
+  "title": "pending_source_stub → cancelled_orphan (driven by upstream reservation.cleanup event)",
   "preconditions": {
     "task_state": {
       "execution_state": "pending_source_stub",
       "transparency": "ok",
       "source_authority": "ok"
     },
-    "reservation_anchor_index": 100,
-    "current_anchor_index": 132,
-    "ttl_anchor_distance": 30,
-    "comment": "Anchor-based TTL: current - reservation > ttl_anchor_distance → orphan."
+    "upstream_cleanup_event": {
+      "id": "cx:event:01964200-0000-7000-8000-a00000000002",
+      "kind": "cx.agent_workspace.reservation.cleanup",
+      "carries_anchor_based_ttl_evidence": true,
+      "see_vector": "15-4-reservation-06"
+    },
+    "comment": "Anchor-based TTL evidence is validated upstream by the reservation.cleanup reducer (see §15.4.26). The downstream transition cites that cleanup event via evidence_refs; ttl_evidence is NOT in transition payload (see event-payload.schema.json:1354)."
   },
   "input_event": {
     "kind": "cx.agent_task.execution.transition",
@@ -22,11 +25,9 @@
       "from": "pending_source_stub",
       "to": "cancelled_orphan",
       "reason": "orphan_ttl_expired",
-      "ttl_evidence": {
-        "reservation_anchor_index": 100,
-        "current_anchor_index": 132,
-        "ttl_anchor_distance": 30
-      }
+      "evidence_refs": [
+        "cx:event:01964200-0000-7000-8000-a00000000002"
+      ]
     }
   },
   "expected_outcome": {
@@ -40,6 +41,6 @@
     ],
     "runtime_gate_after": "blocked",
     "terminal": true,
-    "design_note": "TTL evidence MUST be anchor-based (§16); reducer rejects self-reported wall-clock."
+    "design_note": "Separation of concerns: reservation.cleanup carries Anchor-based ttl_evidence (§6.4 + cleanup payload schema); transition payload only links to the cleanup event via evidence_refs. This keeps each event kind's payload narrowly scoped and lets the reducer verify TTL once at the cleanup reducer, not on every downstream transition."
   }
 }

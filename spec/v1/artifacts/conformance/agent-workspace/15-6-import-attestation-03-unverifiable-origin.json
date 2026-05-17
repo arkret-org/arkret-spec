@@ -10,14 +10,14 @@
   "input_event": {
     "kind": "cx.message.create",
     "payload": {
-      "flow_id": "cx:flow:01964200-0000-7000-8000-mirrorFlow001",
+      "flow_id": "cx:flow:01964200-0000-7000-8000-a00000000006",
       "content": {
         "kind": "cx.content.import_attestation",
         "body": "...",
         "claimed_origin": {
-          "space_id": "cx:space:01964200-0000-7000-8000-sourceSpace01",
-          "flow_id": "cx:flow:01964200-0000-7000-8000-sourceFlow001",
-          "message_id": "cx:message:01964200-0000-7000-8000-srcMessage001",
+          "space_id": "cx:space:01964200-0000-7000-8000-a00000000014",
+          "flow_id": "cx:flow:01964200-0000-7000-8000-a00000000013",
+          "message_id": "cx:message:01964200-0000-7000-8000-a00000000016",
           "actor_id": "did:web:bob.example",
           "created_at": "2026-05-17T09:55:00Z"
         },

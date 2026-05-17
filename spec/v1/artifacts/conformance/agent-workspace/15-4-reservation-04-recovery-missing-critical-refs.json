@@ -26,7 +26,7 @@
       ]
     },
     "refs": [
-      { "id": "cx:grant:01964200-0000-7000-8000-recover00grant", "role": "authorized_by" }
+      { "id": "cx:grant:01964200-0000-7000-8000-a0000000000b", "role": "authorized_by" }
     ],
     "missing": ["state_witness", "inclusion_proof"]
   },

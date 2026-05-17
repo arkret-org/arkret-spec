@@ -20,7 +20,7 @@
         "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.transparency",
         "from": "ok",
         "to": "lost",
-        "evidence_refs": ["cx:event:01964200-0000-7000-8000-redactEvt01"]
+        "evidence_refs": ["cx:event:01964200-0000-7000-8000-a0000000000d"]
       },
       "expected": "accepted"
     },
@@ -33,7 +33,7 @@
         "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.source_authority",
         "from": "ok",
         "to": "revoked",
-        "evidence_refs": ["cx:event:01964200-0000-7000-8000-revokeEvt01"]
+        "evidence_refs": ["cx:event:01964200-0000-7000-8000-a0000000000f"]
       },
       "expected": "accepted"
     }

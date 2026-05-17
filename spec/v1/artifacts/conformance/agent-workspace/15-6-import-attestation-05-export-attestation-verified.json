@@ -11,14 +11,14 @@
   "input_event": {
     "kind": "cx.message.create",
     "payload": {
-      "flow_id": "cx:flow:01964200-0000-7000-8000-mirrorFlow001",
+      "flow_id": "cx:flow:01964200-0000-7000-8000-a00000000006",
       "content": {
         "kind": "cx.content.import_attestation",
         "body": "...",
         "claimed_origin": {
-          "space_id": "cx:space:01964200-0000-7000-8000-sourceSpace01",
-          "flow_id": "cx:flow:01964200-0000-7000-8000-sourceFlow001",
-          "message_id": "cx:message:01964200-0000-7000-8000-srcMessage001",
+          "space_id": "cx:space:01964200-0000-7000-8000-a00000000014",
+          "flow_id": "cx:flow:01964200-0000-7000-8000-a00000000013",
+          "message_id": "cx:message:01964200-0000-7000-8000-a00000000016",
           "actor_id": "did:web:bob.example",
           "created_at": "2026-05-17T09:55:00Z"
         },
@@ -29,13 +29,13 @@
         "import_signature": "0xValidSig...",
         "source_export_policy_attestation": {
           "authority_did": "did:web:source-space-admin.example",
-          "source_space_id": "cx:space:01964200-0000-7000-8000-sourceSpace01",
+          "source_space_id": "cx:space:01964200-0000-7000-8000-a00000000014",
           "policy_hash": "sha256:PolicyHash0000000000000000000000000000000000000000000000000000",
           "policy_decision": "allow",
           "importer_actor_id": "did:web:alice-agent.example",
-          "import_destination_space_id": "cx:space:01964200-0000-7000-8000-mirrorSpace01",
+          "import_destination_space_id": "cx:space:01964200-0000-7000-8000-a00000000008",
           "content_hash": "sha256:OriginalContentHash000000000000000000000000000000000000000000",
-          "source_frontier_ref": "cx:anchor:01964200-0000-7000-8000-srcFrontier01",
+          "source_frontier_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000015",
           "issued_at": "2026-05-17T10:00:00Z",
           "valid_until": "2026-05-17T11:00:00Z",
           "signature": "0xValidExportSig..."

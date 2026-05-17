@@ -26,9 +26,9 @@
       ]
     },
     "refs": [
-      { "id": "cx:grant:01964200-0000-7000-8000-recover00grant", "role": "authorized_by" },
-      { "id": "cx:event:01964200-0000-7000-8000-stateWitness0", "role": "state_witness", "critical": true },
-      { "id": "cx:event:01964200-0000-7000-8000-inclusionProof", "role": "inclusion_proof", "critical": true }
+      { "id": "cx:grant:01964200-0000-7000-8000-a0000000000b", "role": "authorized_by" },
+      { "id": "cx:event:01964200-0000-7000-8000-a00000000017", "role": "state_witness", "critical": true },
+      { "id": "cx:event:01964200-0000-7000-8000-a00000000005", "role": "inclusion_proof", "critical": true }
     ]
   },
   "expected_outcome": {

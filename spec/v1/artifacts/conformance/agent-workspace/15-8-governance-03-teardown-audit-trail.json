@@ -1,37 +1,55 @@
 {
   "vector_id": "15-8-governance-03",
   "spec_section": "§15.8.44",
-  "title": "Workspace teardown emits final audit anchor before deletion",
+  "title": "Workspace teardown via cx.space.tombstone cascade preserves audit trail",
   "preconditions": {
-    "workspace_root_space_id": "cx:space:01964200-0000-7000-8000-workspaceRoot1",
-    "active_agent_tasks": ["cx:agent_task:01964200-0000-7000-8000-act01"],
-    "active_mirror_spaces": ["cx:space:01964200-0000-7000-8000-mirrorSpace01"],
-    "controller_principal": "did:web:alice.example"
+    "workspace_root_space_id": "cx:space:01964200-0000-7000-8000-000000a00001",
+    "active_agent_tasks": ["cx:agent_task:01964200-0000-7000-8000-000000a00002"],
+    "active_mirror_spaces": ["cx:space:01964200-0000-7000-8000-000000a00003"],
+    "controller_principal": "did:web:alice.example",
+    "comment": "§10.1 specifies teardown uses standard cx.space.tombstone events; there is no agent_workspace-specific teardown event kind. space_id is an Event-envelope top-level field, not a payload field (event-payload.schema.json space_tombstone_payload is additionalProperties=false)."
   },
-  "input_event": {
-    "kind": "cx.agent_workspace.teardown",
-    "payload": {
-      "workspace_root_space_id": "cx:space:01964200-0000-7000-8000-workspaceRoot1",
-      "reason": "controller_initiated",
-      "final_audit_summary": {
-        "task_count": 1,
-        "mirror_space_count": 1,
-        "membership_change_count": 3,
-        "import_attestation_count": 7,
-        "open_grants_revoked": [
-          "cx:grant:01964200-0000-7000-8000-bbbbbbbbbbbb"
-        ]
-      }
+  "input_steps": [
+    {
+      "step": 1,
+      "actor": "controller",
+      "event": {
+        "kind": "cx.space.tombstone",
+        "space_id": "cx:space:01964200-0000-7000-8000-000000a00001",
+        "actor_id": "did:web:alice.example",
+        "payload": {
+          "reason": "controller_initiated_workspace_teardown"
+        }
+      },
+      "expected": "accepted",
+      "design_note": "Tombstone on workspace root Space starts the cascade (§10.1 step 1). Per space_tombstone_payload, only reason / replacement_space / replacement_event / effective_at are allowed in payload."
+    },
+    {
+      "step": 2,
+      "actor": "housekeeping",
+      "event": {
+        "kind": "cx.space.tombstone",
+        "space_id": "cx:space:01964200-0000-7000-8000-000000a00003",
+        "actor_id": "did:web:housekeeping.example",
+        "payload": {
+          "reason": "cascade_from_workspace_root"
+        }
+      },
+      "expected": "accepted",
+      "design_note": "Mirror Spaces linked via derived_from(workspace_root); housekeeping cascades tombstone (§10.1 step 2). The derived_from linkage itself lives on the mirror Space's profile / state, not inside this tombstone event payload."
     }
+  ],
+  "expected_post_state_invariants": [
+    "all mirror agent_task cells unreachable (§10.1 step 3)",
+    "execution_state cell no longer readable on tombstoned mirror Space",
+    "source-Space mention_redirect events PRESERVED (audit trail irreversible, §10.1 step 4)",
+    "authority_grant_ref in those mention_redirect events still resolves to source-Space grants",
+    "DID Document ContrixAgentWorkspaceService entry removed (§10.1 step 5)"
+  ],
+  "audit_trail_durability": {
+    "source_space_mention_redirects": "retained",
+    "mirror_space_content": "unreachable but addressable by anchor index until compaction",
+    "tombstone_anchor_pinned": true
   },
-  "expected_outcome": {
-    "reducer_result": "accepted",
-    "side_effects": [
-      "all active agent_task.execution_state transitions → cancelled_by_controller",
-      "all attached_authority grants → revoked",
-      "mirror Spaces archived (read-only) before deletion",
-      "final audit anchor pinned"
-    ],
-    "design_note": "§10.1 teardown MUST be atomic-feeling at the protocol surface even though implementation fans out across Spaces; the audit anchor is the durable handle external systems can reference after deletion."
-  }
+  "design_note": "Teardown is NOT atomic at the protocol surface — it is a cascade of standard cx.space.tombstone events. The audit anchor is the tombstone anchor pinned by the workspace root tombstone; external systems can reference this anchor after Spaces compact away."
 }

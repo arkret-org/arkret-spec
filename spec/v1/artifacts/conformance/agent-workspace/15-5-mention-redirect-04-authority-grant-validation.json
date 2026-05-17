@@ -11,17 +11,17 @@
     {
       "case_id": "04a-revoked",
       "grant_state": {
-        "id": "cx:grant:01964200-0000-7000-8000-revoked00000",
+        "id": "cx:grant:01964200-0000-7000-8000-a00000000010",
         "subject": "did:web:alice-agent.example",
         "active": false,
-        "revoked_at_anchor": "cx:anchor:01964200-0000-7000-8000-revokerAnchor"
+        "revoked_at_anchor": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000014"
       },
       "expected_reason": "authority_grant_revoked"
     },
     {
       "case_id": "04b-subject-mismatch",
       "grant_state": {
-        "id": "cx:grant:01964200-0000-7000-8000-mismatch00001",
+        "id": "cx:grant:01964200-0000-7000-8000-a00000000009",
         "subject": "did:web:other-agent.example",
         "active": true,
         "attached_authority": { "controller": "did:web:alice.example" }
@@ -32,7 +32,7 @@
     {
       "case_id": "04c-controller-mismatch",
       "grant_state": {
-        "id": "cx:grant:01964200-0000-7000-8000-mismatch00002",
+        "id": "cx:grant:01964200-0000-7000-8000-a0000000000a",
         "subject": "did:web:alice-agent.example",
         "active": true,
         "attached_authority": { "controller": "did:web:eve.example" }

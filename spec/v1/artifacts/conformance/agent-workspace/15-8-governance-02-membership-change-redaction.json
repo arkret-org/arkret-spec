@@ -2,37 +2,35 @@
   "vector_id": "15-8-governance-02",
   "spec_section": "§15.8.43",
   "title": "agent_membership_change notification: E2EE preview MUST be client-redacted",
+  "fixture_kind": "notification_delivery",
   "preconditions": {
     "source_flow_e2ee": true,
     "mls_protected": true,
-    "receiver_actor_id": "did:web:charlie.example",
-    "comment": "Source Flow is E2EE; bridge synthesises an agent_membership_change notification for client-side display, but MUST NOT leak plaintext from the original Move."
+    "comment": "Source Flow is E2EE; bridge synthesises an agent_membership_change notification for client-side display. notification_type is a private-object notification, NOT a reducer Event kind."
   },
-  "input_event": {
-    "kind": "cx.notification.agent_membership_change",
-    "submitter": "soland-bridge",
-    "payload": {
-      "source_flow_id": "cx:flow:01964200-0000-7000-8000-sourceFlow001",
-      "change_kind": "agent_added",
-      "agent_id": "did:web:alice-agent.example",
-      "controller_principal": "did:web:alice.example",
-      "anchor_ref": "cx:anchor:01964200-0000-7000-8000-membershipAnchor",
-      "preview": null,
-      "comment_for_client": "Preview field intentionally null in E2EE flows; client MAY compute a local preview after MLS unwrap."
-    }
+  "input_notification": {
+    "schema_ref_doc": "spec/v1/artifacts/schemas/notification.schema.json",
+    "id": "cx:notification:01964200-0000-7000-8000-000000b00001",
+    "schema": "cx.schema.notification.v1",
+    "actor_id": "did:web:charlie.example",
+    "space_id": "cx:space:01964200-0000-7000-8000-000000b00002",
+    "source_event_id": "cx:event:01964200-0000-7000-8000-000000b00003",
+    "notification_type": "agent_membership_change",
+    "priority": "normal",
+    "state": "unread",
+    "created_at": "2026-05-17T10:00:00Z",
+    "preview_intentionally_omitted": "notification.schema.json types preview as object (not nullable); E2EE bridges OMIT preview entirely rather than sending null. Client MAY compute a local preview after MLS unwrap."
   },
-  "expected_outcome": {
-    "reducer_result": "accepted",
-    "delivery_invariants": [
-      "no plaintext leak from MLS-protected Move",
-      "preview field is null OR an opaque ciphertext blob",
-      "receiver client computes preview locally after MLS unwrap if needed"
-    ],
-    "negative_sub_case": {
-      "scenario": "bridge attaches plaintext preview anyway",
-      "expected_audit_mark": "e2ee_preview_violation",
-      "remediation": "operator MUST patch bridge; affected events SHOULD be quarantined"
-    },
-    "design_note": "Privacy invariant in §14: server-side bridge is not inside the MLS ratchet, so it has no plaintext to leak; if it appears to have plaintext, the deployment is mis-configured."
-  }
+  "expected_delivery_invariants": [
+    "bridge SHALL NOT attach plaintext preview from MLS-protected Move",
+    "preview field is absent OR an opaque ciphertext object (notification.schema.json types preview as object; MUST NOT be null)",
+    "receiver client computes preview locally after MLS unwrap if needed",
+    "push target = agent's agent_authority.controller principal (§14)"
+  ],
+  "negative_sub_case": {
+    "scenario": "bridge attaches plaintext preview anyway",
+    "expected_audit_mark": "e2ee_preview_violation",
+    "remediation": "operator MUST patch bridge; affected notifications SHOULD be quarantined"
+  },
+  "design_note": "Privacy invariant in §14: server-side bridge is not inside the MLS ratchet, so it has no plaintext to leak; if it appears to have plaintext, the deployment is mis-configured. This fixture is delivery-time invariant; no reducer Event is involved (the underlying source-Space membership change rides on standard cx.member.state / cx.capability.{grant,revoke} kinds)."
 }

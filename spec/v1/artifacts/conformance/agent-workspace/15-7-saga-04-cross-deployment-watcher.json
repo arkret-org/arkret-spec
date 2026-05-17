@@ -15,7 +15,7 @@
       "step": 1,
       "actor": "source-flow-member@deployment-A",
       "kind": "cx.message.redact",
-      "event_id": "cx:event:01964200-0000-7000-8000-redactCross001",
+      "event_id": "cx:event:01964200-0000-7000-8000-a0000000000c",
       "expected": "accepted_on_deployment_A"
     },
     {
@@ -29,11 +29,11 @@
       "actor": "controller-client",
       "kind": "cx.agent_task.transparency.transition",
       "payload": {
-        "task_id": "cx:agent_task:01964200-0000-7000-8000-crossDeplmt01",
-        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-crossDeplmt01.transparency",
+        "task_id": "cx:agent_task:01964200-0000-7000-8000-a00000000004",
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-a00000000004.transparency",
         "from": "ok",
         "to": "lost",
-        "evidence_refs": ["cx:event:01964200-0000-7000-8000-redactCross001"]
+        "evidence_refs": ["cx:event:01964200-0000-7000-8000-a0000000000c"]
       },
       "deployment": "deployment-B.example",
       "expected": "accepted"
