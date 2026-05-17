@@ -1,0 +1,36 @@
+{
+  "vector_id": "15-1-execution-08",
+  "spec_section": "§15.1.8",
+  "title": "active → cancelled_by_controller (user interrupts mid-execution)",
+  "preconditions": {
+    "task_state": {
+      "execution_state": "active",
+      "transparency": "ok",
+      "source_authority": "ok"
+    },
+    "controller_grant_active": true
+  },
+  "input_event": {
+    "kind": "cx.agent_task.execution.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+      "op": "transition",
+      "from": "active",
+      "to": "cancelled_by_controller",
+      "reason": "controller_interrupt"
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "cell_changes": [
+      {
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+        "before": "active",
+        "after": "cancelled_by_controller"
+      }
+    ],
+    "runtime_gate_after": "blocked",
+    "terminal": true
+  }
+}

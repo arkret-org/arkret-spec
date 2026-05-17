@@ -1,0 +1,48 @@
+{
+  "vector_id": "15-7-saga-03",
+  "spec_section": "§15.7.39",
+  "title": "Simultaneous transparency=lost AND source_authority=revoked → two cells write independently",
+  "preconditions": {
+    "task_state": {
+      "execution_state": "active",
+      "transparency": "ok",
+      "source_authority": "ok"
+    },
+    "comment": "Source Flow simultaneously redacts the stub AND revokes the grant. The two events MUST flow into separate cells."
+  },
+  "input_steps": [
+    {
+      "step": 1,
+      "actor": "mirror-watcher",
+      "kind": "cx.agent_task.transparency.transition",
+      "payload": {
+        "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.transparency",
+        "from": "ok",
+        "to": "lost",
+        "evidence_refs": ["cx:event:01964200-0000-7000-8000-redactEvt01"]
+      },
+      "expected": "accepted"
+    },
+    {
+      "step": 2,
+      "actor": "mirror-watcher",
+      "kind": "cx.agent_task.source_authority.transition",
+      "payload": {
+        "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.source_authority",
+        "from": "ok",
+        "to": "revoked",
+        "evidence_refs": ["cx:event:01964200-0000-7000-8000-revokeEvt01"]
+      },
+      "expected": "accepted"
+    }
+  ],
+  "expected_final_state": {
+    "transparency": "lost",
+    "source_authority": "revoked",
+    "execution_state": "active",
+    "runtime_gate": "blocked"
+  },
+  "design_note": "Three FSM cells are orthogonal; cell ⊥ MUST NOT propagate between them. Runtime gate blocks because BOTH gating conditions fail, but each cell records its own evidence chain."
+}

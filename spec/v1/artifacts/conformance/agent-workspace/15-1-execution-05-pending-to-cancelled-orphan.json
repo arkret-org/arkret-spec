@@ -1,0 +1,45 @@
+{
+  "vector_id": "15-1-execution-05",
+  "spec_section": "§15.1.5",
+  "title": "pending_source_stub → cancelled_orphan (TTL expired before stub appeared)",
+  "preconditions": {
+    "task_state": {
+      "execution_state": "pending_source_stub",
+      "transparency": "ok",
+      "source_authority": "ok"
+    },
+    "reservation_anchor_index": 100,
+    "current_anchor_index": 132,
+    "ttl_anchor_distance": 30,
+    "comment": "Anchor-based TTL: current - reservation > ttl_anchor_distance → orphan."
+  },
+  "input_event": {
+    "kind": "cx.agent_task.execution.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+      "op": "transition",
+      "from": "pending_source_stub",
+      "to": "cancelled_orphan",
+      "reason": "orphan_ttl_expired",
+      "ttl_evidence": {
+        "reservation_anchor_index": 100,
+        "current_anchor_index": 132,
+        "ttl_anchor_distance": 30
+      }
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "cell_changes": [
+      {
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+        "before": "pending_source_stub",
+        "after": "cancelled_orphan"
+      }
+    ],
+    "runtime_gate_after": "blocked",
+    "terminal": true,
+    "design_note": "TTL evidence MUST be anchor-based (§16); reducer rejects self-reported wall-clock."
+  }
+}

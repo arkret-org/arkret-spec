@@ -1,0 +1,40 @@
+{
+  "vector_id": "15-7-saga-01",
+  "spec_section": "§15.7.37",
+  "title": "Saga Phase 2 source-stub reject → execution_state=cancelled_stub_rejected",
+  "preconditions": {
+    "task_state": {
+      "execution_state": "pending_source_stub",
+      "transparency": "ok",
+      "source_authority": "ok"
+    },
+    "saga_phase": 2,
+    "comment": "After mirror task created (Phase 1), source-Flow reducer rejected the cx.message.create stub event (e.g., critical_extension unsupported or grant invalid)."
+  },
+  "input_event": {
+    "kind": "cx.agent_task.execution.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+      "op": "transition",
+      "from": "pending_source_stub",
+      "to": "cancelled_stub_rejected",
+      "reason": "source_stub_rejected",
+      "evidence_refs": [
+        "cx:event:01964200-0000-7000-8000-stubRejectErr01"
+      ]
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "cell_changes": [
+      {
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+        "before": "pending_source_stub",
+        "after": "cancelled_stub_rejected"
+      }
+    ],
+    "client_ui_must_show": "Source publish failed — task aborted before agent ran",
+    "design_note": "Saga compensation: client writes the transition into the mirror cell using the source-side error event as evidence_refs; no agent execution ever started, so no further cleanup needed."
+  }
+}

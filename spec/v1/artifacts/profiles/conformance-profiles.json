@@ -955,7 +955,10 @@
         "cx.agent_task.execution.transition",
         "cx.agent_task.transparency.transition",
         "cx.agent_task.source_authority.transition",
-        "cx.agent_task.cancel"
+        "cx.agent_task.cancel",
+        "cx.agent_workspace.reservation.set",
+        "cx.agent_workspace.reservation.recover",
+        "cx.agent_workspace.reservation.cleanup"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [

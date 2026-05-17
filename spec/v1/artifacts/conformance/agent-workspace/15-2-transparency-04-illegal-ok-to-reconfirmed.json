@@ -1,0 +1,29 @@
+{
+  "vector_id": "15-2-transparency-04",
+  "spec_section": "§15.2.16",
+  "title": "transparency: ok → reconfirmed_after_loss MUST fail (must pass through lost)",
+  "negative": true,
+  "preconditions": {
+    "task_state": {
+      "transparency": "ok"
+    }
+  },
+  "input_event": {
+    "kind": "cx.agent_task.transparency.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.transparency",
+      "op": "transition",
+      "from": "ok",
+      "to": "reconfirmed_after_loss"
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "failed_precondition",
+    "reason": "invalid_task_fsm_transition",
+    "response_includes": {
+      "current_state": "ok"
+    },
+    "design_note": "reconfirmed_after_loss is only reachable from lost; the state carries audit semantics ('visibility was lost and then explicitly reconfirmed')."
+  }
+}

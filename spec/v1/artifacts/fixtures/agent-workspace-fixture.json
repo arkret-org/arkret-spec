@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Agent Workspace conformance fixture (stub)",
-  "description": "Placeholder fixture for cx.profile.agent_workspace.v1. Full 43-vector enumeration is in spec/v1/artifacts/conformance/agent-workspace/. See spec/v1/zh/extensions/agent-workspace-profile.md §15.",
+  "title": "Agent Workspace conformance fixture (registry anchor)",
+  "description": "Registry anchor for cx.profile.agent_workspace.v1. Full 44-vector enumeration is in spec/v1/artifacts/conformance/agent-workspace/. See spec/v1/zh/extensions/agent-workspace-profile.md §15.",
   "profile": "cx.profile.agent_workspace.v1",
   "vector_groups": [
     { "id": "15.1", "name": "execution_state FSM", "count": 12, "dir": "conformance/agent-workspace/" },
@@ -13,7 +13,7 @@
     { "id": "15.7", "name": "Saga / observe-then-write", "count": 5, "dir": "conformance/agent-workspace/" },
     { "id": "15.8", "name": "Cross-domain / governance", "count": 3, "dir": "conformance/agent-workspace/" }
   ],
-  "total_vectors": 43,
-  "status": "scaffolded",
-  "note": "Concrete per-vector JSON fixtures land under conformance/agent-workspace/ via follow-up; this top-level fixture is the registry anchor referenced by conformance-profiles.json required_fixtures."
+  "total_vectors": 44,
+  "status": "implemented",
+  "note": "44/44 per-vector JSON fixtures live under conformance/agent-workspace/; this top-level fixture is the registry anchor referenced by conformance-profiles.json required_fixtures."
 }

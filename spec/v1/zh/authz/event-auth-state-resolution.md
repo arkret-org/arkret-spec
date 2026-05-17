@@ -433,15 +433,24 @@ join(moves, cell_schema) -> value | ⊥:
       current = unique(siblings.map(v))
   return current
 
-validate_op(op, cell_schema):
+validate_op(op, cell_schema, move_envelope):
   op.type == "set"
   op.value satisfies schema
-  // v1.1: when initial_value is declared, reject set ops whose effect equals
-  // the sentinel (sentinel is reserved for the "unset" state; only cleanup
-  // Moves explicitly resetting via cleanup capability MAY write it).
+  // v1.1: when initial_value is declared, the sentinel is reserved for the
+  // "unset" state. Only a Move whose enclosing Event kind is profile-declared
+  // as a cleanup operation (e.g. `cx.agent_workspace.reservation.cleanup`)
+  // AND whose issuer holds the corresponding cleanup capability MAY write the
+  // sentinel back. We deliberately key on event_kind + capability rather than
+  // add an ad-hoc `from_cleanup_path` field to `lattice_op` (lattice_op wire
+  // shape is closed, additionalProperties=false). Cell schemas MAY declare
+  // `sentinel_writers[]` listing the event_kinds permitted to write the
+  // sentinel; absent that list, no event_kind may write the sentinel.
   if cell_schema.initial_value is defined:
-    if op.value == cell_schema.initial_value and not op.from_cleanup_path:
-      return SCHEMA_VIOLATION(reason=initial_value_reserved)
+    if op.value == cell_schema.initial_value:
+      writers = cell_schema.sentinel_writers or []
+      if move_envelope.event_kind not in writers:
+        return SCHEMA_VIOLATION(reason=initial_value_reserved)
+      // capability check is reducer's normal authz path; not duplicated here.
 ```
 
 `bottom=reject` 是 cas-register 的标准配置：依赖该 cell 的 Move MUST `fail_bottom`（spec 状态码 `failed_bottom`）。anchorer cell、关键 singleton policy 与 host 指针均使用此组合。

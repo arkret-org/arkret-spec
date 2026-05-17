@@ -1,0 +1,48 @@
+{
+  "vector_id": "15-7-saga-05",
+  "spec_section": "§15.7.41",
+  "title": "Reverse publish abort: another device already cancelled the task",
+  "preconditions": {
+    "task_initial_state": {
+      "execution_state": "active",
+      "transparency": "ok",
+      "source_authority": "ok"
+    },
+    "comment": "Controller has two devices online; publish flow MUST observe-then-write."
+  },
+  "input_steps": [
+    {
+      "step": 1,
+      "actor": "controller-device-A",
+      "operation": "begin reverse publish (read task state, prepare source Message)"
+    },
+    {
+      "step": 2,
+      "actor": "controller-device-B",
+      "kind": "cx.agent_task.execution.transition",
+      "payload": {
+        "from": "active",
+        "to": "cancelled_by_controller"
+      },
+      "expected": "accepted"
+    },
+    {
+      "step": 3,
+      "actor": "controller-device-A",
+      "operation": "re-read task state before publish",
+      "observation": {
+        "execution_state": "cancelled_by_controller"
+      }
+    },
+    {
+      "step": 4,
+      "actor": "controller-device-A",
+      "operation": "abort publish; do NOT emit source Message"
+    }
+  ],
+  "expected_final_state": {
+    "execution_state": "cancelled_by_controller",
+    "source_message_emitted": false
+  },
+  "design_note": "Reverse publish is observe-then-write at the client: re-read task state immediately before emitting; abort if terminal. Reducer alone cannot prevent stale publish because the source Message is in a different Space — client cooperation is required."
+}

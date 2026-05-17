@@ -1,0 +1,29 @@
+{
+  "vector_id": "15-3-source-authority-03",
+  "spec_section": "§15.3.19",
+  "title": "source_authority: reconfirmed_after_revoke → ok MUST fail (audit-preserving sink)",
+  "negative": true,
+  "preconditions": {
+    "task_state": {
+      "source_authority": "reconfirmed_after_revoke"
+    }
+  },
+  "input_event": {
+    "kind": "cx.agent_task.source_authority.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.source_authority",
+      "op": "transition",
+      "from": "reconfirmed_after_revoke",
+      "to": "ok"
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "failed_precondition",
+    "reason": "invalid_task_fsm_transition",
+    "response_includes": {
+      "current_state": "reconfirmed_after_revoke"
+    },
+    "design_note": "reconfirmed_after_revoke is an audit-preserving sink; cannot silently downgrade back to 'ok' which would erase the revoke history from the cell."
+  }
+}

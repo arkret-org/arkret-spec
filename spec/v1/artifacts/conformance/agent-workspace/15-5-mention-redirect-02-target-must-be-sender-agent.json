@@ -1,0 +1,51 @@
+{
+  "vector_id": "15-5-mention-redirect-02",
+  "spec_section": "§15.5.28",
+  "title": "target_actor_id MUST be sender's controlled agent (else unauthorized)",
+  "negative": true,
+  "preconditions": {
+    "sender_principal": "did:web:alice.example",
+    "grant_state": {
+      "id": "cx:grant:01964200-0000-7000-8000-bbbbbbbbbbbb",
+      "subject": "did:web:bob-agent.example",
+      "active": true,
+      "attached_authority": {
+        "controller": "did:web:bob.example"
+      }
+    },
+    "comment": "Alice tries to @-redirect Bob's agent, but grant's attached_authority.controller is Bob."
+  },
+  "input_event": {
+    "kind": "cx.message.create",
+    "submitter": "did:web:alice.example",
+    "requirements": {
+      "critical_extensions": [
+        {
+          "id": "cx.feature.mention_redirect.v1",
+          "scope": "payload",
+          "fail_closed": true,
+          "schema_ref": "cx.schema.content.mention_redirect.v1"
+        }
+      ]
+    },
+    "payload": {
+      "flow_id": "cx:flow:01964200-0000-7000-8000-000000000011",
+      "content": {
+        "kind": "cx.content.mention_redirect",
+        "body": "redirected via Bob's agent",
+        "target_actor_id": "did:web:bob-agent.example",
+        "authority_grant_ref": "cx:grant:01964200-0000-7000-8000-bbbbbbbbbbbb",
+        "redirect_pair_id": "01964200-0000-7000-8000-cccccccccccc"
+      }
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "unauthorized",
+    "reason": "mention_redirect_target_not_sender_agent",
+    "response_includes": {
+      "sender_principal": "did:web:alice.example",
+      "grant_controller": "did:web:bob.example"
+    },
+    "design_note": "Reducer MUST NOT silently downgrade to a regular cx.content.mention; the critical_extension is fail_closed."
+  }
+}

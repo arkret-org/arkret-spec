@@ -624,7 +624,7 @@
     },
     "subtype": {
       "type": "string",
-      "description": "Optional discriminator within a constraint_type. Standard values: claim_based.{claim,approval,accountability,device_session}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Implementations MAY require subtype for these families and fail closed on unknown values.",
+      "description": "Optional discriminator within a constraint_type. Standard values: claim_based.{claim,approval,accountability,device_session}; quota.{rate,resource}; confidentiality.{encryption,visibility,export_policy}; temporal.{window,edit_window,redact_window,session}; scope_limitation.{mention_respond_only}. Implementations MAY require subtype for these families and fail closed on unknown values.",
       "enum": [
         "claim",
         "approval",
@@ -637,7 +637,9 @@
         "window",
         "edit_window",
         "redact_window",
-        "session"
+        "session",
+        "mention_respond_only",
+        "export_policy"
       ]
     },
     "applies_to_actions": {
@@ -648,6 +650,15 @@
         "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
       },
       "uniqueItems": true
+    },
+    "import_to_external_space": {
+      "type": "string",
+      "enum": [
+        "allow",
+        "deny",
+        "require_attestation"
+      ],
+      "description": "`cx.profile.agent_workspace.v1` source-side export policy. Declares whether members (esp. controller-owned agents) may emit cx.content.import_attestation Moves targeting a different Space. Source-side agent runtime gates on this value; mirror reducer cannot enforce (only verifies optional source_export_policy_attestation carried on the import event). See extensions/agent-workspace-profile.md §10.3 + constraint-schema.md (confidentiality, export_policy)."
     }
   },
   "additionalProperties": true

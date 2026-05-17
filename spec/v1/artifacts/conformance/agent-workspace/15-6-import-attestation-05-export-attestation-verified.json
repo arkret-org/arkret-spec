@@ -1,0 +1,52 @@
+{
+  "vector_id": "15-6-import-attestation-05",
+  "spec_section": "§15.6.36",
+  "title": "Full export attestation + valid signature → export_attestation_verified",
+  "preconditions": {
+    "authority_did_resolvable": true,
+    "content_hash_matches": true,
+    "signature_valid": true,
+    "within_valid_until": true
+  },
+  "input_event": {
+    "kind": "cx.message.create",
+    "payload": {
+      "flow_id": "cx:flow:01964200-0000-7000-8000-mirrorFlow001",
+      "content": {
+        "kind": "cx.content.import_attestation",
+        "body": "...",
+        "claimed_origin": {
+          "space_id": "cx:space:01964200-0000-7000-8000-sourceSpace01",
+          "flow_id": "cx:flow:01964200-0000-7000-8000-sourceFlow001",
+          "message_id": "cx:message:01964200-0000-7000-8000-srcMessage001",
+          "actor_id": "did:web:bob.example",
+          "created_at": "2026-05-17T09:55:00Z"
+        },
+        "importer": {
+          "actor_id": "did:web:alice-agent.example",
+          "imported_at": "2026-05-17T10:00:01Z"
+        },
+        "import_signature": "0xValidSig...",
+        "source_export_policy_attestation": {
+          "authority_did": "did:web:source-space-admin.example",
+          "source_space_id": "cx:space:01964200-0000-7000-8000-sourceSpace01",
+          "policy_hash": "sha256:PolicyHash0000000000000000000000000000000000000000000000000000",
+          "policy_decision": "allow",
+          "importer_actor_id": "did:web:alice-agent.example",
+          "import_destination_space_id": "cx:space:01964200-0000-7000-8000-mirrorSpace01",
+          "content_hash": "sha256:OriginalContentHash000000000000000000000000000000000000000000",
+          "source_frontier_ref": "cx:anchor:01964200-0000-7000-8000-srcFrontier01",
+          "issued_at": "2026-05-17T10:00:00Z",
+          "valid_until": "2026-05-17T11:00:00Z",
+          "signature": "0xValidExportSig..."
+        },
+        "content": { "kind": "cx.content.text", "body": "original content" }
+      }
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "audit_marks": ["export_attestation_verified"],
+    "design_note": "Signature input is JCS-canonicalized {schema_id, domain, body} per §8.2; domain separation prevents replay across attestation types."
+  }
+}

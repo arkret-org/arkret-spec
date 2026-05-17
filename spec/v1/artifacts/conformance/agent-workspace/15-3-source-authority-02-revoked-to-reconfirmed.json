@@ -1,0 +1,40 @@
+{
+  "vector_id": "15-3-source-authority-02",
+  "spec_section": "§15.3.18",
+  "title": "source_authority: revoked → reconfirmed_after_revoke (controller re-establishes grant)",
+  "preconditions": {
+    "task_state": {
+      "execution_state": "active",
+      "transparency": "ok",
+      "source_authority": "revoked"
+    },
+    "new_grant_event": "cx:event:01964200-0000-7000-8000-000000000041",
+    "comment": "Source Flow controller re-issued the grant after a revoke; watcher reconfirms in mirror task."
+  },
+  "input_event": {
+    "kind": "cx.agent_task.source_authority.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.source_authority",
+      "op": "transition",
+      "from": "revoked",
+      "to": "reconfirmed_after_revoke",
+      "reason": "source_grant_reissued",
+      "evidence_refs": [
+        "cx:event:01964200-0000-7000-8000-000000000041"
+      ]
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "cell_changes": [
+      {
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.source_authority",
+        "before": "revoked",
+        "after": "reconfirmed_after_revoke"
+      }
+    ],
+    "runtime_gate_after": "may_execute",
+    "design_note": "reconfirmed_after_revoke preserves audit ('was revoked, then re-granted') while restoring execution."
+  }
+}

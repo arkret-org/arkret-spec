@@ -77,6 +77,9 @@ sidebar:
 | Event | `cx.agent_task.transparency.transition` | transparency cell transition |
 | Event | `cx.agent_task.source_authority.transition` | source_authority cell transition |
 | Event | `cx.agent_task.cancel` | 便捷取消（alias） |
+| Event | `cx.agent_workspace.reservation.set` | 写 reservation cell（cas-register `head_eq:"__unset__"` predicate）|
+| Event | `cx.agent_workspace.reservation.recover` | 写 recovery Move 解 ⊥（`head_in [conflict_heads]` + state_witness + inclusion_proof + lex-min winner）|
+| Event | `cx.agent_workspace.reservation.cleanup` | TTL 后重置 cell 到 sentinel；唯一可写 sentinel 的 event_kind（cell schema `sentinel_writers` 白名单）|
 | Content block | `cx.content.mention_redirect` | 源 Space 中的 routing stub |
 | Content block | `cx.content.import_attestation` | mirror Space 中的跨 Space 重加密引用 |
 | Capability action | `cx.capability.agent_workspace.reserve` | 写 reservation Move |
@@ -182,7 +185,7 @@ Preset 是声明性 sugar；reducer 不依赖 preset name，依赖展开后的 g
 | **L1** | `mirror_space_by_source:<source_space_id>` | **workspace root Space** | `cx:space:<mirror_space_id>` 或 sentinel | `cas-register + bottom=reject`，schema 声明 `initial_value="__unset__"` |
 | **L2** | `mirror_flow_by_source:<source_flow_id>` | **mirror Space** | `cx:flow:<mirror_flow_id>` 或 sentinel | 同上 |
 
-> **Spec PR 依赖**：当前 cell schema 没有 `initial_value` 字段。本 profile 落地依赖该字段被 spec 接受。在该字段落地前，实现 MAY 在 Space genesis 时显式写"初始化所有已知 reservation cell 为 `'__unset__'`"Move（实际不可枚举所有 source_space_id，仅作为 fallback）。
+> **Spec 依赖（v1.1 已 land 2026-05-17）**：[`space.schema.json`](../../artifacts/schemas/space.schema.json) `cell_lattice` 已新增可选 `initial_value` 字段（仅 cas-register 合法）。[`event-auth-state-resolution.md §5.3.3`](../authz/event-auth-state-resolution.md) cas-register `join` 算法对应更新 `current = cell_schema.initial_value if defined else null`。本 profile 的两个 reservation cell schema 在 §9 profile 声明中直接使用 `initial_value="__unset__"`。
 
 ### 6.2 Reservation 流程
 
@@ -226,15 +229,16 @@ Move {
 
 ### 6.4 Orphan reservation 处理
 
-> **Rev 9 修订**：原 Rev 8 写 "reservation Move effects 携带 `reservation_ttl_seconds`" 不合规——[event-schema.json:1125](../../artifacts/schemas/event-schema.json) `lattice_op` `additionalProperties: false`，wire 上无法附加自定义字段。TTL 改放到 event payload；clock 改用 Anchor-based time，不用自报 wall clock。
+> **Rev 9 修订**：原 Rev 8 写 "reservation Move effects 携带 `reservation_ttl_seconds`" 不合规——[event-schema.json](../../artifacts/schemas/event-schema.json) `lattice_op` `additionalProperties: false`，wire 上无法附加自定义字段。TTL 改放到 event payload；clock 改用 Anchor-based time，不用自报 wall clock。
 
-1. **TTL 存放位置（修订）**：reservation Move 的 **Event payload** 顶层携带可选 `reservation_ttl_seconds`（默认 600s）字段，由 `cx.agent_task.reservation_meta.v1` payload class 定义。**不**塞进 `lattice_op` metadata。
+1. **TTL 存放位置（修订）**：reservation Event 的 payload 顶层携带可选 `reservation_ttl_seconds`（默认 600s）字段，由 payload class `agent_workspace_reservation_set_payload` 定义（见 [`event-payload.schema.json#/$defs/agent_workspace_reservation_set_payload`](../../artifacts/schemas/event-payload.schema.json)）。承载该 payload 的 Event kind 是 `cx.agent_workspace.reservation.set`。**不**塞进 `lattice_op` metadata。
 2. **Resolve API filtering**：`resolve_mirror_flow` MUST 仅返回 reservation + create Move 都存在的 mapping，不返回未完成 reservation
 3. **Cleanup Move（Rev 9 修订）**：
-   - Capability holder：**仅 controller principal**；可标准 capability delegation 给自己 sync node 的 system actor
+   - Event kind：`cx.agent_workspace.reservation.cleanup`，payload class `agent_workspace_reservation_cleanup_payload`
+   - Capability holder：**仅 controller principal**（capability `cx.capability.agent_workspace.cleanup`）；可标准 capability delegation 给自己 sync node 的 system actor
    - lattice op：`set`，cell = `mirror_*_by_source:<source_id>`，value = `"__unset__"`
    - predicate：`head_eq: <reservation_id>`（指向当前 stale value）
-   - **TTL 证据（Anchor-based time，不用自报 wall clock）**：cleanup Event payload MUST 携带 `ttl_evidence: { reservation_anchor_ref, reservation_anchor_index, current_anchor_ref, current_anchor_index, ttl_anchor_distance }`：
+   - **TTL 证据（Anchor-based time，不用自报 wall clock）**：cleanup Event payload `ttl_evidence` 字段 MUST 含 `{reservation_anchor_ref, reservation_anchor_index, current_anchor_ref, current_anchor_index, ttl_anchor_distance}`：
      - `reservation_anchor_ref` / `reservation_anchor_index`：reservation Move 被 anchor 时的 Anchor 引用 + 该 Anchor 在 DAG 中的 index（由源 Space anchorer 签发，可独立验证）
      - `current_anchor_ref` / `current_anchor_index`：cleanup 提交时刻的 effective Anchor
      - reducer 验证：`current_anchor_index >= reservation_anchor_index + ttl_anchor_distance`，其中 `ttl_anchor_distance` 是 schema 声明的最小 anchor 距离（按典型 anchor cadence 折算自 600s）
@@ -352,6 +356,31 @@ cx.agent_task.cancel
   → 便捷事件；reducer 等价于 cx.agent_task.execution.transition(from=<current>, to=cancelled_by_controller)
   → MUST NOT 改变 transparency / source_authority cell（保留 audit 痕迹）
 ```
+
+#### Reducer 等价语义注（normative）
+
+`cx.agent_task.cancel` 的 reducer 行为 MUST 与下列 `cx.agent_task.execution.transition` 完全等价：
+
+```text
+{
+  task_id: <from cancel payload>,
+  cell:    "agent_task.<task_id>.execution_state",
+  op:      "transition",
+  from:    <current execution_state cell head>,
+  to:      "cancelled_by_controller",
+  reason:  <optional pass-through from cancel.reason>,
+  evidence_refs: []
+}
+```
+
+具体规则：
+
+1. **Cell scope**：只写 `execution_state` cell；transparency / source_authority cell 状态保持不变。这保留了 audit 痕迹（取消前的透明度 / 授权状态对历史回放仍可见）
+2. **`from` 字段填充**：cancel 是便捷事件，wire 上不要求客户端提供 `from`。Reducer MUST 通过 read-then-write 模式（read current head → write transition）填充 `from`。Read-then-write 的 race（cell 已是 terminal）由 FSM `from` precondition 自然拒绝
+3. **合法源 state**：cancel MUST 从非 terminal 的 `execution_state` 出发（`pending_source_stub` / `active`）；从 terminal state（`completed` / `cancelled_*`）发起的 cancel reducer MUST 返回 `failed_precondition`（reason=`invalid_task_fsm_transition`）
+4. **Capability**：与 `cx.agent_task.execution.transition` 共享 controller-only capability 要求
+5. **Cell registry binding**：本事件在 [contract-catalog event_kinds](../../artifacts/registry/contract-catalog.json) 中 `cell_family=cx.component.agent_task.execution_state.v1` + `lattice=fsm` + `cell_subject.field=payload.task_id`，与 `execution.transition` 完全一致
+6. **`cancel.reason` 透传**：当 payload 含可选 `reason` 字符串，reducer MUST 把它写入合成 transition event 的 `reason` 字段；缺省 reducer MAY 填 `"cancelled_by_controller"`
 
 Transition event payload：
 
@@ -498,14 +527,16 @@ Transition event payload：
       "applies_to_role": "workspace_root",
       "lattice": "cas-register",
       "bottom": "reject",
-      "initial_value": "__unset__"
+      "initial_value": "__unset__",
+      "sentinel_writers": ["cx.agent_workspace.reservation.cleanup"]
     },
     {
       "namespace": "mirror_flow_by_source",
       "applies_to_role": "mirror_space",
       "lattice": "cas-register",
       "bottom": "reject",
-      "initial_value": "__unset__"
+      "initial_value": "__unset__",
+      "sentinel_writers": ["cx.agent_workspace.reservation.cleanup"]
     }
   ],
   "relation_profiles": [
@@ -704,7 +735,7 @@ v1 默认 controller 手动 publish：
 
 ## 15. Conformance vectors
 
-本 profile MUST 提供 43 个 conformance vector，分组如下。Vector fixtures 位于 `artifacts/conformance/agent-workspace/`。
+本 profile MUST 提供 44 个 conformance vector，分组如下。Vector fixtures 位于 `artifacts/conformance/agent-workspace/`。
 
 ### 15.1 execution_state FSM（12 vectors）
 
@@ -781,6 +812,7 @@ v1 默认 controller 手动 publish：
 
 42. **Mirror Space derived_from 基数**：尝试同 source Flow 第二个 mirror Flow → `cardinality_violation`
 43. **agent_membership_change 通知脱敏**：E2EE preview MUST 由客户端预先脱敏
+44. **Teardown 审计锚定**：workspace teardown 提交前 MUST 留下最终 audit anchor，外部系统在 Space 删除后仍可引用
 
 ## 16. 安全 / 隐私要点
 
@@ -788,7 +820,7 @@ v1 默认 controller 手动 publish：
 - **mention_redirect 不暴露 mirror 端定位**：仅含 `redirect_pair_id`（sender opaque UUID）和 `authority_grant_ref`（指向源 Space 已 active 的 grant）
 - **`body` 字段披露**：客户端 MUST 提示用户该字段对源 Flow 成员可见
 - **Watcher 撒谎防护**：`evidence_refs` 含可独立 fetch 验证的 event ID；多 watcher 并行 + TTL housekeeping 兜底
-- **Cleanup 滥用防护**：cleanup Move MUST 携带 `ttl_evidence`，reducer 验证 `current_time ≥ reservation_anchored_at + ttl`
+- **Cleanup 滥用防护**：cleanup Move MUST 携带 anchor-based `ttl_evidence`（详见 §6.4）；reducer 验证 `current_anchor_index >= reservation_anchor_index + ttl_anchor_distance`，**不接受自报 wall-clock**
 
 ## 17. 显式不在 v1 范围
 

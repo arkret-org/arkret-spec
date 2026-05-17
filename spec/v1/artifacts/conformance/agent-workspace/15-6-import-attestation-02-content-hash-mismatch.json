@@ -1,0 +1,42 @@
+{
+  "vector_id": "15-6-import-attestation-02",
+  "spec_section": "§15.6.33",
+  "title": "Tampered content → reader marks content_hash_mismatch",
+  "preconditions": {
+    "export_policy_attestation_present": true,
+    "comment": "Attestation carries content_hash over original content; importer altered the wrapped content body after issuance."
+  },
+  "input_event": {
+    "kind": "cx.message.create",
+    "payload": {
+      "flow_id": "cx:flow:01964200-0000-7000-8000-mirrorFlow001",
+      "content": {
+        "kind": "cx.content.import_attestation",
+        "body": "...",
+        "claimed_origin": {
+          "space_id": "cx:space:01964200-0000-7000-8000-sourceSpace01",
+          "flow_id": "cx:flow:01964200-0000-7000-8000-sourceFlow001",
+          "message_id": "cx:message:01964200-0000-7000-8000-srcMessage001",
+          "actor_id": "did:web:bob.example",
+          "created_at": "2026-05-17T09:55:00Z"
+        },
+        "importer": {
+          "actor_id": "did:web:alice-agent.example",
+          "imported_at": "2026-05-17T10:00:01Z"
+        },
+        "import_signature": "0xValidSig...",
+        "source_export_policy_attestation": {
+          "authority_did": "did:web:source-space-admin.example",
+          "content_hash": "sha256:OriginalContentHash000000000000000000000000000000000000000000",
+          "signature": "0xValidExportSig..."
+        },
+        "content": { "kind": "cx.content.text", "body": "TAMPERED body" }
+      }
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "audit_marks": ["content_hash_mismatch", "export_attestation_invalid"],
+    "design_note": "Reader recomputes JCS+SHA-256 of content and compares to attestation.content_hash; mismatch flips both annotations."
+  }
+}

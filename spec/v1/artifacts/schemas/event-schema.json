@@ -700,6 +700,33 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.agent_workspace.reservation.set" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_workspace_reservation_set_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.agent_workspace.reservation.recover" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_workspace_reservation_recover_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.agent_workspace.reservation.cleanup" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/agent_workspace_reservation_cleanup_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": {
           "kind": {
             "enum": [

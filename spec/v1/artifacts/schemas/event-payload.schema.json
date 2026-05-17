@@ -1337,6 +1337,7 @@
     },
     "agent_task_create_payload": {
       "type": "object",
+      "description": "Payload for cx.agent_task.create. Carries the new agent_task object + 3 initial FSM cell values. NOTE: reservation_ttl_seconds is NOT here; reservation TTL lives on the dedicated cx.agent_workspace.reservation.set event (see agent_workspace_reservation_set_payload).",
       "required": [
         "task_id",
         "target_agent_id",
@@ -1346,17 +1347,13 @@
         "task_id": { "$ref": "#/$defs/agent_task_id" },
         "target_agent_id": { "$ref": "#/$defs/did" },
         "instruction": { "type": "object" },
-        "context_anchor": { "type": "object" },
-        "reservation_ttl_seconds": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Optional TTL (seconds) for reservation cell tied to this task; default 600. See agent-workspace-profile.md §6.4."
-        }
+        "context_anchor": { "type": "object" }
       },
       "additionalProperties": true
     },
     "agent_task_transition_payload": {
       "type": "object",
+      "description": "Payload for cx.agent_task.{execution,transparency,source_authority}.transition. NOTE: ttl_evidence is NOT here; orphan cleanup lives on the dedicated cx.agent_workspace.reservation.cleanup event (see agent_workspace_reservation_cleanup_payload).",
       "required": [
         "task_id",
         "cell",
@@ -1377,17 +1374,6 @@
         "evidence_refs": {
           "type": "array",
           "items": { "type": "string" }
-        },
-        "ttl_evidence": {
-          "type": "object",
-          "description": "Anchor-based TTL evidence (cleanup transitions only). See agent-workspace-profile.md §6.4.",
-          "properties": {
-            "reservation_anchor_ref": { "type": "string" },
-            "reservation_anchor_index": { "type": "integer", "minimum": 0 },
-            "current_anchor_ref": { "type": "string" },
-            "current_anchor_index": { "type": "integer", "minimum": 0 },
-            "ttl_anchor_distance": { "type": "integer", "minimum": 1 }
-          }
         }
       },
       "additionalProperties": true
@@ -1400,6 +1386,102 @@
       "properties": {
         "task_id": { "$ref": "#/$defs/agent_task_id" },
         "reason": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "agent_workspace_reservation_cell_namespace": {
+      "type": "string",
+      "enum": [
+        "mirror_space_by_source",
+        "mirror_flow_by_source"
+      ],
+      "description": "Discriminator selecting which reservation cell namespace this Move targets. Spec: agent-workspace-profile.md §6.1."
+    },
+    "agent_workspace_reservation_set_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent_workspace.reservation.set. Carries the reservation Move's cell namespace, subject (source_*_id), pre-allocated mirror_*_id (effect value), and TTL hint. The actual cas-register precondition (head_eq:'__unset__') and effect are encoded in the Move envelope; this payload is reducer-input metadata + audit trail.",
+      "required": [
+        "cell_namespace",
+        "cell_namespace_subject",
+        "reservation_id"
+      ],
+      "properties": {
+        "cell_namespace": { "$ref": "#/$defs/agent_workspace_reservation_cell_namespace" },
+        "cell_namespace_subject": {
+          "type": "string",
+          "description": "Source object ID this reservation pertains to (cx:space:... when namespace=mirror_space_by_source; cx:flow:... when namespace=mirror_flow_by_source)."
+        },
+        "reservation_id": {
+          "type": "string",
+          "description": "Pre-allocated mirror_*_id (cx:space:<uuidv7> or cx:flow:<uuidv7>) the reservation claims."
+        },
+        "reservation_ttl_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Reservation TTL hint (seconds). Default 600. After this window without a follow-up create event, sync node housekeeping MAY emit a cx.agent_workspace.reservation.cleanup. See agent-workspace-profile.md §6.4."
+        }
+      },
+      "additionalProperties": true
+    },
+    "agent_workspace_reservation_recover_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent_workspace.reservation.recover. Recovery Move resolves cell ⊥ per event-auth-state-resolution.md §8: head_in [conflict_heads] + state_witness + inclusion_proof refs + recovery_capability ref. Effect value MUST be the lex-min of conflict_heads.",
+      "required": [
+        "cell_namespace",
+        "cell_namespace_subject",
+        "conflict_heads",
+        "winner"
+      ],
+      "properties": {
+        "cell_namespace": { "$ref": "#/$defs/agent_workspace_reservation_cell_namespace" },
+        "cell_namespace_subject": { "type": "string" },
+        "conflict_heads": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "description": "Pre-conflict candidate heads observed in the ⊥ diagnostic. The recovery Move's predicate MUST be head_in[<this list>]."
+        },
+        "winner": {
+          "type": "string",
+          "description": "Lex-min winner selected from conflict_heads. Reducer MUST verify the effect value matches lex-min(conflict_heads) before accepting."
+        }
+      },
+      "additionalProperties": true
+    },
+    "agent_workspace_reservation_cleanup_payload": {
+      "type": "object",
+      "description": "Payload for cx.agent_workspace.reservation.cleanup. Cleanup Move resets a stale reservation cell to '__unset__' after the TTL window has elapsed. ttl_evidence MUST be Anchor-based (NOT self-reported wall-clock). Reducer verifies current_anchor_index >= reservation_anchor_index + ttl_anchor_distance.",
+      "required": [
+        "cell_namespace",
+        "cell_namespace_subject",
+        "stale_reservation_id",
+        "ttl_evidence"
+      ],
+      "properties": {
+        "cell_namespace": { "$ref": "#/$defs/agent_workspace_reservation_cell_namespace" },
+        "cell_namespace_subject": { "type": "string" },
+        "stale_reservation_id": {
+          "type": "string",
+          "description": "Cell head value the cleanup Move expects (head_eq predicate). The Move's effect resets to '__unset__'."
+        },
+        "ttl_evidence": {
+          "type": "object",
+          "required": [
+            "reservation_anchor_ref",
+            "reservation_anchor_index",
+            "current_anchor_ref",
+            "current_anchor_index",
+            "ttl_anchor_distance"
+          ],
+          "properties": {
+            "reservation_anchor_ref": { "type": "string" },
+            "reservation_anchor_index": { "type": "integer", "minimum": 0 },
+            "current_anchor_ref": { "type": "string" },
+            "current_anchor_index": { "type": "integer", "minimum": 0 },
+            "ttl_anchor_distance": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": true
     },

@@ -1,0 +1,41 @@
+{
+  "vector_id": "15-5-mention-redirect-03",
+  "spec_section": "§15.5.29",
+  "title": "Reducer not supporting mention_redirect critical_extension MUST reject (no silent downgrade)",
+  "negative": true,
+  "preconditions": {
+    "reducer_supports_feature": false,
+    "comment": "Receiving deployment has not advertised cx.feature.mention_redirect.v1."
+  },
+  "input_event": {
+    "kind": "cx.message.create",
+    "requirements": {
+      "critical_extensions": [
+        {
+          "id": "cx.feature.mention_redirect.v1",
+          "scope": "payload",
+          "fail_closed": true,
+          "schema_ref": "cx.schema.content.mention_redirect.v1"
+        }
+      ]
+    },
+    "payload": {
+      "flow_id": "cx:flow:01964200-0000-7000-8000-000000000011",
+      "content": {
+        "kind": "cx.content.mention_redirect",
+        "body": "ignored on legacy deployment",
+        "target_actor_id": "did:web:alice-agent.example",
+        "authority_grant_ref": "cx:grant:01964200-0000-7000-8000-bbbbbbbbbbbb",
+        "redirect_pair_id": "01964200-0000-7000-8000-aaaaaaaaaaaa"
+      }
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "failed_precondition",
+    "reason": "unsupported_critical_extension",
+    "response_includes": {
+      "missing_feature_id": "cx.feature.mention_redirect.v1"
+    },
+    "design_note": "fail_closed=true at Event.requirements level means the entire event MUST be rejected if the deployment cannot honor the extension; silently rendering as plain mention would leak the private routing intent."
+  }
+}

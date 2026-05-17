@@ -1,0 +1,38 @@
+{
+  "vector_id": "15-1-execution-07",
+  "spec_section": "§15.1.7",
+  "title": "active → completed (agent finishes)",
+  "preconditions": {
+    "task_state": {
+      "execution_state": "active",
+      "transparency": "ok",
+      "source_authority": "ok"
+    }
+  },
+  "input_event": {
+    "kind": "cx.agent_task.execution.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+      "op": "transition",
+      "from": "active",
+      "to": "completed",
+      "reason": "agent_finished",
+      "completion_summary": {
+        "result_anchor_ref": "cx:anchor:01964200-0000-7000-8000-000000000099"
+      }
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "cell_changes": [
+      {
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+        "before": "active",
+        "after": "completed"
+      }
+    ],
+    "runtime_gate_after": "blocked",
+    "terminal": true
+  }
+}

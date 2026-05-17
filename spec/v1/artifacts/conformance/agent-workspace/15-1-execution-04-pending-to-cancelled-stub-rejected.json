@@ -1,0 +1,40 @@
+{
+  "vector_id": "15-1-execution-04",
+  "spec_section": "§15.1.4",
+  "title": "pending_source_stub → cancelled_stub_rejected (Phase 2 reject)",
+  "preconditions": {
+    "task_state": {
+      "execution_state": "pending_source_stub",
+      "transparency": "ok",
+      "source_authority": "ok"
+    },
+    "source_reject_event": "cx:event:01964200-0000-7000-8000-000000000021",
+    "comment": "Source Flow reducer rejected the stub publish (e.g., grant invalid)."
+  },
+  "input_event": {
+    "kind": "cx.agent_task.execution.transition",
+    "payload": {
+      "task_id": "cx:agent_task:01964200-0000-7000-8000-000000000001",
+      "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+      "op": "transition",
+      "from": "pending_source_stub",
+      "to": "cancelled_stub_rejected",
+      "reason": "source_stub_rejected",
+      "evidence_refs": [
+        "cx:event:01964200-0000-7000-8000-000000000021"
+      ]
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "cell_changes": [
+      {
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-000000000001.execution_state",
+        "before": "pending_source_stub",
+        "after": "cancelled_stub_rejected"
+      }
+    ],
+    "runtime_gate_after": "blocked",
+    "terminal": true
+  }
+}

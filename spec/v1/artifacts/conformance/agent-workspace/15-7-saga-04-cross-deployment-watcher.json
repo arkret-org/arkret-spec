@@ -1,0 +1,47 @@
+{
+  "vector_id": "15-7-saga-04",
+  "spec_section": "§15.7.40",
+  "title": "Cross-deployment watcher: source on deployment A, mirror on deployment B",
+  "preconditions": {
+    "source_space_deployment": "deployment-A.example",
+    "mirror_space_deployment": "deployment-B.example",
+    "watcher_redundancy": {
+      "primary": "controller_client",
+      "fallback": "ttl_anchor_housekeeping"
+    }
+  },
+  "input_steps": [
+    {
+      "step": 1,
+      "actor": "source-flow-member@deployment-A",
+      "kind": "cx.message.redact",
+      "event_id": "cx:event:01964200-0000-7000-8000-redactCross001",
+      "expected": "accepted_on_deployment_A"
+    },
+    {
+      "step": 2,
+      "actor": "controller-client",
+      "operation": "federated read of source frontier via cx.federation.read",
+      "expected": "observes redact event"
+    },
+    {
+      "step": 3,
+      "actor": "controller-client",
+      "kind": "cx.agent_task.transparency.transition",
+      "payload": {
+        "task_id": "cx:agent_task:01964200-0000-7000-8000-crossDeplmt01",
+        "cell": "agent_task.cx:agent_task:01964200-0000-7000-8000-crossDeplmt01.transparency",
+        "from": "ok",
+        "to": "lost",
+        "evidence_refs": ["cx:event:01964200-0000-7000-8000-redactCross001"]
+      },
+      "deployment": "deployment-B.example",
+      "expected": "accepted"
+    }
+  ],
+  "expected_final_state": {
+    "transparency": "lost",
+    "evidence_refs_resolvable_cross_deployment": true
+  },
+  "design_note": "Federation §9.5 SLA invariant: evidence_refs MUST be globally resolvable; mirror reducer on deployment B accepts evidence whose origin Anchor lives on deployment A as long as inclusion proof is available."
+}

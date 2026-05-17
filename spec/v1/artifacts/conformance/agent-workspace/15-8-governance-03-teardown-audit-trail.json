@@ -1,0 +1,37 @@
+{
+  "vector_id": "15-8-governance-03",
+  "spec_section": "§15.8.44",
+  "title": "Workspace teardown emits final audit anchor before deletion",
+  "preconditions": {
+    "workspace_root_space_id": "cx:space:01964200-0000-7000-8000-workspaceRoot1",
+    "active_agent_tasks": ["cx:agent_task:01964200-0000-7000-8000-act01"],
+    "active_mirror_spaces": ["cx:space:01964200-0000-7000-8000-mirrorSpace01"],
+    "controller_principal": "did:web:alice.example"
+  },
+  "input_event": {
+    "kind": "cx.agent_workspace.teardown",
+    "payload": {
+      "workspace_root_space_id": "cx:space:01964200-0000-7000-8000-workspaceRoot1",
+      "reason": "controller_initiated",
+      "final_audit_summary": {
+        "task_count": 1,
+        "mirror_space_count": 1,
+        "membership_change_count": 3,
+        "import_attestation_count": 7,
+        "open_grants_revoked": [
+          "cx:grant:01964200-0000-7000-8000-bbbbbbbbbbbb"
+        ]
+      }
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "side_effects": [
+      "all active agent_task.execution_state transitions → cancelled_by_controller",
+      "all attached_authority grants → revoked",
+      "mirror Spaces archived (read-only) before deletion",
+      "final audit anchor pinned"
+    ],
+    "design_note": "§10.1 teardown MUST be atomic-feeling at the protocol surface even though implementation fans out across Spaces; the audit anchor is the durable handle external systems can reference after deletion."
+  }
+}

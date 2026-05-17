@@ -899,6 +899,64 @@
       "profile_gate": "cx.profile.agent_workspace.v1"
     },
     {
+      "event_kind": "cx.agent_workspace.reservation.set",
+      "category": "agent_workspace",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent workspace reservation set (cas-register write with head_eq:__unset__)",
+      "cell_family": "cx.component.agent_workspace.reservation.v1",
+      "cell_subject": {
+        "type": "composite",
+        "fields": [
+          "payload.cell_namespace",
+          "payload.cell_namespace_subject"
+        ],
+        "notes": "Reservation events multiplex two concrete cas-register cell instances (mirror_space_by_source / mirror_flow_by_source) selected by payload.cell_namespace. The cell_family is the parent grouping; the actual lattice cell is keyed by the composite (namespace, subject)."
+      },
+      "lattice": "cas-register",
+      "bottom": "reject",
+      "profile_gate": "cx.profile.agent_workspace.v1"
+    },
+    {
+      "event_kind": "cx.agent_workspace.reservation.recover",
+      "category": "agent_workspace",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent workspace reservation recovery (head_in [conflict_heads] + state_witness + inclusion_proof)",
+      "cell_family": "cx.component.agent_workspace.reservation.v1",
+      "cell_subject": {
+        "type": "composite",
+        "fields": [
+          "payload.cell_namespace",
+          "payload.cell_namespace_subject"
+        ]
+      },
+      "lattice": "cas-register",
+      "bottom": "reject",
+      "profile_gate": "cx.profile.agent_workspace.v1"
+    },
+    {
+      "event_kind": "cx.agent_workspace.reservation.cleanup",
+      "category": "agent_workspace",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent workspace orphan reservation cleanup (reset to __unset__ sentinel; carries anchor-based ttl_evidence). Only this event_kind is allowed in the corresponding cell_schemas[].sentinel_writers whitelist.",
+      "cell_family": "cx.component.agent_workspace.reservation.v1",
+      "cell_subject": {
+        "type": "composite",
+        "fields": [
+          "payload.cell_namespace",
+          "payload.cell_namespace_subject"
+        ]
+      },
+      "lattice": "cas-register",
+      "bottom": "reject",
+      "profile_gate": "cx.profile.agent_workspace.v1"
+    },
+    {
       "event_kind": "cx.capability.grant",
       "category": "authz",
       "status": "active",

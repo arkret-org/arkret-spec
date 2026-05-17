@@ -1,0 +1,38 @@
+{
+  "vector_id": "15-6-import-attestation-01",
+  "spec_section": "§15.6.32",
+  "title": "import_signature tampered → reader marks import_signature_invalid",
+  "preconditions": {
+    "importer_pubkey_resolvable": true,
+    "comment": "Reader verifies import_signature over JCS(canonical input). Signature byte was altered in transit."
+  },
+  "input_event": {
+    "kind": "cx.message.create",
+    "payload": {
+      "flow_id": "cx:flow:01964200-0000-7000-8000-mirrorFlow001",
+      "content": {
+        "kind": "cx.content.import_attestation",
+        "body": "...",
+        "claimed_origin": {
+          "space_id": "cx:space:01964200-0000-7000-8000-sourceSpace01",
+          "flow_id": "cx:flow:01964200-0000-7000-8000-sourceFlow001",
+          "message_id": "cx:message:01964200-0000-7000-8000-srcMessage001",
+          "actor_id": "did:web:bob.example",
+          "created_at": "2026-05-17T09:55:00Z"
+        },
+        "importer": {
+          "actor_id": "did:web:alice-agent.example",
+          "imported_at": "2026-05-17T10:00:01Z"
+        },
+        "import_signature": "0xDEADBEEFtampered000000000000000000000000000000000000000000000000",
+        "content": { "kind": "cx.content.text", "body": "..." }
+      }
+    }
+  },
+  "expected_outcome": {
+    "reducer_result": "accepted",
+    "audit_marks": ["import_signature_invalid"],
+    "reader_ui_must_show": "importer claim cannot be verified — treat as unauthenticated quotation",
+    "design_note": "Import attestation never causes reducer rejection; verification is a reader-side annotation, surfaced in UI."
+  }
+}
