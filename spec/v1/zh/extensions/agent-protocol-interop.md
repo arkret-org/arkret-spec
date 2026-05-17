@@ -110,7 +110,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "space_id": "cx:space:...",
   "actor_id": "did:web:requesting-agent.example.com",
   "payload": {
-    "session_id": "cx:agent_session:01J...",
+    "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
     "task_flow_id": "cx:flow:4accc010-0000-7000-8000-000000000000",
     "counterparty_agent": "did:web:remote-agent.example.com",
     "protocol": "a2a",
@@ -139,7 +139,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "kind": "cx.agent.protocol_session.status",
   "space_id": "cx:space:...",
   "payload": {
-    "session_id": "cx:agent_session:01J...",
+    "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
     "external_task_id": "a2a-task-123",
     "status": "working",
     "progress_basis_points": 4200,
@@ -170,7 +170,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "kind": "cx.agent.protocol_session.result",
   "space_id": "cx:space:...",
   "payload": {
-    "session_id": "cx:agent_session:01J...",
+    "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
     "status": "completed",
     "result_objects": [
       {

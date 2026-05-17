@@ -82,7 +82,7 @@ GET /api/v1/mimi/provider-directory
     "mimi_room_uri": "mimi://example.com/rooms/01JSMIMI...",
     "binding_scope": {
       "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
-      "flow_id": "cx:flow:01JS..."
+      "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000"
     },
     "hub_provider": "did:web:mimi.example.com",
     "local_provider_role": "hub",

@@ -63,14 +63,14 @@ bottom   = reject  // or-set never produces ⊥; declared value follows registry
 
 ```text
 Move(cx.consent.grant) {
-  id        = cx:event:01000000000000000000000000js0gr0...   // content-addressed Move id
+  id        = cx:event:019640ed-7000-7000-8000-000000000001   // content-addressed Move id (UUIDv7)
   issuer    = holder DID（或 holder DID Document 显式授权的 controller / agent）
   space_id  = holder principal control Space
   preconditions = []          // grant 不依赖 cell 既有状态
   effects   = [
     (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "add",
-      dot:  "cx:event:01000000000000000000000000js0gr0...:0",   // = "<this Move.id>:<effect_index>"
+      dot:  "cx:event:019640ed-7000-7000-8000-000000000001:0",   // = "<this Move.id>:<effect_index>"
       value: {
         intent: {                          // projection-level dedupe key
           consent_id: <consent_id>,
@@ -79,7 +79,7 @@ Move(cx.consent.grant) {
         },
         not_before:   "2026-05-07T00:00:00Z",
         valid_until:  "2026-12-31T00:00:00Z",
-        evidence_ref: "cx:event:01000000000000000000000000js0pres...",
+        evidence_ref: "cx:event:019640e0-0000-7000-8000-000000000002",
         reason:       "Bob completed verified contact discovery"
       }})
   ]
@@ -108,21 +108,21 @@ Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controll
 
 ```text
 Move(cx.consent.revoke) {
-  id        = cx:event:01000000000000000000000000js0rv0...
+  id        = cx:event:0196414c-3000-7000-8000-000000000003   // content-addressed Move id (UUIDv7)
   issuer    = holder DID
   space_id  = holder principal control Space
   preconditions = [
     (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {op: "contains_dots",
       dots: [
-        "cx:event:01000000000000000000000000js0gr0...:0"   // anchor_ref pre-state 下该 intent 全部 active dots
+        "cx:event:019640ed-7000-7000-8000-000000000001:0"   // anchor_ref pre-state 下该 intent 全部 active dots
       ]})
   ]
   effects   = [
     (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "remove",
       observed_dots: [
-        "cx:event:01000000000000000000000000js0gr0...:0"
+        "cx:event:019640ed-7000-7000-8000-000000000001:0"
       ],
       value: {
         revoked_at: "2026-06-15T10:00:00Z",

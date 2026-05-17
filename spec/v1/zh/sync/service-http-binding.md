@@ -364,7 +364,7 @@ POST /api/v1/identity/resolve
     "verificationMethod": [],
     "service": []
   },
-  "key_log_head": "cx:keyevt:01JS...",
+  "key_log_head": "cx:keyevt:019642b0-0000-7000-8000-000000000005",
   "seq": 5
 }
 ```

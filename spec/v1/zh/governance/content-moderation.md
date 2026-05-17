@@ -135,9 +135,9 @@ POST /api/v1/moderation/report
 ```json
 {
   "kind": "cx.moderation.frank",
-  "frank_id": "cx:frank:01JS...",
+  "frank_id": "cx:frank:0196425b-0000-7000-8000-000000000000",
   "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
-  "event_id": "cx:event:01JS...",
+  "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "ciphertext_digest": "sha256:...",
   "aad_digest": "sha256:...",
   "sender_claim": {
@@ -380,7 +380,7 @@ Organization MAY 为其控制或背书的 Space 与服务发布组织级审核�
   "organization_did": "did:web:acme.example",
   "policy_id": "cx:org-policy:abuse-v1",
   "scope": {
-    "space_ids": ["cx:space:01JS0SP..."],
+    "space_ids": ["cx:space:01964280-0000-7000-8000-000000000000"],
     "service_dids": [
       "did:web:server.acme.example",
       "did:web:policy.acme.example"

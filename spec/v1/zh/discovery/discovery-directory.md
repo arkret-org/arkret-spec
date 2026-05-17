@@ -244,7 +244,7 @@ OPRF 选择：
 {
   "profile": "cx.private_contact_discovery.v1",
   "phase": "blind",
-  "batch_id": "cx:batch:01JS...",
+  "batch_id": "cx:batch:0196429a-0000-7000-8000-000000000000",
   "ciphersuite": "OPRF-ristretto255-SHA512",
   "key_epoch": 14,
   "blinded_elements": ["base64url...", "base64url..."],
@@ -258,7 +258,7 @@ OPRF 选择：
 {
   "profile": "cx.private_contact_discovery.v1",
   "phase": "match",
-  "batch_id": "cx:batch:01JS...",
+  "batch_id": "cx:batch:0196429a-0000-7000-8000-000000000000",
   "key_epoch": 14,
   "derived_prefixes": ["base64url-16bytes...", "base64url-16bytes..."]
 }

@@ -58,7 +58,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
   "space_id": "cx:space:...",
   "title": "Design review",
   "fields": {
-    "call_id": "cx:call:01J...",
+    "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
     "mode": "sfu",
     "state": "ringing",
     "started_at": null,
@@ -155,7 +155,7 @@ Content-Type: application/json
 ```json
 {
   "space_id": "cx:space:...",
-  "call_id": "cx:call:01J...",
+  "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:...",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "mode": "p2p"
@@ -247,7 +247,7 @@ Content-Type: application/json
 ```json
 {
   "kind": "cx.call.signal",
-  "call_id": "cx:call:01J...",
+  "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
   "space_id": "cx:space:...",
   "sender": "did:web:alice.example.com",
   "sender_device": "cx:device:01964137-0000-7000-8000-000000000000",
@@ -357,7 +357,7 @@ SFU join request:
 
 ```json
 {
-  "call_id": "cx:call:01J...",
+  "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
   "space_id": "cx:space:...",
   "actor_id": "did:web:alice.example.com",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
@@ -414,7 +414,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
   "kind": "cx.call.state",
   "space_id": "cx:space:...",
   "payload": {
-    "call_id": "cx:call:01J...",
+    "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
     "state": "active",
     "mode": "sfu",
     "participants": [
@@ -469,7 +469,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
   "kind": "cx.call.recording.start",
   "space_id": "cx:space:...",
   "payload": {
-    "call_id": "cx:call:01J...",
+    "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
     "recording_agent": "did:web:recorder.example",
     "mode": "audio_video",
     "visible_notice": true
