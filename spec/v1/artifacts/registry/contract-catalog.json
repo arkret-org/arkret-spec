@@ -940,7 +940,7 @@
         "cell_family": "cx.component.agent_workspace.reservation.v1",
         "cell_subject": {
           "type": "composite",
-          "fields": [
+          "components": [
             "payload.cell_namespace",
             "payload.cell_namespace_subject"
           ],
@@ -960,7 +960,7 @@
         "cell_family": "cx.component.agent_workspace.reservation.v1",
         "cell_subject": {
           "type": "composite",
-          "fields": [
+          "components": [
             "payload.cell_namespace",
             "payload.cell_namespace_subject"
           ]
@@ -979,7 +979,7 @@
         "cell_family": "cx.component.agent_workspace.reservation.v1",
         "cell_subject": {
           "type": "composite",
-          "fields": [
+          "components": [
             "payload.cell_namespace",
             "payload.cell_namespace_subject"
           ]
@@ -1862,7 +1862,7 @@
         "kind": "agent_task",
         "category": "extension",
         "status": "active",
-        "wire_form": "cx:agent_task:<uuidv7>",
+        "wire_form": "cx:agent_task:<uuid>",
         "description": "Agent task object ID in mirror Space (cx.profile.agent_workspace.v1)"
       },
       {

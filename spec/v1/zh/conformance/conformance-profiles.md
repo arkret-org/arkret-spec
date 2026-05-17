@@ -66,7 +66,7 @@ Profile 不支持某个标准能力时的默认行为：
 
 ### 2.1.1 Profile 数量约束与 Composition 路线（normative for new profiles）
 
-v1 stable + extension catalog 已包含 19 implementation + 6 deployment + 11 vector + 3 hardening profile，组合矩阵已经较大。为防止 profile 数量进一步爆炸，**新增 v1.x 实现 profile MUST 满足**以下条件之一：
+v1 stable + extension catalog 已包含 21 implementation + 6 deployment + 16 vector + 3 hardening profile，组合矩阵已经较大。为防止 profile 数量进一步爆炸，**新增 v1.x 实现 profile MUST 满足**以下条件之一：
 
 1. **Capability composition**：新 profile 仅是 "base profile + 一组明确 facet（通过 `requirement_blocks` 引用现有 capability、event_kind、schema、operation 集合）"，不引入未见过的能力。其 `inherits` 字段 MUST 指向已存在的 base profile，`adds` 字段 MUST 是 base 之外明确列出的最小 delta。这种 profile 无需独立 conformance vector，复用 base profile vectors + delta vectors。
 2. **新能力闭环**：引入全新能力（例如新对象类型、新 lattice family、新 transport binding），同时提交至少一个独立 conformance vector 与 fixture。

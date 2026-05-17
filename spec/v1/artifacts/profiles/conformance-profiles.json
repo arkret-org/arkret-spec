@@ -178,6 +178,11 @@
     "cx.profile.crypto_signature_vectors.v1",
     "cx.profile.encoding_vectors.v1",
     "cx.profile.event_envelope_negative_vectors.v1",
+    "cx.profile.discovery_vectors.v1",
+    "cx.profile.event_kind_lattice_dispatch_vectors.v1",
+    "cx.profile.event_kind_payload_coverage_vectors.v1",
+    "cx.profile.operation_registry_coverage_vectors.v1",
+    "cx.profile.error_code_registry_coverage_vectors.v1",
     "cx.profile.federation_vectors.v1",
     "cx.profile.privacy_security_vectors.v1",
     "cx.profile.reaction_vectors.v1",
@@ -1609,10 +1614,125 @@
       "required_fixtures": [
         "event-envelope-negative-fixture.json"
       ],
+      "required_cotest_suites": [
+        {
+          "suite": "event_envelope_fixture",
+          "artifact_fixture": "event-envelope-negative-fixture.json"
+        }
+      ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
           "negative_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "cx.profile.discovery_vectors.v1": {
+      "required_endpoints": [
+        "cx.server.describe"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "discovery_profile_fixture",
+          "local_fixture": "discovery_profile_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "supported_profiles",
+          "supported_operations",
+          "surface_tier_rules"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "cx.profile.event_kind_lattice_dispatch_vectors.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "event_kind_lattice_dispatch_fixture",
+          "local_fixture": "event_kind_lattice_dispatch_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "event_kind_lattice_dispatch_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "cx.profile.event_kind_payload_coverage_vectors.v1": {
+      "required_endpoints": [
+        "cx.events.submit"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "event_kind_payload_coverage_fixture",
+          "local_fixture": "event_kind_payload_coverage_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "event_kind_payload_coverage_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "cx.profile.operation_registry_coverage_vectors.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "operation_registry_coverage_fixture",
+          "local_fixture": "operation_registry_coverage_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "operation_registry_coverage_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "cx.profile.error_code_registry_coverage_vectors.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "error_code_registry_coverage_fixture",
+          "local_fixture": "error_code_registry_coverage_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "error_code_registry_coverage_runner"
         ],
         "unsupported_optional": "not applicable"
       }

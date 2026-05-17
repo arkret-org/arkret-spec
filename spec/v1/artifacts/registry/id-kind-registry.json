@@ -74,7 +74,7 @@
       "kind": "agent_task",
       "category": "extension",
       "status": "active",
-      "wire_form": "cx:agent_task:<uuidv7>",
+      "wire_form": "cx:agent_task:<uuid>",
       "description": "Agent task object ID in mirror Space (cx.profile.agent_workspace.v1)"
     },
     {

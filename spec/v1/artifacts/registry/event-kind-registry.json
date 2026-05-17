@@ -908,7 +908,7 @@
       "cell_family": "cx.component.agent_workspace.reservation.v1",
       "cell_subject": {
         "type": "composite",
-        "fields": [
+        "components": [
           "payload.cell_namespace",
           "payload.cell_namespace_subject"
         ],
@@ -928,7 +928,7 @@
       "cell_family": "cx.component.agent_workspace.reservation.v1",
       "cell_subject": {
         "type": "composite",
-        "fields": [
+        "components": [
           "payload.cell_namespace",
           "payload.cell_namespace_subject"
         ]
@@ -947,7 +947,7 @@
       "cell_family": "cx.component.agent_workspace.reservation.v1",
       "cell_subject": {
         "type": "composite",
-        "fields": [
+        "components": [
           "payload.cell_namespace",
           "payload.cell_namespace_subject"
         ]

@@ -22,13 +22,13 @@ title: 实现就绪与发布门槛
 
 | Registry | 计数 | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 135 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 38 | `artifacts/registry/schema-registry.json` |
-| Typed ID kind | 36 | `artifacts/registry/id-kind-registry.json` |
-| Service operation | 79 | `artifacts/registry/operation-registry.json` |
-| Conformance profile（profile id） | 60 | `artifacts/profiles/conformance-profiles.json` |
+| Event kind（active） | 146 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 46 | `artifacts/registry/schema-registry.json` |
+| Typed ID kind | 37 | `artifacts/registry/id-kind-registry.json` |
+| Service operation | 81 | `artifacts/registry/operation-registry.json` |
+| Conformance profile（profile id） | 66 | `artifacts/profiles/conformance-profiles.json` |
 
-当前 `conformance-profiles.json` 另含 48 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 profile id 集合保持一致。
+当前 `conformance-profiles.json` 另含 54 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 profile id 集合保持一致。
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明
 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或退役 registry 项，MUST 同时

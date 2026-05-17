@@ -42,6 +42,21 @@
 
 ## [Unreleased]
 
+### Conformance profile matrix 覆盖 cotest registry/vector gates（2026-05-17）
+
+- **变更类型**: add
+- **影响 artifact**: `conformance-profiles.json`、`release-readiness.md`、`conformance-profiles.md`
+- **canonical 变更**: `vector_profiles` 新增 `discovery_vectors`、`event_kind_lattice_dispatch_vectors`、`event_kind_payload_coverage_vectors`、`operation_registry_coverage_vectors`、`error_code_registry_coverage_vectors`，并为这些 profile 增加 `profile_requirements` 与 `required_cotest_suites`。
+- **派生 artifact 同步**: 无 generated registry 改动；`python tools/artifact_pipeline.py check` 负责验证 profile matrix 引用。
+- **conformance impact**:
+  - 受影响 profile: vector profile matrix。
+  - profile tier 变化: 无；这些 profile 仍属于 vector gate，不是实现 bundle。
+  - wire 兼容性: backward-compatible。
+  - reader / writer 行为要求: 无 wire 行为变化；实现声明 profile 时必须通过对应 cotest suite。
+- **fixture / vector 变化**: 现有 cotest discovery / event-kind lattice / payload / operation / error-code vectors 被纳入机器 profile matrix。
+- **prose 同步**: `spec/v1/zh/overview/release-readiness.md` 与 `spec/v1/zh/conformance/conformance-profiles.md` 的 profile 计数同步为 66 profile / 54 requirement blocks / 21 implementation profiles / 16 vector profiles。
+- **迁移指南**: conformance runner 必须以 `conformance-profiles.json` 生成 must-test matrix；server describe 声明的 profile 与必需 operation 不一致时 hard fail。
+
 ### Lifecycle state machine — 显式补齐 archive / update / tombstone 源状态 MUST（2026-05-15）
 
 把 `common-fields.md §5` 从只规定 `*.restore` 来源升级到完整的 archive / restore / tombstone / update 状态机表。原来只有 restore 一条显式 MUST(spec round 之前补的),archive / tombstone / update 的源状态校验在 prose 里隐含但没有 wire-级 MUST,导致 SDK / 服务端实现各异。本轮把所有 lifecycle transition 的允许源状态 + reason_code 列成统一表,并下推到 Flow / Place / Morph 三套对象 schema 与 prose;新增 3 条 conformance vector 验 wire 行为。
