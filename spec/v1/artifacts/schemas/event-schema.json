@@ -858,6 +858,24 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.cross_signing.publish" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/cross_signing_publish_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.cross_signing.reset" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/cross_signing_reset_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": { "kind": { "const": "cx.mls.proposal" } },
         "required": ["kind"]
       },

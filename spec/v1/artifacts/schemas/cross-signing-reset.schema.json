@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/cross-signing-reset.schema.json",
+  "title": "Contrix Cross-Signing Reset",
+  "description": "Payload content for cx.cross_signing.reset (schema_id cx.schema.cross_signing_reset.v1). High-risk operation that retires the current (SSK, USK) generation and requires one of four kinds of proof — see device-lifecycle.md §14. A successor cx.cross_signing.publish MUST follow within 24h.",
+  "type": "object",
+  "required": [
+    "principal_id",
+    "previous_generation",
+    "new_generation",
+    "reset_reason",
+    "proof",
+    "issued_at"
+  ],
+  "properties": {
+    "principal_id": { "$ref": "#/$defs/did" },
+    "previous_generation": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The generation being retired; MUST equal the currently accepted publish generation."
+    },
+    "new_generation": {
+      "type": "integer",
+      "minimum": 2,
+      "description": "Generation that the successor cx.cross_signing.publish will use; MUST equal previous_generation + 1."
+    },
+    "reset_reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Free string; SHOULD come from {rotation, compromise, device_loss, policy_required}."
+    },
+    "proof": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "principal_signing",
+            "recovery_unlock",
+            "device_quorum",
+            "trusted_recovery_service"
+          ],
+          "description": "Discriminator for the proof variant. Each kind carries its own evidence fields under additional properties; receivers MUST validate kind-specific shape and reject missing or invalid proofs."
+        }
+      },
+      "additionalProperties": true
+    },
+    "issued_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  }
+}

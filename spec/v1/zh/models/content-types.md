@@ -34,10 +34,11 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 ```json
 {
   "kind": "cx.content.<kind_name>",
-  "body": "纯文本 fallback，用于通知、搜索索引和不支持该类型的客户端",
-  // ... 类型专有字段
+  "body": "纯文本 fallback，用于通知、搜索索引和不支持该类型的客户端"
 }
 ```
+
+类型专有字段以同级 key 形式追加到该对象上（例如 `format` / `formatted_body` 见 §4.1 文本消息示例）。
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|

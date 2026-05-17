@@ -153,12 +153,18 @@ JoinPolicy 候选 schema 名：`space.join_policy.v1`。
 
 ```json
 {
-  "gate_id": "string",          // 稳定 id，用于审计、application 中的 proof 关联
-  "kind": "claim_required | application_form | challenge_response | manual_review | parent_membership | cooldown",
-  "auto_resolve": true,         // 该 gate 能否仅靠 applicant 提交的材料解析；manual_review/application_form 必为 false
-  // ... kind-specific 字段
+  "gate_id": "string",
+  "kind": "claim_required",
+  "auto_resolve": true
 }
 ```
+
+字段语义：
+
+- `gate_id`：稳定 id，用于审计与 application 中的 proof 关联
+- `kind`：取 `claim_required` / `application_form` / `challenge_response` / `manual_review` / `parent_membership` / `cooldown` 之一
+- `auto_resolve`：该 gate 能否仅靠 applicant 提交的材料解析；`manual_review` / `application_form` 必为 `false`
+- 其余字段按 `kind` 决定（见下表）
 
 | `kind` | 必带字段 | 语义 | `auto_resolve` |
 | --- | --- | --- | --- |
@@ -347,13 +353,15 @@ Space 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
 2. **Envelope Encryption to Reviewer Devices**：当 reviewer 数小于阈值（默认 `<=5`）或 sub-group 维护成本不可接受时，applicant 可使用 `encryption_envelope` 字段对 reviewer 当前已 published `cx.mls.keypackage` 的接收方公钥逐一封装：
 
 ```json
-"encryption_envelope": {
-  "scheme": "hpke-base-x25519-aes256gcm",
-  "ciphertext": "base64url:...",
-  "recipients": [
-    {"reviewer_did": "did:webvh:alice", "device_id": "cx:device:...", "wrapped_key": "base64url:..."},
-    {"reviewer_did": "did:webvh:carol", "device_id": "cx:device:...", "wrapped_key": "base64url:..."}
-  ]
+{
+  "encryption_envelope": {
+    "scheme": "hpke-base-x25519-aes256gcm",
+    "ciphertext": "base64url:...",
+    "recipients": [
+      {"reviewer_did": "did:webvh:alice", "device_id": "cx:device:...", "wrapped_key": "base64url:..."},
+      {"reviewer_did": "did:webvh:carol", "device_id": "cx:device:...", "wrapped_key": "base64url:..."}
+    ]
+  }
 }
 ```
 

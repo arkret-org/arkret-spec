@@ -252,7 +252,7 @@ Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例�
     "track": "discussion",
     "marker_event_id": "cx:event:01964147-0000-7000-8000-000000000000"
   },
-  "proofs": [...]
+  "proofs": [{"_comment": "<actor / device proofs over canonical bytes; see encoding.md §6>"}]
 }
 ```
 

@@ -1877,6 +1877,63 @@
       },
       "additionalProperties": true
     },
+    "cross_signing_publish_payload": {
+      "type": "object",
+      "description": "Payload for cx.cross_signing.publish. Schema cx.schema.cross_signing_publish.v1 (cross-signing-publish.schema.json) carries the authoritative shape; this payload entry mirrors the required-field set so the kind-specific payload class is wired into event-payload.schema.json dispatch. See device-lifecycle.md §5.1.",
+      "required": [
+        "principal_id",
+        "principal_signing_key",
+        "self_signing_key",
+        "user_signing_key",
+        "generation",
+        "issued_at"
+      ],
+      "properties": {
+        "principal_id": { "$ref": "#/$defs/did" },
+        "principal_signing_key": { "type": "object" },
+        "self_signing_key": { "type": "object" },
+        "user_signing_key": { "type": "object" },
+        "generation": { "type": "integer", "minimum": 1 },
+        "issued_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": true
+    },
+    "cross_signing_reset_payload": {
+      "description": "Payload for cx.cross_signing.reset. Schema cx.schema.cross_signing_reset.v1 (cross-signing-reset.schema.json) carries the authoritative shape; this payload entry mirrors the required-field set so the kind-specific payload class is wired into event-payload.schema.json dispatch. See device-lifecycle.md §14.1.",
+      "type": "object",
+      "required": [
+        "principal_id",
+        "previous_generation",
+        "new_generation",
+        "reset_reason",
+        "proof",
+        "issued_at"
+      ],
+      "properties": {
+        "principal_id": { "$ref": "#/$defs/did" },
+        "previous_generation": { "type": "integer", "minimum": 1 },
+        "new_generation": { "type": "integer", "minimum": 2 },
+        "reset_reason": { "type": "string", "minLength": 1 },
+        "proof": {
+          "type": "object",
+          "required": ["kind"],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "principal_signing",
+                "recovery_unlock",
+                "device_quorum",
+                "trusted_recovery_service"
+              ]
+            }
+          },
+          "additionalProperties": true
+        },
+        "issued_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": true
+    },
     "mls_proposal_payload": {
       "type": "object",
       "required": [

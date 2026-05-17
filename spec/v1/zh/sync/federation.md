@@ -144,7 +144,7 @@ Signature: sig1=:base64...:
     "reducer_profile_hash": "sha256:..."
   },
   "events": [
-    { /* 完整的 Event Envelope，含签名 */ }
+    {"_comment": "<完整签名 Event Envelope，符合 cx.schema.event.v1>"}
   ]
 }
 ```

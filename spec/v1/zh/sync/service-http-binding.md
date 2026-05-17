@@ -326,9 +326,9 @@ GET /api/v1/events/subscribe?spaces=<id>&from=<cursor>&include_history=true
 
 支持多 space / actor 一次订阅；`include_history=true` 时服务端先吐历史，再发出 `catchup_complete` 帧切到实时尾部。
 
-Frame:
+Frame（每行一个独立 JSON 对象，按 NDJSON / JSON-Lines 形式跨 transport 帧承载）：
 
-```json
+```text
 { "kind": "event", "space_id": "cx:space:01...", "cursor": "opaque", "payload": {} }
 { "kind": "catchup_complete", "space_id": "cx:space:01...", "cursor": "opaque" }
 { "kind": "frontier", "space_id": "cx:space:01...", "cursor": "opaque" }

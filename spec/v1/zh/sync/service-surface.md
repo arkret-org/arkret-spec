@@ -459,7 +459,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read marker、mention
   "results": [
     {
       "rank": 0.95,
-      "object": { /* Object 当前态 */ },
+      "object": {"_comment": "<Object 当前态 — 与 cx.objects.* 返回形态相同>"},
       "highlights": [
         { "field": "content.body", "snippet": "Please complete the <em>legal review</em> by Friday." }
       ]

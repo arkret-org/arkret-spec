@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/cross-signing-publish.schema.json",
+  "title": "Contrix Cross-Signing Publish",
+  "description": "Payload content for cx.cross_signing.publish (schema_id cx.schema.cross_signing_publish.v1). Publishes the (PSK -> {SSK, USK}) binding to the principal control stream. Each subordinate key MUST carry a binding signature produced by PSK over a canonical signing input — see device-lifecycle.md §5.1.",
+  "type": "object",
+  "required": [
+    "principal_id",
+    "principal_signing_key",
+    "self_signing_key",
+    "user_signing_key",
+    "generation",
+    "issued_at"
+  ],
+  "properties": {
+    "principal_id": { "$ref": "#/$defs/did" },
+    "principal_signing_key": { "$ref": "#/$defs/published_key" },
+    "self_signing_key": { "$ref": "#/$defs/subordinate_signed_key" },
+    "user_signing_key": { "$ref": "#/$defs/subordinate_signed_key" },
+    "generation": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Monotonically increasing publish generation. Each cx.cross_signing.reset MUST increment by 1. Receivers MUST reject publishes whose generation is <= the currently accepted generation."
+    },
+    "issued_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "kid": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Verification method identifier within the principal's DID document or key log."
+    },
+    "alg": {
+      "type": "string",
+      "minLength": 1,
+      "description": "JOSE-style algorithm identifier; MUST be present in the protocol algorithm registry."
+    },
+    "key_format": {
+      "type": "string",
+      "enum": ["multibase", "jwk", "raw_base64url"]
+    },
+    "public_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "published_key": {
+      "type": "object",
+      "required": ["kid", "alg", "public_key", "key_format"],
+      "properties": {
+        "kid": { "$ref": "#/$defs/kid" },
+        "alg": { "$ref": "#/$defs/alg" },
+        "public_key": { "$ref": "#/$defs/public_key" },
+        "key_format": { "$ref": "#/$defs/key_format" }
+      },
+      "additionalProperties": false
+    },
+    "subordinate_signed_key": {
+      "type": "object",
+      "required": ["kid", "alg", "public_key", "key_format", "binding"],
+      "properties": {
+        "kid": { "$ref": "#/$defs/kid" },
+        "alg": { "$ref": "#/$defs/alg" },
+        "public_key": { "$ref": "#/$defs/public_key" },
+        "key_format": { "$ref": "#/$defs/key_format" },
+        "binding": {
+          "type": "object",
+          "required": ["signed_by", "alg", "signature"],
+          "properties": {
+            "signed_by": {
+              "type": "string",
+              "minLength": 1,
+              "description": "PSK kid that signed this subordinate key's canonical signing input."
+            },
+            "alg": { "$ref": "#/$defs/alg" },
+            "signature": {
+              "type": "string",
+              "minLength": 1,
+              "description": "base64url-encoded signature over the canonical 'cx-cross-signing-bind-v1\\n' + canonical_json input. See device-lifecycle.md §5.1."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

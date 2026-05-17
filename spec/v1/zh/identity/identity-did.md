@@ -255,11 +255,13 @@ Resolver policy MUST 至少定义：
 声明 AT Protocol interop profile 的部署 MAY 在同一 policy 中加入 `did:plc` 适配器：
 
 ```json
-"did:plc": {
-  "role": ["interop_principal"],
-  "directory": ["https://plc.directory"],
-  "require_operation_history": true,
-  "long_lived_principal": "interop_only"
+{
+  "did:plc": {
+    "role": ["interop_principal"],
+    "directory": ["https://plc.directory"],
+    "require_operation_history": true,
+    "long_lived_principal": "interop_only"
+  }
 }
 ```
 

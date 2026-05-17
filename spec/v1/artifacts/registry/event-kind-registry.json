@@ -1198,6 +1198,38 @@
       "bottom": "reject"
     },
     {
+      "event_kind": "cx.cross_signing.publish",
+      "category": "device",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Cross-signing publish",
+      "payload_schema": "cx.schema.cross_signing_publish.v1",
+      "cell_family": "cx.component.cross_signing.publish.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.principal_id"
+      },
+      "lattice": "cas-register",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "cx.cross_signing.reset",
+      "category": "device",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Cross-signing reset",
+      "payload_schema": "cx.schema.cross_signing_reset.v1",
+      "cell_family": "cx.component.cross_signing.reset.v1",
+      "cell_subject": {
+        "type": "did",
+        "field": "payload.principal_id"
+      },
+      "lattice": "ordered-log",
+      "bottom": "reject"
+    },
+    {
       "event_kind": "cx.key.verification.request",
       "category": "device",
       "status": "active",

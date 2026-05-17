@@ -177,27 +177,29 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 示例（synthesis 全收，discussion 仅 mention 自己）：
 
 ```json
-{
-  "rule_id": "underride.flow-synthesis-all",
-  "kind": "underride",
-  "enabled": true,
-  "evaluation_locus": "server",
-  "conditions": [
-    { "kind": "flow_track", "pattern": "synthesis" }
-  ],
-  "actions": ["notify"]
-},
-{
-  "rule_id": "underride.flow-discussion-mention-only",
-  "kind": "underride",
-  "enabled": true,
-  "evaluation_locus": "client",
-  "conditions": [
-    { "kind": "flow_track", "pattern": "discussion" },
-    { "kind": "mentions_actor" }
-  ],
-  "actions": ["notify", "highlight"]
-}
+[
+  {
+    "rule_id": "underride.flow-synthesis-all",
+    "kind": "underride",
+    "enabled": true,
+    "evaluation_locus": "server",
+    "conditions": [
+      { "kind": "flow_track", "pattern": "synthesis" }
+    ],
+    "actions": ["notify"]
+  },
+  {
+    "rule_id": "underride.flow-discussion-mention-only",
+    "kind": "underride",
+    "enabled": true,
+    "evaluation_locus": "client",
+    "conditions": [
+      { "kind": "flow_track", "pattern": "discussion" },
+      { "kind": "mentions_actor" }
+    ],
+    "actions": ["notify", "highlight"]
+  }
+]
 ```
 
 第二条规则把 `mentions_actor` 与 `flow_track` 复合：在 cleartext Space 中 server 直接评估；在 E2EE Space 中 server 看到 `flow_track=discussion` 但无法解密 mention，按 §4.5 走 client-side 降级——即先按 Space 级 `wakeup_default` 唤醒，client 解密后再决定是否进入用户感知通知 surface。规则书写者无需手动区分两种 Space，`evaluation_locus: client` 已经声明了降级路径。
