@@ -220,7 +220,6 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 - `cx.schema.update`
 - `cx.capability.grant`
 - `cx.capability.delegate`
-- `cx.capability.derived`
 - `cx.capability.revoke`
 - `cx.policy.manage`
 - `cx.policy.set`

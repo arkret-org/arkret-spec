@@ -165,14 +165,69 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 
 ### 4.2 patch path 规则
 
-- path 由 `snake_case` 标识符或反引号转义字段名组成；
-- 默认仅支持对象路径，不支持数字数组下标；
-- 对 schema 声明了唯一 key 的具名集合数组（仅由 profile / 扩展引入；v1 标准 schema 不再含此类数组），path MAY 使用确定性 selector 段：`<field>[<key>=<value>]`。selector 字段必须是该数组项 schema 中声明唯一的 stable key，selector 值按 canonical JSON string 解析；匹配 0 项时 `set`/`add` MUST reject，匹配多项表示对象已违反 schema，reducer MUST fail closed。
-- Flow `tracks` 在 v1 是 map（key 即 track 名），patch path 直接使用普通对象段，例如 `tracks.discussion.profile`，不需要 selector。
-- `unset` 不允许带 `value`；
-- `set`、`add`、`remove` 必须带 `value`。
+#### 4.2.1 Grammar（normative）
 
-客户端不能把数字数组下标写入 path；如需更新无 stable key 的列表元素，必须将对象重建为具名集合项、用 profile 注册的 move/update event，或使用明确的 API 约束字段表示更新目标。
+patch path 严格遵循下面 ABNF：
+
+```abnf
+path           = segment *( "." segment )
+segment        = identifier / quoted-identifier / selector-segment
+identifier     = ALPHA-LOWER *( ALPHA-LOWER / DIGIT / "_" )
+ALPHA-LOWER    = %x61-7A                       ; a-z
+quoted-identifier = "`" 1*( quoted-char ) "`"
+quoted-char    = %x20-5F / %x61-7F             ; printable ASCII excluding `
+                                               ; (literal backtick MUST be escaped as ``)
+selector-segment = identifier "[" key-name "=" selector-value "]"
+key-name       = identifier
+selector-value = canonical-json-string         ; RFC 8785 JCS-canonicalized JSON string,
+                                               ; surrounding double-quotes included
+canonical-json-string = '"' *( json-char ) '"'
+json-char      = unescaped / escape
+unescaped      = %x20-21 / %x23-5B / %x5D-10FFFF  ; everything except " and \
+escape         = "\" ( '"' / "\" / "/" / "b" / "f" / "n" / "r" / "t" / "u" 4HEXDIG )
+```
+
+具体约束：
+
+- `identifier` 与 `key-name` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`(snake_case,首字符必须小写字母,长度 ≤ 64);
+- `selector-value` MUST 是合法的 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JCS canonical JSON string,**包括外层 ASCII 双引号**,内部按 JCS 转义规则 (`\"` / `\\` / `\/` / `\b` / `\f` / `\n` / `\r` / `\t` / `\uXXXX`);
+- selector-value 内字面 `]`、`[`、`=`、`"`、`\` MUST 出现为 `\uXXXX` 或对应反斜杠转义形式;
+- `quoted-identifier` 用于字段名包含非 snake_case 字符的 legacy 场景(v1 标准 schema 不应使用),字面 backtick 必须 escape 成连续两个 backtick;
+- 默认仅支持对象路径,不支持数字数组下标。
+
+#### 4.2.2 Parser 责任
+
+reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、超长 path(> 1024 字节)、超深嵌套(> 16 段)、非 canonical selector-value(未经 JCS 规范)时,MUST 返回 `schema_violation` reason=`patch_path_invalid`。Parser **MUST NOT** 走 fallback 路径——例如不得在 selector-value 中错位的 `]` 之后继续尝试匹配下一个 segment。
+
+#### 4.2.3 Selector 语义
+
+对 schema 声明了唯一 key 的具名集合数组(仅由 profile / 扩展引入;v1 标准 schema 不再含此类数组),path MAY 使用 selector segment。规则:
+
+- selector 字段必须是该数组项 schema 中声明 `unique: true` 的 stable key;
+- selector 值按 canonical JSON string 解析后用于精确比较;
+- 匹配 0 项时 `set` / `add` MUST reject (`failed_precondition`, reason=`patch_selector_no_match`);
+- 匹配多项表示对象已违反 schema 的 uniqueness 约束,reducer MUST fail closed (`failed_precondition`, reason=`patch_selector_ambiguous`);
+- Flow `tracks` 在 v1 是 map(key 即 track 名),patch path 直接使用普通对象段,例如 `tracks.discussion.profile`,不需要 selector。
+
+#### 4.2.4 Op 与 redactable 字段交互（normative）
+
+`cx.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
+
+- Message: `content`、`encrypted_payload`、`body`
+- Flow: `summary`、`description`、`encrypted_payload`、用户可写的长文本 fields
+- Morph: `content`、`encrypted_payload`、`fields.<text-content-shape>` (由 morph profile 声明)
+- 任何在 Space schema 中标记为 `redactable: true` 的字段。
+
+理由: 这些字段的清除必须走 `cx.<kind>.redact` 或 `cx.redaction` event,以触发 redaction-specific capability check + audit anchor + retention policy;允许用 `cx.patch.v1` 直接 `unset` 等价于让任何持有 `cx.<kind>.update` 的 actor 绕过 `cx.<kind>.redact` 的高 tier capability 完成 redaction (redaction escape)。
+
+reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `schema_violation` reason=`patch_unset_redactable_field`。
+
+#### 4.2.5 Op 其余规则
+
+- `unset` 不允许带 `value`(空 value object MUST 视作 `{"$op":"unset"}`);
+- `set`、`add`、`remove` 必须带 `value`;
+- 客户端不能把数字数组下标写入 path; 如需更新无 stable key 的列表元素,必须将对象重建为具名集合项、用 profile 注册的 move/update event,或使用明确的 API 约束字段表示更新目标;
+- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `space_id` / `created_by` / `created_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改;见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。
 
 ### 4.3 在 Event 中的位置
 

@@ -622,7 +622,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An attested_hardware Audit Agent was removed via cx.mls.commit but the same anchor batch lacks the required cx.audit.epoch_key_destruction.v1 attestation. Reducer MUST reject the batch (P-S6 / audited-e2ee.md §3.1.1.3)."
+      "description": "An attested_hardware Audit Agent was removed via cx.mls.commit but the same anchor batch lacks the required cx.audit.epoch_key_destruction attestation. Reducer MUST reject the batch (P-S6 / audited-e2ee.md §3.1.1.3)."
     },
     {
       "code": "audit_agent_attestation_mismatch",
@@ -630,7 +630,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.audit.epoch_key_destruction.v1 carries an `enclave_measurement` that does not match the Audit Agent's join-time attestation. Indicates the enclave image was swapped before destruction (P-S6)."
+      "description": "cx.audit.epoch_key_destruction carries an `enclave_measurement` that does not match the Audit Agent's join-time attestation. Indicates the enclave image was swapped before destruction (P-S6)."
     },
     {
       "code": "audit_agent_epoch_range_incomplete",
@@ -638,7 +638,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.audit.epoch_key_destruction.v1 `epoch_range` does not cover the full range of epochs the removed Audit Agent is known to have held secrets for (P-S6)."
+      "description": "cx.audit.epoch_key_destruction `epoch_range` does not cover the full range of epochs the removed Audit Agent is known to have held secrets for (P-S6)."
     },
     {
       "code": "audit_agent_destruction_proof_not_enclave_signed",
@@ -646,7 +646,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.audit.epoch_key_destruction.v1 proofs[] do not chain to the enclave / HSM attestation key; only enclave-internal attestation keys are accepted (P-S6)."
+      "description": "cx.audit.epoch_key_destruction proofs[] do not chain to the enclave / HSM attestation key; only enclave-internal attestation keys are accepted (P-S6)."
     },
     {
       "code": "audit_agent_destruction_not_paired_with_remove",
@@ -654,7 +654,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.audit.epoch_key_destruction.v1 `remove_commit_ref` points to a cx.mls.commit that is not in the same anchor batch as the attestation (P-S6)."
+      "description": "cx.audit.epoch_key_destruction `remove_commit_ref` points to a cx.mls.commit that is not in the same anchor batch as the attestation (P-S6)."
     },
     {
       "code": "source_export_attestation_required",
@@ -893,6 +893,81 @@
         "event_envelope"
       ],
       "description": "A registry entry (event_kind / schema_id / typed-id) violates the canonical naming convention (e.g. embedding a `.v<n>` version suffix in the kind name instead of carrying the version via `requirements.features`). Surface as lint output, not as a wire-time reject."
+    },
+    {
+      "code": "approval_nonce_reused",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An approval signature carrying a (approver_did, nonce) tuple that was already consumed for the same grant_id / proposal_id was resubmitted. Approval signatures are single-use per-grant; reusing them is a cross-grant replay attempt. See zh/authz/constraint-schema.md §9.3."
+    },
+    {
+      "code": "executed_by_missing",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An Event whose envelope signature was produced by an applet / delegated agent key but whose `actor_id` points to a different (native) principal DID is missing the mandatory `executed_by` / `authorization_ref` / `applet_id` fields. Reducer MUST schema_violation per zh/extensions/applet-integration.md §11."
+    },
+    {
+      "code": "third_party_invite_token_in_query",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A 3PID invite claim arrived with the invite_token sourced from a URL query string or path segment instead of from a URL fragment or out-of-band code, in violation of zh/sync/third-party-invites.md §3.2. The verification service MUST reject and SHOULD invalidate the token to prevent referer / log replay."
+    },
+    {
+      "code": "patch_path_invalid",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A `cx.patch.v1` patch path violates the ABNF grammar in zh/models/event-and-patch.md §4.2.1 (malformed identifier, non-canonical selector-value, ambiguous quoting, path > 1024 bytes, or nesting > 16 segments). Parser MUST NOT attempt fallback recovery; reducer rejects with this reason."
+    },
+    {
+      "code": "patch_path_reducer_managed",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A `cx.patch.v1` patch path attempts to modify a reducer-managed field (`id` / `schema` / `space_id` / `created_by` / `created_at` / `state` / `state_changed_at`). These fields are owned by their corresponding lifecycle events; patch MUST NOT touch them. See zh/models/event-and-patch.md §4.2.5."
+    },
+    {
+      "code": "patch_unset_redactable_field",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A `cx.patch.v1` `$op=\"unset\"` was used on a redactable content field (e.g. message.content, flow.summary, encrypted_payload). Redaction MUST go through `cx.<kind>.redact` or `cx.redaction` events to enforce redaction-specific capability checks and audit. See zh/models/event-and-patch.md §4.2.4."
+    },
+    {
+      "code": "patch_selector_no_match",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A `cx.patch.v1` selector segment matched zero array items for a `set` or `add` operation. See zh/models/event-and-patch.md §4.2.3."
+    },
+    {
+      "code": "patch_selector_ambiguous",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A `cx.patch.v1` selector segment matched multiple array items, indicating the underlying collection already violated its declared uniqueness constraint. Reducer fails closed. See zh/models/event-and-patch.md §4.2.3."
+    },
+    {
+      "code": "aead_nonce_counter_replay",
+      "applies_to": [
+        "event_envelope",
+        "encoding"
+      ],
+      "description": "An AEAD-encrypted payload (encrypted_payload, blob attachment, to_device, etc.) carried a per-(key_ref, device_id) counter at or below the receiver's high-water mark. The receiver MUST reject the payload before AEAD decryption to prevent attempted nonce reuse against a valid sender device. See zh/crypto-media/media-and-blob.md §3.1 and zh/conformance/encoding.md §10.1."
+    },
+    {
+      "code": "aead_nonce_derivation_invalid",
+      "applies_to": [
+        "event_envelope",
+        "encoding"
+      ],
+      "description": "An AEAD nonce on the wire does not match the deterministic derivation from MLS-Exporter + (device_id, monotonic counter) mandated by zh/crypto-media/media-and-blob.md §3.1. Producers MUST NOT emit naive random nonces under shared MLS application keys; receivers MUST reject such payloads to enforce the cross-implementation nonce-uniqueness contract."
     }
   ]
 }

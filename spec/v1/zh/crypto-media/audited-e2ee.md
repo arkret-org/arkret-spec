@@ -83,15 +83,17 @@ Audit Agent profile MUST 满足：
 
 > **不实现本节即不得使用 `audit_assurance="attested_hardware"` 措辞。** 仅声明 attested 文案而不发布 destruction attestation 时,Audit Agent 与软件审计在 forward secrecy 行为上**完全等价**;Contrix 把这种部署视为 spec violation,group MUST 在下一轮 MLS commit 中把 `audit_assurance` 强制降级为 `disclosed_policy` 或更弱形态,并按 §2.1 重新展示降级文案。
 
+> **命名注意**：本节涉及的两个 event kind 名 `cx.audit.epoch_key_destruction` 和 `cx.space.audit_policy_downgrade` 在 v1 registry 中**不携带** `.v<n>` suffix（早期草案曾写作 `cx.audit.epoch_key_destruction.v1` / `cx.space.audit_policy_downgrade.v1`,已在 registry 中重命名）。Wire 形态版本化通过 Event envelope 的 `requirements.features[]` 表达,与 kind name 严格分离 —— 这与所有其他 `cx.*` event kind 的约定一致,见 [`../conformance/encoding.md`](../conformance/encoding.md) "Event kind / requirements 分层" 一节。任何遇到旧 `.v1` 后缀 wire 形态的实现 MUST 视作 `unsupported_event_kind` 拒绝,以避免新旧形态在同一 anchor batch 内同时生效。
+
 ##### 3.1.1.1 触发条件
 
 任一 `cx.mls.commit` 把 Audit Agent 从 MLS group 中 `Remove` 时(自愿离开 / 被踢 / device revoke 级联 / membership policy revoke 等任何原因) — 该 Audit Agent **MUST**:
 
 1. 在对应 enclave / HSM 内部对**其在群成员期间持有的所有历史 epoch secret 与 exporter secret**(从其 join epoch 到 remove epoch 之间所有 epoch)执行密码学销毁(zeroize + secure erase 或等价硬件操作)。
-2. 由 enclave / HSM 签发一条 **`cx.audit.epoch_key_destruction.v1`** attestation event,内容覆盖被销毁的 epoch 范围、销毁完成 timestamp、enclave measurement、Audit Agent DID、remove commit ref。该 event 作为 reducer-input Event 提交给该 Space,actor 是 Audit Agent service DID,proof 由 enclave / HSM 的 attestation key 签发(不接受普通 service signing key — 必须是被远程 attestation 绑定的 enclave-internal key)。
+2. 由 enclave / HSM 签发一条 **`cx.audit.epoch_key_destruction`** attestation event,内容覆盖被销毁的 epoch 范围、销毁完成 timestamp、enclave measurement、Audit Agent DID、remove commit ref。该 event 作为 reducer-input Event 提交给该 Space,actor 是 Audit Agent service DID,proof 由 enclave / HSM 的 attestation key 签发(不接受普通 service signing key — 必须是被远程 attestation 绑定的 enclave-internal key)。
 3. attestation event 与 Audit Agent 被 Remove 的 `cx.mls.commit` **MUST 同一 anchor batch** 提交;reducer 拒绝单独 anchor 的 remove(reason `audit_agent_remove_requires_paired_destruction_attestation`)。
 
-##### 3.1.1.2 `cx.audit.epoch_key_destruction.v1` 必填字段
+##### 3.1.1.2 `cx.audit.epoch_key_destruction` 必填字段
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
@@ -107,7 +109,7 @@ Audit Agent profile MUST 满足：
 
 | 失败模式 | reducer 拒绝 reason |
 | --- | --- |
-| `cx.mls.commit(remove Audit Agent)` 提交但同 anchor batch 内无配套 `cx.audit.epoch_key_destruction.v1` | `audit_agent_key_destruction_attestation_missing` |
+| `cx.mls.commit(remove Audit Agent)` 提交但同 anchor batch 内无配套 `cx.audit.epoch_key_destruction` | `audit_agent_key_destruction_attestation_missing` |
 | destruction attestation 的 `enclave_measurement` 与入群 attestation 不同(暗示 attacker 替换了 enclave 镜像后再销毁) | `audit_agent_attestation_mismatch` |
 | `epoch_range` 不完整(缺少该 Agent 已知持有的某些 epoch) | `audit_agent_epoch_range_incomplete` |
 | destruction attestation proof 不是 enclave attestation chain 签发的(普通 service signing key 签发) | `audit_agent_destruction_proof_not_enclave_signed` |
@@ -116,7 +118,7 @@ Audit Agent profile MUST 满足：
 ##### 3.1.1.4 文案与降级义务
 
 - 在 destruction attestation 落盘前,该 Audit Agent **仍然被视作历史 epoch 密文的有效持有者**;Space members 看到的 §2.1 attested 文案中"被移除的合规员仍可解密成员期间的历史"这句**继续适用**,直到 attestation 落盘后才能改述。
-- 若部署在 6 个 anchor cadence(默认 ≈ 1 小时) 内仍未发布配套 destruction attestation,group 中任一 member MAY 发起 `cx.space.audit_policy_downgrade.v1` Move,把 `audit_assurance` 强制降级为 `disclosed_policy`;reducer 在收到该 Move 后立即重写 Space policy,UI MUST 显式横幅"该群已不再满足 attested_hardware 担保"。
+- 若部署在 6 个 anchor cadence(默认 ≈ 1 小时) 内仍未发布配套 destruction attestation,group 中任一 member MAY 发起 `cx.space.audit_policy_downgrade` Move,把 `audit_assurance` 强制降级为 `disclosed_policy`;reducer 在收到该 Move 后立即重写 Space policy,UI MUST 显式横幅"该群已不再满足 attested_hardware 担保"。
 - destruction attestation 落盘后,UI MAY 显示"已由 enclave 完成 epoch 密钥销毁 — 该 Agent 对其成员期间历史的解密能力按密码学已不可恢复"。
 - `audit_assurance = "disclosed_policy"` 部署**不要求**本节(disclosed 文案本就声明不提供密码学强制);只有 `attested_hardware` profile 必须实现。
 

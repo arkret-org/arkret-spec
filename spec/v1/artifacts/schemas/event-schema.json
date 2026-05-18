@@ -997,8 +997,8 @@
             "enum": [
               "cx.audit.accessed",
               "cx.audit.ryw_receipt",
-              "cx.audit.epoch_key_destruction.v1",
-              "cx.space.audit_policy_downgrade.v1",
+              "cx.audit.epoch_key_destruction",
+              "cx.space.audit_policy_downgrade",
               "cx.moderation.frank"
             ]
           }

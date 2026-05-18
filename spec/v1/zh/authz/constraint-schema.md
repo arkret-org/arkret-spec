@@ -341,6 +341,29 @@ v2 主版本 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: 
 }
 ```
 
+### 9.3 Approval signature replay protection（normative）
+
+无论是 §9.1 预审批还是 §9.2 提案模式，每个 approval signature 都是 reducer 在判定"目标 Move 是否被批准"时直接消费的密码学证据。为防止同一个 approver 的同一份签名被跨 grant、跨 proposal、跨 request body 重放，approval signature 的 canonical signing input **MUST** 绑定下列字段（缺一即 `invalid_signature`）：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `grant_id` 或 `proposal_id` | id | 该 approval 所针对的具体 grant id（§9.1 路径）或 proposal Event id（§9.2 路径）。两者互斥，必填其一。 |
+| `request_canonical_hash` | hash | 被批准的请求 body 的 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme (JCS) SHA-256 摘要（`sha256:` 前缀）。同一 approver 给"批准 Alice 写 message X"的签名不能被改写后用于"批准 Alice 写 message Y"。 |
+| `approver_did` | did | 签发该 approval 的 actor DID。 |
+| `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + clock_skew_tolerance` 或 `approved_at < grant.not_before`。 |
+| `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。reducer MUST 在每个 grant / proposal 范围内拒绝同 `(approver_did, nonce)` 的第二次出现。 |
+| `action` | string | 被批准的 capability action token（与 grant `actions[]` 中的元素一致）。 |
+| `space_id` | id | 被批准动作所在的 Space ID。防止跨 Space 重放（同一 approver 在 Space A 的批准不能被用于 Space B 的同 action）。 |
+
+**Reducer normative**:
+
+1. reducer MUST 校验 approval signature 由 `approver_did` 的当前 active verification method 签发,且 verification method 在 `approved_at` 时间点未被 revoke;
+2. reducer MUST 维护 per-(grant_id 或 proposal_id, approver_did) 的 nonce 集合; 同 `(approver_did, nonce)` 的二次提交 MUST 返回 `failed_precondition` reason=`approval_nonce_reused`;
+3. `timeout` 过期后,所有未达 threshold 的 approval signature MUST 被视为失效——后续即便补够数量,也 MUST 重新由 approver 在新 nonce 下重签;
+4. `approval_mode=before_commit` 与 `approval_mode=proposal_then_approve` 都适用本节; `after_commit_review`(若 profile 注册) 单独定义自己的 replay 边界。
+
+> **Why**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名,把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Space / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的 sine qua non。
+
 ## 10. 基于声明的约束（claim_based, subtype=claim）
 
 ### 10.1 声明要求

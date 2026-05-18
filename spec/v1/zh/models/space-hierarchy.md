@@ -175,6 +175,8 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（
 5. derived grant 不得再向下无限派生，除非下一级 child 也显式 opt-in 且未超过 `max_depth`。
 6. `refs[]` MUST 同时包含两条 `role="authorized_by"` 条目：source grant 的 accepted `cx.capability.grant` 事件 id 与 target child 的 `cx.space.inheritance_policy`（subject=parent space id）事件 id。
 
+> **reducer-only event**：`cx.capability.derived` 是 reducer 在满足上述 6 条规则时**自动生成**的派生 grant；它 **MUST NOT** 作为可被普通 actor 直接 grant 的 capability action 出现在任何 `cx.capability.grant.actions[]` 列表中。`capability.action.registry`（[`capabilities.md §5.4`](../authz/capabilities.md)）已显式将其从可授予 action 集合中排除。若 reducer 收到 `cx.capability.grant` 包含 `actions[] = ["cx.capability.derived"]`，MUST 以 `schema_violation` 拒绝。允许该 action 被直接 grant 等价于让任何持有 `cx.capability.grant` 的 actor 绕过 §7 全部 6 条 inheritance 检查直接发出派生授权——这是 inheritance policy bypass。
+
 ## 8. Schema and Policy Cascade
 
 Schema MAY 通过继承复用，但 child MUST 记录实际生效 schema refs。父级 schema 更新不会自动改变 child 的 reducer 行为，除非 child 提交新的 `cx.space.schema` state event 接受该版本。

@@ -228,13 +228,25 @@ Policy decision 签名输入 MUST 包含：
 
 - `request_id`
 - `request_canonical_hash`
+- `space_id`（被评估对象所属的 Space DID / Space ID;**v1 normative**）
+- `actor`（被评估 actor DID;**v1 normative**）
+- `action`（被评估的 capability action token）
 - decision
 - reason_code
 - expires_at
 - policy server id
 - key id
 
-节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 request canonical hash 为 key，不得把一个 actor/action 的 allow 泛化给不同内容。
+`request_canonical_hash` MUST 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致;任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通,且 MUST 不声明通过 v1 conformance。
+
+节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(space_id, actor, action, request_canonical_hash)` 四元组为 key，不得仅按 `request_canonical_hash` 索引——后者会让一个 (space, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (space, actor) 上下文的请求中(攻击者可在 Space A 中触发一次合法 allow,再在 Space B 中用相同请求 body 通过缓存复用,从而绕过 Space B 的实际 policy)。
+
+接收方 MUST 同时校验:
+
+1. signature 由 `policy_server_id` 的当前 active verification method 签发;
+2. `(space_id, actor)` 与本次 request 绑定的 `(space_id, actor)` 完全一致;
+3. `expires_at > now`;
+4. 该 decision 未被同一 policy_server 后续的 `cx.moderation.decision.lift` 或 anchored override 撤销。
 
 ## 6. Failure Mode
 

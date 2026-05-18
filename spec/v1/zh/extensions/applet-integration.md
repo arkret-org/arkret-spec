@@ -515,7 +515,7 @@ Portal Space MUST 仍然执行常规的 Space policy 与 capability 规则。
 Alice via Calendar Applet
 ```
 
-协议字段 SHOULD include:
+协议字段 **MUST** include:
 
 ```json
 {
@@ -526,7 +526,15 @@ Alice via Calendar Applet
 }
 ```
 
-Applet MUST NOT use masquerading to hide automation. 客户端 SHOULD 明确展示 `via applet`。
+**Reducer normative**:
+
+- 当 Event 的 envelope signature 由 applet / delegated agent key 签发但 `actor_id` 指向 native principal DID 时（即 actor_id ≠ signing key 所属 DID），reducer MUST 校验：
+  1. `executed_by` 必填,指向实际签发该 Event 的 applet / agent DID;`executed_by` 与 envelope signing key 的 DID 一致;
+  2. `authorization_ref` 必填,指向已 accepted 的 `cx.capability.grant`(或等价 delegation event), 该 grant 把 actor_id 主体的某个 action 委托给 executed_by;
+  3. `applet_id` 必填(在 Applet 模式下), 指向已注册的 applet。
+- 缺少 `executed_by`、`authorization_ref` 或 `applet_id` 中任一字段时,reducer MUST `schema_violation` 拒绝。该规则适用于所有 `cx.profile.applet_*` profile,客户端 / SDK 不得退回到 SHOULD 形态。
+
+Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示 `via applet`：UI 在渲染 mention、notification、audit log、moderation queue 等任何"who did this"上下文时,MUST 同时显示 native actor 与 `executed_by` 双重署名,不得仅显示 native actor 而隐藏 applet 身份。
 
 ## 12. E2EE
 

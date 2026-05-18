@@ -67,6 +67,46 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 }
 ```
 
+### 3.1 AEAD nonce uniqueness（normative）
+
+AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的明文被同时解密 = **整个 key catastrophic compromise**。Contrix MLS application key 在同一 epoch 内被所有群成员设备共享,如果多设备并发加密大量 attachment / blob,**naive random 96-bit nonce** 在 ~2^48 次操作后(birthday bound)有显著碰撞概率,且任何单次碰撞都击穿整个 epoch。因此 v1 wire **MUST** 满足下列 nonce 构造规则:
+
+1. **派生 schema (normative)**:`nonce = MLS-Exporter(label, context, length=N_AEAD)` 派生的子密钥 `nonce_key`,与 `device_nonce_counter` 拼接组成。具体形态:
+
+    ```text
+    nonce_key = MLS-Exporter(
+        label   = "contrix-aead-nonce-derivation-v1",
+        context = canonical-bytes(
+            { "key_ref": <key_ref-canonical>, "purpose": "blob-attachment" }
+        ),
+        length  = 32
+    )
+
+    nonce = HMAC-SHA256(
+        key   = nonce_key,
+        data  = canonical-bytes(
+            { "device_id":            <sender-device-id>,
+              "device_nonce_counter": <u64, big-endian, monotonic per-device> }
+        )
+    )[ 0 : N_AEAD ]
+    ```
+
+    `device_nonce_counter` MUST 单调递增,**每设备**单独维护;同一设备同一 epoch 内 MUST NOT 重用同一 counter 值。设备 SHOULD 在持久化存储中保留 counter,以防进程重启回退;若无法持久化,设备 MUST 在 MLS commit 后立刻把 counter 重置到一个比"该 epoch 上看到的全部历史 counter + N"更大的值(N ≥ 2^32 的 jump,以避免与历史值碰撞)。
+
+2. **跨设备保证**:不同 device_id 派生出的 nonce 跨设备必然不同(HMAC 输入不同),不需要全局 counter 协调;同一设备内的递增 counter 保证设备内 nonce 不同。
+
+3. **Wire encoding**: `nonce` 字段 base64url 编码 N_AEAD 字节(XChaCha20-Poly1305 → 24 bytes;AES-GCM → 12 bytes);接收方 MUST 在解密前校验 nonce 长度匹配 AEAD algorithm 声明。
+
+4. **AAD binding**: AEAD AAD MUST 至少绑定 `(key_ref, ciphertext_digest, nonce)` 三元组的 canonical 形态;这阻止把同一 (key, nonce) 下的 ciphertext 与另一 AAD 配对解密。
+
+5. **禁止形态**: 实现 **MUST NOT** 使用以下 nonce 来源:
+   - 纯随机 96-bit nonce(birthday bound 不够);
+   - 全局共享 counter(协调成本 / 同步攻击面);
+   - 用户输入派生(可控 = 可碰撞);
+   - 任何不绑定 device_id + counter 的形态。
+
+6. **接收方 replay 防护**:接收方 MUST 维护 per-(key_ref, device_id) 已见 counter 高水位;低于高水位的 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
+
 `cleartext_sha256` 字段 v1 不再作为附件 metadata 标准字段：在 E2EE Space 中泄露明文 hash 会破坏内容机密性（短/可预测明文可被离线枚举）。如果 deployment 出于审计需要保留 cleartext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC/pepper commitment（见 `event-auth-state-resolution.md` §10.1）。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
 ## 4. Thumbnail

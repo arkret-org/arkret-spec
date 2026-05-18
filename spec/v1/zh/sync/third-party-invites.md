@@ -42,10 +42,36 @@ title: Third-Party Invites
 
 ### 3.2 发送外部通知
 
-身份验证服务通过传统渠道（SMTP 邮件、SMS）将包含链接的邀请发送给该 3PID：
-`https://app.contrix.example/invite?token=<invite_token>&space=cx:space:...`
+身份验证服务通过传统渠道（SMTP 邮件、SMS）将包含链接的邀请发送给该 3PID。
 
-外部通知 MUST 避免在 URL query 中携带长期有效 token。推荐使用短期 one-time link、fragment token、或先打开应用再通过 out-of-band code 录入。邮件/SMS 内容不得包含 Space 私密名称、成员列表、历史摘要或其他未授权预览。
+外部通知 URL **MUST** 把 `invite_token` 放在 **URL fragment**（`#token=...`）或要求 out-of-band code 录入，**MUST NOT** 把 token 放在 URL query string 或 path segment 中。原因：
+
+- URL query / path 会被 HTTP `Referer` 头泄露给第三方页面;
+- 浏览器历史、邮件预览爬虫、URL preview 服务、HTTP access log、CDN log、SMTP gateway log 都会无差别记录 query / path;
+- fragment 段不会随 HTTP 请求发送给服务端,也不进入 Referer 头;
+- 这条规则与 [`api-conventions.md` §3](./api-conventions.md) "服务端 MUST NOT 接受 query string、path segment 或 fragment 中的 session token、access token、API key、签名密钥或等价认证材料" 一致——invite token 是 capability-equivalent material,持有即可 claim。
+
+**Canonical 示例**（fragment 形式）：
+
+```text
+https://app.contrix.example/invite?space=cx:space:...#token=<invite_token>
+```
+
+或 OOB code 形式（用户在已打开的客户端中手动录入）：
+
+```text
+邮件正文: Your invite code is XYZ-123-ABC.
+打开 Contrix → "我有邀请码" → 输入 XYZ-123-ABC
+```
+
+**禁止形态**（reducer / 服务端 MUST 拒绝 inbound claim 携带这种 token 来源声明）：
+
+```text
+https://app.contrix.example/invite?token=<invite_token>&space=cx:space:...    ❌ token in query
+https://app.contrix.example/invite/<invite_token>                              ❌ token in path
+```
+
+邮件/SMS 内容不得包含 Space 私密名称、成员列表、历史摘要或其他未授权预览。验证服务 MUST 在 SMTP 网关上启用 sender domain restriction (SPF/DKIM/DMARC) 以防 token-bearing link 被 phishing 重用。
 
 ## 4. 认领流程 (Claiming)
 

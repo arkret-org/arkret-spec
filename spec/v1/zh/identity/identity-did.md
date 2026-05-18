@@ -164,21 +164,28 @@ Contrix v1 core conformance 要求如下：
 
 所有声称 v1 core principal_server / full_client / e2ee_client conformance 的实现 MUST 支持 `did:webvh` witness 验证、SCID 派生、entry hash chain 验证和 controller proof 验证。
 
-`did:webvh` hosting domain 暂时不可达时 resolver MAY 在 policy 允许的范围内退化为 `did:web` 等价行为（仅当前状态，不再可信历史读取），但：
+`did:webvh` hosting domain 暂时不可达时 resolver MAY 进入 **cache-only degraded mode**——仅消费此前已验证并落入本地 cache 的 `did:webvh` DID Document、SCID、entry hash chain 与 controller proof,**MUST NOT** 通过 live HTTP 获取该 DID 当前的 `did:web` document 作为 principal 控制权依据(这等价于把信任根从 SCID-anchored history chain 降级到当前 DNS + TLS,正好落入本规范威胁模型 §3.3 所列出的 DNS / TLS 单点失陷面)。
 
-- 该 fallback **仅**适用于**低风险只读**操作。本规范定义的"低风险只读"集合是**封闭的**：
-  - ✅ 已缓存对象的本地展示（已存在的 Flow / Message / Place / Morph 渲染）
+具体规则:
+
+- **Cache-only,不解析 live `did:web` document**:fallback 期间 resolver MAY 返回 `did:webvh` 主体此前已验证的本地 cache(含 cache age 元数据);MUST NOT 退化为对 `did:web:<同 hosting domain>` 的 live resolve,即使该 hosting domain 此刻返回 200。`did:web` fallback 仅当 §3.1 表格中明确允许 `did:web` 作 principal method 的 deployment profile(目前仅 `personal_node`)显式声明 `principal_method=did:web` 时才生效——那是 deployment profile 选择,不是 outage fallback 路径。
+- 该 fallback **仅**适用于**低风险只读**操作。本规范定义的"低风险只读"集合是**封闭的**:
+  - ✅ 已缓存 DID Document 的本地展示(handle 解析、display name 渲染)
+  - ✅ 已缓存对象的本地展示(已存在的 Flow / Message / Place / Morph 渲染)
   - ✅ 已缓存对象的本地搜索 / 本地索引查询
-  - ✅ 已收到 snapshot / Anchor 的 state_root 重算（用于本地一致性自检）
-  - ❌ 接收新到达的 Event Envelope / Move / Anchor 并写入本地 store（即使是只读 store）
-  - ❌ 联邦 transaction 接收（`POST /api/v1/events` 的 service-to-service 形态：含 `Source-Service-DID` / `Destination-Service-DID` header）
+  - ✅ 已收到 snapshot / Anchor 的 state_root 重算(用于本地一致性自检)
+  - ❌ 接收新到达的 Event Envelope / Move / Anchor 并写入本地 store(即使是只读 store)
+  - ❌ 联邦 transaction 接收(`POST /api/v1/events` 的 service-to-service 形态:含 `Source-Service-DID` / `Destination-Service-DID` header)
   - ❌ Push notification wakeup 后的 client sync 拉取
   - ❌ 任何 capability cache 重建或 freshness check
   - ❌ 任何 `cx.session.grant` 验证或登录态续期
   - ❌ Snapshot witness 接收
-- 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Space、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复，或走部署 policy 明确允许的替代路径。
-- Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`，让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示（"身份历史链暂不可达，仅显示本地缓存内容"），不得静默继续。
-- Fallback 总时长 MUST ≤ 24 小时（与 §4.2.1 `degraded_no_witness` 状态硬上限对齐）；超时后即使是低风险只读也 MUST fail closed，强制用户等待恢复或切换 resolver。
+  - ❌ 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `unknown_did`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
+- 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Space、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复,或走部署 policy 明确允许的替代路径。
+- Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达,仅显示本地缓存内容"),不得静默继续。
+- Fallback 总时长 MUST ≤ 24 小时(与 §4.2.1 `degraded_no_witness` 状态硬上限对齐);超时后即使是低风险只读也 MUST fail closed,强制用户等待恢复或切换 resolver。
+
+> **为什么从 "did:web 等价行为" 改为 "cache-only"**(rationale):早期草案曾允许 fallback "退化为 `did:web` 等价行为(仅当前状态)",这一措辞实际默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制,如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-anchored 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 anchored 的 evidence 读取,无新信任根可被攻击者注入。`did:web` 作为 principal method 仅由部署侧主动选择(`personal_node`),不是 outage fallback。
 
 完整 method-specific 操作（创建、轮换、恢复、deactivation、history validation）的规范见
 DIF / identity.foundation `did:webvh` method specification（<https://identity.foundation/didwebvh/v1.0/>）
