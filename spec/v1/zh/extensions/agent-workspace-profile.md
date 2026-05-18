@@ -6,7 +6,7 @@ sidebar:
 
 > **状态：extension profile（非 v1 core 互操作必需）**。本文档定义 `cx.profile.agent_workspace.v1`——允许用户在源协作 Space 中调用自己的 agent 干活，同时把"agent 透明度"（公开 mention）与"agent 工作过程"（私人 mirror Space）分离。Contrix v1 core 互操作 **不要求** 实现 agent workspace；不实现的 client/server 通过 `cx.feature.mention_redirect.v1` critical_extension 检查自然 fail-closed。
 >
-> 设计历史与多轮 review 见 `proposal_agent_workspace.md`（仓库根目录）。本文档是 normative 合并视图。
+> 设计历史与多轮 review 见 git 历史中已删除的 `proposal_agent_workspace.md`（Rev 1–8）。本文档是 normative 合并视图。
 
 ## 1. 目标
 
