@@ -20,7 +20,7 @@
         "stream",
         "barrier"
       ],
-      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync (use as 'since' on /sync, 'after_cursor' on /federation/pull-operations, etc.). 'barrier' = read-your-writes / wait-for-event cursor (use in X-Contrix-Wait-For header to block until local frontier covers target.event_id). 'stream' cursors MAY include 's' (Space frontiers) and 'd' (device positions). 'barrier' cursors MUST include 'target'."
+      "description": "Cursor purpose. 'stream' = continuation cursor for incremental sync / list pagination. Used as 'since' on /sync, 'before' / 'after' on cx.events.query (including its service-to-service federation pull form GET /api/v1/events?before=<cursor>), and as response 'prev_cursor' (older direction) / 'next_cursor' (newer direction). prev_cursor / next_cursor carry absolute directional meaning regardless of how the request was issued — see api-conventions.md §7.0. 'barrier' = read-your-writes / wait-for-event cursor (use in X-Contrix-Wait-For header to block until local frontier covers target.event_id). 'stream' cursors MAY include 's' (Space frontiers) and 'd' (device positions). 'barrier' cursors MUST include 'target'."
     },
     "t": {
       "type": "string",

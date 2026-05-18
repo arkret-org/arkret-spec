@@ -24,31 +24,34 @@
       }
     ],
     "service_binding_ref": {
+      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "space_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "membership_frontier": [
         "cx:event:01964145-8000-7000-8000-000000000000"
       ],
-      "destination_service_type": "principal_server"
+      "destination_service_type": "principal_server",
+      "reducer_profile_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
     }
   },
   "cases": [
     {
       "name": "http_message_signature_hash",
       "input": {
-        "origin": "did:web:server-alpha.example",
-        "destination": "did:web:server-beta.example",
+        "source_service_did": "did:web:server-alpha.example",
+        "destination_service_did": "did:web:server-beta.example",
         "method": "POST",
-        "target_uri": "https://server-beta.example/api/v1/federation/push-operations",
+        "target_uri": "https://server-beta.example/api/v1/events",
+        "operation_id": "cx.events.submit",
         "content_digest_matches_canonical_body": true
       },
       "expected": "canonical_request_hash_matches_signature_input"
     },
     {
-      "name": "origin_destination_service_did_mismatch",
+      "name": "source_destination_service_did_mismatch",
       "input": {
-        "signature_origin": "did:web:server-alpha.example",
-        "body_origin": "did:web:server-gamma.example",
-        "destination": "did:web:server-beta.example"
+        "signature_source_service_did": "did:web:server-alpha.example",
+        "header_source_service_did": "did:web:server-gamma.example",
+        "header_destination_service_did": "did:web:server-beta.example"
       },
       "expected": "request_rejected_or_quarantined"
     },

@@ -152,6 +152,8 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 
 非 create 类更新建议使用 `cx.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。
 
+> **命名注意**：`cx.patch.v1` 是 **embedded format identifier**，不是 schema_id。它描述 `payload.patch` map 的 wire 形态（key=path、value=op），不是顶层对象 schema，因此**不出现**在 `artifacts/registry/schema-registry.json` 中。形如 `cx.schema.<name>.v<n>` 的标识才是已注册 schema id。实现 SDK / lint 工具 MUST NOT 把 `cx.patch.v1` 当作 schema id 查询；它只在该 `payload.patch` 字段位置生效，整体语义见本节 §4.1–§4.3。
+
 ### 4.1 结构
 
 `cx.patch.v1` 为 map 类型：

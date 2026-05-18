@@ -195,8 +195,19 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。可作为 `since` / `prev_cursor` / `after_cursor` / `next_cursor` 回传。 | `/sync` 响应顶层 `cursor`、`timeline.prev_cursor`、列表分页 `next_cursor`、`/federation/pull-operations` 的 `after_cursor`。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。可作为 `since` / `prev_cursor` / `next_cursor` / `before` / `after` 回传。 | `/sync` 响应顶层 `cursor`、`timeline.prev_cursor` / `next_cursor`、列表分页 `next_cursor`、`cx.events.query`（含联邦 pull 复用形态 `GET /api/v1/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Contrix-Wait-For` header。 |
+
+### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
+
+任何返回 cursor 对的响应（`/sync`、`cx.events.query`、列表分页等）使用统一的**绝对方向**约定：
+
+| 响应字段 | 含义 | 回传给下一次请求 |
+| --- | --- | --- |
+| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `cx.events.query` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
+| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `cx.events.query` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批；或作为 catch-up subscribe 起点 |
+
+绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
 规则：
 

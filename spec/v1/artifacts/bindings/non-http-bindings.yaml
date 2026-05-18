@@ -58,6 +58,9 @@ grpc:
       Get: cx.events.get
       BatchGet: cx.events.batch_get
       Query: cx.events.query
+      # cx.events.query_post reuses the canonical Events/Query gRPC binding;
+      # it is a HTTP-specific alias for the body-form transport (see
+      # operation-registry notes).
       Subscribe: cx.events.subscribe
       Frontier: cx.events.frontier
     Sync:
@@ -92,6 +95,7 @@ grpc:
       Upload: cx.blob.upload
       Get: cx.blob.get
       Head: cx.blob.head
+      Presign: cx.blob.presign
     DeviceMessages:
       Put: cx.device_messages.put
       Get: cx.device_messages.get
@@ -222,5 +226,8 @@ libp2p:
         type: object
   suggested_protocols:
     - /contrix/sync/1.0.0
-    - /contrix/federation/1.0.0
     - /contrix/blob/1.0.0
+  # v1 已合并联邦 API 到 sync surface（HTTP 侧复用 cx.events.submit / cx.events.query
+  # 加 service signature header；详见 federation.md §4 与 §7）。libp2p binding 同步采用
+  # /contrix/sync/1.0.0 + service-signature envelope；不再保留独立 /contrix/federation/1.0.0
+  # protocol multiplexer。

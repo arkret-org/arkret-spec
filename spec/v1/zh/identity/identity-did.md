@@ -171,7 +171,7 @@ Contrix v1 core conformance 要求如下：
   - ✅ 已缓存对象的本地搜索 / 本地索引查询
   - ✅ 已收到 snapshot / Anchor 的 state_root 重算（用于本地一致性自检）
   - ❌ 接收新到达的 Event Envelope / Move / Anchor 并写入本地 store（即使是只读 store）
-  - ❌ 联邦 transaction 接收（`/api/v1/federation/push-operations`）
+  - ❌ 联邦 transaction 接收（`POST /api/v1/events` 的 service-to-service 形态：含 `Source-Service-DID` / `Destination-Service-DID` header）
   - ❌ Push notification wakeup 后的 client sync 拉取
   - ❌ 任何 capability cache 重建或 freshness check
   - ❌ 任何 `cx.session.grant` 验证或登录态续期

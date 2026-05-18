@@ -12,13 +12,54 @@ info:
 
     This OpenAPI document is the canonical HTTP binding for registered service
 
-    operations. Request and response objects that are intentionally extensible are
+    operations.
 
-    modeled with `OperationRequest` / `OperationResult`; operation-specific required
 
-    fields, profile gates, and fail-closed behavior remain fixed by the corresponding
+    **Typed vs generic schema policy** (P-D11):
 
-    normative sections under `zh/sync/` and by the referenced JSON Schemas.
+
+    Stable core operations on the events / sync / identity / authz data path
+
+    carry **typed request/response schemas** so SDK generators can derive
+
+    operation-specific required fields directly from OpenAPI without consulting
+
+    prose. The typed surface currently covers `cx.events.{submit, get, batch_get,
+
+    query, query_post, frontier}`, `cx.sync.{get_snapshot_head, account}`,
+
+    `cx.identity.{resolve, get_document, get_receipts}`, `cx.authz.{check,
+
+    get_effective_grants}`, and the ServiceDescribe envelope. The corresponding
+
+    component schemas are named `EventsSubmitResponse`, `EventGetResponse`,
+
+    `EventsBatchGetRequest` / `EventsBatchGetResponse`, `EventsQueryResponse`,
+
+    `EventsFrontierResponse`, `SyncSnapshotHeadResponse`,
+
+    `IdentityResolveResponse` / `IdentityGetDocumentResponse`,
+
+    `AuthzCheckRequest` / `AuthzCheckResponse`, `GrantListResponse`,
+
+    `ServiceDescribe`.
+
+
+    Extension / interop / deployment-local operations (directory, applet, MIMI,
+
+    push, moderation, account, admin, agent_workspace, etc.) continue to use the
+
+    generic `OperationRequest` / `OperationResult` envelope as their HTTP
+
+    binding shape. Operation-specific required fields for these are defined by
+
+    the normative sections under `zh/sync/` and by the referenced JSON Schemas;
+
+    when an extension surface stabilizes (e.g. graduates from interop_bridge
+
+    tier toward extension), its OpenAPI binding SHOULD be tightened to a typed
+
+    schema.
 
 
     Default authentication: bearer token plus HTTP Message Signature for
@@ -27,7 +68,24 @@ info:
 
     metadata endpoints explicitly noted as `public_metadata` may be unauthenticated;
 
-    every other path requires at least one of the declared securitySchemes.'
+    every other path requires at least one of the declared securitySchemes.
+
+
+    Path prefix convention: bare paths (e.g. `/events`, `/identity/resolve`,
+
+    `/agent_workspace/mirror_flow`) inherit the global servers prefix `/api/v1`.
+
+    Paths under the deployment-local namespaces `/contrix/v1/*`, `/auth/account/*`,
+
+    `/admin/*`, and `/.well-known/*` MUST carry a path-level
+
+    `servers: - url: https://{host}` override so the URL is absolute and does not
+
+    get the protocol `/api/v1` prefix. Implementations and SDK generators MUST
+
+    honor path-level `servers` overrides; the corresponding `operation-registry.json`
+
+    `http` field always records the bare (post-prefix) path.'
 security:
 - bearerAuth: []
 - httpMessageSignature: []
@@ -142,6 +200,12 @@ components:
           type: string
     ServiceDescribe:
       type: object
+      description: |
+        Service capability descriptor returned by `cx.server.describe` and the
+        per-surface `cx.*.describe` operations. Required fields are normatively
+        listed in `zh/sync/service-surface.md` §10 and §11. Implementations MUST
+        emit `plaintext_visibility` so callers can honor the plaintext-boundary
+        rule from `zh/overview/architecture.md` §2.3.
       required:
       - protocol_version
       - service_type
@@ -149,6 +213,7 @@ components:
       - supported_profiles
       - supported_operations
       - supported_bindings
+      - plaintext_visibility
       properties:
         protocol_version:
           type: string
@@ -166,8 +231,52 @@ components:
             type: string
         supported_bindings:
           type: array
+          description: |
+            HTTP / gRPC / WebSocket / MQ binding declarations for this service.
+            Each entry SHOULD specify `kind`, optional `version`, and binding-
+            specific endpoint details. See `zh/sync/transport-bindings.md`.
           items:
             type: object
+        supported_features:
+          type: array
+          description: |
+            Optional feature identifiers (`cx.feature.*`) this service supports.
+            Mirrors the `supported_features[]` declaration in
+            `zh/sync/service-surface.md` §10. Distinct from `supported_profiles`:
+            features are finer-grained capability tokens that may be required
+            via `Event.requirements.features[]`.
+          items:
+            type: string
+        plaintext_visibility:
+          type: object
+          description: |
+            Declaration of which event kinds, payload paths, blob purposes, or
+            projection outputs the service consumes in plaintext (vs encrypted
+            envelope). Privacy-boundary fields per
+            `zh/overview/architecture.md` §2.3 and `zh/sync/service-surface.md`
+            §10. Omission is NOT equivalent to "no plaintext access" — callers
+            MUST treat a missing declaration as untrusted and refuse to register
+            this service as a `plaintext_visible_services` member.
+          additionalProperties: true
+          properties:
+            event_kinds:
+              type: array
+              items:
+                type: string
+            payload_paths:
+              type: array
+              items:
+                type: string
+            blob_purposes:
+              type: array
+              items:
+                type: string
+            projection_outputs:
+              type: array
+              items:
+                type: string
+            notes:
+              type: string
         auth_metadata:
           type: object
         supported_reducer_profiles:
@@ -203,6 +312,216 @@ components:
       $ref: ../schemas/client-sync-response.schema.json
     BottomDiagnostic:
       $ref: ../schemas/bottom.schema.json
+
+    # =========================================================================
+    # Typed request / response schemas for stable core operations.
+    # See zh/sync/service-http-binding.md for normative field semantics.
+    # Per OpenAPI binding policy in info.description: events / sync / identity /
+    # authz core surfaces carry typed schemas so SDK generators can derive
+    # operation-specific required fields without consulting prose. Extension /
+    # interop / deployment-local surfaces continue to use generic
+    # OperationRequest / OperationResult envelopes.
+    # =========================================================================
+    EventsSubmitResponse:
+      type: object
+      description: |
+        Result of cx.events.submit. Tracks per-event acceptance / duplication /
+        rejection along with the post-write frontier and an optional barrier
+        cursor for read-your-writes.
+      required:
+      - status
+      - accepted
+      properties:
+        status:
+          type: string
+          enum:
+          - accepted
+          - duplicate
+          - partial
+        accepted:
+          type: array
+          items:
+            type: string
+          description: Event IDs that entered the accepted set (including idempotent re-accepts of identical bodies).
+        duplicate:
+          type: array
+          items:
+            type: string
+          description: Event IDs whose canonical bytes matched a prior accepted event (idempotent no-op).
+        rejected:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - reason_code
+            properties:
+              id:
+                type: string
+              reason_code:
+                type: string
+              detail:
+                type: string
+        quarantine:
+          type: array
+          items:
+            type: string
+          description: Event IDs deferred to async / human verification.
+        actor_frontier:
+          type: object
+          description: Per-actor frontier after this submit (subset of full frontier visible to caller).
+        space_frontier:
+          type: object
+          description: Per-Space frontier after this submit.
+        cursor:
+          type: string
+          description: Optional barrier cursor (purpose=barrier) bound to the most recently accepted event.
+
+    EventGetResponse:
+      type: object
+      description: Result of cx.events.get — a single Event Envelope with optional visibility / receipt hints.
+      required:
+      - event
+      properties:
+        event:
+          $ref: ../schemas/event-envelope.schema.json
+        visibility:
+          type: object
+          description: Caller-visible policy hint for this event (history visibility class, E2EE envelope class).
+        receipts:
+          type: array
+          description: Event batch receipts witnessing this event, if visible.
+          items:
+            type: object
+
+    EventsBatchGetRequest:
+      type: object
+      description: cx.events.batch_get request body. At least one of event_ids or event_hashes MUST be non-empty.
+      properties:
+        event_ids:
+          type: array
+          items:
+            type: string
+        event_hashes:
+          type: array
+          items:
+            type: string
+        include_payload:
+          type: boolean
+          default: true
+      additionalProperties: false
+
+    EventsBatchGetResponse:
+      type: object
+      description: cx.events.batch_get result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.
+      required:
+      - events
+      - missing
+      properties:
+        events:
+          type: array
+          items:
+            $ref: ../schemas/event-envelope.schema.json
+        missing:
+          type: array
+          description: IDs / hashes that were requested but do not exist or are not visible (indistinguishable per visibility rules).
+          items:
+            type: string
+        unauthorized:
+          type: array
+          description: Optional split of missing into a separately-named bucket when policy explicitly distinguishes auth failure from non-existence.
+          items:
+            type: string
+
+    EventsQueryResponse:
+      type: object
+      description: |
+        Result of cx.events.query (GET form) and cx.events.query_post (POST/body
+        form). Ordering follows the "近邻先返回" rule unless `order` was
+        explicitly set on the request; see service-http-binding.md §3.3.3.
+      required:
+      - events
+      - has_more
+      properties:
+        events:
+          type: array
+          items:
+            $ref: ../schemas/event-envelope.schema.json
+        prev_cursor:
+          type: string
+          description: Absolute-direction cursor toward older events; pass to next request's `before=`.
+        next_cursor:
+          type: string
+          description: Absolute-direction cursor toward newer events; pass to next request's `after=`.
+        has_more:
+          type: boolean
+          description: True if more events remain in the `prev_cursor` (older) direction; SHOULD ignore `next_cursor` direction (subscribe / poll instead).
+
+    EventsFrontierResponse:
+      type: object
+      description: Result of cx.events.frontier — the caller-visible frontier(s) plus optional receipts.
+      required:
+      - frontier
+      properties:
+        frontier:
+          type: object
+          description: |
+            Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a
+            Space frontier (`{space_id, anchor_id, state_root, hlc?}`) shape
+            depending on which selector was passed; servers MUST NOT leak
+            frontiers across visibility boundaries.
+        receipts:
+          type: array
+          items:
+            type: object
+
+    SyncSnapshotHeadResponse:
+      type: object
+      description: Result of cx.sync.get_snapshot_head — a signed snapshot pointer for fast bootstrap.
+      required:
+      - snapshot_ref
+      - state_hash
+      - frontier
+      - event_set_commitment
+      - signature
+      properties:
+        snapshot_ref:
+          type: string
+        state_hash:
+          type: string
+        frontier:
+          type: object
+        event_set_commitment:
+          type: object
+        verification_hints:
+          type: object
+        signature:
+          type: object
+          description: Detached proof of the snapshot manifest; verifier MUST validate against signer's verification method.
+
+    IdentityGetDocumentResponse:
+      type: object
+      description: Result of cx.identity.get_document — current DID Document plus normalized view hints.
+      required:
+      - did_document
+      properties:
+        did_document:
+          type: object
+          description: Raw DID Core document with W3C field names preserved.
+        normalized_view:
+          type: object
+          description: |
+            Optional Contrix normalized principal view (snake_case) — derived
+            projection only, NOT a re-publishable DID Document. See
+            zh/identity/identity-did.md §6.
+        method_evidence:
+          type: object
+          description: Method-specific proof material (e.g. did:webvh history head, witness signatures).
+        cached_at:
+          type: string
+          format: date-time
+
+
     CellQueryEnvelope:
       type: object
       description: 'Wire envelope for state-query / projection responses on a single
@@ -352,22 +671,30 @@ components:
           type: string
     AuthzCheckRequest:
       type: object
+      description: |
+        cx.authz.check input — single capability decision query. `resource` is
+        optional because some actions (e.g. `cx.space.create`, identity-scoped
+        actions) have no Space-bound target.
       required:
-      - actor
+      - actor_id
       - action
-      - resource
       properties:
-        actor:
+        actor_id:
           type: string
+          description: Subject DID whose authorization is being checked.
         action:
           type: string
+          description: Capability action id (e.g. `cx.flow.update`).
         resource:
           type: object
+          description: Optional resource selector (Space / Flow / Place / Morph / etc.).
         context:
           type: object
+          description: Optional decision context — claim presentations, frontier reference, request metadata.
       additionalProperties: false
     AuthzCheckResponse:
       type: object
+      description: cx.authz.check decision. See zh/authz/capabilities.md §18.
       required:
       - decision
       properties:
@@ -379,6 +706,14 @@ components:
           - quarantine
           - require_review
           - soft_fail
+          - unknown
+          description: |
+            `allow` / `deny` are terminal decisions. `quarantine` / `require_review`
+            are policy-server-mediated soft outcomes (the request enters async
+            review). `soft_fail` is a transient retryable failure. `unknown` is
+            returned when the local frontier cannot establish revocation
+            freshness (see zh/authz/capabilities.md §18.2) — caller MUST treat
+            as fail-closed for high-risk actions.
         matched_grants:
           type: array
           items:
@@ -397,14 +732,26 @@ components:
             type: object
         frontier:
           type: object
+        freshness_state:
+          type: string
+          enum:
+          - fresh
+          - stale
+          - unknown
+          description: Frontier freshness classification for revocation-sensitive decisions; see zh/authz/capabilities.md §18.2.
         cache_valid_until:
           type: string
           format: date-time
           pattern: Z$
         reason_code:
           type: string
+        retry_after_ms:
+          type: integer
+          minimum: 0
+          description: Set when `decision=soft_fail` or `freshness_state ∈ {stale,unknown}`; client SHOULD back off this amount before retry.
         obligations:
           type: array
+          description: Policy server obligations (challenge / rate_limit / drop_attachment) the caller MUST satisfy before the action proceeds.
           items:
             type: object
       additionalProperties: false
@@ -1760,13 +2107,19 @@ paths:
   /identity/document:
     get:
       operationId: cx.identity.get_document
+      parameters:
+      - name: did
+        in: query
+        required: true
+        schema:
+          type: string
       responses:
         '200':
-          description: DID document
+          description: DID Document plus normalized view and method evidence
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/IdentityGetDocumentResponse'
   /identity/log:
     get:
       operationId: cx.identity.get_log
@@ -1841,7 +2194,7 @@ paths:
                       $ref: ../schemas/event-envelope.schema.json
       responses:
         '200':
-          description: Event accepted
+          description: Event accepted (or duplicate / partial; see status field)
           headers:
             Idempotency-Key:
               $ref: '#/components/headers/IdempotencyKey'
@@ -1850,19 +2203,215 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/EventsSubmitResponse'
     get:
       operationId: cx.events.query
+      summary: Query / backfill events with cursor pagination.
+      description: |
+        Returns a page of events according to `before` / `after` cursor anchors.
+
+        Either or both of `before` / `after` may be given:
+          - `before=<cursor>` alone: events most recently *before* this cursor
+            position (history backfill, UI-friendly). Default `order=descending`.
+          - `after=<cursor>` alone: events earliest *after* this cursor position
+            (catch-up, reducer-friendly). Default `order=ascending`.
+          - both: open interval `(after, before)`. Default `order=descending`.
+          - neither: equivalent to `before=<server head>` (latest first page).
+
+        `before` and `after` are both EXCLUSIVE of the cursor position.
+
+        Response `prev_cursor` / `next_cursor` are absolute-direction cursors:
+        `prev_cursor` points toward older events (pass to next `before=`);
+        `next_cursor` points toward newer events (pass to next `after=`).
+        See zh/sync/service-http-binding.md §3.3 and zh/sync/api-conventions.md
+        §7.0 for the full semantic table.
+
+        Legacy v1 draft parameters `direction` / `from` / `until` are REMOVED
+        and MUST be rejected with `invalid_param` (callers must migrate to
+        `before` / `after` / `order`).
+      parameters:
+      - name: spaces
+        in: query
+        description: Filter by Space IDs. Multiple values are UNION within the parameter; cross with `actors` is intersection.
+        schema:
+          type: array
+          items:
+            type: string
+        style: form
+        explode: true
+      - name: actors
+        in: query
+        description: Filter by Actor DIDs. Multiple values are UNION within the parameter; cross with `spaces` is intersection.
+        schema:
+          type: array
+          items:
+            type: string
+        style: form
+        explode: true
+      - name: before
+        in: query
+        description: Return events strictly older than this cursor position. Pair with response `prev_cursor` to walk further backward.
+        schema:
+          type: string
+      - name: after
+        in: query
+        description: Return events strictly newer than this cursor position. Pair with response `next_cursor` to walk further forward.
+        schema:
+          type: string
+      - name: order
+        in: query
+        description: |
+          Batch ordering. `default` follows the proximity-to-anchor rule
+          (before-only → descending; after-only → ascending; both → descending);
+          `ascending` / `descending` force the order.
+        schema:
+          type: string
+          enum:
+          - default
+          - ascending
+          - descending
+          default: default
+      - name: limit
+        in: query
+        description: Max events to return; server enforces an upper bound (see scalability-constraints.md).
+        schema:
+          type: integer
+          minimum: 1
+      - name: filters
+        in: query
+        description: Optional structured filter object (kind, payload predicates). See zh/sync/service-http-binding.md §3.3.
+        schema:
+          type: object
+        style: deepObject
+        explode: true
       responses:
         '200':
-          description: Event query page (forward or backward)
+          description: Event query page
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/EventsQueryResponse'
+        '400':
+          description: |
+            `invalid_param` — legacy `direction` / `from` / `until` parameters,
+            unrecognized `order` enum value, or malformed cursor.
+  /events/query:
+    post:
+      operationId: cx.events.query_post
+      summary: cx.events.query in HTTP POST body form (for long/complex queries).
+      description: |
+        Semantically identical to `GET /events` (`cx.events.query`); the same
+        selector / cursor / order / filter parameter set is transported as a
+        JSON request body instead of URL query parameters. Use this form when
+        any of:
+
+          - The URL would exceed the deployment's practical limit (proxies /
+            CDNs commonly cap at 4–8 KiB). Large `spaces[]` / `actors[]` lists
+            or a non-trivial `filters` object cross this threshold quickly.
+          - Operators would otherwise log full URL query strings (which can
+            inadvertently capture sensitive filter contents in access logs).
+
+        The response shape (`events[]`, `prev_cursor`, `next_cursor`,
+        `has_more`) matches the GET form exactly. Cursor pagination semantics
+        (proximity-to-anchor default order, absolute prev / next directions)
+        come from the same source — see zh/sync/service-http-binding.md §3.3.
+
+        gRPC / MQ bindings reuse the canonical `Events/Query` channel; this
+        operation_id is a HTTP-only alias to keep OpenAPI / SDK generators
+        round-trippable.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                spaces:
+                  type: array
+                  items:
+                    type: string
+                  description: Filter by Space IDs. UNION within, intersection with `actors[]`.
+                actors:
+                  type: array
+                  items:
+                    type: string
+                  description: Filter by Actor DIDs. UNION within, intersection with `spaces[]`.
+                before:
+                  type: string
+                  description: Return events strictly older than this cursor position (exclusive).
+                after:
+                  type: string
+                  description: Return events strictly newer than this cursor position (exclusive).
+                order:
+                  type: string
+                  enum:
+                  - default
+                  - ascending
+                  - descending
+                  default: default
+                  description: Same semantics as the GET form `order` query parameter.
+                limit:
+                  type: integer
+                  minimum: 1
+                filters:
+                  type: object
+                  description: Structured filter object (kind, payload predicates).
+      responses:
+        '200':
+          description: Event query page (same shape as GET /events response)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsQueryResponse'
+        '400':
+          description: |
+            `invalid_param` — body contains legacy keys `direction` / `from` /
+            `until`, unrecognized `order` enum value, or malformed cursor.
   /events/subscribe:
     get:
       operationId: cx.events.subscribe
+      summary: Streaming event subscription with optional history catchup.
+      description: |
+        Opens a streaming subscription scoped by `spaces[]` / `actors[]`. Returns
+        events from `after=<cursor>` (exclusive) forward. Subscribe naturally
+        moves only toward newer events; there is no `before` / `order`
+        parameter. Legacy draft parameter `from=<cursor>` is REMOVED and MUST be
+        rejected with `invalid_param` — callers must migrate to `after`.
+
+        With `include_history=true` the server first replays historical events
+        from `after=<cursor>` up to the current frontier, then emits
+        `catchup_complete` per Space and continues with live frames.
+      parameters:
+      - name: spaces
+        in: query
+        description: Filter by Space IDs. UNION within, intersection with `actors[]`.
+        schema:
+          type: array
+          items:
+            type: string
+        style: form
+        explode: true
+      - name: actors
+        in: query
+        description: Filter by Actor DIDs. UNION within, intersection with `spaces[]`.
+        schema:
+          type: array
+          items:
+            type: string
+        style: form
+        explode: true
+      - name: after
+        in: query
+        description: Subscription start cursor (exclusive). Same semantics as cx.events.query's `after=` parameter.
+        schema:
+          type: string
+      - name: include_history
+        in: query
+        description: When true, the server first replays history from `after=` then transitions to live.
+        schema:
+          type: boolean
+          default: true
       responses:
         '200':
           description: Streaming event subscription with optional history catchup
@@ -1889,39 +2438,53 @@ paths:
         required: true
         schema:
           type: string
+      - name: include_payload
+        in: query
+        schema:
+          type: boolean
+          default: true
       responses:
         '200':
-          description: Event envelope
+          description: Event envelope with optional visibility / receipt hints
           content:
             application/json:
               schema:
-                $ref: ../schemas/event-envelope.schema.json
+                $ref: '#/components/schemas/EventGetResponse'
   /events/batch-get:
     post:
       operationId: cx.events.batch_get
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventsBatchGetRequest'
       responses:
         '200':
           description: Event batch
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OperationRequest'
+                $ref: '#/components/schemas/EventsBatchGetResponse'
   /events/frontier:
     get:
       operationId: cx.events.frontier
+      parameters:
+      - name: actor_id
+        in: query
+        schema:
+          type: string
+      - name: space_id
+        in: query
+        schema:
+          type: string
       responses:
         '200':
-          description: Event frontier
+          description: Event frontier visible to caller
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/EventsFrontierResponse'
   /sync:
     post:
       operationId: cx.sync.account
@@ -1949,13 +2512,22 @@ paths:
   /sync/snapshot-head:
     get:
       operationId: cx.sync.get_snapshot_head
+      parameters:
+      - name: space_id
+        in: query
+        required: true
+        schema:
+          type: string
       responses:
         '200':
-          description: Snapshot manifest head
+          description: |
+            Signed snapshot manifest head (pointer + signature; does NOT carry
+            chunk bytes). For chunk retrieval clients SHOULD subsequently call
+            the blob surface with the manifest's chunk references.
           content:
             application/json:
               schema:
-                $ref: ../schemas/snapshot.schema.json
+                $ref: '#/components/schemas/SyncSnapshotHeadResponse'
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle
@@ -2046,6 +2618,124 @@ paths:
               schema:
                 type: string
                 format: binary
+    parameters:
+    - name: blob_ref
+      in: query
+      required: true
+      description: Content-addressed blob reference (`cx:blob:sha256:<hex>`) or metadata id (`cx:blob:<uuid>`).
+      schema:
+        type: string
+    - name: presign
+      in: query
+      required: false
+      description: |
+        Pre-signed authorization token returned by `cx.blob.presign`. When
+        present, the request is authenticated solely by this token — the
+        `Authorization` header MUST be absent and is rejected if both are
+        supplied. Pre-signed mode is a deliberate carve-out of the
+        "no credentials in URL" rule (see zh/security/server-threat-model.md
+        §S21) so that browser primitives (`<img src>`, `<video src>`,
+        `<link href>`) can render protected media. Carries a server-signed
+        envelope binding `blob_ref`, `expires_at`, `purpose`, requester
+        identity hint, and an issuance nonce. Pre-signed URLs MUST be short
+        TTL (≤ 1 h), single-blob, read-only, and revocable. NOT permitted
+        for E2EE attachment ciphertext fetch — those MUST keep `blob_ref`
+        out of the URL the server can log. See zh/crypto-media/media-and-blob.md
+        §5.4.
+      schema:
+        type: string
+  /blob/presign:
+    post:
+      operationId: cx.blob.presign
+      summary: Issue a short-TTL pre-signed URL for a single blob.
+      description: |
+        Returns a deliberately-narrow pre-signed URL that authenticates a
+        single subsequent `GET /blob/get` via the `presign` query parameter.
+        The pre-signed URL exists to let browser HTML elements (`<img>`,
+        `<video>`, `<link>`) load protected media without setting an
+        `Authorization` header.
+
+        Tight constraints (enforced by the issuing service):
+          - TTL ≤ 1 hour. Implementations SHOULD default to ≤ 5 minutes.
+          - Scope: exactly one blob, read-only (GET / HEAD), single purpose.
+          - Cannot be exchanged for or escalate to an authenticated session.
+          - MUST be revocable before expiry (e.g., per-blob nonce list,
+            rolling issuer key, deny list).
+          - MUST NOT include the requester's bearer token, refresh token, or
+            any reusable credential. The token MUST be a server-issued JWS
+            (or equivalent signed envelope) signed by the blob service DID.
+          - E2EE attachment ciphertext fetch MUST NOT use this mechanism;
+            E2EE clients keep `blob_ref` + key out of any URL the server can
+            log, and instead fetch via authenticated header path.
+
+        Issuance is authorized by the standard capability check
+        (`cx.blob.presign` action) and bound by the constraint set declared
+        on the issuing grant (`blob_presign_max_ttl_seconds`,
+        `blob_presign_scope`).
+
+        See zh/crypto-media/media-and-blob.md §5.4 for the full normative
+        section (URL format, signature envelope, revocation, threat model
+        carve-out).
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - blob_ref
+              properties:
+                blob_ref:
+                  type: string
+                  description: Target blob. MUST be a content-addressed ref or visible blob metadata id.
+                max_age_seconds:
+                  type: integer
+                  minimum: 1
+                  maximum: 3600
+                  description: Client-requested TTL upper bound. Server clamps to the smaller of this value, the issuing grant's `blob_presign_max_ttl_seconds` constraint, and the deployment-level cap.
+                purpose:
+                  type: string
+                  enum:
+                  - media_inline
+                  - thumbnail
+                  - download
+                  description: Intended rendering / download mode. Servers MAY apply purpose-specific Content-Disposition or rate limits.
+      responses:
+        '200':
+          description: Pre-signed URL issued
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - url
+                - expires_at
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    description: Fully-qualified URL clients can pass to browser primitives. Contains the `presign` query parameter and `blob_ref`.
+                  expires_at:
+                    type: string
+                    format: date-time
+                    description: Server-determined expiry; SHOULD be earlier than `now() + max_age_seconds`.
+                  purpose:
+                    type: string
+                    description: Echo of the issued `purpose`.
+        '403':
+          description: |
+            `capability_denied` — caller lacks `cx.blob.presign` for this
+            blob or this purpose; or the grant's TTL constraint forbids the
+            requested `max_age_seconds`.
+        '404':
+          description: |
+            `not_found` — blob does not exist or is not visible to the
+            caller. MUST NOT differentiate between non-existence and lack of
+            visibility.
   /push/register-device:
     post:
       operationId: cx.push.register_device
@@ -2886,6 +3576,11 @@ paths:
             schema:
               $ref: '#/components/schemas/OperationRequest'
   /auth/account/session-grants:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
     post:
       operationId: cx.account.issue_session_grant
       responses:
@@ -2902,6 +3597,11 @@ paths:
             schema:
               $ref: '#/components/schemas/OperationRequest'
   /auth/account/device-pair:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
     post:
       operationId: cx.account.device_pair
       responses:
@@ -2918,6 +3618,11 @@ paths:
             schema:
               $ref: '#/components/schemas/OperationRequest'
   /auth/account/oidc/callback:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
     post:
       operationId: cx.account.oidc_callback
       responses:
@@ -2934,6 +3639,11 @@ paths:
             schema:
               $ref: '#/components/schemas/OperationRequest'
   /admin/server/status:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
     get:
       operationId: cx.admin.get_server_status
       security:
@@ -2947,6 +3657,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationResult'
   /admin/accounts/{account_id}/status:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
     post:
       operationId: cx.admin.update_account_status
       security:
@@ -2971,6 +3686,11 @@ paths:
             schema:
               $ref: '#/components/schemas/OperationRequest'
   /admin/devices/{device_id}/revoke:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
     post:
       operationId: cx.admin.revoke_device
       security:
@@ -2995,6 +3715,11 @@ paths:
             schema:
               $ref: '#/components/schemas/OperationRequest'
   /admin/moderation/queue:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
     get:
       operationId: cx.admin.get_moderation_queue
       security:
@@ -3006,7 +3731,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModerationQueueResponse'
-  /api/v1/agent_workspace/mirror_flow:
+  /agent_workspace/mirror_flow:
     get:
       operationId: cx.agent_workspace.resolve_mirror_flow
       summary: Resolve mirror Flow ID for a given source Flow.
@@ -3050,7 +3775,7 @@ paths:
                   reason:
                     type: string
                     enum: [not_provisioned]
-  /api/v1/agent_workspace/pending_tasks:
+  /agent_workspace/pending_tasks:
     get:
       operationId: cx.agent_workspace.list_pending_tasks
       summary: List in-flight agent_task objects awaiting client reconcile.

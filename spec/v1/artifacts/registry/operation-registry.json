@@ -61,6 +61,7 @@
         "cx.events.get",
         "cx.events.batch_get",
         "cx.events.query",
+        "cx.events.query_post",
         "cx.events.subscribe",
         "cx.events.frontier",
         "cx.sync.describe",
@@ -91,7 +92,8 @@
       "operations": [
         "cx.blob.upload",
         "cx.blob.head",
-        "cx.blob.get"
+        "cx.blob.get",
+        "cx.blob.presign"
       ]
     },
     {
@@ -215,19 +217,19 @@
     },
     {
       "operation_id": "cx.agent_workspace.resolve_mirror_flow",
-      "http": "GET /api/v1/agent_workspace/mirror_flow",
+      "http": "GET /agent_workspace/mirror_flow",
       "grpc": "AgentWorkspace/ResolveMirrorFlow",
       "mq": "agent_workspace.resolve_mirror_flow",
       "profile_gate": "cx.profile.agent_workspace.v1",
-      "notes": "Controller-only. Returns only fully-provisioned mappings (reservation + create both present). Unauthenticated requests MUST return 401/403, not 404 (avoids workspace existence enumeration)."
+      "notes": "Controller-only. Returns only fully-provisioned mappings (reservation + create both present). Unauthenticated requests MUST return 401/403, not 404 (avoids workspace existence enumeration). HTTP path is bare; the global OpenAPI server prefix /api/v1 supplies the namespace, identical to every other extension surface."
     },
     {
       "operation_id": "cx.agent_workspace.list_pending_tasks",
-      "http": "GET /api/v1/agent_workspace/pending_tasks",
+      "http": "GET /agent_workspace/pending_tasks",
       "grpc": "AgentWorkspace/ListPendingTasks",
       "mq": "agent_workspace.list_pending_tasks",
       "profile_gate": "cx.profile.agent_workspace.v1",
-      "notes": "Controller-only. Returns agent_task objects with execution_state in {pending_source_stub, active} for client reconcile after offline."
+      "notes": "Controller-only. Returns agent_task objects with execution_state in {pending_source_stub, active} for client reconcile after offline. HTTP path is bare; the global OpenAPI server prefix /api/v1 supplies the namespace."
     },
     {
       "operation_id": "cx.account.issue_session_grant",
@@ -350,6 +352,13 @@
       "mq": "blob.upload"
     },
     {
+      "operation_id": "cx.blob.presign",
+      "http": "POST /blob/presign",
+      "grpc": "Blob/Presign",
+      "mq": "blob.presign",
+      "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4."
+    },
+    {
       "operation_id": "cx.device_messages.get",
       "http": "GET /device_messages",
       "grpc": "DeviceMessages/Get",
@@ -456,6 +465,13 @@
       "http": "GET /events",
       "grpc": "Events/Query",
       "mq": "events.query"
+    },
+    {
+      "operation_id": "cx.events.query_post",
+      "http": "POST /events/query",
+      "grpc": "Events/Query",
+      "mq": "events.query",
+      "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large spaces[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. gRPC / MQ bindings reuse the canonical Events/Query — request body uses the same shape across all transports."
     },
     {
       "operation_id": "cx.events.subscribe",

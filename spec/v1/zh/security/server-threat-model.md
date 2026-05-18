@@ -20,7 +20,7 @@ sidebar:
    对认证入口进行高频尝试，或利用泄露/重放的 session token、service token、gateway token 发起越权写入与批量操作。
 
 3. **写入泛滥（Write Flood）**
-   大量 `events.submit`、`push-operations`、`media.upload`、`call` 事务造成 CPU/IO/队列压垮。
+   大量 `events.submit`（含联邦 service-to-service 形态）、`media.upload`、`call` 事务造成 CPU/IO/队列压垮。
 
 4. **放大与重试风暴（Amplification / Retry Storm）**
    利用短周期失败、重试、回执链路放大或抖动，触发队列/重试池快速增长。
@@ -76,6 +76,8 @@ sidebar:
 21. **URL 凭证泄露（URL Credential Leakage）**
     将 session token、API key 或签名材料放入 query string，导致浏览器历史、代理日志、崩溃日志、复制链接或 referrer 泄露。
 
+    *受控例外：`cx.blob.presign`* — 为兼容浏览器原生标签（`<img src>` / `<video src>` 等无法附 Authorization header）允许由 blob service DID 签发的 pre-signed URL 通过 `?presign=<envelope>` 携带认证。该例外受 §5.4 [`crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) 严格收紧：TTL ≤ 1h、单 blob、只读、可撤销、不得用于 E2EE 附件；envelope 内不得包含可重用 credential；服务端用 audit log 追踪签发。**除此一个明确登记的例外外，本威胁项规则不变**：session token / refresh token / capability grant / device key 等任何长期或可重用凭证仍 MUST NOT 进入 URL。
+
 22. **媒体侧信道探测（Media Header / Range Probe）**
     通过 `HEAD`、`Range`、`Content-Length`、`Content-Type`、`Content-Disposition` 或 redirect 差异推断私有 blob 是否存在、大小、类型或文件名。
 
@@ -122,7 +124,7 @@ sidebar:
 | 会话凭证滥用 | 是 | `account-lifecycle` 强制撤销链路、推送网关 token 与 service token 的短期有效策略。 |
 | MLS epoch 滥用 | 是 | epoch monotonic、移除成员 fail-closed、提交顺序与 commit/proposal 校验。 |
 | 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。 |
-| URL 凭证泄露 | 是 | 禁止 query string 认证，临时下载 URL 只能使用短时效、单用途、可撤销派生 token。 |
+| URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`cx.blob.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
 
 ## 4. 协议规则完善（落地要求）

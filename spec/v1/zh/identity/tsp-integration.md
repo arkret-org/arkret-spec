@@ -61,7 +61,8 @@ Contrix DID method adapter SHOULD 暴露某个 principal 或服务是否支持 T
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [
-    "cx.federation.push_operations",
+    "cx.events.submit",
+    "cx.events.query",
     "cx.identity.presentation",
     "cx.agent.protocol_session.start"
   ],

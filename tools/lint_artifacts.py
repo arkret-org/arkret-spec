@@ -220,6 +220,81 @@ def markdown_files() -> list[Path]:
     return [path for path in roots if path.is_file()]
 
 
+# Wire field names that were renamed during v1 schema evolution.
+# Each entry maps the legacy field name to:
+#   - replacement: human-readable description of the new shape
+#   - context_tokens: substrings whose presence on the SAME line marks the
+#     occurrence as legitimate migration commentary (not a regression).
+# Adding a token here is preferred to wholesale whitelisting a file.
+LEGACY_WIRE_FIELDS: dict[str, dict[str, Any]] = {
+    "auth_refs": {
+        "replacement": "refs[role=authorized_by]",
+        "context_tokens": [
+            # English migration tokens
+            "dropped",
+            "removed",
+            "former",
+            "replaces",
+            "renamed",
+            "deprecated",
+            "legacy",
+            # Chinese migration tokens
+            "替代",
+            "替换",
+            "迁移",
+            "早期",
+            "草案",
+            "曾",
+            "旧 ",
+            "旧`",
+            "旧 `",
+            "旧auth_refs",
+            "已合并",
+            "已收敛",
+            "废弃",
+            "字段名",
+        ],
+    },
+}
+
+
+def check_legacy_wire_fields(lint: Lint) -> None:
+    """Reject lingering deprecated wire field names outside of migration notes.
+
+    A bare ``auth_refs`` token in prose or JSON example will cause SDK / reducer
+    implementations to either generate envelopes that the canonical schema
+    rejects (since ``auth_refs`` is no longer a defined property) or split the
+    authorization-dependency surface between two field names. Any legitimate
+    discussion of the legacy field must explicitly call it out as such; this
+    check uses a context-token allow-list (see ``LEGACY_WIRE_FIELDS``).
+    """
+    scan_paths: list[Path] = list(markdown_files())
+    scan_paths.extend(p for p in all_json_files() if ARTIFACTS in p.parents)
+    seen: set[tuple[Path, int]] = set()
+    for path in scan_paths:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            for field, info in LEGACY_WIRE_FIELDS.items():
+                if field not in line:
+                    continue
+                if any(tok in line for tok in info["context_tokens"]):
+                    continue
+                key = (path, line_no)
+                if key in seen:
+                    continue
+                seen.add(key)
+                lint.fail(
+                    path,
+                    f"line {line_no}: legacy wire field `{field}` appears without "
+                    f"migration context — use `{info['replacement']}` instead, "
+                    f"or add a migration-context token "
+                    f"(e.g. 替代/迁移/dropped/replaces) on the same line.",
+                )
+
+
 def check_registry_manifest(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "registry-manifest.json"
     data = load_json(lint, path)
@@ -1085,6 +1160,7 @@ def main() -> int:
     check_crypto_signature_fixture(lint)
     check_markdown_links(lint)
     check_markdown_examples(lint, known)
+    check_legacy_wire_fields(lint)
 
     if lint.errors:
         print("Artifact registry lint failed:", file=sys.stderr)

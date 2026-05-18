@@ -845,6 +845,17 @@
       "profile": null
     },
     {
+      "action": "cx.blob.presign",
+      "category": "service",
+      "risk_tier": "medium",
+      "required_constraints": [
+        "blob_presign_max_ttl_seconds",
+        "blob_presign_scope"
+      ],
+      "target_event_kinds": [],
+      "profile": null
+    },
+    {
       "action": "cx.call.configure_media_service",
       "category": "service",
       "risk_tier": "high",

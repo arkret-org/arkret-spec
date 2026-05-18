@@ -21,7 +21,7 @@
     {
       "step": 2,
       "actor": "controller-client",
-      "operation": "federated read of source frontier via cx.federation.read",
+      "operation": "federated read of source frontier via cx.events.query (service-to-service form)",
       "expected": "observes redact event"
     },
     {

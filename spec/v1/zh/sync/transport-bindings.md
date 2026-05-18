@@ -69,8 +69,8 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.events.subscribe` | 订阅 Space / actor 增量流，可选历史 catchup（替代旧 `cx.sync.subscribe`）。 |
 | `cx.events.frontier` | 获取 actor 或 Space 的可见 Event frontier。 |
 | `cx.sync.account` | 客户端账号视角聚合同步（替代旧 `cx.sync.client_sync`）。 |
-| Federation push（复用 `cx.events.submit` + service_signature） | v1 已移除 `/federation/*` 独立 API surface；联邦推送复用 `/events/submit`，认证从 user_session 切换为 HTTP Message Signature + Source/Destination service DID header。详见 [`federation.md`](./federation.md)。 |
-| Federation pull / backfill（复用 `cx.events.query` + service_signature） | 同上，跨域历史回补复用 `/events?direction=backward`。 |
+| Federation push（复用 `cx.events.submit` + service_signature） | 联邦推送复用 `POST /api/v1/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
+| Federation pull / backfill（复用 `cx.events.query` + service_signature） | 跨域历史回补复用 `GET /api/v1/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
 | `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Space / Organization / Actor / User。 |
 | `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Space / Organization / handle。 |
 | `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |

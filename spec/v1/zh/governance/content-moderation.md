@@ -366,7 +366,7 @@ Principal Server 可以配置服务器级别的 ACL，控制哪些域的联邦�
 
 ### 6.2 与联邦协议的关系
 
-Server ACL 在联邦层（参见 `federation.md`）起作用。当 Principal Server 收到来自被 deny 的域的 `push-operations` 请求时，SHOULD 立即返回 `403 capability_denied`。
+Server ACL 在联邦层（参见 `federation.md`）起作用。当 Principal Server 收到来自被 deny 的域的 `cx.events.submit`（service-to-service 形态，`Source-Service-DID` 落在 deny list 中）请求时，SHOULD 立即返回 `403 capability_denied`。
 
 ## 7. 组织级审核策略
 

@@ -49,13 +49,13 @@ title: Third-Party Invites
 
 ## 4. 认领流程 (Claiming)
 
-当 Bob 收到邮件并点击链接，他在客户端完成了注册并获得了自己的 `did:web:bob.example.com`。接下来他需要认领这个邀请。
+当 Bob 收到邮件并点击链接，他在客户端完成了注册并获得了自己的 `did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`（v1 core 默认 principal DID method 为 `did:webvh`，见 [identity-did.md §3](../identity/identity-did.md)；`personal_node` profile 的 Bob 可选 `did:web:bob.example.com`，其他 deployment profile 不得使用 `did:web` 作为长期 principal）。接下来他需要认领这个邀请。
 
 ### 4.1 出示 Token 与绑定
 
 Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Space 提交给 Alice 的身份验证服务。
 身份验证服务验证 token、过期时间、claim 次数和 Space 绑定无误后，原子消费该 token，并使用之前预留的**临时私钥 (对应 3.1 节的 `verification_public_key`)** 签署一个**绑定证明 (Binding Proof)**，声明：
-“持有该 Token 的人现在对应的 DID 是 `did:web:bob.example.com`”。
+“持有该 Token 的人现在对应的 DID 是 `did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`”。
 
 ### 4.2 提交转换 Event
 
@@ -65,13 +65,13 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Sp
 {
   "kind": "cx.invite.claim",
   "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
-  "subject_did": "did:web:bob.example.com",
+  "subject_did": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
   "token_commitment": "sha256:<hash(token_salt || invite_token)>",
   "claim_nonce": "01JX...",
   "binding_proof": {
     "verification_service_did": "did:web:identity.alice.example",
     "verification_method": "did:web:identity.alice.example#invite-001",
-    "subject_did": "did:web:bob.example.com",
+    "subject_did": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
     "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "audience": "contrix.invite.claim",
     "expires_at": "2026-05-05T00:00:00Z",
@@ -88,7 +88,7 @@ Space 中的其他节点（Sync Service / 客户端本地 projection）在收到
 2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_did`、`space_id`、audience、过期时间和 claim nonce。
 3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。
 4. 原子标记 pending invite 为 `claimed`；同一个 `token_commitment` 的第二次认领 MUST reject。
-5. 如果验证通过，该占位符邀请正式转变为针对 `did:web:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
+5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
 6. 随后 Bob 按照正常流程发送 `cx.invite.accept` 加入 Space。
 
 ## 5. E2EE 场景处理

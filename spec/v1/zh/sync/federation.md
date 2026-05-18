@@ -98,7 +98,9 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 ### 4.1 推送模式 (Push)
 
-本文件中的联邦载荷项是 v1 规范性 Event Envelope。`push-operations` 与 `pull-operations` 是 service operation / HTTP binding 名称；请求与响应体中的共享事实字段使用 `events[]`，不引入第二套 Operation wire object。
+> **v1 联邦不再使用独立 HTTP API surface**。跨域 Event 推送复用普通 events API（`POST /api/v1/events` 对应 `cx.events.submit`），把"联邦"与"客户端写入"的区别下沉到认证层：service-to-service 调用 MUST 使用 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header；普通用户写入使用 user session / device proof。本节描述的所有规则适用于带 service signature 的 `cx.events.submit` 调用。
+
+本文件中的联邦载荷项是 v1 规范性 Event Envelope。请求与响应体中的共享事实字段使用 `events[]`，不引入第二套 Operation wire object。
 
 当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Event，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
 
@@ -107,37 +109,40 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
 ```
-POST /api/v1/federation/push-operations
+POST /api/v1/events
 Host: server-beta.com
-Signature-Input: sig1=("@method" "@target-uri" "content-digest")
+Source-Service-DID: did:web:server-alpha.com
+Destination-Service-DID: did:web:server-beta.com
+Content-Digest: sha256=:<base64>:
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did");created=...;expires=...
 Signature: sig1=:base64...:
 ```
 
-请求字段：
+请求字段（service-to-service 形态）：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 绑定 `@method`、`@target-uri`、`content-digest`、来源 service DID 和目标 service DID。 |
+| `Source-Service-DID` | header | `did` | required | 来源 service DID；与签名 transcript 绑定。 |
+| `Destination-Service-DID` | header | `did` | required | 目标 service DID；MUST 与目标 URL、DID service endpoint 和 Space policy 委托一致。 |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`，以及 `created` / `expires` 参数。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
-| `Content-Digest` | header | `string` | required | 请求体摘要，MUST 与签名覆盖内容一致。 |
-| `origin` | body | `did` | required | 来源 service DID。 |
-| `destination` | body | `did` | required | 目标 service DID，MUST 与目标 URL、DID service endpoint 和 Space policy 委托一致。 |
-| `space_id` | body | `id` | required | Event 所属 Space。 |
-| `service_binding_ref` | body | `object` | required | 接收方服务绑定快照。 |
+| `Content-Digest` | header | `string` | required | 请求体摘要，MUST 覆盖 canonical request body；接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。 |
+| `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
+| `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
+| `service_binding_ref.space_id` | body | `id` | required | 受影响的 Space。在多 Space 批量推送中，发送方 SHOULD 把不同 Space 的 events 拆成独立请求；单请求 MUST 至少携带一个 `space_id`。 |
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Space policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
 | `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Space 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
-| `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。 |
 
-请求示例（非完整 schema）：
+> **关于旧字段 `origin` / `destination` / `space_id`**：v1 之前的草案曾把这三项放在 body 顶层。v1 已合并联邦 surface 后，`origin` / `destination` 已由 header `Source-Service-DID` / `Destination-Service-DID` 承担（避免 body 与 header 双源真相）；`space_id` 移入 `service_binding_ref` 内部，与其它服务绑定快照字段一起验证。发送方与接收方 MUST 使用新形态。
+
+请求示例（非完整 schema；`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
 
 ```json
 {
-  "origin": "did:web:server-alpha.com",
-  "destination": "did:web:server-beta.com",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "service_binding_ref": {
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "space_policy_hash": "sha256:...",
     "membership_frontier": ["cx:event:..."],
     "destination_service_type": "principal_server",
@@ -188,7 +193,7 @@ sequenceDiagram
     Cli->>Alpha: 提交 signed Event 到 Space S
     Alpha->>Pol: 解析应接收的 Principal Server
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(space_policy_hash / membership_frontier / reducer_profile_hash)
-    Alpha->>Beta: POST /federation/push-operations<br>HTTP Message Sig (RFC 9421)<br>Source-Service-DID / Destination-Service-DID<br>Content-Digest / events 数组
+    Alpha->>Beta: POST /api/v1/events (cx.events.submit)<br>HTTP Message Sig (RFC 9421)<br>Source-Service-DID / Destination-Service-DID<br>Content-Digest / service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. anchor_ref / Lattice precondition
     Beta-->>Alpha: 200 + accepted / rejected / quarantine
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
@@ -202,38 +207,47 @@ sequenceDiagram
 
 ### 4.1.1 批量推送与幂等
 
-Contrix v1 联邦推送只定义 `POST /federation/push-operations` 一个 endpoint：
+Contrix v1 联邦推送 **复用** `POST /api/v1/events`（`cx.events.submit`）一个 endpoint，认证侧由 service signature header 区分；不再定义独立 `/federation/*` path：
 
-- 幂等以 `(origin, destination, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 返回 `accepted[]` 而非报错，内容不一致 MUST 拒绝（参见 4.3 节）。
-- 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Hash` 与 `Idempotency-Key` header（详见 8.5 节），不引入额外的 path 事务 ID。
+- 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 返回 `accepted[]` 而非报错，内容不一致 MUST 拒绝（参见 §4.3）。
+- 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Hash` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
 - `quarantine[]` 项 SHOULD 放入 `rejected[]` 并附 `reason_code=quarantined`，或由实现扩展响应 schema。
-- 持续同步、批量重试和 frontier 交换通过组合 `push-operations`、`pull-operations`（4.2 节）与 frontier exchange（4.5 节）完成；无需额外的有状态事务 endpoint。
+- 持续同步、批量重试和 frontier 交换通过组合 `cx.events.submit`（推送，本节）、`cx.events.query`（拉取 / backfill，§4.2）与 frontier exchange（§4.5）完成；无需额外的有状态事务 endpoint。
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
-当节点发现自己的因果图中存在缺失（`prev_refs` 或 `refs[role=authorized_by]` 引用了本地没有的 Event）时，可以主动向源 Principal Server 或源 Events API 拉取：
+当节点发现自己的因果图中存在缺失（`prev_refs` 或 `refs[role=authorized_by]` 引用了本地没有的 Event）时，可以主动向源 Principal Server 或源 Events API 拉取。**v1 联邦 pull 复用 `cx.events.query`**（`GET /api/v1/events`），通过 `before=<cursor>` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
 
 ```
-GET /api/v1/federation/pull-operations?space_id=cx:space:...&after_cursor=...&limit=100
+GET /api/v1/events?spaces=cx:space:...&before=<cursor>&limit=100
 Host: server-alpha.com
+Source-Service-DID: did:web:server-beta.com
+Destination-Service-DID: did:web:server-alpha.com
+Signature-Input: ...
+Signature: ...
 ```
 
-请求字段：
+请求字段（query；完整参数集与默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)）：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `space_id` | query | `id` | required | 请求回补的 Space。 |
-| `after_cursor` | query | `cursor` | optional | 从该 cursor 之后拉取；缺省时由服务策略决定起点。 |
-| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
+| `spaces` | query | `id[]` | required | 请求回补的 Space。 |
+| `before` | query | `cursor` | conditional | 取该 cursor *之前*（排除）的最近一批；历史 backfill 主用例。`before` 与 `after` 至少给其一，否则服务端按隐式 `before=<server_head>` 处理。 |
+| `after` | query | `cursor` | conditional | 取该 cursor *之后*（排除）的最近一批；catch-up 场景使用。 |
+| `order` | query | `enum(default, ascending, descending)` | optional | 联邦 pull 默认沿用 §3.3 "近邻先返回" 规则——仅 `before` 时 descending，仅 `after` 时 ascending；reducer-导向场景显式 `order=ascending`。 |
+| `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值（见 [`scalability-constraints.md`](../conformance/scalability-constraints.md)）。 |
 
-响应字段：
+响应字段（与单域 `cx.events.query` 响应同源；联邦特化的 `snapshot_bootstrap` 是 optional 加速返回）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `events` | `object[]` | required | Event Envelope 数组；每项 MUST 保持原始签名信封。 |
-| `snapshot_bootstrap` | `object` | optional | 可选的快照加速返回；如有则接收方 MUST 校验签名并验证 frontier 一致性后才可使用。 |
-| `next_cursor` | `cursor` | optional | 下一页 cursor。 |
-| `has_more` | `boolean` | required | 是否还有更多可见 Event。 |
+| `events` | `object[]` | required | Event Envelope 数组；每项 MUST 保持原始签名信封。批次内顺序按 `order` 规则与"近邻先返回"默认（[`service-http-binding.md` §3.3.3](./service-http-binding.md)）。 |
+| `snapshot_bootstrap` | `object` | optional | 可选的快照加速返回；如有则接收方 MUST 校验签名并验证 frontier 一致性后才可使用。详见 §9.1。 |
+| `prev_cursor` | `cursor` | optional | 朝**更旧事件**方向的延续位置；下次请求传入 `before=<prev_cursor>` 继续历史 backfill。 |
+| `next_cursor` | `cursor` | optional | 朝**更新事件**方向的延续位置；下次请求传入 `after=<next_cursor>` 继续 catch-up。 |
+| `has_more` | `boolean` | required | 是否仍有可拉取的 Event；客户端到达 oldest accessible event 时 `false`。 |
+
+> **关于旧 endpoint `GET /api/v1/federation/pull-operations`**：v1 之前的草案曾定义独立 federation pull endpoint。v1 已合并到 `cx.events.query`；旧 endpoint 不应再被实现或文档。`snapshot_bootstrap` 字段仍以 optional 形式出现在 `cx.events.query` 响应中（仅 service-to-service 调用、Space policy 显式允许时）。
 
 `snapshot_bootstrap` 字段（存在时）：
 
@@ -381,14 +395,14 @@ GET https://<domain>/.well-known/contrix/server
 - 失败缓存必须短 TTL 或指数退避，避免一次临时故障长期破坏跨域同步。
 - service delegation 被撤销、DID Document key log 更新或 Space policy 变更时，本地缓存必须按版本 / hash 失效。
 
-## 7. 联邦请求复用 Sync / Events API
+## 7. 联邦请求 vs 单域 client 请求
 
-v1 已合并联邦 API 与 Sync / Events API：联邦对端不再需要独立 `/federation/*` 端点，所有联邦行为通过现有 Sync / Events 端点 + service-level 认证完成。
+v1 联邦与单域 client 请求共享同一组 events / sync / identity 端点；区别仅在认证层（service signature + DID header vs user session / device proof）。本节给出对照速查表；wire 细节见 §4.1 / §4.2 与 [`service-http-binding.md`](./service-http-binding.md)。
 
 | 联邦行为 | 复用端点 | 认证模式差异 |
 | --- | --- | --- |
 | 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` header；Space policy 必须列出 source service DID 为合法 federation peer。 |
-| 跨域 backfill / 拉取缺失历史 | `GET /api/v1/events?direction=backward`（`cx.events.query`） | 同上。 |
+| 跨域 backfill / 拉取缺失历史 | `GET /api/v1/events?before=<cursor>`（`cx.events.query`） | 同上。 |
 | 跨域 Space 成员视图 | `GET /api/v1/events`（`cx.events.query`） + `cx.member.state` 过滤 | 同上；服务端按 Space policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 actor / DID 验证 | `POST /api/v1/identity/resolve`（`cx.identity.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
@@ -407,18 +421,18 @@ Request-Canonical-Hash: sha256:...
 ### 7.2 跨域 Backfill
 
 ```
-GET /api/v1/events?spaces=<id>&direction=backward&from=<cursor>&limit=<n>
+GET /api/v1/events?spaces=<id>&before=<cursor>&limit=<n>
 Authorization: <service_signature>
 ```
 
-字段定义见 4.2 节；service operation id 为 `cx.events.query`，`direction=backward` 用于回填历史。空间历史按 Space policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/sync/snapshot-head` 单独获取。
+字段定义见 §4.2；service operation id 为 `cx.events.query`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Space policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/sync/snapshot-head` 单独获取。
 
 ### 7.3 查询 Space 成员
 
 跨域参与方查询某 Space 成员视图时，使用 `cx.events.query` 并过滤 `kind=cx.member.state`：
 
 ```
-GET /api/v1/events?spaces=<id>&kinds=cx.member.state&from=<cursor>&limit=<n>
+GET /api/v1/events?spaces=<id>&kinds=cx.member.state&before=<cursor>&limit=<n>
 Authorization: <service_signature>
 ```
 
@@ -565,7 +579,7 @@ Authorization: <service_signature>
 
 联邦场景下，Principal Server 之间应支持基于快照的快速恢复（snapshot-assisted bootstrap），否则首次加入或大范围缺失时会退化为全量历史回放，影响可用性。实现层面：
 
-在 `GET /api/v1/federation/pull-operations` 返回中，应在可用时提供 `snapshot_bootstrap`（可选字段）：
+在 `GET /api/v1/events?before=<cursor>`（`cx.events.query` 联邦 pull 形态）响应中，服务端 SHOULD 在可用时提供 `snapshot_bootstrap`（可选字段）：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |

@@ -304,8 +304,11 @@ POST /api/v1/events/batch-get
 ### 4.5 列出 / 回填 Event
 
 ```text
-GET /api/v1/events?actor_id=<did>&space_id=<id>&cursor=<cursor>&limit=<n>
+GET /api/v1/events?actors=<did>&spaces=<id>&before=<cursor>&limit=<n>    # 历史 backfill
+GET /api/v1/events?actors=<did>&spaces=<id>&after=<cursor>&limit=<n>     # catch-up
 ```
+
+参数完整定义与"近邻先返回"默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)。
 
 用于：
 
@@ -334,7 +337,7 @@ Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snap
 
 事件流读取统一在：
 
-- `GET /api/v1/events?spaces=...&direction=...&from=...`（`cx.events.query`，双向 cursor）
+- `GET /api/v1/events?spaces=...&before=...` 或 `&after=...`（`cx.events.query`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
 - `GET /api/v1/events/subscribe?spaces=...&include_history=...`（`cx.events.subscribe`，含历史 catchup 与多 space 一次订阅）
 
 实现不得把账号聚合 (`/sync`) 和裸事件读 (`/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
@@ -623,7 +626,7 @@ Contrix v1 的首次加入流程：
 3. 从 DID Document 和 Space policy 发现 Principal Server / identity registry / events / sync / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Space metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?direction=backward`（`cx.events.query`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态

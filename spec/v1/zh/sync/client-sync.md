@@ -18,7 +18,7 @@ Authorization: Bearer <session_token>
 Content-Type: application/json
 ```
 
-该端点对应 `cx.sync.account`。它聚合跨 Space delta、to_device、account_data、device_lists、presence；不同于 `GET /api/v1/events/subscribe`（按 selector 的事件流订阅）和 `GET /api/v1/events?direction=...`（按 selector 的双向历史查询）。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `cx.sync.*`，事件读取在 `cx.events.*`。
+该端点对应 `cx.sync.account`。它聚合跨 Space delta、to_device、account_data、device_lists、presence；不同于 `GET /api/v1/events/subscribe`（按 selector 的事件流订阅）和 `GET /api/v1/events?before=...` / `?after=...`（按 selector 的双向历史查询）。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `cx.sync.*`，事件读取在 `cx.events.*`。
 
 请求字段：
 

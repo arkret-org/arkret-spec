@@ -224,6 +224,122 @@ Cache-Control: public, immutable, max-age=31536000
 - 预览 URL、尺寸、MIME、文件名和 unsafe 标记都必须服从 Space policy 与 capability，不能绕过正文授权。
 - 缩略图必须重新绑定源 blob、生成参数、生成服务 DID 和可见性；删除、撤回、保留策略或 legal hold 改变时，派生内容必须随源内容重新判定。
 
+### 5.4 Pre-Signed URL（浏览器原生标签兼容性例外）
+
+§5 与 [`server-threat-model.md` §S21](../security/server-threat-model.md) 规定受保护下载 MUST NOT 接受 query string 中的认证材料。该规则的存在原因是 query string 会被 HTTP access log、代理、CDN、浏览器历史、复制链接和 `Referer` 头无差别记录，长期 capability 一旦落入 URL 即等价于失控。
+
+然而浏览器原生媒体标签（`<img src>`、`<video src>`、`<audio src>`、`<link href>`、CSS `background-image: url(...)`、`fetch()` 默认 mode 等）**无法附加 `Authorization` header**。若严格执行"无 URL 认证"规则，受保护媒体只能通过 service worker 代理或 JS Blob URL 间接渲染——这在很多原生体验、邮件预览、跨页面共享场景中是死路。
+
+为此 v1 定义 **`cx.blob.presign`** 作为该规则的**狭窄定制例外**：发出短 TTL、单对象、只读、可撤销的 pre-signed URL，让浏览器原生标签直接使用，同时通过严格 scope 限制把 URL 泄露的最大损失收敛在一个具体 blob 的短时间访问。
+
+#### 5.4.1 流程
+
+```text
+1. 客户端 → POST /api/v1/blob/presign
+   body: { blob_ref, max_age_seconds?, purpose? }
+   auth: Authorization (standard bearer / service signature)
+
+2. 服务端 (cx.blob.presign capability 通过后):
+   - 生成 presign envelope (见 §5.4.2)
+   - 用 blob service DID 签名
+   - 返回 url、expires_at
+
+3. 浏览器 / 客户端:
+   <img src="<url with embedded presign=...>" />
+   → GET /api/v1/blob/get?blob_ref=...&presign=...
+   → 服务端验证 presign envelope 后吐 bytes
+```
+
+#### 5.4.2 Presign envelope wire 形态
+
+`presign` query 参数的值是 base64url 编码的 detached-JWS envelope，覆盖 canonical JSON：
+
+```json
+{
+  "scheme": "cx.blob.presign.v1",
+  "blob_ref": "cx:blob:sha256:0123456789abcdef...",
+  "issuer_service_did": "did:web:blob.acme.example",
+  "issued_at": "2026-05-18T10:00:00Z",
+  "expires_at": "2026-05-18T10:05:00Z",
+  "purpose": "media_inline",
+  "audience_hint": "did:webvh:Qm...:alice.example",
+  "nonce": "base64url:random_16_bytes",
+  "scope": {
+    "method": ["GET", "HEAD"],
+    "byte_range": null
+  }
+}
+```
+
+字段约束：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `scheme` | yes | 固定 `cx.blob.presign.v1`；未来版本 MUST 用新 scheme id（不接受 in-place 升级） |
+| `blob_ref` | yes | 单一 blob 引用；与请求 `?blob_ref=` 必须完全匹配 |
+| `issuer_service_did` | yes | 签发该 presign 的 blob service DID；MUST 是被部署 trust 的 service DID |
+| `issued_at` / `expires_at` | yes | TTL 硬上限 1h；deployment SHOULD 默认 ≤ 5 min |
+| `purpose` | yes | `media_inline` / `thumbnail` / `download`；服务端按 purpose 决定 `Content-Disposition`、限流强度等 |
+| `audience_hint` | optional | 期望使用者 DID（仅 hint，不强制；浏览器侧无法证明） |
+| `nonce` | yes | 16+ bytes 随机；服务端 SHOULD 记录已消费 nonce 以阻止 replay 直至 `expires_at` |
+| `scope.method` | yes | 仅允许 `GET` / `HEAD` 中的子集；MUST NOT 包含写方法 |
+| `scope.byte_range` | optional | 可限制可访问字节区间（如 `[0, 65536]` 仅头部） |
+
+#### 5.4.3 接收方校验
+
+`GET /api/v1/blob/get?blob_ref=X&presign=<envelope>` 处理时：
+
+1. **互斥检查**：`Authorization` header 与 `?presign=` 同时出现 MUST 拒绝 `invalid_param`，避免混合 auth 模式
+2. **签名校验**：用 envelope 内 `issuer_service_did` 当前 verification method 验证签名
+3. **scheme 校验**：仅识别注册 scheme id（v1 = `cx.blob.presign.v1`）；未知 scheme MUST 拒绝
+4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同
+5. **method 校验**：本次请求方法在 envelope `scope.method` 列表内
+6. **TTL 校验**：`now() ∈ (issued_at, expires_at)`；含合理 clock skew tolerance（如 ±30s）
+7. **nonce 校验**：未在已消费列表 / 撤销列表内（实现 SHOULD 用 bloom filter / 短 TTL set 防 replay）
+8. **撤销校验**：blob 已被 redaction / erasure 处理时即便 envelope 仍有效也 MUST 拒绝
+9. **可见性校验**：blob 在签发 presign 时刻可见，且在响应时刻仍**对签发 issuer 控制的 audience 可见**；以本次请求时刻为准（防止 presign 持续可用而源 blob 被 ban）
+
+任何校验失败 MUST 返回 `not_found`（不区分 envelope 无效 vs blob 不可见，避免暴露存在性）；服务端 MAY 在 audit log 中记录具体 `reason_code` 如 `presign_invalid` / `presign_expired` / `presign_scope_mismatch`。
+
+#### 5.4.4 安全约束
+
+**MUST**：
+
+- TTL ≤ 1h（硬上限）；deployment policy MAY 收紧到更短
+- 单 blob，不接受通配
+- 仅读（GET / HEAD），不接受 PUT / POST / DELETE
+- envelope 不得包含可重用 credential（refresh token、session token、long-lived capability 等）
+- envelope 由 blob service DID 签发，**不能**由 user device key 签发——这是 server-issued capability，不是 user delegation
+- 已 revoked / redacted / erased blob 即使 envelope 仍有效 MUST 拒绝
+- presign URL 不得通过普通 redirect / 反向代理透传到第三方 origin
+
+**MUST NOT**：
+
+- 用于 E2EE 附件 ciphertext fetch — E2EE 附件的 `blob_ref` + decryption key 都不应出现在服务端可记录的 URL；E2EE 客户端坚持 header auth 路径，由 client-side `fetch()` 配合 `Authorization` 完成
+- 用于 `cx.blob.upload`、`cx.blob.head` 之外的任何写或副作用操作
+- 由 user device 凭 capability 自签自用（必须经过 `cx.blob.presign` operation 走一次服务端签发，进 audit log 与 capability check）
+
+**SHOULD**：
+
+- deployment 对 presign 签发频率限流（按 issuer service DID + 请求方 actor），防止滥用作为隐蔽 oracle
+- audit log 记录每次签发（actor、blob_ref、purpose、TTL、issuer）以便事后追溯
+- 客户端 SHOULD 优先用 header auth；仅在浏览器原生标签场景使用 presign
+
+#### 5.4.5 与 capability 的衔接
+
+`cx.blob.presign` capability action（risk_tier=medium）控制谁可以**为某 blob 签发 presign**。grant 上的两个 constraint 收紧使用范围：
+
+- `blob_presign_max_ttl_seconds`：grant 允许的最大 TTL 上限（硬上限不超过 3600）
+- `blob_presign_scope`：grant 允许的 purpose 集合（`media_inline` / `thumbnail` / `download`）与可选 blob_ref pattern（按 Space / purpose 细分）
+
+服务端在 `cx.blob.presign` 调用时按 grant constraint 收窄请求的 `max_age_seconds` / `purpose`；超过 constraint 返回 `capability_denied`。
+
+#### 5.4.6 与 §5.2 / §5.3 的关系
+
+- §5 仍是 **认证下载默认路径**；pre-signed 仅作为 §5 的 narrow 例外
+- §5.2 redirect / `Location` 头的"短期 signed download URL"语义可以由 `cx.blob.presign` 实现，但 redirect URL MUST 同样满足 §5.4 全部约束
+- §5.3 缩略图通常通过 `purpose=thumbnail` presign 让 `<img>` 直接渲染；服务端 SHOULD 设更短 TTL（默认 ≤ 60s）
+
 ## 6. Asset Privacy Policy
 
 私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Space SHOULD 使用 `cx.space.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求：
