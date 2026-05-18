@@ -42,6 +42,42 @@
 
 ## [Unreleased]
 
+### Watch / 通知订阅模型作为专用 `cx.flow.watch.set` event + 派生 `watches` Relation（2026-05-18）
+
+Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.watchers` 数组表达，结构上和 ACL 易混；早期 prose 在 [flow-and-message.md §4.3](spec/v1/zh/models/flow-and-message.md) 提到 "watchers" 但未给出 wire 形态。本轮把 watch 模型正式登记为：
+- 专用 durable event `cx.flow.watch.set`（writes cas-register cell `cx.component.flow.watch.v1`）—— 完全机器可发现；
+- `watches` Relation（`actor --watches--> flow`）作为该 cell 的**派生投影**，直接 `cx.relation.create` 写入 MUST schema_violation（与派生 `contains` Relation 同模式）；
+- 明确"watch 决定通知是否发生，push rule 决定通知如何投递"的两层职责，并把 `muted` 强约束实现自由度（pre-engine short-circuit / 内置 deny rule / 用户显式 rule 三种等价）写清楚。
+
+- **变更类型**: add（standard event_kind + cell family + payload schema + capability actions + push-rule condition）
+- **影响 artifact**: `contract-catalog.json`（canonical 源）、`event-kind-registry.json`、`capability-action-registry.json`、`event-schema.json`（新增 `flow_watch_set_payload`）、`relation.md`、`flow-and-message.md`、`push-notifications.md`、`private-objects.md`、`spec-map.md`、`capabilities.md` §5.3/§5.4 capability 列表、`conformance/schema-registry.md` event 表、`sync/operations-sync.md` §7.2 Flow event 分类
+- **canonical 变更**:
+  - `contract-catalog.json` 新增 event_kind `cx.flow.watch.set`（category=discussion, lattice=cas-register, bottom=reject, cell_family=`cx.component.flow.watch.v1`, cell_subject=tuple(flow_id, actor_did)）。
+  - `event-schema.json` 新增 `flow_watch_set_payload` $def（字段：`flow_id`、`actor_did`、`level ∈ {mentions_only, participating, all, muted, null}`（**required**，`null` 表示清空 cell）、`level_public`（conditional：仅在 `level` 非 null 时允许出现）、`expected_value` 用作 cas `head_eq`，**whole-value compare**——形如 `null | {level, level_public?}`，与 cell value 完全同形）并接入 `kind=cx.flow.watch.set` 分支。Schema 用 `allOf` if/then 强制 `level=null ⇒ level_public 省略`，消除 `{level_public: true}` 单独出现的歧义。
+  - `contract-catalog.json` capability actions 新增 `cx.flow.watch.set`（discussion, low risk_tier，普通成员默认 bundle）、`cx.flow.watch.manage_others`（discussion, medium risk_tier，target_event_kinds=[cx.flow.watch.set]）、`cx.space.notification.audit`（governance, high risk_tier，纯 read，target_event_kinds 为空）。
+  - `models/flow-and-message.md` 新增 §8（Watch 与通知订阅）9 个子节：概念边界 / 级别枚举 / cell basis + 写入事件 / 写入授权 / 投影脱敏（含 audit 闭环要求 `cx.space.notification.audit` + `cx.audit.accessed` 双 capability）/ Agent 例外 / 隐含订阅 / push rule 引擎关系 / `discussion_space_ref` 场景。原 §8（Message）顺移为 §9，原 §9（规范性引用）顺移为 §10。
+  - §4.3 / §4.4 中既有 `watchers` 措辞替换为 `watches` 并指向 §8。
+  - `models/relation.md` §3.1 标准 kind 列表加入 `watches`；§3.2 cardinality 表新增 `actor (did) -> flow` 行，明确标注**派生投影 / not directly writable**，truth source 是 `cx.flow.watch.set` + cell。
+  - `discovery/push-notifications.md §4.3` condition table 新增 `watch_state` kind（server-side, supports glob and multi-value）；§4.3.2 增补"两层职责"叙述、`muted` 强约束三种等价实现路径（pre-engine short-circuit / 内置 deny rule / 用户显式 override rule）。
+  - `models/relation.md` 与 `models/private-objects.md` 中既有 `[flow-and-message.md §8.7]` / `§8.6` 引用同步重定向到 `§9.7` / `§9.6`。
+  - 人类可读 registry 同步：`authz/capabilities.md` §5.3 / §5.4 把 `cx.flow.watch.set`、`cx.flow.watch.manage_others`、`cx.space.notification.audit` 加入对应分类列表；`conformance/schema-registry.md` event 表加入 `cx.flow.watch.set`；`sync/operations-sync.md` §7.2 Flow event 分类列表加入 `cx.flow.watch.set` 并补叙述指向 §8 truth source 规则。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 重新生成 `capability-action-registry.json` / `event-kind-registry.json`；`event-schema.json` enum 覆盖完整（事件计数 146 → 147）。`relation.schema.json` 的 `relation_kind` 是开放 string，不需要新增 enum 值。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.chat_mvp.v1`、`cx.profile.kanban_mvp.v1`（任何承载 Flow + Message 的实现都可声明该 relation 的支持）。
+  - profile tier 变化: 无；watch 模型在 v1 保持 opt-in，不强制为 chat_mvp 必需。
+  - wire 兼容性: backward-compatible —— 新增 event kind / capability action 不影响既有 wire；不识别 `cx.flow.watch.set` 的实现按 unknown event 处理。但若声明支持，MUST 遵守投影脱敏、`muted` 短路、audit capability 双持有规则。
+  - reader / writer 行为要求:
+    - Writer: 通知订阅 MUST 通过 `cx.flow.watch.set` durable event 写入，不得通过 Flow `fields.participants` / `fields.watchers` 双写、也不得通过 `cx.relation.create relation_kind=watches`；后两者 wire 上 MUST 被 reducer 拒绝（与既有 `fields.rank` 与派生 `contains` Relation 同模式）。`level` 取四值枚举之一或 `null`；其它值 MUST schema_violation。
+    - Reducer: `payload.actor_did == envelope.actor_id` 默认强制；除非 actor 持有 `cx.flow.watch.manage_others`。`muted` 在 projection / push 派发上 MUST 与"无记录"对外不可区分。审计读取必须同时校验读取方持有 `cx.space.notification.audit` **与** `cx.audit.accessed`；缺其一时 `failed_precondition`（`reason="audit_capability_incomplete"`）。
+    - Sync Service: notification dispatch 顺序 = (1) 解析 receiver effective watch level + 隐含订阅 → (2) 应用 `muted` 短路（pre-engine 或 built-in deny rule 二选一，dispatch 输出等价）→ (3) 评估用户 push rule。
+- **fixture / vector 变化**: 暂未生成专用 conformance vector；下一轮 spec round 计划补 `flow-watch-level-projection-fixture.json` 覆盖四象限投影脱敏、muted 短路三种等价路径、audit capability 双持有校验。
+- **prose 同步**: 见 "canonical 变更" 段列出的五份 prose 文档。
+- **迁移指南**:
+  - 客户端实现（如 yougen）需要把"新建 discussion 时添加用户"的 UI 从写 Flow `fields.participants` 改为提交 `cx.flow.watch.set` event；label 从 "Add users" 改为 "Add watchers" 并增加"不影响访问控制"提示。
+  - 服务端实现：projection layer 在响应 Flow watcher 列表 / "我的订阅" 查询时 MUST 按 §8.5 表脱敏；`muted` 永远不可见给非自己 / 非 audit 持有方。audit 读取路径 MUST 校验 `cx.space.notification.audit` + `cx.audit.accessed` 双持有；缺一律 fail-closed 并产生 `cx.audit.accessed` 写入（先写后读模型）。
+  - notification dispatcher：实现 §8.7 "隐含订阅 union 显式 watch cell, muted 显式覆盖" 的求值顺序；`muted` 短路具体走 pre-engine 或 built-in deny rule 由实现自行选择，wire 上等价。
+  - 外部文档若引用 `flow-and-message.md` §8 / §9：§8 现指向 Watch 章节、原 Message 章节顺移为 §9、原 规范性引用 顺移为 §10。本仓库内的引用（relation.md / private-objects.md）已同步。
+
 ### Conformance profile matrix 覆盖 cotest registry/vector gates（2026-05-17）
 
 - **变更类型**: add

@@ -37,7 +37,7 @@ Schema id: `cx.schema.read_marker.v1`
 
 ### 2.3 行为规则
 
-- Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [flow-and-message.md §8.6](./flow-and-message.md)）。
+- Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [flow-and-message.md §9.6](./flow-and-message.md)）。
 - Discussion 时间线与父 Space 在 read receipt policy 上需要分离时，**不**通过 track 级别 override（v1 已删除该 hybrid），而是把 discussion 升级为独立 child Space（参见 `Flow.discussion_space_ref`，[flow-and-message.md §5](./flow-and-message.md)），由 child Space 自己声明 `cx.space.read_receipt_policy`。
 
 ## 3. Notification

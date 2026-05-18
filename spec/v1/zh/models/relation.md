@@ -53,7 +53,7 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 ```text
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
 assigned_to, references, derived_from, attached_to, has_default_view,
-summarized_from, promoted_from_discussion
+summarized_from, promoted_from_discussion, watches
 ```
 
 > **Reserved for extension profiles**：早期草案曾把 `produced` / `used` / `triggered_by` / `has_log` 列为标准 kind，但 v1 没有任何 schema/profile/fixture 定义其 from/to 类型、基数或 capability action，无法支撑互操作。这些名字在 v1 wire 上视为**未注册的 relation_kind**——实现遇到时 SHOULD 保留为不透明边并在 projection 层标记 `unknown_relation_kind`，**MUST NOT** 据此自动推断容器、依赖或可见性语义。它们保留为未来 agent workflow extension profile 的候选名，profile 注册前 producer 不应使用。
@@ -70,6 +70,7 @@ summarized_from, promoted_from_discussion
 | `depends_on`, `blocks` | `many_to_many` | 按 `(space_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
 | `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。 |
 | `assigned_to` | `many_to_many` | 一个 Flow MAY 同时分配给多个 Actor；同一 Actor 只保留一条 active assignment edge。需要单负责人语义时，Space schema/profile MUST 声明 `max_to_per_from=1` 或单独的 owner relation。 |
+| `watches`：`actor (did) -> flow` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Flow（或 profile 声明的 watchable 对象）。**Truth source 是 cas-register cell `cx.component.flow.watch.v1`，写入路径是 `cx.flow.watch.set` durable event，不是 `cx.relation.create`**——直接 `cx.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./space-and-place.md` §4.6](./space-and-place.md)）。写入 invariant：`payload.actor_did == envelope.actor_id`，除非 actor 持有 `cx.flow.watch.manage_others` capability。级别枚举、投影脱敏、通知路由见 [flow-and-message.md §8](./flow-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Space 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(space_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
@@ -165,7 +166,7 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 
 - **Flow**：见 [flow-and-message.md §7](./flow-and-message.md)。
 - **Place**（Board / List）：见 [space-and-place.md §4.9](./space-and-place.md)。
-- **Message**：见 [flow-and-message.md §8.7](./flow-and-message.md)。
+- **Message**：见 [flow-and-message.md §9.7](./flow-and-message.md)。
 - **Morph**：业务自定义关系，由 Space schema / Morph profile 声明。
 
 ## 8. 规范性引用

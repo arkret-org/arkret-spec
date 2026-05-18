@@ -106,7 +106,7 @@ title: Spec Map
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/space-and-place.md` | Space（security boundary）、Place（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Place lifecycle / cas-register / cascade。 |
-| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`discussion_space_ref`、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`discussion_space_ref`、Watch / 通知订阅模型（`watches` Relation + cas-register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
 | `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Space 规则、RelationProfile、冲突处理。 |
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |

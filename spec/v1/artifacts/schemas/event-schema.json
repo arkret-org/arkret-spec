@@ -268,6 +268,15 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.flow.watch.set" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "#/$defs/flow_watch_set_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": { "kind": { "const": "cx.flow.track.enable" } },
         "required": ["kind"]
       },
@@ -1350,6 +1359,70 @@
         }
       },
       "additionalProperties": false
+    },
+    "flow_watch_set_payload": {
+      "type": "object",
+      "description": "Payload for cx.flow.watch.set. Writes the (flow_id, actor_did) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariant: actor_did MUST equal envelope.actor_id unless writer holds cx.flow.watch.manage_others. See models/flow-and-message.md §8.",
+      "required": [
+        "flow_id",
+        "actor_did",
+        "level"
+      ],
+      "properties": {
+        "flow_id": { "$ref": "#/$defs/flow_id" },
+        "actor_did": { "$ref": "#/$defs/did" },
+        "level": {
+          "type": ["string", "null"],
+          "enum": [
+            "mentions_only",
+            "participating",
+            "all",
+            "muted",
+            null
+          ],
+          "description": "Watch level. Required. null clears the cell (equivalent to mentions_only / no record); in that case level_public MUST be omitted."
+        },
+        "level_public": {
+          "type": "boolean",
+          "description": "Opt-in publication of the level value to non-self projection consumers. Default false. muted MUST NOT be exposed even with level_public=true. MUST be omitted when level is null."
+        },
+        "expected_value": {
+          "description": "Compiles to cas-register head_eq precondition. Whole-value compare against the cell pre-state: either null (assert no prior record) or { level, level_public? } matching the prior cell value exactly. Omit to disable CAS guard (last-write-wins within causal order).",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["level"],
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "mentions_only",
+                    "participating",
+                    "all",
+                    "muted"
+                  ]
+                },
+                "level_public": { "type": "boolean" }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "description": "level_public MUST be omitted when level is null (clearing a cell does not carry a public-level setting).",
+          "if": {
+            "properties": { "level": { "type": "null" } },
+            "required": ["level"]
+          },
+          "then": {
+            "not": { "required": ["level_public"] }
+          }
+        }
+      ]
     },
     "flow_track_enable_payload": {
       "type": "object",

@@ -199,6 +199,8 @@ Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管
 - `cx.reaction.remove`
 - `cx.flow.track.read`
 - `cx.flow.track.admin`
+- `cx.flow.watch.set`（写入自己的 watch 订阅，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）
+- `cx.flow.watch.manage_others`（为他人写入 watch 订阅，绕过 `payload.actor_did == envelope.actor_id` 自写约束，target=`cx.flow.watch.set`）
 
 ### 5.4 管理动作
 
@@ -207,6 +209,7 @@ Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管
 - `cx.space.upgrade`
 - `cx.space.moderate`
 - `cx.flow.admin`
+- `cx.space.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `cx.audit.accessed` 同时持有，详见 [`../models/flow-and-message.md` §8.5](../models/flow-and-message.md)）
 - `cx.schema.define`
 - `cx.schema.update`
 - `cx.capability.grant`

@@ -117,6 +117,7 @@ sidebar:
 | `cx.flow.track.disable` | Disable Flow track |
 | `cx.flow.track.update` | Flow track patch |
 | `cx.flow.track.set_primary` | Set Flow primary track |
+| `cx.flow.watch.set` | Set / clear per-(flow, actor) watch subscription (writes cas-register cell `cx.component.flow.watch.v1`; derives `watches` Relation) |
 | `cx.place.create` | Place create (board / list / swimlane / calendar bucket / ...) |
 | `cx.place.update` | Place metadata patch |
 | `cx.place.parent` | Place parent declaration (cas-register cell) |

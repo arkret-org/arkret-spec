@@ -156,6 +156,7 @@ POST /api/v1/push/unregister-device
 | `is_direct_message` | server-side | 来自 1 对 1 私聊 Space（可由 Space metadata 或成员数判断，不需要解密）|
 | `member_count` | server-side | Space 成员数满足条件（如 `<= 5`），可由 metadata 判断 |
 | `flow_track` | server-side | Event 关联的 Flow track 名匹配给定 pattern（如 `synthesis`、`discussion`，支持 glob）。Track 名是 Flow 的公开配置 metadata，不属于 E2EE 正文 → server 端可在不解密内容的前提下评估 |
+| `watch_state` | server-side | Event 关联 Flow 的 receiver-side watch level 匹配给定 pattern（取值 `mentions_only` / `participating` / `all` / `muted`，支持 glob 与多值数组）。watch level 来自 receiver 自己的 watch cell + 隐含订阅（[`../models/flow-and-message.md` §8.7](../models/flow-and-message.md)）；cell value 由 server 直接读取，无 E2EE 降级。`muted` MUST 收敛到 `dont_notify`，实现路径见 §4.3.2 |
 
 每条 rule MUST 在 wire 上声明其 `evaluation_locus` 为 `server` 或 `client`。Sync Service 只在 `server` rule 上做匹配；`client` rule 的语义由本节 §4.5 定义的降级流程承担。
 
@@ -203,6 +204,57 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 ```
 
 第二条规则把 `mentions_actor` 与 `flow_track` 复合：在 cleartext Space 中 server 直接评估；在 E2EE Space 中 server 看到 `flow_track=discussion` 但无法解密 mention，按 §4.5 走 client-side 降级——即先按 Space 级 `wakeup_default` 唤醒，client 解密后再决定是否进入用户感知通知 surface。规则书写者无需手动区分两种 Space，`evaluation_locus: client` 已经声明了降级路径。
+
+#### 4.3.2 `watch_state` 与订阅偏好
+
+`watch_state` condition 用 receiver 的 watch level（[`../models/flow-and-message.md` §8](../models/flow-and-message.md)）做 server-side 匹配。Watch level 由 Sync Service 直接读取 receiver 在该 Flow 的 watch cell + 隐含订阅集合（assigned_to / self-posted），不需要解密正文，因此即使在 E2EE Space 也是 `evaluation_locus: server`。
+
+**两层职责**：
+
+- **Watch level 决定"通知是否发生"**：Sync Service 在派发前解析 receiver effective level（含 §8.7 隐含订阅、`muted` 覆盖）。effective level 为 `mentions_only` 且当前 Event 不是 mention / assigned / reply 等定向事件时，结果为 `dont_notify`。
+- **Push rule 决定"通知如何投递"**：在 watch level 允许通知发生的前提下，push rule 决定提示音、是否高亮、是否进 DND 例外等。
+
+**`muted` 强约束的实现自由度**：`watch_state=muted` MUST 收敛到 `dont_notify`，但实现可以在以下三种等价路径中任选：
+
+- (a) **Pre-engine short-circuit**：在引擎评估前直接判定 `dont_notify`，跳过整条 rule chain；
+- (b) **Built-in deny rule**：在 rule chain 最高优先级位置注入系统内置 deny rule（actor 不可写、不可禁用），由引擎匹配；
+- (c) **User-declared override rule**：用户手动写一条 `override.respect-mute` 规则，由引擎匹配。
+
+三种路径在 dispatch 输出上**不可区分**。实现 SHOULD 在 dispatch decision log 中标注 `muted_short_circuit=true` 便于排错。Sync Service 即使没有任何用户规则也 MUST 保证 muted 收敛——(a) 或 (b) 是默认实现路径，(c) 仅为可选的"可见性增强"。
+
+补充约束：
+
+- 用户希望"被 @ 仍然提醒但不要其他通知"应使用 `mentions_only`（默认即此），不要用 `muted`。
+- 隐含订阅（如 assigned_to=self）在 `watch_state` 评估时折算为 `participating`；用户可通过显式写 `muted` watch cell 屏蔽。
+
+示例（user-declared override 路径 + 显式 `all` underride）：
+
+```json
+[
+  {
+    "rule_id": "override.respect-mute",
+    "kind": "override",
+    "enabled": true,
+    "evaluation_locus": "server",
+    "conditions": [
+      { "kind": "watch_state", "pattern": "muted" }
+    ],
+    "actions": ["dont_notify"]
+  },
+  {
+    "rule_id": "underride.watching-all",
+    "kind": "underride",
+    "enabled": true,
+    "evaluation_locus": "server",
+    "conditions": [
+      { "kind": "watch_state", "pattern": ["participating", "all"] }
+    ],
+    "actions": ["notify"]
+  }
+]
+```
+
+`override.respect-mute` 在实现走 (a) / (b) 路径时是冗余声明（引擎前已短路 / 已被系统规则匹配），但 wire 上合法，用于让 dispatch trace 在审计视图中显式记录 `matched_rule="override.respect-mute"`。两种写法 dispatcher 输出一致。
 
 ### 4.4 动作类型 (Actions)
 
