@@ -323,7 +323,7 @@ Move {
   "context_anchor": {
     "source_space_id": "cx:space:<source>",
     "source_flow_id": "cx:flow:<source>",
-    "source_anchor_ref": "cx:anchor:<frontier at trigger time>",
+    "source_anchor_ref": "cx:anchor:sha256:<frontier_digest_at_trigger_time>",
     "source_frontier_hash": "sha256:...",
     "trigger_redirect_pair_id": "01964200-0000-7000-8000-aaaaaaaaaaaa"
   },
@@ -518,7 +518,7 @@ Transition event payload：
   "optional_proofs": {
     "origin_event_hash": "sha256:...",
     "origin_author_proof_ref": "cx:event:<原作者签名 event 引用>",
-    "source_frontier_ref": "cx:anchor:<导入时源 Space frontier>"
+    "source_frontier_ref": "cx:anchor:sha256:<source_frontier_digest>"
   },
   "source_export_policy_attestation": null,
   "content": { "kind": "cx.content.text", "body": "..." }
@@ -538,7 +538,7 @@ Transition event payload：
   "importer_actor_id": "did:web:alice-agent.example",
   "import_destination_space_id": "cx:space:<mirror>",
   "content_hash": "sha256:...",
-  "source_frontier_ref": "cx:anchor:...",
+  "source_frontier_ref": "cx:anchor:sha256:<source_frontier_digest>",
   "issued_at": "2026-05-17T10:00:00Z",
   "valid_until": "2026-05-17T11:00:00Z",
   "signature": "..."

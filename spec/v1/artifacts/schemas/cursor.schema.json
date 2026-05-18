@@ -110,13 +110,24 @@
   "allOf": [
     {
       "if": {
-        "properties": {
-          "purpose": {
-            "const": "barrier"
+        "allOf": [
+          {
+            "properties": {
+              "purpose": {
+                "const": "barrier"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "h"
+              ]
+            }
           }
-        },
-        "required": [
-          "purpose"
         ]
       },
       "then": {

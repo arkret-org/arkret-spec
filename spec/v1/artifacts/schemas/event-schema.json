@@ -203,6 +203,7 @@
               "cx.applet.protocol_session.status",
               "cx.applet.registration",
               "cx.audit.accessed",
+              "cx.audit.erasure_receipt",
               "cx.audit.epoch_key_destruction",
               "cx.call.recording.start",
               "cx.call.state",
@@ -388,6 +389,17 @@
       },
       "then": {
         "properties": { "payload": { "$ref": "#/$defs/flow_move_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "cx.audit.erasure_receipt" }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/erasure_receipt_payload" } }
       }
     },
     {

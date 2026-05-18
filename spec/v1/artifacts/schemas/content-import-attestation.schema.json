@@ -50,7 +50,7 @@
       "properties": {
         "origin_event_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
         "origin_author_proof_ref": { "type": "string", "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
-        "source_frontier_ref": { "type": "string", "pattern": "^cx:anchor:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" }
+        "source_frontier_ref": { "$ref": "./anchor.schema.json#/$defs/anchor_ref" }
       },
       "additionalProperties": false
     },

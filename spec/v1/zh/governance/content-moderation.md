@@ -228,14 +228,32 @@ SC = HMAC-SHA-256(
 
 `unsigned.*` MUST NOT 进入 event digest 与签名（core envelope 规则不变）；commitment binding 由 `commitment_tag` 自身覆盖 `ciphertext_digest` 与 `aad_digest` 保护——发送方对 envelope 的签名间接锁定 ciphertext，commitment 锁定 plaintext。这种分层让 core franking pipeline 不需要解释 sidecar 也能继续工作。
 
+**Presence binding（防剥离）**：因为 `unsigned.*` 不受 event digest / 签名保护，启用本 profile 的 message Event 还 MUST 在签名覆盖的 canonical payload 中加入 sidecar presence commitment：
+
+```json
+{
+  "requirements": {
+    "features": ["cx.profile.franking.sender_commitment.v1"]
+  },
+  "payload": {
+    "franking": {
+      "sender_commitment_digest": "sha256:<JCS(unsigned.franking.sender_commitment)>"
+    }
+  }
+}
+```
+
+`sender_commitment_digest` 是对 `unsigned.franking.sender_commitment` 对象按 RFC 8785 JCS canonicalize 后的 SHA-256。接收端看到 `requirements.features[]` 含 `cx.profile.franking.sender_commitment.v1` 时，MUST 要求 sidecar 存在且 digest 匹配；sidecar 缺失或 digest 不匹配时，该 Event 仍可按 core E2EE 消息处理，但 plaintext-level sender attribution MUST fail closed，reason 分别为 `sender_commitment_missing` / `sender_commitment_invalid`。这样中继或服务端剥离 sidecar 会被降级为可检测的审核能力缺失，而不是静默降低归责保证。
+
 **接收端 / 审核端校验**（reporter 提交 plaintext + envelope + claimed commitment 时）：
 
 1. 取得该 message 的 MLS epoch metadata（`mls_group_id`, `epoch`, `sender_device_id`），通过 verifier 在该 epoch 仍持有的 exporter secret 派生候选 `SCK`。
-2. 重算 `SC'` 并按 constant-time 比较 `SC' == commitment_tag`：不一致 MUST 拒绝（reason `sender_commitment_invalid`），不进入 plaintext attribution。
-3. 校验 `(sender_device_id, epoch, epoch_local_seq)` 唯一性：verifier MUST 在持久化的 `(sender_device_id, epoch)` 已见 seq 集合中检查该 `epoch_local_seq` 未出现；重复则拒绝，reason `sender_commitment_seq_replay`。不得使用单一 high-water 拒绝低于最大值但尚未见过的 seq，因为举报和审核提交可以乱序到达。
-4. 校验 `ciphertext_digest` 与 reporter 提交的 encrypted envelope 实际 digest 一致；不通过 reason `sender_commitment_ciphertext_mismatch`。
-5. 校验 `epoch` 是 reporter 提交的 envelope `sender_claim.epoch`：不一致 reason `sender_commitment_epoch_mismatch`。
-6. 上述全部通过后，verifier MAY 把该 plaintext 归因到 `sender_device_id` 在 `epoch` 内的承诺——但仍 MUST NOT 将该归因传递到 outside-of-group 的 non-repudiation 主张（profile 仍受 MLS 群密钥退出后的 deniability 边界限制）。
+2. 若 Event 声明 `cx.profile.franking.sender_commitment.v1`，校验 `payload.franking.sender_commitment_digest` 与 `unsigned.franking.sender_commitment` 的 JCS SHA-256 一致；sidecar 缺失 reason `sender_commitment_missing`，digest 不一致 reason `sender_commitment_invalid`。
+3. 重算 `SC'` 并按 constant-time 比较 `SC' == commitment_tag`：不一致 MUST 拒绝（reason `sender_commitment_invalid`），不进入 plaintext attribution。
+4. 校验 `(sender_device_id, epoch, epoch_local_seq)` 唯一性：verifier MUST 在持久化的 `(sender_device_id, epoch)` 已见 seq 集合中检查该 `epoch_local_seq` 未出现；重复则拒绝，reason `sender_commitment_seq_replay`。不得使用单一 high-water 拒绝低于最大值但尚未见过的 seq，因为举报和审核提交可以乱序到达。
+5. 校验 `ciphertext_digest` 与 reporter 提交的 encrypted envelope 实际 digest 一致；不通过 reason `sender_commitment_ciphertext_mismatch`。
+6. 校验 `epoch` 是 reporter 提交的 envelope `sender_claim.epoch`：不一致 reason `sender_commitment_epoch_mismatch`。
+7. 上述全部通过后，verifier MAY 把该 plaintext 归因到 `sender_device_id` 在 `epoch` 内的承诺——但仍 MUST NOT 将该归因传递到 outside-of-group 的 non-repudiation 主张（profile 仍受 MLS 群密钥退出后的 deniability 边界限制）。
 
 **跨 epoch 与 forward secrecy**：MLS epoch 推进后，旧 epoch 的 exporter secret 被 MLS 协议销毁；verifier 若未在该 epoch active 期间持有 exporter secret，将无法重派生 SCK，从而无法验证 commitment。Profile 因此对 verifier 要求 *epoch-window persistence*：implementations MUST 文档化 verifier 持有 exporter secret 的最长窗口（默认 SHOULD ≤ 72h，超过窗口的 commitment 视为不可验证而非伪造）。
 

@@ -41,7 +41,7 @@ Content-Type: application/json
 
 ```json
 {
-  "since": "cx:cursor:eyJ2IjoxfQ",
+  "since": "cx:cursor:<opaque-valid-stream-cursor>",
   "timeout_ms": 30000,
   "set_presence": "online",
   "filter": {
@@ -81,7 +81,7 @@ Content-Type: application/json
 
 ```json
 {
-  "cursor": "cx:cursor:eyJ2IjoxLCJwIjoic3RyZWFtIn0",
+  "cursor": "cx:cursor:<opaque-valid-stream-cursor>",
   "spaces": {
     "join": {},
     "invite": {},
@@ -143,7 +143,7 @@ Sync 响应包含以下 stream：
     "events": [],
     "limited": false,
     "preview_only": false,
-    "prev_cursor": "cx:cursor:eyJ2IjoxLCJwIjoic3RyZWFtIn0"
+    "prev_cursor": "cx:cursor:<opaque-valid-stream-cursor>"
   },
   "state": {"events": []},
   "state_after": {"events": []},
@@ -273,7 +273,7 @@ event_id ASC
 
 ```json
 {
-  "cursor": "cx:cursor:eyJ2IjoxLCJwIjoic3RyZWFtIn0",
+  "cursor": "cx:cursor:<opaque-valid-stream-cursor>",
   "partial": true,
   "priority": "active_view",
   "spaces": {}
@@ -362,7 +362,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 任何 endpoint 在使用客户端回传的 cursor 推进 server-side state 之前，MUST 执行：
 
-1. 解析 `cx:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL (`x` 未过期)。语法/TTL 失败映射 `cursor_invalid` / `cursor_expired`。
+1. 解析 `cx:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL (`x` 未过期)。语法/参数失败映射顶层 `invalid_param`（reason `invalid_cursor`）；TTL 失败映射 `cursor_expired`。
 2. **完整性校验**:
    - 若 body 含 `h`：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal, device, service, filter_hash, purpose)` 与当前 authenticated request 匹配。
    - 若 body 含 `_mac` / `_sig`：以 issuing service 的当前 cursor key (按 `issuer_kid` 选取) 校验 MAC/signature；transcript 必须重算一致，且绑定字段与当前 authenticated request 匹配。

@@ -2642,6 +2642,9 @@
       },
       "additionalProperties": true
     },
+    "erasure_receipt_payload": {
+      "$ref": "./erasure-receipt.schema.json"
+    },
     "audit_payload": {
       "type": "object",
       "minProperties": 1,

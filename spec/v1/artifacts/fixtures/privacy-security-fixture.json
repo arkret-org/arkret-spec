@@ -132,16 +132,32 @@
       "operation_id": "cx.push.notify",
       "input": {
         "notification": {
-          "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-          "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
-          "type": "mention",
-          "push_hint": "wakeup"
+          "push_target_id": "cx_push_pseudo_01js0pt0000000000000000000",
+          "wakeup_kind": "message",
+          "push_hint": "new_message",
+          "counts": {
+            "unread": 1
+          },
+          "devices": [
+            {
+              "push_key": "fcm:eJx9k2-example",
+              "app_id": "com.contrix.client"
+            }
+          ]
         }
       },
       "expected": {
         "no_plaintext_message_body": true,
         "no_member_list": true,
         "no_room_title_for_e2ee": true,
+        "forbidden_fields_absent": [
+          "notification.event_id",
+          "notification.space_id",
+          "notification.kind",
+          "notification.sender",
+          "notification.sender_display_name",
+          "notification.space_name"
+        ],
         "device_payload_max_bytes": 512
       }
     }

@@ -51,8 +51,7 @@
       "description": "SHA-256 over JCS-canonicalized cx.content.import_attestation.content object. Algorithm: 1) Extract content; 2) JCS canonicalize per spec/v1/zh/conformance/encoding.md; 3) SHA-256; 4) Prefix 'sha256:'. Reader recomputes and compares."
     },
     "source_frontier_ref": {
-      "type": "string",
-      "pattern": "^cx:anchor:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "$ref": "./anchor.schema.json#/$defs/anchor_ref"
     },
     "issued_at": { "type": "string", "format": "date-time" },
     "valid_until": { "type": "string", "format": "date-time" },

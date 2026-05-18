@@ -326,7 +326,7 @@ Bottom {
   kind         ∈ {conflict, invalid_transition, missing_dependency,
                   unauthorized, anchorer_split, schema_error}
   cells[]      cell_ids 参与诊断（多 cell 原子 Move 失败时 >1）
-  event_ids[]   anchored Move ids 触发该诊断（结构性 ⊥ 可为空）
+  event_ids[]   anchored reducer-input Event ids 触发该诊断（结构性 ⊥ 可为空）
   anchor_view? {leaves[], state_root?} 观察该 ⊥ 的 Anchor view，便于复算
   heads[]?     kind=conflict 时候选 head 值；UI / 审计可见，授权 MUST NOT 据此选 winner
   details?     kind-specific structured details
@@ -816,7 +816,7 @@ Move 在 Anchor 前是 pending；被 Anchor 后是否可用于 E2EE 由 `covered
 
 ## 11. Redaction 与 Erasure
 
-Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须保留足以验证 Move id、签名、anchor inclusion、target id、授权凭证和 tombstone stub 的最小数据。
+Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须保留足以验证 `event_id` / `event_digest`、签名、anchor inclusion、target id、授权凭证和 tombstone stub 的最小数据。
 
 对 `ordered-log` 历史，redaction 不删除 log entry id；它写入同 target 的 redaction cell，使 projection 隐藏或替换 payload。审计、legal hold 与 erasure receipt 规则见隐私和安全文档。
 

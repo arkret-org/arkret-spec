@@ -145,7 +145,7 @@ Space 内 membership 不自动变成 ban；是否移除由 Space policy 决定�
 - account private state：可删除。
 - policy/audit record：按合规周期保留最小字段。
 
-擦除完成后，服务端 SHOULD 发布 signed erasure receipt。
+擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `cx.schema.erasure_receipt.v1` payload，并可通过 `cx.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 `subject`、`scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_hash`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`。它只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
 
 ## 9. Session Revocation
 

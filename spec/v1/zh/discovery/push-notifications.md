@@ -275,7 +275,7 @@ E2EE Space 中，Sync Service 不持有正文密钥，无法在 server 端评估
 1. **明确分类**：每条 push rule 在创建时 MUST 通过 `evaluation_locus ∈ {server, client}` 声明评估位置。client-side rule 在 E2EE Space 中由本机已解密 Event 的 client 评估，并在本地决定是否触发本机通知通道（系统 banner、桌面提示、声音）。Sync Service 不参与 client-side rule 的匹配。
 2. **Server fallback notify**：E2EE Space 中，针对 client-side rule，Sync Service MUST 走"保守 wakeup"策略——按 Space 级 `wakeup_default`（默认 `wakeup_for_all_messages`）触发 blind wakeup，不附带任何识别字段。客户端被唤醒后本地解密、本地评估 client-side rule，再决定显示哪个通知 surface（普通 banner / 高亮 banner / 静默处理）。
 3. **降级标记**：Sync Service 在 push payload 中携带 `evaluation_locus_unresolved=true`，让客户端知道"我已经被 wakeup 但匹配尚未在 server 端确定"。客户端 MUST 完成本地评估后才决定是否进入用户感知的通知 surface；不得仅凭 wakeup 就在 system tray 弹出。
-4. **明文 hint 限制**：E2EE Space 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。具体来说：除非 Space policy 把 push gateway 列入 `plaintext_visible_services`，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`），不能携带匹配到的具体内容。
+4. **明文 hint 限制**：E2EE Space 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。默认 `blind_wakeup` 下，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`）或 `l10n_key`，不能携带匹配到的具体内容。即使 Space policy 把 push gateway 列入 `plaintext_visible_services`，也只允许进入 §5.1 的 `visible_notification` profile；不得把该授权解释为放宽 `blind_wakeup` 的 metadata 限制。
 5. **限速降级**：E2EE Space + client-side rule 多的 client 在高消息量场景会被持续 wakeup，电池负担显著。客户端 MUST 暴露 `aggressive_wakeup_threshold`（默认每 60 秒 ≤ 30 次）；超过阈值后切换到批量 wakeup 模式，Sync Service 把多个 wakeup 合并为单个 batch wakeup（仍携带 `evaluation_locus_unresolved=true`），客户端醒来一次评估全部待处理 Event。
 6. **`mentions_actor` 通过 mention sidecar 提示**（可选,使用 keyed HMAC 形态）：严格 E2EE 默认走第 1-5 步 blind / batch wakeup。若 Space policy 允许 `mention_routing_hint="recipient_registered_token"`，且被提及接收方已经为当前 `(space_id, mls_group_id, epoch, pairwise_or_principal_did)` 向 Sync Service 注册 opaque routing token，发送者的客户端 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上,定义为:
 
@@ -313,19 +313,25 @@ Sync Service 在触发推送规则后，向推送网关发送通知：
 POST /api/v1/push/notify
 ```
 
-请求字段（默认 blind wakeup；任何识别字段只在 Space policy 把 Push Gateway 列入 `plaintext_visible_services` 时才可携带）：
+请求字段（默认 `blind_wakeup` profile；该 profile 永远不得携带 Space / sender / event 识别字段）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `notification` | object | required | 推送通知对象。 |
 | `notification.push_target_id` | string | required | per-(principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Space 关联的稳定 ID。 |
 | `notification.wakeup_kind` | string | required | 唤醒类别（如 `message`、`incoming_call`、`mention`）；只是粗粒度提示，不带 Space / sender 信息。 |
-| `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示；不得包含正文、sender DID 或 Space 名称。 |
+| `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示；只能是封闭枚举或 `l10n_key` token；不得包含正文、sender DID / handle、Space id / 名称、Flow / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。 |
-| `notification.event_id` / `notification.space_id` / `notification.kind` / `notification.sender` / `notification.sender_display_name` / `notification.space_name` | various | conditional | **仅当目标 Push Gateway 已被 Space policy 列入 `plaintext_visible_services` 时才可携带**。默认 blind wakeup MUST 省略全部识别字段。 |
 | `notification.devices` | object[] | required | 目标设备数组。 |
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
+
+`notification.event_id`、`notification.space_id`、`notification.kind`、`notification.sender`、`notification.sender_display_name`、`notification.space_name` 等识别字段 **MUST NOT** 出现在 `blind_wakeup` payload 中。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立 `visible_notification` profile，并满足全部条件：
+
+1. Space policy 显式把该 Push Gateway 列入 `plaintext_visible_services`，且声明允许 `visible_notification`。
+2. payload 不得标记为 `blind_wakeup`，conformance suite 必须按较高隐私风险 profile 测试。
+3. 可见字段仍受最小化约束，不得包含正文、DID URL、跨 Space stable correlation key、IP / geolocation 或未列入 profile 的自由文本。
+4. E2EE 默认实现不得依赖该 profile；完整通知标题与正文 SHOULD 由客户端被唤醒、拉取并本地解密后渲染。
 
 默认 blind wakeup 请求示例：
 
@@ -369,9 +375,9 @@ POST /api/v1/push/notify
 ### 6.1 脱敏推送流程
 
 1. Alice 发送加密消息到 Space S
-2. Alice 的客户端在 Event 明文元数据中附加 `push_hint: "New message from Alice"`
+2. Alice 的客户端不在 Event 明文元数据中附加 sender / Space 可识别 `push_hint`；若需要提示，只能使用 `push_hint: "new_message"` 或 `l10n_key`
 3. Sync Service 收到 Event，匹配推送规则
-4. Sync Service 向 Bob 的推送网关发送脱敏通知（只含 `space_id`, `type`, `push_hint`）
+4. Sync Service 向 Bob 的推送网关发送 `blind_wakeup` 通知（只含 `push_target_id`、`wakeup_kind`、可选计数和设备路由字段）
 5. Bob 的设备收到推送，唤醒客户端
 6. 客户端从 Sync Service 拉取加密 Event 并解密
 7. 客户端在本地展示完整的消息内容

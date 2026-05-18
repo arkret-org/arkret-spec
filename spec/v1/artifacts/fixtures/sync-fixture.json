@@ -57,12 +57,12 @@
         "decryption_state": "cleartext"
       }
     ],
-    "next_cursor": "cx:cursor:eyJ2IjoxfQ",
+    "next_cursor": "cx:cursor:eyJoIjoiYjNCaGNYVmxMWE4wY21WaGJTMW9ZVzVrYkdVIiwicHVycG9zZSI6InN0cmVhbSIsInQiOiIyMDI2LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6MTc5ODc2MTU5OTAwMH0",
     "limited": false
   },
   "cursor_gap_recovery": {
     "request": {
-      "since": "cx:cursor:expired",
+      "since": "cx:cursor:eyJoIjoiWlhod2FYSmxaQzF6ZEhKbFlXMHRhR0Z1Wkd4bCIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE3NjcyMjU2MDAwMDB9",
       "filter": {
         "space_ids": [
           "cx:space:0196419b-0000-7000-8000-000000000000"

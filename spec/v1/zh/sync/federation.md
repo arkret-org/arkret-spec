@@ -369,7 +369,7 @@ Probe 响应 payload：
 
 ### 5.2 Knock / Restricted 跨域加入流程
 
-Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join_rule` 与 `cx.component.space.join_policy.v1` cell 当前 value（Move kind `space.join_policy` 是 candidate，无 `cx.*` 前缀；见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
+Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join_rule` 与 `cx.component.space.join_policy.v1` cell 当前 value（`space.join_policy` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
 
 **自动解析路径**（`join_rule ∈ {restricted, knock_restricted}`，且 Bob 拟使用的 gate 子集均 `auto_resolve=true`）：
 
@@ -384,7 +384,7 @@ Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join
 1. Bob 发现 Space S 的元数据
 2. Bob 提交 `cx.member.state{membership="knock"}` Move（不携带正文）以及 `member.application` Move（携带 answers / claim presentation / challenge proof，E2EE Space 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）
 3. 两条 Move 推送到 Space S 的 shared anchorer 或管理员 Principal Server；接收方验证签名后扇出至 reviewer 的设备列表
-4. 持有 `cx.space.join.review` capability 的 reviewer 评估申请，提交 `member.application.review{decision=accept|reject|request_changes}` Move（candidate event kind，无 `cx.*` 前缀；capability action 自身仍按 `cx.space.join.review` 注册）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
+4. 持有 `cx.space.join.review` capability 的 reviewer 评估申请，产生 `member.application.review{decision=accept|reject|request_changes}` 候选 workflow 决策（不是 v1 base Event.kind；capability action 自身仍按 `cx.space.join.review` 注册）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
 5. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` 引用对应 review accept Move
 6. Bob 提交 `cx.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
 7. 若 Space 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob

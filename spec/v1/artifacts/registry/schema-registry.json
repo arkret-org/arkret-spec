@@ -202,6 +202,12 @@
       "file": "schemas/audit-ryw-receipt.schema.json"
     },
     {
+      "schema_id": "cx.schema.erasure_receipt.v1",
+      "file": "schemas/erasure-receipt.schema.json",
+      "status": "active",
+      "description": "Signed hard-erasure receipt payload for cx.audit.erasure_receipt"
+    },
+    {
       "schema_id": "cx.schema.cross_signing_publish.v1",
       "file": "schemas/cross-signing-publish.schema.json",
       "status": "active",

@@ -371,30 +371,30 @@ cx.vector.encoding.hlc_logical_overflow.v1
 cx.vector.encoding.cursor_opaque.v1
 ```
 
-输入 cursor（合法 v1 wire 形态，遵循 `encoding.md` §8.2 的 `{v, t, s, d?, x}` payload 结构）：
+输入 cursor（schema-valid v1 wire 形态；示例 `_mac` 是测试占位，真实服务仍必须按 `encoding.md` §8.3.1 验证 MAC / 签名或 stateful handle）：
 
 ```text
-cx:cursor:eyJzIjp7ImN4OnNwYWNlOjAxanMwc3AwMDAwMDAwMDAwMDAwMDAwMDAwIjpbImN4OmV2ZW50OjAxanMwZXYwMDAwMDAwMDAwMDAwMDAwMDAwIl19LCJ0IjoiY2xpZW50X3N5bmMiLCJ2IjoxLCJ4IjoiMjAyNi0xMi0zMVQyMzo1OTo1OVoifQ
+cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnNwYWNlOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDI2LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6MTc5ODc2MTU5OTAwMH0
 ```
 
 cursor base64url 解码后对应 canonical JSON：
 
 ```text
-{"s":{"cx:space:0196419b-0000-7000-8000-000000000000":["cx:event:019640ed-8000-7000-8000-000000000000"]},"t":"client_sync","v":1,"x":"2026-12-31T23:59:59Z"}
+{"_mac":"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000","purpose":"stream","s":{"cx:space:0196419b-0000-7000-8000-000000000000":{"h":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","o":"01970e589d21-0000-a13f9c2e","p":["cx:event:019640ed-8000-7000-8000-000000000000"]}},"t":"2026-12-30T23:59:59Z","v":"1","x":1798761599000}
 ```
 
 期望客户端行为：
 
-- 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 `{v, t, s, d?, x}` 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
-- 客户端 MUST NOT 依赖 base64url 解码后的 `s.<space_id>` frontier 或 `x` 过期字段构造下一页请求；这些字段的存在只是为了让服务端可以无状态地恢复同步进度。
+- 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 stateful 或 stateless 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
+- 客户端 MUST NOT 依赖 base64url 解码后的 `s.<space_id>.p/o/h` frontier、`x` 过期字段或 `_mac` 构造下一页请求；这些字段的存在只是为了让服务端可以无状态地恢复同步进度。
 - 服务端 MAY 改变 cursor 内部编码或字段集合，只要同一 query/session 下 cursor 仍按 API contract 可用。
-- 服务端 MUST 在收到该 cursor 时，按 §8.3 校验 `v ∈ supported_versions`、`x` 未过期、所有 frontier event 引用合法；任何校验失败 MUST 返回 `invalid_cursor` reason_code（见 `error-code-registry.json`）。
+- 服务端 MUST 在收到该 cursor 时，按 §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、schema 形态和所有 frontier event 引用；语法失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，完整性失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
 
 失败条件：
 
 - 客户端解析 `s` / `x` 后自行构造下一页请求或修改 cursor 内容。
 - 客户端在 cursor 解码失败时拒绝整个协议，而不是按 opaque token 处理。
-- 服务端使用违反 `{v, t, s, d?, x}` 结构的 cursor 内部 payload（例如旧草稿中出现过的 `{query_hash, last_event_id}` 形式）。
+- 服务端使用违反 `{v,purpose,t,x,h}` 或 `{v,purpose,t,s,d?,target?,x,_mac/_sig}` 结构的 cursor 内部 payload（例如旧草稿中出现过的 `{query_hash, last_event_id}` 或 `{v,p}` 形式）。
 
 ### 1.12 Vector: Encrypted Envelope Digest
 
@@ -875,7 +875,7 @@ cx.vector.redaction.hard_erasure_receipt.v1
 期望：
 
 - hard erasure 在被测存储边界内删除 payload bytes 与派生明文。
-- 实现保留 verification stub：原始 event id、验证事件图所需的 Event envelope digest / proof `payload_hash`、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。
+- 实现保留 verification stub：原始 event id、验证事件图所需的 Event envelope digest / proof `payload_hash`、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。签名 receipt MUST 符合 `cx.schema.erasure_receipt.v1`；若作为历史事件发布，Event.kind MUST 为 `cx.audit.erasure_receipt`。
 - stub 不得额外保留已擦除明文字段的 standalone content hash、payload-only digest 或未加盐搜索 fingerprint；若审计必须保留内容承诺，必须使用每事件 salt 或 HMAC/pepper commitment，并把 secret 留在 legal-hold 边界或按 erasure policy 销毁。
 - backfill 返回 redacted / erased stub，不伪造替代事件，也不静默造成历史缺口。
 - legal hold 存在时阻止 hard erasure，但默认展示仍应用 redaction。

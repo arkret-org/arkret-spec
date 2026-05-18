@@ -181,21 +181,21 @@
     {
       "vector_id": "cx.vector.encoding.cursor_opaque.v1",
       "kind": "cursor_opaqueness",
-      "input_cursor": "cx:cursor:eyJzIjp7ImN4OnNwYWNlOjAxanMwc3AwMDAwMDAwMDAwMDAwMDAwMDAwIjpbImN4OmV2ZW50OjAxanMwZXYwMDAwMDAwMDAwMDAwMDAwMDAwIl19LCJ0IjoiY2xpZW50X3N5bmMiLCJ2IjoxLCJ4IjoiMjAyNi0xMi0zMVQyMzo1OTo1OVoifQ",
-      "decoded_payload_canonical_bytes_utf8": "{\"s\":{\"cx:space:0196419b-0000-7000-8000-000000000000\":[\"cx:event:019640ed-8000-7000-8000-000000000000\"]},\"t\":\"client_sync\",\"v\":1,\"x\":\"2026-12-31T23:59:59Z\"}",
+      "input_cursor": "cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnNwYWNlOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDI2LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6MTc5ODc2MTU5OTAwMH0",
+      "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"purpose\":\"stream\",\"s\":{\"cx:space:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"cx:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2026-12-30T23:59:59Z\",\"v\":\"1\",\"x\":1798761599000}",
       "client_rules": [
         "MUST treat cursor as an opaque string and round-trip it verbatim",
-        "MUST NOT parse v / t / s / x to construct the next page request",
+        "MUST NOT parse v / purpose / t / s / x / _mac to construct the next page request",
         "MUST handle cursor decode failure by treating cursor as opaque, not by aborting the protocol"
       ],
       "server_rules": [
-        "MUST validate v in supported_versions and x not expired before honouring cursor",
-        "MUST validate every event id under s.<space_id> matches cx:event:<uuid>",
-        "any validation failure MUST return reason_code invalid_cursor (or cursor_unrecognized / cursor_expired sub-cases)"
+        "MUST validate v, purpose, x, and the full cursor schema before honouring cursor",
+        "MUST validate every event id under s.<space_id>.p matches cx:event:<uuid> and every s.<space_id> entry contains p/o/h",
+        "syntax validation failure MUST return invalid_param with reason_code invalid_cursor; TTL failure MUST return cursor_expired; MAC/signature failure MUST return cursor_integrity_invalid"
       ],
       "fail_conditions": [
         "client parses s/x and rebuilds a request",
-        "server uses non-{v,t,s,d?,x} cursor payload (alternative shapes MUST be rejected)"
+        "server uses non-{v,purpose,t,x,h} or non-{v,purpose,t,s,d?,target?,x,_mac/_sig} cursor payload (alternative shapes MUST be rejected)"
       ]
     },
     {

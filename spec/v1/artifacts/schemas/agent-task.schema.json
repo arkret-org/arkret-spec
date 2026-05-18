@@ -66,8 +66,7 @@
           "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "source_anchor_ref": {
-          "type": "string",
-          "pattern": "^cx:anchor:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "./anchor.schema.json#/$defs/anchor_ref"
         },
         "source_frontier_hash": {
           "type": "string",

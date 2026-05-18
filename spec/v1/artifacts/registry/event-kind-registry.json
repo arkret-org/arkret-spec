@@ -1400,6 +1400,14 @@
       "payload": "Audit RYW receipt"
     },
     {
+      "event_kind": "cx.audit.erasure_receipt",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": false,
+      "payload": "Signed hard-erasure receipt. Attests deletion outcome and retained verification stub within an issuer-declared storage boundary; does not prove independent third-party copies disappeared."
+    },
+    {
       "event_kind": "cx.attestation.range_completeness",
       "category": "audit",
       "status": "active",

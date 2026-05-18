@@ -38,7 +38,7 @@ bottom      := reject
 value shape := JoinPolicy（见下）
 ```
 
-写入 cell 的候选事件在正式登记前记为 `space.join_policy`（无 `cx.` 标准前缀），需要 `cx.policy.manage` capability（与 `cx.space.policy_server` / `cx.space.policy_components` 同等级）。`cx.space.create` 时 SHOULD 通过 `cx.space.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
+写入 cell 的候选概念在正式登记前记为 `space.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也不得作为 Event envelope 的 `kind` 上链或同步），需要 `cx.policy.manage` capability（与 `cx.space.policy_server` / `cx.space.policy_components` 同等级）。`cx.space.create` 时 SHOULD 通过 `cx.space.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
 
 JoinPolicy 候选 schema 名：`space.join_policy.v1`。
 
@@ -195,7 +195,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 ### 6.2 `member.application`
 
-候选 durable Event；schema 名 `member.application.v1`，正式进入 v1 registry 前不得使用 `cx.*` 标准前缀。
+候选申请概念；schema 名 `member.application.v1`。正式进入 v1 registry 前，`member.application` 不得作为 Event envelope 的 `kind` 使用，也不得使用 `cx.*` 标准前缀伪装成 active contract；实验实现必须在自有 profile 中声明私有承载方式。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -300,7 +300,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 跨域加入流程在 [`../sync/federation.md` §5.2](../sync/federation.md) 详述。本节仅说明 Join Policy 引入的不变量：
 
-- `member.application` 与 `member.application.review` 都是候选 durable Event，参与正常 federation push / pull；
+- `member.application` 与 `member.application.review` 都是候选 durable workflow 概念；正式登记前不得作为 v1 base profile 的 durable Event.kind 参与 federation push / pull；
 - `policy_version` 字段使 reviewer 与 applicant 显式承认评估时所用的 policy 快照，避免 reviewer 在不同 policy frontier 下决策导致争议；
 - E2EE 场景下 reviewer sub-group MLS commit 通过既有 `cx.mls.*` 联邦机制传播；envelope encryption 由 origin Principal Server 投递到目标 reviewer 的 device list（参见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md)）。
 - `parent_membership` gate 评估需要其它 Space 的成员 snapshot；origin reducer MAY 通过 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的 verified snapshot 接口或直接 backfill；snapshot 不可达时 fail closed。
@@ -355,7 +355,7 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 
 ```json
 {
-  "kind": "space.join_policy",
+  "candidate_kind": "space.join_policy",
   "payload": {
     "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "value": {

@@ -170,7 +170,7 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 
 patch path 严格遵循下面 ABNF：
 
-```abnf
+```text
 path           = segment *( "." segment )
 segment        = identifier / quoted-identifier / selector-segment
 identifier     = ALPHA-LOWER *( ALPHA-LOWER / DIGIT / "_" )

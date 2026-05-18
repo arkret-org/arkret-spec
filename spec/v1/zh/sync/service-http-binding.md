@@ -315,7 +315,7 @@ POST /api/v1/events
     "actor_seq": 42,
     "event_id": "cx:event:019640ed-8000-7000-8000-000000000000"
   },
-  "cursor": "cx:cursor:eyJ2IjoxLCJwIjoiYmFycmllciJ9"
+  "cursor": "cx:cursor:<opaque-valid-barrier-cursor>"
 }
 ```
 

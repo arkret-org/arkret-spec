@@ -22,8 +22,8 @@ title: 实现就绪与发布门槛
 
 | Registry | 计数 | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 149 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 51 | `artifacts/registry/schema-registry.json` |
+| Event kind（active） | 150 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 52 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 39 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 84 | `artifacts/registry/operation-registry.json` |
 | Conformance profile（profile id） | 77 | `artifacts/profiles/conformance-profiles.json` |

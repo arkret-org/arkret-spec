@@ -148,7 +148,7 @@
   "candidate_profiles": [
     "cx.profile.candidate.join_policy.v1"
   ],
-  "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate event kinds / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired event kind re-prefixing to `cx.*`) once their underlying surface is formally registered.",
+  "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate workflow concept/action names / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired wire Event.kind values registered under `cx.*`) once their underlying surface is formally registered.",
   "federation_hardening": [
     "service_did_authentication",
     "cross_domain_space_join",
@@ -2404,7 +2404,7 @@
       "inherits": [],
       "tier": "candidate",
       "status": "candidate",
-      "description": "Candidate profile pairing the still-unregistered join-policy event kinds (`space.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `cx.space.join.review`. The action remains in the canonical capability registry so prose can reference it stably, but receivers that do not implement this profile MUST treat `cx.space.join.review` as unknown (capability-action-registry.json registry_rules: 'Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)'). Claiming the profile commits the implementation to the candidate join-policy Move surface defined in zh/governance/join-policy.md. This profile is not part of v1 active conformance; it will be promoted (and the candidate event kinds re-prefixed to `cx.*`) when join-policy is formally registered.",
+      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`space.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `cx.space.join.review`. These bare names are not v1 wire Event.kind values. The action remains in the canonical capability registry so prose can reference it stably, but receivers that do not implement this profile MUST treat `cx.space.join.review` as unknown (capability-action-registry.json registry_rules: 'Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)'). Claiming the profile commits the implementation to the candidate join-policy workflow surface defined in zh/governance/join-policy.md. This profile is not part of v1 active conformance; it will be promoted with registered `cx.*` Event.kind values when join-policy is formally registered.",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],

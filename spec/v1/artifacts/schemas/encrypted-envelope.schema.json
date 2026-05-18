@@ -139,7 +139,8 @@
     "cleartext_commitment": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
-      "description": "Reserved (v1: optional, default absent). When present, MUST be sha256 over canonical cleartext bytes derived under the scheme's Cleartext Commitment Profile (`scheme=mls-rfc9420` defines the canonicalization in encryption-and-audit.md §4). Lets recipients detect ciphertext malleability where the producer commits to a specific plaintext without revealing it. v1 implementations MAY ignore this field; v2 MAY make it required for new schemes."
+      "deprecated": true,
+      "description": "Reserved for future non-default profiles. v1 E2EE producers MUST NOT emit this bare cleartext hash because low-entropy plaintext can be dictionary-tested offline. Receivers MAY ignore it for forward compatibility and MUST NOT use it for moderation attribution. Future profiles that need plaintext commitment MUST define a keyed/salted object form (for example the sender_commitment HMAC profile in content-moderation.md) rather than this bare hash."
     }
   },
   "allOf": [

@@ -193,7 +193,7 @@ Content-Type: application/json
 }
 ```
 
-> `bound_to.action` 必须等于 Move kind。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate event kind（无 `cx.*` 前缀，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 reducer 校验都用裸名。已注册的 Move（如 `cx.member.state`）则继续使用 `cx.*` 前缀。
+> `bound_to.action` 必须等于被授权动作的规范名称。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate workflow concept/action 名称（不是 v1 wire `Event.kind`，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 candidate reducer 校验都用裸名。已注册的 Move（如 `cx.member.state`）则继续使用 `cx.*` 前缀。
 
 provider 颁发的 challenge proof 形态：
 
@@ -222,7 +222,7 @@ reducer 校验顺序：
 
 任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。
 
-Join 路径上 `challenge` proof 进入 `cx.member.state{join}.gate_proofs[]` 或 `member.application.gate_proofs[]`（`member.application` 当前是 candidate event kind，无 `cx.*` 前缀），使用占位 `gate_id="_runtime"`，与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../governance/join-policy.md` §10](../governance/join-policy.md)。
+Join 路径上 `challenge` proof 进入 `cx.member.state{join}.gate_proofs[]` 或 candidate `member.application.gate_proofs[]`（`member.application` 当前不是 v1 wire `Event.kind`），使用占位 `gate_id="_runtime"`，与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../governance/join-policy.md` §10](../governance/join-policy.md)。
 
 ## 5. Signature and Replay Protection
 

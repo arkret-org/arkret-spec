@@ -527,7 +527,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.capability.delegate`
 - `cx.capability.revoke`
 
-> `space.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 **候选**（candidate）event kind（无 `cx.` 标准前缀），由 [`../governance/join-policy.md`](../governance/join-policy.md) 单独规范。它们尚未进入 v1 active conformance；实现声明 v1 base profile 时不强制支持。正式登记进入 v1 registry 前不得使用 `cx.*` 标准前缀，也不得列入 active reducer / sync conformance suite。
+> `space.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 **候选**（candidate）workflow concept/action 名称，不是 v1 wire `Event.kind`。它们尚未进入 v1 active conformance；实现声明 v1 base profile 时不强制支持。正式登记进入 v1 registry 前不得使用 `cx.*` 标准前缀，也不得作为 Event envelope 的 `kind`、active reducer 或 sync conformance 项。
 
 ### 7.7 Profile / Device / Space Key
 
