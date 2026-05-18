@@ -253,6 +253,13 @@
       "description": "Receipt object ID"
     },
     {
+      "kind": "attestation",
+      "category": "audit",
+      "status": "active",
+      "wire_form": "cx:attestation:<uuid>",
+      "description": "Attestation object ID (e.g. cx.attestation.range_completeness)."
+    },
+    {
       "kind": "relation",
       "category": "core_object",
       "status": "active",

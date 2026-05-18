@@ -15,7 +15,7 @@
     "audit_actor_id",
     "frontier",
     "observed_at",
-    "receipt_independence",
+    "witness_attestation",
     "audit_assurance_class",
     "audit_policy_version_hash",
     "proofs"
@@ -95,13 +95,56 @@
     "observed_at": {
       "$ref": "#/$defs/timestamp"
     },
-    "receipt_independence": {
-      "type": "string",
-      "enum": [
-        "independent",
-        "single_source"
+    "witness_attestation": {
+      "type": "object",
+      "required": [
+        "kind",
+        "witnesses"
       ],
-      "description": "Independence claim. 'independent' is a receiver-verifiable property: the Audit Agent MUST hold ≥2 RYW receipts covering the same audit_event_id+audit_event_digest, signed by issuers with distinct service DID, distinct controlling organization, and distinct verification_method keys, AND each issuer MUST be listed by Space policy under audit.ryw_witnesses[]. Self-claimed 'independent' from a single signer MUST be rejected (audit_receipt_invalidated). 'single_source' is the honest declaration when only one issuer exists. See zh/crypto-media/audited-e2ee.md §4.1.1."
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "federation_witness_attested",
+            "single_source"
+          ],
+          "description": "Attestation kind derived from witnesses[]. 'federation_witness_attested' MUST be used iff witnesses[] contains >= 2 distinct entries (distinct issuer.did AND distinct controlling_organization AND distinct verification_method) AND each issuer.did is listed by Space policy under audit.ryw_witnesses[]. 'single_source' MUST be used iff witnesses[] contains exactly 1 entry. Any mismatch between 'kind' and the witnesses[] cardinality / distinctness / Space policy listing MUST be rejected with audit_receipt_invalidated. This replaces the v1 draft field name 'receipt_independence' to remove ambiguity: the value is externally verifiable from the witness list, not a self-claim."
+        },
+        "witnesses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "issuer",
+              "verification_method",
+              "controlling_organization"
+            ],
+            "properties": {
+              "issuer": {
+                "$ref": "#/$defs/did",
+                "description": "Service DID of the witness that produced this receipt."
+              },
+              "verification_method": {
+                "type": "string",
+                "description": "DID URL of the key the witness used to sign (e.g. did:web:...#key-1). MUST be distinct from other witnesses' verification_method values for 'federation_witness_attested' to be valid."
+              },
+              "controlling_organization": {
+                "$ref": "#/$defs/did",
+                "description": "DID of the organization that controls the witness (operational independence claim). For 'federation_witness_attested', all witnesses' controlling_organization values MUST be pairwise distinct."
+              },
+              "attested_at": {
+                "$ref": "#/$defs/timestamp",
+                "description": "Time at which this witness attested. Receivers MAY use the latest attested_at across witnesses as the effective receipt timestamp."
+              }
+            },
+            "additionalProperties": true
+          },
+          "description": "Externally verifiable list of witnesses attesting that the audit_event_id+audit_event_digest reached accepted state. The 'kind' field MUST be derivable from this list per the rules in §4.1.1."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Witness attestation block (was 'receipt_independence' in early v1 drafts). The receipt's independence is externally verifiable from the witnesses[] list rather than self-claimed via a single enum. See zh/crypto-media/audited-e2ee.md §4.1 / §4.1.1."
     },
     "audit_assurance_class": {
       "type": "string",

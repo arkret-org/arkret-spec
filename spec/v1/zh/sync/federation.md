@@ -281,25 +281,77 @@ Signature: ...
 
 ### 4.5 Fork Detection / Frontier Exchange
 
-参与同一 Space 的 federation peer SHOULD 周期性交换 frontier，确保未发生 silent fork：
+参与同一 Space 的 federation peer 通过 frontier 交换检测 silent fork。本节定义三层职责：peer **MUST** 实现 frontier probe **能力**（响应已授权 peer 的查询），baseline 部署 **SHOULD** 周期性主动交换，high-assurance / sovereign / regulated profile **MUST** 周期性主动交换并具备失败降级语义。
+
+#### 4.5.1 Frontier Probe 能力 (MUST)
+
+每个参与 Space S 的 federation peer **MUST** 暴露 frontier probe endpoint，使被 Space S policy 授权的对端 peer 可以按需查询当前 frontier。Probe 是 `cx.events.frontier` 服务 operation（见 [`./service-http-binding.md` §3.2](./service-http-binding.md) 与 OpenAPI `cx.events.frontier`）的 federation auth-class 使用形态——v1 不再为 federation 单独引入新 operation；同一 operation_id 通过下表的 auth / response profile 区分调用面：
+
+| 调用面 | 调用方 | 鉴权 | 响应形态 |
+| --- | --- | --- | --- |
+| Public Events API | account holder / SDK client | 用户/服务 access token | 通常仅 `space_frontier` 或 `actor_seq` 简要视图 |
+| Federation peer probe (本节) | 被 Space `service_binding` 授权的 federation peer 服务 DID | §3 节点间认证 + Space policy 列出的 `federation_peer` 角色 | 完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)` |
+| Anonymous / unauth health check | optional | 无 / 限速 token | 仅 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds |
+
+Probe **MUST** 是 capability-gated：
+
+- 被 Space `service_binding` 授权为 federation peer 的服务方可读取该 Space 的 frontier 完整形态；
+- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段。
+- Probe 请求与响应都 **MUST** 走 §3 节点间认证。
+
+Probe 响应 payload：
 
 ```json
 {
   "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "heads": ["sha256:..."],
   "max_hlc": "01970e589d21-0004-a13f9c2e",
-  "witness_receipts": []
+  "frontier_root": "sha256:...",
+  "actor_seq_upper_bounds": {
+    "did:web:alice.example.com": 144,
+    "did:web:bob.example.org": 87
+  },
+  "witness_receipts": [],
+  "observed_at": "2026-05-18T08:30:00Z",
+  "issuer": "did:web:server-alpha.com",
+  "signature": {}
 }
 ```
 
-规则：
+字段规则：
 
 - `heads[]` 是当前 accepted frontier 的稳定 event hash；接收方比较两端 heads 集合发现差异。
 - `max_hlc` 是 issuer 在 frontier 处观察到的最大 HLC；用于检测时钟严重偏移。
+- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`；签名仅覆盖该 root 与 `(space_id, issuer, observed_at)`，便于轻量比对而无需重传全部字段。
+- `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，用于检测 *per-actor* 缺口（silent fork 常表现为某 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进）。
 - `witness_receipts[]` 可选，包含 witness / receipt service 对 frontier 的 attestation。
+- `signature` 是 issuing service 对 canonical probe payload 的签名，按 §3.2 规则。
+
+冲突检测规则：
+
 - 若两端历史包含相同 `event_id` 但不同 hash，接收方 MUST quarantine 并以 `duplicate_conflict` 报告。
 - 若冲突来自同一 actor 的不同签名 frontier，接收方 SHOULD 保留最小证据集：冲突 event id、hash、签名 key id、source service DID、收到时间和相关 frontier。证据集不得包含未授权明文 payload。
 - 可疑 remote 输入 MAY 在 quarantine 队列中暂存，直到签名、schema、capability、fork resolution 与 operator policy 全部通过。
+- `actor_seq_upper_bounds` 差异本身不是冲突证据（合法 partial replication 也会出现差异），但 SHOULD 触发 `cx.events.query` per-actor backfill，并在 backfill 后仍存在差异时升级为 fork suspect。
+
+#### 4.5.2 Baseline 主动交换 (SHOULD)
+
+普通 federation 部署 **SHOULD** 周期性主动交换 frontier；默认建议每个 federation-visible Space 与每个 peer 的间隔不超过 6 小时，超大 Space 或低活跃 Space 可放宽到 24 小时。Baseline 不强制 fail-state，但实现 SHOULD 在 probe 失败时进入指数退避并向运营暴露 diagnostics。
+
+#### 4.5.3 High-Assurance Profile 主动交换 (MUST)
+
+启用 `cx.profile.federation.high_assurance.v1`（high-assurance / sovereign / regulated / multi-writer federation 部署，详见 [`sovereign-deployment.md`](./sovereign-deployment.md)）的服务 **MUST**：
+
+- 每个 federation-visible Space 与每个授权 peer 的 frontier probe 间隔 ≤ **1 小时**；
+- 维护 per-peer / per-Space frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
+- 连续 3 次 probe 失败（peer 不可达、签名失败、`frontier_root` 不一致超过 fork-resolution 阈值）**MUST** 把该 peer 在该 Space 的状态标记为 `stale_peer`；
+- `stale_peer` 状态期间：
+  - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Space frontier（继续 quarantine，不让 silent fork 永久化），直到 fork resolution 或重新对齐；
+  - **MUST** 通过 §8.6 威胁映射要求的 alarm 通道（operator dashboard / audit log / pager hook）暴露该状态；
+  - **MAY** 拒绝向该 peer fanout 新 Event。
+- fork resolution 成功（heads 重合或 quorum witness attestation 一致）后 **MUST** 解除 `stale_peer` 标记。
+
+启用 high-assurance profile 但实现未实现上述 fail-state 等同于不满足 profile 声明，**MUST NOT** 在 `cx.service_binding` 中声明 `cx.profile.federation.high_assurance.v1`。
 
 ## 5. 跨域加入 Space
 
@@ -317,7 +369,7 @@ Signature: ...
 
 ### 5.2 Knock / Restricted 跨域加入流程
 
-Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join_rule` 与 `cx.space.join_policy`（见 [`../models/space-and-place.md` §3](../models/space-and-place.md)）。
+Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join_rule` 与 `cx.space.join_policy`（见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
 
 **自动解析路径**（`join_rule ∈ {restricted, knock_restricted}`，且 Bob 拟使用的 gate 子集均 `auto_resolve=true`）：
 
@@ -337,7 +389,7 @@ Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join
 6. Bob 提交 `cx.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
 7. 若 Space 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
 
-> 申请正文 MUST NOT 出现在公开可见的 `cx.member.state{knock}` payload 中（参见 [`../models/space-and-place.md` §3.7](../models/space-and-place.md)）；只能进入受加密保护的 `cx.member.application`。这避免 Matrix `m.room.member{knock}.reason` 因默认可见而成为外部 spam 通道的设计缺陷。
+> 申请正文 MUST NOT 出现在公开可见的 `cx.member.state{knock}` payload 中（参见 [`../governance/join-policy.md` §7](../governance/join-policy.md)）；只能进入受加密保护的 `cx.member.application`。这避免 Matrix `m.room.member{knock}.reason` 因默认可见而成为外部 spam 通道的设计缺陷。
 
 ## 6. 联邦级服务发现
 

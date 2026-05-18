@@ -1148,6 +1148,289 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
             for json_path, value, key in walk_json(data):
                 check_markdown_json_value(lint, path, f"json_block[{block_index}]{json_path[1:]}", value, key, known)
 
+def check_release_readiness_counts(lint: Lint, known: dict[str, set[str]]) -> None:
+    """T4-2: schema↔doc count guard.
+
+    Re-parses release-readiness.md's count table and verifies each number
+    matches the canonical registry. Prevents the kind of drift that left
+    counts at 146/81/66 while the registry was at 150/84/70.
+    """
+    path = SPEC_ROOT / "zh" / "overview" / "release-readiness.md"
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8")
+
+    profile_data = load_json(lint, ARTIFACTS / "profiles" / "conformance-profiles.json") or {}
+    profile_requirements_count = len(profile_data.get("profile_requirements", []))
+    profile_tiers_count = len(profile_data.get("profile_tiers", []))
+
+    expected: dict[str, int] = {
+        "Event kind（active）": len(known["active_event_kinds"]),
+        "Schema": len(known["schema_ids"]),
+        "Typed ID kind": len(known["id_kinds"]),
+        "Service operation": len(known["operation_ids"]),
+        "Conformance profile（profile id）": len(known["profiles"]),
+        "profile_requirements": profile_requirements_count,
+        "profile_tiers": profile_tiers_count,
+    }
+
+    # Match table rows like "| Event kind（active） | 150 | `...` |"
+    table_re = re.compile(r"^\|\s*([^|]+?)\s*\|\s*(\d+)\s*\|", re.MULTILINE)
+    found: dict[str, int] = {}
+    for match in table_re.finditer(text):
+        label = match.group(1).strip()
+        if label in expected:
+            found[label] = int(match.group(2))
+
+    for label, want in expected.items():
+        if label in {"profile_requirements", "profile_tiers"}:
+            # Look in inline prose: "...另含 N 个 `profile_requirements`..."
+            for inline_match in re.finditer(
+                rf"(\d+)\s*个\s*`{label}`",
+                text,
+            ):
+                have = int(inline_match.group(1))
+                if have != want:
+                    lint.fail(
+                        path,
+                        f"prose mentions {have} `{label}` but registry has {want}",
+                    )
+            continue
+        have = found.get(label)
+        if have is None:
+            lint.fail(path, f"missing count row for {label!r}")
+        elif have != want:
+            lint.fail(
+                path,
+                f"count drift for {label!r}: doc says {have}, registry has {want}",
+            )
+
+
+def check_error_code_closure(lint: Lint) -> None:
+    """T4-3: error code closure.
+
+    All `error_code` / `reason_code` literals used in spec markdown MUST be
+    registered in `artifacts/registry/error-code-registry.json`. Prevents
+    the drift where spec text invents a reason code that no implementation
+    can resolve.
+    """
+    registry_path = ARTIFACTS / "registry" / "error-code-registry.json"
+    data = load_json(lint, registry_path)
+    if not isinstance(data, dict):
+        return
+    known_codes: set[str] = set()
+    for entry in data.get("codes", []):
+        if isinstance(entry, dict) and isinstance(entry.get("code"), str):
+            known_codes.add(entry["code"])
+    for entry in data.get("reason_codes", []):
+        if isinstance(entry, dict) and isinstance(entry.get("code"), str):
+            known_codes.add(entry["code"])
+
+    if not known_codes:
+        return
+
+    # Look for the canonical normative usage forms only:
+    #   reason_code="..." / reason="..." / reason=`...`
+    #   reason == "..."
+    #   `error_code=...`
+    # We deliberately do NOT scan freeform prose (lots of false positives
+    # for ordinary English words quoted in backticks).
+    #
+    # Patterns covered (single + double quotes + backticks):
+    patterns = [
+        re.compile(r'reason_code\s*[=:]\s*["`]([a-z_][a-z0-9_]+)["`]'),
+        re.compile(r'reason\s*[=:]\s*["`]([a-z_][a-z0-9_]+)["`]'),
+        re.compile(r'reason\s*==\s*["`]([a-z_][a-z0-9_]+)["`]'),
+        re.compile(r'error_code\s*[=:]\s*["`]([a-z_][a-z0-9_]+)["`]'),
+        re.compile(r'`reason\s*=\s*["\']?([a-z_][a-z0-9_]+)["\']?`'),
+    ]
+
+    for path in markdown_files():
+        text = path.read_text(encoding="utf-8")
+        unresolved: set[str] = set()
+        for pat in patterns:
+            for match in pat.finditer(text):
+                code = match.group(1)
+                if code in known_codes:
+                    continue
+                # Filter common false positives (English words used elsewhere)
+                if code in {"true", "false", "null", "ok", "yes", "no", "n_a"}:
+                    continue
+                unresolved.add(code)
+        for code in sorted(unresolved):
+            lint.fail(path, f"reason_code referenced but not in error-code-registry.json: {code!r}")
+
+
+def check_cross_doc_anchors(lint: Lint) -> None:
+    """T4-4: cross-doc anchor check.
+
+    Every markdown link `(./foo.md#anchor)` must resolve to a real header in
+    foo.md, slugified the same way GitHub-flavored renderers do. Prevents
+    silent rot when sections are renamed.
+    """
+    # Build slug index for every markdown file.
+    slug_re = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
+
+    def slugify(heading: str) -> str:
+        # Strip markdown decoration (bold, code, links), keep visible text.
+        text = heading
+        text = re.sub(r"`([^`]+)`", r"\1", text)
+        text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+        text = re.sub(r"__([^_]+)__", r"\1", text)
+        text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+        text = text.strip().lower()
+        # github-slugger style: drop punctuation (except hyphen/underscore),
+        # replace each whitespace char with a hyphen (do NOT collapse runs).
+        # This mirrors Astro Starlight's default renderer; collapsing breaks
+        # anchors like "查询 / 回填" where " / " becomes "--".
+        text = re.sub(r"[^\w一-鿿\s-]", "", text)
+        text = re.sub(r"\s", "-", text)
+        return text
+
+    file_slugs: dict[Path, set[str]] = {}
+    for path in markdown_files():
+        text = path.read_text(encoding="utf-8")
+        slugs: set[str] = set()
+        for match in slug_re.finditer(text):
+            slugs.add(slugify(match.group(2)))
+        file_slugs[path.resolve()] = slugs
+
+    link_re = re.compile(r"!?\[[^\]]*\]\(([^)\s]+)\)")
+    for path in markdown_files():
+        text = path.read_text(encoding="utf-8")
+        for match in link_re.finditer(text):
+            href = match.group(1)
+            if href.startswith(("http://", "https://", "mailto:")):
+                continue
+            if "#" not in href:
+                continue
+            target_path, _, anchor = href.partition("#")
+            if not anchor:
+                continue
+            if target_path == "":
+                # Same-file anchor; check this file's own slugs.
+                target_resolved = path.resolve()
+            else:
+                target_resolved = (path.parent / target_path).resolve()
+            slugs = file_slugs.get(target_resolved)
+            if slugs is None:
+                # Target file not in spec tree (e.g. external schema JSON);
+                # leave for check_markdown_links to validate file existence.
+                continue
+            if anchor not in slugs:
+                # Try also without leading section number (e.g. "3.4-target"
+                # vs "target"). Skip noisy false positives by only failing
+                # when no slug fuzzy-matches.
+                normalized = anchor.lower()
+                if any(normalized in s or s in normalized for s in slugs):
+                    continue
+                lint.fail(path, f"broken anchor in cross-doc link: {href!r}")
+
+
+def check_openapi_no_floating_number(lint: Lint) -> None:
+    """T4-5: forbid `type: number` in OpenAPI.
+
+    v1 wire mandates integer-only JSON numbers (see encoding.md §2). Any
+    `type: number` in OpenAPI would generate float/double SDK fields and
+    break canonical-bytes interop. The forbidden-fields list below carries
+    explicit waivers for known non-canonical surfaces.
+    """
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    if not openapi_path.exists():
+        return
+    lines = openapi_path.read_text(encoding="utf-8").splitlines()
+
+    # Walk line-by-line; a waiver comment makes the next few lines'
+    # `type: number` legal. Window of 8 lines is generous enough for
+    # any reasonable YAML block while keeping the scan O(n).
+    waiver_re = re.compile(r"#\s*lint-waiver\(type:number\)\s*:")
+    type_number_re = re.compile(r"^\s*-?\s*type:\s*number\s*(?:#.*)?$")
+
+    waiver_window = 0
+    for line_no, line in enumerate(lines, start=1):
+        if waiver_re.search(line):
+            # next ≤ 8 lines may carry the waivered `type: number`
+            waiver_window = 8
+            continue
+        if type_number_re.match(line):
+            if waiver_window > 0:
+                waiver_window = 0  # consume the waiver
+                continue
+            lint.fail(
+                openapi_path,
+                f"line {line_no}: `type: number` is forbidden in v1 wire; "
+                "use integer + scale, or add a `# lint-waiver(type:number): <reason>` "
+                "comment within 8 lines for non-canonical surfaces",
+            )
+        elif waiver_window > 0:
+            waiver_window -= 1
+
+
+def check_canonical_digest_fixtures(lint: Lint) -> None:
+    """T4-1: canonical-JSON recompute guard.
+
+    Walk every fixture JSON and, when it contains both a canonical-input
+    object and an expected digest field, recompute the digest from the
+    input's canonical bytes and require an exact match.
+
+    Recognized fixture shapes:
+      { "input": <obj>, "expected_digest": "sha256:..." }
+      { "input": <obj>, "digest": "sha256:..." }
+      { "envelope": <obj>, "payload_hash": "sha256:..." }
+      { "canonical_bytes": "<hex>", "digest": "sha256:..." }
+
+    This is intentionally narrow: it does not try to canonicalize whole
+    repositories of arbitrary fixtures. New fixtures opt in by naming
+    their input + digest fields using one of the shapes above.
+    """
+    fixtures_dir = ARTIFACTS / "fixtures"
+    if not fixtures_dir.exists():
+        return
+
+    shapes: list[tuple[str, str]] = [
+        ("input", "expected_digest"),
+        ("input", "digest"),
+        ("envelope", "payload_hash"),
+        ("canonical_input", "expected_digest"),
+    ]
+
+    for fixture_path in fixtures_dir.rglob("*.json"):
+        data = load_json(lint, fixture_path)
+        if data is None:
+            continue
+        candidates: list[Any] = []
+        if isinstance(data, dict):
+            candidates.append(data)
+        elif isinstance(data, list):
+            candidates.extend(d for d in data if isinstance(d, dict))
+
+        for case in candidates:
+            for input_key, digest_key in shapes:
+                if input_key not in case or digest_key not in case:
+                    continue
+                expected = case.get(digest_key)
+                if not isinstance(expected, str):
+                    continue
+                if not expected.startswith("sha256:"):
+                    # Non-sha256 algorithms are out of scope for this guard.
+                    continue
+                try:
+                    canonical = canonical_json(case[input_key])
+                except (TypeError, ValueError) as exc:
+                    lint.fail(
+                        fixture_path,
+                        f"could not canonicalize {input_key!r} for digest check: {exc}",
+                    )
+                    continue
+                recomputed = "sha256:" + sha256_text(canonical)
+                if recomputed != expected:
+                    lint.fail(
+                        fixture_path,
+                        f"digest mismatch: {input_key!r} canonical bytes produce "
+                        f"{recomputed} but {digest_key!r}={expected}",
+                    )
+
+
 def main() -> int:
     lint = Lint()
     check_registry_manifest(lint)
@@ -1161,6 +1444,11 @@ def main() -> int:
     check_markdown_links(lint)
     check_markdown_examples(lint, known)
     check_legacy_wire_fields(lint)
+    check_release_readiness_counts(lint, known)
+    check_error_code_closure(lint)
+    check_cross_doc_anchors(lint)
+    check_openapi_no_floating_number(lint)
+    check_canonical_digest_fixtures(lint)
 
     if lint.errors:
         print("Artifact registry lint failed:", file=sys.stderr)

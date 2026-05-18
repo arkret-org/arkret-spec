@@ -352,3 +352,14 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
 - 跨域事件审计
 - 外部 grant 撤销与 epoch 轮换
 - enclave 的 import / export review 元数据
+
+### 11.1 联邦 frontier 主动交换 (high-assurance)
+
+sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `cx.profile.federation.high_assurance.v1`，并满足 [`federation.md` §4.5.3](./federation.md) 中定义的硬性要求：
+
+- 每个 federation-visible Space 与每个授权 peer 的 frontier probe 间隔 ≤ 1 小时；
+- 维护 per-peer / per-Space frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
+- 连续 3 次 probe 失败 MUST 触发 `stale_peer` 标记；该状态下 MUST 拒绝以该 peer 的 push payload 推进本地 frontier，MUST 通过 alarm 通道暴露，MAY 拒绝向该 peer fanout 新 Event；
+- fork resolution 成功后 MUST 解除 `stale_peer` 标记。
+
+理由：sovereign 部署的威胁模型默认包含"独立 Principal Server 在同一 Space 共同写入"，单纯依赖 anchor 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。

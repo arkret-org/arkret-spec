@@ -349,6 +349,15 @@
     },
     {
       "if": {
+        "properties": { "kind": { "const": "cx.morph.schema_migrate" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/morph_schema_migrate_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": {
           "kind": {
             "enum": [
@@ -485,6 +494,7 @@
               "cx.identity.disclosure_receipt",
               "cx.identity.presentation_request",
               "cx.identity.presentation_response",
+              "cx.identity.accountability_grant",
               "cx.schema.define",
               "cx.schema.update",
               "cx.policy.set",
@@ -999,7 +1009,8 @@
               "cx.audit.ryw_receipt",
               "cx.audit.epoch_key_destruction",
               "cx.space.audit_policy_downgrade",
-              "cx.moderation.frank"
+              "cx.moderation.frank",
+              "cx.attestation.range_completeness"
             ]
           }
         },

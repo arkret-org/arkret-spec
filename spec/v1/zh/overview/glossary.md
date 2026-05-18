@@ -42,6 +42,10 @@ title: 术语表
 | Event | 协议事件 | 协议传播和验证的基础事实单元（Envelope 的内容承载形式）。 |
 | Event Envelope | 事件外壳 | `event_id`、`actor_id`、`kind`、`payload`、`proofs` 等字段的签名封包。 |
 | Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
+| Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。详见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md) 与 [`../sync/operations-sync.md` §4.1](../sync/operations-sync.md)。 |
+| Integrity (data) | 数据完整性 | 给定数据未被中间人或第三方篡改。集合上的 Merkle / set commitment 提供 integrity，但不保证集合本身已覆盖给定范围。 |
+| Completeness (range) | 范围完整性 | 给定范围内（per-actor seq interval、frontier 上下界、actor / space scope）**没有漏给**任何属于该范围的成员。Completeness 必须依赖 *range-bound* attestation（带显式 from/to 边界）+ witness quorum 或独立 anchor 背书；set-bound commitment 单独不足以证明 completeness。 |
+| Range-bound Attestation | 范围完整性证明 | 携带 explicit range scope（per-actor seq interval、frontier 上下界）的签名证明，是 completeness 证明的载体。v1 已注册 `cx.attestation.range_completeness.v1`（schema `cx.schema.range_completeness_attestation.v1`），详见 [`../sync/operations-sync.md` §4.2](../sync/operations-sync.md)。 |
 | Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 frontier。 |
 | HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，固定格式 `<unix_ms_hex(12)>-<logical_hex(4)>-<node_id_hash(8)>`（hex 字段宽度依次 12 / 4 / 8）；canonical 规则见 [`../conformance/encoding.md` §7](../conformance/encoding.md)。 |
 | Cursor | 同步游标 | 指定 frontier 的 `scope:space|actor|query` 编码，用于增量同步与重放。 |

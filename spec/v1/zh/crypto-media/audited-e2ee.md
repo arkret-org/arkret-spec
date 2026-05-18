@@ -149,7 +149,7 @@ Audit Agent profile MUST 满足：
    }
    ```
 3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的"假动作死锁"（即记录没发出去但明文已吐出），合规飞地 MUST 等待因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。回执 MUST 携带 `audit_assurance_class` 字段，且其值 MUST 与 Space policy 声明的 `audit_assurance` 一致；不一致时接收方 MUST fail closed。
-   - **回执数量与独立性**：`cx.profile.attested_audit.e2ee.v1` MUST 在解密前获得 ≥2 条满足 §4.1.1 的独立 RYW receipt（这条要求由 §4.1 规则与 §4.1.1 共同强制；早期草案的"SHOULD ≥2"已升级为 MUST）。`cx.profile.disclosed_audit.e2ee.v1` 在单签发者部署下 MAY 使用单源回执，但 receipt 的 `receipt_independence` MUST 写为 `single_source`，部署声明也 MUST 公开承认此降级。
+   - **回执数量与 witness attestation**：`cx.profile.attested_audit.e2ee.v1` MUST 在解密前获得 ≥2 个 witness 联合 attested 的 RYW receipt（聚合规则见 §4.1.1）。`cx.profile.disclosed_audit.e2ee.v1` 在单签发者部署下 MAY 使用单源回执，但 receipt 的 `witness_attestation.kind` MUST 写为 `single_source`，且 `witness_attestation.witnesses[]` MUST 仅包含该唯一签发方；部署声明也 MUST 公开承认此降级。
    - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、`audit_assurance_class` 与 Space `audit_assurance` 不一致、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。`cx.profile.disclosed_audit.e2ee.v1` MUST 按同一顺序执行并记录证明，但**对恶意持钥客户端不提供密码学阻断**——这是该 profile 的本质局限，不是实现缺陷。
 
@@ -179,7 +179,23 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
     }
   },
   "observed_at": "2026-04-26T00:00:00.123Z",
-  "receipt_independence": "independent",
+  "witness_attestation": {
+    "kind": "federation_witness_attested",
+    "witnesses": [
+      {
+        "issuer": "did:web:witness.example.com",
+        "verification_method": "did:web:witness.example.com#receipt-key-1",
+        "controlling_organization": "did:webvh:identity.foundation:org:witness-coop",
+        "attested_at": "2026-04-26T00:00:00.123Z"
+      },
+      {
+        "issuer": "did:web:witness2.acme.example",
+        "verification_method": "did:web:witness2.acme.example#receipt-key-3",
+        "controlling_organization": "did:webvh:acme.example",
+        "attested_at": "2026-04-26T00:00:00.456Z"
+      }
+    ]
+  },
   "audit_assurance_class": "attested_hardware",
   "proofs": [
     {
@@ -209,31 +225,33 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `frontier.space_frontier` | yes | 签发时 issuer 已 accepted 的 Space frontier。MUST 因果上 ≥ `audit_event_id`。 |
 | `frontier.actor_frontier` | conditional | 至少包含 `audit_actor_id` 的 frontier。其它 actor frontier 由 issuer 选择性透出。 |
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
-| `receipt_independence` | yes | `independent` / `single_source`。`independent` MUST 表示 receipt 由 ≥2 个**独立控制面**（不同 service DID、不同运营组织、不同密钥保管方）签发并被 Audit Agent 同时持有；单签发者声称 `independent` MUST 被接收方拒绝（`audit_receipt_invalidated`）。`single_source` 是单源回执，仅在显式同意降级（部署声明）时使用。详细聚合规则见 §4.1.1。 |
+| `witness_attestation` | yes | Witness attestation block。`witness_attestation.kind` 取值 `federation_witness_attested` / `single_source`；`witness_attestation.witnesses[]` 列出所有 attesting witnesses 的 `(issuer, verification_method, controlling_organization, attested_at)`。`kind` 取值 MUST 由 `witnesses[]` 的基数与独立性外部可验证地推导（`federation_witness_attested` 必须 `witnesses.length >= 2` 且 issuer / controlling_organization / verification_method 两两 distinct 且每个 issuer 出现在 Space `audit.ryw_witnesses[]`；`single_source` 必须 `witnesses.length == 1`）；不一致 MUST 拒绝并 `audit_receipt_invalidated`。本字段取代早期草案中的 `receipt_independence` 枚举，目的是把"独立性"由可外部验证的 witness 列表表达，而不是单点自报。详细聚合规则见 §4.1.1。 |
 | `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Space `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
 | `audit_policy_version_hash` | yes | `(audit_disclosure, audit_assurance)` 在 receipt frontier 处的 canonical hash（`sha256` over canonical JSON `{audit_disclosure: <object>, audit_assurance: <string>}`）。让接收方 O(1) 校验"receipt 声明的 policy class 与 frontier 处实际 policy 一致"，无需重放事件。MUST 与 receipt frontier 处的 policy state 一致；不一致 fail closed (`audit_receipt_invalidated`)。 |
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
 
 规则：
 
-- Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；`cx.profile.attested_audit.e2ee.v1` MUST 等待来自至少 2 个独立 issuer 的 receipts，且每个 `receipt_independence="independent"`。
+- Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；`cx.profile.attested_audit.e2ee.v1` MUST 等待 `witness_attestation.kind="federation_witness_attested"` 的 receipt（即 `witness_attestation.witnesses[]` 同时包含 ≥2 个独立 witness）。
 - Issuer 不得伪造未观测到的 receipt；任何客户端 / 审计客户端 MUST 拒绝 `audit_event_digest` 与 envelope 实际 digest 不符的 receipt，并按 `audit_receipt_invalidated`（参见 `error-code-registry.json`）处理。
 - RYW receipt 默认是 actor-private / ephemeral 在 `cx.profile.disclosed_audit.e2ee.v1` 下；在 `cx.profile.attested_audit.e2ee.v1` 下 receipt 可以同时作为 durable Event（`cx.audit.ryw_receipt`）进入 audit log，便于事后调查。
 - Receipt 可被 redaction 覆盖，但 redaction 只清除 cleartext metadata；`audit_event_id`、`audit_event_digest` 与 `audit_assurance_class` 仍保留，以便审计链可还原。
 
-### 4.1.1 `receipt_independence="independent"` 的密码学聚合规则（normative）
+### 4.1.1 `witness_attestation.kind="federation_witness_attested"` 的密码学聚合规则（normative）
 
-`receipt_independence` 字段不是审计代理的"自报"声明，而是**接收方可独立验证的属性**。声明 `independent` 时 MUST 满足下列全部条件，任一不成立 MUST 触发 `audit_receipt_invalidated`：
+`witness_attestation` 不是审计代理的"自报"声明，而是**接收方可独立验证的属性**。`kind="federation_witness_attested"` 等价于接收方在 receipt 的 `witness_attestation.witnesses[]` 上重新执行下列检查并全部通过；任一不成立 MUST 触发 `audit_receipt_invalidated` 并降级为 `single_source` 处理：
 
-1. **多签发**：至少 2 条 RYW receipt（每条 `cx.audit.ryw_receipt` 对象有自己的 `proofs[]`）覆盖**同一** `audit_event_id` + `audit_event_digest`。Audit Agent 在解密前 MUST 同时持有这两条 receipt。
-2. **签发方独立性**：两条 receipt 的 `issuer` MUST 满足下列**全部**条件：
-   - 不同 service DID（字符串不相等）；
-   - 不同 controlling organization（DID Document `controller` 字段或 Space policy 声明的运营方不交叉）；
+1. **多 witness 覆盖**：`witness_attestation.witnesses[]` MUST `length >= 2`；所有 witnesses entries 对应的 RYW receipt（每条 `cx.audit.ryw_receipt` 对象有自己的 `proofs[]`）覆盖**同一** `audit_event_id` + `audit_event_digest`。Audit Agent 在解密前 MUST 同时持有这两条 receipt 并以聚合形式提交给接收方校验。
+2. **witness 独立性**：`witnesses[]` 中任意两个 entry 的 `(issuer, controlling_organization, verification_method)` 三元组 MUST 两两 distinct：
+   - 不同 service DID（`issuer` 字段字符串不相等）；
+   - 不同 controlling organization（`controlling_organization` 字段，对应 DID Document `controller` 字段或 Space policy 声明的运营方不交叉）；
    - 不同 `verification_method` 控制密钥（不能是同一私钥不同 `kid`）。
-3. **frontier 一致性**：两条 receipt 的 `frontier.space_frontier` 在 `audit_event_id` 上 MUST 因果一致；frontier 不一致时 receipt 不能聚合为 `independent`，只能视作两条独立 `single_source` receipt。
-4. **签发方授权**：两条 receipt 的 `issuer` MUST 都被 Space policy 声明为合法 RYW witness（`cx.space.policy_components` 下 `audit.ryw_witnesses[]`）。Policy 未列出的 issuer 即使签出有效 receipt 也不计入聚合。
+3. **frontier 一致性**：所有 witnesses entries 对应 receipt 的 `frontier.space_frontier` 在 `audit_event_id` 上 MUST 因果一致；frontier 不一致时 receipts 不能聚合为 `federation_witness_attested`，每条只能各自以 `single_source` 形态处理。
+4. **签发方授权**：每个 `witnesses[].issuer` MUST 都被 Space policy 声明为合法 RYW witness（`cx.space.policy_components` 下 `audit.ryw_witnesses[]`）。Policy 未列出的 issuer 即使签出有效 receipt 也不计入聚合。
 
-单签发者跨多 receipt 持续声称 `independent` 是误用；接收方 MUST 把这种情况视为 `single_source`。本规则不依赖任何 receipt 内部字段的"自报值"，只看签发证据。
+`kind` 取值与 `witnesses[]` 不匹配（例如 `kind="federation_witness_attested"` 但 `witnesses.length == 1`，或 `kind="single_source"` 但 `witnesses.length >= 2`）MUST 直接 `audit_receipt_invalidated`。本规则不依赖任何 receipt 内部字段的"自报值"，只看 `witnesses[]` 列表与签发证据；单签发者跨多 receipt 持续声称 `federation_witness_attested` 是误用，接收方 MUST 把这种情况视为 `single_source`。
+
+> **命名说明**：早期 v1 草案使用 `receipt_independence: "independent" | "single_source"` 单字段表达独立性。该命名容易被实现误读为"由 Audit Agent 自我声明"。v1 已将该字段重命名为 `witness_attestation`，并以 `witnesses[]` 列表的形式公开承担独立性证据，`kind` 仅是 `witnesses[]` 的派生 hint。任何 SDK / lint 工具仍引用 `receipt_independence` 都属于迁移残留，按当前 schema 与本节规则改写。
 
 ## 5. 审查透明公示
 

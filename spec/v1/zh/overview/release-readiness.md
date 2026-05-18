@@ -22,15 +22,15 @@ title: 实现就绪与发布门槛
 
 | Registry | 计数 | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 150 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 46 | `artifacts/registry/schema-registry.json` |
-| Typed ID kind | 37 | `artifacts/registry/id-kind-registry.json` |
+| Event kind（active） | 153 | `artifacts/registry/event-kind-registry.json` |
+| Schema | 48 | `artifacts/registry/schema-registry.json` |
+| Typed ID kind | 38 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 84 | `artifacts/registry/operation-registry.json` |
-| Conformance profile（profile id） | 70 | `artifacts/profiles/conformance-profiles.json` |
+| Conformance profile（profile id） | 73 | `artifacts/profiles/conformance-profiles.json` |
 
-当前 `conformance-profiles.json` 另含 58 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 profile id 集合保持一致。
+当前 `conformance-profiles.json` 另含 61 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 profile id 集合保持一致。
 
-> Profile id 计数 70 与 `python tools/artifact_pipeline.py check` 输出（"... 84 operations, 70 profiles"）一致；该数字由 lint 工具按 canonical 计数规则得出，与本仓库 `tools/lint_artifacts.py` 同步。
+> Profile id 计数 73 与 `python tools/artifact_pipeline.py check` 输出（"... 84 operations, 73 profiles"）一致；该数字由 lint 工具按 canonical 计数规则得出，与本仓库 `tools/lint_artifacts.py` 同步。
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明
 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或退役 registry 项，MUST 同时

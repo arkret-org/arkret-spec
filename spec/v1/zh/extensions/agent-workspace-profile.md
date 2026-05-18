@@ -53,7 +53,7 @@ sidebar:
 | Agent 多租户 SaaS(同一 runtime 服务多个 controller) | 一个 controller 的 revoke 不应影响其他 controller 的 task;watcher 设计需要分租 |
 | 合规 / 监管要求"revoke 立即生效"(法律意义上) | best-effort SLA 不构成法律承诺;需要 sync gate 或 hardware-enforced freshness |
 
-这些场景的实现 SHOULD 在自家 profile 中显式声明 "stricter freshness model"(候选 future profile id `cx.profile.agent_workspace.strict.v1`,v1 不发布)。
+这些场景的实现 SHOULD 在自家 profile 中显式声明 "stricter freshness model";reserved profile id `cx.profile.agent_workspace.strict.v1` 已在 registry 中预留,目前不绑定具体 normative 要求,实现可使用私有 profile 直到该 reserved id 被规范填充。
 
 ### 1.2 v1 不强制 freshness gate 的代价(设计取舍登记)
 
@@ -247,7 +247,7 @@ Preset 是**声明性 sugar**——客户端 / SDK 把 preset 名展开为标准
 | **L1** | `mirror_space_by_source:<source_space_id>` | **workspace root Space** | `cx:space:<mirror_space_id>` 或 sentinel | `cas-register + bottom=reject`，schema 声明 `initial_value="__unset__"` |
 | **L2** | `mirror_flow_by_source:<source_flow_id>` | **mirror Space** | `cx:flow:<mirror_flow_id>` 或 sentinel | 同上 |
 
-> **Spec 依赖（v1.1 已 land 2026-05-17）**：[`space.schema.json`](../../artifacts/schemas/space.schema.json) `cell_lattice` 已新增可选 `initial_value` 字段（仅 cas-register 合法）。[`event-auth-state-resolution.md §5.3.3`](../authz/event-auth-state-resolution.md) cas-register `join` 算法对应更新 `current = cell_schema.initial_value if defined else null`。本 profile 的两个 reservation cell schema 在 §9 profile 声明中直接使用 `initial_value="__unset__"`。
+> **Spec 依赖**：[`space.schema.json`](../../artifacts/schemas/space.schema.json) `cell_lattice` 包含可选 `initial_value` 字段（仅 cas-register 合法）。[`event-auth-state-resolution.md §5.3.3`](../authz/event-auth-state-resolution.md) cas-register `join` 算法在 schema 声明 `initial_value` 时使用 `current = cell_schema.initial_value`。本 profile 的两个 reservation cell schema 在 §9 profile 声明中直接使用 `initial_value="__unset__"`。
 
 ### 6.2 Reservation 流程
 
@@ -701,7 +701,7 @@ P-D2 修订引入 governed profile:**源 Space 主动声明自己受保护**,mir
 
 attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer reject `source_export_authority_unauthorized`。
 
-> **wire 字段位置**(FU-PD2.3): 当前 prose 把 `export_policy_authorities[]` 描述为 `policy_components.export_policy_authorities` 的子字段;该子字段路径在 v1.x `cx.schema.space.v1` / `cx.space.policy_components` event payload schema **尚未正式注册**。下一轮 wire 扩展会将其加入 `space.schema.json` `policy_components` 子对象;在那之前实现 MAY 使用 Space schema_refs 自定义命名空间作为兼容路径,但应当在升级到正式注册路径后立即迁移以避免 reducer reject。
+> **wire 字段位置**(FU-PD2.3): 当前 prose 把 `export_policy_authorities[]` 描述为 `policy_components.export_policy_authorities` 的子字段;该子字段路径在 `cx.schema.space.v1` / `cx.space.policy_components` event payload schema **尚未正式注册**。专门的 schema 扩展轮次会将其加入 `space.schema.json` `policy_components` 子对象;在那之前实现 MAY 使用 Space schema_refs 自定义命名空间作为兼容路径,但应当在升级到正式注册路径后立即迁移以避免 reducer reject。
 
 **reducer 行为收紧**:见 §8.2"governed 行为"完整 reject 规则集。所有 reject 都是 reducer-time 硬性拒收;event 不进入 mirror Space accepted set,不留下任何 read access。
 
@@ -725,7 +725,7 @@ attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer re
 
 ### 9.2 `cx.profile.agent_workspace.lite.v1`(P-D13 单 controller 轻量 profile)
 
-**目的**:针对"controller 自己用、自己审、不需要 audit-grade 痕迹"的最小化部署(单 dev、hobbyist、本地实验),允许 mirror Space 跳过 v1 base profile 中三类成本最高的语义,从而把实现门槛降低到一个"标准 Space + reservation cell + import_attestation"即可上线的水平。
+**目的**:针对"controller 自己用、自己审、不需要 audit-grade 痕迹"的最小化部署(单 dev、hobbyist、本地实验),允许 mirror Space 跳过 base agent workspace profile 中三类成本最高的语义,从而把实现门槛降低到一个"标准 Space + reservation cell + import_attestation"即可上线的水平。
 
 **applicability(必须同时满足)**:
 

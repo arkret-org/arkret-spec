@@ -230,6 +230,12 @@
       "description": "The opaque cursor (cx:cursor:...) has expired or is no longer parseable by this server. Client MUST request a fresh cursor (initial /sync, /sync/snapshot-head, or new write barrier)."
     },
     {
+      "code": "cursor_integrity_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "Cursor integrity check failed: MAC / signature did not verify, the bound transcript (principal, device, service, filter_hash, purpose, positions, target, x, issuer_kid) did not match the authenticated request, or the stateful handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /sync."
+    },
+    {
       "code": "unsupported_feature",
       "http_status": 501,
       "scope": "both",
@@ -486,6 +492,14 @@
       "description": "Cursor's `x` expiry is in the past; caller MUST request a fresh cursor."
     },
     {
+      "code": "cursor_integrity_invalid",
+      "applies_to": [
+        "client_sync",
+        "encoding"
+      ],
+      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_hash / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /sync since, X-Contrix-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /sync."
+    },
+    {
       "code": "spam",
       "applies_to": [
         "moderation_report"
@@ -498,6 +512,41 @@
         "moderation_report"
       ],
       "description": "Standard moderation reason: harassment."
+    },
+    {
+      "code": "hate_speech",
+      "applies_to": [
+        "moderation_report"
+      ],
+      "description": "Standard moderation reason: hate speech / targeted attacks against a protected group."
+    },
+    {
+      "code": "nsfw",
+      "applies_to": [
+        "moderation_report"
+      ],
+      "description": "Standard moderation reason: not-safe-for-work / explicit adult content posted outside permitted contexts."
+    },
+    {
+      "code": "illegal",
+      "applies_to": [
+        "moderation_report"
+      ],
+      "description": "Standard moderation reason: content alleged to violate applicable law (CSAM, threats, IP infringement, etc.)."
+    },
+    {
+      "code": "misinformation",
+      "applies_to": [
+        "moderation_report"
+      ],
+      "description": "Standard moderation reason: misleading / false information posing harm."
+    },
+    {
+      "code": "other",
+      "applies_to": [
+        "moderation_report"
+      ],
+      "description": "Standard moderation reason: catch-all for reports that do not fit the named categories. MUST be accompanied by a free-text `description` field. See zh/governance/content-moderation.md §3.2."
     },
     {
       "code": "abuse_cluster",
@@ -968,6 +1017,240 @@
         "encoding"
       ],
       "description": "An AEAD nonce on the wire does not match the deterministic derivation from MLS-Exporter + (device_id, monotonic counter) mandated by zh/crypto-media/media-and-blob.md §3.1. Producers MUST NOT emit naive random nonces under shared MLS application keys; receivers MUST reject such payloads to enforce the cross-implementation nonce-uniqueness contract."
+    },
+    {
+      "code": "accountability_grant_missing",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An Actor Profile update declares an `accountable_to[]` entry without a corresponding active `cx.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Deployment policy chooses between (a) reducer reject with this reason, or (b) silently strip the unverified entry from the resulting profile + emit audit log. See zh/models/actor.md §3.3.1."
+    },
+    {
+      "code": "keypackage_welcome_envelope_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An MLS Welcome arrived with a `claim_envelope` whose canonical signing input does not match the Welcome's actual intended_space_id / claim_id / requester_did, or the envelope signature does not chain to the Welcome sender's self-signing key. See zh/crypto-media/encryption-and-audit.md §2.6."
+    },
+    {
+      "code": "delegation_cycle",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A `cx.capability.delegate` would close a cycle in the delegation graph (when traversed by grant_id node DFS). Reducer MUST reject the entire delegation chain to prevent circular authority. See zh/authz/capabilities.md §10."
+    },
+    {
+      "code": "delegation_expiry_widening",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A delegated grant's `expires_at` is later than the parent grant's `expires_at`, or `not_before` is earlier than the parent's `not_before`. Delegation MUST NOT widen the parent's validity window. See zh/authz/capabilities.md §10."
+    },
+    {
+      "code": "recovery_witness_missing",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Conflict-recovery Move is missing the required `refs[role=state_witness]` reference. See zh/authz/event-auth-state-resolution.md §8.1."
+    },
+    {
+      "code": "recovery_witness_invalid",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Conflict-recovery Move's inclusion proof cannot reconstruct the witness's `state_root`. See zh/authz/event-auth-state-resolution.md §8.1."
+    },
+    {
+      "code": "recovery_witness_post_conflict",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Conflict-recovery witness frontier has a causal path from one of the sibling Moves that triggered the bottom — i.e., the witness is not strictly pre-conflict. See zh/authz/event-auth-state-resolution.md §8.1."
+    },
+    {
+      "code": "recovery_capability_not_anchored",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Conflict-recovery witness's state_root does not contain (or contains a divergent value for) the recovery_capability cell referenced by the grant. See zh/authz/event-auth-state-resolution.md §8.1."
+    },
+    {
+      "code": "challenge_proof_invalid",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "A runtime challenge proof attached to `cx.member.state{join}.gate_proofs[]` or `cx.member.application.gate_proofs[]` fails verification (signature / freshness / verifier domain). See zh/authz/policy-server.md §4."
+    },
+    {
+      "code": "invalid_task_fsm_transition",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An `cx.agent_task.*` event attempts a state transition not permitted by the task FSM (e.g., proposing while terminal, completing while not in_progress). See zh/extensions/agent-workspace-profile.md."
+    },
+    {
+      "code": "mixed_secret_storage_disallowed_by_profile",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A `mixed_secret_storage` operation was attempted under a deployment profile that does not allow it (e.g., default profile rejects mixed because of single-passphrase risk). See zh/identity/key-management.md §7.1."
+    },
+    {
+      "code": "audit_capability_incomplete",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "Reading the full per-Flow watch state (including `muted` entries) requires both `cx.space.notification.audit` and `cx.audit.accessed` capabilities; one was missing. See zh/models/flow-and-message.md §8.5."
+    },
+    {
+      "code": "watch_must_be_self",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "`cx.flow.watch.set` may only set the watch state of the submitting actor; cross-actor writes require `cx.flow.watch.manage_others` (audit / accessibility scope). See zh/models/flow-and-message.md §8.4."
+    },
+    {
+      "code": "cross_space_structural_relation",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A structural `contains` Relation was submitted that would cross Space boundaries. Structural containment (Board → List → Flow / Place hierarchy) MUST stay within a single Space; cross-Space links use the dedicated `cx.relation.*` non-structural kinds. See zh/models/relation.md §4."
+    },
+    {
+      "code": "join_authorisation_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A `cx.member.state{membership=join}` event's `join_authorisation` proof (the equivalent of Matrix `join_authorised_via_users_server`) does not verify against the cited reviewer's capability state at the citing frontier. See zh/governance/join-policy.md §6."
+    },
+    {
+      "code": "join_rule_policy_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Space `cx.space.join_rule` and `cx.space.policy_components` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §4."
+    },
+    {
+      "code": "place_has_live_dependents",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.place.tombstone` cannot proceed because the target Place still has active `contains` Relations or non-tombstoned child Places. See zh/models/space-and-place.md §4.4."
+    },
+    {
+      "code": "ttl_expired",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "A bounded-lifetime artefact (member application, reservation cell, presign envelope, runtime gate proof, etc.) is past its declared `expires_at` / TTL window. See per-feature spec sections."
+    },
+    {
+      "code": "not_provisioned",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "The requested principal / service / Space is recognised by the registry but no provisioning exists at this endpoint — caller should bootstrap or pick another host. See zh/sync/service-http-binding.md."
+    },
+    {
+      "code": "morph_schema_refs_evolution_unauthorized",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "cx.morph.update attempted to modify schema_refs[] without going through the Space's declared schema-evolution policy (high-tier capability such as cx.morph.schema.migrate, or equivalent) and an explicit audit-grade authorization_ref. See zh/models/morph.md §4.1 S2."
+    },
+    {
+      "code": "morph_schema_refs_transformation_unsupported",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "cx.morph.update attempted a non-additive schema_refs[] transformation (breaking or transformation-class change). Such transformations MUST be expressed as a cx.morph.schema_migrate event and require the Space to declare the cx.profile.morph.schema_migration_transformations.v1 opt-in profile. See zh/models/morph.md §4.1 S3."
+    },
+    {
+      "code": "morph_schema_version_binding_missing",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A reducer-input event targeting an evolvable-schema object (typically a Morph) did not include the active schema profile id(s) in requirements.schema[]. Reader cannot resolve which schema version to validate the event against. See zh/models/morph.md §4.1 S1 and zh/models/event-and-patch.md §2.7."
+    },
+    {
+      "code": "sender_commitment_invalid",
+      "applies_to": [
+        "audit_decision",
+        "service_call"
+      ],
+      "description": "A reporter-submitted sender commitment tag did not verify against the recomputed HMAC under the derived Sender Commitment Key. See zh/governance/content-moderation.md §3.4.2 step 2."
+    },
+    {
+      "code": "sender_commitment_seq_replay",
+      "applies_to": [
+        "audit_decision",
+        "service_call"
+      ],
+      "description": "A sender_commitment (sender_device_id, epoch, epoch_local_seq) seq is at or below the persisted high-water for that (sender_device_id, epoch); a non-monotonic seq indicates replay or rollback. See zh/governance/content-moderation.md §3.4.2 step 3."
+    },
+    {
+      "code": "sender_commitment_ciphertext_mismatch",
+      "applies_to": [
+        "audit_decision",
+        "service_call"
+      ],
+      "description": "The ciphertext_digest bound in the sender_commitment does not match the digest of the encrypted envelope the reporter submitted; cannot attribute plaintext to the claimed sender. See zh/governance/content-moderation.md §3.4.2 step 4."
+    },
+    {
+      "code": "sender_commitment_epoch_mismatch",
+      "applies_to": [
+        "audit_decision",
+        "service_call"
+      ],
+      "description": "The MLS epoch bound in the sender_commitment does not match the envelope's sender_claim.epoch; commitments are per-epoch and MUST NOT be carried across epochs. See zh/governance/content-moderation.md §3.4.2 step 5."
+    },
+    {
+      "code": "range_completeness_root_mismatch",
+      "applies_to": [
+        "audit_decision",
+        "state_resolution"
+      ],
+      "description": "A cx.attestation.range_completeness.v1 attestation's root does not match the locally-recomputed Merkle root over the scope's reducer-input events. Indicates either silent omission by the issuer or scope/canonicalization drift. See zh/sync/operations-sync.md §4.2.4 step 4."
+    },
+    {
+      "code": "range_completeness_actor_seq_gap",
+      "applies_to": [
+        "audit_decision",
+        "state_resolution"
+      ],
+      "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a cx.attestation.range_completeness.v1 attestation declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §4.2.4 step 6."
+    },
+    {
+      "code": "deprecated_event_kind",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Event uses a kind that has passed its sunset date and is no longer accepted by this deployment (e.g. legacy cx.flow.track.{enable,disable,update,set_primary} after 2028-06-01 sunset). Client MUST migrate to the unified replacement (cx.flow.tracks.update). See zh/models/flow-and-message.md §4.8.1."
+    },
+    {
+      "code": "legacy_event_kind",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Advisory warning emitted in response unsigned.warnings[] when an accepted event uses a kind on the deprecation timeline. Carries the kind and sunset_at fields. Does NOT affect acceptance state. See zh/models/flow-and-message.md §4.8.1 (deprecation warnings phase)."
     }
   ]
 }

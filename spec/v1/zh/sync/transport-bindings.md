@@ -103,14 +103,14 @@ HTTP/JSON 是默认 profile：
 
 HTTP binding 的路径 SHOULD 遵循 `service-api-schema.mdx`，但实现 MAY 使用 XRPC、RPC style 或版本化路径，只要 feature discovery 暴露实际 binding。
 
-## 6. Non-HTTP Binding Extensions（v1.1+ Placeholder）
+## 6. Non-HTTP Binding Extensions
 
 gRPC、WebSocket / SSE、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / libp2p binding **不是 v1 core
 互操作 surface**。本规范不为它们定义 normative wire format、operation mapping、stream framing
-或 discovery 字段；当前版本仅保留这些 transport 名称作为 future extension profile slot。
+或 discovery 字段；这些 transport 名称仅作为 extension profile slot 保留。
 
 任何声明此类 binding 的部署 MUST 自行发布独立 binding profile 文档（profile id 形如
-`cx.profile.binding.<transport>.v1.1`），并在该文档中至少明确：
+`cx.profile.binding.<transport>.v1`），并在该文档中至少明确：
 
 - canonical `operation_id` → transport-specific 调用形态的映射；
 - envelope / frame schema、签名绑定、idempotency key 与 cursor 处理；
@@ -136,7 +136,7 @@ v1.0 conformance suite 不测试任何非 HTTP binding；早期草案中曾出�
       "operations": ["sync.subscribe", "sync.backfill"]
     }
     // 其他 binding (gRPC / WebSocket / SSE / MQ / libp2p) 是 extension profile,需声明
-    // 对应 binding profile id (形如 cx.profile.binding.<transport>.v1.1, 见 §6) 后
+    // 对应 binding profile id (形如 cx.profile.binding.<transport>.v1, 见 §6) 后
     // 才可出现在此处; v1 core 仅要求 http_json。
   ]
 }

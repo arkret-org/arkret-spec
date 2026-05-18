@@ -86,7 +86,7 @@ v1 conformance 锁定的 hash 算法集合：
 | `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
 | `blake3` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
 
-未来 v1.x MAY 通过新的 profile 加入抗量子 hash（如 SLH-DSA hash family、SHAKE256 派生），但 v1 wire 形态 `<algo>:<hex>` 已经为这种加法准备好——**无需重写 wire**。
+扩展 profile MAY 通过新 hash profile 加入抗量子 hash（如 SLH-DSA hash family、SHAKE256 派生），v1 wire 形态 `<algo>:<hex>` 已经为这种加法准备好——**无需重写 wire**。
 
 实现 MUST：
 
@@ -96,7 +96,7 @@ v1 conformance 锁定的 hash 算法集合：
 
 ### 3.3 State Root 与 Anchor Hash 编码
 
-`state_root`、Anchor `id`、Move `id`、receipt hash 这几条核心承诺字段的 wire 形态由所属 Space 在 create event 中通过 `hash_profile` 字段固定（默认 `sha256`）。Space 内所有后续 Anchor / Move / state_root MUST 使用同一 algo；切换需要通过 v1 → v1.x snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
+`state_root`、Anchor `id`、Move `id`、receipt hash 这几条核心承诺字段的 wire 形态由所属 Space 在 create event 中通过 `hash_profile` 字段固定（默认 `sha256`）。Space 内所有后续 Anchor / Move / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
 
 ### 3.4 Multihash 兼容（profile-gated）
 
@@ -146,7 +146,7 @@ v1 wire 中已存在两种"指向另一个对象"的字段命名 convention：`<
 
 **v1 现状（不变）**：所有现有字段名锁定在当前 wire 形态，重命名是 breaking change，不在 v1 范围内执行。下表列出**已定型**的字段命名约定，实现 MUST 按现有命名解析；不得依赖前缀做字段类型推断。
 
-**新字段命名规则（normative，对 v1.x 增量与 v2 适用）**：v1.x 引入的新字段、新 schema、新 profile MUST 遵循以下规则，避免不一致进一步扩散：
+**新字段命名规则（normative，对未来增量与扩展 profile 适用）**：本规范之后引入的新字段、新 schema、新 profile MUST 遵循以下规则，避免不一致进一步扩散：
 
 | 用途 | 命名后缀 | 说明 |
 | --- | --- | --- |
@@ -357,18 +357,20 @@ Barrier 形态：
 | `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
 | `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
 | `t` | timestamp | 是 | 生成时间戳 |
-| `s` | object | stream 时可有 | Space 位置映射 |
+| `s` | object | stream 时可有（仅 stateless 形态） | Space 位置映射 |
 | `s.<space_id>.p` | array | 是（每条 entry） | 因果前沿（事件 ID 集合） |
 | `s.<space_id>.o` | string | 是（每条 entry） | timeline 排序 HLC |
 | `s.<space_id>.h` | hash | 是（每条 entry） | 该位置的 state hash |
-| `d` | object | stream 时可有 | 设备位置映射 |
-| `target` | object | `purpose=barrier` 必填 | 等待目标 event |
-| `target.event_id` | id:event | 是（barrier） | 目标事件 ID |
-| `target.event_digest` | hash | 是（barrier） | 目标事件 canonical digest |
+| `d` | object | stream 时可有（仅 stateless 形态） | 设备位置映射 |
+| `target` | object | `purpose=barrier` 且 stateless 时必填 | 等待目标 event |
+| `target.event_id` | id:event | 是（barrier stateless） | 目标事件 ID |
+| `target.event_digest` | hash | 是（barrier stateless） | 目标事件 canonical digest |
 | `target.space_id` | id:space | 否 | 目标事件所在 Space（可选 hint） |
 | `x` | integer | 是 | 过期时间戳（Unix ms） |
+| `h` | string | stateful 形态必填 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1 |
+| `_mac` / `_sig` | string | stateless 形态必填 | 完整性保护字段，见 §8.3.1 |
 
-服务端 MAY 添加 `_` 开头的私有字段（如 `_compression`、`_mac`）用于本地优化或签名；这些字段不参与 §8.4 cursor 翻译，必须先于 base64url 编码进入 canonical bytes。
+服务端 MAY 添加其它 `_` 开头的私有字段（如 `_compression`）用于本地优化；这些字段不参与 §8.4 cursor 翻译，必须先于 base64url 编码进入 canonical bytes，并 MUST 进入 `_mac` / `_sig` transcript。
 
 ### 8.3 验证规则
 
@@ -380,24 +382,50 @@ Barrier 形态：
 4. 解码后 `purpose` 是 `stream` 或 `barrier`。
 5. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
 6. 解码后是合法 JSON。
-7. 所有 `space_id` 是合法 `cx:space:*` 格式。
-8. 因果前沿中的所有 event id 合法。
-9. timeline 排序是合法 HLC 格式。
-10. `purpose=barrier` 时 `target.event_id` 与 `target.event_digest` 必填。
+7. 所有 `space_id` 是合法 `cx:space:*` 格式（如 `s` 出现）。
+8. 因果前沿中的所有 event id 合法（如 `s` 出现）。
+9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
+10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
 11. cursor 出现的位置与 `purpose` 一致（barrier cursor 出现在 `since` / `prev_cursor` 上下文 MUST `invalid_param`，stream cursor 出现在 `X-Contrix-Wait-For` 上下文 MUST `invalid_param`）。
 12. **TTL 硬上限**：以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
+13. **形态互斥**（schema `oneOf` 强制）：cursor body MUST 满足下列二选一：
+    - **stateless** — 含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。
+    - **stateful** — 含 `h`（opaque handle），不含 `_mac` / `_sig` / `s` / `d` / `target`。
+    
+    两种形态同时出现或都不出现 MUST reject `invalid_param`。
 
-非法 cursor MUST reject，错误 `invalid_param`；已过期 cursor MUST reject，错误 `cursor_expired`。
+非法 cursor MUST reject，错误 `invalid_param`；已过期 cursor MUST reject，错误 `cursor_expired`；完整性校验失败（见 §8.3.1）MUST reject，错误 `cursor_integrity_invalid`。
+
+### 8.3.1 完整性校验（normative）
+
+服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state（to-device ack、`/sync` since、`X-Contrix-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复等；详见 [`client-sync.md` §10 / §12](../sync/client-sync.md)）之前，执行下列完整性校验。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
+
+**Stateless 形态（含 `_mac` 或 `_sig`）**：
+
+- `_mac` MUST 是 HMAC over canonical bytes（除 `_mac` 自身外的所有字段，按 §2 RFC 8785 JCS 规则）；算法 MUST 是 HMAC-SHA-256 或更强；密钥由 issuing service 持有并按 `issuer_kid` 标识。
+- `_sig` MUST 是 detached signature over same canonical bytes；签名密钥使用 issuing service 的 cursor-signing key。
+- transcript MUST 绑定：`purpose`、principal id、device id、service DID / service id、filter hash、stream positions（`s` / `d`，如出现）、`target`（barrier 时）、`x`、`issuer_kid`。
+- 服务端 MUST 用当前 cursor key 重算 transcript 并与 `_mac` / `_sig` 比较；任一字段不匹配当前 authenticated request 的 principal / device / service / filter hash / purpose → `cursor_integrity_invalid`。
+
+**Stateful 形态（含 `h`）**：
+
+- `h` MUST 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit）。
+- 服务端 MUST 以 `h` 查 issuing service 本地表，记录绑定的 `(principal, device, service, filter_hash, purpose, positions, target?, expiry)` 元组。
+- handle 不存在、已撤销、已过期，或绑定字段与当前 authenticated request 不匹配 → `cursor_integrity_invalid`。
+- handle 校验本身就是完整性校验 — cursor body 不可加 `_mac` / `_sig`。
+
+无论哪种形态，完整性校验失败 MUST 映射 `cursor_integrity_invalid`（区别于 `cursor_expired`：前者是 tamper / cross-binding / 未知 handle，后者是 TTL 超时）。客户端收到 `cursor_integrity_invalid` 后应清理本地 cursor 缓存并按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复流程重做 initial sync。
 
 ### 8.4 Cursor 可迁移性
 
-Cursor 对客户端不透明，但**服务器之间不再不透明**。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下迁移路径之一：
+Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下迁移路径之一：
 
-1. **直接 reparse**：B 收到 `since=cx:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<space_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Space 历史，且 `purpose=stream`；barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
-2. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；不得静默丢失因果对齐。
-3. **可选 translate 端点**：未来 profile 可能在 `cx.profile.principal_server.v1` 之上引入 `POST /api/v1/sync/translate-cursor`；该端点不属于 v1 强制范围。
+1. **直接 reparse（仅 stateless 形态）**：B 收到 `since=cx:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<space_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Space 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），不得直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
+2. **stateful 形态不可跨服务迁移**：含 `h` 的 cursor 中 handle 是 A 本地表的引用，B 无法解析。B 收到 stateful 形态 cursor 时 MUST 返回 `cursor_unrecognized`，客户端按全新初始同步处理。这是 stateful 形态在 portability 上的固有取舍。
+3. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；不得静默丢失因果对齐。
+4. **可选 translate 端点**：未来 profile 可能在 `cx.profile.principal_server.v1` 之上引入 `POST /api/v1/sync/translate-cursor`；该端点不属于 v1 强制范围。
 
-`_` 前缀的服务器私有字段（compression flag、MAC、签名）在迁移时可被丢弃；canonical 字段（`v` `t` `s` `d` `x`）足以恢复 frontier。
+`_` 前缀的服务器私有字段（`_compression`）在迁移时可被丢弃；canonical 字段（`v` `t` `s` `d` `x`）足以恢复 frontier。`_mac` / `_sig` MUST 由目标服务器用自己的 key 重新生成（不可跨服务复用）。
 
 ### 8.5 测试向量入口
 

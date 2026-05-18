@@ -206,4 +206,4 @@ MIMI 协议有 `request_consent` / `update_consent` 操作（`cx.mimi.request_co
 
 ## 9. 与未来 Capability Constraint 的关系
 
-未来 v1.x profile MAY 引入 capability constraint type `consent_required`，使某些 capability grant 在 Move 验证时 runtime check holder consent。本规范定义的 consent cell 是该 constraint 的查询源。在引入该 constraint 前，consent gate 由 invite / contact service 在投递前查询 cell join 值实现，不直接出现在 Move precondition 上。
+扩展 profile MAY 引入 capability constraint type `consent_required`，使某些 capability grant 在 Move 验证时 runtime check holder consent。本规范定义的 consent cell 是该 constraint 的查询源。在引入该 constraint 前，consent gate 由 invite / contact service 在投递前查询 cell join 值实现，不直接出现在 Move precondition 上。

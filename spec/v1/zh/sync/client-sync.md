@@ -112,6 +112,7 @@ Sync 响应包含以下 stream：
 | `timeline` | 持久 | Space 内 accepted events |
 | `state` | 持久 | 当前 state event delta |
 | `state_after` | 派生 | timeline 末尾之后的状态，用于正确解释事件 |
+| `state_at_window_start` | 派生 | `timeline.limited=true` 时 window 起点 anchor 状态，见 §5 |
 | `account_data` | 私有持久 | 标签、UI 偏好、recent emoji、push rules |
 | `to_device` | 设备队列 | key verification、secret sharing、device messages |
 | `ephemeral` | 短暂 | typing、presence、live cursor |
@@ -141,10 +142,16 @@ Sync 响应包含以下 stream：
   "timeline": {
     "events": [],
     "limited": false,
+    "preview_only": false,
     "prev_cursor": "cx:cursor:eyJ2IjoxLCJwIjoic3RyZWFtIn0"
   },
   "state": {"events": []},
   "state_after": {"events": []},
+  "state_at_window_start": {
+    "actor_profiles": {},
+    "space_metadata": {},
+    "e2ee_epoch": null
+  },
   "ephemeral": {"events": []},
   "account_data": {"events": []},
   "summary": {
@@ -159,13 +166,63 @@ Sync 响应包含以下 stream：
 }
 ```
 
-如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `cursor_expired`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。
+如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `cursor_expired`、`cursor_integrity_invalid`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。
 
-## 5. State After
+`timeline.limited=true` 时，服务端 MUST 二选一返回 `state_at_window_start`（projection-only anchor 状态）或标记 `timeline.preview_only=true`；详见 §5.2。
+
+## 5. State After 与 State At Window Start
+
+### 5.1 State After (timeline 末尾状态)
 
 服务器 SHOULD 在每个 joined Space 中返回 `state_after`，表示 `timeline.events` 应用完成后的 state delta。客户端渲染 timeline 中事件时 MUST 使用事件自己 auth state；渲染 timeline 末尾的当前 UI 时 SHOULD 使用 `state_after`。
 
 这避免客户端用新权限、新成员名或新加密 epoch 错误解释先前事件。
+
+### 5.2 State At Window Start (limited timeline 边界状态)
+
+**协议正确性层面**，Contrix 的事件携带 `prev_refs` 与 `refs[role=authorized_by]`，每个事件自带因果与授权 anchor；reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
+
+**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Space 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 anchor view"渲染 window 起点事件会显示错误的 display name / room name / 加密 epoch。为此，服务端 MUST 在响应该 Space timeline 时二选一：
+
+**(a) 返回 `state_at_window_start`** (推荐路径，projection-only)：
+
+```json
+{
+  "timeline": {
+    "events": [],
+    "limited": true,
+    "prev_cursor": "cx:cursor:..."
+  },
+  "state_at_window_start": {
+    "actor_profiles": {"did:webvh:...": {"display_name": "...", "avatar_ref": "..."}},
+    "space_metadata": {"name": "...", "topic": "...", "join_rule": "..."},
+    "e2ee_epoch": {"epoch": 17, "key_ref": "cx:mls:..."}
+  }
+}
+```
+
+- 该字段是 **派生 projection-only 字段**，不参与 state hash / frontier 计算，不进入因果图。
+- 字段范围仅限三类 anchor：`actor_profiles`（window 内出现的 actor）、`space_metadata`（Space-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
+- 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前 anchor view"。
+- 服务端可以从 anchor view 的历史 cell value（按 HLC 反向查询）派生该状态；不可用时退路径 (b)。
+
+**(b) 标记 `preview_only=true`** (回退路径)：
+
+```json
+{
+  "timeline": {
+    "events": [],
+    "limited": true,
+    "preview_only": true,
+    "prev_cursor": "cx:cursor:..."
+  }
+}
+```
+
+- 客户端 MUST NOT 在 backfill 完成（即缺口被 `prev_cursor` 拉取并应用）前把该 timeline 渲染为已验证的完整 UI。
+- 客户端可以渲染为占位、loading 状态或带 "loading history..." 标签的预览，但不得让用户感知为"完整 timeline"。
+
+> Rationale: Matrix `/sync` limited timeline 同时返回 state delta；Contrix 的 per-event auth state 已覆盖协议层正确性，但渲染层（display name / room avatar / epoch boundary）仍可能错位。`state_at_window_start` 给服务端实现一条轻量恢复路径，`preview_only` 给无法计算历史 anchor 的实现一条安全回退。
 
 ## 6. Event Ordering
 
@@ -248,13 +305,19 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 ## 10. To-Device Delivery
 
-`to_device.events` MUST 只包含当前 access token 对应 device 的消息。服务器在发送某个 `cursor` 后 MAY 认为其中 to-device 已投递；客户端如果未处理成功，必须通过本地事务日志恢复。
+`to_device.events` MUST 只包含当前 access token 对应 device 的消息。
+
+**To-device 投递推断 (normative)**：服务器在收到客户端回传的 `since=<cursor>` 后，**MUST 先按 §12 完整性校验** (MAC/签名 验证 或 stateful handle lookup) 通过，才可将该 cursor 内 `d` (device positions) 之前的 to-device 消息视为已投递并从服务端队列清理。完整性校验失败时 MUST 返回 `cursor_integrity_invalid` 且 **MUST NOT** 推进 to-device 投递状态。客户端如果未处理成功，必须通过本地事务日志恢复。
+
+> Rationale: 若服务端仅按语法 / TTL / purpose 校验就接受客户端 `d` 位置，byzantine 客户端 (或被 XSS / 复制日志泄露后被重放的 cursor) 可篡改 `d` 推进 to-device ack，导致 key verification、cross-signing reset、secret sharing 等 to-device 消息被永久丢弃 — 即使诚实客户端重连也拿不回。
 
 To-device 队列过长时，服务器 MAY 返回 `limited=true` 并要求客户端调用：
 
 ```http
 GET /api/v1/device_messages?from=<cursor>&limit=...
 ```
+
+该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用于服务端读位置推进。
 
 ## 11. Filters
 
@@ -279,14 +342,39 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - stream positions
 - expiry
 
-服务端 MAY 拒绝过期 cursor，并返回 `cursor_expired`。客户端应回退到 initial sync 或 snapshot-assisted initial sync，同时保留本地未确认写入队列。
-
 `cursor`（purpose=`barrier`）由写接口在响应中返回（见 [`api-conventions.md` §8](./api-conventions.md)），用于 `X-Contrix-Wait-For` header；它和 stream cursor 共享 wire 形态 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分。客户端不需要分辨，只需把"写响应里的 cursor"作为 wait-for header、把"`/sync` 响应里的 cursor"作为 `since` 即可。
 
-过期或缺口恢复流程：
+### 12.1 Cursor Integrity (normative)
+
+无论 stream 还是 barrier cursor，wire 形态 `cx:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于推进 to-device ack、`/sync` since、`X-Contrix-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。
+
+实现 MUST 选择以下两种 cursor 形态之一（互斥，由 schema `oneOf` 强制）；两种形态都满足"服务端可验证"的安全契约：
+
+**(A) Stateless self-describing cursor**：canonical body 内含 `s` / `d` / `target` 等结构化状态字段，**MUST** 携带 `_mac` 或 `_sig` 中的至少一个：
+
+- `_mac`：HMAC over canonical bytes (除 `_mac` 自身外的所有字段)，密钥由 issuing service 持有，算法 MUST 是 HMAC-SHA-256 或更强。
+- `_sig`：detached signature over same canonical bytes，密钥使用 issuing service 的 cursor-signing key。
+- transcript MUST 绑定：`purpose`、principal id、device id、service DID / service id、filter hash、stream positions（`s` / `d`）、`target`（barrier 时）、`x`、issuer key id。
+
+**(B) Stateful opaque handle cursor**：canonical body 缩为 `{v, purpose, t, x, h}`，无 `s` / `d` / `target`；`h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal, device, service, filter_hash, purpose, positions, target?, expiry)` 映射。Handle 校验本身就是完整性校验 — 不可加 `_mac` / `_sig`。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式，适合不想引入 MAC/签名密钥管理的实现。
+
+### 12.2 校验流程 (normative)
+
+任何 endpoint 在使用客户端回传的 cursor 推进 server-side state 之前，MUST 执行：
+
+1. 解析 `cx:cursor:<base64url>` 并按 `cursor.schema.json` 校验语法、`purpose`、TTL (`x` 未过期)。语法/TTL 失败映射 `cursor_invalid` / `cursor_expired`。
+2. **完整性校验**:
+   - 若 body 含 `h`：以 `h` 查 issuing service 本地表，校验 handle 存在、未过期、未撤销，且绑定的 `(principal, device, service, filter_hash, purpose)` 与当前 authenticated request 匹配。
+   - 若 body 含 `_mac` / `_sig`：以 issuing service 的当前 cursor key (按 `issuer_kid` 选取) 校验 MAC/signature；transcript 必须重算一致，且绑定字段与当前 authenticated request 匹配。
+3. 任一校验失败 → 返回 `cursor_integrity_invalid`，**MUST NOT** 推进任何 server-side state。
+4. 校验通过后才可读 cursor 内部 `s` / `d` / `target`（stateless 形态）或 handle 解析出的 positions（stateful 形态），并用于推进同步状态。
+
+`cursor_integrity_invalid` 与 `cursor_expired` 语义不同：前者是 tamper / 未知 handle / cross-binding，后者是 TTL 超时。客户端对 `cursor_integrity_invalid` 的恢复路径与 `cursor_expired` 一致（重做 initial sync），但客户端 SHOULD 把它视为本端 cursor 状态被污染的信号，清理本地 cursor 缓存。
+
+### 12.3 过期或缺口恢复流程
 
 1. 客户端保留本地 `cursor`、filter hash、未确认写入和最后可验证 frontier。
-2. 收到 `cursor_expired` / `stale_frontier` 后，先调用 `sync/describe` 或 `sync/snapshot-head` 获取当前 frontier 与推荐 snapshot。
+2. 收到 `cursor_expired` / `cursor_integrity_invalid` / `stale_frontier` 后，先调用 `sync/describe` 或 `sync/snapshot-head` 获取当前 frontier 与推荐 snapshot。
 3. 若 snapshot 可用，客户端 MUST 验证签名、签名者授权、state hash、frontier 和 chunk digest 后再采用。
 4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `sync/backfill`，补齐缺口后再恢复 `sync/subscribe` 或 `POST /sync`。
 5. 若 snapshot 校验失败，客户端 MUST 回退到 Event history replay 或 Event-only backfill，并可将来源标记为 degraded。

@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/range-completeness-attestation.schema.json",
+  "title": "Contrix Range-bound Completeness Attestation",
+  "description": "A range-bound completeness attestation (cx.attestation.range_completeness.v1) asserts that the issuer (and any witnesses) have observed every reducer-input event in a declared range — (from_frontier, to_frontier) bounded by explicit per-actor seq intervals. Distinct from cx.event_batch_receipt (set-bound integrity over an arbitrary chosen subset) and cx.audit.ryw_receipt (per-event RYW hint). Used when verifiers need a completeness claim — i.e., 'no event has been silently withheld from this range' — not just 'the events given are unmodified'. Standalone single-issuer attestations are NOT sufficient for sovereign / multi-writer trust models; deployments requiring strong completeness MUST use a witness_attestation block following the cx.audit.ryw_receipt model (zh/crypto-media/audited-e2ee.md §4.1.1).",
+  "type": "object",
+  "required": [
+    "attestation_id",
+    "schema",
+    "issuer",
+    "issuer_role",
+    "space_id",
+    "scope",
+    "root",
+    "count",
+    "observed_at",
+    "witness_attestation",
+    "proofs"
+  ],
+  "properties": {
+    "attestation_id": {
+      "type": "string",
+      "pattern": "^cx:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "schema": {
+      "const": "cx.schema.range_completeness_attestation.v1"
+    },
+    "issuer": {
+      "$ref": "#/$defs/did"
+    },
+    "issuer_role": {
+      "type": "string",
+      "enum": [
+        "events_api",
+        "witness",
+        "peer_node",
+        "audit_witness"
+      ]
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "scope": {
+      "type": "object",
+      "required": [
+        "from_frontier",
+        "to_frontier",
+        "actor_seq_ranges"
+      ],
+      "properties": {
+        "from_frontier": {
+          "type": "object",
+          "required": [
+            "space_frontier"
+          ],
+          "properties": {
+            "space_frontier": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          },
+          "additionalProperties": true,
+          "description": "Lower bound of the range (exclusive). The attestation covers events causally after this frontier."
+        },
+        "to_frontier": {
+          "type": "object",
+          "required": [
+            "space_frontier"
+          ],
+          "properties": {
+            "space_frontier": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            }
+          },
+          "additionalProperties": true,
+          "description": "Upper bound of the range (inclusive)."
+        },
+        "actor_seq_ranges": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "actor_id",
+              "from_seq_exclusive",
+              "to_seq_inclusive"
+            ],
+            "properties": {
+              "actor_id": {
+                "$ref": "#/$defs/did"
+              },
+              "from_seq_exclusive": {
+                "type": "integer",
+                "minimum": -1,
+                "description": "Per-actor seq lower bound (exclusive). -1 means 'from actor genesis'."
+              },
+              "to_seq_inclusive": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Per-actor seq upper bound (inclusive). Issuer asserts completeness of every actor_seq in the half-open interval (from_seq_exclusive, to_seq_inclusive]."
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Per-actor seq intervals attested. Silent forks frequently appear as a missing slice in a single actor's seq sequence while the global frontier still advances monotonically — explicit per-actor ranges close that gap. MUST cover every actor that produced reducer-input events in (from_frontier, to_frontier]."
+        }
+      },
+      "additionalProperties": false
+    },
+    "root": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+      "description": "Canonical Merkle root over the sorted set of (actor_id, actor_seq, event_id, payload_hash) tuples for every reducer-input event in scope. Hash agility per Space.hash_profile."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of reducer-input events in scope. MUST match the number of leaves used to compute root."
+    },
+    "observed_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "When the issuer finished observing the scope and computed the attestation."
+    },
+    "witness_attestation": {
+      "type": "object",
+      "required": [
+        "kind",
+        "witnesses"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "federation_witness_attested",
+            "single_source"
+          ],
+          "description": "Same semantics as cx.audit.ryw_receipt.witness_attestation: 'federation_witness_attested' requires witnesses[].length >= 2 with pairwise-distinct issuer/controlling_organization/verification_method, each listed by Space policy in audit.range_completeness_witnesses[]. 'single_source' is the honest declaration for self-attested deployments. Mismatch between kind and witnesses[] cardinality / distinctness / policy listing MUST be rejected. Receivers SHOULD treat single_source attestations as advisory only and not as a sovereign-grade completeness proof."
+        },
+        "witnesses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "issuer",
+              "verification_method",
+              "controlling_organization"
+            ],
+            "properties": {
+              "issuer": {
+                "$ref": "#/$defs/did"
+              },
+              "verification_method": {
+                "type": "string"
+              },
+              "controlling_organization": {
+                "$ref": "#/$defs/did"
+              },
+              "attested_at": {
+                "$ref": "#/$defs/timestamp"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "proofs": {
+      "type": "array",
+      "items": {
+        "$ref": "./event-schema.json#/$defs/proof"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
+  "additionalProperties": true
+}

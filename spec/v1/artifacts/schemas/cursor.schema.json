@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/cursor.schema.json",
   "title": "Contrix Cursor",
-  "description": "Single opaque cursor type. Used as both stream continuation token (incremental sync, list pagination — 'since', 'after_cursor', 'prev_cursor', 'next_cursor') and barrier token (read-your-writes wait — 'X-Contrix-Wait-For'). The wire form is always cx:cursor:<base64url(canonical_json)>. Clients MUST treat the wire form as opaque; only the issuing server reads the inner structure. The 'purpose' field discriminates how the cursor is consumed.",
+  "description": "Single opaque cursor type. Used as both stream continuation token (incremental sync, list pagination — 'since', 'after_cursor', 'prev_cursor', 'next_cursor') and barrier token (read-your-writes wait — 'X-Contrix-Wait-For'). The wire form is always cx:cursor:<base64url(canonical_json)>. Clients MUST treat the wire form as opaque; only the issuing server reads the inner structure. The 'purpose' field discriminates how the cursor is consumed.\n\nIntegrity contract (normative, see client-sync.md §12 and encoding.md §10): every cursor MUST be server-verifiable in one of two forms — (A) stateless self-describing cursor with mandatory '_mac' or '_sig' covering the canonical body (transcript binds purpose, principal_id, device_id, service_id, filter_hash, positions, target?, x, issuer_kid); or (B) stateful opaque-handle cursor whose body is reduced to {v, purpose, h, x} where 'h' is an unguessable server-side handle that the issuing server resolves to the bound (principal, device, service, filter_hash, purpose, positions, expiry) tuple. Servers MUST validate integrity (verify MAC/signature, or look up handle) before using the cursor to advance to-device acknowledgement, /sync since position, X-Contrix-Wait-For barrier, or 'dropped'/'resync_required' recovery state. Integrity failures map to 'cursor_integrity_invalid' (distinct from 'cursor_expired' which is a TTL outcome).",
   "type": "object",
   "required": [
     "v",
@@ -98,6 +98,13 @@
       "type": "integer",
       "minimum": 0,
       "description": "Expiration timestamp (Unix ms). MUST be in the future when the cursor is issued. TTL upper bounds (cursor lifetime = x - t_ms): barrier cursors MUST have TTL ≤ 3,600,000 ms (1 hour); stream cursors MUST have TTL ≤ 604,800,000 ms (7 days). Issuing a cursor exceeding these caps is a producer error; receivers MUST reject with `invalid_param`. Reasoning: barrier cursors only gate read-your-writes wait latency and become meaningless once the global frontier has long covered the target event. Stream cursors lose causal alignment value over weeks of activity."
+    },
+    "h": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "Server-side opaque handle (stateful cursor form). When present, the cursor body MUST be reduced to {v, purpose, t, x, h} — the 's', 'd', 'target' state fields MUST be absent and instead resolved by the issuing server from the handle. The handle MUST be unguessable (≥ 128 bits entropy after base64url decoding), bound by the issuing server to (principal_id, device_id, service_id, filter_hash, purpose, positions, target?, expiry), and revocable. Servers MUST reject any unknown / expired / cross-binding handle with `cursor_integrity_invalid`. This is the integrity path for implementations that do not want to embed a MAC/signature; it is the moral equivalent of Matrix `next_batch` / MSC4186 `pos` and satisfies the integrity contract without crypto. A cursor that contains 'h' MUST NOT also contain '_mac' or '_sig' (handle lookup is itself the integrity check); a cursor without 'h' MUST carry '_mac' or '_sig'."
     }
   },
   "allOf": [
@@ -117,11 +124,37 @@
           "target"
         ]
       }
+    },
+    {
+      "description": "Integrity contract: either 'h' (stateful handle) MUST be present, or '_mac' / '_sig' (stateless self-describing). Handle form and MAC/sig form are mutually exclusive — handle lookup is itself the integrity check.",
+      "oneOf": [
+        {
+          "required": ["h"],
+          "not": {
+            "anyOf": [
+              {"required": ["_mac"]},
+              {"required": ["_sig"]}
+            ]
+          },
+          "properties": {
+            "s": false,
+            "d": false,
+            "target": false
+          }
+        },
+        {
+          "not": {"required": ["h"]},
+          "anyOf": [
+            {"required": ["_mac"]},
+            {"required": ["_sig"]}
+          ]
+        }
+      ]
     }
   ],
   "patternProperties": {
     "^_[A-Za-z0-9_]*$": {
-      "description": "Server-private fields (compression flags, MACs, signatures). Names MUST start with underscore. Excluded from cursor migration translation; included in canonical bytes for the local server's MAC/integrity check."
+      "description": "Server-private fields (compression flags, MACs, signatures). Names MUST start with underscore. Excluded from cursor migration translation; included in canonical bytes for the local server's MAC/integrity check. The integrity-bearing fields are `_mac` (HMAC over canonical body excluding `_mac` itself; transcript binds purpose, principal_id, device_id, service_id, filter_hash, positions, target?, x, issuer_kid) and `_sig` (detached signature with equivalent transcript). Other underscore-prefixed fields (e.g. `_compress`) are reserved for issuer-private flags and MUST be included in the MAC/sig transcript."
     }
   },
   "additionalProperties": false

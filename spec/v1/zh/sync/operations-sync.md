@@ -176,6 +176,101 @@ Event 是 canonical history。Event batch receipt、checkpoint 和 snapshot 只�
 
 Receipt 可用于 read-your-writes、回放完整性检查、witness 证明或跨服务 backfill 对账。接收方 MUST 能在没有 receipt 的情况下验证单个 Event；也 MUST NOT 因缺少 batch receipt 而拒绝格式、签名、授权和因果均有效的 Event，除非某个高安全 deployment profile 明确要求额外 witness。
 
+### 4.1 Batch Receipt 不证明的事实 (Normative Non-Properties)
+
+Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range completeness（范围完整覆盖）证明。即使在 `events[]` 上叠加 Merkle commitment（如 `event_set_commitment` / batch root），它也只保证 *integrity*（issuer 给出的事件集合未被中间人篡改），不保证 *completeness*（issuer 没有静默丢弃属于该范围的其他事件）。本节明确列出 receipt 不证明的事实：
+
+- Receipt MUST NOT 被实现解释为“该 `scope`（actor / space / frontier）下的所有已 accepted reducer-input event 都包含在 `events[]` 中”。Issuer 可以选择性 commit 任意子集，set-bound commitment 不构成抗丢弃证明。
+- Receipt MUST NOT 替代 Event 自身签名作为 reducer 输入合法性凭据：reducer MUST 按 §5 / event-and-patch.md §6 在 Event 层验证签名、prev_refs、refs、anchor 与 schema。
+- Receipt MUST NOT 被 Anchor pipeline 当作 canonical history 输入：Anchor 仍以 Event 为真源。
+- 想取得 range completeness 的实现，MUST 使用 §4.2 定义的 `cx.attestation.range_completeness.v1` 原语，其 scope 必须有显式 range 语义（per-actor seq interval + frontier 上下界），并伴随 witness quorum 或独立 anchor 背书。Core batch receipt 不承担此职责。
+
+> 术语：*integrity* 指给定数据未被篡改；*completeness* 指给定范围内没有漏给的成员。Set-bound Merkle commitment 提供 integrity，不提供 completeness——后者必须依赖 range-bound 语义。详见 [glossary.md](../overview/glossary.md)。
+
+### 4.2 Range-bound Completeness Attestation (Normative)
+
+`cx.attestation.range_completeness.v1` 是独立的 attestation 原语，用于提供 *completeness* 证明——即"该范围内没有 reducer-input event 被静默丢弃"。它与 `cx.event_batch_receipt`（set-bound integrity）和 `cx.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
+
+Schema id: `cx.schema.range_completeness_attestation.v1`（artifact `artifacts/schemas/range-completeness-attestation.schema.json`）。
+
+```json
+{
+  "attestation_id": "cx:attestation:01970a55-0000-7000-8000-000000000000",
+  "schema": "cx.schema.range_completeness_attestation.v1",
+  "issuer": "did:web:witness.example",
+  "issuer_role": "witness",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "scope": {
+    "from_frontier": {"space_frontier": ["cx:event:..."]},
+    "to_frontier":   {"space_frontier": ["cx:event:..."]},
+    "actor_seq_ranges": [
+      { "actor_id": "did:web:alice.example", "from_seq_exclusive": 144, "to_seq_inclusive": 187 },
+      { "actor_id": "did:web:bob.example",   "from_seq_exclusive": 87,  "to_seq_inclusive": 102 }
+    ]
+  },
+  "root": "sha256:...",
+  "count": 58,
+  "observed_at": "2026-05-18T08:30:00Z",
+  "witness_attestation": {
+    "kind": "federation_witness_attested",
+    "witnesses": [
+      {"issuer": "did:web:witness.example",  "verification_method": "did:web:witness.example#range-attest-1",  "controlling_organization": "did:webvh:witness-coop"},
+      {"issuer": "did:web:witness2.example", "verification_method": "did:web:witness2.example#range-attest-3", "controlling_organization": "did:webvh:audit-co"}
+    ]
+  },
+  "proofs": [ { "kind": "detached_jws", "alg": "EdDSA", "verification_method": "did:web:witness.example#range-attest-1", "payload_hash": "sha256:...", "created_at": "2026-05-18T08:30:00Z", "jws": "..." } ]
+}
+```
+
+#### 4.2.1 Scope 语义
+
+- `from_frontier` 是 **exclusive** 下界；attestation 覆盖该 frontier *之后* 因果发生的 reducer-input event。
+- `to_frontier` 是 **inclusive** 上界。
+- `actor_seq_ranges[]` 给出每个在 `(from_frontier, to_frontier]` 区间内产生 reducer-input event 的 actor 的 seq 区间（half-open `(from_seq_exclusive, to_seq_inclusive]`）。MUST 覆盖区间内所有产生 reducer-input event 的 actor；不可遗漏。
+- silent fork 经常表现为"某个 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进"——这就是为什么必须显式 per-actor seq interval，仅有 frontier 不够。
+
+#### 4.2.2 `root` 计算
+
+`root` 是 canonical Merkle root over **scope 内全部 reducer-input event 的 `(actor_id, actor_seq, event_id, payload_hash)` 四元组排序集合**：
+
+1. 收集 scope 内每个 actor 在其 seq interval 内的全部 accepted reducer-input event；
+2. 对每个 event 形成 leaf `canonical_bytes({actor_id, actor_seq, event_id, payload_hash})`；
+3. 按 `(actor_id, actor_seq)` 字典序排序；
+4. 计算 binary Merkle tree（Hash 算法按 Space.hash_profile）；
+5. `count` MUST 等于叶子数。
+
+不包含 non-reducer event（read marker / typing 等）。leaves 排序确定性使 verifier 可以局部 backfill 后独立重算 `root`。
+
+#### 4.2.3 Witness Attestation 与 sovereign-grade 完整性
+
+`witness_attestation` 复用 `cx.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1.1](../crypto-media/audited-e2ee.md)）：
+
+- `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Space `audit.range_completeness_witnesses[]` 中已声明。
+- `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。
+
+**重要**：`single_source` attestation 不构成 sovereign-grade completeness 证明——它只是 issuer 的自报。需要"对方未藏分支"语义保证的部署 MUST 要求 `federation_witness_attested`。这是 silent fork 抗性的最后一道防线：base batch receipt（integrity）+ frontier exchange（probe）+ range-completeness attestation（completeness with witness quorum）才能完整覆盖。
+
+#### 4.2.4 Verifier 协议
+
+接收方 verifier 验证 attestation 时 MUST：
+
+1. 校验所有 `proofs[]` 与 `witness_attestation.witnesses[].verification_method` 签名；
+2. 校验 `witness_attestation.kind` 与 `witnesses[]` cardinality / distinctness / Space policy 列表一致；任一不通过 `audit_receipt_invalidated`；
+3. 校验 `from_frontier` / `to_frontier` 因果一致（`to_frontier` ⊇ `from_frontier`）；
+4. 若 verifier 自身持有 scope 内事件，MUST 重算 `root` 并 constant-time 比较；不一致 `range_completeness_root_mismatch`；
+5. 若 verifier 只持有 scope 子集，可以验证 inclusion proof（按 standard Merkle inclusion）；不持有任何 scope 事件时只能记录 attestation 不能确认 completeness。
+6. 校验 `actor_seq_ranges[]` 中每个 actor 的 seq interval 与 verifier 本地视图（partial replication 后）一致；本地视图若发现缺口而 attestation 声称完整，MUST `range_completeness_actor_seq_gap`。
+
+#### 4.2.5 与其它原语的关系
+
+| 原语 | scope | 提供 | 不提供 |
+| --- | --- | --- | --- |
+| `cx.event_batch_receipt` | issuer 选择的 events 集合 | integrity（给的没被改） | completeness（没漏给） |
+| `cx.audit.ryw_receipt` | 单个 `cx.audit.accessed` event | RYW witness attestation | range coverage |
+| `cx.attestation.range_completeness.v1`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
+
+issuer / verifier 应根据需求选取；混用以补强各自边界。
+
 ## 5. Wire Event
 
 v1 的规范性 wire fact 只有 **Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。早期草案的 Envelope+Move 双层已经合并为单层 Event。

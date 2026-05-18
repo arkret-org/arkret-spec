@@ -73,6 +73,14 @@
       "file": "schemas/event-batch-receipt.schema.json"
     },
     {
+      "schema_id": "cx.schema.patch.v1",
+      "file": "schemas/patch.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.range_completeness_attestation.v1",
+      "file": "schemas/range-completeness-attestation.schema.json"
+    },
+    {
       "schema_id": "cx.schema.ice_config_response.v1",
       "file": "schemas/ice-config-response.schema.json"
     },

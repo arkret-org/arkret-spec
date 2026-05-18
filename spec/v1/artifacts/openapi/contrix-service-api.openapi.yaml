@@ -1235,6 +1235,10 @@ components:
         object:
           $ref: '#/components/schemas/ProjectionObject'
         score:
+          # lint-waiver(type:number): Search ranking score is a non-canonical, non-signed
+          # query-time annotation. It MUST NOT enter canonical Event bytes or any signed
+          # artefact. A follow-up wire revision MAY migrate this to score_basis_points
+          # (integer, 0..10000) so SDK codegen stops emitting float; see _todos.md T2-3.
           type: number
         highlights:
           type: array
@@ -1401,6 +1405,10 @@ components:
         value:
           oneOf:
           - type: string
+          # lint-waiver(type:number): CollectionFieldValueGroupSource.value is a UI/query
+          # filter parameter accepting whatever the projected field's runtime type is. It
+          # does not enter canonical Event bytes. A follow-up wire revision MAY migrate
+          # decimal-needing field types to {integer, scale} envelope; see _todos.md T2-3.
           - type: number
           - type: boolean
       additionalProperties: false
@@ -3850,12 +3858,14 @@ paths:
       summary: Legacy alias of cx.policy.check at the pre-P-D10 deployment-local path.
       description: |
         DEPRECATED in favor of `cx.policy.check` (`POST /api/v1/policy/check`).
-        Servers MUST continue to accept this path during the v1.x transition so
+        Servers MUST continue to accept this path during the transition window so
         that existing OPA / policy-server integrations keep working. New SDK
         generators / gateways SHOULD route to `/api/v1/policy/check`. Both
         paths carry the same request / response shape; the only difference is
-        the URL. No deadline for removal is set in v1; deployments MAY reject
-        once downstream consumers have migrated.
+        the URL. The legacy path sunsets on 2028-06-01 in alignment with the
+        broader legacy-event-kind sunset timeline (see
+        zh/models/flow-and-message.md §4.8.1); deployments MAY reject once
+        downstream consumers have migrated.
       security:
       - bearerAuth: []
       - httpMessageSignature: []

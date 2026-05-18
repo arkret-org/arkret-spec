@@ -381,7 +381,7 @@
           "type": "object"
         },
         "initial_value": {
-          "description": "Optional cell schema initial value (v1.1, cas-register only). When defined, the cas-register `join` algorithm initialises `current` to this value (rather than null) before applying any Move. Combined with a `head_eq: <initial_value>` predicate on the first set Move, this implements singleton-once-set cells via the empty sentinel pattern. See event-auth-state-resolution.md §5.3.3 and extensions/agent-workspace-profile.md §6.1."
+          "description": "Optional cell schema initial value (cas-register only). When defined, the cas-register `join` algorithm initialises `current` to this value (rather than null) before applying any Move. Combined with a `head_eq: <initial_value>` predicate on the first set Move, this implements singleton-once-set cells via the empty sentinel pattern. See event-auth-state-resolution.md §5.3.3 and extensions/agent-workspace-profile.md §6.1."
         },
         "sentinel_writers": {
           "type": "array",
@@ -390,7 +390,7 @@
             "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
           },
           "uniqueItems": true,
-          "description": "Optional companion to `initial_value` (v1.1, cas-register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §5.3.3."
+          "description": "Optional companion to `initial_value` (cas-register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §5.3.3."
         }
       },
       "additionalProperties": false,
@@ -423,7 +423,7 @@
           }
         },
         {
-          "$comment": "v1.1 initial_value is only defined for cas-register (see event-auth-state-resolution.md §5.3.3 update). Other lattices reject the field.",
+          "$comment": "initial_value is only defined for cas-register (see event-auth-state-resolution.md §5.3.3). Other lattices reject the field.",
           "if": {
             "required": ["initial_value"]
           },
@@ -435,7 +435,7 @@
           }
         },
         {
-          "$comment": "v1.1 sentinel_writers is the companion of initial_value; it only makes sense on a cas-register cell that has declared initial_value. Reject declarations on other lattices, and reject declarations on cas-register cells that lack initial_value (since there is no sentinel to authorise writing back).",
+          "$comment": "sentinel_writers is the companion of initial_value; it only makes sense on a cas-register cell that has declared initial_value. Reject declarations on other lattices, and reject declarations on cas-register cells that lack initial_value (since there is no sentinel to authorise writing back).",
           "if": {
             "required": ["sentinel_writers"]
           },

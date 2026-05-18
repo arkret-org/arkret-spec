@@ -230,7 +230,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 - `cx.invite.third_party`
 - `cx.invite.claim`
 - `cx.invite.revoke`
-- `cx.space.join.review`（审核 `cx.member.application`，签发 `cx.member.application.review`；详见 [`../models/space-and-place.md` §3.6](../models/space-and-place.md)）
+- `cx.space.join.review`（审核 `cx.member.application`，签发 `cx.member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)）
 - `cx.approval.vote`
 - `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）
@@ -437,6 +437,37 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 - 每次再授权 MUST 递减深度。
 - 再授权不得扩大原始资源范围和动作范围。
 - 委托链 MUST 可验证。
+
+### 10.1 时效收窄（normative）
+
+`cx.capability.delegate` 派生 grant **MUST** 满足时间窗口收窄,reducer 校验:
+
+| 子 grant 字段 | 与 parent grant 关系 |
+| --- | --- |
+| `not_before` | MUST ≥ `parent.not_before` |
+| `expires_at` | MUST 存在且 ≤ `parent.expires_at`(无限期 parent 在 v1 中不允许;若 parent 未声明 `expires_at`,delegate 时 child MUST 自带 `expires_at` ≤ `now + max_delegation_lifetime_ms`,默认 24 小时) |
+| `max_delegation_depth` | MUST ≤ `parent.max_delegation_depth - 1` |
+| `actions[]` | MUST ⊆ `parent.actions[]` |
+| `resources[]` | MUST 是 `parent.resources[]` 的 selector-narrowing 子集(见 `resource-selector-grammar.md`) |
+| `constraints[]` | MUST 至少包含 parent 的所有 deny / require / quarantine constraints; MAY 增加更严格的 allow constraints |
+
+违反任何一项 reducer MUST 返回 `failed_precondition` reason=`delegation_expiry_widening`(对窗口),或 `schema_violation`(对 actions / resources / constraints 越界)。
+
+### 10.2 Cycle detection（normative）
+
+`cx.capability.delegate` event 的 `refs[]` 中包含 `role="parent_grant"` 引用作为父 grant id。Reducer **MUST** 把所有已 anchored 的 delegation 关系视为有向图,节点是 `grant_id`,边是 `(parent_grant_id, child_grant_id)`,并按下列算法做 cycle detection:
+
+1. 收到新的 `cx.capability.delegate(child_grant_id, parent_grant_id)` 时,reducer 沿 parent chain 做 DFS,直到遇到无 parent 的 root grant 或深度 = `max_delegation_depth_observed`。
+2. 若在 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中(即新 grant 会 close 一条循环 path),reducer **MUST** 拒绝整条 delegation chain 上的本 Event,reason=`delegation_cycle`,不接受任何子 grant 即便它们单看 valid。
+3. DFS 深度上限 default 64,与 `actor_seq` causal chain 上限一致(`scalability-constraints.md`);超过深度的 chain 视作病态,reducer MUST 退化为拒绝。
+4. 当 parent grant 已被 revoke 但 freshness 未到达时,reducer 仍 MUST 把它视为 cycle detection 的 ancestor 节点(prevent 攻击者 revoke-then-re-delegate 构造环)。
+5. 同一 delegate event 携带的多 child grant(批量委托)MUST 整体 fail-or-pass;部分接受会产生不完整的图结构,reducer MUST NOT 部分接受。
+
+实现 SHOULD 维护 in-memory delegation-graph adjacency cache,以使每次 delegate 校验为 O(depth);冷启动时从 anchored Events 重建。
+
+### 10.3 Revoke 因果传播
+
+`parent grant` 被 revoke 时,所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。具体行为见 [`event-auth-state-resolution.md` §8](./event-auth-state-resolution.md) 委托链 revocation 传播规则;本节只补充: revoke 与 freshness 不一致期间(receiver 已收到 revoke 但未达到 freshness windows),derived child grant 已发起的 in-flight Events 由 reducer 按 §6 fast-path freshness 表判定(parent freshness `unknown` 时 fail closed 适用于高风险 action)。
 
 ## 11. 有效权限集合
 

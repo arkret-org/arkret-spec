@@ -435,6 +435,14 @@
         "payload": "Presentation response"
       },
       {
+        "event_kind": "cx.identity.accountability_grant",
+        "category": "identity",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_to the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_to[]` entries; reducer strips unverified DIDs from accountable_to. See zh/models/actor.md §3.3.1."
+      },
+      {
         "event_kind": "cx.schema.define",
         "category": "schema",
         "status": "active",
@@ -780,6 +788,14 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Morph restore"
+      },
+      {
+        "event_kind": "cx.morph.schema_migrate",
+        "category": "morph",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (audit-grade tier). compatibility_class = additive | breaking | transformation; v1 base reducers MUST reject breaking/transformation unless the Space declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
       },
       {
         "event_kind": "cx.relation.create",
@@ -1448,6 +1464,14 @@
         "payload": "Audit RYW receipt"
       },
       {
+        "event_kind": "cx.attestation.range_completeness",
+        "category": "audit",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": false,
+        "payload": "Range-bound completeness attestation. Distinct from cx.audit.ryw_receipt (per-event read-your-writes hint) and cx.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent anchor backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §4.2 and zh/sync/range-completeness-attestation.md."
+      },
+      {
         "event_kind": "cx.moderation.report",
         "category": "moderation",
         "status": "active",
@@ -1709,6 +1733,14 @@
       {
         "schema_id": "cx.schema.event_batch_receipt.v1",
         "file": "schemas/event-batch-receipt.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.patch.v1",
+        "file": "schemas/patch.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.range_completeness_attestation.v1",
+        "file": "schemas/range-completeness-attestation.schema.json"
       },
       {
         "schema_id": "cx.schema.ice_config_response.v1",
@@ -2089,6 +2121,13 @@
         "status": "active",
         "wire_form": "cx:receipt:<uuid>",
         "description": "Receipt object ID"
+      },
+      {
+        "kind": "attestation",
+        "category": "audit",
+        "status": "active",
+        "wire_form": "cx:attestation:<uuid>",
+        "description": "Attestation object ID (e.g. cx.attestation.range_completeness)."
       },
       {
         "kind": "relation",

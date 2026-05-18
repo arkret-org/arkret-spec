@@ -54,6 +54,7 @@
     "cx.profile.principal_server.v1",
     "cx.profile.directory_service.v1",
     "cx.profile.federation_minimal.v1",
+    "cx.profile.federation.high_assurance.v1",
     "cx.profile.identity_registry.v1",
     "cx.profile.blob_node.v1",
     "cx.profile.push_gateway.v1",
@@ -66,6 +67,8 @@
     "cx.profile.mimi_interop.v1",
     "cx.profile.sovereign_client.v1",
     "cx.profile.franking.v1",
+    "cx.profile.franking.sender_commitment.v1",
+    "cx.profile.morph.schema_migration_transformations.v1",
     "cx.profile.webrtc_media.v1"
   ],
   "profile_tiers": {
@@ -81,11 +84,14 @@
       "cx.profile.principal_server.v1",
       "cx.profile.directory_service.v1",
       "cx.profile.federation_minimal.v1",
+      "cx.profile.federation.high_assurance.v1",
       "cx.profile.identity_registry.v1",
       "cx.profile.blob_node.v1",
       "cx.profile.push_gateway.v1",
       "cx.profile.sovereign_client.v1",
       "cx.profile.franking.v1",
+      "cx.profile.franking.sender_commitment.v1",
+      "cx.profile.morph.schema_migration_transformations.v1",
       "cx.profile.webrtc_media.v1"
     ],
     "v1_minimal_interop_floor": [
@@ -759,6 +765,37 @@
         "unsupported_optional": "reject unsupported profile before accepting events"
       }
     },
+    "cx.profile.federation.high_assurance.v1": {
+      "inherits": [
+        "cx.profile.federation_minimal.v1"
+      ],
+      "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the cx.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [
+        "federation-fixture.json"
+      ],
+      "optional_extensions": [
+        "frontier_witness_attestation",
+        "per_actor_seq_backfill"
+      ],
+      "feature_discovery": {
+        "required": [
+          "frontier_probe_endpoint",
+          "frontier_probe_interval_seconds",
+          "stale_peer_threshold"
+        ],
+        "unsupported_optional": "reject claim of cx.profile.federation.high_assurance.v1 if proactive frontier exchange or stale_peer fail-state is not implemented"
+      },
+      "additional_requirements": {
+        "frontier_probe_capability_must": "Peer MUST expose capability-gated frontier probe endpoint per federation.md §4.5.1.",
+        "proactive_exchange_must": "Per federation-visible Space, per authorized peer, frontier probe interval MUST be <= 3600 seconds.",
+        "fail_state_must": "Three consecutive probe failures (peer unreachable, signature failure, frontier_root divergence beyond fork-resolution threshold) MUST mark the peer as 'stale_peer' for that Space.",
+        "stale_peer_behavior_must": "While a peer is in 'stale_peer' state: MUST quarantine its push payloads (no local frontier advancement); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after successful fork resolution (head reconvergence or quorum witness attestation alignment)."
+      }
+    },
     "cx.profile.identity_registry.v1": {
       "required_endpoints": [
         "cx.identity.describe_registry",
@@ -1303,6 +1340,66 @@
           "frank_canonical_fields"
         ],
         "unsupported_optional": "return frank_unavailable rather than silently dropping"
+      }
+    },
+    "cx.profile.franking.sender_commitment.v1": {
+      "inherits": [
+        "cx.profile.franking.v1"
+      ],
+      "description": "Opt-in sender-bound plaintext commitment for E2EE Spaces. Adds a sidecar (unsigned.franking.sender_commitment) carrying an HMAC-SHA-256 tag derived from per-device-per-epoch MLS exporter secret over plaintext+aad+ciphertext+epoch_local_seq, enabling audit verifiers to independently attribute plaintext to (sender_device_id, epoch). Does NOT change core franking wire shape (sidecar lives in unsigned scope). Does NOT provide outside-of-group non-repudiation — verifier attribution is bounded by MLS epoch deniability and verifier's exporter-secret retention window (default <= 72h). Plaintext sender attribution from reporter evidence MUST go through §3.4.2 verification flow. See zh/governance/content-moderation.md §3.4.2.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "sender_commitment_replay_persistence",
+        "sender_commitment_window_policy"
+      ],
+      "feature_discovery": {
+        "required": [
+          "sender_commitment_alg",
+          "sender_commitment_exporter_label",
+          "sender_commitment_max_verifier_window_hours"
+        ],
+        "unsupported_optional": "deployments not implementing this profile MUST NOT emit unsigned.franking.sender_commitment and MUST treat received sender_commitment as unknown extension"
+      },
+      "additional_requirements": {
+        "key_derivation_must": "Sender Commitment Key MUST be HKDF-Expand-Label over the MLS epoch exporter_secret with label='cx franking sender commitment v1' and context binding {mls_group_id, epoch, sender_device_id}.",
+        "commitment_tag_must": "HMAC-SHA-256 over canonical bytes binding plaintext_digest, aad_digest, sender_device_id, mls_group_id, epoch, epoch_local_seq, ciphertext_digest; truncated to 128-bit tag.",
+        "epoch_local_seq_must": "Strictly monotonic per (sender_device_id, epoch); reducer/verifier MUST persist high-water and reject replays (reason sender_commitment_seq_replay).",
+        "verifier_window_must": "Implementations MUST document their verifier exporter-secret retention window; commitments outside that window are unverifiable, NOT forged.",
+        "plaintext_brute_force_must": "Deployments MUST NOT combine this profile with governance models where verifiers can offline-brute-force candidate plaintexts against the commitment without prior gating."
+      }
+    },
+    "cx.profile.morph.schema_migration_transformations.v1": {
+      "description": "Opt-in Space profile that permits cx.morph.schema_migrate.v1 events with compatibility_class in {breaking, transformation}. Spaces not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating cx.morph.schema.migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
+      "required_endpoints": [],
+      "required_event_kinds": [
+        "cx.morph.schema_migrate"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.event_payload.v1"
+      ],
+      "required_fixtures": [],
+      "optional_extensions": [
+        "transformation_rules_v1_grammar"
+      ],
+      "feature_discovery": {
+        "required": [
+          "supported_compatibility_classes",
+          "transformation_rules_dialect",
+          "schema_migrate_capability_action"
+        ],
+        "unsupported_optional": "deployments without this profile MUST reject breaking and transformation migrations even if the event-payload schema would accept them"
+      },
+      "additional_requirements": {
+        "capability_must": "Reducer MUST require cx.morph.schema.migrate (or Space-declared equivalent) capability at the event's frontier; missing yields capability_denied.",
+        "from_set_check_must": "Reducer MUST set-equal-compare payload.from_schema_refs[] against the Morph's current schema_refs[] at apply time; mismatch yields failed_precondition.",
+        "deterministic_transformation_must": "Any transformation_rules[] MUST be replay-deterministic across implementations; profile vectors MUST cover identity, rename, type widening, and default backfill cases."
       }
     },
     "cx.profile.webrtc_media.v1": {

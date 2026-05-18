@@ -186,7 +186,7 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 
 ### 4.8 统一 event `cx.flow.tracks.update`(P-D12 O1.2 canonical)
 
-为减少 track 写入路径的 event kind 数量,v1.x 引入统一 event **`cx.flow.tracks.update`**(注意名称用复数 `tracks`),通过 `cx.patch.v1` 表达对 `Flow.tracks` map 的任意原子修改。原有 4 个单用途 event kind(`cx.flow.track.{enable,disable,update,set_primary}`)仍 active,v1.x reducer MUST 同时接受两种形态;新客户端 SHOULD 优先使用统一 event。
+为减少 track 写入路径的 event kind 数量,v1 引入统一 event **`cx.flow.tracks.update`**(注意名称用复数 `tracks`),通过 `cx.patch.v1` 表达对 `Flow.tracks` map 的任意原子修改。原有 4 个单用途 event kind(`cx.flow.track.{enable,disable,update,set_primary}`)在 §4.8.1 sunset 时间线之前仍 active,reducer MUST 同时接受两种形态;新客户端 SHOULD 优先使用统一 event。
 
 **典型 patch 示例**:
 
@@ -211,7 +211,35 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 
 **Reducer 规则**:同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成);primary track 不能空缺(切走旧 primary 后必须有一个新 primary);track key 必须匹配 `^[a-z][a-z0-9_]{0,63}$`。
 
-**迁移期建议**:server-side reducer 接受两种形态;client SDK 把 4 个 legacy 调用 normalize 为 1 个统一 event 是 SDK-internal 优化,不影响 wire 兼容。v2 MAY 移除 legacy event kind,但 v1.x 不强制。
+### 4.8.1 Legacy / 统一 event 双轨 sunset (Normative)
+
+Core 协议保留过渡期内的双轨接受，但定义明确 sunset 时间线，避免 legacy wire 永久存在：
+
+| 阶段 | 起始日期 | reducer 行为 | 客户端责任 |
+| --- | --- | --- | --- |
+| **Coexistence**（当前） | v1.0 GA | reducer MUST 同时接受 legacy 4 个 event 与统一 `cx.flow.tracks.update`；两种 wire 在 cell value 层 bit-exact 等价（[`../conformance/conformance-vectors.md` §2.10 Case D](../conformance/conformance-vectors.md)）。 | 新客户端 SHOULD 写统一 event；现有客户端继续写 legacy 不报错。 |
+| **Server-side adapter mandatory** | 2027-06-01 | server-side reducer / Sync Service MUST 在接受时将每个 legacy event normalize 到等价 `cx.flow.tracks.update` 的 cell effect 表达；canonical projection / audit log SHOULD 以统一形态导出。Wire 仍接受 legacy 形态——adapter 是 server 内部 normalize，不强制客户端改写。 | 仍可写 legacy；server 把它们当语法糖处理。 |
+| **Deprecation warnings** | 2027-12-01 | reducer 接受 legacy 时 MUST 在响应 `unsigned.warnings[]` 中加 `{code:"legacy_event_kind", kind:"cx.flow.track.*", sunset_at:"2028-06-01"}`；不影响 accept 状态。 | 客户端 SHOULD 迁移；旧客户端 SHOULD 显式声明读到 warning。 |
+| **Sunset**（legacy → deprecated） | 2028-06-01 | event-kind-registry 中 `cx.flow.track.{enable,disable,update,set_primary}` 状态从 `active` 转为 `deprecated`；reducer MAY（部署 policy 决定）reject legacy event 并返回 `unsupported_event_kind` reason=`deprecated_event_kind`。Wire 不再保证 legacy event 在 federation 中传播。 | 客户端 MUST 迁移；写入 legacy event MAY 被拒绝。 |
+| **Removal candidate** | 2029-Q1（不早于） | legacy event kind 计划在未来 wire 协议修订中完全移除；具体移除时间不是 normative，由专门的 wire revision 决定。 | 不再支持 legacy event。 |
+
+**Adapter normative 要求**（Coexistence 后阶段适用）：
+
+- server-side adapter MUST 是 1:1 等价转换；不得"合并 4 条 legacy 到 1 条统一"以掩盖原始客户端意图（audit log 必须能追溯每条 wire event）；
+- 反方向不需要 adapter：服务器从不向客户端**发出** legacy event 替代统一 event。客户端订阅 stream 时 MUST 接受任一形态。
+- federation peer 之间互相传播 legacy 形态时，接收方 reducer 仍按本 §4.8.1 时间线决定是否拒绝。
+
+**Negative conformance vectors**：[`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) MUST 包含：
+
+- `cx.vector.flow_tracks_sunset.coexistence_accept.v1`：双形态均 accept，cell value bit-exact 等价（同 §2.10 Case D）。
+- `cx.vector.flow_tracks_sunset.deprecation_warning.v1`：sunset 日期之后但 reject 未启用前，legacy event accept 并返回 `legacy_event_kind` warning。
+- `cx.vector.flow_tracks_sunset.post_sunset_reject.v1`：sunset 后部署启用 reject，legacy event MUST `unsupported_event_kind` reason=`deprecated_event_kind`，统一 event 仍 accept。
+
+> Rationale：双轨永远存在会让"v2 wire shape"成为永久谎言。明确日期 + 强制 adapter + negative vectors 才能让 sunset 真正发生而不是无限期延后。
+
+### 4.8.2 Capability 与 audit
+
+`cx.flow.tracks.manage` 一个 action 覆盖统一 event + 4 个 legacy event(`target_event_kinds` 列出 5 个)。客户端可以选择申请细粒度 legacy action(`cx.flow.track.enable` 等)或粗粒度统一 `cx.flow.tracks.manage`;reducer 按命中的 action 判定。sunset 阶段后部署可以选择只授予 `cx.flow.tracks.manage`,自然让 legacy capability 在新 grant 中消失。
 
 ## 5. Discussion 独立 Space (`discussion_space_ref`)
 

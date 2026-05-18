@@ -133,6 +133,8 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 `requirements.features[]` 与 `requirements.critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Space schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
 
+**Per-event schema 版本绑定**：当 event 修改的对象使用 evolvable schema（典型是 Morph，但同样适用于任何 Space-defined schema 容器对象）时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 写入时对象实际遵循的 schema profile id 全集。reader 重放该 event 时 **MUST** 用 `requirements.schema[]` 绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用对象当前的 `schema_refs[]`。这保证 partial replication 与跨版本历史回放时验证结果一致，并锁定每个 event 的 schema 解释边界。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md)。
+
 ## 3. Proof
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
@@ -148,11 +150,11 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/identity-did.md) 的 Proof 和 [`../conformance/encoding.md`](../conformance/encoding.md) 的 canonical JSON 规则一致。
 
-## 4. Field Patch (`cx.patch.v1`)
+## 4. Field Patch (`cx.patch.v1` / `cx.schema.patch.v1`)
 
 非 create 类更新建议使用 `cx.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。
 
-> **命名注意**：`cx.patch.v1` 是 **embedded format identifier**，不是 schema_id。它描述 `payload.patch` map 的 wire 形态（key=path、value=op），不是顶层对象 schema，因此**不出现**在 `artifacts/registry/schema-registry.json` 中。形如 `cx.schema.<name>.v<n>` 的标识才是已注册 schema id。实现 SDK / lint 工具 MUST NOT 把 `cx.patch.v1` 当作 schema id 查询；它只在该 `payload.patch` 字段位置生效，整体语义见本节 §4.1–§4.3。
+> **命名注意**：`cx.patch.v1` 是 **embedded format identifier**（spec prose 中的简称，用于指代 `payload.patch` 字段位置的 wire 形态），其结构 schema 已正式注册为 `cx.schema.patch.v1`，artifact 见 [`artifacts/schemas/patch.schema.json`](../../artifacts/schemas/patch.schema.json)。两个标识同源——format identifier 在中文规范与 prose 中保持兼容用法，schema_id 在 registry / SDK / lint 工具中作为可解析的 schema reference。实现 MUST 将 spec 中出现的 `cx.patch.v1` 引用解析到该 schema artifact；本节 §4.1–§4.3 是该 schema 的 normative 语义补充（grammar / parser 责任 / selector / redactable / reducer-managed 字段保护），artifact 自身不重复 normative 文字。
 
 ### 4.1 结构
 
@@ -238,6 +240,8 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 ### 5.1 概念
 
 Event Batch Receipt 是可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**。缺少 receipt 不得导致格式、签名、授权和因果均有效的 Event 被拒绝，除非 deployment profile 额外要求 witness。
+
+Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 scope 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 需要单独的 attestation 原语（计划中 `cx.attestation.range_completeness.v1`），其 scope 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 anchor 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §4.1 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
 
 ### 5.2 Schema 与字段
 

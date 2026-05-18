@@ -143,7 +143,28 @@ Snapshot signer authority 只能证明谁签发了 reduced state；它不能证�
 - `ordered_event_id_sha256_v1`：对按 `(actor_id, actor_seq, event_id)` 排序的 canonical JSON 条目 `{event_id,event_hash,actor_id,actor_seq,hlc}` 计算 SHA-256。
 - `merkle_event_set_v1`：基于同样的 canonical 条目构造 Merkle root。
 
-High-assurance profile MUST 支持 inclusion challenge。`security_class=high_assurance` 的 Space MUST 在采纳任何 snapshot 之前执行该挑战；其他 profile SHOULD 执行。
+### 6.1 能力边界（normative — what omission challenge can and cannot prove）
+
+Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI 中按下表理解,任何超出该范围的安全声明都是夸大:
+
+| 能力 | 可证明? | 说明 |
+| --- | --- | --- |
+| issuer 是否对**它声明覆盖的集合**保持内部一致 | ✅ | challenge 抽样命中即可重算 commitment root,确认 issuer 没有偷偷重写它声明过的某个 event 内容。 |
+| issuer 是否漏掉了**新客户端不知道的** actor 或 event 分支 | ❌ | bootstrap 客户端只能用 issuer-provided frontier 或 issuer-listed active actor 集合抽样;它**不知道**该问 "actor X 你为什么没列出来?"。issuer 可以构造一个自洽但缺失若干 actor 的 snapshot,新客户端拿不出对照。 |
+| issuer 是否对**客户端已知的** event_id / actor_seq range 区间漏掉了事件 | ⚠️ 部分 | 客户端 SHOULD 用自己已 cache 的 event_id / actor_seq range 抽样;命中 0 个 `kind="event_id"` 样本时挑战形同虚设。`security_class=high_assurance` 部署 SHOULD 在 challenge `samples[]` 中混入**至少一个**客户端自有的 sample anchor。 |
+| issuer 是否同时签发了多版本不一致的 snapshot(split-view) | ❌ | inclusion challenge 是 issuer-side 单向 query;两份 issuer 给不同 client 的不同 snapshot 互相不知道。Split-view 检测必须依赖 federation §4.5 frontier exchange 或 §8 fork-detection。 |
+
+简言之: **`event_set_commitment` + inclusion challenge 是"已知集合包含性 + 内容一致性"检查,不是 omission 完整性证明**。任何 spec 措辞、UI 文案、安全审计声明 MUST NOT 把 inclusion challenge 描述为"防止 issuer 漏发任何事件"。
+
+### 6.2 High-assurance bootstrap 的额外要求
+
+`security_class=high_assurance` 的 Space MUST 在采纳任何 snapshot 之前执行该挑战;其他 profile SHOULD 执行。同时,该 security_class 的 bootstrap 客户端 **MUST** 至少满足以下一条以补足 §6.1 的边界缺失:
+
+1. **Witness quorum on actor set**:从至少一个独立 witness(部署 policy 明确列出且非 snapshot issuer 控制)拉取该 Space 在 `manifest.created_at` 时刻的 active actor set commitment 与 actor sequence upper-bound commitment,client 用其与 snapshot manifest 中声明的 actor set 比对;不一致 MUST quarantine。
+2. **Per-actor sequence upper-bound**:`event_set_commitment` MUST 携带 `actor_set_root` 与每个 actor 的 `[min_seq, max_seq]` 承诺(`merkle_actor_seq_bounds_v1` 算法,在 §5 schema 的 `actor_set_root` 字段中固定),client 校验该 actor 在 snapshot frontier 后到达的事件 `actor_seq > max_seq`。
+3. **Raw replay fallback**:无 witness quorum 可用时,bootstrap 客户端 **MUST NOT** 把 snapshot 作为 high-assurance accepted state——只能当作加速索引,实际授权决策仍 MUST 走原始 Event 回放,直到独立 witness 上线或 federation peer 提供 cross-source confirmation。
+
+非 high-assurance profile SHOULD 在 UI 中把"由第三方 snapshot 加速 bootstrap"标记为 lower-trust 状态,与从原始 Event 回放出的 high-trust 状态区分。
 
 挑战 wire 格式（POST 到 `verification_hints.inclusion_proof_url`）：
 

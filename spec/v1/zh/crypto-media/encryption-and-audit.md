@@ -468,6 +468,33 @@ Claim 成功后：
 - 成功处理 Welcome 后，接收端或服务端状态 SHOULD 标记该 KeyPackage 为 `consumed`。若 Welcome 失败或过期，KeyPackage 不得自动回到 `published`；设备 SHOULD 发布新的 KeyPackage。
 - 服务端返回 KeyPackage 时 MUST 附带 device signature、principal binding 和 revocation status。客户端 MUST 通过 DID control chain 与 device trust chain 验证后才能加密。
 
+#### 2.6.1 Welcome `claim_envelope` 签名（normative）
+
+KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早于** claim/Welcome 阶段 Space 还未确定,因此 device_signature 不能覆盖 `intended_space_id`。这就出现一个攻击面:**rogue Delivery Service** 或同时控制 KeyPackage 与 Welcome 的中间者可以把一个为 Space A 设计的 KeyPackage,用于把目标 device 加入 Space B(用相同 keypackage_ref + 重写 group_id 的 Welcome)。即便接收端校验 Welcome 内 group_id,attacker 仍可在 UI 上诱导接收端用户接受错误 Space。
+
+为关闭该攻击面,Welcome 发送方 **MUST** 附带 detached **`claim_envelope`** signature,canonical signing input 至少绑定:
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `keypackage_ref` | hash | 被消费的 KeyPackage 的 `keypackage_ref`。 |
+| `intended_space_id` | id | Welcome 真正加入的 Space ID (与 Space governance state 同源)。 |
+| `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_space, nonce, expiry)。 |
+| `requester_did` | did | Welcome 发送方 principal DID。 |
+| `nonce` | string | per-Welcome 唯一的 ≥ 128 bit 随机串。 |
+| `welcome_digest` | hash | MLS Welcome 消息本身的 canonical-bytes digest。 |
+| `created_at` | timestamp | 签名时间;接收方校验在 KeyPackage `expires_at` 与 claim `expires_at` 之内。 |
+
+`claim_envelope.signature` MUST 由 `requester_did` 的当前 active **self-signing key** 签发(不是 Delivery Service service key,不是 KeyPackage 的 device_signature 派生)。接收端 **MUST**:
+
+1. 通过 DID control chain 验证 `claim_envelope.signature` → `requester_did`;
+2. 校验 `intended_space_id` 等于 MLS Welcome 内 group_id 反向 resolve 出的 Space(防止 server-side rewrite);
+3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见,且 `claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致;
+4. 校验 `welcome_digest` 等于 `canonical_hash(welcome_bytes)`,防止 envelope 被剥离后重新封装。
+
+任一项失败 → 拒绝 Welcome,reason=`keypackage_welcome_envelope_mismatch`,并 SHOULD 触发 client UI 警示 "received an invalid Welcome envelope; the inviting party's identity could not be verified for this Space"。
+
+为什么不直接让 device_signature 覆盖 intended_space_id?KeyPackage 是离线发布、长期可消费的资源(典型 7 天 TTL),发布时 Space 未知;每次需要预先签名所有可能 Space 的 cross-product 既不可行也违反 KeyPackage 设计语义。`claim_envelope` 是 per-Welcome 一次性签名,把"哪个 Space 接收这次 Welcome"的承诺锁定到 holder 的 self-signing key,与 KeyPackage 的长期发布关注点分离。
+
 ### 2.7 Minimal-Metadata E2EE Space
 
 高隐私 Space MAY 启用 `cx.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。

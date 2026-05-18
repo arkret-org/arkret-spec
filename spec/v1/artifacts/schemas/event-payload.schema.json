@@ -372,6 +372,63 @@
       },
       "additionalProperties": true
     },
+    "morph_schema_migrate_payload": {
+      "type": "object",
+      "description": "Migration of a Morph's schema_refs[] under the schema-evolution policy (zh/models/morph.md §4.1 S3). Distinct from cx.morph.update — schema_refs[] changes MUST go through this event so the migration is auditable, capability-gated, and carries an explicit compatibility class. Reducer MUST verify the actor holds the cx.morph.schema.migrate capability (or the Space-declared equivalent) at the event's frontier; missing capability yields capability_denied. Reducer MUST reject compatibility_class ∈ {breaking, transformation} unless the Space declares cx.profile.morph.schema_migration_transformations.v1 (yielding morph_schema_refs_transformation_unsupported otherwise). Reducer MUST verify from_schema_refs[] matches the Morph's current schema_refs[] at apply time (yielding failed_precondition otherwise). The event's own requirements.schema[] MUST include the union of from_schema_refs[] and to_schema_refs[] so readers can resolve both versions during overlap. Each transformation_rules[] entry SHOULD describe a deterministic, replay-safe per-field mapping (rename, type widening, default backfill, etc.); the rule object shape is governed by the Space-declared cx.profile.morph.schema_migration_transformations.v1 profile.",
+      "required": [
+        "morph_id",
+        "from_schema_refs",
+        "to_schema_refs",
+        "compatibility_class"
+      ],
+      "properties": {
+        "morph_id": {
+          "type": "string",
+          "pattern": "^cx:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "from_schema_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Expected current schema_refs[] of the Morph at apply time. Reducer MUST set-equal-compare against the Morph's state and reject mismatches as failed_precondition (semantic: optimistic concurrency on schema_refs)."
+        },
+        "to_schema_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Desired schema_refs[] after migration. MUST be a registered set of schema profile ids resolvable at apply time."
+        },
+        "compatibility_class": {
+          "type": "string",
+          "enum": [
+            "additive",
+            "breaking",
+            "transformation"
+          ],
+          "description": "additive: to_schema_refs[] only adds optional fields / lookup-compatible profile refs; no historical event needs reinterpretation. breaking: to_schema_refs[] removes or tightens fields; future events follow new schema but historical events keep validating under from_schema_refs[]. transformation: a per-event data transform is needed to map old payload shape to new (requires explicit transformation rules). v1 base reducers MUST accept additive only; breaking and transformation require an opt-in Space profile."
+        },
+        "transformation_rules": {
+          "type": "array",
+          "description": "Required when compatibility_class='transformation'. Each entry MUST describe a deterministic, replay-safe per-field mapping (rename, type widening, default backfill, etc.). The rule object shape is governed by cx.profile.morph.schema_migration_transformations.v1 (see profile description in conformance-profiles.json).",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "migration_evidence": {
+          "type": "object",
+          "description": "Optional anchor / witness evidence justifying the migration (e.g., governance proposal id, audit trail anchor). The event's authorization_ref carries the formal capability gate; migration_evidence is for human reviewers.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
     "actor_profile_create_payload": {
       "type": "object",
       "description": "Initial actor profile payload. In Move/Anchor/Lattice state, the profile cell subject is payload.object.id.",

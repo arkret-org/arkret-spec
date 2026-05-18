@@ -95,12 +95,12 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 **v1 现状（不变）**：现有扁平字段名保留，schema 与实现不强制迁移。
 
-**新字段命名规则（normative，对 v1.x 增量与 v2 适用）**：v1.x 引入新的 approval / claim / accountability 子字段（例如 `approval_threshold`、`approval_timeout` 已经存在）时，应避免继续展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
+**新字段命名规则（normative，对未来增量与扩展 profile 适用）**：本规范之后引入新的 approval / claim / accountability 子字段（例如 `approval_threshold`、`approval_timeout` 已经存在）时，应避免继续展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
 
-1. **在 `condition` / `requires_claims[]` 中携带**：approval workflow 的额外配置（如 reviewer roster、escalation policy）可写入 `requires_claims[].value_constraints` 或新增 `approval_extension` 嵌套对象（仅 v1.x 引入的 extension profile 使用，core profile 不引入新顶层 flat field）。
+1. **在 `condition` / `requires_claims[]` 中携带**：approval workflow 的额外配置（如 reviewer roster、escalation policy）可写入 `requires_claims[].value_constraints` 或新增 `approval_extension` 嵌套对象（仅扩展 profile 使用，core profile 不引入新顶层 flat field）。
 2. **以新 `subtype` 区分**：若新字段语义无法通过既有 subtype 覆盖，应注册新 subtype（如 `claim_based.subtype=quorum_approval`）而不是继续在 flat namespace 加字段。
 
-v2 主版本 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: { required, mode, actor_refs, relation, threshold, timeout, ... }`、`accountability: { required, guardian_required, controller_required }`），保留扁平字段作为 deprecated alias 一个 minor version 后移除。当前 v1 不引入这种结构以避免 wire 兼容性破坏。
+未来主版本 wire 修订 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: { required, mode, actor_refs, relation, threshold, timeout, ... }`、`accountability: { required, guardian_required, controller_required }`），保留扁平字段作为 deprecated alias 一个 minor version 后移除；当前规范不引入这种结构以避免 wire 兼容性破坏。
 
 ## 3. 时间约束
 

@@ -161,6 +161,90 @@ POST /api/v1/moderation/report
 - 审核方验证时 MUST 检查：frank 服务签名、event/ciphertext/AAD digest、reporter 提交明文重新加密或解密验证结果、目标消息的 accepted state、sender identity / pseudonym link 和 reporter 可见性。
 - Frank 只证明服务接收过对应密文事件，不单独证明明文含义。审核决定仍必须落成 signed moderation decision，并受 Space policy、capability 和 appeal 规则约束。
 
+#### 3.4.1 Frank 不证明的事实 (Normative Non-Properties)
+
+Frank 是 service-side delivery proof for ciphertext，**不是**明文归因凭据。为防止 moderation pipeline 误把 frank 当作明文级证据，本节明确列出 frank 不证明的事实：
+
+- Frank MUST NOT 被实现解释为“reporter 提交的明文与 sender 加密的明文一致”——除非额外验证流程（reporter 提交的 encrypted envelope 与 frank 中 `ciphertext_digest` 匹配，且审核方能独立解密或验证 sender-bound content commitment）通过。
+- Frank MUST NOT 被实现解释为“sender authored the plaintext”。Frank 只能归因 *密文 envelope* 由 `sender_claim` 中声明的 device 在 receiving service 处投递；plaintext 与该 envelope 的绑定不在 frank 覆盖范围内。
+- Frank MUST NOT 被实现解释为“sender 对该明文内容在群外仍负 non-repudiation 责任”。MLS 等 group messaging 协议默认不为群外审核提供 plaintext non-repudiation；frank 不改变这一边界。
+- Reporter 提交的 `plaintext_evidence` 在以下任一条件不满足时，MUST NOT 与 sender identity 自动绑定：(a) 审核方有独立解密能力并完成解密一致性校验；或 (b) 存在该 Space 启用的 `cx.profile.franking.sender_commitment.v1` profile 且 §3.4.2 校验通过；或 (c) reporter 自身的明文签名/承诺与该 Space 协议绑定（明确归因 reporter 而非 sender）。
+
+Sender 级 plaintext attribution 由独立的 opt-in profile `cx.profile.franking.sender_commitment.v1` 提供（见 §3.4.2）。该 profile 不改变 core franking 的 wire 形态：sender commitment 走独立 sidecar 字段；未启用该 profile 的部署 plaintext-level sender attribution 依旧不可用。
+
+#### 3.4.2 `cx.profile.franking.sender_commitment.v1` (Normative, opt-in)
+
+本 profile 在 core franking 之上增加 **sender-bound plaintext commitment**：允许审核方在仅持有 plaintext + commitment + MLS epoch metadata 的情况下，独立验证"sender 该 device 在该 epoch 内确实承诺了该明文"。Profile 是 opt-in，Space policy MUST 显式声明启用；未声明则发送端不得产生 sender commitment sidecar，接收端遇到 sidecar 字段 MUST 视为 unknown extension 处理。
+
+**派生密钥**：每个 MLS epoch 内，sender 的每个 device 从 MLS exporter secret 派生 **sender commitment key**（per-device-per-epoch）：
+
+```text
+SCK = HKDF-Expand-Label(
+        exporter_secret,
+        label = "cx franking sender commitment v1",
+        context = canonical_bytes({
+          mls_group_id, epoch, sender_device_id,
+        }),
+        length = 32
+      )
+```
+
+`exporter_secret` 取自 MLS epoch 的 `exporter_secret`（RFC 9420 §8.5）。`SCK` MUST 仅在 sender device 与 audit verifier（在该 epoch 内被授权能解出对应 exporter secret 的方）之间存在；任何转发服务（Sync Service / federation peer / moderation pipeline）MUST NOT 见到 `SCK`。
+
+**承诺值**：sender 在 encrypt 明文前为该明文计算 commitment：
+
+```text
+SC = HMAC-SHA-256(
+        key   = SCK,
+        data  = canonical_bytes({
+          plaintext_digest:      sha256(canonical_plaintext_bytes),
+          aad_digest:            sha256(canonical_aad_bytes),
+          sender_device_id,
+          mls_group_id,
+          epoch,
+          epoch_local_seq:       <strictly-monotonic per (sender_device_id, epoch)>,
+          ciphertext_digest:     sha256(mls_ciphertext_bytes)
+        })
+      )[0:16]   ; truncated to 128-bit tag
+```
+
+`canonical_plaintext_bytes` 取 RFC 8785 JCS over 该 message 标准 plaintext envelope（去除 ephemeral 字段）。`epoch_local_seq` 是 sender device 在当前 epoch 内为 sender_commitment 维护的单调序列号；重启或 fork 不得回退（实现 SHOULD 使用 secure-erase counter）。
+
+**Sidecar 字段**：当 profile 启用时，message 加密事件 envelope 在 `unsigned.franking.sender_commitment` 位置携带：
+
+```json
+{
+  "unsigned": {
+    "franking": {
+      "sender_commitment": {
+        "profile": "cx.profile.franking.sender_commitment.v1",
+        "epoch_local_seq": 17,
+        "commitment_tag": "base64url:..."
+      }
+    }
+  }
+}
+```
+
+`unsigned.*` MUST NOT 进入 event digest 与签名（core envelope 规则不变）；commitment binding 由 `commitment_tag` 自身覆盖 `ciphertext_digest` 与 `aad_digest` 保护——发送方对 envelope 的签名间接锁定 ciphertext，commitment 锁定 plaintext。这种分层让 core franking pipeline 不需要解释 sidecar 也能继续工作。
+
+**接收端 / 审核端校验**（reporter 提交 plaintext + envelope + claimed commitment 时）：
+
+1. 取得该 message 的 MLS epoch metadata（`mls_group_id`, `epoch`, `sender_device_id`），通过 verifier 在该 epoch 仍持有的 exporter secret 派生候选 `SCK`。
+2. 重算 `SC'` 并按 constant-time 比较 `SC' == commitment_tag`：不一致 MUST 拒绝（reason `sender_commitment_invalid`），不进入 plaintext attribution。
+3. 校验 `(sender_device_id, epoch, epoch_local_seq)` 唯一性：verifier MUST 在持久化的 (sender_device_id, epoch) → seq high-water 中检查 `epoch_local_seq > seen_high_water`；不通过 reason `sender_commitment_seq_replay`。
+4. 校验 `ciphertext_digest` 与 reporter 提交的 encrypted envelope 实际 digest 一致；不通过 reason `sender_commitment_ciphertext_mismatch`。
+5. 校验 `epoch` 是 reporter 提交的 envelope `sender_claim.epoch`：不一致 reason `sender_commitment_epoch_mismatch`。
+6. 上述全部通过后，verifier MAY 把该 plaintext 归因到 `sender_device_id` 在 `epoch` 内的承诺——但仍 MUST NOT 将该归因传递到 outside-of-group 的 non-repudiation 主张（profile 仍受 MLS 群密钥退出后的 deniability 边界限制）。
+
+**跨 epoch 与 forward secrecy**：MLS epoch 推进后，旧 epoch 的 exporter secret 被 MLS 协议销毁；verifier 若未在该 epoch active 期间持有 exporter secret，将无法重派生 SCK，从而无法验证 commitment。Profile 因此对 verifier 要求 *epoch-window persistence*：implementations MUST 文档化 verifier 持有 exporter secret 的最长窗口（默认 SHOULD ≤ 72h，超过窗口的 commitment 视为不可验证而非伪造）。
+
+**Reporter 信任模型**：profile 提供的承诺**只**在 reporter 与 verifier 之间生效；profile 不解决"reporter 是否伪造 envelope"——因为 envelope 自身的签名仍由 core franking 与 MLS group signature 覆盖，reporter 必须提交真实 encrypted envelope。任何 plaintext 解释错误（如 reporter 截图、剪贴板伪造）不在 profile 范围内。
+
+**隐私泄露边界**：commitment_tag 是 128-bit 不可逆 HMAC，对未持 SCK 的服务（Sync Service / federation peer）不暴露 plaintext。但持 exporter secret 的 verifier 可以对 candidate plaintext 集合做线下 brute-force 验证——所以 profile **MUST NOT** 与允许 verifier 拥有任意 plaintext brute-force 能力的 governance 模型共用（典型例子：把 verifier 当作通用举报受理方而不做 audit gating）。详细 governance 约束见 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md)。
+
+启用本 profile 的部署 MUST 在 `cx.server.describe.supported_profiles[]` 中列出 `cx.profile.franking.sender_commitment.v1`；未列出的部署 MUST NOT 生成或验证 sender commitment sidecar。
+
 Franking 信任链：
 
 1. 从 frank 的 `received_by` 取得 receiving service DID。
