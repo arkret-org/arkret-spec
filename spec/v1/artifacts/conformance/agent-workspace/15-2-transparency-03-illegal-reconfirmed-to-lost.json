@@ -21,6 +21,6 @@
   "expected_outcome": {
     "reducer_result": "failed_precondition",
     "reason": "invalid_task_fsm_transition",
-    "design_note": "Rev 7 removed this edge: source Message redaction is a terminal state (cannot un-redact then re-redact)."
+    "design_note": "Source Message redaction is a terminal state: a tombstoned source Message cannot be un-redacted and so cannot drive a fresh transparency transition."
   }
 }

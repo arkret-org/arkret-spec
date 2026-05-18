@@ -232,7 +232,7 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
 
 实现 MUST 在 UI 中向用户清楚展示 inception 路径的密钥学强度（"已 witness 的 did:webvh 链" vs "仅 hosting domain"），不得在 onboarding 中把两者展示为等强度。
 
-#### 5.0.5 `personal_node`(`did:web`) → `small_team`(`did:webvh`) 跨 method 安全升级(P-S3)
+#### 5.0.5 `personal_node`(`did:web`) → `small_team`(`did:webvh`) 跨 method 安全升级
 
 **问题**: `personal_node` 阶段的 `did:web` inception 只受 hosting domain DNS/TLS 保护;若用户在注册期间 DNS 被劫持,攻击者可写入伪造 inception(并控制 inception key)。一旦该 principal 直接"无审"升级到 `small_team` 的 `did:webvh`,被劫持的 inception 历史会被当作正常历史延续,所有后续 capability / device authorization / state 都建立在攻击者根之上。
 
@@ -299,7 +299,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 ##### 5.0.5.5 安全代价登记
 
 - 该流程把 personal_node 阶段被 DNS 劫持的损害限制在 personal_node Space 内部;升级后 attacker 无法通过升级路径继承新 method 的根。
-- 代价:升级流程对用户**强制**至少一次离线 / 独立通道确认,UI 不能"自动一键升级"。这是 P-S3 评估的明确取舍:为防止注册期 DNS 劫持继承,引入一次性 OOB 友好度成本。
+- 代价:升级流程对用户**强制**至少一次离线 / 独立通道确认,UI 不能"自动一键升级"。这是明确取舍:为防止注册期 DNS 劫持继承,引入一次性 OOB 友好度成本。
 - 对从未通过 personal_node 阶段(直接以 `did:webvh` 走 §5.0.1)的 principal,本节不适用。
 
 ### 5.1 新设备加入（首台设备已存在）
@@ -376,7 +376,7 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 ```
 
 > 注：`cx.session.grant` 是 principal control stream 事件，`space_id` MUST 等于 subject 的
-> principal control space（§4.1）。本字段是 control event 必填项；早期示例曾省略，会被 reducer
+> principal control space（§4.1）。本字段是 control event 必填项；省略 MUST 被 reducer
 > 以 `schema_violation` 拒绝。
 
 规则：
@@ -403,7 +403,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 - AEAD AAD MUST 绑定 `actor_id`、`device_id`、`backup_class`、`backup_version`、item type、created_at 和 schema/profile id，防止把 ciphertext 从一个域重放到另一个域。
 - 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="contrix-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
 - `did_recovery` 域不得和 `mls_history` 域共享 wrap key、recovery share 或 key commitment。攻破 `mls_history` backup key 不得允许 DID rotate / recover；攻破 DID recovery share 也不得直接解密 MLS 历史。
-- **默认 MUST 分离**：`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。早期草案默认允许 `personal_node` profile 复用单一 envelope，v1 已收紧——**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。
+- **默认 MUST 分离**：`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。
 - 仅 `personal_node` deployment profile MAY 在 Space schema 显式声明 `mixed_secret_storage=true` 退化为兼容模式（兼容旧客户端、单一 passphrase）；该字段 MUST 出现在 deployment profile manifest 与 backup metadata 中，并触发 UI 强制提示"一次口令泄露会同时影响身份信任和 E2EE 历史"。`small_team` / `organization` / `high_security_organization` / `sovereign_deployment` profile MUST NOT 启用混合模式；接收方在导入声明 `mixed_secret_storage=true` 的备份到这些 profile 时 MUST 拒绝（`schema_violation`，附 `reason="mixed_secret_storage_disallowed_by_profile"`）。
 
 以下材料 MAY 进入客户端加密备份，但 MUST 只以密文形式保存：

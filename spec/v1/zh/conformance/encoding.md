@@ -142,7 +142,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 ### 4.1 Field Naming: `<noun>_id` vs `<noun>_ref`（normative for new fields）
 
-v1 wire 中已存在两种"指向另一个对象"的字段命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<uuid>`）的字段。早期 v1 草案在不同对象上选用了不同后缀（如 `space_id` / `flow_id` / `target_place_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `discussion_space_ref` / `policy_ref` 用 `_ref`），形成了已固化的混用。
+v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<uuid>`）的字段。不同对象按下表选择后缀：`space_id` / `flow_id` / `target_place_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `discussion_space_ref` / `policy_ref` 用 `_ref`。
 
 **v1 现状（不变）**：所有现有字段名锁定在当前 wire 形态，重命名是 breaking change，不在 v1 范围内执行。下表列出**已定型**的字段命名约定，实现 MUST 按现有命名解析；不得依赖前缀做字段类型推断。
 
@@ -158,7 +158,7 @@ v1 wire 中已存在两种"指向另一个对象"的字段命名 convention：`<
 
 判别规则：**当字段同时具备"主从语义 + 指向同一 schema 的对象 + 该对象是 wire 接收方的命名上下文"时使用 `_id`；其余一律 `_ref`**。例如新增 "morph 引用某 Flow" 的字段：用 `flow_ref`，因为 Morph 与 Flow 不构成 primary parent 关系；但 Message 引用所属 Flow 仍是 `flow_id`，因为 Message **必须**属于一个 Flow（出生地绑定）。
 
-任何 new field 在 PR review 中违反上述规则 MUST 被 lint 标记 `naming_convention_violation`（warning 级，不阻塞合并）；conformance 测试不强制旧字段重命名。未来主版本 wire 修订可统一为 `_ref`。
+任何 new field 在 PR review 中违反上述规则 MUST 被 lint 标记 `naming_convention_violation`（warning 级，不阻塞合并）；conformance 测试不强制现有字段重命名。
 
 ## 5. Event Batch Receipt Hash
 
@@ -508,7 +508,7 @@ rank_between(left, right):
   ```
 
   其中 `components_array` 是按本规范声明的固定顺序排列的 JSON array，所有 string element 已经 normalize 过（NFC、小写 typed ID、规范 DID）。
-- 实现不得直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。早期文档中的管道形态仅作为示例可读性提示；canonical cell id、签名输入、state map 索引必须使用 hash 形态。
+- 实现不得直接使用 `a|b|c` 这种管道分隔字符串作为复合 subject。canonical cell id、签名输入、state map 索引必须使用 hash 形态。
 - 复合 subject 的 sub-component 必须存在于 Move effect value 或兼容 Event payload 的具名字段中。
 - 同一 standard cell family 的 `components_array` schema 由本规范固定，profile 不得擅自增删字段或重新排序。
 

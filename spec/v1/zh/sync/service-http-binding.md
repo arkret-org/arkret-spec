@@ -29,7 +29,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/server/*` | 客户端与服务 | 服务描述、feature discovery、auth metadata。 | `service-surface.md`、`api-conventions.md` |
 | `/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
 | `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Space 双向历史查询(query)、流式订阅(subscribe，含历史 catchup)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
-| `/sync/*` | 客户端、Principal Server | account 聚合同步(`POST /sync`)、describe、snapshot head。事件流读取已收敛到 `/events/*`。 | `client-sync.md`、`service-surface.md` |
+| `/sync/*` | 客户端、Principal Server | account 聚合同步(`POST /sync`)、describe、snapshot head。逐 Space 的事件流读取走 `/events/*`。 | `client-sync.md`、`service-surface.md` |
 | `/directory/*` | 客户端、服务 | Space / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
@@ -177,7 +177,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.events.submit` | `event: object` 或 `events: object[]` | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `space_frontier: object?`; `cursor: cursor?` | MUST 验证 Event signature、DID、capability、Space policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`。`cursor` 是 barrier purpose（read-your-writes）。 |
 | `cx.events.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | 不可见时返回 `not_found`。 |
 | `cx.events.batch_get` | 至少一个：`event_ids: id[]` 或 `event_hashes: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Space policy / E2EE envelope 判断。 |
-| `cx.events.query` | 至少一个：`query.spaces: id[]` 或 `query.actors: did[]` | `query.before: cursor`; `query.after: cursor`; `query.order: enum(default,ascending,descending)=default`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `prev_cursor: cursor?`; `has_more: boolean` | `spaces[]` 内部 union、`actors[]` 内部 union、二者组合为 intersection。每个 selector 元素都按对应可见性约束逐项检查：actor scope 走 actor history visibility；space scope 走 membership frontier + history visibility + E2EE epoch policy。`before` / `after` 均为开区间（排除 cursor 自身），可单独或同时给出形成 `(after, before)` 区间。默认顺序：仅 `before` → descending，仅 `after` → ascending，两者皆给 → descending；`order=ascending|descending` 显式覆盖。响应 `prev_cursor` 永远朝更旧方向、`next_cursor` 永远朝更新方向。**旧参数 `direction` / `from` / `until` 已移除**，接收方 MUST 拒绝并返回 `invalid_param`。详见 §3.3。 |
+| `cx.events.query` | 至少一个：`query.spaces: id[]` 或 `query.actors: did[]` | `query.before: cursor`; `query.after: cursor`; `query.order: enum(default,ascending,descending)=default`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `prev_cursor: cursor?`; `has_more: boolean` | `spaces[]` 内部 union、`actors[]` 内部 union、二者组合为 intersection。每个 selector 元素都按对应可见性约束逐项检查：actor scope 走 actor history visibility；space scope 走 membership frontier + history visibility + E2EE epoch policy。`before` / `after` 均为开区间（排除 cursor 自身），可单独或同时给出形成 `(after, before)` 区间。默认顺序：仅 `before` → descending，仅 `after` → ascending，两者皆给 → descending；`order=ascending|descending` 显式覆盖。响应 `prev_cursor` 永远朝更旧方向、`next_cursor` 永远朝更新方向。仅支持 `before` / `after` / `order` 参数。详见 §3.3。 |
 | `cx.events.query_post` | body 至少一个：`spaces: id[]` 或 `actors: did[]` | `before: cursor`; `after: cursor`; `order: enum(default,ascending,descending)=default`; `limit: int`; `filters: object` | 与 `cx.events.query` 同 | `cx.events.query` 的 HTTP POST/body 形态。语义、selector 规则、默认顺序、响应 cursor 含义、错误码与 GET 形态完全一致；仅 wire 形态从 query string 变为 JSON body。**何时使用**：`spaces[]` / `actors[]` 较大、`filters` 较复杂、或部署侧记录 access log 时担心 query string 泄露 filter 内容。gRPC / MQ 不需要单独绑定（统一走 `Events/Query`）。 |
 | `cx.events.subscribe` | 至少一个：`query.spaces: id[]` 或 `query.actors: did[]` | `query.after: cursor`; `query.include_history: boolean=true` | stream frame: `kind: enum(event,frontier,heartbeat,catchup_complete,epoch_rotation,dropped,resync_required,unauthorized)`; `space_id: id?`; `cursor: cursor?`; `payload: object?` | 同 `cx.events.query` 逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性。`after=<cursor>` 是订阅起点（不含 cursor 本身），与 `cx.events.query` 的 `after=` 同义；subscribe 天然只走未来方向，不接受 `before=` / `order=`。`include_history=true` 时先吐历史再以 `catchup_complete` 帧切到实时；某 space 中途授权丢失发出 `unauthorized` 帧并继续其他 space；服务端因容量丢弃发出 `dropped` 帧，客户端必须 reconcile。 |
 | `cx.events.frontier` | 至少一个：`query.actor_id: did` 或 `query.space_id: id` | `query.peer_role: enum(account_client, federation_peer, anonymous_health) = account_client` | `frontier: object`; `receipts: object[]?`; `frontier_root: hash?`; `actor_seq_upper_bounds: object?`; `signature: object?` | 统一 operation 同时承载 public Events API 与 federation peer frontier probe（federation.md §4.5.1）；`peer_role=federation_peer` MUST 通过 §3 节点间认证 + Space `service_binding` 中 `federation_peer` 角色校验，响应携带完整 `frontier_root` / `actor_seq_upper_bounds` / `signature`；`peer_role=anonymous_health` MUST 仅返回 `frontier_root` 摘要。普通 `account_client` 维持既有响应。不得泄露不可见 Space 或 private DID。 |
@@ -363,7 +363,7 @@ GET /api/v1/events?spaces=<id>&actors=<did>&after=<Y>&before=<X>   # 区间查�
 - `before` 与 `after` 都是 **排除** 语义 — Contrix cursor 是位置 token 而不是 event 引用，"位置之前/之后"不包含 cursor 标记的边界本身。这与 Stripe `starting_after`/`ending_before`、Relay GraphQL `after`/`before` 等业界惯例一致。
 - 两参数都可省略；都不给时服务端按隐式 `before=<server_head>` 处理（即"最新首屏 + 可继续历史 backfill"）。
 - 两参数都给即为开区间 `(after, before)` 查询。
-- v1 wire **不再** 接受旧参数 `direction` / `from` / `until`；接收方 MUST 拒绝带这三个参数的请求，返回 `invalid_param`，并在错误信息中提示客户端迁移到 `before` / `after` / `order`。
+- v1 wire 只接受 `before` / `after` / `order`；任何其他游标方向参数 MUST 返回 `invalid_param`。
 
 #### 3.3.3 默认顺序规则："近邻先返回"
 
@@ -445,7 +445,6 @@ GET /api/v1/events/subscribe?spaces=<id>&after=<cursor>&include_history=true
 
 支持多 space / actor 一次订阅；`include_history=true` 时服务端先吐历史，再发出 `catchup_complete` 帧切到实时尾部。
 
-> **迁移说明**：早期草案使用 `from=<cursor>` 作为订阅起点。v1 已收敛到 `after=`；旧参数名 MUST 被拒绝。
 
 Frame（每行一个独立 JSON 对象，按 NDJSON / JSON-Lines 形式跨 transport 帧承载）：
 
@@ -494,7 +493,7 @@ Resolver MUST 返回足够的方法相关证据，使客户端能够验证 contr
 
 ## 5. Sync API
 
-`/sync/*` 在 v1 只承载 **account 聚合**（跨 Space frontier、to_device、account_data、device_lists、presence、unread / notification counts）和 snapshot manifest。逐 Space 的事件读取与流式订阅已收敛到 `/events/*`（`cx.events.query`、`cx.events.subscribe`），见 §3.3 / §3.4。
+`/sync/*` 在 v1 只承载 **account 聚合**（跨 Space frontier、to_device、account_data、device_lists、presence、unread / notification counts）和 snapshot manifest。逐 Space 的事件读取与流式订阅走 `/events/*`（`cx.events.query`、`cx.events.subscribe`），见 §3.3 / §3.4。
 
 ### 5.1 账号聚合同步（`cx.sync.account`）
 

@@ -401,7 +401,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须在授权 `actions` 中，或被明确的通配动作覆盖。
-3. **约束匹配**：`place_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。`space_kind_allow` 在 v1 已无规范用途（Space 顶层 `kind` 字段已删除），v1 实现 SHOULD 把它视为 always-allow（详见 [`constraint-schema.md` §5](./constraint-schema.md)）。
+3. **约束匹配**：`place_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。`space_kind_allow` 在 v1 没有规范用途（v1 中所有 Space 同属一种安全边界），v1 实现 SHOULD 把它视为 always-allow（详见 [`constraint-schema.md` §5](./constraint-schema.md)）。
 4. **Track access 检查**：Message 和 discussion track 访问必须满足有效 track access、history visibility 和 E2EE key eligibility。
 5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。

@@ -380,7 +380,7 @@ validate_op(op):
       visible at enclosing Move's anchor_ref pre-state
 ```
 
-**Regrant 语义**：先 add(d1)、再 remove(observed=[d1])、再 add(d2) 是合法序列；d2 的 dot 不在任何 `observed_dots` 中，因此 join 后 d2 仍 active。这与 v1-pre-rc 草案中"deterministic tag → add 后 remove 永久无法 regrant"的副作用相反；新规范明确支持 regrant。
+**Regrant 语义**：先 add(d1)、再 remove(observed=[d1])、再 add(d2) 是合法序列；d2 的 dot 不在任何 `observed_dots` 中，因此 join 后 d2 仍 active——regrant 是显式支持的。
 
 **Idempotency**：dot 由 `move.id` 派生，因此相同 add op 跨节点重放不产生重复 dot，但不同 issuer 对同一 intent 的并发 add 会产生不同 dot——这是 OR-Set 的预期行为，去重落在 projection / 授权判定（"intent 是否当前 active = 该 intent 下 ≥1 dot 仍在 join 集合"）。
 

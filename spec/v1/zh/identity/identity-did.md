@@ -185,7 +185,7 @@ Contrix v1 core conformance 要求如下：
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达,仅显示本地缓存内容"),不得静默继续。
 - Fallback 总时长 MUST ≤ 24 小时(与 §4.2.1 `degraded_no_witness` 状态硬上限对齐);超时后即使是低风险只读也 MUST fail closed,强制用户等待恢复或切换 resolver。
 
-> **为什么从 "did:web 等价行为" 改为 "cache-only"**(rationale):早期草案曾允许 fallback "退化为 `did:web` 等价行为(仅当前状态)",这一措辞实际默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制,如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-anchored 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 anchored 的 evidence 读取,无新信任根可被攻击者注入。`did:web` 作为 principal method 仅由部署侧主动选择(`personal_node`),不是 outage fallback。
+> **为什么 fallback 是 "cache-only" 而不是 "did:web 等价行为"**(rationale):允许 fallback "退化为 `did:web` 等价行为(仅当前状态)" 实际等于默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制,如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-anchored 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 anchored 的 evidence 读取,无新信任根可被攻击者注入。`did:web` 作为 principal method 仅由部署侧主动选择(`personal_node`),不是 outage fallback。
 
 完整 method-specific 操作（创建、轮换、恢复、deactivation、history validation）的规范见
 DIF / identity.foundation `did:webvh` method specification（<https://identity.foundation/didwebvh/v1.0/>）

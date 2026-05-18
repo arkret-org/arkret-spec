@@ -15,7 +15,7 @@ info:
     operations.
 
 
-    **Typed vs generic schema policy** (P-D11):
+    **Typed vs generic schema policy**:
 
 
     Stable core operations on the events / sync / identity / authz data path
@@ -86,10 +86,11 @@ info:
     honor path-level `servers` overrides; the corresponding `operation-registry.json`
 
     `http` field always records the bare (post-prefix) path.'
-# P-D6: top-level default removed. Every operation MUST declare its own
-# `security:` block. SDKs / lint / threat-model audits read security from
-# the operation, not from this top-level fallback. Operations that are truly
-# unauthenticated (public metadata) declare `security: []` explicitly.
+# Top-level security default is intentionally empty. Every operation MUST
+# declare its own `security:` block. SDKs / lint / threat-model audits read
+# security from the operation, not from this top-level fallback. Operations
+# that are truly unauthenticated (public metadata) declare `security: []`
+# explicitly.
 security: []
 servers:
 - url: https://{host}/api/v1

@@ -615,7 +615,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade (e.g. personal_node `did:web` -> small_team `did:webvh`) is missing the OOB fingerprint confirmation evidence or any of the required `transfer_evidence` fields (P-S3 / key-management.md §5.0.5)."
+      "description": "Cross-method principal upgrade (e.g. personal_node `did:web` -> small_team `did:webvh`) is missing the OOB fingerprint confirmation evidence or any of the required `transfer_evidence` fields (key-management.md §5.0.5)."
     },
     {
       "code": "inception_upgrade_signature_chain_invalid",
@@ -623,7 +623,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade `cx.did.proof.continuity` `signature_chain` is missing one of the two mandated signatures (old-method inception key + new-method entry-0 controller key) or one of the signatures fails to verify (P-S3 / key-management.md §5.0.5)."
+      "description": "Cross-method principal upgrade `cx.did.proof.continuity` `signature_chain` is missing one of the two mandated signatures (old-method inception key + new-method entry-0 controller key) or one of the signatures fails to verify (key-management.md §5.0.5)."
     },
     {
       "code": "inception_upgrade_old_document_hash_mismatch",
@@ -631,7 +631,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade evidence `old_did_document_canonical_hash` does not match the receiver's canonicalised view of the current `old_did` DID Document. Indicates the hosting domain has been substituted after the upgrade was signed (P-S3 / key-management.md §5.0.5)."
+      "description": "Cross-method principal upgrade evidence `old_did_document_canonical_hash` does not match the receiver's canonicalised view of the current `old_did` DID Document. Indicates the hosting domain has been substituted after the upgrade was signed (key-management.md §5.0.5)."
     },
     {
       "code": "inception_upgrade_fingerprint_mismatch",
@@ -639,7 +639,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Cross-method principal upgrade evidence `inception_pubkey_fingerprint` does not match the fingerprint derived from `verificationMethod[0]` of the canonicalised old DID Document (P-S3 / key-management.md §5.0.5)."
+      "description": "Cross-method principal upgrade evidence `inception_pubkey_fingerprint` does not match the fingerprint derived from `verificationMethod[0]` of the canonicalised old DID Document (key-management.md §5.0.5)."
     },
     {
       "code": "audit_agent_key_destruction_attestation_missing",
@@ -647,7 +647,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An `attested_hardware` audit profile removed an Audit Agent without the enclave-signed epoch key destruction attestation required by P-S6 (audited-e2ee.md). The Audit Agent is treated as still holding historical epoch keys; the Space MUST drop the `attested_hardware` claim and surface a downgrade banner."
+      "description": "An `attested_hardware` audit profile removed an Audit Agent without the enclave-signed epoch key destruction attestation required by audited-e2ee.md. The Audit Agent is treated as still holding historical epoch keys; the Space MUST drop the `attested_hardware` claim and surface a downgrade banner."
     },
     {
       "code": "audit_agent_remove_requires_paired_destruction_attestation",
@@ -655,7 +655,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An attested_hardware Audit Agent was removed via cx.mls.commit but the same anchor batch lacks the required cx.audit.epoch_key_destruction attestation. Reducer MUST reject the batch (P-S6 / audited-e2ee.md §3.1.1.3)."
+      "description": "An attested_hardware Audit Agent was removed via cx.mls.commit but the same anchor batch lacks the required cx.audit.epoch_key_destruction attestation. Reducer MUST reject the batch (audited-e2ee.md §3.1.1.3)."
     },
     {
       "code": "audit_agent_attestation_mismatch",
@@ -663,7 +663,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.audit.epoch_key_destruction carries an `enclave_measurement` that does not match the Audit Agent's join-time attestation. Indicates the enclave image was swapped before destruction (P-S6)."
+      "description": "cx.audit.epoch_key_destruction carries an `enclave_measurement` that does not match the Audit Agent's join-time attestation. Indicates the enclave image was swapped before destruction."
     },
     {
       "code": "audit_agent_epoch_range_incomplete",
@@ -671,7 +671,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.audit.epoch_key_destruction `epoch_range` does not cover the full range of epochs the removed Audit Agent is known to have held secrets for (P-S6)."
+      "description": "cx.audit.epoch_key_destruction `epoch_range` does not cover the full range of epochs the removed Audit Agent is known to have held secrets for."
     },
     {
       "code": "audit_agent_destruction_proof_not_enclave_signed",
@@ -679,7 +679,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.audit.epoch_key_destruction proofs[] do not chain to the enclave / HSM attestation key; only enclave-internal attestation keys are accepted (P-S6)."
+      "description": "cx.audit.epoch_key_destruction proofs[] do not chain to the enclave / HSM attestation key; only enclave-internal attestation keys are accepted."
     },
     {
       "code": "audit_agent_destruction_not_paired_with_remove",
@@ -687,7 +687,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.audit.epoch_key_destruction `remove_commit_ref` points to a cx.mls.commit that is not in the same anchor batch as the attestation (P-S6)."
+      "description": "cx.audit.epoch_key_destruction `remove_commit_ref` points to a cx.mls.commit that is not in the same anchor batch as the attestation."
     },
     {
       "code": "source_export_attestation_required",
@@ -695,7 +695,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Mirror reducer is operating under cx.profile.agent_workspace.governed.v1 but the cx.content.import_attestation lacks the cx.schema.content.source_export_policy_attestation.v1 envelope (P-D2 / agent-workspace-profile.md §8.2)."
+      "description": "Mirror reducer is operating under cx.profile.agent_workspace.governed.v1 but the cx.content.import_attestation lacks the cx.schema.content.source_export_policy_attestation.v1 envelope (agent-workspace-profile.md §8.2)."
     },
     {
       "code": "source_export_attestation_invalid",
@@ -703,7 +703,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation envelope signature does not verify against the source Space's declared export_policy_authorities[] (P-D2)."
+      "description": "source_export_policy_attestation envelope signature does not verify against the source Space's declared export_policy_authorities[]."
     },
     {
       "code": "source_export_attestation_denied",
@@ -711,7 +711,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation `policy_decision` is not 'allow' (denied / quarantined / pending) (P-D2)."
+      "description": "source_export_policy_attestation `policy_decision` is not 'allow' (denied / quarantined / pending)."
     },
     {
       "code": "source_export_destination_mismatch",
@@ -719,7 +719,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation `import_destination_space_id` does not pin the mirror Space the import_attestation actually targets (P-D2)."
+      "description": "source_export_policy_attestation `import_destination_space_id` does not pin the mirror Space the import_attestation actually targets."
     },
     {
       "code": "source_export_content_hash_mismatch",
@@ -727,7 +727,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation `content_hash` does not match the actual import_attestation content_hash (P-D2)."
+      "description": "source_export_policy_attestation `content_hash` does not match the actual import_attestation content_hash."
     },
     {
       "code": "source_export_attestation_expired",
@@ -735,7 +735,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation `valid_until` is past the receiver's effective time (P-D2)."
+      "description": "source_export_policy_attestation `valid_until` is past the receiver's effective time."
     },
     {
       "code": "source_export_authority_unauthorized",
@@ -743,7 +743,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation `authority_did` is not in the source Space's declared export_policy_authorities[] (P-D2)."
+      "description": "source_export_policy_attestation `authority_did` is not in the source Space's declared export_policy_authorities[]."
     },
     {
       "code": "cardinality_violation",
@@ -775,7 +775,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space declares both cx.profile.e2ee_relaxed.v1 and cx.profile.mls_governance_binding.full.v1; these are mutually exclusive (P-D4 / encryption-and-audit.md §2.4.2)."
+      "description": "Space declares both cx.profile.e2ee_relaxed.v1 and cx.profile.mls_governance_binding.full.v1; these are mutually exclusive (encryption-and-audit.md §2.4.2)."
     },
     {
       "code": "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
@@ -783,7 +783,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space attempts to set mls_send_pause='advisory' without declaring cx.profile.e2ee_relaxed.v1; default profile MUST treat mls_send_pause as a MUST gate (P-D4)."
+      "description": "Space attempts to set mls_send_pause='advisory' without declaring cx.profile.e2ee_relaxed.v1; default profile MUST treat mls_send_pause as a MUST gate."
     },
     {
       "code": "conflicting_agent_workspace_profiles",
@@ -791,7 +791,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space declares both cx.profile.agent_workspace.lite.v1 and cx.profile.agent_workspace.governed.v1; these are mutually exclusive (P-D13)."
+      "description": "Space declares both cx.profile.agent_workspace.lite.v1 and cx.profile.agent_workspace.governed.v1; these are mutually exclusive."
     },
     {
       "code": "lite_profile_writes_disallowed_event_kind",
@@ -799,7 +799,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space declares cx.profile.agent_workspace.lite.v1 but a cx.agent_task.transparency.transition / source_authority.transition event was submitted; lite profile rejects these cells (P-D13)."
+      "description": "Space declares cx.profile.agent_workspace.lite.v1 but a cx.agent_task.transparency.transition / source_authority.transition event was submitted; lite profile rejects these cells."
     },
     {
       "code": "flow_not_active",

@@ -56,7 +56,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `scope_limitation` | `mention_respond_only` | extension | actor 仅能写入 `cx.message.create` 当且仅当 `in_reply_to` 指向 mention sender 为 self 的消息。Reducer-evaluable。 | `cx.profile.agent_workspace.v1` |
 | `confidentiality` | `export_policy` | extension | source-side policy：`import_to_external_space` ∈ `{allow, deny, require_attestation}`，控制 source Space 成员是否允许 import_attestation 写出。**仅指导 source-side agent runtime 行为**，不穿透 mirror reducer。 | `cx.profile.agent_workspace.v1` |
 
-> v1 把原草案中 15 个独立 `constraint_type` alias 折叠进 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 保留：`edit_window` / `redact_window` → `temporal` (subtype 标记)；`container_move` → `scope_limitation`；`rate_limiting` + `resource_limit` → `quota` (`subtype=rate` / `resource`)；`approval_workflow` + `accountability` + `device_session` → `claim_based` (`subtype=approval` / `accountability` / `device_session`)；`encryption_requirement` + `visibility_control` → `confidentiality` (`subtype=encryption` / `visibility`)。删除的是独立 constraint_type 名字，不是底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等仍然是合法的字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
+> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 表达：`edit_window` / `redact_window` 走 `temporal` (subtype 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`subtype=rate` / `resource`)；`approval_workflow` / `accountability` / `device_session` 走 `claim_based` (`subtype=approval` / `accountability` / `device_session`)；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`subtype=encryption` / `visibility`)。底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 
 未注册的 `constraint_type` 或未注册的 `(constraint_type, subtype)` 组合 MUST fail closed。新增 family / subtype 必须先在本表登记，并在 grant-constraint schema 的 `constraint_type` 与 `subtype` enum 中注册。
 
@@ -91,11 +91,9 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 
 ### 2.4 字段扁平化与未来嵌套化（normative for new fields）
 
-v1 constraint object 上 approval / accountability / claim 相关字段是扁平结构（`approval_required` / `approval_mode` / `approval_actor_refs` / `approval_relation` / `accountability_required` / `guardian_approval_required` / `controller_approval_required` 等）。这种扁平化是 v1 早期为简化 schema 验证而保留的结构，wire 兼容性已经固化。
+v1 constraint object 上 approval / accountability / claim 相关字段是扁平结构（`approval_required` / `approval_mode` / `approval_actor_refs` / `approval_relation` / `accountability_required` / `guardian_approval_required` / `controller_approval_required` 等），简化 schema 验证。
 
-**v1 现状（不变）**：现有扁平字段名保留，schema 与实现不强制迁移。
-
-**新字段命名规则（normative，对未来增量与扩展 profile 适用）**：本规范之后引入新的 approval / claim / accountability 子字段（例如 `approval_threshold`、`approval_timeout` 已经存在）时，应避免继续展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
+**新字段命名规则（normative，对扩展 profile 适用）**：扩展 profile 引入新的 approval / claim / accountability 子字段时，应避免展开成新顶层 flat field。新字段若在概念上属于现有 family，MUST 通过以下两种路径之一表达：
 
 1. **在 `condition` / `requires_claims[]` 中携带**：approval workflow 的额外配置（如 reviewer roster、escalation policy）可写入 `requires_claims[].value_constraints` 或新增 `approval_extension` 嵌套对象（仅扩展 profile 使用，core profile 不引入新顶层 flat field）。
 2. **以新 `subtype` 区分**：若新字段语义无法通过既有 subtype 覆盖，应注册新 subtype（如 `claim_based.subtype=quorum_approval`）而不是继续在 flat namespace 加字段。
@@ -133,7 +131,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-> Duration 字段使用 ISO 8601 持续时间格式（`P[n]Y[n]M[n]DT[n]H[n]M[n]S`）。`grant-constraint.schema.json` 中相应字段的 `pattern` 即此格式；早期文档使用过的 `"8h"` / `"1h"` / `"30m"` compact 形态在 v1 wire 上 MUST 被 schema validator 拒绝。
+> Duration 字段使用 ISO 8601 持续时间格式（`P[n]Y[n]M[n]DT[n]H[n]M[n]S`）。`grant-constraint.schema.json` 中相应字段的 `pattern` 即此格式；`"8h"` / `"1h"` / `"30m"` compact 形态在 v1 wire 上 MUST 被 schema validator 拒绝。
 
 ## 4. 字段访问约束
 
@@ -192,7 +190,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 在 v1 已无规范用途——Space 顶层 `kind` 字段已删除（v1 中所有 Space 都是同一种安全边界，无 kind 区分）。该约束保留 schema 字段是为了未来扩展 profile 注册新 Space kind 时可重新启用；当前 v1 实现 SHOULD 把它视为 no-op。**结构容器（看板、列、泳道、calendar bucket 等）由 Place 对象承担**——使用 `place_kind_allow` 收窄到 Place.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；place_kind_allow 不会把 Place 升级为独立 membership 或 E2EE 边界（Place 永远透明回退到所属 Space）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 在 v1 没有规范用途——v1 中所有 Space 都是同一种安全边界，无 kind 区分。该约束保留 schema 字段是为了扩展 profile 注册新 Space kind 时可启用；v1 实现 SHOULD 把它视为 no-op。**结构容器（看板、列、泳道、calendar bucket 等）由 Place 对象承担**——使用 `place_kind_allow` 收窄到 Place.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；place_kind_allow 不会把 Place 升级为独立 membership 或 E2EE 边界（Place 永远透明回退到所属 Space）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
@@ -482,7 +480,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `visibility_allow` 限制 actor 可访问的对象/消息可见性级别。取值与 `history_visibility` 枚举一致：`world_readable`、`shared`、`invited`、`joined`、`restricted`。
 
-## 14. 历史规则示例（已合并到上述 family）
+## 14. 其它常用示例
 
 ### 14.1 Blob 大小限制
 

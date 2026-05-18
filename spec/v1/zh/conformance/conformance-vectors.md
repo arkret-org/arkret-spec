@@ -15,8 +15,6 @@ title: Conformance Vectors
 
 ## 1. Encoding & Crypto Vectors
 
-> 来源：原 `conformance-vectors.md`（已合并）
-
 ### 1.1 目标
 
 本文定义 Contrix canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 与 encrypted envelope digest 的一致性测试向量。
@@ -678,8 +676,6 @@ cx.vector.flow_tracks_update.atomic.v1
 
 ## 3. Redaction Vectors
 
-> 来源：原 `conformance-vectors.md`（已合并）
-
 ### 3.1 目标
 
 本文件定义 redaction 的执行顺序、保留字段与可见性收敛规则。  
@@ -906,8 +902,6 @@ cx.vector.redaction.snapshot_pruning_stub.v1
 - 若 active legal hold 存在，pruning MUST fail closed；snapshot 仍可隐藏普通视图明文，但不得物理删除 legal-hold 边界内要求保留的 payload。
 
 ## 4. Capability Vectors
-
-> 来源：原 `conformance-vectors.md`（已合并）
 
 ### 4.1 目标
 
@@ -1190,8 +1184,6 @@ cx.vector.capability.approval_constraint.v1
 - 通过审核后应产生可验证的审批完成事件，再以独立 action event 执行。
 
 ## 5. Sync Vectors
-
-> 来源：原 `conformance-vectors.md`（已合并）
 
 ### 5.1 目标
 

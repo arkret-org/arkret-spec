@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/event-schema.json",
   "title": "Contrix Event",
-  "description": "Single canonical wire object. Reducer-input events carry top-level preconditions / effects / anchor_ref (formerly the embedded Move object — that double layer is gone). Non-reducer events (read marker, typing, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). The former auth_refs[] field is dropped — its contents moved to refs[role=authorized_by]. Signing covers canonical bytes minus proofs and unsigned; hlc IS included in canonical bytes (signed and integrity-protected) but is semantically advisory — see encoding.md §7.",
+  "description": "Single canonical wire object. Reducer-input events carry top-level preconditions / effects / anchor_ref. Non-reducer events (read marker, typing, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). Signing covers canonical bytes minus proofs and unsigned; hlc IS included in canonical bytes (signed and integrity-protected) but is semantically advisory — see encoding.md §7.",
   "type": "object",
   "required": [
     "event_id",

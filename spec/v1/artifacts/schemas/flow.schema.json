@@ -76,7 +76,7 @@
     "discussion_space_ref": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional reference to a child Space that hosts this Flow's discussion-side membership, history visibility, and (if E2EE) MLS group. Setting this fields means the discussion lives in its own security boundary distinct from the Flow's parent Space. When unset, discussion timeline events live in the parent Space and inherit its access. This replaces the v1 pre-rc 'track_scoped' hybrid (membership / permissions / history_visibility / e2ee scope fields)."
+      "description": "Optional reference to a child Space that hosts this Flow's discussion-side membership, history visibility, and (if E2EE) MLS group. Setting this field means the discussion lives in its own security boundary distinct from the Flow's parent Space. When unset, discussion timeline events live in the parent Space and inherit its access."
     },
     "created_by": {
       "$ref": "#/$defs/did"

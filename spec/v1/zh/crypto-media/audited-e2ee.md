@@ -79,11 +79,11 @@ Audit Agent profile MUST 满足：
 - `audit_assurance = "disclosed_policy"` 下，客户端必须按 §2.1 disclosed 文案向成员显示这是**流程性披露**，不是硬件强制保证；MUST NOT 复用 `attested_hardware` 文案。
 - Audit Agent 的本地 key retention MUST 有上限，并能被成员验证为 policy 声明的一部分；legal hold 或监管保留需要单独声明，不能由 Agent 私下延长。
 
-#### 3.1.1 Audit Agent 移除后 epoch key destruction attestation(P-S6,`attested_hardware` 专属)
+#### 3.1.1 Audit Agent 移除后 epoch key destruction attestation(`attested_hardware` 专属)
 
 > **不实现本节即不得使用 `audit_assurance="attested_hardware"` 措辞。** 仅声明 attested 文案而不发布 destruction attestation 时,Audit Agent 与软件审计在 forward secrecy 行为上**完全等价**;Contrix 把这种部署视为 spec violation,group MUST 在下一轮 MLS commit 中把 `audit_assurance` 强制降级为 `disclosed_policy` 或更弱形态,并按 §2.1 重新展示降级文案。
 
-> **命名注意**：本节涉及的两个 event kind 名 `cx.audit.epoch_key_destruction` 和 `cx.space.audit_policy_downgrade` 在 v1 registry 中**不携带** `.v<n>` suffix（早期草案曾写作 `cx.audit.epoch_key_destruction.v1` / `cx.space.audit_policy_downgrade.v1`,已在 registry 中重命名）。Wire 形态版本化通过 Event envelope 的 `requirements.features[]` 表达,与 kind name 严格分离 —— 这与所有其他 `cx.*` event kind 的约定一致,见 [`../conformance/encoding.md`](../conformance/encoding.md) "Event kind / requirements 分层" 一节。任何遇到旧 `.v1` 后缀 wire 形态的实现 MUST 视作 `unsupported_event_kind` 拒绝,以避免新旧形态在同一 anchor batch 内同时生效。
+> **命名注意**：本节涉及的两个 event kind 名 `cx.audit.epoch_key_destruction` 和 `cx.space.audit_policy_downgrade` 在 v1 registry 中**不携带** `.v<n>` suffix。Wire 形态版本化通过 Event envelope 的 `requirements.features[]` 表达,与 kind name 严格分离 —— 这与所有其他 `cx.*` event kind 的约定一致,见 [`../conformance/encoding.md`](../conformance/encoding.md) "Event kind / requirements 分层" 一节。
 
 ##### 3.1.1.1 触发条件
 
@@ -225,7 +225,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `frontier.space_frontier` | yes | 签发时 issuer 已 accepted 的 Space frontier。MUST 因果上 ≥ `audit_event_id`。 |
 | `frontier.actor_frontier` | conditional | 至少包含 `audit_actor_id` 的 frontier。其它 actor frontier 由 issuer 选择性透出。 |
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
-| `witness_attestation` | yes | Witness attestation block。`witness_attestation.kind` 取值 `federation_witness_attested` / `single_source`；`witness_attestation.witnesses[]` 列出所有 attesting witnesses 的 `(issuer, verification_method, controlling_organization, attested_at)`。`kind` 取值 MUST 由 `witnesses[]` 的基数与独立性外部可验证地推导（`federation_witness_attested` 必须 `witnesses.length >= 2` 且 issuer / controlling_organization / verification_method 两两 distinct 且每个 issuer 出现在 Space `audit.ryw_witnesses[]`；`single_source` 必须 `witnesses.length == 1`）；不一致 MUST 拒绝并 `audit_receipt_invalidated`。本字段取代早期草案中的 `receipt_independence` 枚举，目的是把"独立性"由可外部验证的 witness 列表表达，而不是单点自报。详细聚合规则见 §4.1.1。 |
+| `witness_attestation` | yes | Witness attestation block。`witness_attestation.kind` 取值 `federation_witness_attested` / `single_source`；`witness_attestation.witnesses[]` 列出所有 attesting witnesses 的 `(issuer, verification_method, controlling_organization, attested_at)`。`kind` 取值 MUST 由 `witnesses[]` 的基数与独立性外部可验证地推导（`federation_witness_attested` 必须 `witnesses.length >= 2` 且 issuer / controlling_organization / verification_method 两两 distinct 且每个 issuer 出现在 Space `audit.ryw_witnesses[]`；`single_source` 必须 `witnesses.length == 1`）；不一致 MUST 拒绝并 `audit_receipt_invalidated`。独立性由可外部验证的 witness 列表表达，而不是单点自报。详细聚合规则见 §4.1.1。 |
 | `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Space `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
 | `audit_policy_version_hash` | yes | `(audit_disclosure, audit_assurance)` 在 receipt frontier 处的 canonical hash（`sha256` over canonical JSON `{audit_disclosure: <object>, audit_assurance: <string>}`）。让接收方 O(1) 校验"receipt 声明的 policy class 与 frontier 处实际 policy 一致"，无需重放事件。MUST 与 receipt frontier 处的 policy state 一致；不一致 fail closed (`audit_receipt_invalidated`)。 |
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |

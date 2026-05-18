@@ -328,7 +328,7 @@ GET /api/v1/events/frontier?space_id=<id>
 
 ## 5. Account Sync Surface
 
-Account Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Space 的事件查询和实时订阅已收敛到 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Space frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared anchorer / sync service。
+Account Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Space 的事件查询和实时订阅走 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Space frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared anchorer / sync service。
 
 > 历史命名 "Sync Surface" 容易让读者把它误解为"所有同步路径"，但事件流读取/订阅已迁移到 Events Surface。本节仅描述 account-aggregate 与 snapshot 入口。
 

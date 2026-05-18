@@ -211,22 +211,22 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 - 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.track.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
-- 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新 application messages 并标记 `encryption_transition_pending`,直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Space,无论 `security_class`;早期草案曾允许 `standard` security_class 仅 SHOULD 暂停,已升级为 MUST,因为忽略 governance frontier 的发送会让 ban / revoke 在新消息上失效——这正是引入 MLS Governance Binding 要消除的风险。
+- 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新 application messages 并标记 `encryption_transition_pending`,直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Space,无论 `security_class`——忽略 governance frontier 的发送会让 ban / revoke 在新消息上失效,正是引入 MLS Governance Binding 要消除的风险。
 
-  **`mls_send_pause="advisory"` 降级规则(P-D4 收紧,2026)**:把上述 MUST 暂停降级为 SHOULD 的能力**仅在显式 degraded profile** `cx.profile.e2ee_relaxed.v1` 下允许声明,不得在默认 `cx.profile.mls_governance_binding.full.v1` profile 或任何声称"完整 MLS Governance Binding"的部署中使用。该字段在符合资格的部署中也 MUST:
+  **`mls_send_pause="advisory"` 降级规则**:把上述 MUST 暂停降级为 SHOULD 的能力**仅在显式 degraded profile** `cx.profile.e2ee_relaxed.v1` 下允许声明,不得在默认 `cx.profile.mls_governance_binding.full.v1` profile 或任何声称"完整 MLS Governance Binding"的部署中使用。该字段在符合资格的部署中也 MUST:
   
   - 出现在 `cx.space.policy_components` 的明文 audit log 中(声明本身被记录,便于审计)
   - 部署 profile 在 conformance 声明中**显式列出** `cx.profile.e2ee_relaxed.v1`,否则降级声明 MUST 被 reducer 拒绝(`profile_unsupported` reason)
   - 客户端 UI 在该 Space 中 MUST 展示明确的"该 Space 使用降级 E2EE,踢/ban 非密码学即时生效"banner-level 警示(详见 §2.4.2 / `cx.profile.e2ee_relaxed.v1` 规范)
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗,超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
   
-  早期草案曾把这个降级写在默认 profile 中,该路径已废弃:声明 advisory 但未声明 `cx.profile.e2ee_relaxed.v1` profile 的 Space create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
+  声明 advisory 但未声明 `cx.profile.e2ee_relaxed.v1` profile 的 Space create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
 - Space / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
 - 网络分区期间可以继续 backfill 旧 epoch 历史，但不得把旧 epoch 下的新消息展示为已满足最新 membership policy 的消息。
 
 该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Contrix 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
 
-### 2.4.2 `cx.profile.e2ee_relaxed.v1`(降级 profile,P-D4 引入)
+### 2.4.2 `cx.profile.e2ee_relaxed.v1`(降级 profile)
 
 **目的**:某些低延迟交互场景(实时音视频会议、协同光标 / 多人编辑、游戏内聊天等)不能容忍 MLS commit 完成才允许发新消息的等待开销(典型延迟 200ms-数秒)。`cx.profile.e2ee_relaxed.v1` 是为这些场景保留的**显式降级 profile**:允许 `mls_send_pause="advisory"`,代价是放弃"踢人/ban 后被踢者立即不能解密新消息"的密码学硬承诺。
 
@@ -375,7 +375,7 @@ Contrix 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 
 | 字段 | 值 |
 |------|-----|
 | ExtensionType（IANA name） | `cx_governance_binding` |
-| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Contrix v1 wire 形态硬钉为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。**（早期草案曾允许"deployment 在自身范围内私有覆盖到 private-use range 内的另一个 codepoint",该路径已在 v1 撤回——见下方"为什么取消私有覆盖"。）`cx.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。未来若需要全网注册,可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint,并在新 hardening profile 中显式声明,作为单独的 wire 版本,而不是 v1 内的私有覆盖。 |
+| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Contrix v1 wire 形态硬钉为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `cx.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。未来若需要全网注册,可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint,并在新 hardening profile 中显式声明,作为单独的 wire 版本,而不是 v1 内的私有覆盖。 |
 | ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列：
@@ -407,7 +407,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 简言之：MLS-redundant 字段（`mls_group_id` / `previous_epoch` / `next_epoch`）以约 ~50 字节的 wire 代价换取 binding payload 的离线自含性，这是有意识设计而不是 leftover；非冗余字段是 governance binding 真正承载的事实。Wire-size 进一步优化（如把 redundant 字段折叠成单个 commit_anchor hash）属于未来 hardening profile，不进入 v1 core。
 
-**为什么取消私有 codepoint 覆盖（normative rationale）**：早期草案允许 deployment 在 IANA 私用段内选择不同 codepoint（例如 `0xF1C1`）覆盖 `0xF1C0`。该路径在联邦边界 (federation Space 跨 deployment) 上**无法静态 enforce**——两个独立合规的 deployment 各自合法选择不同 codepoint 后,接入同一 federation Space 时, GroupContext extensions 中**任意一侧看不到对方的 extension**(因为 codepoint 不同)。MLS receiver 对未知 codepoint 的 extension 默认 ignore,因此 governance binding 会**静默退化为单边 binding**：本端按自己的 codepoint 解析+校验 + `confirmed_transcript_hash` 推进, 对端 binding 缺失但 epoch 仍前进 = 等价于 binding 被绕过。Receiver 没有可靠途径区分"对方使用了不同 codepoint(私有覆盖)"与"对方实现根本不携带 binding extension(降级 binding)"。
+**为什么禁止私有 codepoint 覆盖（normative rationale）**：允许 deployment 在 IANA 私用段内选择不同 codepoint（例如 `0xF1C1`）覆盖 `0xF1C0` 的路径在联邦边界 (federation Space 跨 deployment) 上**无法静态 enforce**——两个独立合规的 deployment 各自合法选择不同 codepoint 后,接入同一 federation Space 时, GroupContext extensions 中**任意一侧看不到对方的 extension**(因为 codepoint 不同)。MLS receiver 对未知 codepoint 的 extension 默认 ignore,因此 governance binding 会**静默退化为单边 binding**：本端按自己的 codepoint 解析+校验 + `confirmed_transcript_hash` 推进, 对端 binding 缺失但 epoch 仍前进 = 等价于 binding 被绕过。Receiver 没有可靠途径区分"对方使用了不同 codepoint(私有覆盖)"与"对方实现根本不携带 binding extension(降级 binding)"。
 
 为关闭这条 federation 静默降级路径,v1 取消 deployment 私有覆盖。需要更换 codepoint 的部署 MUST 申请新 hardening profile（与对应 `mls_governance_binding.full.v<n>` 配套）并显式声明,使得"使用不同 codepoint"成为可观察的 wire 版本切换而非 codepoint-only 私有约定。
 
@@ -554,7 +554,7 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
 - 非 E2EE Space：`reaction_payload.key` 直接携带 emoji（单 Unicode cluster 或 profile 注册的短 tag），可选 `annotation` 同样为明文。这与 Matrix `m.reaction` 行为一致。
 - E2EE Space (`audit_assurance ∈ {disclosed_policy, attested_hardware}` 或任何 `aad_visibility != opaque_id` 的 profile)：
   - 真正的 emoji / annotation MUST 通过 `reaction_payload.encrypted_payload` 携带，envelope 复用 §2.3 的 MLS application key 流程。
-  - 明文 `reaction_payload.key` MUST 为 **keyed HMAC routing tag**(P-S5 起强制,不再接受 deterministic SHA-256):
+  - 明文 `reaction_payload.key` MUST 为 **keyed HMAC routing tag**:
 
     ```text
     reaction_routing_hmac_v2 =

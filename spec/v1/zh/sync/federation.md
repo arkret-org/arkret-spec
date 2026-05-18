@@ -135,7 +135,6 @@ Signature: sig1=:base64...:
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
 | `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Space 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
 
-> **关于旧字段 `origin` / `destination` / `space_id`**：v1 之前的草案曾把这三项放在 body 顶层。v1 已合并联邦 surface 后，`origin` / `destination` 已由 header `Source-Service-DID` / `Destination-Service-DID` 承担（避免 body 与 header 双源真相）；`space_id` 移入 `service_binding_ref` 内部，与其它服务绑定快照字段一起验证。发送方与接收方 MUST 使用新形态。
 
 请求示例（非完整 schema；`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
 
@@ -247,7 +246,7 @@ Signature: ...
 | `next_cursor` | `cursor` | optional | 朝**更新事件**方向的延续位置；下次请求传入 `after=<next_cursor>` 继续 catch-up。 |
 | `has_more` | `boolean` | required | 是否仍有可拉取的 Event；客户端到达 oldest accessible event 时 `false`。 |
 
-> **关于旧 endpoint `GET /api/v1/federation/pull-operations`**：v1 之前的草案曾定义独立 federation pull endpoint。v1 已合并到 `cx.events.query`；旧 endpoint 不应再被实现或文档。`snapshot_bootstrap` 字段仍以 optional 形式出现在 `cx.events.query` 响应中（仅 service-to-service 调用、Space policy 显式允许时）。
+> Federation pull 共用 `cx.events.query` operation；不另设独立 federation pull endpoint。`snapshot_bootstrap` 字段以 optional 形式出现在 `cx.events.query` 响应中（仅 service-to-service 调用、Space policy 显式允许时）。
 
 `snapshot_bootstrap` 字段（存在时）：
 
@@ -509,7 +508,7 @@ Authorization: <service_signature>
 
 跨域 actor 验证复用 `POST /api/v1/identity/resolve` 公共服务面（`cx.identity.resolve`）。该端点本就是公共 DID 解析入口，但 Contrix 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
 
-下面保留的是 v1 之前定义的 `verify-actor` 单独端点的字段集——它现在是 `/api/v1/identity/resolve` 的高级 query 形态（"holder-approved proof challenge"），不是独立 operation。
+下面列出 `holder-approved proof challenge` 高级 query 形态的字段集——这是 `/api/v1/identity/resolve` 的一种调用形态，不是独立 operation。
 
 请求字段：
 

@@ -56,7 +56,7 @@ assigned_to, references, derived_from, attached_to, has_default_view,
 summarized_from, promoted_from_discussion, watches
 ```
 
-> **Reserved for extension profiles**：早期草案曾把 `produced` / `used` / `triggered_by` / `has_log` 列为标准 kind，但 v1 没有任何 schema/profile/fixture 定义其 from/to 类型、基数或 capability action，无法支撑互操作。这些名字在 v1 wire 上视为**未注册的 relation_kind**——实现遇到时 SHOULD 保留为不透明边并在 projection 层标记 `unknown_relation_kind`，**MUST NOT** 据此自动推断容器、依赖或可见性语义。它们保留为未来 agent workflow extension profile 的候选名，profile 注册前 producer 不应使用。
+> **未注册的 relation_kind 处理规则**：`produced` / `used` / `triggered_by` / `has_log` 这类名字在 v1 没有 schema / profile / fixture 定义 from/to 类型、基数或 capability action，因此在 v1 wire 上视为**未注册的 relation_kind**——实现遇到时 SHOULD 保留为不透明边并在 projection 层标记 `unknown_relation_kind`，**MUST NOT** 据此自动推断容器、依赖或可见性语义。扩展 profile 注册之前 producer 不应使用。
 
 ### 3.2 默认基数表
 
@@ -137,7 +137,7 @@ Space schema、Space profile 或 `relation_profiles` MAY 对标准默认值收�
 | `max_to_per_from` | no | `integer` | 每个 `from_ref` 的 active `to_ref` 上限。 |
 | `max_from_per_to` | no | `integer` | 每个 `to_ref` 的 active `from_ref` 上限。 |
 | `multi_edge` | no | `boolean` | 只有 true 时允许同一 tuple 多条 active edge。 |
-| `rank_field` | no | `string` | 有序关系的 rank 字段，默认 `rank`（顶层）。仅当 profile 把 rank 显式放在另一字段时声明；MUST NOT 指向 `fields.rank`，该路径已废弃。 |
+| `rank_field` | no | `string` | 有序关系的 rank 字段，默认 `rank`（顶层）。仅当 profile 把 rank 显式放在另一字段时声明；MUST NOT 指向 `fields.rank`，该路径在 v1 不合法。 |
 | `on_conflict` | no | `enum(reject, close_previous, deterministic_winner, require_review)` | 并发冲突处理；默认 `deterministic_winner`。 |
 
 ```json

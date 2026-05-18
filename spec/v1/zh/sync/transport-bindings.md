@@ -19,11 +19,10 @@ Contrix 协议核心定义的是：
 **MUST** 提供 HTTP/JSON binding；其他 transport（gRPC、WebSocket-frame、SSE、message queue、
 libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供。
 
-> Rationale: 早期文档把"transport-agnostic"作为 normative claim，但仓库里 `contrix-service-api.openapi.yaml`
-> 已展开 ~70 KB HTTP/JSON 细节，而 gRPC / WebSocket / MQ / libp2p 各自只有几行说明。这种状况
-> 下声称对等 transport 会误导实现者。v1 直接承认 HTTP/JSON 是 core，把其他 transport
-> 留作 extension。Sync stream / events feed 的事件驱动语义可由后续 AsyncAPI 描述补充，但不
-> 改变 core 锁定。
+> Rationale: HTTP/JSON 是 core normative surface（`contrix-service-api.openapi.yaml` ~70 KB
+> 完整描述）。gRPC / WebSocket / MQ / libp2p 由独立 binding extension profile 单独 normative
+> 化，避免在 core 中只给几行说明就声称 transport-agnostic。Sync stream / events feed 的事件
+> 驱动语义可由独立 AsyncAPI 描述补充，但不改变 core 锁定。
 
 ## 2. 分层
 
@@ -118,8 +117,8 @@ gRPC、WebSocket / SSE、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / 
 - 服务发现如何在 `supported_bindings` 中声明该 binding 与其能力。
 
 未声明对应 binding profile 的实现 MUST NOT 接受非 HTTP/JSON 流量，也不得要求对端支持。
-v1.0 conformance suite 不测试任何非 HTTP binding；早期草案中曾出现的 gRPC / WS / MQ / libp2p
-"SHOULD" 列表已被撤回，避免被误读为 core 要求。
+v1.0 conformance suite 不测试任何非 HTTP binding；gRPC / WS / MQ / libp2p 等
+transport 必须各自通过 binding profile 单独 normative 化。
 
 ## 7. Binding Discovery
 

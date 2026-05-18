@@ -233,7 +233,7 @@ Contrix 的目标是协作图：任务依赖、对象引用、结构化 mention�
 
 ## 6. State Model 与 Writer Model 的明确偏离
 
-Matrix v1/v11 room state model 是 Contrix 早期最重要的参考之一。Contrix v1 已经改为 **Move · Anchor · Lattice** 模型；本节列出这些偏离，使实现者在迁移概念时不被相似命名误导。
+Matrix v1/v11 room state model 与 Contrix 的 **Move · Anchor · Lattice** 模型有若干关键偏离。本节列出这些偏离，使实现者在概念映射时不被相似命名误导。
 
 ### 6.1 没有 `state_key` 字段
 

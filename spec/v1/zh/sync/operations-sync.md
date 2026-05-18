@@ -30,7 +30,7 @@ Contrix v1 区分：
 
 ### 2.1 Event Store 与 reducer-input Event
 
-Contrix v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）。早期草案分离的 "Envelope + 嵌入 Move" 双层结构已经合并：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read marker、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
+Contrix v1 的唯一 wire / 传输单位是 **signed Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）：reducer-input event 把 `preconditions[]` / `effects[]` / `anchor_ref` 直接放在 event 顶层；non-reducer event（read marker、typing 等）不携带这三个字段。actor-chain 因果用顶层 `prev_refs[]`；其他语义引用（授权、attestation、recovery_capability、state_witness、inclusion_proof 等）统一进 `refs[]`，每条带 `role`。
 
 Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3）：
 
@@ -41,7 +41,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | `space_id` | 所属 Space。 |
 | `actor_seq` | actor chain 单调序号。 |
 | `prev_refs[]` | actor chain 因果前序。 |
-| `refs[]` | 语义引用集合，每条 `{id, role, critical?}`；`role="authorized_by"` 替代 v1 早期草案的顶层 `auth_refs[]` 字段；其他 role 包括 `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof`。 |
+| `refs[]` | 语义引用集合，每条 `{id, role, critical?}`；授权 ref 用 `role="authorized_by"`，其他 role 包括 `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof`。 |
 | `preconditions[]` | reducer-input only：`[(cell, predicate)]`。任一不成立则整个 event FAIL。 |
 | `effects[]` | reducer-input only：`[(cell, lattice_op)]`。原子多 cell CAS。 |
 | `anchor_ref` | reducer-input only：本 event 提交时所对应的 Anchor DAG 节点。 |
@@ -273,7 +273,7 @@ issuer / verifier 应根据需求选取；混用以补强各自边界。
 
 ## 5. Wire Event
 
-v1 的规范性 wire fact 只有 **Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。早期草案的 Envelope+Move 双层已经合并为单层 Event。
+v1 的规范性 wire fact 只有 **Event**（schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)）。Events API、Sync、Federation、Client write 和 reducer 都 MUST 以 `cx.schema.event.v1` 作为共享状态事实输入。Reducer-input event 是单层 Event，无外层 Envelope 包裹。
 
 Service operation 名称可以描述提交、同步或联邦动作，但共享 wire fact 仍然只有 Event。SDK 可以定义本地 builder / draft 对象作为生成 Event 前的中间结构，但这种 builder 不进入协议 wire format，也不出现在 registry / schema 中——它属于 SDK 实现细节，不是 protocol normative 对象。
 
@@ -644,7 +644,7 @@ CAS 语义：`expected_position` 描述的是移动前源 Place 中 Flow 的当�
 - `expected_position.rank` → `head_eq.rank`
 - `expected_position.relation_id` 仅作为客户端 hint，不参与 cell join（派生 Relation 的 id 由 reducer 计算）。
 
-不一致时 cas-register 直接返回 `failed_precondition`（与早期 `cas_conflict` 错误码语义等价，但路径走标准 lattice）。`expected_position` 缺失 / 为空 → 等价 `head_eq null`，仅在 cell 真正处于初始态（Flow 尚未进入该 Board）时通过；非初始态下省略 `expected_position` MUST `failed_precondition`，不接受"无 CAS 强制写"。policy 明确允许"无条件覆盖"的特殊场景（如管理员强制重置）必须使用专门的高权限 event kind，而不是省略 `cx.flow.move` 的 `expected_position`。
+不一致时 cas-register 直接返回 `failed_precondition`（走标准 lattice 路径）。`expected_position` 缺失 / 为空 → 等价 `head_eq null`，仅在 cell 真正处于初始态（Flow 尚未进入该 Board）时通过；非初始态下省略 `expected_position` MUST `failed_precondition`，不接受"无 CAS 强制写"。policy 明确允许"无条件覆盖"的特殊场景（如管理员强制重置）必须使用专门的高权限 event kind，而不是省略 `cx.flow.move` 的 `expected_position`。
 
 ### 9.2 `cx.flow.reorder`
 

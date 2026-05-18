@@ -136,7 +136,7 @@ Move(cx.consent.revoke) {
 
 `observed_dots` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在 `Move.anchor_ref` 对应 pre-state 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 并发 revoke 同一 dot 收敛于 or-set 的去重语义。`observed_dots` 之外的 dot 不受影响——这是 OR-Set 的 normative 行为。
 
-**Regrant**：撤销后 holder 可以再次发出 `cx.consent.grant` Move；新 Move 产生新的 `dot`（来自不同 `move.id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。这一行为是 v1 normative 支持的；v1-pre-rc 草案中"deterministic tag → revoke 后无法 regrant"的副作用已经被 dot 模型消除。
+**Regrant**：撤销后 holder 可以再次发出 `cx.consent.grant` Move；新 Move 产生新的 `dot`（来自不同 `move.id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 
 **完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, scope) intent 需要 client 在构造 revoke Move 前先查询当前 cell 的 or-set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——sodmin / UI MUST 把这种状态明确提示为 "partial revoke"。
 

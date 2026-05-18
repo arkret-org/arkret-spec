@@ -227,7 +227,7 @@ sequenceDiagram
 
 读图要点：
 
-- 步骤 3-4 的 endpoint validation 是 v1 normative MUST（早期为 MAY）：必须把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
+- 步骤 3-4 的 endpoint validation 是 normative MUST：必须把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
 - 节流回写 `status` 不要求每个 token 都进 durable Event；具体频率由 `audit_mode` 决定（`status_only` / `summary_and_artifacts` / `full_transcript_hash` / `full_transcript`）。
 - Contrix 不信任外部 task status：只有 `cx.agent.protocol_session.result` event 被 reducer accept 后才改变 canonical task 状态。
 
@@ -239,7 +239,7 @@ sequenceDiagram
    - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
    - 验证目标 endpoint 的 TLS 证书 / mutual TLS / HTTP Message Signature 与 DID Document 中声明的 verificationMethod 绑定（与 `federation.md` §3.1-§3.2 destination host pinning 同等强度）。
    - 校验目标数据分类、跨域路由、E2EE 边界与外发风险，并依 `allowed_endpoints` constraint 收敛。
-   早期草案此处为 MAY，已升级为 MUST——MAY 默认是漏洞窗口，恶意中间人可在不被任何节点验证的情况下劫持 A2A handoff。
+   宽松的 MAY 路径会留下漏洞窗口——恶意中间人可在不被任何节点验证的情况下劫持 A2A handoff，因此本规范统一为 MUST。
 5. Requesting agent 提交 `cx.agent.protocol_session.start`。
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。

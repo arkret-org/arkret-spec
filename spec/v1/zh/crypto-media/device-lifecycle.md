@@ -669,7 +669,7 @@ Secret storage 用于保存：
 | MLS epoch / Space history secret | `mls_history` |
 | 外部托管或 profile 自定义 secret | `external` |
 
-每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `contrix-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。早期草案曾使用 `contrix-key-backup-{backup_class}-v1`（`-` 分隔，无 subdomain）形态；任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
+每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `contrix-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
 
 Client-local secret storage 的存储格式仍可使用本节的 `cx.secret_storage.v1` envelope，但其字段不进入任何 wire / hash / 签名输入；服务端不接受该 envelope。
 

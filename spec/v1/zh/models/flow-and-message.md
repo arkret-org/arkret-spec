@@ -147,7 +147,7 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 
 **Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自所属 Space（或 `discussion_space_ref` 指向的 child Space，见 §5）。
 
-早期 v1 草案曾允许 track 配置内嵌 `access` 子对象表达 `track_scoped` 的 hybrid 模型，该机制已被移除——任何需要独立访问域的 discussion 必须升级为 child Space。
+Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）——任何需要独立访问域的 discussion 必须升级为 child Space。
 
 `assigned_to`、`watches` 或其他业务关系不会自动成为 discussion 成员或获取访问权，除非 Space policy 明确把它们映射为授权条件。`watches` Relation 表达**通知订阅偏好**，与访问控制完全正交——完整语义、状态枚举、投影脱敏规则见 §8。
 
@@ -234,7 +234,7 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
 - 未设置 `discussion_space_ref` 时，discussion 时间线事件直接写在 Flow 所属 Space，访问规则完全等于父 Space。能看父 Space 的 actor 即可看 discussion 时间线（按父 Space history visibility）。
 - 设置 `discussion_space_ref` 时，所有 discussion-side `cx.message.*` / `cx.reaction.*` / track membership 写入 MUST 使用该 child Space 的 `space_id`；child Space 是独立的安全边界，按其自身 policy 收敛。能否看 discussion 由 child Space 自身 access policy 决定，与父 Space 的 Flow synthesis 可见性无关。Flow synthesis 和 discussion 是两个独立 reducer 视图，不共享 cell。
 - 能看 `discussion` 不表示能改 Flow 的字段、状态或 Board 位置（这些仍按父 Space capability 判断）。
-- 同一 Flow MUST NOT 同时存在 track hybrid（不存在）+ child Space 引用——hybrid 已废弃，只有 child Space 一种方式。
+- 独立访问域只能通过 child Space + `discussion_space_ref` 实现；track 配置内不携带 access 子对象。
 - `discussion_space_ref` 启用 MLS 时，对应 MLS group 绑定该 child Space；E2EE 边界、membership frontier、`covered_frontier_cell` 都按 child Space 自身收敛。
 - `discussion_space_ref` 的生命周期由独立 `cx.space.*` event 管理；Flow 不能通过修改自身字段间接 reinit / archive child Space。
 - Flow 的 parent Space 与 `discussion_space_ref` Space 之间的关系建议用 `cx.space.parent` / `cx.space.child` 或独立的 governance 关系表达；reducer 不强制 hierarchy，授权仍按各自 Space policy 独立判断。
@@ -273,7 +273,7 @@ flowchart LR
 
 - Track 是纯展示 / 时间线分段标识，不携带独立 access；`synthesis` 与 `discussion` 都继承 Parent Space 的 capability。
 - `cx.flow.track.set_primary` 只切换默认入口，不复制对象、不迁移历史；切到 `discussion` 必须先 enable 该 track。
-- 想给 discussion 独立 membership / E2EE / history 时，**必须**升级为 child Space 并通过 `discussion_space_ref` 引用——hybrid 模式（早期草案的 track 内嵌 access）已废弃。
+- 想给 discussion 独立 membership / E2EE / history 时，**必须**升级为 child Space 并通过 `discussion_space_ref` 引用——track 内嵌 access 的 hybrid 模式在 v1 不存在。
 - 能看 discussion 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 Parent Space capability 判断。
 
 ## 6. Flow 行为规则
@@ -461,7 +461,7 @@ Schema id: `cx.schema.message.v1`
 | `created_by` | yes | `did` |  | 发送者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
-> **schema 迁移说明**：早期草案把 `revision_root` / `visible_state` 藏在 `fields` 黑盒中，缺乏 schema 验证、易被实现各自命名。v1 把这些字段提升到顶层；同时用 `state` 顶层枚举替代 `fields.visible_state`、用 `redacted: true` 单一 boolean。`fields.revision_root` / `fields.visible_state` / `fields.redacted` 在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
+> `revision_root` / `visible_state` 字段位于对象顶层，**不**藏在 `fields` 黑盒中。`state` 顶层枚举表达对象生命周期状态。`fields.revision_root` / `fields.visible_state` / `fields.redacted` 形态在 v1 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。
 
 ### 9.3 最小示例
 

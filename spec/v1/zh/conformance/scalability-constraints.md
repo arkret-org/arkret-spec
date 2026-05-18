@@ -21,7 +21,7 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
 | 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject 或要求提交 snapshot / checkpoint 引用。 |
-| 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（旧草案曾称作 `auth_refs[]`，v1 已合并到 `refs[]`，见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
+| 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject 或拆分。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。 |
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Space 引用必须按 Lazy Link 截断。 |

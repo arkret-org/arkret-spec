@@ -36,7 +36,7 @@ title: Applet Schema and OpenAPI
 > 示例中 `proof` 字段省略字段不是合法 v1 wire 形态：registration MUST 由 controller DID 签名，
 > `proof` 必须包含 [`models/event-and-patch.md §3`](../models/event-and-patch.md) 列出的全部 required
 > 字段，且 `payload_hash` 覆盖整个 canonical registration object（不含 `proof` 自身）。
-> 早期草案中出现的 `"proof": {}` 形态 MUST 被 receiver 以 `schema_violation` 拒绝。
+> 空 `"proof": {}` 形态 MUST 被 receiver 以 `schema_violation` 拒绝。
 
 > **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Space owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `cx.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §5](./applet-integration.md)。
 

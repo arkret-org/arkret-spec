@@ -275,7 +275,7 @@ E2EE Space 中，Sync Service 不持有正文密钥，无法在 server 端评估
 3. **降级标记**：Sync Service 在 push payload 中携带 `evaluation_locus_unresolved=true`，让客户端知道"我已经被 wakeup 但匹配尚未在 server 端确定"。客户端 MUST 完成本地评估后才决定是否进入用户感知的通知 surface；不得仅凭 wakeup 就在 system tray 弹出。
 4. **明文 hint 限制**：E2EE Space 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。具体来说：除非 Space policy 把 push gateway 列入 `plaintext_visible_services`，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`），不能携带匹配到的具体内容。
 5. **限速降级**：E2EE Space + client-side rule 多的 client 在高消息量场景会被持续 wakeup，电池负担显著。客户端 MUST 暴露 `aggressive_wakeup_threshold`（默认每 60 秒 ≤ 30 次）；超过阈值后切换到批量 wakeup 模式，Sync Service 把多个 wakeup 合并为单个 batch wakeup（仍携带 `evaluation_locus_unresolved=true`），客户端醒来一次评估全部待处理 Event。
-6. **`mentions_actor` 通过 mention sidecar 提示**（可选,**P-S4 起强制 keyed HMAC,不再接受 deterministic SHA-256**）：发送者的客户端在加密时 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上,定义为:
+6. **`mentions_actor` 通过 mention sidecar 提示**（可选,使用 keyed HMAC 形态）：发送者的客户端在加密时 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上,定义为:
 
     ```text
     mention_routing_hmac_v2 =

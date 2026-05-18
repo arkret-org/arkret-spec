@@ -1620,7 +1620,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "P-S6 attested_hardware Audit Agent removal — enclave-signed attestation that historical epoch / exporter secrets held by the removed Audit Agent have been cryptographically destroyed. MUST be in the same anchor batch as the paired cx.mls.commit that removes the Audit Agent (see crypto-media/audited-e2ee.md §3.1.1). Wire schema versioning expressed via `requirements.features` (e.g. `cx.feature.audit_destruction_v1`), not via a `.v<n>` suffix on the kind name."
+        "payload": "Attested_hardware Audit Agent removal — enclave-signed attestation that historical epoch / exporter secrets held by the removed Audit Agent have been cryptographically destroyed. MUST be in the same anchor batch as the paired cx.mls.commit that removes the Audit Agent (see crypto-media/audited-e2ee.md §3.1.1). Wire schema versioning expressed via `requirements.features` (e.g. `cx.feature.audit_destruction_v1`), not via a `.v<n>` suffix on the kind name."
       },
       {
         "event_kind": "cx.space.audit_policy_downgrade",
@@ -1628,7 +1628,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "P-S6 forced downgrade of audit_assurance from attested_hardware to disclosed_policy when the required cx.audit.epoch_key_destruction attestation is not produced within the deadline; rewrites Space audit policy and triggers UI banner. Wire schema versioning expressed via `requirements.features`."
+        "payload": "Forced downgrade of audit_assurance from attested_hardware to disclosed_policy when the required cx.audit.epoch_key_destruction attestation is not produced within the deadline; rewrites Space audit policy and triggers UI banner. Wire schema versioning expressed via `requirements.features`."
       }
     ]
   },

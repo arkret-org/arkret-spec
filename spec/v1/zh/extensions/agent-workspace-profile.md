@@ -5,8 +5,6 @@ sidebar:
 ---
 
 > **状态：extension profile（非 v1 core 互操作必需）**。本文档定义 `cx.profile.agent_workspace.v1`——允许用户在源协作 Space 中调用自己的 agent 干活，同时把"agent 透明度"（公开 mention）与"agent 工作过程"（私人 mirror Space）分离。Contrix v1 core 互操作 **不要求** 实现 agent workspace；不实现的 client/server 通过 `cx.feature.mention_redirect.v1` critical_extension 检查自然 fail-closed。
->
-> 设计历史与多轮 review 见 git 历史中已删除的 `proposal_agent_workspace.md`（Rev 1–8）。本文档是 normative 合并视图。
 
 ## 1. 目标
 
@@ -57,7 +55,7 @@ sidebar:
 
 ### 1.2 v1 不强制 freshness gate 的代价(设计取舍登记)
 
-P-D3 评估了三种 freshness 收紧方案 — frontier freshness gate / source-issued lease / 协议级硬上限 — 均被 v1 默认 profile **拒绝**,原因:
+三种 freshness 收紧方案 — frontier freshness gate / source-issued lease / 协议级硬上限 — 均被 v1 默认 profile **拒绝**,原因:
 
 - 引入 sync gate 把每次 agent 执行都加上一次回往源 Space 的 RTT,在典型 single-controller 场景下是不必要的开销
 - 默认 profile 不应假设跨 deployment(那是另一类信任模型的事情,见 §1.1)
@@ -221,9 +219,9 @@ Preset 是**声明性 sugar**——客户端 / SDK 把 preset 名展开为标准
 }
 ```
 
-> v1 仅支持 `anchored_event_ref` 和 `state_witness` 两种 evidence_kind。Rev 7 草案的 `inline_copy` 已删除（air-gapped 场景延后到独立扩展 profile，避免 grant event 体积膨胀）。
+> evidence_kind 仅 `anchored_event_ref` 和 `state_witness` 两种。
 
-**Reducer 校验**(P-D1 已升级为同步前置 gate,2026 修订):
+**Reducer 校验**(同步前置 gate):
 
 - `evidence_kind=anchored_event_ref`:reducer **MUST 同步**通过 controller's principal server 验证 inclusion proof,**才能让该 grant 释放任何 source Space 访问 / capability / MLS Welcome**。验证未完成时 grant **MUST 进入 `pending_verification` 状态**——可写入 reducer / 落到 frontier(便于后续异步完成),但 reducer **MUST NOT** 让任何依赖该 grant 的下游动作生效:
   - 不向 agent 颁发 source Space membership(`cx.member.state` 拒绝引用 `pending_verification` grant 作为 `authorized_by`)
@@ -234,9 +232,9 @@ Preset 是**声明性 sugar**——客户端 / SDK 把 preset 名展开为标准
 - 验证最终失败(controller 服务器明确否认 / hash 不匹配 / event 不存在)→ grant 状态 → `verification_rejected`,reducer **MUST** 同时撤销所有 transient 副作用(若有);agent 即使临时持有过期信息也不得继续动作。
 - `evidence_kind=state_witness`:reducer **MUST 同步**校验 `witness_signature` 由 controller's principal server 当前注册的 key 签发;签名无效 = grant `verification_rejected`(不进入 pending)。TTL 由 `valid_until` 控制;过期后 grant 自动失效。state_witness 形态的优点是**不依赖远端可达性**——witness 是预签发的离线凭证,适合 controller 服务器临时不可达但 controller 设备已经事先签了授权的场景。
 
-**为什么收紧到同步前置 gate**(设计取舍登记):
+**为什么是同步前置 gate**(设计取舍登记):
 
-早期草案为了"agent onboarding 体验流畅",允许 `evidence_kind=anchored_event_ref` 走异步路径,不可达时降级 `unverified_authority` 但仍释放 grant。该路径在 controller server 短暂不可达(攻击者制造 DNS 劫持 / TLS outage 的窗口)的情况下,**允许伪造的 attached_authority 在 agent 已经访问 source Space 之后才被识破**——而那时已经读完 history、收到 MLS Welcome、写过 message,撤销已发生的访问是不可能的。P-D1 修订把"未验证"硬性变成 fail-closed gate,代价是 controller 服务器宕机期间 agent onboarding 不能进行(但已 onboarding 的 agent 继续工作不受影响,因为它们的 grant 之前已完成同步验证)。需要离线 onboarding 场景的部署 SHOULD 使用 `evidence_kind=state_witness`(预签发离线凭证)。
+异步路径在 controller server 短暂不可达(攻击者制造 DNS 劫持 / TLS outage 的窗口)的情况下,**允许伪造的 attached_authority 在 agent 已经访问 source Space 之后才被识破**——而那时已经读完 history、收到 MLS Welcome、写过 message,撤销已发生的访问是不可能的。同步 fail-closed gate 的代价是 controller 服务器宕机期间 agent onboarding 不能进行(但已 onboarding 的 agent 继续工作不受影响,因为它们的 grant 之前已完成同步验证)。需要离线 onboarding 场景的部署 SHOULD 使用 `evidence_kind=state_witness`(预签发离线凭证)。
 
 ## 6. Mirror Space 创建与并发竞态（reservation saga）
 
@@ -291,11 +289,9 @@ Move {
 
 ### 6.4 Orphan reservation 处理
 
-> **Rev 9 修订**：原 Rev 8 写 "reservation Move effects 携带 `reservation_ttl_seconds`" 不合规——[event-schema.json](../../artifacts/schemas/event-schema.json) `lattice_op` `additionalProperties: false`，wire 上无法附加自定义字段。TTL 改放到 event payload；clock 改用 Anchor-based time，不用自报 wall clock。
-
-1. **TTL 存放位置（修订）**：reservation Event 的 payload 顶层携带可选 `reservation_ttl_seconds`（默认 600s）字段，由 payload class `agent_workspace_reservation_set_payload` 定义（见 [`event-payload.schema.json#/$defs/agent_workspace_reservation_set_payload`](../../artifacts/schemas/event-payload.schema.json)）。承载该 payload 的 Event kind 是 `cx.agent_workspace.reservation.set`。**不**塞进 `lattice_op` metadata。
+1. **TTL 存放位置**：reservation Event 的 payload 顶层携带可选 `reservation_ttl_seconds`（默认 600s）字段，由 payload class `agent_workspace_reservation_set_payload` 定义（见 [`event-payload.schema.json#/$defs/agent_workspace_reservation_set_payload`](../../artifacts/schemas/event-payload.schema.json)）。承载该 payload 的 Event kind 是 `cx.agent_workspace.reservation.set`。TTL **不**塞进 `lattice_op` metadata，因为 [event-schema.json](../../artifacts/schemas/event-schema.json) `lattice_op` `additionalProperties: false`。
 2. **Resolve API filtering**：`resolve_mirror_flow` MUST 仅返回 reservation + create Move 都存在的 mapping，不返回未完成 reservation
-3. **Cleanup Move（Rev 9 修订）**：
+3. **Cleanup Move**：
    - Event kind：`cx.agent_workspace.reservation.cleanup`，payload class `agent_workspace_reservation_cleanup_payload`
    - Capability holder：**仅 controller principal**（capability `cx.capability.agent_workspace.cleanup`）；可标准 capability delegation 给自己 sync node 的 system actor
    - lattice op：`set`，cell = `mirror_*_by_source:<source_id>`，value = `"__unset__"`
@@ -552,7 +548,7 @@ Transition event payload：
 - `content_hash`：JCS-canonicalized JSON of the `content` field + SHA-256 + `sha256:` 前缀。复用 [encoding.md](../conformance/encoding.md) RFC 8785/JCS profile
 - `signature` canonical signing input = JCS-canonicalized `{schema_id: "cx.schema.content.source_export_policy_attestation.v1", domain: "cx.domain.export_policy_attestation.v1", body: <除 signature 外的所有 required 字段>}` + SHA-256
 
-**Mirror reducer 行为**(P-D2 双 profile 分离,2026 修订):
+**Mirror reducer 行为**(双 profile 分离):
 
 Mirror reducer 的行为**取决于源 Space 声明的 governance level**。源 Space 在自身 schema_refs / policy_components 中声明 `cx.profile.agent_workspace.governed.v1`(详见 §9.1)即被视作 governed source;其他默认按 permissive 处理。
 
@@ -581,11 +577,11 @@ permissive 模式假设"agent runtime 是受信代码,会自觉执行源 Space �
 
 permissive 让 export policy 沦为 audit log;一旦 agent runtime 有 bug / 被攻陷 / 故意绕过,内容已经在 mirror Space 重加密落地——**事后撤销已经被 mirror 端读到的内容是不可能的**。
 
-P-D2 修订引入 governed profile:**源 Space 主动声明自己受保护**,mirror 端 reducer 据此**代表源 Space 强制执行 export policy**。导入端拒收意味着内容**从未**进入 mirror history,attack window 关闭。
+Governed profile 让**源 Space 主动声明自己受保护**,mirror 端 reducer 据此**代表源 Space 强制执行 export policy**。导入端拒收意味着内容**从未**进入 mirror history,attack window 关闭。
 
-代价:governed profile 下,合法 import 也需要先取得 source-side 签发的 export attestation,引入一次回 source Space policy authority 的同步调用(类似 P-D1 attached_authority 的同步验证模式)。这是对**机密 / 合规 / 跨 deployment** 场景的应有摩擦。
+代价:governed profile 下,合法 import 也需要先取得 source-side 签发的 export attestation,引入一次回 source Space policy authority 的同步调用(类似 attached_authority 的同步验证模式)。这是对**机密 / 合规 / 跨 deployment** 场景的应有摩擦。
 
-> **诊断字段命名**:`source_export_attestation_required` / `_invalid` / `_denied` / `_destination_mismatch` / `_content_hash_mismatch` / `_expired` / `_authority_unauthorized` 这 7 个 reason_code 已注册到 `error-code-registry.json` `reason_codes[]` 命名空间(P-D2 FU-PD2.1 已完成)。
+> **诊断字段命名**:`source_export_attestation_required` / `_invalid` / `_denied` / `_destination_mismatch` / `_content_hash_mismatch` / `_expired` / `_authority_unauthorized` 这 7 个 reason_code 注册在 `error-code-registry.json` `reason_codes[]` 命名空间。
 
 ## 9. Space profile `cx.profile.agent_workspace.v1`
 
@@ -663,7 +659,7 @@ P-D2 修订引入 governed profile:**源 Space 主动声明自己受保护**,mir
 
 **Unsupported profile fail-closed**：未声明支持本 profile 的服务端 **对 mirror Space 写入** MUST fail-closed（拒绝 `cx.agent_task.*` / `cx.content.import_attestation`，返回 `profile_unsupported`）。源 Space 接受 `mention_redirect` 不依赖本 profile——依赖 `cx.feature.mention_redirect.v1` critical_extension 是否被源 Space 服务端支持。
 
-### 9.1 `cx.profile.agent_workspace.governed.v1`(P-D2 受保护源 profile)
+### 9.1 `cx.profile.agent_workspace.governed.v1`(受保护源 profile)
 
 **目的**:让源 Space 主动声明"我是受保护的,任何 agent 把我的内容导出到 mirror Space 时,mirror 端 reducer 必须强制执行我的 export policy"。源 Space 自身在 `policy_components` / `schema_refs` 中 import 该 profile,即把保护意愿写入 Space 的 canonical state。
 
@@ -701,7 +697,7 @@ P-D2 修订引入 governed profile:**源 Space 主动声明自己受保护**,mir
 
 attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer reject `source_export_authority_unauthorized`。
 
-> **wire 字段位置**(FU-PD2.3): 当前 prose 把 `export_policy_authorities[]` 描述为 `policy_components.export_policy_authorities` 的子字段;该子字段路径在 `cx.schema.space.v1` / `cx.space.policy_components` event payload schema **尚未正式注册**。专门的 schema 扩展轮次会将其加入 `space.schema.json` `policy_components` 子对象;在那之前实现 MAY 使用 Space schema_refs 自定义命名空间作为兼容路径,但应当在升级到正式注册路径后立即迁移以避免 reducer reject。
+> **wire 字段位置**: `export_policy_authorities[]` 位于 Space `policy_components.export_policy_authorities` 路径下,由 `cx.profile.agent_workspace.governed.v1` 启用该字段的解析。reducer 在该 profile 未启用时忽略该字段。
 
 **reducer 行为收紧**:见 §8.2"governed 行为"完整 reject 规则集。所有 reject 都是 reducer-time 硬性拒收;event 不进入 mirror Space accepted set,不留下任何 read access。
 
@@ -723,7 +719,7 @@ attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer re
 
 不支持 governed profile 的服务端在为 governed source 处理 import 时 MUST fail-closed(返回 `profile_unsupported`);**不得**降级为 permissive 处理。
 
-### 9.2 `cx.profile.agent_workspace.lite.v1`(P-D13 单 controller 轻量 profile)
+### 9.2 `cx.profile.agent_workspace.lite.v1`(单 controller 轻量 profile)
 
 **目的**:针对"controller 自己用、自己审、不需要 audit-grade 痕迹"的最小化部署(单 dev、hobbyist、本地实验),允许 mirror Space 跳过 base agent workspace profile 中三类成本最高的语义,从而把实现门槛降低到一个"标准 Space + reservation cell + import_attestation"即可上线的水平。
 

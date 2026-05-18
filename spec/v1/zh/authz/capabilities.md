@@ -292,7 +292,7 @@ Contrix v1 支持：
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `space_kind_allow`（v1 reserved / no-op：Space 顶层 `kind` 字段已删除，v1 实现 SHOULD 把该约束视为 always-allow；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
+- `space_kind_allow`（v1 reserved / no-op：v1 中所有 Space 同属一种安全边界,无 kind 区分,v1 实现 SHOULD 把该约束视为 always-allow；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
 - `place_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
@@ -630,7 +630,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 | 中风险（`cx.flow.update`、`cx.member.state`、`cx.invite.create`、跨 Space relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
 | 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read.marker`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
 
-设计取舍：早期草案允许低风险 `unknown` allow + 后续重放校验。该设计在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 改为本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Move 直接丢弃，无副作用。
+设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Move 直接丢弃，无副作用。
 
 实现 MUST：
 
