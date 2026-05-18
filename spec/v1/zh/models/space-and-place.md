@@ -251,7 +251,7 @@ applicant 直接提交：
       {
         "gate_id": "g-captcha",
         "challenge_proof": {
-          "challenge_id": "chg_01HXXXX",
+          "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
           "issued_by": "did:web:captcha.example",
           "proof": "base64url:..."
         }
@@ -407,10 +407,10 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
   "obligations": [
     {
       "type": "challenge",
-      "challenge_id": "chg_01HXXXX",
+      "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
       "kinds": ["captcha", "pow"],
       "issuer": "did:web:captcha.example",
-      "endpoint": "https://captcha.example/challenge/01HXXXX",
+      "endpoint": "https://captcha.example/challenge/01HXY9PM0AB6Y7VN2C7M4WG5KQ",
       "max_proof_age": "PT5M",
       "must_satisfy_before_resubmit": true
     }

@@ -69,7 +69,7 @@ Profile 初始状态通过 `cx.profile.create` Move / compatible Event 提交到
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0001-a13f9c2e",
   "prev_refs": [],
-  "auth_refs": [],
+  "refs": [],
   "payload": {
     "object": {
       "id": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
@@ -112,7 +112,9 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
   "prev_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
-  "auth_refs": ["cx:event:019640ed-8000-7000-8000-000000000000"],
+  "refs": [
+    { "id": "cx:event:019640ed-8000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+  ],
   "payload": {
     "target_ref": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
     "patch": {
@@ -153,7 +155,9 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",
   "prev_refs": ["cx:event:019640ed-8400-7000-8000-000000000000"],
-  "auth_refs": ["cx:event:019640ed-8400-7000-8000-000000000000"],
+  "refs": [
+    { "id": "cx:event:019640ed-8400-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+  ],
   "payload": {
     "target_ref": "cx:actor_profile:019640ab-0000-7000-8000-000000000000",
     "target_space_id": "cx:space:0196419b-0000-7000-8000-000000000000",

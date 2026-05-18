@@ -251,7 +251,7 @@ Contrix v1 要求：
 
 Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/events/*`。
 
-Contrix v1 不要求实现 atprotocol/Git 式数据仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event，但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` / `auth_refs` 因果依赖和 `event_id` 幂等性。
+Contrix v1 不要求实现 atprotocol/Git 式数据仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event，但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` 与 `refs[role=authorized_by]` 因果依赖和 `event_id` 幂等性。
 
 Events API 至少应提供以下语义：
 
@@ -283,7 +283,7 @@ POST /api/v1/events
 - 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Space policy、`actor_seq` 和因果依赖。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Space frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 
-当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 `prev_refs` / `auth_refs` / payload-level causal reference；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
+当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 `prev_refs` / `refs[role=authorized_by]` / payload-level causal reference；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
 
 ### 4.3 获取单个 Event
 

@@ -197,7 +197,7 @@ provider 颁发的 challenge proof 形态：
 
 ```json
 {
-  "challenge_id": "chg_01HXXXX",
+  "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
   "issued_by": "did:web:captcha.example",
   "issued_at": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-26T00:05:00Z",

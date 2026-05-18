@@ -21,7 +21,8 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
 | 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject 或要求提交 snapshot / checkpoint 引用。 |
-| 单个 Event 的 `auth_refs` 数量 | 64 | 超过时 MUST reject；auth refs 必须是最小授权状态集合。 |
+| 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（旧草案曾称作 `auth_refs[]`，v1 已合并到 `refs[]`，见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
+| 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject 或拆分。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。 |
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Space 引用必须按 Lazy Link 截断。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内提交超过 65,536 个 event 时 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，不得 wrap 或复用相同 HLC。换算约 65 M events/s 单 actor 上限。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。v2 SHOULD 评估扩展 logical 段宽度。 |

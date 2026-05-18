@@ -82,7 +82,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/identity/submit-did-operation` | body `{did: did, seq: int, prev_event_hash?: string, patch: object, proofs: proof[]}` | `device_proof` 或 recovery proof；MUST 满足 DID method / key-log 授权。 | `{status, head_event_hash, seq, receipts?}` |
 | `GET /api/v1/identity/receipts` | query `{did: did, head: string}` | 同 DID 可见性；witness 可公开最小 receipt。 | `{receipts[], threshold_met?: boolean}` |
 | `GET /api/v1/events/describe` | query none 或 `{actor_id?: did, space_id?: id}` | `public_metadata` 或 `user_session`；私有 frontier 需认证。 | `{service_did, supported_event_schemas[], supported_reducer_profiles[], supported_signatures[], limits}` |
-| `POST /api/v1/events` | body `EventEnvelope` 或 `{events: EventEnvelope[]}` | `user_session` / `device_proof` / `service_signature`；MUST 验证 actor DID、签名、capability、Space policy、`actor_seq`、`prev_refs`、`auth_refs`。 | `{status, accepted[], duplicate[]?, rejected[]?, actor_frontier?, space_frontier?, cursor?}` |
+| `POST /api/v1/events` | body `EventEnvelope` 或 `{events: EventEnvelope[]}` | `user_session` / `device_proof` / `service_signature`；MUST 验证 actor DID、签名、capability、Space policy、`actor_seq`、`prev_refs`、`refs[role=authorized_by]`。 | `{status, accepted[], duplicate[]?, rejected[]?, actor_frontier?, space_frontier?, cursor?}` |
 | `GET /api/v1/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Space policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
 | `POST /api/v1/events/batch-get` | body `{event_ids?: id[], event_hashes?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Space policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
 | `GET /api/v1/events` | query `{spaces?: id[], actors?: did[], from?: cursor, until?: cursor, direction?: forward\|backward, limit?: int, filters?: object}` | 调用方必须对每个 selector 元素满足读取约束：actor scope 走 actor history visibility；space scope 走 membership frontier + history visibility + E2EE epoch policy。`spaces[]` ∪ 内部、`actors[]` ∪ 内部、二者组合为交集。 | `{events[], next_cursor?, prev_cursor?, has_more}` |
@@ -146,7 +146,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.identity.submit_did_operation` | `did: did`; `seq: int`; `patch: object`; `proofs: proof[]` | `prev_event_hash: string` | `status: enum(accepted,duplicate)`; `head_event_hash: string`; `seq: int`; `receipts: object[]?` | MUST 满足 DID method / key-log 授权；`did+seq` 幂等。 |
 | `cx.identity.get_receipts` | `query.did: did`; `query.head: string` | 无 | `receipts: object[]`; `threshold_met: boolean?` | 只公开最小 witness receipt。 |
 | `cx.events.describe` | 无 | `query.actor_id: did`; `query.space_id: id` | `service_did: did`; `supported_event_schemas: string[]`; `supported_reducer_profiles: string[]`; `supported_signatures: string[]`; `limits: object?` | public metadata 可公开；私有 frontier 需认证。 |
-| `cx.events.submit` | `event: object` 或 `events: object[]` | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `space_frontier: object?`; `cursor: cursor?` | MUST 验证 Event signature、DID、capability、Space policy、`actor_seq`、`prev_refs` 和 `auth_refs`。`cursor` 是 barrier purpose（read-your-writes）。 |
+| `cx.events.submit` | `event: object` 或 `events: object[]` | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `space_frontier: object?`; `cursor: cursor?` | MUST 验证 Event signature、DID、capability、Space policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`。`cursor` 是 barrier purpose（read-your-writes）。 |
 | `cx.events.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | 不可见时返回 `not_found`。 |
 | `cx.events.batch_get` | 至少一个：`event_ids: id[]` 或 `event_hashes: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Space policy / E2EE envelope 判断。 |
 | `cx.events.query` | 至少一个：`query.spaces: id[]` 或 `query.actors: did[]` | `query.from: cursor`; `query.until: cursor`; `query.direction: enum(forward,backward)=forward`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `prev_cursor: cursor?`; `has_more: boolean` | `spaces[]` 内部 union、`actors[]` 内部 union、二者组合为 intersection。每个 selector 元素都按对应可见性约束逐项检查：actor scope 走 actor history visibility；space scope 走 membership frontier + history visibility + E2EE epoch policy。`from`/`until` 可定义闭区间；`direction=backward` 时返回向更早 cursor 走的页。 |
@@ -155,7 +155,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.sync.account` | 无 | `since: cursor`; `filter: object`; `set_presence: enum(online,offline,unavailable)`; `timeout_ms: int` | `cursor: cursor`; `spaces: object?`; `to_device: object?`; `account_data: object?`; `device_lists: object?` | `user_session` 必须绑定 principal/device。聚合账号视角 delta（跨 Space frontier、to_device、account_data、device_lists、presence），不是裸事件读；裸事件读用 `cx.events.query` / `cx.events.subscribe`。`cursor` 是 stream purpose。 |
 | `cx.sync.describe` | 无 | 无 | `service_did: did`; `supported_sync_profiles: string[]`; `limits: object`; `frontier: object?` | 私有 frontier 可认证后返回。 |
 | `cx.sync.get_snapshot_head` | `query.space_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `event_set_commitment: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
-| `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`; `ingest_modes: array<push \| pull>`; `accept_policy_kind: enum`; `accept_policy_ref: object?`; `default_ttl_seconds: int`; `max_ttl_seconds: int`; `revalidation_grace_seconds: int`; `accepted_resource_kinds: enum[]`; `accepted_did_methods: string[]`; `takedown_contact: did\|url?`; `rate_limits: object?` | `public_metadata`; 可限流。详见 `discovery/discovery-directory.md` §8.9。 |
+| `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`; `ingest_modes: array<push \| pull>`; `accept_policy_kind: enum`; `accept_policy_ref: object?`; `default_ttl_seconds: int`; `max_ttl_seconds: int`; `revalidation_grace_seconds: int`; `accepted_resource_kinds: enum[]`; `accepted_did_methods: string[]`; `takedown_contact: did\|url?`; `rate_limits: object?` | `public_metadata`; 可限流。详见 `../discovery/discovery-directory.md` §8.9。 |
 | `cx.directory.search_spaces` | 无 | `query: string`; `organization_did: did`; `parent_space_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | hidden resource 不泄露存在性；每条 result MUST 含 `as_of`/`source_refs`/`policy_revision`/`stale?`/`divergent?`/`via_services?`（discovery-directory.md §9.1）。 |
 | `cx.directory.resolve_space` | 至少一个：`space_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | secret/restricted Space 使用统一 `not_found`；`via_services` v1 normative，必须给出 host Principal Server service DID。 |
 | `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 仅公开或授权可发现组织。 |
@@ -164,8 +164,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.directory.search_users` | `query.q: string` | `query.space_id: id`; `query.limit: int` | `results: object[]` | mention autocomplete；受共同 Space / directory policy 限制。 |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | private handle 需要 presentation。 |
 | `cx.directory.private_contact_discovery` | `requester: did`; `contacts: object[]` | `proofs: proof[]`; `privacy_profile: string`; `padding: object` | `matches: object[]`; `proofs: object[]?`; `retry_after_ms: int?` | MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
-| `cx.directory.announce` | `resource_kind: enum(space,organization,actor,applet,handle)`; `resource_id: id\|did\|handle`; `discovery_state: object`; `source_refs: id[]`; `as_of: timestamp`; `principal_server_did: did` | `ttl_seconds: int`; `supersedes_announce_id: id` | `announce_id: id`; `indexed_at: timestamp`; `effective_ttl_seconds: int`; `next_revalidation_after: timestamp`; `warnings: string[]?` | 资源 → Directory 的签名 ingest；MUST 验签 + 双向 opt-in；详见 `discovery/discovery-directory.md` §8.3 / §8.5 / §8.10。 |
-| `cx.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdraw_id: id`; `acked_at: timestamp` | 资源主动撤销 opt-in；Directory MUST 在 ≤ 1h 内停止披露；详见 `discovery/discovery-directory.md` §8.7。 |
+| `cx.directory.announce` | `resource_kind: enum(space,organization,actor,applet,handle)`; `resource_id: id\|did\|handle`; `discovery_state: object`; `source_refs: id[]`; `as_of: timestamp`; `principal_server_did: did` | `ttl_seconds: int`; `supersedes_announce_id: id` | `announce_id: id`; `indexed_at: timestamp`; `effective_ttl_seconds: int`; `next_revalidation_after: timestamp`; `warnings: string[]?` | 资源 → Directory 的签名 ingest；MUST 验签 + 双向 opt-in；详见 `../discovery/discovery-directory.md` §8.3 / §8.5 / §8.10。 |
+| `cx.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdraw_id: id`; `acked_at: timestamp` | 资源主动撤销 opt-in；Directory MUST 在 ≤ 1h 内停止披露；详见 `../discovery/discovery-directory.md` §8.7。 |
 | `cx.directory.subscribe` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | pull 模式优化；不替代 freshness 协议（§8.6）。 |
 | `cx.blob.upload` | `size: int` | `space_id: id`; `sha256: string`; `media_type: string`; `filename: string`; `purpose: string`; binary/multipart body; `header.Content-Type: string` | `blob_ref: string`; `size: int`; `media_type: string?`; `sha256: string`; `upload_receipt: object?` | upload capability、quota、media policy；`Content-Type` 缺省为 `application/octet-stream`。 |
 | `cx.blob.head` | `query.blob_ref: string` | `header.Authorization: token`; `header.X-Contrix-Wait-For: cursor` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | 私有 blob 必须验证 actor/device/Space/purpose/expiry；不得通过 header 泄露不可见资源。 |
@@ -242,11 +242,23 @@ POST /api/v1/events
     "prev_refs": [
       "cx:event:019640ed-0000-7000-8000-000000000000"
     ],
-    "auth_refs": [
-      "cx:event:0196410c-0000-7000-8000-000000000000"
+    "refs": [
+      { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
     ],
-    "payload": {},
-    "proofs": []
+    "payload": {
+      "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
+      "patch": { "fields.status": "done" }
+    },
+    "proofs": [
+      {
+        "kind": "detached_jws",
+        "alg": "EdDSA",
+        "verification_method": "did:web:alice.example.com#device-1",
+        "payload_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "created_at": "2026-04-22T08:30:00Z",
+        "jws": "..."
+      }
+    ]
   }
 }
 ```
@@ -268,7 +280,7 @@ POST /api/v1/events
 
 若 `expected_frontier` 校验失败，返回 `409 cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、checkpoint 或 predecessor commit 才承认其 canonical history 地位。
 
-`events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项的 `prev_refs`、`auth_refs` 或显式 payload reference 解析；后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
+`events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项的 `prev_refs`、`refs[role=authorized_by]` 或显式 payload reference 解析；后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
 
 ### 3.2 批量获取 Event
 

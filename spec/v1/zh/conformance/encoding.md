@@ -124,7 +124,7 @@ cx:<kind>:<uuid>
 
 v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 `<uuid>` 段 MUST 是 [RFC 9562](https://www.rfc-editor.org/rfc/rfc9562) UUID **version 7**：48-bit Unix-millisecond timestamp（big-endian）+ 4-bit version=`0111` + 12-bit `rand_a` + 2-bit variant=`10` + 62-bit `rand_b`，按 RFC 9562 §4 的 canonical 36-character lowercase hex 形式 `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` 序列化（其中 `N ∈ {8, 9, a, b}`，对应 RFC 4122 variant 1）。外部导入数据若是大写或带 URN/Microsoft braces 等变体形式，MUST 在生成 v1 Event Envelope、object id、cursor payload 或 proof `payload_hash` 前规范化为小写无前缀的 36-char hyphen-separated 形式。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写或形式。
 
-同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也不得作为 typed `cx:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / auth_refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
+同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也不得作为 typed `cx:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
 
 `event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.payload_hash`（≡ `canonical_hash(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
 
@@ -203,7 +203,7 @@ Proof MUST bind:
 
 ## 7. HLC
 
-> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Move precondition 比较、或 Anchor finality 判断；这些都由 Move `preconditions[]`、Anchor frontier 与 Lattice `join` 决定。HLC 在 v1 的唯一规范用途是 **timeline 派生层**——当两个事件在 `prev_refs` / `auth_refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。即便 HLC 进入 canonical event bytes 与 proof `payload_hash`（出于 wire 兼容），实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.2 与 [`sync/operations-sync.md`](../sync/operations-sync.md) §6。
+> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Move precondition 比较、或 Anchor finality 判断；这些都由 Move `preconditions[]`、Anchor frontier 与 Lattice `join` 决定。HLC 在 v1 的唯一规范用途是 **timeline 派生层**——当两个事件在 `prev_refs` / `refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。即便 HLC 进入 canonical event bytes 与 proof `payload_hash`（出于 wire 兼容），实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.2 与 [`sync/operations-sync.md`](../sync/operations-sync.md) §6。
 
 Hybrid Logical Clock 编码：
 
@@ -233,7 +233,7 @@ Hybrid Logical Clock 编码：
 - 遇到该情况时，生产者 MUST 采取以下两种行为之一：
   - 等待直到本地可生成更大的 `unix_ms_hex`，然后以 `logical_hex=0000` 生成新 HLC。
   - 在生成 canonical bytes 之前以本地临时错误终止该次写入，例如 `hlc_logical_overflow`，由调用方稍后重试。
-- 生产者在等待或重试期间 MUST 保留原有 `prev_refs`、`auth_refs` 和 `actor_seq` 约束，不得仅为了逃避 overflow 而伪造更大的 wall clock skew。
+- 生产者在等待或重试期间 MUST 保留原有 `prev_refs`、`refs[role=authorized_by]` 和 `actor_seq` 约束，不得仅为了逃避 overflow 而伪造更大的 wall clock skew。
 - 消费者若观察到同一 producer 出现 `unix_ms` 不变、`logical_hex` 从 `ffff` 回绕到更小值且没有更大 `unix_ms`，MUST 将其视为无效 HLC，并以 `schema_violation`、`causal_conflict`、`soft_fail` 或 quarantine 处理；不得把它当作正常排序值接受。
 
 v1 固定使用 4 位 `logical_hex`。该上限等价于单个 producer 每毫秒 65,536 个有序 HLC；超过该速率的批量写入应拆分到多个 actor/device producer、等待下一毫秒，或使用服务端批量入口排队。不得在 v1 中把 `logical_hex` 私自扩展到 6/8 位；需要更宽计数器时必须声明新的 HLC version 与 schema profile。

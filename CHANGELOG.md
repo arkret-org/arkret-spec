@@ -476,7 +476,7 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
 
 #### Audited E2EE 拆出独立 hardening profile
 
-- 新建 [`zh/crypto-media/audited-e2ee.md`](zh/crypto-media/audited-e2ee.md)：承载
+- 新建 [`spec/v1/zh/crypto-media/audited-e2ee.md`](./spec/v1/zh/crypto-media/audited-e2ee.md)：承载
   `cx.profile.attested_audit.e2ee.v1` 与 `cx.profile.disclosed_audit.e2ee.v1` 两类
   audited E2EE profile 的完整 normative：audit policy declaration、join warning canonical
   文案、audit agent entry、强制留痕 (`cx.audit.accessed`)、RYW receipt schema、transparency
@@ -577,7 +577,7 @@ Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.wat
 ### 发布状态
 
 - 仓库当前发布状态为 `v1.0.0` 规范稳定基线。详见
-  [`zh/overview/release-readiness.md`](./zh/overview/release-readiness.md).
+  [`spec/v1/zh/overview/release-readiness.md`](./spec/v1/zh/overview/release-readiness.md).
 - 实现若要宣称 `v1-conformance-certified`，仍必须通过 reference validator /
   reference reducer / reference authz evaluator / conformance runner 及对应核心 vectors；
   未认证实现只能声明自己支持的具体 profile。

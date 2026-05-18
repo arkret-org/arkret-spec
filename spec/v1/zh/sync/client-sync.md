@@ -169,13 +169,13 @@ Sync 响应包含以下 stream：
 
 ## 6. Event Ordering
 
-Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权真相本身。授权真相仍由 event hash、`prev_refs`、`auth_refs`、space version 和 reducer 决定。
+Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权真相本身。授权真相仍由 event hash、`prev_refs`、`refs[role=authorized_by]`、space version 和 reducer 决定。
 
 服务器返回 `timeline.events` 时 MUST 满足：
 
 1. 同一响应内的事件按 deterministic timeline order 排列。
 2. 若事件 B 直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
-3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 带有足够 `prev_refs` / `auth_refs`，客户端可 soft fail、backfill 或延迟渲染。
+3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 带有足够 `prev_refs` / `refs[role=authorized_by]`，客户端可 soft fail、backfill 或延迟渲染。
 4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Sync Service 到达顺序作为跨实现排序依据。
 
 默认 timeline order：
@@ -319,7 +319,7 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 客户端处理加密 timeline 时 SHOULD：
 
-1. 先验证 event envelope、hash、signature、`space_id`、`auth_refs` 和 `prev_refs`。
+1. 先验证 event envelope、hash、signature、`space_id`、`refs[role=authorized_by]` 和 `prev_refs`。
 2. 根据明文 routing metadata 将事件放入 timeline / reducer 队列。
 3. 检查事件声明的 `mls_epoch`。
 4. 如果本地缺少该 epoch 的 group state，拉取缺失 `cx.mls.*` state event、MLS Commit 和必要 key backup。

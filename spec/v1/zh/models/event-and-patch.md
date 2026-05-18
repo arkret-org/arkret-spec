@@ -37,14 +37,19 @@ Schema id: `cx.schema.event.v1`
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
-| `hlc` | yes | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 | HLC。 |
-| `prev_refs` | yes | `array<id:event>` | 可为空。 | Actor event chain 前序。 |
-| `auth_refs` | yes | `array<id:event>` | create event 可为空；必须引用授权状态事件，不能直接引用 grant / policy object ID。 | 授权依赖。 |
+| `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Move precondition、Anchor finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
+| `prev_refs` | yes | `array<id:event>` | 可为空。仅承载 actor event chain causal predecessors。 | Actor event chain 前序。 |
+| `refs` | yes | `array<SemanticRef>` | 默认 `[]`。每项 `{id, role, critical?}`；常见 `role` 包括 `authorized_by`（**替代旧 `auth_refs[]` 字段**）、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`、`inclusion_proof`。`critical` 默认 `true`；未识别 critical role MUST fail closed，未识别非 critical role MAY 被忽略。 | 语义引用集合。 |
 | `requirements` | no | `object` | `requirements.{schema[], reducer, features[], critical_extensions[]}` 全部进入 canonical bytes 与 event digest；接收方 MUST fail closed 对未知 critical 项。`critical_extensions[]` 每项必须有 `id`、`scope`、`fail_closed=true`。 | 事件依赖声明（schema profile / reducer profile / feature / critical extension）。 |
+| `preconditions` | conditional | `array<Predicate>` | 仅 reducer-input event 携带；与 `effects[]` / `anchor_ref` 同步出现。非 reducer event（read marker / typing 等）MUST 省略。 | Move 多 cell 原子 CAS 的 pre-state 谓词。 |
+| `effects` | conditional | `array<Effect>` | 仅 reducer-input event 携带；存在时 MUST 至少 1 项。 | Move 多 cell 原子 CAS 的 effect 集合。 |
+| `anchor_ref` | conditional | `id:anchor` | 仅 reducer-input event 携带；MUST 指向接收方已知 Anchor，并落在 `max_anchor_staleness_ms` 窗口内。 | Move 提交基线 Anchor。 |
 | `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
-| `proofs` | yes | `array<Proof>` | 至少一个有效 proof。 | 签名证明。 |
+| `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
+
+> **从早期草案迁移说明**：早期 v1 草案曾在顶层定义 `auth_refs[]` 单独承载授权依赖；v1 已把它收敛到 `refs[]` 并通过 `role="authorized_by"` 区分语义。任何 prose、SDK、fixture 中仍出现 `auth_refs` 字段都属于迁移残留，按 `refs[role=authorized_by]` 重写；canonical bytes 不再包含 `auth_refs` 字段。Schema authoritative 形态见 `artifacts/schemas/event-schema.json`。
 
 ### 2.3 最小 reducer-input event 示例
 
@@ -213,4 +218,4 @@ Reducer MUST：
 - Canonical JSON、HLC、cursor：[`../conformance/encoding.md`](../conformance/encoding.md)。
 - Conformance vector：[`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md)。
 - Schema / event registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
-- Schemas：`artifacts/schemas/event-schema.json`、`artifacts/schemas/proof.schema.json`、`artifacts/schemas/event-batch-receipt.schema.json`。
+- Schemas：`artifacts/schemas/event-schema.json`（含 `$defs.proof` — Proof 是 event-schema 内嵌定义，不再发布为独立 `proof.schema.json` 文件）、`artifacts/schemas/event-batch-receipt.schema.json`。

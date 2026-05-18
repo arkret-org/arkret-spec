@@ -706,7 +706,7 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当�
     }
   ],
   "ciphertext": "base64url...",
-  "ciphertext_digest": "sha256:42108421-0842-7084-a108-42108421084242108421-0842-7084-a108-421084210842222222222222",
+  "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "auth_data": {
     "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
     "signature": "base64url..."

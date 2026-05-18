@@ -41,7 +41,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | `space_id` | 所属 Space。 |
 | `actor_seq` | actor chain 单调序号。 |
 | `prev_refs[]` | actor chain 因果前序。 |
-| `refs[]` | 语义引用集合，每条 `{id, role, critical?}`；`role="authorized_by"` 是从前 v1 草案 `auth_refs[]` 迁移过来的字段；其他 role 包括 `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof`。 |
+| `refs[]` | 语义引用集合，每条 `{id, role, critical?}`；`role="authorized_by"` 替代 v1 早期草案的顶层 `auth_refs[]` 字段；其他 role 包括 `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof`。 |
 | `preconditions[]` | reducer-input only：`[(cell, predicate)]`。任一不成立则整个 event FAIL。 |
 | `effects[]` | reducer-input only：`[(cell, lattice_op)]`。原子多 cell CAS。 |
 | `anchor_ref` | reducer-input only：本 event 提交时所对应的 Anchor DAG 节点。 |
@@ -58,7 +58,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 3. `verify_event()`（[`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6）在该 event 的 `anchor_ref` 对应 pre-state 下成立。
 4. 写入 Anchor pipeline。
 
-任一步骤失败，整个 event 被 reject 并回退原因（`schema_violation` / `signature_invalid` / `failed_precondition` / `failed_bottom` / etc.）。非 reducer 事件只走步骤 1+2。
+任一步骤失败，整个 event 被 reject 并回退原因（`schema_violation` / `invalid_signature` / `failed_precondition` / `failed_bottom` / etc.）。非 reducer 事件只走步骤 1+2。
 
 ### 2.1.1 Event Store
 
@@ -748,7 +748,7 @@ Contrix 初版不引入全网共识链。
 
 非 state 的并发对象操作也必须使用确定性顺序归约。除各对象规则另有更具体定义外，reducer 应先按依赖图验证候选可用性，再用 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 选择唯一候选并记录 losers / conflict records。
 
-该 reducer 顺序不同于客户端 timeline 的展示顺序；timeline 通常先按 `prev_refs` / `auth_refs` / payload causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
+该 reducer 顺序不同于客户端 timeline 的展示顺序；timeline 通常先按 `prev_refs` / `refs` / payload causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
 
 ### 16.1 Reducer Contract
 
@@ -757,7 +757,7 @@ Reducer 是确定性纯函数，不是服务端当前数据库状态。对同一
 Reducer 输入：
 
 - accepted Event Envelope 集合及其 canonical bytes / digest。
-- 每个 Event 的 `prev_refs`、`auth_refs`、`actor_seq`、HLC、kind、payload、proof validation result 和 authorization result。
+- 每个 Event 的 `prev_refs`、`refs[]`（含 `role="authorized_by"` 等语义引用）、`actor_seq`、HLC、kind、payload、proof validation result 和 authorization result。
 - schema profile refs、reducer profile ref、Space policy state 和必要 snapshot base。
 
 Reducer 输出：

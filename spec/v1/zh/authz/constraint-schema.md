@@ -114,7 +114,7 @@ v2 主版本 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: 
   "expires_at": "2026-05-26T00:00:00Z",
   "recurrence": {
     "frequency": "daily|weekly|monthly",
-    "days": ["monday", "tuesday", "wednesday"],
+    "days": ["mon", "tue", "wed"],
     "window_start": "09:00:00",
     "window_end": "17:00:00",
     "timezone": "UTC"
@@ -706,7 +706,7 @@ function matches_field_access(operation, constraint):
       "expires_at": "2026-04-26T17:00:00Z",
       "recurrence": {
         "frequency": "weekly",
-        "days": ["saturday", "sunday"],
+        "days": ["sat", "sun"],
         "timezone": "America/New_York"
       }
     },

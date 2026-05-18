@@ -173,7 +173,7 @@ Child Space MAY 使用 `cx.space.inheritance_policy` 显式声明可继承项（
 3. derived grant 的 action/scope/expiry 不得宽于 source grant。
 4. source grant 被 revoke 后，derived grant MUST 在其 causal 后继中失效（参见 `authz/event-auth-state-resolution.md` §8 委托链 revocation 传播规则）。
 5. derived grant 不得再向下无限派生，除非下一级 child 也显式 opt-in 且未超过 `max_depth`。
-6. `auth_refs` MUST 同时包含 source grant 的 accepted `cx.capability.grant` 事件 id 与 target child 的 `cx.space.inheritance_policy`（subject=parent space id）事件 id。
+6. `refs[]` MUST 同时包含两条 `role="authorized_by"` 条目：source grant 的 accepted `cx.capability.grant` 事件 id 与 target child 的 `cx.space.inheritance_policy`（subject=parent space id）事件 id。
 
 ## 8. Schema and Policy Cascade
 

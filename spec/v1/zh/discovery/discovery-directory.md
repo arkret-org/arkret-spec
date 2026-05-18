@@ -409,7 +409,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (subscribe)** 两种 ingest
 | `next_revalidation_after` | `timestamp` | 下一次 re-announce 或 pull-refresh 的最早时间。 |
 | `warnings` | `string[]?` | 非阻塞警告，例如 `truncated_member_count`、`policy_revision_drift`。 |
 
-**典型错误码**：`directory_not_authorized`、`accept_policy_denied`、`signature_invalid`、`signature_stale`、`source_refs_unverifiable`、`governance_key_invalid`、`ttl_out_of_range`、`rate_limited`、`takedown_in_force`。
+**典型错误码**：`directory_not_authorized`、`accept_policy_denied`、`invalid_signature`、`signature_stale`、`source_refs_unverifiable`、`governance_key_invalid`、`ttl_out_of_range`、`rate_limited`、`takedown_in_force`。
 
 请求示例（非完整 schema）：
 
@@ -714,7 +714,7 @@ Directory-capable implementations MUST test：
 
 - announce accepted when directory DID listed in `directory_services` and signature valid
 - announce rejected with `directory_not_authorized` when directory DID NOT listed
-- announce rejected with `signature_invalid` on bad `discovery_state.proof`
+- announce rejected with `invalid_signature` on bad `discovery_state.proof`
 - announce rejected with `signature_stale` when `as_of` skew > 5 min
 - announce rejected with `policy_revision_rollback` when `as_of` earlier than indexed entry
 - announce rejected with `accept_policy_denied` when resource outside policy
