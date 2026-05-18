@@ -166,12 +166,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.flow.restore`
 - `cx.flow.move`
 - `cx.flow.reorder`
-- `cx.flow.tracks.update`（P-D12 O1.2 canonical 统一 patch 入口，对应 event `cx.flow.tracks.update`）
-- `cx.flow.tracks.manage`（聚合 action，覆盖 `cx.flow.tracks.update` + legacy `cx.flow.track.{enable,disable,update,set_primary}`；推荐绑定，避免给单独的 legacy action）
-- `cx.flow.track.enable`（**Legacy**，保留兼容；v2 候选移除）
-- `cx.flow.track.disable`（**Legacy**，同上）
-- `cx.flow.track.update`（**Legacy**，同上）
-- `cx.flow.track.set_primary`（**Legacy**，同上）
+- `cx.flow.tracks.manage`（Flow tracks map 写入入口，对应 event `cx.flow.tracks.update`）
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`

@@ -251,8 +251,6 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 
 `kind` 取值与 `witnesses[]` 不匹配（例如 `kind="federation_witness_attested"` 但 `witnesses.length == 1`，或 `kind="single_source"` 但 `witnesses.length >= 2`）MUST 直接 `audit_receipt_invalidated`。本规则不依赖任何 receipt 内部字段的"自报值"，只看 `witnesses[]` 列表与签发证据；单签发者跨多 receipt 持续声称 `federation_witness_attested` 是误用，接收方 MUST 把这种情况视为 `single_source`。
 
-> **命名说明**：早期 v1 草案使用 `receipt_independence: "independent" | "single_source"` 单字段表达独立性。该命名容易被实现误读为"由 Audit Agent 自我声明"。v1 已将该字段重命名为 `witness_attestation`，并以 `witnesses[]` 列表的形式公开承担独立性证据，`kind` 仅是 `witnesses[]` 的派生 hint。任何 SDK / lint 工具仍引用 `receipt_independence` 都属于迁移残留，按当前 schema 与本节规则改写。
-
 ## 5. 审查透明公示
 
 因为 `cx.audit.accessed` 是一条公开写入的协作事件，所有参与者的客户端都能通过 sync 实时同步到该事件。

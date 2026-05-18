@@ -642,22 +642,6 @@
       "description": "Cross-method principal upgrade evidence `inception_pubkey_fingerprint` does not match the fingerprint derived from `verificationMethod[0]` of the canonicalised old DID Document (P-S3 / key-management.md §5.0.5)."
     },
     {
-      "code": "mention_routing_hash_legacy_sha256",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Mention routing tag is encoded with the deprecated deterministic SHA-256 formula instead of the keyed HMAC form mandated by P-S4. Server MUST reject; producer SHOULD upgrade to `mention_routing_hmac_v2` (encryption-and-audit.md mention routing section)."
-    },
-    {
-      "code": "reaction_routing_hash_legacy_sha256",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Reaction routing tag is encoded with the deprecated deterministic SHA-256 formula instead of the keyed HMAC form mandated by P-S5. Server MUST reject; producer SHOULD upgrade to `reaction_routing_hmac_v2`."
-    },
-    {
       "code": "audit_agent_key_destruction_attestation_missing",
       "applies_to": [
         "event_envelope",
@@ -920,13 +904,6 @@
         "auth_decision"
       ],
       "description": "A previously trusted cross-signing key set was reset; verifications against the old `ssk_generation` MUST fail until the user re-verifies under the new generation. See zh/crypto-media/device-lifecycle.md §14."
-    },
-    {
-      "code": "deprecated_query_params",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "Caller used legacy `direction` / `from` / `until` query parameters on `cx.events.query`. v1 conformant endpoints MUST reject with `invalid_param`; only a deployment-local transitional compatibility profile MAY translate them while emitting this warning."
     },
     {
       "code": "claim_rate_limited",
@@ -1237,20 +1214,6 @@
         "state_resolution"
       ],
       "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a cx.attestation.range_completeness.v1 attestation declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §4.2.4 step 6."
-    },
-    {
-      "code": "deprecated_event_kind",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "Event uses a kind that has passed its sunset date and is no longer accepted by this deployment (e.g. legacy cx.flow.track.{enable,disable,update,set_primary} after 2028-06-01 sunset). Client MUST migrate to the unified replacement (cx.flow.tracks.update). See zh/models/flow-and-message.md §4.8.1."
-    },
-    {
-      "code": "legacy_event_kind",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "Advisory warning emitted in response unsigned.warnings[] when an accepted event uses a kind on the deprecation timeline. Carries the kind and sunset_at fields. Does NOT affect acceptance state. See zh/models/flow-and-message.md §4.8.1 (deprecation warnings phase)."
     }
   ]
 }

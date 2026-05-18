@@ -123,7 +123,7 @@
         "redacted",
         "deleted"
       ],
-      "description": "Top-level lifecycle state, aligned with Flow.state / Place.state. Replaces the legacy fields.visible_state / fields.redacted blackbox shape."
+      "description": "Top-level lifecycle state, aligned with Flow.state / Place.state."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",

@@ -221,7 +221,7 @@ Preset 是**声明性 sugar**——客户端 / SDK 把 preset 名展开为标准
 }
 ```
 
-> v1 仅支持 `anchored_event_ref` 和 `state_witness` 两种 evidence_kind。Rev 7 草案的 `inline_copy` 已删除（air-gapped 场景推迟到 v2，避免 grant event 体积膨胀）。
+> v1 仅支持 `anchored_event_ref` 和 `state_witness` 两种 evidence_kind。Rev 7 草案的 `inline_copy` 已删除（air-gapped 场景延后到独立扩展 profile，避免 grant event 体积膨胀）。
 
 **Reducer 校验**(P-D1 已升级为同步前置 gate,2026 修订):
 
@@ -783,7 +783,7 @@ Controller 从 deployment A 迁到 deployment B：
 2. 写新 DID Document service entry，service endpoint 指向 deployment B
 3. 旧 workspace（deployment A）保留作为 audit 历史；可标记 `migrated_to: <new_workspace_root_space_id>`
 4. 源 Space 中已存在的 `mention_redirect` 与旧 workspace 关联（通过 `authority_grant_ref` 在源 Space 中的 grant，与 deployment 无关）；新发的 `mention_redirect` 会通过新 DID resolve 到新 workspace
-5. mirror Space 内容**不自动迁移**——controller 可选导出 / 重新建立（v2 提供工具）
+5. mirror Space 内容**不自动迁移**——controller 可选导出 / 重新建立（迁移工具由独立 tooling profile 提供）
 
 ### 10.3 源 Space archive / Flow delete
 
@@ -1018,8 +1018,8 @@ v1 默认 controller 手动 publish：
 - ❌ Server-side @ mention 自动路由：routing 是 client UX，server 不重写消息
 - ❌ `on_behalf_of` Message 字段：v1 由 controller 手动 publish 覆盖（§13.6）
 - ❌ Mirror Space deterministic 命名 `f(controller, source_space) → mirror_id`
-- ❌ `attached_authority.inline_copy` evidence_kind（air-gapped 场景推迟到 v2）
-- ❌ Workspace 内容跨 deployment 自动迁移（v2 提供工具）
+- ❌ `attached_authority.inline_copy` evidence_kind（air-gapped 场景延后到独立扩展 profile）
+- ❌ Workspace 内容跨 deployment 自动迁移（迁移工具由独立 tooling profile 提供）
 
 ## 18. 规范性引用
 

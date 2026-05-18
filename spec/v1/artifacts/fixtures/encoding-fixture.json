@@ -195,7 +195,7 @@
       ],
       "fail_conditions": [
         "client parses s/x and rebuilds a request",
-        "server uses non-{v,t,s,d?,x} cursor payload (legacy {query_hash, last_event_id} drafts MUST be rejected)"
+        "server uses non-{v,t,s,d?,x} cursor payload (alternative shapes MUST be rejected)"
       ]
     },
     {

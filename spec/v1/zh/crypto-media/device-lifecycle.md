@@ -244,7 +244,7 @@ DID-method history → principal_signing_key (PSK)
    - 大于：未来 generation；MUST 视为 `unverified` 并触发 stream re-sync。
 6. 跨 principal 信任（USK 签对方 PSK / device key）按对称流程执行：本端 USK binding 必须签发对方 PSK 的 `(kid, generation)` 元组而不是裸公钥，避免对方静默轮换 PSK 后仍继承信任。
 
-实现 MUST 把"未携带 `cross_signing_binding` 的 `cx.device.authorized`"与"binding 校验失败"区分上报，因为前者属于 legacy / bootstrap 兼容（仅 §5.0.1 inception 路径允许），后者属于密码学异常。
+实现 MUST 把"未携带 `cross_signing_binding` 的 `cx.device.authorized`"与"binding 校验失败"区分上报，因为前者属于 bootstrap 例外（仅 §5.0.1 inception 路径允许），后者属于密码学异常。
 
 ### 5.3 Bootstrap 例外
 

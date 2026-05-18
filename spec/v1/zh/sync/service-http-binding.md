@@ -34,12 +34,12 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
 | `/device_messages/*`、`/keys/*` | E2EE 客户端、Principal Server | to-device、one-time key、fallback key、device list 相关操作。 | `device-lifecycle.md` |
-| `/authz/*`、`/policy/check`(legacy alias `/contrix/v1/check`) | 客户端、Events API、Sync、Policy Server | capability 预检查、policy server 签名决策。P-D10 后 canonical path 是 `/api/v1/policy/check`(`cx.policy.check`),legacy `/contrix/v1/check` 仍接受作为过渡期 alias(`cx.policy.check_legacy`);**sunset 日期 2028-06-01,与 [`../models/flow-and-message.md` §4.8.1](../models/flow-and-message.md) 双轨 sunset 时间线同步**。2027-12-01 起 server SHOULD 在响应 header 加 `Deprecation: true` 与 `Sunset: Tue, 01 Jun 2028 00:00:00 GMT`。 | `capabilities.md`、`policy-server.md` |
+| `/authz/*`、`/policy/check` | 客户端、Events API、Sync、Policy Server | capability 预检查、policy server 签名决策。Canonical path 是 `/api/v1/policy/check`(`cx.policy.check`)。 | `capabilities.md`、`policy-server.md` |
 | `/contrix/v1/ice-config` | 通话客户端、Media Service | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
 | `/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
 | `/applet/*` | Contrix 服务调用 Applet | applet ping / describe、transaction push、ghost actor / portal 查询。 | `applet-integration.md` |
 
-客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/sync`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/events`、`/sync`、`/authz`、`/policy/check`(P-D10 后的 canonical;legacy alias `/contrix/v1/check`)、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
+客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/sync`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/events`、`/sync`、`/authz`、`/policy/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
 
 新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.mdx`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
@@ -86,7 +86,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Space policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
 | `POST /api/v1/events/batch-get` | body `{event_ids?: id[], event_hashes?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Space policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
 | `GET /api/v1/events` | query `{spaces?: id[], actors?: did[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object}` | 调用方必须对每个 selector 元素满足读取约束：actor scope 走 actor history visibility；space scope 走 membership frontier + history visibility + E2EE epoch policy。`spaces[]` ∪ 内部、`actors[]` ∪ 内部、二者组合为交集。批次内顺序规则见 §3.3。 | `{events[], next_cursor?, prev_cursor?, has_more}` |
-| `GET /api/v1/events/subscribe` | query `{spaces?: id[], actors?: did[], after?: cursor, include_history?: boolean}`(legacy `from=<cursor>` 已移除,server MUST 返回 `invalid_param`) | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-space `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, space_id?: id, cursor?: cursor, payload?: object}` |
+| `GET /api/v1/events/subscribe` | query `{spaces?: id[], actors?: did[], after?: cursor, include_history?: boolean}` | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-space `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, space_id?: id, cursor?: cursor, payload?: object}` |
 | `GET /api/v1/events/frontier` | query `{actor_id?: did, space_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Space 或 private DID。 | `{frontier, receipts?}` |
 | `POST /api/v1/sync` | body `{since?: cursor, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device。聚合账号视角 delta（跨 Space frontier、to_device、account_data、device_lists、presence、unread / notification counts），不是裸事件读。 | Account sync response `{cursor, spaces?, to_device?, account_data?, device_lists?}` |
 | `GET /api/v1/sync/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `{service_did, supported_sync_profiles[], limits, frontier?}` |
@@ -116,7 +116,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/authz/effective-grants` | query `{space_id: id, subject: did, at?: string}` | subject 本人、Space admin、authorized service；不得枚举无关 subject。 | `{grants[], state_hash?, evaluated_at}` |
 | `GET /api/v1/authz/invites` | query `{space_id?: id, subject: did 或 string, cursor?: cursor}` | subject 本人或 inviter/admin；secret invites 不可枚举。 | `{invites[], next_cursor?}` |
 | `POST /api/v1/authz/check` | body `{actor: did, action: string, resource: object, context?: object}` | caller 必须是相关 actor、Events/Sync 预检查服务或 policy-authorized service。 | `{decision, matched_grants?, applied_constraints?, policy_results?, missing_proofs?, frontier?, cache_valid_until?, reason_code?, obligations?}` |
-| `POST /api/v1/policy/check`(legacy alias `POST /contrix/v1/check`) | body `{request_id, space_id?, request_canonical_hash, action, actor, source, event_preview?, auth_context?}` | `policy_token` / `service_signature`; 只接收最小披露字段。 | signed policy decision `{decision, reason_code, expires_at, obligations?, signature}`。P-D10 后 canonical 路径在 `/api/v1` namespace 下;legacy `/contrix/v1/check` 作为过渡期 alias(operation_id `cx.policy.check_legacy`)。 |
+| `POST /api/v1/policy/check` | body `{request_id, space_id?, request_canonical_hash, action, actor, source, event_preview?, auth_context?}` | `policy_token` / `service_signature`; 只接收最小披露字段。 | signed policy decision `{decision, reason_code, expires_at, obligations?, signature}`。 |
 | `POST /api/v1/moderation/report` | body `{space_id: id, target_ref: id, reason: enum, description?: string, reporter: did, evidence_refs?: id[]}` | `user_session`; reporter 必须可见 target；report 仅对 moderators 可见。 | `{report_id, status, routed_to?}` |
 | `GET /api/v1/applet/ping` | query none | `public_metadata` 或 `service_signature`；不得泄露 private namespace。 | `{ok, applet_id, service_did, protocol_version}` |
 | `GET /api/v1/applet/describe` | query none | `service_signature` SHOULD；public mode 只返回公开 capabilities。 | `{applet_id, service_did, protocols[], namespaces, limits, auth}` |
@@ -219,8 +219,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.authz.get_effective_grants` | `query.space_id: id`; `query.subject: did` | `query.at: string` | `grants: object[]`; `state_hash: string?`; `evaluated_at: datetime` | subject 本人、Space admin 或授权服务。 |
 | `cx.authz.get_invites` | `query.subject: did 或 string` | `query.space_id: id`; `query.cursor: cursor` | `invites: object[]`; `next_cursor: cursor?` | secret invite 不可枚举。 |
 | `cx.authz.check` | `actor: did`; `action: string`; `resource: object` | `context: object` | `decision: enum(allow,deny,quarantine,require_review,soft_fail)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `cache_valid_until: datetime?`; `reason_code: string?`; `obligations: object[]?` | Policy allow 不创建 capability；客户端不得把非标准 `allowed` 字段作为规范字段。 |
-| `cx.policy.check` | `request_id: string`; `request_canonical_hash: string`; `action: string`; `actor: did`; `source: object` | `space_id: id`; `event_preview: object`; `auth_context: object` | `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `reason_code: string`; `expires_at: datetime`; `obligations: object[]?`; `signature: signature` | 只接收最小披露字段；decision 按 hash 缓存。P-D10 canonical HTTP 路径 `POST /api/v1/policy/check`。 |
-| `cx.policy.check_legacy` | 同 `cx.policy.check` | 同上 | 同上 | **DEPRECATED alias**:HTTP 路径 `POST /contrix/v1/check`(部署本地 prefix);v1.x 过渡期保留兼容,**新代码不应引用**。gRPC / MQ binding 复用 canonical `Policy/Check` / `policy.check`。 |
+| `cx.policy.check` | `request_id: string`; `request_canonical_hash: string`; `action: string`; `actor: did`; `source: object` | `space_id: id`; `event_preview: object`; `auth_context: object` | `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `reason_code: string`; `expires_at: datetime`; `obligations: object[]?`; `signature: signature` | 只接收最小披露字段；decision 按 hash 缓存。Canonical HTTP 路径 `POST /api/v1/policy/check`。 |
 | `cx.moderation.report` | `space_id: id`; `target_ref: id`; `reason: enum`; `reporter: did` | `description: string`; `evidence_refs: id[]` | `report_id: id`; `status: string`; `routed_to: did[]?` | reporter 必须可见 target；只对 moderators 可见。 |
 | `cx.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 不得泄露 private namespace。 |
 | `cx.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
@@ -404,21 +403,7 @@ GET /api/v1/events?spaces=<id>&actors=<did>&after=<Y>&before=<X>   # 区间查�
 - **客户端到达 oldest accessible event**（不允许再往更旧拉）：`prev_cursor=null`、`has_more=false`。
 - **超过 visibility 边界**：返回 `not_found` 而不是空批次，避免泄露不可见 Space 的存在性。
 
-#### 3.3.5 词法迁移说明
-
-v1 早期草案的参数命名 `from` / `until` / `direction` 已被 `before` / `after` / `order` 替换。两套命名不能共存：
-
-- 旧 `direction=backward&from=X` ≈ 新 `before=X`
-- 旧 `direction=forward&from=X` ≈ 新 `after=X`
-- 旧 `from=X&until=Y` ≈ 新 `after=X&before=Y`（注意旧含义 `from` 是否含 X、`until` 是否含 Y 历史上不一致；新参数明确为开区间）
-
-兼容性边界（解决"MUST reject"与"MAY accept"看似冲突）：
-
-- **v1 conformant `cx.events.query` endpoint MUST reject** 旧参数 `direction` / `from` / `until`，并返回 `invalid_param` reason=`deprecated_query_params`。这是 conformance 测试的判定标准。
-- **Transitional compatibility flag**（例如 deployment-local `events_query.legacy_params`，不是 `cx.profile.*` conformance profile）MAY 接受旧参数并转译为新参数，同时 MUST 在响应 `warnings[]` 中提示 `deprecated_query_params`。启用该兼容 flag 的部署不得在 describe 中宣称通过正式 v1 HTTP binding conformance。
-- 没有"既属 v1 conformant 又接受旧参数"的中间态；conformance suite 只测试 v1 conformant 行为。
-
-#### 3.3.6 POST/body 形态（`cx.events.query_post`）
+#### 3.3.5 POST/body 形态（`cx.events.query_post`）
 
 ```text
 POST /api/v1/events/query
@@ -435,7 +420,7 @@ Content-Type: application/json
 }
 ```
 
-POST 形态与 GET 形态**完全等价**：参数集（`spaces` / `actors` / `before` / `after` / `order` / `limit` / `filters`）、默认顺序规则（§3.3.3）、响应 cursor 绝对方向（§3.3.4）、错误码（§3.3.5）一律相同；只是 wire 形态从 query string 变为 JSON body。
+POST 形态与 GET 形态**完全等价**：参数集（`spaces` / `actors` / `before` / `after` / `order` / `limit` / `filters`）、默认顺序规则（§3.3.3）、响应 cursor 绝对方向（§3.3.4）一律相同；只是 wire 形态从 query string 变为 JSON body。
 
 **何时使用 POST**：
 - URL 长度风险：`spaces[]` 或 `actors[]` 列表较大、`filters` 是嵌套 object 时，URL 容易超过代理 / CDN / 负载均衡器的实际上限（常见 4–8 KiB）

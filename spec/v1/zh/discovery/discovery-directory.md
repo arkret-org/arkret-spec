@@ -273,12 +273,6 @@ OPRF 选择：
 - 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
 - 实现 MUST NOT 在同一 OPRF key epoch 内允许同一 client 提交超过 `max_psi_queries_per_epoch`（默认 1）次 batch；超过后 provider 返回 `psi_quota_exhausted`。这避免攻击者用同一 OPRF key 对大量 identifier 做枚举；新 key epoch 自动重置。
 
-### 6.5 v1 不再使用 "Reachability Proof"
-
-早期草案使用 provider 返回的 time-bound signed reachability proof 作为客户端对外披露的凭据。该设计要求 provider 对每个 blinded identifier 单独签发 proof 才能让对方 verify，但若让 verifier 验证 proof，verifier 必须知道 proof 绑定到哪个 identifier——这把"谁向谁披露过什么"的隐私收益又交回去了。v1 移除该机制；私域披露统一走 invite + consent 流程，invite 自身的 commitment + 唯一性由 [`sync/third-party-invites.md`](../sync/third-party-invites.md) 保证。
-
-支持旧 reachability proof 的实现 MUST 在 `server/describe.discovery` 中标记 `legacy_reachability_proof=true`，并 MUST 在 v1 conformance 报告中标记为 `pending_psi_migration`；core conformance 不再以 reachability proof 作为输出形态。
-
 ## 7. Directory Service Role
 
 Directory Service 是 Contrix 的**发现入口层**：让任意 subject 在不预先知道精确 id / alias / invite 的前提下，从其 trust 范围内**已 opt-in 暴露**的资源中找到目标，并取得**足以独立发起下一步 action（resolve / preview / knock / join / invite / verify / contact）的最小可验证元数据**。

@@ -656,29 +656,25 @@ cx.vector.flow_tracks_update.atomic.v1
 - Case A — 单字段 patch：一个 `cx.flow.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Flow `tracks` 在单个 Anchor batch 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
 - Case B — 新增 + 启停 + 移除：在 Flow 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `cx.flow.tracks.update` 同时 (1) 新增 `tracks.review.enabled=true` 子 map (profile 注册的扩展 track)，(2) 把 `tracks.discussion.enabled` 置为 false，(3) 把 `tracks.synthesis.is_primary` 置为 false，(4) 把 `tracks.review.is_primary` 置为 true。
 - Case C — invariant 违反：单条 `cx.flow.tracks.update` 把 `tracks.synthesis.is_primary` 与 `tracks.discussion.is_primary` 同时 set 为 `true`。
-- Case D — legacy 等价：4 条 legacy event 序列 `cx.flow.track.disable(discussion)` → `cx.flow.track.enable(review)` → `cx.flow.track.set_primary(review)`，与一条对应的 `cx.flow.tracks.update` 比较。
 
 期望：
 
 - **Case A**: reducer 应用 patch 后，`Flow.tracks.synthesis.is_primary == false` 且 `Flow.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，cas-register cell 一次 atomic update。
 - **Case B**: reducer 接受合并后状态 `{ synthesis: {is_primary: false, enabled: true}, discussion: {is_primary: false, enabled: false}, review: {is_primary: true, enabled: true} }`；中间过程 MUST 在同一 cell update 内完成，不得分裂为 4 个独立 cell write。
 - **Case C**: reducer MUST 在 effect 应用前 (cell update 之前) 校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Flow `tracks` 不发生任何变化。
-- **Case D**: 两种路径在 reducer 最终状态上 bit-exact 一致。两条路径下 Flow `updated_at` MAY 不同（legacy 路径在每条 event 后都更新 `updated_at`；统一路径只更新一次）；其余 cell value 与 projection 输出 MUST 完全等价。
 
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`（`tracks` 是 map，不是 unique-key 数组）。
 - `cx.flow.tracks.update` 写入的 cell 是 `cx:cell:cx.component.flow.tracks.v1:<flow_id>`（cas-register），reducer 校验合并后 invariant 在 cell update 之前 完成。
-- legacy 4 个 single-purpose event (`cx.flow.track.enable` / `disable` / `update` / `set_primary`) 与统一 `cx.flow.tracks.update` 共享同一 cell family；reducer MUST 接受两套形态并在 cell value 层面 converge。
 
 失败条件：
 
 - Case A 在 cell update 中间态触发 invariant 校验，把"先把 synthesis 设 false → 此时 0 个 primary"错判为 violation。
 - Case B 把 patch 拆分为多个独立 cell write，破坏 atomic 语义（外部读取在中间能看到不一致的 tracks map）。
 - Case C 把违反 invariant 的 Event 部分接受（例如设了 enabled 但拒绝 is_primary），破坏 Event-level all-or-nothing 语义。
-- Case D 两路径输出 cell value 不一致（除 `updated_at` 之外的任何字段差异即为 fail）。
 
-实现 MUST 在 conformance 报告中分别报告四个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 验证 [`flow-and-message.md` §4.8](../models/flow-and-message.md) 中"`cx.flow.tracks.update` 与 legacy 4-event 序列等价"的要求，并防御 §4.5 step 5 primary 解析规则的边界 case。
+实现 MUST 在 conformance 报告中分别报告三个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 §4.5 step 5 primary 解析规则的边界 case。
 
 ## 3. Redaction Vectors
 

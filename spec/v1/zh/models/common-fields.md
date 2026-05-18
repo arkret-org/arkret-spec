@@ -147,7 +147,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 - **不是命名 mandate**:已有 wire kind(如 `cx.message.send` 而非 `cx.message.create`、`cx.relation.delete` 仅有 tombstone 终态)保持不变,模板仅描述每个槽位对应的语义角色,使新 object kind 在注册时能直接判断"需要哪几个 lifecycle event"。
 - **不创造新槽**:新增 lifecycle 行为(例如"软隔离 / 待审 / 撤回审核")MUST 先在本节扩展模板;否则不得作为标准 lifecycle event 入 registry。
-- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `cx.patch.v1` 承载(参见 [`flow-and-message.md` §4.8](./flow-and-message.md) 的 `cx.flow.tracks.update` 实例);避免出现 `cx.<kind>.set_<field>` / `cx.<kind>.toggle_<field>` 这类单点 event 膨胀。Legacy 已注册的单点 event 保留,v2 候选合并。
+- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `cx.patch.v1` 承载(参见 [`flow-and-message.md` §4.8](./flow-and-message.md) 的 `cx.flow.tracks.update` 实例);避免出现 `cx.<kind>.set_<field>` / `cx.<kind>.toggle_<field>` 这类单点 event 膨胀。
 - **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表,不在各对象文档重复说明转换矩阵。
 - "Place 没有 redacted"：Place 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `cx.place.tombstone` 或 `cx.redaction` 一并完成。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。

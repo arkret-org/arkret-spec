@@ -81,7 +81,7 @@ v1 conformance 锁定的 hash 算法集合：
 
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
-| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、payload_hash、Merkle leaf、state_root、blob CID、receipt hash 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；适合 v1 → v2 过渡。 |
+| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、payload_hash、Merkle leaf、state_root、blob CID、receipt hash 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `cx.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
 | `sha512` | 64 bytes（128 hex） | v1 optional；声明 `cx.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Space 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
 | `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
 | `blake3` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
@@ -158,7 +158,7 @@ v1 wire 中已存在两种"指向另一个对象"的字段命名 convention：`<
 
 判别规则：**当字段同时具备"主从语义 + 指向同一 schema 的对象 + 该对象是 wire 接收方的命名上下文"时使用 `_id`；其余一律 `_ref`**。例如新增 "morph 引用某 Flow" 的字段：用 `flow_ref`，因为 Morph 与 Flow 不构成 primary parent 关系；但 Message 引用所属 Flow 仍是 `flow_id`，因为 Message **必须**属于一个 Flow（出生地绑定）。
 
-任何 new field 在 PR review 中违反上述规则 MUST 被 lint 标记 `naming_convention_violation`（warning 级，不阻塞合并）；conformance 测试不强制旧字段重命名。v2 主版本可统一为 `_ref`。
+任何 new field 在 PR review 中违反上述规则 MUST 被 lint 标记 `naming_convention_violation`（warning 级，不阻塞合并）；conformance 测试不强制旧字段重命名。未来主版本 wire 修订可统一为 `_ref`。
 
 ## 5. Event Batch Receipt Hash
 
@@ -281,7 +281,7 @@ function compare_hlc(hlc1, hlc2):
 - 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。
 - 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的两层 drift 模型验证物理时间：超 `hard_future_skew_ms`（默认 300_000）MUST reject / quarantine；超 `expected_future_skew_ms`（默认 30_000）SHOULD soft-fail / quarantine。
 - profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Space upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
-- 拒绝 `physical_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需 v2 HLC profile 才可使用）。
+- 拒绝 `physical_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需未来扩展 HLC profile 才可使用）。
 - 维护本地单调性；本地时钟落后远端时推进到远端时间，超前时限制推进速率。
 
 ### 7.3 Timeline 排序与 winner 选择

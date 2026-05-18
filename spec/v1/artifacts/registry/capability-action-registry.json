@@ -258,56 +258,12 @@
       "profile": null
     },
     {
-      "action": "cx.flow.track.enable",
-      "category": "flow",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.flow.track.enable"
-      ],
-      "profile": null
-    },
-    {
-      "action": "cx.flow.track.disable",
-      "category": "flow",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.flow.track.disable"
-      ],
-      "profile": null
-    },
-    {
-      "action": "cx.flow.track.update",
-      "category": "flow",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.flow.track.update"
-      ],
-      "profile": null
-    },
-    {
-      "action": "cx.flow.track.set_primary",
-      "category": "flow",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "cx.flow.track.set_primary"
-      ],
-      "profile": null
-    },
-    {
       "action": "cx.flow.tracks.manage",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.flow.tracks.update",
-        "cx.flow.track.enable",
-        "cx.flow.track.disable",
-        "cx.flow.track.update",
-        "cx.flow.track.set_primary"
+        "cx.flow.tracks.update"
       ],
       "profile": null
     },

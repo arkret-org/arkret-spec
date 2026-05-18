@@ -411,7 +411,7 @@
             "breaking",
             "transformation"
           ],
-          "description": "additive: to_schema_refs[] only adds optional fields / lookup-compatible profile refs; no historical event needs reinterpretation. breaking: to_schema_refs[] removes or tightens fields; future events follow new schema but historical events keep validating under from_schema_refs[]. transformation: a per-event data transform is needed to map old payload shape to new (requires explicit transformation rules). v1 base reducers MUST accept additive only; breaking and transformation require an opt-in Space profile."
+          "description": "additive: to_schema_refs[] only adds optional fields / lookup-compatible profile refs; no historical event needs reinterpretation. breaking: to_schema_refs[] removes or tightens fields; future events follow new schema but historical events keep validating under from_schema_refs[]. transformation: a per-event data transform is needed to map old payload shape to new (requires explicit transformation rules). Core reducers MUST accept additive only; breaking and transformation require the cx.profile.morph.schema_migration_transformations.v1 opt-in Space profile."
         },
         "transformation_rules": {
           "type": "array",
@@ -2336,41 +2336,6 @@
         }
       },
       "additionalProperties": true
-    },
-    "crypto_device_payload": {
-      "description": "Deprecated compatibility union. Event validators SHOULD use the kind-specific payload defs for security-sensitive device, MLS, and space key events.",
-      "oneOf": [
-        {
-          "$ref": "#/$defs/device_authorized_payload"
-        },
-        {
-          "$ref": "#/$defs/device_revoked_payload"
-        },
-        {
-          "$ref": "#/$defs/device_list_update_payload"
-        },
-        {
-          "$ref": "#/$defs/mls_proposal_payload"
-        },
-        {
-          "$ref": "#/$defs/mls_genesis_payload"
-        },
-        {
-          "$ref": "#/$defs/mls_welcome_payload"
-        },
-        {
-          "$ref": "#/$defs/mls_keypackage_payload"
-        },
-        {
-          "$ref": "#/$defs/space_key_share_payload"
-        },
-        {
-          "$ref": "#/$defs/space_key_withheld_payload"
-        },
-        {
-          "$ref": "#/$defs/space_key_share_audit_payload"
-        }
-      ]
     },
     "mls_governance_binding": {
       "type": "object",

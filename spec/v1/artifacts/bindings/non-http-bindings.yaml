@@ -103,9 +103,6 @@ grpc:
       Report: cx.moderation.report
     Policy:
       Check: cx.policy.check
-      # cx.policy.check_legacy reuses the canonical Policy/Check gRPC method;
-      # it is a HTTP-specific alias for the legacy /contrix/v1/check path.
-      # Non-HTTP transports route to the canonical operation.
     Media:
       IceConfig: cx.media.ice_config
     Applet:

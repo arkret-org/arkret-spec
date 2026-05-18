@@ -23,7 +23,7 @@
       "flow_id": "cx:flow:01964200-0000-7000-8000-000000000011",
       "content": {
         "kind": "cx.content.mention_redirect",
-        "body": "ignored on legacy deployment",
+        "body": "ignored on receiver without mention_redirect feature",
         "target_actor_id": "did:web:alice-agent.example",
         "authority_grant_ref": "cx:grant:01964200-0000-7000-8000-bbbbbbbbbbbb",
         "redirect_pair_id": "01964200-0000-7000-8000-aaaaaaaaaaaa"

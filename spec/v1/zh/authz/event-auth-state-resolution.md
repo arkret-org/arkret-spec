@@ -222,14 +222,14 @@ v1 wire-incompatible，必须用独立 profile 声明。
 
 #### 4.2.5 Hash Algorithm Transition
 
-Space 一旦在 create event 中固定 `hash_profile`，所有后续 Anchor / Move / state_root MUST 用同一 algo。需要切换 hash algo（例如 sha256 → blake3 性能升级，或 sha256 → 抗量子 hash family v2）时：
+Space 一旦在 create event 中固定 `hash_profile`，所有后续 Anchor / Move / state_root MUST 用同一 algo。需要切换 hash algo（例如 sha256 → blake3 性能升级，或 sha256 → 抗量子 hash family）时：
 
-1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `legacy_state_root`（旧 algo）和 `state_root`（新 algo）。Receiver 用旧 algo 重算 frontier 验证 `legacy_state_root` 与本地一致；用新 algo 重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
+1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `previous_state_root`（旧 algo）和 `state_root`（新 algo）。Receiver 用旧 algo 重算 frontier 验证 `previous_state_root` 与本地一致；用新 algo 重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
 2. **`hash_profile` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Space 的 `hash_profile` cell（`cas-register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
 3. **后续 Anchor**：新 anchor 只用新 algo。客户端做长历史 inclusion proof 时，跨 transition Anchor 的 proof 由 transition Anchor 的双 root 桥接——proof 在 transition 之前用旧 algo 验证，之后用新 algo 验证。
 4. **降级禁止**：`hash_profile` 只允许从更弱 algo 升级到更强 algo（按 v1 hash registry 中声明的 strength order），不允许降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
 
-实现不强制支持 hash transition；声明 `cx.profile.hash_transition.v1` 的实现 MUST 支持。这条机制保证了 v1 → v2 的 hash 升级路径不需要硬分叉。
+实现不强制支持 hash transition；声明 `cx.profile.hash_transition.v1` 的实现 MUST 支持。这条机制保证了未来 hash algorithm 升级路径不需要硬分叉。
 
 ### 4.3 Anchor Batch 语义
 

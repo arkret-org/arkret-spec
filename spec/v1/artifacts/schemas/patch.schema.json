@@ -6,7 +6,7 @@
   "type": "object",
   "minProperties": 1,
   "propertyNames": {
-    "$comment": "Patch path syntax. Snake_case identifier, optional dot-separated segments, optional stable-key selectors (`field[<key>=<canonical-json-string>]`) and backtick-quoted literals for legacy non-snake_case keys. Full ABNF in zh/models/event-and-patch.md §4.2.1. Maximum length 1024 bytes, maximum nesting depth 16 segments — exceeding either MUST yield reason_code patch_path_invalid.",
+    "$comment": "Patch path syntax. Snake_case identifier, optional dot-separated segments, optional stable-key selectors (`field[<key>=<canonical-json-string>]`) and backtick-quoted literals for non-snake_case keys. Full ABNF in zh/models/event-and-patch.md §4.2.1. Maximum length 1024 bytes, maximum nesting depth 16 segments — exceeding either MUST yield reason_code patch_path_invalid.",
     "type": "string",
     "minLength": 1,
     "maxLength": 1024

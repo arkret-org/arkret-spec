@@ -108,7 +108,7 @@
             "federation_witness_attested",
             "single_source"
           ],
-          "description": "Attestation kind derived from witnesses[]. 'federation_witness_attested' MUST be used iff witnesses[] contains >= 2 distinct entries (distinct issuer.did AND distinct controlling_organization AND distinct verification_method) AND each issuer.did is listed by Space policy under audit.ryw_witnesses[]. 'single_source' MUST be used iff witnesses[] contains exactly 1 entry. Any mismatch between 'kind' and the witnesses[] cardinality / distinctness / Space policy listing MUST be rejected with audit_receipt_invalidated. This replaces the v1 draft field name 'receipt_independence' to remove ambiguity: the value is externally verifiable from the witness list, not a self-claim."
+          "description": "Attestation kind derived from witnesses[]. 'federation_witness_attested' MUST be used iff witnesses[] contains >= 2 distinct entries (distinct issuer.did AND distinct controlling_organization AND distinct verification_method) AND each issuer.did is listed by Space policy under audit.ryw_witnesses[]. 'single_source' MUST be used iff witnesses[] contains exactly 1 entry. Any mismatch between 'kind' and the witnesses[] cardinality / distinctness / Space policy listing MUST be rejected with audit_receipt_invalidated. The value is externally verifiable from the witness list, not a self-claim."
         },
         "witnesses": {
           "type": "array",
@@ -144,7 +144,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Witness attestation block (was 'receipt_independence' in early v1 drafts). The receipt's independence is externally verifiable from the witnesses[] list rather than self-claimed via a single enum. See zh/crypto-media/audited-e2ee.md §4.1 / §4.1.1."
+      "description": "Witness attestation block. The receipt's independence is externally verifiable from the witnesses[] list rather than self-claimed via a single enum. See zh/crypto-media/audited-e2ee.md §4.1 / §4.1.1."
     },
     "audit_assurance_class": {
       "type": "string",

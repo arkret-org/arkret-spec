@@ -288,10 +288,10 @@ E2EE Space 中，Sync Service 不持有正文密钥，无法在 server 端评估
     其中 `MLS-Exporter` 即 MLS RFC9420 §8.5 `MLS-Exporter(label, context, length)`,使用当前 group epoch 的 exporter secret 派生。Receiver / Sync Service 验证时按相同公式重新派生 key 并比对 32 byte HMAC tag(hex 或 base64url 表达,与 sidecar 字段编码一致)。
 
     **安全属性**:
-    - key 取自 MLS exporter secret,**不在群外可知**;Sync Service 即便获得 `space_id` / `mls_group_id` / `epoch` / 完整成员名单也无法离线枚举 `mentioned_did → tag` 的字典(没有 exporter secret 即无 key)。这彻底关闭了旧 `sha256("contrix-mention-v1" || ...)` 的 server-side 枚举侧信道。
+    - key 取自 MLS exporter secret,**不在群外可知**;Sync Service 即便获得 `space_id` / `mls_group_id` / `epoch` / 完整成员名单也无法离线枚举 `mentioned_did → tag` 的字典(没有 exporter secret 即无 key)——关闭了对该字段的 server-side 字典枚举侧信道。
     - tag 仍随 epoch 自然失效(exporter secret 跨 commit 必变);跨 epoch 重放无法命中。
     - 同一 epoch 内同一 mentioned_did 的 tag 仍恒定 — 是 server-side `mentions_actor` 匹配能工作的前提;能观察到的频次仅限于"该 epoch 内被 mention 多少次",与解密无关。
-    - 旧 `sha256("contrix-mention-v1" || mls_group_id || epoch || mentioned_did)` 形态(P-S4 之前)**MUST NOT** 再发送;接收方 reducer 与 Sync Service `mentions_actor` 路由模块 MUST 拒绝该形态(reason `mention_routing_hash_legacy_sha256`)。本规则适用于所有 E2EE Space;非 E2EE Space 不使用 routing tag(直接看 plaintext mention 列表)。
+    - 非 E2EE Space 不使用 routing tag(直接看 plaintext mention 列表)。
 
     启用与否由 Space policy 中 `mention_routing_hint` 决定,默认开启;关闭时 mention 走 §4.5 第 1-5 步降级,Sync Service 不做 `mentions_actor` server-side 匹配。
 

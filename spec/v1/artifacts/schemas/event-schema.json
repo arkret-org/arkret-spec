@@ -277,33 +277,6 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.flow.track.enable" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_track_enable_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "cx.flow.track.disable" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_track_disable_payload" } }
-      }
-    },
-    {
-      "if": {
-        "properties": { "kind": { "const": "cx.flow.track.set_primary" } },
-        "required": ["kind"]
-      },
-      "then": {
-        "properties": { "payload": { "$ref": "#/$defs/flow_track_set_primary_payload" } }
-      }
-    },
-    {
-      "if": {
         "properties": { "kind": { "const": "cx.member.state" } },
         "required": ["kind"]
       },
@@ -363,7 +336,6 @@
             "enum": [
               "cx.space.update",
               "cx.flow.update",
-              "cx.flow.track.update",
               "cx.flow.tracks.update",
               "cx.morph.update",
               "cx.profile.update",
@@ -1437,48 +1409,6 @@
           }
         }
       ]
-    },
-    "flow_track_enable_payload": {
-      "type": "object",
-      "required": [
-        "flow_id",
-        "track"
-      ],
-      "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "track": { "$ref": "#/$defs/track_name" },
-        "config": {
-          "type": "object",
-          "additionalProperties": true
-        }
-      },
-      "additionalProperties": false
-    },
-    "flow_track_disable_payload": {
-      "type": "object",
-      "required": [
-        "flow_id",
-        "track"
-      ],
-      "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "track": { "$ref": "#/$defs/track_name" },
-        "reason": { "type": "string" },
-        "effective_at": { "$ref": "#/$defs/timestamp" }
-      },
-      "additionalProperties": false
-    },
-    "flow_track_set_primary_payload": {
-      "type": "object",
-      "required": [
-        "flow_id",
-        "track"
-      ],
-      "properties": {
-        "flow_id": { "$ref": "#/$defs/flow_id" },
-        "track": { "$ref": "#/$defs/track_name" }
-      },
-      "additionalProperties": false
     }
   },
   "additionalProperties": true

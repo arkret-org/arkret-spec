@@ -10,11 +10,11 @@
     "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history."
   },
   "registry_rules": [
-    "Standard cx.* effect kinds MUST appear in this registry when used by a Move effect or legacy Event Envelope payload router.",
+    "Standard cx.* effect kinds MUST appear in this registry when used by a Move effect or Event Envelope payload router.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Move/Anchor history.",
-    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (v1.1 cas-register only) initial_value. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas-register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells (see extensions/agent-workspace-profile.md §6.1).",
+    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas-register only) initial_value. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas-register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells (see extensions/agent-workspace-profile.md §6.1).",
     "Lattice MUST be one of: core types or-set, mv-register, cas-register, fsm, counter, ordered-log; or extension types lww-register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement cx.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww-register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww-register or rga.",
     "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority."
   ],
@@ -510,39 +510,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Unified Flow tracks patch (P-D12 O1.2 canonical). payload.patch uses cx.patch.v1 against the Flow.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / fields on a track entry. Atomic across multiple tracks. Replaces the four legacy single-purpose event kinds cx.flow.track.{enable,disable,update,set_primary}; v1.x reducers MUST accept both the unified and legacy shapes."
-    },
-    {
-      "event_kind": "cx.flow.track.enable",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Enable Flow track. **Legacy (P-D12 O1.2)** — new clients SHOULD emit cx.flow.tracks.update with `{tracks.<name>.enabled: {$op: set, value: true}}`. Servers MUST accept this legacy form throughout v1.x; v2 MAY remove."
-    },
-    {
-      "event_kind": "cx.flow.track.disable",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Disable Flow track. **Legacy (P-D12 O1.2)** — new clients SHOULD emit cx.flow.tracks.update with `{tracks.<name>.enabled: {$op: set, value: false}}`."
-    },
-    {
-      "event_kind": "cx.flow.track.update",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Flow track patch (single track). **Legacy (P-D12 O1.2)** — new clients SHOULD emit cx.flow.tracks.update which covers the same write path plus enable / disable / set_primary in one atomic event."
-    },
-    {
-      "event_kind": "cx.flow.track.set_primary",
-      "category": "flow",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Set Flow primary track. **Legacy (P-D12 O1.2)** — new clients SHOULD emit cx.flow.tracks.update with `{tracks.<name>.is_primary: {$op: set, value: true}}` plus a clear of the previous primary in the same atomic event."
+      "payload": "Unified Flow tracks patch. payload.patch uses cx.patch.v1 against the Flow.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / fields on a track entry. Atomic across multiple tracks."
     },
     {
       "event_kind": "cx.flow.move",
@@ -763,7 +731,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (audit-grade tier). compatibility_class = additive | breaking | transformation; v1 base reducers MUST reject breaking/transformation unless the Space declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (audit-grade tier). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Space declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
     },
     {
       "event_kind": "cx.relation.create",

@@ -24,9 +24,7 @@ title: 当前模型说明
 轨道规则：
 
 - `discussion` 可独立启用或关闭
-- `cx.flow.track.set_primary` 切换显式 primary track，不改变 `flow_id`
-- `cx.flow.track.enable`、`cx.flow.track.disable`、`cx.flow.track.set_primary` 管理 track 生命周期与默认入口（legacy 单点 event；v1 仍 active）
-- 新统一 event `cx.flow.tracks.update` 可在一条事件内原子地修改 tracks map（`cx.patch.v1` payload），覆盖上面 4 个 legacy event 的写入面；新客户端 SHOULD 优先使用统一 event，详见 [`models/flow-and-message.md` §4.8](../models/flow-and-message.md)。
+- 任何 track 启用、关停或切换 primary 通过单一 event `cx.flow.tracks.update`（payload 为 `cx.patch.v1` 形态）原子完成，不改变 `flow_id`；详见 [`models/flow-and-message.md` §4.8](../models/flow-and-message.md)。
 
 ## 4. 工作流容器
 

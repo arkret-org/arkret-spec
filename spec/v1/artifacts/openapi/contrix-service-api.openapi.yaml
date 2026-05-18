@@ -2326,9 +2326,6 @@ paths:
         See zh/sync/service-http-binding.md §3.3 and zh/sync/api-conventions.md
         §7.0 for the full semantic table.
 
-        Legacy v1 draft parameters `direction` / `from` / `until` are REMOVED
-        and MUST be rejected with `invalid_param` (callers must migrate to
-        `before` / `after` / `order`).
       parameters:
       - name: spaces
         in: query
@@ -2393,8 +2390,7 @@ paths:
                 $ref: '#/components/schemas/EventsQueryResponse'
         '400':
           description: |
-            `invalid_param` — legacy `direction` / `from` / `until` parameters,
-            unrecognized `order` enum value, or malformed cursor.
+            `invalid_param` — unrecognized `order` enum value or malformed cursor.
   /events/query:
     post:
       operationId: cx.events.query_post
@@ -2472,8 +2468,7 @@ paths:
                 $ref: '#/components/schemas/EventsQueryResponse'
         '400':
           description: |
-            `invalid_param` — body contains legacy keys `direction` / `from` /
-            `until`, unrecognized `order` enum value, or malformed cursor.
+            `invalid_param` — unrecognized `order` enum value or malformed cursor.
   /events/subscribe:
     get:
       operationId: cx.events.subscribe
@@ -2487,8 +2482,7 @@ paths:
         Opens a streaming subscription scoped by `spaces[]` / `actors[]`. Returns
         events from `after=<cursor>` (exclusive) forward. Subscribe naturally
         moves only toward newer events; there is no `before` / `order`
-        parameter. Legacy draft parameter `from=<cursor>` is REMOVED and MUST be
-        rejected with `invalid_param` — callers must migrate to `after`.
+        parameter.
 
         With `include_history=true` the server first replays historical events
         from `after=<cursor>` up to the current frontier, then emits
@@ -3821,13 +3815,10 @@ paths:
   /policy/check:
     post:
       operationId: cx.policy.check
-      summary: Signed policy decision (canonical path, P-D10 unified).
+      summary: Signed policy decision.
       description: |
         Canonical HTTP binding for `cx.policy.check`. The Policy Server returns
-        a signed allow/deny/quarantine/require_review decision. SDKs and gateways
-        SHOULD prefer this path; the legacy deployment-local path
-        `POST /contrix/v1/check` remains accepted as a temporary alias for
-        clients pinned to the pre-P-D10 binding (see `cx.policy.check_legacy`).
+        a signed allow/deny/quarantine/require_review decision.
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3837,44 +3828,6 @@ paths:
       responses:
         '200':
           description: Signed policy decision
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OperationRequest'
-  /contrix/v1/check:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: cx.policy.check_legacy
-      summary: Legacy alias of cx.policy.check at the pre-P-D10 deployment-local path.
-      description: |
-        DEPRECATED in favor of `cx.policy.check` (`POST /api/v1/policy/check`).
-        Servers MUST continue to accept this path during the transition window so
-        that existing OPA / policy-server integrations keep working. New SDK
-        generators / gateways SHOULD route to `/api/v1/policy/check`. Both
-        paths carry the same request / response shape; the only difference is
-        the URL. The legacy path sunsets on 2028-06-01 in alignment with the
-        broader legacy-event-kind sunset timeline (see
-        zh/models/flow-and-message.md §4.8.1); deployments MAY reject once
-        downstream consumers have migrated.
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceDid: []
-        destinationServiceDid: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Signed policy decision (same shape as cx.policy.check)
           content:
             application/json:
               schema:

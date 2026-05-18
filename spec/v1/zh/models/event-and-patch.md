@@ -49,7 +49,6 @@ Schema id: `cx.schema.event.v1`
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
 
-> **从早期草案迁移说明**：早期 v1 草案曾在顶层定义 `auth_refs[]` 单独承载授权依赖；v1 已把它收敛到 `refs[]` 并通过 `role="authorized_by"` 区分语义。任何 prose、SDK、fixture 中仍出现 `auth_refs` 字段都属于迁移残留，按 `refs[role=authorized_by]` 重写；canonical bytes 不再包含 `auth_refs` 字段。Schema authoritative 形态见 `artifacts/schemas/event-schema.json`。
 
 ### 2.3 最小 reducer-input event 示例
 
@@ -142,7 +141,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `payload_hash` | yes | `hash` | MUST 等价于 `canonical_hash(envelope_without_proofs_unsigned)`：被签名输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等），不是只绑定 `payload` 字段。 | 被签名的 canonical envelope hash。字段名保留兼容历史 wire，不要按字面理解。 |
+| `payload_hash` | yes | `hash` | MUST 等价于 `canonical_hash(envelope_without_proofs_unsigned)`：被签名输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等），不是只绑定 `payload` 字段。 | 被签名的 canonical envelope hash。字段名按 `canonical_hash(envelope_without_proofs_unsigned)` 的全包含语义解读，不要按字面只绑定 `payload`。 |
 | `created_at` | yes | `timestamp` |  | 签名时间。 |
 | `domain` | no | `string` | 跨服务 SHOULD 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 跨域/服务调用 SHOULD 设置。 | 受众绑定。 |
@@ -194,7 +193,7 @@ escape         = "\" ( '"' / "\" / "/" / "b" / "f" / "n" / "r" / "t" / "u" 4HEXD
 - `identifier` 与 `key-name` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`(snake_case,首字符必须小写字母,长度 ≤ 64);
 - `selector-value` MUST 是合法的 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JCS canonical JSON string,**包括外层 ASCII 双引号**,内部按 JCS 转义规则 (`\"` / `\\` / `\/` / `\b` / `\f` / `\n` / `\r` / `\t` / `\uXXXX`);
 - selector-value 内字面 `]`、`[`、`=`、`"`、`\` MUST 出现为 `\uXXXX` 或对应反斜杠转义形式;
-- `quoted-identifier` 用于字段名包含非 snake_case 字符的 legacy 场景(v1 标准 schema 不应使用),字面 backtick 必须 escape 成连续两个 backtick;
+- `quoted-identifier` 用于字段名包含非 snake_case 字符的特殊场景(v1 标准 schema 不应使用),字面 backtick 必须 escape 成连续两个 backtick;
 - 默认仅支持对象路径,不支持数字数组下标。
 
 #### 4.2.2 Parser 责任

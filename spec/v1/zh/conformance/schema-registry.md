@@ -113,11 +113,7 @@ sidebar:
 | `cx.flow.restore` | Flow restore |
 | `cx.flow.move` | Flow move between Lists |
 | `cx.flow.reorder` | Flow reorder within List |
-| `cx.flow.track.enable` | Enable Flow track（legacy 单点 event） |
-| `cx.flow.track.disable` | Disable Flow track（legacy 单点 event） |
-| `cx.flow.track.update` | Flow track patch（legacy 单点 event） |
-| `cx.flow.track.set_primary` | Set Flow primary track（legacy 单点 event） |
-| `cx.flow.tracks.update` | 统一 Flow tracks map patch（`cx.patch.v1` payload；新客户端 SHOULD 优先使用，覆盖上面 4 个 legacy event 的写入面，详见 [`../models/flow-and-message.md` §4.8](../models/flow-and-message.md)） |
+| `cx.flow.tracks.update` | Flow tracks map patch（`cx.patch.v1` payload；详见 [`../models/flow-and-message.md` §4.8](../models/flow-and-message.md)） |
 | `cx.flow.watch.set` | Set / clear per-(flow, actor) watch subscription (writes cas-register cell `cx.component.flow.watch.v1`; derives `watches` Relation) |
 | `cx.place.create` | Place create (board / list / swimlane / calendar bucket / ...) |
 | `cx.place.update` | Place metadata patch |

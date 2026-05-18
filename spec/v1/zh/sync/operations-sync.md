@@ -475,10 +475,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.update`
 - `cx.flow.archive`
 - `cx.flow.restore`
-- `cx.flow.track.enable`
-- `cx.flow.track.disable`
-- `cx.flow.track.update`
-- `cx.flow.track.set_primary`
+- `cx.flow.tracks.update`
 - `cx.flow.track.member`
 - `cx.flow.track.history_visibility`
 - `cx.flow.track.policy_components`
@@ -486,7 +483,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.reorder`
 - `cx.flow.watch.set`
 
-`cx.flow.*` 只修改 Flow 自身、track 配置、track access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.track.*` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas-register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
+`cx.flow.*` 只修改 Flow 自身、track 配置、track access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas-register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
 
 ### 7.3 Place
 
@@ -578,19 +575,18 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 - `cx.morph.update` 只带 Morph 字段 patch
 - `cx.view.update` 只带投影定义 patch；通过 View 触发的对象变更仍使用对应对象 Event kind
 
-### 8.1 Flow Track Enable
+### 8.1 Flow Track 写入
 
-`cx.flow.track.enable` 为 Flow 开启一个 track。v1 标准 track name 为 `synthesis` 和 `discussion`；profile MAY 声明更多 track name。
+`cx.flow.tracks.update` 通过 `cx.patch.v1` 对 `Flow.tracks` map 做任意原子修改——开/关 track、切换 primary、修改 track profile 都走同一条 event。v1 标准 track name 为 `synthesis` 和 `discussion`；profile MAY 声明更多 track name。
 
 ```json
 {
-  "kind": "cx.flow.track.enable",
-  "target_ref": "cx:flow:01964195-8000-7000-8000-000000000000",
+  "kind": "cx.flow.tracks.update",
   "payload": {
     "flow_id": "cx:flow:01964195-8000-7000-8000-000000000000",
-    "track": "discussion",
-    "config": {
-      "profile": "discussion"
+    "patch": {
+      "tracks.discussion.enabled": { "$op": "set", "value": true },
+      "tracks.discussion.profile": { "$op": "set", "value": "discussion" }
     }
   }
 }
@@ -598,10 +594,10 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 
 规则：
 
-- enable/disable 不改变 Flow identity。
-- enable `discussion` track 时，access 完全继承父 Space。需要让 discussion 拥有独立 membership / history visibility / E2EE 时，必须创建 child Space 并通过 `Flow.discussion_space_ref` 引用——`cx.flow.track.enable` payload 不再支持 `access` 子对象。
+- 开 / 关 track 不改变 Flow identity。
+- 开 `discussion` track 时，access 完全继承父 Space。需要让 discussion 拥有独立 membership / history visibility / E2EE 时，必须创建 child Space 并通过 `Flow.discussion_space_ref` 引用——`cx.flow.tracks.update` payload 不支持 `access` 子对象。
 - Flow synthesis 可见性 ≠ discussion 可见性：未设 `discussion_space_ref` 时，按父 Space history visibility；设了 `discussion_space_ref` 时，按 child Space policy 独立判断。projection 必须按有效 Space access 裁剪。
-- 切换默认入口时应通过 `cx.flow.track.set_primary`，Reducer MUST 保证同一 Flow 至多一个 active track 设置 `is_primary=true`。若没有显式 primary，且 `synthesis` 与 `discussion` 同时存在，默认入口 MUST 派生为 `synthesis`。
+- Reducer MUST 保证同一 Flow 至多一个 active track 设置 `is_primary=true`。若没有显式 primary，且 `synthesis` 与 `discussion` 同时存在，默认入口 MUST 派生为 `synthesis`。
 - 发送 `cx.message.*` 到未启用的 discussion track MUST 返回 `discussion_track_disabled` 或等价 fail-closed 结果。
 
 ## 9. Flow 有序操作
@@ -679,36 +675,28 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 
 ### 9.4 切换 Flow 默认 track
 
-切换默认 track 使用 `cx.flow.track.set_primary`；若目标 track 尚未启用，先用 `cx.flow.track.enable` 创建：
+通过同一条 `cx.flow.tracks.update` 原子地启用目标 track 并切换 primary：
 
 ```json
 {
-  "kind": "cx.flow.track.enable",
-  "target_ref": "cx:flow:019641a9-8000-7000-8000-000000000000",
+  "kind": "cx.flow.tracks.update",
   "payload": {
     "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
-    "track": "discussion"
-  }
-}
-```
-
-```json
-{
-  "kind": "cx.flow.track.set_primary",
-  "target_ref": "cx:flow:019641a9-8000-7000-8000-000000000000",
-  "payload": {
-    "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
-    "track": "discussion"
+    "patch": {
+      "tracks.discussion.enabled":    { "$op": "set", "value": true },
+      "tracks.synthesis.is_primary":  { "$op": "set", "value": false },
+      "tracks.discussion.is_primary": { "$op": "set", "value": true }
+    }
   }
 }
 ```
 
 规则：
 
-- 这两类事件各自要求对应 capability action。
-- 它们不改变 `flow_id`，不删除已有 discussion 历史或 synthesis 字段。
-- `set_primary` 之前目标 track MUST 已经 enable 或在同一批次内被 enable；否则 reducer MUST reject。
-- 切换到其他 track 时不得自动 archive discussion track；若要关闭讨论，必须显式写入 `cx.flow.track.disable` 或等价 policy 动作。
+- 要求对应 capability action（`cx.flow.tracks.manage`）。
+- 不改变 `flow_id`，不删除已有 discussion 历史或 synthesis 字段。
+- 切到一个尚未 enabled 的 track 时 MUST 在同一 patch 中将其 enabled 置 true；否则 reducer MUST reject。
+- 切换 primary 不自动关闭 discussion track；若要关闭讨论，必须在同一或后续 patch 中显式 `tracks.<name>.enabled: false`。
 - Reducer MUST 把目标 track 的 `is_primary` 设为 true，并清除同一 Flow 其他 active track 的 primary 标记。
 - 默认 track 切换不自动移除 Board/List 位置；是否移除由后续 `cx.flow.move` / profile policy 决定。
 

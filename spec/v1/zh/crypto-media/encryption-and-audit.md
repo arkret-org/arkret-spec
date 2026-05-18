@@ -116,7 +116,7 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
 | `key_ref.group_state_ref` | id:move 或 hash | 否 | 指向 effective `cx.mls.genesis` / `cx.mls.commit` Move / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes \|\| encrypted_payload_bytes)`；输入定义见 §2.3.3。 |
 | `aad_digest` | hash | 是 | canonical AAD 的 SHA-256。 |
-| `cleartext_commitment` | hash | 否 (v1 预留) | 每个 scheme 由 Cleartext Commitment Profile 定义；v1 实现 MAY 忽略，v2 MAY 对新 scheme 设为必填。 |
+| `cleartext_commitment` | hash | 否 (预留位) | 每个 scheme 由 Cleartext Commitment Profile 定义；当前实现 MAY 忽略，未来扩展 profile 可声明对新 scheme 必填。 |
 
 Ratchet tree MUST 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 管理，不得在每条消息的 envelope 中重复传输。
 
@@ -564,11 +564,10 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
         )
     ```
 
-    其中 `canonical_emoji` 为 NFC 归一化后的 Unicode 字节串;`MLS-Exporter` 即 MLS RFC9420 §8.5,使用当前 group epoch 的 exporter secret。Sync Service 仍可做 OR-Set dedup / rate-limit / push fanout / reducer 聚合(只要发送方同 epoch 内同一 emoji 派生相同 key 即可得到相同 tag);但 **server 无法从已知 emoji 字典(≈3700 项)枚举 tag → emoji** 的反查,因为 key 取自 MLS exporter secret,群外不可知。这彻底关闭了旧 `sha256("cx-reaction-key-v1" || ...)` 的 server-side 枚举侧信道。
+    其中 `canonical_emoji` 为 NFC 归一化后的 Unicode 字节串;`MLS-Exporter` 即 MLS RFC9420 §8.5,使用当前 group epoch 的 exporter secret。Sync Service 仍可做 OR-Set dedup / rate-limit / push fanout / reducer 聚合(只要发送方同 epoch 内同一 emoji 派生相同 key 即可得到相同 tag);但 **server 无法从已知 emoji 字典(≈3700 项)枚举 tag → emoji** 的反查,因为 key 取自 MLS exporter secret,群外不可知。
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
   - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`space_id` 通过 exporter `context` 参数额外绑定,即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,space_id 绑定仍能阻止跨 Space 重放。接收方 MUST 在路由层校验 routing tag 与当前 Space / epoch 一致。
-  - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 与 deterministic SHA-256 在同 epoch 内"emoji X 被使用过 N 次"的频次可见性上相同(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。P-S5 已经彻底关闭了"枚举字典反查"的更严重侧信道(server 无 key 即不能反查),剩余频次侧信道按以下方式缓解:隐私优先 Space SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露,使频次只能 per-target_ref 而非 per-message 关联。
-  - 旧 `sha256("cx-reaction-key-v1" || space_id || mls_group_id || epoch || canonical_emoji)` 形态(P-S5 之前)**MUST NOT** 再发送;接收方 reducer 与 Sync Service routing layer MUST 拒绝该形态(reason `reaction_routing_hash_legacy_sha256`)。
+  - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Space SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露,使频次只能 per-target_ref 而非 per-message 关联。
 - Minimal-metadata Space (`cx.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 room-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
 - `cx.reaction.remove` 走相同规则；`encrypted_payload` 内 MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛,但不得将该 id 暴露在明文。
 
