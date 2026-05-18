@@ -218,9 +218,10 @@ Contrix v1 把 Space-level policy 映射为 Move effects on cell families。Faca
 | `cx.component.space.tombstone.v1` | `cx.space.tombstone` | 同上 |
 | `cx.component.space.destroy.v1` | `cx.space.destroy` | 同上 |
 | `cx.component.member.state.v1` | `cx.member.state` | MLS GroupContext 的 leaf node + roster；Contrix membership 不进入 MIMI policy components |
-| `cx.component.flow.track.policy_components.v1` | `cx.flow.track.policy_components` | MIMI room policy component 集合（用于 discussion track 投影时） |
 
 > 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Contrix 中是 `cx.space.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `cx.space.policy_components` Move effect。
+>
+> MIMI room policy 投影 MUST 落在有效 Space（parent Space 或 `Flow.discussion_space_ref` 指向的 child Space）的 `cx.space.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。
 
 ### 9.2 Unknown Handling
 

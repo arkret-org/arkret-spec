@@ -108,7 +108,7 @@ Contrix 的真相源仍是 signed Event Envelope；GC 只能释放某个存储�
 | tombstone / redaction verification stub 保留 | 不短于 raw event retention | 删除 payload 或压缩历史后仍 MUST 保留足以验证 causal refs、payload hash / proof、redaction / tombstone 授权和 erasure receipt 的最小 stub。 |
 | snapshot cadence | 实现声明 | 大型 Space SHOULD 周期性生成可验证 snapshot；当 replay 成本超过第 4 节预算时 MUST 提供 snapshot-assisted recovery、可分页 backfill 或明确的可恢复错误。 |
 | snapshot 保留数量 | 至少 2 个有效 head SHOULD | 服务 SHOULD 保留当前推荐 snapshot 和至少一个前代 snapshot，便于 cursor 过期、移动端恢复和 snapshot 校验失败时回退。 |
-| track-disabled / archived materialized state | snapshot 中保留 stub | `cx.flow.track.disable`、Space tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 track 不活跃而从 state hash 中静默消失。 |
+| track-disabled / archived materialized state | snapshot 中保留 stub | 通过 `cx.flow.tracks.update` 关闭 track（`tracks.<name>.enabled: set false`）、Space tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 track 不活跃而从 state hash 中静默消失。 |
 
 Pruning 前置条件：
 

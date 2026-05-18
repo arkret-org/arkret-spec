@@ -198,10 +198,9 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 - `cx.message.redact.own`
 - `cx.reaction.add`
 - `cx.reaction.remove`
-- `cx.flow.track.read`
-- `cx.flow.track.admin`
+- `cx.flow.tracks.manage`（启用 / 关闭 track、切换 primary、修改 track profile，target=`cx.flow.tracks.update`）
 - `cx.flow.watch.set`（写入自己的 watch 订阅，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）
-- `cx.flow.watch.manage_others`（为他人写入 watch 订阅，绕过 `payload.actor_did == envelope.actor_id` 自写约束，target=`cx.flow.watch.set`）
+- `cx.flow.watch.manage_others`（为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
 
 ### 5.4 管理动作
 
@@ -225,7 +224,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 - `cx.invite.third_party`
 - `cx.invite.claim`
 - `cx.invite.revoke`
-- `cx.space.join.review`（审核 `cx.member.application`，签发 `cx.member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)）
+- `cx.space.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。Join-policy 正式登记前，本 capability 不属于 v1 active conformance）
 - `cx.approval.vote`
 - `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）

@@ -56,11 +56,11 @@
         "deleted",
         "redacted"
       ],
-      "description": "Flow lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: cx.flow.archive MUST come from 'active' (else failed_precondition reason=flow_not_active); cx.flow.restore MUST come from 'archived' (else flow_not_archived); cx.flow.tombstone (or cx.redaction targeting the flow) MUST come from {'active','archived'} (else flow_already_terminal). Same-state self-transitions MUST fail. 'deleted' and 'redacted' are irreversible terminals."
+      "description": "Flow lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: cx.flow.archive MUST come from 'active' (else failed_precondition reason=flow_not_active); cx.flow.restore MUST come from 'archived' (else flow_not_archived); Flow has no dedicated tombstone event — terminal state ('deleted' / 'redacted') is reached via a cx.redaction event targeting the flow (MUST come from {'active','archived'} else flow_already_terminal). Same-state self-transitions MUST fail. 'deleted' and 'redacted' are irreversible terminals."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.flow.archive / cx.flow.restore / cx.flow.tombstone / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.flow.archive / cx.flow.restore / cx.redaction Event. Aligns with Place.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "tracks": {
       "type": "object",

@@ -268,26 +268,6 @@
       "profile": null
     },
     {
-      "action": "cx.flow.track.read",
-      "category": "discussion",
-      "risk_tier": "low",
-      "required_constraints": [
-        "allowed_tracks"
-      ],
-      "target_event_kinds": [],
-      "profile": null
-    },
-    {
-      "action": "cx.flow.track.admin",
-      "category": "discussion",
-      "risk_tier": "high",
-      "required_constraints": [
-        "allowed_tracks"
-      ],
-      "target_event_kinds": [],
-      "profile": null
-    },
-    {
       "action": "cx.relation.create",
       "category": "flow",
       "risk_tier": "medium",

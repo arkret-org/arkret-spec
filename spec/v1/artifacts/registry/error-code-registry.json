@@ -823,7 +823,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`cx.flow.tombstone` / `cx.flow.delete` / `cx.flow.redact` rejected because the target Flow is already in a terminal state (`tombstoned` / `deleted` / `redacted`)."
+      "description": "A `cx.redaction` event targeting a Flow (or any other terminal-causing event on a Flow) is rejected because the target Flow is already in a terminal state (`deleted` / `redacted`). Flow has no dedicated tombstone wire kind in v1 — terminal state is reached via cx.redaction."
     },
     {
       "code": "place_not_active",
@@ -1096,6 +1096,27 @@
         "auth_decision"
       ],
       "description": "`cx.flow.watch.set` may only set the watch state of the submitting actor; cross-actor writes require `cx.flow.watch.manage_others` (audit / accessibility scope). See zh/models/flow-and-message.md §8.4."
+    },
+    {
+      "code": "watch_muted_must_be_self",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "`cx.flow.watch.set` writing `level=\"muted\"` for another actor is rejected — `muted` suppresses mention / moderation / workflow notifications and MUST be opt-in by the target actor themself. `cx.flow.watch.manage_others` only authorizes writing `level ∈ {mentions_only, participating, all}` for other actors. See zh/models/flow-and-message.md §8.4."
+    },
+    {
+      "code": "watch_level_public_must_be_self",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "`cx.flow.watch.set` writing `level_public=true` for another actor is rejected — publishing one's own subscription level is an opt-in personal disclosure and MUST be written by the target actor themself. `cx.flow.watch.manage_others` writes MUST omit `level_public` or set it to `false`. See zh/models/flow-and-message.md §8.4."
+    },
+    {
+      "code": "manage_others_audit_missing",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "A `cx.flow.watch.set` write that uses `cx.flow.watch.manage_others` to set another actor's watch state was rejected because no accompanying `cx.audit.accessed` event (identifying writer DID, target actor DID, cell id, before/after level) was present in the same batch / transaction. See zh/models/flow-and-message.md §8.4."
     },
     {
       "code": "cross_space_structural_relation",

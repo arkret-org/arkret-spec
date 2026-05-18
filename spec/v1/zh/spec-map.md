@@ -51,7 +51,7 @@ title: Spec Map
 - Space 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
 - Flow、Message 和 Space workflow 容器是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- Flow 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力，track 默认继承 Flow / Space 访问规则，显式 override 才承载独立 membership、历史与 E2EE 边界。
+- Flow 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力。Track 是纯展示 / 时间线分段标识，**不携带独立 access**——所有访问语义继承自 Flow 所属 Space；需要独立 membership、历史可见性或 E2EE 边界的 discussion 必须升级为 child Space 并通过 `Flow.discussion_space_ref` 引用。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Projection

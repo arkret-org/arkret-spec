@@ -67,32 +67,40 @@ flowchart LR
 - Pending Move（已签名但 anchor_ref 未被覆盖）不进 effective state；超出 `max_anchor_staleness_ms` 后必须 rebase 重签。
 - ⊥ 不是错误终态：`bottom=expose` 的 cell 可由带 `state_witness` + `inclusion_proof` 的 conflict-recovery Move 收回。
 
-## 3. Move
+## 3. Move（Reducer-input Event 的协议视图）
 
-Reducer-input event 的 wire schema 见 [`event-schema.json`](../../artifacts/schemas/event-schema.json) — Move 语义已并入顶层 event。Normative 形态：
+"Move" 是 reducer-input Event 在 Lattice/Anchor 层的协议视图，不是独立 wire 对象。Wire schema 只有 signed Event（见 [`event-schema.json`](../../artifacts/schemas/event-schema.json)），下表给出 Event 与 Move 的字段对应关系：
 
 ```text
-Move {
-  id              = H(canonical bytes excluding sig)
-  issuer          DID
-  space_id        Space id
-  preconditions   [(cell_id, predicate)]
-  effects         [(cell_id, lattice_op)]
-  anchor_ref      Anchor.id
-  refs            [(ref_id, role)]
-  hlc             advisory timestamp
-  sig             issuer signature over canonical bytes
+Move (reducer view of signed Event) {
+  event_id        = cx:event:<uuidv7>                 // 来自 Event.event_id（producer-assigned UUIDv7）
+  event_digest    = H(canonical bytes excluding proofs and unsigned)
+                                                       // 内容指纹；等价于 proof.payload_hash
+  issuer          DID                                  // 来自 Event.actor_id
+  space_id        Space id                             // 来自 Event.space_id
+  preconditions   [(cell_id, predicate)]               // 来自 Event.preconditions[]
+  effects         [(cell_id, lattice_op)]              // 来自 Event.effects[]
+  anchor_ref      Anchor.id                            // 来自 Event.anchor_ref
+  refs            [(ref_id, role)]                     // 来自 Event.refs[]
+  hlc             advisory timestamp                   // 来自 Event.hlc
+  proof           detached JWS                         // 来自 Event.proofs[]
 }
 ```
 
+身份与去重模型（normative）：
+
+- `event_id` 是 producer 在签名前分配的 typed UUIDv7（`cx:event:<uuidv7>`），是 actor chain 与 dedup 的稳定 wire id。它进入 canonical bytes 并被 `proof.payload_hash` 覆盖。
+- `event_digest` 是 canonical event bytes（不含 `proofs` 与 `unsigned`，包含 `hlc` 与所有其它顶层字段）的哈希，编码为 `<algo>:<hex>`，等价于 `proof.payload_hash`。它是 Event 的内容指纹，Anchor `frontier[]` 直接引用 `event_digest`（v1 不存在独立 typed-id 形态的 move identifier；早期草案的派生 move-typed id 已 dropped）。
+- 同一 `event_id` 的两次提交若 `event_digest` 不同，节点 MUST 拒绝并记为冲突（见 [`operations-sync.md`](../sync/operations-sync.md) §15）。`event_id` 在签名前由 producer 分配，因此节点不能仅凭 digest 区分 actor 意图；正确实现 MUST 把 (event_id, event_digest) 都纳入 dedup key。
+
 规则：
 
-1. `id` 由 canonical bytes 派生，MUST 覆盖 `issuer`、`space_id`、`preconditions`、`effects`、`anchor_ref`、`refs` 与 `hlc`。`sig` 本身 MUST NOT 进入 canonical bytes（它是对 canonical bytes 的签名）。`space_id` 必须进入以防止跨 Space 重放。
-2. `preconditions[]` 与 `effects[]` 是 set；同一 Move 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Move FAIL，不能部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 Move 不存在）。
+1. canonical bytes MUST 覆盖 `event_id`、`actor_id`、`space_id`、`preconditions`、`effects`、`anchor_ref`、`refs`、`hlc` 与所有其它 signed 顶层字段。`proofs` 与 `unsigned` MUST NOT 进入 canonical bytes（它们是对 canonical bytes 的签名或后置 advisory）。`space_id` 必须进入以防止跨 Space 重放。
+2. `preconditions[]` 与 `effects[]` 是 set；同一 Event 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Event FAIL，不能部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 reducer-input event 不存在）。
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Space 声明的 `max_anchor_staleness_ms`。
-4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`（§8.1，conflict recovery Move 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Move 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。
+4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`（§8.1，conflict recovery Event 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Event 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
-6. Move 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Move issuer 层表达。
+6. Event 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Event issuer 层表达。
 
 ### 3.1 Predicate
 
@@ -134,7 +142,7 @@ Anchor {
   id                 = H(canonical bytes)
   space_id            Space id
   predecessor_refs    [Anchor.id]
-  frontier            [Move.id]
+  frontier            [event_digest]              // hash of each covered reducer-input Event's canonical bytes
   state_root          hash
   anchorer_sig        sig | multi_sig | threshold_sig
   hlc                 advisory timestamp
@@ -394,7 +402,7 @@ Multi-value register。所有未被后续 set 取代的并发值都暴露。
 
 ```text
 join(moves) -> Set<value>:
-  candidates = { (M.id, eff.value) | M ∈ moves, eff ∈ M.effects, eff.op.type=="set" }
+  candidates = { (M.event_digest, eff.value) | M ∈ moves, eff ∈ M.effects, eff.op.type=="set" }
   // 取因果最大集：去掉被任何后继 Move 偏序覆盖的 candidate
   return  { v | (m, v) ∈ candidates, ¬∃(m', _) ∈ candidates: m' > m via Move.refs("after") }
 
@@ -517,7 +525,7 @@ join(moves) -> List<entry_record>:
       if eff.op.type != "append": continue
       eid = canonical_entry_id(eff.op.value, schema.parameters.entry_id_field)
       entries.append({
-        move_id: M.id, issuer: M.issuer,
+        event_digest: M.event_digest, issuer: M.issuer,
         seq: eff.op.issuer_seq, value: eff.op.value, entry_id: eid
       })
   // 每 issuer 形成独立子链；同一 (issuer, seq) 重复 → 取最小 entry_id
@@ -542,12 +550,12 @@ validate_op(op):
 Last-write-wins register。本节是该 lattice type 的 normative 行为，但**仅在实现声明 `cx.profile.collaborative_text.v1` 时启用**——未声明的实现遇到使用 `lww-register` 的 cell schema MUST 按 §5.4 fail closed。"时间"由 Anchor 批次索引提供，**不**读 actor HLC：
 
 - 跨 Anchor batch：后批次 effect 覆盖前批次。
-- 同 Anchor batch（sibling Move）并发不同 set：用 deterministic tiebreaker `(issuer DID lex order, move_id lex order)` 选 winner；记录 lost siblings 进 bottom diagnostics 但不影响最终 value。
+- 同 Anchor batch（sibling Move）并发不同 set：用 deterministic tiebreaker `(issuer DID lex order, event_digest lex order)` 选 winner；记录 lost siblings 进 bottom diagnostics 但不影响最终 value。
 
 **Open_set anchor profile 下的全序保证**：当 anchor profile 是 `open_set`、effective anchor view 由多个 leaf 的 `union` 构成时，sibling Move 集合 MUST 按 deterministic effective anchor view（§4.1）的 canonical join 计算，**而不是**基于任意单 leaf 的局部观察：
 
 - 输入 sibling 集合 = `union(all leaves' frontier) ∩ {moves with effect on this cell within the same logical batch_index}`。这里的 `batch_index` 等于 anchor view 中所有 leaf 共同的 predecessor depth；不同 leaf 给出不同 sibling 集合的情况由 join 强制统一。
-- Tiebreaker key `(issuer DID lex order, move_id lex order)` 的比较 MUST 按 NFC + ASCII byte order；两个 Move 的 `(issuer, id)` 不可能完全相等（id 是 content-addressed hash），所以 winner 永远唯一。
+- Tiebreaker key `(issuer DID lex order, event_digest lex order)` 的比较 MUST 按 NFC + ASCII byte order；两个 Event 的 `(issuer, event_digest)` 不可能完全相等（event_digest 是 canonical-bytes hash），所以 winner 永远唯一。
 - 不同 conformant 节点对同一 anchor view 计算 sibling 集合 + tiebreaker MUST 产出相同 winner；任何偏差视为 reducer 实现 bug，conformance vector `cx.vector.lattice.lww_open_set.v1` 验证此性质。
 
 ```text
@@ -563,7 +571,7 @@ join(moves) -> value:
       current = siblings[0].effect.value
     else:
       // 多节点对同一 view 必须计算同一 winner
-      winner = min(siblings, key=(M.issuer, M.id))   // canonical lex order
+      winner = min(siblings, key=(M.issuer, M.event_digest))   // canonical lex order
       current = winner.effect.value
       // 其它 siblings 进入 bottom_diagnostics（kind=conflict）但 value 已确定
   return current
@@ -647,7 +655,7 @@ v1 已注册扩展 Lattice type：
 
 ```text
 verify_move(M, pre_state):
-  1. canonical bytes 与 M.id 匹配；M.sig 由 M.issuer 控制的 key 签发。
+  1. canonical bytes 哈希等于 M.event_digest 且等于 M.proof.payload_hash；M.proof 由 M.issuer 控制的 key 签发。
   2. M.refs 中所有 critical ref 已知且自身 valid。
   3. M.anchor_ref 在本 Space Anchor DAG 中，且未超过 max_anchor_staleness_ms。
   4. 对每个 (cell, predicate):

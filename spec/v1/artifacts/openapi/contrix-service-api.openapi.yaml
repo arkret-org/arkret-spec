@@ -636,20 +636,27 @@ components:
               pattern: ^sha256:[0-9a-f]{64}$
           additionalProperties: false
       additionalProperties: true
-    MoveStateView:
+    EventStateView:
       type: object
-      description: Per-Move protocol-state field surfaced on /sync and /events
+      description: Per-event protocol-state field surfaced on /sync and /events
         responses (zh/sync/service-surface.md §5.5, zh/authz/event-auth-state-resolution.md
-        §13). Implementations MUST attach this on every Move included in a
-        timeline/state response so clients can render fail-closed UI without
-        recomputing the join.
+        §13). Implementations MUST attach this on every reducer-input Event
+        included in a timeline/state response so clients can render fail-closed
+        UI without recomputing the join.
       required:
-      - move_id
+      - event_id
+      - event_digest
       - event_state
       properties:
-        move_id:
+        event_id:
           type: string
-          pattern: ^cx:move:sha256:[0-9a-f]{64}$
+          pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        event_digest:
+          type: string
+          description: Canonical hash of the event's canonical bytes (excluding
+            proofs and unsigned); equals proof.payload_hash. Used as the Anchor
+            frontier item for this event.
+          pattern: ^sha256:[0-9a-f]{64}$
         event_state:
           type: string
           enum:

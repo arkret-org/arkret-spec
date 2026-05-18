@@ -63,14 +63,15 @@ bottom   = reject  // or-set never produces ⊥; declared value follows registry
 
 ```text
 Move(cx.consent.grant) {
-  id        = cx:event:019640ed-7000-7000-8000-000000000001   // content-addressed Move id (UUIDv7)
-  issuer    = holder DID（或 holder DID Document 显式授权的 controller / agent）
-  space_id  = holder principal control Space
+  event_id     = cx:event:019640ed-7000-7000-8000-000000000001   // producer-assigned typed UUIDv7
+  event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
+  issuer       = holder DID（或 holder DID Document 显式授权的 controller / agent）
+  space_id     = holder principal control Space
   preconditions = []          // grant 不依赖 cell 既有状态
   effects   = [
     (cx:cell:cx.component.consent.grant.v1:<consent_id>,
      {type: "add",
-      dot:  "cx:event:019640ed-7000-7000-8000-000000000001:0",   // = "<this Move.id>:<effect_index>"
+      dot:  "cx:event:019640ed-7000-7000-8000-000000000001:0",   // = "<enclosing event_id>:<effect_index>"
       value: {
         intent: {                          // projection-level dedupe key
           consent_id: <consent_id>,
@@ -102,14 +103,15 @@ Move(cx.consent.grant) {
 
 Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。其他 actor 提交的 grant Move 在 holder 的 principal control Space MUST `unauthorized` reject。
 
-`dot` 由 `<enclosing_move.id>:<effect_index>` 派生，全局唯一，不再使用 deterministic tag。Projection 层按 `intent` 把同一 (consent_id, peer, scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or-set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
+`dot` 由 `<enclosing event_id>:<effect_index>` 派生，全局唯一，不再使用 deterministic tag。Projection 层按 `intent` 把同一 (consent_id, peer, scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or-set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
 ### 3.3 `cx.consent.revoke` Move
 
 ```text
 Move(cx.consent.revoke) {
-  id        = cx:event:0196414c-3000-7000-8000-000000000003   // content-addressed Move id (UUIDv7)
-  issuer    = holder DID
+  event_id     = cx:event:0196414c-3000-7000-8000-000000000003   // producer-assigned typed UUIDv7
+  event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
+  issuer       = holder DID
   space_id  = holder principal control Space
   preconditions = [
     (cx:cell:cx.component.consent.grant.v1:<consent_id>,
@@ -136,7 +138,7 @@ Move(cx.consent.revoke) {
 
 `observed_dots` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在 `Move.anchor_ref` 对应 pre-state 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 并发 revoke 同一 dot 收敛于 or-set 的去重语义。`observed_dots` 之外的 dot 不受影响——这是 OR-Set 的 normative 行为。
 
-**Regrant**：撤销后 holder 可以再次发出 `cx.consent.grant` Move；新 Move 产生新的 `dot`（来自不同 `move.id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
+**Regrant**：撤销后 holder 可以再次发出 `cx.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 
 **完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, scope) intent 需要 client 在构造 revoke Move 前先查询当前 cell 的 or-set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——sodmin / UI MUST 把这种状态明确提示为 "partial revoke"。
 

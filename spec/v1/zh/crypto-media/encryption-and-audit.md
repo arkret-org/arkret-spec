@@ -66,6 +66,18 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
 - **明文元数据保留**：用于网络路由和客户端本地 projection 的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
 - Sync Service 可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。客户端在解密后 MAY 建立本地搜索索引；受托 search / projection 服务只有在 `plaintext_visible_services` 授权下才能接收明文或可逆摘要。
 
+#### 2.3.0 E2EE Profile：plaintext metadata 边界
+
+v1 仅定义一种 E2EE profile —— **body-only E2EE**：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Place 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Place `parent_ref` 等结构化 metadata **MUST** 以明文形式存在于 wire schema 中，即便所属 Space 声明 `encryption_profile="mls_rfc9420"`。
+
+理由与影响：
+
+- Place / Flow metadata 参与 routing、view projection、搜索、排序和 cross-space ref；让 Sync Service 与服务端 reducer 能在不解密 body 的前提下计算 frontier、permission、ordering、notification gating。
+- 这意味着 **E2EE Space 中 Place / Flow 标题、摘要、状态等 metadata 对所有 Space 成员（以及任何接收 wire bytes 的中继 / Sync Service）都是可见的**。希望避免标题泄漏敏感信息的部署 MUST 在客户端 UX 层提示用户 "title 不被 E2EE 覆盖"。
+- 受托 search / projection 服务接收这些明文 metadata **不**需要 `plaintext_visible_services` 列入授权——它们本来就是 wire 明文；该 capability 仅约束 body / content / attachment 的解密结果与客户端本地索引产物。
+
+未来版本 MAY 引入 **minimal-metadata E2EE profile**（标题 / 摘要 / 部分字段加密为 `encrypted_metadata`，wire 上仅保留 routing key + opaque placeholder）；该 profile 在 v1 不规范，未声明 profile 的实现不得对 `title` / `summary` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
+
 #### 2.3.1 Envelope Wire 结构
 
 加密信封的 wire 形态是 [`artifacts/schemas/encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json) 的 canonical 表达。最小示例：
@@ -208,7 +220,7 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
 
-- 会影响 E2EE 可见性的 `cx.member.state` / `cx.flow.track.member` accepted 后，该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
+- 会影响 E2EE 可见性的 `cx.member.state` accepted 后（track 不携带独立 membership；独立 discussion 边界由 `Flow.discussion_space_ref` 指向的 child Space 自行管理 `cx.member.state`），该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
 - 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新 application messages 并标记 `encryption_transition_pending`,直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Space,无论 `security_class`——忽略 governance frontier 的发送会让 ban / revoke 在新消息上失效,正是引入 MLS Governance Binding 要消除的风险。

@@ -159,7 +159,7 @@ Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid �
 2. 若没有显式 primary 且 `tracks` 中存在 key `synthesis`，`synthesis` 是 primary。
 3. 若没有显式 primary 且 map 只有一个 key，该唯一 key 是 primary。
 4. 若没有显式 primary，且 profile 声明了可验证默认 track 且该 key 存在于 `tracks`，使用该默认 track。
-5. 仍无法唯一确定时，Reducer MUST fail closed，要求写入 `cx.flow.track.set_primary` 或等价修复事件。
+5. 仍无法唯一确定时，Reducer MUST fail closed，要求通过 `cx.flow.tracks.update` 显式设置 `tracks.<name>.is_primary=true`。
 
 `is_primary=false` 与省略 `is_primary` 等价；它不是阻止默认派生的 veto。
 
@@ -167,21 +167,21 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 
 ### 4.6 Track 转换
 
-`cx.flow.track.set_primary` 在同一个 Flow 内把目标 `track` 标记为唯一 primary；目标 track 在该事件生效前 MUST 已启用，或与同一批次中的 `cx.flow.track.enable` 一起生效。
+切换 primary track、启用 / 关闭 track、修改 track profile 全部通过 `cx.flow.tracks.update` 的 patch 完成（详见 §4.8）。不存在独立的 `set_primary` / `enable` / `disable` event kind。
 
 规则：
 
 - 转换不改变 `flow_id`。
 - 转换不复制或迁移消息历史。
-- 切换到 `track="discussion"` 时，若 `discussion` track 尚不存在，必须先写入 `cx.flow.track.enable`；单独的 `set_primary` MUST fail closed / reject，不得隐式创建 track。
-- 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须显式使用 `cx.flow.track.disable` 或 profile 声明的 archive 语义。
-- 转换不自动移除 Board Place/List Place 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
-- `cx.flow.track.set_primary` / `cx.flow.track.enable` 只改变默认入口或 track 启用状态，不得隐式创建或迁移 child Space；child Space 的生命周期由独立 `cx.space.*` event 管理。
+- 切换到 `track="discussion"` 时，若 `discussion` track 尚不存在，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`；写入仅含 `is_primary` 而 track 未 enabled 时 MUST `failed_precondition`，不得隐式创建 track。
+- 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须在同一或后续 `cx.flow.tracks.update` patch 中显式 `tracks.discussion.enabled: set false`（或按 profile 声明的 archive 语义）。
+- 转换不自动移除 Board Place / List Place 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
+- `cx.flow.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 child Space；child Space 的生命周期由独立 `cx.space.*` event 管理。
 
 ### 4.7 Track 启用 / 禁用
 
-- track 在 map 中存在即表示 active。
-- 禁用 track 应通过 `cx.flow.track.disable` 从 `tracks` map 中移除该 key 或标记为 profile 声明的 archived state，不得留下可写入的 disabled track。
+- track 在 map 中存在且 `enabled=true`（或 schema 默认为 true）即表示 active。
+- 关闭 track 通过 `cx.flow.tracks.update` patch `tracks.<name>.enabled: set false`（或从 map 中删除该 key、或写 profile 声明的 archived state），不得留下可写入的 disabled track。
 - View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Space schema/profile、track config 和可见字段；不得要求 Flow 额外声明模式字段。
 
 ### 4.8 Track 写入: `cx.flow.tracks.update`
@@ -272,7 +272,7 @@ flowchart LR
 读图要点：
 
 - Track 是纯展示 / 时间线分段标识，不携带独立 access；`synthesis` 与 `discussion` 都继承 Parent Space 的 capability。
-- `cx.flow.track.set_primary` 只切换默认入口，不复制对象、不迁移历史；切到 `discussion` 必须先 enable 该 track。
+- `cx.flow.tracks.update` 通过 patch `Flow.tracks` map 切换 primary / 启用 / 关闭 track，不复制对象、不迁移历史；切到 `discussion` 必须在同一 patch 内同时 enable 该 track。
 - 想给 discussion 独立 membership / E2EE / history 时，**必须**升级为 child Space 并通过 `discussion_space_ref` 引用——track 内嵌 access 的 hybrid 模式在 v1 不存在。
 - 能看 discussion 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 Parent Space capability 判断。
 
@@ -357,8 +357,13 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 ### 8.4 写入授权
 
 - 默认：`cx.flow.watch.set` MUST 满足 `payload.actor_did == envelope.actor_id`。reducer 在写入前校验，不满足 `failed_precondition`（`reason="watch_must_be_self"`）。普通成员写入自己的 watch state 需要持有 `cx.flow.watch.set` capability（low risk_tier，admin 默认 bundle 给所有成员）。
-- 帮他人订阅：actor 持有 `cx.flow.watch.manage_others` capability（medium risk_tier）时 MAY 写入 `payload.actor_did != envelope.actor_id` 的 watch cell，典型用法是 Flow creator 在创建对话时把核心相关人加为 `participating`。被加为 watcher 的 actor MAY 随时通过自写 cell 覆盖（升级 / 降级 / `muted`），无需对方同意。
+- 帮他人订阅：actor 持有 `cx.flow.watch.manage_others` capability（medium risk_tier）时 MAY 写入 `payload.actor_did != envelope.actor_id` 的 watch cell，典型用法是 Flow creator 在创建对话时把核心相关人加为 `participating`。`manage_others` 写入受以下硬约束：
+  - `payload.level` MUST ∈ `{mentions_only, participating, all}`；写入 `level="muted"` MUST `failed_precondition`（`reason="watch_muted_must_be_self"`）。理由：`muted` 会抑制 mention / 审核 / 工作流定向通知，必须由本人主动选择，不得被管理员或自动化代写。
+  - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST `failed_precondition`（`reason="watch_level_public_must_be_self"`）。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
+  - 每条 `manage_others` 写入 MUST 同时生成一条 advisory `cx.audit.accessed` event（payload 含 writer DID、target actor DID、cell id、写入前后 level），便于被代写的 actor 事后审计。reducer MUST 拒绝缺失对应 audit event 的 `manage_others` 写入（`failed_precondition`，`reason="manage_others_audit_missing"`）。
+  - 被加为 watcher 的 actor MAY 随时通过自写 cell 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
 - 创建者隐式订阅：reducer 在 `cx.flow.create` 写入时 MAY 同时为 `created_by` actor 写一条 `level=participating` 的 watch cell（profile 决定是否启用，默认启用）。该写入不消耗 `cx.flow.watch.manage_others`，但仍记入 cell 历史。
+- 如需管理员强制静音某 actor 的通知（e.g. 反骚扰、moderation 场景），MUST 使用独立 moderation event（`cx.moderation.decision` 或 profile-specific kind），不得复用个人 watch preference。
 
 ### 8.5 投影脱敏（normative）
 
@@ -524,9 +529,8 @@ Schema id: `cx.schema.message.v1`
 ]
 ```
 
-> `cx.flow.create` 的 payload 已在 `tracks.discussion` 中声明该 track 启用，无需再发独立的
-> `cx.flow.track.enable`。只有当 Flow 创建后想新增 / 重新启用某个被 disable 过的 track 时才需要
-> `cx.flow.track.enable`（或新的统一 `cx.flow.tracks.update`，见 §4.8）。
+> `cx.flow.create` 的 payload 已在 `tracks.discussion` 中声明该 track 启用，无需额外事件。
+> Flow 创建后想新增 / 重新启用某个被 disable 过的 track 时通过 `cx.flow.tracks.update` 完成（见 §4.8）。
 
 `@mention` 与 reference：消息正文 SHOULD 使用结构化 AST 或带 DID/object ref 的
 Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention 关系和通知，

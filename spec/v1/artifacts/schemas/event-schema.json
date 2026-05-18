@@ -1026,6 +1026,17 @@
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/generic_standard_payload" } }
       }
+    },
+    {
+      "$comment": "Reject historical top-level legacy field names. additionalProperties=true at root permits profile/extension top-level fields (forward extensibility), but these specific names from earlier drafts MUST NOT appear — type/auth_refs/target_ref/operation_id are migrated to kind / refs[role=authorized_by] / payload.* fields / SDK-internal id (see operations-sync.md §5).",
+      "not": {
+        "anyOf": [
+          { "required": ["type"] },
+          { "required": ["auth_refs"], "$comment": "dropped legacy field — replaces auth_refs with refs[role=authorized_by]" },
+          { "required": ["target_ref"] },
+          { "required": ["operation_id"] }
+        ]
+      }
     }
   ],
   "$defs": {
@@ -1348,7 +1359,7 @@
     },
     "flow_watch_set_payload": {
       "type": "object",
-      "description": "Payload for cx.flow.watch.set. Writes the (flow_id, actor_did) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariant: actor_did MUST equal envelope.actor_id unless writer holds cx.flow.watch.manage_others. See models/flow-and-message.md §8.",
+      "description": "Payload for cx.flow.watch.set. Writes the (flow_id, actor_did) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) actor_did MUST equal envelope.actor_id unless writer holds cx.flow.watch.manage_others; (2) when actor_did != envelope.actor_id (manage_others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) manage_others writes MUST be accompanied by a cx.audit.accessed event identifying writer / target / cell. See models/flow-and-message.md §8.4.",
       "required": [
         "flow_id",
         "actor_did",

@@ -89,7 +89,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - 看板定义：`Board Place -> List Place -> Flow`。
 - 会话定义：`Flow(discussion track) -> Message`。
-- `cx.flow.track.set_primary` 仅切换默认 track，不复制对象、不迁移历史。
+- `cx.flow.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
 - Track 不携带独立 access；discussion 完全继承父 Space。需要独立成员、历史或 E2EE 边界时，必须升级为 child Space 并通过 `Flow.discussion_space_ref` 引用。
 
 ### 4.4 同步与真相模型

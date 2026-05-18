@@ -94,7 +94,6 @@ sidebar:
 | `cx.space.parent` | Parent space link |
 | `cx.space.inheritance_policy` | Per-parent policy inheritance declaration (subject=`payload.parent_space_id`) |
 | `cx.space.join_rule` | Join rule state |
-| `cx.space.join_policy` | Join policy state (gates / reviewer / TTL / quotas) |
 | `cx.space.history_visibility` | History visibility state |
 | `cx.space.discovery` | Discoverability state |
 | `cx.space.policy` | Space policy state |
@@ -104,9 +103,8 @@ sidebar:
 | `cx.space.freeze` | Temporary freeze state |
 | `cx.space.destroy` | Terminal decommission marker |
 | `cx.member.state` | Membership state |
-| `cx.member.application` | Applicant submission for join policy review (answers / claim presentations / challenge proofs) |
-| `cx.member.application.review` | Reviewer decision on a member application (accept / reject / request_changes) |
-| `cx.member.application.cancel` | Applicant withdraws a pending application |
+
+> `space.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate event kind（无 `cx.` 前缀），见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `cx.*` 前缀。
 | `cx.flow.create` | Flow create |
 | `cx.flow.update` | Flow patch |
 | `cx.flow.archive` | Flow archive |

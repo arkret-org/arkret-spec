@@ -144,7 +144,7 @@ Schema id: `cx.schema.place.v1`
 
 - **授权**：Place 自身不持有 capability、membership 或 policy。任何对 Place 的写入（`cx.place.create` / `cx.place.update` / `cx.place.archive` / `cx.place.restore` / `cx.place.tombstone` / `cx.place.parent`）的授权检查 MUST 落到所属 `space_id` 的 Space membership + capability。Place 上 `cx.flow.move` 类操作的授权检查仍由 Space 决定。
 - **同步与联邦**：Place 跟随所属 Space 同步；它**不**形成独立 federation transaction 单位。Place 的 Move 与 Anchor 共享 Space 的 anchor pipeline。
-- **加密**：Place **永远没有**自己的 MLS group。E2EE Space 中 Place 元数据（title、rank 等）按 Space 的 encryption_profile 处理。
+- **加密**：Place **永远没有**自己的 MLS group。Place 的 `title`、`summary`、`rank`、`state`、`parent_ref` 等结构化 metadata 始终是 wire 明文，即便所属 Space 声明 `encryption_profile="mls_rfc9420"`——v1 仅规范 body-only E2EE（见 [`../crypto-media/encryption-and-audit.md` §2.3.0](../crypto-media/encryption-and-audit.md)）。需要避免标题泄漏敏感信息时，应在客户端 UX 层提示用户，或等待未来 minimal-metadata E2EE profile。
 - **生命周期**：archive Place = UI 隐藏；tombstone Place = 不可逆删除（但 Space 与已被关联 Flow 都仍存在）。这与 archive/tombstone Space（影响成员、E2EE、history）的语义截然不同——Place lifecycle 仅影响 UI 分组。
 - **嵌套**：Place 之间可以嵌套（看板里的列），通过 `parent_ref` 表达；`cx.place.parent` event 是该字段的 reducer-input。Place 之间嵌套**不得跨 Space**——`parent_ref` 引用的 Place 必须 `space_id` 相同。
 - **位置**：Flow 在 Place 中的位置由 active `contains` Relation + Flow position event（`cx.flow.move` / `cx.flow.reorder`）维护，不由 Flow canonical object 自带 `place_id` 表达。`cx.flow.move` payload 使用 `target_place_id` 字段。

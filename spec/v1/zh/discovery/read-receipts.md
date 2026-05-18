@@ -82,7 +82,7 @@ Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
 | `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Space 可见性允许的全部观察者；`members` = 仅 track 成员；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
-| `scope_overrides_allowed` | `bool` | `true` | 是否允许 child Space（如 `Flow.discussion_space_ref` 指向的子 Space）声明独立、收紧（不放宽）的 read receipt policy。父 Space 设为 `false` 时，所有 child Space 的 receipt policy MUST 等于或宽松于父策略；reducer 拒绝违规声明。 |
+| `scope_overrides_allowed` | `bool` | `true` | 是否允许 child Space（如 `Flow.discussion_space_ref` 指向的子 Space）声明独立、**收紧**（不放宽）的 read receipt policy。无论本字段取值如何，**放宽方向永远 disallowed**：child Space 的 receipt policy MUST 在 disclosure 与 visibility 两个维度都 **等于或更严格于** 父策略（disclosure: `disabled` > `optional` > `required` 的反向收紧，即父 `optional` 允许子 `disabled`，禁止子 `required`；visibility: `private` > `members` > `public` 的反向收紧，即父 `members` 允许子 `private`，禁止子 `public`）。父 Space `scope_overrides_allowed=true` 仅允许 child Space **进一步收紧**；`scope_overrides_allowed=false` 要求 child Space 完全继承父策略，连收紧都不允许。任何放宽方向的 child policy 声明 MUST reducer 拒绝。 |
 
 规则：
 
@@ -91,7 +91,7 @@ Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 
 - `disclosure="required"`：合规客户端 MUST 不允许用户在该 scope 把 `cx.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `cx.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Marker 不受影响。
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
-- Child Space policy 收紧父 Space policy 的方向一律允许（`required` → `disabled`、`public` → `private` 等更严方向）；放宽方向（如父 `disabled` → 子 `required`）SHOULD 被 reducer 拒绝，除非父声明了 `scope_overrides_allowed=true` 且明确允许。
+- Child Space policy MUST 等于或更严格于父策略：disclosure 仅允许 `required→optional→disabled` 方向的收紧；visibility 仅允许 `public→members→private` 方向的收紧。放宽方向（例如父 `disabled` → 子 `required`、父 `private` → 子 `public`）MUST 被 reducer 拒绝，与 `scope_overrides_allowed` 取值无关——`scope_overrides_allowed=true` 仅允许 child 进一步收紧，`scope_overrides_allowed=false` 要求 child 完全继承父策略。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
 ## 3. Read Marker (私有游标)

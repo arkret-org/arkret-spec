@@ -12,7 +12,7 @@ Contrix 是面向协作对象的分布式发布、传播、查询与收敛协议
 - append-only 审计日志
 - Flow identity 与 track 能力
 - Flow `discussion` track / Message 时间线
-- Board-Space / List-Space / Flow 工作流
+- Board Place / List Place / Flow 工作流
 - Morph 开放对象
 - 离线写入
 - 最终一致收敛
@@ -462,7 +462,6 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.space.plaintext_visible_services`
 - `cx.space.history_visibility`
 - `cx.space.join_rule`
-- `cx.space.join_policy`
 - `cx.space.discovery`
 - `cx.organization.discovery`
 - `cx.schema.define`
@@ -476,14 +475,11 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.archive`
 - `cx.flow.restore`
 - `cx.flow.tracks.update`
-- `cx.flow.track.member`
-- `cx.flow.track.history_visibility`
-- `cx.flow.track.policy_components`
 - `cx.flow.move`
 - `cx.flow.reorder`
 - `cx.flow.watch.set`
 
-`cx.flow.*` 只修改 Flow 自身、track 配置、track access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas-register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
+`cx.flow.*` 只修改 Flow 自身、track 配置或 Flow 在 Board / List Place 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。Track 不携带独立 access — 启用 / 切换 primary / 修改 track profile / 关闭 track 全部走 `cx.flow.tracks.update`（patch `Flow.tracks` map）；需要独立 membership / history visibility / E2EE 的 discussion MUST 升级为 child Space 并通过 `Flow.discussion_space_ref` 引用（见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md)）。`cx.flow.tracks.update` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas-register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
 
 ### 7.3 Place
 
@@ -519,20 +515,19 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.view.update`
 - `cx.view.reconcile`
 
-`cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Flow 所属 List-Space、Flow rank、List-Space rank、discussion membership、Message timeline、Relation active state 或对象字段的唯一真相。
+`cx.view.*` 只修改 View definition，例如 query、projection kind、renderer、visible fields、layout、grouping 或 shared saved view 配置。它不得用于保存 Flow 所属 List Place、Flow rank、List Place rank、discussion membership、Message timeline、Relation active state 或对象字段的唯一真相。
 
 ### 7.6 Membership / Invite / Capability
 
 - `cx.member.state`
-- `cx.member.application`
-- `cx.member.application.review`
-- `cx.member.application.cancel`
 - `cx.invite.create`
 - `cx.invite.cancel`
 - `cx.invite.accept`
 - `cx.capability.grant`
 - `cx.capability.delegate`
 - `cx.capability.revoke`
+
+> `space.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 **候选**（candidate）event kind（无 `cx.` 标准前缀），由 [`../governance/join-policy.md`](../governance/join-policy.md) 单独规范。它们尚未进入 v1 active conformance；实现声明 v1 base profile 时不强制支持。正式登记进入 v1 registry 前不得使用 `cx.*` 标准前缀，也不得列入 active reducer / sync conformance suite。
 
 ### 7.7 Profile / Device / Space Key
 
@@ -634,7 +629,7 @@ Reducer 语义：
 3. 验证目标 Flow 所属 Space schema/profile 允许它进入该 Board Place。
 4. 把 `expected_position` 编译为 cell `cx:cell:cx.component.flow.position.v1:<board_place_id>:<flow_id>` 的 `head_eq` precondition；把 `target_place_id` + `rank` 编译为 `set { list_place_id: target_place_id, rank }` effect。
 5. cas-register lattice 在该 cell 上 join：成功则 `target_place_id --contains--> flow_id` 派生 Relation 由 cell value 自动投影出来（旧 list 的派生 Relation 自动失效）；并发不同 set 返回 `⊥`（kind=conflict），依赖该 cell 的后续 Move fail_bottom，必须走 §8 conflict-recovery。
-6. 对相同 Event 保持幂等（同一 Move id 的重放是 cell 的恒等 set，不产生新 ⊥）。
+6. 对相同 Event 保持幂等（同一 `event_id` / `event_digest` 的重放是 cell 的恒等 set，不产生新 ⊥）。
 
 `cx.flow.move` 不得把 `board_place_id`、`place_id` 或 `rank` 写入 Flow canonical object 作为唯一真相源；真相是 cell value。View projection MAY 返回这些派生字段，但必须能追溯到该 cell 的 anchored value 和 reducer frontier。
 
@@ -669,9 +664,9 @@ CAS 语义：`expected_position` 描述的是移动前源 Place 中 Flow 的当�
 
 `cx.flow.reorder` 不得改变 List Place。`expected_position` 编译为 cell `head_eq`；不一致时 cas-register 返回 `failed_precondition`，不再走单独的 `cas_conflict` 旁路。`expected_position` 缺失只在 Flow 尚未进入该 Board 的初始态合法（理论上此时也不该用 reorder），其他情况 MUST `failed_precondition`。
 
-### 9.3 List-Space 排序
+### 9.3 List Place 排序
 
-List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Space 的 `rank` 字段来改变。它不得移动 Flow。
+List Place 在 Board Place 内的顺序通过 `cx.place.update` 修改 List Place 的 `rank` 字段（或 `cx.place.parent` 调整 `parent_ref` + rank）来改变。它不得移动 Flow。**禁止**使用 `cx.space.update` 修改 List 排序——Place 不是 Space，不与 Space 共享生命周期 / membership / E2EE 边界。
 
 ### 9.4 切换 Flow 默认 track
 
@@ -710,7 +705,7 @@ List-Space 在 Board-Space 内的顺序通过 `cx.space.update` 更新 List-Spac
 4. `space_id` 与 target object 所属 Space 一致。
 5. capability 在操作时点有效。
 6. `prev_refs` / `refs[]` 因果依赖不违反基本约束。
-7. 对 Flow / Message / Morph 执行对象类型 schema validation；Board-Space 和 List-Space 按 Space schema 验证。
+7. 对 Flow / Message / Morph 执行对象类型 schema validation；Board Place 与 List Place 按 Place schema 验证（Place 不是 Space，不走 Space schema）。
 
 ## 11. Snapshot
 

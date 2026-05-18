@@ -131,10 +131,15 @@
               "type": "string"
             }
           },
-          "additionalProperties": true
+          "additionalProperties": true,
+          "not": { "required": ["type"] }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "not": {
+        "$comment": "Reject legacy discriminator field name `type`. This payload uses `kind` as discriminator; `type` is a banned alias from earlier drafts to avoid divergence between schema accept and reducer reject.",
+        "required": ["type"]
+      }
     },
     "encrypted_payload": {
       "$ref": "./encrypted-envelope.schema.json"
@@ -291,11 +296,19 @@
         }
       },
       "additionalProperties": true,
+      "not": {
+        "$comment": "Object kind is derived from the typed-id prefix on `id`; `type` is a banned legacy alias.",
+        "required": ["type"]
+      },
       "description": "Embedded object snapshot inside an Event payload. Object kind is derived from the typed-id prefix on `id`; there is no separate `type` field."
     },
     "generic_standard_payload": {
       "type": "object",
-      "additionalProperties": true
+      "additionalProperties": true,
+      "not": {
+        "$comment": "Standard cx.* event payloads use kind (envelope) + payload schema discriminators. `type` is a banned legacy alias here to keep schema validation aligned with reducer behavior.",
+        "required": ["type"]
+      }
     },
     "object_create_payload": {
       "type": "object",

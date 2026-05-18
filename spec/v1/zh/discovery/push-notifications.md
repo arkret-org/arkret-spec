@@ -166,12 +166,14 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 
 **`track_name` 的派生**（server-side，由 Sync Service 在规则匹配前从 Event 推导，**不是** 一个客户端在 wire 上自由设置的字段）：
 
-- Event payload 显式引用 Flow（如 `cx.message.create` 携带 `flow_id`，或 `cx.flow.field.update` 直接作用于 Flow）→ 按 Event 类型映射：
-  - `cx.message.*` / `cx.reaction.*` / `cx.thread.*` 在 Flow 的 discussion timeline 中产生 → `track_name = "discussion"`
-  - `cx.flow.update` / `cx.flow.field.update` / `cx.flow.state.*` 等修改 Flow synthesis 字段的事件 → `track_name = "synthesis"`
-  - 其它 `cx.flow.track.*` 配置事件按其 `track_name` 字段直接映射
+- Event payload 显式引用 Flow（如 `cx.message.create` 携带 `flow_id`，或 `cx.flow.update` 直接作用于 Flow）→ 按 Event 类型映射：
+  - `cx.message.create` / `cx.message.revise` / `cx.message.redact` / `cx.reaction.add` / `cx.reaction.remove` 在 Flow 的 discussion timeline 中产生 → `track_name = "discussion"`
+  - `cx.flow.update`（修改 Flow synthesis 字段、状态、标题等）→ `track_name = "synthesis"`
+  - `cx.flow.create` / `cx.flow.archive` / `cx.flow.restore` / `cx.flow.move` / `cx.flow.reorder` → `track_name = "synthesis"`（生命周期与位置变更归入 synthesis 视角，便于过滤）
+  - `cx.flow.tracks.update`（track 配置 / primary / enabled 变更）→ patch 影响的每个 track key 各派生一条 `track_name`；同时影响多个 track 时 server 派生 set，`flow_track` pattern 匹配任一即匹配
+  - `cx.flow.watch.set` → `track_name` 不派生（watch 是个人偏好，不属于任一 track 时间线）；`flow_track` condition 视为不匹配
 - Event 不属于任何 Flow（普通 Space 消息）→ `flow_track` condition 视为不匹配（既不为真，也不报错）；用户希望覆盖普通 Space 消息时应使用 `field_match` on `space_id` 而非 `flow_track`
-- Flow 设置了 `discussion_space_ref` → discussion track 的消息发到 child Space；该 child Space 上的 `cx.message.*` 仍由 server 通过 `discussion_space_ref ↔ flow_id` 反查后映射为 `track_name = "discussion"`
+- Flow 设置了 `discussion_space_ref` → discussion track 的消息发到 child Space；该 child Space 上的 `cx.message.*` 仍由 server 通过 `discussion_space_ref ↔ flow_id` 反查后映射为 `track_name = "discussion"`，且 server MUST 校验通知 receiver 对 child Space 有读权限，否则 MUST `dont_notify` 并不暴露 parent Flow 的 discussion 存在性。
 
 `flow_track` MUST NOT 携带任何正文或 mention 信息进入推送 payload；它只参与 server-side 规则匹配并影响 `notify` / `dont_notify` 的最终决定。在 E2EE Space 中，由于 track name 是公开 Flow 配置（非密文），此条件不需要 §4.5 的降级流程，仍按 `evaluation_locus: server` 评估。
 

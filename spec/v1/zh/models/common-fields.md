@@ -136,16 +136,16 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 | 模板槽 | 含义 | 已有实例 |
 | --- | --- | --- |
-| `cx.<kind>.create` | 创建对象,落 state=`active`,写入 `created_by` / `created_at`。 | `cx.flow.create`、`cx.place.create`、`cx.morph.create`、`cx.message.send` |
+| `cx.<kind>.create` | 创建对象,落 state=`active`,写入 `created_by` / `created_at`。 | `cx.flow.create`、`cx.place.create`、`cx.morph.create`、`cx.message.create` |
 | `cx.<kind>.update` | 增量更新 active 对象字段;reducer 拒绝非 active 源。**新对象 SHOULD 沿用 `cx.patch.v1` 统一 patch 表达,不应再造单字段 update event。** | `cx.flow.update`、`cx.morph.update`、`cx.patch.v1`(unified) |
 | `cx.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `cx.flow.archive`、`cx.place.archive`、`cx.morph.archive` |
 | `cx.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `cx.flow.restore`、`cx.place.restore`、`cx.morph.restore` |
-| `cx.<kind>.tombstone` (或 `cx.<kind>.delete`) | active/archived → terminal(`tombstoned`/`deleted`);不可逆。 | `cx.flow.delete`、`cx.place.tombstone`、`cx.morph.delete`、`cx.relation.delete` |
+| `cx.<kind>.tombstone` 或 cross-object `cx.redaction` | active/archived → terminal(`tombstoned`/`deleted`);不可逆。当对象未单独注册 `cx.<kind>.tombstone` 时(例如 Flow),终态通过指向该对象的 `cx.redaction` 表达。 | `cx.place.tombstone`、`cx.morph.tombstone`、`cx.relation.delete`、`cx.redaction`(指向 flow / place / morph / message) |
 | `cx.<kind>.redact` 或 cross-object `cx.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。v1 wire 实际注册形态请以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准:Message 走 `cx.message.redact`;Flow / Morph / Place / Relation 等未单独注册 `cx.<kind>.redact` 的对象走 cross-object `cx.redaction`。两种 wire 形态都是 canonical (`active` status),按对象选择;reducer 不得自行折叠或互换。 | `cx.message.redact`、`cx.redaction`(用于 flow / morph / place / relation 等未单独注册的对象) |
 
 模板使用约束:
 
-- **不是命名 mandate**:已有 wire kind(如 `cx.message.send` 而非 `cx.message.create`、`cx.relation.delete` 仅有 tombstone 终态)保持不变,模板仅描述每个槽位对应的语义角色,使新 object kind 在注册时能直接判断"需要哪几个 lifecycle event"。
+- **不是命名 mandate**,但 **MUST 与 registry 对齐**:模板槽列出的"已有实例"必须存在于 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中;`cx.message.create`(非历史草案中的 `cx.message.send`)是 v1 标准 wire kind。新对象在注册时按模板选择需要的槽,但**不得**列出 registry 中不存在的 wire kind 当作示例。
 - **不创造新槽**:新增 lifecycle 行为(例如"软隔离 / 待审 / 撤回审核")MUST 先在本节扩展模板;否则不得作为标准 lifecycle event 入 registry。
 - **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `cx.patch.v1` 承载(参见 [`flow-and-message.md` §4.8](./flow-and-message.md) 的 `cx.flow.tracks.update` 实例);避免出现 `cx.<kind>.set_<field>` / `cx.<kind>.toggle_<field>` 这类单点 event 膨胀。
 - **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表,不在各对象文档重复说明转换矩阵。

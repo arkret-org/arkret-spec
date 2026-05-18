@@ -28,8 +28,9 @@
     },
     "frontier": {
       "type": "array",
+      "description": "Set of event_digest values covered by this Anchor. Each item is the content-addressed hash of a reducer-input Event's canonical bytes (excluding proofs and unsigned), encoded as `<algo>:<hex>` and equal to that Event's proof.payload_hash. See event-auth-state-resolution.md §3.",
       "items": {
-        "$ref": "#/$defs/move_ref"
+        "$ref": "#/$defs/event_digest"
       },
       "uniqueItems": true
     },
@@ -86,9 +87,9 @@
       "type": "string",
       "pattern": "^cx:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
-    "move_ref": {
+    "event_digest": {
       "type": "string",
-      "pattern": "^cx:move:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^(?:sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
     "space_ref": {
       "type": "string",

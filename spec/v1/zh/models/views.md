@@ -81,8 +81,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 | Flow 拖到另一个 List | `cx.flow.move` |
 | Flow 在同一 List 内排序 | `cx.flow.reorder` |
 | 修改 Flow 标题、状态、负责人、截止时间 | `cx.flow.update` |
-| 切换 Flow 默认 track | `cx.flow.track.set_primary` |
-| 开启/关闭 discussion track | `cx.flow.track.enable` / `cx.flow.track.disable` |
+| 切换 Flow 默认 track / 开启 / 关闭 track / 修改 track profile | `cx.flow.tracks.update` |
 | 修改 Board Place / List Place 元数据 | `cx.place.update` |
 | 发送、编辑、撤回 discussion 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
 | 改变共享 View filter / sort / group / columns / layout | `cx.view.update` |
