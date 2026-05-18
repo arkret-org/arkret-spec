@@ -2661,6 +2661,108 @@
       },
       "additionalProperties": true
     },
+    "audit_accessed_payload": {
+      "type": "object",
+      "description": "Strict payload for cx.audit.accessed. It records a specific access or paired privacy-sensitive write. Reducers MUST reject business events that require an audit pair unless this payload identifies the same writer, target, and object/cell in the same Anchor batch or in an accepted pre-read event with RYW receipt.",
+      "required": [
+        "access_kind",
+        "writer_did",
+        "target_ref",
+        "purpose",
+        "accessed_at"
+      ],
+      "properties": {
+        "access_kind": {
+          "type": "string",
+          "enum": [
+            "watch_manage_others",
+            "watch_audit_read",
+            "e2ee_plaintext_release",
+            "join_application_review",
+            "policy_audit_read",
+            "other"
+          ]
+        },
+        "writer_did": {
+          "$ref": "#/$defs/did"
+        },
+        "target_actor_did": {
+          "$ref": "#/$defs/did"
+        },
+        "target_ref": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "target_cell_id": {
+          "type": "string",
+          "pattern": "^cx:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+        },
+        "paired_event_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "paired_event_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "cell_head_before": {
+          "oneOf": [
+            { "$ref": "#/$defs/hash" },
+            { "type": "null" }
+          ]
+        },
+        "cell_head_after": {
+          "oneOf": [
+            { "$ref": "#/$defs/hash" },
+            { "type": "null" }
+          ]
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accessed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "ryw_required": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true, plaintext release or privileged projection MUST wait for an accepted-history RYW receipt before disclosure."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "access_kind": { "const": "watch_manage_others" }
+            },
+            "required": ["access_kind"]
+          },
+          "then": {
+            "required": [
+              "target_actor_did",
+              "target_cell_id",
+              "paired_event_id",
+              "paired_event_digest",
+              "cell_head_before",
+              "cell_head_after"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "access_kind": { "const": "watch_audit_read" }
+            },
+            "required": ["access_kind"]
+          },
+          "then": {
+            "required": [
+              "target_actor_did",
+              "target_cell_id"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
     "call_payload": {
       "type": "object",
       "minProperties": 1,

@@ -142,8 +142,20 @@
       "file": "schemas/did-key-log-entry.schema.json"
     },
     {
+      "schema_id": "cx.schema.did_continuity_proof.v1",
+      "file": "schemas/did-continuity-proof.schema.json",
+      "status": "active",
+      "description": "Signed DID continuity / migration proof payload"
+    },
+    {
       "schema_id": "cx.schema.identity_receipt.v1",
       "file": "schemas/identity-receipt.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.identity_link.v1",
+      "file": "schemas/identity-link.schema.json",
+      "status": "active",
+      "description": "Encrypted minimal-metadata binding from pairwise DID to principal DID"
     },
     {
       "schema_id": "cx.schema.handle_claim.v1",

@@ -43,7 +43,7 @@ title: Profiles And Presence
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `id` | id:actor_profile | MUST | Profile 对象 ID。 |
-| `schema` | string | SHOULD | `cx.schema.actor_profile.v1`。 |
+| `schema` | string | MUST | `cx.schema.actor_profile.v1`。 |
 | `principal_id` | did | MUST | Actor / Principal DID。 |
 | `actor_kind` | enum | MUST | `user`、`org`、`team`、`agent`、`service`、`device` 或 `integration`。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
@@ -264,7 +264,9 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现：
 
 ```
-GET /api/v1/directory/search-users?q=alice&space_id=cx:space:...&limit=10
+POST /api/v1/directory/search-users
+
+{ "q": "alice", "space_id": "cx:space:...", "limit": 10 }
 ```
 
 请求字段：

@@ -253,12 +253,15 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 ##### 5.0.5.2 Inception key 重签 transfer proof
 
-升级 transition Event(`cx.did.proof.continuity`,`old_did=did:web:<host>`,`new_did=did:webvh:<scid>:<host>`)**MUST** 满足以下 transfer envelope 结构(尚未独立注册 schema id;reducer 与 receiver 直接消费下列字段集合):
+升级 transition Event(`cx.did.proof.continuity`,`old_did=did:web:<host>`,`new_did=did:webvh:<scid>:<host>`)**MUST** 满足 `cx.schema.did_continuity_proof.v1` transfer envelope 结构；reducer 与 receiver 直接消费下列字段集合，并按 schema 与签名链验证：
 
 ```json
 {
+  "schema": "cx.schema.did_continuity_proof.v1",
   "old_did": "did:web:<host>",
   "new_did": "did:webvh:<scid>:<host>",
+  "purpose": "principal_method_upgrade",
+  "issued_at": "2026-05-19T00:00:00Z",
   "transfer_evidence": {
     "old_did_document_canonical_hash": "sha256:<64-hex>",
     "old_did_document_fetched_at": "<RFC 3339 UTC>",
@@ -403,7 +406,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 - AEAD AAD MUST 绑定 `actor_id`、`device_id`、`backup_class`、`backup_version`、item type、created_at 和 schema/profile id，防止把 ciphertext 从一个域重放到另一个域。
 - 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="contrix-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
 - `did_recovery` 域不得和 `mls_history` 域共享 wrap key、recovery share 或 key commitment。攻破 `mls_history` backup key 不得允许 DID rotate / recover；攻破 DID recovery share 也不得直接解密 MLS 历史。
-- `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。
+- `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。只有 `cx.profile.personal_node.v1` MAY 接受 `mixed_secret_storage=true` 的本地备份 envelope；`small_team`、`organization`、`high_security_organization`、`sovereign_deployment` 等 profile MUST 拒绝该 flag。mixed 模式若使用 `passphrase_kdf`，MUST 使用 Argon2id 且 `memory_kib >= 262144`、`iterations >= 4`、`parallelism >= 1`。
 
 以下材料 MAY 进入客户端加密备份，但 MUST 只以密文形式保存：
 
@@ -466,8 +469,8 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 }
 ```
 
-实现 SHOULD 使用现代 KDF，例如 Argon2id。
-如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。新创建的云保险箱不得默认使用 PBKDF2。
+实现 SHOULD 使用现代 KDF，例如 Argon2id。声明 `cx.profile.key_backup.memory_hard.v1` 时，`recipient_method="passphrase_kdf"` 的新备份 envelope MUST 满足 `cx.schema.key_backup.v1` 中的机器下限：Argon2id 至少 `memory_kib >= 65536`、`iterations >= 3`、`parallelism >= 1`；salt MUST 随 envelope 独立生成并进入 KDF 输入。
+如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。`cx.profile.key_backup.memory_hard.v1` 对 PBKDF2 的最低线是 `iterations >= 600000` 且 `hash ∈ {sha256, sha384, sha512}`，并要求 `degraded_profile_reason`。新创建的云保险箱不得默认使用 PBKDF2。
 
 FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
 

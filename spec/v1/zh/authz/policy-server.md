@@ -56,7 +56,7 @@ Content-Type: application/json
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `service_signature` | required | Policy Server 授权凭证；MUST 绑定调用服务 DID。 |
 | `request_id` | body | `string` | required | 请求 ID，用于日志和幂等追踪。 |
-| `space_id` | body | `id` | optional | 相关 Space；Space 相关检查 SHOULD 提供。 |
+| `space_id` | body | `id` | required | 相关 Space；进入 cache key、policy transcript 和 obligation `bound_to.space_id`。纯账号级检查 MUST 使用 principal control Space id。 |
 | `request_canonical_hash` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
 | `action` | body | `string` | required | 待检查动作，例如 `cx.message.create`。 |
 | `actor` | body | `did` | required | 发起动作的 Actor DID。 |

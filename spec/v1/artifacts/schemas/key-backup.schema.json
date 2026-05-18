@@ -36,6 +36,11 @@
         "external"
       ]
     },
+    "mixed_secret_storage": {
+      "type": "boolean",
+      "default": false,
+      "description": "True only for the personal_node exception where one encrypted backup envelope contains both identity-signing material and E2EE / MLS history material. Non-personal deployment profiles MUST reject this flag. When true and recipient_method=passphrase_kdf, the stricter Argon2id floor below applies."
+    },
     "backup_version": {
       "type": "string",
       "pattern": "^kb_[A-Za-z0-9_-]+$"
@@ -98,12 +103,112 @@
             },
             "params": {
               "type": "object",
+              "properties": {
+                "memory_kib": {
+                  "type": "integer",
+                  "minimum": 65536
+                },
+                "iterations": {
+                  "type": "integer",
+                  "minimum": 3
+                },
+                "parallelism": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "hash": {
+                  "type": "string",
+                  "enum": [
+                    "sha256",
+                    "sha384",
+                    "sha512"
+                  ]
+                }
+              },
               "additionalProperties": true
             },
             "degraded_profile_reason": {
               "type": "string"
             }
           },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "name": {
+                    "const": "argon2id"
+                  }
+                },
+                "required": ["name"]
+              },
+              "then": {
+                "required": [
+                  "params"
+                ],
+                "properties": {
+                  "params": {
+                    "required": [
+                      "memory_kib",
+                      "iterations",
+                      "parallelism"
+                    ],
+                    "properties": {
+                      "memory_kib": {
+                        "type": "integer",
+                        "minimum": 65536
+                      },
+                      "iterations": {
+                        "type": "integer",
+                        "minimum": 3
+                      },
+                      "parallelism": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "name": {
+                    "const": "pbkdf2"
+                  }
+                },
+                "required": ["name"]
+              },
+              "then": {
+                "required": [
+                  "params",
+                  "degraded_profile_reason"
+                ],
+                "properties": {
+                  "params": {
+                    "required": [
+                      "iterations",
+                      "hash"
+                    ],
+                    "properties": {
+                      "iterations": {
+                        "type": "integer",
+                        "minimum": 600000
+                      },
+                      "hash": {
+                        "type": "string",
+                        "enum": [
+                          "sha256",
+                          "sha384",
+                          "sha512"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ],
           "additionalProperties": true
         },
         "aead": {
@@ -273,5 +378,68 @@
       "additionalProperties": true
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mixed_secret_storage": {
+            "const": true
+          },
+          "encryption": {
+            "properties": {
+              "recipient_method": {
+                "const": "passphrase_kdf"
+              }
+            },
+            "required": ["recipient_method"]
+          }
+        },
+        "required": [
+          "mixed_secret_storage",
+          "encryption"
+        ]
+      },
+      "then": {
+        "properties": {
+          "encryption": {
+            "properties": {
+              "kdf": {
+                "properties": {
+                  "name": {
+                    "const": "argon2id"
+                  },
+                  "params": {
+                    "required": [
+                      "memory_kib",
+                      "iterations",
+                      "parallelism"
+                    ],
+                    "properties": {
+                      "memory_kib": {
+                        "type": "integer",
+                        "minimum": 262144
+                      },
+                      "iterations": {
+                        "type": "integer",
+                        "minimum": 4
+                      },
+                      "parallelism": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "params"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": true
 }

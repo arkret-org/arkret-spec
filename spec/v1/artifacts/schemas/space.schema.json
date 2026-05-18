@@ -56,6 +56,19 @@
       },
       "minItems": 1
     },
+    "fields": {
+      "type": "object",
+      "description": "Product/profile fields. Security-relevant discriminators such as purpose=principal_control are schema constrained below; other product fields remain extension-defined.",
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "principal_control"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
     "relation_profiles": {
       "type": "array",
       "description": "Optional Relation cardinality and conflict profiles declared by this Space schema/profile.",
@@ -311,6 +324,67 @@
               "closed",
               "restricted",
               "quarantine"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Principal control Spaces are ordinary collaboration Spaces, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together.",
+      "if": {
+        "properties": {
+          "fields": {
+            "properties": {
+              "purpose": {
+                "const": "principal_control"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          }
+        },
+        "required": [
+          "fields"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schema_refs": {
+            "contains": {
+              "const": "cx.profile.principal_control_space.v1"
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "The inverse guard prevents a profile-tagged Space from omitting the machine-readable purpose discriminator.",
+      "if": {
+        "properties": {
+          "schema_refs": {
+            "contains": {
+              "const": "cx.profile.principal_control_space.v1"
+            }
+          }
+        },
+        "required": [
+          "schema_refs"
+        ]
+      },
+      "then": {
+        "required": [
+          "fields"
+        ],
+        "properties": {
+          "fields": {
+            "properties": {
+              "purpose": {
+                "const": "principal_control"
+              }
+            },
+            "required": [
+              "purpose"
             ]
           }
         }

@@ -54,7 +54,7 @@
     },
     "refs": {
       "type": "array",
-      "description": "Semantic refs with role. Roles include: authorized_by (replaces v1's auth_refs[]), attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof. state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1.",
+      "description": "Semantic refs with role. Roles include: authorized_by (replaces v1's auth_refs[]), attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its cx.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1.",
       "items": {
         "$ref": "#/$defs/semantic_ref"
       },
@@ -140,13 +140,16 @@
   },
   "allOf": [
     {
-      "$comment": "Non-reducer event kinds MUST NOT carry preconditions/effects/anchor_ref. Reducer-input kinds MUST carry all three (enforced at registry level via wire_scope).",
+      "$comment": "Known active non-reducer event kinds MUST NOT carry preconditions/effects/anchor_ref.",
       "if": {
         "properties": {
           "kind": {
             "enum": [
               "cx.account.blocklist",
               "cx.account_data.set",
+              "cx.attestation.range_completeness",
+              "cx.audit.ryw_receipt",
+              "cx.call.signal",
               "cx.presence",
               "cx.typing",
               "cx.key.verification.request",
@@ -158,8 +161,7 @@
               "cx.key.verification.done",
               "cx.key.verification.cancel",
               "cx.read.marker",
-              "cx.receipt.read",
-              "cx.call.signal"
+              "cx.receipt.read"
             ]
           }
         },
@@ -173,6 +175,157 @@
             { "required": ["anchor_ref"] }
           ]
         }
+      }
+    },
+    {
+      "$comment": "Known active reducer-input event kinds MUST carry preconditions/effects/anchor_ref. Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.account.status",
+              "cx.actor.discovery",
+              "cx.agent.endpoint",
+              "cx.agent.protocol_session.result",
+              "cx.agent.protocol_session.start",
+              "cx.agent.protocol_session.status",
+              "cx.agent_task.cancel",
+              "cx.agent_task.create",
+              "cx.agent_task.execution.transition",
+              "cx.agent_task.source_authority.transition",
+              "cx.agent_task.transparency.transition",
+              "cx.agent_workspace.reservation.cleanup",
+              "cx.agent_workspace.reservation.recover",
+              "cx.agent_workspace.reservation.set",
+              "cx.applet.bridge_error",
+              "cx.applet.discovery",
+              "cx.applet.protocol_session.start",
+              "cx.applet.protocol_session.status",
+              "cx.applet.registration",
+              "cx.audit.accessed",
+              "cx.audit.epoch_key_destruction",
+              "cx.call.recording.start",
+              "cx.call.state",
+              "cx.capability.delegate",
+              "cx.capability.derived",
+              "cx.capability.grant",
+              "cx.capability.revoke",
+              "cx.consent.grant",
+              "cx.consent.revoke",
+              "cx.container.move_item",
+              "cx.container.rebalance",
+              "cx.cross_signing.publish",
+              "cx.cross_signing.reset",
+              "cx.device.authorized",
+              "cx.device.list_update",
+              "cx.device.revoked",
+              "cx.did.proof",
+              "cx.flow.archive",
+              "cx.flow.create",
+              "cx.flow.move",
+              "cx.flow.reorder",
+              "cx.flow.restore",
+              "cx.flow.tracks.update",
+              "cx.flow.update",
+              "cx.flow.watch.set",
+              "cx.handle.discovery",
+              "cx.identity.accountability_grant",
+              "cx.identity.disclosure_policy",
+              "cx.identity.disclosure_receipt",
+              "cx.identity.presentation_request",
+              "cx.identity.presentation_response",
+              "cx.invite.accept",
+              "cx.invite.cancel",
+              "cx.invite.claim",
+              "cx.invite.create",
+              "cx.invite.revoke",
+              "cx.invite.third_party",
+              "cx.member.state",
+              "cx.message.create",
+              "cx.message.redact",
+              "cx.message.revise",
+              "cx.mimi.room_binding",
+              "cx.mls.commit",
+              "cx.mls.commit_failed",
+              "cx.mls.genesis",
+              "cx.mls.keypackage",
+              "cx.mls.proposal",
+              "cx.mls.welcome",
+              "cx.moderation.decision",
+              "cx.moderation.decision.lift",
+              "cx.moderation.frank",
+              "cx.moderation.report",
+              "cx.morph.archive",
+              "cx.morph.create",
+              "cx.morph.restore",
+              "cx.morph.schema_migrate",
+              "cx.morph.update",
+              "cx.organization.discovery",
+              "cx.organization.moderation_policy",
+              "cx.place.archive",
+              "cx.place.create",
+              "cx.place.parent",
+              "cx.place.restore",
+              "cx.place.tombstone",
+              "cx.place.update",
+              "cx.policy.action",
+              "cx.policy.rule",
+              "cx.policy.set",
+              "cx.profile.create",
+              "cx.profile.space_override",
+              "cx.profile.update",
+              "cx.reaction.add",
+              "cx.reaction.remove",
+              "cx.redaction",
+              "cx.relation.create",
+              "cx.relation.delete",
+              "cx.relation.update",
+              "cx.schema.define",
+              "cx.schema.update",
+              "cx.session.grant",
+              "cx.sovereign.did_policy",
+              "cx.space.archive",
+              "cx.space.asset_privacy_policy",
+              "cx.space.audit_policy_downgrade",
+              "cx.space.child",
+              "cx.space.create",
+              "cx.space.destroy",
+              "cx.space.discovery",
+              "cx.space.freeze",
+              "cx.space.history_sharing_policy",
+              "cx.space.history_visibility",
+              "cx.space.inheritance_policy",
+              "cx.space.join_rule",
+              "cx.space.media_service",
+              "cx.space.moderation_policy",
+              "cx.space.organization",
+              "cx.space.parent",
+              "cx.space.plaintext_visible_services",
+              "cx.space.policy",
+              "cx.space.policy_components",
+              "cx.space.policy_server",
+              "cx.space.read_receipt_policy",
+              "cx.space.schema",
+              "cx.space.tombstone",
+              "cx.space.update",
+              "cx.space.upgrade",
+              "cx.space_key.share",
+              "cx.space_key.share_audit",
+              "cx.space_key.withheld",
+              "cx.view.create",
+              "cx.view.reconcile",
+              "cx.view.update"
+            ]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": [
+          "preconditions",
+          "effects",
+          "anchor_ref"
+        ]
       }
     },
     {
@@ -975,9 +1128,19 @@
     {
       "if": {
         "properties": {
+          "kind": { "const": "cx.audit.accessed" }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/audit_accessed_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
           "kind": {
             "enum": [
-              "cx.audit.accessed",
               "cx.audit.ryw_receipt",
               "cx.audit.epoch_key_destruction",
               "cx.space.audit_policy_downgrade",
@@ -1234,7 +1397,7 @@
         "role": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Common roles include authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof. state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1."
+          "description": "Common roles include authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its cx.audit.accessed record in the same Anchor batch; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §8.1."
         },
         "critical": {
           "type": "boolean",
@@ -1359,7 +1522,7 @@
     },
     "flow_watch_set_payload": {
       "type": "object",
-      "description": "Payload for cx.flow.watch.set. Writes the (flow_id, actor_did) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) actor_did MUST equal envelope.actor_id unless writer holds cx.flow.watch.manage_others; (2) when actor_did != envelope.actor_id (manage_others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) manage_others writes MUST be accompanied by a cx.audit.accessed event identifying writer / target / cell. See models/flow-and-message.md §8.4.",
+      "description": "Payload for cx.flow.watch.set. Writes the (flow_id, actor_did) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) actor_did MUST equal envelope.actor_id unless writer holds cx.flow.watch.manage_others; (2) when actor_did != envelope.actor_id (manage_others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) manage_others writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event whose payload access_kind=watch_manage_others identifies writer / target / cell / before-after heads. See models/flow-and-message.md §8.4.",
       "required": [
         "flow_id",
         "actor_did",

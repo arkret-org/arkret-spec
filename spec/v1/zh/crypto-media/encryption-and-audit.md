@@ -355,7 +355,7 @@ MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `e
 }
 ```
 
-当 MLS group 绑定到 Flow discussion track 时，`governance_binding` MUST 同时覆盖 `flow_id` 与 `track="discussion"`，并以有效 track access、membership、history visibility 和 policy state 作为验证边界。
+当 MLS group 绑定到 Flow discussion track 时，`governance_binding` MUST 同时覆盖 `flow_id` 与 `track="discussion"`，并以 Space membership、history visibility、policy state 和 `allowed_tracks` action scope 作为验证边界。`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
 
 **E2EE Space MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Space 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
@@ -512,14 +512,14 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 
 ### 2.7 Minimal-Metadata E2EE Space
 
-高隐私 Space MAY 启用 `cx.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
+高隐私 Space MAY 启用 `cx.profile.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
 
 Profile 规则：
 
 - Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 room-scoped pairwise DID，例如成员为该 Space / Flow track 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
 - MLS leaf credential SHOULD 绑定同一个 room-scoped pairwise DID，或绑定可由该 pairwise DID 验证的 credential。
-- 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `cx.identity_link` application message 或 MLS private extension 中，只对当前 room members 可见。
-- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、room id / flow track id、MLS leaf index、effective time 和签名证明；该证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。
+- 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `cx.identity_link` application message 或 MLS private extension 中，只对当前 room members 可见。v1 的必需 wire shape 是 `cx.schema.identity_link.v1`；MLS private extension 只是等价承载，payload schema 不变。
+- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、space id、可选 flow id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("cx-identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。
 - Sync / Federation 服务只可按 pairwise DID、space id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
 - Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Space policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Space。
 - 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Space history。
@@ -583,7 +583,7 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
   - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`space_id` 通过 exporter `context` 参数额外绑定,即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,space_id 绑定仍能阻止跨 Space 重放。接收方 MUST 在路由层校验 routing tag 与当前 Space / epoch 一致。
   - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Space SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露,使频次只能 per-target_ref 而非 per-message 关联。
-- Minimal-metadata Space (`cx.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 room-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
+- Minimal-metadata Space (`cx.profile.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 room-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
 - `cx.reaction.remove` 走相同规则；`encrypted_payload` 内 MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛,但不得将该 id 暴露在明文。
 
 服务端 / sync service 处理 reaction 时:

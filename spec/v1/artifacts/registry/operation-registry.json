@@ -83,7 +83,8 @@
         "cx.directory.resolve_handle",
         "cx.directory.private_contact_discovery",
         "cx.directory.announce",
-        "cx.directory.withdraw"
+        "cx.directory.withdraw",
+        "cx.directory.subscribe"
       ]
     },
     {
@@ -426,9 +427,15 @@
     },
     {
       "operation_id": "cx.directory.search_users",
-      "http": "GET /directory/search-users",
+      "http": "POST /directory/search-users",
       "grpc": "Directory/SearchUsers",
       "mq": "directory.search_users"
+    },
+    {
+      "operation_id": "cx.directory.subscribe",
+      "http": "POST /directory/subscribe",
+      "grpc": "Directory/Subscribe",
+      "mq": "directory.subscribe"
     },
     {
       "operation_id": "cx.directory.withdraw",

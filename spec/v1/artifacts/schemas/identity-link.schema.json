@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/identity-link.schema.json",
+  "title": "Contrix Minimal-Metadata Identity Link",
+  "description": "Encrypted application-message or MLS private-extension payload that binds a room-scoped pairwise DID to the real principal DID for cx.profile.mls.minimal_metadata_space.v1. This object is never written to public Space history unless a separate disclosure policy explicitly permits it.",
+  "type": "object",
+  "required": [
+    "schema",
+    "pairwise_did",
+    "principal_did",
+    "device_id",
+    "space_id",
+    "mls_leaf_index",
+    "mls_epoch",
+    "effective_at",
+    "proof"
+  ],
+  "properties": {
+    "schema": {
+      "const": "cx.schema.identity_link.v1"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ],
+      "default": "active"
+    },
+    "pairwise_did": {
+      "$ref": "#/$defs/did",
+      "description": "Room-scoped DID used in Event.actor_id and MLS leaf credential."
+    },
+    "principal_did": {
+      "$ref": "#/$defs/did",
+      "description": "Real principal DID that controls or has disclosed the pairwise DID."
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "track": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+    },
+    "mls_group_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mls_leaf_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "mls_epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "effective_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "disclosure_policy_ref": {
+      "type": "string",
+      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "proof": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signature_algorithm",
+        "payload_hash",
+        "signature"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[^\\s#]+#[^\\s#]+$",
+          "description": "DID URL of a key controlled by principal_did or by a disclosure proof accepted by Space policy."
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519",
+            "ECDSA-P256-SHA256",
+            "ML-DSA-65"
+          ]
+        },
+        "payload_hash": {
+          "$ref": "#/$defs/hash",
+          "description": "Hash of canonical input bytes: utf8('cx-identity-link-v1\\n') || canonical_json(identity-link object with proof.signature omitted)."
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "flow_id"
+        ]
+      },
+      "then": {
+        "required": [
+          "track"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    }
+  }
+}

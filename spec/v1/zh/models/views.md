@@ -64,7 +64,7 @@ View 查询 SHOULD 优先使用标准对象类型：
 
 Board Place / List Place 作为容器由 `place.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
 
-### 2.5 权限必须逐对象、按有效 track access 裁剪
+### 2.5 权限必须逐对象、按 track action scope 裁剪
 
 View 展示 Flow 讨论时，必须分别执行授权裁剪：
 
@@ -306,7 +306,7 @@ Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按
 1. 根据 View query 找到目标 Board。
 2. 查询 `board --contains--> list` 得到列集合。
 3. 查询 `list --contains--> flow` 得到候选 Flow。
-4. 按 actor 的 Space membership、capability 和有效 track access 裁剪不可见对象和字段。
+4. 按 actor 的 Space membership、capability 和 `allowed_tracks` action scope 裁剪不可见对象和字段。track scope 只缩小已授权动作范围，不授予独立 track-level ACL。
 5. 按 List/Flow rank 和稳定 tie-break 排序。
 
 ### 6.3 Board Projection Response

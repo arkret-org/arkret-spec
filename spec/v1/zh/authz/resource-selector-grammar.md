@@ -96,7 +96,7 @@ Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用
 }
 ```
 
-`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并满足有效 track access、history visibility 和 E2EE key eligibility。
+`allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `cx.message.*` action，并在已有 Space 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
 
 ## 3. 字符串 Shorthand（可选 CLI / 日志形态，non-normative）
 
@@ -393,7 +393,7 @@ function matches(target, selector):
     return false
 ```
 
-Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、track access、history visibility 和 E2EE key eligibility 检查。
+Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 检查。
 
 ## 7. 授权范围
 
@@ -402,7 +402,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须在授权 `actions` 中，或被明确的通配动作覆盖。
 3. **约束匹配**：`place_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。`space_kind_allow` 在 v1 没有规范用途（v1 中所有 Space 同属一种安全边界），v1 实现 SHOULD 把它视为 always-allow（详见 [`constraint-schema.md` §5](./constraint-schema.md)）。
-4. **Track access 检查**：Message 和 discussion track 访问必须满足有效 track access、history visibility 和 E2EE key eligibility。
+4. **Track scope 检查**：Message 和 discussion track 访问必须在已有 Space / capability 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility；track 本身不授予 membership、history 或 E2EE key。
 5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
 
@@ -457,7 +457,7 @@ Facet 是 Space schema / Morph profile 声明后的 hint 或查询标签，不�
 - 支持精确 ID、Space、Flow、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema 和 Object 匹配。
 - 拒绝非 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
 - 对非法 selector 返回清晰错误。
-- 在 selector 命中后继续执行 action、constraint、claim、policy、track access 和 E2EE 检查。
+- 在 selector 命中后继续执行 action、constraint、claim、policy、`allowed_tracks` action scope 和 E2EE 检查。
 
 实现 SHOULD：
 

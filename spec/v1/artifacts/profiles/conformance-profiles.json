@@ -158,7 +158,7 @@
   "e2ee_hardening": [
     "cx.profile.mls_governance_binding.full.v1",
     "keypackage_claim_lifecycle",
-    "minimal_metadata_space",
+    "cx.profile.mls.minimal_metadata_space.v1",
     "aad_visibility_policy",
     "cx.profile.attested_audit.e2ee.v1",
     "cx.profile.disclosed_audit.e2ee.v1",
@@ -186,7 +186,9 @@
     "cx.profile.mls_governance_binding.full.v1",
     "cx.profile.attested_audit.e2ee.v1",
     "cx.profile.disclosed_audit.e2ee.v1",
-    "cx.profile.cross_signing.reset.v1"
+    "cx.profile.cross_signing.reset.v1",
+    "cx.profile.mls.minimal_metadata_space.v1",
+    "cx.profile.key_backup.memory_hard.v1"
   ],
   "vector_profiles": [
     "cx.profile.capability_vectors.v1",
@@ -492,7 +494,7 @@
         "sync-fixture.json"
       ],
       "optional_extensions": [
-        "minimal_metadata_space",
+        "cx.profile.mls.minimal_metadata_space.v1",
         "aad_visibility_policy"
       ],
       "feature_discovery": {
@@ -1726,7 +1728,7 @@
       ],
       "optional_extensions": [
         "aad_visibility_policy",
-        "minimal_metadata_space"
+        "cx.profile.mls.minimal_metadata_space.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -1741,6 +1743,40 @@
         "cx:cell:cx.component.mls_epoch.v1:<mls_group_id>",
         "cx:cell:cx.component.key_schedule.v1:<mls_group_id>"
       ]
+    },
+    "cx.profile.mls.minimal_metadata_space.v1": {
+      "inherits": [
+        "cx.profile.e2ee_client.v1"
+      ],
+      "description": "Hardening profile for E2EE Spaces that route by room-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
+      "required_endpoints": [
+        "cx.events.submit",
+        "cx.events.query"
+      ],
+      "required_event_kinds": [
+        "cx.mls.commit",
+        "cx.message.create"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.event.v1",
+        "cx.schema.encrypted_payload.v1",
+        "cx.schema.identity_link.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json",
+        "crypto-signature-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "pairwise_actor_did",
+          "identity_link_schema",
+          "identity_link_eager_invalidation",
+          "principal_disclosure_policy"
+        ],
+        "unsupported_optional": "fail closed before joining minimal-metadata encrypted Space"
+      }
     },
     "cx.profile.attested_audit.e2ee.v1": {
       "inherits": [
@@ -2384,6 +2420,32 @@
           "candidate_member_application_intake"
         ],
         "unsupported_optional": "omit profile claim (and reject member.application.* events as unknown)"
+      }
+    },
+    "cx.profile.key_backup.memory_hard.v1": {
+      "inherits": [],
+      "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, and deterministic AEAD nonce recomputation.",
+      "required_endpoints": [
+        "cx.keys.backups.put",
+        "cx.keys.backups.get"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.key_backup.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "key_backup_argon2id_floor",
+          "key_backup_domain_separation",
+          "passphrase_kdf_nonce_recompute",
+          "mixed_secret_storage_policy"
+        ],
+        "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"
       }
     },
     "cx.profile.cross_signing.reset.v1": {

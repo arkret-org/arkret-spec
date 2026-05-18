@@ -277,7 +277,7 @@ E2EE Space 中，Sync Service 不持有正文密钥，无法在 server 端评估
 3. **降级标记**：Sync Service 在 push payload 中携带 `evaluation_locus_unresolved=true`，让客户端知道"我已经被 wakeup 但匹配尚未在 server 端确定"。客户端 MUST 完成本地评估后才决定是否进入用户感知的通知 surface；不得仅凭 wakeup 就在 system tray 弹出。
 4. **明文 hint 限制**：E2EE Space 中，`push_hint` MUST NOT 包含会让 push gateway 间接获得规则匹配信息的字段（例如 "matched_keyword: 'urgent'"）。具体来说：除非 Space policy 把 push gateway 列入 `plaintext_visible_services`，hint 只能携带固定枚举字段（`new_message` / `incoming_call` / `mention_self`），不能携带匹配到的具体内容。
 5. **限速降级**：E2EE Space + client-side rule 多的 client 在高消息量场景会被持续 wakeup，电池负担显著。客户端 MUST 暴露 `aggressive_wakeup_threshold`（默认每 60 秒 ≤ 30 次）；超过阈值后切换到批量 wakeup 模式，Sync Service 把多个 wakeup 合并为单个 batch wakeup（仍携带 `evaluation_locus_unresolved=true`），客户端醒来一次评估全部待处理 Event。
-6. **`mentions_actor` 通过 mention sidecar 提示**（可选,使用 keyed HMAC 形态）：发送者的客户端在加密时 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上,定义为:
+6. **`mentions_actor` 通过 mention sidecar 提示**（可选,使用 keyed HMAC 形态）：严格 E2EE 默认走第 1-5 步 blind / batch wakeup。若 Space policy 允许 `mention_routing_hint="recipient_registered_token"`，且被提及接收方已经为当前 `(space_id, mls_group_id, epoch, pairwise_or_principal_did)` 向 Sync Service 注册 opaque routing token，发送者的客户端 MAY 把 mention 列表的 keyed HMAC 标签作为明文 sidecar 字段附在 Event 元数据上,定义为:
 
     ```text
     mention_routing_hmac_v2 =
@@ -287,15 +287,16 @@ E2EE Space 中，Sync Service 不持有正文密钥，无法在 server 端评估
         )
     ```
 
-    其中 `MLS-Exporter` 即 MLS RFC9420 §8.5 `MLS-Exporter(label, context, length)`,使用当前 group epoch 的 exporter secret 派生。Receiver / Sync Service 验证时按相同公式重新派生 key 并比对 32 byte HMAC tag(hex 或 base64url 表达,与 sidecar 字段编码一致)。
+    其中 `MLS-Exporter` 即 MLS RFC9420 §8.5 `MLS-Exporter(label, context, length)`,使用当前 group epoch 的 exporter secret 派生。**Sync Service MUST NOT 派生、接收或持久化 MLS exporter secret**。接收方设备在本地按相同公式为自己的 DID 派生 token，并只把 opaque token、epoch、过期时间和目标推送通道注册给 Sync Service；服务端只做 sidecar tag 与已注册 opaque token 的等值比较。未注册 token、token 过期或 Space policy 未允许时，服务端 MUST 回退到第 1-5 步 blind / batch wakeup。
 
     **安全属性**:
     - key 取自 MLS exporter secret,**不在群外可知**;Sync Service 即便获得 `space_id` / `mls_group_id` / `epoch` / 完整成员名单也无法离线枚举 `mentioned_did → tag` 的字典(没有 exporter secret 即无 key)——关闭了对该字段的 server-side 字典枚举侧信道。
+    - 服务端可见的剩余信息仅限于"某个已注册 opaque token 在该 epoch 命中 N 次"。这是接收方 opt-in 的通知路由泄露，不是发送方单方开启的能力；minimal-metadata Space 与 audited E2EE Space MUST 默认关闭。
     - tag 仍随 epoch 自然失效(exporter secret 跨 commit 必变);跨 epoch 重放无法命中。
-    - 同一 epoch 内同一 mentioned_did 的 tag 仍恒定 — 是 server-side `mentions_actor` 匹配能工作的前提;能观察到的频次仅限于"该 epoch 内被 mention 多少次",与解密无关。
+    - 同一 epoch 内同一 mentioned_did 的 tag 仍恒定 — 是 opaque token 等值比较能工作的前提；若部署不能接受该频次泄露，MUST 关闭 token 注册并使用 blind wakeup。
     - 非 E2EE Space 不使用 routing tag(直接看 plaintext mention 列表)。
 
-    启用与否由 Space policy 中 `mention_routing_hint` 决定。minimal-metadata Space 与 audited E2EE Space 默认关闭；其他 Space 未声明时默认开启。关闭时 mention 走 §4.5 第 1-5 步降级,Sync Service 不做 `mentions_actor` server-side 匹配。
+    启用与否由 Space policy 中 `mention_routing_hint` 与接收方 token 注册共同决定。minimal-metadata Space 与 audited E2EE Space 默认关闭；其他 E2EE Space 未声明时默认关闭，除非接收方显式 opt-in 注册 token。关闭时 mention 走 §4.5 第 1-5 步降级,Sync Service 不做 `mentions_actor` server-side 匹配。
 
 明确禁止：
 

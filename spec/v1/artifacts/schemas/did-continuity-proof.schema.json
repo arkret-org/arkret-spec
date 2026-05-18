@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/did-continuity-proof.schema.json",
+  "title": "Contrix DID Continuity Proof",
+  "description": "Payload profile for cx.did.proof continuity transitions, including cross-method did:web -> did:webvh upgrades.",
+  "type": "object",
+  "required": [
+    "schema",
+    "old_did",
+    "new_did",
+    "purpose",
+    "issued_at",
+    "transfer_evidence",
+    "signature_chain"
+  ],
+  "properties": {
+    "schema": {
+      "const": "cx.schema.did_continuity_proof.v1"
+    },
+    "old_did": {
+      "$ref": "#/$defs/did"
+    },
+    "new_did": {
+      "$ref": "#/$defs/did"
+    },
+    "purpose": {
+      "type": "string",
+      "enum": [
+        "principal_method_upgrade",
+        "principal_migration",
+        "account_binding_continuity"
+      ]
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "issued_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "old_did_document_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "new_did_document_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "transfer_evidence": {
+      "type": "object",
+      "required": [
+        "old_did_document_canonical_hash",
+        "old_did_document_fetched_at",
+        "inception_pubkey_fingerprint",
+        "user_oob_confirmation_id",
+        "user_oob_confirmation_method"
+      ],
+      "properties": {
+        "old_did_document_canonical_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "old_did_document_fetched_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "inception_pubkey_fingerprint": {
+          "$ref": "#/$defs/hash"
+        },
+        "user_oob_confirmation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user_oob_confirmation_method": {
+          "type": "string",
+          "enum": [
+            "offline_paper",
+            "physical_meet",
+            "independent_channel"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "signature_chain": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "by",
+          "verification_method",
+          "algorithm",
+          "payload_hash",
+          "signature"
+        ],
+        "properties": {
+          "by": {
+            "$ref": "#/$defs/did"
+          },
+          "verification_method": {
+            "type": "string",
+            "pattern": "^did:[^\\s#]+#[^\\s#]+$"
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "Ed25519",
+              "ECDSA-P256-SHA256",
+              "ML-DSA-65"
+            ]
+          },
+          "payload_hash": {
+            "$ref": "#/$defs/hash",
+            "description": "Hash of utf8('cx-did-continuity-proof-v1\\n') || canonical_json(proof object with signature_chain[].signature omitted)."
+          },
+          "signature": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    }
+  }
+}

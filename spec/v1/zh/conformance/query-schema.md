@@ -4,7 +4,7 @@ title: Query JSON Schema
 
 ## 1. 目标
 
-本文定义 Contrix View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Space policy、有效 track access、E2EE 可见性与 capability。
+本文定义 Contrix View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Space policy、`allowed_tracks` action scope、E2EE 可见性与 capability。
 
 ## 2. Query 对象
 
@@ -38,7 +38,7 @@ title: Query JSON Schema
 - `space_ids`: REQUIRED，查询范围。
 - `object_types`: OPTIONAL，限制标准对象类型，例如 `space`、`flow`、`message`、`morph`、`relation`、`view`。`card` / `room` 必须表达为 `object_types=["flow"]` + `filters` 限制 `kind`；Board/List 必须表达为 `object_types=["space"]` + `filters` 限制 `kind`。
 - `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
-- `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、有效 track access 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
+- `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、`allowed_tracks` action scope 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
 - `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Flow context 的上下文锚点对象引用。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。

@@ -3697,13 +3697,14 @@ paths:
             schema:
               $ref: '#/components/schemas/OperationRequest'
   /directory/search-users:
-    get:
+    post:
       operationId: cx.directory.search_users
       security:
       - bearerAuth: []
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Mention autocomplete user search
@@ -3711,6 +3712,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
+  /directory/subscribe:
+    post:
+      operationId: cx.directory.subscribe
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Directory pull-mode webhook subscription created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
   /authz/invites:
     get:
       operationId: cx.authz.get_invites

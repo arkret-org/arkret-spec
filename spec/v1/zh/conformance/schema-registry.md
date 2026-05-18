@@ -47,7 +47,9 @@ sidebar:
 | `cx.schema.grant_constraint.v1` | Grant Constraint |
 | `cx.schema.resource_selector.v1` | Resource Selector |
 | `cx.schema.did_key_log_entry.v1` | DID Key Log Entry |
+| `cx.schema.did_continuity_proof.v1` | DID Continuity Proof |
 | `cx.schema.identity_receipt.v1` | Identity Receipt |
+| `cx.schema.identity_link.v1` | Minimal-metadata E2EE identity link |
 | `cx.schema.handle_claim.v1` | Handle Claim |
 | `cx.schema.media_metadata.v1` | Media Metadata |
 | `cx.schema.read_receipt.v1` | Read Receipt |

@@ -159,7 +159,7 @@ paths:
     post:
       operationId: cx.directory.search_actors
   /directory/search-users:
-    get:
+    post:
       operationId: cx.directory.search_users
   /directory/resolve-handle:
     post:
@@ -317,7 +317,7 @@ paths:
 | `cx.sync.account` | `POST /sync` | WebSocket/SSE account sync channel / `/sync?since...` |
 | `cx.sync.get_snapshot_head` | `GET /sync/snapshot-head` | snapshot pointer |
 | 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/contrix/sync/1.0.0` + service signature。 |
-| `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*`, `GET /directory/search-users` | gRPC Discovery Service |
+| `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*` | gRPC Discovery Service |
 | `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | `POST /directory/announce`, `POST /directory/withdraw`, `POST /directory/subscribe` | gRPC Discovery Ingest Service |
 | `cx.blob.upload` / `cx.blob.head` / `cx.blob.get` | `POST /blob/upload`, `HEAD/GET /blob/get` | Object-store signed URL binding / gRPC blob service |
 | `cx.push.register_device` / `cx.push.notify` | `POST /push/register-device`, `POST /push/notify` | APNs/FCM adapter / MQ wakeup topic |

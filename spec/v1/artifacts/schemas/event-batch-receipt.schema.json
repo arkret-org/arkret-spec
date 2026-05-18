@@ -5,6 +5,7 @@
   "type": "object",
   "required": [
     "receipt_id",
+    "schema",
     "issuer",
     "scope",
     "frontier",

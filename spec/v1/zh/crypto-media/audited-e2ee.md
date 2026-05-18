@@ -142,9 +142,12 @@ Audit Agent profile MUST 满足：
      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
      "actor_id": "did:web:compliance.acme.corp",
      "payload": {
+       "access_kind": "e2ee_plaintext_release",
+       "writer_did": "did:web:compliance.acme.corp",
        "target_ref": "cx:message:99804430-0000-7000-8000-000000000000",
        "purpose": "Internal legal compliance request #8801",
-       "accessed_at": "2026-04-30T00:00:00Z"
+       "accessed_at": "2026-04-30T00:00:00Z",
+       "ryw_required": true
      }
    }
    ```
@@ -244,7 +247,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 1. **多 witness 覆盖**：`witness_attestation.witnesses[]` MUST `length >= 2`；所有 witnesses entries 对应的 RYW receipt（每条 `cx.audit.ryw_receipt` 对象有自己的 `proofs[]`）覆盖**同一** `audit_event_id` + `audit_event_digest`。Audit Agent 在解密前 MUST 同时持有这两条 receipt 并以聚合形式提交给接收方校验。
 2. **witness 独立性**：`witnesses[]` 中任意两个 entry 的 `(issuer, controlling_organization, verification_method)` 三元组 MUST 两两 distinct：
    - 不同 service DID（`issuer` 字段字符串不相等）；
-   - 不同 controlling organization（`controlling_organization` 字段，对应 DID Document `controller` 字段或 Space policy 声明的运营方不交叉）；
+   - 不同 controlling organization（`controlling_organization` 字段必须能从 witness issuer DID Document 的 `controller` / service ownership 链或 Space policy 声明验证，不接受 witness 自报；且运营方不得与 audit actor 的 controlling organization 相同）；
    - 不同 `verification_method` 控制密钥（不能是同一私钥不同 `kid`）。
 3. **frontier 一致性**：所有 witnesses entries 对应 receipt 的 `frontier.space_frontier` 在 `audit_event_id` 上 MUST 因果一致；frontier 不一致时 receipts 不能聚合为 `federation_witness_attested`，每条只能各自以 `single_source` 形态处理。
 4. **签发方授权**：每个 `witnesses[].issuer` MUST 都被 Space policy 声明为合法 RYW witness（`cx.space.policy_components` 下 `audit.ryw_witnesses[]`）。Policy 未列出的 issuer 即使签出有效 receipt 也不计入聚合。

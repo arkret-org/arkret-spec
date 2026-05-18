@@ -891,7 +891,7 @@ v1 默认 controller 手动 publish：
 1. Mirror Flow 中 agent 产出 `cx.message.create`（content 为草稿）；用 `cx.relation.references(from=draft_message, to=agent_task_id)` 关联
 2. Controller 编辑 / 修改 / 追问 agent 重写
 3. Controller 满意后点 "publish"：
-   - 在源 Flow 写 `cx.message.create`，**`created_by = controller principal`**（不是 agent）
+   - 在源 Flow 写 `cx.message.create` 时，Event 顶层 **`actor_id = controller principal`**（不是 agent）；物化 Message 的 `created_by` 由 reducer 从该 `actor_id` 派生。
    - content MAY 含 `cx.content.import_attestation` 标注 agent 草稿（audit 透明，由 Alice 决定披露程度）
    - **read-then-write**：先读 `agent_task.<id>.execution_state` cell head：
      - 当前 = `active` → 写 `execution.transition(from=active, to=completed)`

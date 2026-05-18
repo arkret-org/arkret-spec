@@ -608,6 +608,14 @@
       "description": "Federation push / pull body's service_binding_ref.reducer_profile_hash differs from the receiver's reducer profile for the target Space. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and covered_frontier — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Space policy update or terminate federation for this Space."
     },
     {
+      "code": "federation_authority_mismatch",
+      "applies_to": [
+        "federation_transaction",
+        "service_call"
+      ],
+      "description": "HTTP Message Signature @authority / target URI host does not match the resolved service endpoint for Destination-Service-DID, or the Destination-Service-DID is not authorized by Space policy for the requested federation operation. Receiver MUST reject before processing events."
+    },
+    {
       "code": "selector_too_complex",
       "applies_to": [
         "auth_decision",
@@ -1210,7 +1218,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "A `cx.flow.watch.set` write that uses `cx.flow.watch.manage_others` to set another actor's watch state was rejected because no accompanying `cx.audit.accessed` event (identifying writer DID, target actor DID, cell id, before/after level) was present in the same batch / transaction. See zh/models/flow-and-message.md §8.4."
+      "description": "A `cx.flow.watch.set` write that uses `cx.flow.watch.manage_others` to set another actor's watch state was rejected because it lacked refs[role=audit_pair] to a same-batch `cx.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, cell id, paired event id/digest, and before/after heads. See zh/models/flow-and-message.md §8.4."
     },
     {
       "code": "cross_space_structural_relation",

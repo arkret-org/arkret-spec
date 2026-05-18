@@ -210,9 +210,9 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并满足 track access、history visibility 和 E2EE key eligibility。
+`allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并在已有 Space 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
 
-`discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、track access、history visibility 和 E2EE key eligibility 决定。
+`discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 决定。
 
 `allowed_tracks` 和 `denied_tracks` 的元素 MUST 使用 Flow `tracks` map key 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明其他 track 名，但不得用 profile 名称替代 track name。
 
@@ -330,7 +330,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "require_review",
   "approval_mode": "proposal_then_approve",
   "proposal_morph_type": "proposal",
-  "approval_threshold": "majority|unanimous|quorum",
+  "approval_threshold": "majority",
   "approvers": [
     "did:web:approver1.example.com",
     "did:web:approver2.example.com"
@@ -428,7 +428,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
     "did:web:parent1.example.com",
     "did:web:parent2.example.com"
   ],
-  "approval_threshold": "any|all"
+  "approval_threshold": "unanimous"
 }
 ```
 
@@ -809,7 +809,7 @@ Grant envelope 字段、签名规则与必填性以
   "effect": "require_review",
   "mode": "before_commit",
   "approvers": ["did:web:manager.example"],
-  "approval_threshold": 1,
+  "approval_threshold": "quorum",
   "expires_after": "PT24H",
   "reason_required": true
 }

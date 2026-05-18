@@ -5,6 +5,10 @@
   "description": "Response shape for the WebRTC media service ICE config endpoint. Used by cx.profile.webrtc_media.v1; see crypto-media/webrtc-signaling.md §6.",
   "type": "object",
   "required": [
+    "space_id",
+    "call_id",
+    "actor_id",
+    "device_id",
     "ice_servers",
     "ttl_seconds",
     "refresh_lead_seconds",
@@ -12,6 +16,26 @@
     "signature"
   ],
   "properties": {
+    "space_id": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Echo of the request Space id. Bound into the signature to prevent cross-Space replay."
+    },
+    "call_id": {
+      "type": "string",
+      "pattern": "^cx:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Echo of the request call id. Bound into the signature to prevent cross-call replay."
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Actor that may use this ICE configuration. Bound into the signature."
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Device that may use this ICE configuration. Bound into the signature."
+    },
     "ice_servers": {
       "type": "array",
       "minItems": 1,

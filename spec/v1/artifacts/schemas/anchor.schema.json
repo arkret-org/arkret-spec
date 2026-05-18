@@ -10,6 +10,7 @@
     "frontier",
     "state_root",
     "anchorer_sig",
+    "anchored_at",
     "hlc"
   ],
   "properties": {
@@ -58,6 +59,12 @@
           "$ref": "#/$defs/threshold_signature"
         }
       ]
+    },
+    "anchored_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Wall-clock timestamp at which the anchorer signed this Anchor. Used only for reducer-derived projection timestamps and freshness diagnostics; not a lattice winner input."
     },
     "hlc": {
       "$ref": "#/$defs/hlc"

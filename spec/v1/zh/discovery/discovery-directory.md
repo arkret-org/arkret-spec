@@ -543,7 +543,7 @@ POST /api/v1/directory/resolve-space
 POST /api/v1/directory/search-organizations
 POST /api/v1/directory/resolve-organization
 POST /api/v1/directory/search-actors
-GET  /api/v1/directory/search-users
+POST /api/v1/directory/search-users
 POST /api/v1/directory/resolve-handle
 POST /api/v1/directory/private-contact-discovery
 POST /api/v1/directory/announce
@@ -561,7 +561,7 @@ POST /api/v1/directory/subscribe
 | `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 仅返回公开或授权可发现组织。 |
 | `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Space 列表或服务拓扑。 |
 | `cx.directory.search_actors` | 无 | `query: string`; `space_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
-| `cx.directory.search_users` | `query.q: string` | `query.space_id: id`; `query.limit: int` | `results: object[]` | mention autocomplete；受共同 Space / directory policy 限制。 |
+| `cx.directory.search_users` | `body.q: string` | `body.space_id: id`; `body.limit: int` | `results: object[]` | mention autocomplete；受共同 Space / directory policy 限制。`q` 不得进入 URL、Referer 或未脱敏 access log。 |
 | `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string` | `did: did`; `handle: string`; `verified: boolean`; `claims: object[]?` | private handle 需要 presentation。 |
 | `cx.directory.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `cx.directory.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |

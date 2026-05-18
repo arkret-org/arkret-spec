@@ -108,7 +108,7 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 - `payload.type` 不得重复写入 `cx.*` Event kind。
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。
 - `actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 Move refs 校验。
-- 启用 minimal-metadata E2EE profile 时，`actor_id` MAY 是 Space / Flow track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.identity_link`、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+- 启用 `cx.profile.mls.minimal_metadata_space.v1` 时，`actor_id` MAY 是 Space / Flow track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.schema.identity_link.v1` payload（`cx.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 ### 2.5 Create 类 Event 的跨字段语义校验
 

@@ -131,7 +131,7 @@
               },
               "controlling_organization": {
                 "$ref": "#/$defs/did",
-                "description": "DID of the organization that controls the witness (operational independence claim). For 'federation_witness_attested', all witnesses' controlling_organization values MUST be pairwise distinct."
+                "description": "DID of the organization that controls the witness. This value is not self-attested: verifiers MUST resolve issuer DID Document and confirm its controller / service ownership chain matches controlling_organization. For 'federation_witness_attested', all witnesses' controlling_organization values MUST be pairwise distinct and MUST NOT equal the audit actor's controlling organization."
               },
               "attested_at": {
                 "$ref": "#/$defs/timestamp",

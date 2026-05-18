@@ -602,7 +602,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas-register cell keyed by (flow_id, actor_did). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.actor_did MUST equal envelope actor_id, unless writer holds cx.flow.watch.manage_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct cx.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
+        "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas-register cell keyed by (flow_id, actor_did). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.actor_did MUST equal envelope actor_id, unless writer holds cx.flow.watch.manage_others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event with access_kind=watch_manage_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct cx.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
         "cell_family": "cx.component.flow.watch.v1",
         "cell_subject": {
           "type": "tuple",
@@ -1772,8 +1772,20 @@
         "file": "schemas/did-key-log-entry.schema.json"
       },
       {
+        "schema_id": "cx.schema.did_continuity_proof.v1",
+        "file": "schemas/did-continuity-proof.schema.json",
+        "status": "active",
+        "description": "Signed DID continuity / migration proof payload"
+      },
+      {
         "schema_id": "cx.schema.identity_receipt.v1",
         "file": "schemas/identity-receipt.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.identity_link.v1",
+        "file": "schemas/identity-link.schema.json",
+        "status": "active",
+        "description": "Encrypted minimal-metadata binding from pairwise DID to principal DID"
       },
       {
         "schema_id": "cx.schema.handle_claim.v1",
@@ -2257,7 +2269,8 @@
           "cx.directory.resolve_handle",
           "cx.directory.private_contact_discovery",
           "cx.directory.announce",
-          "cx.directory.withdraw"
+          "cx.directory.withdraw",
+          "cx.directory.subscribe"
         ]
       },
       {
@@ -2600,9 +2613,15 @@
       },
       {
         "operation_id": "cx.directory.search_users",
-        "http": "GET /directory/search-users",
+        "http": "POST /directory/search-users",
         "grpc": "Directory/SearchUsers",
         "mq": "directory.search_users"
+      },
+      {
+        "operation_id": "cx.directory.subscribe",
+        "http": "POST /directory/subscribe",
+        "grpc": "Directory/Subscribe",
+        "mq": "directory.subscribe"
       },
       {
         "operation_id": "cx.directory.withdraw",
