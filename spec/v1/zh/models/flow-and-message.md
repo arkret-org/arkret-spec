@@ -184,6 +184,35 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 - 禁用 track 应通过 `cx.flow.track.disable` 从 `tracks` map 中移除该 key 或标记为 profile 声明的 archived state，不得留下可写入的 disabled track。
 - View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Space schema/profile、track config 和可见字段；不得要求 Flow 额外声明模式字段。
 
+### 4.8 统一 event `cx.flow.tracks.update`(P-D12 O1.2 canonical)
+
+为减少 track 写入路径的 event kind 数量,v1.x 引入统一 event **`cx.flow.tracks.update`**(注意名称用复数 `tracks`),通过 `cx.patch.v1` 表达对 `Flow.tracks` map 的任意原子修改。原有 4 个单用途 event kind(`cx.flow.track.{enable,disable,update,set_primary}`)仍 active,v1.x reducer MUST 同时接受两种形态;新客户端 SHOULD 优先使用统一 event。
+
+**典型 patch 示例**:
+
+```json
+{
+  "kind": "cx.flow.tracks.update",
+  "payload": {
+    "flow_id": "cx:flow:...",
+    "patch": {
+      "tracks.discussion.enabled":   { "$op": "set", "value": true },
+      "tracks.discussion.profile":   { "$op": "set", "value": "review" },
+      "tracks.synthesis.is_primary": { "$op": "set", "value": false },
+      "tracks.discussion.is_primary": { "$op": "set", "value": true }
+    }
+  }
+}
+```
+
+上述单个 event 等价于先 `cx.flow.track.enable(discussion)` + `cx.flow.track.update(discussion, profile=review)` + `cx.flow.track.set_primary(discussion)` 三个 legacy event,但作为**原子 Move** 在同一 cell precondition / effect 中完成,避免中间态被其它 actor 抢写。
+
+**Capability**:`cx.flow.tracks.manage` 一个 action 覆盖统一 event + 4 个 legacy event(`target_event_kinds` 列出 5 个)。客户端可以选择申请细粒度 legacy action(`cx.flow.track.enable` 等)或粗粒度统一 `cx.flow.tracks.manage`;reducer 按命中的 action 判定。
+
+**Reducer 规则**:同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成);primary track 不能空缺(切走旧 primary 后必须有一个新 primary);track key 必须匹配 `^[a-z][a-z0-9_]{0,63}$`。
+
+**迁移期建议**:server-side reducer 接受两种形态;client SDK 把 4 个 legacy 调用 normalize 为 1 个统一 event 是 SDK-internal 优化,不影响 wire 兼容。v2 MAY 移除 legacy event kind,但 v1.x 不强制。
+
 ## 5. Discussion 独立 Space (`discussion_space_ref`)
 
 需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，**不再**通过 track hybrid 表达，而是创建一个 child Space 并通过 `Flow.discussion_space_ref` 引用：

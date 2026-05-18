@@ -48,6 +48,7 @@
     "cx.profile.minimal_client.v1",
     "cx.profile.full_client.v1",
     "cx.profile.e2ee_client.v1",
+    "cx.profile.e2ee_relaxed.v1",
     "cx.profile.enterprise_client.v1",
     "cx.profile.principal_server_events_api.v1",
     "cx.profile.principal_server.v1",
@@ -59,6 +60,9 @@
     "cx.profile.applet_service.v1",
     "cx.profile.agent_runtime.v1",
     "cx.profile.agent_workspace.v1",
+    "cx.profile.agent_workspace.governed.v1",
+    "cx.profile.agent_workspace.strict.v1",
+    "cx.profile.agent_workspace.lite.v1",
     "cx.profile.mimi_interop.v1",
     "cx.profile.sovereign_client.v1",
     "cx.profile.franking.v1",
@@ -489,6 +493,48 @@
         ],
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       }
+    },
+    "cx.profile.e2ee_relaxed.v1": {
+      "tier": "extension_profile_implementation",
+      "depends_on": ["cx.profile.e2ee_client.v1"],
+      "mutually_exclusive_with": ["cx.profile.mls_governance_binding.full.v1"],
+      "spec_ref": "spec/v1/zh/crypto-media/encryption-and-audit.md#242-cxprofilee2ee_relaxedv1降级-profilep-d4-引入",
+      "summary": "P-D4 degraded E2EE profile. Allows `mls_send_pause=\"advisory\"` (cf. §2.4.1) so that low-latency interactive scenarios (real-time AV, collaborative editing, in-game chat) do not block message send on MLS commit completion. Cost: removed members can continue decrypting a small window of subsequent messages. NOT for general chat / collaboration / compliance use. MUTUALLY EXCLUSIVE with cx.profile.mls_governance_binding.full.v1.",
+      "applies_to_roles": ["e2ee_space"],
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_capability_actions": [],
+      "required_features": [
+        "cx.feature.e2ee_relaxed.v1"
+      ],
+      "required_constraint_kinds": [],
+      "required_cell_namespaces": [],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "e2ee_relaxed"
+        ],
+        "unsupported_optional": "Servers that do not advertise cx.feature.e2ee_relaxed.v1 MUST reject Space create / cx.space.policy_components writes that set mls_send_pause=\"advisory\" (reason: profile_unsupported / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
+      },
+      "reducer_reject_reasons": [
+        "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
+        "conflicting_e2ee_profiles"
+      ],
+      "client_ui_requirements": {
+        "banner_warning": "Spaces declaring this profile MUST display a banner-level warning indicating that kick / ban is not cryptographically immediate; the warning MAY be temporarily collapsed but MUST NOT be permanently dismissable.",
+        "invite_warning": "When a user invites a new member, the UI SHOULD prompt with 'this Space uses degraded E2EE' so the invitee can make an informed decision.",
+        "export_marker": "Sync metadata / backup / export MUST preserve a `e2ee_relaxed=true` marker so downstream consumers know the cryptographic guarantee is relaxed."
+      },
+      "downgrade_window_constraint": {
+        "field": "relaxed_window_max_ms",
+        "default": 30000,
+        "max": 300000,
+        "rationale": "Receiving client refuses to admit a message into verified timeline if the gap between receive_at and the most recent membership_change_at exceeds this window with old-epoch decryption."
+      },
+      "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Space (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
     },
     "cx.profile.enterprise_client.v1": {
       "inherits": [
@@ -1011,6 +1057,149 @@
         ],
         "unsupported_optional": "Servers not declaring this profile MUST reject cx.agent_task.* and cx.content.import_attestation writes targeting a Space declaring cx.profile.agent_workspace.v1 (profile_unsupported). Source-Space mention_redirect acceptance is governed independently by the cx.feature.mention_redirect.v1 critical_extension check."
       }
+    },
+    "cx.profile.agent_workspace.governed.v1": {
+      "tier": "extension_profile_implementation",
+      "depends_on": ["cx.profile.agent_workspace.v1"],
+      "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md#91-cxprofileagent_workspacegovernedv1p-d2",
+      "summary": "P-D2 governed-source profile. Declared by a SOURCE Space that wishes its export policy enforced at the mirror-side reducer (not just at source-side agent runtime). Mirror reducer MUST reject cx.content.import_attestation events lacking a valid source-side cx.schema.content.source_export_policy_attestation.v1 envelope, instead of accepting + audit-marking as permissive cx.profile.agent_workspace.v1 does.",
+      "applies_to_roles": ["governed_source"],
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.content.source_export_policy_attestation.v1"
+      ],
+      "required_capability_actions": [],
+      "required_features": [
+        "cx.feature.governed_import.v1"
+      ],
+      "required_constraint_kinds": [],
+      "required_cell_namespaces": [],
+      "required_fixtures": [
+        "agent-workspace-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "governed_import"
+        ],
+        "unsupported_optional": "Servers that do not implement governed_import MUST fail-closed (profile_unsupported) when asked to accept a cx.content.import_attestation whose claimed source Space declares cx.profile.agent_workspace.governed.v1; they MUST NOT silently downgrade to permissive accept-then-audit. See agent-workspace-profile.md §8.2 governed behavior + §9.1."
+      },
+      "reducer_reject_reasons": [
+        "source_export_attestation_required",
+        "source_export_attestation_invalid",
+        "source_export_attestation_denied",
+        "source_export_destination_mismatch",
+        "source_export_content_hash_mismatch",
+        "source_export_attestation_expired",
+        "source_export_authority_unauthorized"
+      ],
+      "policy_authority_declaration": {
+        "field": "policy_components.export_policy_authorities",
+        "shape": "did[]",
+        "description": "Source Space declares which DIDs are authorized to sign source_export_policy_attestation envelopes. Attestation `authority_did` MUST appear in this list."
+      },
+      "ttl_constraints": {
+        "max_attestation_ttl_seconds": 3600,
+        "rationale": "Mirror reducers SHOULD cache attestations only as long as the source-issued TTL allows; longer-lived attestations let revoked export decisions stay accepted."
+      }
+    },
+    "cx.profile.agent_workspace.strict.v1": {
+      "tier": "extension_profile_implementation",
+      "status": "reserved",
+      "depends_on": ["cx.profile.agent_workspace.v1"],
+      "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md#11-信任模型与适用边界",
+      "summary": "Reserved placeholder for the future hardening variant of agent_workspace addressing P-D3 stale-window concerns in cross-deployment / third-party-runtime / multi-tenant SaaS / regulatory-immediate-revocation scenarios. Candidate mechanisms (any or combination): frontier freshness gate (sync-verify source frontier covers latest revoke before each agent action), source-issued lease (short-TTL pass-through, fail-closed on expiry), protocol-level hard stale window upper bound. v1 does NOT publish a normative shape for this profile; the id is registered as `status: reserved` so prose can reference it as a future direction without breaking lint, and so downstream registries / SDKs see the name as known-future rather than typo / drift.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_capability_actions": [],
+      "required_features": [],
+      "required_constraint_kinds": [],
+      "required_cell_namespaces": [],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [],
+        "unsupported_optional": "Reserved id; no conformance requirements in v1. Deployments needing stricter freshness MAY define their own private profile in the interim and graduate to this id when v1.x adopts it."
+      },
+      "notes": "See agent-workspace-profile.md §1.1 for the trust-model boundary that distinguishes v1 default scope from the scenarios this future profile would address. P-D3 follow-up FU-PD3.1 tracks evaluation of which mechanism (freshness gate / lease / hard upper bound) v1.x should adopt."
+    },
+    "cx.profile.agent_workspace.lite.v1": {
+      "tier": "extension_profile_implementation",
+      "depends_on": ["cx.profile.agent_workspace.v1"],
+      "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md#92-cxprofileagent_workspacelitev1p-d13",
+      "summary": "P-D13 lightweight profile for single-controller mirror Space that does NOT need the full audit-grade lattice. Strips: (a) anchor-based reservation TTL (reverts to wall-clock + grace), (b) per-task transparency / source_authority FSM cells (controller checks state via UI hint, not lattice), (c) MLS Governance Binding requirement. Keeps: reservation cell namespaces (mirror_space_by_source / mirror_flow_by_source), import_attestation envelope, mention_redirect content block. Cross-Space writes (publish-back to source Space) MUST still go through full pipeline regardless of lite profile.",
+      "applies_to_roles": ["workspace_root", "mirror_space"],
+      "mutually_exclusive_with": [
+        "cx.profile.agent_workspace.governed.v1"
+      ],
+      "stripped_from_base": {
+        "cell_namespaces": [
+          "agent_task.<id>.transparency",
+          "agent_task.<id>.source_authority"
+        ],
+        "events": [
+          "cx.agent_task.transparency.transition",
+          "cx.agent_task.source_authority.transition"
+        ],
+        "ttl_clock_source": {
+          "from": "anchor_index_distance",
+          "to": "wall_clock_plus_grace",
+          "grace_seconds_default": 60,
+          "rationale": "Lite deployments tolerate replay-attack-against-cleanup as long as controller is the only authority writing tasks; coarse wall-clock TTL is acceptable."
+        },
+        "mls_governance_binding": "not_required"
+      },
+      "kept_from_base": {
+        "cell_namespaces": [
+          "mirror_space_by_source",
+          "mirror_flow_by_source",
+          "agent_task.<id>.execution_state"
+        ],
+        "required_event_kinds": [
+          "cx.agent_task.create",
+          "cx.agent_task.update",
+          "cx.agent_task.execution_state.transition",
+          "cx.content.import_attestation",
+          "cx.mention_redirect"
+        ],
+        "membership": "single_controller_principal (unchanged from base)"
+      },
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [
+        "cx.agent_task.transparency.transition",
+        "cx.agent_task.source_authority.transition"
+      ],
+      "required_schemas": [],
+      "required_capability_actions": [],
+      "required_features": ["cx.feature.agent_workspace_lite.v1"],
+      "required_constraint_kinds": [],
+      "required_cell_namespaces": [
+        "mirror_space_by_source",
+        "mirror_flow_by_source",
+        "agent_task.<id>.execution_state"
+      ],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "agent_workspace_lite"
+        ],
+        "unsupported_optional": "Servers declaring lite MUST also accept all base agent_workspace.v1 read paths (lite is a strict subset of writes, not reads). Source-Space side handling of mention_redirect is unchanged."
+      },
+      "cross_space_writes_unchanged": {
+        "scope": "publish_back_from_mirror_to_source",
+        "rule": "Lite ONLY relaxes mirror-internal lattice. Any event leaving the mirror Space and entering a source / shared Space MUST go through the standard pipeline (signature, capability, schema, full lattice, MLS group of the destination Space). Lite is not a justification for cross-Space shortcuts."
+      },
+      "reducer_reject_reasons": [
+        "lite_profile_writes_disallowed_event_kind",
+        "lite_profile_requires_single_controller"
+      ],
+      "notes": "Lite is intended for hobbyist / single-developer setups where the controller is also the only auditor. Deployments that publish or share mirror state with anyone except the workspace owner SHOULD NOT use lite. See agent-workspace-profile.md §9.2 for prose normative."
     },
     "cx.profile.mimi_interop.v1": {
       "required_endpoints": [

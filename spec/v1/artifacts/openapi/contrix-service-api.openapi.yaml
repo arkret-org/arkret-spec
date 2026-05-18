@@ -86,9 +86,11 @@ info:
     honor path-level `servers` overrides; the corresponding `operation-registry.json`
 
     `http` field always records the bare (post-prefix) path.'
-security:
-- bearerAuth: []
-- httpMessageSignature: []
+# P-D6: top-level default removed. Every operation MUST declare its own
+# `security:` block. SDKs / lint / threat-model audits read security from
+# the operation, not from this top-level fallback. Operations that are truly
+# unauthenticated (public metadata) declare `security: []` explicitly.
+security: []
 servers:
 - url: https://{host}/api/v1
   variables:
@@ -99,12 +101,70 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+      description: |
+        User-session bearer token (passkey / OIDC / device proof). Used for
+        operations called by an end-user client. NOT acceptable as the sole
+        auth material for S2S federation / inter-service calls — those MUST
+        also satisfy the httpMessageSignature + sourceServiceDid +
+        destinationServiceDid AND group (see service-http-binding.md §2.2).
     httpMessageSignature:
       type: apiKey
       in: header
       name: Signature
+      description: |
+        RFC 9421 HTTP Message Signature applied with the source service DID's
+        verification key. When present, the request MUST also include
+        Source-Service-DID / Destination-Service-DID / Content-Digest (the
+        latter only for requests with a body); these are modeled as separate
+        apiKey securitySchemes (sourceServiceDid / destinationServiceDid /
+        contentDigest) and MUST appear in the same security AND group as
+        httpMessageSignature.
+    sourceServiceDid:
+      type: apiKey
+      in: header
+      name: Source-Service-DID
+      description: |
+        Required companion to httpMessageSignature. Identifies the originating
+        service DID and MUST be covered by the signature transcript. SDK
+        generators MUST treat the absence of this header on S2S endpoints as
+        an authentication failure, not a 400.
+    destinationServiceDid:
+      type: apiKey
+      in: header
+      name: Destination-Service-DID
+      description: |
+        Required companion to httpMessageSignature. Identifies the intended
+        recipient service DID (anti-misdirection / cross-tenant guard). MUST
+        match the deployment-resolved service identity; mismatched requests
+        MUST be rejected before reaching reducer / business logic.
+    contentDigest:
+      type: apiKey
+      in: header
+      name: Content-Digest
+      description: |
+        Required companion to httpMessageSignature on requests that carry a
+        body (POST / PUT / DELETE-with-body). RFC 9530 digest header bound
+        into the signature transcript so that body tampering is detected
+        before any verification of structured fields. Omitted on body-less
+        requests (GET / HEAD / DELETE-without-body).
+    presignParam:
+      type: apiKey
+      in: query
+      name: presign
+      description: |
+        Single-blob, short-TTL pre-signed authorization (cx.blob.presign).
+        Carries a server-signed envelope binding blob_ref / TTL / scope /
+        nonce. Permitted ONLY on cx.blob.get and cx.blob.head, and MUST NOT
+        co-occur with bearerAuth — implementations enforce mutual exclusion.
+        See media-and-blob.md §5.4 and server-threat-model.md §S21 for the
+        carve-out's normative constraints.
     mutualTls:
       type: mutualTLS
+      description: |
+        Reserved for deployment-controlled internal channels (sovereign /
+        enclave operator surfaces). Not used by any registered v1 operation
+        in this OpenAPI document; deployments MAY require it as an additional
+        AND constraint on admin endpoints via deployment-local profile.
   headers:
     XContrixRequestId:
       description: Stable request identifier.
@@ -2062,6 +2122,7 @@ paths:
   /server/describe:
     get:
       operationId: cx.server.describe
+      security: []
       responses:
         '200':
           description: Service description
@@ -2080,6 +2141,12 @@ paths:
   /identity/resolve:
     post:
       operationId: cx.identity.resolve
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       requestBody:
         required: true
         content:
@@ -2107,6 +2174,11 @@ paths:
   /identity/document:
     get:
       operationId: cx.identity.get_document
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       parameters:
       - name: did
         in: query
@@ -2123,6 +2195,11 @@ paths:
   /identity/log:
     get:
       operationId: cx.identity.get_log
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       responses:
         '200':
           description: DID key log
@@ -2141,8 +2218,10 @@ paths:
     post:
       operationId: cx.identity.submit_did_operation
       security:
-      - bearerAuth: []
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: DID operation accepted
@@ -2159,6 +2238,11 @@ paths:
   /identity/receipts:
     get:
       operationId: cx.identity.get_receipts
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       responses:
         '200':
           description: Identity receipts
@@ -2177,6 +2261,9 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       requestBody:
         required: true
         content:
@@ -2206,6 +2293,11 @@ paths:
                 $ref: '#/components/schemas/EventsSubmitResponse'
     get:
       operationId: cx.events.query
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       summary: Query / backfill events with cursor pagination.
       description: |
         Returns a page of events according to `before` / `after` cursor anchors.
@@ -2298,6 +2390,12 @@ paths:
   /events/query:
     post:
       operationId: cx.events.query_post
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       summary: cx.events.query in HTTP POST body form (for long/complex queries).
       description: |
         Semantically identical to `GET /events` (`cx.events.query`); the same
@@ -2371,6 +2469,11 @@ paths:
   /events/subscribe:
     get:
       operationId: cx.events.subscribe
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       summary: Streaming event subscription with optional history catchup.
       description: |
         Opens a streaming subscription scoped by `spaces[]` / `actors[]`. Returns
@@ -2422,6 +2525,7 @@ paths:
   /events/describe:
     get:
       operationId: cx.events.describe
+      security: []
       responses:
         '200':
           description: Events API capabilities
@@ -2432,6 +2536,11 @@ paths:
   /events/{event_id}:
     get:
       operationId: cx.events.get
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       parameters:
       - name: event_id
         in: path
@@ -2453,6 +2562,12 @@ paths:
   /events/batch-get:
     post:
       operationId: cx.events.batch_get
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       requestBody:
         required: true
         content:
@@ -2469,6 +2584,11 @@ paths:
   /events/frontier:
     get:
       operationId: cx.events.frontier
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       parameters:
       - name: actor_id
         in: query
@@ -2488,6 +2608,8 @@ paths:
   /sync:
     post:
       operationId: cx.sync.account
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: Account-aggregated sync response
@@ -2512,6 +2634,11 @@ paths:
   /sync/snapshot-head:
     get:
       operationId: cx.sync.get_snapshot_head
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       parameters:
       - name: space_id
         in: query
@@ -2531,6 +2658,12 @@ paths:
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Handle resolution result
@@ -2549,7 +2682,6 @@ paths:
       operationId: cx.directory.private_contact_discovery
       security:
       - bearerAuth: []
-      - httpMessageSignature: []
       requestBody:
         required: true
         content:
@@ -2587,11 +2719,23 @@ paths:
   /blob/get:
     head:
       operationId: cx.blob.head
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+      - presignParam: []
       responses:
         '200':
           description: Blob metadata
     get:
       operationId: cx.blob.get
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+      - presignParam: []
       parameters:
       - in: header
         name: Range
@@ -2647,38 +2791,8 @@ paths:
   /blob/presign:
     post:
       operationId: cx.blob.presign
-      summary: Issue a short-TTL pre-signed URL for a single blob.
-      description: |
-        Returns a deliberately-narrow pre-signed URL that authenticates a
-        single subsequent `GET /blob/get` via the `presign` query parameter.
-        The pre-signed URL exists to let browser HTML elements (`<img>`,
-        `<video>`, `<link>`) load protected media without setting an
-        `Authorization` header.
-
-        Tight constraints (enforced by the issuing service):
-          - TTL ≤ 1 hour. Implementations SHOULD default to ≤ 5 minutes.
-          - Scope: exactly one blob, read-only (GET / HEAD), single purpose.
-          - Cannot be exchanged for or escalate to an authenticated session.
-          - MUST be revocable before expiry (e.g., per-blob nonce list,
-            rolling issuer key, deny list).
-          - MUST NOT include the requester's bearer token, refresh token, or
-            any reusable credential. The token MUST be a server-issued JWS
-            (or equivalent signed envelope) signed by the blob service DID.
-          - E2EE attachment ciphertext fetch MUST NOT use this mechanism;
-            E2EE clients keep `blob_ref` + key out of any URL the server can
-            log, and instead fetch via authenticated header path.
-
-        Issuance is authorized by the standard capability check
-        (`cx.blob.presign` action) and bound by the constraint set declared
-        on the issuing grant (`blob_presign_max_ttl_seconds`,
-        `blob_presign_scope`).
-
-        See zh/crypto-media/media-and-blob.md §5.4 for the full normative
-        section (URL format, signature envelope, revocation, threat model
-        carve-out).
       security:
       - bearerAuth: []
-      - httpMessageSignature: []
       requestBody:
         required: true
         content:
@@ -2777,6 +2891,9 @@ paths:
       operationId: cx.push.notify
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Blind push delivery result
@@ -2798,6 +2915,12 @@ paths:
   /authz/check:
     post:
       operationId: cx.authz.check
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       requestBody:
         required: true
         content:
@@ -2814,6 +2937,11 @@ paths:
   /authz/effective-grants:
     get:
       operationId: cx.authz.get_effective_grants
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       responses:
         '200':
           description: Effective grants
@@ -2824,6 +2952,12 @@ paths:
   /device_messages:
     post:
       operationId: cx.device_messages.put
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       parameters:
       - in: header
         name: Idempotency-Key
@@ -2845,6 +2979,8 @@ paths:
                 $ref: '#/components/schemas/DeviceMessagesPutResponse'
     get:
       operationId: cx.device_messages.get
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: Device message fetch
@@ -2855,6 +2991,8 @@ paths:
   /keys/upload:
     post:
       operationId: cx.keys.upload
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: Key upload result
@@ -2871,6 +3009,12 @@ paths:
   /keys/query:
     post:
       operationId: cx.keys.query
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Key query result
@@ -2887,6 +3031,12 @@ paths:
   /keys/claim:
     post:
       operationId: cx.keys.claim
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: One-time key claim result
@@ -2903,6 +3053,8 @@ paths:
   /keys/keypackages/upload:
     post:
       operationId: cx.keys.keypackages.upload
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: MLS KeyPackage upload result
@@ -2919,6 +3071,12 @@ paths:
   /keys/keypackages/claim:
     post:
       operationId: cx.keys.keypackages.claim
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: MLS KeyPackage claim result
@@ -2935,6 +3093,12 @@ paths:
   /keys/keypackages/consume:
     post:
       operationId: cx.keys.keypackages.consume
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: MLS KeyPackage consume result
@@ -2951,6 +3115,8 @@ paths:
   /keys/keypackages/revoke:
     post:
       operationId: cx.keys.keypackages.revoke
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: MLS KeyPackage revoke result
@@ -2967,6 +3133,8 @@ paths:
   /keys/backups/{backup_id}:
     put:
       operationId: cx.keys.backups.put
+      security:
+      - bearerAuth: []
       parameters:
       - in: path
         name: backup_id
@@ -2989,6 +3157,8 @@ paths:
                 $ref: '#/components/schemas/OperationResult'
     get:
       operationId: cx.keys.backups.get
+      security:
+      - bearerAuth: []
       parameters:
       - in: path
         name: backup_id
@@ -3005,6 +3175,8 @@ paths:
                 $ref: ../schemas/key-backup.schema.json
     delete:
       operationId: cx.keys.backups.delete
+      security:
+      - bearerAuth: []
       parameters:
       - in: path
         name: backup_id
@@ -3022,6 +3194,8 @@ paths:
   /keys/backups:
     get:
       operationId: cx.keys.backups.list
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: Encrypted key backup metadata list
@@ -3050,6 +3224,7 @@ paths:
   /mimi/provider-directory:
     get:
       operationId: cx.mimi.provider_directory
+      security: []
       responses:
         '200':
           description: MIMI provider directory
@@ -3062,6 +3237,9 @@ paths:
       operationId: cx.mimi.key_material
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: MIMI key material claim result
@@ -3080,6 +3258,9 @@ paths:
       operationId: cx.mimi.room_update
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       parameters:
       - in: path
         name: flow_id
@@ -3104,6 +3285,9 @@ paths:
       operationId: cx.mimi.notify
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       parameters:
       - in: path
         name: flow_id
@@ -3128,6 +3312,9 @@ paths:
       operationId: cx.mimi.submit_message
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       parameters:
       - in: path
         name: flow_id
@@ -3152,6 +3339,8 @@ paths:
       operationId: cx.mimi.group_info
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       parameters:
       - in: path
         name: flow_id
@@ -3170,6 +3359,9 @@ paths:
       operationId: cx.mimi.request_consent
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: MIMI consent request result
@@ -3188,6 +3380,9 @@ paths:
       operationId: cx.mimi.update_consent
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: MIMI consent update result
@@ -3206,6 +3401,9 @@ paths:
       operationId: cx.mimi.identifier_query
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: MIMI identifier query result
@@ -3224,6 +3422,9 @@ paths:
       operationId: cx.mimi.report_abuse
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: MIMI abuse report result
@@ -3242,6 +3443,9 @@ paths:
       operationId: cx.mimi.proxy_download
       security:
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: MIMI proxy download result
@@ -3258,6 +3462,7 @@ paths:
   /identity/describe:
     get:
       operationId: cx.identity.describe_registry
+      security: []
       responses:
         '200':
           description: Identity registry metadata
@@ -3268,6 +3473,7 @@ paths:
   /sync/describe:
     get:
       operationId: cx.sync.describe
+      security: []
       responses:
         '200':
           description: Sync service metadata and limits
@@ -3278,6 +3484,7 @@ paths:
   /directory/describe:
     get:
       operationId: cx.directory.describe
+      security: []
       responses:
         '200':
           description: Directory metadata
@@ -3291,6 +3498,9 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Directory ingest acknowledgement (push mode)
@@ -3310,6 +3520,9 @@ paths:
       security:
       - bearerAuth: []
       - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Directory entry withdrawal acknowledgement
@@ -3326,6 +3539,12 @@ paths:
   /directory/search-spaces:
     post:
       operationId: cx.directory.search_spaces
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Authorized Space search
@@ -3342,6 +3561,12 @@ paths:
   /directory/resolve-space:
     post:
       operationId: cx.directory.resolve_space
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Authorized Space resolution
@@ -3358,6 +3583,12 @@ paths:
   /directory/search-organizations:
     post:
       operationId: cx.directory.search_organizations
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Authorized organization search
@@ -3374,6 +3605,12 @@ paths:
   /directory/resolve-organization:
     post:
       operationId: cx.directory.resolve_organization
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Authorized organization resolution
@@ -3390,6 +3627,12 @@ paths:
   /directory/search-actors:
     post:
       operationId: cx.directory.search_actors
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
           description: Authorized actor search
@@ -3406,6 +3649,11 @@ paths:
   /directory/search-users:
     get:
       operationId: cx.directory.search_users
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       responses:
         '200':
           description: Mention autocomplete user search
@@ -3416,6 +3664,8 @@ paths:
   /authz/invites:
     get:
       operationId: cx.authz.get_invites
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: Authorized invite query
@@ -3426,6 +3676,10 @@ paths:
   /applet/ping:
     get:
       operationId: cx.applet.ping
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       responses:
         '200':
           description: Applet liveness and public metadata
@@ -3436,6 +3690,7 @@ paths:
   /applet/describe:
     get:
       operationId: cx.applet.describe
+      security: []
       responses:
         '200':
           description: Applet capabilities and namespace metadata
@@ -3446,6 +3701,11 @@ paths:
   /applet/transactions:
     post:
       operationId: cx.applet.transaction
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       parameters:
       - in: header
         name: Idempotency-Key
@@ -3468,6 +3728,10 @@ paths:
   /applet/actors/{actor_id}:
     get:
       operationId: cx.applet.query_actor
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       parameters:
       - in: path
         name: actor_id
@@ -3484,6 +3748,10 @@ paths:
   /applet/spaces/{space_id_or_alias}:
     get:
       operationId: cx.applet.query_space
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       parameters:
       - in: path
         name: space_id_or_alias
@@ -3500,6 +3768,7 @@ paths:
   /applet/protocols/{protocol}:
     get:
       operationId: cx.applet.protocol_metadata
+      security: []
       parameters:
       - in: path
         name: protocol
@@ -3516,6 +3785,10 @@ paths:
   /applet/third_party/users:
     get:
       operationId: cx.applet.third_party_users
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       responses:
         '200':
           description: Applet third-party user mapping
@@ -3526,6 +3799,10 @@ paths:
   /applet/third_party/locations:
     get:
       operationId: cx.applet.third_party_locations
+      security:
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
       responses:
         '200':
           description: Applet third-party location mapping
@@ -3533,6 +3810,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
+  /policy/check:
+    post:
+      operationId: cx.policy.check
+      summary: Signed policy decision (canonical path, P-D10 unified).
+      description: |
+        Canonical HTTP binding for `cx.policy.check`. The Policy Server returns
+        a signed allow/deny/quarantine/require_review decision. SDKs and gateways
+        SHOULD prefer this path; the legacy deployment-local path
+        `POST /contrix/v1/check` remains accepted as a temporary alias for
+        clients pinned to the pre-P-D10 binding (see `cx.policy.check_legacy`).
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Signed policy decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationRequest'
   /contrix/v1/check:
     servers:
     - url: https://{host}
@@ -3540,10 +3846,25 @@ paths:
         host:
           default: localhost
     post:
-      operationId: cx.policy.check
+      operationId: cx.policy.check_legacy
+      summary: Legacy alias of cx.policy.check at the pre-P-D10 deployment-local path.
+      description: |
+        DEPRECATED in favor of `cx.policy.check` (`POST /api/v1/policy/check`).
+        Servers MUST continue to accept this path during the v1.x transition so
+        that existing OPA / policy-server integrations keep working. New SDK
+        generators / gateways SHOULD route to `/api/v1/policy/check`. Both
+        paths carry the same request / response shape; the only difference is
+        the URL. No deadline for removal is set in v1; deployments MAY reject
+        once downstream consumers have migrated.
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
       responses:
         '200':
-          description: Signed policy decision
+          description: Signed policy decision (same shape as cx.policy.check)
           content:
             application/json:
               schema:
@@ -3562,6 +3883,8 @@ paths:
           default: localhost
     post:
       operationId: cx.media.ice_config
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: Signed ICE server configuration
@@ -3583,6 +3906,7 @@ paths:
           default: localhost
     post:
       operationId: cx.account.issue_session_grant
+      security: []
       responses:
         '200':
           description: Session grant issued from passkey/OIDC/device proof
@@ -3604,6 +3928,8 @@ paths:
           default: localhost
     post:
       operationId: cx.account.device_pair
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: Device pairing accepted
@@ -3625,6 +3951,7 @@ paths:
           default: localhost
     post:
       operationId: cx.account.oidc_callback
+      security: []
       responses:
         '200':
           description: OIDC callback handled
@@ -3648,7 +3975,6 @@ paths:
       operationId: cx.admin.get_server_status
       security:
       - bearerAuth: []
-      - httpMessageSignature: []
       responses:
         '200':
           description: Server admin status
@@ -3734,12 +4060,6 @@ paths:
   /agent_workspace/mirror_flow:
     get:
       operationId: cx.agent_workspace.resolve_mirror_flow
-      summary: Resolve mirror Flow ID for a given source Flow.
-      description: |
-        Controller-only resolve. Returns mapping only when reservation + create
-        both completed. Unauthenticated MUST return 401/403, not 404
-        (workspace existence is not enumerable). See
-        spec/v1/zh/extensions/agent-workspace-profile.md §11.1.
       security:
       - bearerAuth: []
       parameters:
@@ -3778,11 +4098,6 @@ paths:
   /agent_workspace/pending_tasks:
     get:
       operationId: cx.agent_workspace.list_pending_tasks
-      summary: List in-flight agent_task objects awaiting client reconcile.
-      description: |
-        Controller-only. Returns agent_task objects whose execution_state cell
-        head is in {pending_source_stub, active}. Used by clients to reconcile
-        unfinished Phase 2/3 after offline. See agent-workspace-profile.md §11.2.
       security:
       - bearerAuth: []
       responses:

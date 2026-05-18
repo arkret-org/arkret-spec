@@ -25,6 +25,56 @@ sidebar:
 4. Agent 在 mirror Space 工作；通过 import_attestation 把源 Space 内容重加密到 mirror Space 工作上下文
 5. 任务完成后 controller 决定是否将 agent 产出 publish 回源 Flow
 
+### 1.1 信任模型与适用边界
+
+本 profile 的 v1 默认行为**针对单 controller、controller 可信 agent runtime、本地 watcher** 场景做了协议简化。在以下假设下,本 profile 的"watcher 投递有 SLA 延迟但不强制 freshness gate"是合理的设计:
+
+| 假设 | 说明 |
+| --- | --- |
+| Agent 是 controller 自己的 AI | mirror Space owner = controller principal;agent 只服务这一个 controller |
+| Agent runtime 由 controller 自审 / 自托管 | runtime 代码或运行环境 controller 有控制权(自己跑 / 用熟悉的 vendor / 等价信任根) |
+| Publish-back 经过 controller 显式审批 | agent 不能直接把 mirror 内容发回源 Space;必须 controller 用自己 principal 身份转发 |
+| 源 Space 已直接强制 read access | agent 被踢出源 Space 后,源 Space events API 立即返回 403、MLS commit 立即不下发新 epoch 密钥给 agent;**这一层不依赖 watcher** |
+
+在上述假设下,watcher SLA 延迟(默认 60+30s)的最坏后果是:
+
+- Agent 多跑了一段已无意义的处理(已被踢出 / 已被 redact 的源上下文)
+- Controller UI 在 watcher 通知到达之前没看到"source_authority revoked"标记
+- Controller 如果没注意到自己刚踢了 agent 就批准了 agent 草稿 publish-back → 已被踢的 agent 输出仍然进入源 Space(但 publish 用的是 controller 身份,源 Space audit 看到的是 controller 作者)
+
+这些后果都**可通过 controller 自己的审批与 audit 链路追溯**,不构成"未授权第三方读取私密"或"协议级权限绕过"。所以 v1 把 stale window 收紧 / 引入 freshness gate / lease 等机制视为**过度工程**,保留为 follow-up 议题(见下方"v1 不强制 freshness gate 的代价")。
+
+**不属于 v1 本 profile 默认覆盖范围**(部署如有以下需求需自行加强):
+
+| 场景 | 为什么超出 v1 默认 |
+| --- | --- |
+| Agent runtime 跑在第三方 cloud(controller 无代码可见性) | runtime 可能"故意慢"绕过 watcher 信号;v1 假设 runtime 可信 |
+| Mirror Space 跨 deployment(controller / mirror / 源 Space 在不同信任域) | watcher 跨域投递延迟更高,90s 是乐观估计;受控部署需要 frontier freshness gate 或 source-issued lease |
+| Agent 多租户 SaaS(同一 runtime 服务多个 controller) | 一个 controller 的 revoke 不应影响其他 controller 的 task;watcher 设计需要分租 |
+| 合规 / 监管要求"revoke 立即生效"(法律意义上) | best-effort SLA 不构成法律承诺;需要 sync gate 或 hardware-enforced freshness |
+
+这些场景的实现 SHOULD 在自家 profile 中显式声明 "stricter freshness model"(候选 future profile id `cx.profile.agent_workspace.strict.v1`,v1 不发布)。
+
+### 1.2 v1 不强制 freshness gate 的代价(设计取舍登记)
+
+P-D3 评估了三种 freshness 收紧方案 — frontier freshness gate / source-issued lease / 协议级硬上限 — 均被 v1 默认 profile **拒绝**,原因:
+
+- 引入 sync gate 把每次 agent 执行都加上一次回往源 Space 的 RTT,在典型 single-controller 场景下是不必要的开销
+- 默认 profile 不应假设跨 deployment(那是另一类信任模型的事情,见 §1.1)
+- audit log + controller 审批已经覆盖了主要风险面;额外 freshness 机制是双重保险但代价大
+
+**v1 默认 profile 显式接受的代价**:agent 在 source revoke 发生与 mirror watcher 通知到达之间(默认 ≤ 90 秒,实际可能更长)可能继续基于过期源上下文执行任务、生成草稿。controller 在 publish-back 审批节点 SHOULD 自己核对 agent 是否仍是源 Space 合法成员(UI 帮助见 §7.5)。
+
+### 1.3 软指引:Agent runtime 与 Controller UI 应当怎么自助补救
+
+不强制 reducer 引入 freshness gate,但 v1 对 agent runtime 与 controller UI 给出 SHOULD 级别的实现建议:
+
+- **Agent runtime SHOULD 自行暂停**:当 agent runtime 在调用源 Space 的 events / blob / capability check 时收到 `403 capability_denied` 或等价"我已不再是该 Space 成员"信号时,SHOULD **不等 watcher**,直接把当前 agent_task 标 paused 并通知 controller。这是 runtime-side 主动行为,不依赖 mirror reducer 状态。
+- **Controller UI SHOULD 显示 freshness 提示**:agent_task 的 `source_authority` cell 上次更新时间超过部署声明的 `freshness_advisory_threshold_ms`(默认 5 分钟,部署 MAY 自调)时,UI **SHOULD** 在 task 列表上显示"授权未最近验证"小标记,让 controller 在审批 publish-back 前格外谨慎。该 threshold 是 UI hint 性质,不进 reducer 决策。
+- **publish-back 审批 SHOULD 携带 source membership 提示**:UI 在 controller 点"发回源 Flow"按钮时,SHOULD 旁注"agent 当前在源 Space 的最新已知 membership 状态:active / unknown / revoked",信息源是 mirror Space 内 `source_authority` cell + watcher 最近一次成功通知时间。
+
+这三条都不阻塞 v1 互操作,实现可以选择不做(`watcher + audit` 仍是 protocol-level baseline)。
+
 ## 2. 架构总览
 
 ```
@@ -123,14 +173,16 @@ Spec v1 中**没有 Flow-level membership**（[flow.schema.json](../../artifacts
 
 **标准 capability constraint preset（normative pattern）**：
 
-| Preset name | 含义 | 展开为标准 grant 的 actions |
-|---|---|---|
-| `cx.agent_member.observer` | 只观察 | `read_history`, `read_messages` |
-| `cx.agent_member.read_only` | 只读 + 反应 | observer + `react` |
-| `cx.agent_member.mention_respond_only` | 仅在被 @ 时回复 | read_only + `message.create where in_reply_to.mentions=self` (使用新 constraint kind `mention_respond_only`) |
-| `cx.agent_member.full_collaborator` | 完整成员 | 标准 member capability set |
+Preset 是**声明性 sugar**——客户端 / SDK 把 preset 名展开为标准 grant；reducer 与 `capability-grant.schema.json` MUST 只看展开后的 canonical `cx.<domain>.<action>` 数组,不接受 preset 名或裸名 action 直接进入 `actions[]` 字段(见 [`../authz/capabilities.md` §5](../authz/capabilities.md))。
 
-Preset 是声明性 sugar；reducer 不依赖 preset name，依赖展开后的 grant。
+| Preset name | 含义 | 展开为标准 grant 的 canonical actions(`cx.<domain>.<action>` 形态) |
+|---|---|---|
+| `cx.agent_member.observer` | 只观察 | `cx.event.read`(看时间线 / 历史事件) + `cx.object.read_content`(constrained by `object_type_allow=["message"]`,看 Message 正文) |
+| `cx.agent_member.read_only` | 只读 + 反应 | observer 展开集 + `cx.reaction.add` |
+| `cx.agent_member.mention_respond_only` | 仅在被 @ 时回复 | read_only 展开集 + `cx.message.create`(constrained by `mention_respond_only`,只允许 `in_reply_to` 指向 mention 自身为 sender 的消息;详见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md)) |
+| `cx.agent_member.full_collaborator` | 完整成员 | 标准 member capability set(`cx.event.read` + `cx.object.read_content` + `cx.reaction.add` + `cx.message.create` + `cx.message.revise.own` + `cx.message.redact.own` + `cx.flow.read`,无 `mention_respond_only` 约束) |
+
+> **不接受裸名 action**:`read_history` / `read_messages` / `react` / `message.create` 等裸名在 wire / `capability-grant.schema.json` actions[] 字段中 MUST `schema_violation` 拒绝。Preset 仅在客户端层 / UI sugar / SDK helper 中使用;一旦展开到 grant,所有 action token MUST 是已注册的 `cx.<domain>.<action>` 形态(见 [`artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json))。
 
 ## 5. `attached_authority` 扩入 capability-grant schema
 
@@ -171,10 +223,20 @@ Preset 是声明性 sugar；reducer 不依赖 preset name，依赖展开后的 g
 
 > v1 仅支持 `anchored_event_ref` 和 `state_witness` 两种 evidence_kind。Rev 7 草案的 `inline_copy` 已删除（air-gapped 场景推迟到 v2，避免 grant event 体积膨胀）。
 
-**Reducer 校验**：
+**Reducer 校验**(P-D1 已升级为同步前置 gate,2026 修订):
 
-- `evidence_kind=anchored_event_ref`：reducer SHOULD 异步通过 controller's principal server 验证 inclusion proof；不可达时降级为 `unverified_authority` 标记但仍可接受 grant
-- `evidence_kind=state_witness`：reducer 校验 `witness_signature` 由 controller's principal server 当前注册的 key 签发；TTL 由 `valid_until` 控制；过期后 grant 自动失效
+- `evidence_kind=anchored_event_ref`:reducer **MUST 同步**通过 controller's principal server 验证 inclusion proof,**才能让该 grant 释放任何 source Space 访问 / capability / MLS Welcome**。验证未完成时 grant **MUST 进入 `pending_verification` 状态**——可写入 reducer / 落到 frontier(便于后续异步完成),但 reducer **MUST NOT** 让任何依赖该 grant 的下游动作生效:
+  - 不向 agent 颁发 source Space membership(`cx.member.state` 拒绝引用 `pending_verification` grant 作为 `authorized_by`)
+  - 不向 agent 发送 MLS Welcome
+  - 不在源 Space history visibility 上把 agent DID 算作有授权 reader
+  - 不允许 mirror 端 `cx.content.import_attestation` 引用该 grant 作为 `authority_grant_ref`
+- controller's principal server 不可达时:grant 保持 `pending_verification`,**MUST NOT** 静默降级为 `unverified_authority` accepted state。运行时 SHOULD 重试,带指数退避;客户端 UI MUST 显式提示"agent 授权未验证,暂停操作"。
+- 验证最终失败(controller 服务器明确否认 / hash 不匹配 / event 不存在)→ grant 状态 → `verification_rejected`,reducer **MUST** 同时撤销所有 transient 副作用(若有);agent 即使临时持有过期信息也不得继续动作。
+- `evidence_kind=state_witness`:reducer **MUST 同步**校验 `witness_signature` 由 controller's principal server 当前注册的 key 签发;签名无效 = grant `verification_rejected`(不进入 pending)。TTL 由 `valid_until` 控制;过期后 grant 自动失效。state_witness 形态的优点是**不依赖远端可达性**——witness 是预签发的离线凭证,适合 controller 服务器临时不可达但 controller 设备已经事先签了授权的场景。
+
+**为什么收紧到同步前置 gate**(设计取舍登记):
+
+早期草案为了"agent onboarding 体验流畅",允许 `evidence_kind=anchored_event_ref` 走异步路径,不可达时降级 `unverified_authority` 但仍释放 grant。该路径在 controller server 短暂不可达(攻击者制造 DNS 劫持 / TLS outage 的窗口)的情况下,**允许伪造的 attached_authority 在 agent 已经访问 source Space 之后才被识破**——而那时已经读完 history、收到 MLS Welcome、写过 message,撤销已发生的访问是不可能的。P-D1 修订把"未验证"硬性变成 fail-closed gate,代价是 controller 服务器宕机期间 agent onboarding 不能进行(但已 onboarding 的 agent 继续工作不受影响,因为它们的 grant 之前已完成同步验证)。需要离线 onboarding 场景的部署 SHOULD 使用 `evidence_kind=state_witness`(预签发离线凭证)。
 
 ## 6. Mirror Space 创建与并发竞态（reservation saga）
 
@@ -490,12 +552,40 @@ Transition event payload：
 - `content_hash`：JCS-canonicalized JSON of the `content` field + SHA-256 + `sha256:` 前缀。复用 [encoding.md](../conformance/encoding.md) RFC 8785/JCS profile
 - `signature` canonical signing input = JCS-canonicalized `{schema_id: "cx.schema.content.source_export_policy_attestation.v1", domain: "cx.domain.export_policy_attestation.v1", body: <除 signature 外的所有 required 字段>}` + SHA-256
 
-**Mirror reducer 行为**（不强制 export policy）：
+**Mirror reducer 行为**(P-D2 双 profile 分离,2026 修订):
 
-- 缺 attestation → 接受 event，audit 标记 `export_attestation_missing`
-- 携带但签名无效 / 字段不一致 → 接受 event，audit 标记 `export_attestation_invalid`
-- 签名有效 → 接受 event，audit 标记 `export_attestation_verified`
-- **任何情况都不拒绝**——mirror 无能力判断源 policy；真正的 export gate 在 source-side agent runtime（agent runtime conformance profile 可把该检查从 SHOULD 抬到 MUST）
+Mirror reducer 的行为**取决于源 Space 声明的 governance level**。源 Space 在自身 schema_refs / policy_components 中声明 `cx.profile.agent_workspace.governed.v1`(详见 §9.1)即被视作 governed source;其他默认按 permissive 处理。
+
+**permissive 行为(默认,适用于无 governance 声明的源 Space)**:
+- 缺 attestation → 接受 event,audit 标记 `export_attestation_missing`
+- 携带但签名无效 / 字段不一致 → 接受 event,audit 标记 `export_attestation_invalid`
+- 签名有效 → 接受 event,audit 标记 `export_attestation_verified`
+- **任何情况都不拒绝** — mirror 信任 source-side agent runtime 自觉执行 export policy
+
+**governed 行为(源 Space 声明 `cx.profile.agent_workspace.governed.v1` 时,reducer MUST 收紧)**:
+- 缺 attestation → **reject**(`source_export_attestation_required`);event 不进入 mirror Space accepted set
+- 携带但签名无效 → **reject**(`source_export_attestation_invalid`);记 audit 但拒收
+- 携带但 `policy_decision != "allow"` → **reject**(`source_export_attestation_denied`)
+- 携带但 `content_hash` 与 `content` 字段 canonical hash 不匹配 → **reject**(`source_export_content_hash_mismatch`)
+- 携带但 `import_destination_space_id` 与本 mirror Space 不匹配 → **reject**(`source_export_destination_mismatch`)
+- 携带但已过 `valid_until` → **reject**(`source_export_attestation_expired`)
+- 携带但 `authority_did` 不在源 Space `export_policy_authorities[]` 中 → **reject**(`source_export_authority_unauthorized`)
+- 所有校验通过 → 接受 event,audit 标记 `export_attestation_verified`
+
+**为什么拆分两个 profile**(设计取舍登记):
+
+permissive 模式假设"agent runtime 是受信代码,会自觉执行源 Space 的 export policy"。该假设在 controller 自托管单实例、agent runtime 由 controller 自己审查代码的场景下成立。但对于:
+- **受保护源 Space**(企业项目群、合规边界内的资料、机密通信)
+- **跨 deployment 协作**(agent runtime 跑在第三方 / cloud 上)
+- **多方 mirror**(同一源 Space 可能被多个 controller 各自 mirror)
+
+permissive 让 export policy 沦为 audit log;一旦 agent runtime 有 bug / 被攻陷 / 故意绕过,内容已经在 mirror Space 重加密落地——**事后撤销已经被 mirror 端读到的内容是不可能的**。
+
+P-D2 修订引入 governed profile:**源 Space 主动声明自己受保护**,mirror 端 reducer 据此**代表源 Space 强制执行 export policy**。导入端拒收意味着内容**从未**进入 mirror history,attack window 关闭。
+
+代价:governed profile 下,合法 import 也需要先取得 source-side 签发的 export attestation,引入一次回 source Space policy authority 的同步调用(类似 P-D1 attached_authority 的同步验证模式)。这是对**机密 / 合规 / 跨 deployment** 场景的应有摩擦。
+
+> **诊断字段命名**:`source_export_attestation_required` / `_invalid` / `_denied` / `_destination_mismatch` / `_expired` / `_authority_unauthorized` 这些 reason_code MUST 在 `error-code-registry.json` 的 reducer reason 命名空间中登记(作为 P-D2 follow-up;本轮 prose 先固定命名)。
 
 ## 9. Space profile `cx.profile.agent_workspace.v1`
 
@@ -572,6 +662,104 @@ Transition event payload：
 - Mirror Space 继承相同 membership 规则
 
 **Unsupported profile fail-closed**：未声明支持本 profile 的服务端 **对 mirror Space 写入** MUST fail-closed（拒绝 `cx.agent_task.*` / `cx.content.import_attestation`，返回 `profile_unsupported`）。源 Space 接受 `mention_redirect` 不依赖本 profile——依赖 `cx.feature.mention_redirect.v1` critical_extension 是否被源 Space 服务端支持。
+
+### 9.1 `cx.profile.agent_workspace.governed.v1`(P-D2 受保护源 profile)
+
+**目的**:让源 Space 主动声明"我是受保护的,任何 agent 把我的内容导出到 mirror Space 时,mirror 端 reducer 必须强制执行我的 export policy"。源 Space 自身在 `policy_components` / `schema_refs` 中 import 该 profile,即把保护意愿写入 Space 的 canonical state。
+
+**声明位置**:**源 Space**(不是 mirror Space)的 schema / policy。受保护 Space 在 create event 或随后的 `cx.space.policy_components` Move 中加入:
+
+```json
+{
+  "profile_id": "cx.profile.agent_workspace.governed.v1",
+  "scope": "space",
+  "applies_to_roles": ["governed_source"],
+  "export_policy": {
+    "source_export_attestation_required": true,
+    "min_attestation_strength": "anchored_event_ref",
+    "max_attestation_ttl_seconds": 3600,
+    "destination_space_must_be_pinned": true,
+    "content_hash_must_match": true,
+    "export_policy_authorities_field": "policy_components.export_policy_authorities"
+  },
+  "mirror_reducer_behavior": {
+    "missing_attestation": "reject",
+    "invalid_signature": "reject",
+    "denied_decision": "reject",
+    "destination_mismatch": "reject",
+    "content_hash_mismatch": "reject",
+    "expired": "reject",
+    "authority_unauthorized": "reject"
+  }
+}
+```
+
+**`export_policy_authorities[]`**:源 Space 在 policy_components 内声明哪些 DID 有权签发 export policy attestation。典型场景:
+- 单 controller 个人 Space:owner principal DID
+- 组织受控群:organization DID + 显式委派的 admin DID
+- 合规群:专门的 export-policy-authority service DID,由 compliance team 控制
+
+attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer reject `source_export_authority_unauthorized`。
+
+**reducer 行为收紧**:见 §8.2"governed 行为"完整 reject 规则集。所有 reject 都是 reducer-time 硬性拒收;event 不进入 mirror Space accepted set,不留下任何 read access。
+
+**Permissive vs governed 选择**:
+
+| 维度 | permissive(默认,`cx.profile.agent_workspace.v1`) | governed(`cx.profile.agent_workspace.governed.v1`) |
+| --- | --- | --- |
+| 适用场景 | 单 controller 自用 + 自审查 agent runtime | 企业 / 合规 / 跨 deployment / 第三方 agent runtime |
+| 信任根 | "agent runtime 会自觉遵守 source export policy" | "源 Space policy authority 签发 attestation" |
+| 攻击窗口 | agent runtime 被攻陷 / buggy 可绕过 export | export attestation 签名失败即 reject |
+| 性能成本 | import 0 额外回往 | import 需先取得 source-side attestation(一次回往 + TTL 缓存) |
+| 默认决策 | 不拒绝,标 audit | reject 缺失 / 无效 attestation |
+
+**实现要求**:支持 governed profile 的服务端 MUST:
+- 在 `cx.server.describe.supported_features` 中声明 `cx.feature.governed_import.v1`
+- 实现 §8.2 governed 行为完整 reject 规则
+- 拒绝 attestation 时在响应 `reason_code` 中精确报告失败原因(便于 importer 调试)
+- audit log 完整保留所有 reject 事件,作为合规取证基线
+
+不支持 governed profile 的服务端在为 governed source 处理 import 时 MUST fail-closed(返回 `profile_unsupported`);**不得**降级为 permissive 处理。
+
+### 9.2 `cx.profile.agent_workspace.lite.v1`(P-D13 单 controller 轻量 profile)
+
+**目的**:针对"controller 自己用、自己审、不需要 audit-grade 痕迹"的最小化部署(单 dev、hobbyist、本地实验),允许 mirror Space 跳过 v1 base profile 中三类成本最高的语义,从而把实现门槛降低到一个"标准 Space + reservation cell + import_attestation"即可上线的水平。
+
+**applicability(必须同时满足)**:
+
+- workspace_root + mirror Space 均归属同一 controller principal,无第三方共享读
+- 不打算公开 mirror Space 内容做合规 / 监管 audit
+- agent runtime 由 controller 自托管 / 自审查(与 base profile §1.1 假设一致甚至更强)
+- 不打算把 mirror Space 状态用作监管 / 法律证据
+
+任一条不满足:**不得**采用 lite,SHOULD 留在 base `cx.profile.agent_workspace.v1`,或升级到 `cx.profile.agent_workspace.governed.v1`。
+
+**从 base 中剥离(strict subset of writes)**:
+
+| 维度 | base 默认 | lite |
+| --- | --- | --- |
+| reservation TTL 时钟源 | anchor index distance(由源 Space anchorer 签发的不可伪造距离) | wall clock + 60s grace,reducer 仅做 sanity check |
+| transparency FSM cell(`agent_task.<id>.transparency`) | 必需,记录"源 stub 被 redact"等透明度信号 | **不存在**;controller 通过 UI hint 知道源 stub 状态,不写 cell |
+| source_authority FSM cell(`agent_task.<id>.source_authority`) | 必需,记录"agent 被踢 / capability_grant revoke" | **不存在**;controller 通过 UI hint 看到,不写 cell |
+| MLS Governance Binding(`mls_governance_binding.full.v1`) | 受 `mls_send_pause` 等 normative 规则约束 | 不强制要求 binding;mirror Space MAY 维持普通 MLS group 即可 |
+| `cx.agent_task.transparency.transition` / `source_authority.transition` event | reducer 接受 | **reducer reject**(`lite_profile_writes_disallowed_event_kind`) |
+
+**从 base 保留(reads + cross-Space writes 不变)**:
+
+- `mirror_space_by_source` / `mirror_flow_by_source` reservation cell(失去这一层 mirror flow 无法被稳定寻址,无法工作)
+- `agent_task.<id>.execution_state` cell(任务自身状态机,lite 仍需用来决定能否 publish-back)
+- `cx.content.import_attestation` envelope(导入源内容仍需 attestation,只是 source-side export policy attestation 不强制)
+- `cx.mention_redirect` content block 在源 Space 一侧不变(源 Space 是否接受不取决于 mirror profile)
+
+**跨 Space 边界 always full pipeline**:
+
+publish-back(把 agent 草稿发回源 Flow)、`cx.mention_redirect` 投递、任何对源 Space / 共享 Space 的写入,**MUST** 走完整 pipeline(签名、capability、schema、源 Space 的完整 lattice、目的 Space 的 MLS group)。lite **不**是"跨 Space 通信也能省略"的借口;它只松绑 mirror Space 内部本地状态机。
+
+**与 governed 互斥**:同一 Space MUST NOT 同时声明 `cx.profile.agent_workspace.lite.v1` + `cx.profile.agent_workspace.governed.v1`——前者剥离 mirror 端 audit,后者要求 mirror 端硬执行源 export policy,二者目的相反;同时声明 reducer MUST reject `conflicting_agent_workspace_profiles`。
+
+**Conformance**:实现 SHOULD 提供同一套 mirror Space 既能跑 base 也能跑 lite 的测试 fixture(去掉 transparency / source_authority cell 后 base test 中所有读取这两个 cell 的步骤直接跳过 / 标 N/A),便于部署在 base ↔ lite 之间无破坏切换。
+
+**升级路径**:lite → base 是允许的(下次 Space schema update 时引入两个 FSM cell,初值 `ok`,旧 agent_task 不需要补 transition 历史)。base → lite 不允许(已存在的 transparency / source_authority cell 不能在不留 audit 的情况下删除)。
 
 ## 10. Workspace teardown / 跨 deployment 迁移
 

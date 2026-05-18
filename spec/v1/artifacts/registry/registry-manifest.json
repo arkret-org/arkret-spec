@@ -70,6 +70,14 @@
       "source_of_truth": false,
       "generated_from": "registry/contract-catalog.json",
       "description": "Generated registry view for active schema IDs and schema file locations."
+    },
+    {
+      "name": "morph_type_decision_table",
+      "file": "registry/morph-type-decision-table.json",
+      "kind": "decision_table",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical merge precedence + conflict rules for the four Morph type declaration sources (schema_refs, space morph_type_profiles, morph_type, facets). Referenced normatively from zh/models/morph.md §4."
     }
   ]
 }

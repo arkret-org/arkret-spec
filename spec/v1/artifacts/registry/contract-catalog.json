@@ -529,12 +529,20 @@
         "payload": "Flow restore"
       },
       {
+        "event_kind": "cx.flow.tracks.update",
+        "category": "flow",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Unified Flow tracks patch (P-D12 O1.2 canonical). payload.patch uses cx.patch.v1 against the Flow.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / fields on a track entry. Atomic across multiple tracks. Replaces the four legacy single-purpose event kinds cx.flow.track.{enable,disable,update,set_primary}; v1.x reducers MUST accept both the unified and legacy shapes."
+      },
+      {
         "event_kind": "cx.flow.track.enable",
         "category": "flow",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Enable Flow track"
+        "payload": "Enable Flow track. **Legacy (P-D12 O1.2)** — new clients SHOULD emit cx.flow.tracks.update with `{tracks.<name>.enabled: {$op: set, value: true}}`. Servers MUST accept this legacy form throughout v1.x; v2 MAY remove."
       },
       {
         "event_kind": "cx.flow.track.disable",
@@ -542,7 +550,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Disable Flow track"
+        "payload": "Disable Flow track. **Legacy (P-D12 O1.2)** — new clients SHOULD emit cx.flow.tracks.update with `{tracks.<name>.enabled: {$op: set, value: false}}`."
       },
       {
         "event_kind": "cx.flow.track.update",
@@ -550,7 +558,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow track patch"
+        "payload": "Flow track patch (single track). **Legacy (P-D12 O1.2)** — new clients SHOULD emit cx.flow.tracks.update which covers the same write path plus enable / disable / set_primary in one atomic event."
       },
       {
         "event_kind": "cx.flow.track.set_primary",
@@ -558,7 +566,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set Flow primary track"
+        "payload": "Set Flow primary track. **Legacy (P-D12 O1.2)** — new clients SHOULD emit cx.flow.tracks.update with `{tracks.<name>.is_primary: {$op: set, value: true}}` plus a clear of the previous primary in the same atomic event."
       },
       {
         "event_kind": "cx.flow.move",
@@ -2241,7 +2249,8 @@
           "cx.authz.check",
           "cx.authz.get_effective_grants",
           "cx.authz.get_invites",
-          "cx.policy.check"
+          "cx.policy.check",
+          "cx.policy.check_legacy"
         ]
       },
       {
@@ -2800,9 +2809,19 @@
       },
       {
         "operation_id": "cx.policy.check",
+        "http": "POST /policy/check",
+        "grpc": "Policy/Check",
+        "mq": "policy.check",
+        "legacy_http_aliases": ["POST /contrix/v1/check"],
+        "notes": "P-D10 path-unification: canonical HTTP binding is POST /api/v1/policy/check (bare path inheriting the global /api/v1 prefix). Legacy POST /contrix/v1/check (deployment-local prefix) remains accepted by servers during a v1.x transition window; gateways / SDK generators SHOULD treat both as the same operation but emit / route to /policy/check by default. Server SHOULD eventually reject the legacy path once downstream clients have migrated (no enforced deadline in v1)."
+      },
+      {
+        "operation_id": "cx.policy.check_legacy",
         "http": "POST /contrix/v1/check",
         "grpc": "Policy/Check",
-        "mq": "policy.check"
+        "mq": "policy.check",
+        "deprecated_alias_of": "cx.policy.check",
+        "notes": "Deprecated alias of cx.policy.check kept in the registry so that legacy clients pinned to the pre-P-D10 deployment-local path can still resolve a registered operation_id. Same request / response / security shape as cx.policy.check. SHOULD NOT be referenced by new code; transport-bindings / SDK generators MAY map it as a fallback only. Servers MUST accept both paths in v1.x; deadline for removal is part of a future v1.x release decision."
       },
       {
         "operation_id": "cx.push.notify",
@@ -3044,6 +3063,26 @@
         "profile": null
       },
       {
+        "action": "cx.morph.read",
+        "category": "morph",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.morph.update",
+        "category": "morph",
+        "risk_tier": "medium",
+        "required_constraints": [
+          "fields_write_allow"
+        ],
+        "target_event_kinds": [
+          "cx.morph.update"
+        ],
+        "profile": null
+      },
+      {
         "action": "cx.flow.archive",
         "category": "flow",
         "risk_tier": "medium",
@@ -3119,6 +3158,20 @@
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
+          "cx.flow.track.set_primary"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.flow.tracks.manage",
+        "category": "flow",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.flow.tracks.update",
+          "cx.flow.track.enable",
+          "cx.flow.track.disable",
+          "cx.flow.track.update",
           "cx.flow.track.set_primary"
         ],
         "profile": null
@@ -3554,6 +3607,14 @@
         "target_event_kinds": [
           "cx.invite.create"
         ],
+        "profile": null
+      },
+      {
+        "action": "cx.space.join.review",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [],
         "profile": null
       },
       {

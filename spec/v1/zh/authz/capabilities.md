@@ -166,10 +166,12 @@ Contrix v1 支持以下 `kind`：
 - `cx.flow.restore`
 - `cx.flow.move`
 - `cx.flow.reorder`
-- `cx.flow.track.enable`
-- `cx.flow.track.disable`
-- `cx.flow.track.update`
-- `cx.flow.track.set_primary`
+- `cx.flow.tracks.update`（P-D12 O1.2 canonical 统一 patch 入口，对应 event `cx.flow.tracks.update`）
+- `cx.flow.tracks.manage`（聚合 action，覆盖 `cx.flow.tracks.update` + legacy `cx.flow.track.{enable,disable,update,set_primary}`；推荐绑定，避免给单独的 legacy action）
+- `cx.flow.track.enable`（**Legacy**，保留兼容；v2 候选移除）
+- `cx.flow.track.disable`（**Legacy**，同上）
+- `cx.flow.track.update`（**Legacy**，同上）
+- `cx.flow.track.set_primary`（**Legacy**，同上）
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
@@ -184,8 +186,12 @@ Contrix v1 支持以下 `kind`：
 - `cx.view.create`
 - `cx.view.update`
 - `cx.view.reconcile`
+- `cx.morph.read`
+- `cx.morph.update`(默认 required constraint:`fields_write_allow`)
 
-Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按有效 Space 判断：未设 `discussion_space_ref` 时使用父 Space 的 capability；设了 `discussion_space_ref` 时使用 child Space 的 capability，与父 Space 独立。
+Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按有效 Space 判断:未设 `discussion_space_ref` 时使用父 Space 的 capability;设了 `discussion_space_ref` 时使用 child Space 的 capability,与父 Space 独立。
+
+Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx.flow.read` / `cx.flow.update`),通过 `morph_type_allow` constraint 进一步限定可操作的 `morph_type`。
 
 ### 5.3 Discussion 与消息动作
 
@@ -271,16 +277,18 @@ Audit action 只授权受控审计代理执行“先记录后解密”、读取�
 
 ### 5.8 标准 Agent Member Profile
 
-由 `cx.profile.agent_workspace.v1` 引入，作为客户端层声明性 sugar。Reducer 不依赖 preset name，依赖展开后的标准 grant。
+由 `cx.profile.agent_workspace.v1` 引入,作为**客户端层声明性 sugar**。preset 名仅在 UI / SDK helper / docs 中出现;一旦展开到 wire 与 `capability-grant.schema.json` `actions[]` 字段,所有 action token MUST 是已注册的 canonical `cx.<domain>.<action>` 形态。Reducer 不依赖 preset name,只验证展开后的 canonical action 集合 + constraint 集合。
 
-| Preset name | 展开动作集 |
-|---|---|
-| `cx.agent_member.observer` | `read_history` + `read_messages` |
-| `cx.agent_member.read_only` | observer + `react` |
-| `cx.agent_member.mention_respond_only` | read_only + `message.create` constrained by `mention_respond_only` constraint kind |
-| `cx.agent_member.full_collaborator` | 标准 member capability set |
+| Preset name | 展开后的 canonical actions | 附加 constraints |
+|---|---|---|
+| `cx.agent_member.observer` | `cx.event.read`、`cx.object.read_content` | `object_type_allow=["message"]` 限定 `cx.object.read_content` 仅对 Message 适用 |
+| `cx.agent_member.read_only` | observer 展开集 + `cx.reaction.add` | 同上 |
+| `cx.agent_member.mention_respond_only` | read_only 展开集 + `cx.message.create` | 上述 + `mention_respond_only`(只允许 `in_reply_to` 指向 mention 自身为 sender 的消息;详见 [`constraint-schema.md`](./constraint-schema.md)) |
+| `cx.agent_member.full_collaborator` | `cx.event.read`、`cx.object.read_content`、`cx.reaction.add`、`cx.message.create`、`cx.message.revise.own`、`cx.message.redact.own`、`cx.flow.read` | 无 `mention_respond_only` |
 
-`agent_member_profile` 是声明性 sugar，**不**绕过 Space-level "agents disabled" policy（源 Space 通过拒绝向 agent DID 颁发任何 grant 即可全局禁用 agent）。
+**裸名 action 拒绝规则**:`read_history` / `read_messages` / `react` / `message.create`(无前缀)等裸名在 `capability-grant.schema.json` 的 `actions[]` 字段位置 MUST `schema_violation` 拒绝。pattern `^cx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$`(见 §5 顶部)已经强制这一点。
+
+`agent_member_profile` 是声明性 sugar,**不**绕过 Space-level "agents disabled" policy(源 Space 通过拒绝向 agent DID 颁发任何 grant 即可全局禁用 agent)。
 
 ## 6. Constraints
 

@@ -34,12 +34,12 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
 | `/device_messages/*`、`/keys/*` | E2EE 客户端、Principal Server | to-device、one-time key、fallback key、device list 相关操作。 | `device-lifecycle.md` |
-| `/authz/*`、`/contrix/v1/check` | 客户端、Events API、Sync、Policy Server | capability 预检查、policy server 签名决策。 | `capabilities.md`、`policy-server.md` |
+| `/authz/*`、`/policy/check`(legacy alias `/contrix/v1/check`) | 客户端、Events API、Sync、Policy Server | capability 预检查、policy server 签名决策。P-D10 后 canonical path 是 `/api/v1/policy/check`(`cx.policy.check`),legacy `/contrix/v1/check` 仍接受作为过渡期 alias(`cx.policy.check_legacy`)。 | `capabilities.md`、`policy-server.md` |
 | `/contrix/v1/ice-config` | 通话客户端、Media Service | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
 | `/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
 | `/applet/*` | Contrix 服务调用 Applet | applet ping / describe、transaction push、ghost actor / portal 查询。 | `applet-integration.md` |
 
-客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/sync`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/federation`、`/events`、`/sync`、`/authz`、`/contrix/v1/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
+客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/sync`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/events`、`/sync`、`/authz`、`/policy/check`(P-D10 后的 canonical;legacy alias `/contrix/v1/check`)、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
 
 新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.mdx`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
@@ -74,7 +74,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 | Endpoint | Request 类型 | Auth / 访问限制 | Success 类型 |
 | --- | --- | --- | --- |
-| `GET /api/v1/server/describe` | query: none 或 `service_type?` | `public_metadata`；不得返回私有 topology、secret 或未授权 internal endpoint。 | `{service_did, service_type, protocol_version, supported_features[], supported_bindings[], supported_operations[], auth_metadata?, limits?, rate_limit_policy?, rate_limit_policy_ref?}` |
+| `GET /api/v1/server/describe` | query: none 或 `service_type?` | `public_metadata`；不得返回私有 topology、secret 或未授权 internal endpoint。 | `{service_did, service_type, protocol_version, supported_features[], supported_bindings[], supported_operations[], plaintext_visibility, auth_metadata?, limits?, rate_limit_policy?, rate_limit_policy_ref?}` |
 | `GET /api/v1/identity/describe` | query: none | `public_metadata`；可限流。 | `{service_did, registry_mode, supported_receipts[], protocol_version, profiles[]}` |
 | `POST /api/v1/identity/resolve` | body `{did: did, include?: string[]}` | `public_metadata`；private DID MAY require `user_session` 或 presentation proof。 | `{did_document, key_log_head?, seq?, receipts?, method_evidence?}` |
 | `GET /api/v1/identity/document` | query `{did: did, version?: string}` | 同 `identity.resolve`。 | `{did_document, head_event_hash?, seq?, receipts?}` |
@@ -116,7 +116,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/authz/effective-grants` | query `{space_id: id, subject: did, at?: string}` | subject 本人、Space admin、authorized service；不得枚举无关 subject。 | `{grants[], state_hash?, evaluated_at}` |
 | `GET /api/v1/authz/invites` | query `{space_id?: id, subject: did 或 string, cursor?: cursor}` | subject 本人或 inviter/admin；secret invites 不可枚举。 | `{invites[], next_cursor?}` |
 | `POST /api/v1/authz/check` | body `{actor: did, action: string, resource: object, context?: object}` | caller 必须是相关 actor、Events/Sync 预检查服务或 policy-authorized service。 | `{decision, matched_grants?, applied_constraints?, policy_results?, missing_proofs?, frontier?, cache_valid_until?, reason_code?, obligations?}` |
-| `POST /contrix/v1/check` | body `{request_id, space_id?, request_canonical_hash, action, actor, source, event_preview?, auth_context?}` | `policy_token` / `service_signature`; 只接收最小披露字段。 | signed policy decision `{decision, reason_code, expires_at, obligations?, signature}` |
+| `POST /api/v1/policy/check`(legacy alias `POST /contrix/v1/check`) | body `{request_id, space_id?, request_canonical_hash, action, actor, source, event_preview?, auth_context?}` | `policy_token` / `service_signature`; 只接收最小披露字段。 | signed policy decision `{decision, reason_code, expires_at, obligations?, signature}`。P-D10 后 canonical 路径在 `/api/v1` namespace 下;legacy `/contrix/v1/check` 作为过渡期 alias(operation_id `cx.policy.check_legacy`)。 |
 | `POST /api/v1/moderation/report` | body `{space_id: id, target_ref: id, reason: enum, description?: string, reporter: did, evidence_refs?: id[]}` | `user_session`; reporter 必须可见 target；report 仅对 moderators 可见。 | `{report_id, status, routed_to?}` |
 | `GET /api/v1/applet/ping` | query none | `public_metadata` 或 `service_signature`；不得泄露 private namespace。 | `{ok, applet_id, service_did, protocol_version}` |
 | `GET /api/v1/applet/describe` | query none | `service_signature` SHOULD；public mode 只返回公开 capabilities。 | `{applet_id, service_did, protocols[], namespaces, limits, auth}` |
@@ -138,7 +138,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 | `operation_id` | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
-| `cx.server.describe` | 无 | `query.service_type: string - 过滤服务类型` | `service_did: did - 服务 DID`; `service_type: string - 运行时服务类型`; `protocol_version: string`; `supported_features: string[]`; `supported_bindings: object[]`; `supported_operations: operation_id[]`; `auth_metadata: object?`; `limits: object?`; `rate_limit_policy: object?`; `rate_limit_policy_ref: string?` | `public_metadata`; 不得返回私有拓扑或 secret。 |
+| `cx.server.describe` | 无 | `query.service_type: string - 过滤服务类型` | `service_did: did - 服务 DID`; `service_type: string - 运行时服务类型`; `protocol_version: string`; `supported_features: string[]`; `supported_bindings: object[]`; `supported_operations: operation_id[]`; `plaintext_visibility: object - {event_kinds[], payload_paths[], blob_purposes[], projection_outputs[], notes}`; `auth_metadata: object?`; `limits: object?`; `rate_limit_policy: object?`; `rate_limit_policy_ref: string?` | `public_metadata`; 不得返回私有拓扑或 secret。`plaintext_visibility` 必填——缺失视为服务不可信(callers MUST 拒绝注册为 `plaintext_visible_services`)。 |
 | `cx.identity.describe_registry` | 无 | 无 | `service_did: did`; `registry_mode: enum(writer,witness,replica)`; `supported_receipts: string[]`; `protocol_version: string`; `profiles: string[]` | `public_metadata`; 可限流。 |
 | `cx.identity.resolve` | `did: did - 待解析 DID` | `include: string[] - 请求附加证据，如 key_log/receipts` | `did_document: object`; `key_log_head: id?`; `seq: int?`; `receipts: object[]?`; `method_evidence: object?` | private / pairwise DID 可要求 presentation proof。 |
 | `cx.identity.get_document` | `query.did: did` | `query.version: string - 指定版本或 head` | `did_document: object`; `head_event_hash: string?`; `seq: int?`; `receipts: object[]?` | 可见性同 `cx.identity.resolve`。 |
@@ -191,7 +191,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.authz.get_effective_grants` | `query.space_id: id`; `query.subject: did` | `query.at: string` | `grants: object[]`; `state_hash: string?`; `evaluated_at: datetime` | subject 本人、Space admin 或授权服务。 |
 | `cx.authz.get_invites` | `query.subject: did 或 string` | `query.space_id: id`; `query.cursor: cursor` | `invites: object[]`; `next_cursor: cursor?` | secret invite 不可枚举。 |
 | `cx.authz.check` | `actor: did`; `action: string`; `resource: object` | `context: object` | `decision: enum(allow,deny,quarantine,require_review,soft_fail)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `cache_valid_until: datetime?`; `reason_code: string?`; `obligations: object[]?` | Policy allow 不创建 capability；客户端不得把非标准 `allowed` 字段作为规范字段。 |
-| `cx.policy.check` | `request_id: string`; `request_canonical_hash: string`; `action: string`; `actor: did`; `source: object` | `space_id: id`; `event_preview: object`; `auth_context: object` | `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `reason_code: string`; `expires_at: datetime`; `obligations: object[]?`; `signature: signature` | 只接收最小披露字段；decision 按 hash 缓存。 |
+| `cx.policy.check` | `request_id: string`; `request_canonical_hash: string`; `action: string`; `actor: did`; `source: object` | `space_id: id`; `event_preview: object`; `auth_context: object` | `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `reason_code: string`; `expires_at: datetime`; `obligations: object[]?`; `signature: signature` | 只接收最小披露字段；decision 按 hash 缓存。P-D10 canonical HTTP 路径 `POST /api/v1/policy/check`。 |
+| `cx.policy.check_legacy` | 同 `cx.policy.check` | 同上 | 同上 | **DEPRECATED alias**:HTTP 路径 `POST /contrix/v1/check`(部署本地 prefix);v1.x 过渡期保留兼容,**新代码不应引用**。gRPC / MQ binding 复用 canonical `Policy/Check` / `policy.check`。 |
 | `cx.moderation.report` | `space_id: id`; `target_ref: id`; `reason: enum`; `reporter: did` | `description: string`; `evidence_refs: id[]` | `report_id: id`; `status: string`; `routed_to: did[]?` | reporter 必须可见 target；只对 moderators 可见。 |
 | `cx.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 不得泄露 private namespace。 |
 | `cx.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |

@@ -128,6 +128,26 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 - **不允许 same-state self-transition**:`cx.<kind>.archive` 在 `state == "archived"` 时 MUST 返回 `<kind>_not_active`,**不能**当作 idempotent no-op。这保证 reducer 路径上每个 state transition 都对应一次 audit-able 状态变化;客户端如果想"重新 archive"应当先 restore 再 archive,或确认目标对象 state 后跳过事件提交。
 
 `*.create` 与 `*.update` 永远 set state 为 `active`(或保持当前 active);对一个非 active 对象提交 update MUST 失败(`failed_precondition`,reason 同 `archive_not_active` 家族),否则编辑会偷偷复活已 archive/tombstone 的对象——这与 `*.restore` 的语义冲突。Conformance 实现 MUST 把"update on non-active object"视为 invariant 违反。
+
+#### 5.2 Unified lifecycle event template（doc-only canonical）
+
+任何 durable canonical object 的 lifecycle event 家族 SHOULD 按以下模板派生(实际 wire kind 仍按对象自身命名,不强制重命名;本节统一描述以便新对象注册时直接对齐,无需在 event-kind-registry 重新讨论一次):
+
+| 模板槽 | 含义 | 已有实例 |
+| --- | --- | --- |
+| `cx.<kind>.create` | 创建对象,落 state=`active`,写入 `created_by` / `created_at`。 | `cx.flow.create`、`cx.place.create`、`cx.morph.create`、`cx.message.send` |
+| `cx.<kind>.update` | 增量更新 active 对象字段;reducer 拒绝非 active 源。**新对象 SHOULD 沿用 `cx.patch.v1` 统一 patch 表达,不应再造单字段 update event。** | `cx.flow.update`、`cx.morph.update`、`cx.patch.v1`(unified) |
+| `cx.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `cx.flow.archive`、`cx.place.archive`、`cx.morph.archive` |
+| `cx.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `cx.flow.restore`、`cx.place.restore`、`cx.morph.restore` |
+| `cx.<kind>.tombstone` (或 `cx.<kind>.delete`) | active/archived → terminal(`tombstoned`/`deleted`);不可逆。 | `cx.flow.delete`、`cx.place.tombstone`、`cx.morph.delete`、`cx.relation.delete` |
+| `cx.<kind>.redact` 或 `cx.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。 | `cx.flow.redact`、`cx.message.redact`、`cx.morph.redact`、`cx.redaction`(统一指向) |
+
+模板使用约束:
+
+- **不是命名 mandate**:已有 wire kind(如 `cx.message.send` 而非 `cx.message.create`、`cx.relation.delete` 仅有 tombstone 终态)保持不变,模板仅描述每个槽位对应的语义角色,使新 object kind 在注册时能直接判断"需要哪几个 lifecycle event"。
+- **不创造新槽**:新增 lifecycle 行为(例如"软隔离 / 待审 / 撤回审核")MUST 先在本节扩展模板;否则不得作为标准 lifecycle event 入 registry。
+- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `cx.patch.v1` 承载(参见 [`flow-and-message.md` §4.8](./flow-and-message.md) 的 `cx.flow.tracks.update` 实例);避免出现 `cx.<kind>.set_<field>` / `cx.<kind>.toggle_<field>` 这类单点 event 膨胀。Legacy 已注册的单点 event 保留,v2 候选合并。
+- **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表,不在各对象文档重复说明转换矩阵。
 - "Place 没有 redacted"：Place 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `cx.place.tombstone` 或 `cx.redaction` 一并完成。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
 - "Relation 用 `tombstone` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故合并为单一 `tombstone`；具体 reason 在对应 `cx.relation.delete` / `cx.redaction` event 中保留。

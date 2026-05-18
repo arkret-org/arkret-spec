@@ -68,6 +68,8 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 ## 4. Morph 类型系统合并优先级
 
+> Machine-readable canonical: [`artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json) 。下表与该 artifact 双向同步;有歧义时以 artifact 为准,本表为人类可读视图。
+
 同一 Morph 对象的"类型"信息可能来自四个声明源；任意 reducer / projection / capability 路径在求"该 Morph 是什么 / 允许什么"时必须按下表合并，不得自行选边。优先级数字越低越优先，冲突时高优先级值整体替换低优先级值（不部分混合）：
 
 | 顺序 | 来源 | 作用 | 谁可写 |
@@ -128,4 +130,5 @@ Facets MUST NOT 成为授权、状态机、排序语义、reducer 行为、event
 - Relation：[relation.md](./relation.md)。
 - View facets / projection：[views.md](./views.md)。
 - Morph schema：`artifacts/schemas/morph.schema.json`。
+- Morph type 合并决策表（canonical）：[`artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json)。
 - Schema registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。

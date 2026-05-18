@@ -706,7 +706,7 @@ Contrix v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_valid_until`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
-- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref`、`plaintext_visibility` 和 `binding`。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。
+- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref` 与 `plaintext_visibility`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{binding: "http_json", ...}`);单数字段名 `binding` 仅出现在每个 binding 条目**内部**,不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。
 

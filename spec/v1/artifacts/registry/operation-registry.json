@@ -110,7 +110,8 @@
         "cx.authz.check",
         "cx.authz.get_effective_grants",
         "cx.authz.get_invites",
-        "cx.policy.check"
+        "cx.policy.check",
+        "cx.policy.check_legacy"
       ]
     },
     {
@@ -669,9 +670,21 @@
     },
     {
       "operation_id": "cx.policy.check",
+      "http": "POST /policy/check",
+      "grpc": "Policy/Check",
+      "mq": "policy.check",
+      "legacy_http_aliases": [
+        "POST /contrix/v1/check"
+      ],
+      "notes": "P-D10 path-unification: canonical HTTP binding is POST /api/v1/policy/check (bare path inheriting the global /api/v1 prefix). Legacy POST /contrix/v1/check (deployment-local prefix) remains accepted by servers during a v1.x transition window; gateways / SDK generators SHOULD treat both as the same operation but emit / route to /policy/check by default. Server SHOULD eventually reject the legacy path once downstream clients have migrated (no enforced deadline in v1)."
+    },
+    {
+      "operation_id": "cx.policy.check_legacy",
       "http": "POST /contrix/v1/check",
       "grpc": "Policy/Check",
-      "mq": "policy.check"
+      "mq": "policy.check",
+      "deprecated_alias_of": "cx.policy.check",
+      "notes": "Deprecated alias of cx.policy.check kept in the registry so that legacy clients pinned to the pre-P-D10 deployment-local path can still resolve a registered operation_id. Same request / response / security shape as cx.policy.check. SHOULD NOT be referenced by new code; transport-bindings / SDK generators MAY map it as a fallback only. Servers MUST accept both paths in v1.x; deadline for removal is part of a future v1.x release decision."
     },
     {
       "operation_id": "cx.push.notify",

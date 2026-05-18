@@ -1,0 +1,92 @@
+{
+  "version": "2026-05-18",
+  "source_of_truth": true,
+  "applies_to": "cx:morph:",
+  "describes": "Canonical merge precedence for the four declaration sources that can contribute to 'what a Morph is and what it allows'. Mirrors morph.md §4. Reducers, capability checks, query/projection paths, and conformance tests MUST follow this table.",
+  "precedence": [
+    {
+      "order": 1,
+      "source": "morph.schema_refs[]",
+      "role": "structural_truth",
+      "writable_by": ["cx.morph.create", "cx.morph.update"],
+      "consumed_by": ["reducer.field_validation", "schema.lint"],
+      "notes": "Declares the field set, types, requiredness, transition rules. Always read for field validation."
+    },
+    {
+      "order": 2,
+      "source": "space.schema.morph_type_profiles[<morph_type>]",
+      "role": "space_scoped_tightening",
+      "writable_by": ["cx.space.schema.update", "cx.space.profile.update"],
+      "consumed_by": ["reducer.field_validation", "capability.required_action_check"],
+      "tightening_only": true,
+      "notes": "Tightens the order-1 declaration inside a single Space (allowed facets subset, writable fields subset, required schema_refs, required capability actions). MUST NOT widen order-1; widening attempts produce `schema_violation` at Space accept time."
+    },
+    {
+      "order": 3,
+      "source": "morph.morph_type (string)",
+      "role": "business_label_and_discoverability_key",
+      "writable_by": ["cx.morph.create"],
+      "create_locked": true,
+      "consumed_by": ["capability.morph_type_allow_match", "resource_selector.match", "query.filter"],
+      "notes": "Wire-stable string key. Create-locked so capability grant selectors do not silently break."
+    },
+    {
+      "order": 4,
+      "source": "morph.facets (map)",
+      "role": "ui_and_projection_hint",
+      "writable_by": ["cx.morph.create", "cx.morph.update"],
+      "consumed_by": ["view.default_renderer_pick", "query.item_facets_filter", "graph.node_facets_filter", "ui.fallback_render"],
+      "MUST_NOT_consume_by": ["authz.decide", "reducer.state_machine", "reducer.field_validation", "wire.interop"],
+      "notes": "Pure hint. Reading facets to make a security / state-machine / interop decision is a conformance bug."
+    }
+  ],
+  "merge_rules": [
+    {
+      "rule": "field_validation_inputs",
+      "reads": ["order=1", "order=2"],
+      "ignores": ["order=3", "order=4"]
+    },
+    {
+      "rule": "capability_type_match",
+      "reads": ["order=3"],
+      "ignores": ["order=1", "order=2", "order=4"]
+    },
+    {
+      "rule": "facet_effects",
+      "reads": ["order=4"],
+      "scope": ["default_renderer", "view_pick", "query_facet_filter", "ui_fallback"],
+      "ignores": ["authz", "reducer", "wire_interop"]
+    }
+  ],
+  "conflict_resolution": [
+    {
+      "case": "order1_vs_order2_field_set",
+      "winner": "order=2",
+      "rationale": "Space-scoped tightening always wins.",
+      "violation_error_code": "schema_violation",
+      "violation_reason": "morph_profile_widens_schema_ref"
+    },
+    {
+      "case": "facet_hint_field_missing_in_order1_or_order2",
+      "result": "facet_inactive_morph_still_valid",
+      "rationale": "Facet is a hint, not a contract."
+    },
+    {
+      "case": "morph_type_unknown_in_space_schema",
+      "result": "order2_treated_as_empty_tightening",
+      "MUST_NOT": "auto_widen_to_all_fields_allowed"
+    },
+    {
+      "case": "same_capability_implied_by_field_and_facet",
+      "winner": "order=1+order=2",
+      "rationale": "Field + capability are truth; facet is presentation hint only.",
+      "must_not": "ui_decides_call_from_facet_only"
+    }
+  ],
+  "conformance_must_test": [
+    "Reading order-4 facets to decide authorization → MUST fail.",
+    "Reducer field validation that ignores order-2 tightening → MUST fail.",
+    "Mutating morph_type after create → MUST fail with `morph_type_immutable`.",
+    "Order-2 morph_type_profile that widens order-1 schema → MUST be rejected at Space accept time with `schema_violation` / `morph_profile_widens_schema_ref`."
+  ]
+}

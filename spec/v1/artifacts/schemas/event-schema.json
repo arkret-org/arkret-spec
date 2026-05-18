@@ -355,6 +355,7 @@
               "cx.space.update",
               "cx.flow.update",
               "cx.flow.track.update",
+              "cx.flow.tracks.update",
               "cx.morph.update",
               "cx.profile.update",
               "cx.profile.space_override"

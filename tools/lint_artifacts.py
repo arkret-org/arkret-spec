@@ -46,7 +46,7 @@ FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     },
     "spec/v1/zh/models/flow-and-message.md": {
         1: "schemas/flow.schema.json",
-        3: "schemas/message.schema.json",
+        4: "schemas/message.schema.json",
     },
     "spec/v1/zh/models/morph.md": {
         1: "schemas/morph.schema.json",
