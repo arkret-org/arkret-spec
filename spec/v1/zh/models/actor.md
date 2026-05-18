@@ -52,7 +52,7 @@ Schema id: `cx.schema.actor_profile.v1`
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
 | `avatar_blob_ref` | no | `id:blob` |  | 头像。 |
-| `status` | no | `enum(active, suspended, deactivated, deleted)` | 账户生命周期见 `account-lifecycle.md`。 | 状态。 |
+| `status` | no | `enum(active, suspended, deactivated, deleted)` | 账户生命周期独有的状态集，不复用 [`common-fields.md` §5](./common-fields.md) 的对象通用状态机；具体语义、转移与允许的写入主体见 [`../identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)。 | 状态。 |
 | `accountable_to` | no | `array<did>` | agent/托管账号 SHOULD 设置。 | 责任主体。 |
 | `profile_fields` | no | `object` | 不得包含未授权披露的私密 handle。 | 扩展展示字段。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

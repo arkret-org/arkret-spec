@@ -117,7 +117,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `cx.<kind>.archive` | `active` | `archived` | `<kind>_not_active` |
 | `cx.<kind>.restore` | `archived` | `active` | `<kind>_not_archived` |
 | `cx.<kind>.tombstone` | `active`、`archived` | `tombstoned` / `deleted`(各对象 schema 自命名) | `<kind>_already_terminal` |
-| `cx.<kind>.redact` 或 `cx.redaction` 指向该对象 | `active`、`archived` | `redacted`(如对象支持),或合并到 `tombstoned` | `<kind>_already_terminal` |
+| `cx.<kind>.redact` 或 cross-object `cx.redaction` 指向该对象 | `active`、`archived` | `redacted`(如对象支持),或合并到 `tombstoned` | `<kind>_already_terminal` |
 
 `<kind>` 是 schema 类型短名(`flow`、`place`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`place_not_active` / `place_not_archived` / `place_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
 
@@ -140,7 +140,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `cx.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `cx.flow.archive`、`cx.place.archive`、`cx.morph.archive` |
 | `cx.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `cx.flow.restore`、`cx.place.restore`、`cx.morph.restore` |
 | `cx.<kind>.tombstone` (或 `cx.<kind>.delete`) | active/archived → terminal(`tombstoned`/`deleted`);不可逆。 | `cx.flow.delete`、`cx.place.tombstone`、`cx.morph.delete`、`cx.relation.delete` |
-| `cx.<kind>.redact` 或 `cx.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。 | `cx.flow.redact`、`cx.message.redact`、`cx.morph.redact`、`cx.redaction`(统一指向) |
+| `cx.<kind>.redact` 或 cross-object `cx.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。v1 wire 实际注册形态请以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准:Message 走 `cx.message.redact`;Flow / Morph / Place / Relation 等未单独注册 `cx.<kind>.redact` 的对象走 cross-object `cx.redaction`。两种 wire 形态都是 canonical (`active` status),按对象选择;reducer 不得自行折叠或互换。 | `cx.message.redact`、`cx.redaction`(用于 flow / morph / place / relation 等未单独注册的对象) |
 
 模板使用约束:
 

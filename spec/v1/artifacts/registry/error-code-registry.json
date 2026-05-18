@@ -282,6 +282,36 @@
       "http_status": 422,
       "scope": "both",
       "description": "Caller requested an operation that relies on a Space-declared profile or feature this service has not declared in cx.server.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation."
+    },
+    {
+      "code": "failed_precondition",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {flow,place,morph,message,relation}_not_active / _not_archived / _already_terminal family, or with object-specific reasons like place_parent_cycle. See zh/models/common-fields.md §5.1."
+    },
+    {
+      "code": "unsupported_hash",
+      "http_status": 422,
+      "scope": "both",
+      "description": "The hash algorithm prefix in a typed hash value (e.g. cx:event:<algo>:<digest>) is not in the receiver's supported hash list. See zh/conformance/encoding.md §3.2."
+    },
+    {
+      "code": "anchor_incomplete",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Anchor frontier has gaps within the receiver's auth_chain backfill bound; soft-fail per zh/conformance/scalability-constraints.md."
+    },
+    {
+      "code": "frank_unavailable",
+      "http_status": 503,
+      "scope": "both",
+      "description": "E2EE frank cannot be produced for the requested ciphertext (sender did not include franking sidecar). See zh/governance/content-moderation.md §3.4."
+    },
+    {
+      "code": "turn_credential_expired",
+      "http_status": 401,
+      "scope": "endpoint",
+      "description": "TURN REST-style ephemeral credential is past its TTL; client MUST request a fresh credential. See zh/crypto-media/webrtc-signaling.md §6.1."
     }
   ],
   "reason_codes": [
@@ -737,6 +767,132 @@
         "auth_decision"
       ],
       "description": "Space declares cx.profile.agent_workspace.lite.v1 but a cx.agent_task.transparency.transition / source_authority.transition event was submitted; lite profile rejects these cells (P-D13)."
+    },
+    {
+      "code": "flow_not_active",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.flow.archive` / `cx.flow.update` rejected because the target Flow is not in `active` state (per zh/models/common-fields.md §5.1)."
+    },
+    {
+      "code": "flow_not_archived",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.flow.restore` rejected because the target Flow is not in `archived` state."
+    },
+    {
+      "code": "flow_already_terminal",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.flow.tombstone` / `cx.flow.delete` / `cx.flow.redact` rejected because the target Flow is already in a terminal state (`tombstoned` / `deleted` / `redacted`)."
+    },
+    {
+      "code": "place_not_active",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.place.archive` rejected because the target Place is not in `active` state (per zh/models/space-and-place.md §4.3)."
+    },
+    {
+      "code": "place_not_archived",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.place.restore` rejected because the target Place is not in `archived` state; `tombstoned` is a terminal state and MUST NOT be restored."
+    },
+    {
+      "code": "place_already_terminal",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.place.tombstone` rejected because the target Place is already `tombstoned`."
+    },
+    {
+      "code": "place_parent_cycle",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.place.parent` would create a cycle in the Place ancestor chain (self-loop or chain loop). Reducer MUST reject (zh/models/space-and-place.md §4.5)."
+    },
+    {
+      "code": "morph_not_active",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.morph.archive` / `cx.morph.update` rejected because the target Morph is not in `active` state."
+    },
+    {
+      "code": "morph_not_archived",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.morph.restore` rejected because the target Morph is not in `archived` state."
+    },
+    {
+      "code": "morph_already_terminal",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.morph.tombstone` / `cx.morph.delete` / `cx.morph.redact` rejected because the target Morph is already in a terminal state."
+    },
+    {
+      "code": "message_already_terminal",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.message.redact` / equivalent rejected because the target Message is already `redacted` or `deleted`."
+    },
+    {
+      "code": "relation_already_terminal",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.relation.delete` rejected because the target Relation is already `tombstone`."
+    },
+    {
+      "code": "cross_signing_reset",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A previously trusted cross-signing key set was reset; verifications against the old `ssk_generation` MUST fail until the user re-verifies under the new generation. See zh/crypto-media/device-lifecycle.md §14."
+    },
+    {
+      "code": "deprecated_query_params",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Caller used legacy `direction` / `from` / `until` query parameters on `cx.events.query`. v1 conformant endpoints MUST reject with `invalid_param`; only a deployment-local transitional compatibility profile MAY translate them while emitting this warning."
+    },
+    {
+      "code": "claim_rate_limited",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "Per-(requester, target, intended_space_id) KeyPackage / one-time-key claim rate limit hit; caller MUST back off before retrying. Distinct from the global `rate_limited` HTTP code because the limit is keyed on the (target, intended use) tuple, not the caller alone."
+    },
+    {
+      "code": "naming_convention_violation",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A registry entry (event_kind / schema_id / typed-id) violates the canonical naming convention (e.g. embedding a `.v<n>` version suffix in the kind name instead of carrying the version via `requirements.features`). Surface as lint output, not as a wire-time reject."
     }
   ]
 }

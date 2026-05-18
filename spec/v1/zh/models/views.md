@@ -173,7 +173,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
   },
   "collection": {
     "item_object_types": ["flow"],
-    "item_render": "flow_card",
+    "item_render": "card",
     "item_order_by": [
       { "field": "rank", "direction": "asc" }
     ],

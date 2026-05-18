@@ -358,6 +358,7 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 ```json
 {
   "grant_id": "cx:grant:01964198-0000-7000-8000-000000000000",
+  "space_id": "cx:space:01964198-7000-7000-8000-000000000000",
   "issuer": "did:web:auth-gateway.example.com",
   "subject": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
@@ -373,6 +374,10 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
   "expires_at": "2026-04-27T00:00:00Z"
 }
 ```
+
+> 注：`cx.session.grant` 是 principal control stream 事件，`space_id` MUST 等于 subject 的
+> principal control space（§4.1）。本字段是 control event 必填项；早期示例曾省略，会被 reducer
+> 以 `schema_violation` 拒绝。
 
 规则：
 

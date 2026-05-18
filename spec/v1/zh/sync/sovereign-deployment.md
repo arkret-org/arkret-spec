@@ -254,7 +254,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
   "issuer": "did:web:defense.example",
   "subject": "did:web:contractor.example",
   "scope": {
-    "space_id": "cx:space:400d7400-0000-7000-8000-000000000000-operation",
+    "space_id": "cx:space:400d7400-0000-7000-8000-000000000000",
     "roles": ["contractor_reviewer"],
     "max_members": 20
   },

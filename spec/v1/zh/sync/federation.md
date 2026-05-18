@@ -23,7 +23,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 ### 2.3 Anchor Finality 优于全局同步共识
 
-跨域网络延迟不可预测。联邦协议不要求所有 Principal Server 同步参与一个全局共识组；每个 Space 通过 Anchor DAG 表达 ordering commitment。Hub、threshold、open peer mesh 和 sovereign fallback 只是 `anchorer` cell value 与 Anchor profile 的不同配置。
+跨域网络延迟不可预测。联邦协议不要求所有 Principal Server 同步参与一个全局共识组；每个 Space 通过 Anchor DAG 表达 ordering commitment。`single_did`（中心化 hub）、`threshold`（k-of-n 委员会）、`open_set`（开放对等）和 `mixed`（含 sovereign fallback）只是 `anchorer` cell value 与 Anchor profile 的不同配置；详见 §2.4。
 
 ### 2.4 Anchor Profile 决定传播形态
 

@@ -512,14 +512,6 @@ Schema id: `cx.schema.message.v1`
     }
   },
   {
-    "kind": "cx.flow.track.enable",
-    "target_ref": "cx:flow:019640f9-8000-7000-8000-000000000000",
-    "payload": {
-      "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
-      "track": "discussion"
-    }
-  },
-  {
     "kind": "cx.message.create",
     "payload": {
       "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
@@ -533,6 +525,10 @@ Schema id: `cx.schema.message.v1`
   }
 ]
 ```
+
+> `cx.flow.create` 的 payload 已在 `tracks.discussion` 中声明该 track 启用，无需再发独立的
+> `cx.flow.track.enable`。只有当 Flow 创建后想新增 / 重新启用某个被 disable 过的 track 时才需要
+> `cx.flow.track.enable`（或新的统一 `cx.flow.tracks.update`，见 §4.8）。
 
 `@mention` 与 reference：消息正文 SHOULD 使用结构化 AST 或带 DID/object ref 的
 Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention 关系和通知，

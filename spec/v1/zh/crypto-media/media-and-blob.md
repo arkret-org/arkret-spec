@@ -228,7 +228,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 §5 与 [`server-threat-model.md` §S21](../security/server-threat-model.md) 规定受保护下载 MUST NOT 接受 query string 中的认证材料。该规则的存在原因是 query string 会被 HTTP access log、代理、CDN、浏览器历史、复制链接和 `Referer` 头无差别记录，长期 capability 一旦落入 URL 即等价于失控。
 
-然而浏览器原生媒体标签（`<img src>`、`<video src>`、`<audio src>`、`<link href>`、CSS `background-image: url(...)`、`fetch()` 默认 mode 等）**无法附加 `Authorization` header**。若严格执行"无 URL 认证"规则，受保护媒体只能通过 service worker 代理或 JS Blob URL 间接渲染——这在很多原生体验、邮件预览、跨页面共享场景中是死路。
+然而浏览器原生媒体标签（`<img src>`、`<video src>`、`<audio src>`、`<link href>`、CSS `background-image: url(...)` 等）**无法附加 `Authorization` header**——浏览器在解析这些属性时直接对目标 URL 发起未带认证 header 的 GET。`fetch()` API 本身可以附加 `Authorization`，但其返回的 `Response` 仅能转换为 Blob URL 后由 JS 注入 DOM 才能让原生标签消费，无法直接代替原生 src 的同源加载语义。若严格执行"无 URL 认证"规则，受保护媒体只能通过 service worker 代理或 JS Blob URL 间接渲染——这在很多原生体验、邮件预览、跨页面共享场景中是死路。
 
 为此 v1 定义 **`cx.blob.presign`** 作为该规则的**狭窄定制例外**：发出短 TTL、单对象、只读、可撤销的 pre-signed URL，让浏览器原生标签直接使用，同时通过严格 scope 限制把 URL 泄露的最大损失收敛在一个具体 blob 的短时间访问。
 

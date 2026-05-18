@@ -134,12 +134,10 @@ v1.0 conformance suite 不测试任何非 HTTP binding；早期草案中曾出�
       "binding": "http_json",
       "base_url": "https://server.example/api/v1",
       "operations": ["sync.subscribe", "sync.backfill"]
-    },
-    {
-      "binding": "grpc",
-      "endpoint": "server.example:443",
-      "operations": ["sync.subscribe"]
     }
+    // 其他 binding (gRPC / WebSocket / SSE / MQ / libp2p) 是 extension profile,需声明
+    // 对应 binding profile id (形如 cx.profile.binding.<transport>.v1.1, 见 §6) 后
+    // 才可出现在此处; v1 core 仅要求 http_json。
   ]
 }
 ```

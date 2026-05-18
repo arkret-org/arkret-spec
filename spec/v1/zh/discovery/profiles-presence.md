@@ -14,7 +14,7 @@ title: Profiles And Presence
 
 ### 2.1 Profile 对象
 
-每个 Actor DID MAY 关联一个标准化的 `actor_profile` 对象，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。对象字段以 `artifacts/schemas/actor-profile.schema.json` 为准；权限仍以 `principal_id` 指向的 DID / capability 为准。
+每个 Actor DID MAY 关联一个标准化的 `actor_profile` 对象，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。对象字段以 [`../../artifacts/schemas/actor-profile.schema.json`](../../artifacts/schemas/actor-profile.schema.json) 为准；权限仍以 `principal_id` 指向的 DID / capability 为准。
 
 ```json
 {

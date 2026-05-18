@@ -181,7 +181,9 @@ Contrix v1 core conformance 要求如下：
 - Fallback 总时长 MUST ≤ 24 小时（与 §4.2.1 `degraded_no_witness` 状态硬上限对齐）；超时后即使是低风险只读也 MUST fail closed，强制用户等待恢复或切换 resolver。
 
 完整 method-specific 操作（创建、轮换、恢复、deactivation、history validation）的规范见
-W3C `did:webvh` specification 与 §7.2；core v1 文档不再展开。
+DIF / identity.foundation `did:webvh` method specification（<https://identity.foundation/didwebvh/v1.0/>）
+与 §7.2；core v1 文档不再展开。`did:webvh` 当前不是 W3C Recommendation，本规范不应把它表述为 W3C
+artifact。
 
 ### 3.5 Interop Adapter Extension Profiles
 

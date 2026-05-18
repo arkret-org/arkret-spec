@@ -130,7 +130,7 @@ Client 在使用 snapshot 之前 MUST 校验 signature、签名者权限、`stat
 
 - `(now - manifest.created_at) ≤ snapshot_max_acceptance_age_ms`。默认 `snapshot_max_acceptance_age_ms = 2_592_000_000`（30 天）；`security_class=high_assurance` 的 Space MUST 收紧到 ≤ `604_800_000`（7 天）。超出该窗口后，即使曾经有效的 snapshot 也 MUST 被拒绝——client MUST 请求新的 manifest，因为 auth state 与 policy 的漂移已使旧 snapshot 无法安全代表当前状态。
 - 签名者的权限链（Space owner / admin / trusted issuer / witness quorum membership）在当前 auth state 下仍**可解析**。如果该链已被裁剪（例如 Space tombstone、governance reset 或越过 manifest 时代的 auth-chain compaction），snapshot MUST 被拒绝。
-- 若签名者曾被撤销，则 `(now - signer.revoked_at) < 0`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但 client 在用当前状态写入新 Event 前 MUST 先重放 snapshot frontier 之后的事件。
+- 若签名者曾被撤销，则 `signer.revoked_at` 不存在，**或** `signer.revoked_at > manifest.created_at`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但 client 在用当前状态写入新 Event 前 MUST 先重放 snapshot frontier 之后的事件。
 
 `proof`、`signed_by`、`generator_signature` 与 `state_signature` 不是 v1 snapshot manifest 字段。
 

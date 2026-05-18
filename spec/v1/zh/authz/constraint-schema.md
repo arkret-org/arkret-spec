@@ -128,11 +128,13 @@ v2 主版本 SHOULD 把现有扁平字段重组为嵌套对象（如 `approval: 
 {
   "constraint_type": "temporal",
   "effect": "allow",
-  "max_duration": "8h",
-  "max_session_duration": "1h",
-  "inactivity_timeout": "30m"
+  "max_duration": "PT8H",
+  "max_session_duration": "PT1H",
+  "inactivity_timeout": "PT30M"
 }
 ```
+
+> Duration 字段使用 ISO 8601 持续时间格式（`P[n]Y[n]M[n]DT[n]H[n]M[n]S`）。`grant-constraint.schema.json` 中相应字段的 `pattern` 即此格式；早期文档使用过的 `"8h"` / `"1h"` / `"30m"` compact 形态在 v1 wire 上 MUST 被 schema validator 拒绝。
 
 ## 4. 字段访问约束
 

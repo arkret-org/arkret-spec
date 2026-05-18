@@ -412,7 +412,11 @@ v1 早期草案的参数命名 `from` / `until` / `direction` 已被 `before` / 
 - 旧 `direction=forward&from=X` ≈ 新 `after=X`
 - 旧 `from=X&until=Y` ≈ 新 `after=X&before=Y`（注意旧含义 `from` 是否含 X、`until` 是否含 Y 历史上不一致；新参数明确为开区间）
 
-迁移期内服务端 MAY 临时同时识别旧参数，但 MUST 在响应 `warnings[]` 中提示 `deprecated_query_params`；正式互操作 MUST 使用新参数。
+兼容性边界（解决"MUST reject"与"MAY accept"看似冲突）：
+
+- **v1 conformant `cx.events.query` endpoint MUST reject** 旧参数 `direction` / `from` / `until`，并返回 `invalid_param` reason=`deprecated_query_params`。这是 conformance 测试的判定标准。
+- **Transitional compatibility flag**（例如 deployment-local `events_query.legacy_params`，不是 `cx.profile.*` conformance profile）MAY 接受旧参数并转译为新参数，同时 MUST 在响应 `warnings[]` 中提示 `deprecated_query_params`。启用该兼容 flag 的部署不得在 describe 中宣称通过正式 v1 HTTP binding conformance。
+- 没有"既属 v1 conformant 又接受旧参数"的中间态；conformance suite 只测试 v1 conformant 行为。
 
 #### 3.3.6 POST/body 形态（`cx.events.query_post`）
 
@@ -471,7 +475,7 @@ Frame（每行一个独立 JSON 对象，按 NDJSON / JSON-Lines 形式跨 trans
 { "kind": "resync_required", "space_id": "cx:space:01..." }
 ```
 
-同一语义流 MAY 通过 WebSocket、SSE 或长轮询承载，但 HTTP/JSON 默认参考路径是 `/api/v1/events/subscribe`。`/sync/stream` 仅用于具体 transport 的内部帧名，不定义为新的 canonical operation。客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `cx.events.query` 补齐，后者要求重建本地状态。
+同一语义流 MAY 通过 WebSocket、SSE 或长轮询承载，但 HTTP/JSON 默认参考路径是 `/api/v1/events/subscribe`。其他 transport binding（WebSocket frame、SSE event 名等）MAY 使用其内部帧名承载同一语义；任何此类帧名不构成独立的 canonical operation，仅是 transport-binding-specific 别名。客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `cx.events.query` 补齐，后者要求重建本地状态。
 
 ## 4. Identity API
 

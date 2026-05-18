@@ -145,7 +145,7 @@ flowchart TB
 
 - Sync Service 与 Anchor pipeline 不是真相源，只是按 Anchor finality 暴露 `events + state_after` 的传输面；Producer 与 Consumer 的客户端都可以重算同样的 effective state。
 - Consumer 端 reducer 的输入是 accepted reducer-input event 集合 + Anchor frontier；non-reducer event（read marker / typing 等）不进 cell、不进 state_root。
-- soft-fail 路径是 §6.1 的 reconciliation 主题：推测态会被标记，最终升级或回滚都必须确定性。
+- soft-fail 路径是 §6.2 的 reconciliation 主题：推测态会被标记，最终升级或回滚都必须确定性。
 
 ## 4. Event Batch Receipt / Checkpoint
 
@@ -323,7 +323,7 @@ function validate_actor_seq(event, known_frontiers):
 
 该算法只验证 `actor_seq` 语义。完整的 Event 验证还必须包括签名、schema、capability、Space policy、因果依赖（`prev_refs` / `refs[]` 存在性）和 HLC 合理性检查。
 
-### 6.1 Soft-fail Event Reconciliation
+### 6.2 Soft-fail Event Reconciliation
 
 一个 Event 被 soft-failed（受 backfill 等候、causal 上下文未到、frontier 暂时落后）时，本地 reducer / projection 在等待期间 MAY 已经把它的 effects 应用到推测态。当后续 backfill 完成、或 capability / policy 后续发现该 Event 不应通过时，本地状态需要按下表确定性地 reconcile：
 

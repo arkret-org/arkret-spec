@@ -298,7 +298,7 @@ Contrix v1 支持：
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `space_kind_allow`
+- `space_kind_allow`（v1 reserved / no-op：Space 顶层 `kind` 字段已删除，v1 实现 SHOULD 把该约束视为 always-allow；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
 - `place_kind_allow`
 - `morph_type_allow`
 - `facet_allow`

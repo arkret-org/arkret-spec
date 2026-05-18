@@ -326,9 +326,11 @@ GET /api/v1/events/frontier?space_id=<id>
 
 返回调用方可见范围内的 actor frontier、Space frontier、latest HLC、可选 witness receipt / event batch receipt。frontier 只用于同步和强一致读取，不能替代 Event 集合本身。
 
-## 5. Sync Surface
+## 5. Account Sync Surface
 
-Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Space 的事件查询和实时订阅已收敛到 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。Sync Surface 不是独立第三方服务器角色。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared anchorer / sync service。
+Account Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Space 的事件查询和实时订阅已收敛到 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Space frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared anchorer / sync service。
+
+> 历史命名 "Sync Surface" 容易让读者把它误解为"所有同步路径"，但事件流读取/订阅已迁移到 Events Surface。本节仅描述 account-aggregate 与 snapshot 入口。
 
 本节定义两个 sync namespace 操作（事件流读取请到 Events Surface）：
 
@@ -687,7 +689,7 @@ Contrix v1 的首次加入流程：
 Contrix v1 固定：
 
 - 定义最小 principal server / identity registry / events / sync / blob / authz 服务面
-- HTTP/JSON 路径是默认推荐 binding，但语义等价最重要，可支持其他调用风格
+- v1 core 互操作 transport 锁定为 HTTP/JSON（见 [`transport-bindings.md` §1](./transport-bindings.md)）；gRPC / WebSocket / SSE / MQ / libp2p 等其他 binding 仅为 extension profile，本节列出的 operation 形态与字段以 HTTP/JSON 为唯一权威。其他 binding 必须语义等价但不构成 v1 core 一致性。
 - 写接口必须幂等
 - DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill

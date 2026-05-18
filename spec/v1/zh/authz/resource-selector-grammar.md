@@ -51,7 +51,7 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
 
 ### 2.1 Board/List 选择
 
-Board 与 List 使用 `kind="space"` 选择器，再用约束限制 Space kind 或具体容器引用。实现 MUST NOT 接受 `kind="board"` 或 `kind="list"` 作为 canonical resource selector kind。
+Board 与 List 使用 `kind="place"` 选择器，配合 `place_kind_allow` 约束限制 Place 形态（`board`、`list` 等 profile 注册的 Place kind）。实现 MUST NOT 接受 `kind="board"` 或 `kind="list"` 作为 canonical resource selector kind；需要把权限范围扩到整个 Space（覆盖所有 Place）时再使用 `kind="space"`。
 
 ```json
 {
@@ -401,7 +401,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 1. **资源匹配**：目标资源必须匹配 selector。
 2. **动作匹配**：操作动作必须在授权 `actions` 中，或被明确的通配动作覆盖。
-3. **约束匹配**：`space_kind_allow`、`place_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。
+3. **约束匹配**：`place_kind_allow`、`morph_type_allow`、`relation_kind_allow`、`allowed_tracks` 等约束必须满足。`space_kind_allow` 在 v1 已无规范用途（Space 顶层 `kind` 字段已删除），v1 实现 SHOULD 把它视为 always-allow（详见 [`constraint-schema.md` §5](./constraint-schema.md)）。
 4. **Track access 检查**：Message 和 discussion track 访问必须满足有效 track access、history visibility 和 E2EE key eligibility。
 5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
@@ -413,7 +413,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 `*`、`space:*` 和 `object:*:*` 可能匹配非预期资源。缓解措施：
 
 - 始终配合 `expires_at` 使用。
-- 与 `object_type_allow`、`space_kind_allow`、`place_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_tracks` 等约束组合。
+- 与 `object_type_allow`、`place_kind_allow`、`morph_type_allow`、`facet_allow`、`allowed_tracks` 等约束组合（`space_kind_allow` 在 v1 已无规范用途，组合时按 always-allow 处理）。
 - 要求管理员审批与审计理由。
 - `max_delegation_depth` SHOULD 为 0。
 

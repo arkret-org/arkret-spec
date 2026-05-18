@@ -130,10 +130,12 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `space`、`flow`、`place`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`txn` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / move / anchor、canonical cell tuple、MLS profile-scoped 引用、Space-scoped pseudonym）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
 
-特殊 ID/ref 形式：
+特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 
 - `cx:cursor:<base64url>` 是 opaque token，不是 typed UUIDv7 object ID。
 - `cx:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`cx:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者不得混用。
+- `cx:anchor:sha256:<digest>` 是内容寻址 Anchor hash（active special form；见 `id-kind-registry.json`）。
+- `cx:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；component 来自 cell-component registry，subject 是 cell 的 subject key）。
 - `cx:mls:<profile>:<profile_id>`、`cx:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
 
 自定义 profile 若新增 `cx:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `cx:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。

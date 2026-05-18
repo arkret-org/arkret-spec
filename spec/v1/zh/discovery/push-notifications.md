@@ -300,16 +300,6 @@ E2EE Space 中，Sync Service 不持有正文密钥，无法在 server 端评估
 - 实现 MUST NOT 在 E2EE Space 中把 `contains_keyword` rule 提示让 Sync Service 持有 keyword 列表（即使加 hash）。Keyword 比 mention 高熵——hash 可被字典爆破。
 - 实现 MUST NOT 通过"让客户端把解密结果回传 Sync Service 完成匹配后再发推送"的形式实现 server-side rule。这条路径等于把客户端解密能力委托给 Sync Service，违反 E2EE 边界。
 
-### 4.4 动作类型 (Actions)
-
-| Action | 说明 |
-|--------|------|
-| `notify` | 发送推送通知 |
-| `dont_notify` | 不发送推送（静音） |
-| `sound_default` | 使用默认提示音 |
-| `sound_critical` | 使用紧急提示音 |
-| `highlight` | 在客户端标记为高亮 |
-
 ## 5. 推送网关接口 (Push Gateway API)
 
 ### 5.1 通知推送

@@ -43,7 +43,7 @@ title: 术语表
 | Event Envelope | 事件外壳 | `event_id`、`actor_id`、`kind`、`payload`、`proofs` 等字段的签名封包。 |
 | Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
 | Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 frontier。 |
-| HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，形如 `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。 |
+| HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，固定格式 `<unix_ms_hex(12)>-<logical_hex(4)>-<node_id_hash(8)>`（hex 字段宽度依次 12 / 4 / 8）；canonical 规则见 [`../conformance/encoding.md` §7](../conformance/encoding.md)。 |
 | Cursor | 同步游标 | 指定 frontier 的 `scope:space|actor|query` 编码，用于增量同步与重放。 |
 | Canonical JSON | 规范 JSON | 确定性 JSON 序列化格式，所有签名/哈希/对账输入必须使用；要求 UTF-8、key 排序、无空白、唯一 number 表示。 |
 | View | 投影定义 | 查询 + kind + renderer + config 的共享可签名对象，定义“怎么看”。 |
