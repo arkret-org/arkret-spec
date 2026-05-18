@@ -1589,6 +1589,22 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Sovereign DID resolver policy state"
+    },
+    {
+      "event_kind": "cx.audit.epoch_key_destruction.v1",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "P-S6 attested_hardware Audit Agent removal — enclave-signed attestation that historical epoch / exporter secrets held by the removed Audit Agent have been cryptographically destroyed. MUST be in the same anchor batch as the paired cx.mls.commit that removes the Audit Agent (see crypto-media/audited-e2ee.md §3.1.1)."
+    },
+    {
+      "event_kind": "cx.space.audit_policy_downgrade.v1",
+      "category": "audit",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "P-S6 forced downgrade of audit_assurance from attested_hardware to disclosed_policy when the required cx.audit.epoch_key_destruction.v1 attestation is not produced within the deadline; rewrites Space audit policy and triggers UI banner."
     }
   ]
 }

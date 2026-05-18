@@ -86,7 +86,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Space policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
 | `POST /api/v1/events/batch-get` | body `{event_ids?: id[], event_hashes?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Space policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
 | `GET /api/v1/events` | query `{spaces?: id[], actors?: did[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object}` | 调用方必须对每个 selector 元素满足读取约束：actor scope 走 actor history visibility；space scope 走 membership frontier + history visibility + E2EE epoch policy。`spaces[]` ∪ 内部、`actors[]` ∪ 内部、二者组合为交集。批次内顺序规则见 §3.3。 | `{events[], next_cursor?, prev_cursor?, has_more}` |
-| `GET /api/v1/events/subscribe` | query `{spaces?: id[], actors?: did[], from?: cursor, include_history?: boolean}` | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-space `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, space_id?: id, cursor?: cursor, payload?: object}` |
+| `GET /api/v1/events/subscribe` | query `{spaces?: id[], actors?: did[], after?: cursor, include_history?: boolean}`(legacy `from=<cursor>` 已移除,server MUST 返回 `invalid_param`) | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-space `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, space_id?: id, cursor?: cursor, payload?: object}` |
 | `GET /api/v1/events/frontier` | query `{actor_id?: did, space_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Space 或 private DID。 | `{frontier, receipts?}` |
 | `POST /api/v1/sync` | body `{since?: cursor, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device。聚合账号视角 delta（跨 Space frontier、to_device、account_data、device_lists、presence、unread / notification counts），不是裸事件读。 | Account sync response `{cursor, spaces?, to_device?, account_data?, device_lists?}` |
 | `GET /api/v1/sync/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `{service_did, supported_sync_profiles[], limits, frontier?}` |
@@ -127,6 +127,34 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/applet/third_party/users` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 registration namespace 内。 | `{actor_id?, exists, external_ref?}` |
 | `GET /api/v1/applet/third_party/locations` | query `{protocol, ...external_ids}` | `service_signature`; 查询字段必须在 portal namespace 内。 | `{space_id?, exists, external_ref?}` |
 | `POST /contrix/v1/ice-config` | body `{space_id: id, call_id: id, actor_id: did, device_id: id, mode: string}` | `user_session`; actor 必须有 call/media capability，Media Service 必须被 Space policy 委托。 | `{ttl_seconds, ice_servers[], policy, signature}` |
+| `POST /api/v1/keys/keypackages/upload` | body `{device_id, keypackages[]}` | `user_session` + 当前 device proof;每条 keypackage 必须 self-signed 并通过当前 device 签发。 | `{accepted, rejected?, available_count}` |
+| `POST /api/v1/keys/keypackages/claim` | body `{principal_id, count?: int}` | `user_session`;一次性 keypackage MUST 原子消费(同 `cx.keys.claim`)。 | `{keypackages[]}` |
+| `POST /api/v1/keys/keypackages/consume` | body `{keypackage_ref}` | `service_signature`(MLS group creator 通常是 service-side 调用) 或 `user_session`。 | `{ok: true, consumed_at}` |
+| `POST /api/v1/keys/keypackages/revoke` | body `{keypackage_ref, reason?}` | `user_session` + 当前 device proof;不可撤销已消费的 keypackage。 | `{ok: true, revoked_at}` |
+| `POST /api/v1/directory/announce` | body `{resource_kind, resource_id, discoverability, signatures[]}` | `user_session` 或 `service_signature` 视 resource_kind;principal MUST 签发 announcement 凭据。 | `{ok: true, announcement_id, valid_until?}` |
+| `POST /api/v1/directory/withdraw` | body `{announcement_id, reason?}` | `user_session`;只能撤销自己签发的 announcement。 | `{ok: true, withdrawn_at}` |
+| `POST /auth/account/session-grants` | body `{principal_id, device_id?, requested_scope?}` | DID-bound signature 或 paired device proof;此 endpoint **不**挂在 `/api/v1` 下,SDK MUST 走 path-level `servers: https://{host}` 覆盖。 | session grant envelope(schema id 尚未独立注册;响应字段见 OpenAPI `SessionGrant`) |
+| `POST /auth/account/device-pair` | body `{pairing_code, new_device_pubkey, challenge_signature}` | `user_session` + existing device proof + freshly minted pairing code(短 TTL); endpoint 与 session-grants 同一部署本地 namespace。 | `{device_id, authorized_event_ref}` |
+| `POST /auth/account/oidc/callback` | body `{state, code, nonce?}` | `public_metadata` 的回调入口(OIDC IdP 重定向);服务端 MUST 校验 `state` / `nonce` 并把外部主体映射到 Contrix principal。 | `{principal_id, session?}` 或 `{redirect_url}` |
+| `GET /admin/server/status` | query none | `admin_bearer`(MUST 是 admin role 的 user_session)。该 endpoint **不**挂在 `/api/v1` 下。 | `{service_did, build, uptime_seconds, registry_versions, queues?}` |
+| `POST /admin/accounts/{account_id}/status` | path `{account_id}` body `{action: enum(suspend, restore, ...), reason?}` | `admin_bearer`;reducer 同时写 `cx.account.status_changed`(必须由 admin 签发)。 | `{ok: true, status, applied_at}` |
+| `POST /admin/devices/{device_id}/revoke` | path `{device_id}` body `{reason?}` | `admin_bearer`;触发 `cx.device.revoked` + capability fanout。 | `{ok: true, revoked_at}` |
+| `GET /admin/moderation/queue` | query `{space_id?, status?, cursor?, limit?}` | `admin_bearer` 与 moderator capability;只返回调用方有 moderation scope 的 Space。 | `{reports[], next_cursor?}` |
+| `GET /api/v1/mimi/provider-directory` | query `{provider_did?, capabilities?: string[]}` | `public_metadata`;provider 列表本身公开。 | `{providers[]}` |
+| `POST /api/v1/mimi/key-material` | body `{room_id, request: object}` | `service_signature`(MIMI provider-to-provider) 或 `user_or_service`。 | `{key_material, signature}` |
+| `PUT /api/v1/mimi/rooms/{flow_id}/update` | path `{flow_id}` body `cx.schema.mimi_interop.v1` room update | `service_signature`。 | `{ok: true, version}` |
+| `POST /api/v1/mimi/rooms/{flow_id}/notify` | path `{flow_id}` body MIMI notify body | `service_signature`。 | `{accepted: true}` |
+| `POST /api/v1/mimi/rooms/{flow_id}/messages` | path `{flow_id}` body `{events[]}` | `service_signature`;MIMI 跨 provider message。 | `{accepted[], rejected?[]}` |
+| `GET /api/v1/mimi/rooms/{flow_id}/group-info` | path `{flow_id}` | `service_signature` 或 `user_session` (member proof)。 | MLS group info envelope(schema id 尚未独立注册;响应字段对齐 MIMI provider directory profile) |
+| `POST /api/v1/mimi/consent/request` | body MIMI consent request body | `service_signature` 或 `user_session`。 | `{consent_id, status}` |
+| `POST /api/v1/mimi/consent/update` | body MIMI consent update body | `service_signature` 或 `user_session`。 | `{ok: true, applied_at}` |
+| `POST /api/v1/mimi/identifiers/query` | body `{identifiers[], proof?}` | `service_signature` 或 `user_session`;不得用于枚举攻击,query MUST 限速。 | `{results[]}` |
+| `POST /api/v1/mimi/report-abuse` | body MIMI abuse report body | `user_session` 或 `service_signature`;同 `cx.moderation.report` 互补。 | `{report_id, routed_to?}` |
+| `POST /api/v1/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用;不接受 user_session。 | `{relayed: true, expires_at?}` |
+| `POST /api/v1/agent_workspace/mirror_flow` | body `{source_flow_id}` | `user_session`(controller principal);未鉴权返回 401/403,不暴露 workspace 存在性。 | `{mirror_flow_id, mirror_space_id}` 或 `{reason: "not_provisioned"}` |
+| `GET /api/v1/agent_workspace/pending_tasks` | query none | `user_session`(controller principal)。 | `{tasks[]}` |
+
+> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(83 条 operation_id 对应 80+ 行 — 一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw / Agent_workspace 等子表面也都在表中;之前(2026-05-08 前)版本曾把它们留在独立 §11.x 章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 仍是规范的最终来源(机器消费),本表是人类阅读视图。
 
 跨域 actor 验证响应（通过 `/api/v1/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Space policy；不得把对端"验证通过"当成最终授权依据。
 

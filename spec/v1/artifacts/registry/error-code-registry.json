@@ -276,6 +276,12 @@
       "http_status": 422,
       "scope": "both",
       "description": "The implementation does not support a lattice type referenced by the Space schema (e.g., lww-register or rga without cx.profile.collaborative_text.v1). Receivers fail closed."
+    },
+    {
+      "code": "profile_unsupported",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Caller requested an operation that relies on a Space-declared profile or feature this service has not declared in cx.server.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation."
     }
   ],
   "reason_codes": [
@@ -523,6 +529,214 @@
         "service_call"
       ],
       "description": "Resource selector or constraint exceeds parser hard limits defined in resource-selector-grammar.md §3.3 (string length, resources[] length, token count, nesting depth, single-field length, requires_claims item count, constraint nesting). Distinct from invalid_param so audit / abuse-detection can separate suspected parser-DoS attempts from ordinary format errors."
+    },
+    {
+      "code": "inception_upgrade_evidence_insufficient",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Cross-method principal upgrade (e.g. personal_node `did:web` -> small_team `did:webvh`) is missing the OOB fingerprint confirmation evidence or any of the required `transfer_evidence` fields (P-S3 / key-management.md §5.0.5)."
+    },
+    {
+      "code": "inception_upgrade_signature_chain_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Cross-method principal upgrade `cx.did.proof.continuity` `signature_chain` is missing one of the two mandated signatures (old-method inception key + new-method entry-0 controller key) or one of the signatures fails to verify (P-S3 / key-management.md §5.0.5)."
+    },
+    {
+      "code": "inception_upgrade_old_document_hash_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Cross-method principal upgrade evidence `old_did_document_canonical_hash` does not match the receiver's canonicalised view of the current `old_did` DID Document. Indicates the hosting domain has been substituted after the upgrade was signed (P-S3 / key-management.md §5.0.5)."
+    },
+    {
+      "code": "inception_upgrade_fingerprint_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Cross-method principal upgrade evidence `inception_pubkey_fingerprint` does not match the fingerprint derived from `verificationMethod[0]` of the canonicalised old DID Document (P-S3 / key-management.md §5.0.5)."
+    },
+    {
+      "code": "mention_routing_hash_legacy_sha256",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Mention routing tag is encoded with the deprecated deterministic SHA-256 formula instead of the keyed HMAC form mandated by P-S4. Server MUST reject; producer SHOULD upgrade to `mention_routing_hmac_v2` (encryption-and-audit.md mention routing section)."
+    },
+    {
+      "code": "reaction_routing_hash_legacy_sha256",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Reaction routing tag is encoded with the deprecated deterministic SHA-256 formula instead of the keyed HMAC form mandated by P-S5. Server MUST reject; producer SHOULD upgrade to `reaction_routing_hmac_v2`."
+    },
+    {
+      "code": "audit_agent_key_destruction_attestation_missing",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An `attested_hardware` audit profile removed an Audit Agent without the enclave-signed epoch key destruction attestation required by P-S6 (audited-e2ee.md). The Audit Agent is treated as still holding historical epoch keys; the Space MUST drop the `attested_hardware` claim and surface a downgrade banner."
+    },
+    {
+      "code": "audit_agent_remove_requires_paired_destruction_attestation",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An attested_hardware Audit Agent was removed via cx.mls.commit but the same anchor batch lacks the required cx.audit.epoch_key_destruction.v1 attestation. Reducer MUST reject the batch (P-S6 / audited-e2ee.md §3.1.1.3)."
+    },
+    {
+      "code": "audit_agent_attestation_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "cx.audit.epoch_key_destruction.v1 carries an `enclave_measurement` that does not match the Audit Agent's join-time attestation. Indicates the enclave image was swapped before destruction (P-S6)."
+    },
+    {
+      "code": "audit_agent_epoch_range_incomplete",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "cx.audit.epoch_key_destruction.v1 `epoch_range` does not cover the full range of epochs the removed Audit Agent is known to have held secrets for (P-S6)."
+    },
+    {
+      "code": "audit_agent_destruction_proof_not_enclave_signed",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "cx.audit.epoch_key_destruction.v1 proofs[] do not chain to the enclave / HSM attestation key; only enclave-internal attestation keys are accepted (P-S6)."
+    },
+    {
+      "code": "audit_agent_destruction_not_paired_with_remove",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "cx.audit.epoch_key_destruction.v1 `remove_commit_ref` points to a cx.mls.commit that is not in the same anchor batch as the attestation (P-S6)."
+    },
+    {
+      "code": "source_export_attestation_required",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Mirror reducer is operating under cx.profile.agent_workspace.governed.v1 but the cx.content.import_attestation lacks the cx.schema.content.source_export_policy_attestation.v1 envelope (P-D2 / agent-workspace-profile.md §8.2)."
+    },
+    {
+      "code": "source_export_attestation_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "source_export_policy_attestation envelope signature does not verify against the source Space's declared export_policy_authorities[] (P-D2)."
+    },
+    {
+      "code": "source_export_attestation_denied",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "source_export_policy_attestation `policy_decision` is not 'allow' (denied / quarantined / pending) (P-D2)."
+    },
+    {
+      "code": "source_export_destination_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "source_export_policy_attestation `import_destination_space_id` does not pin the mirror Space the import_attestation actually targets (P-D2)."
+    },
+    {
+      "code": "source_export_content_hash_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "source_export_policy_attestation `content_hash` does not match the actual import_attestation content_hash (P-D2)."
+    },
+    {
+      "code": "source_export_attestation_expired",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "source_export_policy_attestation `valid_until` is past the receiver's effective time (P-D2)."
+    },
+    {
+      "code": "source_export_authority_unauthorized",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "source_export_policy_attestation `authority_did` is not in the source Space's declared export_policy_authorities[] (P-D2)."
+    },
+    {
+      "code": "cardinality_violation",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An event violates a declared relation / cell cardinality constraint (e.g. agent_workspace mirror Space declares 1:1 derived_from but the second mirror is being created from the same source)."
+    },
+    {
+      "code": "claim_failed",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Atomic claim of a one-time key / pre-key / keypackage failed because it was already consumed, revoked, or not present (crypto-media/device-lifecycle.md key-package claim path)."
+    },
+    {
+      "code": "reservation_cell_already_set",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Agent Workspace reservation cell (mirror_space_by_source / mirror_flow_by_source) already holds a non-sentinel value for the requested source_id; the second reservation MUST be rejected (extensions/agent-workspace-profile.md §13)."
+    },
+    {
+      "code": "conflicting_e2ee_profiles",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Space declares both cx.profile.e2ee_relaxed.v1 and cx.profile.mls_governance_binding.full.v1; these are mutually exclusive (P-D4 / encryption-and-audit.md §2.4.2)."
+    },
+    {
+      "code": "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Space attempts to set mls_send_pause='advisory' without declaring cx.profile.e2ee_relaxed.v1; default profile MUST treat mls_send_pause as a MUST gate (P-D4)."
+    },
+    {
+      "code": "conflicting_agent_workspace_profiles",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Space declares both cx.profile.agent_workspace.lite.v1 and cx.profile.agent_workspace.governed.v1; these are mutually exclusive (P-D13)."
+    },
+    {
+      "code": "lite_profile_writes_disallowed_event_kind",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Space declares cx.profile.agent_workspace.lite.v1 but a cx.agent_task.transparency.transition / source_authority.transition event was submitted; lite profile rejects these cells (P-D13)."
     }
   ]
 }

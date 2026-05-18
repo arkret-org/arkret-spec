@@ -208,7 +208,7 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
 2. 客户端把 `did:key:<inception_pub>` 作为 `cx.did.proof.continuity` 的 `old_did` 签发 continuity proof，绑定到目标 `did:web:<host>` 作为 `new_did`。该 continuity proof 由 inception key 单方签署即生效（personal_node profile 接受这种"自我升级"，因为 stake 低）。
 3. 客户端将 `did:web` DID Document（含 inception public key 作为 `verificationMethod` / `assertionMethod`）写入 hosting domain，并发布该 continuity proof。
 4. Principal control space genesis、首台设备自授权按 §5.0.1 步骤 3-5 执行；`refs[]` 携带 `role="did_inception"` 条目引用 continuity proof + DID Document hash，而不是 `did:webvh` entry 0。
-5. `personal_node` profile 升级到 `small_team` 或更高 profile 时，MUST 走 §4.2.2 的跨 method 迁移路径切换到 `did:webvh`，期间历史 Event 保留 `did:web` `actor_id`。
+5. `personal_node` profile 升级到 `small_team` 或更高 profile 时,MUST 走 **§5.0.5** 的跨 method 迁移路径切换到 `did:webvh`,期间历史 Event 保留 `did:web` `actor_id`。
 
 #### 5.0.3 验证规则
 
@@ -231,6 +231,76 @@ Inception bootstrap 的密钥学根**仅强于** DID method 自身的 inception 
 - `did:key` inception **MUST NOT** 直接作为长期 principal——它必须在 §5.0.1 / §5.0.2 中升级为 `did:webvh` 或 `did:web`。
 
 实现 MUST 在 UI 中向用户清楚展示 inception 路径的密钥学强度（"已 witness 的 did:webvh 链" vs "仅 hosting domain"），不得在 onboarding 中把两者展示为等强度。
+
+#### 5.0.5 `personal_node`(`did:web`) → `small_team`(`did:webvh`) 跨 method 安全升级(P-S3)
+
+**问题**: `personal_node` 阶段的 `did:web` inception 只受 hosting domain DNS/TLS 保护;若用户在注册期间 DNS 被劫持,攻击者可写入伪造 inception(并控制 inception key)。一旦该 principal 直接"无审"升级到 `small_team` 的 `did:webvh`,被劫持的 inception 历史会被当作正常历史延续,所有后续 capability / device authorization / state 都建立在攻击者根之上。
+
+为此,跨 method 升级 **MUST** 满足以下硬条件,否则 receiver MUST `reject` 升级 transition Event(reason `inception_upgrade_evidence_insufficient`):
+
+##### 5.0.5.1 OOB inception fingerprint 验证
+
+用户 MUST 在升级前通过**至少一条独立信任通道**确认 `did:web` 阶段的 inception public key fingerprint:
+
+| 信任通道 | 形态 | UI 强度 |
+| --- | --- | --- |
+| 离线纸质 / 硬件钱包记录 | 用户在 `personal_node` 注册成功后立即在 UI 中导出 fingerprint(SHA-256(inception pubkey) 前 32 bytes hex) 并由用户离线记录 | 强 |
+| 物理面对面 | 邮票号 / QR 在物理设备间扫描 | 强 |
+| 已知可信第二信道 | 邮箱(非托管在同一 hosting domain)、Signal、电话回拨 | 中 — UI MUST 警告"通道需独立于注册时的 DNS/TLS 链" |
+| 同一 hosting domain 内的 HTTPS 凭证 | — | **不接受**(同源已被假设劫持) |
+
+UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerprint,而不是从本地缓存读取——否则攻击者把首次注册期间植入的 fingerprint 缓存也算作"用户确认"。
+
+##### 5.0.5.2 Inception key 重签 transfer proof
+
+升级 transition Event(`cx.did.proof.continuity`,`old_did=did:web:<host>`,`new_did=did:webvh:<scid>:<host>`)**MUST** 满足以下 transfer envelope 结构(尚未独立注册 schema id;reducer 与 receiver 直接消费下列字段集合):
+
+```json
+{
+  "old_did": "did:web:<host>",
+  "new_did": "did:webvh:<scid>:<host>",
+  "transfer_evidence": {
+    "old_did_document_canonical_hash": "sha256:<64-hex>",
+    "old_did_document_fetched_at": "<RFC 3339 UTC>",
+    "inception_pubkey_fingerprint": "sha256:<64-hex>",
+    "user_oob_confirmation_id": "<opaque user-side confirmation token>",
+    "user_oob_confirmation_method": "offline_paper|physical_meet|independent_channel"
+  },
+  "signature_chain": [
+    { "alg": "...", "by": "<inception key>", "over": "transfer_envelope_canonical" },
+    { "alg": "...", "by": "<did:webvh entry-0 controller key>", "over": "transfer_envelope_canonical" }
+  ]
+}
+```
+
+关键 normative 规则:
+- `signature_chain` **必须**同时含两段签名:**inception key**(原 `did:web` 主体)+ `did:webvh` entry-0 controller key(新 method 主体)。任一缺失或签名失效 → reject `inception_upgrade_signature_chain_invalid`。
+- `inception_pubkey_fingerprint` 必须 byte-for-byte 等于 `did:web` DID Document 当前 `verificationMethod[0]` 的派生 fingerprint;同时必须在 `transfer_evidence` 中以 user-readable 形式呈现给 receiver(便于 receiver 二次校验)。
+- `user_oob_confirmation_id` 是 user-side 不透明 token——客户端 SHOULD 把 OOB 确认结果写入 user-private secret storage,服务端 / receiver 不 trust 该字段为真实人类确认证据,但**保留**以便审计回放与 UI 重现。`user_oob_confirmation_method` 是枚举 hint,receiver MAY 用它把"通过弱通道(independent_channel)确认的迁移"打上额外的低信任标记。
+- 整个 transfer envelope MUST 在签名 transcript 中包含 `old_did_document_canonical_hash`——这一字段 freezes 攻击者对 hosting domain 在升级时刻**之后**继续替换 DID Document 的可能性(任何替换都会让 hash 不再匹配 receiver 拉取的新 document)。
+
+##### 5.0.5.3 Receiver 验证规则
+
+任何接收升级 transition Event 的 receiver(principal server、其他 federation peer、新设备 join 时)**MUST**:
+
+1. 拉取 `old_did` 的当前 DID Document,canonicalize 后 hash 比对 `transfer_evidence.old_did_document_canonical_hash`;不一致 → reject `inception_upgrade_old_document_hash_mismatch`。
+2. 校验 `signature_chain` 两段签名:inception key 签名(`verification_method` 必须出现在被 hash 的 old document `verificationMethod[]` 内)+ `did:webvh` entry-0 controller key 签名(必须能在 `did:webvh` `did.jsonl` entry 0 找到)。任一失败 → reject `inception_upgrade_signature_chain_invalid`。
+3. 校验 `inception_pubkey_fingerprint`,确认它等于步骤 1 拉取到的 old document `verificationMethod[0]` 派生 fingerprint;失败 → reject `inception_upgrade_fingerprint_mismatch`。
+4. 校验 `did:webvh` `entry 0` 的 SCID / entry hash / controller proof(标准 `did:webvh` inception 验证)——这一段独立于 `did:web` 阶段。
+5. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记;后续 Event 的 `actor_id` MAY 是 `did:web:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
+
+##### 5.0.5.4 不允许的简化
+
+- ❌ "用户点 OK 即升级"(无 OOB confirmation_method / 无 inception_pubkey_fingerprint 二次确认) — receiver MUST reject `inception_upgrade_evidence_insufficient`。
+- ❌ inception key 单签升级(仅 inception key 签 transfer envelope) — receiver MUST reject `inception_upgrade_signature_chain_invalid`(缺 entry-0 controller key 那一段)。
+- ❌ DNS / hosting domain 内嵌"确认页"作为 OOB(同源攻击窗口未脱离)。
+- ❌ 升级后继续接受用 `did:web` inception key 签发的新 Event(必须在升级落盘后立即把该 key 标 retired / archived;之前已签发并 anchored 的历史 Event 保留)。
+
+##### 5.0.5.5 安全代价登记
+
+- 该流程把 personal_node 阶段被 DNS 劫持的损害限制在 personal_node Space 内部;升级后 attacker 无法通过升级路径继承新 method 的根。
+- 代价:升级流程对用户**强制**至少一次离线 / 独立通道确认,UI 不能"自动一键升级"。这是 P-S3 评估的明确取舍:为防止注册期 DNS 劫持继承,引入一次性 OOB 友好度成本。
+- 对从未通过 personal_node 阶段(直接以 `did:webvh` 走 §5.0.1)的 principal,本节不适用。
 
 ### 5.1 新设备加入（首台设备已存在）
 

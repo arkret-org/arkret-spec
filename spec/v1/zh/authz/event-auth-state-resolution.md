@@ -90,7 +90,7 @@ Move {
 1. `id` 由 canonical bytes 派生，MUST 覆盖 `issuer`、`space_id`、`preconditions`、`effects`、`anchor_ref`、`refs` 与 `hlc`。`sig` 本身 MUST NOT 进入 canonical bytes（它是对 canonical bytes 的签名）。`space_id` 必须进入以防止跨 Space 重放。
 2. `preconditions[]` 与 `effects[]` 是 set；同一 Move 是多 cell 原子 CAS。任一 precondition 不成立时，整个 Move FAIL，不能部分应用 effects。`effects[]` MUST 至少含 1 项（纯查询 Move 不存在）。
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Space 声明的 `max_anchor_staleness_ms`。
-4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_move`、`after`、`recovery_capability`、`state_witness`（§8.1，conflict recovery Move 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Move 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。
+4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`recovery_capability`、`state_witness`（§8.1，conflict recovery Move 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Move 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
 6. Move 的 issuer 只有单签。委员会、多签、host、threshold quorum 均在 Anchor 层表达，不在 Move issuer 层表达。
 

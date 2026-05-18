@@ -497,7 +497,7 @@ Transition event payload：
 **字段规则**：
 
 - `body`（必填，Content Block schema）：脱敏摘要，对源 Flow 所有成员可见。客户端 MUST 在 compose UI 显式提示 "this summary is visible to all source Flow members"；MUST NOT 自动从私有指令派生
-- `target_actor_id`：MUST 是 sender principal 的 controlled agent（通过 `authority_grant_ref` 解析的 grant 的 `attached_authority.controller == sender_principal` 验证）；不满足 reducer MUST `unauthorized` reject（不降级为普通 `cx.content.mention`）
+- `target_actor_id`：MUST 是 sender principal 的 controlled agent（通过 `authority_grant_ref` 解析的 grant 的 `attached_authority.controller == sender_principal` 验证）；不满足 reducer MUST reject 并返回 `capability_denied`（不降级为普通 `cx.content.mention`）
 - `authority_grant_ref`：引用源 Space 中已 active 的 grant；reducer 校验 grant active + grant.subject == target_actor_id + grant.attached_authority.controller == sender principal
 - `redirect_pair_id`：opaque UUIDv7，sender 生成；双端关联，不暴露 mirror Space / Flow / Event ID
 
@@ -585,7 +585,7 @@ P-D2 修订引入 governed profile:**源 Space 主动声明自己受保护**,mir
 
 代价:governed profile 下,合法 import 也需要先取得 source-side 签发的 export attestation,引入一次回 source Space policy authority 的同步调用(类似 P-D1 attached_authority 的同步验证模式)。这是对**机密 / 合规 / 跨 deployment** 场景的应有摩擦。
 
-> **诊断字段命名**:`source_export_attestation_required` / `_invalid` / `_denied` / `_destination_mismatch` / `_expired` / `_authority_unauthorized` 这些 reason_code MUST 在 `error-code-registry.json` 的 reducer reason 命名空间中登记(作为 P-D2 follow-up;本轮 prose 先固定命名)。
+> **诊断字段命名**:`source_export_attestation_required` / `_invalid` / `_denied` / `_destination_mismatch` / `_content_hash_mismatch` / `_expired` / `_authority_unauthorized` 这 7 个 reason_code 已注册到 `error-code-registry.json` `reason_codes[]` 命名空间(P-D2 FU-PD2.1 已完成)。
 
 ## 9. Space profile `cx.profile.agent_workspace.v1`
 
@@ -700,6 +700,8 @@ P-D2 修订引入 governed profile:**源 Space 主动声明自己受保护**,mir
 - 合规群:专门的 export-policy-authority service DID,由 compliance team 控制
 
 attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer reject `source_export_authority_unauthorized`。
+
+> **wire 字段位置**(FU-PD2.3): 当前 prose 把 `export_policy_authorities[]` 描述为 `policy_components.export_policy_authorities` 的子字段;该子字段路径在 v1.x `cx.schema.space.v1` / `cx.space.policy_components` event payload schema **尚未正式注册**。下一轮 wire 扩展会将其加入 `space.schema.json` `policy_components` 子对象;在那之前实现 MAY 使用 Space schema_refs 自定义命名空间作为兼容路径,但应当在升级到正式注册路径后立即迁移以避免 reducer reject。
 
 **reducer 行为收紧**:见 §8.2"governed 行为"完整 reject 规则集。所有 reject 都是 reducer-time 硬性拒收;event 不进入 mirror Space accepted set,不留下任何 read access。
 
@@ -969,15 +971,15 @@ v1 默认 controller 手动 publish：
 22. **多 master 并发 → ⊥**：两 Move 在不同 sync node anchor，cell → ⊥
 23. **Recovery Move 收敛 winner**：客户端写 recovery Move（含 head_in + state_witness + inclusion_proof + recovery_capability），cell 收敛到 lex-min winner
 24. **Recovery 缺 critical refs reject**：缺 state_witness 或 inclusion_proof → reject
-25. **Recovery 无 capability reject**：issuer 无 `cx.capability.agent_workspace.recover` → `unauthorized`
+25. **Recovery 无 capability reject**：issuer 无 `cx.capability.agent_workspace.recover` → `capability_denied`
 26. **Orphan TTL cleanup**：reservation 后 follow-up create 未在 TTL 内 → housekeeping cleanup → cell 回到 `"__unset__"`
 
 ### 15.5 mention_redirect（5 vectors）
 
 27. **不暴露 private IDs**：source Flow 第三方 reader MUST NOT 从 stub 字段提取 mirror IDs
-28. **Target 必须 sender 的 agent**：sender ≠ grant.attached_authority.controller → `unauthorized` reject
+28. **Target 必须 sender 的 agent**：sender ≠ grant.attached_authority.controller → `capability_denied` reject
 29. **不降级为普通 mention**：critical_extension `fail_closed=true` → 未声明支持 MUST reject
-30. **authority_grant_ref 校验**：grant 已 revoked / subject 不匹配 / attached_authority.controller 不匹配 → `unauthorized`
+30. **authority_grant_ref 校验**：grant 已 revoked / subject 不匹配 / attached_authority.controller 不匹配 → `capability_denied`
 31. **`scope=payload` 合法 schema**：critical_extension 用合法 enum，schema validation 通过
 
 ### 15.6 import_attestation（5 vectors）
