@@ -1369,7 +1369,7 @@
       "additional_requirements": {
         "key_derivation_must": "Sender Commitment Key MUST be HKDF-Expand-Label over the MLS epoch exporter_secret with label='cx franking sender commitment v1' and context binding {mls_group_id, epoch, sender_device_id}.",
         "commitment_tag_must": "HMAC-SHA-256 over canonical bytes binding plaintext_digest, aad_digest, sender_device_id, mls_group_id, epoch, epoch_local_seq, ciphertext_digest; truncated to 128-bit tag.",
-        "epoch_local_seq_must": "Strictly monotonic per (sender_device_id, epoch); reducer/verifier MUST persist high-water and reject replays (reason sender_commitment_seq_replay).",
+        "epoch_local_seq_must": "Unique per (sender_device_id, epoch); reducer/verifier MUST persist a seen-set or equivalent exact replay filter and reject duplicate seq values (reason sender_commitment_seq_replay). Out-of-order report submission MUST NOT be rejected solely because seq is lower than a later observed value.",
         "verifier_window_must": "Implementations MUST document their verifier exporter-secret retention window; commitments outside that window are unverifiable, NOT forged.",
         "plaintext_brute_force_must": "Deployments MUST NOT combine this profile with governance models where verifiers can offline-brute-force candidate plaintexts against the commitment without prior gating."
       }

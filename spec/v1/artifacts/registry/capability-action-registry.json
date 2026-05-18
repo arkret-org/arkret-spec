@@ -310,7 +310,7 @@
     {
       "action": "cx.flow.watch.manage_others",
       "category": "discussion",
-      "risk_tier": "medium",
+      "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
         "cx.flow.watch.set"

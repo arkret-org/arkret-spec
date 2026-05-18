@@ -27,12 +27,12 @@ Schema id: `cx.schema.read_marker.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `string` | SHOULD 派生自 actor + space/view。 | 私有状态 ID。 |
+| `id` | yes | `id:read_marker` | `cx:read_marker:<uuidv7>`。 | 私有状态 ID。 |
+| `schema` | yes | `cx.schema.read_marker.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `space_id` | yes | `id:space` |  | Space。 |
-| `scope` | yes | `enum(space, flow, discussion, thread, view, message, morph)` |  | 已读范围。 |
-| `scope_id` | no | `string` | scope 不是 space 时必填。 | 范围对象。 |
-| `event_id` | yes | `id:event` |  | 已读到的事件。 |
+| `scope` | yes | `object` | `{kind, ref?, track?}`；`kind=space` 时 `ref` 省略，其余 kind 必填对应对象 ref。 | 已读范围。 |
+| `position` | yes | `object` | `{event_id, hlc}`。 | 已读位置。 |
 | `updated_at` | yes | `timestamp` |  | 更新时间。 |
 
 ### 2.3 行为规则
@@ -54,7 +54,8 @@ Schema id: `cx.schema.notification.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `string` | SHOULD content-addressed 或 stable derivation。 | 通知 ID。 |
+| `id` | yes | `id:notif` | `cx:notif:<uuidv7>`。 | 通知 ID。 |
+| `schema` | yes | `cx.schema.notification.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `space_id` | no | `id:space` |  | 来源 Space。 |
 | `source_event_id` | yes | `id:event` |  | 来源事件。 |

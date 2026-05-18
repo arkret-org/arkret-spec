@@ -200,7 +200,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 - `cx.reaction.remove`
 - `cx.flow.tracks.manage`（启用 / 关闭 track、切换 primary、修改 track profile，target=`cx.flow.tracks.update`）
 - `cx.flow.watch.set`（写入自己的 watch 订阅，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）
-- `cx.flow.watch.manage_others`（为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
+- `cx.flow.watch.manage_others`（high risk；为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`cx.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
 
 ### 5.4 管理动作
 
@@ -327,6 +327,8 @@ Contrix v1 支持：
 `discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `object_type_allow=["flow"]` 和 `allowed_tracks=["discussion"]`；不得引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，不能单独授予读取、发送或成员权限。
 
 Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍必须命中 `cx.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`morph_type_allow`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `cx.morph.update` 且没有字段/类型/策略拒绝，缺少 `facet_allow=["stateful"]` 本身不得成为拒绝理由；若 grant 显式声明 `facet_allow` 且目标 facets 不匹配，则 constraint 不满足。
+
+`requires_claims[]` 中每个 claim 条目 MUST 明确绑定 `issuer` 或 `trusted_issuers[]`；`subject_matches_actor` 未出现时按 `true` 求值。不得接受只有 `claim_type` 而无发行者边界的 claim grant。
 
 | 扁平名称 | Typed `constraint_type` | `subtype` | 对应字段 |
 |----------|------------------------|----------|----------|

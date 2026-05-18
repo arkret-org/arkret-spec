@@ -1596,7 +1596,7 @@ cx.vector.capability.approval_constraint.v1
 
 - Reducer MUST 返回 `failed_precondition`，`reason == "place_already_terminal"`（[common-fields.md §5.1](../models/common-fields.md) 终态等价规则）。
 - Place 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
-- 该向量对 Flow / Morph 等价同形：`cx.redaction` 指向已 `deleted` / `redacted` Flow，或 `cx.morph.tombstone` / `cx.redaction` 指向已终态 Morph 时同样返回 `<kind>_already_terminal`。终态进入是单向、单次操作。
+- 该向量对 Flow / Morph 等价同形：`cx.redaction` 指向已 `redacted` 的 Flow / Morph 时同样返回 `<kind>_already_terminal`。终态进入是单向、单次操作。
 
 ### 6.7 Vector: Update 在非 `active` 状态被拒绝
 

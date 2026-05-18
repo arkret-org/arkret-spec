@@ -319,7 +319,13 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
       "issuer": "did:web:captcha.example",
       "endpoint": "https://captcha.example/challenge/01HXY9PM0AB6Y7VN2C7M4WG5KQ",
       "max_proof_age": "PT5M",
-      "must_satisfy_before_resubmit": true
+      "must_satisfy_before_resubmit": true,
+      "bound_to": {
+        "actor": "did:webvh:applicant.example",
+        "action": "cx.member.application",
+        "request_canonical_hash": "sha256:...",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000"
+      }
     }
   ]
 }

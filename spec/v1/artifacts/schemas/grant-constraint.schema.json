@@ -562,6 +562,10 @@
         "required": [
           "claim_type"
         ],
+        "anyOf": [
+          { "required": ["issuer"] },
+          { "required": ["trusted_issuers"] }
+        ],
         "properties": {
           "claim_type": {
             "type": "string"
@@ -572,6 +576,7 @@
           },
           "trusted_issuers": {
             "type": "array",
+            "minItems": 1,
             "items": {
               "type": "string",
               "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
@@ -580,6 +585,7 @@
           },
           "subject_matches_actor": {
             "type": "boolean",
+            "default": true,
             "description": "If true, the credential subject DID MUST match the actor DID."
           },
           "value_constraints": {

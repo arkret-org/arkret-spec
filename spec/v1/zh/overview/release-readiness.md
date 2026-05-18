@@ -24,7 +24,7 @@ title: 实现就绪与发布门槛
 | --- | --- | --- |
 | Event kind（active） | 149 | `artifacts/registry/event-kind-registry.json` |
 | Schema | 48 | `artifacts/registry/schema-registry.json` |
-| Typed ID kind | 38 | `artifacts/registry/id-kind-registry.json` |
+| Typed ID kind | 39 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 83 | `artifacts/registry/operation-registry.json` |
 | Conformance profile（profile id） | 73 | `artifacts/profiles/conformance-profiles.json` |
 

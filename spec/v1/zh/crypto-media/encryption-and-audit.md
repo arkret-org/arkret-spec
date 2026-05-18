@@ -68,7 +68,7 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
 
 #### 2.3.0 E2EE Profile：plaintext metadata 边界
 
-v1 仅定义一种 E2EE profile —— **body-only E2EE**：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Place 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Place `parent_ref` 等结构化 metadata **MUST** 以明文形式存在于 wire schema 中，即便所属 Space 声明 `encryption_profile="mls_rfc9420"`。
+v1 基线 E2EE profile 是 **body-only E2EE**：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Place 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Place `parent_ref` 等结构化 metadata 在未声明 minimal-metadata profile 时 **MUST** 以明文形式存在于 wire schema 中，即便所属 Space 声明 `encryption_profile="mls_rfc9420"`。
 
 理由与影响：
 
@@ -76,7 +76,7 @@ v1 仅定义一种 E2EE profile —— **body-only E2EE**：`encrypted_payload` 
 - 这意味着 **E2EE Space 中 Place / Flow 标题、摘要、状态等 metadata 对所有 Space 成员（以及任何接收 wire bytes 的中继 / Sync Service）都是可见的**。希望避免标题泄漏敏感信息的部署 MUST 在客户端 UX 层提示用户 "title 不被 E2EE 覆盖"。
 - 受托 search / projection 服务接收这些明文 metadata **不**需要 `plaintext_visible_services` 列入授权——它们本来就是 wire 明文；该 capability 仅约束 body / content / attachment 的解密结果与客户端本地索引产物。
 
-未来版本 MAY 引入 **minimal-metadata E2EE profile**（标题 / 摘要 / 部分字段加密为 `encrypted_metadata`，wire 上仅保留 routing key + opaque placeholder）；该 profile 在 v1 不规范，未声明 profile 的实现不得对 `title` / `summary` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
+**minimal-metadata E2EE profile** 是 v1 的可声明 profile；启用时标题 / 摘要 / 部分字段按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。未声明该 profile 的 Space 不得对 `title` / `summary` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
 
 #### 2.3.1 Envelope Wire 结构
 
@@ -91,6 +91,7 @@ v1 仅定义一种 E2EE profile —— **body-only E2EE**：`encrypted_payload` 
     "epoch": 12,
     "content_type": "application/json",
     "ciphertext": "base64url",
+    "aad_visibility_event_id": "routing_hash",
     "aad": {
       "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
       "event_kind": "cx.message.create",
@@ -117,15 +118,16 @@ v1 仅定义一种 E2EE profile —— **body-only E2EE**：`encrypted_payload` 
 | `content_type` | string | 是 | 解密后内容的 MIME 类型 |
 | `ciphertext` | base64url | 是 | `mls-rfc9420` profile 为 MLS PrivateMessage / application message 序列化字节。 |
 | `authentication_tag` | base64url | 条件 | 仅 raw AEAD / exporter-AEAD profile 使用；MLS profile 的 tag 已在 MLS message 内，不重复拆出。 |
+| `aad_visibility_event_id` | enum(hidden, routing_hash, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_hash` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合。 |
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
 | `aad.space_id` | id:space | 是 | 路由与授权的 Space。 |
 | `aad.event_kind` | string | 是 | 路由 event kind。 |
-| `aad.event_id` | id:event | 条件 | `aad_visibility.event_id="opaque_id"` 时可见。 |
-| `aad.event_ref_hash` | hash | 条件 | `aad_visibility.event_id="routing_hash"` 时使用；hash 输入由 profile 固定（推荐 `sha256("cx-aad-event-ref-v1" \|\| event_id \|\| space_id \|\| policy_nonce)`）。 |
+| `aad.event_id` | id:event | 条件 | `aad_visibility_event_id="opaque_id"` 时必填。 |
+| `aad.event_ref_hash` | hash | 条件 | `aad_visibility_event_id="routing_hash"` 时必填；hash 输入由 profile 固定（推荐 `sha256("cx-aad-event-ref-v1" \|\| event_id \|\| space_id \|\| policy_nonce)`）。 |
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_hashes`。 |
 | `aad.causal_ref_hashes` | array&lt;hash&gt; | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
 | `key_ref.algorithm` | string | 条件 | `mls-rfc9420` profile 为 `MLS`；其他 profile 必须注册自己的值。 |
-| `key_ref.group_state_ref` | id:move 或 hash | 否 | 指向 effective `cx.mls.genesis` / `cx.mls.commit` Move / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
+| `key_ref.group_state_ref` | id:event 或 hash | 是 | 指向 accepted `cx.mls.genesis` / winning `cx.mls.commit` event / 等价 group state proof；用于加速 lookup，不替代 MLS transcript 验证。 |
 | `payload_digest` | hash | 是 | `sha256(payload_metadata_bytes \|\| encrypted_payload_bytes)`；输入定义见 §2.3.3。 |
 | `aad_digest` | hash | 是 | canonical AAD 的 SHA-256。 |
 | `cleartext_commitment` | hash | 否 (预留位) | 每个 scheme 由 Cleartext Commitment Profile 定义；当前实现 MAY 忽略，未来扩展 profile 可声明对新 scheme 必填。 |
@@ -136,9 +138,9 @@ Ratchet tree MUST 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 
 
 AAD 字段集合受 Space 的 `aad_visibility` policy 约束。隐私优先 Space SHOULD 只保留路由所需的 `space_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Space MAY 暴露 opaque `event_id` / `message_id`，但该选择 MUST 在 Space policy 中声明并纳入 MLS-bound `policy_root`。
 
-`aad.event_id` 与 `aad.event_ref_hash` 是互斥 profile 字段：
+`aad_visibility_event_id` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_hash`：
 
-- `opaque_id`：AAD MAY 包含 `event_id`，用于跨 provider 投递确认和精确去重。
+- `opaque_id`：AAD MUST 包含 `event_id` 且不得包含 `event_ref_hash`，用于跨 provider 投递确认和精确去重。
 - `routing_hash`：AAD MUST 使用 `event_ref_hash`，不得暴露稳定 `event_id`。
 - `hidden`：AAD MUST 同时省略 `event_id` 与 `event_ref_hash`；去重只能依赖外层 Event Envelope、transport receipt 或 receiver-local cache。
 
@@ -174,6 +176,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "group_id": "base64url",
   "epoch": 12,
   "content_type": "application/json",
+  "aad_visibility_event_id": "routing_hash",
   "aad": {
     "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "event_kind": "cx.message.create",

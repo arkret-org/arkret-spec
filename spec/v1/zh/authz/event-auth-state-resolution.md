@@ -185,7 +185,7 @@ leaf_input = canonical_json({
   "cell":  "<CellRef wire string>",
   "state": <state_object>
 })
-leaf_hash  = H(leaf_input)
+leaf_hash  = H(0x00 || leaf_input)
 ```
 
 `<state_object>` 取决于 cell 当前 join 结果：
@@ -206,8 +206,8 @@ Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定
 1. 收集该 Anchor view 下所有有过至少一次 effect 的 cell。
 2. 对每个 cell 计算 `leaf_hash`（4.2.1）。
 3. 把 `(cell_wire, leaf_hash)` 元组按 `cell_wire` Unicode code point 升序排序。
-4. 把排序后的 `leaf_hash` 列表按 RFC 6962-style binary Merkle tree 算 root：
-   - 偶数个：两两配对 `parent = H(left || right)`，逐层向上。
+4. 把排序后的 `leaf_hash` 列表按 RFC 6962 domain-separated binary Merkle tree 算 root：
+   - 偶数个：两两配对 `parent = H(0x01 || left || right)`，逐层向上。
    - 奇数个：最后一个 leaf 直接提升到上一层（**不复制**）。
    - 单个 leaf：root = leaf_hash。
    - 空列表：root = `H("")` 用 algo 的空字节摘要值。
@@ -718,9 +718,9 @@ Move {
    - 它由 Space 当前 anchorer cell value 授权的签名者签发（`single_did` / `threshold` / `open_set` 的 anchorer rule）。
    - 它的 `state_root` 中包含 recovery_capability 所授权的 cell value。
 
-2. **`snapshot_inclusion_proof`** — 一个 RFC 6962 风格的 Merkle inclusion proof，证明：
+2. **`snapshot_inclusion_proof`** — 一个使用 §4.2 leaf/internal-node domain separation 的 Merkle inclusion proof，证明：
    - 引用的 `recovery_capability` grant cell value 真实属于 `pre_conflict_state_witness.state_root`（而不是攻击者本地伪造的 effective view）。
-   - Inclusion proof 的 leaf 编码 MUST 按 §4.2.1 锁定的 leaf shape 计算（`canonical_json({"cell": "<CellRef>", "state": <state_object>})`）。
+   - Inclusion proof 的 leaf 编码 MUST 按 §4.2.1 锁定的 leaf shape 计算（`H(0x00 || canonical_json({"cell": "<CellRef>", "state": <state_object>}))`）。
    - Proof path 的 sibling hash 序列 MUST 能重算出与 `pre_conflict_state_witness.state_root` 完全相同的 root。
 
 Receiver 在 verify_move(M) 时，对 critical role ∈ {`state_witness`, `inclusion_proof`}：

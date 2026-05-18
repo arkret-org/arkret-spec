@@ -53,10 +53,9 @@
       "enum": [
         "active",
         "archived",
-        "deleted",
         "redacted"
       ],
-      "description": "Flow lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: cx.flow.archive MUST come from 'active' (else failed_precondition reason=flow_not_active); cx.flow.restore MUST come from 'archived' (else flow_not_archived); Flow has no dedicated tombstone event — terminal state ('deleted' / 'redacted') is reached via a cx.redaction event targeting the flow (MUST come from {'active','archived'} else flow_already_terminal). Same-state self-transitions MUST fail. 'deleted' and 'redacted' are irreversible terminals."
+      "description": "Flow lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: cx.flow.archive MUST come from 'active' (else failed_precondition reason=flow_not_active); cx.flow.restore MUST come from 'archived' (else flow_not_archived); terminal state is reached only via a cx.redaction event targeting the flow (MUST come from {'active','archived'} else flow_already_terminal). Same-state self-transitions MUST fail. 'redacted' is the irreversible terminal."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",

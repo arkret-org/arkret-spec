@@ -313,7 +313,7 @@ paths:
 | `cx.identity.get_document` / `cx.identity.get_log` / `cx.identity.get_receipts` | `GET /identity/document`, `GET /identity/log`, `GET /identity/receipts` | gRPC Identity Registry / witness query |
 | `cx.events.submit` | `POST /events` | gRPC `Events/Submit` / 队列 `events.submit` |
 | `cx.events.get` / `cx.events.batch_get` / `cx.events.query` / `cx.events.frontier` | `GET /events/{event_id}`, `POST /events/batch-get`, `GET /events`, `GET /events/frontier` | gRPC `Events/Get` / `Events/BatchGet` / `Events/Query` / `Events/Frontier` |
-| `cx.events.subscribe` | `GET /events/subscribe` | WebSocket/SSE stream / pubsub topic |
+| `cx.events.subscribe` | `GET /events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
 | `cx.sync.account` | `POST /sync` | WebSocket/SSE account sync channel / `/sync?since...` |
 | `cx.sync.get_snapshot_head` | `GET /sync/snapshot-head` | snapshot pointer |
 | 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/contrix/sync/1.0.0` + service signature。 |
@@ -351,4 +351,3 @@ paths:
 - 生成的 OpenAPI MUST 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme MUST NOT 定义 query string token 认证；受保护 endpoint 只能使用 header / signature / mTLS / signed proof body 等认证方式。
 - Blob / media endpoint 的 schema MUST 显式声明 `Content-Type`、`Content-Disposition`、`Range`、`Content-Range`、`Location` 和缓存头行为，避免通过 header 泄露不可见资源。
-

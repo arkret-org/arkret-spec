@@ -98,16 +98,17 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:view` |  | View ID。 |
+| `schema` | yes | `cx.schema.view.v1` |  | Schema ID。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
-| `renderer` | no | `enum(board, card, row, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
+| `renderer` | no | `enum(board, list, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
+| `visibility` | no | `enum(private, shared)` |  | View 共享可见性。 |
 | `query` | yes | `Query` | 见 [`../conformance/query-schema.md`](../conformance/query-schema.md)。 | 数据查询。 |
 | `visible_fields` | no | `array<string>` | dot path。 | 展示字段。 |
 | `layout` | no | `object` | UI hint，不是权限。 | 布局配置。 |
 | `collection` | conditional | `CollectionConfig` | `kind="collection"` 时 MUST 设置。 | 集合投影配置；看板、表格、日历、甘特、队列、矩阵都由该配置表达。 |
 | `timeline` | conditional | `TimelineConfig` | `kind="timeline"` 时 MUST 设置。 | 时间线配置。 |
-| `conversation` | conditional | `ConversationConfig` | 会话/讨论类 renderer SHOULD 设置，或 query 必须提供 anchor/relation。 | 会话配置。 |
 | `graph` | conditional | `GraphConfig` | `kind="graph"` 时 MUST 设置。 | 图/树遍历配置。 |
 | `document` | conditional | `DocumentConfig` | `kind="document"` 时 MUST 设置。 | 文档 section 配置。 |
 | `dashboard` | conditional | `DashboardConfig` | `kind="composite"` 时 MUST 设置。 | 仪表盘 widget 配置。 |
@@ -138,7 +139,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
 | `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
 | `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
-| `board_place_id` | conditional | `id:place` | `mode="relation_container"` 时必填，指向一个 `cx:place: kind=board`。 | Board Place。（旧名 `board_id` 已替换为 `board_place_id` 以避免与 Space ID 误读）|
+| `board_place_id` | conditional | `id:place` | `mode="relation_container"` 时必填，指向一个 `cx:place: kind=board`。 | Board Place。 |
 | `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
 | `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
 | `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |
@@ -152,8 +153,10 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 ```json
 {
   "id": "cx:view:019641be-0000-7000-8000-000000000000",
+  "schema": "cx.schema.view.v1",
   "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:web:acme.example.com",
+  "created_at": "2026-04-26T00:00:00Z",
   "kind": "collection",
   "renderer": "board",
   "title": "Release Flow",

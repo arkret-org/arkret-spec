@@ -284,6 +284,8 @@ DID method 或 registry 不可用时，节点不得把“暂时无法解析”�
 - `did:webvh` 的 hosting domain 不可用、`did.jsonl` 拉取失败或 witness evidence 断链时，resolver MAY 在 policy 允许的范围内使用本地缓存或镜像，但必须验证 SCID、entry hash chain head 与 controller proof；不得用 handle、DNS A/AAAA 记录、TLS 证书或 Auth Server 声明代替 DID method history。
 - 用户迁移到新 DID（同 method 或换 method）时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
 - 若原 DID 仍可解析，continuity proof SHOULD 由原 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Space / service 范围。
+- 原 DID Document 若仍可解析，MUST 暴露 `service` entry `type="ContrixContinuityProof"`，其 `serviceEndpoint` 指向可获取 continuity proof 的 HTTPS URL 或 content-addressed ref。Verifier MUST 同时校验该 service entry、continuity proof 签名和 proof 中的 `old_did_document_hash`；缺少 service entry 或 hash 不匹配时不得把 Directory / Handle 返回的新 DID 当作连续身份。
+- 新 DID Document MUST 暴露反向 `ContrixContinuityAccepted` service entry 或等价 signed acceptance proof，绑定同一 `old_did` / `new_did` / `issued_at`。单向声明只能作为发现线索，不能完成 continuity。
 - 若原 method 永久不可用且无法验证原控制密钥，只能走 Space / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
 - Principal Server、Directory 或 Handle 服务 MAY 帮助发现新 DID，但不得单独证明 DID continuity。
 

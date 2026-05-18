@@ -44,7 +44,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ## 3. Encrypted Attachment
 
-加密附件的 `key_ref` MUST 使用与 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md) 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。不再使用 `"mls_epoch:42"` 等字符串简写。
+加密附件的 `key_ref` MUST 使用与 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md) 相同的对象形态：`{algorithm, group_state_ref}`（MLS 场景）或 `{algorithm, key_id}`（其他 profile）。
 
 ```json
 {
@@ -53,13 +53,9 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "alg": "xchacha20_poly1305",
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": {
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
-      "flow_id": null,
-      "track": null,
-      "epoch": 42
-    }
+    "group_state_ref": "cx:event:01964148-0000-7000-8000-000000000000"
   },
+  "epoch": 42,
   "nonce": "base64url...",
   "ciphertext_digest": "sha256:...",
   "size": 1234,
@@ -77,7 +73,7 @@ AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的�
     nonce_key = MLS-Exporter(
         label   = "contrix-aead-nonce-derivation-v1",
         context = canonical-bytes(
-            { "key_ref": <key_ref-canonical>, "purpose": "blob-attachment" }
+            { "key_ref": <key_ref-canonical>, "epoch": <mls-epoch>, "purpose": "blob-attachment" }
         ),
         length  = 32
     )
@@ -91,7 +87,7 @@ AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的�
     )[ 0 : N_AEAD ]
     ```
 
-    `device_nonce_counter` MUST 单调递增,**每设备**单独维护;同一设备同一 epoch 内 MUST NOT 重用同一 counter 值。设备 SHOULD 在持久化存储中保留 counter,以防进程重启回退;若无法持久化,设备 MUST 在 MLS commit 后立刻把 counter 重置到一个比"该 epoch 上看到的全部历史 counter + N"更大的值(N ≥ 2^32 的 jump,以避免与历史值碰撞)。
+    `device_nonce_counter` MUST 单调递增,**每设备**单独维护;同一设备同一 epoch 内 MUST NOT 重用同一 counter 值。设备 MUST 在持久化存储中保留 counter,以防进程重启回退;若无法恢复该 epoch 的本地 counter,设备 MUST 先发起 MLS Commit 推进到新 epoch,并在新 epoch 从 0 初始化 counter 后再发送新的 AEAD payload。不得在未知历史的同一 epoch 内用 jump counter 继续发送。
 
 2. **跨设备保证**:不同 device_id 派生出的 nonce 跨设备必然不同(HMAC 输入不同),不需要全局 counter 协调;同一设备内的递增 counter 保证设备内 nonce 不同。
 
@@ -105,7 +101,7 @@ AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的�
    - 用户输入派生(可控 = 可碰撞);
    - 任何不绑定 device_id + counter 的形态。
 
-6. **接收方 replay 防护**:接收方 MUST 维护 per-(key_ref, device_id) 已见 counter 高水位;低于高水位的 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
+6. **接收方 replay 防护**:接收方 MUST 维护 per-(key_ref, epoch, device_id) 已见 counter 集合或等价无误判结构;重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
 
 `cleartext_sha256` 字段 v1 不再作为附件 metadata 标准字段：在 E2EE Space 中泄露明文 hash 会破坏内容机密性（短/可预测明文可被离线枚举）。如果 deployment 出于审计需要保留 cleartext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC/pepper commitment（见 `event-auth-state-resolution.md` §10.1）。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 

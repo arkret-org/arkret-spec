@@ -224,6 +224,12 @@
       "description": "The service frontier is behind the causal frontier required by the request."
     },
     {
+      "code": "stale_peer",
+      "http_status": 409,
+      "scope": "service_call",
+      "description": "A federation high-assurance peer has missed proactive frontier probes or produced invalid/divergent frontier evidence and is quarantined for the affected Space until fork resolution succeeds. See zh/sync/federation.md §4.5.3."
+    },
+    {
       "code": "cursor_expired",
       "http_status": 410,
       "scope": "endpoint",
@@ -823,7 +829,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A `cx.redaction` event targeting a Flow (or any other terminal-causing event on a Flow) is rejected because the target Flow is already in a terminal state (`deleted` / `redacted`). Flow has no dedicated tombstone wire kind in v1 — terminal state is reached via cx.redaction."
+      "description": "A `cx.redaction` event targeting a Flow is rejected because the target Flow is already in terminal state `redacted`. Flow terminal state is reached via cx.redaction."
     },
     {
       "code": "place_not_active",
@@ -879,7 +885,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`cx.morph.tombstone` / `cx.morph.delete` / `cx.morph.redact` rejected because the target Morph is already in a terminal state."
+      "description": "`cx.redaction` targeting a Morph is rejected because the target Morph is already in terminal state `redacted`."
     },
     {
       "code": "message_already_terminal",
@@ -985,7 +991,7 @@
         "event_envelope",
         "encoding"
       ],
-      "description": "An AEAD-encrypted payload (encrypted_payload, blob attachment, to_device, etc.) carried a per-(key_ref, device_id) counter at or below the receiver's high-water mark. The receiver MUST reject the payload before AEAD decryption to prevent attempted nonce reuse against a valid sender device. See zh/crypto-media/media-and-blob.md §3.1 and zh/conformance/encoding.md §10.1."
+      "description": "An AEAD-encrypted payload (encrypted_payload, blob attachment, to_device, etc.) repeated a per-(key_ref, epoch, device_id) counter already seen by the receiver. The receiver MUST reject the payload before AEAD decryption to prevent attempted nonce reuse against a valid sender device. See zh/crypto-media/media-and-blob.md §3.1 and zh/conformance/encoding.md §10.1."
     },
     {
       "code": "aead_nonce_derivation_invalid",
@@ -993,7 +999,7 @@
         "event_envelope",
         "encoding"
       ],
-      "description": "An AEAD nonce on the wire does not match the deterministic derivation from MLS-Exporter + (device_id, monotonic counter) mandated by zh/crypto-media/media-and-blob.md §3.1. Producers MUST NOT emit naive random nonces under shared MLS application keys; receivers MUST reject such payloads to enforce the cross-implementation nonce-uniqueness contract."
+      "description": "An AEAD nonce on the wire does not match the deterministic derivation from MLS-Exporter context {key_ref, epoch, purpose} plus (device_id, monotonic counter) mandated by zh/crypto-media/media-and-blob.md §3.1. Producers MUST NOT emit naive random nonces under shared MLS application keys; receivers MUST reject such payloads to enforce the cross-implementation nonce-uniqueness contract."
     },
     {
       "code": "accountability_grant_missing",
@@ -1074,14 +1080,6 @@
         "auth_decision"
       ],
       "description": "An `cx.agent_task.*` event attempts a state transition not permitted by the task FSM (e.g., proposing while terminal, completing while not in_progress). See zh/extensions/agent-workspace-profile.md."
-    },
-    {
-      "code": "mixed_secret_storage_disallowed_by_profile",
-      "applies_to": [
-        "service_call",
-        "auth_decision"
-      ],
-      "description": "A `mixed_secret_storage` operation was attempted under a deployment profile that does not allow it (e.g., default profile rejects mixed because of single-passphrase risk). See zh/identity/key-management.md §7.1."
     },
     {
       "code": "audit_capability_incomplete",
@@ -1202,7 +1200,7 @@
         "audit_decision",
         "service_call"
       ],
-      "description": "A sender_commitment (sender_device_id, epoch, epoch_local_seq) seq is at or below the persisted high-water for that (sender_device_id, epoch); a non-monotonic seq indicates replay or rollback. See zh/governance/content-moderation.md §3.4.2 step 3."
+      "description": "A sender_commitment (sender_device_id, epoch, epoch_local_seq) seq was already present in the persisted seen-set for that (sender_device_id, epoch). See zh/governance/content-moderation.md §3.4.2 step 3."
     },
     {
       "code": "sender_commitment_ciphertext_mismatch",

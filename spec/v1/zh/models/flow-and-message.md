@@ -44,7 +44,7 @@ Schema id: `cx.schema.flow.v1`
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `discussion_space_ref` | no | `id:space` | 必须是同 organization / federation 范围内的 Space。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该 child Space 承载。详见 §5。 |
 | `fields` | no | `object` |  | 扩展字段。 |
-| `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`cx.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`cx.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。 | 物化状态。 |
+| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`cx.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`cx.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。 | 物化状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -357,7 +357,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 ### 8.4 写入授权
 
 - 默认：`cx.flow.watch.set` MUST 满足 `payload.actor_did == envelope.actor_id`。reducer 在写入前校验，不满足 `failed_precondition`（`reason="watch_must_be_self"`）。普通成员写入自己的 watch state 需要持有 `cx.flow.watch.set` capability（low risk_tier，admin 默认 bundle 给所有成员）。
-- 帮他人订阅：actor 持有 `cx.flow.watch.manage_others` capability（medium risk_tier）时 MAY 写入 `payload.actor_did != envelope.actor_id` 的 watch cell，典型用法是 Flow creator 在创建对话时把核心相关人加为 `participating`。`manage_others` 写入受以下硬约束：
+- 帮他人订阅：actor 持有 `cx.flow.watch.manage_others` capability（high risk_tier）时 MAY 写入 `payload.actor_did != envelope.actor_id` 的 watch cell，典型用法是 Flow creator 在创建对话时把核心相关人加为 `participating`。`manage_others` 写入受以下硬约束：
   - `payload.level` MUST ∈ `{mentions_only, participating, all}`；写入 `level="muted"` MUST `failed_precondition`（`reason="watch_muted_must_be_self"`）。理由：`muted` 会抑制 mention / 审核 / 工作流定向通知，必须由本人主动选择，不得被管理员或自动化代写。
   - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST `failed_precondition`（`reason="watch_level_public_must_be_self"`）。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
   - 每条 `manage_others` 写入 MUST 同时生成一条 advisory `cx.audit.accessed` event（payload 含 writer DID、target actor DID、cell id、写入前后 level），便于被代写的 actor 事后审计。reducer MUST 拒绝缺失对应 audit event 的 `manage_others` 写入（`failed_precondition`，`reason="manage_others_audit_missing"`）。
@@ -456,7 +456,7 @@ Schema id: `cx.schema.message.v1`
 | `track` | yes | `string` | 必须匹配 `^[a-z][a-z0-9_]{0,63}$`，并且必须是目标 Flow 当前 active 的 track name。v1 reducer 默认只识别 `discussion`；profile 可声明额外 track name 承载 Message timeline，但 v1 wire 互操作 SHOULD 使用 `discussion`。 | 所属 Flow 轨道。 |
 | `content` | conditional | `object` | 富文本/blocks 见 `content-types.md`；`state=active` 且未加密时必填。 | 消息正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
-| `state` | yes | `enum(active, redacted, deleted)` | 默认 `active`。`redacted` 由 `cx.message.redact` reducer 设置（content 被替换为 redaction tombstone 但消息槽保留）；`deleted` 表示消息整体被治理或 retention 清除（content / encrypted_payload MUST 被清空，仅保留 envelope 元数据用于审计）。**与 Flow.state / Place.state 在顶层 schema 上对齐**，不再用 `fields.visible_state` 表达可见性。 | 消息生命周期状态。 |
+| `state` | yes | `enum(active, redacted, deleted)` | 默认 `active`。`redacted` 由 `cx.message.redact` reducer 设置（content 被替换为 redaction tombstone 但消息槽保留）；`deleted` 表示消息整体被治理或 retention 清除（content / encrypted_payload MUST 被清空，仅保留 envelope 元数据用于审计）。Message lifecycle 使用顶层 `state` 字段，不再用 `fields.visible_state` 表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `revision_root` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root` 下的 revision 形成有序 chain，由 `cx.message.revise` reducer 维护。 | revision chain 起点（顶层 schema-validated）。 |
 | `edited_at` | no | `timestamp` | revision chain 中 latest revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST 不早于 `created_at`。 | 最近一次编辑时间。 |

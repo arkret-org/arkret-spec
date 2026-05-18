@@ -27,6 +27,15 @@
       "type": "string",
       "pattern": "^cx\\.reducer(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
     },
+    "security_class": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "high_assurance"
+      ],
+      "default": "standard",
+      "description": "Snapshot verification class. high_assurance requires verification_hints with inclusion challenge and non-accepted-input digests."
+    },
     "schema_profile_refs": {
       "type": "array",
       "items": {
@@ -127,7 +136,17 @@
     },
     "verification_hints": {
       "type": "object",
+      "required": [
+        "verification_profile"
+      ],
       "properties": {
+        "verification_profile": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "high_assurance"
+          ]
+        },
         "inclusion_proof_url": {
           "type": "string"
         },
@@ -185,5 +204,32 @@
       "$ref": "./event-schema.json#/$defs/proof"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "security_class": { "const": "high_assurance" } },
+        "required": ["security_class"]
+      },
+      "then": {
+        "required": ["verification_hints"],
+        "properties": {
+          "verification_hints": {
+            "required": [
+              "verification_profile",
+              "inclusion_proof_url",
+              "challenge_window_seconds",
+              "witness_quorum",
+              "conflict_records_digest",
+              "soft_failed_digest",
+              "quarantined_digest"
+            ],
+            "properties": {
+              "verification_profile": { "const": "high_assurance" }
+            }
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": true
 }

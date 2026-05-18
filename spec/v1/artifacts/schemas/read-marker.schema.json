@@ -15,7 +15,8 @@
   ],
   "properties": {
     "id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^cx:read_marker:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.read_marker.v1"

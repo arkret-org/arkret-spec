@@ -232,6 +232,13 @@
       "description": "Notification projection ID"
     },
     {
+      "kind": "read_marker",
+      "category": "account_private",
+      "status": "active",
+      "wire_form": "cx:read_marker:<uuid>",
+      "description": "Actor-private read marker ID"
+    },
+    {
       "kind": "policy",
       "category": "policy",
       "status": "active",

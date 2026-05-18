@@ -6,7 +6,7 @@ title: Relation
 
 `relation`（`cx:relation:`）是 Contrix 协作图的**一等关系对象**。跨对象语义 MUST 使用 Relation 表达，而不是藏在对象字段里。
 
-Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `flow`、`message`、`morph`、`actor`、`place` 或 `space`。
+Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `flow`、`message`、`morph`、`actor`、`place`、`space` 或 `blob`。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 

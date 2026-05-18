@@ -40,6 +40,14 @@
     "title": {
       "type": "string"
     },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "shared"
+      ],
+      "description": "View sharing visibility. Private views are actor-private account data; shared views are canonical Space objects."
+    },
     "query": {
       "$ref": "#/$defs/query"
     },

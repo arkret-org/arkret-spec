@@ -120,7 +120,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/moderation/report` | body `{space_id: id, target_ref: id, reason: enum, description?: string, reporter: did, evidence_refs?: id[]}` | `user_session`; reporter 必须可见 target；report 仅对 moderators 可见。 | `{report_id, status, routed_to?}` |
 | `GET /api/v1/applet/ping` | query none | `public_metadata` 或 `service_signature`；不得泄露 private namespace。 | `{ok, applet_id, service_did, protocol_version}` |
 | `GET /api/v1/applet/describe` | query none | `service_signature` SHOULD；public mode 只返回公开 capabilities。 | `{applet_id, service_did, protocols[], namespaces, limits, auth}` |
-| `POST /api/v1/applet/transactions` | header `Idempotency-Key` body `{source_service_did, events[], ephemeral?}` | `service_signature`; Applet 必须验证每个 event signature、namespace 和 capability；按 `(source_service_did, Idempotency-Key)` 幂等。 | `{ok: true, rejected?, retry_after_ms?}` |
+| `POST /api/v1/applet/transactions` | header `Idempotency-Key` body `{source_service_did, events: EventEnvelope[], ephemeral?}` | `service_signature`; Applet 必须验证每个 event signature、namespace 和 capability；按 `(source_service_did, Idempotency-Key)` 幂等。 | `{ok: true, rejected?, retry_after_ms?}` |
 | `GET /api/v1/applet/actors/{actor_id}` | path `{actor_id}` | `service_signature`; actor_id 必须命中 Applet actor namespace。 | `{exists, actor_id, display_name?, external_ref?}` 或 `not_found` |
 | `GET /api/v1/applet/spaces/{space_id_or_alias}` | path `{space_id_or_alias}` | `service_signature`; 必须命中 portal namespace 或授权查询。 | `{exists, space_id?, title?, external_ref?}` |
 | `GET /api/v1/applet/protocols/{protocol}` | path `{protocol}` | 可 public_metadata；实例列表可要求授权。 | `{protocol, display_name, icon_blob?, field_types, instances?}` |
@@ -223,7 +223,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.moderation.report` | `space_id: id`; `target_ref: id`; `reason: enum`; `reporter: did` | `description: string`; `evidence_refs: id[]` | `report_id: id`; `status: string`; `routed_to: did[]?` | reporter 必须可见 target；只对 moderators 可见。 |
 | `cx.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | 不得泄露 private namespace。 |
 | `cx.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
-| `cx.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: object[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet 必须验证 event signature、namespace、capability；按 `(source_service_did, Idempotency-Key)` 幂等。 |
+| `cx.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet 必须验证 event signature、namespace、capability；按 `(source_service_did, Idempotency-Key)` 幂等。 |
 | `cx.applet.query_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 namespace。 |
 | `cx.applet.query_space` | `path.space_id_or_alias: string` | 无 | `exists: boolean`; `space_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob: string?`; `field_types: object`; `instances: object[]?` | instance list 可要求授权。 |
@@ -457,7 +457,7 @@ GET /api/v1/events/subscribe?spaces=<id>&after=<cursor>&include_history=true
 支持多 space / actor 一次订阅；`include_history=true` 时服务端先吐历史，再发出 `catchup_complete` 帧切到实时尾部。
 
 
-Frame（每行一个独立 JSON 对象，按 NDJSON / JSON-Lines 形式跨 transport 帧承载）：
+HTTP 200 response `Content-Type` MUST be `application/x-ndjson`。Frame 每行一个独立 JSON 对象：
 
 ```text
 { "kind": "event", "space_id": "cx:space:01...", "cursor": "opaque", "payload": {} }
@@ -470,7 +470,7 @@ Frame（每行一个独立 JSON 对象，按 NDJSON / JSON-Lines 形式跨 trans
 { "kind": "resync_required", "space_id": "cx:space:01..." }
 ```
 
-同一语义流 MAY 通过 WebSocket、SSE 或长轮询承载，但 HTTP/JSON 默认参考路径是 `/api/v1/events/subscribe`。其他 transport binding（WebSocket frame、SSE event 名等）MAY 使用其内部帧名承载同一语义；任何此类帧名不构成独立的 canonical operation，仅是 transport-binding-specific 别名。客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `cx.events.query` 补齐，后者要求重建本地状态。
+客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `cx.events.query` 补齐，后者要求重建本地状态。
 
 ## 4. Identity API
 

@@ -24,6 +24,7 @@ Schema id: `cx.schema.morph.v1`
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:morph` | 以 `cx:morph:` 开头。 | Morph ID。 |
 | `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_type` / `facets` 不能替代。 |
 | `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `cx.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Space schema / Morph profile 声明。 | Morph 暴露哪些已声明能力 hint。 |
 | `title` | no | `string` | SHOULD <= 512 chars。 | 标题。 |
@@ -31,7 +32,7 @@ Schema id: `cx.schema.morph.v1`
 | `content` | no | `object` | 富文本/blocks 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_payload` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
-| `state` | no | `enum(active, archived, deleted, redacted)` | 删除/撤回必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`cx.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`cx.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）。same-state self-transition MUST fail。 | 物化状态。 |
+| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`cx.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`cx.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）。same-state self-transition MUST fail。 | 物化状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -45,6 +46,7 @@ Schema id: `cx.schema.morph.v1`
   "id": "cx:morph:0196414b-0000-7000-8000-000000000000",
   "schema": "cx.schema.morph.v1",
   "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "schema_refs": ["cx.schema.morph.v1"],
   "morph_type": "customer_risk",
   "title": "ACME procurement risk",
   "facets": {

@@ -68,7 +68,7 @@ Idempotency-Key: <opaque-string>
 | --- | --- | --- | --- | --- |
 | `Idempotency-Key` | header | `string` | required | 发送方生成的幂等键，长度 1..128；Applet MUST 以 `(source_service_did, Idempotency-Key)` 去重，重复键但 body canonical hash 不同 MUST 返回 `duplicate_conflict`。 |
 | `source_service_did` | body | `did` | required | 推送来源 service DID。 |
-| `events` | body | `object[]` | required | 推送给 Applet 的事件数组。 |
+| `events` | body | `EventEnvelope[]` | required | 推送给 Applet 的 signed Event 数组；每项必须满足 `event-envelope.schema.json`。 |
 | `ephemeral` | body | `object[]` | optional | 非持久临时事件数组。 |
 
 请求示例（非完整 schema）：

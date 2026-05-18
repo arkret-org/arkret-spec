@@ -230,7 +230,7 @@ Preset 是**声明性 sugar**——客户端 / SDK 把 preset 名展开为标准
   - 不允许 mirror 端 `cx.content.import_attestation` 引用该 grant 作为 `authority_grant_ref`
 - controller's principal server 不可达时:grant 保持 `pending_verification`,**MUST NOT** 静默降级为 `unverified_authority` accepted state。运行时 SHOULD 重试,带指数退避;客户端 UI MUST 显式提示"agent 授权未验证,暂停操作"。
 - 验证最终失败(controller 服务器明确否认 / hash 不匹配 / event 不存在)→ grant 状态 → `verification_rejected`,reducer **MUST** 同时撤销所有 transient 副作用(若有);agent 即使临时持有过期信息也不得继续动作。
-- `evidence_kind=state_witness`:reducer **MUST 同步**校验 `witness_signature` 由 controller's principal server 当前注册的 key 签发;签名无效 = grant `verification_rejected`(不进入 pending)。TTL 由 `valid_until` 控制;过期后 grant 自动失效。state_witness 形态的优点是**不依赖远端可达性**——witness 是预签发的离线凭证,适合 controller 服务器临时不可达但 controller 设备已经事先签了授权的场景。
+- `evidence_kind=state_witness`:reducer **MUST 同步**校验 `witness_signature` 由 controller's principal server 当前注册的 key 签发;签名无效 = grant `verification_rejected`(不进入 pending)。签名输入 MUST 是 `utf8("cx-agent-authority-state-witness-v1\n") || canonical_json(state_witness evidence object with witness_signature omitted)`，并覆盖 `agent_id`、`controller`、`responsible_actor`、`acting_mode`、`valid_until` 和 `witness_issuer`。TTL 由 `valid_until` 控制;过期后 grant 自动失效。state_witness 形态的优点是**不依赖远端可达性**——witness 是预签发的离线凭证,适合 controller 服务器临时不可达但 controller 设备已经事先签了授权的场景。
 
 **为什么是同步前置 gate**(设计取舍登记):
 
@@ -783,7 +783,7 @@ Controller 从 deployment A 迁到 deployment B：
 
 ### 10.3 源 Space archive / Flow delete
 
-- 源 Flow `state=deleted` → mirror 中 `context_anchor` 引用 lazy `locked`（[relation.md §4.5](../models/relation.md)）
+- 源 Flow `state=redacted` → mirror 中 `context_anchor` 引用 lazy `locked`（[relation.md §4.5](../models/relation.md)）
 - 不触发 mirror task 状态变化（mirror 任务可能已完成，保留 audit 价值）
 
 ## 11. Service operations

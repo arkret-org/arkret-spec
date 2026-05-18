@@ -30,21 +30,12 @@
       "description": "Free string; SHOULD come from {rotation, compromise, device_loss, policy_required}."
     },
     "proof": {
-      "type": "object",
-      "required": ["kind"],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "enum": [
-            "principal_signing",
-            "recovery_unlock",
-            "device_quorum",
-            "trusted_recovery_service"
-          ],
-          "description": "Discriminator for the proof variant. Each kind carries its own evidence fields under additional properties; receivers MUST validate kind-specific shape and reject missing or invalid proofs."
-        }
-      },
-      "additionalProperties": true
+      "oneOf": [
+        { "$ref": "#/$defs/principal_signing_proof" },
+        { "$ref": "#/$defs/recovery_unlock_proof" },
+        { "$ref": "#/$defs/device_quorum_proof" },
+        { "$ref": "#/$defs/trusted_recovery_service_proof" }
+      ]
     },
     "issued_at": { "$ref": "#/$defs/timestamp" }
   },
@@ -58,6 +49,85 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[^\\s#]+#[A-Za-z0-9._:-]+$"
+    },
+    "signature_b64u": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "principal_signing_proof": {
+      "type": "object",
+      "required": ["kind", "signed_by", "alg", "signature"],
+      "properties": {
+        "kind": { "const": "principal_signing" },
+        "signed_by": { "$ref": "#/$defs/did_url" },
+        "alg": { "type": "string", "minLength": 1 },
+        "signature": { "$ref": "#/$defs/signature_b64u" }
+      },
+      "additionalProperties": false
+    },
+    "recovery_unlock_proof": {
+      "type": "object",
+      "required": ["kind", "recovery_secret_ref", "unlock_commitment", "alg", "signature"],
+      "properties": {
+        "kind": { "const": "recovery_unlock" },
+        "recovery_secret_ref": { "type": "string", "minLength": 1 },
+        "unlock_commitment": { "$ref": "#/$defs/hash" },
+        "alg": { "type": "string", "minLength": 1 },
+        "signature": { "$ref": "#/$defs/signature_b64u" }
+      },
+      "additionalProperties": false
+    },
+    "device_quorum_signature": {
+      "type": "object",
+      "required": ["device_id", "signed_by", "alg", "signature"],
+      "properties": {
+        "device_id": {
+          "type": "string",
+          "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "signed_by": { "$ref": "#/$defs/did_url" },
+        "alg": { "type": "string", "minLength": 1 },
+        "signature": { "$ref": "#/$defs/signature_b64u" }
+      },
+      "additionalProperties": false
+    },
+    "device_quorum_proof": {
+      "type": "object",
+      "required": ["kind", "threshold", "signatures"],
+      "properties": {
+        "kind": { "const": "device_quorum" },
+        "threshold": { "type": "integer", "minimum": 1 },
+        "signatures": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/device_quorum_signature" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "trusted_recovery_service_proof": {
+      "type": "object",
+      "required": ["kind", "service_did", "signed_by", "alg", "signature"],
+      "properties": {
+        "kind": { "const": "trusted_recovery_service" },
+        "service_did": { "$ref": "#/$defs/did" },
+        "signed_by": { "$ref": "#/$defs/did_url" },
+        "alg": { "type": "string", "minLength": 1 },
+        "signature": { "$ref": "#/$defs/signature_b64u" },
+        "attestation_ref": {
+          "type": "string",
+          "pattern": "^cx:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

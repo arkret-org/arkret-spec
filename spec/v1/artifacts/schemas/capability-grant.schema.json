@@ -132,7 +132,10 @@
               "type": "string",
               "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
             },
-            "witness_signature": { "type": "string" },
+            "witness_signature": {
+              "type": "string",
+              "description": "Signature over utf8('cx-agent-authority-state-witness-v1\\n') || canonical_json(state_witness evidence object with witness_signature omitted)."
+            },
             "agent_id": {
               "type": "string",
               "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"

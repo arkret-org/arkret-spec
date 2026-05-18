@@ -228,6 +228,7 @@
               "epoch": 7,
               "content_type": "application/json",
               "ciphertext": "reactionAlpha",
+              "aad_visibility_event_id": "routing_hash",
               "aad": {
                 "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add",
@@ -256,6 +257,7 @@
               "epoch": 7,
               "content_type": "application/json",
               "ciphertext": "reactionAlphaDup",
+              "aad_visibility_event_id": "routing_hash",
               "aad": {
                 "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add",
@@ -311,6 +313,7 @@
               "epoch": 7,
               "content_type": "application/json",
               "ciphertext": "reactionEpoch7",
+              "aad_visibility_event_id": "hidden",
               "aad": {
                 "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add"
@@ -338,6 +341,7 @@
               "epoch": 8,
               "content_type": "application/json",
               "ciphertext": "reactionEpoch8",
+              "aad_visibility_event_id": "hidden",
               "aad": {
                 "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add"

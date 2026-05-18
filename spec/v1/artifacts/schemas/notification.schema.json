@@ -5,6 +5,7 @@
   "type": "object",
   "required": [
     "id",
+    "schema",
     "actor_id",
     "source_event_id",
     "notification_type",
@@ -14,7 +15,8 @@
   ],
   "properties": {
     "id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^cx:notif:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "cx.schema.notification.v1"
@@ -33,7 +35,7 @@
     },
     "source_ref": {
       "type": "string",
-      "pattern": "^cx:(message|flow|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^(cx:(message|flow|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:(sha256|sha3_256|blake3):[0-9a-f]{64}|cx:blob:sha512:[0-9a-f]{128})$",
       "description": "Optional canonical-object reference for clients that want to render the notification target without resolving source_event_id. Reducers MUST treat source_event_id as authoritative; source_ref is a render-only hint."
     },
     "flow_id": {

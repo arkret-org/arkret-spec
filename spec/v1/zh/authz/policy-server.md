@@ -179,8 +179,8 @@ Content-Type: application/json
 | `issuer` | yes | `did` | 颁发挑战的服务 DID；客户端 MUST 校验 proof signature 来自该 DID。 |
 | `endpoint` | yes | `url` | 客户端获取挑战物料 / 提交解答的 HTTPS endpoint。 |
 | `max_proof_age` | yes | `duration` | proof 自签发起的有效期；reducer 拒绝过期 proof。 |
-| `must_satisfy_before_resubmit` | no | `boolean` | 默认 `true`。`false` 时客户端可跳过 challenge 一次（用于 graceful degradation 实验）。 |
-| `bound_to` | no | `object` | 见下；显式绑定 challenge 到具体 Move / actor / device，防止 proof 复用。 |
+| `must_satisfy_before_resubmit` | no | `boolean` | 默认 `true`。 |
+| `bound_to` | yes | `object` | 见下；显式绑定 challenge 到具体 Move / actor / device，防止 proof 复用。 |
 
 `bound_to` 子字段：
 
@@ -215,7 +215,7 @@ reducer 校验顺序：
 
 1. provider signature 有效，`kid` 与 obligation `issuer` 匹配；
 2. `expires_at > now`；
-3. `bound_to.actor` 等于 Move envelope `actor`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_hash` 等于本次重提 Move 的 canonical hash；
+3. `bound_to` 必须存在；`bound_to.actor` 等于 Move envelope `actor`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_hash` 等于本次重提 Move 的 canonical hash；
 4. `challenge_id` 在 reducer 的 nonce 缓存中尚未消费；写入成功后入缓存（最少缓存到 `expires_at`）。
 
 任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。

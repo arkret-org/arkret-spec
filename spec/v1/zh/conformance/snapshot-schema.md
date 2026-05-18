@@ -15,6 +15,7 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
   "snapshot_ref": "cx:snapshot:0196419a-8000-7000-8000-000000000000",
   "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
   "reducer_profile": "cx.reducer.v1",
+  "security_class": "high_assurance",
   "schema_profile_refs": ["cx.profile.core_event_store.v1"],
   "frontier": {
     "event_ids": ["cx:event:019640ed-8000-7000-8000-000000000000"],
@@ -35,6 +36,7 @@ Snapshot 用于快速 bootstrap Space 当前态。Snapshot 不是真相源；真
     }
   ],
   "verification_hints": {
+    "verification_profile": "high_assurance",
     "inclusion_proof_url": "https://server.example/snapshots/01js0sn/proofs",
     "challenge_window_seconds": 86400,
     "witness_quorum": 2,

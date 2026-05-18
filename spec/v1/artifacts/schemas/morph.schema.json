@@ -7,6 +7,7 @@
     "id",
     "schema",
     "space_id",
+    "schema_refs",
     "morph_type",
     "created_by",
     "created_at"
@@ -28,6 +29,16 @@
     "space_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "schema_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(cx\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*[A-Za-z0-9_.:-]*)$"
+      },
+      "description": "Authoritative schema set for Morph fields and transition validation. Reducers MUST validate fields against exactly these refs; morph_type and facets are not a replacement for schema_refs."
     },
     "morph_type": {
       "type": "string",
@@ -63,14 +74,13 @@
       "enum": [
         "active",
         "archived",
-        "deleted",
         "redacted"
       ],
-      "description": "Morph lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: cx.morph.archive MUST come from 'active' (else failed_precondition reason=morph_not_active); cx.morph.restore MUST come from 'archived' (else morph_not_archived); cx.redaction targeting the morph MUST come from {'active','archived'} (else morph_already_terminal). Same-state self-transitions MUST fail. 'deleted' and 'redacted' are irreversible terminals."
+      "description": "Morph lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: cx.morph.archive MUST come from 'active' (else failed_precondition reason=morph_not_active); cx.morph.restore MUST come from 'archived' (else morph_not_archived); cx.redaction targeting the morph MUST come from {'active','archived'} (else morph_already_terminal). Same-state self-transitions MUST fail. 'redacted' is the irreversible terminal."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.morph.archive / cx.morph.restore / cx.morph.tombstone / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.morph.archive / cx.morph.restore / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "created_by": {
       "$ref": "#/$defs/did"

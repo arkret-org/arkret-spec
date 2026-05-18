@@ -232,7 +232,7 @@ SC = HMAC-SHA-256(
 
 1. 取得该 message 的 MLS epoch metadata（`mls_group_id`, `epoch`, `sender_device_id`），通过 verifier 在该 epoch 仍持有的 exporter secret 派生候选 `SCK`。
 2. 重算 `SC'` 并按 constant-time 比较 `SC' == commitment_tag`：不一致 MUST 拒绝（reason `sender_commitment_invalid`），不进入 plaintext attribution。
-3. 校验 `(sender_device_id, epoch, epoch_local_seq)` 唯一性：verifier MUST 在持久化的 (sender_device_id, epoch) → seq high-water 中检查 `epoch_local_seq > seen_high_water`；不通过 reason `sender_commitment_seq_replay`。
+3. 校验 `(sender_device_id, epoch, epoch_local_seq)` 唯一性：verifier MUST 在持久化的 `(sender_device_id, epoch)` 已见 seq 集合中检查该 `epoch_local_seq` 未出现；重复则拒绝，reason `sender_commitment_seq_replay`。不得使用单一 high-water 拒绝低于最大值但尚未见过的 seq，因为举报和审核提交可以乱序到达。
 4. 校验 `ciphertext_digest` 与 reporter 提交的 encrypted envelope 实际 digest 一致；不通过 reason `sender_commitment_ciphertext_mismatch`。
 5. 校验 `epoch` 是 reporter 提交的 envelope `sender_claim.epoch`：不一致 reason `sender_commitment_epoch_mismatch`。
 6. 上述全部通过后，verifier MAY 把该 plaintext 归因到 `sender_device_id` 在 `epoch` 内的承诺——但仍 MUST NOT 将该归因传递到 outside-of-group 的 non-repudiation 主张（profile 仍受 MLS 群密钥退出后的 deniability 边界限制）。

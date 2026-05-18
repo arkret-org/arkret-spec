@@ -1242,7 +1242,7 @@
         },
         "proof": {
           "type": "object",
-          "description": "Optional inline proof material. Used for inclusion_proof role: carries the RFC 6962-style Merkle audit path that proves a leaf belongs to a witness state_root. May be omitted when id alone is a content-addressed reference to a separately stored proof object.",
+          "description": "Optional inline proof material. Used for inclusion_proof role: carries the Merkle audit path defined by event-auth-state-resolution.md §4.2 that proves a leaf belongs to a witness state_root. May be omitted when id alone is a content-addressed reference to a separately stored proof object.",
           "properties": {
             "kind": {
               "type": "string",

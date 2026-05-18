@@ -403,8 +403,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 - AEAD AAD MUST 绑定 `actor_id`、`device_id`、`backup_class`、`backup_version`、item type、created_at 和 schema/profile id，防止把 ciphertext 从一个域重放到另一个域。
 - 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="contrix-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
 - `did_recovery` 域不得和 `mls_history` 域共享 wrap key、recovery share 或 key commitment。攻破 `mls_history` backup key 不得允许 DID rotate / recover；攻破 DID recovery share 也不得直接解密 MLS 历史。
-- **默认 MUST 分离**：`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。
-- 仅 `personal_node` deployment profile MAY 在 Space schema 显式声明 `mixed_secret_storage=true` 退化为兼容模式（兼容旧客户端、单一 passphrase）；该字段 MUST 出现在 deployment profile manifest 与 backup metadata 中，并触发 UI 强制提示"一次口令泄露会同时影响身份信任和 E2EE 历史"。`small_team` / `organization` / `high_security_organization` / `sovereign_deployment` profile MUST NOT 启用混合模式；接收方在导入声明 `mixed_secret_storage=true` 的备份到这些 profile 时 MUST 拒绝（`schema_violation`，附 `reason="mixed_secret_storage_disallowed_by_profile"`）。
+- `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。
 
 以下材料 MAY 进入客户端加密备份，但 MUST 只以密文形式保存：
 
@@ -479,6 +478,26 @@ derived_key = KDF(passphrase, salt, kdf_params)
 commitment_key = HKDF(derived_key, info="contrix-key-backup-commitment-v1")
 key_commitment = SHA256(commitment_key)
 ```
+
+`recipient_method="passphrase_kdf"` 的 AEAD nonce MUST deterministic derive，不得由服务端随机生成或由用户输入提供：
+
+```text
+nonce_key = HKDF(derived_key, info="contrix-key-backup-aead-nonce-v1")
+nonce = HMAC-SHA256(
+  key  = nonce_key,
+  data = canonical_json({
+    "backup_id": backup_id,
+    "actor_id": actor_id,
+    "device_id": device_id,
+    "backup_class": backup_class,
+    "backup_version": backup_version,
+    "created_at": created_at,
+    "aead": aead.name
+  })
+)[0:N_AEAD]
+```
+
+Producer MUST reject attempts to write two backup envelopes with the same nonce derivation tuple. Receiver MUST recompute the nonce for `passphrase_kdf` envelopes before decryption and reject mismatches as `schema_violation`.
 
 客户端 MAY 在尝试解密 `ciphertext` 前用用户输入的 passphrase 派生 key，计算 commitment 并与 envelope 中的 `key_commitment` 比对。不匹配时 MUST 拒绝解密并提示用户 passphrase 错误。`key_commitment` 只是本地快速拒绝错误口令和防止密文替换的辅助值，不是服务端认证材料；服务端不得要求用户上传 passphrase、derived key、commitment key 或使用 `key_commitment` 做在线口令检查。离线攻击者仍可对备份执行 KDF 级别的口令猜测，因此实现必须执行强口令策略、Argon2id 参数下限和速率受控的恢复 UI。
 

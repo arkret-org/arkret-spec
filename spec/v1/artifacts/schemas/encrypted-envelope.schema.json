@@ -10,7 +10,9 @@
     "epoch",
     "content_type",
     "ciphertext",
+    "aad_visibility_event_id",
     "aad",
+    "key_ref",
     "aad_digest",
     "payload_digest"
   ],
@@ -37,6 +39,15 @@
     "ciphertext": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "aad_visibility_event_id": {
+      "type": "string",
+      "enum": [
+        "hidden",
+        "routing_hash",
+        "opaque_id"
+      ],
+      "description": "Normative discriminator for event id visibility in aad. hidden forbids aad.event_id and aad.event_ref_hash; routing_hash requires aad.event_ref_hash and forbids aad.event_id; opaque_id requires aad.event_id and forbids aad.event_ref_hash."
     },
     "authentication_tag": {
       "type": "string",
@@ -91,7 +102,8 @@
     "key_ref": {
       "type": "object",
       "required": [
-        "algorithm"
+        "algorithm",
+        "group_state_ref"
       ],
       "properties": {
         "algorithm": {
@@ -130,5 +142,53 @@
       "description": "Reserved (v1: optional, default absent). When present, MUST be sha256 over canonical cleartext bytes derived under the scheme's Cleartext Commitment Profile (`scheme=mls-rfc9420` defines the canonicalization in encryption-and-audit.md §4). Lets recipients detect ciphertext malleability where the producer commits to a specific plaintext without revealing it. v1 implementations MAY ignore this field; v2 MAY make it required for new schemes."
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "aad_visibility_event_id": { "const": "hidden" } },
+        "required": ["aad_visibility_event_id"]
+      },
+      "then": {
+        "properties": {
+          "aad": {
+            "not": {
+              "anyOf": [
+                { "required": ["event_id"] },
+                { "required": ["event_ref_hash"] }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "aad_visibility_event_id": { "const": "routing_hash" } },
+        "required": ["aad_visibility_event_id"]
+      },
+      "then": {
+        "properties": {
+          "aad": {
+            "required": ["event_ref_hash"],
+            "not": { "required": ["event_id"] }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "aad_visibility_event_id": { "const": "opaque_id" } },
+        "required": ["aad_visibility_event_id"]
+      },
+      "then": {
+        "properties": {
+          "aad": {
+            "required": ["event_id"],
+            "not": { "required": ["event_ref_hash"] }
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": true
 }

@@ -775,7 +775,7 @@ Reset 操作 MUST 写入一条 `cx.cross_signing.reset` 事件到 principal cont
 
 Schema id：`cx.schema.cross_signing_reset.v1`
 
-`proof.kind` MUST be one of `principal_signing` / `recovery_unlock` / `device_quorum` / `trusted_recovery_service`；其余字段为 kind-specific evidence。下面示例选用 `principal_signing`：
+`proof.kind` MUST be one of `principal_signing` / `recovery_unlock` / `device_quorum` / `trusted_recovery_service`，且必须符合 [`cross-signing-reset.schema.json`](../../artifacts/schemas/cross-signing-reset.schema.json) 的 kind-specific shape。下面示例选用 `principal_signing`：
 
 ```json
 {
@@ -806,6 +806,23 @@ Schema id：`cx.schema.cross_signing_reset.v1`
 | `new_generation` | required | 后续 publish 将使用的 `generation`；MUST = `previous_generation + 1`。 |
 | `reset_reason` | required | 自由字符串，但 SHOULD 来自 `{"rotation", "compromise", "device_loss", "policy_required"}`。 |
 | `proof` | required | 四类高风险证明之一，详见 §14；接收方 MUST 拒绝缺失 / 无效的 proof。 |
+
+所有 proof 签名的 canonical input MUST 是：
+
+```text
+utf8("cx-cross-signing-reset-v1\n") ||
+canonical_json({
+  "principal_id": principal_id,
+  "previous_generation": previous_generation,
+  "new_generation": new_generation,
+  "reset_reason": reset_reason,
+  "issued_at": issued_at,
+  "proof_kind": proof.kind,
+  "proof_body": proof without signature fields
+})
+```
+
+`device_quorum.signatures[]` 的每个设备签名分别覆盖同一 canonical input。`trusted_recovery_service` 的 `service_did` MUST 出现在 principal DID Document 的恢复服务声明中；未声明的服务签名无效。
 
 ### 14.2 `needs_reverification` 扩散规则
 

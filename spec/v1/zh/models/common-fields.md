@@ -101,7 +101,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` |
 | `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | — | `archived` | — | `archived` |
 | `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | `redacted` | `redacted` | `tombstone`（合并 deleted+redacted） | — |
-| `deleted` | 不可逆删除：content / encrypted_payload 清空，仅保留 envelope 用于审计 | `deleted` | `tombstoned` | `deleted` | `deleted` | `tombstone` | `tombstoned` |
+| `deleted` | 不可逆删除：content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | `deleted` | — | `tombstone` | `tombstoned` |
 
 约定：
 
@@ -140,7 +140,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | `cx.<kind>.update` | 增量更新 active 对象字段;reducer 拒绝非 active 源。**新对象 SHOULD 沿用 `cx.patch.v1` 统一 patch 表达,不应再造单字段 update event。** | `cx.flow.update`、`cx.morph.update`、`cx.patch.v1`(unified) |
 | `cx.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `cx.flow.archive`、`cx.place.archive`、`cx.morph.archive` |
 | `cx.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `cx.flow.restore`、`cx.place.restore`、`cx.morph.restore` |
-| `cx.<kind>.tombstone` 或 cross-object `cx.redaction` | active/archived → terminal(`tombstoned`/`deleted`);不可逆。当对象未单独注册 `cx.<kind>.tombstone` 时(例如 Flow),终态通过指向该对象的 `cx.redaction` 表达。 | `cx.place.tombstone`、`cx.morph.tombstone`、`cx.relation.delete`、`cx.redaction`(指向 flow / place / morph / message) |
+| `cx.<kind>.tombstone` 或 cross-object `cx.redaction` | active/archived → terminal(`tombstoned`/`deleted`/`redacted`);不可逆。Flow 与 Morph 的终态仅通过指向该对象的 `cx.redaction` 表达。 | `cx.place.tombstone`、`cx.relation.delete`、`cx.redaction`(指向 flow / place / morph / message) |
 | `cx.<kind>.redact` 或 cross-object `cx.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。v1 wire 实际注册形态请以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准:Message 走 `cx.message.redact`;Flow / Morph / Place / Relation 等未单独注册 `cx.<kind>.redact` 的对象走 cross-object `cx.redaction`。两种 wire 形态都是 canonical (`active` status),按对象选择;reducer 不得自行折叠或互换。 | `cx.message.redact`、`cx.redaction`(用于 flow / morph / place / relation 等未单独注册的对象) |
 
 模板使用约束:
@@ -152,7 +152,7 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 - "Place 没有 redacted"：Place 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `cx.place.tombstone` 或 `cx.redaction` 一并完成。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
 - "Relation 用 `tombstone` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故合并为单一 `tombstone`；具体 reason 在对应 `cx.relation.delete` / `cx.redaction` event 中保留。
-- Reducer 与 projection MUST 把 `tombstoned` / `tombstone` / `deleted` 视为语义等价的"不可逆删除"状态；UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。
+- Reducer 与 projection MUST 把 `tombstoned` / `tombstone` / `deleted` 视为语义等价的"不可逆删除"状态；Flow / Morph 不使用 `deleted`，其不可逆内容清除状态是 `redacted`。UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。
 
 ## 6. 通用对象 ID 约定
 

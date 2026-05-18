@@ -295,7 +295,7 @@ E2EE Space 中，Sync Service 不持有正文密钥，无法在 server 端评估
     - 同一 epoch 内同一 mentioned_did 的 tag 仍恒定 — 是 server-side `mentions_actor` 匹配能工作的前提;能观察到的频次仅限于"该 epoch 内被 mention 多少次",与解密无关。
     - 非 E2EE Space 不使用 routing tag(直接看 plaintext mention 列表)。
 
-    启用与否由 Space policy 中 `mention_routing_hint` 决定,默认开启;关闭时 mention 走 §4.5 第 1-5 步降级,Sync Service 不做 `mentions_actor` server-side 匹配。
+    启用与否由 Space policy 中 `mention_routing_hint` 决定。minimal-metadata Space 与 audited E2EE Space 默认关闭；其他 Space 未声明时默认开启。关闭时 mention 走 §4.5 第 1-5 步降级,Sync Service 不做 `mentions_actor` server-side 匹配。
 
 明确禁止：
 
