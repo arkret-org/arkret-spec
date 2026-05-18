@@ -322,7 +322,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
       "must_satisfy_before_resubmit": true,
       "bound_to": {
         "actor": "did:webvh:applicant.example",
-        "action": "cx.member.application",
+        "action": "member.application",
         "request_canonical_hash": "sha256:...",
         "device_id": "cx:device:01964137-0000-7000-8000-000000000000"
       }

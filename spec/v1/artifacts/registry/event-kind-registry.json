@@ -731,7 +731,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (audit-grade tier). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Space declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Space declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
     },
     {
       "event_kind": "cx.relation.create",

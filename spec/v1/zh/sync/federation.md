@@ -368,7 +368,7 @@ Probe 响应 payload：
 
 ### 5.2 Knock / Restricted 跨域加入流程
 
-Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join_rule` 与 `cx.space.join_policy`（见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
+Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join_rule` 与 `cx.component.space.join_policy.v1` cell 当前 value（Move kind `space.join_policy` 是 candidate，无 `cx.*` 前缀；见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
 
 **自动解析路径**（`join_rule ∈ {restricted, knock_restricted}`，且 Bob 拟使用的 gate 子集均 `auto_resolve=true`）：
 

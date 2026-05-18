@@ -187,11 +187,13 @@ Content-Type: application/json
 ```json
 {
   "actor": "did:webvh:bob",
-  "action": "cx.member.application",
+  "action": "member.application",
   "request_canonical_hash": "sha256:...",
   "device_id": "cx:device:..."
 }
 ```
+
+> `bound_to.action` 必须等于 Move kind。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate event kind（无 `cx.*` 前缀，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 reducer 校验都用裸名。已注册的 Move（如 `cx.member.state`）则继续使用 `cx.*` 前缀。
 
 provider 颁发的 challenge proof 形态：
 

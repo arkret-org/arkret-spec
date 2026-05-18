@@ -75,11 +75,19 @@
     },
     "recovery_unlock_proof": {
       "type": "object",
+      "description": "Recovery-key unlock proof. The schema only encodes wire shape; cryptographic verification is normative in zh/crypto-media/device-lifecycle.md §14.4: (a) recovery_secret_ref MUST resolve to a recovery key id declared in the principal's current DID Document recovery section or recovery_policy; (b) signature MUST verify against the public key bound to that recovery key id over the §14.1 canonical input; (c) unlock_commitment MUST equal SHA-256(HKDF(recovery_secret, info='cx-cross-signing-reset-unlock-v1', salt=canonical_json({principal_id, previous_generation, new_generation, issued_at}))) computed under that recovery secret. Receivers MUST reject the reset if any of (a)/(b)/(c) fails.",
       "required": ["kind", "recovery_secret_ref", "unlock_commitment", "alg", "signature"],
       "properties": {
         "kind": { "const": "recovery_unlock" },
-        "recovery_secret_ref": { "type": "string", "minLength": 1 },
-        "unlock_commitment": { "$ref": "#/$defs/hash" },
+        "recovery_secret_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable identifier of the recovery key entry inside the principal's DID Document / recovery_policy (e.g. `did:webvh:...#recovery-1` or a recovery share id). MUST match an entry that was authoritative at issued_at."
+        },
+        "unlock_commitment": {
+          "$ref": "#/$defs/hash",
+          "description": "Replay-binding commitment over the canonical input; see verification rule (c) in description."
+        },
         "alg": { "type": "string", "minLength": 1 },
         "signature": { "$ref": "#/$defs/signature_b64u" }
       },
@@ -101,14 +109,20 @@
     },
     "device_quorum_proof": {
       "type": "object",
+      "description": "Device-quorum proof. The schema enforces only the minimum wire shape (threshold>=1, signatures.minItems=1). Cryptographic and quorum verification are normative in zh/crypto-media/device-lifecycle.md §14.4: (a) every signature MUST verify against the public key of an authorized, non-revoked device in the principal's current device set at issued_at, over the §14.1 canonical input; (b) signatures MUST be deduplicated by device_id; (c) the count of valid, deduplicated signatures MUST be >= threshold; (d) threshold MUST equal the current `recovery_policy.device_quorum.threshold` (or equivalent published quorum policy) at issued_at — a smaller threshold supplied by the issuer MUST be rejected as `failed_precondition` reason=`cross_signing_reset_quorum_below_policy`. Receivers MUST reject the reset if any of (a)-(d) fails.",
       "required": ["kind", "threshold", "signatures"],
       "properties": {
         "kind": { "const": "device_quorum" },
-        "threshold": { "type": "integer", "minimum": 1 },
+        "threshold": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The quorum threshold the issuer claims to satisfy. MUST equal the principal's currently published recovery_policy device-quorum threshold; receivers MUST cross-check (see description rule (d))."
+        },
         "signatures": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/device_quorum_signature" }
+          "items": { "$ref": "#/$defs/device_quorum_signature" },
+          "description": "minItems=1 is the schema floor only; reducer-side verification requires deduplicated valid signatures count >= threshold per description rule (c)."
         }
       },
       "additionalProperties": false

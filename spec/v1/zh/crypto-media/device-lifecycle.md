@@ -824,6 +824,8 @@ canonical_json({
 
 `device_quorum.signatures[]` 的每个设备签名分别覆盖同一 canonical input。`trusted_recovery_service` 的 `service_did` MUST 出现在 principal DID Document 的恢复服务声明中；未声明的服务签名无效。
 
+每类 proof 的接收方验证规则见 §14.4；schema（[`cross-signing-reset.schema.json`](../../artifacts/schemas/cross-signing-reset.schema.json)）只编码 wire 形态最低限，签名 / 门限 / commitment 验证均为本节 normative。
+
 ### 14.2 `needs_reverification` 扩散规则
 
 Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
@@ -841,6 +843,23 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 | code | 含义 |
 | --- | --- |
 | `cross_signing_reset` | 本端或对端在验证过程中检测到 cross-signing reset；transcript 已绑定的 SSK generation 已被废止，必须放弃当前 transaction 并以新 generation 重启。 |
+
+### 14.4 Proof 验证规则（Normative）
+
+`cross-signing-reset.schema.json` 只编码 wire 形态最低限。Receiver 接受任一 reset 前 MUST 按下表对所选 proof.kind 执行**全部**校验；任一失败 MUST 拒绝该 reset 并以下面的 reason_code 标记。canonical input 同 §14.1。
+
+| proof.kind | Receiver MUST 校验 | 失败 reason_code |
+| --- | --- | --- |
+| `principal_signing` | (a) `signed_by` 是 `previous_generation` 当前 published self-signing 或 user-signing 链上**仍有效**的 verification method；(b) `signature` 在 `alg` 下覆盖 §14.1 canonical input 验证通过；(c) `previous_generation` 等于 receiver 持有的 accepted publish generation。 | `cross_signing_reset_signature_invalid` / `cross_signing_reset_generation_mismatch` |
+| `recovery_unlock` | (a) `recovery_secret_ref` 解析到 principal **当前 DID Document 或 recovery_policy** 中声明的 recovery key entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；(b) `signature` 验证使用该 entry 绑定的 public key、`alg` 在 entry 的算法白名单内、覆盖 §14.1 canonical input；(c) `unlock_commitment` 等于 `SHA-256(HKDF(recovery_secret, info="cx-cross-signing-reset-unlock-v1", salt=canonical_json({principal_id, previous_generation, new_generation, issued_at})))`，receiver 通过 commitment-only check（不持 secret 也可比对 commitment 是否与 secret storage 端注册值一致）拒绝重放与跨 reset 复用。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
+| `device_quorum` | (a) 每个 `signatures[i]` 的 `signed_by` 是当前 principal device set 中**已授权且未撤销**的 device key（按 `signatures[i].device_id` 查找其 `cx.device.authorized` 记录），并验证 `signature` 覆盖 §14.1 canonical input；(b) `signatures[]` 按 `device_id` 去重；(c) 去重后**有效**签名数 ≥ `threshold`；(d) `threshold` 等于 receiver 当前 `recovery_policy.device_quorum.threshold`（或等价已发布门限策略），小于该值 MUST 拒。 | `cross_signing_reset_signature_invalid` / `cross_signing_reset_quorum_insufficient` / `cross_signing_reset_quorum_below_policy` |
+| `trusted_recovery_service` | (a) `service_did` 出现在 principal DID Document 的恢复服务声明（或 organization recovery_policy `trusted_services[]`）中、未撤销、`issued_at` 在其有效窗口内；(b) `signed_by` 是该服务**已公布**的 verification method；(c) `signature` 覆盖 §14.1 canonical input；(d) 若 service 声明要求 `attestation_ref`，则该 ref MUST 解析到一条 receiver 可校验的 attestation event。 | `cross_signing_reset_recovery_service_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_attestation_missing` |
+
+通用规则：
+
+- 所有 proof 的 `alg` MUST 在 [`conformance/encoding.md`](../conformance/encoding.md) 的签名算法白名单内；未列入算法 MUST `unsupported_signature_alg`。
+- `issued_at` 与 receiver 本地时钟偏差超出 `cx.profile.cross_signing.reset.v1` 的 `max_clock_skew_seconds` MUST `cross_signing_reset_clock_skew_exceeded`。
+- 同一 `(principal_id, previous_generation)` 已被某条 reset 消费后，新到达的 reset MUST 以 `cross_signing_reset_replayed` 拒绝；该 nonce 缓存至少保留到对应 `cx.cross_signing.publish` 落账 + 24h。
 
 ## 15. Applet Device Delegation
 

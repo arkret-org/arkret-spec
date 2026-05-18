@@ -912,6 +912,94 @@
       "description": "A previously trusted cross-signing key set was reset; verifications against the old `ssk_generation` MUST fail until the user re-verifies under the new generation. See zh/crypto-media/device-lifecycle.md §14."
     },
     {
+      "code": "cross_signing_reset_signature_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A `cx.cross_signing.reset` proof signature failed verification: principal_signing.signed_by is not on the current self/user signing chain, recovery_unlock/trusted_recovery_service signature does not verify under the bound key, or any `device_quorum.signatures[i]` does not verify under the named device key. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_generation_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.cross_signing.reset.previous_generation` does not equal the receiver's currently accepted publish generation, or `new_generation != previous_generation + 1`. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_recovery_ref_unknown",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`recovery_unlock.recovery_secret_ref` does not resolve to a recovery key declared in the principal's current DID Document recovery section / `recovery_policy` at `issued_at`. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_unlock_commitment_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`recovery_unlock.unlock_commitment` does not match the HKDF-derived commitment registered for the resolved recovery key, indicating replay or cross-reset reuse. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_quorum_insufficient",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "After deduplication by `device_id` and signature verification, `device_quorum.signatures[]` contains fewer than `threshold` valid signatures. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_quorum_below_policy",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`device_quorum.threshold` is below the principal's currently published `recovery_policy.device_quorum.threshold`; receivers MUST reject so issuers cannot weaken the quorum unilaterally. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_recovery_service_unknown",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`trusted_recovery_service.service_did` is not declared in the principal DID Document recovery section or organization `recovery_policy.trusted_services[]`, or is outside its validity window. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_attestation_missing",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A `trusted_recovery_service` declaration requires an `attestation_ref` but the proof omits it, or the ref does not resolve to a verifiable attestation event. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_clock_skew_exceeded",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "`cx.cross_signing.reset.issued_at` deviates from receiver local clock by more than `cx.profile.cross_signing.reset.v1.max_clock_skew_seconds`. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "cross_signing_reset_replayed",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Another `cx.cross_signing.reset` already consumed the same `(principal_id, previous_generation)` tuple; receivers MUST reject duplicates until the corresponding successor `cx.cross_signing.publish` is accepted + 24h. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "unsupported_signature_alg",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist. See zh/conformance/encoding.md."
+    },
+    {
       "code": "claim_rate_limited",
       "applies_to": [
         "service_call",
@@ -1071,7 +1159,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A runtime challenge proof attached to `cx.member.state{join}.gate_proofs[]` or `cx.member.application.gate_proofs[]` fails verification (signature / freshness / verifier domain). See zh/authz/policy-server.md §4."
+      "description": "A runtime challenge proof attached to `cx.member.state{join}.gate_proofs[]` or `member.application.gate_proofs[]` (candidate kind, no `cx.*` prefix) fails verification (signature / freshness / verifier domain). See zh/authz/policy-server.md §4."
     },
     {
       "code": "invalid_task_fsm_transition",
