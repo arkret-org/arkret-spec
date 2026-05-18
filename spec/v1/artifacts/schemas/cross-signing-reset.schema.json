@@ -64,10 +64,14 @@
     },
     "principal_signing_proof": {
       "type": "object",
+      "description": "Principal-control-key proof. The schema only encodes wire shape; key-class verification is normative in zh/crypto-media/device-lifecycle.md §14.4. `signed_by` MUST be a principal-grade DID-control verification method (zh/identity/key-management.md §3.2 — e.g. `did:webvh:...#cx_principal_signing_v1` or the DID method's equivalent control key), and MUST NOT be the self_signing_key or user_signing_key being retired by this reset.",
       "required": ["kind", "signed_by", "alg", "signature"],
       "properties": {
         "kind": { "const": "principal_signing" },
-        "signed_by": { "$ref": "#/$defs/did_url" },
+        "signed_by": {
+          "$ref": "#/$defs/did_url",
+          "description": "Principal-grade control-key verification method. MUST NOT reference the SSK/USK being reset (§14.4 rule (a))."
+        },
         "alg": { "type": "string", "minLength": 1 },
         "signature": { "$ref": "#/$defs/signature_b64u" }
       },
@@ -75,18 +79,18 @@
     },
     "recovery_unlock_proof": {
       "type": "object",
-      "description": "Recovery-key unlock proof. The schema only encodes wire shape; cryptographic verification is normative in zh/crypto-media/device-lifecycle.md §14.4: (a) recovery_secret_ref MUST resolve to a recovery key id declared in the principal's current DID Document recovery section or recovery_policy; (b) signature MUST verify against the public key bound to that recovery key id over the §14.1 canonical input; (c) unlock_commitment MUST equal SHA-256(HKDF(recovery_secret, info='cx-cross-signing-reset-unlock-v1', salt=canonical_json({principal_id, previous_generation, new_generation, issued_at}))) computed under that recovery secret. Receivers MUST reject the reset if any of (a)/(b)/(c) fails.",
+      "description": "Recovery-key unlock proof. The cryptographic strength comes entirely from `signature` — possession of the recovery private key is proven by verifying `signature` over the §14.1 canonical input under the public key bound to `recovery_secret_ref` in the DID Document recovery section / `recovery_policy`. `unlock_commitment` is a wire-integrity / debug binding only: it is a deterministic public hash that the receiver re-computes from material already in the event. See zh/crypto-media/device-lifecycle.md §14.4: (a) recovery_secret_ref MUST resolve to a recovery key entry that was authoritative at issued_at; (b) signature MUST verify against that entry's public key; (c) unlock_commitment MUST equal SHA-256(utf8('cx-cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes), where unlock_binding_input_bytes is the §14.1 canonical input with proof_body excluding both signature fields and unlock_commitment. Receivers MUST reject the reset if any of (a)-(c) fails.",
       "required": ["kind", "recovery_secret_ref", "unlock_commitment", "alg", "signature"],
       "properties": {
         "kind": { "const": "recovery_unlock" },
         "recovery_secret_ref": {
           "type": "string",
           "minLength": 1,
-          "description": "Stable identifier of the recovery key entry inside the principal's DID Document / recovery_policy (e.g. `did:webvh:...#recovery-1` or a recovery share id). MUST match an entry that was authoritative at issued_at."
+          "description": "Stable identifier of the recovery key entry inside the principal's DID Document recovery section or `recovery_policy` (e.g. `did:webvh:...#recovery-1` or a recovery share id). MUST match an entry that was authoritative at issued_at."
         },
         "unlock_commitment": {
           "$ref": "#/$defs/hash",
-          "description": "Replay-binding commitment over the canonical input; see verification rule (c) in description."
+          "description": "Deterministic wire-integrity hash bound to (recovery_secret_ref, reset content). Receiver-computable from public material; does NOT prove possession of the recovery secret — `signature` does. See §14.4 rule (c) for the exact derivation and the self-reference exclusion."
         },
         "alg": { "type": "string", "minLength": 1 },
         "signature": { "$ref": "#/$defs/signature_b64u" }

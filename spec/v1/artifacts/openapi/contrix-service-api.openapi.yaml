@@ -664,8 +664,10 @@ components:
           type: string
           description: Canonical hash of the event's canonical bytes (excluding
             proofs and unsigned); equals proof.payload_hash. Used as the Anchor
-            frontier item for this event.
-          pattern: ^sha256:[0-9a-f]{64}$
+            frontier item for this event. Algorithm family aligned with
+            schemas/anchor.schema.json#/$defs/event_digest — sha256 / sha3_256 /
+            blake3 (64 hex) or sha512 (128 hex).
+          pattern: ^(?:sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$
         event_state:
           type: string
           enum:

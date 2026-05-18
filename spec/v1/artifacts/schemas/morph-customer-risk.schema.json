@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/morph-customer-risk.schema.json",
+  "title": "Contrix Morph Customer Risk Example",
+  "description": "Reference business-field schema for the morph.md customer_risk example. It constrains the fields object carried by a cx.schema.morph.v1 container.",
+  "type": "object",
+  "required": [
+    "morph_type",
+    "fields"
+  ],
+  "properties": {
+    "morph_type": {
+      "const": "customer_risk"
+    },
+    "fields": {
+      "type": "object",
+      "required": [
+        "status",
+        "severity"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "investigating",
+            "mitigated",
+            "closed"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

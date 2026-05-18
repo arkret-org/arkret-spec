@@ -763,7 +763,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (audit-grade tier). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Space declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+        "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Space declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
       },
       {
         "event_kind": "cx.relation.create",
@@ -1673,6 +1673,11 @@
       {
         "schema_id": "cx.schema.morph.v1",
         "file": "schemas/morph.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.morph.customer_risk.v1",
+        "file": "schemas/morph-customer-risk.schema.json",
+        "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside cx.schema.morph.v1 containers."
       },
       {
         "schema_id": "cx.schema.relation.v1",
@@ -3103,6 +3108,16 @@
         "profile": null
       },
       {
+        "action": "cx.morph.schema.migrate",
+        "category": "morph",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.morph.schema_migrate"
+        ],
+        "profile": null
+      },
+      {
         "action": "cx.flow.archive",
         "category": "flow",
         "risk_tier": "medium",
@@ -3571,7 +3586,7 @@
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [],
-        "profile": null
+        "profile": "cx.profile.candidate.join_policy.v1"
       },
       {
         "action": "cx.invite.cancel",

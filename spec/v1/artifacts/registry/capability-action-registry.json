@@ -696,7 +696,7 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null
+      "profile": "cx.profile.candidate.join_policy.v1"
     },
     {
       "action": "cx.invite.cancel",

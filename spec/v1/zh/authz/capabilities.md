@@ -224,7 +224,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 - `cx.invite.third_party`
 - `cx.invite.claim`
 - `cx.invite.revoke`
-- `cx.space.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。Join-policy 正式登记前，本 capability 不属于 v1 active conformance）
+- `cx.space.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。capability-action-registry 中 `profile = "cx.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance）
 - `cx.approval.vote`
 - `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）

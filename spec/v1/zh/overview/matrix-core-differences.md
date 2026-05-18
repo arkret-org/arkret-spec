@@ -128,7 +128,7 @@ Contrix 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lif
 
 差异：Contrix `principal_signing_key` 的演进绑定到 DID method 链（`did:webvh` entry、`did:plc` operation 等），不是 homeserver 内部状态；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`，并需要 DID 控制证明、recovery 解锁、设备 quorum 签名或受信账户恢复服务签名之一。
 
-线级形态：SSK / USK 公钥与 PSK 绑定通过 `cx.cross_signing.publish.v1`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `cx.device.authorized` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `cx.cross_signing.reset.v1`（§14.1），`new_generation = previous_generation + 1`，并在 24h 内必须发布对应 publish，否则接收方对该 `new_generation` 的 device authorization MUST 拒绝。验证 transaction 检测到 reset 时以 `code=cross_signing_reset` 取消，对应 §10.6 / §14.3 cancel code。
+线级形态：SSK / USK 公钥与 PSK 绑定通过 `cx.cross_signing.publish.v1`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `cx.device.authorized` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `cx.cross_signing.reset.v1`（§14.1），`new_generation = previous_generation + 1`，并必须在 `cx.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布对应 publish，否则接收方对该 `new_generation` 的 device authorization MUST 拒绝。验证 transaction 检测到 reset 时以 `code=cross_signing_reset` 取消，对应 §10.6 / §14.3 cancel code。
 
 #### 4.5.5 Secret Storage 与 Key Backup
 

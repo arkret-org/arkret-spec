@@ -18,38 +18,72 @@
 :root[data-theme="dark"],
 :root:not([data-theme]) {
   color-scheme: dark;
-  --cx-bg: #0d1117;
-  --cx-bg-elevated: #131a26;
-  --cx-bg-overlay: rgba(255, 255, 255, 0.03);
-  --cx-bg-nav: rgba(13, 17, 23, 0.78);
-  --cx-border: rgba(255, 255, 255, 0.08);
+  /* Deeper, slightly cooler page background — the elevated tiers carry a
+   * faint indigo cast so card surfaces lift off the page instead of
+   * blending into a single flat slab. */
+  --cx-bg: #08090f;
+  --cx-bg-elevated: #11141e;
+  --cx-bg-elevated-strong: #161a26;
+  --cx-bg-overlay: rgba(255, 255, 255, 0.035);
+  --cx-bg-overlay-strong: rgba(255, 255, 255, 0.06);
+  --cx-bg-nav: rgba(10, 11, 17, 0.72);
+  --cx-border: rgba(255, 255, 255, 0.07);
   --cx-border-strong: rgba(255, 255, 255, 0.16);
-  --cx-fg: #e6edf3;
-  --cx-fg-muted: #8b949e;
+  --cx-fg: #ecedf2;
+  --cx-fg-muted: #8d93a3;
+  --cx-fg-subtle: #6b7180;
   --cx-accent: #a78bfa;
   --cx-accent-strong: #c4b5fd;
-  --cx-accent-soft: rgba(167, 139, 250, 0.12);
+  --cx-accent-2: #60a5fa;
+  --cx-accent-soft: rgba(167, 139, 250, 0.14);
   --cx-success: #4ade80;
-  --cx-hero-glow: rgba(167, 139, 250, 0.18);
-  --cx-on-accent: #0d1117;
+  --cx-warn: #f59e0b;
+  --cx-hero-glow: rgba(167, 139, 250, 0.22);
+  --cx-hero-glow-2: rgba(96, 165, 250, 0.16);
+  --cx-on-accent: #0a0b11;
+  /* Layered shadow tokens — soft halo + grounded edge instead of one stamp. */
+  --cx-shadow-card:
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --cx-shadow-card-hover:
+    0 0 0 1px color-mix(in srgb, var(--cx-accent) 18%, transparent),
+    0 18px 40px -20px rgba(0, 0, 0, 0.7),
+    0 0 60px -20px color-mix(in srgb, var(--cx-accent) 20%, transparent);
+  --cx-noise-opacity: 0.04;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --cx-bg: #ffffff;
-  --cx-bg-elevated: #fafbfc;
-  --cx-bg-overlay: rgba(0, 0, 0, 0.03);
-  --cx-bg-nav: rgba(255, 255, 255, 0.82);
-  --cx-border: rgba(15, 23, 42, 0.1);
+  /* Slightly off-white page with a hint of warm grey, so accents and
+   * elevated surfaces feel layered rather than glaring. */
+  --cx-bg: #fbfbfd;
+  --cx-bg-elevated: #ffffff;
+  --cx-bg-elevated-strong: #f4f5f9;
+  --cx-bg-overlay: rgba(15, 23, 42, 0.03);
+  --cx-bg-overlay-strong: rgba(15, 23, 42, 0.05);
+  --cx-bg-nav: rgba(252, 252, 254, 0.85);
+  --cx-border: rgba(15, 23, 42, 0.08);
   --cx-border-strong: rgba(15, 23, 42, 0.18);
-  --cx-fg: #0f172a;
-  --cx-fg-muted: #5b6675;
+  --cx-fg: #0e1322;
+  --cx-fg-muted: #555c6c;
+  --cx-fg-subtle: #7a8190;
   --cx-accent: #6d28d9;
   --cx-accent-strong: #5b21b6;
+  --cx-accent-2: #2563eb;
   --cx-accent-soft: rgba(109, 40, 217, 0.08);
   --cx-success: #16a34a;
-  --cx-hero-glow: rgba(109, 40, 217, 0.12);
+  --cx-warn: #d97706;
+  --cx-hero-glow: rgba(109, 40, 217, 0.14);
+  --cx-hero-glow-2: rgba(37, 99, 235, 0.1);
   --cx-on-accent: #ffffff;
+  --cx-shadow-card:
+    0 1px 0 rgba(15, 23, 42, 0.02),
+    0 8px 24px -16px rgba(15, 23, 42, 0.15);
+  --cx-shadow-card-hover:
+    0 0 0 1px color-mix(in srgb, var(--cx-accent) 22%, transparent),
+    0 14px 36px -18px rgba(15, 23, 42, 0.18),
+    0 0 50px -20px color-mix(in srgb, var(--cx-accent) 22%, transparent);
+  --cx-noise-opacity: 0.025;
 }
 
 /* Scope marketing chrome resets to the marketing pages only. The Starlight
@@ -57,12 +91,73 @@
  * Starlight stylesheet already controls `body` margin / font.  */
 body.cx-marketing {
   margin: 0;
-  background: var(--cx-bg);
+  background:
+    /* Two soft accent halos in the top portion of the page so the dark
+     * background feels lit rather than flat. */
+    radial-gradient(
+      900px 520px at 18% -10%,
+      var(--cx-hero-glow),
+      transparent 70%
+    ),
+    radial-gradient(
+      720px 420px at 90% 8%,
+      var(--cx-hero-glow-2),
+      transparent 70%
+    ),
+    var(--cx-bg);
+  background-attachment: fixed, fixed, fixed;
   color: var(--cx-fg);
   font-family: var(--cx-sans);
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Very subtle grid texture overlay — gives the dark theme a printed-spec
+ * feel without competing with content. Disabled at very small viewports
+ * so the grid lines don't read as noise on phones. */
+body.cx-marketing::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--cx-fg) 4%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--cx-fg) 4%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 56px 56px;
+  mask-image: radial-gradient(
+    ellipse 70% 60% at 50% 28%,
+    black,
+    transparent 80%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 60% at 50% 28%,
+    black,
+    transparent 80%
+  );
+  opacity: 0.55;
+}
+
+@media (max-width: 720px) {
+  body.cx-marketing::before {
+    display: none;
+  }
+}
+
+body.cx-marketing > * {
+  position: relative;
+  z-index: 1;
 }
 
 body.cx-marketing * {
@@ -132,11 +227,20 @@ body.cx-marketing .cx-mono {
 }
 
 .cx-brand-mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--cx-accent) 0%, #6366f1 100%);
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background:
+    radial-gradient(
+      circle at 30% 25%,
+      rgba(255, 255, 255, 0.45),
+      transparent 55%
+    ),
+    linear-gradient(135deg, var(--cx-accent) 0%, var(--cx-accent-2) 100%);
   display: inline-block;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 6px 18px -8px color-mix(in srgb, var(--cx-accent) 55%, transparent);
 }
 
 .cx-nav-links {
@@ -193,19 +297,26 @@ body.cx-marketing .cx-mono {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: 1px solid var(--cx-border-strong);
-  background: transparent;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid var(--cx-border);
+  background: var(--cx-bg-elevated);
   color: var(--cx-fg-muted);
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .cx-theme-toggle:hover {
   color: var(--cx-fg);
-  background: var(--cx-bg-overlay);
+  background: var(--cx-bg-overlay-strong);
+  border-color: var(--cx-border-strong);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--cx-accent) 12%, transparent);
 }
 
 .cx-theme-icon {
@@ -231,7 +342,7 @@ body.cx-marketing .cx-mono {
 /* ---------- Hero -------------------------------------------------------- */
 
 .cx-hero {
-  padding: 6rem 0 4rem;
+  padding: 6.5rem 0 4.5rem;
   position: relative;
   overflow: hidden;
 }
@@ -251,18 +362,35 @@ body.cx-marketing .cx-mono {
   z-index: 0;
 }
 
+.cx-hero::after {
+  content: "";
+  position: absolute;
+  left: -10%;
+  bottom: -30%;
+  width: 620px;
+  height: 620px;
+  background: radial-gradient(
+    closest-side,
+    var(--cx-hero-glow-2),
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
 .cx-hero-inner {
   position: relative;
   z-index: 1;
-  max-width: min(1020px, calc(100vw - 3rem));
+  max-width: min(1080px, calc(100vw - 3rem));
 }
 
 .cx-hero h1 {
-  font-size: clamp(2.25rem, 5vw, 3.8rem);
-  line-height: 1.1;
-  margin: 0 0 1.2rem;
+  font-size: clamp(2.4rem, 5.4vw, 4.05rem);
+  line-height: 1.08;
+  margin: 0 0 1.25rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
 }
 
 .cx-home-hero {
@@ -280,10 +408,18 @@ body.cx-marketing .cx-mono {
 }
 
 .cx-hero h1 .cx-h1-accent {
-  background: linear-gradient(135deg, var(--cx-accent) 0%, #818cf8 100%);
+  background: linear-gradient(
+    115deg,
+    var(--cx-accent) 0%,
+    var(--cx-accent-2) 50%,
+    var(--cx-accent-strong) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  /* Subtle text-shadow lift so the gradient text reads as deliberate
+   * typography, not a render artifact, on light backgrounds. */
+  -webkit-text-fill-color: transparent;
 }
 
 .cx-hero p.cx-lead {
@@ -348,11 +484,19 @@ body.cx-marketing .cx-mono {
 }
 
 .cx-section-elevated {
-  background: linear-gradient(
-    to bottom,
-    var(--cx-bg),
-    var(--cx-bg-elevated) 40%
-  );
+  position: relative;
+  background:
+    radial-gradient(
+      900px 480px at 80% 0%,
+      color-mix(in srgb, var(--cx-accent) 7%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent,
+      var(--cx-bg-elevated) 38%,
+      var(--cx-bg-elevated) 100%
+    );
   border-top: 1px solid var(--cx-border);
   border-bottom: 1px solid var(--cx-border);
 }
@@ -483,13 +627,27 @@ body.cx-marketing .cx-mono {
  * button text becomes invisible (text color === background). */
 body.cx-marketing a.cx-btn-primary,
 .cx-btn-primary {
-  background: var(--cx-accent);
+  background: linear-gradient(
+    135deg,
+    var(--cx-accent) 0%,
+    var(--cx-accent-2) 100%
+  );
   color: var(--cx-on-accent);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.18) inset,
+    0 10px 24px -10px color-mix(in srgb, var(--cx-accent) 65%, transparent);
 }
 body.cx-marketing a.cx-btn-primary:hover,
 .cx-btn-primary:hover {
-  background: var(--cx-accent-strong);
+  background: linear-gradient(
+    135deg,
+    var(--cx-accent-strong) 0%,
+    var(--cx-accent-2) 100%
+  );
   color: var(--cx-on-accent);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.22) inset,
+    0 14px 32px -10px color-mix(in srgb, var(--cx-accent) 80%, transparent);
 }
 
 body.cx-marketing a.cx-btn-ghost,
@@ -792,9 +950,16 @@ section.cx-section {
   gap: 0;
   border: 1px solid var(--cx-border);
   border-radius: 14px;
-  background: var(--cx-bg-elevated);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cx-bg-elevated) 85%, transparent),
+      var(--cx-bg-elevated)
+    );
+  backdrop-filter: blur(8px);
   overflow: hidden;
-  max-width: 720px;
+  max-width: 760px;
+  box-shadow: var(--cx-shadow-card);
 }
 
 .cx-hero-stat {
@@ -867,16 +1032,47 @@ section.cx-section {
 
 .cx-pillar-card {
   position: relative;
-  padding: 1.4rem 1.4rem 1.5rem;
-  background: var(--cx-bg-elevated);
+  padding: 1.5rem 1.5rem 1.6rem;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cx-bg-elevated) 92%, transparent) 0%,
+      var(--cx-bg-elevated) 100%
+    );
   border: 1px solid var(--cx-border);
-  border-radius: 14px;
-  transition: border-color 0.18s ease, transform 0.18s ease;
+  border-radius: 16px;
+  box-shadow: var(--cx-shadow-card);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.cx-pillar-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    180px 120px at 100% 0%,
+    color-mix(in srgb, var(--cx-accent) 14%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .cx-pillar-card:hover {
   border-color: color-mix(in srgb, var(--cx-accent) 45%, transparent);
   transform: translateY(-2px);
+  box-shadow: var(--cx-shadow-card-hover);
+}
+
+.cx-pillar-card:hover::after {
+  opacity: 1;
 }
 
 .cx-pillar-mark {
@@ -920,10 +1116,21 @@ section.cx-section {
 
 .cx-flow-node {
   position: relative;
-  padding: 1.3rem 1.2rem;
-  background: var(--cx-bg);
+  padding: 1.35rem 1.3rem;
+  background: var(--cx-bg-elevated);
   border: 1px solid var(--cx-border);
-  border-radius: 12px;
+  border-radius: 14px;
+  box-shadow: var(--cx-shadow-card);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cx-flow-node:hover {
+  border-color: color-mix(in srgb, var(--cx-accent) 35%, transparent);
+  transform: translateY(-2px);
+  box-shadow: var(--cx-shadow-card-hover);
 }
 
 .cx-flow-node-head {
@@ -966,12 +1173,16 @@ section.cx-section {
 
 .cx-pain-card {
   position: relative;
-  padding: 1.4rem 1.4rem 1.5rem;
+  padding: 1.5rem 1.5rem 1.6rem;
   background: var(--cx-bg-elevated);
   border: 1px solid var(--cx-border);
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
-  transition: border-color 0.18s ease, transform 0.18s ease;
+  box-shadow: var(--cx-shadow-card);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .cx-pain-card::before {
@@ -990,6 +1201,7 @@ section.cx-section {
 .cx-pain-card:hover {
   border-color: color-mix(in srgb, var(--cx-accent) 40%, transparent);
   transform: translateY(-2px);
+  box-shadow: var(--cx-shadow-card-hover);
 }
 
 .cx-pain-tag {

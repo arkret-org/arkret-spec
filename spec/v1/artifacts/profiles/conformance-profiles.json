@@ -145,6 +145,10 @@
     "cx.profile.hash.blake3.v1",
     "cx.profile.hash_transition.v1"
   ],
+  "candidate_profiles": [
+    "cx.profile.candidate.join_policy.v1"
+  ],
+  "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate event kinds / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired event kind re-prefixing to `cx.*`) once their underlying surface is formally registered.",
   "federation_hardening": [
     "service_did_authentication",
     "cross_domain_space_join",
@@ -181,7 +185,8 @@
   "hardening_profiles": [
     "cx.profile.mls_governance_binding.full.v1",
     "cx.profile.attested_audit.e2ee.v1",
-    "cx.profile.disclosed_audit.e2ee.v1"
+    "cx.profile.disclosed_audit.e2ee.v1",
+    "cx.profile.cross_signing.reset.v1"
   ],
   "vector_profiles": [
     "cx.profile.capability_vectors.v1",
@@ -2357,6 +2362,73 @@
           "cross_signing"
         ],
         "unsupported_optional": "omit profile claim"
+      }
+    },
+    "cx.profile.candidate.join_policy.v1": {
+      "inherits": [],
+      "tier": "candidate",
+      "status": "candidate",
+      "description": "Candidate profile pairing the still-unregistered join-policy event kinds (`space.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `cx.space.join.review`. The action remains in the canonical capability registry so prose can reference it stably, but receivers that do not implement this profile MUST treat `cx.space.join.review` as unknown (capability-action-registry.json registry_rules: 'Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)'). Claiming the profile commits the implementation to the candidate join-policy Move surface defined in zh/governance/join-policy.md. This profile is not part of v1 active conformance; it will be promoted (and the candidate event kinds re-prefixed to `cx.*`) when join-policy is formally registered.",
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "required_capability_actions": [
+        "cx.space.join.review"
+      ],
+      "feature_discovery": {
+        "required": [
+          "candidate_join_policy_reviewer",
+          "candidate_member_application_intake"
+        ],
+        "unsupported_optional": "omit profile claim (and reject member.application.* events as unknown)"
+      }
+    },
+    "cx.profile.cross_signing.reset.v1": {
+      "inherits": [],
+      "description": "Hardening profile for high-risk cross-signing reset. Claimants MUST accept cx.cross_signing.reset only with one valid reset proof family, enforce generation monotonicity, clock skew, and replay rejection, and require a successor cx.cross_signing.publish within the recovery window. Verification rules and reason codes are normative in zh/crypto-media/device-lifecycle.md §14.4.",
+      "required_endpoints": [],
+      "required_event_kinds": [
+        "cx.cross_signing.reset",
+        "cx.cross_signing.publish"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.cross_signing_reset.v1",
+        "cx.schema.cross_signing_publish.v1"
+      ],
+      "required_fixtures": [],
+      "optional_extensions": [],
+      "parameters": {
+        "max_clock_skew_seconds": {
+          "default": 300,
+          "min": 60,
+          "max": 900,
+          "rationale": "Maximum allowed deviation between `cx.cross_signing.reset.issued_at` and receiver local clock. Default 300s mirrors policy-decision freshness windows; receivers MAY tighten down to 60s for high-assurance deployments or relax up to 900s for federated peers with documented clock skew. Beyond the configured value receivers MUST emit cross_signing_reset_clock_skew_exceeded."
+        },
+        "publish_recovery_window_seconds": {
+          "default": 86400,
+          "min": 3600,
+          "max": 172800,
+          "rationale": "Maximum interval after an accepted reset within which the successor cx.cross_signing.publish MUST be observed; receivers MUST otherwise enter the 'no usable SSK/USK' state from §14.2 step 5. Default 24h matches the §14.1 normative requirement."
+        },
+        "reset_replay_cache_min_retention_seconds": {
+          "default": 90000,
+          "min": 86400,
+          "rationale": "Minimum retention for the (principal_id, previous_generation) replay-rejection cache used by §14.4 通用规则. MUST be at least `publish_recovery_window_seconds + 3600` so that no late-arriving duplicate reset can bypass the cache before the successor publish window closes. Default = 24h + 1h slack."
+        }
+      },
+      "feature_discovery": {
+        "required": [
+          "cross_signing_reset",
+          "cross_signing_reset_replay_cache",
+          "cross_signing_generation_gate",
+          "cross_signing_reset_clock_skew_bound",
+          "cross_signing_reset_publish_window"
+        ],
+        "unsupported_optional": "fail closed or omit profile claim"
       }
     }
   },

@@ -458,7 +458,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
     {"item_type": "user_signing_key", "secret_id": "user_signing_key"}
   ],
   "ciphertext": "base64url...",
-  "ciphertext_digest": "sha256:21084210-8421-7842-9084-21084210842121084210-8421-7842-9084-210842108421111111111111",
+  "ciphertext_digest": "sha256:2108421084217842908421084210842121084210842178429084210842108421",
   "auth_data": {
     "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
     "signature": "base64url..."

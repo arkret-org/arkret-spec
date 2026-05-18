@@ -3,97 +3,98 @@ import MarketingLayout from "~/layouts/MarketingLayout.astro";
 import { repoUrl, specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
 
 const heroStats = [
-  { value: "MLS E2EE", label: "端到端加密内建" },
-  { value: "did:webvh", label: "去中心化身份" },
-  { value: "Event-first", label: "可验证事实链" },
+  { value: "Signed Events", label: "每条持久修改可独立验签" },
+  { value: "Capability Authz", label: "授权链可重放、可撤销、可委托" },
+  { value: "MLS Governance", label: "成员与设备变更绑定加密 epoch" },
+  { value: "DID Agents", label: "人、设备、Agent 共用同一责任链" },
 ];
 
 const painPoints = [
   {
-    tag: "数据控制权",
-    title: "协作数据被锁在飞书 / 钉钉里",
+    tag: "历史可信",
+    title: "能导出历史，不等于历史可验证",
     body:
-      "组织的消息、文档、看板都驻留在 SaaS 平台数据库中,一旦平台改政策、提价或下线服务,几乎没有迁移路径。Contrix 把事实源放回组织自己的 principal server。",
+      "常见协作和社交系统把消息、成员、撤回、权限保存在服务端数据库里。客户端可以验证连接和登录态，却通常不能离线证明「这条历史确实由某个 actor 在某个授权下产生」。Contrix 把持久修改定义为签名 Event, 让同步节点、客户端和审计方都能独立重放。",
   },
   {
-    tag: "隐私边界",
-    title: "平台可读取你的私域内容",
+    tag: "授权可携带",
+    title: "权限不应该只是一段后台配置",
     body:
-      "中心化平台天然能解码、索引、训练你的私有数据。Contrix v1 内建 MLS 端到端加密 profile——讨论类空间先验 MLS state,未授权第三方拿不到明文。",
+      "很多系统的「谁能做什么」由服务端 ACL、角色表或控制台配置解释；跨服务迁移、联邦同步或离线审计时，这些规则很难随数据一起被验证。Contrix 用 capability grant 表达主体、资源、动作、时间窗、字段约束和审批要求，授权本身成为可校验对象。",
   },
   {
-    tag: "供应商锁定",
-    title: "界面绑死了对象模型",
+    tag: "E2EE 治理",
+    title: "端到端加密不会自动解决成员治理",
     body:
-      "SaaS 的对象语义被产品形态决定,跨实现无法互通。Contrix 把 Space / Flow / Message / Relation 抽到协议层,实现可互换,数据可在多客户端投影。",
+      "E2EE 保护内容密文，但成员加入、移除、设备撤销、举报与审核仍需要协议把治理状态和密钥状态对齐。Contrix 把 Space policy、成员变更和设备生命周期绑定进 MLS epoch；新消息必须基于新 epoch，避免 UI 状态和加密状态分叉。",
   },
   {
-    tag: "AI Agent 时代",
-    title: "Agent 需要可签名的协作底座",
+    tag: "Agent 边界",
+    title: "Bot token 不足以承载自主 Agent",
     body:
-      "LLM agent 直接驱动中心化 SaaS 没有可验证轨迹,也没有有界权限。Contrix 的 signed event + capability 授权,天然给 agent 提供受限能力和可重放的行为链。",
+      "平台应用通常通过 API token、scope 和服务端审计来限制自动化行为。面对可规划、可委托、可连续行动的 Agent, 协议还需要记录 acting principal、责任主体、资源边界、时间窗和审批约束。Contrix 让 Agent 以 DID principal 身份签名事件，和人类 actor 共用同一套责任链。",
   },
 ];
 
 const protocolPillars = [
   {
     mark: "Event",
-    title: "Event-first 真相源",
+    title: "签名事件是事实最小单位",
     body:
-      "所有持久协作修改都是 signed Event;per-actor event chain 是重放与审计的基础。应用状态由授权事件集合 reducer 收敛,而不是某个数据库的私有解释。",
+      "所有持久修改都是 actor 签名的 Event Envelope, prev_refs 形成因果链，event_id 提供幂等。服务端负责同步和索引，但不能替 actor 伪造历史。",
   },
   {
-    mark: "DID",
-    title: "去中心化身份",
+    mark: "Capability",
+    title: "权限是凭证，不是后台状态",
     body:
-      "v1 core 默认 principal 使用 did:webvh,叠加 history chain + SCID + witness evidence,抵御 DNS / TLS 单点失陷;Handle 仅作可迁移的人类入口。",
-  },
-  {
-    mark: "Cap",
-    title: "Capability 授权层",
-    body:
-      "权限以 capability 模型表达——显式、可验证、可撤销;高风险动作支持 approval constraint 与治理式审批,handle 不承担权限主键作用。",
+      "每次高价值写入都能追溯到 capability grant: 主体、资源、动作、时间窗、字段约束、最大委托深度和 approval 要求都在协议对象里表达。",
   },
   {
     mark: "MLS",
-    title: "端到端加密内建",
+    title: "治理变更进入加密上下文",
     body:
-      "讨论类空间默认先验 MLS state 再决定是否解密展示;未授权第三方服务收不到未加密的私有正文。E2EE 与设备验证内建于 profile,不是事后补丁。",
+      "成员变更、设备撤销、policy 升级会被 governance binding 写入 MLS GroupContext。实现不能只改 UI 成员表而忘记推进加密 epoch。",
   },
   {
-    mark: "Obj",
-    title: "可投影对象语义",
+    mark: "Identity",
+    title: "身份不绑定单个服务商账号",
     body:
-      "Space / Place / Flow / Message / Relation / Morph 统一成对象语义图;看板、会话、文档、关系是同一图上不同 track 的投影,UI 只消费 projection。",
+      "principal 默认使用 did:webvh，带 history chain、SCID 和 witness 证据。Handle 只是可迁移的人类入口，权限主体始终是 DID principal。",
+  },
+  {
+    mark: "Object",
+    title: "聊天、任务、文档来自同一事实图",
+    body:
+      "Space 是安全、同步、权限和加密边界；Place、Flow、Message、Morph、Relation 组成对象图。UI 通过 projection 呈现聊天、看板、时间线或工作流。",
   },
   {
     mark: "Agent",
-    title: "AI Agent 一等公民",
+    title: "Agent 行为可限权、可回放、可追责",
     body:
-      "Agent 作为 DID principal 直接参与协作,每条行为都被签名、被 capability 限定边界。Multi-agent 协作的可审计性与人类协作对齐。",
+      "Agent 持有自己的 DID 和 capability grant, 可以加入 MLS group、签名事件、参与 approval 流程。它的每一步行动都进入同一条审计链。",
   },
 ];
 
 const engineFlow = [
   {
     step: "01",
-    title: "签名事件",
-    body: "客户端用 DID 私钥签名 event envelope,产出可核验的提交单元。",
+    title: "提交事实",
+    body: "客户端用 actor DID 私钥签名 Event Envelope, 带 prev_refs、event_id 和目标 Space, 产出可重放的事实单元。",
   },
   {
     step: "02",
-    title: "约束校验",
-    body: "Schema 校验通过后,进入 capability / constraint 判定,确保边界满足业务与安全规则。",
+    title: "验证授权",
+    body: "接收方先验 schema, 再验 capability grant 是否覆盖该资源、动作和字段；高风险动作必须满足 approval 约束。",
   },
   {
     step: "03",
-    title: "统一归约",
-    body: "所有实现按同一 reducer 语义更新对象状态,避免各写各的解释器导致分叉。",
+    title: "锚定状态",
+    body: "事件进入 Anchor DAG, 获得不依赖全局共识的相对顺序；涉及成员、设备或策略时同步锚定到 MLS governance binding。",
   },
   {
     step: "04",
-    title: "视图投影",
-    body: "对象图被投影为消息、看板、文档、关系等形态,供 UI、搜索或策略层消费。",
+    title: "投影视图",
+    body: "reducer 把对象图投影成消息、看板、时间线或关系视图。不同实现可以有不同 UI, 但共享同一份协议事实。",
   },
 ];
 
@@ -126,28 +127,28 @@ const entryPoints = [
 
 const useCases = [
   {
-    title: "替代飞书 / 钉钉的自托管协作",
-    body: "事实源回到组织自己的 principal server,不再依赖供应商策略。",
+    title: "组织自托管协作",
+    body: "组织掌握 principal server、密钥、数据驻地和 witness 策略，同时保持协议级互操作。",
   },
   {
-    title: "跨组织 / 跨企业协作",
-    body: "通过 federation 互操作,SDK 与 wire 在协议层定义,不被某个产品锁死。",
+    title: "跨组织项目空间",
+    body: "Capability grant 是跨域可验证的签名凭证，federation 不需要把权限降级成共享 token。",
   },
   {
-    title: "高合规 E2EE 场景",
-    body: "金融、医疗、法律、教育——MLS 端到端加密 + 可审计事件链。",
+    title: "强合规 E2EE 工作区",
+    body: "成员、设备、policy 与 MLS epoch 一起收敛，便于审计谁在什么时候仍有解密资格。",
   },
   {
-    title: "AI Agent 协同的可验证底座",
-    body: "Multi-agent 行为被签名、被 capability 限权,可被审计与回放。",
+    title: "AI Agent 协作流",
+    body: "Agent 行为受时间窗、资源、字段和审批约束，每次写入都能回放到具体责任主体。",
   },
   {
-    title: "Sovereign deployment",
-    body: "主权部署 profile,完全控制密钥、数据驻地与运维边界。",
+    title: "长期可恢复知识库",
+    body: "事件、schema、快照和 frontier 都是协议对象，适合做可迁移、可审计、可重建的组织记忆。",
   },
   {
-    title: "Agent ↔ Human 混合工作流",
-    body: "同一个 Space 里 agent 与人通过 capability 协同,无 prompt 风险面。",
+    title: "多应用同源视图",
+    body: "同一 Space 事实可被聊天、看板、文档、目录或自动化工具投影，不需要复制成多个产品数据库。",
   },
 ];
 ---
@@ -166,13 +167,15 @@ const useCases = [
         </span>
       </div>
       <h1>
-        让协作成为<span class="cx-h1-accent">可证明的事实网络</span>,<br />
-        而不是状态同步猜测
+        给协作软件的一层<br />
+        <span class="cx-h1-accent">可验证事实协议</span>
       </h1>
       <p class="cx-lead">
-        Contrix 是面向去中心化协作的下一代协议——以签名事件为真相,以 capability 表达权限,
-        以 MLS 实现端到端加密。让企业、个人与 AI agent 在同一个可验证的对象语义之上协作,
-        而不是被困在中心化 SaaS 的数据墙里。
+        Contrix 定义消息、任务、文档、关系和 Agent 行为在网络中的共同真相：
+        <strong>谁创建</strong>、<strong>基于什么授权</strong>、
+        <strong>处于哪个 Space</strong>、<strong>受哪个加密 epoch 保护</strong>。
+        它不是聊天 UI, 也不是区块链；它是一套事件、身份、授权、E2EE 和同步规范，
+        让不同实现可以共享同一份可验证协作历史。
       </p>
       <div class="cx-cta-row">
         <a class="cx-btn cx-btn-primary" href="/zh/v1/spec-map/">
@@ -199,11 +202,12 @@ const useCases = [
     <div class="cx-shell">
       <div class="cx-section-head">
         <div>
-          <span class="cx-section-tag">为什么 Contrix</span>
-          <h2>当前协作工具栈正在挤压组织的数据自主权</h2>
+          <span class="cx-section-tag">为什么需要新协议</span>
+          <h2>现实问题不是「有没有功能」,而是「能不能被验证」</h2>
         </div>
         <p class="cx-section-sub">
-          中心化平台、明文数据、供应商锁定、AI agent 缺乏可信轨迹——这些问题只能在协议层解决。
+          以下问题来自常见系统边界：服务端数据库是事实权威、授权规则留在平台内、
+          E2EE 与治理状态分层、自动化身份依赖 token。Contrix 把这些边界提升到协议层处理。
         </p>
       </div>
       <div class="cx-pain-grid">
@@ -224,11 +228,11 @@ const useCases = [
     <div class="cx-shell">
       <div class="cx-section-head">
         <div>
-          <span class="cx-section-tag">设计原则</span>
-          <h2>协议优先定义事实,接口与行为只围绕事实变更展开</h2>
+          <span class="cx-section-tag">六根支柱</span>
+          <h2>Contrix 先定义协作事实，再定义接口和投影</h2>
         </div>
         <p class="cx-section-sub">
-          六根支柱共同定义边界:事件、身份、授权、加密、对象、Agent。
+          签名事件、Capability 授权、MLS 治理绑定、去中心化身份、可投影对象图、Agent 责任链。
         </p>
       </div>
       <div class="cx-pillar-grid">
@@ -249,10 +253,12 @@ const useCases = [
     <div class="cx-shell">
       <div class="cx-section-head">
         <div>
-          <span class="cx-section-tag">运行时</span>
-          <h2>从签名事件到可见状态的最小闭环</h2>
+          <span class="cx-section-tag">运行时闭环</span>
+          <h2>一次写入,沿 4 个确定性环节变成可见状态</h2>
         </div>
-        <p class="cx-section-sub">协议定义的不是 UI,而是 1 → 4 的确定性路径。</p>
+        <p class="cx-section-sub">
+          协议规定的不是 UI, 而是「提交事实 → 验证授权 → 锚定状态 → 投影视图」的不可分叉路径。
+        </p>
       </div>
       <ol class="cx-flow-rail">
         {
@@ -317,10 +323,10 @@ const useCases = [
       </div>
       <div>
         <div class="cx-section-head cx-section-head--stack">
-          <span class="cx-section-tag">场景</span>
-          <h2>已经在被验证的真实需求</h2>
+          <span class="cx-section-tag">应用场景</span>
+          <h2>适合需要长期可信边界的产品</h2>
           <p class="cx-section-sub">
-            把控制权、隐私和 agent 协同放回组织手里。
+            当协作历史、权限、加密状态和 Agent 行为都需要被复核时，协议层事实比产品内状态更可靠。
           </p>
         </div>
         <ul class="cx-case-grid">

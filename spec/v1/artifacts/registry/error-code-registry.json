@@ -912,12 +912,20 @@
       "description": "A previously trusted cross-signing key set was reset; verifications against the old `ssk_generation` MUST fail until the user re-verifies under the new generation. See zh/crypto-media/device-lifecycle.md §14."
     },
     {
+      "code": "cross_signing_reset_proof_authority_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A `cx.cross_signing.reset` proof was signed by a key class that does not have authority for that proof.kind: `principal_signing.signed_by` is not a principal-grade DID control key (or is the self/user signing key being retired), `recovery_unlock` is signed by a key that is not the declared recovery key, `trusted_recovery_service` is signed by a non-published verification method, or `device_quorum.signatures[i].signed_by` is not the named device's authorized key. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
       "code": "cross_signing_reset_signature_invalid",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A `cx.cross_signing.reset` proof signature failed verification: principal_signing.signed_by is not on the current self/user signing chain, recovery_unlock/trusted_recovery_service signature does not verify under the bound key, or any `device_quorum.signatures[i]` does not verify under the named device key. See zh/crypto-media/device-lifecycle.md §14.4."
+      "description": "A `cx.cross_signing.reset` proof signature failed verification: `principal_signing.signature` does not verify under the resolved principal-grade DID control key, `recovery_unlock` / `trusted_recovery_service` signature does not verify under the bound key, or any `device_quorum.signatures[i]` does not verify under the named device key. Key-class or authority failures use `cross_signing_reset_proof_authority_invalid`. See zh/crypto-media/device-lifecycle.md §14.4."
     },
     {
       "code": "cross_signing_reset_generation_mismatch",
@@ -941,7 +949,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`recovery_unlock.unlock_commitment` does not match the HKDF-derived commitment registered for the resolved recovery key, indicating replay or cross-reset reuse. See zh/crypto-media/device-lifecycle.md §14.4."
+      "description": "`recovery_unlock.unlock_commitment` does not equal the receiver-recomputed `SHA-256(utf8('cx-cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes)`, where `unlock_binding_input_bytes` is the §14.1 canonical input with `proof_body` excluding both signature fields and `unlock_commitment`. This is a wire-integrity binding (not a secret-knowledge proof) preventing the same recovery-key signature from being shelled into a different reset envelope. See zh/crypto-media/device-lifecycle.md §14.4."
     },
     {
       "code": "cross_signing_reset_quorum_insufficient",

@@ -70,8 +70,8 @@
   "$defs": {
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(space|place|actor_profile|flow|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:(sha256|sha3_256|blake3):[0-9a-f]{64}|did:.+)$",
-      "description": "Typed canonical reference. Allowed kinds: space, place, actor_profile, flow, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref, or DID. Place is a valid Relation endpoint (board/list containers, e.g. board --contains--> list)."
+      "pattern": "^(cx:(space|place|actor_profile|flow|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:(sha256|sha3_256|blake3):[0-9a-f]{64}|cx:blob:sha512:[0-9a-f]{128}|did:.+)$",
+      "description": "Typed canonical reference. Allowed kinds: space, place, actor_profile, flow, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (sha256 / sha3_256 / blake3 / sha512), or DID. Place is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The sha512 form is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
     },
     "did": {
       "type": "string",

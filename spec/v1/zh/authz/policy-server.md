@@ -222,7 +222,7 @@ reducer 校验顺序：
 
 任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。
 
-Join 路径上 `challenge` proof 进入 `cx.member.state{join}.gate_proofs[]` 或 `cx.member.application.gate_proofs[]`，使用占位 `gate_id="_runtime"`，与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../governance/join-policy.md` §10](../governance/join-policy.md)。
+Join 路径上 `challenge` proof 进入 `cx.member.state{join}.gate_proofs[]` 或 `member.application.gate_proofs[]`（`member.application` 当前是 candidate event kind，无 `cx.*` 前缀），使用占位 `gate_id="_runtime"`，与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../governance/join-policy.md` §10](../governance/join-policy.md)。
 
 ## 5. Signature and Replay Protection
 

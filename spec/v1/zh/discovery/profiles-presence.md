@@ -127,7 +127,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:alice.example.com#key-1",
-      "payload_hash": "sha256:6b5ad6b5-ad6b-7ad6-b5ad-6b5ad6b5ad6b6b5ad6b5-ad6b-7ad6-b5ad-6b5ad6b5ad6bbbbbbbbbbbbb",
+      "payload_hash": "sha256:6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b",
       "created_at": "2026-04-26T00:01:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
     }

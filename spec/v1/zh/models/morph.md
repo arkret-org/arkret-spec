@@ -46,7 +46,7 @@ Schema id: `cx.schema.morph.v1`
   "id": "cx:morph:0196414b-0000-7000-8000-000000000000",
   "schema": "cx.schema.morph.v1",
   "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
-  "schema_refs": ["cx.schema.morph.v1"],
+  "schema_refs": ["cx.schema.morph.customer_risk.v1"],
   "morph_type": "customer_risk",
   "title": "ACME procurement risk",
   "facets": {
@@ -65,6 +65,8 @@ Schema id: `cx.schema.morph.v1`
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
+
+> **示例规则**：顶层 `schema` 必须是容器 self-schema `cx.schema.morph.v1`，它仅定义 Morph 容器形态；`schema_refs[]` 是 §4 顺序 1 的"结构 / 验证真源"，必须列出**业务字段** schema id——上例使用配套的参考业务 schema [`cx.schema.morph.customer_risk.v1`](../../artifacts/schemas/morph-customer-risk.schema.json)，它声明 `fields.status` / `fields.severity` 两个业务字段的允许取值集合（structural validation 部分）。本参考 schema 不附带 transition 规则；真实部署若需要 transition validation，SHOULD 在 Space schema 的 `morph_type_profiles[<morph_type>].transition_rules` 中声明（顺序 2 收紧来源），或注册一个独立 `cx.profile.morph.<type>.v1` profile 承载 state-machine 表，并由 reducer 按 §4.0 第 5 行"状态机 transition 合法性"读取。同名容器 schema `cx.schema.morph.v1` MUST NOT 被列入 `schema_refs[]` 当作业务 schema：容器 schema 不验证 `fields.*` 业务字段，二者职责不可混用。
 
 Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Flow track projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象的主语义必须保留在对应标准类型上。
 
