@@ -389,8 +389,9 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 - `cx.flow.track.policy_components`
 - `cx.flow.move`
 - `cx.flow.reorder`
+- `cx.flow.watch.set`
 
-`cx.flow.*` 只修改 Flow 自身、track 配置、track access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.track.*` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。
+`cx.flow.*` 只修改 Flow 自身、track 配置、track access override 或 Flow 在 Board/List 中的位置。它们不得直接写入 Message 正文或 Morph 正文内容。`cx.flow.track.*` 的 reducer 产物是 Flow `tracks` map 的当前态，而不是新的独立对象。`cx.flow.watch.set` 写入 per-(flow, actor) cas-register cell `cx.component.flow.watch.v1`，是 `watches` Relation 的 truth source（直接 `cx.relation.create relation_kind=watches` MUST schema_violation，见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）。
 
 ### 7.3 Place
 
