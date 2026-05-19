@@ -240,7 +240,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 Event Batch Receipt 是可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**。缺少 receipt 不得导致格式、签名、授权和因果均有效的 Event 被拒绝，除非 deployment profile 额外要求 witness。
 
-Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 scope 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 需要单独的 attestation 原语（计划中 `cx.attestation.range_completeness.v1`），其 scope 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 anchor 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §4.1 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
+Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 scope 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `cx.attestation.range_completeness`（payload schema `cx.schema.range_completeness_attestation.v1`）承担，其 scope 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 anchor 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §4.2 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
 
 ### 5.2 Schema 与字段
 

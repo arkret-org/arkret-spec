@@ -42,6 +42,68 @@
 
 ## [Unreleased]
 
+### Round 1 cleanup pass on `_todos.md`（2026-05-20）
+
+承接 `_codex_report.md` / `_claude_report.md` 的 P0–P2 待办，本轮一次性 close 12 项（T05、T18、T19、T20、T21、T22、T24、T25、T26、T27、T28、T30）。全部为 spec-internal 一致性、命名、cross-reference、drift artifact 与构建产物清理，不引入新协议语义。
+
+- **变更类型**: edit + add（drift artifact / schema 字段）
+- **影响 artifact**: schemas (`range-completeness-attestation`, `audit-ryw-receipt`, `event-payload`, `event-schema`, `flow`, `identity-link`, `client-sync-response`)、registries (`removed-event-kinds`, `forbidden-wire-fields`, `renames`, `operation-registry`, `contract-catalog`, `id-kind-registry`, `error-code-registry`)、`profiles/conformance-profiles.json`、`fixtures/privacy-security-fixture.json`、`bindings/non-http-bindings.yaml`、`openapi/contrix-service-api.openapi.yaml`、以及 `spec/v1/zh/**` 多个 prose 文件；site 侧 `astro.config.mjs` 与新增 `src/pages/404.astro`。
+- **canonical 变更**:
+  - **T05 (did:webvh outage)**：`zh/identity/identity-did.md` resolver policy 示例字段 `fallback_to_did_web` 改为 `outage_mode` + `outage_max_duration_ms`；增加 rationale 段落，明确 `fallback_to_did_web` 这种字段名 MUST `schema_violation`，避免与 §3.4 cache-only outage 语义矛盾。
+  - **T18 (Move id 残留)**：`zh/authz/event-auth-state-resolution.md` OR-Set dot 语义中的 `move.id` 全部改为 `event_id`（dot 形态 `<event_id>:<effect_index>`）；prose 同步说明 v1 不存在独立 Move-typed id，dot/lattice/hash 均以 `event_id`+`event_digest` 表达。
+  - **T19 (range completeness 命名)**：event kind 统一为 `cx.attestation.range_completeness`（无 `.v1`，与 `event-kind-registry.json` active 注册一致）；payload schema 仍为 `cx.schema.range_completeness_attestation.v1`。`operations-sync.md` §4.1 / §4.2 / §4.2.5、`event-and-patch.md` §5.1、`overview/glossary.md`、`error-code-registry.json` 全部对齐。
+  - **T20 (`space_frontier` → `realm_frontier`)**：`schemas/range-completeness-attestation.schema.json`、`schemas/audit-ryw-receipt.schema.json`、`openapi` `EventSubmitResponse`、`zh/sync/{service-http-binding,operations-sync,federation}.md`、`zh/crypto-media/audited-e2ee.md` 全部改名；`forbidden-wire-fields.json` + `renames.json` 新增 entry 把 `space_frontier` 列为 hard-reject（context = frontier object property）。
+  - **T21 (Directory operation Space → Realm)**：`cx.directory.search_spaces` → `cx.directory.search_realms`、`cx.directory.resolve_space` → `cx.directory.resolve_realm`（HTTP path 早已是 `/directory/search-realms` / `/directory/resolve-realm`，本轮把 operation_id / gRPC / MQ 全部对齐）。涉及 `operation-registry.json`、`contract-catalog.json`、`conformance-profiles.json`、`openapi`、`non-http-bindings.yaml`、`service-api-schema.mdx`、`service-http-binding.md`、`discovery-directory.md`、`transport-bindings.md`、`privacy-security-fixture.json`（含 test case 名 `hidden_space_resolve_indistinguishable` → `hidden_realm_resolve_indistinguishable`）；`renames.json` 加 hard-reject entry。
+  - **T22 (章节号/链接修正)**：`relation.md` 把 5 处指向 `realm-and-space.md` 旧 §4.x 的链接改为新 §3.5 / §3.6（含锚点）；`federation.md` `anchor_profile` 引用改指 `realm-and-space.md §2.3` (Schema 字段表所在节)，且把 `[§4.4 Capability Revoke Fanout](#)` 占位改为真实锚点；`service-surface.md` §5 跳号修复 (§5.5 → §5.3, §5.6 → §5.4)，同步更新 `client-sync-response.schema.json`、`openapi`、`event-auth-state-resolution.md` 中所有 §5.5 引用。
+  - **T24 (`FlowTrack.enabled`)**：`flow.schema.json` `$defs/flow_track` 增加 `enabled` (boolean, default true) 字段；`flow-and-message.md` §4.1 字段表补 `enabled` 行；prose 明确 `enabled=false` 时新写入 MUST 被 reducer 用 `track_disabled` 拒绝，不删除历史。
+  - **T25 (Flow move 字段)**：`event-payload.schema.json` 与 `event-schema.json` `flow_move_payload` 中 `target_space_id` 描述补充"是 cx.flow.move payload 上唯一的目的地输入字段；`list_space_id` 是 cell value 字段名，不可在 payload 上直接出现（`additionalProperties=false` 已经会拒）"；`operations-sync.md` §9.1 prose 同步说明。
+  - **T26 (`policy_sources`)**：`policy-server.md` 示例里 `policy_sources` 字符串简写改为 `{"kind": "..."}` object 形态；新增段落明确 canonical transcript 仅接受 object form。
+  - **T27 (`Room` 术语)**：`overview/glossary.md` 把 `Room` 行改为 deprecated/interop-only 说明；`identity-link.schema.json` `pairwise_did` description 由 "Room-scoped DID" 改为 "Realm-scoped pairwise DID"；`id-kind-registry.json` 与 `contract-catalog.json` 对应 description 由 "Room/Realm-scoped" 改为 "Realm-scoped"（并显式提醒 'Room' 在 v1 core 已 deprecated）。
+  - **T28 (`cx.message.send`)**：`removed-event-kinds.json` 新增 `cx.message.send` (hard_reject, replacement = `cx.message.create`)，使 cotest scanner / 下游 literal scanner 能把它识别为 historical draft 而非 unknown extension。
+  - **T30 (site build warning)**：`site/astro.config.mjs` 加 `disable404Route: true`，新增 `site/src/pages/404.astro` 作为自定义 404 页面；消除 Starlight `getEntry('docs','404')` 在 build 时发出的 `Entry docs → 404 was not found.` 警告。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (151 event kinds, 54 schemas, 39 typed ID kinds, 84 operations, 80 profiles)` 与 `registry diff: clean`；`python tools/lint_artifacts.py` clean；`npm run crossref` 输出 `crossref ok (151 event kinds, 54 errors, 84 operations, 54 schemas, 59 profiles)`；`cd site && npm run build` 555 pages 0 warning。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.directory_service.v1`、`cx.profile.privacy_security_vectors.v1`（仅 endpoint id rename，required_endpoints 列表已同步更新）；其余 profile 无变化。
+  - profile tier 变化: 无。
+  - wire 兼容性: **wire-breaking** — `space_frontier` 字段名、`cx.directory.search_spaces` / `cx.directory.resolve_space` operation id、`policy_sources` 字符串简写、Move dot 的 `move.id` 形态在当前 wire 上 MUST 被拒绝。新 drift entries 在 `forbidden-wire-fields.json` / `renames.json` 中标 hard_reject。
+  - reader / writer 行为要求: 实现 MUST 更新 client SDK、bindings、test fixtures；不能再发送或接受旧名。OpenAPI 与 gRPC binding 中 operation method 名也变更（`Directory/SearchRealms` / `Directory/ResolveRealm`）。
+- **fixture / vector 变化**: `privacy-security-fixture.json` 中 `cx.directory.resolve_space` → `cx.directory.resolve_realm`、test case `hidden_space_resolve_indistinguishable` → `hidden_realm_resolve_indistinguishable`；无新增 fixture。
+- **prose 同步**: 上述每项都同步修改对应中文 normative prose。
+- **迁移指南**:
+  - SDK / yougen / soland / cotest：把 `space_frontier` → `realm_frontier`、`cx.directory.search_spaces|resolve_space` → `cx.directory.search_realms|resolve_realm`、`cx.message.send` 加入 hard_reject 集合；OR-Set dot 仍由 wire `event_id` 派生，旧 `move.id` 字符串生成路径 MUST 删除。
+  - 文档实现者：检索 `space_frontier` / `cx.directory.search_spaces` / `cx.directory.resolve_space` / `move.id` / `cx.message.send` / `fallback_to_did_web` / `Room-scoped DID`，全部替换为对应新名。
+  - site 部署：若 fork 了 `astro.config.mjs`，请同步 `disable404Route: true` + `src/pages/404.astro` 以避免 build warning。
+
+### Realm/Space terminology inversion (wire-breaking, Round R1.x)
+
+- Old `Space` (security boundary) → **Realm**, old `Place` (container) →
+  **Space**. Affects schemas, contract-catalog, event-kind-registry,
+  forbidden-* / renames drift artifacts; downstream artefacts and SDK
+  bindings track the same names.
+
+### Realm/Space 反转的 drift artifact 补录（2026-05-20）
+
+R4.1 任务。`59ac1d4 Rework Realm and Space boundaries` 已在 spec 内把 Space (security boundary) 翻转为 Realm，把 Place (container) 翻转为 Space，并相应改了 schemas / contract-catalog / event-kind-registry / 现有 forbidden-* / renames notes。但 drift artifact 的 entries 没有补充由这次反转直接产生的废弃符号（仅改了 notes 与 replacement 文案），导致 cotest scanner 与下游 SDK 在跑 literal_scanner / drift validator 时无法识别 `cx.space.policy` (旧 security 语义) / `cx.place.*` (旧 container 语义) / `discussion_space_ref` / `Place` 这些遗留 token。本轮把它们补进 drift 三表 + renames。
+
+- **变更类型**: add
+- **影响 artifact**: `registry/removed-event-kinds.json`、`registry/forbidden-wire-fields.json`、`registry/forbidden-model-terms.json`、`registry/renames.json`
+- **canonical 变更**:
+  - `removed-event-kinds.json` 新增 13 条 entries，覆盖 (a) 旧 security-boundary 形态 `cx.space.{create,update,organization,policy,join_rule,history_visibility,discovery,policy_server,delivery_binding_policy}`（replacement 对应 `cx.realm.*`），以及 (b) 旧 container 形态 `cx.place.{create,update,parent,archive,restore,tombstone}`（replacement 对应 `cx.space.*`）。`cx.space.create` / `cx.space.update` 的 entry 在 notes 中显式声明：当前 `cx.space.create` 是合法的 container 事件，本条仅禁止 pre-inversion 的 security-boundary 语义形态（须通过 payload shape 区分）。
+  - `forbidden-wire-fields.json` 新增 `discussion_space_ref` (context = `flow_payload`, replacement = `discussion_realm_ref`)，对应 `schemas/flow.schema.json` 当前字段。
+  - `forbidden-model-terms.json` 新增 `Place` (context = `core_model_name`, replacement = `Space (container)`)，并保留既有的 `Realm(kind=list)` → `Space(kind=list)` entry（仍合规）。
+  - `renames.json` 新增 17 条 entries 与上述 removed / forbidden 一一对应；其中 `cx.space.create` / `cx.space.update` 标 `migration_only` (因为同名 token 在新旧语义间复用，纯机械重命名不安全)，其余标 `hard_reject`。`cx.space.notification.audit` 也补为 `capability_action` 级别 rename，与 capability-action-registry 中现存 `cx.realm.notification.audit` 对齐。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (151 event kinds, 54 schemas, 39 typed ID kinds, 84 operations, 80 profiles)` 与 `registry diff: clean`。drift artifact 不参与 generate 派生，本轮仅扩列 canonical entries。
+- **conformance impact**:
+  - 受影响 profile: 无；drift artifact 仅供 cotest scanner / 下游迁移工具消费，不进 profile machinery。
+  - profile tier 变化: 无。
+  - wire 兼容性: 兼容 — 反转后的当前 wire 已使用 `cx.realm.*` / `cx.space.*` (container) / `discussion_realm_ref`，本轮仅把"不应再出现"的旧名机器可读化。
+  - reader / writer 行为要求: cotest scanner MUST 把新 entries 纳入 drift 报告；下游 SDK MUST 在编码前拒绝构造任何 pre-inversion token；reducer MUST 已经在 schema 校验阶段就 reject (这些字段 / kind 在当前 schema / registry 中根本不存在)。
+- **fixture / vector 变化**: 无新增 fixture；既有 `event-envelope-negative-fixture.json` 在 `59ac1d4` 已对齐反转后的命名，可在后续 task 中扩 negative case 引用本轮新增 entries。
+- **prose 同步**: 无 prose 改动；drift artifact 是机器可读的 source of truth，prose 部分由 `59ac1d4` 已经完成。
+- **迁移指南**:
+  - cotest / SDK / yougen / soland / sodmin / teabay 等下游：在 literal scanner / drift validator 中把本轮新增的 13 个 removed event kinds、1 个 forbidden wire field、1 个 forbidden model term、17 条 rename 纳入 hard-reject 集合。
+  - 任何仍持有 pre-inversion 存量数据的实现：写入 forward migration 把 `cx.place.*` / `discussion_space_ref` / 旧语义 `cx.space.*` 翻译为反转后的形态后再回放，不要在 wire 上直接 emit 旧 token。
+
 ### 新增 service describe claim 等级 schema（2026-05-20）
 
 T6.1 的协议侧落地。此前 `server/describe` / `identity/describe` / `events/describe` / `sync/describe` /

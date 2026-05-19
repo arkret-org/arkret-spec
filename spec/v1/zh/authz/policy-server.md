@@ -31,7 +31,7 @@ Realm 可通过 state event 声明策略服务：
     ],
     "policy_sources": [
       {"kind": "cx.realm.moderation_policy"},
-      "cx.organization.moderation_policy"
+      {"kind": "cx.organization.moderation_policy"}
     ],
     "abuse_profile_ref": "cx.policy:abuse-v1",
     "fail_mode": "soft_deny",
@@ -41,6 +41,8 @@ Realm 可通过 state event 声明策略服务：
 ```
 
 声明该事件需要 `cx.policy.manage` capability。
+
+`policy_sources[]` 中每一项 MUST 是 `{"kind": "<event_kind>"}` 形态的 object（如示例所示）。Reducer / Policy Server canonical transcript 仅接受 object form；不接受裸字符串简写——若实现需要把字符串映射到 object，必须在客户端构造 Event 之前完成，使写到 wire 上的形态始终是 canonical object，避免 signature/hash transcript 在不同实现之间不一致。
 
 ## 3. Check Request
 

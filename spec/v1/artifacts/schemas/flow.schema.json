@@ -143,6 +143,11 @@
       "type": "object",
       "description": "Flow track entry — a pure section pointer (synthesis vs discussion timeline). The track's stable name is the map key in Flow.tracks; this object holds the track's per-entry config. Tracks do NOT carry independent membership / permissions / history visibility / E2EE. To give the discussion side its own security boundary, set Flow.discussion_realm_ref to a linked Realm.",
       "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this track currently accepts new writes (synthesis edits / discussion messages). Default true when omitted. Setting enabled=false MUST cause the reducer to reject subsequent writes to this track with 'track_disabled' until enabled is set back to true. Disabling a track does NOT delete prior history; it freezes new writes only. UI MAY hide a disabled track or render it read-only."
+        },
         "is_primary": {
           "type": "boolean"
         },

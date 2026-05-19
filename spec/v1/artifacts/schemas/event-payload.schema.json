@@ -2988,7 +2988,7 @@
         },
         "target_space_id": {
           "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move."
+          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas-register cell value as 'list_space_id' on the cell at cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>. Writers MUST NOT put 'list_space_id' directly on the cx.flow.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
         },
         "rank": {
           "$ref": "#/$defs/rank"

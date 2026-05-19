@@ -61,6 +61,15 @@
       "replacement": "Realm history visibility / discoverability / join rule",
       "allowed_contexts": ["changelog", "interop_module", "negative_test"],
       "notes": "Visibility is split in v1 into three independent axes: Discoverability, Join Rule, History Visibility (see spec-map 3.4). 'Room visibility' conflates them and MUST NOT be used."
+    },
+    {
+      "id": "Place",
+      "context": "core_model_name",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "Space (container)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Place was the pre-inversion container-shape model name. After the Realm/Space inversion the container model is Space (board / list / etc.) and the security boundary is Realm. 'Place' MUST NOT appear as a core model name in current normative prose, SDK identifiers, or UI copy. Existing zh prose still mentioning 'Place' MUST be migrated to 'Space (container)'."
     }
   ]
 }

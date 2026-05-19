@@ -29,7 +29,7 @@
     },
     "pairwise_did": {
       "$ref": "#/$defs/did",
-      "description": "Room-scoped DID used in Event.actor_id and MLS leaf credential."
+      "description": "Realm-scoped pairwise DID used in Event.actor_id and MLS leaf credential. (Replaces the deprecated 'Room-scoped DID' phrasing; the v1 boundary is the Realm, not a Matrix-style Room.)"
     },
     "principal_did": {
       "$ref": "#/$defs/did",

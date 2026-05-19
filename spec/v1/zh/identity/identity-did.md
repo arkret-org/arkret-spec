@@ -248,7 +248,8 @@ Resolver policy MUST 至少定义：
         "did:web:witness-a.example",
         "did:web:witness-b.example"
       ],
-      "fallback_to_did_web": "low_risk_read_only"
+      "outage_mode": "cache_only_low_risk_read",
+      "outage_max_duration_ms": 86400000
     },
     "did:web": {
       "role": ["service", "personal_node_principal_optional"],
@@ -277,6 +278,8 @@ Resolver policy MUST 至少定义：
 ```
 
 `role: "interop_principal"` 表示该 DID 只在 AT 互通边界内被当作 principal；Contrix 自身的默认创建路径不签发 `did:plc`。
+
+> **关于 `did:webvh` outage policy 字段命名**：v1 resolver policy MUST NOT 接受 `fallback_to_did_web` 这种字段名，因为它在语义上暗示 outage 期间 resolver 会切换到 `did:web` 的 live HTTP 解析路径——这与 §3.4 中明确的 cache-only outage 语义直接矛盾，正是该节"Cache-only 不解析 live `did:web` document"规则要禁止的降级路径。本规范使用 `outage_mode`（取值 `cache_only_low_risk_read` 等）+ `outage_max_duration_ms`（硬上限 24h，与 §4.2.1 `degraded_no_witness` 对齐）来表达 outage 行为；任何带有 `fallback_to_did_web` 名字的字段在 resolver policy load 时 MUST `schema_violation`，不得被实现解释成 `did:webvh` 可以临时降级为 `did:web` 的"信号"。如果部署确实需要把 `did:web` 作为 principal method 使用，那是 §3.1 中的 `personal_node` deployment profile 选项（`principal_method=did:web`），属于显式部署选择，与 outage fallback 无关。
 
 ### 4.2 DID Method Continuity
 

@@ -69,8 +69,8 @@ grpc:
       GetSnapshotHead: cx.sync.get_snapshot_head
     Directory:
       Describe: cx.directory.describe
-      SearchSpaces: cx.directory.search_spaces
-      ResolveSpace: cx.directory.resolve_space
+      SearchRealms: cx.directory.search_realms
+      ResolveRealm: cx.directory.resolve_realm
       SearchOrganizations: cx.directory.search_organizations
       ResolveOrganization: cx.directory.resolve_organization
       SearchActors: cx.directory.search_actors

@@ -1,0 +1,33 @@
+---
+// Replacement for Starlight's auto-injected /404 route. Starlight's version
+// calls `getEntry('docs', '404')` at build time and emits
+// `Entry docs → 404 was not found.` because our docs collection ids follow
+// the `<locale>/<version>/<path>` shape and intentionally have no '404' entry.
+// We render a minimal not-found page directly here. Top-level site nav is
+// pulled in via the shared <SiteNav /> component so the page still feels at
+// home on contrix.io.
+import SiteNav from "../components/SiteNav.astro";
+---
+
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>404 · Contrix Spec</title>
+    <link rel="stylesheet" href="/styles/spec.css" />
+  </head>
+  <body>
+    <SiteNav />
+    <main style="max-width:640px;margin:6rem auto;padding:0 1.5rem;">
+      <h1 style="font-size:2.5rem;margin:0 0 1rem;">404</h1>
+      <p style="font-size:1.125rem;line-height:1.6;">
+        请求的页面不存在 / Page not found.
+      </p>
+      <p style="margin-top:1.5rem;">
+        <a href="/zh/v1/">回到中文规范首页</a> ·
+        <a href="/en/v1/">Back to English spec home</a>
+      </p>
+    </main>
+  </body>
+</html>

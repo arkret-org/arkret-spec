@@ -680,8 +680,8 @@
       "description": "Contrix v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
       "required_endpoints": [
         "cx.directory.describe",
-        "cx.directory.search_spaces",
-        "cx.directory.resolve_space",
+        "cx.directory.search_realms",
+        "cx.directory.resolve_realm",
         "cx.directory.search_organizations",
         "cx.directory.resolve_organization",
         "cx.directory.search_actors",
@@ -2297,7 +2297,7 @@
     },
     "cx.profile.privacy_security_vectors.v1": {
       "required_endpoints": [
-        "cx.directory.resolve_space",
+        "cx.directory.resolve_realm",
         "cx.directory.private_contact_discovery",
         "cx.events.submit",
         "cx.blob.head",

@@ -387,7 +387,7 @@ GET /api/v1/sync/snapshot-head?realm_id=<id>
 
 用于拿到当前推荐 snapshot manifest。
 
-### 5.5 Move / Anchor 状态与 Bottom 暴露
+### 5.3 Move / Anchor 状态与 Bottom 暴露
 
 Sync 响应 MUST 在每条 Move 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`pending_anchor` / `effective` / `failed_precondition` / `failed_bottom` / `rejected_anchor` / `anchorer_paused`。
 
@@ -423,7 +423,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 `/sync` / `/events` / `/api/v1/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（位置与精确 wire 形态见 [`service-api-schema.mdx`](service-api-schema.mdx) `cx.schema.bottom.v1` 引用）。
 
-### 5.6 明文与服务信任
+### 5.4 明文与服务信任
 
 如果 Realm 未启用 E2EE 或内容层加密：
 

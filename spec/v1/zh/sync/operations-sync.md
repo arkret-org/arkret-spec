@@ -183,15 +183,15 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 - Receipt MUST NOT 被实现解释为“该 `scope`（actor / realm / frontier）下的所有已 accepted reducer-input event 都包含在 `events[]` 中”。Issuer 可以选择性 commit 任意子集，set-bound commitment 不构成抗丢弃证明。
 - Receipt MUST NOT 替代 Event 自身签名作为 reducer 输入合法性凭据：reducer MUST 按 §5 / event-and-patch.md §6 在 Event 层验证签名、prev_refs、refs、anchor 与 schema。
 - Receipt MUST NOT 被 Anchor pipeline 当作 canonical history 输入：Anchor 仍以 Event 为真源。
-- 想取得 range completeness 的实现，MUST 使用 §4.2 定义的 `cx.attestation.range_completeness.v1` 原语，其 scope 必须有显式 range 语义（per-actor seq interval + frontier 上下界），并伴随 witness quorum 或独立 anchor 背书。Core batch receipt 不承担此职责。
+- 想取得 range completeness 的实现，MUST 使用 §4.2 定义的 `cx.attestation.range_completeness` 原语（active event kind；payload schema `cx.schema.range_completeness_attestation.v1`），其 scope 必须有显式 range 语义（per-actor seq interval + frontier 上下界），并伴随 witness quorum 或独立 anchor 背书。Core batch receipt 不承担此职责。
 
 > 术语：*integrity* 指给定数据未被篡改；*completeness* 指给定范围内没有漏给的成员。Set-bound Merkle commitment 提供 integrity，不提供 completeness——后者必须依赖 range-bound 语义。详见 [glossary.md](../overview/glossary.md)。
 
 ### 4.2 Range-bound Completeness Attestation (Normative)
 
-`cx.attestation.range_completeness.v1` 是独立的 attestation 原语，用于提供 *completeness* 证明——即"该范围内没有 reducer-input event 被静默丢弃"。它与 `cx.event_batch_receipt`（set-bound integrity）和 `cx.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
+`cx.attestation.range_completeness` 是独立的 attestation event kind（见 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)，`status=active`），用于提供 *completeness* 证明——即"该范围内没有 reducer-input event 被静默丢弃"。它与 `cx.event_batch_receipt`（set-bound integrity）和 `cx.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
 
-Schema id: `cx.schema.range_completeness_attestation.v1`（artifact `artifacts/schemas/range-completeness-attestation.schema.json`）。
+事件 kind 不携带 `.v1` 后缀；版本号只出现在 payload schema id 上。Schema id: `cx.schema.range_completeness_attestation.v1`（artifact `artifacts/schemas/range-completeness-attestation.schema.json`）。
 
 ```json
 {
@@ -201,8 +201,8 @@ Schema id: `cx.schema.range_completeness_attestation.v1`（artifact `artifacts/s
   "issuer_role": "witness",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "scope": {
-    "from_frontier": {"space_frontier": ["cx:event:..."]},
-    "to_frontier":   {"space_frontier": ["cx:event:..."]},
+    "from_frontier": {"realm_frontier": ["cx:event:..."]},
+    "to_frontier":   {"realm_frontier": ["cx:event:..."]},
     "actor_seq_ranges": [
       { "actor_id": "did:web:alice.example", "from_seq_exclusive": 144, "to_seq_inclusive": 187 },
       { "actor_id": "did:web:bob.example",   "from_seq_exclusive": 87,  "to_seq_inclusive": 102 }
@@ -267,7 +267,7 @@ Schema id: `cx.schema.range_completeness_attestation.v1`（artifact `artifacts/s
 | --- | --- | --- | --- |
 | `cx.event_batch_receipt` | issuer 选择的 events 集合 | integrity（给的没被改） | completeness（没漏给） |
 | `cx.audit.ryw_receipt` | 单个 `cx.audit.accessed` event | RYW witness attestation | range coverage |
-| `cx.attestation.range_completeness.v1`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
+| `cx.attestation.range_completeness`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
 
 issuer / verifier 应根据需求选取；混用以补强各自边界。
 
@@ -603,7 +603,7 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 
 `cx.flow.move` 用于跨 List-Space 移动 Flow。它移动的是 Flow 在一个 Board Space 内的主位置，而不是修改 track 定义。
 
-写入路径是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`（详见 [`../models/realm-and-space.md` §4.6](../models/realm-and-space.md)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_space_id` + `rank` 编译为 `set { list_space_id, rank }` effect。这与 Space-parent 的 cas-register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
+写入路径是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`（详见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md#36-flow-位置)）。`expected_position` 在 Move 中编译为 cell 的 `head_eq` precondition；`target_space_id` + `rank` 编译为 `set { list_space_id, rank }` effect。Payload 上的目的地输入字段只有 `target_space_id` 一个；MUST NOT 在 `cx.flow.move` payload 上直接写 `list_space_id`（schema `additionalProperties=false` 已经会拒）——`list_space_id` 是 cell value 字段名，由 reducer 从 `target_space_id` 编译而来。这与 Space-parent 的 cas-register 模型对称：tuple dedup 仅作为 projection 不变量，**真相由 cell 决定**，并发竞态收敛为正式 `⊥` 而非"先到先赢"。
 
 ```json
 {

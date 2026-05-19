@@ -38,7 +38,7 @@
       "wire_form": "cx:pseudonym:<scope_id>:<random>",
       "status": "profile_extension",
       "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
-      "description": "Room/Realm-scoped pseudonymous credential reference; validated by the E2EE profile."
+      "description": "Realm-scoped pseudonymous credential reference; validated by the E2EE profile. (The historical 'Room-scoped' wording is deprecated — v1 core uses Realm as the boundary; the only allowed context for the 'Room' term is MIMI/Matrix interop modules.)"
     },
     {
       "kind": "anchor",

@@ -80,6 +80,134 @@
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Policy snapshot event was decomposed into per-component policy cells (join-policy, history-visibility, delivery-binding-policy, etc.); do not re-introduce a single 'set' kind."
+    },
+    {
+      "id": "cx.space.create",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.create",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Pre-inversion 'cx.space.create' carried security-boundary semantics; in v1 the security boundary is Realm and 'cx.space.create' is reused for the container shape (board / list). The legacy security-boundary form MUST NOT appear. NOTE: 'cx.space.create' as the current container-shape event remains valid; this entry forbids the pre-inversion semantic where space.create acted as a security-boundary lifecycle event (i.e., the payload shape that now belongs to cx.realm.create)."
+    },
+    {
+      "id": "cx.space.update",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.update",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Pre-inversion 'cx.space.update' carried security-boundary semantics; in v1 the security boundary is Realm. The legacy security-boundary form MUST NOT appear. See note on cx.space.create."
+    },
+    {
+      "id": "cx.space.organization",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.organization",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Organization-level boundary metadata moved to Realm in the Realm/Space inversion."
+    },
+    {
+      "id": "cx.space.policy",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.policy",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Policy cells attach to Realm (the security boundary) in v1, not to Space (the container)."
+    },
+    {
+      "id": "cx.space.join_rule",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.join_rule",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Join Rule is a Realm-level policy axis; the legacy cx.space.join_rule form MUST NOT appear."
+    },
+    {
+      "id": "cx.space.history_visibility",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.history_visibility",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "History Visibility lives on the Realm boundary in v1."
+    },
+    {
+      "id": "cx.space.discovery",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.discovery",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Discoverability is a Realm-level policy axis in v1."
+    },
+    {
+      "id": "cx.space.policy_server",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.policy_server",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Policy server attachment is Realm-scoped in v1."
+    },
+    {
+      "id": "cx.space.delivery_binding_policy",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.delivery_binding_policy",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Delivery binding policy attaches to the Realm in v1."
+    },
+    {
+      "id": "cx.place.create",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.create",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Place was renamed to Space (the container) in the Realm/Space inversion. Use cx.space.create."
+    },
+    {
+      "id": "cx.place.update",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.update",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Place was renamed to Space (the container) in v1."
+    },
+    {
+      "id": "cx.place.parent",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.parent",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Place was renamed to Space (the container) in v1."
+    },
+    {
+      "id": "cx.place.archive",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.archive",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Place was renamed to Space (the container) in v1."
+    },
+    {
+      "id": "cx.place.restore",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.restore",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Place was renamed to Space (the container) in v1."
+    },
+    {
+      "id": "cx.place.tombstone",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.tombstone",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Place was renamed to Space (the container) in v1."
+    },
+    {
+      "id": "cx.message.send",
+      "since_revision": "pre-v1-draft",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.message.create",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical draft event kind 'cx.message.send' was never part of v1 wire. The v1 standard message authoring kind is 'cx.message.create' (see models/common-fields.md). Listed here so cotest scanner / downstream SDK literal-scanners flag any re-introduction as drift instead of mis-categorising it as an unknown future extension."
     }
   ]
 }

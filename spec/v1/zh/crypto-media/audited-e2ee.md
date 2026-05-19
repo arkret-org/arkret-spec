@@ -173,7 +173,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "audit_actor_id": "did:web:audit-agent.example.com",
   "frontier": {
-    "space_frontier": ["cx:event:..."],
+    "realm_frontier": ["cx:event:..."],
     "actor_frontier": {
       "did:web:audit-agent.example.com": {
         "actor_seq": 17,
@@ -225,7 +225,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `audit_event_digest` | yes | `cx.audit.accessed` envelope 的 canonical digest（与该 envelope `proofs[].payload_hash` 一致）。 |
 | `realm_id` | yes | `cx.audit.accessed` 所在 Realm。 |
 | `audit_actor_id` | yes | 发起 audit 的 Audit Agent DID。 |
-| `frontier.space_frontier` | yes | 签发时 issuer 已 accepted 的 Realm frontier。MUST 因果上 ≥ `audit_event_id`。 |
+| `frontier.realm_frontier` | yes | 签发时 issuer 已 accepted 的 Realm frontier。MUST 因果上 ≥ `audit_event_id`。 |
 | `frontier.actor_frontier` | conditional | 至少包含 `audit_actor_id` 的 frontier。其它 actor frontier 由 issuer 选择性透出。 |
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
 | `witness_attestation` | yes | Witness attestation block。`witness_attestation.kind` 取值 `federation_witness_attested` / `single_source`；`witness_attestation.witnesses[]` 列出所有 attesting witnesses 的 `(issuer, verification_method, controlling_organization, attested_at)`。`kind` 取值 MUST 由 `witnesses[]` 的基数与独立性外部可验证地推导（`federation_witness_attested` 必须 `witnesses.length >= 2` 且 issuer / controlling_organization / verification_method 两两 distinct 且每个 issuer 出现在 Realm `audit.ryw_witnesses[]`；`single_source` 必须 `witnesses.length == 1`）；不一致 MUST 拒绝并 `audit_receipt_invalidated`。独立性由可外部验证的 witness 列表表达，而不是单点自报。详细聚合规则见 §4.1.1。 |
@@ -249,7 +249,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
    - 不同 service DID（`issuer` 字段字符串不相等）；
    - 不同 controlling organization（`controlling_organization` 字段必须能从 witness issuer DID Document 的 `controller` / service ownership 链或 Realm policy 声明验证，不接受 witness 自报；且运营方不得与 audit actor 的 controlling organization 相同）；
    - 不同 `verification_method` 控制密钥（不能是同一私钥不同 `kid`）。
-3. **frontier 一致性**：所有 witnesses entries 对应 receipt 的 `frontier.space_frontier` 在 `audit_event_id` 上 MUST 因果一致；frontier 不一致时 receipts 不能聚合为 `federation_witness_attested`，每条只能各自以 `single_source` 形态处理。
+3. **frontier 一致性**：所有 witnesses entries 对应 receipt 的 `frontier.realm_frontier` 在 `audit_event_id` 上 MUST 因果一致；frontier 不一致时 receipts 不能聚合为 `federation_witness_attested`，每条只能各自以 `single_source` 形态处理。
 4. **签发方授权**：每个 `witnesses[].issuer` MUST 都被 Realm policy 声明为合法 RYW witness（`cx.realm.policy_components` 下 `audit.ryw_witnesses[]`）。Policy 未列出的 issuer 即使签出有效 receipt 也不计入聚合。
 
 `kind` 取值与 `witnesses[]` 不匹配（例如 `kind="federation_witness_attested"` 但 `witnesses.length == 1`，或 `kind="single_source"` 但 `witnesses.length >= 2`）MUST 直接 `audit_receipt_invalidated`。本规则不依赖任何 receipt 内部字段的"自报值"，只看 `witnesses[]` 列表与签发证据；单签发者跨多 receipt 持续声称 `federation_witness_attested` 是误用，接收方 MUST 把这种情况视为 `single_source`。

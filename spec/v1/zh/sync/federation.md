@@ -27,7 +27,7 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 ### 2.4 Anchor Profile 决定传播形态
 
-联邦传播按目标 Realm 的 `anchor_profile`（参见 [`../models/realm-and-space.md` §2.2](../models/realm-and-space.md)）走几种形态：
+联邦传播按目标 Realm 的 `anchor_profile`（参见 [`../models/realm-and-space.md` §2.3](../models/realm-and-space.md#23-schema-id-与字段) — 该字段在 Realm Schema 字段表中定义，create-locked）走几种形态：
 
 - **`single_did`**：单一 service DID 签发持久 Anchor。Actor 可以向自己的 Principal Server 提交 Move，但 Move 只有被该 DID 签发的 Anchor frontier 覆盖后才 effective。传播形态是 actor/server → anchorer → fanout。
 - **`threshold`**：k-of-n committee 签发 Anchor。提交路径与 `single_did` 类似，但 Anchor 验证 threshold signature。
@@ -215,7 +215,7 @@ Rebind handover：
 撤销 / 移除 cascading：
 
 - 当 member binding 被 `cx.capability.revoke` / 成员被移除 / Realm policy 不再列出 `recipient_service_did` 时，生效因果点之后 sender MUST NOT 继续向已撤销 service DID 推送 Realm 内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
-- 服务委托被撤销时 MUST 走 [§4.4 Capability Revoke Fanout](#) 主动通知所有相关 Principal Server 失效缓存。
+- 服务委托被撤销时 MUST 走 [§4.4 Capability Revoke Fanout](#44-capability-revoke-fanout) 主动通知所有相关 Principal Server 失效缓存。
 
 Realm-level fanout 仍受现有约束：联邦 transaction MUST 绑定 `destination` service DID、Realm policy hash / version、membership frontier、`delivery_binding_frontier` 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Realm 的事件。
 
@@ -330,7 +330,7 @@ Signature: ...
 
 | 调用面 | 调用方 | 鉴权 | 响应形态 |
 | --- | --- | --- | --- |
-| Public Events API | account holder / SDK client | 用户/服务 access token | 通常仅 `space_frontier` 或 `actor_seq` 简要视图 |
+| Public Events API | account holder / SDK client | 用户/服务 access token | 通常仅 `realm_frontier` 或 `actor_seq` 简要视图 |
 | Federation peer probe (本节) | 被 Realm `service_binding` 授权的 federation peer 服务 DID | §3 节点间认证 + Realm policy 列出的 `federation_peer` 角色 | 完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)` |
 | Anonymous / unauth health check | optional | 无 / 限速 token | 仅 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds |
 

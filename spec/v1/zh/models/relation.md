@@ -62,15 +62,15 @@ summarized_from, promoted_from_discussion, watches
 
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
-| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List;同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas-register cell `cx:cell:cx.component.space.parent.v1:<list_space_id>`,写入路径是 `cx.space.parent` Move,不是 `cx.relation.create`**。直接 `cx.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §4.5](./realm-and-space.md))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它,但**写入路径单一化**到 `cx.space.parent`。 |
-| `contains`：`Space(kind=list) -> Flow` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Flow;同一 Flow 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, flow_id)`,与 [realm-and-space.md §4.6](./realm-and-space.md) 的位置唯一性一致。**Truth source 是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`,写入路径是 `cx.flow.move` / `cx.flow.reorder` Move**,不是 `cx.relation.create`。直接 `cx.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
+| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List;同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas-register cell `cx:cell:cx.component.space.parent.v1:<list_space_id>`,写入路径是 `cx.space.parent` Move,不是 `cx.relation.create`**。直接 `cx.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §3.5](./realm-and-space.md#35-cxspaceparent-cas-register-basis))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它,但**写入路径单一化**到 `cx.space.parent`。 |
+| `contains`：`Space(kind=list) -> Flow` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Flow;同一 Flow 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, flow_id)`,与 [realm-and-space.md §3.6](./realm-and-space.md#36-flow-位置) 的位置唯一性一致。**Truth source 是 cas-register cell `cx:cell:cx.component.flow.position.v1:<board_space_id>:<flow_id>`,写入路径是 `cx.flow.move` / `cx.flow.reorder` Move**,不是 `cx.relation.create`。直接 `cx.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
 | `contains`：其他对象组合(非 Space 容器场景) | `many_to_many` unless profiled | 默认只按完整 tuple 去重;若对象被当作容器使用,Realm schema/profile MUST 声明更严格基数。这种非派生形态的 `contains` 由 `cx.relation.create` 直接写入。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
 | `depends_on`, `blocks` | `many_to_many` | 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
 | `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。 |
 | `assigned_to` | `many_to_many` | 一个 Flow MAY 同时分配给多个 Actor；同一 Actor 只保留一条 active assignment edge。需要单负责人语义时，Realm schema/profile MUST 声明 `max_to_per_from=1` 或单独的 owner relation。 |
-| `watches`：`actor (did) -> flow` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Flow（或 profile 声明的 watchable 对象）。**Truth source 是 cas-register cell `cx.component.flow.watch.v1`，写入路径是 `cx.flow.watch.set` durable event，不是 `cx.relation.create`**——直接 `cx.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §4.6](./realm-and-space.md)）。写入 invariant：`payload.actor_did == envelope.actor_id`，除非 actor 持有 `cx.flow.watch.manage_others` capability。级别枚举、投影脱敏、通知路由见 [flow-and-message.md §8](./flow-and-message.md)。 |
+| `watches`：`actor (did) -> flow` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Flow（或 profile 声明的 watchable 对象）。**Truth source 是 cas-register cell `cx.component.flow.watch.v1`，写入路径是 `cx.flow.watch.set` durable event，不是 `cx.relation.create`**——直接 `cx.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-flow-位置)）。写入 invariant：`payload.actor_did == envelope.actor_id`，除非 actor 持有 `cx.flow.watch.manage_others` capability。级别枚举、投影脱敏、通知路由见 [flow-and-message.md §8](./flow-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
@@ -165,13 +165,13 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 ## 7. 常见关系（按对象）
 
 - **Flow**：见 [flow-and-message.md §7](./flow-and-message.md)。
-- **Space**（Board / List）：见 [realm-and-space.md §4.9](./realm-and-space.md)。
+- **Space**（Board / List）：见 [realm-and-space.md §3.5](./realm-and-space.md#35-cxspaceparent-cas-register-basis) 与 [§3.6](./realm-and-space.md#36-flow-位置)。
 - **Message**：见 [flow-and-message.md §9.7](./flow-and-message.md)。
 - **Morph**：业务自定义关系，由 Realm schema / Morph profile 声明。
 
 ## 8. 规范性引用
 
 - 公共字段：[common-fields.md](./common-fields.md)。
-- Space 位置语义：[realm-and-space.md §4.6](./realm-and-space.md)。
+- Space 位置语义：[realm-and-space.md §3.6](./realm-and-space.md#36-flow-位置)。
 - Move / Anchor / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Relation schema：`artifacts/schemas/relation.schema.json`。

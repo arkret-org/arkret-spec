@@ -112,6 +112,13 @@ export default defineConfig({
       description:
         "Contrix v1 — decentralized collaboration protocol specification.",
       defaultLocale: "zh",
+      // Suppress Starlight's auto-injected /404 route: it issues a
+      // `getEntry('docs','404')` lookup at build time to find a user override,
+      // and our docs collection's id schema (`<locale>/<version>/<path>`)
+      // means there is intentionally no id "404" — every build prints
+      // `Entry docs → 404 was not found.` We provide our own thin 404 page
+      // at src/pages/404.astro instead, which renders without that lookup.
+      disable404Route: true,
       head: [
         {
           tag: "script",

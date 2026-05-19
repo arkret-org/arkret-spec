@@ -4,8 +4,8 @@
   "version": "2026-05-02",
   "cases": [
     {
-      "name": "hidden_space_resolve_indistinguishable",
-      "operation_id": "cx.directory.resolve_space",
+      "name": "hidden_realm_resolve_indistinguishable",
+      "operation_id": "cx.directory.resolve_realm",
       "inputs": [
         {
           "label": "missing",

@@ -29,7 +29,7 @@ title: 术语表
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
 | Flow | 协作主对象 | Realm 内承载协作议题、任务、正式表达与讨论轨道的标准对象。 |
 | Flow primary track | Flow 默认入口 | 按 track primary 解析规则得到的默认 track；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
-| Room | 讨论轨道视图 | Flow 的 discussion track 或以 discussion 为默认入口的会话视图简称。 |
+| ~~Room~~ | _deprecated_ | 历史用语；v1 core model 不使用 `Room` 名词，请使用 `Flow discussion track` / `discussion track view`。`Room` 仅在 MIMI / Matrix interop 模块的明确互操作上下文中允许出现（参见 [`forbidden-model-terms.json`](../../artifacts/registry/forbidden-model-terms.json) `Room` 条目的 `allowed_contexts`）。 |
 | synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。 |
 | discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow 所属 Realm，需要独立访问域时通过 `Flow.discussion_realm_ref` 升级到独立 discussion Realm。 |
 | Board | 看板 | `cx:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
@@ -44,7 +44,7 @@ title: 术语表
 | Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。详见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md) 与 [`../sync/operations-sync.md` §4.1](../sync/operations-sync.md)。 |
 | Integrity (data) | 数据完整性 | 给定数据未被中间人或第三方篡改。集合上的 Merkle / set commitment 提供 integrity，但不保证集合本身已覆盖给定范围。 |
 | Completeness (range) | 范围完整性 | 给定范围内（per-actor seq interval、frontier 上下界、actor / realm scope）**没有漏给**任何属于该范围的成员。Completeness 必须依赖 *range-bound* attestation（带显式 from/to 边界）+ witness quorum 或独立 anchor 背书；set-bound commitment 单独不足以证明 completeness。 |
-| Range-bound Attestation | 范围完整性证明 | 携带 explicit range scope（per-actor seq interval、frontier 上下界）的签名证明，是 completeness 证明的载体。v1 已注册 `cx.attestation.range_completeness.v1`（schema `cx.schema.range_completeness_attestation.v1`），详见 [`../sync/operations-sync.md` §4.2](../sync/operations-sync.md)。 |
+| Range-bound Attestation | 范围完整性证明 | 携带 explicit range scope（per-actor seq interval、frontier 上下界）的签名证明，是 completeness 证明的载体。v1 已注册 active event kind `cx.attestation.range_completeness`（payload schema `cx.schema.range_completeness_attestation.v1`），详见 [`../sync/operations-sync.md` §4.2](../sync/operations-sync.md)。 |
 | Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 frontier。 |
 | HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，固定格式 `<unix_ms_hex(12)>-<logical_hex(4)>-<node_id_hash(8)>`（hex 字段宽度依次 12 / 4 / 8）；canonical 规则见 [`../conformance/encoding.md` §7](../conformance/encoding.md)。 |
 | Cursor | 同步游标 | 指定 frontier 的 `scope:realm|actor|query` 编码，用于增量同步与重放。 |

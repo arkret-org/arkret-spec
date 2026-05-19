@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/range-completeness-attestation.schema.json",
   "title": "Contrix Range-bound Completeness Attestation",
-  "description": "A range-bound completeness attestation (cx.attestation.range_completeness.v1) asserts that the issuer (and any witnesses) have observed every reducer-input event in a declared range — (from_frontier, to_frontier) bounded by explicit per-actor seq intervals. Distinct from cx.event_batch_receipt (set-bound integrity over an arbitrary chosen subset) and cx.audit.ryw_receipt (per-event RYW hint). Used when verifiers need a completeness claim — i.e., 'no event has been silently withheld from this range' — not just 'the events given are unmodified'. Standalone single-issuer attestations are NOT sufficient for sovereign / multi-writer trust models; deployments requiring strong completeness MUST use a witness_attestation block following the cx.audit.ryw_receipt model (zh/crypto-media/audited-e2ee.md §4.1.1).",
+  "description": "A range-bound completeness attestation. Event kind: cx.attestation.range_completeness (active in event-kind-registry; the event kind itself carries NO .v1 suffix). Payload schema id: cx.schema.range_completeness_attestation.v1 (schemas keep the .v1 versioning). The attestation asserts that the issuer (and any witnesses) have observed every reducer-input event in a declared range — (from_frontier, to_frontier) bounded by explicit per-actor seq intervals — where each frontier is a Realm-scoped frontier (property name realm_frontier; the security/replication boundary for completeness in v1 is the Realm, not an in-Realm Space container). Distinct from cx.event_batch_receipt (set-bound integrity over an arbitrary chosen subset) and cx.audit.ryw_receipt (per-event RYW hint). Used when verifiers need a completeness claim — i.e., 'no event has been silently withheld from this range' — not just 'the events given are unmodified'. Standalone single-issuer attestations are NOT sufficient for sovereign / multi-writer trust models; deployments requiring strong completeness MUST use a witness_attestation block following the cx.audit.ryw_receipt model (zh/crypto-media/audited-e2ee.md §4.1.1).",
   "type": "object",
   "required": [
     "attestation_id",
@@ -23,7 +23,8 @@
       "pattern": "^cx:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "cx.schema.range_completeness_attestation.v1"
+      "const": "cx.schema.range_completeness_attestation.v1",
+      "description": "Payload schema id (versioned). The owning Event kind in event-kind-registry.json is cx.attestation.range_completeness (NO .v1 suffix on the event kind)."
     },
     "issuer": {
       "$ref": "#/$defs/did"
@@ -52,10 +53,10 @@
         "from_frontier": {
           "type": "object",
           "required": [
-            "space_frontier"
+            "realm_frontier"
           ],
           "properties": {
-            "space_frontier": {
+            "realm_frontier": {
               "type": "array",
               "minItems": 1,
               "items": {
@@ -70,10 +71,10 @@
         "to_frontier": {
           "type": "object",
           "required": [
-            "space_frontier"
+            "realm_frontier"
           ],
           "properties": {
-            "space_frontier": {
+            "realm_frontier": {
               "type": "array",
               "minItems": 1,
               "items": {

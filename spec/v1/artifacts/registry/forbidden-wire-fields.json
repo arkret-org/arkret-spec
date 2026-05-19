@@ -43,6 +43,24 @@
       "replacement": "realm",
       "allowed_contexts": ["changelog", "interop_module", "negative_test"],
       "notes": "Flow payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'realm' / 'flow' / canonical Realm.kind values. Interop translation lives in an opt-in interop module only."
+    },
+    {
+      "id": "discussion_space_ref",
+      "context": "flow_payload",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "discussion_realm_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Pre-inversion Flow payload exposed 'discussion_space_ref' pointing at the (then) security-boundary Space. After the Realm/Space inversion the security boundary is Realm; the canonical field is now 'discussion_realm_ref' (see schemas/flow.schema.json). The legacy 'discussion_space_ref' MUST NOT appear on the current wire."
+    },
+    {
+      "id": "space_frontier",
+      "context": "frontier_object_property",
+      "since_revision": "T20",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_frontier",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Range-completeness scope, audit RYW receipt, and POST /events response previously named the per-Realm frontier slot 'space_frontier'. After the Realm/Space inversion the replication and security boundary that this frontier covers is the Realm (not an in-Realm Space container); the canonical field name is now 'realm_frontier' (see schemas/range-completeness-attestation.schema.json, schemas/audit-ryw-receipt.schema.json, OpenAPI EventSubmitResponse). 'space_frontier' MUST NOT appear on the current wire as a frontier object property."
     }
   ]
 }

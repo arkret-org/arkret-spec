@@ -70,6 +70,195 @@
       "replacement": "track",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track'. Track is display-only and inherits access from the Flow's Realm."
+    },
+    {
+      "id": "Place",
+      "kind_class": "model_identifier",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "Space",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Realm/Space inversion: the pre-inversion container model 'Place' is renamed to 'Space'. The pre-inversion security-boundary model 'Space' is renamed to 'Realm'."
+    },
+    {
+      "id": "discussion_space_ref",
+      "kind_class": "wire_field_name",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "discussion_realm_ref",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename on Flow payload: 'discussion_space_ref' -> 'discussion_realm_ref'. The security boundary for the discussion side of a Flow is Realm post-inversion."
+    },
+    {
+      "id": "cx.place.create",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.create",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: container-shape event 'cx.place.create' -> 'cx.space.create'."
+    },
+    {
+      "id": "cx.place.update",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.update",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: container-shape event 'cx.place.update' -> 'cx.space.update'."
+    },
+    {
+      "id": "cx.place.parent",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.parent",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: container-shape event 'cx.place.parent' -> 'cx.space.parent'."
+    },
+    {
+      "id": "cx.place.archive",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.archive",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: container-shape event 'cx.place.archive' -> 'cx.space.archive'."
+    },
+    {
+      "id": "cx.place.restore",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.restore",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: container-shape event 'cx.place.restore' -> 'cx.space.restore'."
+    },
+    {
+      "id": "cx.place.tombstone",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.space.tombstone",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: container-shape event 'cx.place.tombstone' -> 'cx.space.tombstone'."
+    },
+    {
+      "id": "cx.space.create",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "migration_only",
+      "replacement": "cx.realm.create",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Disambiguation: the pre-inversion 'cx.space.create' (security-boundary semantic) maps to current 'cx.realm.create'. The current 'cx.space.create' is a DIFFERENT event with container-shape semantic. Migration tooling MUST inspect payload shape (presence of Realm-level fields like join_rule / history_visibility / policy_server) to disambiguate."
+    },
+    {
+      "id": "cx.space.update",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "migration_only",
+      "replacement": "cx.realm.update",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Disambiguation: pre-inversion 'cx.space.update' (security-boundary semantic) -> 'cx.realm.update'. See note on cx.space.create rename."
+    },
+    {
+      "id": "cx.space.organization",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.organization",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: organization metadata event 'cx.space.organization' -> 'cx.realm.organization'."
+    },
+    {
+      "id": "cx.space.policy",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.policy",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: 'cx.space.policy' -> 'cx.realm.policy'."
+    },
+    {
+      "id": "cx.space.join_rule",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.join_rule",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: 'cx.space.join_rule' -> 'cx.realm.join_rule'."
+    },
+    {
+      "id": "cx.space.history_visibility",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.history_visibility",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: 'cx.space.history_visibility' -> 'cx.realm.history_visibility'."
+    },
+    {
+      "id": "cx.space.discovery",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.discovery",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: 'cx.space.discovery' -> 'cx.realm.discovery'."
+    },
+    {
+      "id": "cx.space.policy_server",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.policy_server",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: 'cx.space.policy_server' -> 'cx.realm.policy_server'."
+    },
+    {
+      "id": "cx.space.delivery_binding_policy",
+      "kind_class": "event_kind",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.delivery_binding_policy",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename: 'cx.space.delivery_binding_policy' -> 'cx.realm.delivery_binding_policy'."
+    },
+    {
+      "id": "cx.space.notification.audit",
+      "kind_class": "capability_action",
+      "since_revision": "59ac1d4",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.realm.notification.audit",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename of capability-action vocabulary: 'cx.space.notification.audit' -> 'cx.realm.notification.audit'. Required by audit reads of per-Flow watch state under the Realm-scoped notification namespace (see error-code-registry note)."
+    },
+    {
+      "id": "space_frontier",
+      "kind_class": "wire_field_name",
+      "since_revision": "T20",
+      "rejection_level": "hard_reject",
+      "replacement": "realm_frontier",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Frontier object property used in cx.audit.ryw_receipt, cx.attestation.range_completeness scope (from_frontier/to_frontier), and POST /events response is renamed 'space_frontier' -> 'realm_frontier'. The boundary covered by this frontier is the Realm (replication/security boundary in v1), not an in-Realm Space container. The new name removes a long-standing source of confusion where implementations could mistakenly validate completeness at Space scope."
+    },
+    {
+      "id": "cx.directory.search_spaces",
+      "kind_class": "operation_id",
+      "since_revision": "T21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.directory.search_realms",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Directory search operation id is renamed 'cx.directory.search_spaces' -> 'cx.directory.search_realms'. The Directory has always searched Realms (the replication/security boundary), never in-Realm Space containers; the old name was a leftover from the pre-inversion Space=boundary model and could mislead implementations into thinking they should search nested Spaces. HTTP path /directory/search-realms was already aligned; gRPC binding becomes Directory/SearchRealms and MQ binding becomes directory.search_realms."
+    },
+    {
+      "id": "cx.directory.resolve_space",
+      "kind_class": "operation_id",
+      "since_revision": "T21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.directory.resolve_realm",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Directory resolve operation id is renamed 'cx.directory.resolve_space' -> 'cx.directory.resolve_realm'. Resolution is by realm_id / alias / invite_token / signed_link and returns a Realm preview. HTTP path /directory/resolve-realm was already aligned; gRPC binding becomes Directory/ResolveRealm and MQ binding becomes directory.resolve_realm. Response field 'space_preview' is preserved during the migration window (see discovery-directory.md §9.1); a follow-up may rename it to 'realm_preview' under its own drift entry."
     }
   ]
 }

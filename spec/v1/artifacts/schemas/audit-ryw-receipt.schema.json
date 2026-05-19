@@ -57,10 +57,10 @@
     "frontier": {
       "type": "object",
       "required": [
-        "space_frontier"
+        "realm_frontier"
       ],
       "properties": {
-        "space_frontier": {
+        "realm_frontier": {
           "type": "array",
           "items": {
             "type": "string",

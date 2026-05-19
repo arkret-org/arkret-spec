@@ -2,6 +2,19 @@
 
 Contrix v1 去中心化协作协议规范。仓库同时承载 **规范本体** 和 **协议站源码**。
 
+## Realm vs Space
+
+After the Phase 1–4 Realm/Space terminology inversion (Round R1.x):
+
+- **Realm:** security boundary — membership, capability, E2EE, and federation
+  are governed at this level. Old wire name: `Space`.
+- **Space:** navigation container — board, list, section, calendar bucket.
+  Lives inside a Realm. Old wire name: `Place`.
+
+The normative tables under `spec/v1/zh/` are the source of truth for the
+final wire names. Round-by-round migration notes live in
+`spec/v1/zh/spec-update.md`.
+
 - 规范本体：[`spec/v1/`](./spec/v1/)
   - 中文 normative 正文：[`spec/v1/zh/index.md`](./spec/v1/zh/index.md)
   - 英文 normative：占位（未发布）

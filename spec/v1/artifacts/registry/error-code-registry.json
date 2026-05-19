@@ -1336,7 +1336,7 @@
         "audit_decision",
         "state_resolution"
       ],
-      "description": "A cx.attestation.range_completeness.v1 attestation's root does not match the locally-recomputed Merkle root over the scope's reducer-input events. Indicates either silent omission by the issuer or scope/canonicalization drift. See zh/sync/operations-sync.md §4.2.4 step 4."
+      "description": "A cx.attestation.range_completeness attestation's root (payload schema cx.schema.range_completeness_attestation.v1) does not match the locally-recomputed Merkle root over the scope's reducer-input events. Indicates either silent omission by the issuer or scope/canonicalization drift. See zh/sync/operations-sync.md §4.2.4 step 4."
     },
     {
       "code": "range_completeness_actor_seq_gap",
@@ -1344,7 +1344,7 @@
         "audit_decision",
         "state_resolution"
       ],
-      "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a cx.attestation.range_completeness.v1 attestation declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §4.2.4 step 6."
+      "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a cx.attestation.range_completeness attestation (payload schema cx.schema.range_completeness_attestation.v1) declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §4.2.4 step 6."
     }
   ]
 }

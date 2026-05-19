@@ -74,8 +74,8 @@
       "tier": "extension",
       "operations": [
         "cx.directory.describe",
-        "cx.directory.search_spaces",
-        "cx.directory.resolve_space",
+        "cx.directory.search_realms",
+        "cx.directory.resolve_realm",
         "cx.directory.search_organizations",
         "cx.directory.resolve_organization",
         "cx.directory.search_actors",
@@ -402,10 +402,10 @@
       "mq": "directory.resolve_organization"
     },
     {
-      "operation_id": "cx.directory.resolve_space",
+      "operation_id": "cx.directory.resolve_realm",
       "http": "POST /directory/resolve-realm",
-      "grpc": "Directory/ResolveSpace",
-      "mq": "directory.resolve_space"
+      "grpc": "Directory/ResolveRealm",
+      "mq": "directory.resolve_realm"
     },
     {
       "operation_id": "cx.directory.search_actors",
@@ -420,10 +420,10 @@
       "mq": "directory.search_organizations"
     },
     {
-      "operation_id": "cx.directory.search_spaces",
+      "operation_id": "cx.directory.search_realms",
       "http": "POST /directory/search-realms",
-      "grpc": "Directory/SearchSpaces",
-      "mq": "directory.search_spaces"
+      "grpc": "Directory/SearchRealms",
+      "mq": "directory.search_realms"
     },
     {
       "operation_id": "cx.directory.search_users",

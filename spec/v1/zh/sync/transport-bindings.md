@@ -70,8 +70,8 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.sync.account` | 客户端账号视角聚合同步（替代旧 `cx.sync.client_sync`）。 |
 | Federation push（复用 `cx.events.submit` + service_signature） | 联邦推送复用 `POST /api/v1/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
 | Federation pull / backfill（复用 `cx.events.query` + service_signature） | 跨域历史回补复用 `GET /api/v1/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
-| `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |
-| `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Realm / Organization / handle。 |
+| `cx.directory.search_realms` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |
+| `cx.directory.resolve_realm` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Realm / Organization / handle。 |
 | `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
 | `cx.blob.upload` | 上传 blob。 |
 | `cx.blob.get` | 获取 blob 或下载授权。 |

@@ -90,7 +90,7 @@ Move (reducer view of signed Event) {
 身份与去重模型（normative）：
 
 - `event_id` 是 producer 在签名前分配的 typed UUIDv7（`cx:event:<uuidv7>`），是 actor chain 与 dedup 的稳定 wire id。它进入 canonical bytes 并被 `proof.payload_hash` 覆盖。
-- `event_digest` 是 canonical event bytes（不含 `proofs` 与 `unsigned`，包含 `hlc` 与所有其它顶层字段）的哈希，编码为 `<algo>:<hex>`，等价于 `proof.payload_hash`。它是 Event 的内容指纹，Anchor `frontier[]` 直接引用 `event_digest`（v1 不存在独立 typed-id 形态的 move identifier；早期草案的派生 move-typed id 已 dropped）。
+- `event_digest` 是 canonical event bytes（不含 `proofs` 与 `unsigned`，包含 `hlc` 与所有其它顶层字段）的哈希，编码为 `<algo>:<hex>`，等价于 `proof.payload_hash`。它是 Event 的内容指纹，Anchor `frontier[]` 直接引用 `event_digest`（v1 不存在独立 typed-id 形态的 Move identifier；早期草案中派生出的 Move-typed id 已 dropped，dot/lattice/hash profile 在 v1 均改以 `event_id` 与 `event_digest` 表达）。
 - 同一 `event_id` 的两次提交若 `event_digest` 不同，节点 MUST 拒绝并记为冲突（见 [`operations-sync.md`](../sync/operations-sync.md) §15）。`event_id` 在签名前由 producer 分配，因此节点不能仅凭 digest 区分 actor 意图；正确实现 MUST 把 (event_id, event_digest) 都纳入 dedup key。
 
 规则：
@@ -369,8 +369,8 @@ Lattice `join()` 输入是 Move set，而不是本地接收序列。需要顺序
 
 真正的 observed-remove set，按 **dot** 收敛。
 
-- 每个 add op MUST 携带 `dot = "<move.id>:<effect_index>"`，由 add op 所在 Move 的 content-addressed `move.id` 与该 effect 在 `effects[]` 中的 0-based 下标拼接而成。`move.id` 已经全局唯一，dot 因此天然唯一。
-- 每个 remove op MUST 携带 `observed_dots: [dot, ...]`——它枚举 remove issuer 在 `Move.anchor_ref` 对应 pre-state 下能看到的、想要撤销的具体 add dot。`observed_dots` MUST 升序去重，且每条 dot 必须能在该 anchor view 下解析为合法 add op。
+- 每个 add op MUST 携带 `dot = "<event_id>:<effect_index>"`，由 add op 所在 Event 的 wire `event_id`（typed `cx:event:<uuidv7>`）与该 effect 在 `effects[]` 中的 0-based 下标拼接而成。`event_id` 已经全局唯一，dot 因此天然唯一。当需要在 dot 之上做内容指纹比对（例如对照 Anchor frontier）时使用 `event_digest` 作为辅助键，但 dot 自身只用 `event_id`。
+- 每个 remove op MUST 携带 `observed_dots: [dot, ...]`——它枚举 remove issuer 在 enclosing Event 的 `anchor_ref` 对应 pre-state 下能看到的、想要撤销的具体 add dot。`observed_dots` MUST 升序去重，且每条 dot 必须能在该 anchor view 下解析为合法 add op。
 - Add op MAY 在 `value` 内嵌入 schema-defined `intent` 字段（例如 consent 的 `(consent_id, peer, scope)` 元组）。`intent` 不参与 lattice join；它只是 projection 层把同 intent 的多 dot 折叠成一条 UI/审计行的辅助数据。
 
 ```text
@@ -384,17 +384,17 @@ join(moves) -> Set<(dot, value)>:
 validate_op(op):
   op.type ∈ {add, remove}
   if add:
-    op.dot      == "<enclosing_move.id>:<effect_index>"
+    op.dot      == "<enclosing_event.event_id>:<effect_index>"
     op.value satisfies schema
   if remove:
     op.observed_dots is a finite, sorted, deduplicated list of dot strings
     each dot in op.observed_dots resolves to an add effect
-      visible at enclosing Move's anchor_ref pre-state
+      visible at enclosing Event's anchor_ref pre-state
 ```
 
 **Regrant 语义**：先 add(d1)、再 remove(observed=[d1])、再 add(d2) 是合法序列；d2 的 dot 不在任何 `observed_dots` 中，因此 join 后 d2 仍 active——regrant 是显式支持的。
 
-**Idempotency**：dot 由 `move.id` 派生，因此相同 add op 跨节点重放不产生重复 dot，但不同 issuer 对同一 intent 的并发 add 会产生不同 dot——这是 OR-Set 的预期行为，去重落在 projection / 授权判定（"intent 是否当前 active = 该 intent 下 ≥1 dot 仍在 join 集合"）。
+**Idempotency**：dot 由 `event_id` 派生（`event_id` 在签名前由 producer 分配的 typed UUIDv7），因此相同 add op 跨节点重放不产生重复 dot，但不同 issuer 对同一 intent 的并发 add 会产生不同 dot——这是 OR-Set 的预期行为，去重落在 projection / 授权判定（"intent 是否当前 active = 该 intent 下 ≥1 dot 仍在 join 集合"）。
 
 **部分撤销**：remove op 只 invalidates 它枚举的 dots。撤销整个 intent 需要 issuer 列出该 intent 下当前所有 active dots；missing 一些就只是部分撤销，剩余 dot 仍 active。这是 OR-Set 的 normative 语义，不是 bug。
 
@@ -838,7 +838,7 @@ Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须�
 | `rejected_anchor` | Anchor 签名、单调性、Move batch 或 state_root 校验失败。 | — |
 | `anchorer_paused` | anchorer cell 为 `⊥`；Realm-wide Anchor 推进暂停，只允许 recovery Anchor。 | `anchorer_split`（§5.1）。 |
 
-实现 MAY 在 API 层继续使用兼容错误码，但必须映射到本表语义。Move 的当前状态字段在 sync wire 上以 `event_state` 暴露（见 [`sync/service-surface.md`](../sync/service-surface.md) §5.5）。
+实现 MAY 在 API 层继续使用兼容错误码，但必须映射到本表语义。Move 的当前状态字段在 sync wire 上以 `event_state` 暴露（见 [`sync/service-surface.md`](../sync/service-surface.md) §5.3）。
 
 ## 14. 规模上限
 
