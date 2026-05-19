@@ -1633,3 +1633,208 @@ cx.vector.capability.approval_constraint.v1
 - Place 物化对象 MUST 保持原 `title="Release Board"` 与 `state == "archived"`；update **不**作为隐式 restore。
 - 客户端正确路径：先 `cx.place.restore`，update 通过后再决定是否 `cx.place.archive`。
 - 该向量对 Flow / Morph `*.update` 等价同形。
+
+## 7. Member Delivery Binding Vectors
+
+### 7.1 目标
+
+验证 `cx.member.state{membership="join"}` 的 `delivery_binding` payload 是 Space-scoped event 投递的唯一权威路由源：
+- schema-level conditional required 字段强制执行；
+- DID Document service entry **不构成** fallback；
+- 路由失败时 sender fail-closed（quarantine + retry，不退回 DID Document）；
+- rebind 通过 causal frontier handover；
+- 撤销后投递立即停止。
+
+下列向量假设 Space `cx:space:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位，conformance fixture 在 `artifacts/fixtures/membership/delivery_binding/` 下分文件落地。
+
+### 7.2 Vector: `explicit` Binding 接受
+
+Input — `cx.member.state{membership="join"}` Move payload：
+
+```json
+{
+  "space_id": "cx:space:7d000000-0000-7000-8000-000000000000",
+  "actor_id": "did:webvh:01HV...:alice",
+  "membership": "join",
+  "delivery_status": "routable",
+  "delivery_binding": {
+    "recipient_service_did": "did:web:principal.acme.example",
+    "recipient_service_type": "principal_server",
+    "binding_scope": "space",
+    "binding_source": "explicit",
+    "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+    "resolved_at": "2026-05-19T10:00:00Z",
+    "service_acceptance_ref": "cx:event:7d000001-0000-7000-8000-000000000000"
+  },
+  "gate_proofs": [ "..." ]
+}
+```
+
+预设：Space policy `cx.space.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:web:principal.acme.example`、`required_endorsers` 含 `did:web:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:web:principal.acme.example` 签发且 scope 覆盖该 Space。
+
+期望：
+- reducer 接受 join Move；写入成员 cell。
+- 此后任何向 Alice 投递的 Space S event/sync/to_device/push/key_packages MUST 走 `did:web:principal.acme.example`，**禁止**触发 DID Document service entry resolution。
+
+### 7.3 Vector: `did_document_default` Fallback 物化
+
+Input — Space policy `cx.space.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `ContrixPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
+
+客户端构造 join Move 时 MUST 先解析 DID Document 并物化进 binding：
+
+```json
+{
+  "space_id": "cx:space:...",
+  "actor_id": "did:webvh:01HV...:alice",
+  "membership": "join",
+  "delivery_status": "routable",
+  "delivery_binding": {
+    "recipient_service_did": "did:web:personal.alice.example",
+    "recipient_service_type": "principal_server",
+    "binding_scope": "space",
+    "binding_source": "did_document_default",
+    "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+    "resolved_at": "2026-05-19T10:00:00Z",
+    "did_document_hash": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
+  }
+}
+```
+
+期望：
+- reducer 接受 join Move（`did_document_hash` 与 `resolved_at` 满足 conditional required）。
+- 同形 Move 缺少 `did_document_hash` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
+- 同形 Move 在 Space policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_source_not_allowed`。
+- 一旦该 join 被接受，sender **不得**在后续投递时 re-resolve DID Document——即使 DID Document 已更新指向新服务，仍按 cell 内 `delivery_binding` 投递，直到一次合法 rebind。
+
+### 7.4 Vector: `unroutable` 成员
+
+Input — Space policy `cx.space.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Move 携带：
+
+```json
+{
+  "space_id": "cx:space:...",
+  "actor_id": "did:webvh:01HV...:alice",
+  "membership": "join",
+  "delivery_status": "unroutable"
+}
+```
+
+注意 `delivery_binding` 字段**缺失**，但 schema conditional `delivery_status=unroutable` 时不要求 binding。
+
+期望：
+- reducer 接受。
+- 任何 sender 计算"该 Space S 应投递给 Alice"的目标集合时 MUST 跳过该成员；不得用 DID Document 推导 fallback。
+- 客户端对该成员的本地视图：只展示在 reducer state 与本地索引中，但不向其推送通知 / sync / push / to_device。
+- 同形 Move 在 Space policy `allow_unroutable_membership=false` 时 reducer MUST 返回 `unroutable_not_allowed`。
+
+### 7.5 Vector: Rebind Handover + 撤销后停止投递
+
+序列：
+
+1. **Initial join**（`F0`）：Alice join with `recipient_service_did=did:web:personal.alice.example`，accepted。
+2. **Events 流量**：Space 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:web:personal.alice.example`。
+3. **Rebind**（`F1`）：Alice 提交同状态 `cx.member.state{membership="join"}` self-transition，新 binding 指向 `did:web:principal.acme.example`，签名按 `rebind_authorization` 规则。Move accepted。
+4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
+   - sender frontier ≥ `F1` → 投递到 `did:web:principal.acme.example`；
+   - sender frontier 仍 `< F1` 且投到旧 `did:web:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_did=did:web:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
+   - sender frontier ≥ `F1` 但仍投到旧 → 旧服务 reject `delivery_binding_handed_over`。
+5. **Grace 结束**：旧服务停止接受新 Space S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
+6. **撤销**：Alice 离职，Org-A 治理 key 提交 `cx.member.state{membership="leave"}` 或 `cx.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:web:principal.acme.example` 投递该 Space 的内容；MUST NOT 转而退回 `did:web:personal.alice.example`（DID Document fallback）；该 actor 在 Space S 中变成 **non-member**。
+
+期望：
+- 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
+- `delivery_binding_frontier` 字段在所有 service-to-service push 中均存在；sender 端落后 frontier 收到 stale signal 后 MUST 切换、不重投。
+- 撤销后 sender 试图继续投递 MUST 收到 `member_not_in_space` 或 `capability_revoked`；MUST 不构造任何 "fallback to DID Document" 路径。
+
+### 7.6 覆盖矩阵
+
+| 字段 / 行为 | §7.2 explicit | §7.3 did_document_default | §7.4 unroutable | §7.5 rebind+revoke |
+| --- | --- | --- | --- | --- |
+| Conditional required (`service_acceptance_ref`) | ✓ | — | — | ✓ |
+| Conditional required (`did_document_hash`) | — | ✓ | — | — |
+| Policy `allow_did_document_default=false` 拒绝 | — | ✓ | — | — |
+| Policy `allow_unroutable_membership=false` 拒绝 | — | — | ✓ | — |
+| 投递路径 ≡ binding，无 DID Document fallback | ✓ | ✓ | ✓ (skip) | ✓ |
+| Rebind handover frontier 切换 | — | — | — | ✓ |
+| 撤销后停止投递且无 fallback | — | — | — | ✓ |
+
+## 8. Handle Vectors
+
+### 8.1 目标
+
+验证 `@user:domain` / `user@domain` 这类人类可读地址只作为寻址输入，最终必须解析为 DID 与 Space-scoped delivery binding。
+
+### 8.2 Vector: 组织 Handle 构造成 Join
+
+Input — 邀请方在 Acme 组织 Space 中添加 `@alice:acme.example`。客户端调用：
+
+```json
+{
+  "handle": "@alice:acme.example",
+  "intent": "member_add",
+  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "requester": "did:web:bob.example",
+  "proof_challenge": "cx-challenge-001"
+}
+```
+
+Directory 返回 verified handle claim：
+
+```json
+{
+  "did": "did:webvh:QmAlice:users.acme.example",
+  "subject": "did:webvh:QmAlice:users.acme.example",
+  "handle": "@alice:acme.example",
+  "handle_uri": "contrix://acme.example/users/alice",
+  "handle_aliases": ["acct:alice@acme.example"],
+  "verified": true,
+  "recipient_service_did": "did:web:principal.acme.example",
+  "audience": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "claims": [{
+    "claim_type": "organization_handle",
+    "handle": "@alice:acme.example",
+    "handle_uri": "contrix://acme.example/users/alice",
+    "handle_aliases": ["acct:alice@acme.example"],
+    "subject": "did:webvh:QmAlice:users.acme.example",
+    "recipient_service_did": "did:web:principal.acme.example",
+    "issuer": "did:web:acme.example",
+    "binding_state": "verified",
+    "audience": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "created_at": "2026-05-19T00:00:00Z",
+    "expires_at": "2026-08-19T00:00:00Z",
+    "proofs": [{
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:principal.acme.example#key-1",
+      "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "created_at": "2026-05-19T00:00:00Z",
+      "audience": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "jws": "aaa.bbb.ccc"
+    }]
+  }],
+  "delivery_binding_hint": {
+    "recipient_service_did": "did:web:principal.acme.example",
+    "recipient_service_type": "principal_server",
+    "binding_source": "organization_policy",
+    "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+    "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001",
+    "policy_ref": "cx:event:0196419b-0000-7000-8000-000000000002"
+  },
+  "expires_at": "2026-08-19T00:00:00Z"
+}
+```
+
+Expected join Move:
+
+- `payload.actor_id = did:webvh:QmAlice:users.acme.example`。
+- `payload.delivery_binding.recipient_service_did = did:web:principal.acme.example`。
+- `payload.delivery_binding.binding_source = organization_policy`。
+- `payload.delivery_binding.service_acceptance_ref` 与 `policy_ref` 来自 verified claim / policy。
+- Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Space history。
+
+Negative cases：
+
+- Directory 返回 `verified=false` 或 challenge / audience 不匹配 → builder MUST NOT 构造 handle-based join。
+- 返回 `subject != did` → client MUST reject `handle_subject_mismatch`。
+- 返回 `recipient_service_did` 但 Space `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_invalid`。
+- 返回无 `recipient_service_did` → 只能作为 DID lookup；除非 Space policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。

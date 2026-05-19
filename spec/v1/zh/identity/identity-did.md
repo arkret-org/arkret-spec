@@ -138,7 +138,9 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Principal Server，也**不**是用户公开 handle。
 - 用户/组织搬迁 Principal Server、变更端口、增加 mirror、切换到第三方 host 时，正确路径是更新 DID Document 中的 service entry 并重新签发 service delegation；这条路径会进入可验证历史，不依赖 DNS+TLS 的现时强度。
-- Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `alice.example.com` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 well-known 双向验证一致。
+- DID Document 中的 `ContrixPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Space 的强制投递入口。某个 Space 中已接受的 `cx.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_did`，该 Space 的事件、sync、to-device、push 与 key package 投递 MUST 优先使用该 binding。只有 Space policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_hash` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Space 的投递路径。
+- Handle（例如 `@alice:acme.example` / `alice@acme.example`，canonical `contrix://acme.example/users/alice`）属于 Handle 层，不属于 DID method 或 DID Document service discovery。它 MAY 解析出 `subject DID + recipient_service_did`，但该结果只有在加入 Space 时被物化为 `delivery_binding` 并通过 Space policy 校验后，才成为 Space-scoped 投递路径。
+- Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `contrix://alice.example.com/users/alice` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 issuer claim 双向验证一致。
 - [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/contrix/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；权威服务发现源仍然是 DID Document 的 service entry。
 - 实现 MUST NOT 引入"DID 字符串 → 实际服务地址"的额外带外重定向（例如类 Matrix `.well-known/matrix/server` 的间接），因为这会把信任根退化到 DNS+TLS 即时强度，与选择 `did:webvh` 而不是 `did:web` 作为 v1 core 默认 principal method 的初衷冲突（见 §3.4）。
 

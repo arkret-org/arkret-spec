@@ -133,6 +133,8 @@ Signature: sig1=:base64...:
 | `service_binding_ref.space_id` | body | `id` | required | 受影响的 Space。在多 Space 批量推送中，发送方 SHOULD 把不同 Space 的 events 拆成独立请求；单请求 MUST 至少携带一个 `space_id`。 |
 | `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Space policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
+| `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Space 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_did = Destination-Service-DID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` 与 `handover_frontier`，sender 切到新目标后重试。 |
+| `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"space_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
 | `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Space 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
 
@@ -145,6 +147,10 @@ Signature: sig1=:base64...:
     "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
     "space_policy_hash": "sha256:...",
     "membership_frontier": ["cx:event:..."],
+    "delivery_binding_frontier": ["cx:event:..."],
+    "delivery_binding_diagnostics": {
+      "basis": ["member_delivery_binding"]
+    },
     "destination_service_type": "principal_server",
     "reducer_profile_hash": "sha256:..."
   },
@@ -170,13 +176,48 @@ Contrix v1 的联邦批量传播采用依赖感知的 partial accept：最小原
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 可以满足后续 Event 的 `prev_refs`、`refs[role=authorized_by]` 或 payload-level causal reference；同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
-接收方服务绑定规则：
+接收方服务绑定规则（normative）：
 
-- Actor DID 的当前 DID Document MAY 声明其受控或委托的 `ContrixPrincipalServer` endpoint。
-- Organization DID 或 Space policy MAY 为组织成员、受管设备或特定 Space 指定 Principal Server。
-- Space metadata 的 `sync_endpoints` 只表示 Space policy 明确委托的 shared anchorer / sync service 或组织 Principal Server，不自动授权任意第三方接收私有内容。
-- 联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
-- 当服务委托被撤销或成员被移除后，生效因果点之后不得继续向已撤销 service DID 推送非加密私有内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
+v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
+
+| 路径 | 投递对象 | 解析来源 | 谁是 destination |
+| --- | --- | --- | --- |
+| **Member-level delivery** | 面向某个 Space 成员的 events / sync / to_device / push / key_packages | 该成员的 effective `cx.member.state{membership="join"}.delivery_binding.recipient_service_did` | 该 binding 指定的 Principal Server |
+| **Space-level fanout** | Space 共享的 shared anchorer / sync service / 受托 search-projection 等服务面 | Space metadata 的 `sync_endpoints`（受 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 与 [`models/space-and-place.md`](../models/space-and-place.md) 约束） | sync_endpoints 中列出的 service DID |
+
+两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Space-level fanout 不走 member binding。
+
+针对 member-level delivery，sender 的解析算法是确定性的：
+
+```
+for each member m of Space S that needs to receive event E:
+  binding := load_effective_member_cell(S, m.actor_id).delivery_binding
+  IF binding 不存在 (delivery_status="unroutable"):
+    MUST NOT 投递；SHOULD 在 sender 上游暴露 unroutable diagnostics
+  IF binding.expires_at 已过期 OR binding 已被撤销:
+    MUST quarantine E 并触发 rebind 提示；MUST NOT 退回 DID Document
+  IF binding.recipient_service_did 临时不可达:
+    MUST quarantine + 指数退避重试；MUST NOT 退回 DID Document
+  fanout target = binding.recipient_service_did
+```
+
+**MUST NOT fallback** 路径：
+
+- 即便 `recipient_service_did` 解析失败、binding 过期、或 binding 被撤销，sender **MUST NOT** 退回 actor DID Document 的 `ContrixPrincipalServer` service entry 作为替代目的地。这是设计上的硬约束。
+- 即便 actor DID 在接收方 (或任何其它) Principal Server 上存在本地账号、OIDC/SSO 绑定、员工目录记录、device session，**这些都不构成 Space-scoped 投递授权**。投递授权仅来自 member binding 的 `service_acceptance_ref` / `policy_ref` 链。
+- 即便 actor DID Document 当前可解析且其 service entry 指向某个 Principal Server，**这也不是 Space-scoped 投递的目的地**——DID Document service entry 是 actor event source / 非 Space 默认服务发现入口（§6.2），与 member-level delivery 解耦。
+
+Rebind handover：
+
+- 接收方观察到自己已 accept rebind handover frontier `F`，而 sender 仍按 frontier 之前的旧 binding 投递时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` + `handover_frontier`；sender MUST 重新解析、向新目标重试（不得回退到 DID Document）。
+- 旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`。
+
+撤销 / 移除 cascading：
+
+- 当 member binding 被 `cx.capability.revoke` / 成员被移除 / Space policy 不再列出 `recipient_service_did` 时，生效因果点之后 sender MUST NOT 继续向已撤销 service DID 推送 Space 内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
+- 服务委托被撤销时 MUST 走 [§4.4 Capability Revoke Fanout](#) 主动通知所有相关 Principal Server 失效缓存。
+
+Space-level fanout 仍受现有约束：联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier、`delivery_binding_frontier` 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
 
 ### 4.1.0 推送时序
 
@@ -192,7 +233,7 @@ sequenceDiagram
 
     Cli->>Alpha: 提交 signed Event 到 Space S
     Alpha->>Pol: 解析应接收的 Principal Server
-    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(space_policy_hash / membership_frontier / reducer_profile_hash)
+    Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(space_policy_hash / membership_frontier / delivery_binding_frontier / reducer_profile_hash)
     Alpha->>Beta: POST /api/v1/events (cx.events.submit)<br>HTTP Message Sig (RFC 9421)<br>Source-Service-DID / Destination-Service-DID<br>Content-Digest / service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. anchor_ref / Lattice precondition
     Beta-->>Alpha: 200 + accepted / rejected / quarantine
@@ -423,11 +464,16 @@ Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join
 
 ### 6.2 Actor Event Source 发现
 
-给定一个 Actor 的 DID，其他节点通过解析 DID Document 中的 `#contrix-principal-server` 或等价服务端点来定位其 Events API：
+DID Document 的 `service[type=ContrixPrincipalServer]` 是该 Actor DID 的**默认 event source**，**不是** Space-scoped 投递入口。两者用途严格分开：
 
-```
-DID Document -> service[type=ContrixPrincipalServer] -> serviceEndpoint
-```
+| 用途 | 解析路径 |
+| --- | --- |
+| 拉取 actor 的 per-actor event chain（非 Space 上下文） | `DID Document -> service[type=ContrixPrincipalServer] -> serviceEndpoint` |
+| Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上 |
+| Space policy 显式允许 `did_document_default` 且 join 时已物化进 `delivery_binding` 的来源 | 同上（仅作为 join 时的 source；join 之后**仍**走 member binding） |
+| 已加入 Space 的成员的 events / sync / to_device / push / key_packages 投递 | **MUST** 走 [`governance/join-policy.md` §5.1.4](../governance/join-policy.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
+
+任何把 DID Document service entry 当作 "Space 投递 fallback" 的实现都违反 §4.1。本路径仅用于 actor event source、首次发现 hint，以及 join 时（Space policy 允许时）的 `did_document_default` 物化来源——一旦 binding 被 join Move 接受写入 cell，后续投递再也不读 DID Document。
 
 ### 6.3 域名级服务发现缓存
 

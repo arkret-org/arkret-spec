@@ -20,7 +20,7 @@ title: Push Notifications
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 
 在 E2EE 场景下，Sync Service 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
-- 推送上游（APNs / FCM / Push Gateway）只携带 **per-(principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Space id、event id、device DID URL 或任何其它跨 Space 稳定标识。具体规则见 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。
+- 推送上游（APNs / FCM / Push Gateway）只携带 **per-(recipient_service_did, principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Space id、event id、device DID URL 或任何其它跨 Space 稳定标识。具体规则见 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。同一 DID 在个人 Principal Server 与组织 Principal Server 上的推送注册必须不可链接。
 - 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容；本地通知文案在客户端解密后生成。
 - **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，但其 wire 形态 MUST 仅限以下封闭枚举字段——`wakeup_kind`（粗粒度类别，如 `message`/`mention`/`reaction`/`call_invite`）、`badge_count`（数字徽章计数）、`unread_increment`（增量计数）、本地化字符串 token（`l10n_key`，由客户端在解密后渲染）。**MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Space id / 名称 / 头像、Flow id / 名称、Message id、room 名称、reaction emoji 实际值、附件文件名、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Space 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
 
@@ -59,6 +59,8 @@ POST /api/v1/push/register-device
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
 | `app_id` | string | SHOULD | 应用的包名 / Bundle ID |
 | `display_name` | string | MAY | 用户可读设备名 |
+
+Push registration 的作用域是接收该请求的 Sync Service / Principal Server service DID。客户端在个人 Principal Server 与组织 Principal Server 上同时登录同一 DID 时，MUST 分别注册互不相关的 push route / `push_target_id`；服务端不得把一个上下文中的 push token 或伪名复制到另一个上下文。实现若在请求中扩展携带 `recipient_service_did`，其值 MUST 与目标服务的 `cx.server.describe.service_did` 一致。
 
 响应字段：
 
@@ -318,7 +320,7 @@ POST /api/v1/push/notify
 | 字段 | 类型 | 必填 | 说明与约束 |
 |------|------|------|------|
 | `notification` | object | required | 推送通知对象。 |
-| `notification.push_target_id` | string | required | per-(principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Space 关联的稳定 ID。 |
+| `notification.push_target_id` | string | required | per-(recipient_service_did, principal, device, push_route) pairwise pseudonym（见 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）。MUST NOT 是 principal DID、device DID URL、handle 或可跨 Space / Principal Server 上下文关联的稳定 ID。 |
 | `notification.wakeup_kind` | string | required | 唤醒类别（如 `message`、`incoming_call`、`mention`）；只是粗粒度提示，不带 Space / sender 信息。 |
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示；只能是封闭枚举或 `l10n_key` token；不得包含正文、sender DID / handle、Space id / 名称、Flow / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。 |

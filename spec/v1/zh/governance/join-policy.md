@@ -148,8 +148,17 @@ applicant 直接提交：
   "kind": "cx.member.state",
   "payload": {
     "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
-    "subject_did": "did:webvh:bob",
+    "actor_id": "did:webvh:bob",
     "membership": "join",
+    "delivery_status": "routable",
+    "delivery_binding": {
+      "recipient_service_did": "did:web:principal.org-a.example",
+      "recipient_service_type": "principal_server",
+      "binding_scope": "space",
+      "binding_source": "explicit",
+      "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
+      "service_acceptance_ref": "cx:event:0196419b-0000-7000-8000-000000000001"
+    },
     "gate_proofs": [
       {
         "gate_id": "g-org-vc",
@@ -177,6 +186,140 @@ reducer MUST：
 5. 全部通过则接受 `membership=join`；任一失败 `failed_precondition`，附带 `reason_code` 指明哪个 gate fail 与原因。
 
 reducer MUST NOT 在自动解析路径上隐式生成 application / review Move——此路径绕过申请-审核状态机。
+
+### 5.1 成员投递绑定
+
+`cx.member.state{membership="join"}` 表达的是某个 DID 在该 Space 中成为成员；它**不等价于**"按该 DID 的全局 home Principal Server 投递"。Space-scoped events / sync / to-device / push / key-package 的实际投递目标由该成员的 **effective delivery binding** 决定。本 §5.1 是 v1 normative。
+
+#### 5.1.1 接受准则（normative）
+
+任一 `cx.member.state{membership="join"}` Move 被 reducer 接受前 MUST 满足：
+
+1. `payload.delivery_status ∈ {routable, unroutable}` 显式声明。
+2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Space `cx.component.space.delivery_binding_policy.v1`（§5.1.3）的 `allow_binding_sources` 集合内。
+3. `delivery_status="unroutable"` 仅当 Space policy 显式允许（`allow_unroutable_membership=true`），且该成员的客户端理解"该 Space 仅向本地可见、不接收服务端推送 / 同步 / to-device / push / key-package 投递"。
+4. `delivery_binding.recipient_service_did` 出现在 Space policy 的 `allowed_recipient_services`（若声明），否则 MUST 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。
+5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_hash`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_ref`）。
+6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
+
+reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_binding_invalid`，**不得**降级为部分接受。
+
+#### 5.1.2 `binding_source` 与责任方
+
+| `binding_source` | 谁负责填 | 何时使用 | 补充必填 |
+| --- | --- | --- | --- |
+| `explicit` | 邀请方 / 管理员客户端 | 用户显式选择目标服务 | `service_acceptance_ref` |
+| `did_document_default` | 客户端 DID resolver | Space policy 允许 fallback，未匹配其它来源 | `did_document_hash` |
+| `invite` | 邀请方 builder | 邀请 token 已携带 binding | `service_acceptance_ref` |
+| `join_policy` | reducer 由 Join Policy 推导 | Join Policy 的 gate / role 决定目标服务 | `policy_ref` |
+| `organization_policy` | 组织治理目录 | invitee 是 Org 员工，组织 policy 指定目标 | `service_acceptance_ref` + `policy_ref` |
+| `space_policy` | Space policy 默认值 | Space 声明 default recipient | `policy_ref` |
+
+所有六类来源都要求 `resolved_at`；任何 `binding_source` 进入 canonical Event 时，**结果 MUST 已在客户端 / 提交服务侧解析完成**，不得留"运行时再 resolve"的隐含状态。
+
+##### 5.1.2.1 Handle 作为成员添加输入
+
+客户端 MAY 允许邀请方输入 `@alice:acme.example`、`alice@acme.example`、`contrix://acme.example/users/alice` 或 `acct:alice@acme.example` 来添加成员。该字符串只是 builder 输入，不是 membership 主键。
+
+构造 `cx.member.state{membership="join"}` 前，客户端 / 提交服务 MUST：
+
+1. 按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle_uri`（主形态为 `contrix://<domain>/users/<localpart>`）。
+2. 调用 `cx.directory.resolve_handle` 或等价 Principal Server / Organization Directory 解析，带上 `intent="member_add"`、目标 `space_id`、`requester` 和 challenge。
+3. 验证响应中的 handle claim / presentation 绑定 `handle_uri`、`subject` DID、`recipient_service_did`、issuer、`expires_at`、撤销状态，以及 `audience`：claim `audience` MUST 等于目标 `space_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
+4. 生成 member Move 时使用 `payload.actor_id = subject`；不得把 handle 字符串写作 actor、grant subject 或 cell subject。
+5. 若解析结果携带 `delivery_binding_hint`，将其物化为 `payload.delivery_binding`，并按 Space `cx.space.delivery_binding_policy` 选择 `binding_source`：
+   - 组织目录 / 员工名录背书的地址 SHOULD 使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_ref`。
+   - 邀请 token 内嵌地址 SHOULD 使用 `invite`，并携带 `service_acceptance_ref`。
+   - 用户 / 管理员显式选择服务时使用 `explicit`，并携带 `service_acceptance_ref`。
+   - `delivery_binding_hint.binding_source` 不得是 `did_document_default`；handle resolution 与 DID Document fallback 是两条独立的物化路径。
+6. 若解析结果没有 `recipient_service_did`，该 handle 只能证明 actor DID；除非 Space policy 允许 `did_document_default` fallback 并在 join 时完成物化，否则 reducer MUST 拒绝 handle-based join。
+
+Space history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Move 可引用 handle claim / service acceptance Event 的 `event_id`，或在私有 review / invite 流程中保存最小披露记录；公开成员状态只需要 DID 与 `delivery_binding`。
+
+#### 5.1.3 Policy 事件：`cx.space.delivery_binding_policy`
+
+Space 通过独立的 `cx.space.delivery_binding_policy` event 声明对成员投递绑定的强约束。该事件写入 `cx.component.space.delivery_binding_policy.v1` cell（cas-register, cell_subject=null, bottom=reject），与 `cx.space.join_rule` / `cx.space.history_visibility` 等其它 space policy 事件并列。Space 在 `cx.space.policy_components` 中将该 component 列入 active set 后，reducer 强制其约束。
+
+```json
+{
+  "kind": "cx.space.delivery_binding_policy",
+  "payload": {
+    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "allow_binding_sources": [
+      "explicit",
+      "invite",
+      "organization_policy"
+    ],
+    "allow_did_document_default": false,
+    "allowed_recipient_services": [
+      "did:web:principal.acme.example"
+    ],
+    "required_endorsers": [
+      "did:web:acme.example"
+    ],
+    "allow_unroutable_membership": false,
+    "rebind_authorization": "member_and_admin",
+    "expires_after_seconds": 7776000
+  }
+}
+```
+
+字段语义：
+
+| 字段 | 类型 | 默认 | 语义 |
+| --- | --- | --- | --- |
+| `allow_binding_sources` | `enum[]` | `["did_document_default"]` for 个人 / 公开 Space；组织 Space 必须显式收窄 | 允许出现在被接受 binding 中的 `binding_source` 子集。 |
+| `allow_did_document_default` | `boolean` | `false` | 是否允许 binding_source=did_document_default。组织 / 合规 Space MUST 设为 `false`。 |
+| `allowed_recipient_services` | `did[]` | `[]`（不限） | 允许出现在 `recipient_service_did` 的封闭集合。空数组等价于"不限"。 |
+| `required_endorsers` | `did[]` | `[]` | 当 `allowed_recipient_services` 非空时，`recipient_service_did` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；否则空数组表示无强制背书要求。 |
+| `allow_unroutable_membership` | `boolean` | `false` | 是否允许 `delivery_status="unroutable"` 成员。 |
+| `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Move 的合法签名 / 背书集合（见 §5.1.5）。 |
+| `expires_after_seconds` | `int?` | unset = 不过期 | 该 Space 中所有 binding 的最大有效期；reducer MUST 在物化时把 `delivery_binding.expires_at = resolved_at + expires_after_seconds`，除非 binding 显式声明更短的 `expires_at`。 |
+
+`cx.component.space.delivery_binding_policy.v1` 是 cas-register cell（`cell_subject=null`，每 Space 一个）。变更走 [`models/space-and-place.md`](../models/space-and-place.md) 的 `cx.space.policy_components` 通用路径。
+
+#### 5.1.4 路由不可降级（normative）
+
+`delivery_binding` 一旦进入 accepted member cell，**任何 sender** 在向该 Space 投递面向该成员的事件 / sync delta / to-device 消息 / push 唤醒 / MLS KeyPackage 请求时：
+
+- MUST 解析当前 effective `delivery_binding.recipient_service_did` 作为唯一投递目标。
+- MUST NOT 退路到该 actor 的 DID Document `ContrixPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_did` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（默认重试上限见 [`sync/federation.md` §4.1](../sync/federation.md)），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
+- MUST NOT 把"recipient_service_did 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_ref` 显式建立。
+
+`expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并提示该成员客户端通过 §5.1.5 rebind 流程提交新 binding。**未提供 fallback path**——这是设计约束。
+
+#### 5.1.5 Rebind 过渡（normative）
+
+成员保持 `membership="join"` 但迁移 `recipient_service_did`（个人 PS → 组织 PS、组织换集群、灾备切换等）通过同一 `cx.member.state{membership="join"}` 的同状态 self-transition 完成：
+
+1. **签名 / 背书**：rebind Move 的可签名主体由 `rebind_authorization` 决定：
+   - `member`：仅成员 DID 自签即可。
+   - `member_and_admin`：成员 DID 自签 + Space `cx.space.admin` capability 持有者背书（双签）。
+   - `admin_only`：仅 Space admin 可发起（用于离职 / 强制迁移）。
+   - `service_only`：仅当前 / 目标 recipient service DID 可发起（用于服务运维迁移）。
+   - `any`：上述任一即可。
+2. **Precondition**：Move 的 `prev_refs` MUST 引用前一 accepted member cell 的 head；reducer 用 cas-register 校验前态。
+3. **Handover frontier `F`**：该 Move 被接受时的 accepted causal frontier 是 rebind 切换点。
+   - causal 上 `prec(F)`（不含 F）的 Space events MUST 仍投递到旧 `recipient_service_did`。
+   - causal 上 `succ(F)`（含 F）的 Space events MUST 投递到新 `recipient_service_did`。
+   - 这一切分对所有 sender 是确定性的——只要 sender 的本地 `service_binding_ref.delivery_binding_frontier ≥ F` 就 MUST 切换；frontier 落后的 sender 仍按旧 binding 投递（接收方负责回执并通知 sender 升级）。
+4. **Grace period**：旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event；超过 grace 后旧服务 MUST reject 并返回 `delivery_binding_handed_over` + `new_recipient_service_did`。
+5. **In-flight 事件**：grace 内 sender 收到的"旧目标 reject"事件 MUST 按新 binding 重新投递；不得回退到 DID Document。
+6. 旧服务在 grace 结束后 MUST NOT 保留可逆映射到该 Space membership 的 sync state / to-device queue / push registration。新服务从 handover frontier 起重建。
+
+未满足 rebind 授权或 precondition 的 Move **MUST fail closed**；服务不得仅因 DID Document 更新、本地 service account 切换、SSO subject 变更或员工目录调整自动迁移既有 Space membership 的投递路径。
+
+#### 5.1.6 单 binding 约束 + 多设备策略
+
+同一 `(space_id, actor_id)` 在任一时刻**有且仅有**一个 active `membership="join"` cell；该 cell 持有唯一 effective `delivery_binding`。**不允许**同一 DID 通过两个不同 `recipient_service_did` 同时持有两条 join membership——这种诉求应通过下列正确机制表达：
+
+- **同一 binding 下多设备**：member 的多台设备各自向 `recipient_service_did` 上传 KeyPackage、注册 push、维护 to-device 队列。同一 binding 下的设备共享 sync state。
+- **Space-level mirror / shared sync**：Space 自身需要多服务承载（HA / 灾备 / 跨区域）时，使用 Space metadata 的 [`sync_endpoints`](../sync/federation.md) 表达 Space-level service binding，与 member-level `delivery_binding` 正交。
+- **同一物理用户的多个上下文** (e.g. Alice 既参与 personal Space P 也参与 work Space S)：每个 Space 各自有独立 membership 与独立 binding；同一 DID 在 P 中 `recipient_service_did = personal PS`，在 S 中 `recipient_service_did = org PS`。这就是 §5.1 整套机制要解决的核心场景。
+
+#### 5.1.7 关联性与隐私边界
+
+`delivery_binding` 解决的是**投递路由 / 设备隔离 / push 隔离 / 合规审计边界**，**不解决跨上下文 unlinkability**：外部观察者仍能看到同一 `actor_id` 在不同 Space 的 membership。需要 unlinkability 的部署应使用 pairwise / private DID（[`../identity/identity-did.md` §3](../identity/identity-did.md)），与 `delivery_binding` 正交。
 
 ## 6. 申请-审核路径
 

@@ -17,8 +17,7 @@ title: 术语表
 | Actor | 参与身份 | Principal 在 Space 内的行为身份：执行动作、产生 Event、持有 profile 与 membership；可在不同 Space 表现为 pairwise pseudonym。 |
 | Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
-| Handle | 人类可读标识 | 可迁移的人类可读入口或别名；包括 DNS handle 和外部体系 alias，不可作为协议主体或授权主键。 |
-| DNS Handle | DNS 风格标识 | `alice.example.com` 这类可通过 DNS / HTTPS well-known 双向验证到 DID 的 Handle 子类。 |
+| Handle | 可路由人类地址 | 面向用户的可读入口，统一 canonical URI `contrix://<domain>/users/<localpart>`，显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`。可由 holder 自托管签发或 Organization / Principal Server / Directory 签发；解析结果含 `subject` DID 与可选 `recipient_service_did`，但只有物化为 Space `delivery_binding` 后才成为投递路径。不可作为协议主体或授权主键。 |
 | Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Space history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
@@ -56,7 +55,7 @@ title: 术语表
 | Capability Grant | 能力授权对象 | `capability` 标准对象；记录谁在什么条件下可执行何动作。 |
 | Policy | 策略 | 运行期约束对象，用于授权、密钥、留存、治理与安全边界。 |
 | Invite | 邀请 | 邀请主体加入 Space 或授予特定能力的标准对象/事件 payload。 |
-| Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / sync / discovery 等核心 API。 |
+| Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / sync / discovery 等核心 API。Space 内实际投递目标由成员 `delivery_binding.recipient_service_did` 决定；DID Document 默认 Principal Server 只是允许 fallback 时的来源。 |
 | Sync Service | 同步服务 | 公开/订阅事件与 frontier 的受控同步能力，通常由 Principal Server 提供。 |
 | Event Store Service | 事件存储服务 | 与 Sync Service 关联的持久化与检索服务角色。 |
 | Blob Store | 二进制对象存储 | 附件、媒体、文件对象的存储与引用服务。 |

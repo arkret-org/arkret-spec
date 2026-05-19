@@ -42,6 +42,42 @@
 
 ## [Unreleased]
 
+### Space-scoped member delivery binding + 统一 Handle 模型（2026-05-19）
+
+Space membership 显式承载成员的投递服务绑定，DID 是协议主键、签名与审计归因的根；Space-scoped 投递的唯一权威路由源是该成员 `cx.member.state{join}.delivery_binding` 中固化的 `recipient_service_did`。
+
+Handle 是统一概念：协议层只有一种 handle canonical URI（`contrix://<domain>/users/<localpart>`，lowercase localpart）、一套解析与验证规则。`acct:<localpart>@<domain>` 只能作为 `handle_aliases[]` 互通别名。Holder 自托管个人 handle（自有域名）与组织内部账号地址在结构上是同一类——区别只在 issuer（domain owner 自己 vs Organization / Principal Server / Directory），不在 URI 形态。显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`；其它字面形态在 schema 层被拒绝。
+
+- **新增 Event.kind**：
+  - `cx.space.delivery_binding_policy`（state event；`cell_family=cx.component.space.delivery_binding_policy.v1`, `cas-register`, `bottom=reject`, `cell_subject=null`）。
+  - `cx.device.push_route`（actor-private event；`cell_family=cx.component.device.push_route.v1`, `cas-register`, composite `cell_subject=(recipient_service_did, principal_id, device_id, push_route)`, `bottom=reject`）。
+- **Schema**：
+  - `event-payload.schema.json#/$defs/member_delivery_binding`：严格 schema。`recipient_service_type=const "principal_server"`、`binding_scope=const "space"`；`delivery_modes` / `resolved_at` 必填；按 `binding_source` 的 conditional required（`did_document_default` → `did_document_hash`；`explicit` / `invite` / `organization_policy` → `service_acceptance_ref`；`join_policy` / `space_policy` / `organization_policy` → `policy_ref`）。
+  - `event-payload.schema.json#/$defs/membership_payload`：`membership=join` 时 `actor_id` / `delivery_status` 必填；`delivery_status=routable` 时 `delivery_binding` 必填。
+  - `event-schema.json`：`cx.space.delivery_binding_policy` 进入 wire-level `kind` enum 与 state_payload 分支。
+  - `handle-claim.schema.json`：`handle_uri` 仅允许 `contrix://<host>(:<port>)?/users/<lowercase-localpart>`；`acct:<localpart>@<host>(:<port>)?` 移入 `handle_aliases[]`，不得作为 canonical；裸 `contrix://<host>`、`user:domain`、bare host 一律拒绝。`binding_state=verified` 必填 `handle_uri` / `expires_at`；出现 `recipient_service_did` 或 `delivery_binding_hint` 时必填 `handle_uri` / `audience` / `expires_at`，且 `delivery_binding_hint.binding_source` 不允许 `did_document_default`。
+- **Prose normative**：
+  - `identity/identity-handles.md`：Handle 单一模型，§3.1 显示形态与 canonical URI、§3.2 解析结果必含字段、§3.3 `delivery_binding_hint` 约束、§3.4 Issuer 类型（holder self-issued / Organization / Principal Server / Directory）与 holder 自托管路径、§3.5 公开 vs 受限、§3.6 与 pairwise DID 正交；§5 解析 issuer 优先级；§6 双向验证按公开 / 受限分流；§6.1.2 撤销路径（TTL + Directory withdrawal + DID Document 变化）；§6.1.3 重分配与历史归因。
+  - `governance/join-policy.md` §5.1：接受准则、`binding_source` 与责任方表、`cx.space.delivery_binding_policy` 字段、路由不可降级、rebind handover via causal frontier、单 binding 约束、unlinkability 边界；§5.1.2.1 Handle 作为 member_add 输入的 6 步构造法（含 `audience` 校验）。
+  - `sync/federation.md` §4.1：接收方服务绑定规则切分 member-level vs Space-level 两条互不重叠路径；fail-closed 解析算法；handover stale 协议；`service_binding_ref.delivery_binding_frontier` 必填；`delivery_binding_diagnostics` 仅作诊断。§6.2 Actor Event Source 发现用途表。
+  - `identity/identity-did.md` §3.2：DID Document `ContrixPrincipalServer` service entry 是默认服务发现入口，不作为 Space-scoped delivery 路径；Handle 属 Handle 层，不属 DID method。
+  - `discovery/discovery-directory.md` §9.0：Handle 解析 normative 准则（6 条），含 audience 与 invocation 上下文一致性校验。
+  - `sync/client-sync.md` §2.x：Delivery Binding UX 指引（4 条 SHOULD）。
+  - `crypto-media/device-lifecycle.md` §5a：`push_target_id` 作用域 `(recipient_service_did, principal, device, push_route)`；`cx.device.push_route` cell_subject 与 binding 一致性。
+  - `discovery/push-notifications.md` / `sync/service-http-binding.md`：push registration 作用域绑定当前 Principal Server service DID；`cx.directory.resolve_handle` 增 `intent` / `requester` / `audience`-bearing claim 响应；`cx.directory.search_users` 增 `intent`。
+  - `models/flow-and-message.md` §9.4：mention 节点结构（`subject` / `handle_uri` / `display_snapshot` / `resolved_at`）；handle 重分配时 UI 显式标注。
+  - `overview/glossary.md`：单一 Handle 术语；`overview/architecture.md`、`overview/matrix-core-differences.md`、`sync/operations-sync.md`、`conformance/encoding.md`：术语与叙述对齐。
+- **Conformance vectors**（`conformance/conformance-vectors.md`）：
+  - §7：4 个 Member Delivery Binding vector — `explicit` / `did_document_default` / `unroutable` / rebind + revoke。
+  - §8：Handle → Join vector（含 negative cases：`verified=false`、`subject != did`、`recipient_service_did` 不在 Space `allowed_recipient_services`、无 `recipient_service_did`）。
+- **路由 normative 硬约束**：
+  - sender 在 Space-scoped 投递时 MUST 解析当前 effective member `delivery_binding.recipient_service_did`；解析失败、过期、撤销时 MUST quarantine + retry，MUST NOT 退回 DID Document。
+  - `delivery_binding_frontier` 落后于接收方接受的 handover frontier 时，接收方 MUST 返回 `delivery_binding_stale` + 新目标；sender MUST 重定向，不得退回 DID Document。
+  - "actor DID 在某 Principal Server 上有本地账号 / OIDC subject / 员工记录 / 设备 session" 不构成 Space-scoped 投递授权；授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_ref` 链建立。
+  - Handle 字符串仅是 builder 输入；canonical URI 比对、`alsoKnownAs` 一致性校验、Directory 缓存键一律 MUST 使用 `contrix://` 形态，`acct:` 仅为互通别名。
+- **隐私边界**：本机制解决路由 / 设备 / push / 审计边界。跨上下文 unlinkability 通过 pairwise / private DID（`identity-did.md` §3）实现，与本机制正交：同一 DID 在不同 Space 的 membership 仍可被外部观察者关联。
+- **Registry 计数**：active event kind 152，schema 52，typed ID kind 39，operation 84，profile 77。
+
 ### Watch / 通知订阅模型作为专用 `cx.flow.watch.set` event + 派生 `watches` Relation（2026-05-18）
 
 Flow 通知订阅长期通过实现私有的 `fields.participants` / `fields.watchers` 数组表达，结构上和 ACL 易混；早期 prose 在 [flow-and-message.md §4.3](spec/v1/zh/models/flow-and-message.md) 提到 "watchers" 但未给出 wire 形态。本轮把 watch 模型正式登记为：

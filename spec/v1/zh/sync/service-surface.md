@@ -578,10 +578,11 @@ Organization directory MUST respect organization discovery policy。公开组织
 
 ```text
 POST /api/v1/directory/search-actors
+POST /api/v1/directory/search-users
 POST /api/v1/directory/resolve-handle
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Space 推断出的关系。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Space 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `recipient_service_did`，但只在 claim、audience、requester policy 和 Space intent 验证通过时披露。Directory 返回的 service DID 只是 join builder 输入，不能替代 Space `delivery_binding` 或 grant 校验。
 
 ### 8.6 私密联系人发现
 
@@ -711,4 +712,3 @@ Contrix v1 固定：
 - Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref` 与 `plaintext_visibility`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{binding: "http_json", ...}`);单数字段名 `binding` 仅出现在每个 binding 条目**内部**,不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。
-

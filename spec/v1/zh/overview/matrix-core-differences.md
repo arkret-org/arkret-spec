@@ -143,10 +143,10 @@ Contrix 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lif
 
 Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Space 的不可链接性规范。Contrix 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a 引入 `push_target_id`：
 
-- per `(principal, device, push_route)` 伪名；至少 128 bit 熵，推荐 256 bit。
+- per `(recipient_service_did, principal, device, push_route)` 伪名；至少 128 bit 熵，推荐 256 bit。
 - MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码推导。
-- 同一 principal 在两台设备上的 `push_target_id`、同一 device 的两条 push_route 之间，对 push gateway / Sync Service / 第三方 transport MUST 不可关联。
-- gateway / Sync Service 不得保留可逆映射；轮换或失效后旧伪名不得被服务端链接回当前 (principal, device)。
+- 同一 principal 在不同 `recipient_service_did`、两台设备或同一 device 的两条 push_route 上的 `push_target_id`，对 push gateway / vendor / 第三方 transport MUST 不可关联。
+- gateway / vendor 不得保留可逆映射；被 member delivery binding 授权的 Sync Service 仅可在本服务上下文内持有运行时索引，轮换或失效后旧伪名不得被服务端链接回当前 `(recipient_service_did, principal, device)`。
 - 推送 payload 必须是 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob；gateway / vendor 不得解密。
 
 #### 4.5.7 Contrix 新增的密钥类别

@@ -529,6 +529,8 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 > `space.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 **候选**（candidate）workflow concept/action 名称，不是 v1 wire `Event.kind`。它们尚未进入 v1 active conformance；实现声明 v1 base profile 时不强制支持。正式登记进入 v1 registry 前不得使用 `cx.*` 标准前缀，也不得作为 Event envelope 的 `kind`、active reducer 或 sync conformance 项。
 
+`cx.member.state{membership="join"}` 除成员 FSM 外，还承载该成员在本 Space 的 effective delivery binding。`payload.delivery_binding.recipient_service_did` 是 Space-scoped Event / sync / to-device / push / key package 的投递服务；DID Document 中的默认 `ContrixPrincipalServer` 只可在 Space policy 允许 `did_document_default` fallback 且已物化进该 field 时使用。成员已处于 `join` 时，新的 `membership="join"` Move MAY 作为 delivery rebind self-transition 更新 binding，但必须满足 Join Policy / Space policy 的 rebind 授权。`payload.delivery_status="unroutable"` 只能在 Space policy 显式允许不可服务端投递成员时出现。
+
 ### 7.7 Profile / Device / Space Key
 
 - `cx.profile.update`

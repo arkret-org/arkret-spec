@@ -538,6 +538,29 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 规则处理：源消息可暴露 ref 与最小 metadata，目标对象内容与 preview 必须重新按
 目标 Space policy 授权。
 
+客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 SHOULD 通过 `cx.directory.resolve_handle(intent="mention")` 解析为 DID，并在结构化 mention 节点中保存 DID / object ref 与当时的 display handle snapshot。消息正文中的 handle 字符串只是展示快照，不参与授权、投递或审计归因。
+
+结构化 mention 节点最小形态：
+
+```json
+{
+  "kind": "mention",
+  "subject": "did:webvh:QmAlice:users.acme.example",
+  "handle_uri": "contrix://acme.example/users/alice",
+  "display_snapshot": "@alice:acme.example",
+  "resolved_at": "2026-05-19T10:00:00Z"
+}
+```
+
+字段语义：
+
+- `subject`（必填）：被 mention 主体的 principal DID。授权、通知路由、audit attribution 一律以此为准。
+- `handle_uri`（必填）：canonical handle URI；发送时的 normalize 结果。
+- `display_snapshot`（必填）：发送时刻的 UI 显示字符串；阅读侧用作历史展示快照，不重新解析。
+- `resolved_at`（必填）：handle 解析时刻；用于判断显示快照与当前 handle 解析结果之间的"重分配"差异。
+
+阅读侧渲染时，若当前 `handle_uri` 解析到的 DID **不等于** mention 节点中记录的 `subject`，UI MUST 显式标注 handle 已重分配（见 [`identity/identity-handles.md` §6.1.3](../identity/identity-handles.md)），并以 `subject` 当时的 profile 信息渲染历史 mention，而不是用当前持有者替换。
+
 ### 9.5 冲突与收敛规则
 
 Message timeline 的同步与 reducer 行为：

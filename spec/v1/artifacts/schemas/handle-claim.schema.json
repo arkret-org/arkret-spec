@@ -16,13 +16,38 @@
       "type": "string",
       "minLength": 3
     },
+    "handle_uri": {
+      "type": "string",
+      "pattern": "^contrix://[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?/users/[a-z0-9._+~-]{1,128}$",
+      "description": "Contrix-native canonical handle URI. Form is always contrix://<domain>(:<port>)?/users/<localpart>, with lowercase localpart. Self-hosted single-user deployments use the same shape; there is no bare-host or acct: canonical variant."
+    },
+    "handle_aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^acct:[a-z0-9._+~-]{1,128}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?$"
+      },
+      "uniqueItems": true,
+      "description": "Interop aliases such as RFC 7565 acct:. Aliases are never canonical; verifiers MUST normalize to handle_uri before alsoKnownAs comparison, cache lookup, or delivery_binding construction."
+    },
     "subject": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Principal DID controlled by the handle holder. This remains the protocol actor / grant subject."
+    },
+    "recipient_service_did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Principal Server service DID this handle binds to. When present, it MUST be used as member_delivery_binding.recipient_service_did at join time. The recipient service is always principal_server in v1; the type tag lives on delivery_binding_hint when this claim ships a builder payload."
     },
     "issuer": {
       "type": "string",
       "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$|^[a-z0-9.-]+$"
+    },
+    "issuer_service_did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Service DID that signed, served, or vouched for this handle claim when distinct from issuer."
     },
     "binding_state": {
       "type": "string",
@@ -41,8 +66,86 @@
         "service_handle"
       ]
     },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "restricted",
+        "private"
+      ],
+      "description": "Default disclosure boundary for this handle claim."
+    },
+    "audience": {
+      "type": "string",
+      "description": "Audience binding for the claim. For handle claims used to build a Space delivery_binding, audience is the target Space DID, the inviting service DID, or another verifier domain the proofs explicitly bind to. Verifier MUST reject claims whose audience does not match the current invocation context."
+    },
     "challenge": {
       "type": "string"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional scope such as organization_did, space_id, purpose, or allowed operations."
+    },
+    "service_acceptance_ref": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Event reference usable as member_delivery_binding.service_acceptance_ref when the claim is accepted by Space policy."
+    },
+    "policy_ref": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Policy event that authorizes this handle-to-service binding."
+    },
+    "delivery_binding_hint": {
+      "type": "object",
+      "required": [
+        "recipient_service_did",
+        "binding_source"
+      ],
+      "properties": {
+        "recipient_service_did": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        },
+        "recipient_service_type": {
+          "const": "principal_server"
+        },
+        "binding_source": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "invite",
+            "join_policy",
+            "organization_policy",
+            "space_policy"
+          ]
+        },
+        "delivery_modes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "events",
+              "sync",
+              "to_device",
+              "push",
+              "key_packages"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "service_acceptance_ref": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "policy_ref": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
     },
     "claims": {
       "type": "array",
@@ -60,6 +163,19 @@
       "format": "date-time",
       "pattern": "Z$"
     },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "uniqueItems": true
+    },
     "proofs": {
       "type": "array",
       "items": {
@@ -68,5 +184,44 @@
       "minItems": 1
     }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "properties": { "binding_state": { "const": "verified" } },
+        "required": ["binding_state"]
+      },
+      "then": {
+        "required": [
+          "handle_uri",
+          "expires_at"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": ["recipient_service_did"]
+      },
+      "then": {
+        "required": [
+          "handle_uri",
+          "audience",
+          "expires_at"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": ["delivery_binding_hint"]
+      },
+      "then": {
+        "required": [
+          "handle_uri",
+          "recipient_service_did",
+          "audience",
+          "expires_at"
+        ]
+      }
+    }
+  ]
 }
