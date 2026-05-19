@@ -42,6 +42,57 @@
 
 ## [Unreleased]
 
+### 新增 service describe claim 等级 schema（2026-05-20）
+
+T6.1 的协议侧落地。此前 `server/describe` / `identity/describe` / `events/describe` / `sync/describe` /
+`directory/describe` / `push/describe` 仅暴露 `supported_operations`，把 endpoint 可达性、feature 实现、profile claim
+混在一起。客户端无法区分某个 profile 是服务自声明的还是经过 cotest 验证的，dev / placeholder proof
+posture 也容易被误标为生产 conformance。本轮在规范层把 describe response 切分为 claim level，并为
+`development_mode=true` 添加 hard constraint 禁止 `verified_profiles`。
+
+- **变更类型**: add
+- **影响 artifact**: `schemas/service-describe.schema.json`、`registry/contract-catalog.json`、`registry/schema-registry.json`、`zh/sync/service-surface.md`、`zh/sync/service-http-binding.md`、`zh/overview/release-readiness.md`
+- **canonical 变更**:
+  - 新增 schema id `cx.schema.service_describe.v1`，绑定 `schemas/service-describe.schema.json`；required 字段 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces`；`claimed_profiles[].claim_kind` 枚举为 `self_claimed`；`verified_profiles[].claim_kind` 枚举为 `cotest_verified` 且 required `cotest_run_id` / `artifact_hash`（`sha256:<hex>`）/ `timestamp`；`compat_surfaces[].kind` 枚举为 `matrix_passthrough` / `mimi_passthrough` / `legacy_alias` / `external_interop` / `deprecated_alias`；JSON Schema `allOf.if/then` 强制 `development_mode=true => verified_profiles=[]`。
+  - `service-surface.md` 新增 §3.0 章节，定义六个 claim level 字段、约束与下游 badge 规则；§17 wire 互操作要求条目补充 claim level MUST。
+  - `service-http-binding.md` §2.3 `GET /api/v1/server/describe` 响应字段集合扩充。
+  - `release-readiness.md` Registry 表 `Schema` 计数 53 → 54。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (152 event kinds, 54 schemas, 39 typed ID kinds, 84 operations, 80 profiles)` 与 `registry diff: clean`。
+- **conformance impact**:
+  - 受影响 profile: 无 profile-level 改动；本轮仅扩展 describe wire envelope。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible — 旧 caller 看到追加字段直接忽略；新 caller MUST 按 claim level 解读，且任何 dev / placeholder 部署 MUST 自检 `verified_profiles == []`。
+  - reader / writer 行为要求: 服务 MUST 同时输出六个 claim level 字段，且 dev mode 下 `verified_profiles` 强制为空；客户端 / sodmin / cotest validator MUST 按 claim level 渲染 badge 与 conformance 判断，不得把 `supported_operations` / `implemented_features` 当成 profile claim。
+- **fixture / vector 变化**: 后续 cotest profile validator fixture（T6.1 验收）将基于本 schema 派生 negative case（dev_mode=true 但 verified_profiles 非空 / claimed_profiles 用 cotest_verified claim_kind 等）。
+- **prose 同步**: `spec/v1/zh/sync/service-surface.md` §3.0（新增）+ §17；`spec/v1/zh/sync/service-http-binding.md` §2.3 表格；`spec/v1/zh/overview/release-readiness.md` Registry 表。
+- **迁移指南**:
+  - 服务实现：在 describe handler 中追加六个字段；把旧 `supported_profiles` / 自声明 profile 重命名为 `claimed_profiles[{profile_id, claim_kind:"self_claimed"}]`；cotest run 结果 MUST 经由独立 verifier 写入 `verified_profiles`；dev mode posture 下编译期或运行期 assert `verified_profiles.is_empty()`。
+  - 下游：sodmin / yougen / cotest validator MUST 区分 self_claimed 与 cotest_verified；旧 `supported_profiles` 字段保留作向后兼容别名，但不再表达 claim level。
+
+### 新增 `MemberDeliveryBindingCandidate` 规范级对象（2026-05-19）
+
+Handle → `delivery_binding_hint` → member delivery binding → Space-scoped delivery 端到端链路此前在 coauth / soland / teabay 等下游各自拼字符串组装；本轮把 "用 handle 加成员" 链路上需要传递的最小字段集合凝固为一个 schema-defined builder 对象 `MemberDeliveryBindingCandidate`，让 SDK `member_add` builder 只接受 candidate 或已物化 binding，停止跨实现 ad-hoc shape 漂移。
+
+- **变更类型**: add
+- **影响 artifact**: `schemas/member-delivery-binding-candidate.schema.json`、`registry/contract-catalog.json`、`registry/schema-registry.json`、`zh/identity/identity-handles.md`、`zh/spec-map.md`、`zh/overview/release-readiness.md`
+- **canonical 变更**:
+  - 新增 schema id `cx.schema.member_delivery_binding_candidate.v1`，绑定 `schemas/member-delivery-binding-candidate.schema.json`；MUST 字段 `subject_did` / `handle_uri` / `recipient_service_did` / `delivery_binding_hint` / `issuer_service_did` / `audience` / `expires_at` / `source_refs` / `proofs` / `intent`；`additionalProperties: false`；`handle_uri` 复用 handle-claim canonical 形态约束（`contrix://<domain>/users/<localpart>`，lowercase localpart）；`delivery_binding_hint.binding_source` 排除 `did_document_default`。
+  - `zh/identity/identity-handles.md` 新增 §3.7 章节，定义字段、来源（Directory `intent="member_add"` / 受信 issuer 直接签发）、validator MUST 规则（schema 合规 / canonical handle_uri / audience match / expiry / proof binding transcript / subject 一致性 / `binding_source` 合法值 / `recipient_service_did` 内外一致），以及 display / mention / member_add 三种 intent 解析返回字段的差异。
+  - `spec-map.md` §4.2 在 `identity-handles.md` 条目补注 §3.7 入口。
+  - `release-readiness.md` Registry 表 `Schema` 计数 52 → 53。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 已重跑；`python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (152 event kinds, 53 schemas, 39 typed ID kinds, 84 operations, 80 profiles)` 与 `registry diff: clean`。
+- **conformance impact**:
+  - 受影响 profile: 无 profile-level 变更；candidate 是 `cx.directory.resolve_handle` 响应与 SDK `member_add` builder 之间的 typed payload。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible — 旧 caller 仍可继续构造拼字符串 payload，但 SDK 已标 deprecation；新 caller MUST 走 candidate 路径。
+  - reader / writer 行为要求: Directory MUST 在 `intent ∈ {member_add, invite}` 响应中以 candidate shape 重新打包 §9.0 normative 字段；SDK builder MUST 在落 `cx.member.state{join}.delivery_binding` 前对 candidate 跑 validator；reducer 仍 MUST 按 Join Policy 独立再验证（candidate 不取代 Join Policy 检查）。
+- **fixture / vector 变化**: 沿用既有 `handle-claim` fixture；后续可基于 candidate schema 派生 negative payload（subject mismatch / expired / audience mismatch / non-canonical handle_uri）。
+- **prose 同步**: `spec/v1/zh/identity/identity-handles.md` §3.7（新增）；`spec/v1/zh/spec-map.md` §4.2；`spec/v1/zh/overview/release-readiness.md` Registry 表。
+- **迁移指南**:
+  - Directory 实现：把 `cx.directory.resolve_handle(intent="member_add" \| "invite")` 响应聚合为 candidate shape，并附 `source_refs[]` 与 `proofs[]`。
+  - SDK / 客户端：把任何 "用 handle 加成员" 入口改成只接 `MemberDeliveryBindingCandidate` 或已物化 `MemberDeliveryBinding`；旧拼字符串 API 打 deprecation，至少保留一个 minor 版本。
+  - coauth / soland / teabay 等下游：在 T3.2 / T3.3 / T3.4 任务中迁移到 candidate；本轮 spec + SDK 不直接改这些项目。
+
 ### Push gateway profile 拆分 + profile role 注解（2026-05-19）
 
 `cx.profile.push_gateway.v1` 此前把 `blind_wakeup` 列为 optional extension，下游可声明"支持 push gateway 但不支持 blind wakeup"，与 spec 正文要求的"默认互操作安全基线"矛盾。本轮把 push gateway profile 按隐私语义拆分为三个独立 profile，并为所有 profile 增加 `role` 注解，让 SDK / yougen / soland 之类的 client 无法把 gateway profile 误用为本地 client profile。

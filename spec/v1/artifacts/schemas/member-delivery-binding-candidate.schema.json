@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/member-delivery-binding-candidate.schema.json",
+  "title": "Contrix Member Delivery Binding Candidate",
+  "description": "Builder-side candidate object that ferries Handle resolution output (intent=member_add | invite) or a trusted-issuer-signed equivalent into the Space member_add / invite pipeline. Produces a Space-scoped member_delivery_binding only after the reducer independently re-validates against Join Policy. See identity-handles.md §3.7.",
+  "type": "object",
+  "required": [
+    "subject_did",
+    "handle_uri",
+    "recipient_service_did",
+    "delivery_binding_hint",
+    "issuer_service_did",
+    "audience",
+    "expires_at",
+    "source_refs",
+    "proofs",
+    "intent"
+  ],
+  "properties": {
+    "subject_did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in cx.member.state{membership=join}."
+    },
+    "handle_uri": {
+      "type": "string",
+      "pattern": "^contrix://[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?/users/[a-z0-9._+~-]{1,128}$",
+      "description": "Canonical contrix:// handle URI; lowercase localpart. acct:, bare host, or display strings are rejected here."
+    },
+    "handle_aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^acct:[a-z0-9._+~-]{1,128}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?$"
+      },
+      "uniqueItems": true,
+      "description": "Optional interop aliases (RFC 7565 acct:). Never used for cache keys, signature transcripts, or delivery_binding materialisation."
+    },
+    "recipient_service_did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Principal Server service DID — source of member_delivery_binding.recipient_service_did once materialised."
+    },
+    "delivery_binding_hint": {
+      "type": "object",
+      "required": [
+        "recipient_service_did",
+        "binding_source"
+      ],
+      "properties": {
+        "recipient_service_did": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        },
+        "recipient_service_type": {
+          "const": "principal_server"
+        },
+        "binding_source": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "invite",
+            "join_policy",
+            "organization_policy",
+            "space_policy"
+          ],
+          "description": "MUST NOT be did_document_default — handle-resolved candidates and DID Document fallback are independent materialisation paths."
+        },
+        "delivery_modes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "events",
+              "sync",
+              "to_device",
+              "push",
+              "key_packages"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "service_acceptance_ref": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "policy_ref": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "issuer_service_did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "description": "Service DID that signed the candidate (Directory service DID, Principal Server service DID, or Organization service DID)."
+    },
+    "audience": {
+      "type": "string",
+      "description": "Target Space DID or inviting service DID. Verifier MUST reject candidates whose audience does not match the current invocation context."
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "RFC 3339 UTC timestamp. Expired candidates MUST NOT enter the builder."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "description": "Event references at the issuer / Directory / Organization that back this candidate; clients SHOULD re-verify against the truth source."
+    },
+    "proofs": {
+      "type": "array",
+      "items": {
+        "$ref": "./event-schema.json#/$defs/proof"
+      },
+      "minItems": 1,
+      "description": "At least one proof binding handle_uri, subject_did, recipient_service_did, audience, issuer_service_did, expires_at and (when present) claim_digest."
+    },
+    "claim_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "sha256 digest of the upstream handle claim canonical JSON; used as cache key and audit-chain anchor."
+    },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "member_add",
+        "invite"
+      ],
+      "description": "Builder entry point. Advisory for audit / telemetry; reducer behaviour does not branch on this field."
+    }
+  },
+  "additionalProperties": false
+}

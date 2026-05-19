@@ -152,6 +152,67 @@ Handle 按 holder 披露意图分两类：
 
 需要不可关联的部署 MUST 为每个上下文使用 pairwise / private DID（见 §10、§11、§16），并在每个 pairwise DID 下独立签发 handle claim。pairwise DID 与 handle 是正交机制：handle 解决"易懂寻址 + 可选默认投递"，pairwise DID 解决"跨关系不可关联"。
 
+## 3.7 MemberDeliveryBindingCandidate
+
+`MemberDeliveryBindingCandidate` 是 Handle resolution（`cx.directory.resolve_handle(intent="member_add")`）或受信 issuer 直接签发的 **规范级候选对象**：它把 "用 handle 加成员" 这个端到端链路上需要传递的最小字段集合凝固为一个 schema-defined shape，让 Principal Server、SDK builder、Space reducer、Auth Server 与 directory 之间停止各自拼字符串。Wire schema 见 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json)。
+
+该对象既不是 grant，也不是已物化的 `member_delivery_binding`——它只是**通向**后者的 builder 输入。reducer 在落 `cx.member.state{membership="join"}.delivery_binding` 时仍 MUST 按 [`governance/join-policy.md`](../governance/join-policy.md) 独立验证。
+
+### 3.7.1 字段（normative）
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `subject_did` | DID | MUST | 被寻址主体的 principal DID；最终物化为 `payload.actor_id` / cell subject。 |
+| `handle_uri` | canonical URI | MUST | `contrix://<domain>(:<port>)?/users/<localpart>`，`<localpart>` 已 lowercase。`acct:` / 显示形态 / 裸 host 一律拒绝。 |
+| `handle_aliases[]` | `acct:` URI 数组 | MAY | 仅互通别名；不参与权威比对、缓存键或 `delivery_binding` 物化。 |
+| `recipient_service_did` | DID | MUST | Principal Server service DID，是 `member_delivery_binding.recipient_service_did` 的来源。 |
+| `delivery_binding_hint` | object | MUST | 与 [`handle-claim.schema.json#/properties/delivery_binding_hint`](../../artifacts/schemas/handle-claim.schema.json) 同形，`binding_source` ∈ `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`；MUST NOT 为 `did_document_default`。 |
+| `issuer_service_did` | DID | MUST | 实际签发该 candidate 的服务 DID（Directory / Principal Server / Organization service DID）。 |
+| `audience` | string | MUST | 目标 Space DID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。 |
+| `expires_at` | timestamp | MUST | RFC 3339 `Z` 形式；过期 candidate MUST 被视为不可用。 |
+| `source_refs[]` | event id 数组 | MUST | 至少一条 `cx:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |
+| `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle_uri`、`subject_did`、`recipient_service_did`、`audience`、`issuer_service_did` 与 `expires_at`。 |
+| `claim_digest` | `sha256:<hex>` | SHOULD | candidate 上游 handle claim 的 canonical JSON digest，用于缓存键与 audit chain。 |
+| `intent` | enum | MUST | `member_add` / `invite`，区分 candidate 的 builder 入口；reducer 不依赖该字段，仅用于审计与遥测。 |
+
+`additionalProperties: false`——unknown 字段 MUST 由 verifier 拒绝，避免静默 widening。
+
+### 3.7.2 来源（normative）
+
+candidate 只能来自以下两类签发路径：
+
+1. **Directory 解析**：`cx.directory.resolve_handle(intent="member_add" \| "invite")` 响应 MUST 把 §9.0 normative 字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
+2. **受信 issuer 直接签发**：Organization / Principal Server / 受信 service DID 可以离开 Directory 直接对某 `(handle_uri, subject_did, recipient_service_did, audience)` 组合发签名 candidate，例如随 invite token 内嵌、随 organization-issued member roster 下发。
+
+candidate **不得**直接构造自客户端字符串拼接、UI text、未签名 directory 响应或 cache 残留。任何缺少 `proofs[]` 的对象 MUST NOT 被命名为 candidate。
+
+### 3.7.3 Validator MUST 规则
+
+verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
+
+1. **schema 合规**：所有 MUST 字段存在；`additionalProperties: false` 不放过未知字段。
+2. **`handle_uri` canonical**：必须匹配 `contrix://<domain>(:<port>)?/users/<localpart>` 主形态，且 `<localpart>` 已 lowercase。verifier 不得在签名 transcript 中接受任何非 canonical 形态；`acct:` 出现在 `handle_uri` 即拒绝。
+3. **audience match**：`audience` MUST 等于当前 invocation 上下文（目标 `space_id` 对应的 DID 或邀请方 service DID）；不一致 MUST 返回与 "无可披露 claim" 不可区分的统一拒绝。
+4. **expiry**：`expires_at` 严格大于当前时间；过期 candidate MUST NOT 进入 builder。
+5. **proof 验证**：`proofs[]` 中至少一条由 `issuer_service_did`（或受 issuer 委派的 verification method）签名，且 binding transcript 覆盖 `handle_uri`、`subject_did`、`recipient_service_did`、`audience`、`issuer_service_did`、`expires_at` 与 `claim_digest`（如有）。
+6. **subject / handle 关联**：candidate 内 `subject_did` MUST 等于上游 handle claim 中的 subject（不允许 verifier 在 builder 入口 "替换" subject）。
+7. **`delivery_binding_hint.binding_source` 合法值**：MUST 是 §3.3 列出的五种之一；`did_document_default` 即拒绝。
+8. **`recipient_service_did` 一致性**：candidate 顶层 `recipient_service_did` MUST 与 `delivery_binding_hint.recipient_service_did` byte-for-byte 相同。
+
+通过上述检查的 candidate 是 builder 的合法输入；reducer 仍 MUST 按 Join Policy 再验签 / 再过审。
+
+### 3.7.4 与 display resolve / mention resolve 的差异
+
+`cx.directory.resolve_handle` 三种 intent 返回的字段不同，candidate 只在 `member_add` / `invite` intent 下产生：
+
+| Intent | 返回字段（必含） | 是否产 candidate | 说明 |
+| --- | --- | --- | --- |
+| `lookup` / display resolve | `subject`、`handle_uri`、`verified` | 否 | 仅用于显示双向验证状态；不暴露 `recipient_service_did`、`audience`、`delivery_binding_hint`。 |
+| `mention` resolve | `subject`、`handle_uri`、`display_name?` | 否 | mention autocomplete 需要的最小字段；MUST NOT 在未授权时披露 `recipient_service_did`。结果存为 message 内 mention snapshot，不进入 membership builder。 |
+| `member_add` / `invite` resolve | §3.7.1 全部 MUST 字段 | 是 | 仅当 caller 已经过授权（共同 Space、Directory policy、organization grant 等）才返回。Directory 拒绝时使用与 "未发现资源" 不可区分的统一拒绝。 |
+
+实现 MUST NOT 跨 intent 复用结果：以 `mention` 解析拿到的 payload 不得提升为 candidate；以 `member_add` 解析拿到的 candidate 不得被广播到 mention autocomplete 缓存。
+
 ## 4. Handle 绑定
 
 公开 persona DID MAY 使用：

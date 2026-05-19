@@ -356,6 +356,99 @@ components:
         rate_limit_policy:
           type: object
           additionalProperties: true
+        implemented_features:
+          type: array
+          description: |
+            Feature ids the service has implementation code for but does NOT
+            necessarily claim conformance for. Tooling that builds a
+            conformance matrix MUST treat this strictly weaker than
+            `claimed_profiles`. See `zh/sync/service-surface.md` §3.0 and
+            `cx.schema.service_describe.v1`.
+          items:
+            type: string
+        claimed_profiles:
+          type: array
+          description: |
+            Profiles the service self-claims membership in. `claim_kind` MUST
+            be `self_claimed`; cotest-verified entries MUST appear in
+            `verified_profiles` instead. See §3.0.
+          items:
+            type: object
+            required:
+            - profile_id
+            - claim_kind
+            properties:
+              profile_id:
+                type: string
+              claim_kind:
+                type: string
+                enum:
+                - self_claimed
+        verified_profiles:
+          type: array
+          description: |
+            Profiles for which a cotest run has produced a passing artifact.
+            Each entry MUST carry `cotest_run_id`, `artifact_hash` and
+            `timestamp`. When `development_mode=true` this array MUST be
+            empty (see §3.0 / §1.7 and `cx.schema.service_describe.v1`).
+          items:
+            type: object
+            required:
+            - profile_id
+            - claim_kind
+            - cotest_run_id
+            - artifact_hash
+            - timestamp
+            properties:
+              profile_id:
+                type: string
+              claim_kind:
+                type: string
+                enum:
+                - cotest_verified
+              cotest_run_id:
+                type: string
+              artifact_hash:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+        experimental_features:
+          type: array
+          description: |
+            Feature ids that the service exposes but does NOT promise stable
+            interop for. Clients MUST NOT treat these as load-bearing for
+            protocol-level decisions.
+          items:
+            type: string
+        compat_surfaces:
+          type: array
+          description: |
+            Legacy or external-interop surfaces this service exposes for
+            compatibility, not as part of its claimed Contrix v1 conformance.
+            `kind` is one of `matrix_passthrough`, `mimi_passthrough`,
+            `legacy_alias`, `external_interop`, `deprecated_alias`.
+          items:
+            type: object
+            required:
+            - name
+            - kind
+            properties:
+              name:
+                type: string
+              kind:
+                type: string
+                enum:
+                - matrix_passthrough
+                - mimi_passthrough
+                - legacy_alias
+                - external_interop
+                - deprecated_alias
+        development_mode:
+          type: boolean
+          description: |
+            Mirror of the service's development_mode flag. When true,
+            `verified_profiles` MUST be empty.
     IdentityResolveResponse:
       type: object
       properties:

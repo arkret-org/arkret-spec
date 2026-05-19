@@ -74,7 +74,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 | Endpoint | Request 类型 | Auth / 访问限制 | Success 类型 |
 | --- | --- | --- | --- |
-| `GET /api/v1/server/describe` | query: none 或 `service_type?` | `public_metadata`；不得返回私有 topology、secret 或未授权 internal endpoint。 | `{service_did, service_type, protocol_version, supported_features[], supported_bindings[], supported_operations[], plaintext_visibility, auth_metadata?, limits?, rate_limit_policy?, rate_limit_policy_ref?}` |
+| `GET /api/v1/server/describe` | query: none 或 `service_type?` | `public_metadata`；不得返回私有 topology、secret 或未授权 internal endpoint。 | `{service_did, service_type, protocol_version, supported_features[], supported_bindings[], supported_operations[], implemented_features[], claimed_profiles[], verified_profiles[], experimental_features[], compat_surfaces[], plaintext_visibility, auth_metadata?, limits?, rate_limit_policy?, rate_limit_policy_ref?}`（claim-level 字段见 service-surface.md §3.0 与 `cx.schema.service_describe.v1`；`development_mode=true` 时 `verified_profiles=[]`） |
 | `GET /api/v1/identity/describe` | query: none | `public_metadata`；可限流。 | `{service_did, registry_mode, supported_receipts[], protocol_version, profiles[]}` |
 | `POST /api/v1/identity/resolve` | body `{did: did, include?: string[]}` | `public_metadata`；private DID MAY require `user_session` 或 presentation proof。 | `{did_document, key_log_head?, seq?, receipts?, method_evidence?}` |
 | `GET /api/v1/identity/document` | query `{did: did, version?: string}` | 同 `identity.resolve`。 | `{did_document, head_event_hash?, seq?, receipts?}` |

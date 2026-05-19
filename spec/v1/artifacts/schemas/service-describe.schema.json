@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/service-describe.schema.json",
+  "title": "Contrix Service Describe Claim-Level Envelope",
+  "description": "Claim-level partition of a service describe response. The legacy field `supported_operations` MUST list endpoint-callable operation_ids; new fields partition implementation status: `implemented_features` (server has code but not necessarily conformance-verified), `claimed_profiles` (self-claimed profile membership), `verified_profiles` (cotest-verified, with run id / artifact hash / timestamp), `experimental_features` (NOT stable interop surface), `compat_surfaces` (legacy / interop-only passthroughs). Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry. See service-surface.md §3.3.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "supported_operations",
+    "implemented_features",
+    "claimed_profiles",
+    "verified_profiles",
+    "experimental_features",
+    "compat_surfaces"
+  ],
+  "properties": {
+    "supported_operations": {
+      "type": "array",
+      "description": "operation_ids that this endpoint can actually be invoked with. Element format SHOULD match the canonical operation_registry ids (e.g. `cx.events.submit`).",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9._-]*$"
+      },
+      "uniqueItems": true
+    },
+    "implemented_features": {
+      "type": "array",
+      "description": "feature_ids the service has implementation code for but does NOT necessarily claim conformance for. Tooling that builds a conformance matrix MUST treat this strictly weaker than `claimed_profiles`.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "claimed_profiles": {
+      "type": "array",
+      "description": "Profiles the service self-claims membership in. `claim_kind` MUST be `self_claimed`; verified-only assertions belong under `verified_profiles` and MUST NOT appear here.",
+      "items": {
+        "type": "object",
+        "required": ["profile_id", "claim_kind"],
+        "additionalProperties": true,
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "pattern": "^cx\\.profile\\.[a-z0-9._-]+\\.v[0-9]+$"
+          },
+          "claim_kind": {
+            "type": "string",
+            "enum": ["self_claimed"]
+          },
+          "claimed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "verified_profiles": {
+      "type": "array",
+      "description": "Profiles for which a cotest run has produced a passing artifact. Each entry MUST identify the cotest run, the artifact hash, and the verification timestamp. When the service is in `development_mode=true` this array MUST be empty.",
+      "items": {
+        "type": "object",
+        "required": [
+          "profile_id",
+          "claim_kind",
+          "cotest_run_id",
+          "artifact_hash",
+          "timestamp"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "pattern": "^cx\\.profile\\.[a-z0-9._-]+\\.v[0-9]+$"
+          },
+          "claim_kind": {
+            "type": "string",
+            "enum": ["cotest_verified"]
+          },
+          "cotest_run_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact_hash": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "experimental_features": {
+      "type": "array",
+      "description": "feature_ids that the service exposes but explicitly does NOT promise stable interop for. Clients MUST treat these as non-load-bearing for protocol-level decisions.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "compat_surfaces": {
+      "type": "array",
+      "description": "Legacy or external-interop surfaces this service exposes for compatibility, not as part of its claimed Contrix v1 conformance.",
+      "items": {
+        "type": "object",
+        "required": ["name", "kind"],
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "matrix_passthrough",
+              "mimi_passthrough",
+              "legacy_alias",
+              "external_interop",
+              "deprecated_alias"
+            ]
+          },
+          "since": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "development_mode": {
+      "type": "boolean",
+      "description": "Mirror of the service's development_mode flag. When true, `verified_profiles` MUST be empty."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "development_mode": { "const": true }
+        },
+        "required": ["development_mode"]
+      },
+      "then": {
+        "properties": {
+          "verified_profiles": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}

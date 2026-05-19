@@ -1828,6 +1828,12 @@
         "file": "schemas/handle-claim.schema.json"
       },
       {
+        "schema_id": "cx.schema.member_delivery_binding_candidate.v1",
+        "file": "schemas/member-delivery-binding-candidate.schema.json",
+        "status": "active",
+        "description": "Builder-side candidate object for Handle resolution intent=member_add | invite (identity-handles.md §3.7); produces a Space-scoped member_delivery_binding only after Join Policy re-validation."
+      },
+      {
         "schema_id": "cx.schema.grant_constraint.v1",
         "file": "schemas/grant-constraint.schema.json"
       },
@@ -1896,6 +1902,12 @@
         "file": "schemas/bottom.schema.json",
         "status": "active",
         "description": "Structured Bottom (⊥) diagnostic surfaced on /sync, /events, and state query responses when a cell's effective Lattice value is undefined"
+      },
+      {
+        "schema_id": "cx.schema.service_describe.v1",
+        "file": "schemas/service-describe.schema.json",
+        "status": "active",
+        "description": "Claim-level partition of a service describe response (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. See service-surface.md §3.3."
       }
     ]
   },

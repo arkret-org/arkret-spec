@@ -167,6 +167,35 @@ GET /api/v1/server/describe
 - conformance profile 使用 `cx.profile.*` 标识，例如 `cx.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
 
+### 3.0 Describe response claim levels
+
+`server/describe`（以及结构等价的 `identity/describe` / `events/describe` / `sync/describe` /
+`directory/describe` / `push/describe`）响应 MUST 按 **claim level** 区分以下字段；schema 见
+[`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`cx.schema.service_describe.v1`）：
+
+- `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
+  不构成 profile claim。元素 SHOULD 命中 `operation-registry.json` 注册项。
+- `implemented_features: feature_id[]` — 服务有实现代码、但 **不一定** 通过 conformance verification 的 feature。
+  构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
+- `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
+  `claim_kind` 当前固定为 `self_claimed`；cotest 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
+- `verified_profiles: [{profile_id, claim_kind: "cotest_verified", cotest_run_id, artifact_hash, timestamp}]` —
+  附带 cotest run 标识、artifact hash 与验证时间戳的已验证 profile。**约束**：当 `development_mode=true`
+  时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见 §1.7 草案）。
+- `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
+  把它当成协议级决策的依据，也不得继承到 `claimed_profiles`。
+- `compat_surfaces: [{name, kind, ...}]` — 仅为兼容性而暴露的 legacy / external interop surface
+  （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `legacy_alias`, `external_interop`, `deprecated_alias`}）。
+  这些 surface **不构成** Contrix v1 conformance 的一部分。
+
+旧版本只暴露 `supported_operations`，把 endpoint 可达性、feature 实现、profile claim 混在一起。
+本次区分要求实现：
+
+1. 在 describe 响应中同时输出上述六个字段（向后兼容地追加在原有字段之后）。
+2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
+3. cotest 与 sodmin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`cotest_verified`、
+   `experimental`、`compat`、`not_claimed`。
+
 ### 3.1 Identity Resolution Surface
 
 Identity Resolution Surface 是 DID method resolver、registry、witness、watcher 或 method-specific verifier 的统一抽象。`did:plc` 可以由 PLC directory、mirror 或 audit source 实现；`did:web` 可以由 HTTPS / DNS resolver 实现；`did:webvh` 可以由 DID log、watcher 和 witness 实现；`did:key` 可以只由本地 resolver 实现，不需要网络 API；`did:keri` 可以由 KERI log、witness、watcher 和 OOBI discovery 实现。
@@ -710,5 +739,6 @@ Contrix v1 固定：
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_valid_until`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
 - Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref` 与 `plaintext_visibility`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{binding: "http_json", ...}`);单数字段名 `binding` 仅出现在每个 binding 条目**内部**,不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `cx.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。
