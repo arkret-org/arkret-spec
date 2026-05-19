@@ -58,6 +58,9 @@
     "cx.profile.identity_registry.v1",
     "cx.profile.blob_node.v1",
     "cx.profile.push_gateway.v1",
+    "cx.profile.push_gateway.blind_wakeup.v1",
+    "cx.profile.push_gateway.visible_notification.v1",
+    "cx.profile.push_gateway.matrix_passthrough.v1",
     "cx.profile.applet_service.v1",
     "cx.profile.agent_runtime.v1",
     "cx.profile.agent_workspace.v1",
@@ -88,6 +91,9 @@
       "cx.profile.identity_registry.v1",
       "cx.profile.blob_node.v1",
       "cx.profile.push_gateway.v1",
+      "cx.profile.push_gateway.blind_wakeup.v1",
+      "cx.profile.push_gateway.visible_notification.v1",
+      "cx.profile.push_gateway.matrix_passthrough.v1",
       "cx.profile.sovereign_client.v1",
       "cx.profile.franking.v1",
       "cx.profile.franking.sender_commitment.v1",
@@ -149,6 +155,89 @@
     "cx.profile.candidate.join_policy.v1"
   ],
   "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate workflow concept/action names / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired wire Event.kind values registered under `cx.*`) once their underlying surface is formally registered.",
+  "profile_roles_rule": "Every profile id MUST be annotated with exactly one role from the enum {client, server, gateway, directory, admin, interop}. Roles partition the profile namespace so that an implementation MUST NOT mistake e.g. a gateway profile (push_gateway, blob_node) for a client profile, or a deployment / hardening / vector profile (admin role) for a wire-conformance client / server profile. SDK manifests, client-side feature negotiation, and conformance harness loaders MUST consult `profile_roles` before claiming a profile as locally implemented. Roles in spec layer metadata; the per-profile object in `profile_requirements` MAY ALSO carry a `role` field for convenience, but `profile_roles` is the canonical source.",
+  "profile_roles": {
+    "cx.profile.core_event_store.v1": "server",
+    "cx.profile.chat_mvp.v1": "client",
+    "cx.profile.kanban_mvp.v1": "client",
+    "cx.profile.minimal_client.v1": "client",
+    "cx.profile.full_client.v1": "client",
+    "cx.profile.e2ee_client.v1": "client",
+    "cx.profile.e2ee_relaxed.v1": "client",
+    "cx.profile.enterprise_client.v1": "client",
+    "cx.profile.sovereign_client.v1": "client",
+    "cx.profile.principal_server_events_api.v1": "server",
+    "cx.profile.principal_server.v1": "server",
+    "cx.profile.directory_service.v1": "directory",
+    "cx.profile.federation_minimal.v1": "server",
+    "cx.profile.federation.high_assurance.v1": "server",
+    "cx.profile.identity_registry.v1": "directory",
+    "cx.profile.public_network_identity.v1": "directory",
+    "cx.profile.org_high_assurance_identity.v1": "directory",
+    "cx.profile.blob_node.v1": "gateway",
+    "cx.profile.push_gateway.v1": "gateway",
+    "cx.profile.push_gateway.blind_wakeup.v1": "gateway",
+    "cx.profile.push_gateway.visible_notification.v1": "gateway",
+    "cx.profile.push_gateway.matrix_passthrough.v1": "interop",
+    "cx.profile.applet_service.v1": "server",
+    "cx.profile.agent_runtime.v1": "server",
+    "cx.profile.agent_workspace.v1": "server",
+    "cx.profile.agent_workspace.governed.v1": "server",
+    "cx.profile.agent_workspace.strict.v1": "server",
+    "cx.profile.agent_workspace.lite.v1": "server",
+    "cx.profile.mimi_interop.v1": "interop",
+    "cx.profile.franking.v1": "server",
+    "cx.profile.franking.sender_commitment.v1": "client",
+    "cx.profile.morph.schema_migration_transformations.v1": "server",
+    "cx.profile.webrtc_media.v1": "gateway",
+    "cx.profile.personal_node.v1": "admin",
+    "cx.profile.small_team.v1": "admin",
+    "cx.profile.organization.v1": "admin",
+    "cx.profile.high_security_organization.v1": "admin",
+    "cx.profile.isolated_sovereign_network.v1": "admin",
+    "cx.profile.sovereign_deployment.v1": "admin",
+    "cx.profile.principal_control_space.v1": "admin",
+    "cx.profile.constraint.approval_workflow.v1": "admin",
+    "cx.profile.constraint.claim_based.v1": "admin",
+    "cx.profile.constraint.encryption_requirement.v1": "admin",
+    "cx.profile.constraint.visibility_control.v1": "admin",
+    "cx.profile.constraint.resource_limit.v1": "admin",
+    "cx.profile.collaborative_text.v1": "client",
+    "cx.profile.matrix_compat.v1": "interop",
+    "cx.profile.encoding.cbor.v1": "interop",
+    "cx.profile.encoding.multihash.v1": "interop",
+    "cx.profile.hash.sha512.v1": "interop",
+    "cx.profile.hash.sha3.v1": "interop",
+    "cx.profile.hash.blake3.v1": "interop",
+    "cx.profile.hash_transition.v1": "interop",
+    "cx.profile.candidate.join_policy.v1": "admin",
+    "cx.profile.mls_governance_binding.full.v1": "admin",
+    "cx.profile.attested_audit.e2ee.v1": "admin",
+    "cx.profile.disclosed_audit.e2ee.v1": "admin",
+    "cx.profile.cross_signing.reset.v1": "admin",
+    "cx.profile.mls.minimal_metadata_space.v1": "admin",
+    "cx.profile.key_backup.memory_hard.v1": "admin",
+    "cx.profile.anchor.single_did.v1": "admin",
+    "cx.profile.anchor.threshold.v1": "admin",
+    "cx.profile.anchor.open_set.v1": "admin",
+    "cx.profile.anchor.mixed_recovery.v1": "admin",
+    "cx.profile.capability_vectors.v1": "interop",
+    "cx.profile.crypto_signature_vectors.v1": "interop",
+    "cx.profile.encoding_vectors.v1": "interop",
+    "cx.profile.event_envelope_negative_vectors.v1": "interop",
+    "cx.profile.discovery_vectors.v1": "interop",
+    "cx.profile.event_kind_lattice_dispatch_vectors.v1": "interop",
+    "cx.profile.event_kind_payload_coverage_vectors.v1": "interop",
+    "cx.profile.operation_registry_coverage_vectors.v1": "interop",
+    "cx.profile.error_code_registry_coverage_vectors.v1": "interop",
+    "cx.profile.federation_vectors.v1": "interop",
+    "cx.profile.privacy_security_vectors.v1": "interop",
+    "cx.profile.reaction_vectors.v1": "interop",
+    "cx.profile.redaction_vectors.v1": "interop",
+    "cx.profile.sync_vectors.v1": "interop",
+    "cx.profile.mimi_interop_vectors.v1": "interop",
+    "cx.profile.move_anchor_lattice_vectors.v1": "interop"
+  },
   "federation_hardening": [
     "service_did_authentication",
     "cross_domain_space_join",
@@ -932,6 +1021,14 @@
       }
     },
     "cx.profile.push_gateway.v1": {
+      "role": "gateway",
+      "description": "Push gateway base profile. Provides the device registration / notify operation surface. All implementations claiming this profile MUST also implement cx.profile.push_gateway.blind_wakeup.v1 (default interop privacy baseline) — see zh/discovery/push-notifications.md §2.2 / §5.1. Visible-payload variants are opt-in only via cx.profile.push_gateway.visible_notification.v1.",
+      "depends_on": [
+        "cx.profile.push_gateway.blind_wakeup.v1"
+      ],
+      "required_profiles": [
+        "cx.profile.push_gateway.blind_wakeup.v1"
+      ],
       "required_endpoints": [
         "cx.push.register_device",
         "cx.push.unregister_device",
@@ -950,7 +1047,6 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "blind_wakeup",
         "notification_summary"
       ],
       "feature_discovery": {
@@ -959,6 +1055,119 @@
           "plaintext_visibility_classes"
         ],
         "unsupported_optional": "strip unsupported plaintext fields"
+      }
+    },
+    "cx.profile.push_gateway.blind_wakeup.v1": {
+      "role": "gateway",
+      "description": "Default push gateway privacy baseline. Every implementation claiming cx.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Space id / name / avatar, Flow id / name, Message id, event id, device DID URL, reaction value, or any cross-Space stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
+      "required_endpoints": [
+        "cx.push.notify"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.notification.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "blind_wakeup_payload_schema",
+          "push_target_id_scope",
+          "wakeup_kind_enum"
+        ],
+        "unsupported_optional": "MUST fail closed; gateways unable to enforce blind wakeup MUST NOT claim cx.profile.push_gateway.v1"
+      },
+      "additional_requirements": {
+        "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Space id / name, Flow id / name, Message id, event id, device DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Space stable correlation key.",
+        "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_service_did, principal, device, push_route); MUST NOT be reusable across Principal Server contexts.",
+        "default_claim_must": "Any implementation claiming cx.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
+      }
+    },
+    "cx.profile.push_gateway.visible_notification.v1": {
+      "role": "gateway",
+      "description": "Opt-in push gateway profile for deployments that require visible notification fields (e.g. titles, sender labels) in provider payloads. Claiming this profile is permitted ONLY when (1) Space policy explicitly lists the gateway in plaintext_visible_services AND declares visible_notification allowance, (2) per-device opt-in is recorded in cx.device authorization state, and (3) the client UI clearly surfaces that visible-notification mode is active. Even when claimed, payloads MUST stay minimised: no message body, no DID URL, no cross-Space stable correlation key, no IP / geolocation, no free-form text outside the profile-declared field set. See zh/discovery/push-notifications.md §5.1.",
+      "depends_on": [
+        "cx.profile.push_gateway.v1"
+      ],
+      "required_profiles": [
+        "cx.profile.push_gateway.v1",
+        "cx.profile.push_gateway.blind_wakeup.v1"
+      ],
+      "inherits": [
+        "cx.profile.push_gateway.v1"
+      ],
+      "required_endpoints": [
+        "cx.push.notify"
+      ],
+      "required_event_kinds": [
+        "cx.device.authorized"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.notification.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "notification_summary"
+      ],
+      "feature_discovery": {
+        "required": [
+          "visible_notification_policy_ref",
+          "device_opt_in_state",
+          "ui_disclosure"
+        ],
+        "unsupported_optional": "omit profile claim; deployments that cannot guarantee Space policy + device opt-in + UI disclosure MUST NOT claim this profile"
+      },
+      "additional_requirements": {
+        "policy_gate_must": "Space policy MUST list the gateway service DID in plaintext_visible_services with visible_notification explicitly allowed.",
+        "device_opt_in_must": "Each receiving device MUST record an opt-in flag in its authorization state; absent opt-in, sender / Space service MUST fall back to blind wakeup.",
+        "ui_disclosure_must": "Client UI MUST clearly indicate visible notification is active to the user.",
+        "payload_minimisation_must": "Even when claimed, payload MUST NOT carry message body, DID URLs, cross-Space stable correlation keys, IP / geolocation, or untyped free-form text."
+      }
+    },
+    "cx.profile.push_gateway.matrix_passthrough.v1": {
+      "role": "interop",
+      "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as a bridge for legacy clients but MUST NOT mix this profile with cx.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Contrix privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under cx.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
+      "depends_on": [
+        "cx.profile.matrix_compat.v1"
+      ],
+      "required_profiles": [
+        "cx.profile.matrix_compat.v1"
+      ],
+      "inherits": [],
+      "required_endpoints": [
+        "cx.push.notify"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.notification.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "matrix_push_gateway_passthrough"
+      ],
+      "incompatible_with": [
+        "cx.profile.push_gateway.blind_wakeup.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "matrix_passthrough_partition_policy",
+          "matrix_provider_directory"
+        ],
+        "unsupported_optional": "omit profile claim; bridges that cannot partition traffic MUST NOT claim this profile"
+      },
+      "additional_requirements": {
+        "partition_must": "Bridges MUST partition push traffic so that Contrix v1 default-baseline peers (cx.profile.push_gateway.blind_wakeup.v1) NEVER receive matrix_passthrough-shaped payloads.",
+        "no_default_mixing_must": "Implementations MUST NOT advertise both cx.profile.push_gateway.blind_wakeup.v1 and cx.profile.push_gateway.matrix_passthrough.v1 as applying to the same (recipient_service_did, device) tuple.",
+        "interop_only_must": "This profile is interop-only; it MUST NOT be used as a substitute for cx.profile.push_gateway.blind_wakeup.v1 in default Contrix deployments."
       }
     },
     "cx.profile.applet_service.v1": {

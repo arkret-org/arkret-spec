@@ -1,0 +1,93 @@
+{
+  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "version": 1,
+  "kind": "removed_operation_ids",
+  "source_of_truth": true,
+  "description": "Operation ids that have been removed from the canonical operation registry. Downstream HTTP / gRPC / MQ binding surfaces and SDK call sites MUST NOT advertise them. cotest scanner consumes this list to detect drift in implementation surfaces.",
+  "rejection_levels": {
+    "hard_reject": "MUST NOT appear in any current operation registry, OpenAPI document, gRPC schema, or SDK call site.",
+    "migration_only": "MAY appear in time-bounded migration adapters; new bindings MUST NOT add it.",
+    "compat_only": "Only on explicit interop / compatibility surfaces.",
+    "docs_only": "Removed from machine surfaces; survives in CHANGELOG / migration notes."
+  },
+  "allowed_context_definitions": {
+    "changelog": "Reference in CHANGELOG or migration documentation.",
+    "legacy_migration": "Reference in time-bounded migration adapter code.",
+    "interop_module": "Reference in an explicit interop binding (not core).",
+    "negative_test": "Reference in cotest drift fixtures that assert rejection."
+  },
+  "entries": [
+    {
+      "id": "cx.flow.track.member.add",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Companion to removed cx.flow.track.member event kind. Tracks do not have independent membership."
+    },
+    {
+      "id": "cx.flow.track.member.remove",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Companion to removed cx.flow.track.member event kind."
+    },
+    {
+      "id": "cx.flow.track.history_visibility.set",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Companion to removed cx.flow.track.history_visibility event kind."
+    },
+    {
+      "id": "cx.flow.track.read_receipt_policy.set",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Companion to removed cx.flow.track.read_receipt_policy event kind."
+    },
+    {
+      "id": "cx.flow.track.policy_components.set",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Companion to removed cx.flow.track.policy_components event kind."
+    },
+    {
+      "id": "cx.field.position.move.apply",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Companion to removed cx.field.position.move event kind."
+    },
+    {
+      "id": "cx.field.position.reorder.apply",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Companion to removed cx.field.position.reorder event kind."
+    },
+    {
+      "id": "cx.space.lifecycle.set.apply",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Companion to removed cx.space.lifecycle.set snapshot event."
+    },
+    {
+      "id": "cx.space.policy.set.apply",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Companion to removed cx.space.policy.set snapshot event."
+    }
+  ]
+}

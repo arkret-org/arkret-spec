@@ -78,6 +78,54 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Canonical merge precedence + conflict rules for the four Morph type declaration sources (schema_refs, space morph_type_profiles, morph_type, facets). Referenced normatively from zh/models/morph.md §4."
+    },
+    {
+      "name": "removed_event_kinds",
+      "file": "registry/removed-event-kinds.json",
+      "kind": "drift_detection_removed_event_kinds",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Machine-readable list of Event.kind values removed from v1. Consumed by cotest drift scanner to flag downstream usage."
+    },
+    {
+      "name": "deprecated_profile_ids",
+      "file": "registry/deprecated-profile-ids.json",
+      "kind": "drift_detection_deprecated_profile_ids",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Profile ids that are deprecated or were never canonical. Consumed by cotest drift scanner."
+    },
+    {
+      "name": "removed_operation_ids",
+      "file": "registry/removed-operation-ids.json",
+      "kind": "drift_detection_removed_operation_ids",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Operation ids removed from the canonical operation registry. Consumed by cotest drift scanner."
+    },
+    {
+      "name": "forbidden_wire_fields",
+      "file": "registry/forbidden-wire-fields.json",
+      "kind": "drift_detection_forbidden_wire_fields",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Field names that MUST NOT appear in specified wire contexts (envelope / payload). Consumed by cotest drift scanner."
+    },
+    {
+      "name": "forbidden_model_terms",
+      "file": "registry/forbidden-model-terms.json",
+      "kind": "drift_detection_forbidden_model_terms",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Terms that MUST NOT be used in current-model prose, code identifiers, or UI copy. Consumed by cotest drift scanner."
+    },
+    {
+      "name": "renames",
+      "file": "registry/renames.json",
+      "kind": "drift_detection_renames",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical mapping from removed / deprecated identifiers to their v1 replacements (or null when no successor). Consumed by cotest and migration tooling."
     }
   ]
 }

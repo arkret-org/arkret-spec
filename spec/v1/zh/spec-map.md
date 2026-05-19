@@ -17,6 +17,31 @@ title: Spec Map
 - `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
 
+### 1.2 漂移检测 artifacts
+
+为了让下游实现（SDK、yougen、soland、cotest 等）能够机器化地发现已经从协议中移除或被弃用的概念，
+`artifacts/registry/` 下提供一组 drift detection artifacts。它们是 canonical source of truth，由
+`registry-manifest.json` 索引，cotest scanner 直接消费这些文件来识别旧 id / 旧字段 / 旧术语的残留：
+
+- `artifacts/registry/removed-event-kinds.json`：已移除的 Event.kind 列表（例如 `cx.field.position.*`、
+  `cx.flow.track.*`、`cx.space.lifecycle.set`、`cx.space.policy.set`）。
+- `artifacts/registry/removed-operation-ids.json`：已移除的 operation id（与上述 event kind 对齐的 binding 端点）。
+- `artifacts/registry/deprecated-profile-ids.json`：已弃用或从未 canonical 化的 profile id
+  （例如 `chat_only_client`、`kanban_only_client`）。
+- `artifacts/registry/forbidden-wire-fields.json`：在 current-wire 中禁止出现的字段（带上下文，例如
+  timeline event 顶层不得出现 `branch`、payload 中不得出现 `room_kind` 或 `kind=room`）。
+- `artifacts/registry/forbidden-model-terms.json`：在 current-model prose / code identifier / UI 文案中
+  禁止使用的术语（例如 `Room`、`Space(kind=list)`、`flow_branch`、`track members`、`Room visibility`）及其替代物。
+- `artifacts/registry/renames.json`：从旧 id / 旧字段名到 v1 替代物的重命名映射（`replacement=null` 表示概念被删除、
+  无机械替代）。
+
+每条 entry 公共字段：`id`、`since_revision`（生效起始的 spec revision）、`rejection_level`
+（`hard_reject` / `migration_only` / `compat_only` / `docs_only`）、`replacement`、`allowed_contexts`
+（`changelog` / `legacy_migration` / `interop_module` / `negative_test`）、`notes`。
+
+新增、移除或重命名标准 cx.* 概念时 MUST 同步更新这组 artifacts；CHANGELOG 条目和这些 artifacts 是
+"机器可发现的协议演化记录"的两面。
+
 ## 2. 推荐阅读顺序
 
 初次理解协议时，建议按以下顺序阅读：

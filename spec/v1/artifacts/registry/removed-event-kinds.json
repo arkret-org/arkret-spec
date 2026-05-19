@@ -1,0 +1,85 @@
+{
+  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "version": 1,
+  "kind": "removed_event_kinds",
+  "source_of_truth": true,
+  "description": "Machine-readable list of Event.kind values that have been removed from the Contrix v1 protocol. Downstream implementations (SDKs, yougen, soland, cotest) MUST treat these as schema_violation on the wire and MUST NOT introduce them as new contributions. cotest scanner consumes this list to detect drift.",
+  "rejection_levels": {
+    "hard_reject": "MUST be rejected at parse/reducer time. No legitimate occurrence on current wire or in current code.",
+    "migration_only": "MUST NOT be emitted by new writers; MAY be tolerated by readers for a bounded migration window declared per entry.",
+    "compat_only": "MUST appear only on explicitly opt-in interop / compatibility surfaces (e.g., MIMI interop module).",
+    "docs_only": "Removed from wire / code; references survive only in CHANGELOG, glossary deprecation notices, or migration guides."
+  },
+  "allowed_context_definitions": {
+    "changelog": "May be referenced in spec or downstream CHANGELOG entries documenting the removal.",
+    "legacy_migration": "May be referenced in time-bounded migration helpers that translate stored legacy data forward.",
+    "interop_module": "May appear in an explicitly opt-in interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the legacy name.",
+    "negative_test": "May appear in negative fixtures / cotest drift tests that assert hard_reject."
+  },
+  "entries": [
+    {
+      "id": "cx.field.position.move",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Field-level position move was subsumed by track-relative ordering and per-cell ordered-log lattice; no direct replacement."
+    },
+    {
+      "id": "cx.field.position.reorder",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Bulk field reordering was removed together with cx.field.position.move; ordering authority lives in track / cell lattice."
+    },
+    {
+      "id": "cx.flow.track.member",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Track no longer carries independent membership; access semantics inherit from the Flow's Space. Use cx.member.state at the Space or child Space level. See current-model 'Track 不携带独立 access'."
+    },
+    {
+      "id": "cx.flow.track.history_visibility",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "History visibility lives on the Space boundary, not on a track. Use Space-level history visibility; create a child Space if a discussion needs an independent boundary."
+    },
+    {
+      "id": "cx.flow.track.read_receipt_policy",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Track-scoped read-receipt override is explicitly out of v1 scope (see discovery/read-receipts.md). Read receipts evaluate at the Space / child Space level."
+    },
+    {
+      "id": "cx.flow.track.policy_components",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Track-scoped policy components were removed; policy attaches to the Space (or child Space) carrying the track."
+    },
+    {
+      "id": "cx.space.lifecycle.set",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Lifecycle snapshot event was decomposed into the canonical create / update / upgrade / archive event kinds plus state events; do not re-introduce a single 'set' kind."
+    },
+    {
+      "id": "cx.space.policy.set",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Policy snapshot event was decomposed into per-component policy cells (join-policy, history-visibility, delivery-binding-policy, etc.); do not re-introduce a single 'set' kind."
+    }
+  ]
+}

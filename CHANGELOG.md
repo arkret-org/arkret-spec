@@ -42,6 +42,53 @@
 
 ## [Unreleased]
 
+### Push gateway profile 拆分 + profile role 注解（2026-05-19）
+
+`cx.profile.push_gateway.v1` 此前把 `blind_wakeup` 列为 optional extension，下游可声明"支持 push gateway 但不支持 blind wakeup"，与 spec 正文要求的"默认互操作安全基线"矛盾。本轮把 push gateway profile 按隐私语义拆分为三个独立 profile，并为所有 profile 增加 `role` 注解，让 SDK / yougen / soland 之类的 client 无法把 gateway profile 误用为本地 client profile。
+
+- **变更类型**: add + modify
+- **影响 artifact**: `profiles/conformance-profiles.json`、`zh/discovery/push-notifications.md`、`zh/conformance/conformance-profiles.md`、`zh/overview/release-readiness.md`
+- **canonical 变更**:
+  - 在 `conformance-profiles.json` 新增三个 profile id：`cx.profile.push_gateway.blind_wakeup.v1`（default，所有 push gateway 实现 MUST 支持）、`cx.profile.push_gateway.visible_notification.v1`（opt-in，Space policy + device opt-in + UI 明示三重前置）、`cx.profile.push_gateway.matrix_passthrough.v1`（interop only，MUST NOT 与 blind wakeup 在同一 `(recipient_service_did, device)` 上混用）。
+  - `cx.profile.push_gateway.v1` 的 `optional_extensions` 移除 `blind_wakeup`；新增 `depends_on` / `required_profiles` 数组引用 `cx.profile.push_gateway.blind_wakeup.v1`，并在 `description` 中明示默认基线身份。
+  - 新增 top-level `profile_roles` 表（spec 层 metadata，与 `profile_tiers` 平级），覆盖全部 80 个声明 profile，role 取值限定为 `client` / `server` / `gateway` / `directory` / `admin` / `interop`；附加 `profile_roles_rule` 说明 SDK 与 conformance loader MUST 在声明前查表。
+  - `implementation_profiles` 与 `profile_tiers.v1_profile_catalog` 列表均新增三个 push gateway 子 profile。
+- **派生 artifact 同步**: `python tools/artifact_pipeline.py generate` 已重跑；`python tools/artifact_pipeline.py check` 输出 `Artifact registry lint passed (152 event kinds, 52 schemas, 39 typed ID kinds, 84 operations, 80 profiles)` 与 `registry diff: clean`。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.push_gateway.v1`（语义收紧：blind wakeup 从 optional 升为 required dependency）、新增三个 push gateway 子 profile、`cx.profile.matrix_compat.v1`（作为 matrix_passthrough profile 的 depends_on 引用方）。
+  - profile tier 变化: 三个新 profile 全部进入 `v1_profile_catalog` 与 `implementation_profiles`。
+  - wire 兼容性: behavioural-breaking — 已声明 `cx.profile.push_gateway.v1` 但未实现 blind wakeup 的实现 MUST 在该 changelog 生效后补齐 blind wakeup 强制约束，或撤销 profile 声明。
+  - reader / writer 行为要求: Push gateway 实现 MUST 拒绝任何携带稳定识别字段（principal/sender DID、Space/Flow/Message id 等）的 provider payload；client SDK MUST 在声明 push gateway profile 前同步声明 blind_wakeup profile；bridge 实现 MUST 在 (recipient_service_did, device) 粒度上分区 matrix_passthrough 与 blind_wakeup 流量。
+- **fixture / vector 变化**: 沿用既有 `privacy-security-fixture.json`；后续 T0.x 任务可基于本轮三个新 profile 派生 negative payload fixture（携带 sender DID / Space id 的 push payload 应被 reject）。
+- **prose 同步**: `spec/v1/zh/discovery/push-notifications.md` §2.2 + §5.1 改述 blind wakeup 为默认基线并指向新拆分的 profile；`spec/v1/zh/conformance/conformance-profiles.md` §11 新增三 profile 描述表（profile id / role / 强制能力 / fixture）；`spec/v1/zh/overview/release-readiness.md` 更新 profile id 计数（77 → 80）与 `profile_requirements` 计数（65 → 68）。
+- **迁移指南**:
+  - Push gateway 实现：把 blind wakeup 从 optional extension 升级为编译期 / 运行期常态行为，移除任何"关闭 blind wakeup"的 feature flag；如部署确需可见通知，新增 `cx.profile.push_gateway.visible_notification.v1` 声明并实现 Space policy / device opt-in / UI 明示三重前置。
+  - yougen / soland / SDK：在 profile loader / capability manifest 里按 `profile_roles` 表过滤；client 角色 SDK MUST NOT 把 `gateway` / `directory` / `admin` / `interop` 角色 profile 误装为本地客户端 profile。
+  - Matrix bridge：把 matrix_passthrough profile 声明从隐式归并到默认 push gateway 声明中拆出来，按 (recipient_service_did, device) 粒度分区流量。
+
+### 新增机器可读 drift detection artifacts（2026-05-19）
+
+下游实现（SDK、yougen、soland、cotest 等）此前只能靠人工阅读 CHANGELOG 来发现协议已移除的概念（branch、Room core model、`cx.flow.track.*`、`cx.field.position.*` 等），cotest scanner 无法自动检测漂移。本轮在 `artifacts/registry/` 下新增六份 canonical drift detection artifacts，并在 `registry-manifest.json` 中注册、在 `spec-map.md §1.2` 中索引。
+
+- **变更类型**: add
+- **影响 artifact**: `registry/removed-event-kinds.json`、`registry/removed-operation-ids.json`、`registry/deprecated-profile-ids.json`、`registry/forbidden-wire-fields.json`、`registry/forbidden-model-terms.json`、`registry/renames.json`、`registry/registry-manifest.json`
+- **canonical 变更**:
+  - 新增 6 份 `artifacts/registry/*.json`，统一 schema：`{$schema, version, kind, source_of_truth, rejection_levels, allowed_context_definitions, entries[]}`；每条 entry 字段 `id` / `since_revision` / `rejection_level` (`hard_reject` | `migration_only` | `compat_only` | `docs_only`) / `replacement` / `allowed_contexts` / `notes`。
+  - `registry-manifest.json` 新增六个条目（`removed_event_kinds` / `deprecated_profile_ids` / `removed_operation_ids` / `forbidden_wire_fields` / `forbidden_model_terms` / `renames`），全部标记 `source_role=canonical` / `source_of_truth=true`。
+  - 首批 entry：8 条 removed event kinds（`cx.field.position.move`/`reorder`、`cx.flow.track.member`/`history_visibility`/`read_receipt_policy`/`policy_components`、`cx.space.lifecycle.set`、`cx.space.policy.set`）；9 条 removed operation ids（与上述 event kind 对齐）；2 条 deprecated profile ids（`chat_only_client`、`kanban_only_client`）；3 条 forbidden wire fields（top-level `branch`、`room_kind`、Flow payload `kind=room`）；5 条 forbidden model terms（`Room`、`Space(kind=list)`、`flow_branch`、`track members`、`Room visibility`）；6 条 renames。`since_revision` 统一指向 `0a5ab85`。
+- **派生 artifact 同步**: 不影响 `event_kind_registry` / `schema_registry` / `id_kind_registry` / `operation_registry` / `capability_action_registry` 生成视图，无需 `python tools/artifact_pipeline.py generate`。`registry-manifest` 是 canonical 索引，已手工同步。
+- **conformance impact**:
+  - 受影响 profile: 无；这组 artifacts 不参与 wire conformance，而是 drift detection 输入。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible — 仅新增机器可读 metadata 文件。
+  - reader / writer 行为要求: cotest scanner MUST 消费这六份 artifacts 来标记下游实现中的旧 id / 旧字段 / 旧术语；新增、移除或重命名标准 cx.* 概念时 MUST 同步更新这组 artifacts。
+- **fixture / vector 变化**: 无；后续 T0.x 任务可基于这组 artifacts 生成 negative drift fixture。
+- **prose 同步**: `spec/v1/zh/spec-map.md` 新增 §1.2「漂移检测 artifacts」段落，列出六份文件、entry schema 字段与维护约束。
+- **迁移指南**:
+  - cotest：scanner 增加 drift detection pass，按 `rejection_level=hard_reject` 对下游仓库 grep 旧 id / 字段 / 术语，命中即报错；`allowed_contexts` 用于豁免 changelog / migration / interop 注释。
+  - SDK / yougen / soland 等下游：把这组 artifacts 作为单一权威来源对照自身代码，旧 id / 旧字段 / 旧术语清理任务以 entry 粒度跟踪。
+  - 后续移除任何标准 cx.* 概念时，必须在同一 PR 中同时新增对应 entry，否则 cotest drift scanner 无法发现漂移。
+
 ### Space-scoped member delivery binding + 统一 Handle 模型（2026-05-19）
 
 Space membership 显式承载成员的投递服务绑定，DID 是协议主键、签名与审计归因的根；Space-scoped 投递的唯一权威路由源是该成员 `cx.member.state{join}.delivery_binding` 中固化的 `recipient_service_did`。

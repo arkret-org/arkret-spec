@@ -291,14 +291,21 @@ SHOULD 支持：
 
 ## 11. Push Gateway
 
-`cx.profile.push_gateway.v1` 适用于移动端或桌面通知的推送网关。
+`cx.profile.push_gateway.v1` 适用于移动端或桌面通知的推送网关。Push gateway 实现 MUST 同时满足下方拆分的三个子 profile 之一或多个组合（默认基线为 blind wakeup，visible / matrix 互通为 opt-in）。
 
-MUST 支持：
+| Profile id | role | 必选 / 可选 | 强制能力 | Fixture |
+| --- | --- | --- | --- | --- |
+| `cx.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `register_device` / `unregister_device` / `notify` 三个操作，`cx.schema.notification.v1`，service DID 校验，`rejected[]` 回传，失效 token 回收 | `privacy-security-fixture.json` |
+| `cx.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Space / Flow / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Space stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
+| `cx.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Space policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Space stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
+| `cx.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `cx.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_did, device)` 元组上同时声明两者 | `privacy-security-fixture.json` |
+
+MUST 支持（在所有变体上）：
 
 - `register_device`
 - `unregister_device`
 - `notify`
-- blind wakeup payload 最小化
+- blind wakeup payload 最小化（默认基线）
 - service DID 或等价受信服务签名校验
 - 失效 token 回收
 - `rejected[]` 结果回传
@@ -308,6 +315,8 @@ MUST NOT：
 - 接收或存储消息明文
 - 把 delivery receipt 当作 read receipt
 - 以长期共享 token 作为多网关高可用方案
+- 把 `blind_wakeup` 当作可省略的 optional extension（违反默认安全基线）
+- 在同一投递元组上混用 `blind_wakeup.v1` 与 `matrix_passthrough.v1`
 
 SHOULD 支持：
 

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "version": 1,
+  "kind": "renames",
+  "source_of_truth": true,
+  "description": "Canonical rename mapping from removed / deprecated identifiers to their v1 replacements (or to null when the concept was deleted with no direct successor). cotest scanner and downstream migration tooling consume this as the single source of truth for mechanical renames. Replacement=null means there is no automatic substitution; readers / writers MUST follow the migration guidance in 'notes'.",
+  "rejection_levels": {
+    "hard_reject": "After replacement, the old identifier MUST NOT appear in current code or wire bytes.",
+    "migration_only": "Mechanical replacement window; both forms tolerated for the bounded migration period.",
+    "compat_only": "Old form retained only on explicit interop surfaces.",
+    "docs_only": "Old form survives in CHANGELOG / migration docs only."
+  },
+  "allowed_context_definitions": {
+    "changelog": "Reference in CHANGELOG / migration documentation.",
+    "legacy_migration": "Reference in time-bounded migration code.",
+    "interop_module": "Reference in interop binding (not core).",
+    "negative_test": "Reference in cotest drift fixtures."
+  },
+  "entries": [
+    {
+      "id": "cx.flow.track.member",
+      "kind_class": "event_kind",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Deleted: track does not carry independent membership. Migrate access to Space-level cx.member.state or create a child Space."
+    },
+    {
+      "id": "cx.flow.track.history_visibility",
+      "kind_class": "event_kind",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Deleted: history visibility lives at the Space boundary."
+    },
+    {
+      "id": "cx.flow.track.read_receipt_policy",
+      "kind_class": "event_kind",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Deleted: track-scoped read receipt override is explicitly out of v1 scope."
+    },
+    {
+      "id": "cx.flow.track.policy_components",
+      "kind_class": "event_kind",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Deleted: policy attaches to Space / child Space, not to a track."
+    },
+    {
+      "id": "Space(kind=list)",
+      "kind_class": "model_identifier",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "Place(kind=list)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "List containers are Places. Space remains the boundary concept; Place carries the container shape."
+    },
+    {
+      "id": "branch",
+      "kind_class": "wire_field_name",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "track",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track'. Track is display-only and inherits access from the Flow's Space."
+    }
+  ]
+}

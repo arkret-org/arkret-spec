@@ -1,0 +1,66 @@
+{
+  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "version": 1,
+  "kind": "forbidden_model_terms",
+  "source_of_truth": true,
+  "description": "Terms that MUST NOT be used in current-model prose, code identifiers, or UI copy when referring to v1 core concepts. cotest scanner greps downstream prose and source for these terms and flags occurrences outside allowed_contexts.",
+  "rejection_levels": {
+    "hard_reject": "MUST NOT appear in current normative prose, current SDK / service code identifiers, or current UI copy describing v1 core model.",
+    "migration_only": "MAY appear in clearly-marked migration documentation referencing legacy state.",
+    "compat_only": "Allowed only in interop / compatibility documentation.",
+    "docs_only": "Removed from current normative prose; survives in CHANGELOG / glossary deprecation notes."
+  },
+  "allowed_context_definitions": {
+    "changelog": "Reference in CHANGELOG or migration documentation.",
+    "legacy_migration": "Reference in dated migration guides describing legacy state.",
+    "interop_module": "Reference in interop binding documentation (e.g., MIMI / Matrix interop).",
+    "negative_test": "Reference in negative fixtures / cotest drift tests."
+  },
+  "entries": [
+    {
+      "id": "Room",
+      "context": "core_model_name",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "Space",
+      "allowed_contexts": ["changelog", "interop_module", "negative_test"],
+      "notes": "Room is not the v1 core model. Use Space (replication / authorization / E2EE boundary) and, where applicable, Flow, Place, or child Space. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
+    },
+    {
+      "id": "Space(kind=list)",
+      "context": "model_identifier",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "Place(kind=list)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "List-shaped containers are Places, not Spaces. Space remains the boundary concept; container shape (board / list / etc.) lives on Place."
+    },
+    {
+      "id": "flow_branch",
+      "context": "identifier_or_field_name",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "flow_track",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Branch terminology was removed across Flow. Use track (display-only segment identifier). Variable / field names containing 'flow_branch' MUST be renamed."
+    },
+    {
+      "id": "track members",
+      "context": "prose_or_ui_copy",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "Space members (or child Space members)",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Track does not carry independent membership; access inherits from the Flow's Space. UI copy and docs MUST refer to Space / child Space members. A discussion needing its own membership boundary MUST be upgraded to a child Space."
+    },
+    {
+      "id": "Room visibility",
+      "context": "prose_or_ui_copy",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "Space history visibility / discoverability / join rule",
+      "allowed_contexts": ["changelog", "interop_module", "negative_test"],
+      "notes": "Visibility is split in v1 into three independent axes: Discoverability, Join Rule, History Visibility (see spec-map 3.4). 'Room visibility' conflates them and MUST NOT be used."
+    }
+  ]
+}

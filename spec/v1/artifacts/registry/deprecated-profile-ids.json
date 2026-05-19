@@ -1,0 +1,37 @@
+{
+  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "version": 1,
+  "kind": "deprecated_profile_ids",
+  "source_of_truth": true,
+  "description": "Profile ids that have been removed or deprecated from cx.profile.* and MUST NOT be declared in service describe claims, conformance reports, or implementation manifests. cotest scanner uses this list to detect downstream drift.",
+  "rejection_levels": {
+    "hard_reject": "MUST be rejected if declared by a current implementation.",
+    "migration_only": "MAY be tolerated as read-only legacy claim during migration window; new declarations MUST be rejected.",
+    "compat_only": "Allowed only on explicit interop / legacy compatibility surfaces.",
+    "docs_only": "Removed from machine surfaces; survives in CHANGELOG / migration notes."
+  },
+  "allowed_context_definitions": {
+    "changelog": "Reference in CHANGELOG or migration documentation.",
+    "legacy_migration": "Reference in code that translates legacy implementation manifests.",
+    "interop_module": "Reference in an explicit interop binding (not core).",
+    "negative_test": "Reference in cotest drift fixtures that assert rejection."
+  },
+  "entries": [
+    {
+      "id": "chat_only_client",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.profile.chat_mvp.v1",
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Single-modality profile ids never existed as canonical cx.profile.* entries; downstream (notably yougen) declared them informally. Use cx.profile.chat_mvp.v1 + the Space's actual schema declaration to describe a chat-focused product."
+    },
+    {
+      "id": "kanban_only_client",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.profile.kanban_mvp.v1",
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "See chat_only_client. Use cx.profile.kanban_mvp.v1; modality is expressed via Space schema / morph_type_profiles, not via single-modality profile gating."
+    }
+  ]
+}

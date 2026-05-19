@@ -19,6 +19,8 @@ title: Push Notifications
 
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 
+Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操作安全基线**：声明 `cx.profile.push_gateway.v1` 的实现 MUST 同时声明 `cx.profile.push_gateway.blind_wakeup.v1` 并在所有 provider 出向通知上强制其约束。可见通知字段只在显式声明 `cx.profile.push_gateway.visible_notification.v1` 且满足 Space policy + 设备 opt-in + UI 明示三项前置时才允许，且仍受最小化约束（见 [`conformance/conformance-profiles.md` §11](../conformance/conformance-profiles.md)）。Matrix 兼容部署使用 `cx.profile.push_gateway.matrix_passthrough.v1`，**MUST NOT** 与默认 v1 隐私基线在同一 `(recipient_service_did, device)` 元组上混用。
+
 在 E2EE 场景下，Sync Service 无法读取消息正文。推送通知的默认行为是**脱敏唤醒 (Blind Wakeup)**：
 - 推送上游（APNs / FCM / Push Gateway）只携带 **per-(recipient_service_did, principal, device, push_route) pairwise pseudonym** `push_target_id` 与最小唤醒提示（`wakeup_kind` 等），不得携带 principal DID、sender DID、Space id、event id、device DID URL 或任何其它跨 Space 稳定标识。具体规则见 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](../crypto-media/device-lifecycle.md)。同一 DID 在个人 Principal Server 与组织 Principal Server 上的推送注册必须不可链接。
 - 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容；本地通知文案在客户端解密后生成。
@@ -328,12 +330,16 @@ POST /api/v1/push/notify
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
 
-`notification.event_id`、`notification.space_id`、`notification.kind`、`notification.sender`、`notification.sender_display_name`、`notification.space_name` 等识别字段 **MUST NOT** 出现在 `blind_wakeup` payload 中。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立 `visible_notification` profile，并满足全部条件：
+`notification.event_id`、`notification.space_id`、`notification.kind`、`notification.sender`、`notification.sender_display_name`、`notification.space_name` 等识别字段 **MUST NOT** 出现在 `cx.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `cx.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
 
 1. Space policy 显式把该 Push Gateway 列入 `plaintext_visible_services`，且声明允许 `visible_notification`。
-2. payload 不得标记为 `blind_wakeup`，conformance suite 必须按较高隐私风险 profile 测试。
-3. 可见字段仍受最小化约束，不得包含正文、DID URL、跨 Space stable correlation key、IP / geolocation 或未列入 profile 的自由文本。
-4. E2EE 默认实现不得依赖该 profile；完整通知标题与正文 SHOULD 由客户端被唤醒、拉取并本地解密后渲染。
+2. 接收设备在其授权状态中显式记录 `visible_notification` opt-in；未 opt-in 的设备 MUST 回退到 `cx.profile.push_gateway.blind_wakeup.v1`。
+3. 客户端 UI MUST 显式向用户标示当前会话处于可见通知模式。
+4. payload 不得标记为 `blind_wakeup`，conformance suite 必须按较高隐私风险 profile 测试。
+5. 可见字段仍受最小化约束，不得包含正文、DID URL、跨 Space stable correlation key、IP / geolocation 或未列入 profile 的自由文本。
+6. E2EE 默认实现不得依赖该 profile；完整通知标题与正文 SHOULD 由客户端被唤醒、拉取并本地解密后渲染。
+
+Matrix 互通部署 MAY 声明 `cx.profile.push_gateway.matrix_passthrough.v1` 用于桥接遗留 Matrix push gateway 形态。该 profile 与 `cx.profile.push_gateway.blind_wakeup.v1` **不兼容**：bridge MUST 把流量分区，确保任一基于默认 v1 baseline 协商的 `(recipient_service_did, device)` 元组永远不会收到 matrix_passthrough payload。
 
 默认 blind wakeup 请求示例：
 

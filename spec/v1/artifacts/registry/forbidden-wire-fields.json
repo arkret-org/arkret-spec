@@ -1,0 +1,48 @@
+{
+  "$schema": "https://contrix.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "version": 1,
+  "kind": "forbidden_wire_fields",
+  "source_of_truth": true,
+  "description": "Field names that MUST NOT appear on the current Contrix v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
+  "rejection_levels": {
+    "hard_reject": "Reducer / parser MUST fail with schema_violation when the field appears in the listed context.",
+    "migration_only": "Readers MAY tolerate the field during a bounded migration window but writers MUST NOT emit it.",
+    "compat_only": "Allowed only on explicit interop / compatibility surfaces.",
+    "docs_only": "Removed from machine surfaces; survives in CHANGELOG / migration notes."
+  },
+  "allowed_context_definitions": {
+    "changelog": "Reference in CHANGELOG or migration documentation.",
+    "legacy_migration": "Reference in time-bounded migration code that rewrites stored legacy bytes.",
+    "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
+    "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
+  },
+  "entries": [
+    {
+      "id": "branch",
+      "context": "timeline_event_top_level",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "track",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Legacy Matrix-style 'branch' top-level field on timeline / Flow events is replaced by the v1 'track' concept (a display-only timeline segment identifier). See current-model 'Track 是纯展示 / 时间线分段标识'. The string 'branch' MUST NOT appear as a top-level Event Envelope or payload field name."
+    },
+    {
+      "id": "room_kind",
+      "context": "event_envelope_or_payload",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "space.kind",
+      "allowed_contexts": ["changelog", "interop_module", "negative_test"],
+      "notes": "Room core model was removed; Space is the v1 boundary. 'room_kind' MUST NOT appear on the wire outside an explicit MIMI / Matrix interop module."
+    },
+    {
+      "id": "kind=room",
+      "context": "flow_payload.kind",
+      "since_revision": "0a5ab85",
+      "rejection_level": "hard_reject",
+      "replacement": "space",
+      "allowed_contexts": ["changelog", "interop_module", "negative_test"],
+      "notes": "Flow payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'space' / 'flow' / canonical Space.kind values. Interop translation lives in an opt-in interop module only."
+    }
+  ]
+}
