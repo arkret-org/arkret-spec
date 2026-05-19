@@ -766,6 +766,28 @@
       "profile": null
     },
     {
+      "action": "cx.moderation.appeal.submit",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.moderation.appeal.submit"
+      ],
+      "profile": null
+    },
+    {
+      "action": "cx.moderation.appeal.review",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.moderation.appeal.review",
+        "cx.moderation.appeal.decision",
+        "cx.moderation.appeal.close"
+      ],
+      "profile": null
+    },
+    {
       "action": "cx.events.query",
       "category": "service",
       "risk_tier": "low",

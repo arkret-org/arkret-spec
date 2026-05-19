@@ -316,7 +316,7 @@ Cache-Control: public, immutable, max-age=31536000
 | `issuer_service_did` | yes | 签发该 presign 的 blob service DID；MUST 是被部署 trust 的 service DID |
 | `issued_at` / `expires_at` | yes | TTL 硬上限 1h；deployment SHOULD 默认 ≤ 5 min |
 | `purpose` | yes | `media_inline` / `thumbnail` / `download`；服务端按 purpose 决定 `Content-Disposition`、限流强度等 |
-| `audience_hint` | optional | 期望使用者 DID（仅 hint，不强制；浏览器侧无法证明） |
+| `audience_hint` | optional | 期望使用者 DID（**仅诊断 hint，不构成访问控制**；浏览器原生标签无法证明调用者身份，详见 §5.4.4.1）。 |
 | `nonce` | yes | 16+ bytes 随机；服务端 SHOULD 记录已消费 nonce 以阻止 replay 直至 `expires_at` |
 | `scope.method` | yes | 仅允许 `GET` / `HEAD` 中的子集；MUST NOT 包含写方法 |
 | `scope.byte_range` | optional | 可限制可访问字节区间（如 `[0, 65536]` 仅头部） |
@@ -360,6 +360,31 @@ Cache-Control: public, immutable, max-age=31536000
 - deployment 对 presign 签发频率限流（按 issuer service DID + 请求方 actor），防止滥用作为隐蔽 oracle
 - audit log 记录每次签发（actor、blob_ref、purpose、TTL、issuer）以便事后追溯
 - 客户端 SHOULD 优先用 header auth；仅在浏览器原生标签场景使用 presign
+
+#### 5.4.4.1 `audience_hint` 与 bearer-token 边界（normative）
+
+`audience_hint` 是 **诊断 hint**，**不是访问控制**。原因：浏览器原生标签（`<img>` / `<video>`）在加载 presign URL 时不会附加任何调用者凭据；服务端无法在响应阶段验证当前请求确实来自 `audience_hint` 指向的 actor。任何把 `audience_hint` 当作 audience 强制的实现都会形成假阳性安全感。本节固定如下规则：
+
+- **实现 MUST NOT** 把 `audience_hint` 当成访问控制 — 它只能进入 audit log 用于事后排查"presign 给谁发的"。
+- presign 是一个**短 TTL bearer URL**：任何持有该 URL 的人在 TTL 内都可拉取 `blob_ref` 对应字节。最大损失窗口由 (a) TTL、(b) `scope.method`/`scope.byte_range`、(c) revocation（redaction / erasure 触发即时拒绝）三者共同收敛。
+- **下列 blob 类别 MUST 走 fail-closed 规则，不得发 presign**：
+  - **E2EE ciphertext** — 已经在 §5.4.4 MUST NOT 列出。E2EE 附件 fetch 走 client-side `fetch()` + `Authorization` header 路径。
+  - **legal hold blob** — 处于 legal hold 状态的 blob MUST 拒绝 `cx.blob.presign`（`legal_hold_active`），即便申请方持有 `cx.blob.presign` capability。原因：legal hold 要求 access 留痕可追溯，bearer URL 让第三方无凭据拉取破坏审计链。
+  - **redacted blob** — `cx.redaction` 已生效 / `cx.audit.erasure_receipt` 已发布的 blob MUST 立即拒绝 presign 请求与已签发但 TTL 未到的 presign 请求（`blob_redacted`）。
+  - **private attachment 私有附件**（`visibility=actor_private` 或附 `cx.actor_private` policy 标签）— MUST NOT 走 presign 路径。该类 blob 只允许 issuing actor 本人通过 header auth fetch。
+- **future audience-bound 机制**（v2 评估）：若未来需要真正绑定 audience，方案有 (a) 把 presign 升级为 cookie-bound URL（依赖 `__Host-` cookie + SameSite=Strict + presign 校验 cookie binding），(b) 通过 session-bound token 把 presign 换给 client 后只在该 session 内可用。两条都需要客户端配合，不属于 v1 范围。
+
+#### 5.4.4.2 Bearer URL 泄漏面控制（normative）
+
+为限制 bearer URL 泄漏后的最大损失：
+
+- 服务端 MUST 在响应 header 中加：
+  - `Cache-Control: private, no-store, max-age=0`
+  - `Referrer-Policy: no-referrer`
+  - `X-Content-Type-Options: nosniff`
+- 服务端 MUST NOT 在 access log / metrics / tracing 中记录 `?presign=` query 参数原文；记录 audit log 时 SHOULD 把 envelope hash 而不是原文写入。
+- 服务端 MUST 限制 presign URL 在反向代理 / CDN 层不被缓存（`Cache-Control: private` 不够时还要 set `Vary: Authorization` 或显式 surrogate-control）。
+- 客户端 SHOULD 仅在最终消费节点（`<img src=...>` 注入或 fetch）处构造 presign URL；不要在中间 routing / page state / browser history 中长期保留。
 
 #### 5.4.5 与 capability 的衔接
 

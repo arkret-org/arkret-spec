@@ -409,6 +409,18 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 
 若 SFU 或 MCU 会解密媒体，客户端 MUST 显示明确安全边界，并且 Realm policy MUST 允许 `media_service_decrypts=true`。
 
+#### 10.3.1 治理绑定（normative）
+
+`media_service_decrypts=true` **不**是一个可单独由 SFU 服务自报或客户端配置的开关。它 MUST 同时满足下列约束，否则客户端 MUST 拒绝加入会议、SFU MUST 拒绝媒体协商：
+
+1. **进入 `cx.realm.policy_components`**：`media_service_decrypts=true` MUST 由一条 `cx.realm.policy_components`（或对应 Realm policy facet event）显式写入，受 capability `cx.realm.policy.manage` 控制，并随 Realm policy `policy_root` 一同被 [`encryption-and-audit.md` §3.2](./encryption-and-audit.md) 的 MLS governance binding 覆盖。policy_root 未包含该开关时 MUST 视为未开启。
+2. **进入 `plaintext_visible_services`**：解密媒体的 SFU / MCU service DID MUST 在 Realm policy 的 `plaintext_visible_services[]`（或等价 media plaintext service policy）中显式列出，并标 `purpose=media_plaintext`。仅出现在 `media_services[]` 而未列入 `plaintext_visible_services[]` 的服务 MUST 被视为禁止解密媒体的 SFU；其试图协商解密角色时 MUST 返回 `media_plaintext_service_not_authorised`。
+3. **MLS Governance Binding 覆盖**：成员在 join 前 MUST 校验当前 epoch 的 governance binding `policy_root` 涵盖前两条规则的 cell value；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
+4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `cx.realm.policy_components` 正常路径并伴随客户端 UI 显著二次确认；不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。在 governance binding 尚未 commit 新 policy_root 的窗口内，客户端 MUST 沿用旧 policy 视图判定，禁止根据 OOB 字段提前授权。
+5. **Conformance negative vector** `cx.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) policy_root 未覆盖 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入。
+
+实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来"切换成功"但未被 governance binding 覆盖的状态都是 attack，必须 fail closed。
+
 ## 11. 会议状态事件
 
 会议状态可作为 durable event 记录：

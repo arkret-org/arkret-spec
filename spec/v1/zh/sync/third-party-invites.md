@@ -60,9 +60,16 @@ https://app.contrix.example/invite?realm=cx:realm:...#token=<invite_token>
 或 OOB code 形式（用户在已打开的客户端中手动录入）：
 
 ```text
-邮件正文: Your invite code is XYZ-123-ABC.
-打开 Contrix → "我有邀请码" → 输入 XYZ-123-ABC
+邮件正文: Your invite code is XYZ7-K9MP-Q4LB-A2HN-V8RD-T6FW.
+打开 Contrix → "我有邀请码" → 输入 XYZ7-K9MP-Q4LB-A2HN-V8RD-T6FW.
 ```
+
+> **OOB code 熵约束（normative）**：上面 `XYZ7-K9MP-Q4LB-A2HN-V8RD-T6FW` 是说明性占位，**不**是允许的固定低熵格式。真实 OOB code MUST 满足下列**任一**模式才能被接受：
+>
+> 1. **离线可校验形态**：与 URL `#token=` 等价，MUST ≥ 128-bit 真随机熵（即至少 22 个 base32 字符或等价编码）。短分隔符（破折号）允许出现以方便用户录入，但不计入熵；编码字母表 MUST 排除易混字符（去掉 `0/O/1/I/L`），熵下限按剩余字母表大小重算。
+> 2. **服务端 lookup 短码形态**：可以使用较短人类可读码（如示例 `XYZ-123-ABC`），但 MUST 全部满足：(a) 仅作为服务端私有 lookup 表的索引，token bytes 本身不参与 claim 校验；(b) 失败 claim 严格限速（每 IP / 设备 / 邀请者 同时 ≤ 5 次/分钟、≤ 50 次/天）；(c) 配合服务端 pepper / HMAC 存储，使短码无法离线枚举；(d) 短码 wire form 加入 `oob_code_kind="lookup"` 字段以便 wire-level 校验区分；(e) 同一短码命名空间下连续 3 次错误尝试 MUST invalidate 该 invite（强制邀请者重发）。
+>
+> 任何不能满足以上 (1) 或 (2) 全部条件的 OOB code 不得作为生产 wire 形态。conformance vector `cx.vector.invite.oob_code_entropy.v1` 覆盖短熵 OOB code claim 被拒、lookup 形态超限被 invalidate 两种情况。
 
 **禁止形态**（reducer / 服务端 MUST 拒绝 inbound claim 携带这种 token 来源声明）：
 
@@ -132,3 +139,19 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 - Event 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。
 - `token_salt` MUST 按邀请或批次高熵生成，不能使用全局常量 salt。低熵 3PID 的承诺必须加入服务私有 pepper 或改用不公开的 lookup table，防止离线字典爆破。
 - claim 成功后，外部 3PID 与 `subject_did` 的绑定默认只在邀请上下文内有效；不得自动发布为全局 handle、联系人或组织成员资格。
+
+### 6.1 失败 / 异常清理状态机（normative）
+
+第三方邀请的 wire 状态机覆盖正常路径之外的失败 / 邀请者状态变化 / token 泄漏。各 invite cell 状态转换由 reducer 强制：
+
+| 触发条件 | 状态转换 | 行为 |
+| --- | --- | --- |
+| `expires_at <= now` | `pending → expired` | 任何 claim MUST `expired_invite_token` 拒绝；服务端 SHOULD 24h 内 GC commitment 记录。 |
+| 邮件 / SMS 发送失败（gateway 5xx / bounce / DKIM fail） | `pending → send_failed`（携带 `send_failure_reason`） | 邀请者 UI MUST 显式提示发送失败；服务端 MUST NOT 假装成功；MAY 在 retry budget 内自动重试（建议 ≤ 3 次，指数退避）。retry 耗尽后 transition 为 `send_failed`，邀请者 MAY 手动重发（产生新 `invite_id` + 新 token + 新 commitment）。 |
+| 邀请者失去 `cx.invite.third_party` capability（grant revoke、role change） | `pending → revoked_by_capability_loss` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除。 |
+| 邀请者主动离开 Realm（`cx.member.state` → `leave`/`ban`/`remove`） | `pending → revoked_by_inviter_left` | 同上 capability loss 处理；邀请不随邀请者继承到其他成员。 |
+| token 泄漏 / 怀疑泄漏（邀请者或 admin 发起 `cx.invite.revoke`） | `pending → revoked` | 立即拒绝任何 claim；客户端 UI MUST 显示"邀请已撤销"。 |
+| claim 成功 | `pending → claimed` | 同一 `token_commitment` 第二次 claim MUST `duplicate_conflict`。 |
+| OOB lookup 形态失败次数超限（§3） | `pending → invalidated_by_rate_limit` | 强制邀请者重发；不暴露具体失败次数给攻击者。 |
+
+**统一不可枚举响应（normative）**：claim 失败响应 MUST 不区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`cx.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。

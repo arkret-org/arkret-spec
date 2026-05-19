@@ -1345,6 +1345,117 @@
         "state_resolution"
       ],
       "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a cx.attestation.range_completeness attestation (payload schema cx.schema.range_completeness_attestation.v1) declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §4.2.4 step 6."
+    },
+    {
+      "code": "relaxed_window_exceeds_ceiling",
+      "applies_to": [
+        "schema_violation",
+        "state_resolution"
+      ],
+      "description": "A cx.realm.policy_components write under cx.profile.e2ee_relaxed.v1 declared relaxed_window_max_ms greater than the spec hard ceiling (300000 ms / 5 min). Reducer MUST reject the policy update and receivers MUST NOT silently clamp; otherwise visible policy state splits across implementations. See artifacts/profiles/conformance-profiles.json#cx.profile.e2ee_relaxed.v1.downgrade_window_constraint."
+    },
+    {
+      "code": "e2ee_relaxed_disallowed_in_compliance_profile",
+      "applies_to": [
+        "schema_violation",
+        "state_resolution"
+      ],
+      "description": "A deployment attempted to enable cx.profile.e2ee_relaxed.v1 alongside a compliance-tier profile (cx.profile.attested_audit.e2ee.v1 / cx.profile.disclosed_audit.e2ee.v1 / any audit_assurance >= disclosed_policy). The relaxed window contradicts the compliance presumption that kick-out is cryptographically immediate; the combination MUST be rejected by the reducer. See artifacts/profiles/conformance-profiles.json#cx.profile.e2ee_relaxed.v1.downgrade_window_constraint.compliance_profile_disabled."
+    },
+    {
+      "code": "cross_domain_replay_rejected",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "A cx.cross_signing.reset payload declared a trust_domain that does not match the receiver's own trust_domain (or the receiver is unable to validate that the declared trust_domain belongs to this deployment). Rejected before signature verification to prevent replay of reset proofs across deployments / sovereign trust domains. See zh/crypto-media/device-lifecycle.md §14.1."
+    },
+    {
+      "code": "reset_event_id_mismatch",
+      "applies_to": [
+        "schema_violation"
+      ],
+      "description": "cx.cross_signing.reset payload's reset_event_id does not match the enclosing Event Envelope's event_id. Binding reset_event_id into proof transcript prevents wrapping the same proof bytes into a different Event shell; receivers MUST reject the reset on any mismatch. See zh/crypto-media/device-lifecycle.md §14.1."
+    },
+    {
+      "code": "appeal_overturn_missing_lift",
+      "applies_to": [
+        "schema_violation",
+        "state_resolution"
+      ],
+      "description": "A cx.moderation.appeal.decision event with verdict=overturn was anchored without a paired cx.moderation.decision.lift event in the same Anchor batch (targeting the original decision_ref). Reducer MUST reject; appeal overturn is only complete when the lift is observed atomically. See zh/governance/content-moderation.md §6."
+    },
+    {
+      "code": "appeal_self_review_forbidden",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "The reviewer in cx.moderation.appeal.review / cx.moderation.appeal.decision is the same actor who issued the original cx.moderation.decision being appealed. Separation of duties forbids self-review; reducer MUST reject. See zh/governance/content-moderation.md §6."
+    },
+    {
+      "code": "realm_terminal_state",
+      "applies_to": [
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "Realm has accepted cx.realm.destroy (or equivalent terminal decommission marker) and cannot accept new ordinary writes. Only audit-class events (cx.audit.*, cx.audit.erasure_receipt) are still acceptable. Receivers MUST reject cx.events.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.5."
+    },
+    {
+      "code": "audit_agent_attestation_mismatch",
+      "applies_to": [
+        "schema_violation",
+        "auth_decision"
+      ],
+      "description": "Audit Agent's join-time attestation evidence (cx.schema.attestation_evidence.v1) measurement does not match the enclave_measurement recorded in cx.audit.epoch_key_destruction. The two share root of trust; mismatch indicates code / policy_version drift between join and destruction. Reducer / verifier MUST reject. See zh/crypto-media/audited-e2ee.md §3.1.1.2."
+    },
+    {
+      "code": "audit_purpose_mismatch",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "Audit Agent's attestation_evidence.audit_purpose does not match the Realm policy's declared audit_purpose at join time. Verifier MUST reject the Welcome; the Audit Agent MAY re-attest with the correct purpose. See zh/crypto-media/audited-e2ee.md §2."
+    },
+    {
+      "code": "legal_hold_active",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "Requested operation targets a blob / object currently under legal hold. cx.blob.presign / cx.blob.delete / redaction-equivalent operations MUST be rejected with this code; legal hold takes precedence over capability and TTL. See zh/crypto-media/media-and-blob.md §5.4.4.1."
+    },
+    {
+      "code": "blob_redacted",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Blob has been redacted (cx.redaction accepted) or hard-erased (cx.audit.erasure_receipt published) and is no longer fetchable. Both new presign requests and in-flight (not-yet-expired) presign URLs MUST be rejected with this code. See zh/crypto-media/media-and-blob.md §5.4.4.1."
+    },
+    {
+      "code": "media_plaintext_service_not_authorised",
+      "applies_to": [
+        "auth_decision"
+      ],
+      "description": "An SFU / MCU attempted to negotiate plaintext-decrypting media role without being listed in Realm policy plaintext_visible_services[] with purpose=media_plaintext, OR without policy_root covering media_service_decrypts=true. MUST be rejected; the SFU may still act as opaque RTP relay. See zh/crypto-media/webrtc-signaling.md §10.3.1."
+    },
+    {
+      "code": "mls_governance_binding_stale",
+      "applies_to": [
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "Current MLS epoch's governance binding policy_root does not cover the Realm policy components the client wants to act on (e.g. media_service_decrypts toggle, plaintext_visible_services). Receivers MUST refuse to act until a fresh commit updates policy_root. See zh/crypto-media/webrtc-signaling.md §10.3.1 and zh/crypto-media/encryption-and-audit.md §3.2."
+    },
+    {
+      "code": "expired_invite_token",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Invite token's expires_at has passed when claim is attempted. Internal-only reason code; the wire response MUST be the unified non-enumerable `not_found` per zh/sync/third-party-invites.md §6.1."
+    },
+    {
+      "code": "late_recovery_rejected_membership",
+      "applies_to": [
+        "audit_decision"
+      ],
+      "description": "A late-arriving key tried to upgrade a decryption_failed event to late_recovered, but the receiver was not a member of the Realm at the original causal time T₀ (or has since been banned/removed). Client MUST NOT admit the recovered plaintext to verified timeline; audit log records this code. See zh/crypto-media/encryption-and-audit.md §2.6.1."
     }
   ]
 }

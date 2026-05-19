@@ -242,6 +242,13 @@ Event Batch Receipt 是可选审计/同步加速对象，**不是 canonical hist
 
 Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 scope 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `cx.attestation.range_completeness`（payload schema `cx.schema.range_completeness_attestation.v1`）承担，其 scope 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 anchor 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §4.2 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
 
+> **概念分层**（normative）：`cx.event_batch_receipt` 是 **receipt object 名称**（不是 Event Envelope `kind`）。它的唯一 wire 形态是带 `schema = "cx.schema.event_batch_receipt.v1"` 字段的独立对象；它**不**出现在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中，**不**会作为 `Event.kind` 出现在 Events API 提交路径上，也**不**进入 reducer 输入。任何试图把 `cx.event_batch_receipt` 当作 Event kind 提交给 `cx.events.submit` 的实现 MUST `schema_violation`，因为 Event schema 的 `kind` enum 与 event-kind-registry 同步且不含此名。下游 SDK / cotest scanner 在 prose / fixture 中遇到 `cx.event_batch_receipt` 时 MUST 把它当 schema-id-prefix / receipt-object-name 处理，不进入 active event-kind 检查表。
+
+与之对照：`cx.audit.ryw_receipt` 既是 receipt object 名（schema `cx.schema.audit_ryw_receipt.v1`），同时是 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `status="active"` 的 **durable event kind**。其 object form 与 durable Event form 的触发条件：
+>
+> - `cx.profile.disclosed_audit.e2ee.v1`：仅 object form，actor-private / ephemeral，不进入 audit log Event 流。
+> - `cx.profile.attested_audit.e2ee.v1`：同一 receipt object 也作为 durable Event（`Event.kind = "cx.audit.ryw_receipt"`）写入 audit log，便于事后调查。详见 [`../crypto-media/audited-e2ee.md` §4.1](../crypto-media/audited-e2ee.md)。
+
 ### 5.2 Schema 与字段
 
 Schema id: `cx.schema.event_batch_receipt.v1`

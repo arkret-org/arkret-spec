@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/moderation-appeal.schema.json",
+  "title": "Contrix Moderation Appeal",
+  "description": "Payload shapes for the four cx.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the cx.component.moderation_appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed. The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same Anchor batch with a cx.moderation.decision.lift event referencing the original decision. See zh/governance/content-moderation.md §6 (appeal flow). Capability: cx.moderation.appeal.submit (any member, low risk) for submit; cx.moderation.appeal.review (moderator) for the other three.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/submit_payload" },
+    { "$ref": "#/$defs/review_payload" },
+    { "$ref": "#/$defs/decision_payload" },
+    { "$ref": "#/$defs/close_payload" }
+  ],
+  "$defs": {
+    "appeal_id": {
+      "type": "string",
+      "pattern": "^cx:appeal:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "decision_ref": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Reference to the cx.moderation.decision event being appealed."
+    },
+    "actor_ref": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "target_ref": {
+      "type": "string",
+      "description": "The original moderation target (message, flow, member, blob, etc.) — same typed-id form as the appealed decision's target."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "evidence_visibility": {
+      "type": "string",
+      "enum": [
+        "appellant_only",
+        "reviewers_only",
+        "realm_admins",
+        "realm_members"
+      ],
+      "description": "Who may decrypt / read the appeal evidence narrative. Default per Realm policy; SHOULD be reviewers_only for sensitive disputes. The visibility tag MUST enter projection / redaction decisions; it does NOT change wire encryption of the envelope, only the cleartext audience for evidence fields."
+    },
+    "submit_payload": {
+      "type": "object",
+      "description": "cx.moderation.appeal.submit — opens the appeal. Writes appeal cell (state=submitted). MUST be issued by an appellant who is the original moderation target's controller (member appealing their own ban / message removal) or by an authorized advocate listed in Realm policy. appellant MUST hold cx.moderation.appeal.submit capability.",
+      "required": [
+        "appeal_id",
+        "decision_ref",
+        "target_ref",
+        "appellant",
+        "reason_text_ref",
+        "created_at"
+      ],
+      "properties": {
+        "appeal_id": { "$ref": "#/$defs/appeal_id" },
+        "decision_ref": { "$ref": "#/$defs/decision_ref" },
+        "target_ref": { "$ref": "#/$defs/target_ref" },
+        "appellant": {
+          "$ref": "#/$defs/actor_ref",
+          "description": "Actor lodging the appeal. MUST be the original moderation target's controller or an authorized advocate."
+        },
+        "reason_text_ref": {
+          "type": "string",
+          "description": "Reference (typically blob_ref or in-line short string) to the appeal narrative / supporting argument. For E2EE Realms this is an encrypted reference."
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 32,
+          "description": "Optional supporting evidence (blob refs, prior message ids, witness DIDs)."
+        },
+        "evidence_visibility": {
+          "$ref": "#/$defs/evidence_visibility",
+          "default": "reviewers_only"
+        },
+        "created_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "review_payload": {
+      "type": "object",
+      "description": "cx.moderation.appeal.review — reviewer takes the appeal under review. Transitions cell state submitted → under_review. Reviewer MUST hold cx.moderation.appeal.review capability; the same actor MUST NOT review their own moderation decision (separation of duties enforced by reducer).",
+      "required": [
+        "appeal_id",
+        "reviewer",
+        "reviewed_at"
+      ],
+      "properties": {
+        "appeal_id": { "$ref": "#/$defs/appeal_id" },
+        "reviewer": { "$ref": "#/$defs/actor_ref" },
+        "reviewed_at": { "$ref": "#/$defs/timestamp" },
+        "notes_ref": {
+          "type": "string",
+          "description": "Optional reviewer notes reference."
+        }
+      },
+      "additionalProperties": false
+    },
+    "decision_payload": {
+      "type": "object",
+      "description": "cx.moderation.appeal.decision — reviewer's verdict. Transitions cell state under_review → decided. Verdict semantics: uphold = original decision stands, no further action; overturn = original decision reversed, this event MUST be paired in the same Anchor batch with a cx.moderation.decision.lift event whose target equals decision_ref (reducer rejects with appeal_overturn_missing_lift otherwise); modify = original decision adjusted (parameters revised), modify_decision_ref MUST point to a new cx.moderation.decision event in the same batch that supersedes the original.",
+      "required": [
+        "appeal_id",
+        "reviewer",
+        "verdict",
+        "reason_text_ref",
+        "decided_at"
+      ],
+      "properties": {
+        "appeal_id": { "$ref": "#/$defs/appeal_id" },
+        "reviewer": { "$ref": "#/$defs/actor_ref" },
+        "verdict": {
+          "type": "string",
+          "enum": ["uphold", "overturn", "modify"]
+        },
+        "reason_text_ref": {
+          "type": "string",
+          "description": "Reference to the verdict rationale. MUST be present for audit trail; visibility follows evidence_visibility on the submit event."
+        },
+        "modify_decision_ref": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Required iff verdict=modify. Points to the replacement cx.moderation.decision event in the same Anchor batch."
+        },
+        "decided_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "verdict": { "const": "modify" } }, "required": ["verdict"] },
+          "then": { "required": ["modify_decision_ref"] }
+        },
+        {
+          "if": { "properties": { "verdict": { "const": "uphold" } }, "required": ["verdict"] },
+          "then": { "not": { "required": ["modify_decision_ref"] } }
+        },
+        {
+          "if": { "properties": { "verdict": { "const": "overturn" } }, "required": ["verdict"] },
+          "then": { "not": { "required": ["modify_decision_ref"] } }
+        }
+      ]
+    },
+    "close_payload": {
+      "type": "object",
+      "description": "cx.moderation.appeal.close — closes the appeal after the decided window expires (default 30 days configurable per Realm policy). Transitions cell state decided → closed. Locks against re-appealing the same (decision_ref, appellant) pair within the policy cool-off window; new appeals after the cool-off are allowed via a fresh appeal_id.",
+      "required": [
+        "appeal_id",
+        "closed_at"
+      ],
+      "properties": {
+        "appeal_id": { "$ref": "#/$defs/appeal_id" },
+        "closed_at": { "$ref": "#/$defs/timestamp" },
+        "auto_closed": {
+          "type": "boolean",
+          "default": false,
+          "description": "true iff the close was triggered by a timer (decided + Realm.appeal_window_ms <= now); false iff explicitly closed by an authorized actor."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

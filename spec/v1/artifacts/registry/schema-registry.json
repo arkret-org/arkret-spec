@@ -110,6 +110,10 @@
       "file": "schemas/device-message.schema.json"
     },
     {
+      "schema_id": "cx.schema.ephemeral_envelope.v1",
+      "file": "schemas/ephemeral-envelope.schema.json"
+    },
+    {
       "schema_id": "cx.schema.blob.v1",
       "file": "schemas/blob.schema.json"
     },
@@ -186,6 +190,14 @@
     {
       "schema_id": "cx.schema.moderation_queue_item.v1",
       "file": "schemas/moderation-queue-item.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.moderation_appeal.v1",
+      "file": "schemas/moderation-appeal.schema.json"
+    },
+    {
+      "schema_id": "cx.schema.attestation_evidence.v1",
+      "file": "schemas/attestation-evidence.schema.json"
     },
     {
       "schema_id": "cx.schema.agent_authority.v1",

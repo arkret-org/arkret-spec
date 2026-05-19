@@ -101,10 +101,20 @@
     },
     "h": {
       "type": "string",
-      "minLength": 16,
+      "minLength": 22,
       "maxLength": 256,
       "pattern": "^[A-Za-z0-9_-]+$",
-      "description": "Server-side opaque handle (stateful cursor form). When present, the cursor body MUST be reduced to {v, purpose, t, x, h} — the 's', 'd', 'target' state fields MUST be absent and instead resolved by the issuing server from the handle. The handle MUST be unguessable (≥ 128 bits entropy after base64url decoding), bound by the issuing server to (principal_id, device_id, service_id, filter_hash, purpose, positions, target?, expiry), and revocable. Servers MUST reject any unknown / expired / cross-binding handle with `cursor_integrity_invalid`. This is the integrity path for implementations that do not want to embed a MAC/signature; it is the moral equivalent of Matrix `next_batch` / MSC4186 `pos` and satisfies the integrity contract without crypto. A cursor that contains 'h' MUST NOT also contain '_mac' or '_sig' (handle lookup is itself the integrity check); a cursor without 'h' MUST carry '_mac' or '_sig'."
+      "description": "Server-side opaque handle (stateful cursor form). When present, the cursor body MUST be reduced to {v, purpose, t, x, h} — the 's', 'd', 'target' state fields MUST be absent and instead resolved by the issuing server from the handle. The handle MUST be unguessable (≥ 128 bits entropy after base64url decoding). minLength=22 enforces that floor mechanically: base64url packs 6 bits per character so 128/6 ≈ 21.33 → at least 22 chars of the [A-Za-z0-9_-] alphabet are required to encode 128 bits. The handle MUST be bound by the issuing server to (principal_id, device_id, service_id, filter_hash, purpose, positions, target?, expiry), and revocable. Servers MUST reject any unknown / expired / cross-binding handle with `cursor_integrity_invalid`. This is the integrity path for implementations that do not want to embed a MAC/signature; it is the moral equivalent of Matrix `next_batch` / MSC4186 `pos` and satisfies the integrity contract without crypto. A cursor that contains 'h' MUST NOT also contain '_mac' or '_sig' (handle lookup is itself the integrity check); a cursor without 'h' MUST carry '_mac' or '_sig'."
+    },
+    "_mac": {
+      "type": "string",
+      "pattern": "^hmac-(?:sha256|sha384|sha512):[0-9a-f]{64}(?:[0-9a-f]{32}(?:[0-9a-f]{32})?)?$",
+      "description": "HMAC over the cursor's canonical bytes (every property EXCEPT `_mac` itself, encoded per RFC 8785 JCS). Wire form: `hmac-<alg>:<hex>`; alg MUST be hmac-sha256 or stronger (hmac-sha384 / hmac-sha512). The hex MUST be 64 / 96 / 128 lowercase hex chars matching the alg's tag length. Transcript MUST bind purpose, principal_id, device_id, service_id, filter_hash, positions, target?, x, issuer_kid (see encoding.md §8.3.1). MUST appear iff the cursor is in stateless form (no `h`). MUST NOT appear together with `h` or `_sig`."
+    },
+    "_sig": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$",
+      "description": "Detached JWS signature over the cursor's canonical bytes (every property EXCEPT `_sig` itself, encoded per RFC 8785 JCS). Format is compact JWS `<protected>.<payload?>.<signature>` (base64url segments separated by dots). Same transcript binding rules as `_mac`. MUST appear iff the cursor is in stateless form (no `h`). MUST NOT appear together with `h` or `_mac`."
     }
   },
   "allOf": [
@@ -164,8 +174,8 @@
     }
   ],
   "patternProperties": {
-    "^_[A-Za-z0-9_]*$": {
-      "description": "Server-private fields (compression flags, MACs, signatures). Names MUST start with underscore. Excluded from cursor migration translation; included in canonical bytes for the local server's MAC/integrity check. The integrity-bearing fields are `_mac` (HMAC over canonical body excluding `_mac` itself; transcript binds purpose, principal_id, device_id, service_id, filter_hash, positions, target?, x, issuer_kid) and `_sig` (detached signature with equivalent transcript). Other underscore-prefixed fields (e.g. `_compress`) are reserved for issuer-private flags and MUST be included in the MAC/sig transcript."
+    "^_(?!mac$|sig$)[A-Za-z0-9_]*$": {
+      "description": "Server-private auxiliary fields (e.g. `_compress` / `_kid` flags). Names MUST start with underscore and MUST NOT be `_mac` or `_sig` (those are typed top-level properties with explicit constraints — see `_mac` / `_sig` above). Auxiliary `_*` fields are excluded from cursor migration translation but MUST be included in `_mac` / `_sig` canonical transcript so they cannot be silently stripped or injected. Implementations MUST NOT use `_mac_foo` / `_sig_bar` / similar to spoof integrity fields — only the exact names `_mac` and `_sig` are integrity-bearing, and this pattern explicitly excludes them so the typed property constraints govern."
     }
   },
   "additionalProperties": false

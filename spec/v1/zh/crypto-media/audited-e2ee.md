@@ -41,7 +41,7 @@ Contrix 引入 **"透明留痕审计 (Transparent Audit Trail)"** 机制：既�
 
 | `audit_assurance` 值 | 对应 profile | 含义 |
 | --- | --- | --- |
-| `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Key material 与明文输出 MUST 在受控边界内处理。 |
+| `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation evidence MUST 走 [`attestation-evidence.schema.json`](../../artifacts/schemas/attestation-evidence.schema.json)（schema id `cx.schema.attestation_evidence.v1`），结构化绑定 enclave measurement、attestation chain、attestation key（与 `cx.audit.epoch_key_destruction.proofs[*].verification_method` 共享 root of trust）、verification_method、validity 窗口、revocation 检查、operator DID、audit_purpose、`audit_policy_version_hash`（canonical JSON 规则见 [`conformance/encoding.md` §2](../conformance/encoding.md)）。Key material 与明文输出 MUST 在受控边界内处理。 |
 | `disclosed_policy` | `cx.profile.disclosed_audit.e2ee.v1` | 不要求 TEE。Audit Agent 仍然 MUST 执行 `cx.audit.accessed` 先写后解密流程并等待 RYW receipt，但**保证类别仅是合规与流程承诺，不是密码学强制**。Realm policy MUST 在加入前可见确认该降级。 |
 
 客户端在加入声明 `audit_disclosure` 的 Realm 前 MUST 读取 `audit_assurance`，并按 §2.1 显示**正确分类**的 join warning；MUST NOT 用同一段笼统文案覆盖两种保证。
@@ -159,6 +159,13 @@ Audit Agent profile MUST 满足：
 ### 4.1 RYW Receipt Schema
 
 `cx.audit.ryw_receipt` 是 receipt 对象，用于满足 §4 步骤 3 的"因果确权回执"要求。它由 Events API、witness 或独立验证节点签发，证明特定 `cx.audit.accessed` 已经进入接收方 accepted history（或至少其 actor frontier 已经覆盖该 event）。
+
+> **Object 与 durable Event 两种形态**（normative）：`cx.audit.ryw_receipt` 这个名字同时承担两种角色——
+>
+> 1. **Receipt object** — schema id `cx.schema.audit_ryw_receipt.v1`，作为 §4 步骤 3 的因果确权对象。所有 audit profile 都使用这种形态。
+> 2. **Durable Event** — `event-kind-registry.json` 中 `cx.audit.ryw_receipt` 为 `status="active"`、`wire_scope="durable_event"`、`reducer_input=false`；仅在 `cx.profile.attested_audit.e2ee.v1` 下，receipt 同时作为 `Event.kind="cx.audit.ryw_receipt"` 提交到 Events API，把 receipt 永久写入 audit log。`cx.profile.disclosed_audit.e2ee.v1` 等其它 profile 下只产出 object form，不要把 receipt 当 durable Event 提交。
+>
+> 这两种形态共享同一 canonical payload；只是分发路径不同。下游 SDK / cotest scanner 在判断 `cx.audit.ryw_receipt` 是不是 Event kind 时 MUST 按当前 profile 判定，不要假定它"总是" Event kind 或"从不是" Event kind。与 `cx.event_batch_receipt`（receipt object only，不是 event kind）形成对照——后者在任何 profile 下都不会作为 `Event.kind` 出现。
 
 Schema id：`cx.schema.audit_ryw_receipt.v1`
 

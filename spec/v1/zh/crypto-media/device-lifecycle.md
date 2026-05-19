@@ -812,6 +812,8 @@ Schema id：`cx.schema.cross_signing_reset.v1`
 ```text
 utf8("cx-cross-signing-reset-v1\n") ||
 canonical_json({
+  "trust_domain": trust_domain,
+  "reset_event_id": reset_event_id,
   "principal_id": principal_id,
   "previous_generation": previous_generation,
   "new_generation": new_generation,
@@ -821,6 +823,14 @@ canonical_json({
   "proof_body": proof without signature fields
 })
 ```
+
+**`trust_domain` 与 `reset_event_id` 绑定（normative）**：
+
+- `trust_domain` 是部署级的 trust 域标识，typed string，形如 `cx:trust_domain:<scope>`。它在每个 deployment 的 server describe 与 Realm policy 中声明（详见 [`identity-did.md` §3.6 Trust Domain](../identity/identity-did.md)）。canonical input MUST 把当前 receive context 的 `trust_domain` 嵌入 proof transcript，使同一 principal DID 在 deployment A 签发的 reset proof 无法被 deployment B 重放——B 的 `trust_domain` 字符串不同，proof signature transcript 校验立即失败 (`invalid_signature`)。
+- `reset_event_id` 是承载该 reset 的 Event Envelope 的 `event_id`（typed `cx:event:<uuidv7>`），由 producer 在签名前分配。把它纳入 transcript 确保同一 reset proof 不能复用到另一个 Event shell（不同 `event_id` ⇒ 不同 transcript ⇒ 签名失败）。这关闭了"复制 reset proof bytes，包到新 Event 里重放"的攻击面。
+- 这两个字段同时是 `cx.cross_signing.reset` payload 的必填字段（[`cross-signing-reset.schema.json`](../../artifacts/schemas/cross-signing-reset.schema.json) `trust_domain` / `reset_event_id`）。
+- 接收方验证顺序：(a) 检查 `trust_domain` 与本 receiver 当前 trust 域一致；不一致直接 `cross_domain_replay_rejected`，不进入签名校验。(b) 检查 `reset_event_id == enclosing Event.event_id`；不一致 `reset_event_id_mismatch`。(c) 按上面 canonical input 重算 transcript 并验证每个 proof 的签名；任一不匹配 `invalid_signature`。
+- 多 deployment 部署、sovereign trust domain、recovery service 跨域复用、device quorum 跨 trust domain 都受这两个字段保护——任一变化都会让 transcript 失配。
 
 `recovery_unlock.unlock_commitment` 的派生输入 MUST 避免自引用：其
 `unlock_binding_input_bytes` 使用与上面相同的字段集合，但 `proof_body`

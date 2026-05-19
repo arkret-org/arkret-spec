@@ -1508,6 +1508,38 @@
         "payload": "Lift a previously anchored moderation decision"
       },
       {
+        "event_kind": "cx.moderation.appeal.submit",
+        "category": "moderation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Submit an appeal against an existing cx.moderation.decision. Writes the appeal cell to state=submitted. Schema: cx.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §6 (appeal flow)."
+      },
+      {
+        "event_kind": "cx.moderation.appeal.review",
+        "category": "moderation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: cx.schema.moderation_appeal.v1."
+      },
+      {
+        "event_kind": "cx.moderation.appeal.decision",
+        "category": "moderation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits cx.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: cx.schema.moderation_appeal.v1."
+      },
+      {
+        "event_kind": "cx.moderation.appeal.close",
+        "category": "moderation",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Closes the appeal after the decided window expires (default 30 days). Transitions cell state decided → closed; locks against re-appeal of the same target by the same appellant. Schema: cx.schema.moderation_appeal.v1."
+      },
+      {
         "event_kind": "cx.read.marker",
         "category": "read",
         "status": "active",
@@ -1776,6 +1808,10 @@
         "file": "schemas/device-message.schema.json"
       },
       {
+        "schema_id": "cx.schema.ephemeral_envelope.v1",
+        "file": "schemas/ephemeral-envelope.schema.json"
+      },
+      {
         "schema_id": "cx.schema.blob.v1",
         "file": "schemas/blob.schema.json"
       },
@@ -1852,6 +1888,14 @@
       {
         "schema_id": "cx.schema.moderation_queue_item.v1",
         "file": "schemas/moderation-queue-item.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.moderation_appeal.v1",
+        "file": "schemas/moderation-appeal.schema.json"
+      },
+      {
+        "schema_id": "cx.schema.attestation_evidence.v1",
+        "file": "schemas/attestation-evidence.schema.json"
       },
       {
         "schema_id": "cx.schema.agent_authority.v1",
@@ -1962,6 +2006,13 @@
         "status": "active",
         "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
         "description": "Canonical protocol cell identifier."
+      },
+      {
+        "kind": "trust_domain",
+        "wire_form": "cx:trust_domain:<scope>",
+        "status": "active",
+        "storage_recommendation": "Store the scope string as an opaque deployment-level identifier; it appears in server describe, Realm policy, and high-risk proof transcripts.",
+        "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk proofs (e.g. cx.cross_signing.reset §14.1). NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
       }
     ],
     "id_kinds": [
@@ -1971,6 +2022,13 @@
         "status": "active",
         "wire_form": "cx:actor_profile:<uuid>",
         "description": "Actor profile object ID"
+      },
+      {
+        "kind": "appeal",
+        "category": "moderation",
+        "status": "active",
+        "wire_form": "cx:appeal:<uuid>",
+        "description": "Moderation appeal ID — opaque key for the cx.component.moderation_appeal.v1 cell. Created by cx.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §6."
       },
       {
         "kind": "agent_session",
@@ -3725,6 +3783,28 @@
         "required_constraints": [],
         "target_event_kinds": [
           "cx.moderation.decision.lift"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.moderation.appeal.submit",
+        "category": "management",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.moderation.appeal.submit"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.moderation.appeal.review",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.moderation.appeal.review",
+          "cx.moderation.appeal.decision",
+          "cx.moderation.appeal.close"
         ],
         "profile": null
       },

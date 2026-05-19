@@ -660,6 +660,18 @@ Authorization: <service_signature>
 - 单事件级别仍以 `event_id` 去重，规则见 4.3 节；
 - 同源短时重复失败、失败率异常上升时 MUST 暂停该源并返回 `rate_limited`/`temporarily_unavailable`。
 
+#### 8.5.1 Idempotency cache 绑定 service key state（normative）
+
+仅按 `(origin, destination, Idempotency-Key, canonical_hash)` 建 cache 不足以防御"撤销后重放"——若 origin service key 在 t₀ 签发请求 R，t₁ revoke，t₂ attacker 重放 R，缓存命中后 destination 仍会 accept。本节强制把 service key state 一起进入 cache key：
+
+- Idempotency cache entry MUST 至少携带：`Source-Service-DID`、`origin verification_method`（key id 或 DID URL fragment）、`service_binding_ref`（参见 §4.1）、当时 origin 的 key state frontier（`origin_key_state_hash` = source service 在 origin Realm 上的 service binding state 的 canonical hash）。
+- **撤销后重放**：destination 接收同一 `Idempotency-Key` 重复请求时 MUST 重新解析 origin 的 service binding：
+  - 若当前 `verification_method` 仍 active 且 `origin_key_state_hash` 与 cache 一致：MAY 返回 cached accepted 响应（真正幂等）。
+  - 若 `verification_method` 已被 revoke / `origin_key_state_hash` 已变：MUST 返回**仅历史诊断**响应（`status="historical_only"`，附原 cache outcome），不得触发任何新副作用（不向下游 Realm reducer 推送、不刷新 frontier）。
+  - 若 destination 不能解析当前 service binding（federation peer 不可达）：MUST `temporarily_unavailable`，不允许 fall back to cached accept。
+- **Key revoke 后 cache 入口必须重新校验**：cache hit 不豁免授权检查。每次 hit MUST 重新调用 capability check（destination Realm policy 对 source service 的 `federation_peer` 角色是否仍在）；不通过 MUST 拒绝（`capability_denied`），返回历史诊断而非继续推送。
+- **Negative vector** `cx.vector.federation.idempotency_after_key_revoke.v1` 覆盖：(a) origin service key revoke 后同 Idempotency-Key 重放 ⇒ destination 返回 historical_only；(b) origin service binding 被 Realm policy 移除后重放 ⇒ destination 返回 capability_denied；(c) origin_key_state_hash 不一致即使 cache 命中也 MUST 重做完整授权判定。
+
 ### 8.6 威胁映射落地
 
 本协议在服务器端应默认支持 [server-threat-model.md](../security/server-threat-model.md) 中“可借鉴项”，特别是：

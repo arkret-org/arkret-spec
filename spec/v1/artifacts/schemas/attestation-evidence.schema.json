@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contrix.io/artifacts/schemas/attestation-evidence.schema.json",
+  "title": "Contrix Attested Audit Hardware Evidence",
+  "description": "Structured remote-attestation evidence envelope for Audit Agents joining an audited E2EE Realm under cx.profile.attested_audit.e2ee.v1. This is the wire form behind audit_assurance_class=attested_hardware: a verifier MUST be able to validate enclave measurement, attestation chain trust root, attestation key freshness, operator identity, and audit policy hash without trusting prose declarations. Used at join time (Audit Agent MLS Welcome) and by reducer when validating cx.audit.epoch_key_destruction (whose enclave_measurement MUST equal this evidence's measurement — mismatch → audit_agent_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §2 (attested_hardware binding) and §3.1.1.2 (epoch key destruction).",
+  "type": "object",
+  "required": [
+    "evidence_id",
+    "audit_agent_did",
+    "service_did",
+    "platform",
+    "measurement",
+    "attestation_chain",
+    "attestation_key",
+    "verification_method",
+    "validity",
+    "operator_did",
+    "audit_purpose",
+    "audit_policy_version_hash",
+    "created_at",
+    "proofs"
+  ],
+  "properties": {
+    "evidence_id": {
+      "type": "string",
+      "pattern": "^cx:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "audit_agent_did": {
+      "$ref": "#/$defs/did",
+      "description": "DID of the Audit Agent service this evidence attests. MUST equal the join Welcome's leaf credential DID."
+    },
+    "service_did": {
+      "$ref": "#/$defs/did",
+      "description": "Operating service DID hosting the Audit Agent (typically the Principal Server or a dedicated audit service). MUST match the actor identity that signs cx.audit.epoch_key_destruction."
+    },
+    "platform": {
+      "type": "object",
+      "required": ["family", "vendor", "model"],
+      "properties": {
+        "family": {
+          "type": "string",
+          "enum": ["tee_sgx", "tee_tdx", "tee_sev_snp", "tpm_2", "hsm_pkcs11", "nitro_enclave", "software_test_only"],
+          "description": "Attestation family. 'software_test_only' is for conformance fixtures and MUST be rejected by deployments declaring attested_hardware assurance."
+        },
+        "vendor": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "firmware_version": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "measurement": {
+      "type": "object",
+      "required": ["code_hash", "policy_version"],
+      "description": "What is actually running inside the enclave. MUST be identical to the measurement recorded in cx.audit.epoch_key_destruction.enclave_measurement.",
+      "properties": {
+        "code_hash": {
+          "$ref": "#/$defs/hash",
+          "description": "Hash of the audit agent binary / image / policy bundle that the enclave loads. MUST be reproducible (signed by vendor build pipeline)."
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Audit agent's compiled-in policy version (e.g. semantic version or git tag). MUST appear in the Realm's allowed_audit_agent_policy_versions allowlist at issued_at."
+        },
+        "report_data": {
+          "type": "string",
+          "pattern": "^[0-9a-f]+$",
+          "description": "Optional REPORTDATA-equivalent that binds the attestation to the Audit Agent's MLS leaf public key (e.g. hash of LeafNode signature key). Receivers MUST validate this binding when present."
+        }
+      },
+      "additionalProperties": false
+    },
+    "attestation_chain": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered attestation evidence chain: leaf attestation (signed by the enclave) → intermediate (e.g. PCK certificate, AK certificate) → root (vendor attestation root certificate). Each item is base64url-encoded DER / CBOR per platform format. Verifier MUST validate signature chain and trust the root against the Realm-declared trust root list.",
+      "items": {
+        "type": "object",
+        "required": ["format", "bytes_b64u"],
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["x509_der", "cose_cbor", "epid_quote", "tdx_quote", "snp_report", "tpm2_quote"]
+          },
+          "bytes_b64u": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "issued_at": { "$ref": "#/$defs/timestamp" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "attestation_key": {
+      "type": "object",
+      "required": ["alg", "public_key_b64u"],
+      "description": "The attestation public key (extracted from the leaf of attestation_chain). cx.audit.epoch_key_destruction.proofs[*].verification_method MUST be cryptographically verifiable against this key — the destruction event's signature root and the join-time attestation chain share root of trust.",
+      "properties": {
+        "alg": { "type": "string", "enum": ["EdDSA", "ES256", "ES384"] },
+        "public_key_b64u": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+        "kid": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "verification_method": {
+      "type": "string",
+      "pattern": "^did:[^\\s#]+#[A-Za-z0-9._:-]+$",
+      "description": "DID URL the receiving verifier uses to resolve attestation_key. MUST live under audit_agent_did's DID Document."
+    },
+    "validity": {
+      "type": "object",
+      "required": ["not_before", "not_after"],
+      "description": "Validity window of THIS evidence. Verifier MUST reject evidence outside the window. not_after - not_before SHOULD be ≤ 90 days; long-lived evidence is a red flag.",
+      "properties": {
+        "not_before": { "$ref": "#/$defs/timestamp" },
+        "not_after": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "revocation": {
+      "type": "object",
+      "description": "How the verifier should check whether attestation_chain leaves / intermediates have been revoked. Required when platform supports revocation (sgx_pccs CRL, tdx PCS, etc.).",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["sgx_pccs_crl", "tdx_pcs_crl", "ocsp", "vendor_specific", "none_supported"]
+        },
+        "endpoint": { "type": "string", "format": "uri" },
+        "last_checked_at": { "$ref": "#/$defs/timestamp" },
+        "next_check_before": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "operator_did": {
+      "$ref": "#/$defs/did",
+      "description": "DID of the controlling organization actually operating this enclave / HSM. MUST match what the Realm policy lists as the allowed audit operator. Distinct from service_did when the operating org is different from the technical service DID (e.g. service hosted by org A on behalf of org B)."
+    },
+    "audit_purpose": {
+      "type": "string",
+      "enum": ["compliance_lawful_access", "regulatory_record_keeping", "incident_investigation", "internal_policy_audit"],
+      "description": "Why this Audit Agent is joining the Realm. MUST match the Realm policy's declared audit_purpose; mismatch → audit_purpose_mismatch."
+    },
+    "audit_policy_version_hash": {
+      "$ref": "#/$defs/hash",
+      "description": "Same definition as cx.audit.ryw_receipt.audit_policy_version_hash — sha256 over canonical JSON {audit_disclosure, audit_assurance} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was joined under matches the current policy state. See encoding.md §2 (canonical JSON) and audited-e2ee.md §4.1."
+    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "proofs": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Detached signature(s) over the canonical evidence bytes (all fields except `proofs`), signed by operator-controlled keys distinct from the enclave attestation key. Two-key separation: the enclave attests its own measurement; the operator separately attests that this enclave is the one they intend to deploy.",
+      "items": {
+        "$ref": "./event-schema.json#/$defs/proof"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    }
+  }
+}

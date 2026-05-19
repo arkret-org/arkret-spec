@@ -1476,6 +1476,38 @@
       "payload": "Lift a previously anchored moderation decision"
     },
     {
+      "event_kind": "cx.moderation.appeal.submit",
+      "category": "moderation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Submit an appeal against an existing cx.moderation.decision. Writes the appeal cell to state=submitted. Schema: cx.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §6 (appeal flow)."
+    },
+    {
+      "event_kind": "cx.moderation.appeal.review",
+      "category": "moderation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: cx.schema.moderation_appeal.v1."
+    },
+    {
+      "event_kind": "cx.moderation.appeal.decision",
+      "category": "moderation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits cx.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: cx.schema.moderation_appeal.v1."
+    },
+    {
+      "event_kind": "cx.moderation.appeal.close",
+      "category": "moderation",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Closes the appeal after the decided window expires (default 30 days). Transitions cell state decided → closed; locks against re-appeal of the same target by the same appellant. Schema: cx.schema.moderation_appeal.v1."
+    },
+    {
       "event_kind": "cx.read.marker",
       "category": "read",
       "status": "active",

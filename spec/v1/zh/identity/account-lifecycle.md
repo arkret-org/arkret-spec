@@ -135,6 +135,27 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 客户端 SHOULD 提供本地密钥清除选项。Deactivation 不应伪造 redaction；历史事件如需隐藏，必须提交真实 `cx.redaction` 或遵循 retention policy。
 
+### 7.1 Deactivation Fanout（normative）
+
+为关闭"deactivation 后仍有未撤销路径继续投递或被授权"的窗口，**deactivation accepted 进入 frontier 的同一事务边界内** MUST 触发下列 fanout：
+
+| 域 | Fanout 动作 | 触发什么 event |
+| --- | --- | --- |
+| **Session / access token** | 撤销全部 `cx.session.grant`（含 applet delegated session）；后续 token introspection MUST 返回 `inactive`。 | 服务端撤销表 + 可选 `cx.audit.accessed` |
+| **Device grant** | 全部 `cx.device.*` 标 `revoked`；后续 `cx.events.submit` 用 revoked device 签名 MUST `actor_signature_revoked`。 | reducer 状态转换 |
+| **Applet delegation** | 撤销所有 `cx.applet.registration` 持有的 delegated device；applet 服务后续调用 MUST `delegation_revoked`。 | reducer 状态转换 |
+| **Key package** | 标记所有 unused MLS KeyPackage 为 retired；新邀请 MUST 不从该 principal 选 KeyPackage。 | reducer + key package store 失效 |
+| **Push route** | 撤销 `cx.device.push_route`；push gateway MUST 停止向该 principal 的注册 endpoint 投递。 | reducer + push gateway 缓存失效 |
+| **To-device queue** | 服务端 to-device 队列 drop 所有 `recipient_principal_id == deactivated_principal` 的 pending message；后续投递 MUST `recipient_unavailable`。 | server-side queue 状态 |
+| **Capability cache** | 所有 cached `cx.capability.grant` decision 引用该 principal 作为 subject 或 issuer 的 MUST eager invalidate；下次 capability check 走完整判定。 | cache invalidation |
+
+约束：
+
+- **不自动 ban**：deactivation 不等于 Realm 内 `cx.member.state` 转 `ban`/`leave`。哪些 Realm membership 自动 `cx.member.state = leave`（自愿停用）vs. 保留 `join`（policy 决定）由 Realm policy 的 `account_deactivation.member_action` 字段控制（默认 `leave_self_initiated`）。
+- **本地投递必停**：无论 policy 是否 ban，上表前 6 行（session/device/applet/keypackage/push/to-device queue）必停 — 否则会出现"账户已停用但其 device 还能签名 / push gateway 还在投递"的不可解释窗口。
+- **MLS Remove**：若 Realm policy 决定 deactivate → leave，对应 MLS group MUST 在 grace window（默认 `mls_deactivation_grace_ms = 600,000 ms`）内 emit `cx.mls.commit` Remove；超时未 commit 则该 Realm 的成员客户端 MUST 在 verified timeline 中把该 principal 标 `unverifiable_member`，不再接受其新 epoch 消息。
+- Fanout 失败的 partial state：如果某条 fanout 因网络 / 服务不可达失败，server `account_status` MUST 标 `deactivation_partial` 并继续重试；客户端 UI MUST 显式标记 "停用未完成" 而不是显示已停用。
+
 ## 8. Erasure
 
 `erasure_pending` 表示物理删除流程开始。实现 MUST 区分：

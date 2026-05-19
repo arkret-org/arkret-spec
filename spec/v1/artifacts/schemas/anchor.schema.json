@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/anchor.schema.json",
   "title": "Contrix Anchor",
+  "description": "Wire shape of a Contrix Anchor. Identity & signature model (see zh/authz/event-auth-state-resolution.md §4): the typed `id` (`cx:anchor:<algo>:<hex>`) is content-derived — its hex equals H(anchor_canonical_bytes) under the Realm hash_profile. Anchor canonical bytes are the canonical JSON of the body fields ONLY (realm_id, predecessor_refs, frontier, state_root, optional previous_state_root / previous_hash_profile, anchored_at, hlc plus any other signed top-level field). The `id` is NOT part of canonical bytes (it is the hash OUTPUT, not input — no self-reference). The `anchorer_sig` is NOT part of canonical bytes (it covers the bytes; signatures never sign themselves). Receivers MUST (a) recompute H(anchor_canonical_bytes) and verify it equals the hex in `id` (`digest_mismatch` otherwise) and (b) verify `anchorer_sig` over the same canonical bytes (`invalid_signature` otherwise). additionalProperties=false prevents undeclared fields from sneaking into the transcript.",
   "type": "object",
   "required": [
     "id",
@@ -15,7 +16,8 @@
   ],
   "properties": {
     "id": {
-      "$ref": "#/$defs/anchor_ref"
+      "$ref": "#/$defs/anchor_ref",
+      "description": "Content-derived typed reference. hex part MUST equal H(anchor_canonical_bytes) under the Realm hash_profile, where anchor_canonical_bytes is the canonical JSON of every signed body field EXCEPT `id` and `anchorer_sig`. Receivers MUST recompute and verify; mismatch → digest_mismatch. NEVER include `id` in the hash input — that would create a self-reference."
     },
     "realm_id": {
       "$ref": "#/$defs/space_ref"
@@ -48,6 +50,7 @@
       "description": "Profile id of the previous hash algorithm. Required iff previous_state_root is present; absent on non-transition Anchors."
     },
     "anchorer_sig": {
+      "description": "Signature over anchor_canonical_bytes (every signed body field EXCEPT `id` and `anchorer_sig`). MUST NOT enter the canonical bytes itself — signatures never sign themselves. payload_hash inside each signature MUST equal H(anchor_canonical_bytes) under the Realm hash_profile.",
       "oneOf": [
         {
           "$ref": "#/$defs/signature"

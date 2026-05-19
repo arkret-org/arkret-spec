@@ -446,6 +446,41 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 }
 ```
 
+### 5.5 上诉流程 (Appeal Flow, normative)
+
+上诉是审核闭环的反向通道。被 `cx.moderation.decision` 影响的 target（成员被 ban、消息被 remove、Flow 被锁等）可以走标准 `cx.moderation.appeal.*` 事件链请求复核，无需脱离 Contrix wire。本节定义事件链、状态机与 reducer 强制约束。
+
+#### 5.5.1 事件链
+
+四个 active event kind（见 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json)）：
+
+| Event kind | 触发者 | 目标 cell 状态转换 | capability |
+| --- | --- | --- | --- |
+| `cx.moderation.appeal.submit` | appellant（被影响 target 的控制者或 policy 列出的 advocate） | (none) → `submitted` | `cx.moderation.appeal.submit`（risk_tier=low） |
+| `cx.moderation.appeal.review` | reviewer（不得是原 decision 的 issuer） | `submitted` → `under_review` | `cx.moderation.appeal.review`（risk_tier=medium） |
+| `cx.moderation.appeal.decision` | reviewer（同上） | `under_review` → `decided` | `cx.moderation.appeal.review` |
+| `cx.moderation.appeal.close` | reviewer 或 timer | `decided` → `closed` | `cx.moderation.appeal.review` |
+
+Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/moderation-appeal.schema.json)（schema id `cx.schema.moderation_appeal.v1`，四种 payload 通过 `oneOf` 分支）。
+
+#### 5.5.2 Reducer 强制约束
+
+- **separation of duties**：`cx.moderation.appeal.review` / `cx.moderation.appeal.decision` 的 `reviewer` MUST NOT 等于被上诉 `decision_ref` 对应 `cx.moderation.decision` event 的 issuer。违反时 reducer 用 `appeal_self_review_forbidden` 拒绝。
+- **overturn 与 lift 原子**：`cx.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `cx.moderation.decision.lift`（target 等于 `decision_ref`）在同一 Anchor batch 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝。这关闭"上诉胜诉但原 decision 仍生效"的窗口。
+- **modify 与新 decision 原子**：`verdict=modify` MUST 与一条新的 `cx.moderation.decision`（其 `target_ref` 等于原 target、`modify_decision_ref` 字段指向它）在同一 batch 中出现；reducer 校验 `modify_decision_ref` 与同 batch event id 一致。
+- **重复上诉 cool-off**：同一 `(decision_ref, appellant)` 在 cell `closed` 状态后的 Realm 声明 `appeal_cool_off_ms`（默认 90 天）内不得再次 submit；违反时 `failed_precondition`。新 cool-off 之后允许新 `appeal_id`。
+- **auto close**：cell 进入 `decided` 状态后超过 Realm `appeal_window_ms`（默认 30 天）仍未 close，授权 timer 服务（Realm policy 声明）MAY emit `cx.moderation.appeal.close` `auto_closed=true`。
+
+#### 5.5.3 审计与可见性
+
+- 全部四个 event 进入 audit log（durable_event），同时受 Realm policy 的 `audit_disclosure` 控制可见范围。
+- `evidence_visibility`（submit payload 字段）控制 reason text / evidence_refs 的明文可见范围（`appellant_only` / `reviewers_only` / `realm_admins` / `realm_members`），默认 `reviewers_only`。这只影响明文 audience，不改变 wire envelope 加密。
+- 与 §10 v1 流程要求一致：appeal 流程"形成可审计事件"现在由这四个事件原生承担，不再需要平台外通道。
+
+#### 5.5.4 与 `moderation_policy.appeal.endpoint` 的关系
+
+§5.3 `moderation_policy` 中 `appeal.endpoint` 字段保留用于 UI 引导（用户在哪个 Flow 提交上诉），不替代 wire 事件。endpoint Flow 内的消息只是 narrative，约束性 verdict / lift 仍走本节 normative 事件链。
+
 ## 6. 服务器级访问控制
 
 ### 6.1 Server ACL

@@ -5,6 +5,8 @@
   "description": "Payload content for cx.cross_signing.reset (schema_id cx.schema.cross_signing_reset.v1). High-risk operation that retires the current (SSK, USK) generation and requires one of four kinds of proof — see device-lifecycle.md §14. A successor cx.cross_signing.publish MUST follow within 24h.",
   "type": "object",
   "required": [
+    "trust_domain",
+    "reset_event_id",
     "principal_id",
     "previous_generation",
     "new_generation",
@@ -13,6 +15,16 @@
     "issued_at"
   ],
   "properties": {
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
+      "description": "Deployment-scope trust domain identifier. Enters every proof's canonical transcript so the same proof bytes cannot be replayed from deployment A into deployment B (different trust_domain → different transcript → signature verification fails as invalid_signature). Receivers MUST check this matches their own trust_domain before doing any signature work, returning cross_domain_replay_rejected otherwise. See zh/crypto-media/device-lifecycle.md §14.1 and zh/identity/identity-did.md §3.6."
+    },
+    "reset_event_id": {
+      "type": "string",
+      "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Typed event_id of the Event Envelope carrying this reset payload. MUST equal the enclosing Event.event_id. Binding it into proof transcript prevents wrapping the same proof bytes into a different Event shell. Mismatch MUST be rejected as reset_event_id_mismatch."
+    },
     "principal_id": { "$ref": "#/$defs/did" },
     "previous_generation": {
       "type": "integer",

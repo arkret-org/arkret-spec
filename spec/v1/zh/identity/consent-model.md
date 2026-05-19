@@ -157,6 +157,36 @@ Move(cx.consent.revoke) {
 
 `scope=any` 是便利值，等价于显式 grant 所有具体 scope。撤销 `any` consent 同时撤销所有具体 scope；撤销具体 scope 不影响其他 scope。
 
+### 4.1 Scope 撤销级联 与 缓存失效（normative）
+
+`cx.consent.revoke` 的 scope 语义与缓存失效规则：
+
+#### 4.1.1 Scope 级联
+
+- **按 `consent_id` 全量撤销**（推荐路径）：revoke Move 的 `observed_dots` 列出 cell 当前 `(consent_id, peer, *)` 下所有 active dot，无论原 grant 的 scope 是 `any` 还是具体 scope。这是显式"完全 revoke 该 consent_id"操作。
+- **按 scope 部分撤销**：revoke Move 仅列出某具体 scope 对应的 active dot。剩余 scope 的 dot 保持 active。
+- **`scope="any"` 与具体 scope 互斥语义**：
+  - 撤销一条 `scope=any` 的 grant dot MUST 视为撤销该 `(consent_id, peer)` 下当前 active 的 **所有** scope（含具体 scope 的 grant dot）。即 `any` 撤销 cascade 到全部子 scope。reducer 在 join 时如果观察到 revoke 的 `observed_dots` 含 `scope=any` 的 add dot，MUST 在 cell projection 层把同 `(consent_id, peer)` 下所有 active scope 的 dot 标 `superseded_by_any_revoke`，effective consent 视为完全 revoked。
+  - 反向不成立：撤销一条 `scope=invite` 的具体 scope dot 仅清空 `invite`，不影响同 `(consent_id, peer)` 下 `scope=any` 的 dot——因为 `any` 是 holder 显式更宽授权，需要 holder 再单独撤销 `any` 才算 cascade。
+  - 这条非对称规则 MUST 在 sodmin / UI 中明示，避免用户误以为"撤销 invite 就等于全撤销"。
+- **conformance vector** `cx.vector.consent.scope_cascade.v1` 覆盖 (a) `any` revoke cascade 到具体 scope；(b) 具体 scope revoke 不影响 `any`；(c) 部分 scope revoke 留下其他 scope active；(d) 完整 revoke 必须列出当前 cell 全部 active dot 否则只构成部分 revoke。
+
+#### 4.1.2 缓存失效（normative MUST）
+
+consent revoke 进入 Anchor frontier 后，下列下游缓存 MUST eager invalidate（同一事务边界内）：
+
+| 缓存 | 失效粒度 | 触发动作 |
+| --- | --- | --- |
+| Directory `cx.directory.resolve_realm` reachability proof | 按 `(holder_did, peer_did)` 失效，下次查询走完整 consent 重判 | 不返回 stale reachability，防止 peer 看到已撤销的"可联系"指示。 |
+| MIMI consent check cache（interop 模块） | 按 `(holder_did, peer_did, scope)` 失效；`any` revoke 失效全部 scope | interop bridge 下次跨协议解析 MUST 重新校验。 |
+| Push / contact discovery 缓存（含 PSI 结果） | 按 `(holder_did, peer_did)` 失效；PSI 索引 MUST 在下次轮转时排除 revoked peer | 即使 cache TTL 未到，revoke 后下一次 contact sync MUST 反映新状态。 |
+| Invite gate cache（§6.1 invite 前置 gate） | 按 `(holder_did, peer_did, scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 重判，旧 cache MUST NOT 让 invite Move 通过 precondition。 |
+| In-flight invite 与 DM Realm | **不**追溯 — 已发出的 invite / 已创建的 DM Realm 不自动撤销（与 §3.3 frontier 之前规则一致）；如需撤销，单独发 `cx.invite.revoke` / member remove。 |
+
+`scope="any"` 被撤销后 cascade 失效规则：上面 5 类缓存中所有 scope 的 entry 必须一起失效，包括 `invite`、`direct_message`、`voice_call`、`video_call`、`presence`。不允许实现把 `any` revoke 只清单一 scope。
+
+`cx.vector.consent.cache_invalidation.v1` 覆盖 (a) revoke 后 directory reachability 立即不返回该 peer；(b) revoke 后下一次 invite Move 被 precondition 拒绝（capability gate 重判）；(c) `any` revoke cascade 失效所有 scope cache；(d) revoke 后 PSI 索引在下一次轮转时排除该 peer。
+
 ## 5. Cell Join 与 Effective Consent
 
 Consent cell 是 or-set lattice（dot-based observed-remove，详见 [`event-auth-state-resolution.md` §5.3.1](../authz/event-auth-state-resolution.md)）。Effective consent 由当前 Anchor view 下 cell 的 or-set join 派生：

@@ -602,6 +602,28 @@ cx.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1
 3. **Multi-leaf effective view**：`effective_anchor_view(leaves)` 是纯本地函数（不需签名、不是新 Anchor object、deterministic）。
 4. **Signed compaction**：要把多 leaf 持久压缩成单 Anchor 必须由 anchorer 签发；否则只能作为 view 使用。
 
+### 2.8.1 Vector: Anchor canonical bytes 去自引用（normative）
+
+向量名称：
+
+```text
+cx.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
+```
+
+输入与期望（多 case 矩阵）：
+
+1. **Base case**：构造 Anchor body fields `{realm_id, predecessor_refs, frontier, state_root, anchored_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `anchor_canonical_bytes`；`id = "cx:anchor:sha256:" || hex(H(anchor_canonical_bytes))`；`anchorer_sig.payload_hash == H(anchor_canonical_bytes)`。Verifier MUST accept。
+2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `anchor_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
+3. **sig-in-canonical-bytes attack**：若 producer 把 `anchorer_sig` 也进入 canonical bytes，`payload_hash` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
+4. **key reorder attack**：取 valid Anchor，把 canonical JSON key 顺序打乱（例如 `frontier` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
+5. **proof injection attack**：取 valid Anchor，注入未定义字段 `extra_proof`。`additionalProperties=false` 的 schema 在 (b) 校验阶段就 reject；若实现错误地 allow 之，hash 会变 → `digest_mismatch`。
+6. **frontier typed-id attack**：构造 `frontier=["cx:event:<uuid>"]`；schema `frontier[]` items 必须匹配 `event_digest` (`<algo>:<hex>`)，typed id 形态 MUST `schema_violation` 立即被拒（早于 hash 校验）。
+
+期望：
+
+- case 1 accept；case 2/3/4/5/6 reject。
+- 接收方 verifier 在 reject 时 MUST 返回 `digest_mismatch`（case 2/3/4）、`invalid_signature`（case 3 的签名路径）或 `schema_violation`（case 5/6），不得回退到"prose 形态化"判断。
+
 ### 2.9 Vector: state_root 增量重算等价于全量重算
 
 向量名称：

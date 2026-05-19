@@ -634,7 +634,10 @@
         "field": "relaxed_window_max_ms",
         "default": 30000,
         "max": 300000,
-        "rationale": "Receiving client refuses to admit a message into verified timeline if the gap between receive_at and the most recent membership_change_at exceeds this window with old-epoch decryption."
+        "absolute_hard_ceiling_ms": 300000,
+        "rationale": "Receiving client refuses to admit a message into verified timeline if the gap between receive_at and the most recent membership_change_at exceeds this window with old-epoch decryption.",
+        "receiver_enforcement": "Receiver MUST enforce the hard ceiling independently of any declared deployment value: if a Realm policy event sets relaxed_window_max_ms > absolute_hard_ceiling_ms (300000 ms / 5 min), the reducer MUST reject the policy update with reason_code `relaxed_window_exceeds_ceiling` (mapped from `schema_violation`), and the receiver MUST treat the policy event as failed_precondition. Receivers MUST NOT silently clamp the value to the ceiling, because a silent clamp would let a deployment publish a longer window than receivers honor and split visible policy state across implementations. Negative vector: `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1` covers (a) reducer reject on policy write > 300000 ms, (b) receiver reject on old-epoch decrypt admission when the gap exceeds the per-policy declared window, and (c) reject when any deployment tries to redefine the ceiling via an unrelated profile.",
+        "compliance_profile_disabled": "Profiles in the compliance / audited tier (cx.profile.attested_audit.e2ee.v1, cx.profile.disclosed_audit.e2ee.v1, and any deployment declaring `audit_assurance >= disclosed_policy`) MUST NOT enable cx.profile.e2ee_relaxed.v1. Reducer MUST reject the combination with reason_code `e2ee_relaxed_disallowed_in_compliance_profile`. Rationale: compliance assurance presumes the kick-out semantic is cryptographically immediate; the relaxed window contradicts that presumption."
       },
       "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
     },

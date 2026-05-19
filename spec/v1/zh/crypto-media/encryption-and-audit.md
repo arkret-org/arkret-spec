@@ -207,6 +207,31 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 `decryption_pending` 是有界恢复状态，不是永久展示状态。默认 timeout 为 7 天；超时后客户端 MUST 降级为 metadata-only `decryption_failed` 占位。连续 epoch 缺口过大时，客户端 SHOULD 使用 range-based recovery，从授权 peer、key backup、Archive Node 或 policy 声明的 Key Recovery Service 获取最小必要 epoch material。
 
+#### 2.6.1 Late Key Recovery 状态机（normative）
+
+客户端 MAY 在 `decryption_failed` 之后接收到迟到的 key material（来自 key backup 同步、device 重新加入、Archive Node 回灌、history key share 等）。该 late material 重新解码受限历史的流程是受控状态机，**不是**静默解锁：
+
+| 起始状态 | 触发 | 目标状态 | 客户端 / 审计行为 |
+| --- | --- | --- | --- |
+| `decryption_pending` | 在 timeout 内收到 key | `decrypted` | 正常解码，无额外 marker。 |
+| `decryption_pending` | timeout（默认 7 天） | `decryption_failed` | UI 标 metadata-only；不可恢复直到收到 late key。 |
+| `decryption_failed` | 收到 late key 且通过 (a)-(d) 校验 | `late_recovered` | UI MUST 显示 "历史内容已晚到解锁，原首次接收时刻 T₀" timeline marker（不静默替换 metadata-only 占位）；audit profile 下 MUST emit `cx.audit.accessed` 标记 `late_recovery=true`；history key share scope MUST 与 receiver 当时的 membership scope 一致。 |
+| `decryption_failed` | 收到 late key 但 (a)-(d) 任一不过 | 保持 `decryption_failed` | 不解码、不显示明文；记 audit log。 |
+| `late_recovered` | 后续 redaction / erasure 触发 | `redacted_after_recovery` | 已恢复明文 MUST 按 redaction policy 移除；wire stub 保留。 |
+
+late key recovery 接受条件（normative）— 客户端 MUST 全部通过才能从 `failed` 转 `late_recovered`：
+
+a. **Membership 时点校验**：受影响 event 的因果时点 T₀，receiver 在 T₀ 必须确实是该 Realm 的成员（`cx.member.state` 在 T₀ pre-state 下为 join，且不是 ban / leave）。如果 receiver 在 T₀ 不是成员、或当时还未被 invite，late key 解码出的明文 MUST NOT 进入 verified timeline；audit log emit `late_recovery_rejected_membership`。
+b. **Policy 时点校验**：T₀ 处的 Realm policy MUST 允许该 receiver 类别看到该 event（history visibility / disclosure policy 在 T₀ 处）；若 policy 在 T₀ 之后收紧到禁止该 receiver，late material 仍按 T₀ policy 解码（policy 不溯及既往），但 UI MUST 提示"已不在当前 policy 下可见"。
+c. **Key share 来源授权**：late key 提供方 MUST 是 Realm policy 声明的合法 key recovery 源（key backup、archive node、authorized peer）；P2P 之间随意 share key MUST 被拒。
+d. **Audit profile 强制**：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 下，late_recovered transition MUST 同步 emit `cx.audit.accessed` Event（payload `late_recovery=true`、引用原 event_id、当前 receiver actor），并等待 RYW receipt 与正常解码相同的流程；未拿到 receipt MUST 不解码。`cx.audit.ryw_receipt` 在 receipt object 上 MAY 标 `recovery_reason` = "late_key_arrival"（payload 取值，**不是** error code registry 中的 reason_code；仅用于 audit projection 区分晚到 key 触发的访问与首次访问）。
+
+**Revoked / removed actor 负向**：若 receiver 在 T₀ 之后被 ban / removed，late key 即使发到该设备也 MUST 不让进入 verified timeline；history key share policy 应同步把该 receiver 从 allowlist 移除，避免 late key 被发出。`cx.vector.late_key_recovery.removed_actor.v1` 覆盖被移除成员收到迟到 key 后 (a) 不解密 (b) audit log 写 `late_recovery_rejected_membership` (c) 客户端 UI 不显示明文。
+
+#### 2.6.2 与 redaction / erasure 的关系
+
+late_recovered 状态的明文 MUST 受后续 redaction / erasure 影响：若在 recovery 之后该 event 被 `cx.redaction` 或硬擦除，receiver MUST 立即移除已显示的明文并转入 `redacted_after_recovery` 状态。已 emit 的 `cx.audit.accessed` late_recovery marker 保留作为审计轨迹（即使内容已 redact，访问事实仍然可审计）。
+
 ### 2.4 Sync 与 MLS Epoch
 
 Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密事件和 MLS epoch state MUST 作为相关但可独立到达的 stream 处理：
@@ -234,6 +259,8 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
   - 部署 profile 在 conformance 声明中**显式列出** `cx.profile.e2ee_relaxed.v1`,否则降级声明 MUST 被 reducer 拒绝(`profile_unsupported` reason)
   - 客户端 UI 在该 Realm 中 MUST 展示明确的"该 Realm 使用降级 E2EE,踢/ban 非密码学即时生效"banner-level 警示(详见 §2.4.2 / `cx.profile.e2ee_relaxed.v1` 规范)
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗,超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
+  - **`relaxed_window_max_ms` 硬上限 = 300,000 ms（5 分钟）**：部署不得通过 `cx.realm.policy_components` 把 `relaxed_window_max_ms` 写为大于硬上限的值；reducer MUST 用 `relaxed_window_exceeds_ceiling` 拒绝。接收端 MUST 独立 enforce 硬上限——不得静默 clamp 到 300000，否则部署声明的窗口与 receiver 接受的窗口会跨实现分裂。Negative vector `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1` 同时覆盖 policy write 超限与 receiver 接受超限 decrypt 两条路径。
+  - **合规 profile 互斥**：声明 `cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 或 `audit_assurance >= disclosed_policy` 的部署 MUST NOT 同时启用 `cx.profile.e2ee_relaxed.v1`；reducer MUST 用 `e2ee_relaxed_disallowed_in_compliance_profile` 拒绝。合规 / 监管 profile 的核心承诺是"踢出即时密码学生效"，relaxed 窗口与之矛盾。
   
   声明 advisory 但未声明 `cx.profile.e2ee_relaxed.v1` profile 的 Realm create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
 - Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
@@ -526,14 +553,22 @@ Profile 规则：
 
 Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pairwise sender，但不得被提升为已验证 principal DID 发送者。
 
-**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(realm_id, pairwise_did)`。缓存 MUST 包含验证时间、MLS epoch、principal DID、device id 和签名证明摘要。缓存失效规则：
+**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(realm_id, pairwise_did)`，value 中**MUST**额外携带签发时的 `policy_frontier_hash`（参见下方"Policy tightening 失效"）。缓存 value MUST 包含：验证时间、MLS epoch、principal DID、device id、签名证明摘要、`policy_frontier_hash`（绑定该缓存条目所依赖的 Realm policy 快照）。缓存失效规则：
 
 - **Eager invalidation on member leave / ban / remove（normative MUST）**：当客户端处理一个 `cx.member.state` event（或等价的 ban / leave / remove governance Move）时，MUST **立即**（在该 event accepted 进入本地 frontier 的同一事务边界内）失效缓存中所有 `(realm_id == this_space, pairwise_did → leaving_principal)` 的条目。**不得**等待 TTL 过期或 MLS epoch 推进——否则被移除成员的 pairwise→principal 映射会在其它成员客户端中残留至 TTL 末尾，泄露"X 在 T 时刻离开此 Realm"的时间侧信道，违反 minimal-metadata Realm 的核心隐私目标。
 - MLS epoch 变更（任何 commit）时，MUST 检查并失效任何 epoch 匹配旧 epoch 的 stale 条目。
 - `cx.identity_link` 被更新或撤销时，MUST 替换旧条目。
+- **Eager invalidation on policy tightening（normative MUST）**：处理下列 Realm policy / disclosure policy event 时，客户端 MUST **立即**失效缓存中所有 `(realm_id == this_space, *)` 条目——因为这些事件只可能**收紧**真实 principal 的可见性，旧缓存条目仍按更宽松的 policy 暴露 principal DID 会导致 UI / projection 把已收紧的真实身份继续展示给非授权成员：
+  - `cx.realm.disclosure_policy.update`（或等价 facet event）让 `disclosure_policy.strictness` 升级（例：`open` → `minimal` / `pairwise_only` / `audit_only`）。
+  - `cx.realm.minimal_metadata.update` 把 Realm 切到更严格的 minimal-metadata mode；同步影响 sync / federation 路由 disclosure。
+  - `cx.realm.history_visibility` 收紧（例：`shared` → `invited` / `joined` / `restricted`）。
+  - `cx.realm.policy_components` 更新中任何 `identity_disclosure_profile` 字段变化。
+  - 任何 linked Realm（`Flow.discussion_realm_ref` 指向的 Realm 或 `Realm.linked_realms[]`）的 membership / history visibility 收紧——cross-Realm 解析依赖 linked Realm policy；linked 一端收紧后 source 一端的缓存也 MUST 失效。
+  - 对应的失效粒度规则：失效全部 `(realm_id == this_space, *)`，而不仅是当时已 disclosed 的 principal——因为收紧后的 policy 可能撤销之前被 disclose 的部分映射。
+- 缓存比较时，客户端 MUST 把当前 Realm policy 的 `policy_frontier_hash` 与缓存条目内的值做 constant-time 比较；**任一**不一致即视为缓存失效，回退到完整 identity_link 重新验证。`policy_frontier_hash` 在签发缓存条目时由客户端从最近 anchored 的 Realm policy 状态计算（推荐 `sha256(canonical_json({disclosure_policy, history_visibility, identity_disclosure_profile, minimal_metadata_mode}))`），并随后续 policy event 推进而变化；不允许仅靠 TTL 或 MLS epoch 等内部计数替代该 hash 比较。
 - 缓存 TTL SHOULD 不超过 7 天；过期后 MUST 重新验证。该 TTL 仅是**最坏兜底**，不能替代 eager invalidation。
 - 设备丢失或恢复后，MUST 清除所有 identity_link 缓存。
-- conformance vector `cx.vector.identity_link.eager_invalidation.v1`（参见 `conformance-vectors.md`）覆盖 ban / leave / remove 三种触发条件下的 eager invalidation 行为。
+- conformance vector `cx.vector.identity_link.eager_invalidation.v1`（参见 `conformance-vectors.md`）覆盖 ban / leave / remove 三种触发条件下的 eager invalidation 行为；`cx.vector.identity_link.policy_tightening_invalidation.v1` 覆盖 disclosure policy、history visibility、minimal metadata mode、linked Realm visibility 收紧后的 eager invalidation 行为。
 
 ### 2.8 Message ID AAD 可见性
 

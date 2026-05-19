@@ -53,6 +53,13 @@
       "status": "active",
       "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
       "description": "Canonical protocol cell identifier."
+    },
+    {
+      "kind": "trust_domain",
+      "wire_form": "cx:trust_domain:<scope>",
+      "status": "active",
+      "storage_recommendation": "Store the scope string as an opaque deployment-level identifier; it appears in server describe, Realm policy, and high-risk proof transcripts.",
+      "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk proofs (e.g. cx.cross_signing.reset §14.1). NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
     }
   ],
   "id_kinds": [
@@ -62,6 +69,13 @@
       "status": "active",
       "wire_form": "cx:actor_profile:<uuid>",
       "description": "Actor profile object ID"
+    },
+    {
+      "kind": "appeal",
+      "category": "moderation",
+      "status": "active",
+      "wire_form": "cx:appeal:<uuid>",
+      "description": "Moderation appeal ID — opaque key for the cx.component.moderation_appeal.v1 cell. Created by cx.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §6."
     },
     {
       "kind": "agent_session",

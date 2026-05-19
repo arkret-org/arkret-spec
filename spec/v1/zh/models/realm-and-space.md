@@ -105,6 +105,47 @@ Schema id: `cx.schema.realm.v1`
 }
 ```
 
+### 2.5 Realm 终态 (`cx.realm.tombstone` / `cx.realm.destroy`)
+
+Realm 有两个终态 event，语义不同：
+
+| Event | 语义 | 是否可恢复 | successor |
+| --- | --- | --- | --- |
+| `cx.realm.tombstone` | "本 Realm 不再活跃" — 转移到 successor Realm（产品改版、组织重组等）。 | ❌ 但 successor 接续历史可达 | 必填 `successor_realm_id` |
+| `cx.realm.destroy` | "本 Realm 永久退役" — 终极去活。无 successor，等同于"该 Realm 在该 deployment 内永久关闭"。 | ❌ | MUST NOT 设 successor |
+
+两个事件均写入 `cx.component.realm.destroy.v1`（cas-register, bottom=reject），不可重复写入。capability：`cx.realm.lifecycle.destroy`（high risk，capabilities.md §10）。
+
+#### 2.5.1 `cx.realm.destroy` 终态规则（normative）
+
+`cx.realm.destroy` accepted 进入 frontier 之后：
+
+1. **拒绝后续普通写入**：reducer MUST reject 所有非 `cx.audit.*` / 非 `cx.audit.erasure_receipt` event；后续 `cx.events.submit` 返回 `realm_terminal_state`（错误码沿用 `cx.realm.lifecycle` 域）。
+2. **Snapshot / Backfill / GC**：
+   - Snapshot service MAY 发布最后一份 final snapshot（`cx.snapshot.*` event）；之后 snapshot 不再更新。
+   - Backfill MAY 继续提供历史 event 给已授权 reader，受 history visibility policy 控制；新读权 MUST NOT 再被授予。
+   - GC：blob bytes、projection 缓存、to-device 队列、push route 按部署 retention policy 物理删除。canonical event log 仍按 retention/legal hold 保留。
+3. **Successor / Tombstone 区分**：`cx.realm.destroy` MUST NOT 携带 `successor_realm_id`；如果产品需要迁移到新 Realm，使用 `cx.realm.tombstone` 而不是 destroy。
+4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `cx.audit.erasure_receipt`（schema `cx.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
+5. **Federation Fanout**：destroy event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state` 并停止接受该 Realm 的新 `cx.events.submit`（包括 backfill 写入）。
+
+#### 2.5.2 跨 Principal Server Erasure Receipt Fanout（normative）
+
+当部署对一个 Realm（或一个 principal）执行 hard erasure 时，**issuing** Principal Server MUST：
+
+- 发布一条 `cx.audit.erasure_receipt`（durable_event）；
+- 在 federation push 中带上该 receipt 给所有曾接收过该 Realm 内容的 peer Principal Server；
+- 在 server describe `erasure_receipts_endpoint` 暴露 receipt 列表，便于 verifier 查询。
+
+**receiving** peer 处理 receipt 时 MUST：
+
+- 验证 receipt 签名链与 schema；
+- 如果 peer 本地存有该 erasure scope 内的 blob / projection / cache，按 receipt `scope.storage_boundary` 走本地删除流程，并发布自己的 `cx.audit.erasure_receipt` 反馈实际结果；
+- 失败（legal hold、retention 冲突、blob 已被备份到不可达存储）MUST 在 peer 自己的 receipt `outcome` 字段写 `partially_completed` 或 `blocked_by_legal_hold`，不得假装成功；
+- 任何 peer 未在 `erasure_propagation_window_ms`（默认 7 天）内回执，issuing server 在 `cx.audit.erasure_receipt.fanout_status` 上标 `incomplete`，并把 incomplete 状态暴露给 audit/UI；不得静默吞没。
+
+**Hash chain 保护**：hard erasure 仍保留 event graph verification stub（`retained_stub_hash` 字段），允许后续 verifier 校验"该 event 曾合法存在但内容已擦除"，不破坏 hash chain。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
+
 ## 3. Space
 
 ### 3.1 概念
