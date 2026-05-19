@@ -9,11 +9,13 @@ title: Realm & Space
 - **Realm**（`cx:realm:`）：security / sync / auth / E2EE / federation 的硬边界。
 - **Space**（`cx:space:`）：用户可理解的结构容器与导航节点，可表达 organization 下的 workspace、project、folder、board、list、section、calendar bucket 等形态；Space 自身不是安全边界。
 
-本轮模型把旧 `Space` 的硬边界职责移动到 `Realm`，把旧 `Place` 的结构容器职责升格为新的 `Space`。因此：
+两类对象的边界职责严格分离：
 
-- `Realm` 不再承担产品导航树职责，也不应被建模为 parent/child hierarchy。
-- `Space` 承担层级、排序、分类、项目组织和工作流容器职责。
+- `Realm` 承担 security / sync / auth / E2EE / federation 边界；**不**承担产品导航树职责，也不应被建模为 parent/child hierarchy。
+- `Space` 承担层级、排序、分类、项目组织和工作流容器职责；自身不是安全边界。
 - 强保密差异通过切分 Realm 表达；同一 Realm 内的 capability / Group 只承诺操作隔离，不承诺对已入组成员的强读隔离。
+
+历史 / pre-inversion 名词与当前名词的对应（仅供迁移参考，不进入 normative 描述）见 `CHANGELOG.md` 与 [`registry/renames.json`](../../artifacts/registry/renames.json) / [`registry/forbidden-model-terms.json`](../../artifacts/registry/forbidden-model-terms.json)。
 
 Realm 之间只允许显式 link graph（governance / discoverability / import-export / confidential-extension 等关系），详见 [`realm-links.md`](./realm-links.md)。Space 层级与跨 Realm 导航见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
@@ -207,7 +209,7 @@ Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 
 - `cx.space.restore`：仅允许 `archived -> active`；不级联 restore。
 - `cx.space.tombstone`：不可逆；在存在 live child Space 或 live `contains` placement 时 MUST `failed_precondition`。
 
-错误码沿用旧 Place lifecycle 语义，但新实现 SHOULD 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。兼容层 MAY 把旧 `place_*` reason code 映射到新名称。
+错误码 MUST 使用 `space_not_active`、`space_not_archived`、`space_has_live_dependents`、`space_already_terminal`。pre-inversion 形态已在 [`removed-event-kinds.json`](../../artifacts/registry/removed-event-kinds.json) 中标 hard_reject，不存在兼容映射通道；下游迁移工具按 drift artifact 一次性翻译为新名称后再回放。
 
 ### 3.5 `cx.space.parent` cas-register basis
 
