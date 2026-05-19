@@ -3,8 +3,8 @@
   "spec_section": "§15.4.26",
   "title": "Orphan reservation TTL cleanup → cell returns to __unset__",
   "preconditions": {
-    "cell": "cx:cell:mirror_space_by_source:cx:space:01964200-0000-7000-8000-000000000010",
-    "current_value": "cx:space:01964200-0000-7000-8000-000000000050",
+    "cell": "cx:cell:mirror_space_by_source:cx:realm:01964200-0000-7000-8000-000000000010",
+    "current_value": "cx:realm:01964200-0000-7000-8000-000000000050",
     "reservation_anchor": {
       "ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000013",
       "index": 100
@@ -19,20 +19,20 @@
   },
   "input_event": {
     "kind": "cx.agent_workspace.reservation.cleanup",
-    "space_id": "cx:space:01964200-0000-7000-8000-000000c00001",
+    "realm_id": "cx:realm:01964200-0000-7000-8000-000000c00001",
     "actor_id": "did:web:housekeeping.example",
     "preconditions": [
       {
-        "cell": "cx:cell:mirror_space_by_source:cx:space:01964200-0000-7000-8000-000000000010",
+        "cell": "cx:cell:mirror_space_by_source:cx:realm:01964200-0000-7000-8000-000000000010",
         "predicate": {
           "op": "head_eq",
-          "value": "cx:space:01964200-0000-7000-8000-000000000050"
+          "value": "cx:realm:01964200-0000-7000-8000-000000000050"
         }
       }
     ],
     "effects": [
       {
-        "cell": "cx:cell:mirror_space_by_source:cx:space:01964200-0000-7000-8000-000000000010",
+        "cell": "cx:cell:mirror_space_by_source:cx:realm:01964200-0000-7000-8000-000000000010",
         "op": {
           "kind": "set",
           "value": "__unset__"
@@ -44,8 +44,8 @@
     ],
     "payload": {
       "cell_namespace": "mirror_space_by_source",
-      "cell_namespace_subject": "cx:space:01964200-0000-7000-8000-000000000010",
-      "stale_reservation_id": "cx:space:01964200-0000-7000-8000-000000000050",
+      "cell_namespace_subject": "cx:realm:01964200-0000-7000-8000-000000000010",
+      "stale_reservation_id": "cx:realm:01964200-0000-7000-8000-000000000050",
       "ttl_evidence": {
         "reservation_anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000013",
         "reservation_anchor_index": 100,
@@ -59,8 +59,8 @@
     "reducer_result": "accepted",
     "cell_changes": [
       {
-        "cell": "cx:cell:mirror_space_by_source:cx:space:01964200-0000-7000-8000-000000000010",
-        "before": "cx:space:01964200-0000-7000-8000-000000000050",
+        "cell": "cx:cell:mirror_space_by_source:cx:realm:01964200-0000-7000-8000-000000000010",
+        "before": "cx:realm:01964200-0000-7000-8000-000000000050",
         "after": "__unset__"
       }
     ],

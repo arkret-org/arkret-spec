@@ -4,7 +4,7 @@
   "title": "Recovery Move without cx.capability.agent_workspace.recover MUST be rejected",
   "negative": true,
   "preconditions": {
-    "cell": "mirror_space_by_source:cx:space:01964200-0000-7000-8000-000000000010",
+    "cell": "mirror_space_by_source:cx:realm:01964200-0000-7000-8000-000000000010",
     "current_state": "⊥",
     "issuer_grants": [
       "cx.capability.agent_workspace.reservation.set"
@@ -14,13 +14,13 @@
   "input_move": {
     "lattice_op": {
       "kind": "set",
-      "value": "cx:space:01964200-0000-7000-8000-0000000000a1"
+      "value": "cx:realm:01964200-0000-7000-8000-0000000000a1"
     },
     "predicate": {
       "op": "head_in",
       "values": [
-        "cx:space:01964200-0000-7000-8000-0000000000a1",
-        "cx:space:01964200-0000-7000-8000-0000000000b2"
+        "cx:realm:01964200-0000-7000-8000-0000000000a1",
+        "cx:realm:01964200-0000-7000-8000-0000000000b2"
       ]
     },
     "refs": [

@@ -33,7 +33,7 @@ Schema id: `cx.schema.event.v1`
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
 | `kind` | yes | `string` | 标准 effect kind SHOULD 使用 `cx.` 前缀。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 Move effect / 兼容 reducer 使用。 | 事件 kind。 |
-| `space_id` | yes | `id:space` | Space create 可在 payload 中建立。 | 所属 Space。 |
+| `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链。 | 发送 Actor。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
@@ -55,7 +55,7 @@ Schema id: `cx.schema.event.v1`
 ```json
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 4,
   "kind": "cx.flow.update",
@@ -108,13 +108,13 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 - `payload.type` 不得重复写入 `cx.*` Event kind。
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`cx:flow:` 等）即对象种类，不写单独的 `payload.object.type`。
 - `actor_id` 是签署并提交该 Event 的 DID；物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`，但不得替代 Event proof、capability 或 Move refs 校验。
-- 启用 `cx.profile.mls.minimal_metadata_space.v1` 时，`actor_id` MAY 是 Space / Flow track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.schema.identity_link.v1` payload（`cx.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+- 启用 `cx.profile.mls.minimal_metadata_space.v1` 时，`actor_id` MAY 是 Realm / Flow track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `cx.schema.identity_link.v1` payload（`cx.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 ### 2.5 Create 类 Event 的跨字段语义校验
 
 Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：
 
-- `cx.space.create.payload.object.created_by_principal` MUST 等于顶层 `actor_id`。
+- `cx.realm.create.payload.object.created_by_principal` MUST 等于顶层 `actor_id`。
 - `cx.flow.create` / `cx.morph.create` / `cx.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller。
 - `payload.object.created_at` MUST 等于顶层 `created_at`。
 
@@ -130,9 +130,9 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 
 ### 2.7 Requirements 与 critical extensions
 
-`requirements.features[]` 与 `requirements.critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Space schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
+`requirements.features[]` 与 `requirements.critical_extensions[].id` 必须使用可发现的 feature/profile 标识，并通过 service describe、profile registry 或 Realm schema/policy 指向可验证定义。接收方不支持 critical feature 时 MUST fail closed；不得把未知 critical 语义当作普通未知字段保留后继续 accepted。
 
-**Per-event schema 版本绑定**：当 event 修改的对象使用 evolvable schema（典型是 Morph，但同样适用于任何 Space-defined schema 容器对象）时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 写入时对象实际遵循的 schema profile id 全集。reader 重放该 event 时 **MUST** 用 `requirements.schema[]` 绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用对象当前的 `schema_refs[]`。这保证 partial replication 与跨版本历史回放时验证结果一致，并锁定每个 event 的 schema 解释边界。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md)。
+**Per-event schema 版本绑定**：当 event 修改的对象使用 evolvable schema（典型是 Morph，但同样适用于任何 Realm-defined schema 容器对象）时，写入端 **MUST** 在 `requirements.schema[]` 中列出该 event 写入时对象实际遵循的 schema profile id 全集。reader 重放该 event 时 **MUST** 用 `requirements.schema[]` 绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用对象当前的 `schema_refs[]`。这保证 partial replication 与跨版本历史回放时验证结果一致，并锁定每个 event 的 schema 解释边界。详细规则与 Morph 特化语义见 [`morph.md` §4.1](./morph.md)。
 
 ## 3. Proof
 
@@ -217,7 +217,7 @@ reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、
 - Message: `content`、`encrypted_payload`、`body`
 - Flow: `summary`、`description`、`encrypted_payload`、用户可写的长文本 fields
 - Morph: `content`、`encrypted_payload`、`fields.<text-content-shape>` (由 morph profile 声明)
-- 任何在 Space schema 中标记为 `redactable: true` 的字段。
+- 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
 理由: 这些字段的清除必须走 `cx.<kind>.redact` 或 `cx.redaction` event,以触发 redaction-specific capability check + audit anchor + retention policy;允许用 `cx.patch.v1` 直接 `unset` 等价于让任何持有 `cx.<kind>.update` 的 actor 绕过 `cx.<kind>.redact` 的高 tier capability 完成 redaction (redaction escape)。
 
@@ -228,7 +228,7 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 - `unset` 不允许带 `value`(空 value object MUST 视作 `{"$op":"unset"}`);
 - `set`、`add`、`remove` 必须带 `value`;
 - 客户端不能把数字数组下标写入 path; 如需更新无 stable key 的列表元素,必须将对象重建为具名集合项、用 profile 注册的 move/update event,或使用明确的 API 约束字段表示更新目标;
-- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `space_id` / `created_by` / `created_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改;见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。
+- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `realm_id` / `created_by` / `created_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改;见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。
 
 ### 4.3 在 Event 中的位置
 
@@ -250,8 +250,8 @@ Schema id: `cx.schema.event_batch_receipt.v1`
 | --- | --- | --- | --- | --- |
 | `receipt_id` | yes | `id:receipt` |  | Receipt ID。 |
 | `issuer` | yes | `did` | 必须控制签名 key。 | 签发者，可以是 principal、Principal Server 或 witness。 |
-| `scope` | yes | `object` | SHOULD 包含 `actor_id`、`space_id` 或查询范围 hash。 | receipt 覆盖范围。 |
-| `frontier` | yes | `object` | SHOULD 包含 `actor_seq`、`event_id` / event hash、HLC 或 Space frontier。 | 签发时前沿。 |
+| `scope` | yes | `object` | SHOULD 包含 `actor_id`、`realm_id` 或查询范围 hash。 | receipt 覆盖范围。 |
+| `frontier` | yes | `object` | SHOULD 包含 `actor_seq`、`event_id` / event hash、HLC 或 Realm frontier。 | 签发时前沿。 |
 | `events` | yes | `array<id:event \| hash>` | 数组顺序参与 hash。 | 被 receipt 覆盖的 Event Envelope 引用。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `proofs` | yes | `array<Proof>` |  | Receipt proof。 |

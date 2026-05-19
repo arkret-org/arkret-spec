@@ -176,7 +176,7 @@ cx.vector.encoding.event_digest.v1
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
   "kind": "cx.message.create",
-  "space_id": "cx:space:01964137-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -196,7 +196,7 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"refs": [],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000"},"prev_refs":[],"space_id":"cx:space:01964137-0000-7000-8000-000000000000"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"refs": [],"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000"},"prev_refs":[],"realm_id":"cx:realm:01964137-0000-7000-8000-000000000000"}
 ```
 
 期望 digest：
@@ -380,13 +380,13 @@ cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD
 cursor base64url 解码后对应 canonical JSON：
 
 ```text
-{"_mac":"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000","purpose":"stream","s":{"cx:space:0196419b-0000-7000-8000-000000000000":{"h":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","o":"01970e589d21-0000-a13f9c2e","p":["cx:event:019640ed-8000-7000-8000-000000000000"]}},"t":"2026-12-30T23:59:59Z","v":"1","x":1798761599000}
+{"_mac":"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000","purpose":"stream","s":{"cx:realm:0196419b-0000-7000-8000-000000000000":{"h":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","o":"01970e589d21-0000-a13f9c2e","p":["cx:event:019640ed-8000-7000-8000-000000000000"]}},"t":"2026-12-30T23:59:59Z","v":"1","x":1798761599000}
 ```
 
 期望客户端行为：
 
 - 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 stateful 或 stateless 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
-- 客户端 MUST NOT 依赖 base64url 解码后的 `s.<space_id>.p/o/h` frontier、`x` 过期字段或 `_mac` 构造下一页请求；这些字段的存在只是为了让服务端可以无状态地恢复同步进度。
+- 客户端 MUST NOT 依赖 base64url 解码后的 `s.<realm_id>.p/o/h` frontier、`x` 过期字段或 `_mac` 构造下一页请求；这些字段的存在只是为了让服务端可以无状态地恢复同步进度。
 - 服务端 MAY 改变 cursor 内部编码或字段集合，只要同一 query/session 下 cursor 仍按 API contract 可用。
 - 服务端 MUST 在收到该 cursor 时，按 §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、schema 形态和所有 frontier event 引用；语法失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，完整性失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
 
@@ -558,15 +558,15 @@ cx.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1
 
 输入：
 
-- Space 以 `anchor_profile=mixed` 起始；`primary=did:web:host-a.example`，`recovery_members=[did:web:recovery-1.example, did:web:recovery-2.example]`。
+- Realm 以 `anchor_profile=mixed` 起始；`primary=did:web:host-a.example`，`recovery_members=[did:web:recovery-1.example, did:web:recovery-2.example]`。
 - 两条并发 Move 在 anchorer cell（cas-register, bottom=reject）上提交不同 value。
 
 期望：
 
-- anchorer cell join → ⊥；Space 状态 `anchorer_paused`。
+- anchorer cell join → ⊥；Realm 状态 `anchorer_paused`。
 - 普通 Anchor 推进 MUST 阻塞。
 - 仅 `recovery_members` 中 DID 签发的 recovery Anchor 才能重置 anchorer cell。
-- 恢复后 Space 状态回到 `effective`。
+- 恢复后 Realm 状态回到 `effective`。
 
 ### 2.7 Vector: Signed Compaction Anchor 等价 Effective View
 
@@ -578,7 +578,7 @@ cx.vector.move_anchor_lattice.signed_compaction_equivalent.v1
 
 输入：
 
-- 两个并存 Anchor leaves L1、L2（同 Space）。
+- 两个并存 Anchor leaves L1、L2（同 Realm）。
 - 一条由 anchorer 签发的 compaction Anchor C 试图替代 (L1, L2)。
 
 期望：
@@ -702,7 +702,7 @@ cx.vector.redaction.preserve_fields.v1
   "target_event": {
     "event_id": "cx:event:0196414c-3000-7000-8000-000000000000",
     "kind": "cx.message.create",
-    "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:00Z",
     "hlc": "01970e589d24-0001-aaaaaaaa",
@@ -733,7 +733,7 @@ cx.vector.redaction.preserve_fields.v1
   "redaction_event": {
     "event_id": "cx:event:0196418a-0360-7000-8000-000000000000",
     "kind": "cx.redaction",
-    "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example.com",
     "created_at": "2026-04-26T00:00:02Z",
     "hlc": "01970e589d24-0002-bbbbbbbb",
@@ -760,7 +760,7 @@ cx.vector.redaction.preserve_fields.v1
   "kept_envelope_fields": [
     "event_id",
     "kind",
-    "space_id",
+    "realm_id",
     "actor_id",
     "created_at",
     "hlc",
@@ -813,7 +813,7 @@ cx.vector.redaction.policy_scope.v1
     {
       "event_id": "cx:event:0196417d-8400-7000-8000-000000000000",
       "kind": "cx.message.create",
-      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "payload": {
@@ -827,7 +827,7 @@ cx.vector.redaction.policy_scope.v1
     {
       "event_id": "cx:event:0196417d-8980-7000-8000-000000000000",
       "kind": "cx.policy.action",
-      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
       "actor_id": "did:web:policy-bot.example.com",
@@ -840,7 +840,7 @@ cx.vector.redaction.policy_scope.v1
     {
       "event_id": "cx:event:0196417d-8f00-7000-8000-000000000000",
       "kind": "cx.redaction",
-      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:policy-admin.example",
       "payload": {
         "redacts": "cx:event:0196417d-8400-7000-8000-000000000000",
@@ -855,7 +855,7 @@ cx.vector.redaction.policy_scope.v1
 
 - Projection 不得展示已 redacted 的 `content`，但应保留 stripped 证据用于审计。
 - 历史可见性为 `world_readable` 时，外部审计仍应看到 redaction 事实而不是原文。
-- 冻结空间（frozen space）与历史归档（archived event）场景下，timeline 位置必须保留，不能物理删除。
+- 冻结空间（frozen realm）与历史归档（archived event）场景下，timeline 位置必须保留，不能物理删除。
 - policy 的 `quarantine` 仍需要保留 redaction 后事件的 `event_id` 指纹映射。
 
 失败判定：
@@ -916,7 +916,7 @@ cx.vector.capability.<scenario>.v1
 
 每个向量应检查：
 
-- selector scope 是否正确绑定到 actor/device/space/action。
+- selector scope 是否正确绑定到 actor/device/realm/action。
 - 授权时间窗约束是否导致一致结果。
 - 关键路径必须拒绝 `authorization-only` 假阳性。
 
@@ -936,7 +936,7 @@ cx.vector.capability.delegate_chain.v1
     "kind": "cx.capability.grant",
     "subject": "did:web:root-admin.example.com",
     "actions": [
-      "cx.space.admin"
+      "cx.realm.admin"
     ],
     "constraints": []
   },
@@ -944,12 +944,12 @@ cx.vector.capability.delegate_chain.v1
     {
       "event_id": "cx:event:019640d0-c000-7000-8000-000000000000",
       "kind": "cx.capability.delegate",
-      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:root-admin.example.com",
       "payload": {
-        "source_capability": "space-admin",
+        "source_capability": "realm-admin",
         "subject": "did:web:ops.example.com",
-        "scope": "space:01js0ms000000000000000000",
+        "scope": "realm:01js0ms000000000000000000",
         "actions": [
           "cx.capability.*",
           "cx.invite.create"
@@ -976,12 +976,12 @@ cx.vector.capability.delegate_chain.v1
     {
       "event_id": "cx:event:019640d0-c400-7000-8000-000000000000",
       "kind": "cx.capability.delegate",
-      "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:web:ops.example.com",
       "payload": {
-        "source_capability": "space-admin-delegate-a",
+        "source_capability": "realm-admin-delegate-a",
         "subject": "did:web:intern.example.com",
-        "scope": "space:01js0ms000000000000000000",
+        "scope": "realm:01js0ms000000000000000000",
         "actions": [
           "cx.invite.create"
         ],
@@ -1010,7 +1010,7 @@ cx.vector.capability.delegate_chain.v1
   "action_query": {
     "actor_id": "did:web:intern.example.com",
     "action": "cx.invite.create",
-    "resource": "cx:space:0196414c-8000-7000-8000-000000000000",
+    "resource": "cx:realm:0196414c-8000-7000-8000-000000000000",
     "request_time": "2026-04-26T01:00:00Z",
     "request_audience": "did:web:vendor.example"
   }
@@ -1135,13 +1135,13 @@ cx.vector.capability.approval_constraint.v1
     "event_id": "cx:event:01964148-a800-7000-8000-000000000000",
     "kind": "cx.policy.action",
     "actor_id": "did:web:contractor.example",
-    "space_id": "cx:space:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "cx:realm:0196414c-8000-7000-8000-000000000000",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
-      "action": "cx.space.admin",
+      "action": "cx.realm.admin",
       "approval_required": true,
       "approval_quorum": 2,
-      "scope": "space:01js0ms000000000000000000"
+      "scope": "realm:01js0ms000000000000000000"
     },
     "refs": [
       { "id": "cx:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
@@ -1152,7 +1152,7 @@ cx.vector.capability.approval_constraint.v1
       "kind": "cx.capability.grant",
       "subject": "did:web:contractor.example",
       "actions": [
-        "cx.space.admin"
+        "cx.realm.admin"
       ]
     },
     {
@@ -1222,7 +1222,7 @@ cx.vector.capability.approval_constraint.v1
 - `event_id` 是内容寻址或签名绑定后的稳定 ID。
 - `actor_seq` 在同一 actor 的单条因果路径上严格递增；并发 sibling fork 可出现相同高度。
 - `hlc` 是 Hybrid Logical Clock，不能单独决定因果顺序。
-- `target_ref` MUST 指向标准对象、Morph、Relation、View 或 Space。对于 `*.create` 向量，`target_ref` 只是测试向量的阅读辅助；规范性 Event payload 仍使用 `payload.object.id`。
+- `target_ref` MUST 指向标准对象、Morph、Relation、View 或 Realm。对于 `*.create` 向量，`target_ref` 只是测试向量的阅读辅助；规范性 Event payload 仍使用 `payload.object.id`。
 
 ### 5.3 Vector: Board Collection Projection
 
@@ -1230,19 +1230,19 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
-      "kind": "cx.space.create",
-      "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
+      "kind": "cx.realm.create",
+      "target_ref": "cx:realm:019640b6-8000-7000-8000-000000000000",
       "payload": {
         "object": {
-          "id": "cx:space:019640b6-8000-7000-8000-000000000000",
-          "schema": "cx.schema.space.v1",
+          "id": "cx:realm:019640b6-8000-7000-8000-000000000000",
+          "schema": "cx.schema.realm.v1",
           "kind": "board",
           "title": "Release Board",
           "created_by_principal": "did:web:alice.example.com",
-          "schema_refs": ["cx.schema.space.v1"],
+          "schema_refs": ["cx.schema.realm.v1"],
           "default_discoverability": "restricted",
           "default_join_rule": "restricted",
           "history_visibility": "joined",
@@ -1252,17 +1252,17 @@ cx.vector.capability.approval_constraint.v1
       }
     },
     {
-      "kind": "cx.space.create",
-      "target_ref": "cx:space:01964010-8400-7000-8000-000000000000",
+      "kind": "cx.realm.create",
+      "target_ref": "cx:realm:01964010-8400-7000-8000-000000000000",
       "payload": {
         "object": {
-          "id": "cx:space:01964010-8400-7000-8000-000000000000",
-          "schema": "cx.schema.space.v1",
+          "id": "cx:realm:01964010-8400-7000-8000-000000000000",
+          "schema": "cx.schema.realm.v1",
           "kind": "list",
           "title": "Todo",
           "rank": "U",
           "created_by_principal": "did:web:alice.example.com",
-          "schema_refs": ["cx.schema.space.v1"],
+          "schema_refs": ["cx.schema.realm.v1"],
           "default_discoverability": "restricted",
           "default_join_rule": "restricted",
           "history_visibility": "joined",
@@ -1278,7 +1278,7 @@ cx.vector.capability.approval_constraint.v1
         "object": {
           "id": "cx:flow:019640c5-0400-7000-8000-000000000000",
           "schema": "cx.schema.flow.v1",
-          "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
           "title": "Release checklist",
           "tracks": {
             "synthesis": {
@@ -1291,10 +1291,10 @@ cx.vector.capability.approval_constraint.v1
         "initial_relations": [
           {
             "relation_kind": "contains",
-            "from_ref": "cx:place:01964010-8400-7000-8000-000000000000",
+            "from_ref": "cx:space:01964010-8400-7000-8000-000000000000",
             "to_ref": "cx:flow:019640c5-0400-7000-8000-000000000000",
             "fields": {
-              "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+              "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
               "rank": "U"
             }
           }
@@ -1308,7 +1308,7 @@ cx.vector.capability.approval_constraint.v1
 期望：
 
 - Collection projection MUST 返回 `object.id = cx:flow:019640c5-0400-7000-8000-000000000000`。
-- 返回项 MUST 位于 `cx:space:01964010-8400-7000-8000-000000000000`。
+- 返回项 MUST 位于 `cx:realm:01964010-8400-7000-8000-000000000000`。
 - View cursor MUST 绑定 projection、view、frontier 与权限上下文。
 
 ### 5.4 Vector: Flow Card Move Read-Your-Writes
@@ -1321,10 +1321,10 @@ cx.vector.capability.approval_constraint.v1
     "kind": "cx.flow.move",
     "target_ref": "cx:flow:019640c5-0400-7000-8000-000000000000",
     "payload": {
-      "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
       "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000",
-      "from_place_id": "cx:place:01964010-8400-7000-8000-000000000000",
-      "target_place_id": "cx:place:01964010-8800-7000-8000-000000000000",
+      "from_space_id": "cx:space:01964010-8400-7000-8000-000000000000",
+      "target_space_id": "cx:space:01964010-8800-7000-8000-000000000000",
       "rank": "U"
     }
   },
@@ -1342,7 +1342,7 @@ cx.vector.capability.approval_constraint.v1
 期望：
 
 - Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
-- 查询结果中该 Flow item 的 `list_id` MUST 为 `cx:space:01964010-8800-7000-8000-000000000000`。
+- 查询结果中该 Flow item 的 `list_id` MUST 为 `cx:realm:01964010-8800-7000-8000-000000000000`。
 
 ### 5.5 Vector: Flow Discussion Track Visibility
 
@@ -1408,13 +1408,13 @@ cx.vector.capability.approval_constraint.v1
 期望：
 
 - 当 viewer 可读取 Flow discussion track 时，`flow-discussion-timeline` MUST 返回该消息。
-- 仅当 viewer 可读取 Flow discussion track 时，`flow-discussions` MUST 才包含该消息；当 discussion 位于独立的 `discussion_space_ref` child Space 时，仅有 Flow synthesis 可见性是不够的。
+- 仅当 viewer 可读取 Flow discussion track 时，`flow-discussions` MUST 才包含该消息；当 discussion 位于独立的 `discussion_realm_ref` linked Realm 时，仅有 Flow synthesis 可见性是不够的。
 
-## 6. Place Lifecycle Vectors
+## 6. Space Lifecycle Vectors
 
 ### 6.1 目标
 
-本节定义 Place（看板 / 列 / 泳道 / calendar bucket / page group ...）`active` ↔ `archived` ↔ `tombstoned` 状态机的跨实现测试向量。canonical 写入路径见 [`../models/space-and-place.md` §4.4](../models/space-and-place.md)；canonical 状态机对齐见 [`../models/common-fields.md` §5](../models/common-fields.md)。
+本节定义 Space（看板 / 列 / 泳道 / calendar bucket / page group ...）`active` ↔ `archived` ↔ `tombstoned` 状态机的跨实现测试向量。canonical 写入路径见 [`../models/realm-and-space.md` §4.4](../models/realm-and-space.md)；canonical 状态机对齐见 [`../models/common-fields.md` §5](../models/common-fields.md)。
 
 实现声称支持以下 profile 时 SHOULD 运行本节向量：
 
@@ -1422,22 +1422,22 @@ cx.vector.capability.approval_constraint.v1
 - `cx.profile.full_client.v1`
 - `cx.profile.principal_server.v1`
 
-### 6.2 Vector: Place Archive 然后 Restore（happy path）
+### 6.2 Vector: Space Archive 然后 Restore（happy path）
 
 输入（按 causal order 应用）：
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
-      "kind": "cx.place.create",
-      "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "kind": "cx.space.create",
+      "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
       "payload": {
         "object": {
-          "id": "cx:place:019640b6-8000-7000-8000-000000000000",
-          "schema": "cx.schema.place.v1",
-          "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+          "id": "cx:space:019640b6-8000-7000-8000-000000000000",
+          "schema": "cx.schema.space.v1",
+          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
           "created_by": "did:web:alice.example.com",
@@ -1446,20 +1446,20 @@ cx.vector.capability.approval_constraint.v1
       }
     },
     {
-      "kind": "cx.place.archive",
-      "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "kind": "cx.space.archive",
+      "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
       "created_at": "2026-05-15T10:05:00Z",
       "payload": {
-        "place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+        "space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
         "reason": "release_cycle_complete"
       }
     },
     {
-      "kind": "cx.place.restore",
-      "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "kind": "cx.space.restore",
+      "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
       "created_at": "2026-05-15T10:10:00Z",
       "payload": {
-        "place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+        "space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
         "reason": "release_reopened"
       }
     }
@@ -1469,30 +1469,30 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- 应用 `cx.place.archive` 后，Place 物化对象 MUST 有 `state == "archived"` 且 `state_changed_at == "2026-05-15T10:05:00Z"`。默认 collection projection（不显式包含 archived items）MUST NOT 返回该 Place；显式带 `include_states=["archived"]` 的查询 MUST 仍可返回它。
-- 应用 `cx.place.restore` 后，Place 物化对象 MUST 有 `state == "active"` 且 `state_changed_at == "2026-05-15T10:10:00Z"`。默认 projection MUST 重新展示该 Place。
-- Restore **不**级联——若该 Place 包含 child Place（如 List 在 Board 内）或内部 Flow 且它们各自处于 `archived`，restore parent MUST NOT 改变 children 的 state。
+- 应用 `cx.space.archive` 后，Space 物化对象 MUST 有 `state == "archived"` 且 `state_changed_at == "2026-05-15T10:05:00Z"`。默认 collection projection（不显式包含 archived items）MUST NOT 返回该 Space；显式带 `include_states=["archived"]` 的查询 MUST 仍可返回它。
+- 应用 `cx.space.restore` 后，Space 物化对象 MUST 有 `state == "active"` 且 `state_changed_at == "2026-05-15T10:10:00Z"`。默认 projection MUST 重新展示该 Space。
+- Restore **不**级联——若该 Space 包含 child Space（如 List 在 Board 内）或内部 Flow 且它们各自处于 `archived`，restore parent MUST NOT 改变 children 的 state。
 - archive 期间未被擦除的 `contains` Relation、Flow position cell 与 `parent_ref` cell MUST 在 restore 后保持原值；用户看到的内容与 archive 之前一致。
 
-### 6.3 Vector: Place Restore 在 `active` 状态被拒绝
+### 6.3 Vector: Space Restore 在 `active` 状态被拒绝
 
 输入：
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
-    "place": {
-      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "space": {
+      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
       "state": "active"
     }
   },
   "event": {
-    "kind": "cx.place.restore",
-    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "kind": "cx.space.restore",
+    "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
     "created_at": "2026-05-15T11:00:00Z",
     "payload": {
-      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
+      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -1500,30 +1500,30 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- Reducer MUST 返回 `failed_precondition`，`reason == "place_not_archived"`。
-- Place 物化对象 MUST 不被修改；`state_changed_at` MUST 保持 archive 之前的值或缺省。
+- Reducer MUST 返回 `failed_precondition`，`reason == "space_not_archived"`。
+- Space 物化对象 MUST 不被修改；`state_changed_at` MUST 保持 archive 之前的值或缺省。
 - Event 不进入 reducer，但 envelope 本身签名/schema 合法时 MAY 仍被持久化为 envelope 历史（按各实现的 envelope-vs-state 边界处理）；reducer state 不得反映本次写入。
 
-### 6.4 Vector: Place Restore 在 `tombstoned` 状态被拒绝（不可复活）
+### 6.4 Vector: Space Restore 在 `tombstoned` 状态被拒绝（不可复活）
 
 输入：
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
-    "place": {
-      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "space": {
+      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
       "state": "tombstoned",
       "state_changed_at": "2026-05-15T09:00:00Z"
     }
   },
   "event": {
-    "kind": "cx.place.restore",
-    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "kind": "cx.space.restore",
+    "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
     "created_at": "2026-05-15T12:00:00Z",
     "payload": {
-      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
+      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -1531,9 +1531,9 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- Reducer MUST 返回 `failed_precondition`，`reason == "place_not_archived"`（与 §6.3 同 reason；tombstoned 在状态机中不属于 `archived`，复活路径不存在）。
-- Place 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
-- 该向量是 `tombstoned` 不可逆终态约束（[`space-and-place.md` §4.4](../models/space-and-place.md)、[`place.schema.json#/properties/state`](../../artifacts/schemas/place.schema.json)）的 wire 级证据：实现 MUST NOT 提供任何"先 restore 再写入"的 tombstoned 复活路径。需要重新启用一个等价容器时，正确的做法是 `cx.place.create` 一个新 Place。
+- Reducer MUST 返回 `failed_precondition`，`reason == "space_not_archived"`（与 §6.3 同 reason；tombstoned 在状态机中不属于 `archived`，复活路径不存在）。
+- Space 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
+- 该向量是 `tombstoned` 不可逆终态约束（[`realm-and-space.md` §4.4](../models/realm-and-space.md)、[`space.schema.json#/properties/state`](../../artifacts/schemas/space.schema.json)）的 wire 级证据：实现 MUST NOT 提供任何"先 restore 再写入"的 tombstoned 复活路径。需要重新启用一个等价容器时，正确的做法是 `cx.space.create` 一个新 Space。
 
 ### 6.5 Vector: Archive 在非 `active` 状态被拒绝
 
@@ -1541,20 +1541,20 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
-    "place": {
-      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "space": {
+      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
       "state": "archived",
       "state_changed_at": "2026-05-15T10:05:00Z"
     }
   },
   "event": {
-    "kind": "cx.place.archive",
-    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "kind": "cx.space.archive",
+    "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
     "created_at": "2026-05-15T11:30:00Z",
     "payload": {
-      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
+      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -1562,9 +1562,9 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- Reducer MUST 返回 `failed_precondition`，`reason == "place_not_active"`（[common-fields.md §5.1](../models/common-fields.md) state-transition 表）。
-- Place 物化对象 MUST 保持 `state == "archived"` 与原 `state_changed_at`；same-state self-transition 不被当作 idempotent no-op。
-- 客户端如果意图是"重新 archive"，正确路径是先 `cx.place.restore` 再 `cx.place.archive`。
+- Reducer MUST 返回 `failed_precondition`，`reason == "space_not_active"`（[common-fields.md §5.1](../models/common-fields.md) state-transition 表）。
+- Space 物化对象 MUST 保持 `state == "archived"` 与原 `state_changed_at`；same-state self-transition 不被当作 idempotent no-op。
+- 客户端如果意图是"重新 archive"，正确路径是先 `cx.space.restore` 再 `cx.space.archive`。
 - 该向量对 Flow / Morph 等价同形：`cx.flow.archive` 在 `state != "active"` 时 `flow_not_active`；`cx.morph.archive` 同理 `morph_not_active`。
 
 ### 6.6 Vector: Tombstone 在已 tombstoned 状态被拒绝
@@ -1573,20 +1573,20 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
-    "place": {
-      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "space": {
+      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
       "state": "tombstoned",
       "state_changed_at": "2026-05-15T09:00:00Z"
     }
   },
   "event": {
-    "kind": "cx.place.tombstone",
-    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "kind": "cx.space.tombstone",
+    "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
     "created_at": "2026-05-15T12:00:00Z",
     "payload": {
-      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000"
+      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -1594,8 +1594,8 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- Reducer MUST 返回 `failed_precondition`，`reason == "place_already_terminal"`（[common-fields.md §5.1](../models/common-fields.md) 终态等价规则）。
-- Place 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
+- Reducer MUST 返回 `failed_precondition`，`reason == "space_already_terminal"`（[common-fields.md §5.1](../models/common-fields.md) 终态等价规则）。
+- Space 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
 - 该向量对 Flow / Morph 等价同形：`cx.redaction` 指向已 `redacted` 的 Flow / Morph 时同样返回 `<kind>_already_terminal`。终态进入是单向、单次操作。
 
 ### 6.7 Vector: Update 在非 `active` 状态被拒绝
@@ -1604,21 +1604,21 @@ cx.vector.capability.approval_constraint.v1
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
-    "place": {
-      "id": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "space": {
+      "id": "cx:space:019640b6-8000-7000-8000-000000000000",
       "state": "archived",
       "state_changed_at": "2026-05-15T10:05:00Z",
       "title": "Release Board"
     }
   },
   "event": {
-    "kind": "cx.place.update",
-    "target_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+    "kind": "cx.space.update",
+    "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
     "created_at": "2026-05-15T11:45:00Z",
     "payload": {
-      "place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
       "patch": {
         "title": "Renamed while archived"
       }
@@ -1629,23 +1629,23 @@ cx.vector.capability.approval_constraint.v1
 
 期望：
 
-- Reducer MUST 返回 `failed_precondition`，`reason == "place_not_active"`（"update on non-active object" invariant，[common-fields.md §5.1](../models/common-fields.md)）。
-- Place 物化对象 MUST 保持原 `title="Release Board"` 与 `state == "archived"`；update **不**作为隐式 restore。
-- 客户端正确路径：先 `cx.place.restore`，update 通过后再决定是否 `cx.place.archive`。
+- Reducer MUST 返回 `failed_precondition`，`reason == "space_not_active"`（"update on non-active object" invariant，[common-fields.md §5.1](../models/common-fields.md)）。
+- Space 物化对象 MUST 保持原 `title="Release Board"` 与 `state == "archived"`；update **不**作为隐式 restore。
+- 客户端正确路径：先 `cx.space.restore`，update 通过后再决定是否 `cx.space.archive`。
 - 该向量对 Flow / Morph `*.update` 等价同形。
 
 ## 7. Member Delivery Binding Vectors
 
 ### 7.1 目标
 
-验证 `cx.member.state{membership="join"}` 的 `delivery_binding` payload 是 Space-scoped event 投递的唯一权威路由源：
+验证 `cx.member.state{membership="join"}` 的 `delivery_binding` payload 是 Realm-scoped event 投递的唯一权威路由源：
 - schema-level conditional required 字段强制执行；
 - DID Document service entry **不构成** fallback；
 - 路由失败时 sender fail-closed（quarantine + retry，不退回 DID Document）；
 - rebind 通过 causal frontier handover；
 - 撤销后投递立即停止。
 
-下列向量假设 Space `cx:space:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位，conformance fixture 在 `artifacts/fixtures/membership/delivery_binding/` 下分文件落地。
+下列向量假设 Realm `cx:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位，conformance fixture 在 `artifacts/fixtures/membership/delivery_binding/` 下分文件落地。
 
 ### 7.2 Vector: `explicit` Binding 接受
 
@@ -1653,14 +1653,14 @@ Input — `cx.member.state{membership="join"}` Move payload：
 
 ```json
 {
-  "space_id": "cx:space:7d000000-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:7d000000-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "routable",
   "delivery_binding": {
     "recipient_service_did": "did:web:principal.acme.example",
     "recipient_service_type": "principal_server",
-    "binding_scope": "space",
+    "binding_scope": "realm",
     "binding_source": "explicit",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
     "resolved_at": "2026-05-19T10:00:00Z",
@@ -1670,28 +1670,28 @@ Input — `cx.member.state{membership="join"}` Move payload：
 }
 ```
 
-预设：Space policy `cx.space.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:web:principal.acme.example`、`required_endorsers` 含 `did:web:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:web:principal.acme.example` 签发且 scope 覆盖该 Space。
+预设：Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:web:principal.acme.example`、`required_endorsers` 含 `did:web:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:web:principal.acme.example` 签发且 scope 覆盖该 Realm。
 
 期望：
 - reducer 接受 join Move；写入成员 cell。
-- 此后任何向 Alice 投递的 Space S event/sync/to_device/push/key_packages MUST 走 `did:web:principal.acme.example`，**禁止**触发 DID Document service entry resolution。
+- 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/key_packages MUST 走 `did:web:principal.acme.example`，**禁止**触发 DID Document service entry resolution。
 
 ### 7.3 Vector: `did_document_default` Fallback 物化
 
-Input — Space policy `cx.space.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `ContrixPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
+Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `ContrixPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
 
 客户端构造 join Move 时 MUST 先解析 DID Document 并物化进 binding：
 
 ```json
 {
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "routable",
   "delivery_binding": {
     "recipient_service_did": "did:web:personal.alice.example",
     "recipient_service_type": "principal_server",
-    "binding_scope": "space",
+    "binding_scope": "realm",
     "binding_source": "did_document_default",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
     "resolved_at": "2026-05-19T10:00:00Z",
@@ -1703,16 +1703,16 @@ Input — Space policy `cx.space.delivery_binding_policy` 声明 `allow_did_docu
 期望：
 - reducer 接受 join Move（`did_document_hash` 与 `resolved_at` 满足 conditional required）。
 - 同形 Move 缺少 `did_document_hash` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
-- 同形 Move 在 Space policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_source_not_allowed`。
+- 同形 Move 在 Realm policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_source_not_allowed`。
 - 一旦该 join 被接受，sender **不得**在后续投递时 re-resolve DID Document——即使 DID Document 已更新指向新服务，仍按 cell 内 `delivery_binding` 投递，直到一次合法 rebind。
 
 ### 7.4 Vector: `unroutable` 成员
 
-Input — Space policy `cx.space.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Move 携带：
+Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Move 携带：
 
 ```json
 {
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "unroutable"
@@ -1723,23 +1723,23 @@ Input — Space policy `cx.space.delivery_binding_policy` 声明 `allow_unroutab
 
 期望：
 - reducer 接受。
-- 任何 sender 计算"该 Space S 应投递给 Alice"的目标集合时 MUST 跳过该成员；不得用 DID Document 推导 fallback。
+- 任何 sender 计算"该 Realm S 应投递给 Alice"的目标集合时 MUST 跳过该成员；不得用 DID Document 推导 fallback。
 - 客户端对该成员的本地视图：只展示在 reducer state 与本地索引中，但不向其推送通知 / sync / push / to_device。
-- 同形 Move 在 Space policy `allow_unroutable_membership=false` 时 reducer MUST 返回 `unroutable_not_allowed`。
+- 同形 Move 在 Realm policy `allow_unroutable_membership=false` 时 reducer MUST 返回 `unroutable_not_allowed`。
 
 ### 7.5 Vector: Rebind Handover + 撤销后停止投递
 
 序列：
 
 1. **Initial join**（`F0`）：Alice join with `recipient_service_did=did:web:personal.alice.example`，accepted。
-2. **Events 流量**：Space 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:web:personal.alice.example`。
+2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:web:personal.alice.example`。
 3. **Rebind**（`F1`）：Alice 提交同状态 `cx.member.state{membership="join"}` self-transition，新 binding 指向 `did:web:principal.acme.example`，签名按 `rebind_authorization` 规则。Move accepted。
 4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
    - sender frontier ≥ `F1` → 投递到 `did:web:principal.acme.example`；
    - sender frontier 仍 `< F1` 且投到旧 `did:web:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_did=did:web:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
    - sender frontier ≥ `F1` 但仍投到旧 → 旧服务 reject `delivery_binding_handed_over`。
-5. **Grace 结束**：旧服务停止接受新 Space S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
-6. **撤销**：Alice 离职，Org-A 治理 key 提交 `cx.member.state{membership="leave"}` 或 `cx.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:web:principal.acme.example` 投递该 Space 的内容；MUST NOT 转而退回 `did:web:personal.alice.example`（DID Document fallback）；该 actor 在 Space S 中变成 **non-member**。
+5. **Grace 结束**：旧服务停止接受新 Realm S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
+6. **撤销**：Alice 离职，Org-A 治理 key 提交 `cx.member.state{membership="leave"}` 或 `cx.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:web:principal.acme.example` 投递该 Realm 的内容；MUST NOT 转而退回 `did:web:personal.alice.example`（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
 
 期望：
 - 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
@@ -1762,17 +1762,17 @@ Input — Space policy `cx.space.delivery_binding_policy` 声明 `allow_unroutab
 
 ### 8.1 目标
 
-验证 `@user:domain` / `user@domain` 这类人类可读地址只作为寻址输入，最终必须解析为 DID 与 Space-scoped delivery binding。
+验证 `@user:domain` / `user@domain` 这类人类可读地址只作为寻址输入，最终必须解析为 DID 与 Realm-scoped delivery binding。
 
 ### 8.2 Vector: 组织 Handle 构造成 Join
 
-Input — 邀请方在 Acme 组织 Space 中添加 `@alice:acme.example`。客户端调用：
+Input — 邀请方在 Acme 组织 Realm 中添加 `@alice:acme.example`。客户端调用：
 
 ```json
 {
   "handle": "@alice:acme.example",
   "intent": "member_add",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "requester": "did:web:bob.example",
   "proof_challenge": "cx-challenge-001"
 }
@@ -1789,7 +1789,7 @@ Directory 返回 verified handle claim：
   "handle_aliases": ["acct:alice@acme.example"],
   "verified": true,
   "recipient_service_did": "did:web:principal.acme.example",
-  "audience": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "claims": [{
     "claim_type": "organization_handle",
     "handle": "@alice:acme.example",
@@ -1799,7 +1799,7 @@ Directory 返回 verified handle claim：
     "recipient_service_did": "did:web:principal.acme.example",
     "issuer": "did:web:acme.example",
     "binding_state": "verified",
-    "audience": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "created_at": "2026-05-19T00:00:00Z",
     "expires_at": "2026-08-19T00:00:00Z",
     "proofs": [{
@@ -1808,7 +1808,7 @@ Directory 返回 verified handle claim：
       "verification_method": "did:web:principal.acme.example#key-1",
       "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-05-19T00:00:00Z",
-      "audience": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "jws": "aaa.bbb.ccc"
     }]
   }],
@@ -1830,11 +1830,11 @@ Expected join Move:
 - `payload.delivery_binding.recipient_service_did = did:web:principal.acme.example`。
 - `payload.delivery_binding.binding_source = organization_policy`。
 - `payload.delivery_binding.service_acceptance_ref` 与 `policy_ref` 来自 verified claim / policy。
-- Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Space history。
+- Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Realm history。
 
 Negative cases：
 
 - Directory 返回 `verified=false` 或 challenge / audience 不匹配 → builder MUST NOT 构造 handle-based join。
 - 返回 `subject != did` → client MUST reject `handle_subject_mismatch`。
-- 返回 `recipient_service_did` 但 Space `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_invalid`。
-- 返回无 `recipient_service_did` → 只能作为 DID lookup；除非 Space policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
+- 返回 `recipient_service_did` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_invalid`。
+- 返回无 `recipient_service_did` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。

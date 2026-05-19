@@ -4,11 +4,11 @@ title: Federation
 
 ## 1. 目标
 
-Contrix 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Space 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
+Contrix 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Realm 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
 
 - 节点之间如何互相发现与认证
 - 如何安全交换签名 Event Envelope
-- 如何处理跨域加入 Space 的请求
+- 如何处理跨域加入 Realm 的请求
 - 如何在异构网络中维持因果一致性
 
 ## 2. 设计原则
@@ -19,22 +19,22 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 ### 2.2 Principal Server 是受控同步边界，不是全局权威
 
-联邦场景中没有独立第三方分发服务器角色。Space 范围传播由参与方 Principal Server 之间的 federation transaction 完成。Principal Server 不能伪造、篡改或选择性隐藏已签名的 Event Envelope；任何参与者都可以通过直接查询源 Events API、witness receipt、snapshot frontier 或其他受信 Principal Server 交叉验证历史。
+联邦场景中没有独立第三方分发服务器角色。Realm 范围传播由参与方 Principal Server 之间的 federation transaction 完成。Principal Server 不能伪造、篡改或选择性隐藏已签名的 Event Envelope；任何参与者都可以通过直接查询源 Events API、witness receipt、snapshot frontier 或其他受信 Principal Server 交叉验证历史。
 
 ### 2.3 Anchor Finality 优于全局同步共识
 
-跨域网络延迟不可预测。联邦协议不要求所有 Principal Server 同步参与一个全局共识组；每个 Space 通过 Anchor DAG 表达 ordering commitment。`single_did`（中心化 hub）、`threshold`（k-of-n 委员会）、`open_set`（开放对等）和 `mixed`（含 sovereign fallback）只是 `anchorer` cell value 与 Anchor profile 的不同配置；详见 §2.4。
+跨域网络延迟不可预测。联邦协议不要求所有 Principal Server 同步参与一个全局共识组；每个 Realm 通过 Anchor DAG 表达 ordering commitment。`single_did`（中心化 hub）、`threshold`（k-of-n 委员会）、`open_set`（开放对等）和 `mixed`（含 sovereign fallback）只是 `anchorer` cell value 与 Anchor profile 的不同配置；详见 §2.4。
 
 ### 2.4 Anchor Profile 决定传播形态
 
-联邦传播按目标 Space 的 `anchor_profile`（参见 [`../models/space-and-place.md` §2.2](../models/space-and-place.md)）走几种形态：
+联邦传播按目标 Realm 的 `anchor_profile`（参见 [`../models/realm-and-space.md` §2.2](../models/realm-and-space.md)）走几种形态：
 
 - **`single_did`**：单一 service DID 签发持久 Anchor。Actor 可以向自己的 Principal Server 提交 Move，但 Move 只有被该 DID 签发的 Anchor frontier 覆盖后才 effective。传播形态是 actor/server → anchorer → fanout。
 - **`threshold`**：k-of-n committee 签发 Anchor。提交路径与 `single_did` 类似，但 Anchor 验证 threshold signature。
 - **`open_set`**：多个 federation peer / admin DID 可以签发 leaf Anchor。Principal Server 之间 push / pull pending Move 与 Anchor leaf；查询时使用 deterministic effective anchor view join。
 - **`mixed`**：正常由主 anchorer 签发 Anchor；主 anchorer 故障、签发矛盾 Anchor 或 anchorer cell 变成 `⊥` 时，fallback recovery anchorer 可以签发恢复 Anchor。
 
-跨域 Space 跨过两个 deployment（A 与 B）时，`anchor_profile` 与 genesis anchorer 由 Space create 固定，所有参与 deployment 都按同一 Anchor 验证规则处理；不存在 "A 当 hub、B 当 peer mesh" 的分裂状态。
+跨域 Realm 跨过两个 deployment（A 与 B）时，`anchor_profile` 与 genesis anchorer 由 Realm create 固定，所有参与 deployment 都按同一 Anchor 验证规则处理；不存在 "A 当 hub、B 当 peer mesh" 的分裂状态。
 
 ## 3. 节点间认证
 
@@ -82,10 +82,10 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 
 - body 中的 `origin` / `destination` MUST 与签名 transcript 中的来源 / 目标 service DID 一致。
 - `destination` MUST 是接收方 service DID；反向代理、多租户 host 或 shared ingress 不能只凭 `Host` 判断目的地。
-- 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Space policy 明确授权的 shared ingress 一致；不一致 MUST 返回 `unauthorized`，`reason_code="federation_authority_mismatch"`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
+- 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 返回 `unauthorized`，`reason_code="federation_authority_mismatch"`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
 - 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。
 - 受保护联邦 endpoint MUST NOT 接受 query string 认证。
-- 签名失败、destination 不匹配、digest 不匹配或时间窗口失效 MUST 返回标准 error envelope，并尽量不泄露 Space、Actor 或 Event 是否存在。
+- 签名失败、destination 不匹配、digest 不匹配或时间窗口失效 MUST 返回标准 error envelope，并尽量不泄露 Realm、Actor 或 Event 是否存在。
 
 ### 3.3 域信任模型
 
@@ -103,10 +103,10 @@ Contrix 不要求全局信任列表。每个节点维护自己的**联邦许可�
 
 本文件中的联邦载荷项是 v1 规范性 Event Envelope。请求与响应体中的共享事实字段使用 `events[]`，不引入第二套 Operation wire object。
 
-当 Actor A（托管在 `server-alpha.com`）向 Space S 提交了新 Event，而 Space S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Space 时：
+当 Actor A（托管在 `server-alpha.com`）向 Realm S 提交了新 Event，而 Realm S 的另一参与方 Principal Server `server-beta.com` 也服务同一个 Realm 时：
 
-1. `server-alpha.com` 检测到新 Event 属于跨域 Space
-2. `server-alpha.com` 从 Space policy / membership / service delegation 中解析应接收该 Event 的对端 Principal Server，并生成接收方服务绑定快照
+1. `server-alpha.com` 检测到新 Event 属于跨域 Realm
+2. `server-alpha.com` 从 Realm policy / membership / service delegation 中解析应接收该 Event 的对端 Principal Server，并生成接收方服务绑定快照
 3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
 ```
@@ -124,19 +124,19 @@ Signature: sig1=:base64...:
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `Source-Service-DID` | header | `did` | required | 来源 service DID；与签名 transcript 绑定。 |
-| `Destination-Service-DID` | header | `did` | required | 目标 service DID；MUST 与目标 URL、DID service endpoint 和 Space policy 委托一致。 |
+| `Destination-Service-DID` | header | `did` | required | 目标 service DID；MUST 与目标 URL、DID service endpoint 和 Realm policy 委托一致。 |
 | `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`，以及 `created` / `expires` 参数。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `string` | required | 请求体摘要，MUST 覆盖 canonical request body；接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
-| `service_binding_ref.space_id` | body | `id` | required | 受影响的 Space。在多 Space 批量推送中，发送方 SHOULD 把不同 Space 的 events 拆成独立请求；单请求 MUST 至少携带一个 `space_id`。 |
-| `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Space policy hash。 |
+| `service_binding_ref.realm_id` | body | `id` | required | 受影响的 Realm。在多 Realm 批量推送中，发送方 SHOULD 把不同 Realm 的 events 拆成独立请求；单请求 MUST 至少携带一个 `realm_id`。 |
+| `service_binding_ref.space_policy_hash` | body | `sha256:<hash>` | required | 发送方用于判定接收方委托关系的 Realm policy hash。 |
 | `service_binding_ref.membership_frontier` | body | `id[]` | required | membership / policy 因果前沿。 |
-| `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Space 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_did = Destination-Service-DID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` 与 `handover_frontier`，sender 切到新目标后重试。 |
+| `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_did = Destination-Service-DID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` 与 `handover_frontier`，sender 切到新目标后重试。 |
 | `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"space_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Space 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
+| `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
 
 
 请求示例（非完整 schema；`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
@@ -144,7 +144,7 @@ Signature: sig1=:base64...:
 ```json
 {
   "service_binding_ref": {
-    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "space_policy_hash": "sha256:...",
     "membership_frontier": ["cx:event:..."],
     "delivery_binding_frontier": ["cx:event:..."],
@@ -168,7 +168,7 @@ Signature: sig1=:base64...:
 | `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。 |
 | `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Event ID。 |
 
-4. `server-beta.com` 独立验证每个 Event 的 Actor 签名、Space policy、服务委托、接收方服务绑定和因果链，然后决定是否接受
+4. `server-beta.com` 独立验证每个 Event 的 Actor 签名、Realm policy、服务委托、接收方服务绑定和因果链，然后决定是否接受
 
 错误响应 MUST 使用 `api-conventions.md` 中的标准 JSON error envelope。批量请求中，单条 Event 的拒绝 SHOULD 进入 `rejected[]`；整个请求无法认证、目的地不匹配、schema 解析失败或被限流时 SHOULD 返回对应 HTTP 错误。`rate_limited` 和可预期恢复的 `temporarily_unavailable` SHOULD 携带 `Retry-After`。
 
@@ -182,15 +182,15 @@ v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
 
 | 路径 | 投递对象 | 解析来源 | 谁是 destination |
 | --- | --- | --- | --- |
-| **Member-level delivery** | 面向某个 Space 成员的 events / sync / to_device / push / key_packages | 该成员的 effective `cx.member.state{membership="join"}.delivery_binding.recipient_service_did` | 该 binding 指定的 Principal Server |
-| **Space-level fanout** | Space 共享的 shared anchorer / sync service / 受托 search-projection 等服务面 | Space metadata 的 `sync_endpoints`（受 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 与 [`models/space-and-place.md`](../models/space-and-place.md) 约束） | sync_endpoints 中列出的 service DID |
+| **Member-level delivery** | 面向某个 Realm 成员的 events / sync / to_device / push / key_packages | 该成员的 effective `cx.member.state{membership="join"}.delivery_binding.recipient_service_did` | 该 binding 指定的 Principal Server |
+| **Realm-level fanout** | Realm 共享的 shared anchorer / sync service / 受托 search-projection 等服务面 | Realm metadata 的 `sync_endpoints`（受 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 与 [`models/realm-and-space.md`](../models/realm-and-space.md) 约束） | sync_endpoints 中列出的 service DID |
 
-两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Space-level fanout 不走 member binding。
+两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Realm-level fanout 不走 member binding。
 
 针对 member-level delivery，sender 的解析算法是确定性的：
 
 ```
-for each member m of Space S that needs to receive event E:
+for each member m of Realm S that needs to receive event E:
   binding := load_effective_member_cell(S, m.actor_id).delivery_binding
   IF binding 不存在 (delivery_status="unroutable"):
     MUST NOT 投递；SHOULD 在 sender 上游暴露 unroutable diagnostics
@@ -204,8 +204,8 @@ for each member m of Space S that needs to receive event E:
 **MUST NOT fallback** 路径：
 
 - 即便 `recipient_service_did` 解析失败、binding 过期、或 binding 被撤销，sender **MUST NOT** 退回 actor DID Document 的 `ContrixPrincipalServer` service entry 作为替代目的地。这是设计上的硬约束。
-- 即便 actor DID 在接收方 (或任何其它) Principal Server 上存在本地账号、OIDC/SSO 绑定、员工目录记录、device session，**这些都不构成 Space-scoped 投递授权**。投递授权仅来自 member binding 的 `service_acceptance_ref` / `policy_ref` 链。
-- 即便 actor DID Document 当前可解析且其 service entry 指向某个 Principal Server，**这也不是 Space-scoped 投递的目的地**——DID Document service entry 是 actor event source / 非 Space 默认服务发现入口（§6.2），与 member-level delivery 解耦。
+- 即便 actor DID 在接收方 (或任何其它) Principal Server 上存在本地账号、OIDC/SSO 绑定、员工目录记录、device session，**这些都不构成 Realm-scoped 投递授权**。投递授权仅来自 member binding 的 `service_acceptance_ref` / `policy_ref` 链。
+- 即便 actor DID Document 当前可解析且其 service entry 指向某个 Principal Server，**这也不是 Realm-scoped 投递的目的地**——DID Document service entry 是 actor event source / 非 Realm 默认服务发现入口（§6.2），与 member-level delivery 解耦。
 
 Rebind handover：
 
@@ -214,10 +214,10 @@ Rebind handover：
 
 撤销 / 移除 cascading：
 
-- 当 member binding 被 `cx.capability.revoke` / 成员被移除 / Space policy 不再列出 `recipient_service_did` 时，生效因果点之后 sender MUST NOT 继续向已撤销 service DID 推送 Space 内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
+- 当 member binding 被 `cx.capability.revoke` / 成员被移除 / Realm policy 不再列出 `recipient_service_did` 时，生效因果点之后 sender MUST NOT 继续向已撤销 service DID 推送 Realm 内容；历史 backfill 也必须按撤销后的 visibility 与 history policy 重新判定。
 - 服务委托被撤销时 MUST 走 [§4.4 Capability Revoke Fanout](#) 主动通知所有相关 Principal Server 失效缓存。
 
-Space-level fanout 仍受现有约束：联邦 transaction MUST 绑定 `destination` service DID、Space policy hash / version、membership frontier、`delivery_binding_frontier` 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Space 的事件。
+Realm-level fanout 仍受现有约束：联邦 transaction MUST 绑定 `destination` service DID、Realm policy hash / version、membership frontier、`delivery_binding_frontier` 和目标 endpoint；接收方 MUST 校验自己在该快照下有权接收该 Realm 的事件。
 
 ### 4.1.0 推送时序
 
@@ -228,10 +228,10 @@ sequenceDiagram
     autonumber
     participant Cli as Actor 客户端
     participant Alpha as server-alpha 发送方
-    participant Pol as Space S policy
+    participant Pol as Realm S policy
     participant Beta as server-beta 接收方
 
-    Cli->>Alpha: 提交 signed Event 到 Space S
+    Cli->>Alpha: 提交 signed Event 到 Realm S
     Alpha->>Pol: 解析应接收的 Principal Server
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(space_policy_hash / membership_frontier / delivery_binding_frontier / reducer_profile_hash)
     Alpha->>Beta: POST /api/v1/events (cx.events.submit)<br>HTTP Message Sig (RFC 9421)<br>Source-Service-DID / Destination-Service-DID<br>Content-Digest / service_binding_ref / events 数组
@@ -260,7 +260,7 @@ Contrix v1 联邦推送 **复用** `POST /api/v1/events`（`cx.events.submit`）
 当节点发现自己的因果图中存在缺失（`prev_refs` 或 `refs[role=authorized_by]` 引用了本地没有的 Event）时，可以主动向源 Principal Server 或源 Events API 拉取。**v1 联邦 pull 复用 `cx.events.query`**（`GET /api/v1/events`），通过 `before=<cursor>` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
 
 ```
-GET /api/v1/events?spaces=cx:space:...&before=<cursor>&limit=100
+GET /api/v1/events?realms=cx:realm:...&before=<cursor>&limit=100
 Host: server-alpha.com
 Source-Service-DID: did:web:server-beta.com
 Destination-Service-DID: did:web:server-alpha.com
@@ -272,7 +272,7 @@ Signature: ...
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `spaces` | query | `id[]` | required | 请求回补的 Space。 |
+| `realms` | query | `id[]` | required | 请求回补的 Realm。 |
 | `before` | query | `cursor` | conditional | 取该 cursor *之前*（排除）的最近一批；历史 backfill 主用例。`before` 与 `after` 至少给其一，否则服务端按隐式 `before=<server_head>` 处理。 |
 | `after` | query | `cursor` | conditional | 取该 cursor *之后*（排除）的最近一批；catch-up 场景使用。 |
 | `order` | query | `enum(default, ascending, descending)` | optional | 联邦 pull 默认沿用 §3.3 "近邻先返回" 规则——仅 `before` 时 descending，仅 `after` 时 ascending；reducer-导向场景显式 `order=ascending`。 |
@@ -288,7 +288,7 @@ Signature: ...
 | `next_cursor` | `cursor` | optional | 朝**更新事件**方向的延续位置；下次请求传入 `after=<next_cursor>` 继续 catch-up。 |
 | `has_more` | `boolean` | required | 是否仍有可拉取的 Event；客户端到达 oldest accessible event 时 `false`。 |
 
-> Federation pull 共用 `cx.events.query` operation；不另设独立 federation pull endpoint。`snapshot_bootstrap` 字段以 optional 形式出现在 `cx.events.query` 响应中（仅 service-to-service 调用、Space policy 显式允许时）。
+> Federation pull 共用 `cx.events.query` operation；不另设独立 federation pull endpoint。`snapshot_bootstrap` 字段以 optional 形式出现在 `cx.events.query` 响应中（仅 service-to-service 调用、Realm policy 显式允许时）。
 
 `snapshot_bootstrap` 字段（存在时）：
 
@@ -313,7 +313,7 @@ Signature: ...
 
 `cx.capability.revoke`、superseding grant、membership removal、ban、device/session revoke 和会使既有 allow cache 失效的 policy change 是高优先级 auth state。源 Principal Server 在接受这类 Event 后，MUST 主动推送给所有当前已知的相关 Principal Server，而不是只等待对端下一次 pull：
 
-- fanout 目标包括 Space policy / membership / service delegation 中声明的 shared anchorer / sync service、受影响 subject 的 Principal Server、grant issuer / delegatee 所在 Principal Server，以及正在服务该 Space 的 federation peer。
+- fanout 目标包括 Realm policy / membership / service delegation 中声明的 shared anchorer / sync service、受影响 subject 的 Principal Server、grant issuer / delegatee 所在 Principal Server，以及正在服务该 Realm 的 federation peer。
 - 推送 payload MUST 包含原始 Event Envelope、必要 auth refs、当前 auth frontier 或可验证 snapshot reference，便于接收方立即失效 capability cache。
 - 接收方即使暂时无法完整验证该 revoke，也 MUST 将匹配 scope 的 allow cache 标记为 stale / `revoke_freshness_unknown`，直到 backfill 完成。
 - fanout 失败时，源服务器 MUST 保留重试队列并在后续 federation transaction、frontier probe 或 pull 响应中暴露缺失诊断；不得因单个 peer 不可达而回滚已 accepted revoke。
@@ -322,21 +322,21 @@ Signature: ...
 
 ### 4.5 Fork Detection / Frontier Exchange
 
-参与同一 Space 的 federation peer 通过 frontier 交换检测 silent fork。本节定义三层职责：peer **MUST** 实现 frontier probe **能力**（响应已授权 peer 的查询），baseline 部署 **SHOULD** 周期性主动交换，high-assurance / sovereign / regulated profile **MUST** 周期性主动交换并具备失败降级语义。
+参与同一 Realm 的 federation peer 通过 frontier 交换检测 silent fork。本节定义三层职责：peer **MUST** 实现 frontier probe **能力**（响应已授权 peer 的查询），baseline 部署 **SHOULD** 周期性主动交换，high-assurance / sovereign / regulated profile **MUST** 周期性主动交换并具备失败降级语义。
 
 #### 4.5.1 Frontier Probe 能力 (MUST)
 
-每个参与 Space S 的 federation peer **MUST** 暴露 frontier probe endpoint，使被 Space S policy 授权的对端 peer 可以按需查询当前 frontier。Probe 是 `cx.events.frontier` 服务 operation（见 [`./service-http-binding.md` §3.2](./service-http-binding.md) 与 OpenAPI `cx.events.frontier`）的 federation auth-class 使用形态——v1 不再为 federation 单独引入新 operation；同一 operation_id 通过下表的 auth / response profile 区分调用面：
+每个参与 Realm S 的 federation peer **MUST** 暴露 frontier probe endpoint，使被 Realm S policy 授权的对端 peer 可以按需查询当前 frontier。Probe 是 `cx.events.frontier` 服务 operation（见 [`./service-http-binding.md` §3.2](./service-http-binding.md) 与 OpenAPI `cx.events.frontier`）的 federation auth-class 使用形态——v1 不再为 federation 单独引入新 operation；同一 operation_id 通过下表的 auth / response profile 区分调用面：
 
 | 调用面 | 调用方 | 鉴权 | 响应形态 |
 | --- | --- | --- | --- |
 | Public Events API | account holder / SDK client | 用户/服务 access token | 通常仅 `space_frontier` 或 `actor_seq` 简要视图 |
-| Federation peer probe (本节) | 被 Space `service_binding` 授权的 federation peer 服务 DID | §3 节点间认证 + Space policy 列出的 `federation_peer` 角色 | 完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)` |
+| Federation peer probe (本节) | 被 Realm `service_binding` 授权的 federation peer 服务 DID | §3 节点间认证 + Realm policy 列出的 `federation_peer` 角色 | 完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)` |
 | Anonymous / unauth health check | optional | 无 / 限速 token | 仅 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds |
 
 Probe **MUST** 是 capability-gated：
 
-- 被 Space `service_binding` 授权为 federation peer 的服务方可读取该 Space 的 frontier 完整形态；
+- 被 Realm `service_binding` 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
 - anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
 
@@ -344,7 +344,7 @@ Probe 响应 payload：
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "heads": ["sha256:..."],
   "max_hlc": "01970e589d21-0004-a13f9c2e",
   "frontier_root": "sha256:...",
@@ -363,7 +363,7 @@ Probe 响应 payload：
 
 - `heads[]` 是当前 accepted frontier 的稳定 event hash；接收方比较两端 heads 集合发现差异。
 - `max_hlc` 是 issuer 在 frontier 处观察到的最大 HLC；用于检测时钟严重偏移。
-- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`；签名仅覆盖该 root 与 `(space_id, issuer, observed_at)`，便于轻量比对而无需重传全部字段。
+- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`；签名仅覆盖该 root 与 `(realm_id, issuer, observed_at)`，便于轻量比对而无需重传全部字段。
 - `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，用于检测 *per-actor* 缺口（silent fork 常表现为某 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进）。
 - `witness_receipts[]` 可选，包含 witness / receipt service 对 frontier 的 attestation。
 - `signature` 是 issuing service 对 canonical probe payload 的签名，按 §3.2 规则。
@@ -377,58 +377,58 @@ Probe 响应 payload：
 
 #### 4.5.2 Baseline 主动交换 (SHOULD)
 
-普通 federation 部署 **SHOULD** 周期性主动交换 frontier；默认建议每个 federation-visible Space 与每个 peer 的间隔不超过 6 小时，超大 Space 或低活跃 Space 可放宽到 24 小时。Baseline 不强制 fail-state，但实现 SHOULD 在 probe 失败时进入指数退避并向运营暴露 diagnostics。
+普通 federation 部署 **SHOULD** 周期性主动交换 frontier；默认建议每个 federation-visible Realm 与每个 peer 的间隔不超过 6 小时，超大 Realm 或低活跃 Realm 可放宽到 24 小时。Baseline 不强制 fail-state，但实现 SHOULD 在 probe 失败时进入指数退避并向运营暴露 diagnostics。
 
 #### 4.5.3 High-Assurance Profile 主动交换 (MUST)
 
 启用 `cx.profile.federation.high_assurance.v1`（high-assurance / sovereign / regulated / multi-writer federation 部署，详见 [`sovereign-deployment.md`](./sovereign-deployment.md)）的服务 **MUST**：
 
-- 每个 federation-visible Space 与每个授权 peer 的 frontier probe 间隔 ≤ **1 小时**；
-- 维护 per-peer / per-Space frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
-- 连续 3 次 probe 失败（peer 不可达、签名失败、`frontier_root` 不一致超过 fork-resolution 阈值）**MUST** 把该 peer 在该 Space 的状态标记为 `stale_peer`；
+- 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ **1 小时**；
+- 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
+- 连续 3 次 probe 失败（peer 不可达、签名失败、`frontier_root` 不一致超过 fork-resolution 阈值）**MUST** 把该 peer 在该 Realm 的状态标记为 `stale_peer`；
 - `stale_peer` 状态期间：
-  - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Space frontier（继续 quarantine，不让 silent fork 永久化），直到 fork resolution 或重新对齐；
+  - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Realm frontier（继续 quarantine，不让 silent fork 永久化），直到 fork resolution 或重新对齐；
   - **MUST** 通过 §8.6 威胁映射要求的 alarm 通道（operator dashboard / audit log / pager hook）暴露该状态；
   - **MAY** 拒绝向该 peer fanout 新 Event。
 - fork resolution 成功（heads 重合或 quorum witness attestation 一致）后 **MUST** 解除 `stale_peer` 标记。
 
 启用 high-assurance profile 但实现未实现上述 fail-state 等同于不满足 profile 声明，**MUST NOT** 在 `cx.service_binding` 中声明 `cx.profile.federation.high_assurance.v1`。
 
-## 5. 跨域加入 Space
+## 5. 跨域加入 Realm
 
 ### 5.1 邀请流程
 
-当 Space S 的管理员邀请外部用户 Bob（Principal Server 在 `server-beta.com`）时：
+当 Realm S 的管理员邀请外部用户 Bob（Principal Server 在 `server-beta.com`）时：
 
 1. 管理员提交 `cx.invite.create` Event，`subject_did` 指向 Bob 的 DID
 2. 该 Event 通过联邦推送到达 Bob 的 Principal Server
 3. Bob 的客户端发现 Invite，决定接受
 4. Bob 的客户端提交 `cx.invite.accept` Event 到自己的 Events API
-5. Bob 的 Principal Server 将该 Event 推送给 Space S 的其他参与方 Principal Server
+5. Bob 的 Principal Server 将该 Event 推送给 Realm S 的其他参与方 Principal Server
 6. 各参与方按 reducer 验证 Invite 有效性并收敛成员状态
-7. 若 Space 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
+7. 若 Realm 启用了 E2EE，管理员的客户端构造 MLS `Welcome` 消息发给 Bob
 
 ### 5.2 Knock / Restricted 跨域加入流程
 
-Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join_rule` 与 `cx.component.space.join_policy.v1` cell 当前 value（`space.join_policy` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
+Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join_rule` 与 `cx.component.realm.join_policy.v1` cell 当前 value（`realm.join_policy` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
 
 **自动解析路径**（`join_rule ∈ {restricted, knock_restricted}`，且 Bob 拟使用的 gate 子集均 `auto_resolve=true`）：
 
-1. Bob 发现 Space S 的元数据（通过公开的 Space Directory、链接或 `directory_hint`）
+1. Bob 发现 Realm S 的元数据（通过公开的 Realm Directory、链接或 `directory_hint`）
 2. Bob 直接提交 `cx.member.state{membership="join", gate_proofs=[...]}` Move，附带 claim presentation / challenge proof
-3. Bob 的 Principal Server 推送至 Space S 的 shared anchorer 或参与方 Principal Server
-4. 各参与方 reducer 加载当前 `cx.component.space.join_policy.v1` cell value，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
-5. 若 Space 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
+3. Bob 的 Principal Server 推送至 Realm S 的 shared anchorer 或参与方 Principal Server
+4. 各参与方 reducer 加载当前 `cx.component.realm.join_policy.v1` cell value，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
+5. 若 Realm 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
 
 **申请-审核路径**（`join_rule ∈ {knock, knock_restricted}`，且至少一个 gate `auto_resolve=false`）：
 
-1. Bob 发现 Space S 的元数据
-2. Bob 提交 `cx.member.state{membership="knock"}` Move（不携带正文）以及 `member.application` Move（携带 answers / claim presentation / challenge proof，E2EE Space 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）
-3. 两条 Move 推送到 Space S 的 shared anchorer 或管理员 Principal Server；接收方验证签名后扇出至 reviewer 的设备列表
-4. 持有 `cx.space.join.review` capability 的 reviewer 评估申请，产生 `member.application.review{decision=accept|reject|request_changes}` 候选 workflow 决策（不是 v1 base Event.kind；capability action 自身仍按 `cx.space.join.review` 注册）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
+1. Bob 发现 Realm S 的元数据
+2. Bob 提交 `cx.member.state{membership="knock"}` Move（不携带正文）以及 `member.application` Move（携带 answers / claim presentation / challenge proof，E2EE Realm 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）
+3. 两条 Move 推送到 Realm S 的 shared anchorer 或管理员 Principal Server；接收方验证签名后扇出至 reviewer 的设备列表
+4. 持有 `cx.realm.join.review` capability 的 reviewer 评估申请，产生 `member.application.review{decision=accept|reject|request_changes}` 候选 workflow 决策（不是 v1 base Event.kind；capability action 自身仍按 `cx.realm.join.review` 注册）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
 5. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` 引用对应 review accept Move
 6. Bob 提交 `cx.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
-7. 若 Space 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
+7. 若 Realm 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
 
 > 申请正文 MUST NOT 出现在公开可见的 `cx.member.state{knock}` payload 中（参见 [`../governance/join-policy.md` §7](../governance/join-policy.md)）；只能进入受加密保护的 `member.application`。这避免 Matrix `m.room.member{knock}.reason` 因默认可见而成为外部 spam 通道的设计缺陷。
 
@@ -436,11 +436,11 @@ Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join
 
 ### 6.1 Anchorer / Sync Endpoint 列表
 
-每个 Space 的 metadata MAY 包含一个 `sync_endpoints` 列表，用于列出被 Space policy 明确委托的 shared anchorer、sync service 或组织 Principal Server。该列表不是公开分发节点列表；列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
+每个 Realm 的 metadata MAY 包含一个 `sync_endpoints` 列表，用于列出被 Realm policy 明确委托的 shared anchorer、sync service 或组织 Principal Server。该列表不是公开分发节点列表；列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "sync_endpoints": [
     {
       "did": "did:web:server-alpha.com",
@@ -460,20 +460,20 @@ Bob 也可以主动申请加入。具体流程取决于 Space 的 `cx.space.join
 }
 ```
 
-若 `plaintext_visible` 为 true，该 service DID 还 MUST 出现在 Space policy 的 `plaintext_visible_services` 中。若为 false，服务只能接收公开内容、密文 envelope、不可逆 hash 或 policy 允许的 stripped preview。
+若 `plaintext_visible` 为 true，该 service DID 还 MUST 出现在 Realm policy 的 `plaintext_visible_services` 中。若为 false，服务只能接收公开内容、密文 envelope、不可逆 hash 或 policy 允许的 stripped preview。
 
 ### 6.2 Actor Event Source 发现
 
-DID Document 的 `service[type=ContrixPrincipalServer]` 是该 Actor DID 的**默认 event source**，**不是** Space-scoped 投递入口。两者用途严格分开：
+DID Document 的 `service[type=ContrixPrincipalServer]` 是该 Actor DID 的**默认 event source**，**不是** Realm-scoped 投递入口。两者用途严格分开：
 
 | 用途 | 解析路径 |
 | --- | --- |
-| 拉取 actor 的 per-actor event chain（非 Space 上下文） | `DID Document -> service[type=ContrixPrincipalServer] -> serviceEndpoint` |
+| 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `DID Document -> service[type=ContrixPrincipalServer] -> serviceEndpoint` |
 | Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上 |
-| Space policy 显式允许 `did_document_default` 且 join 时已物化进 `delivery_binding` 的来源 | 同上（仅作为 join 时的 source；join 之后**仍**走 member binding） |
-| 已加入 Space 的成员的 events / sync / to_device / push / key_packages 投递 | **MUST** 走 [`governance/join-policy.md` §5.1.4](../governance/join-policy.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
+| Realm policy 显式允许 `did_document_default` 且 join 时已物化进 `delivery_binding` 的来源 | 同上（仅作为 join 时的 source；join 之后**仍**走 member binding） |
+| 已加入 Realm 的成员的 events / sync / to_device / push / key_packages 投递 | **MUST** 走 [`governance/join-policy.md` §5.1.4](../governance/join-policy.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
 
-任何把 DID Document service entry 当作 "Space 投递 fallback" 的实现都违反 §4.1。本路径仅用于 actor event source、首次发现 hint，以及 join 时（Space policy 允许时）的 `did_document_default` 物化来源——一旦 binding 被 join Move 接受写入 cell，后续投递再也不读 DID Document。
+任何把 DID Document service entry 当作 "Realm 投递 fallback" 的实现都违反 §4.1。本路径仅用于 actor event source、首次发现 hint，以及 join 时（Realm policy 允许时）的 `did_document_default` 物化来源——一旦 binding 被 join Move 接受写入 cell，后续投递再也不读 DID Document。
 
 ### 6.3 域名级服务发现缓存
 
@@ -483,7 +483,7 @@ DID Document 的 service entry 是联邦服务发现的权威来源。域名级 
 GET https://<domain>/.well-known/contrix/server
 ```
 
-该响应只用于找到候选服务 endpoint，不直接授权联邦请求。接收方仍 MUST 校验 service DID、DID Document、describe 响应、TLS 名称、HTTP Message Signature、Space policy / service delegation 和 `destination` 绑定一致。
+该响应只用于找到候选服务 endpoint，不直接授权联邦请求。接收方仍 MUST 校验 service DID、DID Document、describe 响应、TLS 名称、HTTP Message Signature、Realm policy / service delegation 和 `destination` 绑定一致。
 
 缓存规则：
 
@@ -491,7 +491,7 @@ GET https://<domain>/.well-known/contrix/server
 - 未提供显式缓存时间时 MAY 使用不超过 24 小时的默认 TTL。
 - 正缓存 SHOULD 设置本地上限（建议不超过 48 小时）。
 - 失败缓存必须短 TTL 或指数退避，避免一次临时故障长期破坏跨域同步。
-- service delegation 被撤销、DID Document key log 更新或 Space policy 变更时，本地缓存必须按版本 / hash 失效。
+- service delegation 被撤销、DID Document key log 更新或 Realm policy 变更时，本地缓存必须按版本 / hash 失效。
 
 ## 7. 联邦请求 vs 单域 client 请求
 
@@ -499,9 +499,9 @@ v1 联邦与单域 client 请求共享同一组 events / sync / identity 端点�
 
 | 联邦行为 | 复用端点 | 认证模式差异 |
 | --- | --- | --- |
-| 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` header；Space policy 必须列出 source service DID 为合法 federation peer。 |
+| 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
 | 跨域 backfill / 拉取缺失历史 | `GET /api/v1/events?before=<cursor>`（`cx.events.query`） | 同上。 |
-| 跨域 Space 成员视图 | `GET /api/v1/events`（`cx.events.query`） + `cx.member.state` 过滤 | 同上；服务端按 Space policy 决定哪些成员对该 service DID 可见。 |
+| 跨域 Realm 成员视图 | `GET /api/v1/events`（`cx.events.query`） + `cx.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 actor / DID 验证 | `POST /api/v1/identity/resolve`（`cx.identity.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
 ### 7.1 跨域 Event 推送
@@ -519,18 +519,18 @@ Request-Canonical-Hash: sha256:...
 ### 7.2 跨域 Backfill
 
 ```
-GET /api/v1/events?spaces=<id>&before=<cursor>&limit=<n>
+GET /api/v1/events?realms=<id>&before=<cursor>&limit=<n>
 Authorization: <service_signature>
 ```
 
-字段定义见 §4.2；service operation id 为 `cx.events.query`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Space policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/sync/snapshot-head` 单独获取。
+字段定义见 §4.2；service operation id 为 `cx.events.query`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/sync/snapshot-head` 单独获取。
 
-### 7.3 查询 Space 成员
+### 7.3 查询 Realm 成员
 
-跨域参与方查询某 Space 成员视图时，使用 `cx.events.query` 并过滤 `kind=cx.member.state`：
+跨域参与方查询某 Realm 成员视图时，使用 `cx.events.query` 并过滤 `kind=cx.member.state`：
 
 ```
-GET /api/v1/events?spaces=<id>&kinds=cx.member.state&before=<cursor>&limit=<n>
+GET /api/v1/events?realms=<id>&kinds=cx.member.state&before=<cursor>&limit=<n>
 Authorization: <service_signature>
 ```
 
@@ -538,7 +538,7 @@ Authorization: <service_signature>
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `spaces` | query | `id[]` | required | 要查询成员的 Space。 |
+| `realms` | query | `id[]` | required | 要查询成员的 Realm。 |
 | `kinds` | query | `string[]` | optional | 事件类型过滤；此处固定 `cx.member.state`。 |
 | `from` | query | `cursor` | optional | 分页 cursor。 |
 | `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
@@ -547,7 +547,7 @@ Authorization: <service_signature>
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `members` | `object[]` | required | 成员摘要数组；内容受 requester 可见性和 Space policy 限制。 |
+| `members` | `object[]` | required | 成员摘要数组；内容受 requester 可见性和 Realm policy 限制。 |
 | `membership_frontier` | `object` | required | 用于判断成员视图新鲜度的因果前沿。 |
 | `next_cursor` | `cursor` | optional | 下一页 cursor。 |
 
@@ -563,7 +563,7 @@ Authorization: <service_signature>
 | --- | --- | --- | --- | --- |
 | `actor_id` | body | `did` | required | 待验证 Actor DID。 |
 | `purpose` | body | `enum(event_source,federation_join,device_binding)` | required | 验证目的；服务端 MUST 将目的纳入授权与限流策略。 |
-| `space_id` | body | `id` | optional；Space 相关目的为 required | 相关 Space ID；用于绑定 Space policy、membership 和 plaintext visibility。 |
+| `realm_id` | body | `id` | optional；Realm 相关目的为 required | 相关 Realm ID；用于绑定 Realm policy、membership 和 plaintext visibility。 |
 | `challenge` | body | `base64url string` | optional；challenge 验证为 required | 请求方生成的短期随机挑战；服务端 MUST 拒绝过期或重复 challenge。 |
 | `signed_payload_hash` | body | `sha256:<base64url-or-hex>` | optional；验证具体事件/设备绑定时为 required | 被验证 payload 的 canonical hash，MUST 与签名 transcript 绑定。 |
 | `signature` | body | `object` | required | Actor 设备键或授权签名。 |
@@ -571,7 +571,7 @@ Authorization: <service_signature>
 | `signature.alg` | body | `string` | optional | 签名算法；出现时 MUST 与 DID Document/key log 中的 key 类型一致。 |
 | `signature.sig` | body | `base64url string` | required | 对 canonical verification payload 的 detached signature。 |
 
-`signature.sig` 覆盖的 canonical verification payload MUST 至少绑定 `actor_id`、`purpose`、`space_id`（若存在）、`challenge`（若存在）、`signed_payload_hash`（若存在）、请求方 service DID、目标 service DID 和请求时间窗口，防止跨目的、跨 Space 或跨服务重放。
+`signature.sig` 覆盖的 canonical verification payload MUST 至少绑定 `actor_id`、`purpose`、`realm_id`（若存在）、`challenge`（若存在）、`signed_payload_hash`（若存在）、请求方 service DID、目标 service DID 和请求时间窗口，防止跨目的、跨 Realm 或跨服务重放。
 
 请求示例（非完整 schema）：
 
@@ -579,7 +579,7 @@ Authorization: <service_signature>
 {
   "actor_id": "did:webvh:...",
   "purpose": "event_source",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "challenge": "base64url...",
   "signed_payload_hash": "sha256:...",
   "signature": {
@@ -619,17 +619,17 @@ Authorization: <service_signature>
 访问限制：
 
 - 请求 MUST 使用来源 service DID 的 HTTP Message Signature。
-- `purpose` MUST 是 `event_source`、`federation_join`、`device_binding` 或 Space policy 明确允许的等价目的。
-- 请求方 MUST 是该 Space 的参与方 Principal Server、被委托 anchorer / sync service，或拥有相关 federation / join 处理权限的服务。
+- `purpose` MUST 是 `event_source`、`federation_join`、`device_binding` 或 Realm policy 明确允许的等价目的。
+- 请求方 MUST 是该 Realm 的参与方 Principal Server、被委托 anchorer / sync service，或拥有相关 federation / join 处理权限的服务。
 - 服务端 MUST 限流，并对不可见 actor 返回统一 `not_found` / `capability_denied` 语义，避免批量枚举 DID。
-- 响应只能作为缓存加速或诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Space policy。
+- 响应只能作为缓存加速或诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy。
 
 ## 8. 安全考量
 
 ### 8.1 反洪泛 (Anti-Flooding)
 
 联邦端点 MUST 实施严格的速率限制。恶意节点可能通过大量推送无效 Event 来消耗对端资源。建议：
-- 按 `origin` DID、来源 IP hash、endpoint 和 Space id 做独立限速
+- 按 `origin` DID、来源 IP hash、endpoint 和 Realm id 做独立限速
 - 对来自未知域的首次请求做降级处理（先验证后全速）
 - 限制单次请求体积和批次大小，超阈值先进入 `rate_limited`
 - 先执行低成本 envelope / size / signature transcript 校验，再进入昂贵的 DID resolution、auth chain 展开和 reducer 预演
@@ -649,7 +649,7 @@ Authorization: <service_signature>
 
 ### 8.4 元数据泄露防护
 
-在联邦推送 E2EE Space 的 Event 时，密文信封 `encrypted_payload` 对联邦中间节点同样不可见。联邦协议传输的只有明文路由元数据和不透明的密文块。
+在联邦推送 E2EE Realm 的 Event 时，密文信封 `encrypted_payload` 对联邦中间节点同样不可见。联邦协议传输的只有明文路由元数据和不透明的密文块。
 
 ### 8.5 重放与异常模式防护
 
@@ -702,13 +702,13 @@ Authorization: <service_signature>
 - 不得以批处理成功作为 Event 被最终可验证的充要条件；最终仍以 `event_id`、签名、因果前沿验证判定是否可见。
 - 每个 batch 应带可核验的批次摘要（例如请求级 hash）以便对端做重试/重放检测。
 - 若实现启用多跳 gossip 而不是直接 push / pull，每个 federation transaction MUST 携带由 service-to-service 签名覆盖的 transport-level path metadata，例如 `relay_path`、`hop_count` 和 `max_hops`。接收方发现自己的 service DID 已在路径中、`origin`/`destination` 与签名 transcript 不一致，或超过 `max_hops` 时，MUST reject 或 quarantine。path metadata 不能替代单条 Event 的 Actor 签名，也不是 Actor canonical event 的一部分。
-- 转发方 MUST 在 fanout 前按 `event_id` 与 canonical event hash 去重。实现 SHOULD 维护有界的 `(space_id, event_id, peer_service_did)` replay cache，并对 `origin`、Space 和 peer 维度设置 in-flight 上限。队列超过本地策略时返回 `rate_limited` 或 `temporarily_unavailable` 并带 `Retry-After`，不得制造无界重试风暴。
+- 转发方 MUST 在 fanout 前按 `event_id` 与 canonical event hash 去重。实现 SHOULD 维护有界的 `(realm_id, event_id, peer_service_did)` replay cache，并对 `origin`、Realm 和 peer 维度设置 in-flight 上限。队列超过本地策略时返回 `rate_limited` 或 `temporarily_unavailable` 并带 `Retry-After`，不得制造无界重试风暴。
 
 ### 9.3 跨域权限委托与级联（明确边界项）
 
-方向“跨域 Space 的权限委托与级联”是必要但必须收敛到显式规则：
+方向“跨域 Realm 的权限委托与级联”是必要但必须收敛到显式规则：
 
-- 默认不跨域、不中继地隐式级联。任何权限在跨域传递前都必须有明确 `cx.capability.grant` / `cx.capability.delegate` Event 表达，并绑定目标 `space_id`、目标服务/主体、可见范围、时效和可撤销性。
+- 默认不跨域、不中继地隐式级联。任何权限在跨域传递前都必须有明确 `cx.capability.grant` / `cx.capability.delegate` Event 表达，并绑定目标 `realm_id`、目标服务/主体、可见范围、时效和可撤销性。
 - 受权链必须可审计、可传递上限（如 depth / scope）并支持回收（revoke）。在未满足上限或超出范围时应 fail-closed。
 - 委托不得扩大被委托方可见范围；只能收窄或保持不变。`principal_server` 不能仅凭受托委托获得不在其角色定义内的明文访问。
 - 对级联场景，只允许显式 opt-in，且每一跳必须重复检查 policy 与签名。无法验明权利链的来源时必须视为 unauthorized。
@@ -717,28 +717,28 @@ Authorization: <service_signature>
 
 声誉系统可作为 anti-abuse 组件是可选的，不得影响协议的最终一致性安全边界：
 
-- 声誉只能用于流量调度、排队优先级和临时降级，不得替代签名验证、DID 校验和 Space policy 授权判断。
+- 声誉只能用于流量调度、排队优先级和临时降级，不得替代签名验证、DID 校验和 Realm policy 授权判断。
 - 声誉决策不得造成可审计事件的不可达性（例如把合法请求静默降权为拒绝）。
 - 即使在高声誉策略触发下，仍应返回可区分的标准错误码（`temporarily_unavailable`、`rate_limited`、`quarantine`）供重试/恢复。
 
 ### 9.5 跨 deployment Watcher 投递 SLA（`cx.profile.agent_workspace.v1`）
 
-`cx.profile.agent_workspace.v1`（详见 [`extensions/agent-workspace-profile.md`](../extensions/agent-workspace-profile.md)）依赖客户端 / agent-runtime watcher 观察源 Space 的 `cx.redaction(target=mention_redirect)` / `cx.capability.revoke` / `cx.member.state(removed)` 事件，再在镜像 Space 写 transparency / source_authority transition。这是"observe-then-write"模式：mirror reducer 不消费源 Space 事件。
+`cx.profile.agent_workspace.v1`（详见 [`extensions/agent-workspace-profile.md`](../extensions/agent-workspace-profile.md)）依赖客户端 / agent-runtime watcher 观察源 Realm 的 `cx.redaction(target=mention_redirect)` / `cx.capability.revoke` / `cx.member.state(removed)` 事件，再在镜像 Realm 写 transparency / source_authority transition。这是"observe-then-write"模式：mirror reducer 不消费源 Realm 事件。
 
-当源 Space 与 mirror Space 跨 deployment 部署时（典型：源 Space 在组织 deployment A，controller 的 workspace root 在 deployment B），watcher 的可靠投递依赖 federation 通道。本节给出 SLA 边界：
+当源 Realm 与 mirror Realm 跨 deployment 部署时（典型：源 Realm 在组织 deployment A，controller 的 workspace root 在 deployment B），watcher 的可靠投递依赖 federation 通道。本节给出 SLA 边界：
 
 **投递时延**：
-- watcher 在源 Space sync frontier 推进后 SHOULD 在 `federation_sync_interval + 30s` 内观察到触发事件并写出 transition
+- watcher 在源 Realm sync frontier 推进后 SHOULD 在 `federation_sync_interval + 30s` 内观察到触发事件并写出 transition
 - 默认 `federation_sync_interval=60s`；高频部署 MAY 设为 `15s`，最大不超过 `300s`
 
 **冗余 watcher**：
-- 同一 mirror Space MAY 有多个并发 watcher（controller 的多个 client + agent runtime + sync node housekeeping）；FSM `from` precondition 保证只有第一个 transition 成功，后续 idempotent no-op
+- 同一 mirror Realm MAY 有多个并发 watcher（controller 的多个 client + agent runtime + sync node housekeeping）；FSM `from` precondition 保证只有第一个 transition 成功，后续 idempotent no-op
 - 跨 deployment 多 watcher MUST 用同一套 `evidence_refs` schema（事件 ID + 可独立验证的 anchor inclusion proof）
 
 **Tombstone 兜底**：
-- 若 watcher 长时间不可达（`watcher_silence_window`，默认 `24h`），mirror Space 的 sync node housekeeping MAY 写 `cx.agent_task.execution.transition(to=cancelled_orphan, reason=ttl_expired)` 以避免任务永久卡死
+- 若 watcher 长时间不可达（`watcher_silence_window`，默认 `24h`），mirror Realm 的 sync node housekeeping MAY 写 `cx.agent_task.execution.transition(to=cancelled_orphan, reason=ttl_expired)` 以避免任务永久卡死
 - Housekeeping Move 携带 anchor-based ttl_evidence（见 [`agent-workspace-profile.md §6.4`](../extensions/agent-workspace-profile.md)）
 
 **未投递的合规含义**：
-- 当源 Space 的撤销事件因联邦不可达而未及时投递到 mirror，controller 仍可能基于过期上下文继续指挥 agent。这是设计上承认的失效模式（agent runtime gate 是 best-effort 透明度保证，不是密码学强制）
+- 当源 Realm 的撤销事件因联邦不可达而未及时投递到 mirror，controller 仍可能基于过期上下文继续指挥 agent。这是设计上承认的失效模式（agent runtime gate 是 best-effort 透明度保证，不是密码学强制）
 - 合规部署 MAY 在源端要求 sync ack-back（federation `push-anchors` 收到 mirror ack 后才允许 agent 继续工作），但这会显著增加时延且超出本 profile v1 范围

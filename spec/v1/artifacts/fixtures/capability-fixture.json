@@ -16,7 +16,7 @@
           "resources": [
             {
               "kind": "flow",
-              "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+              "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
               "flow_id": "cx:flow:019640c5-0000-7000-8000-000000000000"
             }
           ]
@@ -27,7 +27,7 @@
         "action": "cx.flow.update",
         "resource": {
           "kind": "flow",
-          "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
           "flow_id": "cx:flow:019640c5-0000-7000-8000-000000000000"
         }
       },
@@ -52,7 +52,7 @@
           "resources": [
             {
               "kind": "flow",
-              "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+              "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
               "flow_id": "cx:flow:019640c5-0000-7000-8000-000000000000"
             }
           ]
@@ -63,7 +63,7 @@
         "action": "cx.message.create",
         "resource": {
           "kind": "flow",
-          "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
           "flow_id": "cx:flow:01964180-0000-7000-8000-000000000000",
           "linked_from_flow_id": "cx:flow:019640c5-0000-7000-8000-000000000000"
         }
@@ -134,8 +134,8 @@
         ],
         "resources": [
           {
-            "kind": "space",
-            "space_id": "cx:space:0196419b-0000-7000-8000-000000000000"
+            "kind": "realm",
+            "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
           }
         ],
         "constraints": [

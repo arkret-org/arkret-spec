@@ -9,7 +9,7 @@ title: Governance Objects
 - **Schema**：标准对象 / Morph type / facet / event 的结构与约束。
 - **Policy**（`cx:policy:`）：access / encryption / retention / federation / moderation 等运行时策略。
 - **Capability Grant**（`cx:grant:`）：授权委派。
-- **Invite**（`cx:invite:`）：Space 加入引导。
+- **Invite**（`cx:invite:`）：Realm 加入引导。
 
 这些对象都不直接承载协作内容，但决定了协作内容的合法范围、可见性和权限路径。完整 capability 模型、policy server 决策、anchor finality profile 等运行时语义在 `authz/`、`governance/` 和 `security/` 章节展开；本文聚焦对象级 schema、字段和生命周期。
 
@@ -39,18 +39,18 @@ Schema evolution MUST be additive by default：
 - 既有字段不得静默改变语义。
 - reducer 和客户端 MUST 保留未知字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
-- 标准对象不得阻止 Space 定义自定义 Morph type。
+- 标准对象不得阻止 Realm 定义自定义 Morph type。
 
 详见 [morph.md §6](./morph.md) 与 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)。
 
-### 2.3 Schema 在 Space 中的应用
+### 2.3 Schema 在 Realm 中的应用
 
-Space 通过 `schema_refs` 字段引用启用的 schema 集合。`policy` 既是 typed-id 前缀（`cx:policy:`）下的物化对象，也有对应 state event 形态。
+Realm 通过 `schema_refs` 字段引用启用的 schema 集合。`policy` 既是 typed-id 前缀（`cx:policy:`）下的物化对象，也有对应 state event 形态。
 
 Schema 引用的写入路径：
 
-- Space create：通过 `cx.space.create.payload.object.schema_refs` 设置初值。
-- Space update：通过 `cx.space.schema` state event 更新引用集合。
+- Realm create：通过 `cx.realm.create.payload.object.schema_refs` 设置初值。
+- Realm update：通过 `cx.realm.schema` state event 更新引用集合。
 - Morph：通过 `morph.schema_refs[]` 引用具体类型 schema（详见 [morph.md §4](./morph.md) 顺序 1）。
 
 ## 3. Policy
@@ -77,7 +77,7 @@ Schema id: `cx.schema.policy.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:policy` |  | Policy ID。 |
-| `space_id` | no | `id:space` | 组织级 policy 可省略。 | 适用 Space。 |
+| `realm_id` | no | `id:realm` | 组织级 policy 可省略。 | 适用 Realm。 |
 | `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
 | `rules` | yes | `array<object>` | 每条规则必须有 `effect`。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
@@ -106,7 +106,7 @@ Schema id: `cx.schema.capability.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:grant` |  | Grant ID。 |
-| `space_id` | no | `id:space` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
+| `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
 | `actions` | yes | `array<string>` | 例如 `cx.flow.update`、`cx.message.create`。 | 允许动作。 |
@@ -119,9 +119,9 @@ Schema id: `cx.schema.capability.v1`
 | `revoked_at` | no | `timestamp` |  | 撤销时间。 |
 | `proofs` | yes | `array<Proof>` |  | 授权签名。 |
 
-### 4.3 Capability 派生与 Space 层级继承
+### 4.3 Capability 派生与 Realm 层级继承
 
-Space-Space 层级中的 derived capability grant 通过 `cx.capability.derived` event 表达，必须满足 source grant、target Space 的 `cx.space.inheritance_policy`、`max_depth` 等约束，并在 source grant 被 revoke 时按因果传播失效。完整规则见 [`space-hierarchy.md` §7](./space-hierarchy.md) 与 [`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)。
+Realm link graph 中的 derived capability grant 通过 `cx.capability.derived` event 表达，必须满足 source grant、target Realm 的 `cx.realm.inheritance_policy`、`max_depth` 等约束，并在 source grant 被 revoke 时按因果传播失效。完整规则见 [`realm-links.md` §6](./realm-links.md) 与 [`../authz/event-auth-state-resolution.md` §8](../authz/event-auth-state-resolution.md)。
 
 ## 5. Invite
 
@@ -136,19 +136,19 @@ Schema id: `cx.schema.invite.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:invite` |  | Invite ID。 |
-| `space_id` | yes | `id:space` |  | 目标 Space。 |
+| `realm_id` | yes | `id:realm` |  | 目标 Realm。 |
 | `inviter` | yes | `did` | 必须持有 invite capability。 | 邀请者。 |
 | `invitee` | no | `did` | 3PID 邀请可为空。 | 被邀请 DID。 |
 | `third_party_id` | no | `object` | 见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 | 邮箱/手机号等外部标识证明。 |
 | `join_rule_snapshot` | yes | `object` | 防止邀请后规则混淆。 | 邀请时 join rule。 |
 | `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效。 | 关联授权。 |
-| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Space SHOULD 不超过 24 小时。 | 过期时间。 |
+| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD 不超过 24 小时。 | 过期时间。 |
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired)` |  | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 
 ### 5.3 行为规则
 
-- Invite MUST 携带 `expires_at`。默认有效期 SHOULD 不超过 7 天，高安全 Space SHOULD 不超过 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
+- Invite MUST 携带 `expires_at`。默认有效期 SHOULD 不超过 7 天，高安全 Realm SHOULD 不超过 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
 - 接受 invite 后，相关 capability grant 才进入有效集合。
 - 3PID 邀请（邮箱、手机号等）的认领流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。
 
@@ -159,7 +159,7 @@ Schema id: `cx.schema.invite.v1`
 - Constraint schema：[`../authz/constraint-schema.md`](../authz/constraint-schema.md)。
 - Policy server 决策：[`../authz/policy-server.md`](../authz/policy-server.md)。
 - Moderation policy：[`../governance/content-moderation.md`](../governance/content-moderation.md)。
-- Space-Space 继承：[`space-hierarchy.md`](./space-hierarchy.md)。
+- Realm-Realm 继承：[`realm-links.md`](./realm-links.md)。
 - Schema registry：[`../conformance/schema-registry.md`](../conformance/schema-registry.md)。
 - 3PID 邀请：[`../sync/third-party-invites.md`](../sync/third-party-invites.md)。
 - Schemas：`artifacts/schemas/policy.schema.json`、`artifacts/schemas/capability-grant.schema.json`、`artifacts/schemas/invite.schema.json`。

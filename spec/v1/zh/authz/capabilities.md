@@ -8,8 +8,8 @@ Contrix 的权限模型采用 capability 思路，而不是只依赖成员关系
 
 这样做的原因是：
 
-- `flow`、`message`、`space`、`morph`、`view` 的动作集不同。
-- Flow 的 `synthesis` 与 `discussion` track 共享父 Space 的 access；需要让 discussion 拥有独立 access 域时升级到 child Space (`Flow.discussion_space_ref`)。
+- `flow`、`message`、`realm`、`morph`、`view` 的动作集不同。
+- Flow 的 `synthesis` 与 `discussion` track 共享源 Realm 的 access；需要让 discussion 拥有独立 access 域时升级到 linked Realm (`Flow.discussion_realm_ref`)。
 - agent 必须被精细授权。
 - 授权变化必须可审计。
 
@@ -25,7 +25,7 @@ Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主�
 
 不要依赖以下隐式假设：
 
-- 进入 Space 就拥有全部能力。
+- 进入 Realm 就拥有全部能力。
 - 能编辑 Flow synthesis 就一定能在 discussion 里发消息，除非有效 access policy 明确继承并授予该动作。
 - discussion moderator 天然拥有全量 Flow 管理权。
 
@@ -56,7 +56,7 @@ ID 语义：
 {
   "id": "cx:grant:0196410c-0000-7000-8000-000000000000",
   "schema": "cx.schema.capability.v1",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
   "actions": [
@@ -69,15 +69,15 @@ ID 语义：
   "resources": [
     {
       "kind": "object",
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "object_type": "flow",
-      "scope": "space_wide"
+      "scope": "realm_wide"
     },
     {
       "kind": "morph",
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "morph_type": "document",
-      "scope": "space_wide"
+      "scope": "realm_wide"
     }
   ],
   "constraints": [
@@ -115,8 +115,8 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 Contrix v1 支持以下 `kind`：
 
+- `realm`
 - `space`
-- `place`
 - `flow`
 - `message`
 - `morph`
@@ -132,7 +132,7 @@ Contrix v1 支持以下 `kind`：
 - `read_marker`
 - `blob`
 
-资源选择器应把 Place（`kind=board/list/...`）、Flow track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
+资源选择器应把 Space（`kind=board/list/...`）、Flow track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
 
 ## 5. 动作集合
 
@@ -140,17 +140,17 @@ Contrix v1 支持以下 `kind`：
 
 机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`target_event_kinds`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
 
-裸名动作（例如 `space.upgrade` 或 `space.hierarchy.manage`）一律不接受。`cx.space.admin` 覆盖普通 Space 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者必须在 grant `actions[]` 中显式列出对应 high-risk 动作。
+裸名动作（例如 `realm.upgrade` 或 `realm.link.manage`）一律不接受。`cx.realm.admin` 覆盖普通 Realm 管理动作，但不自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者必须在 grant `actions[]` 中显式列出对应 high-risk 动作。
 
 ### 5.1 通用动作
 
-- `cx.space.discover`
-- `cx.space.create`
-- `cx.space.update`
-- `cx.space.lifecycle.archive`
-- `cx.space.lifecycle.freeze`
-- `cx.space.lifecycle.tombstone`
-- `cx.space.lifecycle.destroy`
+- `cx.realm.discover`
+- `cx.realm.create`
+- `cx.realm.update`
+- `cx.realm.lifecycle.archive`
+- `cx.realm.lifecycle.freeze`
+- `cx.realm.lifecycle.tombstone`
+- `cx.realm.lifecycle.destroy`
 - `cx.object.read`
 - `cx.object.read_metadata`
 - `cx.object.read_content`
@@ -170,12 +170,12 @@ Contrix v1 支持以下 `kind`：
 - `cx.relation.create`
 - `cx.relation.update`
 - `cx.relation.delete`
-- `cx.place.create`
-- `cx.place.update`
-- `cx.place.parent`
-- `cx.place.archive`
-- `cx.place.restore`
-- `cx.place.tombstone`
+- `cx.space.create`
+- `cx.space.update`
+- `cx.space.parent`
+- `cx.space.archive`
+- `cx.space.restore`
+- `cx.space.tombstone`
 - `cx.container.move_item`
 - `cx.container.rebalance`
 - `cx.view.create`
@@ -184,7 +184,7 @@ Contrix v1 支持以下 `kind`：
 - `cx.morph.read`
 - `cx.morph.update`(默认 required constraint:`fields_write_allow`)
 
-Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按有效 Space 判断:未设 `discussion_space_ref` 时使用父 Space 的 capability;设了 `discussion_space_ref` 时使用 child Space 的 capability,与父 Space 独立。
+Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按有效 Realm 判断:未设 `discussion_realm_ref` 时使用源 Realm 的 capability;设了 `discussion_realm_ref` 时使用 linked Realm 的 capability,与源 Realm 独立。
 
 Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx.flow.read` / `cx.flow.update`),通过 `morph_type_allow` constraint 进一步限定可操作的 `morph_type`。
 
@@ -204,12 +204,12 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 
 ### 5.4 管理动作
 
-- `cx.space.admin`
-- `cx.space.hierarchy.manage`
-- `cx.space.upgrade`
-- `cx.space.moderate`
+- `cx.realm.admin`
+- `cx.realm.link.manage`
+- `cx.realm.upgrade`
+- `cx.realm.moderate`
 - `cx.flow.admin`
-- `cx.space.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `cx.audit.accessed` 同时持有，详见 [`../models/flow-and-message.md` §8.5](../models/flow-and-message.md)）
+- `cx.realm.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `cx.audit.accessed` 同时持有，详见 [`../models/flow-and-message.md` §8.5](../models/flow-and-message.md)）
 - `cx.schema.define`
 - `cx.schema.update`
 - `cx.capability.grant`
@@ -224,7 +224,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 - `cx.invite.third_party`
 - `cx.invite.claim`
 - `cx.invite.revoke`
-- `cx.space.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。capability-action-registry 中 `profile = "cx.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance）
+- `cx.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §6](../governance/join-policy.md)。capability-action-registry 中 `profile = "cx.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance）
 - `cx.approval.vote`
 - `cx.moderation.decision`（写入 anchored moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `cx.moderation.decision.lift`（解除已 anchored 的 moderation 决策）
@@ -251,7 +251,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx
 
 v1 不再注册独立的 `cx.mls.epoch` event；每个 group 的当前 epoch 由 winner `cx.mls.commit.next_epoch` 直接表达，没有"推进 epoch"这个独立可授权动作。
 
-Audit action 只授权受控审计代理执行“先记录后解密”、读取审计视图或导出审计材料。若 Audit Agent 已经是 MLS group 成员，持有 epoch key 本身不受 capability 系统密码学约束；Space policy 必须同时声明 auditable E2EE profile、审计代理身份、plaintext-visible service disclosure、成员可见提示和 `cx.audit.accessed` 写入要求。
+Audit action 只授权受控审计代理执行“先记录后解密”、读取审计视图或导出审计材料。若 Audit Agent 已经是 MLS group 成员，持有 epoch key 本身不受 capability 系统密码学约束；Realm policy 必须同时声明 auditable E2EE profile、审计代理身份、plaintext-visible service disclosure、成员可见提示和 `cx.audit.accessed` 写入要求。
 
 ### 5.6 人类界面与个人状态动作
 
@@ -264,7 +264,7 @@ Audit action 只授权受控审计代理执行“先记录后解密”、读取�
 
 由 `cx.profile.agent_workspace.v1` 引入；详见 [`extensions/agent-workspace-profile.md`](../extensions/agent-workspace-profile.md)。
 
-- `cx.capability.agent_workspace.reserve`——写 mirror Space / Flow reservation Move 到唯一性 cell（`mirror_space_by_source` / `mirror_flow_by_source`）。MUST 由 workspace owner（controller principal）持有。
+- `cx.capability.agent_workspace.reserve`——写 mirror Realm / Flow reservation Move 到唯一性 cell（`mirror_space_by_source` / `mirror_flow_by_source`）。MUST 由 workspace owner（controller principal）持有。
 - `cx.capability.agent_workspace.recover`——写 recovery Move 修复 reservation cell `⊥` 状态。MUST 由 controller principal 持有；不可委托给 agent 或外部 actor（防止攻击者篡改 winner）。
 - `cx.capability.agent_workspace.cleanup`——写 orphan cleanup Move 将 stale reservation cell 重置为 `"__unset__"` sentinel。MUST 由 controller principal 持有，MAY 通过标准 capability delegation 委托给 controller 的 sync node system actor。Cleanup Move 的 event payload 必须携带 Anchor-based TTL 证据 `ttl_evidence: { reservation_anchor_ref, reservation_anchor_index, current_anchor_ref, current_anchor_index, ttl_anchor_distance }`；reducer 验证 `current_anchor_index >= reservation_anchor_index + ttl_anchor_distance`。**不**接受自报 wall clock。详见 [`extensions/agent-workspace-profile.md §6.4`](../extensions/agent-workspace-profile.md)。
 
@@ -281,7 +281,7 @@ Audit action 只授权受控审计代理执行“先记录后解密”、读取�
 
 **裸名 action 拒绝规则**:`read_history` / `read_messages` / `react` / `message.create`(无前缀)等裸名在 `capability-grant.schema.json` 的 `actions[]` 字段位置 MUST `schema_violation` 拒绝。pattern `^cx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$`(见 §5 顶部)已经强制这一点。
 
-`agent_member_profile` 是声明性 sugar,**不**绕过 Space-level "agents disabled" policy(源 Space 通过拒绝向 agent DID 颁发任何 grant 即可全局禁用 agent)。
+`agent_member_profile` 是声明性 sugar,**不**绕过 Realm-level "agents disabled" policy(源 Realm 通过拒绝向 agent DID 颁发任何 grant 即可全局禁用 agent)。
 
 ## 6. Constraints
 
@@ -291,8 +291,8 @@ Contrix v1 支持：
 - `not_before`
 - `fields_write_allow`
 - `fields_write_deny`
-- `space_kind_allow`（v1 reserved / no-op：v1 中所有 Space 同属一种安全边界,无 kind 区分,v1 实现 SHOULD 把该约束视为 always-allow；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
-- `place_kind_allow`
+- `realm_kind_allow`（v1 reserved / no-op：v1 中所有 Realm 同属一种安全边界,无 kind 区分,v1 实现 SHOULD 把该约束视为 always-allow；详见 [`constraint-schema.md`](./constraint-schema.md) §5）
+- `space_kind_allow`
 - `morph_type_allow`
 - `facet_allow`
 - `allowed_flow_refs`
@@ -320,7 +320,7 @@ Contrix v1 支持：
 - `claim_refresh_required`
 - `claim_max_age`
 - `mention_respond_only`（由 `cx.profile.agent_workspace.v1` 引入；限定 actor 仅能写入 `cx.message.create` 当且仅当 `in_reply_to` 指向 mention sender 为 self 的消息。Reducer-evaluable）
-- `import_to_external_space`（由 `cx.profile.agent_workspace.v1` 引入；source-side policy 声明是否允许成员把内容跨 Space 导入。合法值 `allow` | `deny` | `require_attestation`。仅影响 source-side agent runtime 行为，不穿透到 mirror reducer）
+- `import_to_external_space`（由 `cx.profile.agent_workspace.v1` 引入；source-side policy 声明是否允许成员把内容跨 Realm 导入。合法值 `allow` | `deny` | `require_attestation`。仅影响 source-side agent runtime 行为，不穿透到 mirror reducer）
 
 上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准。
 
@@ -336,8 +336,8 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `not_before` | `temporal` | — | `not_before` |
 | `fields_write_allow` | `field_access` | — | `fields_write_allow` |
 | `fields_write_deny` | `field_access` | — | `fields_write_deny` |
-| `space_kind_allow` | `type_restriction` | — | `space_kind_allow` |
-| `place_kind_allow` | `type_restriction` | — | `place_kind_allow`（限定 Place 的 kind，例如 board / list / swimlane）|
+| `realm_kind_allow` | `type_restriction` | — | `realm_kind_allow` |
+| `space_kind_allow` | `type_restriction` | — | `space_kind_allow`（限定 Space 的 kind，例如 board / list / swimlane）|
 | `morph_type_allow` | `type_restriction` | — | `morph_type_allow` |
 | `facet_allow` | `type_restriction` | — | `facet_allow` |
 | `allowed_flow_refs` | `scope_limitation` | — | `allowed_flow_refs` |
@@ -409,7 +409,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 给 agent 授权时 SHOULD 默认：
 
-- 只授予明确 Space / Flow / Message / Morph / View 范围。
+- 只授予明确 Realm / Flow / Message / Morph / View 范围。
 - 只授予所需动作。
 - 只授予有限时效。
 - 尽量限制可写字段、可写 track 和可写 Morph 类型。
@@ -417,7 +417,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 
 高风险模式包括：
 
-- 给 agent 长期全 Space 管理权。
+- 给 agent 长期全 Realm 管理权。
 - 让 agent 直接继承 human owner 全权限。
 - 不设过期时间。
 - 不保留 agent 执行审计链。
@@ -536,7 +536,7 @@ Contrix v1 至少区分：
 
 - 修改 Flow synthesis。
 - 开启或关闭 discussion track。
-- 管理父 Space 或 `discussion_space_ref` child Space 的成员。
+- 管理源 Realm 或 `discussion_realm_ref` linked Realm 的成员。
 - 普通发送消息。
 - 编辑自己的消息。
 - 编辑任意消息。
@@ -544,7 +544,7 @@ Contrix v1 至少区分：
 - 撤回任意消息。
 - 切换 primary track。
 
-这能避免把"能改 Flow"和"能进入 discussion"混成一种权限——普通 discussion 时按父 Space capability 判断，独立 child Space 时按 child Space capability 判断。
+这能避免把"能改 Flow"和"能进入 discussion"混成一种权限——普通 discussion 时按源 Realm capability 判断，独立 linked Realm 时按 linked Realm capability 判断。
 
 ## 17. 决策执行位置
 
@@ -575,7 +575,7 @@ Contrix v1 至少区分：
 11. 若需要 approval，校验 responsible / guardian / controller approval 证据。
 12. 应用 revoke 和 superseding 规则。
 
-Facets 不属于独立授权输入。算法不得在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Space schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机、RelationProfile 或 policy 条件；不得把 facets 本身当作状态机、动作或授权规则。
+Facets 不属于独立授权输入。算法不得在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Realm schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机、RelationProfile 或 policy 条件；不得把 facets 本身当作状态机、动作或授权规则。
 
 ### 18.1 高频交互的 O(1) 快速路径
 
@@ -593,18 +593,18 @@ Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Serve
 
 Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定 subject/action/resource 三元组。每个 cache entry 至少包含：
 
-- `space_id`、scope / track / object selector、subject DID、action 和 constraint profile。
+- `realm_id`、scope / track / object selector、subject DID、action 和 constraint profile。
 - `auth_state_hash`：由当前 accepted capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest 计算出的确定性 hash。
 - `auth_frontier`：参与该 hash 的 state event head set 或 snapshot frontier。
 - 命中的 grant event id、revoke tombstone / superseding event id（如有）、claim status evidence 和过期时间。
 
 规则：
 
-- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Space lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点本地 reducer 在 `apply_anchor` 完成的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**不得**作为延迟标记 stale 的理由。
+- 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点本地 reducer 在 `apply_anchor` 完成的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**不得**作为延迟标记 stale 的理由。
 - **Moderation state cell 与 cache 的关系**：anchored moderation decision（写入 `cx.component.moderation_state.v1`，见 [`policy-server.md` §7.1](./policy-server.md)）**默认不**触发 capability cache invalidation——moderation 是 deny / quarantine 后置层，不是 capability 来源。但若 grant 的 constraint 显式声明 `depends_on_moderation_state=true`（典型场景：moderator role grant 依赖被 moderation cell 标记的 actor 不在其中），则该 cell 的变化 MUST 触发对应 grant cache 失效。grant constraint 默认 `depends_on_moderation_state=false`。
   - **静态 lint 规则（MUST，reducer / schema 强制）**：为防止 silently-stale grant，grant 在写入 / accept 时若满足下列任一条件，`constraints[]` 中 **MUST 显式包含** `depends_on_moderation_state=true`，缺失即 `schema_violation`：
     1. `subject` 是 condition selector 且引用任何 moderation state 字段（例如 `not_in_moderation_set`、`moderation_role_in`、`moderation_status_*`）；
-    2. `actions[]` 包含 `cx.moderation.decision` / `cx.moderation.decision.lift` / `cx.space.moderate` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；
+    2. `actions[]` 包含 `cx.moderation.decision` / `cx.moderation.decision.lift` / `cx.realm.moderate` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；
     3. `constraints[]` 中存在任何 typed constraint 引用 moderation state cell、moderation queue、moderation report 或 moderation tag。
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；不接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
   - 不在上述条件内的普通 grant（典型如 `cx.flow.update`、`cx.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。
@@ -627,8 +627,8 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 | 动作风险等级 | `fresh` | `stale` | `unknown` |
 | --- | --- | --- | --- |
-| 高风险（`cx.space.lifecycle.destroy`、`cx.capability.revoke`、`cx.space.admin`、`cx.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
-| 中风险（`cx.flow.update`、`cx.member.state`、`cx.invite.create`、跨 Space relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
+| 高风险（`cx.realm.lifecycle.destroy`、`cx.capability.revoke`、`cx.realm.admin`、`cx.policy.manage`、E2EE key export、legal hold bypass、跨域 grant、sovereign export） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
+| 中风险（`cx.flow.update`、`cx.member.state`、`cx.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
 | 低风险高频（`cx.message.create`、`cx.reaction.add`、`cx.read.marker`、`cx.flow.move`、`cx.flow.reorder`） | allow | allow + 加快后台 frontier 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Move 同步给其他成员、不得 fanout、不得 push notify、不得进入 anchor pipeline 直到 freshness 恢复。frontier 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Move MUST 静默丢弃，不写入 redaction（因为它从未 anchored）。 |
 
 设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Move 直接丢弃，无副作用。
@@ -640,7 +640,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - 客户端在低风险 `unknown` 模式下 MUST 在 UI 中标记本地 pending 写入为 `pending_local`（例如灰色发送中状态），并暴露"分区恢复后可能丢弃"的提示。
 - 不得用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_hash` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
 - 不得通过把高风险动作降级为中风险（例如把 `cx.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 字段声明，不接受 grant-side override。
-- 单个分区窗口内允许的本地 pending 数量 MUST 限制（默认 ≤ 1000 / Space / 5 minutes），超过后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
+- 单个分区窗口内允许的本地 pending 数量 MUST 限制（默认 ≤ 1000 / Realm / 5 minutes），超过后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
 
 **默认 fail closed**：当实现无法确定动作风险等级、或动作来自尚未注册的 capability action 时，freshness 判定 MUST 默认按高风险处理（`stale` / `unknown` 即拒绝），而不是按低风险放行。这条 default 是为了让任何未来引入的高风险动作在进入 capability registry 前不会被旧实现误判为低风险路径。
 
@@ -649,7 +649,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 Contrix v1 固定：
 
 - 权限采用 capability 模型。
-- Flow、discussion、agent 执行都使用统一 grant 体系；Flow track 完全继承父 Space access，独立访问域升级到 child Space。
+- Flow、discussion、agent 执行都使用统一 grant 体系；Flow track 完全继承源 Realm access，独立访问域升级到 linked Realm。
 - `cx.message.revise.own` 与 `cx.message.redact` 分开。
 - invite / notification / read marker 进入统一 capability 体系。
 - 协议级语义采用 allow-grant + explicit revoke。

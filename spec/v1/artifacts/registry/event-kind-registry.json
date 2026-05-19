@@ -6,14 +6,14 @@
   "kind_pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
   "wire_scope_definitions": {
     "durable_event": "Valid Event Envelope kind for persisted canonical history and reducer input.",
-    "actor_private_event": "Persisted actor-private/account-data event; not shared Space history and not Space reducer input.",
+    "actor_private_event": "Persisted actor-private/account-data event; not shared Realm history and not Realm reducer input.",
     "ephemeral_event": "Transient sync/federation/app signal; MUST NOT be persisted as durable Event Envelope history."
   },
   "registry_rules": [
     "Standard cx.* effect kinds MUST appear in this registry when used by a Move effect or Event Envelope payload router.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
-    "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Space Move/Anchor history.",
+    "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Realm Move/Anchor history.",
     "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas-register only) initial_value. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas-register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells (see extensions/agent-workspace-profile.md §6.1).",
     "Lattice MUST be one of: core types or-set, mv-register, cas-register, fsm, counter, ordered-log; or extension types lww-register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement cx.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww-register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww-register or rga.",
     "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority."
@@ -27,33 +27,33 @@
   },
   "event_kinds": [
     {
-      "event_kind": "cx.space.create",
-      "category": "space",
+      "event_kind": "cx.realm.create",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space create",
-      "cell_family": "cx.component.space.create.v1",
+      "payload": "Realm create",
+      "cell_family": "cx.component.realm.create.v1",
       "cell_subject": null,
       "lattice": "ordered-log",
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.space.update",
-      "category": "space",
+      "event_kind": "cx.realm.update",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space patch"
+      "payload": "Realm patch"
     },
     {
-      "event_kind": "cx.space.upgrade",
-      "category": "space",
+      "event_kind": "cx.realm.upgrade",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space version upgrade",
-      "cell_family": "cx.component.space.upgrade.v1",
+      "payload": "Realm version upgrade",
+      "cell_family": "cx.component.realm.upgrade.v1",
       "cell_subject": {
         "type": "profile_ref",
         "field": "payload.target_reducer_profile"
@@ -62,274 +62,270 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.organization",
-      "category": "space",
+      "event_kind": "cx.realm.organization",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space official or sponsoring organization statement",
-      "cell_family": "cx.component.space.organization.v1",
+      "payload": "Realm official or sponsoring organization statement",
+      "cell_family": "cx.component.realm.organization.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.child",
-      "category": "space",
+      "event_kind": "cx.realm.link",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Child Space link (Space-Space hierarchy only; security boundary nesting). For Space-Place hierarchy use cx.place.parent.",
-      "cell_family": "cx.component.space.child.v1",
+      "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
+      "cell_family": "cx.component.realm.link.v1",
       "cell_subject": {
-        "type": "id:space",
-        "field": "payload.child_space_id"
+        "type": "tuple",
+        "components": [
+          {
+            "name": "target_realm_id",
+            "type": "id:realm",
+            "field": "payload.target_realm_id"
+          },
+          {
+            "name": "link_kind",
+            "type": "string",
+            "field": "payload.link_kind"
+          }
+        ]
       },
       "lattice": "ordered-log",
       "bottom": "expose"
     },
     {
-      "event_kind": "cx.space.parent",
-      "category": "space",
+      "event_kind": "cx.realm.policy",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Parent Space link (Space-Space hierarchy only; security boundary nesting). For Space-Place hierarchy use cx.place.parent.",
-      "cell_family": "cx.component.space.parent.v1",
-      "cell_subject": {
-        "type": "id:space",
-        "field": "payload.parent_space_id"
-      },
-      "lattice": "ordered-log",
-      "bottom": "expose"
-    },
-    {
-      "event_kind": "cx.space.policy",
-      "category": "space",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Space access policy reference (policy_ref)",
-      "cell_family": "cx.component.space.policy.v1",
+      "payload": "Realm access policy reference (policy_ref)",
+      "cell_family": "cx.component.realm.policy.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.join_rule",
-      "category": "space",
+      "event_kind": "cx.realm.join_rule",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space join rule (public/invite/knock/restricted/closed)",
-      "cell_family": "cx.component.space.join_rule.v1",
+      "payload": "Realm join rule (public/invite/knock/restricted/closed)",
+      "cell_family": "cx.component.realm.join_rule.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.history_visibility",
-      "category": "space",
+      "event_kind": "cx.realm.history_visibility",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space history visibility scope",
-      "cell_family": "cx.component.space.history_visibility.v1",
+      "payload": "Realm history visibility scope",
+      "cell_family": "cx.component.realm.history_visibility.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.discovery",
-      "category": "space",
+      "event_kind": "cx.realm.discovery",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space discoverability state",
-      "cell_family": "cx.component.space.discovery.v1",
+      "payload": "Realm discoverability state",
+      "cell_family": "cx.component.realm.discovery.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.policy_server",
-      "category": "space",
+      "event_kind": "cx.realm.policy_server",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space Policy Server binding",
-      "cell_family": "cx.component.space.policy_server.v1",
+      "payload": "Realm Policy Server binding",
+      "cell_family": "cx.component.realm.policy_server.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.policy_components",
-      "category": "space",
+      "event_kind": "cx.realm.policy_components",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Enabled Space policy components set",
-      "cell_family": "cx.component.space.policy_components.v1",
+      "payload": "Enabled Realm policy components set",
+      "cell_family": "cx.component.realm.policy_components.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.history_sharing_policy",
-      "category": "space",
+      "event_kind": "cx.realm.history_sharing_policy",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "E2EE history sharing policy",
-      "cell_family": "cx.component.space.history_sharing_policy.v1",
+      "cell_family": "cx.component.realm.history_sharing_policy.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.delivery_binding_policy",
-      "category": "space",
+      "event_kind": "cx.realm.delivery_binding_policy",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of cx.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
-      "cell_family": "cx.component.space.delivery_binding_policy.v1",
+      "cell_family": "cx.component.realm.delivery_binding_policy.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.asset_privacy_policy",
-      "category": "space",
+      "event_kind": "cx.realm.asset_privacy_policy",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space asset privacy policy",
-      "cell_family": "cx.component.space.asset_privacy_policy.v1",
+      "payload": "Realm asset privacy policy",
+      "cell_family": "cx.component.realm.asset_privacy_policy.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.read_receipt_policy",
-      "category": "space",
+      "event_kind": "cx.realm.read_receipt_policy",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed)",
-      "cell_family": "cx.component.space.read_receipt_policy.v1",
+      "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed)",
+      "cell_family": "cx.component.realm.read_receipt_policy.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.moderation_policy",
-      "category": "space",
+      "event_kind": "cx.realm.moderation_policy",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space moderation policy (blocklists, allowlists, content filters)",
-      "cell_family": "cx.component.space.moderation_policy.v1",
+      "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
+      "cell_family": "cx.component.realm.moderation_policy.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.plaintext_visible_services",
-      "category": "space",
+      "event_kind": "cx.realm.plaintext_visible_services",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Plaintext-visible services declaration outside E2EE boundary",
-      "cell_family": "cx.component.space.plaintext_visible_services.v1",
+      "cell_family": "cx.component.realm.plaintext_visible_services.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.media_service",
-      "category": "space",
+      "event_kind": "cx.realm.media_service",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
-      "cell_family": "cx.component.space.media_service.v1",
+      "cell_family": "cx.component.realm.media_service.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.schema",
-      "category": "space",
+      "event_kind": "cx.realm.schema",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space schema_refs declaration",
-      "cell_family": "cx.component.space.schema.v1",
+      "payload": "Realm schema_refs declaration",
+      "cell_family": "cx.component.realm.schema.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.inheritance_policy",
-      "category": "space",
+      "event_kind": "cx.realm.inheritance_policy",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Per-parent inheritance policy; one entry per parent Space",
-      "cell_family": "cx.component.space.inheritance_policy.v1",
+      "payload": "Per-parent inheritance policy; one entry per source Realm",
+      "cell_family": "cx.component.realm.inheritance_policy.v1",
       "cell_subject": {
-        "type": "id:space",
-        "field": "payload.parent_space_id"
+        "type": "id:realm",
+        "field": "payload.parent_realm_id"
       },
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.archive",
-      "category": "space",
+      "event_kind": "cx.realm.archive",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space archive lifecycle facet (reversible boolean)",
-      "cell_family": "cx.component.space.archive.v1",
+      "payload": "Realm archive lifecycle facet (reversible boolean)",
+      "cell_family": "cx.component.realm.archive.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.freeze",
-      "category": "space",
+      "event_kind": "cx.realm.freeze",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space freeze lifecycle facet (reversible boolean)",
-      "cell_family": "cx.component.space.freeze.v1",
+      "payload": "Realm freeze lifecycle facet (reversible boolean)",
+      "cell_family": "cx.component.realm.freeze.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.tombstone",
-      "category": "space",
+      "event_kind": "cx.realm.tombstone",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space tombstone lifecycle facet (terminal pointer to successor)",
-      "cell_family": "cx.component.space.tombstone.v1",
+      "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
+      "cell_family": "cx.component.realm.tombstone.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.space.destroy",
-      "category": "space",
+      "event_kind": "cx.realm.destroy",
+      "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space destroy lifecycle facet (terminal decommission marker)",
-      "cell_family": "cx.component.space.destroy.v1",
+      "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
+      "cell_family": "cx.component.realm.destroy.v1",
       "cell_subject": null,
       "lattice": "cas-register",
       "bottom": "reject"
@@ -475,7 +471,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space membership state",
+      "payload": "Realm membership state",
       "cell_family": "cx.component.member.state.v1",
       "cell_subject": {
         "type": "did",
@@ -530,15 +526,15 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow move between Places (target_place_id in payload). Writes a cas-register cell keyed by (board_place_id, flow_id); the contains Relation list_place_id->flow_id is derived from cell value, not a separate truth source.",
+      "payload": "Flow move between Spaces (target_space_id in payload). Writes a cas-register cell keyed by (board_space_id, flow_id); the contains Relation list_space_id->flow_id is derived from cell value, not a separate truth source.",
       "cell_family": "cx.component.flow.position.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
           {
-            "name": "board_place_id",
-            "type": "id:place",
-            "field": "payload.board_place_id"
+            "name": "board_space_id",
+            "type": "id:space",
+            "field": "payload.board_space_id"
           },
           {
             "name": "flow_id",
@@ -556,15 +552,15 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow reorder within Place. Writes the same cell as cx.flow.move; effect.list_place_id MUST equal head_eq.list_place_id (rank-only update).",
+      "payload": "Flow reorder within Space. Writes the same cell as cx.flow.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update).",
       "cell_family": "cx.component.flow.position.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
           {
-            "name": "board_place_id",
-            "type": "id:place",
-            "field": "payload.board_place_id"
+            "name": "board_space_id",
+            "type": "id:space",
+            "field": "payload.board_space_id"
           },
           {
             "name": "flow_id",
@@ -603,59 +599,59 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.place.create",
-      "category": "place",
+      "event_kind": "cx.space.create",
+      "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Place create (board / list / swimlane / calendar bucket / etc.)"
+      "payload": "Space create (board / list / swimlane / calendar bucket / etc.)"
     },
     {
-      "event_kind": "cx.place.update",
-      "category": "place",
+      "event_kind": "cx.space.update",
+      "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Place metadata update (title, rank, kind-specific fields)"
+      "payload": "Space metadata update (title, rank, kind-specific fields)"
     },
     {
-      "event_kind": "cx.place.parent",
-      "category": "place",
+      "event_kind": "cx.space.parent",
+      "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Place parent declaration (parent is cx:space: or cx:place: within same Space)",
-      "cell_family": "cx.component.place.parent.v1",
+      "payload": "Space parent declaration. Parent is another cx:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
+      "cell_family": "cx.component.space.parent.v1",
       "cell_subject": {
-        "type": "id:place",
-        "field": "envelope.place_id"
+        "type": "id:space",
+        "field": "payload.space_id"
       },
       "lattice": "cas-register",
       "bottom": "reject"
     },
     {
-      "event_kind": "cx.place.archive",
-      "category": "place",
+      "event_kind": "cx.space.archive",
+      "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Place archive (UI-level grouping archive; contained Flows MUST be relocated or follow archive)"
+      "payload": "Space archive (UI-level grouping archive; contained Flows MUST be relocated or follow archive)"
     },
     {
-      "event_kind": "cx.place.restore",
-      "category": "place",
+      "event_kind": "cx.space.restore",
+      "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Place restore (transition state archived -> active; only valid when current state == archived; tombstoned Places MUST NOT be restored)"
+      "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)"
     },
     {
-      "event_kind": "cx.place.tombstone",
-      "category": "place",
+      "event_kind": "cx.space.tombstone",
+      "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Place tombstone (irreversible; contained Flows MUST be relocated before)"
+      "payload": "Space tombstone (irreversible; contained Flows MUST be relocated before)"
     },
     {
       "event_kind": "cx.message.create",
@@ -743,7 +739,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Space declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability cx.morph.schema.migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares cx.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
     },
     {
       "event_kind": "cx.relation.create",
@@ -1174,7 +1170,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space-scoped profile override"
+      "payload": "Realm-scoped profile override"
     },
     {
       "event_kind": "cx.device.authorized",
@@ -1392,23 +1388,23 @@
       "payload": "MLS KeyPackage publication"
     },
     {
-      "event_kind": "cx.space_key.share",
+      "event_kind": "cx.realm_key.share",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space key share"
+      "payload": "Realm key share"
     },
     {
-      "event_kind": "cx.space_key.withheld",
+      "event_kind": "cx.realm_key.withheld",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space key withheld notice"
+      "payload": "Realm key withheld notice"
     },
     {
-      "event_kind": "cx.space_key.share_audit",
+      "event_kind": "cx.realm_key.share_audit",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1631,12 +1627,12 @@
       "payload": "Attested_hardware Audit Agent removal — enclave-signed attestation that historical epoch / exporter secrets held by the removed Audit Agent have been cryptographically destroyed. MUST be in the same anchor batch as the paired cx.mls.commit that removes the Audit Agent (see crypto-media/audited-e2ee.md §3.1.1). Wire schema versioning expressed via `requirements.features` (e.g. `cx.feature.audit_destruction_v1`), not via a `.v<n>` suffix on the kind name."
     },
     {
-      "event_kind": "cx.space.audit_policy_downgrade",
+      "event_kind": "cx.realm.audit_policy_downgrade",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Forced downgrade of audit_assurance from attested_hardware to disclosed_policy when the required cx.audit.epoch_key_destruction attestation is not produced within the deadline; rewrites Space audit policy and triggers UI banner. Wire schema versioning expressed via `requirements.features`."
+      "payload": "Forced downgrade of audit_assurance from attested_hardware to disclosed_policy when the required cx.audit.epoch_key_destruction attestation is not produced within the deadline; rewrites Realm audit policy and triggers UI banner. Wire schema versioning expressed via `requirements.features`."
     }
   ]
 }

@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/agent-task.schema.json",
   "title": "Contrix Agent Task",
-  "description": "Object schema for cx.schema.agent_task.v1 (mirror Space task). State lives in three orthogonal FSM cells (execution_state / transparency / source_authority), NOT in object schema fields. See spec/v1/zh/extensions/agent-workspace-profile.md §7.",
+  "description": "Object schema for cx.schema.agent_task.v1 (mirror Realm task). State lives in three orthogonal FSM cells (execution_state / transparency / source_authority), NOT in object schema fields. See spec/v1/zh/extensions/agent-workspace-profile.md §7.",
   "type": "object",
   "required": [
     "id",
     "schema",
-    "space_id",
+    "realm_id",
     "flow_id",
     "target_agent_id",
     "instruction",
@@ -22,10 +22,10 @@
     "schema": {
       "const": "cx.schema.agent_task.v1"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Mirror Space ID. MUST be a Space declaring cx.profile.agent_workspace.v1."
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Mirror Realm ID. MUST be a Realm declaring cx.profile.agent_workspace.v1."
     },
     "flow_id": {
       "type": "string",
@@ -48,18 +48,18 @@
     },
     "context_anchor": {
       "type": "object",
-      "description": "Optional binding to a source Space frontier when this task is triggered by a mention_redirect in source Space.",
+      "description": "Optional binding to a source Realm frontier when this task is triggered by a mention_redirect in source Realm.",
       "required": [
-        "source_space_id",
+        "source_realm_id",
         "source_flow_id",
         "source_anchor_ref",
         "source_frontier_hash",
         "trigger_redirect_pair_id"
       ],
       "properties": {
-        "source_space_id": {
+        "source_realm_id": {
           "type": "string",
-          "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "source_flow_id": {
           "type": "string",
@@ -87,7 +87,7 @@
           "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ],
-      "description": "Set after Phase 3 reconcile to reference the source Space mention_redirect event. Single-sided audit anchor; source Space does not store reverse reference."
+      "description": "Set after Phase 3 reconcile to reference the source Realm mention_redirect event. Single-sided audit anchor; source Realm does not store reverse reference."
     },
     "created_by": {
       "type": "string",

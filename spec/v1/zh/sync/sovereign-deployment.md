@@ -6,13 +6,13 @@ sidebar:
 
 ## 1. 目标
 
-高安全组织可以运行独立的 Contrix 网络，同时在必要时为外部人员或外部组织开启受控协作 Space。
+高安全组织可以运行独立的 Contrix 网络，同时在必要时为外部人员或外部组织开启受控协作 Realm。
 
 本文定义：
 
 - sovereign deployment 的边界
 - isolated federation domain
-- controlled collaboration Space
+- controlled collaboration Realm
 - 外部主体进入高安全网络的验证、授权、加密、审计和退出规则
 - sovereign client 与 DID resolver policy
 
@@ -52,7 +52,7 @@ flowchart TB
     end
 
     subgraph "Controlled Collaboration Enclave"
-        ESPACE["Controlled Collaboration<br/>Space"]
+        ESPACE["Controlled Collaboration<br/>Realm"]
         ESVC["Enclave Service Plane<br/>(Principal / Directory / Blob / Policy)"]
 
         ESPACE --> ESVC
@@ -78,7 +78,7 @@ flowchart TB
     end
 
     subgraph "Controlled Collaboration Enclave"
-        ESPACE["Controlled Collaboration<br/>Space"]
+        ESPACE["Controlled Collaboration<br/>Realm"]
         EPOL["Enclave Policy<br/>Server"]
         ESYNC["Enclave Principal Server /<br/>Sync Service"]
     end
@@ -94,8 +94,8 @@ flowchart TB
 拓扑含义：
 
 - 主网络保持 closed federation，不向外部主体暴露内部 Directory 或服务拓扑。
-- Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Space。
-- 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Space。
+- Controlled Collaboration Enclave 是独立协作边界，只承载被批准的 Realm。
+- 外部主体通过 DID / VC / authority chain / invite / restricted join 进入 enclave Realm。
 - 外部组织可以保留自己的 Principal Server / Events API，但写入必须经过 enclave Principal Server / Sync Service、Policy Server 和本地授权验证。
 - 主网络与 enclave 之间没有默认桥接；资料进出必须经过 export / import review。
 
@@ -110,7 +110,7 @@ Sovereign client MUST:
 - 验证服务 DID 委派、证书、HTTP message signature 和 feature profile。
 - 禁止用户手动添加未批准 Sync Service / Directory / Blob / Applet endpoint。
 - 默认关闭公共 federation、公共搜索、外部 Applet 和外部 Agent handoff。
-- 对每个 Space 显示 classification、E2EE、auditable E2EE、export、external member policy。
+- 对每个 Realm 显示 classification、E2EE、auditable E2EE、export、external member policy。
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。
 - 支持本地日志、审计导出和密钥擦除策略。
 
@@ -127,12 +127,12 @@ Sovereign client SHOULD:
 
 - 禁止公共 federation。
 - 禁止公共 directory listing。
-- Space 默认 `discoverability=secret` 或 `invite_only`。
-- Space 默认 `join_rule=invite` 或 `restricted`。
+- Realm 默认 `discoverability=secret` 或 `invite_only`。
+- Realm 默认 `join_rule=invite` 或 `restricted`。
 - Policy Server 默认 `closed` 或 `quarantine` fail mode。
 - Sync Service / Directory 只接受 allowlist service DID。
 - Blob、snapshot、backup、audit log 存储在组织控制基础设施内。
-- 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Space 明确开启。
+- 外部 Applet、Agent handoff、TSP/A2A/ACP transport 默认关闭，按 Realm 明确开启。
 - E2EE 默认开启；需要合规审查时使用 auditable E2EE，且必须向成员显示。
 
 ## 3.1 DID Policy
@@ -170,21 +170,21 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 - 涉及关联风险的外部协作 SHOULD 使用 pairwise DID。
 - 指向公共 Sync Service / Directory 的 DID Document service endpoint 在未 allowlist 时 MUST 被忽略。
 
-## 4. 受控协作 Space
+## 4. 受控协作 Realm
 
-组织 MAY 创建受控协作 Space，允许外部网络的人员或组织加入特定协作范围。
+组织 MAY 创建受控协作 Realm，允许外部网络的人员或组织加入特定协作范围。
 
-该 Space 是隔离边界，不应让外部主体直接进入组织主网络。
+该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。
 
-Controlled Collaboration Space SHOULD 使用：
+Controlled Collaboration Realm SHOULD 使用：
 
 ```json
 {
-  "kind": "cx.space.create",
+  "kind": "cx.realm.create",
   "payload": {
     "object": {
-      "id": "cx:space:019640ea-8000-7000-8000-000000000000",
-      "schema": "cx.schema.space.v1",
+      "id": "cx:realm:019640ea-8000-7000-8000-000000000000",
+      "schema": "cx.schema.realm.v1",
       "security_class": "high_assurance",
       "title": "Controlled Collaboration",
       "created_by_principal": "did:web:defense.example",
@@ -192,7 +192,7 @@ Controlled Collaboration Space SHOULD 使用：
         "did:web:defense.example"
       ],
       "schema_refs": [
-        "cx.schema.space.v1"
+        "cx.schema.realm.v1"
       ],
       "default_discoverability": "unlisted",
       "default_join_rule": "restricted",
@@ -211,7 +211,7 @@ Controlled Collaboration Space SHOULD 使用：
 }
 ```
 
-Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组织自己的 Principal Server（service DID）作为 genesis anchorer，所有 Move 只有进入该 anchorer 签发的 Anchor frontier 后才 effective（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。这与 sovereign 部署"组织拥有自己的服务器，且服务器是 Space 的真相源"的事实结构一致。组织间共享 Space（多个 `owning_organizations`）可以使用 `threshold` 或 `mixed` anchor profile；anchorer 变更是普通 Move，由旧 anchorer finalization，fallback recovery 由 Space create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `anchor_profile="open_set"`。
+Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组织自己的 Principal Server（service DID）作为 genesis anchorer，所有 Move 只有进入该 anchorer 签发的 Anchor frontier 后才 effective（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。这与 sovereign 部署"组织拥有自己的服务器，且服务器是 Realm 的真相源"的事实结构一致。组织间共享 Realm（多个 `owning_organizations`）可以使用 `threshold` 或 `mixed` anchor profile；anchorer 变更是普通 Move，由旧 anchorer finalization，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `anchor_profile="open_set"`。
 
 推荐 policy：
 
@@ -226,20 +226,20 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
 
 ## 5. 外部主体进入流程
 
-外部人员或组织进入受控 Space MUST 经过受控流程：
+外部人员或组织进入受控 Realm MUST 经过受控流程：
 
 1. 外部主体提供 DID、Organization DID、service DID 或 verifiable credential。
 2. 主组织验证 DID control、handle binding、organization authority chain。
 3. Policy Server 检查 allowlist、risk score、clearance claim、contract claim、device posture。
-4. Space admin 或 delegated approval actor 发出 invite。
+4. Realm admin 或 delegated approval actor 发出 invite。
 5. 外部主体接受 invite，并提交 `cx.member.state` join event。
-6. 对 E2EE Space，管理员客户端或 key service 只向该主体授权设备发 MLS Welcome。
-7. Directory 和客户端本地 projection 只暴露该 Space 允许的 stripped preview 和加入后历史。
+6. 对 E2EE Realm，管理员客户端或 key service 只向该主体授权设备发 MLS Welcome。
+7. Directory 和客户端本地 projection 只暴露该 Realm 允许的 stripped preview 和加入后历史。
 
 外部主体 MUST NOT 获得：
 
 - 主网络 directory 全量搜索能力
-- 其他 Space 列表
+- 其他 Realm 列表
 - 组织成员列表
 - 不相关 service topology
 - 加入前历史密钥，除非 policy 明确允许
@@ -254,7 +254,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
   "issuer": "did:web:defense.example",
   "subject": "did:web:contractor.example",
   "scope": {
-    "space_id": "cx:space:400d7400-0000-7000-8000-000000000000",
+    "realm_id": "cx:realm:400d7400-0000-7000-8000-000000000000",
     "roles": ["contractor_reviewer"],
     "max_members": 20
   },
@@ -262,7 +262,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
 }
 ```
 
-外部组织 MAY 运营自己的 Principal Server / Events API，但受控 Space SHOULD 要求：
+外部组织 MAY 运营自己的 Principal Server / Events API，但受控 Realm SHOULD 要求：
 
 - 外部 service DID 已通过审批
 - federation 事务签名
@@ -279,14 +279,14 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
 
 - 主网络保持 closed federation。
 - 创建独立的 collaboration enclave。
-- 外部主体只被邀请到 enclave Space。
-- enclave Space 使用独立 Principal Server / Blob / Policy Server。
+- 外部主体只被邀请到 enclave Realm。
+- enclave Realm 使用独立 Principal Server / Blob / Policy Server。
 - 从主网络复制到 enclave 的资料必须经 redaction / export review / declassification policy。
 - 从 enclave 回流主网络的资料必须经 import review / malware scan / policy approval。
 
 ## 8. Applet 与 Agent 控制
 
-受控协作 Space SHOULD 默认：
+受控协作 Realm SHOULD 默认：
 
 - 禁用 Applet。
 - 禁用 Agent protocol handoff。
@@ -332,7 +332,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
 
 如怀疑遭受入侵：
 
-- 冻结 Space 或受影响对象集合
+- 冻结 Realm 或受影响对象集合
 - 隔离跨域事件
 - 轮换 service key
 - 要求所有外部成员重新认证
@@ -344,7 +344,7 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
 
 - 默认 closed federation
 - service DID allowlist
-- 受控协作 Space 的创建流程
+- 受控协作 Realm 的创建流程
 - restricted 外部加入流程
 - policy server 的 closed fail 模式
 - 仅向受批准的外部设备发送 MLS welcome
@@ -357,9 +357,9 @@ Sovereign 部署默认采用 **single_did Anchor profile**：每个 Space 由组
 
 sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `cx.profile.federation.high_assurance.v1`，并满足 [`federation.md` §4.5.3](./federation.md) 中定义的硬性要求：
 
-- 每个 federation-visible Space 与每个授权 peer 的 frontier probe 间隔 ≤ 1 小时；
-- 维护 per-peer / per-Space frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
+- 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ 1 小时；
+- 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
 - 连续 3 次 probe 失败 MUST 触发 `stale_peer` 标记；该状态下 MUST 拒绝以该 peer 的 push payload 推进本地 frontier，MUST 通过 alarm 通道暴露，MAY 拒绝向该 peer fanout 新 Event；
 - fork resolution 成功后 MUST 解除 `stale_peer` 标记。
 
-理由：sovereign 部署的威胁模型默认包含"独立 Principal Server 在同一 Space 共同写入"，单纯依赖 anchor 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。
+理由：sovereign 部署的威胁模型默认包含"独立 Principal Server 在同一 Realm 共同写入"，单纯依赖 anchor 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。

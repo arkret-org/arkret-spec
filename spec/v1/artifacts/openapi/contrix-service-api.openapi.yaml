@@ -433,7 +433,7 @@ components:
           description: Per-actor frontier after this submit (subset of full frontier visible to caller).
         space_frontier:
           type: object
-          description: Per-Space frontier after this submit.
+          description: Per-Realm frontier after this submit.
         cursor:
           type: string
           description: Optional barrier cursor (purpose=barrier) bound to the most recently accepted event.
@@ -528,7 +528,7 @@ components:
           type: object
           description: |
             Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a
-            Space frontier (`{space_id, anchor_id, state_root, hlc?}`) shape
+            Realm frontier (`{realm_id, anchor_id, state_root, hlc?}`) shape
             depending on which selector was passed; servers MUST NOT leak
             frontiers across visibility boundaries.
         receipts:
@@ -752,8 +752,8 @@ components:
       type: object
       description: |
         cx.authz.check input — single capability decision query. `resource` is
-        optional because some actions (e.g. `cx.space.create`, identity-scoped
-        actions) have no Space-bound target.
+        optional because some actions (e.g. `cx.realm.create`, identity-scoped
+        actions) have no Realm-bound target.
       required:
       - actor_id
       - action
@@ -766,7 +766,7 @@ components:
           description: Capability action id (e.g. `cx.flow.update`).
         resource:
           type: object
-          description: Optional resource selector (Space / Flow / Place / Morph / etc.).
+          description: Optional resource selector (Realm / Flow / Space / Morph / etc.).
         context:
           type: object
           description: Optional decision context — claim presentations, frontier reference, request metadata.
@@ -958,20 +958,20 @@ components:
           - both
         source_ref:
           type: string
-          pattern: ^(cx:(space|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(cx:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         source_actor_id:
           type: string
-        source_space_id:
+        source_realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         target_ref:
           type: string
-          pattern: ^(cx:(space|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(cx:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         target_actor_id:
           type: string
-        target_space_id:
+        target_realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         depth:
           type: integer
           minimum: 0
@@ -984,19 +984,19 @@ components:
             - source_actor_id
           - required:
             - source_ref
-            - source_space_id
+            - source_realm_id
           - required:
             - source_actor_id
-            - source_space_id
+            - source_realm_id
           - required:
             - target_ref
             - target_actor_id
           - required:
             - target_ref
-            - target_space_id
+            - target_realm_id
           - required:
             - target_actor_id
-            - target_space_id
+            - target_realm_id
       additionalProperties: false
     FacetName:
       type: string
@@ -1031,11 +1031,11 @@ components:
     QueryRequest:
       type: object
       properties:
-        space_ids:
+        realm_ids:
           type: array
           items:
             type: string
-            pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           minItems: 1
         view_id:
           type: string
@@ -1121,7 +1121,7 @@ components:
           - view_id
     ObjectRef:
       type: string
-      pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     ObjectLookupResponse:
       type: object
       required:
@@ -1224,11 +1224,11 @@ components:
         query:
           type: string
           minLength: 1
-        space_ids:
+        realm_ids:
           type: array
           items:
             type: string
-            pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         object_types:
           type: array
           items:
@@ -1282,12 +1282,12 @@ components:
     SpaceHierarchyResponse:
       type: object
       required:
-      - root_space_id
+      - root_realm_id
       - children
       properties:
-        root_space_id:
+        root_realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         root:
           $ref: '#/components/schemas/ProjectionObject'
         children:
@@ -1314,12 +1314,12 @@ components:
     SpaceHierarchyChild:
       type: object
       required:
-      - space_id
+      - realm_id
       - edge_status
       properties:
-        space_id:
+        realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         accessible:
@@ -1338,10 +1338,10 @@ components:
       properties:
         parent_ref:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         child_ref:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         relation_kind:
@@ -1444,10 +1444,10 @@ components:
           const: relation_container
         scope_container_id:
           type: string
-          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
@@ -1530,10 +1530,10 @@ components:
           const: relation
         scope_container_id:
           type: string
-          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^cx:(space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
@@ -1740,9 +1740,9 @@ components:
         view_id:
           type: string
           pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        space_id:
+        realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         groups:
@@ -1777,11 +1777,11 @@ components:
       properties:
         id:
           type: string
-          pattern: ^cx:(space|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:(realm|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         type:
           type: string
           enum:
-          - space
+          - realm
           - flow
           - message
           - morph
@@ -1888,9 +1888,9 @@ components:
         view_id:
           type: string
           pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        space_id:
+        realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         entries:
@@ -1939,10 +1939,10 @@ components:
           minLength: 1
         from_ref:
           type: string
-          pattern: ^(cx:(space|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(cx:(realm|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         to_ref:
           type: string
-          pattern: ^(cx:(space|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(cx:(realm|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -1966,9 +1966,9 @@ components:
         view_id:
           type: string
           pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        space_id:
+        realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         nodes:
@@ -2024,9 +2024,9 @@ components:
         view_id:
           type: string
           pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        space_id:
+        realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         sections:
@@ -2088,9 +2088,9 @@ components:
         view_id:
           type: string
           pattern: ^cx:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        space_id:
+        realm_id:
           type: string
-          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         widgets:
@@ -2365,9 +2365,9 @@ paths:
         §7.0 for the full semantic table.
 
       parameters:
-      - name: spaces
+      - name: realms
         in: query
-        description: Filter by Space IDs. Multiple values are UNION within the parameter; cross with `actors` is intersection.
+        description: Filter by Realm IDs. Multiple values are UNION within the parameter; cross with `actors` is intersection.
         schema:
           type: array
           items:
@@ -2376,7 +2376,7 @@ paths:
         explode: true
       - name: actors
         in: query
-        description: Filter by Actor DIDs. Multiple values are UNION within the parameter; cross with `spaces` is intersection.
+        description: Filter by Actor DIDs. Multiple values are UNION within the parameter; cross with `realms` is intersection.
         schema:
           type: array
           items:
@@ -2446,7 +2446,7 @@ paths:
         any of:
 
           - The URL would exceed the deployment's practical limit (proxies /
-            CDNs commonly cap at 4–8 KiB). Large `spaces[]` / `actors[]` lists
+            CDNs commonly cap at 4–8 KiB). Large `realms[]` / `actors[]` lists
             or a non-trivial `filters` object cross this threshold quickly.
           - Operators would otherwise log full URL query strings (which can
             inadvertently capture sensitive filter contents in access logs).
@@ -2467,16 +2467,16 @@ paths:
               type: object
               additionalProperties: false
               properties:
-                spaces:
+                realms:
                   type: array
                   items:
                     type: string
-                  description: Filter by Space IDs. UNION within, intersection with `actors[]`.
+                  description: Filter by Realm IDs. UNION within, intersection with `actors[]`.
                 actors:
                   type: array
                   items:
                     type: string
-                  description: Filter by Actor DIDs. UNION within, intersection with `spaces[]`.
+                  description: Filter by Actor DIDs. UNION within, intersection with `realms[]`.
                 before:
                   type: string
                   description: Return events strictly older than this cursor position (exclusive).
@@ -2517,18 +2517,18 @@ paths:
         destinationServiceDid: []
       summary: Streaming event subscription with optional history catchup.
       description: |
-        Opens a streaming subscription scoped by `spaces[]` / `actors[]`. Returns
+        Opens a streaming subscription scoped by `realms[]` / `actors[]`. Returns
         events from `after=<cursor>` (exclusive) forward. Subscribe naturally
         moves only toward newer events; there is no `before` / `order`
         parameter.
 
         With `include_history=true` the server first replays historical events
         from `after=<cursor>` up to the current frontier, then emits
-        `catchup_complete` per Space and continues with live frames.
+        `catchup_complete` per Realm and continues with live frames.
       parameters:
-      - name: spaces
+      - name: realms
         in: query
-        description: Filter by Space IDs. UNION within, intersection with `actors[]`.
+        description: Filter by Realm IDs. UNION within, intersection with `actors[]`.
         schema:
           type: array
           items:
@@ -2537,7 +2537,7 @@ paths:
         explode: true
       - name: actors
         in: query
-        description: Filter by Actor DIDs. UNION within, intersection with `spaces[]`.
+        description: Filter by Actor DIDs. UNION within, intersection with `realms[]`.
         schema:
           type: array
           items:
@@ -2634,7 +2634,7 @@ paths:
         in: query
         schema:
           type: string
-      - name: space_id
+      - name: realm_id
         in: query
         schema:
           type: string
@@ -2690,7 +2690,7 @@ paths:
         sourceServiceDid: []
         destinationServiceDid: []
       parameters:
-      - name: space_id
+      - name: realm_id
         in: query
         required: true
         schema:
@@ -3586,7 +3586,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/search-spaces:
+  /directory/search-realms:
     post:
       operationId: cx.directory.search_spaces
       security:
@@ -3597,7 +3597,7 @@ paths:
         contentDigest: []
       responses:
         '200':
-          description: Authorized Space search
+          description: Authorized Realm search
           content:
             application/json:
               schema:
@@ -3608,7 +3608,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OperationRequest'
-  /directory/resolve-space:
+  /directory/resolve-realm:
     post:
       operationId: cx.directory.resolve_space
       security:
@@ -3619,7 +3619,7 @@ paths:
         contentDigest: []
       responses:
         '200':
-          description: Authorized Space resolution
+          description: Authorized Realm resolution
           content:
             application/json:
               schema:
@@ -3824,7 +3824,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OperationResult'
-  /applet/spaces/{space_id_or_alias}:
+  /applet/realms/{realm_id_or_alias}:
     get:
       operationId: cx.applet.query_space
       security:
@@ -3833,13 +3833,13 @@ paths:
         destinationServiceDid: []
       parameters:
       - in: path
-        name: space_id_or_alias
+        name: realm_id_or_alias
         required: true
         schema:
           type: string
       responses:
         '200':
-          description: Applet Space namespace query
+          description: Applet Realm namespace query
           content:
             application/json:
               schema:
@@ -4115,11 +4115,11 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [mirror_flow_id, mirror_space_id]
+                required: [mirror_flow_id, mirror_realm_id]
                 properties:
                   mirror_flow_id:
                     type: string
-                  mirror_space_id:
+                  mirror_realm_id:
                     type: string
         '401':
           description: Unauthenticated. MUST NOT distinguish from 'workspace not provisioned'.

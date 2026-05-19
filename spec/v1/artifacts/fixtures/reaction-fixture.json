@@ -206,9 +206,9 @@
     },
     {
       "name": "e2ee_routing_hash_dedup",
-      "notes": "In an E2EE space the plaintext key is sha256(\"cx-reaction-key-v1\" || space_id || mls_group_id || epoch || canonical_emoji). Two adds with the same routing hash from the same actor in the same epoch collapse to one OR-Set membership; routing hash differs in a different epoch and so does not dedup across epochs. The space_id binding (added in v1) provides defense-in-depth even if mls_group_id is reused across deployments.",
+      "notes": "In an E2EE realm the plaintext key is sha256(\"cx-reaction-key-v1\" || realm_id || mls_group_id || epoch || canonical_emoji). Two adds with the same routing hash from the same actor in the same epoch collapse to one OR-Set membership; routing hash differs in a different epoch and so does not dedup across epochs. The realm_id binding (added in v1) provides defense-in-depth even if mls_group_id is reused across deployments.",
       "context": {
-        "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
         "aad_visibility": "hidden",
         "mls_group_id": "Zm9vYmFy",
         "epoch": 7
@@ -230,7 +230,7 @@
               "ciphertext": "reactionAlpha",
               "aad_visibility_event_id": "routing_hash",
               "aad": {
-                "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
+                "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add",
                 "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
@@ -259,7 +259,7 @@
               "ciphertext": "reactionAlphaDup",
               "aad_visibility_event_id": "routing_hash",
               "aad": {
-                "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
+                "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add",
                 "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
@@ -292,7 +292,7 @@
       "name": "e2ee_epoch_rotation_breaks_dedup",
       "notes": "Same canonical emoji yields a different routing hash after MLS epoch rotation; the new add is a fresh OR-Set entry, not a duplicate of the pre-rotation one.",
       "context": {
-        "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
         "aad_visibility": "hidden",
         "mls_group_id": "Zm9vYmFy",
         "old_epoch": 7,
@@ -315,7 +315,7 @@
               "ciphertext": "reactionEpoch7",
               "aad_visibility_event_id": "hidden",
               "aad": {
-                "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
+                "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add"
               },
               "key_ref": {
@@ -343,7 +343,7 @@
               "ciphertext": "reactionEpoch8",
               "aad_visibility_event_id": "hidden",
               "aad": {
-                "space_id": "cx:space:0196419b-0000-7000-8000-000000000129",
+                "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000129",
                 "event_kind": "cx.reaction.add"
               },
               "key_ref": {

@@ -14,7 +14,7 @@
         "kind": "cx.content.import_attestation",
         "body": "...",
         "claimed_origin": {
-          "space_id": "cx:space:01964200-0000-7000-8000-a00000000014",
+          "realm_id": "cx:realm:01964200-0000-7000-8000-a00000000014",
           "flow_id": "cx:flow:01964200-0000-7000-8000-a00000000013",
           "message_id": "cx:message:01964200-0000-7000-8000-a00000000016",
           "actor_id": "did:web:bob.example",

@@ -47,8 +47,8 @@ Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `cx.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
-- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Space、`cx.member.state`、启用 discussion track 且可设为 primary 的 Flow、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
-- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Place（`kind=board/list`）、Flow、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、`cx.place.create`、`cx.place.update`、`cx.place.parent`、客户端 Collection projection 和 wait-for query。
+- `cx.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Realm、`cx.member.state`、启用 discussion track 且可设为 primary 的 Flow、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
+- `cx.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space（`kind=board/list`）、Flow、`contains` position Relation、`cx.flow.move`、`cx.flow.reorder`、`cx.space.create`、`cx.space.update`、`cx.space.parent`、客户端 Collection projection 和 wait-for query。
 
 `minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
 
@@ -56,7 +56,7 @@ v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 Profile 不支持某个标准能力时的默认行为：
 
-- 写入接收方收到 active 标准 Event kind 时，若该 kind 不在本实现声明的 supported_event_kinds / profile 范围内，且该实现负责该 Space 的 accepted history，MUST 返回 `unsupported_feature`、`unsupported_event_kind`、`schema_violation` 或 quarantine，不得把未知标准事件 accepted 后静默丢给 reducer。
+- 写入接收方收到 active 标准 Event kind 时，若该 kind 不在本实现声明的 supported_event_kinds / profile 范围内，且该实现负责该 Realm 的 accepted history，MUST 返回 `unsupported_feature`、`unsupported_event_kind`、`schema_violation` 或 quarantine，不得把未知标准事件 accepted 后静默丢给 reducer。
 - 只读客户端或 projection 服务遇到未实现但已 accepted 的标准 Event kind，MAY 保留 raw event、显示 generic fallback 或把对应 projection 标记为 incomplete；不得声称已完整执行该 kind 的 reducer 语义。
 - 未知 Morph type、未知非 critical extension field 和未声明 renderer 可以保留并忽略，但不能影响授权、排序、状态机、redaction、E2EE、notification 或 state hash。
 - Event 的 `requirements.features[]` 或 `requirements.critical_extensions[]` 出现不支持的标识，或 `requirements.schema[]` / `requirements.reducer` 与本端不匹配时，不支持的一方 MUST fail closed；这条规则优先于 profile 的“可忽略可选功能”。
@@ -102,11 +102,11 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 - 事件名必须符合 `cx.` 命名规则，且标准 `cx.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
 - Event Envelope MUST 先通过 `cx.schema.event.v1`，再按 `Event.kind` 通过 `cx.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
-- 事件/关系/对象/View 的 `created_at`、`space_id`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；版本通过 `Event.requirements.{schema, reducer}` 表达。
+- 事件/关系/对象/View 的 `created_at`、`realm_id`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；版本通过 `Event.requirements.{schema, reducer}` 表达。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
 - State frontier、snapshot frontier、projection frontier 和 wait-for token MUST 以 `event_id` / actor frontier 为语义单位；`operation_id` 只可表示服务 canonical operation。
 - Snapshot manifest MUST 包含 `event_set_commitment`；high-assurance profile MUST 支持 inclusion / omission challenge 或 witness quorum 校验。
-- 裸名事件（如 `space.create`）MUST 被拒绝，不能作为新增标准互操作行为。
+- 裸名事件（如 `realm.create`）MUST 被拒绝，不能作为新增标准互操作行为。
 - 实现 MUST 对 `causal` 关系、`revoked` 与 `proof` 失效状态进行一致性拒绝（fail-closed），不能“静默接受”。
 
 ## 4. Minimal Client
@@ -119,7 +119,7 @@ MUST 支持：
 - service discovery
 - event 拉取 / backfill
 - 本地查询和 projection
-- 基础 Flow / Space / Message / Morph / Relation / Event 解码
+- 基础 Flow / Realm / Message / Morph / Relation / Event 解码
 - 未知 Morph / facet 字段保留和 generic fallback，不要求专用 renderer
 - capability 检查结果处理
 - cursor 分页
@@ -144,7 +144,7 @@ MUST 支持 Minimal Client 的全部能力，并额外支持：
 - 本地 reducer
 - 离线 event 队列
 - 幂等重放
-- Space bootstrap
+- Realm bootstrap
 - invite accept / reject
 - read marker
 - notification rule
@@ -161,7 +161,7 @@ SHOULD 支持：
 
 ## 6. E2EE Client
 
-`cx.profile.e2ee_client.v1` 适用于加密 Space。
+`cx.profile.e2ee_client.v1` 适用于加密 Realm。
 
 MUST 支持 Full Client 的相关能力，并额外支持：
 
@@ -182,7 +182,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 
 声明 `cx.profile.mls_governance_binding.full.v1`（即 MLS Governance Binding 的 full 形态，见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 额外验证 commit 携带的 `governance_binding` 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier，并 MUST 通过 `covered_frontier_cell` precondition gate E2EE message Move。无法验证 `governance_binding` 指向的 Anchor view 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
 
-声明 `cx.profile.attested_audit.e2ee.v1` 时，Audit Agent MUST 提供可验证 remote attestation，并执行 `cx.audit.accessed` 先写后解密、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `cx.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Space policy 和加入 UI MUST 明确展示该降级（按 `encryption-and-audit.md §3.1.1` 的 disclosed 文案）；同样不得绕过 `cx.audit.accessed` 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3.5` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
+声明 `cx.profile.attested_audit.e2ee.v1` 时，Audit Agent MUST 提供可验证 remote attestation，并执行 `cx.audit.accessed` 先写后解密、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `cx.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm policy 和加入 UI MUST 明确展示该降级（按 `encryption-and-audit.md §3.1.1` 的 disclosed 文案）；同样不得绕过 `cx.audit.accessed` 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3.5` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
 MUST NOT：
 
@@ -202,7 +202,7 @@ MUST 支持：
 - event fetch
 - event batch-get
 - cursor-based history
-- actor / Space frontier query
+- actor / Realm frontier query
 - signature verification
 - schema validation
 - capability precheck
@@ -241,8 +241,8 @@ SHOULD 支持：
 - witness receipt
 - snapshot pointer distribution
 
-Principal Server MUST NOT 成为 Space 状态的 canonical 真相源。
-Principal Server MUST NOT 将非 E2EE 的私有内容或可还原的派生明文转发给未列入相应 DID 委托或 Space policy `plaintext_visible_services` 的服务。
+Principal Server MUST NOT 成为 Realm 状态的 canonical 真相源。
+Principal Server MUST NOT 将非 E2EE 的私有内容或可还原的派生明文转发给未列入相应 DID 委托或 Realm policy `plaintext_visible_services` 的服务。
 
 ## 9. Identity Registry Node
 
@@ -296,8 +296,8 @@ SHOULD 支持：
 | Profile id | role | 必选 / 可选 | 强制能力 | Fixture |
 | --- | --- | --- | --- | --- |
 | `cx.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `register_device` / `unregister_device` / `notify` 三个操作，`cx.schema.notification.v1`，service DID 校验，`rejected[]` 回传，失效 token 回收 | `privacy-security-fixture.json` |
-| `cx.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Space / Flow / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Space stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
-| `cx.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Space policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Space stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
+| `cx.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Flow / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
+| `cx.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
 | `cx.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `cx.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_did, device)` 元组上同时声明两者 | `privacy-security-fixture.json` |
 
 MUST 支持（在所有变体上）：
@@ -349,10 +349,10 @@ MUST 支持：
 
 MUST NOT：
 
-- 把 MIMI room id 当作 `space_id`
+- 把 MIMI room id 当作 `realm_id`
 - 把 MIMI provider timestamp 当作 Contrix HLC / event creation truth
 - 把 MIMI user identifier 当作 DID
-- 绕过 Contrix auth refs、capability、MLS epoch 或 Space policy
+- 绕过 Contrix auth refs、capability、MLS epoch 或 Realm policy
 
 ## 14. Enterprise Client
 
@@ -367,7 +367,7 @@ MUST 支持 Full Client，并根据 policy 支持：
 - compliance audit event display
 - managed update policy
 
-MUST NOT 在不显示 policy 的情况下静默加入 auditable encrypted Space。
+MUST NOT 在不显示 policy 的情况下静默加入 auditable encrypted Realm。
 
 ## 15. Sovereign Deployment
 
@@ -379,7 +379,7 @@ MUST 支持：
 - 服务 DID allowlist
 - 默认 closed federation
 - 默认私有目录
-- 受控协作 Space
+- 受控协作 Realm
 - restricted 或 invite-only 外部加入
 - Policy Server `closed` 或 `quarantine` 失败模式
 - 受控协作默认 E2EE
@@ -391,7 +391,7 @@ MUST 支持：
 
 MUST NOT：
 
-- 向外部成员暴露内部 Space 目录
+- 向外部成员暴露内部 Realm 目录
 - 将外部 Principal Server 或 search / projection 服务视为权威
 - 默认允许公共 federation
 - 在无显式 capability 和 policy 时允许外部 Applet 或 Agent handoff
@@ -427,7 +427,7 @@ MUST NOT：
 
 - 允许用户添加任意 Principal Server / Directory / Blob endpoint
 - 默认通过公共 resolver endpoint 解析内部 principal
-- 静默加入包含外部成员或可审计 E2EE 的 Space
+- 静默加入包含外部成员或可审计 E2EE 的 Realm
 - 向公共搜索暴露私有组织目录
 - 在 policy 未允许时启用公共搜索、Applet 或 Agent handoff
 
@@ -457,7 +457,7 @@ SHOULD 支持：
 
 `cx.profile.small_team.v1` MUST cover：
 
-- 多用户共享 Space
+- 多用户共享 Realm
 - 基础目录与推送
 - moderation queue
 - snapshot / backfill
@@ -519,10 +519,10 @@ MUST 支持：
 - transaction push endpoint
 - transaction idempotency
 - query actor endpoint
-- query space endpoint
+- query realm endpoint
 - protocol metadata endpoint
 - ghost actor accountability metadata
-- portal Space metadata
+- portal Realm metadata
 - capability enforcement
 - HTTP message signature verification
 - event signature verification
@@ -540,12 +540,12 @@ SHOULD 支持：
 - third-party user / location lookup
 - bridge error event
 - admin revoke / pause
-- per-Space bridge policy
+- per-Realm bridge policy
 - Applet health and lag metrics
 
 ## 19a. Franking (E2EE Abuse Reporting)
 
-`cx.profile.franking.v1` 适用于在 E2EE Space 中提供可验证投递证明的服务（典型为 Sync Service / MIMI provider facade / Principal Server）。
+`cx.profile.franking.v1` 适用于在 E2EE Realm 中提供可验证投递证明的服务（典型为 Sync Service / MIMI provider facade / Principal Server）。
 
 参考：`governance/content-moderation.md` §3.4 与 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) franking 段落。
 
@@ -553,21 +553,21 @@ MUST 支持：
 
 - 在接收 E2EE Event Envelope 时签发 `cx.moderation.frank` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim` (含 mls_group_id + epoch)、`received_by` (service DID)、`received_at`、`replay_nonce`。
 - frank `signature` 由 service DID 当前有效 verification method 签发，覆盖 frank canonical bytes。
-- 每条 frank 必须可被独立 verify：service DID Document 解析 + verification method 有效期 + Space service binding 校验 + payload hash 重算。
+- 每条 frank 必须可被独立 verify：service DID Document 解析 + verification method 有效期 + Realm service binding 校验 + payload hash 重算。
 - 接收 reporter 提交的 `cx.moderation.report` 时，把 frank ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
 - frank cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 frank 仍可历史验证（用历史 key state），但不签发新 frank。
 
 MUST NOT：
 
-- 在 frank 中包含明文正文、附件文件名、reply 摘录、mention 列表、私有 handle 或解密内容 hash，除非 Space policy 显式允许该字段。
+- 在 frank 中包含明文正文、附件文件名、reply 摘录、mention 列表、私有 handle 或解密内容 hash，除非 Realm policy 显式允许该字段。
 - 用 frank 单独证明明文含义——frank 只证明"该密文事件被该 service 在该时间收到"。
-- 跨 Space 复用同一 frank（`replay_nonce` 与 `space_id` 必须进 frank 签名）。
+- 跨 Realm 复用同一 frank（`replay_nonce` 与 `realm_id` 必须进 frank 签名）。
 - 在没有有效 service DID 绑定的情况下签发 frank。
 
 SHOULD 支持：
 
 - frank batch endpoint（一次 fetch 多条 frank）以减少 audit traffic。
-- frank inclusion proof：frank 可被签入定期 frank-log Merkle tree，向举报者证明"该 frank 不是后补的"。该 inclusion proof 与 Anchor state_root 独立，因为 frank 不进入 Space anchor frontier（frank 是 service-side audit material，不改变协作状态）。
+- frank inclusion proof：frank 可被签入定期 frank-log Merkle tree，向举报者证明"该 frank 不是后补的"。该 inclusion proof 与 Anchor state_root 独立，因为 frank 不进入 Realm anchor frontier（frank 是 service-side audit material，不改变协作状态）。
 - 显式 `frank_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 frank（如 service downgrade / outage），而不是误以为消息根本未投递。
 
 ## 19b. WebRTC Media Service
@@ -584,13 +584,13 @@ MUST 支持：
 - TURN shared secret 周期轮换（默认 ≤ 24 小时）；轮换时同时接受新旧 secret，grace ≥ `ttl_seconds`，避免 in-call 集体失败。
 - in-call credential refresh：客户端在剩余有效期 ≤ `ttl_seconds * 0.25` 时调用 refresh；server 必须在不中断现有 allocation 的前提下下发新 credential。
 - `turn_credential_expired` / `441 Wrong Credentials` / `438 Stale Nonce` 等错误的 `next_retry_at` 响应。
-- 高隐私 Space 的 `force_turn=true` mode（禁止 host/srflx candidate 泄露 IP）。
+- 高隐私 Realm 的 `force_turn=true` mode（禁止 host/srflx candidate 泄露 IP）。
 - ICE config 响应签名（service DID detached signature 或 authenticated TLS + service DID 绑定）。
 
 MUST NOT：
 
 - 把 principal DID、handle、邮箱或跨呼叫稳定 ID 作为 TURN username。
-- 在响应中暴露除 `ice_servers[]` 之外的 Space metadata（成员数、Space ID、call topic）。
+- 在响应中暴露除 `ice_servers[]` 之外的 Realm metadata（成员数、Realm ID、call topic）。
 - 在 SFU 路径透明转发未加密媒体——E2EE 通话的 audio/video 必须使用 SFrame 或等价 frame-level 加密，SFU 只看 cipher frames。
 
 SHOULD 支持：
@@ -618,7 +618,7 @@ SHOULD 支持：
 - downgrade / unsupported feature tests
 - unknown-field preservation tests
 
-所有 profile MUST 能按 `../models/common-fields.md` 与各对象专属文件（`space-and-place.md` / `flow-and-message.md` / `morph.md` / `relation.md` / `event-and-patch.md` 等）解码和验证其声明支持的核心对象字段。实现 MUST 在 canonical object 中保留未知 non-critical 字段，并覆盖“hash/signature 校验、存储、联邦转发、backfill 后字段仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
+所有 profile MUST 能按 `../models/common-fields.md` 与各对象专属文件（`realm-and-space.md` / `flow-and-message.md` / `morph.md` / `relation.md` / `event-and-patch.md` 等）解码和验证其声明支持的核心对象字段。实现 MUST 在 canonical object 中保留未知 non-critical 字段，并覆盖“hash/signature 校验、存储、联邦转发、backfill 后字段仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
 
 所有 profile MUST 按 `conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
 
@@ -646,7 +646,7 @@ Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应
 
 Privacy / security hardening profile MUST 额外覆盖：
 
-- hidden Space resolve 的不可见/不存在响应同形态
+- hidden Realm resolve 的不可见/不存在响应同形态
 - private contact discovery 的 batch padding 与 cardinality protection
 - plaintext-visible service 对私有正文处理的强制拒绝
 - private blob HEAD / Range anti-enumeration
@@ -675,7 +675,7 @@ Applet Service / Bridge profile MUST 额外提供：
 - namespace conflict vector
 - duplicate transaction vector
 - ghost actor mapping vector
-- portal Space mapping vector
+- portal Realm mapping vector
 - unauthorized write rejection vector
 
 MIMI Interop profile MUST 额外提供：

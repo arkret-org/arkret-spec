@@ -10,9 +10,9 @@ title: Service Surface And Bootstrap
 
 - identity registry 如何收发 DID 操作与 receipt
 - Events API 如何提交、读取、回填 signed Event
-- Principal Server 如何提供 space sync stream 与 backfill
+- Principal Server 如何提供 realm sync stream 与 backfill
 - search / View projection 的语义边界如何在客户端或显式受托服务中保持一致
-- directory 如何做 Space / Organization / Actor 的授权搜索与精确解析
+- directory 如何做 Realm / Organization / Actor 的授权搜索与精确解析
 - blob 如何上传与校验
 - invite / grant 如何参与首次加入工作区
 
@@ -33,7 +33,7 @@ DID Document SHOULD 只负责：
 它不应直接塞入：
 
 - 当前 grant 全量状态
-- 当前 space 当前态
+- 当前 realm 当前态
 - 大量通知或 inbox 数据
 
 ### 2.2 没有任何单一服务是唯一真相源
@@ -80,12 +80,12 @@ DID Document SHOULD 只负责：
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/identity`, `/server` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
 | Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
 | Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
-| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Space/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
+| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
 | Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/keys/keypackages`, `/keys/backups`, `/server` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
-| Authz / Policy Server | 个人可内置；共享 Space 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
+| Authz / Policy Server | 个人可内置；共享 Realm 和组织治理建议独立 | `/authz`, `/contrix/v1/check`, `/server` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/push`, `/server` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
-| Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Space、third-party lookup。 |
+| Applet Server | 集成/桥接/自动化可选 | `/applet`, `/server` | applet describe、transaction、ghost actor、portal Realm、third-party lookup。 |
 | MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、anchorer service 或 Applet Bridge 承载 | `/mimi`, `/.well-known/mimi-protocol-directory`, `/server` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/contrix/v1/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
@@ -99,10 +99,10 @@ DID Document SHOULD 只负责：
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Events/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_service`：Applet Server + Event writer + Authz precheck，只在授权 namespace 和 capability 内工作。
-- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Space / Flow discussion track。
+- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `cx.mimi.room_binding` 授权的 Realm / Flow discussion track。
 - `agent_runtime`：Agent Runtime + Event writer，所有写入仍通过 principal / agent DID 签名。
 
-客户端选择服务时 MUST 先解析 DID Document 与 Space policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
+客户端选择服务时 MUST 先解析 DID Document 与 Realm policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
 
 ## 3. 通用服务描述接口
 
@@ -150,7 +150,7 @@ GET /api/v1/server/describe
     "entries": [
       {
         "operation_id": "cx.events.submit",
-        "scope": ["service_did", "space_id"],
+        "scope": ["service_did", "realm_id"],
         "window_seconds": 60,
         "max_requests": 120,
         "burst": 20
@@ -266,7 +266,7 @@ GET /api/v1/events/describe
 - `service_did`
 - 支持的签名算法
 - 支持的 Event schema / reducer profile
-- 支持的 actor frontier、Space frontier、batch-get 和 stream/backfill 能力
+- 支持的 actor frontier、Realm frontier、batch-get 和 stream/backfill 能力
 
 ### 4.2 提交 Event
 
@@ -280,8 +280,8 @@ POST /api/v1/events
 
 - 同一个 `event_id` 重复提交相同 canonical bytes MUST 幂等成功。
 - 同一个 `event_id` 若内容不同 MUST 拒绝并记录冲突。
-- 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Space policy、`actor_seq` 和因果依赖。
-- 服务 SHOULD 返回 accepted event、当前 actor frontier、Space frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
+- 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Realm policy、`actor_seq` 和因果依赖。
+- 服务 SHOULD 返回 accepted event、当前 actor frontier、Realm frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 
 当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 `prev_refs` / `refs[role=authorized_by]` / payload-level causal reference；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
 
@@ -299,13 +299,13 @@ GET /api/v1/events/{event_id}
 POST /api/v1/events/batch-get
 ```
 
-请求体可携带一组 `event_ids` 或 `event_hashes`。响应按 Space policy、history visibility、E2EE envelope policy 和 redaction policy 过滤 payload。
+请求体可携带一组 `event_ids` 或 `event_hashes`。响应按 Realm policy、history visibility、E2EE envelope policy 和 redaction policy 过滤 payload。
 
 ### 4.5 列出 / 回填 Event
 
 ```text
-GET /api/v1/events?actors=<did>&spaces=<id>&before=<cursor>&limit=<n>    # 历史 backfill
-GET /api/v1/events?actors=<did>&spaces=<id>&after=<cursor>&limit=<n>     # catch-up
+GET /api/v1/events?actors=<did>&realms=<id>&before=<cursor>&limit=<n>    # 历史 backfill
+GET /api/v1/events?actors=<did>&realms=<id>&after=<cursor>&limit=<n>     # catch-up
 ```
 
 参数完整定义与"近邻先返回"默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)。
@@ -313,7 +313,7 @@ GET /api/v1/events?actors=<did>&spaces=<id>&after=<cursor>&limit=<n>     # catch
 用于：
 
 - actor 历史恢复
-- Space 审计回放
+- Realm 审计回放
 - 补齐缺失 Event
 - 从 snapshot frontier 后继续 reducer replay
 
@@ -321,14 +321,14 @@ GET /api/v1/events?actors=<did>&spaces=<id>&after=<cursor>&limit=<n>     # catch
 
 ```text
 GET /api/v1/events/frontier?actor_id=<did>
-GET /api/v1/events/frontier?space_id=<id>
+GET /api/v1/events/frontier?realm_id=<id>
 ```
 
-返回调用方可见范围内的 actor frontier、Space frontier、latest HLC、可选 witness receipt / event batch receipt。frontier 只用于同步和强一致读取，不能替代 Event 集合本身。
+返回调用方可见范围内的 actor frontier、Realm frontier、latest HLC、可选 witness receipt / event batch receipt。frontier 只用于同步和强一致读取，不能替代 Event 集合本身。
 
 ## 5. Account Sync Surface
 
-Account Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Space 的事件查询和实时订阅走 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Space frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Space policy 明确列出的 shared anchorer / sync service。
+Account Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared anchorer / sync service。
 
 > 历史命名 "Sync Surface" 容易让读者把它误解为"所有同步路径"，但事件流读取/订阅已迁移到 Events Surface。本节仅描述 account-aggregate 与 snapshot 入口。
 
@@ -339,8 +339,8 @@ Account Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能�
 
 事件流读取统一在：
 
-- `GET /api/v1/events?spaces=...&before=...` 或 `&after=...`（`cx.events.query`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
-- `GET /api/v1/events/subscribe?spaces=...&include_history=...`（`cx.events.subscribe`，含历史 catchup 与多 space 一次订阅）
+- `GET /api/v1/events?realms=...&before=...` 或 `&after=...`（`cx.events.query`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
+- `GET /api/v1/events/subscribe?realms=...&include_history=...`（`cx.events.subscribe`，含历史 catchup 与多 realm 一次订阅）
 
 实现不得把账号聚合 (`/sync`) 和裸事件读 (`/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
 
@@ -353,7 +353,7 @@ GET /api/v1/sync/describe
 ### 5.2 snapshot 入口
 
 ```text
-GET /api/v1/sync/snapshot-head?space_id=<id>
+GET /api/v1/sync/snapshot-head?realm_id=<id>
 ```
 
 用于拿到当前推荐 snapshot manifest。
@@ -366,11 +366,11 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 ```json
 {
-  "cell": "cx:cell:cx.component.space.policy.v1:cx.space.01j…",
+  "cell": "cx:cell:cx.component.realm.policy.v1:cx.realm.01j…",
   "status": "bottom",
   "bottom": {
     "kind": "conflict",
-    "cells": ["cx:cell:cx.component.space.policy.v1:cx.space.01j…"],
+    "cells": ["cx:cell:cx.component.realm.policy.v1:cx.realm.01j…"],
     "event_ids": [
       "cx:event:84210000-0000-7000-8000-000000000000…",
       "cx:event:a5294000-0000-7000-8000-000000000000…"
@@ -389,20 +389,20 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 - `bottom=reject` cell 的 query MUST 返回 `status:"bottom"` 与诊断；客户端 / 授权路径 MUST NOT 把 `heads` 当作 allow。
 - `bottom=expose` cell 的 query MAY 返回 `status:"conflict"` 暴露多 head 给 projection / UI；同样不得用作授权 allow。
-- `event_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Space-wide pause。
+- `event_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Realm-wide pause。
 - `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
 
 `/sync` / `/events` / `/api/v1/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（位置与精确 wire 形态见 [`service-api-schema.mdx`](service-api-schema.mdx) `cx.schema.bottom.v1` 引用）。
 
 ### 5.6 明文与服务信任
 
-如果 Space 未启用 E2EE 或内容层加密：
+如果 Realm 未启用 E2EE 或内容层加密：
 
 - 客户端 MUST NOT 将 message body、comment body、附件明文或可逆派生摘要提交给未授权第三方服务。
-- `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Space policy 明确委托的 Principal Server。
-- Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Space policy 中声明为 `plaintext_visible_services`。
-- shared anchorer / sync service 若可见明文，必须在 Space policy 中作为明文可见方列出。
-- 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Space policy MUST 把这视为内容可见边界，而不是透明中继。
+- `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Realm policy 明确委托的 Principal Server。
+- Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Realm policy 中声明为 `plaintext_visible_services`。
+- shared anchorer / sync service 若可见明文，必须在 Realm policy 中作为明文可见方列出。
+- 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Realm policy MUST 把这视为内容可见边界，而不是透明中继。
 - 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ## 6. Search / Projection Semantics
@@ -415,7 +415,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 
 若客户端、SDK 或可选受托服务对外暴露可互操作查询语义，SHOULD 复用 `query-schema.md` 中的 Query 形状：
 
-- `object_types`：标准对象类型，例如 `space`、`place`、`flow`、`message`、`morph`（Place 通过 `place.kind` 区分 board/list/...；Flow 默认入口通过 track primary 解析规则得到）
+- `object_types`：标准对象类型，例如 `realm`、`space`、`flow`、`message`、`morph`（Space 通过 `space.kind` 区分 board/list/...；Flow 默认入口通过 track primary 解析规则得到）
 - `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
 - `facets`：schema-declared capability hint 选择器，只用于 Morph 或声明支持 facets 的标准对象；不得作为授权、状态机、排序或 reducer 语义的唯一来源
 - `relation`
@@ -424,13 +424,13 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 - cursor
 - limit
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
-- barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Space frontier。Wire 形态与 stream cursor 共享 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
+- barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Realm frontier。Wire 形态与 stream cursor 共享 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
 
-barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `since` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`space_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `since`。
+barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `since` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `since`。
 
 ### 6.2 Flow Discussion / Context Projection
 
-Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` track 都必须按所属 Space 执行 membership / history visibility 检查：未设 `Flow.discussion_space_ref` 时按父 Space；设了时按 child Space 独立裁剪。不得因为 Flow synthesis 可见就展开未授权的 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Space 对象权限。
+Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow `discussion` track 都必须按所属 Realm 执行 membership / history visibility 检查：未设 `Flow.discussion_realm_ref` 时按源 Realm；设了时按 linked Realm 独立裁剪。不得因为 Flow synthesis 可见就展开未授权的 discussion 内容，也不得因为 discussion 可见就授予 Flow synthesis、Board/List 或其他 Realm 对象权限。
 
 ### 6.3 Inbox / Notification Projection
 
@@ -443,7 +443,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read marker、mention
 ```json
 {
   "query": "legal review",
-  "space_ids": ["cx:space:0196419b-0000-7000-8000-000000000000"],
+  "realm_ids": ["cx:realm:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["message", "flow", "morph"],
   "morph_types": ["comment"],
   "sender": "did:web:alice.example.com",
@@ -475,20 +475,20 @@ Inbox 和 notification 可以由客户端从本地 Event、read marker、mention
 }
 ```
 
-**E2EE 场景说明**：在加密 Space 中，远端服务无法对密文执行全文搜索。默认搜索发生在客户端本地：客户端同步 Event、解密可见内容，并自行维护本地全文索引。受控网络中的 TEE 或组织搜索服务属于可选扩展，不是核心协议能力。
+**E2EE 场景说明**：在加密 Realm 中，远端服务无法对密文执行全文搜索。默认搜索发生在客户端本地：客户端同步 Event、解密可见内容，并自行维护本地全文索引。受控网络中的 TEE 或组织搜索服务属于可选扩展，不是核心协议能力。
 
 ### 6.5 明文搜索边界
 
 Search / projection 派生结果可能比 Sync Surface 更容易查询，也可能包含正文摘要、命中片段、embedding 或通知摘要。因此：
 
-- 非 E2EE 私有 Space 的全文搜索、embedding、通知摘要、inbox preview 和报表投影只能由 `plaintext_visible_services` 中列出的服务生成或保存。
+- 非 E2EE 私有 Realm 的全文搜索、embedding、通知摘要、inbox preview 和报表投影只能由 `plaintext_visible_services` 中列出的服务生成或保存。
 - 未列入 `plaintext_visible_services` 的受托 search / projection 服务 MUST 只接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
-- 客户端在选择受托 search / projection 服务前 MUST 校验 service DID、supported profile、Space policy 委托和 plaintext-visible 声明。
-- Search / projection 输出不得扩大可见性；查询结果、通知、搜索命中和 preview 都必须受底层 Space policy 与 capability 约束。
+- 客户端在选择受托 search / projection 服务前 MUST 校验 service DID、supported profile、Realm policy 委托和 plaintext-visible 声明。
+- Search / projection 输出不得扩大可见性；查询结果、通知、搜索命中和 preview 都必须受底层 Realm policy 与 capability 约束。
 
 服务端强制边界：
 
-- Events / Sync / Federation / Push / Blob preview，以及任何受托 search / projection 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Space policy 的 `plaintext_visible_services` 中，且 visibility 等级覆盖该内容类型。
+- Events / Sync / Federation / Push / Blob preview，以及任何受托 search / projection 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Realm policy 的 `plaintext_visible_services` 中，且 visibility 等级覆盖该内容类型。
 - 未授权服务 MUST 拒绝明文请求并返回 `capability_denied` 或 `schema_violation`，不得静默索引、转发、缓存或降级保存。
 - 恶意客户端把明文发送到协议外服务不属于协议可强制阻止的范围；但任何声称支持 Contrix profile 的服务若接收或处理未授权明文，均视为 profile violation。
 
@@ -536,34 +536,34 @@ GET /api/v1/directory/describe
 
 - `service_did`
 - 支持的 discovery profile
-- 支持的资源类型：space / organization / actor / applet
+- 支持的资源类型：realm / organization / actor / applet
 - 是否支持 restricted query proof
 
-### 8.2 搜索 Space
+### 8.2 搜索 Realm
 
 ```text
-POST /api/v1/directory/search-spaces
+POST /api/v1/directory/search-realms
 ```
 
 请求 MAY 包含：
 
 - `query`
 - `organization_did`
-- `parent_space_id`
+- `parent_realm_id`
 - `requester`
 - `proofs`
 - `limit`
 - `cursor`
 
-Directory MUST 对每个结果应用 `cx.space.discovery`、Space policy、organization endorsement 和 requester proof 过滤。
+Directory MUST 对每个结果应用 `cx.realm.discovery`、Realm policy、organization endorsement 和 requester proof 过滤。
 
-### 8.3 精确解析 Space
+### 8.3 精确解析 Realm
 
 ```text
-POST /api/v1/directory/resolve-space
+POST /api/v1/directory/resolve-realm
 ```
 
-用于通过 `space_id`、alias、invite token 或 signed link 获取 stripped preview state。对 `invite_only` / `secret` Space，未授权请求 MUST 返回与不存在相同的错误形态。
+用于通过 `realm_id`、alias、invite token 或 signed link 获取 stripped preview state。对 `invite_only` / `secret` Realm，未授权请求 MUST 返回与不存在相同的错误形态。
 
 ### 8.4 搜索与解析 Organization
 
@@ -572,7 +572,7 @@ POST /api/v1/directory/search-organizations
 POST /api/v1/directory/resolve-organization
 ```
 
-Organization directory MUST respect organization discovery policy。公开组织 DID 可解析不表示成员列表、官方 Space 列表、服务拓扑或治理策略全文可公开。
+Organization directory MUST respect organization discovery policy。公开组织 DID 可解析不表示成员列表、官方 Realm 列表、服务拓扑或治理策略全文可公开。
 
 ### 8.5 搜索 Actor / Handle
 
@@ -582,7 +582,7 @@ POST /api/v1/directory/search-users
 POST /api/v1/directory/resolve-handle
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Space 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `recipient_service_did`，但只在 claim、audience、requester policy 和 Space intent 验证通过时披露。Directory 返回的 service DID 只是 join builder 输入，不能替代 Space `delivery_binding` 或 grant 校验。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `recipient_service_did`，但只在 claim、audience、requester policy 和 Realm intent 验证通过时披露。Directory 返回的 service DID 只是 join builder 输入，不能替代 Realm `delivery_binding` 或 grant 校验。
 
 ### 8.6 私密联系人发现
 
@@ -603,11 +603,11 @@ MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../ex
 至少建议提供：
 
 ```text
-GET /api/v1/authz/effective-grants?space_id=<id>&subject=<did>
+GET /api/v1/authz/effective-grants?realm_id=<id>&subject=<did>
 ```
 
 ```text
-GET /api/v1/authz/invites?space_id=<id>&subject=<did-or-handle>
+GET /api/v1/authz/invites?realm_id=<id>&subject=<did-or-handle>
 ```
 
 ```text
@@ -620,16 +620,16 @@ POST /api/v1/authz/check
 - sync service 分发前快速过滤
 - client 发送前本地 UX 提示
 
-## 11. Space Bootstrap Flow
+## 11. Realm Bootstrap Flow
 
 Contrix v1 的首次加入流程：
 
-1. 用户输入 handle、DID 或 Space link
+1. 用户输入 handle、DID 或 Realm link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 DID Document 和 Space policy 发现 Principal Server / identity registry / events / sync / blob / authz 服务
+3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / sync / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
-5. 获取 Space metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Space owner、Space policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
+5. 获取 Realm metadata 与 snapshot head
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态
@@ -678,11 +678,11 @@ Contrix v1 的首次加入流程：
 在去中心化网络中，计算、存储与带宽都是稀缺资源。协议要求所有提供写入或传播服务的节点实现必须具备防御恶意滥用的能力：
 
 ### 14.1 存储责任与 Blob Quota
-- **成本归属**：Space 的整体数据大小、历史 Event 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Space 的 `owner` 或负责托管的 `responsible_actor_id`。
-- **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Space 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Event 或大文件 Blob。
+- **成本归属**：Realm 的整体数据大小、历史 Event 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Realm 的 `owner` 或负责托管的 `responsible_actor_id`。
+- **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Realm 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Event 或大文件 Blob。
 
 ### 14.2 写频率控制 (Rate Limiting)
-- Events API 和 Sync Service 节点 SHOULD 基于 `actor_id` 与 `space_id` 实施严格的并发和频率限制。
+- Events API 和 Sync Service 节点 SHOULD 基于 `actor_id` 与 `realm_id` 实施严格的并发和频率限制。
 - 对于来自未验证或低信誉 DID 的恶意刷写（例如短时间内进行海量无效的 `message.create` 或反复触发高并发图重组），节点有权暂时熔断该 DID 的请求。
 
 ## 15. 设计决定
@@ -695,7 +695,7 @@ Contrix v1 固定：
 - DID 写入采用多 registry / witness receipt，而不是区块链
 - bootstrap 必须覆盖 invite / grant / snapshot / backfill
 - 服务必须公开 reducer / schema / feature profile
-- 明确 Space Owner 的资源记账责任与防滥用熔断标准
+- 明确 Realm Owner 的资源记账责任与防滥用熔断标准
 
 ## 16. HTTP/JSON Binding
 
@@ -709,6 +709,6 @@ Contrix v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_valid_until`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
-- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref` 与 `plaintext_visibility`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{binding: "http_json", ...}`);单数字段名 `binding` 仅出现在每个 binding 条目**内部**,不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、Space policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref` 与 `plaintext_visibility`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{binding: "http_json", ...}`);单数字段名 `binding` 仅出现在每个 binding 条目**内部**,不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。

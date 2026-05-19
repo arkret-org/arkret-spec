@@ -19,10 +19,10 @@
     "schema": {
       "const": "cx.schema.blob.v1"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Owning Space for authorization, asset privacy policy enforcement, retention and GC. MAY be omitted only for global / cross-Space service blobs (e.g. avatar previews) explicitly authorized by the Blob Service deployment policy."
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Owning Realm for authorization, asset privacy policy enforcement, retention and GC. MAY be omitted only for global / cross-Realm service blobs (e.g. avatar previews) explicitly authorized by the Blob Service deployment policy."
     },
     "sha256": {
       "type": "string",

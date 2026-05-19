@@ -47,7 +47,7 @@ sidebar:
     allowlist/blacklist/secret 管理缺失，导致高敏入口被过度放开。
 
 12. **服务拓扑污染（Topology / Service Discovery Poisoning）**
-    篡改目录、`sync_endpoints`、`service_did`、`plaintext_visible_services`、官方组织/Space 背书引用，影响服务选择、传播路径与明文可见边界。
+    篡改目录、`sync_endpoints`、`service_did`、`plaintext_visible_services`、官方组织/Realm 背书引用，影响服务选择、传播路径与明文可见边界。
 
 13. **身份解析污染（DID Resolver / Registry Tampering）**
     污染 DID resolver、registry、witness 可信链或 `did:web` 域绑定，错误承认身份控制权。
@@ -59,7 +59,7 @@ sidebar:
     通过伪造 snapshot manifest、chunk/索引入口、签名链错误，劫持 bootstrap 或跳过一致性回放。
 
 16. **跨域边界绕过（Cross-domain/Scope Confusion）**
-    混淆 `space_id` / `service scope` / `destination` / `organization` 的绑定域，触发越权写入或错误可见性。
+    混淆 `realm_id` / `service scope` / `destination` / `organization` 的绑定域，触发越权写入或错误可见性。
 
 17. **邀请令牌与第三方身份绑定滥用（Third-Party Invite Abuse）**
     针对 `cx.invite.third_party` / `cx.invite.claim` 的 token 泄露、重放、并发认领进行滥用。
@@ -91,7 +91,7 @@ sidebar:
 ### 2.3 通用防护手段
 
 - **身份与来源前置验签**：服务来源先做服务 DID 绑定、签名验证、trust policy 检查，再执行业务授权。
-- **分层限速与退避**：按来源、source service、space、IP hash、tenant、endpoint 限速，超过阈值退避或拒绝。
+- **分层限速与退避**：按来源、source service、realm、IP hash、tenant、endpoint 限速，超过阈值退避或拒绝。
 - **幂等与重放防护**：`request_id`、`Idempotency-Key`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
 - **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
@@ -106,7 +106,7 @@ sidebar:
 | --- | --- | --- |
 | 开放联邦滥用 | 是 | `federation`/`service-surface` 的 Federation Allow List，`server ACL`，未签名来源走 `soft_deny`/`rate_limited`。 |
 | 认证与凭证爆破 | 是 | `account-lifecycle` 与 auth 入口开启失败风控；`session/device token` 撤销与短TTL。 |
-| 写入泛滥 | 是 | `policy-server` 风险码 + `rate_limit`，`per-source` 与 `per-space` 队列保护。 |
+| 写入泛滥 | 是 | `policy-server` 风险码 + `rate_limit`，`per-source` 与 `per-realm` 队列保护。 |
 | 重试放大 | 是 | 窗口退避、批次阈值、失败率熔断，优先使用 `Retry-After`，并在 body 中提供 `retry_after_ms`。 |
 | 来源身份伪造 | 是 | source DID / message-signature / service signature 验签链。 |
 | 钓鱼 | 是/部分 | 需要可验证展示（service DID 与 policy 来源）与用户告警策略。 |
@@ -115,7 +115,7 @@ sidebar:
 | 队列耗尽 | 是 | `quota_exceeded`、`rate_limited` 与短时限批量写保护。 |
 | 重放 | 是 | `request_id` 与 canonical hash 绑定；`event_id` 重复且内容不同 reject；`duplicate_conflict`。 |
 | 配置误用 | 是 | 变更审计、最小默认权限、fail-closed。 |
-| 拓扑污染 | 是 | service list 与发现结果签名可验证，目录/Space 官方背书需双重签名。 |
+| 拓扑污染 | 是 | service list 与发现结果签名可验证，目录/Realm 官方背书需双重签名。 |
 | 解析污染 | 是 | resolver trust domain pinning，`did:web` 与 method adapter 证据核验。 |
 | 冲突/分叉 | 是 | fork 检测、冲突源 quarantine + backfill re-check。 |
 | 快照投毒 | 是 | snapshot manifest 与 chunk hash 链路签名、frontier 一致性双重校验。 |

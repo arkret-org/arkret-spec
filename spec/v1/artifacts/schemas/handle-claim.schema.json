@@ -77,7 +77,7 @@
     },
     "audience": {
       "type": "string",
-      "description": "Audience binding for the claim. For handle claims used to build a Space delivery_binding, audience is the target Space DID, the inviting service DID, or another verifier domain the proofs explicitly bind to. Verifier MUST reject claims whose audience does not match the current invocation context."
+      "description": "Audience binding for the claim. For handle claims used to build a Realm delivery_binding, audience is the target Realm DID, the inviting service DID, or another verifier domain the proofs explicitly bind to. Verifier MUST reject claims whose audience does not match the current invocation context."
     },
     "challenge": {
       "type": "string"
@@ -85,12 +85,12 @@
     "scope": {
       "type": "object",
       "additionalProperties": true,
-      "description": "Optional scope such as organization_did, space_id, purpose, or allowed operations."
+      "description": "Optional scope such as organization_did, realm_id, purpose, or allowed operations."
     },
     "service_acceptance_ref": {
       "type": "string",
       "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Event reference usable as member_delivery_binding.service_acceptance_ref when the claim is accepted by Space policy."
+      "description": "Event reference usable as member_delivery_binding.service_acceptance_ref when the claim is accepted by Realm policy."
     },
     "policy_ref": {
       "type": "string",

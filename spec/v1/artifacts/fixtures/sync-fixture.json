@@ -13,7 +13,7 @@
     },
     "groups": [
       {
-        "id": "cx:space:01964010-8400-7000-8000-000000000000",
+        "id": "cx:realm:01964010-8400-7000-8000-000000000000",
         "title": "Todo",
         "items": [
           {
@@ -24,7 +24,7 @@
             },
             "position": {
               "model": "relation",
-              "container_id": "cx:space:01964010-8400-7000-8000-000000000000",
+              "container_id": "cx:realm:01964010-8400-7000-8000-000000000000",
               "relation_id": "cx:relation:01964187-0400-7000-8000-000000000000",
               "rank": "U"
             },
@@ -64,8 +64,8 @@
     "request": {
       "since": "cx:cursor:eyJoIjoiWlhod2FYSmxaQzF6ZEhKbFlXMHRhR0Z1Wkd4bCIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE3NjcyMjU2MDAwMDB9",
       "filter": {
-        "space_ids": [
-          "cx:space:0196419b-0000-7000-8000-000000000000"
+        "realm_ids": [
+          "cx:realm:0196419b-0000-7000-8000-000000000000"
         ]
       }
     },
@@ -74,7 +74,7 @@
       "http_status": 410,
       "recovery": {
         "call": "cx.sync.get_snapshot_head",
-        "space_id": "cx:space:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
       }
     }
   },

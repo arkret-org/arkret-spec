@@ -4,7 +4,7 @@
   "title": "Contrix Moderation Report",
   "type": "object",
   "required": [
-    "space_id",
+    "realm_id",
     "target_ref",
     "reason",
     "reporter"
@@ -14,13 +14,13 @@
       "type": "string",
       "pattern": "^cx:report:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "target_ref": {
       "type": "string",
-      "pattern": "^(cx:(event|flow|space|message|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64})$"
+      "pattern": "^(cx:(event|flow|realm|message|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64})$"
     },
     "reason": {
       "type": "string",

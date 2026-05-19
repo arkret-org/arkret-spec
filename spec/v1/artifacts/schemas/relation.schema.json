@@ -6,7 +6,7 @@
   "required": [
     "id",
     "schema",
-    "space_id",
+    "realm_id",
     "relation_kind",
     "from_ref",
     "to_ref",
@@ -21,13 +21,13 @@
     "schema": {
       "const": "cx.schema.relation.v1"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "relation_kind": {
       "type": "string",
-      "description": "Relation semantic. Cross-Space constraint: structural relations 'contains' and 'belongs_to' MUST NOT cross Space (resolved from_ref and to_ref MUST share the same space_id). Reducer-enforced — see models/relation.md §3 cardinality table and §4 cross-Space rules. Weak-semantic kinds (references, mentions, derived_from, summarized_from, depends_on, blocks, assigned_to, has_default_view) MAY cross Space subject to two-sided authorization."
+      "description": "Relation semantic. Cross-Realm constraint: structural relations 'contains' and 'belongs_to' MUST NOT cross Realm (resolved from_ref and to_ref MUST share the same realm_id). Reducer-enforced — see models/relation.md §3 cardinality table and §4 cross-Realm rules. Weak-semantic kinds (references, mentions, derived_from, summarized_from, depends_on, blocks, assigned_to, has_default_view) MAY cross Realm subject to two-sided authorization."
     },
     "from_ref": {
       "$ref": "#/$defs/ref"
@@ -37,11 +37,11 @@
     },
     "rank": {
       "type": "string",
-      "description": "Top-level rank string for ordered relations (e.g. contains-list-flow position). Encoding follows conformance/encoding.md §9. Aligned with Place.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
+      "description": "Top-level rank string for ordered relations (e.g. contains-list-flow position). Encoding follows conformance/encoding.md §9. Aligned with Space.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
     },
     "fields": {
       "type": "object",
-      "description": "Edge metadata. MUST NOT contain a 'rank' key — rank moved to the top level in v1 to align with Place.rank.",
+      "description": "Edge metadata. MUST NOT contain a 'rank' key — rank moved to the top level in v1 to align with Space.rank.",
       "not": {
         "required": [
           "rank"
@@ -58,7 +58,7 @@
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.relation.delete / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.relation.delete / redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "created_by": {
       "$ref": "#/$defs/did"
@@ -70,8 +70,8 @@
   "$defs": {
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(space|place|actor_profile|flow|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:(sha256|sha3_256|blake3):[0-9a-f]{64}|cx:blob:sha512:[0-9a-f]{128}|did:.+)$",
-      "description": "Typed canonical reference. Allowed kinds: space, place, actor_profile, flow, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (sha256 / sha3_256 / blake3 / sha512), or DID. Place is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The sha512 form is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
+      "pattern": "^(cx:(realm|space|actor_profile|flow|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:(sha256|sha3_256|blake3):[0-9a-f]{64}|cx:blob:sha512:[0-9a-f]{128}|did:.+)$",
+      "description": "Typed canonical reference. Allowed kinds: realm, space, actor_profile, flow, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (sha256 / sha3_256 / blake3 / sha512), or DID. Space is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The sha512 form is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
     },
     "did": {
       "type": "string",

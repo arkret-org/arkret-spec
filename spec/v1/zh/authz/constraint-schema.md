@@ -43,8 +43,8 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal` | `edit_window` | extension | `applies_to_actions=["cx.message.revise"]` + `message_edit_window` 限定编辑窗口。 | `cx.profile.chat_mvp.v1` |
 | `temporal` | `redact_window` | extension | `applies_to_actions=["cx.message.redact"]` + `message_redact_window` 限定撤回窗口。 | `cx.profile.chat_mvp.v1` |
 | `field_access` | （省略 = 列表比较） | core | `fields_write_allow` / `fields_write_deny` 等。 | core |
-| `type_restriction` | — | core | 对象类型 / Space kind / Morph type / facet 限制。 | core |
-| `scope_limitation` | （省略 = 普通 scope） | core | Space / Flow / View / track 范围。 | core |
+| `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
+| `scope_limitation` | （省略 = 普通 scope） | core | Realm / Flow / View / track 范围。 | core |
 | `scope_limitation` 带 `relation_kind_allow` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `cx.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、subset_only 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
@@ -54,7 +54,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `cx.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `cx.profile.constraint.visibility_control.v1` |
 | `scope_limitation` | `mention_respond_only` | extension | actor 仅能写入 `cx.message.create` 当且仅当 `in_reply_to` 指向 mention sender 为 self 的消息。Reducer-evaluable。 | `cx.profile.agent_workspace.v1` |
-| `confidentiality` | `export_policy` | extension | source-side policy：`import_to_external_space` ∈ `{allow, deny, require_attestation}`，控制 source Space 成员是否允许 import_attestation 写出。**仅指导 source-side agent runtime 行为**，不穿透 mirror reducer。 | `cx.profile.agent_workspace.v1` |
+| `confidentiality` | `export_policy` | extension | source-side policy：`import_to_external_space` ∈ `{allow, deny, require_attestation}`，控制 source Realm 成员是否允许 import_attestation 写出。**仅指导 source-side agent runtime 行为**，不穿透 mirror reducer。 | `cx.profile.agent_workspace.v1` |
 
 > v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 表达：`edit_window` / `redact_window` 走 `temporal` (subtype 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`subtype=rate` / `resource`)；`approval_workflow` / `accountability` / `device_session` 走 `claim_based` (`subtype=approval` / `accountability` / `device_session`)；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`subtype=encryption` / `visibility`)。底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 
@@ -69,10 +69,10 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal`（无 subtype、无 `recurrence`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
 | `temporal` 带 `recurrence`、`subtype=session` 或 `applies_to_actions` | `stateless` | TTL ≤ 下一个 recurrence 边界或 window 剩余时间 | 仍是纯函数，但 TTL 必须缩短 |
 | `field_access`（无 `condition`） | `stateless` | (constraint_hash, op_kind) | 仅 allow / deny 列表比较 |
-| `field_access` 带 `condition.kind` | `space_state` | (space_id, frontier_hash, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
+| `field_access` 带 `condition.kind` | `space_state` | (realm_id, frontier_hash, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
 | `type_restriction` | `stateless` | (constraint_hash, op_target_type) | |
 | `scope_limitation`（普通 scope） | `stateless` | (constraint_hash, op_target) | |
-| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `space_state` | (space_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
+| `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `space_state` | (realm_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
 | `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `quota` (`subtype=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
 | `quota` (`subtype=resource`，`blob_max_bytes` 单次) | `stateless` | 单次操作的字节计数无需历史 | |
@@ -80,9 +80,9 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `claim_based` (`subtype=claim`) | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
 | `claim_based` (`subtype=approval`) | `external` | 不可缓存 | 等待 approval event |
 | `claim_based` (`subtype=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
-| `claim_based` (`subtype=device_session`) | `space_state` | (space_id, frontier_hash, actor_device_id) | 设备 / session 状态来自 principal control stream |
-| `confidentiality` (`subtype=encryption`) | `space_state` | (space_id, frontier_hash) | 取 Space `encryption_profile` / `audit_assurance` |
-| `confidentiality` (`subtype=visibility`) | `space_state` | (space_id, frontier_hash) | 看 Space `history_visibility` |
+| `claim_based` (`subtype=device_session`) | `space_state` | (realm_id, frontier_hash, actor_device_id) | 设备 / session 状态来自 principal control stream |
+| `confidentiality` (`subtype=encryption`) | `space_state` | (realm_id, frontier_hash) | 取 Realm `encryption_profile` / `audit_assurance` |
+| `confidentiality` (`subtype=visibility`) | `space_state` | (realm_id, frontier_hash) | 看 Realm `history_visibility` |
 
 落地要点：
 
@@ -182,19 +182,19 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "type_restriction",
   "effect": "allow",
-  "object_type_allow": ["flow", "message", "morph", "place"],
-  "place_kind_allow": ["board", "list"],
+  "object_type_allow": ["flow", "message", "morph", "space"],
+  "space_kind_allow": ["board", "list"],
   "morph_type_allow": ["document", "customer_case"],
   "facet_allow": ["stateful", "replyable", "documentable"],
   "morph_type_deny": ["credential"]
 }
 ```
 
-`object_type_allow` 只按对象类型收窄范围，不赋予能力。`space_kind_allow` 在 v1 没有规范用途——v1 中所有 Space 都是同一种安全边界，无 kind 区分。该约束保留 schema 字段是为了扩展 profile 注册新 Space kind 时可启用；v1 实现 SHOULD 把它视为 no-op。**结构容器（看板、列、泳道、calendar bucket 等）由 Place 对象承担**——使用 `place_kind_allow` 收窄到 Place.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；place_kind_allow 不会把 Place 升级为独立 membership 或 E2EE 边界（Place 永远透明回退到所属 Space）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Space schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Space schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
+`object_type_allow` 只按对象类型收窄范围，不赋予能力。`realm_kind_allow` 在 v1 没有规范用途——v1 中所有 Realm 都是同一种安全边界，无 kind 区分。该约束保留 schema 字段是为了扩展 profile 注册新 Realm kind 时可启用；v1 实现 SHOULD 把它视为 no-op。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `space_kind_allow` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；space_kind_allow 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`fields`、Relation、labels、Morph type 或 facet 约束表达。`facet_allow` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `object_type_allow` / `morph_type_allow`。Morph 语义 SHOULD 通过 `morph_type_allow` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
-### 6.1 流程范围限制（Flow/Space）
+### 6.1 流程范围限制（Flow/Realm）
 
 ```json
 {
@@ -210,7 +210,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并在已有 Space 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
+`allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `cx.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
 
 `discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 决定。
 
@@ -237,8 +237,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["cx:realm:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["cx:realm:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```
@@ -350,7 +350,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 | `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + clock_skew_tolerance` 或 `approved_at < grant.not_before`。 |
 | `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。reducer MUST 在每个 grant / proposal 范围内拒绝同 `(approver_did, nonce)` 的第二次出现。 |
 | `action` | string | 被批准的 capability action token（与 grant `actions[]` 中的元素一致）。 |
-| `space_id` | id | 被批准动作所在的 Space ID。防止跨 Space 重放（同一 approver 在 Space A 的批准不能被用于 Space B 的同 action）。 |
+| `realm_id` | id | 被批准动作所在的 Realm ID。防止跨 Realm 重放（同一 approver 在 Realm A 的批准不能被用于 Realm B 的同 action）。 |
 
 **Reducer normative**:
 
@@ -359,7 +359,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 3. `timeout` 过期后,所有未达 threshold 的 approval signature MUST 被视为失效——后续即便补够数量,也 MUST 重新由 approver 在新 nonce 下重签;
 4. `approval_mode=before_commit` 与 `approval_mode=proposal_then_approve` 都适用本节; `after_commit_review`(若 profile 注册) 单独定义自己的 replay 边界。
 
-> **Why**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名,把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Space / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的 sine qua non。
+> **Why**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名,把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Realm / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的 sine qua non。
 
 ## 10. 基于声明的约束（claim_based, subtype=claim）
 
@@ -678,7 +678,7 @@ function matches_field_access(operation, constraint):
   "resources": [
     {
       "kind": "flow",
-      "space_id": "cx:space:...",
+      "realm_id": "cx:realm:...",
       "flow_id": "*"
     }
   ],
@@ -772,8 +772,8 @@ Grant envelope 字段、签名规则与必填性以
   {
     "constraint_type": "type_restriction",
     "effect": "allow",
-    "object_type_allow": ["flow", "morph", "place"],
-    "place_kind_allow": ["board", "list"],
+    "object_type_allow": ["flow", "morph", "space"],
+    "space_kind_allow": ["board", "list"],
     "morph_type_allow": ["document", "customer_case"],
     "facet_allow": ["stateful", "replyable"]
   }
@@ -840,8 +840,8 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   "effect": "allow",
   "relation_kind_allow": ["contains"],
   "allowed_view_refs": ["cx:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["cx:space:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["cx:space:019640c1-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["cx:realm:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["cx:realm:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```

@@ -2,7 +2,7 @@
   "suite": "federation",
   "profile": "cx.profile.federation_vectors.v1",
   "topology": {
-    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "principal_servers": [
       {
         "service_did": "did:web:server-alpha.example",
@@ -24,7 +24,7 @@
       }
     ],
     "service_binding_ref": {
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "space_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "membership_frontier": [
         "cx:event:01964145-8000-7000-8000-000000000000"
@@ -78,7 +78,7 @@
       "input": {
         "requester": "did:web:server-beta.example",
         "source": "did:web:server-alpha.example",
-        "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
         "requested_visibility": "private_plaintext",
         "requester_plaintext_visible": false
       },

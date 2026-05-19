@@ -22,9 +22,9 @@
 | Area | Status | Evidence |
 | --- | --- | --- |
 | Directory describe / profile discovery | implemented | `tests/it/conformance.rs`, `../cotest/src/scenarios/directory_service.rs` |
-| Query face | implemented | search / resolve spaces, organizations, actors, users, handles |
-| Anti-enumeration visibility | implemented | secret and unauthorized restricted spaces collapse to `not_found`; authorized restricted resolution succeeds |
-| Space pagination | implemented | keyset cursor survives hidden restricted candidates |
+| Query face | implemented | search / resolve realms, organizations, actors, users, handles |
+| Anti-enumeration visibility | implemented | secret and unauthorized restricted realms collapse to `not_found`; authorized restricted resolution succeeds |
+| Realm pagination | implemented | keyset cursor survives hidden restricted candidates |
 | Push ingest verify chain | implemented | signed discovery proof, directory authorization, source-ref fetch against mock Principal Server, open accept policy, persistence |
 | Private Contact Discovery | implemented | RFC 9497 blind/match smoke over seeded contact fixture |
 | Operator admin surface | implemented | allowlist CRUD, audit feed, resource browser, operator takedown |

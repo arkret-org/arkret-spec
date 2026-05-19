@@ -10,7 +10,7 @@ title: MIMI Interoperability
 
 ## 1. 目标
 
-本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Space / Event / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Space 或 Flow discussion track 可以与 MIMI provider 互通。
+本文定义 Contrix 对 MIMI 的互操作 profile。目标不是把 Contrix core 改成 room-first 协议，而是在 Contrix 的 Realm / Event / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Contrix Realm 或 Flow discussion track 可以与 MIMI provider 互通。
 
 `cx.profile.mimi_interop.v1` 固定参考以下草案版本：
 
@@ -28,8 +28,8 @@ title: MIMI Interoperability
 | Provider | `mimi_provider_facade` service DID，通常由 Principal Server、anchorer service 或受托 bridge 暴露。 |
 | Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Contrix 侧通常映射为 Principal Server 或 anchorer service，负责 MIMI room fanout 和 groupInfo。 |
 | Follower provider | 参与 MIMI room 的远端 provider；在 Contrix 中表现为 federation peer 或 Applet bridge peer。 |
-| User / client | Contrix principal DID + device id，可按 Space policy 使用 pairwise DID 或 room-scoped pseudonym。 |
-| Room | Contrix Flow discussion track 的 MIMI room 投影，可附带所在 Space 的最小上下文。 |
+| User / client | Contrix principal DID + device id，可按 Realm policy 使用 pairwise DID 或 room-scoped pseudonym。 |
+| Room | Contrix Flow discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
 
 MIMI facade 不是新的真相源。Contrix native 侧的 canonical truth 是 signed Move、Anchor frontier、Lattice cell state、capability refs 与 MLS Governance Binding（`governance_binding` + `covered_frontier_cell`）。MIMI room state 是对这些状态的互操作投影。
 
@@ -68,7 +68,7 @@ GET /.well-known/mimi-protocol-directory
 GET /api/v1/mimi/provider-directory
 ```
 
-目录响应 MUST 绑定 service DID、provider id、base URL、支持草案版本、endpoint 列表、MLS cipher suites、内容 profile、room policy components 和签名 proof。客户端和远端 provider MUST 验证 service DID、HTTP Message Signature、TLS endpoint、DID service endpoint 和 Space policy 委托一致。
+目录响应 MUST 绑定 service DID、provider id、base URL、支持草案版本、endpoint 列表、MLS cipher suites、内容 profile、room policy components 和签名 proof。客户端和远端 provider MUST 验证 service DID、HTTP Message Signature、TLS endpoint、DID service endpoint 和 Realm policy 委托一致。
 
 ## 4. Room Binding
 
@@ -81,7 +81,7 @@ GET /api/v1/mimi/provider-directory
     "profile": "cx.profile.mimi_interop.v1",
     "mimi_room_uri": "mimi://example.com/rooms/01JSMIMI...",
     "binding_scope": {
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000"
     },
     "hub_provider": "did:web:mimi.example.com",
@@ -99,10 +99,10 @@ GET /api/v1/mimi/provider-directory
 
 规则：
 
-- `binding_scope.space_id` MUST 指向一个 accepted Space。`flow_id` MUST 指向该 Space 内启用 discussion track 的 accepted Flow；MIMI room timeline 只投影该 Flow discussion track 的消息。
-- `hub_provider` MUST 是 Space policy、Organization DID 或 participant DID 明确委托的 service DID。
+- `binding_scope.realm_id` MUST 指向一个 accepted Realm。`flow_id` MUST 指向该 Realm 内启用 discussion track 的 accepted Flow；MIMI room timeline 只投影该 Flow discussion track 的消息。
+- `hub_provider` MUST 是 Realm policy、Organization DID 或 participant DID 明确委托的 service DID。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `bridge_only`。
-- `cx.mimi.room_binding` 的创建、更新和撤销 MUST require `cx.policy.manage`、`cx.space.admin` 或等价 interop capability。
+- `cx.mimi.room_binding` 的创建、更新和撤销 MUST require `cx.policy.manage`、`cx.realm.admin` 或等价 interop capability。
 - E2EE MIMI room MUST 绑定 `mls_group_id`，并按 `encryption-and-audit.md §2.5`（MLS Governance Binding）的 `covered_frontier_cell` precondition 校验 membership、policy 和 capability。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。
 
@@ -134,14 +134,14 @@ MIMI facade 至少定义以下 canonical operation：
 - created / expires
 - body digest
 
-Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Contrix Move / compatible Event 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Space policy。
+Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Contrix Move / compatible Event 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
 
 ## 6. Key Material
 
 `cx.mimi.key_material` MUST 使用 `device-lifecycle.md` 的 KeyPackage claim API。请求必须包含：
 
 - target MIMI identifier 或 DID / pairwise DID。
-- intended MIMI room URI 和 Contrix `space_id`。
+- intended MIMI room URI 和 Contrix `realm_id`。
 - required content profile、MLS capabilities 和 cipher suites。
 - requester provider DID 和 proof。
 - 是否允许 minimal-metadata pseudonymous credential。
@@ -188,40 +188,40 @@ MIMI facade MUST 支持接收：
 
 - 发送到 MIMI 时，facade SHOULD 生成 MIMI required / recommended media type，同时 MAY 附带 `application/vnd.contrix.content+json` proprietary alternative 以保留无损 Contrix 内容。
 - 从 MIMI 接收未知 extension field 时，facade MUST 保留原始 CBOR bytes 或 canonical hash，至少保证未来支持时可回放或审计。
-- 任何正文 fallback 进入 E2EE Space 时必须仍在密文中；不得为了 MIMI 预览把 `body` 明文复制到 routing metadata。
+- 任何正文 fallback 进入 E2EE Realm 时必须仍在密文中；不得为了 MIMI 预览把 `body` 明文复制到 routing metadata。
 - Link preview、attachment thumbnail 和 asset metadata MUST 遵守 `asset_privacy_policy` 与 `plaintext_visible_services`。
 
 ## 9. Room Policy Mapping
 
-Contrix v1 把 Space-level policy 映射为 Move effects on cell families。Facade 在 MIMI room policy 与 Contrix state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
+Contrix v1 把 Realm-level policy 映射为 Move effects on cell families。Facade 在 MIMI room policy 与 Contrix state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
 
 ### 9.1 Cell Family 互译
 
 | Contrix cell_family | Contrix effect kind | MIMI policy component（draft-ietf-mimi-room-policy） |
 | --- | --- | --- |
-| `cx.component.space.policy.v1` | `cx.space.policy` | （Contrix 专属；映射时合并入 `operational`） |
-| `cx.component.space.join_rule.v1` | `cx.space.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
-| `cx.component.space.join_policy.v1` | `space.join_policy`（candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)） | `participation.join_policy` 子字段（结构化 gates / reviewer / TTL）；MIMI 侧未覆盖部分以 `application/vnd.contrix.component+json` 私有扩展承载 |
-| `cx.component.space.history_visibility.v1` | `cx.space.history_visibility` | `history_sharing` 的 visibility 子字段 |
-| `cx.component.space.discovery.v1` | `cx.space.discovery` | `participation` 中 `discoverability` 子字段 |
-| `cx.component.space.policy_server.v1` | `cx.space.policy_server` | （Contrix 专属，与 MIMI hub provider 概念解耦） |
-| `cx.component.space.policy_components.v1` | `cx.space.policy_components` | MIMI policy component 集合声明（root + active list） |
-| `cx.component.space.history_sharing_policy.v1` | `cx.space.history_sharing_policy` | `history_sharing` |
-| `cx.component.space.asset_privacy_policy.v1` | `cx.space.asset_privacy_policy` | `asset` |
-| `cx.component.space.moderation_policy.v1` | `cx.space.moderation_policy` | `logging` 的 abuse-report 子字段 + 自定义 `moderation` extension |
-| `cx.component.space.plaintext_visible_services.v1` | `cx.space.plaintext_visible_services` | （Contrix 专属隐私透明度机制；MIMI 侧无对应） |
-| `cx.component.space.media_service.v1` | `cx.space.media_service` | （Contrix 专属，与 MIMI 的 hub provider 解耦） |
-| `cx.component.space.schema.v1` | `cx.space.schema` | （Contrix 专属，schema_refs 声明） |
-| `cx.component.space.inheritance_policy.v1` | `cx.space.inheritance_policy` | （Contrix 专属，per-parent 继承） |
-| `cx.component.space.archive.v1` | `cx.space.archive` | （部分等价于 MIMI lifecycle hint，目前 MIMI 草案未规范） |
-| `cx.component.space.freeze.v1` | `cx.space.freeze` | 同上 |
-| `cx.component.space.tombstone.v1` | `cx.space.tombstone` | 同上 |
-| `cx.component.space.destroy.v1` | `cx.space.destroy` | 同上 |
+| `cx.component.realm.policy.v1` | `cx.realm.policy` | （Contrix 专属；映射时合并入 `operational`） |
+| `cx.component.realm.join_rule.v1` | `cx.realm.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
+| `cx.component.realm.join_policy.v1` | `realm.join_policy`（candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)） | `participation.join_policy` 子字段（结构化 gates / reviewer / TTL）；MIMI 侧未覆盖部分以 `application/vnd.contrix.component+json` 私有扩展承载 |
+| `cx.component.realm.history_visibility.v1` | `cx.realm.history_visibility` | `history_sharing` 的 visibility 子字段 |
+| `cx.component.realm.discovery.v1` | `cx.realm.discovery` | `participation` 中 `discoverability` 子字段 |
+| `cx.component.realm.policy_server.v1` | `cx.realm.policy_server` | （Contrix 专属，与 MIMI hub provider 概念解耦） |
+| `cx.component.realm.policy_components.v1` | `cx.realm.policy_components` | MIMI policy component 集合声明（root + active list） |
+| `cx.component.realm.history_sharing_policy.v1` | `cx.realm.history_sharing_policy` | `history_sharing` |
+| `cx.component.realm.asset_privacy_policy.v1` | `cx.realm.asset_privacy_policy` | `asset` |
+| `cx.component.realm.moderation_policy.v1` | `cx.realm.moderation_policy` | `logging` 的 abuse-report 子字段 + 自定义 `moderation` extension |
+| `cx.component.realm.plaintext_visible_services.v1` | `cx.realm.plaintext_visible_services` | （Contrix 专属隐私透明度机制；MIMI 侧无对应） |
+| `cx.component.realm.media_service.v1` | `cx.realm.media_service` | （Contrix 专属，与 MIMI 的 hub provider 解耦） |
+| `cx.component.realm.schema.v1` | `cx.realm.schema` | （Contrix 专属，schema_refs 声明） |
+| `cx.component.realm.inheritance_policy.v1` | `cx.realm.inheritance_policy` | （Contrix 专属，per-parent 继承） |
+| `cx.component.realm.archive.v1` | `cx.realm.archive` | （部分等价于 MIMI lifecycle hint，目前 MIMI 草案未规范） |
+| `cx.component.realm.freeze.v1` | `cx.realm.freeze` | 同上 |
+| `cx.component.realm.tombstone.v1` | `cx.realm.tombstone` | 同上 |
+| `cx.component.realm.destroy.v1` | `cx.realm.destroy` | 同上 |
 | `cx.component.member.state.v1` | `cx.member.state` | MLS GroupContext 的 leaf node + roster；Contrix membership 不进入 MIMI policy components |
 
-> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Contrix 中是 `cx.space.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `cx.space.policy_components` Move effect。
+> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Contrix 中是 `cx.realm.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `cx.realm.policy_components` Move effect。
 >
-> MIMI room policy 投影 MUST 落在有效 Space（parent Space 或 `Flow.discussion_space_ref` 指向的 child Space）的 `cx.space.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。
+> MIMI room policy 投影 MUST 落在有效 Realm（source Realm 或 `Flow.discussion_realm_ref` 指向的 linked Realm）的 `cx.realm.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。
 
 ### 9.2 Unknown Handling
 
@@ -238,7 +238,7 @@ Contrix 的 unknown handling 来自 Lattice bottom：
 - 接收 MIMI policy update 时 MUST 验证目标 `cell_family` 已注册（或被部署的 profile 显式 opt-in），并归约为对应 Move effect；未注册 MIMI component MUST 按其 MIMI unknown-handling 处理。
 - 发送 Contrix state 到 MIMI 时 MUST 按 §9.1 表生成 MIMI component。Contrix 专属 component（无 MIMI 对应）在 facade 输出中标记为 `application/vnd.contrix.component+json` 私有扩展。
 
-MIMI role 只能作为 interop projection。Contrix 授权仍以 capability Move / grant cell 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为 `cx.capability.*` 或具体 `cx.space.<facet>` Move effect，并经过 Contrix Move refs 授权验证后才能生效。
+MIMI role 只能作为 interop projection。Contrix 授权仍以 capability Move / grant cell 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为 `cx.capability.*` 或具体 `cx.realm.<facet>` Move effect，并经过 Contrix Move refs 授权验证后才能生效。
 
 ## 10. Identifiers And Consent
 
@@ -246,16 +246,16 @@ MIMI identifier MUST NOT 被直接作为 Contrix actor。映射规则：
 
 - MIMI provider identifier 映射到 service DID。
 - MIMI user identifier 映射到 principal DID、pairwise DID 或 pending invite proof。
-- connection identifier 仅用于 discovery / consent，不进入 Space history，除非 holder 明确作为 handle / claim 披露。
+- connection identifier 仅用于 discovery / consent，不进入 Realm history，除非 holder 明确作为 handle / claim 披露。
 - display name 只用于 UI，不参与授权。
 
-`cx.mimi.identifier_query` SHOULD 调用 `cx.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6.5），facade 实现 MUST NOT 复活它。`cx.mimi.request_consent` / `cx.mimi.update_consent` MUST 映射为 Contrix 的 holder-private consent state（`cx.consent.grant` / `cx.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Space read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
+`cx.mimi.identifier_query` SHOULD 调用 `cx.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6.5），facade 实现 MUST NOT 复活它。`cx.mimi.request_consent` / `cx.mimi.update_consent` MUST 映射为 Contrix 的 holder-private consent state（`cx.consent.grant` / `cx.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
 
 ## 11. Abuse Report And Proxy Download
 
-`cx.mimi.report_abuse` MUST 映射到 `cx.moderation.report`。E2EE report SHOULD 携带 message frank、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Space policy 授权的 moderation recipient 可以解密 evidence。
+`cx.mimi.report_abuse` MUST 映射到 `cx.moderation.report`。E2EE report SHOULD 携带 message frank、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
-`cx.mimi.proxy_download` MUST 遵守 `cx.space.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
+`cx.mimi.proxy_download` MUST 遵守 `cx.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
 
 ## 12. Conformance
 
@@ -278,7 +278,7 @@ MIMI identifier MUST NOT 被直接作为 Contrix actor。映射规则：
 Contrix v1 的 MIMI 支持固定为 facade profile：
 
 - 不把 MIMI hub 变成 Contrix 的唯一 truth source。
-- 不用 MIMI room id 替代 `space_id`。
+- 不用 MIMI room id 替代 `realm_id`。
 - 不用 MIMI user identifier 替代 DID。
 - 不绕过 Contrix capability Move refs / policy server。
 - 不把 MIMI provider accepted timestamp 替代 Contrix HLC / event hash。

@@ -14,12 +14,12 @@
     },
     {
       "order": 2,
-      "source": "space.schema.morph_type_profiles[<morph_type>]",
+      "source": "realm.schema.morph_type_profiles[<morph_type>]",
       "role": "space_scoped_tightening",
-      "writable_by": ["cx.space.schema.update", "cx.space.profile.update"],
+      "writable_by": ["cx.realm.schema.update", "cx.realm.profile.update"],
       "consumed_by": ["reducer.field_validation", "capability.required_action_check"],
       "tightening_only": true,
-      "notes": "Tightens the order-1 declaration inside a single Space (allowed facets subset, writable fields subset, required schema_refs, required capability actions). MUST NOT widen order-1; widening attempts produce `schema_violation` at Space accept time."
+      "notes": "Tightens the order-1 declaration inside a single Realm (allowed facets subset, writable fields subset, required schema_refs, required capability actions). MUST NOT widen order-1; widening attempts produce `schema_violation` at Realm accept time."
     },
     {
       "order": 3,
@@ -62,7 +62,7 @@
     {
       "case": "order1_vs_order2_field_set",
       "winner": "order=2",
-      "rationale": "Space-scoped tightening always wins.",
+      "rationale": "Realm-scoped tightening always wins.",
       "violation_error_code": "schema_violation",
       "violation_reason": "morph_profile_widens_schema_ref"
     },
@@ -87,6 +87,6 @@
     "Reading order-4 facets to decide authorization → MUST fail.",
     "Reducer field validation that ignores order-2 tightening → MUST fail.",
     "Mutating morph_type after create → MUST fail with `morph_type_immutable`.",
-    "Order-2 morph_type_profile that widens order-1 schema → MUST be rejected at Space accept time with `schema_violation` / `morph_profile_widens_schema_ref`."
+    "Order-2 morph_type_profile that widens order-1 schema → MUST be rejected at Realm accept time with `schema_violation` / `morph_profile_widens_schema_ref`."
   ]
 }

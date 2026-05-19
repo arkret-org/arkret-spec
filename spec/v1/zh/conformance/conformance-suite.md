@@ -14,7 +14,7 @@ sidebar:
 - capability 与授权派生规则
 - Principal Server Events API / sync service / E2EE / applet / policy-server 关键接口
 
-所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `cx.space.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
+所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `cx.realm.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
 
 ## 2. 测试角色（Profile）
 
@@ -76,7 +76,7 @@ v1 新增以下必测项：
   - 输入 grant/revoke/regrant 并发链 + 依赖 auth state。
   - 期望输出：只允许 auth 通过者进入 winner；无授权候选回退到 base state。
 - `cx.vector.move_anchor_lattice.anchor_batch_pre_state.v1`
-  - `cx.space.schema` 与 `cx.space.policy_server` 的并发写入。
+  - `cx.realm.schema` 与 `cx.realm.policy_server` 的并发写入。
   - 期望输出：按优先级类 + tie-break 顺序稳定收敛。
 
 ### 4.3 Redaction 向量
@@ -106,7 +106,7 @@ v1 新增以下必测项：
 | Events API | submitEvent、eventIdempotency、eventDigest 验证、signature 校验 | snapshot generation、event batch receipt |
 | Principal Server | sync stream 续传、backfill 顺序、重复过滤、加密转发不解密、来源限速与回压 | 多上游 federation、快照指针 |
 | E2EE Client | epoch 回填、to-device、removed 成员 fail-closed | 本地 search 协调 |
-| Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal space 映射 |
+| Applet Bridge | 注册签名、transaction 幂等、namespace 冲突、未授权写入拒绝 | portal realm 映射 |
 | MIMI Provider Facade | draft pinning、room binding、KeyPackage claim、message/content roundtrip、policy mapping、identifier privacy、consent isolation、proxy download、unsupported draft fail-closed | MIMI content extension lossless preservation |
 | Policy Server | decision 签名、replay 保护、hard_deny / quarantine 语义、rate_limit / spam 风险码 | federation 再检 |
 | Identity Registry | DID log 一致性、witness receipt、method adapter | witness-only、read-replica |

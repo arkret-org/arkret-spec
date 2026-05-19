@@ -24,14 +24,14 @@ title: Spec Map
 `registry-manifest.json` 索引，cotest scanner 直接消费这些文件来识别旧 id / 旧字段 / 旧术语的残留：
 
 - `artifacts/registry/removed-event-kinds.json`：已移除的 Event.kind 列表（例如 `cx.field.position.*`、
-  `cx.flow.track.*`、`cx.space.lifecycle.set`、`cx.space.policy.set`）。
+  `cx.flow.track.*`、`cx.realm.lifecycle.set`、`cx.realm.policy.set`）。
 - `artifacts/registry/removed-operation-ids.json`：已移除的 operation id（与上述 event kind 对齐的 binding 端点）。
 - `artifacts/registry/deprecated-profile-ids.json`：已弃用或从未 canonical 化的 profile id
   （例如 `chat_only_client`、`kanban_only_client`）。
 - `artifacts/registry/forbidden-wire-fields.json`：在 current-wire 中禁止出现的字段（带上下文，例如
   timeline event 顶层不得出现 `branch`、payload 中不得出现 `room_kind` 或 `kind=room`）。
 - `artifacts/registry/forbidden-model-terms.json`：在 current-model prose / code identifier / UI 文案中
-  禁止使用的术语（例如 `Room`、`Space(kind=list)`、`flow_branch`、`track members`、`Room visibility`）及其替代物。
+  禁止使用的术语（例如 `Room`、`Realm(kind=list)`、`flow_branch`、`track members`、`Room visibility`）及其替代物。
 - `artifacts/registry/renames.json`：从旧 id / 旧字段名到 v1 替代物的重命名映射（`replacement=null` 表示概念被删除、
   无机械替代）。
 
@@ -47,18 +47,18 @@ title: Spec Map
 初次理解协议时，建议按以下顺序阅读：
 
 1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
-2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Space / Event / Principal Server。
+2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Realm / Event / Principal Server。
 3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
-4. `models/overview.md` 起步，按需进入 `models/space-and-place.md`、`models/flow-and-message.md` 等专项文件，理解协作图和标准对象。
+4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/flow-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`：理解身份、handle、设备/备份密钥和隐私披露（progressive disclosure 在 `identity-handles.md` §16）。
-6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Space 状态机。
+6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Realm 状态机。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`：理解写入、同步和服务面。
 8. 按业务需要阅读扩展 profile，例如 Applet、Agent、WebRTC、Directory。
 
 ### 2.1 快速收敛链路（先读）
 
 1. `overview/glossary.md`
-2. `models/overview.md` + `models/space-and-place.md` + `models/flow-and-message.md`
+2. `models/overview.md` + `models/realm-and-space.md` + `models/flow-and-message.md`
 3. `authz/event-auth-state-resolution.md` + `crypto-media/encryption-and-audit.md`
 4. `sync/client-sync.md` + `sync/operations-sync.md`（含 snapshot、fork、decryption_pending）
 
@@ -67,23 +67,23 @@ title: Spec Map
 ### 3.1 Principal / Actor / Organization
 
 - Principal 是身份根，通常由 DID 表示。
-- Actor 是 Principal 在 Space 或协作图中的参与身份——拥有独立的 event chain、profile 与 membership，并以该 Principal 的 key 签名行为；不是只读派生投影。
+- Actor 是 Principal 在 Realm 或协作图中的参与身份——拥有独立的 event chain、profile 与 membership，并以该 Principal 的 key 签名行为；不是只读派生投影。
 - Organization 是一种 Principal，负责治理、签发、服务委派和官方背书。
-- Organization 不是 Space；Space 是协作数据边界。
+- Organization 不是 Realm；Realm 是协作数据边界。
 
-### 3.2 Space / Standard Objects / Morph / View
+### 3.2 Realm / Standard Objects / Morph / View
 
-- Space 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
-- Flow、Message 和 Space workflow 容器是协议标准对象，拥有明确主语义和 reducer。
+- Realm 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
+- Flow、Message 和 Realm workflow 容器是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- Flow 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力。Track 是纯展示 / 时间线分段标识，**不携带独立 access**——所有访问语义继承自 Flow 所属 Space；需要独立 membership、历史可见性或 E2EE 边界的 discussion 必须升级为 child Space 并通过 `Flow.discussion_space_ref` 引用。
+- Flow 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力。Track 是纯展示 / 时间线分段标识，**不携带独立 access**——所有访问语义继承自 Flow 所属 Realm；需要独立 membership、历史可见性或 E2EE 边界的 discussion 必须升级为 linked Realm 并通过 `Flow.discussion_realm_ref` 引用。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Projection
 
 - signed Event Envelope 是唯一 canonical fact。
 - Principal Server 通过 `/events/*` API 提交、读取、回填和验证 Event frontier。
-- Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Space 同步能力。
+- Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Realm 同步能力。
 - 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不得成为真相源。
 
 ### 3.4 Discoverability / Join Rule / History Visibility
@@ -130,10 +130,10 @@ title: Spec Map
 | --- | --- |
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
-| `models/space-and-place.md` | Space（security boundary）、Place（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Place lifecycle / cas-register / cascade。 |
-| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`discussion_space_ref`、Watch / 通知订阅模型（`watches` Relation + cas-register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas-register / cascade。 |
+| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`discussion_realm_ref`、Watch / 通知订阅模型（`watches` Relation + cas-register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
 | `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
-| `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Space 规则、RelationProfile、冲突处理。 |
+| `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、RelationProfile、冲突处理。 |
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
 | `models/private-objects.md` | Read Marker、Notification、actor-private account data 引导。 |
@@ -141,7 +141,8 @@ title: Spec Map
 | `models/extension-objects.md` | Applet、Agent、Blob 等通过 extension profile 接入的对象（指向 `extensions/` 与 `crypto-media/`）。 |
 | `models/views.md` | View kind / renderer、Query、Board / Timeline / Graph / Document projection。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
-| `models/space-hierarchy.md` | Space-Space 层级、继承、lazy link、循环处理（已不在本组主入口，但仍属 models 目录）。 |
+| `models/realm-links.md` | Realm link graph、显式继承、治理 / 发现 / mirror / confidential-extension 关系。 |
+| `models/space-hierarchy.md` | Space 产品结构层级、跨 Realm 导航、effective default Realm 解析。 |
 
 ### 4.4 授权、治理与状态
 
@@ -150,7 +151,7 @@ title: Spec Map
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
 | `authz/event-auth-state-resolution.md` | Move、Anchor、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered frontier。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
-| `governance/content-moderation.md` | 举报、E2EE franking、Space/Organization 审核策略、个人屏蔽入口。 |
+| `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
 | `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
 
@@ -166,15 +167,15 @@ title: Spec Map
 | `sync/api-conventions.md` | 错误、分页、幂等、feature discovery。 |
 | `sync/transport-bindings.md` | HTTP/REST、gRPC、WebSocket、SSE、MQ、libp2p 等 binding。 |
 | `sync/federation.md` | 跨域联邦模型、节点认证、Event 交换协议、跨域加入、frontier exchange、wire transaction 形态（合并自原 federation-wire.md）。 |
-| `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、受控外部协作 Space、enclave、导入导出和撤销规则。 |
+| `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、受控外部协作 Realm、enclave、导入导出和撤销规则。 |
 
 ### 4.6 发现、目录与用户状态
 
 | 文档 | 内容 |
 | --- | --- |
-| `discovery/discovery-directory.md` | Space / Organization / Actor / Applet discoverability、私密联系人发现与目录服务。 |
+| `discovery/discovery-directory.md` | Realm / Organization / Actor / Applet discoverability、私密联系人发现与目录服务。 |
 | `discovery/profiles-presence.md` | Actor profile、presence、typing、用户目录。 |
-| `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist、联系人 / Space 本地备注。 |
+| `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist、联系人 / Realm 本地备注。 |
 | `discovery/push-notifications.md` | 推送规则、推送网关、E2EE 脱敏推送。 |
 | `discovery/read-receipts.md` | Read receipt 与 read marker。 |
 
@@ -183,7 +184,7 @@ title: Spec Map
 | 文档 | 内容 |
 | --- | --- |
 | `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、cross-signing、secret storage、key backup。 |
-| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Governance Binding（`governance_binding` payload + `covered_frontier_cell`）、KeyPackage lifecycle、minimal-metadata Space 与 master-agent control 边界（核心机制）。 |
+| `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Governance Binding（`governance_binding` payload + `covered_frontier_cell`）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
 | `crypto-media/audited-e2ee.md` | 可选 hardening profile：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 的 audit policy、join warning、强制留痕、RYW receipt、forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话、会议、TURN/STUN/ICE、SFU/MCU。 |
@@ -192,13 +193,14 @@ title: Spec Map
 
 | 文档 | 内容 |
 | --- | --- |
-| `extensions/applet-integration.md` | Applet / bridge / bot / ghost actor / portal Space。 |
+| `extensions/applet-integration.md` | Applet / bridge / bot / ghost actor / portal Realm。 |
 | `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
 | `extensions/agent-protocol-interop.md` | A2A / ACP / external agent protocol handoff。 |
-| `extensions/agent-workspace-profile.md` | 用户私人 agent workspace（mirror Space + agent_task FSM + mention_redirect / import_attestation 跨 Space 协作模式）。 |
+| `extensions/agent-workspace-profile.md` | 用户私人 agent workspace（mirror Realm + agent_task FSM + mention_redirect / import_attestation 跨 Realm 协作模式）。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领。 |
-| `models/space-hierarchy.md` | Space parent/child、继承、lazy link、循环处理。 |
+| `models/realm-links.md` | Realm link graph、显式继承、治理 / mirror / confidential-extension 关系。 |
+| `models/space-hierarchy.md` | Space 产品结构层级与跨 Realm 导航。 |
 | `models/extension-objects.md` | Applet / Agent / Blob 等扩展对象在 models 层的入口与跳转。 |
 
 ### 4.9 Schema、编码与一致性
@@ -223,5 +225,4 @@ title: Spec Map
 - 改变服务 API 或 transport 的内容，放入同步、服务与联邦组。
 - 新业务能力优先做 profile，例如 agent、applet、webrtc。
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。
-
 

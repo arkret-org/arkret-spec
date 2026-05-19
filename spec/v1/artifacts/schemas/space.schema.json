@@ -2,17 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/space.schema.json",
   "title": "Contrix Space",
+  "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; resolves to the containing Realm.",
   "type": "object",
   "required": [
     "id",
     "schema",
+    "realm_id",
+    "kind",
     "title",
-    "created_by_principal",
-    "schema_refs",
-    "default_discoverability",
-    "default_join_rule",
-    "history_visibility",
-    "encryption_profile",
+    "created_by",
     "created_at"
   ],
   "properties": {
@@ -23,6 +21,26 @@
     "schema": {
       "const": "cx.schema.space.v1"
     },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Home Realm that stores, syncs, and authorizes this Space object's own metadata. This is also the fallback default Realm for new resources under this Space when default_realm_ref is absent."
+    },
+    "default_realm_ref": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional default Realm for resources created under this Space. Omitted means inherit from the nearest ancestor Space with default_realm_ref, falling back to realm_id. This field does not grant membership or decryption rights."
+    },
+    "parent_ref": {
+      "type": "string",
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional parent in the structural hierarchy. Parent MAY live in a different Realm; such a link is navigation only and never propagates membership, capabilities, history, E2EE keys, retention, or federation policy."
+    },
+    "kind": {
+      "type": "string",
+      "description": "Space kind. v1 standard kinds include 'space', 'project', 'folder', 'board', and 'list'. Profile-defined kinds (e.g., 'swimlane', 'calendar_bucket', 'page_group') MAY be added via Realm schema/profile and MUST be registered. Unknown kind MUST schema_violation.",
+      "minLength": 1
+    },
     "title": {
       "type": "string",
       "minLength": 1,
@@ -32,495 +50,66 @@
       "type": "string",
       "maxLength": 2048
     },
-    "security_class": {
+    "rank": {
       "type": "string",
-      "enum": [
-        "standard",
-        "high_assurance"
-      ],
-      "description": "Optional security class. 'high_assurance' forbids federation_policy=open and SHOULD use stricter resolver/E2EE/audit defaults. Omitted = 'standard'."
-    },
-    "created_by_principal": {
-      "$ref": "#/$defs/did"
-    },
-    "owning_organizations": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/did"
-      }
+      "pattern": "^[0-9A-Za-z]{1,128}$",
+      "description": "Fractional-index rank within parent. See encoding.md §9."
     },
     "schema_refs": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "minItems": 1
+      "uniqueItems": true,
+      "description": "Optional schema/profile references that further constrain this Space's contained Flow types, fields, or position invariants."
     },
     "fields": {
       "type": "object",
-      "description": "Product/profile fields. Security-relevant discriminators such as purpose=principal_control are schema constrained below; other product fields remain extension-defined.",
-      "properties": {
-        "purpose": {
-          "type": "string",
-          "enum": [
-            "principal_control"
-          ]
-        }
-      },
-      "additionalProperties": true
+      "description": "Space kind-specific fields, e.g., { 'wip_limit': 5 } for kind=list, { 'view_id': 'cx:view:...' } for kind=board's default view."
     },
-    "relation_profiles": {
+    "labels": {
       "type": "array",
-      "description": "Optional Relation cardinality and conflict profiles declared by this Space schema/profile.",
       "items": {
-        "type": "object",
-        "required": [
-          "relation_kind",
-          "cardinality"
-        ],
-        "properties": {
-          "relation_kind": {
-            "type": "string",
-            "pattern": "^[a-z][a-z0-9_]{0,127}$"
-          },
-          "from_type": {
-            "type": "string"
-          },
-          "to_type": {
-            "type": "string"
-          },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "space",
-              "security_boundary",
-              "board",
-              "global"
-            ],
-            "default": "space"
-          },
-          "cardinality": {
-            "type": "string",
-            "enum": [
-              "one_to_one",
-              "one_to_many",
-              "many_to_one",
-              "many_to_many"
-            ]
-          },
-          "dedupe_key": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]{0,63}$"
-            }
-          },
-          "max_to_per_from": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "max_from_per_to": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "multi_edge": {
-            "type": "boolean"
-          },
-          "rank_field": {
-            "type": "string"
-          },
-          "on_conflict": {
-            "type": "string",
-            "enum": [
-              "reject",
-              "close_previous",
-              "deterministic_winner",
-              "require_review"
-            ],
-            "default": "deterministic_winner"
-          }
-        },
-        "additionalProperties": true
-      }
-    },
-    "policy_ref": {
-      "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "default_discoverability": {
-      "type": "string",
-      "enum": [
-        "public",
-        "listed",
-        "restricted",
-        "unlisted",
-        "invite_only",
-        "secret"
-      ]
-    },
-    "default_join_rule": {
-      "type": "string",
-      "enum": [
-        "public",
-        "invite",
-        "knock",
-        "restricted",
-        "knock_restricted",
-        "closed"
-      ]
-    },
-    "history_visibility": {
-      "type": "string",
-      "enum": [
-        "world_readable",
-        "shared",
-        "invited",
-        "joined",
-        "restricted"
-      ]
-    },
-    "encryption_profile": {
-      "type": "string",
-      "enum": [
-        "none",
-        "mls_rfc9420",
-        "external"
-      ]
-    },
-    "federation_policy": {
-      "type": "string",
-      "enum": [
-        "open",
-        "restricted",
-        "closed",
-        "quarantine"
-      ]
-    },
-    "anchor_profile": {
-      "type": "string",
-      "enum": [
-        "single_did",
-        "threshold",
-        "open_set",
-        "mixed"
-      ],
-      "description": "Create-locked Anchor finality profile. single_did and threshold deployments may require signed Anchor single-chain uniqueness; open_set deployments allow multiple Anchor leaves and deterministic joined views; mixed deployments use a primary anchorer plus fallback recovery anchorer."
-    },
-    "hash_profile": {
-      "type": "string",
-      "enum": [
-        "sha256",
-        "sha512",
-        "sha3_256",
-        "blake3"
-      ],
-      "default": "sha256",
-      "description": "Create-locked hash algorithm used for Move/Anchor ids, state_root, and Merkle leaves within this Space. Defaults to sha256. Migration via hash-transition Anchor; see event-auth-state-resolution.md §4.2.5."
-    },
-    "anchorer": {
-      "type": "object",
-      "description": "Genesis value for the Space anchorer cell. Subsequent changes are ordinary Moves finalized by the previous anchorer.",
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "single_did",
-            "threshold",
-            "open_set",
-            "mixed"
-          ]
-        },
-        "did": {
-          "$ref": "#/$defs/did"
-        },
-        "members": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "threshold": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "recovery_members": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "uniqueItems": true
-        }
-      },
-      "additionalProperties": false
-    },
-    "max_anchor_staleness_ms": {
-      "type": "integer",
-      "minimum": 0,
-      "default": 86400000,
-      "description": "Maximum age of a Move.anchor_ref relative to the current Anchor view. Offline clients exceeding this window must rebase and re-sign."
-    },
-    "bottom_escalation_after_ms": {
-      "type": "integer",
-      "minimum": 60000,
-      "description": "Optional timeout after which unresolved bottom diagnostics should be escalated to recovery governance. Expiry does not choose a winner automatically."
-    },
-    "cell_lattices": {
-      "type": "array",
-      "description": "Optional Space-specific lattice declarations for extension cell families.",
-      "items": {
-        "$ref": "#/$defs/cell_lattice"
+        "type": "string"
       },
       "uniqueItems": true
-    },
-    "co_write_policy": {
-      "type": "array",
-      "description": "Optional whitelist constraining which cell families may be written by the same Move.",
-      "items": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "pattern": "^cx\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
-        },
-        "minItems": 1,
-        "uniqueItems": true
-      }
-    },
-    "retention_policy_ref": {
-      "type": "string",
-      "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "avatar_blob_ref": {
       "type": "string",
       "pattern": "^cx:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
     },
-    "created_at": {
-      "$ref": "#/$defs/timestamp"
+    "state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "tombstoned"
+      ],
+      "description": "Space lifecycle state. 'active' is the default. State transitions are reducer-enforced per common-fields.md §5.1: cx.space.archive MUST come from state=='active' (else failed_precondition reason=space_not_active); cx.space.restore MUST come from state=='archived' (else failed_precondition reason=space_not_archived); cx.space.tombstone MUST come from {'active','archived'} AND must have no live dependents (failed_precondition reason=space_already_terminal for terminal source, space_has_live_dependents for live refs). Same-state self-transitions (archive on archived, etc.) MUST fail; clients re-archive by restore-then-archive. Tombstoned is irreversible (MUST NOT be restored). The transition timestamp lives on the writing Move and on state_changed_at."
     },
-    "updated_at": {
-      "$ref": "#/$defs/timestamp"
-    }
-  },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "security_class": {
-            "const": "high_assurance"
-          }
-        },
-        "required": [
-          "security_class"
-        ]
-      },
-      "then": {
-        "properties": {
-          "federation_policy": {
-            "enum": [
-              "closed",
-              "restricted",
-              "quarantine"
-            ]
-          }
-        }
-      }
+    "state_changed_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Timestamp of the most recent state transition. Required when state != 'active'."
     },
-    {
-      "$comment": "Principal control Spaces are ordinary collaboration Spaces, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together.",
-      "if": {
-        "properties": {
-          "fields": {
-            "properties": {
-              "purpose": {
-                "const": "principal_control"
-              }
-            },
-            "required": [
-              "purpose"
-            ]
-          }
-        },
-        "required": [
-          "fields"
-        ]
-      },
-      "then": {
-        "properties": {
-          "schema_refs": {
-            "contains": {
-              "const": "cx.profile.principal_control_space.v1"
-            }
-          }
-        }
-      }
-    },
-    {
-      "$comment": "The inverse guard prevents a profile-tagged Space from omitting the machine-readable purpose discriminator.",
-      "if": {
-        "properties": {
-          "schema_refs": {
-            "contains": {
-              "const": "cx.profile.principal_control_space.v1"
-            }
-          }
-        },
-        "required": [
-          "schema_refs"
-        ]
-      },
-      "then": {
-        "required": [
-          "fields"
-        ],
-        "properties": {
-          "fields": {
-            "properties": {
-              "purpose": {
-                "const": "principal_control"
-              }
-            },
-            "required": [
-              "purpose"
-            ]
-          }
-        }
-      }
-    }
-  ],
-  "$defs": {
-    "did": {
+    "created_by": {
       "type": "string",
       "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
     },
-    "timestamp": {
+    "created_at": {
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
     },
-    "cell_lattice": {
-      "type": "object",
-      "required": [
-        "cell_family",
-        "type",
-        "bottom",
-        "cell_role"
-      ],
-      "properties": {
-        "cell_family": {
-          "type": "string",
-          "pattern": "^cx\\.component\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "or-set",
-            "mv-register",
-            "cas-register",
-            "fsm",
-            "counter",
-            "ordered-log",
-            "lww-register",
-            "rga"
-          ]
-        },
-        "bottom": {
-          "type": "string",
-          "enum": [
-            "reject",
-            "expose"
-          ]
-        },
-        "cell_role": {
-          "type": "string",
-          "enum": [
-            "authorization_root",
-            "policy_root",
-            "anchorer_root",
-            "membership",
-            "lifecycle",
-            "ui_affordance",
-            "content",
-            "draft",
-            "cosmetic",
-            "audit",
-            "telemetry"
-          ],
-          "description": "Semantic role declared by Space schema. authorization_root / policy_root / anchorer_root / membership / lifecycle MUST NOT use lattice types lww-register or rga (enforced by allOf below). ui_affordance / content / draft / cosmetic MAY use lww-register or rga."
-        },
-        "parameters": {
-          "type": "object"
-        },
-        "initial_value": {
-          "description": "Optional cell schema initial value (cas-register only). When defined, the cas-register `join` algorithm initialises `current` to this value (rather than null) before applying any Move. Combined with a `head_eq: <initial_value>` predicate on the first set Move, this implements singleton-once-set cells via the empty sentinel pattern. See event-auth-state-resolution.md §5.3.3 and extensions/agent-workspace-profile.md §6.1."
-        },
-        "sentinel_writers": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-          },
-          "uniqueItems": true,
-          "description": "Optional companion to `initial_value` (cas-register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §5.3.3."
-        }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "enum": [
-                  "lww-register",
-                  "rga"
-                ]
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          "then": {
-            "properties": {
-              "cell_role": {
-                "enum": [
-                  "ui_affordance",
-                  "content",
-                  "draft",
-                  "cosmetic"
-                ]
-              }
-            }
-          }
-        },
-        {
-          "$comment": "initial_value is only defined for cas-register (see event-auth-state-resolution.md §5.3.3). Other lattices reject the field.",
-          "if": {
-            "required": ["initial_value"]
-          },
-          "then": {
-            "properties": {
-              "type": { "const": "cas-register" }
-            },
-            "required": ["type"]
-          }
-        },
-        {
-          "$comment": "sentinel_writers is the companion of initial_value; it only makes sense on a cas-register cell that has declared initial_value. Reject declarations on other lattices, and reject declarations on cas-register cells that lack initial_value (since there is no sentinel to authorise writing back).",
-          "if": {
-            "required": ["sentinel_writers"]
-          },
-          "then": {
-            "properties": {
-              "type": { "const": "cas-register" }
-            },
-            "required": ["type", "initial_value"]
-          }
-        }
-      ]
+    "updated_by": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
     }
   },
   "additionalProperties": true

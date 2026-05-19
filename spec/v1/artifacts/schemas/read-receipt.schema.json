@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/read-receipt.schema.json",
   "title": "Contrix Read Receipt",
-  "description": "Public/shared read receipt for Flow timeline UI hint. NOT canonical truth, NOT a multi-device cursor (see read-marker.schema.json for that). MUST NOT generate push notifications. Privacy is governed by Space policy: Spaces MAY allow public, members-only, or actor-private receipt sharing.",
+  "description": "Public/shared read receipt for Flow timeline UI hint. NOT canonical truth, NOT a multi-device cursor (see read-marker.schema.json for that). MUST NOT generate push notifications. Privacy is governed by Realm policy: Realms MAY allow public, members-only, or actor-private receipt sharing.",
   "type": "object",
   "required": [
     "receipt_type",
     "schema",
-    "space_id",
+    "realm_id",
     "actor_id",
     "event_id",
     "created_at"
@@ -19,14 +19,14 @@
     "schema": {
       "const": "cx.schema.read_receipt.v1"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
       "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Required when receipt scopes to a Flow timeline (the common case). Omitted only for whole-Space receipt forms when explicitly allowed by Space policy."
+      "description": "Required when receipt scopes to a Flow timeline (the common case). Omitted only for whole-Realm receipt forms when explicitly allowed by Realm policy."
     },
     "track": {
       "type": "string",
@@ -51,7 +51,7 @@
     "scope": {
       "type": "string",
       "enum": [
-        "space",
+        "realm",
         "flow",
         "thread"
       ]

@@ -14,7 +14,7 @@ Contrix canonical JSON 是签名、hash、event digest、receipt digest、snapsh
 
 Contrix canonical JSON MUST 使用：
 
-- UTF-8 不带 BOM；输入若包含 UTF-8 BOM（`U+FEFF` 编码 `EF BB BF`，无论出现在 stream 起始还是 string value 内部）、malformed UTF-8、孤立 surrogate 或无法被 JSON parser 唯一解释的字符串，MUST reject。`U+FEFF` 在 string value 中只允许作为 zero-width no-break space 的语义存在，但 v1 canonical JSON 不允许此用法——任何 `U+FEFF` 出现都按 schema_violation 拒绝。
+- UTF-8 不带 BOM；输入若包含 UTF-8 BOM（`U+FEFF` 编码 `EF BB BF`，无论出现在 stream 起始还是 string value 内部）、malformed UTF-8、孤立 surrogate 或无法被 JSON parser 唯一解释的字符串，MUST reject。`U+FEFF` 在 string value 中只允许作为 zero-width no-break realm 的语义存在，但 v1 canonical JSON 不允许此用法——任何 `U+FEFF` 出现都按 schema_violation 拒绝。
 - object key 按 Unicode code point 升序排序，并在每一层独立排序。
 - 无 insignificant whitespace。
 - JSON object 中的重复 key MUST reject，不得采用“最后一个 wins”或“第一个 wins”。
@@ -82,7 +82,7 @@ v1 conformance 锁定的 hash 算法集合：
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
 | `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、payload_hash、Merkle leaf、state_root、blob CID、receipt hash 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `cx.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
-| `sha512` | 64 bytes（128 hex） | v1 optional；声明 `cx.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Space 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
+| `sha512` | 64 bytes（128 hex） | v1 optional；声明 `cx.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Realm 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
 | `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
 | `blake3` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
 
@@ -96,7 +96,7 @@ v1 conformance 锁定的 hash 算法集合：
 
 ### 3.3 State Root 与 Anchor Hash 编码
 
-`state_root`、Anchor `id`、Move `id`、receipt hash 这几条核心承诺字段的 wire 形态由所属 Space 在 create event 中通过 `hash_profile` 字段固定（默认 `sha256`）。Space 内所有后续 Anchor / Move / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
+`state_root`、Anchor `id`、Move `id`、receipt hash 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `hash_profile` 字段固定（默认 `sha256`）。Realm 内所有后续 Anchor / Move / state_root MUST 使用同一 algo；切换需要通过 `cx.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
 
 ### 3.4 Multihash 兼容（profile-gated）
 
@@ -128,7 +128,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 `event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.payload_hash`（≡ `canonical_hash(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
 
-本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `space`、`flow`、`place`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`txn` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / move / anchor、canonical cell tuple、MLS profile-scoped 引用、Space-scoped pseudonym）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
+本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `realm`、`flow`、`space`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`txn` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / move / anchor、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 
@@ -142,7 +142,7 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 ### 4.1 Field Naming: `<noun>_id` vs `<noun>_ref`（normative for new fields）
 
-v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<uuid>`）的字段。不同对象按下表选择后缀：`space_id` / `flow_id` / `target_place_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `discussion_space_ref` / `policy_ref` 用 `_ref`。
+v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_id` 和 `<noun>_ref`。两者实际语义相同——都是 wire 上承载 typed ID（`cx:<kind>:<uuid>`）的字段。不同对象按下表选择后缀：`realm_id` / `flow_id` / `target_space_id` 用 `_id`；`from_ref` / `to_ref` / `parent_ref` / `discussion_realm_ref` / `policy_ref` 用 `_ref`。
 
 **v1 现状（不变）**：所有现有字段名锁定在当前 wire 形态，重命名是 breaking change，不在 v1 范围内执行。下表列出**已定型**的字段命名约定，实现 MUST 按现有命名解析；不得依赖前缀做字段类型推断。
 
@@ -151,8 +151,8 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
 | 用途 | 命名后缀 | 说明 |
 | --- | --- | --- |
 | 对象自身 ID（primary key） | `id` | canonical object 的主 ID，无下划线前缀。例：`id`。 |
-| 对象的 *primary parent* ID（同类对象自然父子）| `<noun>_id` | 例：`space_id`（所属 Space）、`flow_id`（所属 Flow）。仅用于该对象的"出生地"绑定。 |
-| 任何其它跨对象引用（pointer to another typed object） | `<noun>_ref` | 例：`from_ref` / `to_ref` / `parent_ref` / `discussion_space_ref` / `policy_ref`。新字段 MUST 使用 `_ref`。 |
+| 对象的 *primary parent* ID（同类对象自然父子）| `<noun>_id` | 例：`realm_id`（所属 Realm）、`flow_id`（所属 Flow）。仅用于该对象的"出生地"绑定。 |
+| 任何其它跨对象引用（pointer to another typed object） | `<noun>_ref` | 例：`from_ref` / `to_ref` / `parent_ref` / `discussion_realm_ref` / `policy_ref`。新字段 MUST 使用 `_ref`。 |
 | Content-addressed 引用（hash-based） | `<noun>_ref` | 例：`blob_ref`、`event_digest`（hash form）。 |
 | Cell 引用（cell id 字符串） | `<noun>_cell` 或 `<noun>_ref` | 例：`anchor_cell`、`mls_epoch_cell`。 |
 
@@ -179,7 +179,7 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
 }
 ```
 
-`receipt_hash = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 和 `type` 必须进入 hash，防止 receipt 被跨 actor、跨 Space 或跨前沿重放。
+`receipt_hash = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 和 `type` 必须进入 hash，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
 
 ## 6. Signature
 
@@ -224,8 +224,8 @@ Hybrid Logical Clock 编码：
 - `unix_ms_hex` MUST 是 12 位小写十六进制毫秒时间戳。
 - `logical_hex` MUST 是 4 位小写十六进制逻辑计数器，取值范围 `0000..ffff`。
 - `node_id_hash` MUST 是 8 位小写十六进制稳定节点哈希；它只用于同一 `(unix_ms, logical)` 下的确定性 tie-break，不得替代因果关系或授权判断。
-- 用户客户端的 `node_id_hash` MUST 从 Space-scoped 或 deployment-scoped 的本地 node secret 派生，例如 `SHA256("contrix-hlc-v1" || space_id || device_id || local_node_secret)[0:8]`。不得直接使用 principal DID、公开 handle、长期 device id 或跨 Space 稳定标识作为 hash 输入。
-- 服务 DID 产生的公开服务事件 MAY 使用 service-scoped node id，但服务若代表用户或 minimal-metadata Space 转发/生成事件，MUST 使用 Space-scoped pseudonymous node id，避免跨 Space 关联。
+- 用户客户端的 `node_id_hash` MUST 从 Realm-scoped 或 deployment-scoped 的本地 node secret 派生，例如 `SHA256("contrix-hlc-v1" || realm_id || device_id || local_node_secret)[0:8]`。不得直接使用 principal DID、公开 handle、长期 device id 或跨 Realm 稳定标识作为 hash 输入。
+- 服务 DID 产生的公开服务事件 MAY 使用 service-scoped node id，但服务若代表用户或 minimal-metadata Realm 转发/生成事件，MUST 使用 Realm-scoped pseudonymous node id，避免跨 Realm 关联。
 
 排序按 `(unix_ms, logical, node_id_hash)` 字典序。
 
@@ -280,7 +280,7 @@ function compare_hlc(hlc1, hlc2):
 
 - 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。
 - 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的两层 drift 模型验证物理时间：超 `hard_future_skew_ms`（默认 300_000）MUST reject / quarantine；超 `expected_future_skew_ms`（默认 30_000）SHOULD soft-fail / quarantine。
-- profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Space upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
+- profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
 - 拒绝 `physical_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需未来扩展 HLC profile 才可使用）。
 - 维护本地单调性；本地时钟落后远端时推进到远端时间，超前时限制推进速率。
 
@@ -323,7 +323,7 @@ Stream 形态：
   "purpose": "stream",
   "t": "2026-04-26T00:00:00.000Z",
   "s": {
-    "cx:space:0196419b-0000-7000-8000-000000000000": {
+    "cx:realm:0196419b-0000-7000-8000-000000000000": {
       "p": ["cx:event:019640ed-8000-7000-8000-000000000000"],
       "o": "01970e589d21-0004-a13f9c2e",
       "h": "sha256:abc123..."
@@ -346,7 +346,7 @@ Barrier 形态：
   "target": {
     "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
     "event_digest": "sha256:abc123...",
-    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
   },
   "x": 1714080000000
 }
@@ -357,15 +357,15 @@ Barrier 形态：
 | `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
 | `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
 | `t` | timestamp | 是 | 生成时间戳 |
-| `s` | object | stream 时可有（仅 stateless 形态） | Space 位置映射 |
-| `s.<space_id>.p` | array | 是（每条 entry） | 因果前沿（事件 ID 集合） |
-| `s.<space_id>.o` | string | 是（每条 entry） | timeline 排序 HLC |
-| `s.<space_id>.h` | hash | 是（每条 entry） | 该位置的 state hash |
+| `s` | object | stream 时可有（仅 stateless 形态） | Realm 位置映射 |
+| `s.<realm_id>.p` | array | 是（每条 entry） | 因果前沿（事件 ID 集合） |
+| `s.<realm_id>.o` | string | 是（每条 entry） | timeline 排序 HLC |
+| `s.<realm_id>.h` | hash | 是（每条 entry） | 该位置的 state hash |
 | `d` | object | stream 时可有（仅 stateless 形态） | 设备位置映射 |
 | `target` | object | `purpose=barrier` 且 stateless 时必填 | 等待目标 event |
 | `target.event_id` | id:event | 是（barrier stateless） | 目标事件 ID |
 | `target.event_digest` | hash | 是（barrier stateless） | 目标事件 canonical digest |
-| `target.space_id` | id:space | 否 | 目标事件所在 Space（可选 hint） |
+| `target.realm_id` | id:realm | 否 | 目标事件所在 Realm（可选 hint） |
 | `x` | integer | 是 | 过期时间戳（Unix ms） |
 | `h` | string | stateful 形态必填 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1 |
 | `_mac` / `_sig` | string | stateless 形态必填 | 完整性保护字段，见 §8.3.1 |
@@ -382,7 +382,7 @@ Barrier 形态：
 4. 解码后 `purpose` 是 `stream` 或 `barrier`。
 5. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
 6. 解码后是合法 JSON。
-7. 所有 `space_id` 是合法 `cx:space:*` 格式（如 `s` 出现）。
+7. 所有 `realm_id` 是合法 `cx:realm:*` 格式（如 `s` 出现）。
 8. 因果前沿中的所有 event id 合法（如 `s` 出现）。
 9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
 10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
@@ -420,7 +420,7 @@ Barrier 形态：
 
 Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下迁移路径之一：
 
-1. **直接 reparse（仅 stateless 形态）**：B 收到 `since=cx:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<space_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Space 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），不得直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
+1. **直接 reparse（仅 stateless 形态）**：B 收到 `since=cx:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<realm_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Realm 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），不得直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
 2. **stateful 形态不可跨服务迁移**：含 `h` 的 cursor 中 handle 是 A 本地表的引用，B 无法解析。B 收到 stateful 形态 cursor 时 MUST 返回 `cursor_unrecognized`，客户端按全新初始同步处理。这是 stateful 形态在 portability 上的固有取舍。
 3. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；不得静默丢失因果对齐。
 4. **可选 translate 端点**：未来 profile 可能在 `cx.profile.principal_server.v1` 之上引入 `POST /api/v1/sync/translate-cursor`；该端点不属于 v1 强制范围。
@@ -433,7 +433,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 
 - [`spec/v1/artifacts/fixtures/encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)
 
-向量覆盖点：cursor 版本字段与过期、per-space frontier 编码、device message 位置、过期 token 回退、非法额外字段拒绝。
+向量覆盖点：cursor 版本字段与过期、per-realm frontier 编码、device message 位置、过期 token 回退、非法额外字段拒绝。
 
 ### 8.6 一致性
 
@@ -443,15 +443,15 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 - 服务端 MUST 接收时验证所有 cursor 字段。
 - 服务端 MUST 按 §8.2 canonical schema 编码 cursor 内部结构（私有字段限于 `_` 前缀）。
 - 客户端 MUST NOT 解析 cursor 内容。
-- 支持每个 cursor 至少 50 个 space。
-- **每 Space 的 frontier (`s.<space>.p`) 长度 MUST ≤ 1000 个 event_id**：超出时 issuing 服务 MUST 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再嵌入 cursor。该上限避免大并发 actor Space (≥ 1000 active actor 各自有 head event) 让单个 cursor 膨胀到 MB 级。Receiver 收到超长 frontier 的 cursor MUST `invalid_param`。
+- 支持每个 cursor 至少 50 个 realm。
+- **每 Realm 的 frontier (`s.<realm>.p`) 长度 MUST ≤ 1000 个 event_id**：超出时 issuing 服务 MUST 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再嵌入 cursor。该上限避免大并发 actor Realm (≥ 1000 active actor 各自有 head event) 让单个 cursor 膨胀到 MB 级。Receiver 收到超长 frontier 的 cursor MUST `invalid_param`。
 - **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，不得直接产出超大 cursor；receiver 收到超大 cursor MUST `invalid_param`。
 - 支持最长 7 天（604,800,000 ms）的 stream cursor 过期时间；barrier cursor 上限 1 小时（3,600,000 ms），见 §8.3 规则 12。
 - 以适当错误拒绝非法 cursor。
 
 ## 9. Rank
 
-列表排序 rank MUST 使用 `cx.rank.lexofractional.v1` profile，除非 Space schema 显式声明其他 rank profile。
+列表排序 rank MUST 使用 `cx.rank.lexofractional.v1` profile，除非 Realm schema 显式声明其他 rank profile。
 
 规则：
 
@@ -521,7 +521,7 @@ rank_between(left, right):
 
 `principal_id`、`device_id` MUST 是完整 typed ID 或完整 DID URI（见 §4）。
 
-非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Space policy 用 Space id）直接把规范化 subject 放入 `cx:cell:<component>:<subject>`，不需要 hash 化。
+非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Realm policy 用 Realm id）直接把规范化 subject 放入 `cx:cell:<component>:<subject>`，不需要 hash 化。
 
 接收方收到不符合本节定义的复合 subject components_array 时 MUST 返回 `schema_violation`。文档中若以管道分隔形态展示复合 subject，MUST 显式标注 "informational; canonical cell subject is base64url(sha256(canonical_json(...)))"。
 

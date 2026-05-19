@@ -105,19 +105,19 @@
             "type": "string",
             "enum": [
               "owner_private",
-              "space",
+              "realm",
               "organization",
               "object",
               "public"
             ]
           },
-          "space_id": {
+          "realm_id": {
             "type": "string",
-            "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "object_ref": {
             "type": "string",
-            "pattern": "^(cx:(flow|space|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+            "pattern": "^(cx:(flow|realm|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
           },
           "grant_ref": {
             "type": "string",
@@ -153,11 +153,11 @@
         "requires_explicit_space_invite": {
           "type": "boolean"
         },
-        "allowed_space_ids": {
+        "allowed_realm_ids": {
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "uniqueItems": true
         },

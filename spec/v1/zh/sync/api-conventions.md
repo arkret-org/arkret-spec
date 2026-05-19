@@ -32,7 +32,7 @@ Contrix 协议核心不强绑定 REST API；核心操作、消息 envelope 与 t
 
 Contrix canonical JSON 字段名 MUST 使用小写字母与下划线连接，例如：
 
-- `space_id`
+- `realm_id`
 - `event_id`
 - `service_endpoint`
 - `verification_method`
@@ -70,7 +70,7 @@ API 调用 SHOULD 使用以下方式之一：
 - actor DID
 - device / session / agent delegation
 - capability grant
-- Space policy
+- Realm policy
 - verified claim / attestation
 
 服务端 MUST NOT 仅因 bearer token 存在就跳过 capability 检查。
@@ -258,7 +258,7 @@ X-Contrix-Wait-For: <cursor>
 - device id
 - session id
 - source IP
-- Space id
+- Realm id
 - endpoint
 - blob byte quota
 
@@ -268,7 +268,7 @@ X-Contrix-Wait-For: <cursor>
 
 - `policy_version` 或等价版本/hash。
 - `entries[]`，每项绑定 `endpoint` 或 `operation_id`。
-- 适用范围：`scope`，例如 actor DID、service DID、device id、source IP、Space id 或 blob quota。
+- 适用范围：`scope`，例如 actor DID、service DID、device id、source IP、Realm id 或 blob quota。
 - 窗口与额度：`window_seconds`、`max_requests`、`burst`；若是字节或批量限制，使用 `max_bytes`、`max_events_per_batch`、`max_body_bytes`。
 - 重试提示：`retry_after_ms`、`backoff_hint` 或 `next_retry_at` 的语义。
 - `effective_at` / `expires_at` 或缓存 TTL；未知时客户端 MUST 按保守策略重试。
@@ -336,7 +336,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 - HTTPS/TLS 名称与返回的 endpoint 一致；
 - service DID、DID Document service entry、describe 响应和 HTTP Message Signature 绑定一致；
-- Space policy 或 actor / organization service delegation 允许该服务角色；
+- Realm policy 或 actor / organization service delegation 允许该服务角色；
 - metadata hash / version 未被本地策略标记为撤销或过期。
 
 服务发现结果 SHOULD 按 HTTP cache header 缓存。未提供显式缓存时间时，客户端 MAY 使用不超过 24 小时的默认 TTL；实现 SHOULD 对正缓存设置上限（建议不超过 48 小时），对失败缓存使用更短 TTL 或指数退避，避免一次临时故障长期破坏联邦。

@@ -294,7 +294,7 @@
     },
     {
       "operation_id": "cx.applet.query_space",
-      "http": "GET /applet/spaces/{space_id_or_alias}",
+      "http": "GET /applet/realms/{realm_id_or_alias}",
       "grpc": "Applet/QuerySpace",
       "mq": "applet.query_space"
     },
@@ -403,7 +403,7 @@
     },
     {
       "operation_id": "cx.directory.resolve_space",
-      "http": "POST /directory/resolve-space",
+      "http": "POST /directory/resolve-realm",
       "grpc": "Directory/ResolveSpace",
       "mq": "directory.resolve_space"
     },
@@ -421,7 +421,7 @@
     },
     {
       "operation_id": "cx.directory.search_spaces",
-      "http": "POST /directory/search-spaces",
+      "http": "POST /directory/search-realms",
       "grpc": "Directory/SearchSpaces",
       "mq": "directory.search_spaces"
     },
@@ -478,7 +478,7 @@
       "http": "POST /events/query",
       "grpc": "Events/Query",
       "mq": "events.query",
-      "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large spaces[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. gRPC / MQ bindings reuse the canonical Events/Query — request body uses the same shape across all transports."
+      "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. gRPC / MQ bindings reuse the canonical Events/Query — request body uses the same shape across all transports."
     },
     {
       "operation_id": "cx.events.subscribe",

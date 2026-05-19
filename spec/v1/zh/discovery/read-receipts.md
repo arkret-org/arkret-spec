@@ -28,7 +28,7 @@ title: "Read Receipts & Markers"
 {
   "receipt_type": "read",
   "schema": "cx.schema.read_receipt.v1",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "track": "discussion",
   "actor_id": "did:web:alice.example",
@@ -46,28 +46,28 @@ title: "Read Receipts & Markers"
 
 ### 2.3 防雪崩与合并
 
-Read Receipt 是高频信号，发送方和 Sync Service 都 MUST 支持合并。客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(space_id, flow_id, track/thread, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
+Read Receipt 是高频信号，发送方和 Sync Service 都 MUST 支持合并。客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(realm_id, flow_id, track/thread, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
 
-Sync Service MAY 丢弃同一 scope 下较旧的 receipt，只向订阅方广播单调前进的最新位置；不得把每一次滚动增量都 fanout 成独立推送。公开或共享 receipt 的服务端限流维度至少应包含 actor、device、Space 和 Flow。超过频率时 SHOULD 返回或广播 `rate_limited` / `retry_after_ms` 语义，客户端 MUST 按退避合并后重试。
+Sync Service MAY 丢弃同一 scope 下较旧的 receipt，只向订阅方广播单调前进的最新位置；不得把每一次滚动增量都 fanout 成独立推送。公开或共享 receipt 的服务端限流维度至少应包含 actor、device、Realm 和 Flow。超过频率时 SHOULD 返回或广播 `rate_limited` / `retry_after_ms` 语义，客户端 MUST 按退避合并后重试。
 
 Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / marker 作为 unread count、push suppression 和 badge recompute 的输入。
 
 ### 2.4 隐私控制
 
-用户可以随时关闭发送已读回执。此配置属于 Client Preference，按 (flow, space, default) 顺序解析有效偏好；标准 Key 与字段定义见 [`discovery/client-preferences.md`](./client-preferences.md) §3.8。
+用户可以随时关闭发送已读回执。此配置属于 Client Preference，按 (flow, realm, default) 顺序解析有效偏好；标准 Key 与字段定义见 [`discovery/client-preferences.md`](./client-preferences.md) §3.8。
 
 - 该偏好同步在用户的加密 account data 中，不公开广播。
 - 关闭只影响"是否发送 `cx.receipt.read`"，不影响 §3 私有 Read Marker，也不影响接收他人 receipt 的渲染。
 - 客户端收到他人的 `cx.receipt.read` 时，SHOULD 在 UI 上更新已读头像的小图标位置；接收行为不依赖发送偏好。
 - 当目标 scope 由 §2.5 声明 `disclosure="required"` 或 `disclosure="disabled"` 时，合规客户端 MUST 按该声明覆盖用户偏好（详见 §2.5）。
 
-### 2.5 Space 披露策略 (Disclosure Policy)
+### 2.5 Realm 披露策略 (Disclosure Policy)
 
-Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 `cx.receipt.read` 的披露要求。需要让 discussion 时间线与父 Space 在 read receipt policy 上分离时，必须把 discussion 升级为独立 child Space（参见 `Flow.discussion_space_ref`，[`../models/flow-and-message.md` §5](../models/flow-and-message.md)），由 child Space 自己声明 `cx.space.read_receipt_policy`；track 级别 override 不在 v1 范围内。该 policy SHOULD 由 `cx.space.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
+Realm MAY 通过 `cx.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 `cx.receipt.read` 的披露要求。需要让 discussion 时间线与源 Realm 在 read receipt policy 上分离时，必须把 discussion 升级为独立 linked Realm（参见 `Flow.discussion_realm_ref`，[`../models/flow-and-message.md` §5](../models/flow-and-message.md)），由 linked Realm 自己声明 `cx.realm.read_receipt_policy`；track 级别 override 不在 v1 范围内。该 policy SHOULD 由 `cx.realm.policy_components.components.read_receipt` 引用并纳入 MLS-bound `policy_root`。
 
 ```json
 {
-  "kind": "cx.space.read_receipt_policy",
+  "kind": "cx.realm.read_receipt_policy",
   "payload": {
     "disclosure": "optional",
     "visibility": "members",
@@ -81,17 +81,17 @@ Space MAY 通过 `cx.space.read_receipt_policy` 组件 cell 声明本 Space 内 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
-| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Space 可见性允许的全部观察者；`members` = 目标 Space / child Space 可见成员（discussion 时间线归属的 Space：未设置 `discussion_space_ref` 时为父 Space，设置时为该 child Space）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
-| `scope_overrides_allowed` | `bool` | `true` | 是否允许 child Space（如 `Flow.discussion_space_ref` 指向的子 Space）声明独立、**收紧**（不放宽）的 read receipt policy。无论本字段取值如何，**放宽方向永远 disallowed**：child Space 的 receipt policy MUST 在 disclosure 与 visibility 两个维度都 **等于或更严格于** 父策略（disclosure: `disabled` > `optional` > `required` 的反向收紧，即父 `optional` 允许子 `disabled`，禁止子 `required`；visibility: `private` > `members` > `public` 的反向收紧，即父 `members` 允许子 `private`，禁止子 `public`）。父 Space `scope_overrides_allowed=true` 仅允许 child Space **进一步收紧**；`scope_overrides_allowed=false` 要求 child Space 完全继承父策略，连收紧都不允许。任何放宽方向的 child policy 声明 MUST reducer 拒绝。 |
+| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Realm 可见性允许的全部观察者；`members` = 目标 Realm / linked Realm 可见成员（discussion 时间线归属的 Realm：未设置 `discussion_realm_ref` 时为源 Realm，设置时为该 linked Realm）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
+| `scope_overrides_allowed` | `bool` | `true` | 是否允许 linked Realm（如 `Flow.discussion_realm_ref` 指向的独立 Realm）声明独立、**收紧**（不放宽）的 read receipt policy。无论本字段取值如何，**放宽方向永远 disallowed**：linked Realm 的 receipt policy MUST 在 disclosure 与 visibility 两个维度都 **等于或更严格于** 父策略（disclosure: `disabled` > `optional` > `required` 的反向收紧，即父 `optional` 允许子 `disabled`，禁止子 `required`；visibility: `private` > `members` > `public` 的反向收紧，即父 `members` 允许子 `private`，禁止子 `public`）。源 Realm `scope_overrides_allowed=true` 仅允许 linked Realm **进一步收紧**；`scope_overrides_allowed=false` 要求 linked Realm 完全继承父策略，连收紧都不允许。任何放宽方向的 child policy 声明 MUST reducer 拒绝。 |
 
 规则：
 
-- 该策略是**软声明 / 合规承诺**，不是密码学强制。`cx.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。Space policy MUST NOT 把 `cx.receipt.read` 当作密码学审计回执使用。
-- 客户端 MUST 在 join Space / 进入 Flow 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
+- 该策略是**软声明 / 合规承诺**，不是密码学强制。`cx.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。Realm policy MUST NOT 把 `cx.receipt.read` 当作密码学审计回执使用。
+- 客户端 MUST 在 join Realm / 进入 Flow 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
 - `disclosure="required"`：合规客户端 MUST 不允许用户在该 scope 把 `cx.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `cx.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Marker 不受影响。
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
-- Child Space policy MUST 等于或更严格于父策略：disclosure 仅允许 `required→optional→disabled` 方向的收紧；visibility 仅允许 `public→members→private` 方向的收紧。放宽方向（例如父 `disabled` → 子 `required`、父 `private` → 子 `public`）MUST 被 reducer 拒绝，与 `scope_overrides_allowed` 取值无关——`scope_overrides_allowed=true` 仅允许 child 进一步收紧，`scope_overrides_allowed=false` 要求 child 完全继承父策略。
+- Child Realm policy MUST 等于或更严格于父策略：disclosure 仅允许 `required→optional→disabled` 方向的收紧；visibility 仅允许 `public→members→private` 方向的收紧。放宽方向（例如父 `disabled` → 子 `required`、父 `private` → 子 `public`）MUST 被 reducer 拒绝，与 `scope_overrides_allowed` 取值无关——`scope_overrides_allowed=true` 仅允许 child 进一步收紧，`scope_overrides_allowed=false` 要求 child 完全继承父策略。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
 ## 3. Read Marker (私有游标)
@@ -100,11 +100,11 @@ Read Marker 用于多设备同步（例如你在手机上看了消息，电脑�
 
 ### 3.1 存储位置
 
-Read Marker 作为一种持久化的个人状态，MUST 作为加密 account data 或 actor-private Event 保存，而不是提交到发生协作的共享 Space Event history。
+Read Marker 作为一种持久化的个人状态，MUST 作为加密 account data 或 actor-private Event 保存，而不是提交到发生协作的共享 Realm Event history。
 
 ### 3.2 格式
 
-Read marker schema：`cx.schema.read_marker.v1`。Marker 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中，因此其 `id` 字段是 actor 控制下的标识符（例如 account-data key），不属于 typed-id-registry 的 wire object kind：按 §6.1 / §6.6 绑定 `(actor_id, space_id, scope, position, hlc, device_id)`：
+Read marker schema：`cx.schema.read_marker.v1`。Marker 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中，因此其 `id` 字段是 actor 控制下的标识符（例如 account-data key），不属于 typed-id-registry 的 wire object kind：按 §6.1 / §6.6 绑定 `(actor_id, realm_id, scope, position, hlc, device_id)`：
 
 ```json
 {
@@ -112,7 +112,7 @@ Read marker schema：`cx.schema.read_marker.v1`。Marker 是 actor-private 持�
   "schema": "cx.schema.read_marker.v1",
   "actor_id": "did:web:alice.example",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "scope": {
     "kind": "flow_discussion",
     "ref": "cx:flow:01964200-0000-7000-8000-000000000001"
@@ -131,9 +131,9 @@ Read marker schema：`cx.schema.read_marker.v1`。Marker 是 actor-private 持�
 
 ### 3.3 写入合并
 
-Read Marker 是 actor-private 持久状态，但仍然是高频更新。客户端 MUST 按 scope 合并，只提交相对本地已知 marker 单调前进的位置；在同一 `(actor_id, device_id, space_id, scope)` 上的连续滚动 SHOULD 以最新位置覆盖待发送更新。默认建议将活跃阅读期间的持久写入 debounce 到 1 秒以上，或在离开 Flow、应用进入后台、手动标记已读时立即 flush。
+Read Marker 是 actor-private 持久状态，但仍然是高频更新。客户端 MUST 按 scope 合并，只提交相对本地已知 marker 单调前进的位置；在同一 `(actor_id, device_id, realm_id, scope)` 上的连续滚动 SHOULD 以最新位置覆盖待发送更新。默认建议将活跃阅读期间的持久写入 debounce 到 1 秒以上，或在离开 Flow、应用进入后台、手动标记已读时立即 flush。
 
-服务端接收 actor-private `cx.read.marker` 时 SHOULD 按第 5 节合并，而不是保留不可见的全量游标历史。若实现需要审计，可保留最小 device、old/new position 和时间摘要；不得把共享 Space timeline 当作 read marker 的压缩日志。
+服务端接收 actor-private `cx.read.marker` 时 SHOULD 按第 5 节合并，而不是保留不可见的全量游标历史。若实现需要审计，可保留最小 device、old/new position 和时间摘要；不得把共享 Realm timeline 当作 read marker 的压缩日志。
 
 ## 4. 未读计数 (Unread Notification Count)
 
@@ -159,7 +159,7 @@ Read marker 是 actor-private 状态。最小结构示例：
 ```json
 {
   "actor_id": "did:web:alice.example",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "scope": {
     "kind": "flow_discussion",
     "ref": "cx:flow:01964180-0280-7000-8000-000000000000"
@@ -176,13 +176,13 @@ Read marker 是 actor-private 状态。最小结构示例：
 
 ### 6.2 Receipt 公开形态
 
-Receipt 可以公开或私有，取决于 Space policy。schema：`cx.schema.read_receipt.v1`：
+Receipt 可以公开或私有，取决于 Realm policy。schema：`cx.schema.read_receipt.v1`：
 
 ```json
 {
   "receipt_type": "read",
   "schema": "cx.schema.read_receipt.v1",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "track": "discussion",
   "actor_id": "did:web:alice.example",
@@ -200,7 +200,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`cx.schema
   "id": "cx:notif:01964157-8000-7000-8000-000000000000",
   "schema": "cx.schema.notification.v1",
   "actor_id": "did:web:alice.example",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "track": "discussion",
   "source_event_id": "cx:event:0196434a-8000-7000-8000-000000000000",
@@ -260,14 +260,14 @@ state=unread, cursor=<cursor>, limit=<int>
 
 ### 6.6 跨设备同步语义
 
-`cx.read.marker` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Space timeline，也不推进 Space reducer frontier。它仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`space_id`、scope、position、HLC 和 device id。
+`cx.read.marker` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer frontier。它仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、scope、position、HLC 和 device id。
 
 跨设备已读同步流程：
 
 1. 设备本地读到某个 scope 的位置后，提交或更新 actor-private `cx.read.marker`。
 2. Principal Server / Sync Service 只向同一 principal 的授权设备返回该 marker，可通过 `account_data` 或 `receipts` stream 增量同步。
 3. 每个设备按 §6.5 规则合并同一 scope 的 marker，重新派生本地 notification state、unread count 和 push suppression state。
-4. 派生 notification 的 `state=read/unread` 不得作为共享 Space 事实写回；需要公开已读回执时，必须使用 Space policy 允许的 `cx.receipt.read` ephemeral / receipt stream，并与 private read marker 分开授权。
+4. 派生 notification 的 `state=read/unread` 不得作为共享 Realm 事实写回；需要公开已读回执时，必须使用 Realm policy 允许的 `cx.receipt.read` ephemeral / receipt stream，并与 private read marker 分开授权。
 5. 当 marker 指向的 target event 对某设备不可见、缺失或被 redacted，客户端 MUST 保留 marker 但把对应 projection 标记为 `target_missing` / `redacted`，不得回退到更早 marker 造成未读计数反弹。
 
 Notification projection MUST 绑定 read marker frontier、notification rule frontier 和 source event frontier。服务端返回 unread count 时 SHOULD 附带这些 frontier 或 sync token；客户端发现 frontier 落后时必须重新派生或请求增量，而不是把 push provider 的角标当作协议真相。

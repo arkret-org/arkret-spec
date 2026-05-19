@@ -8,11 +8,11 @@ Policy Server 是可插拔的风险判断与治理服务，用于邀请、加入
 
 ## 2. Policy Server Declaration
 
-Space 可通过 state event 声明策略服务：
+Realm 可通过 state event 声明策略服务：
 
 ```json
 {
-  "kind": "cx.space.policy_server",
+  "kind": "cx.realm.policy_server",
   "payload": {
     "server_id": "did:web:policy.example.com",
     "endpoint": "https://policy.example.com/contrix/v1/check",
@@ -30,7 +30,7 @@ Space 可通过 state event 声明策略服务：
       "federation"
     ],
     "policy_sources": [
-      {"kind": "cx.space.moderation_policy"},
+      {"kind": "cx.realm.moderation_policy"},
       "cx.organization.moderation_policy"
     ],
     "abuse_profile_ref": "cx.policy:abuse-v1",
@@ -56,7 +56,7 @@ Content-Type: application/json
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `service_signature` | required | Policy Server 授权凭证；MUST 绑定调用服务 DID。 |
 | `request_id` | body | `string` | required | 请求 ID，用于日志和幂等追踪。 |
-| `space_id` | body | `id` | required | 相关 Space；进入 cache key、policy transcript 和 obligation `bound_to.space_id`。纯账号级检查 MUST 使用 principal control Space id。 |
+| `realm_id` | body | `id` | required | 相关 Realm；进入 cache key、policy transcript 和 obligation `bound_to.realm_id`。纯账号级检查 MUST 使用 principal control Realm id。 |
 | `request_canonical_hash` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
 | `action` | body | `string` | required | 待检查动作，例如 `cx.message.create`。 |
 | `actor` | body | `did` | required | 发起动作的 Actor DID。 |
@@ -74,7 +74,7 @@ Content-Type: application/json
 ```json
 {
   "request_id": "polreq_01",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "request_canonical_hash": "sha256:...",
   "action": "cx.message.create",
   "actor": "did:webvh:...",
@@ -230,7 +230,7 @@ Policy decision 签名输入 MUST 包含：
 
 - `request_id`
 - `request_canonical_hash`
-- `space_id`（被评估对象所属的 Space DID / Space ID;**v1 normative**）
+- `realm_id`（被评估对象所属的 Realm DID / Realm ID;**v1 normative**）
 - `actor`（被评估 actor DID;**v1 normative**）
 - `action`（被评估的 capability action token）
 - decision
@@ -241,12 +241,12 @@ Policy decision 签名输入 MUST 包含：
 
 `request_canonical_hash` MUST 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致;任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通,且 MUST 不声明通过 v1 conformance。
 
-节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(space_id, actor, action, request_canonical_hash)` 四元组为 key，不得仅按 `request_canonical_hash` 索引——后者会让一个 (space, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (space, actor) 上下文的请求中(攻击者可在 Space A 中触发一次合法 allow,再在 Space B 中用相同请求 body 通过缓存复用,从而绕过 Space B 的实际 policy)。
+节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(realm_id, actor, action, request_canonical_hash)` 四元组为 key，不得仅按 `request_canonical_hash` 索引——后者会让一个 (realm, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (realm, actor) 上下文的请求中(攻击者可在 Realm A 中触发一次合法 allow,再在 Realm B 中用相同请求 body 通过缓存复用,从而绕过 Realm B 的实际 policy)。
 
 接收方 MUST 同时校验:
 
 1. signature 由 `policy_server_id` 的当前 active verification method 签发;
-2. `(space_id, actor)` 与本次 request 绑定的 `(space_id, actor)` 完全一致;
+2. `(realm_id, actor)` 与本次 request 绑定的 `(realm_id, actor)` 完全一致;
 3. `expires_at > now`;
 4. 该 decision 未被同一 policy_server 后续的 `cx.moderation.decision.lift` 或 anchored override 撤销。
 
@@ -259,7 +259,7 @@ Policy decision 签名输入 MUST 包含：
 - `quarantine`：可提交但进入 quarantine。
 - `closed`：不可用时拒绝提交。
 
-公共开放 Space SHOULD NOT 使用 `open`。关键安全 Space MAY 使用 `closed`，但必须提供人工 break-glass capability。
+公共开放 Realm SHOULD NOT 使用 `open`。关键安全 Realm MAY 使用 `closed`，但必须提供人工 break-glass capability。
 
 ## 7. Relationship to Capability Authorization
 
@@ -269,11 +269,11 @@ Policy server 不创建权限。事件必须先通过 capability authorization�
 - 有 capability + policy hard_deny = reject 或 quarantine。
 - 有 capability + policy unavailable = 按 fail_mode。
 
-Policy server MAY 执行 Space 级与组织级的 blocklist、allowlist、rate limit、滥用声誉与内容风险标签。除非 holder 明确使用其自控的私有 policy 服务，Policy server MUST NOT 检查个人 blocklist。
+Policy server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate limit、滥用声誉与内容风险标签。除非 holder 明确使用其自控的私有 policy 服务，Policy server MUST NOT 检查个人 blocklist。
 
 ### 7.1 Moderation State 必须进入 Anchor Frontier
 
-Policy server decision 是 out-of-band 的签名决策，本身不进入 Space anchor frontier。只有 `allow` 与 `soft_deny`（仅阻止 default client 提交）可以仅在本地或 fast path 上生效；任何会改变其他 peer 对事件可见性、可写性、可分发性判断的 decision——`hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入协议状态。否则不同 Principal Server 在同一 Space 上对同一事件作出不一致决策，会形成跨 peer 的 split-brain：A 把消息 quarantine 隐藏，B 直接 allow，两边客户端看到的 Space 状态从此分叉。
+Policy server decision 是 out-of-band 的签名决策，本身不进入 Realm anchor frontier。只有 `allow` 与 `soft_deny`（仅阻止 default client 提交）可以仅在本地或 fast path 上生效；任何会改变其他 peer 对事件可见性、可写性、可分发性判断的 decision——`hard_deny`、`quarantine`、`require_review`——MUST 通过 anchored Move 写入协议状态。否则不同 Principal Server 在同一 Realm 上对同一事件作出不一致决策，会形成跨 peer 的 split-brain：A 把消息 quarantine 隐藏，B 直接 allow，两边客户端看到的 Realm 状态从此分叉。
 
 为此 v1 引入 `cx.component.moderation_state.v1` cell family：
 
@@ -283,9 +283,9 @@ Policy server decision 是 out-of-band 的签名决策，本身不进入 Space a
 
 对应 wire event：
 
-- `cx.moderation.decision` — 由持有 `cx.space.moderate` 或 `cx.policy.manage` 的 actor 签发的 Move，在 `cx.component.moderation_state.v1:<target>` cell 上写一个 `or-set add` effect。
+- `cx.moderation.decision` — 由持有 `cx.realm.moderate` 或 `cx.policy.manage` 的 actor 签发的 Move，在 `cx.component.moderation_state.v1:<target>` cell 上写一个 `or-set add` effect。
 - `cx.moderation.decision.lift` — 在同一 cell 上写 `or-set remove` effect，针对此前 add 的 tag。
-- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 policy server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。policy server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `cx.space.moderate` 或 `cx.policy.manage`。
+- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 policy server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。policy server signed decision 本身不是 capability 来源——签发 Move 的 actor 必须独立持有 `cx.realm.moderate` 或 `cx.policy.manage`。
 
 Reducer 与所有读路径 MUST：
 
@@ -296,15 +296,15 @@ Reducer 与所有读路径 MUST：
 
 Policy server fast path 与 anchored decision 的关系：
 
-- Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `cx.moderation.decision` Move 到该 Space 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
-- 若 origin 节点 24 小时内（或 Space policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `cx.space.moderate` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
+- Fast path 上，policy server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `cx.moderation.decision` Move 到该 Realm 的 anchor pipeline。Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 anchored decision。
+- 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 anchored decision——例如 anchorer paused、origin actor 失去 `cx.realm.moderate` capability、Move 被 `failed_precondition` 拒绝——MUST 解除本地隐藏并退回到 anchored decision frontier 实际值。这避免单一 origin 在 anchorer 故障期间无限期隔离他人内容。
 - Receiver 节点收到 fast-path quarantine signaling（policy server 签名）但无对应 anchored Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_pending_anchor` 并在 anchored decision 抵达后切换显示。
 
 **Fast-path 退回的 UX 规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：
 
-- 通过 ephemeral signal（client_sync extension）通知所有当前 viewing 该 Space 的客户端，附带 `reason_code=moderation_anchor_lifted` 与 `affected_event_id` 列表。
+- 通过 ephemeral signal（client_sync extension）通知所有当前 viewing 该 Realm 的客户端，附带 `reason_code=moderation_anchor_lifted` 与 `affected_event_id` 列表。
 - 客户端 UI MUST 显式提示用户内容重新可见（避免用户误以为自己看错），不得静默切换显示。形态可以是:
-  - 该 Space 顶部 banner: "X 条内容因审核未达成共识已恢复显示"
+  - 该 Realm 顶部 banner: "X 条内容因审核未达成共识已恢复显示"
   - 在 audit log / moderation history view 中保留 `quarantine_attempted_at` + `lifted_at` + `reason` 三段 trail（不是普通 message redaction history，而是独立的 moderation history）。
 - 已发出的 push notification SHOULD 由 push gateway 通过 silent update 收回（Apple/Google 平台的 silent push），但**不得**重新发送通知（避免双倍打扰）。
 - audit / search / projection 应从那一刻起按 anchored frontier 重建受影响 view；缓存中曾被 fast-path 隐藏的 entry MUST 立即失效。
@@ -343,7 +343,7 @@ Policy server fast path 与 anchored decision 的关系：
 
 Policy server 默认不是内容接收者。实现 MUST：
 
-- 对 E2EE Space 默认只发送 metadata。
+- 对 E2EE Realm 默认只发送 metadata。
 - 对媒体默认发送 hash、MIME、尺寸、扫描标签，不发送原始 bytes。
 - 对 handle、email、phone 等标识符使用 blinded token，除非用户或管理员明确授权。
 - 在 audit log 中记录向 policy server 披露了哪些字段。

@@ -51,7 +51,7 @@
       "notes": "Write orphan cleanup Move resetting stale reservation to '__unset__' sentinel. Held by controller; MAY be delegated to controller's sync node system actor. Event payload MUST carry anchor-based ttl_evidence (reservation_anchor_index + ttl_anchor_distance vs current_anchor_index)."
     },
     {
-      "action": "cx.space.discover",
+      "action": "cx.realm.discover",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -59,64 +59,64 @@
       "profile": null
     },
     {
-      "action": "cx.space.create",
+      "action": "cx.realm.create",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.create"
+        "cx.realm.create"
       ],
       "profile": null
     },
     {
-      "action": "cx.space.update",
+      "action": "cx.realm.update",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
         "fields_write_allow"
       ],
       "target_event_kinds": [
-        "cx.space.update"
+        "cx.realm.update"
       ],
       "profile": null
     },
     {
-      "action": "cx.space.lifecycle.archive",
+      "action": "cx.realm.lifecycle.archive",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.archive"
+        "cx.realm.archive"
       ],
       "profile": null
     },
     {
-      "action": "cx.space.lifecycle.freeze",
+      "action": "cx.realm.lifecycle.freeze",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.freeze"
+        "cx.realm.freeze"
       ],
       "profile": null
     },
     {
-      "action": "cx.space.lifecycle.tombstone",
+      "action": "cx.realm.lifecycle.tombstone",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.tombstone"
+        "cx.realm.tombstone"
       ],
       "profile": null
     },
     {
-      "action": "cx.space.lifecycle.destroy",
+      "action": "cx.realm.lifecycle.destroy",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.destroy"
+        "cx.realm.destroy"
       ],
       "profile": null
     },
@@ -163,7 +163,7 @@
       "target_event_kinds": [
         "cx.flow.restore",
         "cx.morph.restore",
-        "cx.place.restore"
+        "cx.space.restore"
       ],
       "profile": null
     },
@@ -328,7 +328,7 @@
       "profile": null
     },
     {
-      "action": "cx.space.notification.audit",
+      "action": "cx.realm.notification.audit",
       "category": "governance",
       "risk_tier": "high",
       "required_constraints": [],
@@ -336,66 +336,66 @@
       "profile": null
     },
     {
-      "action": "cx.place.create",
+      "action": "cx.space.create",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [
-        "place_kind_allow"
+        "space_kind_allow"
       ],
       "target_event_kinds": [
-        "cx.place.create"
+        "cx.space.create"
       ],
       "profile": null
     },
     {
-      "action": "cx.place.update",
+      "action": "cx.space.update",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [
-        "place_kind_allow"
+        "space_kind_allow"
       ],
       "target_event_kinds": [
-        "cx.place.update"
+        "cx.space.update"
       ],
       "profile": null
     },
     {
-      "action": "cx.place.parent",
+      "action": "cx.space.parent",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.place.parent"
+        "cx.space.parent"
       ],
       "profile": null
     },
     {
-      "action": "cx.place.archive",
+      "action": "cx.space.archive",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.place.archive"
+        "cx.space.archive"
       ],
       "profile": null
     },
     {
-      "action": "cx.place.restore",
+      "action": "cx.space.restore",
       "category": "flow",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.place.restore"
+        "cx.space.restore"
       ],
       "profile": null
     },
     {
-      "action": "cx.place.tombstone",
+      "action": "cx.space.tombstone",
       "category": "flow",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.place.tombstone"
+        "cx.space.tombstone"
       ],
       "profile": null
     },
@@ -534,7 +534,7 @@
       "profile": null
     },
     {
-      "action": "cx.space.admin",
+      "action": "cx.realm.admin",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -542,33 +542,32 @@
       "profile": null
     },
     {
-      "action": "cx.space.hierarchy.manage",
+      "action": "cx.realm.link.manage",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.parent",
-        "cx.space.child"
+        "cx.realm.link"
       ],
       "profile": null
     },
     {
-      "action": "cx.space.upgrade",
+      "action": "cx.realm.upgrade",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.upgrade"
+        "cx.realm.upgrade"
       ],
       "profile": null
     },
     {
-      "action": "cx.space.moderate",
+      "action": "cx.realm.moderate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.moderation_policy"
+        "cx.realm.moderation_policy"
       ],
       "profile": null
     },
@@ -691,7 +690,7 @@
       "profile": null
     },
     {
-      "action": "cx.space.join.review",
+      "action": "cx.realm.join.review",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -849,7 +848,7 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "cx.space.media_service"
+        "cx.realm.media_service"
       ],
       "profile": null
     },

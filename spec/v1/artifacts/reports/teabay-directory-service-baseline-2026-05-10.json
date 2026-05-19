@@ -37,7 +37,7 @@
       "covers": [
         "ephemeral PostgreSQL migrations",
         "directory describe",
-        "space search pagination and blinded restricted/secret resolution",
+        "realm search pagination and blinded restricted/secret resolution",
         "organization search and resolve",
         "actor search and mention search",
         "handle resolve",

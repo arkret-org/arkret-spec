@@ -4,7 +4,7 @@ title: "Client Preferences & Account Data"
 
 ## 1. 目标
 
-在 Contrix 网络中，绝大部分数据是跨节点共享的协作对象（Space、Place、Flow、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
+在 Contrix 网络中，绝大部分数据是跨节点共享的协作对象（Realm、Space、Flow、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
 
 本规范定义了这些**客户端偏好与账户数据 (Account Data)** 的存储、同步与标准 Schema。
 
@@ -35,11 +35,11 @@ title: "Client Preferences & Account Data"
 
 为了保证不同客户端间的互操作性，本规范定义了以下标准 Key 命名空间：
 
-### 3.1 空间标签与分类 (Space Tags)
+### 3.1 空间标签与分类 (Realm Tags)
 
-用户可以给加入的 Space 打上私有标签（例如“收藏”、“低优先级”、“公司项目”）。
+用户可以给加入的 Realm 打上私有标签（例如“收藏”、“低优先级”、“公司项目”）。
 
-**Key:** `cx.tags.space.<space_id>`
+**Key:** `cx.tags.realm.<realm_id>`
 
 ```json
 {
@@ -51,11 +51,11 @@ title: "Client Preferences & Account Data"
 }
 ```
 
-客户端 SHOULD 根据这些标签将 Space 在 UI 上分组或排序。`order` 是一种用于自定义排序的浮点数指示器。
+客户端 SHOULD 根据这些标签将 Realm 在 UI 上分组或排序。`order` 是一种用于自定义排序的浮点数指示器。
 
 ### 3.2 勿扰与通知设置 (Notification Settings)
 
-控制各个 Space 或全局的通知覆盖行为（详见 `push-notifications.md`）。
+控制各个 Realm 或全局的通知覆盖行为（详见 `push-notifications.md`）。
 
 **Key:** `cx.push_rules` 和 `cx.dnd_schedule`
 
@@ -86,8 +86,8 @@ title: "Client Preferences & Account Data"
 {
   "sidebar_collapsed": false,
   "recent_spaces": [
-    "cx:space:01964195-0000-7000-8000-000000000000",
-    "cx:space:01964195-8000-7000-8000-000000000000"
+    "cx:realm:01964195-0000-7000-8000-000000000000",
+    "cx:realm:01964195-8000-7000-8000-000000000000"
   ],
   "language": "zh-CN"
 }
@@ -95,7 +95,7 @@ title: "Client Preferences & Account Data"
 
 ### 3.5 个人屏蔽与过滤 (Personal Blocklist)
 
-用户可以在私有 account data 中保存个人 blocklist。该数据只影响用户自己的客户端、本地搜索/投影、通知规则和联系请求处理，不改变 Space 的共享事实。
+用户可以在私有 account data 中保存个人 blocklist。该数据只影响用户自己的客户端、本地搜索/投影、通知规则和联系请求处理，不改变 Realm 的共享事实。
 
 **Key:** `cx.account.blocklist`
 
@@ -142,13 +142,13 @@ title: "Client Preferences & Account Data"
 
 - 通过非可信服务同步时，account blocklist MUST 仅为 holder 自己的设备加密。
 - 客户端 SHOULD 抑制来自被屏蔽对象的通知、联系人请求、通话邀请与 DM 请求。
-- 客户端 MAY 在共享 Space 视图中隐藏或折叠被屏蔽内容。
-- 客户端 MUST NOT 把 blocklist 发布到公共 Space 状态或目录服务。
+- 客户端 MAY 在共享 Realm 视图中隐藏或折叠被屏蔽内容。
+- 客户端 MUST NOT 把 blocklist 发布到公共 Realm 状态或目录服务。
 - 屏蔽组织或域 MUST 在可能时通过已验证的 DID / claim 绑定评估；仅有弱字符串匹配时，客户端 SHOULD 给出警告。
 
 ### 3.6 联系人备注 (Contact Remarks)
 
-用户可以为已知联系人（其他 Actor / Organization / 设备）保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Space history、mention、sender attribution 或任何协议主体字段。
+用户可以为已知联系人（其他 Actor / Organization / 设备）保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Realm history、mention、sender attribution 或任何协议主体字段。
 
 **Key:** `cx.contacts.actor.<did>`
 
@@ -178,7 +178,7 @@ title: "Client Preferences & Account Data"
 | `subject.did` | `did` | yes | 备注对象 DID；MUST 与 key 中 `<did>` 完全一致。 |
 | `local_name` | `string` | no | 本地备注名，最大 128 字符；规范化与 confusable 处理与 display name 一致（见 [`conformance/encoding.md`](../conformance/encoding.md) §2）。 |
 | `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
-| `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Space tags（`cx.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
+| `tags` | `string[]` | no | 私有分组标签，命名规则同 §3.1 Realm tags（`cx.*` 保留给本规范，`<vendor>.*` 用于客户端扩展）。 |
 | `pinned` | `bool` | no | 是否置顶。 |
 | `verified_handle_at_save` | `string` | no | 保存或最近一次更新时该 DID 的 verified handle 快照，用于反冒充比对。 |
 | `saved_at` | `timestamp` | yes | 首次保存时间。 |
@@ -187,7 +187,7 @@ title: "Client Preferences & Account Data"
 规则：
 
 - 该 key 是 actor-private，MUST 与 §3.5 blocklist 一样以加密 account data 形式同步，Sync Service 不得读取明文。
-- `local_name` 与 `note` MUST NOT 通过 mention、quote、forward、profile、Space state 或 directory 泄露给备注对象本人或其他成员。客户端构造引用、转发或导出时 MUST 使用对方公开的 display name / handle，不得替换为本地备注。
+- `local_name` 与 `note` MUST NOT 通过 mention、quote、forward、profile、Realm state 或 directory 泄露给备注对象本人或其他成员。客户端构造引用、转发或导出时 MUST 使用对方公开的 display name / handle，不得替换为本地备注。
 - 本地备注 MUST NOT 参与 ACL、grant subject、policy condition、audit attribution、sender verification 或 MLS credential 判定，约束与 [`identity/identity-handles.md`](../identity/identity-handles.md) §2.3 中 display name 一致。
 - UI 显示本地备注时 SHOULD 同时呈现对方 verified handle 或 DID 短摘要，使用户可识别"备注名相同但 DID 不同"的冒充尝试；安全敏感 UI（DM 邀请、approval、转账类操作）MUST 能直接显示对方 DID。
 - 当对方当前 verified handle 与 `verified_handle_at_save` 不一致时，客户端 SHOULD 在该联系人的渲染处显示 handle changed / transferred 标记，并提示用户复核备注，与 [`identity/identity-handles.md`](../identity/identity-handles.md) §6.1 的缓存失效语义一致。
@@ -195,23 +195,23 @@ title: "Client Preferences & Account Data"
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
 - 删除联系人备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理。
 
-### 3.7 Space 备注 (Space Remarks)
+### 3.7 Realm 备注 (Realm Remarks)
 
-用户可以为已加入或已收藏的 Space 保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改 Space 公开的 `title` / `summary`，**不**写入 Space history、invite 文案、directory 投影或任何协议主体字段。
+用户可以为已加入或已收藏的 Realm 保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改 Realm 公开的 `title` / `summary`，**不**写入 Realm history、invite 文案、directory 投影或任何协议主体字段。
 
-典型场景：用户加入多个 `title` 相同的 Space（例如多个 "Engineering"、多家客户都用 "项目 A"），需要在本地侧栏稳定区分而无需向其他成员暴露区分依据。
+典型场景：用户加入多个 `title` 相同的 Realm（例如多个 "Engineering"、多家客户都用 "项目 A"），需要在本地侧栏稳定区分而无需向其他成员暴露区分依据。
 
-**Key:** `cx.contacts.space.<space_id>`
+**Key:** `cx.contacts.realm.<realm_id>`
 
 ```json
 {
   "version": 1,
   "subject": {
-    "kind": "space",
-    "id": "cx:space:0196419b-0000-7000-8000-000000000000"
+    "kind": "realm",
+    "id": "cx:realm:0196419b-0000-7000-8000-000000000000"
   },
   "local_name": "Acme 内部 · 工程",
-  "note": "和外包侧 Engineering Space 同名，注意区分",
+  "note": "和外包侧 Engineering Realm 同名，注意区分",
   "tags": ["work", "high_signal"],
   "pinned": true,
   "verified_title_at_save": "Engineering",
@@ -226,13 +226,13 @@ title: "Client Preferences & Account Data"
 | 字段 | 类型 | 必需 | 说明 |
 | --- | --- | --- | --- |
 | `version` | `int` | yes | schema 版本，当前为 `1`。 |
-| `subject.kind` | `enum(space)` | yes | 固定 `space`，与 §3.6 联系人备注（actor/organization/device/service）正交。 |
-| `subject.id` | `id:space` | yes | 备注对象 Space ID；MUST 与 key 中 `<space_id>` 完全一致。 |
+| `subject.kind` | `enum(realm)` | yes | 固定 `realm`，与 §3.6 联系人备注（actor/organization/device/service）正交。 |
+| `subject.id` | `id:realm` | yes | 备注对象 Realm ID；MUST 与 key 中 `<realm_id>` 完全一致。 |
 | `local_name` | `string` | no | 本地备注名，最大 128 字符；规范化与 confusable 处理与 §3.6 `local_name` 一致（见 [`conformance/encoding.md`](../conformance/encoding.md) §2）。 |
 | `note` | `string` | no | 自由文本笔记，最大 4096 字符。 |
-| `tags` | `string[]` | no | 私有分组标签，命名空间与 §3.1 `cx.tags.space.<space_id>.tags` 互通（同名 tag 视为同一分组）；`cx.*` 保留给本规范，`<vendor>.*` 用于客户端扩展。 |
+| `tags` | `string[]` | no | 私有分组标签，命名空间与 §3.1 `cx.tags.realm.<realm_id>.tags` 互通（同名 tag 视为同一分组）；`cx.*` 保留给本规范，`<vendor>.*` 用于客户端扩展。 |
 | `pinned` | `bool` | no | 是否置顶。 |
-| `verified_title_at_save` | `string` | no | 保存或最近一次更新时 Space 公开 `title` 的快照，用于反"改名混淆"。 |
+| `verified_title_at_save` | `string` | no | 保存或最近一次更新时 Realm 公开 `title` 的快照，用于反"改名混淆"。 |
 | `verified_owning_organizations_at_save` | `did[]` | no | 保存时 `owning_organizations` 快照，用于在组织漂移 / takeover 时给出复核提示。 |
 | `saved_at` | `timestamp` | yes | 首次保存时间。 |
 | `updated_at` | `timestamp` | no | 最近修改时间。 |
@@ -240,18 +240,18 @@ title: "Client Preferences & Account Data"
 规则：
 
 - 该 key 是 actor-private，MUST 与 §3.5、§3.6 一样以加密 account data 形式同步，Sync Service 不得读取明文。
-- `local_name` 与 `note` MUST NOT 通过 invite 文案、mention、quote、forward、directory 投影、shared link preview 或任何 Space state 字段泄露给其他 Space 成员；客户端构造邀请、跨端 share sheet、跨 Space 引用或导出时 MUST 使用 Space 公开 `title`，不得替换为本地备注。
+- `local_name` 与 `note` MUST NOT 通过 invite 文案、mention、quote、forward、directory 投影、shared link preview 或任何 Realm state 字段泄露给其他 Realm 成员；客户端构造邀请、跨端 share sheet、跨 Realm 引用或导出时 MUST 使用 Realm 公开 `title`，不得替换为本地备注。
 - 本地备注 MUST NOT 参与 ACL、capability subject、policy condition、audit attribution、MLS credential 或 federation routing 判定，约束与 §3.6 中本地联系人备注一致。
-- UI 显示本地备注时 SHOULD 同时呈现 Space 公开 `title` 或 `cx:space:` 短摘要（uuid 前 8 位），使用户可识别"备注相同但 Space 不同"的误判；安全敏感 UI（删除 / archive / tombstone Space、跨 Space 邀请确认、转账类 applet 调用）MUST 能直接显示完整 `space_id` 与 `owning_organizations`。
-- 当 Space 公开 `title` 与 `verified_title_at_save` 不一致，或 `owning_organizations` 与 `verified_owning_organizations_at_save` 不一致时，客户端 SHOULD 在该 Space 渲染处显示 title changed / org changed 标记，并提示用户复核备注；该机制与 §3.6 `verified_handle_at_save` 对称。
-- 当用户已加入的多个 Space 的公开 `title` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / parent Space / `cx:space:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
+- UI 显示本地备注时 SHOULD 同时呈现 Realm 公开 `title` 或 `cx:realm:` 短摘要（uuid 前 8 位），使用户可识别"备注相同但 Realm 不同"的误判；安全敏感 UI（删除 / archive / tombstone Realm、跨 Realm 邀请确认、转账类 applet 调用）MUST 能直接显示完整 `realm_id` 与 `owning_organizations`。
+- 当 Realm 公开 `title` 与 `verified_title_at_save` 不一致，或 `owning_organizations` 与 `verified_owning_organizations_at_save` 不一致时，客户端 SHOULD 在该 Realm 渲染处显示 title changed / org changed 标记，并提示用户复核备注；该机制与 §3.6 `verified_handle_at_save` 对称。
+- 当用户已加入的多个 Realm 的公开 `title` 字符串相同或高度 confusable（按 [`conformance/encoding.md`](../conformance/encoding.md) §2.1 规则）时，UI MUST 优先按 `local_name` 区分；缺少 `local_name` 时 MUST 退化到 `owning_organizations` / source Realm / `cx:realm:` 短摘要等附加上下文，不得在仅显示 `title` 的情况下让用户做破坏性或不可逆操作。
 - 客户端 MUST NOT 在未加密的本地缓存、日志、push payload 或崩溃报告中泄露 `local_name` 与 `note`。
-- 删除 Space 备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理；用户离开或被踢出 Space MAY 触发自动 tombstone（客户端策略，规范不强制）。
-- `cx.contacts.space.<space_id>` 与 §3.1 `cx.tags.space.<space_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `space_id` join 二者，规范上互不替代。
+- 删除 Realm 备注 MUST 通过 `cx.account_data.set` 写入空对象或显式 `tombstone`，不依赖客户端本地清理；用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
+- `cx.contacts.realm.<realm_id>` 与 §3.1 `cx.tags.realm.<realm_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `realm_id` join 二者，规范上互不替代。
 
 ### 3.8 已读回执偏好 (Read Receipt Preferences)
 
-控制是否向其他成员发送 `cx.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Space 或 Flow / discussion track 单独重写。
+控制是否向其他成员发送 `cx.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Realm 或 Flow / discussion track 单独重写。
 
 **Key:** `cx.read_receipt.preferences`
 
@@ -260,8 +260,8 @@ title: "Client Preferences & Account Data"
   "default": {
     "send": true
   },
-  "spaces": {
-    "cx:space:0196419b-0000-7000-8000-000000000000": {
+  "realms": {
+    "cx:realm:0196419b-0000-7000-8000-000000000000": {
       "send": false
     }
   },
@@ -278,22 +278,22 @@ title: "Client Preferences & Account Data"
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `default.send` | `bool` | `true` | 全局是否发送 `cx.receipt.read`。 |
-| `spaces.<space_id>.send` | `bool` |  | 针对单个 Space 的覆盖，优先于 `default`。 |
-| `flows.<flow_id>.send` | `bool` |  | 针对单个 Flow / discussion track 的覆盖，优先于 `spaces.<space_id>`。 |
+| `realms.<realm_id>.send` | `bool` |  | 针对单个 Realm 的覆盖，优先于 `default`。 |
+| `flows.<flow_id>.send` | `bool` |  | 针对单个 Flow / discussion track 的覆盖，优先于 `realms.<realm_id>`。 |
 
 规则：
 
 - 该 key 是 actor-private，加密存储于 account data；其他成员或 Sync Service 不得读取明文。
-- 客户端在生成 `cx.receipt.read` 前 MUST 按 (flow, space, default) 顺序解析有效 `send`，最先命中的非空值生效。
+- 客户端在生成 `cx.receipt.read` 前 MUST 按 (flow, realm, default) 顺序解析有效 `send`，最先命中的非空值生效。
 - 该偏好 MUST NOT 影响 §3 中 actor-private 的 Read Marker（`cx.read.marker`）发送或多端同步。
-- 当目标 Space / Flow 声明 `cx.space.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST 不允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Space / Flow 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
-- 客户端 MAY 在 UI 上将常用过滤维度（按 Space 标签、按 Organization）做成批量编辑入口，但实际 canonical state 仍以本 key 中的逐 ID 覆盖为准。
+- 当目标 Realm / Flow 声明 `cx.realm.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST 不允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Realm / Flow 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
+- 客户端 MAY 在 UI 上将常用过滤维度（按 Realm 标签、按 Organization）做成批量编辑入口，但实际 canonical state 仍以本 key 中的逐 ID 覆盖为准。
 
 ## 4. 与本地投影的交互
 
 虽然 account data 对外不公开，但用户自己的客户端或可信端侧节点会拉取并解密这些数据，并合并到本地查询结果中。
 
-例如：当客户端以 `object_types=["space"]` 查询加入的 Space 列表时，本地 projection 可以按 `space_id` 同时 join `cx.tags.space.*`（私有标签与排序）与 `cx.contacts.space.*`（本地备注名、笔记、置顶），得到带 `local_name` 与 tag 的 Space 列表，并在 `title` 重复时优先按 `local_name` 区分。
+例如：当客户端以 `object_types=["realm"]` 查询加入的 Realm 列表时，本地 projection 可以按 `realm_id` 同时 join `cx.tags.realm.*`（私有标签与排序）与 `cx.contacts.realm.*`（本地备注名、笔记、置顶），得到带 `local_name` 与 tag 的 Realm 列表，并在 `title` 重复时优先按 `local_name` 区分。
 
 ## 5. 安全与隐私
 

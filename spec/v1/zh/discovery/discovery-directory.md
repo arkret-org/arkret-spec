@@ -12,7 +12,7 @@ Contrix 需要明确区分三件事：
 
 发现不等于读取，读取不等于加入，加入不等于写入。实现 MUST NOT 用 `join_rule` 或 `history_visibility` 代替 discoverability policy。
 
-本文定义 Space、Organization、Actor 和 Applet 的发现模型、目录服务和防枚举要求。
+本文定义 Realm、Organization、Actor 和 Applet 的发现模型、目录服务和防枚举要求。
 
 ## 2. 发现级别
 
@@ -21,26 +21,26 @@ Contrix 需要明确区分三件事：
 | 值 | 含义 |
 | --- | --- |
 | `public` | 可被公共目录索引和搜索。 |
-| `listed` | 可在指定目录、组织页、父 Space 或受信目录中列出，但不一定进入全网公共搜索。 |
-| `restricted` | 只有满足可验证条件的请求方可发现，例如组织成员、受邀者、共同 Space 成员或持有特定 claim 的主体。 |
+| `listed` | 可在指定目录、组织页、源 Realm 或受信目录中列出，但不一定进入全网公共搜索。 |
+| `restricted` | 只有满足可验证条件的请求方可发现，例如组织成员、受邀者、共同 Realm 成员或持有特定 claim 的主体。 |
 | `unlisted` | 不进入目录搜索；知道精确 id、alias、邀请链接或 parent edge 的主体 MAY 尝试解析。 |
 | `invite_only` | 未被邀请或未持有 invite proof 的主体不得得知其存在；查询应返回与不存在相同的错误。 |
 | `secret` | 仅本地或端到端加密上下文中可见；目录、Sync Service 和受托 search / projection 服务不应公开可枚举 metadata。 |
 
 默认值：
 
-- 新 Space 默认 `invite_only`。
+- 新 Realm 默认 `invite_only`。
 - 新 Organization profile 默认 `listed`，但 MAY 设置为 `restricted` 或 `unlisted`。
 - Pairwise / private DID 默认 `secret`。
 - Public Persona DID 默认 `public` 或 `listed`，由 holder policy 决定。
 
-## 3. Space Discoverability
+## 3. Realm Discoverability
 
-Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
+Realm discovery policy SHOULD 由 `cx.realm.discovery` state event 表达：
 
 ```json
 {
-  "kind": "cx.space.discovery",
+  "kind": "cx.realm.discovery",
   "payload": {
     "discoverability": "listed",
     "directory_visibility": {
@@ -81,11 +81,11 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 
 规则：
 
-- `discoverability=public` 的 Space MAY 被公共目录服务索引。
-- `listed` Space MUST 仅出现在 `directory_visibility` 或 `directory_services` 明确允许的目录中。
-- `restricted` Space MUST 在返回搜索结果前要求目录查询授权。
-- `unlisted` Space MUST NOT 出现在关键字搜索，但在 policy 允许时 MAY 通过精确 id / alias / 签名 invite / parent edge 解析。
-- 未授权 subject 对 `invite_only` 与 `secret` Space 的查询 MUST 返回 `not_found` 或与其不可区分的响应。
+- `discoverability=public` 的 Realm MAY 被公共目录服务索引。
+- `listed` Realm MUST 仅出现在 `directory_visibility` 或 `directory_services` 明确允许的目录中。
+- `restricted` Realm MUST 在返回搜索结果前要求目录查询授权。
+- `unlisted` Realm MUST NOT 出现在关键字搜索，但在 policy 允许时 MAY 通过精确 id / alias / 签名 invite / parent edge 解析。
+- 未授权 subject 对 `invite_only` 与 `secret` Realm 的查询 MUST 返回 `not_found` 或与其不可区分的响应。
 - 在未单独授权时，目录结果 MUST NOT 包含事件历史、成员列表、policy 原文、MLS 状态、隐藏 parent/child edge 或完整组织治理链。
 
 `anti_enumeration.member_count_mode` 取值 normative：
@@ -96,9 +96,9 @@ Space discovery policy SHOULD 由 `cx.space.discovery` state event 表达：
 | `bucketed` | 返回**封闭 bucket** 之一：`1-10` / `11-50` / `51-100` / `101-500` / `501-2000` / `2000+`。Directory 实现 MUST 使用本 bucket grid，不得自定义粒度（防止粒度差异成为枚举侧信道）。请求方收到不在此枚举的 bucket 字符串 MUST 视作 `invalid_response` 并丢弃。 |
 | `omit` | 不返回成员数；任何隐含的 hint（如返回组员数组的 length）也 MUST 被裁剪。 |
 
-`unlisted` / `invite_only` / `secret` Space 的 `member_count_mode` 默认 `omit`；显式声明 `bucketed` 时必须遵守上述 bucket grid。
+`unlisted` / `invite_only` / `secret` Realm 的 `member_count_mode` 默认 `omit`；显式声明 `bucketed` 时必须遵守上述 bucket grid。
 
-`join_rule` 只控制加入流程。公开可发现的 Space MAY 仍要求 invite、knock 或 restricted join。不可发现的 Space MAY 对持有私有链接的成员保持 `join_rule=public`，但除非配套强反垃圾策略，否则不推荐。
+`join_rule` 只控制加入流程。公开可发现的 Realm MAY 仍要求 invite、knock 或 restricted join。不可发现的 Realm MAY 对持有私有链接的成员保持 `join_rule=public`，但除非配套强反垃圾策略，否则不推荐。
 
 `history_visibility` 只控制历史读取范围。`discoverability=public` MUST NOT 隐含 `history_visibility=world_readable`。
 
@@ -135,13 +135,13 @@ flowchart TB
 读图要点：
 
 - **Discoverability** 只控制资源是否能在搜索 / Directory / preview 里出现；不决定加入资格，也不决定历史读取范围。
-- **Join Rule** 只控制加入流程；不可发现的 Space 也可以是 `join_rule=public`（持有私链接即可加入），公开 Space 也可以是 `join_rule=invite`。
+- **Join Rule** 只控制加入流程；不可发现的 Realm 也可以是 `join_rule=public`（持有私链接即可加入），公开 Realm 也可以是 `join_rule=invite`。
 - **History Visibility** 只控制加入后能看多少历史；与前两者完全正交。
 - 任何把 `discoverability` 当作 `join_rule` 或 `history_visibility` 简写的实现都是错误——下表 §3.x 锁定了允许的组合。
 
 ### 3.x `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
 
-下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Space create 时显示警告；`✗` = MUST 拒绝（reducer 在 `cx.space.policy_components` accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
+下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Realm create 时显示警告；`✗` = MUST 拒绝（reducer 在 `cx.realm.policy_components` accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
 
 | discoverability ↓ \ join_rule → | `public` | `invite` | `knock` | `restricted` | `knock_restricted` | `closed` |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -159,7 +159,7 @@ flowchart TB
 - `shared` / `invited` / `joined` 与所有 discoverability 组合兼容。
 - `restricted` 历史可见性 MUST 与显式 history-sharing policy 一致；与 `discoverability=public` 组合时仍 SHOULD 限制 lazy member preview 防止枚举。
 
-实现 MUST 在 `cx.space.policy_components` reducer 接受前用本表校验当前 effective 状态；变更任一字段使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留旧值。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
+实现 MUST 在 `cx.realm.policy_components` reducer 接受前用本表校验当前 effective 状态；变更任一字段使组合落入 `✗` 时 MUST 返回 `policy_combination_invalid` 并保留旧值。本表是 v1 wire 互操作的最小集，profile 可以**收紧**但不得放宽。
 
 ## 4. Organization 可发现性
 
@@ -189,13 +189,13 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
 }
 ```
 
-Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 因为组织 DID 可解析，就公开组织成员列表、官方 Space 列表、服务拓扑或治理策略全文。
+Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 因为组织 DID 可解析，就公开组织成员列表、官方 Realm 列表、服务拓扑或治理策略全文。
 
 客户端展示组织搜索结果时 SHOULD verify：
 
 1. Organization DID 可解析。
 2. discovery policy 或 profile 由组织 DID / governance service 签名。
-3. 如果结果声称包含 official Space，仍需验证每个 Space 的 `cx.space.organization` 背书。
+3. 如果结果声称包含 official Realm，仍需验证每个 Realm 的 `cx.realm.organization` 背书。
 4. 目录服务 DID 被组织 DID 声明或被本地 trust policy 接受。
 
 ## 5. Actor 与 Handle 可发现性
@@ -205,10 +205,10 @@ Actor / Principal 发现 MUST 尊重 holder 隐私：
 - 公开 persona MAY 出现在公共用户目录中。
 - Pairwise DID、私有 DID、设备 DID 与隐私敏感的 agent DID 默认 MUST NOT 出现在公共目录中。
 - Handle 搜索 MUST 仅返回绑定公开或 holder 已显式授权披露的 handle。
-- Handle 搜索 / 解析若会暴露 `subject` DID 或 `recipient_service_did`，MUST 额外满足 requester proof、intent、audience / challenge 和 issuer policy；共同 Space 或同组织排序信号不得单独授权披露。
-- Presence、common Space、组织成员与联系人图谱 MUST NOT 通过搜索排序或自动补全泄露。
+- Handle 搜索 / 解析若会暴露 `subject` DID 或 `recipient_service_did`，MUST 额外满足 requester proof、intent、audience / challenge 和 issuer policy；共同 Realm 或同组织排序信号不得单独授权披露。
+- Presence、common Realm、组织成员与联系人图谱 MUST NOT 通过搜索排序或自动补全泄露。
 
-在共享 Space 中查询未知 actor profile，仅允许在渲染已授权内容（如显示名、头像）所必需的范围内进行；MUST NOT 借此泄露无关 handle 或组织账号。
+在共享 Realm 中查询未知 actor profile，仅允许在渲染已授权内容（如显示名、头像）所必需的范围内进行；MUST NOT 借此泄露无关 handle 或组织账号。
 
 ## 6. Private Contact Discovery
 
@@ -269,7 +269,7 @@ OPRF 选择：
 
 - Raw email、phone number、address-book label、local contact name 和未加盐低熵 hash MUST NOT 被发送给公共 Directory，包括第一轮的 OPRF input（OPRF Blind 已经做了 unlinkable 化，但实现仍 MUST 在客户端先做 normalization + canonical encoding，杜绝把明文写入 audit log）。
 - Provider MUST 对 batch 大小、padding count、失败响应、计时和 result cardinality 做反枚举处理；不存在、不可发现、policy-denied 和 OPRF mismatch 在 wire 上 SHOULD 保持相同响应形态与延迟分布。
-- Provider MUST NOT 在第二轮返回 reachability proof、handle verified claim、组织成员资格、Space membership 或读取权限。这些声明只能通过后续 invite + consent 流程获得。
+- Provider MUST NOT 在第二轮返回 reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。这些声明只能通过后续 invite + consent 流程获得。
 - Private discovery 结果**仅** 证明"在 provider 当前可联系集合中存在 OPRF derived 与某项匹配的条目"——不证明该条目对应的真实身份、handle、活跃度或意愿。客户端 UI MUST 把它表述为"可能可联系"而不是"已确认存在"。
 - 高隐私客户端 SHOULD 为每个 provider 或关系使用 pairwise DID，并在 consent 完成前避免披露全局 public persona DID。
 - 实现 MUST NOT 在同一 OPRF key epoch 内允许同一 client 提交超过 `max_psi_queries_per_epoch`（默认 1）次 batch；超过后 provider 返回 `psi_quota_exhausted`。这避免攻击者用同一 OPRF key 对大量 identifier 做枚举；新 key epoch 自动重置。
@@ -280,7 +280,7 @@ Directory Service 是 Contrix 的**发现入口层**：让任意 subject 在不�
 
 它的职责面 normative 限定为三件事，超出以下范围的能力 MUST NOT 被实现为 Directory 的内置职责：
 
-1. **Ingest**：按 §8 接入资源（Space / Organization / Actor / Applet / Handle）的签名 discovery state，建立**可重建、可替换、可撤销**的索引。
+1. **Ingest**：按 §8 接入资源（Realm / Organization / Actor / Applet / Handle）的签名 discovery state，建立**可重建、可替换、可撤销**的索引。
 2. **Query**：向 subject 提供 search / resolve（§9），返回最小可验证元数据 + `source_refs`，让客户端能独立回真相源验签。
 3. **Filter & 防枚举**：执行 §3 / §11 的 discoverability 过滤、bucket 聚合、blinded `not_found`，杜绝侧信道。
 
@@ -288,7 +288,7 @@ Directory Service 是 Contrix 的**发现入口层**：让任意 subject 在不�
 
 Directory MAY index：
 
-- public / listed Space preview metadata
+- public / listed Realm preview metadata
 - organization public profile
 - public persona profile
 - applet protocol metadata
@@ -301,14 +301,14 @@ Directory MUST NOT 索引任何**未通过 §8 ingest protocol opt-in 的**资�
 | 不是 | 真正责任方 |
 | --- | --- |
 | 真相源 | 资源各自的 Principal Server 上的签名 state event |
-| 授权决策点 | Space policy / Organization governance / capability evaluator |
-| Join 执行点 | host Principal Server 按 `join_rule` + Space policy |
+| 授权决策点 | Realm policy / Organization governance / capability evaluator |
+| Join 执行点 | host Principal Server 按 `join_rule` + Realm policy |
 | 身份解析器 | DID resolver / identity registry / witness |
 | 消息或历史镜像 | Events API / Sync stream |
 | Service topology 权威 | DID Document `service` entry + `cx.organization.service_binding` |
 | 全网爬虫 | 不存在；ingest 仅按 §8 双向 opt-in |
 
-特别地：**Directory 不执行 join、不签发 invite token、不签发 capability grant**。Directory 的 join-side 责任到"产出 `space_id + via_services` 让客户端能向正确的 Principal Server 发起 `cx.space.join`"为止。能否实际加入由 Space 的 `join_rule` 与 policy 决定（见 §3.0 三个独立 gate）。
+特别地：**Directory 不执行 join、不签发 invite token、不签发 capability grant**。Directory 的 join-side 责任到"产出 `realm_id + via_services` 让客户端能向正确的 Principal Server 发起 `cx.realm.join`"为止。能否实际加入由 Realm 的 `join_rule` 与 policy 决定（见 §3.0 三个独立 gate）。
 
 ### 7.3 不变量（normative）
 
@@ -318,8 +318,8 @@ Directory MUST NOT 索引任何**未通过 §8 ingest protocol opt-in 的**资�
 2. **Pluralizable**：同一资源 opt-in 多家 Directory 时，针对同一 `(resource_id, source_refs frontier, policy_revision)` 的查询结果 MUST 在 §9.1 normative 字段上一致；不一致 MUST 标记为 `stale=true` 或 `divergent=true`。
 3. **Freshness-tagged**：每条返回结果 MUST 携带 `as_of`、`source_refs`、`policy_revision`；TTL 过期未续约的 entry MUST 标记 `stale=true` 或被移除（见 §8.6）。
 4. **Withdrawable**：资源 governance 通过 §8.7 撤销 opt-in 后，Directory MUST 在 ≤ 1h 内停止披露该资源。
-5. **Plaintext-free**：Directory MUST NOT 持有或转发 Space 内 plaintext content、E2EE 密文 payload、私 persona DID、pairwise DID 或 governance 密钥材料。
-6. **No-shadow-grant**：Directory MUST NOT 签发 invite token、capability grant、session credential 或任何能绕过 Space / Organization policy 的认证材料。
+5. **Plaintext-free**：Directory MUST NOT 持有或转发 Realm 内 plaintext content、E2EE 密文 payload、私 persona DID、pairwise DID 或 governance 密钥材料。
+6. **No-shadow-grant**：Directory MUST NOT 签发 invite token、capability grant、session credential 或任何能绕过 Realm / Organization policy 的认证材料。
 
 ### 7.4 行为契约
 
@@ -352,7 +352,7 @@ ingest 是**双向 opt-in**，缺一不可：
 
 | 方向 | 资源端表达 | Directory 端表达 |
 | --- | --- | --- |
-| 资源 → Directory | 在 `cx.{space,organization,actor,applet,handle}.discovery.directory_services` 列出本 Directory 的 service DID + governance key 签名整份 payload | — |
+| 资源 → Directory | 在 `cx.{realm,organization,actor,applet,handle}.discovery.directory_services` 列出本 Directory 的 service DID + governance key 签名整份 payload | — |
 | Directory → 资源 | — | 在 `cx.directory.describe.accept_policy_kind` 中声明可接受的资源类别、trust root、配额（§8.9） |
 
 Directory 接受 ingest 的前置条件：
@@ -379,14 +379,14 @@ Directory MUST 支持 **push (announce)** 与 **pull (subscribe)** 两种 ingest
 **认证**：
 
 - Transport 层：HTTP Message Signature（RFC 9421）由资源所在 Principal Server 的 service DID 签发，绑定 `Source-Service-DID` header。
-- Payload 层：`discovery_state.proof.detached_jws` 由资源 governance key（按资源 DID document 解析）签发，与 `cx.organization.discovery` / `cx.space.discovery` 的 effective signer 一致。
+- Payload 层：`discovery_state.proof.detached_jws` 由资源 governance key（按资源 DID document 解析）签发，与 `cx.organization.discovery` / `cx.realm.discovery` 的 effective signer 一致。
 
 **请求字段**：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `resource_kind` | `enum(space, organization, actor, applet, handle)` | required | 资源类别。 |
-| `resource_id` | `id \| did \| handle` | required | 资源主键：Space 用 `cx:space:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
+| `resource_kind` | `enum(realm, organization, actor, applet, handle)` | required | 资源类别。 |
+| `resource_id` | `id \| did \| handle` | required | 资源主键：Realm 用 `cx:realm:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
 | `discovery_state` | `object` | required | 完整签名 `cx.{kind}.discovery` payload（含 `proof`）。MUST 与真相源 byte-for-byte 一致。 |
 | `source_refs` | `id[]` | required | 真相源 event id 列表，至少包含产生当前 effective discovery state 的 anchor / state event id。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
@@ -443,7 +443,7 @@ Pull 模式复用资源 Principal Server 既有的 `cx.events.query`：
 ```
 GET /api/v1/events
   ?subject={resource_id}
-  &kind=cx.{space,organization,actor,applet}.discovery
+  &kind=cx.{realm,organization,actor,applet}.discovery
   &state_only=true
   &after_revision={last_known_revision}
 ```
@@ -539,8 +539,8 @@ Recommended operations：
 
 ```text
 GET  /api/v1/directory/describe
-POST /api/v1/directory/search-spaces
-POST /api/v1/directory/resolve-space
+POST /api/v1/directory/search-realms
+POST /api/v1/directory/resolve-realm
 POST /api/v1/directory/search-organizations
 POST /api/v1/directory/resolve-organization
 POST /api/v1/directory/search-actors
@@ -557,13 +557,13 @@ POST /api/v1/directory/subscribe
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
 | `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
-| `cx.directory.search_spaces` | 无 | `query: string`; `organization_did: did`; `parent_space_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
-| `cx.directory.resolve_space` | 至少一个：`space_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | `via_services` 在 v1 normative，MUST 给出 host Principal Server service DID 让客户端能发起 join；invite / restricted / secret Space 对未授权请求使用统一 `not_found`。 |
+| `cx.directory.search_spaces` | 无 | `query: string`; `organization_did: did`; `parent_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
+| `cx.directory.resolve_space` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | `via_services` 在 v1 normative，MUST 给出 host Principal Server service DID 让客户端能发起 join；invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
 | `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 仅返回公开或授权可发现组织。 |
-| `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Space 列表或服务拓扑。 |
-| `cx.directory.search_actors` | 无 | `query: string`; `space_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
-| `cx.directory.search_users` | `body.q: string` | `body.space_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)` | `results: object[]` | mention autocomplete；受共同 Space / directory policy 限制。结果 MAY 含 handle preview，但不得在未授权时披露 `subject` DID 或 `recipient_service_did`。`q` 不得进入 URL、Referer 或未脱敏 access log。 |
-| `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `space_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `handle_uri: uri`; `verified: boolean`; `claims: object[]?`; `recipient_service_did: did?`; `delivery_binding_hint: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；`recipient_service_did` 只能在 claim 已验证且请求方有权获得该上下文时返回。 |
+| `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
+| `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
+| `cx.directory.search_users` | `body.q: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)` | `results: object[]` | mention autocomplete；受共同 Realm / directory policy 限制。结果 MAY 含 handle preview，但不得在未授权时披露 `subject` DID 或 `recipient_service_did`。`q` 不得进入 URL、Referer 或未脱敏 access log。 |
+| `cx.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `handle_uri: uri`; `verified: boolean`; `claims: object[]?`; `recipient_service_did: did?`; `delivery_binding_hint: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 受限 / 组织 handle 需要 presentation；`recipient_service_did` 只能在 claim 已验证且请求方有权获得该上下文时返回。 |
 | `cx.directory.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
 | `cx.directory.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
 | `cx.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdraw_id: id`; `acked_at: timestamp` | 见 §8.7。 |
@@ -579,7 +579,7 @@ Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`contrix://a
 2. `handle_uri` 是 canonical URI（`contrix://<domain>/users/<localpart>` 主形态）；UI 字符串不得作为验签输入。
 3. `recipient_service_did` 是 Principal Server service DID，且 claim issuer 对该 service DID 的使用有可验证授权。
 4. `claims[]` 至少包含一个可验证 handle claim、VC presentation 或 signed directory claim，绑定 `handle_uri`、`subject`、`recipient_service_did`、issuer、`audience`、`created_at`、`expires_at`。
-5. claim `audience` MUST 等于请求中 `space_id` 或邀请方 service DID 之一；不一致 MUST 返回与"无可披露 claim"不可区分的统一拒绝。
+5. claim `audience` MUST 等于请求中 `realm_id` 或邀请方 service DID 之一；不一致 MUST 返回与"无可披露 claim"不可区分的统一拒绝。
 6. 若响应携带 `delivery_binding_hint`，它只能作为构造 `cx.member.state{membership="join"}.delivery_binding` 的输入；`delivery_binding_hint.binding_source` 不得是 `did_document_default`；接收方 reducer 仍 MUST 按 Join Policy 独立验证。
 
 Directory MUST NOT：
@@ -587,7 +587,7 @@ Directory MUST NOT：
 - 因为某个 Principal Server 本地存在账号就直接披露 `recipient_service_did`。
 - 向无权请求方泄露组织内部 handle 与 DID / service DID 的映射。
 - 把 handle 解析结果缓存为全局 actor routing；缓存必须绑定 `handle_uri`、claim digest、audience / scope、requester policy 与 expiry。
-- 执行 join、签发 invite token 或授予 Space capability；Directory 只返回可验证寻址证据。
+- 执行 join、签发 invite token 或授予 Realm capability；Directory 只返回可验证寻址证据。
 
 ### 9.1 通用结果字段（normative）
 
@@ -600,7 +600,7 @@ Directory MUST NOT：
 | `policy_revision` | `string?` | discovery state 的 effective revision；便于跨 Directory 对账。 |
 | `stale` | `boolean?` | TTL 过期且未续约时为 `true`，客户端 SHOULD 仅作参考。 |
 | `divergent` | `boolean?` | 与同一资源的另一 Directory 视图不一致时为 `true`（实现可选检测）。 |
-| `via_services` | `did[]?` | 资源对应 Principal Server / 真相源 service DID 列表。Space / Organization 结果 MUST 给出；handle / actor 可选。 |
+| `via_services` | `did[]?` | 资源对应 Principal Server / 真相源 service DID 列表。Realm / Organization 结果 MUST 给出；handle / actor 可选。 |
 
 客户端在以下情况 MUST 回真相源验签后再 act：
 
@@ -610,14 +610,14 @@ Directory MUST NOT：
 
 ### 9.2 Search / Resolve 示例
 
-`search-spaces` 请求（非完整 schema）：
+`search-realms` 请求（非完整 schema）：
 
 ```json
 {
   "query": "release",
   "scope": {
     "organization_did": "did:web:acme.example",
-    "parent_space_id": null
+    "parent_realm_id": null
   },
   "requester": "did:web:alice.example.com",
   "proofs": [
@@ -634,7 +634,7 @@ Result：
 {
   "results": [
     {
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "name": "Release Coordination",
       "summary": "Public release coordination",
       "discoverability": "listed",
@@ -674,22 +674,22 @@ Result：
 
 实现 SHOULD 对"不存在"与"未授权访问的隐藏资源"使用相同的 status、相同时延等级与相同响应结构。
 
-## 10. Parent Space 与 Organization Directory
+## 10. Parent Realm 与 Organization Directory
 
-Space 层级 MAY 协助发现，但 parent 成员资格不授予 child 成员资格或 child 读权限。
+Realm 层级 MAY 协助发现，但 parent 成员资格不授予 child 成员资格或 child 读权限。
 
 规则：
 
-- Parent Space MAY 列出 child Space 预览，仅当 child 的 `cx.space.discovery` payload 中 `directory_visibility.parent_space_directory=true` 时成立。
-- Organization 目录 MAY 列出 Space 预览，仅当 Space discovery policy 允许组织目录列出且组织背书有效时成立。
-- 把 Space 从组织目录中移除不会撤销成员资格或删除数据。
-- 撤销 `cx.space.organization` 背书 MUST 使官方目录徽章在目录刷新后被移除。
+- Space hierarchy MAY 列出跨 Realm child Space 预览，但每个 child Space 仍按自身 `realm_id` 的 discoverability 与 caller authorization 独立裁剪。Realm link graph 不提供通用 parent/child directory expansion。
+- Organization 目录 MAY 列出 Realm 预览，仅当 Realm discovery policy 允许组织目录列出且组织背书有效时成立。
+- 把 Realm 从组织目录中移除不会撤销成员资格或删除数据。
+- 撤销 `cx.realm.organization` 背书 MUST 使官方目录徽章在目录刷新后被移除。
 
 ## 11. 安全要求
 
 目录与发现实现 MUST 防御：
 
-- Space id enumeration
+- Realm id enumeration
 - alias guessing
 - member count probing
 - hidden organization probing
@@ -714,16 +714,16 @@ Directory-capable implementations MUST test：
 
 **Query 面**
 
-- public Space search
+- public Realm search
 - listed organization directory search
 - restricted search with valid and invalid claim presentation
 - unlisted exact resolve
 - invite-only indistinguishable not_found
-- official Space verification through `cx.space.organization`
+- official Realm verification through `cx.realm.organization`
 - hidden pairwise DID exclusion
 - stale result rejection after discovery policy update
 - private contact discovery does not disclose raw connection identifiers
-- search / resolve result MUST carry §9.1 normative 字段（`as_of`、`source_refs`、`policy_revision`、Space/Org 必含 `via_services`）
+- search / resolve result MUST carry §9.1 normative 字段（`as_of`、`source_refs`、`policy_revision`、Realm/Org 必含 `via_services`）
 
 **Ingest 面**
 

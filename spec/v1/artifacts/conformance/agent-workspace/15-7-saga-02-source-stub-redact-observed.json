@@ -9,7 +9,7 @@
       "source_authority": "ok"
     },
     "watcher_pattern": "observe-then-write",
-    "comment": "Watcher reads source Flow; reducer does NOT cascade across Spaces."
+    "comment": "Watcher reads source Flow; reducer does NOT cascade across Realms."
   },
   "input_steps": [
     {
@@ -41,5 +41,5 @@
     "runtime_gate": "blocked",
     "ui_banner_required": true
   },
-  "design_note": "Mirror reducer does NOT consume the source-Space redact event directly; cross-Space coupling is via the watcher's read-then-write into the mirror cell."
+  "design_note": "Mirror reducer does NOT consume the source-Realm redact event directly; cross-Realm coupling is via the watcher's read-then-write into the mirror cell."
 }

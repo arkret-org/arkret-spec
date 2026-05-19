@@ -43,7 +43,7 @@
         "space_state",
         "external"
       ],
-      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; space_state = depends on Space frontier (membership, policy_version, etc.); external = depends on data outside the Space causal frontier (claim revocation status, rate-limit history counts, async approval). Each constraint_type has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
+      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; space_state = depends on Realm frontier (membership, policy_version, etc.); external = depends on data outside the Realm causal frontier (claim revocation status, rate-limit history counts, async approval). Each constraint_type has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
     },
     "not_before": {
       "type": "string",
@@ -192,7 +192,7 @@
         "type": "string"
       }
     },
-    "space_kind_allow": {
+    "realm_kind_allow": {
       "type": "array",
       "items": {
         "type": "string",
@@ -201,9 +201,9 @@
         ]
       },
       "uniqueItems": true,
-      "description": "v1: only 'collaboration' is a Space kind. Board/list are Place kinds — use place_kind_allow."
+      "description": "v1: only 'collaboration' is a Realm kind. Board/list are Space kinds — use space_kind_allow."
     },
-    "space_kind_deny": {
+    "realm_kind_deny": {
       "type": "array",
       "items": {
         "type": "string",
@@ -225,15 +225,15 @@
         "type": "string"
       }
     },
-    "place_kind_allow": {
+    "space_kind_allow": {
       "type": "array",
       "items": {
         "type": "string"
       },
       "uniqueItems": true,
-      "description": "Allowed Place kinds (e.g. 'board', 'list', or profile-registered kinds like 'swimlane', 'calendar_bucket'). Reducer/profile MUST validate kind value."
+      "description": "Allowed Space kinds (e.g. 'board', 'list', or profile-registered kinds like 'swimlane', 'calendar_bucket'). Reducer/profile MUST validate kind value."
     },
-    "place_kind_deny": {
+    "space_kind_deny": {
       "type": "array",
       "items": {
         "type": "string"
@@ -305,7 +305,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -313,7 +313,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -341,14 +341,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:(space|flow|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^cx:(realm|flow|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "allowed_to_container_refs": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^cx:(space|flow|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^cx:(realm|flow|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "wip_limit_override": {
@@ -664,7 +664,7 @@
         "deny",
         "require_attestation"
       ],
-      "description": "`cx.profile.agent_workspace.v1` source-side export policy. Declares whether members (esp. controller-owned agents) may emit cx.content.import_attestation Moves targeting a different Space. Source-side agent runtime gates on this value; mirror reducer cannot enforce (only verifies optional source_export_policy_attestation carried on the import event). See extensions/agent-workspace-profile.md §10.3 + constraint-schema.md (confidentiality, export_policy)."
+      "description": "`cx.profile.agent_workspace.v1` source-side export policy. Declares whether members (esp. controller-owned agents) may emit cx.content.import_attestation Moves targeting a different Realm. Source-side agent runtime gates on this value; mirror reducer cannot enforce (only verifies optional source_export_policy_attestation carried on the import event). See extensions/agent-workspace-profile.md §10.3 + constraint-schema.md (confidentiality, export_policy)."
     }
   },
   "additionalProperties": true

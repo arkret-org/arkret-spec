@@ -8,7 +8,7 @@ title: Device Lifecycle
 
 - **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorized`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
-- **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Space capability。
+- **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
 ### 1.1 认证服务器验证什么
 
@@ -28,7 +28,7 @@ Contrix 可以部署 Auth Service / Auth Gateway，但它不是协议身份根�
 - `cx.device.authorized`：把新设备公钥加入当前设备集合。
 - 满足 `recovery_policy` 的 `recover` / key-log event。
 
-资源服务器验证的是 session grant、device authorization、DID proof、capability 和 Space policy，而不是“用户刚刚输入了正确密码”。密码、SSO session 和 service account id 都不能直接作为 `actor_id`、event sender 或 capability subject。
+资源服务器验证的是 session grant、device authorization、DID proof、capability 和 Realm policy，而不是“用户刚刚输入了正确密码”。密码、SSO session 和 service account id 都不能直接作为 `actor_id`、event sender 或 capability subject。
 
 服务账号密码重置只改变服务账号登录凭据；除非同时存在有效 DID 控制证明或 recovery policy 事件，否则不得自动授予 DID 控制权、不得签发长期 device grant、不得访问 E2EE 密钥备份。
 
@@ -38,7 +38,7 @@ Contrix v1 把三件事分开处理：
 
 - **登录因子验证**：Auth Service 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `cx.session.grant`、触发恢复流程，或请求已有设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `cx.device.authorized`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
-- **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Space capability。
+- **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
 因此“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `cx.device.authorized` 或短期 `cx.session.grant`。短期 Web/OIDC 登录可以只使用 `cx.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须走设备授权和设备密钥验证。
 
@@ -56,7 +56,7 @@ Contrix v1 把三件事分开处理：
    - DID Document SHOULD 只承载身份控制密钥和服务发现入口。普通设备列表、设备信任状态、吊销状态和算法更新 SHOULD 由 `cx.device.*` 事件、device key log 或受控 device registry 表达；只有 DID method 本身要求时，才把设备 verification method 写入 DID Document。
    - 短期浏览器或临时执行环境 MAY 只拿到 `cx.session.grant`，但它不改变长期设备集合，也不得访问 E2EE 历史密钥，除非另有有效设备授权和密钥共享流程。
 4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过 MLS Welcome / Commit 把新设备加入合适的 group）同步给新设备。
-5. **事件广播**：主设备向 principal control stream 广播 `cx.device.authorized` 事件；若封装为 Event Envelope，其 `space_id` 是目标 principal 的 `principal_control_space_id`。新设备获得的能力由该事件、session grant、Space capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
+5. **事件广播**：主设备向 principal control stream 广播 `cx.device.authorized` 事件；若封装为 Event Envelope，其 `realm_id` 是目标 principal 的 `principal_control_realm_id`。新设备获得的能力由该事件、session grant、Realm capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
 
 ### 2.2 设备吊销
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `cx.device.revoked`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
@@ -73,7 +73,7 @@ Contrix v1 把三件事分开处理：
 1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。
 2. **OIDC 重定向**：浏览器跳转至企业 Okta 完成标准的 OAuth2 / OIDC 身份认证。
 3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，签发短期、受众绑定、scope 受限的 `cx.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。
-4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。资源服务器仍 MUST 重新验证 DID control state、capability、Space policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
+4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。资源服务器仍 MUST 重新验证 DID control state、capability、Realm policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
 5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。续期需要重新验证 OIDC session，并重新检查组织 policy、设备状态和风险信号。
 
 此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `cx.device.authorized`、DID/key-log operation 或 recovery policy。
@@ -124,7 +124,7 @@ Schema id：`cx.schema.cross_signing_publish.v1`
 ```json
 {
   "kind": "cx.cross_signing.publish",
-  "space_id": "<principal_control_space_id>",
+  "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
   "content": {
     "principal_id": "did:webvh:...",
@@ -267,7 +267,7 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 
 ### 5a.1 `push_target_id` 派生与作用域
 
-- 作用域：`per (recipient_service_did, principal_id, device_id, push_route)`。`recipient_service_did` 是当前 Space membership delivery binding 指向的 Principal Server service DID；同一 DID 在个人 Principal Server 与组织 Principal Server 上注册同一物理设备时，MUST 使用互相不可链接的 `push_target_id`。`push_route` 标识同一设备上不同 push 通道（如 `apns_main`, `fcm_voip`, `webpush_default`），允许同一设备针对不同通道发布相互不可链接的伪名。
+- 作用域：`per (recipient_service_did, principal_id, device_id, push_route)`。`recipient_service_did` 是当前 Realm membership delivery binding 指向的 Principal Server service DID；同一 DID 在个人 Principal Server 与组织 Principal Server 上注册同一物理设备时，MUST 使用互相不可链接的 `push_target_id`。`push_route` 标识同一设备上不同 push 通道（如 `apns_main`, `fcm_voip`, `webpush_default`），允许同一设备针对不同通道发布相互不可链接的伪名。
 - 长度：`push_target_id` MUST 至少 128 bit 熵，编码为 base64url（最少 22 字符）；推荐 256 bit。
 - 不可推导性：`push_target_id` MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码可推导。生成方式 SHOULD 是 device-local 随机；设备 MAY 用本地 secret 与 `push_route` 派生，前提是源 secret 不可被服务端取回。
 - 标识形态：典型 wire 形态为 typed ID `cx:pseudonym:push:<base64url>`，由 `id-kind-registry.json` 中 `pseudonym` 项授权使用；也可作为 raw base64url 字符串出现在 `cx.device.push_route` 等 actor-private state event payload 中。
@@ -283,22 +283,22 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 
 - 同一 `principal_id` 在不同 `recipient_service_did`、不同设备或不同 push route 上的 `push_target_id` MUST 不可由 push gateway / 第三方 transport 关联（除非两侧自愿持有相同源 secret）。受托 Sync Service MAY 在自己的授权上下文内持有从成员 delivery binding 到本服务本地 push queue 的短期索引，但不得把该索引导出给 Push Gateway / vendor。
 - 同一设备的两条 `push_route` 的伪名 MUST 互相独立；其中一条被泄露不得让攻击者推导另一条。
-- 跨 Space 投递 MUST 使用同一 `push_target_id`（按 device 而非按 Space），但 push payload 内不得携带 plaintext `space_id`/`flow_id`/`message_id`；目标拆分由 device 端解 envelope 后完成。
+- 跨 Realm 投递 MUST 使用同一 `push_target_id`（按 device 而非按 Realm），但 push payload 内不得携带 plaintext `realm_id`/`flow_id`/`message_id`；目标拆分由 device 端解 envelope 后完成。
 
 ### 5a.4 Push Payload 形态
 
 - 协议层 push payload MUST 视作 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob。AAD MUST 不包含可链接 wire 字段，仅可携带 routing-only `wakeup_kind`（参见 `discovery/push-notifications.md`）。
-- gateway / vendor MUST NOT 解密 payload。任何"丰富推送"扩展（如显示发件人）都属于 vendor-side 行为，需要 Space 与 device 双方明确 opt-in，并对应单独的 plaintext-visible service profile，不在 v1 默认互操作范围。
+- gateway / vendor MUST NOT 解密 payload。任何"丰富推送"扩展（如显示发件人）都属于 vendor-side 行为，需要 Realm 与 device 双方明确 opt-in，并对应单独的 plaintext-visible service profile，不在 v1 默认互操作范围。
 
 ### 5a.5 与其它子系统的边界
 
-- Sync Service：以 `push_target_id` 作为 push fanout 索引。被 member delivery binding 授权的 Principal Server MAY 在运行时持有 `recipient_service_did + principal_id + device_id + push_route -> push_target_id` 映射以完成投递；该映射不得暴露给 Push Gateway / vendor，日志、导出、法定披露和跨服务复制 MUST 脱敏或失效化。未被该 Space membership / service binding 授权的服务不得保留可逆映射。
+- Sync Service：以 `push_target_id` 作为 push fanout 索引。被 member delivery binding 授权的 Principal Server MAY 在运行时持有 `recipient_service_did + principal_id + device_id + push_route -> push_target_id` 映射以完成投递；该映射不得暴露给 Push Gateway / vendor，日志、导出、法定披露和跨服务复制 MUST 脱敏或失效化。未被该 Realm membership / service binding 授权的服务不得保留可逆映射。
 - WebRTC 通话邀请（`webrtc-signaling.md` §13 incoming-call wakeup）通过同一 `push_target_id` 触发；payload 仍走 §5a.4 加密通道。
-- 推送规则（`push-notifications.md` §4 keyword / member_count 等）以 `push_target_id` 为目标但 MUST 在不解密 payload 的前提下完成评估，或在 E2EE Space 中由设备本地评估，详见对应文档。
+- 推送规则（`push-notifications.md` §4 keyword / member_count 等）以 `push_target_id` 为目标但 MUST 在不解密 payload 的前提下完成评估，或在 E2EE Realm 中由设备本地评估，详见对应文档。
 
 ## 6. Device List Sync
 
-任何设备新增、撤销、签名更新或算法更新，MUST 产生 `cx.device.list_update` event。该 event 是 principal control stream 中的 durable identity state；若使用 Event Envelope，顶层 `space_id` MUST 是目标 principal 的 `principal_control_space_id`：
+任何设备新增、撤销、签名更新或算法更新，MUST 产生 `cx.device.list_update` event。该 event 是 principal control stream 中的 durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`：
 
 ```json
 {
@@ -320,9 +320,9 @@ Contrix 推送通道设计的目标是在不向 push gateway / vendor、上游 S
 
 ## 7. To-Device Messages
 
-To-device message 是面向具体 principal/device 的非 Space 持久消息，用于密钥交换、验证、secret sharing 和通知。
+To-device message 是面向具体 principal/device 的非 Realm 持久消息，用于密钥交换、验证、secret sharing 和通知。
 
-To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `EventEnvelope`。标准 `cx.key.verification.*` 名称在 to-device 通道中出现在 `kind` 字段；它们不得推进 `actor_seq`、`prev_refs`、Space reducer frontier 或持久 timeline。
+To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `EventEnvelope`。标准 `cx.key.verification.*` 名称在 to-device 通道中出现在 `kind` 字段；它们不得推进 `actor_seq`、`prev_refs`、Realm reducer frontier 或持久 timeline。
 
 `DeviceMessageEnvelope` 基本字段：
 
@@ -340,7 +340,7 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 
 `recipient_principal_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口使用 `messages.{principal_id}.{device_id}` 做批量路由时，服务端在入队前 MUST 把路径目标复制进 `DeviceMessageEnvelope`，且接收端 MUST 拒绝 envelope 目标与当前登录设备不一致的消息。
 
-To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Space / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST 不晚于 `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
+To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST 不晚于 `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
 
 发送接口：
 
@@ -497,7 +497,7 @@ POST /api/v1/keys/keypackages/revoke
 | --- | --- | --- | --- |
 | `target_principal_id` | `did` | required | 被邀请或加入的 principal。 |
 | `target_device_ids` | `array<id:device>` | optional | 为空时由服务选择可用设备。 |
-| `intended_space_id` | `id` | required | 目标 Space。 |
+| `intended_realm_id` | `id` | required | 目标 Realm。 |
 | `requester` | `did` | required | 发起 claim 的 actor 或 service DID。 |
 | `required_capabilities` | `string[]` | required | 需要的 content / MLS / policy profile。 |
 | `minimal_metadata_allowed` | `boolean` | optional | 是否允许 pseudonymous credential。 |
@@ -512,7 +512,7 @@ POST /api/v1/keys/keypackages/revoke
 | `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、device binding、expiry 和 capabilities。 |
 | `failures` | `object[]` | optional | 不可领取设备与原因；不得泄露不可见用户或设备。 |
 
-`consume` MUST 由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `claim_id`、`welcome_ref`、`space_id` 和 device proof。`revoke` 可由设备、principal controller 或 policy 授权服务发起。
+`consume` MUST 由 Welcome 接收方或授权发送方在 Welcome 成功处理后调用，绑定 `claim_id`、`welcome_ref`、`realm_id` 和 device proof。`revoke` 可由设备、principal controller 或 policy 授权服务发起。
 
 规则：
 
@@ -525,7 +525,7 @@ POST /api/v1/keys/keypackages/revoke
 
 ## 10. Verification Flows
 
-设备密钥验证用于确认“这个 principal/device/key 是否是用户想信任的对象”。验证成功本身不授予登录态、Space 权限或长期设备权力：
+设备密钥验证用于确认“这个 principal/device/key 是否是用户想信任的对象”。验证成功本身不授予登录态、Realm 权限或长期设备权力：
 
 - 同一 principal 的新设备登录，验证成功后仍 MUST 通过 `cx.device.authorized`、DID/key-log operation 或 recovery policy 把设备加入有效设备集合。
 - 跨 principal 验证只表达人工信任；通常由本地 `user_signing_key` 签名对方 identity key 或设备 key，不得改变对方设备授权状态。
@@ -628,7 +628,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 2. 发布 `cx.device.list_update`。
 3. 在用户或 policy 允许时，通过加密 to-device 消息共享 `self_signing_key`、secret storage bootstrap 或 MLS Welcome。
 
-跨 principal 验证完成后，客户端 MAY 使用 `user_signing_key` 对对方 principal identity key 或 device key 生成信任签名。该签名只影响本 principal 的信任视图，不授予对方 Space capability。
+跨 principal 验证完成后，客户端 MAY 使用 `user_signing_key` 对对方 principal identity key 或 device key 生成信任签名。该签名只影响本 principal 的信任视图，不授予对方 Realm capability。
 
 ### 10.6 Cancel Code Registry
 
@@ -646,7 +646,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `mismatched_mac` | MAC 或 key-id MAC 校验失败。 |
 | `device_revoked` | 任一参与设备已撤销。 |
 | `untrusted_device` | policy 要求验证设备，但设备信任链不满足。 |
-| `policy_denied` | Space、组织或账号 policy 拒绝。 |
+| `policy_denied` | Realm、组织或账号 policy 拒绝。 |
 | `accepted_by_other_device` | 同一请求已被另一设备接受。 |
 | `cross_signing_reset` | 验证过程中检测到 cross-signing reset，旧 SSK generation 已废止；详见 §14.3。 |
 
@@ -666,7 +666,7 @@ Secret storage 用于保存：
 | --- | --- |
 | DID 恢复材料 | `did_recovery` |
 | `self_signing_key`、`user_signing_key`、recovery secret 等账户级 secret | `secret_storage` |
-| MLS epoch / Space history secret | `mls_history` |
+| MLS epoch / Realm history secret | `mls_history` |
 | 外部托管或 profile 自定义 secret | `external` |
 
 每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `contrix-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
@@ -675,7 +675,7 @@ Client-local secret storage 的存储格式仍可使用本节的 `cx.secret_stor
 
 ## 12. Key Backup
 
-Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当前 actor 已经通过 membership、history visibility 和 Space policy 获得的历史范围，不是给未来新成员预先保留历史 secret 的机制。
+Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当前 actor 已经通过 membership、history visibility 和 Realm policy 获得的历史范围，不是给未来新成员预先保留历史 secret 的机制。
 
 备份单元使用 `cx.schema.key_backup.v1`，并设置 `backup_class="mls_history"`。示例：
 
@@ -698,7 +698,7 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当�
   "contents": [
     {
       "item_type": "mls_epoch_secret",
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "mls_group_id": "base64url",
       "epoch": 42,
       "first_event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
@@ -721,9 +721,9 @@ Key backup 保存已加密的 Space / MLS 历史密钥材料。它只覆盖当�
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
 - 上传设备 MUST 对 backup metadata 与 ciphertext digest 签名，签名链必须链接到当前 principal 的 self-signing / device trust chain。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
-- 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Space membership、MLS group id 或历史范围。
-- 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Space membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
-- 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Space history visibility。
+- 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
+- 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
+- 被撤销设备上传的新备份 MUST 被拒绝。撤销前上传的备份 MAY 继续保留，但恢复使用时必须重新验证当前 recovery policy、device revocation state 和 Realm history visibility。
 
 ### 12.1 Backup API
 
@@ -740,16 +740,16 @@ DELETE /api/v1/keys/backups/{backup_id}
 
 `list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints。`get` 返回完整 encrypted backup object。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明。
 
-## 13. Space / Branch Key Share and Withholding
+## 13. Realm / Branch Key Share and Withholding
 
-Contrix 使用 `cx.space_key.share` 共享历史解密材料。共享前发送设备 MUST 检查：
+Contrix 使用 `cx.realm_key.share` 共享历史解密材料。共享前发送设备 MUST 检查：
 
 - 接收设备属于目标 principal。
 - 设备未撤销。
-- 设备通过 self-signing 或人工验证，或 Space policy 允许未验证设备。
+- 设备通过 self-signing 或人工验证，或 Realm policy 允许未验证设备。
 - history visibility 允许该 principal 获取目标历史范围。
 
-拒绝共享时发送 `cx.space_key.withheld`，原因码：
+拒绝共享时发送 `cx.realm_key.withheld`，原因码：
 
 - `unverified_device`
 - `blacklisted_device`
@@ -780,7 +780,7 @@ Schema id：`cx.schema.cross_signing_reset.v1`
 ```json
 {
   "kind": "cx.cross_signing.reset",
-  "space_id": "<principal_control_space_id>",
+  "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
   "content": {
     "principal_id": "did:webvh:...",
@@ -836,7 +836,7 @@ MUST 同时排除 `signature` 字段和 `unlock_commitment` 字段。随后
 
 Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
-1. **本 principal 名下所有设备**的 trust state 强制从 `cross_signed` / `verified` 降为 `needs_reverification`。设备本身不被撤销，可以继续读写已经获得 capability 的 Space；但 sender-side trust UI MUST 显示警告，且任何要求 cross-signed 的策略（例如 `cx.space.policy.require_cross_signed`）MUST 重新计算。
+1. **本 principal 名下所有设备**的 trust state 强制从 `cross_signed` / `verified` 降为 `needs_reverification`。设备本身不被撤销，可以继续读写已经获得 capability 的 Realm；但 sender-side trust UI MUST 显示警告，且任何要求 cross-signed 的策略（例如 `cx.realm.policy.require_cross_signed`）MUST 重新计算。
 2. **本 principal USK 签发的跨 principal 信任**全部进入 `needs_reverification`：对方在自己视图里看到的"由 X 验证过我"提示 MUST 消失，需要等待新一轮 USK publish 与人工再确认。
 3. **MLS leaf credential** 不直接因 reset 失效——MLS credential 由 device key 与 KeyPackage 单独签名。但发送方 SHOULD 在 reset 后尽快发起一次 Empty Commit，让 epoch transcript 在新 SSK generation 下重新被覆盖；接收方 MUST 允许该 commit 推进。
 4. **in-flight verification transaction**（§10 状态机里仍在 `request` / `ready` / `start` / `accept` / `key` / `mac` 阶段的）MUST 以 `code=cross_signing_reset` cancel，禁止把基于旧 SSK 的 SAS / QR transcript 用旧 generation 完成。
@@ -873,6 +873,6 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 Applet 如需代表 ghost actor 或桥接用户参与 E2EE，MUST 使用受限 delegated device：
 
 - device id MUST 标记 `applet_id`。
-- capability MUST 限制 Space、协议、动作和有效期。
+- capability MUST 限制 Realm、协议、动作和有效期。
 - delegated device 不得签发新的 human device。
 - delegated device 的 to-device 权限 MUST 只覆盖其 namespace 内 actor。

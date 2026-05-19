@@ -6,16 +6,16 @@ title: Flow & Message
 
 本文定义 Contrix 协作图中两个最常用的对象：
 
-- **Flow**（`cx:flow:`）：Space 内统一的协作主对象，承载"这件事本身"。
+- **Flow**（`cx:flow:`）：Realm 内统一的协作主对象，承载"这件事本身"。
 - **Message**（`cx:message:`）：Flow `discussion` track 时间线中的原子消息。
 
-Flow 通过 `tracks` map 表达多种能力面，并可选通过 `discussion_space_ref` 把讨论升级到独立 child Space。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
+Flow 通过 `tracks` map 表达多种能力面，并可选通过 `discussion_realm_ref` 把讨论升级到独立 linked Realm。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
 ## 2. Flow 概览
 
-Flow 是 Space 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。它直接承载"这件事本身"、一组参与者和围绕它的上下文信息。
+Flow 是 Realm 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。它直接承载"这件事本身"、一组参与者和围绕它的上下文信息。
 
 Flow 适合：
 
@@ -27,7 +27,7 @@ Flow 适合：
 - 外部资产或业务对象的协作锚点
 - 会话主导的协作线程
 
-Flow 不再定义额外的顶层模式或分类字段；默认入口由 track primary 解析规则决定，业务语义由 Space schema、profile、`fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Space schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
+Flow 不再定义额外的顶层模式或分类字段；默认入口由 track primary 解析规则决定，业务语义由 Realm schema、profile、`fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Realm schema/profile、`fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
 
 ## 3. Flow Schema 与字段
 
@@ -36,13 +36,13 @@ Schema id: `cx.schema.flow.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:flow` | 以 `cx:flow:` 开头。 | Flow ID。 |
-| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `title` | yes | `string` | 1..512 chars。 | 标题。 |
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 一句话/一段话简介。 |
 | `body` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
 | `encrypted_payload` | conditional | `EncryptedPayload` | 与 `body` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
-| `discussion_space_ref` | no | `id:space` | 必须是同 organization / federation 范围内的 Space。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该 child Space 承载。详见 §5。 |
+| `discussion_realm_ref` | no | `id:realm` | 必须是同 organization / federation 范围内的 Realm。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该 linked Realm 承载。详见 §5。 |
 | `fields` | no | `object` |  | 扩展字段。 |
 | `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`cx.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`cx.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`cx.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。 | 物化状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
@@ -57,7 +57,7 @@ Schema id: `cx.schema.flow.v1`
 {
   "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
   "schema": "cx.schema.flow.v1",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "title": "支付重构",
   "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
   "body": {
@@ -75,7 +75,7 @@ Schema id: `cx.schema.flow.v1`
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "discussion_space_ref": "cx:space:019640dc-8000-7000-8000-000000000000",
+  "discussion_realm_ref": "cx:realm:019640dc-8000-7000-8000-000000000000",
   "state": "active",
   "created_by": "did:web:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -99,7 +99,7 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `is_primary` | no | `boolean` | 同一 Flow 至多一个 track 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
-| `profile` | no | `string` | 由 Space schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | track 交互 profile（pure UI hint）。 |
+| `profile` | no | `string` | 由 Realm schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | track 交互 profile（pure UI hint）。 |
 | `template` | no | `string` | track profile 可声明结构模板。 | 模板引用。 |
 | `fields` | no | `object` |  | track-local 扩展字段（pure UI hint，不影响访问）。 |
 
@@ -140,16 +140,16 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 - `profile` 是 discussion track 的 UI / 语义 hint，不是自动授权后门。
 - `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `profile` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
-- discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Flow relation 隐式派生；track 自身不持有 membership，可见成员一律由所属 Space（未设 `discussion_space_ref` 时为父 Space，否则为 child Space）的 membership / capability / policy 决定，若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
+- discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Flow relation 隐式派生；track 自身不持有 membership，可见成员一律由所属 Realm（未设 `discussion_realm_ref` 时为源 Realm，否则为 linked Realm）的 membership / capability / policy 决定，若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
 - 当 `discussion` track 不存在或不处于 active 状态时，`cx.message.create`、`cx.message.revise`、`cx.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_track_disabled` 或等价 fail-closed 结果。
 
 ### 4.4 Track 是纯展示标识，不是 access 域
 
-**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自所属 Space（或 `discussion_space_ref` 指向的 child Space，见 §5）。
+**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自所属 Realm（或 `discussion_realm_ref` 指向的 linked Realm，见 §5）。
 
-Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）——任何需要独立访问域的 discussion 必须升级为 child Space。
+Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）——任何需要独立访问域的 discussion 必须升级为 linked Realm。
 
-`assigned_to`、`watches` 或其他业务关系不会自动成为 discussion 成员或获取访问权，除非 Space policy 明确把它们映射为授权条件。`watches` Relation 表达**通知订阅偏好**，与访问控制完全正交——完整语义、状态枚举、投影脱敏规则见 §8。
+`assigned_to`、`watches` 或其他业务关系不会自动成为 discussion 成员或获取访问权，除非 Realm policy 明确把它们映射为授权条件。`watches` Relation 表达**通知订阅偏好**，与访问控制完全正交——完整语义、状态枚举、投影脱敏规则见 §8。
 
 ### 4.5 Primary track 解析规则
 
@@ -175,14 +175,14 @@ resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，�
 - 转换不复制或迁移消息历史。
 - 切换到 `track="discussion"` 时，若 `discussion` track 尚不存在，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`；写入仅含 `is_primary` 而 track 未 enabled 时 MUST `failed_precondition`，不得隐式创建 track。
 - 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须在同一或后续 `cx.flow.tracks.update` patch 中显式 `tracks.discussion.enabled: set false`（或按 profile 声明的 archive 语义）。
-- 转换不自动移除 Board Place / List Place 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
-- `cx.flow.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 child Space；child Space 的生命周期由独立 `cx.space.*` event 管理。
+- 转换不自动移除 Board Space / List Space 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `cx.flow.move` 决定。
+- `cx.flow.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 linked Realm；linked Realm 的生命周期由独立 `cx.realm.*` event 管理。
 
 ### 4.7 Track 启用 / 禁用
 
 - track 在 map 中存在且 `enabled=true`（或 schema 默认为 true）即表示 active。
 - 关闭 track 通过 `cx.flow.tracks.update` patch `tracks.<name>.enabled: set false`（或从 map 中删除该 key、或写 profile 声明的 archived state），不得留下可写入的 disabled track。
-- View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Space schema/profile、track config 和可见字段；不得要求 Flow 额外声明模式字段。
+- View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Realm schema/profile、track config 和可见字段；不得要求 Flow 额外声明模式字段。
 
 ### 4.8 Track 写入: `cx.flow.tracks.update`
 
@@ -211,13 +211,13 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
 
 **Reducer 规则**: 同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成); primary track 不能空缺(切走旧 primary 后必须有一个新 primary); track key 必须匹配 `^[a-z][a-z0-9_]{0,63}$`。
 
-## 5. Discussion 独立 Space (`discussion_space_ref`)
+## 5. Discussion 独立 Realm (`discussion_realm_ref`)
 
-需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，**不再**通过 track hybrid 表达，而是创建一个 child Space 并通过 `Flow.discussion_space_ref` 引用：
+需要让 discussion 拥有独立 membership、history visibility 或 MLS group 时，**不再**通过 track hybrid 表达，而是创建一个 linked Realm 并通过 `Flow.discussion_realm_ref` 引用：
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `discussion_space_ref` | no | `id:space` | 必须是同 organization / federation 范围内的 Space。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该子 Space 承载。 |
+| `discussion_realm_ref` | no | `id:realm` | 必须是同 organization / federation 范围内的 Realm。 | 该 Flow 的 discussion 时间线、成员、E2EE group 由该独立 Realm 承载。 |
 
 ```json
 {
@@ -225,56 +225,56 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "discussion_space_ref": "cx:space:019640dc-8000-7000-8000-000000000000"
+  "discussion_realm_ref": "cx:realm:019640dc-8000-7000-8000-000000000000"
 }
 ```
 
 规则：
 
-- 未设置 `discussion_space_ref` 时，discussion 时间线事件直接写在 Flow 所属 Space，访问规则完全等于父 Space。能看父 Space 的 actor 即可看 discussion 时间线（按父 Space history visibility）。
-- 设置 `discussion_space_ref` 时，所有 discussion-side `cx.message.*` / `cx.reaction.*` / `cx.member.state` 写入 MUST 使用该 child Space 的 `space_id`；track 不持有独立 membership，成员关系一律落在 child Space 上。child Space 是独立的安全边界，按其自身 policy 收敛。能否看 discussion 由 child Space 自身 access policy 决定，与父 Space 的 Flow synthesis 可见性无关。Flow synthesis 和 discussion 是两个独立 reducer 视图，不共享 cell。
-- 能看 `discussion` 不表示能改 Flow 的字段、状态或 Board 位置（这些仍按父 Space capability 判断）。
-- 独立访问域只能通过 child Space + `discussion_space_ref` 实现；track 配置内不携带 access 子对象。
-- `discussion_space_ref` 启用 MLS 时，对应 MLS group 绑定该 child Space；E2EE 边界、membership frontier、`covered_frontier_cell` 都按 child Space 自身收敛。
-- `discussion_space_ref` 的生命周期由独立 `cx.space.*` event 管理；Flow 不能通过修改自身字段间接 reinit / archive child Space。
-- Flow 的 parent Space 与 `discussion_space_ref` Space 之间的关系建议用 `cx.space.parent` / `cx.space.child` 或独立的 governance 关系表达；reducer 不强制 hierarchy，授权仍按各自 Space policy 独立判断。
+- 未设置 `discussion_realm_ref` 时，discussion 时间线事件直接写在 Flow 所属 Realm，访问规则完全等于源 Realm。能看源 Realm 的 actor 即可看 discussion 时间线（按源 Realm history visibility）。
+- 设置 `discussion_realm_ref` 时，所有 discussion-side `cx.message.*` / `cx.reaction.*` / `cx.member.state` 写入 MUST 使用该 linked Realm 的 `realm_id`；track 不持有独立 membership，成员关系一律落在 linked Realm 上。linked Realm 是独立的安全边界，按其自身 policy 收敛。能否看 discussion 由 linked Realm 自身 access policy 决定，与源 Realm 的 Flow synthesis 可见性无关。Flow synthesis 和 discussion 是两个独立 reducer 视图，不共享 cell。
+- 能看 `discussion` 不表示能改 Flow 的字段、状态或 Board 位置（这些仍按源 Realm capability 判断）。
+- 独立访问域只能通过 linked Realm + `discussion_realm_ref` 实现；track 配置内不携带 access 子对象。
+- `discussion_realm_ref` 启用 MLS 时，对应 MLS group 绑定该 linked Realm；E2EE 边界、membership frontier、`covered_frontier_cell` 都按 linked Realm 自身收敛。
+- `discussion_realm_ref` 的生命周期由独立 `cx.realm.*` event 管理；Flow 不能通过修改自身字段间接 reinit / archive linked Realm。
+- Flow 所属 Realm 与 `discussion_realm_ref` Realm 之间的关系 MAY 用 `cx.realm.link{link_kind="confidential_extension_of"}` 或 profile 声明的 governance link 表达；reducer 不要求 Realm hierarchy，授权仍按各自 Realm policy 独立判断。
 - 切换 primary track 不会自动删除已有讨论历史。
 
-### 5.1 Track / discussion_space_ref 关系图
+### 5.1 Track / discussion_realm_ref 关系图
 
-下图把 Flow 的 track 模型和 child Space 升级路径画在一起。Flow 只有一份 identity，`tracks` map 的 key 决定可用协作面，是否设置 `discussion_space_ref` 决定 discussion 的访问域落在哪个 Space。
+下图把 Flow 的 track 模型和 linked Realm 升级路径画在一起。Flow 只有一份 identity，`tracks` map 的 key 决定可用协作面，是否设置 `discussion_realm_ref` 决定 discussion 的访问域落在哪个 Realm。
 
 ```mermaid
 flowchart LR
-    subgraph Parent ["cx:space: — Parent Space（capability / E2EE 边界）"]
+    subgraph Parent ["cx:realm: — Parent Realm（capability / E2EE 边界）"]
         direction TB
         Flow["cx:flow:<br/>title / summary / body / fields"]
         Syn["tracks.synthesis<br/>（正式表达，默认 primary）"]
         Dis["tracks.discussion<br/>（会话能力面，纯展示标识）"]
-        ParentMsgs["cx:message: ×N<br/>（默认：写在 Parent Space）"]
+        ParentMsgs["cx:message: ×N<br/>（默认：写在 Parent Realm）"]
 
         Flow -- "tracks 配置" --> Syn
         Flow -- "tracks 配置" --> Dis
-        Dis -- "未设 discussion_space_ref" --> ParentMsgs
+        Dis -- "未设 discussion_realm_ref" --> ParentMsgs
     end
 
-    subgraph Child ["cx:space: — Child Space（独立 capability / E2EE 边界）"]
+    subgraph Child ["cx:realm: — Child Realm（独立 capability / E2EE 边界）"]
         direction TB
-        ChildMsgs["cx:message: ×N<br/>（按 child Space policy）"]
+        ChildMsgs["cx:message: ×N<br/>（按 linked Realm policy）"]
         ChildMLS["独立 MLS group / membership / history visibility"]
         ChildMsgs --- ChildMLS
     end
 
-    Flow -. "discussion_space_ref（一旦设置）" .-> Child
-    Dis -- "设 discussion_space_ref" --> ChildMsgs
+    Flow -. "discussion_realm_ref（一旦设置）" .-> Child
+    Dis -- "设 discussion_realm_ref" --> ChildMsgs
 ```
 
 读图要点：
 
-- Track 是纯展示 / 时间线分段标识，不携带独立 access；`synthesis` 与 `discussion` 都继承 Parent Space 的 capability。
+- Track 是纯展示 / 时间线分段标识，不携带独立 access；`synthesis` 与 `discussion` 都继承 Parent Realm 的 capability。
 - `cx.flow.tracks.update` 通过 patch `Flow.tracks` map 切换 primary / 启用 / 关闭 track，不复制对象、不迁移历史；切到 `discussion` 必须在同一 patch 内同时 enable 该 track。
-- 想给 discussion 独立 membership / E2EE / history 时，**必须**升级为 child Space 并通过 `discussion_space_ref` 引用——track 内嵌 access 的 hybrid 模式在 v1 不存在。
-- 能看 discussion 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 Parent Space capability 判断。
+- 想给 discussion 独立 membership / E2EE / history 时，**必须**升级为 linked Realm 并通过 `discussion_realm_ref` 引用——track 内嵌 access 的 hybrid 模式在 v1 不存在。
+- 能看 discussion 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 Parent Realm capability 判断。
 
 ## 6. Flow 行为规则
 
@@ -287,7 +287,7 @@ flowchart LR
 
 ## 7. Flow 常见关系
 
-- `List Place --contains--> flow`
+- `List Space --contains--> flow`
 - `flow --assigned_to--> actor`
 - `actor --watches--> flow`
 - `flow --depends_on--> flow`
@@ -297,15 +297,15 @@ flowchart LR
 - `flow --summarized_from--> message`
 - `flow --promoted_from_discussion--> message`
 
-`assigned_to` 与 `contains` 的基数和跨 Space 规则见 [relation.md](./relation.md) §3-§4。
+`assigned_to` 与 `contains` 的基数和跨 Realm 规则见 [relation.md](./relation.md) §3-§4。
 
 ## 8. Watch 与通知订阅
 
 ### 8.1 概念与边界
 
-Watch 是个人通知订阅模型：actor 声明自己对某个 Flow（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由所属 Space 的 capability 决定，与本节完全正交（参见 §4.4）。
+Watch 是个人通知订阅模型：actor 声明自己对某个 Flow（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由所属 Realm 的 capability 决定，与本节完全正交（参见 §4.4）。
 
-Wire 形态：`cx.flow.watch.set` durable event 写入下文 §8.3 描述的 cas-register cell（cell 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> flow`，见 [relation.md §3](./relation.md)）供查询，但 **`cx.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./space-and-place.md` §4.6](./space-and-place.md) Flow position 派生 `contains` Relation 的双源约束同模式。
+Wire 形态：`cx.flow.watch.set` durable event 写入下文 §8.3 描述的 cas-register cell（cell 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> flow`，见 [relation.md §3](./relation.md)）供查询，但 **`cx.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §4.6](./realm-and-space.md) Flow position 派生 `contains` Relation 的双源约束同模式。
 
 在 Flow 顶层或 `fields` 中携带 `participants` / `watchers` 列表等价物 MUST 被 reducer 拒绝（`schema_violation`），避免与 watch cell 双源并存。
 
@@ -351,8 +351,8 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 
 - `null` value 等价于 `mentions_only`。客户端必须显式 `level: null` 来清空，不允许通过省略 `level` 字段隐式清空——避免 wire 上的歧义。
 - 同一 `(flow_id, actor_did)` cell 内的并发写入按标准 cas-register 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §4.2.4](../authz/event-auth-state-resolution.md) 描述的 `head_eq` precondition，**比较整个 cell value**（不是单字段）。例如 cell 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。希望放弃 CAS 校验时直接省略 `expected_value`。
-- **Cell 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `cx.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./space-and-place.md` §4.6](./space-and-place.md) 派生 `contains` Relation 的双源约束同模式）。
-- Cell 的 Space 归属：`<flow_id>` 隐含决定 Space（Flow.space_id），cell 始终落在 Flow 所属 Space 的 namespace 下。即使 Flow 设置了 `discussion_space_ref`，watch cell 也仍在 parent Space —— discussion 消息通知派发由 Sync Service 跨 Space 查询该 cell 完成（详见 §8.9）。
+- **Cell 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `cx.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §4.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
+- Cell 的 Realm 归属：`<flow_id>` 隐含决定 Realm（Flow.realm_id），cell 始终落在 Flow 所属 Realm 的 namespace 下。即使 Flow 设置了 `discussion_realm_ref`，watch cell 也仍在 source Realm —— discussion 消息通知派发由 Sync Service 跨 Realm 查询该 cell 完成（详见 §8.9）。
 
 ### 8.4 写入授权
 
@@ -369,20 +369,20 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 
 Watch 级别暴露程度按下表派发。projection executor MUST 在响应包含 watch 的 view（例如"Flow watchers 列表"、"我的订阅 Flow"）时严格执行：
 
-| Cell value | 自己（`requester == cell.actor_did`） | Space 其他成员 | `cx.space.notification.audit` 持有方 | Sync Service / 通知 dispatcher |
+| Cell value | 自己（`requester == cell.actor_did`） | Realm 其他成员 | `cx.realm.notification.audit` 持有方 | Sync Service / 通知 dispatcher |
 | --- | --- | --- | --- | --- |
 | 无记录 / `level=mentions_only` | "未订阅" | **不出现**在 watcher 列表 | 完整可见 | 走 `mentions_only` 路径 |
 | `level=participating` | 完整 `{actor, level}` | 仅 `{actor}`（**脱去 level**） | 完整可见 | 完整 level |
 | `level=all` | 完整 `{actor, level}` | 仅 `{actor}`（**脱去 level**） | 完整可见 | 完整 level |
 | `level=muted` | "已静音" | **不出现**在 watcher 列表（投影上与"无记录"不可区分） | 完整可见 | 一律不推送 |
 
-`cx.space.notification.audit` 是纯 READ capability（target_event_kinds 为空），授予"读取完整 watch 状态（含 `muted`）"的权限。审计写入闭环要求读取方**同时**持有 `cx.audit.accessed` capability，并在每次 audit 读取前提交一条 accepted durable event（payload 使用 `access_kind="watch_audit_read"`，包含 `writer_did`、`target_actor_did`、`target_cell_id`、`target_ref`、`purpose`、`accessed_at`），或在同一投影事务中提交并等待 RYW receipt 后再释放完整 watch 结果。该流程与 [`../crypto-media/audited-e2ee.md` §4](../crypto-media/audited-e2ee.md) "先写后解密"模型同构。
+`cx.realm.notification.audit` 是纯 READ capability（target_event_kinds 为空），授予"读取完整 watch 状态（含 `muted`）"的权限。审计写入闭环要求读取方**同时**持有 `cx.audit.accessed` capability，并在每次 audit 读取前提交一条 accepted durable event（payload 使用 `access_kind="watch_audit_read"`，包含 `writer_did`、`target_actor_did`、`target_cell_id`、`target_ref`、`purpose`、`accessed_at`），或在同一投影事务中提交并等待 RYW receipt 后再释放完整 watch 结果。该流程与 [`../crypto-media/audited-e2ee.md` §4](../crypto-media/audited-e2ee.md) "先写后解密"模型同构。
 
-- 仅持有 `cx.space.notification.audit` 而无 `cx.audit.accessed` 的 actor MUST 被 reducer / projection executor 拒绝（`failed_precondition`，`reason="audit_capability_incomplete"`）。
+- 仅持有 `cx.realm.notification.audit` 而无 `cx.audit.accessed` 的 actor MUST 被 reducer / projection executor 拒绝（`failed_precondition`，`reason="audit_capability_incomplete"`）。
 - 默认 admin 角色 bundle SHOULD 同时包含两者；profile SHOULD 把它们作为不可拆分的 bundle 授予。
 - 被读取的当事人通过 `cx.audit.accessed` event 链获得事后审计权；缺失对应 audit event 或 RYW receipt 的 watch 读取 MUST 在投影 / sync 层 fail closed。
 
-**Opt-in 暴露**：actor 在自写 watch cell 时 MAY 设置 `level_public = true`。该 flag 为 true 时，projection 在向 Space 其他成员投影该 actor 的 watch 时**不脱级别**（即区分 `participating` vs `all`）。`muted` **永远**不投影给非自己 / 非 audit 持有方，即使 `level_public=true`（防止社交核弹）。默认 `level_public = false`。
+**Opt-in 暴露**：actor 在自写 watch cell 时 MAY 设置 `level_public = true`。该 flag 为 true 时，projection 在向 Realm 其他成员投影该 actor 的 watch 时**不脱级别**（即区分 `participating` vs `all`）。`muted` **永远**不投影给非自己 / 非 audit 持有方，即使 `level_public=true`（防止社交核弹）。默认 `level_public = false`。
 
 > 暂未规范"全局隐身（hide_watching）"开关——actor 想完全隐身的简单做法是不写显式 watch cell（行为退化为 `mentions_only`，投影上不出现）。如未来需要 opt-out 让别人看不到 `participating` / `all` 状态，将通过独立 actor profile 字段扩展，本版本不预留 wire 位。
 
@@ -423,12 +423,12 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 - **Push rule = "通知如何投递"**：在 watch level 允许通知发生的前提下，push rule 决定提示音、是否高亮、DND 例外等。
 - Push rule 引擎 MAY 通过 `watch_state` condition 显式引用本节级别（详见 [push-notifications.md §4.3](../discovery/push-notifications.md)），常见用途是用户显式声明"watching=all 也只想要静默通知"等更细粒度策略。
 
-### 8.9 `discussion_space_ref` 场景
+### 8.9 `discussion_realm_ref` 场景
 
-当 Flow 设置了 `discussion_space_ref`（§5），watch 行为分两层：
+当 Flow 设置了 `discussion_realm_ref`（§5），watch 行为分两层：
 
-- Flow synthesis 字段变更通知：watch cell 在父 Space namespace 下，按本节规则收敛。
-- Discussion 消息通知：消息 Event 写在 child Space。Sync Service 在派发时 MUST 用 actor 在 child Space 的 capability 重新校验**可见性**（actor 不是 child Space 成员则无论 watch level 如何都不发通知），然后再应用 actor 在父 Space 的 watch level 决定通知级别。
+- Flow synthesis 字段变更通知：watch cell 在源 Realm namespace 下，按本节规则收敛。
+- Discussion 消息通知：消息 Event 写在 linked Realm。Sync Service 在派发时 MUST 用 actor 在 linked Realm 的 capability 重新校验**可见性**（actor 不是 linked Realm 成员则无论 watch level 如何都不发通知），然后再应用 actor 在源 Realm 的 watch level 决定通知级别。
 
 换言之：访问权先于订阅意愿。无访问权 = 没有通知，无论 watch 设了什么。
 
@@ -442,7 +442,7 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
 
 未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。E2EE 消息使用 `payload.encrypted_payload` 承载同一 Content Block 的 canonical encrypted envelope；`flow_id`、`message_id`、`reply_to` 等字段只表达归属、目标或关系。
 
-Message MAY reply to another Message, mention Actor or object, reference Flow / Morph / Space, or be redacted.
+Message MAY reply to another Message, mention Actor or object, reference Flow / Morph / Realm, or be redacted.
 
 ### 9.2 Schema 与字段
 
@@ -451,7 +451,7 @@ Schema id: `cx.schema.message.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:message` | 以 `cx:message:` 开头。 | Message ID。 |
-| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
 | `track` | yes | `string` | 必须匹配 `^[a-z][a-z0-9_]{0,63}$`，并且必须是目标 Flow 当前 active 的 track name。v1 reducer 默认只识别 `discussion`；profile 可声明额外 track name 承载 Message timeline，但 v1 wire 互操作 SHOULD 使用 `discussion`。 | 所属 Flow 轨道。 |
 | `content` | conditional | `object` | 富文本/blocks 见 `content-types.md`；`state=active` 且未加密时必填。 | 消息正文。 |
@@ -474,7 +474,7 @@ Schema id: `cx.schema.message.v1`
 {
   "id": "cx:message:0196414c-8000-7000-8000-000000000000",
   "schema": "cx.schema.message.v1",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "flow_id": "cx:flow:019640f9-8000-7000-8000-000000000000",
   "track": "discussion",
   "created_by": "did:web:alice.example",
@@ -492,8 +492,8 @@ Schema id: `cx.schema.message.v1`
 
 ### 9.4 Chat 模式示例
 
-讨论型 Space 的最小实施序列：创建 Flow（`discussion` 默认 primary）→
-（如需要独立访问域）创建 child Space 并设置 `Flow.discussion_space_ref` →
+讨论型 Realm 的最小实施序列：创建 Flow（`discussion` 默认 primary）→
+（如需要独立访问域）创建 linked Realm 并设置 `Flow.discussion_realm_ref` →
 加入成员 → 发消息 → 编辑 / 撤回 / reaction。
 
 ```json
@@ -504,7 +504,7 @@ Schema id: `cx.schema.message.v1`
       "object": {
         "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
         "schema": "cx.schema.flow.v1",
-        "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
         "title": "项目同步",
         "tracks": {
           "discussion": { "is_primary": true }
@@ -534,9 +534,9 @@ Schema id: `cx.schema.message.v1`
 
 `@mention` 与 reference：消息正文 SHOULD 使用结构化 AST 或带 DID/object ref 的
 Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention 关系和通知，
-但派生关系不得扩大权限。跨 Space 引用按 [relation.md](./relation.md) §4 的跨 Space
+但派生关系不得扩大权限。跨 Realm 引用按 [relation.md](./relation.md) §4 的跨 Realm
 规则处理：源消息可暴露 ref 与最小 metadata，目标对象内容与 preview 必须重新按
-目标 Space policy 授权。
+目标 Realm policy 授权。
 
 客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 SHOULD 通过 `cx.directory.resolve_handle(intent="mention")` 解析为 DID，并在结构化 mention 节点中保存 DID / object ref 与当时的 display handle snapshot。消息正文中的 handle 字符串只是展示快照，不参与授权、投递或审计归因。
 
@@ -597,8 +597,8 @@ receipt / read marker 的具体规则见 [`../discovery/read-receipts.md`](../di
 ## 10. 规范性引用
 
 - 公共字段：[common-fields.md](./common-fields.md)。
-- Place / Flow 位置语义：[space-and-place.md](./space-and-place.md) §4.6。
-- Relation 基数与跨 Space：[relation.md](./relation.md)。
+- Space / Flow 位置语义：[realm-and-space.md](./realm-and-space.md) §4.6。
+- Relation 基数与跨 Realm：[relation.md](./relation.md)。
 - Content Block：[content-types.md](./content-types.md)。
 - Read receipts / read markers：[`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
 - 历史可见性 / E2EE：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。

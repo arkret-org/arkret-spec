@@ -6,7 +6,7 @@
   "required": [
     "id",
     "schema",
-    "space_id",
+    "realm_id",
     "kind",
     "query",
     "created_by",
@@ -20,9 +20,9 @@
     "schema": {
       "const": "cx.schema.view.v1"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "kind": {
       "type": "string",
@@ -46,7 +46,7 @@
         "private",
         "shared"
       ],
-      "description": "View sharing visibility. Private views are actor-private account data; shared views are canonical Space objects."
+      "description": "View sharing visibility. Private views are actor-private account data; shared views are canonical Realm objects."
     },
     "query": {
       "$ref": "#/$defs/query"
@@ -124,11 +124,11 @@
     "query": {
       "type": "object",
       "properties": {
-        "space_ids": {
+        "realm_ids": {
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "object_types": {
@@ -267,7 +267,7 @@
     },
     "ref": {
       "type": "string",
-      "pattern": "^(cx:(space|flow|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
+      "pattern": "^(cx:(realm|flow|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
     }
   },
   "additionalProperties": true

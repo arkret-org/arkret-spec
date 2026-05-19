@@ -23,7 +23,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.profile.chat_mvp.v1",
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Single-modality profile ids never existed as canonical cx.profile.* entries; downstream (notably yougen) declared them informally. Use cx.profile.chat_mvp.v1 + the Space's actual schema declaration to describe a chat-focused product."
+      "notes": "Single-modality profile ids never existed as canonical cx.profile.* entries; downstream (notably yougen) declared them informally. Use cx.profile.chat_mvp.v1 + the Realm's actual schema declaration to describe a chat-focused product."
     },
     {
       "id": "kanban_only_client",
@@ -31,7 +31,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.profile.kanban_mvp.v1",
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "See chat_only_client. Use cx.profile.kanban_mvp.v1; modality is expressed via Space schema / morph_type_profiles, not via single-modality profile gating."
+      "notes": "See chat_only_client. Use cx.profile.kanban_mvp.v1; modality is expressed via Realm schema / morph_type_profiles, not via single-modality profile gating."
     }
   ]
 }

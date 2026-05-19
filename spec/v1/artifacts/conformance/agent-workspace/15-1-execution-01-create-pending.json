@@ -17,7 +17,7 @@
         "body": "Summarize this week's discussion."
       },
       "context_anchor": {
-        "source_space_id": "cx:space:01964200-0000-7000-8000-000000000010",
+        "source_realm_id": "cx:realm:01964200-0000-7000-8000-000000000010",
         "source_flow_id": "cx:flow:01964200-0000-7000-8000-000000000011",
         "source_anchor_ref": "cx:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000010",
         "source_frontier_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",

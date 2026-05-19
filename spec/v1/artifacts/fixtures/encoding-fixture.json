@@ -71,7 +71,7 @@
       "input": {
         "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
         "kind": "cx.message.create",
-        "space_id": "cx:space:01964137-0000-7000-8000-000000000000",
+        "realm_id": "cx:realm:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:web:alice.example",
         "actor_seq": 1,
         "created_at": "2026-04-26T00:00:00Z",
@@ -86,7 +86,7 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"refs\":[],\"created_at\":\"2026-04-26T00:00:00Z\",\"event_id\":\"cx:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"cx.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"cx.content.text\"},\"flow_id\":\"cx:flow:01964137-0000-7000-8000-000000000000\"},\"prev_refs\":[],\"space_id\":\"cx:space:01964137-0000-7000-8000-000000000000\"}",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"refs\":[],\"created_at\":\"2026-04-26T00:00:00Z\",\"event_id\":\"cx:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"cx.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"cx.content.text\"},\"flow_id\":\"cx:flow:01964137-0000-7000-8000-000000000000\"},\"prev_refs\":[],\"realm_id\":\"cx:realm:01964137-0000-7000-8000-000000000000\"}",
       "expected_digest": "sha256:c1464e4b8c7fde01326521ca7ba6a1c88e5b0847ad37a5a9ec5f1a101a791264",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
@@ -182,7 +182,7 @@
       "vector_id": "cx.vector.encoding.cursor_opaque.v1",
       "kind": "cursor_opaqueness",
       "input_cursor": "cx:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImN4OnNwYWNlOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImN4OmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDI2LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6MTc5ODc2MTU5OTAwMH0",
-      "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"purpose\":\"stream\",\"s\":{\"cx:space:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"cx:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2026-12-30T23:59:59Z\",\"v\":\"1\",\"x\":1798761599000}",
+      "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"purpose\":\"stream\",\"s\":{\"cx:realm:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"cx:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2026-12-30T23:59:59Z\",\"v\":\"1\",\"x\":1798761599000}",
       "client_rules": [
         "MUST treat cursor as an opaque string and round-trip it verbatim",
         "MUST NOT parse v / purpose / t / s / x / _mac to construct the next page request",
@@ -190,7 +190,7 @@
       ],
       "server_rules": [
         "MUST validate v, purpose, x, and the full cursor schema before honouring cursor",
-        "MUST validate every event id under s.<space_id>.p matches cx:event:<uuid> and every s.<space_id> entry contains p/o/h",
+        "MUST validate every event id under s.<realm_id>.p matches cx:event:<uuid> and every s.<realm_id> entry contains p/o/h",
         "syntax validation failure MUST return invalid_param with reason_code invalid_cursor; TTL failure MUST return cursor_expired; MAC/signature failure MUST return cursor_integrity_invalid"
       ],
       "fail_conditions": [
@@ -219,17 +219,17 @@
   "rank_order": [
     {
       "flow_id": "cx:flow:019640c5-0400-7000-8000-000000000000",
-      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
+      "list_id": "cx:realm:01964010-8000-7000-8000-000000000000",
       "rank": "U"
     },
     {
       "flow_id": "cx:flow:019640c5-0800-7000-8000-000000000000",
-      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
+      "list_id": "cx:realm:01964010-8000-7000-8000-000000000000",
       "rank": "j"
     },
     {
       "flow_id": "cx:flow:019640c5-0c00-7000-8000-000000000000",
-      "list_id": "cx:space:01964010-8000-7000-8000-000000000000",
+      "list_id": "cx:realm:01964010-8000-7000-8000-000000000000",
       "rank": "t"
     }
   ],

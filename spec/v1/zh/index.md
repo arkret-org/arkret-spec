@@ -7,7 +7,7 @@ title: Contrix Protocol
 `contrix-spec` 是 **Contrix v1 去中心化协作协议规范**。其核心不是界面，而是“可验证协作事实 + 可投影的对象语义”：
 
 - 身份主键：DID principal
-- 数据主语：Space / Place（含 Board/List）/ Flow / Message / Relation / Event / View / Capability
+- 数据主语：Realm / Space（含 Board/List）/ Flow / Message / Relation / Event / View / Capability
 - 审计主语：signed Event + per-actor event chain
 - 权限主语：capability
 - 呈现主语：views / projection
@@ -31,7 +31,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 ### 3.1 一分钟实施链路（实现导向）
 
 1. 完成 DID 与服务发现，建立 principal/service 绑定。
-2. Space 创建后锁定 schema 与策略基线。
+2. Realm 创建后锁定 schema 与策略基线。
 3. Event-first 写入并做初始 auth state 校验。
 4. 客户端执行 `event-auth-state-resolution` 收敛。
 5. 使用 snapshot / frontier 建立快速重建路径。
@@ -42,9 +42,9 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 ### 3.2 先读路径
 
 - `overview/architecture.md`：架构、服务角色、部署与信任边界。
-- `overview/glossary.md`：Principal / Actor / Organization / Space / Event / Principal Server 等术语。
+- `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Principal Server 等术语。
 - `models/overview.md`：对象总览、typed-id 一览、设计原则。
-- `models/common-fields.md`、`models/space-and-place.md`、`models/flow-and-message.md`：公共字段、Space/Place、Flow/Message 等核心对象。
+- `models/common-fields.md`、`models/realm-and-space.md`、`models/flow-and-message.md`：公共字段、Realm/Space、Flow/Message 等核心对象。
 - `models/relation.md`、`models/morph.md`、`models/event-and-patch.md`：关系、Morph 扩展、事件与字段增量。
 - `identity/identity-did.md`、`identity/identity-handles.md`：身份、handle、渐进披露（progressive disclosure 在 `identity-handles.md` §16）。
 - `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：授权与状态。
@@ -80,17 +80,17 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 
 - 所有持久协作修改必须是 signed Event。
 - 所有共享状态由授权 Event 集合 reducer 收敛后生成。
-- Space 是权限、成员、schema、policy 的边界。
+- Realm 是权限、成员、schema、policy 的边界。
 - Flow 为统一协作对象，默认入口由 track primary 解析规则表达，同一 `flow_id` 下可切换默认 track。
 - Morph 是扩展载体，不单独定义核心能力和排序语义。
 - `notification` 是投影用途，不是 canonical truth。
 
 ### 4.3 看板与会话
 
-- 看板定义：`Board Place -> List Place -> Flow`。
+- 看板定义：`Board Space -> List Space -> Flow`。
 - 会话定义：`Flow(discussion track) -> Message`。
 - `cx.flow.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
-- Track 不携带独立 access；discussion 完全继承父 Space。需要独立成员、历史或 E2EE 边界时，必须升级为 child Space 并通过 `Flow.discussion_space_ref` 引用。
+- Track 不携带独立 access；discussion 完全继承源 Realm。需要独立成员、历史或 E2EE 边界时，必须升级为 linked Realm 并通过 `Flow.discussion_realm_ref` 引用。
 
 ### 4.4 同步与真相模型
 
@@ -128,7 +128,7 @@ Contrix v1 明确不把以下内容作为基础互操作必需项：
 ## 6. 当前覆盖范围
 
 - 身份、handle、组织主体、服务 DID 与进阶披露
-- Space / Flow / Message / Morph / Relation / Event / View / Capability
+- Realm / Flow / Message / Morph / Relation / Event / View / Capability
 - 字段级结构、必填性、枚举与约束
 - capability、delegation、claim 条件、policy 与 moderation policy
 - Event-first 发布、Principal Server 同步、客户端查询与投影

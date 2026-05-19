@@ -9,7 +9,7 @@
         "event": {
           "event_id": "cx:event:019a6aa0-0000-7000-8000-000000000000",
           "kind": "message.create",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 1,
           "created_at": "2026-05-02T00:00:00Z",
@@ -38,7 +38,7 @@
         "event": {
           "event_id": "cx:event:019a6ab0-0000-7000-8000-000000000000",
           "kind": "cx.message.create",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 2,
           "created_at": "2026-05-02T00:00:01Z",
@@ -83,7 +83,7 @@
         "event": {
           "event_id": "cx:event:019a6ac0-0000-7000-8000-000000000000",
           "kind": "cx.message.create",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 3,
           "created_at": "2026-05-02T00:00:02Z",
@@ -131,7 +131,7 @@
         "event": {
           "event_id": "cx:event:019a6ad0-0000-7000-8000-000000000000",
           "kind": "cx.message.create",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 9,
           "created_at": "2026-05-02T00:00:03Z",
@@ -164,7 +164,7 @@
         "event": {
           "event_id": "cx:event:019a6ae0-0000-7000-8000-000000000000",
           "kind": "cx.message.create",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 11,
           "created_at": "2026-05-02T00:00:04Z",
@@ -325,7 +325,7 @@
         "event": {
           "event_id": "cx:event:019a6b00-0000-7000-8000-000000000000",
           "kind": "cx.message.create",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 12,
           "created_at": "2026-05-02T00:00:05Z",
@@ -355,7 +355,7 @@
         "event": {
           "event_id": "cx:event:019a6bd0-0000-7000-8000-000000000000",
           "kind": "cx.message.create",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 13,
           "created_at": "2026-05-02T00:00:06Z",
@@ -407,7 +407,7 @@
         "event": {
           "event_id": "cx:event:019a6b30-0000-7000-8000-000000000000",
           "kind": "cx.read.marker",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 14,
           "created_at": "2026-05-02T00:00:06Z",
@@ -437,7 +437,7 @@
         "event": {
           "event_id": "cx:event:019a6b40-0000-7000-8000-000000000000",
           "kind": "cx.typing",
-          "space_id": "cx:space:019a7360-0000-7000-8000-000000000000",
+          "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:web:alice.example",
           "actor_seq": 15,
           "created_at": "2026-05-02T00:00:07Z",

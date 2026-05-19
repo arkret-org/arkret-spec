@@ -271,7 +271,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 ### 4.11 私密 agent 调用 `cx.content.mention_redirect`
 
-由 `cx.profile.agent_workspace.v1` 引入，详见 [extensions/agent-workspace-profile.md §8.1](../extensions/agent-workspace-profile.md)。Source Space 中的 @-mention-my-agent 不携带指令正文，只携带"我把指令送到了我的私人 workspace"的透明 stub。
+由 `cx.profile.agent_workspace.v1` 引入，详见 [extensions/agent-workspace-profile.md §8.1](../extensions/agent-workspace-profile.md)。Source Realm 中的 @-mention-my-agent 不携带指令正文，只携带"我把指令送到了我的私人 workspace"的透明 stub。
 
 承载 Event 顶层 MUST 携带 critical_extension `cx.feature.mention_redirect.v1`（`scope=payload`, `fail_closed=true`）；未实现该 feature 的接收方 MUST reject 整条 event（不存在 fallback 路径，保护隐私 invariant）。
 
@@ -287,9 +287,9 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 字段规则、reducer 校验、conformance 见 agent-workspace-profile.md。
 
-### 4.12 跨 Space 重加密引用 `cx.content.import_attestation`
+### 4.12 跨 Realm 重加密引用 `cx.content.import_attestation`
 
-由 `cx.profile.agent_workspace.v1` 引入，详见 [extensions/agent-workspace-profile.md §8.2](../extensions/agent-workspace-profile.md)。Importer（通常是 primary agent）把源 Space 内容重加密引入到 mirror Space。性质是 "importer 声称"——`import_signature` 证明 importer 自己的声明，不证明原作者明文确实如此。reader UI MUST 显著区分"原作者直接发言"vs"由 X importer 声称引自"。
+由 `cx.profile.agent_workspace.v1` 引入，详见 [extensions/agent-workspace-profile.md §8.2](../extensions/agent-workspace-profile.md)。Importer（通常是 primary agent）把源 Realm 内容重加密引入到 mirror Realm。性质是 "importer 声称"——`import_signature` 证明 importer 自己的声明，不证明原作者明文确实如此。reader UI MUST 显著区分"原作者直接发言"vs"由 X importer 声称引自"。
 
 ```json
 {
@@ -341,7 +341,7 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 - `reply_context` 是**渲染提示 (Rendering Hint)**，不是真相源。真正的回复关系由 `replies_to` Relation 决定。
 - 若客户端在本地缓存/搜索索引中已有原消息，SHOULD 优先使用本地数据渲染引用块，忽略 `reply_context.excerpt`。
-- 若客户端无法获取原消息（例如跨 Space 引用或权限限制），则使用 `reply_context.excerpt` 做降级展示。
+- 若客户端无法获取原消息（例如跨 Realm 引用或权限限制），则使用 `reply_context.excerpt` 做降级展示。
 
 ## 7. 自定义与扩展类型
 
@@ -369,5 +369,5 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 - Emoji / Sticker MUST 作为 `cx.content.image`、`cx.content.file` 或注册的 `cx.content.sticker` block 表达，并引用 content-addressed blob；客户端不得从未授权 URL 热加载私有表情资源。
 - 投票 / 表单等交互式消息 SHOULD 使用 `poll` Morph、Relation 和 event reducer 表达；消息中的 content block 只能作为入口或摘要，不能成为唯一计票真相源。
-- URL 预览 MUST 作为可丢弃的 rendering hint 或受控 preview blob 表达。服务端抓取私有链接前必须有用户或 Space policy 授权，预览服务若接触正文或页面内容，MUST 列入 `plaintext_visible_services`。
+- URL 预览 MUST 作为可丢弃的 rendering hint 或受控 preview blob 表达。服务端抓取私有链接前必须有用户或 Realm policy 授权，预览服务若接触正文或页面内容，MUST 列入 `plaintext_visible_services`。
 - E2EE 场景下缩略图 SHOULD 由客户端生成并加密上传；服务端生成缩略图前必须被声明为 plaintext-visible service，并遵守 `media-and-blob.md` 的 MIME、缓存和授权规则。

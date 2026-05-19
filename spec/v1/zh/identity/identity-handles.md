@@ -40,7 +40,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 
 ### 2.3 标识角色与可见性
 
-实现 MUST 区分以下标识**角色**。这些角色不是按字符串形态划分的：同一字符串可以在不同上下文中扮演不同角色（例如 `alice@example.com` 在通讯录发现阶段是 Connection Identifier；若 holder 主动通过 `alsoKnownAs` 公布则升格为 Handle）。区分点是 **holder 意图、可见性默认与验证路径**，不在字符串本身。实现 MAY 用同一存储承载，但 MUST 在协议输出（DID Document、Space history、grant subject、MLS credential、directory query 响应）中按角色应用对应可见性规则。
+实现 MUST 区分以下标识**角色**。这些角色不是按字符串形态划分的：同一字符串可以在不同上下文中扮演不同角色（例如 `alice@example.com` 在通讯录发现阶段是 Connection Identifier；若 holder 主动通过 `alsoKnownAs` 公布则升格为 Handle）。区分点是 **holder 意图、可见性默认与验证路径**，不在字符串本身。实现 MAY 用同一存储承载，但 MUST 在协议输出（DID Document、Realm history、grant subject、MLS credential、directory query 响应）中按角色应用对应可见性规则。
 
 | 角色 | 可见性默认 | 验证路径 | 协议主体 |
 | --- | --- | --- | --- |
@@ -60,18 +60,18 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 
 规则：
 
-- Connection Identifier 只用于发现、consent、邀请或一次性绑定证明。它不得自动写入 DID Document、Space history、membership event、grant subject 或 MLS credential。
+- Connection Identifier 只用于发现、consent、邀请或一次性绑定证明。它不得自动写入 DID Document、Realm history、membership event、grant subject 或 MLS credential。
 - Provider、Directory 或 Auth Server 证明某个 connection identifier 可达时，输出仍 MUST 归约为 DID 或 pending invite proof，并带有 purpose、audience、expiry 和 issuer proof。
-- 同一 principal 可以为不同 provider、组织或 Space 使用不同 connection identifier 和 pairwise DID。实现不得要求全局唯一 connection identifier。
-- Connection identifier 与 DID 的绑定默认是关系私有状态。除非 holder 明确发布为 handle 或 VC claim，其他 Space 成员和 federation peer 不得获得该映射。
+- 同一 principal 可以为不同 provider、组织或 Realm 使用不同 connection identifier 和 pairwise DID。实现不得要求全局唯一 connection identifier。
+- Connection identifier 与 DID 的绑定默认是关系私有状态。除非 holder 明确发布为 handle 或 VC claim，其他 Realm 成员和 federation peer 不得获得该映射。
 - 同一字符串从 Connection Identifier 升格为 Handle MUST 经过 holder 显式 disclosure（写入 `alsoKnownAs`、签发 VC claim、或发布到 Directory）；实现不得在用户未授权时自动升格，也不得仅凭 provider 可达性证明把 connection identifier 公开为 handle。
-- Handle 只提供寻址和可选默认投递上下文；它不得作为 `actor_id`、grant subject、membership key 或 audit attribution。解析结果必须先归约为 DID 与可验证 claim，加入 Space 时再物化为 `cx.member.state{join}.delivery_binding`。
+- Handle 只提供寻址和可选默认投递上下文；它不得作为 `actor_id`、grant subject、membership key 或 audit attribution。解析结果必须先归约为 DID 与可验证 claim，加入 Realm 时再物化为 `cx.member.state{join}.delivery_binding`。
 - Administrative Identifier 是组织本地概念。协议层只规定它不得作为协议主体、不得作为 grant subject、不得作为 Event actor、不得在跨组织 federation 输出中泄露；其内部分配、回收和绑定规则由组织 governance 决定，超出本规范范围。
 - Display name 是可变 metadata，不得被用于 ACL、grant、audit attribution 或 sender verification。
 
 ## 3. Handle 格式
 
-Handle 是面向用户的可路由人类地址，让客户端用一个易懂字符串完成 @mention、联系人搜索、邀请或"添加成员到 Space"，同时保持协议主体仍是 DID、投递路径仍是 Space-scoped `delivery_binding`。
+Handle 是面向用户的可路由人类地址，让客户端用一个易懂字符串完成 @mention、联系人搜索、邀请或"添加成员到 Realm"，同时保持协议主体仍是 DID、投递路径仍是 Realm-scoped `delivery_binding`。
 
 Handle 是统一概念：协议层只有一种 handle 形态、一套 canonical URI、一套解析与验证规则。所谓"自有域名个人 handle"与"组织内部账号地址"在结构上是同一类——区别只在**谁是 issuer**（domain 拥有者自己 vs 组织 / Principal Server），不在 URI 形态。
 
@@ -95,7 +95,7 @@ Handle 分两层：**显示形态**面向用户，**canonical URI** 面向协议
 | `contrix://<domain>(:<port>)?/users/<localpart>` | **主形态** | DID Document `alsoKnownAs` 比对、claim proof 输入、Directory 缓存键、`handle_uri` 字段 |
 | `acct:<localpart>@<domain>(:<port>)?` | 互通别名（RFC 7565） | 跨 Fediverse / WebFinger 边界对接；只能出现在 `handle_aliases[]`，不作为本协议内部 canonical 比对 |
 
-每个 handle 都有唯一的 `contrix://` 形态。`acct:` MAY 在 claim 的 `handle_aliases[]` 中作为附加字段出现，但 **alsoKnownAs 比对、Directory 缓存键、Space `delivery_binding` 物化** 一律 MUST 使用 `contrix://` 形态。verifier 收到只含 `acct:` 而无对应 `contrix://` 的 claim 时，MUST 把它视为外部互通别名，不得用它作 Contrix 内部权威 binding。
+每个 handle 都有唯一的 `contrix://` 形态。`acct:` MAY 在 claim 的 `handle_aliases[]` 中作为附加字段出现，但 **alsoKnownAs 比对、Directory 缓存键、Realm `delivery_binding` 物化** 一律 MUST 使用 `contrix://` 形态。verifier 收到只含 `acct:` 而无对应 `contrix://` 的 claim 时，MUST 把它视为外部互通别名，不得用它作 Contrix 内部权威 binding。
 
 `handle_uri` 的 wire 形态由 [`artifacts/schemas/handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 强制：必须匹配 `contrix://<domain>(:<port>)?/users/<localpart>`，且 `<localpart>` 已 canonicalize 为小写。裸 `contrix://<host>`（无 `/users/...` 路径）、`acct:`、`user:domain`、`<host>` 单段字符串等其它形态在 `handle_uri` 中被 schema 拒绝；客户端 MAY 接受这种字符串作为输入捷径，但 normalize 前 MUST 不出现在签名 transcript、`alsoKnownAs`、缓存键或 Directory query 中。`acct:` 互通别名只能进入 `handle_aliases[]`。
 
@@ -110,10 +110,10 @@ Handle 解析结果（无论来自 Directory、Principal Server、Organization c
 - `proofs`：至少一条可验证签名，绑定 `handle_uri`、`subject`、`issuer`、`created_at`。
 - `created_at` / `expires_at`：claim 时间边界；`expires_at` 缺失等价于 `binding_state=unverified`。
 
-Handle claim 用于 Space membership（`intent ∈ {invite, member_add}`）时，**额外** MUST 包含：
+Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时，**额外** MUST 包含：
 
 - `recipient_service_did`：该 handle 在投递层指向的 Principal Server service DID。
-- `audience`：claim 绑定的目标 Space DID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。
+- `audience`：claim 绑定的目标 Realm DID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。
 - `issuer_service_did`（条件必填）：claim 由 Organization 或 Directory 签发时给出实际签名的服务 DID。
 
 ### 3.3 `delivery_binding_hint`
@@ -122,7 +122,7 @@ Handle claim 用于 Space membership（`intent ∈ {invite, member_add}`）时�
 
 `delivery_binding_hint.binding_source` 的合法取值是 `explicit` / `invite` / `join_policy` / `organization_policy` / `space_policy`。**MUST NOT** 是 `did_document_default`——handle resolution 本身就是 directory-attested 路径，与 DID Document fallback 是两条独立的物化路径，不可在 hint 中混用。
 
-该 hint 是 builder 输入；reducer 仍 MUST 按 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 独立验证 Space policy、claim issuer、服务背书和条件必填字段。
+该 hint 是 builder 输入；reducer 仍 MUST 按 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 独立验证 Realm policy、claim issuer、服务背书和条件必填字段。
 
 ### 3.4 Issuer 类型与 holder 控制
 
@@ -131,7 +131,7 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical URI 形态可以�
 | Issuer 类型 | 典型场景 | 验证锚点 |
 | --- | --- | --- |
 | **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/contrix-did` 或 DNS TXT `_contrix.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `contrix://<domain>/users/<localpart>`；两侧均验签通过。 |
-| **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:web:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Space / 组织。 |
+| **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:web:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
 | **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:web:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
 | **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；Directory 是镜像层，不是真相源。 |
 
@@ -142,7 +142,7 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical URI 形态可以�
 Handle 按 holder 披露意图分两类：
 
 - **公开 handle**：holder 主动公开，DID Document MAY 在 `alsoKnownAs` 中列出 canonical `contrix://` URI；issuer 提供的 well-known 或 Directory 响应可对任意 verifier 可见。
-- **受限 handle**：例如组织内部账号 `@alice:acme.example` 暗示雇佣关系，默认不进公开 DID Document。它由 issuer 以 `cx.schema.handle_claim.v1` / VC / signed directory response 表达，并按 audience、Space、organization policy 最小披露。
+- **受限 handle**：例如组织内部账号 `@alice:acme.example` 暗示雇佣关系，默认不进公开 DID Document。它由 issuer 以 `cx.schema.handle_claim.v1` / VC / signed directory response 表达，并按 audience、Realm、organization policy 最小披露。
 
 公开 / 受限之间的差异只在 alsoKnownAs / 公开 directory 的可见性上。两者 URI 形态、双签证据要求、`delivery_binding` 构造规则相同。
 
@@ -215,7 +215,7 @@ Handle 解析示例：
   "claim_type": "organization_handle",
   "visibility": "restricted",
   "binding_state": "verified",
-  "audience": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "delivery_binding_hint": {
     "recipient_service_did": "did:web:principal.acme.example",
     "recipient_service_type": "principal_server",
@@ -232,7 +232,7 @@ Handle 解析示例：
     "verification_method": "did:web:principal.acme.example#key-1",
     "payload_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "created_at": "2026-05-19T00:00:00Z",
-    "audience": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "audience": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "jws": "aaa.bbb.ccc"
   }]
 }
@@ -255,7 +255,7 @@ did_document.alsoKnownAs contains the canonical handle_uri
 - issuer claim 签名有效，且 issuer 在当前调用上下文的本地 trust policy 内；
 - claim `audience` 与当前调用上下文一致；
 - claim `challenge` 未过期、未重复使用；
-- claim `scope`（Space、organization、purpose）覆盖当前用途；
+- claim `scope`（Realm、organization、purpose）覆盖当前用途；
 - claim `status` / `binding_state` 仍为 `verified`；
 - holder consent / organization policy 允许向当前 requester 披露。
 
@@ -267,7 +267,7 @@ DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的�
 - TXT 记录内的绑定声明由 issuer DID（holder DID 或 Organization DID 或受信 issuer）签名，客户端能通过 DID resolver / VC 验证该签名。
 - HTTPS well-known 或 Directory / VC presentation 提供等价的签名绑定证据。
 
-未启用 DNSSEC 且没有可验证签名的 DNS 结果只能作为 unverified discovery hint，MUST NOT 作为 grant subject、Organization membership、official Space 或 verified handle 的依据。
+未启用 DNSSEC 且没有可验证签名的 DNS 结果只能作为 unverified discovery hint，MUST NOT 作为 grant subject、Organization membership、official Realm 或 verified handle 的依据。
 
 ### 6.1 缓存与失效
 
@@ -276,7 +276,7 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 #### 6.1.1 缓存规则
 
 - verified handle cache MUST 绑定 `handle_uri`（canonical `contrix://` 形态）、`subject`、issuer、DID Document version / digest、alsoKnownAs proof、issuer proof、verified_at、expires_at 和 resolver policy。claim 同时携带 `handle_uri` 与 `handle_aliases[]` 时，缓存键 MUST 取 `handle_uri`；`acct:` alias 只作为附加索引，但仍指向同一 cache entry。
-- handle cache 若含 `recipient_service_did`，还 MUST 绑定 `recipient_service_did`、claim digest、audience / scope、`service_acceptance_ref` / `policy_ref`（如有）；缓存结果不得跨 Space 或跨组织上下文复用，除非 claim 明确授权。
+- handle cache 若含 `recipient_service_did`，还 MUST 绑定 `recipient_service_did`、claim digest、audience / scope、`service_acceptance_ref` / `policy_ref`（如有）；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
 - DNS / HTTPS 解析结果的 TTL MUST 不超过底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL 和本地 resolver policy 上限中的最小值。未提供 TTL 时，verified cache SHOULD 不超过 24 小时；高风险授权或组织背书 SHOULD 使用更短 TTL 或实时 status check。
 - 当 DID Document 移除对应 `alsoKnownAs`、issuer claim 被 revoke / expired、well-known 绑定变更、DNSSEC validation 失败、handle 被解析到不同 DID、或 resolver policy 更新时，缓存 MUST 失效或降级为 unverified。
 
@@ -297,7 +297,7 @@ handle 字符串可以在 issuer 治理下被重分配到不同 DID（典型场�
 - **DID 与签名责任不可改写**：Handle 转让或重分配 MUST NOT 改变历史 Event 的 actor DID、签名责任或 audit attribution。授权、grant subject、membership、MLS credential 与 audit attribution MUST 使用 DID / verified claim，而不是缓存中的 handle 字符串。
 - **历史 mention 显示**：渲染历史 mention / message text 时，UI MUST 优先显示 event 内 `subject` DID 的当时身份信息（profile snapshot、display_snapshot 字符串）。若当前 `handle_uri` 解析到的 DID **不等于** 事件中记录的 `subject`，UI MUST 显式标注"handle reassigned"或等价文字，避免读者把当前持有者误认为历史 mention 的对象。
 - **新分配生效**：新持有者拿到 handle 后 MUST 通过 issuer 重新发布 handle claim（新 `subject`、新 `created_at`、独立的 `service_acceptance_ref`）；旧 claim 的所有缓存按 §6.1.2 失效。
-- **跨投递的 cascade**：handle 重分配不自动迁移既有 Space `delivery_binding`——旧 binding 仍按 `cx.member.state{join}` 内固化的 `subject` DID 投递。新持有者要加入同一 Space 需要走完整 join 流程并签发新的 `delivery_binding`。
+- **跨投递的 cascade**：handle 重分配不自动迁移既有 Realm `delivery_binding`——旧 binding 仍按 `cx.member.state{join}` 内固化的 `subject` DID 投递。新持有者要加入同一 Realm 需要走完整 join 流程并签发新的 `delivery_binding`。
 
 ## 7. Verified Claim
 
@@ -305,13 +305,13 @@ Handle、组织成员、邮箱控制权和角色 SHOULD 通过 credential / atte
 
 授权判断 MUST 检查：
 
-- issuer 是否被目标 Space / Policy 信任
+- issuer 是否被目标 Realm / Policy 信任
 - subject DID 是否匹配当前 actor
 - claim 是否在有效期内
 - claim 是否未撤销
 - claim 内容是否满足 grant constraint
 - presentation 是否绑定当前 verifier challenge / domain
-- 若 claim 携带 `recipient_service_did`，该服务 DID 是否被 issuer 授权、被 Space policy 接受，并能作为 `delivery_binding.recipient_service_did` 通过 Join Policy 校验。
+- 若 claim 携带 `recipient_service_did`，该服务 DID 是否被 issuer 授权、被 Realm policy 接受，并能作为 `delivery_binding.recipient_service_did` 通过 Join Policy 校验。
 
 ## 8. 隐私保护型 Handle 证明
 
@@ -470,7 +470,7 @@ grant subject = alice@google.com
 
 - 对 Google 披露 `alice@google.com`
 - 对 Facebook 披露 `alice@facebook.com`
-- 对某 Space 只证明"我是某组织当前成员"，不披露具体 handle
+- 对某 Realm 只证明"我是某组织当前成员"，不披露具体 handle
 - 对某 verifier 证明年龄、角色、认证等级、设备可信度等属性
 
 核心原则：
@@ -488,7 +488,7 @@ grant subject = alice@google.com
 | Holder | 持有 credential、handle claim、pairwise DID 和 disclosure policy 的主体。 |
 | Wallet | Holder 控制的本地或私有同步组件，负责策略匹配、proof 派生、发送和 receipt 保存。 |
 | Issuer | 签发 credential / claim / attestation 的组织或服务。 |
-| Verifier | 请求 presentation 的服务、组织、Space、Applet 或 agent。 |
+| Verifier | 请求 presentation 的服务、组织、Realm、Applet 或 agent。 |
 | Represented Organization | Verifier 声称代表的组织 DID / VID。 |
 | Transport | TSP、HTTP/JWE、DIDComm-like envelope、to-device、MLS DM 等 presentation 传输方式。 |
 
@@ -571,7 +571,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 }
 ```
 
-Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Space。
+Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm。
 
 #### 16.2.3 Presentation Response
 
@@ -631,7 +631,7 @@ Verifier MUST 通过以下任一方式证明其代表权限：
 - 由 represented organization DID 直接对 presentation request 签名。
 - 由 represented organization 为 verifier DID 签发 service authorization claim。
 - 由 trust registry / governance registry 将 verifier VID 映射到 represented organization。
-- 目标 Space policy 将 verifier DID 列为对应 purpose 的可信 issuer / verifier。
+- 目标 Realm policy 将 verifier DID 列为对应 purpose 的可信 issuer / verifier。
 
 Service authorization claim 示例：
 
@@ -680,7 +680,7 @@ Sync Service 与服务运营方 MUST NOT 获得原始 credential 内容、base p
 2. 使用 verifier DID / 服务密钥的 `http_jwe`。
 3. 双方都支持时使用 `didcomm_like` envelope。
 4. verifier 是已知 Contrix 设备 / 服务端点时使用 `to_device`。
-5. holder 与 verifier 共享加密 DM Space 时使用 `mls_dm`。
+5. holder 与 verifier 共享加密 DM Realm 时使用 `mls_dm`。
 
 若 policy 要求嵌套 / 路由级元数据隐私，而 verifier 不支持 TSP 或等价能力，wallet MUST 拒绝或请求用户显式覆盖。
 

@@ -10,8 +10,8 @@
     "kind": {
       "type": "string",
       "enum": [
+        "realm",
         "space",
-        "place",
         "flow",
         "message",
         "morph",
@@ -29,21 +29,21 @@
         "*"
       ]
     },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "space_id": {
       "type": "string",
       "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-    },
-    "place_id": {
-      "type": "string",
-      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "object_type": {
       "type": "string"
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^cx:(space|place|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Canonical object reference. Acceptable typed-id kinds match the v1 resource selector kind enum (see resource-selector-grammar.md §3.1). Notably MUST NOT include 'actor_profile' (use the 'actor' selector with did pattern), nor non-canonical 'board' / 'list' / 'card' / 'subject' / 'room' kinds — board / list / swimlane / calendar bucket are Place objects and MUST use the 'place' kind together with the 'place_kind_allow' constraint to restrict which Place kinds the grant covers."
+      "pattern": "^cx:(realm|space|flow|message|morph|relation|view|event|policy|invite|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Canonical object reference. Acceptable typed-id kinds match the v1 resource selector kind enum (see resource-selector-grammar.md §3.1). Notably MUST NOT include 'actor_profile' (use the 'actor' selector with did pattern), nor non-canonical 'board' / 'list' / 'card' / 'subject' / 'room' kinds — board / list / swimlane / calendar bucket are Space objects and MUST use the 'space' kind together with the 'space_kind_allow' constraint to restrict which Space kinds the grant covers."
     },
     "flow_id": {
       "type": "string",
@@ -100,7 +100,7 @@
         "exact",
         "subtree",
         "children",
-        "space_wide"
+        "realm_wide"
       ]
     }
   },

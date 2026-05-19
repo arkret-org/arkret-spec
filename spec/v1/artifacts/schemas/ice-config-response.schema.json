@@ -5,7 +5,7 @@
   "description": "Response shape for the WebRTC media service ICE config endpoint. Used by cx.profile.webrtc_media.v1; see crypto-media/webrtc-signaling.md §6.",
   "type": "object",
   "required": [
-    "space_id",
+    "realm_id",
     "call_id",
     "actor_id",
     "device_id",
@@ -16,10 +16,10 @@
     "signature"
   ],
   "properties": {
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Echo of the request Space id. Bound into the signature to prevent cross-Space replay."
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Echo of the request Realm id. Bound into the signature to prevent cross-Realm replay."
     },
     "call_id": {
       "type": "string",
@@ -71,7 +71,7 @@
     "force_turn": {
       "type": "boolean",
       "default": false,
-      "description": "When true, clients MUST disable host/srflx ICE candidates and only relay through TURN. Used by high-privacy Spaces to prevent IP leakage."
+      "description": "When true, clients MUST disable host/srflx ICE candidates and only relay through TURN. Used by high-privacy Realms to prevent IP leakage."
     },
     "constraints": {
       "type": "object",

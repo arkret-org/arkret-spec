@@ -44,7 +44,7 @@ Contrix v1 不定义、注册或推荐任何自有 DID method。实现和用户 
 
 普通密钥轮换 SHOULD NOT 改变 DID。
 
-长期 principal DID SHOULD 选择支持 key rotation、recovery、deactivation 或可验证历史的 DID method。`did:key` 和 `did:pkh` 属于生成式 DID method，通常不支持 DID document 更新、停用或内建恢复；它们 MAY 用于临时主体、设备、邀请、bootstrap、钱包绑定或测试，但除非 Space / organization policy 明确允许，MUST NOT 作为默认长期用户 DID。
+长期 principal DID SHOULD 选择支持 key rotation、recovery、deactivation 或可验证历史的 DID method。`did:key` 和 `did:pkh` 属于生成式 DID method，通常不支持 DID document 更新、停用或内建恢复；它们 MAY 用于临时主体、设备、邀请、bootstrap、钱包绑定或测试，但除非 Realm / organization policy 明确允许，MUST NOT 作为默认长期用户 DID。
 
 ### 2.3 DID Document 不是身份画像
 
@@ -138,8 +138,8 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Principal Server，也**不**是用户公开 handle。
 - 用户/组织搬迁 Principal Server、变更端口、增加 mirror、切换到第三方 host 时，正确路径是更新 DID Document 中的 service entry 并重新签发 service delegation；这条路径会进入可验证历史，不依赖 DNS+TLS 的现时强度。
-- DID Document 中的 `ContrixPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Space 的强制投递入口。某个 Space 中已接受的 `cx.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_did`，该 Space 的事件、sync、to-device、push 与 key package 投递 MUST 优先使用该 binding。只有 Space policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_hash` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Space 的投递路径。
-- Handle（例如 `@alice:acme.example` / `alice@acme.example`，canonical `contrix://acme.example/users/alice`）属于 Handle 层，不属于 DID method 或 DID Document service discovery。它 MAY 解析出 `subject DID + recipient_service_did`，但该结果只有在加入 Space 时被物化为 `delivery_binding` 并通过 Space policy 校验后，才成为 Space-scoped 投递路径。
+- DID Document 中的 `ContrixPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Realm 的强制投递入口。某个 Realm 中已接受的 `cx.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_did`，该 Realm 的事件、sync、to-device、push 与 key package 投递 MUST 优先使用该 binding。只有 Realm policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_hash` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Realm 的投递路径。
+- Handle（例如 `@alice:acme.example` / `alice@acme.example`，canonical `contrix://acme.example/users/alice`）属于 Handle 层，不属于 DID method 或 DID Document service discovery。它 MAY 解析出 `subject DID + recipient_service_did`，但该结果只有在加入 Realm 时被物化为 `delivery_binding` 并通过 Realm policy 校验后，才成为 Realm-scoped 投递路径。
 - Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `contrix://alice.example.com/users/alice` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 issuer claim 双向验证一致。
 - [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/contrix/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；权威服务发现源仍然是 DID Document 的 service entry。
 - 实现 MUST NOT 引入"DID 字符串 → 实际服务地址"的额外带外重定向（例如类 Matrix `.well-known/matrix/server` 的间接），因为这会把信任根退化到 DNS+TLS 即时强度，与选择 `did:webvh` 而不是 `did:web` 作为 v1 core 默认 principal method 的初衷冲突（见 §3.4）。
@@ -173,7 +173,7 @@ Contrix v1 core conformance 要求如下：
 - **Cache-only,不解析 live `did:web` document**:fallback 期间 resolver MAY 返回 `did:webvh` 主体此前已验证的本地 cache(含 cache age 元数据);MUST NOT 退化为对 `did:web:<同 hosting domain>` 的 live resolve,即使该 hosting domain 此刻返回 200。`did:web` fallback 仅当 §3.1 表格中明确允许 `did:web` 作 principal method 的 deployment profile(目前仅 `personal_node`)显式声明 `principal_method=did:web` 时才生效——那是 deployment profile 选择,不是 outage fallback 路径。
 - 该 fallback **仅**适用于**低风险只读**操作。本规范定义的"低风险只读"集合是**封闭的**:
   - ✅ 已缓存 DID Document 的本地展示(handle 解析、display name 渲染)
-  - ✅ 已缓存对象的本地展示(已存在的 Flow / Message / Place / Morph 渲染)
+  - ✅ 已缓存对象的本地展示(已存在的 Flow / Message / Space / Morph 渲染)
   - ✅ 已缓存对象的本地搜索 / 本地索引查询
   - ✅ 已收到 snapshot / Anchor 的 state_root 重算(用于本地一致性自检)
   - ❌ 接收新到达的 Event Envelope / Move / Anchor 并写入本地 store(即使是只读 store)
@@ -183,7 +183,7 @@ Contrix v1 core conformance 要求如下：
   - ❌ 任何 `cx.session.grant` 验证或登录态续期
   - ❌ Snapshot witness 接收
   - ❌ 解析任何新出现的 `did:webvh` DID(本地无 cache)——MUST 拒绝并返回 `unknown_did`,不允许 fallback 到 `did:web:<同 hosting>` live resolve
-- 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Space、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复,或走部署 policy 明确允许的替代路径。
+- 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复,或走部署 policy 明确允许的替代路径。
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达,仅显示本地缓存内容"),不得静默继续。
 - Fallback 总时长 MUST ≤ 24 小时(与 §4.2.1 `degraded_no_witness` 状态硬上限对齐);超时后即使是低风险只读也 MUST fail closed,强制用户等待恢复或切换 resolver。
 
@@ -285,10 +285,10 @@ DID method 或 registry 不可用时，节点不得把“暂时无法解析”�
 - 缓存解析结果只能在 resolver policy 声明的 TTL、document hash、history head 和 trust domain 内使用；超过 TTL 或 evidence 断链后，不得接受新的高风险写入。
 - `did:webvh` 的 hosting domain 不可用、`did.jsonl` 拉取失败或 witness evidence 断链时，resolver MAY 在 policy 允许的范围内使用本地缓存或镜像，但必须验证 SCID、entry hash chain head 与 controller proof；不得用 handle、DNS A/AAAA 记录、TLS 证书或 Auth Server 声明代替 DID method history。
 - 用户迁移到新 DID（同 method 或换 method）时，历史 Event 的 `actor_id`、grant `subject` 和 proof `verification_method` MUST NOT 被重写。迁移必须表现为新的 signed continuity proof、profile/account binding、membership update 或 capability re-grant。
-- 若原 DID 仍可解析，continuity proof SHOULD 由原 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Space / service 范围。
+- 若原 DID 仍可解析，continuity proof SHOULD 由原 DID 当前有效控制密钥签署，并绑定 `old_did`、`new_did`、purpose、audience、issued_at、expires_at 和目标 Realm / service 范围。
 - 原 DID Document 若仍可解析，MUST 暴露 `service` entry `type="ContrixContinuityProof"`，其 `serviceEndpoint` 指向可获取 continuity proof 的 HTTPS URL 或 content-addressed ref。Verifier MUST 同时校验该 service entry、continuity proof 签名和 proof 中的 `old_did_document_hash`；缺少 service entry 或 hash 不匹配时不得把 Directory / Handle 返回的新 DID 当作连续身份。
 - 新 DID Document MUST 暴露反向 `ContrixContinuityAccepted` service entry 或等价 signed acceptance proof，绑定同一 `old_did` / `new_did` / `issued_at`。单向声明只能作为发现线索，不能完成 continuity。
-- 若原 method 永久不可用且无法验证原控制密钥，只能走 Space / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
+- 若原 method 永久不可用且无法验证原控制密钥，只能走 Realm / organization policy 定义的恢复流程，例如 threshold governance、recovery service attestation 或管理员重新邀请；客户端必须向用户明确这是恢复/重绑定，而不是无缝 DID 所有权延续。
 - Principal Server、Directory 或 Handle 服务 MAY 帮助发现新 DID，但不得单独证明 DID continuity。
 
 #### 4.2.1 `did:webvh` 健康检查
@@ -308,7 +308,7 @@ DID method 或 registry 不可用时，节点不得把“暂时无法解析”�
 1. 用户在原 DID 仍可解析时创建新 `did:webvh`，并发布 SCID、首个 `did.jsonl` entry 和（可选）witness evidence。
 2. 原 DID 当前有效控制密钥签署 continuity proof；新 DID 控制密钥反向签署 acceptance proof。
 3. Handle / service account / profile binding 指向新 DID，但历史 Event 仍保留旧 DID。
-4. Space membership、capability grant、device/session control 和 MLS identity link 通过普通 Event 或 policy 流程重新绑定到新 DID。
+4. Realm membership、capability grant、device/session control 和 MLS identity link 通过普通 Event 或 policy 流程重新绑定到新 DID。
 5. 客户端在 UI 中显示"已计划迁移"状态和原 DID 的验证历史，不把它当作无痕重命名。
 
 ## 5. Resolver、Auth Server 与组织授权
@@ -317,9 +317,9 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 | 层次 | 负责什么 | 不负责什么 |
 | --- | --- | --- |
-| Identity Resolution Infrastructure | 把 DID 解析为 DID Document、key state、method history、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Space / Event 数据访问权。 |
+| Identity Resolution Infrastructure | 把 DID 解析为 DID Document、key state、method history、service delegation、witness evidence 或 method-specific proof。 | 不决定用户是否能登录某个组织，也不授予 Realm / Event 数据访问权。 |
 | Auth / Account Server | 处理 passkey、OIDC、SSO、设备配对、账户恢复和 session grant，并把服务账户登录绑定到某个 DID / device。 | 不改变 DID 控制权；不替代 DID key proof；不决定所有组织授权。 |
-| Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Space、Event、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
+| Organization / Policy / Authz | 判断某个 DID、device、credential 或 capability 是否可以访问组织数据、Realm、Event、Applet 或管理动作。 | 不负责维护公共 DID 控制历史。 |
 
 一个组织 MAY 自建 Auth / Account Server，同时接受多种 DID method 的用户 DID。典型流程是：
 
@@ -327,7 +327,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 2. 组织 Auth Server 按本地 trust policy 选择 resolver。v1 core 默认 principal 解析路径是 `did:webvh`（验证 `did.jsonl` 链 + SCID + entry hash chain + witness）；service DID 通常是 `did:web`；`personal_node` profile MAY 降级 principal 解析路径为 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
 3. Auth Server 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
-5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Space policy 决定可访问的数据范围。
+5. Auth Server 只签发 session grant / device binding；组织 Policy / Authz 再基于 DID、credential、membership、invite、capability 和 Realm policy 决定可访问的数据范围。
 
 ### 5.1 组织账号绑定的 DID Proof
 
@@ -436,7 +436,7 @@ Resolver / registry / adapter MUST 拒绝：
 
 ## 8. Organization Principal Ownership
 
-Organization principal 的“所有权”由 DID 控制状态和组织治理策略共同定义，而不是由某台服务器、某个域名注册人或某个 Space 自动决定。
+Organization principal 的“所有权”由 DID 控制状态和组织治理策略共同定义，而不是由某台服务器、某个域名注册人或某个 Realm 自动决定。
 
 组织 DID Document SHOULD 声明最小治理材料：
 
@@ -499,7 +499,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 | `type` | 适用 DID 主体 | 用途 | 引用规范 |
 | --- | --- | --- | --- |
 | `ContrixGovernanceService` | Organization | 组织治理 endpoint | 本节示例 |
-| `ContrixAgentWorkspaceService` | User principal | 用户私人 agent workspace 入口。MUST 仅发布 HTTPS endpoint；workspace root Space ID 通过鉴权后 resolve API 取得 | [`extensions/agent-workspace-profile.md §12`](../extensions/agent-workspace-profile.md)（`cx.profile.agent_workspace.v1`）|
+| `ContrixAgentWorkspaceService` | User principal | 用户私人 agent workspace 入口。MUST 仅发布 HTTPS endpoint；workspace root Realm ID 通过鉴权后 resolve API 取得 | [`extensions/agent-workspace-profile.md §12`](../extensions/agent-workspace-profile.md)（`cx.profile.agent_workspace.v1`）|
 
 客户端判断“谁控制该组织”时，应验证：
 
@@ -526,7 +526,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 1. 发起者构造 rotation proposal，绑定 organization DID、当前 history head、待撤销 key、待加入 key、目的、有效期和 rollback plan。
 2. 收集满足 threshold 的 method-native signature、multi-proof 或 governance service attestation。
 3. 提交 DID method operation；`did:webvh` 场景写入新的 DID log entry，并由 watcher / witness 见证。
-4. 发布或更新 Contrix governance / service delegation state，使 Principal Server、Policy Server 和 Space endorsement 使用新 key set。
+4. 发布或更新 Contrix governance / service delegation state，使 Principal Server、Policy Server 和 Realm endorsement 使用新 key set。
 5. 客户端验证旧 history head、quorum proof、新 key 生效时间和被撤销 key 不再授权后，才接受高风险组织写入。
 
 若 3 个 governance key 中 1 个泄露，且 policy 为 2-of-3，两个未泄露 key 可以签发 rotation，移除泄露 key 并加入新 key；泄露 key 单独不能完成 rotation。若剩余可用 key 少于 threshold，必须走 policy 中预先声明的 emergency recovery，而不是临时降低 threshold。
@@ -535,14 +535,14 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 1. proposal 绑定 service DID、service endpoint、purpose、scope、plaintext visibility、validFrom / validUntil 和 revocation path。
 2. quorum proof 覆盖完整 proposal。
-3. DID Document service entry 或 Contrix `cx.space.organization` / policy state 发布 delegation。
-4. 接收方在接受该 service 的事件、明文可见性或 federation transaction 前，验证 organization DID、quorum proof、service DID 控制权和 Space policy。
+3. DID Document service entry 或 Contrix `cx.realm.organization` / policy state 发布 delegation。
+4. 接收方在接受该 service 的事件、明文可见性或 federation transaction 前，验证 organization DID、quorum proof、service DID 控制权和 Realm policy。
 
 **Emergency recovery**：
 
 1. recovery policy 必须在事故前写入 DID method history 或 governance profile，包含 threshold、recovery service / guardian、cooldown、通知和审计要求。
 2. 恢复事件必须绑定 incident id、旧 history head、新 key set、失效 key set、原因和生效延迟。
-3. 客户端在 cooldown 内 SHOULD 显示高风险状态；高风险 Space MAY 冻结组织 admin 动作，直到 recovery witness / approval 完成。
+3. 客户端在 cooldown 内 SHOULD 显示高风险状态；高风险 Realm MAY 冻结组织 admin 动作，直到 recovery witness / approval 完成。
 
 ## 9. 验证规则
 
@@ -553,7 +553,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 3. DID Document 可按 method-specific 规则解析。
 4. method history / proof / evidence 满足该 method 的控制权规则。
 5. 当前 `authentication` / `assertionMethod` 在事件时间有效。
-6. service endpoint 或 service delegation 与当前 Space policy、destination binding 和 plaintext-visible service policy 一致。
+6. service endpoint 或 service delegation 与当前 Realm policy、destination binding 和 plaintext-visible service policy 一致。
 7. DID 未被 deactivated、quarantined 或本地 policy 禁止。
 8. `did:key`、`did:pkh` 等受限 method 未被用于 policy 禁止的长期 principal、组织或高风险 service 角色。
 9. Pairwise/private DID 不被强制公开 `alsoKnownAs`。

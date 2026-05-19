@@ -4,7 +4,7 @@ title: Client Sync
 
 ## 1. 目标
 
-Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API / sync service 之上提供跨 Space 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），不是裸事件读取——逐 Space 的事件查询和实时订阅请使用 `cx.events.query` / `cx.events.subscribe`。
+Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API / sync service 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `cx.events.query` / `cx.events.subscribe`。
 
 本文定义 Contrix v1 的客户端账号同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
 
@@ -18,23 +18,23 @@ Authorization: Bearer <session_token>
 Content-Type: application/json
 ```
 
-该端点对应 `cx.sync.account`。它聚合跨 Space delta、to_device、account_data、device_lists、presence；不同于 `GET /api/v1/events/subscribe`（按 selector 的事件流订阅）和 `GET /api/v1/events?before=...` / `?after=...`（按 selector 的双向历史查询）。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `cx.sync.*`，事件读取在 `cx.events.*`。
+该端点对应 `cx.sync.account`。它聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /api/v1/events/subscribe`（按 selector 的事件流订阅）和 `GET /api/v1/events?before=...` / `?after=...`（按 selector 的双向历史查询）。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `cx.sync.*`，事件读取在 `cx.events.*`。
 
-Account sync 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration。某个 Space 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_did` 指向的服务上；DID Document 中的默认 Principal Server 不得把其它 Space-scoped delivery binding 的 delta 聚合进自己的 `/sync` 响应。
+Account sync 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_did` 指向的服务上；DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/sync` 响应。
 
 ### 2.x Delivery Binding UX 指引（SHOULD）
 
 `delivery_binding` 由 schema 强制存在并显式化，但**用户感知**应保持轻量。客户端 UI SHOULD：
 
-1. **默认不暴露 `delivery_binding` 字段**。普通邀请 / 成员添加 / 加入 Space 流程中，UI **不展示** `recipient_service_did` 选择控件，除非：
+1. **默认不暴露 `delivery_binding` 字段**。普通邀请 / 成员添加 / 加入 Realm 流程中，UI **不展示** `recipient_service_did` 选择控件，除非：
    - 邀请方处于多 Principal Server 登录上下文且没有可推断的默认值（fall back to `explicit`，要求用户选择）；
-   - Space policy 强制 `binding_source ∈ {explicit}` 且邀请方未在该上下文登录（提示用户切换上下文或退出邀请）；
+   - Realm policy 强制 `binding_source ∈ {explicit}` 且邀请方未在该上下文登录（提示用户切换上下文或退出邀请）；
    - 用户主动进入"高级 / 投递设置"面板查看 / 修改。
-2. **成员列表展示绑定上下文**。当某 Space 内成员的 `delivery_binding.recipient_service_did` 不属于该 actor DID Document 默认 `ContrixPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
+2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_service_did` 不属于该 actor DID Document 默认 `ContrixPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
 3. **邀请 flow 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
    - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，先走 `cx.directory.resolve_handle(intent="member_add")` 得到 `subject` DID 与 `delivery_binding_hint`，UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
-   - 邀请方在 Org-A 内部 Space 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
-   - 邀请方在个人 Space 中邀请 → 默认 invitee DID Document `did_document_default`（若 Space policy 允许）；
+   - 邀请方在 Org-A 内部 Realm 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
+   - 邀请方在个人 Realm 中邀请 → 默认 invitee DID Document `did_document_default`（若 Realm policy 允许）；
    - 多上下文 invitee + 无明确默认 → 提示用户在已知上下文中选择，**不要静默选择**。
 4. **跨上下文切换感知**。客户端在同一 UI 中聚合显示多 Principal Server 的 timeline 时 SHOULD 显式区分上下文（如标签栏 / 子账号面板），避免把工作 / 个人事件混合渲染。聚合通知（badge count / push）按上下文分桶；不允许跨上下文合并未读数。
 
@@ -49,13 +49,13 @@ Account sync 的服务边界是当前 authenticated session 绑定的 Principal 
 | `timeout_ms` | body | `int` | optional | 长轮询等待时间上限。 |
 | `set_presence` | body | `enum(online,offline,unavailable)` | optional | 同步时设置当前设备 presence。 |
 | `filter` | body | `object` | optional | 过滤条件。 |
-| `filter.spaces` | body | `id[]` | optional | 限制返回 Space。 |
-| `filter.timeline_limit` | body | `int` | optional | 每个 Space timeline 数量上限。 |
+| `filter.realms` | body | `id[]` | optional | 限制返回 Realm。 |
+| `filter.timeline_limit` | body | `int` | optional | 每个 Realm timeline 数量上限。 |
 | `filter.lazy_load_members` | body | `boolean` | optional | 是否延迟加载成员。 |
 | `filter.include_redundant_members` | body | `boolean` | optional | 是否包含冗余成员状态。 |
 | `filter.event_types` | body | `string[]` | optional | 事件类型 allow list。 |
 | `filter.not_event_types` | body | `string[]` | optional | 事件类型 deny list。 |
-| `subscriptions` | body | `object` | optional | Sliding sync 风格的 Space subscription 配置。 |
+| `subscriptions` | body | `object` | optional | Sliding sync 风格的 Realm subscription 配置。 |
 
 请求示例（非完整 schema）：
 
@@ -65,18 +65,18 @@ Account sync 的服务边界是当前 authenticated session 绑定的 Principal 
   "timeout_ms": 30000,
   "set_presence": "online",
   "filter": {
-    "spaces": ["cx:space:..."],
+    "realms": ["cx:realm:..."],
     "timeline_limit": 50,
     "lazy_load_members": true,
     "include_redundant_members": false,
-    "event_types": ["cx.message.*", "cx.flow.*", "cx.space.*", "cx.morph.*"],
+    "event_types": ["cx.message.*", "cx.flow.*", "cx.realm.*", "cx.morph.*"],
     "not_event_types": ["cx.typing"]
   },
   "subscriptions": {
-    "space:...": {
+    "realm:...": {
       "ranges": [[0, 50]],
       "required_state": [
-        ["cx.space.*", ""],
+        ["cx.realm.*", ""],
         ["cx.member.state", "$ME"],
         ["cx.view.*", "*"]
       ]
@@ -90,7 +90,7 @@ Account sync 的服务边界是当前 authenticated session 绑定的 Principal 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `cursor` | `cursor` | required | 下次同步使用的 opaque stream cursor（`cx:cursor:<base64url>`，purpose=`stream`）。客户端 MUST 直接作为 `since` 回传，不得解析。 |
-| `spaces` | `object` | optional | Contrix 原生 Space 聚合同步结果，按 `join` / `invite` / `knock` / `leave` 分桶；每个 bucket 以 `cx:space:*` 为 key。 |
+| `realms` | `object` | optional | Contrix 原生 Realm 聚合同步结果，按 `join` / `invite` / `knock` / `leave` 分桶；每个 bucket 以 `cx:realm:*` 为 key。 |
 | `to_device` | `object` | optional | 当前设备 to-device 消息。 |
 | `device_lists` | `object` | optional | 设备列表变化。 |
 | `presence` | `object` | optional | presence 事件。 |
@@ -102,7 +102,7 @@ Account sync 的服务边界是当前 authenticated session 绑定的 Principal 
 ```json
 {
   "cursor": "cx:cursor:<opaque-valid-stream-cursor>",
-  "spaces": {
+  "realms": {
     "join": {},
     "invite": {},
     "knock": {},
@@ -116,7 +116,7 @@ Account sync 的服务边界是当前 authenticated session 绑定的 Principal 
 }
 ```
 
-`spaces.join`、`spaces.invite`、`spaces.knock` 和 `spaces.leave` MUST 是对象；每个对象的 key 是 `cx:space:*`，value 是该 Space 的聚合同步结果。`state`、`state_after`、`ephemeral`、Space-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状：
+`realms.join`、`realms.invite`、`realms.knock` 和 `realms.leave` MUST 是对象；每个对象的 key 是 `cx:realm:*`，value 是该 Realm 的聚合同步结果。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状：
 
 ```json
 {
@@ -129,7 +129,7 @@ Sync 响应包含以下 stream：
 
 | Stream | 持久性 | 用途 |
 | --- | --- | --- |
-| `timeline` | 持久 | Space 内 accepted events |
+| `timeline` | 持久 | Realm 内 accepted events |
 | `state` | 持久 | 当前 state event delta |
 | `state_after` | 派生 | timeline 末尾之后的状态，用于正确解释事件 |
 | `state_at_window_start` | 派生 | `timeline.limited=true` 时 window 起点 anchor 状态，见 §5 |
@@ -146,16 +146,16 @@ Sync 响应包含以下 stream：
 
 `receipts`、`notifications` 和高频 actor-private `read_marker` delta MAY 被服务端合并；同一 scope 在一个 sync 窗口内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖响应中声明的最终 stream positions。
 
-## 4. Space Buckets
+## 4. Realm Buckets
 
-`spaces` 按当前 membership 分桶：
+`realms` 按当前 membership 分桶：
 
 - `join`
 - `invite`
 - `knock`
 - `leave`
 
-每个 Space 响应：
+每个 Realm 响应：
 
 ```json
 {
@@ -194,7 +194,7 @@ Sync 响应包含以下 stream：
 
 ### 5.1 State After (timeline 末尾状态)
 
-服务器 SHOULD 在每个 joined Space 中返回 `state_after`，表示 `timeline.events` 应用完成后的 state delta。客户端渲染 timeline 中事件时 MUST 使用事件自己 auth state；渲染 timeline 末尾的当前 UI 时 SHOULD 使用 `state_after`。
+服务器 SHOULD 在每个 joined Realm 中返回 `state_after`，表示 `timeline.events` 应用完成后的 state delta。客户端渲染 timeline 中事件时 MUST 使用事件自己 auth state；渲染 timeline 末尾的当前 UI 时 SHOULD 使用 `state_after`。
 
 这避免客户端用新权限、新成员名或新加密 epoch 错误解释先前事件。
 
@@ -202,7 +202,7 @@ Sync 响应包含以下 stream：
 
 **协议正确性层面**，Contrix 的事件携带 `prev_refs` 与 `refs[role=authorized_by]`，每个事件自带因果与授权 anchor；reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
 
-**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Space 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 anchor view"渲染 window 起点事件会显示错误的 display name / room name / 加密 epoch。为此，服务端 MUST 在响应该 Space timeline 时二选一：
+**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 anchor view"渲染 window 起点事件会显示错误的 display name / room name / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
 
 **(a) 返回 `state_at_window_start`** (推荐路径，projection-only)：
 
@@ -222,7 +222,7 @@ Sync 响应包含以下 stream：
 ```
 
 - 该字段是 **派生 projection-only 字段**，不参与 state hash / frontier 计算，不进入因果图。
-- 字段范围仅限三类 anchor：`actor_profiles`（window 内出现的 actor）、`space_metadata`（Space-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
+- 字段范围仅限三类 anchor：`actor_profiles`（window 内出现的 actor）、`space_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前 anchor view"。
 - 服务端可以从 anchor view 的历史 cell value（按 HLC 反向查询）派生该状态；不可用时退路径 (b)。
 
@@ -246,7 +246,7 @@ Sync 响应包含以下 stream：
 
 ## 6. Event Ordering
 
-Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权真相本身。授权真相仍由 event hash、`prev_refs`、`refs[role=authorized_by]`、space version 和 reducer 决定。
+Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权真相本身。授权真相仍由 event hash、`prev_refs`、`refs[role=authorized_by]`、realm version 和 reducer 决定。
 
 服务器返回 `timeline.events` 时 MUST 满足：
 
@@ -274,14 +274,14 @@ event_id ASC
 
 对于协议状态，客户端 MUST 使用 `event-auth-state-resolution.md` 的 Anchor view 与 Lattice cell value 解释当前态，不得只取 timeline 中最后出现的同 kind Event。
 
-## 7. Large Account and Large Space Sync
+## 7. Large Account and Large Realm Sync
 
 数据量巨大时，Client Sync MUST 支持分层同步，而不是一次性拉取全部事件。
 
 推荐策略：
 
-- initial sync 只返回 Space 摘要、必要 `required_state` 和有限 timeline。
-- 活跃 Space 优先，低优先级 Space 只返回 unread / mention / summary。
+- initial sync 只返回 Realm 摘要、必要 `required_state` 和有限 timeline。
+- 活跃 Realm 优先，低优先级 Realm 只返回 unread / mention / summary。
 - 使用 sliding window subscriptions 拉取当前视图需要的 timeline ranges。
 - 使用 `timeline.limited=true` 标记缺口，并通过 backfill / pagination 拉取。
 - 使用 lazy loading members，避免同步全量成员状态。
@@ -296,11 +296,11 @@ event_id ASC
   "cursor": "cx:cursor:<opaque-valid-stream-cursor>",
   "partial": true,
   "priority": "active_view",
-  "spaces": {}
+  "realms": {}
 }
 ```
 
-客户端 MUST treat `cursor` as the only resume token. 如果某个 Space 的 timeline 返回 `limited=true`，客户端不得把当前窗口视为完整历史。
+客户端 MUST treat `cursor` as the only resume token. 如果某个 Realm 的 timeline 返回 `limited=true`，客户端不得把当前窗口视为完整历史。
 
 ## 8. Lazy Loading Members
 
@@ -312,7 +312,7 @@ event_id ASC
 
 ## 9. Account Data and Private State
 
-`account_data` 是 principal 或 device 私有状态，不进入 Space canonical state。标准类型：
+`account_data` 是 principal 或 device 私有状态，不进入 Realm canonical state。标准类型：
 
 - `cx.account.tag`
 - `cx.account.push_rules`
@@ -343,7 +343,7 @@ GET /api/v1/device_messages?from=<cursor>&limit=...
 
 Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MAY 限制：
 
-- 最大 Space 数
+- 最大 Realm 数
 - 最大 timeline limit
 - 最大 required state 数
 - 最大通配符展开量
@@ -403,19 +403,19 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 没有 `since` 时为 initial sync。服务器 SHOULD：
 
-- 返回用户当前 joined/invited/knocked Spaces 的摘要。
-- 对活跃 Space 返回有限 timeline。
+- 返回用户当前 joined/invited/knocked Realms 的摘要。
+- 对活跃 Realm 返回有限 timeline。
 - 返回足够 `required_state` 让客户端首屏可渲染。
 - 返回 device list delta 的完整 baseline。
 
-大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Space。
+大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
 ## 14. E2EE Requirements
 
 E2EE client 在处理 encrypted event 前 MUST：
 
 - 检查 `device_lists` 是否有变更。
-- 检查 Space encryption epoch。
+- 检查 Realm encryption epoch。
 - 拉取缺失 KeyPackage / group secret。
 - 对无法解密事件记录 `decryption_pending`，不得静默丢弃。
 
@@ -423,11 +423,11 @@ E2EE client 在处理 encrypted event 前 MUST：
 
 ## 15. E2EE and MLS Sync Performance
 
-E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处理。事件可以先进入本地 raw event cache；解密可以异步完成。
+E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处理。事件可以先进入本地 raw event cache；解密可以异步完成。
 
 客户端处理加密 timeline 时 SHOULD：
 
-1. 先验证 event envelope、hash、signature、`space_id`、`refs[role=authorized_by]` 和 `prev_refs`。
+1. 先验证 event envelope、hash、signature、`realm_id`、`refs[role=authorized_by]` 和 `prev_refs`。
 2. 根据明文 routing metadata 将事件放入 timeline / reducer 队列。
 3. 检查事件声明的 `mls_epoch`。
 4. 如果本地缺少该 epoch 的 group state，拉取缺失 `cx.mls.*` state event、MLS Commit 和必要 key backup。
@@ -439,11 +439,11 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 为降低大规模 E2EE 同步成本：
 
 - 当加密 timeline 中包含未知 epoch 的事件时，MLS epoch state SHOULD 作为 required state 返回。
-- 客户端 SHOULD 按 `(space_id, epoch)` 缓存 epoch state 与 ratchet tree。
+- 客户端 SHOULD 按 `(realm_id, epoch)` 缓存 epoch state 与 ratchet tree。
 - 历史 backfill SHOULD 把加密 payload 与 MLS epoch 材料分成不同的范围请求。
 - 新设备恢复 SHOULD 优先使用加密密钥备份 / secret storage，而非向其他成员逐条重发历史密钥。
 - 加密附件 SHOULD 通过 blob ref 与 content hash 进行懒加载。
-- 服务端全文搜索 MUST NOT 要求 plaintext；加密 Space 的搜索应使用本地索引或受控的 TEE profile。
+- 服务端全文搜索 MUST NOT 要求 plaintext；加密 Realm 的搜索应使用本地索引或受控的 TEE profile。
 
 如果密钥状态与事件状态出现缺口：
 
@@ -453,14 +453,14 @@ E2EE Space 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 ### 15.1 `decryption_pending` timeout and recovery
 
-客户端首次把某事件标记为 `decryption_pending` 时 MUST 记录 `first_pending_at`、缺失的 `(space_id, flow_id?, track?, group_id, epoch)`、已尝试的恢复 source 和最近一次错误。默认 `decryption_pending_timeout` 为 7 天；Space policy 或实现 profile MAY 声明更短值，高保障 profile SHOULD 更短，但不得无限期保持无诊断 pending。
+客户端首次把某事件标记为 `decryption_pending` 时 MUST 记录 `first_pending_at`、缺失的 `(realm_id, flow_id?, track?, group_id, epoch)`、已尝试的恢复 source 和最近一次错误。默认 `decryption_pending_timeout` 为 7 天；Realm policy 或实现 profile MAY 声明更短值，高保障 profile SHOULD 更短，但不得无限期保持无诊断 pending。
 
 在 timeout 前，客户端 SHOULD 按以下顺序恢复：
 
 1. 拉取缺失的 `cx.mls.*` state event、winner `cx.mls.commit`、Welcome 和 `governance_binding` 依赖。
 2. 查询本 actor 授权设备的 encrypted key backup / secret storage。
 3. 在 history sharing policy 允许时，请求当前授权 peer 对指定 epoch range 发送 key share。
-4. 若 Space policy 声明 Archive Node / Audit Node / Key Recovery Service，可向该受托服务请求最小 epoch range。
+4. 若 Realm policy 声明 Archive Node / Audit Node / Key Recovery Service，可向该受托服务请求最小 epoch range。
 
 当连续 epoch 缺口超过 `epoch_gap_recovery_threshold`（默认 32 个 epoch）或本地 backfill 预算耗尽时，客户端 SHOULD 切换到 range-based recovery：按 epoch 区间请求 key material、MLS Commit chain 和必要 snapshot proof，而不是逐消息重试。任何 key share 都必须绑定接收 principal、device、epoch range、policy hash 和发送设备签名；不得向已被移除、未授权或无法验证的成员请求密钥。
 

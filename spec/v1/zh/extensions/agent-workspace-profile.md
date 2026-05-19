@@ -4,7 +4,7 @@ sidebar:
   label: Agent Workspace
 ---
 
-> **状态：extension profile（非 v1 core 互操作必需）**。本文档定义 `cx.profile.agent_workspace.v1`——允许用户在源协作 Space 中调用自己的 agent 干活，同时把"agent 透明度"（公开 mention）与"agent 工作过程"（私人 mirror Space）分离。Contrix v1 core 互操作 **不要求** 实现 agent workspace；不实现的 client/server 通过 `cx.feature.mention_redirect.v1` critical_extension 检查自然 fail-closed。
+> **状态：extension profile（非 v1 core 互操作必需）**。本文档定义 `cx.profile.agent_workspace.v1`——允许用户在源协作 Realm 中调用自己的 agent 干活，同时把"agent 透明度"（公开 mention）与"agent 工作过程"（私人 mirror Realm）分离。Contrix v1 core 互操作 **不要求** 实现 agent workspace；不实现的 client/server 通过 `cx.feature.mention_redirect.v1` critical_extension 检查自然 fail-closed。
 
 ## 1. 目标
 
@@ -13,14 +13,14 @@ sidebar:
 - **指令内容不暴露**给 Flow 其他成员（私密性）
 - **agent 的存在与权限范围**对 Flow 其他成员可见（透明度 / 信任）
 - agent 团队的复杂度（多个专长 agent、内部讨论、试错过程）**不污染源 Flow**
-- 跨多个源 Space 工作时有**统一入口**回到自己的 agent workspace
+- 跨多个源 Realm 工作时有**统一入口**回到自己的 agent workspace
 
 本 profile 提供的核心机制：
 
-1. Agent 通过标准 `cx.member.state` 加入源 Space，公开声明
-2. 用户的 principal server 上有一个 **agent workspace root Space**（per-controller，DID Document advertise）
-3. 用户在源 Flow `@my-agent` 时，触发 mention_redirect content block 作为 source-side stub + 私密指令落到 mirror Space 的 `agent_task` 对象
-4. Agent 在 mirror Space 工作；通过 import_attestation 把源 Space 内容重加密到 mirror Space 工作上下文
+1. Agent 通过标准 `cx.member.state` 加入源 Realm，公开声明
+2. 用户的 principal server 上有一个 **agent workspace root Realm**（per-controller，DID Document advertise）
+3. 用户在源 Flow `@my-agent` 时，触发 mention_redirect content block 作为 source-side stub + 私密指令落到 mirror Realm 的 `agent_task` 对象
+4. Agent 在 mirror Realm 工作；通过 import_attestation 把源 Realm 内容重加密到 mirror Realm 工作上下文
 5. 任务完成后 controller 决定是否将 agent 产出 publish 回源 Flow
 
 ### 1.1 信任模型与适用边界
@@ -29,16 +29,16 @@ sidebar:
 
 | 假设 | 说明 |
 | --- | --- |
-| Agent 是 controller 自己的 AI | mirror Space owner = controller principal;agent 只服务这一个 controller |
+| Agent 是 controller 自己的 AI | mirror Realm owner = controller principal;agent 只服务这一个 controller |
 | Agent runtime 由 controller 自审 / 自托管 | runtime 代码或运行环境 controller 有控制权(自己跑 / 用熟悉的 vendor / 等价信任根) |
-| Publish-back 经过 controller 显式审批 | agent 不能直接把 mirror 内容发回源 Space;必须 controller 用自己 principal 身份转发 |
-| 源 Space 已直接强制 read access | agent 被踢出源 Space 后,源 Space events API 立即返回 403、MLS commit 立即不下发新 epoch 密钥给 agent;**这一层不依赖 watcher** |
+| Publish-back 经过 controller 显式审批 | agent 不能直接把 mirror 内容发回源 Realm;必须 controller 用自己 principal 身份转发 |
+| 源 Realm 已直接强制 read access | agent 被踢出源 Realm 后,源 Realm events API 立即返回 403、MLS commit 立即不下发新 epoch 密钥给 agent;**这一层不依赖 watcher** |
 
 在上述假设下,watcher SLA 延迟(默认 60+30s)的最坏后果是:
 
 - Agent 多跑了一段已无意义的处理(已被踢出 / 已被 redact 的源上下文)
 - Controller UI 在 watcher 通知到达之前没看到"source_authority revoked"标记
-- Controller 如果没注意到自己刚踢了 agent 就批准了 agent 草稿 publish-back → 已被踢的 agent 输出仍然进入源 Space(但 publish 用的是 controller 身份,源 Space audit 看到的是 controller 作者)
+- Controller 如果没注意到自己刚踢了 agent 就批准了 agent 草稿 publish-back → 已被踢的 agent 输出仍然进入源 Realm(但 publish 用的是 controller 身份,源 Realm audit 看到的是 controller 作者)
 
 这些后果都**可通过 controller 自己的审批与 audit 链路追溯**,不构成"未授权第三方读取私密"或"协议级权限绕过"。所以 v1 把 stale window 收紧 / 引入 freshness gate / lease 等机制视为**过度工程**,保留为 follow-up 议题(见下方"v1 不强制 freshness gate 的代价")。
 
@@ -47,7 +47,7 @@ sidebar:
 | 场景 | 为什么超出 v1 默认 |
 | --- | --- |
 | Agent runtime 跑在第三方 cloud(controller 无代码可见性) | runtime 可能"故意慢"绕过 watcher 信号;v1 假设 runtime 可信 |
-| Mirror Space 跨 deployment(controller / mirror / 源 Space 在不同信任域) | watcher 跨域投递延迟更高,90s 是乐观估计;受控部署需要 frontier freshness gate 或 source-issued lease |
+| Mirror Realm 跨 deployment(controller / mirror / 源 Realm 在不同信任域) | watcher 跨域投递延迟更高,90s 是乐观估计;受控部署需要 frontier freshness gate 或 source-issued lease |
 | Agent 多租户 SaaS(同一 runtime 服务多个 controller) | 一个 controller 的 revoke 不应影响其他 controller 的 task;watcher 设计需要分租 |
 | 合规 / 监管要求"revoke 立即生效"(法律意义上) | best-effort SLA 不构成法律承诺;需要 sync gate 或 hardware-enforced freshness |
 
@@ -57,19 +57,19 @@ sidebar:
 
 三种 freshness 收紧方案 — frontier freshness gate / source-issued lease / 协议级硬上限 — 均被 v1 默认 profile **拒绝**,原因:
 
-- 引入 sync gate 把每次 agent 执行都加上一次回往源 Space 的 RTT,在典型 single-controller 场景下是不必要的开销
+- 引入 sync gate 把每次 agent 执行都加上一次回往源 Realm 的 RTT,在典型 single-controller 场景下是不必要的开销
 - 默认 profile 不应假设跨 deployment(那是另一类信任模型的事情,见 §1.1)
 - audit log + controller 审批已经覆盖了主要风险面;额外 freshness 机制是双重保险但代价大
 
-**v1 默认 profile 显式接受的代价**:agent 在 source revoke 发生与 mirror watcher 通知到达之间(默认 ≤ 90 秒,实际可能更长)可能继续基于过期源上下文执行任务、生成草稿。controller 在 publish-back 审批节点 SHOULD 自己核对 agent 是否仍是源 Space 合法成员(UI 帮助见 §7.5)。
+**v1 默认 profile 显式接受的代价**:agent 在 source revoke 发生与 mirror watcher 通知到达之间(默认 ≤ 90 秒,实际可能更长)可能继续基于过期源上下文执行任务、生成草稿。controller 在 publish-back 审批节点 SHOULD 自己核对 agent 是否仍是源 Realm 合法成员(UI 帮助见 §7.5)。
 
 ### 1.3 软指引:Agent runtime 与 Controller UI 应当怎么自助补救
 
 不强制 reducer 引入 freshness gate,但 v1 对 agent runtime 与 controller UI 给出 SHOULD 级别的实现建议:
 
-- **Agent runtime SHOULD 自行暂停**:当 agent runtime 在调用源 Space 的 events / blob / capability check 时收到 `403 capability_denied` 或等价"我已不再是该 Space 成员"信号时,SHOULD **不等 watcher**,直接把当前 agent_task 标 paused 并通知 controller。这是 runtime-side 主动行为,不依赖 mirror reducer 状态。
+- **Agent runtime SHOULD 自行暂停**:当 agent runtime 在调用源 Realm 的 events / blob / capability check 时收到 `403 capability_denied` 或等价"我已不再是该 Realm 成员"信号时,SHOULD **不等 watcher**,直接把当前 agent_task 标 paused 并通知 controller。这是 runtime-side 主动行为,不依赖 mirror reducer 状态。
 - **Controller UI SHOULD 显示 freshness 提示**:agent_task 的 `source_authority` cell 上次更新时间超过部署声明的 `freshness_advisory_threshold_ms`(默认 5 分钟,部署 MAY 自调)时,UI **SHOULD** 在 task 列表上显示"授权未最近验证"小标记,让 controller 在审批 publish-back 前格外谨慎。该 threshold 是 UI hint 性质,不进 reducer 决策。
-- **publish-back 审批 SHOULD 携带 source membership 提示**:UI 在 controller 点"发回源 Flow"按钮时,SHOULD 旁注"agent 当前在源 Space 的最新已知 membership 状态:active / unknown / revoked",信息源是 mirror Space 内 `source_authority` cell + watcher 最近一次成功通知时间。
+- **publish-back 审批 SHOULD 携带 source membership 提示**:UI 在 controller 点"发回源 Flow"按钮时,SHOULD 旁注"agent 当前在源 Realm 的最新已知 membership 状态:active / unknown / revoked",信息源是 mirror Realm 内 `source_authority` cell + watcher 最近一次成功通知时间。
 
 这三条都不阻塞 v1 互操作,实现可以选择不做(`watcher + audit` 仍是 protocol-level baseline)。
 
@@ -77,9 +77,9 @@ sidebar:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│   Source Space（公开协作 / 组织 / 项目）                    │
+│   Source Realm（公开协作 / 组织 / 项目）                    │
 │   ┌──────────────────────┐                                  │
-│   │ Source Flow          │  agent_X 作为 Space member 加入  │
+│   │ Source Flow          │  agent_X 作为 Realm member 加入  │
 │   │  - Alice             │  capability constraint           │
 │   │  - Bob               │  (read_only / mention_respond)   │
 │   │  - agent_X (Alice's) │                                  │
@@ -87,14 +87,14 @@ sidebar:
 │   │                      │  redirect → source-side stub     │
 │   └──────────────────────┘                                  │
 └───────────────────│─────────────────────────────────────────┘
-                    │ derived_from (cross-Space references)
+                    │ derived_from (cross-Realm references)
                     │ + cx.content.import_attestation
                     ▼
 ┌─────────────────────────────────────────────────────────────┐
-│   Alice's Agent Workspace Root Space（DID Doc advertise）   │
+│   Alice's Agent Workspace Root Realm（DID Doc advertise）   │
 │   ┌──────────────────────────┐                              │
-│   │ Mirror Space             │  members = Alice + her agents│
-│   │  per source Space        │  独立 MLS group / E2EE 边界  │
+│   │ Mirror Realm             │  members = Alice + her agents│
+│   │  per source Realm        │  独立 MLS group / E2EE 边界  │
 │   │   ┌────────────────────┐ │                              │
 │   │   │ Mirror Flow        │ │  per source Flow             │
 │   │   │  cx:agent_task: ×N │ │  3 独立 FSM cell             │
@@ -108,8 +108,8 @@ sidebar:
 
 | 治理对象 | Admin | 决策依据 |
 |---|---|---|
-| 源 Space 的 agent membership | 源 Space governance（可能是 Space admin、organization admin） | 公开协作的"声明" |
-| Workspace / Mirror Space 的成员 | controller 独占 | 私人工作流的"组队" |
+| 源 Realm 的 agent membership | 源 Realm governance（可能是 Realm admin、organization admin） | 公开协作的"声明" |
+| Workspace / Mirror Realm 的成员 | controller 独占 | 私人工作流的"组队" |
 
 **不自动同步**；变更通过 notification 推送，controller 显式决定。
 
@@ -117,8 +117,8 @@ sidebar:
 
 | 类别 | 名称 | 描述 |
 |---|---|---|
-| Space profile | `cx.profile.agent_workspace.v1` | Workspace root + mirror Space 的 schema 约束 |
-| 对象 | `cx.schema.agent_task.v1` | mirror Space 内的任务对象 |
+| Realm profile | `cx.profile.agent_workspace.v1` | Workspace root + mirror Realm 的 schema 约束 |
+| 对象 | `cx.schema.agent_task.v1` | mirror Realm 内的任务对象 |
 | Typed ID | `cx:agent_task:` | UUIDv7 |
 | Event | `cx.agent_task.create` | 创建 agent_task |
 | Event | `cx.agent_task.execution.transition` | execution_state cell transition |
@@ -128,40 +128,40 @@ sidebar:
 | Event | `cx.agent_workspace.reservation.set` | 写 reservation cell（cas-register `head_eq:"__unset__"` predicate）|
 | Event | `cx.agent_workspace.reservation.recover` | 写 recovery Move 解 ⊥（`head_in [conflict_heads]` + state_witness + inclusion_proof + lex-min winner）|
 | Event | `cx.agent_workspace.reservation.cleanup` | TTL 后重置 cell 到 sentinel；唯一可写 sentinel 的 event_kind（cell schema `sentinel_writers` 白名单）|
-| Content block | `cx.content.mention_redirect` | 源 Space 中的 routing stub |
-| Content block | `cx.content.import_attestation` | mirror Space 中的跨 Space 重加密引用 |
+| Content block | `cx.content.mention_redirect` | 源 Realm 中的 routing stub |
+| Content block | `cx.content.import_attestation` | mirror Realm 中的跨 Realm 重加密引用 |
 | Capability action | `cx.capability.agent_workspace.reserve` | 写 reservation Move |
 | Capability action | `cx.capability.agent_workspace.recover` | 写 recovery Move |
 | Capability action | `cx.capability.agent_workspace.cleanup` | 写 orphan cleanup Move |
 | Capability constraint kind | `mention_respond_only` | agent 仅在被 @ 时回复 |
-| Capability constraint kind | `import_to_external_space` | source-side policy：是否允许 import 到外部 Space |
-| Cell namespace | `mirror_space_by_source` | workspace root 内的 source→mirror Space 唯一性 cell |
-| Cell namespace | `mirror_flow_by_source` | mirror Space 内的 source→mirror Flow 唯一性 cell |
+| Capability constraint kind | `import_to_external_space` | source-side policy：是否允许 import 到外部 Realm |
+| Cell namespace | `mirror_space_by_source` | workspace root 内的 source→mirror Realm 唯一性 cell |
+| Cell namespace | `mirror_flow_by_source` | mirror Realm 内的 source→mirror Flow 唯一性 cell |
 | Cell namespace | `agent_task.<id>.execution_state` | per-task execution FSM |
 | Cell namespace | `agent_task.<id>.transparency` | per-task transparency FSM |
 | Cell namespace | `agent_task.<id>.source_authority` | per-task source_authority FSM |
 | Feature id | `cx.feature.mention_redirect.v1` | critical_extension marker |
 | Feature id | `cx.feature.import_attestation.v1` | critical_extension marker |
-| Notification type | `agent_membership_change` | 源 Space agent 成员变更通知到 controller |
+| Notification type | `agent_membership_change` | 源 Realm agent 成员变更通知到 controller |
 | Service operation | `agent_workspace.resolve_mirror_flow` | controller-only resolve |
 | Service operation | `agent_workspace.list_pending_tasks` | controller-only orphan reconciliation |
-| DID Document service | `ContrixAgentWorkspaceService` | HTTPS endpoint，鉴权后 resolve workspace_root_space_id |
+| DID Document service | `ContrixAgentWorkspaceService` | HTTPS endpoint，鉴权后 resolve workspace_root_realm_id |
 
-## 4. Agent 加入源 Space（路径 A / B）
+## 4. Agent 加入源 Realm（路径 A / B）
 
 Spec v1 中**没有 Flow-level membership**（[flow.schema.json](../../artifacts/schemas/flow.schema.json) 无 members 字段）。Agent 加入有两种 per-Flow scoping 路径：
 
-**路径 A（默认，粗粒度）**：Agent 加入源 **Space**
-- Agent 拿到 Space 级 MLS 解密边界，能看 Space 内所有 Flow
+**路径 A（默认，粗粒度）**：Agent 加入源 **Realm**
+- Agent 拿到 Realm 级 MLS 解密边界，能看 Realm 内所有 Flow
 - Capability constraint 限定写权限到具体 Flow（`object_ref=cx:flow:...`）
 - 适合"agent 对整个项目都可见"
 
-**路径 B（细粒度）**：源 Flow 先设置 `discussion_space_ref` 指向 child Space；agent 加入 child Space
+**路径 B（细粒度）**：源 Flow 先设置 `discussion_realm_ref` 指向 linked Realm；agent 加入 linked Realm
 - Agent 只看该 Flow 讨论时间线
-- Child Space 独立 MLS group / retention / history visibility
-- 要求源 Flow 提前规划 `discussion_space_ref`
+- Child Realm 独立 MLS group / retention / history visibility
+- 要求源 Flow 提前规划 `discussion_realm_ref`
 
-本 profile 不强制选择；source Space admin / Flow creator 自决。Mirror 端通过 `derived_from` Relation 指向源对象，不关心源是 A 还是 B。
+本 profile 不强制选择；source Realm admin / Flow creator 自决。Mirror 端通过 `derived_from` Relation 指向源对象，不关心源是 A 还是 B。
 
 **邀请 agent 的标准流程**（不引入新 event kind）：
 
@@ -223,10 +223,10 @@ Preset 是**声明性 sugar**——客户端 / SDK 把 preset 名展开为标准
 
 **Reducer 校验**(同步前置 gate):
 
-- `evidence_kind=anchored_event_ref`:reducer **MUST 同步**通过 controller's principal server 验证 inclusion proof,**才能让该 grant 释放任何 source Space 访问 / capability / MLS Welcome**。验证未完成时 grant **MUST 进入 `pending_verification` 状态**——可写入 reducer / 落到 frontier(便于后续异步完成),但 reducer **MUST NOT** 让任何依赖该 grant 的下游动作生效:
-  - 不向 agent 颁发 source Space membership(`cx.member.state` 拒绝引用 `pending_verification` grant 作为 `authorized_by`)
+- `evidence_kind=anchored_event_ref`:reducer **MUST 同步**通过 controller's principal server 验证 inclusion proof,**才能让该 grant 释放任何 source Realm 访问 / capability / MLS Welcome**。验证未完成时 grant **MUST 进入 `pending_verification` 状态**——可写入 reducer / 落到 frontier(便于后续异步完成),但 reducer **MUST NOT** 让任何依赖该 grant 的下游动作生效:
+  - 不向 agent 颁发 source Realm membership(`cx.member.state` 拒绝引用 `pending_verification` grant 作为 `authorized_by`)
   - 不向 agent 发送 MLS Welcome
-  - 不在源 Space history visibility 上把 agent DID 算作有授权 reader
+  - 不在源 Realm history visibility 上把 agent DID 算作有授权 reader
   - 不允许 mirror 端 `cx.content.import_attestation` 引用该 grant 作为 `authority_grant_ref`
 - controller's principal server 不可达时:grant 保持 `pending_verification`,**MUST NOT** 静默降级为 `unverified_authority` accepted state。运行时 SHOULD 重试,带指数退避;客户端 UI MUST 显式提示"agent 授权未验证,暂停操作"。
 - 验证最终失败(controller 服务器明确否认 / hash 不匹配 / event 不存在)→ grant 状态 → `verification_rejected`,reducer **MUST** 同时撤销所有 transient 副作用(若有);agent 即使临时持有过期信息也不得继续动作。
@@ -234,33 +234,33 @@ Preset 是**声明性 sugar**——客户端 / SDK 把 preset 名展开为标准
 
 **为什么是同步前置 gate**(设计取舍登记):
 
-异步路径在 controller server 短暂不可达(攻击者制造 DNS 劫持 / TLS outage 的窗口)的情况下,**允许伪造的 attached_authority 在 agent 已经访问 source Space 之后才被识破**——而那时已经读完 history、收到 MLS Welcome、写过 message,撤销已发生的访问是不可能的。同步 fail-closed gate 的代价是 controller 服务器宕机期间 agent onboarding 不能进行(但已 onboarding 的 agent 继续工作不受影响,因为它们的 grant 之前已完成同步验证)。需要离线 onboarding 场景的部署 SHOULD 使用 `evidence_kind=state_witness`(预签发离线凭证)。
+异步路径在 controller server 短暂不可达(攻击者制造 DNS 劫持 / TLS outage 的窗口)的情况下,**允许伪造的 attached_authority 在 agent 已经访问 source Realm 之后才被识破**——而那时已经读完 history、收到 MLS Welcome、写过 message,撤销已发生的访问是不可能的。同步 fail-closed gate 的代价是 controller 服务器宕机期间 agent onboarding 不能进行(但已 onboarding 的 agent 继续工作不受影响,因为它们的 grant 之前已完成同步验证)。需要离线 onboarding 场景的部署 SHOULD 使用 `evidence_kind=state_witness`(预签发离线凭证)。
 
-## 6. Mirror Space 创建与并发竞态（reservation saga）
+## 6. Mirror Realm 创建与并发竞态（reservation saga）
 
 ### 6.1 双层 reservation cell
 
 | 层 | Cell key | 命名空间 | Cell value | Lattice |
 |---|---|---|---|---|
-| **L1** | `mirror_space_by_source:<source_space_id>` | **workspace root Space** | `cx:space:<mirror_space_id>` 或 sentinel | `cas-register + bottom=reject`，schema 声明 `initial_value="__unset__"` |
-| **L2** | `mirror_flow_by_source:<source_flow_id>` | **mirror Space** | `cx:flow:<mirror_flow_id>` 或 sentinel | 同上 |
+| **L1** | `mirror_space_by_source:<source_realm_id>` | **workspace root Realm** | `cx:realm:<mirror_realm_id>` 或 sentinel | `cas-register + bottom=reject`，schema 声明 `initial_value="__unset__"` |
+| **L2** | `mirror_flow_by_source:<source_flow_id>` | **mirror Realm** | `cx:flow:<mirror_flow_id>` 或 sentinel | 同上 |
 
-> **Spec 依赖**：[`space.schema.json`](../../artifacts/schemas/space.schema.json) `cell_lattice` 包含可选 `initial_value` 字段（仅 cas-register 合法）。[`event-auth-state-resolution.md §5.3.3`](../authz/event-auth-state-resolution.md) cas-register `join` 算法在 schema 声明 `initial_value` 时使用 `current = cell_schema.initial_value`。本 profile 的两个 reservation cell schema 在 §9 profile 声明中直接使用 `initial_value="__unset__"`。
+> **Spec 依赖**：[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `cell_lattice` 包含可选 `initial_value` 字段（仅 cas-register 合法）。[`event-auth-state-resolution.md §5.3.3`](../authz/event-auth-state-resolution.md) cas-register `join` 算法在 schema 声明 `initial_value` 时使用 `current = cell_schema.initial_value`。本 profile 的两个 reservation cell schema 在 §9 profile 声明中直接使用 `initial_value="__unset__"`。
 
 ### 6.2 Reservation 流程
 
 1. 客户端调用 `agent_workspace.resolve_mirror_flow(source_flow_id)`；存在则复用
-2. 若 query 返回空，客户端**预分配** UUIDv7 `mirror_space_id` 和 `mirror_flow_id`
-3. **L1 reservation Move**（workspace root Space）：
-   - lattice op：`set`，cell = `mirror_space_by_source:<source_space_id>`，value = `mirror_space_id`
+2. 若 query 返回空，客户端**预分配** UUIDv7 `mirror_realm_id` 和 `mirror_flow_id`
+3. **L1 reservation Move**（workspace root Realm）：
+   - lattice op：`set`，cell = `mirror_space_by_source:<source_realm_id>`，value = `mirror_realm_id`
    - predicate：`head_eq: "__unset__"`
    - capability：controller's `cx.capability.agent_workspace.reserve` grant
 4. L1 收敛三种情况：
-   - **happy path**（cell 当前 head = `"__unset__"`，predicate 满足）：lattice op accepted，cell 推进到 `mirror_space_id`
+   - **happy path**（cell 当前 head = `"__unset__"`，predicate 满足）：lattice op accepted，cell 推进到 `mirror_realm_id`
    - **cell 已 set**（cell 当前 head = existing_id，predicate `head_eq:"__unset__"` 不满足）：按 [event-auth-state-resolution.md:640](../authz/event-auth-state-resolution.md) `if not predicate(v): FAIL_PRECONDITION` → reducer 返回 `failed_precondition`（reason=`reservation_cell_already_set`，response 含 winner cell value）。**不进入 ⊥**——⊥ 只发生在 lattice join 阶段，predicate 不满足在 join 之前的 validation 阶段就 fail
    - **真并发同时写不同 reservation token**（causally concurrent，双方 predicate 都满足）：lattice join 阶段 siblings `(unset, idA)` 和 `(unset, idB)` 满足 `b1==b2 and v1!=v2` → cell → `⊥`（bottom=reject，依赖该 cell 的后续 Move MUST `failed_bottom`），触发 §6.3 recovery saga
-5. **L1 成功后**，写独立后续 `cx.space.create(id=mirror_space_id)` Move 到 controller 的 principal control stream
-6. mirror Space 存在后写 **L2 reservation Move**，同样 `head_eq: "__unset__"`
+5. **L1 成功后**，写独立后续 `cx.realm.create(id=mirror_realm_id)` Move 到 controller 的 principal control stream
+6. mirror Realm 存在后写 **L2 reservation Move**，同样 `head_eq: "__unset__"`
 7. L2 成功后写独立 `cx.flow.create(id=mirror_flow_id)` Move
 
 ### 6.3 Recovery Move（⊥ 状态修复）
@@ -284,7 +284,7 @@ Move {
 ```
 
 - Recovery capability `cx.capability.agent_workspace.recover` 由 controller principal 自我持有
-- Deterministic winner：lex-min on candidate `cx:space:` / `cx:flow:` UUIDv7 字符串
+- Deterministic winner：lex-min on candidate `cx:realm:` / `cx:flow:` UUIDv7 字符串
 - State_witness / inclusion_proof MUST `critical=true`
 
 ### 6.4 Orphan reservation 处理
@@ -297,11 +297,11 @@ Move {
    - lattice op：`set`，cell = `mirror_*_by_source:<source_id>`，value = `"__unset__"`
    - predicate：`head_eq: <reservation_id>`（指向当前 stale value）
    - **TTL 证据（Anchor-based time，不用自报 wall clock）**：cleanup Event payload `ttl_evidence` 字段 MUST 含 `{reservation_anchor_ref, reservation_anchor_index, current_anchor_ref, current_anchor_index, ttl_anchor_distance}`：
-     - `reservation_anchor_ref` / `reservation_anchor_index`：reservation Move 被 anchor 时的 Anchor 引用 + 该 Anchor 在 DAG 中的 index（由源 Space anchorer 签发，可独立验证）
+     - `reservation_anchor_ref` / `reservation_anchor_index`：reservation Move 被 anchor 时的 Anchor 引用 + 该 Anchor 在 DAG 中的 index（由源 Realm anchorer 签发，可独立验证）
      - `current_anchor_ref` / `current_anchor_index`：cleanup 提交时刻的 effective Anchor
      - reducer 验证：`current_anchor_index >= reservation_anchor_index + ttl_anchor_distance`，其中 `ttl_anchor_distance` 是 schema 声明的最小 anchor 距离（按典型 anchor cadence 折算自 600s）
    - **替代方案**（更弱但实现简单）：housekeeping authority（controller 自己的 sync node）以 system actor 签发 `clock_witness` attestation 携带 `signed_current_time`；reducer 验证签名 + 接受 issuer 自报时间。这条仅适用于单 server 部署，不适用 multi-master
-4. **Idempotent retry**：`cx.space.create.id` / `cx.flow.create.id` 是固定 UUIDv7，重试相同 ID 是 no-op
+4. **Idempotent retry**：`cx.realm.create.id` / `cx.flow.create.id` 是固定 UUIDv7，重试相同 ID 是 no-op
 
 ## 7. `agent_task` 对象与三正交 FSM
 
@@ -311,7 +311,7 @@ Move {
 {
   "id": "cx:agent_task:01964200-0000-7000-8000-cccccccccccc",
   "schema": "cx.schema.agent_task.v1",
-  "space_id": "cx:space:<mirror space>",
+  "realm_id": "cx:realm:<mirror realm>",
   "flow_id": "cx:flow:<mirror flow>",
   "target_agent_id": "did:web:alice-agent.example",
   "instruction": {
@@ -321,7 +321,7 @@ Move {
   },
   "encrypted_payload": null,
   "context_anchor": {
-    "source_space_id": "cx:space:<source>",
+    "source_realm_id": "cx:realm:<source>",
     "source_flow_id": "cx:flow:<source>",
     "source_anchor_ref": "cx:anchor:sha256:<frontier_digest_at_trigger_time>",
     "source_frontier_hash": "sha256:...",
@@ -494,8 +494,8 @@ Transition event payload：
 
 - `body`（必填，Content Block schema）：脱敏摘要，对源 Flow 所有成员可见。客户端 MUST 在 compose UI 显式提示 "this summary is visible to all source Flow members"；MUST NOT 自动从私有指令派生
 - `target_actor_id`：MUST 是 sender principal 的 controlled agent（通过 `authority_grant_ref` 解析的 grant 的 `attached_authority.controller == sender_principal` 验证）；不满足 reducer MUST reject 并返回 `capability_denied`（不降级为普通 `cx.content.mention`）
-- `authority_grant_ref`：引用源 Space 中已 active 的 grant；reducer 校验 grant active + grant.subject == target_actor_id + grant.attached_authority.controller == sender principal
-- `redirect_pair_id`：opaque UUIDv7，sender 生成；双端关联，不暴露 mirror Space / Flow / Event ID
+- `authority_grant_ref`：引用源 Realm 中已 active 的 grant；reducer 校验 grant active + grant.subject == target_actor_id + grant.attached_authority.controller == sender principal
+- `redirect_pair_id`：opaque UUIDv7，sender 生成；双端关联，不暴露 mirror Realm / Flow / Event ID
 
 ### 8.2 `cx.content.import_attestation`
 
@@ -504,7 +504,7 @@ Transition event payload：
   "kind": "cx.content.import_attestation",
   "body": "（重加密引入的源消息正文 - 纯文本 fallback）",
   "claimed_origin": {
-    "space_id": "cx:space:<source>",
+    "realm_id": "cx:realm:<source>",
     "flow_id": "cx:flow:<source>",
     "message_id": "cx:message:<source>",
     "actor_id": "did:web:bob.example",
@@ -525,18 +525,18 @@ Transition event payload：
 }
 ```
 
-**性质**：这是 "importer 声称'我从某 Space 看到了这条内容'"，`import_signature` 只能证明 importer 自己的声明，**不能**证明原作者明文确实如此。reader UI MUST 显著区分"原作者直接发言"vs"由 X importer 声称引自"。
+**性质**：这是 "importer 声称'我从某 Realm 看到了这条内容'"，`import_signature` 只能证明 importer 自己的声明，**不能**证明原作者明文确实如此。reader UI MUST 显著区分"原作者直接发言"vs"由 X importer 声称引自"。
 
 **Source export policy attestation**（可选；如携带 MUST 满足 canonical schema）：
 
 ```json
 {
-  "authority_did": "did:web:source-space-admin.example",
-  "source_space_id": "cx:space:<source>",
+  "authority_did": "did:web:source-realm-admin.example",
+  "source_realm_id": "cx:realm:<source>",
   "policy_hash": "sha256:...",
   "policy_decision": "allow",
   "importer_actor_id": "did:web:alice-agent.example",
-  "import_destination_space_id": "cx:space:<mirror>",
+  "import_destination_realm_id": "cx:realm:<mirror>",
   "content_hash": "sha256:...",
   "source_frontier_ref": "cx:anchor:sha256:<source_frontier_digest>",
   "issued_at": "2026-05-17T10:00:00Z",
@@ -550,45 +550,45 @@ Transition event payload：
 
 **Mirror reducer 行为**(双 profile 分离):
 
-Mirror reducer 的行为**取决于源 Space 声明的 governance level**。源 Space 在自身 schema_refs / policy_components 中声明 `cx.profile.agent_workspace.governed.v1`(详见 §9.1)即被视作 governed source;其他默认按 permissive 处理。
+Mirror reducer 的行为**取决于源 Realm 声明的 governance level**。源 Realm 在自身 schema_refs / policy_components 中声明 `cx.profile.agent_workspace.governed.v1`(详见 §9.1)即被视作 governed source;其他默认按 permissive 处理。
 
-**permissive 行为(默认,适用于无 governance 声明的源 Space)**:
+**permissive 行为(默认,适用于无 governance 声明的源 Realm)**:
 - 缺 attestation → 接受 event,audit 标记 `export_attestation_missing`
 - 携带但签名无效 / 字段不一致 → 接受 event,audit 标记 `export_attestation_invalid`
 - 签名有效 → 接受 event,audit 标记 `export_attestation_verified`
 - **任何情况都不拒绝** — mirror 信任 source-side agent runtime 自觉执行 export policy
 
-**governed 行为(源 Space 声明 `cx.profile.agent_workspace.governed.v1` 时,reducer MUST 收紧)**:
-- 缺 attestation → **reject**(`source_export_attestation_required`);event 不进入 mirror Space accepted set
+**governed 行为(源 Realm 声明 `cx.profile.agent_workspace.governed.v1` 时,reducer MUST 收紧)**:
+- 缺 attestation → **reject**(`source_export_attestation_required`);event 不进入 mirror Realm accepted set
 - 携带但签名无效 → **reject**(`source_export_attestation_invalid`);记 audit 但拒收
 - 携带但 `policy_decision != "allow"` → **reject**(`source_export_attestation_denied`)
 - 携带但 `content_hash` 与 `content` 字段 canonical hash 不匹配 → **reject**(`source_export_content_hash_mismatch`)
-- 携带但 `import_destination_space_id` 与本 mirror Space 不匹配 → **reject**(`source_export_destination_mismatch`)
+- 携带但 `import_destination_realm_id` 与本 mirror Realm 不匹配 → **reject**(`source_export_destination_mismatch`)
 - 携带但已过 `valid_until` → **reject**(`source_export_attestation_expired`)
-- 携带但 `authority_did` 不在源 Space `export_policy_authorities[]` 中 → **reject**(`source_export_authority_unauthorized`)
+- 携带但 `authority_did` 不在源 Realm `export_policy_authorities[]` 中 → **reject**(`source_export_authority_unauthorized`)
 - 所有校验通过 → 接受 event,audit 标记 `export_attestation_verified`
 
 **为什么拆分两个 profile**(设计取舍登记):
 
-permissive 模式假设"agent runtime 是受信代码,会自觉执行源 Space 的 export policy"。该假设在 controller 自托管单实例、agent runtime 由 controller 自己审查代码的场景下成立。但对于:
-- **受保护源 Space**(企业项目群、合规边界内的资料、机密通信)
+permissive 模式假设"agent runtime 是受信代码,会自觉执行源 Realm 的 export policy"。该假设在 controller 自托管单实例、agent runtime 由 controller 自己审查代码的场景下成立。但对于:
+- **受保护源 Realm**(企业项目群、合规边界内的资料、机密通信)
 - **跨 deployment 协作**(agent runtime 跑在第三方 / cloud 上)
-- **多方 mirror**(同一源 Space 可能被多个 controller 各自 mirror)
+- **多方 mirror**(同一源 Realm 可能被多个 controller 各自 mirror)
 
-permissive 让 export policy 沦为 audit log;一旦 agent runtime 有 bug / 被攻陷 / 故意绕过,内容已经在 mirror Space 重加密落地——**事后撤销已经被 mirror 端读到的内容是不可能的**。
+permissive 让 export policy 沦为 audit log;一旦 agent runtime 有 bug / 被攻陷 / 故意绕过,内容已经在 mirror Realm 重加密落地——**事后撤销已经被 mirror 端读到的内容是不可能的**。
 
-Governed profile 让**源 Space 主动声明自己受保护**,mirror 端 reducer 据此**代表源 Space 强制执行 export policy**。导入端拒收意味着内容**从未**进入 mirror history,attack window 关闭。
+Governed profile 让**源 Realm 主动声明自己受保护**,mirror 端 reducer 据此**代表源 Realm 强制执行 export policy**。导入端拒收意味着内容**从未**进入 mirror history,attack window 关闭。
 
-代价:governed profile 下,合法 import 也需要先取得 source-side 签发的 export attestation,引入一次回 source Space policy authority 的同步调用(类似 attached_authority 的同步验证模式)。这是对**机密 / 合规 / 跨 deployment** 场景的应有摩擦。
+代价:governed profile 下,合法 import 也需要先取得 source-side 签发的 export attestation,引入一次回 source Realm policy authority 的同步调用(类似 attached_authority 的同步验证模式)。这是对**机密 / 合规 / 跨 deployment** 场景的应有摩擦。
 
 > **诊断字段命名**:`source_export_attestation_required` / `_invalid` / `_denied` / `_destination_mismatch` / `_content_hash_mismatch` / `_expired` / `_authority_unauthorized` 这 7 个 reason_code 注册在 `error-code-registry.json` `reason_codes[]` 命名空间。
 
-## 9. Space profile `cx.profile.agent_workspace.v1`
+## 9. Realm profile `cx.profile.agent_workspace.v1`
 
 ```json
 {
   "profile_id": "cx.profile.agent_workspace.v1",
-  "scope": "space",
+  "scope": "realm",
   "applies_to_roles": ["workspace_root", "mirror_space"],
   "membership": {
     "owner": "single_controller_principal",
@@ -628,8 +628,8 @@ Governed profile 让**源 Space 主动声明自己受保护**,mirror 端 reducer
   "relation_profiles": [
     {
       "relation_kind": "derived_from",
-      "from_type": "space",
-      "to_type": "space",
+      "from_type": "realm",
+      "to_type": "realm",
       "cardinality": "one_to_one",
       "max_to_per_from": 1,
       "max_from_per_to": 1,
@@ -652,23 +652,23 @@ Governed profile 让**源 Space 主动声明自己受保护**,mirror 端 reducer
 
 **Membership normative**：
 
-- Workspace root Space owner = controller principal
+- Workspace root Realm owner = controller principal
 - Members = `{controller's authorized devices} ∪ {agents with active capability_grant.attached_authority.controller == workspace_owner}`
 - 加入通过标准 `cx.member.state`；不引入新 `workspace_visible` 字段
-- Mirror Space 继承相同 membership 规则
+- Mirror Realm 继承相同 membership 规则
 
-**Unsupported profile fail-closed**：未声明支持本 profile 的服务端 **对 mirror Space 写入** MUST fail-closed（拒绝 `cx.agent_task.*` / `cx.content.import_attestation`，返回 `profile_unsupported`）。源 Space 接受 `mention_redirect` 不依赖本 profile——依赖 `cx.feature.mention_redirect.v1` critical_extension 是否被源 Space 服务端支持。
+**Unsupported profile fail-closed**：未声明支持本 profile 的服务端 **对 mirror Realm 写入** MUST fail-closed（拒绝 `cx.agent_task.*` / `cx.content.import_attestation`，返回 `profile_unsupported`）。源 Realm 接受 `mention_redirect` 不依赖本 profile——依赖 `cx.feature.mention_redirect.v1` critical_extension 是否被源 Realm 服务端支持。
 
 ### 9.1 `cx.profile.agent_workspace.governed.v1`(受保护源 profile)
 
-**目的**:让源 Space 主动声明"我是受保护的,任何 agent 把我的内容导出到 mirror Space 时,mirror 端 reducer 必须强制执行我的 export policy"。源 Space 自身在 `policy_components` / `schema_refs` 中 import 该 profile,即把保护意愿写入 Space 的 canonical state。
+**目的**:让源 Realm 主动声明"我是受保护的,任何 agent 把我的内容导出到 mirror Realm 时,mirror 端 reducer 必须强制执行我的 export policy"。源 Realm 自身在 `policy_components` / `schema_refs` 中 import 该 profile,即把保护意愿写入 Realm 的 canonical state。
 
-**声明位置**:**源 Space**(不是 mirror Space)的 schema / policy。受保护 Space 在 create event 或随后的 `cx.space.policy_components` Move 中加入:
+**声明位置**:**源 Realm**(不是 mirror Realm)的 schema / policy。受保护 Realm 在 create event 或随后的 `cx.realm.policy_components` Move 中加入:
 
 ```json
 {
   "profile_id": "cx.profile.agent_workspace.governed.v1",
-  "scope": "space",
+  "scope": "realm",
   "applies_to_roles": ["governed_source"],
   "export_policy": {
     "source_export_attestation_required": true,
@@ -690,23 +690,23 @@ Governed profile 让**源 Space 主动声明自己受保护**,mirror 端 reducer
 }
 ```
 
-**`export_policy_authorities[]`**:源 Space 在 policy_components 内声明哪些 DID 有权签发 export policy attestation。典型场景:
-- 单 controller 个人 Space:owner principal DID
+**`export_policy_authorities[]`**:源 Realm 在 policy_components 内声明哪些 DID 有权签发 export policy attestation。典型场景:
+- 单 controller 个人 Realm:owner principal DID
 - 组织受控群:organization DID + 显式委派的 admin DID
 - 合规群:专门的 export-policy-authority service DID,由 compliance team 控制
 
 attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer reject `source_export_authority_unauthorized`。
 
-> **wire 字段位置**: `export_policy_authorities[]` 位于 Space `policy_components.export_policy_authorities` 路径下,由 `cx.profile.agent_workspace.governed.v1` 启用该字段的解析。reducer 在该 profile 未启用时忽略该字段。
+> **wire 字段位置**: `export_policy_authorities[]` 位于 Realm `policy_components.export_policy_authorities` 路径下,由 `cx.profile.agent_workspace.governed.v1` 启用该字段的解析。reducer 在该 profile 未启用时忽略该字段。
 
-**reducer 行为收紧**:见 §8.2"governed 行为"完整 reject 规则集。所有 reject 都是 reducer-time 硬性拒收;event 不进入 mirror Space accepted set,不留下任何 read access。
+**reducer 行为收紧**:见 §8.2"governed 行为"完整 reject 规则集。所有 reject 都是 reducer-time 硬性拒收;event 不进入 mirror Realm accepted set,不留下任何 read access。
 
 **Permissive vs governed 选择**:
 
 | 维度 | permissive(默认,`cx.profile.agent_workspace.v1`) | governed(`cx.profile.agent_workspace.governed.v1`) |
 | --- | --- | --- |
 | 适用场景 | 单 controller 自用 + 自审查 agent runtime | 企业 / 合规 / 跨 deployment / 第三方 agent runtime |
-| 信任根 | "agent runtime 会自觉遵守 source export policy" | "源 Space policy authority 签发 attestation" |
+| 信任根 | "agent runtime 会自觉遵守 source export policy" | "源 Realm policy authority 签发 attestation" |
 | 攻击窗口 | agent runtime 被攻陷 / buggy 可绕过 export | export attestation 签名失败即 reject |
 | 性能成本 | import 0 额外回往 | import 需先取得 source-side attestation(一次回往 + TTL 缓存) |
 | 默认决策 | 不拒绝,标 audit | reject 缺失 / 无效 attestation |
@@ -721,14 +721,14 @@ attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer re
 
 ### 9.2 `cx.profile.agent_workspace.lite.v1`(单 controller 轻量 profile)
 
-**目的**:针对"controller 自己用、自己审、不需要 audit-grade 痕迹"的最小化部署(单 dev、hobbyist、本地实验),允许 mirror Space 跳过 base agent workspace profile 中三类成本最高的语义,从而把实现门槛降低到一个"标准 Space + reservation cell + import_attestation"即可上线的水平。
+**目的**:针对"controller 自己用、自己审、不需要 audit-grade 痕迹"的最小化部署(单 dev、hobbyist、本地实验),允许 mirror Realm 跳过 base agent workspace profile 中三类成本最高的语义,从而把实现门槛降低到一个"标准 Realm + reservation cell + import_attestation"即可上线的水平。
 
 **applicability(必须同时满足)**:
 
-- workspace_root + mirror Space 均归属同一 controller principal,无第三方共享读
-- 不打算公开 mirror Space 内容做合规 / 监管 audit
+- workspace_root + mirror Realm 均归属同一 controller principal,无第三方共享读
+- 不打算公开 mirror Realm 内容做合规 / 监管 audit
 - agent runtime 由 controller 自托管 / 自审查(与 base profile §1.1 假设一致甚至更强)
-- 不打算把 mirror Space 状态用作监管 / 法律证据
+- 不打算把 mirror Realm 状态用作监管 / 法律证据
 
 任一条不满足:**不得**采用 lite,SHOULD 留在 base `cx.profile.agent_workspace.v1`,或升级到 `cx.profile.agent_workspace.governed.v1`。
 
@@ -736,28 +736,28 @@ attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer re
 
 | 维度 | base 默认 | lite |
 | --- | --- | --- |
-| reservation TTL 时钟源 | anchor index distance(由源 Space anchorer 签发的不可伪造距离) | wall clock + 60s grace,reducer 仅做 sanity check |
+| reservation TTL 时钟源 | anchor index distance(由源 Realm anchorer 签发的不可伪造距离) | wall clock + 60s grace,reducer 仅做 sanity check |
 | transparency FSM cell(`agent_task.<id>.transparency`) | 必需,记录"源 stub 被 redact"等透明度信号 | **不存在**;controller 通过 UI hint 知道源 stub 状态,不写 cell |
 | source_authority FSM cell(`agent_task.<id>.source_authority`) | 必需,记录"agent 被踢 / capability_grant revoke" | **不存在**;controller 通过 UI hint 看到,不写 cell |
-| MLS Governance Binding(`mls_governance_binding.full.v1`) | 受 `mls_send_pause` 等 normative 规则约束 | 不强制要求 binding;mirror Space MAY 维持普通 MLS group 即可 |
+| MLS Governance Binding(`mls_governance_binding.full.v1`) | 受 `mls_send_pause` 等 normative 规则约束 | 不强制要求 binding;mirror Realm MAY 维持普通 MLS group 即可 |
 | `cx.agent_task.transparency.transition` / `source_authority.transition` event | reducer 接受 | **reducer reject**(`lite_profile_writes_disallowed_event_kind`) |
 
-**从 base 保留(reads + cross-Space writes 不变)**:
+**从 base 保留(reads + cross-Realm writes 不变)**:
 
 - `mirror_space_by_source` / `mirror_flow_by_source` reservation cell(失去这一层 mirror flow 无法被稳定寻址,无法工作)
 - `agent_task.<id>.execution_state` cell(任务自身状态机,lite 仍需用来决定能否 publish-back)
 - `cx.content.import_attestation` envelope(导入源内容仍需 attestation,只是 source-side export policy attestation 不强制)
-- `cx.mention_redirect` content block 在源 Space 一侧不变(源 Space 是否接受不取决于 mirror profile)
+- `cx.mention_redirect` content block 在源 Realm 一侧不变(源 Realm 是否接受不取决于 mirror profile)
 
-**跨 Space 边界 always full pipeline**:
+**跨 Realm 边界 always full pipeline**:
 
-publish-back(把 agent 草稿发回源 Flow)、`cx.mention_redirect` 投递、任何对源 Space / 共享 Space 的写入,**MUST** 走完整 pipeline(签名、capability、schema、源 Space 的完整 lattice、目的 Space 的 MLS group)。lite **不**是"跨 Space 通信也能省略"的借口;它只松绑 mirror Space 内部本地状态机。
+publish-back(把 agent 草稿发回源 Flow)、`cx.mention_redirect` 投递、任何对源 Realm / 共享 Realm 的写入,**MUST** 走完整 pipeline(签名、capability、schema、源 Realm 的完整 lattice、目的 Realm 的 MLS group)。lite **不**是"跨 Realm 通信也能省略"的借口;它只松绑 mirror Realm 内部本地状态机。
 
-**与 governed 互斥**:同一 Space MUST NOT 同时声明 `cx.profile.agent_workspace.lite.v1` + `cx.profile.agent_workspace.governed.v1`——前者剥离 mirror 端 audit,后者要求 mirror 端硬执行源 export policy,二者目的相反;同时声明 reducer MUST reject `conflicting_agent_workspace_profiles`。
+**与 governed 互斥**:同一 Realm MUST NOT 同时声明 `cx.profile.agent_workspace.lite.v1` + `cx.profile.agent_workspace.governed.v1`——前者剥离 mirror 端 audit,后者要求 mirror 端硬执行源 export policy,二者目的相反;同时声明 reducer MUST reject `conflicting_agent_workspace_profiles`。
 
-**Conformance**:实现 SHOULD 提供同一套 mirror Space 既能跑 base 也能跑 lite 的测试 fixture(去掉 transparency / source_authority cell 后 base test 中所有读取这两个 cell 的步骤直接跳过 / 标 N/A),便于部署在 base ↔ lite 之间无破坏切换。
+**Conformance**:实现 SHOULD 提供同一套 mirror Realm 既能跑 base 也能跑 lite 的测试 fixture(去掉 transparency / source_authority cell 后 base test 中所有读取这两个 cell 的步骤直接跳过 / 标 N/A),便于部署在 base ↔ lite 之间无破坏切换。
 
-**升级路径**:lite → base 是允许的(下次 Space schema update 时引入两个 FSM cell,初值 `ok`,旧 agent_task 不需要补 transition 历史)。base → lite 不允许(已存在的 transparency / source_authority cell 不能在不留 audit 的情况下删除)。
+**升级路径**:lite → base 是允许的(下次 Realm schema update 时引入两个 FSM cell,初值 `ok`,旧 agent_task 不需要补 transition 历史)。base → lite 不允许(已存在的 transparency / source_authority cell 不能在不留 audit 的情况下删除)。
 
 ## 10. Workspace teardown / 跨 deployment 迁移
 
@@ -765,23 +765,23 @@ publish-back(把 agent 草稿发回源 Flow)、`cx.mention_redirect` 投递、�
 
 Controller 不再使用 workspace：
 
-1. Controller 写 `cx.space.tombstone(workspace_root_space_id)`（标准 Space lifecycle）
-2. 所有 mirror Space 通过 `derived_from(workspace_root)` 关联，housekeeping 写 cascade `cx.space.tombstone(mirror_space_id)`
-3. mirror Space tombstone 后所有 agent_task 自动 unreachable；execution_state cell 不再 readable
-4. 源 Space 中已存在的 `mention_redirect` event **保留**（audit trail 不可逆）；它们的 `authority_grant_ref` 仍指向源 Space 中的 grant，与 workspace teardown 解耦
+1. Controller 写 `cx.realm.tombstone(workspace_root_realm_id)`（标准 Realm lifecycle）
+2. 所有 mirror Realm 通过 `derived_from(workspace_root)` 关联，housekeeping 写 cascade `cx.realm.tombstone(mirror_realm_id)`
+3. mirror Realm tombstone 后所有 agent_task 自动 unreachable；execution_state cell 不再 readable
+4. 源 Realm 中已存在的 `mention_redirect` event **保留**（audit trail 不可逆）；它们的 `authority_grant_ref` 仍指向源 Realm 中的 grant，与 workspace teardown 解耦
 5. DID Document 移除 `ContrixAgentWorkspaceService` service entry
 
 ### 10.2 跨 deployment 迁移
 
 Controller 从 deployment A 迁到 deployment B：
 
-1. 在 deployment B 创建新的 workspace root Space
+1. 在 deployment B 创建新的 workspace root Realm
 2. 写新 DID Document service entry，service endpoint 指向 deployment B
-3. 旧 workspace（deployment A）保留作为 audit 历史；可标记 `migrated_to: <new_workspace_root_space_id>`
-4. 源 Space 中已存在的 `mention_redirect` 与旧 workspace 关联（通过 `authority_grant_ref` 在源 Space 中的 grant，与 deployment 无关）；新发的 `mention_redirect` 会通过新 DID resolve 到新 workspace
-5. mirror Space 内容**不自动迁移**——controller 可选导出 / 重新建立（迁移工具由独立 tooling profile 提供）
+3. 旧 workspace（deployment A）保留作为 audit 历史；可标记 `migrated_to: <new_workspace_root_realm_id>`
+4. 源 Realm 中已存在的 `mention_redirect` 与旧 workspace 关联（通过 `authority_grant_ref` 在源 Realm 中的 grant，与 deployment 无关）；新发的 `mention_redirect` 会通过新 DID resolve 到新 workspace
+5. mirror Realm 内容**不自动迁移**——controller 可选导出 / 重新建立（迁移工具由独立 tooling profile 提供）
 
-### 10.3 源 Space archive / Flow delete
+### 10.3 源 Realm archive / Flow delete
 
 - 源 Flow `state=redacted` → mirror 中 `context_anchor` 引用 lazy `locked`（[relation.md §4.5](../models/relation.md)）
 - 不触发 mirror task 状态变化（mirror 任务可能已完成，保留 audit 价值）
@@ -793,7 +793,7 @@ Controller 从 deployment A 迁到 deployment B：
 ```
 GET /api/v1/agent_workspace/mirror_flow?source_flow_id=<id>
 Authorization: DID-signed (controller's principal) or session token
-→ 200 { "mirror_flow_id": "cx:flow:...", "mirror_space_id": "cx:space:..." }
+→ 200 { "mirror_flow_id": "cx:flow:...", "mirror_realm_id": "cx:realm:..." }
 → 404 { "reason": "not_provisioned" }    # 仅对已鉴权 controller 返回
 → 401 / 403                              # 未鉴权或非 owner
 ```
@@ -823,23 +823,23 @@ Authorization: DID-signed (controller's principal) or session token
 }
 ```
 
-仅发布 HTTPS endpoint，不发布 `workspace_root_space_id`（防元数据枚举）。
+仅发布 HTTPS endpoint，不发布 `workspace_root_realm_id`（防元数据枚举）。
 
 ## 13. 生命周期场景
 
 ### 13.1 用户首次 @-自己的-agent（Saga）
 
-**前置**：客户端调用 `resolve_mirror_flow(source_flow_id)`；不存在则按 §6 reservation saga lazy 创建 mirror Space + Flow。
+**前置**：客户端调用 `resolve_mirror_flow(source_flow_id)`；不存在则按 §6 reservation saga lazy 创建 mirror Realm + Flow。
 
 **Phase 1 — Mirror 端创建 pending task**：
 
 1. 客户端生成 `redirect_pair_id`（UUIDv7）
-2. 在 mirror Space 写 `cx.agent_task.create`（初始化 3 cell：execution_state=pending_source_stub, transparency=ok, source_authority=ok）
+2. 在 mirror Realm 写 `cx.agent_task.create`（初始化 3 cell：execution_state=pending_source_stub, transparency=ok, source_authority=ok）
 3. Agent runtime 见 execution_state=`pending_source_stub` MUST NOT 执行
 
 **Phase 2 — Source 端写 stub**：
 
-4. 在源 Space 写 `cx.message.create`，content = `cx.content.mention_redirect`，含 `redirect_pair_id` + `authority_grant_ref`，Event 顶层 `requirements.critical_extensions` 含 `cx.feature.mention_redirect.v1`
+4. 在源 Realm 写 `cx.message.create`，content = `cx.content.mention_redirect`，含 `redirect_pair_id` + `authority_grant_ref`，Event 顶层 `requirements.critical_extensions` 含 `cx.feature.mention_redirect.v1`
 
 **Phase 3 — Mirror 端 reconcile**：
 
@@ -851,19 +851,19 @@ Authorization: DID-signed (controller's principal) or session token
 - Phase 2 reject → 写 `execution.transition(from=pending_source_stub, to=cancelled_stub_rejected)`
 - Phase 1 成功但 Phase 2/3 未完成 → TTL 后 sync node housekeeping 写 `execution.transition(to=cancelled_orphan)`
 
-### 13.2 源 Space 加 / 移除 agent
+### 13.2 源 Realm 加 / 移除 agent
 
 加：标准 `cx.invite.create` + `cx.member.state` + `cx.capability.grant`（含 `attached_authority`）。reducer 验证 attached_authority.controller == inviter principal。成功后推 `agent_membership_change` notification 到 controller's workspace。
 
 移：标准 `cx.capability.revoke` + `cx.member.state(removed)`。Watcher 触发 source_authority cell transition（见 §13.5）。
 
-### 13.3 用户在 mirror Space 加 consulting agent
+### 13.3 用户在 mirror Realm 加 consulting agent
 
-Controller 在 mirror Space 写 `cx.member.state(agent_Z)` + `cx.capability.grant`。Reducer 验证 agent_Z 的 attached_authority.controller == controller principal。**agent_Z 不自动获得源 Space 访问**——它只工作于 mirror 中已存在内容（含 primary agent import_attestation 引入的）。
+Controller 在 mirror Realm 写 `cx.member.state(agent_Z)` + `cx.capability.grant`。Reducer 验证 agent_Z 的 attached_authority.controller == controller principal。**agent_Z 不自动获得源 Realm 访问**——它只工作于 mirror 中已存在内容（含 primary agent import_attestation 引入的）。
 
 ### 13.4 Source stub 被 redact → transparency=lost（observe-then-write）
 
-1. Watcher 观察源 Space `cx.redaction(target=<mention_redirect event>)` anchored
+1. Watcher 观察源 Realm `cx.redaction(target=<mention_redirect event>)` anchored
 2. Watcher **先读** transparency cell 当前 head：
    - 当前 = `ok` → 写 `cx.agent_task.transparency.transition(from=ok, to=lost, evidence_refs=[<redaction event>])`
    - 当前 ∈ {`lost`, `reconfirmed_after_loss`} → no-op skip
@@ -874,7 +874,7 @@ Controller 在 mirror Space 写 `cx.member.state(agent_Z)` + `cx.capability.gran
 
 ### 13.5 Source grant revoke → source_authority=revoked
 
-1. Watcher 观察源 Space `cx.capability.revoke(grant=<agent_grant>)` anchored
+1. Watcher 观察源 Realm `cx.capability.revoke(grant=<agent_grant>)` anchored
 2. 对该 agent 所有 execution_state ∈ {pending_source_stub, active} 的 mirror task：
    - **先读** source_authority cell 当前 head
    - 当前 = `ok` → 写 `cx.agent_task.source_authority.transition(from=ok, to=revoked, evidence_refs=[<revoke event>])`
@@ -897,7 +897,7 @@ v1 默认 controller 手动 publish：
      - 当前 = `active` → 写 `execution.transition(from=active, to=completed)`
      - 当前 ∈ terminal → abort publish 流程，告知 controller "任务已不在 active"
 
-## 14. Cross-Space agent membership 变更通知
+## 14. Cross-Realm agent membership 变更通知
 
 新 notification type `agent_membership_change`，已加入 [private-objects.md §3.2](../models/private-objects.md) 的 `notification_type` enum 与 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json)。[push-notifications.md](../discovery/push-notifications.md) 的 rule 引擎按现有 `notification_type` 字段匹配，无需新增 rule kind。
 
@@ -905,11 +905,11 @@ v1 默认 controller 手动 publish：
 {
   "notification_type": "agent_membership_change",
   "source_event_id": "cx:event:<membership change in source Flow>",
-  "space_id": "cx:space:<workspace root or mirror space>",
+  "realm_id": "cx:realm:<workspace root or mirror realm>",
   "preview": {
     "change_kind": "add | remove | profile_change",
     "agent_did": "did:web:alice-agent.example",
-    "source_space_id": "cx:space:<source>",
+    "source_realm_id": "cx:realm:<source>",
     "source_flow_id": "cx:flow:<source>",
     "new_capability_profile": "cx.agent_member.read_only"
   }
@@ -996,14 +996,14 @@ v1 默认 controller 手动 publish：
 
 ### 15.8 跨域 / 治理（3 vectors）
 
-42. **Mirror Space derived_from 基数**：尝试同 source Flow 第二个 mirror Flow → `cardinality_violation`
+42. **Mirror Realm derived_from 基数**：尝试同 source Flow 第二个 mirror Flow → `cardinality_violation`
 43. **agent_membership_change 通知脱敏**：E2EE preview MUST 由客户端预先脱敏
-44. **Teardown 审计锚定**：workspace teardown 提交前 MUST 留下最终 audit anchor，外部系统在 Space 删除后仍可引用
+44. **Teardown 审计锚定**：workspace teardown 提交前 MUST 留下最终 audit anchor，外部系统在 Realm 删除后仍可引用
 
 ## 16. 安全 / 隐私要点
 
-- **DID Document 不暴露 workspace Space ID**：service entry 仅 HTTPS endpoint；workspace_root_space_id 通过鉴权后 resolve API 取得；未鉴权 GET 返回 401/403 不返 404
-- **mention_redirect 不暴露 mirror 端定位**：仅含 `redirect_pair_id`（sender opaque UUID）和 `authority_grant_ref`（指向源 Space 已 active 的 grant）
+- **DID Document 不暴露 workspace Realm ID**：service entry 仅 HTTPS endpoint；workspace_root_realm_id 通过鉴权后 resolve API 取得；未鉴权 GET 返回 401/403 不返 404
+- **mention_redirect 不暴露 mirror 端定位**：仅含 `redirect_pair_id`（sender opaque UUID）和 `authority_grant_ref`（指向源 Realm 已 active 的 grant）
 - **`body` 字段披露**：客户端 MUST 提示用户该字段对源 Flow 成员可见
 - **Watcher 撒谎防护**：`evidence_refs` 含可独立 fetch 验证的 event ID；多 watcher 并行 + TTL housekeeping 兜底
 - **Cleanup 滥用防护**：cleanup Move MUST 携带 anchor-based `ttl_evidence`（详见 §6.4）；reducer 验证 `current_anchor_index >= reservation_anchor_index + ttl_anchor_distance`，**不接受自报 wall-clock**
@@ -1013,7 +1013,7 @@ v1 默认 controller 手动 publish：
 - ❌ `cx.grant.delegate_read`（scoped read 委托）：MLS E2EE 下无法干净实现；`knowledge_sources[]` + import_attestation 已覆盖
 - ❌ Server-side @ mention 自动路由：routing 是 client UX，server 不重写消息
 - ❌ `on_behalf_of` Message 字段：v1 由 controller 手动 publish 覆盖（§13.6）
-- ❌ Mirror Space deterministic 命名 `f(controller, source_space) → mirror_id`
+- ❌ Mirror Realm deterministic 命名 `f(controller, source_space) → mirror_id`
 - ❌ `attached_authority.inline_copy` evidence_kind（air-gapped 场景延后到独立扩展 profile）
 - ❌ Workspace 内容跨 deployment 自动迁移（迁移工具由独立 tooling profile 提供）
 
@@ -1025,7 +1025,7 @@ v1 默认 controller 手动 publish：
 - Encryption / agent authority：[encryption-and-audit.md](../crypto-media/encryption-and-audit.md)
 - Push notifications：[push-notifications.md](../discovery/push-notifications.md)
 - Content types：[content-types.md](../models/content-types.md)
-- Relation cross-Space：[relation.md](../models/relation.md)
+- Relation cross-Realm：[relation.md](../models/relation.md)
 - Federation：[federation.md](../sync/federation.md)
 - Service binding：[service-http-binding.md](../sync/service-http-binding.md)
 - Encoding (JCS)：[encoding.md](../conformance/encoding.md)

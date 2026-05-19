@@ -6,7 +6,7 @@ sidebar:
 
 ## 1. 目标
 
-Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Space Event history；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
+Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Realm Event history；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
 
 本文件定义：
 
@@ -22,20 +22,20 @@ Contrix 支持音频通话、视频通话、屏幕共享和多人会议。实时
 
 Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令 SHOULD 通过 Sync Service 的 Ephemeral Channel 或等价 streaming transport 发送。
 
-通话摘要、会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Space Event history。
+通话摘要、会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Realm Event history。
 
 ### 2.2 信令必须认证和加密
 
 WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
-- 绑定 Space id、call id、device id、actor id。
+- 绑定 Realm id、call id、device id、actor id。
 - 由发送设备签名，或封装在已认证的 encrypted ephemeral channel。
-- 对同一 Space / DM 的授权成员端到端加密。
+- 对同一 Realm / DM 的授权成员端到端加密。
 - 防重放，至少包含 timestamp、sequence 或 frame id。
 
 ### 2.3 媒体路径不等于信任路径
 
-媒体可能经过 TURN、SFU 或 MCU。它们可以转发包或混流，但不得因此获得 Space 权限。媒体服务 MUST 有 service DID，并由 Space policy 显式允许。
+媒体可能经过 TURN、SFU 或 MCU。它们可以转发包或混流，但不得因此获得 Realm 权限。媒体服务 MUST 有 service DID，并由 Realm policy 显式允许。
 
 ## 3. 通话模型
 
@@ -55,7 +55,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 ```json
 {
   "morph_type": "call",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "title": "Design review",
   "fields": {
     "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
@@ -95,7 +95,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 默认规则：
 
-- Space 成员不自动拥有 `call.record`。
+- Realm 成员不自动拥有 `call.record`。
 - `call.screen_share` SHOULD 独立授权。
 - `cx.call.configure_media_service` 只应授予管理员或受信服务。
 - 被 ban / suspended 的 actor MUST NOT 加入 call。
@@ -103,13 +103,13 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ## 6. ICE Server Discovery
 
-客户端通过 Space policy、service discovery 或 media service 获取 ICE servers。
+客户端通过 Realm policy、service discovery 或 media service 获取 ICE servers。
 
-### 6.1 Space Media Service
+### 6.1 Realm Media Service
 
 ```json
 {
-  "kind": "cx.space.media_service",
+  "kind": "cx.realm.media_service",
   "payload": {
     "service_id": "did:web:media.example.com",
     "modes": [
@@ -144,7 +144,7 @@ Content-Type: application/json
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 调用者认证，MUST 绑定 `actor_id` 与 `device_id`。 |
-| `space_id` | body | `id` | required | 通话所在 Space。 |
+| `realm_id` | body | `id` | required | 通话所在 Realm。 |
 | `call_id` | body | `id` | required | 通话 ID。 |
 | `actor_id` | body | `did` | required | 请求 ICE 配置的 Actor。 |
 | `device_id` | body | `id` | required | 请求设备。 |
@@ -154,7 +154,7 @@ Content-Type: application/json
 
 ```json
 {
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:...",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
@@ -166,7 +166,7 @@ Content-Type: application/json
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `space_id` | `id` | required | 回显请求 Space，进入签名 canonical bytes，防止跨 Space 重放。 |
+| `realm_id` | `id` | required | 回显请求 Realm，进入签名 canonical bytes，防止跨 Realm 重放。 |
 | `call_id` | `id` | required | 回显请求 call，进入签名 canonical bytes，防止跨通话重放。 |
 | `actor_id` | `did` | required | 回显请求 actor，进入签名 canonical bytes。 |
 | `device_id` | `id` | required | 回显请求设备，进入签名 canonical bytes。 |
@@ -179,7 +179,7 @@ Content-Type: application/json
 | `ice_servers[].username` | `string` | TURN 时 required | TURN 用户名（per-call pairwise pseudonym，REST-style: `<expiry-unix>:<pseudonym>`）。 |
 | `ice_servers[].credential` | `string` | TURN 时 required | 短期 TURN credential（HMAC of username）。 |
 | `ice_servers[].credential_type` | `string` | optional | credential 类型，例如 `password`。 |
-| `force_turn` | `boolean` | optional | 是否强制 TURN（高隐私 Space）。 |
+| `force_turn` | `boolean` | optional | 是否强制 TURN（高隐私 Realm）。 |
 | `constraints` | `object` | optional | 候选地址与传输策略（`allow_udp` / `allow_tcp` / `allow_ipv6`）。 |
 | `next_retry_at` | `timestamp` | optional | 软失败（如 `turn_credential_expired`）时返回；客户端 MUST NOT 在此前重试。 |
 | `signature` | `signature` | required | Media Service DID 对 canonical bytes（去除 `signature` 自身）的 detached 签名。 |
@@ -216,10 +216,10 @@ Content-Type: application/json
 要求：
 
 - TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC(turn_shared_secret, username)`）。
-- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `cx_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；TURN 运营方因此只能看到一次性会话标记，无法把同一用户的多次通话或多 Space 活动关联起来。
-- ICE config response MUST 由 media service 签名，签名 canonical bytes MUST 覆盖 `space_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
+- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `cx_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；TURN 运营方因此只能看到一次性会话标记，无法把同一用户的多次通话或多 Realm 活动关联起来。
+- ICE config response MUST 由 media service 签名，签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
-- 高隐私 Space MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
+- 高隐私 Realm MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 
 ### 6.3 In-call Credential Refresh
 
@@ -252,7 +252,7 @@ Content-Type: application/json
 {
   "kind": "cx.call.signal",
   "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "sender": "did:web:alice.example.com",
   "sender_device": "cx:device:01964137-0000-7000-8000-000000000000",
   "seq": 12,
@@ -355,14 +355,14 @@ Candidate payload:
 
 ### 10.1 SFU Service
 
-SFU MUST 有 service DID，并通过 `cx.space.media_service` 或 feature discovery 声明。
+SFU MUST 有 service DID，并通过 `cx.realm.media_service` 或 feature discovery 声明。
 
 SFU join request:
 
 ```json
 {
   "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "actor_id": "did:web:alice.example.com",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "capability_refs": ["cx:grant:..."],
@@ -395,7 +395,7 @@ SFU response:
 
 SFU MUST verify:
 
-- Space media service policy allows this SFU。
+- Realm media service policy allows this SFU。
 - actor has `call.join`。
 - actor/device is not revoked。
 - call state accepts new participants。
@@ -407,7 +407,7 @@ SFU MUST verify:
 
 SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实现端到端媒体加密。SFU 可转发 RTP 包和处理转发层 metadata，但不应获得明文媒体。
 
-若 SFU 或 MCU 会解密媒体，客户端 MUST 显示明确安全边界，并且 Space policy MUST 允许 `media_service_decrypts=true`。
+若 SFU 或 MCU 会解密媒体，客户端 MUST 显示明确安全边界，并且 Realm policy MUST 允许 `media_service_decrypts=true`。
 
 ## 11. 会议状态事件
 
@@ -416,7 +416,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 ```json
 {
   "kind": "cx.call.state",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "payload": {
     "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
     "state": "active",
@@ -464,14 +464,14 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 
 ## 13. 录制与转写
 
-录制和转写默认关闭，必须由 Space policy 和 call capability 显式允许。
+录制和转写默认关闭，必须由 Realm policy 和 call capability 显式允许。
 
 启动录制：
 
 ```json
 {
   "kind": "cx.call.recording.start",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "payload": {
     "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
     "recording_agent": "did:web:recorder.example",
@@ -487,11 +487,11 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 - 客户端 MUST 对所有参会者显示录制中。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
 - 录制结果 MUST 通过 `cx.call.recording.result` 引用 blob hash、duration、media type、retention policy。
-- 转写需要 `call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Space policy。
+- 转写需要 `call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。
 
 ## 14. 推送集成
 
-`cx.call.signal` 中 `kind=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Space id、call id 或 sender DID。
+`cx.call.signal` 中 `kind=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Realm id、call id 或 sender DID。
 
 脱敏 push payload（推送上游可见部分）:
 
@@ -504,9 +504,9 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 }
 ```
 
-设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `cx.call.signal{kind=invite}` envelope，从签名 envelope 中获得真实 `space_id`、`call_id`、`sender` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
+设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `cx.call.signal{kind=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
-Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Space id、call id 或明文会议标题；只允许 §14 上面 4 个脱敏字段，其它一切信息必须通过本地解密获得。
+Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；只允许 §14 上面 4 个脱敏字段，其它一切信息必须通过本地解密获得。
 
 ## 15. 安全与隐私
 
@@ -515,7 +515,7 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 - 验证所有 signaling sender 的 membership 和 device validity。
 - 防止 replay、sequence rollback 和 stale invite。
 - 对 TURN credential 使用短期凭证。
-- 对高隐私 Space 支持 `force_turn`。
+- 对高隐私 Realm 支持 `force_turn`。
 - 不把 SDP / ICE candidate 写入 durable public event。
 - 对 SFU/MCU/recording service 使用 service DID 和 policy allowlist。
 - 在 E2EE 降级、MCU 混流、录制、外部 PSTN bridge 时显示明确提示。
@@ -537,12 +537,12 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 | `media_permission_denied` | 缺少 video/audio/screen/record 权限。 |
 | `ice_config_denied` | 无权获取 ICE 配置。 |
 | `turn_credential_expired` | TURN credential 已过期。 |
-| `sfu_not_allowed` | Space policy 不允许该 SFU。 |
-| `e2ee_required` | Space 要求 E2EE，但当前媒体路径不满足。 |
+| `sfu_not_allowed` | Realm policy 不允许该 SFU。 |
+| `e2ee_required` | Realm 要求 E2EE，但当前媒体路径不满足。 |
 | `recording_denied` | 录制未授权或 policy 禁止。 |
 
 ## 17. 与 Matrix Call 的关系
 
-Contrix 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Space、capability、device trust、policy server 和 transport binding 模型。
+Contrix 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、policy server 和 transport binding 模型。
 
-Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `cx.call.signal`，但 durable meeting state、recording artifact 和 Space policy 必须遵守 Contrix 规则。
+Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `cx.call.signal`，但 durable meeting state、recording artifact 和 Realm policy 必须遵守 Contrix 规则。

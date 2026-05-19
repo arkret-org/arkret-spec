@@ -11,7 +11,7 @@
       "$ref": "#/$defs/cursor_value",
       "description": "Stream cursor (purpose='stream') describing the frontier covered by this response. Pass it back as the 'since' field on the next /sync call."
     },
-    "spaces": {
+    "realms": {
       "type": "object",
       "properties": {
         "join": {
@@ -208,7 +208,7 @@
     "space_bucket": {
       "type": "object",
       "patternProperties": {
-        "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
+        "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
           "$ref": "#/$defs/space_entry"
         }
       },

@@ -10,7 +10,7 @@ title: Matrix 与 Contrix 的核心区别
 
 Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
 
-Contrix 的核心抽象是 **signed Event + per-actor event chain + Space + Place + Flow + Message + Morph + Relation + View + capability**，其中 Space 是 security boundary、Place 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
+Contrix 的核心抽象是 **signed Event + per-actor event chain + Realm + Space + Flow + Message + Morph + Relation + View + capability**，其中 Realm 是 security boundary、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
 
 因此二者可以互联或桥接，但协议根不同。
 
@@ -18,19 +18,19 @@ Contrix 的核心抽象是 **signed Event + per-actor event chain + Space + Plac
 
 | 维度 | Matrix | Contrix |
 | --- | --- | --- |
-| 数据根 | Room 内事件流与 room state。 | Space 内授权 Event 集合，归约为 Space、Flow、Message、Morph、Relation、View；看板与列容器是独立的 Place 对象（`cx:place:`），永远住在某 Space 内。 |
+| 数据根 | Room 内事件流与 room state。 | Realm 内授权 Event 集合，归约为 Realm、Flow、Message、Morph、Relation、View；看板与列容器是独立的 Space 对象（`cx:space:`），永远住在某 Realm 内。 |
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、agent 协作、审计工作流。 |
 | 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Events、Sync、Blob、Policy 分层。 |
-| 真相源 | Room event graph 与状态解析。 | Actor/device/service 签名 Event Envelope，加上 Space reducer；搜索和 View projection 都是派生层。 |
+| 真相源 | Room event graph 与状态解析。 | Actor/device/service 签名 Event Envelope，加上 Realm reducer；搜索和 View projection 都是派生层。 |
 | 身份 | Matrix user ID 绑定 homeserver 域，如 `@alice:example.org`。 | Principal 使用 DID 作为协议主键；`@alice:example.org` 这类标识可作为 handle、登录入口或 bridge alias，但不能作为权限主体。 |
 | 服务迁移 | 账号和 room 与 homeserver 域耦合较强。 | 身份、Event 发布链与服务 endpoint 分离，DID / handle / service delegation 支持迁移。 |
 | 授权模型 | Room auth rules、membership、power levels。 | Capability grant、constraint、claim、policy、deterministic authorization。 |
-| 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Space、Actor、对象范围、用户授权和 capability 细分。 |
+| 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Realm、Actor、对象范围、用户授权和 capability 细分。 |
 | AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可签名 Event，并拥有 capability 和 protocol session。 |
 | 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
 | E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Contrix 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
 | 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影定义；搜索和 projection 默认由客户端本地派生，不能成为真相源。 |
-| 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容必须只进入 principal 或 Space policy 明确委托的服务；明文可见服务用 `plaintext_visible_services` 声明。 |
+| 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容必须只进入 principal 或 Realm policy 明确委托的服务；明文可见服务用 `plaintext_visible_services` 声明。 |
 
 ## 4. 核心概念对比深化
 
@@ -40,13 +40,13 @@ Matrix Application Service 是成熟的桥接机制，适合让 homeserver 与�
 
 Contrix Applet 的差异不是简单“更强”，而是粒度不同：
 
-- Applet registration 是签名声明，可由 Space owner、Organization、registry 或 authz service 接受。
+- Applet registration 是签名声明，可由 Realm owner、Organization、registry 或 authz service 接受。
 - Applet 不因 namespace 自动获得权限；每次写入仍需 capability。
-- 同一个 Applet 可以被不同 Space 用不同 capability、不同可见性、不同对象范围启用。
-- 不同用户或组织可以在自己控制的 Space 中启用不同 Applet，但必须受 Space policy 和授权约束。
-- Applet 可作为 bot、bridge、ghost actor controller、portal Space manager、delegated agent / device 参与审计链。
+- 同一个 Applet 可以被不同 Realm 用不同 capability、不同可见性、不同对象范围启用。
+- 不同用户或组织可以在自己控制的 Realm 中启用不同 Applet，但必须受 Realm policy 和授权约束。
+- Applet 可作为 bot、bridge、ghost actor controller、portal Realm manager、delegated agent / device 参与审计链。
 
-因此 Contrix 的优势是 **Space / principal / capability 级别的可组合授权与审计**，不是无条件允许任何用户随意给任何 Space 安装 Applet。
+因此 Contrix 的优势是 **Realm / principal / capability 级别的可组合授权与审计**，不是无条件允许任何用户随意给任何 Realm 安装 Applet。
 
 ### 4.2 AI 与 agent 支持
 
@@ -72,10 +72,10 @@ Contrix 的身份与发布模型借鉴 atprotocol 的几个方向：
 
 但 Contrix 不等同于 atprotocol：
 
-- atprotocol 主要面向公开 record 与 PDS；Contrix 面向多方协作 Space、授权状态、私有内容、E2EE 和企业治理。
+- atprotocol 主要面向公开 record 与 PDS；Contrix 面向多方协作 Realm、授权状态、私有内容、E2EE 和企业治理。
 - Contrix v1 core 默认普通用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷），同时支持 `did:web`（service DID / `personal_node` profile）和 `did:key`（bootstrap / 设备）。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 作为 interop extension profile 提供，不属于 v1 core 互操作必需。
 - Contrix 的 Event 记录协作事实，不是公开内容分发 record。
-- Contrix 把 Space policy、capability、Applet、Agent、MLS 和受托明文服务边界都纳入同一协作协议边界。
+- Contrix 把 Realm policy、capability、Applet、Agent、MLS 和受托明文服务边界都纳入同一协作协议边界。
 
 ### 4.4 E2EE 架构选择
 
@@ -83,7 +83,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 
 - MLS 是 IETF 标准。
 - MLS 原生建模 group state、epoch、commit、proposal、member add/remove。
-- Contrix 可以把 MLS epoch 与 Space membership、history visibility、device authorization、auditable E2EE 直接绑定。
+- Contrix 可以把 MLS epoch 与 Realm membership、history visibility、device authorization、auditable E2EE 直接绑定。
 - 被移除成员必须在新 epoch 上 fail closed。
 
 因此，Contrix 选择了 **更现代、标准化、适合动态群组协作治理的 MLS 基础**，而不是沿用 Matrix 的 Olm / Megolm。
@@ -141,7 +141,7 @@ Contrix 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lif
 
 #### 4.5.6 Push 通道密钥
 
-Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Space 的不可链接性规范。Contrix 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a 引入 `push_target_id`：
+Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Realm 的不可链接性规范。Contrix 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a 引入 `push_target_id`：
 
 - per `(recipient_service_did, principal, device, push_route)` 伪名；至少 128 bit 熵，推荐 256 bit。
 - MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码推导。
@@ -155,8 +155,8 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 
 - **Session key（`cx.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。MUST 绑定 audience / origin / service / scope / 过期时间；不得签发长期 device grant、不得访问 E2EE 历史密钥。资源服务器仍 MUST 重新验证 DID control state，而不是把 OIDC 成功视为 DID 控制证明。
 - **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，MUST 有 scope、`expires_at`、accountable actor 绑定，SHOULD 用 proposal / approval 约束高风险动作。Matrix bot 复用 user / appservice token，没有这一层 scope/审计要求。
-- **Applet delegated device key**：Applet 代表 ghost actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` MUST 标记 `applet_id`，capability MUST 限定 Space / 协议 / 动作 / 有效期，**且 delegated device 不得签发新的人类 device**。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
-- **Inception key**：DID method 层的初始控制密钥，是 principal control space genesis 与首台 `cx.device.authorized` 的信任根。使用后 SHOULD 立即写入 DID method 轮换链中并从首台设备销毁，或作为 recovery share 存入 secret storage；MUST NOT 长期作为日常 device signing key。
+- **Applet delegated device key**：Applet 代表 ghost actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` MUST 标记 `applet_id`，capability MUST 限定 Realm / 协议 / 动作 / 有效期，**且 delegated device 不得签发新的人类 device**。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
+- **Inception key**：DID method 层的初始控制密钥，是 principal control realm genesis 与首台 `cx.device.authorized` 的信任根。使用后 SHOULD 立即写入 DID method 轮换链中并从首台设备销毁，或作为 recovery share 存入 secret storage；MUST NOT 长期作为日常 device signing key。
 
 #### 4.5.8 验证 / 登录 / 设备授权的语义解耦
 
@@ -166,7 +166,7 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 | --- | --- | --- |
 | 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `cx.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`cx.device.authorized`、E2EE 历史密钥访问 |
 | 设备授权 | `cx.device.authorized`、DID key-log operation、`cx.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
-| 设备密钥验证（SAS / QR） | `user_signing_key` 签名（跨 principal）、本地信任标记 | 长期 device grant、Space capability、登录态 |
+| 设备密钥验证（SAS / QR） | `user_signing_key` 签名（跨 principal）、本地信任标记 | 长期 device grant、Realm capability、登录态 |
 
 验证消息形状（`cx.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Contrix 进一步规范化：
 
@@ -199,7 +199,7 @@ Contrix 比 Matrix 多覆盖的：DID-rooted inception、principal control event
 
 Matrix 可以承载很多非聊天数据，但它的协议根仍是 room event。
 
-Contrix 从一开始把 Flow、Space、Place、Message、Morph 和 Relation 都作为协作对象处理；看板与列容器是 Place（`cx:place:`），住在 Space 内但本身不是安全边界。聊天只是讨论 projection 的一种常见场景，不是所有业务状态的唯一载体。
+Contrix 从一开始把 Flow、Realm、Space、Message、Morph 和 Relation 都作为协作对象处理；看板与列容器是 Space（`cx:space:`），住在 Realm 内但本身不是安全边界。聊天只是讨论 projection 的一种常见场景，不是所有业务状态的唯一载体。
 
 ### 5.2 Power level 与 capability
 
@@ -207,7 +207,7 @@ Matrix power level 适合 room 内角色治理。
 
 Contrix capability 更适合细粒度协作系统：
 
-- 可以限定 Space、Place、Flow、Message、Morph、Relation，以及 `place.kind`、字段、时间、设备、速率、审批条件。
+- 可以限定 Realm、Space、Flow、Message、Morph、Relation，以及 `space.kind`、字段、时间、设备、速率、审批条件。
 - 可以委托给 agent、Applet、设备、组织角色或外部服务。
 - 可撤销、可审计，并与 policy server 风险决策分离。
 
@@ -215,9 +215,9 @@ Contrix capability 更适合细粒度协作系统：
 
 Matrix homeserver 是用户与 room federation 的核心承载点。
 
-Contrix Principal Server 是受 principal 或 Space policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Events API、Sync、Blob、Push、Policy，但协议仍保持分层。
+Contrix Principal Server 是受 principal 或 Realm policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Events API、Sync、Blob、Push、Policy，但协议仍保持分层。
 
-这也是 Contrix 去掉独立第三方分发服务器后的核心边界：未加密私有内容不应进入不受用户、组织或 Space policy 控制的第三方服务。
+这也是 Contrix 去掉独立第三方分发服务器后的核心边界：未加密私有内容不应进入不受用户、组织或 Realm policy 控制的第三方服务。
 
 ### 5.4 Query / Projection 是客户端派生层
 
@@ -243,14 +243,14 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 - 协议状态写入由 Move 的 `effects[(cell_id, lattice_op)]` 表达。
 - `cell_id` 是显式 canonical cell，例如 `cx:cell:cx.component.member.state.v1:<actor-did>`。
-- 每个 cell family 在 registry / Space schema 中声明 `lattice` 与 `bottom`。
+- 每个 cell family 在 registry / Realm schema 中声明 `lattice` 与 `bottom`。
 - Subject 信息仍存在于 payload 或 Move effect value 中，并由 explicit cell id 承载。
 
 **理由**：Matrix `state_key` 在实际使用中过载了多种语义。Contrix 把这些语义移动到 cell id 与 lattice schema，使多 cell 原子写、冲突 bottom、Anchor finality 和轻客户端 state_root 验证可以共用同一模型。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
 
-### 6.2 没有 `cx.space.policy.set` 这种聚合 kind
+### 6.2 没有 `cx.realm.policy.set` 这种聚合 kind
 
-Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_visibility 等共享同一 prefix）。Contrix v1 把每个配置 facet 拆成独立 kind：`cx.space.policy`、`cx.space.join_rule`、`cx.space.history_visibility`、`cx.space.discovery`、`cx.space.media_service`、`cx.space.archive`、`cx.space.tombstone`、...
+Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_visibility 等共享同一 prefix）。Contrix v1 把每个配置 facet 拆成独立 kind：`cx.realm.policy`、`cx.realm.join_rule`、`cx.realm.history_visibility`、`cx.realm.discovery`、`cx.realm.media_service`、`cx.realm.archive`、`cx.realm.tombstone`、...
 
 **理由**：聚合 kind 没有真实共享：每个 facet 有不同的 capability tier、auth refs、payload schema、reducer 行为。把它们绑成一个 kind 只是 Matrix wire 字段限制的产物，不反映任何模型上的共性。Contrix 的 per-facet kind 让 schema 路由更直、capability 矩阵更清楚、未来 facet 演进可独立版本化。
 
@@ -265,7 +265,7 @@ Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain d
 
 ### 6.4 Component Lattice
 
-Matrix state event 没有显式的 cell 代数。Contrix v1 的 registry / Space schema 为 reducer-input kind 声明：
+Matrix state event 没有显式的 cell 代数。Contrix v1 的 registry / Realm schema 为 reducer-input kind 声明：
 
 - `cell_family`（稳定 `cx.component.*.v<n>` URI）
 - `cell_subject`（null、payload field 或 composite descriptor）
@@ -274,7 +274,7 @@ Matrix state event 没有显式的 cell 代数。Contrix v1 的 registry / Space
 
 Receiver 不识别核心 lattice type MUST fail closed；扩展 cell family 必须通过 schema/profile 显式 opt-in。
 
-### 6.5 E2EE Space 的 MLS Governance Binding
+### 6.5 E2EE Realm 的 MLS Governance Binding
 
 Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Contrix v1 引入 **MLS Governance Binding**（profile `cx.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
@@ -285,7 +285,7 @@ Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Contrix v1 �
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Contrix v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`cx.consent.grant` / `cx.consent.revoke` 是 holder principal control Space 中的 Move，写入 `cx:cell:cx.component.consent.grant.v1:<consent_id>` cell（or-set, bottom=expose），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Contrix v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`cx.consent.grant` / `cx.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `cx:cell:cx.component.consent.grant.v1:<consent_id>` cell（or-set, bottom=expose），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
 
 **理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent cell 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 

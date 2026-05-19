@@ -79,7 +79,7 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$",
-      "description": "When the cell first crossed Space.bottom_escalation_after_ms. Absent when within the grace window. Implementations SHOULD raise an out-of-band notification to admins / recovery governance once set."
+      "description": "When the cell first crossed Realm.bottom_escalation_after_ms. Absent when within the grace window. Implementations SHOULD raise an out-of-band notification to admins / recovery governance once set."
     }
   },
   "additionalProperties": false

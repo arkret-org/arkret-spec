@@ -11,7 +11,7 @@ title: TSP Integration
 
 Contrix MAY 集成 Trust over IP 的 Trust Spanning Protocol (TSP)，用于跨 DID、KERI AID、`did:webs`、`did:x509`、`did:peer`、X.509/URN 等 Verifiable Identifier (VID) 体系建立可信消息关系。
 
-TSP 在 Contrix 中是可选 transport / trust binding，不是 Space 状态、capability、reducer 或 MLS 的替代品。
+TSP 在 Contrix 中是可选 transport / trust binding，不是 Realm 状态、capability、reducer 或 MLS 的替代品。
 
 ## 2. TSP 适用位置
 
@@ -28,7 +28,7 @@ TSP 适合用于：
 
 TSP 不适合直接承担：
 
-- Space 多成员群组 E2EE 状态机。
+- Realm 多成员群组 E2EE 状态机。
 - MLS epoch / group membership 变更。
 - Object / Morph / Relation / Event reducer。
 - capability 授权本身。
@@ -83,7 +83,7 @@ Contrix operation 可作为 TSP application payload：
 {
   "operation": "federation.push_operations",
   "content_type": "application/contrix+json",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "payload_hash": "sha256:...",
   "payload": {}
 }
@@ -92,8 +92,8 @@ Contrix operation 可作为 TSP application payload：
 规则：
 
 - TSP authenticity 不替代 Contrix event signature；两者 SHOULD 都验证。
-- TSP confidentiality 不替代 Space E2EE；它只保护 transport message payload。
-- TSP relationship 不自动授予 Space membership 或 capability。
+- TSP confidentiality 不替代 Realm E2EE；它只保护 transport message payload。
+- TSP relationship 不自动授予 Realm membership 或 capability。
 - TSP routed mode 中 intermediary 不应被视为可信授权方。
 - 若使用 nested TSP message 隐藏内层 VID，外层 endpoint 仍必须满足 Contrix routing 和 policy 要求。
 
@@ -107,7 +107,7 @@ Contrix operation 可作为 TSP application payload：
 | 加密对象 | 单条 message payload，可选 confidentiality | 群组消息和 epoch secret |
 | 元数据隐私 | nested message、routed message 等机制 | 主要保护内容；成员/epoch/发送关系需要额外设计 |
 | 成员管理 | TSP relationship table，不是群组 membership | 明确 Add/Update/Remove、epoch 变更 |
-| 适合场景 | 服务间、跨身份体系、pairwise 控制消息 | Space/会议/群聊的多成员 E2EE |
+| 适合场景 | 服务间、跨身份体系、pairwise 控制消息 | Realm/会议/群聊的多成员 E2EE |
 | 是否替代对方 | 不替代 MLS | 不替代 TSP 的跨 VID trust binding |
 
 ## 7. 推荐组合
@@ -116,8 +116,8 @@ Contrix SHOULD 采用以下组合：
 
 - Pairwise 服务 / 身份控制消息：MAY 使用 TSP。
 - Federation bootstrap：MAY 使用 TSP 验证 service VID 并建立安全通道。
-- Space 持久事件：MUST 仍使用 Contrix event signature / hash / reducer。
-- 加密 Space 内容：SHOULD 使用 MLS。
+- Realm 持久事件：MUST 仍使用 Contrix event signature / hash / reducer。
+- 加密 Realm 内容：SHOULD 使用 MLS。
 - Agent handoff：MAY 使用 TSP 认证 endpoint，再按协商使用 A2A / ACP / 自定义 transport。
 - WebRTC 媒体：MUST NOT 用 TSP 加密 RTP 媒体；按需使用 WebRTC SRTP 与 SFrame / Insertable Streams。
 
@@ -139,7 +139,7 @@ TSP 不能单独解决“披露什么”的问题。披露决策仍由 holder wa
 
 - 验证 remote VID，记录使用的 support system 和 trust assessment result。
 - 将 TSP relationship 与 Contrix principal/service DID 显式绑定。
-- 防止把 TSP channel authentication 当作 Space authorization。
+- 防止把 TSP channel authentication 当作 Realm authorization。
 - 对 metadata privacy mode 做显式声明，尤其是 public VID、nested VID、routed mode。
 - 对 routed intermediary 做最小信任假设。
 - 在 audit log 中记录 TSP binding、remote VID、relationship id、payload hash 和 verification result。

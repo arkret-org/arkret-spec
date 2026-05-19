@@ -13,7 +13,7 @@
     "id": "cx:notification:01964200-0000-7000-8000-000000b00001",
     "schema": "cx.schema.notification.v1",
     "actor_id": "did:web:charlie.example",
-    "space_id": "cx:space:01964200-0000-7000-8000-000000b00002",
+    "realm_id": "cx:realm:01964200-0000-7000-8000-000000b00002",
     "source_event_id": "cx:event:01964200-0000-7000-8000-000000b00003",
     "notification_type": "agent_membership_change",
     "priority": "normal",
@@ -32,5 +32,5 @@
     "expected_audit_mark": "e2ee_preview_violation",
     "remediation": "operator MUST patch bridge; affected notifications SHOULD be quarantined"
   },
-  "design_note": "Privacy invariant in §14: server-side bridge is not inside the MLS ratchet, so it has no plaintext to leak; if it appears to have plaintext, the deployment is mis-configured. This fixture is delivery-time invariant; no reducer Event is involved (the underlying source-Space membership change rides on standard cx.member.state / cx.capability.{grant,revoke} kinds)."
+  "design_note": "Privacy invariant in §14: server-side bridge is not inside the MLS ratchet, so it has no plaintext to leak; if it appears to have plaintext, the deployment is mis-configured. This fixture is delivery-time invariant; no reducer Event is involved (the underlying source-Realm membership change rides on standard cx.member.state / cx.capability.{grant,revoke} kinds)."
 }

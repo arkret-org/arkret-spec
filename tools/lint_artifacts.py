@@ -41,8 +41,9 @@ TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
-    "spec/v1/zh/models/space-and-place.md": {
-        1: "schemas/space.schema.json",
+    "spec/v1/zh/models/realm-and-space.md": {
+        1: "schemas/realm.schema.json",
+        2: "schemas/space.schema.json",
     },
     "spec/v1/zh/models/flow-and-message.md": {
         1: "schemas/flow.schema.json",
@@ -1469,4 +1470,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

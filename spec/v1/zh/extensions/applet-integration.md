@@ -16,10 +16,10 @@ Contrix 将该能力定义为 **Applet**。
 
 Applet 是一个受注册、受授权、可审计的集成服务。它可以：
 
-- 作为 bot 参与 Space
+- 作为 bot 参与 Realm
 - 桥接外部网络
 - 创建和管理 ghost actor
-- 管理 portal space
+- 管理 portal realm
 - 接收 Contrix 事件交易
 - 把外部事件转换为 Contrix event
 - 在获得明确授权时以受托 agent / device 方式执行操作
@@ -31,11 +31,11 @@ Applet 是一个受注册、受授权、可审计的集成服务。它可以：
 | homeserver 本地注册文件 | signed `applet_registration` |
 | sender localpart | applet controller DID / bot DID |
 | user namespace regex | actor namespace claim / DID namespace |
-| room namespace regex | Space / portal namespace |
+| room namespace regex | Realm / portal namespace |
 | alias namespace regex | handle / portal alias namespace |
 | `/transactions/{txn_id}` | `POST /api/v1/applet/transactions` + `Idempotency-Key` header |
 | `/users/{user_id}` | `/api/v1/applet/actors/{actor_id}` |
-| `/rooms/{room_alias}` | `/api/v1/applet/spaces/{space_id_or_alias}` |
+| `/rooms/{room_alias}` | `/api/v1/applet/realms/{realm_id_or_alias}` |
 | third-party protocols | external protocol metadata |
 | appservice masquerading | delegated agent / ghost actor capability |
 
@@ -58,7 +58,7 @@ Applet 是一个受注册、受授权、可审计的集成服务。它可以：
 
 ### 3.3 Bot Actor
 
-Applet 的主要可见 Actor。Bot Actor 可以加入 Space、被 mention、发送消息或执行自动化。
+Applet 的主要可见 Actor。Bot Actor 可以加入 Realm、被 mention、发送消息或执行自动化。
 
 ### 3.4 Ghost Actor
 
@@ -72,13 +72,13 @@ did:web:slack-bridge.example#ghost-u123
 
 Ghost Actor MUST 带有 `accountability`，指向 Applet controller 和外部网络来源。
 
-### 3.5 Portal Space
+### 3.5 Portal Realm
 
-外部网络 location 在 Contrix 中的镜像 Space。例如 Slack channel、Discord guild channel、GitHub issue discussion。
+外部网络 location 在 Contrix 中的镜像 Realm。例如 Slack channel、Discord guild channel、GitHub issue discussion。
 
 ## 4. Applet Registration
 
-Applet MUST 有签名 registration。它可以由 Space owner、组织管理员、registry 或 authz service 接受。
+Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员、registry 或 authz service 接受。
 
 示例：
 
@@ -100,10 +100,10 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
         "pattern": "did:web:slack-bridge.example#ghost-*"
       }
     ],
-    "spaces": [
+    "realms": [
       {
         "exclusive": true,
-        "pattern": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:*"
+        "pattern": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:*"
       }
     ],
     "handles": [
@@ -117,7 +117,7 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
   "receive_ephemeral": false,
   "rate_limited": true,
   "requested_scopes": [
-    "cx.space.discover",
+    "cx.realm.discover",
     "cx.object.read",
     "cx.flow.create",
     "cx.morph.create",
@@ -152,7 +152,7 @@ Applet MUST 有签名 registration。它可以由 Space owner、组织管理员�
 Namespace 用于决定：
 
 - 哪些未知 actor 可以向 Applet 查询
-- 哪些 Space / portal alias 属于 Applet
+- 哪些 Realm / portal alias 属于 Applet
 - 哪些事件应推送给 Applet
 - Applet 可以为哪些 ghost actor 申请或声明身份
 
@@ -170,14 +170,14 @@ Actor namespace 适用于 ghost actor 和 bot actor。
 }
 ```
 
-### 5.2 Space Namespace
+### 5.2 Realm Namespace
 
-Space namespace 适用于 portal Space。
+Realm namespace 适用于 portal Realm。
 
 ```json
 {
   "exclusive": true,
-  "pattern": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:*"
+  "pattern": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:*"
 }
 ```
 
@@ -194,7 +194,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 
 ## 6. Applet Capability
 
-注册 Applet 后，Space owner 或组织管理员 MUST 显式授予 capability。
+注册 Applet 后，Realm owner 或组织管理员 MUST 显式授予 capability。
 
 示例：
 
@@ -203,8 +203,8 @@ Handle namespace 适用于外部用户或 location 的人类入口。
   "issuer": "did:web:acme.example",
   "subject": "did:web:slack-bridge.example#bot",
   "scope": {
-    "space_ids": [
-      "cx:space:0196419b-0000-7000-8000-000000000000"
+    "realm_ids": [
+      "cx:realm:0196419b-0000-7000-8000-000000000000"
     ],
     "actions": [
       "cx.flow.create",
@@ -225,7 +225,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
 }
 ```
 
-除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事，否则 Applet MUST NOT 向 Space 写入。
+除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事，否则 Applet MUST NOT 向 Realm 写入。
 
 ## 7. Applet API
 
@@ -242,10 +242,10 @@ Base URL 来自 registration 的 `base_url`。
 | `cx.applet.describe` | 无 | 无 | `applet_id: id`; `service_did: did`; `protocols: string[]`; `namespaces: object`; `limits: object`; `auth: object` | public mode 只返回公开 capabilities。 |
 | `cx.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: object[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | Applet MUST 验证来源 service DID、HTTP signature、event signature、namespace 和 capability。 |
 | `cx.applet.query_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | actor_id 必须命中 Applet actor namespace。 |
-| `cx.applet.query_space` | `path.space_id_or_alias: string` | 无 | `exists: boolean`; `space_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
+| `cx.applet.query_space` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `cx.applet.protocol_metadata` | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob: string?`; `field_types: object`; `instances: object[]?` | instance list 可要求授权。 |
 | `cx.applet.third_party_users` | `query.protocol: string`; 外部 ID query 字段 | 无 | `actor_id: did?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 registration namespace 内。 |
-| `cx.applet.third_party_locations` | `query.protocol: string`; 外部 ID query 字段 | 无 | `space_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
+| `cx.applet.third_party_locations` | `query.protocol: string`; 外部 ID query 字段 | 无 | `realm_id: id?`; `exists: boolean`; `external_ref: object?` | 查询字段必须在 portal namespace 内。 |
 
 ### 7.1 Ping
 
@@ -289,7 +289,7 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
   "events": [
     {
       "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "kind": "cx.message.create",
       "actor_id": "did:web:alice.example",
       "payload": {}
@@ -298,7 +298,7 @@ Contrix sync service / Events API 向 Applet 推送事件批次。
   "ephemeral": [
     {
       "type": "typing",
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:web:alice.example"
     }
   ]
@@ -348,20 +348,20 @@ GET /api/v1/applet/actors/{actor_id}
 
 若不存在，返回 `404 not_found`。
 
-### 7.5 Query Space
+### 7.5 Query Realm
 
 ```text
-GET /api/v1/applet/spaces/{space_id_or_alias}
+GET /api/v1/applet/realms/{realm_id_or_alias}
 ```
 
-用于查询 portal Space 是否存在或可创建。
+用于查询 portal Realm 是否存在或可创建。
 
 返回：
 
 ```json
 {
   "exists": true,
-  "space_id": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
+  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
   "title": "#release on Slack",
   "external_ref": {
     "protocol": "slack",
@@ -413,7 +413,7 @@ GET /api/v1/applet/third_party/users?protocol=slack&team=T123&user=U123
 GET /api/v1/applet/third_party/locations?protocol=slack&team=T123&channel=C456
 ```
 
-用于把外部用户或 location 映射到 Contrix actor / portal Space。
+用于把外部用户或 location 映射到 Contrix actor / portal Realm。
 
 ## 8. Applet 写入 Contrix
 
@@ -432,7 +432,7 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
 ```json
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-  "space_id": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
+  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
   "actor_id": "did:web:slack-bridge.example#ghost-u123",
   "kind": "cx.message.create",
   "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
@@ -484,11 +484,11 @@ Ghost Actor profile SHOULD 包含：
 
 Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式声明并完成绑定。
 
-## 10. Portal Space
+## 10. Portal Realm
 
-Portal Space 把外部 location 映射到 Contrix。
+Portal Realm 把外部 location 映射到 Contrix。
 
-Portal Space SHOULD 记录：
+Portal Realm SHOULD 记录：
 
 - 外部协议
 - 外部网络 id
@@ -498,7 +498,7 @@ Portal Space SHOULD 记录：
 - 可见性
 - 成员映射策略
 
-Portal Space MUST 仍然执行常规的 Space policy 与 capability 规则。
+Portal Realm MUST 仍然执行常规的 Realm policy 与 capability 规则。
 
 ## 11. Masquerading 与 Delegated Agent
 
@@ -538,10 +538,10 @@ Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示
 
 ## 12. E2EE
 
-Applet 参与 E2EE Space 时有三种模式：
+Applet 参与 E2EE Realm 时有三种模式：
 
 1. Bot 作为正式成员加入 MLS group。
-2. Ghost Actor 作为正式成员加入 portal Space 的 MLS group。
+2. Ghost Actor 作为正式成员加入 portal Realm 的 MLS group。
 3. Applet 不解密，只转发外部密文或桥接 metadata。
 
 规则：
@@ -569,8 +569,8 @@ Applet 实现 MUST NOT：
 - 接收全网 sync stream，除非明确授权
 - 把 namespace 当作写权限
 - 静默 impersonate native user
-- 绕过 Space encryption policy
-- 泄露未授权 Space 内容到外部网络
+- 绕过 Realm encryption policy
+- 泄露未授权 Realm 内容到外部网络
 
 ## 14. 失败与重试
 
@@ -591,7 +591,7 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 - namespace matching
 - transaction idempotency
 - query actor
-- query space
+- query realm
 - protocol metadata
 - ghost actor accountability
 - capability enforcement
@@ -601,9 +601,9 @@ Applet 处理外部网络写入失败时 SHOULD 生成 bridge error event，而�
 ## 16. v1 互操作要求
 
 - `applet_registration` JSON Schema 由 `applet-schema.md` 和 `schema-registry.md` 固定，必须包含 service DID、endpoint、namespace、protocol、capability refs、signing method 和 expiry。
-- Namespace pattern grammar MUST 明确 actor、space、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
-- Transaction schema MUST 包含 source network、external event id、mapped actor、target Space、operation refs、`Idempotency-Key`、signature 和 received_at。
+- Namespace pattern grammar MUST 明确 actor、realm、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
+- Transaction schema MUST 包含 source network、external event id、mapped actor、target Realm、operation refs、`Idempotency-Key`、signature 和 received_at。
 - Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `cx.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。
-- Applet UI widget sandbox MUST 与 Space capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Contrix session token 或未授权 Event history access。
+- Applet UI widget sandbox MUST 与 Realm capability、origin isolation、CSP、token scoping 和 user consent 绑定；widget 不得直接获得 Contrix session token 或未授权 Event history access。

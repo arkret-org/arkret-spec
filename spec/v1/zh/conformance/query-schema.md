@@ -4,13 +4,13 @@ title: Query JSON Schema
 
 ## 1. 目标
 
-本文定义 Contrix View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Space policy、`allowed_tracks` action scope、E2EE 可见性与 capability。
+本文定义 Contrix View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Realm policy、`allowed_tracks` action scope、E2EE 可见性与 capability。
 
 ## 2. Query 对象
 
 ```json
 {
-  "space_ids": ["cx:space:0196419b-0000-7000-8000-000000000000"],
+  "realm_ids": ["cx:realm:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["flow", "message", "morph"],
   "morph_types": ["customer_case"],
   "facets": ["assignable"],
@@ -35,8 +35,8 @@ title: Query JSON Schema
 
 字段：
 
-- `space_ids`: REQUIRED，查询范围。
-- `object_types`: OPTIONAL，限制标准对象类型，例如 `space`、`flow`、`message`、`morph`、`relation`、`view`。`card` / `room` 必须表达为 `object_types=["flow"]` + `filters` 限制 `kind`；Board/List 必须表达为 `object_types=["space"]` + `filters` 限制 `kind`。
+- `realm_ids`: REQUIRED，查询范围。
+- `object_types`: OPTIONAL，限制标准对象类型，例如 `realm`、`flow`、`message`、`morph`、`relation`、`view`。`card` / `room` 必须表达为 `object_types=["flow"]` + `filters` 限制 `kind`；Board/List 必须表达为 `object_types=["realm"]` + `filters` 限制 `kind`。
 - `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
 - `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、`allowed_tracks` action scope 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
 - `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Flow context 的上下文锚点对象引用。
@@ -119,11 +119,11 @@ Relation Query 字段：
 
 - `kind`: REQUIRED，关系类型，例如 `contains`、`belongs_to`、`assigned_to`、`promoted_from_discussion`。
 - `direction`: REQUIRED，`out` / `in` / `both`。
-- `source_ref`: OPTIONAL，限制 relation 起点对象、Actor 或 Space。
-- `target_ref`: OPTIONAL，限制 relation 终点对象、Actor 或 Space。
-- `source_type`: OPTIONAL，限制起点类型，例如 `flow`、`actor`、`space`。需要区分 `card` / `room` 时使用 Flow `kind` 过滤。
+- `source_ref`: OPTIONAL，限制 relation 起点对象、Actor 或 Realm。
+- `target_ref`: OPTIONAL，限制 relation 终点对象、Actor 或 Realm。
+- `source_type`: OPTIONAL，限制起点类型，例如 `flow`、`actor`、`realm`。需要区分 `card` / `room` 时使用 Flow `kind` 过滤。
 - `target_type`: OPTIONAL，限制终点类型。
-- `depth`: OPTIONAL，关系展开深度；跨 Space 规则见 `views.md` Lazy Link。
+- `depth`: OPTIONAL，关系展开深度；跨 Realm 规则见 `views.md` Lazy Link。
 
 Flow synthesis 与 discussion 的 relation 查询必须遵守有效 access 授权：
 
@@ -180,9 +180,9 @@ Projection 只减少返回字段，不提升权限。
 任何对外暴露可互操作 query / search / projection 语义的执行方 MUST:
 
 - 对 query 做 schema validation。
-- 对 Space、Flow、Message、Morph、Relation、View 和字段做 authorization filtering。
+- 对 Realm、Flow、Message、Morph、Relation、View 和字段做 authorization filtering。
 - 把 `facets` 仅作为过滤条件和 projection hint；不得因 facet 字符串扩大授权、启用未声明 reducer 或绕过 Morph profile validation。
-- 对 Flow discussion track 按所属 Space 做 membership / history visibility 检查：未设 `Flow.discussion_space_ref` 时按父 Space；设了时按 child Space 独立裁剪。
+- 对 Flow discussion track 按所属 Realm 做 membership / history visibility 检查：未设 `Flow.discussion_realm_ref` 时按源 Realm；设了时按 linked Realm 独立裁剪。
 - 对高成本 full_text / relation expansion 限流。
 - 不泄露不可见对象是否存在。
-- 在 E2EE Space 中不得对密文正文做服务器全文搜索；客户端本地搜索只能覆盖本设备已解密且当前 actor 仍有权读取的内容。
+- 在 E2EE Realm 中不得对密文正文做服务器全文搜索；客户端本地搜索只能覆盖本设备已解密且当前 actor 仍有权读取的内容。

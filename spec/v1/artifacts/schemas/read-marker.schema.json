@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/read-marker.schema.json",
   "title": "Contrix Read Marker",
-  "description": "Actor-private multi-device read cursor. Stored in encrypted account data or actor-private stream; NEVER published into a shared Space Event history. Bound to (actor_id, space_id, scope, position, HLC, device_id) per zh/discovery/read-receipts.md §6.6 so that concurrent updates from multiple devices converge by HLC max.",
+  "description": "Actor-private multi-device read cursor. Stored in encrypted account data or actor-private stream; NEVER published into a shared Realm Event history. Bound to (actor_id, realm_id, scope, position, HLC, device_id) per zh/discovery/read-receipts.md §6.6 so that concurrent updates from multiple devices converge by HLC max.",
   "type": "object",
   "required": [
     "id",
     "schema",
     "actor_id",
-    "space_id",
+    "realm_id",
     "scope",
     "position",
     "updated_at"
@@ -28,11 +28,11 @@
     "device_id": {
       "type": "string",
       "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Originating device. Required for multi-device convergence: when two devices race on the same (actor_id, space_id, scope) the receiver picks the entry with greater HLC; device_id provides a deterministic actor_id-scoped tiebreaker when HLCs are equal."
+      "description": "Originating device. Required for multi-device convergence: when two devices race on the same (actor_id, realm_id, scope) the receiver picks the entry with greater HLC; device_id provides a deterministic actor_id-scoped tiebreaker when HLCs are equal."
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "scope": {
       "type": "object",
@@ -41,7 +41,7 @@
         "kind": {
           "type": "string",
           "enum": [
-            "space",
+            "realm",
             "flow",
             "flow_discussion",
             "flow_synthesis",
@@ -53,8 +53,8 @@
         },
         "ref": {
           "type": "string",
-          "pattern": "^cx:(space|flow|message|morph|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Required when kind is anything other than 'space'. Identifies the target object whose timeline this marker tracks."
+          "pattern": "^cx:(realm|flow|message|morph|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Required when kind is anything other than 'realm'. Identifies the target object whose timeline this marker tracks."
         },
         "track": {
           "type": "string",

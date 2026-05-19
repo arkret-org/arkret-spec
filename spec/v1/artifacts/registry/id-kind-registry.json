@@ -38,7 +38,7 @@
       "wire_form": "cx:pseudonym:<scope_id>:<random>",
       "status": "profile_extension",
       "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
-      "description": "Room/Space-scoped pseudonymous credential reference; validated by the E2EE profile."
+      "description": "Room/Realm-scoped pseudonymous credential reference; validated by the E2EE profile."
     },
     {
       "kind": "anchor",
@@ -75,7 +75,7 @@
       "category": "extension",
       "status": "active",
       "wire_form": "cx:agent_task:<uuid>",
-      "description": "Agent task object ID in mirror Space (cx.profile.agent_workspace.v1)"
+      "description": "Agent task object ID in mirror Realm (cx.profile.agent_workspace.v1)"
     },
     {
       "kind": "applet",
@@ -302,18 +302,18 @@
       "description": "Snapshot manifest ID"
     },
     {
-      "kind": "place",
-      "category": "core_object",
-      "status": "active",
-      "wire_form": "cx:place:<uuid>",
-      "description": "Place object ID — structural grouping object inside a Space (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Space."
-    },
-    {
       "kind": "space",
       "category": "core_object",
       "status": "active",
       "wire_form": "cx:space:<uuid>",
-      "description": "Space object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
+      "description": "Space object ID — structural grouping object inside a Realm (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Realm."
+    },
+    {
+      "kind": "realm",
+      "category": "core_object",
+      "status": "active",
+      "wire_form": "cx:realm:<uuid>",
+      "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
     },
     {
       "kind": "txn",

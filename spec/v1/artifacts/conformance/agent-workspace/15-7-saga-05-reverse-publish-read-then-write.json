@@ -44,5 +44,5 @@
     "execution_state": "cancelled_by_controller",
     "source_message_emitted": false
   },
-  "design_note": "Reverse publish is observe-then-write at the client: re-read task state immediately before emitting; abort if terminal. Reducer alone cannot prevent stale publish because the source Message is in a different Space — client cooperation is required."
+  "design_note": "Reverse publish is observe-then-write at the client: re-read task state immediately before emitting; abort if terminal. Reducer alone cannot prevent stale publish because the source Message is in a different Realm — client cooperation is required."
 }

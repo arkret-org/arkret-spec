@@ -129,7 +129,7 @@ agent key 用于 AI agent、bot、CI 或 automation。
 
 ### 3.7 MLS KeyPackage Key
 
-MLS KeyPackage key 用于加入加密 Space。
+MLS KeyPackage key 用于加入加密 Realm。
 
 要求：
 
@@ -163,19 +163,19 @@ MLS KeyPackage key 用于加入加密 Space。
 
 ### 4.1 Principal Control Event Stream
 
-设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意协作 Space。Contrix v1 使用 **Principal Control Event Stream** 承载这些 durable identity state。
+设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意协作 Realm。Contrix v1 使用 **Principal Control Event Stream** 承载这些 durable identity state。
 
 当 `cx.device.authorized`、`cx.device.revoked`、`cx.device.list_update` 或 `cx.session.grant` 以 `cx.schema.event.v1` Event Envelope 传播时：
 
-- `space_id` MUST 是该 principal 的专用 `principal_control_space_id`，不得使用任意协作 Space 的 `space_id`。
+- `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意协作 Realm 的 `realm_id`。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device、受信 recovery service 或组织声明的 session issuer。
-- `content.principal_id` / `content.subject` MUST 与该 control Space 绑定的 principal DID 一致；不一致时 MUST reject。
-- control Space 的 `cx.space.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Space MUST 使用 v1 标准 `kind=collaboration`，并通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `cx.profile.principal_control_space.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control space **不**使用单独的 Space kind——所有 Space-level 验证（schema、boundary、E2EE、federation）走 collaboration kind 的标准路径。
-- 普通协作 Space 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、policy server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该协作 Space history 来改变身份状态。
+- `content.principal_id` / `content.subject` MUST 与该 control Realm 绑定的 principal DID 一致；不一致时 MUST reject。
+- control Realm 的 `cx.realm.create` 或等价 genesis record MUST 绑定 principal DID、DID method / key-log history、control stream policy 和可发现的 service endpoint。该 Realm MUST 使用 v1 标准 `kind=collaboration`，并通过 `fields.purpose="principal_control"` + `schema_refs` 包含 `cx.profile.principal_control_realm.v1` 标记其 control stream 角色（详见 §5.0.1 步骤 3）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走 collaboration kind 的标准路径。
+- 普通协作 Realm 的业务事件 MAY 通过 `refs[role=authorized_by]`（或 role=`did_inception` 等专门 role）、verified snapshot reference、policy server proof 或 device-state checkpoint 引用 principal control state；不得把另一个 principal 的 device/session 事件直接写入该协作 Realm history 来改变身份状态。
 
-`principal_control_space_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Space 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
+`principal_control_realm_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Realm 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
 
-实现 MAY 用 identity sidecar、device registry 或 DID/key-log operation 存储同一状态，但它们必须提供等价的签名、digest、auth dependency 和撤销语义；桥接到 Event Envelope 时仍必须遵守上述 `space_id` 规则。
+实现 MAY 用 identity sidecar、device registry 或 DID/key-log operation 存储同一状态，但它们必须提供等价的签名、digest、auth dependency 和撤销语义；桥接到 Event Envelope 时仍必须遵守上述 `realm_id` 规则。
 
 ## 5. 设备授权流程
 
@@ -189,14 +189,14 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
 
 1. **Inception key 生成**：客户端在用户首次注册或自主权恢复时本地生成一个 `inception_keypair`（Ed25519 / ECDSA-P256）。该密钥既是 `did:webvh` 第 0 条 `did.jsonl` entry 的 `updateKeys[0]` / `nextKeyHashes[0]`，也是首台设备的 device key 之一。
 2. **`did:webvh` genesis 写入**：客户端按 `did:webvh` specification 计算 SCID，将 `did.jsonl` entry 0 写入 hosting domain（自有 / Auth Server 托管子域）。Entry 0 的 `versionId`、SCID、controller proof MUST 由 inception key 签发。可选 witness MAY 在 entry 0 之后补签，不阻塞 bootstrap。
-3. **Principal control space genesis**：客户端构造 `cx.space.create` Event 创建 principal control space（`space_id` 即 `principal_control_space_id`，绑定到 principal DID）。该 Space 是 v1 标准 `kind=collaboration` Space（不引入新的 Space kind），并通过以下 Space 字段把它标记为 control stream：
+3. **Principal control realm genesis**：客户端构造 `cx.realm.create` Event 创建 principal control realm（`realm_id` 即 `principal_control_realm_id`，绑定到 principal DID）。该 Realm 是 v1 标准 `kind=collaboration` Realm（不引入新的 Realm kind），并通过以下 Realm 字段把它标记为 control stream：
    - `fields.purpose = "principal_control"`（产品语义；reducer/authz 通过此字段识别 control stream）。
-   - `schema_refs` 包含 `cx.profile.principal_control_space.v1`（profile id；该 profile 收紧 control space 的允许 event kinds、capability action、E2EE/federation 默认值）。
+   - `schema_refs` 包含 `cx.profile.principal_control_realm.v1`（profile id；该 profile 收紧 control realm 的允许 event kinds、capability action、E2EE/federation 默认值）。
    - `encryption_profile = "none"`，`history_visibility = "joined"`，`anchor_profile = "single_did"`，`anchorer = <principal DID>`。
    - `created_by_principal = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
 
-   Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control space genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `cx.profile.principal_control_space.v1`；缺一即按普通 collaboration Space 处理（不再具备 control stream 的特殊语义）。
-4. **首台设备自授权**：客户端构造 `cx.device.authorized` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control space 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
+   Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；缺一即按普通 collaboration Realm 处理（不再具备 control stream 的特殊语义）。
+4. **首台设备自授权**：客户端构造 `cx.device.authorized` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
 5. **Inception key 的归宿**：完成步骤 4 后，inception key MAY 被立即写入 `did:webvh` entry 1 的 `updateKeys` 轮换链中并从首台设备销毁；也 MAY 作为 recovery key 之一存入 secret storage（§7）。它 MUST NOT 长期作为日常 device signing key——它的暴露面应被限制到 inception bootstrap 与 recovery。
 6. **后续设备**：第二台及以后设备走 §5.1 标准流程，由首台已授权设备签发 `cx.device.authorized`。
 
@@ -207,20 +207,20 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
 1. 客户端本地生成 `inception_keypair`，并以它构造一个临时 `did:key:<inception_pub>`。
 2. 客户端把 `did:key:<inception_pub>` 作为 `cx.did.proof.continuity` 的 `old_did` 签发 continuity proof，绑定到目标 `did:web:<host>` 作为 `new_did`。该 continuity proof 由 inception key 单方签署即生效（personal_node profile 接受这种"自我升级"，因为 stake 低）。
 3. 客户端将 `did:web` DID Document（含 inception public key 作为 `verificationMethod` / `assertionMethod`）写入 hosting domain，并发布该 continuity proof。
-4. Principal control space genesis、首台设备自授权按 §5.0.1 步骤 3-5 执行；`refs[]` 携带 `role="did_inception"` 条目引用 continuity proof + DID Document hash，而不是 `did:webvh` entry 0。
+4. Principal control realm genesis、首台设备自授权按 §5.0.1 步骤 3-5 执行；`refs[]` 携带 `role="did_inception"` 条目引用 continuity proof + DID Document hash，而不是 `did:webvh` entry 0。
 5. `personal_node` profile 升级到 `small_team` 或更高 profile 时,MUST 走 **§5.0.5** 的跨 method 迁移路径切换到 `did:webvh`,期间历史 Event 保留 `did:web` `actor_id`。
 
 #### 5.0.3 验证规则
 
 Receiver 接受 principal 的首批 control stream Event 时，MUST：
 
-- 解析 control space genesis Event 的 `refs[]`，找到 `role="did_inception"` 条目。
+- 解析 control realm genesis Event 的 `refs[]`，找到 `role="did_inception"` 条目。
 - 按 DID method 验证该引用：
   - `did:webvh`：拉取 `did.jsonl` entry 0，校验 SCID、entry hash、controller proof，确认 inception key 与 genesis Event `proofs[].verification_method` 一致。
   - `did:web` (personal_node)：拉取当前 DID Document，校验 inception public key 出现在 `verificationMethod` 中，并校验 continuity proof 由 `did:key:<inception_pub>` 签发。
   - 其他 method：按对应 method evidence 验证 inception 控制权。
 - 校验首台 `cx.device.authorized` Event 的 `authorized_by` 引用与 inception key 一致；不接受 `authorized_by` 引用任何尚未 anchored 的 device。
-- Inception bootstrap 成功后，receiver MUST 标记该 control space 已通过 inception；后续 §5.1 的 `cx.device.authorized` Event MUST `authorized_by` 一台已 anchored 的 device，不得再次自授权。
+- Inception bootstrap 成功后，receiver MUST 标记该 control realm 已通过 inception；后续 §5.1 的 `cx.device.authorized` Event MUST `authorized_by` 一台已 anchored 的 device，不得再次自授权。
 
 #### 5.0.4 攻击模型
 
@@ -301,7 +301,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 ##### 5.0.5.5 安全代价登记
 
-- 该流程把 personal_node 阶段被 DNS 劫持的损害限制在 personal_node Space 内部;升级后 attacker 无法通过升级路径继承新 method 的根。
+- 该流程把 personal_node 阶段被 DNS 劫持的损害限制在 personal_node Realm 内部;升级后 attacker 无法通过升级路径继承新 method 的根。
 - 代价:升级流程对用户**强制**至少一次离线 / 独立通道确认,UI 不能"自动一键升级"。这是明确取舍:为防止注册期 DNS 劫持继承,引入一次性 OOB 友好度成本。
 - 对从未通过 personal_node 阶段(直接以 `did:webvh` 走 §5.0.1)的 principal,本节不适用。
 
@@ -314,7 +314,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 3. 已授权设备扫描并验证 challenge。
 4. 已授权设备签发 `cx.device.authorized` event。
 5. Events API / identity registry 接受并传播该 event。
-6. 新设备开始同步 Event history、Space membership 和必要的 MLS Welcome。
+6. 新设备开始同步 Event history、Realm membership 和必要的 MLS Welcome。
 
 `cx.device.authorized.content` 示例：
 
@@ -348,7 +348,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 - Events API MUST 拒绝该设备的新签名写入
 - authz MUST 视相关 session grant 失效
-- 加密 Space SHOULD 通过 MLS Remove 推进 epoch
+- 加密 Realm SHOULD 通过 MLS Remove 推进 epoch
 - 客户端和受托 projection executor SHOULD 标记已撤销设备产生的未确认 Operation 为高风险
 
 ## 6. Session Grant
@@ -361,14 +361,14 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 ```json
 {
   "grant_id": "cx:grant:01964198-0000-7000-8000-000000000000",
-  "space_id": "cx:space:01964198-7000-7000-8000-000000000000",
+  "realm_id": "cx:realm:01964198-7000-7000-8000-000000000000",
   "issuer": "did:web:auth-gateway.example.com",
   "subject": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
   "scopes": [
     "cx.events.submit",
-    "cx.space.discover",
+    "cx.realm.discover",
     "cx.object.read",
     "cx.flow.update",
     "cx.message.create"
@@ -378,8 +378,8 @@ Contrix v1 使用 `cx.session.grant` 作为 principal control stream 中的标�
 }
 ```
 
-> 注：`cx.session.grant` 是 principal control stream 事件，`space_id` MUST 等于 subject 的
-> principal control space（§4.1）。本字段是 control event 必填项；省略 MUST 被 reducer
+> 注：`cx.session.grant` 是 principal control stream 事件，`realm_id` MUST 等于 subject 的
+> principal control realm（§4.1）。本字段是 control event 必填项；省略 MUST 被 reducer
 > 以 `schema_violation` 拒绝。
 
 规则：
@@ -398,7 +398,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
 
 - `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `cx.device.authorized` 等操作。
 - `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。
-- `mls_history`：保存用户已有权读取的 Space / Flow track 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
+- `mls_history`：保存用户已有权读取的 Realm / Flow track 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
 
 域隔离规则：
 
@@ -517,7 +517,7 @@ Producer MUST reject attempts to write two backup envelopes with the same nonce 
 3. 客户端解密 backup envelope。
 4. 客户端验证 backup commitment。
 5. 客户端用 recovery policy 发布 `recover` 或 `cx.device.authorized`。
-6. 若涉及 E2EE Space，客户端拉取 MLS state 并处理 epoch 缺口。
+6. 若涉及 E2EE Realm，客户端拉取 MLS state 并处理 epoch 缺口。
 
 恢复 device key 时 MUST 生成新的 device key，不得把备份中的旧设备身份克隆到新设备。恢复出的 `self_signing_key` / `user_signing_key` 可用于重建 cross-signing 状态，但 Cross-Signing Reset 仍必须满足 `device-lifecycle.md` 的高风险证明要求。
 
@@ -587,7 +587,7 @@ Recovery policy 字段：
 
 1. 立即发布 device revocation 或 key rotation。
 2. 停止接受已撤销设备/session 的新写入。
-3. 对 E2EE Space 触发 MLS Remove / Update。
+3. 对 E2EE Realm 触发 MLS Remove / Update。
 4. 标记泄露窗口内的高风险 Operation。
 5. 提醒用户检查未知设备、session 和 agent grant。
 

@@ -46,7 +46,7 @@ Schema id: `cx.schema.actor_profile.v1`
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:actor_profile` | Actor Profile 是标准对象。 | Profile 对象 ID。 |
-| `space_id` | no | `id:space` | 全局 profile 可省略。 | 所属 Space。 |
+| `realm_id` | no | `id:realm` | 全局 profile 可省略。 | 所属 Realm。 |
 | `principal_id` | yes | `did` | 权限仍以 DID/capability 为准。 | Principal DID。 |
 | `actor_kind` | yes | `enum(user, org, team, agent, service, device, integration)` |  | Actor 类型。 |
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
@@ -112,7 +112,7 @@ Actor 在协作图中通过：
 
 - **Capability Grant**（[`governance-objects.md`](./governance-objects.md)）：表达"谁能做什么"。
 - **Relation `assigned_to` / `mentions`**：表达"谁参与 / 被 cue"。
-- **Membership state event**（`cx.member.state`）：表达"谁在 Space"，详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+- **Membership state event**（`cx.member.state`）：表达"谁在 Realm"，详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - **Identity claim / handle**：表达"对外可发现身份"，详见 [`../identity/identity-handles.md`](../identity/identity-handles.md)。
 
 `actor_profile` 只是上述结构在 UI 层的展示镜像。

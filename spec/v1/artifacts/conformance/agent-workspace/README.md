@@ -64,7 +64,7 @@ For a single wire Event going through the reducer (most common shape).
   "preconditions": { ... },
   "input_event": {
     "kind": "cx.<event_kind>",
-    "space_id": "cx:space:<uuidv7>",
+    "realm_id": "cx:realm:<uuidv7>",
     "actor_id": "did:web:<actor>",
     "preconditions": [ ... ],
     "effects": [ ... ],
@@ -80,7 +80,7 @@ For a single wire Event going through the reducer (most common shape).
 ```
 
 `input_event` carries the canonical Contrix Event shape per
-[event-schema.json](../../schemas/event-schema.json) — `space_id` is at
+[event-schema.json](../../schemas/event-schema.json) — `realm_id` is at
 the top of the event (NOT inside `payload`); reducer events carry
 `preconditions[]` / `effects[]` directly on the envelope.
 
@@ -143,7 +143,7 @@ transition concurrently.
 
 ### Shape E — multi-step saga / cascade
 
-For sequences across actors / Spaces / deployments.
+For sequences across actors / Realms / deployments.
 
 ```json
 {
@@ -173,7 +173,7 @@ fixture asserts privacy / redaction behaviour at delivery time.
     "id": "cx:notification:<uuidv7>",
     "schema": "cx.schema.notification.v1",
     "actor_id": "did:web:<receiver>",
-    "space_id": "cx:space:<uuidv7>",
+    "realm_id": "cx:realm:<uuidv7>",
     "source_event_id": "cx:event:<uuidv7>",
     "notification_type": "agent_membership_change",
     "priority": "normal",
@@ -222,10 +222,10 @@ shape but differ in why they fail.
 - Negative vectors carry `"negative": true` and `reducer_result ≠ "accepted"`.
 - All `cx:<kind>:<uuid>` example IDs MUST conform to the per-kind pattern
   in the relevant schema (UUIDv7 form: `[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}`).
-- For `cx.space.tombstone` and other events whose payload schema is
+- For `cx.realm.tombstone` and other events whose payload schema is
   `additionalProperties=false`, the fixture's `input_event.payload` MUST
   carry ONLY the schema-allowed fields. Envelope-level fields like
-  `space_id` / `actor_id` belong on `input_event`, not inside `payload`.
+  `realm_id` / `actor_id` belong on `input_event`, not inside `payload`.
 - `evidence_refs[]` cite existing fixture event IDs (or stable example
   IDs) to express cross-vector causality; harness MAY treat them as
   opaque audit pointers.

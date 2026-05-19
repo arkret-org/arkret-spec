@@ -30,9 +30,9 @@
         "actor_id": {
           "$ref": "./event-schema.json#/$defs/did"
         },
-        "space_id": {
+        "realm_id": {
           "type": "string",
-          "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "query_hash": {
           "$ref": "./event-schema.json#/$defs/hash"

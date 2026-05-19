@@ -2,15 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/content-source-export-policy-attestation.schema.json",
   "title": "Contrix Source Export Policy Attestation",
-  "description": "Optional attestation embedded in cx.content.import_attestation. Issued by source-Space policy authority; binds importer to (source_space_id, content_hash, destination, frontier). Mirror reducer only verifies signature integrity; real export enforcement is in source-side agent runtime. See spec/v1/zh/extensions/agent-workspace-profile.md §10.3 and §16.",
+  "description": "Optional attestation embedded in cx.content.import_attestation. Issued by source-Realm policy authority; binds importer to (source_realm_id, content_hash, destination, frontier). Mirror reducer only verifies signature integrity; real export enforcement is in source-side agent runtime. See spec/v1/zh/extensions/agent-workspace-profile.md §10.3 and §16.",
   "type": "object",
   "required": [
     "authority_did",
-    "source_space_id",
+    "source_realm_id",
     "policy_hash",
     "policy_decision",
     "importer_actor_id",
-    "import_destination_space_id",
+    "import_destination_realm_id",
     "content_hash",
     "source_frontier_ref",
     "issued_at",
@@ -21,16 +21,16 @@
     "authority_did": {
       "type": "string",
       "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
-      "description": "Source-Space policy authority (typically Space admin actor or designated policy server)."
+      "description": "Source-Realm policy authority (typically Realm admin actor or designated policy server)."
     },
-    "source_space_id": {
+    "source_realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "policy_hash": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "JCS-canonical hash of the source Space's import_to_external_space policy state at issuance time."
+      "description": "JCS-canonical hash of the source Realm's import_to_external_space policy state at issuance time."
     },
     "policy_decision": {
       "type": "string",
@@ -40,10 +40,10 @@
       "type": "string",
       "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
     },
-    "import_destination_space_id": {
+    "import_destination_realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Destination mirror Space ID; signature binding prevents attestation replay to other Spaces."
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Destination mirror Realm ID; signature binding prevents attestation replay to other Realms."
     },
     "content_hash": {
       "type": "string",

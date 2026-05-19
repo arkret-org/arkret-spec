@@ -14,7 +14,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 | Service account | `alice@example.com` 登录入口 | account service |
 | Device session | access token / refresh token | auth service |
 | Event / private state | signed Event history / private account data | Events API + principal policy |
-| Space membership | `cx.member.state` | Space policy/capability |
+| Realm membership | `cx.member.state` | Realm policy/capability |
 
 服务 account 被注销不等于 DID 消失。DID 被恢复或轮换不等于所有服务 session 继续有效。
 
@@ -22,7 +22,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 
 服务账号 MAY 使用用户名/密码、passkey、WebAuthn、OAuth/OIDC、企业 SSO 或类似集中认证服务的登录方式。它们只证明调用方通过了某个 account service 的认证，不能直接证明 DID principal 所有权。
 
-登录成功后，account service / auth service MUST 将会话绑定到 DID principal 与设备，例如签发短期 `cx.session.grant`、登记 device binding，或要求客户端提交 DID proof。资源服务器随后验证 grant、device、capability、Space policy 和撤销状态。
+登录成功后，account service / auth service MUST 将会话绑定到 DID principal 与设备，例如签发短期 `cx.session.grant`、登记 device binding，或要求客户端提交 DID proof。资源服务器随后验证 grant、device、capability、Realm policy 和撤销状态。
 
 ### 2.1.1 Account-first onboarding
 
@@ -33,7 +33,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 - 绑定到用户已控制的 principal DID，并验证 DID proof、device binding 或等价 session grant。
 - 为该服务账号创建受支持的托管 DID，并记录 controller、recovery policy、trust domain、service-account 绑定和审计证据。
 
-未绑定 DID 的 session MAY 执行注册、风险检查、邀请预览、邮箱验证、设备初始化等 pre-registration 操作；MUST NOT 作为最终 actor 提交 Space Event、capability grant、MLS membership、service delegation 或 federation transaction。
+未绑定 DID 的 session MAY 执行注册、风险检查、邀请预览、邮箱验证、设备初始化等 pre-registration 操作；MUST NOT 作为最终 actor 提交 Realm Event、capability grant、MLS membership、service delegation 或 federation transaction。
 
 如果用户后续改用自有 DID、pairwise DID 或组织私有 DID，服务 MAY 根据 policy 迁移 handle、service account binding、credential 或后续写入身份。历史 Event 的 `actor_id` 和 grant `subject` MUST NOT 被改写；需要表达迁移时，应发布显式 claim、attestation、profile update 或 account binding record。
 
@@ -121,7 +121,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 - 可对公共目录隐藏 profile。
 - 在联邦中广播最小必要状态，避免其他节点继续接受来自该 service account 的写入。
 
-Space 内 membership 不自动变成 ban；是否移除由 Space policy 决定。
+Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定。
 
 ## 7. Deactivated
 

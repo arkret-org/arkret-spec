@@ -9,7 +9,7 @@
     "schema",
     "issuer",
     "issuer_role",
-    "space_id",
+    "realm_id",
     "scope",
     "root",
     "count",
@@ -37,9 +37,9 @@
         "audit_witness"
       ]
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "scope": {
       "type": "object",
@@ -120,7 +120,7 @@
     "root": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
-      "description": "Canonical Merkle root over the sorted set of (actor_id, actor_seq, event_id, payload_hash) tuples for every reducer-input event in scope. Hash agility per Space.hash_profile."
+      "description": "Canonical Merkle root over the sorted set of (actor_id, actor_seq, event_id, payload_hash) tuples for every reducer-input event in scope. Hash agility per Realm.hash_profile."
     },
     "count": {
       "type": "integer",
@@ -144,7 +144,7 @@
             "federation_witness_attested",
             "single_source"
           ],
-          "description": "Same semantics as cx.audit.ryw_receipt.witness_attestation: 'federation_witness_attested' requires witnesses[].length >= 2 with pairwise-distinct issuer/controlling_organization/verification_method, each listed by Space policy in audit.range_completeness_witnesses[]. 'single_source' is the honest declaration for self-attested deployments. Mismatch between kind and witnesses[] cardinality / distinctness / policy listing MUST be rejected. Receivers SHOULD treat single_source attestations as advisory only and not as a sovereign-grade completeness proof."
+          "description": "Same semantics as cx.audit.ryw_receipt.witness_attestation: 'federation_witness_attested' requires witnesses[].length >= 2 with pairwise-distinct issuer/controlling_organization/verification_method, each listed by Realm policy in audit.range_completeness_witnesses[]. 'single_source' is the honest declaration for self-attested deployments. Mismatch between kind and witnesses[] cardinality / distinctness / policy listing MUST be rejected. Receivers SHOULD treat single_source attestations as advisory only and not as a sovereign-grade completeness proof."
         },
         "witnesses": {
           "type": "array",

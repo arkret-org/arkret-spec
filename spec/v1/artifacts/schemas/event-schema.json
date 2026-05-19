@@ -7,7 +7,7 @@
   "required": [
     "event_id",
     "kind",
-    "space_id",
+    "realm_id",
     "actor_id",
     "actor_seq",
     "created_at",
@@ -26,9 +26,9 @@
       "pattern": "^cx\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
       "description": "Standard cx.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by event preconditions/effects, Anchor DAG finality, and per-cell Lattice join."
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
       "$ref": "#/$defs/did"
@@ -82,7 +82,7 @@
     },
     "anchor_ref": {
       "$ref": "#/$defs/anchor_ref",
-      "description": "Reducer-input only. Anchor DAG node this event is submitted against. Receivers MUST verify it is within the Space's max_anchor_staleness_ms window."
+      "description": "Reducer-input only. Anchor DAG node this event is submitted against. Receivers MUST verify it is within the Realm's max_anchor_staleness_ms window."
     },
     "redacts": {
       "$ref": "#/$defs/eventRef"
@@ -263,12 +263,12 @@
               "cx.morph.update",
               "cx.organization.discovery",
               "cx.organization.moderation_policy",
-              "cx.place.archive",
-              "cx.place.create",
-              "cx.place.parent",
-              "cx.place.restore",
-              "cx.place.tombstone",
-              "cx.place.update",
+              "cx.space.archive",
+              "cx.space.create",
+              "cx.space.parent",
+              "cx.space.restore",
+              "cx.space.tombstone",
+              "cx.space.update",
               "cx.policy.action",
               "cx.policy.rule",
               "cx.policy.set",
@@ -285,35 +285,34 @@
               "cx.schema.update",
               "cx.session.grant",
               "cx.sovereign.did_policy",
-              "cx.space.archive",
-              "cx.space.asset_privacy_policy",
-              "cx.space.audit_policy_downgrade",
-              "cx.space.child",
-              "cx.space.create",
-              "cx.space.delivery_binding_policy",
-              "cx.space.destroy",
-              "cx.space.discovery",
-              "cx.space.freeze",
-              "cx.space.history_sharing_policy",
-              "cx.space.history_visibility",
-              "cx.space.inheritance_policy",
-              "cx.space.join_rule",
-              "cx.space.media_service",
-              "cx.space.moderation_policy",
-              "cx.space.organization",
-              "cx.space.parent",
-              "cx.space.plaintext_visible_services",
-              "cx.space.policy",
-              "cx.space.policy_components",
-              "cx.space.policy_server",
-              "cx.space.read_receipt_policy",
-              "cx.space.schema",
-              "cx.space.tombstone",
-              "cx.space.update",
-              "cx.space.upgrade",
-              "cx.space_key.share",
-              "cx.space_key.share_audit",
-              "cx.space_key.withheld",
+              "cx.realm.archive",
+              "cx.realm.asset_privacy_policy",
+              "cx.realm.audit_policy_downgrade",
+              "cx.realm.link",
+              "cx.realm.create",
+              "cx.realm.delivery_binding_policy",
+              "cx.realm.destroy",
+              "cx.realm.discovery",
+              "cx.realm.freeze",
+              "cx.realm.history_sharing_policy",
+              "cx.realm.history_visibility",
+              "cx.realm.inheritance_policy",
+              "cx.realm.join_rule",
+              "cx.realm.media_service",
+              "cx.realm.moderation_policy",
+              "cx.realm.organization",
+              "cx.realm.plaintext_visible_services",
+              "cx.realm.policy",
+              "cx.realm.policy_components",
+              "cx.realm.policy_server",
+              "cx.realm.read_receipt_policy",
+              "cx.realm.schema",
+              "cx.realm.tombstone",
+              "cx.realm.update",
+              "cx.realm.upgrade",
+              "cx.realm_key.share",
+              "cx.realm_key.share_audit",
+              "cx.realm_key.withheld",
               "cx.view.create",
               "cx.view.reconcile",
               "cx.view.update"
@@ -408,12 +407,12 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.place.create",
-              "cx.place.update",
-              "cx.place.parent",
-              "cx.place.archive",
-              "cx.place.restore",
-              "cx.place.tombstone"
+              "cx.space.create",
+              "cx.space.update",
+              "cx.space.parent",
+              "cx.space.archive",
+              "cx.space.restore",
+              "cx.space.tombstone"
             ]
           }
         },
@@ -452,11 +451,20 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.plaintext_visible_services" } },
+        "properties": { "kind": { "const": "cx.realm.plaintext_visible_services" } },
         "required": ["kind"]
       },
       "then": {
         "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/plaintext_visible_services_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.realm.create" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_create_payload" } }
       }
     },
     {
@@ -500,7 +508,7 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.space.update",
+              "cx.realm.update",
               "cx.flow.update",
               "cx.flow.tracks.update",
               "cx.morph.update",
@@ -526,16 +534,16 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.inheritance_policy" } },
+        "properties": { "kind": { "const": "cx.realm.inheritance_policy" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_inheritance_policy_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_inheritance_policy_payload" } }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.archive" } },
+        "properties": { "kind": { "const": "cx.realm.archive" } },
         "required": ["kind"]
       },
       "then": {
@@ -544,7 +552,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.freeze" } },
+        "properties": { "kind": { "const": "cx.realm.freeze" } },
         "required": ["kind"]
       },
       "then": {
@@ -553,7 +561,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.tombstone" } },
+        "properties": { "kind": { "const": "cx.realm.tombstone" } },
         "required": ["kind"]
       },
       "then": {
@@ -562,7 +570,7 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.destroy" } },
+        "properties": { "kind": { "const": "cx.realm.destroy" } },
         "required": ["kind"]
       },
       "then": {
@@ -571,11 +579,11 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space.child" } },
+        "properties": { "kind": { "const": "cx.realm.link" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_child_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_link_payload" } }
       }
     },
     {
@@ -592,19 +600,19 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.space.policy",
-              "cx.space.join_rule",
-              "cx.space.history_visibility",
-              "cx.space.discovery",
-              "cx.space.policy_server",
-              "cx.space.policy_components",
-              "cx.space.delivery_binding_policy",
-              "cx.space.history_sharing_policy",
-              "cx.space.asset_privacy_policy",
-              "cx.space.read_receipt_policy",
-              "cx.space.moderation_policy",
-              "cx.space.media_service",
-              "cx.space.schema"
+              "cx.realm.policy",
+              "cx.realm.join_rule",
+              "cx.realm.history_visibility",
+              "cx.realm.discovery",
+              "cx.realm.policy_server",
+              "cx.realm.policy_components",
+              "cx.realm.delivery_binding_policy",
+              "cx.realm.history_sharing_policy",
+              "cx.realm.asset_privacy_policy",
+              "cx.realm.read_receipt_policy",
+              "cx.realm.moderation_policy",
+              "cx.realm.media_service",
+              "cx.realm.schema"
             ]
           }
         },
@@ -619,10 +627,9 @@
         "properties": {
           "kind": {
             "enum": [
-              "cx.space.upgrade",
-              "cx.space.organization",
-              "cx.space.child",
-              "cx.space.parent",
+              "cx.realm.upgrade",
+              "cx.realm.organization",
+              "cx.realm.link",
               "cx.organization.discovery",
               "cx.actor.discovery",
               "cx.applet.discovery",
@@ -1071,29 +1078,29 @@
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space_key.share" } },
+        "properties": { "kind": { "const": "cx.realm_key.share" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_key_share_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_key_share_payload" } }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space_key.withheld" } },
+        "properties": { "kind": { "const": "cx.realm_key.withheld" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_key_withheld_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_key_withheld_payload" } }
       }
     },
     {
       "if": {
-        "properties": { "kind": { "const": "cx.space_key.share_audit" } },
+        "properties": { "kind": { "const": "cx.realm_key.share_audit" } },
         "required": ["kind"]
       },
       "then": {
-        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_key_share_audit_payload" } }
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/realm_key_share_audit_payload" } }
       }
     },
     {
@@ -1157,7 +1164,7 @@
             "enum": [
               "cx.audit.ryw_receipt",
               "cx.audit.epoch_key_destruction",
-              "cx.space.audit_policy_downgrade",
+              "cx.realm.audit_policy_downgrade",
               "cx.moderation.frank",
               "cx.attestation.range_completeness"
             ]
@@ -1268,17 +1275,17 @@
       "type": "string",
       "pattern": "^[0-9A-Za-z]{1,128}$"
     },
-    "place_id": {
+    "space_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "board_place_id": {
+    "board_space_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "list_place_id": {
+    "list_space_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
@@ -1487,21 +1494,21 @@
     "flow_move_payload": {
       "type": "object",
       "required": [
-        "board_place_id",
+        "board_space_id",
         "flow_id",
-        "target_place_id",
+        "target_space_id",
         "rank"
       ],
       "properties": {
-        "board_place_id": { "$ref": "#/$defs/board_place_id" },
+        "board_space_id": { "$ref": "#/$defs/board_space_id" },
         "flow_id": { "$ref": "#/$defs/flow_id" },
-        "from_place_id": { "$ref": "#/$defs/list_place_id" },
-        "target_place_id": { "$ref": "#/$defs/list_place_id" },
+        "from_space_id": { "$ref": "#/$defs/list_space_id" },
+        "target_space_id": { "$ref": "#/$defs/list_space_id" },
         "rank": { "$ref": "#/$defs/rank" },
         "expected_position": {
           "type": "object",
           "properties": {
-            "place_id": { "$ref": "#/$defs/list_place_id" },
+            "space_id": { "$ref": "#/$defs/list_space_id" },
             "rank": { "$ref": "#/$defs/rank" },
             "relation_id": { "$ref": "#/$defs/relation_id" }
           },
@@ -1513,15 +1520,15 @@
     "flow_reorder_payload": {
       "type": "object",
       "required": [
-        "board_place_id",
+        "board_space_id",
         "flow_id",
-        "place_id",
+        "space_id",
         "rank"
       ],
       "properties": {
-        "board_place_id": { "$ref": "#/$defs/board_place_id" },
+        "board_space_id": { "$ref": "#/$defs/board_space_id" },
         "flow_id": { "$ref": "#/$defs/flow_id" },
-        "place_id": { "$ref": "#/$defs/list_place_id" },
+        "space_id": { "$ref": "#/$defs/list_space_id" },
         "rank": { "$ref": "#/$defs/rank" },
         "expected_position": {
           "type": "object",

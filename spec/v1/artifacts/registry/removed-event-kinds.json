@@ -39,7 +39,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track no longer carries independent membership; access semantics inherit from the Flow's Space. Use cx.member.state at the Space or child Space level. See current-model 'Track 不携带独立 access'."
+      "notes": "Track no longer carries independent membership; access semantics inherit from the Flow's Realm. Use cx.member.state at the Realm or child Realm level. See current-model 'Track 不携带独立 access'."
     },
     {
       "id": "cx.flow.track.history_visibility",
@@ -47,7 +47,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "History visibility lives on the Space boundary, not on a track. Use Space-level history visibility; create a child Space if a discussion needs an independent boundary."
+      "notes": "History visibility lives on the Realm boundary, not on a track. Use Realm-level history visibility; create a child Realm if a discussion needs an independent boundary."
     },
     {
       "id": "cx.flow.track.read_receipt_policy",
@@ -55,7 +55,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track-scoped read-receipt override is explicitly out of v1 scope (see discovery/read-receipts.md). Read receipts evaluate at the Space / child Space level."
+      "notes": "Track-scoped read-receipt override is explicitly out of v1 scope (see discovery/read-receipts.md). Read receipts evaluate at the Realm / child Realm level."
     },
     {
       "id": "cx.flow.track.policy_components",
@@ -63,10 +63,10 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track-scoped policy components were removed; policy attaches to the Space (or child Space) carrying the track."
+      "notes": "Track-scoped policy components were removed; policy attaches to the Realm (or child Realm) carrying the track."
     },
     {
-      "id": "cx.space.lifecycle.set",
+      "id": "cx.realm.lifecycle.set",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -74,7 +74,7 @@
       "notes": "Lifecycle snapshot event was decomposed into the canonical create / update / upgrade / archive event kinds plus state events; do not re-introduce a single 'set' kind."
     },
     {
-      "id": "cx.space.policy.set",
+      "id": "cx.realm.policy.set",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,

@@ -4,7 +4,7 @@
   "title": "Second mirror Flow for same source Flow → cardinality_violation",
   "negative": true,
   "preconditions": {
-    "mirror_space_id": "cx:space:01964200-0000-7000-8000-a00000000008",
+    "mirror_realm_id": "cx:realm:01964200-0000-7000-8000-a00000000008",
     "existing_mirror_flow": {
       "id": "cx:flow:01964200-0000-7000-8000-a00000000006",
       "derived_from_source_flow_id": "cx:flow:01964200-0000-7000-8000-a00000000013"
@@ -14,7 +14,7 @@
   "input_event": {
     "kind": "cx.flow.create",
     "payload": {
-      "space_id": "cx:space:01964200-0000-7000-8000-a00000000008",
+      "realm_id": "cx:realm:01964200-0000-7000-8000-a00000000008",
       "flow_id": "cx:flow:01964200-0000-7000-8000-a00000000007",
       "profile_attrs": {
         "derived_from_source_flow_id": "cx:flow:01964200-0000-7000-8000-a00000000013"

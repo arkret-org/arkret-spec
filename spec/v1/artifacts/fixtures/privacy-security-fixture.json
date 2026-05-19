@@ -10,21 +10,21 @@
         {
           "label": "missing",
           "body": {
-            "space_id": "cx:space:019640a5-0000-7000-8000-000000000000",
+            "realm_id": "cx:realm:019640a5-0000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         },
         {
           "label": "hidden",
           "body": {
-            "space_id": "cx:space:019640b5-8000-7000-8000-000000000000",
+            "realm_id": "cx:realm:019640b5-8000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         },
         {
           "label": "invite_only_without_proof",
           "body": {
-            "space_id": "cx:space:019640c6-0000-7000-8000-000000000000",
+            "realm_id": "cx:realm:019640c6-0000-7000-8000-000000000000",
             "requester": "did:web:mallory.example"
           }
         }
@@ -39,7 +39,7 @@
         ],
         "same_timing_class": "privacy_not_found",
         "must_not_include": [
-          "space_id",
+          "realm_id",
           "title",
           "join_rule",
           "discoverability",
@@ -152,7 +152,7 @@
         "no_room_title_for_e2ee": true,
         "forbidden_fields_absent": [
           "notification.event_id",
-          "notification.space_id",
+          "notification.realm_id",
           "notification.kind",
           "notification.sender",
           "notification.sender_display_name",

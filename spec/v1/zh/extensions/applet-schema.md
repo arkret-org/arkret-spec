@@ -15,7 +15,7 @@ title: Applet Schema and OpenAPI
   "protocols": ["slack"],
   "namespaces": {
     "actors": [],
-    "spaces": [],
+    "realms": [],
     "handles": []
   },
   "receive_events": true,
@@ -38,7 +38,7 @@ title: Applet Schema and OpenAPI
 > 字段，且 `payload_hash` 覆盖整个 canonical registration object（不含 `proof` 自身）。
 > 空 `"proof": {}` 形态 MUST 被 receiver 以 `schema_violation` 拒绝。
 
-> **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Space owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `cx.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §5](./applet-integration.md)。
+> **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `cx.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §5](./applet-integration.md)。
 
 ## 2. Namespace Pattern
 
@@ -114,20 +114,20 @@ GET /api/v1/applet/actors/{actor_id}
 }
 ```
 
-## 5. Query Space
+## 5. Query Realm
 
 ```text
-GET /api/v1/applet/spaces/{space_id_or_alias}
+GET /api/v1/applet/realms/{realm_id_or_alias}
 ```
 
-响应字段：`exists: boolean` required；`space_id: id` optional；`title: string` optional；`external_ref: object` optional。
+响应字段：`exists: boolean` required；`realm_id: id` optional；`title: string` optional；`external_ref: object` optional。
 
 响应示例（非完整 schema）：
 
 ```json
 {
   "exists": true,
-  "space_id": "cx:space:c0c69410-0000-7000-8000-000000000000:slack:T:C",
+  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:T:C",
   "title": "#general",
   "external_ref": {}
 }

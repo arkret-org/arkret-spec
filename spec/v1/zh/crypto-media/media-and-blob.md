@@ -11,7 +11,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 ```json
 {
   "blob_ref": "cx:blob:sha256:...",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "sha256": "hex...",
   "size": 1234,
   "media_type": "image/png",
@@ -26,7 +26,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `blob_ref` | `string` | required | 内容地址，通常包含强 hash。 |
-| `space_id` | `id:space` | conditional | Owning Space。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Space 服务 blob（例如 avatar 公共预览）才可省略。 |
+| `realm_id` | `id:realm` | conditional | Owning Realm。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Realm 服务 blob（例如 avatar 公共预览）才可省略。 |
 | `sha256` | `string` | required | 服务端计算的内容 hash。 |
 | `size` | `int` | required | 字节大小。 |
 | `media_type` | `string` | optional | 上传声明或服务端校正后的 MIME。缺省为 `application/octet-stream`。 |
@@ -103,7 +103,7 @@ AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的�
 
 6. **接收方 replay 防护**:接收方 MUST 维护 per-(key_ref, epoch, device_id) 已见 counter 集合或等价无误判结构;重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
 
-`cleartext_sha256` 字段 v1 不再作为附件 metadata 标准字段：在 E2EE Space 中泄露明文 hash 会破坏内容机密性（短/可预测明文可被离线枚举）。如果 deployment 出于审计需要保留 cleartext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC/pepper commitment（见 `event-auth-state-resolution.md` §10.1）。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
+`cleartext_sha256` 字段 v1 不再作为附件 metadata 标准字段：在 E2EE Realm 中泄露明文 hash 会破坏内容机密性（短/可预测明文可被离线枚举）。如果 deployment 出于审计需要保留 cleartext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC/pepper commitment（见 `event-auth-state-resolution.md` §10.1）。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
 ## 4. Thumbnail
 
@@ -151,19 +151,19 @@ GET /api/v1/blob/get?blob_ref=<ref>
 服务 MUST check:
 
 - actor authorization
-- Space visibility
+- Realm visibility
 - retention / legal hold
 - unsafe media policy
 
 Retention 与 erasure 规则：
 
-- Blob 删除 MUST 由 Space policy、对象所有权、account lifecycle、retention expiry 或签名 compliance decision 授权。
+- Blob 删除 MUST 由 Realm policy、对象所有权、account lifecycle、retention expiry 或签名 compliance decision 授权。
 - 处于 legal hold 的 blob MUST NOT 被物理删除；服务可以通过 redaction 或 policy 在普通视图中隐藏。
 - Blob 被擦除后，服务 SHOULD 只保留最小 receipt：`blob_ref`、digest、策略允许时的 size class、erasure reason、执行服务 DID、执行时间和签名。
 - 缩略图、preview、转码、搜索文本、embedding 和通知摘要等派生内容 MUST 在源 blob 或源 event 被 redacted / erased 后删除或重新最小化。
 - E2EE 附件密钥销毁只能阻止后续访问，不能撤回已被授权接收方下载或解密的明文。
 
-受保护内容默认必须走 authenticated download。公开 blob MAY 允许匿名读取，但私有 Space、受控组织、E2EE 附件和任何带访问策略的媒体 MUST 要求认证。
+受保护内容默认必须走 authenticated download。公开 blob MAY 允许匿名读取，但私有 Realm、受控组织、E2EE 附件和任何带访问策略的媒体 MUST 要求认证。
 
 下载请求 SHOULD 支持：
 
@@ -176,7 +176,7 @@ Range: bytes=<start>-<end>
 规则：
 
 - `X-Contrix-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `stale_frontier` 或 `temporarily_unavailable`。
-- 下载授权 MUST 绑定 actor DID、device/session、Space id、blob ref、purpose 和过期时间。服务端不得只凭 URL 随机串放行私有媒体。
+- 下载授权 MUST 绑定 actor DID、device/session、Realm id、blob ref、purpose 和过期时间。服务端不得只凭 URL 随机串放行私有媒体。
 - 受保护下载 MUST NOT 接受 query string 中的 session、access token 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。
 - `Location` 值不得被服务端或客户端长期缓存；未立即下载时 SHOULD 重新请求 `/api/v1/blob/get` 获取新的授权上下文。
@@ -249,7 +249,7 @@ Cache-Control: private, no-store
 Cache-Control: public, immutable, max-age=31536000
 ```
 
-前提是内容地址包含强 hash，且 metadata 不泄露私有 Space 信息。
+前提是内容地址包含强 hash，且 metadata 不泄露私有 Realm 信息。
 
 ### 5.3 缩略图与预览
 
@@ -257,7 +257,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 - E2EE 附件的缩略图 SHOULD 由客户端生成并加密上传，或只在本地生成。
 - 服务端生成私有明文缩略图前，该服务 MUST 列入 `plaintext_visible_services`。
-- 预览 URL、尺寸、MIME、文件名和 unsafe 标记都必须服从 Space policy 与 capability，不能绕过正文授权。
+- 预览 URL、尺寸、MIME、文件名和 unsafe 标记都必须服从 Realm policy 与 capability，不能绕过正文授权。
 - 缩略图必须重新绑定源 blob、生成参数、生成服务 DID 和可见性；删除、撤回、保留策略或 legal hold 改变时，派生内容必须随源内容重新判定。
 
 ### 5.4 Pre-Signed URL（浏览器原生标签兼容性例外）
@@ -311,7 +311,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `scheme` | yes | 固定 `cx.blob.presign.v1`；未来版本 MUST 用新 scheme id（不接受 in-place 升级） |
+| `scheme` | yes | 固定 `cx.blob.presign.v1`；未来版本 MUST 用新 scheme id（不接受 in-space 升级） |
 | `blob_ref` | yes | 单一 blob 引用；与请求 `?blob_ref=` 必须完全匹配 |
 | `issuer_service_did` | yes | 签发该 presign 的 blob service DID；MUST 是被部署 trust 的 service DID |
 | `issued_at` / `expires_at` | yes | TTL 硬上限 1h；deployment SHOULD 默认 ≤ 5 min |
@@ -366,7 +366,7 @@ Cache-Control: public, immutable, max-age=31536000
 `cx.blob.presign` capability action（risk_tier=medium）控制谁可以**为某 blob 签发 presign**。grant 上的两个 constraint 收紧使用范围：
 
 - `blob_presign_max_ttl_seconds`：grant 允许的最大 TTL 上限（硬上限不超过 3600）
-- `blob_presign_scope`：grant 允许的 purpose 集合（`media_inline` / `thumbnail` / `download`）与可选 blob_ref pattern（按 Space / purpose 细分）
+- `blob_presign_scope`：grant 允许的 purpose 集合（`media_inline` / `thumbnail` / `download`）与可选 blob_ref pattern（按 Realm / purpose 细分）
 
 服务端在 `cx.blob.presign` 调用时按 grant constraint 收窄请求的 `max_age_seconds` / `purpose`；超过 constraint 返回 `capability_denied`。
 
@@ -378,11 +378,11 @@ Cache-Control: public, immutable, max-age=31536000
 
 ## 6. Asset Privacy Policy
 
-私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Space SHOULD 使用 `cx.space.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求：
+私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Realm SHOULD 使用 `cx.realm.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求：
 
 ```json
 {
-  "kind": "cx.space.asset_privacy_policy",
+  "kind": "cx.realm.asset_privacy_policy",
   "payload": {
     "download_mode": "provider_proxy",
     "allowed_modes": [
@@ -412,19 +412,19 @@ Cache-Control: public, immutable, max-age=31536000
 
 | 值 | 含义 |
 | --- | --- |
-| `direct` | 客户端直接从 Blob / 对象存储下载。只适合公开内容、同一信任域或明确接受 IP 暴露的 Space。 |
-| `provider_proxy` | 通过调用方或 Space policy 指定的受信 media proxy 下载，隐藏源 Blob 服务或对象存储细节。 |
+| `direct` | 客户端直接从 Blob / 对象存储下载。只适合公开内容、同一信任域或明确接受 IP 暴露的 Realm。 |
+| `provider_proxy` | 通过调用方或 Realm policy 指定的受信 media proxy 下载，隐藏源 Blob 服务或对象存储细节。 |
 | `ohttp_relay` | 通过 OHTTP 或等价 oblivious relay 取回内容，降低 Blob 服务同时观察调用方身份和目标 blob 的能力。 |
 | `client_mirror` | 客户端从多个 authorized mirror 选择，按内容 hash 验证，适合高可用或隔离网络。 |
 
 规则：
 
-- 私有 Space、E2EE 附件和高隐私 minimal-metadata Space 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。
+- 私有 Realm、E2EE 附件和高隐私 minimal-metadata Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。
 - `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
-- `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Space SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
+- `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
-- `cx.space.asset_privacy_policy` SHOULD 被 `cx.space.policy_components` payload 中的 `components.asset` 引用，并纳入 MLS-bound `policy_root`。
+- `cx.realm.asset_privacy_policy` SHOULD 被 `cx.realm.policy_components` payload 中的 `components.asset` 引用，并纳入 MLS-bound `policy_root`。
 
 ## 7. Safety
 

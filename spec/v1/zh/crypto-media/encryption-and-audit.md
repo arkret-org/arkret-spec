@@ -16,7 +16,7 @@ sidebar:
 ## 2. 基础加密架构：MLS 与 Contrix 的融合
 
 Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf.org/doc/html/rfc9420) 作为官方的群组加密标准。
-不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 discussion track 或大型协作 Space 中，双棘轮会导致巨大的性能开销与并发处理难题。
+不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 discussion track 或大型协作 Realm 中，双棘轮会导致巨大的性能开销与并发处理难题。
 
 ### 2.1 KeyPackage 与服务发现
 在参与 MLS 加密前，用户必须公布自己的 `KeyPackage`。
@@ -24,12 +24,12 @@ Contrix 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.iet
 - **生命周期验证**：其他客户端在拉取 `KeyPackage` 时，MUST 通过 Actor 的 DID Document 与 Event history 验证该包的公钥签名，确保未被身份盗用。
 
 ### 2.2 握手与组成员管理 (Welcome, Commit)
-MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Contrix 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Space` 与 Event 模型中：
+MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Contrix 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Realm` 与 Event 模型中：
 
 ```mermaid
 sequenceDiagram
     participant Alice
-    participant Sync Service (Space Events)
+    participant Sync Service (Realm Events)
     participant BobClient as Bob Client
 
     Alice->>Sync Service: POST /api/v1/keys/query
@@ -47,15 +47,15 @@ sequenceDiagram
     note over BobClient: Derives Group Epoch Secret
 ```
 
-- **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Space Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
+- **`cx.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `cx.mls.commit` 类型的 Event 提交至 Realm Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。Welcome MUST 通过 durable `cx.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付，直到被消费、撤销或过期。Sync Service 的 Ephemeral Channel 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
 
 #### 2.2.1 MLS Group Admin 推导
 
 MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第一个成员”。Contrix v1 按当前 accepted auth state 确定管理集合：
 
-- Space-scoped MLS group 的默认 admin set 来自 `cx.space.create.payload.object.initial_creators` / `created_by_principal`，以及当前有效的 `cx.space.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Space policy 声明的等价 E2EE admin capability。
-- Discussion 独立 child Space（`Flow.discussion_space_ref`）的 MLS group admin set 由该 child Space 的 `cx.space.create` / `cx.space.admin` / `cx.mls.commit` / `cx.mls.welcome` 等事件按 child Space 自身的 capability 体系收敛，与父 Space admin set 独立。
+- Realm-scoped MLS group 的默认 admin set 来自 `cx.realm.create.payload.object.initial_creators` / `created_by_principal`，以及当前有效的 `cx.realm.admin`、`cx.mls.commit`、`cx.mls.welcome` 或 Realm policy 声明的等价 E2EE admin capability。
+- Discussion 独立 linked Realm（`Flow.discussion_realm_ref`）的 MLS group admin set 由该 linked Realm 的 `cx.realm.create` / `cx.realm.admin` / `cx.mls.commit` / `cx.mls.welcome` 等事件按 linked Realm 自身的 capability 体系收敛，与源 Realm admin set 独立。
 - Admin capability 可以通过普通 capability grant / revoke Move 转移或收回；转移生效点由 Anchor finality、Lattice value 和 revoke freshness 决定，不由 MLS leaf index、设备在线状态或本地 UI 角色决定。
 
 发送 `cx.mls.proposal`、`cx.mls.commit` 或 `cx.mls.welcome` 的 actor 必须在其事件自己的 causal auth state 下属于上述 admin set，或满足该 event kind 允许的普通成员 update / self-update 规则。
@@ -63,20 +63,20 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
 ### 2.3 载荷加密 (Application Data)
 日常的 Message、Flow synthesis 或 Morph 内容负载在写入 Event 前，必须使用当前 MLS Epoch 的流密钥 (Application Key) 加密为密文信封。
 - **可路由元数据分离**：密文信封 `encrypted_payload` 仅包裹实际的业务内容 (`body`, `content`, `attachments`)。
-- **明文元数据保留**：用于网络路由和客户端本地 projection 的 `space_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
+- **明文元数据保留**：用于网络路由和客户端本地 projection 的 `realm_id`, `type`, `causal_links`, `status`, `labels` 必须保持明文。
 - Sync Service 可以依据明文元数据完成数据的转发、排序、过滤和去重，而完全无法窥探密文信封内的具体正文。客户端在解密后 MAY 建立本地搜索索引；受托 search / projection 服务只有在 `plaintext_visible_services` 授权下才能接收明文或可逆摘要。
 
 #### 2.3.0 E2EE Profile：plaintext metadata 边界
 
-v1 基线 E2EE profile 是 **body-only E2EE**：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Place 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Place `parent_ref` 等结构化 metadata 在未声明 minimal-metadata profile 时 **MUST** 以明文形式存在于 wire schema 中，即便所属 Space 声明 `encryption_profile="mls_rfc9420"`。
+v1 基线 E2EE profile 是 **body-only E2EE**：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Space 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Space `parent_ref` 等结构化 metadata 在未声明 minimal-metadata profile 时 **MUST** 以明文形式存在于 wire schema 中，即便所属 Realm 声明 `encryption_profile="mls_rfc9420"`。
 
 理由与影响：
 
-- Place / Flow metadata 参与 routing、view projection、搜索、排序和 cross-space ref；让 Sync Service 与服务端 reducer 能在不解密 body 的前提下计算 frontier、permission、ordering、notification gating。
-- 这意味着 **E2EE Space 中 Place / Flow 标题、摘要、状态等 metadata 对所有 Space 成员（以及任何接收 wire bytes 的中继 / Sync Service）都是可见的**。希望避免标题泄漏敏感信息的部署 MUST 在客户端 UX 层提示用户 "title 不被 E2EE 覆盖"。
+- Space / Flow metadata 参与 routing、view projection、搜索、排序和 cross-realm ref；让 Sync Service 与服务端 reducer 能在不解密 body 的前提下计算 frontier、permission、ordering、notification gating。
+- 这意味着 **E2EE Realm 中 Space / Flow 标题、摘要、状态等 metadata 对所有 Realm 成员（以及任何接收 wire bytes 的中继 / Sync Service）都是可见的**。希望避免标题泄漏敏感信息的部署 MUST 在客户端 UX 层提示用户 "title 不被 E2EE 覆盖"。
 - 受托 search / projection 服务接收这些明文 metadata **不**需要 `plaintext_visible_services` 列入授权——它们本来就是 wire 明文；该 capability 仅约束 body / content / attachment 的解密结果与客户端本地索引产物。
 
-**minimal-metadata E2EE profile** 是 v1 的可声明 profile；启用时标题 / 摘要 / 部分字段按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。未声明该 profile 的 Space 不得对 `title` / `summary` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
+**minimal-metadata E2EE profile** 是 v1 的可声明 profile；启用时标题 / 摘要 / 部分字段按 §2.7 的 rules 进入 `encrypted_metadata`，wire 上只保留 reducer 和路由必需的键。未声明该 profile 的 Realm 不得对 `title` / `summary` / `rank` / `state` / `tracks` 等字段进行 wire-level 加密替换。
 
 #### 2.3.1 Envelope Wire 结构
 
@@ -93,7 +93,7 @@ v1 基线 E2EE profile 是 **body-only E2EE**：`encrypted_payload` 加密 Messa
     "ciphertext": "base64url",
     "aad_visibility_event_id": "routing_hash",
     "aad": {
-      "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
       "event_kind": "cx.message.create",
       "event_ref_hash": "sha256:..."
     },
@@ -120,10 +120,10 @@ v1 基线 E2EE profile 是 **body-only E2EE**：`encrypted_payload` 加密 Messa
 | `authentication_tag` | base64url | 条件 | 仅 raw AEAD / exporter-AEAD profile 使用；MLS profile 的 tag 已在 MLS message 内，不重复拆出。 |
 | `aad_visibility_event_id` | enum(hidden, routing_hash, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_hash` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合。 |
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
-| `aad.space_id` | id:space | 是 | 路由与授权的 Space。 |
+| `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
 | `aad.event_kind` | string | 是 | 路由 event kind。 |
 | `aad.event_id` | id:event | 条件 | `aad_visibility_event_id="opaque_id"` 时必填。 |
-| `aad.event_ref_hash` | hash | 条件 | `aad_visibility_event_id="routing_hash"` 时必填；hash 输入由 profile 固定（推荐 `sha256("cx-aad-event-ref-v1" \|\| event_id \|\| space_id \|\| policy_nonce)`）。 |
+| `aad.event_ref_hash` | hash | 条件 | `aad_visibility_event_id="routing_hash"` 时必填；hash 输入由 profile 固定（推荐 `sha256("cx-aad-event-ref-v1" \|\| event_id \|\| realm_id \|\| policy_nonce)`）。 |
 | `aad.causal_refs` | array | 条件 | 可见因果依赖；高隐私 profile 可改用 `causal_ref_hashes`。 |
 | `aad.causal_ref_hashes` | array&lt;hash&gt; | 条件 | `aad_visibility.causal_refs="routing_hash"` 时使用。 |
 | `key_ref.algorithm` | string | 条件 | `mls-rfc9420` profile 为 `MLS`；其他 profile 必须注册自己的值。 |
@@ -136,7 +136,7 @@ Ratchet tree MUST 由 `cx.mls.genesis`、Welcome、Commit 或 group state proof 
 
 #### 2.3.2 AAD 可见性 Profile 与 canonical 序列化
 
-AAD 字段集合受 Space 的 `aad_visibility` policy 约束。隐私优先 Space SHOULD 只保留路由所需的 `space_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Space MAY 暴露 opaque `event_id` / `message_id`，但该选择 MUST 在 Space policy 中声明并纳入 MLS-bound `policy_root`。
+AAD 字段集合受 Realm 的 `aad_visibility` policy 约束。隐私优先 Realm SHOULD 只保留路由所需的 `realm_id`、event kind、epoch 和不可逆 routing hash；需要跨 provider 投递确认的 Realm MAY 暴露 opaque `event_id` / `message_id`，但该选择 MUST 在 Realm policy 中声明并纳入 MLS-bound `policy_root`。
 
 `aad_visibility_event_id` 是 schema discriminator，控制 `aad.event_id` 与 `aad.event_ref_hash`：
 
@@ -148,7 +148,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 ```json
 {
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "event_kind": "cx.message.create",
   "event_ref_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "causal_refs": ["cx:event:019640ed-0000-7000-8000-000000000000"]
@@ -178,7 +178,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "content_type": "application/json",
   "aad_visibility_event_id": "routing_hash",
   "aad": {
-    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "event_kind": "cx.message.create",
     "event_ref_hash": "sha256:..."
   },
@@ -223,20 +223,20 @@ Client Sync 中的事件顺序不保证密钥材料已经同步完成。加密�
 
 Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须确定：
 
-- 会影响 E2EE 可见性的 `cx.member.state` accepted 后（track 不携带独立 membership；独立 discussion 边界由 `Flow.discussion_space_ref` 指向的 child Space 自行管理 `cx.member.state`），该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
+- 会影响 E2EE 可见性的 `cx.member.state` accepted 后（track 不携带独立 membership；独立 discussion 边界由 `Flow.discussion_realm_ref` 指向的 linked Realm 自行管理 `cx.member.state`），该 encryption scope 进入 `epoch_update_required`，直到有 winning `cx.mls.commit` 的 `governance_binding.membership_frontier` 覆盖该 membership frontier。
 - 新加入成员在 Welcome / Commit 被接受并成功处理前，只能看到 policy 允许的 stripped metadata、邀请信息或 `decryption_pending` 占位；不得看到加入前后正文，除非 history sharing policy 和 key share event 明确授权。
 - 被移除、ban 或离开的成员在对应 membership frontier 之后不得接收新 epoch 的 Welcome、group secret 或 history key share。若客户端仍收到使用旧 epoch 加密的新正文，必须标记 `state_mismatch` 或拒绝解密结果进入 verified timeline。
-- 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新 application messages 并标记 `encryption_transition_pending`,直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Space,无论 `security_class`——忽略 governance frontier 的发送会让 ban / revoke 在新消息上失效,正是引入 MLS Governance Binding 要消除的风险。
+- 发送客户端在发现 `epoch_update_required` 后 **MUST** 暂停该 scope 的新 application messages 并标记 `encryption_transition_pending`,直到 effective epoch 的 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。该规则适用于所有声明 `encryption_profile="mls_rfc9420"` 的 Realm,无论 `security_class`——忽略 governance frontier 的发送会让 ban / revoke 在新消息上失效,正是引入 MLS Governance Binding 要消除的风险。
 
   **`mls_send_pause="advisory"` 降级规则**:把上述 MUST 暂停降级为 SHOULD 的能力**仅在显式 degraded profile** `cx.profile.e2ee_relaxed.v1` 下允许声明,不得在默认 `cx.profile.mls_governance_binding.full.v1` profile 或任何声称"完整 MLS Governance Binding"的部署中使用。该字段在符合资格的部署中也 MUST:
   
-  - 出现在 `cx.space.policy_components` 的明文 audit log 中(声明本身被记录,便于审计)
+  - 出现在 `cx.realm.policy_components` 的明文 audit log 中(声明本身被记录,便于审计)
   - 部署 profile 在 conformance 声明中**显式列出** `cx.profile.e2ee_relaxed.v1`,否则降级声明 MUST 被 reducer 拒绝(`profile_unsupported` reason)
-  - 客户端 UI 在该 Space 中 MUST 展示明确的"该 Space 使用降级 E2EE,踢/ban 非密码学即时生效"banner-level 警示(详见 §2.4.2 / `cx.profile.e2ee_relaxed.v1` 规范)
+  - 客户端 UI 在该 Realm 中 MUST 展示明确的"该 Realm 使用降级 E2EE,踢/ban 非密码学即时生效"banner-level 警示(详见 §2.4.2 / `cx.profile.e2ee_relaxed.v1` 规范)
   - 接收端在解密 advisory 模式下旧 epoch 消息时 MUST 检查 receive_at vs membership_change_at 时间窗,超过部署声明 `relaxed_window_max_ms` 时拒绝解密结果进入 verified timeline
   
-  声明 advisory 但未声明 `cx.profile.e2ee_relaxed.v1` profile 的 Space create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
-- Space / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
+  声明 advisory 但未声明 `cx.profile.e2ee_relaxed.v1` profile 的 Realm create / policy update event MUST 被 reducer 拒绝。详见 §2.4.2 与 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。
+- Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`。交互式 profile 默认 SHOULD 不超过 30,000 ms；超过后客户端 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
 - 网络分区期间可以继续 backfill 旧 epoch 历史，但不得把旧 epoch 下的新消息展示为已满足最新 membership policy 的消息。
 
 该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Contrix 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
@@ -258,21 +258,21 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 | `covered_frontier_cell` 覆盖检查 | reducer/客户端 MUST enforce | 仍然写入但 send-side 不阻塞 |
 | 被踢者继续解密窗口 | ≤ MLS commit roundtrip(密码学保证) | ≤ `relaxed_window_max_ms`(默认 30s,部署声明) |
 | 接收端 verified timeline 检查 | epoch 不匹配 → 拒绝 | epoch 不匹配且超出 `relaxed_window_max_ms` → 拒绝 |
-| UI 警示 | 无 | **MUST 显示 banner**:"该 Space 使用降级 E2EE,踢/ban 非密码学即时生效;旧成员可能继续解密最近一小段消息" |
+| UI 警示 | 无 | **MUST 显示 banner**:"该 Realm 使用降级 E2EE,踢/ban 非密码学即时生效;旧成员可能继续解密最近一小段消息" |
 | Server describe `supported_features` | `cx.feature.mls_governance_binding.full.v1` | `cx.feature.e2ee_relaxed.v1`(互斥;**MUST NOT** 同时声明 full + relaxed) |
 | 在合规 / 监管语境下 | 满足"成员踢出即时生效" | 不满足,SHOULD 走非 E2EE 或专用 enclave 通道 |
 
 **强制约束**:
 
-- Space 在 create event 或 `cx.space.policy_components` 中声明 `mls_send_pause="advisory"` 时,**MUST** 同时声明 `cx.profile.e2ee_relaxed.v1` profile 适配。reducer 检测到 advisory 但 Space `supported_profiles` 不含 `e2ee_relaxed.v1` → MUST reject(`profile_unsupported`,详细 reason `mls_send_pause_advisory_requires_e2ee_relaxed_profile`)
-- 声明本 profile 的 Space **MUST NOT** 同时声明 `cx.profile.mls_governance_binding.full.v1`(互斥)。reducer 检测同时声明 → MUST reject(`conflicting_e2ee_profiles`)
+- Realm 在 create event 或 `cx.realm.policy_components` 中声明 `mls_send_pause="advisory"` 时,**MUST** 同时声明 `cx.profile.e2ee_relaxed.v1` profile 适配。reducer 检测到 advisory 但 Realm `supported_profiles` 不含 `e2ee_relaxed.v1` → MUST reject(`profile_unsupported`,详细 reason `mls_send_pause_advisory_requires_e2ee_relaxed_profile`)
+- 声明本 profile 的 Realm **MUST NOT** 同时声明 `cx.profile.mls_governance_binding.full.v1`(互斥)。reducer 检测同时声明 → MUST reject(`conflicting_e2ee_profiles`)
 - 客户端实现 **MUST**:
-  - 在该 Space 的对话 UI 上展示 banner-level 警示(不可被用户永久 dismiss,可临时折叠)
-  - 在用户邀请新成员时弹窗提示"该 Space 使用降级 E2EE",让用户知情决策
-  - 在 sync metadata 中标记该 Space 为 `e2ee_relaxed=true`,导出 / 备份 / 跨设备时保留该标记
-- 服务端 `cx.server.describe.supported_features` **MUST** 列出 `cx.feature.e2ee_relaxed.v1` 才能接受该 profile 的 Space 写入
+  - 在该 Realm 的对话 UI 上展示 banner-level 警示(不可被用户永久 dismiss,可临时折叠)
+  - 在用户邀请新成员时弹窗提示"该 Realm 使用降级 E2EE",让用户知情决策
+  - 在 sync metadata 中标记该 Realm 为 `e2ee_relaxed=true`,导出 / 备份 / 跨设备时保留该标记
+- 服务端 `cx.server.describe.supported_features` **MUST** 列出 `cx.feature.e2ee_relaxed.v1` 才能接受该 profile 的 Realm 写入
 
-**禁止扩展**:本 profile 不允许进一步降级到"不 enforce `covered_frontier_cell` 写入" / "允许跨 epoch 解密无窗口限制"。降级到此为止;更宽松场景应当退回到**非 E2EE** Space(`encryption_profile="none"`)而不是继续放宽 E2EE 承诺。
+**禁止扩展**:本 profile 不允许进一步降级到"不 enforce `covered_frontier_cell` 写入" / "允许跨 epoch 解密无窗口限制"。降级到此为止;更宽松场景应当退回到**非 E2EE** Realm(`encryption_profile="none"`)而不是继续放宽 E2EE 承诺。
 
 ### 2.5 MLS Governance Binding
 
@@ -289,7 +289,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 ```mermaid
 flowchart TB
-    subgraph GS ["Contrix Governance State (per Space / child Space)"]
+    subgraph GS ["Contrix Governance State (per Realm / linked Realm)"]
         direction TB
         Memb["membership cells"]
         Pol["policy cells (join_rule / history_visibility / plaintext-visible / moderation / lifecycle)"]
@@ -332,7 +332,7 @@ flowchart TB
 
 MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据 —— 这是引入 MLS Governance Binding 的根本动机。撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。
 
-MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `encryption_profile="mls_rfc9420"` 时，group 覆盖父 Space；某个 Flow 通过 `discussion_space_ref` 升级到 child Space 后，child Space 拥有自己的 MLS group，与父 Space group 完全独立。两个 group 通过 child Space 的 `space_id` 区分，不再依赖 track-scoped fallback。
+MLS group 的 scope 永远绑定到一个 `realm_id`：源 Realm 自身使用 `encryption_profile="mls_rfc9420"` 时，group 覆盖源 Realm；某个 Flow 通过 `discussion_realm_ref` 升级到 linked Realm 后，linked Realm 拥有自己的 MLS group，与源 Realm group 完全独立。两个 group 通过 linked Realm 的 `realm_id` 区分，不再依赖 track-scoped fallback。
 
 #### 2.5.1 Governance Binding Payload (`governance_binding`)
 
@@ -341,7 +341,7 @@ MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `e
 ```json
 {
   "governance_binding": {
-    "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "mls_group_id": "base64url...",
     "previous_epoch": 41,
     "next_epoch": 42,
@@ -355,9 +355,9 @@ MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `e
 }
 ```
 
-当 MLS group 绑定到 Flow discussion track 时，`governance_binding` MUST 同时覆盖 `flow_id` 与 `track="discussion"`，并以 Space membership、history visibility、policy state 和 `allowed_tracks` action scope 作为验证边界。`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
+当 MLS group 绑定到 Flow discussion track 时，`governance_binding` MUST 同时覆盖 `flow_id` 与 `track="discussion"`，并以 Realm membership、history visibility、policy state 和 `allowed_tracks` action scope 作为验证边界。`allowed_tracks` 只缩小已授权动作的 track 范围，不授予独立 track-level ACL。
 
-**E2EE Space MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Space 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
+**E2EE Realm MUST 声明 `cx.profile.mls_governance_binding.full.v1`**：声明 `encryption_profile="mls_rfc9420"` 的 Realm 隐式继承该 profile（`cx.profile.e2ee_client.v1` 直接 `inherits` 它）。所有 `cx.mls.commit` MUST 携带 GroupContext extension 形态的 `governance_binding`；仅 transcript-authenticated 而无 GroupContext extension 的实现不符合 v1。
 
 - `membership_frontier` MUST 覆盖本次 Commit 声称生效的成员、invite/leave/ban 和设备信任 cell。
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
@@ -377,7 +377,7 @@ MLS group 的 scope 永远绑定到一个 `space_id`：父 Space 自身使用 `e
 规则：
 
 - E2EE application message Move 的 preconditions MUST 证明 `covered_frontier_cell` `contains` 该消息依赖的 governance Anchor frontier。
-- 客户端在 MLS Commit Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并 MUST 暂停发送新 application messages，直到 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。所有 `encryption_profile="mls_rfc9420"` 的 Space 均适用，无论 `security_class`；仅 Space schema 显式声明 `mls_send_pause="advisory"`（详见 §2.4.1）的部署可降级为 SHOULD。
+- 客户端在 MLS Commit Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并 MUST 暂停发送新 application messages，直到 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。所有 `encryption_profile="mls_rfc9420"` 的 Realm 均适用，无论 `security_class`；仅 Realm schema 显式声明 `mls_send_pause="advisory"`（详见 §2.4.1）的部署可降级为 SHOULD。
 - 撤销与失效（如 ban、revoke）只有被 `covered_frontier_cell` 覆盖后，才能阻止后续 application messages 解密；旧 epoch 中已分发的 key material 仍可能被原持有者使用。
 - Governance / recovery Move 不依赖 `covered_frontier_cell`，因此 MLS epoch 卡住时仍可提交修复 Move 并由 Anchor finalization 生效。
 
@@ -406,7 +406,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
   "policy_root":         bstr,
   "previous_epoch":      uint,
   "reducer_profile":     tstr,
-  "space_id":            tstr
+  "realm_id":            tstr
 }
 ```
 
@@ -416,13 +416,13 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 |------|------------------------------|---------|
 | `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
 | `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_frontier_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
-| `space_id` | **否**（Contrix-specific，MLS 不知道 Space 概念） | **必须**：space_id 是把 MLS group 锚定到 Contrix governance state 的核心绑定；缺失则 governance_binding 可能被错误重绑定到不同 Space 的 commit。 |
+| `realm_id` | **否**（Contrix-specific，MLS 不知道 Realm 概念） | **必须**：realm_id 是把 MLS group 锚定到 Contrix governance state 的核心绑定；缺失则 governance_binding 可能被错误重绑定到不同 Realm 的 commit。 |
 | `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_hash` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
 | `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
 
 简言之：MLS-redundant 字段（`mls_group_id` / `previous_epoch` / `next_epoch`）以约 ~50 字节的 wire 代价换取 binding payload 的离线自含性，这是有意识设计而不是 leftover；非冗余字段是 governance binding 真正承载的事实。Wire-size 进一步优化（如把 redundant 字段折叠成单个 commit_anchor hash）属于未来 hardening profile，不进入 v1 core。
 
-**为什么禁止私有 codepoint 覆盖（normative rationale）**：允许 deployment 在 IANA 私用段内选择不同 codepoint（例如 `0xF1C1`）覆盖 `0xF1C0` 的路径在联邦边界 (federation Space 跨 deployment) 上**无法静态 enforce**——两个独立合规的 deployment 各自合法选择不同 codepoint 后,接入同一 federation Space 时, GroupContext extensions 中**任意一侧看不到对方的 extension**(因为 codepoint 不同)。MLS receiver 对未知 codepoint 的 extension 默认 ignore,因此 governance binding 会**静默退化为单边 binding**：本端按自己的 codepoint 解析+校验 + `confirmed_transcript_hash` 推进, 对端 binding 缺失但 epoch 仍前进 = 等价于 binding 被绕过。Receiver 没有可靠途径区分"对方使用了不同 codepoint(私有覆盖)"与"对方实现根本不携带 binding extension(降级 binding)"。
+**为什么禁止私有 codepoint 覆盖（normative rationale）**：允许 deployment 在 IANA 私用段内选择不同 codepoint（例如 `0xF1C1`）覆盖 `0xF1C0` 的路径在联邦边界 (federation Realm 跨 deployment) 上**无法静态 enforce**——两个独立合规的 deployment 各自合法选择不同 codepoint 后,接入同一 federation Realm 时, GroupContext extensions 中**任意一侧看不到对方的 extension**(因为 codepoint 不同)。MLS receiver 对未知 codepoint 的 extension 默认 ignore,因此 governance binding 会**静默退化为单边 binding**：本端按自己的 codepoint 解析+校验 + `confirmed_transcript_hash` 推进, 对端 binding 缺失但 epoch 仍前进 = 等价于 binding 被绕过。Receiver 没有可靠途径区分"对方使用了不同 codepoint(私有覆盖)"与"对方实现根本不携带 binding extension(降级 binding)"。
 
 为关闭这条 federation 静默降级路径,v1 取消 deployment 私有覆盖。需要更换 codepoint 的部署 MUST 申请新 hardening profile（与对应 `mls_governance_binding.full.v<n>` 配套）并显式声明,使得"使用不同 codepoint"成为可观察的 wire 版本切换而非 codepoint-only 私有约定。
 
@@ -439,7 +439,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 KeyPackage 不应被建模为可无限次公开拉取的静态材料。E2EE 实现 MUST 将 MLS KeyPackage 作为可声明、可领取、可消费、可撤销的单次使用材料。
 
-> **Contrix 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Contrix 的 claim 模型在此基础上增加了 `intended_space_id` 绑定和 room-scoped claim，要求 MLS Delivery Service 跟踪 room affinity。这是 Contrix 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) room-scoped claim 使客户端可以控制自己被邀请进入哪些 Space，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Space 消费。实现若使用标准 MLS 库（不支持 room-scoped claim），MUST 至少在 Contrix 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
+> **Contrix 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Contrix 的 claim 模型在此基础上增加了 `intended_realm_id` 绑定和 room-scoped claim，要求 MLS Delivery Service 跟踪 room affinity。这是 Contrix 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) room-scoped claim 使客户端可以控制自己被邀请进入哪些 Realm，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Realm 消费。实现若使用标准 MLS 库（不支持 room-scoped claim），MUST 至少在 Contrix 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
 
 KeyPackage lifecycle：
 
@@ -470,14 +470,14 @@ published -> claimed -> consumed
 Claim 请求 MUST 绑定：
 
 - requester principal / service DID 和 device proof。
-- intended `space_id` 或 room id。
+- intended `realm_id` 或 room id。
 - required capabilities / content profiles / cipher suites。
 - 是否允许 minimal-metadata pseudonymous credential。
 - claim nonce、过期时间和目标 Welcome 路由服务。
 
 Claim 成功后：
 
-- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Space、capability set 和 expiry。
+- KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set 和 expiry。
 - 同一 KeyPackage 不得被第二个 room、第二个 requester 或第二次 Welcome 重复使用。
 - Welcome 发送方 MUST 引用 `keypackage_ref` / `claim_id`，接收端 MUST 校验 Welcome 使用的是自己设备已 claimed 且未过期、未撤销、未消费的 KeyPackage。
 - 成功处理 Welcome 后，接收端或服务端状态 SHOULD 标记该 KeyPackage 为 `consumed`。若 Welcome 失败或过期，KeyPackage 不得自动回到 `published`；设备 SHOULD 发布新的 KeyPackage。
@@ -485,14 +485,14 @@ Claim 成功后：
 
 #### 2.6.1 Welcome `claim_envelope` 签名（normative）
 
-KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早于** claim/Welcome 阶段 Space 还未确定,因此 device_signature 不能覆盖 `intended_space_id`。这就出现一个攻击面:**rogue Delivery Service** 或同时控制 KeyPackage 与 Welcome 的中间者可以把一个为 Space A 设计的 KeyPackage,用于把目标 device 加入 Space B(用相同 keypackage_ref + 重写 group_id 的 Welcome)。即便接收端校验 Welcome 内 group_id,attacker 仍可在 UI 上诱导接收端用户接受错误 Space。
+KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早于** claim/Welcome 阶段 Realm 还未确定,因此 device_signature 不能覆盖 `intended_realm_id`。这就出现一个攻击面:**rogue Delivery Service** 或同时控制 KeyPackage 与 Welcome 的中间者可以把一个为 Realm A 设计的 KeyPackage,用于把目标 device 加入 Realm B(用相同 keypackage_ref + 重写 group_id 的 Welcome)。即便接收端校验 Welcome 内 group_id,attacker 仍可在 UI 上诱导接收端用户接受错误 Realm。
 
 为关闭该攻击面,Welcome 发送方 **MUST** 附带 detached **`claim_envelope`** signature,canonical signing input 至少绑定:
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `keypackage_ref` | hash | 被消费的 KeyPackage 的 `keypackage_ref`。 |
-| `intended_space_id` | id | Welcome 真正加入的 Space ID (与 Space governance state 同源)。 |
+| `intended_realm_id` | id | Welcome 真正加入的 Realm ID (与 Realm governance state 同源)。 |
 | `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_space, nonce, expiry)。 |
 | `requester_did` | did | Welcome 发送方 principal DID。 |
 | `nonce` | string | per-Welcome 唯一的 ≥ 128 bit 随机串。 |
@@ -502,33 +502,33 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 `claim_envelope.signature` MUST 由 `requester_did` 的当前 active **self-signing key** 签发(不是 Delivery Service service key,不是 KeyPackage 的 device_signature 派生)。接收端 **MUST**:
 
 1. 通过 DID control chain 验证 `claim_envelope.signature` → `requester_did`;
-2. 校验 `intended_space_id` 等于 MLS Welcome 内 group_id 反向 resolve 出的 Space(防止 server-side rewrite);
+2. 校验 `intended_realm_id` 等于 MLS Welcome 内 group_id 反向 resolve 出的 Realm(防止 server-side rewrite);
 3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见,且 `claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致;
 4. 校验 `welcome_digest` 等于 `canonical_hash(welcome_bytes)`,防止 envelope 被剥离后重新封装。
 
-任一项失败 → 拒绝 Welcome,reason=`keypackage_welcome_envelope_mismatch`,并 SHOULD 触发 client UI 警示 "received an invalid Welcome envelope; the inviting party's identity could not be verified for this Space"。
+任一项失败 → 拒绝 Welcome,reason=`keypackage_welcome_envelope_mismatch`,并 SHOULD 触发 client UI 警示 "received an invalid Welcome envelope; the inviting party's identity could not be verified for this Realm"。
 
-为什么不直接让 device_signature 覆盖 intended_space_id?KeyPackage 是离线发布、长期可消费的资源(典型 7 天 TTL),发布时 Space 未知;每次需要预先签名所有可能 Space 的 cross-product 既不可行也违反 KeyPackage 设计语义。`claim_envelope` 是 per-Welcome 一次性签名,把"哪个 Space 接收这次 Welcome"的承诺锁定到 holder 的 self-signing key,与 KeyPackage 的长期发布关注点分离。
+为什么不直接让 device_signature 覆盖 intended_realm_id?KeyPackage 是离线发布、长期可消费的资源(典型 7 天 TTL),发布时 Realm 未知;每次需要预先签名所有可能 Realm 的 cross-product 既不可行也违反 KeyPackage 设计语义。`claim_envelope` 是 per-Welcome 一次性签名,把"哪个 Realm 接收这次 Welcome"的承诺锁定到 holder 的 self-signing key,与 KeyPackage 的长期发布关注点分离。
 
-### 2.7 Minimal-Metadata E2EE Space
+### 2.7 Minimal-Metadata E2EE Realm
 
-高隐私 Space MAY 启用 `cx.profile.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
+高隐私 Realm MAY 启用 `cx.profile.mls.minimal_metadata_space.v1`。该 profile 的目标是让转发服务、shared anchorer / sync service 或跨域 provider 只看到必要 routing pseudonym，而默认看不到真实 principal DID、设备列表或关系图谱。
 
 Profile 规则：
 
-- Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 room-scoped pairwise DID，例如成员为该 Space / Flow track 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
+- Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 room-scoped pairwise DID，例如成员为该 Realm / Flow track 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
 - MLS leaf credential SHOULD 绑定同一个 room-scoped pairwise DID，或绑定可由该 pairwise DID 验证的 credential。
 - 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `cx.identity_link` application message 或 MLS private extension 中，只对当前 room members 可见。v1 的必需 wire shape 是 `cx.schema.identity_link.v1`；MLS private extension 只是等价承载，payload schema 不变。
-- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、space id、可选 flow id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("cx-identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。
-- Sync / Federation 服务只可按 pairwise DID、space id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
-- Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Space policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Space。
-- 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Space history。
+- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、realm id、可选 flow id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("cx-identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。
+- Sync / Federation 服务只可按 pairwise DID、realm id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
+- Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Realm policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Realm。
+- 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Realm history。
 
-Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pairwise sender，但不得被提升为已验证 principal DID 发送者。
+Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pairwise sender，但不得被提升为已验证 principal DID 发送者。
 
-**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(space_id, pairwise_did)`。缓存 MUST 包含验证时间、MLS epoch、principal DID、device id 和签名证明摘要。缓存失效规则：
+**Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(realm_id, pairwise_did)`。缓存 MUST 包含验证时间、MLS epoch、principal DID、device id 和签名证明摘要。缓存失效规则：
 
-- **Eager invalidation on member leave / ban / remove（normative MUST）**：当客户端处理一个 `cx.member.state` event（或等价的 ban / leave / remove governance Move）时，MUST **立即**（在该 event accepted 进入本地 frontier 的同一事务边界内）失效缓存中所有 `(space_id == this_space, pairwise_did → leaving_principal)` 的条目。**不得**等待 TTL 过期或 MLS epoch 推进——否则被移除成员的 pairwise→principal 映射会在其它成员客户端中残留至 TTL 末尾，泄露"X 在 T 时刻离开此 Space"的时间侧信道，违反 minimal-metadata Space 的核心隐私目标。
+- **Eager invalidation on member leave / ban / remove（normative MUST）**：当客户端处理一个 `cx.member.state` event（或等价的 ban / leave / remove governance Move）时，MUST **立即**（在该 event accepted 进入本地 frontier 的同一事务边界内）失效缓存中所有 `(realm_id == this_space, pairwise_did → leaving_principal)` 的条目。**不得**等待 TTL 过期或 MLS epoch 推进——否则被移除成员的 pairwise→principal 映射会在其它成员客户端中残留至 TTL 末尾，泄露"X 在 T 时刻离开此 Realm"的时间侧信道，违反 minimal-metadata Realm 的核心隐私目标。
 - MLS epoch 变更（任何 commit）时，MUST 检查并失效任何 epoch 匹配旧 epoch 的 stale 条目。
 - `cx.identity_link` 被更新或撤销时，MUST 替换旧条目。
 - 缓存 TTL SHOULD 不超过 7 天；过期后 MUST 重新验证。该 TTL 仅是**最坏兜底**，不能替代 eager invalidation。
@@ -537,7 +537,7 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 
 ### 2.8 Message ID AAD 可见性
 
-加密信封中的 AAD 能帮助路由和诊断，但也可能成为跨服务关联信号。Space policy MUST 声明 `aad_visibility`：
+加密信封中的 AAD 能帮助路由和诊断，但也可能成为跨服务关联信号。Realm policy MUST 声明 `aad_visibility`：
 
 ```json
 {
@@ -556,9 +556,9 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 - `opaque_id`：暴露 opaque event/message id，用于跨 provider 投递确认。
 - `debug`：仅限短期调试或受控企业 profile；MUST 有过期时间、审计和用户/管理员可见声明。
 
-隐私优先 Space SHOULD 使用 `hidden` 或 `routing_hash`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `governance_binding.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
+隐私优先 Realm SHOULD 使用 `hidden` 或 `routing_hash`。企业合规或 federation 调试场景 MAY 使用 `opaque_id`，但 MUST 在 `governance_binding.policy_root` 覆盖的 policy 中声明，并且不得把正文、附件名、mention、reply excerpt 或 sender handle 放入 AAD。
 
-加密信封的 Event kind 字段在 AAD 中规范名为 `aad.event_kind`；Space policy、AAD visibility、日志和 conformance vector MUST 使用该名字。
+加密信封的 Event kind 字段在 AAD 中规范名为 `aad.event_kind`；Realm policy、AAD visibility、日志和 conformance vector MUST 使用该名字。
 
 ### 2.9 Reaction 与短轻量事件的可见性
 
@@ -566,31 +566,31 @@ Minimal-metadata Space 不改变签名责任。客户端在解密后仍必须验
 
 Reaction 事件 (`cx.reaction.*`) 的可见性规则：
 
-- 非 E2EE Space：`reaction_payload.key` 直接携带 emoji（单 Unicode cluster 或 profile 注册的短 tag），可选 `annotation` 同样为明文。这与 Matrix `m.reaction` 行为一致。
-- E2EE Space (`audit_assurance ∈ {disclosed_policy, attested_hardware}` 或任何 `aad_visibility != opaque_id` 的 profile)：
+- 非 E2EE Realm：`reaction_payload.key` 直接携带 emoji（单 Unicode cluster 或 profile 注册的短 tag），可选 `annotation` 同样为明文。这与 Matrix `m.reaction` 行为一致。
+- E2EE Realm (`audit_assurance ∈ {disclosed_policy, attested_hardware}` 或任何 `aad_visibility != opaque_id` 的 profile)：
   - 真正的 emoji / annotation MUST 通过 `reaction_payload.encrypted_payload` 携带，envelope 复用 §2.3 的 MLS application key 流程。
   - 明文 `reaction_payload.key` MUST 为 **keyed HMAC routing tag**:
 
     ```text
     reaction_routing_hmac_v2 =
         HMAC-SHA256(
-            key   = MLS-Exporter("contrix-reaction-routing-v2", context = space_id, length = 32),
+            key   = MLS-Exporter("contrix-reaction-routing-v2", context = realm_id, length = 32),
             data  = utf8(canonical_emoji)
         )
     ```
 
     其中 `canonical_emoji` 为 NFC 归一化后的 Unicode 字节串;`MLS-Exporter` 即 MLS RFC9420 §8.5,使用当前 group epoch 的 exporter secret。Sync Service 仍可做 OR-Set dedup / rate-limit / push fanout / reducer 聚合(只要发送方同 epoch 内同一 emoji 派生相同 key 即可得到相同 tag);但 **server 无法从已知 emoji 字典(≈3700 项)枚举 tag → emoji** 的反查,因为 key 取自 MLS exporter secret,群外不可知。
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
-  - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`space_id` 通过 exporter `context` 参数额外绑定,即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,space_id 绑定仍能阻止跨 Space 重放。接收方 MUST 在路由层校验 routing tag 与当前 Space / epoch 一致。
-  - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Space SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露,使频次只能 per-target_ref 而非 per-message 关联。
-- Minimal-metadata Space (`cx.profile.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 room-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
+  - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定,即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
+  - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Realm SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露,使频次只能 per-target_ref 而非 per-message 关联。
+- Minimal-metadata Realm (`cx.profile.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 room-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
 - `cx.reaction.remove` 走相同规则；`encrypted_payload` 内 MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛,但不得将该 id 暴露在明文。
 
 服务端 / sync service 处理 reaction 时:
 
 - 在 routing hash 模式下,聚合层 MUST 仍能给出 `(target_ref, key, count)` 摘要 (其中 `key` 即 routing hash),客户端解密后将 hash 替换为真实 emoji 再渲染。
-- 不得将 routing hash 与历史 plaintext emoji 跨 Space 关联 (例如缓存全局 `emoji ↔ hash` 表),Space policy 如声明 `aad_visibility=hidden` MUST 拒绝此类全局关联。
-- `cx.receipt.read` / `cx.typing` 等 ephemeral 事件不进入 reducer state, 但其 actor_id、target_ref 仍是元数据通道；高隐私 Space SHOULD 同样使用 pairwise DID 与 routing hash,详细规则随对应章节给出。
+- 不得将 routing hash 与历史 plaintext emoji 跨 Realm 关联 (例如缓存全局 `emoji ↔ hash` 表),Realm policy 如声明 `aad_visibility=hidden` MUST 拒绝此类全局关联。
+- `cx.receipt.read` / `cx.typing` 等 ephemeral 事件不进入 reducer state, 但其 actor_id、target_ref 仍是元数据通道；高隐私 Realm SHOULD 同样使用 pairwise DID 与 routing hash,详细规则随对应章节给出。
 
 Reaction 事件的 `aad.event_kind` 始终为明文 (`cx.reaction.add` / `cx.reaction.remove`),以便服务端做 capability fast path 与限流；该明文 kind 不暴露具体 emoji。
 
@@ -605,15 +605,15 @@ Contrix 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制，划�
 - **`cx.profile.attested_audit.e2ee.v1`**（`audit_assurance="attested_hardware"`）：通过
   TEE / HSM / 等价硬件隔离把 key release 或明文输出**密码学绑定**到先写审计记录。
 - **`cx.profile.disclosed_audit.e2ee.v1`**（`audit_assurance="disclosed_policy"`）：仅在
-  Space policy 中**公开声明**审计代理在场并约定流程，**不提供密码学/硬件强制**。
+  Realm policy 中**公开声明**审计代理在场并约定流程，**不提供密码学/硬件强制**。
 
 两者**不是强弱不同的同一保证**，而是不同 family 的保证。任何把两者混称为 "Auditable E2EE"
 或暗示二者等价的措辞都不符合本规范——禁止措辞清单与 join warning canonical 文案见
 [`audited-e2ee.md` §6](./audited-e2ee.md) 与 §2.1。
 
-v1 core 互操作 **不要求** 实现这两个 profile；只有在 Space policy 显式声明 `audit_disclosure`
+v1 core 互操作 **不要求** 实现这两个 profile；只有在 Realm policy 显式声明 `audit_disclosure`
 对象时启用。需要审计 / 合规能力的部署可以按所在 audit profile 申明 RYW receipt、Audit Agent
-入群规则、强制留痕 (`cx.audit.accessed`) 与 transparency surface。普通 E2EE Space 不进入
+入群规则、强制留痕 (`cx.audit.accessed`) 与 transparency surface。普通 E2EE Realm 不进入
 该 profile 时，所有相关 event kind (`cx.audit.accessed` / `cx.audit.ryw_receipt`) MUST NOT
 出现。
 
@@ -621,7 +621,7 @@ v1 core 互操作 **不要求** 实现这两个 profile；只有在 Space policy
 
 ## 4. 受控账号的通信穿透 (Master-Agent Control)
 
-协议严格区分“场地方合规审查 (Space Audit)”与“参与方主控权穿透 (Master-Agent Control)”。
+协议严格区分“场地方合规审查 (Realm Audit)”与“参与方主控权穿透 (Master-Agent Control)”。
 
 当一个受控账户（如 AI Agent，拥有自己独立的 DID）加入了一个私密加密群组，其控制者（Controller / Master）可以通过显式设备、授权转发或受控日志获得该 Agent 的通信副本。这属于**终端节点数据与密钥管理范畴**，不等同于场地方合规审查；只要访问范围已经在 Agent authority、grant、设备绑定或 owner-private policy 中声明，就不需要触发前文所述的 `cx.audit.accessed` 强制公开留痕机制。
 
@@ -631,13 +631,13 @@ v1 core 互操作 **不要求** 实现这两个 profile；只有在 Space policy
 
 Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Controller 通过 capability delegation、`cx.schema.agent_authority.v1`、device / session grant、approval policy 和可撤销的 owner-private control channel 管理该 Agent。
 
-- **机制**：Agent 自己生成和持有签名密钥、设备密钥与 MLS KeyPackage；Controller 通过显式 grant、controller approval、kill switch、审计事件和可选的 owner-private 1 对 1 E2EE Space 接收必要副本或摘要。
-- **效果**：Agent compromise 的影响边界限制在 Agent 自身 DID、device、session、grant 和可见 Space 内。Controller 根种子、恢复密钥和其他身份材料不会因为 Agent 运行环境泄露而被扩散。
+- **机制**：Agent 自己生成和持有签名密钥、设备密钥与 MLS KeyPackage；Controller 通过显式 grant、controller approval、kill switch、审计事件和可选的 owner-private 1 对 1 E2EE Realm 接收必要副本或摘要。
+- **效果**：Agent compromise 的影响边界限制在 Agent 自身 DID、device、session、grant 和可见 Realm 内。Controller 根种子、恢复密钥和其他身份材料不会因为 Agent 运行环境泄露而被扩散。
 
 规则：
 
 - Agent 私钥、Controller 主体私钥、Controller recovery key 和 Controller backup key MUST 是不同密钥域。
-- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Space / Flow discussion track、读取 owner-private 知识源、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
+- Controller 拥有权限不自动使 Agent 拥有权限；Agent 写入、加入 Realm / Flow discussion track、读取 owner-private 知识源、读取 owner presence 或启动外部 protocol session 仍必须命中 Agent 自己的 grant / approval / policy。
 - Agent Authority Panel MUST 能解释 Controller、responsible actor、effective grant、presence policy、knowledge source、join policy 和 expiry。
 - 撤销 Controller 对 Agent 的控制通道时，必须使相关 session grant、owner-private 知识源 grant、presence trigger 和 tool / protocol session grant 失效。
 
@@ -645,7 +645,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 - **机制**：Agent 作为一个独立的物理/逻辑实体，生成自己的 `KeyPackage`，但在身份层面上挂靠在 Master 的 DID 下，作为 Master 的另一台“设备”。
 - **效果**：在 MLS 树中，发送者对同一个主体的多个叶子节点加密。Master 手机与 Agent 服务器同时收到密文副本并各自解密。
 
-方案 B 会把 Agent 与 Controller 的主体边界收紧，适合“同一 principal 的托管设备”而不是“独立 Agent DID”。若产品向用户展示 Agent 是独立 Actor，或 Space policy 要求 automated actor 可审计，MUST 使用方案 A，不得把 Agent 静默伪装成 Controller 的普通设备。
+方案 B 会把 Agent 与 Controller 的主体边界收紧，适合“同一 principal 的托管设备”而不是“独立 Agent DID”。若产品向用户展示 Agent 是独立 Actor，或 Realm policy 要求 automated actor 可审计，MUST 使用方案 A，不得把 Agent 静默伪装成 Controller 的普通设备。
 
 ### 4.3 HD 派生的限制
 
@@ -653,7 +653,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 
 - 派生路径、purpose、Agent DID、device id、audience 和 expiry 必须固定并可审计。
 - Agent 子密钥泄露不得允许攻击者推导 Controller 根种子、Controller DID 控制密钥、recovery key 或其他 Agent 子密钥。
-- HD 派生密钥不得用于 Controller 的 DID recovery、Space admin grant 签发或组织治理动作。
+- HD 派生密钥不得用于 Controller 的 DID recovery、Realm admin grant 签发或组织治理动作。
 - 该 profile 必须声明为可选高风险能力；互操作对端不得假设所有 Agent DID 都由 Controller 根种子派生。
 
 ## 5. 组员变动与高可用容错 (Proposal & Commit)
@@ -667,7 +667,7 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 `cx.mls.genesis.content` MUST 至少包含：
 
 - `mls_group_id`
-- `scope`：`space_id`。MLS group 的 scope 永远绑定到一个 `space_id`；独立 discussion 通过 `Flow.discussion_space_ref` child Space 表达，该 child Space 拥有自己的 `space_id`。
+- `scope`：`realm_id`。MLS group 的 scope 永远绑定到一个 `realm_id`；独立 discussion 通过 `Flow.discussion_realm_ref` linked Realm 表达，该 linked Realm 拥有自己的 `realm_id`。
 - `epoch`：MUST 为 `0`。
 - `creator_principal_id`
 - `creator_device_id`
@@ -715,7 +715,7 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epoch 由 effective `cx.mls.commit` Move 的 `next_epoch` 字段直接表达；checkpoint 是 Lattice / snapshot 派生视图，不进入 wire history。任何来自旧版本的 `cx.mls.epoch` event MUST 被拒绝，发送方应改为引用 effective commit。
 
-当网络分区导致节点短期看见不同 Anchor leaf 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 Anchor view、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Space policy 授权为普通 actor 或 service capability，不能替代 Anchor/Lattice 验证。
+当网络分区导致节点短期看见不同 Anchor leaf 时，客户端 MUST 把依赖未知或竞争 epoch 的加密事件标记为 `decryption_pending` / `state_mismatch`，直到 Anchor view、backfill 或 snapshot-assisted verification 收敛。服务端不得通过本地接收顺序指定 MLS epoch；可选 designated committer / key service 只能由 Realm policy 授权为普通 actor 或 service capability，不能替代 Anchor/Lattice 验证。
 
 ### 5.5 Commit / Welcome 处理失败报告
 
@@ -745,5 +745,5 @@ v1 协议不再注册独立的 `cx.mls.epoch` event。每个 group 的当前 epo
 ## 7. v1 集成要求
 
 - KeyPackage 在 DID Document 或 Device / Key Server 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
-- 当 Space 声明 `audit_assurance = "attested_hardware"`（profile = `cx.profile.attested_audit.e2ee.v1`）时，Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `cx.audit.accessed` 先写后解密要求。`cx.profile.disclosed_audit.e2ee.v1` 不得伪造或暗示存在 TEE attestation；client UI 必须按 [`audited-e2ee.md` §2.1](./audited-e2ee.md) 的两套 normative join warning 文案区分展示，不得合并、省略关键限定词，并 MUST 完整呈现"协议层不能阻止恶意合规客户端…"段（详见 [`audited-e2ee.md` §6](./audited-e2ee.md) 关于 protocol-layer normative 边界与 governance hand-off 的说明）。
-- Signal / Double Ratchet 私信互操作只能作为 profile-specific fallback。fallback 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和迁移边界；不得在 MLS Space 内静默降级。
+- 当 Realm 声明 `audit_assurance = "attested_hardware"`（profile = `cx.profile.attested_audit.e2ee.v1`）时，Audit Agent remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明运行环境和代码身份，不能绕过 `cx.audit.accessed` 先写后解密要求。`cx.profile.disclosed_audit.e2ee.v1` 不得伪造或暗示存在 TEE attestation；client UI 必须按 [`audited-e2ee.md` §2.1](./audited-e2ee.md) 的两套 normative join warning 文案区分展示，不得合并、省略关键限定词，并 MUST 完整呈现"协议层不能阻止恶意合规客户端…"段（详见 [`audited-e2ee.md` §6](./audited-e2ee.md) 关于 protocol-layer normative 边界与 governance hand-off 的说明）。
+- Signal / Double Ratchet 私信互操作只能作为 profile-specific fallback。fallback 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和迁移边界；不得在 MLS Realm 内静默降级。

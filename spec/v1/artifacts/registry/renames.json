@@ -24,7 +24,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Deleted: track does not carry independent membership. Migrate access to Space-level cx.member.state or create a child Space."
+      "notes": "Deleted: track does not carry independent membership. Migrate access to Realm-level cx.member.state or create a child Realm."
     },
     {
       "id": "cx.flow.track.history_visibility",
@@ -33,7 +33,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Deleted: history visibility lives at the Space boundary."
+      "notes": "Deleted: history visibility lives at the Realm boundary."
     },
     {
       "id": "cx.flow.track.read_receipt_policy",
@@ -51,16 +51,16 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Deleted: policy attaches to Space / child Space, not to a track."
+      "notes": "Deleted: policy attaches to Realm / child Realm, not to a track."
     },
     {
-      "id": "Space(kind=list)",
+      "id": "Realm(kind=list)",
       "kind_class": "model_identifier",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Place(kind=list)",
+      "replacement": "Space(kind=list)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "List containers are Places. Space remains the boundary concept; Place carries the container shape."
+      "notes": "List containers are Spaces. Realm remains the boundary concept; Space carries the container shape."
     },
     {
       "id": "branch",
@@ -69,7 +69,7 @@
       "rejection_level": "hard_reject",
       "replacement": "track",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track'. Track is display-only and inherits access from the Flow's Space."
+      "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track'. Track is display-only and inherits access from the Flow's Realm."
     }
   ]
 }

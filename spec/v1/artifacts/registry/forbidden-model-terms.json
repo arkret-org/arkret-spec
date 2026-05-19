@@ -22,18 +22,18 @@
       "context": "core_model_name",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Space",
+      "replacement": "Realm",
       "allowed_contexts": ["changelog", "interop_module", "negative_test"],
-      "notes": "Room is not the v1 core model. Use Space (replication / authorization / E2EE boundary) and, where applicable, Flow, Place, or child Space. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
+      "notes": "Room is not the v1 core model. Use Realm (replication / authorization / E2EE boundary) and, where applicable, Flow, Space, or child Realm. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
     },
     {
-      "id": "Space(kind=list)",
+      "id": "Realm(kind=list)",
       "context": "model_identifier",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Place(kind=list)",
+      "replacement": "Space(kind=list)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "List-shaped containers are Places, not Spaces. Space remains the boundary concept; container shape (board / list / etc.) lives on Place."
+      "notes": "List-shaped containers are Spaces, not Realms. Realm remains the boundary concept; container shape (board / list / etc.) lives on Space."
     },
     {
       "id": "flow_branch",
@@ -49,16 +49,16 @@
       "context": "prose_or_ui_copy",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Space members (or child Space members)",
+      "replacement": "Realm members (or child Realm members)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Track does not carry independent membership; access inherits from the Flow's Space. UI copy and docs MUST refer to Space / child Space members. A discussion needing its own membership boundary MUST be upgraded to a child Space."
+      "notes": "Track does not carry independent membership; access inherits from the Flow's Realm. UI copy and docs MUST refer to Realm / child Realm members. A discussion needing its own membership boundary MUST be upgraded to a child Realm."
     },
     {
       "id": "Room visibility",
       "context": "prose_or_ui_copy",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Space history visibility / discoverability / join rule",
+      "replacement": "Realm history visibility / discoverability / join rule",
       "allowed_contexts": ["changelog", "interop_module", "negative_test"],
       "notes": "Visibility is split in v1 into three independent axes: Discoverability, Join Rule, History Visibility (see spec-map 3.4). 'Room visibility' conflates them and MUST NOT be used."
     }

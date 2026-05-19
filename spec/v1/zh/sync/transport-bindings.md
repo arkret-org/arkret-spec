@@ -9,7 +9,7 @@ Contrix 协议核心定义的是：
 - canonical object / event schema
 - DID identity and service discovery
 - capability authorization
-- Space policy and reducer semantics
+- Realm policy and reducer semantics
 - sync / federation / applet / agent session semantics
 - error, pagination, idempotency and stream message envelopes
 
@@ -43,7 +43,7 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 - 服务发现：声明 service type、service DID、supported features、supported transports。
 - 认证：能携带 session token、request signature、mTLS identity 或 DID-based service signature。
-- 授权上下文：能传递 actor DID、device id、capability refs、Space id、resource/action。
+- 授权上下文：能传递 actor DID、device id、capability refs、Realm id、resource/action。
 - 幂等：写操作能携带 idempotency key，并返回重复提交的一致结果。
 - 分页：列表和历史读取能携带 opaque cursor。
 - 流式：订阅、sync、agent status、applet transaction ack 可表达多帧结果。
@@ -64,14 +64,14 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.events.submit` | 提交 signed Event Envelope。 |
 | `cx.events.get` | 按 ID 读取单个 Event。 |
 | `cx.events.batch_get` | 批量读取 Event。 |
-| `cx.events.query` | 按 actor / Space / cursor 双向查询 Event（替代旧 `cx.events.list` + `cx.sync.backfill`）。 |
-| `cx.events.subscribe` | 订阅 Space / actor 增量流，可选历史 catchup（替代旧 `cx.sync.subscribe`）。 |
-| `cx.events.frontier` | 获取 actor 或 Space 的可见 Event frontier。 |
+| `cx.events.query` | 按 actor / Realm / cursor 双向查询 Event（替代旧 `cx.events.list` + `cx.sync.backfill`）。 |
+| `cx.events.subscribe` | 订阅 Realm / actor 增量流，可选历史 catchup（替代旧 `cx.sync.subscribe`）。 |
+| `cx.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
 | `cx.sync.account` | 客户端账号视角聚合同步（替代旧 `cx.sync.client_sync`）。 |
 | Federation push（复用 `cx.events.submit` + service_signature） | 联邦推送复用 `POST /api/v1/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
 | Federation pull / backfill（复用 `cx.events.query` + service_signature） | 跨域历史回补复用 `GET /api/v1/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
-| `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Space / Organization / Actor / User。 |
-| `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Space / Organization / handle。 |
+| `cx.directory.search_spaces` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |
+| `cx.directory.resolve_space` / `cx.directory.resolve_organization` / `cx.directory.resolve_handle` | 精确解析 Realm / Organization / handle。 |
 | `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
 | `cx.blob.upload` | 上传 blob。 |
 | `cx.blob.get` | 获取 blob 或下载授权。 |

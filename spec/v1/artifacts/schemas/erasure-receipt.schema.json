@@ -38,7 +38,7 @@
           "type": "string",
           "enum": [
             "principal",
-            "space",
+            "realm",
             "event",
             "blob",
             "device",
@@ -72,8 +72,8 @@
             "service_defined"
           ]
         },
-        "space_id": {
-          "$ref": "#/$defs/space_id"
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
         },
         "target_refs": {
           "type": "array",
@@ -202,9 +202,9 @@
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "policy_ref": {
       "type": "string",
@@ -212,7 +212,7 @@
     },
     "subject_ref": {
       "type": "string",
-      "pattern": "^(did:[^\\s]+|cx:(space|event|blob|device|policy|message|flow|morph|relation|view|snapshot):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+      "pattern": "^(did:[^\\s]+|cx:(realm|event|blob|device|policy|message|flow|morph|relation|view|snapshot):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
     }
   }
 }

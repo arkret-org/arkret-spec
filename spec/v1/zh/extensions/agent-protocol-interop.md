@@ -13,7 +13,7 @@ sidebar:
 
 ## 1. 目标
 
-Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Contrix Event / Space 模型内。
+Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Contrix Event / Realm 模型内。
 
 当两个 agent 都支持专用 agent-to-agent 协议，例如 A2A 或 ACP endpoint，且任务适合高频、流式、长运行或跨框架直接协作时，Contrix MAY 将一次协作从 canonical 协作层升级为外部 agent protocol session。
 
@@ -38,24 +38,24 @@ Contrix 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 
 以下场景 SHOULD 留在 Contrix 原生协议：
 
 - 需要强审计和长期可验证协作历史。
-- 需要 Space membership / capability / policy 逐事件判定。
+- 需要 Realm membership / capability / policy 逐事件判定。
 - 需要 Flow / Morph / Relation / View 与人类 UI 紧密联动。
 - 任务结果需要被人类审阅、批准、撤回或归档。
 - 对端 agent 不可信、不可发现或没有受支持协议。
-- E2EE / 合规 / policy server 要求所有步骤进入 Space 账本。
+- E2EE / 合规 / policy server 要求所有步骤进入 Realm 账本。
 
 Contrix 原生模式更适合作为“协作事实层”和“治理层”。
 
 ### 3.1 与 Agent Workspace Profile 的关系
 
-`cx.profile.agent_workspace.v1`（详见 [`agent-workspace-profile.md`](./agent-workspace-profile.md)）覆盖的是另一类用例：**单一 controller 在源协作 Space 中调用自己的 agent 干活，但工作过程私密化到 controller 自己的 mirror Space**。它不涉及外部 agent protocol 升级，全部基于 Contrix 原生 Move/Anchor/Lattice。两个 profile 正交：
+`cx.profile.agent_workspace.v1`（详见 [`agent-workspace-profile.md`](./agent-workspace-profile.md)）覆盖的是另一类用例：**单一 controller 在源协作 Realm 中调用自己的 agent 干活，但工作过程私密化到 controller 自己的 mirror Realm**。它不涉及外部 agent protocol 升级，全部基于 Contrix 原生 Move/Anchor/Lattice。两个 profile 正交：
 
 | 场景 | 选 agent_workspace | 选 agent-protocol-interop |
 |---|---|---|
 | 单 controller × 自己 agent，结果可能回源 Flow | ✅ | — |
 | 跨框架 agent ↔ agent 高频流式协作 | — | ✅ |
 | 跨组织、对端 agent 不在 Contrix 内 | — | ✅ |
-| 需要 mirror Space 维护任务 audit + 多专长 agent 协作 | ✅ | — |
+| 需要 mirror Realm 维护任务 audit + 多专长 agent 协作 | ✅ | — |
 
 ## 4. 什么时候升级到外部 Agent Protocol
 
@@ -107,7 +107,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 ```json
 {
   "kind": "cx.agent.protocol_session.start",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "actor_id": "did:web:requesting-agent.example.com",
   "payload": {
     "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
@@ -128,7 +128,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 }
 ```
 
-`cx.agent.protocol_session.start` MUST 通过常规的 Space 授权与 policy 校验。
+`cx.agent.protocol_session.start` MUST 通过常规的 Realm 授权与 policy 校验。
 
 ### 5.3 Status 回流
 
@@ -137,7 +137,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 ```json
 {
   "kind": "cx.agent.protocol_session.status",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "payload": {
     "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
     "external_task_id": "a2a-task-123",
@@ -168,7 +168,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 ```json
 {
   "kind": "cx.agent.protocol_session.result",
-  "space_id": "cx:space:...",
+  "realm_id": "cx:realm:...",
   "payload": {
     "session_id": "cx:agent_session:019643c0-0000-7000-8000-000000000000",
     "status": "completed",
@@ -195,7 +195,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 `cx.agent.protocol_session.result` 的 `content` MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
 
-Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Space schema/profile、`fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
+Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm schema/profile、`fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
 
 ## 6. 协商流程
 
@@ -205,7 +205,7 @@ Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Space 
 sequenceDiagram
     autonumber
     participant LocalAg as Local Agent
-    participant Cx as Contrix Space<br>(capability + Anchor)
+    participant Cx as Contrix Realm<br>(capability + Anchor)
     participant Pol as Policy Server
     participant Remote as Remote Agent<br>(A2A / ACP endpoint)
 
@@ -277,8 +277,8 @@ Capability constraint SHOULD 支持：
 
 - 在启动前做 capability 检查。
 - 记录 endpoint、protocol、counterparty、task、grant 和数据分类。
-- 对 E2EE Space 默认只外发用户明确授权的明文或派生摘要。
-- 对敏感 Space 默认要求 human approval。
+- 对 E2EE Realm 默认只外发用户明确授权的明文或派生摘要。
+- 对敏感 Realm 默认要求 human approval。
 - 对返回 artifact 做 hash、MIME、size、malware scan 和 policy check。
 - 不信任外部 task status；只有 Contrix result event accepted 后才改变 canonical task 状态。
 - 支持 cancellation 和 timeout。
@@ -298,7 +298,7 @@ Capability constraint SHOULD 支持：
 
 MCP 主要是 agent 到 tool/data 的协议，不是 Contrix 的 agent-to-agent 升级目标。但外部 A2A / ACP agent 在执行内部 MAY 使用 MCP 调用工具。
 
-Contrix 只要求最终状态、artifact、审计证明和授权边界回流，不要求记录远端 agent 内部每次 MCP tool call，除非 Space policy 要求 full transcript 或 regulated audit。
+Contrix 只要求最终状态、artifact、审计证明和授权边界回流，不要求记录远端 agent 内部每次 MCP tool call，除非 Realm policy 要求 full transcript 或 regulated audit。
 
 ## 11. Adapter Registry
 
@@ -347,4 +347,4 @@ Contrix SHOULD 支持 agent protocol upgrade，但它必须是受控 handoff：
 - A2A / ACP 是 optional execution transport。
 - 所有外部执行的输入边界、状态、结果和审计证明必须回到 Contrix。
 
-这样 Contrix 可以连接外部 agent 生态，同时不牺牲 DID、capability、Space policy、E2EE 和审计模型。
+这样 Contrix 可以连接外部 agent 生态，同时不牺牲 DID、capability、Realm policy、E2EE 和审计模型。

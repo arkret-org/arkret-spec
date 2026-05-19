@@ -31,18 +31,18 @@
       "context": "event_envelope_or_payload",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "space.kind",
+      "replacement": "realm.kind",
       "allowed_contexts": ["changelog", "interop_module", "negative_test"],
-      "notes": "Room core model was removed; Space is the v1 boundary. 'room_kind' MUST NOT appear on the wire outside an explicit MIMI / Matrix interop module."
+      "notes": "Room core model was removed; Realm is the v1 boundary. 'room_kind' MUST NOT appear on the wire outside an explicit MIMI / Matrix interop module."
     },
     {
       "id": "kind=room",
       "context": "flow_payload.kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "space",
+      "replacement": "realm",
       "allowed_contexts": ["changelog", "interop_module", "negative_test"],
-      "notes": "Flow payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'space' / 'flow' / canonical Space.kind values. Interop translation lives in an opt-in interop module only."
+      "notes": "Flow payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'realm' / 'flow' / canonical Realm.kind values. Interop translation lives in an opt-in interop module only."
     }
   ]
 }

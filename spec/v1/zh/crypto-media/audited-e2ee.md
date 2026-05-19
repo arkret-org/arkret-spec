@@ -6,7 +6,7 @@ sidebar:
 
 > **状态：可选 hardening profile**。本文档定义 `cx.profile.attested_audit.e2ee.v1` 与
 > `cx.profile.disclosed_audit.e2ee.v1` 两类受审计 E2EE profile 的 normative 行为。v1 core
-> 互操作 **不要求** 实现本 profile；只有在 Space policy 显式声明 `audit_disclosure` 时启用。
+> 互操作 **不要求** 实现本 profile；只有在 Realm policy 显式声明 `audit_disclosure` 时启用。
 > 基础 MLS / E2EE 架构见 [`encryption-and-audit.md`](./encryption-and-audit.md)。
 
 ## 1. 目标
@@ -16,13 +16,13 @@ sidebar:
 Contrix 引入 **"透明留痕审计 (Transparent Audit Trail)"** 机制：既满足组织的强制合规要求，又向所有参与者提供可验证的审计记录。该机制划分为两类正交保证：
 
 - **`attested` 类**（`cx.profile.attested_audit.e2ee.v1`）：通过 TEE / HSM / 等价硬件隔离把 key release 或明文输出**密码学绑定**到先写审计记录。
-- **`disclosed` 类**（`cx.profile.disclosed_audit.e2ee.v1`）：仅在 Space policy 中**公开声明**审计代理在场并约定流程，**不提供密码学/硬件强制**——协议层不能阻止恶意持钥客户端绕过日志。
+- **`disclosed` 类**（`cx.profile.disclosed_audit.e2ee.v1`）：仅在 Realm policy 中**公开声明**审计代理在场并约定流程，**不提供密码学/硬件强制**——协议层不能阻止恶意持钥客户端绕过日志。
 
 `disclosed` 与 `attested` **不是强弱不同的同一保证**，而是不同 family 的保证。任何把两者混称为 "Auditable E2EE" 或暗示二者等价的措辞都不符合本规范（见 §6）。
 
 ## 2. Audit Policy 声明
 
-要启用此机制，Space 的 `schema/policy` 必须显式声明 **两个正交字段**：`audit_disclosure`（透明度承诺，两类共用）+ `audit_assurance`（保证类型，决定使用哪个 profile）。
+要启用此机制，Realm 的 `schema/policy` 必须显式声明 **两个正交字段**：`audit_disclosure`（透明度承诺，两类共用）+ `audit_assurance`（保证类型，决定使用哪个 profile）。
 
 ```json
 {
@@ -42,9 +42,9 @@ Contrix 引入 **"透明留痕审计 (Transparent Audit Trail)"** 机制：既�
 | `audit_assurance` 值 | 对应 profile | 含义 |
 | --- | --- | --- |
 | `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation MUST 绑定 enclave measurement、service DID、policy version、audit purpose、operator DID、created_at 和 expiry。Key material 与明文输出 MUST 在受控边界内处理。 |
-| `disclosed_policy` | `cx.profile.disclosed_audit.e2ee.v1` | 不要求 TEE。Audit Agent 仍然 MUST 执行 `cx.audit.accessed` 先写后解密流程并等待 RYW receipt，但**保证类别仅是合规与流程承诺，不是密码学强制**。Space policy MUST 在加入前可见确认该降级。 |
+| `disclosed_policy` | `cx.profile.disclosed_audit.e2ee.v1` | 不要求 TEE。Audit Agent 仍然 MUST 执行 `cx.audit.accessed` 先写后解密流程并等待 RYW receipt，但**保证类别仅是合规与流程承诺，不是密码学强制**。Realm policy MUST 在加入前可见确认该降级。 |
 
-客户端在加入声明 `audit_disclosure` 的 Space 前 MUST 读取 `audit_assurance`，并按 §2.1 显示**正确分类**的 join warning；MUST NOT 用同一段笼统文案覆盖两种保证。
+客户端在加入声明 `audit_disclosure` 的 Realm 前 MUST 读取 `audit_assurance`，并按 §2.1 显示**正确分类**的 join warning；MUST NOT 用同一段笼统文案覆盖两种保证。
 
 ### 2.1 Join Warning（normative MUST，必须分两套）
 
@@ -73,8 +73,8 @@ Audited E2EE 必须明确承认其安全边界：Audit Agent 是真实 MLS 成�
 
 Audit Agent profile MUST 满足：
 
-- 只授予 `cx.audit.accessed`、必要的 key receive / decrypt capability 和 policy 明确声明的 audit query capability；不得授予普通发消息、编辑内容、管理 membership、签发 capability、推进 MLS epoch 或更改 Space policy 的权限。
-- MLS leaf credential、service DID、attestation evidence、operator DID、保留策略、允许的 audit purpose 和有效期 MUST 对成员可见，并被 Space policy / `governance_binding.policy_root` 覆盖。
+- 只授予 `cx.audit.accessed`、必要的 key receive / decrypt capability 和 policy 明确声明的 audit query capability；不得授予普通发消息、编辑内容、管理 membership、签发 capability、推进 MLS epoch 或更改 Realm policy 的权限。
+- MLS leaf credential、service DID、attestation evidence、operator DID、保留策略、允许的 audit purpose 和有效期 MUST 对成员可见，并被 Realm policy / `governance_binding.policy_root` 覆盖。
 - `audit_assurance = "attested_hardware"` 下，MLS key material、exporter secret、历史 epoch secret 和明文输出 MUST 在 HSM、TEE、enclave 或等价硬件隔离边界内处理；remote attestation 必须绑定代码 measurement、service DID、policy version、audit purpose、created_at 和 expiry。
 - `audit_assurance = "disclosed_policy"` 下，客户端必须按 §2.1 disclosed 文案向成员显示这是**流程性披露**，不是硬件强制保证；MUST NOT 复用 `attested_hardware` 文案。
 - Audit Agent 的本地 key retention MUST 有上限，并能被成员验证为 policy 声明的一部分；legal hold 或监管保留需要单独声明，不能由 Agent 私下延长。
@@ -83,14 +83,14 @@ Audit Agent profile MUST 满足：
 
 > **不实现本节即不得使用 `audit_assurance="attested_hardware"` 措辞。** 仅声明 attested 文案而不发布 destruction attestation 时,Audit Agent 与软件审计在 forward secrecy 行为上**完全等价**;Contrix 把这种部署视为 spec violation,group MUST 在下一轮 MLS commit 中把 `audit_assurance` 强制降级为 `disclosed_policy` 或更弱形态,并按 §2.1 重新展示降级文案。
 
-> **命名注意**：本节涉及的两个 event kind 名 `cx.audit.epoch_key_destruction` 和 `cx.space.audit_policy_downgrade` 在 v1 registry 中**不携带** `.v<n>` suffix。Wire 形态版本化通过 Event envelope 的 `requirements.features[]` 表达,与 kind name 严格分离 —— 这与所有其他 `cx.*` event kind 的约定一致,见 [`../conformance/encoding.md`](../conformance/encoding.md) "Event kind / requirements 分层" 一节。
+> **命名注意**：本节涉及的两个 event kind 名 `cx.audit.epoch_key_destruction` 和 `cx.realm.audit_policy_downgrade` 在 v1 registry 中**不携带** `.v<n>` suffix。Wire 形态版本化通过 Event envelope 的 `requirements.features[]` 表达,与 kind name 严格分离 —— 这与所有其他 `cx.*` event kind 的约定一致,见 [`../conformance/encoding.md`](../conformance/encoding.md) "Event kind / requirements 分层" 一节。
 
 ##### 3.1.1.1 触发条件
 
 任一 `cx.mls.commit` 把 Audit Agent 从 MLS group 中 `Remove` 时(自愿离开 / 被踢 / device revoke 级联 / membership policy revoke 等任何原因) — 该 Audit Agent **MUST**:
 
 1. 在对应 enclave / HSM 内部对**其在群成员期间持有的所有历史 epoch secret 与 exporter secret**(从其 join epoch 到 remove epoch 之间所有 epoch)执行密码学销毁(zeroize + secure erase 或等价硬件操作)。
-2. 由 enclave / HSM 签发一条 **`cx.audit.epoch_key_destruction`** attestation event,内容覆盖被销毁的 epoch 范围、销毁完成 timestamp、enclave measurement、Audit Agent DID、remove commit ref。该 event 作为 reducer-input Event 提交给该 Space,actor 是 Audit Agent service DID,proof 由 enclave / HSM 的 attestation key 签发(不接受普通 service signing key — 必须是被远程 attestation 绑定的 enclave-internal key)。
+2. 由 enclave / HSM 签发一条 **`cx.audit.epoch_key_destruction`** attestation event,内容覆盖被销毁的 epoch 范围、销毁完成 timestamp、enclave measurement、Audit Agent DID、remove commit ref。该 event 作为 reducer-input Event 提交给该 Realm,actor 是 Audit Agent service DID,proof 由 enclave / HSM 的 attestation key 签发(不接受普通 service signing key — 必须是被远程 attestation 绑定的 enclave-internal key)。
 3. attestation event 与 Audit Agent 被 Remove 的 `cx.mls.commit` **MUST 同一 anchor batch** 提交;reducer 拒绝单独 anchor 的 remove(reason `audit_agent_remove_requires_paired_destruction_attestation`)。
 
 ##### 3.1.1.2 `cx.audit.epoch_key_destruction` 必填字段
@@ -117,8 +117,8 @@ Audit Agent profile MUST 满足：
 
 ##### 3.1.1.4 文案与降级义务
 
-- 在 destruction attestation 落盘前,该 Audit Agent **仍然被视作历史 epoch 密文的有效持有者**;Space members 看到的 §2.1 attested 文案中"被移除的合规员仍可解密成员期间的历史"这句**继续适用**,直到 attestation 落盘后才能改述。
-- 若部署在 6 个 anchor cadence(默认 ≈ 1 小时) 内仍未发布配套 destruction attestation,group 中任一 member MAY 发起 `cx.space.audit_policy_downgrade` Move,把 `audit_assurance` 强制降级为 `disclosed_policy`;reducer 在收到该 Move 后立即重写 Space policy,UI MUST 显式横幅"该群已不再满足 attested_hardware 担保"。
+- 在 destruction attestation 落盘前,该 Audit Agent **仍然被视作历史 epoch 密文的有效持有者**;Realm members 看到的 §2.1 attested 文案中"被移除的合规员仍可解密成员期间的历史"这句**继续适用**,直到 attestation 落盘后才能改述。
+- 若部署在 6 个 anchor cadence(默认 ≈ 1 小时) 内仍未发布配套 destruction attestation,group 中任一 member MAY 发起 `cx.realm.audit_policy_downgrade` Move,把 `audit_assurance` 强制降级为 `disclosed_policy`;reducer 在收到该 Move 后立即重写 Realm policy,UI MUST 显式横幅"该群已不再满足 attested_hardware 担保"。
 - destruction attestation 落盘后,UI MAY 显示"已由 enclave 完成 epoch 密钥销毁 — 该 Agent 对其成员期间历史的解密能力按密码学已不可恢复"。
 - `audit_assurance = "disclosed_policy"` 部署**不要求**本节(disclosed 文案本就声明不提供密码学强制);只有 `attested_hardware` profile 必须实现。
 
@@ -126,20 +126,20 @@ Audit Agent profile MUST 满足：
 
 - 优势:Audit Agent 一旦被移除,其历史 epoch decryption capability 在密码学层面被销毁。Audit Agent 即便保留 TEE image / HSM backup,因密钥已 zeroize 也不可恢复。
 - 代价:enclave / HSM 必须支持 attestation-signed zeroization 操作(主流 TEE 如 Intel TDX / AMD SEV-SNP / AWS Nitro Enclave / SGX 均已具备此类原语);依赖纯软件审计 agent 的部署 MUST 改用 `disclosed_policy` profile,**不得使用** `attested_hardware` 措辞。
-- 与 §1 disclosed 文案的区分:disclosed 部署移除 Audit Agent 后历史密钥**仍然存在**(只是 Space policy 不再认可它);attested 部署移除时 enclave 内部已经销毁,这是两种 profile 的关键区别。
+- 与 §1 disclosed 文案的区分:disclosed 部署移除 Audit Agent 后历史密钥**仍然存在**(只是 Realm policy 不再认可它);attested 部署移除时 enclave 内部已经销毁,这是两种 profile 的关键区别。
 
-不需要常驻审计解密能力的 Space SHOULD 使用 franking / moderation proof profile（例如 `cx.moderation.frank` 或 profile 注册的等价 token）来证明消息可审计性，并在真正审计时由发送方、持钥成员或受控服务按 policy 解密；不得把 standing Audit Agent 作为唯一合规模式。
+不需要常驻审计解密能力的 Realm SHOULD 使用 franking / moderation proof profile（例如 `cx.moderation.frank` 或 profile 注册的等价 token）来证明消息可审计性，并在真正审计时由发送方、持钥成员或受控服务按 policy 解密；不得把 standing Audit Agent 作为唯一合规模式。
 
 ## 4. 强制留痕机制 (Audit Record Mandatory)
 
 获得密钥并不意味着可以合规地随意查看。协议要求 Audit Agent 按声明的 audit profile 执行以下工作流；`cx.profile.attested_audit.e2ee.v1` 下该实现必须依托 TEE / enclave 或等价硬件隔离环境，并保证 MLS key、exporter secret 或解密明文不会在审计确认前离开受控边界：
 
 1. **收到审查请求**：组织内部触发对某条涉嫌违规的 Message 的审查（如 `message_id: cx:message:99804430-0000-7000-8000-000000000000`）。
-2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条 `kind="cx.audit.accessed"` 的不可撤销 Event，并提交给该 Space：
+2. **强制上链/入库声明**：Audit Agent 在进行解密之前，MUST 生成一条 `kind="cx.audit.accessed"` 的不可撤销 Event，并提交给该 Realm：
    ```json
    {
      "kind": "cx.audit.accessed",
-     "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
      "actor_id": "did:web:compliance.acme.corp",
      "payload": {
        "access_kind": "e2ee_plaintext_release",
@@ -151,9 +151,9 @@ Audit Agent profile MUST 满足：
      }
    }
    ```
-3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的"假动作死锁"（即记录没发出去但明文已吐出），合规飞地 MUST 等待因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。回执 MUST 携带 `audit_assurance_class` 字段，且其值 MUST 与 Space policy 声明的 `audit_assurance` 一致；不一致时接收方 MUST fail closed。
+3. **基于 RYW (Read-Your-Writes) 的因果确权回执等待**：为防止网络抖动或同步节点恶意丢包导致的"假动作死锁"（即记录没发出去但明文已吐出），合规飞地 MUST 等待因果确权回执，确认该 `cx.audit.accessed` 已经成功跨越本地局域网并在协作图中落盘。回执 MUST 携带 `audit_assurance_class` 字段，且其值 MUST 与 Realm policy 声明的 `audit_assurance` 一致；不一致时接收方 MUST fail closed。
    - **回执数量与 witness attestation**：`cx.profile.attested_audit.e2ee.v1` MUST 在解密前获得 ≥2 个 witness 联合 attested 的 RYW receipt（聚合规则见 §4.1.1）。`cx.profile.disclosed_audit.e2ee.v1` 在单签发者部署下 MAY 使用单源回执，但 receipt 的 `witness_attestation.kind` MUST 写为 `single_source`，且 `witness_attestation.witnesses[]` MUST 仅包含该唯一签发方；部署声明也 MUST 公开承认此降级。
-   - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、`audit_assurance_class` 与 Space `audit_assurance` 不一致、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
+   - **失效处理**：若后续 backfill / witness / state verification 证明该 `cx.audit.accessed` 未进入 accepted history、canonical bytes 与回执不匹配、`audit_assurance_class` 与 Realm `audit_assurance` 不一致、或确权来源无权签发该回执，Audit Agent MUST 将对应解密会话标记为 `audit_receipt_invalidated`，并在重新输出明文前重新发布审计事件并等待新的确权回执。普通 redaction 不会抹除已发生访问的 verification stub，但客户端应在审计视图中显示 redaction 状态。
 4. **完成解密**：只有在接收到确权回执后，硬件飞地、HSM 或受控合规服务才被允许利用持有的 MLS 密钥将对应明文输出给合规人员。`cx.profile.disclosed_audit.e2ee.v1` MUST 按同一顺序执行并记录证明，但**对恶意持钥客户端不提供密码学阻断**——这是该 profile 的本质局限，不是实现缺陷。
 
 ### 4.1 RYW Receipt Schema
@@ -170,7 +170,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
   "issuer_role": "witness",
   "audit_event_id": "cx:event:019640a5-0000-7000-8000-000000000000",
   "audit_event_digest": "sha256:...",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "audit_actor_id": "did:web:audit-agent.example.com",
   "frontier": {
     "space_frontier": ["cx:event:..."],
@@ -223,13 +223,13 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `issuer_role` | yes | `events_api` / `witness` / `peer_node` 之一，标记 receipt 来源类型。 |
 | `audit_event_id` | yes | 对应的 `cx.audit.accessed` event 的 typed ID。 |
 | `audit_event_digest` | yes | `cx.audit.accessed` envelope 的 canonical digest（与该 envelope `proofs[].payload_hash` 一致）。 |
-| `space_id` | yes | `cx.audit.accessed` 所在 Space。 |
+| `realm_id` | yes | `cx.audit.accessed` 所在 Realm。 |
 | `audit_actor_id` | yes | 发起 audit 的 Audit Agent DID。 |
-| `frontier.space_frontier` | yes | 签发时 issuer 已 accepted 的 Space frontier。MUST 因果上 ≥ `audit_event_id`。 |
+| `frontier.space_frontier` | yes | 签发时 issuer 已 accepted 的 Realm frontier。MUST 因果上 ≥ `audit_event_id`。 |
 | `frontier.actor_frontier` | conditional | 至少包含 `audit_actor_id` 的 frontier。其它 actor frontier 由 issuer 选择性透出。 |
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
-| `witness_attestation` | yes | Witness attestation block。`witness_attestation.kind` 取值 `federation_witness_attested` / `single_source`；`witness_attestation.witnesses[]` 列出所有 attesting witnesses 的 `(issuer, verification_method, controlling_organization, attested_at)`。`kind` 取值 MUST 由 `witnesses[]` 的基数与独立性外部可验证地推导（`federation_witness_attested` 必须 `witnesses.length >= 2` 且 issuer / controlling_organization / verification_method 两两 distinct 且每个 issuer 出现在 Space `audit.ryw_witnesses[]`；`single_source` 必须 `witnesses.length == 1`）；不一致 MUST 拒绝并 `audit_receipt_invalidated`。独立性由可外部验证的 witness 列表表达，而不是单点自报。详细聚合规则见 §4.1.1。 |
-| `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Space `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
+| `witness_attestation` | yes | Witness attestation block。`witness_attestation.kind` 取值 `federation_witness_attested` / `single_source`；`witness_attestation.witnesses[]` 列出所有 attesting witnesses 的 `(issuer, verification_method, controlling_organization, attested_at)`。`kind` 取值 MUST 由 `witnesses[]` 的基数与独立性外部可验证地推导（`federation_witness_attested` 必须 `witnesses.length >= 2` 且 issuer / controlling_organization / verification_method 两两 distinct 且每个 issuer 出现在 Realm `audit.ryw_witnesses[]`；`single_source` 必须 `witnesses.length == 1`）；不一致 MUST 拒绝并 `audit_receipt_invalidated`。独立性由可外部验证的 witness 列表表达，而不是单点自报。详细聚合规则见 §4.1.1。 |
+| `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Realm `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
 | `audit_policy_version_hash` | yes | `(audit_disclosure, audit_assurance)` 在 receipt frontier 处的 canonical hash（`sha256` over canonical JSON `{audit_disclosure: <object>, audit_assurance: <string>}`）。让接收方 O(1) 校验"receipt 声明的 policy class 与 frontier 处实际 policy 一致"，无需重放事件。MUST 与 receipt frontier 处的 policy state 一致；不一致 fail closed (`audit_receipt_invalidated`)。 |
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
 
@@ -247,10 +247,10 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 1. **多 witness 覆盖**：`witness_attestation.witnesses[]` MUST `length >= 2`；所有 witnesses entries 对应的 RYW receipt（每条 `cx.audit.ryw_receipt` 对象有自己的 `proofs[]`）覆盖**同一** `audit_event_id` + `audit_event_digest`。Audit Agent 在解密前 MUST 同时持有这两条 receipt 并以聚合形式提交给接收方校验。
 2. **witness 独立性**：`witnesses[]` 中任意两个 entry 的 `(issuer, controlling_organization, verification_method)` 三元组 MUST 两两 distinct：
    - 不同 service DID（`issuer` 字段字符串不相等）；
-   - 不同 controlling organization（`controlling_organization` 字段必须能从 witness issuer DID Document 的 `controller` / service ownership 链或 Space policy 声明验证，不接受 witness 自报；且运营方不得与 audit actor 的 controlling organization 相同）；
+   - 不同 controlling organization（`controlling_organization` 字段必须能从 witness issuer DID Document 的 `controller` / service ownership 链或 Realm policy 声明验证，不接受 witness 自报；且运营方不得与 audit actor 的 controlling organization 相同）；
    - 不同 `verification_method` 控制密钥（不能是同一私钥不同 `kid`）。
 3. **frontier 一致性**：所有 witnesses entries 对应 receipt 的 `frontier.space_frontier` 在 `audit_event_id` 上 MUST 因果一致；frontier 不一致时 receipts 不能聚合为 `federation_witness_attested`，每条只能各自以 `single_source` 形态处理。
-4. **签发方授权**：每个 `witnesses[].issuer` MUST 都被 Space policy 声明为合法 RYW witness（`cx.space.policy_components` 下 `audit.ryw_witnesses[]`）。Policy 未列出的 issuer 即使签出有效 receipt 也不计入聚合。
+4. **签发方授权**：每个 `witnesses[].issuer` MUST 都被 Realm policy 声明为合法 RYW witness（`cx.realm.policy_components` 下 `audit.ryw_witnesses[]`）。Policy 未列出的 issuer 即使签出有效 receipt 也不计入聚合。
 
 `kind` 取值与 `witnesses[]` 不匹配（例如 `kind="federation_witness_attested"` 但 `witnesses.length == 1`，或 `kind="single_source"` 但 `witnesses.length >= 2`）MUST 直接 `audit_receipt_invalidated`。本规则不依赖任何 receipt 内部字段的"自报值"，只看 `witnesses[]` 列表与签发证据；单签发者跨多 receipt 持续声称 `federation_witness_attested` 是误用，接收方 MUST 把这种情况视为 `single_source`。
 

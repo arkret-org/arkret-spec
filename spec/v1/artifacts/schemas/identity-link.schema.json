@@ -2,14 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/identity-link.schema.json",
   "title": "Contrix Minimal-Metadata Identity Link",
-  "description": "Encrypted application-message or MLS private-extension payload that binds a room-scoped pairwise DID to the real principal DID for cx.profile.mls.minimal_metadata_space.v1. This object is never written to public Space history unless a separate disclosure policy explicitly permits it.",
+  "description": "Encrypted application-message or MLS private-extension payload that binds a room-scoped pairwise DID to the real principal DID for cx.profile.mls.minimal_metadata_space.v1. This object is never written to public Realm history unless a separate disclosure policy explicitly permits it.",
   "type": "object",
   "required": [
     "schema",
     "pairwise_did",
     "principal_did",
     "device_id",
-    "space_id",
+    "realm_id",
     "mls_leaf_index",
     "mls_epoch",
     "effective_at",
@@ -39,9 +39,9 @@
       "type": "string",
       "pattern": "^cx:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
@@ -85,7 +85,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[^\\s#]+#[^\\s#]+$",
-          "description": "DID URL of a key controlled by principal_did or by a disclosure proof accepted by Space policy."
+          "description": "DID URL of a key controlled by principal_did or by a disclosure proof accepted by Realm policy."
         },
         "signature_algorithm": {
           "type": "string",

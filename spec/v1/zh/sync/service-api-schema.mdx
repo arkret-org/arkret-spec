@@ -48,7 +48,7 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | 服务发现 | `cx.server.*` | `/server/*` |
 | 身份与 registry | `cx.identity.*` | `/identity/*` |
 | Events | `cx.events.*` | `/events/*` |
-| 客户端同步与 Space 同步 | `cx.sync.*` | `/sync/*` |
+| 客户端同步与 Realm 同步 | `cx.sync.*` | `/sync/*` |
 | 目录发现 | `cx.directory.*` | `/directory/*` |
 | Blob / media | `cx.blob.*` | `/blob/*` |
 | 推送 | `cx.push.*` | `/push/*` |
@@ -143,10 +143,10 @@ paths:
   /directory/describe:
     get:
       operationId: cx.directory.describe
-  /directory/search-spaces:
+  /directory/search-realms:
     post:
       operationId: cx.directory.search_spaces
-  /directory/resolve-space:
+  /directory/resolve-realm:
     post:
       operationId: cx.directory.resolve_space
   /directory/search-organizations:
@@ -290,7 +290,7 @@ paths:
   /applet/actors/{actor_id}:
     get:
       operationId: cx.applet.query_actor
-  /applet/spaces/{space_id_or_alias}:
+  /applet/realms/{realm_id_or_alias}:
     get:
       operationId: cx.applet.query_space
   /applet/protocols/{protocol}:
@@ -328,7 +328,7 @@ paths:
 | `cx.policy.check` | `POST /contrix/v1/check` | policy 本地调用 |
 | `cx.media.ice_config` | `POST /contrix/v1/ice-config` | Media service / TURN credential adapter |
 | `cx.moderation.report` | `POST /moderation/report` | Moderation queue / local compliance workflow |
-| `cx.applet.transaction` / `cx.applet.query_actor` / `cx.applet.query_space` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/spaces/{space_id_or_alias}` | Applet webhook / bridge adapter |
+| `cx.applet.transaction` / `cx.applet.query_actor` / `cx.applet.query_space` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 
 ### 4.1 Generated Full Inventory
 
@@ -347,7 +347,7 @@ paths:
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - 实现不得因为支持 core Event/Sync 就默认声称支持目录、MIMI、账户、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
 - `/contrix/v1/*` 是服务本地绝对路径，不挂在 `/api/v1` 下。生成 OpenAPI 时必须为这些 path 使用 path-level `servers` 或拆成独立文档。
-- `POST /sync`（`cx.sync.account`）是客户端账号视角聚合同步（跨 Space delta + to_device + account_data + device_lists + presence）；`GET /events`（`cx.events.query`，可双向）是按 selector 的事件查询/历史回补；`GET /events/subscribe`（`cx.events.subscribe`，可携 history catchup）是按 selector 的事件流订阅。三类操作的 selector、auth、frame schema 与 freshness 行为不同，不得互相替代，也不得新增未声明的 canonical sync / events endpoint。
+- `POST /sync`（`cx.sync.account`）是客户端账号视角聚合同步（跨 Realm delta + to_device + account_data + device_lists + presence）；`GET /events`（`cx.events.query`，可双向）是按 selector 的事件查询/历史回补；`GET /events/subscribe`（`cx.events.subscribe`，可携 history catchup）是按 selector 的事件流订阅。三类操作的 selector、auth、frame schema 与 freshness 行为不同，不得互相替代，也不得新增未声明的 canonical sync / events endpoint。
 - 生成的 OpenAPI MUST 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme MUST NOT 定义 query string token 认证；受保护 endpoint 只能使用 header / signature / mTLS / signed proof body 等认证方式。
 - Blob / media endpoint 的 schema MUST 显式声明 `Content-Type`、`Content-Disposition`、`Range`、`Content-Range`、`Location` 和缓存头行为，避免通过 header 泄露不可见资源。

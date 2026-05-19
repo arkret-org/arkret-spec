@@ -10,7 +10,7 @@ sidebar:
 > 下方的 schema id 表与 event kind 表由 `artifacts/registry/*.json` 渲染得到;两者不一致时 **JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。
 > 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 各 `*-registry.json` 与本文表格一并刷新;不得只手工编辑本文表格。
 
-字段级结构定义见 `../models/common-fields.md` 及各对象专属文件（`space-and-place.md` / `flow-and-message.md` / `morph.md` / `relation.md` / `actor.md` / `governance-objects.md` / `private-objects.md` / `event-and-patch.md`）。
+字段级结构定义见 `../models/common-fields.md` 及各对象专属文件（`realm-and-space.md` / `flow-and-message.md` / `morph.md` / `relation.md` / `actor.md` / `governance-objects.md` / `private-objects.md` / `event-and-patch.md`）。
 
 机器可读真源(authoritative,本文表格只是其投影):
 
@@ -27,7 +27,7 @@ sidebar:
 
 | schema id | kind |
 | --- | --- |
-| `cx.schema.space.v1` | Space |
+| `cx.schema.realm.v1` | Realm |
 | `cx.schema.actor_profile.v1` | Actor Profile |
 | `cx.schema.flow.v1` | Flow |
 | `cx.schema.message.v1` | Message |
@@ -69,7 +69,7 @@ sidebar:
 
 - 标准事件必须使用命名空间：`cx.<domain>[.<subdomain>].<verb>`。
 - 所有标准事件必须是 `cx.` 前缀。
-- 裸名事件（例如 `space.create`）不是标准事件。
+- 裸名事件（例如 `realm.create`）不是标准事件。
 - 自由字符串事件（如 `custom.*`）不能直接登记标准事件，需要通过自定义 schema + capability / state filter 映射。
 
 ### 3.2 wire scope 语义
@@ -84,29 +84,28 @@ sidebar:
 
 ## 4. Event kind 注册表（文档视图）
 
-### 4.1 Space 与 Flow
+### 4.1 Realm 与 Flow
 
 | event type | payload |
 | --- | --- |
-| `cx.space.create` | Space create |
-| `cx.space.update` | Space patch |
-| `cx.space.upgrade` | Space version upgrade |
-| `cx.space.organization` | Space official sponsor statement |
-| `cx.space.child` | Child space link |
-| `cx.space.parent` | Parent space link |
-| `cx.space.inheritance_policy` | Per-parent policy inheritance declaration (subject=`payload.parent_space_id`) |
-| `cx.space.join_rule` | Join rule state |
-| `cx.space.history_visibility` | History visibility state |
-| `cx.space.discovery` | Discoverability state |
-| `cx.space.policy` | Space policy state |
-| `cx.space.read_receipt_policy` | Space read receipt disclosure policy state |
-| `cx.space.tombstone` | Terminal Space tombstone or replacement marker |
-| `cx.space.archive` | Reversible archive state |
-| `cx.space.freeze` | Temporary freeze state |
-| `cx.space.destroy` | Terminal decommission marker |
+| `cx.realm.create` | Realm create |
+| `cx.realm.update` | Realm patch |
+| `cx.realm.upgrade` | Realm version upgrade |
+| `cx.realm.organization` | Realm official sponsor statement |
+| `cx.realm.link` | Typed Realm link graph edge |
+| `cx.realm.inheritance_policy` | Per-parent policy inheritance declaration (subject=`payload.parent_realm_id`) |
+| `cx.realm.join_rule` | Join rule state |
+| `cx.realm.history_visibility` | History visibility state |
+| `cx.realm.discovery` | Discoverability state |
+| `cx.realm.policy` | Realm policy state |
+| `cx.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
+| `cx.realm.tombstone` | Terminal Realm tombstone or replacement marker |
+| `cx.realm.archive` | Reversible archive state |
+| `cx.realm.freeze` | Temporary freeze state |
+| `cx.realm.destroy` | Terminal decommission marker |
 | `cx.member.state` | Membership state |
 
-> `space.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `cx.*` 前缀，也不得作为 Event envelope 的 `kind`。
+> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `cx.*` 前缀，也不得作为 Event envelope 的 `kind`。
 | `cx.flow.create` | Flow create |
 | `cx.flow.update` | Flow patch |
 | `cx.flow.archive` | Flow archive |
@@ -115,12 +114,12 @@ sidebar:
 | `cx.flow.reorder` | Flow reorder within List |
 | `cx.flow.tracks.update` | Flow tracks map patch（`cx.patch.v1` payload；详见 [`../models/flow-and-message.md` §4.8](../models/flow-and-message.md)） |
 | `cx.flow.watch.set` | Set / clear per-(flow, actor) watch subscription (writes cas-register cell `cx.component.flow.watch.v1`; derives `watches` Relation) |
-| `cx.place.create` | Place create (board / list / swimlane / calendar bucket / ...) |
-| `cx.place.update` | Place metadata patch |
-| `cx.place.parent` | Place parent declaration (cas-register cell) |
-| `cx.place.archive` | Place archive (reversible UI hide) |
-| `cx.place.restore` | Place restore (archived -> active; only valid when current state == archived) |
-| `cx.place.tombstone` | Place tombstone (irreversible; contained Flows MUST be relocated first) |
+| `cx.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
+| `cx.space.update` | Space metadata patch |
+| `cx.space.parent` | Space parent declaration (cas-register cell) |
+| `cx.space.archive` | Space archive (reversible UI hide) |
+| `cx.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
+| `cx.space.tombstone` | Space tombstone (irreversible; contained Flows MUST be relocated first) |
 
 ### 4.2 消息与关系
 
@@ -154,7 +153,7 @@ sidebar:
 | `cx.account.status` | Signed account lifecycle status |
 | `cx.profile.create` | Actor profile create |
 | `cx.profile.update` | Actor profile patch |
-| `cx.profile.space_override` | Space-scoped profile override |
+| `cx.profile.space_override` | Realm-scoped profile override |
 | `cx.audit.accessed` | Auditable access |
 | `cx.moderation.report` | Moderation report |
 | `cx.key.verification.request` | Device key verification request |
@@ -181,9 +180,9 @@ sidebar:
 | `cx.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
 | `cx.mls.welcome` | MLS welcome ref |
 | `cx.mls.keypackage` | MLS KeyPackage publication |
-| `cx.space_key.share` | Space key share |
-| `cx.space_key.withheld` | Space key withheld notice |
-| `cx.space_key.share_audit` | Auditable history key share marker |
+| `cx.realm_key.share` | Realm key share |
+| `cx.realm_key.withheld` | Realm key withheld notice |
+| `cx.realm_key.share_audit` | Auditable history key share marker |
 | `cx.agent.endpoint` | Agent protocol endpoint declaration |
 | `cx.agent.protocol_session.start` | Agent protocol session start |
 | `cx.agent.protocol_session.status` | Agent protocol session status |

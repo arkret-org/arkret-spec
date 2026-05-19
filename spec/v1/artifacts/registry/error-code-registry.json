@@ -65,7 +65,7 @@
       "code": "space_frozen",
       "http_status": 403,
       "scope": "both",
-      "description": "The target Space is frozen, archived, tombstoned, or otherwise closed to ordinary writes."
+      "description": "The target Realm is frozen, archived, tombstoned, or otherwise closed to ordinary writes."
     },
     {
       "code": "claim_required",
@@ -77,7 +77,7 @@
       "code": "policy_violation",
       "http_status": 403,
       "scope": "both",
-      "description": "A space-level policy refuses the requested write or fanout (read-receipts §2.5: cx.receipt.read drops when disclosure='disabled'; retry_after_ms is null because retry will not change the outcome)."
+      "description": "A realm-level policy refuses the requested write or fanout (read-receipts §2.5: cx.receipt.read drops when disclosure='disabled'; retry_after_ms is null because retry will not change the outcome)."
     },
     {
       "code": "not_found",
@@ -227,7 +227,7 @@
       "code": "stale_peer",
       "http_status": 409,
       "scope": "service_call",
-      "description": "A federation high-assurance peer has missed proactive frontier probes or produced invalid/divergent frontier evidence and is quarantined for the affected Space until fork resolution succeeds. See zh/sync/federation.md §4.5.3."
+      "description": "A federation high-assurance peer has missed proactive frontier probes or produced invalid/divergent frontier evidence and is quarantined for the affected Realm until fork resolution succeeds. See zh/sync/federation.md §4.5.3."
     },
     {
       "code": "cursor_expired",
@@ -275,31 +275,31 @@
       "code": "policy_combination_invalid",
       "http_status": 422,
       "scope": "both",
-      "description": "The submitted Space policy combination (discoverability × join_rule × history_visibility) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.x. Reducer keeps the prior accepted state."
+      "description": "The submitted Realm policy combination (discoverability × join_rule × history_visibility) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.x. Reducer keeps the prior accepted state."
     },
     {
       "code": "anchorer_recovery_missing",
       "http_status": 422,
       "scope": "both",
-      "description": "Space create rejected: anchor_profile=single_did was declared without a recovery_anchorer in a different controlling organization, in violation of zh/authz/event-auth-state-resolution.md §9.3."
+      "description": "Realm create rejected: anchor_profile=single_did was declared without a recovery_anchorer in a different controlling organization, in violation of zh/authz/event-auth-state-resolution.md §9.3."
     },
     {
       "code": "unsupported_lattice_type",
       "http_status": 422,
       "scope": "both",
-      "description": "The implementation does not support a lattice type referenced by the Space schema (e.g., lww-register or rga without cx.profile.collaborative_text.v1). Receivers fail closed."
+      "description": "The implementation does not support a lattice type referenced by the Realm schema (e.g., lww-register or rga without cx.profile.collaborative_text.v1). Receivers fail closed."
     },
     {
       "code": "profile_unsupported",
       "http_status": 422,
       "scope": "both",
-      "description": "Caller requested an operation that relies on a Space-declared profile or feature this service has not declared in cx.server.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation."
+      "description": "Caller requested an operation that relies on a Realm-declared profile or feature this service has not declared in cx.server.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation."
     },
     {
       "code": "failed_precondition",
       "http_status": 409,
       "scope": "both",
-      "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {flow,place,morph,message,relation}_not_active / _not_archived / _already_terminal family, or with object-specific reasons like place_parent_cycle. See zh/models/common-fields.md §5.1."
+      "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {flow,space,morph,message,relation}_not_active / _not_archived / _already_terminal family, or with object-specific reasons like space_parent_cycle. See zh/models/common-fields.md §5.1."
     },
     {
       "code": "unsupported_hash",
@@ -371,7 +371,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "Service is not in the Space's plaintext_visible_services policy; plaintext-bound operation refused."
+      "description": "Service is not in the Realm's plaintext_visible_services policy; plaintext-bound operation refused."
     },
     {
       "code": "audit_receipt_invalidated",
@@ -566,7 +566,7 @@
       "applies_to": [
         "moderation_decision"
       ],
-      "description": "Cross-Space abuse network signal aggregated by moderation server."
+      "description": "Cross-Realm abuse network signal aggregated by moderation server."
     },
     {
       "code": "abuse_review",
@@ -597,7 +597,7 @@
         "client_sync",
         "snapshot_verification"
       ],
-      "description": "Snapshot signer's authority (Space owner / admin / trusted snapshot issuer / witness quorum membership) was revoked at or before the manifest's `created_at`, or revoke freshness cannot be confirmed within the verifier's max_anchor_staleness_ms. Client MUST quarantine or reject the snapshot. A revoke that takes effect strictly after `created_at` does not retroactively invalidate a previously valid snapshot."
+      "description": "Snapshot signer's authority (Realm owner / admin / trusted snapshot issuer / witness quorum membership) was revoked at or before the manifest's `created_at`, or revoke freshness cannot be confirmed within the verifier's max_anchor_staleness_ms. Client MUST quarantine or reject the snapshot. A revoke that takes effect strictly after `created_at` does not retroactively invalidate a previously valid snapshot."
     },
     {
       "code": "reducer_profile_mismatch",
@@ -605,7 +605,7 @@
         "federation_transaction",
         "service_call"
       ],
-      "description": "Federation push / pull body's service_binding_ref.reducer_profile_hash differs from the receiver's reducer profile for the target Space. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and covered_frontier — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Space policy update or terminate federation for this Space."
+      "description": "Federation push / pull body's service_binding_ref.reducer_profile_hash differs from the receiver's reducer profile for the target Realm. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and covered_frontier — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Realm policy update or terminate federation for this Realm."
     },
     {
       "code": "federation_authority_mismatch",
@@ -613,7 +613,7 @@
         "federation_transaction",
         "service_call"
       ],
-      "description": "HTTP Message Signature @authority / target URI host does not match the resolved service endpoint for Destination-Service-DID, or the Destination-Service-DID is not authorized by Space policy for the requested federation operation. Receiver MUST reject before processing events."
+      "description": "HTTP Message Signature @authority / target URI host does not match the resolved service endpoint for Destination-Service-DID, or the Destination-Service-DID is not authorized by Realm policy for the requested federation operation. Receiver MUST reject before processing events."
     },
     {
       "code": "selector_too_complex",
@@ -661,7 +661,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An `attested_hardware` audit profile removed an Audit Agent without the enclave-signed epoch key destruction attestation required by audited-e2ee.md. The Audit Agent is treated as still holding historical epoch keys; the Space MUST drop the `attested_hardware` claim and surface a downgrade banner."
+      "description": "An `attested_hardware` audit profile removed an Audit Agent without the enclave-signed epoch key destruction attestation required by audited-e2ee.md. The Audit Agent is treated as still holding historical epoch keys; the Realm MUST drop the `attested_hardware` claim and surface a downgrade banner."
     },
     {
       "code": "audit_agent_remove_requires_paired_destruction_attestation",
@@ -717,7 +717,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation envelope signature does not verify against the source Space's declared export_policy_authorities[]."
+      "description": "source_export_policy_attestation envelope signature does not verify against the source Realm's declared export_policy_authorities[]."
     },
     {
       "code": "source_export_attestation_denied",
@@ -733,7 +733,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation `import_destination_space_id` does not pin the mirror Space the import_attestation actually targets."
+      "description": "source_export_policy_attestation `import_destination_realm_id` does not pin the mirror Realm the import_attestation actually targets."
     },
     {
       "code": "source_export_content_hash_mismatch",
@@ -757,7 +757,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "source_export_policy_attestation `authority_did` is not in the source Space's declared export_policy_authorities[]."
+      "description": "source_export_policy_attestation `authority_did` is not in the source Realm's declared export_policy_authorities[]."
     },
     {
       "code": "cardinality_violation",
@@ -765,7 +765,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An event violates a declared relation / cell cardinality constraint (e.g. agent_workspace mirror Space declares 1:1 derived_from but the second mirror is being created from the same source)."
+      "description": "An event violates a declared relation / cell cardinality constraint (e.g. agent_workspace mirror Realm declares 1:1 derived_from but the second mirror is being created from the same source)."
     },
     {
       "code": "claim_failed",
@@ -789,7 +789,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space declares both cx.profile.e2ee_relaxed.v1 and cx.profile.mls_governance_binding.full.v1; these are mutually exclusive (encryption-and-audit.md §2.4.2)."
+      "description": "Realm declares both cx.profile.e2ee_relaxed.v1 and cx.profile.mls_governance_binding.full.v1; these are mutually exclusive (encryption-and-audit.md §2.4.2)."
     },
     {
       "code": "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
@@ -797,7 +797,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space attempts to set mls_send_pause='advisory' without declaring cx.profile.e2ee_relaxed.v1; default profile MUST treat mls_send_pause as a MUST gate."
+      "description": "Realm attempts to set mls_send_pause='advisory' without declaring cx.profile.e2ee_relaxed.v1; default profile MUST treat mls_send_pause as a MUST gate."
     },
     {
       "code": "conflicting_agent_workspace_profiles",
@@ -805,7 +805,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space declares both cx.profile.agent_workspace.lite.v1 and cx.profile.agent_workspace.governed.v1; these are mutually exclusive."
+      "description": "Realm declares both cx.profile.agent_workspace.lite.v1 and cx.profile.agent_workspace.governed.v1; these are mutually exclusive."
     },
     {
       "code": "lite_profile_writes_disallowed_event_kind",
@@ -813,7 +813,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space declares cx.profile.agent_workspace.lite.v1 but a cx.agent_task.transparency.transition / source_authority.transition event was submitted; lite profile rejects these cells."
+      "description": "Realm declares cx.profile.agent_workspace.lite.v1 but a cx.agent_task.transparency.transition / source_authority.transition event was submitted; lite profile rejects these cells."
     },
     {
       "code": "flow_not_active",
@@ -840,36 +840,36 @@
       "description": "A `cx.redaction` event targeting a Flow is rejected because the target Flow is already in terminal state `redacted`. Flow terminal state is reached via cx.redaction."
     },
     {
-      "code": "place_not_active",
+      "code": "space_not_active",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`cx.place.archive` rejected because the target Place is not in `active` state (per zh/models/space-and-place.md §4.3)."
+      "description": "`cx.space.archive` rejected because the target Space is not in `active` state (per zh/models/realm-and-space.md §4.3)."
     },
     {
-      "code": "place_not_archived",
+      "code": "space_not_archived",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`cx.place.restore` rejected because the target Place is not in `archived` state; `tombstoned` is a terminal state and MUST NOT be restored."
+      "description": "`cx.space.restore` rejected because the target Space is not in `archived` state; `tombstoned` is a terminal state and MUST NOT be restored."
     },
     {
-      "code": "place_already_terminal",
+      "code": "space_already_terminal",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`cx.place.tombstone` rejected because the target Place is already `tombstoned`."
+      "description": "`cx.space.tombstone` rejected because the target Space is already `tombstoned`."
     },
     {
-      "code": "place_parent_cycle",
+      "code": "space_parent_cycle",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`cx.place.parent` would create a cycle in the Place ancestor chain (self-loop or chain loop). Reducer MUST reject (zh/models/space-and-place.md §4.5)."
+      "description": "`cx.space.parent` would create a cycle in the Space ancestor chain (self-loop or chain loop). Reducer MUST reject (zh/models/realm-and-space.md §4.5)."
     },
     {
       "code": "morph_not_active",
@@ -1021,7 +1021,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "Per-(requester, target, intended_space_id) KeyPackage / one-time-key claim rate limit hit; caller MUST back off before retrying. Distinct from the global `rate_limited` HTTP code because the limit is keyed on the (target, intended use) tuple, not the caller alone."
+      "description": "Per-(requester, target, intended_realm_id) KeyPackage / one-time-key claim rate limit hit; caller MUST back off before retrying. Distinct from the global `rate_limited` HTTP code because the limit is keyed on the (target, intended use) tuple, not the caller alone."
     },
     {
       "code": "naming_convention_violation",
@@ -1066,7 +1066,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "A `cx.patch.v1` patch path attempts to modify a reducer-managed field (`id` / `schema` / `space_id` / `created_by` / `created_at` / `state` / `state_changed_at`). These fields are owned by their corresponding lifecycle events; patch MUST NOT touch them. See zh/models/event-and-patch.md §4.2.5."
+      "description": "A `cx.patch.v1` patch path attempts to modify a reducer-managed field (`id` / `schema` / `realm_id` / `created_by` / `created_at` / `state` / `state_changed_at`). These fields are owned by their corresponding lifecycle events; patch MUST NOT touch them. See zh/models/event-and-patch.md §4.2.5."
     },
     {
       "code": "patch_unset_redactable_field",
@@ -1119,7 +1119,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An MLS Welcome arrived with a `claim_envelope` whose canonical signing input does not match the Welcome's actual intended_space_id / claim_id / requester_did, or the envelope signature does not chain to the Welcome sender's self-signing key. See zh/crypto-media/encryption-and-audit.md §2.6."
+      "description": "An MLS Welcome arrived with a `claim_envelope` whose canonical signing input does not match the Welcome's actual intended_realm_id / claim_id / requester_did, or the envelope signature does not chain to the Welcome sender's self-signing key. See zh/crypto-media/encryption-and-audit.md §2.6."
     },
     {
       "code": "delegation_cycle",
@@ -1190,7 +1190,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "Reading the full per-Flow watch state (including `muted` entries) requires both `cx.space.notification.audit` and `cx.audit.accessed` capabilities; one was missing. See zh/models/flow-and-message.md §8.5."
+      "description": "Reading the full per-Flow watch state (including `muted` entries) requires both `cx.realm.notification.audit` and `cx.audit.accessed` capabilities; one was missing. See zh/models/flow-and-message.md §8.5."
     },
     {
       "code": "watch_must_be_self",
@@ -1226,7 +1226,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A structural `contains` Relation was submitted that would cross Space boundaries. Structural containment (Board → List → Flow / Place hierarchy) MUST stay within a single Space; cross-Space links use the dedicated `cx.relation.*` non-structural kinds. See zh/models/relation.md §4."
+      "description": "A structural `contains` Relation was submitted that would cross Realm boundaries. Structural containment (Board → List → Flow / Space hierarchy) MUST stay within a single Realm; cross-Realm links use the dedicated `cx.relation.*` non-structural kinds. See zh/models/relation.md §4."
     },
     {
       "code": "join_authorisation_invalid",
@@ -1242,15 +1242,15 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Space `cx.space.join_rule` and `cx.space.policy_components` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §4."
+      "description": "Realm `cx.realm.join_rule` and `cx.realm.policy_components` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §4."
     },
     {
-      "code": "place_has_live_dependents",
+      "code": "space_has_live_dependents",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`cx.place.tombstone` cannot proceed because the target Place still has active `contains` Relations or non-tombstoned child Places. See zh/models/space-and-place.md §4.4."
+      "description": "`cx.space.tombstone` cannot proceed because the target Space still has active `contains` Relations or non-tombstoned child Spaces. See zh/models/realm-and-space.md §4.4."
     },
     {
       "code": "ttl_expired",
@@ -1266,7 +1266,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "The requested principal / service / Space is recognised by the registry but no provisioning exists at this endpoint — caller should bootstrap or pick another host. See zh/sync/service-http-binding.md."
+      "description": "The requested principal / service / Realm is recognised by the registry but no provisioning exists at this endpoint — caller should bootstrap or pick another host. See zh/sync/service-http-binding.md."
     },
     {
       "code": "morph_schema_refs_evolution_unauthorized",
@@ -1274,14 +1274,14 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "cx.morph.update attempted to modify schema_refs[] without going through the Space's declared schema-evolution policy (high-tier capability such as cx.morph.schema.migrate, or equivalent) and an explicit audit-grade authorization_ref. See zh/models/morph.md §4.1 S2."
+      "description": "cx.morph.update attempted to modify schema_refs[] without going through the Realm's declared schema-evolution policy (high-tier capability such as cx.morph.schema.migrate, or equivalent) and an explicit audit-grade authorization_ref. See zh/models/morph.md §4.1 S2."
     },
     {
       "code": "morph_schema_refs_transformation_unsupported",
       "applies_to": [
         "event_envelope"
       ],
-      "description": "cx.morph.update attempted a non-additive schema_refs[] transformation (breaking or transformation-class change). Such transformations MUST be expressed as a cx.morph.schema_migrate event and require the Space to declare the cx.profile.morph.schema_migration_transformations.v1 opt-in profile. See zh/models/morph.md §4.1 S3."
+      "description": "cx.morph.update attempted a non-additive schema_refs[] transformation (breaking or transformation-class change). Such transformations MUST be expressed as a cx.morph.schema_migrate event and require the Realm to declare the cx.profile.morph.schema_migration_transformations.v1 opt-in profile. See zh/models/morph.md §4.1 S3."
     },
     {
       "code": "morph_schema_version_binding_missing",

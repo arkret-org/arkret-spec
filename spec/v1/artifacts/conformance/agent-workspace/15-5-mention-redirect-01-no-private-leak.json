@@ -6,7 +6,7 @@
     "source_flow_id": "cx:flow:01964200-0000-7000-8000-000000000011",
     "reader_actor_id": "did:web:charlie.example",
     "reader_is_third_party": true,
-    "comment": "Charlie is a member of source Flow but neither controller of the agent nor a mirror Space member."
+    "comment": "Charlie is a member of source Flow but neither controller of the agent nor a mirror Realm member."
   },
   "input_event": {
     "kind": "cx.message.create",
@@ -40,7 +40,7 @@
       "redirect_pair_id"
     ],
     "reader_must_not_observe": [
-      "mirror_space_id",
+      "mirror_realm_id",
       "mirror_flow_id",
       "mirror_event_id",
       "agent_task_id",

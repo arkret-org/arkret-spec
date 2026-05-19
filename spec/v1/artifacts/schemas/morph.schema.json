@@ -6,7 +6,7 @@
   "required": [
     "id",
     "schema",
-    "space_id",
+    "realm_id",
     "schema_refs",
     "morph_type",
     "created_by",
@@ -26,9 +26,9 @@
     "schema": {
       "const": "cx.schema.morph.v1"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema_refs": {
       "type": "array",
@@ -80,7 +80,7 @@
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.morph.archive / cx.morph.restore / redaction Event. Aligns with Place.state_changed_at and the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding cx.morph.archive / cx.morph.restore / redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "created_by": {
       "$ref": "#/$defs/did"

@@ -2,7 +2,7 @@
   "profile": "cx.profile.move_anchor_lattice_vectors.v1",
   "version": "2026-05-07",
   "notes": [
-    "Move objects in these vectors describe protocol-level semantics. Wire-required Move fields space_id, hlc, and sig are elided for readability; conformance runners that re-emit these vectors as wire bytes MUST fill them in (any valid space_id/hlc/sig that does not change the precondition-effect-anchor_ref triple).",
+    "Move objects in these vectors describe protocol-level semantics. Wire-required Move fields realm_id, hlc, and sig are elided for readability; conformance runners that re-emit these vectors as wire bytes MUST fill them in (any valid realm_id/hlc/sig that does not change the precondition-effect-anchor_ref triple).",
     "Anchor objects similarly elide hlc, anchorer_sig, and (when not material) state_root.",
     "Cell ids follow cx:cell:<component>:<subject>; subject in fixtures uses safe placeholder ULIDs and dotted DID forms (did.web.alice.example) rather than colon-bearing DIDs to keep cell ids unambiguous."
   ],
@@ -94,7 +94,7 @@
     {
       "name": "cas_register_conflict_returns_bottom",
       "description": "Two anchored Moves concurrently set the same cas-register cell. Query returns structured bottom rather than choosing a winner.",
-      "cell": "cx:cell:cx.component.space.policy.v1:cx.space.0196419b-0000-7000-8000-000000000000",
+      "cell": "cx:cell:cx.component.realm.policy.v1:cx.realm.0196419b-0000-7000-8000-000000000000",
       "lattice": {
         "type": "cas-register",
         "bottom": "reject"
@@ -109,7 +109,7 @@
           "bottom": {
             "kind": "conflict",
             "cells": [
-              "cx:cell:cx.component.space.policy.v1:cx.space.0196419b-0000-7000-8000-000000000000"
+              "cx:cell:cx.component.realm.policy.v1:cx.realm.0196419b-0000-7000-8000-000000000000"
             ],
             "event_ids": [
               "cx:event:84210842-1084-7108-8210-842108421084",
@@ -155,7 +155,7 @@
         ],
         "preconditions": [
           {
-            "cell": "cx:cell:cx.component.covered_frontier.v1:cx.space.0196419b-0000-7000-8000-000000000000",
+            "cell": "cx:cell:cx.component.covered_frontier.v1:cx.realm.0196419b-0000-7000-8000-000000000000",
             "predicate": {
               "op": "contains",
               "value": "cx:anchor:sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -170,7 +170,7 @@
     },
     {
       "name": "anchorer_cell_bottom_pauses_space_until_recovery",
-      "description": "When the anchorer cell resolves to ⊥ (concurrent set on cas-register), the Space enters anchorer_paused. Only recovery_members declared at genesis MAY sign a recovery Anchor that re-anchors the anchorer cell to a new value.",
+      "description": "When the anchorer cell resolves to ⊥ (concurrent set on cas-register), the Realm enters anchorer_paused. Only recovery_members declared at genesis MAY sign a recovery Anchor that re-anchors the anchorer cell to a new value.",
       "anchor_profile": "mixed",
       "genesis_anchorer": {
         "type": "mixed",

@@ -21,12 +21,12 @@
       "file": "schemas/content-source-export-policy-attestation.schema.json"
     },
     {
-      "schema_id": "cx.schema.space.v1",
-      "file": "schemas/space.schema.json"
+      "schema_id": "cx.schema.realm.v1",
+      "file": "schemas/realm.schema.json"
     },
     {
-      "schema_id": "cx.schema.place.v1",
-      "file": "schemas/place.schema.json"
+      "schema_id": "cx.schema.space.v1",
+      "file": "schemas/space.schema.json"
     },
     {
       "schema_id": "cx.schema.actor_profile.v1",

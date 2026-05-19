@@ -118,7 +118,7 @@
   "identity_extension_profiles": [
     "cx.profile.public_network_identity.v1",
     "cx.profile.org_high_assurance_identity.v1",
-    "cx.profile.principal_control_space.v1"
+    "cx.profile.principal_control_realm.v1"
   ],
   "deployment_profiles": [
     "cx.profile.personal_node.v1",
@@ -196,7 +196,7 @@
     "cx.profile.high_security_organization.v1": "admin",
     "cx.profile.isolated_sovereign_network.v1": "admin",
     "cx.profile.sovereign_deployment.v1": "admin",
-    "cx.profile.principal_control_space.v1": "admin",
+    "cx.profile.principal_control_realm.v1": "admin",
     "cx.profile.constraint.approval_workflow.v1": "admin",
     "cx.profile.constraint.claim_based.v1": "admin",
     "cx.profile.constraint.encryption_requirement.v1": "admin",
@@ -309,7 +309,7 @@
         "cx.events.frontier"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state"
       ],
       "rejected_event_kinds": [
@@ -363,7 +363,7 @@
         "cx.events.query"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state",
         "cx.flow.create",
         "cx.message.create",
@@ -375,7 +375,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.space.v1",
+        "cx.schema.realm.v1",
         "cx.schema.flow.v1",
         "cx.schema.message.v1",
         "cx.schema.client_sync_response.v1"
@@ -415,7 +415,7 @@
         "cx.events.query"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state",
         "cx.flow.create",
         "cx.flow.update",
@@ -426,7 +426,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.space.v1",
+        "cx.schema.realm.v1",
         "cx.schema.flow.v1",
         "cx.schema.relation.v1",
         "cx.schema.view.v1"
@@ -462,12 +462,12 @@
         "cx.events.query"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.space.v1",
+        "cx.schema.realm.v1",
         "cx.schema.flow.v1",
         "cx.schema.message.v1",
         "cx.schema.morph.v1",
@@ -506,7 +506,7 @@
         "cx.authz.check"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state",
         "cx.flow.create",
         "cx.message.create",
@@ -567,9 +567,9 @@
         "cx.mls.proposal",
         "cx.mls.commit",
         "cx.mls.welcome",
-        "cx.space_key.share",
-        "cx.space_key.withheld",
-        "cx.space_key.share_audit"
+        "cx.realm_key.share",
+        "cx.realm_key.withheld",
+        "cx.realm_key.share_audit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -619,15 +619,15 @@
         "required": [
           "e2ee_relaxed"
         ],
-        "unsupported_optional": "Servers that do not advertise cx.feature.e2ee_relaxed.v1 MUST reject Space create / cx.space.policy_components writes that set mls_send_pause=\"advisory\" (reason: profile_unsupported / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
+        "unsupported_optional": "Servers that do not advertise cx.feature.e2ee_relaxed.v1 MUST reject Realm create / cx.realm.policy_components writes that set mls_send_pause=\"advisory\" (reason: profile_unsupported / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
       },
       "reducer_reject_reasons": [
         "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
         "conflicting_e2ee_profiles"
       ],
       "client_ui_requirements": {
-        "banner_warning": "Spaces declaring this profile MUST display a banner-level warning indicating that kick / ban is not cryptographically immediate; the warning MAY be temporarily collapsed but MUST NOT be permanently dismissable.",
-        "invite_warning": "When a user invites a new member, the UI SHOULD prompt with 'this Space uses degraded E2EE' so the invitee can make an informed decision.",
+        "banner_warning": "Realms declaring this profile MUST display a banner-level warning indicating that kick / ban is not cryptographically immediate; the warning MAY be temporarily collapsed but MUST NOT be permanently dismissable.",
+        "invite_warning": "When a user invites a new member, the UI SHOULD prompt with 'this Realm uses degraded E2EE' so the invitee can make an informed decision.",
         "export_marker": "Sync metadata / backup / export MUST preserve a `e2ee_relaxed=true` marker so downstream consumers know the cryptographic guarantee is relaxed."
       },
       "downgrade_window_constraint": {
@@ -636,7 +636,7 @@
         "max": 300000,
         "rationale": "Receiving client refuses to admit a message into verified timeline if the gap between receive_at and the most recent membership_change_at exceeds this window with old-epoch decryption."
       },
-      "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Space (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
+      "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
     },
     "cx.profile.enterprise_client.v1": {
       "inherits": [
@@ -691,7 +691,7 @@
         "cx.directory.withdraw"
       ],
       "required_event_kinds": [
-        "cx.space.discovery",
+        "cx.realm.discovery",
         "cx.organization.discovery",
         "cx.actor.discovery",
         "cx.applet.discovery",
@@ -742,7 +742,7 @@
         "cx.events.frontier"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state"
       ],
       "rejected_event_kinds": [
@@ -789,7 +789,7 @@
         "cx.authz.check"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state",
         "cx.flow.create",
         "cx.message.create",
@@ -830,7 +830,7 @@
       ],
       "required_endpoints": [],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state"
       ],
       "rejected_event_kinds": [
@@ -887,8 +887,8 @@
       },
       "additional_requirements": {
         "frontier_probe_capability_must": "Peer MUST expose capability-gated frontier probe endpoint per federation.md §4.5.1.",
-        "proactive_exchange_must": "Per federation-visible Space, per authorized peer, frontier probe interval MUST be <= 3600 seconds.",
-        "fail_state_must": "Three consecutive probe failures (peer unreachable, signature failure, frontier_root divergence beyond fork-resolution threshold) MUST mark the peer as 'stale_peer' for that Space.",
+        "proactive_exchange_must": "Per federation-visible Realm, per authorized peer, frontier probe interval MUST be <= 3600 seconds.",
+        "fail_state_must": "Three consecutive probe failures (peer unreachable, signature failure, frontier_root divergence beyond fork-resolution threshold) MUST mark the peer as 'stale_peer' for that Realm.",
         "stale_peer_behavior_must": "While a peer is in 'stale_peer' state: MUST quarantine its push payloads (no local frontier advancement); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after successful fork resolution (head reconvergence or quorum witness attestation alignment)."
       }
     },
@@ -996,8 +996,8 @@
         "cx.blob.head"
       ],
       "required_event_kinds": [
-        "cx.space.asset_privacy_policy",
-        "cx.space.media_service"
+        "cx.realm.asset_privacy_policy",
+        "cx.realm.media_service"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1059,7 +1059,7 @@
     },
     "cx.profile.push_gateway.blind_wakeup.v1": {
       "role": "gateway",
-      "description": "Default push gateway privacy baseline. Every implementation claiming cx.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Space id / name / avatar, Flow id / name, Message id, event id, device DID URL, reaction value, or any cross-Space stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
+      "description": "Default push gateway privacy baseline. Every implementation claiming cx.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Flow id / name, Message id, event id, device DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
       "required_endpoints": [
         "cx.push.notify"
       ],
@@ -1081,14 +1081,14 @@
         "unsupported_optional": "MUST fail closed; gateways unable to enforce blind wakeup MUST NOT claim cx.profile.push_gateway.v1"
       },
       "additional_requirements": {
-        "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Space id / name, Flow id / name, Message id, event id, device DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Space stable correlation key.",
+        "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Realm id / name, Flow id / name, Message id, event id, device DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Realm stable correlation key.",
         "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_service_did, principal, device, push_route); MUST NOT be reusable across Principal Server contexts.",
         "default_claim_must": "Any implementation claiming cx.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
       }
     },
     "cx.profile.push_gateway.visible_notification.v1": {
       "role": "gateway",
-      "description": "Opt-in push gateway profile for deployments that require visible notification fields (e.g. titles, sender labels) in provider payloads. Claiming this profile is permitted ONLY when (1) Space policy explicitly lists the gateway in plaintext_visible_services AND declares visible_notification allowance, (2) per-device opt-in is recorded in cx.device authorization state, and (3) the client UI clearly surfaces that visible-notification mode is active. Even when claimed, payloads MUST stay minimised: no message body, no DID URL, no cross-Space stable correlation key, no IP / geolocation, no free-form text outside the profile-declared field set. See zh/discovery/push-notifications.md §5.1.",
+      "description": "Opt-in push gateway profile for deployments that require visible notification fields (e.g. titles, sender labels) in provider payloads. Claiming this profile is permitted ONLY when (1) Realm policy explicitly lists the gateway in plaintext_visible_services AND declares visible_notification allowance, (2) per-device opt-in is recorded in cx.device authorization state, and (3) the client UI clearly surfaces that visible-notification mode is active. Even when claimed, payloads MUST stay minimised: no message body, no DID URL, no cross-Realm stable correlation key, no IP / geolocation, no free-form text outside the profile-declared field set. See zh/discovery/push-notifications.md §5.1.",
       "depends_on": [
         "cx.profile.push_gateway.v1"
       ],
@@ -1121,13 +1121,13 @@
           "device_opt_in_state",
           "ui_disclosure"
         ],
-        "unsupported_optional": "omit profile claim; deployments that cannot guarantee Space policy + device opt-in + UI disclosure MUST NOT claim this profile"
+        "unsupported_optional": "omit profile claim; deployments that cannot guarantee Realm policy + device opt-in + UI disclosure MUST NOT claim this profile"
       },
       "additional_requirements": {
-        "policy_gate_must": "Space policy MUST list the gateway service DID in plaintext_visible_services with visible_notification explicitly allowed.",
-        "device_opt_in_must": "Each receiving device MUST record an opt-in flag in its authorization state; absent opt-in, sender / Space service MUST fall back to blind wakeup.",
+        "policy_gate_must": "Realm policy MUST list the gateway service DID in plaintext_visible_services with visible_notification explicitly allowed.",
+        "device_opt_in_must": "Each receiving device MUST record an opt-in flag in its authorization state; absent opt-in, sender / Realm service MUST fall back to blind wakeup.",
         "ui_disclosure_must": "Client UI MUST clearly indicate visible notification is active to the user.",
-        "payload_minimisation_must": "Even when claimed, payload MUST NOT carry message body, DID URLs, cross-Space stable correlation keys, IP / geolocation, or untyped free-form text."
+        "payload_minimisation_must": "Even when claimed, payload MUST NOT carry message body, DID URLs, cross-Realm stable correlation keys, IP / geolocation, or untyped free-form text."
       }
     },
     "cx.profile.push_gateway.matrix_passthrough.v1": {
@@ -1308,14 +1308,14 @@
           "reservation_cell_singleton",
           "watcher_observe_then_write"
         ],
-        "unsupported_optional": "Servers not declaring this profile MUST reject cx.agent_task.* and cx.content.import_attestation writes targeting a Space declaring cx.profile.agent_workspace.v1 (profile_unsupported). Source-Space mention_redirect acceptance is governed independently by the cx.feature.mention_redirect.v1 critical_extension check."
+        "unsupported_optional": "Servers not declaring this profile MUST reject cx.agent_task.* and cx.content.import_attestation writes targeting a Realm declaring cx.profile.agent_workspace.v1 (profile_unsupported). Source-Realm mention_redirect acceptance is governed independently by the cx.feature.mention_redirect.v1 critical_extension check."
       }
     },
     "cx.profile.agent_workspace.governed.v1": {
       "tier": "extension_profile_implementation",
       "depends_on": ["cx.profile.agent_workspace.v1"],
       "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md#91-cxprofileagent_workspacegovernedv1受保护源-profile",
-      "summary": "Governed-source profile. Declared by a SOURCE Space that wishes its export policy enforced at the mirror-side reducer (not just at source-side agent runtime). Mirror reducer MUST reject cx.content.import_attestation events lacking a valid source-side cx.schema.content.source_export_policy_attestation.v1 envelope, instead of accepting + audit-marking as permissive cx.profile.agent_workspace.v1 does.",
+      "summary": "Governed-source profile. Declared by a SOURCE Realm that wishes its export policy enforced at the mirror-side reducer (not just at source-side agent runtime). Mirror reducer MUST reject cx.content.import_attestation events lacking a valid source-side cx.schema.content.source_export_policy_attestation.v1 envelope, instead of accepting + audit-marking as permissive cx.profile.agent_workspace.v1 does.",
       "applies_to_roles": ["governed_source"],
       "required_endpoints": [],
       "required_event_kinds": [],
@@ -1337,7 +1337,7 @@
         "required": [
           "governed_import"
         ],
-        "unsupported_optional": "Servers that do not implement governed_import MUST fail-closed (profile_unsupported) when asked to accept a cx.content.import_attestation whose claimed source Space declares cx.profile.agent_workspace.governed.v1; they MUST NOT silently downgrade to permissive accept-then-audit. See agent-workspace-profile.md §8.2 governed behavior + §9.1."
+        "unsupported_optional": "Servers that do not implement governed_import MUST fail-closed (profile_unsupported) when asked to accept a cx.content.import_attestation whose claimed source Realm declares cx.profile.agent_workspace.governed.v1; they MUST NOT silently downgrade to permissive accept-then-audit. See agent-workspace-profile.md §8.2 governed behavior + §9.1."
       },
       "reducer_reject_reasons": [
         "source_export_attestation_required",
@@ -1351,7 +1351,7 @@
       "policy_authority_declaration": {
         "field": "policy_components.export_policy_authorities",
         "shape": "did[]",
-        "description": "Source Space declares which DIDs are authorized to sign source_export_policy_attestation envelopes. Attestation `authority_did` MUST appear in this list."
+        "description": "Source Realm declares which DIDs are authorized to sign source_export_policy_attestation envelopes. Attestation `authority_did` MUST appear in this list."
       },
       "ttl_constraints": {
         "max_attestation_ttl_seconds": 3600,
@@ -1384,7 +1384,7 @@
       "tier": "extension_profile_implementation",
       "depends_on": ["cx.profile.agent_workspace.v1"],
       "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md#92-cxprofileagent_workspacelitev1单-controller-轻量-profile",
-      "summary": "Lightweight profile for single-controller mirror Space that does NOT need the full audit-grade lattice. Strips: (a) anchor-based reservation TTL (reverts to wall-clock + grace), (b) per-task transparency / source_authority FSM cells (controller checks state via UI hint, not lattice), (c) MLS Governance Binding requirement. Keeps: reservation cell namespaces (mirror_space_by_source / mirror_flow_by_source), import_attestation envelope, mention_redirect content block. Cross-Space writes (publish-back to source Space) MUST still go through full pipeline regardless of lite profile.",
+      "summary": "Lightweight profile for single-controller mirror Realm that does NOT need the full audit-grade lattice. Strips: (a) anchor-based reservation TTL (reverts to wall-clock + grace), (b) per-task transparency / source_authority FSM cells (controller checks state via UI hint, not lattice), (c) MLS Governance Binding requirement. Keeps: reservation cell namespaces (mirror_space_by_source / mirror_flow_by_source), import_attestation envelope, mention_redirect content block. Cross-Realm writes (publish-back to source Realm) MUST still go through full pipeline regardless of lite profile.",
       "applies_to_roles": ["workspace_root", "mirror_space"],
       "mutually_exclusive_with": [
         "cx.profile.agent_workspace.governed.v1"
@@ -1442,11 +1442,11 @@
         "required": [
           "agent_workspace_lite"
         ],
-        "unsupported_optional": "Servers declaring lite MUST also accept all base agent_workspace.v1 read paths (lite is a strict subset of writes, not reads). Source-Space side handling of mention_redirect is unchanged."
+        "unsupported_optional": "Servers declaring lite MUST also accept all base agent_workspace.v1 read paths (lite is a strict subset of writes, not reads). Source-Realm side handling of mention_redirect is unchanged."
       },
       "cross_space_writes_unchanged": {
         "scope": "publish_back_from_mirror_to_source",
-        "rule": "Lite ONLY relaxes mirror-internal lattice. Any event leaving the mirror Space and entering a source / shared Space MUST go through the standard pipeline (signature, capability, schema, full lattice, MLS group of the destination Space). Lite is not a justification for cross-Space shortcuts."
+        "rule": "Lite ONLY relaxes mirror-internal lattice. Any event leaving the mirror Realm and entering a source / shared Realm MUST go through the standard pipeline (signature, capability, schema, full lattice, MLS group of the destination Realm). Lite is not a justification for cross-Realm shortcuts."
       },
       "reducer_reject_reasons": [
         "lite_profile_writes_disallowed_event_kind",
@@ -1504,7 +1504,7 @@
         "cx.sovereign.did_policy",
         "cx.capability.grant",
         "cx.capability.revoke",
-        "cx.space.policy"
+        "cx.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1562,7 +1562,7 @@
       "inherits": [
         "cx.profile.franking.v1"
       ],
-      "description": "Opt-in sender-bound plaintext commitment for E2EE Spaces. Adds a sidecar (unsigned.franking.sender_commitment) carrying an HMAC-SHA-256 tag derived from per-device-per-epoch MLS exporter secret over plaintext+aad+ciphertext+epoch_local_seq, enabling audit verifiers to independently attribute plaintext to (sender_device_id, epoch). Does NOT change core franking wire shape (sidecar lives in unsigned scope). Does NOT provide outside-of-group non-repudiation — verifier attribution is bounded by MLS epoch deniability and verifier's exporter-secret retention window (default <= 72h). Plaintext sender attribution from reporter evidence MUST go through §3.4.2 verification flow. See zh/governance/content-moderation.md §3.4.2.",
+      "description": "Opt-in sender-bound plaintext commitment for E2EE Realms. Adds a sidecar (unsigned.franking.sender_commitment) carrying an HMAC-SHA-256 tag derived from per-device-per-epoch MLS exporter secret over plaintext+aad+ciphertext+epoch_local_seq, enabling audit verifiers to independently attribute plaintext to (sender_device_id, epoch). Does NOT change core franking wire shape (sidecar lives in unsigned scope). Does NOT provide outside-of-group non-repudiation — verifier attribution is bounded by MLS epoch deniability and verifier's exporter-secret retention window (default <= 72h). Plaintext sender attribution from reporter evidence MUST go through §3.4.2 verification flow. See zh/governance/content-moderation.md §3.4.2.",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -1591,7 +1591,7 @@
       }
     },
     "cx.profile.morph.schema_migration_transformations.v1": {
-      "description": "Opt-in Space profile that permits cx.morph.schema_migrate.v1 events with compatibility_class in {breaking, transformation}. Spaces not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating cx.morph.schema.migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
+      "description": "Opt-in Realm profile that permits cx.morph.schema_migrate.v1 events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating cx.morph.schema.migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
       "required_endpoints": [],
       "required_event_kinds": [
         "cx.morph.schema_migrate"
@@ -1613,7 +1613,7 @@
         "unsupported_optional": "deployments without this profile MUST reject breaking and transformation migrations even if the event-payload schema would accept them"
       },
       "additional_requirements": {
-        "capability_must": "Reducer MUST require cx.morph.schema.migrate (or Space-declared equivalent) capability at the event's frontier; missing yields capability_denied.",
+        "capability_must": "Reducer MUST require cx.morph.schema.migrate (or Realm-declared equivalent) capability at the event's frontier; missing yields capability_denied.",
         "from_set_check_must": "Reducer MUST set-equal-compare payload.from_schema_refs[] against the Morph's current schema_refs[] at apply time; mismatch yields failed_precondition.",
         "deterministic_transformation_must": "Any transformation_rules[] MUST be replay-deterministic across implementations; profile vectors MUST cover identity, rename, type widening, and default backfill cases."
       }
@@ -1658,7 +1658,7 @@
       ],
       "required_event_kinds": [
         "cx.sovereign.did_policy",
-        "cx.space.policy"
+        "cx.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1678,7 +1678,7 @@
           "trusted_resolvers",
           "bridge_policy"
         ],
-        "unsupported_optional": "mark remote Space unavailable"
+        "unsupported_optional": "mark remote Realm unavailable"
       }
     },
     "cx.profile.personal_node.v1": {
@@ -1691,7 +1691,7 @@
         "cx.sync.account"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state",
         "cx.account_data.set"
       ],
@@ -1739,15 +1739,15 @@
         "cx.sync.account"
       ],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state",
         "cx.flow.create",
         "cx.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
+        "cx.schema.realm.v1",
         "cx.schema.space.v1",
-        "cx.schema.place.v1",
         "cx.schema.flow.v1",
         "cx.schema.message.v1"
       ],
@@ -1837,8 +1837,8 @@
       "required_event_kinds": [
         "cx.device.revoked",
         "cx.mls.commit",
-        "cx.space_key.withheld",
-        "cx.space.moderation_policy"
+        "cx.realm_key.withheld",
+        "cx.realm.moderation_policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1887,7 +1887,7 @@
         "cx.sovereign.did_policy",
         "cx.capability.grant",
         "cx.capability.revoke",
-        "cx.space.policy"
+        "cx.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1915,7 +1915,7 @@
     },
     "cx.profile.mls_governance_binding.full.v1": {
       "inherits": [],
-      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Spaces. MLS commits are Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the cx_governance_binding GroupContext extension) and update three cells (mls_epoch, key_schedule, covered_frontier). E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier; governance / recovery Moves do not depend on it.",
+      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the cx_governance_binding GroupContext extension) and update three cells (mls_epoch, key_schedule, covered_frontier). E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier; governance / recovery Moves do not depend on it.",
       "required_endpoints": [
         "cx.keys.keypackages.claim",
         "cx.keys.keypackages.consume",
@@ -1923,8 +1923,8 @@
       ],
       "required_event_kinds": [
         "cx.mls.commit",
-        "cx.space_key.share",
-        "cx.space_key.withheld"
+        "cx.realm_key.share",
+        "cx.realm_key.withheld"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -1948,7 +1948,7 @@
         "unsupported_optional": "fail closed on root mismatch"
       },
       "required_cells": [
-        "cx:cell:cx.component.covered_frontier.v1:<space_id>",
+        "cx:cell:cx.component.covered_frontier.v1:<realm_id>",
         "cx:cell:cx.component.mls_epoch.v1:<mls_group_id>",
         "cx:cell:cx.component.key_schedule.v1:<mls_group_id>"
       ]
@@ -1957,7 +1957,7 @@
       "inherits": [
         "cx.profile.e2ee_client.v1"
       ],
-      "description": "Hardening profile for E2EE Spaces that route by room-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
+      "description": "Hardening profile for E2EE Realms that route by room-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
       "required_endpoints": [
         "cx.events.submit",
         "cx.events.query"
@@ -1984,7 +1984,7 @@
           "identity_link_eager_invalidation",
           "principal_disclosure_policy"
         ],
-        "unsupported_optional": "fail closed before joining minimal-metadata encrypted Space"
+        "unsupported_optional": "fail closed before joining minimal-metadata encrypted Realm"
       }
     },
     "cx.profile.attested_audit.e2ee.v1": {
@@ -2019,7 +2019,7 @@
           "audit_actor_membership_visible",
           "audit_assurance_class_attested_hardware"
         ],
-        "unsupported_optional": "fail closed before joining auditable encrypted Space"
+        "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
     "cx.profile.disclosed_audit.e2ee.v1": {
@@ -2054,7 +2054,7 @@
           "audit_assurance_class_disclosed_policy",
           "forbidden_marketing_terms_check"
         ],
-        "unsupported_optional": "fail closed before joining auditable encrypted Space"
+        "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
     "cx.profile.capability_vectors.v1": {
@@ -2276,7 +2276,7 @@
     "cx.profile.federation_vectors.v1": {
       "required_endpoints": [],
       "required_event_kinds": [
-        "cx.space.create",
+        "cx.realm.create",
         "cx.member.state"
       ],
       "rejected_event_kinds": [],
@@ -2560,12 +2560,12 @@
     },
     "cx.profile.collaborative_text.v1": {
       "inherits": [],
-      "description": "Lattice extension profile that registers lww-register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww-register and rga MUST NOT be used for authorization_root / policy_root / anchorer_root / membership / lifecycle cells (statically rejected by space.schema.json).",
+      "description": "Lattice extension profile that registers lww-register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww-register and rga MUST NOT be used for authorization_root / policy_root / anchorer_root / membership / lifecycle cells (statically rejected by realm.schema.json).",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.space.v1"
+        "cx.schema.realm.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [],
@@ -2613,7 +2613,7 @@
       "inherits": [],
       "tier": "candidate",
       "status": "candidate",
-      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`space.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `cx.space.join.review`. These bare names are not v1 wire Event.kind values. The action remains in the canonical capability registry so prose can reference it stably, but receivers that do not implement this profile MUST treat `cx.space.join.review` as unknown (capability-action-registry.json registry_rules: 'Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)'). Claiming the profile commits the implementation to the candidate join-policy workflow surface defined in zh/governance/join-policy.md. This profile is not part of v1 active conformance; it will be promoted with registered `cx.*` Event.kind values when join-policy is formally registered.",
+      "description": "Candidate profile pairing the still-unregistered join-policy workflow concept/action names (`realm.join_policy`, `member.application`, `member.application.review`, `member.application.cancel`; see zh/conformance/schema-registry.md §4.1) with the gating capability action `cx.realm.join.review`. These bare names are not v1 wire Event.kind values. The action remains in the canonical capability registry so prose can reference it stably, but receivers that do not implement this profile MUST treat `cx.realm.join.review` as unknown (capability-action-registry.json registry_rules: 'Receivers without the named profile MUST treat the action as unknown (risk_tier=high default)'). Claiming the profile commits the implementation to the candidate join-policy workflow surface defined in zh/governance/join-policy.md. This profile is not part of v1 active conformance; it will be promoted with registered `cx.*` Event.kind values when join-policy is formally registered.",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2621,7 +2621,7 @@
       "required_fixtures": [],
       "optional_extensions": [],
       "required_capability_actions": [
-        "cx.space.join.review"
+        "cx.realm.join.review"
       ],
       "feature_discovery": {
         "required": [

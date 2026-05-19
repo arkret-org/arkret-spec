@@ -30,15 +30,15 @@ Schema id: `cx.schema.read_marker.v1`
 | `id` | yes | `id:read_marker` | `cx:read_marker:<uuidv7>`。 | 私有状态 ID。 |
 | `schema` | yes | `cx.schema.read_marker.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
-| `space_id` | yes | `id:space` |  | Space。 |
-| `scope` | yes | `object` | `{kind, ref?, track?}`；`kind=space` 时 `ref` 省略，其余 kind 必填对应对象 ref。 | 已读范围。 |
+| `realm_id` | yes | `id:realm` |  | Realm。 |
+| `scope` | yes | `object` | `{kind, ref?, track?}`；`kind=realm` 时 `ref` 省略，其余 kind 必填对应对象 ref。 | 已读范围。 |
 | `position` | yes | `object` | `{event_id, hlc}`。 | 已读位置。 |
 | `updated_at` | yes | `timestamp` |  | 更新时间。 |
 
 ### 2.3 行为规则
 
 - Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [flow-and-message.md §9.6](./flow-and-message.md)）。
-- Discussion 时间线与父 Space 在 read receipt policy 上需要分离时，必须把 discussion 升级为独立 child Space（参见 `Flow.discussion_space_ref`，[flow-and-message.md §5](./flow-and-message.md)），由 child Space 自己声明 `cx.space.read_receipt_policy`；track 级别 override 不在 v1 范围内。
+- Discussion 时间线与源 Realm 在 read receipt policy 上需要分离时，必须把 discussion 升级为独立 linked Realm（参见 `Flow.discussion_realm_ref`，[flow-and-message.md §5](./flow-and-message.md)），由 linked Realm 自己声明 `cx.realm.read_receipt_policy`；track 级别 override 不在 v1 范围内。
 
 ## 3. Notification
 
@@ -57,7 +57,7 @@ Schema id: `cx.schema.notification.v1`
 | `id` | yes | `id:notif` | `cx:notif:<uuidv7>`。 | 通知 ID。 |
 | `schema` | yes | `cx.schema.notification.v1` |  | Schema ID。 |
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
-| `space_id` | no | `id:space` |  | 来源 Space。 |
+| `realm_id` | no | `id:realm` |  | 来源 Realm。 |
 | `source_event_id` | yes | `id:event` |  | 来源事件。 |
 | `notification_type` | yes | `enum(mention, reply, assignment, invite, reaction, policy, call, applet, agent, agent_membership_change, moderation, system)` |  | 通知类型。`agent_membership_change` 由 `cx.profile.agent_workspace.v1` 引入；见 [extensions/agent-workspace-profile.md §14](../extensions/agent-workspace-profile.md)。 |
 | `priority` | yes | `enum(low, normal, high, urgent)` |  | 优先级。 |
@@ -69,7 +69,7 @@ Schema id: `cx.schema.notification.v1`
 ### 3.3 行为规则
 
 - Notification 是派生 projection；客户端 / 服务端 SHOULD 从 source event + actor preferences 计算，不要把它当作独立真相源持久化为 durable canonical event。
-- E2EE Space 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
+- E2EE Realm 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
 - `notification_type=applet` / `agent` / `agent_membership_change` / `policy` / `moderation` 等扩展类型的语义见 [`../extensions/applet-integration.md`](../extensions/applet-integration.md)、[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)、[`../extensions/agent-workspace-profile.md`](../extensions/agent-workspace-profile.md)、[`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../governance/content-moderation.md`](../governance/content-moderation.md)。
 
 ## 4. 与 Account Data 的关系

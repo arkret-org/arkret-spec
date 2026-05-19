@@ -17,26 +17,26 @@ Contrix 的顶层架构要同时满足四件事：
 
 Contrix 采用 **principal server + signed Event + identity registry + client-side projection** 的分层模型。
 
-`Principal Server` 是 principal 自己控制或通过 DID / Space policy 明确委托的服务入口。它可以同机承载 Events API、sync、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。搜索、inbox、notification 和 View projection 默认是客户端或 SDK 的派生能力；若某部署额外提供受托搜索服务，该服务仍是可选扩展，不是协议核心真相源。
+`Principal Server` 是 principal 自己控制或通过 DID / Realm policy 明确委托的服务入口。它可以同机承载 Events API、sync、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。搜索、inbox、notification 和 View projection 默认是客户端或 SDK 的派生能力；若某部署额外提供受托搜索服务，该服务仍是可选扩展，不是协议核心真相源。
 
 Contrix 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
-协作数据层使用 Space 作为复制与授权边界，在 Space 内直接建模 Flow、Place、Message 等标准对象；看板与列容器是独立的 Place（`cx:place:`），住在 Space 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Space schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
+协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Flow、Space、Message 等标准对象；看板与列容器是独立的 Space（`cx:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不是替代所有标准对象的万能容器。
 
-### 2.1 Organization / Space 边界
+### 2.1 Organization / Realm 边界
 
-组织在 Contrix 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Space。
+组织在 Contrix 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Realm。
 
 Organization principal 可以：
 
 - 签发组织成员资格、组织角色、handle 绑定等 credential
 - 控制 Principal Server、Policy Server、Applet、Media Service 等 service DID
-- 作为 Space owner、policy issuer、trusted issuer 或 capability issuer
-- 托管多个 Space，或与其他组织共同治理同一个 Space
+- 作为 Realm owner、policy issuer、trusted issuer 或 capability issuer
+- 托管多个 Realm，或与其他组织共同治理同一个 Realm
 
-Space 则是协作数据边界。它定义 membership、capability scope、schema、policy、history visibility、replication 和 E2EE group。一个组织 MAY 创建或拥有多个 Space；一个 Space MAY 由多个组织共同治理；用户也 MAY 创建不属于任何组织的个人或临时 Space。
+Realm 则是协作数据边界。它定义 membership、capability scope、schema、policy、history visibility、replication 和 E2EE group。一个组织 MAY 创建或拥有多个 Realm；一个 Realm MAY 由多个组织共同治理；用户也 MAY 创建不属于任何组织的个人或临时 Realm。
 
-因此实现 MUST NOT 以 `space_id` 代替组织身份，也 MUST NOT 仅凭用户在某 Space 内的 membership 推断其属于某组织。组织身份和成员资格应通过组织 DID 签发的 claim / VC / attestation、Space policy 中列出的 trusted issuer、或 governance registry 中的组织记录证明。
+因此实现 MUST NOT 以 `realm_id` 代替组织身份，也 MUST NOT 仅凭用户在某 Realm 内的 membership 推断其属于某组织。组织身份和成员资格应通过组织 DID 签发的 claim / VC / attestation、Realm policy 中列出的 trusted issuer、或 governance registry 中的组织记录证明。
 
 ### 2.2 Per-Actor Event Chain
 
@@ -67,19 +67,19 @@ Event 的权威来自 actor/device/service 对 Event 的签名、DID 控制链�
 Principal Server 是 principal 的受控服务边界。它负责承载或代理：
 
 - Event 的提交、读取、回填与复制
-- Space 范围的增量同步、回补与订阅
+- Realm 范围的增量同步、回补与订阅
 - blob、push、policy、device message 等辅助服务
 - 与其他 Principal Server 的 federation transaction
 
-Principal Server 不是身份本身，也不能替 principal 伪造 Event。它的权威来自 DID Document、service delegation、Space policy、capability 和签名事件。
+Principal Server 不是身份本身，也不能替 principal 伪造 Event。它的权威来自 DID Document、service delegation、Realm policy、capability 和签名事件。
 
 明文规则：
 
-- 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Space policy 明确委托的第三方服务。
-- 如果 Space 声明了 shared anchorer / sync service，该服务必须是 Space policy 中显式列出的受信 Principal Server 或组织服务 DID。
-- 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Space policy 明确委托。
-- Space 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 仅是允许 fallback 时的来源。组织 Principal Server 上存在同一 DID 的内部账号，不自动获得该 DID 的其它 Space 或个人上下文投递权。
-- 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Space policy 中声明为 `plaintext_visible_services`。
+- 非 E2EE / 非内容加密的私有内容 MUST NOT 提交给未被发送方、接收方或 Realm policy 明确委托的第三方服务。
+- 如果 Realm 声明了 shared anchorer / sync service，该服务必须是 Realm policy 中显式列出的受信 Principal Server 或组织服务 DID。
+- 客户端在发送非加密内容前 MUST 校验目标服务器是否属于本 principal 控制、对方 principal 控制，或 Realm policy 明确委托。
+- Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 仅是允许 fallback 时的来源。组织 Principal Server 上存在同一 DID 的内部账号，不自动获得该 DID 的其它 Realm 或个人上下文投递权。
+- 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Realm policy 中声明为 `plaintext_visible_services`。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
@@ -90,8 +90,8 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event。它�
 协议只约束以下边界：
 
 - View 是可同步的投影定义，不拥有被投影对象的事实。
-- 查询、搜索和 projection 不得绕过 Space policy、`allowed_tracks` action scope、history visibility、E2EE 可见性或 capability。`allowed_tracks` 只在已有 Space / capability 授权内缩小 track 范围，不是独立 track-level ACL。
-- 任何受托 search / projection 服务若接收私有明文、正文摘要、embedding、通知摘要或可逆派生内容，MUST 被 Space policy 列入 `plaintext_visible_services`。
+- 查询、搜索和 projection 不得绕过 Realm policy、`allowed_tracks` action scope、history visibility、E2EE 可见性或 capability。`allowed_tracks` 只在已有 Realm / capability 授权内缩小 track 范围，不是独立 track-level ACL。
+- 任何受托 search / projection 服务若接收私有明文、正文摘要、embedding、通知摘要或可逆派生内容，MUST 被 Realm policy 列入 `plaintext_visible_services`。
 - 派生输出不得成为唯一真相源；缓存丢失后必须能从 signed Event、reducer profile、View definition 和 causal frontier 重新计算。
 
 ### 2.5 Blob Store
@@ -124,7 +124,7 @@ Contrix 的 client 不只包括 GUI 应用，也包括：
 
 ### 2.8 Principal Server 部署形态
 
-Contrix 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署不得改变各角色的安全边界：service DID、`service_type`、capability、Space policy、plaintext visibility 和 endpoint 契约仍必须可区分。
+Contrix 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署不得改变各角色的安全边界：service DID、`service_type`、capability、Realm policy、plaintext visibility 和 endpoint 契约仍必须可区分。
 
 面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
@@ -157,7 +157,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 - Auth / Account Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，不能因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 
-某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /api/v1/server/describe`、`supported_operations`、conformance profile 和 Space policy 共同声明。
+某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /api/v1/server/describe`、`supported_operations`、conformance profile 和 Realm policy 共同声明。
 
 ## 3. 架构平面
 
@@ -217,7 +217,7 @@ flowchart TB
 负责：
 
 - sync stream
-- space 增量同步
+- realm 增量同步
 - 去重与 cursor
 
 ### 3.4 Local Query / Projection Plane
@@ -352,9 +352,9 @@ flowchart LR
 
 - 每个组织维护自己的受控 Principal Server / Event store
 - 每个组织或可信运营方运行自己的 Principal Server / policy server
-- 参与方 Principal Server 通过 federation transaction 交换 Space 相关 Event
+- 参与方 Principal Server 通过 federation transaction 交换 Realm 相关 Event
 - 各参与方客户端基于自身授权范围生成本地视图，或显式使用受托 search / projection 扩展
-- Space policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
+- Realm policy 明确列出共同治理的 organization DID、trusted issuer 和 service DID
 
 这种模式更接近跨企业交付与供应链协作。
 
@@ -365,7 +365,7 @@ flowchart LR
 - user/org DID 作为 authority
 - agent DID 拥有受限 capability
 - agent 的结果和审计摘要写成 agent 签名 Event
-- agent 的 Principal Server 将这些 Event 同步到协作 Space
+- agent 的 Principal Server 将这些 Event 同步到协作 Realm
 - 客户端或受托 projection 扩展生成 human review queue
 
 ### 4.4 Sovereign / High-Assurance 拓扑
@@ -374,9 +374,9 @@ flowchart LR
 
 该拓扑默认关闭公共 federation 和公共 directory，只允许 allowlist service DID 与受控客户端接入。
 
-Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **Controlled Collaboration Space**，只向经过验证的外部人员或组织开放特定 Space，而不是开放整个内部网络。
+Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **Controlled Collaboration Realm**，只向经过验证的外部人员或组织开放特定 Realm，而不是开放整个内部网络。
 
-Controlled Collaboration Space SHOULD：
+Controlled Collaboration Realm SHOULD：
 
 - 使用 `discoverability=unlisted`、`invite_only` 或 `secret`。
 - 使用 `join_rule=restricted` 或 `knock_restricted`。
@@ -391,7 +391,7 @@ Controlled Collaboration Space SHOULD：
 
 Contrix 固定以下架构取向：
 
-- space-first
+- realm-first
 - object-first
 - event-first
 - collaboration-first
@@ -401,7 +401,7 @@ Contrix 固定以下架构取向：
 - 房间不是唯一世界模型
 - 消息也不是唯一原子单元
 - UI 不需要从聊天历史里推业务状态
-- 协议直接允许 Flow、Space、Message、Morph 和 Relation 成为一等对象
+- 协议直接允许 Flow、Realm、Message、Morph 和 Relation 成为一等对象
 
 ## 6. 信任边界
 
@@ -413,7 +413,7 @@ Event chain 能证明：
 - Event 的签名、`actor_seq` 和 `prev_refs` 是否成立
 - 顺序与签名是否成立
 
-Event chain 不能单方面定义共享 space 的最终当前态。
+Event chain 不能单方面定义共享 realm 的最终当前态。
 
 ### 6.2 Principal Server 可提供同步，但不应重写历史
 
@@ -429,7 +429,7 @@ Principal Server 不可以：
 
 - 伪造 actor Event
 - 静默删除仍然有效的历史 Event
-- 把未授权明文内容发送给未被 principal 或 Space policy 委托的第三方服务
+- 把未授权明文内容发送给未被 principal 或 Realm policy 委托的第三方服务
 - 把非加密私有内容复制到未声明为 `plaintext_visible_services` 的 Push、Blob preview、Policy preview 或任何受托 search / projection 服务
 
 ### 6.3 Projection 可解释状态，但不应替代原始审计链
@@ -452,8 +452,8 @@ Principal Server 不可以：
 
 ### 6.5 物理隔离与跨域限制
 
-Space 构成了协作图的硬性隔离边界：
-- 节点在处理深度 Graph/Tree 查询时，遇到跨 Space 引用必须截断返回惰性链接 (Lazy Link)，严禁越权自动化拼接外部图谱。
+Realm 构成了协作图的硬性隔离边界：
+- 节点在处理深度 Graph/Tree 查询时，遇到跨 Realm 引用必须截断返回惰性链接 (Lazy Link)，严禁越权自动化拼接外部图谱。
 - 跨组织的级联图谱展示必须由拥有多域权限的客户端发起多次请求主动合成。
 
 ## 7. AI 与人类共用同一协议
@@ -472,8 +472,8 @@ Contrix 不打算做“两套系统”：
 
 因此协议**不**定义统一的 agent memory subsystem。Agent 的运行时上下文（prompt、scratchpad、向量索引、缓存等）由各 agent runtime 自行管理，协议不约束其形式。协议只负责两件事：
 
-- **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Flow / Message / Morph / Blob，进入 Space 账本，与人类协作沉淀共用同一份事实层。
-- **受控外部知识访问**：agent 可读取的 Space、对象或派生摘要 MUST 通过 `cx.schema.agent_authority.v1` 的 `knowledge_sources[]` 显式声明 `scope`、`grant_ref`、`visibility` 与 `max_retention_seconds`，受 capability 与 Space policy 约束。
+- **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Flow / Message / Morph / Blob，进入 Realm 账本，与人类协作沉淀共用同一份事实层。
+- **受控外部知识访问**：agent 可读取的 Realm、对象或派生摘要 MUST 通过 `cx.schema.agent_authority.v1` 的 `knowledge_sources[]` 显式声明 `scope`、`grant_ref`、`visibility` 与 `max_retention_seconds`，受 capability 与 Realm policy 约束。
 
 这意味着不存在协议层面的"agent 私有记忆库"。任何需要被审阅、引用或撤回的 agent 记忆都必须以标准对象形式落账；不需要被审阅的运行时状态留在 agent runtime 内部，不进入协议视野。
 
@@ -499,6 +499,6 @@ Contrix v1 不允许实现用单一“万能服务”隐藏协议边界。任何
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。
 - Search / View projection 若对外暴露可互操作语义，按 `query-schema.md`、`views.md` 和 `service-surface.md` 执行；结果必须能追溯到 signed Event、reducer profile 和 causal frontier。
 - Capability cache 只能作为优化。缓存命中必须绑定 causal frontier、grant / revoke / claim 状态和 policy version；上下文缺失、过期或发生分叉时 MUST fail closed 或重新执行完整 authz。
-- 多 Principal Server 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Space policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
+- 多 Principal Server 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、frontier、snapshot hash、reducer profile 和 plaintext visibility 后再选用服务。
 - 加密 envelope、device / key server、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`device-lifecycle.md`、`key-management.md` 与 `media-and-blob.md` 执行。
 - Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端不得仅信任外部 projection 或 search dump。

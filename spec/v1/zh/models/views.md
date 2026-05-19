@@ -20,12 +20,12 @@ Contrix 必须对人类友好，因此协议必须允许对象自然投影为：
 
 View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `cx.view.create` / `cx.view.update` 修改、签名、审计和同步。
 
-View 不承载被投影对象的 canonical state。Board Place / List Place / Flow / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和 causal frontier。
+View 不承载被投影对象的 canonical state。Board Space / List Space / Flow / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和 causal frontier。
 
 这些对象事实必须从同一套底层结构产生：
 
 ```txt
-Space + Actor + Flow + Message + Morph + Relation + Event
+Realm + Actor + Flow + Message + Morph + Relation + Event
 ```
 
 ### 2.2 View.kind 是响应族，不是产品名
@@ -40,19 +40,19 @@ Space + Actor + Flow + Message + Morph + Relation + Event
 
 `board`、`list`、`table`、`calendar`、`gantt`、`chat`、`thread`、`forum`、`dashboard` 都是 renderer，而不是新的 `View.kind`。
 
-### 2.3 Board Place / List Place 是 Place.kind，不是 View.kind
+### 2.3 Board Space / List Space 是 Space.kind，不是 View.kind
 
-Board Place 与 List Place 是 `Place` 的 `kind`（详见 [space-and-place.md](./space-and-place.md)）：
+Board Space 与 List Space 是 `Space` 的 `kind`（详见 [realm-and-space.md](./realm-and-space.md)）：
 
-- `Place(kind=board)`
-- `Place(kind=list)`
+- `Space(kind=board)`
+- `Space(kind=list)`
 
 看板和列表投影应表达为：
 
 - `kind=”collection” + renderer=”board”`
 - `kind=”collection” + renderer=”list”`
 
-View 负责”如何看”，Board Place / List Place 负责”对象如何被组织”。
+View 负责”如何看”，Board Space / List Space 负责”对象如何被组织”。
 
 ### 2.4 Query SHOULD 优先面向 Flow / Message / Morph
 
@@ -62,7 +62,7 @@ View 查询 SHOULD 优先使用标准对象类型：
 - `message`
 - `morph`
 
-Board Place / List Place 作为容器由 `place.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
+Board Space / List Space 作为容器由 `space.kind` 与 `contains` relation 表达。只有开放对象才主要依赖 `morph_type`。
 
 ### 2.5 权限必须逐对象、按 track action scope 裁剪
 
@@ -82,7 +82,7 @@ View 展示 Flow 讨论时，必须分别执行授权裁剪：
 | Flow 在同一 List 内排序 | `cx.flow.reorder` |
 | 修改 Flow 标题、状态、负责人、截止时间 | `cx.flow.update` |
 | 切换 Flow 默认 track / 开启 / 关闭 track / 修改 track profile | `cx.flow.tracks.update` |
-| 修改 Board Place / List Place 元数据 | `cx.place.update` |
+| 修改 Board Space / List Space 元数据 | `cx.space.update` |
 | 发送、编辑、撤回 discussion 消息 | `cx.message.create` / `cx.message.revise` / `cx.message.redact` |
 | 改变共享 View filter / sort / group / columns / layout | `cx.view.update` |
 | 改变个人 View 偏好、临时 filter、列宽、折叠状态 | actor-private account data |
@@ -99,7 +99,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:view` |  | View ID。 |
 | `schema` | yes | `cx.schema.view.v1` |  | Schema ID。 |
-| `space_id` | yes | `id:space` |  | 所属 Space。 |
+| `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
 | `renderer` | no | `enum(board, list, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
 | `title` | no | `string` |  | View 名称。 |
@@ -139,7 +139,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 | `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
 | `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
 | `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
-| `board_place_id` | conditional | `id:place` | `mode="relation_container"` 时必填，指向一个 `cx:place: kind=board`。 | Board Place。 |
+| `board_space_id` | conditional | `id:space` | `mode="relation_container"` 时必填，指向一个 `cx:space: kind=board`。 | Board Space。 |
 | `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
 | `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
 | `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |
@@ -154,7 +154,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
 {
   "id": "cx:view:019641be-0000-7000-8000-000000000000",
   "schema": "cx.schema.view.v1",
-  "space_id": "cx:space:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:web:acme.example.com",
   "created_at": "2026-04-26T00:00:00Z",
   "kind": "collection",
@@ -169,7 +169,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_ref": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "source_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
       "depth": 2
     }
   },
@@ -181,7 +181,7 @@ View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_place_id": "cx:place:019640b6-8000-7000-8000-000000000000",
+      "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
@@ -244,7 +244,7 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
+    "source_ref": "cx:realm:019640b6-8000-7000-8000-000000000000",
     "depth": 2
   }
 }
@@ -292,21 +292,21 @@ Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开未被有效 a
 
 | 产品概念 | 协议对象 | 说明 |
 | --- | --- | --- |
-| 看板 | Board Place | 标准 Space 对象，可被引用、授权、讨论和审计。 |
-| 列/泳道 | List Place | Board Place 内有序容器。 |
+| 看板 | Board Space | 标准 Realm 对象，可被引用、授权、讨论和审计。 |
+| 列/泳道 | List Space | Board Space 内有序容器。 |
 | 卡片 | `flow` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=flow_id}` | 表示 List 与 Flow 的 canonical 包含关系。 |
 | 列属于看板 | `Relation{relation_kind="contains", from_ref=board_id, to_ref=list_id}` | 表示 Board 与 List 的 canonical 包含关系。 |
-| 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Flow；access 完全继承父 Space，独立访问域通过 `Flow.discussion_space_ref` 升级到 child Space。 |
+| 讨论入口 | `tracks` map 中 key `discussion` 对应的 entry | 讨论能力属于同一个 Flow；access 完全继承源 Realm，独立访问域通过 `Flow.discussion_realm_ref` 升级到 linked Realm。 |
 
-### 6.2 Board 不显示全 Space 数据
+### 6.2 Board 不显示全 Realm 数据
 
-Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按以下顺序确定可见内容：
+Board projection MUST NOT 默认显示 Realm 中的全部 Flow。实现 MUST 按以下顺序确定可见内容：
 
 1. 根据 View query 找到目标 Board。
 2. 查询 `board --contains--> list` 得到列集合。
 3. 查询 `list --contains--> flow` 得到候选 Flow。
-4. 按 actor 的 Space membership、capability 和 `allowed_tracks` action scope 裁剪不可见对象和字段。track scope 只缩小已授权动作范围，不授予独立 track-level ACL。
+4. 按 actor 的 Realm membership、capability 和 `allowed_tracks` action scope 裁剪不可见对象和字段。track scope 只缩小已授权动作范围，不授予独立 track-level ACL。
 5. 按 List/Flow rank 和稳定 tie-break 排序。
 
 ### 6.3 Board Projection Response
@@ -321,7 +321,7 @@ Board projection MUST NOT 默认显示 Space 中的全部 Flow。实现 MUST 按
   "frontier": ["cx:event:..."],
   "groups": [
     {
-      "group_id": "cx:space:01c3b617-7000-7000-8000-000000000000",
+      "group_id": "cx:realm:01c3b617-7000-7000-8000-000000000000",
       "title": "Review",
       "rank": "mV",
       "items": [
@@ -364,7 +364,7 @@ Flow context timeline 可以混合：
 
 Graph projection 可展开 Flow、Morph、Message、Board 等对象之间的 Relation。
 
-去中心化网络中，Space 构成严格权限边界。Projection executor 在执行带有 `depth` 的深度查询时，遇到跨 Space 引用 MUST 截断并返回 Lazy Link，不能自动跨 Space 拼接图谱。
+去中心化网络中，Realm 构成严格权限边界。Projection executor 在执行带有 `depth` 的深度查询时，遇到跨 Realm 引用 MUST 截断并返回 Lazy Link，不能自动跨 Realm 拼接图谱。
 
 ## 9. 排序与计数
 
@@ -383,18 +383,18 @@ Graph projection 可展开 Flow、Morph、Message、Board 等对象之间的 Rel
 
 Contrix v1 固定：
 
-- View 投影 Flow、Message、Morph 和 Space workflow。
-- Board Place 和 List Place 是 `Place.kind`，不是 `View.kind`。
+- View 投影 Flow、Message、Morph 和 Realm workflow。
+- Board Space 和 List Space 是 `Space.kind`，不是 `View.kind`。
 - 看板拖拽使用 `cx.flow.move` / `cx.flow.reorder`。
 - discussion chat 使用 `flow + message`。
-- Graph / Tree 遇到跨 Space 必须 lazy link。
+- Graph / Tree 遇到跨 Realm 必须 lazy link。
 - View projection 输出不得成为真相源。
 
 ## 11. 规范性引用
 
 - Query JSON schema 见 `../conformance/query-schema.md`。
 - Flow / Message 规则见 [flow-and-message.md](./flow-and-message.md)。
-- Space / Place 语义见 [space-and-place.md](./space-and-place.md)。
+- Realm / Space 语义见 [realm-and-space.md](./realm-and-space.md)。
 - Morph / facets 见 [morph.md](./morph.md)。
-- Relation 基数与跨 Space 见 [relation.md](./relation.md)。
+- Relation 基数与跨 Realm 见 [relation.md](./relation.md)。
 - View 展示字段只是 UI hint，不能扩大读取权限。

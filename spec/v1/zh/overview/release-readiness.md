@@ -22,7 +22,7 @@ title: 实现就绪与发布门槛
 
 | Registry | 计数 | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 152 | `artifacts/registry/event-kind-registry.json` |
+| Event kind（active） | 151 | `artifacts/registry/event-kind-registry.json` |
 | Schema | 52 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 39 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 84 | `artifacts/registry/operation-registry.json` |
@@ -44,7 +44,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 | 阶段 | 必须实现 | 可暂缓 |
 | --- | --- | --- |
-| `core_event_store` | Event Envelope 验证、canonical JSON / proof、`cx.space.create`、`cx.member.state`、events submit/get/list/frontier、backfill。 | Flow UI、View projection、MLS、federation、blob、push、agent。 |
+| `core_event_store` | Event Envelope 验证、canonical JSON / proof、`cx.realm.create`、`cx.member.state`、events submit/get/list/frontier、backfill。 | Flow UI、View projection、MLS、federation、blob、push、agent。 |
 | `chat_mvp` | Flow discussion track、Message create/revise/redact、reaction、redaction、client sync、history visibility、基础 capability check。 | Board/List、advanced View renderer、MIMI、auditable E2EE、agent runtime。 |
 | `kanban_mvp` | Flow create/update/move/reorder、Relation create、container rebalance、View collection projection、rank conflict handling。 | Discussion track、message timeline、E2EE、push、federation。 |
 | `full_client` | chat + kanban、blob/media、account-private data、read marker、notification projection、offline queue 和 conflict records。 | Enterprise governance、MIMI、agent interop、高安全 witness。 |
@@ -73,7 +73,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 - 标准 `cx.*` Event kind 必须出现在 `event-kind-registry.json`，不得只写在 Markdown 中
 - Event Envelope 必须先验证 envelope schema，再验证 kind-selected payload schema，最后才进入 auth / reducer
 - Snapshot 签名不能单独证明无遗漏；实现必须校验 `event_set_commitment`
-- Sync、Directory、Blob、Push、Moderation、Agent 和受托 search / projection 等服务不得绕过 capability、Space policy、history visibility、plaintext-visible service 或 E2EE 边界
+- Sync、Directory、Blob、Push、Moderation、Agent 和受托 search / projection 等服务不得绕过 capability、Realm policy、history visibility、plaintext-visible service 或 E2EE 边界
 - 未知 non-critical 字段必须在 canonical bytes、存储、转发和 backfill 中保留
 - 未知 critical extension 必须 fail closed
 

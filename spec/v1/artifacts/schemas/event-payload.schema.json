@@ -40,7 +40,7 @@
     },
     "member_delivery_binding": {
       "type": "object",
-      "description": "Per-Space binding of a member to a concrete delivery target service. Authoritative source for Space-scoped event / sync / to-device / push / key-package delivery; sender MUST NOT consult the actor's DID Document service entry as an alternative resolution path when this binding is present. Pairwise / unlinkability use-cases are orthogonal — see identity-did.md and pairwise DID guidance.",
+      "description": "Per-Realm binding of a member to a concrete delivery target service. Authoritative source for Realm-scoped event / sync / to-device / push / key-package delivery; sender MUST NOT consult the actor's DID Document service entry as an alternative resolution path when this binding is present. Pairwise / unlinkability use-cases are orthogonal — see identity-did.md and pairwise DID guidance.",
       "required": [
         "recipient_service_did",
         "recipient_service_type",
@@ -52,15 +52,15 @@
       "properties": {
         "recipient_service_did": {
           "$ref": "#/$defs/did",
-          "description": "service DID of the recipient Principal Server for this member in this Space."
+          "description": "service DID of the recipient Principal Server for this member in this Realm."
         },
         "recipient_service_type": {
           "const": "principal_server",
-          "description": "v1 only allows principal_server. Anchorer / shared sync service are addressed by Space-level sync_endpoints, not by member-level delivery_binding."
+          "description": "v1 only allows principal_server. Anchorer / shared sync service are addressed by Realm-level sync_endpoints, not by member-level delivery_binding."
         },
         "binding_scope": {
-          "const": "space",
-          "description": "v1 only allows space-scoped bindings. Organization-wide or DID-global bindings are out of v1 scope; they would be expressed by Space policy + organization registry instead."
+          "const": "realm",
+          "description": "v1 only allows realm-scoped bindings. Organization-wide or DID-global bindings are out of v1 scope; they would be expressed by Realm policy + organization registry instead."
         },
         "binding_source": {
           "type": "string",
@@ -72,7 +72,7 @@
             "organization_policy",
             "space_policy"
           ],
-          "description": "How the binding was determined at join time. 'explicit' = user / admin chose; 'did_document_default' = resolved from invitee DID Document (only allowed when Space policy enables fallback); other values are policy-driven."
+          "description": "How the binding was determined at join time. 'explicit' = user / admin chose; 'did_document_default' = resolved from invitee DID Document (only allowed when Realm policy enables fallback); other values are policy-driven."
         },
         "delivery_modes": {
           "type": "array",
@@ -105,7 +105,7 @@
         },
         "service_acceptance_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit or organization_policy; reducer MUST verify the referenced Event is signed by recipient_service_did and its scope covers this Space."
+          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit or organization_policy; reducer MUST verify the referenced Event is signed by recipient_service_did and its scope covers this Realm."
         },
         "holder_proof_ref": {
           "$ref": "#/$defs/event_ref",
@@ -113,7 +113,7 @@
         },
         "policy_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the Space / Join / Organization policy revision that authorised this binding. Required when binding_source ∈ {join_policy, organization_policy, space_policy}."
+          "description": "Reference to the Realm / Join / Organization policy revision that authorised this binding. Required when binding_source ∈ {join_policy, organization_policy, space_policy}."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",
@@ -177,27 +177,27 @@
       "type": "string",
       "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "space_id": {
+    "realm_id": {
       "type": "string",
-      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "flow_id": {
       "type": "string",
       "pattern": "^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "place_id": {
+    "space_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "board_place_id": {
+    "board_space_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "A Place with kind=board. Pattern matches any cx:place:; kind invariant enforced by reducer/profile."
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "A Space with kind=board. Pattern matches any cx:space:; kind invariant enforced by reducer/profile."
     },
-    "list_place_id": {
+    "list_space_id": {
       "type": "string",
-      "pattern": "^cx:place:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "A Place with kind=list."
+      "pattern": "^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "A Space with kind=list."
     },
     "message_id": {
       "type": "string",
@@ -297,7 +297,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(cx:(space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(cx:(realm|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
     "device_or_principal_ref": {
       "oneOf": [
@@ -459,9 +459,28 @@
       },
       "additionalProperties": true
     },
+    "realm_create_payload": {
+      "type": "object",
+      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by_principal to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "./realm.schema.json"
+        },
+        "initial_relations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
     "space_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Space object schema for wire validation. Semantic validation MUST require payload.object.created_by_principal to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "description": "Create payload uses the full Space object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
       "required": [
         "object"
       ],
@@ -518,7 +537,7 @@
     },
     "morph_schema_migrate_payload": {
       "type": "object",
-      "description": "Migration of a Morph's schema_refs[] under the schema-evolution policy (zh/models/morph.md §4.1 S3). Distinct from cx.morph.update — schema_refs[] changes MUST go through this event so the migration is auditable, capability-gated, and carries an explicit compatibility class. Reducer MUST verify the actor holds the cx.morph.schema.migrate capability (or the Space-declared equivalent) at the event's frontier; missing capability yields capability_denied. Reducer MUST reject compatibility_class ∈ {breaking, transformation} unless the Space declares cx.profile.morph.schema_migration_transformations.v1 (yielding morph_schema_refs_transformation_unsupported otherwise). Reducer MUST verify from_schema_refs[] matches the Morph's current schema_refs[] at apply time (yielding failed_precondition otherwise). The event's own requirements.schema[] MUST include the union of from_schema_refs[] and to_schema_refs[] so readers can resolve both versions during overlap. Each transformation_rules[] entry SHOULD describe a deterministic, replay-safe per-field mapping (rename, type widening, default backfill, etc.); the rule object shape is governed by the Space-declared cx.profile.morph.schema_migration_transformations.v1 profile.",
+      "description": "Migration of a Morph's schema_refs[] under the schema-evolution policy (zh/models/morph.md §4.1 S3). Distinct from cx.morph.update — schema_refs[] changes MUST go through this event so the migration is auditable, capability-gated, and carries an explicit compatibility class. Reducer MUST verify the actor holds the cx.morph.schema.migrate capability (or the Realm-declared equivalent) at the event's frontier; missing capability yields capability_denied. Reducer MUST reject compatibility_class ∈ {breaking, transformation} unless the Realm declares cx.profile.morph.schema_migration_transformations.v1 (yielding morph_schema_refs_transformation_unsupported otherwise). Reducer MUST verify from_schema_refs[] matches the Morph's current schema_refs[] at apply time (yielding failed_precondition otherwise). The event's own requirements.schema[] MUST include the union of from_schema_refs[] and to_schema_refs[] so readers can resolve both versions during overlap. Each transformation_rules[] entry SHOULD describe a deterministic, replay-safe per-field mapping (rename, type widening, default backfill, etc.); the rule object shape is governed by the Realm-declared cx.profile.morph.schema_migration_transformations.v1 profile.",
       "required": [
         "morph_id",
         "from_schema_refs",
@@ -555,7 +574,7 @@
             "breaking",
             "transformation"
           ],
-          "description": "additive: to_schema_refs[] only adds optional fields / lookup-compatible profile refs; no historical event needs reinterpretation. breaking: to_schema_refs[] removes or tightens fields; future events follow new schema but historical events keep validating under from_schema_refs[]. transformation: a per-event data transform is needed to map old payload shape to new (requires explicit transformation rules). Core reducers MUST accept additive only; breaking and transformation require the cx.profile.morph.schema_migration_transformations.v1 opt-in Space profile."
+          "description": "additive: to_schema_refs[] only adds optional fields / lookup-compatible profile refs; no historical event needs reinterpretation. breaking: to_schema_refs[] removes or tightens fields; future events follow new schema but historical events keep validating under from_schema_refs[]. transformation: a per-event data transform is needed to map old payload shape to new (requires explicit transformation rules). Core reducers MUST accept additive only; breaking and transformation require the cx.profile.morph.schema_migration_transformations.v1 opt-in Realm profile."
         },
         "transformation_rules": {
           "type": "array",
@@ -691,34 +710,37 @@
         "tombstoned"
       ]
     },
-    "space_child_payload": {
+    "realm_link_payload": {
       "type": "object",
       "required": [
-        "child_space_id"
+        "target_realm_id",
+        "link_kind"
       ],
       "properties": {
-        "child_space_id": {
-          "$ref": "#/$defs/space_id"
+        "target_realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "link_kind": {
+          "type": "string",
+          "enum": [
+            "governed_by",
+            "discoverable_from",
+            "join_gate_from",
+            "inherits_policy_from",
+            "confidential_extension_of",
+            "mirror_of",
+            "split_from",
+            "replaces"
+          ]
         },
         "status": {
           "$ref": "#/$defs/hierarchy_link_status"
         },
-        "via": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "uniqueItems": true
+        "label": {
+          "$ref": "#/$defs/non_empty_string"
         },
-        "order": {
-          "$ref": "#/$defs/rank"
-        },
-        "suggested": {
-          "type": "boolean"
-        },
-        "canonical": {
-          "type": "boolean"
+        "commitment": {
+          "$ref": "#/$defs/hash"
         },
         "counterpart_event_ref": {
           "$ref": "#/$defs/event_ref"
@@ -728,6 +750,13 @@
         },
         "edge_digest_commitment": {
           "$ref": "#/$defs/hash"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "uniqueItems": true
         },
         "reason": {
           "type": "string"
@@ -738,51 +767,38 @@
     "space_parent_payload": {
       "type": "object",
       "required": [
-        "parent_space_id"
+        "space_id",
+        "expected_parent_space_id"
       ],
       "properties": {
-        "parent_space_id": {
+        "space_id": {
           "$ref": "#/$defs/space_id"
         },
-        "status": {
-          "$ref": "#/$defs/hierarchy_link_status"
+        "parent_space_id": {
+          "oneOf": [
+            { "$ref": "#/$defs/space_id" },
+            { "type": "null" }
+          ]
         },
-        "via": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/did"
-          },
-          "uniqueItems": true
-        },
-        "canonical": {
-          "type": "boolean"
-        },
-        "counterpart_event_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "edge_nonce": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "edge_digest_commitment": {
-          "$ref": "#/$defs/hash"
-        },
-        "reason": {
-          "type": "string"
+        "expected_parent_space_id": {
+          "oneOf": [
+            { "$ref": "#/$defs/space_id" },
+            { "type": "null" }
+          ]
         }
       },
       "additionalProperties": false
     },
-    "space_inheritance_policy_payload": {
+    "realm_inheritance_policy_payload": {
       "type": "object",
       "required": [
-        "parent_space_id",
+        "parent_realm_id",
         "inherits",
         "mode"
       ],
       "properties": {
-        "parent_space_id": {
-          "$ref": "#/$defs/space_id"
+        "parent_realm_id": {
+          "$ref": "#/$defs/realm_id"
         },
         "inherits": {
           "type": "object",
@@ -879,7 +895,7 @@
           "type": "string"
         },
         "replacement_space": {
-          "$ref": "#/$defs/space_id"
+          "$ref": "#/$defs/realm_id"
         },
         "replacement_event": {
           "$ref": "#/$defs/event_ref"
@@ -1238,16 +1254,16 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "description": "Reaction key. Plaintext spaces SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted spaces with `aad_visibility != opaque_id` SHOULD carry a deterministic routing hash here (`sha256(\"cx-reaction-key-v1\" || mls_group_id || epoch || canonical_emoji)`) so that OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
+          "description": "Reaction key. Plaintext realms SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted realms with `aad_visibility != opaque_id` SHOULD carry a deterministic routing hash here (`sha256(\"cx-reaction-key-v1\" || mls_group_id || epoch || canonical_emoji)`) so that OR-Set dedup, rate-limit and reducer convergence keep working without revealing the chosen emoji; the canonical emoji travels in `encrypted_payload`."
         },
         "annotation": {
           "type": "string",
           "maxLength": 2048,
-          "description": "Optional free-form annotation (e.g. issue triage label). MUST be omitted when `encrypted_payload` is present; in E2EE spaces the annotation MUST instead be carried inside `encrypted_payload`."
+          "description": "Optional free-form annotation (e.g. issue triage label). MUST be omitted when `encrypted_payload` is present; in E2EE realms the annotation MUST instead be carried inside `encrypted_payload`."
         },
         "encrypted_payload": {
           "$ref": "#/$defs/encrypted_payload",
-          "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE spaces. When present, plaintext `key` (if any) MUST be a routing hash and `annotation` MUST be omitted; OR-Set convergence runs after client-side decryption."
+          "description": "Encrypted carrier for the canonical reaction key and any annotation in E2EE realms. When present, plaintext `key` (if any) MUST be a routing hash and `annotation` MUST be omitted; OR-Set convergence runs after client-side decryption."
         }
       },
       "additionalProperties": true
@@ -1255,16 +1271,16 @@
     "list_reorder_payload": {
       "type": "object",
       "required": [
-        "board_place_id",
-        "place_id",
+        "board_space_id",
+        "space_id",
         "rank"
       ],
       "properties": {
-        "board_place_id": {
-          "$ref": "#/$defs/board_place_id"
+        "board_space_id": {
+          "$ref": "#/$defs/board_space_id"
         },
-        "place_id": {
-          "$ref": "#/$defs/list_place_id"
+        "space_id": {
+          "$ref": "#/$defs/list_space_id"
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -1643,11 +1659,11 @@
         "cell_namespace": { "$ref": "#/$defs/agent_workspace_reservation_cell_namespace" },
         "cell_namespace_subject": {
           "type": "string",
-          "description": "Source object ID this reservation pertains to (cx:space:... when namespace=mirror_space_by_source; cx:flow:... when namespace=mirror_flow_by_source)."
+          "description": "Source object ID this reservation pertains to (cx:realm:... when namespace=mirror_space_by_source; cx:flow:... when namespace=mirror_flow_by_source)."
         },
         "reservation_id": {
           "type": "string",
-          "description": "Pre-allocated mirror_*_id (cx:space:<uuidv7> or cx:flow:<uuidv7>) the reservation claims."
+          "description": "Pre-allocated mirror_*_id (cx:realm:<uuidv7> or cx:flow:<uuidv7>) the reservation claims."
         },
         "reservation_ttl_seconds": {
           "type": "integer",
@@ -1763,7 +1779,7 @@
     },
     "consent_grant_payload": {
       "type": "object",
-      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell cx:cell:cx.component.consent.grant.v1:<consent_id> (or-set lattice); cx.consent.revoke writes a remove on the same cell. Lives in the holder's principal control Space (or holder-private actor stream); MUST NOT be written to a shared collaboration Space.",
+      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell cx:cell:cx.component.consent.grant.v1:<consent_id> (or-set lattice); cx.consent.revoke writes a remove on the same cell. Lives in the holder's principal control Realm (or holder-private actor stream); MUST NOT be written to a shared collaboration Realm.",
       "required": [
         "consent_id",
         "peer",
@@ -1788,7 +1804,7 @@
             "presence",
             "any"
           ],
-          "description": "What kind of contact is consented to. 'invite' = peer may send Space / Flow invites; 'direct_message' = peer may initiate 1:1 message; 'voice_call' / 'video_call' = peer may initiate WebRTC call; 'presence' = peer may observe presence; 'any' = full consent across all scopes."
+          "description": "What kind of contact is consented to. 'invite' = peer may send Realm / Flow invites; 'direct_message' = peer may initiate 1:1 message; 'voice_call' / 'video_call' = peer may initiate WebRTC call; 'presence' = peer may observe presence; 'any' = full consent across all scopes."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
@@ -2355,7 +2371,7 @@
       },
       "additionalProperties": true
     },
-    "space_key_share_payload": {
+    "realm_key_share_payload": {
       "type": "object",
       "required": [
         "recipient_principal_id",
@@ -2387,7 +2403,7 @@
           "$ref": "#/$defs/device_id"
         },
         "key_scope": {
-          "$ref": "#/$defs/space_key_scope"
+          "$ref": "#/$defs/realm_key_scope"
         },
         "ciphertext": {
           "$ref": "#/$defs/non_empty_string"
@@ -2407,7 +2423,7 @@
       },
       "additionalProperties": true
     },
-    "space_key_withheld_payload": {
+    "realm_key_withheld_payload": {
       "type": "object",
       "required": [
         "recipient_principal_id",
@@ -2426,7 +2442,7 @@
           "$ref": "#/$defs/device_id"
         },
         "key_scope": {
-          "$ref": "#/$defs/space_key_scope"
+          "$ref": "#/$defs/realm_key_scope"
         },
         "reason": {
           "enum": [
@@ -2444,7 +2460,7 @@
       },
       "additionalProperties": true
     },
-    "space_key_share_audit_payload": {
+    "realm_key_share_audit_payload": {
       "type": "object",
       "required": [
         "share_event_ref",
@@ -2481,14 +2497,14 @@
       },
       "additionalProperties": true
     },
-    "space_key_scope": {
+    "realm_key_scope": {
       "type": "object",
       "required": [
-        "space_id"
+        "realm_id"
       ],
       "properties": {
-        "space_id": {
-          "$ref": "#/$defs/space_id"
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"
@@ -2521,8 +2537,8 @@
         "policy_root"
       ],
       "properties": {
-        "space_id": {
-          "$ref": "#/$defs/space_id"
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
         },
         "mls_group_id": {
           "type": "string",
@@ -2611,7 +2627,7 @@
           "minLength": 1
         },
         "scope": {
-          "$ref": "#/$defs/space_key_scope"
+          "$ref": "#/$defs/realm_key_scope"
         },
         "epoch": {
           "const": 0
@@ -2761,14 +2777,14 @@
     "moderation_report_payload": {
       "type": "object",
       "required": [
-        "space_id",
+        "realm_id",
         "target_ref",
         "reason",
         "reporter"
       ],
       "properties": {
-        "space_id": {
-          "$ref": "#/$defs/space_id"
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
         },
         "target_ref": {
           "$ref": "#/$defs/object_ref"
@@ -2953,26 +2969,26 @@
     "flow_move_payload": {
       "type": "object",
       "required": [
-        "board_place_id",
+        "board_space_id",
         "flow_id",
-        "target_place_id",
+        "target_space_id",
         "rank"
       ],
       "properties": {
-        "board_place_id": {
-          "$ref": "#/$defs/board_place_id",
-          "description": "Board Place that owns the position edge; deduplication key (board_place_id, flow_id) MUST be unique among active edges."
+        "board_space_id": {
+          "$ref": "#/$defs/board_space_id",
+          "description": "Board Space that owns the position edge; deduplication key (board_space_id, flow_id) MUST be unique among active edges."
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "from_place_id": {
-          "$ref": "#/$defs/list_place_id",
-          "description": "Source List Place (optional; reducer infers from current active edge if omitted)."
+        "from_space_id": {
+          "$ref": "#/$defs/list_space_id",
+          "description": "Source List Space (optional; reducer infers from current active edge if omitted)."
         },
-        "target_place_id": {
-          "$ref": "#/$defs/list_place_id",
-          "description": "Target List Place after move."
+        "target_space_id": {
+          "$ref": "#/$defs/list_space_id",
+          "description": "Target List Space after move."
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -2980,8 +2996,8 @@
         "expected_position": {
           "type": "object",
           "properties": {
-            "place_id": {
-              "$ref": "#/$defs/list_place_id"
+            "space_id": {
+              "$ref": "#/$defs/list_space_id"
             },
             "rank": {
               "$ref": "#/$defs/rank"
@@ -2998,21 +3014,21 @@
     "flow_reorder_payload": {
       "type": "object",
       "required": [
-        "board_place_id",
+        "board_space_id",
         "flow_id",
-        "place_id",
+        "space_id",
         "rank"
       ],
       "properties": {
-        "board_place_id": {
-          "$ref": "#/$defs/board_place_id"
+        "board_space_id": {
+          "$ref": "#/$defs/board_space_id"
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"
         },
-        "place_id": {
-          "$ref": "#/$defs/list_place_id",
-          "description": "List Place within which the reorder happens."
+        "space_id": {
+          "$ref": "#/$defs/list_space_id",
+          "description": "List Space within which the reorder happens."
         },
         "rank": {
           "$ref": "#/$defs/rank"

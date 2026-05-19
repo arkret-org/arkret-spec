@@ -14,7 +14,7 @@
         "kind": "cx.content.import_attestation",
         "body": "...",
         "claimed_origin": {
-          "space_id": "cx:space:01964200-0000-7000-8000-a00000000014",
+          "realm_id": "cx:realm:01964200-0000-7000-8000-a00000000014",
           "flow_id": "cx:flow:01964200-0000-7000-8000-a00000000013",
           "message_id": "cx:message:01964200-0000-7000-8000-a00000000016",
           "actor_id": "did:web:bob.example",
@@ -26,7 +26,7 @@
         },
         "import_signature": "0xValidSig...",
         "source_export_policy_attestation": {
-          "authority_did": "did:web:source-space-admin.example",
+          "authority_did": "did:web:source-realm-admin.example",
           "content_hash": "sha256:OriginalContentHash000000000000000000000000000000000000000000",
           "signature": "0xValidExportSig..."
         },

@@ -14,26 +14,26 @@ title: 术语表
 | --- | --- | --- |
 | Contrix | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
 | Principal | 主体 | 协议中的稳定行为者身份；通常由 DID 标识，包含个人主体、组织、agent、Applet 等。 |
-| Actor | 参与身份 | Principal 在 Space 内的行为身份：执行动作、产生 Event、持有 profile 与 membership；可在不同 Space 表现为 pairwise pseudonym。 |
+| Actor | 参与身份 | Principal 在 Realm 内的行为身份：执行动作、产生 Event、持有 profile 与 membership；可在不同 Realm 表现为 pairwise pseudonym。 |
 | Organization | 组织 | 可治理主体的一类 Principal，通常由组织 DID 标识。 |
 | Organization Governance | 组织治理 | 组织成员资格、控制策略、密钥、恢复与授权委派规则。 |
-| Handle | 可路由人类地址 | 面向用户的可读入口，统一 canonical URI `contrix://<domain>/users/<localpart>`，显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`。可由 holder 自托管签发或 Organization / Principal Server / Directory 签发；解析结果含 `subject` DID 与可选 `recipient_service_did`，但只有物化为 Space `delivery_binding` 后才成为投递路径。不可作为协议主体或授权主键。 |
-| Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Space history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
+| Handle | 可路由人类地址 | 面向用户的可读入口，统一 canonical URI `contrix://<domain>/users/<localpart>`，显示形态 `@<localpart>:<domain>` 或 `<localpart>@<domain>`。可由 holder 自托管签发或 Organization / Principal Server / Directory 签发；解析结果含 `subject` DID 与可选 `recipient_service_did`，但只有物化为 Realm `delivery_binding` 后才成为投递路径。不可作为协议主体或授权主键。 |
+| Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Realm history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
-| Space | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Space 为根。`cx:space:` 永远是边界，不再承担结构容器角色。 |
-| Official Space | 官方空间 | 由组织或 policy 明确确认的 Space，不等于单纯"有官方 handle 的 Space"。 |
-| Space Hierarchy | Space 层级 | Space 之间的 parent/child 组织关系（通过 `cx.space.child` / `cx.space.parent` 表达），用于导航与受控继承；不默认级联权限或历史。 |
-| Place | 结构性分组对象 | Space 内部的结构容器（看板、列、泳道、calendar bucket、page group 等），ID 形如 `cx:place:`。永远没有自己的 membership / policy / E2EE group / federation policy，授权透明回退到所属 Space。 |
-| Place Hierarchy | Place 层级 | Place 之间通过 `parent_ref` + `cx.place.parent` 表达父子关系；嵌套不得跨 Space。 |
+| Realm | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Realm 为根。`cx:realm:` 永远是边界，不承担产品导航树职责。 |
+| Official Realm | 官方边界 | 由组织或 policy 明确确认的 Realm；它是治理 / 安全声明，不等同于用户可见的 Space。 |
+| Realm Link | Realm 关系边 | Realm 之间通过 `cx.realm.link` 表达的显式治理、发现、mirror、confidential extension、迁移等关系；不是 hierarchy，不默认级联权限或历史。 |
+| Space | 结构性分组对象 | 用户可理解的结构容器与导航节点（project、folder、board、list、泳道、calendar bucket、page group 等），ID 形如 `cx:space:`。永远没有自己的 membership / policy / E2EE group / federation policy；metadata 由 `realm_id` 指向的 home Realm 授权，子资源默认 Realm 由 `default_realm_ref` 解析。 |
+| Space Hierarchy | Space 层级 | Space 之间通过 `parent_ref` + `cx.space.parent` 表达父子关系；可跨 Realm 做导航，但不传播 Realm membership、capability、history 或 E2EE key。 |
 | Discoverability | 可发现性 | 资源是否可被目录、搜索、邀请、组织页或精确链接发现。 |
-| Flow | 协作主对象 | Space 内承载协作议题、任务、正式表达与讨论轨道的标准对象。 |
+| Flow | 协作主对象 | Realm 内承载协作议题、任务、正式表达与讨论轨道的标准对象。 |
 | Flow primary track | Flow 默认入口 | 按 track primary 解析规则得到的默认 track；显式 `is_primary=true` 优先，未显式时标准 `synthesis` 优先。 |
 | Room | 讨论轨道视图 | Flow 的 discussion track 或以 discussion 为默认入口的会话视图简称。 |
 | synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。 |
-| discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 完全继承父 Space，需要独立访问域时通过 `Flow.discussion_space_ref` 升级到 child Space。 |
-| Board | 看板 | `cx:place: kind=board`，组织一组 List Place 与其他 Place 的工作流容器。 |
-| List | 列 / 泳道 | `cx:place: kind=list`，挂到 Board Place 下、承载 Flow 位置关系的列容器。 |
+| discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow 所属 Realm，需要独立访问域时通过 `Flow.discussion_realm_ref` 升级到独立 discussion Realm。 |
+| Board | 看板 | `cx:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
+| List | 列 / 泳道 | `cx:space: kind=list`，挂到 Board Space 下、承载 Flow 位置关系的列容器。 |
 | Message | 消息对象 | 发生在 Flow discussion 轨道中的即时沟通与补充记录。 |
 | Morph | 开放对象 | 标准对象扩展框架，承载非固定业务类型的可声明对象。 |
 | Facet | 能力标签 | Morph/Profile 的能力提示（如 container/schedulable/renderable）。 |
@@ -43,23 +43,23 @@ title: 术语表
 | Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
 | Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。详见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md) 与 [`../sync/operations-sync.md` §4.1](../sync/operations-sync.md)。 |
 | Integrity (data) | 数据完整性 | 给定数据未被中间人或第三方篡改。集合上的 Merkle / set commitment 提供 integrity，但不保证集合本身已覆盖给定范围。 |
-| Completeness (range) | 范围完整性 | 给定范围内（per-actor seq interval、frontier 上下界、actor / space scope）**没有漏给**任何属于该范围的成员。Completeness 必须依赖 *range-bound* attestation（带显式 from/to 边界）+ witness quorum 或独立 anchor 背书；set-bound commitment 单独不足以证明 completeness。 |
+| Completeness (range) | 范围完整性 | 给定范围内（per-actor seq interval、frontier 上下界、actor / realm scope）**没有漏给**任何属于该范围的成员。Completeness 必须依赖 *range-bound* attestation（带显式 from/to 边界）+ witness quorum 或独立 anchor 背书；set-bound commitment 单独不足以证明 completeness。 |
 | Range-bound Attestation | 范围完整性证明 | 携带 explicit range scope（per-actor seq interval、frontier 上下界）的签名证明，是 completeness 证明的载体。v1 已注册 `cx.attestation.range_completeness.v1`（schema `cx.schema.range_completeness_attestation.v1`），详见 [`../sync/operations-sync.md` §4.2](../sync/operations-sync.md)。 |
 | Snapshot | 快照 | 恢复/同步起点对象，包含某时刻 Materialized State 与 frontier。 |
 | HLC | 混合逻辑时钟 | `HLC` 为 `clock` 排序标签，固定格式 `<unix_ms_hex(12)>-<logical_hex(4)>-<node_id_hash(8)>`（hex 字段宽度依次 12 / 4 / 8）；canonical 规则见 [`../conformance/encoding.md` §7](../conformance/encoding.md)。 |
-| Cursor | 同步游标 | 指定 frontier 的 `scope:space|actor|query` 编码，用于增量同步与重放。 |
+| Cursor | 同步游标 | 指定 frontier 的 `scope:realm|actor|query` 编码，用于增量同步与重放。 |
 | Canonical JSON | 规范 JSON | 确定性 JSON 序列化格式，所有签名/哈希/对账输入必须使用；要求 UTF-8、key 排序、无空白、唯一 number 表示。 |
 | View | 投影定义 | 查询 + kind + renderer + config 的共享可签名对象，定义“怎么看”。 |
 | View.kind | 投影族类 | `collection / timeline / graph / document / composite`。 |
 | Capability | 能力 | 授权语义与对象的绑定关系，授予 subject 执行特定 action。 |
 | Capability Grant | 能力授权对象 | `capability` 标准对象；记录谁在什么条件下可执行何动作。 |
 | Policy | 策略 | 运行期约束对象，用于授权、密钥、留存、治理与安全边界。 |
-| Invite | 邀请 | 邀请主体加入 Space 或授予特定能力的标准对象/事件 payload。 |
-| Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / sync / discovery 等核心 API。Space 内实际投递目标由成员 `delivery_binding.recipient_service_did` 决定；DID Document 默认 Principal Server 只是允许 fallback 时的来源。 |
+| Invite | 邀请 | 邀请主体加入 Realm 或授予特定能力的标准对象/事件 payload。 |
+| Principal Server | 主体服务 | 主体控制或委托入口服务，承载 events / sync / discovery 等核心 API。Realm 内实际投递目标由成员 `delivery_binding.recipient_service_did` 决定；DID Document 默认 Principal Server 只是允许 fallback 时的来源。 |
 | Sync Service | 同步服务 | 公开/订阅事件与 frontier 的受控同步能力，通常由 Principal Server 提供。 |
 | Event Store Service | 事件存储服务 | 与 Sync Service 关联的持久化与检索服务角色。 |
 | Blob Store | 二进制对象存储 | 附件、媒体、文件对象的存储与引用服务。 |
-| Directory Server | 目录服务 | 提供可发现的 Space、组织、actor、Applet 信息。 |
+| Directory Server | 目录服务 | 提供可发现的 Realm、组织、actor、Applet 信息。 |
 | Identity Resolution Infrastructure | 身份解析基础设施 | DID 文档、method resolver、密钥材料与验证链路。 |
 | Redaction | 清理/隐私裁剪 | 合法授权下对已发布事实做最小化可见性处理。 |
 | Erasure | 物理擦除 | 在某个存储边界内对原始 payload、blob、派生内容的不可恢复删除；不同于 Redaction，它不保留正文。 |
@@ -69,22 +69,22 @@ title: 术语表
 | Rejected | 已拒绝 | Move / Anchor 在格式、签名、schema、precondition、授权或 state_root 校验上确定失败。 |
 | Move | 动作 | 多 cell 原子条件写；包含 `preconditions[]`、`effects[]`、`anchor_ref`、`refs[]` 与 issuer 签名。 |
 | Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。 |
-| Anchor DAG | 锚点图 | 某个 Space 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
+| Anchor DAG | 锚点图 | 某个 Realm 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `cx:cell:<component>:<subject>`。 |
 | Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or-set`、`mv-register`、`cas-register`、`fsm`、`counter`、`ordered-log`、`lww-register`（仅 UI affordance）、`rga`（协作文本与有序列表）。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的 Move fail closed，`bottom=expose` 时可投影为冲突诊断。 |
 | Component / Cell Family | 组件 / Cell 族 | 跨协议版本稳定的 cell family 标识符，URI 形式 `cx.component.<facet-path>.v<n>`；registry 为 reducer-input kind 声明 `cell_family`、`lattice` 与 `bottom`。 |
-| MLS Governance Binding | MLS 治理绑定 | E2EE Space 中把 MLS epoch 与 governance state（membership / policy / capability / Anchor frontier）强绑定的机制（profile `cx.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`）。由两层 artifact 组成：commit 侧的 *Governance Binding Payload* (`governance_binding`) 提供证据，lattice 侧的 *Covered Frontier Cell* (`covered_frontier_cell`) 沉淀状态。 |
+| MLS Governance Binding | MLS 治理绑定 | E2EE Realm 中把 MLS epoch 与 governance state（membership / policy / capability / Anchor frontier）强绑定的机制（profile `cx.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`）。由两层 artifact 组成：commit 侧的 *Governance Binding Payload* (`governance_binding`) 提供证据，lattice 侧的 *Covered Frontier Cell* (`covered_frontier_cell`) 沉淀状态。 |
 | Governance Binding Payload | 治理绑定 payload | MLS Governance Binding 的 **commit-side proof**：每个 `cx.mls.commit` 携带的 `governance_binding` payload（MLS GroupContext extension `cx_governance_binding`，codepoint `0xF1C0`），哈希进 MLS transcript，覆盖 `membership_frontier`、`policy_root`、`capability_root`、`discussion_metadata_hash`。 |
 | Covered Frontier | 已覆盖前沿 | MLS Governance Binding 的 **lattice-side accumulator**：`covered_frontier_cell`（cell family `cx.component.covered_frontier.v1`，or-set，bottom=expose）当前值，累积已被 commit attest 的 governance Anchor frontier；E2EE message Move 用 `contains` precondition gate 自身依赖的 governance frontier。 |
-| Anchor Profile | 锚点 Profile | Space create 时固定的 Anchor finality profile：`single_did`、`threshold`、`open_set` 或 `mixed`。 |
-| Anchorer Cell | 锚定者 Cell | 定义下一批 Anchor 由谁授权的 `cas-register + bottom=reject` cell；冲突时产生 Space-wide Anchor pause。 |
+| Anchor Profile | 锚点 Profile | Realm create 时固定的 Anchor finality profile：`single_did`、`threshold`、`open_set` 或 `mixed`。 |
+| Anchorer Cell | 锚定者 Cell | 定义下一批 Anchor 由谁授权的 `cas-register + bottom=reject` cell；冲突时产生 Realm-wide Anchor pause。 |
 | Consent | 同意 | Holder-private 决策："我同意接收来自 X 的某种联系"。表达为 consent cell 上的 Move effect，是 invite / contact 路径的前置 gate。 |
 | Consent Scope | 同意范围 | Consent grant 适用的联系类型枚举：`invite` / `direct_message` / `voice_call` / `video_call` / `presence` / `any`。 |
 | Reducer | 归约器 | 确定性纯函数，将 Anchor frontier 中的 Move effects 归约为 cell values、state_root、bottom diagnostics 与产品 projection。 |
 | Materialized State | 物化状态 | Reducer 输出的当前态对象，如 Flow、Relation、View。 |
-| Frontier | 前沿 | Move / Anchor / Actor / Space 已验证的最远同步边界。 |
+| Frontier | 前沿 | Move / Anchor / Actor / Realm 已验证的最远同步边界。 |
 | Inception Key | 起源密钥 | DID 创建时的初始控制密钥，锚定在 DID 的 method history 中。 |
-| Plaintext Visible Service | 明文可见服务 | Space policy 显式声明可接收非加密私有内容或可逆派生摘要的服务。 |
-| History Visibility | 历史可见性 | 控制加入 Space 后能看到多少历史事件的范围规则。 |
-| Join Rule | 加入规则 | 控制 Actor 如何加入 Space 的策略（public、invite、knock、restricted 等）。 |
+| Plaintext Visible Service | 明文可见服务 | Realm policy 显式声明可接收非加密私有内容或可逆派生摘要的服务。 |
+| History Visibility | 历史可见性 | 控制加入 Realm 后能看到多少历史事件的范围规则。 |
+| Join Rule | 加入规则 | 控制 Actor 如何加入 Realm 的策略（public、invite、knock、restricted 等）。 |

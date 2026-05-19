@@ -74,20 +74,20 @@
       "notes": "Companion to removed cx.field.position.reorder event kind."
     },
     {
-      "id": "cx.space.lifecycle.set.apply",
+      "id": "cx.realm.lifecycle.set.apply",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Companion to removed cx.space.lifecycle.set snapshot event."
+      "notes": "Companion to removed cx.realm.lifecycle.set snapshot event."
     },
     {
-      "id": "cx.space.policy.set.apply",
+      "id": "cx.realm.policy.set.apply",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Companion to removed cx.space.policy.set snapshot event."
+      "notes": "Companion to removed cx.realm.policy.set snapshot event."
     }
   ]
 }

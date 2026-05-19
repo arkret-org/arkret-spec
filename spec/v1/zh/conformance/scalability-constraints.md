@@ -24,7 +24,7 @@ Contrix v1 的一致性不仅要求语义正确，也要求实现不会被合法
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject 或拆分。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。 |
-| 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Space 引用必须按 Lazy Link 截断。 |
+| 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Realm 引用必须按 Lazy Link 截断。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内提交超过 65,536 个 event 时 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，不得 wrap 或复用相同 HLC。换算约 65 M events/s 单 actor 上限。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。v2 SHOULD 评估扩展 logical 段宽度。 |
 | 单 actor 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和 HLC logical 段或下游 reducer。超过该建议持续吞吐时，actor SHOULD 拆分为多 device / 多 actor 并行，或考虑使用 batch event。 |
 
@@ -60,14 +60,14 @@ Move / Anchor fallback 不得选择本地接收顺序或数据库 ID。Snapshot 
 | 项 | v1 默认上限 / 建议 | 规则 |
 | --- | ---: | --- |
 | 单轮 targeted backfill page | 256 objects | 客户端 SHOULD 优先拉缺失 Move、Anchor predecessor、critical `refs` 的最小闭包，再扩大范围。 |
-| 单 Space 后台 dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 state_root-assisted recovery。 |
+| 单 Realm 后台 dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 state_root-assisted recovery。 |
 | snapshot-assisted recovery 触发 | DAG leaf 过多、join 预算耗尽或本地预算耗尽 | 必须验证 Anchor signer authority、frontier、state_root 和 chunk digest。 |
 | 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 read-only partial view + `anchor_incomplete`，并继续后台恢复。 |
 | retry backoff | 指数退避，有上限 | 响应 SHOULD 带 `retry_after_ms`、`next_retry_at`、缺失 ref 和可用 source。 |
 
 渐进恢复阶段：
 
-1. **Anchor probe**：先查询 Space Anchor leaves、可用 snapshot manifest 和缺失 ref 的 source。
+1. **Anchor probe**：先查询 Realm Anchor leaves、可用 snapshot manifest 和缺失 ref 的 source。
 2. **Targeted dependency fetch**：按缺失 Move、Anchor predecessor 与 critical refs 拉最小闭包。
 3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 Move。
 4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 Anchor view 的只读 projection，并显式标记 `anchor_incomplete`。
@@ -75,19 +75,19 @@ Move / Anchor fallback 不得选择本地接收顺序或数据库 ID。Snapshot 
 
 长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Anchor DAG 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Move / Anchor。
 
-## 5. Place / Relation / View 上限
+## 5. Space / Relation / View 上限
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| 单 Space active Place 数 | 5,000 | 超过时 Space projection MUST paginate；建议拆分为多个 Space 或使用嵌套 Place。 |
-| 单个 Board Place active List Place 数 | 500 | 超过时 Board projection MUST paginate 或 require filtered View。 |
-| 单个 List Place active Flow item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
-| Place 嵌套深度 | 8 | 超过时 reducer MUST reject `cx.place.parent`；防止任意深度的容器树拖累查询性能。 |
+| 单 Realm active Space 数 | 5,000 | 超过时 Realm projection MUST paginate；建议拆分为多个 Realm 或使用嵌套 Space。 |
+| 单个 Board Space active List Space 数 | 500 | 超过时 Board projection MUST paginate 或 require filtered View。 |
+| 单个 List Space active Flow item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
+| Space 嵌套深度 | 8 | 超过时 reducer MUST reject `cx.space.parent`；防止任意深度的容器树拖累查询性能。 |
 | 单个对象 active Relation 数 | 10,000 | Projection executor MUST paginate，不能要求客户端一次性拉全。 |
 | 单个 View projection page | 1,000 items | View cursor MUST 绑定 authorization context 和 frontier。 |
 | rank 长度 | 128 chars | 超过时 MUST reject，见 `encoding.md`。 |
 
-Board position edge 的 canonical key 是 `(board_place_id, flow_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；View projection MAY 暴露 loser conflict records，但不得把同一 Flow 渲染成多个主位置。
+Board position edge 的 canonical key 是 `(board_space_id, flow_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；View projection MAY 暴露 loser conflict records，但不得把同一 Flow 渲染成多个主位置。
 
 ## 6. E2EE 与设备上限
 
@@ -104,16 +104,16 @@ Contrix 的真相源仍是 signed Event Envelope；GC 只能释放某个存储�
 
 | 项 | v1 默认上限 / 下限 | 规则 |
 | --- | ---: | --- |
-| dangling redaction 最小保留 | 30 days | 目标 Event 尚未到达时，接收方 SHOULD 保留 redaction stub 至少 30 天或保留到 Space policy 声明的更长窗口；不得在窗口内丢弃后再把迟到目标显示为未撤回内容。 |
+| dangling redaction 最小保留 | 30 days | 目标 Event 尚未到达时，接收方 SHOULD 保留 redaction stub 至少 30 天或保留到 Realm policy 声明的更长窗口；不得在窗口内丢弃后再把迟到目标显示为未撤回内容。 |
 | tombstone / redaction verification stub 保留 | 不短于 raw event retention | 删除 payload 或压缩历史后仍 MUST 保留足以验证 causal refs、payload hash / proof、redaction / tombstone 授权和 erasure receipt 的最小 stub。 |
-| snapshot cadence | 实现声明 | 大型 Space SHOULD 周期性生成可验证 snapshot；当 replay 成本超过第 4 节预算时 MUST 提供 snapshot-assisted recovery、可分页 backfill 或明确的可恢复错误。 |
+| snapshot cadence | 实现声明 | 大型 Realm SHOULD 周期性生成可验证 snapshot；当 replay 成本超过第 4 节预算时 MUST 提供 snapshot-assisted recovery、可分页 backfill 或明确的可恢复错误。 |
 | snapshot 保留数量 | 至少 2 个有效 head SHOULD | 服务 SHOULD 保留当前推荐 snapshot 和至少一个前代 snapshot，便于 cursor 过期、移动端恢复和 snapshot 校验失败时回退。 |
-| track-disabled / archived materialized state | snapshot 中保留 stub | 通过 `cx.flow.tracks.update` 关闭 track（`tracks.<name>.enabled: set false`）、Space tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 track 不活跃而从 state hash 中静默消失。 |
+| track-disabled / archived materialized state | snapshot 中保留 stub | 通过 `cx.flow.tracks.update` 关闭 track（`tracks.<name>.enabled: set false`）、Realm tombstone、Message redaction 或 hard erasure 后，snapshot MUST 保留 reducer profile 声明的 tombstone / redaction stub；不得仅因 track 不活跃而从 state hash 中静默消失。 |
 
 Pruning 前置条件：
 
 1. 被裁剪范围已经被 accepted Event history、签名 snapshot、event batch receipt、witness receipt 或等价 commitment 覆盖。
-2. 没有 active legal hold、audit hold、unexpired invite / grant、pending redaction、未结算 claim、未完成 device verification transaction 或 Space policy 明确要求保留的依赖。
+2. 没有 active legal hold、audit hold、unexpired invite / grant、pending redaction、未结算 claim、未完成 device verification transaction 或 Realm policy 明确要求保留的依赖。
 3. 裁剪后，客户端仍能通过 snapshot frontier、backfill 起点、event-set commitment、verification stub 或可恢复错误理解缺口。
 
 服务端 MAY 对机器人高速创建 track、Message、Reaction、read marker 或 notification projection 的行为实施 quota 和限流。超过上限时应使用 `rate_limited`、`quota_exceeded`、`payload_too_large`、`dependency_missing` 或 `temporarily_unavailable`，也可将可疑输入 `quarantine`；不得在 reducer 内无界展开或把被裁剪历史当作 accepted absent fact。
