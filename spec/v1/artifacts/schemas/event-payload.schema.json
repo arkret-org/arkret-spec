@@ -297,7 +297,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(cx:(realm|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(cx:(realm|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_session|blob|snapshot|event|frank|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|cx:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
     "device_or_principal_ref": {
       "oneOf": [
@@ -857,6 +857,50 @@
         },
         "reason": {
           "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "space_state_transition_payload": {
+      "type": "object",
+      "description": "Payload for cx.space.archive and cx.space.restore. The target Space is expressed on payload.space_id; top-level target_ref is a rejected legacy field on Event envelopes.",
+      "required": [
+        "space_id"
+      ],
+      "properties": {
+        "space_id": {
+          "$ref": "#/$defs/space_id"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "effective_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "space_object_tombstone_payload": {
+      "type": "object",
+      "description": "Payload for cx.space.tombstone. Realm tombstone uses its separate Realm lifecycle payload; Space tombstone targets payload.space_id.",
+      "required": [
+        "space_id"
+      ],
+      "properties": {
+        "space_id": {
+          "$ref": "#/$defs/space_id"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "replacement_space": {
+          "$ref": "#/$defs/space_id"
+        },
+        "replacement_event": {
+          "$ref": "#/$defs/event_ref"
         },
         "effective_at": {
           "$ref": "#/$defs/timestamp"

@@ -68,7 +68,7 @@ title: Third-Party Invites
 **Canonical 示例**（fragment 形式）：
 
 ```text
-https://app.contrix.example/invite?realm=cx:realm:...#token=<invite_token>
+https://app.contrix.example/invite#token=<invite_token>
 ```
 
 或 OOB code 形式（用户在已打开的客户端中手动录入）：

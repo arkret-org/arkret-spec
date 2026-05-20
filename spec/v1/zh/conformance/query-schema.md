@@ -36,7 +36,7 @@ title: Query JSON Schema
 字段：
 
 - `realm_ids`: REQUIRED，查询范围。
-- `object_types`: OPTIONAL，限制标准对象类型，例如 `realm`、`flow`、`message`、`morph`、`relation`、`view`。`card` / `room` 必须表达为 `object_types=["flow"]` + `filters` 限制 `kind`；Board/List 必须表达为 `object_types=["realm"]` + `filters` 限制 `kind`。
+- `object_types`: OPTIONAL，限制标准对象类型，例如 `realm`、`space`、`flow`、`message`、`morph`、`relation`、`view`。`card` / `room` 必须表达为 `object_types=["flow"]` + `filters` 限制 `kind`；Board/List 容器必须表达为 `object_types=["space"]` + `filters` 限制 `kind`。Board/List 内部 item 查询仍按被投影对象表达，例如 `object_types=["flow"]` 并通过 `contains` relation 约束到目标 Space。
 - `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
 - `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、`allowed_tracks` action scope 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
 - `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Flow context 的上下文锚点对象引用。

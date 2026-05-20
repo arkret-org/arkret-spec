@@ -721,7 +721,7 @@ attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer re
 
 ### 9.2 `cx.profile.agent_workspace.lite.v1`(单 controller 轻量 profile)
 
-**目的**:针对"controller 自己用、自己审、不需要 audit-grade 痕迹"的最小化部署(单 dev、hobbyist、本地实验),允许 mirror Realm 跳过 base agent workspace profile 中三类成本最高的语义,从而把实现门槛降低到一个"标准 Realm + reservation cell + import_attestation"即可上线的水平。
+**目的**:针对"controller 自己用、自己审、不需要 audit-grade 痕迹"的最小化部署(单 dev、hobbyist、本地实验),允许 mirror Realm 跳过 base agent workspace profile 中成本较高的 transparency/source_authority FSM 与强治理绑定语义,从而把实现门槛降低到一个"标准 Realm + reservation cell + import_attestation"即可上线的水平。
 
 **applicability(必须同时满足)**:
 
@@ -736,7 +736,6 @@ attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer re
 
 | 维度 | base 默认 | lite |
 | --- | --- | --- |
-| reservation TTL 时钟源 | anchor index distance(由源 Realm anchorer 签发的不可伪造距离) | wall clock + 60s grace,reducer 仅做 sanity check |
 | transparency FSM cell(`agent_task.<id>.transparency`) | 必需,记录"源 stub 被 redact"等透明度信号 | **不存在**;controller 通过 UI hint 知道源 stub 状态,不写 cell |
 | source_authority FSM cell(`agent_task.<id>.source_authority`) | 必需,记录"agent 被踢 / capability_grant revoke" | **不存在**;controller 通过 UI hint 看到,不写 cell |
 | MLS Governance Binding(`mls_governance_binding.full.v1`) | 受 `mls_send_pause` 等 normative 规则约束 | 不强制要求 binding;mirror Realm MAY 维持普通 MLS group 即可 |
@@ -745,6 +744,7 @@ attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer re
 **从 base 保留(reads + cross-Realm writes 不变)**:
 
 - `mirror_space_by_source` / `mirror_flow_by_source` reservation cell(失去这一层 mirror flow 无法被稳定寻址,无法工作)
+- reservation cleanup 的 anchor-based TTL evidence(与 base 相同;lite 不接受 wall clock 或本地 monotonic clock 作为 reducer 依据)
 - `agent_task.<id>.execution_state` cell(任务自身状态机,lite 仍需用来决定能否 publish-back)
 - `cx.content.import_attestation` envelope(导入源内容仍需 attestation,只是 source-side export policy attestation 不强制)
 - `cx.mention_redirect` content block 在源 Realm 一侧不变(源 Realm 是否接受不取决于 mirror profile)

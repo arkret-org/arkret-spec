@@ -442,6 +442,31 @@
     },
     {
       "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "cx.space.archive",
+              "cx.space.restore"
+            ]
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_state_transition_payload" } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.space.tombstone" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": { "payload": { "$ref": "./event-payload.schema.json#/$defs/space_object_tombstone_payload" } }
+      }
+    },
+    {
+      "if": {
         "properties": { "kind": { "const": "cx.flow.reorder" } },
         "required": ["kind"]
       },

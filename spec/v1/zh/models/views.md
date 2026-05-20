@@ -244,7 +244,7 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_ref": "cx:realm:019640b6-8000-7000-8000-000000000000",
+    "source_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
     "depth": 2
   }
 }
@@ -292,7 +292,7 @@ Flow context MUST NOT 因为 actor 可读 Flow synthesis 就展开未被有效 a
 
 | 产品概念 | 协议对象 | 说明 |
 | --- | --- | --- |
-| 看板 | Board Space | 标准 Realm 对象，可被引用、授权、讨论和审计。 |
+| 看板 | Board Space | 标准 Space 对象；授权、历史、E2EE 与 policy 仍解析到其 home Realm。 |
 | 列/泳道 | List Space | Board Space 内有序容器。 |
 | 卡片 | `flow` | 标准工作对象；是否呈现为卡片由 View renderer 和 item_render 决定。 |
 | 卡片属于列 | `Relation{relation_kind="contains", from_ref=list_id, to_ref=flow_id}` | 表示 List 与 Flow 的 canonical 包含关系。 |
@@ -321,7 +321,7 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Flow。实现 MUST 按
   "frontier": ["cx:event:..."],
   "groups": [
     {
-      "group_id": "cx:realm:01c3b617-7000-7000-8000-000000000000",
+      "group_id": "cx:space:01c3b617-7000-7000-8000-000000000000",
       "title": "Review",
       "rank": "mV",
       "items": [
