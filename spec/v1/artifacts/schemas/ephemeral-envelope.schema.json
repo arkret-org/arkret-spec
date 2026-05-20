@@ -79,7 +79,21 @@
               },
               "signal_type": {
                 "type": "string",
-                "enum": ["invite", "answer", "candidate", "renegotiate", "hangup", "ack"]
+                "enum": [
+                  "invite",
+                  "answer",
+                  "candidate",
+                  "reject",
+                  "hangup",
+                  "renegotiate",
+                  "mute_state",
+                  "media_state",
+                  "speaking",
+                  "focus_join",
+                  "focus_leave",
+                  "error",
+                  "ack"
+                ]
               },
               "seq": {
                 "type": "integer",

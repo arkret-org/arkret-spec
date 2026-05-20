@@ -22,21 +22,33 @@ title: Third-Party Invites
 
 1. **发起盲化邀请**：Alice 的客户端向她的 Principal Server 或授权的 Identity Verification Service 提交一个针对 3PID 的邀请。公开持久化 Event 中 MUST NOT 写入明文邮箱、手机号或可枚举的未加盐哈希。
 2. **生成邀请令牌**：验证服务生成至少 128 bit 熵的随机 `invite_token`，并生成独立 `token_salt`。`invite_token` MUST 只通过外部通知渠道发送给被邀请人，不得写入公开 Event。
-3. **写入占位符 Event**：Alice 向 Realm 提交一个特殊的 `cx.invite.third_party` Event：
+3. **写入占位符 Event**：Alice 向 Realm 提交一个特殊的 `cx.invite.third_party` Event，其 `payload` 为：
 
-```json
+```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
 {
-  "kind": "cx.invite.third_party",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "display_name_hint": "external invite",
-  "token_commitment": "sha256:<hash(token_salt || invite_token)>",
-  "token_salt_id": "salt:2026-04-28:invite-001",
-  "oob_code_kind": "offline_token",
-  "token_entropy_bits": 128,
-  "verification_service_did": "did:web:identity.alice.example",
-  "verification_public_key": "z6Mkf...",
-  "expires_at": "2026-05-05T00:00:00Z",
-  "max_claims": 1
+  "invite": {
+    "id": "cx:invite:0196419b-1000-7000-8000-000000000000",
+    "schema": "cx.schema.invite.v1",
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "inviter": "did:web:alice.example",
+    "third_party_id": {
+      "display_name_hint": "external invite",
+      "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "token_salt_id": "salt-2026-04-28-invite-001",
+      "oob_code_kind": "offline_token",
+      "token_entropy_bits": 128,
+      "verification_service_did": "did:web:identity.alice.example",
+      "verification_public_key": "did:web:identity.alice.example#invite-001",
+      "max_claims": 1
+    },
+    "join_rule_snapshot": {
+      "join_rule": "invite"
+    },
+    "expires_at": "2026-05-05T00:00:00Z",
+    "state": "pending",
+    "created_at": "2026-04-28T00:00:00Z"
+  },
+  "expires_at": "2026-05-05T00:00:00Z"
 }
 ```
 
@@ -94,25 +106,29 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 
 ### 4.2 提交转换 Event
 
-身份验证服务（或 Bob 代理）将该证明连同 Bob 的签名，打包成一个 `cx.invite.claim` Event 提交到 Realm：
+身份验证服务（或 Bob 代理）将该证明连同 Bob 的签名，打包成一个 `cx.invite.claim` Event 提交到 Realm。`payload` 为：
 
-```json
+```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
 {
-  "kind": "cx.invite.claim",
-  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "invite_id": "cx:invite:0196419b-1000-7000-8000-000000000000",
   "subject_did": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
-  "token_commitment": "sha256:<hash(token_salt || invite_token)>",
-  "claim_nonce": "01JX...",
+  "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
   "binding_proof": {
     "verification_service_did": "did:web:identity.alice.example",
     "verification_method": "did:web:identity.alice.example#invite-001",
     "subject_did": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "audience": "contrix.invite.claim",
+    "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
     "expires_at": "2026-05-05T00:00:00Z",
-    "signature": "<身份验证服务的签名>"
+    "signature": "c2ln"
   },
-  "subject_proof": "<Bob DID/device 对 claim 的签名>"
+  "subject_proof": {
+    "verification_method": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com#device-1",
+    "alg": "EdDSA",
+    "signature": "c2ln"
+  }
 }
 ```
 

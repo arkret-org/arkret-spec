@@ -101,6 +101,20 @@ Move(cx.consent.grant) {
 - `evidence_ref`：可选审计链——指向引发此 consent 的 claim disclosure / presentation response / invite proof Move。
 - `reason`：人类可读理由（仅审计，不参与授权）。
 
+Payload-only schema 示例：
+
+```json schema=schemas/event-payload.schema.json#/$defs/consent_grant_payload
+{
+  "consent_id": "consent-alice-bob-invite-001",
+  "peer": "did:web:bob.example.com",
+  "scope": "invite",
+  "not_before": "2026-05-07T00:00:00Z",
+  "valid_until": "2026-12-31T00:00:00Z",
+  "evidence_ref": "cx:event:019640e0-0000-7000-8000-000000000002",
+  "reason": "Bob completed verified contact discovery"
+}
+```
+
 Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。其他 actor 提交的 grant Move 在 holder 的 principal control Realm MUST `unauthorized` reject。
 
 `dot` 由 `<enclosing event_id>:<effect_index>` 派生，全局唯一，不再使用 deterministic tag。Projection 层按 `intent` 把同一 (consent_id, peer, scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or-set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
@@ -137,6 +151,16 @@ Move(cx.consent.revoke) {
 ```
 
 `observed_dots` MUST 列出 revoke 想要撤销的具体 add dot；它们 MUST 在 `Move.anchor_ref` 对应 pre-state 下解析为合法 add op。precondition `contains_dots` 让 reducer 在 dots 已被先行 revoke 时拒绝 no-op 重放，避免审计日志中出现无意义记录；多 issuer 并发 revoke 同一 dot 收敛于 or-set 的去重语义。`observed_dots` 之外的 dot 不受影响——这是 OR-Set 的 normative 行为。
+
+Payload-only schema 示例：
+
+```json schema=schemas/event-payload.schema.json#/$defs/consent_revoke_payload
+{
+  "consent_id": "consent-alice-bob-invite-001",
+  "revoked_at": "2026-06-15T10:00:00Z",
+  "reason": "Bob harassment incident #4711"
+}
+```
 
 **Regrant**：撤销后 holder 可以再次发出 `cx.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 

@@ -551,6 +551,30 @@ Profile 规则：
 - Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Realm policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Realm。
 - 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Realm history。
 
+`cx.identity_link` payload-only schema 示例：
+
+```json schema=schemas/identity-link.schema.json
+{
+  "schema": "cx.schema.identity_link.v1",
+  "status": "active",
+  "pairwise_did": "did:key:z6Mkpseudonymous",
+  "principal_did": "did:web:alice.example",
+  "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
+  "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
+  "trust_domain": "cx:trust_domain:did.webvh.example",
+  "mls_group_id": "mls-group-019a7360",
+  "mls_leaf_index": 0,
+  "mls_epoch": 1,
+  "effective_at": "2026-05-20T00:00:00Z",
+  "proof": {
+    "verification_method": "did:web:alice.example#key-1",
+    "signature_algorithm": "Ed25519",
+    "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "signature": "c2ln"
+  }
+}
+```
+
 Minimal-metadata Realm 不改变签名责任。客户端在解密后仍必须验证发送者的 identity link、MLS credential、device trust 和对应 capability。无法建立映射时，该消息可被展示为未验证 pairwise sender，但不得被提升为已验证 principal DID 发送者。
 
 **Identity Link 缓存**：客户端 SHOULD 在本地设备存储中缓存已验证的 `cx.identity_link` 映射，key 为 `(realm_id, pairwise_did)`，value 中**MUST**额外携带签发时的 `policy_frontier_hash`（参见下方"Policy tightening 失效"）。缓存 value MUST 包含：验证时间、MLS epoch、principal DID、device id、签名证明摘要、`policy_frontier_hash`（绑定该缓存条目所依赖的 Realm policy 快照）。缓存失效规则：

@@ -163,6 +163,45 @@ Schema id：`cx.schema.cross_signing_publish.v1`
 }
 ```
 
+Payload-only schema 示例（即 Event `payload` / 上例 `content` 的规范形态）：
+
+```json schema=schemas/cross-signing-publish.schema.json
+{
+  "principal_id": "did:web:alice.example",
+  "trust_domain": "cx:trust_domain:did.webvh.example",
+  "principal_signing_key": {
+    "kid": "did:web:alice.example#cx_principal_signing_v1",
+    "alg": "EdDSA",
+    "public_key": "AA",
+    "key_format": "raw_base64url"
+  },
+  "self_signing_key": {
+    "kid": "did:web:alice.example#cx_self_signing_v1",
+    "alg": "EdDSA",
+    "public_key": "BB",
+    "key_format": "raw_base64url",
+    "binding": {
+      "signed_by": "did:web:alice.example#cx_principal_signing_v1",
+      "alg": "EdDSA",
+      "signature": "c2ln"
+    }
+  },
+  "user_signing_key": {
+    "kid": "did:web:alice.example#cx_user_signing_v1",
+    "alg": "EdDSA",
+    "public_key": "CC",
+    "key_format": "raw_base64url",
+    "binding": {
+      "signed_by": "did:web:alice.example#cx_principal_signing_v1",
+      "alg": "EdDSA",
+      "signature": "c2ln"
+    }
+  },
+  "generation": 1,
+  "issued_at": "2026-04-26T00:00:00Z"
+}
+```
+
 字段规则：
 
 | 字段 | 必填 | 说明 |
@@ -788,6 +827,8 @@ Schema id：`cx.schema.cross_signing_reset.v1`
   "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
   "content": {
+    "trust_domain": "cx:trust_domain:did.webvh.example",
+    "reset_event_id": "cx:event:0196414c-5000-7000-8000-000000000000",
     "principal_id": "did:webvh:...",
     "previous_generation": 1,
     "new_generation": 2,
@@ -800,6 +841,26 @@ Schema id：`cx.schema.cross_signing_reset.v1`
     },
     "issued_at": "2026-04-26T00:00:00Z"
   }
+}
+```
+
+Payload-only schema 示例（即 Event `payload` / 上例 `content` 的规范形态）：
+
+```json schema=schemas/cross-signing-reset.schema.json
+{
+  "trust_domain": "cx:trust_domain:did.webvh.example",
+  "reset_event_id": "cx:event:0196414c-5000-7000-8000-000000000000",
+  "principal_id": "did:web:alice.example",
+  "previous_generation": 1,
+  "new_generation": 2,
+  "reset_reason": "rotation",
+  "proof": {
+    "kind": "principal_signing",
+    "signed_by": "did:web:alice.example#cx_principal_signing_v1",
+    "alg": "EdDSA",
+    "signature": "c2ln"
+  },
+  "issued_at": "2026-04-26T00:00:00Z"
 }
 ```
 

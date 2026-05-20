@@ -1963,6 +1963,16 @@
           "required": [
             "third_party_id"
           ]
+        },
+        {
+          "required": [
+            "invite_id",
+            "subject_did",
+            "token_commitment",
+            "claim_nonce",
+            "binding_proof",
+            "subject_proof"
+          ]
         }
       ],
       "properties": {
@@ -1976,7 +1986,61 @@
           "$ref": "#/$defs/did"
         },
         "third_party_id": {
-          "type": "object"
+          "$ref": "./invite.schema.json#/$defs/third_party_invite"
+        },
+        "subject_did": {
+          "$ref": "#/$defs/did"
+        },
+        "token_commitment": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "claim_nonce": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "binding_proof": {
+          "type": "object",
+          "required": [
+            "verification_service_did",
+            "verification_method",
+            "subject_did",
+            "realm_id",
+            "audience",
+            "claim_nonce",
+            "expires_at",
+            "signature"
+          ],
+          "properties": {
+            "verification_service_did": {
+              "$ref": "#/$defs/did"
+            },
+            "verification_method": {
+              "type": "string",
+              "pattern": "^did:[^\\s#]+#[^\\s#]+$"
+            },
+            "subject_did": {
+              "$ref": "#/$defs/did"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            },
+            "audience": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "claim_nonce": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "expires_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "signature": {
+              "$ref": "#/$defs/signature_material"
+            }
+          },
+          "additionalProperties": false
+        },
+        "subject_proof": {
+          "$ref": "#/$defs/signature_material"
         },
         "reason": {
           "type": "string"

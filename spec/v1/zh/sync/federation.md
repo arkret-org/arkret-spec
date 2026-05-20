@@ -150,23 +150,50 @@ Signature: sig1=:base64...:
 | `service_binding_ref.reducer_profile_hash` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical hash（覆盖 `cx.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
 
 
-请求示例（非完整 schema；`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
+请求示例（`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
 
-```json
+```json schema=openapi/contrix-service-api.openapi.yaml#/components/schemas/EventsSubmitFederationRequest
 {
   "service_binding_ref": {
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-    "space_policy_hash": "sha256:...",
-    "membership_frontier": ["cx:event:..."],
-    "delivery_binding_frontier": ["cx:event:..."],
+    "space_policy_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "membership_frontier": [
+      "cx:event:0196419b-1000-7000-8000-000000000001"
+    ],
+    "delivery_binding_frontier": [
+      "cx:event:0196419b-1000-7000-8000-000000000002"
+    ],
     "delivery_binding_diagnostics": {
       "basis": ["member_delivery_binding"]
     },
     "destination_service_type": "principal_server",
-    "reducer_profile_hash": "sha256:..."
+    "reducer_profile_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   },
   "events": [
-    {"_comment": "<完整签名 Event Envelope，符合 cx.schema.event.v1>"}
+    {
+      "event_id": "cx:event:0196419b-2000-7000-8000-000000000001",
+      "kind": "cx.read.marker",
+      "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+      "actor_id": "did:web:alice.example",
+      "actor_seq": 42,
+      "created_at": "2026-04-26T00:00:00Z",
+      "prev_refs": [],
+      "refs": [],
+      "payload": {
+        "thread_id": "cx:flow:0196419b-3000-7000-8000-000000000001",
+        "read_through_event_id": "cx:event:0196419b-1000-7000-8000-000000000001"
+      },
+      "proofs": [
+        {
+          "kind": "detached_jws",
+          "alg": "EdDSA",
+          "verification_method": "did:web:alice.example#device-1",
+          "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "created_at": "2026-04-26T00:00:00Z",
+          "jws": "a..b"
+        }
+      ]
+    }
   ]
 }
 ```

@@ -32,7 +32,9 @@ info:
 
     get_effective_grants}`, and the ServiceDescribe envelope. The corresponding
 
-    component schemas are named `EventsSubmitResponse`, `EventGetResponse`,
+    component schemas are named `EventsSubmitBatchRequest`,
+
+    `EventsSubmitFederationRequest`, `EventsSubmitResponse`, `EventGetResponse`,
 
     `EventsBatchGetRequest` / `EventsBatchGetResponse`, `EventsQueryResponse`,
 
@@ -521,6 +523,76 @@ components:
     # interop / deployment-local surfaces continue to use generic
     # OperationRequest / OperationResult envelopes.
     # =========================================================================
+    FederationServiceBindingRef:
+      type: object
+      description: |
+        Request-level service binding snapshot carried by federation
+        service-to-service cx.events.submit calls. This is metadata for the
+        receiver to verify the sender's delivery decision; client writes omit it.
+      required:
+      - realm_id
+      - space_policy_hash
+      - membership_frontier
+      - delivery_binding_frontier
+      - destination_service_type
+      - reducer_profile_hash
+      properties:
+        realm_id:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        space_policy_hash:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+        membership_frontier:
+          type: array
+          items:
+            type: string
+            pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        delivery_binding_frontier:
+          type: array
+          items:
+            type: string
+            pattern: ^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        delivery_binding_diagnostics:
+          type: object
+          additionalProperties: true
+        destination_service_type:
+          type: string
+          minLength: 1
+        reducer_profile_hash:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+      additionalProperties: false
+
+    EventsSubmitBatchRequest:
+      type: object
+      description: Batch cx.events.submit request used by account clients.
+      required:
+      - events
+      properties:
+        events:
+          type: array
+          minItems: 1
+          items:
+            $ref: ../schemas/event-envelope.schema.json
+      additionalProperties: false
+
+    EventsSubmitFederationRequest:
+      type: object
+      description: Federation service-to-service cx.events.submit request body.
+      required:
+      - service_binding_ref
+      - events
+      properties:
+        service_binding_ref:
+          $ref: '#/components/schemas/FederationServiceBindingRef'
+        events:
+          type: array
+          minItems: 1
+          items:
+            $ref: ../schemas/event-envelope.schema.json
+      additionalProperties: false
+
     EventsSubmitResponse:
       type: object
       description: |
@@ -2598,14 +2670,8 @@ paths:
             schema:
               oneOf:
               - $ref: ../schemas/event-envelope.schema.json
-              - type: object
-                required:
-                - events
-                properties:
-                  events:
-                    type: array
-                    items:
-                      $ref: ../schemas/event-envelope.schema.json
+              - $ref: '#/components/schemas/EventsSubmitBatchRequest'
+              - $ref: '#/components/schemas/EventsSubmitFederationRequest'
       responses:
         '200':
           description: Event accepted (or duplicate / partial; see status field)

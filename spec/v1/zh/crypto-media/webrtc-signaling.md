@@ -248,10 +248,10 @@ Content-Type: application/json
 
 所有 call signaling frame 使用 `cx.schema.ephemeral_envelope.v1` 的 broadcast envelope；`cx.call.signal` 分支 MUST 携带 `device_id` 与 `proof`，并在 `payload` 中携带 call 级字段：
 
-```json
+```json schema=schemas/ephemeral-envelope.schema.json
 {
   "kind": "cx.call.signal",
-  "realm_id": "cx:realm:...",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example.com",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "sent_at": "2026-04-26T00:00:00Z",
@@ -282,6 +282,7 @@ Receiver MUST verify `proof` over the canonical envelope bytes (excluding `proof
 - `focus_join`
 - `focus_leave`
 - `error`
+- `ack`
 
 ## 8. 一对一通话
 
