@@ -138,6 +138,92 @@
       }
     },
     {
+      "name": "policy_check_request_valid_bound_context",
+      "schema_ref": "openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "polreq_01",
+        "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "action": "cx.message.create",
+        "actor": "did:webvh:alice.example",
+        "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
+        "source": {
+          "service_did": "did:web:server.example",
+          "service_type": "principal_server",
+          "source_ip_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "signed_transport": true
+        },
+        "event_preview": {
+          "kind": "cx.message.create",
+          "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "auth_context": {
+          "membership": "join",
+          "origin_service": "did:web:server.example"
+        }
+      }
+    },
+    {
+      "name": "policy_check_request_missing_realm_id_rejected",
+      "schema_ref": "openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "polreq_01",
+        "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "action": "cx.message.create",
+        "actor": "did:webvh:alice.example",
+        "source": {
+          "service_did": "did:web:server.example",
+          "service_type": "principal_server",
+          "signed_transport": true
+        }
+      }
+    },
+    {
+      "name": "policy_check_response_valid_bound_decision",
+      "schema_ref": "openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "polreq_01",
+        "bound_to": {
+          "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+          "actor": "did:webvh:alice.example",
+          "action": "cx.message.create",
+          "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy_server_id": "did:web:policy.example.com"
+        },
+        "decision": "allow",
+        "reason_code": "ok",
+        "expires_at": "2026-04-26T00:05:00Z",
+        "auth_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "policy_frontier_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "membership_frontier_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "signature": {
+          "kid": "did:web:policy.example.com#key-1",
+          "sig": "base64url..."
+        }
+      }
+    },
+    {
+      "name": "policy_check_response_missing_bound_to_rejected",
+      "schema_ref": "openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse",
+      "expect_valid": false,
+      "instance": {
+        "request_id": "polreq_01",
+        "decision": "allow",
+        "reason_code": "ok",
+        "expires_at": "2026-04-26T00:05:00Z",
+        "auth_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "policy_frontier_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "membership_frontier_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "signature": {
+          "kid": "did:web:policy.example.com#key-1",
+          "sig": "base64url..."
+        }
+      }
+    },
+    {
       "name": "event_envelope_valid_non_reducer_read_marker",
       "schema_ref": "schemas/event-envelope.schema.json",
       "expect_valid": true,

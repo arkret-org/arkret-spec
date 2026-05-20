@@ -1,0 +1,379 @@
+{
+  "suite": "security_closure_vectors",
+  "profile": "cx.profile.privacy_security_vectors.v1",
+  "version": "2026-05-20",
+  "description": "Structured negative/edge-case fixtures for security vectors referenced by prose. tools/lint_artifacts.py validates vector_id closure and minimum executable shape.",
+  "security_closure_vectors": [
+    {
+      "vector_id": "cx.vector.federation.idempotency_after_key_revoke.v1",
+      "steps": [
+        {
+          "name": "accepted_original_push",
+          "input": {
+            "operation_id": "cx.events.submit",
+            "headers": {
+              "Source-Service-DID": "did:web:alpha.example",
+              "Destination-Service-DID": "did:web:beta.example",
+              "Source-Trust-Domain": "cx:trust_domain:did.webvh.alpha.example",
+              "Destination-Trust-Domain": "cx:trust_domain:did.webvh.beta.example",
+              "Request-Canonical-Hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "Idempotency-Key": "idem-001"
+            },
+            "origin_key_state_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "idempotency cache key includes source service, destination service, request canonical hash, idempotency key, and origin key state hash"
+            ]
+          }
+        },
+        {
+          "name": "replay_after_service_key_revoke",
+          "input": {
+            "same_http_bytes_as": "accepted_original_push",
+            "origin_key_state_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "expected": {
+            "outcome": "historical_only",
+            "reason_code": "service_key_revoked",
+            "invariants": [
+              "cache hit cannot bypass current key-state verification"
+            ]
+          }
+        },
+        {
+          "name": "replay_after_realm_binding_removed",
+          "input": {
+            "same_http_bytes_as": "accepted_original_push",
+            "realm_binding_state": "removed"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "capability_denied",
+            "invariants": [
+              "receiver re-runs current authorization before treating replay as accepted"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.webrtc.media_plaintext_downgrade.v1",
+      "steps": [
+        {
+          "name": "policy_missing_media_service_decrypts",
+          "input": {
+            "policy_root_covers_media_service_decrypts": false
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "media_plaintext_policy_missing",
+            "invariants": [
+              "client does not publish plaintext-visible media key"
+            ]
+          }
+        },
+        {
+          "name": "sfu_not_plaintext_visible",
+          "input": {
+            "media_service_decrypts": true,
+            "sfu_service_did": "did:web:sfu.example",
+            "plaintext_visible_services": []
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "media_plaintext_service_not_visible",
+            "invariants": [
+              "SFU cannot negotiate plaintext media unless listed by Realm policy"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.identity_link.eager_invalidation.v1",
+      "steps": [
+        {
+          "name": "ban_invalidates_active_link",
+          "input": {
+            "identity_link_state": "active",
+            "membership_transition": "ban"
+          },
+          "expected": {
+            "outcome": "cache_invalidated",
+            "reason_code": "identity_link_no_longer_visible",
+            "invariants": [
+              "directory, sync, invite, and local profile caches stop returning the old link"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.identity_link.policy_tightening_invalidation.v1",
+      "steps": [
+        {
+          "name": "disclosure_policy_tightened",
+          "input": {
+            "identity_link_state": "active",
+            "policy_change": "disclosure_scope_tightened"
+          },
+          "expected": {
+            "outcome": "cache_invalidated",
+            "reason_code": "identity_link_policy_tightened",
+            "invariants": [
+              "old link is not returned until it passes the current policy gate"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.late_key_recovery.removed_actor.v1",
+      "steps": [
+        {
+          "name": "receiver_not_visible_at_t0",
+          "input": {
+            "receiver_visible_at_t0": false,
+            "late_key_source": "backup_node"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "late_recovery_rejected_membership",
+            "invariants": [
+              "plaintext never enters verified timeline"
+            ]
+          }
+        },
+        {
+          "name": "source_did_not_recheck_after_remove",
+          "input": {
+            "receiver_visible_at_t0": true,
+            "current_membership": "removed",
+            "source_rechecked_current_share_policy": false
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "late_recovery_share_not_authorized",
+            "invariants": [
+              "key source must re-run T0 membership and current share policy before sending late material"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.invite.oob_code_entropy.v1",
+      "steps": [
+        {
+          "name": "short_offline_token_rejected",
+          "input": {
+            "oob_code_kind": "offline_token",
+            "token_entropy_bits": 64
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "invite_oob_entropy_too_low",
+            "invariants": [
+              "production offline OOB code must have at least 128 bits of entropy"
+            ]
+          }
+        },
+        {
+          "name": "lookup_attempt_budget_exceeded",
+          "input": {
+            "oob_code_kind": "lookup",
+            "failed_attempts": 3
+          },
+          "expected": {
+            "outcome": "invalidated",
+            "reason_code": "invalidated_by_rate_limit",
+            "invariants": [
+              "lookup short-code cannot remain claimable after the configured error budget"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.invite.failure_indistinguishable.v1",
+      "steps": [
+        {
+          "name": "all_failure_causes_share_external_shape",
+          "input": {
+            "failure_causes": [
+              "not_found",
+              "expired",
+              "revoked",
+              "consumed",
+              "audience_mismatch",
+              "inviter_left",
+              "policy_gate_failed"
+            ]
+          },
+          "expected": {
+            "outcome": "not_found",
+            "response": {
+              "external_error": "not_found",
+              "byte_identical": true,
+              "timing_delta_max_ms": 50
+            },
+            "invariants": [
+              "specific reason code is only written to server-side audit log"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.consent.scope_cascade.v1",
+      "steps": [
+        {
+          "name": "any_revoke_cascades_to_scopes",
+          "input": {
+            "active_scopes": [
+              "any",
+              "invite",
+              "direct_message"
+            ],
+            "revoked_scope": "any"
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "all concrete scopes in the same consent cell become inactive"
+            ]
+          }
+        },
+        {
+          "name": "concrete_revoke_does_not_remove_any",
+          "input": {
+            "active_scopes": [
+              "any",
+              "invite",
+              "direct_message"
+            ],
+            "revoked_scope": "invite"
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "any and direct_message remain active"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.consent.cache_invalidation.v1",
+      "steps": [
+        {
+          "name": "revoke_invalidates_reachability_and_invite_cache",
+          "input": {
+            "consent_state": "revoked",
+            "cached_surfaces": [
+              "directory_reachability",
+              "invite_gate",
+              "psi_index"
+            ]
+          },
+          "expected": {
+            "outcome": "cache_invalidated",
+            "reason_code": "consent_revoked",
+            "invariants": [
+              "directory lookup stops returning peer",
+              "next invite precondition re-runs consent gate",
+              "PSI index excludes peer at next rotation"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.sync.soft_fail_reconcile.v1",
+      "steps": [
+        {
+          "name": "backfill_resolves_soft_fail",
+          "input": {
+            "initial_event_state": "soft_failed",
+            "backfill_result": "dependencies_available"
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "covered frontier advances deterministically"
+            ]
+          }
+        },
+        {
+          "name": "backfill_conflict_rejects_soft_fail",
+          "input": {
+            "initial_event_state": "soft_failed",
+            "backfill_result": "permanent_conflict"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "failed_precondition",
+            "invariants": [
+              "event does not remain soft_failed indefinitely"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.lattice.lww_open_set.v1",
+      "steps": [
+        {
+          "name": "input_order_independent_winner",
+          "input": {
+            "siblings": [
+              "cx:event:019a7360-0000-7000-8000-000000000001",
+              "cx:event:019a7360-0000-7000-8000-000000000002"
+            ],
+            "same_logical_time": true
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "all conformant reducers compute the same sibling set, tiebreaker, winner, bottom state, and covered frontier"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
+      "steps": [
+        {
+          "name": "policy_write_exceeds_hard_ceiling",
+          "input": {
+            "relaxed_window_max_ms": 300001
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "relaxed_window_exceeds_ceiling",
+            "invariants": [
+              "receiver does not silently clamp the value"
+            ]
+          }
+        },
+        {
+          "name": "decrypt_gap_exceeds_declared_window",
+          "input": {
+            "declared_relaxed_window_max_ms": 120000,
+            "old_epoch_gap_ms": 120001
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "relaxed_window_exceeds_ceiling",
+            "invariants": [
+              "receiver enforces the current policy window independently"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

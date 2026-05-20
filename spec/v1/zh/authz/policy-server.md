@@ -73,18 +73,18 @@ Content-Type: application/json
 
 请求示例（非完整 schema）：
 
-```json
+```json schema=openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest
 {
   "request_id": "polreq_01",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "request_canonical_hash": "sha256:...",
+  "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "action": "cx.message.create",
   "actor": "did:webvh:...",
   "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "source": {
     "service_did": "did:web:server.example",
     "service_type": "principal_server",
-    "source_ip_hash": "sha256:...",
+    "source_ip_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "signed_transport": true
   },
   "event_preview": {
@@ -132,14 +132,14 @@ Content-Type: application/json
 
 响应示例（非完整 schema）：
 
-```json
+```json schema=openapi/contrix-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse
 {
   "request_id": "polreq_01",
   "bound_to": {
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "actor": "did:webvh:...",
     "action": "cx.message.create",
-    "request_canonical_hash": "sha256:...",
+    "request_canonical_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "policy_server_id": "did:web:policy.example.com"
   },
   "decision": "allow",

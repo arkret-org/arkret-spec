@@ -67,6 +67,21 @@ OPERATION_COUNT_RE = re.compile(r"(\d+)\s*条\s*operation(?:_id)?", re.IGNORECAS
 TRUST_DOMAIN_JSON_DID_RE = re.compile(r'"trust_domain"\s*:\s*"did:')
 LEGACY_DID_METHOD_REGEX_RE = re.compile(r"\^did:\[a-z0-9:[.\-_\\]+")
 
+SECURITY_CLOSURE_VECTOR_IDS = {
+    "cx.vector.federation.idempotency_after_key_revoke.v1",
+    "cx.vector.webrtc.media_plaintext_downgrade.v1",
+    "cx.vector.identity_link.eager_invalidation.v1",
+    "cx.vector.identity_link.policy_tightening_invalidation.v1",
+    "cx.vector.late_key_recovery.removed_actor.v1",
+    "cx.vector.invite.oob_code_entropy.v1",
+    "cx.vector.invite.failure_indistinguishable.v1",
+    "cx.vector.consent.scope_cascade.v1",
+    "cx.vector.consent.cache_invalidation.v1",
+    "cx.vector.sync.soft_fail_reconcile.v1",
+    "cx.vector.lattice.lww_open_set.v1",
+    "cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
+}
+
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     "spec/v1/zh/models/realm-and-space.md": {
         1: "schemas/realm.schema.json",
@@ -1123,6 +1138,77 @@ def check_vector_reference_closure(lint: Lint) -> None:
                 lint.fail(path, f"references undefined conformance vector id: {vector_id}")
 
 
+def check_security_closure_vectors(lint: Lint) -> None:
+    path = ARTIFACTS / "fixtures" / "security-closure-vectors.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    vectors = data.get("security_closure_vectors")
+    if not isinstance(vectors, list) or not vectors:
+        lint.fail(path, "security_closure_vectors must be a non-empty array")
+        return
+
+    conformance_path = SPEC_ROOT / "zh" / "conformance" / "conformance-vectors.md"
+    try:
+        defined_vectors = set(VECTOR_ID_TOKEN_RE.findall(conformance_path.read_text(encoding="utf-8")))
+    except Exception as exc:
+        lint.fail(conformance_path, f"could not read conformance vector definitions: {exc}")
+        defined_vectors = set()
+
+    seen: set[str] = set()
+    for index, vector in enumerate(vectors):
+        label = f"security_closure_vectors[{index}]"
+        if not isinstance(vector, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+
+        vector_id = vector.get("vector_id")
+        if not isinstance(vector_id, str) or not VECTOR_ID_TOKEN_RE.fullmatch(vector_id):
+            lint.fail(path, f"{label}.vector_id must be a conformance vector id")
+            continue
+        if vector_id in seen:
+            lint.fail(path, f"{label}.vector_id duplicates {vector_id}")
+        seen.add(vector_id)
+        if vector_id not in defined_vectors:
+            lint.fail(path, f"{label}.vector_id is not defined in conformance-vectors.md: {vector_id}")
+        if vector_id not in SECURITY_CLOSURE_VECTOR_IDS:
+            lint.fail(path, f"{label}.vector_id is not part of the required security closure set: {vector_id}")
+
+        steps = vector.get("steps")
+        if not isinstance(steps, list) or not steps:
+            lint.fail(path, f"{label}.steps must be a non-empty array")
+            continue
+        for step_index, step in enumerate(steps):
+            step_label = f"{label}.steps[{step_index}]"
+            if not isinstance(step, dict):
+                lint.fail(path, f"{step_label} must be an object")
+                continue
+            if not isinstance(step.get("name"), str) or not step["name"]:
+                lint.fail(path, f"{step_label}.name must be a non-empty string")
+            if not isinstance(step.get("input"), dict):
+                lint.fail(path, f"{step_label}.input must be an object")
+            expected = step.get("expected")
+            if not isinstance(expected, dict):
+                lint.fail(path, f"{step_label}.expected must be an object")
+                continue
+            if not isinstance(expected.get("outcome"), str) or not expected["outcome"]:
+                lint.fail(path, f"{step_label}.expected.outcome must be a non-empty string")
+            if not any(key in expected for key in ("reason_code", "invariants", "response")):
+                lint.fail(path, f"{step_label}.expected must include reason_code, invariants, or response")
+            invariants = expected.get("invariants")
+            if "invariants" in expected and (
+                not isinstance(invariants, list)
+                or not invariants
+                or not all(isinstance(item, str) and item for item in invariants)
+            ):
+                lint.fail(path, f"{step_label}.expected.invariants must be a non-empty string array")
+
+    missing = SECURITY_CLOSURE_VECTOR_IDS - seen
+    for vector_id in sorted(missing):
+        lint.fail(path, f"missing required security closure vector fixture: {vector_id}")
+
+
 def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str, rest: str, known: dict[str, set[str]]) -> None:
     if token_kind == "blob" and rest.startswith("sha256:"):
         if not SHA256_RE.fullmatch(rest):
@@ -1320,7 +1406,7 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
 
 def required_fields_from_schema(lint: Lint, schema_ref: str) -> list[str]:
     schema_path = ARTIFACTS / schema_ref
-    schema = load_json(lint, schema_path)
+    schema = load_schema_document(lint, schema_path)
     if not isinstance(schema, dict):
         return []
     required = schema.get("required", [])
@@ -1379,6 +1465,12 @@ def load_json_schema_for_uri(uri: str) -> Any:
     return parse_json_text(path.read_text(encoding="utf-8"))
 
 
+def load_schema_document(lint: Lint, path: Path) -> Any:
+    if path.suffix.lower() in {".yaml", ".yml"}:
+        return load_yaml(lint, path)
+    return load_json(lint, path)
+
+
 def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -> list[str]:
     if Draft202012Validator is None or RefResolver is None:
         lint.fail(owner, "jsonschema is required for declared schema validation; install jsonschema")
@@ -1386,7 +1478,7 @@ def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -
     schema_path = resolve_artifact_schema_ref(lint, owner, schema_ref)
     if schema_path is None:
         return []
-    schema_document = load_json(lint, schema_path)
+    schema_document = load_schema_document(lint, schema_path)
     if not isinstance(schema_document, dict):
         return []
     fragment = "#" + schema_ref.split("#", 1)[1] if "#" in schema_ref else "#"
@@ -1822,6 +1914,7 @@ def main() -> int:
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
     check_vector_reference_closure(lint)
+    check_security_closure_vectors(lint)
     check_fixtures(lint, known)
     check_crypto_signature_fixture(lint)
     check_markdown_links(lint)
