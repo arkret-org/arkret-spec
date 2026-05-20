@@ -1,19 +1,50 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/service-describe.schema.json",
-  "title": "Contrix Service Describe Claim-Level Envelope",
-  "description": "Claim-level partition of a service describe response. The legacy field `supported_operations` MUST list endpoint-callable operation_ids; new fields partition implementation status: `implemented_features` (server has code but not necessarily conformance-verified), `claimed_profiles` (self-claimed profile membership), `verified_profiles` (cotest-verified, with run id / artifact hash / timestamp), `experimental_features` (NOT stable interop surface), `compat_surfaces` (legacy / interop-only passthroughs). Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry. See service-surface.md §3.3.",
+  "title": "Contrix Service Describe",
+  "description": "Canonical service describe response returned by cx.server.describe and per-surface describe operations. It combines stable service metadata (service_did, service_type, protocol_version, profiles, bindings, auth, limits, plaintext visibility and rate-limit policy) with claim-level partitions: implemented_features, claimed_profiles, verified_profiles, experimental_features and compat_surfaces. The legacy field `supported_operations` MUST list endpoint-callable operation_ids. Constraint: when `development_mode=true`, the service MUST NOT advertise any `verified_profiles` entry, and clients MUST verify cotest artifacts before treating verified_profiles as production conformance. See service-surface.md §3.0.",
   "type": "object",
   "additionalProperties": true,
   "required": [
+    "service_did",
+    "service_type",
+    "protocol_version",
+    "supported_profiles",
     "supported_operations",
+    "supported_bindings",
+    "supported_features",
+    "auth_metadata",
+    "limits",
+    "plaintext_visibility",
     "implemented_features",
     "claimed_profiles",
     "verified_profiles",
     "experimental_features",
-    "compat_surfaces"
+    "compat_surfaces",
+    "development_mode"
   ],
   "properties": {
+    "service_did": {
+      "$ref": "#/$defs/did",
+      "description": "DID of the service endpoint making this describe claim."
+    },
+    "service_type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Registered lowercase service_type such as principal_server, sync_node, directory_service, push_gateway or applet_service."
+    },
+    "protocol_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "supported_profiles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^cx\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+      },
+      "uniqueItems": true
+    },
     "supported_operations": {
       "type": "array",
       "description": "operation_ids that this endpoint can actually be invoked with. Element format SHOULD match the canonical operation_registry ids (e.g. `cx.events.submit`).",
@@ -22,6 +53,58 @@
         "pattern": "^[a-z][a-z0-9._-]*$"
       },
       "uniqueItems": true
+    },
+    "supported_bindings": {
+      "type": "array",
+      "description": "Transport binding declarations for this service.",
+      "items": {
+        "type": "object",
+        "required": ["kind"],
+        "additionalProperties": true,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "base_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "supported_features": {
+      "type": "array",
+      "description": "Feature identifiers (`cx.feature.*`) the service supports. Distinct from profile claims.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "auth_metadata": {
+      "type": "object",
+      "description": "Authentication and session metadata needed by clients before calling protected operations.",
+      "additionalProperties": true
+    },
+    "limits": {
+      "type": "object",
+      "description": "Operational limits such as body size, batch size, TTL, pagination or retention bounds.",
+      "additionalProperties": true
+    },
+    "plaintext_visibility": {
+      "type": "object",
+      "description": "Plaintext boundary declaration. Omission is not allowed: callers use this object to decide whether the service may be registered as plaintext-visible.",
+      "additionalProperties": true
+    },
+    "rate_limit_policy_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rate_limit_policy": {
+      "type": "object",
+      "additionalProperties": true
     },
     "implemented_features": {
       "type": "array",
@@ -159,5 +242,19 @@
         }
       }
     }
-  ]
+  ],
+  "anyOf": [
+    {
+      "required": ["rate_limit_policy"]
+    },
+    {
+      "required": ["rate_limit_policy_ref"]
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+    }
+  }
 }

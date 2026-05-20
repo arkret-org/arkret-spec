@@ -264,7 +264,7 @@ components:
       description: |
         Service capability descriptor returned by `cx.server.describe` and the
         per-surface `cx.*.describe` operations. Required fields are normatively
-        listed in `zh/sync/service-surface.md` §10 and §11. Implementations MUST
+        listed in `zh/sync/service-surface.md` §3.0 and §17. Implementations MUST
         emit `plaintext_visibility` so callers can honor the plaintext-boundary
         rule from `zh/overview/architecture.md` §2.3.
       required:
@@ -274,7 +274,21 @@ components:
       - supported_profiles
       - supported_operations
       - supported_bindings
+      - supported_features
+      - auth_metadata
+      - limits
       - plaintext_visibility
+      - implemented_features
+      - claimed_profiles
+      - verified_profiles
+      - experimental_features
+      - compat_surfaces
+      - development_mode
+      anyOf:
+      - required:
+        - rate_limit_policy
+      - required:
+        - rate_limit_policy_ref
       properties:
         protocol_version:
           type: string
@@ -303,7 +317,7 @@ components:
           description: |
             Optional feature identifiers (`cx.feature.*`) this service supports.
             Mirrors the `supported_features[]` declaration in
-            `zh/sync/service-surface.md` §10. Distinct from `supported_profiles`:
+            `zh/sync/service-surface.md` §3.0. Distinct from `supported_profiles`:
             features are finer-grained capability tokens that may be required
             via `Event.requirements.features[]`.
           items:
@@ -315,7 +329,7 @@ components:
             projection outputs the service consumes in plaintext (vs encrypted
             envelope). Privacy-boundary fields per
             `zh/overview/architecture.md` §2.3 and `zh/sync/service-surface.md`
-            §10. Omission is NOT equivalent to "no plaintext access" — callers
+            §17. Omission is NOT equivalent to "no plaintext access" — callers
             MUST treat a missing declaration as untrusted and refuse to register
             this service as a `plaintext_visible_services` member.
           additionalProperties: true
@@ -390,7 +404,8 @@ components:
             Profiles for which a cotest run has produced a passing artifact.
             Each entry MUST carry `cotest_run_id`, `artifact_hash` and
             `timestamp`. When `development_mode=true` this array MUST be
-            empty (see §3.0 / §1.7 and `cx.schema.service_describe.v1`).
+            empty (see `zh/sync/service-surface.md` §3.0 and
+            `cx.schema.service_describe.v1`).
           items:
             type: object
             required:
@@ -2212,6 +2227,68 @@ components:
           items:
             type: object
       additionalProperties: false
+    PolicyCheckResponse:
+      type: object
+      description: Result of cx.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.
+      required:
+      - request_id
+      - decision
+      - reason_code
+      - expires_at
+      - auth_state_hash
+      - policy_frontier_hash
+      - membership_frontier_hash
+      - signature
+      properties:
+        request_id:
+          type: string
+        decision:
+          type: string
+          enum:
+          - allow
+          - soft_deny
+          - hard_deny
+          - quarantine
+          - require_review
+        reason_code:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        auth_state_hash:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+          description: Accepted authorization state hash used when producing the decision.
+        policy_frontier_hash:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+          description: Policy source frontier / digest used when producing the decision.
+        membership_frontier_hash:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+          description: Membership / role frontier digest used when producing the decision.
+        next_retry_at:
+          type: string
+          format: date-time
+        obligations:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        signature:
+          type: object
+          required:
+          - kid
+          - sig
+          properties:
+            kid:
+              type: string
+              description: DID URL of the policy server verification method.
+            sig:
+              type: string
+              description: Detached signature over the policy decision transcript.
+          additionalProperties: false
+      additionalProperties: false
     OperationRequest:
       type: object
       description: Operation-specific JSON request object. Required fields and profile gates are defined by the operation
@@ -2665,7 +2742,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/ServiceDescribe'
   /events/{event_id}:
     get:
       operationId: cx.events.get
@@ -2949,6 +3026,9 @@ paths:
                 blob_ref:
                   type: string
                   description: Target blob. MUST be a content-addressed ref or visible blob metadata id.
+                realm_id:
+                  type: string
+                  description: Realm binding for Realm-owned blobs. Servers MUST include the same realm_id in the presign envelope and reject mismatches with blob metadata; only deployment-public/global blobs may omit this field.
                 max_age_seconds:
                   type: integer
                   minimum: 1
@@ -2975,7 +3055,7 @@ paths:
                   url:
                     type: string
                     format: uri
-                    description: Fully-qualified URL clients can pass to browser primitives. Contains the `presign` query parameter and `blob_ref`.
+                    description: Fully-qualified URL clients can pass to browser primitives. Contains the `presign` query parameter, `blob_ref`, and a presign envelope bound to `realm_id` for Realm-owned blobs.
                   expires_at:
                     type: string
                     format: date-time
@@ -3612,7 +3692,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/ServiceDescribe'
   /sync/describe:
     get:
       operationId: cx.sync.describe
@@ -3623,7 +3703,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/ServiceDescribe'
   /directory/describe:
     get:
       operationId: cx.directory.describe
@@ -3634,7 +3714,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/ServiceDescribe'
   /directory/announce:
     post:
       operationId: cx.directory.announce
@@ -3869,7 +3949,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/ServiceDescribe'
   /applet/transactions:
     post:
       operationId: cx.applet.transaction
@@ -4001,7 +4081,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/PolicyCheckResponse'
       requestBody:
         required: true
         content:

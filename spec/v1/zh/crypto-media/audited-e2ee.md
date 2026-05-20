@@ -41,7 +41,7 @@ Contrix 引入 **"透明留痕审计 (Transparent Audit Trail)"** 机制：既�
 
 | `audit_assurance` 值 | 对应 profile | 含义 |
 | --- | --- | --- |
-| `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation evidence MUST 走 [`attestation-evidence.schema.json`](../../artifacts/schemas/attestation-evidence.schema.json)（schema id `cx.schema.attestation_evidence.v1`），结构化绑定 enclave measurement、attestation chain、attestation key（与 `cx.audit.epoch_key_destruction.proofs[*].verification_method` 共享 root of trust）、verification_method、validity 窗口、revocation 检查、operator DID、audit_purpose、`audit_policy_version_hash`（canonical JSON 规则见 [`conformance/encoding.md` §2](../conformance/encoding.md)）。Key material 与明文输出 MUST 在受控边界内处理。 |
+| `attested_hardware` | `cx.profile.attested_audit.e2ee.v1` | Audit Agent MUST 在声明的 TEE / enclave / 等价硬件隔离环境中运行；remote attestation evidence MUST 走 [`attestation-evidence.schema.json`](../../artifacts/schemas/attestation-evidence.schema.json)（schema id `cx.schema.attestation_evidence.v1`），结构化绑定 `realm_id`、enclave measurement、attestation chain、attestation key（与 `cx.audit.epoch_key_destruction.proofs[*].verification_method` 共享 root of trust）、verification_method、validity 窗口、revocation 检查、operator DID、audit_purpose、`audit_policy_version_hash`（canonical JSON 规则见 [`conformance/encoding.md` §2](../conformance/encoding.md)）。Verifier MUST 拒绝 `realm_id` 与实际 Welcome / Event Realm 不一致的 evidence；相同 policy hash 不使 evidence 可跨 Realm 复用。Key material 与明文输出 MUST 在受控边界内处理。 |
 | `disclosed_policy` | `cx.profile.disclosed_audit.e2ee.v1` | 不要求 TEE。Audit Agent 仍然 MUST 执行 `cx.audit.accessed` 先写后解密流程并等待 RYW receipt，但**保证类别仅是合规与流程承诺，不是密码学强制**。Realm policy MUST 在加入前可见确认该降级。 |
 
 客户端在加入声明 `audit_disclosure` 的 Realm 前 MUST 读取 `audit_assurance`，并按 §2.1 显示**正确分类**的 join warning；MUST NOT 用同一段笼统文案覆盖两种保证。
@@ -241,6 +241,8 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
 
 规则：
+
+`audit_policy_version_hash` 在 v1 中固定为 `sha256:<64 lowercase hex>`，不使用 hash agility。若未来需要迁移到其它算法，必须通过新的 schema/profile 明确升级，而不是让同一字段接受多算法值。
 
 - Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；`cx.profile.attested_audit.e2ee.v1` MUST 等待 `witness_attestation.kind="federation_witness_attested"` 的 receipt（即 `witness_attestation.witnesses[]` 同时包含 ≥2 个独立 witness）。
 - Issuer 不得伪造未观测到的 receipt；任何客户端 / 审计客户端 MUST 拒绝 `audit_event_digest` 与 envelope 实际 digest 不符的 receipt，并按 `audit_receipt_invalidated`（参见 `error-code-registry.json`）处理。

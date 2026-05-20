@@ -294,6 +294,7 @@ Cache-Control: public, immutable, max-age=31536000
 {
   "scheme": "cx.blob.presign.v1",
   "blob_ref": "cx:blob:sha256:0123456789abcdef...",
+  "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "issuer_service_did": "did:web:blob.acme.example",
   "issued_at": "2026-05-18T10:00:00Z",
   "expires_at": "2026-05-18T10:05:00Z",
@@ -313,6 +314,7 @@ Cache-Control: public, immutable, max-age=31536000
 | --- | --- | --- |
 | `scheme` | yes | 固定 `cx.blob.presign.v1`；未来版本 MUST 用新 scheme id（不接受 in-space 升级） |
 | `blob_ref` | yes | 单一 blob 引用；与请求 `?blob_ref=` 必须完全匹配 |
+| `realm_id` | conditional | 该 presign 授权的 Realm。普通 Realm-owned blob MUST 设置，且必须与 blob metadata 的 `realm_id`、签发时 capability scope 和响应时可见性检查一致。仅 deployment policy 明确声明的 public/global blob MAY 省略。 |
 | `issuer_service_did` | yes | 签发该 presign 的 blob service DID；MUST 是被部署 trust 的 service DID |
 | `issued_at` / `expires_at` | yes | TTL 硬上限 1h；deployment SHOULD 默认 ≤ 5 min |
 | `purpose` | yes | `media_inline` / `thumbnail` / `download`；服务端按 purpose 决定 `Content-Disposition`、限流强度等 |
@@ -329,11 +331,12 @@ Cache-Control: public, immutable, max-age=31536000
 2. **签名校验**：用 envelope 内 `issuer_service_did` 当前 verification method 验证签名
 3. **scheme 校验**：仅识别注册 scheme id（v1 = `cx.blob.presign.v1`）；未知 scheme MUST 拒绝
 4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同
-5. **method 校验**：本次请求方法在 envelope `scope.method` 列表内
-6. **TTL 校验**：`now() ∈ (issued_at, expires_at)`；含合理 clock skew tolerance（如 ±30s）
-7. **nonce 校验**：未在已消费列表 / 撤销列表内（实现 SHOULD 用 bloom filter / 短 TTL set 防 replay）
-8. **撤销校验**：blob 已被 redaction / erasure 处理时即便 envelope 仍有效也 MUST 拒绝
-9. **可见性校验**：blob 在签发 presign 时刻可见，且在响应时刻仍**对签发 issuer 控制的 audience 可见**；以本次请求时刻为准（防止 presign 持续可用而源 blob 被 ban）
+5. **Realm 绑定校验**：若 blob metadata 有 `realm_id`，envelope `realm_id` MUST 存在且完全相同；若 envelope 省略 `realm_id`，该 blob 必须是 deployment policy 显式允许的 public/global blob。为 Realm A 签发的 presign 不能作为 Realm B 的授权使用。
+6. **method 校验**：本次请求方法在 envelope `scope.method` 列表内
+7. **TTL 校验**：`now() ∈ (issued_at, expires_at)`；含合理 clock skew tolerance（如 ±30s）
+8. **nonce 校验**：未在已消费列表 / 撤销列表内（实现 SHOULD 用 bloom filter / 短 TTL set 防 replay）
+9. **撤销校验**：blob 已被 redaction / erasure 处理时即便 envelope 仍有效也 MUST 拒绝
+10. **可见性校验**：blob 在签发 presign 时刻可见，且在响应时刻仍**对签发 issuer 控制的 audience 可见**；以本次请求时刻为准（防止 presign 持续可用而源 blob 被 ban）
 
 任何校验失败 MUST 返回 `not_found`（不区分 envelope 无效 vs blob 不可见，避免暴露存在性）；服务端 MAY 在 audit log 中记录具体 `reason_code` 如 `presign_invalid` / `presign_expired` / `presign_scope_mismatch`。
 

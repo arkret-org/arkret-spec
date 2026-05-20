@@ -31,6 +31,8 @@ title: Third-Party Invites
   "display_name_hint": "external invite",
   "token_commitment": "sha256:<hash(token_salt || invite_token)>",
   "token_salt_id": "salt:2026-04-28:invite-001",
+  "oob_code_kind": "offline_token",
+  "token_entropy_bits": 128,
   "verification_service_did": "did:web:identity.alice.example",
   "verification_public_key": "z6Mkf...",
   "expires_at": "2026-05-05T00:00:00Z",
@@ -38,7 +40,7 @@ title: Third-Party Invites
 }
 ```
 
-`token_commitment` 是盐化承诺；`token_salt` 原值只保存在验证服务的私有状态或加密审计记录中。`verification_public_key` 是验证服务生成的临时签名公钥，用于未来验证认领。若需要在 UI 显示目标邮箱，应只在邀请者本地私有状态中保存，或以 E2EE 方式保存给有权查看邀请详情的管理员。
+`token_commitment` 是盐化承诺；`token_salt` 原值只保存在验证服务的私有状态或加密审计记录中。`oob_code_kind` 是 wire-level discriminator：`offline_token` 表示 OOB code 自身满足 ≥128-bit 熵并按 commitment 校验；`lookup` 表示短码只作为服务端私有 lookup 表索引，必须走 pepper/HMAC 存储与限速。该结构的 object 形态由 [`invite.schema.json`](../../artifacts/schemas/invite.schema.json) 的 `third_party_id` 定义。`verification_public_key` 是验证服务生成的临时签名公钥，用于未来验证认领。若需要在 UI 显示目标邮箱，应只在邀请者本地私有状态中保存，或以 E2EE 方式保存给有权查看邀请详情的管理员。
 
 ### 3.2 发送外部通知
 
@@ -146,12 +148,12 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 
 | 触发条件 | 状态转换 | 行为 |
 | --- | --- | --- |
-| `expires_at <= now` | `pending → expired` | 任何 claim MUST `expired_invite_token` 拒绝；服务端 SHOULD 24h 内 GC commitment 记录。 |
-| 邮件 / SMS 发送失败（gateway 5xx / bounce / DKIM fail） | `pending → send_failed`（携带 `send_failure_reason`） | 邀请者 UI MUST 显式提示发送失败；服务端 MUST NOT 假装成功；MAY 在 retry budget 内自动重试（建议 ≤ 3 次，指数退避）。retry 耗尽后 transition 为 `send_failed`，邀请者 MAY 手动重发（产生新 `invite_id` + 新 token + 新 commitment）。 |
-| 邀请者失去 `cx.invite.third_party` capability（grant revoke、role change） | `pending → revoked_by_capability_loss` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除。 |
+| `expires_at <= now` | `pending → expired` | 任何 claim MUST `expired_invite_token` 拒绝；服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录。 |
+| 邮件 / SMS 发送失败（gateway 5xx / bounce / DKIM fail） | `pending → send_failed`（携带 `send_failure_reason`） | 邀请者 UI MUST 显式提示发送失败；服务端 MUST NOT 假装成功；MAY 在 retry budget 内自动重试（建议 ≤ 3 次，指数退避）。retry 耗尽后 transition 为 `send_failed`，服务端 MUST 在 24h 内 zeroize token material；邀请者 MAY 手动重发（产生新 `invite_id` + 新 token + 新 commitment）。 |
+| 邀请者失去 `cx.invite.third_party` capability（grant revoke、role change） | `pending → revoked_by_capability_loss` | 后续 claim MUST `capability_denied` 拒绝；commitment 立即从 active set 中移除，`token_salt` / lookup pepper material MUST 在 24h 内 zeroize。 |
 | 邀请者主动离开 Realm（`cx.member.state` → `leave`/`ban`/`remove`） | `pending → revoked_by_inviter_left` | 同上 capability loss 处理；邀请不随邀请者继承到其他成员。 |
-| token 泄漏 / 怀疑泄漏（邀请者或 admin 发起 `cx.invite.revoke`） | `pending → revoked` | 立即拒绝任何 claim；客户端 UI MUST 显示"邀请已撤销"。 |
-| claim 成功 | `pending → claimed` | 同一 `token_commitment` 第二次 claim MUST `duplicate_conflict`。 |
-| OOB lookup 形态失败次数超限（§3） | `pending → invalidated_by_rate_limit` | 强制邀请者重发；不暴露具体失败次数给攻击者。 |
+| token 泄漏 / 怀疑泄漏（邀请者或 admin 发起 `cx.invite.revoke`） | `pending → revoked` | 立即拒绝任何 claim；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；客户端 UI MUST 显示"邀请已撤销"。 |
+| claim 成功 | `pending → claimed` | 同一 `token_commitment` 第二次 claim MUST `duplicate_conflict`；claim 接受后 `token_salt` / lookup pepper material MUST 在 24h 内 zeroize，只保留不可枚举 audit receipt。 |
+| OOB lookup 形态失败次数超限（§3） | `pending → invalidated_by_rate_limit` | 强制邀请者重发；`token_salt` / lookup pepper material MUST 在 24h 内 zeroize；不暴露具体失败次数给攻击者。 |
 
 **统一不可枚举响应（normative）**：claim 失败响应 MUST 不区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`cx.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。

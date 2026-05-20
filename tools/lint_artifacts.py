@@ -3,8 +3,8 @@
 
 Canonical registries plus generated registry views under
 ``spec/v1/artifacts/registry`` define the machine-readable wire contract.
-This script validates registry manifests, cross-artifact references, and
-markdown link integrity without requiring third-party Python packages.
+This script validates registry manifests, cross-artifact references, markdown
+link integrity, selected JSON examples, and schema-declared fixtures.
 
 The legacy ``zh/`` mirror integrity check has been removed: machine artifacts
 are no longer copied into the prose tree. The site renders them directly.
@@ -17,8 +17,22 @@ import base64
 import hashlib
 import re
 import sys
+import warnings
 from pathlib import Path
 from typing import Any, Iterable
+
+try:
+    import yaml
+except ImportError:  # pragma: no cover - CI installs the dependency.
+    yaml = None
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        from jsonschema import Draft202012Validator, RefResolver
+except ImportError:  # pragma: no cover - CI installs the dependency.
+    Draft202012Validator = None
+    RefResolver = None
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,9 +50,19 @@ UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$", re.MULTILINE)
 YAML_REF_RE = re.compile(r"\$ref:\s*['\"]?([^'\"\s#]+(?:#[^'\"\s]+)?)")
-JSON_FENCE_RE = re.compile(r"```json\s*(.*?)```", re.IGNORECASE | re.DOTALL)
+JSON_FENCE_RE = re.compile(r"```json(?P<meta>[^\n`]*)\n(?P<body>.*?)```", re.IGNORECASE | re.DOTALL)
+JSON_FENCE_SCHEMA_ATTR_RE = re.compile(r"\bschema=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
 TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
+TEXT_ARTIFACT_REF_RE = re.compile(
+    r"(?<![A-Za-z0-9_./-])("
+    r"zh/[A-Za-z0-9_./-]+\.mdx?|"
+    r"schemas/[A-Za-z0-9_./-]+\.json|"
+    r"artifacts/[A-Za-z0-9_./-]+(?:\.json|\.yaml|\.yml|\.md)"
+    r")"
+)
+STABLE_SECTION_PLACEHOLDER_RE = re.compile(r"(?:§\s*\d+\.x|§\s*x|^#{2,6}\s+\d+\.x\b)", re.IGNORECASE)
+OPERATION_COUNT_RE = re.compile(r"(\d+)\s*条\s*operation(?:_id)?", re.IGNORECASE)
 
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     "spec/v1/zh/models/realm-and-space.md": {
@@ -83,6 +107,17 @@ def load_json(lint: Lint, path: Path) -> Any:
         return parse_json_text(path.read_text(encoding="utf-8"))
     except Exception as exc:  # pragma: no cover - exact parser errors vary
         lint.fail(path, f"invalid JSON: {exc}")
+        return None
+
+
+def load_yaml(lint: Lint, path: Path) -> Any:
+    if yaml is None:
+        lint.fail(path, "PyYAML is required for OpenAPI lint; install pyyaml")
+        return None
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # pragma: no cover - exact parser errors vary
+        lint.fail(path, f"invalid YAML: {exc}")
         return None
 
 
@@ -891,6 +926,112 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
         lint.fail(binding_path, f"registered operation_id missing from non-HTTP bindings: {operation_id}")
 
 
+def check_service_describe_alignment(lint: Lint) -> None:
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    schema_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
+    openapi = load_yaml(lint, openapi_path)
+    service_schema = load_json(lint, schema_path)
+    if not isinstance(openapi, dict) or not isinstance(service_schema, dict):
+        return
+
+    component = (
+        openapi.get("components", {})
+        .get("schemas", {})
+        .get("ServiceDescribe")
+    )
+    if not isinstance(component, dict):
+        lint.fail(openapi_path, "components.schemas.ServiceDescribe missing")
+        return
+
+    openapi_required = set(component.get("required") or [])
+    schema_required = set(service_schema.get("required") or [])
+    if openapi_required != schema_required:
+        lint.fail(
+            openapi_path,
+            "ServiceDescribe.required differs from service-describe.schema.json: "
+            f"openapi-only={sorted(openapi_required - schema_required)}, "
+            f"schema-only={sorted(schema_required - openapi_required)}",
+        )
+
+    paths = openapi.get("paths")
+    if not isinstance(paths, dict):
+        return
+    describe_paths = [
+        "/server/describe",
+        "/events/describe",
+        "/identity/describe",
+        "/sync/describe",
+        "/directory/describe",
+        "/applet/describe",
+    ]
+    for describe_path in describe_paths:
+        response_schema = (
+            paths.get(describe_path, {})
+            .get("get", {})
+            .get("responses", {})
+            .get("200", {})
+            .get("content", {})
+            .get("application/json", {})
+            .get("schema")
+        )
+        if response_schema != {"$ref": "#/components/schemas/ServiceDescribe"}:
+            lint.fail(openapi_path, f"{describe_path} 200 response must reference ServiceDescribe")
+
+
+def check_text_reference_targets(lint: Lint) -> None:
+    for path in raw_artifact_files():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for match in TEXT_ARTIFACT_REF_RE.finditer(text):
+            ref = match.group(1)
+            if ref.startswith("zh/"):
+                target = SPEC_ROOT / ref
+            elif ref.startswith("schemas/"):
+                target = ARTIFACTS / ref
+            elif ref.startswith("artifacts/"):
+                target = SPEC_ROOT / ref
+            else:
+                continue
+            if not target.exists():
+                lint.fail(path, f"text reference target does not exist: {ref}")
+
+
+def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
+    scan_paths = markdown_files() + raw_artifact_files()
+    active_event_kinds = sorted(known["active_event_kinds"], key=len, reverse=True)
+    allowed_room_scoped = {
+        (SPEC_ROOT / "zh" / "extensions" / "mimi-interop.md").resolve(),
+    }
+    operation_count = len(known["operation_ids"])
+
+    for path in scan_paths:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        resolved = path.resolve()
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            if (
+                re.search(r"\broom[- ]scoped\b", line, re.IGNORECASE)
+                and resolved not in allowed_room_scoped
+            ):
+                lint.fail(path, f"line {line_no}: core docs/artifacts must not use room-scoped; use Realm-scoped")
+
+            if STABLE_SECTION_PLACEHOLDER_RE.search(line):
+                lint.fail(path, f"line {line_no}: placeholder section reference must be replaced with a stable heading or real section number")
+
+            for match in OPERATION_COUNT_RE.finditer(line):
+                count = int(match.group(1))
+                if count != operation_count:
+                    lint.fail(path, f"line {line_no}: hard-coded operation count {count} differs from registry count {operation_count}")
+
+            for event_kind in active_event_kinds:
+                if re.search(rf"(?<![A-Za-z0-9_.-]){re.escape(event_kind)}\.v[0-9]+\b", line):
+                    lint.fail(path, f"line {line_no}: active Event.kind {event_kind} must not be written with a .vN suffix")
+
+
 def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str, rest: str, known: dict[str, set[str]]) -> None:
     if token_kind == "blob" and rest.startswith("sha256:"):
         if not SHA256_RE.fullmatch(rest):
@@ -914,6 +1055,7 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
         data = load_json(lint, path)
         if data is None:
             continue
+        check_fixture_schema_validation_cases(lint, path, data)
         for json_path, value, key in walk_json(data):
             if key in {"auth_weight", "authority_class"}:
                 lint.fail(path, f"{json_path} uses removed state-resolution authority field: {key}")
@@ -948,6 +1090,38 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
 
             for match in TYPED_ID_TOKEN_RE.finditer(value):
                 check_typed_id_token(lint, path, json_path, match.group(1), match.group(2), known)
+
+
+def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> None:
+    if not isinstance(data, dict):
+        return
+    cases = data.get("schema_validation_cases")
+    if cases is None:
+        return
+    if not isinstance(cases, list) or not cases:
+        lint.fail(path, "schema_validation_cases must be a non-empty array when present")
+        return
+    for index, case in enumerate(cases):
+        label = f"schema_validation_cases[{index}]"
+        if not isinstance(case, dict):
+            lint.fail(path, f"{label} must be an object")
+            continue
+        schema_ref = case.get("schema_ref")
+        instance = case.get("instance")
+        expect_valid = case.get("expect_valid", True)
+        if not isinstance(schema_ref, str) or not schema_ref:
+            lint.fail(path, f"{label}.schema_ref must be a non-empty string")
+            continue
+        if "instance" not in case:
+            lint.fail(path, f"{label}.instance is required")
+            continue
+        if not isinstance(expect_valid, bool):
+            lint.fail(path, f"{label}.expect_valid must be boolean when present")
+            continue
+        case_name = case.get("name")
+        if not isinstance(case_name, str) or not case_name:
+            case_name = label
+        check_json_instance_against_schema(lint, path, case_name, schema_ref, instance, expect_valid)
 
 
 def check_crypto_signature_fixture(lint: Lint) -> None:
@@ -1065,6 +1239,112 @@ def required_fields_from_schema(lint: Lint, schema_ref: str) -> list[str]:
     return [field for field in required if isinstance(field, str)]
 
 
+def schema_ref_from_fence_meta(meta: str) -> str | None:
+    match = JSON_FENCE_SCHEMA_ATTR_RE.search(meta)
+    if not match:
+        return None
+    return next(group for group in match.groups() if group)
+
+
+def resolve_artifact_schema_ref(lint: Lint, owner: Path, schema_ref: str) -> Path | None:
+    schema_path_ref = split_ref(schema_ref)
+    if Path(schema_path_ref).is_absolute() or ".." in Path(schema_path_ref).parts:
+        lint.fail(owner, f"schema_ref escapes artifacts/: {schema_ref}")
+        return None
+    schema_path = (ARTIFACTS / schema_path_ref).resolve()
+    try:
+        schema_path.relative_to(ARTIFACTS.resolve())
+    except ValueError:
+        lint.fail(owner, f"schema_ref escapes artifacts/: {schema_ref}")
+        return None
+    if not schema_path.exists():
+        lint.fail(owner, f"schema_ref target does not exist: {schema_ref}")
+        return None
+    return schema_path
+
+
+def resolve_json_pointer(document: Any, fragment: str) -> Any:
+    if fragment in {"", "#"}:
+        return document
+    if not fragment.startswith("#/"):
+        raise ValueError(f"unsupported schema fragment {fragment!r}")
+    current = document
+    for raw_part in fragment[2:].split("/"):
+        part = raw_part.replace("~1", "/").replace("~0", "~")
+        if isinstance(current, dict):
+            current = current[part]
+        elif isinstance(current, list):
+            current = current[int(part)]
+        else:
+            raise KeyError(part)
+    return current
+
+
+def load_json_schema_for_uri(uri: str) -> Any:
+    prefix = "https://contrix.io/artifacts/"
+    if not uri.startswith(prefix):
+        raise ValueError(f"unsupported remote schema URI {uri}")
+    path = ARTIFACTS / uri[len(prefix):]
+    return parse_json_text(path.read_text(encoding="utf-8"))
+
+
+def jsonschema_errors(lint: Lint, owner: Path, schema_ref: str, instance: Any) -> list[str]:
+    if Draft202012Validator is None or RefResolver is None:
+        lint.fail(owner, "jsonschema is required for declared schema validation; install jsonschema")
+        return []
+    schema_path = resolve_artifact_schema_ref(lint, owner, schema_ref)
+    if schema_path is None:
+        return []
+    schema_document = load_json(lint, schema_path)
+    if not isinstance(schema_document, dict):
+        return []
+    fragment = "#" + schema_ref.split("#", 1)[1] if "#" in schema_ref else "#"
+    try:
+        schema = resolve_json_pointer(schema_document, fragment)
+    except Exception as exc:
+        lint.fail(owner, f"schema_ref fragment cannot be resolved: {schema_ref}: {exc}")
+        return []
+    if not isinstance(schema, dict):
+        lint.fail(owner, f"schema_ref fragment is not an object schema: {schema_ref}")
+        return []
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        resolver = RefResolver(
+            base_uri=schema_path.as_uri(),
+            referrer=schema_document,
+            handlers={
+                "https": load_json_schema_for_uri,
+            },
+        )
+        validator = Draft202012Validator(schema, resolver=resolver)
+        errors = sorted(validator.iter_errors(instance), key=lambda error: list(error.path))
+    formatted: list[str] = []
+    for error in errors:
+        path_bits = ["$"]
+        for bit in error.path:
+            if isinstance(bit, int):
+                path_bits[-1] = f"{path_bits[-1]}[{bit}]"
+            else:
+                path_bits.append(str(bit))
+        formatted.append(".".join(path_bits) + ": " + error.message)
+    return formatted
+
+
+def check_json_instance_against_schema(
+    lint: Lint,
+    owner: Path,
+    label: str,
+    schema_ref: str,
+    instance: Any,
+    expect_valid: bool = True,
+) -> None:
+    errors = jsonschema_errors(lint, owner, schema_ref, instance)
+    if expect_valid and errors:
+        lint.fail(owner, f"{label} fails {schema_ref}: " + "; ".join(errors[:3]))
+    if not expect_valid and not errors:
+        lint.fail(owner, f"{label} expected to fail {schema_ref} but validated successfully")
+
+
 def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int, data: Any) -> None:
     if not isinstance(data, dict):
         return
@@ -1134,16 +1414,22 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
                 continue
             check_typed_id_token(lint, path, "markdown", kind, rest, known)
 
-        for block_index, block in enumerate(JSON_FENCE_RE.findall(text), start=1):
-            try:
-                data = json.loads(block)
-            except json.JSONDecodeError:
-                continue
+        for block_index, match in enumerate(JSON_FENCE_RE.finditer(text), start=1):
+            block = match.group("body")
+            schema_ref = schema_ref_from_fence_meta(match.group("meta"))
             try:
                 data = parse_json_text(block)
             except Exception as exc:
                 lint.fail(path, f"json_block[{block_index}] invalid canonical JSON: {exc}")
                 continue
+            if schema_ref:
+                check_json_instance_against_schema(
+                    lint,
+                    path,
+                    f"json_block[{block_index}] declared schema example",
+                    schema_ref,
+                    data,
+                )
             check_markdown_full_object_example(lint, path, block_index, data)
             check_event_ref_invariants_in_value(lint, path, f"json_block[{block_index}]", data)
             for json_path, value, key in walk_json(data):
@@ -1440,6 +1726,9 @@ def main() -> int:
     check_profile_requirements(lint, known)
     check_event_schema_coverage(lint, known)
     check_operation_surfaces(lint, known)
+    check_service_describe_alignment(lint)
+    check_text_reference_targets(lint)
+    check_cross_source_drift(lint, known)
     check_fixtures(lint, known)
     check_crypto_signature_fixture(lint)
     check_markdown_links(lint)

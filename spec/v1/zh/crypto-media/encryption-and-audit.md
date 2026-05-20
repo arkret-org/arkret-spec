@@ -219,14 +219,14 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 | `decryption_failed` | 收到 late key 但 (a)-(d) 任一不过 | 保持 `decryption_failed` | 不解码、不显示明文；记 audit log。 |
 | `late_recovered` | 后续 redaction / erasure 触发 | `redacted_after_recovery` | 已恢复明文 MUST 按 redaction policy 移除；wire stub 保留。 |
 
-late key recovery 接受条件（normative）— 客户端 MUST 全部通过才能从 `failed` 转 `late_recovered`：
+late key recovery 接受条件（normative）— 客户端 MUST 全部通过才能从 `failed` 转 `late_recovered`。本节的 T₀ 是目标 event 在 accepted Anchor history 中的 deterministic effective pre-state：对 single-leaf Anchor 使用该 event 所属 Anchor 的 pre-state；对 `open_set` / multi-leaf view 使用 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 定义的 deterministic effective anchor view。T₀ MUST NOT 由客户端本地到达顺序、wall clock 或未锚定 pending Move 决定。
 
-a. **Membership 时点校验**：受影响 event 的因果时点 T₀，receiver 在 T₀ 必须确实是该 Realm 的成员（`cx.member.state` 在 T₀ pre-state 下为 join，且不是 ban / leave）。如果 receiver 在 T₀ 不是成员、或当时还未被 invite，late key 解码出的明文 MUST NOT 进入 verified timeline；audit log emit `late_recovery_rejected_membership`。
+a. **Membership 时点校验**：受影响 event 的 T₀，receiver 在 T₀ 必须确实是该 Realm 的成员（`cx.member.state` 在 T₀ pre-state 下为 join，且不是 ban / leave）。如果 receiver 在 T₀ 不是成员、或当时还未被 invite，late key 解码出的明文 MUST NOT 进入 verified timeline；audit log emit `late_recovery_rejected_membership`。
 b. **Policy 时点校验**：T₀ 处的 Realm policy MUST 允许该 receiver 类别看到该 event（history visibility / disclosure policy 在 T₀ 处）；若 policy 在 T₀ 之后收紧到禁止该 receiver，late material 仍按 T₀ policy 解码（policy 不溯及既往），但 UI MUST 提示"已不在当前 policy 下可见"。
 c. **Key share 来源授权**：late key 提供方 MUST 是 Realm policy 声明的合法 key recovery 源（key backup、archive node、authorized peer）；P2P 之间随意 share key MUST 被拒。
 d. **Audit profile 强制**：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 下，late_recovered transition MUST 同步 emit `cx.audit.accessed` Event（payload `late_recovery=true`、引用原 event_id、当前 receiver actor），并等待 RYW receipt 与正常解码相同的流程；未拿到 receipt MUST 不解码。`cx.audit.ryw_receipt` 在 receipt object 上 MAY 标 `recovery_reason` = "late_key_arrival"（payload 取值，**不是** error code registry 中的 reason_code；仅用于 audit projection 区分晚到 key 触发的访问与首次访问）。
 
-**Revoked / removed actor 负向**：若 receiver 在 T₀ 之后被 ban / removed，late key 即使发到该设备也 MUST 不让进入 verified timeline；history key share policy 应同步把该 receiver 从 allowlist 移除，避免 late key 被发出。`cx.vector.late_key_recovery.removed_actor.v1` 覆盖被移除成员收到迟到 key 后 (a) 不解密 (b) audit log 写 `late_recovery_rejected_membership` (c) 客户端 UI 不显示明文。
+**Revoked / removed actor 负向**：若 receiver 在 T₀ 已不是成员，或 late key share 的签发时刻该 receiver 已被 ban / removed 且 key source 未重新执行 T₀ 校验，则 late key MUST NOT 进入 verified timeline。T₀ 之后发生的 ban / remove 不自动追溯撤销其在 T₀ 合法可见的历史，但 key backup / archive node / peer share 在发送 late material 前 MUST 重新执行 T₀ membership + policy 校验，并确认当前 share policy 仍允许向该 device 交付；否则必须拒绝并写 `late_recovery_rejected_membership` 或 `late_recovery_share_not_authorized`。`cx.vector.late_key_recovery.removed_actor.v1` 覆盖：(a) receiver 在 T₀ 不可见时不解密；(b) key source 在 ban 后未重新校验时拒绝 share；(c) 客户端 UI 不显示未授权明文。
 
 #### 2.6.2 与 redaction / erasure 的关系
 
@@ -466,7 +466,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 KeyPackage 不应被建模为可无限次公开拉取的静态材料。E2EE 实现 MUST 将 MLS KeyPackage 作为可声明、可领取、可消费、可撤销的单次使用材料。
 
-> **Contrix 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Contrix 的 claim 模型在此基础上增加了 `intended_realm_id` 绑定和 room-scoped claim，要求 MLS Delivery Service 跟踪 room affinity。这是 Contrix 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) room-scoped claim 使客户端可以控制自己被邀请进入哪些 Realm，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Realm 消费。实现若使用标准 MLS 库（不支持 room-scoped claim），MUST 至少在 Contrix 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
+> **Contrix 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Contrix 的 claim 模型在此基础上增加了 `intended_realm_id` 绑定和 Realm-scoped claim，要求 MLS Delivery Service 跟踪 Realm affinity。这是 Contrix 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) Realm-scoped claim 使客户端可以控制自己被邀请进入哪些 Realm，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Realm 消费。实现若使用标准 MLS 库（不支持 Realm-scoped claim），MUST 至少在 Contrix 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
 
 KeyPackage lifecycle：
 
@@ -543,10 +543,10 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 
 Profile 规则：
 
-- Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 room-scoped pairwise DID，例如成员为该 Realm / Flow track 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
-- MLS leaf credential SHOULD 绑定同一个 room-scoped pairwise DID，或绑定可由该 pairwise DID 验证的 credential。
-- 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `cx.identity_link` application message 或 MLS private extension 中，只对当前 room members 可见。v1 的必需 wire shape 是 `cx.schema.identity_link.v1`；MLS private extension 只是等价承载，payload schema 不变。
-- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、realm id、可选 flow id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("cx-identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。
+- Event Envelope 的 `actor_id` 仍然必须是 DID。minimal-metadata profile 中，`actor_id` SHOULD 使用 Realm-scoped pairwise DID，例如成员为该 Realm / Flow track 生成的 `did:key`、`did:peer` 或 policy 允许的其他 pseudonymous DID。实现不得把非 DID 字符串放入 `actor_id`。
+- MLS leaf credential SHOULD 绑定同一个 Realm-scoped pairwise DID，或绑定可由该 pairwise DID 验证的 credential。
+- 真实 `principal_id`、设备身份、display profile 和可选 handle MUST 放入端到端加密的 `cx.identity_link` application message 或 MLS private extension 中，只对当前 Realm members 可见。v1 的必需 wire shape 是 `cx.schema.identity_link.v1`；MLS private extension 只是等价承载，payload schema 不变。
+- `cx.identity_link` MUST 绑定 pairwise DID、principal DID、device id、realm id、trust domain、可选 flow id / track、MLS leaf index、MLS epoch、effective time 和签名证明；签名输入固定为 `utf8("cx-identity-link-v1\n") || canonical_json(identity-link object with proof.signature omitted)`。证明必须能从 principal DID 的控制链或 profile 声明的 disclosure proof 验证。Receiver MUST 在验证签名前检查 `trust_domain` 与当前接收上下文一致；不一致时不得接受该 pairwise DID -> principal DID 映射。
 - Sync / Federation 服务只可按 pairwise DID、realm id、epoch、event id / routing hash 和授权服务绑定路由；不得要求明文 principal DID 才能转发密文。
 - Capability、moderation、legal hold 或 enterprise policy 需要真实主体时，Realm policy MUST 在加入前声明 disclosure 条件。客户端不接受该 disclosure policy 时 MUST NOT 加入该 Realm。
 - 任何从 pairwise DID 到 principal DID 的服务端可见映射都 MUST 有明确 purpose、expiry、audience 和 audit record；默认不得写入公开 Realm history。
@@ -618,7 +618,7 @@ Reaction 事件 (`cx.reaction.*`) 的可见性规则：
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
   - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定,即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
   - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Realm SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露,使频次只能 per-target_ref 而非 per-message 关联。
-- Minimal-metadata Realm (`cx.profile.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 room-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
+- Minimal-metadata Realm (`cx.profile.mls.minimal_metadata_space.v1`): 同上,且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_hash)` 三元组在服务侧也不直接暴露 principal。
 - `cx.reaction.remove` 走相同规则；`encrypted_payload` 内 MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛,但不得将该 id 暴露在明文。
 
 服务端 / sync service 处理 reaction 时:

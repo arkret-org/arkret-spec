@@ -12,7 +12,7 @@ title: Join Policy
 extension namespace，并且不得在 describe/profile discovery 中把它声明为 active `cx.*`
 标准 contract。
 
-`default_join_rule` 枚举（[`../models/realm-and-space.md` §2.2](../models/realm-and-space.md)）只表达粗粒度的入口模式：`public` 直接进、`invite` 必须有人邀、`knock` 可申请、`restricted` / `knock_restricted` 有附加条件、`closed` 不收新人。但是 `restricted` 的"条件"是什么、`knock` 申请里能否带结构化材料、人工审批的决策是否上链审计、CAPTCHA / proof-of-work 等运行时挑战如何接入——这些都需要本文件统一定义。
+`default_join_rule` 枚举（[`../models/realm-and-space.md` §2.3](../models/realm-and-space.md)）只表达粗粒度的入口模式：`public` 直接进、`invite` 必须有人邀、`knock` 可申请、`restricted` / `knock_restricted` 有附加条件、`closed` 不收新人。但是 `restricted` 的"条件"是什么、`knock` 申请里能否带结构化材料、人工审批的决策是否上链审计、CAPTCHA / proof-of-work 等运行时挑战如何接入——这些都需要本文件统一定义。
 
 本文定义的 **Join Policy** 与 `default_join_rule` 正交又互补：
 

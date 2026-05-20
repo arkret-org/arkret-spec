@@ -365,7 +365,8 @@
               }
             }
           }
-        }
+        },
+        "required": ["preconditions"]
       },
       "then": {
         "properties": {

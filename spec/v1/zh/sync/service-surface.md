@@ -114,11 +114,26 @@ GET /api/v1/server/describe
 
 示例：
 
-```json
+```json schema=schemas/service-describe.schema.json
 {
   "service_did": "did:web:alice.example.net",
   "service_type": "principal_server",
   "protocol_version": "1.0",
+  "supported_profiles": [
+    "cx.profile.principal_server.v1"
+  ],
+  "supported_operations": [
+    "cx.server.describe",
+    "cx.events.submit",
+    "cx.events.query",
+    "cx.sync.account"
+  ],
+  "supported_bindings": [
+    {
+      "kind": "http_json",
+      "base_url": "https://alice.example.net/api/v1"
+    }
+  ],
   "supported_features": [
     "sync_stream",
     "snapshot",
@@ -145,6 +160,13 @@ GET /api/v1/server/describe
     "dangling_redaction_min_retention_days": 30,
     "snapshot_retention_heads": 2
   },
+  "plaintext_visibility": {
+    "event_kinds": [],
+    "payload_paths": [],
+    "blob_purposes": [],
+    "projection_outputs": [],
+    "notes": "body-only E2EE baseline"
+  },
   "rate_limit_policy": {
     "policy_version": "2026-05-02",
     "entries": [
@@ -156,7 +178,30 @@ GET /api/v1/server/describe
         "burst": 20
       }
     ]
-  }
+  },
+  "implemented_features": [
+    "sync_stream",
+    "snapshot"
+  ],
+  "claimed_profiles": [
+    {
+      "profile_id": "cx.profile.principal_server.v1",
+      "claim_kind": "self_claimed",
+      "claimed_at": "2026-05-02T00:00:00Z"
+    }
+  ],
+  "verified_profiles": [
+    {
+      "profile_id": "cx.profile.core_event_store.v1",
+      "claim_kind": "cotest_verified",
+      "cotest_run_id": "cotest-2026-05-02T000000Z",
+      "artifact_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "timestamp": "2026-05-02T00:00:00Z"
+    }
+  ],
+  "experimental_features": [],
+  "compat_surfaces": [],
+  "development_mode": false
 }
 ```
 
@@ -170,7 +215,7 @@ GET /api/v1/server/describe
 ### 3.0 Describe response claim levels
 
 `server/describe`（以及结构等价的 `identity/describe` / `events/describe` / `sync/describe` /
-`directory/describe` / `push/describe`）响应 MUST 按 **claim level** 区分以下字段；schema 见
+`directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_did`、`service_type`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_ref` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`cx.schema.service_describe.v1`）：
 
 - `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
@@ -181,12 +226,13 @@ GET /api/v1/server/describe
   `claim_kind` 当前固定为 `self_claimed`；cotest 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
 - `verified_profiles: [{profile_id, claim_kind: "cotest_verified", cotest_run_id, artifact_hash, timestamp}]` —
   附带 cotest run 标识、artifact hash 与验证时间戳的已验证 profile。**约束**：当 `development_mode=true`
-  时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见 §1.7 草案）。
+  时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
   把它当成协议级决策的依据，也不得继承到 `claimed_profiles`。
 - `compat_surfaces: [{name, kind, ...}]` — 仅为兼容性而暴露的 legacy / external interop surface
   （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `legacy_alias`, `external_interop`, `deprecated_alias`}）。
   这些 surface **不构成** Contrix v1 conformance 的一部分。
+- `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
 
 旧版本只暴露 `supported_operations`，把 endpoint 可达性、feature 实现、profile claim 混在一起。
 本次区分要求实现：
@@ -195,6 +241,7 @@ GET /api/v1/server/describe
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
 3. cotest 与 sodmin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`cotest_verified`、
    `experimental`、`compat`、`not_claimed`。
+4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 能取得并校验对应 `cotest_run_id`、`artifact_hash` 与时间戳覆盖的 cotest artifact。
 
 ### 3.1 Identity Resolution Surface
 
@@ -738,7 +785,7 @@ Contrix v1 固定：
 
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_valid_until`；`decision` 只能是 `allow`、`deny`、`quarantine`、`require_review` 或 `soft_fail`。
-- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref` 与 `plaintext_visibility`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{binding: "http_json", ...}`);单数字段名 `binding` 仅出现在每个 binding 条目**内部**,不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
-- Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `cx.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空。
+- Service describe MUST 声明 `service_did`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_ref`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
+- Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `cx.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 校验对应 cotest artifact 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。

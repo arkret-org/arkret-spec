@@ -465,11 +465,12 @@ Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/mod
 
 #### 5.5.2 Reducer 强制约束
 
+- **Realm 绑定**：所有 `cx.moderation.appeal.*` payload MUST 携带 `realm_id`，且该值 MUST 等于 enclosing Event 的 `realm_id`。Reducer 还 MUST 解析 `decision_ref`，确认它引用同一 Realm 的 `cx.moderation.decision`；若 target / decision 属于另一 Realm，除非显式 cross-Realm moderation profile 授权，否则 MUST `schema_violation` 或 `capability_denied`。
 - **separation of duties**：`cx.moderation.appeal.review` / `cx.moderation.appeal.decision` 的 `reviewer` MUST NOT 等于被上诉 `decision_ref` 对应 `cx.moderation.decision` event 的 issuer。违反时 reducer 用 `appeal_self_review_forbidden` 拒绝。
 - **overturn 与 lift 原子**：`cx.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `cx.moderation.decision.lift`（target 等于 `decision_ref`）在同一 Anchor batch 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝。这关闭"上诉胜诉但原 decision 仍生效"的窗口。
 - **modify 与新 decision 原子**：`verdict=modify` MUST 与一条新的 `cx.moderation.decision`（其 `target_ref` 等于原 target、`modify_decision_ref` 字段指向它）在同一 batch 中出现；reducer 校验 `modify_decision_ref` 与同 batch event id 一致。
 - **重复上诉 cool-off**：同一 `(decision_ref, appellant)` 在 cell `closed` 状态后的 Realm 声明 `appeal_cool_off_ms`（默认 90 天）内不得再次 submit；违反时 `failed_precondition`。新 cool-off 之后允许新 `appeal_id`。
-- **auto close**：cell 进入 `decided` 状态后超过 Realm `appeal_window_ms`（默认 30 天）仍未 close，授权 timer 服务（Realm policy 声明）MAY emit `cx.moderation.appeal.close` `auto_closed=true`。
+- **auto close**：cell 进入 `decided` 状态后超过 Realm `appeal_window_ms`（默认 30 天）仍未 close，授权 timer 服务（Realm policy 声明）MAY emit `cx.moderation.appeal.close` `auto_closed=true`。该 close payload MUST 携带 `closer`；`auto_closed=true` 时 reducer MUST 校验 `closer` 是 Realm policy 声明的 timer service DID，且 `closed_at >= decided_at + appeal_window_ms`。普通 reviewer 不得伪造 timer close 来提前触发 cool-off。
 
 #### 5.5.3 审计与可见性
 

@@ -156,8 +156,8 @@
     },
     "audit_policy_version_hash": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
-      "description": "Canonical hash of the (audit_disclosure, audit_assurance) tuple from cx.realm.policy_components at the receipt's frontier. Computed as sha256 over canonical JSON {audit_disclosure: <object>, audit_assurance: <string>}. Lets verifiers atomically check 'receipt's claim matches Realm-declared policy at this frontier' without replaying events. MUST match the receipt frontier's policy state; mismatch MUST fail closed (audit_receipt_invalidated). Required field — missing receipts MUST be rejected to prevent silent policy drift."
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Canonical hash of the (audit_disclosure, audit_assurance) tuple from cx.realm.policy_components at the receipt's frontier. Computed as fixed sha256 over canonical JSON {audit_disclosure: <object>, audit_assurance: <string>}. Lets verifiers atomically check 'receipt's claim matches Realm-declared policy at this frontier' without replaying events. MUST match the receipt frontier's policy state; mismatch MUST fail closed (audit_receipt_invalidated). Required field — missing receipts MUST be rejected to prevent silent policy drift. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile."
     },
     "proofs": {
       "type": "array",

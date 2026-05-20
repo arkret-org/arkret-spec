@@ -130,16 +130,16 @@ transport 必须各自通过 binding profile 单独 normative 化。
   "service_did": "did:web:server.example",
   "supported_bindings": [
     {
-      "binding": "http_json",
+      "kind": "http_json",
       "base_url": "https://server.example/api/v1",
-      "operations": ["sync.subscribe", "sync.backfill"]
+      "operations": ["cx.sync.account", "cx.sync.get_snapshot_head"],
+      "extension_profile_required": null
     }
-    // 其他 binding (gRPC / WebSocket / SSE / MQ / libp2p) 是 extension profile,需声明
-    // 对应 binding profile id (形如 cx.profile.binding.<transport>.v1, 见 §6) 后
-    // 才可出现在此处; v1 core 仅要求 http_json。
   ]
 }
 ```
+
+其他 binding（gRPC / WebSocket / SSE / MQ / libp2p）是 extension profile，需声明对应 binding profile id 后才可出现在此处；v1 core 仅要求 `http_json`。
 
 客户端 MUST 根据 `supported_bindings` 选择 transport，不得假设所有服务都有 REST path。
 
@@ -154,4 +154,3 @@ v1 core conformance 测试 MUST 包含：
 - HTTP binding test
 
 声明非 HTTP binding profile 的实现额外提供该 binding 的 mapping test。
-

@@ -159,7 +159,7 @@
       "schema_id": "cx.schema.identity_link.v1",
       "file": "schemas/identity-link.schema.json",
       "status": "active",
-      "description": "Encrypted minimal-metadata binding from pairwise DID to principal DID"
+      "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain."
     },
     {
       "schema_id": "cx.schema.handle_claim.v1",
@@ -253,7 +253,7 @@
       "schema_id": "cx.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Claim-level partition of a service describe response (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. See service-surface.md §3.3."
+      "description": "Canonical ServiceDescribe response for cx.server.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. See service-surface.md §3.0."
     }
   ]
 }

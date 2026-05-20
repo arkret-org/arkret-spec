@@ -228,7 +228,7 @@ Content-Type: application/json
 | 触发条件 | 客户端行为 |
 | --- | --- |
 | 当前剩余有效期 ≤ `ttl_seconds * 0.25`（推荐阈值 `refresh_lead_seconds=60`，可被服务在响应中覆写） | 在不中断通话的情况下重新调用 ICE config endpoint，获取新一组 `ice_servers[]` 与 credential。 |
-| ICE agent 报告 TURN allocation refresh 失败、收到 `441 Wrong Credentials`、`438 Stale Nonce` 或等价错误 | 立即调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.kind = renegotiate`）。 |
+| ICE agent 报告 TURN allocation refresh 失败、收到 `441 Wrong Credentials`、`438 Stale Nonce` 或等价错误 | 立即调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.signal_type = renegotiate`）。 |
 | ICE config endpoint 返回 `turn_credential_expired` | 客户端按服务器返回的 `next_retry_at` / `Retry-After` 退避；超过 30 秒仍无新 credential 时通过 `cx.call.signal` 发出 `error` payload 并以 graceful hangup 收尾。 |
 
 新 credential 应用规则：
@@ -246,26 +246,29 @@ Content-Type: application/json
 
 ## 7. Signaling Envelope
 
-所有 call signaling frame 使用统一 envelope：
+所有 call signaling frame 使用 `cx.schema.ephemeral_envelope.v1` 的 broadcast envelope；`cx.call.signal` 分支 MUST 携带 `device_id` 与 `proof`，并在 `payload` 中携带 call 级字段：
 
 ```json
 {
   "kind": "cx.call.signal",
-  "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
   "realm_id": "cx:realm:...",
-  "sender": "did:web:alice.example.com",
-  "sender_device": "cx:device:01964137-0000-7000-8000-000000000000",
-  "seq": 12,
+  "actor_id": "did:web:alice.example.com",
+  "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
   "sent_at": "2026-04-26T00:00:00Z",
+  "expires_at": "2026-04-26T00:00:30Z",
   "payload": {
-    "kind": "invite",
+    "call_id": "cx:call:0196441c-0000-7000-8000-000000000000",
+    "signal_type": "invite",
+    "seq": 12,
     "data": {}
   },
   "proof": {}
 }
 ```
 
-`payload.kind`：
+Receiver MUST verify `proof` over the canonical envelope bytes (excluding `proof`) before surfacing ringing UI, and MUST reject replay / rollback using monotonically increasing `payload.seq` per `(realm_id, payload.call_id, actor_id, device_id)`.
+
+`payload.signal_type`：
 
 - `invite`
 - `answer`

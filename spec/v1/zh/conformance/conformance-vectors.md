@@ -1246,6 +1246,28 @@ cx.vector.capability.approval_constraint.v1
 - `hlc` 是 Hybrid Logical Clock，不能单独决定因果顺序。
 - `target_ref` MUST 指向标准对象、Morph、Relation、View 或 Realm。对于 `*.create` 向量，`target_ref` 只是测试向量的阅读辅助；规范性 Event payload 仍使用 `payload.object.id`。
 
+### 5.2.1 Vector: Late Key Recovery T0 Determinism
+
+向量名称：
+
+```text
+cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
+```
+
+输入：
+
+- 目标密文事件 `E1` 在 anchored history 的 deterministic pre-state `T0` 中对 `receiver` 可见，且 `receiver` 在 `T0` 是 Realm member。
+- `receiver` 在 `E1` accepted 之后、late key request 发出之前被 `cx.member.state{membership=ban}` 或等价 remove 事件移出 Realm。
+- 两个客户端以不同本地到达顺序观察同一组 anchored events：客户端 A 先看到 `E1` 后看到 ban；客户端 B 先同步到 ban，再通过 backfill 看到 `E1`。
+- key backup / archive node / peer share 在发 key 前重新计算 `E1` 的 `T0` membership、history visibility 和当前 share policy。
+
+期望：
+
+- 两个客户端对 `E1` 的 late recovery 结果一致，且只取决于 anchored `T0` effective view，不取决于本地到达顺序或 wall clock。
+- 若 `receiver` 在 `T0` 可见且当前 share policy 仍允许历史恢复，late key 可以发放；后续 ban/remove 不 retroactively 改写 `E1` 的 verified timeline。
+- 若 `receiver` 在 `T0` 不可见，或 key source 未在发 key 前重新执行 `T0` 校验，必须拒绝并返回 `key_unavailable` / `policy_denied` 类错误；这才是 removed_actor negative path。
+- 测试不得把“`T0` 后被 ban”单独作为拒绝理由；拒绝理由必须落在 `T0` 不可见或 key source unauthorized。
+
 ### 5.3 Vector: Board Collection Projection
 
 输入：
@@ -1436,7 +1458,7 @@ cx.vector.capability.approval_constraint.v1
 
 ### 6.1 目标
 
-本节定义 Space（看板 / 列 / 泳道 / calendar bucket / page group ...）`active` ↔ `archived` ↔ `tombstoned` 状态机的跨实现测试向量。canonical 写入路径见 [`../models/realm-and-space.md` §4.4](../models/realm-and-space.md)；canonical 状态机对齐见 [`../models/common-fields.md` §5](../models/common-fields.md)。
+本节定义 Space（看板 / 列 / 泳道 / calendar bucket / page group ...）`active` ↔ `archived` ↔ `tombstoned` 状态机的跨实现测试向量。canonical 写入路径见 [`../models/realm-and-space.md` §3.4](../models/realm-and-space.md)；canonical 状态机对齐见 [`../models/common-fields.md` §5](../models/common-fields.md)。
 
 实现声称支持以下 profile 时 SHOULD 运行本节向量：
 
@@ -1555,7 +1577,7 @@ cx.vector.capability.approval_constraint.v1
 
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_not_archived"`（与 §6.3 同 reason；tombstoned 在状态机中不属于 `archived`，复活路径不存在）。
 - Space 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
-- 该向量是 `tombstoned` 不可逆终态约束（[`realm-and-space.md` §4.4](../models/realm-and-space.md)、[`space.schema.json#/properties/state`](../../artifacts/schemas/space.schema.json)）的 wire 级证据：实现 MUST NOT 提供任何"先 restore 再写入"的 tombstoned 复活路径。需要重新启用一个等价容器时，正确的做法是 `cx.space.create` 一个新 Space。
+- 该向量是 `tombstoned` 不可逆终态约束（[`realm-and-space.md` §3.4](../models/realm-and-space.md)、[`space.schema.json#/properties/state`](../../artifacts/schemas/space.schema.json)）的 wire 级证据：实现 MUST NOT 提供任何"先 restore 再写入"的 tombstoned 复活路径。需要重新启用一个等价容器时，正确的做法是 `cx.space.create` 一个新 Space。
 
 ### 6.5 Vector: Archive 在非 `active` 状态被拒绝
 

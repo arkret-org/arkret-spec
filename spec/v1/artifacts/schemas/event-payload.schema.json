@@ -2132,6 +2132,7 @@
       "description": "Payload for cx.cross_signing.publish. Schema cx.schema.cross_signing_publish.v1 (cross-signing-publish.schema.json) carries the authoritative shape; this payload entry mirrors the required-field set so the kind-specific payload class is wired into event-payload.schema.json dispatch. See device-lifecycle.md §5.1.",
       "required": [
         "principal_id",
+        "trust_domain",
         "principal_signing_key",
         "self_signing_key",
         "user_signing_key",
@@ -2140,6 +2141,10 @@
       ],
       "properties": {
         "principal_id": { "$ref": "#/$defs/did" },
+        "trust_domain": {
+          "type": "string",
+          "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+        },
         "principal_signing_key": { "type": "object" },
         "self_signing_key": { "type": "object" },
         "user_signing_key": { "type": "object" },
@@ -2152,6 +2157,8 @@
       "description": "Payload for cx.cross_signing.reset. Schema cx.schema.cross_signing_reset.v1 (cross-signing-reset.schema.json) carries the authoritative shape; this payload entry mirrors the required-field set so the kind-specific payload class is wired into event-payload.schema.json dispatch. See device-lifecycle.md §14.1.",
       "type": "object",
       "required": [
+        "trust_domain",
+        "reset_event_id",
         "principal_id",
         "previous_generation",
         "new_generation",
@@ -2160,6 +2167,14 @@
         "issued_at"
       ],
       "properties": {
+        "trust_domain": {
+          "type": "string",
+          "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+        },
+        "reset_event_id": {
+          "type": "string",
+          "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
         "principal_id": { "$ref": "#/$defs/did" },
         "previous_generation": { "type": "integer", "minimum": 1 },
         "new_generation": { "type": "integer", "minimum": 2 },

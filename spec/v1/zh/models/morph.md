@@ -85,7 +85,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 | 默认 renderer / `query.item_facets` / `graph.node_facets` 过滤 / UI 降级 hint | §4 顺序 4 (`facets`) | schema_refs, morph_type |
 | 是否可调用某 capability action | capability grant + Realm policy（reducer-input event 自身的 capability 校验） | morph_type, facets, schema_refs |
 | 状态机 transition 合法性 | §4 顺序 1 + 顺序 2 声明的 transition rules | morph_type, facets |
-| Schema 演进（schema_refs[] 变更） | §4.1 S2 / S3（schema-evolution policy + `cx.morph.schema_migrate.v1`） | 任何 facet / morph_type 推断 |
+| Schema 演进（schema_refs[] 变更） | §4.1 S2 / S3（schema-evolution policy + `cx.morph.schema_migrate`） | 任何 facet / morph_type 推断 |
 
 任何实现违反本表（典型错误：UI 按 `facets.assignable` 显示 assign 按钮**且**绕过 capability 检查，或 reducer 按 `morph_type` 决定字段验证集合）即为实现 bug，conformance 套件 MUST 覆盖反例。
 
@@ -113,7 +113,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 ### 4.1 `schema_refs[]` Evolution Policy (Normative)
 
-`morph_type` create-locked（见 §4 顺序 3）防止授权错位，但 `schema_refs[]` 不能 freeze——Morph 的本质就是 evolvable schema。然而 `schema_refs[]` 也不能裸 update：它决定字段验证、transition 规则与历史事件解释，静默替换会导致旧事件按错误 schema 重放、reducer 行为漂移、capability 范围隐性扩张。本节定义 schema 演进的三条 normative 规则：S1 per-event schema 版本绑定；S2 `cx.morph.update` 中 schema_refs[] 变更的 capability gate；S3 完整 schema migration（含 additive / breaking / transformation 兼容声明）由一等 event `cx.morph.schema_migrate.v1` 承担。
+`morph_type` create-locked（见 §4 顺序 3）防止授权错位，但 `schema_refs[]` 不能 freeze——Morph 的本质就是 evolvable schema。然而 `schema_refs[]` 也不能裸 update：它决定字段验证、transition 规则与历史事件解释，静默替换会导致旧事件按错误 schema 重放、reducer 行为漂移、capability 范围隐性扩张。本节定义 schema 演进的三条 normative 规则：S1 per-event schema 版本绑定；S2 `cx.morph.update` 中 schema_refs[] 变更的 capability gate；S3 完整 schema migration（含 additive / breaking / transformation 兼容声明）由一等 event `cx.morph.schema_migrate` 承担。
 
 **S1. Schema 版本绑定（per-event）**：每个针对该 Morph 的 reducer-input event（`cx.morph.create` / `cx.morph.update` / `cx.morph.transition` / 自定义 Morph kind）**MUST** 在 `requirements.schema[]` 中列出该事件写入时实际遵循的 Morph `schema_refs[]` 全集（即 Morph object 在该 event 生效后 §4 顺序 1 的真源）。`requirements.schema[]` 已进入 canonical bytes 与 event digest（见 [`event-and-patch.md` §2.7](./event-and-patch.md)），任何篡改会破坏签名。
 
@@ -129,7 +129,7 @@ Reader 决策规则：
 
 Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版本，reducer **MUST** 返回 `schema_violation` reason=`morph_schema_version_binding_missing`。
 
-**S3. Schema Migration 一等 event**：`cx.morph.schema_migrate.v1` 是 schema_refs[] 演进的一等事件，payload 形态由 `cx.schema.event_payload.v1#/$defs/morph_schema_migrate_payload` 定义。该 event 显式声明 `from_schema_refs[]` / `to_schema_refs[]` / `compatibility_class` ∈ {`additive`, `breaking`, `transformation`}，并通过高 tier capability action `cx.morph.schema.migrate` 鉴权（capability 缺失 reducer MUST `capability_denied`）。规则：
+**S3. Schema Migration 一等 event**：`cx.morph.schema_migrate` 是 schema_refs[] 演进的一等事件，payload 形态由 `cx.schema.event_payload.v1#/$defs/morph_schema_migrate_payload` 定义。该 event 显式声明 `from_schema_refs[]` / `to_schema_refs[]` / `compatibility_class` ∈ {`additive`, `breaking`, `transformation`}，并通过高 tier capability action `cx.morph.schema.migrate` 鉴权（capability 缺失 reducer MUST `capability_denied`）。规则：
 
 - `additive`：to_schema_refs[] 仅添加 optional 字段或向后兼容 profile；任何历史 reducer-input event 无需重新解释。Core reducer MUST 接受。
 - `breaking`：to_schema_refs[] 删除字段、收紧约束或更改字段语义；历史 event 仍按写入时 schema 验证（per S1），新 event 按 to_schema_refs[] 验证。Core reducer **MUST NOT** 接受，除非 Realm 显式声明 `cx.profile.morph.schema_migration_transformations.v1` opt-in profile；未声明则 reducer MUST `failed_precondition` reason=`morph_schema_refs_transformation_unsupported`。
@@ -184,7 +184,7 @@ Morph `schema_refs[]` 的 per-event 版本绑定与受控迁移规则见 [§4.1]
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
 - 标准对象不得阻止 Realm 定义自定义 Morph type。
 - 实现遇到未知标准类型 SHOULD fail closed；遇到未知 Morph facet SHOULD 保留数据，但不得让未知 facet 绕过 schema、capability、policy 或 encryption 约束。
-- 跨 schema 版本的 Morph 历史事件 reader 解释规则见 §4.1 S1；完整 schema migration（含 `additive` / `breaking` / `transformation` 兼容声明）由一等 event `cx.morph.schema_migrate.v1` 表达，breaking / transformation 类需 Realm 显式启用 `cx.profile.morph.schema_migration_transformations.v1` profile。
+- 跨 schema 版本的 Morph 历史事件 reader 解释规则见 §4.1 S1；完整 schema migration（含 `additive` / `breaking` / `transformation` 兼容声明）由一等 event `cx.morph.schema_migrate` 表达，breaking / transformation 类需 Realm 显式启用 `cx.profile.morph.schema_migration_transformations.v1` profile。
 
 ## 7. 规范性引用
 

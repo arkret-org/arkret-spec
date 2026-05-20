@@ -55,9 +55,44 @@
     },
     "proof": {
       "type": "object",
-      "description": "Optional detached signature over canonical envelope bytes (per RFC 8785 JCS, excluding `proof` itself). Required for cx.call.signal in E2EE Realms; RECOMMENDED for cx.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state."
+      "description": "Optional detached signature over canonical envelope bytes (per RFC 8785 JCS, excluding `proof` itself). Required for cx.call.signal; RECOMMENDED for cx.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state."
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "cx.call.signal" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["device_id", "proof"],
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["call_id", "signal_type", "seq"],
+            "properties": {
+              "call_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "description": "Call/session identifier scoped to the Realm."
+              },
+              "signal_type": {
+                "type": "string",
+                "enum": ["invite", "answer", "candidate", "renegotiate", "hangup", "ack"]
+              },
+              "seq": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Monotonic per-(realm_id, call_id, actor_id, device_id) sequence. Receivers MUST reject replay or rollback."
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": false,
   "$defs": {
     "did": {

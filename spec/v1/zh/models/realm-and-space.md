@@ -130,6 +130,7 @@ Realm 有两个终态 event，语义不同：
 3. **Successor / Tombstone 区分**：`cx.realm.destroy` MUST NOT 携带 `successor_realm_id`；如果产品需要迁移到新 Realm，使用 `cx.realm.tombstone` 而不是 destroy。
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `cx.audit.erasure_receipt`（schema `cx.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：destroy event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state` 并停止接受该 Realm 的新 `cx.events.submit`（包括 backfill 写入）。
+6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST 不再作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `cx.flow.move`、`cx.space.parent`、`cx.space.update` 等普通写入复活它们。跨 Realm `parent_ref` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
 
 #### 2.5.2 跨 Principal Server Erasure Receipt Fanout（normative）
 

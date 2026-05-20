@@ -1594,7 +1594,7 @@
       }
     },
     "cx.profile.morph.schema_migration_transformations.v1": {
-      "description": "Opt-in Realm profile that permits cx.morph.schema_migrate.v1 events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating cx.morph.schema.migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
+      "description": "Opt-in Realm profile that permits cx.morph.schema_migrate events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating cx.morph.schema.migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
       "required_endpoints": [],
       "required_event_kinds": [
         "cx.morph.schema_migrate"
@@ -1960,7 +1960,7 @@
       "inherits": [
         "cx.profile.e2ee_client.v1"
       ],
-      "description": "Hardening profile for E2EE Realms that route by room-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
+      "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
       "required_endpoints": [
         "cx.events.submit",
         "cx.events.query"

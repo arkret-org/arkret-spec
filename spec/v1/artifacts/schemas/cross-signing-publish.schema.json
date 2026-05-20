@@ -2,10 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/cross-signing-publish.schema.json",
   "title": "Contrix Cross-Signing Publish",
-  "description": "Payload content for cx.cross_signing.publish (schema_id cx.schema.cross_signing_publish.v1). Publishes the (PSK -> {SSK, USK}) binding to the principal control stream. Each subordinate key MUST carry a binding signature produced by PSK over a canonical signing input — see device-lifecycle.md §5.1.",
+  "description": "Payload content for cx.cross_signing.publish (schema_id cx.schema.cross_signing_publish.v1). Publishes the (PSK -> {SSK, USK}) binding to the principal control stream. Each subordinate key MUST carry a binding signature produced by PSK over a canonical signing input that includes trust_domain — see device-lifecycle.md §5.1.",
   "type": "object",
   "required": [
     "principal_id",
+    "trust_domain",
     "principal_signing_key",
     "self_signing_key",
     "user_signing_key",
@@ -14,6 +15,11 @@
   ],
   "properties": {
     "principal_id": { "$ref": "#/$defs/did" },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
+      "description": "Deployment-scope trust domain identifier. MUST match the receiver's current trust_domain and enters the PSK binding transcript so a publish from deployment A cannot be replayed into deployment B."
+    },
     "principal_signing_key": { "$ref": "#/$defs/published_key" },
     "self_signing_key": { "$ref": "#/$defs/subordinate_signed_key" },
     "user_signing_key": { "$ref": "#/$defs/subordinate_signed_key" },
@@ -85,7 +91,7 @@
             "signature": {
               "type": "string",
               "minLength": 1,
-              "description": "base64url-encoded signature over the canonical 'cx-cross-signing-bind-v1\\n' + canonical_json input. See device-lifecycle.md §5.1."
+              "description": "base64url-encoded signature over the canonical 'cx-cross-signing-bind-v1\\n' + canonical_json input, including trust_domain. See device-lifecycle.md §5.1."
             }
           },
           "additionalProperties": false

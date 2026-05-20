@@ -2,10 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/attestation-evidence.schema.json",
   "title": "Contrix Attested Audit Hardware Evidence",
-  "description": "Structured remote-attestation evidence envelope for Audit Agents joining an audited E2EE Realm under cx.profile.attested_audit.e2ee.v1. This is the wire form behind audit_assurance_class=attested_hardware: a verifier MUST be able to validate enclave measurement, attestation chain trust root, attestation key freshness, operator identity, and audit policy hash without trusting prose declarations. Used at join time (Audit Agent MLS Welcome) and by reducer when validating cx.audit.epoch_key_destruction (whose enclave_measurement MUST equal this evidence's measurement — mismatch → audit_agent_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §2 (attested_hardware binding) and §3.1.1.2 (epoch key destruction).",
+  "description": "Structured remote-attestation evidence envelope for Audit Agents joining an audited E2EE Realm under cx.profile.attested_audit.e2ee.v1. This is the wire form behind audit_assurance_class=attested_hardware: a verifier MUST be able to validate enclave measurement, attestation chain trust root, attestation key freshness, operator identity, Realm binding, and audit policy hash without trusting prose declarations. Used at join time (Audit Agent MLS Welcome) and by reducer when validating cx.audit.epoch_key_destruction (whose enclave_measurement and realm_id MUST equal this evidence's measurement and realm_id — mismatch → audit_agent_attestation_mismatch). See zh/crypto-media/audited-e2ee.md §2 (attested_hardware binding) and §3.1.1.2 (epoch key destruction).",
   "type": "object",
   "required": [
     "evidence_id",
+    "realm_id",
     "audit_agent_did",
     "service_did",
     "platform",
@@ -24,6 +25,11 @@
     "evidence_id": {
       "type": "string",
       "pattern": "^cx:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Realm this attestation evidence is valid for. Verifier MUST require realm_id to match the MLS Welcome / Event Envelope Realm being joined or audited; identical audit_policy_version_hash values across Realms do not make evidence portable."
     },
     "audit_agent_did": {
       "$ref": "#/$defs/did",
@@ -141,8 +147,8 @@
       "description": "Why this Audit Agent is joining the Realm. MUST match the Realm policy's declared audit_purpose; mismatch → audit_purpose_mismatch."
     },
     "audit_policy_version_hash": {
-      "$ref": "#/$defs/hash",
-      "description": "Same definition as cx.audit.ryw_receipt.audit_policy_version_hash — sha256 over canonical JSON {audit_disclosure, audit_assurance} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was joined under matches the current policy state. See encoding.md §2 (canonical JSON) and audited-e2ee.md §4.1."
+      "$ref": "#/$defs/sha256_hash",
+      "description": "Same definition as cx.audit.ryw_receipt.audit_policy_version_hash — fixed sha256 over canonical JSON {audit_disclosure, audit_assurance} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was joined under matches the current policy state. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile. See encoding.md §2 (canonical JSON) and audited-e2ee.md §4.1."
     },
     "created_at": { "$ref": "#/$defs/timestamp" },
     "proofs": {
@@ -154,7 +160,7 @@
       }
     }
   },
-  "additionalProperties": true,
+  "additionalProperties": false,
   "$defs": {
     "did": {
       "type": "string",
@@ -168,6 +174,10 @@
     "hash": {
       "type": "string",
       "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+    },
+    "sha256_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
     }
   }
 }

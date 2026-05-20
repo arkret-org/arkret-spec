@@ -137,9 +137,9 @@ flowchart TB
 - **Discoverability** 只控制资源是否能在搜索 / Directory / preview 里出现；不决定加入资格，也不决定历史读取范围。
 - **Join Rule** 只控制加入流程；不可发现的 Realm 也可以是 `join_rule=public`（持有私链接即可加入），公开 Realm 也可以是 `join_rule=invite`。
 - **History Visibility** 只控制加入后能看多少历史；与前两者完全正交。
-- 任何把 `discoverability` 当作 `join_rule` 或 `history_visibility` 简写的实现都是错误——下表 §3.x 锁定了允许的组合。
+- 任何把 `discoverability` 当作 `join_rule` 或 `history_visibility` 简写的实现都是错误——下表 §3.1 锁定了允许的组合。
 
-### 3.x `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
+### 3.1 `discoverability × join_rule × history_visibility` 兼容矩阵（normative）
 
 下表声明 v1 在三组维度上**允许 / 禁止 / 不推荐**的组合。`✓` = 允许；`!` = 允许但 SHOULD 在 Realm create 时显示警告；`✗` = MUST 拒绝（reducer 在 `cx.realm.policy_components` accept 时返回 `policy_combination_invalid`）。本表不替代 §3 与上方各 enum 的语义；当某条规则与本表冲突时，更严格者（拒绝/警告）优先。
 

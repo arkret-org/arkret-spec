@@ -31,7 +31,7 @@
       "$ref": "#/$defs/did"
     },
     "third_party_id": {
-      "type": "object"
+      "$ref": "#/$defs/third_party_invite"
     },
     "join_rule_snapshot": {
       "type": "object"
@@ -53,7 +53,12 @@
         "accepted",
         "rejected",
         "revoked",
-        "expired"
+        "expired",
+        "claimed",
+        "send_failed",
+        "revoked_by_capability_loss",
+        "revoked_by_inviter_left",
+        "invalidated_by_rate_limit"
       ]
     },
     "created_at": {
@@ -69,6 +74,90 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "third_party_invite": {
+      "type": "object",
+      "description": "Wire-level 3PID/OOB invite binding. No plaintext email/phone/SMS code is allowed here. `oob_code_kind` distinguishes offline high-entropy token validation from server-side lookup short-code validation.",
+      "required": [
+        "oob_code_kind",
+        "verification_service_did",
+        "verification_public_key"
+      ],
+      "properties": {
+        "display_name_hint": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Non-identifying UI hint only; MUST NOT contain plaintext 3PID."
+        },
+        "token_commitment": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Salted commitment to a high-entropy invite token. Required for offline_token mode."
+        },
+        "token_salt_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Opaque handle for the verification service's private salt record. The salt value itself MUST NOT appear on wire."
+        },
+        "lookup_table_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Opaque verification-service lookup table reference for short-code mode. The raw short code MUST NOT appear on wire."
+        },
+        "pepper_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Server-private pepper generation identifier for lookup mode; the pepper value itself is never on wire."
+        },
+        "oob_code_kind": {
+          "type": "string",
+          "enum": ["offline_token", "lookup"],
+          "description": "offline_token means the out-of-band code is itself >=128-bit entropy and validated against token_commitment. lookup means the human-readable code is only an index into a server-private lookup table protected by rate limits and pepper/HMAC storage."
+        },
+        "token_entropy_bits": {
+          "type": "integer",
+          "minimum": 128,
+          "description": "Required for offline_token mode. Entropy estimate excluding separators."
+        },
+        "verification_service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "verification_public_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Ephemeral public key or DID verification method used by the verification service to sign claim results."
+        },
+        "max_claims": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1,
+          "default": 1
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "oob_code_kind": { "const": "offline_token" } },
+            "required": ["oob_code_kind"]
+          },
+          "then": {
+            "required": ["token_commitment", "token_salt_id", "token_entropy_bits"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "oob_code_kind": { "const": "lookup" } },
+            "required": ["oob_code_kind"]
+          },
+          "then": {
+            "required": ["lookup_table_ref", "pepper_id"]
+          }
+        }
+      ]
     }
   },
   "additionalProperties": true

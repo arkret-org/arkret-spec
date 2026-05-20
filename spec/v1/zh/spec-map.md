@@ -105,7 +105,7 @@ title: Spec Map
 
 | 文档 | 内容 |
 | --- | --- |
-| `README.md` | 项目定位、设计目标、规范入口。 |
+| `index.md` | 项目定位、设计目标、规范入口。 |
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
 | `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
 | `overview/matrix-core-differences.md` | 与 Matrix 的核心区别、边界和取舍。 |
@@ -119,6 +119,7 @@ title: Spec Map
 | --- | --- |
 | `identity/identity-did.md` | DID、v1 core 默认 principal method `did:webvh`、`did:web` 仅作为 service DID 默认 / `personal_node` profile 可选 / `did:webvh` 不可达 fallback、DID Document、Organization ownership。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation、`MemberDeliveryBindingCandidate`（§3.7）。 |
+| `identity/consent-model.md` | 用户同意、披露边界、撤回语义和跨服务 consent proof。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
 
@@ -149,8 +150,11 @@ title: Spec Map
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
+| `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
+| `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
 | `authz/event-auth-state-resolution.md` | Move、Anchor、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered frontier。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
+| `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
 | `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
@@ -207,6 +211,7 @@ title: Spec Map
 
 | 文档 | 内容 |
 | --- | --- |
+| `conformance/README.md` | conformance 目录入口、阅读顺序和 artifact/向量使用说明。 |
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
 | `conformance/conformance-vectors.md` | 合并的一致性测试向量：§1 Encoding & crypto（canonical JSON / digest / signature binding / HLC / cursor / encrypted envelope）、§2 State resolution（并发 membership / capability / governance）、§3 Redaction（约束与可见性）、§4 Capability（delegation / revoke / approval）、§5 Sync（client sync / pagination / snapshot / MLS epoch backfill）。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
@@ -215,6 +220,15 @@ title: Spec Map
 | `conformance/scalability-constraints.md` | v1 wire、授权、Move/Anchor/Lattice、Board/Relation/View 和 E2EE 的规模上限。 |
 | `conformance/conformance-suite.md` | 自动化互操作 suite、向量优先级、组件测试矩阵。 |
 | `conformance/conformance-profiles.md` | 实现 profile 与一致性测试范围。 |
+
+### 4.10 实现指南
+
+这些文档不是新的协议真相源，而是把 artifact 消费、参考实现和发布集成路径串起来：
+
+| 文档 | 内容 |
+| --- | --- |
+| `guides/artifact-consumption.md` | SDK、cotest、yougen、soland 等下游如何消费 registry、OpenAPI、profiles 与 drift artifacts。 |
+| `guides/reference-implementation-guide.md` | 参考实现的模块边界、生成链路、测试入口和发布前检查顺序。 |
 
 ## 5. 拆分原则
 
@@ -225,4 +239,3 @@ title: Spec Map
 - 改变服务 API 或 transport 的内容，放入同步、服务与联邦组。
 - 新业务能力优先做 profile，例如 agent、applet、webrtc。
 - 不要把服务部署角色写成身份主体；不要把 UI 投影写成真相源。
-

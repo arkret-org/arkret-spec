@@ -22,7 +22,7 @@ Content-Type: application/json
 
 Account sync 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_did` 指向的服务上；DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/sync` 响应。
 
-### 2.x Delivery Binding UX 指引（SHOULD）
+### 2.1 Delivery Binding UX 指引（SHOULD）
 
 `delivery_binding` 由 schema 强制存在并显式化，但**用户感知**应保持轻量。客户端 UI SHOULD：
 

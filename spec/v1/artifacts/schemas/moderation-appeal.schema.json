@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/moderation-appeal.schema.json",
   "title": "Contrix Moderation Appeal",
-  "description": "Payload shapes for the four cx.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the cx.component.moderation_appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed. The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same Anchor batch with a cx.moderation.decision.lift event referencing the original decision. See zh/governance/content-moderation.md §6 (appeal flow). Capability: cx.moderation.appeal.submit (any member, low risk) for submit; cx.moderation.appeal.review (moderator) for the other three.",
+  "description": "Payload shapes for the four cx.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the cx.component.moderation_appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed. The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same Anchor batch with a cx.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal flow). Capability: cx.moderation.appeal.submit (any member, low risk) for submit; cx.moderation.appeal.review (moderator) for the other three.",
   "type": "object",
   "oneOf": [
     { "$ref": "#/$defs/submit_payload" },
@@ -14,6 +14,11 @@
     "appeal_id": {
       "type": "string",
       "pattern": "^cx:appeal:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Realm whose moderation decision is being appealed. MUST equal the enclosing Event.realm_id and the Realm of decision_ref / target_ref unless an explicit cross-Realm moderation profile authorizes otherwise."
     },
     "decision_ref": {
       "type": "string",
@@ -48,6 +53,7 @@
       "description": "cx.moderation.appeal.submit — opens the appeal. Writes appeal cell (state=submitted). MUST be issued by an appellant who is the original moderation target's controller (member appealing their own ban / message removal) or by an authorized advocate listed in Realm policy. appellant MUST hold cx.moderation.appeal.submit capability.",
       "required": [
         "appeal_id",
+        "realm_id",
         "decision_ref",
         "target_ref",
         "appellant",
@@ -56,6 +62,7 @@
       ],
       "properties": {
         "appeal_id": { "$ref": "#/$defs/appeal_id" },
+        "realm_id": { "$ref": "#/$defs/realm_id" },
         "decision_ref": { "$ref": "#/$defs/decision_ref" },
         "target_ref": { "$ref": "#/$defs/target_ref" },
         "appellant": {
@@ -85,11 +92,13 @@
       "description": "cx.moderation.appeal.review — reviewer takes the appeal under review. Transitions cell state submitted → under_review. Reviewer MUST hold cx.moderation.appeal.review capability; the same actor MUST NOT review their own moderation decision (separation of duties enforced by reducer).",
       "required": [
         "appeal_id",
+        "realm_id",
         "reviewer",
         "reviewed_at"
       ],
       "properties": {
         "appeal_id": { "$ref": "#/$defs/appeal_id" },
+        "realm_id": { "$ref": "#/$defs/realm_id" },
         "reviewer": { "$ref": "#/$defs/actor_ref" },
         "reviewed_at": { "$ref": "#/$defs/timestamp" },
         "notes_ref": {
@@ -104,6 +113,7 @@
       "description": "cx.moderation.appeal.decision — reviewer's verdict. Transitions cell state under_review → decided. Verdict semantics: uphold = original decision stands, no further action; overturn = original decision reversed, this event MUST be paired in the same Anchor batch with a cx.moderation.decision.lift event whose target equals decision_ref (reducer rejects with appeal_overturn_missing_lift otherwise); modify = original decision adjusted (parameters revised), modify_decision_ref MUST point to a new cx.moderation.decision event in the same batch that supersedes the original.",
       "required": [
         "appeal_id",
+        "realm_id",
         "reviewer",
         "verdict",
         "reason_text_ref",
@@ -111,6 +121,7 @@
       ],
       "properties": {
         "appeal_id": { "$ref": "#/$defs/appeal_id" },
+        "realm_id": { "$ref": "#/$defs/realm_id" },
         "reviewer": { "$ref": "#/$defs/actor_ref" },
         "verdict": {
           "type": "string",
@@ -148,10 +159,17 @@
       "description": "cx.moderation.appeal.close — closes the appeal after the decided window expires (default 30 days configurable per Realm policy). Transitions cell state decided → closed. Locks against re-appealing the same (decision_ref, appellant) pair within the policy cool-off window; new appeals after the cool-off are allowed via a fresh appeal_id.",
       "required": [
         "appeal_id",
+        "realm_id",
+        "closer",
         "closed_at"
       ],
       "properties": {
         "appeal_id": { "$ref": "#/$defs/appeal_id" },
+        "realm_id": { "$ref": "#/$defs/realm_id" },
+        "closer": {
+          "$ref": "#/$defs/actor_ref",
+          "description": "Actor or service closing the appeal. If auto_closed=true, reducer MUST require closer to be a timer service DID listed in Realm policy and MUST enforce closed_at >= decided_at + appeal_window_ms."
+        },
         "closed_at": { "$ref": "#/$defs/timestamp" },
         "auto_closed": {
           "type": "boolean",

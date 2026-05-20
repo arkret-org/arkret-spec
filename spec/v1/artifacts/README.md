@@ -52,7 +52,12 @@ python tools/artifact_pipeline.py check      # 对照 catalog 检查派生视图
 - registry-manifest 与实际 `registry/` 文件清单一致
 - `artifacts/`、`zh/` 下 Markdown 链接与 schema `$ref` 路径完整性
 - OpenAPI 文档形状（必填字段、稳定 operationId 命名等）
+- `ServiceDescribe.required` 在 OpenAPI 与 `service-describe.schema.json` 之间保持一致，且所有 describe path 返回 `ServiceDescribe`
+- registry / artifact 文本中的 `zh/<path>.md`、`schemas/*.json` 与 `artifacts/<path>` 引用必须存在
+- active Event.kind 不得写成 `.vN` 版本化名称；core 文档不得残留旧 Room-scope 术语；硬编码 operation count 与占位章节号会被拦截
 - 选定完整对象示例的 schema required-field drift（见 `lint_artifacts.py::FULL_MARKDOWN_EXAMPLE_SCHEMAS`）
+- Markdown fenced JSON 可以用 ````json schema=schemas/<name>.schema.json` 声明 schema；lint 会对该 JSON 块运行 JSON Schema validation
+- `artifacts/fixtures/*.json` 可声明 `schema_validation_cases[]`，对 EventEnvelope、Anchor、Cursor、Invite、ServiceDescribe 等核心对象执行正/负 schema validation
 
 ## 3. CI 要求
 

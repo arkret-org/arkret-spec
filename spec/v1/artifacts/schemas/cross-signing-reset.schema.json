@@ -154,7 +154,8 @@
         "signature": { "$ref": "#/$defs/signature_b64u" },
         "attestation_ref": {
           "type": "string",
-          "pattern": "^cx:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^cx:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Optional attestation object for service_did. If present, receivers MUST resolve it in the same trust_domain as the reset payload and reject cross-domain attestations as cross_signing_reset_recovery_service_attestation_domain_mismatch."
         }
       },
       "additionalProperties": false
