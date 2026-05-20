@@ -208,6 +208,70 @@
       "replacement": "cx.message.create",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Historical draft event kind 'cx.message.send' was never part of v1 wire. The v1 standard message authoring kind is 'cx.message.create' (see models/common-fields.md). Listed here so cotest scanner / downstream SDK literal-scanners flag any re-introduction as drift instead of mis-categorising it as an unknown future extension."
+    },
+    {
+      "id": "cx.agent_task.create",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "cx.profile.agent_workspace.v1 (and its lite / governed / strict variants) was withdrawn together with the agent_task object, the mirror Realm reservation lattice, and the mention_redirect / import_attestation content blocks. Generic agent participation is still supported through cx.member.state + cx.capability.grant + cx.agent.* protocol session events; private workspaces are deployment-local concerns, not protocol-level."
+    },
+    {
+      "id": "cx.agent_task.execution.transition",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.agent_task.transparency.transition",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.agent_task.source_authority.transition",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.agent_task.cancel",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.agent_workspace.reservation.set",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1. The cas-register reservation lattice (mirror_space_by_source / mirror_flow_by_source cells) was specific to that profile and is not retained."
+    },
+    {
+      "id": "cx.agent_workspace.reservation.recover",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.agent_workspace.reservation.cleanup",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
     }
   ]
 }

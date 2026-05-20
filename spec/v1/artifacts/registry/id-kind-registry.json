@@ -85,13 +85,6 @@
       "description": "Agent protocol session ID"
     },
     {
-      "kind": "agent_task",
-      "category": "extension",
-      "status": "active",
-      "wire_form": "cx:agent_task:<uuid>",
-      "description": "Agent task object ID in mirror Realm (cx.profile.agent_workspace.v1)"
-    },
-    {
       "kind": "applet",
       "category": "extension",
       "status": "active",

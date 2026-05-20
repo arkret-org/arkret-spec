@@ -60,7 +60,6 @@
         "call",
         "applet",
         "agent",
-        "agent_membership_change",
         "moderation",
         "system"
       ]

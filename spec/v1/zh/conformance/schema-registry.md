@@ -61,7 +61,6 @@ sidebar:
 | `cx.schema.mimi_interop.v1` | MIMI Provider Directory / Room Binding / Mapping Receipt |
 | `cx.schema.moderation_report.v1` | Moderation Report |
 | `cx.schema.moderation_queue_item.v1` | Moderation Queue Item |
-| `cx.schema.agent_authority.v1` | Agent Authority Panel |
 
 ## 3. Event Type 设计约束
 

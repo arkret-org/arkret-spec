@@ -44,7 +44,6 @@ Realm 是硬安全边界，不承担产品导航树职责。因此 Contrix v1 �
 | `join_gate_from` | 本 Realm 的 join policy 可引用目标 Realm 的 membership / claim snapshot 作为 gate。 | no |
 | `inherits_policy_from` | 本 Realm 选择性继承目标 Realm 的收窄型 policy。 | MAY，必须 narrow-only。 |
 | `confidential_extension_of` | 本 Realm 是另一个 Realm 中某个 Flow / Space / discussion 的机密扩展。 | no |
-| `mirror_of` | 本 Realm 是目标 Realm 的 mirror / workspace / import destination。 | no |
 | `split_from` | 本 Realm 从目标 Realm 拆分或迁移而来。 | no |
 | `replaces` | 本 Realm 替代目标 Realm。 | no，除非 replacement profile 明确声明。 |
 
@@ -88,7 +87,7 @@ Projection MAY 派生：
 - notification rule
 - Applet write permission
 
-例如，Alice 是 governance Realm 成员，不代表 Alice 自动能读取 governed Realm；Bob 是 source Realm 管理员，也不代表 Bob 自动能读取 mirror Realm。
+例如，Alice 是 governance Realm 成员，不代表 Alice 自动能读取 governed Realm。
 
 ## 6. 显式继承
 

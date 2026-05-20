@@ -448,7 +448,7 @@ validate_op(op):
 
 Compare-and-swap register。Move 通过 precondition `head_eq` 声明 basis；并发不同 set 返回 `⊥`。Move 的因果序由 (a) Anchor batch 包含关系，与 (b) 跨 batch 时 `Move.refs(role="after")` 显式声明给出；同 Anchor batch 内的 sibling Moves 视为并发。
 
-**Cell schema 可选参数 `initial_value`**（由 `cx.profile.agent_workspace.v1` 触发）：cas-register cell schema MAY 声明 `initial_value`，该值在 cell 未被任何 Move 写过时作为 `current` 的初值。算法第一行原本 `current = null`，schema 声明 `initial_value` 时改为 `current = initial_value`。**单例 cell 模式**：schema 声明 `initial_value = "<sentinel>"` 时，配合 `head_eq: "<sentinel>"` predicate 的第一次 set Move 才能成功；后续 Move 因 `basis ≠ settled and basis is not null` 触发 `⊥`，从而强制 singleton 语义。详见 [extensions/agent-workspace-profile.md §6.1](../extensions/agent-workspace-profile.md)。
+**Cell schema 可选参数 `initial_value`**：cas-register cell schema MAY 声明 `initial_value`，该值在 cell 未被任何 Move 写过时作为 `current` 的初值。算法第一行原本 `current = null`，schema 声明 `initial_value` 时改为 `current = initial_value`。**单例 cell 模式**：schema 声明 `initial_value = "<sentinel>"` 时，配合 `head_eq: "<sentinel>"` predicate 的第一次 set Move 才能成功；后续 Move 因 `basis ≠ settled and basis is not null` 触发 `⊥`，从而强制 singleton 语义。
 
 ```text
 join(moves, cell_schema) -> value | ⊥:
@@ -477,13 +477,13 @@ validate_op(op, cell_schema, move_envelope):
   op.value satisfies schema
   // when initial_value is declared, the sentinel is reserved for the
   // "unset" state. Only a Move whose enclosing Event kind is profile-declared
-  // as a cleanup operation (e.g. `cx.agent_workspace.reservation.cleanup`)
-  // AND whose issuer holds the corresponding cleanup capability MAY write the
-  // sentinel back. We deliberately key on event_kind + capability rather than
-  // add an ad-hoc `from_cleanup_path` field to `lattice_op` (lattice_op wire
-  // shape is closed, additionalProperties=false). Cell schemas MAY declare
-  // `sentinel_writers[]` listing the event_kinds permitted to write the
-  // sentinel; absent that list, no event_kind may write the sentinel.
+  // as a cleanup operation AND whose issuer holds the corresponding cleanup
+  // capability MAY write the sentinel back. We deliberately key on event_kind
+  // + capability rather than add an ad-hoc `from_cleanup_path` field to
+  // `lattice_op` (lattice_op wire shape is closed, additionalProperties=false).
+  // Cell schemas MAY declare `sentinel_writers[]` listing the event_kinds
+  // permitted to write the sentinel; absent that list, no event_kind may
+  // write the sentinel.
   if cell_schema.initial_value is defined:
     if op.value == cell_schema.initial_value:
       writers = cell_schema.sentinel_writers or []

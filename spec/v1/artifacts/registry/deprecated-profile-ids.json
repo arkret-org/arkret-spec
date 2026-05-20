@@ -32,6 +32,38 @@
       "replacement": "cx.profile.kanban_mvp.v1",
       "allowed_contexts": ["changelog", "negative_test"],
       "notes": "See chat_only_client. Use cx.profile.kanban_mvp.v1; modality is expressed via Realm schema / morph_type_profiles, not via single-modality profile gating."
+    },
+    {
+      "id": "cx.profile.agent_workspace.v1",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Agent workspace profile was withdrawn from v1. Private agent context (mirror Realm + agent_task FSM + mention_redirect / import_attestation) is now treated as a deployment-local concern outside the canonical protocol. Generic agent participation is still supported via cx.member.state + cx.capability.grant + cx.agent.* protocol session events (cx.profile.agent_runtime.v1)."
+    },
+    {
+      "id": "cx.profile.agent_workspace.lite.v1",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.profile.agent_workspace.governed.v1",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
+    },
+    {
+      "id": "cx.profile.agent_workspace.strict.v1",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Reserved placeholder id removed with cx.profile.agent_workspace.v1."
     }
   ]
 }

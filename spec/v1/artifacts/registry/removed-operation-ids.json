@@ -88,6 +88,22 @@
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Companion to removed cx.realm.policy.set snapshot event."
+    },
+    {
+      "id": "cx.agent_workspace.resolve_mirror_flow",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1; private mirror-flow resolution is no longer a protocol-level operation."
+    },
+    {
+      "id": "cx.agent_workspace.list_pending_tasks",
+      "since_revision": "2026-05-20",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": ["changelog", "negative_test"],
+      "notes": "Removed with cx.profile.agent_workspace.v1."
     }
   ]
 }

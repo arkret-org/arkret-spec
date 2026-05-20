@@ -5,22 +5,6 @@
   "generated_by": "tools/artifact_pipeline.py",
   "schemas": [
     {
-      "schema_id": "cx.schema.agent_task.v1",
-      "file": "schemas/agent-task.schema.json"
-    },
-    {
-      "schema_id": "cx.schema.content.mention_redirect.v1",
-      "file": "schemas/content-mention-redirect.schema.json"
-    },
-    {
-      "schema_id": "cx.schema.content.import_attestation.v1",
-      "file": "schemas/content-import-attestation.schema.json"
-    },
-    {
-      "schema_id": "cx.schema.content.source_export_policy_attestation.v1",
-      "file": "schemas/content-source-export-policy-attestation.schema.json"
-    },
-    {
       "schema_id": "cx.schema.realm.v1",
       "file": "schemas/realm.schema.json"
     },
@@ -200,10 +184,6 @@
       "file": "schemas/attestation-evidence.schema.json"
     },
     {
-      "schema_id": "cx.schema.agent_authority.v1",
-      "file": "schemas/agent-authority.schema.json"
-    },
-    {
       "schema_id": "cx.schema.applet.v1",
       "file": "schemas/applet.schema.json",
       "status": "active",
@@ -213,7 +193,7 @@
       "schema_id": "cx.schema.agent.v1",
       "file": "schemas/agent.schema.json",
       "status": "active",
-      "description": "Wire envelope schema for the cx.agent.* protocol family (endpoint / protocol_session.start|status|result). Distinct from cx.schema.agent_authority.v1 (panel projection). See spec/v1/zh/extensions/agent-protocol-interop.md."
+      "description": "Wire envelope schema for the cx.agent.* protocol family (endpoint / protocol_session.start|status|result). See spec/v1/zh/extensions/agent-protocol-interop.md."
     },
     {
       "schema_id": "cx.schema.audit_ryw_receipt.v1",

@@ -63,10 +63,6 @@
     "cx.profile.push_gateway.matrix_passthrough.v1",
     "cx.profile.applet_service.v1",
     "cx.profile.agent_runtime.v1",
-    "cx.profile.agent_workspace.v1",
-    "cx.profile.agent_workspace.governed.v1",
-    "cx.profile.agent_workspace.strict.v1",
-    "cx.profile.agent_workspace.lite.v1",
     "cx.profile.mimi_interop.v1",
     "cx.profile.sovereign_client.v1",
     "cx.profile.franking.v1",
@@ -106,7 +102,6 @@
     "extension_profile_implementation": [
       "cx.profile.applet_service.v1",
       "cx.profile.agent_runtime.v1",
-      "cx.profile.agent_workspace.v1",
       "cx.profile.mimi_interop.v1"
     ],
     "tier_rules": {
@@ -181,10 +176,6 @@
     "cx.profile.push_gateway.matrix_passthrough.v1": "interop",
     "cx.profile.applet_service.v1": "server",
     "cx.profile.agent_runtime.v1": "server",
-    "cx.profile.agent_workspace.v1": "server",
-    "cx.profile.agent_workspace.governed.v1": "server",
-    "cx.profile.agent_workspace.strict.v1": "server",
-    "cx.profile.agent_workspace.lite.v1": "server",
     "cx.profile.mimi_interop.v1": "interop",
     "cx.profile.franking.v1": "server",
     "cx.profile.franking.sender_commitment.v1": "client",
@@ -1226,7 +1217,6 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.agent_authority.v1",
         "cx.schema.capability.v1"
       ],
       "required_fixtures": [
@@ -1245,219 +1235,6 @@
         ],
         "unsupported_optional": "require explicit grant before join or tool use"
       }
-    },
-    "cx.profile.agent_workspace.v1": {
-      "tier": "extension_profile_implementation",
-      "depends_on": [],
-      "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md",
-      "required_endpoints": [
-        "cx.server.describe",
-        "cx.events.submit",
-        "cx.events.query",
-        "cx.agent_workspace.resolve_mirror_flow",
-        "cx.agent_workspace.list_pending_tasks"
-      ],
-      "required_event_kinds": [
-        "cx.agent_task.create",
-        "cx.agent_task.execution.transition",
-        "cx.agent_task.transparency.transition",
-        "cx.agent_task.source_authority.transition",
-        "cx.agent_task.cancel",
-        "cx.agent_workspace.reservation.set",
-        "cx.agent_workspace.reservation.recover",
-        "cx.agent_workspace.reservation.cleanup"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "cx.schema.agent_task.v1",
-        "cx.schema.content.mention_redirect.v1",
-        "cx.schema.content.import_attestation.v1",
-        "cx.schema.content.source_export_policy_attestation.v1",
-        "cx.schema.agent_authority.v1",
-        "cx.schema.capability.v1"
-      ],
-      "required_capability_actions": [
-        "cx.capability.agent_workspace.reserve",
-        "cx.capability.agent_workspace.recover",
-        "cx.capability.agent_workspace.cleanup"
-      ],
-      "required_features": [
-        "cx.feature.mention_redirect.v1",
-        "cx.feature.import_attestation.v1"
-      ],
-      "required_constraint_kinds": [
-        "mention_respond_only",
-        "import_to_external_space"
-      ],
-      "required_cell_namespaces": [
-        "mirror_space_by_source",
-        "mirror_flow_by_source",
-        "agent_task.<task_id>.execution_state",
-        "agent_task.<task_id>.transparency",
-        "agent_task.<task_id>.source_authority"
-      ],
-      "required_fixtures": [
-        "agent-workspace-fixture.json"
-      ],
-      "optional_extensions": [
-        "source_export_policy_attestation",
-        "inline_authority_evidence"
-      ],
-      "feature_discovery": {
-        "required": [
-          "agent_workspace",
-          "mention_redirect",
-          "import_attestation",
-          "reservation_cell_singleton",
-          "watcher_observe_then_write"
-        ],
-        "unsupported_optional": "Servers not declaring this profile MUST reject cx.agent_task.* and cx.content.import_attestation writes targeting a Realm declaring cx.profile.agent_workspace.v1 (profile_unsupported). Source-Realm mention_redirect acceptance is governed independently by the cx.feature.mention_redirect.v1 critical_extension check."
-      }
-    },
-    "cx.profile.agent_workspace.governed.v1": {
-      "tier": "extension_profile_implementation",
-      "depends_on": ["cx.profile.agent_workspace.v1"],
-      "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md#91-cxprofileagent_workspacegovernedv1受保护源-profile",
-      "summary": "Governed-source profile. Declared by a SOURCE Realm that wishes its export policy enforced at the mirror-side reducer (not just at source-side agent runtime). Mirror reducer MUST reject cx.content.import_attestation events lacking a valid source-side cx.schema.content.source_export_policy_attestation.v1 envelope, instead of accepting + audit-marking as permissive cx.profile.agent_workspace.v1 does.",
-      "applies_to_roles": ["governed_source"],
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "cx.schema.content.source_export_policy_attestation.v1"
-      ],
-      "required_capability_actions": [],
-      "required_features": [
-        "cx.feature.governed_import.v1"
-      ],
-      "required_constraint_kinds": [],
-      "required_cell_namespaces": [],
-      "required_fixtures": [
-        "agent-workspace-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "governed_import"
-        ],
-        "unsupported_optional": "Servers that do not implement governed_import MUST fail-closed (profile_unsupported) when asked to accept a cx.content.import_attestation whose claimed source Realm declares cx.profile.agent_workspace.governed.v1; they MUST NOT silently downgrade to permissive accept-then-audit. See agent-workspace-profile.md §8.2 governed behavior + §9.1."
-      },
-      "reducer_reject_reasons": [
-        "source_export_attestation_required",
-        "source_export_attestation_invalid",
-        "source_export_attestation_denied",
-        "source_export_destination_mismatch",
-        "source_export_content_hash_mismatch",
-        "source_export_attestation_expired",
-        "source_export_authority_unauthorized"
-      ],
-      "policy_authority_declaration": {
-        "field": "policy_components.export_policy_authorities",
-        "shape": "did[]",
-        "description": "Source Realm declares which DIDs are authorized to sign source_export_policy_attestation envelopes. Attestation `authority_did` MUST appear in this list."
-      },
-      "ttl_constraints": {
-        "max_attestation_ttl_seconds": 3600,
-        "rationale": "Mirror reducers SHOULD cache attestations only as long as the source-issued TTL allows; longer-lived attestations let revoked export decisions stay accepted."
-      }
-    },
-    "cx.profile.agent_workspace.strict.v1": {
-      "tier": "extension_profile_implementation",
-      "status": "reserved",
-      "depends_on": ["cx.profile.agent_workspace.v1"],
-      "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md#11-信任模型与适用边界",
-      "summary": "Reserved placeholder for a hardening variant of agent_workspace addressing stale-window concerns in cross-deployment / third-party-runtime / multi-tenant SaaS / regulatory-immediate-revocation scenarios. Candidate mechanisms (any or combination): frontier freshness gate (sync-verify source frontier covers latest revoke before each agent action), source-issued lease (short-TTL pass-through, fail-closed on expiry), protocol-level hard stale window upper bound. The id is registered as `status: reserved` so prose can reference it as a direction without breaking lint, and so downstream registries / SDKs see the name as known-reserved rather than typo / drift.",
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_capability_actions": [],
-      "required_features": [],
-      "required_constraint_kinds": [],
-      "required_cell_namespaces": [],
-      "required_fixtures": [],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [],
-        "unsupported_optional": "Reserved id with no conformance requirements bound yet. Deployments needing stricter freshness MAY define their own private profile in the interim and graduate to this id once it is filled with normative requirements."
-      },
-      "notes": "See agent-workspace-profile.md §1.1 for the trust-model boundary that distinguishes the default scope from the scenarios this reserved profile would address."
-    },
-    "cx.profile.agent_workspace.lite.v1": {
-      "tier": "extension_profile_implementation",
-      "depends_on": ["cx.profile.agent_workspace.v1"],
-      "spec_ref": "spec/v1/zh/extensions/agent-workspace-profile.md#92-cxprofileagent_workspacelitev1单-controller-轻量-profile",
-      "summary": "Lightweight profile for single-controller mirror Realm that does NOT need the full audit-grade lattice. Strips: (a) anchor-based reservation TTL (reverts to wall-clock + grace), (b) per-task transparency / source_authority FSM cells (controller checks state via UI hint, not lattice), (c) MLS Governance Binding requirement. Keeps: reservation cell namespaces (mirror_space_by_source / mirror_flow_by_source), import_attestation envelope, mention_redirect content block. Cross-Realm writes (publish-back to source Realm) MUST still go through full pipeline regardless of lite profile.",
-      "applies_to_roles": ["workspace_root", "mirror_space"],
-      "mutually_exclusive_with": [
-        "cx.profile.agent_workspace.governed.v1"
-      ],
-      "stripped_from_base": {
-        "cell_namespaces": [
-          "agent_task.<id>.transparency",
-          "agent_task.<id>.source_authority"
-        ],
-        "events": [
-          "cx.agent_task.transparency.transition",
-          "cx.agent_task.source_authority.transition"
-        ],
-        "ttl_clock_source": {
-          "from": "anchor_index_distance",
-          "to": "wall_clock_plus_grace",
-          "grace_seconds_default": 60,
-          "rationale": "Lite deployments tolerate replay-attack-against-cleanup as long as controller is the only authority writing tasks; coarse wall-clock TTL is acceptable."
-        },
-        "mls_governance_binding": "not_required"
-      },
-      "kept_from_base": {
-        "cell_namespaces": [
-          "mirror_space_by_source",
-          "mirror_flow_by_source",
-          "agent_task.<id>.execution_state"
-        ],
-        "required_event_kinds": [
-          "cx.agent_task.create",
-          "cx.agent_task.update",
-          "cx.agent_task.execution.transition"
-        ],
-        "required_content_block_kinds": [
-          "cx.content.import_attestation",
-          "cx.content.mention_redirect"
-        ],
-        "membership": "single_controller_principal (unchanged from base)"
-      },
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [
-        "cx.agent_task.transparency.transition",
-        "cx.agent_task.source_authority.transition"
-      ],
-      "required_schemas": [],
-      "required_capability_actions": [],
-      "required_features": ["cx.feature.agent_workspace_lite.v1"],
-      "required_constraint_kinds": [],
-      "required_cell_namespaces": [
-        "mirror_space_by_source",
-        "mirror_flow_by_source",
-        "agent_task.<id>.execution_state"
-      ],
-      "required_fixtures": [],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "agent_workspace_lite"
-        ],
-        "unsupported_optional": "Servers declaring lite MUST also accept all base agent_workspace.v1 read paths (lite is a strict subset of writes, not reads). Source-Realm side handling of mention_redirect is unchanged."
-      },
-      "cross_space_writes_unchanged": {
-        "scope": "publish_back_from_mirror_to_source",
-        "rule": "Lite ONLY relaxes mirror-internal lattice. Any event leaving the mirror Realm and entering a source / shared Realm MUST go through the standard pipeline (signature, capability, schema, full lattice, MLS group of the destination Realm). Lite is not a justification for cross-Realm shortcuts."
-      },
-      "reducer_reject_reasons": [
-        "lite_profile_writes_disallowed_event_kind",
-        "lite_profile_requires_single_controller"
-      ],
-      "notes": "Lite is intended for hobbyist / single-developer setups where the controller is also the only auditor. Deployments that publish or share mirror state with anyone except the workspace owner SHOULD NOT use lite. See agent-workspace-profile.md §9.2 for prose normative."
     },
     "cx.profile.mimi_interop.v1": {
       "required_endpoints": [

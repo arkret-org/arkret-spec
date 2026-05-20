@@ -464,7 +464,7 @@
           "type": "object"
         },
         "initial_value": {
-          "description": "Optional cell schema initial value (cas-register only). When defined, the cas-register `join` algorithm initialises `current` to this value (rather than null) before applying any Move. Combined with a `head_eq: <initial_value>` predicate on the first set Move, this implements singleton-once-set cells via the empty sentinel pattern. See event-auth-state-resolution.md §5.3.3 and extensions/agent-workspace-profile.md §6.1."
+          "description": "Optional cell schema initial value (cas-register only). When defined, the cas-register `join` algorithm initialises `current` to this value (rather than null) before applying any Move. Combined with a `head_eq: <initial_value>` predicate on the first set Move, this implements singleton-once-set cells via the empty sentinel pattern. See event-auth-state-resolution.md §5.3.3."
         },
         "sentinel_writers": {
           "type": "array",

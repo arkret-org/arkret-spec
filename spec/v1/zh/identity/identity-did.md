@@ -521,7 +521,6 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 | `type` | 适用 DID 主体 | 用途 | 引用规范 |
 | --- | --- | --- | --- |
 | `ContrixGovernanceService` | Organization | 组织治理 endpoint | 本节示例 |
-| `ContrixAgentWorkspaceService` | User principal | 用户私人 agent workspace 入口。MUST 仅发布 HTTPS endpoint；workspace root Realm ID 通过鉴权后 resolve API 取得 | [`extensions/agent-workspace-profile.md §12`](../extensions/agent-workspace-profile.md)（`cx.profile.agent_workspace.v1`）|
 
 客户端判断“谁控制该组织”时，应验证：
 

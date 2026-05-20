@@ -59,7 +59,7 @@ Schema id: `cx.schema.notification.v1`
 | `actor_id` | yes | `did` | 接收者。 | 通知主体。 |
 | `realm_id` | no | `id:realm` |  | 来源 Realm。 |
 | `source_event_id` | yes | `id:event` |  | 来源事件。 |
-| `notification_type` | yes | `enum(mention, reply, assignment, invite, reaction, policy, call, applet, agent, agent_membership_change, moderation, system)` |  | 通知类型。`agent_membership_change` 由 `cx.profile.agent_workspace.v1` 引入；见 [extensions/agent-workspace-profile.md §14](../extensions/agent-workspace-profile.md)。 |
+| `notification_type` | yes | `enum(mention, reply, assignment, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
 | `priority` | yes | `enum(low, normal, high, urgent)` |  | 优先级。 |
 | `state` | yes | `enum(unread, read, dismissed, archived)` |  | 通知状态。 |
 | `preview` | no | `object` | E2EE 场景必须脱敏。 | 展示摘要。 |
@@ -70,7 +70,7 @@ Schema id: `cx.schema.notification.v1`
 
 - Notification 是派生 projection；客户端 / 服务端 SHOULD 从 source event + actor preferences 计算，不要把它当作独立真相源持久化为 durable canonical event。
 - E2EE Realm 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
-- `notification_type=applet` / `agent` / `agent_membership_change` / `policy` / `moderation` 等扩展类型的语义见 [`../extensions/applet-integration.md`](../extensions/applet-integration.md)、[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)、[`../extensions/agent-workspace-profile.md`](../extensions/agent-workspace-profile.md)、[`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../governance/content-moderation.md`](../governance/content-moderation.md)。
+- `notification_type=applet` / `agent` / `policy` / `moderation` 等扩展类型的语义见 [`../extensions/applet-integration.md`](../extensions/applet-integration.md)、[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)、[`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../governance/content-moderation.md`](../governance/content-moderation.md)。
 
 ## 4. 与 Account Data 的关系
 

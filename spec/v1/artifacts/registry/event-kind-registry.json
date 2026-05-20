@@ -14,7 +14,7 @@
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Realm Move/Anchor history.",
-    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas-register only) initial_value. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas-register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells (see extensions/agent-workspace-profile.md §6.1).",
+    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas-register only) initial_value. cell_family is a stable cx.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas-register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells.",
     "Lattice MUST be one of: core types or-set, mv-register, cas-register, fsm, counter, ordered-log; or extension types lww-register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement cx.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww-register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww-register or rga.",
     "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority."
   ],
@@ -871,130 +871,6 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent protocol session result"
-    },
-    {
-      "event_kind": "cx.agent_task.create",
-      "category": "agent_workspace",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent task create",
-      "profile_gate": "cx.profile.agent_workspace.v1"
-    },
-    {
-      "event_kind": "cx.agent_task.execution.transition",
-      "category": "agent_workspace",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent task FSM transition",
-      "cell_family": "cx.component.agent_task.execution_state.v1",
-      "cell_subject": {
-        "type": "string",
-        "field": "payload.task_id"
-      },
-      "lattice": "fsm",
-      "bottom": "reject",
-      "profile_gate": "cx.profile.agent_workspace.v1"
-    },
-    {
-      "event_kind": "cx.agent_task.transparency.transition",
-      "category": "agent_workspace",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent task FSM transition",
-      "cell_family": "cx.component.agent_task.transparency.v1",
-      "cell_subject": {
-        "type": "string",
-        "field": "payload.task_id"
-      },
-      "lattice": "fsm",
-      "bottom": "reject",
-      "profile_gate": "cx.profile.agent_workspace.v1"
-    },
-    {
-      "event_kind": "cx.agent_task.source_authority.transition",
-      "category": "agent_workspace",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent task FSM transition",
-      "cell_family": "cx.component.agent_task.source_authority.v1",
-      "cell_subject": {
-        "type": "string",
-        "field": "payload.task_id"
-      },
-      "lattice": "fsm",
-      "bottom": "reject",
-      "profile_gate": "cx.profile.agent_workspace.v1"
-    },
-    {
-      "event_kind": "cx.agent_task.cancel",
-      "category": "agent_workspace",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent task cancel (alias for execution.transition to cancelled_by_controller)",
-      "profile_gate": "cx.profile.agent_workspace.v1"
-    },
-    {
-      "event_kind": "cx.agent_workspace.reservation.set",
-      "category": "agent_workspace",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent workspace reservation set (cas-register write with head_eq:__unset__)",
-      "cell_family": "cx.component.agent_workspace.reservation.v1",
-      "cell_subject": {
-        "type": "composite",
-        "components": [
-          "payload.cell_namespace",
-          "payload.cell_namespace_subject"
-        ],
-        "notes": "Reservation events multiplex two concrete cas-register cell instances (mirror_space_by_source / mirror_flow_by_source) selected by payload.cell_namespace. The cell_family is the parent grouping; the actual lattice cell is keyed by the composite (namespace, subject)."
-      },
-      "lattice": "cas-register",
-      "bottom": "reject",
-      "profile_gate": "cx.profile.agent_workspace.v1"
-    },
-    {
-      "event_kind": "cx.agent_workspace.reservation.recover",
-      "category": "agent_workspace",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent workspace reservation recovery (head_in [conflict_heads] + state_witness + inclusion_proof)",
-      "cell_family": "cx.component.agent_workspace.reservation.v1",
-      "cell_subject": {
-        "type": "composite",
-        "components": [
-          "payload.cell_namespace",
-          "payload.cell_namespace_subject"
-        ]
-      },
-      "lattice": "cas-register",
-      "bottom": "reject",
-      "profile_gate": "cx.profile.agent_workspace.v1"
-    },
-    {
-      "event_kind": "cx.agent_workspace.reservation.cleanup",
-      "category": "agent_workspace",
-      "status": "active",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Agent workspace orphan reservation cleanup (reset to __unset__ sentinel; carries anchor-based ttl_evidence). Only this event_kind is allowed in the corresponding cell_schemas[].sentinel_writers whitelist.",
-      "cell_family": "cx.component.agent_workspace.reservation.v1",
-      "cell_subject": {
-        "type": "composite",
-        "components": [
-          "payload.cell_namespace",
-          "payload.cell_namespace_subject"
-        ]
-      },
-      "lattice": "cas-register",
-      "bottom": "reject",
-      "profile_gate": "cx.profile.agent_workspace.v1"
     },
     {
       "event_kind": "cx.capability.grant",

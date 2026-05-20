@@ -181,15 +181,6 @@
       ]
     },
     {
-      "surface": "agent_workspace",
-      "tier": "extension",
-      "profile": "cx.profile.agent_workspace.v1",
-      "operations": [
-        "cx.agent_workspace.resolve_mirror_flow",
-        "cx.agent_workspace.list_pending_tasks"
-      ]
-    },
-    {
       "surface": "account_auth",
       "tier": "deployment_local",
       "operations": [
@@ -215,22 +206,6 @@
       "http": "POST /auth/account/device-pair",
       "grpc": "Account/DevicePair",
       "mq": "account.device_pair"
-    },
-    {
-      "operation_id": "cx.agent_workspace.resolve_mirror_flow",
-      "http": "GET /agent_workspace/mirror_flow",
-      "grpc": "AgentWorkspace/ResolveMirrorFlow",
-      "mq": "agent_workspace.resolve_mirror_flow",
-      "profile_gate": "cx.profile.agent_workspace.v1",
-      "notes": "Controller-only. Returns only fully-provisioned mappings (reservation + create both present). Unauthenticated requests MUST return 401/403, not 404 (avoids workspace existence enumeration). HTTP path is bare; the global OpenAPI server prefix /api/v1 supplies the namespace, identical to every other extension surface."
-    },
-    {
-      "operation_id": "cx.agent_workspace.list_pending_tasks",
-      "http": "GET /agent_workspace/pending_tasks",
-      "grpc": "AgentWorkspace/ListPendingTasks",
-      "mq": "agent_workspace.list_pending_tasks",
-      "profile_gate": "cx.profile.agent_workspace.v1",
-      "notes": "Controller-only. Returns agent_task objects with execution_state in {pending_source_stub, active} for client reconcile after offline. HTTP path is bare; the global OpenAPI server prefix /api/v1 supplies the namespace."
     },
     {
       "operation_id": "cx.account.issue_session_grant",

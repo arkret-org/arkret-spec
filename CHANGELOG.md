@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Withdraw `cx.profile.agent_workspace.v1`（2026-05-20）
+
+撤销 agent workspace extension profile 及其所有派生工件。"用户本地 agent 协作上下文"被重新归位为部署本地关切，不再属于协议层。一般性的 agent 参与（agent 加入 Realm、capability、A2A/ACP 协议会话）通过既有的 `cx.member.state` / `cx.capability.grant` / `cx.agent.*` 表面继续支持。
+
+- **变更类型**: remove
+- **影响 artifact**: 整体删除 `spec/v1/zh/extensions/agent-workspace-profile.md`、`spec/v1/artifacts/fixtures/agent-workspace-fixture.json`、`spec/v1/artifacts/conformance/agent-workspace/`（44 个向量）、`spec/v1/artifacts/schemas/agent-task.schema.json`、`spec/v1/artifacts/schemas/agent-authority.schema.json`、`spec/v1/artifacts/schemas/content-mention-redirect.schema.json`、`spec/v1/artifacts/schemas/content-import-attestation.schema.json`、`spec/v1/artifacts/schemas/content-source-export-policy-attestation.schema.json`。从 `contract-catalog.json` 及派生的 event-kind / schema / id-kind / capability-action / operation 视图中删除全部 `cx.agent_task.*`、`cx.agent_workspace.*`、`cx.capability.agent_workspace.*`、`cx.schema.agent_task.v1`、`cx.schema.agent_authority.v1`、`cx.schema.content.{mention_redirect,import_attestation,source_export_policy_attestation}.v1`、`cx:agent_task:` typed ID、`cx.feature.{mention_redirect,import_attestation,governed_import,agent_workspace_lite}.v1`、`cx.capability.agent_workspace.{reserve,recover,cleanup}`、`mention_respond_only` / `import_to_external_space` 约束、`agent_membership_change` 通知类型、`mirror_of` realm link kind、`ContrixAgentWorkspaceService` DID service 类型以及与之绑定的全部 error code（`source_export_*`、`reservation_cell_already_set`、`conflicting_agent_workspace_profiles`、`lite_profile_writes_disallowed_event_kind`、`invalid_task_fsm_transition`）。OpenAPI / non-http bindings / `tools/apply_pd6_security.py` 中的相关 endpoint 与绑定一并删除。
+- **canonical 变更**: `contract-catalog.json` 删除 ~120 条 entry；`profiles/conformance-profiles.json` 删除 4 个 profile id（`cx.profile.agent_workspace.v1` / `.lite.v1` / `.governed.v1` / `.strict.v1`）。
+- **派生 artifact 同步**: registry 视图、OpenAPI、non-http bindings 已与 catalog 同步；conformance 目录在本次提交后为空。
+- **conformance impact**:
+  - 受影响 profile: `cx.profile.agent_workspace.v1` 系列全部移除；`cx.profile.agent_runtime.v1` 不再 require `cx.schema.agent_authority.v1`。
+  - profile tier 变化: `extension_profile_implementation` 列表中移除 4 个 id。
+  - wire 兼容性: breaking（声明该 profile 或发出对应事件 / 操作的实现 MUST 停止）；尚未存在已发布的 wire 用户，所以实际迁移面狭窄。
+  - reader / writer 行为要求: writer MUST NOT emit 已删除事件；reader MUST `schema_violation` 拒绝（由 `removed-event-kinds.json` 与 `removed-operation-ids.json` 强制）。
+- **fixture / vector 变化**: 44 个 `conformance/agent-workspace/*` 向量删除；`agent-workspace-fixture.json` registry anchor 删除。
+- **prose 同步**: 已更新 `zh/spec-map.md`、`zh/authz/capabilities.md` §5.7 / §5.8 / §6、`zh/authz/constraint-schema.md` §2.2、`zh/authz/event-auth-state-resolution.md` §5.3.3、`zh/models/content-types.md` §2 / §4.11 / §4.12、`zh/models/realm-links.md`、`zh/models/private-objects.md`、`zh/identity/identity-did.md`、`zh/sync/federation.md` §9.5、`zh/sync/service-http-binding.md` §2.3、`zh/conformance/conformance-profiles.md`、`zh/conformance/schema-registry.md`、`zh/extensions/agent-protocol-interop.md` §3.1、`zh/crypto-media/encryption-and-audit.md`、`zh/overview/architecture.md`。
+- **迁移指南**: 需要"私人 agent 工作上下文"的部署应在自家 profile 中声明等价语义并使用私有的事件 / schema id，不得复用任何已收录到 removed-event-kinds.json / removed-operation-ids.json / deprecated-profile-ids.json 的标识符。
+
 ### Round 3 cleanup pass on `_todos.md`（2026-05-20）
 
 承接 round 1 + 2，本轮 close 10 项最重的 P0/P1 任务（T02、T06、T07、T10、T11、T12、T14、T15、T16、T17）。三轮累计 close 29 项 spec-body 任务；剩余 3 项（T29 tooling / T31 / T32 design）标 `evaluate_only` 留给后续独立 session。这一批新增了 4 个 event kind、3 个新 schema、1 个新 typed ID kind、9 个新 error code、4 个新 conformance vector reference，是迄今最接近"协议体内新增"的一轮。

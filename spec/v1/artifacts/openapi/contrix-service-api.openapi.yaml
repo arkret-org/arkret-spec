@@ -49,7 +49,7 @@ info:
 
     Extension / interop / deployment-local operations (directory, applet, MIMI,
 
-    push, moderation, account, admin, agent_workspace, etc.) continue to use the
+    push, moderation, account, admin, etc.) continue to use the
 
     generic `OperationRequest` / `OperationResult` envelope as their HTTP
 
@@ -73,9 +73,9 @@ info:
     every other path requires at least one of the declared securitySchemes.
 
 
-    Path prefix convention: bare paths (e.g. `/events`, `/identity/resolve`,
+    Path prefix convention: bare paths (e.g. `/events`, `/identity/resolve`)
 
-    `/agent_workspace/mirror_flow`) inherit the global servers prefix `/api/v1`.
+    inherit the global servers prefix `/api/v1`.
 
     Paths under the deployment-local namespaces `/contrix/v1/*`, `/auth/account/*`,
 
@@ -4562,73 +4562,3 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModerationQueueResponse'
-  /agent_workspace/mirror_flow:
-    get:
-      operationId: cx.agent_workspace.resolve_mirror_flow
-      security:
-      - bearerAuth: []
-      parameters:
-      - name: source_flow_id
-        in: query
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Existing mirror Flow mapping
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [mirror_flow_id, mirror_realm_id]
-                properties:
-                  mirror_flow_id:
-                    type: string
-                  mirror_realm_id:
-                    type: string
-        '401':
-          description: Unauthenticated. MUST NOT distinguish from 'workspace not provisioned'.
-        '403':
-          description: Authenticated but not workspace owner. MUST NOT distinguish from 'workspace not provisioned'.
-        '404':
-          description: Workspace exists but mirror Flow not provisioned for that source.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  reason:
-                    type: string
-                    enum: [not_provisioned]
-  /agent_workspace/pending_tasks:
-    get:
-      operationId: cx.agent_workspace.list_pending_tasks
-      security:
-      - bearerAuth: []
-      responses:
-        '200':
-          description: List of pending tasks
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [tasks]
-                properties:
-                  tasks:
-                    type: array
-                    items:
-                      type: object
-                      required: [agent_task_id, execution_state]
-                      properties:
-                        agent_task_id:
-                          type: string
-                        execution_state:
-                          type: string
-                        transparency:
-                          type: string
-                        source_authority:
-                          type: string
-        '401':
-          description: Unauthenticated.
-        '403':
-          description: Not workspace owner.

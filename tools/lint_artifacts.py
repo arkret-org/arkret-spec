@@ -655,6 +655,14 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
 
 
 def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
+    # Tracking files exist precisely to list identifiers that have been
+    # removed / deprecated; their bodies necessarily contain ids that are no
+    # longer in the canonical registries. Skip cross-reference checks on them.
+    drift_tracking_files = {
+        "removed-event-kinds.json",
+        "removed-operation-ids.json",
+        "deprecated-profile-ids.json",
+    }
     for path in all_json_files():
         data = load_json(lint, path)
         if data is None:
@@ -664,6 +672,8 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
         for json_path, value, key in walk_json(data):
             if key == "$ref" and isinstance(value, str):
                 ensure_relative_file(lint, path, path.parent, value, f"{json_path} $ref")
+        if path.name in drift_tracking_files:
+            continue
         for schema_id in json_string_tokens(data, SCHEMA_ID_TOKEN_RE):
             if schema_id not in known["schema_ids"]:
                 lint.fail(path, f"unknown schema id reference: {schema_id}")

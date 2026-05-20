@@ -134,10 +134,6 @@ OPERATIONS: dict[str, str] = {
     "cx.mimi.report_abuse": "service_only",
     "cx.mimi.proxy_download": "service_only",
 
-    # agent_workspace
-    "cx.agent_workspace.resolve_mirror_flow": "user_bearer",
-    "cx.agent_workspace.list_pending_tasks": "user_bearer",
-
     # account_auth (deployment_local)
     "cx.account.device_pair": "user_bearer",
     "cx.account.issue_session_grant": "public_no_auth",   # callback-style; body carries proof

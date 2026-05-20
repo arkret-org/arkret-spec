@@ -200,7 +200,6 @@ title: Spec Map
 | `extensions/applet-integration.md` | Applet / bridge / bot / ghost actor / portal Realm。 |
 | `extensions/applet-schema.md` | Applet schema 与 OpenAPI binding。 |
 | `extensions/agent-protocol-interop.md` | A2A / ACP / external agent protocol handoff。 |
-| `extensions/agent-workspace-profile.md` | 用户私人 agent workspace（mirror Realm + agent_task FSM + mention_redirect / import_attestation 跨 Realm 协作模式）。 |
 | `extensions/mimi-interop.md` | MIMI Provider Facade、room binding、content/policy/identity mapping。 |
 | `sync/third-party-invites.md` | 3PID 邀请与认领。 |
 | `models/realm-links.md` | Realm link graph、显式继承、治理 / mirror / confidential-extension 关系。 |

@@ -491,7 +491,6 @@ MUST 支持：
 
 - DID 或 delegated actor identity
 - explicit capability grant
-- `cx.schema.agent_authority.v1` authority panel
 - scoped action execution
 - owner presence / trigger policy
 - declared knowledge sources

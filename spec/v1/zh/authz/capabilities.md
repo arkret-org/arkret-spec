@@ -261,29 +261,6 @@ Audit action 只授权受控审计代理执行“先记录后解密”、读取�
 - `cx.notification.ack`
 - `cx.invite.accept`
 
-### 5.7 Agent Workspace 动作
-
-由 `cx.profile.agent_workspace.v1` 引入；详见 [`extensions/agent-workspace-profile.md`](../extensions/agent-workspace-profile.md)。
-
-- `cx.capability.agent_workspace.reserve`——写 mirror Realm / Flow reservation Move 到唯一性 cell（`mirror_space_by_source` / `mirror_flow_by_source`）。MUST 由 workspace owner（controller principal）持有。
-- `cx.capability.agent_workspace.recover`——写 recovery Move 修复 reservation cell `⊥` 状态。MUST 由 controller principal 持有；不可委托给 agent 或外部 actor（防止攻击者篡改 winner）。
-- `cx.capability.agent_workspace.cleanup`——写 orphan cleanup Move 将 stale reservation cell 重置为 `"__unset__"` sentinel。MUST 由 controller principal 持有，MAY 通过标准 capability delegation 委托给 controller 的 sync node system actor。Cleanup Move 的 event payload 必须携带 Anchor-based TTL 证据 `ttl_evidence: { reservation_anchor_ref, reservation_anchor_index, current_anchor_ref, current_anchor_index, ttl_anchor_distance }`；reducer 验证 `current_anchor_index >= reservation_anchor_index + ttl_anchor_distance`。**不**接受自报 wall clock。详见 [`extensions/agent-workspace-profile.md §6.4`](../extensions/agent-workspace-profile.md)。
-
-### 5.8 标准 Agent Member Profile
-
-由 `cx.profile.agent_workspace.v1` 引入,作为**客户端层声明性 sugar**。preset 名仅在 UI / SDK helper / docs 中出现;一旦展开到 wire 与 `capability-grant.schema.json` `actions[]` 字段,所有 action token MUST 是已注册的 canonical `cx.<domain>.<action>` 形态。Reducer 不依赖 preset name,只验证展开后的 canonical action 集合 + constraint 集合。
-
-| Preset name | 展开后的 canonical actions | 附加 constraints |
-|---|---|---|
-| `cx.agent_member.observer` | `cx.event.read`、`cx.object.read_content` | `object_type_allow=["message"]` 限定 `cx.object.read_content` 仅对 Message 适用 |
-| `cx.agent_member.read_only` | observer 展开集 + `cx.reaction.add` | 同上 |
-| `cx.agent_member.mention_respond_only` | read_only 展开集 + `cx.message.create` | 上述 + `mention_respond_only`(只允许 `in_reply_to` 指向 mention 自身为 sender 的消息;详见 [`constraint-schema.md`](./constraint-schema.md)) |
-| `cx.agent_member.full_collaborator` | `cx.event.read`、`cx.object.read_content`、`cx.reaction.add`、`cx.message.create`、`cx.message.revise.own`、`cx.message.redact.own`、`cx.flow.read` | 无 `mention_respond_only` |
-
-**裸名 action 拒绝规则**:`read_history` / `read_messages` / `react` / `message.create`(无前缀)等裸名在 `capability-grant.schema.json` 的 `actions[]` 字段位置 MUST `schema_violation` 拒绝。pattern `^cx\.[a-z0-9_]+(?:\.[a-z0-9_]+)+$`(见 §5 顶部)已经强制这一点。
-
-`agent_member_profile` 是声明性 sugar,**不**绕过 Realm-level "agents disabled" policy(源 Realm 通过拒绝向 agent DID 颁发任何 grant 即可全局禁用 agent)。
-
 ## 6. Constraints
 
 Contrix v1 支持：
@@ -320,8 +297,6 @@ Contrix v1 支持：
 - `trusted_claim_issuers`
 - `claim_refresh_required`
 - `claim_max_age`
-- `mention_respond_only`（由 `cx.profile.agent_workspace.v1` 引入；限定 actor 仅能写入 `cx.message.create` 当且仅当 `in_reply_to` 指向 mention sender 为 self 的消息。Reducer-evaluable）
-- `import_to_external_space`（由 `cx.profile.agent_workspace.v1` 引入；source-side policy 声明是否允许成员把内容跨 Realm 导入。合法值 `allow` | `deny` | `require_attestation`。仅影响 source-side agent runtime 行为，不穿透到 mirror reducer）
 
 上表中的扁平名称是 `constraint-schema.md` 中 typed constraint 对象的 shorthand 别名。完整约束结构和求值规则以 `constraint-schema.md` 为准。
 

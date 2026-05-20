@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/agent.schema.json",
   "title": "Contrix Agent Protocol Envelope",
-  "description": "Wire shape for the cx.agent.* protocol family (endpoint, protocol_session.start/status/result). Mirrors cx.schema.applet.v1 but terminates in a *.result event carrying the signed audit binding. See spec/v1/zh/extensions/agent-protocol-interop.md. Note: cx.schema.agent_authority.v1 is a different schema covering the agent-authority panel projection, not the protocol envelope.",
+  "description": "Wire shape for the cx.agent.* protocol family (endpoint, protocol_session.start/status/result). Mirrors cx.schema.applet.v1 but terminates in a *.result event carrying the signed audit binding. See spec/v1/zh/extensions/agent-protocol-interop.md.",
   "type": "object",
   "required": [
     "agent_id"
@@ -11,7 +11,7 @@
     "agent_id": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s]+$",
-      "description": "Stable agent runtime identifier. v1 uses a DID here; cx:agent:* is not a registered typed-id kind. Agent task/session object ids use cx:agent_task:* and cx:agent_session:* in their own fields."
+      "description": "Stable agent runtime identifier. v1 uses a DID here; cx:agent:* is not a registered typed-id kind. Agent session object ids use cx:agent_session:* in their own fields."
     },
     "endpoint_url": {
       "type": "string",

@@ -722,68 +722,12 @@
       "description": "cx.audit.epoch_key_destruction `remove_commit_ref` points to a cx.mls.commit that is not in the same anchor batch as the attestation."
     },
     {
-      "code": "source_export_attestation_required",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Mirror reducer is operating under cx.profile.agent_workspace.governed.v1 but the cx.content.import_attestation lacks the cx.schema.content.source_export_policy_attestation.v1 envelope (agent-workspace-profile.md §8.2)."
-    },
-    {
-      "code": "source_export_attestation_invalid",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "source_export_policy_attestation envelope signature does not verify against the source Realm's declared export_policy_authorities[]."
-    },
-    {
-      "code": "source_export_attestation_denied",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "source_export_policy_attestation `policy_decision` is not 'allow' (denied / quarantined / pending)."
-    },
-    {
-      "code": "source_export_destination_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "source_export_policy_attestation `import_destination_realm_id` does not pin the mirror Realm the import_attestation actually targets."
-    },
-    {
-      "code": "source_export_content_hash_mismatch",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "source_export_policy_attestation `content_hash` does not match the actual import_attestation content_hash."
-    },
-    {
-      "code": "source_export_attestation_expired",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "source_export_policy_attestation `valid_until` is past the receiver's effective time."
-    },
-    {
-      "code": "source_export_authority_unauthorized",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "source_export_policy_attestation `authority_did` is not in the source Realm's declared export_policy_authorities[]."
-    },
-    {
       "code": "cardinality_violation",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An event violates a declared relation / cell cardinality constraint (e.g. agent_workspace mirror Realm declares 1:1 derived_from but the second mirror is being created from the same source)."
+      "description": "An event violates a declared relation / cell cardinality constraint."
     },
     {
       "code": "claim_failed",
@@ -792,14 +736,6 @@
         "auth_decision"
       ],
       "description": "Atomic claim of a one-time key / pre-key / keypackage failed because it was already consumed, revoked, or not present (crypto-media/device-lifecycle.md key-package claim path)."
-    },
-    {
-      "code": "reservation_cell_already_set",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Agent Workspace reservation cell (mirror_space_by_source / mirror_flow_by_source) already holds a non-sentinel value for the requested source_id; the second reservation MUST be rejected (extensions/agent-workspace-profile.md §13)."
     },
     {
       "code": "conflicting_e2ee_profiles",
@@ -816,22 +752,6 @@
         "auth_decision"
       ],
       "description": "Realm attempts to set mls_send_pause='advisory' without declaring cx.profile.e2ee_relaxed.v1; default profile MUST treat mls_send_pause as a MUST gate."
-    },
-    {
-      "code": "conflicting_agent_workspace_profiles",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Realm declares both cx.profile.agent_workspace.lite.v1 and cx.profile.agent_workspace.governed.v1; these are mutually exclusive."
-    },
-    {
-      "code": "lite_profile_writes_disallowed_event_kind",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "Realm declares cx.profile.agent_workspace.lite.v1 but a cx.agent_task.transparency.transition / source_authority.transition event was submitted; lite profile rejects these cells."
     },
     {
       "code": "flow_not_active",
@@ -1194,14 +1114,6 @@
         "service_call"
       ],
       "description": "A runtime challenge proof attached to `cx.member.state{join}.gate_proofs[]` or `member.application.gate_proofs[]` (candidate kind, no `cx.*` prefix) fails verification (signature / freshness / verifier domain). See zh/authz/policy-server.md §4."
-    },
-    {
-      "code": "invalid_task_fsm_transition",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "An `cx.agent_task.*` event attempts a state transition not permitted by the task FSM (e.g., proposing while terminal, completing while not in_progress). See zh/extensions/agent-workspace-profile.md."
     },
     {
       "code": "audit_capability_incomplete",

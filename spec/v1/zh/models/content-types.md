@@ -25,8 +25,6 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 `cx.message.create` / `cx.message.revise` 的未加密 Event payload MUST 将这个对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_payload`。`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
 
-如果 E2EE payload 中包含 `cx.content.mention_redirect`，`target_actor_id` 还必须按 agent workspace profile 的 routing rule 出现在明文 `payload.mention_redirect_target_actor_ids[]` 中；该字段只用于路由和 fail-closed 校验，不暴露 mirror Realm / Flow / Event ID。
-
 ### 2.3 复合消息使用 `composite` 类型
 
 当一条消息需要同时包含文本和图片（例如带说明文字的截图），使用 `composite` 类型将多个 Content Block 组合。
@@ -270,39 +268,6 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组 |
-
-### 4.11 私密 agent 调用 `cx.content.mention_redirect`
-
-由 `cx.profile.agent_workspace.v1` 引入，详见 [extensions/agent-workspace-profile.md §8.1](../extensions/agent-workspace-profile.md)。Source Realm 中的 @-mention-my-agent 不携带指令正文，只携带"我把指令送到了我的私人 workspace"的透明 stub。
-
-承载 Event 顶层 MUST 携带 critical_extension `cx.feature.mention_redirect.v1`（`scope=payload`, `fail_closed=true`）；未实现该 feature 的接收方 MUST reject 整条 event（不存在 fallback 路径，保护隐私 invariant）。
-
-```json
-{
-  "kind": "cx.content.mention_redirect",
-  "body": "Alice asked her agent privately",
-  "target_actor_id": "did:web:alice-agent.example",
-  "authority_grant_ref": "cx:grant:...",
-  "redirect_pair_id": "..."
-}
-```
-
-字段规则、reducer 校验、conformance 见 agent-workspace-profile.md。
-
-### 4.12 跨 Realm 重加密引用 `cx.content.import_attestation`
-
-由 `cx.profile.agent_workspace.v1` 引入，详见 [extensions/agent-workspace-profile.md §8.2](../extensions/agent-workspace-profile.md)。Importer（通常是 primary agent）把源 Realm 内容重加密引入到 mirror Realm。性质是 "importer 声称"——`import_signature` 证明 importer 自己的声明，不证明原作者明文确实如此。reader UI MUST 显著区分"原作者直接发言"vs"由 X importer 声称引自"。
-
-```json
-{
-  "kind": "cx.content.import_attestation",
-  "body": "...",
-  "claimed_origin": { "...": "..." },
-  "importer": { "actor_id": "did:web:...", "imported_at": "..." },
-  "import_signature": "...",
-  "content": { "kind": "cx.content.text", "body": "..." }
-}
-```
 
 ## 5. Mixin 机制 (附加属性)
 
