@@ -59,14 +59,13 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 | 唯一事实 envelope | `zh/sync/operations-sync.md`, `artifacts/schemas/event-schema.json`, `artifacts/schemas/event-payload.schema.json` | Event Envelope 是唯一共享 wire fact；Operation 只用于服务 operation 或 SDK 内部构造路径。 |
 | Event kind 与 payload | `artifacts/registry/event-kind-registry.json`, `artifacts/schemas/event-payload.schema.json` | active 标准 kind 必须选择对应 payload class，失败即 `schema_violation`。 |
 | 服务 operation 映射 | `artifacts/registry/contract-catalog.json`, `artifacts/registry/operation-registry.json`, `artifacts/openapi/contrix-service-api.openapi.yaml`, `artifacts/bindings/non-http-bindings.yaml` | `contract-catalog.json#operation_registry` 是 operation 的 canonical source。 |
-| Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 对象、Event、snapshot、moderation、Agent Authority、MIMI 等 schema 已注册。 |
+| Schema registry | `artifacts/registry/schema-registry.json`, `zh/conformance/schema-registry.md` | 对象、Event、snapshot、moderation、MIMI 等 schema 已注册。 |
 | Typed ID prefix | `artifacts/registry/id-kind-registry.json` | 标准 `cx:<kind>:` prefix 以机器注册表为准。 |
 | Profile 矩阵 | `zh/conformance/conformance-profiles.md`, `artifacts/profiles/conformance-profiles.json` | `core_event_store`、`chat_mvp`、`kanban_mvp` 与客户端/服务角色可独立声明。 |
 | Conformance vectors | `artifacts/fixtures/*.json` | encoding、crypto、Move/Anchor/Lattice、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
 | Snapshot 约束 | `artifacts/schemas/snapshot.schema.json`, `zh/conformance/snapshot-schema.md`, `zh/sync/operations-sync.md` | manifest 必须包含 `event_set_commitment`；高保障 profile 支持 inclusion / omission challenge。 |
 | Moderation / abuse | `artifacts/schemas/moderation-report.schema.json`, `artifacts/schemas/moderation-queue-item.schema.json`, OpenAPI moderation endpoints | report、queue item、E2EE evidence / franking 边界有 schema 与服务绑定。 |
 | Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `zh/conformance/conformance-profiles.md` | hidden resource、private contact discovery、plaintext-visible service、private blob、blind push 有回归向量。 |
-| Agent 权限边界 | `artifacts/schemas/agent-authority.schema.json`, `zh/authz/capabilities.md`, `zh/extensions/agent-protocol-interop.md` | owner presence、knowledge source、join policy、responsible actor 与 grant 解释面已固定。 |
 
 ## 4. 必须保持的不变量
 

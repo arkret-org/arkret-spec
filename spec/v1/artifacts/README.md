@@ -17,7 +17,7 @@ title: Artifacts
 - `artifacts/profiles/conformance-profiles.json`
   - 实现 / 部署 / 向量 / hardening profile 矩阵。
 - `artifacts/schemas/*.schema.json`
-  - 核心对象、Event Envelope payload、sync、blob/media、push、identity、moderation、Agent Authority、MIMI interop 的 JSON Schema。
+  - 核心对象、Event Envelope payload、sync、blob/media、push、identity、moderation、MIMI interop 的 JSON Schema。
 - `artifacts/openapi/contrix-service-api.openapi.yaml`
   - HTTP/JSON binding shape；与 operation registry 对齐，不构成第二套 operation namespace。
 - `artifacts/bindings/non-http-bindings.yaml`

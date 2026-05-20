@@ -111,7 +111,7 @@ v1 新增以下必测项：
 | Policy Server | decision 签名、replay 保护、hard_deny / quarantine 语义、rate_limit / spam 风险码 | federation 再检 |
 | Identity Registry | DID log 一致性、witness receipt、method adapter | witness-only、read-replica |
 | Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
-| Agent Runtime | agent authority panel、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
+| Agent Runtime | capability grant 解释、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
 
 ## 6. 执行与发布要求
 
