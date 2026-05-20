@@ -120,6 +120,25 @@ Realm 有两个终态 event，语义不同：
 
 两个事件均写入 `cx.component.realm.destroy.v1`（cas-register, bottom=reject），不可重复写入。capability：`cx.realm.lifecycle.destroy`（high risk，capabilities.md §10）。
 
+### 2.6 `cx.realm.create` Reducer Bootstrap（normative）
+
+`cx.realm.create` 是 Realm 生命周期的 genesis event，它同时承担"建 Realm metadata"和"为 `created_by_principal` 引导首份成员资格"两项职责。reducer MUST 在 commit 该 event 时原子完成下述写入，且 MUST 在评估同一 submit 批次中由同一 actor 发起的任何后续 event 之前完成：
+
+1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `anchor_profile` / `hash_profile` 等 create-locked 字段固化）。
+2. **写入 `cx.component.member.state.v1` cell**（`subject=created_by_principal`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `cx.member.state{join}` event，event 本身的 `created_by_principal == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §3.1](event-and-patch.md#31)）。
+3. **写入 `cx.component.realm.create.v1` cell**（cas-register，bottom=reject，duplicate create 拒绝为 `realm_already_exists`）。
+
+Authz 含义：
+
+- 任何 `cx.realm.create` 之后到达的 facet event（`cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / `cx.realm.plaintext_visible_services` / ...）由 `created_by_principal` 提交时，reducer MUST 把 actor 视为已建成员，不得以"actor 不是 Realm 成员"为由 fail closed。
+- 同一 submit 批次内的事件 reducer MUST 按 wire 顺序处理；create event 必须排在前面（client 不得把 facet event 排在 create 前面，否则 reducer MUST 返回 `out_of_order_bootstrap`）。
+- 重新提交同一 Realm id 的 `cx.realm.create`（无论 `created_by_principal` 是否相同）MUST `realm_already_exists` 拒绝；该规则与 create-locked 字段保护一致。
+
+Server 端实现合规要点：
+
+- 若 server 内部维护"显式成员索引"（如 in-memory `members` set）用于快速 authz 判断，MUST 在 `cx.realm.create` 的 commit 路径同步更新此索引，且必须在向 actor 返回 `cx.events.submit` 200 之前完成 — 否则后续 facet event 在同批次内会以 `capability_denied` 错误失败，把 spec-合规客户端逼到旁路。
+- 不允许通过 spec 之外的 REST 端点（如 `POST /api/v1/spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
+
 #### 2.5.1 `cx.realm.destroy` 终态规则（normative）
 
 `cx.realm.destroy` accepted 进入 frontier 之后：
