@@ -276,6 +276,9 @@ components:
               - projection_incomplete
               - internal_error
               - temporarily_unavailable
+              - delivery_binding_stale
+              - delivery_binding_handed_over
+              - historical_only
             message:
               type: string
             retry_after_ms:
@@ -727,10 +730,55 @@ components:
         has_more:
           type: boolean
           description: True if more events remain in the `prev_cursor` (older) direction; SHOULD ignore `next_cursor` direction (subscribe / poll instead).
+        snapshot_bootstrap:
+          $ref: '#/components/schemas/SnapshotBootstrap'
+
+    EventsSubscribeFrame:
+      type: object
+      description: One NDJSON line emitted by cx.events.subscribe. `dropped` requires a usable recovery cursor; if no cursor exists, servers MUST emit `resync_required` instead.
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - event
+          - frontier
+          - heartbeat
+          - catchup_complete
+          - epoch_rotation
+          - dropped
+          - resync_required
+          - unauthorized
+        realm_id:
+          type: string
+        cursor:
+          type: string
+          description: Stream cursor. REQUIRED when kind=dropped.
+        payload:
+          type: object
+      allOf:
+      - if:
+          properties:
+            kind:
+              const: dropped
+          required:
+          - kind
+        then:
+          required:
+          - realm_id
+          - cursor
+      additionalProperties: false
 
     EventsFrontierResponse:
+      oneOf:
+      - $ref: '#/components/schemas/EventsFrontierAccountClientResponse'
+      - $ref: '#/components/schemas/EventsFrontierFederationPeerResponse'
+      - $ref: '#/components/schemas/EventsFrontierAnonymousHealthResponse'
+
+    EventsFrontierAccountClientResponse:
       type: object
-      description: Result of cx.events.frontier — the caller-visible frontier(s) plus optional receipts.
+      description: Account-client cx.events.frontier response.
       required:
       - frontier
       properties:
@@ -745,6 +793,23 @@ components:
           type: array
           items:
             type: object
+      additionalProperties: false
+
+    EventsFrontierFederationPeerResponse:
+      type: object
+      description: Federation peer cx.events.frontier response. Requires S2S signed trust-domain headers.
+      required:
+      - frontier
+      - frontier_root
+      - signature
+      properties:
+        frontier:
+          type: object
+          description: Realm frontier visible to the authenticated federation peer.
+        receipts:
+          type: array
+          items:
+            type: object
         frontier_root:
           type: string
           description: Hash commitment returned for federation_peer and anonymous_health peer_role.
@@ -754,6 +819,40 @@ components:
         signature:
           type: object
           description: Service signature over the frontier response when peer_role=federation_peer.
+      additionalProperties: false
+
+    EventsFrontierAnonymousHealthResponse:
+      type: object
+      description: Anonymous health cx.events.frontier response. MUST NOT include actor_seq_upper_bounds, receipts, frontier details, or service signature material.
+      required:
+      - frontier_root
+      properties:
+        frontier_root:
+          type: string
+          description: Opaque hash commitment suitable for liveness / freshness checks.
+      additionalProperties: false
+
+    SnapshotBootstrap:
+      type: object
+      description: Optional cx.events.query acceleration hint for federation pull / backfill. Verifier MUST validate signature, state_hash, snapshot_frontier, and chunk digests before use.
+      required:
+      - snapshot_ref
+      - state_hash
+      - snapshot_frontier
+      - signature
+      properties:
+        snapshot_ref:
+          type: string
+        state_hash:
+          type: string
+        snapshot_frontier:
+          type: array
+          items:
+            type: string
+        signature:
+          type: object
+        verification_hints:
+          type: object
 
     SyncSnapshotHeadResponse:
       type: object
@@ -2542,6 +2641,9 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalHash: []
         contentDigest: []
       requestBody:
         required: true
@@ -2691,6 +2793,9 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalHash: []
       summary: Query / backfill events with cursor pagination.
       description: |
         Returns a page of events according to `before` / `after` cursor anchors.
@@ -2784,6 +2889,9 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalHash: []
         contentDigest: []
       summary: cx.events.query in HTTP POST body form (for long/complex queries).
       description: |
@@ -2862,6 +2970,9 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalHash: []
       summary: Streaming event subscription with optional history catchup.
       description: |
         Opens a streaming subscription scoped by `realms[]` / `actors[]`. Returns
@@ -2908,7 +3019,7 @@ paths:
           content:
             application/x-ndjson:
               schema:
-                type: string
+                $ref: '#/components/schemas/EventsSubscribeFrame'
   /events/describe:
     get:
       operationId: cx.events.describe
@@ -2976,6 +3087,10 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalHash: []
+      - {}
       parameters:
       - name: actor_id
         in: query
@@ -2994,7 +3109,7 @@ paths:
           - federation_peer
           - anonymous_health
           default: account_client
-        description: Frontier caller role. federation_peer requires service-to-service authentication; anonymous_health only returns frontier summaries.
+        description: Frontier caller role. federation_peer requires service-to-service authentication with Source/Destination trust-domain headers and Request-Canonical-Hash; anonymous_health MAY be unauthenticated but MUST be rate-limited and only returns frontier_root summaries.
       responses:
         '200':
           description: Event frontier visible to caller

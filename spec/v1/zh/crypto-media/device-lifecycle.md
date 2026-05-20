@@ -157,6 +157,7 @@ Schema id：`cx.schema.cross_signing_publish.v1`
         "signature": "base64url..."
       }
     },
+    "expected_previous_generation": 0,
     "generation": 1,
     "issued_at": "2026-04-26T00:00:00Z"
   }
@@ -197,6 +198,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `content` 的规范形
       "signature": "c2ln"
     }
   },
+  "expected_previous_generation": 0,
   "generation": 1,
   "issued_at": "2026-04-26T00:00:00Z"
 }
@@ -210,6 +212,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `content` 的规范形
 | `trust_domain` | required | 部署级 trust domain（`cx:trust_domain:<scope>`）。Receiver MUST 在验证任一 binding 签名前先检查该值与当前接收上下文一致；不一致 MUST `cross_domain_replay_rejected`。 |
 | `self_signing_key` | required | SSK 公钥 + 由 PSK 对 canonical SSK record 的签名。`binding.signed_by` MUST 与 `principal_signing_key.kid` 相同 DID 控制集。 |
 | `user_signing_key` | required | USK 公钥 + 由 PSK 对 canonical USK record 的签名；MUST 与 `self_signing_key` 不同 `public_key`。 |
+| `expected_previous_generation` | required | CAS precondition。首次 publish 使用 `0`；后续 publish MUST 等于 receiver 当前 accepted generation。 |
 | `generation` | required | 单调递增整数。每次 cross-signing reset（§14）MUST `generation += 1`。Receiver 见到 `generation` 比已 accepted 状态低的 publish MUST 拒绝。 |
 | `issued_at` | required | 发布时间；MUST 不晚于接收方本地时钟 + protocol skew。 |
 
@@ -228,7 +231,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `content` 的规范形
   })
 ```
 
-服务端 MUST 拒绝 `subordinate_alg` 不在协议算法 registry 中、或 `subordinate_public_key` 与 binding 输入声明不一致的 publish。
+服务端 MUST 拒绝 `subordinate_alg` 不在协议算法 registry 中、或 `subordinate_public_key` 与 binding 输入声明不一致的 publish。Reducer 接受 publish 前还 MUST 校验 `payload.expected_previous_generation == current accepted generation` 且 `payload.generation == payload.expected_previous_generation + 1`；同一 Anchor batch 内若 reset 与 stale publish 并发，stale publish 因 head precondition 不成立而 fail closed，不得依赖本地到达顺序。
 
 `trust_domain` 绑定（normative）：`cx.cross_signing.publish` 与 §14 的 reset 使用同一 deployment-scope replay boundary。Receiver MUST 在解析 publish 时先检查 `payload.trust_domain == current_receive_context.trust_domain`；不匹配时直接拒绝，不得把该 publish 纳入 accepted generation。由于 `trust_domain` 也进入 PSK 对 SSK / USK 的 binding transcript，同一 publish bytes 从 deployment A 搬到 deployment B 时签名 transcript 不同，验证必然失败。
 

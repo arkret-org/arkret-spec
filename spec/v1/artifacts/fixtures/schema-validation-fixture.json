@@ -251,6 +251,53 @@
       }
     },
     {
+      "name": "redaction_object_lifecycle_accepts_space_ref",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
+      "expect_valid": true,
+      "instance": {
+        "target_ref": "cx:space:019640b6-8000-7000-8000-000000000000",
+        "reason": "privacy_cleanup"
+      }
+    },
+    {
+      "name": "space_state_transition_payload_requires_space_id",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
+      "expect_valid": true,
+      "instance": {
+        "space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
+        "reason": "release_cycle_complete"
+      }
+    },
+    {
+      "name": "capability_grant_wildcard_action_rejected",
+      "schema_ref": "schemas/capability-grant.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "id": "cx:grant:0196410c-1000-7000-8000-000000000000",
+        "issuer": "did:web:owner.example",
+        "subject": "did:web:alice.example",
+        "actions": [
+          "cx.flow.*"
+        ],
+        "resources": [
+          {
+            "kind": "realm",
+            "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000"
+          }
+        ],
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "alg": "EdDSA",
+            "verification_method": "did:web:owner.example#key-1",
+            "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "created_at": "2026-05-20T00:00:00Z",
+            "jws": "a..b"
+          }
+        ]
+      }
+    },
+    {
       "name": "anchor_valid",
       "schema_ref": "schemas/anchor.schema.json",
       "expect_valid": true,

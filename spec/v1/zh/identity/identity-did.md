@@ -186,6 +186,7 @@ Contrix v1 core conformance 要求如下：
 - 任何高风险动作——新写入、grant、revoke、recovery、device authorization、key rotation、MLS commit、service delegation、joining new Realm、accepting invite——MUST fail closed 直到 hosting 或 mirror 恢复,或走部署 policy 明确允许的替代路径。
 - Resolver MUST 在 outage diagnostics 中暴露 `webvh_unreachable` 标记 + `cached_evidence_age_ms`,让客户端 UI 显式提示用户。客户端 UI MUST 在 fallback 期间向用户展示 banner-level 警示("身份历史链暂不可达,仅显示本地缓存内容"),不得静默继续。
 - Fallback 总时长 MUST ≤ 24 小时(与 §4.2.1 `degraded_no_witness` 状态硬上限对齐);超时后即使是低风险只读也 MUST fail closed,强制用户等待恢复或切换 resolver。
+- 即使仍处于允许的 cache-only outage 窗口，单条 `did:webvh` cache entry 的 `cached_evidence_age_ms` 超过 7 天时也 MUST fail closed；resolver MUST 暴露 `webvh_cache_too_stale` diagnostic，不得把过旧 evidence 用于新的高风险写入、capability 重建、service delegation 或 snapshot witness 接收。
 
 > **为什么 fallback 是 "cache-only" 而不是 "did:web 等价行为"**(rationale):允许 fallback "退化为 `did:web` 等价行为(仅当前状态)" 实际等于默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制,如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-anchored 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 anchored 的 evidence 读取,无新信任根可被攻击者注入。`did:web` 作为 principal method 仅由部署侧主动选择(`personal_node`),不是 outage fallback。
 
@@ -318,6 +319,7 @@ DID method 或 registry 不可用时，节点不得把“暂时无法解析”�
 - 监控 hosting domain、`did.jsonl` 可达性、最近 entry head、SCID 一致性、controller proof 验证结果，以及 policy 声明的 trusted witness 的最新签名时间。
 - 健康状态 MUST 区分 `healthy`、`degraded_no_witness`、`stale_history`、`write_unavailable` 和 `untrusted` 或等价状态。
 - `degraded_no_witness`（hosting 仍可达但 witness evidence 缺失或过期）只能用于历史解析和低风险读取；新 DID 创建、key rotation、recovery、deactivation 和高风险 service delegation MUST 等待 witness evidence 恢复，或走部署 policy 明确允许的替代路径。该状态默认最长持续 24 小时；部署 policy MAY 缩短，MUST NOT 延长到超过 7 天。超过窗口后，resolver MUST 进入 `stale_history` 或 `write_unavailable`，并对新的高风险写入 fail closed。
+- Cache entry freshness MUST 独立于 outage 窗口校验：`cached_evidence_age_ms > 7d` 时 resolver MUST 进入 `stale_history` 或返回 `webvh_cache_too_stale`，即使 outage 刚开始也不得继续消费该条 cache。
 - `stale_history` 或 `untrusted` 时，resolver MUST fail closed；不得用缓存 handle、DNS、Principal Server 声明或用户登录态替代 DID 历史链。
 - 客户端和服务端 SHOULD 暴露 outage diagnostics，包括使用的 hosting / mirror、entry head、witness 列表、evidence age 和下一次 retry 时间。
 

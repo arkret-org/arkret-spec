@@ -470,7 +470,7 @@ HTTP 200 response `Content-Type` MUST be `application/x-ndjson`。Frame 每行�
 { "kind": "resync_required", "realm_id": "cx:realm:01..." }
 ```
 
-客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `cx.events.query` 补齐，后者要求重建本地状态。
+客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `cx.events.query` 补齐，后者要求重建本地状态。`kind="dropped"` frame 的 `cursor` 为 REQUIRED；服务端没有可用补齐 cursor 时 MUST 发送 `resync_required`，不得发送无 cursor 的 `dropped`。
 
 ## 4. Identity API
 

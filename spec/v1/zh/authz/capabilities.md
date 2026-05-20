@@ -182,11 +182,12 @@ Contrix v1 支持以下 `kind`：
 - `cx.view.update`
 - `cx.view.reconcile`
 - `cx.morph.read`
+- `cx.morph.create`(默认 required constraint:`morph_type_allow`)
 - `cx.morph.update`(默认 required constraint:`fields_write_allow`)
 
 Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按有效 Realm 判断:未设 `discussion_realm_ref` 时使用源 Realm 的 capability;设了 `discussion_realm_ref` 时使用 linked Realm 的 capability,与源 Realm 独立。
 
-Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.update` 对应 `cx.flow.read` / `cx.flow.update`),通过 `morph_type_allow` constraint 进一步限定可操作的 `morph_type`。
+Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morph.update` 对应 `cx.flow.read` / `cx.flow.create` / `cx.flow.update`),通过 `morph_type_allow` constraint 进一步限定可创建或操作的 `morph_type`。
 
 ### 5.3 Discussion 与消息动作
 

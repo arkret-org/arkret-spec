@@ -215,7 +215,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 | --- | --- | --- | --- |
 | `decryption_pending` | 在 timeout 内收到 key | `decrypted` | 正常解码，无额外 marker。 |
 | `decryption_pending` | timeout（默认 7 天） | `decryption_failed` | UI 标 metadata-only；不可恢复直到收到 late key。 |
-| `decryption_failed` | 收到 late key 且通过 (a)-(d) 校验 | `late_recovered` | UI MUST 显示 "历史内容已晚到解锁，原首次接收时刻 T₀" timeline marker（不静默替换 metadata-only 占位）；audit profile 下 MUST emit `cx.audit.accessed` 标记 `late_recovery=true`；history key share scope MUST 与 receiver 当时的 membership scope 一致。 |
+| `decryption_failed` | 收到 late key 且通过 (a)-(d) 校验 | `late_recovered` | UI MUST 显示 "历史内容已晚到解锁，原首次接收时刻 T₀" timeline marker（不静默替换 metadata-only 占位）；audit profile 下 MUST emit `cx.audit.accessed`，payload `access_kind="e2ee_late_recovery"` 且 `late_recovery_original_event_id` 指向原加密 Event；history key share scope MUST 与 receiver 当时的 membership scope 一致。 |
 | `decryption_failed` | 收到 late key 但 (a)-(d) 任一不过 | 保持 `decryption_failed` | 不解码、不显示明文；记 audit log。 |
 | `late_recovered` | 后续 redaction / erasure 触发 | `redacted_after_recovery` | 已恢复明文 MUST 按 redaction policy 移除；wire stub 保留。 |
 
@@ -224,7 +224,7 @@ late key recovery 接受条件（normative）— 客户端 MUST 全部通过才�
 a. **Membership 时点校验**：受影响 event 的 T₀，receiver 在 T₀ 必须确实是该 Realm 的成员（`cx.member.state` 在 T₀ pre-state 下为 join，且不是 ban / leave）。如果 receiver 在 T₀ 不是成员、或当时还未被 invite，late key 解码出的明文 MUST NOT 进入 verified timeline；audit log emit `late_recovery_rejected_membership`。
 b. **Policy 时点校验**：T₀ 处的 Realm policy MUST 允许该 receiver 类别看到该 event（history visibility / disclosure policy 在 T₀ 处）；若 policy 在 T₀ 之后收紧到禁止该 receiver，late material 仍按 T₀ policy 解码（policy 不溯及既往），但 UI MUST 提示"已不在当前 policy 下可见"。
 c. **Key share 来源授权**：late key 提供方 MUST 是 Realm policy 声明的合法 key recovery 源（key backup、archive node、authorized peer）；P2P 之间随意 share key MUST 被拒。
-d. **Audit profile 强制**：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 下，late_recovered transition MUST 同步 emit `cx.audit.accessed` Event（payload `late_recovery=true`、引用原 event_id、当前 receiver actor），并等待 RYW receipt 与正常解码相同的流程；未拿到 receipt MUST 不解码。`cx.audit.ryw_receipt` 在 receipt object 上 MAY 标 `recovery_reason` = "late_key_arrival"（payload 取值，**不是** error code registry 中的 reason_code；仅用于 audit projection 区分晚到 key 触发的访问与首次访问）。
+d. **Audit profile 强制**：`cx.profile.attested_audit.e2ee.v1` / `cx.profile.disclosed_audit.e2ee.v1` 下，late_recovered transition MUST 同步 emit `cx.audit.accessed` Event（payload `access_kind="e2ee_late_recovery"`、`late_recovery_original_event_id=<原 event_id>`、当前 receiver actor），并等待 RYW receipt 与正常解码相同的流程；未拿到 receipt MUST 不解码。`cx.audit.ryw_receipt` 在 receipt object 上 MAY 标 `recovery_reason` = "late_key_arrival"（payload 取值，**不是** error code registry 中的 reason_code；仅用于 audit projection 区分晚到 key 触发的访问与首次访问）。
 
 **Revoked / removed actor 负向**：若 receiver 在 T₀ 已不是成员，或 late key share 的签发时刻该 receiver 已被 ban / removed 且 key source 未重新执行 T₀ 校验，则 late key MUST NOT 进入 verified timeline。T₀ 之后发生的 ban / remove 不自动追溯撤销其在 T₀ 合法可见的历史，但 key backup / archive node / peer share 在发送 late material 前 MUST 重新执行 T₀ membership + policy 校验，并确认当前 share policy 仍允许向该 device 交付；否则必须拒绝并写 `late_recovery_rejected_membership` 或 `late_recovery_share_not_authorized`。`cx.vector.late_key_recovery.removed_actor.v1` 覆盖：(a) receiver 在 T₀ 不可见时不解密；(b) key source 在 ban 后未重新校验时拒绝 share；(c) 客户端 UI 不显示未授权明文。
 

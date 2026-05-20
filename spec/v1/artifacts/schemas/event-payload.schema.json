@@ -1150,6 +1150,14 @@
         },
         "reply_to": {
           "$ref": "#/$defs/message_id"
+        },
+        "mention_redirect_target_actor_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true,
+          "description": "Plaintext routing metadata for encrypted cx.content.mention_redirect payloads. When encrypted_payload wraps one or more mention_redirect content blocks, this array MUST contain exactly the same target_actor_id values so sync/push routing can fail closed without decrypting message content."
         }
       },
       "additionalProperties": true
@@ -1223,6 +1231,14 @@
         },
         "reason": {
           "type": "string"
+        },
+        "mention_redirect_target_actor_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true,
+          "description": "Plaintext routing metadata for encrypted cx.content.mention_redirect payloads. When encrypted_payload wraps one or more mention_redirect content blocks, this array MUST contain exactly the same target_actor_id values so sync/push routing can fail closed without decrypting message content."
         }
       },
       "additionalProperties": true
@@ -1876,14 +1892,25 @@
     },
     "consent_revoke_payload": {
       "type": "object",
-      "description": "Revoke a previously granted consent. Wire-equivalent to a Move whose effect is remove(tag) on the consent cell cx:cell:cx.component.consent.grant.v1:<consent_id> (the same cell written by cx.consent.grant).",
+      "description": "Revoke a previously granted consent. Wire-equivalent to a Move whose effect is remove(tag) on the consent cell cx:cell:cx.component.consent.grant.v1:<consent_id> (the same cell written by cx.consent.grant). Payload observed_dots MUST match the Move effect's observed_dots so schema validation and audit can see exactly what was removed.",
       "required": [
-        "consent_id"
+        "consent_id",
+        "observed_dots"
       ],
       "properties": {
         "consent_id": {
           "type": "string",
           "description": "MUST equal the consent_id of the cx.consent.grant being revoked."
+        },
+        "observed_dots": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^cx:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$"
+          },
+          "description": "Exact add dots being removed. A full revoke, including scope=any cascade, MUST enumerate every active dot that becomes inactive; implicit cascade without dot enumeration is invalid."
         },
         "revoked_at": {
           "$ref": "#/$defs/timestamp"
@@ -2244,6 +2271,7 @@
         "principal_signing_key",
         "self_signing_key",
         "user_signing_key",
+        "expected_previous_generation",
         "generation",
         "issued_at"
       ],
@@ -2256,6 +2284,7 @@
         "principal_signing_key": { "type": "object" },
         "self_signing_key": { "type": "object" },
         "user_signing_key": { "type": "object" },
+        "expected_previous_generation": { "type": "integer", "minimum": 0 },
         "generation": { "type": "integer", "minimum": 1 },
         "issued_at": { "$ref": "#/$defs/timestamp" }
       },
@@ -2984,6 +3013,7 @@
             "watch_manage_others",
             "watch_audit_read",
             "e2ee_plaintext_release",
+            "e2ee_late_recovery",
             "join_application_review",
             "policy_audit_read",
             "other"
@@ -3007,6 +3037,10 @@
         },
         "paired_event_digest": {
           "$ref": "#/$defs/hash"
+        },
+        "late_recovery_original_event_id": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Required when access_kind=e2ee_late_recovery; identifies the original encrypted event whose plaintext became available through late key recovery."
         },
         "cell_head_before": {
           "oneOf": [
@@ -3063,6 +3097,19 @@
             "required": [
               "target_actor_did",
               "target_cell_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "access_kind": { "const": "e2ee_late_recovery" }
+            },
+            "required": ["access_kind"]
+          },
+          "then": {
+            "required": [
+              "late_recovery_original_event_id"
             ]
           }
         }

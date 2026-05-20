@@ -10,8 +10,8 @@
   "properties": {
     "agent_id": {
       "type": "string",
-      "description": "Stable agent identifier. Typically a DID (did:web:agent.example) or a cx:agent:<id> URI.",
-      "minLength": 1
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
+      "description": "Stable agent runtime identifier. v1 uses a DID here; cx:agent:* is not a registered typed-id kind. Agent task/session object ids use cx:agent_task:* and cx:agent_session:* in their own fields."
     },
     "endpoint_url": {
       "type": "string",

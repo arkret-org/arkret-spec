@@ -25,6 +25,8 @@ Message 的 `content` 字段、`cx.message.create` / `cx.message.revise` Event E
 
 `cx.message.create` / `cx.message.revise` 的未加密 Event payload MUST 将这个对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_payload`。`flow_id`、`message_id`、`reply_to`、`blob_refs` 等字段是 envelope / reducer metadata，不能把消息正文直接写成 payload 顶层 `body`。
 
+如果 E2EE payload 中包含 `cx.content.mention_redirect`，`target_actor_id` 还必须按 agent workspace profile 的 routing rule 出现在明文 `payload.mention_redirect_target_actor_ids[]` 中；该字段只用于路由和 fail-closed 校验，不暴露 mirror Realm / Flow / Event ID。
+
 ### 2.3 复合消息使用 `composite` 类型
 
 当一条消息需要同时包含文本和图片（例如带说明文字的截图），使用 `composite` 类型将多个 Content Block 组合。

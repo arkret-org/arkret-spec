@@ -90,6 +90,12 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 }
 ```
 
+Current account status projection 是 ordered-log 上的确定性派生值，而不是简单取本地最后到达的 event。若同一 `principal_id` 出现并发 `cx.account.status` head，client / server MUST 按以下规则选择当前状态：
+
+1. 严格度高者优先：`erasure_pending` > `deactivated` > `suspended` > `locked` > `soft_logged_out` > `active`。
+2. 降低严格度的状态（例如 appeal 后回到 `active`）MUST 在 payload 中引用被解除的 status event id（`supersedes_status_event_id` 或等价审计字段），且该引用必须在当前 Anchor view 可见；否则它只是并发候选，不能覆盖更严格状态。
+3. 同严格度并发时，以 `(effective_at, event_id)` 的 canonical order 取最大值作为 projection current，其他 head 仍保留在 ordered-log conflict/audit view 中。
+
 ## 4. Soft Logout
 
 `soft_logged_out` 表示 access token 不再可用，但本地加密数据和 device trust 可保留。客户端 SHOULD：

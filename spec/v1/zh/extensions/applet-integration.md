@@ -85,7 +85,7 @@ Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员�
 ```json
 {
   "kind": "cx.applet.registration",
-  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
+  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
   "service_did": "did:web:slack-bridge.example",
   "controller_did": "did:web:acme.example",
   "base_url": "https://slack-bridge.example/api/v1/applet",
@@ -103,7 +103,7 @@ Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员�
     "realms": [
       {
         "exclusive": true,
-        "pattern": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:*"
+        "pattern": "slack:team:*:channel:*"
       }
     ],
     "handles": [
@@ -177,7 +177,7 @@ Realm namespace 适用于 portal Realm。
 ```json
 {
   "exclusive": true,
-  "pattern": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:*"
+  "pattern": "slack:team:*:channel:*"
 }
 ```
 
@@ -217,7 +217,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
     {
       "constraint_type": "scope_limitation",
       "effect": "allow",
-      "via_applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
+      "via_applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
       "allowed_actor_namespace": "did:web:slack-bridge.example#ghost-*"
     }
   ],
@@ -258,7 +258,7 @@ GET /api/v1/applet/ping
 ```json
 {
   "ok": true,
-  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
+  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
   "service_did": "did:web:slack-bridge.example",
   "protocol_version": "1.0"
 }
@@ -361,7 +361,7 @@ GET /api/v1/applet/realms/{realm_id_or_alias}
 ```json
 {
   "exists": true,
-  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
+  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
   "title": "#release on Slack",
   "external_ref": {
     "protocol": "slack",
@@ -432,17 +432,17 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
 ```json
 {
   "event_id": "cx:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
+  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
   "actor_id": "did:web:slack-bridge.example#ghost-u123",
   "kind": "cx.message.create",
-  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
+  "applet_id": "cx:applet:21532600-0000-7000-8000-000000000000",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",
     "event_id": "1714040000.000100"
   },
   "payload": {
-    "flow_id": "cx:flow:c0c69410-0000-7000-8000-000000000000:slack:T123:C456",
+    "flow_id": "cx:flow:c0c69410-0000-7000-8000-000000000001",
     "content": {
       "body": "hello from Slack"
     }
@@ -466,7 +466,7 @@ Ghost Actor profile SHOULD 包含：
   "actor_id": "did:web:slack-bridge.example#ghost-u123",
   "actor_kind": "ghost",
   "display_name": "Alice on Slack",
-  "managed_by_applet": "cx:applet:21532600-0000-7000-8000-000000000000-bridge",
+  "managed_by_applet": "cx:applet:21532600-0000-7000-8000-000000000000",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",

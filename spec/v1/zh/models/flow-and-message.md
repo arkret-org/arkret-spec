@@ -379,6 +379,8 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 
 `cx.realm.notification.audit` 是纯 READ capability（target_event_kinds 为空），授予"读取完整 watch 状态（含 `muted`）"的权限。审计写入闭环要求读取方**同时**持有 `cx.audit.accessed` capability，并在每次 audit 读取前提交一条 accepted durable event（payload 使用 `access_kind="watch_audit_read"`，包含 `writer_did`、`target_actor_did`、`target_cell_id`、`target_ref`、`purpose`、`accessed_at`），或在同一投影事务中提交并等待 RYW receipt 后再释放完整 watch 结果。该流程与 [`../crypto-media/audited-e2ee.md` §4](../crypto-media/audited-e2ee.md) "先写后解密"模型同构。
 
+当 Flow 设置了 `discussion_realm_ref` 时，watch cell 仍存放在 source Realm，但 watcher list projection MUST 按 linked discussion Realm 的 read 权限裁剪：对 Realm 其他成员展示 watcher 列表时，只有同时可读取 linked Realm discussion 的 actor 才可出现在列表中；不满足 linked Realm read 的 watch 记录只对本人、通知 dispatcher 和完成 `cx.audit.accessed` 配对的 audit reader 可见。仅持有 source Realm membership 不得推断某 actor 正在观察 linked Realm 的机密讨论。
+
 - 仅持有 `cx.realm.notification.audit` 而无 `cx.audit.accessed` 的 actor MUST 被 reducer / projection executor 拒绝（`failed_precondition`，`reason="audit_capability_incomplete"`）。
 - 默认 admin 角色 bundle SHOULD 同时包含两者；profile SHOULD 把它们作为不可拆分的 bundle 授予。
 - 被读取的当事人通过 `cx.audit.accessed` event 链获得事后审计权；缺失对应 audit event 或 RYW receipt 的 watch 读取 MUST 在投影 / sync 层 fail closed。

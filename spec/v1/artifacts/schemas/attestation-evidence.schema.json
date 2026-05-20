@@ -148,7 +148,7 @@
     },
     "audit_policy_version_hash": {
       "$ref": "#/$defs/sha256_hash",
-      "description": "Same definition as cx.audit.ryw_receipt.audit_policy_version_hash — fixed sha256 over canonical JSON {audit_disclosure, audit_assurance} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was joined under matches the current policy state. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile. See encoding.md §2 (canonical JSON) and audited-e2ee.md §4.1."
+      "description": "Same definition as cx.audit.ryw_receipt.audit_policy_version_hash — fixed sha256 over canonical JSON {realm_id, trust_domain, audit_disclosure, audit_assurance} at the Realm policy frontier at issued_at. Lets verifier O(1) check that the policy classification this evidence was joined under matches the current policy state and is not reused across Realms. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile. See encoding.md §2 (canonical JSON) and audited-e2ee.md §4.1."
     },
     "created_at": { "$ref": "#/$defs/timestamp" },
     "proofs": {

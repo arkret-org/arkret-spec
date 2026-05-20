@@ -1906,17 +1906,21 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
         ("canonical_input", "expected_digest"),
     ]
 
+    def iter_dict_nodes(value: Any) -> Iterable[dict[str, Any]]:
+        if isinstance(value, dict):
+            yield value
+            for child in value.values():
+                yield from iter_dict_nodes(child)
+        elif isinstance(value, list):
+            for child in value:
+                yield from iter_dict_nodes(child)
+
     for fixture_path in fixtures_dir.rglob("*.json"):
         data = load_json(lint, fixture_path)
         if data is None:
             continue
-        candidates: list[Any] = []
-        if isinstance(data, dict):
-            candidates.append(data)
-        elif isinstance(data, list):
-            candidates.extend(d for d in data if isinstance(d, dict))
 
-        for case in candidates:
+        for case in iter_dict_nodes(data):
             for input_key, digest_key in shapes:
                 if input_key not in case or digest_key not in case:
                     continue
@@ -1934,7 +1938,14 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                         f"could not canonicalize {input_key!r} for digest check: {exc}",
                     )
                     continue
-                recomputed = "sha256:" + sha256_text(canonical)
+                expected_canonical = case.get("expected_canonical_bytes_utf8")
+                if isinstance(expected_canonical, str) and expected_canonical != canonical:
+                    lint.fail(
+                        fixture_path,
+                        f"canonical bytes mismatch: {input_key!r} produces {canonical!r} "
+                        f"but expected_canonical_bytes_utf8={expected_canonical!r}",
+                    )
+                recomputed = sha256_text(canonical)
                 if recomputed != expected:
                     lint.fail(
                         fixture_path,

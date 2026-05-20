@@ -157,10 +157,15 @@ Payload-only schema 示例：
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_revoke_payload
 {
   "consent_id": "consent-alice-bob-invite-001",
+  "observed_dots": [
+    "cx:event:019640ed-7000-7000-8000-000000000001:0"
+  ],
   "revoked_at": "2026-06-15T10:00:00Z",
   "reason": "Bob harassment incident #4711"
 }
 ```
+
+Payload `observed_dots[]` MUST 与 Move effect 中的 `observed_dots` 完全一致；缺失、额外、重复或排序后集合不等都 MUST `schema_violation` / `failed_precondition` 拒绝。这样 schema validation、审计 projection 与 lattice reducer 看到的是同一个撤销集合。
 
 **Regrant**：撤销后 holder 可以再次发出 `cx.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 
@@ -190,7 +195,7 @@ Payload-only schema 示例：
 - **按 `consent_id` 全量撤销**（推荐路径）：revoke Move 的 `observed_dots` 列出 cell 当前 `(consent_id, peer, *)` 下所有 active dot，无论原 grant 的 scope 是 `any` 还是具体 scope。这是显式"完全 revoke 该 consent_id"操作。
 - **按 scope 部分撤销**：revoke Move 仅列出某具体 scope 对应的 active dot。剩余 scope 的 dot 保持 active。
 - **`scope="any"` 与具体 scope 互斥语义**：
-  - 撤销一条 `scope=any` 的 grant dot MUST 视为撤销该 `(consent_id, peer)` 下当前 active 的 **所有** scope（含具体 scope 的 grant dot）。即 `any` 撤销 cascade 到全部子 scope。reducer 在 join 时如果观察到 revoke 的 `observed_dots` 含 `scope=any` 的 add dot，MUST 在 cell projection 层把同 `(consent_id, peer)` 下所有 active scope 的 dot 标 `superseded_by_any_revoke`，effective consent 视为完全 revoked。
+  - 撤销一条 `scope=any` 的 grant dot MUST 显式枚举该 `(consent_id, peer)` 下当前 active 的 **所有** scope dot（含具体 scope 的 grant dot）。即 `any` revoke 的 cascade 由 payload / Move effect 中完整的 `observed_dots[]` 表达；reducer MUST NOT 基于一个 `scope=any` dot 隐式推断并移除未枚举的其他 dot。若 active dot 未被枚举，effective consent 只构成部分撤销，sodmin / UI MUST 标 `partial_revoke`。
   - 反向不成立：撤销一条 `scope=invite` 的具体 scope dot 仅清空 `invite`，不影响同 `(consent_id, peer)` 下 `scope=any` 的 dot——因为 `any` 是 holder 显式更宽授权，需要 holder 再单独撤销 `any` 才算 cascade。
   - 这条非对称规则 MUST 在 sodmin / UI 中明示，避免用户误以为"撤销 invite 就等于全撤销"。
 - **conformance vector** `cx.vector.consent.scope_cascade.v1` 覆盖 (a) `any` revoke cascade 到具体 scope；(b) 具体 scope revoke 不影响 `any`；(c) 部分 scope revoke 留下其他 scope active；(d) 完整 revoke 必须列出当前 cell 全部 active dot 否则只构成部分 revoke。

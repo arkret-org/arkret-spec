@@ -497,6 +497,8 @@ Transition event payload：
 - `authority_grant_ref`：引用源 Realm 中已 active 的 grant；reducer 校验 grant active + grant.subject == target_actor_id + grant.attached_authority.controller == sender principal
 - `redirect_pair_id`：opaque UUIDv7，sender 生成；双端关联，不暴露 mirror Realm / Flow / Event ID
 
+**E2EE routing rule**：若承载该 content block 的 `cx.message.create` / `cx.message.revise` 使用 `payload.encrypted_payload`，发送方 MUST 同时在明文 payload metadata `mention_redirect_target_actor_ids[]` 中列出 encrypted content 内所有 `target_actor_id`。Reducer / Sync Service MUST 在可解密端校验明文数组与 content block 内值集合完全一致；不一致或缺失时 fail closed。中间 Sync / Push 节点只可使用该明文字段做路由，不得要求解密 message body。
+
 ### 8.2 `cx.content.import_attestation`
 
 ```json
@@ -747,11 +749,11 @@ attestation `authority_did` 字段 MUST 在该列表内,否则 mirror reducer re
 - reservation cleanup 的 anchor-based TTL evidence(与 base 相同;lite 不接受 wall clock 或本地 monotonic clock 作为 reducer 依据)
 - `agent_task.<id>.execution_state` cell(任务自身状态机,lite 仍需用来决定能否 publish-back)
 - `cx.content.import_attestation` envelope(导入源内容仍需 attestation,只是 source-side export policy attestation 不强制)
-- `cx.mention_redirect` content block 在源 Realm 一侧不变(源 Realm 是否接受不取决于 mirror profile)
+- `cx.content.mention_redirect` content block 在源 Realm 一侧不变(源 Realm 是否接受不取决于 mirror profile)
 
 **跨 Realm 边界 always full pipeline**:
 
-publish-back(把 agent 草稿发回源 Flow)、`cx.mention_redirect` 投递、任何对源 Realm / 共享 Realm 的写入,**MUST** 走完整 pipeline(签名、capability、schema、源 Realm 的完整 lattice、目的 Realm 的 MLS group)。lite **不**是"跨 Realm 通信也能省略"的借口;它只松绑 mirror Realm 内部本地状态机。
+publish-back(把 agent 草稿发回源 Flow)、`cx.content.mention_redirect` 投递、任何对源 Realm / 共享 Realm 的写入,**MUST** 走完整 pipeline(签名、capability、schema、源 Realm 的完整 lattice、目的 Realm 的 MLS group)。lite **不**是"跨 Realm 通信也能省略"的借口;它只松绑 mirror Realm 内部本地状态机。
 
 **与 governed 互斥**:同一 Realm MUST NOT 同时声明 `cx.profile.agent_workspace.lite.v1` + `cx.profile.agent_workspace.governed.v1`——前者剥离 mirror 端 audit,后者要求 mirror 端硬执行源 export policy,二者目的相反;同时声明 reducer MUST reject `conflicting_agent_workspace_profiles`。
 

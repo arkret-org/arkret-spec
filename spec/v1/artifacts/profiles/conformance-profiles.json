@@ -1418,9 +1418,11 @@
         "required_event_kinds": [
           "cx.agent_task.create",
           "cx.agent_task.update",
-          "cx.agent_task.execution_state.transition",
+          "cx.agent_task.execution.transition"
+        ],
+        "required_content_block_kinds": [
           "cx.content.import_attestation",
-          "cx.mention_redirect"
+          "cx.content.mention_redirect"
         ],
         "membership": "single_controller_principal (unchanged from base)"
       },

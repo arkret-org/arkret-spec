@@ -324,6 +324,24 @@
       "http_status": 401,
       "scope": "endpoint",
       "description": "TURN REST-style ephemeral credential is past its TTL; client MUST request a fresh credential. See zh/crypto-media/webrtc-signaling.md §6.1."
+    },
+    {
+      "code": "delivery_binding_stale",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "Federation sender used an obsolete member delivery binding frontier; response carries new_recipient_service_did and handover_frontier so the sender can retry at the current service."
+    },
+    {
+      "code": "delivery_binding_handed_over",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "Federation sender continued using a previous recipient_service_did after the handover grace window expired; sender MUST resolve the current binding and retry there."
+    },
+    {
+      "code": "historical_only",
+      "http_status": 200,
+      "scope": "endpoint",
+      "description": "Idempotency cache replay is served only as a historical diagnostic after key or binding state changed; receivers MUST NOT perform new reducer side effects."
     }
   ],
   "reason_codes": [

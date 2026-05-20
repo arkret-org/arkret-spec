@@ -178,6 +178,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
   "audit_event_id": "cx:event:019640a5-0000-7000-8000-000000000000",
   "audit_event_digest": "sha256:...",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+  "trust_domain": "cx:trust_domain:did.webvh.example",
   "audit_actor_id": "did:web:audit-agent.example.com",
   "frontier": {
     "realm_frontier": ["cx:event:..."],
@@ -231,13 +232,14 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `audit_event_id` | yes | 对应的 `cx.audit.accessed` event 的 typed ID。 |
 | `audit_event_digest` | yes | `cx.audit.accessed` envelope 的 canonical digest（与该 envelope `proofs[].payload_hash` 一致）。 |
 | `realm_id` | yes | `cx.audit.accessed` 所在 Realm。 |
+| `trust_domain` | yes | 签发 receipt 时该 Realm 所属 deployment trust domain；MUST 与当前接收上下文和 enclosing audit envelope 的 Realm context 一致。 |
 | `audit_actor_id` | yes | 发起 audit 的 Audit Agent DID。 |
 | `frontier.realm_frontier` | yes | 签发时 issuer 已 accepted 的 Realm frontier。MUST 因果上 ≥ `audit_event_id`。 |
 | `frontier.actor_frontier` | conditional | 至少包含 `audit_actor_id` 的 frontier。其它 actor frontier 由 issuer 选择性透出。 |
 | `observed_at` | yes | issuer 观测到 `cx.audit.accessed` accepted 的时间。 |
 | `witness_attestation` | yes | Witness attestation block。`witness_attestation.kind` 取值 `federation_witness_attested` / `single_source`；`witness_attestation.witnesses[]` 列出所有 attesting witnesses 的 `(issuer, verification_method, controlling_organization, attested_at)`。`kind` 取值 MUST 由 `witnesses[]` 的基数与独立性外部可验证地推导（`federation_witness_attested` 必须 `witnesses.length >= 2` 且 issuer / controlling_organization / verification_method 两两 distinct 且每个 issuer 出现在 Realm `audit.ryw_witnesses[]`；`single_source` 必须 `witnesses.length == 1`）；不一致 MUST 拒绝并 `audit_receipt_invalidated`。独立性由可外部验证的 witness 列表表达，而不是单点自报。详细聚合规则见 §4.1.1。 |
 | `audit_assurance_class` | yes | `attested_hardware` / `disclosed_policy`。MUST 与 Realm `audit_assurance` 在该 receipt 的 frontier 处一致；不一致时接收方 fail closed。该字段是协议层向接收方透出的保证级别 hint，**不是**实现声称硬件 attestation 的依据；硬件 attestation 由 Audit Agent profile（`cx.profile.attested_audit.e2ee.v1`）的 attestation evidence 单独证明。 |
-| `audit_policy_version_hash` | yes | `(audit_disclosure, audit_assurance)` 在 receipt frontier 处的 canonical hash（`sha256` over canonical JSON `{audit_disclosure: <object>, audit_assurance: <string>}`）。让接收方 O(1) 校验"receipt 声明的 policy class 与 frontier 处实际 policy 一致"，无需重放事件。MUST 与 receipt frontier 处的 policy state 一致；不一致 fail closed (`audit_receipt_invalidated`)。 |
+| `audit_policy_version_hash` | yes | Realm-bound policy hash（`sha256` over canonical JSON `{realm_id: <id>, trust_domain: <trust_domain>, audit_disclosure: <object>, audit_assurance: <string>}`）。让接收方 O(1) 校验"receipt 声明的 policy class 与 frontier 处实际 policy 一致"，无需重放事件，同时防止相同 policy 文本跨 Realm 复用。MUST 与 receipt frontier 处的 policy state 一致；不一致 fail closed (`audit_receipt_invalidated`)。 |
 | `proofs` | yes | 至少一个 detached JWS，覆盖 receipt 全部字段（除 proofs 自身）。 |
 
 规则：
@@ -246,6 +248,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 
 - Audit Agent MUST 在解密前等待至少一个有效 RYW receipt；`cx.profile.attested_audit.e2ee.v1` MUST 等待 `witness_attestation.kind="federation_witness_attested"` 的 receipt（即 `witness_attestation.witnesses[]` 同时包含 ≥2 个独立 witness）。
 - Issuer 不得伪造未观测到的 receipt；任何客户端 / 审计客户端 MUST 拒绝 `audit_event_digest` 与 envelope 实际 digest 不符的 receipt，并按 `audit_receipt_invalidated`（参见 `error-code-registry.json`）处理。
+- Verifier MUST 同时校验 `receipt.realm_id == enclosing audit envelope.realm_id`，且 `receipt.trust_domain == current receive context.trust_domain`。仅凭 `audit_policy_version_hash` 相等不得把 receipt 复用于其它 Realm 或其它 trust domain。
 - RYW receipt 默认是 actor-private / ephemeral 在 `cx.profile.disclosed_audit.e2ee.v1` 下；在 `cx.profile.attested_audit.e2ee.v1` 下 receipt 可以同时作为 durable Event（`cx.audit.ryw_receipt`）进入 audit log，便于事后调查。
 - Receipt 可被 redaction 覆盖，但 redaction 只清除 cleartext metadata；`audit_event_id`、`audit_event_digest` 与 `audit_assurance_class` 仍保留，以便审计链可还原。
 

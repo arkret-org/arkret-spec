@@ -32,7 +32,7 @@ title: "Read Receipts & Markers"
   "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "track": "discussion",
   "actor_id": "did:web:alice.example",
-  "event_id": "cx:event:01964387-29a0-7000-8000-000000000000",
+  "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "created_at": "2026-04-26T10:00:00Z"
 }
@@ -186,7 +186,7 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`cx.schema.rea
   "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
   "track": "discussion",
   "actor_id": "did:web:alice.example",
-  "event_id": "cx:event:01964387-29a0-7000-8000-000000000000",
+  "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```

@@ -12,6 +12,7 @@
     "audit_event_id",
     "audit_event_digest",
     "realm_id",
+    "trust_domain",
     "audit_actor_id",
     "frontier",
     "observed_at",
@@ -50,6 +51,11 @@
     "realm_id": {
       "type": "string",
       "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
+      "description": "Deployment trust domain for the Realm at the receipt frontier. Verifiers MUST require this to match the current receive context and the enclosing audit Event Realm context before using audit_policy_version_hash."
     },
     "audit_actor_id": {
       "$ref": "#/$defs/did"
@@ -157,7 +163,7 @@
     "audit_policy_version_hash": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "Canonical hash of the (audit_disclosure, audit_assurance) tuple from cx.realm.policy_components at the receipt's frontier. Computed as fixed sha256 over canonical JSON {audit_disclosure: <object>, audit_assurance: <string>}. Lets verifiers atomically check 'receipt's claim matches Realm-declared policy at this frontier' without replaying events. MUST match the receipt frontier's policy state; mismatch MUST fail closed (audit_receipt_invalidated). Required field — missing receipts MUST be rejected to prevent silent policy drift. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile."
+      "description": "Canonical hash of the Realm-bound audit policy tuple from cx.realm.policy_components at the receipt's frontier. Computed as fixed sha256 over canonical JSON {realm_id: <id>, trust_domain: <trust_domain>, audit_disclosure: <object>, audit_assurance: <string>}. Lets verifiers atomically check 'receipt's claim matches Realm-declared policy at this frontier' without replaying events and prevents cross-Realm reuse of identical policy text. MUST match the receipt frontier's policy state; mismatch MUST fail closed (audit_receipt_invalidated). Required field — missing receipts MUST be rejected to prevent silent policy drift. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile."
     },
     "proofs": {
       "type": "array",

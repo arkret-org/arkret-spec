@@ -127,7 +127,7 @@ GET /api/v1/applet/realms/{realm_id_or_alias}
 ```json
 {
   "exists": true,
-  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000:slack:T:C",
+  "realm_id": "cx:realm:c0c69410-0000-7000-8000-000000000000",
   "title": "#general",
   "external_ref": {}
 }

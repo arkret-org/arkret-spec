@@ -627,7 +627,9 @@ Flow `tracks` 是以 track 名为 key 的 map，patch path 直接使用普通对
 ```json
 {
   "kind": "cx.flow.move",
-  "target_ref": "cx:flow:019641a9-8000-7000-8000-000000000000",
+  "unsigned": {
+    "target_ref_hint": "cx:flow:019641a9-8000-7000-8000-000000000000"
+  },
   "payload": {
     "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
     "flow_id": "cx:flow:019641a9-8000-7000-8000-000000000000",
@@ -669,7 +671,9 @@ CAS 语义：`expected_position` 描述的是移动前源 Space 中 Flow 的当�
 ```json
 {
   "kind": "cx.flow.reorder",
-  "target_ref": "cx:flow:019641a9-8000-7000-8000-000000000000",
+  "unsigned": {
+    "target_ref_hint": "cx:flow:019641a9-8000-7000-8000-000000000000"
+  },
   "payload": {
     "board_space_id": "cx:space:019640b6-8000-7000-8000-000000000000",
     "space_id": "cx:space:01c3b617-7000-7000-8000-000000000000",

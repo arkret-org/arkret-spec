@@ -10,6 +10,7 @@
     "principal_signing_key",
     "self_signing_key",
     "user_signing_key",
+    "expected_previous_generation",
     "generation",
     "issued_at"
   ],
@@ -27,6 +28,11 @@
       "type": "integer",
       "minimum": 1,
       "description": "Monotonically increasing publish generation. Each cx.cross_signing.reset MUST increment by 1. Receivers MUST reject publishes whose generation is <= the currently accepted generation."
+    },
+    "expected_previous_generation": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "CAS precondition for the current accepted cross-signing generation. Initial publish uses 0. Reducers MUST accept only when this equals the current accepted generation and generation == expected_previous_generation + 1."
     },
     "issued_at": { "$ref": "#/$defs/timestamp" }
   },
