@@ -53,7 +53,7 @@ Schema id: `cx.schema.flow.v1`
 
 ### 3.1 最小示例
 
-```json
+```json schema=schemas/flow.schema.json
 {
   "id": "cx:flow:019640f9-8000-7000-8000-000000000000",
   "schema": "cx.schema.flow.v1",
@@ -471,7 +471,7 @@ Schema id: `cx.schema.message.v1`
 
 ### 9.3 最小示例
 
-```json
+```json schema=schemas/message.schema.json
 {
   "id": "cx:message:0196414c-8000-7000-8000-000000000000",
   "schema": "cx.schema.message.v1",

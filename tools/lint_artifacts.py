@@ -1203,6 +1203,48 @@ def check_security_closure_vectors(lint: Lint) -> None:
                 or not all(isinstance(item, str) and item for item in invariants)
             ):
                 lint.fail(path, f"{step_label}.expected.invariants must be a non-empty string array")
+            runner = step.get("runner")
+            if not isinstance(runner, dict):
+                lint.fail(path, f"{step_label}.runner must be an object")
+                continue
+            required_runner_fields = {
+                "given_state",
+                "operation",
+                "transcript",
+                "expected_state_transition",
+                "expected_external_response",
+                "expected_audit_reason",
+            }
+            missing_runner_fields = sorted(required_runner_fields - set(runner))
+            if missing_runner_fields:
+                lint.fail(path, f"{step_label}.runner missing field(s): {', '.join(missing_runner_fields)}")
+                continue
+            for object_field in (
+                "given_state",
+                "transcript",
+                "expected_state_transition",
+                "expected_external_response",
+            ):
+                if not isinstance(runner.get(object_field), dict):
+                    lint.fail(path, f"{step_label}.runner.{object_field} must be an object")
+            for string_field in ("operation", "expected_audit_reason"):
+                if not isinstance(runner.get(string_field), str) or not runner[string_field]:
+                    lint.fail(path, f"{step_label}.runner.{string_field} must be a non-empty string")
+            state_transition = runner.get("expected_state_transition")
+            if isinstance(state_transition, dict) and state_transition.get("outcome") != expected.get("outcome"):
+                lint.fail(
+                    path,
+                    f"{step_label}.runner.expected_state_transition.outcome must match expected.outcome",
+                )
+            external_response = runner.get("expected_external_response")
+            reason_code = expected.get("reason_code")
+            if isinstance(reason_code, str) and reason_code:
+                external_reason = external_response.get("reason_code") if isinstance(external_response, dict) else None
+                if external_reason != reason_code and runner.get("expected_audit_reason") != reason_code:
+                    lint.fail(
+                        path,
+                        f"{step_label}.runner must carry expected.reason_code in external response or audit reason",
+                    )
 
     missing = SECURITY_CLOSURE_VECTOR_IDS - seen
     for vector_id in sorted(missing):

@@ -1887,7 +1887,7 @@ Negative cases：
 
 ## 9 Security Closure Vectors
 
-本节收拢跨章节引用的安全闭环向量。每个 `vector_id` 均为规范性引用目标；结构化覆盖位于 [`../../artifacts/fixtures/security-closure-vectors.json`](../../artifacts/fixtures/security-closure-vectors.json)，`tools/lint_artifacts.py` 会校验该 fixture 覆盖本节要求的 security closure vector set。实现可把下面的输入步骤展开为自动化测试 runner，但不得把这些 ID 当成仅供说明的标签。
+本节收拢跨章节引用的安全闭环向量。每个 `vector_id` 均为规范性引用目标；结构化覆盖位于 [`../../artifacts/fixtures/security-closure-vectors.json`](../../artifacts/fixtures/security-closure-vectors.json)，`tools/lint_artifacts.py` 会校验该 fixture 覆盖本节要求的 security closure vector set，并校验每个 step 暴露可由实现测试消费的 `runner.given_state` / `operation` / `transcript` / `expected_state_transition` / `expected_external_response` / `expected_audit_reason` 字段。实现不得把这些 ID 当成仅供说明的标签。
 
 ### 9.1 Vector: Federation Replay After Key Revoke
 

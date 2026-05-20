@@ -258,7 +258,7 @@ value shape := { "list_space_id": id:space, "rank": string } | null
 
 Project Space：
 
-```json
+```json schema=schemas/space.schema.json
 {
   "id": "cx:space:019640b6-8000-7000-8000-000000000000",
   "schema": "cx.schema.space.v1",
@@ -273,7 +273,7 @@ Project Space：
 
 Confidential sibling Space：
 
-```json
+```json schema=schemas/space.schema.json
 {
   "id": "cx:space:019640c0-8000-7000-8000-000000000000",
   "schema": "cx.schema.space.v1",
