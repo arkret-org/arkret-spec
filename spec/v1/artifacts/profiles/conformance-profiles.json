@@ -56,6 +56,7 @@
     "cx.profile.federation_minimal.v1",
     "cx.profile.federation.high_assurance.v1",
     "cx.profile.identity_registry.v1",
+    "cx.profile.auth_server.v1",
     "cx.profile.blob_node.v1",
     "cx.profile.push_gateway.v1",
     "cx.profile.push_gateway.blind_wakeup.v1",
@@ -85,6 +86,7 @@
       "cx.profile.federation_minimal.v1",
       "cx.profile.federation.high_assurance.v1",
       "cx.profile.identity_registry.v1",
+      "cx.profile.auth_server.v1",
       "cx.profile.blob_node.v1",
       "cx.profile.push_gateway.v1",
       "cx.profile.push_gateway.blind_wakeup.v1",
@@ -167,6 +169,7 @@
     "cx.profile.federation_minimal.v1": "server",
     "cx.profile.federation.high_assurance.v1": "server",
     "cx.profile.identity_registry.v1": "directory",
+    "cx.profile.auth_server.v1": "server",
     "cx.profile.public_network_identity.v1": "directory",
     "cx.profile.org_high_assurance_identity.v1": "directory",
     "cx.profile.blob_node.v1": "gateway",
@@ -924,6 +927,58 @@
           "registry_visibility"
         ],
         "unsupported_optional": "return unsupported_did_method"
+      }
+    },
+    "cx.profile.auth_server.v1": {
+      "inherits": [],
+      "description": "Contrix v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `cx.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `cx.policy.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `cx.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
+      "required_endpoints": [
+        "cx.server.describe"
+      ],
+      "required_event_kinds": [
+        "cx.session.grant"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:actor_private_event"
+      ],
+      "required_schemas": [
+        "cx.schema.service_describe.v1",
+        "cx.schema.handle_claim.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json",
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "cx.account.issue_session_grant",
+        "cx.policy.check",
+        "session_grant_introspection",
+        "session_grant_revocation",
+        "oidc",
+        "password_login",
+        "passkey",
+        "device_pairing",
+        "recovery_challenge",
+        "did_binding",
+        "claim_attestation",
+        "principal_server_delegation_targets"
+      ],
+      "feature_discovery": {
+        "required": [
+          "service_did",
+          "supported_auth_methods",
+          "session_grant_scope",
+          "supported_bindings",
+          "auth_metadata"
+        ],
+        "unsupported_optional": "omit optional operation or return unsupported_feature"
+      },
+      "additional_requirements": {
+        "session_grant_must_be_short_lived": "Auth Server MUST cap session_grant TTL well below the Realm policy review horizon (per device-lifecycle.md §5, typical ceiling is minutes-to-hours, not days).",
+        "audience_binding_must": "Every issued session_grant MUST carry an `audience` claim; auth servers MUST refuse to issue grants for audiences they have not been configured to serve.",
+        "not_identity_registry_must": "Auth Server MUST NOT claim `cx.profile.identity_registry.v1`; any DID document / key-log surface it exposes MUST be declared on `compat_surfaces[]` as `delegated_resolver` rather than self-claimed canonical authority.",
+        "not_principal_server_must": "Auth Server MUST NOT claim `cx.profile.principal_server.v1`; Realm event acceptance is the principal server role and is incompatible with auth-server-only deployments.",
+        "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run."
       }
     },
     "cx.profile.public_network_identity.v1": {

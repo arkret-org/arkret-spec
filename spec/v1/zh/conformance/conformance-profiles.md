@@ -265,6 +265,33 @@ SHOULD 支持：
 - raw DID document preservation
 - normalized principal view
 
+## 9a. Auth Server
+
+`cx.profile.auth_server.v1` 适用于负责登录因子验证、短期会话授权与 session-grant 生命周期管理的服务（reference implementation：`coauth`）。
+
+MUST 支持：
+
+- service describe（`cx.server.describe`）
+- 至少一种登录因子（password / passkey / OIDC / SSO / device pairing / recovery challenge）
+- 短期、audience-bound `cx.session.grant` 签发
+- session_grant TTL 上限远低于 Realm policy review horizon（minutes-to-hours，不得跨越多日）
+- session_grant audience 绑定与拒签陌生 audience
+- `auth_metadata`（issuer DID、`supported_auth_methods`、`token_endpoint_auth_methods`、`session_grant_scope`、`required_audience`）
+
+SHOULD 支持：
+
+- session-grant introspection 与 revocation
+- `cx.account.issue_session_grant` 规范化 HTTP binding
+- `cx.policy.check`（v2 PolicyCheckResponse）
+- 多 principal-server delegation target 配置
+- did binding / claim attestation
+
+Auth Server MUST NOT 声明 `cx.profile.identity_registry.v1`、`cx.profile.principal_server.v1` 或 `cx.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `compat_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
+
+Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明；下游资源服务器仍 MUST 重新验证 DID control state（见 `overview/matrix-core-differences.md`）。
+
+`development_mode=true` 时，`verified_profiles[]` MUST 为 `[]`（见 `sync/service-surface.md` §3.0）；cotest 在 verified-profile suite 通过后才能写入 verified entry。
+
 ## 10. Blob Node
 
 `cx.profile.blob_node.v1` 适用于内容寻址存储。
