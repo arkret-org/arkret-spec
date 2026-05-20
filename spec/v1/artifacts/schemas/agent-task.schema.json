@@ -33,7 +33,7 @@
     },
     "target_agent_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Agent DID that will execute this task. MUST be a controller-owned agent (cx.schema.agent_authority.v1 controller == workspace owner)."
     },
     "instruction": {
@@ -91,7 +91,7 @@
     },
     "created_by": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "created_at": {
       "type": "string",

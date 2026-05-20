@@ -55,7 +55,7 @@
         },
         "actor": {
           "type": "string",
-          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
         },
         "signature": {
           "type": "string"

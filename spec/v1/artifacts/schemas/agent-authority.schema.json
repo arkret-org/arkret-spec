@@ -14,19 +14,19 @@
   "properties": {
     "agent_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "responsible_actor": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "controller": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "operator": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "acting_mode": {
       "type": "string",

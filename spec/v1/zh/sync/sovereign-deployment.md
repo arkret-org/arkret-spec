@@ -144,7 +144,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 ```json
 {
   "kind": "cx.sovereign.did_policy",
-  "trust_domain": "did:web:defense.example#contrix-domain",
+  "trust_domain": "cx:trust_domain:did.webvh.defense.example",
   "default_principal_method": "did:webvh",
   "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
   "trust_roots": [
@@ -188,6 +188,7 @@ Controlled Collaboration Realm SHOULD 使用：
       "security_class": "high_assurance",
       "title": "Controlled Collaboration",
       "created_by_principal": "did:web:defense.example",
+      "trust_domain": "cx:trust_domain:did.webvh.defense.example",
       "owning_organizations": [
         "did:web:defense.example"
       ],

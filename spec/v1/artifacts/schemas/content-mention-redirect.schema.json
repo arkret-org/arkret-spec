@@ -21,7 +21,7 @@
     },
     "target_actor_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Target agent DID. MUST be sender's controlled agent. Reducer validates via authority_grant_ref resolution."
     },
     "authority_grant_ref": {

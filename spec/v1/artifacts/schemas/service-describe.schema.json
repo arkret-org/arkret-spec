@@ -7,6 +7,7 @@
   "additionalProperties": true,
   "required": [
     "service_did",
+    "trust_domain",
     "service_type",
     "protocol_version",
     "supported_profiles",
@@ -27,6 +28,10 @@
     "service_did": {
       "$ref": "#/$defs/did",
       "description": "DID of the service endpoint making this describe claim."
+    },
+    "trust_domain": {
+      "$ref": "#/$defs/trust_domain",
+      "description": "Deployment-scope trust domain for this service. Receivers use it as the canonical receive-context replay boundary for cross-deployment proofs and federation transactions."
     },
     "service_type": {
       "type": "string",
@@ -254,7 +259,11 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     }
   }
 }

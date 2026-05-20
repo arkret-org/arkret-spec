@@ -209,15 +209,15 @@ artifact。
 
 部署级 **trust domain** 是 Contrix v1 用来防止跨 deployment / 跨 sovereign 边界 replay 的命名空间。每个 deployment MUST 声明一个稳定的 typed string `cx:trust_domain:<scope>`，由部署运营方在初始化时确定并在以下位置暴露：
 
-- `cx.server.describe` 响应的 `trust_domain` 字段；
-- Realm policy 中的 `cx.realm.trust_domain`（首次写入后 immutable，跟随 Realm create event 锁定）；
+- Service Describe 响应的 `trust_domain` 字段（所有 `*/describe` endpoint 返回同一 `ServiceDescribe` shape）；
+- Realm create object 的 `trust_domain` 字段（首次写入后 immutable，跟随 Realm create event 锁定）；
 - 任何跨域可重放的 high-risk proof transcript（例如 `cx.cross_signing.reset` §14.1 canonical input）。
 
 约束：
 
 - `trust_domain` MUST 全 deployment 唯一；推荐由组织主控 DID 派生（例如 `cx:trust_domain:did.webvh.acme.example`）或外部 trust framework 分配。
 - 同一 principal DID 在多个 deployment 中被复用时，每个 deployment 仍各自有独立 `trust_domain`；跨域 high-risk proof（reset、recovery service unlock、device quorum 等）的 canonical transcript MUST 嵌入 receive 端的 `trust_domain`，使 deployment A 签发的 proof bytes 在 deployment B 校验时 signature transcript 不匹配，立即触发 `cross_domain_replay_rejected` 而进入不到签名校验。
-- Resolver / Sync / Federation 服务 MAY 在不同 `trust_domain` 之间互联，但跨域 federation transaction MUST 显式声明 source / destination `trust_domain`，receiver MUST 按本 deployment 的 trust policy 决定是否接受。
+- Resolver / Sync / Federation 服务 MAY 在不同 `trust_domain` 之间互联，但跨域 federation transaction MUST 通过 `Source-Trust-Domain` / `Destination-Trust-Domain` header 显式声明 source / destination `trust_domain`，并把两者纳入 HTTP Message Signature transcript；receiver MUST 按本 deployment 的 trust policy 决定是否接受。
 - `trust_domain` 不替代 `service_did`、`realm_id`、`principal_id` 等其它绑定；它只关闭"完全相同的 proof bytes 被搬到另一 deployment 重放"这一面。
 
 详见 [`../crypto-media/device-lifecycle.md` §14.1](../crypto-media/device-lifecycle.md) 的 reset proof transcript 与 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `cross_domain_replay_rejected` 条目。

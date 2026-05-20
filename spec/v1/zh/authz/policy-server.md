@@ -15,7 +15,7 @@ Realm 可通过 state event 声明策略服务：
   "kind": "cx.realm.policy_server",
   "payload": {
     "server_id": "did:web:policy.example.com",
-    "endpoint": "https://policy.example.com/contrix/v1/check",
+    "endpoint": "https://policy.example.com/api/v1/policy/check",
     "public_keys": [
       "did:web:policy.example.com#key-1"
     ],
@@ -47,7 +47,7 @@ Realm 可通过 state event 声明策略服务：
 ## 3. Check Request
 
 ```http
-POST /contrix/v1/check
+POST /api/v1/policy/check
 Authorization: Bearer <service_token>
 Content-Type: application/json
 ```
@@ -112,6 +112,12 @@ Content-Type: application/json
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `request_id` | `string` | required | 回显请求 ID。 |
+| `bound_to` | `object` | required | Policy Server 回签的请求绑定；MUST 至少包含 `realm_id`、`actor`、`action`、`request_canonical_hash`、`policy_server_id`，调用方缓存或复用 decision 前必须逐字段比较。 |
+| `bound_to.realm_id` | `id` | required | 等于 request `realm_id`。 |
+| `bound_to.actor` | `did` | required | 等于 request `actor`。 |
+| `bound_to.action` | `string` | required | 等于 request `action`。 |
+| `bound_to.request_canonical_hash` | `sha256:<hash>` | required | 等于 request `request_canonical_hash`。 |
+| `bound_to.policy_server_id` | `did` | required | 签发该 decision 的 Policy Server DID；必须与 declaration `server_id` 和 `signature.kid` 控制者一致。 |
 | `decision` | `enum(allow,soft_deny,hard_deny,quarantine,require_review)` | required | 策略决策。 |
 | `reason_code` | `string` | required | 稳定原因码。 |
 | `expires_at` | `datetime` | required | 决策缓存过期时间。 |
@@ -129,6 +135,13 @@ Content-Type: application/json
 ```json
 {
   "request_id": "polreq_01",
+  "bound_to": {
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "actor": "did:webvh:...",
+    "action": "cx.message.create",
+    "request_canonical_hash": "sha256:...",
+    "policy_server_id": "did:web:policy.example.com"
+  },
   "decision": "allow",
   "reason_code": "ok",
   "expires_at": "2026-04-26T00:05:00Z",
@@ -237,10 +250,11 @@ Join 路径上 `challenge` proof 进入 `cx.member.state{join}.gate_proofs[]` �
 Policy decision 签名输入 MUST 包含：
 
 - `request_id`
-- `request_canonical_hash`
-- `realm_id`（被评估对象所属的 Realm DID / Realm ID;**v1 normative**）
-- `actor`（被评估 actor DID;**v1 normative**）
-- `action`（被评估的 capability action token）
+- `bound_to.request_canonical_hash`
+- `bound_to.realm_id`（被评估对象所属的 Realm DID / Realm ID;**v1 normative**）
+- `bound_to.actor`（被评估 actor DID;**v1 normative**）
+- `bound_to.action`（被评估的 capability action token）
+- `bound_to.policy_server_id`
 - decision
 - reason_code
 - expires_at
@@ -252,12 +266,12 @@ Policy decision 签名输入 MUST 包含：
 
 `request_canonical_hash` MUST 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致;任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通,且 MUST 不声明通过 v1 conformance。
 
-节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(realm_id, actor, action, request_canonical_hash, auth_state_hash)` 五元组为 key，或在 cache entry 中携带 `auth_state_hash` 并在每次命中时与当前 accepted auth state hash constant-time 比较；不一致 MUST 回退完整授权判定。`auth_state_hash` 的定义与 fast-path capability cache 相同（见 [`capabilities.md` §18.1](./capabilities.md)），覆盖当前 capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest。TTL 只能作为额外上限，不能掩盖 auth state 变化。不得仅按 `request_canonical_hash` 索引——后者会让一个 (realm, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (realm, actor) 上下文的请求中(攻击者可在 Realm A 中触发一次合法 allow,再在 Realm B 中用相同请求 body 通过缓存复用,从而绕过 Realm B 的实际 policy)。
+节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(bound_to.realm_id, bound_to.actor, bound_to.action, bound_to.request_canonical_hash, auth_state_hash)` 五元组为 key，或在 cache entry 中携带 `auth_state_hash` 并在每次命中时与当前 accepted auth state hash constant-time 比较；不一致 MUST 回退完整授权判定。`auth_state_hash` 的定义与 fast-path capability cache 相同（见 [`capabilities.md` §18.1](./capabilities.md)），覆盖当前 capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest。TTL 只能作为额外上限，不能掩盖 auth state 变化。不得仅按 `request_canonical_hash` 索引——后者会让一个 (realm, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (realm, actor) 上下文的请求中(攻击者可在 Realm A 中触发一次合法 allow,再在 Realm B 中用相同请求 body 通过缓存复用,从而绕过 Realm B 的实际 policy)。
 
 接收方 MUST 同时校验:
 
 1. signature 由 `policy_server_id` 的当前 active verification method 签发;
-2. `(realm_id, actor)` 与本次 request 绑定的 `(realm_id, actor)` 完全一致;
+2. `bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor` / `bound_to.action` / `bound_to.request_canonical_hash` 与本次 request 完全一致;
 3. `expires_at > now`;
 4. `auth_state_hash`、`policy_frontier_hash`、`membership_frontier_hash` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
 5. 该 decision 未被同一 policy_server 后续的 `cx.moderation.decision.lift` 或 anchored override 撤销。

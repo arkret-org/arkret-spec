@@ -30,14 +30,26 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 - 所有 canonical operation 均使用 `encoding.md` 的 canonical JSON 与签名输入规则。
 - 关键行为不由路径决定，而由 `operation_id` 与数据语义决定。
 - Contrix 协议字段和 feature discovery 使用 `operation_id`，取值使用 `cx.<namespace>.<lower_snake_case>`。OpenAPI 3.1 标准字段名仍为 `operationId`，但其值 MUST 等于对应的 Contrix `operation_id`。
-- 服务发现应返回至少：
+- 服务发现使用 canonical `ServiceDescribe` shape；响应 MUST 至少包含：
+  - `service_did`
+  - `trust_domain`
+  - `service_type`
   - `protocol_version`
   - `supported_profiles`
-  - `supported_features`
-  - `supported_bindings`
   - `supported_operations`
-  - `supported_reducer_profiles`
-  - `supported_schema_profiles`
+  - `supported_bindings`
+  - `supported_features`
+  - `auth_metadata`
+  - `limits`
+  - `plaintext_visibility`
+  - `rate_limit_policy`
+  - `development_mode`
+  - `implemented_features`
+  - `claimed_profiles`
+  - `verified_profiles`
+  - `experimental_features`
+  - `compat_surfaces`
+  `supported_reducer_profiles` / `supported_schema_profiles` 仅可作为扩展字段发布，不是 core `ServiceDescribe` 必填字段。
 
 ### 2.1 操作分组
 
@@ -53,7 +65,7 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | Blob / media | `cx.blob.*` | `/blob/*` |
 | 推送 | `cx.push.*` | `/push/*` |
 | 设备加密 | `cx.device_messages.*`、`cx.keys.*` | `/device_messages/*`、`/keys/*` |
-| 授权与策略 | `cx.authz.*`、`cx.policy.*` | `/authz/*`、`/contrix/v1/check` |
+| 授权与策略 | `cx.authz.*`、`cx.policy.*` | `/authz/*`、`/policy/check` |
 | 媒体服务 | `cx.media.*` | `/contrix/v1/ice-config` |
 | 审核 | `cx.moderation.*` | `/moderation/*` |
 | Applet | `cx.applet.*` | `/applet/*` |
@@ -252,9 +264,7 @@ paths:
   /authz/invites:
     get:
       operationId: cx.authz.get_invites
-  /contrix/v1/check:
-    servers:
-      - url: https://{host}
+  /policy/check:
     post:
       operationId: cx.policy.check
   /contrix/v1/ice-config:
@@ -325,7 +335,7 @@ paths:
 | `cx.keys.upload` / `cx.keys.query` / `cx.keys.claim` | `POST /keys/upload`, `POST /keys/query`, `POST /keys/claim` | E2EE key service binding |
 | `cx.keys.backups.put` / `cx.keys.backups.list` / `cx.keys.backups.get` / `cx.keys.backups.delete` | `PUT /keys/backups/{backup_id}`, `GET /keys/backups`, `GET /keys/backups/{backup_id}`, `DELETE /keys/backups/{backup_id}` | Encrypted key backup storage binding |
 | `cx.authz.check` / `cx.authz.get_effective_grants` / `cx.authz.get_invites` | `POST /authz/check`, `GET /authz/effective-grants`, `GET /authz/invites` | gRPC / policy 插件回调 |
-| `cx.policy.check` | `POST /contrix/v1/check` | policy 本地调用 |
+| `cx.policy.check` | `POST /policy/check` | policy 本地调用 |
 | `cx.media.ice_config` | `POST /contrix/v1/ice-config` | Media service / TURN credential adapter |
 | `cx.moderation.report` | `POST /moderation/report` | Moderation queue / local compliance workflow |
 | `cx.applet.transaction` / `cx.applet.query_actor` / `cx.applet.query_space` | `POST /applet/transactions`, `GET /applet/actors/{actor_id}`, `GET /applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |

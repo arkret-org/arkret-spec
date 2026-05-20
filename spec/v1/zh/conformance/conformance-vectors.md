@@ -1286,6 +1286,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
           "kind": "board",
           "title": "Release Board",
           "created_by_principal": "did:web:alice.example.com",
+          "trust_domain": "cx:trust_domain:did.webvh.example",
           "schema_refs": ["cx.schema.realm.v1"],
           "default_discoverability": "restricted",
           "default_join_rule": "restricted",
@@ -1306,6 +1307,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
           "title": "Todo",
           "rank": "U",
           "created_by_principal": "did:web:alice.example.com",
+          "trust_domain": "cx:trust_domain:did.webvh.example",
           "schema_refs": ["cx.schema.realm.v1"],
           "default_discoverability": "restricted",
           "default_join_rule": "restricted",
@@ -1882,3 +1884,190 @@ Negative cases：
 - 返回 `subject != did` → client MUST reject `handle_subject_mismatch`。
 - 返回 `recipient_service_did` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_invalid`。
 - 返回无 `recipient_service_did` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
+
+## 9 Security Closure Vectors
+
+本节收拢跨章节引用的安全闭环向量。每个 `vector_id` 均为规范性引用目标；实现可把下面的输入步骤展开为自动化测试 fixture，但不得把这些 ID 当成仅供说明的标签。
+
+### 9.1 Vector: Federation Replay After Key Revoke
+
+`vector_id`: `cx.vector.federation.idempotency_after_key_revoke.v1`
+
+Steps：
+
+1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /api/v1/events`，header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Hash`、`Idempotency-Key`，批次 accepted。
+2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
+3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
+
+Expected：
+
+- 若重放只命中历史幂等缓存，destination MUST 返回 `historical_only`，不得重新接受为当前授权写入。
+- 若 origin service binding 已被 Realm policy 移除，destination MUST 返回 `capability_denied`。
+- 若 `origin_key_state_hash` 或 authorization frontier 与缓存 entry 不一致，receiver MUST 重新执行完整授权判定，不得只凭 `Idempotency-Key` 放行。
+
+### 9.2 Vector: WebRTC Media Plaintext Downgrade
+
+`vector_id`: `cx.vector.webrtc.media_plaintext_downgrade.v1`
+
+Steps：
+
+1. Realm policy 未授权 `media_service_decrypts`，但客户端收到 SFU 要求其发送 plaintext-visible media key 的 offer。
+2. Realm policy 授权媒体服务解密，但 SFU service DID 不在 `plaintext_visible_services`。
+3. UI 未显示 required plaintext warning，却尝试加入解密型会议。
+
+Expected：
+
+- 三种情况均 MUST 拒绝 join / publish media key。
+- 失败原因分别为 `media_plaintext_policy_missing`、`media_plaintext_service_not_visible`、`media_plaintext_warning_missing` 或实现映射到等价稳定 reason_code。
+
+### 9.3 Vector: Identity Link Eager Invalidation
+
+`vector_id`: `cx.vector.identity_link.eager_invalidation.v1`
+
+Steps：
+
+1. Principal 在 Realm R 中存在 active identity link。
+2. R 接受 ban / leave / remove 中任一 membership transition，或 capability revoke 使该 link 不再满足 visibility gate。
+3. Directory、sync cache、invite cache 和 local profile projection 仍持有旧 link。
+
+Expected：
+
+- 实现 MUST eager invalidation 所有关联 cache entry；后续 lookup 不得返回旧 link。
+- 已建立的 session / device claim MUST 在下一次 authorization check 时失败或降级到最小披露状态。
+
+### 9.4 Vector: Identity Link Policy Tightening Invalidation
+
+`vector_id`: `cx.vector.identity_link.policy_tightening_invalidation.v1`
+
+Steps：
+
+1. Principal 在 disclosure policy、history visibility、minimal metadata mode 或 linked Realm visibility 放宽时建立 identity link。
+2. 任一 policy 被收紧，使旧 link 的披露范围不再被允许。
+3. 调用者继续使用旧 directory / sync cache 查询同一 principal。
+
+Expected：
+
+- 所有受影响 cache MUST 按 policy frontier 失效。
+- 未重新通过当前 policy gate 的旧 link MUST 不再返回；UI / API 只能显示当前允许的最小身份信息。
+
+### 9.5 Vector: Late Key Recovery Removed Actor
+
+`vector_id`: `cx.vector.late_key_recovery.removed_actor.v1`
+
+Steps：
+
+1. Receiver 请求恢复 T0 历史密钥，但其在 T0 的 membership / history visibility 不允许查看该历史。
+2. 或者 receiver 曾在 T0 可见，但 key source 在 ban / remove 之后未重新执行 T0 membership + current share policy 校验就发送 late material。
+
+Expected：
+
+- T0 不可见时 MUST 不解密，reason_code 为 `late_recovery_rejected_membership` 或等价稳定码。
+- key source 未重新校验时 MUST 拒绝 share，reason_code 为 `late_recovery_share_not_authorized`。
+- 客户端 UI 不得显示未授权明文或把其纳入 verified timeline。
+
+### 9.6 Vector: Invite OOB Code Entropy
+
+`vector_id`: `cx.vector.invite.oob_code_entropy.v1`
+
+Steps：
+
+1. 构造低于生产最低熵的 offline OOB code claim。
+2. 构造 lookup 形态 OOB code，其有效窗口或 claim 次数超过 policy 上限。
+
+Expected：
+
+- reducer / verification service MUST 拒绝短熵 code claim。
+- 超限 lookup 形态 MUST invalidate，不得进入 pending invite 或 accepted membership。
+
+### 9.7 Vector: Invite Failure Indistinguishable
+
+`vector_id`: `cx.vector.invite.failure_indistinguishable.v1`
+
+Steps：
+
+1. 分别触发 token 不存在、过期、已撤销、已消费、audience 不匹配、邀请者已离开 Realm、policy gate 不满足七类失败。
+2. 对外调用同一个 claim endpoint，记录 HTTP status、response body、headers 和响应时间。
+
+Expected：
+
+- 对外响应 MUST byte-identical 或等价不可区分；仅服务端 audit log 可记录具体 reason_code。
+- timing 差异 SHOULD ≤ 50ms；高安全 profile MUST 对该窗口做 jitter / padding。
+
+### 9.8 Vector: Consent Scope Cascade
+
+`vector_id`: `cx.vector.consent.scope_cascade.v1`
+
+Steps：
+
+1. Subject 对同一 peer 同时授予 `any` 与多个具体 scope consent。
+2. Revoke `any`。
+3. 重建 consent 后仅 revoke 某个具体 scope。
+4. 尝试用未列出全部 active dot 的 revoke 表示完整撤销。
+
+Expected：
+
+- `any` revoke MUST cascade 到该 cell 的所有具体 scope。
+- 具体 scope revoke 不影响 `any` 或其它 scope。
+- 未列出全部 active dot 的 revoke 只能构成部分撤销，不能被解释为完整撤销。
+
+### 9.9 Vector: Consent Cache Invalidation
+
+`vector_id`: `cx.vector.consent.cache_invalidation.v1`
+
+Steps：
+
+1. Consent active 时 directory reachability、invite capability gate 和 PSI index 均缓存了 peer 可达状态。
+2. Subject revoke consent。
+3. 调用 directory lookup、提交下一次 invite Move，并等待 PSI 下一轮轮转。
+
+Expected：
+
+- Directory reachability MUST 立即不返回该 peer。
+- 下一次 invite Move MUST precondition 失败并重判 capability gate。
+- `any` revoke MUST 失效所有 scope cache；PSI 索引在下一次轮转时排除该 peer。
+
+### 9.10 Vector: Sync Soft-Fail Reconcile
+
+`vector_id`: `cx.vector.sync.soft_fail_reconcile.v1`
+
+Steps：
+
+1. Receiver 收到 soft-failed event，原因是缺少 dependency / auth state / key material。
+2. Backfill 成功补齐全部依赖。
+3. 另一路中，backfill 返回冲突或永久缺失。
+
+Expected：
+
+- 补齐后 reducer MUST deterministically 从 soft-fail 转为 accepted，并更新 covered frontier。
+- 永久缺失或冲突时 MUST 转为 rejected / failed_precondition，不得无限留在 soft-fail。
+
+### 9.11 Vector: Lattice LWW Open Set
+
+`vector_id`: `cx.vector.lattice.lww_open_set.v1`
+
+Steps：
+
+1. 构造同一 anchor view 中多个 sibling write，它们对同一 open-set cell 产生竞争状态。
+2. 所有 sibling 带相同 logical time，但 actor / event id / canonical digest tiebreaker 不同。
+3. 两个 conformant reducer 以不同输入顺序重放。
+
+Expected：
+
+- sibling 集合与 tiebreaker MUST 产出同一 winner。
+- 任一实现出现不同 winner、不同 bottom 或不同 covered frontier，均视为 reducer bug。
+
+### 9.12 Vector: E2EE Relaxed Window Exceeds Ceiling
+
+`vector_id`: `cx.vector.e2ee_relaxed.window_exceeds_ceiling.v1`
+
+Steps：
+
+1. Realm policy event 尝试把 `relaxed_window_max_ms` 写为大于 300000。
+2. Receiver 收到 old-epoch decrypt admission，其 gap 超过当前 policy window。
+3. Deployment profile 尝试通过 unrelated profile 重新定义 hard ceiling。
+
+Expected：
+
+- Reducer MUST 以 `relaxed_window_exceeds_ceiling` 拒绝超限 policy write。
+- Receiver MUST 独立拒绝超过当前 policy window 的 decrypt admission。
+- Hard ceiling 不可由 deployment profile 重定义；实现不得 silently clamp 后继续接受。

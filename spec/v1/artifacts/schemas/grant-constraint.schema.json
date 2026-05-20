@@ -429,7 +429,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        "pattern": "^did:[a-z0-9]+:[^\\s]+$"
       }
     },
     "prohibit_subdelegation": {
@@ -486,7 +486,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        "pattern": "^did:[a-z0-9]+:[^\\s]+$"
       }
     },
     "approval_relation": {
@@ -522,7 +522,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        "pattern": "^did:[a-z0-9]+:[^\\s]+$"
       }
     },
     "accountability_required": {
@@ -552,7 +552,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        "pattern": "^did:[a-z0-9]+:[^\\s]+$"
       }
     },
     "requires_claims": {
@@ -572,14 +572,14 @@
           },
           "issuer": {
             "type": "string",
-            "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+            "pattern": "^did:[a-z0-9]+:[^\\s]+$"
           },
           "trusted_issuers": {
             "type": "array",
             "minItems": 1,
             "items": {
               "type": "string",
-              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+              "pattern": "^did:[a-z0-9]+:[^\\s]+$"
             },
             "uniqueItems": true
           },
@@ -595,7 +595,7 @@
           },
           "organization": {
             "type": "string",
-            "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+            "pattern": "^did:[a-z0-9]+:[^\\s]+$"
           },
           "status": {
             "type": "string"
@@ -614,7 +614,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+        "pattern": "^did:[a-z0-9]+:[^\\s]+$"
       }
     },
     "claim_refresh_required": {

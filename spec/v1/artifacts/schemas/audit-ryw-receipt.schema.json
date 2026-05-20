@@ -170,7 +170,7 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "timestamp": {
       "type": "string",

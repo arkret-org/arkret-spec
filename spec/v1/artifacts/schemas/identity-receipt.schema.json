@@ -19,7 +19,7 @@
     },
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "seq": {
       "type": "integer",
@@ -31,7 +31,7 @@
     },
     "registry_service_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "witness_role": {
       "type": "string",

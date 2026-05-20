@@ -45,6 +45,7 @@ SCHEMA_ID_RE = re.compile(r"^cx\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+$")
 SCHEMA_ID_TOKEN_RE = re.compile(r"\bcx\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0-9]+\b")
 PROFILE_ID_RE = re.compile(r"^cx\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
 PROFILE_ID_TOKEN_RE = re.compile(r"\bcx\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+\b")
+VECTOR_ID_TOKEN_RE = re.compile(r"\bcx\.vector\.[a-z0-9_.-]+\.v[0-9]+\b")
 TYPED_ID_TOKEN_RE = re.compile(r"\bcx:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
 UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -63,6 +64,8 @@ TEXT_ARTIFACT_REF_RE = re.compile(
 )
 STABLE_SECTION_PLACEHOLDER_RE = re.compile(r"(?:§\s*\d+\.x|§\s*x|^#{2,6}\s+\d+\.x\b)", re.IGNORECASE)
 OPERATION_COUNT_RE = re.compile(r"(\d+)\s*条\s*operation(?:_id)?", re.IGNORECASE)
+TRUST_DOMAIN_JSON_DID_RE = re.compile(r'"trust_domain"\s*:\s*"did:')
+LEGACY_DID_METHOD_REGEX_RE = re.compile(r"\^did:\[a-z0-9:[.\-_\\]+")
 
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     "spec/v1/zh/models/realm-and-space.md": {
@@ -945,6 +948,15 @@ def check_service_describe_alignment(lint: Lint) -> None:
 
     openapi_required = set(component.get("required") or [])
     schema_required = set(service_schema.get("required") or [])
+    for required_field in ("service_did", "trust_domain"):
+        if required_field not in schema_required:
+            lint.fail(schema_path, f"ServiceDescribe.required must include {required_field}")
+        if required_field not in openapi_required:
+            lint.fail(openapi_path, f"components.schemas.ServiceDescribe.required must include {required_field}")
+    if "trust_domain" not in (service_schema.get("properties") or {}):
+        lint.fail(schema_path, "ServiceDescribe.properties.trust_domain missing")
+    if "trust_domain" not in (component.get("properties") or {}):
+        lint.fail(openapi_path, "components.schemas.ServiceDescribe.properties.trust_domain missing")
     if openapi_required != schema_required:
         lint.fail(
             openapi_path,
@@ -976,6 +988,49 @@ def check_service_describe_alignment(lint: Lint) -> None:
         )
         if response_schema != {"$ref": "#/components/schemas/ServiceDescribe"}:
             lint.fail(openapi_path, f"{describe_path} 200 response must reference ServiceDescribe")
+
+
+def check_policy_check_alignment(lint: Lint) -> None:
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi = load_yaml(lint, openapi_path)
+    if not isinstance(openapi, dict):
+        return
+    paths = openapi.get("paths")
+    components = openapi.get("components", {}).get("schemas", {})
+    if not isinstance(paths, dict) or not isinstance(components, dict):
+        return
+    if "/contrix/v1/check" in paths:
+        lint.fail(openapi_path, "legacy /contrix/v1/check policy path must not be present; use /policy/check")
+
+    policy_path = paths.get("/policy/check", {}).get("post", {})
+    request_schema = (
+        policy_path.get("requestBody", {})
+        .get("content", {})
+        .get("application/json", {})
+        .get("schema")
+    )
+    response_schema = (
+        policy_path.get("responses", {})
+        .get("200", {})
+        .get("content", {})
+        .get("application/json", {})
+        .get("schema")
+    )
+    if request_schema != {"$ref": "#/components/schemas/PolicyCheckRequest"}:
+        lint.fail(openapi_path, "/policy/check requestBody must reference PolicyCheckRequest")
+    if response_schema != {"$ref": "#/components/schemas/PolicyCheckResponse"}:
+        lint.fail(openapi_path, "/policy/check 200 response must reference PolicyCheckResponse")
+
+    request_component = components.get("PolicyCheckRequest")
+    response_component = components.get("PolicyCheckResponse")
+    if not isinstance(request_component, dict):
+        lint.fail(openapi_path, "components.schemas.PolicyCheckRequest missing")
+    elif "realm_id" not in set(request_component.get("required") or []):
+        lint.fail(openapi_path, "PolicyCheckRequest.required must include realm_id")
+    if not isinstance(response_component, dict):
+        lint.fail(openapi_path, "components.schemas.PolicyCheckResponse missing")
+    elif "bound_to" not in set(response_component.get("required") or []):
+        lint.fail(openapi_path, "PolicyCheckResponse.required must include bound_to")
 
 
 def check_text_reference_targets(lint: Lint) -> None:
@@ -1022,6 +1077,15 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
             if STABLE_SECTION_PLACEHOLDER_RE.search(line):
                 lint.fail(path, f"line {line_no}: placeholder section reference must be replaced with a stable heading or real section number")
 
+            if "/contrix/v1/check" in line:
+                lint.fail(path, f"line {line_no}: legacy policy path /contrix/v1/check must be replaced with /policy/check")
+
+            if TRUST_DOMAIN_JSON_DID_RE.search(line):
+                lint.fail(path, f"line {line_no}: trust_domain must use cx:trust_domain:<scope>, not a raw DID")
+
+            if LEGACY_DID_METHOD_REGEX_RE.search(line):
+                lint.fail(path, f"line {line_no}: DID regex must not allow ':'/'.'/'_' inside the method segment")
+
             for match in OPERATION_COUNT_RE.finditer(line):
                 count = int(match.group(1))
                 if count != operation_count:
@@ -1030,6 +1094,33 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
             for event_kind in active_event_kinds:
                 if re.search(rf"(?<![A-Za-z0-9_.-]){re.escape(event_kind)}\.v[0-9]+\b", line):
                     lint.fail(path, f"line {line_no}: active Event.kind {event_kind} must not be written with a .vN suffix")
+
+
+def check_vector_reference_closure(lint: Lint) -> None:
+    definition_paths = [
+        SPEC_ROOT / "zh" / "conformance" / "conformance-vectors.md",
+        *sorted((ARTIFACTS / "fixtures").glob("*.json")),
+    ]
+    known_vectors: set[str] = set()
+    for path in definition_paths:
+        if not path.is_file():
+            continue
+        try:
+            known_vectors.update(VECTOR_ID_TOKEN_RE.findall(path.read_text(encoding="utf-8")))
+        except Exception:
+            continue
+    if not known_vectors:
+        lint.fail(SPEC_ROOT / "zh" / "conformance" / "conformance-vectors.md", "no conformance vector ids found")
+        return
+
+    for path in markdown_files() + raw_artifact_files():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for vector_id in sorted(set(VECTOR_ID_TOKEN_RE.findall(text))):
+            if vector_id not in known_vectors:
+                lint.fail(path, f"references undefined conformance vector id: {vector_id}")
 
 
 def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str, rest: str, known: dict[str, set[str]]) -> None:
@@ -1727,8 +1818,10 @@ def main() -> int:
     check_event_schema_coverage(lint, known)
     check_operation_surfaces(lint, known)
     check_service_describe_alignment(lint)
+    check_policy_check_alignment(lint)
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
+    check_vector_reference_closure(lint)
     check_fixtures(lint, known)
     check_crypto_signature_fixture(lint)
     check_markdown_links(lint)

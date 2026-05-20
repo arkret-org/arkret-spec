@@ -32,21 +32,21 @@
     },
     "subject": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Principal DID controlled by the handle holder. This remains the protocol actor / grant subject."
     },
     "recipient_service_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Principal Server service DID this handle binds to. When present, it MUST be used as member_delivery_binding.recipient_service_did at join time. The recipient service is always principal_server in v1; the type tag lives on delivery_binding_hint when this claim ships a builder payload."
     },
     "issuer": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$|^[a-z0-9.-]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$|^[a-z0-9.-]+$"
     },
     "issuer_service_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Service DID that signed, served, or vouched for this handle claim when distinct from issuer."
     },
     "binding_state": {
@@ -106,7 +106,7 @@
       "properties": {
         "recipient_service_did": {
           "type": "string",
-          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
         },
         "recipient_service_type": {
           "const": "principal_server"

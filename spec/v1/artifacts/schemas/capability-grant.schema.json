@@ -25,13 +25,13 @@
     },
     "issuer": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "subject": {
       "oneOf": [
         {
           "type": "string",
-          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
         },
         {
           "type": "object",
@@ -90,7 +90,7 @@
     },
     "revoked_by": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "revoked_at": {
       "type": "string",
@@ -130,7 +130,7 @@
             "evidence_kind": { "const": "state_witness" },
             "witness_issuer": {
               "type": "string",
-              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+              "pattern": "^did:[a-z0-9]+:[^\\s]+$"
             },
             "witness_signature": {
               "type": "string",
@@ -138,15 +138,15 @@
             },
             "agent_id": {
               "type": "string",
-              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+              "pattern": "^did:[a-z0-9]+:[^\\s]+$"
             },
             "controller": {
               "type": "string",
-              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+              "pattern": "^did:[a-z0-9]+:[^\\s]+$"
             },
             "responsible_actor": {
               "type": "string",
-              "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+              "pattern": "^did:[a-z0-9]+:[^\\s]+$"
             },
             "acting_mode": { "type": "string" },
             "valid_until": {

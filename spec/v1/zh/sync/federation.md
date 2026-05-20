@@ -75,15 +75,20 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - `content-digest`（针对有 body 的请求；编码遵循 RFC 9530）
 - `source-service-did`（自定义 header `Source-Service-DID`）
 - `destination-service-did`（自定义 header `Destination-Service-DID`）
-- `request-canonical-hash`（自定义 header `Request-Canonical-Hash`）
+- `source-trust-domain`（自定义 header `Source-Trust-Domain`）
+- `destination-trust-domain`（自定义 header `Destination-Trust-Domain`）
+- `request-canonical-hash`（自定义 header `Request-Canonical-Hash`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /api/v1/events` MUST 携带）
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` header 替代）
 
 签名验证规则：
 
 - body 中的 `origin` / `destination` MUST 与签名 transcript 中的来源 / 目标 service DID 一致。
+- `Source-Trust-Domain` / `Destination-Trust-Domain` MUST 进入签名 transcript；若 body 或 `service_binding_ref` 中携带来源 / 目标 trust domain，必须与 header 完全一致。
 - `destination` MUST 是接收方 service DID；反向代理、多租户 host 或 shared ingress 不能只凭 `Host` 判断目的地。
+- `Destination-Trust-Domain` MUST 等于接收方当前 deployment 的 `ServiceDescribe.trust_domain`，并与被接收 Realm 的 `trust_domain` 一致；不一致 MUST 返回 `cross_domain_replay_rejected`。
 - 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 返回 `unauthorized`，`reason_code="federation_authority_mismatch"`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
 - 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。
+- 请求携带 `Request-Canonical-Hash` 时，该值 MUST 等于 canonical request body 的 SHA-256 digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 body 一致。无 body 的 `GET` pull MAY 省略该 header，因为 `@method` / `@target-uri` 已绑定查询语义。
 - 受保护联邦 endpoint MUST NOT 接受 query string 认证。
 - 签名失败、destination 不匹配、digest 不匹配或时间窗口失效 MUST 返回标准 error envelope，并尽量不泄露 Realm、Actor 或 Event 是否存在。
 
@@ -114,8 +119,11 @@ POST /api/v1/events
 Host: server-beta.com
 Source-Service-DID: did:web:server-alpha.com
 Destination-Service-DID: did:web:server-beta.com
+Source-Trust-Domain: cx:trust_domain:did.webvh.alpha.example
+Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
 Content-Digest: sha256=:<base64>:
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did");created=...;expires=...
+Request-Canonical-Hash: sha256:<hex>
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
 Signature: sig1=:base64...:
 ```
 
@@ -125,7 +133,10 @@ Signature: sig1=:base64...:
 | --- | --- | --- | --- | --- |
 | `Source-Service-DID` | header | `did` | required | 来源 service DID；与签名 transcript 绑定。 |
 | `Destination-Service-DID` | header | `did` | required | 目标 service DID；MUST 与目标 URL、DID service endpoint 和 Realm policy 委托一致。 |
-| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`，以及 `created` / `expires` 参数。 |
+| `Source-Trust-Domain` | header | `id:trust_domain` | required | 来源 deployment trust domain；与签名 transcript 绑定，用于 receiver trust policy、审计与跨域 replay 隔离。 |
+| `Destination-Trust-Domain` | header | `id:trust_domain` | required | 目标 deployment trust domain；MUST 等于接收方 `ServiceDescribe.trust_domain` 与目标 Realm `trust_domain`。 |
+| `Request-Canonical-Hash` | header | `sha256:<hash>` | required | canonical request body 的 SHA-256 digest；MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。 |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`、`request-canonical-hash`，以及 `created` / `expires` 参数。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
 | `Content-Digest` | header | `string` | required | 请求体摘要，MUST 覆盖 canonical request body；接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `cx.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
@@ -234,7 +245,7 @@ sequenceDiagram
     Cli->>Alpha: 提交 signed Event 到 Realm S
     Alpha->>Pol: 解析应接收的 Principal Server
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(space_policy_hash / membership_frontier / delivery_binding_frontier / reducer_profile_hash)
-    Alpha->>Beta: POST /api/v1/events (cx.events.submit)<br>HTTP Message Sig (RFC 9421)<br>Source-Service-DID / Destination-Service-DID<br>Content-Digest / service_binding_ref / events 数组
+    Alpha->>Beta: POST /api/v1/events (cx.events.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest / Request-Canonical-Hash<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. anchor_ref / Lattice precondition
     Beta-->>Alpha: 200 + accepted / rejected / quarantine
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
@@ -510,8 +521,8 @@ v1 联邦与单域 client 请求共享同一组 events / sync / identity 端点�
 
 | 联邦行为 | 复用端点 | 认证模式差异 |
 | --- | --- | --- |
-| 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
-| 跨域 backfill / 拉取缺失历史 | `GET /api/v1/events?before=<cursor>`（`cx.events.query`） | 同上。 |
+| 跨域推送 Event（含批处理） | `POST /api/v1/events`（`cx.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Hash` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
+| 跨域 backfill / 拉取缺失历史 | `GET /api/v1/events?before=<cursor>`（`cx.events.query`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest`，但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
 | 跨域 Realm 成员视图 | `GET /api/v1/events`（`cx.events.query`） + `cx.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 actor / DID 验证 | `POST /api/v1/identity/resolve`（`cx.identity.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
@@ -522,7 +533,10 @@ POST /api/v1/events
 Authorization: <service_signature>
 Source-Service-DID: did:web:server.acme.example
 Destination-Service-DID: did:web:server.beta.example
+Source-Trust-Domain: cx:trust_domain:did.webvh.acme.example
+Destination-Trust-Domain: cx:trust_domain:did.webvh.beta.example
 Request-Canonical-Hash: sha256:...
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "source-trust-domain" "destination-trust-domain" "request-canonical-hash");created=...;expires=...
 ```
 
 字段、签名 transcript、绑定与重放保护按 §3.2、§4.1 与 [`api-conventions.md` §3](./api-conventions.md) 与 [`service-http-binding.md` §3](./service-http-binding.md) 执行。事件以普通 reducer-input event 提交（preconditions / effects / anchor_ref 在顶层），与单域 client write 共享同一 schema（`cx.schema.event.v1`）。

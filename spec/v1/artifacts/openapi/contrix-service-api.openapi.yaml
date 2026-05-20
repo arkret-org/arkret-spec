@@ -116,10 +116,11 @@ components:
         RFC 9421 HTTP Message Signature applied with the source service DID's
         verification key. When present, the request MUST also include
         Source-Service-DID / Destination-Service-DID / Content-Digest (the
-        latter only for requests with a body); these are modeled as separate
-        apiKey securitySchemes (sourceServiceDid / destinationServiceDid /
-        contentDigest) and MUST appear in the same security AND group as
-        httpMessageSignature.
+        latter only for requests with a body); federation event push also MUST
+        include Source-Trust-Domain / Destination-Trust-Domain and
+        Request-Canonical-Hash. These are modeled as separate apiKey
+        securitySchemes and MUST appear in the same security AND group as
+        httpMessageSignature when required by the operation.
     sourceServiceDid:
       type: apiKey
       in: header
@@ -138,6 +139,30 @@ components:
         recipient service DID (anti-misdirection / cross-tenant guard). MUST
         match the deployment-resolved service identity; mismatched requests
         MUST be rejected before reaching reducer / business logic.
+    sourceTrustDomain:
+      type: apiKey
+      in: header
+      name: Source-Trust-Domain
+      description: |
+        Federation companion to httpMessageSignature. Identifies the source
+        deployment trust domain (`cx:trust_domain:<scope>`) and MUST be covered
+        by the signature transcript.
+    destinationTrustDomain:
+      type: apiKey
+      in: header
+      name: Destination-Trust-Domain
+      description: |
+        Federation companion to httpMessageSignature. Identifies the receiver
+        deployment trust domain (`cx:trust_domain:<scope>`) and MUST match the
+        destination service / Realm receive context before reducer logic runs.
+    requestCanonicalHash:
+      type: apiKey
+      in: header
+      name: Request-Canonical-Hash
+      description: |
+        sha256 digest of the canonical request object used for federation
+        idempotency / replay detection. MUST be covered by the HTTP Message
+        Signature transcript when present.
     contentDigest:
       type: apiKey
       in: header
@@ -271,6 +296,7 @@ components:
       - protocol_version
       - service_type
       - service_did
+      - trust_domain
       - supported_profiles
       - supported_operations
       - supported_bindings
@@ -296,6 +322,10 @@ components:
           type: string
         service_did:
           type: string
+        trust_domain:
+          type: string
+          pattern: ^cx:trust_domain:[a-z0-9][a-z0-9._\-:]{0,127}$
+          description: Deployment trust-domain boundary used for cross-deployment replay protection.
         supported_profiles:
           type: array
           items:
@@ -979,7 +1009,7 @@ components:
           type: array
           items:
             type: string
-            pattern: ^did:[a-z0-9:.\-_]+:[^\s]+$
+            pattern: ^did:[a-z0-9]+:[^\s]+$
       additionalProperties: false
     FieldFilter:
       type: object
@@ -1479,7 +1509,7 @@ components:
             properties:
               actor_id:
                 type: string
-                pattern: ^did:[a-z0-9:.\-_]+:[^\s]+$
+                pattern: ^did:[a-z0-9]+:[^\s]+$
               actor_seq:
                 type: integer
                 minimum: 0
@@ -2216,7 +2246,7 @@ components:
       properties:
         source_service_did:
           type: string
-          pattern: ^did:[a-z0-9:._-]+:[^\s]+$
+          pattern: ^did:[a-z0-9]+:[^\s]+$
         events:
           type: array
           minItems: 1
@@ -2227,11 +2257,63 @@ components:
           items:
             type: object
       additionalProperties: false
+    PolicyCheckRequest:
+      type: object
+      description: cx.policy.check input bound to a Realm authorization context.
+      required:
+      - request_id
+      - realm_id
+      - request_canonical_hash
+      - action
+      - actor
+      - source
+      properties:
+        request_id:
+          type: string
+        realm_id:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        request_canonical_hash:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+        action:
+          type: string
+        actor:
+          type: string
+          pattern: ^did:[a-z0-9]+:[^\s]+$
+        device_id:
+          type: string
+        source:
+          type: object
+          required:
+          - service_did
+          - service_type
+          - signed_transport
+          properties:
+            service_did:
+              type: string
+              pattern: ^did:[a-z0-9]+:[^\s]+$
+            service_type:
+              type: string
+            source_ip_hash:
+              type: string
+              pattern: ^sha256:[0-9a-f]{64}$
+            signed_transport:
+              type: boolean
+          additionalProperties: true
+        event_preview:
+          type: object
+          additionalProperties: true
+        auth_context:
+          type: object
+          additionalProperties: true
+      additionalProperties: false
     PolicyCheckResponse:
       type: object
       description: Result of cx.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.
       required:
       - request_id
+      - bound_to
       - decision
       - reason_code
       - expires_at
@@ -2242,6 +2324,31 @@ components:
       properties:
         request_id:
           type: string
+        bound_to:
+          type: object
+          description: Request context covered by the policy decision signature. Allows receivers to verify a forwarded decision without guessing transcript fields.
+          required:
+          - realm_id
+          - actor
+          - action
+          - request_canonical_hash
+          - policy_server_id
+          properties:
+            realm_id:
+              type: string
+              pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            actor:
+              type: string
+              pattern: ^did:[a-z0-9]+:[^\s]+$
+            action:
+              type: string
+            request_canonical_hash:
+              type: string
+              pattern: ^sha256:[0-9a-f]{64}$
+            policy_server_id:
+              type: string
+              pattern: ^did:[a-z0-9]+:[^\s]+$
+          additionalProperties: false
         decision:
           type: string
           enum:
@@ -2283,6 +2390,7 @@ components:
           properties:
             kid:
               type: string
+              pattern: ^did:[a-z0-9]+:[^\s]+#.+$
               description: DID URL of the policy server verification method.
             sig:
               type: string
@@ -2479,6 +2587,9 @@ paths:
       - httpMessageSignature: []
         sourceServiceDid: []
         destinationServiceDid: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        requestCanonicalHash: []
         contentDigest: []
       requestBody:
         required: true
@@ -4087,7 +4198,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/PolicyCheckRequest'
   /contrix/v1/ice-config:
     servers:
     - url: https://{host}

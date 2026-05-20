@@ -113,7 +113,7 @@
             "properties": {
               "actor_id": {
                 "type": "string",
-                "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+                "pattern": "^did:[a-z0-9]+:[^\\s]+$"
               },
               "from_seq": {
                 "type": "integer",

@@ -95,7 +95,7 @@
     },
     "created_by": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "created_at": {
       "type": "string",
@@ -104,7 +104,7 @@
     },
     "updated_by": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "updated_at": {
       "type": "string",

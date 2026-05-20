@@ -1244,7 +1244,7 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "timestamp": {
       "type": "string",
@@ -1491,7 +1491,7 @@
         },
         "verification_method": {
           "type": "string",
-          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+(#.+)?$"
+          "pattern": "^did:[a-z0-9]+:[^\\s]+(#.+)?$"
         },
         "payload_hash": { "$ref": "#/$defs/hash" },
         "created_at": { "$ref": "#/$defs/timestamp" },

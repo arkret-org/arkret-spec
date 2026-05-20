@@ -10,6 +10,7 @@
       "expect_valid": true,
       "instance": {
         "service_did": "did:web:alice.example.net",
+        "trust_domain": "cx:trust_domain:did.webvh.alice.example",
         "service_type": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [
@@ -43,6 +44,7 @@
       "expect_valid": false,
       "instance": {
         "service_did": "did:web:alice.example.net",
+        "trust_domain": "cx:trust_domain:did.webvh.alice.example",
         "service_type": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
@@ -64,6 +66,75 @@
         "verified_profiles": [],
         "experimental_features": [],
         "compat_surfaces": []
+      }
+    },
+    {
+      "name": "service_describe_missing_trust_domain_rejected",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "service_did": "did:web:alice.example.net",
+        "service_type": "principal_server",
+        "protocol_version": "1.0",
+        "supported_profiles": [],
+        "supported_operations": [
+          "cx.server.describe"
+        ],
+        "supported_bindings": [
+          {
+            "kind": "http_json"
+          }
+        ],
+        "supported_features": [],
+        "auth_metadata": {},
+        "limits": {},
+        "plaintext_visibility": {},
+        "rate_limit_policy": {},
+        "implemented_features": [],
+        "claimed_profiles": [],
+        "verified_profiles": [],
+        "experimental_features": [],
+        "compat_surfaces": [],
+        "development_mode": false
+      }
+    },
+    {
+      "name": "realm_valid_trust_domain_bound",
+      "schema_ref": "schemas/realm.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "schema": "cx.schema.realm.v1",
+        "title": "Launch Plan Confidential Realm",
+        "created_by_principal": "did:web:acme.example",
+        "trust_domain": "cx:trust_domain:did.webvh.acme.example",
+        "schema_refs": [
+          "cx.schema.realm.v1"
+        ],
+        "default_discoverability": "invite_only",
+        "default_join_rule": "invite",
+        "history_visibility": "joined",
+        "encryption_profile": "mls_rfc9420",
+        "created_at": "2026-04-26T00:00:00Z"
+      }
+    },
+    {
+      "name": "realm_missing_trust_domain_rejected",
+      "schema_ref": "schemas/realm.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+        "schema": "cx.schema.realm.v1",
+        "title": "Launch Plan Confidential Realm",
+        "created_by_principal": "did:web:acme.example",
+        "schema_refs": [
+          "cx.schema.realm.v1"
+        ],
+        "default_discoverability": "invite_only",
+        "default_join_rule": "invite",
+        "history_visibility": "joined",
+        "encryption_profile": "mls_rfc9420",
+        "created_at": "2026-04-26T00:00:00Z"
       }
     },
     {

@@ -8,6 +8,7 @@
     "schema",
     "title",
     "created_by_principal",
+    "trust_domain",
     "schema_refs",
     "default_discoverability",
     "default_join_rule",
@@ -42,6 +43,10 @@
     },
     "created_by_principal": {
       "$ref": "#/$defs/did"
+    },
+    "trust_domain": {
+      "$ref": "#/$defs/trust_domain",
+      "description": "Immutable deployment trust domain captured by cx.realm.create. Receivers MUST require this to match the current Realm trust domain before accepting cross-domain replay-sensitive proofs."
     },
     "owning_organizations": {
       "type": "array",
@@ -394,7 +399,11 @@
   "$defs": {
     "did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^cx:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     },
     "timestamp": {
       "type": "string",

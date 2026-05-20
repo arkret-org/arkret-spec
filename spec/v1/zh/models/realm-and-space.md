@@ -60,7 +60,7 @@ Realm 与 MLS group 不是同义词：
 
 Schema id: `cx.schema.realm.v1`
 
-> Materialized Realm 上以 **reducer 派生** 标注的字段（`policy_ref` / `default_discoverability` / `default_join_rule` / `history_visibility` / `federation_policy` 等）只是当前态快照。写入路径必须使用对应 per-facet state event（`cx.realm.policy` / `cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / ...），不得直接 PATCH Realm 对象更新这些字段。`encryption_profile` 在 create event 时锁定，后续不可变。
+> Materialized Realm 上以 **reducer 派生** 标注的字段（`policy_ref` / `default_discoverability` / `default_join_rule` / `history_visibility` / `federation_policy` 等）只是当前态快照。写入路径必须使用对应 per-facet state event（`cx.realm.policy` / `cx.realm.join_rule` / `cx.realm.history_visibility` / `cx.realm.discovery` / `cx.realm.policy_components` / ...），不得直接 PATCH Realm 对象更新这些字段。`trust_domain` 与 `encryption_profile` 在 create event 时锁定，后续不可变。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -70,6 +70,7 @@ Schema id: `cx.schema.realm.v1`
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`。 | 安全等级标签。 |
 | `created_by_principal` | yes | `did` | 必须是 create event 授权主体。 | 创建 Principal。 |
+| `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
 | `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `cx.schema.realm.v1`。 | 启用 schema / profile。 |
 | `relation_profiles` | no | `array<RelationProfile>` | 同一 `(relation_kind, from_type, to_type, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
@@ -92,12 +93,13 @@ Schema id: `cx.schema.realm.v1`
 
 ### 2.4 最小示例
 
-```json
+```json schema=schemas/realm.schema.json
 {
   "id": "cx:realm:0196419b-0000-7000-8000-000000000000",
   "schema": "cx.schema.realm.v1",
   "title": "Launch Plan Confidential Realm",
   "created_by_principal": "did:web:acme.example",
+  "trust_domain": "cx:trust_domain:did.webvh.acme.example",
   "schema_refs": ["cx.schema.realm.v1"],
   "default_discoverability": "invite_only",
   "default_join_rule": "invite",

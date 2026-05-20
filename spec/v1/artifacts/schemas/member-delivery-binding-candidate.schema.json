@@ -19,7 +19,7 @@
   "properties": {
     "subject_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in cx.member.state{membership=join}."
     },
     "handle_uri": {
@@ -38,7 +38,7 @@
     },
     "recipient_service_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Principal Server service DID — source of member_delivery_binding.recipient_service_did once materialised."
     },
     "delivery_binding_hint": {
@@ -50,7 +50,7 @@
       "properties": {
         "recipient_service_did": {
           "type": "string",
-          "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s]+$"
         },
         "recipient_service_type": {
           "const": "principal_server"
@@ -94,7 +94,7 @@
     },
     "issuer_service_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Service DID that signed the candidate (Directory service DID, Principal Server service DID, or Organization service DID)."
     },
     "audience": {

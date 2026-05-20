@@ -20,7 +20,7 @@
   "properties": {
     "authority_did": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$",
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Source-Realm policy authority (typically Realm admin actor or designated policy server)."
     },
     "source_realm_id": {
@@ -38,7 +38,7 @@
     },
     "importer_actor_id": {
       "type": "string",
-      "pattern": "^did:[a-z0-9:.\\-_]+:[^\\s]+$"
+      "pattern": "^did:[a-z0-9]+:[^\\s]+$"
     },
     "import_destination_realm_id": {
       "type": "string",
