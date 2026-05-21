@@ -90,6 +90,46 @@
       "notes": "Companion to removed cx.realm.policy.set snapshot event."
     },
     {
+      "id": "cx.events.batch_get",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.events.resolve",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Renamed to express identifier dereference rather than range/query semantics."
+    },
+    {
+      "id": "cx.sync.account",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.account.subscribe",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Account-aggregate delivery moved out of the /sync namespace and from long-poll response shape to NDJSON streaming frames."
+    },
+    {
+      "id": "cx.sync.describe",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.account.describe",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Account-aggregate service describe moved to the /account namespace."
+    },
+    {
+      "id": "cx.sync.get_snapshot_head",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.snapshot.head",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Snapshot manifest discovery is no longer part of the account sync namespace."
+    },
+    {
+      "id": "cx.account.sync",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.account.subscribe",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical Matrix-derived account long-poll name; v1 uses streaming account subscribe."
+    },
+    {
       "id": "cx.agent_workspace.resolve_mirror_flow",
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",

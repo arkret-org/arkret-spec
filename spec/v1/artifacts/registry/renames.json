@@ -259,6 +259,51 @@
       "replacement": "cx.directory.resolve_realm",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Directory resolve operation id is renamed 'cx.directory.resolve_space' -> 'cx.directory.resolve_realm'. Resolution is by realm_id / alias / invite_token / signed_link and returns a Realm preview. HTTP path /directory/resolve-realm was already aligned; gRPC binding becomes Directory/ResolveRealm and MQ binding becomes directory.resolve_realm. Response field 'space_preview' is preserved during the migration window (see discovery-directory.md §9.1); a follow-up may rename it to 'realm_preview' under its own drift entry."
+    },
+    {
+      "id": "cx.events.batch_get",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.events.resolve",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Batch identifier dereference is renamed to resolve; selector / cursor reads stay on cx.events.query."
+    },
+    {
+      "id": "cx.sync.account",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.account.subscribe",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Account aggregate moved out of the Matrix-derived /sync namespace and changed wire delivery from long-poll JSON response to NDJSON streaming frames."
+    },
+    {
+      "id": "cx.sync.describe",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.account.describe",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Account aggregate describe moved to the /account namespace."
+    },
+    {
+      "id": "cx.sync.get_snapshot_head",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.snapshot.head",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Snapshot manifest discovery moved to its own /snapshot namespace."
+    },
+    {
+      "id": "cx.account.sync",
+      "kind_class": "operation_id",
+      "since_revision": "2026-05-21",
+      "rejection_level": "hard_reject",
+      "replacement": "cx.account.subscribe",
+      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "notes": "Historical account long-poll name; use streaming account subscribe."
     }
   ]
 }

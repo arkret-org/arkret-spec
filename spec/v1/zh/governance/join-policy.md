@@ -189,7 +189,7 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Move�
 
 ### 5.1 成员投递绑定
 
-`cx.member.state{membership="join"}` 表达的是某个 DID 在该 Realm 中成为成员；它**不等价于**"按该 DID 的全局 home Principal Server 投递"。Realm-scoped events / sync / to-device / push / key-package 的实际投递目标由该成员的 **effective delivery binding** 决定。本 §5.1 是 v1 normative。
+`cx.member.state{membership="join"}` 表达的是某个 DID 在该 Realm 中成为成员；它**不等价于**"按该 DID 的全局 home Principal Server 投递"。Realm-scoped events / account aggregate / to-device / push / key-package 的实际投递目标由该成员的 **effective delivery binding** 决定。本 §5.1 是 v1 normative。
 
 #### 5.1.1 接受准则（normative）
 

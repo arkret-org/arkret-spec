@@ -56,7 +56,7 @@ sidebar:
 | `cx.schema.blob.v1` | Blob Metadata |
 | `cx.schema.encrypted_payload.v1` | MLS Encrypted Payload Envelope |
 | `cx.schema.key_backup.v1` | Encrypted Key Backup |
-| `cx.schema.client_sync_response.v1` | Client Sync Response |
+| `cx.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
 | `cx.schema.device_message.v1` | To-device Message Envelope |
 | `cx.schema.mimi_interop.v1` | MIMI Provider Directory / Room Binding / Mapping Receipt |
 | `cx.schema.moderation_report.v1` | Moderation Report |

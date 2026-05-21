@@ -42,6 +42,29 @@
 
 ## [Unreleased]
 
+### Split `/sync` namespace; convert account aggregate to streaming subscribe; rename `cx.events.batch_get` → `cx.events.resolve`（2026-05-21）
+
+三件事原子合并:
+
+1. 拆 `/api/v1/sync` 命名空间:`/account/*` 承载 account 聚合,`/snapshot/*` 承载 snapshot manifest 入口。
+2. **account 聚合从 long-poll 转为 streaming push**: 旧 Matrix-derived `cx.account.sync` / `POST /account/sync` 一次性切成 `cx.account.subscribe` / `GET /account/subscribe`,响应 wire 形态从单 JSON object 改为 `application/x-ndjson` frame 流。`cx.account.subscribe` 与 `cx.events.subscribe` 因此成为对称的两类 streaming 订阅(account-aggregate vs per-Realm event log),共享 cursor / `dropped` / `resync_required` 恢复语义。
+3. `cx.events.batch_get` / `POST /events/batch-get` 重命名为 `cx.events.resolve` / `POST /events/resolve`(reference → object 解引用,与 `cx.identity.resolve` / `cx.directory.resolve_*` 同族)。
+
+`POST /events`(submit) 与 `GET /events?…`(query) 路径形态保持不变。
+
+- **变更类型**: rename + delivery-model change (both breaking)
+- **影响 artifact**: `contract-catalog.json` operation_registry + capability_action_registry + schema_registry;派生 `operation-registry.json` + `capability-action-registry.json` + `schema-registry.json`;`openapi/contrix-service-api.openapi.yaml`(路径、operationId、method、schema 名、Content-Type、frame description);`bindings/non-http-bindings.yaml`(gRPC service + mq topic);`profiles/conformance-profiles.json`(operation_id + schema_id 引用,matrix_interop_compat 描述);`registry/error-code-registry.json`(error description 中的路径文本);`schemas/{cursor,bottom,account-subscribe-frame}.schema.json`(新建 account-subscribe-frame,删除 client-sync-response);`fixtures/sync-fixture.json`(recovery `call` 字段);`tools/{apply_pd6_security.py,lint_artifacts.py}`(operation_id 映射 + describe path 列表)。
+- **canonical 变更**: `contract-catalog.json` 中 5 个 operation 重命名(`cx.sync.account` → `cx.account.subscribe`(同时 wire 形态从 POST 改为 GET streaming)、`cx.sync.describe` → `cx.account.describe`、`cx.sync.get_snapshot_head` → `cx.snapshot.head`、`cx.events.batch_get` → `cx.events.resolve`),以及对应 http / grpc / mq 绑定路径全部更新;schema_registry 中 `cx.schema.client_sync_response.v1` 重命名为 `cx.schema.account_subscribe_frame.v1`,对应 schema 文件从 `client-sync-response.schema.json` 重写为 `account-subscribe-frame.schema.json`(新增 `kind` 字段及 7 种 frame 变体: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`,delta 变体的 body 字段与旧 schema 一致);surface_groups[`events_sync`].operations 同步更新;`cx.events.query_post` HTTP wire alias 维持现状不变。
+- **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`;registry 视图、OpenAPI、non-http bindings、conformance profiles 已与 catalog 对齐。
+- **conformance impact**:
+  - 受影响 profile: 所有 require `cx.sync.*` operation_id 的 profile (principal_server.v1、core_event_store.v1、chat_mvp.v1 等十余个) 已迁移到新名字;`cx.profile.matrix_interop_compat.v1` 描述更新——不再声明 `/account/sync` wire-shape parity(streaming push 与 Matrix long-poll `/sync` 不再兼容,其他 Matrix-derived surfaces 如 to-device / keys / push gateway 的 parity 保持)。
+  - profile tier 变化: 无。
+  - wire 兼容性: **breaking** — 旧路径 `POST /sync`、`GET /sync/describe`、`GET /sync/snapshot-head`、`POST /events/batch-get`、`POST /account/sync` 全部不再合法;旧 operation_id `cx.sync.*` / `cx.events.batch_get` / `cx.account.sync` 不再注册;account-aggregate 消费循环从 `POST` long-poll 改为 NDJSON streaming GET。
+  - reader / writer 行为要求: 客户端 MUST 把上述路径 / operation_id / wire delivery model 一次性切到新形态;不保留旧 alias。客户端 MUST 维护长连接 + frame-driven 重连(规则见 `client-sync.md` §2.0)。
+- **fixture / vector 变化**: `sync-fixture.json` recovery 字段 `cx.sync.get_snapshot_head` → `cx.snapshot.head`;现有 conformance vectors 自身路径文本中的 `/sync*` / batch_get / account.sync 已通过 prose 文档传播性更新覆盖。
+- **prose 同步**: 已更新 `zh/sync/{service-surface,service-http-binding,client-sync,federation,operations-sync,transport-bindings,service-api-schema.mdx}`(其中 `client-sync.md` §2 整段重写为 streaming 连接管理 + frame kind 表 + 重连规则,新增 §2.0 连接管理章节;`service-http-binding.md` §5 拆为 §5 Account API + §6 Snapshot API,后续 sections 顺延)、`zh/authz/capabilities.md` §5.* 操作清单、`zh/conformance/{conformance-profiles,schema-registry,encoding}.md`、`zh/identity/key-management.md`。
+- **迁移指南**: 客户端实施侧 (1) **账号聚合**: `POST /account/sync` (单次响应) → `GET /account/subscribe` (长连接 NDJSON);消费循环改为 frame loop,delta frame 推数据,`dropped` frame 用 `cx.events.query` 补齐,`resync_required` 全量重建。(2) `GET /sync/describe` → `GET /account/describe`。(3) `GET /sync/snapshot-head?realm_id=…` → `GET /snapshot/head?realm_id=…`。(4) `POST /events/batch-get` → `POST /events/resolve`(请求 / 响应 body 形状不变,仅路径与 operation_id 变)。(5) operation_id 引用同步更新。`POST /events`(submit) 与 `GET /events?…`(query) 路径不变;`cx.events.query_post` (POST /events/query) 仍为同一逻辑查询的 HTTP body 形式 wire alias,操作语义保持原貌。客户端 HTTP/2+ 部署对两条 streaming 长连接(`events.subscribe` + `account.subscribe`)是多路复用的,无额外 TCP 槽消耗;HTTP/1.1 部署多占 1 个 TCP 槽,仍在 per-origin 6-connection 上限内。
+
 ### Withdraw `cx.profile.agent_workspace.v1`（2026-05-20）
 
 撤销 agent workspace extension profile 及其所有派生工件。"用户本地 agent 协作上下文"被重新归位为部署本地关切，不再属于协议层。一般性的 agent 参与（agent 加入 Realm、capability、A2A/ACP 协议会话）通过既有的 `cx.member.state` / `cx.capability.grant` / `cx.agent.*` 表面继续支持。

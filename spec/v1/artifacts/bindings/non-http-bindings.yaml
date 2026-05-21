@@ -56,17 +56,15 @@ grpc:
       Describe: cx.events.describe
       Submit: cx.events.submit
       Get: cx.events.get
-      BatchGet: cx.events.batch_get
+      Resolve: cx.events.resolve
       Query: cx.events.query
       # cx.events.query_post reuses the canonical Events/Query gRPC binding;
       # it is a HTTP-specific alias for the body-form transport (see
       # operation-registry notes).
       Subscribe: cx.events.subscribe
       Frontier: cx.events.frontier
-    Sync:
-      Describe: cx.sync.describe
-      Account: cx.sync.account
-      GetSnapshotHead: cx.sync.get_snapshot_head
+    Snapshot:
+      Head: cx.snapshot.head
     Directory:
       Describe: cx.directory.describe
       SearchRealms: cx.directory.search_realms
@@ -136,6 +134,8 @@ grpc:
       GetEffectiveGrants: cx.authz.get_effective_grants
       GetInvites: cx.authz.get_invites
     Account:
+      Describe: cx.account.describe
+      Subscribe: cx.account.subscribe
       IssueSessionGrant: cx.account.issue_session_grant
       DevicePair: cx.account.device_pair
       OidcCallback: cx.account.oidc_callback
@@ -167,10 +167,10 @@ mq:
         type: array
   topics:
     events.submit: cx.events.submit
-    events.batch_get: cx.events.batch_get
+    events.resolve: cx.events.resolve
     events.query: cx.events.query
     events.subscribe: cx.events.subscribe
-    sync.account: cx.sync.account
+    account.subscribe: cx.account.subscribe
     directory.private_contact_discovery: cx.directory.private_contact_discovery
     directory.announce: cx.directory.announce
     directory.withdraw: cx.directory.withdraw

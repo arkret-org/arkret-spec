@@ -4,23 +4,31 @@ title: Client Sync
 
 ## 1. 目标
 
-Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API / sync service 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `cx.events.query` / `cx.events.subscribe`。
+Client Sync 是客户端 **账号视角聚合** 推流协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），以**长连接 NDJSON 流**的形式由服务端按需推送。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `cx.events.query` / `cx.events.subscribe`。
 
-本文定义 Contrix v1 的客户端账号同步语义，不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
+`cx.account.subscribe` 与 `cx.events.subscribe` 是对称的两类 streaming 订阅:
+- `cx.events.subscribe` 是**逐 Realm / actor 的事件流**(selector 范围内的每条 Event)
+- `cx.account.subscribe` 是**账号视角的聚合流**(跨所有 Realm 的 delta 总览 + account-scoped 数据)
+
+两者共享相同的 stream cursor 形态、resume / `dropped` / `resync_required` 恢复语义,差异仅在 selector 与 frame 内容。
+
+本文定义 Contrix v1 的客户端账号同步语义,不表示存在 `sync v1` / `sync v2` 两个协议版本。版本演进应由 transport binding 路径、feature discovery 和 conformance profile 表达。
 
 所有 full client 和 E2EE client MUST 支持本文件。
 
 ## 2. Endpoint
 
 ```http
-POST /api/v1/sync
+GET /api/v1/account/subscribe?catchup=true
 Authorization: Bearer <session_token>
-Content-Type: application/json
+Accept: application/x-ndjson
 ```
 
-该端点对应 `cx.sync.account`。它聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /api/v1/events/subscribe`（按 selector 的事件流订阅）和 `GET /api/v1/events?before=...` / `?after=...`（按 selector 的双向历史查询）。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `cx.sync.*`，事件读取在 `cx.events.*`。
+上面是 **initial account sync** 的 canonical 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），再以 `catchup_complete` 标记 baseline 完成并进入实时推送。常规网络重连使用 `GET /api/v1/account/subscribe?after=<cursor>&catchup=true` 补齐断线期间的账号 delta；收到 `dropped` frame 后的补洞重连同样使用 `GET /api/v1/account/subscribe?after=<cursor>&catchup=true`。
 
-Account sync 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_did` 指向的服务上；DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/sync` 响应。
+该端点对应 `cx.account.subscribe`,wire 形态是长连接 NDJSON 流。它聚合跨 Realm delta、to_device、account_data、device_lists、presence;不同于 `GET /api/v1/events/subscribe`(按 selector 的事件流订阅)和 `GET /api/v1/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则,但 `operation_id`、响应语义与所属 namespace 不同:account 同步在 `cx.account.*`,snapshot 入口在 `cx.snapshot.*`,事件读取在 `cx.events.*`。
+
+Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文,客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/account/subscribe` 长连接。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_did` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/account/subscribe` 流。
 
 ### 2.1 Delivery Binding UX 指引（SHOULD）
 
@@ -40,67 +48,41 @@ Account sync 的服务边界是当前 authenticated session 绑定的 Principal 
 
 这些是 SHOULD，不构成 wire 互操作的硬约束；但符合 `cx.profile.full_client.v1` / `cx.profile.e2ee_client.v1` 的实现 SHOULD 在 UX self-check 中覆盖。
 
-请求字段：
+请求参数(query string,无 body):
 
-| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| 参数 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
-| `since` | body | `cursor` | optional | 上次响应中的 `cursor`（purpose=`stream`）；缺省表示初始同步。 |
-| `timeout_ms` | body | `int` | optional | 长轮询等待时间上限。 |
-| `set_presence` | body | `enum(online,offline,unavailable)` | optional | 同步时设置当前设备 presence。 |
-| `filter` | body | `object` | optional | 过滤条件。 |
-| `filter.realms` | body | `id[]` | optional | 限制返回 Realm。 |
-| `filter.timeline_limit` | body | `int` | optional | 每个 Realm timeline 数量上限。 |
-| `filter.lazy_load_members` | body | `boolean` | optional | 是否延迟加载成员。 |
-| `filter.include_redundant_members` | body | `boolean` | optional | 是否包含冗余成员状态。 |
-| `filter.event_types` | body | `string[]` | optional | 事件类型 allow list。 |
-| `filter.not_event_types` | body | `string[]` | optional | 事件类型 deny list。 |
-| `subscriptions` | body | `object` | optional | Sliding sync 风格的 Realm subscription 配置。 |
+| `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
+| `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端先回放 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame,然后切到实时尾部;这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `cx.events.query` 分页/区间读取。 |
+| `set_presence` | query | `enum(online,offline,unavailable)` | optional | 连接建立时设置当前设备 presence,服务端在 frame 推送过程中向其他 Realm 广播。 |
+| `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 events.subscribe。 |
+| `filter.realms` | query | `id[]` | optional | 限制返回 Realm。 |
+| `filter.timeline_limit` | query | `int` | optional | 每个 Realm timeline 数量上限(per-frame)。 |
+| `filter.lazy_load_members` | query | `boolean` | optional | 是否延迟加载成员。 |
+| `filter.include_redundant_members` | query | `boolean` | optional | 是否包含冗余成员状态。 |
+| `filter.event_types` | query | `string[]` | optional | 事件类型 allow list。 |
+| `filter.not_event_types` | query | `string[]` | optional | 事件类型 deny list。 |
 
-请求示例（非完整 schema）：
+响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 
-```json
-{
-  "since": "cx:cursor:<opaque-valid-stream-cursor>",
-  "timeout_ms": 30000,
-  "set_presence": "online",
-  "filter": {
-    "realms": ["cx:realm:..."],
-    "timeline_limit": 50,
-    "lazy_load_members": true,
-    "include_redundant_members": false,
-    "event_types": ["cx.message.*", "cx.flow.*", "cx.realm.*", "cx.morph.*"],
-    "not_event_types": ["cx.typing"]
-  },
-  "subscriptions": {
-    "realm:...": {
-      "ranges": [[0, 50]],
-      "required_state": [
-        ["cx.realm.*", ""],
-        ["cx.member.state", "$ME"],
-        ["cx.view.*", "*"]
-      ]
-    }
-  }
-}
-```
+| `kind` | 是否含 `cursor` | 含义 |
+| --- | --- | --- |
+| `delta` | required | 一次 account-aggregate 增量推送(realms / to_device / account_data / device_lists / presence / notifications)。客户端 MUST 把 `cursor` 作为下次重连的 `after=` 起点。 |
+| `catchup_complete` | required | catch-up replay 或 initial baseline 完成,后续 frame 是实时推送。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
+| `frontier` | required | 仅推进 cursor,不带数据;用于服务端在 quiescent 期周期性确认订阅仍连通。 |
+| `heartbeat` | absent | 防中间层断流的 keepalive。 |
+| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。客户端 MUST 重新建立 `cx.account.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `cx.events.query` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。 |
+| `resync_required` | absent | 服务端无法定位任何可用 catch-up 起点(本地状态彻底失效)。客户端 MUST 清空本地 cursor 缓存,从零重新建立订阅。 |
+| `unauthorized` | absent | 当前 session 不再有权限消费该流;客户端 MUST 重新认证或退出。 |
 
-响应字段：
+frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json)(`cx.schema.account_subscribe_frame.v1`)。
 
-| 字段 | 类型 | 必填 | 说明与约束 |
-| --- | --- | --- | --- |
-| `cursor` | `cursor` | required | 下次同步使用的 opaque stream cursor（`cx:cursor:<base64url>`，purpose=`stream`）。客户端 MUST 直接作为 `since` 回传，不得解析。 |
-| `realms` | `object` | optional | Contrix 原生 Realm 聚合同步结果，按 `join` / `invite` / `knock` / `leave` 分桶；每个 bucket 以 `cx:realm:*` 为 key。 |
-| `to_device` | `object` | optional | 当前设备 to-device 消息。 |
-| `device_lists` | `object` | optional | 设备列表变化。 |
-| `presence` | `object` | optional | presence 事件。 |
-| `account_data` | `object` | optional | actor-private account data。 |
-| `notifications` | `object` | optional | 通知增量。 |
-
-响应示例（非完整 schema）：
+`delta` frame 示例:
 
 ```json
 {
+  "kind": "delta",
   "cursor": "cx:cursor:<opaque-valid-stream-cursor>",
   "realms": {
     "join": {},
@@ -116,16 +98,39 @@ Account sync 的服务边界是当前 authenticated session 绑定的 Principal 
 }
 ```
 
-`realms.join`、`realms.invite`、`realms.knock` 和 `realms.leave` MUST 是对象；每个对象的 key 是 `cx:realm:*`，value 是该 Realm 的聚合同步结果。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状：
+控制 frame 示例:
+
+```text
+{"kind": "catchup_complete", "cursor": "cx:cursor:..."}
+{"kind": "frontier", "cursor": "cx:cursor:..."}
+{"kind": "heartbeat"}
+{"kind": "dropped", "cursor": "cx:cursor:..."}
+{"kind": "resync_required"}
+{"kind": "unauthorized"}
+```
+
+`realms.join`、`realms.invite`、`realms.knock` 和 `realms.leave` MUST 是对象;每个对象的 key 是 `cx:realm:*`,value 是该 Realm 的聚合同步结果。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状:
 
 ```json
 {
   "events": []
 }
 ```
+
+### 2.2 连接管理与重连
+
+客户端 MUST 维护一个长期存在的 `/account/subscribe` 连接,并:
+
+1. **持久化最近收到的 `cursor`**(任何带 cursor 的 frame 都更新本地高水位)。
+2. **网络断开**: 立即用最近 `cursor` 作为 `after=` 重连,并设置 `catchup=true`,确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。
+3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta。不得只用 `cx.events.query` 恢复,因为 `to_device`、`account_data`、`device_lists`、presence 与 notifications 不属于裸 Realm Event 查询面。
+4. **`resync_required` frame**: 清空本地 cursor 缓存,重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;大型 Realm 的当前态可走 snapshot bootstrap,见 §13。
+5. **`unauthorized` frame**: 关闭连接,触发 session 刷新或退出登录。
+6. **建议 reconnect 退避**: 指数退避,起始 1s,最大 60s;`dropped` / `resync_required` 后立即重连(不退避)以缩短数据不一致窗口。
+
 ## 3. Stream Classes
 
-Sync 响应包含以下 stream：
+Account subscribe `delta` frame 包含以下 stream：
 
 | Stream | 持久性 | 用途 |
 | --- | --- | --- |
@@ -144,7 +149,7 @@ Sync 响应包含以下 stream：
 
 客户端 MUST 使用 `cursor` 作为唯一 resume token，不得解析 token 内部结构。
 
-`receipts`、`notifications` 和高频 actor-private `read_marker` delta MAY 被服务端合并；同一 scope 在一个 sync 窗口内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖响应中声明的最终 stream positions。
+`receipts`、`notifications` 和高频 actor-private `read_marker` delta MAY 被服务端合并；同一 scope 在一个 account subscribe frame 内只需要返回最新可见位置和最终 unread count。客户端不得要求服务返回每一次中间 read receipt / marker 变化；`cursor` 只承诺覆盖 frame 中声明的最终 stream positions。
 
 ## 4. Realm Buckets
 
@@ -280,7 +285,7 @@ event_id ASC
 
 推荐策略：
 
-- initial sync 只返回 Realm 摘要、必要 `required_state` 和有限 timeline。
+- initial account sync baseline 只返回 Realm 摘要、必要 `required_state` 和有限 timeline。
 - 活跃 Realm 优先，低优先级 Realm 只返回 unread / mention / summary。
 - 使用 sliding window subscriptions 拉取当前视图需要的 timeline ranges。
 - 使用 `timeline.limited=true` 标记缺口，并通过 backfill / pagination 拉取。
@@ -327,7 +332,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 `to_device.events` MUST 只包含当前 access token 对应 device 的消息。
 
-**To-device 投递推断 (normative)**：服务器在收到客户端回传的 `since=<cursor>` 后，**MUST 先按 §12 完整性校验** (MAC/签名 验证 或 stateful handle lookup) 通过，才可将该 cursor 内 `d` (device positions) 之前的 to-device 消息视为已投递并从服务端队列清理。完整性校验失败时 MUST 返回 `cursor_integrity_invalid` 且 **MUST NOT** 推进 to-device 投递状态。客户端如果未处理成功，必须通过本地事务日志恢复。
+**To-device 投递推断 (normative)**：服务器在收到客户端回传的 `after=<cursor>` 后，**MUST 先按 §12 完整性校验** (MAC/签名 验证 或 stateful handle lookup) 通过，才可将该 cursor 内 `d` (device positions) 之前的 to-device 消息视为已投递并从服务端队列清理。完整性校验失败时 MUST 返回 `cursor_integrity_invalid` 且 **MUST NOT** 推进 to-device 投递状态。客户端如果未处理成功，必须通过本地事务日志恢复。
 
 > Rationale: 若服务端仅按语法 / TTL / purpose 校验就接受客户端 `d` 位置，byzantine 客户端 (或被 XSS / 复制日志泄露后被重放的 cursor) 可篡改 `d` 推进 to-device ack，导致 key verification、cross-signing reset、secret sharing 等 to-device 消息被永久丢弃 — 即使诚实客户端重连也拿不回。
 
@@ -362,11 +367,11 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - stream positions
 - expiry
 
-`cursor`（purpose=`barrier`）由写接口在响应中返回（见 [`api-conventions.md` §8](./api-conventions.md)），用于 `X-Contrix-Wait-For` header；它和 stream cursor 共享 wire 形态 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分。客户端不需要分辨，只需把"写响应里的 cursor"作为 wait-for header、把"`/sync` 响应里的 cursor"作为 `since` 即可。
+`cursor`（purpose=`barrier`）由写接口在响应中返回（见 [`api-conventions.md` §8](./api-conventions.md)），用于 `X-Contrix-Wait-For` header；它和 stream cursor 共享 wire 形态 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分。客户端不需要分辨，只需把"写响应里的 cursor"作为 wait-for header、把"`/account/subscribe` frame 里的 cursor"作为下次 `after=` 重连参数即可。
 
 ### 12.1 Cursor Integrity (normative)
 
-无论 stream 还是 barrier cursor，wire 形态 `cx:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于推进 to-device ack、`/sync` since、`X-Contrix-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。
+无论 stream 还是 barrier cursor，wire 形态 `cx:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于推进 to-device ack、`/account/subscribe` `after=` resume 起点、`X-Contrix-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。
 
 实现 MUST 选择以下两种 cursor 形态之一（互斥，由 schema `oneOf` 强制）；两种形态都满足"服务端可验证"的安全契约：
 
@@ -394,14 +399,21 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 ### 12.3 过期或缺口恢复流程
 
 1. 客户端保留本地 `cursor`、filter hash、未确认写入和最后可验证 frontier。
-2. 收到 `cursor_expired` / `cursor_integrity_invalid` / `stale_frontier` 后，先调用 `sync/describe` 或 `sync/snapshot-head` 获取当前 frontier 与推荐 snapshot。
+2. 收到 `cursor_expired` / `cursor_integrity_invalid` / `stale_frontier` 后，先调用 `account/describe` 或 `snapshot/head` 获取当前 frontier 与推荐 snapshot。
 3. 若 snapshot 可用，客户端 MUST 验证签名、签名者授权、state hash、frontier 和 chunk digest 后再采用。
-4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `sync/backfill`，补齐缺口后再恢复 `sync/subscribe` 或 `POST /sync`。
+4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `cx.events.query`（`GET /events?after=<cursor>`），补齐 Realm Event 缺口;账号聚合缺口则重新建立 `cx.account.subscribe?after=<cursor>&catchup=true` 重放。
 5. 若 snapshot 校验失败，客户端 MUST 回退到 Event history replay 或 Event-only backfill，并可将来源标记为 degraded。
 
 ## 13. Initial Sync
 
-没有 `since` 时为 initial sync。服务器 SHOULD：
+Initial sync 的账号入口是:
+
+```http
+GET /api/v1/account/subscribe?catchup=true
+Accept: application/x-ndjson
+```
+
+也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个 `delta` frame 作为账号 baseline,再发送 `catchup_complete`,然后继续保持连接进入实时推送。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
 
 - 返回用户当前 joined/invited/knocked Realms 的摘要。
 - 对活跃 Realm 返回有限 timeline。

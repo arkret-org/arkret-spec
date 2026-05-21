@@ -520,7 +520,7 @@ validate_op(op):
 
 membership / lifecycle / invite-approval 多用 `bottom=reject`。
 
-**Realm bootstrap exception**: `cx.realm.create` 的 reducer 既是 Realm metadata 的 genesis, 也是 `created_by_principal` 首份成员资格的 genesis — 二者必须原子完成（详见 [`../models/realm-and-space.md` §2.6](../models/realm-and-space.md#26-cxrealmcreate-reducer-bootstrap-normative)）。任何后续 reducer / authz layer 在判定"`actor` 是否是 Realm 成员"时, MUST 以 `cx.component.member.state.v1` cell 的 reducer view 为准, 而该 cell 在 `cx.realm.create` commit 之后已经包含 `created_by_principal`。"显式 `cx.member.state{join}` event 必须先到"是错误读法; create event 本身就是 genesis member 凭证。
+**Realm bootstrap exception**: `cx.realm.create` 的 reducer 既是 Realm metadata 的 genesis, 也是 `created_by_principal` 首份成员资格的 genesis — 二者必须原子完成（详见 [`../models/realm-and-space.md` §2.6](../models/realm-and-space.md#26-cxrealmcreate-reducer-bootstrapnormative)）。任何后续 reducer / authz layer 在判定"`actor` 是否是 Realm 成员"时, MUST 以 `cx.component.member.state.v1` cell 的 reducer view 为准, 而该 cell 在 `cx.realm.create` commit 之后已经包含 `created_by_principal`。"显式 `cx.member.state{join}` event 必须先到"是错误读法; create event 本身就是 genesis member 凭证。
 
 #### 5.3.5 `counter`
 

@@ -10,7 +10,7 @@ title: Service Surface And Bootstrap
 
 - identity registry 如何收发 DID 操作与 receipt
 - Events API 如何提交、读取、回填 signed Event
-- Principal Server 如何提供 realm sync stream 与 backfill
+- Principal Server 如何提供 account aggregate stream、snapshot 与 backfill 协调
 - search / View projection 的语义边界如何在客户端或显式受托服务中保持一致
 - directory 如何做 Realm / Organization / Actor 的授权搜索与精确解析
 - blob 如何上传与校验
@@ -76,10 +76,10 @@ DID Document SHOULD 只负责：
 
 | 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
 | --- | --- | --- | --- |
-| Principal Server | 普通用户或组织自建的核心入口 | `/server`, `/events`, `/sync`, `/federation`, 可代理 `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、Event 提交/读取、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
+| Principal Server | 普通用户或组织自建的核心入口 | `/server`, `/events`, `/account`, `/snapshot`, `/federation`, 可代理 `/blob`, `/authz`, `/device_messages`, `/keys` | 用户/组织的受控入口、Event 提交/读取、client sync、联邦 transaction、服务发现聚合、明文可见边界执行。 |
 | Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/identity`, `/server` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
 | Auth / Account Server | 个人部署可内置；组织通常独立或接入 SSO | 通过 `auth_metadata` 暴露，具体登录路径 MAY 由部署定义 | 登录、passkey/OIDC/SSO、session grant、device pairing、账户恢复；不得直接替代 DID 控制权。 |
-| Sync / Federation Server | 普通用户通常内置在 Principal Server | `/sync`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
+| Sync / Federation Server | 普通用户通常内置在 Principal Server | `/account`, `/snapshot`, `/federation`, `/server` | client sync、subscription、backfill、snapshot head、跨域 transaction、重放和 destination 绑定校验。 |
 | Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/directory`, `/server` | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
 | Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/blob`, `/server` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
 | Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/device_messages`, `/keys`, `/keys/keypackages`, `/keys/backups`, `/server` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
@@ -127,7 +127,7 @@ GET /api/v1/server/describe
     "cx.server.describe",
     "cx.events.submit",
     "cx.events.query",
-    "cx.sync.account"
+    "cx.account.subscribe"
   ],
   "supported_bindings": [
     {
@@ -344,7 +344,7 @@ GET /api/v1/events/describe
 - `service_did`
 - 支持的签名算法
 - 支持的 Event schema / reducer profile
-- 支持的 actor frontier、Realm frontier、batch-get 和 stream/backfill 能力
+- 支持的 actor frontier、Realm frontier、resolve 和 stream/backfill 能力
 
 ### 4.2 提交 Event
 
@@ -374,7 +374,7 @@ GET /api/v1/events/{event_id}
 ### 4.4 批量获取 Event
 
 ```text
-POST /api/v1/events/batch-get
+POST /api/v1/events/resolve
 ```
 
 请求体可携带一组 `event_ids` 或 `event_hashes`。响应按 Realm policy、history visibility、E2EE envelope policy 和 redaction policy 过滤 payload。
@@ -404,34 +404,34 @@ GET /api/v1/events/frontier?realm_id=<id>
 
 返回调用方可见范围内的 actor frontier、Realm frontier、latest HLC、可选 witness receipt / event batch receipt。frontier 只用于同步和强一致读取，不能替代 Event 集合本身。
 
-## 5. Account Sync Surface
+## 5. Account Aggregate / Snapshot Surface
 
-Account Sync Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared anchorer / sync service。
+Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`cx.events.query` / `cx.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared anchorer / sync service。
 
 > 历史命名 "Sync Surface" 容易让读者把它误解为"所有同步路径"，但事件流读取/订阅已迁移到 Events Surface。本节仅描述 account-aggregate 与 snapshot 入口。
 
-本节定义两个 sync namespace 操作（事件流读取请到 Events Surface）：
+本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
-- `POST /api/v1/sync`：客户端账号视角聚合同步（`cx.sync.account`），见 `client-sync.md`。
-- `GET /api/v1/sync/snapshot-head`：snapshot manifest 入口。
+- `GET /api/v1/account/subscribe`：客户端账号视角聚合同步（`cx.account.subscribe`），见 `client-sync.md`。
+- `GET /api/v1/snapshot/head`：snapshot manifest 入口。
 
 事件流读取统一在：
 
 - `GET /api/v1/events?realms=...&before=...` 或 `&after=...`（`cx.events.query`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
-- `GET /api/v1/events/subscribe?realms=...&include_history=...`（`cx.events.subscribe`，含历史 catchup 与多 realm 一次订阅）
+- `GET /api/v1/events/subscribe?realms=...&catchup=...`（`cx.events.subscribe`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
 
-实现不得把账号聚合 (`/sync`) 和裸事件读 (`/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
+实现不得把账号聚合 (`/account/subscribe`) 和裸事件读 (`/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
 
-### 5.1 描述 sync service
+### 5.1 描述 account aggregate service
 
 ```text
-GET /api/v1/sync/describe
+GET /api/v1/account/describe
 ```
 
 ### 5.2 snapshot 入口
 
 ```text
-GET /api/v1/sync/snapshot-head?realm_id=<id>
+GET /api/v1/snapshot/head?realm_id=<id>
 ```
 
 用于拿到当前推荐 snapshot manifest。
@@ -470,7 +470,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 - `event_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Realm-wide pause。
 - `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
 
-`/sync` / `/events` / `/api/v1/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（位置与精确 wire 形态见 [`service-api-schema.mdx`](service-api-schema.mdx) `cx.schema.bottom.v1` 引用）。
+`/account/subscribe` / `/events` / `/api/v1/state/query` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（位置与精确 wire 形态见 [`service-api-schema.mdx`](service-api-schema.mdx) `cx.schema.bottom.v1` 引用）。
 
 ### 5.4 明文与服务信任
 
@@ -504,7 +504,7 @@ Contrix v1 不定义必需的远端索引或应用视图服务面。当前态查
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
 - barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Realm frontier。Wire 形态与 stream cursor 共享 `cx:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
 
-barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `since` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `since`。
+barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `after=` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `/account/subscribe after=`。
 
 ### 6.2 Flow Discussion / Context Projection
 
@@ -557,7 +557,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read marker、mention
 
 ### 6.5 明文搜索边界
 
-Search / projection 派生结果可能比 Sync Surface 更容易查询，也可能包含正文摘要、命中片段、embedding 或通知摘要。因此：
+Search / projection 派生结果可能比 account aggregate surface 更容易查询，也可能包含正文摘要、命中片段、embedding 或通知摘要。因此：
 
 - 非 E2EE 私有 Realm 的全文搜索、embedding、通知摘要、inbox preview 和报表投影只能由 `plaintext_visible_services` 中列出的服务生成或保存。
 - 未列入 `plaintext_visible_services` 的受托 search / projection 服务 MUST 只接收公开内容、密文 envelope、不可逆 hash、最小 routing metadata 或 policy 明确允许的 stripped preview。
@@ -704,7 +704,7 @@ Contrix v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Realm link
 2. 客户端解析 DID，并完成 handle 双向校验
-3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / sync / blob / authz 服务
+3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / account / snapshot / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
 6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
@@ -767,7 +767,7 @@ Contrix v1 的首次加入流程：
 
 Contrix v1 固定：
 
-- 定义最小 principal server / identity registry / events / sync / blob / authz 服务面
+- 定义最小 principal server / identity registry / events / account / snapshot / blob / authz 服务面
 - v1 core 互操作 transport 锁定为 HTTP/JSON（见 [`transport-bindings.md` §1](./transport-bindings.md)）；gRPC / WebSocket / SSE / MQ / libp2p 等其他 binding 仅为 extension profile，本节列出的 operation 形态与字段以 HTTP/JSON 为唯一权威。其他 binding 必须语义等价但不构成 v1 core 一致性。
 - 写接口必须幂等
 - DID 写入采用多 registry / witness receipt，而不是区块链

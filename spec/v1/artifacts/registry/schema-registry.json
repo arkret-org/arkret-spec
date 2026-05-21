@@ -86,8 +86,8 @@
       "file": "schemas/snapshot.schema.json"
     },
     {
-      "schema_id": "cx.schema.client_sync_response.v1",
-      "file": "schemas/client-sync-response.schema.json"
+      "schema_id": "cx.schema.account_subscribe_frame.v1",
+      "file": "schemas/account-subscribe-frame.schema.json"
     },
     {
       "schema_id": "cx.schema.device_message.v1",
@@ -227,7 +227,7 @@
       "schema_id": "cx.schema.bottom.v1",
       "file": "schemas/bottom.schema.json",
       "status": "active",
-      "description": "Structured Bottom (⊥) diagnostic surfaced on /sync, /events, and state query responses when a cell's effective Lattice value is undefined"
+      "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
     },
     {
       "schema_id": "cx.schema.service_describe.v1",

@@ -783,7 +783,7 @@
       "profile": null
     },
     {
-      "action": "cx.sync.account",
+      "action": "cx.account.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -791,7 +791,7 @@
       "profile": null
     },
     {
-      "action": "cx.sync.describe",
+      "action": "cx.account.describe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -799,7 +799,7 @@
       "profile": null
     },
     {
-      "action": "cx.sync.get_snapshot_head",
+      "action": "cx.snapshot.head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],

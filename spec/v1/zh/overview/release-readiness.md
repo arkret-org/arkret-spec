@@ -26,9 +26,9 @@ title: 实现就绪与发布门槛
 | Schema | 52 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 39 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 82 | `artifacts/registry/operation-registry.json` |
-| Conformance profile（profile id） | 76 | `artifacts/profiles/conformance-profiles.json` |
+| Conformance profile（profile id） | 78 | `artifacts/profiles/conformance-profiles.json` |
 
-当前 `conformance-profiles.json` 另含 64 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 profile id 集合保持一致。
+当前 `conformance-profiles.json` 另含 66 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 profile id 集合保持一致。
 
 > Profile id 计数 76 与 `python tools/artifact_pipeline.py check` 输出（"... 82 operations, 76 profiles"）一致；该数字由 lint 工具按 canonical 计数规则得出，与本仓库 `tools/lint_artifacts.py` 同步。
 

@@ -60,7 +60,8 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | 服务发现 | `cx.server.*` | `/server/*` |
 | 身份与 registry | `cx.identity.*` | `/identity/*` |
 | Events | `cx.events.*` | `/events/*` |
-| 客户端同步与 Realm 同步 | `cx.sync.*` | `/sync/*` |
+| 账号视角聚合订阅 | `cx.account.subscribe`、`cx.account.describe` | `/account/*` |
+| Realm snapshot 入口 | `cx.snapshot.*` | `/snapshot/*` |
 | 目录发现 | `cx.directory.*` | `/directory/*` |
 | Blob / media | `cx.blob.*` | `/blob/*` |
 | 推送 | `cx.push.*` | `/push/*` |
@@ -70,7 +71,7 @@ HTTP/JSON 是参考绑定；同一操作必须可以无语义损失映射到其�
 | 审核 | `cx.moderation.*` | `/moderation/*` |
 | Applet | `cx.applet.*` | `/applet/*` |
 | MIMI 互操作 | `cx.mimi.*` | `/mimi/*` |
-| 账户与登录 | `cx.account.*` | `/auth/account/*` |
+| 账户登录与设备配对 | `cx.account.{issue_session_grant,device_pair,oidc_callback}` | `/auth/account/*` |
 | 管理员与运维 | `cx.admin.*` | `/admin/*` |
 
 ## 3. OpenAPI 参考快照（非穷尽示例）
@@ -135,22 +136,22 @@ paths:
   /events/{event_id}:
     get:
       operationId: cx.events.get
-  /events/batch-get:
+  /events/resolve:
     post:
-      operationId: cx.events.batch_get
+      operationId: cx.events.resolve
   /events/frontier:
     get:
       operationId: cx.events.frontier
 
-  /sync:
-    post:
-      operationId: cx.sync.account
-  /sync/describe:
+  /account/subscribe:
     get:
-      operationId: cx.sync.describe
-  /sync/snapshot-head:
+      operationId: cx.account.subscribe
+  /account/describe:
     get:
-      operationId: cx.sync.get_snapshot_head
+      operationId: cx.account.describe
+  /snapshot/head:
+    get:
+      operationId: cx.snapshot.head
 
   /directory/describe:
     get:
@@ -322,10 +323,10 @@ paths:
 | `cx.identity.submit_did_operation` | `POST /identity/submit-did-operation` | gRPC `SubmitDidOperation` / libp2p stream |
 | `cx.identity.get_document` / `cx.identity.get_log` / `cx.identity.get_receipts` | `GET /identity/document`, `GET /identity/log`, `GET /identity/receipts` | gRPC Identity Registry / witness query |
 | `cx.events.submit` | `POST /events` | gRPC `Events/Submit` / 队列 `events.submit` |
-| `cx.events.get` / `cx.events.batch_get` / `cx.events.query` / `cx.events.frontier` | `GET /events/{event_id}`, `POST /events/batch-get`, `GET /events`, `GET /events/frontier` | gRPC `Events/Get` / `Events/BatchGet` / `Events/Query` / `Events/Frontier` |
+| `cx.events.get` / `cx.events.resolve` / `cx.events.query` / `cx.events.frontier` | `GET /events/{event_id}`, `POST /events/resolve`, `GET /events`, `GET /events/frontier` | gRPC `Events/Get` / `Events/Resolve` / `Events/Query` / `Events/Frontier` |
 | `cx.events.subscribe` | `GET /events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
-| `cx.sync.account` | `POST /sync` | WebSocket/SSE account sync channel / `/sync?since...` |
-| `cx.sync.get_snapshot_head` | `GET /sync/snapshot-head` | snapshot pointer |
+| `cx.account.subscribe` | `GET /account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`) |
+| `cx.snapshot.head` | `GET /snapshot/head` | snapshot pointer |
 | 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/contrix/sync/1.0.0` + service signature。 |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*` | gRPC Discovery Service |
 | `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | `POST /directory/announce`, `POST /directory/withdraw`, `POST /directory/subscribe` | gRPC Discovery Ingest Service |
@@ -355,9 +356,9 @@ paths:
 - 任何节点都应能发布一份可下载的 OpenAPI 文档（建议路径 `/.well-known/contrix/openapi.yaml`），并在 service DID metadata 中声明版本和 hash。
 - 实现必须保持 `operation_id` 在演进中稳定；若请求字段名变更，必须通过 profile、schema 版本或 feature discovery 明确协商。
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
-- 实现不得因为支持 core Event/Sync 就默认声称支持目录、MIMI、账户、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
+- 实现不得因为支持 core Event / Account aggregate 就默认声称支持目录、MIMI、账户登录、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
 - `/contrix/v1/*` 是服务本地绝对路径，不挂在 `/api/v1` 下。生成 OpenAPI 时必须为这些 path 使用 path-level `servers` 或拆成独立文档。
-- `POST /sync`（`cx.sync.account`）是客户端账号视角聚合同步（跨 Realm delta + to_device + account_data + device_lists + presence）；`GET /events`（`cx.events.query`，可双向）是按 selector 的事件查询/历史回补；`GET /events/subscribe`（`cx.events.subscribe`，可携 history catchup）是按 selector 的事件流订阅。三类操作的 selector、auth、frame schema 与 freshness 行为不同，不得互相替代，也不得新增未声明的 canonical sync / events endpoint。
+- `GET /account/subscribe`（`cx.account.subscribe`）是客户端账号视角聚合 streaming 订阅(跨 Realm delta + to_device + account_data + device_lists + presence);`GET /events`(`cx.events.query`,可双向)是按 selector 的事件查询/历史回补;`GET /events/subscribe`(`cx.events.subscribe`,可携 bounded catch-up replay)是按 selector 的事件流订阅。`cx.account.subscribe` 与 `cx.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log);三类操作的 selector、auth、frame schema 与 freshness 行为不同,不得互相替代,也不得新增未声明的 canonical account / events endpoint。
 - 生成的 OpenAPI MUST 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme MUST NOT 定义 query string token 认证；受保护 endpoint 只能使用 header / signature / mTLS / signed proof body 等认证方式。
 - Blob / media endpoint 的 schema MUST 显式声明 `Content-Type`、`Content-Disposition`、`Range`、`Content-Range`、`Location` 和缓存头行为，避免通过 header 泄露不可见资源。

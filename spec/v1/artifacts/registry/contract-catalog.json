@@ -1685,8 +1685,8 @@
         "file": "schemas/snapshot.schema.json"
       },
       {
-        "schema_id": "cx.schema.client_sync_response.v1",
-        "file": "schemas/client-sync-response.schema.json"
+        "schema_id": "cx.schema.account_subscribe_frame.v1",
+        "file": "schemas/account-subscribe-frame.schema.json"
       },
       {
         "schema_id": "cx.schema.device_message.v1",
@@ -1826,7 +1826,7 @@
         "schema_id": "cx.schema.bottom.v1",
         "file": "schemas/bottom.schema.json",
         "status": "active",
-        "description": "Structured Bottom (⊥) diagnostic surfaced on /sync, /events, and state query responses when a cell's effective Lattice value is undefined"
+        "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
       },
       {
         "schema_id": "cx.schema.service_describe.v1",
@@ -2199,7 +2199,7 @@
       "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint."
     ],
     "capability_tiers": {
-      "core": "Base interoperable surfaces implied by claiming Contrix v1 protocol support (service discovery, identity registry, events/sync).",
+      "core": "Base interoperable surfaces implied by claiming Contrix v1 protocol support (service discovery, identity registry, events/account aggregate).",
       "extension": "Optional interoperable surfaces that are part of the Contrix specification but require explicit discovery/profile advertisement.",
       "interop_bridge": "Adapter surfaces that bridge Contrix to external protocols (MIMI Internet-Drafts, third-party Applet hosts). Implementations advertise these only when the external protocol is supported; bridge operations are not part of any core or extension profile and frequently mirror an in-spec operation via bridges_to.",
       "deployment_local": "Deployment-specific, operator, or product-local surfaces that MUST NOT be assumed from core protocol support alone."
@@ -2231,14 +2231,14 @@
           "cx.events.describe",
           "cx.events.submit",
           "cx.events.get",
-          "cx.events.batch_get",
+          "cx.events.resolve",
           "cx.events.query",
           "cx.events.query_post",
           "cx.events.subscribe",
           "cx.events.frontier",
-          "cx.sync.describe",
-          "cx.sync.account",
-          "cx.sync.get_snapshot_head"
+          "cx.account.describe",
+          "cx.account.subscribe",
+          "cx.snapshot.head"
         ]
       },
       {
@@ -2591,12 +2591,6 @@
         "mq": "directory.withdraw"
       },
       {
-        "operation_id": "cx.events.batch_get",
-        "http": "POST /events/batch-get",
-        "grpc": "Events/BatchGet",
-        "mq": "events.batch_get"
-      },
-      {
         "operation_id": "cx.events.describe",
         "http": "GET /events/describe",
         "grpc": "Events/Describe",
@@ -2626,6 +2620,13 @@
         "grpc": "Events/Query",
         "mq": "events.query",
         "notes": "HTTP-specific POST/body form of cx.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. gRPC / MQ bindings reuse the canonical Events/Query — request body uses the same shape across all transports."
+      },
+      {
+        "operation_id": "cx.events.resolve",
+        "http": "POST /events/resolve",
+        "grpc": "Events/Resolve",
+        "mq": "events.resolve",
+        "notes": "Dereference a known set of event_id / event_hash references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use cx.events.query for selector-based reads."
       },
       {
         "operation_id": "cx.events.subscribe",
@@ -2853,22 +2854,23 @@
         "mq": "server.describe"
       },
       {
-        "operation_id": "cx.sync.account",
-        "http": "POST /sync",
-        "grpc": "Sync/Account",
-        "mq": "sync.account"
+        "operation_id": "cx.account.describe",
+        "http": "GET /account/describe",
+        "grpc": "Account/Describe",
+        "mq": "account.describe"
       },
       {
-        "operation_id": "cx.sync.describe",
-        "http": "GET /sync/describe",
-        "grpc": "Sync/Describe",
-        "mq": "sync.describe"
+        "operation_id": "cx.account.subscribe",
+        "http": "GET /account/subscribe",
+        "grpc": "Account/Subscribe",
+        "mq": "account.subscribe",
+        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with cx.events.subscribe — both are streaming subscriptions, differing only in scope (events.subscribe = per-Realm event log; account.subscribe = account-aggregate). Replaces the prior Matrix-derived long-poll cx.account.sync; not wire-compatible with Matrix /sync."
       },
       {
-        "operation_id": "cx.sync.get_snapshot_head",
-        "http": "GET /sync/snapshot-head",
-        "grpc": "Sync/GetSnapshotHead",
-        "mq": "sync.get_snapshot_head"
+        "operation_id": "cx.snapshot.head",
+        "http": "GET /snapshot/head",
+        "grpc": "Snapshot/Head",
+        "mq": "snapshot.head"
       }
     ]
   },
@@ -3653,7 +3655,7 @@
         "profile": null
       },
       {
-        "action": "cx.sync.account",
+        "action": "cx.account.subscribe",
         "category": "service",
         "risk_tier": "low",
         "required_constraints": [],
@@ -3661,7 +3663,7 @@
         "profile": null
       },
       {
-        "action": "cx.sync.describe",
+        "action": "cx.account.describe",
         "category": "service",
         "risk_tier": "low",
         "required_constraints": [],
@@ -3669,7 +3671,7 @@
         "profile": null
       },
       {
-        "action": "cx.sync.get_snapshot_head",
+        "action": "cx.snapshot.head",
         "category": "service",
         "risk_tier": "low",
         "required_constraints": [],

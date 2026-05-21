@@ -18,15 +18,16 @@ info:
     **Typed vs generic schema policy**:
 
 
-    Stable core operations on the events / sync / identity / authz data path
+    Stable core operations on the events / account / snapshot / identity /
+    authz data path
 
     carry **typed request/response schemas** so SDK generators can derive
 
     operation-specific required fields directly from OpenAPI without consulting
 
-    prose. The typed surface currently covers `cx.events.{submit, get, batch_get,
+    prose. The typed surface currently covers `cx.events.{submit, get, resolve,
 
-    query, query_post, frontier}`, `cx.sync.{get_snapshot_head, account}`,
+    query, query_post, frontier}`, `cx.account.subscribe`, `cx.snapshot.head`,
 
     `cx.identity.{resolve, get_document, get_receipts}`, `cx.authz.{check,
 
@@ -36,9 +37,9 @@ info:
 
     `EventsSubmitFederationRequest`, `EventsSubmitResponse`, `EventGetResponse`,
 
-    `EventsBatchGetRequest` / `EventsBatchGetResponse`, `EventsQueryResponse`,
+    `EventsResolveRequest` / `EventsResolveResponse`, `EventsQueryResponse`,
 
-    `EventsFrontierResponse`, `SyncSnapshotHeadResponse`,
+    `EventsFrontierResponse`, `SnapshotHeadResponse`,
 
     `IdentityResolveResponse` / `IdentityGetDocumentResponse`,
 
@@ -49,7 +50,7 @@ info:
 
     Extension / interop / deployment-local operations (directory, applet, MIMI,
 
-    push, moderation, account, admin, etc.) continue to use the
+    push, moderation, admin, etc.) continue to use the
 
     generic `OperationRequest` / `OperationResult` envelope as their HTTP
 
@@ -512,16 +513,17 @@ components:
           type: array
           items:
             $ref: ../schemas/identity-receipt.schema.json
-    SyncResponse:
-      $ref: ../schemas/client-sync-response.schema.json
+    AccountSubscribeFrame:
+      $ref: ../schemas/account-subscribe-frame.schema.json
     BottomDiagnostic:
       $ref: ../schemas/bottom.schema.json
 
     # =========================================================================
     # Typed request / response schemas for stable core operations.
     # See zh/sync/service-http-binding.md for normative field semantics.
-    # Per OpenAPI binding policy in info.description: events / sync / identity /
-    # authz core surfaces carry typed schemas so SDK generators can derive
+    # Per OpenAPI binding policy in info.description: events / account /
+    # snapshot / identity / authz core surfaces carry typed schemas so SDK
+    # generators can derive
     # operation-specific required fields without consulting prose. Extension /
     # interop / deployment-local surfaces continue to use generic
     # OperationRequest / OperationResult envelopes.
@@ -668,9 +670,9 @@ components:
           items:
             type: object
 
-    EventsBatchGetRequest:
+    EventsResolveRequest:
       type: object
-      description: cx.events.batch_get request body. At least one of event_ids or event_hashes MUST be non-empty.
+      description: cx.events.resolve request body. At least one of event_ids or event_hashes MUST be non-empty.
       properties:
         event_ids:
           type: array
@@ -685,9 +687,9 @@ components:
           default: true
       additionalProperties: false
 
-    EventsBatchGetResponse:
+    EventsResolveResponse:
       type: object
-      description: cx.events.batch_get result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.
+      description: cx.events.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.
       required:
       - events
       - missing
@@ -854,9 +856,9 @@ components:
         verification_hints:
           type: object
 
-    SyncSnapshotHeadResponse:
+    SnapshotHeadResponse:
       type: object
-      description: Result of cx.sync.get_snapshot_head — a signed snapshot pointer for fast bootstrap.
+      description: Result of cx.snapshot.head — a signed snapshot pointer for fast bootstrap.
       required:
       - snapshot_ref
       - state_hash
@@ -956,7 +958,7 @@ components:
       additionalProperties: true
     EventStateView:
       type: object
-      description: Per-event protocol-state field surfaced on /sync and /events
+      description: Per-event protocol-state field surfaced on /account/subscribe and /events
         responses (zh/sync/service-surface.md §5.3, zh/authz/event-auth-state-resolution.md
         §13). Implementations MUST attach this on every reducer-input Event
         included in a timeline/state response so clients can render fail-closed
@@ -2973,16 +2975,18 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         requestCanonicalHash: []
-      summary: Streaming event subscription with optional history catchup.
+      summary: Streaming event subscription with optional catch-up replay.
       description: |
         Opens a streaming subscription scoped by `realms[]` / `actors[]`. Returns
         events from `after=<cursor>` (exclusive) forward. Subscribe naturally
         moves only toward newer events; there is no `before` / `order`
         parameter.
 
-        With `include_history=true` the server first replays historical events
-        from `after=<cursor>` up to the current frontier, then emits
-        `catchup_complete` per Realm and continues with live frames.
+        With `catchup=true` and `after=<cursor>` the server first replays
+        the bounded catch-up range from that cursor up to the current frontier,
+        then emits `catchup_complete` per Realm and continues with live frames.
+        This is not a request for all historical events; full history is read
+        through `GET /events` pagination / range queries.
       parameters:
       - name: realms
         in: query
@@ -3007,15 +3011,15 @@ paths:
         description: Subscription start cursor (exclusive). Same semantics as cx.events.query's `after=` parameter.
         schema:
           type: string
-      - name: include_history
+      - name: catchup
         in: query
-        description: When true, the server first replays history from `after=` then transitions to live.
+        description: When true and `after` is present, the server first replays the bounded catch-up range from `after=` to the current frontier, then transitions to live. This is not full-history retrieval.
         schema:
           type: boolean
-          default: true
+          default: false
       responses:
         '200':
-          description: Streaming event subscription with optional history catchup
+          description: Streaming event subscription with optional catch-up replay
           content:
             application/x-ndjson:
               schema:
@@ -3057,9 +3061,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventGetResponse'
-  /events/batch-get:
+  /events/resolve:
     post:
-      operationId: cx.events.batch_get
+      operationId: cx.events.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3071,14 +3075,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EventsBatchGetRequest'
+              $ref: '#/components/schemas/EventsResolveRequest'
       responses:
         '200':
-          description: Event batch
+          description: Resolved events keyed by event_id / event_hash
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventsBatchGetResponse'
+                $ref: '#/components/schemas/EventsResolveResponse'
   /events/frontier:
     get:
       operationId: cx.events.frontier
@@ -3117,35 +3121,89 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierResponse'
-  /sync:
-    post:
-      operationId: cx.sync.account
+  /account/subscribe:
+    get:
+      operationId: cx.account.subscribe
       security:
       - bearerAuth: []
-      responses:
-        '200':
-          description: Account-aggregated sync response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SyncResponse'
+      summary: Streaming push of account-aggregate deltas (NDJSON frames).
+      description: |
+        Long-lived streaming subscription that pushes cross-Realm
+        account-aggregate deltas (cross-Realm frontier, to_device queue,
+        account_data, device_lists, presence, unread / notification counts)
+        as new data becomes available. Response is `application/x-ndjson`;
+        each line is a self-contained frame object — see
+        AccountSubscribeFrame for frame kinds (`delta`, `frontier`,
+        `heartbeat`, `catchup_complete`, `dropped`, `resync_required`,
+        `unauthorized`).
+
+        Symmetric with cx.events.subscribe (per-Realm event log streaming);
+        both share resume semantics (`after=<cursor>` exclusive start).
+        `dropped` requires account-aggregate catch-up by reconnecting with
+        `after=<cursor>&catchup=true`; `resync_required` requires local
+        rebuild / initial account sync. Replaces the prior Matrix-derived
+        long-poll cx.account.sync.
       parameters:
       - in: header
         name: X-Contrix-Wait-For
         required: false
-        description: Barrier cursor (purpose=barrier) returned from a prior write. Server blocks the response until the local frontier covers target.event_id, or returns timeout / stale_frontier / temporarily_unavailable.
+        description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until the local frontier covers target.event_id, or emits an error frame (timeout / stale_frontier / temporarily_unavailable).
         schema:
           type: string
           pattern: '^cx:cursor:.+$'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OperationRequest'
-  /sync/snapshot-head:
+      - name: after
+        in: query
+        description: |
+          Subscription start cursor (exclusive). Frames are pushed after this
+          cursor position. Omit when there is no usable account cursor; with
+          `catchup=true` this starts initial account sync and the
+          server first emits a baseline delta.
+        schema:
+          type: string
+          pattern: '^cx:cursor:.+$'
+      - name: catchup
+        in: query
+        description: |
+          When true and `after` is present, server first replays the bounded
+          account-aggregate catch-up range after the `after=` cursor, emits
+          `catchup_complete`, then transitions to real-time push. When true
+          and `after` is omitted, this is initial account sync: server first
+          emits a current baseline delta, then `catchup_complete`, then
+          real-time push. This parameter never means "return all history";
+          complete event history is retrieved via `GET /events`.
+        schema:
+          type: boolean
+          default: false
+      - name: filter
+        in: query
+        description: Optional structured filter object (Realm subset, kinds, event-fields). See zh/sync/client-sync.md §2.
+        schema:
+          type: object
+        style: deepObject
+        explode: true
+      - name: set_presence
+        in: query
+        description: Presence intent for this connection — propagated to other Realms on accept. Equivalent to the field of the same name in the legacy long-poll request body.
+        schema:
+          type: string
+          enum:
+          - online
+          - offline
+          - unavailable
+      responses:
+        '200':
+          description: |
+            Streaming NDJSON frame channel. Each newline-delimited JSON object
+            conforms to AccountSubscribeFrame. Frames continue until the client
+            disconnects, the server emits `dropped` / `resync_required`, or the
+            connection is closed for transport reasons.
+          content:
+            application/x-ndjson:
+              schema:
+                $ref: '#/components/schemas/AccountSubscribeFrame'
+  /snapshot/head:
     get:
-      operationId: cx.sync.get_snapshot_head
+      operationId: cx.snapshot.head
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3166,7 +3224,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SyncSnapshotHeadResponse'
+                $ref: '#/components/schemas/SnapshotHeadResponse'
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle
@@ -3985,13 +4043,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /sync/describe:
+  /account/describe:
     get:
-      operationId: cx.sync.describe
+      operationId: cx.account.describe
       security: []
       responses:
         '200':
-          description: Sync service metadata and limits
+          description: Account-aggregate sync service metadata and limits
           content:
             application/json:
               schema:

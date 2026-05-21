@@ -300,7 +300,7 @@
         "cx.events.describe",
         "cx.events.submit",
         "cx.events.get",
-        "cx.events.batch_get",
+        "cx.events.resolve",
         "cx.events.query",
         "cx.events.frontier"
       ],
@@ -355,7 +355,7 @@
         "cx.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "cx.sync.account",
+        "cx.account.subscribe",
         "cx.events.query"
       ],
       "required_event_kinds": [
@@ -374,7 +374,7 @@
         "cx.schema.realm.v1",
         "cx.schema.flow.v1",
         "cx.schema.message.v1",
-        "cx.schema.client_sync_response.v1"
+        "cx.schema.account_subscribe_frame.v1"
       ],
       "required_constraint_types": [
         "temporal"
@@ -495,7 +495,7 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.events.submit",
-        "cx.sync.account",
+        "cx.account.subscribe",
         "cx.events.subscribe",
         "cx.blob.upload",
         "cx.blob.get",
@@ -513,7 +513,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.client_sync_response.v1",
+        "cx.schema.account_subscribe_frame.v1",
         "cx.schema.blob.v1",
         "cx.schema.notification.v1",
         "cx.schema.read_marker.v1"
@@ -736,7 +736,7 @@
         "cx.events.describe",
         "cx.events.submit",
         "cx.events.get",
-        "cx.events.batch_get",
+        "cx.events.resolve",
         "cx.events.query",
         "cx.events.frontier"
       ],
@@ -780,11 +780,11 @@
       ],
       "required_endpoints": [
         "cx.server.describe",
-        "cx.sync.describe",
-        "cx.sync.account",
+        "cx.account.describe",
+        "cx.account.subscribe",
         "cx.events.subscribe",
         "cx.events.query",
-        "cx.sync.get_snapshot_head",
+        "cx.snapshot.head",
         "cx.authz.check"
       ],
       "required_event_kinds": [
@@ -797,7 +797,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.client_sync_response.v1",
+        "cx.schema.account_subscribe_frame.v1",
         "cx.schema.snapshot.v1",
         "cx.schema.capability.v1",
         "cx.schema.grant_constraint.v1"
@@ -1405,7 +1405,7 @@
     "cx.profile.franking.v1": {
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.account"
+        "cx.account.subscribe"
       ],
       "required_event_kinds": [
         "cx.moderation.frank",
@@ -1562,7 +1562,7 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.events.submit",
-        "cx.sync.account"
+        "cx.account.subscribe"
       ],
       "required_event_kinds": [
         "cx.realm.create",
@@ -1572,7 +1572,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "cx.schema.event.v1",
-        "cx.schema.client_sync_response.v1",
+        "cx.schema.account_subscribe_frame.v1",
         "cx.schema.anchor.v1"
       ],
       "required_fixtures": [
@@ -1610,7 +1610,7 @@
       "required_endpoints": [
         "cx.server.describe",
         "cx.events.submit",
-        "cx.sync.account"
+        "cx.account.subscribe"
       ],
       "required_event_kinds": [
         "cx.realm.create",
@@ -1704,7 +1704,7 @@
         "cx.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
-        "cx.sync.get_snapshot_head",
+        "cx.snapshot.head",
         "cx.keys.keypackages.revoke",
         "cx.admin.revoke_device"
       ],
@@ -1867,7 +1867,7 @@
       ],
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.account"
+        "cx.account.subscribe"
       ],
       "required_event_kinds": [
         "cx.audit.accessed",
@@ -1902,7 +1902,7 @@
       ],
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.account"
+        "cx.account.subscribe"
       ],
       "required_event_kinds": [
         "cx.audit.accessed",
@@ -2255,9 +2255,9 @@
     },
     "cx.profile.sync_vectors.v1": {
       "required_endpoints": [
-        "cx.sync.account",
+        "cx.account.subscribe",
         "cx.events.query",
-        "cx.sync.get_snapshot_head"
+        "cx.snapshot.head"
       ],
       "required_event_kinds": [
         "cx.message.create",
@@ -2265,7 +2265,7 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.client_sync_response.v1",
+        "cx.schema.account_subscribe_frame.v1",
         "cx.schema.cursor.v1",
         "cx.schema.snapshot.v1"
       ],
@@ -2337,7 +2337,7 @@
       "description": "Anchor profile using one DID/service key as anchorer.",
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.get_snapshot_head"
+        "cx.snapshot.head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2362,7 +2362,7 @@
       "description": "Anchor profile using k-of-n threshold signatures.",
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.get_snapshot_head"
+        "cx.snapshot.head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2387,7 +2387,7 @@
       "description": "Anchor profile allowing multiple leaf anchors and deterministic anchor view joins.",
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.get_snapshot_head"
+        "cx.snapshot.head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2412,7 +2412,7 @@
       "description": "Anchor profile with primary anchorer and fallback recovery anchorer.",
       "required_endpoints": [
         "cx.events.submit",
-        "cx.sync.get_snapshot_head"
+        "cx.snapshot.head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2453,9 +2453,8 @@
     },
     "cx.profile.matrix_compat.v1": {
       "inherits": [],
-      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the directly Matrix-derived surfaces: /sync (since/next_batch + lazy_load_members), to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Implementations claiming this profile MUST treat the cx.* names of these surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence.",
+      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Account-aggregate sync is NOT covered: Contrix v1 chose a streaming push form (cx.account.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the cx.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "required_endpoints": [
-        "cx.sync.account",
         "cx.device_messages.put",
         "cx.device_messages.get",
         "cx.keys.upload",
@@ -2466,7 +2465,6 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "cx.schema.client_sync_response.v1",
         "cx.schema.device_message.v1"
       ],
       "required_fixtures": [],
@@ -2475,7 +2473,6 @@
       ],
       "feature_discovery": {
         "required": [
-          "lazy_load_members",
           "to_device_queue",
           "prekey_distribution",
           "cross_signing"

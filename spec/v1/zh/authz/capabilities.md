@@ -234,9 +234,9 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 
 - `cx.events.query`
 - `cx.events.subscribe`
-- `cx.sync.account`
-- `cx.sync.describe`
-- `cx.sync.get_snapshot_head`
+- `cx.account.subscribe`
+- `cx.account.describe`
+- `cx.snapshot.head`
 - `cx.blob.upload`
 - `cx.blob.get`
 - `cx.blob.head`

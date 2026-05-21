@@ -326,7 +326,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "scopes": [
     "cx.events.describe",
     "cx.events.submit",
-    "cx.sync.account",
+    "cx.account.subscribe",
     "cx.keys.keypackages.upload"
   ],
   "not_before": "2026-04-26T00:00:00Z",

@@ -1,18 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://contrix.io/artifacts/schemas/client-sync-response.schema.json",
-  "title": "Contrix Client Sync Response",
+  "$id": "https://contrix.io/artifacts/schemas/account-subscribe-frame.schema.json",
+  "title": "Contrix Account Subscribe Frame",
+  "description": "Single NDJSON frame on the cx.account.subscribe streaming channel (GET /api/v1/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (cross-Realm frontier, to_device, account_data, device_lists, presence, notifications, unread counts); the other kinds are control frames that mirror cx.events.subscribe (`catchup_complete`, `frontier`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`).",
   "type": "object",
   "required": [
-    "cursor"
+    "kind"
   ],
   "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "delta",
+        "catchup_complete",
+        "frontier",
+        "heartbeat",
+        "dropped",
+        "resync_required",
+        "unauthorized"
+      ]
+    },
     "cursor": {
       "$ref": "#/$defs/cursor_value",
-      "description": "Stream cursor (purpose='stream') describing the frontier covered by this response. Pass it back as the 'since' field on the next /sync call."
+      "description": "Stream cursor (purpose='stream'). On `delta` / `catchup_complete` / `frontier` frames it points to the position covered by this frame; pass back as `after=` on the next subscribe call to resume. REQUIRED on `dropped` frames as the account-aggregate catch-up start for `GET /account/subscribe?after=<cursor>&catchup=true`. MUST be present on `delta` / `catchup_complete` / `frontier` / `dropped`; absent on `heartbeat` / `resync_required` / `unauthorized`."
     },
     "realms": {
       "type": "object",
+      "description": "Per-Realm bucket map on `delta` frames. Keys are realm IDs. `join` / `invite` / `knock` / `leave` mirror the legacy long-poll grouping.",
       "properties": {
         "join": {
           "$ref": "#/$defs/space_bucket"
@@ -30,25 +44,32 @@
       "additionalProperties": false
     },
     "to_device": {
-      "$ref": "#/$defs/device_message_container"
+      "$ref": "#/$defs/device_message_container",
+      "description": "To-device message batch on `delta` frames."
     },
     "device_lists": {
-      "type": "object"
+      "type": "object",
+      "description": "Device list changes on `delta` frames."
     },
     "account_data": {
-      "$ref": "#/$defs/event_container"
+      "$ref": "#/$defs/event_container",
+      "description": "Account-scoped private data updates on `delta` frames."
     },
     "presence": {
-      "$ref": "#/$defs/event_container"
+      "$ref": "#/$defs/event_container",
+      "description": "Presence updates on `delta` frames."
     },
     "notifications": {
-      "$ref": "#/$defs/event_container"
+      "$ref": "#/$defs/event_container",
+      "description": "Notification deliveries on `delta` frames."
     },
     "partial": {
-      "type": "boolean"
+      "type": "boolean",
+      "description": "When true on a `delta` frame, the per-Realm timelines are limited (truncated); client SHOULD backfill via cx.events.query for any Realm whose timeline carries `limited=true`."
     },
     "priority": {
-      "type": "string"
+      "type": "string",
+      "description": "Optional server-side priority hint for the frame (UX scheduling)."
     }
   },
   "$defs": {
@@ -213,7 +234,126 @@
         }
       },
       "additionalProperties": false
+    },
+    "data_or_control_payload_present": {
+      "anyOf": [
+        { "required": ["realms"] },
+        { "required": ["to_device"] },
+        { "required": ["device_lists"] },
+        { "required": ["account_data"] },
+        { "required": ["presence"] },
+        { "required": ["notifications"] },
+        { "required": ["partial"] },
+        { "required": ["priority"] }
+      ]
+    },
+    "cursor_or_data_or_control_payload_present": {
+      "anyOf": [
+        { "required": ["cursor"] },
+        { "$ref": "#/$defs/data_or_control_payload_present" }
+      ]
     }
   },
+  "oneOf": [
+    {
+      "description": "Account aggregate data frame.",
+      "properties": {
+        "kind": {
+          "const": "delta"
+        }
+      },
+      "required": [
+        "kind",
+        "cursor"
+      ]
+    },
+    {
+      "description": "Catch-up replay or initial baseline completed; no data fields are allowed.",
+      "properties": {
+        "kind": {
+          "const": "catchup_complete"
+        }
+      },
+      "required": [
+        "kind",
+        "cursor"
+      ],
+      "not": {
+        "$ref": "#/$defs/data_or_control_payload_present"
+      }
+    },
+    {
+      "description": "Cursor-only frontier advancement; no data fields are allowed.",
+      "properties": {
+        "kind": {
+          "const": "frontier"
+        }
+      },
+      "required": [
+        "kind",
+        "cursor"
+      ],
+      "not": {
+        "$ref": "#/$defs/data_or_control_payload_present"
+      }
+    },
+    {
+      "description": "Account stream gap signal; cursor is the account catch-up start. No data fields are allowed.",
+      "properties": {
+        "kind": {
+          "const": "dropped"
+        }
+      },
+      "required": [
+        "kind",
+        "cursor"
+      ],
+      "not": {
+        "$ref": "#/$defs/data_or_control_payload_present"
+      }
+    },
+    {
+      "description": "Keepalive frame; cursor and data fields are forbidden.",
+      "properties": {
+        "kind": {
+          "const": "heartbeat"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "not": {
+        "$ref": "#/$defs/cursor_or_data_or_control_payload_present"
+      }
+    },
+    {
+      "description": "Hard reset signal; cursor and data fields are forbidden.",
+      "properties": {
+        "kind": {
+          "const": "resync_required"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "not": {
+        "$ref": "#/$defs/cursor_or_data_or_control_payload_present"
+      }
+    },
+    {
+      "description": "Authorization-loss signal; cursor and data fields are forbidden.",
+      "properties": {
+        "kind": {
+          "const": "unauthorized"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "not": {
+        "$ref": "#/$defs/cursor_or_data_or_control_payload_present"
+      }
+    }
+  ],
   "additionalProperties": true
 }

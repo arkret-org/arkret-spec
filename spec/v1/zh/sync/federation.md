@@ -220,7 +220,7 @@ v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
 
 | 路径 | 投递对象 | 解析来源 | 谁是 destination |
 | --- | --- | --- | --- |
-| **Member-level delivery** | 面向某个 Realm 成员的 events / sync / to_device / push / key_packages | 该成员的 effective `cx.member.state{membership="join"}.delivery_binding.recipient_service_did` | 该 binding 指定的 Principal Server |
+| **Member-level delivery** | 面向某个 Realm 成员的 events / account aggregate / to_device / push / key_packages | 该成员的 effective `cx.member.state{membership="join"}.delivery_binding.recipient_service_did` | 该 binding 指定的 Principal Server |
 | **Realm-level fanout** | Realm 共享的 shared anchorer / sync service / 受托 search-projection 等服务面 | Realm metadata 的 `sync_endpoints`（受 [`governance/join-policy.md` §5.1](../governance/join-policy.md) 与 [`models/realm-and-space.md`](../models/realm-and-space.md) 约束） | sync_endpoints 中列出的 service DID |
 
 两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Realm-level fanout 不走 member binding。
@@ -520,7 +520,7 @@ DID Document 的 `service[type=ContrixPrincipalServer]` 是该 Actor DID 的**�
 | 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `DID Document -> service[type=ContrixPrincipalServer] -> serviceEndpoint` |
 | Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上 |
 | Realm policy 显式允许 `did_document_default` 且 join 时已物化进 `delivery_binding` 的来源 | 同上（仅作为 join 时的 source；join 之后**仍**走 member binding） |
-| 已加入 Realm 的成员的 events / sync / to_device / push / key_packages 投递 | **MUST** 走 [`governance/join-policy.md` §5.1.4](../governance/join-policy.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
+| 已加入 Realm 的成员的 events / account aggregate / to_device / push / key_packages 投递 | **MUST** 走 [`governance/join-policy.md` §5.1.4](../governance/join-policy.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
 
 任何把 DID Document service entry 当作 "Realm 投递 fallback" 的实现都违反 §4.1。本路径仅用于 actor event source、首次发现 hint，以及 join 时（Realm policy 允许时）的 `did_document_default` 物化来源——一旦 binding 被 join Move 接受写入 cell，后续投递再也不读 DID Document。
 
@@ -544,7 +544,7 @@ GET https://<domain>/.well-known/contrix/server
 
 ## 7. 联邦请求 vs 单域 client 请求
 
-v1 联邦与单域 client 请求共享同一组 events / sync / identity 端点；区别仅在认证层（service signature + DID header vs user session / device proof）。本节给出对照速查表；wire 细节见 §4.1 / §4.2 与 [`service-http-binding.md`](./service-http-binding.md)。
+v1 联邦与单域 client 请求共享同一组 events / account / snapshot / identity 端点；区别仅在认证层（service signature + DID header vs user session / device proof）。本节给出对照速查表；wire 细节见 §4.1 / §4.2 与 [`service-http-binding.md`](./service-http-binding.md)。
 
 | 联邦行为 | 复用端点 | 认证模式差异 |
 | --- | --- | --- |
@@ -575,7 +575,7 @@ GET /api/v1/events?realms=<id>&before=<cursor>&limit=<n>
 Authorization: <service_signature>
 ```
 
-字段定义见 §4.2；service operation id 为 `cx.events.query`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/sync/snapshot-head` 单独获取。
+字段定义见 §4.2；service operation id 为 `cx.events.query`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/api/v1/snapshot/head` 单独获取。
 
 ### 7.3 查询 Realm 成员
 
@@ -784,4 +784,3 @@ Authorization: <service_signature>
 - 声誉只能用于流量调度、排队优先级和临时降级，不得替代签名验证、DID 校验和 Realm policy 授权判断。
 - 声誉决策不得造成可审计事件的不可达性（例如把合法请求静默降权为拒绝）。
 - 即使在高声誉策略触发下，仍应返回可区分的标准错误码（`temporarily_unavailable`、`rate_limited`、`quarantine`）供重试/恢复。
-

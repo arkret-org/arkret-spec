@@ -125,7 +125,7 @@ Realm 有两个终态 event，语义不同：
 `cx.realm.create` 是 Realm 生命周期的 genesis event，它同时承担"建 Realm metadata"和"为 `created_by_principal` 引导首份成员资格"两项职责。reducer MUST 在 commit 该 event 时原子完成下述写入，且 MUST 在评估同一 submit 批次中由同一 actor 发起的任何后续 event 之前完成：
 
 1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `anchor_profile` / `hash_profile` 等 create-locked 字段固化）。
-2. **写入 `cx.component.member.state.v1` cell**（`subject=created_by_principal`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `cx.member.state{join}` event，event 本身的 `created_by_principal == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §3.1](event-and-patch.md#31)）。
+2. **写入 `cx.component.member.state.v1` cell**（`subject=created_by_principal`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `cx.member.state{join}` event，event 本身的 `created_by_principal == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
 3. **写入 `cx.component.realm.create.v1` cell**（cas-register，bottom=reject，duplicate create 拒绝为 `realm_already_exists`）。
 
 Authz 含义：

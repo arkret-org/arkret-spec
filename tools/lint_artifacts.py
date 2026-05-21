@@ -997,7 +997,7 @@ def check_service_describe_alignment(lint: Lint) -> None:
         "/server/describe",
         "/events/describe",
         "/identity/describe",
-        "/sync/describe",
+        "/account/describe",
         "/directory/describe",
         "/applet/describe",
     ]

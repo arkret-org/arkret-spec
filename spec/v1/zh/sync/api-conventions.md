@@ -195,12 +195,12 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。可作为 `since` / `prev_cursor` / `next_cursor` / `before` / `after` 回传。 | `/sync` 响应顶层 `cursor`、`timeline.prev_cursor` / `next_cursor`、列表分页 `next_cursor`、`cx.events.query`（含联邦 pull 复用形态 `GET /api/v1/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。可作为 `after` / `before` / `prev_cursor` / `next_cursor` 回传。 | `/account/subscribe` frame 的 `cursor` 与重连 `after=` 参数、`timeline.prev_cursor` / `next_cursor`、列表分页 `next_cursor`、`cx.events.query`（含联邦 pull 复用形态 `GET /api/v1/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Contrix-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
-任何返回 cursor 对的响应（`/sync`、`cx.events.query`、列表分页等）使用统一的**绝对方向**约定：
+任何返回 cursor 对的响应（`cx.events.query`、列表分页等）使用统一的**绝对方向**约定；`/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
 
 | 响应字段 | 含义 | 回传给下一次请求 |
 | --- | --- | --- |
@@ -360,5 +360,4 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - 记录可审计但不泄露明文的安全日志
 - 对管理操作要求更强认证
 - 对联邦写入执行 reputation / quarantine 策略
-
 

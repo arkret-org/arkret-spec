@@ -28,8 +28,9 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | --- | --- | --- | --- |
 | `/server/*` | 客户端与服务 | 服务描述、feature discovery、auth metadata。 | `service-surface.md`、`api-conventions.md` |
 | `/identity/*` | 客户端、服务、registry | DID 文档、key log、DID operation、receipt。 | `service-surface.md`、`identity-did.md` |
-| `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Realm 双向历史查询(query)、流式订阅(subscribe，含历史 catchup)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
-| `/sync/*` | 客户端、Principal Server | account 聚合同步(`POST /sync`)、describe、snapshot head。逐 Realm 的事件流读取走 `/events/*`。 | `client-sync.md`、`service-surface.md` |
+| `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Realm 双向历史查询(query)、流式订阅(subscribe，含 bounded catch-up replay)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
+| `/account/*` | 客户端、Principal Server | account 聚合 streaming 订阅(`GET /account/subscribe`)、describe。逐 Realm 的事件流读取走 `/events/*`。 | `client-sync.md`、`service-surface.md` |
+| `/snapshot/*` | 客户端、Principal Server | Realm snapshot manifest 入口(`GET /snapshot/head`)。 | `client-sync.md`、`service-surface.md` |
 | `/directory/*` | 客户端、服务 | Realm / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
@@ -39,7 +40,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
 | `/applet/*` | Contrix 服务调用 Applet | applet ping / describe、transaction push、ghost actor / portal 查询。 | `applet-integration.md` |
 
-客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/sync`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/events`、`/sync`、`/authz`、`/policy/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
+客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/account`、`/snapshot`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/events`、`/account`、`/authz`、`/policy/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
 
 新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.mdx`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
@@ -84,13 +85,13 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/events/describe` | query none 或 `{actor_id?: did, realm_id?: id}` | `public_metadata` 或 `user_session`；私有 frontier 需认证。 | `ServiceDescribe`；event schema / reducer / signature 能力通过 `supported_features`、`supported_profiles`、`limits` 或扩展字段表达。 |
 | `POST /api/v1/events` | body 是 canonical `EventEnvelope`（单事件）或 `{events: EventEnvelope[]}`（批量）。MUST NOT 使用 `{event: ...}` wrapper。 | `user_session` / `device_proof` / `service_signature`；MUST 验证 actor DID、签名、capability、Realm policy、`actor_seq`、`prev_refs`、`refs[role=authorized_by]`。 | `{status, accepted[], duplicate[]?, rejected[]?, actor_frontier?, realm_frontier?, cursor?}` |
 | `GET /api/v1/events/{event_id}` | path `{event_id: id}` query `{include_payload?: boolean}` | Event 可见性按 Realm policy / history visibility / E2EE envelope 判断；不可见时返回 `not_found`。 | `{event, visibility?, receipts?}` |
-| `POST /api/v1/events/batch-get` | body `{event_ids?: id[], event_hashes?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Realm policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
+| `POST /api/v1/events/resolve` | body `{event_ids?: id[], event_hashes?: string[], include_payload?: boolean}` | 同 Event read；payload 可见性按 Realm policy / E2EE envelope 判断。 | `{events[], missing[], unauthorized[]?}` |
 | `GET /api/v1/events` | query `{realms?: id[], actors?: did[], before?: cursor, after?: cursor, order?: enum(default, ascending, descending), limit?: int, filters?: object}` | 调用方必须对每个 selector 元素满足读取约束：actor scope 走 actor history visibility；realm scope 走 membership frontier + history visibility + E2EE epoch policy。`realms[]` ∪ 内部、`actors[]` ∪ 内部、二者组合为交集。批次内顺序规则见 §3.3。 | `{events[], next_cursor?, prev_cursor?, has_more}` |
-| `GET /api/v1/events/subscribe` | query `{realms?: id[], actors?: did[], after?: cursor, include_history?: boolean}` | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-realm `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, realm_id?: id, cursor?: cursor, payload?: object}` |
+| `GET /api/v1/events/subscribe` | query `{realms?: id[], actors?: did[], after?: cursor, catchup?: boolean}` | 同 `GET /events` 的逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性边界。授权丢失通过 per-realm `unauthorized` 帧通知，不中断整条流。 | event stream frames `{kind: event\|frontier\|heartbeat\|catchup_complete\|epoch_rotation\|dropped\|resync_required\|unauthorized, realm_id?: id, cursor?: cursor, payload?: object}` |
 | `GET /api/v1/events/frontier` | query `{actor_id?: did, realm_id?: id}` | 返回调用方可见范围内 frontier；不得泄露不可见 Realm 或 private DID。 | `{frontier, receipts?}` |
-| `POST /api/v1/sync` | body `{since?: cursor, filter?: object, set_presence?: string, timeout_ms?: int}` | `user_session` bound to principal/device。聚合账号视角 delta（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts），不是裸事件读。 | Account sync response `{cursor, realms?, to_device?, account_data?, device_lists?}` |
-| `GET /api/v1/sync/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
-| `GET /api/v1/sync/snapshot-head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`。 | `{snapshot_ref, state_hash, frontier, event_set_commitment, verification_hints?, signature}` |
+| `GET /api/v1/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object, set_presence?: enum}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts) streaming NDJSON 推送,不是裸事件读。 | `application/x-ndjson` AccountSubscribeFrame 流;frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`。 |
+| `GET /api/v1/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
+| `GET /api/v1/snapshot/head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`。 | `{snapshot_ref, state_hash, frontier, event_set_commitment, verification_hints?, signature}` |
 | `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `ServiceDescribe`；directory resource / discovery capability 放入 `supported_features` / `limits` / 扩展字段。 |
 | `POST /api/v1/directory/search-realms` | body `{query?: string, organization_did?: did, parent_realm_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?}` |
 | `POST /api/v1/directory/resolve-realm` | body `{realm_id?: id, alias?: string, invite_token?: string, signed_link?: string, requester?: did, proofs?: proof[]}` | invite / restricted / secret Realm 按统一 `not_found` 失败。 | `{space_preview, stripped_state?, join_rule?, via_services?}` |
@@ -174,14 +175,14 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.events.describe` | 无 | `query.actor_id: did`; `query.realm_id: id` | `ServiceDescribe` | public metadata 可公开；私有 frontier 需认证后作为扩展字段返回。 |
 | `cx.events.submit` | 单事件提交 body 是 canonical `EventEnvelope` 对象（顶层 `event_id`/`actor_id`/`payload`/`proofs[]` ...）；批量提交 body 是 `{events: EventEnvelope[]}`。MUST NOT 使用 `{event: ...}` wrapper。 | `expected_frontier: object`; `idempotency_key: string` | `status: enum(accepted,duplicate,partial)`; `accepted: id[]`; `duplicate: id[]?`; `rejected: object[]?`; `actor_frontier: object?`; `realm_frontier: object?`; `cursor: cursor?` | MUST 验证 Event signature、DID、capability、Realm policy、`actor_seq`、`prev_refs` 和 `refs[role=authorized_by]`。`cursor` 是 barrier purpose（read-your-writes）。 |
 | `cx.events.get` | `path.event_id: id` | `query.include_payload: boolean` | `event: object`; `visibility: object?`; `receipts: object[]?` | 不可见时返回 `not_found`。 |
-| `cx.events.batch_get` | 至少一个：`event_ids: id[]` 或 `event_hashes: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Realm policy / E2EE envelope 判断。 |
+| `cx.events.resolve` | 至少一个：`event_ids: id[]` 或 `event_hashes: string[]` | `include_payload: boolean` | `events: object[]`; `missing: id[]`; `unauthorized: id[]?` | payload 可见性按 Realm policy / E2EE envelope 判断。 |
 | `cx.events.query` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.before: cursor`; `query.after: cursor`; `query.order: enum(default,ascending,descending)=default`; `query.limit: int`; `query.filters: object` | `events: object[]`; `next_cursor: cursor?`; `prev_cursor: cursor?`; `has_more: boolean` | `realms[]` 内部 union、`actors[]` 内部 union、二者组合为 intersection。每个 selector 元素都按对应可见性约束逐项检查：actor scope 走 actor history visibility；realm scope 走 membership frontier + history visibility + E2EE epoch policy。`before` / `after` 均为开区间（排除 cursor 自身），可单独或同时给出形成 `(after, before)` 区间。默认顺序：仅 `before` → descending，仅 `after` → ascending，两者皆给 → descending；`order=ascending|descending` 显式覆盖。响应 `prev_cursor` 永远朝更旧方向、`next_cursor` 永远朝更新方向。仅支持 `before` / `after` / `order` 参数。详见 §3.3。 |
 | `cx.events.query_post` | body 至少一个：`realms: id[]` 或 `actors: did[]` | `before: cursor`; `after: cursor`; `order: enum(default,ascending,descending)=default`; `limit: int`; `filters: object` | 与 `cx.events.query` 同 | `cx.events.query` 的 HTTP POST/body 形态。语义、selector 规则、默认顺序、响应 cursor 含义、错误码与 GET 形态完全一致；仅 wire 形态从 query string 变为 JSON body。**何时使用**：`realms[]` / `actors[]` 较大、`filters` 较复杂、或部署侧记录 access log 时担心 query string 泄露 filter 内容。gRPC / MQ 不需要单独绑定（统一走 `Events/Query`）。 |
-| `cx.events.subscribe` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.after: cursor`; `query.include_history: boolean=true` | stream frame: `kind: enum(event,frontier,heartbeat,catchup_complete,epoch_rotation,dropped,resync_required,unauthorized)`; `realm_id: id?`; `cursor: cursor?`; `payload: object?` | 同 `cx.events.query` 逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性。`after=<cursor>` 是订阅起点（不含 cursor 本身），与 `cx.events.query` 的 `after=` 同义；subscribe 天然只走未来方向，不接受 `before=` / `order=`。`include_history=true` 时先吐历史再以 `catchup_complete` 帧切到实时；某 realm 中途授权丢失发出 `unauthorized` 帧并继续其他 realm；服务端因容量丢弃发出 `dropped` 帧，客户端必须 reconcile。 |
+| `cx.events.subscribe` | 至少一个：`query.realms: id[]` 或 `query.actors: did[]` | `query.after: cursor`; `query.catchup: boolean=false` | stream frame: `kind: enum(event,frontier,heartbeat,catchup_complete,epoch_rotation,dropped,resync_required,unauthorized)`; `realm_id: id?`; `cursor: cursor?`; `payload: object?` | 同 `cx.events.query` 逐 selector 授权检查；非 principal recipient（service delegation）必须满足明文可见性。`after=<cursor>` 是订阅起点（不含 cursor 本身），与 `cx.events.query` 的 `after=` 同义；subscribe 天然只走未来方向，不接受 `before=` / `order=`。`catchup=true` 只表示从 `after=` 到当前 frontier 的追赶 replay，不表示全量历史；缺省或无 `after` 时只进入 live tail。某 realm 中途授权丢失发出 `unauthorized` 帧并继续其他 realm；服务端因容量丢弃发出 `dropped` 帧，客户端必须 reconcile。 |
 | `cx.events.frontier` | 至少一个：`query.actor_id: did` 或 `query.realm_id: id` | `query.peer_role: enum(account_client, federation_peer, anonymous_health) = account_client` | `frontier: object`; `receipts: object[]?`; `frontier_root: hash?`; `actor_seq_upper_bounds: object?`; `signature: object?` | 统一 operation 同时承载 public Events API 与 federation peer frontier probe（federation.md §4.5.1）；`peer_role=federation_peer` MUST 通过 §3 节点间认证 + Realm `service_binding` 中 `federation_peer` 角色校验，响应携带完整 `frontier_root` / `actor_seq_upper_bounds` / `signature`；`peer_role=anonymous_health` MUST 仅返回 `frontier_root` 摘要。普通 `account_client` 维持既有响应。不得泄露不可见 Realm 或 private DID。 |
-| `cx.sync.account` | 无 | `since: cursor`; `filter: object`; `set_presence: enum(online,offline,unavailable)`; `timeout_ms: int` | `cursor: cursor`; `realms: object?`; `to_device: object?`; `account_data: object?`; `device_lists: object?` | `user_session` 必须绑定 principal/device。聚合账号视角 delta（跨 Realm frontier、to_device、account_data、device_lists、presence），不是裸事件读；裸事件读用 `cx.events.query` / `cx.events.subscribe`。`cursor` 是 stream purpose。 |
-| `cx.sync.describe` | 无 | 无 | `ServiceDescribe` | 私有 frontier 可认证后作为扩展字段返回。 |
-| `cx.sync.get_snapshot_head` | `query.realm_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `event_set_commitment: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
+| `cx.account.subscribe` | 无 | `query.after: cursor`; `query.catchup: boolean=false`; `query.filter: object`; `query.set_presence: enum(online,offline,unavailable)` | NDJSON 流,每行一个 `AccountSubscribeFrame`(`kind: delta / catchup_complete / frontier / heartbeat / dropped / resync_required / unauthorized`,`delta` 含 `cursor` + `realms?` + `to_device?` + `account_data?` + `device_lists?` + `presence?` + `notifications?`) | `user_session` 必须绑定 principal/device。聚合账号视角 delta streaming push;裸事件读用 `cx.events.query` / `cx.events.subscribe`。`cursor` 是 stream purpose。Initial sync 使用 `catchup=true` 且省略 `after`;baseline 不是完整历史。 |
+| `cx.account.describe` | 无 | 无 | `ServiceDescribe` | 私有 frontier 可认证后作为扩展字段返回。 |
+| `cx.snapshot.head` | `query.realm_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `event_set_commitment: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
 | `cx.directory.describe` | 无 | 无 | `ServiceDescribe` | `public_metadata`; 可限流。Directory-specific 字段可作为扩展字段返回；详见 `../discovery/discovery-directory.md` §8.9。 |
 | `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `parent_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | hidden resource 不泄露存在性；每条 result MUST 含 `as_of`/`source_refs`/`policy_revision`/`stale?`/`divergent?`/`via_services?`（discovery-directory.md §9.1）。 |
 | `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | secret/restricted Realm 使用统一 `not_found`；`via_services` v1 normative，必须给出 host Principal Server service DID。 |
@@ -324,7 +325,7 @@ POST /api/v1/events
 ### 3.2 批量获取 Event
 
 ```text
-POST /api/v1/events/batch-get
+POST /api/v1/events/resolve
 ```
 
 请求示例（非完整 schema）：
@@ -447,12 +448,12 @@ POST 形态与 GET 形态**完全等价**：参数集（`realms` / `actors` / `b
 ### 3.4 流式订阅 Event（`cx.events.subscribe`）
 
 ```text
-GET /api/v1/events/subscribe?realms=<id>&after=<cursor>&include_history=true
+GET /api/v1/events/subscribe?realms=<id>&after=<cursor>&catchup=true
 ```
 
 `after=<cursor>` 表示订阅起点：从该 cursor *之后*（排除）开始接收事件，与 [`cx.events.query`](#33-查询--回填-eventcxeventsquery) 的 `after=` 同义。Subscribe 天然只有"朝未来推进"一个方向，不接受 `before=` / `order=`；想要历史回填请用 `cx.events.query`。
 
-支持多 realm / actor 一次订阅；`include_history=true` 时服务端先吐历史，再发出 `catchup_complete` 帧切到实时尾部。
+支持多 realm / actor 一次订阅；`catchup=true` 时服务端只回放 `after=` 到当前 frontier 的追赶区间，再发出 `catchup_complete` 帧切到实时尾部。完整历史必须通过 `GET /events` 的 `before` / `after` 分页或区间查询读取。
 
 
 HTTP 200 response `Content-Type` MUST be `application/x-ndjson`。Frame 每行一个独立 JSON 对象：
@@ -500,19 +501,35 @@ POST /api/v1/identity/resolve
 
 Resolver MUST 返回足够的方法相关证据，使客户端能够验证 control history。
 
-## 5. Sync API
+## 5. Account API
 
-`/sync/*` 在 v1 只承载 **account 聚合**（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts）和 snapshot manifest。逐 Realm 的事件读取与流式订阅走 `/events/*`（`cx.events.query`、`cx.events.subscribe`），见 §3.3 / §3.4。
+`/account/*` 在 v1 只承载 **account 聚合 streaming**（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts）；snapshot manifest 入口独立放在 `/snapshot/*`。逐 Realm 的事件读取与流式订阅走 `/events/*`（`cx.events.query`、`cx.events.subscribe`），见 §3.3 / §3.4。
 
-### 5.1 账号聚合同步（`cx.sync.account`）
+### 5.1 账号聚合订阅（`cx.account.subscribe`）
 
 ```text
-POST /api/v1/sync
+GET /api/v1/account/subscribe?catchup=true                         # initial account sync baseline
+GET /api/v1/account/subscribe?after=<cursor>                        # live tail after external reconciliation
+GET /api/v1/account/subscribe?after=<cursor>&catchup=true           # reconnect / dropped catch-up
 ```
 
-该端点对应 `cx.sync.account`，用于客户端按 account / Realm filter 拉取稳定的跨 Realm delta 视图（含 to_device、account_data、device_lists、presence）。请求与响应形状见 `client-sync.md`。它不是裸事件读取——裸事件读取请使用 `cx.events.query` / `cx.events.subscribe`。
+该端点对应 `cx.account.subscribe`,wire 形态是长连接 NDJSON 流。客户端建立长连接后,服务端按 account / Realm filter 推送 `delta` frame(跨 Realm delta + to_device + account_data + device_lists + presence + notifications)与控制 frame(`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`)。请求参数、frame schema 与重连规则见 [`client-sync.md`](./client-sync.md) §2。
 
-## 6. Directory API
+它与 `cx.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log),共享 cursor / `dropped` / `resync_required` 控制模型,但恢复面不同:`account.subscribe` 的 `dropped` 用 `GET /account/subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;裸 Event 缺口才使用 `cx.events.query`。`catchup=true` 不表示全量历史;完整历史读取必须走 `cx.events.query`。它不是裸事件读取——裸事件读取请使用 `cx.events.query` / `cx.events.subscribe`。
+
+## 6. Snapshot API
+
+`/snapshot/*` 提供 Realm snapshot manifest 入口；snapshot 是派生的当前态缓存,客户端使用前 MUST 校验签名、签名者授权、`state_hash` 和每个 chunk digest（见 [`service-surface.md` §11](./service-surface.md)）。
+
+### 6.1 当前 snapshot manifest（`cx.snapshot.head`）
+
+```text
+GET /api/v1/snapshot/head?realm_id=<id>
+```
+
+该端点对应 `cx.snapshot.head`，返回当前推荐 snapshot manifest 指针（不含 chunk bytes）。客户端通过 manifest 中的 `chunks[].chunk_ref` 走 blob surface 取实际数据。snapshot 不是真相源,校验失败时客户端 MUST 回退到 Event history replay。
+
+## 7. Directory API
 
 ```text
 POST /api/v1/directory/search-realms
@@ -528,9 +545,9 @@ Directory 端点 MUST 在每个结果上分别应用资源可发现性、请求�
 
 对于隐藏或未授权访问的资源，`resolve-*` SHOULD 返回与"不存在"不可区分的 `not_found`。
 
-## 7. Blob API
+## 8. Blob API
 
-### 7.1 上传
+### 8.1 上传
 
 ```text
 POST /api/v1/blob/upload
@@ -548,7 +565,7 @@ Content type MAY 取 `application/octet-stream` 或 `multipart/form-data`。
 }
 ```
 
-### 7.2 下载
+### 8.2 下载
 
 ```text
 HEAD /api/v1/blob/get?blob_ref=<blob_ref>
@@ -558,7 +575,7 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 客户端 MUST 重新计算内容哈希并与 `blob_ref` 比对。
 若哈希不匹配，客户端 MUST 拒绝响应并丢弃内容；服务端在上传、代理或镜像校验时发现不匹配 MUST 返回 `422 digest_mismatch`。
 
-## 8. 标准错误响应
+## 9. 标准错误响应
 
 ```json
 {
@@ -571,7 +588,7 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 }
 ```
 
-## 9. 标准错误码
+## 10. 标准错误码
 
 标准错误码、HTTP 状态码与逐项 reason_code 的 **canonical 单一来源** 是 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。本节不再在 Markdown 中维护并行表格；任何新增 / 修改 / 删除错误码 MUST 先更新 registry。
 
@@ -583,7 +600,7 @@ GET /api/v1/blob/get?blob_ref=<blob_ref>
 - `unsupported_feature` 用于 `Event.requirements.features[]` / `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `cx.*` Event kind；二者不得互相替代。
 - 通用 `conflict` 仅作为抽象 base code 出现在 narrative；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `duplicate_conflict` / `epoch_mismatch` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `discussion_track_disabled` / `key_unavailable`）。
 
-## 10. 安全与抗滥用
+## 11. 安全与抗滥用
 
 服务端 SHOULD 在高风险入口实施一致性失败语义：
 

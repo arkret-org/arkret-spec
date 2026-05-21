@@ -63,11 +63,11 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `cx.identity.submit_did_operation` | 提交 DID 更新操作。 |
 | `cx.events.submit` | 提交 signed Event Envelope。 |
 | `cx.events.get` | 按 ID 读取单个 Event。 |
-| `cx.events.batch_get` | 批量读取 Event。 |
+| `cx.events.resolve` | 批量读取 Event。 |
 | `cx.events.query` | 按 actor / Realm / cursor 双向查询 Event（替代旧 `cx.events.list` + `cx.sync.backfill`）。 |
-| `cx.events.subscribe` | 订阅 Realm / actor 增量流，可选历史 catchup（替代旧 `cx.sync.subscribe`）。 |
+| `cx.events.subscribe` | 订阅 Realm / actor 增量流，可选 bounded catch-up replay（替代旧 `cx.sync.subscribe`）。 |
 | `cx.events.frontier` | 获取 actor 或 Realm 的可见 Event frontier。 |
-| `cx.sync.account` | 客户端账号视角聚合同步（替代旧 `cx.sync.client_sync`）。 |
+| `cx.account.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流;与 `cx.events.subscribe` 对称)。 |
 | Federation push（复用 `cx.events.submit` + service_signature） | 联邦推送复用 `POST /api/v1/events`；认证从 user_session 切换为 HTTP Message Signature + `Source-Service-DID` / `Destination-Service-DID` header，请求体携带 `service_binding_ref`。详见 [`federation.md`](./federation.md) §4.1。 |
 | Federation pull / backfill（复用 `cx.events.query` + service_signature） | 跨域历史回补复用 `GET /api/v1/events?before=<cursor>`（取该 cursor 之前最近一批，默认 descending），认证同 push；可选返回 `snapshot_bootstrap`。详见 [`federation.md`](./federation.md) §4.2。 |
 | `cx.directory.search_realms` / `cx.directory.search_organizations` / `cx.directory.search_actors` / `cx.directory.search_users` | 授权搜索 Realm / Organization / Actor / User。 |
@@ -132,7 +132,7 @@ transport 必须各自通过 binding profile 单独 normative 化。
     {
       "kind": "http_json",
       "base_url": "https://server.example/api/v1",
-      "operations": ["cx.sync.account", "cx.sync.get_snapshot_head"],
+      "operations": ["cx.account.subscribe", "cx.snapshot.head"],
       "extension_profile_required": null
     }
   ]

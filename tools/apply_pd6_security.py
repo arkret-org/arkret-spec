@@ -50,14 +50,14 @@ OPERATIONS: dict[str, str] = {
     "cx.events.describe": "public_no_auth",
     "cx.events.submit": "user_or_service",
     "cx.events.get": "user_or_service",
-    "cx.events.batch_get": "user_or_service",
+    "cx.events.resolve": "user_or_service",
     "cx.events.query": "user_or_service",
     "cx.events.query_post": "user_or_service",
     "cx.events.subscribe": "user_or_service",
     "cx.events.frontier": "user_or_service",
-    "cx.sync.describe": "public_no_auth",
-    "cx.sync.account": "user_bearer",                  # account-aggregate; user only
-    "cx.sync.get_snapshot_head": "user_or_service",
+    "cx.account.describe": "public_no_auth",
+    "cx.account.subscribe": "user_bearer",              # account-aggregate streaming; user only
+    "cx.snapshot.head": "user_or_service",
 
     # directory_discovery
     "cx.directory.describe": "public_no_auth",

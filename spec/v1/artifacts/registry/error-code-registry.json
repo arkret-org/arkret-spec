@@ -233,13 +233,13 @@
       "code": "cursor_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "The opaque cursor (cx:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /sync, /sync/snapshot-head, or new write barrier)."
+      "description": "The opaque cursor (cx:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier)."
     },
     {
       "code": "cursor_integrity_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Cursor integrity check failed: MAC / signature did not verify, the bound transcript (principal, device, service, filter_hash, purpose, positions, target, x, issuer_kid) did not match the authenticated request, or the stateful handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /sync."
+      "description": "Cursor integrity check failed: MAC / signature did not verify, the bound transcript (principal, device, service, filter_hash, purpose, positions, target, x, issuer_kid) did not match the authenticated request, or the stateful handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "unsupported_feature",
@@ -521,7 +521,7 @@
         "client_sync",
         "encoding"
       ],
-      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_hash / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /sync since, X-Contrix-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /sync."
+      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_hash / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /account/subscribe after= resume, X-Contrix-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "spam",

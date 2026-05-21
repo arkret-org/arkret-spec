@@ -370,7 +370,7 @@ Non-reducer event 示例（无 `preconditions` / `effects` / `anchor_ref`，例�
 }
 ```
 
-`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.sync.account`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
+`operation_id` 这个名称只保留给服务 API 的 canonical operation id（例如 `cx.account.subscribe`）。Event、reducer input 和 typed ID 字段不得使用 `operation_id` 表达本地对象 ID；SDK 内部草稿对象使用普通 `id` 和可选 `idempotency_key`，且不得进入另一套排序、去重或签名规则。
 
 ## 6. 为什么需要 `prev_refs + hlc + actor_seq`
 
@@ -822,7 +822,7 @@ Flow Sync MUST NOT 因为 actor 可读 Flow synthesis 就自动展开不可读 d
 - morph type
 - relation kind
 - watched refs
-- changed since cursor
+- changed after cursor
 
 ## 15. 幂等、去重与重放
 
