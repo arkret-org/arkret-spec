@@ -288,7 +288,7 @@ Resolver policy MUST 至少定义：
 {
   "did:plc": {
     "role": ["interop_principal"],
-    "directory": ["https://plc.directory"],
+    "directory": ["https://web.plc.directory"],
     "require_operation_history": true,
     "long_lived_principal": "interop_only"
   }

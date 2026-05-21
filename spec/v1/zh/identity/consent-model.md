@@ -16,7 +16,7 @@ Contrix 的访问授权由 **capability + invite** 两条路径承担。但二�
 
 它是 invite / direct contact 路径上的**前置 gate**：在"是否给 Alice 发出 invite"之前，先看"Alice 是否同意接收来自 Bob 的 invite"。
 
-本规范定义 Contrix 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol`](https://datatracker.ietf.org/doc/draft-ietf-mimi-protocol/) 的 consent 概念，并完整落在 Contrix 的 Move / Anchor / Lattice 三原语之上：consent 是 holder 控制的 Realm 内某个 consent cell（or-set lattice）的当前 join 值，由签名 Move 维护。
+本规范定义 Contrix 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Contrix 的 Move / Anchor / Lattice 三原语之上：consent 是 holder 控制的 Realm 内某个 consent cell（or-set lattice）的当前 join 值，由签名 Move 维护。
 
 ## 2. 设计原则
 

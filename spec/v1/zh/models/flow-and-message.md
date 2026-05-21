@@ -387,7 +387,7 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 
 **Opt-in 暴露**：actor 在自写 watch cell 时 MAY 设置 `level_public = true`。该 flag 为 true 时，projection 在向 Realm 其他成员投影该 actor 的 watch 时**不脱级别**（即区分 `participating` vs `all`）。`muted` **永远**不投影给非自己 / 非 audit 持有方，即使 `level_public=true`（防止社交核弹）。默认 `level_public = false`。
 
-> 暂未规范"全局隐身（hide_watching）"开关——actor 想完全隐身的简单做法是不写显式 watch cell（行为退化为 `mentions_only`，投影上不出现）。如未来需要 opt-out 让别人看不到 `participating` / `all` 状态，将通过独立 actor profile 字段扩展，本版本不预留 wire 位。
+> v1 不定义共享可见的"全局隐身（hide_watching）"wire 位。默认客户端 SHOULD 把 watch 状态保存在 actor-private state；只有用户显式 opt-in 展示参与/关注状态时才写共享 watch cell。actor 想完全隐身的简单做法是不写显式共享 watch cell（行为退化为 `mentions_only`，投影上不出现）。如后续需要跨设备同步的 opt-out，将通过独立 actor profile 字段扩展，本版本不预留共享 wire 位。
 
 ### 8.6 Agent / Bot watcher
 

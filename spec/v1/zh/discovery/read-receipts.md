@@ -80,9 +80,9 @@ Realm MAY 通过 `cx.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
-| `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
+| `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `cx.receipt.read`。 |
 | `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Realm 可见性允许的全部观察者；`members` = 目标 Realm / linked Realm 可见成员（discussion 时间线归属的 Realm：未设置 `discussion_realm_ref` 时为源 Realm，设置时为该 linked Realm）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。 |
-| `scope_overrides_allowed` | `bool` | `true` | 是否允许 linked Realm（如 `Flow.discussion_realm_ref` 指向的独立 Realm）声明独立、**收紧**（不放宽）的 read receipt policy。无论本字段取值如何，**放宽方向永远 disallowed**：linked Realm 的 receipt policy MUST 在 disclosure 与 visibility 两个维度都 **等于或更严格于** 父策略（disclosure: `disabled` > `optional` > `required` 的反向收紧，即父 `optional` 允许子 `disabled`，禁止子 `required`；visibility: `private` > `members` > `public` 的反向收紧，即父 `members` 允许子 `private`，禁止子 `public`）。源 Realm `scope_overrides_allowed=true` 仅允许 linked Realm **进一步收紧**；`scope_overrides_allowed=false` 要求 linked Realm 完全继承父策略，连收紧都不允许。任何放宽方向的 child policy 声明 MUST reducer 拒绝。 |
+| `scope_overrides_allowed` | `bool` | `true` | 是否允许 linked Realm（如 `Flow.discussion_realm_ref` 指向的独立 Realm）声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 必须同时满足两条规则：隐私上限允许 `optional -> disabled`，但合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。源 Realm `scope_overrides_allowed=true` 仅允许 linked Realm 在满足上述两条规则时进一步收紧；`scope_overrides_allowed=false` 要求 linked Realm 完全继承父策略。任何放宽方向或违反合规下限的 child policy 声明 MUST reducer 拒绝。 |
 
 规则：
 

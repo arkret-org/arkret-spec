@@ -656,5 +656,8 @@
       "uniqueItems": true
     }
   },
-  "additionalProperties": true
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false
 }

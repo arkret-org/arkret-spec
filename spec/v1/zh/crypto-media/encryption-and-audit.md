@@ -68,7 +68,7 @@ MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第�
 
 #### 2.3.0 E2EE Profile：plaintext metadata 边界
 
-v1 基线 E2EE profile 是 **body-only E2EE**：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Space 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Space `parent_ref` 等结构化 metadata 在未声明 minimal-metadata profile 时 **MUST** 以明文形式存在于 wire schema 中，即便所属 Realm 声明 `encryption_profile="mls_rfc9420"`。
+v1 基线 E2EE profile 是 **body-only E2EE**，不得在 UI、营销材料或 service describe 中简称为“完整 E2EE”：`encrypted_payload` 加密 Message / Morph / Flow body 与 attachment，其余字段保持明文 wire schema。Space 与 Flow 的 `title`、`summary`、`rank`、`state`、`fields`（除明确标注 encrypted 的子字段外）、Flow `tracks` map 配置、Space `parent_ref` 等结构化 metadata 在未声明 minimal-metadata profile 时 **MUST** 以明文形式存在于 wire schema 中，即便所属 Realm 声明 `encryption_profile="mls_rfc9420"`。高隐私或 audited Realm 若要求 metadata 机密性，MUST 声明 minimal-metadata / encrypted-field profile，而不是仅依赖 body-only E2EE。
 
 理由与影响：
 
@@ -404,7 +404,7 @@ MLS group 的 scope 永远绑定到一个 `realm_id`：源 Realm 自身使用 `e
 规则：
 
 - E2EE application message Move 的 preconditions MUST 证明 `covered_frontier_cell` `contains` 该消息依赖的 governance Anchor frontier。
-- 客户端在 MLS Commit Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并 MUST 暂停发送新 application messages，直到 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。所有 `encryption_profile="mls_rfc9420"` 的 Realm 均适用，无论 `security_class`；仅 Realm schema 显式声明 `mls_send_pause="advisory"`（详见 §2.4.1）的部署可降级为 SHOULD。
+- 客户端在 MLS Commit Move 滞后超过 `max_mls_commit_delay_ms`（默认 30,000 ms，见 §2.4.1）时 MUST 进入 `epoch_update_required`，并 MUST 暂停发送新 application messages，直到 `covered_frontier_cell` 覆盖最新 governance Anchor frontier。所有 `encryption_profile="mls_rfc9420"` 的 Realm 均适用，无论 `security_class`；仅低安全或开发 profile 的 Realm schema 可显式声明 `mls_send_pause="advisory"`（详见 §2.4.1）并降级为 SHOULD，audited / high-confidentiality / minimal-metadata Realm MUST NOT 使用该降级。
 - 撤销与失效（如 ban、revoke）只有被 `covered_frontier_cell` 覆盖后，才能阻止后续 application messages 解密；旧 epoch 中已分发的 key material 仍可能被原持有者使用。
 - Governance / recovery Move 不依赖 `covered_frontier_cell`，因此 MLS epoch 卡住时仍可提交修复 Move 并由 Anchor finalization 生效。
 

@@ -52,7 +52,7 @@ title: Third-Party Invites
 }
 ```
 
-`token_commitment` 是盐化承诺；`token_salt` 原值只保存在验证服务的私有状态或加密审计记录中。`oob_code_kind` 是 wire-level discriminator：`offline_token` 表示 OOB code 自身满足 ≥128-bit 熵并按 commitment 校验；`lookup` 表示短码只作为服务端私有 lookup 表索引，必须走 pepper/HMAC 存储与限速。该结构的 object 形态由 [`invite.schema.json`](../../artifacts/schemas/invite.schema.json) 的 `third_party_id` 定义。`verification_public_key` 是验证服务生成的临时签名公钥，用于未来验证认领。若需要在 UI 显示目标邮箱，应只在邀请者本地私有状态中保存，或以 E2EE 方式保存给有权查看邀请详情的管理员。
+`token_commitment` 是盐化承诺；`token_salt` 原值只保存在验证服务的私有状态或加密审计记录中。`oob_code_kind` 是 wire-level discriminator：`offline_token` 表示 OOB code 自身满足 ≥128-bit 熵并按 commitment 校验；`lookup` 表示短码只作为服务端私有 lookup 表索引，必须走 pepper/HMAC 存储与限速。该结构的 object 形态由 [`invite.schema.json`](../../artifacts/schemas/invite.schema.json) 的 `third_party_id` 定义。`verification_public_key` 是验证服务生成的临时签名公钥，用于后续 claim / 认领验证。若需要在 UI 显示目标邮箱，应只在邀请者本地私有状态中保存，或以 E2EE 方式保存给有权查看邀请详情的管理员。
 
 ### 3.2 发送外部通知
 
@@ -151,7 +151,7 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 
 ## 6. 过期、撤销与隐私要求
 
-- 所有可被认领或接受的 invite MUST 携带 `expires_at`；`cx.invite.third_party` 的默认过期时间 SHOULD 不超过 7 天，高安全 Realm SHOULD 不超过 24 小时。
+- 所有可被认领或接受的 invite MUST 携带 `expires_at`；`cx.invite.third_party` 的 v1 base profile 硬上限为 7 天，高安全 / audited / 企业 Realm 硬上限为 24 小时。需要更长生命周期的部署 MUST 声明扩展 profile，并要求额外 revalidation proof。
 - 邀请者、Realm 管理员或 policy server MAY 发布 `cx.invite.revoke` 撤销 pending invite。撤销后任何 claim MUST reject。
 - 验证服务 MUST 对 token claim 做限速、IP / device 风险控制和重放检测；失败响应不得泄露 token 是否存在、Realm 是否存在或 3PID 是否被邀请。
 - Event 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。

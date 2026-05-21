@@ -314,6 +314,8 @@ Contrix 不应忽略 Matrix 的成熟度：
 
 ## 9. 外部参考
 
+本节链接均为 informative reference；`unstable` 路径仅用于 Matrix 互操作背景说明，不构成 Contrix v1 normative dependency。
+
 - Matrix Specification: https://spec.matrix.org/latest/
 - Matrix Application Service API: https://spec.matrix.org/unstable/application-service-api/
 - Matrix E2EE guide: https://matrix.org/docs/matrix-concepts/end-to-end-encryption/

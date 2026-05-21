@@ -89,12 +89,13 @@ info:
     honor path-level `servers` overrides; the corresponding `operation-registry.json`
 
     `http` field always records the bare (post-prefix) path.'
-# Top-level security default is intentionally empty. Every operation MUST
-# declare its own `security:` block. SDKs / lint / threat-model audits read
-# security from the operation, not from this top-level fallback. Operations
-# that are truly unauthenticated (public metadata) declare `security: []`
-# explicitly.
-security: []
+# Default is authenticated. SDKs / lint / threat-model audits still require
+# every operation to declare its own `security:` block, but the document-level
+# fallback MUST be fail-closed if a future operation is added incorrectly.
+# Operations that are truly unauthenticated (public metadata / callback proof
+# endpoints) declare `security: []` explicitly.
+security:
+- bearerAuth: []
 servers:
 - url: https://{host}/api/v1
   variables:
@@ -438,8 +439,9 @@ components:
           type: array
           description: |
             Profiles for which a cotest run has produced a passing artifact.
-            Each entry MUST carry `cotest_run_id`, `artifact_hash` and
-            `timestamp`. When `development_mode=true` this array MUST be
+            Each entry MUST carry `cotest_run_id`, `artifact_hash`,
+            `artifact_ref`, `cotest_issuer_did`, `signature` and `timestamp`.
+            When `development_mode=true` this array MUST be
             empty (see `zh/sync/service-surface.md` §3.0 and
             `cx.schema.service_describe.v1`).
           items:
@@ -449,6 +451,9 @@ components:
             - claim_kind
             - cotest_run_id
             - artifact_hash
+            - artifact_ref
+            - cotest_issuer_did
+            - signature
             - timestamp
             properties:
               profile_id:
@@ -461,7 +466,23 @@ components:
                 type: string
               artifact_hash:
                 type: string
+                pattern: ^sha256:[0-9a-f]{64}$
+              artifact_ref:
+                type: string
+                minLength: 1
+                description: URI or transparency-log reference from which the cotest artifact can be fetched.
+              cotest_issuer_did:
+                type: string
+                pattern: ^did:
+                description: DID of the cotest authority that signed the artifact statement.
+              signature:
+                type: string
+                minLength: 1
+                description: Signature over profile_id, cotest_run_id, artifact_hash, artifact_ref, issuer and timestamp.
               timestamp:
+                type: string
+                format: date-time
+              valid_until:
                 type: string
                 format: date-time
         experimental_features:
@@ -2570,10 +2591,115 @@ components:
               description: Detached signature over the policy decision transcript.
           additionalProperties: false
       additionalProperties: false
+    SessionGrantRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - principal_id
+      - proof
+      properties:
+        principal_id:
+          type: string
+          pattern: ^did:
+        device_id:
+          type: string
+        requested_scope:
+          type: array
+          items:
+            type: string
+        proof:
+          type: object
+          additionalProperties: false
+          required:
+          - proof_kind
+          - challenge
+          - request_canonical_hash
+          - signature
+          properties:
+            proof_kind:
+              type: string
+              enum:
+              - did_bound_signature
+              - paired_device_proof
+              - passkey_assertion
+              - oidc_code_exchange
+            challenge:
+              type: string
+              minLength: 16
+            request_canonical_hash:
+              type: string
+              pattern: ^sha256:[0-9a-f]{64}$
+            audience:
+              type: string
+            expires_at:
+              type: string
+              format: date-time
+            signature:
+              type: string
+              minLength: 1
+    SessionGrantResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - principal_id
+      - session_grant
+      - expires_at
+      properties:
+        principal_id:
+          type: string
+          pattern: ^did:
+        device_id:
+          type: string
+        session_grant:
+          type: string
+          description: Short-lived bearer/session grant bound to the requested principal, device and audience.
+        expires_at:
+          type: string
+          format: date-time
+        granted_scope:
+          type: array
+          items:
+            type: string
+    AccountOidcCallbackRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - state
+      - code
+      properties:
+        state:
+          type: string
+          minLength: 16
+        code:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+        redirect_uri:
+          type: string
+          format: uri
+    AccountOidcCallbackResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        principal_id:
+          type: string
+          pattern: ^did:
+        session:
+          $ref: '#/components/schemas/SessionGrantResponse'
+        redirect_url:
+          type: string
+          format: uri
+      anyOf:
+      - required:
+        - principal_id
+      - required:
+        - redirect_url
     OperationRequest:
       type: object
       description: Operation-specific JSON request object. Required fields and profile gates are defined by the operation
-        binding in the normative sync/service documents.
+        binding in the normative sync/service documents. Core security-sensitive operations MUST use dedicated schemas;
+        this generic shape is reserved for extension passthrough or explicitly profiled operations.
       additionalProperties: true
     OperationResult:
       type: object
@@ -2728,13 +2854,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/SessionGrantResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/SessionGrantRequest'
   /identity/receipts:
     get:
       operationId: cx.identity.get_receipts
@@ -3264,7 +3390,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AccountOidcCallbackResponse'
   /blob/upload:
     post:
       operationId: cx.blob.upload
@@ -3285,7 +3411,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AccountOidcCallbackRequest'
   /blob/get:
     head:
       operationId: cx.blob.head

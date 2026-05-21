@@ -218,7 +218,7 @@ Profile 后续变更通过 `cx.profile.update` Move / compatible Event 提交。
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `state` | string | MUST | 状态值 |
-| `last_active_at` | string | SHOULD | 最后活跃时间 |
+| `last_active_at` | string | 可选 | 最后活跃时间；默认 SHOULD 省略或按 policy bucket 化（例如分钟/小时级），只有 presence policy 明确允许精确披露时才发送精确 timestamp。 |
 | `status_message` | string | 可选 | 当前状态消息（来自 Profile） |
 | `ttl_ms` | integer | SHOULD | 存活时间（毫秒），超时后客户端应将该用户视为 offline |
 

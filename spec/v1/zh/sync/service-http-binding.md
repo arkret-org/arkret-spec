@@ -134,9 +134,9 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/keys/keypackages/revoke` | body `{keypackage_ref, reason?}` | `user_session` + 当前 device proof;不可撤销已消费的 keypackage。 | `{ok: true, revoked_at}` |
 | `POST /api/v1/directory/announce` | body `{resource_kind, resource_id, discoverability, signatures[]}` | `user_session` 或 `service_signature` 视 resource_kind;principal MUST 签发 announcement 凭据。 | `{ok: true, announcement_id, valid_until?}` |
 | `POST /api/v1/directory/withdraw` | body `{announcement_id, reason?}` | `user_session`;只能撤销自己签发的 announcement。 | `{ok: true, withdrawn_at}` |
-| `POST /auth/account/session-grants` | body `{principal_id, device_id?, requested_scope?}` | DID-bound signature 或 paired device proof;此 endpoint **不**挂在 `/api/v1` 下,SDK MUST 走 path-level `servers: https://{host}` 覆盖。 | `OperationResult.data.session_grant`（字段形态以 OpenAPI `OperationResult` 为准） |
+| `POST /auth/account/session-grants` | body `SessionGrantRequest {principal_id, device_id?, requested_scope?, proof}` | DID-bound signature / paired device proof / passkey assertion / OIDC code exchange proof；此 endpoint **不**挂在 `/api/v1` 下，SDK MUST 走 path-level `servers: https://{host}` 覆盖。请求体 proof MUST 绑定 challenge、audience、request canonical hash、principal 与 device。 | `SessionGrantResponse {principal_id, device_id?, session_grant, expires_at, granted_scope?}` |
 | `POST /auth/account/device-pair` | body `{pairing_code, new_device_pubkey, challenge_signature}` | `user_session` + existing device proof + freshly minted pairing code(短 TTL); endpoint 与 session-grants 同一部署本地 namespace。 | `{device_id, authorized_event_ref}` |
-| `POST /auth/account/oidc/callback` | body `{state, code, nonce?}` | `public_metadata` 的回调入口(OIDC IdP 重定向);服务端 MUST 校验 `state` / `nonce` 并把外部主体映射到 Contrix principal。 | `{principal_id, session?}` 或 `{redirect_url}` |
+| `POST /auth/account/oidc/callback` | body `AccountOidcCallbackRequest {state, code, nonce?, redirect_uri?}` | `public_metadata` 的回调入口(OIDC IdP 重定向);服务端 MUST 校验 `state` / `nonce` / `redirect_uri` 并把外部主体映射到 Contrix principal。 | `AccountOidcCallbackResponse {principal_id, session?}` 或 `{redirect_url}` |
 | `GET /admin/server/status` | query none | `admin_bearer`(MUST 是 admin role 的 user_session)。该 endpoint **不**挂在 `/api/v1` 下。 | `{service_did, build, uptime_seconds, registry_versions, queues?}` |
 | `POST /admin/accounts/{account_id}/status` | path `{account_id}` body `{action: enum(suspend, restore, ...), reason?}` | `admin_bearer`;reducer 同时写 `cx.account.status_changed`(必须由 admin 签发)。 | `{ok: true, status, applied_at}` |
 | `POST /admin/devices/{device_id}/revoke` | path `{device_id}` body `{reason?}` | `admin_bearer`;触发 `cx.device.revoked` + capability fanout。 | `{ok: true, revoked_at}` |
@@ -405,11 +405,11 @@ GET /api/v1/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区间查�
 | --- | --- | --- |
 | `prev_cursor` | 朝**更旧事件**方向的延续位置（位于本批次较旧端之外） | 传给下次请求的 `before=` 取更旧一批 |
 | `next_cursor` | 朝**更新事件**方向的延续位置（位于本批次较新端之外） | 传给下次请求的 `after=` 取更新一批 |
-| `has_more` | 是否在 `prev_cursor` 方向上仍有可拉取的 Event；客户端**已经到达 head**（`before=` 没有更旧历史可拉）时 `has_more=false`。`has_more` 不反映 `next_cursor` 方向是否有事件——`next_cursor` 永远有效（朝未来推进），但其指向的事件可能尚未发生。 |  |
+| `has_more` | 等价于 `has_more_before`：是否在 `prev_cursor` 指向的**更旧事件**方向上仍有可拉取 Event。客户端到达 oldest accessible event 时 `has_more=false`。`has_more` 不反映 `next_cursor` 方向是否有事件——`next_cursor` 永远有效（朝未来推进），但其指向的事件可能尚未发生。 |  |
 
 边界场景：
 
-- **客户端已经追到 head**（`before=` 调用返回空批次）：响应 `events=[]`、`prev_cursor` 仍非空（指向 head 之前的最新事件，可继续 `before=prev_cursor` 翻历史）、`next_cursor` 仍非空（指向 head，可后续 `after=next_cursor` 等待新事件）、`has_more=true` 当仍有可读历史时。
+- **客户端已经追到最新 head**（`after=` 调用暂时无新事件）：响应 `events=[]`、`prev_cursor` 仍可指向当前可见 head 之前的位置（可继续 `before=prev_cursor` 翻历史）、`next_cursor` 指向未来推进点、`has_more=true` 当更旧方向仍有可读历史时。
 - **客户端到达 oldest accessible event**（不允许再往更旧拉）：`prev_cursor=null`、`has_more=false`。
 - **超过 visibility 边界**：返回 `not_found` 而不是空批次，避免泄露不可见 Realm 的存在性。
 

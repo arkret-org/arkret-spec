@@ -338,7 +338,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 ### 6.2 `member.application`
 
-候选申请概念；schema 名 `member.application.v1`。正式进入 v1 registry 前，`member.application` 不得作为 Event envelope 的 `kind` 使用，也不得使用 `cx.*` 标准前缀伪装成 active contract；实验实现必须在自有 profile 中声明私有承载方式。
+候选申请概念；schema 名 `member.application.v1`。正式进入 v1 registry 前，`member.application` 不得作为 Event envelope 的 `kind` 使用，也不得使用 `cx.*` 标准前缀伪装成 active contract；生产实现若启用本 workflow，必须在自有 profile 中声明唯一承载方式，并输出可引用的 signed application receipt（`application_receipt_hash`），供后续 review / invite / audit 引用。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -355,7 +355,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 ### 6.3 `member.application.review`
 
-durable Event，需要 `review_capability`。
+签名 review workflow record，需要 `review_capability`。在正式注册为 v1 active Event kind 前，它不是 base profile 的 durable `Event.kind`；实现必须把 review 结果承载为自有 profile 声明的 signed review receipt（`review_receipt_hash`），或承载在该 profile 自己注册的私有 Event kind 中。任何 `cx.invite.create` 对 review 的引用 MUST 指向稳定 receipt hash 或该私有 Event id，不得引用未注册的裸名 kind。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -377,7 +377,7 @@ applicant 可主动撤回；写入 `decision=canceled`，不计 cooldown。
 
 application 进入 `accepted` 状态后：
 
-1. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` event；
+1. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` 的 signed review receipt hash；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id；
 2. applicant 提交 `cx.invite.accept`；
 3. reducer 在写入 `cx.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、reviewer 在当前 frontier 仍持有 `review_capability`、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖。
 
@@ -387,7 +387,7 @@ application 进入 `accepted` 状态后：
 
 ### 7.1 非 E2EE Realm
 
-`member.application` payload 在 wire 上保持明文，但 Sync Service / Principal Server MUST：
+`member.application` 的共享 durable wire payload 即使在非 E2EE Realm 中也只能包含最小化 metadata（application id、applicant DID、policy hash、receipt hash、状态与时间戳）。申请正文、answers、自由文本、3PID、附件和 reviewer-only 诊断 MUST 放入 reviewer encryption envelope 或实现 profile 声明的受保护 private record；不得仅依赖 projection 隐藏来保护隐私。Sync Service / Principal Server MUST：
 
 - 仅向 reviewer set（`review_capability` 持有方）与 applicant 自身投影 application 正文；
 - 对其它 Realm 成员投影占位（`{application_pending: true}`）；
@@ -450,7 +450,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 ## 10. Policy Server 运行时挑战
 
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `cx.member.state{join}` / `member.application` Move 调用 `/api/v1/policy/check`（OpenAPI canonical path 为 `/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `cx.member.state{join}` / `member.application` Move 调用 OpenAPI canonical path `/policy/check`。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
 ```json
 {
@@ -474,7 +474,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
 }
 ```
 
-applicant 完成挑战后，重新提交 join / application Move，在 `gate_proofs[]` 中追加 `{gate_id: "_runtime", challenge_proof: {...}}`（保留 `gate_id="_runtime"` 作为运行时挑战的占位）。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 challenge_proof 的重提。
+applicant 完成挑战后，重新提交 join / application Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；历史占位 `gate_id="_runtime"` 只能作为 UI/display 兼容标签，MUST NOT 参与 verifier 选择。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
 
 `obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `cx.message.create`）若使用 `challenge` 必须遵循同一 envelope。
 

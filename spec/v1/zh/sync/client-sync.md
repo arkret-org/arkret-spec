@@ -207,7 +207,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 **协议正确性层面**，Contrix 的事件携带 `prev_refs` 与 `refs[role=authorized_by]`，每个事件自带因果与授权 anchor；reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
 
-**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 anchor view"渲染 window 起点事件会显示错误的 display name / room name / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
+**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm / Flow / Space 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 anchor view"渲染 window 起点事件会显示错误的 display name / Realm/Flow/Space display metadata / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
 
 **(a) 返回 `state_at_window_start`** (推荐路径，projection-only)：
 
@@ -247,7 +247,7 @@ Account subscribe `delta` frame 包含以下 stream：
 - 客户端 MUST NOT 在 backfill 完成（即缺口被 `prev_cursor` 拉取并应用）前把该 timeline 渲染为已验证的完整 UI。
 - 客户端可以渲染为占位、loading 状态或带 "loading history..." 标签的预览，但不得让用户感知为"完整 timeline"。
 
-> Rationale: Matrix `/sync` limited timeline 同时返回 state delta；Contrix 的 per-event auth state 已覆盖协议层正确性，但渲染层（display name / room avatar / epoch boundary）仍可能错位。`state_at_window_start` 给服务端实现一条轻量恢复路径，`preview_only` 给无法计算历史 anchor 的实现一条安全回退。
+> Rationale: Matrix `/sync` limited timeline 同时返回 state delta；Contrix 的 per-event auth state 已覆盖协议层正确性，但渲染层（display name / Realm or Flow avatar / epoch boundary）仍可能错位。`state_at_window_start` 给服务端实现一条轻量恢复路径，`preview_only` 给无法计算历史 anchor 的实现一条安全回退。
 
 ## 6. Event Ordering
 
