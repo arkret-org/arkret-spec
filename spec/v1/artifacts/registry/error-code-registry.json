@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-09",
+  "version": "2026-05-22",
   "codes": [
     {
       "code": "bad_json",
@@ -32,6 +32,12 @@
       "description": "A parameter value is syntactically or semantically invalid."
     },
     {
+      "code": "invalid_response",
+      "http_status": 400,
+      "scope": "service_call",
+      "description": "A downstream service response was syntactically valid transport data but did not satisfy the expected protocol contract."
+    },
+    {
       "code": "unauthenticated",
       "http_status": 401,
       "scope": "both",
@@ -54,6 +60,60 @@
       "http_status": 401,
       "scope": "both",
       "description": "A required signature or proof does not verify."
+    },
+    {
+      "code": "directory_not_authorized",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "Directory ingest rejected an announce or withdraw because the signed resource payload does not authorize this Directory service DID."
+    },
+    {
+      "code": "accept_policy_denied",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "Directory ingest rejected the resource because it is outside the directory's advertised accept policy."
+    },
+    {
+      "code": "signature_invalid",
+      "http_status": 400,
+      "scope": "service_call",
+      "description": "Directory ingest rejected a resource governance proof because its detached signature is invalid or cannot be canonicalized."
+    },
+    {
+      "code": "signature_stale",
+      "http_status": 400,
+      "scope": "service_call",
+      "description": "Directory ingest rejected a signed payload because its as_of timestamp is outside the configured freshness window."
+    },
+    {
+      "code": "source_refs_unverifiable",
+      "http_status": 400,
+      "scope": "service_call",
+      "description": "Directory ingest could not verify declared source_refs against the authoritative principal server or resource source."
+    },
+    {
+      "code": "governance_key_invalid",
+      "http_status": 400,
+      "scope": "service_call",
+      "description": "Directory ingest rejected a governance proof because the signing key is not valid for the resource DID document's current epoch."
+    },
+    {
+      "code": "ttl_out_of_range",
+      "http_status": 400,
+      "scope": "service_call",
+      "description": "Directory ingest rejected ttl_seconds because it is outside the service's allowed [1, max_ttl_seconds] range."
+    },
+    {
+      "code": "takedown_in_force",
+      "http_status": 409,
+      "scope": "service_call",
+      "description": "Directory ingest rejected an announce because an active withdrawal or operator takedown blocks acceptance of the resource."
+    },
+    {
+      "code": "policy_revision_rollback",
+      "http_status": 409,
+      "scope": "service_call",
+      "description": "Directory ingest rejected an announce because policy_revision or as_of is older than the indexed entry."
     },
     {
       "code": "capability_denied",
