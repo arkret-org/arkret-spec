@@ -123,7 +123,8 @@
     "cx.profile.organization.v1",
     "cx.profile.high_security_organization.v1",
     "cx.profile.isolated_sovereign_network.v1",
-    "cx.profile.sovereign_deployment.v1"
+    "cx.profile.sovereign_deployment.v1",
+    "cx.profile.sovereign_enclave.v1"
   ],
   "constraint_extension_profiles": [
     "cx.profile.constraint.approval_workflow.v1",
@@ -190,6 +191,7 @@
     "cx.profile.high_security_organization.v1": "admin",
     "cx.profile.isolated_sovereign_network.v1": "admin",
     "cx.profile.sovereign_deployment.v1": "admin",
+    "cx.profile.sovereign_enclave.v1": "admin",
     "cx.profile.principal_control_realm.v1": "admin",
     "cx.profile.constraint.approval_workflow.v1": "admin",
     "cx.profile.constraint.claim_based.v1": "admin",
@@ -1363,6 +1365,41 @@
           "audit_policy"
         ],
         "unsupported_optional": "deny bridge until explicit policy exists"
+      }
+    },
+    "cx.profile.sovereign_enclave.v1": {
+      "inherits": [
+        "cx.profile.sovereign_deployment.v1"
+      ],
+      "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `cx.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
+      "required_endpoints": [
+        "cx.server.describe",
+        "cx.identity.resolve",
+        "cx.authz.check"
+      ],
+      "required_event_kinds": [
+        "cx.sovereign.did_policy",
+        "cx.realm.policy"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "cx.schema.policy.v1"
+      ],
+      "required_fixtures": [
+        "federation-fixture.json"
+      ],
+      "optional_extensions": [
+        "boundary_audit_persistence",
+        "store_and_forward_outage"
+      ],
+      "feature_discovery": {
+        "required": [
+          "resolver_policy",
+          "federation_boundary",
+          "audit_policy",
+          "outbound_allowlist"
+        ],
+        "unsupported_optional": "deny outbound HTTP until allowlist contains the destination host"
       }
     },
     "cx.profile.franking.v1": {
