@@ -406,9 +406,71 @@
       "type": "integer",
       "minimum": 0
     },
+    "blob_presign_max_ttl_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600,
+      "description": "Maximum TTL, in seconds, that this grant permits for cx.blob.presign. The service must clamp requested max_age_seconds to the smaller of this value and deployment policy."
+    },
+    "blob_presign_scope": {
+      "type": "object",
+      "description": "Scope limiter for cx.blob.presign grants: allowed purposes plus optional blob/realm restrictions.",
+      "properties": {
+        "purpose_allow": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "media_inline",
+              "thumbnail",
+              "download"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "blob_ref_pattern": {
+          "type": "string"
+        },
+        "realm_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "purpose_allow"
+      ],
+      "additionalProperties": false
+    },
     "max_total_blob_bytes": {
       "type": "integer",
       "minimum": 0
+    },
+    "max_artifact_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Maximum artifact size in bytes for applet / agent / export operations."
+    },
+    "allowed_data_classes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      },
+      "uniqueItems": true,
+      "description": "Data classification labels this grant may read, export, transform, or send to external endpoints."
+    },
+    "allowed_endpoints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "description": "Allowed outbound endpoint origins or deployment-approved endpoint patterns for applet / agent / connector operations."
     },
     "message_edit_window": {
       "type": "string",

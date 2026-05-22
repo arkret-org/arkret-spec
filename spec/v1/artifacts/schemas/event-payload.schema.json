@@ -2234,6 +2234,7 @@
         "recipient_device_id",
         "keypackage_ref",
         "claim_id",
+        "claim_ref",
         "expires_at"
       ],
       "anyOf": [
@@ -2275,6 +2276,27 @@
         },
         "claim_id": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "claim_ref": {
+          "type": "object",
+          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id and keypackage_ref must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response.",
+          "required": [
+            "claim_id",
+            "keypackage_ref",
+            "capabilities_digest"
+          ],
+          "properties": {
+            "claim_id": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "keypackage_ref": {
+              "$ref": "#/$defs/object_ref"
+            },
+            "capabilities_digest": {
+              "$ref": "#/$defs/hash"
+            }
+          },
+          "additionalProperties": false
         },
         "welcome_ref": {
           "$ref": "#/$defs/object_ref"

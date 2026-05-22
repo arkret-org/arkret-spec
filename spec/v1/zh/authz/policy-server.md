@@ -216,6 +216,12 @@ Content-Type: application/json
 
 > `bound_to.action` 必须等于被授权动作的规范名称。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate workflow concept/action 名称（不是 v1 wire `Event.kind`，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 candidate reducer 校验都用裸名。已注册的 Move（如 `cx.member.state`）则继续使用 `cx.*` 前缀。
 
+`challenge` obligation 中的 `bound_to.request_canonical_hash` 是**被 challenge 的原始请求 hash**，不是包含 `challenge_proof` 自身的重提 Move hash。计算规则：
+
+1. 首次 `/policy/check` 时，调用方对原始 Move preview / application private record body 做 JCS canonical SHA-256，作为 `request_canonical_hash`。
+2. 客户端重提时可以在 `gate_proofs[]` 或 envelope proof 区追加 runtime challenge proof；reducer 重新计算 hash 时 MUST 先移除 runtime challenge proof 条目（`gate_id="runtime:<challenge_id>"` 或等价 envelope proof 字段），再按同一 JCS 规则计算。
+3. provider 签发的 proof MUST 绑定该原始 hash、`challenge_id`、`actor`、`action`、`realm_id?`、`device_id?`、`expires_at` 和 issuer。实现 MUST NOT 要求 proof 内 hash 等于“包含 proof 自身的最终 Move hash”，否则会形成自引用 transcript。
+
 provider 颁发的 challenge proof 形态：
 
 ```json
@@ -238,7 +244,7 @@ reducer 校验顺序：
 
 1. provider signature 有效，`kid` 与 obligation `issuer` 匹配；
 2. `expires_at > now`；
-3. `bound_to` 必须存在；`bound_to.actor` 等于 Move envelope `actor`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_hash` 等于本次重提 Move 的 canonical hash；
+3. `bound_to` 必须存在；`bound_to.actor` 等于 Move envelope `actor`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_hash` 等于按 §4.1 proof-stripped 规则重算出的原始请求 canonical hash；
 4. `challenge_id` 在 reducer 的 nonce 缓存中尚未消费；写入成功后入缓存（最少缓存到 `expires_at`）。
 
 任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。

@@ -71,6 +71,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `type_restriction` | `stateless` | (constraint_hash, op_target_type) | |
 | `scope_limitation`（普通 scope） | `stateless` | (constraint_hash, op_target) | |
 | `scope_limitation`（带 `allowed_*_container_refs` / `wip_limit_override`） | `space_state` | (realm_id, frontier_hash, target_container_id) | 看目标 List policy / WIP |
+| `scope_limitation`（带 `blob_presign_scope` / `allowed_endpoints` / `allowed_data_classes`） | `stateless` | (constraint_hash, op_target) | 对 presign / agent / applet 请求字段做集合或模式匹配 |
 | `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `quota` (`subtype=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
 | `quota` (`subtype=resource`，`blob_max_bytes` 单次) | `stateless` | 单次操作的字节计数无需历史 | |
@@ -243,6 +244,23 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `scope_limitation` 约束中的容器移动字段 MUST 在授权判定中早于 operation 生效。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`cx.flow.move` / `cx.container.move_item` 不得直接生效。
 
+### 6.4 服务出口与 presign 范围
+
+```json
+{
+  "constraint_type": "scope_limitation",
+  "effect": "allow",
+  "blob_presign_scope": {
+    "purpose_allow": ["media_inline", "thumbnail"],
+    "realm_refs": ["cx:realm:0196419b-0000-7000-8000-000000000000"]
+  },
+  "allowed_endpoints": ["https://api.trusted.example"],
+  "allowed_data_classes": ["public", "internal"]
+}
+```
+
+`blob_presign_scope` 是 `cx.blob.presign` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_classes` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
+
 ## 7. 委托控制
 
 ### 7.1 委托深度
@@ -294,10 +312,14 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "max_resources": 1000,
   "resource_type": "object",
+  "blob_presign_max_ttl_seconds": 300,
+  "max_artifact_bytes": 10485760,
   "period": "24h",
   "scope": "per_space"
 }
 ```
+
+`blob_presign_max_ttl_seconds` 是 `cx.blob.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
 
 ## 9. 审批工作流（claim_based, subtype=approval）
 

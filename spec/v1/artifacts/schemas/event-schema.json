@@ -1540,7 +1540,7 @@
           "description": "Opt-in publication of the level value to non-self projection consumers. Default false. muted MUST NOT be exposed even with level_public=true. MUST be omitted when level is null."
         },
         "expected_value": {
-          "description": "Compiles to cas-register head_eq precondition. Whole-value compare against the cell pre-state: either null (assert no prior record) or { level, level_public? } matching the prior cell value exactly. Omit to disable CAS guard (last-write-wins within causal order).",
+          "description": "Compiles to cas-register head_eq precondition. Whole-value compare against the cell pre-state: either null (assert no prior record) or { level, level_public? } matching the prior cell value exactly. When omitted, reducers MUST treat it as head_eq null: only the initial write may pass; an existing cell MUST fail_precondition. Omission MUST NOT disable CAS or imply last-write-wins.",
           "oneOf": [
             { "type": "null" },
             {

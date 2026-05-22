@@ -288,6 +288,11 @@ Contrix v1 支持：
 - `allowed_to_container_refs`
 - `visibility_allow`
 - `blob_max_bytes`
+- `blob_presign_max_ttl_seconds`
+- `blob_presign_scope`
+- `max_artifact_bytes`
+- `allowed_data_classes`
+- `allowed_endpoints`
 - `encryption_required`
 - `message_edit_window`
 - `max_delegation_depth`
@@ -331,6 +336,11 @@ Facet 只在 grant 显式包含 `facet_allow` / `facet_deny` 这类 typed constr
 | `allowed_to_container_refs` | `scope_limitation` | — | `allowed_to_container_refs` |
 | `visibility_allow` | `confidentiality` | `visibility` | `visibility_allow` |
 | `blob_max_bytes` | `quota` | `resource` | `blob_max_bytes` |
+| `blob_presign_max_ttl_seconds` | `quota` | `resource` | `blob_presign_max_ttl_seconds` |
+| `blob_presign_scope` | `scope_limitation` | — | `blob_presign_scope` |
+| `max_artifact_bytes` | `quota` | `resource` | `max_artifact_bytes` |
+| `allowed_data_classes` | `scope_limitation` | — | `allowed_data_classes` |
+| `allowed_endpoints` | `scope_limitation` | — | `allowed_endpoints` |
 | `encryption_required` | `confidentiality` | `encryption` | `encryption_required` |
 | `message_edit_window` | `temporal` | `edit_window` | `message_edit_window` |
 | `max_delegation_depth` | `delegation_control` | — | `max_delegation_depth` |
@@ -452,6 +462,8 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 ### 10.3 Revoke 因果传播
 
 `parent grant` 被 revoke 时,所有 derived child grant **MUST** 在该 revoke 的 causal 后继中失效。具体行为见 [`event-auth-state-resolution.md` §8](./event-auth-state-resolution.md) 委托链 revocation 传播规则;本节只补充: revoke 与 freshness 不一致期间(receiver 已收到 revoke 但未达到 freshness windows),derived child grant 已发起的 in-flight Events 由 reducer 按 §6 fast-path freshness 表判定(parent freshness `unknown` 时 fail closed 适用于高风险 action)。
+
+上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Move MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或 Anchor frontier 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
 ## 11. 有效权限集合
 

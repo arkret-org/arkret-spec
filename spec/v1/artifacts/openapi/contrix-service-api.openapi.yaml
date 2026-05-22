@@ -187,7 +187,7 @@ components:
         Carries a server-signed envelope binding blob_ref / TTL / scope /
         nonce. Permitted ONLY on cx.blob.get and cx.blob.head, and MUST NOT
         co-occur with bearerAuth — implementations enforce mutual exclusion.
-        See media-and-blob.md §5.4 and server-threat-model.md §S21 for the
+        See media-and-blob.md §5.4 and server-threat-model.md §2.1 #21 for the
         carve-out's normative constraints.
     mutualTls:
       type: mutualTLS
@@ -4004,7 +4004,7 @@ paths:
         `Authorization` header MUST be absent and is rejected if both are
         supplied. Pre-signed mode is a deliberate carve-out of the
         "no credentials in URL" rule (see zh/security/server-threat-model.md
-        §S21) so that browser primitives (`<img src>`, `<video src>`,
+        §2.1 #21) so that browser primitives (`<img src>`, `<video src>`,
         `<link href>`) can render protected media. Carries a server-signed
         envelope binding `blob_ref`, `expires_at`, `purpose`, requester
         identity hint, and an issuance nonce. Pre-signed URLs MUST be short

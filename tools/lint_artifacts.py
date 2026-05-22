@@ -630,6 +630,24 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     if not constraint_types:
         lint.fail(constraint_schema_path, "constraint_type enum must be non-empty")
 
+    constraint_fields = set(
+        constraint_schema.get("properties", {}).keys()
+        if isinstance(constraint_schema, dict) and isinstance(constraint_schema.get("properties"), dict)
+        else []
+    )
+    action_path = ARTIFACTS / "registry" / "capability-action-registry.json"
+    action_registry = load_json(lint, action_path) or {}
+    for row in action_registry.get("actions", []) if isinstance(action_registry, dict) else []:
+        if not isinstance(row, dict):
+            continue
+        action = row.get("action", "<unknown>")
+        for constraint_name in row.get("required_constraints", []) or []:
+            if isinstance(constraint_name, str) and constraint_name not in constraint_fields:
+                lint.fail(
+                    action_path,
+                    f"{action} required_constraints references unknown grant constraint field: {constraint_name}",
+                )
+
     return {
         "event_kinds": event_kinds,
         "active_event_kinds": {
