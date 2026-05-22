@@ -73,7 +73,7 @@
         "requester_provider": "did:web:mimi.example.com",
         "privacy_mode": "private_contact_discovery"
       },
-      "expected": "returns_time_bound_reachability_proof_without_exposing_contact_graph"
+      "expected": "returns_psi_match_bits_and_invite_handoff_without_exposing_contact_graph"
     },
     {
       "name": "consent_isolation",

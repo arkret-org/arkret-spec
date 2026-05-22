@@ -64,7 +64,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 用户可以随时关闭发送已读回执。此配置属于 Client Preference，按 (flow, realm, default) 顺序解析有效偏好；标准 Key 与字段定义见 [`discovery/client-preferences.md`](./client-preferences.md) §3.8。
 
 - 该偏好同步在用户的加密 account data 中，不公开广播。
-- 关闭只影响"是否发送 `cx.receipt.read`"，不影响 §3 私有 Read Marker，也不影响接收他人 receipt 的渲染。
+- `send=false` 只影响"是否发送 `cx.receipt.read`"，不影响 §3 私有 Read Marker。用户若只想隐藏他人的已读头像，客户端应使用 `cx.read_receipt.preferences.display=false` 做本地渲染偏好；该偏好不得改变 Sync Service 投递或协议状态。
 - 客户端收到他人的 `cx.receipt.read` 时，SHOULD 在 UI 上更新已读头像的小图标位置；接收行为不依赖发送偏好。
 - 当目标 scope 由 §2.5 声明 `disclosure="required"` 或 `disclosure="disabled"` 时，合规客户端 MUST 按该声明覆盖用户偏好（详见 §2.5）。
 

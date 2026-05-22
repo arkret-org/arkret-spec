@@ -1949,7 +1949,10 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": true
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
     },
     "device_authorized_payload": {
       "type": "object",
@@ -2359,6 +2362,7 @@
         "recipient_device_id",
         "sender_device_id",
         "key_scope",
+        "sender_device_signature",
         "created_at"
       ],
       "anyOf": [
@@ -2382,6 +2386,10 @@
         },
         "sender_device_id": {
           "$ref": "#/$defs/device_id"
+        },
+        "sender_device_signature": {
+          "$ref": "#/$defs/signature_material",
+          "description": "Detached device signature over canonical share metadata and ciphertext reference; verifiers MUST bind sender_device_id, recipient_principal_id, recipient_device_id, key_scope, aad_digest?, ciphertext/encrypted_key_ref and created_at."
         },
         "key_scope": {
           "$ref": "#/$defs/realm_key_scope"
@@ -2481,11 +2489,20 @@
     "realm_key_scope": {
       "type": "object",
       "required": [
-        "realm_id"
+        "realm_id",
+        "policy_hash"
       ],
       "properties": {
         "realm_id": {
           "$ref": "#/$defs/realm_id"
+        },
+        "policy_hash": {
+          "$ref": "#/$defs/hash",
+          "description": "Hash of the Realm policy / MLS governance policy root used to authorize this historical key share."
+        },
+        "membership_frontier_hash": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional hash of the membership frontier evaluated for history visibility and recipient membership."
         },
         "flow_id": {
           "$ref": "#/$defs/flow_id"
@@ -2843,6 +2860,7 @@
             "watch_audit_read",
             "e2ee_plaintext_release",
             "e2ee_late_recovery",
+            "cross_signing_reset",
             "join_application_review",
             "policy_audit_read",
             "other"

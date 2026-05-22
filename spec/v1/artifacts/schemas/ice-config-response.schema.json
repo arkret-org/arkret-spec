@@ -128,7 +128,7 @@
         },
         "credential": {
           "type": "string",
-          "description": "TURN ephemeral credential password (HMAC-SHA1 of username with per-tenant turn shared secret in REST-style)."
+          "description": "TURN ephemeral credential password (HMAC-SHA256 of username with per-tenant turn shared secret in REST-style)."
         },
         "credential_type": {
           "type": "string",

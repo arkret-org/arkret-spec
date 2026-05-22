@@ -738,7 +738,7 @@
           "input": {
             "consent_state": "revoked",
             "cached_surfaces": [
-              "directory_reachability",
+              "private_discovery_psi_result",
               "invite_gate",
               "psi_index"
             ]
@@ -747,7 +747,7 @@
             "outcome": "cache_invalidated",
             "reason_code": "consent_revoked",
             "invariants": [
-              "directory lookup stops returning peer",
+              "private discovery stops returning peer match",
               "next invite precondition re-runs consent gate",
               "PSI index excludes peer at next rotation"
             ]
@@ -758,7 +758,7 @@
               "preconditions": {
                 "consent_state": "revoked",
                 "cached_surfaces": [
-                  "directory_reachability",
+                  "private_discovery_psi_result",
                   "invite_gate",
                   "psi_index"
                 ]
@@ -771,7 +771,7 @@
               "input": {
                 "consent_state": "revoked",
                 "cached_surfaces": [
-                  "directory_reachability",
+                  "private_discovery_psi_result",
                   "invite_gate",
                   "psi_index"
                 ]
@@ -781,7 +781,7 @@
               "outcome": "cache_invalidated",
               "reason_code": "consent_revoked",
               "invariants": [
-                "directory lookup stops returning peer",
+                "private discovery stops returning peer match",
                 "next invite precondition re-runs consent gate",
                 "PSI index excludes peer at next rotation"
               ]

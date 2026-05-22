@@ -127,7 +127,7 @@ Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "so
 Signature: sig1=:base64...:
 ```
 
-请求字段（service-to-service 形态）：
+请求字段（service-to-service 形态）。`service_binding_ref` 是 federation transaction 的请求级元数据，不是独立 durable Event kind；其 member-level 来源是 effective `cx.member.state.delivery_binding`，Realm-level 来源是 Realm metadata `sync_endpoints`（schema: `cx.schema.realm.v1#/properties/sync_endpoints`）。
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
@@ -381,13 +381,13 @@ Signature: ...
 | 调用面 | 调用方 | 鉴权 | 响应形态 |
 | --- | --- | --- | --- |
 | Public Events API | account holder / SDK client | 用户/服务 access token | 通常仅 `realm_frontier` 或 `actor_seq` 简要视图 |
-| Federation peer probe (本节) | 被 Realm `service_binding` 授权的 federation peer 服务 DID | §3 节点间认证 + Realm policy 列出的 `federation_peer` 角色 | 完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)` |
-| Anonymous / unauth health check | optional | 无 / 限速 token | 仅 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds |
+| Federation peer probe (本节) | 被 Realm service binding（`sync_endpoints` 或等价 policy facet）授权的 federation peer 服务 DID | §3 节点间认证 + Realm policy 列出的 `federation_peer` 角色 | 完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)` |
+| Anonymous / unauth health check | optional | 无 / 限速 token | 仅 `frontier_root` 摘要；MUST NOT 暴露 actor 集合或 seq upper bounds；MUST 返回 `cache_until` 或 `retry_after_ms` |
 
 Probe **MUST** 是 capability-gated：
 
-- 被 Realm `service_binding` 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
-- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段。
+- 被 Realm service binding 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
+- anonymous 或未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）。如部署允许低权限健康检查，**MUST** 只暴露非敏感摘要（如 `frontier_root` 哈希），不暴露 `actor_seq_upper_bounds` 等可还原 actor 集合的字段，并按 `(realm_id, source_prefix)` 限速。匿名响应 MUST 带 `cache_until` 或 `retry_after_ms`，客户端在该时间前不得重复轮询同一 Realm。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
 
 Probe 响应 payload：
@@ -442,7 +442,7 @@ Probe 响应 payload：
   - **MAY** 拒绝向该 peer fanout 新 Event。
 - fork resolution 成功（heads 重合或 quorum witness attestation 一致）后 **MUST** 解除 `stale_peer` 标记。
 
-启用 high-assurance profile 但实现未实现上述 fail-state 等同于不满足 profile 声明，**MUST NOT** 在 `cx.service_binding` 中声明 `cx.profile.federation.high_assurance.v1`。
+启用 high-assurance profile 但实现未实现上述 fail-state 等同于不满足 profile 声明，**MUST NOT** 在 Realm service binding / `sync_endpoints` / ServiceDescribe profile 声明中声明 `cx.profile.federation.high_assurance.v1`。
 
 ## 5. 跨域加入 Realm
 
@@ -486,7 +486,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join
 
 ### 6.1 Anchorer / Sync Endpoint 列表
 
-每个 Realm 的 metadata MAY 包含一个 `sync_endpoints` 列表，用于列出被 Realm policy 明确委托的 shared anchorer、sync service 或组织 Principal Server。该列表不是公开分发节点列表；列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
+每个 Realm 的 metadata MAY 包含一个 `sync_endpoints` 列表（schema: `cx.schema.realm.v1#/properties/sync_endpoints`），用于列出被 Realm policy 明确委托的 shared anchorer、sync service、federation peer 或组织 Principal Server。该列表不是公开分发节点列表；列表中的每个 endpoint 都必须有 service DID、角色、可见性范围和是否可见明文的声明：
 
 ```json
 {

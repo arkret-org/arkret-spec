@@ -570,6 +570,7 @@ POST /api/v1/keys/keypackages/revoke
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码 SHOULD 合并为单一不透明错误码 `claim_failed`，不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
 - 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 claim / query 响应 SHOULD 返回调用方可见的 `available_count`；客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
+- Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST 不再返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
 - KeyPackage claim MUST 对 `(requester_service_did, target_principal_id)` 做限速，默认窗口为 60s 内最多 5 次 claim 尝试。超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope，不泄露目标存在性）；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。
 - claim record SHOULD 被 Principal Server / Device Key Server 保留到 Welcome 过期后的一段短 TTL，用于重试、诊断和滥用审计；不得长期保留可关联 private Realm / MLS group 的明文目标信息。
 
@@ -760,7 +761,18 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "auth_data": {
     "device_id": "cx:device:01964137-0000-7000-8000-000000000000",
-    "signature": "base64url..."
+    "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#cx_device_01964137",
+    "signature_alg": "EdDSA",
+    "signature": "base64url...",
+    "signed_fields": [
+      "backup_id",
+      "actor_id",
+      "backup_class",
+      "backup_version",
+      "encryption",
+      "contents",
+      "ciphertext_digest"
+    ]
   }
 }
 ```
@@ -770,7 +782,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 规则：
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
-- 上传设备 MUST 对 backup metadata 与 ciphertext digest 签名，签名链必须链接到当前 principal 的 self-signing / device trust chain。
+- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名；`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`encryption`、`contents` 与 `ciphertext_digest`，签名链必须链接到当前 principal 的 self-signing / device trust chain。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。
@@ -791,7 +803,7 @@ DELETE /api/v1/keys/backups/{backup_id}
 
 `list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints。`get` 返回完整 encrypted backup object。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明。
 
-## 13. Realm / Branch Key Share and Withholding
+## 13. Realm Key Share and Withholding
 
 Contrix 使用 `cx.realm_key.share` 共享历史解密材料。共享前发送设备 MUST 检查：
 
@@ -799,6 +811,8 @@ Contrix 使用 `cx.realm_key.share` 共享历史解密材料。共享前发送�
 - 设备未撤销。
 - 设备通过 self-signing 或人工验证，或 Realm policy 允许未验证设备。
 - history visibility 允许该 principal 获取目标历史范围。
+- `key_scope.policy_hash` 绑定本次判定使用的 Realm policy / MLS governance policy root；如判定依赖 membership frontier，`key_scope.membership_frontier_hash` SHOULD 同时写入。
+- `sender_device_signature` MUST 覆盖发送设备、接收 principal/device、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。接收方 MUST 验证该签名链接到当前有效 sender device key，且不得只依赖传输层认证。
 
 拒绝共享时发送 `cx.realm_key.withheld`，原因码：
 
@@ -822,7 +836,7 @@ Contrix 使用 `cx.realm_key.share` 共享历史解密材料。共享前发送�
 
 ### 14.1 Reset Envelope
 
-Reset 操作 MUST 写入一条 `cx.cross_signing.reset` 事件到 principal control stream，并在其后**立即**发布新的 `cx.cross_signing.publish`（§5.1）以使协议状态可恢复。
+Reset 操作 MUST 写入一条 `cx.cross_signing.reset` 事件到 principal control stream，并在其后**立即**发布新的 `cx.cross_signing.publish`（§5.1）以使协议状态可恢复。实现还 MUST 生成可审计记录：在同一 Anchor batch 或在 reset accepted 后的 bounded audit window 内写入 `cx.audit.accessed`，`access_kind="cross_signing_reset"`，`target_ref` 指向 reset event 或 principal control Realm，`purpose` 说明 reset reason；高安全部署 SHOULD 通过 `refs[role="audit_pair"]` 把 reset 与 audit event 配对。
 
 Schema id：`cx.schema.cross_signing_reset.v1`
 

@@ -12,7 +12,8 @@
     "encryption",
     "contents",
     "ciphertext",
-    "ciphertext_digest"
+    "ciphertext_digest",
+    "auth_data"
   ],
   "properties": {
     "backup_id": {
@@ -360,10 +361,23 @@
             "type": "string"
           },
           "minItems": 1,
+          "uniqueItems": true,
+          "allOf": [
+            { "contains": { "const": "backup_id" } },
+            { "contains": { "const": "actor_id" } },
+            { "contains": { "const": "backup_class" } },
+            { "contains": { "const": "backup_version" } },
+            { "contains": { "const": "encryption" } },
+            { "contains": { "const": "contents" } },
+            { "contains": { "const": "ciphertext_digest" } }
+          ],
           "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, encryption, contents, ciphertext_digest."
         }
       },
-      "additionalProperties": true
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
     },
     "retention": {
       "type": "object",

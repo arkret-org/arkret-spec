@@ -201,6 +201,14 @@
         "quarantine"
       ]
     },
+    "sync_endpoints": {
+      "type": "array",
+      "description": "Realm-level service binding list for shared anchorer / sync / mirror / federation peer surfaces. Member-level delivery_binding remains on cx.member.state and MUST NOT be inferred from this list.",
+      "items": {
+        "$ref": "#/$defs/sync_endpoint"
+      },
+      "uniqueItems": true
+    },
     "anchor_profile": {
       "type": "string",
       "enum": [
@@ -409,6 +417,64 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "sync_endpoint": {
+      "type": "object",
+      "required": [
+        "did",
+        "endpoint",
+        "role",
+        "service_type",
+        "plaintext_visible"
+      ],
+      "properties": {
+        "did": {
+          "$ref": "#/$defs/did"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "primary",
+            "mirror",
+            "anchorer",
+            "sync",
+            "search_projection",
+            "federation_peer"
+          ]
+        },
+        "service_type": {
+          "type": "string",
+          "enum": [
+            "principal_server",
+            "sync_node",
+            "anchorer",
+            "search_service"
+          ]
+        },
+        "plaintext_visible": {
+          "type": "boolean"
+        },
+        "visibility_scope": {
+          "type": "string",
+          "enum": [
+            "metadata_only",
+            "encrypted_events",
+            "plaintext_events"
+          ]
+        },
+        "policy_ref": {
+          "type": "string",
+          "pattern": "^cx:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "valid_until": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
     },
     "cell_lattice": {
       "type": "object",

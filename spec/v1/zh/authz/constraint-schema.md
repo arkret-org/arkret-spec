@@ -343,7 +343,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `grant_id` 或 `proposal_id` | id | 该 approval 所针对的具体 grant id（§9.1 路径）或 proposal Event id（§9.2 路径）。两者互斥，必填其一。 |
-| `request_canonical_hash` | hash | 被批准的请求 body 的 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme (JCS) SHA-256 摘要（`sha256:` 前缀）。同一 approver 给"批准 Alice 写 message X"的签名不能被改写后用于"批准 Alice 写 message Y"。 |
+| `request_canonical_hash` | hash | 被批准的请求 body 的 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) SHA-256 摘要（`sha256:` 前缀）。同一 approver 给"批准 Alice 写 message X"的签名不能被改写后用于"批准 Alice 写 message Y"。 |
 | `approver_did` | did | 签发该 approval 的 actor DID。 |
 | `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + clock_skew_tolerance` 或 `approved_at < grant.not_before`。 |
 | `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。reducer MUST 在每个 grant / proposal 范围内拒绝同 `(approver_did, nonce)` 的第二次出现。 |

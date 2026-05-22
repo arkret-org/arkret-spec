@@ -191,7 +191,7 @@ escape         = "\" ( '"' / "\" / "/" / "b" / "f" / "n" / "r" / "t" / "u" 4HEXD
 具体约束：
 
 - `identifier` 与 `key-name` MUST 匹配正则 `^[a-z][a-z0-9_]{0,63}$`(snake_case,首字符必须小写字母,长度 ≤ 64);
-- `selector-value` MUST 是合法的 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JCS canonical JSON string,**包括外层 ASCII 双引号**,内部按 JCS 转义规则 (`\"` / `\\` / `\/` / `\b` / `\f` / `\n` / `\r` / `\t` / `\uXXXX`);
+- `selector-value` MUST 是合法的 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JCS canonical JSON string,**包括外层 ASCII 双引号**,内部按 JCS 转义规则 (`\"` / `\\` / `\/` / `\b` / `\f` / `\n` / `\r` / `\t` / `\uXXXX`);
 - selector-value 内字面 `]`、`[`、`=`、`"`、`\` MUST 出现为 `\uXXXX` 或对应反斜杠转义形式;
 - `quoted-identifier` 用于字段名包含非 snake_case 字符的特殊场景(v1 标准 schema 不应使用),字面 backtick 必须 escape 成连续两个 backtick;
 - 默认仅支持对象路径,不支持数字数组下标。

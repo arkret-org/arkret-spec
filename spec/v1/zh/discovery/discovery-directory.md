@@ -196,6 +196,23 @@ Organization 可以是公开的、受限的或不可列举的。实现 MUST NOT 
 1. Organization DID 可解析。
 2. discovery policy 或 profile 由组织 DID / governance service 签名。
 3. 如果结果声称包含 official Realm，仍需验证每个 Realm 的 `cx.realm.organization` 背书。
+
+### 4.1 Actor / Applet / Handle Discovery State
+
+`cx.actor.discovery`、`cx.applet.discovery` 与 `cx.handle.discovery` 是 v1 active discovery state event kind。它们与 `cx.organization.discovery` 使用同一组目录 ingest 规则：resource 自签名声明可发现性，Directory 只索引被 `directory_services[]` 明确列出的资源，且不得替 resource 重新签名或扩展披露范围。
+
+这些 payload 至少包含：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `resource_kind` | `enum(actor,applet,handle)` | required | 必须与 Event kind 后缀一致。 |
+| `resource_id` | `did` / handle URI / applet id | required | 被发现资源的稳定标识。 |
+| `discoverability` | §2 enum | required | `public` / `listed` / `restricted` / `unlisted` / `invite_only` / `secret`。 |
+| `directory_services` | `did[]` | required | 被允许索引该资源的 Directory service DID 列表。 |
+| `profile_visibility` | `object` | optional | 每个预览字段的可见性；未列字段默认不披露。 |
+| `proof` | detached proof | required | 由 resource controller / governance key 签名，覆盖 canonical payload（不含 proof 本身）。 |
+
+Actor discovery MUST NOT 暴露 pairwise/private DID、未披露组织账号或仅因共同 Realm 推断出的关系。Applet discovery MUST 只披露 registration 允许的 public metadata，不得暴露 private namespace、token、webhook secret 或租户内 endpoint。Handle discovery MUST 绑定 handle issuer、subject claim、audience 与过期时间；受限 handle 未满足 presentation / policy gate 时不得返回 subject DID 或 `recipient_service_did`。
 4. 目录服务 DID 被组织 DID 声明或被本地 trust policy 接受。
 
 ## 5. Actor 与 Handle 可发现性

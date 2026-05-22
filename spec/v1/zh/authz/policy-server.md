@@ -264,7 +264,7 @@ Policy decision 签名输入 MUST 包含：
 - policy server id
 - key id
 
-`request_canonical_hash` MUST 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致;任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通,且 MUST 不声明通过 v1 conformance。
+`request_canonical_hash` MUST 是 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致;任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通,且 MUST 不声明通过 v1 conformance。
 
 节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(bound_to.realm_id, bound_to.actor, bound_to.action, bound_to.request_canonical_hash, auth_state_hash)` 五元组为 key，或在 cache entry 中携带 `auth_state_hash` 并在每次命中时与当前 accepted auth state hash constant-time 比较；不一致 MUST 回退完整授权判定。`auth_state_hash` 的定义与 fast-path capability cache 相同（见 [`capabilities.md` §18.1](./capabilities.md)），覆盖当前 capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest。TTL 只能作为额外上限，不能掩盖 auth state 变化。不得仅按 `request_canonical_hash` 索引——后者会让一个 (realm, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (realm, actor) 上下文的请求中(攻击者可在 Realm A 中触发一次合法 allow,再在 Realm B 中用相同请求 body 通过缓存复用,从而绕过 Realm B 的实际 policy)。
 

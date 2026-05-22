@@ -206,7 +206,7 @@ consent revoke 进入 Anchor frontier 后，下列下游缓存 MUST eager invali
 
 | 缓存 | 失效粒度 | 触发动作 |
 | --- | --- | --- |
-| Directory `cx.directory.resolve_realm` reachability proof | 按 `(holder_did, peer_did)` 失效，下次查询走完整 consent 重判 | 不返回 stale reachability，防止 peer 看到已撤销的"可联系"指示。 |
+| Private contact discovery PSI 结果 / invite handoff cache | 按 `(holder_did, peer_did)` 失效，下次查询走完整 consent 重判 | 不返回 stale PSI match 或 invite handoff，防止 peer 看到已撤销的"可联系"指示。 |
 | MIMI consent check cache（interop 模块） | 按 `(holder_did, peer_did, scope)` 失效；`any` revoke 失效全部 scope | interop bridge 下次跨协议解析 MUST 重新校验。 |
 | Push / contact discovery 缓存（含 PSI 结果） | 按 `(holder_did, peer_did)` 失效；PSI 索引 MUST 在下次轮转时排除 revoked peer | 即使 cache TTL 未到，revoke 后下一次 contact sync MUST 反映新状态。 |
 | Invite gate cache（§6.1 invite 前置 gate） | 按 `(holder_did, peer_did, scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 重判，旧 cache MUST NOT 让 invite Move 通过 precondition。 |
@@ -214,7 +214,7 @@ consent revoke 进入 Anchor frontier 后，下列下游缓存 MUST eager invali
 
 `scope="any"` 被撤销后 cascade 失效规则：上面 5 类缓存中所有 scope 的 entry 必须一起失效，包括 `invite`、`direct_message`、`voice_call`、`video_call`、`presence`。不允许实现把 `any` revoke 只清单一 scope。
 
-`cx.vector.consent.cache_invalidation.v1` 覆盖 (a) revoke 后 directory reachability 立即不返回该 peer；(b) revoke 后下一次 invite Move 被 precondition 拒绝（capability gate 重判）；(c) `any` revoke cascade 失效所有 scope cache；(d) revoke 后 PSI 索引在下一次轮转时排除该 peer。
+`cx.vector.consent.cache_invalidation.v1` 覆盖 (a) revoke 后 private contact discovery / invite handoff 立即不返回该 peer；(b) revoke 后下一次 invite Move 被 precondition 拒绝（capability gate 重判）；(c) `any` revoke cascade 失效所有 scope cache；(d) revoke 后 PSI 索引在下一次轮转时排除该 peer。
 
 ## 5. Cell Join 与 Effective Consent
 
@@ -248,7 +248,7 @@ policy MAY 声明 `cx.realm.policy_components` 中的 `preauth` component 包含
 
 类似地，发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方 SHOULD 验证目标的 consent state（scope = `direct_message` / `voice_call` / `video_call` / `presence`）。
 
-`cx.private_contact_discovery.v1` 在返回 reachability proof 时，可附带 holder 当前 consent state hash（不暴露具体 consent 内容，只声明 grant/revoke 状态），让发起方在尝试联系前判断是否需要先请求 consent。
+`cx.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或 invite handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 
 ## 7. MIMI Interop
 

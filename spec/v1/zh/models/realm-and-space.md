@@ -118,7 +118,7 @@ Realm 有两个终态 event，语义不同：
 | `cx.realm.tombstone` | "本 Realm 不再活跃" — 转移到 successor Realm（产品改版、组织重组等）。 | ❌ 但 successor 接续历史可达 | 必填 `successor_realm_id` |
 | `cx.realm.destroy` | "本 Realm 永久退役" — 终极去活。无 successor，等同于"该 Realm 在该 deployment 内永久关闭"。 | ❌ | MUST NOT 设 successor |
 
-两个事件均写入 `cx.component.realm.destroy.v1`（cas-register, bottom=reject），不可重复写入。capability：`cx.realm.lifecycle.destroy`（high risk，capabilities.md §10）。
+`cx.realm.tombstone` 写入 `cx.component.realm.tombstone.v1`，`cx.realm.destroy` 写入 `cx.component.realm.destroy.v1`；二者均为 cas-register（bottom=reject），各自不可重复写入。capability：`cx.realm.lifecycle.tombstone` / `cx.realm.lifecycle.destroy`（high risk，capabilities.md §10）。
 
 ### 2.6 `cx.realm.create` Reducer Bootstrap（normative）
 

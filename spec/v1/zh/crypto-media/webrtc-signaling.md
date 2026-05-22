@@ -177,7 +177,7 @@ Content-Type: application/json
 | `ice_servers` | `object[]` | required | STUN/TURN server 配置数组。 |
 | `ice_servers[].urls` | `string[]` | required | STUN/TURN URL。 |
 | `ice_servers[].username` | `string` | TURN 时 required | TURN 用户名（per-call pairwise pseudonym，REST-style: `<expiry-unix>:<pseudonym>`）。 |
-| `ice_servers[].credential` | `string` | TURN 时 required | 短期 TURN credential（HMAC of username）。 |
+| `ice_servers[].credential` | `string` | TURN 时 required | 短期 TURN credential（HMAC-SHA256 of username）。 |
 | `ice_servers[].credential_type` | `string` | optional | credential 类型，例如 `password`。 |
 | `force_turn` | `boolean` | optional | 是否强制 TURN（高隐私 Realm）。 |
 | `constraints` | `object` | optional | 候选地址与传输策略（`allow_udp` / `allow_tcp` / `allow_ipv6`）。 |
@@ -215,7 +215,7 @@ Content-Type: application/json
 
 要求：
 
-- TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC(turn_shared_secret, username)`）。
+- TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC-SHA256(turn_shared_secret, username)`；实现不得降级为 HMAC-SHA1）。
 - TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `cx_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；TURN 运营方因此只能看到一次性会话标记，无法把同一用户的多次通话或多 Realm 活动关联起来。
 - ICE config response MUST 由 media service 签名，签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。

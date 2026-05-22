@@ -258,7 +258,8 @@ title: "Client Preferences & Account Data"
 ```json
 {
   "default": {
-    "send": true
+    "send": true,
+    "display": true
   },
   "realms": {
     "cx:realm:0196419b-0000-7000-8000-000000000000": {
@@ -278,13 +279,17 @@ title: "Client Preferences & Account Data"
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `default.send` | `bool` | `true` | 全局是否发送 `cx.receipt.read`。 |
+| `default.display` | `bool` | `true` | 全局是否在本地 UI 显示他人的 `cx.receipt.read`。只影响本地渲染，不改变订阅、fanout 或 unread 计算。 |
 | `realms.<realm_id>.send` | `bool` |  | 针对单个 Realm 的覆盖，优先于 `default`。 |
+| `realms.<realm_id>.display` | `bool` |  | 针对单个 Realm 的本地显示覆盖，优先于 `default`。 |
 | `flows.<flow_id>.send` | `bool` |  | 针对单个 Flow / discussion track 的覆盖，优先于 `realms.<realm_id>`。 |
+| `flows.<flow_id>.display` | `bool` |  | 针对单个 Flow / discussion track 的本地显示覆盖，优先于 `realms.<realm_id>`。 |
 
 规则：
 
 - 该 key 是 actor-private，加密存储于 account data；其他成员或 Sync Service 不得读取明文。
 - 客户端在生成 `cx.receipt.read` 前 MUST 按 (flow, realm, default) 顺序解析有效 `send`，最先命中的非空值生效。
+- 客户端在渲染他人的 `cx.receipt.read` 前 SHOULD 按相同顺序解析有效 `display`；`display=false` 只隐藏本地 UI，不得要求 Sync Service 停止投递，也不得改变 read marker、unread count 或 push suppression 的协议状态。
 - 该偏好 MUST NOT 影响 §3 中 actor-private 的 Read Marker（`cx.read.marker`）发送或多端同步。
 - 当目标 Realm / Flow 声明 `cx.realm.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST 不允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Realm / Flow 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
 - 客户端 MAY 在 UI 上将常用过滤维度（按 Realm 标签、按 Organization）做成批量编辑入口，但实际 canonical state 仍以本 key 中的逐 ID 覆盖为准。

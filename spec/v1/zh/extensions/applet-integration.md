@@ -131,7 +131,10 @@ Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员�
   "created_at": "2026-04-26T00:00:00Z",
   "proof": {
     "kind": "detached_jws",
+    "alg": "EdDSA",
     "verification_method": "did:web:acme.example#admin-key-1",
+    "payload_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
   }
 }
@@ -449,7 +452,10 @@ Applet 写入 Contrix MUST 使用常规 `/events` submit 接口。
   },
   "proof": {
     "kind": "detached_jws",
+    "alg": "EdDSA",
     "verification_method": "did:web:slack-bridge.example#ghost-u123-key",
+    "payload_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "created_at": "2026-04-26T00:00:01Z",
     "jws": "..."
   }
 }

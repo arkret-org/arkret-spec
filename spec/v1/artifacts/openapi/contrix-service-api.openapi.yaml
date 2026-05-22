@@ -29,7 +29,7 @@ info:
 
     query, query_post, frontier}`, `cx.account.subscribe`, `cx.snapshot.head`,
 
-    `cx.identity.{resolve, get_document, get_receipts}`, `cx.authz.{check,
+    `cx.identity.{resolve, get_document, get_receipts, submit_did_operation}`, `cx.authz.{check,
 
     get_effective_grants}`, and the ServiceDescribe envelope. The corresponding
 
@@ -42,6 +42,7 @@ info:
     `EventsFrontierResponse`, `EphemeralSubmitResponse`, `SnapshotHeadResponse`,
 
     `IdentityResolveResponse` / `IdentityGetDocumentResponse`,
+    `DidOperationSubmitRequest` / `DidOperationSubmitResponse`,
 
     `AuthzCheckRequest` / `AuthzCheckResponse`, `GrantListResponse`,
 
@@ -853,6 +854,14 @@ components:
         frontier_root:
           type: string
           description: Opaque hash commitment suitable for liveness / freshness checks.
+        cache_until:
+          type: string
+          format: date-time
+          description: Earliest time until which clients SHOULD reuse this anonymous health response.
+        retry_after_ms:
+          type: integer
+          minimum: 0
+          description: Minimum retry delay for anonymous health probes when the service wants explicit polling backoff.
       additionalProperties: false
 
     SnapshotBootstrap:
@@ -1117,14 +1126,12 @@ components:
           - quarantine
           - require_review
           - soft_fail
-          - unknown
           description: |
             `allow` / `deny` are terminal decisions. `quarantine` / `require_review`
             are policy-server-mediated soft outcomes (the request enters async
-            review). `soft_fail` is a transient retryable failure. `unknown` is
-            returned when the local frontier cannot establish revocation
-            freshness (see zh/authz/capabilities.md §18.2) — caller MUST treat
-            as fail-closed for high-risk actions.
+            review). `soft_fail` is a transient retryable failure; callers MUST
+            treat it as fail-closed for high-risk actions unless a profile
+            explicitly allows local pending behavior.
         matched_grants:
           type: array
           items:
@@ -2701,20 +2708,33 @@ components:
       additionalProperties: false
       required:
       - did
-      - seq
-      - patch
+      - did_method
+      - operation
       - proofs
       properties:
         did:
           type: string
           pattern: ^did:[a-z0-9]+:[^\s]+$
+        did_method:
+          type: string
+          pattern: ^[a-z0-9]+$
+          description: DID method discriminator (e.g. web, webvh, key). Verifiers dispatch method-specific validation from this value and the did prefix.
         seq:
           type: integer
           minimum: 0
-        patch:
+          description: Optional method sequence number when the DID method exposes one.
+        prev_event_hash:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+          description: Optional previous operation hash / key-log head, when required by the DID method.
+        operation:
           type: object
           additionalProperties: true
-          description: DID method-specific operation patch.
+          description: DID method-specific raw operation object. This is not a generic JSON Patch and MUST be validated by the selected DID method adapter.
+        policy_context:
+          type: object
+          additionalProperties: true
+          description: Optional resolver / registry policy context bound into authorization and audit.
         proofs:
           type: array
           minItems: 1
@@ -2746,26 +2766,31 @@ components:
       type: object
       additionalProperties: false
       required:
-      - accepted
+      - status
       - did
-      - seq
       properties:
-        accepted:
-          type: boolean
-        did:
-          type: string
-          pattern: ^did:[a-z0-9]+:[^\s]+$
-        seq:
-          type: integer
-          minimum: 0
-        operation_ref:
-          type: string
         status:
           type: string
           enum:
           - accepted
           - duplicate
           - pending
+        did:
+          type: string
+          pattern: ^did:[a-z0-9]+:[^\s]+$
+        seq:
+          type: integer
+          minimum: 0
+          description: New method sequence number when available.
+        head_event_hash:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+        operation_ref:
+          type: string
+        receipts:
+          type: array
+          items:
+            type: object
     ProjectionSpaceRow:
       type: object
       additionalProperties: false

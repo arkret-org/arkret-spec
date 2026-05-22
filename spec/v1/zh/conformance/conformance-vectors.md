@@ -2057,13 +2057,13 @@ Expected：
 
 Steps：
 
-1. Consent active 时 directory reachability、invite capability gate 和 PSI index 均缓存了 peer 可达状态。
+1. Consent active 时 private contact discovery PSI result、invite capability gate 和 PSI index 均缓存了 peer 可达状态。
 2. Subject revoke consent。
 3. 调用 directory lookup、提交下一次 invite Move，并等待 PSI 下一轮轮转。
 
 Expected：
 
-- Directory reachability MUST 立即不返回该 peer。
+- Private contact discovery / invite handoff MUST 立即不返回该 peer。
 - 下一次 invite Move MUST precondition 失败并重判 capability gate。
 - `any` revoke MUST 失效所有 scope cache；PSI 索引在下一次轮转时排除该 peer。
 
@@ -2177,3 +2177,21 @@ Expected：
 
 - 第 2 步 MUST 返回 `did_proof_required`，不得签发 active session grant。
 - 第 3 步的 proof MUST 覆盖 principal、device、audience、challenge、request canonical hash 和 expiry；验证成功后才可恢复为 `active`。
+
+### 10.5 Vector: Session Grant Audience Binding
+
+`vector_id`: `cx.vector.auth.session_grant_audience_binding.v1`
+
+Steps：
+
+1. Auth Server 收到 `cx.account.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
+2. 请求缺少 `request_canonical_hash` 或 hash 不覆盖 `principal_id`、`device_id?`、`requested_scope` 与 `audience`。
+3. 请求的 `expires_at` 超过 Auth Server 声明的 session grant TTL 上限。
+4. Auth Server 在 `development_mode=true` 时尝试把 `cx.profile.auth_server.v1` 放入 `verified_profiles[]`。
+
+Expected：
+
+- 第 1 步 MUST 拒绝，reason_code 为 `audience_mismatch` 或等价稳定码。
+- 第 2 步 MUST 拒绝，reason_code 为 `invalid_proof_binding` 或等价稳定码。
+- 第 3 步 MUST 拒绝或收紧到服务器硬上限，并在响应中暴露实际 `expires_at`；不得签发跨多日 session grant。
+- 第 4 步 MUST 被 conformance / describe 校验拒绝；development mode 下 `verified_profiles[]` 必须为空。

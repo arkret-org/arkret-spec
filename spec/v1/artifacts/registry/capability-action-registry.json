@@ -643,6 +643,72 @@
       "profile": null
     },
     {
+      "action": "cx.agent.protocol.discover",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": "cx.profile.agent_runtime.v1"
+    },
+    {
+      "action": "cx.agent.protocol_session.start",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [
+        "allowed_endpoints",
+        "allowed_data_classes"
+      ],
+      "target_event_kinds": [
+        "cx.agent.protocol_session.start"
+      ],
+      "profile": "cx.profile.agent_runtime.v1"
+    },
+    {
+      "action": "cx.agent.protocol_session.cancel",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.agent.protocol_session.status",
+        "cx.agent.protocol_session.result"
+      ],
+      "profile": "cx.profile.agent_runtime.v1"
+    },
+    {
+      "action": "cx.agent.protocol_session.stream_status",
+      "category": "general",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "cx.agent.protocol_session.status"
+      ],
+      "profile": "cx.profile.agent_runtime.v1"
+    },
+    {
+      "action": "cx.agent.protocol_session.attach_artifact",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [
+        "allowed_data_classes",
+        "max_artifact_bytes"
+      ],
+      "target_event_kinds": [
+        "cx.agent.protocol_session.status",
+        "cx.agent.protocol_session.result"
+      ],
+      "profile": "cx.profile.agent_runtime.v1"
+    },
+    {
+      "action": "cx.agent.protocol_session.read_transcript",
+      "category": "general",
+      "risk_tier": "high",
+      "required_constraints": [
+        "allowed_data_classes"
+      ],
+      "target_event_kinds": [],
+      "profile": "cx.profile.agent_runtime.v1"
+    },
+    {
       "action": "cx.policy.manage",
       "category": "management",
       "risk_tier": "high",

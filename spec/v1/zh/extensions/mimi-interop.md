@@ -249,7 +249,7 @@ MIMI identifier MUST NOT 被直接作为 Contrix actor。映射规则：
 - connection identifier 仅用于 discovery / consent，不进入 Realm history，除非 holder 明确作为 handle / claim 披露。
 - display name 只用于 UI，不参与授权。
 
-`cx.mimi.identifier_query` SHOULD 调用 `cx.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6.5），facade 实现 MUST NOT 复活它。`cx.mimi.request_consent` / `cx.mimi.update_consent` MUST 映射为 Contrix 的 holder-private consent state（`cx.consent.grant` / `cx.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
+`cx.mimi.identifier_query` SHOULD 调用 `cx.private_contact_discovery.v1`，按 [`discovery/discovery-directory.md` §6](../discovery/discovery-directory.md) 的 PSI 流程返回 set-membership 命中位图与 invite handoff stub；MUST NOT 返回任何形式的 "reachability proof"——该机制在 v1 已被移除（见 `discovery-directory.md` §6 的 PSI-only 边界），facade 实现 MUST NOT 复活它。`cx.mimi.request_consent` / `cx.mimi.update_consent` MUST 映射为 Contrix 的 holder-private consent state（`cx.consent.grant` / `cx.consent.revoke`，详见 [`identity/consent-model.md`](../identity/consent-model.md)）。Consent 不授予 Realm read/write 权限；加入和发消息仍需 membership、capability 和 policy checks。Facade 在两侧 round-trip 时 MUST 保留 `consent_id` 作为 inter-protocol correlation。
 
 ## 11. Abuse Report And Proxy Download
 
