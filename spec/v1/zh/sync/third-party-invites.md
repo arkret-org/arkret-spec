@@ -142,6 +142,8 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
 6. 随后 Bob 按照正常流程发送 `cx.invite.accept` 加入 Realm。
 
+验证服务 / 接收 Sync Service MUST 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`。任一 nonce 一旦进入该 set，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 在进入 reducer 仲裁前拒绝，即使前一次 claim 最终因其它原因未成为 winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
+
 ## 5. E2EE 场景处理
 
 对于端到端加密的 Realm，MLS (Message Layer Security) 组无法包含一个没有公钥的邮件地址。
