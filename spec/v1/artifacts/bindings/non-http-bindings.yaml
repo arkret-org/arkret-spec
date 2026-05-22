@@ -63,6 +63,8 @@ grpc:
       # operation-registry notes).
       Subscribe: cx.events.subscribe
       Frontier: cx.events.frontier
+    Ephemeral:
+      Send: cx.ephemeral.send
     Snapshot:
       Head: cx.snapshot.head
     Directory:
@@ -174,6 +176,7 @@ mq:
     events.resolve: cx.events.resolve
     events.query: cx.events.query
     events.subscribe: cx.events.subscribe
+    ephemeral.send: cx.ephemeral.send
     account.subscribe: cx.account.subscribe
     directory.private_contact_discovery: cx.directory.private_contact_discovery
     directory.announce: cx.directory.announce

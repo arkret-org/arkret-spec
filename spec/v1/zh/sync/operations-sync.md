@@ -59,13 +59,13 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | --- | --- | --- |
 | `durable_event` | `cx.schema.event.v1`（[`event-schema.json`](../../artifacts/schemas/event-schema.json)） | `cx.events.submit` |
 | `actor_private_event` | `cx.schema.event.v1`（同上；不携带 `preconditions/effects/anchor_ref`） | `cx.events.submit`（actor 私有，写入 actor 私有 store；不进 Realm frontier） |
-| `ephemeral_event`（`cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`） | `cx.schema.ephemeral_envelope.v1`（[`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)） | ephemeral 广播通道（sync subscribe 实时流、presence/typing fanout、call signaling channel）；**MUST NOT** 出现在 `cx.events.submit` |
+| `ephemeral_event`（`cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`） | `cx.schema.ephemeral_envelope.v1`（[`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json)） | `cx.ephemeral.send`（HTTP `POST /api/v1/ephemeral`）或等价已声明 binding；fanout 通过 sync subscribe 实时流、presence/typing fanout、call signaling channel；**MUST NOT** 出现在 `cx.events.submit` |
 | `ephemeral_event`（`cx.key.verification.*` — 点对点 to-device） | `cx.schema.device_message.v1`（[`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)） | to-device 队列（不广播）；**MUST NOT** 出现在 `cx.events.submit` |
 
 规则：
 
 1. `cx.events.submit` MUST 对 `kind` 的 `wire_scope=ephemeral_event` 立即 `schema_violation`，不进 reducer / anchor pipeline。event-schema.json 已用 `not` 分支静态强制 cx.call.signal / cx.presence / cx.typing / cx.receipt.read / cx.key.verification.* MUST NOT 出现在 durable Event Envelope。
-2. ephemeral 广播信号 MUST 携带 `expires_at` 并由接收方按 schema 中 5 分钟硬上限丢弃；不得作为 backfill / sync replay 入口。
+2. ephemeral 广播信号 MUST 通过 `cx.ephemeral.send` 或等价已声明 binding 发送，MUST 携带 `expires_at` 并由接收方按 schema 中 5 分钟硬上限丢弃；不得作为 backfill / sync replay 入口。
 3. 接收方 MUST NOT 把 ephemeral envelope 解释为 reducer 输入：它们不写 cell、不推 anchor frontier、不消耗 actor_seq。
 4. 部署若希望"高频信号但仍可审计"，MUST 选择 sample / digest 后单独 emit 一条 durable event（例如 `cx.call.state` / `cx.notification.read`），而不是把 ephemeral envelope 当 durable Event 提交。
 5. 负向测试：conformance suite MUST 包含 reject case，把 `cx.presence` / `cx.typing` / `cx.call.signal` / `cx.key.verification.start` 这些 kind 当 durable Event 通过 `cx.events.submit` 提交时立即被拒（`schema_violation`，不进 anchor pipeline）。

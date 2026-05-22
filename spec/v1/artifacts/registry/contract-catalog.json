@@ -2238,6 +2238,7 @@
           "cx.events.frontier",
           "cx.account.describe",
           "cx.account.subscribe",
+          "cx.ephemeral.send",
           "cx.snapshot.head"
         ]
       },
@@ -2648,6 +2649,13 @@
         "http": "POST /events",
         "grpc": "Events/Submit",
         "mq": "events.submit"
+      },
+      {
+        "operation_id": "cx.ephemeral.send",
+        "http": "POST /ephemeral",
+        "grpc": "Ephemeral/Send",
+        "mq": "ephemeral.send",
+        "notes": "Canonical broadcast ephemeral send operation for cx.schema.ephemeral_envelope.v1. Carries cx.presence, cx.typing, cx.receipt.read, and cx.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier."
       },
       {
         "operation_id": "cx.identity.describe_registry",

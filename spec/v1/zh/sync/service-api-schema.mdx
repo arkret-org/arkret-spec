@@ -326,6 +326,7 @@ paths:
 | `cx.events.get` / `cx.events.resolve` / `cx.events.query` / `cx.events.frontier` | `GET /events/{event_id}`, `POST /events/resolve`, `GET /events`, `GET /events/frontier` | gRPC `Events/Get` / `Events/Resolve` / `Events/Query` / `Events/Frontier` |
 | `cx.events.subscribe` | `GET /events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
 | `cx.account.subscribe` | `GET /account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`) |
+| `cx.ephemeral.send` | `POST /ephemeral` | gRPC `Ephemeral/Send` / MQ `ephemeral.send`；承载 `cx.schema.ephemeral_envelope.v1`，不写 durable Event |
 | `cx.snapshot.head` | `GET /snapshot/head` | snapshot pointer |
 | `cx.projection.spaces` / `cx.projection.flows` / `cx.projection.morphs` | `GET /projection/spaces`, `GET /projection/flows`, `GET /projection/morphs` | gRPC `Projection/Spaces` / `Projection/Flows` / `Projection/Morphs`; MQ `projection.*` |
 | 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/contrix/sync/1.0.0` + service signature。 |

@@ -18,23 +18,30 @@ title: "Read Receipts & Markers"
 ### 2.1 临时性与高频特征
 
 与具体的业务数据不同，已读回执变动极其频繁（用户每次滑动屏幕都会产生），并且其历史记录没有长期保留价值。
-因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。
+因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。HTTP/JSON 参考 binding 为 `cx.ephemeral.send`（`POST /api/v1/ephemeral`），请求体使用 `cx.schema.ephemeral_envelope.v1`，其中 `kind="cx.receipt.read"`。
 
 ### 2.2 广播格式
 
-客户端在用户视线停留或明确确认后，以 ephemeral receipt 形式（schema：`cx.schema.read_receipt.v1`）向 Sync Service 发送：
+客户端在用户视线停留或明确确认后，以 `cx.schema.ephemeral_envelope.v1` 向 Sync Service 发送；envelope 的 `payload` SHOULD 使用 read receipt object（schema：`cx.schema.read_receipt.v1`）：
 
 ```json
 {
-  "receipt_type": "read",
-  "schema": "cx.schema.read_receipt.v1",
+  "kind": "cx.receipt.read",
   "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-  "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
-  "track": "discussion",
   "actor_id": "did:web:alice.example",
-  "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
-  "hlc": "01970e589d21-0004-a13f9c2e",
-  "created_at": "2026-04-26T10:00:00Z"
+  "sent_at": "2026-04-26T10:00:00Z",
+  "expires_at": "2026-04-26T10:00:30Z",
+  "payload": {
+    "receipt_type": "read",
+    "schema": "cx.schema.read_receipt.v1",
+    "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
+    "flow_id": "cx:flow:01964200-0000-7000-8000-000000000001",
+    "track": "discussion",
+    "actor_id": "did:web:alice.example",
+    "event_id": "cx:event:01964387-7000-7000-8000-000000000000",
+    "hlc": "01970e589d21-0004-a13f9c2e",
+    "created_at": "2026-04-26T10:00:00Z"
+  }
 }
 ```
 

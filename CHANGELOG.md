@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Register canonical ephemeral send operation（2026-05-22）
+
+把 `cx.schema.ephemeral_envelope.v1` 的广播发送入口从 prose-only "ephemeral channel" 落到规范 HTTP / gRPC / MQ operation。
+
+- **变更类型**: add
+- **影响 artifact**: `contract-catalog.json` operation_registry;派生 `operation-registry.json`;`openapi/contrix-service-api.openapi.yaml`;`bindings/non-http-bindings.yaml`;`zh/sync/{operations-sync,service-http-binding,service-api-schema.mdx}`;`zh/discovery/read-receipts.md`;`zh/overview/release-readiness.md`。
+- **canonical 变更**: 在 `events_sync` surface group 注册 `cx.ephemeral.send`，HTTP binding 为 `POST /ephemeral`（部署路径 `/api/v1/ephemeral`），gRPC `Ephemeral/Send`，MQ `ephemeral.send`。请求体为 `cx.schema.ephemeral_envelope.v1`，只承载 `cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`，不得写入 durable Event history 或推进 actor_seq / Realm frontier。
+- **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`；operation 计数更新为 86。
+- **conformance impact**:
+  - 受影响 profile: `events_sync` core surface 增加可发现 operation；实现必须在 `supported_operations` 中声明实际支持。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible add。
+  - reader / writer 行为要求: writer MUST send broadcast ephemeral signals through `cx.ephemeral.send` or an advertised equivalent binding，MUST NOT fall back to `cx.events.submit`；reader MUST drop expired signals and treat them as non-durable UI hints。
+- **fixture / vector 变化**: 暂无新增 conformance vector；server/client implementation tests 覆盖 canonical endpoint。
+- **prose 同步**: 已更新 wire-scope 表、HTTP endpoint/field 表、transport mapping 与 read receipt 发送说明。
+- **迁移指南**: 下游实现若此前使用部署本地 `/sync/typing`、`/typing`、`/receipts` 或 `/receipts/read`，SHOULD 迁移到 `POST /api/v1/ephemeral`；旧路径只能作为实现本地兼容 shim。
+
 ### Register lifecycle projection read surface（2026-05-22）
 
 把 Space / Flow / Morph lifecycle projection 读端从实现私有路径提升为规范 extension surface。

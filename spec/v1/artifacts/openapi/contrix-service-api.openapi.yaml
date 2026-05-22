@@ -39,7 +39,7 @@ info:
 
     `EventsResolveRequest` / `EventsResolveResponse`, `EventsQueryResponse`,
 
-    `EventsFrontierResponse`, `SnapshotHeadResponse`,
+    `EventsFrontierResponse`, `EphemeralSubmitResponse`, `SnapshotHeadResponse`,
 
     `IdentityResolveResponse` / `IdentityGetDocumentResponse`,
 
@@ -2896,6 +2896,37 @@ components:
         total:
           type: integer
           minimum: 0
+    EphemeralSubmitResponse:
+      type: object
+      description: |
+        Result of cx.ephemeral.send. `accepted=true` means the Sync Service
+        admitted the short-lived signal into its ephemeral fanout path. No
+        Event ID, actor_seq, Anchor frontier, or durable receipt is minted.
+      required:
+      - accepted
+      - kind
+      - realm_id
+      properties:
+        accepted:
+          type: boolean
+        kind:
+          type: string
+          enum:
+          - cx.call.signal
+          - cx.presence
+          - cx.typing
+          - cx.receipt.read
+        realm_id:
+          type: string
+          pattern: '^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        dispatched_to:
+          type: integer
+          minimum: 0
+          description: Optional implementation hint for fanout recipients queued locally.
+        server_received_at:
+          type: string
+          format: date-time
+      additionalProperties: false
     OperationRequest:
       type: object
       description: Operation-specific JSON request object. Required fields and profile gates are defined by the operation
@@ -3448,6 +3479,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierResponse'
+  /ephemeral:
+    post:
+      operationId: cx.ephemeral.send
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
+      summary: Send a broadcast ephemeral signal.
+      description: |
+        Sends a `cx.schema.ephemeral_envelope.v1` broadcast signal (`cx.presence`,
+        `cx.typing`, `cx.receipt.read`, or `cx.call.signal`) into the Sync
+        Service fanout path. This endpoint never persists the signal as a
+        durable Event and never advances actor_seq, Anchor state, or Realm
+        frontier. Point-to-point device verification signals use
+        `cx.device_messages.put` instead.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/ephemeral-envelope.schema.json
+      responses:
+        '200':
+          description: Ephemeral signal accepted into fanout.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EphemeralSubmitResponse'
+        '400':
+          description: |
+            `invalid_param` or `schema_violation` — malformed envelope, unsupported
+            kind, expired signal, or TTL above the hard ceiling.
+        '403':
+          description: |
+            `capability_denied` or `policy_violation` — caller cannot broadcast
+            this signal in the Realm, or the effective read-receipt policy
+            disables `cx.receipt.read`.
   /account/subscribe:
     get:
       operationId: cx.account.subscribe
