@@ -67,7 +67,7 @@ Contrix 身份由 DID principal 表示，但用户访问通常经过一个或多
 | 状态 | 触发方 | Access token | Refresh token | Device trust | E2EE secret storage | Event history | 详细规则 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `active` | — | 有效 | 有效 | 保留 | 保留 | 保留 | — |
-| `soft_logged_out` | auth service / 用户 logout | 已撤销 | 可 refresh | 保留 | 保留 | 保留 | §4 |
+| `soft_logged_out` | auth service / 用户 logout | 已撤销 | 可在 fresh DID/device proof 下 refresh | 保留 | 保留 | 保留 | §4 |
 | `locked` | 安全风险检测 | 已撤销 | SHOULD 撤销 | 保留 | 保留 | 保留 | §5 |
 | `suspended` | 治理 / 合规 | 拒新发 | 拒新发 | 保留 | 保留 | 保留 | §6 |
 | `deactivated` | 用户 / 管理员关账 | 已撤销 | 已撤销 | 标记 revoked | 客户端可清除 | 保留 | §7 |
@@ -103,9 +103,11 @@ Current account status projection 是 ordered-log 上的确定性派生值，而
 - 停止 sync。
 - 清除 access token。
 - 保留 device keys 和 secret storage 本地密钥，除非用户选择清除。
-- 使用 refresh、OIDC 或 re-auth 恢复。
+- 使用 refresh、OIDC 或 re-auth 恢复，但恢复请求仍必须携带 fresh DID/device proof。
 
 服务端返回 `401 soft_logged_out` 时 MUST 不要求客户端删除本地 E2EE 密钥。
+
+`soft_logged_out -> active` 的恢复 MUST 绑定 fresh DID proof：refresh token、OIDC callback 或 re-auth 只能作为会话恢复材料，不能单独把账号状态恢复为 `active`。服务端 MUST 要求当前 principal DID 的授权 device key、account auth key、passkey 或 recovery policy 允许的密钥对一次性 challenge 签名，并把签名覆盖 `principal_id`、`device_id?`、`audience`、`request_canonical_hash`、`challenge` 与 `expires_at?`。缺失该证明时返回 `401 did_proof_required`；refresh token 单独有效时也不得静默签发新的 active session grant。
 
 ## 5. Locked
 

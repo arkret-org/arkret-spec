@@ -2614,6 +2614,7 @@ components:
           - proof_kind
           - challenge
           - request_canonical_hash
+          - audience
           - signature
           properties:
             proof_kind:
@@ -2695,6 +2696,76 @@ components:
         - principal_id
       - required:
         - redirect_url
+    DidOperationSubmitRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - did
+      - seq
+      - patch
+      - proofs
+      properties:
+        did:
+          type: string
+          pattern: ^did:[a-z0-9]+:[^\s]+$
+        seq:
+          type: integer
+          minimum: 0
+        patch:
+          type: object
+          additionalProperties: true
+          description: DID method-specific operation patch.
+        proofs:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: true
+            required:
+            - proof_kind
+            - challenge
+            - request_canonical_hash
+            - signature
+            properties:
+              proof_kind:
+                type: string
+                enum:
+                - did_update_key
+                - authorized_device
+                - recovery_policy
+              challenge:
+                type: string
+                minLength: 16
+              request_canonical_hash:
+                type: string
+                pattern: ^sha256:[0-9a-f]{64}$
+              signature:
+                type: string
+                minLength: 1
+    DidOperationSubmitResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - accepted
+      - did
+      - seq
+      properties:
+        accepted:
+          type: boolean
+        did:
+          type: string
+          pattern: ^did:[a-z0-9]+:[^\s]+$
+        seq:
+          type: integer
+          minimum: 0
+        operation_ref:
+          type: string
+        status:
+          type: string
+          enum:
+          - accepted
+          - duplicate
+          - pending
     ProjectionSpaceRow:
       type: object
       additionalProperties: false
@@ -2756,6 +2827,7 @@ components:
       - realm_id
       - spaces
       - total
+      - has_more
       properties:
         realm_id:
           type: string
@@ -2767,6 +2839,11 @@ components:
         total:
           type: integer
           minimum: 0
+        next_cursor:
+          type: string
+          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+        has_more:
+          type: boolean
     ProjectionFlowRow:
       type: object
       additionalProperties: false
@@ -2821,6 +2898,7 @@ components:
       - realm_id
       - flows
       - total
+      - has_more
       properties:
         realm_id:
           type: string
@@ -2832,6 +2910,11 @@ components:
         total:
           type: integer
           minimum: 0
+        next_cursor:
+          type: string
+          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+        has_more:
+          type: boolean
     ProjectionMorphRow:
       type: object
       additionalProperties: false
@@ -2885,6 +2968,7 @@ components:
       - realm_id
       - morphs
       - total
+      - has_more
       properties:
         realm_id:
           type: string
@@ -2896,6 +2980,11 @@ components:
         total:
           type: integer
           minimum: 0
+        next_cursor:
+          type: string
+          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+        has_more:
+          type: boolean
     EphemeralSubmitResponse:
       type: object
       description: |
@@ -3086,13 +3175,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionGrantResponse'
+                $ref: '#/components/schemas/DidOperationSubmitResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SessionGrantRequest'
+              $ref: '#/components/schemas/DidOperationSubmitRequest'
   /identity/receipts:
     get:
       operationId: cx.identity.get_receipts
@@ -3651,6 +3740,19 @@ paths:
           type: boolean
           default: false
         description: Include irreversible terminal rows such as tombstoned Spaces.
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
       responses:
         '200':
           description: Space lifecycle projection rows visible to the caller.
@@ -3686,6 +3788,19 @@ paths:
           type: boolean
           default: false
         description: Include terminal rows such as redacted Flows.
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
       responses:
         '200':
           description: Flow lifecycle projection rows visible to the caller.
@@ -3721,6 +3836,19 @@ paths:
           type: boolean
           default: false
         description: Include terminal rows such as redacted Morphs.
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^cx:cursor:[A-Za-z0-9_-]+$
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
       responses:
         '200':
           description: Morph lifecycle projection rows visible to the caller.
@@ -3767,7 +3895,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountOidcCallbackResponse'
+                $ref: '#/components/schemas/OperationResult'
   /blob/upload:
     post:
       operationId: cx.blob.upload
@@ -3788,7 +3916,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountOidcCallbackRequest'
+              $ref: '#/components/schemas/OperationRequest'
   /blob/get:
     head:
       operationId: cx.blob.head
@@ -4979,13 +5107,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/SessionGrantResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/SessionGrantRequest'
   /auth/account/device-pair:
     servers:
     - url: https://{host}
@@ -5024,13 +5152,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationResult'
+                $ref: '#/components/schemas/AccountOidcCallbackResponse'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OperationRequest'
+              $ref: '#/components/schemas/AccountOidcCallbackRequest'
   /admin/server/status:
     servers:
     - url: https://{host}

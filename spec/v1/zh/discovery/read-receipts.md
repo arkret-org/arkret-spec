@@ -98,7 +98,7 @@ Realm MAY 通过 `cx.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 - `disclosure="required"`：合规客户端 MUST 不允许用户在该 scope 把 `cx.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `cx.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Marker 不受影响。
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
-- Child Realm policy MUST 等于或更严格于父策略：disclosure 仅允许 `required→optional→disabled` 方向的收紧；visibility 仅允许 `public→members→private` 方向的收紧。放宽方向（例如父 `disabled` → 子 `required`、父 `private` → 子 `public`）MUST 被 reducer 拒绝，与 `scope_overrides_allowed` 取值无关——`scope_overrides_allowed=true` 仅允许 child 进一步收紧，`scope_overrides_allowed=false` 要求 child 完全继承父策略。
+- Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。放宽方向（例如父 `disabled` → 子 `required`、父 `private` → 子 `public`）MUST 被 reducer 拒绝，与 `scope_overrides_allowed` 取值无关——`scope_overrides_allowed=true` 仅允许 child 在上述限制内进一步收紧，`scope_overrides_allowed=false` 要求 child 完全继承父策略。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
 ## 3. Read Marker (私有游标)

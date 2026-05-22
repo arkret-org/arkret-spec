@@ -25,7 +25,7 @@ extension namespace，并且不得在 describe/profile discovery 中把它声明
 1. **Gate 是组合的，不是命名的。** 不再以新 enum 区分"附加条件类型"。Realm 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
 2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。Contrix 申请正文 MUST 仅对 `cx.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Sync Service 强制访问控制并审计读取（`cx.audit.accessed`）。
 3. **审核决策必须上链。** 所有审核接受 / 拒绝 MUST 是签名的 anchored Move，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §6](./content-moderation.md)）依赖该 trail。
-4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：随后的 `cx.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 review accept Move。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
+4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：随后的 `cx.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt hash；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
 5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `cx.member.state{membership=join}`，由 reducer 内联校验，无需 application / review Move。这条路径替代既有 `restricted` 入口模式的实质语义。
 6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Move 的 capability。Policy Server `obligations[]`（§11）只能在 capability 之上叠加额外要求（如 challenge），不能凭空创造权限。
 
@@ -360,11 +360,11 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` |  |
-| `application_ref` | yes | `event_ref` | 指向 §6.2 的 application event。 |
+| `application_ref` | yes | `receipt_hash` 或 profile-private `event_ref` | 指向 §6.2 的 signed application receipt；若实现 profile 已注册私有 application Event kind，MAY 指向该私有 Event id。不得引用未注册的裸名 `member.application`。 |
 | `decision` | yes | `enum(accept, reject, request_changes)` | `request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
 | `reason_code` | yes | `string` | 稳定原因码：`ok` / `incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `other`。 |
 | `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
-| `evidence_refs` | no | `event_ref[]` | 评审依据的其它 event（如 `cx.audit.*` 风险记录）。 |
+| `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `cx.audit.*` 风险记录）。 |
 | `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability` 的 grant id 与当时 frontier hash；reducer 必须在写入时再校验一次。 |
 
 `reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。
@@ -391,7 +391,7 @@ application 进入 `accepted` 状态后：
 
 - 仅向 reviewer set（`review_capability` 持有方）与 applicant 自身投影 application 正文；
 - 对其它 Realm 成员投影占位（`{application_pending: true}`）；
-- 对每次 reviewer 读取写一条 `cx.audit.accessed`（payload 包含 application event id 与读取者 DID）。
+- 对每次 reviewer 读取写一条 `cx.audit.accessed`（payload 包含 application receipt hash 或 profile-private application Event id 与读取者 DID）。
 
 `applicant_visibility=members_after_join` 仅在 application 进入 `accepted` 且对应 `cx.invite.accept` 已落入 frontier 后，才允许向 Realm 成员投影正文。
 
@@ -450,7 +450,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 ## 10. Policy Server 运行时挑战
 
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `cx.member.state{join}` / `member.application` Move 调用 OpenAPI canonical path `/policy/check`。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `cx.member.state{join}` Move 以及 `member.application` signed receipt / private record 调用 OpenAPI canonical path `/policy/check`。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
 ```json
 {

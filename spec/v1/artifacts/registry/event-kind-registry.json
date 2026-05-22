@@ -849,6 +849,60 @@
       "payload": "Agent protocol endpoint declaration"
     },
     {
+      "event_kind": "cx.agent.key.authorized",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent signing key authorization. Binds an agent key to an accountable actor, scope, audience, expiry, and optional approval evidence.",
+      "cell_family": "cx.component.agent.key.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.agent_did",
+          "payload.key_id"
+        ]
+      },
+      "lattice": "or-set",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "cx.agent.key.revoked",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent signing key revocation.",
+      "cell_family": "cx.component.agent.key.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.agent_did",
+          "payload.key_id"
+        ]
+      },
+      "lattice": "or-set",
+      "bottom": "reject"
+    },
+    {
+      "event_kind": "cx.agent.key.rotated",
+      "category": "agent",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Agent signing key rotation linking a retiring key to a replacement key under the same accountable actor and narrowed or equivalent scope.",
+      "cell_family": "cx.component.agent.key.v1",
+      "cell_subject": {
+        "type": "composite",
+        "components": [
+          "payload.agent_did",
+          "payload.key_id"
+        ]
+      },
+      "lattice": "or-set",
+      "bottom": "reject"
+    },
+    {
       "event_kind": "cx.agent.protocol_session.start",
       "category": "agent",
       "status": "active",

@@ -35,7 +35,7 @@
       "code": "invalid_response",
       "http_status": 400,
       "scope": "service_call",
-      "description": "A downstream service response was syntactically valid transport data but did not satisfy the expected protocol contract."
+      "description": "A downstream service response was syntactically valid transport data but did not satisfy the expected protocol contract, including directory/projection/service-call schema mismatch or missing required pagination/error fields."
     },
     {
       "code": "unauthenticated",
@@ -54,6 +54,12 @@
       "http_status": 401,
       "scope": "both",
       "description": "Session was soft-logged-out and must be refreshed."
+    },
+    {
+      "code": "did_proof_required",
+      "http_status": 401,
+      "scope": "both",
+      "description": "A soft-logout refresh, OIDC callback, re-auth, or sensitive account transition requires a fresh DID-bound or authorized-device proof; a refresh token alone is insufficient."
     },
     {
       "code": "invalid_signature",
@@ -89,7 +95,7 @@
       "code": "source_refs_unverifiable",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest could not verify declared source_refs against the authoritative principal server or resource source."
+      "description": "Directory ingest or cross-service projection could not verify declared source_refs against the authoritative principal server, resource source, or signed projection frontier."
     },
     {
       "code": "governance_key_invalid",
@@ -101,7 +107,7 @@
       "code": "ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest rejected ttl_seconds because it is outside the service's allowed [1, max_ttl_seconds] range."
+      "description": "A service-call TTL is outside the operation's allowed range, including directory ttl_seconds outside [1, max_ttl_seconds] or ephemeral ttl_ms beyond the advertised kind-specific limit."
     },
     {
       "code": "takedown_in_force",
@@ -138,6 +144,24 @@
       "http_status": 403,
       "scope": "both",
       "description": "A realm-level policy refuses the requested write or fanout (read-receipts §2.5: cx.receipt.read drops when disclosure='disabled'; retry_after_ms is null because retry will not change the outcome)."
+    },
+    {
+      "code": "ephemeral_kind_not_permitted",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "cx.ephemeral.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that ephemeral kind."
+    },
+    {
+      "code": "ephemeral_ttl_out_of_range",
+      "http_status": 400,
+      "scope": "service_call",
+      "description": "cx.ephemeral.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
+    },
+    {
+      "code": "ephemeral_channel_unavailable",
+      "http_status": 503,
+      "scope": "service_call",
+      "description": "cx.ephemeral.send could not enqueue or fan out the transient signal because the ephemeral channel is temporarily unavailable; durable Event history is not affected."
     },
     {
       "code": "not_found",

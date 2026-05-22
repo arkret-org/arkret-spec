@@ -127,6 +127,16 @@ agent key 用于 AI agent、bot、CI 或 automation。
 - MUST 绑定 accountable actor
 - SHOULD 使用 proposal / approval 约束执行高风险动作
 
+agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只存在于服务端配置。标准事件为：
+
+| 事件 | 用途 | 必要授权 |
+| --- | --- | --- |
+| `cx.agent.key.authorized` | 绑定 agent DID / key id / scope / audience / `expires_at` / accountable actor 与 approval evidence。 | `cx.agent.key.manage` |
+| `cx.agent.key.rotated` | 将旧 key 与新 key 绑定在同一 accountable actor 下，scope 不得扩大，TTL 不得长于被替换 key。 | `cx.agent.key.manage` |
+| `cx.agent.key.revoked` | 撤销 agent key，并使后续 session / protocol action proof fail closed。 | `cx.agent.key.manage` |
+
+高风险 agent key（能写入、调用外部工具、管理 capability、读取审计材料或代表用户发起 service-call）的 grant MUST 同时有 `expires_at`、resource selector、accountable actor、approval/proposal evidence 和 revocation freshness check。只声明 API token 或本地环境变量而没有上述事件链的 agent key 不得用于 v1 standard operation。
+
 ### 3.7 MLS KeyPackage Key
 
 MLS KeyPackage key 用于加入加密 Realm。
@@ -197,7 +207,7 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
 
    Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control` 与 `schema_refs` 包含 `cx.profile.principal_control_realm.v1`；缺一即按普通 collaboration Realm 处理（不再具备 control stream 的特殊语义）。
 4. **首台设备自授权**：客户端构造 `cx.device.authorized` Event，`device_id` 是新生成的 device public key 派生 ID，`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
-5. **Inception key 的归宿**：完成步骤 4 后，inception key MAY 被立即写入 `did:webvh` entry 1 的 `updateKeys` 轮换链中并从首台设备销毁；也 MAY 作为 recovery key 之一存入 secret storage（§7）。它 MUST NOT 长期作为日常 device signing key——它的暴露面应被限制到 inception bootstrap 与 recovery。
+5. **Inception key 的归宿**：完成步骤 4 后，inception key 的在线签名角色 MUST 在 `inception_key_max_online_window` 内退出，默认窗口为 24h。退出方式只能是：（a）写入 `did:webvh` entry 1 或等价 DID method operation，把日常 update / device authorization 权限轮换到新的 controller / device key，并从首台设备销毁 inception private key；或（b）把 inception key 封存为 recovery-only key，放入 secret storage / threshold recovery，记录 `sealed_at`、`expires_at?`、allowed recovery method，并禁止在线日常签名。窗口过期后，receiver / Auth Server MUST 拒绝 inception key 继续签发 `cx.device.authorized`、`cx.session.grant`、长期 capability 或 ordinary DID update，并写入安全审计；它只能按已声明 recovery policy 进入恢复流程。它 MUST NOT 长期作为日常 device signing key——暴露面应被限制到 inception bootstrap 与 recovery。
 6. **后续设备**：第二台及以后设备走 §5.1 标准流程，由首台已授权设备签发 `cx.device.authorized`。
 
 #### 5.0.2 `personal_node` Profile 降级路径（principal_method=`did:web`）
@@ -452,6 +462,7 @@ Contrix v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata
     },
     "aead": {
       "name": "xchacha20_poly1305",
+      "aead_profile": "cx.aead.xchacha20_poly1305.v1",
       "nonce": "base64url..."
     },
     "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
@@ -495,10 +506,13 @@ nonce = HMAC-SHA256(
     "backup_class": backup_class,
     "backup_version": backup_version,
     "created_at": created_at,
-    "aead": aead.name
+    "aead": aead.name,
+    "aead_profile": aead.aead_profile
   })
 )[0:N_AEAD]
 ```
+
+`aead_profile` 是可选但推荐的协商标识，绑定 AEAD 算法版本、nonce 长度、tag 长度、key 长度和 AAD 构造。接收方看到不支持的 `aead_profile` MUST fail closed；不得只凭 `aead.name` 推断可接受的参数组合。未携带 `aead_profile` 的历史 envelope 按 `aead.name` 的 v1 默认 profile 解释，但新写入 envelope SHOULD 显式携带 profile id。
 
 Producer MUST reject attempts to write two backup envelopes with the same nonce derivation tuple. Receiver MUST recompute the nonce for `passphrase_kdf` envelopes before decryption and reject mismatches as `schema_violation`.
 

@@ -209,6 +209,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.realm.link.manage`
 - `cx.realm.upgrade`
 - `cx.realm.moderate`
+- `cx.realm.plaintext_visible_services.modify`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`cx.realm.plaintext_visible_services`）
 - `cx.flow.admin`
 - `cx.realm.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `cx.audit.accessed` 同时持有，详见 [`../models/flow-and-message.md` §8.5](../models/flow-and-message.md)）
 - `cx.schema.define`
@@ -216,6 +217,7 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.capability.grant`
 - `cx.capability.delegate`
 - `cx.capability.revoke`
+- `cx.agent.key.manage`（high risk；授权、轮换、撤销 agent key，target=`cx.agent.key.authorized` / `cx.agent.key.rotated` / `cx.agent.key.revoked`）
 - `cx.policy.manage`
 - `cx.policy.set`
 - `cx.policy.rule`
@@ -249,6 +251,10 @@ Morph 权限粒度与 Flow 平行(`cx.morph.read` / `cx.morph.create` / `cx.morp
 - `cx.audit.accessed`
 - `cx.audit.query`
 - `cx.audit.export`
+- `cx.presence.broadcast`
+- `cx.typing.broadcast`
+- `cx.receipt.broadcast`
+- `cx.call.signal.send`
 
 v1 不再注册独立的 `cx.mls.epoch` event；每个 group 的当前 epoch 由 winner `cx.mls.commit.next_epoch` 直接表达，没有"推进 epoch"这个独立可授权动作。
 
@@ -374,7 +380,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 风险分层硬约束：
 
 - `risk_tier=high` 的 action MUST 有 `expires_at`、resource selector narrowing、authorization evidence ref 与 audit evidence。
-- `risk_tier=critical` 的 action MUST 通过显式 approval / proposal workflow，默认 `delegable=false`；若 profile 允许委托，child grant MUST 有更短 TTL、不可扩大 scope，且必须记录 approver DID。
+- 对需要更高保证的 high-risk action，profile MAY 要求显式 approval / proposal workflow、默认 `delegable=false`、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求不得通过 registry 未定义的第四级风险字符串表达。
 - Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有最大 TTL 与 resource selector；缺失时 reducer MUST `failed_precondition`。
 
 ### 8.1 Proposal 模式
@@ -395,7 +401,7 @@ system/human -> `cx.flow.update` 或 `cx.morph.update`
 - 只授予所需动作。
 - 只授予有限时效。
 - 尽量限制可写字段、可写 track 和可写 Morph 类型。
-- 对 high / critical action 要求 controller / responsible actor approval。
+- 对 high action 按 action registry 与 profile 要求 controller / responsible actor approval。
 
 高风险模式包括：
 

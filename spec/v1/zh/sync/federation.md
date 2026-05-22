@@ -248,6 +248,7 @@ for each member m of Realm S that needs to receive event E:
 Rebind handover：
 
 - 接收方观察到自己已 accept rebind handover frontier `F`，而 sender 仍按 frontier 之前的旧 binding 投递时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` + `handover_frontier`；sender MUST 重新解析、向新目标重试（不得回退到 DID Document）。
+- `delivery_binding_stale` 重试是有界重定向，不是无限 fanout：sender 对同一 `(event_id, target_principal_id, handover_frontier)` 最多重试一次到 `new_recipient_service_did`；再次收到 stale / handed_over 时 MUST 停止投递并进入 backoff / operator diagnostic，避免跨服务循环。
 - 旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`。
 
 撤销 / 移除 cascading：
@@ -472,10 +473,10 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `cx.realm.join
 **申请-审核路径**（`join_rule ∈ {knock, knock_restricted}`，且至少一个 gate `auto_resolve=false`）：
 
 1. Bob 发现 Realm S 的元数据
-2. Bob 提交 `cx.member.state{membership="knock"}` Move（不携带正文）以及 `member.application` Move（携带 answers / claim presentation / challenge proof，E2EE Realm 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）
-3. 两条 Move 推送到 Realm S 的 shared anchorer 或管理员 Principal Server；接收方验证签名后扇出至 reviewer 的设备列表
+2. Bob 提交 `cx.member.state{membership="knock"}` Move（不携带正文），并提交 profile 声明的 signed `member.application` receipt / private record（携带 answers / claim presentation / challenge proof，E2EE Realm 中 application 正文必须通过 reviewer sub-group MLS 或 envelope encryption 加密给 reviewer set）。`member.application` 是候选 workflow 概念，不是 v1 base `Event.kind`。
+3. knock Move 与 application receipt / private record 推送到 Realm S 的 shared anchorer 或管理员 Principal Server；接收方验证签名后扇出至 reviewer 的设备列表
 4. 持有 `cx.realm.join.review` capability 的 reviewer 评估申请，产生 `member.application.review{decision=accept|reject|request_changes}` 候选 workflow 决策（不是 v1 base Event.kind；capability action 自身仍按 `cx.realm.join.review` 注册）；`reviewer_quorum != "any"` 时 reducer 收集足够 accept 后视为 accepted
-5. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` 引用对应 review accept Move
+5. 任一 reviewer 提交 `cx.invite.create`，`refs[role="join_authorised_by"]` 引用对应 signed review accept receipt hash；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id
 6. Bob 提交 `cx.invite.accept`；reducer 校验 join_authorisation 链有效后收敛 `membership=join`
 7. 若 Realm 启用了 E2EE，inviter 客户端构造 MLS `Welcome` 消息发给 Bob
 

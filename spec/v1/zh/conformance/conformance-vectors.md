@@ -2112,3 +2112,68 @@ Expected：
 - Reducer MUST 以 `relaxed_window_exceeds_ceiling` 拒绝超限 policy write。
 - Receiver MUST 独立拒绝超过当前 policy window 的 decrypt admission。
 - Hard ceiling 不可由 deployment profile 重定义；实现不得 silently clamp 后继续接受。
+
+## 10. Service Closure Vectors
+
+### 10.1 Vector: Ephemeral Capability And TTL
+
+`vector_id`: `cx.vector.ephemeral.capability_ttl.v1`
+
+Steps：
+
+1. Actor 对 `cx.typing` 提交 `cx.ephemeral.send`，但只持有 `cx.presence.broadcast`。
+2. Actor 持有正确 action 后，提交超出 advertised kind-specific TTL 的 envelope。
+3. Ephemeral channel 暂时不可用。
+
+Expected：
+
+- 第 1 步 MUST 返回 `ephemeral_kind_not_permitted`。
+- 第 2 步 MUST 返回 `ephemeral_ttl_out_of_range`。
+- 第 3 步 MUST 返回 `ephemeral_channel_unavailable`，且不写 durable Event、不推进 actor_seq / Realm frontier。
+
+### 10.2 Vector: Projection Pagination Shape
+
+`vector_id`: `cx.vector.projection.pagination_shape.v1`
+
+Steps：
+
+1. 调用 `cx.projection.spaces` / `flows` / `morphs`，请求 `limit=1`。
+2. 使用返回的 `next_cursor` 继续读取。
+3. 下游 service-call 返回缺失 `has_more` 或 cursor 形态不合法的响应。
+
+Expected：
+
+- 每个响应 MUST 带 `has_more`；有后续页时 MUST 带合法 `cx:cursor:*`。
+- Cursor MUST 绑定调用者、selector 和 projection purpose，不得跨 service / Realm 复用。
+- 缺失分页闭包字段时上游 MUST 归类为 `invalid_response`。
+
+### 10.3 Vector: KeyPackage Exhaustion And Claim Limits
+
+`vector_id`: `cx.vector.keypackage.exhaustion_claim_limits.v1`
+
+Steps：
+
+1. Device 可用 KeyPackage 数量低于 `keypackage_min_available`。
+2. 同一 `(requester_service_did, target_principal_id)` 在 60s 内发起超过 5 次 claim。
+3. 已 claimed KeyPackage 到达 `expires_at` 后再尝试 consume。
+
+Expected：
+
+- Server SHOULD 在可见响应中返回 `available_count`，client MUST 在下一次 maintenance / sync 补充上传。
+- 超限 claim 对外仍保持反枚举失败，不泄露目标是否存在；内部审计 reason 为 `keypackage_claim_rate_limited`。
+- 过期 claimed package MUST 转为 revoked / unusable，不得回到 `published`，迟到 consume MUST 被拒绝。
+
+### 10.4 Vector: Soft Logout DID Proof Required
+
+`vector_id`: `cx.vector.auth.soft_logout_did_proof.v1`
+
+Steps：
+
+1. Session 进入 `soft_logged_out`。
+2. Client 仅携带仍有效的 refresh token 请求恢复。
+3. Client 重新提交 refresh/OIDC/re-auth，并携带授权 DID/device key 对 challenge 的签名。
+
+Expected：
+
+- 第 2 步 MUST 返回 `did_proof_required`，不得签发 active session grant。
+- 第 3 步的 proof MUST 覆盖 principal、device、audience、challenge、request canonical hash 和 expiry；验证成功后才可恢复为 `active`。

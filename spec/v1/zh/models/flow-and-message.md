@@ -363,7 +363,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
   - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST `failed_precondition`（`reason="watch_level_public_must_be_self"`）。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
   - 每条 `manage_others` 写入 MUST 与一条 `cx.audit.accessed` event 形成可验证配对：业务 event 的 `refs[]` MUST 包含 `{id: <audit_event_id>, role: "audit_pair", critical: true}`，audit event payload MUST 使用 `access_kind="watch_manage_others"`，并绑定 `writer_did`、`target_actor_did`、`target_cell_id`、`paired_event_id`、`paired_event_digest`、`cell_head_before` 与 `cell_head_after`。二者 MUST 位于同一 Anchor batch；batch 验证器在接受任何一条前先检查该配对 invariant。缺失、目标不一致、digest 不匹配或不在同 batch 时 reducer MUST 拒绝业务 event（`failed_precondition`，`reason="manage_others_audit_missing"`）。
   - 被加为 watcher 的 actor MAY 随时通过自写 cell 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
-- 创建者隐式订阅：reducer 在 `cx.flow.create` 写入时 MAY 同时为 `created_by` actor 写一条 `level=participating` 的 watch cell（profile 决定是否启用，默认启用）。该写入不消耗 `cx.flow.watch.manage_others`，但仍记入 cell 历史。
+- 创建者隐式订阅：reducer 在 `cx.flow.create` 写入时 MAY 同时为 `created_by` actor 建立 `level=participating` 的通知订阅。v1 默认只在 actor-private / notification dispatcher state 中启用该默认值；若 profile 选择把它物化为共享 `cx.flow.watch.set` cell，必须显式声明该行为，并仍保持 `level_public=false`。该写入不消耗 `cx.flow.watch.manage_others`，但若物化为共享 cell，仍记入 cell 历史。
 - 如需管理员强制静音某 actor 的通知（e.g. 反骚扰、moderation 场景），MUST 使用独立 moderation event（`cx.moderation.decision` 或 profile-specific kind），不得复用个人 watch preference。
 
 ### 8.5 投影脱敏（normative）

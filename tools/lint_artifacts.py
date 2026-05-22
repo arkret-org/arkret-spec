@@ -1058,6 +1058,118 @@ def check_policy_check_alignment(lint: Lint) -> None:
         lint.fail(openapi_path, "PolicyCheckResponse.required must include bound_to")
 
 
+def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
+    """Prevent security-sensitive operations from drifting back to generic schemas."""
+    openapi_path = ARTIFACTS / "openapi" / "contrix-service-api.openapi.yaml"
+    openapi = load_yaml(lint, openapi_path)
+    if not isinstance(openapi, dict):
+        return
+
+    paths = openapi.get("paths")
+    components = openapi.get("components", {}).get("schemas", {})
+    if not isinstance(paths, dict) or not isinstance(components, dict):
+        return
+
+    def find_operation(operation_id: str) -> dict[str, Any] | None:
+        for path_item in paths.values():
+            if not isinstance(path_item, dict):
+                continue
+            for method in ("get", "post", "put", "patch", "delete", "head"):
+                operation = path_item.get(method)
+                if isinstance(operation, dict) and operation.get("operationId") == operation_id:
+                    return operation
+        return None
+
+    def request_schema(operation: dict[str, Any]) -> Any:
+        return (
+            operation.get("requestBody", {})
+            .get("content", {})
+            .get("application/json", {})
+            .get("schema")
+        )
+
+    def response_schema(operation: dict[str, Any]) -> Any:
+        return (
+            operation.get("responses", {})
+            .get("200", {})
+            .get("content", {})
+            .get("application/json", {})
+            .get("schema")
+        )
+
+    expected = {
+        "cx.identity.submit_did_operation": ("DidOperationSubmitRequest", "DidOperationSubmitResponse"),
+        "cx.account.issue_session_grant": ("SessionGrantRequest", "SessionGrantResponse"),
+        "cx.account.oidc_callback": ("AccountOidcCallbackRequest", "AccountOidcCallbackResponse"),
+    }
+    dedicated_schema_refs = {
+        f"#/components/schemas/{name}"
+        for pair in expected.values()
+        for name in pair
+    }
+    for operation_id, (request_name, response_name) in expected.items():
+        operation = find_operation(operation_id)
+        if operation is None:
+            lint.fail(openapi_path, f"{operation_id} operation missing")
+            continue
+        if request_schema(operation) != {"$ref": f"#/components/schemas/{request_name}"}:
+            lint.fail(openapi_path, f"{operation_id} requestBody must reference {request_name}")
+        if response_schema(operation) != {"$ref": f"#/components/schemas/{response_name}"}:
+            lint.fail(openapi_path, f"{operation_id} 200 response must reference {response_name}")
+
+    for path_item in paths.values():
+        if not isinstance(path_item, dict):
+            continue
+        for method in ("get", "post", "put", "patch", "delete", "head"):
+            operation = path_item.get(method)
+            if not isinstance(operation, dict):
+                continue
+            operation_id = operation.get("operationId")
+            if operation_id in expected:
+                continue
+            for label, schema in (("requestBody", request_schema(operation)), ("200 response", response_schema(operation))):
+                if isinstance(schema, dict) and schema.get("$ref") in dedicated_schema_refs:
+                    lint.fail(
+                        openapi_path,
+                        f"{operation_id} {label} must not reference account/DID dedicated schema {schema.get('$ref')}",
+                    )
+
+    session_grant_proof_required = (
+        components.get("SessionGrantRequest", {})
+        .get("properties", {})
+        .get("proof", {})
+        .get("required", [])
+    )
+    if "audience" not in session_grant_proof_required:
+        lint.fail(openapi_path, "SessionGrantRequest.proof.required must include audience")
+
+    projection_components = {
+        "cx.projection.spaces": "ProjectionSpacesResponse",
+        "cx.projection.flows": "ProjectionFlowsResponse",
+        "cx.projection.morphs": "ProjectionMorphsResponse",
+    }
+    for operation_id, component_name in projection_components.items():
+        operation = find_operation(operation_id)
+        if operation is None:
+            lint.fail(openapi_path, f"{operation_id} operation missing")
+            continue
+        parameter_names = {
+            parameter.get("name")
+            for parameter in operation.get("parameters", [])
+            if isinstance(parameter, dict)
+        }
+        for required_parameter in ("cursor", "limit"):
+            if required_parameter not in parameter_names:
+                lint.fail(openapi_path, f"{operation_id} parameters must include {required_parameter}")
+        component = components.get(component_name, {})
+        required = set(component.get("required") or [])
+        properties = component.get("properties") or {}
+        if "has_more" not in required:
+            lint.fail(openapi_path, f"{component_name}.required must include has_more")
+        if "next_cursor" not in properties:
+            lint.fail(openapi_path, f"{component_name}.properties must include next_cursor")
+
+
 def check_text_reference_targets(lint: Lint) -> None:
     for path in raw_artifact_files():
         try:
@@ -1974,6 +2086,7 @@ def main() -> int:
     check_operation_surfaces(lint, known)
     check_service_describe_alignment(lint)
     check_policy_check_alignment(lint)
+    check_openapi_dedicated_operation_schemas(lint)
     check_text_reference_targets(lint)
     check_cross_source_drift(lint, known)
     check_vector_reference_closure(lint)

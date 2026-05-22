@@ -497,7 +497,7 @@ published -> claimed -> consumed
 Claim 请求 MUST 绑定：
 
 - requester principal / service DID 和 device proof。
-- intended `realm_id` 或 room id。
+- intended `realm_id` 或 `mls_group_id`。
 - required capabilities / content profiles / cipher suites。
 - 是否允许 minimal-metadata pseudonymous credential。
 - claim nonce、过期时间和目标 Welcome 路由服务。
@@ -505,7 +505,7 @@ Claim 请求 MUST 绑定：
 Claim 成功后：
 
 - KeyPackage MUST 进入 `claimed`，并绑定 `claim_id`、requester、intended Realm、capability set 和 expiry。
-- 同一 KeyPackage 不得被第二个 room、第二个 requester 或第二次 Welcome 重复使用。
+- 同一 KeyPackage 不得被第二个 Realm / MLS group、第二个 requester 或第二次 Welcome 重复使用。
 - Welcome 发送方 MUST 引用 `keypackage_ref` / `claim_id`，接收端 MUST 校验 Welcome 使用的是自己设备已 claimed 且未过期、未撤销、未消费的 KeyPackage。
 - 成功处理 Welcome 后，接收端或服务端状态 SHOULD 标记该 KeyPackage 为 `consumed`。若 Welcome 失败或过期，KeyPackage 不得自动回到 `published`；设备 SHOULD 发布新的 KeyPackage。
 - 服务端返回 KeyPackage 时 MUST 附带 device signature、principal binding 和 revocation status。客户端 MUST 通过 DID control chain 与 device trust chain 验证后才能加密。

@@ -1164,6 +1164,9 @@
               "cx.applet.registration",
               "cx.applet.protocol_session.start",
               "cx.applet.protocol_session.status",
+              "cx.agent.key.authorized",
+              "cx.agent.key.revoked",
+              "cx.agent.key.rotated",
               "cx.mimi.room_binding"
             ]
           }

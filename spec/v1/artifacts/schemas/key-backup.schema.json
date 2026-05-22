@@ -225,10 +225,15 @@
                 "aes_256_gcm"
               ]
             },
+            "aead_profile": {
+              "type": "string",
+              "pattern": "^cx\\.aead\\.[a-z0-9_]+\\.v[0-9]+$",
+              "description": "Optional AEAD profile id that binds algorithm version, nonce length, tag length, key length, and AAD construction. Receivers that do not support the profile MUST fail closed instead of inferring semantics from name alone."
+            },
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url AEAD nonce. For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='contrix-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name}))[0:N_AEAD]; receivers recompute and reject mismatches."
+              "description": "base64url AEAD nonce. For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='contrix-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?}))[0:N_AEAD]; receivers recompute and reject mismatches."
             }
           },
           "additionalProperties": true

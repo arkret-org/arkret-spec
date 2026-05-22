@@ -881,6 +881,60 @@
         "payload": "Agent protocol endpoint declaration"
       },
       {
+        "event_kind": "cx.agent.key.authorized",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent signing key authorization. Binds an agent key to an accountable actor, scope, audience, expiry, and optional approval evidence.",
+        "cell_family": "cx.component.agent.key.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "payload.agent_did",
+            "payload.key_id"
+          ]
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.agent.key.revoked",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent signing key revocation.",
+        "cell_family": "cx.component.agent.key.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "payload.agent_did",
+            "payload.key_id"
+          ]
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "cx.agent.key.rotated",
+        "category": "agent",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Agent signing key rotation linking a retiring key to a replacement key under the same accountable actor and narrowed or equivalent scope.",
+        "cell_family": "cx.component.agent.key.v1",
+        "cell_subject": {
+          "type": "composite",
+          "components": [
+            "payload.agent_did",
+            "payload.key_id"
+          ]
+        },
+        "lattice": "or-set",
+        "bottom": "reject"
+      },
+      {
         "event_kind": "cx.agent.protocol_session.start",
         "category": "agent",
         "status": "active",
@@ -3461,6 +3515,16 @@
         "profile": null
       },
       {
+        "action": "cx.realm.plaintext_visible_services.modify",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.realm.plaintext_visible_services"
+        ],
+        "profile": null
+      },
+      {
         "action": "cx.flow.admin",
         "category": "management",
         "risk_tier": "high",
@@ -3527,6 +3591,18 @@
         "required_constraints": [],
         "target_event_kinds": [
           "cx.capability.revoke"
+        ],
+        "profile": null
+      },
+      {
+        "action": "cx.agent.key.manage",
+        "category": "management",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "cx.agent.key.authorized",
+          "cx.agent.key.revoked",
+          "cx.agent.key.rotated"
         ],
         "profile": null
       },
@@ -3836,6 +3912,38 @@
         "action": "cx.audit.export",
         "category": "service",
         "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.presence.broadcast",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.typing.broadcast",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.receipt.broadcast",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null
+      },
+      {
+        "action": "cx.call.signal.send",
+        "category": "service",
+        "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
         "profile": null
