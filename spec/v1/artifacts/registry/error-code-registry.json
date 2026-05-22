@@ -795,7 +795,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "Atomic claim of a one-time key / pre-key / keypackage failed because it was already consumed, revoked, or not present (crypto-media/device-lifecycle.md key-package claim path)."
+      "description": "Atomic claim of a one-time key / pre-key / KeyPackage failed because it was already consumed, revoked, or not present (crypto-media/device-lifecycle.md KeyPackage claim path)."
     },
     {
       "code": "conflicting_e2ee_profiles",

@@ -106,7 +106,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 | --- | --- | --- |
 | `/keys/upload` Curve25519 OTK | `POST /api/v1/keys/upload` 的 `one_time_keys` | 语义一致，用于非 MLS 加密或 MLS 引导。`claim` MUST 原子消费一次性 key。 |
 | Fallback key | `fallback_keys` 字段，`fallback=true` 标记 | Contrix 规范要求成功建立会话后尽快轮换；Matrix 行为类似但描述较弱。 |
-| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Contrix 把 MLS KeyPackage 从 OTK 池里拆出来：`/api/v1/keys/keypackages/{upload, claim, consume, revoke}`，新增 **`required_capabilities ⊆ keypackage.capabilities` normative subset rule**，并对 claim 失败做反枚举（统一返回 `claim_failed`）。Matrix 无对应概念。 |
+| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Contrix 把 MLS KeyPackage 从 OTK 池里拆出来：`/api/v1/keys/keypackages/{upload, claim, consume, revoke}`，新增 **`required_capabilities` ⊆ KeyPackage `capabilities` normative subset rule**，并对 claim 失败做反枚举（统一返回 `claim_failed`）。Matrix 无对应概念。 |
 
 #### 4.5.3 群组消息密钥
 
