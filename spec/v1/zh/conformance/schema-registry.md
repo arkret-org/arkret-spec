@@ -58,7 +58,7 @@ sidebar:
 | `cx.schema.key_backup.v1` | Encrypted Key Backup |
 | `cx.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
 | `cx.schema.device_message.v1` | To-device Message Envelope |
-| `cx.schema.mimi_interop.v1` | MIMI Provider Directory / Room Binding / Mapping Receipt |
+| `cx.schema.mimi_interop.v1` | MIMI Provider Directory / MIMI Room Binding (interop; see [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)) / Mapping Receipt |
 | `cx.schema.moderation_report.v1` | Moderation Report |
 | `cx.schema.moderation_queue_item.v1` | Moderation Queue Item |
 

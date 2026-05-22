@@ -32,6 +32,7 @@ title: 术语表
 | ~~Room~~ | _deprecated_ | 历史用语；v1 core model 不使用 `Room` 名词，请使用 `Flow discussion track` / `discussion track view`。`Room` 仅在 MIMI / Matrix interop 模块的明确互操作上下文中允许出现（参见 [`forbidden-model-terms.json`](../../artifacts/registry/forbidden-model-terms.json) `Room` 条目的 `allowed_contexts`）。 |
 | synthesis track | 正式表达轨道 | Flow 的"synthesis"轨道，承载正式状态、结构化字段与决策正文。 |
 | discussion track | 讨论轨道 | Flow 的"discussion"轨道，承载消息与讨论时间线；成员、历史可见性和 E2EE 默认继承 Flow 所属 Realm，需要独立访问域时通过 `Flow.discussion_realm_ref` 升级到独立 discussion Realm。 |
+| Linked Discussion Realm | 独立讨论 Realm | Flow 通过 `discussion_realm_ref` 指向的、承载该 Flow discussion track 的独立 Realm。它是一个完整 Realm 安全边界，不是 Realm hierarchy，也不同于 `Realm Link`（`cx.realm.link` 表达的治理/发现关系）。 |
 | Board | 看板 | `cx:space: kind=board`，组织一组 List Space 与其他 Space 的工作流容器。 |
 | List | 列 / 泳道 | `cx:space: kind=list`，挂到 Board Space 下、承载 Flow 位置关系的列容器。 |
 | Message | 消息对象 | 发生在 Flow discussion 轨道中的即时沟通与补充记录。 |
@@ -41,7 +42,7 @@ title: 术语表
 | Event | 协议事件 | 协议传播和验证的基础事实单元（Envelope 的内容承载形式）。 |
 | Event Envelope | 事件外壳 | `event_id`、`actor_id`、`kind`、`payload`、`proofs` 等字段的签名封包。 |
 | Event Store | 事件存储 | 保存 Event Envelope 的服务能力，不是协议真相源本身。 |
-| Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。详见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md) 与 [`../sync/operations-sync.md` §4.1](../sync/operations-sync.md)。 |
+| Event Batch Receipt | 事件批次回执 | 可选审计/同步加速对象（payload schema `cx.schema.event_batch_receipt.v1`），**不是 canonical history**，也**不是 reducer input**；只对 issuer *选择* 承诺的事件集合提供 *integrity*，不提供 *completeness*。详见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md) 与 [`../sync/operations-sync.md` §4.1](../sync/operations-sync.md)。 |
 | Integrity (data) | 数据完整性 | 给定数据未被中间人或第三方篡改。集合上的 Merkle / set commitment 提供 integrity，但不保证集合本身已覆盖给定范围。 |
 | Completeness (range) | 范围完整性 | 给定范围内（per-actor seq interval、frontier 上下界、actor / realm scope）**没有漏给**任何属于该范围的成员。Completeness 必须依赖 *range-bound* attestation（带显式 from/to 边界）+ witness quorum 或独立 anchor 背书；set-bound commitment 单独不足以证明 completeness。 |
 | Range-bound Attestation | 范围完整性证明 | 携带 explicit range scope（per-actor seq interval、frontier 上下界）的签名证明，是 completeness 证明的载体。v1 已注册 active event kind `cx.attestation.range_completeness`（payload schema `cx.schema.range_completeness_attestation.v1`），详见 [`../sync/operations-sync.md` §4.2](../sync/operations-sync.md)。 |
@@ -71,7 +72,7 @@ title: 术语表
 | Anchor | 锚点 | Ordering authority 对 Move frontier 的签名承诺；包含 predecessors、frontier、state_root 与 anchorer signature。 |
 | Anchor DAG | 锚点图 | 某个 Realm 内已接受 Anchor 形成的 DAG；多个 leaf 通过 deterministic effective anchor view 查询。 |
 | Cell | 状态单元 | Lattice 维护的最小协议状态键，形如 `cx:cell:<component>:<subject>`。 |
-| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or-set`、`mv-register`、`cas-register`、`fsm`、`counter`、`ordered-log`、`lww-register`（仅 UI affordance）、`rga`（协作文本与有序列表）。 |
+| Lattice | 状态代数 | 每个 cell family 的确定性 join 规则；核心类型包括 `or-set`、`mv-register`、`cas-register`、`fsm`、`counter`、`ordered-log`、`lww-register`（仅可用于 profile 明确标记 `client_projection_only=true` 的 UI affordance，不得作为授权或 Anchor 关键路径）、`rga`（协作文本与有序列表）。 |
 | Bottom | 底值 | Lattice join 无法给出合法 value 时返回的 `⊥`；`bottom=reject` 时依赖它的 Move fail closed，`bottom=expose` 时可投影为冲突诊断。 |
 | Component / Cell Family | 组件 / Cell 族 | 跨协议版本稳定的 cell family 标识符，URI 形式 `cx.component.<facet-path>.v<n>`；registry 为 reducer-input kind 声明 `cell_family`、`lattice` 与 `bottom`。 |
 | MLS Governance Binding | MLS 治理绑定 | E2EE Realm 中把 MLS epoch 与 governance state（membership / policy / capability / Anchor frontier）强绑定的机制（profile `cx.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`）。由两层 artifact 组成：commit 侧的 *Governance Binding Payload* (`governance_binding`) 提供证据，lattice 侧的 *Covered Frontier Cell* (`covered_frontier_cell`) 沉淀状态。 |
@@ -86,5 +87,6 @@ title: 术语表
 | Frontier | 前沿 | Move / Anchor / Actor / Realm 已验证的最远同步边界。 |
 | Inception Key | 起源密钥 | DID 创建时的初始控制密钥，锚定在 DID 的 method history 中。 |
 | Plaintext Visible Service | 明文可见服务 | Realm policy 显式声明可接收非加密私有内容或可逆派生摘要的服务。 |
+| Audit Agent | 审计代理 | 在 auditable E2EE profile 中被 Realm policy 明确声明的服务/主体，按 `cx.audit.accessed` 等审计规则接收必要 key material 或明文访问证明；不得因持有 MLS key 而绕过 capability、plaintext-visible service disclosure 或用户可见提示。详见 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md)。 |
 | History Visibility | 历史可见性 | 控制加入 Realm 后能看到多少历史事件的范围规则。 |
 | Join Rule | 加入规则 | 控制 Actor 如何加入 Realm 的策略（public、invite、knock、restricted 等）。 |

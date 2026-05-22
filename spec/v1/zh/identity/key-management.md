@@ -585,7 +585,11 @@ Recovery policy 字段：
     {
       "holder": "did:web:alice-friend.example",
       "share_id": "s1",
-      "transport": "sealed_box"
+      "transport": "sealed_box",
+      "share_commitment": {
+        "algorithm": "feldman-vss-sha256",
+        "commitment_b64": "base64url:..."
+      }
     }
   ],
   "not_before": "2026-04-26T00:00:00Z",
@@ -593,7 +597,7 @@ Recovery policy 字段：
 }
 ```
 
-恢复 share holder 只能帮助恢复控制权，不自动获得读取内容或代表主体操作的 capability。
+恢复 share holder 只能帮助恢复控制权，不自动获得读取内容或代表主体操作的 capability。Recovery policy SHOULD 为每个门限 share 记录 `share_commitment{algorithm, commitment_b64}`（如 Feldman VSS commitment 或 share hash commitment）；恢复时客户端 / recovery coordinator SHOULD 校验提交的 share 与 commitment 一致，避免 holder 或中间服务替换 share 后仍通过 policy 语法检查。
 
 ## 9. 泄露响应
 

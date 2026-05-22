@@ -11,6 +11,8 @@ Contrix 是去中心化协议，不同用户或组织各自运行受控 Principa
 - 如何处理跨域加入 Realm 的请求
 - 如何在异构网络中维持因果一致性
 
+本文 §4 的 wire transaction 形态合并自早期 `federation-wire.md`；当前 v1 不再维护独立 federation wire 文档，所有联邦 HTTP 绑定以本文和 `service-http-binding.md` / OpenAPI 为准。
+
 ## 2. 设计原则
 
 ### 2.1 Event Chain 是信任锚点

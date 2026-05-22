@@ -282,6 +282,8 @@ Policy decision 签名输入 MUST 包含：
 4. `auth_state_hash`、`policy_frontier_hash`、`membership_frontier_hash` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
 5. 该 decision 未被同一 policy_server 后续的 `cx.moderation.decision.lift` 或 anchored override 撤销。
 
+Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
+
 ## 6. Failure Mode
 
 `fail_mode`：
@@ -347,7 +349,7 @@ Policy server fast path 与 anchored decision 的关系：
 
 - `moderation_anchor_pending` — fast-path quarantine 已记录，但 anchored Move 未到达。
 - `moderation_anchor_lifted` — 此前 anchored quarantine 已被 `cx.moderation.decision.lift` 解除。
-- `moderation_anchor_split` — moderation cell 在当前 anchor view 下出现 ⊥（或 expose 多 head）；UI 应显式提示而不是默默选 winner。
+- `moderation_anchor_split` — moderation cell 在当前 anchor view 下出现 ⊥（或 expose 多 head）；所有引用该 cell 的 read / write / distribute / policy-check 路径 MUST fail closed，`reason="moderation_state_conflict"`，UI 应显式提示而不是默默选 winner。实现不得在冲突期间选择任一 head 作为临时 allow。
 
 ## 8. Antifraud Mapping from Server Abuse Practice
 

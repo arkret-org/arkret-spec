@@ -185,7 +185,9 @@ components:
       description: |
         Single-blob, short-TTL pre-signed authorization (cx.blob.presign).
         Carries a server-signed envelope binding blob_ref / TTL / scope /
-        nonce. Permitted ONLY on cx.blob.get and cx.blob.head, and MUST NOT
+        issuance nonce. The nonce is an envelope/audit/revocation key, not a
+        one-use media-load replay guard unless a single-use profile is declared.
+        Permitted ONLY on cx.blob.get and cx.blob.head, and MUST NOT
         co-occur with bearerAuth — implementations enforce mutual exclusion.
         See media-and-blob.md §5.4 and server-threat-model.md §2.1 #21 for the
         carve-out's normative constraints.
@@ -4007,8 +4009,9 @@ paths:
         §2.1 #21) so that browser primitives (`<img src>`, `<video src>`,
         `<link href>`) can render protected media. Carries a server-signed
         envelope binding `blob_ref`, `expires_at`, `purpose`, requester
-        identity hint, and an issuance nonce. Pre-signed URLs MUST be short
-        TTL (≤ 1 h), single-blob, read-only, and revocable. NOT permitted
+        identity hint, and an issuance nonce. The identity hint is diagnostic
+        only and does not authenticate the current bearer. Pre-signed URLs MUST
+        be short TTL (≤ 1 h), single-blob, read-only, and revocable. NOT permitted
         for E2EE attachment ciphertext fetch — those MUST keep `blob_ref`
         out of the URL the server can log. See zh/crypto-media/media-and-blob.md
         §5.4.

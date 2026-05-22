@@ -83,6 +83,8 @@ Audit Agent profile MUST 满足：
 
 > **不实现本节即不得使用 `audit_assurance="attested_hardware"` 措辞。** 仅声明 attested 文案而不发布 destruction attestation 时,Audit Agent 与软件审计在 forward secrecy 行为上**完全等价**;Contrix 把这种部署视为 spec violation,group MUST 在下一轮 MLS commit 中把 `audit_assurance` 强制降级为 `disclosed_policy` 或更弱形态,并按 §2.1 重新展示降级文案。
 
+> **非 retroactive revocation**：`cx.audit.epoch_key_destruction` 只能证明声明的 enclave / HSM 在某时刻销毁了其受控边界内仍持有的 epoch key material，从而限制未来继续访问；它不能密码学证明历史 epoch key、历史明文或导出副本从未泄漏。已交付给 Audit Agent 或其运行环境的历史 epoch 必须按“可能已被永久解密”建模。UI、合规说明和市场文案 MUST NOT 把本机制宣传为“可撤销历史审计访问”或“移除 Audit Agent 后历史内容密码学不可解”。
+
 > **命名注意**：本节涉及的两个 event kind 名 `cx.audit.epoch_key_destruction` 和 `cx.realm.audit_policy_downgrade` 在 v1 registry 中**不携带** `.v<n>` suffix。Wire 形态版本化通过 Event envelope 的 `requirements.features[]` 表达,与 kind name 严格分离 —— 这与所有其他 `cx.*` event kind 的约定一致,见 [`../conformance/encoding.md`](../conformance/encoding.md) "Event kind / requirements 分层" 一节。
 
 ##### 3.1.1.1 触发条件
@@ -119,7 +121,7 @@ Audit Agent profile MUST 满足：
 
 - 在 destruction attestation 落盘前,该 Audit Agent **仍然被视作历史 epoch 密文的有效持有者**;Realm members 看到的 §2.1 attested 文案中"被移除的合规员仍可解密成员期间的历史"这句**继续适用**,直到 attestation 落盘后才能改述。
 - 若部署在 6 个 anchor cadence(默认 ≈ 1 小时) 内仍未发布配套 destruction attestation,group 中任一 member MAY 发起 `cx.realm.audit_policy_downgrade` Move,把 `audit_assurance` 强制降级为 `disclosed_policy`;reducer 在收到该 Move 后立即重写 Realm policy,UI MUST 显式横幅"该群已不再满足 attested_hardware 担保"。
-- destruction attestation 落盘后,UI MAY 显示"已由 enclave 完成 epoch 密钥销毁 — 该 Agent 对其成员期间历史的解密能力按密码学已不可恢复"。
+- destruction attestation 落盘后,UI MAY 显示"已由 enclave 完成受控边界内 epoch 密钥销毁 — 该 Agent 不应再通过该 enclave 继续访问对应历史"; UI MUST 同时避免暗示已经泄漏或导出的历史 key / 明文可被 retroactively 撤销。
 - `audit_assurance = "disclosed_policy"` 部署**不要求**本节(disclosed 文案本就声明不提供密码学强制);只有 `attested_hardware` profile 必须实现。
 
 ##### 3.1.1.5 安全代价登记

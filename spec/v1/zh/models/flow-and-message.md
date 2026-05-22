@@ -239,6 +239,17 @@ Track 写入路径只有一个 event kind: **`cx.flow.tracks.update`**(注意名
 - `discussion_realm_ref` 启用 MLS 时，对应 MLS group 绑定该 linked Realm；E2EE 边界、membership frontier、`covered_frontier_cell` 都按 linked Realm 自身收敛。
 - `discussion_realm_ref` 的生命周期由独立 `cx.realm.*` event 管理；Flow 不能通过修改自身字段间接 reinit / archive linked Realm。
 - Flow 所属 Realm 与 `discussion_realm_ref` Realm 之间的关系 MAY 用 `cx.realm.link{link_kind="confidential_extension_of"}` 或 profile 声明的 governance link 表达；reducer 不要求 Realm hierarchy，授权仍按各自 Realm policy 独立判断。
+
+### 5.0.1 Linked Discussion Realm 生命周期级联
+
+`discussion_realm_ref` 不建立 Realm 层级，但会影响 Flow discussion 投影。Reducer / projection MUST 按下表处理：
+
+| 场景 | Source Realm / Flow synthesis | Discussion timeline |
+| --- | --- | --- |
+| source Realm `destroy` / `tombstone` | Flow synthesis 按 source Realm lifecycle 停止写入或进入 tombstone；不得继续创建新的 discussion pointer。 | linked Realm 不被隐式 destroy；但客户端 MUST 在 Flow 投影中隐藏或标记 discussion 已脱离 source Flow，除非 actor 仍能直接读取 linked Realm。 |
+| linked Realm `destroy` / `tombstone` | Flow synthesis 仍按 source Realm policy 可读写；`discussion_realm_ref` 保留为历史指针，不得自动重写。 | `cx.message.*` / `cx.reaction.*` 写入 MUST fail closed，projection 显示 discussion unavailable / tombstoned。 |
+| linked Realm membership / history visibility 收紧 | Flow synthesis 不因此获得或失去权限。 | 通知、watcher projection、message read/write 必须按 linked Realm 新状态重新裁剪；source Realm membership 不得绕过。 |
+| `discussion_realm_ref` 解绑或改绑 | 需要 profile 明确允许，且必须是 audited high-risk Flow update；默认 v1 reducer SHOULD 拒绝改绑，防止历史讨论被静默迁移。 | 旧 linked Realm 历史不被复制或删除；新消息只能写入新绑定 Realm，客户端必须把两个 Realm 的历史分段显示。 |
 - 切换 primary track 不会自动删除已有讨论历史。
 
 ### 5.1 Track / discussion_realm_ref 关系图

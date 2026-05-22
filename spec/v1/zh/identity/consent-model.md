@@ -200,6 +200,10 @@ Payload `observed_dots[]` MUST 与 Move effect 中的 `observed_dots` 完全一�
   - 这条非对称规则 MUST 在 sodmin / UI 中明示，避免用户误以为"撤销 invite 就等于全撤销"。
 - **conformance vector** `cx.vector.consent.scope_cascade.v1` 覆盖 (a) `any` revoke cascade 到具体 scope；(b) 具体 scope revoke 不影响 `any`；(c) 部分 scope revoke 留下其他 scope active；(d) 完整 revoke 必须列出当前 cell 全部 active dot 否则只构成部分 revoke。
 
+#### 4.1.1.1 UI / sodmin 展示要求
+
+发起 revoke 前，客户端 / sodmin MUST 展示将被写入 `observed_dots[]` 的实际 dot 清单及其 scope 分组，并明确标注本次操作是 full revoke 还是 partial revoke。若用户选择“撤销 invite”但同一 `(consent_id, peer)` 下仍存在 `scope=any` 或其它具体 scope 的 active dot，UI MUST 在确认前提示这些 dot 将继续授权对应能力；不得用一个泛化按钮文案暗示未枚举的 scope 会被隐式撤销。
+
 #### 4.1.2 缓存失效（normative MUST）
 
 consent revoke 进入 Anchor frontier 后，下列下游缓存 MUST eager invalidate（同一事务边界内）：

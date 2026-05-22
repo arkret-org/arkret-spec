@@ -1200,6 +1200,30 @@
       "description": "A runtime challenge proof attached to `cx.member.state{join}.gate_proofs[]` or `member.application.gate_proofs[]` (candidate kind, no `cx.*` prefix) fails verification (signature / freshness / verifier domain). See zh/authz/policy-server.md §4."
     },
     {
+      "code": "grant_revoked_upstream",
+      "applies_to": [
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "A child grant or Move depends on a parent grant that is locally known to be revoked, superseded, expired, or tombstoned. Reducers MUST fail closed without waiting for the child causal frontier to include the revoke. See zh/authz/capabilities.md §10.3."
+    },
+    {
+      "code": "moderation_state_conflict",
+      "applies_to": [
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "The referenced moderation state cell is in bottom / exposed multi-head conflict. Read, write, distribute, and policy-check paths MUST fail closed rather than selecting a temporary winner. See zh/authz/policy-server.md §7.2."
+    },
+    {
+      "code": "welcome_capability_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "crypto"
+      ],
+      "description": "`cx.mls.welcome.payload.claim_ref.capabilities_digest` does not match the claimed KeyPackage capabilities, or the Welcome requires capabilities outside the claimed subset. Receivers MUST reject before decrypting the Welcome. See zh/crypto-media/encryption-and-audit.md §2.6."
+    },
+    {
       "code": "audit_capability_incomplete",
       "applies_to": [
         "auth_decision"

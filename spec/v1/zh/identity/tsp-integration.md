@@ -75,6 +75,15 @@ Contrix DID method adapter SHOULD 暴露某个 principal 或服务是否支持 T
 
 在可用时，feature discovery SHOULD 把 `tsp` 列为支持的 transport binding。
 
+### 4.1 Endpoint 反向绑定校验（normative）
+
+DID Document 或 normalized principal view 中出现 `cx.service.tsp` 只是一侧声明。Verifier 在把该 endpoint 作为可信 TSP 通道前，MUST 完成反向绑定校验，二选一：
+
+1. 调用 TSP endpoint 的等价 `/.well-known`、`/holder?did=<holder_did>` 或 profile 声明的 discovery API，取得由 endpoint service key 签名的声明，确认该 endpoint 确实服务该 holder / service DID、支持相同 VID scheme 与 payload set。
+2. 通过 OOBI / trust registry / support system 取得同一 endpoint 与 holder DID 的双向 binding proof，并验证 proof digest 与 DID Document service entry 一致。
+
+仅有 DID Document 单向声明不足以授权高风险 service-to-service 操作。反向绑定失败时，TSP transport MUST fail closed；实现 MAY 回退到 v1 core HTTP Message Signature / MLS DM 路径。
+
 ## 5. Contrix over TSP
 
 Contrix operation 可作为 TSP application payload：
