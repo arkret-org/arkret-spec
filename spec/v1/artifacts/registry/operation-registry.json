@@ -150,6 +150,15 @@
       ]
     },
     {
+      "surface": "projection_lifecycle",
+      "tier": "extension",
+      "operations": [
+        "cx.projection.spaces",
+        "cx.projection.flows",
+        "cx.projection.morphs"
+      ]
+    },
+    {
       "surface": "applet",
       "tier": "interop_bridge",
       "operations": [
@@ -656,6 +665,27 @@
       "grpc": "Policy/Check",
       "mq": "policy.check",
       "notes": "Canonical HTTP binding is POST /api/v1/policy/check (bare path inheriting the global /api/v1 prefix)."
+    },
+    {
+      "operation_id": "cx.projection.flows",
+      "http": "GET /projection/flows",
+      "grpc": "Projection/Flows",
+      "mq": "projection.flows",
+      "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source."
+    },
+    {
+      "operation_id": "cx.projection.morphs",
+      "http": "GET /projection/morphs",
+      "grpc": "Projection/Morphs",
+      "mq": "projection.morphs",
+      "notes": "Extension read surface for reducer-maintained Morph lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source."
+    },
+    {
+      "operation_id": "cx.projection.spaces",
+      "http": "GET /projection/spaces",
+      "grpc": "Projection/Spaces",
+      "mq": "projection.spaces",
+      "notes": "Extension read surface for reducer-maintained Space lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source."
     },
     {
       "operation_id": "cx.push.notify",

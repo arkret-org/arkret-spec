@@ -473,7 +473,7 @@ components:
                 description: URI or transparency-log reference from which the cotest artifact can be fetched.
               cotest_issuer_did:
                 type: string
-                pattern: ^did:
+                pattern: '^did:'
                 description: DID of the cotest authority that signed the artifact statement.
               signature:
                 type: string
@@ -2600,7 +2600,7 @@ components:
       properties:
         principal_id:
           type: string
-          pattern: ^did:
+          pattern: '^did:'
         device_id:
           type: string
         requested_scope:
@@ -2647,7 +2647,7 @@ components:
       properties:
         principal_id:
           type: string
-          pattern: ^did:
+          pattern: '^did:'
         device_id:
           type: string
         session_grant:
@@ -2684,7 +2684,7 @@ components:
       properties:
         principal_id:
           type: string
-          pattern: ^did:
+          pattern: '^did:'
         session:
           $ref: '#/components/schemas/SessionGrantResponse'
         redirect_url:
@@ -2695,6 +2695,207 @@ components:
         - principal_id
       - required:
         - redirect_url
+    ProjectionSpaceRow:
+      type: object
+      additionalProperties: false
+      required:
+      - space_id
+      - realm_id
+      - kind
+      - title
+      - state
+      properties:
+        space_id:
+          type: string
+          pattern: ^cx:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        kind:
+          type: string
+          description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
+        title:
+          type: string
+        parent_ref:
+          type:
+          - string
+          - 'null'
+        rank:
+          type:
+          - string
+          - 'null'
+        state:
+          type: string
+          enum:
+          - active
+          - archived
+          - tombstoned
+        created_by:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        state_changed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ProjectionSpacesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - realm_id
+      - spaces
+      - total
+      properties:
+        realm_id:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        spaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectionSpaceRow'
+        total:
+          type: integer
+          minimum: 0
+    ProjectionFlowRow:
+      type: object
+      additionalProperties: false
+      required:
+      - flow_id
+      - realm_id
+      - state
+      properties:
+        flow_id:
+          type: string
+          pattern: ^cx:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        state:
+          type: string
+          enum:
+          - active
+          - archived
+          - redacted
+        title:
+          type:
+          - string
+          - 'null'
+        summary:
+          type:
+          - string
+          - 'null'
+        created_by:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        state_changed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ProjectionFlowsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - realm_id
+      - flows
+      - total
+      properties:
+        realm_id:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        flows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectionFlowRow'
+        total:
+          type: integer
+          minimum: 0
+    ProjectionMorphRow:
+      type: object
+      additionalProperties: false
+      required:
+      - morph_id
+      - realm_id
+      - morph_type
+      - state
+      properties:
+        morph_id:
+          type: string
+          pattern: ^cx:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        morph_type:
+          type: string
+        state:
+          type: string
+          enum:
+          - active
+          - archived
+          - redacted
+        title:
+          type:
+          - string
+          - 'null'
+        created_by:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        state_changed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ProjectionMorphsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - realm_id
+      - morphs
+      - total
+      properties:
+        realm_id:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        morphs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectionMorphRow'
+        total:
+          type: integer
+          minimum: 0
     OperationRequest:
       type: object
       description: Operation-specific JSON request object. Required fields and profile gates are defined by the operation
@@ -3351,6 +3552,112 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SnapshotHeadResponse'
+  /projection/spaces:
+    get:
+      operationId: cx.projection.spaces
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        requestCanonicalHash: []
+      summary: List Space lifecycle projection rows for a Realm.
+      description: |
+        Extension read surface over reducer-maintained Space lifecycle
+        projection state. It is a derived read model for UI and sync repair,
+        not a canonical truth source; canonical truth remains the accepted
+        Event history and reducer state.
+      parameters:
+      - name: realm_id
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      - name: include_terminal
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Include irreversible terminal rows such as tombstoned Spaces.
+      responses:
+        '200':
+          description: Space lifecycle projection rows visible to the caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectionSpacesResponse'
+  /projection/flows:
+    get:
+      operationId: cx.projection.flows
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        requestCanonicalHash: []
+      summary: List Flow lifecycle projection rows for a Realm.
+      description: |
+        Extension read surface over reducer-maintained Flow lifecycle
+        projection state. It is a derived read model, not a canonical truth
+        source.
+      parameters:
+      - name: realm_id
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      - name: include_terminal
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Include terminal rows such as redacted Flows.
+      responses:
+        '200':
+          description: Flow lifecycle projection rows visible to the caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectionFlowsResponse'
+  /projection/morphs:
+    get:
+      operationId: cx.projection.morphs
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        requestCanonicalHash: []
+      summary: List Morph lifecycle projection rows for a Realm.
+      description: |
+        Extension read surface over reducer-maintained Morph lifecycle
+        projection state. It is a derived read model, not a canonical truth
+        source.
+      parameters:
+      - name: realm_id
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      - name: include_terminal
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+        description: Include terminal rows such as redacted Morphs.
+      responses:
+        '200':
+          description: Morph lifecycle projection rows visible to the caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectionMorphsResponse'
   /directory/resolve-handle:
     post:
       operationId: cx.directory.resolve_handle

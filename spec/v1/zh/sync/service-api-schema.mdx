@@ -327,6 +327,7 @@ paths:
 | `cx.events.subscribe` | `GET /events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
 | `cx.account.subscribe` | `GET /account/subscribe` | gRPC `Account/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`) |
 | `cx.snapshot.head` | `GET /snapshot/head` | snapshot pointer |
+| `cx.projection.spaces` / `cx.projection.flows` / `cx.projection.morphs` | `GET /projection/spaces`, `GET /projection/flows`, `GET /projection/morphs` | gRPC `Projection/Spaces` / `Projection/Flows` / `Projection/Morphs`; MQ `projection.*` |
 | 联邦推送 / 拉取 | 复用 `cx.events.submit` / `cx.events.query`（service signature + `Source-Service-DID` / `Destination-Service-DID` header；详见 [`federation.md` §4](./federation.md) 与 §7） | 同 events surface；非 HTTP binding 复用 libp2p `/contrix/sync/1.0.0` + service signature。 |
 | `cx.directory.search_*` / `cx.directory.resolve_*` | `POST /directory/*` | gRPC Discovery Service |
 | `cx.directory.announce` / `cx.directory.withdraw` / `cx.directory.subscribe` | `POST /directory/announce`, `POST /directory/withdraw`, `POST /directory/subscribe` | gRPC Discovery Ingest Service |

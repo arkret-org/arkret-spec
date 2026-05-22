@@ -140,19 +140,12 @@ GET /api/v1/server/describe
     "snapshot",
     "notifications"
   ],
-  "supported_reducer_profiles": [
-    "cx.reducer.v1"
-  ],
-  "supported_schema_profiles": [
-    "cx.schema.v1"
-  ],
   "auth_metadata": {
     "oauth_issuer": "https://auth.example.com",
     "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
     "supported_auth_methods": ["passkey", "oidc", "device_pairing"],
     "did_binding_methods": ["session_grant", "did_http_signature"]
   },
-  "max_body_bytes": 1048576,
   "limits": {
     "max_body_bytes": 1048576,
     "max_events_per_batch": 100,

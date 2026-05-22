@@ -100,6 +100,10 @@ grpc:
       Get: cx.device_messages.get
     Moderation:
       Report: cx.moderation.report
+    Projection:
+      Spaces: cx.projection.spaces
+      Flows: cx.projection.flows
+      Morphs: cx.projection.morphs
     Policy:
       Check: cx.policy.check
     Media:
@@ -184,6 +188,9 @@ mq:
     keys.backups.get: cx.keys.backups.get
     keys.backups.delete: cx.keys.backups.delete
     moderation.report: cx.moderation.report
+    projection.spaces: cx.projection.spaces
+    projection.flows: cx.projection.flows
+    projection.morphs: cx.projection.morphs
     mimi.provider_directory: cx.mimi.provider_directory
     mimi.key_material: cx.mimi.key_material
     mimi.room_update: cx.mimi.room_update

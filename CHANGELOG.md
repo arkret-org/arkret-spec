@@ -42,6 +42,23 @@
 
 ## [Unreleased]
 
+### Register lifecycle projection read surface（2026-05-22）
+
+把 Space / Flow / Morph lifecycle projection 读端从实现私有路径提升为规范 extension surface。
+
+- **变更类型**: add
+- **影响 artifact**: `contract-catalog.json` operation_registry;派生 `operation-registry.json`;`openapi/contrix-service-api.openapi.yaml`;`bindings/non-http-bindings.yaml`;`zh/sync/{service-http-binding,service-api-schema.mdx}`;`zh/overview/release-readiness.md`。
+- **canonical 变更**: 新增 `projection_lifecycle` surface group，注册 `cx.projection.spaces` / `cx.projection.flows` / `cx.projection.morphs`，HTTP binding 分别为 `GET /projection/spaces` / `GET /projection/flows` / `GET /projection/morphs`。该 surface 是 extension tier，返回 reducer 派生 read model，不是真相源。
+- **派生 artifact 同步**: 已运行 `python tools/artifact_pipeline.py generate`，并通过 `python tools/artifact_pipeline.py check`；operation 计数更新为 85。
+- **conformance impact**:
+  - 受影响 profile: 无 core profile 强制新增；实现必须通过 `supported_operations` 显式声明支持。
+  - profile tier 变化: 无。
+  - wire 兼容性: backward-compatible add。
+  - reader / writer 行为要求: reader MUST treat projection rows as derived state only；writer MUST continue to write canonical Event history and not mutate projection rows directly。
+- **fixture / vector 变化**: 暂无新增 conformance vector；现有 server implementation tests 覆盖路径和 terminal filtering。
+- **prose 同步**: 已更新 `service-http-binding.md` REST namespace / endpoint / field 表，`service-api-schema.mdx` transport mapping，`release-readiness.md` registry 计数。
+- **迁移指南**: 下游实现若此前暴露实现私有 `/projection/space-containers` 或 `space_containers` wire 名，SHOULD 迁移到 canonical `/projection/spaces` 与 `spaces[]/space_id` 响应；旧名只能作为部署本地兼容 alias。
+
 ### Split `/sync` namespace; convert account aggregate to streaming subscribe; rename `cx.events.batch_get` → `cx.events.resolve`（2026-05-21）
 
 三件事原子合并:

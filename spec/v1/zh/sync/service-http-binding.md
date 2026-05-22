@@ -31,6 +31,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Realm 双向历史查询(query)、流式订阅(subscribe，含 bounded catch-up replay)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
 | `/account/*` | 客户端、Principal Server | account 聚合 streaming 订阅(`GET /account/subscribe`)、describe。逐 Realm 的事件流读取走 `/events/*`。 | `client-sync.md`、`service-surface.md` |
 | `/snapshot/*` | 客户端、Principal Server | Realm snapshot manifest 入口(`GET /snapshot/head`)。 | `client-sync.md`、`service-surface.md` |
+| `/projection/*` | 客户端、Principal Server | 派生 lifecycle projection 读取：Space / Flow / Morph 当前状态列表。 | `realm-and-space.md`、`flow-and-message.md`、`morph.md` |
 | `/directory/*` | 客户端、服务 | Realm / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
@@ -40,7 +41,7 @@ Contrix 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织
 | `/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
 | `/applet/*` | Contrix 服务调用 Applet | applet ping / describe、transaction push、ghost actor / portal 查询。 | `applet-integration.md` |
 
-客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/account`、`/snapshot`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/events`、`/account`、`/authz`、`/policy/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；若实现提供网络搜索接口，应在扩展 profile 中单独声明。
+客户端视角的常用 API 集合通常包括 `/server`、`/identity`、`/events`、`/account`、`/snapshot`、`/projection`、`/directory`、`/blob`、`/push`、`/device_messages`、`/keys`、`/authz`。服务间 API 集合通常包括 `/events`、`/account`、`/authz`、`/policy/check`、`/applet` 和 `/push/notify`。搜索、inbox、notification 和 View projection 默认是客户端本地派生；`/projection/*` 只暴露 Space / Flow / Morph lifecycle 派生读模型，且属于 extension surface，必须由服务显式声明支持。
 
 新增顶层 REST 命名空间前，规范必须同步更新 `service-api-schema.mdx`、feature discovery 返回值和对应 conformance profile。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
@@ -92,6 +93,9 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object, set_presence?: enum}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts) streaming NDJSON 推送,不是裸事件读。 | `application/x-ndjson` AccountSubscribeFrame 流;frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`。 |
 | `GET /api/v1/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
 | `GET /api/v1/snapshot/head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`。 | `{snapshot_ref, state_hash, frontier, event_set_commitment, verification_hints?, signature}` |
+| `GET /api/v1/projection/spaces` | query `{realm_id: id, include_terminal?: boolean=false}` | `user_session` 或服务签名；调用方必须满足该 Realm 的 metadata/read 可见性。 | `{realm_id, spaces[], total}`；`spaces[]` 行含 `space_id, realm_id, kind, title, parent_ref?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
+| `GET /api/v1/projection/flows` | query `{realm_id: id, include_terminal?: boolean=false}` | 同 `cx.projection.spaces`。 | `{realm_id, flows[], total}`；`flows[]` 行含 `flow_id, realm_id, title?, summary?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
+| `GET /api/v1/projection/morphs` | query `{realm_id: id, include_terminal?: boolean=false}` | 同 `cx.projection.spaces`。 | `{realm_id, morphs[], total}`；`morphs[]` 行含 `morph_id, realm_id, morph_type, title?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
 | `GET /api/v1/directory/describe` | query none | `public_metadata`；可限流。 | `ServiceDescribe`；directory resource / discovery capability 放入 `supported_features` / `limits` / 扩展字段。 |
 | `POST /api/v1/directory/search-realms` | body `{query?: string, organization_did?: did, parent_realm_id?: id, requester?: did, proofs?: proof[], cursor?: cursor, limit?: int}` | discoverability + requester proof + policy filtering；隐藏资源不泄露存在性。 | `{results[], next_cursor?}` |
 | `POST /api/v1/directory/resolve-realm` | body `{realm_id?: id, alias?: string, invite_token?: string, signed_link?: string, requester?: did, proofs?: proof[]}` | invite / restricted / secret Realm 按统一 `not_found` 失败。 | `{space_preview, stripped_state?, join_rule?, via_services?}` |
@@ -153,7 +157,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /api/v1/mimi/report-abuse` | body MIMI abuse report body | `user_session` 或 `service_signature`;同 `cx.moderation.report` 互补。 | `{report_id, routed_to?}` |
 | `POST /api/v1/mimi/proxy-download` | body `{blob_ref, target_provider_did}` | `service_signature`;MIMI 桥接 blob 时使用;不接受 user_session。 | `{relayed: true, expires_at?}` |
 
-> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 82 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中;之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 仍是规范的最终来源(机器消费),本表是人类阅读视图。
+> **§2.3 表格作用域**: 上表是 v1 core 服务面**所有**已注册 HTTP operation 的 endpoint 契约清单(当前 registry 为 85 条 operation_id；一个 operation_id 对应多个 HTTP 别名时合并展示)。Admin / Auth / MIMI / Keys.keypackages / Directory.announce|withdraw 等子表面也都在表中;之前(2026-05-08 前)版本曾把它们留在独立章节,P-Aud(2026-05-18 审查)合并回 §2.3 以避免"读完 §2.3 仍找不到 operation"的发现问题(Gemini 2.1 / Claude C20)。OpenAPI 仍是规范的最终来源(机器消费),本表是人类阅读视图。
 
 跨域 actor 验证响应（通过 `/api/v1/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy；不得把对端"验证通过"当成最终授权依据。
 
@@ -183,6 +187,9 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.account.subscribe` | 无 | `query.after: cursor`; `query.catchup: boolean=false`; `query.filter: object`; `query.set_presence: enum(online,offline,unavailable)` | NDJSON 流,每行一个 `AccountSubscribeFrame`(`kind: delta / catchup_complete / frontier / heartbeat / dropped / resync_required / unauthorized`,`delta` 含 `cursor` + `realms?` + `to_device?` + `account_data?` + `device_lists?` + `presence?` + `notifications?`) | `user_session` 必须绑定 principal/device。聚合账号视角 delta streaming push;裸事件读用 `cx.events.query` / `cx.events.subscribe`。`cursor` 是 stream purpose。Initial sync 使用 `catchup=true` 且省略 `after`;baseline 不是完整历史。 |
 | `cx.account.describe` | 无 | 无 | `ServiceDescribe` | 私有 frontier 可认证后作为扩展字段返回。 |
 | `cx.snapshot.head` | `query.realm_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `event_set_commitment: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
+| `cx.projection.spaces` | `query.realm_id: id` | `query.include_terminal: boolean=false` | `realm_id: id`; `spaces: object[]`; `total: int` | extension surface；返回 reducer 派生的 Space lifecycle read model，不是真相源；默认不得返回 tombstoned terminal rows。 |
+| `cx.projection.flows` | `query.realm_id: id` | `query.include_terminal: boolean=false` | `realm_id: id`; `flows: object[]`; `total: int` | extension surface；返回 reducer 派生的 Flow lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
+| `cx.projection.morphs` | `query.realm_id: id` | `query.include_terminal: boolean=false` | `realm_id: id`; `morphs: object[]`; `total: int` | extension surface；返回 reducer 派生的 Morph lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
 | `cx.directory.describe` | 无 | 无 | `ServiceDescribe` | `public_metadata`; 可限流。Directory-specific 字段可作为扩展字段返回；详见 `../discovery/discovery-directory.md` §8.9。 |
 | `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `parent_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | hidden resource 不泄露存在性；每条 result MUST 含 `as_of`/`source_refs`/`policy_revision`/`stale?`/`divergent?`/`via_services?`（discovery-directory.md §9.1）。 |
 | `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | secret/restricted Realm 使用统一 `not_found`；`via_services` v1 normative，必须给出 host Principal Server service DID。 |
