@@ -43,7 +43,7 @@ Schema id: `cx.schema.component.v1`
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
 | `icon` | no | `object` | `{emoji?, blob_ref?}` | 图标。 |
 | `color` | no | `object` | 同 [CXP-0001](./0001-label-entity.md) `color`。 | 主题色。 |
-| `lead_actor_did` | no | `did` | 必须解析到 active actor。 | 组件负责人 DID。 |
+| `lead_actor_id` | no | `did` | 必须解析到 active actor。 | 组件负责人 DID。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 生命周期。 |
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | — |
 

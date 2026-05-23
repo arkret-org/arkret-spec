@@ -1873,9 +1873,9 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
             expected_canonical = canonical_json(signed_event)
             if vector.get("canonical_event_payload") != expected_canonical:
                 lint.fail(path, f"vectors[{index}] canonical_event_payload does not match canonical JSON")
-            expected_payload_hash = sha256_text(expected_canonical)
-            if vector.get("payload_hash") != expected_payload_hash:
-                lint.fail(path, f"vectors[{index}] payload_hash does not match canonical_event_payload")
+            expected_event_digest = sha256_text(expected_canonical)
+            if vector.get("event_digest") != expected_event_digest:
+                lint.fail(path, f"vectors[{index}] event_digest does not match canonical_event_payload")
 
             event_with_proof = vector.get("event_with_proof")
             if isinstance(event_with_proof, dict):
@@ -1903,9 +1903,9 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
                 lint.fail(path, f"vectors[{index}] protected_header_canonical does not match canonical JSON")
 
         proof = vector.get("proof")
-        if isinstance(proof, dict) and isinstance(vector.get("payload_hash"), str):
-            if proof.get("payload_hash") != vector["payload_hash"]:
-                lint.fail(path, f"vectors[{index}] proof payload_hash differs from vector payload_hash")
+        if isinstance(proof, dict) and isinstance(vector.get("event_digest"), str):
+            if proof.get("event_digest") != vector["event_digest"]:
+                lint.fail(path, f"vectors[{index}] proof event_digest differs from vector event_digest")
 
 
 def is_placeholder_typed_id(rest: str) -> bool:
@@ -2123,7 +2123,8 @@ def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int,
     proof_required: list[str] = []
     event_schema = load_json(lint, ARTIFACTS / "schemas/event-schema.json")
     if isinstance(event_schema, dict):
-        proof_schema = event_schema.get("$defs", {}).get("proof", {})
+        proof_def_name = "event_proof" if schema_ref == "schemas/event-schema.json" else "proof"
+        proof_schema = event_schema.get("$defs", {}).get(proof_def_name, {})
         required = proof_schema.get("required", []) if isinstance(proof_schema, dict) else []
         proof_required = [field for field in required if isinstance(field, str)]
 
@@ -2504,6 +2505,7 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
     Recognized fixture shapes:
       { "input": <obj>, "expected_digest": "sha256:..." }
       { "input": <obj>, "digest": "sha256:..." }
+      { "envelope": <obj>, "event_digest": "sha256:..." }
       { "envelope": <obj>, "payload_hash": "sha256:..." }
       { "canonical_bytes": "<hex>", "digest": "sha256:..." }
 
@@ -2518,6 +2520,7 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
     shapes: list[tuple[str, str]] = [
         ("input", "expected_digest"),
         ("input", "digest"),
+        ("envelope", "event_digest"),
         ("envelope", "payload_hash"),
         ("canonical_input", "expected_digest"),
     ]

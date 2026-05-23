@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contrix.io/artifacts/schemas/event-schema.json",
   "title": "Contrix Event",
-  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) carry top-level preconditions / effects / anchor_ref; non-reducer events (read marker, batch receipts, range completeness, audit RYW, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.payload_hash is the hash of canonical event bytes minus proofs and unsigned; detached_jws signs the canonical proof binding object that includes payload_hash, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (cx.presence, cx.typing, cx.receipt.read, cx.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Anchor frontier, Move state_root, or reducer state). Likewise cx.key.verification.* kinds use device-message.schema.json on the point-to-point to-device channel. cx.events.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §3.6 (wire-scope reject rule).",
+  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) carry top-level preconditions / effects / anchor_ref; non-reducer events (read marker, batch receipts, range completeness, audit RYW, etc.) omit those three fields. Causal refs use prev_refs (actor chain) and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.event_digest is the hash of canonical event bytes minus proofs and unsigned; detached_jws signs the canonical proof binding object that includes event_digest, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (cx.presence, cx.typing, cx.receipt.read, cx.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Anchor frontier, Move state_root, or reducer state). Likewise cx.key.verification.* kinds use device-message.schema.json on the point-to-point to-device channel. cx.events.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §3.6 (wire-scope reject rule).",
   "type": "object",
   "required": [
     "event_id",
@@ -99,15 +99,15 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Detached signatures over the canonical proof binding object. proof.payload_hash is computed from canonical event bytes excluding only proofs and unsigned; hlc is included in that hash as advisory signed metadata. The actor / device / service signature lives here. Anchor signatures live on the Anchor object, not on the event.",
+      "description": "Detached signatures over the canonical proof binding object. proof.event_digest is computed from canonical event bytes excluding only proofs and unsigned; hlc is included in that hash as advisory signed metadata. The actor / device / service signature lives here. Anchor signatures live on the Anchor object, not on the event.",
       "items": {
-        "$ref": "#/$defs/proof"
+        "$ref": "#/$defs/event_proof"
       },
       "minItems": 1
     },
     "requirements": {
       "type": "object",
-      "description": "Schema/reducer/feature/critical-extension requirements declared by this event. All sub-fields enter the canonical event bytes and the proof payload_hash. Receivers MUST fail closed on any unknown critical entry.",
+      "description": "Schema/reducer/feature/critical-extension requirements declared by this event. All sub-fields enter the canonical event bytes and the proof event_digest. Receivers MUST fail closed on any unknown critical entry.",
       "properties": {
         "schema": {
           "type": "array",
@@ -1331,7 +1331,7 @@
           "description": "Closed extension-specific parameter bag. Unknown top-level fields are forbidden; extension-defined data belongs here and is interpreted only after id/schema_ref support is confirmed.",
           "additionalProperties": true
         },
-        "payload_hash": {
+        "material_hash": {
           "$ref": "#/$defs/hash",
           "description": "Optional digest of out-of-band extension material when parameters would be too large for the event envelope."
         },
@@ -1522,6 +1522,46 @@
       },
       "additionalProperties": false
     },
+    "event_proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "alg",
+        "verification_method",
+        "event_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["detached_jws"],
+          "description": "detached_jws = actor / device / service signature over canonical proof binding object: canonical_json({event_digest, actor_id, verification_method, created_at, domain?, audience?}). event_digest is the canonical event hash excluding only proofs and unsigned; hlc IS covered by that hash as advisory signed metadata. Ordering authority signatures are carried by Anchor."
+        },
+        "alg": {
+          "type": "string",
+          "enum": ["EdDSA", "ES256", "ES384", "ES512"]
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s]+(#.+)?$"
+        },
+        "event_digest": { "$ref": "#/$defs/hash" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "domain": { "type": "string" },
+        "audience": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ]
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
     "proof": {
       "type": "object",
       "required": [
@@ -1536,7 +1576,7 @@
         "kind": {
           "type": "string",
           "enum": ["detached_jws"],
-          "description": "detached_jws = actor / device / service signature over canonical proof binding object: canonical_json({payload_hash, actor_id, verification_method, created_at, domain?, audience?}). payload_hash itself is the canonical event hash excluding only proofs and unsigned; hlc IS covered by that hash as advisory signed metadata. Ordering authority signatures are carried by Anchor."
+          "description": "Generic detached JWS proof over a canonical non-Event payload binding object."
         },
         "alg": {
           "type": "string",
@@ -1620,15 +1660,15 @@
     },
     "flow_watch_set_payload": {
       "type": "object",
-      "description": "Payload for cx.flow.watch.set. Writes the (flow_id, actor_did) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) actor_did MUST equal envelope.actor_id unless writer holds cx.flow.watch.manage_others; (2) when actor_did != envelope.actor_id (manage_others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) manage_others writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event whose payload access_kind=watch_manage_others identifies writer / target / cell / before-after heads. See models/flow-and-message.md §8.4.",
+      "description": "Payload for cx.flow.watch.set. Writes the (flow_id, watcher_actor_id) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds cx.flow.watch.manage_others; (2) when watcher_actor_id != envelope.actor_id (manage_others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) manage_others writes MUST carry refs[role=audit_pair] to a same-batch cx.audit.accessed event whose payload access_kind=watch_manage_others identifies writer / target / cell / before-after heads. See models/flow-and-message.md §8.4.",
       "required": [
         "flow_id",
-        "actor_did",
+        "watcher_actor_id",
         "level"
       ],
       "properties": {
         "flow_id": { "$ref": "#/$defs/flow_id" },
-        "actor_did": { "$ref": "#/$defs/did" },
+        "watcher_actor_id": { "$ref": "#/$defs/did" },
         "level": {
           "type": ["string", "null"],
           "enum": [

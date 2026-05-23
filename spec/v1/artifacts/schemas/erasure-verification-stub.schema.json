@@ -82,7 +82,7 @@
     "event_digest": {
       "$ref": "#/$defs/hash"
     },
-    "payload_hashes": {
+    "retained_digests": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/hash"

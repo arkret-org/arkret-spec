@@ -1059,7 +1059,7 @@ components:
         event_digest:
           type: string
           description: Canonical hash of the event's canonical bytes (excluding
-            proofs and unsigned); equals proof.payload_hash. Used as the Anchor
+            proofs and unsigned); equals proof.event_digest. Used as the Anchor
             frontier item for this event. Algorithm family aligned with
             schemas/anchor.schema.json#/$defs/event_digest — sha256 / sha3_256 /
             blake3 (64 hex) or sha512 (128 hex).

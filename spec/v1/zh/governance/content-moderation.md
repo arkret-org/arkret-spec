@@ -524,7 +524,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
       "did:web:server.acme.example",
       "did:web:policy.acme.example"
     ],
-    "applies_to_official_spaces": true
+    "applies_to_owned_realms": true
   },
   "rules": [
     {

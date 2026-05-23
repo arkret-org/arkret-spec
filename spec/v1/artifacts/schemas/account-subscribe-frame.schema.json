@@ -29,7 +29,7 @@
       "description": "Per-Realm map on `delta` frames. Keys are `cx:realm:*`; values are that Realm's aggregate timeline/state/account-data entry. Membership lifecycle (`join` / `invite` / `knock` / `leave`) is carried by the events inside the Realm entry, not by legacy outer buckets.",
       "patternProperties": {
         "^cx:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$": {
-          "$ref": "#/$defs/space_entry"
+          "$ref": "#/$defs/realm_sync_entry"
         }
       },
       "additionalProperties": false
@@ -128,7 +128,7 @@
       },
       "additionalProperties": true
     },
-    "space_entry": {
+    "realm_sync_entry": {
       "type": "object",
       "properties": {
         "timeline": {

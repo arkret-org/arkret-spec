@@ -200,7 +200,7 @@
                 "type": "string",
                 "enum": [
                   "recipient_service_did",
-                  "principal_did",
+                  "principal_id",
                   "device_id",
                   "push_route_id",
                   "salt_epoch_id"

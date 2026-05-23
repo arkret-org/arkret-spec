@@ -582,7 +582,7 @@ Profile 规则：
   "schema": "cx.schema.identity_link.v1",
   "status": "active",
   "pairwise_did": "did:key:z6Mkpseudonymous",
-  "principal_did": "did:web:alice.example",
+  "principal_id": "did:web:alice.example",
   "device_id": "cx:device:019a6aa0-0000-7000-8000-000000000000",
   "realm_id": "cx:realm:019a7360-0000-7000-8000-000000000000",
   "trust_domain": "cx:trust_domain:did.webvh.example",

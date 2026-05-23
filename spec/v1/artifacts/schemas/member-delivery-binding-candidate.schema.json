@@ -5,7 +5,7 @@
   "description": "Builder-side candidate object that ferries Handle resolution output (intent=member_add | invite) or a trusted-issuer-signed equivalent into the Space member_add / invite pipeline. Produces a Space-scoped member_delivery_binding only after the reducer independently re-validates against Join Policy. See identity-handles.md §3.7.",
   "type": "object",
   "required": [
-    "subject_did",
+    "subject_id",
     "handle_uri",
     "recipient_service_did",
     "delivery_binding_hint",
@@ -18,7 +18,7 @@
     "intent"
   ],
   "properties": {
-    "subject_did": {
+    "subject_id": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s]+$",
       "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in cx.member.state{membership=join}."
@@ -130,7 +130,7 @@
         "$ref": "./event-schema.json#/$defs/proof"
       },
       "minItems": 1,
-      "description": "At least one proof binding handle_uri, subject_did, recipient_service_did, audience, issuer_service_did, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
+      "description": "At least one proof binding handle_uri, subject_id, recipient_service_did, audience, issuer_service_did, issued_at, expires_at and (when present) claim_digest. issued_at MUST be inside the signed transcript so an MITM cannot widen the replay-protection window by rewriting it; verifiers MUST reject proofs whose canonical transcript omits issued_at."
     },
     "claim_digest": {
       "type": "string",

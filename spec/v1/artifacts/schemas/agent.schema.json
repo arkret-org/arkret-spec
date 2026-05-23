@@ -54,7 +54,7 @@
         "failed",
         "cancelled"
       ],
-      "description": "Lifecycle state for cx.agent.protocol_session.status events."
+      "description": "Session status for cx.agent.protocol_session.status events."
     },
     "params": {
       "description": "Caller-supplied parameters for protocol_session.start. Opaque to soland — agent runtimes interpret per agent manifest."

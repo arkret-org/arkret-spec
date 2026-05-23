@@ -225,7 +225,7 @@ sha256:90b6a9bdacba4a32b49a560b1fca484a15e858b298f21755110517d3d96b349c
 
 判定规则：
 
-- event digest / proof `payload_hash` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `cx:event:*` typed ID，必须进入 digest，但不替代 digest。
+- event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `cx:event:*` typed ID，必须进入 digest，但不替代 digest。
 - 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
 - 同一事件在不同 Events API 或 Sync Service 上 MUST 得到相同 digest。
 
@@ -289,7 +289,7 @@ cx.vector.encoding.signature_binding_payload.v1
 
 ```json
 {
-  "payload_hash": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+  "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
   "actor_id": "did:web:alice.example",
   "verification_method": "did:web:alice.example#device-1",
   "created_at": "2026-04-26T00:00:00Z"
@@ -299,18 +299,18 @@ cx.vector.encoding.signature_binding_payload.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","created_at":"2026-04-26T00:00:00Z","payload_hash":"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777","verification_method":"did:web:alice.example#device-1"}
+{"actor_id":"did:web:alice.example","created_at":"2026-04-26T00:00:00Z","event_digest":"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777","verification_method":"did:web:alice.example#device-1"}
 ```
 
 期望 digest：
 
 ```text
-sha256:5b8863e858c1964ca1901d27ce687b65d87dcef0d3535ed617de7b4763cfdaf8
+sha256:98d7da309a94b0d188404e649a81fa240e338d62a7848c0ce699c3bbf85f3c6c
 ```
 
 判定规则：
 
-- proof MUST bind payload hash、actor DID、verification method 和 created_at。
+- proof MUST bind event digest、actor DID、verification method 和 created_at。
 - 需要跨服务或跨域验证时，profile SHOULD 额外绑定 domain / audience。
 - 签名算法测试向量由本文件第 13 节的 crypto fixture 要求补充真实 public key 和 detached JWS；本文固定签名前 canonical binding 输入。
 
@@ -469,7 +469,7 @@ sha256:3bef5270548d5b2c14e46ac1c9a801376d243ca6d71b914ec1d3283268a981fa
 - Ed25519 public key / private test key
 - detached JWS signature
 - DID Document verification method
-- canonical Event payload、`payload_hash`、proof binding object、detached JWS signing input 和 expected rejection 条件
+- canonical Event payload、`event_digest`、proof binding object、detached JWS signing input 和 expected rejection 条件
 
 后续 conformance suite 仍应增加扩展 fixture：
 
@@ -967,7 +967,7 @@ cx.vector.redaction.hard_erasure_receipt.v1
 期望：
 
 - hard erasure 在被测存储边界内删除 payload bytes 与派生明文。
-- 实现保留 verification stub：原始 event id、验证事件图所需的 Event envelope digest / proof `payload_hash`、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。签名 receipt MUST 符合 `cx.schema.erasure_receipt.v1`；若作为历史事件发布，Event.kind MUST 为 `cx.audit.erasure_receipt`。
+- 实现保留 verification stub：原始 event id、验证事件图所需的 Event envelope digest / proof `event_digest`、redaction event id、erasure reason、执行服务 DID、执行时间和签名 receipt。签名 receipt MUST 符合 `cx.schema.erasure_receipt.v1`；若作为历史事件发布，Event.kind MUST 为 `cx.audit.erasure_receipt`。
 - stub 不得额外保留已擦除明文字段的 standalone content hash、payload-only digest 或未加盐搜索 fingerprint；若审计必须保留内容承诺，必须使用每事件 salt 或 HMAC/pepper commitment，并把 secret 留在 legal-hold 边界或按 erasure policy 销毁。
 - backfill 返回 redacted / erased stub，不伪造替代事件，也不静默造成历史缺口。
 - legal hold 存在时阻止 hard erasure，但默认展示仍应用 redaction。
@@ -990,7 +990,7 @@ cx.vector.redaction.snapshot_pruning_stub.v1
 
 - snapshot chunk 包含 redaction / erasure verification stub，或通过 `verification_hints` 提交该 stub 的 digest。
 - backfill 从 snapshot frontier 恢复时，默认视图仍显示 redacted / erased 占位，不显示原文，也不把 timeline 当作缺失事件。
-- audit view 能验证 target event id、原始 envelope digest / proof `payload_hash`、redaction event id、执行服务 DID、执行时间和签名 receipt。
+- audit view 能验证 target event id、原始 envelope digest / proof `event_digest`、redaction event id、执行服务 DID、执行时间和签名 receipt。
 - 若 active legal hold 存在，pruning MUST fail closed；snapshot 仍可隐藏普通视图明文，但不得物理删除 legal-hold 边界内要求保留的 payload。
 
 ## 4. Capability Vectors
@@ -2250,7 +2250,7 @@ Expected：
 
 Steps：
 
-1. 两个 witness 对同一 `(realm_id, actor_id, actor_seq)` 给出不同 `event_id` / `payload_hash`。
+1. 两个 witness 对同一 `(realm_id, actor_id, actor_seq)` 给出不同 `event_id` / `event_digest`。
 2. 两个 range-completeness attestation 声称同一 `(from_frontier, to_frontier]` scope，但 `root` 不同且无法由不同上界解释。
 3. High-assurance peer 只提供 `single_source` attestation 试图解除 backfill completeness gate。
 

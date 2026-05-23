@@ -162,7 +162,7 @@ Handle 按 holder 披露意图分两类：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `subject_did` | DID | MUST | 被寻址主体的 principal DID；最终物化为 `payload.actor_id` / cell subject。 |
+| `subject_id` | DID | MUST | 被寻址主体的 principal DID；最终物化为 `payload.actor_id` / cell subject。 |
 | `handle_uri` | canonical URI | MUST | `contrix://<domain>(:<port>)?/users/<localpart>`，`<localpart>` 已 lowercase。`acct:` / 显示形态 / 裸 host 一律拒绝。 |
 | `handle_aliases[]` | `acct:` URI 数组 | MAY | 仅互通别名；不参与权威比对、缓存键或 `delivery_binding` 物化。 |
 | `recipient_service_did` | DID | MUST | Principal Server service DID，是 `member_delivery_binding.recipient_service_did` 的来源。 |
@@ -172,7 +172,7 @@ Handle 按 holder 披露意图分两类：
 | `issued_at` | timestamp | MUST | RFC 3339 `Z` 形式；issuer 签发该 candidate 的时刻。MUST ≤ `expires_at`；与 `expires_at` 一起界定 candidate 的有效窗口并阻止 MITM 把 `issued_at` 改写以扩大重放窗口。 |
 | `expires_at` | timestamp | MUST | RFC 3339 `Z` 形式；过期 candidate MUST 被视为不可用。 |
 | `source_refs[]` | event id 数组 | MUST | 至少一条 `cx:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |
-| `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle_uri`、`subject_did`、`recipient_service_did`、`audience`、`issuer_service_did`、`issued_at` 与 `expires_at`。`issued_at` MUST 进入 canonical transcript；缺失即视为重放窗口可篡改并拒绝。 |
+| `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle_uri`、`subject_id`、`recipient_service_did`、`audience`、`issuer_service_did`、`issued_at` 与 `expires_at`。`issued_at` MUST 进入 canonical transcript；缺失即视为重放窗口可篡改并拒绝。 |
 | `claim_digest` | `sha256:<hex>` | SHOULD | candidate 上游 handle claim 的 canonical JSON digest，用于缓存键与 audit chain。 |
 | `intent` | enum | MUST | `member_add` / `invite`，区分 candidate 的 builder 入口；reducer 不依赖该字段，仅用于审计与遥测。 |
 
@@ -183,7 +183,7 @@ Handle 按 holder 披露意图分两类：
 candidate 只能来自以下两类签发路径：
 
 1. **Directory 解析**：`cx.directory.resolve_handle(intent="member_add" \| "invite")` 响应 MUST 把 [`discovery-directory.md` §9.0/§9.1](../discovery/discovery-directory.md) 的 handle 解析与通用结果字段重新打包为 candidate；`source_refs` 取 Directory 响应中的 `source_refs`，`issuer_service_did` 取 Directory service DID 或上游 Organization service DID。
-2. **受信 issuer 直接签发**：Organization / Principal Server / 受信 service DID 可以离开 Directory 直接对某 `(handle_uri, subject_did, recipient_service_did, audience)` 组合发签名 candidate，例如随 invite token 内嵌、随 organization-issued member roster 下发。
+2. **受信 issuer 直接签发**：Organization / Principal Server / 受信 service DID 可以离开 Directory 直接对某 `(handle_uri, subject_id, recipient_service_did, audience)` 组合发签名 candidate，例如随 invite token 内嵌、随 organization-issued member roster 下发。
 
 candidate **不得**直接构造自客户端字符串拼接、UI text、未签名 directory 响应或 cache 残留。任何缺少 `proofs[]` 的对象 MUST NOT 被命名为 candidate。
 
@@ -192,7 +192,7 @@ candidate **不得**直接构造自客户端字符串拼接、UI text、未签�
 `MemberDeliveryBindingCandidate -> cx.member.state.payload.delivery_binding` 的映射必须是确定性的：
 
 ```text
-payload.actor_id = candidate.subject_did
+payload.actor_id = candidate.subject_id
 payload.delivery_binding.recipient_service_did = candidate.recipient_service_did
 payload.delivery_binding.resolved_at = candidate.proofs[].created_at 或 candidate.expires_at 之前的 issuer as_of
 payload.delivery_binding.service_acceptance_ref = candidate.delivery_binding_hint.service_acceptance_ref
@@ -211,8 +211,8 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 2. **`handle_uri` canonical**：必须匹配 `contrix://<domain>(:<port>)?/users/<localpart>` 主形态，且 `<localpart>` 已 lowercase。verifier 不得在签名 transcript 中接受任何非 canonical 形态；`acct:` 出现在 `handle_uri` 即拒绝。
 3. **audience match**：`audience` MUST 等于当前 invocation 上下文（目标 `space_id` 对应的 DID 或邀请方 service DID）；不一致 MUST 返回与 "无可披露 claim" 不可区分的统一拒绝。
 4. **expiry**：`expires_at` 严格大于当前时间；过期 candidate MUST NOT 进入 builder。
-5. **proof 验证**：`proofs[]` 中至少一条由 `issuer_service_did`（或受 issuer 委派的 verification method）签名，且 binding transcript 覆盖 `handle_uri`、`subject_did`、`recipient_service_did`、`audience`、`issuer_service_did`、`issued_at`、`expires_at` 与 `claim_digest`（如有）。任何 transcript 漏掉 `issued_at` 或 `issued_at > expires_at` MUST fail closed，避免 MITM 通过重写时间窗口实施重放。
-6. **subject / handle 关联**：candidate 内 `subject_did` MUST 等于上游 handle claim 中的 subject（不允许 verifier 在 builder 入口 "替换" subject）。
+5. **proof 验证**：`proofs[]` 中至少一条由 `issuer_service_did`（或受 issuer 委派的 verification method）签名，且 binding transcript 覆盖 `handle_uri`、`subject_id`、`recipient_service_did`、`audience`、`issuer_service_did`、`issued_at`、`expires_at` 与 `claim_digest`（如有）。任何 transcript 漏掉 `issued_at` 或 `issued_at > expires_at` MUST fail closed，避免 MITM 通过重写时间窗口实施重放。
+6. **subject / handle 关联**：candidate 内 `subject_id` MUST 等于上游 handle claim 中的 subject（不允许 verifier 在 builder 入口 "替换" subject）。
 7. **`delivery_binding_hint.binding_source` 合法值**：MUST 是 §3.3 列出的五种之一；`did_document_default` 即拒绝。
 8. **`recipient_service_did` 一致性**：candidate 顶层 `recipient_service_did` MUST 与 `delivery_binding_hint.recipient_service_did` byte-for-byte 相同。
 
@@ -633,7 +633,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
     {
       "claim_type": "verified_handle",
       "issuer": "did:web:google.example",
-      "subject_did": "did:key:z6Mkgpairwise...",
+      "subject_id": "did:key:z6Mkgpairwise...",
       "disclosure": "explicit",
       "fields": ["handle"],
       "value_constraints": {

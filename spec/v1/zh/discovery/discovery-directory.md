@@ -23,7 +23,7 @@ Contrix 需要明确区分三件事：
 | `public` | 可被公共目录索引和搜索。 |
 | `listed` | 可在指定目录、组织页、源 Realm 或受信目录中列出，但不一定进入全网公共搜索。 |
 | `restricted` | 只有满足可验证条件的请求方可发现，例如组织成员、受邀者、共同 Realm 成员或持有特定 claim 的主体。 |
-| `unlisted` | 不进入目录搜索；知道精确 id、alias、邀请链接或 parent edge 的主体 MAY 尝试解析。 |
+| `unlisted` | 不进入目录搜索；知道精确 id、alias、邀请链接或 source Realm edge 的主体 MAY 尝试解析。 |
 | `invite_only` | 未被邀请或未持有 invite proof 的主体不得得知其存在；查询应返回与不存在相同的错误。 |
 | `secret` | 仅本地或端到端加密上下文中可见；目录、Sync Service 和受托 search / projection 服务不应公开可枚举 metadata。 |
 
@@ -46,13 +46,13 @@ Realm discovery policy SHOULD 由 `cx.realm.discovery` state event 表达：
     "directory_visibility": {
       "public_directory": false,
       "organization_directory": true,
-      "parent_space_directory": true
+      "source_realm_directory": true
     },
     "preview": {
       "mode": "stripped_state",
       "fields": [
-        "name",
-        "avatar",
+        "title",
+        "avatar_blob_ref",
         "summary",
         "owning_organizations",
         "join_rule",
@@ -84,7 +84,7 @@ Realm discovery policy SHOULD 由 `cx.realm.discovery` state event 表达：
 - `discoverability=public` 的 Realm MAY 被公共目录服务索引。
 - `listed` Realm MUST 仅出现在 `directory_visibility` 或 `directory_services` 明确允许的目录中。
 - `restricted` Realm MUST 在返回搜索结果前要求目录查询授权。
-- `unlisted` Realm MUST NOT 出现在关键字搜索，但在 policy 允许时 MAY 通过精确 id / alias / 签名 invite / parent edge 解析。
+- `unlisted` Realm MUST NOT 出现在关键字搜索，但在 policy 允许时 MAY 通过精确 id / alias / 签名 invite / source Realm edge 解析。
 - 未授权 subject 对 `invite_only` 与 `secret` Realm 的查询 MUST 返回 `not_found` 或与其不可区分的响应。
 - 在未单独授权时，目录结果 MUST NOT 包含事件历史、成员列表、policy 原文、MLS 状态、隐藏 parent/child edge 或完整组织治理链。
 
@@ -171,10 +171,10 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
   "organization_did": "did:web:acme.example",
   "discoverability": "public",
   "profile_visibility": {
-    "name": "public",
-    "logo": "public",
-    "description": "public",
-    "official_spaces": "listed",
+    "display_name": "public",
+    "logo_blob_ref": "public",
+    "summary": "public",
+    "owned_realms": "listed",
     "members": "restricted",
     "services": "listed"
   },
@@ -580,8 +580,8 @@ POST /api/v1/directory/subscribe
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
 | `cx.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
-| `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `parent_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
-| `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `space_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | `via_services` 在 v1 normative，MUST 给出 host Principal Server service DID 让客户端能发起 join；invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
+| `cx.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
+| `cx.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `via_services: did[]` | `via_services` 在 v1 normative，MUST 给出 host Principal Server service DID 让客户端能发起 join；invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
 | `cx.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 仅返回公开或授权可发现组织。 |
 | `cx.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
 | `cx.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
@@ -640,7 +640,7 @@ Directory MUST NOT：
   "query": "release",
   "scope": {
     "organization_did": "did:web:acme.example",
-    "parent_realm_id": null
+    "source_realm_id": null
   },
   "requester": "did:web:alice.example.com",
   "proofs": [
@@ -658,12 +658,12 @@ Result：
   "results": [
     {
       "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
-      "name": "Release Coordination",
+      "title": "Release Coordination",
       "summary": "Public release coordination",
       "discoverability": "listed",
       "join_rule": "knock_restricted",
       "history_visibility": "joined",
-      "official_organizations": [
+      "owning_organizations": [
         "did:web:acme.example"
       ],
       "preview_ref": "cx:event:<uuid>",

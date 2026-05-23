@@ -178,7 +178,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 - account private state：可删除。
 - policy/audit record：按合规周期保留最小字段。
 
-擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `cx.schema.erasure_receipt.v1` payload，并可通过 `cx.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 `subject`、`scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_hash`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`。`retained_stub_hash` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留验证 event graph、signature payload_hash、anchor inclusion、redaction authorization 与 receipt linkage 所需的最小字段，MUST NOT 保留已擦除明文或裸明文 digest。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
+擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `cx.schema.erasure_receipt.v1` payload，并可通过 `cx.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 `subject`、`scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_hash`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`。`retained_stub_hash` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留验证 event graph、signature event_digest、anchor inclusion、redaction authorization 与 receipt linkage 所需的最小字段，MUST NOT 保留已擦除明文或裸明文 digest。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
 
 ## 9. Session Revocation
 

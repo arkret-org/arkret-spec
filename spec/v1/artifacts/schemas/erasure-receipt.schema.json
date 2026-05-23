@@ -120,7 +120,7 @@
     },
     "retained_stub_hash": {
       "$ref": "#/$defs/hash",
-      "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub must be sufficient to verify event id/digest, proof payload_hash, redaction authorization, anchor inclusion, target id, legal-hold state, and receipt linkage without retaining erased plaintext."
+      "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub must be sufficient to verify event id/digest, proof event_digest, redaction authorization, anchor inclusion, target id, legal-hold state, and receipt linkage without retaining erased plaintext."
     },
     "retained_stub": {
       "$ref": "#/$defs/verification_stub",
@@ -299,13 +299,13 @@
           "$ref": "#/$defs/hash",
           "description": "Digest of the original Event envelope or durable object metadata, when the erased subject was event-backed."
         },
-        "payload_hashes": {
+        "retained_digests": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/hash"
           },
           "uniqueItems": true,
-          "description": "Proof payload_hash / object payload digests retained for signature verification. MUST NOT be a bare digest of erased low-entropy plaintext."
+          "description": "Event digest / object payload digests retained for signature verification. MUST NOT be a bare digest of erased low-entropy plaintext."
         },
         "anchor_inclusion": {
           "type": "object",

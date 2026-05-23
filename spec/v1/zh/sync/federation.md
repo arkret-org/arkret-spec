@@ -194,7 +194,7 @@ Signature: sig1=:base64...:
           "kind": "detached_jws",
           "alg": "EdDSA",
           "verification_method": "did:web:alice.example#device-1",
-          "payload_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "created_at": "2026-04-26T00:00:00Z",
           "jws": "a..b"
         }
@@ -463,7 +463,7 @@ Probe 响应 payload：
 
 当 Realm S 的管理员邀请外部用户 Bob（Principal Server 在 `server-beta.com`）时：
 
-1. 管理员提交 `cx.invite.create` Event，`subject_did` 指向 Bob 的 DID
+1. 管理员提交 `cx.invite.create` Event，`subject_id` 指向 Bob 的 DID
 2. 该 Event 通过联邦推送到达 Bob 的 Principal Server
 3. Bob 的客户端发现 Invite，决定接受
 4. Bob 的客户端提交 `cx.invite.accept` Event 到自己的 Events API

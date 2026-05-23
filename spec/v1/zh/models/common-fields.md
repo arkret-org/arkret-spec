@@ -35,7 +35,13 @@ title: Common Fields
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `cx:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `cx:device:<uuid>`，不得写成局部别名如 `dev_a` 或 `a`。
-- `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载显示名，应使用 `title`、`name` 或 `display_name`，不得用 `description` 代替。
+- `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Flow 等 canonical object 的显示名。
+- Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），不得另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
+- `_id` / `_ref` / `_did` 后缀约定：`_id` 表示 typed protocol id，或本协议把 DID 当作责任主体 id 使用的字段（如 `actor_id`、`principal_id`、`subject_id`、`watcher_actor_id`）；`_ref` 表示可解引用对象、版本、receipt、anchor 或 content-addressed reference；`_did` 只在字段必须强调“原始 DID material”并与 pairwise DID、DID URL、外部 DID 或 disclosure transcript 对照时使用。新增主体字段默认不得使用 `_did` 后缀。
+- `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。
+- `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Flow / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
+- `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只用于外部协议或加密 transcript 自身的创建者 tuple（例如 MLS group creator），不得作为 object 创建主体字段的别名。
+- Event proof 中绑定 canonical Event bytes 的字段名是 `event_digest`。`payload_hash` 仅可用于非 Event 的通用 detached proof，且其说明必须写明被 hash 的 canonical payload；不得在 Event proof 或 Event digest 语义中使用 `payload_hash`。
 
 ## 3. Common Object Fields
 
@@ -87,10 +93,12 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 | 字段 | 出现对象 | 含义 |
 | --- | --- | --- |
 | `actor_id` | Event Envelope、Read Marker、Notification | 直接执行该 Event / 拥有该私有状态的 actor DID（`actor_kind` 决定它是 user / agent / service 等）。 |
+| `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 actor DID-as-id；字段名必须说明角色，避免回退到模糊的 `actor_did`。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。 |
 | `issuer` | Capability Grant、Identity Receipt | 签发授权或 receipt 的 DID；必须持有签发权限。 |
 | `subject` | Capability Grant | 被授权 DID 或 selector condition。 |
+| `subject_id` | Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic claim subject 仍使用 `subject`。 |
 | `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
 | `created_by_principal` | Realm | Realm create event 的授权 principal（与该事件 `actor_id` 一致）。 |
 

@@ -36,7 +36,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 
 | 字段 | 含义 |
 | --- | --- |
-| `event_id` (`cx:event:<uuid>`) | producer 在签名前分配的 typed-UUIDv7。被纳入 canonical bytes 由 `proof.payload_hash` 覆盖。 |
+| `event_id` (`cx:event:<uuid>`) | producer 在签名前分配的 typed-UUIDv7。被纳入 canonical bytes 由 `proof.event_digest` 覆盖。 |
 | `actor_id` | 签发者 DID。 |
 | `realm_id` | 所属 Realm。 |
 | `actor_seq` | actor chain 单调序号。 |
@@ -47,7 +47,7 @@ Reducer-input event 的核心字段（详见 [`event-auth-state-resolution.md`](
 | `anchor_ref` | reducer-input only：本 event 提交时所对应的 Anchor DAG 节点。 |
 | `payload` | kind-specific 业务载荷（`cx.message.create.payload.content`、`cx.flow.update.payload.patch` 等）；它们是 effect 写入值的源数据，不替代 effects[]。 |
 | `proofs[]` | 至少一条 detached JWS，覆盖 canonical event bytes（不含 `proofs` 与 `unsigned`）。 |
-| `hlc` | advisory tie-breaker。**进入 canonical event bytes 与 proof `payload_hash`**（与 [encoding.md](../conformance/encoding.md) §7、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3 rule 1 一致），因此被生产者签名锁定、relay 不得改写；但语义上仅用于 timeline 展示与 freshness 诊断，MUST NOT 进授权决策、Lattice 收敛、Move precondition 比较或 Anchor finality 判断。 |
+| `hlc` | advisory tie-breaker。**进入 canonical event bytes 与 proof `event_digest`**（与 [encoding.md](../conformance/encoding.md) §7、[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) §3 rule 1 一致），因此被生产者签名锁定、relay 不得改写；但语义上仅用于 timeline 展示与 freshness 诊断，MUST NOT 进授权决策、Lattice 收敛、Move precondition 比较或 Anchor finality 判断。 |
 
 非 shared Realm reducer-input 事件（`wire_scope=actor_private_event` / `ephemeral_event`，例如 `cx.read.marker`、`cx.device.push_route`、`cx.typing`、`cx.receipt.read`、`cx.call.signal`）**不**携带 `preconditions` / `effects` / `anchor_ref`。`actor_private_event` MAY 按 registry 声明写入 actor-private/account-private state cell，但该 cell 不进入 shared Realm Anchor frontier 或 state_root；`ephemeral_event` 不持久化、不写 cell。schema 已用 allOf if/then 静态强制此约束。
 
@@ -244,7 +244,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
       {"issuer": "did:web:witness2.example", "verification_method": "did:web:witness2.example#range-attest-3", "controlling_organization": "did:webvh:audit-co"}
     ]
   },
-  "proofs": [ { "kind": "detached_jws", "alg": "EdDSA", "verification_method": "did:web:witness.example#range-attest-1", "payload_hash": "sha256:...", "created_at": "2026-05-18T08:30:00Z", "jws": "..." } ]
+  "proofs": [ { "kind": "detached_jws", "alg": "EdDSA", "verification_method": "did:web:witness.example#range-attest-1", "event_digest": "sha256:...", "created_at": "2026-05-18T08:30:00Z", "jws": "..." } ]
 }
 ```
 
@@ -257,10 +257,10 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 
 #### 4.2.2 `root` 计算
 
-`root` 是 canonical Merkle root over **scope 内全部 reducer-input event 的 `(actor_id, actor_seq, event_id, payload_hash)` 四元组排序集合**：
+`root` 是 canonical Merkle root over **scope 内全部 reducer-input event 的 `(actor_id, actor_seq, event_id, event_digest)` 四元组排序集合**：
 
 1. 收集 scope 内每个 actor 在其 seq interval 内的全部 accepted reducer-input event；
-2. 对每个 event 形成 leaf `canonical_bytes({actor_id, actor_seq, event_id, payload_hash})`；
+2. 对每个 event 形成 leaf `canonical_bytes({actor_id, actor_seq, event_id, event_digest})`；
 3. 按 `(actor_id, actor_seq)` 字典序排序；
 4. 计算 binary Merkle tree（Hash 算法按 Realm.hash_profile）；
 5. `count` MUST 等于叶子数。
@@ -274,7 +274,7 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 - `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Realm `audit.range_completeness_witnesses[]` 中已声明。
 - `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。
 - 每个 witness 签名 transcript MUST 覆盖完整 attestation scope（`from_frontier`、`to_frontier`、`actor_seq_ranges[]`）、`root`、`count`、`realm_id`、`hash_profile`、`observed_at` 和 issuer 身份；不得只签 `root`。否则 verifier 无法区分同 root 不同 scope 或同 scope 不同事件集。
-- 对同一 Realm 中存在重叠 scope 的两个 witness attestation，若二者对同一 `(actor_id, actor_seq)` 断言的 `event_id` / `payload_hash` 不同，或同一 scope 下 `root` 不一致且无法通过 backfill 证明为不同上界，verifier MUST 将其标记为 `witness_disagreement`，quarantine 相关 range，并停止用该 range 推进 snapshot / backfill / frontier completeness。
+- 对同一 Realm 中存在重叠 scope 的两个 witness attestation，若二者对同一 `(actor_id, actor_seq)` 断言的 `event_id` / `event_digest` 不同，或同一 scope 下 `root` 不一致且无法通过 backfill 证明为不同上界，verifier MUST 将其标记为 `witness_disagreement`，quarantine 相关 range，并停止用该 range 推进 snapshot / backfill / frontier completeness。
 
 **重要**：`single_source` attestation 不构成 sovereign-grade completeness 证明——它只是 issuer 的自报。需要"对方未藏分支"语义保证的部署 MUST 要求 `federation_witness_attested`。这是 silent fork 抗性的最后一道防线：base batch receipt（integrity）+ frontier exchange（probe）+ range-completeness attestation（completeness with witness quorum）才能完整覆盖。
 
@@ -310,7 +310,7 @@ Service operation 名称可以描述提交、同步或联邦动作，但共享 w
 
 Event 的 `kind` 是标准事件类型，`payload` 是事件负载，`prev_refs` 表示 actor event chain 前序，`refs[]` 表示语义依赖（含授权 `role="authorized_by"`）。标准 `cx.*` Event kind 不得写入顶层 `type` 或 `payload.type`；`type` 只用于物化对象、外部标准对象或 payload schema 明确声明的 discriminator。`target_ref`、`idempotency_key`、客户端事务 ID 等可放入 `payload` 或 `unsigned`，但不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
 
-如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event 顶层 `requirements` 对象中声明对应 `features` 或 `critical_extensions`。`requirements.{schema, reducer, features, critical_extensions}` 全部 MUST 进入 canonical event bytes、event digest 和 proof `payload_hash`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
+如果事件依赖接收方可能不理解的新语义，发送方 MUST 在 Event 顶层 `requirements` 对象中声明对应 `features` 或 `critical_extensions`。`requirements.{schema, reducer, features, critical_extensions}` 全部 MUST 进入 canonical event bytes、event digest 和 proof `event_digest`。接收方不支持任何 critical feature 时 MUST fail closed，返回 `unsupported_feature`、`schema_violation`、`soft_fail` 或 `quarantine`，不得把事件当作普通已知语义接受。
 
 Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）：
 
@@ -353,7 +353,7 @@ Reducer-input event 示例（preconditions / effects / anchor_ref 在顶层）�
       "kind": "detached_jws",
       "alg": "EdDSA",
       "verification_method": "did:web:alice.example.com#device-laptop",
-      "payload_hash": "sha256:...",
+      "event_digest": "sha256:...",
       "created_at": "2026-04-22T08:30:00Z",
       "jws": "base64url..."
     }

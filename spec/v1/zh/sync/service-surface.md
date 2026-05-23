@@ -632,7 +632,7 @@ POST /api/v1/directory/search-realms
 
 - `query`
 - `organization_did`
-- `parent_realm_id`
+- `source_realm_id`
 - `requester`
 - `proofs`
 - `limit`

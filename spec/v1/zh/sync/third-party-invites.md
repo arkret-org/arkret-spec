@@ -111,13 +111,13 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 ```json schema=schemas/event-payload.schema.json#/$defs/invite_payload
 {
   "invite_id": "cx:invite:0196419b-1000-7000-8000-000000000000",
-  "subject_did": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
+  "subject_id": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
   "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
   "binding_proof": {
     "verification_service_did": "did:web:identity.alice.example",
     "verification_method": "did:web:identity.alice.example#invite-001",
-    "subject_did": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
+    "subject_id": "did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
     "realm_id": "cx:realm:0196419b-0000-7000-8000-000000000000",
     "audience": "contrix.invite.claim",
     "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
@@ -136,7 +136,7 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 
 Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到该 Event 时：
 1. 匹配 `token_commitment` 与未过期、未撤销、未认领的 `cx.invite.third_party`。
-2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_did`、`realm_id`、audience、过期时间和 claim nonce。
+2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_id`、`realm_id`、audience、过期时间和 claim nonce。
 3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。
 4. 原子标记 pending invite 为 `claimed`；同一个 `token_commitment` 的第二次认领 MUST reject。
 5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:QmZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `cx.invite.create` 或等价 membership proposal。
@@ -158,7 +158,7 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 - 验证服务 MUST 对 token claim 做限速、IP / device 风险控制和重放检测；失败响应不得泄露 token 是否存在、Realm 是否存在或 3PID 是否被邀请。
 - Event 中不得出现明文 3PID、未加盐 3PID hash、token 原文、短信验证码或邮件验证码。需要审计时只能保存加密审计记录、salt id、token commitment、发送时间和服务签名。
 - `token_salt` MUST 按邀请或批次高熵生成，不能使用全局常量 salt。低熵 3PID 的承诺必须加入服务私有 pepper 或改用不公开的 lookup table，防止离线字典爆破。
-- claim 成功后，外部 3PID 与 `subject_did` 的绑定默认只在邀请上下文内有效；不得自动发布为全局 handle、联系人或组织成员资格。
+- claim 成功后，外部 3PID 与 `subject_id` 的绑定默认只在邀请上下文内有效；不得自动发布为全局 handle、联系人或组织成员资格。
 
 ### 6.1 失败 / 异常清理状态机（normative）
 

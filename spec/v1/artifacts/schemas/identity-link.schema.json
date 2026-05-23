@@ -7,7 +7,7 @@
   "required": [
     "schema",
     "pairwise_did",
-    "principal_did",
+    "principal_id",
     "device_id",
     "realm_id",
     "trust_domain",
@@ -32,7 +32,7 @@
       "$ref": "#/$defs/did",
       "description": "Realm-scoped pairwise DID used in Event.actor_id and MLS leaf credential. The v1 boundary is the Realm, not a Matrix-style Room."
     },
-    "principal_did": {
+    "principal_id": {
       "$ref": "#/$defs/did",
       "description": "Real principal DID that controls or has disclosed the pairwise DID."
     },
@@ -94,7 +94,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[^\\s#]+#[^\\s#]+$",
-          "description": "DID URL of a key controlled by principal_did or by a disclosure proof accepted by Realm policy."
+          "description": "DID URL of a key controlled by principal_id or by a disclosure proof accepted by Realm policy."
         },
         "signature_algorithm": {
           "type": "string",

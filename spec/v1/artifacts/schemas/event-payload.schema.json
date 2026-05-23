@@ -858,7 +858,7 @@
         },
         {
           "required": [
-            "status"
+            "target_state"
           ]
         }
       ],
@@ -869,7 +869,7 @@
         "object_ref": {
           "$ref": "#/$defs/object_ref"
         },
-        "status": {
+        "target_state": {
           "type": "string",
           "minLength": 1
         },
@@ -887,7 +887,7 @@
       "minProperties": 1,
       "properties": {
         "value": {},
-        "status": {
+        "state": {
           "type": "string"
         },
         "reason": {
@@ -1034,12 +1034,12 @@
     "realm_inheritance_policy_payload": {
       "type": "object",
       "required": [
-        "parent_realm_id",
+        "source_realm_id",
         "inherits",
         "mode"
       ],
       "properties": {
-        "parent_realm_id": {
+        "source_realm_id": {
           "$ref": "#/$defs/realm_id"
         },
         "inherits": {
@@ -2529,7 +2529,7 @@
         {
           "required": [
             "invite_id",
-            "subject_did",
+            "subject_id",
             "token_commitment",
             "claim_nonce",
             "binding_proof",
@@ -2550,7 +2550,7 @@
         "third_party_id": {
           "$ref": "./invite.schema.json#/$defs/third_party_invite"
         },
-        "subject_did": {
+        "subject_id": {
           "$ref": "#/$defs/did"
         },
         "token_commitment": {
@@ -2565,7 +2565,7 @@
           "required": [
             "verification_service_did",
             "verification_method",
-            "subject_did",
+            "subject_id",
             "realm_id",
             "audience",
             "claim_nonce",
@@ -2580,7 +2580,7 @@
               "type": "string",
               "pattern": "^did:[^\\s#]+#[^\\s#]+$"
             },
-            "subject_did": {
+            "subject_id": {
               "$ref": "#/$defs/did"
             },
             "realm_id": {
@@ -3614,7 +3614,7 @@
       "description": "Strict payload for cx.audit.accessed. It records a specific access or paired privacy-sensitive write. Reducers MUST reject business events that require an audit pair unless this payload identifies the same writer, target, and object/cell in the same Anchor batch or in an accepted pre-read event with RYW receipt.",
       "required": [
         "access_kind",
-        "writer_did",
+        "writer_actor_id",
         "target_ref",
         "purpose",
         "accessed_at"
@@ -3633,10 +3633,10 @@
             "other"
           ]
         },
-        "writer_did": {
+        "writer_actor_id": {
           "$ref": "#/$defs/did"
         },
-        "target_actor_did": {
+        "target_actor_id": {
           "$ref": "#/$defs/did"
         },
         "target_ref": {
@@ -3691,7 +3691,7 @@
           },
           "then": {
             "required": [
-              "target_actor_did",
+              "target_actor_id",
               "target_cell_id",
               "paired_event_id",
               "paired_event_digest",
@@ -3709,7 +3709,7 @@
           },
           "then": {
             "required": [
-              "target_actor_did",
+              "target_actor_id",
               "target_cell_id"
             ]
           }

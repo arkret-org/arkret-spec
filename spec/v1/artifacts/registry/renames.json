@@ -268,7 +268,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.directory.resolve_realm",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Directory resolve operation id is renamed 'cx.directory.resolve_space' -> 'cx.directory.resolve_realm'. Resolution is by realm_id / alias / invite_token / signed_link and returns a Realm preview. HTTP path /directory/resolve-realm was already aligned; gRPC binding becomes Directory/ResolveRealm and MQ binding becomes directory.resolve_realm. Response field 'space_preview' is preserved during the migration window (see discovery-directory.md §9.1); a follow-up may rename it to 'realm_preview' under its own drift entry."
+      "notes": "Directory resolve operation id is renamed 'cx.directory.resolve_space' -> 'cx.directory.resolve_realm'. Resolution is by realm_id / alias / invite_token / signed_link and returns a Realm preview. HTTP path /directory/resolve-realm was already aligned; gRPC binding becomes Directory/ResolveRealm and MQ binding becomes directory.resolve_realm. Response field 'space_preview' is replaced by 'realm_preview' so the result structure matches the Realm boundary being resolved."
     },
     {
       "id": "cx.events.batch_get",

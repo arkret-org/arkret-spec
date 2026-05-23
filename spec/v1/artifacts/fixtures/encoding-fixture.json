@@ -22,7 +22,11 @@
           "a": "alpha"
         },
         "name": "Alice",
-        "arr": [true, false, null]
+        "arr": [
+          true,
+          false,
+          null
+        ]
       },
       "expected_canonical_bytes_utf8": "{\"arr\":[true,false,null],\"name\":\"Alice\",\"z\":{\"a\":\"alpha\",\"b\":\"beta\"}}",
       "rules": [
@@ -35,11 +39,23 @@
       "vector_id": "cx.vector.encoding.reject_noncanonical_numbers.v1",
       "kind": "canonical_json_reject",
       "rejected_inputs": [
-        {"n": "NaN"},
-        {"n": "Infinity"},
-        {"n": "-Infinity"},
-        {"n_literal": 1.0, "comment": "JSON number 1.0"},
-        {"n_literal_alt": "1e0", "comment": "JSON number 1e0"}
+        {
+          "n": "NaN"
+        },
+        {
+          "n": "Infinity"
+        },
+        {
+          "n": "-Infinity"
+        },
+        {
+          "n_literal": 1.0,
+          "comment": "JSON number 1.0"
+        },
+        {
+          "n_literal_alt": "1e0",
+          "comment": "JSON number 1e0"
+        }
       ],
       "rules": [
         "NaN / Infinity / -Infinity MUST reject",
@@ -47,7 +63,11 @@
         "1.0 / 1e0 MUST be canonicalised to a unique decimal serialisation; reject when canonicaliser cannot guarantee a unique form",
         "signature verification MUST run only after canonicalisation succeeds"
       ],
-      "rejection_reason_codes": ["schema_violation", "invalid_canonical_json", "invalid_encoding"]
+      "rejection_reason_codes": [
+        "schema_violation",
+        "invalid_canonical_json",
+        "invalid_encoding"
+      ]
     },
     {
       "vector_id": "cx.vector.encoding.reject_malformed_json.v1",
@@ -144,15 +164,15 @@
       "vector_id": "cx.vector.encoding.signature_binding_payload.v1",
       "kind": "canonical_json_digest",
       "input": {
-        "payload_hash": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
         "actor_id": "did:web:alice.example",
         "verification_method": "did:web:alice.example#device-1",
-        "created_at": "2026-04-26T00:00:00Z"
+        "created_at": "2026-04-26T00:00:00Z",
+        "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"created_at\":\"2026-04-26T00:00:00Z\",\"payload_hash\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:web:alice.example#device-1\"}",
-      "expected_digest": "sha256:5b8863e858c1964ca1901d27ce687b65d87dcef0d3535ed617de7b4763cfdaf8",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"created_at\":\"2026-04-26T00:00:00Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:web:alice.example#device-1\"}",
+      "expected_digest": "sha256:98d7da309a94b0d188404e649a81fa240e338d62a7848c0ce699c3bbf85f3c6c",
       "rules": [
-        "proof MUST bind payload_hash, actor DID, verification_method, and created_at",
+        "proof MUST bind event_digest, actor DID, verification_method, and created_at",
         "cross-service / cross-domain verification SHOULD additionally bind domain or audience",
         "actual ed25519 detached JWS for this binding lives in crypto-signature-fixture.json"
       ]

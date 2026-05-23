@@ -22,7 +22,7 @@ Contrix canonical JSON MUST 使用：
 - timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入不得接受本地时区、隐式时区或 leap-second 变体。
 - 字段名使用 snake_case。
 
-Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，不得影响 event digest 或 proof `payload_hash`。实现不得对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。
+Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，不得影响 event digest 或 proof `event_digest`。实现不得对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何 v1 schema 不得新增 `type: number`（非整数）字段；遗留字段 MUST 在下一个 schema profile 升级时迁移到整数 + scale。
 
@@ -81,7 +81,7 @@ v1 conformance 锁定的 hash 算法集合：
 
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
-| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、payload_hash、Merkle leaf、state_root、blob CID、receipt hash 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `cx.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
+| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt hash 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `cx.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
 | `sha512` | 64 bytes（128 hex） | v1 optional；声明 `cx.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Realm 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
 | `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
 | `blake3` | 32 bytes（64 hex） | v1 optional；声明 `cx.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
@@ -90,7 +90,7 @@ v1 conformance 锁定的 hash 算法集合：
 
 实现 MUST：
 
-- 默认按 `sha256:` 解析；遇到未识别的 algo prefix → 若位于 critical field（payload_hash、state_root、prev_refs blob hash）→ fail closed (`unsupported_hash`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
+- 默认按 `sha256:` 解析；遇到未识别的 algo prefix → 若位于 critical field（event_digest、state_root、prev_refs blob hash）→ fail closed (`unsupported_hash`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
 - 在 `server/describe.crypto` 暴露支持的 hash algo 集合；client 可据此选择写入算法。
 - 不得"算法升级"已签名的 canonical bytes：一旦 Event 用 `sha256:` 发布，verify 路径永远按 sha256 重算；不能因为本地默认换成 blake3 就重算并替换。
 
@@ -115,18 +115,18 @@ cx:<kind>:<uuid>
 `cx:` 前缀表示 Contrix 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
 
 - Event Envelope、canonical object、receipt、snapshot、fixture 和 OpenAPI / non-HTTP DTO。
-- canonical JSON、签名 payload、`payload_hash`、event digest、cursor 内部 state、federation payload、audit log。
+- canonical JSON、签名 payload、`event_digest`、cursor 内部 state、federation payload、audit log。
 - 跨服务引用、日志和错误响应中需要自描述对象类型的字段。
 
 数据库或本地索引实现 MAY 不把 `cx:<kind>:` 前缀作为主键的一部分存储——例如直接用 PostgreSQL `uuid` / `BYTEA(16)` 列存 16 字节 raw value，由表名或显式 `kind` 列提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，不得用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
 
 `<kind>` 是 canonical bytes 的一部分。实现不得把 `cx:receipt:<id>` 改写成 `cx:event:<id>`，也不得因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
-v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 `<uuid>` 段 MUST 是 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUID **version 7**：48-bit Unix-millisecond timestamp（big-endian）+ 4-bit version=`0111` + 12-bit `rand_a` + 2-bit variant=`10` + 62-bit `rand_b`，按 RFC 9562 §4 的 canonical 36-character lowercase hex 形式 `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` 序列化（其中 `N ∈ {8, 9, a, b}`，对应 RFC 4122 variant 1）。外部导入数据若是大写或带 URN/Microsoft braces 等变体形式，MUST 在生成 v1 Event Envelope、object id、cursor payload 或 proof `payload_hash` 前规范化为小写无前缀的 36-char hyphen-separated 形式。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写或形式。
+v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 `<uuid>` 段 MUST 是 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUID **version 7**：48-bit Unix-millisecond timestamp（big-endian）+ 4-bit version=`0111` + 12-bit `rand_a` + 2-bit variant=`10` + 62-bit `rand_b`，按 RFC 9562 §4 的 canonical 36-character lowercase hex 形式 `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` 序列化（其中 `N ∈ {8, 9, a, b}`，对应 RFC 4122 variant 1）。外部导入数据若是大写或带 URN/Microsoft braces 等变体形式，MUST 在生成 v1 Event Envelope、object id、cursor payload 或 proof `event_digest` 前规范化为小写无前缀的 36-char hyphen-separated 形式。已经进入签名 canonical bytes 的 ID 不得在验证、转发、backfill 或审计回放时重写大小写或形式。
 
 同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也不得作为 typed `cx:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
 
-`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.payload_hash`（≡ `canonical_hash(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
+`event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.event_digest`（≡ `canonical_hash(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
 
 本节定义的 UUIDv7 构造、编码、单调性、receiver 校验规则 MUST 应用于 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) `id_kinds[]` 中**全部** typed kind（包括但不限于 `realm`、`flow`、`space`、`morph`、`message`、`relation`、`view`、`actor_profile`、`device`、`capability`、`grant`、`invite`、`receipt`、`snapshot`、`txn` 等），event 不是特例。新 kind 注册 MUST 遵循同一规则；只有 registry `special_forms[]` 中已列出的形态（opaque cursor、content-addressed blob / move / anchor、canonical cell tuple、MLS profile-scoped 引用、Realm-scoped pseudonym）才允许偏离 typed-UUIDv7 pattern，并各自由对应 schema / profile 单独校验。未在 registry 注册的非 typed-UUIDv7 前缀形态 MUST 按未知 critical wire type 拒绝。
 
@@ -190,14 +190,14 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
   "kind": "detached_jws",
   "alg": "EdDSA",
   "verification_method": "did:web:alice.example#device-1",
-  "payload_hash": "sha256:...",
+  "event_digest": "sha256:...",
   "jws": "..."
 }
 ```
 
 Proof MUST bind:
 
-- `payload_hash = canonical_hash(event_without_proofs_unsigned)`
+- `event_digest = canonical_hash(event_without_proofs_unsigned)`
 - `actor_id`
 - `verification_method`
 - `created_at`
@@ -207,7 +207,7 @@ Proof MUST bind:
 
 ```json
 {
-  "payload_hash": "sha256:<canonical event hash>",
+  "event_digest": "sha256:<canonical event hash>",
   "actor_id": "<event.actor_id>",
   "verification_method": "<proof.verification_method>",
   "created_at": "<proof.created_at>",
@@ -216,11 +216,11 @@ Proof MUST bind:
 }
 ```
 
-Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 §1 canonicalize 并计算 `payload_hash`；再与 `proof.payload_hash` constant-time 比对；最后按上表字段构造 canonical binding object 并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
+Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 §1 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object 并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
 
 ## 7. HLC
 
-> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Move precondition 比较、或 Anchor finality 判断；这些都由 Move `preconditions[]`、Anchor frontier 与 Lattice `join` 决定。HLC 在 v1 的唯一规范用途是 **timeline 派生层**——当两个事件在 `prev_refs` / `refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。即便 HLC 进入 canonical event bytes 与 proof `payload_hash`（出于 wire 兼容），实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.2 与 [`sync/operations-sync.md`](../sync/operations-sync.md) §6。
+> **使用边界（normative）**：HLC 在 v1 是 **advisory** 字段。它 MUST NOT 进入授权决策、Lattice 收敛、Move precondition 比较、或 Anchor finality 判断；这些都由 Move `preconditions[]`、Anchor frontier 与 Lattice `join` 决定。HLC 在 v1 的唯一规范用途是 **timeline 派生层**——当两个事件在 `prev_refs` / `refs` 形成的因果图中互不可达时，HLC 作为 `(unix_ms, logical, node_id_hash)` 字典序 tie-breaker 使展示顺序确定。即便 HLC 进入 canonical event bytes 与 proof `event_digest`（出于 wire 兼容），实现 MUST NOT 把 HLC 数值当作可信时间戳，也 MUST NOT 据其反转因果或选 winner。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.2 与 [`sync/operations-sync.md`](../sync/operations-sync.md) §6。
 
 Hybrid Logical Clock 编码：
 

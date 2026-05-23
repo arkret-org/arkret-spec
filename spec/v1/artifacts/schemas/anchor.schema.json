@@ -31,7 +31,7 @@
     },
     "frontier": {
       "type": "array",
-      "description": "Set of event_digest values covered by this Anchor. Each item is the content-addressed hash of a reducer-input Event's canonical bytes (excluding proofs and unsigned), encoded as `<algo>:<hex>` and equal to that Event's proof.payload_hash. See event-auth-state-resolution.md §3.",
+      "description": "Set of event_digest values covered by this Anchor. Each item is the content-addressed hash of a reducer-input Event's canonical bytes (excluding proofs and unsigned), encoded as `<algo>:<hex>` and equal to that Event's proof.event_digest. See event-auth-state-resolution.md §3.",
       "items": {
         "$ref": "#/$defs/event_digest"
       },

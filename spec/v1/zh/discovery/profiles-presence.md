@@ -288,7 +288,7 @@ POST /api/v1/directory/search-users
 | `results[].did` | `did` | conditional | 用户 DID。仅当请求方已通过 `resolve-handle` 所需的 claim / presentation / audience / Realm intent 验证，或结果来自调用方本地联系人索引且 DID 已由用户本地持有时才可返回。共同 Realm membership 不得单独授权披露。 |
 | `results[].recipient_service_did` | `did` | conditional | 仅在 `intent ∈ {invite, member_add}` 且 claim 明确授权该 Realm / requester 获取投递上下文时返回；不得用于普通 mention autocomplete。 |
 | `results[].display_name` | `string` | optional | 显示名。 |
-| `results[].avatar` | `object` | optional | 头像引用。 |
+| `results[].avatar_blob_ref` | `id:blob` | optional | 头像 Blob 引用；字段名与 Actor Profile canonical 字段保持一致。 |
 | `results[].membership` | `string` | optional | 与 `realm_id` 相关的成员状态。 |
 | `limited` | `boolean` | optional | 是否因 limit 截断。 |
 
@@ -300,9 +300,7 @@ POST /api/v1/directory/search-users
     {
       "handle": "alice@example.com",
       "display_name": "Alice Chen",
-      "avatar": {
-        "blob_ref": "cx:blob:sha256:a1b2c3..."
-      },
+      "avatar_blob_ref": "cx:blob:sha256:a1b2c3...",
       "membership": "joined"
     }
   ],

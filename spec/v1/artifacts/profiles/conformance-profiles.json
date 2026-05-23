@@ -1973,7 +1973,7 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "pairwise_actor_did",
+          "pairwise_actor_id",
           "identity_link_schema",
           "identity_link_eager_invalidation",
           "principal_disclosure_policy"

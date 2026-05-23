@@ -148,7 +148,7 @@ Audit Agent profile MUST 满足：
      "actor_id": "did:web:compliance.acme.corp",
      "payload": {
        "access_kind": "e2ee_plaintext_release",
-       "writer_did": "did:web:compliance.acme.corp",
+       "writer_actor_id": "did:web:compliance.acme.corp",
        "target_ref": "cx:message:99804430-0000-7000-8000-000000000000",
        "purpose": "Internal legal compliance request #8801",
        "accessed_at": "2026-04-30T00:00:00Z",
@@ -235,7 +235,7 @@ Schema id：`cx.schema.audit_ryw_receipt.v1`
 | `issuer` | yes | 签发方 service / witness DID。MUST 与 proof `verification_method` 同 DID。 |
 | `issuer_role` | yes | `events_api` / `witness` / `peer_node` 之一，标记 receipt 来源类型。 |
 | `audit_event_id` | yes | 对应的 `cx.audit.accessed` event 的 typed ID。 |
-| `audit_event_digest` | yes | `cx.audit.accessed` envelope 的 canonical digest（与该 envelope `proofs[].payload_hash` 一致）。 |
+| `audit_event_digest` | yes | `cx.audit.accessed` envelope 的 canonical digest（与该 envelope `proofs[].event_digest` 一致）。 |
 | `realm_id` | yes | `cx.audit.accessed` 所在 Realm。 |
 | `trust_domain` | yes | 签发 receipt 时该 Realm 所属 deployment trust domain；MUST 与当前接收上下文和 enclosing audit envelope 的 Realm context 一致。 |
 | `audit_actor_id` | yes | 发起 audit 的 Audit Agent DID。 |

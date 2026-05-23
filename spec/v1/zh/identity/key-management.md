@@ -554,7 +554,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 - `challenge`
 - `audience` / `origin`
 - `service_did`
-- `principal_did`
+- `principal_id`
 - `key_id`
 - 过期时间
 - 防重放 nonce
