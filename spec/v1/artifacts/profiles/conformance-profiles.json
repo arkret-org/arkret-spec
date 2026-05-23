@@ -2306,6 +2306,7 @@
         "cx.schema.blob.v1"
       ],
       "required_fixtures": [
+        "membership-delivery-binding-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [],

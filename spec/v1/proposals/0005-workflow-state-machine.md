@@ -10,7 +10,7 @@ depends_on: [CXP-0002]
 
 ## 1. Summary
 
-引入 `cx:workflow:` 一等对象,声明 Realm 内某类 Flow 的精细业务状态机(Open → In Progress → In Review → Done 等),包含状态集合、合法转换边、转换所需 capability / Relation 前置条件。每个 workflow state 映射到协议级 stage bucket(common-fields §5.3.2 的 8 值),保持跨 Realm dashboard 可聚合。
+引入 per-Realm workflow profile 对象,声明 Realm 内某类 Flow 的精细业务状态机(Open → In Progress → In Review → Done 等),包含状态集合、合法转换边、转换所需 capability / Relation 前置条件。每个 workflow state 映射到协议级 stage bucket(common-fields §5.3.2 的 8 值),保持跨 Realm dashboard 可聚合。
 
 ## 2. Motivation
 
@@ -29,17 +29,17 @@ Open → In Progress → In Review → QA → Done
 
 ## 3. Specification
 
-### 3.1 `cx:workflow:` 对象
+### 3.1 Workflow profile 对象
 
 Schema id: `cx.schema.workflow.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:workflow` | `cx:workflow:<uuid>` | Workflow ID。 |
+| `workflow_key` | yes | `string` | `^[a-z][a-z0-9_]{0,63}$` | Realm 内稳定 workflow profile key。 |
 | `realm_id` | yes | `id:realm` | — | 归属 Realm。 |
 | `name` | yes | `string` | 1..128 chars。 | Workflow 显示名。 |
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
-| `target_flow_type_ref` | no | `id:flow_type` | 见 [CXP-0002](./0002-flow-type.md)。 | 本 workflow 绑定的 flow_type。一个 flow_type 可有多个 workflow,但 `cx:flow_type:.allowed_workflow_ref` 声明默认 / 唯一允许的那个。 |
+| `target_flow_type_ref` | no | `id:flow_type` | 见 [CXP-0002](./0002-flow-type.md)。 | 本 workflow 绑定的 flow_type。一个 flow_type 可有多个 workflow,但 flow_type profile 的 `allowed_workflow_key` 声明默认 / 唯一允许的那个。 |
 | `states` | yes | `array<WorkflowState>` | 至少 2 个;包含恰好 1 个 `is_initial=true`。 | 见 §3.2。 |
 | `transitions` | yes | `array<Transition>` | 至少 1 条。 | 见 §3.3。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | workflow 自身的物理生命周期。 |
@@ -104,7 +104,7 @@ Schema id: `cx.schema.workflow.v1`
 
 | 字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
-| `workflow_state_ref` | conditional | `{ workflow_id, state_key }` | 当 Flow 关联的 flow_type 声明 `allowed_workflow_ref` 时必填;reducer 写入只能通过 `cx.flow.workflow.transition`。 |
+| `workflow_state_ref` | conditional | `{ workflow_key, state_key }` | 当 Flow 关联的 flow_type 声明 `allowed_workflow_key` 时必填;reducer 写入只能通过 `cx.flow.workflow.transition`。 |
 
 ### 3.5 Event 家族
 

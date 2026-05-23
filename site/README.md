@@ -36,7 +36,7 @@ Astro Starlight 站点，把 `spec/v1/` 渲染成可浏览的协议规范网站�
 | --- | --- |
 | `/` | 首页 + catalog 概览 |
 | `/zh/v1/...` | 中文 normative 全文（`spec/v1/zh/...`） |
-| `/en/v1/...` | 英文 normative（占位） |
+| `/en/v1/...` | 英文占位（未发布，非 normative） |
 | `/openapi/` | Scalar OpenAPI 视图 |
 | `/catalog/event-kinds/` 与 `/[kind]/` | event_kind 目录 + 详情 |
 | `/catalog/errors/` 与 `/[code]/` | 错误码目录 + 详情 |

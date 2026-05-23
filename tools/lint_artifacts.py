@@ -91,7 +91,7 @@ FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     },
     "spec/v1/zh/models/flow-and-message.md": {
         1: "schemas/flow.schema.json",
-        4: "schemas/message.schema.json",
+        5: "schemas/message.schema.json",
     },
     "spec/v1/zh/models/morph.md": {
         1: "schemas/morph.schema.json",
@@ -766,6 +766,14 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             lint.fail(operation_path, f"operation_id missing from surface_groups: {operation_id}")
 
     profiles: set[str] = set()
+    claimable_profiles: set[str] = set()
+    if isinstance(profile_registry, dict):
+        for key in ("implementation_profiles", "deployment_profiles", "hardening_profiles", "vector_profiles"):
+            values = profile_registry.get(key)
+            if isinstance(values, list):
+                claimable_profiles.update(
+                    item for item in values if isinstance(item, str) and item.startswith("cx.profile.")
+                )
     for _, value, _ in walk_json(profile_registry):
         if isinstance(value, str) and value.startswith("cx.profile."):
             profiles.add(value)
@@ -822,6 +830,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         "operation_grpc_map": operation_grpc_map,
         "operation_mq_map": operation_mq_map,
         "profiles": profiles,
+        "claimable_profiles": claimable_profiles,
         "constraint_types": constraint_types,
     }
 
@@ -2161,8 +2170,8 @@ def check_release_readiness_counts(lint: Lint, known: dict[str, set[str]]) -> No
     """T4-2: schema↔doc count guard.
 
     Re-parses release-readiness.md's count table and verifies each number
-    matches the canonical registry. Prevents the kind of drift that left
-    counts at 146/81/66 while the registry was at 150/84/70.
+    matches the canonical registry. Prevents the release baseline table from
+    disagreeing with the machine-readable contract.
     """
     path = SPEC_ROOT / "zh" / "overview" / "release-readiness.md"
     if not path.exists():
@@ -2178,12 +2187,13 @@ def check_release_readiness_counts(lint: Lint, known: dict[str, set[str]]) -> No
         "Schema": len(known["schema_ids"]),
         "Typed ID kind": len(known["id_kinds"]),
         "Service operation": len(known["operation_ids"]),
-        "Conformance profile（profile id）": len(known["profiles"]),
+        "Claimable conformance profile": len(known["claimable_profiles"]),
+        "Profile id references": len(known["profiles"]),
         "profile_requirements": profile_requirements_count,
         "profile_tiers": profile_tiers_count,
     }
 
-    # Match table rows like "| Event kind（active） | 150 | `...` |"
+    # Match table rows like "| Event kind（active） | 152 | `...` |"
     table_re = re.compile(r"^\|\s*([^|]+?)\s*\|\s*(\d+)\s*\|", re.MULTILINE)
     found: dict[str, int] = {}
     for match in table_re.finditer(text):
@@ -2238,12 +2248,13 @@ def check_error_code_closure(lint: Lint) -> None:
     if not known_codes:
         return
 
-    # Look for the canonical normative usage forms only:
+    # Look for canonical normative usage forms:
     #   reason_code="..." / reason="..." / reason=`...`
     #   reason == "..."
     #   `error_code=...`
-    # We deliberately do NOT scan freeform prose (lots of false positives
-    # for ordinary English words quoted in backticks).
+    #   返回 `...` / reject `...` / audit log records reason_code such as `...`
+    # We still avoid scanning every freeform backtick token because prose also
+    # quotes ordinary schema fields and enum values.
     #
     # Patterns covered (single + double quotes + backticks):
     patterns = [
@@ -2252,7 +2263,17 @@ def check_error_code_closure(lint: Lint) -> None:
         re.compile(r'reason\s*==\s*["`]([a-z_][a-z0-9_]+)["`]'),
         re.compile(r'error_code\s*[=:]\s*["`]([a-z_][a-z0-9_]+)["`]'),
         re.compile(r'`reason\s*=\s*["\']?([a-z_][a-z0-9_]+)["\']?`'),
+        re.compile(r'reason_code[^`\n]*(?:如|such as)\s+`([a-z_][a-z0-9_]+)`', re.IGNORECASE),
     ]
+    code_like_re = re.compile(
+        r"(_invalid|_mismatch|_required|_forbidden|_denied|_expired|_stale|"
+        r"_conflict|_unavailable|_missing|_not_allowed|_too_stale|"
+        r"_rate_limited|_failed|_violation|_rejected|_redacted)$"
+    )
+    non_error_code_tokens = {
+        "allow_child_privacy_tightening_against_required",
+        "on_conflict",
+    }
 
     for path in markdown_files():
         text = path.read_text(encoding="utf-8")
@@ -2266,6 +2287,39 @@ def check_error_code_closure(lint: Lint) -> None:
                 if code in {"true", "false", "null", "ok", "yes", "no", "n_a"}:
                     continue
                 unresolved.add(code)
+        for line in text.splitlines():
+            reason_examples = re.search(r"reason_code[^`\n]*(?:如|例如|such as)(?P<tail>.*)$", line, re.IGNORECASE)
+            if reason_examples:
+                candidate_text = reason_examples.group("tail")
+                require_code_shape = False
+            elif re.search(r"(返回|return|reject|拒绝)", line, re.IGNORECASE):
+                candidate_text = line
+                require_code_shape = True
+            else:
+                continue
+            for code in re.findall(r"`([a-z_][a-z0-9_]+)`", candidate_text):
+                if code in non_error_code_tokens:
+                    continue
+                if require_code_shape and not code_like_re.search(code):
+                    continue
+                if code in known_codes:
+                    continue
+                if code in {"true", "false", "null", "ok", "yes", "no", "n_a"}:
+                    continue
+                unresolved.add(code)
+        for code in sorted(unresolved):
+            lint.fail(path, f"reason_code referenced but not in error-code-registry.json: {code!r}")
+
+    json_reason_keys = {"reason_code", "reject_reason", "expected_audit_reason"}
+    for path in [ARTIFACTS / "profiles" / "conformance-profiles.json"]:
+        data = load_json(lint, path)
+        if data is None:
+            continue
+        unresolved: set[str] = set()
+        for _, value, key in walk_json(data):
+            if key in json_reason_keys and isinstance(value, str):
+                if value not in known_codes:
+                    unresolved.add(value)
         for code in sorted(unresolved):
             lint.fail(path, f"reason_code referenced but not in error-code-registry.json: {code!r}")
 
@@ -2493,7 +2547,8 @@ def main() -> int:
         f"{len(known['schema_ids'])} schemas, "
         f"{len(known['id_kinds'])} typed ID kinds, "
         f"{len(known['operation_ids'])} operations, "
-        f"{len(known['profiles'])} profiles)."
+        f"{len(known['claimable_profiles'])} claimable profiles, "
+        f"{len(known['profiles'])} profile id references)."
     )
     return 0
 

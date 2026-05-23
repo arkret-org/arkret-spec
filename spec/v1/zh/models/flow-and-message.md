@@ -136,7 +136,7 @@ Schema id: `cx.schema.flow.v1`
 5. `cx.flow.update` patch path 出现 `stage` / `stage_changed_at` → `schema_violation`
 6. `flow.fields.stage` / `flow.fields.stage_reason` / `flow.fields.lifecycle` / `flow.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
 
-**与 `cx:workflow:` 的关系**：未启用自定义 workflow 时，actor 直接调用 `cx.flow.stage.set`。启用 workflow 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— stage 始终是 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
+**与 workflow profile 的关系**：未启用自定义 workflow 时，actor 直接调用 `cx.flow.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— stage 始终是 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
 
 **与 `fields.status` 的关系**：`fields.status` 是自由扩展字段（profile 自管），可与 `stage` 共存表达 fine-grained 业务子状态；但 stage 本身**不允许**藏在 `fields` 下。
 

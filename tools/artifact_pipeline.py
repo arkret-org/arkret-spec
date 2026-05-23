@@ -4,7 +4,7 @@
 Layout (post-restructure):
 
   spec/v1/zh/                          normative Chinese prose
-  spec/v1/en/                          normative English prose (placeholder)
+  spec/v1/en/                          English placeholder (non-normative until published)
   spec/v1/artifacts/registry/          canonical + generated registry views
   spec/v1/artifacts/profiles/          conformance profiles
   spec/v1/artifacts/schemas/           JSON Schemas

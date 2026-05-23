@@ -75,13 +75,14 @@ API 调用 SHOULD 使用以下方式之一：
 
 服务端 MUST NOT 仅因 bearer token 存在就跳过 capability 检查。
 
-认证材料 MUST 放在 header、HTTP Message Signature、mTLS 握手或明确的 signed proof body 中。服务端 MUST NOT 接受 query string、path segment 或 fragment 中的 session token、access token、API key、签名密钥或等价认证材料。
+认证材料 MUST 放在 header、HTTP Message Signature、mTLS 握手或明确的 signed proof body 中。服务端 MUST NOT 接受 query string、path segment 或 fragment 中的 session token、access token、API key、签名密钥、长期 capability 或等价长期认证材料。
 
 规则：
 
 - 带有 `access_token`、`session_token`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
-- 临时下载 URL 可以把短期能力 token 放入 URL，但它 MUST 是单 blob、单用途、短时效、可撤销的派生 token，不得等同于用户 session 或长期 capability。
+- `cx.blob.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
+- 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
 
 ### 3.1 认证服务发现
 
@@ -313,6 +314,8 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - `Access-Control-Allow-Methods` SHOULD 反映该服务实际支持的 method 集合；支持 `HEAD` 或 `PATCH` 的服务必须把它们列入 CORS。
 - 服务端 MUST NOT 在 CORS 中允许 `CONNECT` 或 `TRACE`。
 - 浏览器可访问的私有 endpoint 不得依赖 cookie 作为唯一认证方式；推荐使用 `Authorization` header 或 device-bound proof。
+- 若响应使用 `Access-Control-Allow-Origin: *`，服务端 MUST NOT 同时设置 `Access-Control-Allow-Credentials: true`。需要 credentialed CORS 的部署 MUST 回显明确 allowlisted origin，并继续按 §3 要求校验 header / proof / capability，不得把 cookie 当作协议层 principal。
+- Preflight、CORS error、redirect 与 4xx/5xx body 都不得泄露不可见 Realm、actor、member 或 blob 是否存在。
 
 ## 11. 版本与 feature discovery
 

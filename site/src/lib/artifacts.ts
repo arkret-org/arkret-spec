@@ -55,8 +55,10 @@ export interface EventKind {
 
 export interface ErrorCode {
   code: string;
-  http_status: number;
-  scope: "service" | "item" | "both" | string;
+  kind?: "code" | "reason_code";
+  http_status?: number;
+  scope?: "service" | "item" | "both" | string;
+  applies_to?: string[];
   description: string;
 }
 
@@ -127,7 +129,7 @@ function pickSchema<T = unknown>(name: string): T {
 
 const contractCatalog = pickRegistry<Record<string, unknown>>("contract-catalog.json");
 const eventRegistry = pickRegistry<{ event_kinds: EventKind[] }>("event-kind-registry.json");
-const errorRegistry = pickRegistry<{ codes: ErrorCode[] }>("error-code-registry.json");
+const errorRegistry = pickRegistry<{ codes: ErrorCode[]; reason_codes?: ErrorCode[] }>("error-code-registry.json");
 const idRegistry = pickRegistry<{ id_kinds: IdKind[]; special_forms?: IdKind[] }>("id-kind-registry.json");
 const operationRegistry = pickRegistry<{
   operations: Operation[];
@@ -143,7 +145,17 @@ export const eventKinds: EventKind[] = eventRegistry.event_kinds.slice().sort((a
   a.event_kind.localeCompare(b.event_kind)
 );
 
-export const errorCodes: ErrorCode[] = errorRegistry.codes.slice().sort((a, b) =>
+const errorCodeMap = new Map<string, ErrorCode>();
+for (const row of errorRegistry.codes) {
+  errorCodeMap.set(row.code, { ...row, kind: "code" });
+}
+for (const row of errorRegistry.reason_codes ?? []) {
+  if (!errorCodeMap.has(row.code)) {
+    errorCodeMap.set(row.code, { ...row, kind: "reason_code" });
+  }
+}
+
+export const errorCodes: ErrorCode[] = Array.from(errorCodeMap.values()).sort((a, b) =>
   a.code.localeCompare(b.code)
 );
 

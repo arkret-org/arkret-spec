@@ -73,7 +73,7 @@ discussion: <PR / issue 链接>
 | [CXP-0002](./0002-flow-type.md) | Flow Type (Work Item Type) | draft | 引入 `cx:flow_type:`(Task / Sub-task / Bug / Story / ...) |
 | [CXP-0003](./0003-field-catalog.md) | Field Catalog | draft | 引入 `cx:field_def:` 可复用 typed 字段目录 |
 | [CXP-0004](./0004-form-layout.md) | Form Layout | draft | 单 Flow 详情面板字段排列(类似 Jira "Work item layout") |
-| [CXP-0005](./0005-workflow-state-machine.md) | Workflow State Machine | draft | `cx:workflow:` per-Realm 状态机,映射到协议级 stage bucket |
+| [CXP-0005](./0005-workflow-state-machine.md) | Workflow State Machine | draft | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
 | [CXP-0006](./0006-component-version.md) | Component & Version classifiers | draft | `cx:component:` / `cx:version:` 结构性分类对象 |
 
 ## 6. 写作风格

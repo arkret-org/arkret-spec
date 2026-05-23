@@ -25,9 +25,11 @@ const artifactsRoot = resolve(specRoot, "artifacts");
 const eventKinds = new Set(
   loadJson("registry/event-kind-registry.json").event_kinds.map((r) => r.event_kind)
 );
-const errorCodes = new Set(
-  loadJson("registry/error-code-registry.json").codes.map((r) => r.code)
-);
+const errorRegistry = loadJson("registry/error-code-registry.json");
+const errorCodes = new Set([
+  ...errorRegistry.codes.map((r) => r.code),
+  ...(errorRegistry.reason_codes ?? []).map((r) => r.code),
+]);
 const operations = new Set(
   loadJson("registry/operation-registry.json").operations.map((r) => r.operation_id)
 );

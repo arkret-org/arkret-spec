@@ -22,15 +22,16 @@ title: 实现就绪与发布门槛
 
 | Registry | 计数 | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 150 | `artifacts/registry/event-kind-registry.json` |
+| Event kind（active） | 152 | `artifacts/registry/event-kind-registry.json` |
 | Schema | 53 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 39 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 87 | `artifacts/registry/operation-registry.json` |
-| Conformance profile（profile id） | 78 | `artifacts/profiles/conformance-profiles.json` |
+| Claimable conformance profile | 57 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 78 | `artifacts/profiles/conformance-profiles.json` |
 
-当前 `conformance-profiles.json` 另含 67 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 profile id 集合保持一致。
+当前 `conformance-profiles.json` 另含 67 个 `profile_requirements` block 与 4 个 `profile_tiers` 分组；这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `cx.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
-> Profile id 计数 78 与 `python tools/artifact_pipeline.py check` 输出（"... 87 operations, 78 profiles"）一致；该数字由 lint 工具按 canonical 计数规则得出，与本仓库 `tools/lint_artifacts.py` 同步。
+> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `cx.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明
 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或退役 registry 项，MUST 同时
@@ -65,7 +66,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 | Conformance vectors | `artifacts/fixtures/*.json` | encoding、crypto、Move/Anchor/Lattice、redaction、capability、sync、privacy/security、federation、MIMI 均有机器 fixture 入口。 |
 | Snapshot 约束 | `artifacts/schemas/snapshot.schema.json`, `zh/conformance/snapshot-schema.md`, `zh/sync/operations-sync.md` | manifest 必须包含 `event_set_commitment`；高保障 profile 支持 inclusion / omission challenge。 |
 | Moderation / abuse | `artifacts/schemas/moderation-report.schema.json`, `artifacts/schemas/moderation-queue-item.schema.json`, OpenAPI moderation endpoints | report、queue item、E2EE evidence / franking 边界有 schema 与服务绑定。 |
-| Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `zh/conformance/conformance-profiles.md` | hidden resource、private contact discovery、plaintext-visible service、private blob、blind push 有回归向量。 |
+| Privacy / security | `artifacts/fixtures/privacy-security-fixture.json`, `artifacts/fixtures/membership-delivery-binding-fixture.json`, `zh/conformance/conformance-profiles.md` | hidden resource、private contact discovery、plaintext-visible service、private blob、blind push、membership delivery binding 有回归向量。 |
 
 ## 4. 必须保持的不变量
 

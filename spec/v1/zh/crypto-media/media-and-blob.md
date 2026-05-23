@@ -379,7 +379,7 @@ Cache-Control: public, immutable, max-age=31536000
   - **E2EE ciphertext** — 已经在 §5.4.4 MUST NOT 列出。E2EE 附件 fetch 走 client-side `fetch()` + `Authorization` header 路径。
   - **legal hold blob** — 处于 legal hold 状态的 blob MUST 拒绝 `cx.blob.presign`（`legal_hold_active`），即便申请方持有 `cx.blob.presign` capability。原因：legal hold 要求 access 留痕可追溯，bearer URL 让第三方无凭据拉取破坏审计链。
   - **redacted blob** — `cx.redaction` 已生效 / `cx.audit.erasure_receipt` 已发布的 blob MUST 立即拒绝 presign 请求与已签发但 TTL 未到的 presign 请求（`blob_redacted`）。
-  - **private attachment 私有附件**（`visibility=actor_private` 或附 `cx.actor_private` policy 标签）— MUST NOT 走 presign 路径。该类 blob 只允许 issuing actor 本人通过 header auth fetch。
+  - **private attachment 私有附件**（`visibility=actor_private` 或附 `cx.actor_private` policy 标签）— MUST NOT 走 presign 路径（`private_attachment`）。该类 blob 只允许 issuing actor 本人通过 header auth fetch。
 - **future audience-bound 机制**（v2 评估）：若未来需要真正绑定 audience，方案有 (a) 把 presign 升级为 cookie-bound URL（依赖 `__Host-` cookie + SameSite=Strict + presign 校验 cookie binding），(b) 通过 session-bound token 把 presign 换给 client 后只在该 session 内可用。两条都需要客户端配合，不属于 v1 范围。
 
 #### 5.4.4.2 Bearer URL 泄漏面控制（normative）
@@ -392,7 +392,7 @@ Cache-Control: public, immutable, max-age=31536000
   - `X-Content-Type-Options: nosniff`
 - 服务端 MUST NOT 在 access log / metrics / tracing 中记录 `?presign=` query 参数原文；记录 audit log 时 SHOULD 把 envelope hash 而不是原文写入。
 - 服务端 MUST 限制 presign URL 在反向代理 / CDN 层不被缓存（`Cache-Control: private` 不够时还要 set `Vary: Authorization` 或显式 surrogate-control）。
-- 客户端 SHOULD 仅在最终消费节点（`<img src=...>` 注入或 fetch）处构造 presign URL；不要在中间 routing / page state / browser history 中长期保留。
+- 客户端 MUST NOT 把 presign URL 持久化到 app state、route state、analytics、crash report、local storage、普通日志或浏览器历史中；SHOULD 仅在最终消费节点（`<img src=...>` 注入或 fetch）处构造 presign URL。
 
 #### 5.4.5 与 capability 的衔接
 

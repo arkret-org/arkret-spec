@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-22",
+  "version": "2026-05-23",
   "codes": [
     {
       "code": "bad_json",
@@ -1355,6 +1355,159 @@
         "auth_decision"
       ],
       "description": "Realm `cx.realm.join_rule` and `cx.realm.policy_components` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §4."
+    },
+    {
+      "code": "delivery_binding_invalid",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "A member join / invite / delivery-binding candidate failed cryptographic or policy validation before membership acceptance: signature invalid, subject / service DID mismatch, expired candidate, unresolved issuer, or missing binding proof. Reducers MUST reject the Move fail-closed rather than partially accepting membership. See zh/governance/join-policy.md §5.3 and zh/identity/identity-handles.md §3.7."
+    },
+    {
+      "code": "delivery_binding_policy_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "The resolved member delivery binding source or recipient_service_did conflicts with the Realm join policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/join-policy.md §5.4."
+    },
+    {
+      "code": "principal_control_event_kind_forbidden",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A Realm claiming cx.profile.principal_control_realm.v1 received a collaboration / media / content event kind outside its allowlist-only control-plane event policy. Reducers MUST reject instead of treating the Realm as ordinary collaboration history. See zh/identity/key-management.md §4.2 and artifacts/profiles/conformance-profiles.json#profile_requirements."
+    },
+    {
+      "code": "epoch_update_required",
+      "applies_to": [
+        "crypto",
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "Membership, policy, or governance frontier changed and the current MLS epoch does not yet have a winning cx.mls.commit whose governance_binding covers that frontier. Clients MUST pause new application messages for the scope until the effective epoch catches up. See zh/crypto-media/encryption-and-audit.md §2.4.1."
+    },
+    {
+      "code": "claim_generation_mismatch",
+      "applies_to": [
+        "crypto",
+        "auth_decision"
+      ],
+      "description": "An MLS Welcome / KeyPackage claim binds a cross-signing or self-signing generation that does not equal the receiver's current accepted generation. Receivers MUST reject before admitting the Welcome or key material. See zh/crypto-media/encryption-and-audit.md §2.6 and zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "keypackage_refresh_required",
+      "applies_to": [
+        "crypto",
+        "service_call"
+      ],
+      "description": "Available one-time KeyPackage count is below the Realm or service low-watermark after claim attempts. Senders MAY delay Welcome generation and the target device SHOULD publish fresh KeyPackages. See zh/crypto-media/device-lifecycle.md §14.4."
+    },
+    {
+      "code": "presign_invalid",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A cx.blob.presign bearer envelope is syntactically invalid, has an unrecognised scheme, fails signature verification, mixes with Authorization header auth, or otherwise cannot be validated. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+    },
+    {
+      "code": "presign_expired",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A cx.blob.presign bearer URL was presented outside its nbf / exp window or after its nonce was revoked. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+    },
+    {
+      "code": "presign_scope_mismatch",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A cx.blob.presign envelope scope does not match the requested blob_ref, method, byte range, purpose, Realm, issuer trust state, or current blob visibility. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+    },
+    {
+      "code": "private_attachment",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "The target blob is actor_private / private attachment material and MUST NOT be exposed through a bearer presign URL. It remains fetchable only through header-authenticated actor-bound access. See zh/crypto-media/media-and-blob.md §5.4.4.1."
+    },
+    {
+      "code": "policy_denied",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "A Realm, organization, account, holder-disclosure, agent, or deployment policy explicitly denied the requested operation after syntactic validation and authentication succeeded. Use a narrower code when a more specific registry entry applies. See zh/authz/policy-server.md, zh/crypto-media/device-lifecycle.md, zh/identity/identity-handles.md, and zh/extensions/agent-protocol-interop.md."
+    },
+    {
+      "code": "audience_mismatch",
+      "applies_to": [
+        "auth_decision",
+        "event_envelope",
+        "service_call"
+      ],
+      "description": "A proof, token, Auth Server verification result, invite claim, KeyPackage claim, or signed handoff was presented to a Realm / service / audience different from the one bound into the signed material. Receivers MUST reject rather than reinterpret the audience. See zh/conformance/conformance-vectors.md."
+    },
+    {
+      "code": "handle_subject_mismatch",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "Handle resolution returned a subject DID that does not match the expected applicant / member / invite subject. Clients and reducers MUST reject the candidate before building delivery_binding or join material. See zh/identity/identity-handles.md §3.7 and zh/conformance/conformance-vectors.md §8."
+    },
+    {
+      "code": "artifact_rejected",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "An Agent Protocol handoff returned or submitted an artifact that failed Contrix schema, safety, policy, or malware checks. The agent session MAY continue, but the artifact MUST NOT be admitted as accepted Realm content. See zh/extensions/agent-protocol-interop.md."
+    },
+    {
+      "code": "remote_rejected",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "A remote agent or peer explicitly rejected the delegated task / protocol handoff. Contrix records the rejection as a stable handoff outcome rather than retrying blindly. See zh/extensions/agent-protocol-interop.md."
+    },
+    {
+      "code": "webvh_cache_too_stale",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "A did:webvh resolver cache entry exceeded the per-entry maximum evidence age, even if the global cache-only outage window has not expired. High-risk writes, service delegation, capability reconstruction, and snapshot witness acceptance MUST fail closed. See zh/identity/identity-did.md §5."
+    },
+    {
+      "code": "delivery_binding_handover_proof_invalid",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A federation delivery-binding handover response carried a proof that does not verify against the Realm Event graph, handover_frontier, actor_id, new_recipient_service_did, or effective delivery binding policy. Sender MUST stop redirection and MUST NOT fall back to DID Document routing. See zh/sync/federation.md §4.2."
+    },
+    {
+      "code": "delivery_binding_handover_rate_limited",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Sender has already accepted the maximum number of successful delivery-binding handovers for the same target principal and Realm in the configured rolling window. It MUST enter operator diagnostic instead of following another handover. See zh/sync/federation.md §4.2."
+    },
+    {
+      "code": "soft_failed",
+      "applies_to": [
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "An Event or reducer input is held in a reversible soft-failed state pending causal backfill, authorization material, policy evidence, or asynchronous verification. It may later upgrade to accepted or roll back to rejected, but accepted MUST NOT degrade to rejected without a new governance event. See zh/sync/operations-sync.md §4.4."
     },
     {
       "code": "space_has_live_dependents",

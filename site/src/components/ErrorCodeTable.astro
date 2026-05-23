@@ -19,8 +19,9 @@ const rows = errorCodes.filter((row) => {
   <thead>
     <tr>
       <th>code</th>
+      <th>kind</th>
       <th>HTTP</th>
-      <th>scope</th>
+      <th>scope / applies to</th>
       <th>description</th>
     </tr>
   </thead>
@@ -33,8 +34,9 @@ const rows = errorCodes.filter((row) => {
               <code>{row.code}</code>
             </a>
           </td>
-          <td>{row.http_status}</td>
-          <td>{row.scope}</td>
+          <td>{row.kind}</td>
+          <td>{row.http_status ?? "—"}</td>
+          <td>{row.scope ?? row.applies_to?.join(", ") ?? "—"}</td>
           <td>{row.description}</td>
         </tr>
       ))

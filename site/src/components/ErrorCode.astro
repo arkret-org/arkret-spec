@@ -27,8 +27,10 @@ const href = `/catalog/errors/${encodeURIComponent(code)}/`;
         <a class="cx-card-title" href={href}>
           <code>{code}</code>
         </a>
-        <span>· HTTP {row.http_status}</span>
-        <span>· scope {row.scope}</span>
+        <span>· {row.kind}</span>
+        {row.http_status ? <span>· HTTP {row.http_status}</span> : null}
+        {row.scope ? <span>· scope {row.scope}</span> : null}
+        {row.applies_to ? <span>· applies to {row.applies_to.join(", ")}</span> : null}
       </header>
       <p>{row.description}</p>
     </article>

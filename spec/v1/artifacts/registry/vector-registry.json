@@ -314,6 +314,46 @@
       ]
     },
     {
+      "vector_id": "cx.vector.membership.delivery_binding.explicit.v1",
+      "status": "active",
+      "domain": "membership",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.membership.delivery_binding.did_document_default.v1",
+      "status": "active",
+      "domain": "membership",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.membership.delivery_binding.unroutable.v1",
+      "status": "active",
+      "domain": "membership",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.membership.delivery_binding.handover.v1",
+      "status": "active",
+      "domain": "membership",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "cx.vector.membership.delivery_binding.policy_mismatch.v1",
+      "status": "active",
+      "domain": "membership",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+      ]
+    },
+    {
       "vector_id": "cx.vector.mls.welcome_keypackage_hash.v1",
       "status": "active",
       "domain": "mls",

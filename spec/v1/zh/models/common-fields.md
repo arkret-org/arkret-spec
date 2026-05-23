@@ -187,11 +187,11 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 
 `bucket`(`todo / doing / closed`)是**派生**分类,不入 wire / canonical bytes / 签名输入;projection 自行映射用于 dashboard / filter。bucket 命名刻意避开 `active`,防止与 `state=active` 撞名。
 
-枚举值在 v1 内**固定**,profile MUST NOT 新增 stage value;细粒度业务状态(`needs_review` / `qa` / `signed_off` 等)走 per-Realm `cx:workflow:`(若已注册该 profile)或 `fields.<custom_status>`,**不**在协议级 stage 表达。
+枚举值在 v1 内**固定**,profile MUST NOT 新增 stage value;细粒度业务状态(`needs_review` / `qa` / `signed_off` 等)走 per-Realm workflow profile 或 `fields.<custom_status>`,**不**在协议级 stage 表达。
 
 #### 5.3.3 转换规则（reducer-enforced 硬约束)
 
-`stage` 的细粒度 transition matrix 由 per-Realm `cx:workflow:`(profile-level)声明;**核心 reducer 不强制 stage 之间的方向**(`done → in_progress` 回炉、`cancelled → planned` 复活均合法)。但以下硬约束 MUST 由 core reducer 强制:
+`stage` 的细粒度 transition matrix 由 per-Realm workflow profile(profile-level)声明;**核心 reducer 不强制 stage 之间的方向**(`done → in_progress` 回炉、`cancelled → planned` 复活均合法)。但以下硬约束 MUST 由 core reducer 强制:
 
 1. **物理终态优先**:对象 `state ∈ {redacted, tombstoned, deleted}` 时,`cx.<kind>.stage.set` MUST 返回 `failed_precondition`,`reason="<kind>_already_terminal"`。
 2. **non-active 拒写**:对象 `state=archived` 时,`cx.<kind>.stage.set` MUST 返回 `failed_precondition`,`reason="<kind>_not_active"`(与 §5.1 update on non-active 同语义);想推进 stage 必须先 `cx.<kind>.restore`。
@@ -200,11 +200,11 @@ DID 是 Contrix 的主体标识，不是普通协作对象 ID。标准协作对�
 5. **stage 变更不携带 reason 字段**:`cx.<kind>.stage.set` payload **不**定义 reason / note / explanation 字段。需要解释时 SHOULD 在该对象的 discussion track 发 Message 并通过 Relation `references` 指向本次 stage event;事件日志本身的 `created_by` / `created_at` 已经是审计归属真源。reserved-name guard:对象顶层与 `fields.*` 上 `stage_reason` / `stage_note` / `stage_explanation` / `stage_comment` MUST 被 forbidden-wire-fields 拒绝。
 6. **`cx.<kind>.update` 禁写 stage**:patch path `stage` / `stage_changed_at` MUST 被 forbidden-wire-fields 拒绝(单源:stage 变更只能走 `cx.<kind>.stage.set`)。
 
-#### 5.3.4 与 `cx:workflow:` 的关系
+#### 5.3.4 与 workflow profile 的关系
 
-未启用 `cx:workflow:` 的 Realm:actor 通过 `cx.<kind>.stage.set` 直接推进 stage,reducer 只走 §5.3.3 硬约束。
+未启用 workflow profile 的 Realm:actor 通过 `cx.<kind>.stage.set` 直接推进 stage,reducer 只走 §5.3.3 硬约束。
 
-启用 `cx:workflow:` 的 Realm(profile-level,non-core):
+启用 workflow profile 的 Realm(profile-level,non-core):
 
 - 每个 workflow state SHOULD 声明 `stage_category`(取上面 8 值之一);
 - workflow 推进 event 在变更 `workflow_state_ref` 时,reducer SHOULD 派生写入对应 `stage`;

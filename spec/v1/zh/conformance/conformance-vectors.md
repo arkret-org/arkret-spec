@@ -1780,7 +1780,7 @@ cx.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 - rebind 通过 causal frontier handover；
 - 撤销后投递立即停止。
 
-下列向量假设 Realm `cx:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位。本节是 normative vector description；当前 machine fixture 尚未按 `membership/delivery_binding/` 子目录分文件落地，runner MUST 以本节描述或后续落地 fixture 为准，不得假设该目录已经存在。
+下列向量假设 Realm `cx:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位。本节是 normative vector description；机器可执行 fixture 位于 [`../../artifacts/fixtures/membership-delivery-binding-fixture.json`](../../artifacts/fixtures/membership-delivery-binding-fixture.json)，runner MUST 同时消费该 fixture 与本文 prose，不得再依赖未落地的目录约定。
 
 ### 7.2 Vector: `explicit` Binding 接受
 
@@ -1838,7 +1838,7 @@ Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_did_docu
 期望：
 - reducer 接受 join Move（`did_document_hash` 与 `resolved_at` 满足 conditional required）。
 - 同形 Move 缺少 `did_document_hash` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
-- 同形 Move 在 Realm policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_source_not_allowed`。
+- 同形 Move 在 Realm policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
 - 一旦该 join 被接受，sender **不得**在后续投递时 re-resolve DID Document——即使 DID Document 已更新指向新服务，仍按 cell 内 `delivery_binding` 投递，直到一次合法 rebind。
 
 ### 7.4 Vector: `unroutable` 成员
@@ -1860,7 +1860,7 @@ Input — Realm policy `cx.realm.delivery_binding_policy` 声明 `allow_unroutab
 - reducer 接受。
 - 任何 sender 计算"该 Realm S 应投递给 Alice"的目标集合时 MUST 跳过该成员；不得用 DID Document 推导 fallback。
 - 客户端对该成员的本地视图：只展示在 reducer state 与本地索引中，但不向其推送通知 / sync / push / to_device。
-- 同形 Move 在 Realm policy `allow_unroutable_membership=false` 时 reducer MUST 返回 `unroutable_not_allowed`。
+- 同形 Move 在 Realm policy `allow_unroutable_membership=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
 
 ### 7.5 Vector: Rebind Handover + 撤销后停止投递
 
