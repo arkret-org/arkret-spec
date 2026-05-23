@@ -1550,6 +1550,22 @@
       "description": "Current MLS epoch's governance binding policy_root does not cover the Realm policy components the client wants to act on (e.g. media_service_decrypts toggle, plaintext_visible_services). Receivers MUST refuse to act until a fresh commit updates policy_root. See zh/crypto-media/webrtc-signaling.md §10.3.1 and zh/crypto-media/encryption-and-audit.md §3.2."
     },
     {
+      "code": "mimi_governance_binding_missing",
+      "applies_to": [
+        "service_call",
+        "state_resolution"
+      ],
+      "description": "A MIMI facade attempted to project room state, groupInfo, key material, or message data into a Contrix Realm without a verifiable Contrix MLS governance binding. Receiver MUST quarantine or reject fail-closed instead of accepting unauthenticated MIMI state as Realm authority. See zh/extensions/mimi-interop.md §4."
+    },
+    {
+      "code": "applet_registration_unauthorized",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "An Applet registration or transaction attempted to enter a Realm without an explicit grant from the Realm owner, Realm admin, or Realm-policy-authorized registry/authz service. Namespace claims and self-signed applet registration are insufficient. See zh/extensions/applet-integration.md §4."
+    },
+    {
       "code": "expired_invite_token",
       "applies_to": [
         "state_resolution"

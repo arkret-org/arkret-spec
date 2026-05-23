@@ -197,11 +197,26 @@ v1 wire 中"指向另一个对象"的字段有两种命名 convention：`<noun>_
 
 Proof MUST bind:
 
-- payload hash
-- actor DID
-- verification method
-- domain / audience where applicable
-- created_at
+- `payload_hash = canonical_hash(event_without_proofs_unsigned)`
+- `actor_id`
+- `verification_method`
+- `created_at`
+- `domain` / `audience` where applicable
+
+`detached_jws` 的 payload segment MUST be empty in compact serialization, but the detached bytes being signed MUST be the canonical proof binding object:
+
+```json
+{
+  "payload_hash": "sha256:<canonical event hash>",
+  "actor_id": "<event.actor_id>",
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
+  "domain": "<proof.domain if present>",
+  "audience": "<proof.audience if present>"
+}
+```
+
+Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 §1 canonicalize 并计算 `payload_hash`；再与 `proof.payload_hash` constant-time 比对；最后按上表字段构造 canonical binding object 并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
 
 ## 7. HLC
 

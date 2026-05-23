@@ -104,6 +104,7 @@ GET /api/v1/mimi/provider-directory
 - `local_provider_role` 取值为 `hub`、`follower` 或 `bridge_only`。
 - `cx.mimi.room_binding` 的创建、更新和撤销 MUST require `cx.policy.manage`、`cx.realm.admin` 或等价 interop capability。
 - E2EE MIMI room MUST 绑定 `mls_group_id`，并按 `encryption-and-audit.md §2.5`（MLS Governance Binding）的 `covered_frontier_cell` precondition 校验 membership、policy 和 capability。
+- MIMI facade 在无法解析或验证 Contrix MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Contrix Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。
 
 ## 5. Endpoint Surface

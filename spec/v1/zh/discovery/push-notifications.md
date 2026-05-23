@@ -26,6 +26,8 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 - 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容；本地通知文案在客户端解密后生成。
 - **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，但其 wire 形态 MUST 仅限以下封闭枚举字段——`wakeup_kind`（粗粒度类别，如 `message`/`mention`/`reaction`/`call_invite`）、`badge_count`（数字徽章计数）、`unread_increment`（增量计数）、本地化字符串 token（`l10n_key`，由客户端在解密后渲染）。**MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Realm id / 名称 / 头像、Flow id / 名称、Space id / 名称、Message id、reaction emoji 实际值、附件文件名、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Realm 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
 
+- **Sync Service 转发也必须执行同一白名单**：Sync / notification service 在调用 `/api/v1/push/notify` 前 MUST 校验将要转发给 Push Gateway 的字段集合。默认 `blind_wakeup` profile 下，超出 §5.1 枚举字段的 metadata MUST 被 strip，并写入最小化 audit 记录；若字段属于 event / realm / sender 识别字段且未满足 `visible_notification` profile gate，服务 MUST 拒绝该通知或降级为 blind wakeup，不得原样转发。
+
 ### 2.3 用户完全控制推送规则
 
 推送规则是 Actor-private 的配置，存储在用户自己的加密 account data 中。用户有权关闭任何 Realm 的推送、设置静默时段、自定义关键词触发等。

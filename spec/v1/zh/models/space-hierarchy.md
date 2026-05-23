@@ -44,6 +44,7 @@ precondition := head_eq <expected_parent_space_id | null>
 规则：
 
 - `space_id == parent_space_id` MUST `schema_violation`。
+- Reducer 在接受 `cx.space.parent` 前 MUST 以上移后的 parent 链为准自上而下检测 acyclic；若新 edge 会让 `space_id` 重新出现在自己的 ancestor 集合中，MUST 拒绝，reason=`space_parent_cycle`。跨 Realm parent 也必须参与该检测；无法读取某个 ancestor 时不得假设无环，必须 fail closed 或进入 pending until proof。
 - `parent_space_id = null` 表示移动到 root。
 - 并发 reparent 返回 `⊥`，依赖该 cell 的后续 Move fail closed。
 - 若 parent Space 不可读取，projection MAY 返回 `{ parent_ref_hidden: true }`，但不得伪造 root。
@@ -59,6 +60,8 @@ Effective default Realm 解析：
 
 ```text
 effective_default_realm(space):
+  if space already appears in current resolution stack:
+    fail closed (space_parent_cycle)
   if space.default_realm_ref exists:
     return space.default_realm_ref
   if space.parent_ref exists and parent is readable:

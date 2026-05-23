@@ -94,7 +94,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `GET /api/v1/account/subscribe` | query `{after?: cursor, catchup?: boolean, filter?: object, set_presence?: enum}` | `user_session` bound to principal/device。聚合账号视角 delta(跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts) streaming NDJSON 推送,不是裸事件读。 | `application/x-ndjson` AccountSubscribeFrame 流;frame kinds: `delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`。 |
 | `POST /api/v1/account/cursor/revoke` | body `{cursor: cursor, reason_code: string, revoke_scope?: enum(this_cursor,same_device,same_session)}` | `user_session` bound to principal/device；high-assurance optional profile。 | `{revoked: boolean, expires_at: datetime}`；撤销命中后的 cursor 使用返回 `cursor_revoked`，不得推进任何 server-side state。 |
 | `GET /api/v1/account/describe` | query none | `public_metadata` 或 `user_session`；私有 limits 可认证后返回。 | `ServiceDescribe`；私有 frontier 只能作为认证后扩展字段返回。 |
-| `GET /api/v1/snapshot/head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`。 | `{snapshot_ref, state_hash, frontier, event_set_commitment, verification_hints?, signature}` |
+| `GET /api/v1/snapshot/head` | query `{realm_id: id}` | Realm read；snapshot manifest 必须签名，并包含 `event_set_commitment`。high-assurance profile 还 MUST 校验 `snapshot_issuer_did` 是否被 Realm policy / witness quorum 授权。 | `{snapshot_ref, state_hash, frontier, event_set_commitment, snapshot_issuer_did, witness_attestations?, verification_hints?, signature}` |
 | `GET /api/v1/projection/spaces` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | `user_session` 或服务签名；调用方必须满足该 Realm 的 metadata/read 可见性。 | `{realm_id, spaces[], total, next_cursor?, has_more}`；`spaces[]` 行含 `space_id, realm_id, kind, title, parent_ref?, rank?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
 | `GET /api/v1/projection/flows` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, flows[], total, next_cursor?, has_more}`；`flows[]` 行含 `flow_id, realm_id, title?, summary?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
 | `GET /api/v1/projection/morphs` | query `{realm_id: id, include_terminal?: boolean=false, cursor?: cursor, limit?: int}` | 同 `cx.projection.spaces`。 | `{realm_id, morphs[], total, next_cursor?, has_more}`；`morphs[]` 行含 `morph_id, realm_id, morph_type, title?, state, created_by?, created_at?, updated_at?, state_changed_at?`。 |
@@ -110,7 +110,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `HEAD/GET /api/v1/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Contrix-Wait-For?` | 公开 blob 可匿名；header auth 路径必须验证 actor/device/Realm/purpose/expiry；除 §5.4 `cx.blob.presign` 的短 TTL bearer URL 例外外，不得 query string 认证。 | bytes 或 headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
 | `POST /api/v1/push/register-device` | body `{device_id: id, push_gateway: url, push_key: string, platform?: string, app_id?: string, display_name?: string, recipient_service_did?: did}` | `user_session` for same principal/device；registration 作用域绑定当前 Principal Server service DID；push_key 必须被加密或最小披露存储。 | `{ok: true, registration_id?, expires_at?}` |
 | `POST /api/v1/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
-| `POST /api/v1/push/notify` | body `{notification: {event_id?, realm_id?, type, sender?, push_hint?, counts?, devices[]}}` | 来自被授权 Sync 或通知服务的 `service_signature`；E2EE 时 MUST 做 blind / 最小化处理。 | `{rejected[]}` |
+| `POST /api/v1/push/notify` | 默认 body `PushNotifyBlindRequest {notification: {push_target_id, wakeup_kind, push_hint?, counts?, devices[]}}`；可见通知必须使用互斥的 `PushNotifyVisibleRequest` profile-gated 形态。 | 来自被授权 Sync 或通知服务的 `service_signature`；默认 MUST 遵守 `cx.profile.push_gateway.blind_wakeup.v1`，不得携带 event / realm / sender 识别字段。`visible_notification` 只在 profile、Realm policy、设备 opt-in 和 UI disclosure 同时满足时允许。 | `{rejected[]}` |
 | `POST /api/v1/device_messages` | header `Idempotency-Key` body `DeviceMessagesPutRequest {messages: {principal_id: {device_id: DeviceMessageTarget {kind, content, expires_at}}}}` | sender `user_session` / device key；目标必须是授权 device；服务端入队前 MUST materialize `DeviceMessageEnvelope` 并绑定 `recipient_principal_id` / `recipient_device_id` / `expires_at`；按 `(sender, Idempotency-Key)` 幂等。验证消息使用 `cx.key.verification.*` kind，且不得作为持久 Event history；缺失、已过期或超过 TTL 上限的消息 MUST reject。 | `{ok: true, delivered?, unknown_devices?}` |
 | `GET /api/v1/device_messages` | query `{from?: cursor, limit?: int}` | `user_session` bound to current device；只返回该 device 队列。 | `{events: DeviceMessageEnvelope[], next_cursor?, limited?}` |
 | `POST /api/v1/keys/upload` | body `{device_id: id, one_time_keys?: object, fallback_keys?: object, device_signature: signature}` | current device proof；key 必须链接 self-signing / principal key。 | `{one_time_key_counts, fallback_keys?}` |
@@ -190,7 +190,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.account.cursor_revoke` | `cursor: cursor` | `reason_code: string`; `revoke_scope: enum(this_cursor,same_device,same_session)=this_cursor` | `revoked: boolean`; `expires_at: datetime` | High-assurance optional profile；撤销 cursor authority，详见 [`client-sync.md` §12.2.1](./client-sync.md)。 |
 | `cx.account.describe` | 无 | 无 | `ServiceDescribe` | 私有 frontier 可认证后作为扩展字段返回。 |
 | `cx.ephemeral.send` | body `cx.schema.ephemeral_envelope.v1` | `proof: object`（按 kind 需要）；payload 内 kind-specific 字段 | `accepted: boolean`; `kind: string`; `realm_id: id`; `dispatched_to: int?`; `server_received_at: datetime?` | broadcast ephemeral channel；只承载 `cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`，并分别要求 `cx.presence.broadcast` / `cx.typing.broadcast` / `cx.receipt.broadcast` / `cx.call.signal.send`。MUST NOT 写入 durable Event history，MUST NOT 推进 actor_seq / Realm frontier。拒绝码包括 `ephemeral_kind_not_permitted`、`ephemeral_ttl_out_of_range`、`ephemeral_channel_unavailable`。 |
-| `cx.snapshot.head` | `query.realm_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `event_set_commitment: object`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
+| `cx.snapshot.head` | `query.realm_id: id` | 无 | `snapshot_ref: id`; `state_hash: string`; `frontier: object`; `event_set_commitment: object`; `snapshot_issuer_did: did`; `witness_attestations: object[]?`; `verification_hints: object?`; `signature: signature` | snapshot manifest MUST 签名；signer 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员；high-assurance profile MUST 支持 inclusion / omission challenge hints。 |
 | `cx.projection.spaces` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `spaces: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Space lifecycle read model，不是真相源；默认不得返回 tombstoned terminal rows。 |
 | `cx.projection.flows` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `flows: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Flow lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
 | `cx.projection.morphs` | `query.realm_id: id` | `query.include_terminal: boolean=false`; `query.cursor: cursor`; `query.limit: int` | `realm_id: id`; `morphs: object[]`; `total: int`; `next_cursor: cursor?`; `has_more: boolean` | extension surface；返回 reducer 派生的 Morph lifecycle read model，不是真相源；默认不得返回 redacted terminal rows。 |
@@ -212,7 +212,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `cx.blob.presign` | `blob_ref: string` | `max_age_seconds: int (<=3600)`; `purpose: enum(media_inline, thumbnail, download)` | `url: uri`; `expires_at: timestamp`; `purpose: string` | 为单个 blob 签发短 TTL（默认 ≤ 5 min，硬上限 ≤ 1h）、单对象、只读、可撤销的 pre-signed URL。**仅用于让浏览器 `<img src>` / `<video src>` 等无法附 Authorization header 的原生标签渲染受保护媒体**。E2EE 附件 ciphertext MUST NOT 通过此机制下发。受 `cx.blob.presign` capability 控制；TTL / scope / purpose 由 grant constraint 收紧。详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
 | `cx.push.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string`; `recipient_service_did: did` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | 只能注册当前 principal/device，且 registration 作用域绑定当前 Principal Server service DID；如显式携带 `recipient_service_did`，MUST 等于目标服务 DID。 |
 | `cx.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | same device/principal 或 device revocation path。 |
-| `cx.push.notify` | `notification: object` | `notification.event_id: id`; `notification.realm_id: id`; `notification.sender: did`; `notification.push_hint: string`; `notification.counts: object`; `notification.devices: object[]` | `rejected: object[]` | 来自授权 Sync 或 notification service；E2EE 必须脱敏。 |
+| `cx.push.notify` | `notification.push_target_id: string`; `notification.wakeup_kind: enum(message,mention,reaction,call_invite,generic)`; `notification.devices: object[]` | `notification.push_hint: string`; `notification.counts: object`; visible profile only: `notification.event_id: id`, `notification.realm_id: id`, `notification.sender: did` | `rejected: object[]` | 来自授权 Sync 或 notification service；默认 blind wakeup 请求 MUST NOT 携带 event / realm / sender 字段。visible 字段只在 `cx.profile.push_gateway.visible_notification.v1` 且 Realm policy + device opt-in + UI disclosure 通过时允许。 |
 | `cx.device_messages.put` | `header.Idempotency-Key: string`; `messages: object` | 每个 target 必须含 `kind`、`content`、`expires_at` | `ok: boolean`; `delivered: object?`; `unknown_devices: object?` | `(sender, Idempotency-Key)` 幂等；目标必须是授权 device；过期或超过 TTL 上限的消息必须拒绝或逐项 reject。 |
 | `cx.device_messages.get` | 无 | `query.from: cursor`; `query.limit: int` | `events: object[]`; `next_cursor: cursor?`; `limited: boolean?` | 只返回当前 device 队列。 |
 | `cx.keys.upload` | `device_id: id`; `device_signature: signature` | `one_time_keys: object`; `fallback_keys: object` | `one_time_key_counts: object`; `fallback_keys: object?` | key 必须链接 self-signing / principal key。 |
@@ -286,6 +286,19 @@ POST /api/v1/events
   "refs": [
     { "id": "cx:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
+  "preconditions": [],
+  "effects": [
+    {
+      "cell": "cx:cell:flow:019640c6-8000-7000-8000-000000000000",
+      "op": {
+        "kind": "set",
+        "value": {
+          "status": "done"
+        }
+      }
+    }
+  ],
+  "anchor_ref": "cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "payload": {
     "flow_id": "cx:flow:019640c6-8000-7000-8000-000000000000",
     "patch": { "fields.status": "done" }
@@ -331,7 +344,7 @@ POST /api/v1/events
 
 若 `expected_frontier` 校验失败，返回 `409 cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、checkpoint 或 predecessor commit 才承认其 canonical history 地位。
 
-`events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项的 `prev_refs`、`refs[role=authorized_by]` 或显式 payload reference 解析；后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
+`events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项用于解析 bytes、Event ID、actor chain、`prev_refs` 或显式 payload-level causal reference；但**授权可见性不因此提前生效**。`refs[role=authorized_by]` 只有在被引用的 grant / authority 已存在于该后续 Event 的 `anchor_ref` pre-state 中时，才能参与授权判定。同批前序 Event 若创建、delegate、恢复或扩权某个 grant，依赖该 grant 的后续 Event MUST 等到后续 Anchor 覆盖该 grant 后再提交，或被当前批次拒绝/隔离；`refs(role="after")` 只表达后续 Anchor 的排序约束，不让同一 Anchor 内的新 effect 被读取为授权状态。后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
 
 ### 3.2 批量获取 Event
 

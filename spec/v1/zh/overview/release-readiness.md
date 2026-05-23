@@ -83,7 +83,8 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 - `zh/` 与 `artifacts/` registry lint 通过
 - `core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema、fixture、profile 已冻结
 - OpenAPI 不得包含未发布生成器报告、占位 body 说明或 operation-level 非法字段
-- fixture 与 Markdown JSON 示例不得使用非 active wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`
+- fixture 与 Markdown JSON 示例不得使用非 active wire 字段、未注册 Event kind 或任何 schema-invalid wire shape。所有标记为正向的 fixture / vector MUST 先通过本地 JSON Schema resolver 校验；负向 fixture MUST 先满足基础 envelope shape，并在声明的目标错误处失败，不能被更早的 schema 错误掩盖。
+- 站点构建产物与线上 `$id` URL MUST 以 raw JSON 发布所有 registry 声明的 JSON Schema artifact，Content-Type SHOULD 为 `application/schema+json`，至少为 `application/json`；不得让 schema `$id` 解析到 HTML 文档。
 
 ### 5.2 `v1-interop-preview` 实现互操作预览
 

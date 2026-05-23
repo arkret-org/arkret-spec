@@ -91,6 +91,8 @@ Ghost Actor MUST 带有 `accountability`，指向 Applet controller 和外部网
 
 Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员、registry 或 authz service 接受。
 
+Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin 或 Realm policy 明确授权的 registry/authz service 签发。仅凭 Applet 自签 registration、namespace claim 或外部 registry 收录不得写入 Realm；缺少该 grant 时，任何 `cx.applet.registration` / `cx.applet.transaction` 引入的 Realm 写入 MUST 拒绝，reason=`applet_registration_unauthorized`。
+
 示例：
 
 ```json

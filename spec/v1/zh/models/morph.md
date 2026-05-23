@@ -115,7 +115,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 
 `morph_type` create-locked（见 §4 顺序 3）防止授权错位，但 `schema_refs[]` 不能 freeze——Morph 的本质就是 evolvable schema。然而 `schema_refs[]` 也不能裸 update：它决定字段验证、transition 规则与历史事件解释，静默替换会导致旧事件按错误 schema 重放、reducer 行为漂移、capability 范围隐性扩张。本节定义 schema 演进的三条 normative 规则：S1 per-event schema 版本绑定；S2 `cx.morph.update` 中 schema_refs[] 变更的 capability gate；S3 完整 schema migration（含 additive / breaking / transformation 兼容声明）由一等 event `cx.morph.schema_migrate` 承担。
 
-**S1. Schema 版本绑定（per-event）**：每个针对该 Morph 的 reducer-input event（`cx.morph.create` / `cx.morph.update` / `cx.morph.transition` / 自定义 Morph kind）**MUST** 在 `requirements.schema[]` 中列出该事件写入时实际遵循的 Morph `schema_refs[]` 全集（即 Morph object 在该 event 生效后 §4 顺序 1 的真源）。`requirements.schema[]` 已进入 canonical bytes 与 event digest（见 [`event-and-patch.md` §2.7](./event-and-patch.md)），任何篡改会破坏签名。
+**S1. Schema 版本绑定（per-event）**：每个针对该 Morph 的 reducer-input event（`cx.morph.create` / `cx.morph.update` / `cx.morph.schema_migrate` / 自定义 Morph kind）**MUST** 在 `requirements.schema[]` 中列出该事件写入时实际遵循的 Morph `schema_refs[]` 全集（即 Morph object 在该 event 生效后 §4 顺序 1 的真源）。`requirements.schema[]` 已进入 canonical bytes 与 event digest（见 [`event-and-patch.md` §2.7](./event-and-patch.md)），任何篡改会破坏签名。
 
 Reader 决策规则：
 - 重放历史事件时，reader **MUST** 用该事件 `requirements.schema[]` 中绑定的 schema 版本进行 payload / patch / transition 验证，**不得**使用 Morph 当前的 `schema_refs[]`；

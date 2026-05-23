@@ -81,6 +81,9 @@ sidebar:
 22. **媒体侧信道探测（Media Header / Range Probe）**
     通过 `HEAD`、`Range`、`Content-Length`、`Content-Type`、`Content-Disposition` 或 redirect 差异推断私有 blob 是否存在、大小、类型或文件名。
 
+23. **联邦流量模式旁观（Federation Traffic-Pattern Observer）**
+    即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。高隐私部署 SHOULD 使用 OHTTP / relay indirection、批处理 padding、发送延迟抖动、固定大小 federation batch 和 decoy wakeup 流量来降低可关联性；不得把 E2EE 误表述为隐藏 federation traffic metadata。
+
 ### 2.2 当前协议中不成立的攻击项
 
 - 回退重试链路细节（如不可控网关转发回路）

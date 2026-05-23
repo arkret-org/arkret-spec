@@ -142,13 +142,28 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `payload_hash` | yes | `hash` | MUST 等价于 `canonical_hash(envelope_without_proofs_unsigned)`：被签名输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等），不是只绑定 `payload` 字段。 | 被签名的 canonical envelope hash。字段名按 `canonical_hash(envelope_without_proofs_unsigned)` 的全包含语义解读，不要按字面只绑定 `payload`。 |
+| `payload_hash` | yes | `hash` | MUST 等价于 `canonical_hash(envelope_without_proofs_unsigned)`：hash 输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等），不是只绑定 `payload` 字段。 | canonical envelope hash。字段名按 `canonical_hash(envelope_without_proofs_unsigned)` 的全包含语义解读，不要按字面只绑定 `payload`。 |
 | `created_at` | yes | `timestamp` |  | 签名时间。 |
 | `domain` | no | `string` | 跨服务 SHOULD 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 跨域/服务调用 SHOULD 设置。 | 受众绑定。 |
 | `jws` | yes | `string` | detached JWS。 | 签名值。 |
 
 DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/identity-did.md) 的 Proof 和 [`../conformance/encoding.md`](../conformance/encoding.md) 的 canonical JSON 规则一致。
+
+`detached_jws` 的 JWS payload/transcript MUST 是 canonical proof binding object，而不是直接把完整 Event bytes 放进 JWS payload：
+
+```json
+{
+  "payload_hash": "sha256:<canonical envelope hash>",
+  "actor_id": "<event.actor_id>",
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
+  "domain": "<proof.domain if present>",
+  "audience": "<proof.audience if present>"
+}
+```
+
+Verifier MUST 先移除 `proofs` 与 `unsigned` 计算 canonical Event hash，并与 `proof.payload_hash` 比对；随后按上述字段构造 canonical proof binding object，验证 detached JWS 覆盖该 binding object。这样 `payload_hash` 绑定完整 Event，而 JWS transcript 同时绑定 actor、verification method、时间、domain/audience，避免跨服务或跨 actor 重放。
 
 ## 4. Field Patch (`cx.patch.v1` / `cx.schema.patch.v1`)
 

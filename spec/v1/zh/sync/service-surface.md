@@ -364,7 +364,7 @@ POST /api/v1/events
 - 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Realm policy、`actor_seq` 和因果依赖。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Realm frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 
-当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 `prev_refs` / `refs[role=authorized_by]` / payload-level causal reference；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
+当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 bytes / Event ID / actor chain / `prev_refs` / payload-level causal reference 解析；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。`refs[role=authorized_by]` 是授权状态引用，不是普通解析引用：被引用 grant / authority MUST 已存在于后一项 Event 的 `anchor_ref` pre-state 中，才可用于授权判定。同批前一项创建、delegate、恢复或扩权的 grant 不得在同一 Anchor batch 内立即授权后一项写入；依赖方必须等后续 Anchor 覆盖该 grant，或在当前批次被拒绝/隔离。`refs(role="after")` 只表达后续 Anchor 的排序约束，不允许读取同批 effect 来满足 precondition 或授权。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
 
 ### 4.3 获取单个 Event
 
@@ -710,7 +710,7 @@ Contrix v1 的首次加入流程：
 3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / account / snapshot / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `snapshot_issuer_did`、`signature`、签名者授权、`state_hash` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `snapshot_issuer_did`，且该 DID 必须是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，manifest 还 MUST 携带可验证的 `witness_attestations[]` 或等价 quorum proof；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /events?before=<cursor>`（`cx.events.query`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read marker、notification cursor 等个人状态

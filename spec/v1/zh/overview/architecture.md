@@ -477,6 +477,8 @@ Contrix 不打算做“两套系统”：
 - **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Flow / Message / Morph / Blob，进入 Realm 账本，与人类协作沉淀共用同一份事实层。
 - **受控外部知识访问**：agent 可读取的 Realm、对象或派生摘要 MUST 通过显式的 capability grant 声明 `scope`、`visibility` 与 retention 约束，受 capability 与 Realm policy 约束。
 
+Agent 代表人类或服务写入 Event 时，payload、`unsigned` 或 profile 注册的扩展字段中 MUST 携带可审计 `agent_context`（至少包含 `agent_id`、`operator_or_controller`、`authorization_ref`、`execution_purpose` 和可选 `tool_session_ref` / `model_ref`）。缺少 `agent_context` 的 agent-signed write MUST 被视为 `schema_violation` 或 `capability_denied`，不得把它伪装成人类直接写入。
+
 这意味着不存在协议层面的"agent 私有记忆库"。任何需要被审阅、引用或撤回的 agent 记忆都必须以标准对象形式落账；不需要被审阅的运行时状态留在 agent runtime 内部，不进入协议视野。
 
 ## 8. 架构决定

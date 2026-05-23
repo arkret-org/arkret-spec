@@ -249,6 +249,15 @@ export function listSchemaDocuments(): { id: string; file: string; doc: Record<s
   }));
 }
 
+export function listAllSchemaDocuments(): { file: string; doc: Record<string, unknown> }[] {
+  return Object.entries(schemaFiles)
+    .map(([path, doc]) => ({
+      file: `schemas/${fileEnd(path)}`,
+      doc,
+    }))
+    .sort((a, b) => a.file.localeCompare(b.file));
+}
+
 // --- fixture loading ---------------------------------------------------------
 
 export interface FixtureEntry {

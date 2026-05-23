@@ -183,8 +183,25 @@ cx.vector.encoding.event_digest.v1
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [],
   "refs": [],
+  "preconditions": [],
+  "effects": [
+    {
+      "cell": "cx:cell:message:019640ed-8000-7000-8000-000000000000",
+      "op": {
+        "kind": "append",
+        "value": {
+          "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
+          "message_id": "cx:message:019640ed-8000-7000-8000-000000000000",
+          "track": "discussion"
+        }
+      }
+    }
+  ],
+  "anchor_ref": "cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "payload": {
     "flow_id": "cx:flow:01964137-0000-7000-8000-000000000000",
+    "track": "discussion",
+    "message_id": "cx:message:019640ed-8000-7000-8000-000000000000",
     "content": {
       "kind": "cx.content.text",
       "body": "hello"
@@ -196,13 +213,13 @@ cx.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"created_at":"2026-04-26T00:00:00Z","event_id":"cx:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000"},"prev_refs":[],"realm_id":"cx:realm:01964137-0000-7000-8000-000000000000","refs":[]}
+{"actor_id":"did:web:alice.example","actor_seq":1,"anchor_ref":"cx:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222","created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"cx:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000","message_id":"cx:message:019640ed-8000-7000-8000-000000000000","track":"discussion"}}}],"event_id":"cx:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"cx.message.create","payload":{"content":{"body":"hello","kind":"cx.content.text"},"flow_id":"cx:flow:01964137-0000-7000-8000-000000000000","message_id":"cx:message:019640ed-8000-7000-8000-000000000000","track":"discussion"},"preconditions":[],"prev_refs":[],"realm_id":"cx:realm:01964137-0000-7000-8000-000000000000","refs":[]}
 ```
 
 期望 digest：
 
 ```text
-sha256:28a1fb525f9313906c2471160b6ab508415691583d2a8850c05006bf99121398
+sha256:90b6a9bdacba4a32b49a560b1fca484a15e858b298f21755110517d3d96b349c
 ```
 
 判定规则：

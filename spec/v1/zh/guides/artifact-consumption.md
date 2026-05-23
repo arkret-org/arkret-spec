@@ -18,6 +18,17 @@ title: Artifact Consumption Guide
 
 手写常量只能作为 ergonomics alias；admission、profile claim、conformance gate 不得以手写常量作为唯一事实来源。
 
+## JSON Schema `$id` 与发布形态
+
+仓库内 validator SHOULD 使用本地 resolver，把 `https://contrix.io/artifacts/schemas/<file>.json` 映射到 `spec/v1/artifacts/schemas/<file>.json`，避免测试依赖网络。发布站点则 MUST 在相同路径提供 raw JSON Schema artifact，而不是 HTML catalog 页面；`$id` URL 返回的 body 必须能被标准 JSON Schema validator 直接解析。
+
+推荐响应头：
+
+- `Content-Type: application/schema+json`（至少 `application/json`）
+- `Cache-Control` 可按发布版本长期缓存，但 breaking schema 更新必须通过版本化 schema id 表达
+
+Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类阅读视图，不得替代 `$id` URL 的机器消费形态。
+
 ## Rust SDK
 
 `contrix-rust-sdk` 是 artifact 消费的第一层。

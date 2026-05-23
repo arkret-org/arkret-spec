@@ -152,7 +152,7 @@ Server 端实现合规要点：
 
 `cx.realm.destroy` accepted 进入 frontier 之后：
 
-1. **拒绝后续普通写入**：reducer MUST reject 所有非 `cx.audit.*` / 非 `cx.audit.erasure_receipt` event；后续 `cx.events.submit` 返回 `realm_terminal_state`（错误码沿用 `cx.realm.lifecycle` 域）。
+1. **拒绝后续普通写入**：reducer MUST reject 所有非 `cx.audit.*` / 非 `cx.audit.erasure_receipt` event；后续 `cx.events.submit` 返回 `realm_terminal_state`（错误码归类于 `realm_lifecycle` 错误域，避免与 `cx.realm.lifecycle.*` capability action 命名混用）。
 2. **Snapshot / Backfill / GC**：
    - Snapshot service MAY 发布最后一份 final snapshot（`cx.snapshot.*` event）；之后 snapshot 不再更新。
    - Backfill MAY 继续提供历史 event 给已授权 reader，受 history visibility policy 控制；新读权 MUST NOT 再被授予。
